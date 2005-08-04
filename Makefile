@@ -1,5 +1,5 @@
 
-REPS = lwt xmlp4 http essais server moduleexample
+REPS = lwt xmlp4 http server moduleexample
 
 all: $(REPS)
 
@@ -14,9 +14,6 @@ xmlp4:
 
 http :
 	make -C http depend all
-
-essais:
-	make -C essais all
 
 moduleexample:
 	make -C moduleexample all
