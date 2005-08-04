@@ -1,0 +1,6 @@
+omlet.cmo: error_pages.cmo omlet.cmi 
+omlet.cmx: error_pages.cmx omlet.cmi 
+server.cmo: omlet.cmi /opt/godi/lib/ocaml/std-lib/netstring/neturl.cmi \
+    /opt/godi/lib/ocaml/std-lib/netstring/netencoding.cmi messages.cmo 
+server.cmx: omlet.cmx /opt/godi/lib/ocaml/std-lib/netstring/neturl.cmi \
+    /opt/godi/lib/ocaml/std-lib/netstring/netencoding.cmi messages.cmx 

@@ -1,0 +1,10 @@
+xmlp4 is a pre-processor and pretty-printer for xml.
+Written by Vincent Balat and Julien Mineraud
+
+It creates a syntax extension for caml allowing to write xml inside a caml program
+using xml syntax, and a pretty printer.
+
+You define your DTD (for ex xhtml.ml)
+Then you apply the functor Xmlparser.make (for ex xhtmlsyntax.ml)
+And you write your pretty-printer (for ex xhtmlpp.ml)
+

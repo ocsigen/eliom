@@ -1,0 +1,10 @@
+xmlparser.cmo: xmllexer.cmo /opt/godi/lib/ocaml/std-lib/camlp4/quotation.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/pcaml.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/mLast.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/gramext.cmi 
+xmlparser.cmx: xmllexer.cmx /opt/godi/lib/ocaml/std-lib/camlp4/quotation.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/pcaml.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/mLast.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/gramext.cmi 

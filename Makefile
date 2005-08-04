@@ -1,0 +1,30 @@
+
+REPS = lwt xmlp4 http essais server moduleexample
+
+all: $(REPS)
+
+.PHONY: $(REPS) clean
+
+
+lwt:
+	make -C lwt depend all
+
+xmlp4:
+	make -C xmlp4 depend all
+
+http :
+	make -C http depend all
+
+essais:
+	make -C essais all
+
+moduleexample:
+	make -C moduleexample all
+
+server:
+	make -C server depend all
+
+clean:
+	@for i in $(REPS) ; do make -C $$i clean ; done
+	-rm -f lib/* *~
+	-rm -f bin/* *~

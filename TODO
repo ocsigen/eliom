@@ -1,0 +1,76 @@
+(* à faire
+ - revoir le problème des URL avec / à la fin. Ça change le comportement
+   du navigateur pour les liens relatifs.
+ - enregistrement d'url jetables. Est-ce que ce sont les URL qui sont 
+   jetables ? ou les enregistrements ? Est-ce que l'on peut enregistrer des 
+   URL publiques jetables ? des URL de sessions sans état ?
+ - urls de fichiers, externes ou pas, qui ne peuvent pas prendre de param
+ - Garbage collector des sessions trop vieilles. Peut-être aussi sérialiser
+   les pages pas souvent utilisées ?
+ - les pages sans params statiques peuvent être générées une fois pour toutes
+ - Faire des cookies plus compliqués
+ - Vérifier que les cookies sont bien associés à l'IP du client
+
+ - cache des pages statiques et évaluation partielle.
+   Voir lien avec le cache de l'accès à la base de données.
+
+ - Écrire une doc technique sur l'implémentation, très vite.
+
+ *)
+
+
+
+(* ------------------------------------------------------------------ *)
+(* Limitations (volontaires ou pas, à réfléchir) :
+
+   1. On ne peut pas envoyer PLUS de paramètres à une page qu'elle en
+   attend
+
+   3. problème de lien vers une url qui n'existe pas. On peut résoudre
+   ça par une extension de syntaxe style let rec... and... mais problème
+   avec compilation séparée
+
+   4. gestion des formulaires pas satisfaisante. rien n'interdit de
+   créer un formulaire avec des mauvais noms de champs...
+   Une solution (qui perd du temps à l'exécution) est de passer
+   un formulaire à trou et une permutation.
+   (pb de la représentation efficace des permutations)
+
+   5. La structure url est lourde
+
+   6. L'enregistrement dynamique des pages est discutable pour
+   les pages publiques. Parce que cela peut planter. (par ex si 'lon
+   enregistre 2 fois la même page ou un fichier sur un répertoire,
+   etc). Mais cela permet :
+   - de simplifier le chargement dynamique de modules sans recompilation
+   - de se baser sur un fichier de config pour l'arborescence du site
+   (forum dans le répertoire forum, wiki dans wiki/, etc.)
+   - de créer des pages publiques dynamiquement...
+   - d'avoir un contrôle statique des liens vers lesquels on pointe
+   et du type de leurs paramètres
+   - ...
+
+   7. Rien n'oblige à enregistrer les URL. Donc on peut avoir des liens
+   qui pointent sur des pages inexistantes, même internes. Il faudrait
+   au moins faire un contrôle dynamique, ou bien imposer d'utiliser
+   register_new_url avec une magouille qui sépare le new_url du register
+   (extension de syntaxe)
+
+   8. Les références globales current_dir et session_tree dans
+   pages_registration.ml peuvent être sources d'erreurs dans le module
+   pages_registration.ml... Y penser en cas de comportement bizarre.
+   J'ai fait comme ça pour simplifier l'écriture des sites...
+
+   9. (cf 7.) On peut enregistrer des URL publiques dans des tables de sessions
+   alors qu'elles ne sont pas forcément enregistrées dans la tables globale...
+
+   10. Problème des URL avec état quand on est obligé de passer le
+   paramètre avec la méthode GET (liens, formulaire GET). 
+   Réflexion à faire sur les pages avec effet de bord (modif d'état).
+   Faut-il autoriser les URL avec état publiques ? À quoi ça sert ?
+   (« Je viens de tel lien »). Utiliser le paramètre "referer" du header
+   pour vérifier que l'on vient bien du lien ? Utiliser la redirection
+   de pages pour changer l'URL avec l'effet de bord ?
+
+*)
+
