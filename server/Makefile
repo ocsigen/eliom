@@ -18,7 +18,8 @@ CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
 OBJS = $(FILES:.ml=.cmo)
 
 all: depend $(OBJS) $(NAME) doc
-	cp *.cmo *.cmi ../lib
+#	cp *.cmo *.cmi ../lib
+	cp omlet.cmo omlet.cmi ../lib
 	cp $(NAME) ../bin
 
 .SUFFIXES:

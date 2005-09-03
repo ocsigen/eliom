@@ -16,6 +16,8 @@
 
  - Écrire une doc technique sur l'implémentation, très vite.
 
+ - Implémenter messages.ml mieux (et le mettre dans krokoutils ?)
+
  *)
 
 

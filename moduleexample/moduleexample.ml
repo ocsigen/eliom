@@ -4,7 +4,7 @@
 open Omlet
 
 (* ------------------------------------------------------------------ *)
-(* To create a web web without parameter: *)
+(* To create a web page without parameter: *)
 let plop = 
   register_new_url 
     ~name:(Url ["plop"]) 

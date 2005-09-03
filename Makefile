@@ -21,6 +21,9 @@ moduleexample:
 server:
 	make -C server depend all
 
+krokoutils:
+	make -C server depend all
+
 clean:
 	@for i in $(REPS) ; do make -C $$i clean ; done
 	-rm -f lib/* *~

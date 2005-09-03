@@ -250,16 +250,14 @@ let _ =
     (* On charge les modules *)
     (try
        Dynlink.init();
-       load_aaaaa_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo";     
+       Dynlink.loadfile "../../kiko/lib/kikomessages.cmo";
+       Dynlink.loadfile "../../kiko/lib/kikobj.cmo";
+       Dynlink.loadfile "../../kiko/lib/kikobox.cmo";
+       load_aaaaa_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo";
+       load_aaaaa_module ~dir:["kiko"] ~cmo:"../../kiko/lib/kikoxample.cmo";
      with Aaaaa_error_while_loading m -> (warning ("Error while loading "^m)));
     listen ()
   )
 
 
-
-(* Bidouille pour pouvoir utiliser les objets dans les modules chargés : 
-   (il faut trouver quel module lier pour éviter ça)
-*)
-class toto = object
-end
 
