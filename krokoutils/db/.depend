@@ -1,0 +1,7 @@
+cache.cmi: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi 
+db_create.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmi 
+db_create.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmi 
+persistant.cmo: db_create.cmo persistant.cmi 
+persistant.cmx: db_create.cmx persistant.cmi 
+cache.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmo cache.cmi 
+cache.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmx cache.cmi 
