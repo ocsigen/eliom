@@ -5,7 +5,7 @@ CAMLC = ocamlc -g $(LIB)
 CAMLOPT = ocamlopt $(LIB)
 CAMLDOC = ocamldoc $(LIB)
 CAMLDEP = ocamldep
-LIB = -I ../../lib
+LIB = -I ../../lib -I +dbi
 PP = -pp "camlp4o ../../lib/xmllexer.cmo ../../lib/xmlparser.cmo"
 
 CMAO = 

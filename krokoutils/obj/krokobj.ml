@@ -4,6 +4,32 @@ type saved_data = string * int * Obj.t (* abstract in the mli *)
    the Obj.t is a data of any type
 *)
 
+module SavedDataCache =
+  Cache.Make(
+    struct
+      type tvalue = saved_data
+	  
+      let sql_t_list_to_tvalue = function
+	  [`Binary data
+	  ] -> ((Marshal.from_string data 0) : tvalue)
+	| _ -> raise (Cache.Cache_error "content (probably database table wrong?)")
+	    
+      let tvalue_to_sql_t_list o =
+	[`Binary (Marshal.to_string o [])
+	]
+	  
+      let sql_fields_list_without_key = ["data"]
+	
+      let table = "content"
+	
+      let key = "content_key"
+	
+    end)
+
+let dbinsert ~value = SavedDataCache.insert value#save
+
+let dbupdate ~key ~value = SavedDataCache.update key value#save
+
 
 (** Each time we want to create a savable class, we need to register in a table
     - the function to load it from the store (database)
@@ -27,6 +53,8 @@ sig
     ('data -> saved_data)
       
   val get : saved_data -> t
+
+  val dbget : key:int -> t
     
 end
 
@@ -51,7 +79,10 @@ struct
       
   let get (name, version, data) = (Hashtbl.find table name) version data
 
+  let dbget ~key = get (SavedDataCache.get key)
+
 end;;
+
 
 (** Generic class that can be saved in the database.
     To force registering all new class,
@@ -67,7 +98,6 @@ end
 
 (******************************************************************)
 (* Now the boxes and pages, that are savable *)
-
 
 class virtual ['a] generic_item = object
 
@@ -146,6 +176,7 @@ let new_savable_page boxlist = new savable_page boxlist fold_page
 
 
 
+(*****************************************************************************)
 (** Some usefull boxes: *)
 class title t = object
   inherit box
@@ -166,3 +197,4 @@ let fold_title = RegisterBox.register ~name:"savable_title" ~version:1
   ~load:(fun version data fold -> new savable_title data fold)
 
 let new_savable_title t = new savable_title t fold_title
+
