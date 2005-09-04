@@ -5,3 +5,5 @@ persistant.cmo: db_create.cmo persistant.cmi
 persistant.cmx: db_create.cmx persistant.cmi 
 cache.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmo cache.cmi 
 cache.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmx cache.cmi 
+krokobj.cmo: cache.cmi 
+krokobj.cmx: cache.cmx 

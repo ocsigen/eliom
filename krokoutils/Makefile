@@ -1,17 +1,44 @@
 
-REPS = db obj
+FILES= db_create.ml persistant.ml cache.ml krokobj.ml
 
-all: $(REPS)
+CAMLC = ocamlc -g $(LIB)
+CAMLOPT = ocamlopt $(LIB)
+CAMLDOC = ocamldoc $(LIB)
+CAMLDEP = ocamldep
+LIB = -I +postgres -I +dbi -I +pcre -I ../lib
+PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo"
 
-.PHONY: $(REPS) clean
+OBJS = $(FILES:.ml=.cmo)
 
+all: depend $(OBJS) doc
 
-db:
-	make -C db depend all install
+install: all
+	cp *.cm? ../lib
 
-obj:
-	make -C obj depend all install
+.SUFFIXES:
+.SUFFIXES: .ml .mli .cmo .cmi .cmx
+
+.PHONY: doc
+
+.ml.cmo:
+	$(CAMLC) $(PP) -c $<
+
+.mli.cmi:
+	$(CAMLC) -c $<
+.ml.cmx:
+	$(CAMLOPT) $(PP) -c $<
+
+doc:
+	$(CAMLDOC) -d doc -html cache.mli
 
 clean:
-	@for i in $(REPS) ; do make -C $$i clean ; done
+	-rm -f *.cm[iox] *~ $(NAME)
+
+depend:
+	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
+
+FORCE:
+
+include .depend
+
 
