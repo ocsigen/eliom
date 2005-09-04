@@ -6,20 +6,23 @@ CAMLC = ocamlc -g $(LIB)
 CAMLOPT = ocamlopt $(LIB)
 CAMLDOC = ocamldoc $(LIB)
 CAMLDEP = ocamldep
-LIB = -I ../lib -I +netstring -I +pcre
+LIB = -I ../lib -I +netstring  -I +postgres -I +dbi -I +pcre
 PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo"
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtmlpp.cmo sender_helpers.cmo\
-       error_pages.cmo
-#       postgres.cma dbi.cma dbi_postgres.cmo\
+       error_pages.cmo\
+       postgres.cma dbi.cma dbi_postgres.cmo
+# dernière ligne pas nécessaire pour server mais je n'arrive pas à le lier ailleurs...
+
 
 OBJS = $(FILES:.ml=.cmo)
 
 all: depend $(OBJS) $(NAME) doc
 #	cp *.cmo *.cmi ../lib
 	cp omlet.cmo omlet.cmi ../lib
+	cp messages.cmi ../lib
 	cp $(NAME) ../bin
 
 .SUFFIXES:

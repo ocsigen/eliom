@@ -1,14 +1,14 @@
 
-FILES= db_create.ml persistant.ml cache.ml
+FILES= krokobj.ml
 
 CAMLC = ocamlc -g $(LIB)
 CAMLOPT = ocamlopt $(LIB)
 CAMLDOC = ocamldoc $(LIB)
 CAMLDEP = ocamldep
-LIB = -I +postgres -I +dbi -I +pcre -I ../../lib
-PP = 
+LIB = -I ../../lib
+PP = -pp "camlp4o ../../lib/xmllexer.cmo ../../lib/xmlparser.cmo"
 
-CMAO = pcre.cma postgres.cma dbi.cma dbi_postgres.cmo
+CMAO = 
 
 OBJS = $(FILES:.ml=.cmo)
 
@@ -31,7 +31,7 @@ install: all
 	$(CAMLOPT) $(PP) -c $<
 
 doc:
-	$(CAMLDOC) -d doc -html cache.ml persistant.ml db_create.ml
+	$(CAMLDOC) $(PP) -d doc -html krokobj.ml
 
 clean:
 	-rm -f *.cm[iox] *~ $(NAME)

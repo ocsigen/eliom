@@ -250,9 +250,17 @@ let _ =
     (* On charge les modules *)
     (try
        Dynlink.init();
-       Dynlink.loadfile "../../kiko/lib/kikomessages.cmo";
+(*       Dynlink.loadfile "/opt/godi/lib/ocaml/pkg-lib/pcre/pcre.cma";
+       Dynlink.loadfile "/opt/godi/lib/ocaml/site-lib/postgres/postgres.cma";
+       Dynlink.loadfile "/opt/godi/lib/ocaml/std-lib/dbi/dbi.cma";
+       Dynlink.loadfile "/opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmo";*)
+       Dynlink.loadfile "../lib/db_create.cmo";
+       Dynlink.loadfile "../lib/persistant.cmo";
+       Dynlink.loadfile "../lib/cache.cmo";
+       Dynlink.loadfile "../lib/krokobj.cmo";
        Dynlink.loadfile "../../kiko/lib/kikobj.cmo";
-       Dynlink.loadfile "../../kiko/lib/kikobox.cmo";
+       Dynlink.loadfile "../../kiko/lib/db.cmo";
+       Dynlink.loadfile "../../kiko/lib/kikobox.cmo"; 
        load_aaaaa_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo";
        load_aaaaa_module ~dir:["kiko"] ~cmo:"../../kiko/lib/kikoxample.cmo";
      with Aaaaa_error_while_loading m -> (warning ("Error while loading "^m)));

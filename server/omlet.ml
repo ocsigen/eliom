@@ -304,7 +304,7 @@ module Directorytree : DIRECTORYTREE = struct
                search_table new_dir l)
       in function
             [] -> table,dircontent_ref
-	| [""] ->  print_endline "j'enregistre un page par défaut du répertoire" ; aux "" []
+	| [""] ->  print_endline "j'enregistre une page par défaut du répertoire" ; aux "" []
 	| ""::l -> print_endline "j'enrSLASH" ; search_table (Dir (table, dircontent_ref)) l
 	| a::l -> print_endline ("j'enregistre dans "^a) ; aux a l
     in
@@ -787,6 +787,6 @@ let load_aaaaa_module ~dir ~cmo =
   with Dynlink.Error e -> 
     current_dir := save_current_dir;
     raise (Aaaaa_error_while_loading (cmo^" ("^(Dynlink.error_message e)^")"))
-    | _ -> 
+    | e -> 
 	current_dir := save_current_dir;
-	raise (Aaaaa_error_while_loading cmo)
+	raise e (*Aaaaa_error_while_loading cmo*)
