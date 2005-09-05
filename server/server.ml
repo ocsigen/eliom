@@ -259,8 +259,6 @@ let _ =
        Dynlink.loadfile "../lib/cache.cmo";
        Dynlink.loadfile "../lib/krokobj.cmo";
        Dynlink.loadfile "../../kiko/lib/kikobj.cmo";
-       Dynlink.loadfile "../../kiko/lib/db.cmo";
-       Dynlink.loadfile "../../kiko/lib/kikobox.cmo"; 
        load_aaaaa_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo";
        load_aaaaa_module ~dir:["kiko"] ~cmo:"../../kiko/lib/kikoxample.cmo";
      with Aaaaa_error_while_loading m -> (warning ("Error while loading "^m)));

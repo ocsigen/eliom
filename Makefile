@@ -22,7 +22,7 @@ server:
 	make -C server depend all
 
 krokoutils:
-	make -C krokoutils all
+	make -C krokoutils all install
 
 clean:
 	@for i in $(REPS) ; do make -C $$i clean ; done
