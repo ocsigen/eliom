@@ -1,13 +1,41 @@
-type saved_data = string * int * Obj.t (* abstract in the mli *)
-(* The string is the name of the class, 
-   the int is the version of the class,
-   the Obj.t is a data of any type
-*)
+module Dyn : sig
+  type t
+  exception Dyn_duplicate_registering
+  exception Dyn_unfold_error
+  val register : string -> ('a -> t) * (t -> 'a)
+  val tag : t -> string
+end = struct
 
-module SavedDataCache =
+  type t = string * Obj.t
+      (* The string is the name of the class, 
+	 the int is a version number,
+	 the Obj.t is a data of any type
+      *)
+
+  exception Dyn_duplicate_registering
+  exception Dyn_unfold_error
+
+  let table = ref []
+
+  let register name = 
+    if List.mem name !table
+    then raise Dyn_duplicate_registering
+    else
+      table := name::!table;
+      ((fun v -> (name, Obj.repr v)),
+       (fun (name', rv) ->
+	  if name = name' then Obj.magic rv 
+	  else raise Dyn_unfold_error))
+
+  let tag (n,_) = n
+
+end
+
+
+module DyntCache =
   Cache.Make(
     struct
-      type tvalue = saved_data
+      type tvalue = Dyn.t
 	  
       let sql_t_list_to_tvalue = function
 	  [`Binary data
@@ -26,9 +54,11 @@ module SavedDataCache =
 	
     end)
 
-let dbinsert ~value = SavedDataCache.insert value#save
+let dbinsertdyn ~value = DyntCache.insert value
 
-let dbupdate ~key ~value = SavedDataCache.update key value#save
+let dbupdatedyn ~key ~value = DyntCache.update key value
+
+let dbgetdyn ~key = DyntCache.get key
 
 
 (** Each time we want to create a savable class, we need to register in a table
@@ -46,6 +76,7 @@ let dbupdate ~key ~value = SavedDataCache.update key value#save
     we give a constructor for a default value that will be given by
     get and dbget if they didn't manage to find the value.
 *)
+type saved_obj = Dyn.t (* abstract in the mli *)
 
 module type REGISTER =
 sig
@@ -53,59 +84,50 @@ sig
   (** The type we want to save *)
   type t
 
-  (** The type in with it will be encoded before saving *)
-  type t_encoded
-
   exception Duplicate_registering
   
-  val register : name:string -> version:int ->
-    load:(int -> 'data -> ('data -> saved_data) -> t) ->
-    ('data -> saved_data)
+  val register : name:string ->
+    decode:('encoded_data -> ('encoded_data -> saved_obj) -> t) ->
+    ('encoded_data -> saved_obj)
       
-  val get : saved_data -> t
+  val get : saved_obj -> t
 
-  val dbget : key:int -> t
-    
 end
 
 module MakeRegister (A: sig 
 		       type t
-		       type t_encoded
-		       val make_default : (t_encoded -> saved_data) -> t
+		       type encoding_default
+		       val make_default : 
+			 ((encoding_default -> saved_obj) -> saved_obj) -> t
 		     end) 
-  : REGISTER with type t = A.t and type t_encoded = A.t_encoded =
+  : REGISTER with type t = A.t =
  
 struct
 
   type t = A.t
-  type t_encoded = A.t_encoded
 
   exception Duplicate_registering
 
   let table = Hashtbl.create 10
 
-  let fold name version = (fun x -> (name, version, Obj.repr x))
-    
-  let register ~name ~version ~load:constructor = 
+  let register ~name ~decode = 
     if Hashtbl.mem table name
     then raise Duplicate_registering
-    else
-      (Hashtbl.add table name 
-	 (fun version data -> 
-	    constructor version (Obj.obj data) (fold name version));
-       fold name version)
+    else let fold,unfold = Dyn.register name 
+    in (Hashtbl.add table name 
+	  (fun data -> decode (unfold data) fold);
+	fold)
       
-  let default = A.make_default (fold "default" 1)
-
-  let get (name, version, data) = 
-    try (Hashtbl.find table name) version data
-    with _ -> default
-
-  let dbget ~key = 
-    try get (SavedDataCache.get key)
-    with _ -> default
+  let get data = 
+    (Hashtbl.find table (Dyn.tag data)) data
 
 end;;
+
+let dbinsertobj ~value = DyntCache.insert value#save
+
+let dbupdateobj ~key ~value = DyntCache.update key value#save
+
+
 
 
 (** Generic class that can be saved in the database.
@@ -114,14 +136,15 @@ end;;
     value of type saved_data. To instantiate the class, use the module
     below
 *)
-class virtual ['data] savable (fold : 'data -> saved_data) = object
+class virtual ['data] savable (fold : 'data -> saved_obj) = object
 
-  method virtual save : saved_data
+  method virtual save : saved_obj
 
 end
 
 (** A generic savable class that saves the data given to the constructor *)
-class ['data] savable_data (data : 'data) (fold : 'data -> saved_data) = object
+class ['data] savable_data (data : 'data) (fold : 'data -> saved_obj) = 
+object
 
   inherit ['data] savable fold
   method save = fold data
@@ -154,12 +177,12 @@ end
 
 module RegisterBox = MakeRegister(struct 
 				    type t = savable_box 
-				    type t_encoded = unit
+				    type encoding_default = unit
 				    let make_default = new savable_box
 				  end)
 
-let fold_box = RegisterBox.register ~name:"savable_box" ~version:1
-  ~load:(fun version () -> new savable_box)
+let fold_box = RegisterBox.register ~name:"savable_box"
+  ~decode:(fun () -> new savable_box)
 
 let new_savable_box () = new savable_box fold_box
 
@@ -179,16 +202,16 @@ end
     It returns the constructor for an object with a method [print]
     and a method [save].
 *)
-let constructor_for_new_savable_data_box name version print =
-    let fold = RegisterBox.register ~name:name ~version:version
-      ~load:(fun version data -> new savable_data_box data print)
+let constructor_for_new_savable_data_box name print =
+    let fold = RegisterBox.register ~name:name
+      ~decode:(fun data -> new savable_data_box data print)
     in fun data -> new savable_data_box data print fold
 
 (*****************************************************************************)
 (** Some usefull boxes: *)
 (** Title *)
 let new_title_box = 
-  constructor_for_new_savable_data_box "title_box" 1
+  constructor_for_new_savable_data_box "title_box"
     (fun titre -> << <h1>$str:titre$</h1> >>)
 
 (* Last line is equivalent to:
@@ -204,8 +227,8 @@ let new_title_box =
      inherit [string] savable_data t fold
    end;;
    
-   let fold_title = RegisterBox.register ~name:"savable_title" ~version:1
-     ~load:(fun version data -> new savable_title data)
+   let fold_title = RegisterBox.register ~name:"savable_title"
+     ~decode:(fun data -> new savable_title data)
    
    let new_savable_title t = new savable_title t fold_title
 *)
@@ -213,7 +236,7 @@ let new_title_box =
 (****)
 (** A box that prints an error message *)
 let new_error_box = 
-  constructor_for_new_savable_data_box "error_box" 1
+  constructor_for_new_savable_data_box "error_box"
     (fun msg -> << <b>$str:msg$</b> >>)
 
 
@@ -239,7 +262,7 @@ end
 *)
 class savable_page (boxlist : savable_box list) fold = object
   inherit page boxlist
-  inherit [saved_data list] savable fold
+  inherit [saved_obj list] savable fold
 
   method save = fold (List.map (fun o -> o#save) boxlist)
 end
@@ -247,20 +270,22 @@ end
 module RegisterPage = 
   MakeRegister(struct 
 		 type t = savable_page
-		 type t_encoded = saved_data list
+		 type encoding_default = saved_obj list
 		 let make_default = 
 		   new savable_page 
 		     [new_error_box "Unknown page"]
 	       end)
 
-let fold_page = RegisterPage.register ~name:"savable_page" ~version:1
-  ~load:(fun version data -> 
+let fold_page = RegisterPage.register ~name:"savable_page"
+  ~decode:(fun data -> 
 	   let boxlist = List.map RegisterBox.get data
 	   in new savable_page boxlist)
 
 let new_savable_page boxlist = new savable_page boxlist fold_page
 
-let dbinsert_page boxlist = dbinsert (new_savable_page boxlist)
+let dbinsert_page boxlist = dbinsertobj (new_savable_page boxlist)
+
+let dbget_page ~key = RegisterPage.get (DyntCache.get key)
 
 (*****************************************************************************)
 (** Now the messages *)
@@ -268,50 +293,32 @@ let dbinsert_page boxlist = dbinsert (new_savable_page boxlist)
     (Some boxes are used print these messages) 
     Messages have no print method, as the printing depends on the kind of
     box it is in.
-    But messages have a method called get, used to give the content of
-    the message.
-    Each kind of messages has a different type for get.
-    That's why we need a Register table for each of these types.
+    Actually for messages we don't use objects.
+    We use the Dyn module and dbinsert dbupdate to save in the db.
 *)
-class ['a] generic_message data = object
-  method get : 'a = data
-end
-
-class ['a] savable_message data fold = object
-  inherit ['a] generic_message data
-  inherit ['a] savable_data data fold
-end
 
 module MakeNewMessage (A: sig 
 			 type t
-			 val default_content : t
 			 val name : string
+			 val default_content : t
 		       end) : 
 sig
-  val new_message : A.t -> A.t savable_message
   val dbinsert_message : A.t -> int
   val dbupdate_message : key:int -> value:A.t -> unit
-  val dbget_message : key:int -> A.t savable_message
+  val dbget_message : key:int -> A.t
 end =
 struct
-  module Reg = MakeRegister(struct
-			      type t = A.t savable_message
-			      type t_encoded = A.t
-			      let make_default =
-				new savable_message A.default_content
-			    end)
 
-  let fold = Reg.register 
-    ~name:A.name ~version:1
-    ~load:(fun version data -> new savable_message data)
-    
-  let new_message t = new savable_message t fold
+  let fold,unfold = Dyn.register A.name
 
-  let dbinsert_message d = dbinsert (new_message d)
+  let dbinsert_message d = dbinsertdyn (fold d)
 
-  let dbupdate_message ~key ~value = dbupdate key (new_message value)
+  let dbupdate_message ~key ~value = dbupdatedyn key (fold value)
 
-  let dbget_message = Reg.dbget
+  let dbget_message ~key = 
+    try unfold (dbgetdyn key)
+    with _ -> A.default_content
+
 end
 
 
@@ -324,51 +331,11 @@ module StringMessage =
 		   let name = "string_message"
 		 end)
 
-(* The last module definition is equivalent to:
-module RegisterStringMessage = 
-  MakeRegister(struct
-  		 type t = string savable_message
-		 type t_encoded = string
-		 let make_default = new savable_message "message not found" 
-	       end)
-
-let fold_string_message = RegisterStringMessage.register
-  ~name:"string_savable_message" ~version:1
-  ~load:(fun version data -> new savable_message data)
-
-let new_string_savable_message t =
-  new savable_message t fold_string_message
-*)
-
-
-
-
 (****)
 (** A simple box that prints a message of the db *)
 let new_string_message_box = 
-  constructor_for_new_savable_data_box "string_message_box" 1
+  constructor_for_new_savable_data_box "string_message_box"
     (fun key -> 
-       let msg = (StringMessage.dbget_message key)#get
+       let msg = StringMessage.dbget_message key
        in << $str:msg$ >>)
 
-(* The last def is equivalent to:
-
-class string_message_box key = object
-  inherit box
-  method print =
-    let message = (RegisterStringMessage.dbget key)#get
-    in << $str:message$ >>
-end
-
-class savable_string_message_box key fold = object
-  inherit string_message_box key
-  inherit [int] savable_data key fold
-end
-
-let fold_savable_string_message_box = RegisterBox.register
-  ~name:"savable_string_message_box" ~version:1
-  ~load:(fun version data -> new savable_string_message_box data)
-
-let new_savable_string_message_box t = 
-  new savable_string_message_box t fold_savable_string_message_box
-*)
