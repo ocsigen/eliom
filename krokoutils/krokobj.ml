@@ -65,18 +65,12 @@ let dbgetdyn ~key = DyntCache.get key
     - the function to load it from the store (database)
     (The function to save it to the database is a method of the class).
 
-    This module register can be used to save types that are not classes,
-    encoded.
-    In this case, the string is saved_data is the encoding used.
-    When registering such an encoding [load] is the decode function
+    We need a register module for each ancestor class, in which we register
+    all sons classes.
 
-    We need a register module for each type of data we want to save,
-    in order to get back the right type.
-    When constructing the Register module for a type using MakeRegister, 
-    we give a constructor for a default value that will be given by
-    get and dbget if they didn't manage to find the value.
+    Warning! Keep in mind that get can fail and raise and exception.
 *)
-type saved_obj = Dyn.t (* abstract in the mli *)
+type 'a saved_obj = Dyn.t (* abstract in the mli *)
 
 module type REGISTER =
 sig
@@ -87,18 +81,16 @@ sig
   exception Duplicate_registering
   
   val register : name:string ->
-    decode:('encoded_data -> ('encoded_data -> saved_obj) -> t) ->
-    ('encoded_data -> saved_obj)
-      
-  val get : saved_obj -> t
+    decode:('encoded_data -> ('encoded_data -> t saved_obj) -> t) ->
+    ('encoded_data -> t saved_obj)
+
+  (** [get] can raise an exception! *)
+  val get : t saved_obj -> t
 
 end
 
 module MakeRegister (A: sig 
 		       type t
-		       type encoding_default
-		       val make_default : 
-			 ((encoding_default -> saved_obj) -> saved_obj) -> t
 		     end) 
   : REGISTER with type t = A.t =
  
@@ -136,14 +128,14 @@ let dbupdateobj ~key ~value = DyntCache.update key value#save
     value of type saved_data. To instantiate the class, use the module
     below
 *)
-class virtual ['data] savable (fold : 'data -> saved_obj) = object
+class virtual ['data] savable (fold : 'data -> 'data saved_obj) = object
 
-  method virtual save : saved_obj
+  method virtual save : 'data saved_obj
 
 end
 
 (** A generic savable class that saves the data given to the constructor *)
-class ['data] savable_data (data : 'data) (fold : 'data -> saved_obj) = 
+class ['data] savable_data (data : 'data) (fold : 'data -> 'data saved_obj) = 
 object
 
   inherit ['data] savable fold
@@ -177,8 +169,6 @@ end
 
 module RegisterBox = MakeRegister(struct 
 				    type t = savable_box 
-				    type encoding_default = unit
-				    let make_default = new savable_box
 				  end)
 
 let fold_box = RegisterBox.register ~name:"savable_box"
@@ -239,6 +229,15 @@ let new_error_box =
   constructor_for_new_savable_data_box "error_box"
     (fun msg -> << <b>$str:msg$</b> >>)
 
+let error_box = new_error_box "Unknown box"
+
+let get_box v = 
+  try RegisterBox.get v
+  with _ -> error_box
+
+let dbget_box ~key = 
+  try RegisterBox.get (DyntCache.get key)
+  with _ -> error_box
 
 (******************************************************************)
 (* Now the pages *)
@@ -262,7 +261,7 @@ end
 *)
 class savable_page (boxlist : savable_box list) fold = object
   inherit page boxlist
-  inherit [saved_obj list] savable fold
+  inherit [savable_box saved_obj list] savable fold
 
   method save = fold (List.map (fun o -> o#save) boxlist)
 end
@@ -270,22 +269,26 @@ end
 module RegisterPage = 
   MakeRegister(struct 
 		 type t = savable_page
-		 type encoding_default = saved_obj list
-		 let make_default = 
-		   new savable_page 
-		     [new_error_box "Unknown page"]
 	       end)
 
 let fold_page = RegisterPage.register ~name:"savable_page"
   ~decode:(fun data -> 
-	   let boxlist = List.map RegisterBox.get data
+	   let boxlist = List.map get_box data
 	   in new savable_page boxlist)
 
 let new_savable_page boxlist = new savable_page boxlist fold_page
 
+let error_page =  new_savable_page [new_error_box "Unknown page"]
+
 let dbinsert_page boxlist = dbinsertobj (new_savable_page boxlist)
 
-let dbget_page ~key = RegisterPage.get (DyntCache.get key)
+let get_page v = 
+  try RegisterPage.get v
+  with _ -> error_page
+
+let dbget_page ~key = 
+  try RegisterPage.get (DyntCache.get key)
+  with _ -> error_page
 
 (*****************************************************************************)
 (** Now the messages *)
