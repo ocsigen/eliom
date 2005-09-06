@@ -1,9 +1,14 @@
 cache.cmi: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi 
+krokobj.cmi: krokodata.cmi 
 db_create.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmi 
 db_create.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmi 
-persistant.cmo: db_create.cmo persistant.cmi 
-persistant.cmx: db_create.cmx persistant.cmi 
+krokopersist.cmo: db_create.cmo krokopersist.cmi 
+krokopersist.cmx: db_create.cmx krokopersist.cmi 
 cache.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmo cache.cmi 
 cache.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmx cache.cmi 
-krokobj.cmo: cache.cmi krokobj.cmi 
-krokobj.cmx: cache.cmx krokobj.cmi 
+krokodata.cmo: cache.cmi krokodata.cmi 
+krokodata.cmx: cache.cmx krokodata.cmi 
+krokobj.cmo: krokodata.cmi krokobj.cmi 
+krokobj.cmx: krokodata.cmx krokobj.cmi 
+krokoxample.cmo: krokopersist.cmi krokobj.cmi 
+krokoxample.cmx: krokopersist.cmx krokobj.cmx 

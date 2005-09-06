@@ -1,5 +1,5 @@
 
-FILES= db_create.ml persistant.ml cache.ml krokobj.ml
+FILES= db_create.ml krokopersist.ml cache.ml krokodata.ml krokobj.ml krokoxample.ml
 
 CAMLC = ocamlc -g $(LIB)
 CAMLOPT = ocamlopt $(LIB)

@@ -1,150 +1,7 @@
-module Dyn : sig
-  type t
-  exception Dyn_duplicate_registering
-  exception Dyn_unfold_error
-  val register : string -> ('a -> t) * (t -> 'a)
-  val tag : t -> string
-end = struct
-
-  type t = string * Obj.t
-      (* The string is the name of the class, 
-	 the int is a version number,
-	 the Obj.t is a data of any type
-      *)
-
-  exception Dyn_duplicate_registering
-  exception Dyn_unfold_error
-
-  let table = ref []
-
-  let register name = 
-    if List.mem name !table
-    then raise Dyn_duplicate_registering
-    else
-      table := name::!table;
-      ((fun v -> (name, Obj.repr v)),
-       (fun (name', rv) ->
-	  if name = name' then Obj.magic rv 
-	  else raise Dyn_unfold_error))
-
-  let tag (n,_) = n
-
-end
-
-
-module DyntCache =
-  Cache.Make(
-    struct
-      type tvalue = Dyn.t
-	  
-      let sql_t_list_to_tvalue = function
-	  [`Binary data
-	  ] -> ((Marshal.from_string data 0) : tvalue)
-	| _ -> raise (Cache.Cache_error "content (probably database table wrong?)")
-	    
-      let tvalue_to_sql_t_list o =
-	[`Binary (Marshal.to_string o [])
-	]
-	  
-      let sql_fields_list_without_key = ["data"]
-	
-      let table = "content"
-	
-      let key = "content_key"
-	
-    end)
-
-let dbinsertdyn ~value = DyntCache.insert value
-
-let dbupdatedyn ~key ~value = DyntCache.update key value
-
-let dbgetdyn ~key = DyntCache.get key
-
-
-(** Each time we want to create a savable class, we need to register in a table
-    - the function to load it from the store (database)
-    (The function to save it to the database is a method of the class).
-
-    We need a register module for each ancestor class, in which we register
-    all sons classes.
-
-    Warning! Keep in mind that get can fail and raise and exception.
-*)
-type 'a saved_obj = Dyn.t (* abstract in the mli *)
-
-module type REGISTER =
-sig
-
-  (** The type we want to save *)
-  type t
-
-  exception Duplicate_registering
-  
-  val register : name:string ->
-    decode:('encoded_data -> ('encoded_data -> t saved_obj) -> t) ->
-    ('encoded_data -> t saved_obj)
-
-  (** [get] can raise an exception! *)
-  val get : t saved_obj -> t
-
-end
-
-module MakeRegister (A: sig 
-		       type t
-		     end) 
-  : REGISTER with type t = A.t =
- 
-struct
-
-  type t = A.t
-
-  exception Duplicate_registering
-
-  let table = Hashtbl.create 10
-
-  let register ~name ~decode = 
-    if Hashtbl.mem table name
-    then raise Duplicate_registering
-    else let fold,unfold = Dyn.register name 
-    in (Hashtbl.add table name 
-	  (fun data -> decode (unfold data) fold);
-	fold)
-      
-  let get data = 
-    (Hashtbl.find table (Dyn.tag data)) data
-
-end;;
-
-let dbinsertobj ~value = DyntCache.insert value#save
-
-let dbupdateobj ~key ~value = DyntCache.update key value#save
-
-
-
-
-(** Generic class that can be saved in the database.
-    To force registering all new class,
-    it is not possible to call the constructor because we don't have any
-    value of type saved_data. To instantiate the class, use the module
-    below
-*)
-class virtual ['data] savable (fold : 'data -> 'data saved_obj) = object
-
-  method virtual save : 'data saved_obj
-
-end
-
-(** A generic savable class that saves the data given to the constructor *)
-class ['data] savable_data (data : 'data) (fold : 'data -> 'data saved_obj) = 
-object
-
-  inherit ['data] savable fold
-  method save = fold data
-
-end
+open Krokodata
 
 (******************************************************************)
-(* Now the boxes that can appear in pages *)
+(* The boxes that can appear in pages *)
 
 class virtual ['a] generic_item = object
 
@@ -162,9 +19,9 @@ class box = object
 end
 
 
-class savable_box fold = object
+class savable_box data fold = object
   inherit box
-  inherit [unit] savable_data () fold
+  inherit savable_data data fold
 end
 
 module RegisterBox = MakeRegister(struct 
@@ -172,18 +29,18 @@ module RegisterBox = MakeRegister(struct
 				  end)
 
 let fold_box = RegisterBox.register ~name:"savable_box"
-  ~decode:(fun () -> new savable_box)
+  ~decode:(fun () -> new savable_box ())
 
-let new_savable_box () = new savable_box fold_box
+let new_savable_box () = new savable_box () fold_box
 
 class data_box data print = object
   inherit box
   method print = print data
 end
 
-class ['data] savable_data_box (data:'data) print fold = object
+class savable_data_box (data:'data) print fold = object
   inherit data_box data print
-  inherit ['data] savable_data data fold
+  inherit savable_data data fold
 end
 
 (** This is the main function used to create a new kind of box that can
@@ -236,7 +93,7 @@ let get_box v =
   with _ -> error_box
 
 let dbget_box ~key = 
-  try RegisterBox.get (DyntCache.get key)
+  try RegisterBox.get (ObjCache.get key)
   with _ -> error_box
 
 (******************************************************************)
@@ -261,7 +118,7 @@ end
 *)
 class savable_page (boxlist : savable_box list) fold = object
   inherit page boxlist
-  inherit [savable_box saved_obj list] savable fold
+  inherit savable fold
 
   method save = fold (List.map (fun o -> o#save) boxlist)
 end
@@ -287,7 +144,7 @@ let get_page v =
   with _ -> error_page
 
 let dbget_page ~key = 
-  try RegisterPage.get (DyntCache.get key)
+  try RegisterPage.get (ObjCache.get key)
   with _ -> error_page
 
 (*****************************************************************************)
