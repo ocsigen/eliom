@@ -43,7 +43,7 @@ class savable_data_box (data:'data) print fold = object
   inherit savable_data data fold
 end
 
-(** This is the main function used to create a new kind of box that can
+(** This is a function used to create a new kind of basic box that can
     be saved in the database. You give the name of the box and the function
     to print its contents. 
     It returns the constructor for an object with a method [print]
@@ -161,7 +161,7 @@ let new_string_message_box =
 
 
 let new_string_messages_list_box =
-  constructor_for_new_savable_data_box "messages_list_box"
+  constructor_for_new_savable_data_box "string_messages_list_box"
     (fun key ->
        let l = 
 	 List.map

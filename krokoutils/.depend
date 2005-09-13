@@ -12,9 +12,5 @@ krokodata.cmo: krokache.cmi krokodata.cmi
 krokodata.cmx: krokache.cmx krokodata.cmi 
 krokopages.cmo: krokodata.cmi krokopages.cmi 
 krokopages.cmx: krokodata.cmx krokopages.cmi 
-krokoboites.cmo: krokodata.cmi 
-krokoboites.cmx: krokodata.cmx 
-krokoxample.cmo: krokopersist.cmi krokopages.cmi krokodata.cmi \
-    krokoboites.cmo 
-krokoxample.cmx: krokopersist.cmx krokopages.cmx krokodata.cmx \
-    krokoboites.cmx 
+krokoxample.cmo: krokopersist.cmi krokopages.cmi krokodata.cmi 
+krokoxample.cmx: krokopersist.cmx krokopages.cmx krokodata.cmx 
