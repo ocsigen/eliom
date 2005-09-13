@@ -4,34 +4,44 @@ open Omlet
 open Krokodata
 open Krokopages
 
+
+
+
 (** Some boxes and a page we need for the example: *)
 (** A page displaying a message *)
 let page_message = register_new_url (Url ["msg"]) (_int "num")
   (fun k -> 
      (new page
-	[new_title_box "Voici le message"; 
-	 new_string_message_box k])#print
+	[new title_box "Voici le message" () (); 
+	 new string_message_box () () k] () k)#print
   )
 
-(** A box that prints the begining of a message, with a link to the 
+(** A box that prints the beginning of a message, with a link to the 
     full message *)
-let new_beginning_of_string_message_box = 
-  constructor_for_new_savable_data_box "beginning_of_string_message_box"
-    (fun key ->
-       let msg = StringMessage.dbget key
-       in let l = link "see" page_message key
-       in << <div> $str:msg$ $l$ </div> >>)
+class string_message_header_box () sessionparam key = object
+  inherit box () sessionparam key
+  val msg = StringMessage.dbget key
+  val l = link "see" page_message key
+  method print =  << <div> $str:msg$ $l$ </div> >>
+end
 
-(** A box that prints a list of messages *)
-let new_beginning_of_string_messages_list_box =
-  constructor_for_new_savable_data_box "beginning_of_string_messages_list_box"
-    (fun key ->
-       let l = 
-	 List.map 
-	   (fun n -> (new_beginning_of_string_message_box n)#print)
-	   (MessagesList.dbget key)
-       in << <div> $list:l$ </div> >>)
+let fold_string_message_header_box = 
+  RegisterIntBox.register ~name:"string_message_header_box" 
+    ~constructor:(new string_message_header_box)
 
+(** A box that prints a list of a message headers *)
+class string_messages_headers_list_box key sessionparam pageparam = object
+  inherit box key sessionparam pageparam
+  val msglist = 
+    List.map 
+      (fun n -> (new string_message_header_box () sessionparam n)#print)
+      (MessagesList.dbget key)
+  method print = << <div>$list:msglist$</div> >>
+end
+
+let fold_string_messages_headers_list_box = 
+  RegisterBox.register ~name:"string_messages_headers_list_box" 
+    ~constructor:(new string_messages_headers_list_box)
 
 
 
@@ -53,16 +63,17 @@ let messageslist_number =
 let example_page_number = 
   Krokopersist.make_persistant_lazy "example_page_number"
     (fun () -> 
-       dbinsert_page
-	 [new_title_box "Kikoo !"; 
-	  new_beginning_of_string_messages_list_box 
-	    (Krokopersist.get messageslist_number)])
+       dbinsertdyn
+	 (fold_page_fromdb
+	    [fold_title_box "Kikoo !"; 
+	     fold_string_messages_headers_list_box 
+	       (Krokopersist.get messageslist_number)]))
 
 (* -- End population of the database with an example *)
 
 
 
-let mapage = dbget_page (Krokopersist.get example_page_number)
+let mapage = (RegisterPage.dbget (Krokopersist.get example_page_number)) () ()
 
 let objsav = register_new_url (Url []) _noparam (mapage#print)
 

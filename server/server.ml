@@ -260,7 +260,6 @@ let _ =
        Dynlink.loadfile "../lib/krokodata.cmo";
        Dynlink.loadfile "../lib/krokopages.cmo";
        load_aaaaa_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo";
-       load_aaaaa_module ~dir:["kiko"] ~cmo:"../lib/krokoboites.cmo";
        load_aaaaa_module ~dir:["kiko"] ~cmo:"../lib/krokoxample.cmo";
      with Aaaaa_error_while_loading m -> (warning ("Error while loading "^m)));
     listen ()

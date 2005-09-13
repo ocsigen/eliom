@@ -10,163 +10,115 @@ class virtual ['a] generic_item = object
 
 end
 
-class box = object
+class virtual box boxparam sessionparam pageparam = object
   inherit [Xhtmlpp.xhtmlcont] generic_item
 
   (** print the page in xhtml using xml extended syntax xmlp4 *)
-  method print = << empty box >>
-
+  method virtual print : Xhtmlpp.xhtmlcont
 end
 
-
-class savable_box data fold = object
-  inherit box
-  inherit savable_data data fold
+(** A box that prints an error message *)
+class empty_box () sessionparam pageparam = object
+  inherit box () sessionparam pageparam
+  method print = << <b>empty box</b> >>
 end
 
 module RegisterBox = MakeRegister(struct 
-				    type t = savable_box 
+				    type t = unit -> unit -> box
+				    let default_content = new empty_box ()
 				  end)
+module RegisterIntBox = MakeRegister(struct 
+				       type t = unit -> int -> box
+				       let default_content = new empty_box ()
+				     end)
 
-let fold_box = RegisterBox.register ~name:"savable_box"
-  ~decode:(fun () -> new savable_box ())
-
-let new_savable_box () = new savable_box () fold_box
-
-class data_box data print = object
-  inherit box
-  method print = print data
-end
-
-class savable_data_box (data:'data) print fold = object
-  inherit data_box data print
-  inherit savable_data data fold
-end
-
-(** This is a function used to create a new kind of basic box that can
-    be saved in the database. You give the name of the box and the function
-    to print its contents. 
-    It returns the constructor for an object with a method [print]
-    and a method [save].
-*)
-let constructor_for_new_savable_data_box name print =
-    let fold = RegisterBox.register ~name:name
-      ~decode:(fun data -> new savable_data_box data print)
-    in fun data -> new savable_data_box data print fold
-
-
-
+  
 (*****************************************************************************)
 (** Some usefull boxes: *)
 (** Title *)
-let new_title_box = 
-  constructor_for_new_savable_data_box "title_box"
-    (fun titre -> << <h1>$str:titre$</h1> >>)
+class title_box titre sessionparam pageparam = object
+  inherit box titre sessionparam pageparam
+  method print = << <h1>$str:titre$</h1> >>
+end
 
-(* Last line is equivalent to:
-   class title t = object
-     inherit box
-   
-     method print = << <h1>$str:t$</h1> >>
-   
-   end;;
-   
-   class savable_title t fold = object
-     inherit title t
-     inherit [string] savable_data t fold
-   end;;
-   
-   let fold_title = RegisterBox.register ~name:"savable_title"
-     ~decode:(fun data -> new savable_title data)
-   
-   let new_savable_title t = new savable_title t fold_title
-*)
+let fold_title_box = 
+  RegisterBox.register ~name:"title_box" ~constructor:(new title_box)
 
-(****)
-(** A box that prints an error message *)
-let new_error_box = 
-  constructor_for_new_savable_data_box "error_box"
-    (fun msg -> << <b>$str:msg$</b> >>)
 
-let error_box = new_error_box "Unknown box"
+(** A simple box that prints something *)
+class text_box msg sessionparam pageparam = object
+  inherit box msg sessionparam pageparam
+  method print = << <div>$str:msg$</div> >>
+end
 
-let get_box v = 
-  try RegisterBox.get v
-  with _ -> error_box
+let fold_text_box = 
+  RegisterBox.register ~name:"text_box" 
+    ~constructor:(new text_box)
 
-let dbget_box ~key = 
-  try RegisterBox.get (ObjCache.get key)
-  with _ -> error_box
+
+(** A simple box that prints a message of the db *)
+class string_message_box () sessionparam key = object
+  inherit box () sessionparam key
+  val msg = StringMessage.dbget key
+  method print = << <div>$str:msg$</div> >>
+end
+
+let fold_string_message_box = 
+  RegisterIntBox.register ~name:"string_message_box" 
+    ~constructor:(new string_message_box)
+
+
+
+
+
 
 (******************************************************************)
 (* Now the pages *)
 
-(** The class for description of web pages. 
-*)
-class page boxlist = object
+(** The class for description of web pages.
+    We need two constructors, one to create pages from database,
+    the other one manually.
+ *)
+class page_ sessionparam pageparam = object (moi)
 
   inherit [Xhtmlpp.xhtml] generic_item
 
-  val boxlist = boxlist
+  method boxlist : box list = []
 
   method print : Xhtmlpp.xhtml =
-    let l = List.map (fun o -> o#print) boxlist
+    let l = List.map (fun o -> o#print) moi#boxlist
     in << <html> $list:l$ </html> >>
 
 end
 
-(****)
-(** The class for web pages that can be saved in the database. 
-*)
-class savable_page (boxlist : savable_box list) fold = object
-  inherit page boxlist
-  inherit savable fold
+class page bl sessionparam pageparam = object
 
-  method save = fold (List.map (fun o -> o#save) boxlist)
+  inherit page_ sessionparam pageparam
+  method boxlist = bl
+
+end
+
+class page_fromdb boxdescrlist sessionparam pageparam = object
+
+  inherit page_ sessionparam pageparam
+
+  val bl = 
+    List.map (fun a -> (RegisterBox.unfold a) sessionparam pageparam)
+    boxdescrlist
+
+  method boxlist = bl
+
 end
 
 module RegisterPage = 
   MakeRegister(struct 
-		 type t = savable_page
+		 type t = unit -> unit -> page_
+		 let default_content = new page [new empty_box () () ()]
 	       end)
 
-let fold_page = RegisterPage.register ~name:"savable_page"
-  ~decode:(fun data -> 
-	   let boxlist = List.map get_box data
-	   in new savable_page boxlist)
 
-let new_savable_page boxlist = new savable_page boxlist fold_page
-
-let error_page =  new_savable_page [new_error_box "Unknown page"]
-
-let dbinsert_page boxlist = dbinsertobj (new_savable_page boxlist)
-
-let get_page v = 
-  try RegisterPage.get v
-  with _ -> error_page
-
-let dbget_page ~key = 
-  try RegisterPage.get (ObjCache.get key)
-  with _ -> error_page
+let fold_page_fromdb = 
+  RegisterPage.register ~name:"page_fromdb" 
+    ~constructor:(new page_fromdb)
 
 
-
-(****)
-(** A simple box that prints a message of the db *)
-let new_string_message_box = 
-  constructor_for_new_savable_data_box "string_message_box"
-    (fun key ->
-       let msg = StringMessage.dbget key
-       in << $str:msg$ >>)
-
-
-let new_string_messages_list_box =
-  constructor_for_new_savable_data_box "string_messages_list_box"
-    (fun key ->
-       let l = 
-	 List.map
-	   (fun n -> let msg = StringMessage.dbget n 
-	    in << <div> $str:msg$ </div> >>)
-	   (MessagesList.dbget key)
-       in << <div> $list:l$ </div> >>
-    )

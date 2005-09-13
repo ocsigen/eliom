@@ -1,5 +1,6 @@
 (* A module to save and load data of any type to and from the database *)
 
+
 module Dyn : sig
   type t
   exception Dyn_duplicate_registering
@@ -55,8 +56,6 @@ module DyntCache =
 
     end)
 
-module ObjCache = DyntCache
-
 let dbinsertdyn ~value = DyntCache.insert value
 
 let dbupdatedyn ~key ~value = DyntCache.update key value
@@ -69,7 +68,7 @@ module MakeSaver (A: sig
 		    val default_content : t
 		  end) : 
 sig
-  val dbinsert : A.t -> int
+  val dbinsert : value:A.t -> int
   val dbupdate : key:int -> value:A.t -> unit
   val dbget : key:int -> A.t
 end =
@@ -77,7 +76,7 @@ struct
 
   let fold,unfold = Dyn.register A.name
 
-  let dbinsert d = dbinsertdyn (fold d)
+  let dbinsert ~value = dbinsertdyn (fold value)
 
   let dbupdate ~key ~value = dbupdatedyn key (fold value)
 
@@ -88,6 +87,115 @@ struct
 end
 
 
+(** Now a module to save constructors for sons of 
+    a particular ancestor class.
+    Actually the first parameter of the constructor is saved in the database
+    and the following are not.
+
+    We create a module for each class type.
+    Something like boxparam -> sessionparam -> pageparam -> < print : xhtml >
+    Here t is (sessionparam -> pageparam -> < print : xhtml >)
+    For each son of this class, we associate its constructor to its name
+    using the register function, that will give the function fold
+    for this class type as result.
+
+    unfold is common for all the module (that is, for one type) and gives
+    back the common ancestor type.
+*)
+module type REGISTER =
+sig
+
+  (** The type we want to save is 'boxparam -> t *)
+  type t
+
+  exception Duplicate_registering
+  
+  val register : 
+    name:string -> constructor:('boxparam -> t) -> ('boxparam -> Dyn.t)
+
+  (** [unfold] can raise an exception! *)
+  val unfold : Dyn.t -> t
+
+  (** [dbget] can raise an exception! *)
+  val dbget : key:int -> t
+
+end
+
+module MakeRegister (A: sig 
+		       type t
+		       val default_content : t
+		     end) 
+  : REGISTER with type t = A.t =
+ 
+struct
+
+  type t = A.t
+
+  exception Duplicate_registering
+
+  let table = Hashtbl.create 20
+
+  let register ~name ~constructor = 
+    if Hashtbl.mem table name
+    then raise Duplicate_registering
+    else let fold,unfold = Dyn.register name 
+    in (Hashtbl.add table name 
+	  (fun data -> constructor (unfold data));
+	fold)
+
+  let unfold saved_data =
+    try 
+      (Hashtbl.find table (Dyn.tag saved_data)) saved_data
+    with _ -> A.default_content
+
+  let dbget ~key = 
+    try 
+      unfold (dbgetdyn key)
+    with _ -> A.default_content
+      
+end;;
+
+
+
+
+
+
+(*****************************************************************************)
+(** Now the messages *)
+(** We can save messages in the database. 
+    (Some boxes are used print these messages) 
+    Messages have no print method, as the printing depends on the kind of
+    box it is in.
+    Actually for messages we don't use objects.
+    We use the Dyn module and dbinsert dbupdate to save in the db.
+*)
+
+(****)
+(** A simple string message *)
+module StringMessage = 
+  MakeSaver (struct 
+	       type t = string
+	       let default_content = "Message not found"
+	       let name = "string_message"
+	     end)
+
+(** A list of messages numbers *)
+module MessagesList = 
+  MakeSaver (struct 
+	       type t = int list
+	       let default_content = []
+	       let name = "message_list"
+	     end)
+
+
+
+
+
+
+
+
+
+(* Old registering of objects
 (** Now a functor to save objects. Objects cannot be marshaled (or you need
     to use them always with exactly the same code, which is not what we want).
     We need to code the object before saving. Each savable object has a
@@ -179,32 +287,6 @@ object
   method save = fold data
 
 end
-
-
-
-(*****************************************************************************)
-(** Now the messages *)
-(** We can save messages in the database. 
-    (Some boxes are used print these messages) 
-    Messages have no print method, as the printing depends on the kind of
-    box it is in.
-    Actually for messages we don't use objects.
-    We use the Dyn module and dbinsert dbupdate to save in the db.
 *)
 
-(****)
-(** A simple string message *)
-module StringMessage = 
-  MakeSaver (struct 
-	       type t = string
-	       let default_content = "Message not found"
-	       let name = "string_message"
-	     end)
 
-(** A list of messages numbers *)
-module MessagesList = 
-  MakeSaver (struct 
-	       type t = int list
-	       let default_content = []
-	       let name = "message_list"
-	     end)
