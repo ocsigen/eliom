@@ -1,7 +1,7 @@
 open Krokodata
 
 (******************************************************************)
-(* The boxes that can appear in pages *)
+(* The boxes that can appear in pages and be saved in the database *)
 
 class virtual ['a] generic_item = object
 
@@ -53,6 +53,8 @@ let constructor_for_new_savable_data_box name print =
     let fold = RegisterBox.register ~name:name
       ~decode:(fun data -> new savable_data_box data print)
     in fun data -> new savable_data_box data print fold
+
+
 
 (*****************************************************************************)
 (** Some usefull boxes: *)
@@ -147,55 +149,24 @@ let dbget_page ~key =
   try RegisterPage.get (ObjCache.get key)
   with _ -> error_page
 
-(*****************************************************************************)
-(** Now the messages *)
-(** We can save messages in the database. 
-    (Some boxes are used print these messages) 
-    Messages have no print method, as the printing depends on the kind of
-    box it is in.
-    Actually for messages we don't use objects.
-    We use the Dyn module and dbinsert dbupdate to save in the db.
-*)
 
-module MakeNewMessage (A: sig 
-			 type t
-			 val name : string
-			 val default_content : t
-		       end) : 
-sig
-  val dbinsert_message : A.t -> int
-  val dbupdate_message : key:int -> value:A.t -> unit
-  val dbget_message : key:int -> A.t
-end =
-struct
-
-  let fold,unfold = Dyn.register A.name
-
-  let dbinsert_message d = dbinsertdyn (fold d)
-
-  let dbupdate_message ~key ~value = dbupdatedyn key (fold value)
-
-  let dbget_message ~key = 
-    try unfold (dbgetdyn key)
-    with _ -> A.default_content
-
-end
-
-
-(****)
-(** A simple string message *)
-module StringMessage = 
-  MakeNewMessage(struct 
-		   type t = string
-		   let default_content = "Message not found"
-		   let name = "string_message"
-		 end)
 
 (****)
 (** A simple box that prints a message of the db *)
 let new_string_message_box = 
   constructor_for_new_savable_data_box "string_message_box"
-    (fun key -> 
-       let msg = StringMessage.dbget_message key
+    (fun key ->
+       let msg = StringMessage.dbget key
        in << $str:msg$ >>)
 
+
+let new_string_messages_list_box =
+  constructor_for_new_savable_data_box "messages_list_box"
+    (fun key ->
+       let l = 
+	 List.map
+	   (fun n -> let msg = StringMessage.dbget n 
+	    in << <div> $str:msg$ </div> >>)
+	   (MessagesList.dbget key)
+       in << <div> $list:l$ </div> >>
+    )

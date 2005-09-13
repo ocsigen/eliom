@@ -64,19 +64,6 @@ val get_page : saved_obj -> savable_page
 
 val dbget_page : key:int -> savable_page
 
-module MakeNewMessage :
-  functor (A : sig type t val name : string val default_content : t end) ->
-    sig
-      val dbinsert_message : A.t -> int
-      val dbupdate_message : key:int -> value:A.t -> unit
-      val dbget_message : key:int -> A.t
-    end
-
-module StringMessage :
-  sig
-    val dbinsert_message : string -> int
-    val dbupdate_message : key:int -> value:string -> unit
-    val dbget_message : key:int -> string
-  end
-
 val new_string_message_box : int -> savable_data_box
+
+val new_string_messages_list_box : int -> savable_data_box

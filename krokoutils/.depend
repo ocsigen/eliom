@@ -1,14 +1,20 @@
-cache.cmi: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi 
-krokobj.cmi: krokodata.cmi 
+krokache.cmi: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi 
+krokopages.cmi: krokodata.cmi 
 db_create.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmi 
 db_create.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmi 
 krokopersist.cmo: db_create.cmo krokopersist.cmi 
 krokopersist.cmx: db_create.cmx krokopersist.cmi 
-cache.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmo cache.cmi 
-cache.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmx cache.cmi 
-krokodata.cmo: cache.cmi krokodata.cmi 
-krokodata.cmx: cache.cmx krokodata.cmi 
-krokobj.cmo: krokodata.cmi krokobj.cmi 
-krokobj.cmx: krokodata.cmx krokobj.cmi 
-krokoxample.cmo: krokopersist.cmi krokobj.cmi 
-krokoxample.cmx: krokopersist.cmx krokobj.cmx 
+krokache.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmo \
+    krokache.cmi 
+krokache.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmx \
+    krokache.cmi 
+krokodata.cmo: krokache.cmi krokodata.cmi 
+krokodata.cmx: krokache.cmx krokodata.cmi 
+krokopages.cmo: krokodata.cmi krokopages.cmi 
+krokopages.cmx: krokodata.cmx krokopages.cmi 
+krokoboites.cmo: krokodata.cmi 
+krokoboites.cmx: krokodata.cmx 
+krokoxample.cmo: krokopersist.cmi krokopages.cmi krokodata.cmi \
+    krokoboites.cmo 
+krokoxample.cmx: krokopersist.cmx krokopages.cmx krokodata.cmx \
+    krokoboites.cmx 

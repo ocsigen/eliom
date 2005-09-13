@@ -2,7 +2,7 @@ module Dyn :
   sig
     type t
     exception Dyn_duplicate_registering
-    exception Dyn_unfold_error
+    exception Dyn_typing_error_while_unfolding
     val register : string -> ('a -> t) * (t -> 'a)
     val tag : t -> string
   end
@@ -19,6 +19,16 @@ val dbinsertdyn : value:Dyn.t -> int
 val dbupdatedyn : key:int -> value:Dyn.t -> unit
 val dbgetdyn : key:int -> Dyn.t
 
+module MakeSaver :
+  functor (A : sig type t val name : string val default_content : t end) ->
+    sig
+      val dbinsert : A.t -> int
+      val dbupdate : key:int -> value:A.t -> unit
+      val dbget : key:int -> A.t
+    end
+
+
+
 type saved_obj
 
 module ObjCache :
@@ -28,7 +38,6 @@ module ObjCache :
     val update : key:int -> value:saved_obj -> unit
     val size : unit -> int
   end
-
 
 module type REGISTER =
   sig
@@ -51,4 +60,19 @@ class virtual savable :
 
 class savable_data :
   'a -> ('a -> saved_obj) -> object method save : saved_obj end
+
+
+module StringMessage :
+  sig
+    val dbinsert : string -> int
+    val dbupdate : key:int -> value:string -> unit
+    val dbget : key:int -> string
+  end
+
+module MessagesList :
+  sig
+    val dbinsert : int list -> int
+    val dbupdate : key:int -> value:int list -> unit
+    val dbget : key:int -> int list
+  end
 

@@ -1,5 +1,5 @@
 
-FILES= db_create.ml krokopersist.ml cache.ml krokodata.ml krokobj.ml krokoxample.ml
+FILES= db_create.ml krokopersist.ml krokache.ml krokodata.ml krokopages.ml krokoboites.ml krokoxample.ml
 
 CAMLC = ocamlc -g $(LIB)
 CAMLOPT = ocamlopt $(LIB)
@@ -29,7 +29,7 @@ install: all
 	$(CAMLOPT) $(PP) -c $<
 
 doc:
-	$(CAMLDOC) -d doc -html cache.mli
+	$(CAMLDOC) -d doc -html krokache.mli
 
 clean:
 	-rm -f *.cm[iox] *~ $(NAME)
