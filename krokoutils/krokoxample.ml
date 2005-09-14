@@ -18,10 +18,6 @@ class string_message_header_box key = object
   method print =  << <div> $str:msg$ $l$ </div> >>
 end
 
-let fold_string_message_header_box = 
-  RegisterIntBox.register ~name:"string_message_header_box" 
-    ~constructor:(fun () -> new string_message_header_box)
-
 (** A box that prints a list of a message headers *)
 class string_messages_headers_list_box key = object
   inherit box
@@ -35,6 +31,7 @@ end
 let fold_string_messages_headers_list_box = 
   RegisterBox.register ~name:"string_messages_headers_list_box" 
     ~constructor:(new string_messages_headers_list_box)
+
 
 
 
@@ -67,8 +64,8 @@ let example_msg_page_number =
     (fun () -> 
        dbinsertdyn
 	 (fold_int_page_fromdb
-	    [fold_forget_param_int_box (fold_title_box "Voici le message"); 
-	     fold_string_message_box ()])
+	    [`Box (fold_title_box "Voici le message"); 
+	     `IntBox (fold_string_message_intbox ())])
     )
 
 (* -- End population of the database with an example *)

@@ -3,8 +3,8 @@
 
 module Dyn : sig
   type t
-  exception Dyn_duplicate_registering
-  exception Dyn_typing_error_while_unfolding
+  exception Dyn_duplicate_registering of string
+  exception Dyn_typing_error_while_unfolding of (string * string)
   val register : string -> ('a -> t) * (t -> 'a)
   val tag : t -> string
 end = struct
@@ -15,20 +15,20 @@ end = struct
 	 the Obj.t is a data of any type
       *)
 
-  exception Dyn_duplicate_registering
-  exception Dyn_typing_error_while_unfolding
+  exception Dyn_duplicate_registering of string
+  exception Dyn_typing_error_while_unfolding of (string * string)
 
   let table = ref []
 
   let register name = 
     if List.mem name !table
-    then raise Dyn_duplicate_registering
+    then raise (Dyn_duplicate_registering name)
     else
       table := name::!table;
       ((fun v -> (name, Obj.repr v)),
        (fun (name', rv) ->
 	  if name = name' then Obj.magic rv 
-	  else raise Dyn_typing_error_while_unfolding))
+	  else raise (Dyn_typing_error_while_unfolding (name, name'))))
 
   let tag (n,_) = n
 
@@ -108,7 +108,7 @@ sig
   (** The type we want to save is 'boxparam -> t *)
   type t
 
-  exception Duplicate_registering
+  exception Duplicate_registering of string
   
   val register : 
     name:string -> constructor:('boxparam -> t) -> ('boxparam -> Dyn.t)
@@ -131,13 +131,13 @@ struct
 
   type t = A.t
 
-  exception Duplicate_registering
+  exception Duplicate_registering of string
 
   let table = Hashtbl.create 20
 
   let register ~name ~constructor = 
     if Hashtbl.mem table name
-    then raise Duplicate_registering
+    then raise (Duplicate_registering name)
     else let fold,unfold = Dyn.register name 
     in (Hashtbl.add table name 
 	  (fun data -> constructor (unfold data));

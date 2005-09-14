@@ -29,14 +29,8 @@ module RegisterBox = MakeRegister(struct
 				  end)
 module RegisterIntBox = MakeRegister(struct 
 				       type t = int -> box
-				       let default_content = 
-					 (fun i -> new empty_box)
+				       let default_content i = new empty_box
 				     end)
-module RegisterStringBox = MakeRegister(struct 
-					  type t = string -> box
-					  let default_content = 
-					    (fun s -> new empty_box)
-					end)
 
   
 (*****************************************************************************)
@@ -69,27 +63,12 @@ class string_message_box key = object
 end
 
 let fold_string_message_box = 
-  RegisterIntBox.register ~name:"string_message_box" 
+  RegisterBox.register ~name:"string_message_box" 
+    ~constructor:(new string_message_box)
+
+let fold_string_message_intbox = 
+  RegisterIntBox.register ~name:"string_message_intbox" 
     ~constructor:(fun () -> new string_message_box)
-
-(** A box that contains another box but removing a parameter *)
-class forget_param_box boxdescr param = object
-  inherit box
-  val b = (RegisterBox.unfold boxdescr)#print
-  method print = b
-end
-
-let fold_forget_param_int_box = 
-  RegisterIntBox.register ~name:"forget_param_int_box" 
-    ~constructor:(new forget_param_box)
-
-let fold_forget_param_string_box = 
-  RegisterStringBox.register ~name:"forget_param_string_box"
-    ~constructor:(new forget_param_box)
-
-
-
-
 
 
 
@@ -124,11 +103,7 @@ class page_fromdb boxdescrlist = object
 
   inherit page_
 
-  val bl = 
-    List.map (fun a -> (RegisterBox.unfold a))
-    boxdescrlist
-
-  method boxlist = bl
+  method boxlist = List.map (fun a -> (RegisterBox.unfold a)) boxdescrlist
 
 end
 
@@ -141,44 +116,42 @@ module RegisterPage =
 
 
 let fold_page_fromdb = 
-  RegisterPage.register ~name:"page_fromdb" 
-    ~constructor:(new page_fromdb)
+  RegisterPage.register ~name:"page_fromdb" ~constructor:(new page_fromdb)
 
 
-(* Pages that take an int paramater *)
-class param_page_fromdb boxdescrlist param = object
+(** We create a new class of pages, that can contain either 
+    Boxes or int boxes
+*)
+class int_page_fromdb boxdescrlist n = object
 
   inherit page_
 
-  val bl = 
-    List.map (fun a -> (RegisterIntBox.unfold a) param)
-      boxdescrlist
-
-  method boxlist = bl
-
+  method boxlist = List.map
+    (function 
+	 `IntBox a -> (RegisterIntBox.unfold a) n
+       | `Box a -> (RegisterBox.unfold a))
+    boxdescrlist
+    
 end
 
+(** Pages that take one int parameter *)
 module RegisterIntPage = 
   MakeRegister(struct 
 		 type t = int -> page_
-		 let default_content = 
-		   fun _ -> new page [new empty_box]
+		 let default_content i = 
+		   new page [new empty_box]
 	       end)
 
-let fold_int_page_fromdb = 
-  RegisterIntPage.register ~name:"int_page_fromdb" 
-    ~constructor:(new param_page_fromdb)
-
-
-module RegisterStringPage = 
-  MakeRegister(struct 
-		 type t = string -> page_
-		 let default_content = 
-		   fun _ -> new page [new empty_box]
-	       end)
-
-let fold_string_page_fromdb = 
-  RegisterIntPage.register ~name:"string_page_fromdb" 
-    ~constructor:(new param_page_fromdb)
+let fold_int_page_fromdb 
+    : [ `Box of Krokodata.Dyn.t | `IntBox of Krokodata.Dyn.t ] list 
+    -> Krokodata.Dyn.t =
+  (RegisterIntPage.register ~name:"int_page_fromdb" 
+     ~constructor:(new int_page_fromdb))
+(* Ici je suis obligé de préciser le type sinon il y a un type _'a qui
+   ne peut être généralisé. 
+   Rajouter un paramètre résoud le problème de typage mais conduit à un 
+   programme FAUX parce que l'enregistrement de la page n'est pas effectué
+   une fois pour toutes au début.
+ *)
 
 
