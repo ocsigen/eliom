@@ -11,27 +11,38 @@ let page_message = new_url (Url ["msg"]) (_int "num")
 
 (** A box that prints the beginning of a message, with a link to the 
     full message *)
-class string_message_header_box key = object
-  inherit box
-  val msg = StringMessage.dbget key
-  val l = link "see" page_message key
-  method print =  << <div> $str:msg$ $l$ </div> >>
-end
+let string_message_header_box key = 
+  let msg = StringMessage.dbget key
+  in let l = link "see" page_message key
+  in << <div> $str:msg$ $l$ </div> >>
+
+(* éventuellement :
+let fold_string_message_header_box = 
+  RegisterBox.register ~name:"string_message_header_box" 
+    ~constructor:string_message_header_box
+
+let fold_string_message_header_intbox = 
+  RegisterIntBox.register ~name:"string_message_header_box" 
+    ~constructor:(fun () -> string_message_header_box)
+*)
 
 (** A box that prints a list of a message headers *)
-class string_messages_headers_list_box key = object
-  inherit box
-  val msglist = 
+let string_messages_headers_list_box key = 
+  let msglist = 
     List.map 
-      (fun n -> (new string_message_header_box n)#print)
+      (fun n -> string_message_header_box n)
       (MessagesList.dbget key)
-  method print = << <div>$list:msglist$</div> >>
-end
+  in << <div>$list:msglist$</div> >>
 
 let fold_string_messages_headers_list_box = 
   RegisterBox.register ~name:"string_messages_headers_list_box" 
-    ~constructor:(new string_messages_headers_list_box)
+    ~constructor:string_messages_headers_list_box
 
+(* éventuellement :
+let fold_string_messages_headers_list_box = 
+  RegisterIntBox.register ~name:"string_messages_headers_list_box" 
+    ~constructor:(fun () -> string_messages_headers_list_box)
+*)
 
 
 
@@ -63,19 +74,18 @@ let example_msg_page_number =
   Krokopersist.make_persistant_lazy "example_msg_page_number"
     (fun () -> 
        dbinsertdyn
-	 (fold_int_page_fromdb
+	 (fold_int_page
 	    [`Box (fold_title_box "Voici le message"); 
-	     `IntBox (fold_string_message_intbox ())])
+	     `ParamBox (fold_string_message_intbox ())])
     )
 
 (* -- End population of the database with an example *)
 
 
 let _ = register_url page_message
-  (fun n -> 
-     ((RegisterIntPage.dbget 
-	(Krokopersist.get example_msg_page_number)) n)#print)
+  (fun n ->
+     (RegisterIntPage.dbget (Krokopersist.get example_msg_page_number)) n)
 
 let objsav = register_new_url (Url []) _noparam 
-  (RegisterPage.dbget (Krokopersist.get example_main_page_number))#print
+  (RegisterPage.dbget (Krokopersist.get example_main_page_number))
 

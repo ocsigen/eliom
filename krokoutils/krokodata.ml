@@ -87,20 +87,22 @@ struct
 end
 
 
-(** Now a module to save constructors for sons of 
-    a particular ancestor class.
+(** Now a module to save constructors a particular datatype
+    For example for sons of a particular ancestor class, 
+    But it works without objects, for several representation on the same data,
+    or to save a representation of functions constructing datas.
+
     Actually the first parameter of the constructor is saved in the database
     and the following are not.
 
     We create a module for each class type.
-    Something like boxparam -> sessionparam -> pageparam -> < print : xhtml >
-    Here t is (sessionparam -> pageparam -> < print : xhtml >)
-    For each son of this class, we associate its constructor to its name
+    Something like boxparam -> sessionparam -> pageparam -> xhtml
+    Here t is (sessionparam -> pageparam -> xhtml)
+    We associate each function of this type to its name
     using the register function, that will give the function fold
     for this class type as result.
 
-    unfold is common for all the module (that is, for one type) and gives
-    back the common ancestor type.
+    unfold is common for all the module (that is, for one type).
 *)
 module type REGISTER =
 sig
@@ -195,7 +197,7 @@ module MessagesList =
 
 
 
-(* Old registering of objects
+(* Old registration of objects
 (** Now a functor to save objects. Objects cannot be marshaled (or you need
     to use them always with exactly the same code, which is not what we want).
     We need to code the object before saving. Each savable object has a
