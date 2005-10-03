@@ -24,7 +24,12 @@ type url_string = string list
 type url_activator = Url of url_string | Url_Prefix of url_string
 
 (** Type of http parameters *)
-type http_param
+type http_params = {url_suffix: string;
+		    current_url: string list;
+		    useragent: string;
+		    ip: Unix.inet_addr;
+		    get_params: (string * string) list;
+		    post_params: (string * string) list}
 
 (** Type for names of page parameters *)
 type 'a name
@@ -48,9 +53,14 @@ val _useragent :
   ('a, 'b, 'c, 'd) parameters -> (string -> 'a, 'b, 'c, 'd) parameters
 val _ip :
   ('a, 'b, 'c, 'd) parameters -> (string -> 'a, 'b, 'c, 'd) parameters
+val _current_url :
+  ('a, 'b, 'c, 'd) parameters -> (string list -> 'a, 'b, 'c, 'd) parameters
 val _url_suffix :
   ('a, 'b, 'c, 'd) parameters ->
   (string -> 'a, 'b, 'c, string -> 'd) parameters
+val _http_params :
+  ('a, 'b, 'c, 'd) parameters ->
+  (http_params -> 'a, 'b, 'c, 'd) parameters
 val ( ** ) :
     ('a, 'b, 'c -> 'd, 'e -> formorlink) parameters ->
     ('b, 'g, 'd -> 'h, 'i -> 'j) parameters ->
@@ -60,7 +70,7 @@ val ( ** ) :
    register_url url t f will associate the url url to the function f.
    f is usually a function that takes any number of parameters of
    any types and that creates a page.
-   t is a function that will translate f to a function from http_param
+   t is a function that will translate f to a function from http_params
    to page. t can be written using _unit _int (++) etc.
  *)
 val new_url :
@@ -87,7 +97,7 @@ val register_session_url :
    [register_new_url url t f] will associate the url [url] to the function [f].
    [f] is usually a function that takes any number of parameters of
    any types and that creates a page.
-   [t] is a function that will translate f to a function from http_param
+   [t] is a function that will translate f to a function from http_params
    to page. [t] can be written using [_unit _int (++)] etc.
 *)
 val register_new_url :
@@ -136,13 +146,16 @@ val close_session : unit -> unit
 
 (** Functions to create web pages: *)
 
-val link : string -> ('a, insideforml, 'c, 'd, 'e, 'f, 'g) url -> 'c
+val link : string -> string list -> 
+  ('a, insideforml, 'c, 'd, 'e, 'f, 'g) url -> 'c
 
 (** Link a registrated URL with the function that takes the url and
     names of the parameters, and creates a form for these parameters
 *)
-val form_get : ('a, insideforml, 'c, 'd, 'e, 'f, 'g) url -> 'a -> form
-val form_post : ('a, 'b, 'c, 'd, 'e, 'f, 'g) url -> 'b -> 'c
+val form_get : string list -> 
+  ('a, insideforml, 'c, 'd, 'e, 'f, 'g) url -> 'a -> form
+val form_post : string list -> 
+  ('a, 'b, 'c, 'd, 'e, 'f, 'g) url -> 'b -> 'c
 val int_box : int name -> insideform
 val string_box : string name -> insideform
 val button : string -> insideform

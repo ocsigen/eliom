@@ -1,6 +1,9 @@
 (* à faire
- - revoir le problème des URL avec / à la fin. Ça change le comportement
-   du navigateur pour les liens relatifs.
+ - URGENT : revoir le problème des URL avec / à la fin. 
+   Ça change le comportement du navigateur pour les liens relatifs.
+ - URGENT : revoir les liens relatifs. Par ex si la page courante
+   est toto/titi et qu'elle pointe vers toto/tata il faut que le lien
+   soit vers titi ou ../toto/titi
  - enregistrement d'url jetables. Est-ce que ce sont les URL qui sont 
    jetables ? ou les enregistrements ? Est-ce que l'on peut enregistrer des 
    URL publiques jetables ? des URL de sessions sans état ?

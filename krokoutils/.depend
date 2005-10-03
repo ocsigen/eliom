@@ -7,9 +7,15 @@ krokache.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmo \
     krokache.cmi 
 krokache.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmx \
     krokache.cmi 
-krokodata.cmo: krokache.cmi krokodata.cmi 
-krokodata.cmx: krokache.cmx krokodata.cmi 
+krokodata.cmo: krokopersist.cmi krokache.cmi krokodata.cmi 
+krokodata.cmx: krokopersist.cmx krokache.cmx krokodata.cmi 
 krokopages.cmo: krokodata.cmi 
 krokopages.cmx: krokodata.cmx 
-krokoxample.cmo: krokopersist.cmi krokopages.cmo krokodata.cmi 
-krokoxample.cmx: krokopersist.cmx krokopages.cmx krokodata.cmx 
+krokosavable.cmo: krokopages.cmo krokodata.cmi 
+krokosavable.cmx: krokopages.cmx krokodata.cmx 
+krokoboxes.cmo: krokosavable.cmo 
+krokoboxes.cmx: krokosavable.cmx 
+krokoxample.cmo: krokosavable.cmo krokopersist.cmi krokopages.cmo \
+    krokodata.cmi krokoboxes.cmo 
+krokoxample.cmx: krokosavable.cmx krokopersist.cmx krokopages.cmx \
+    krokodata.cmx krokoboxes.cmx 

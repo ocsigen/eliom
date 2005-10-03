@@ -31,12 +31,21 @@ let plop2 =
     _noparam 
     << <html> plop2 </html> >>
 
-let plop3 = 
+let oups = 
   register_new_url 
-    (Url ["plop";""])  (* the url plop/ is NOT equivalent to plop *)
+    (Url ["oups"])
     _noparam 
-    << <html> plop3 </html> >>
-(* plop3 will replace plop in the table *)
+    << <html> La première </html> >>
+
+let oups2 = 
+  register_new_url 
+    (Url ["oups";""])  (* the url plop/ is equivalent to plop *)
+    _noparam 
+    << <html> oups/ is equivalent to oups.
+      Here there was both but the first one has been replaced by the 
+      second one.
+       </html> >>
+(* oups2 will replace oups in the table *)
 
 
 (* ------------------------------------------------------------------ *)
@@ -114,17 +123,24 @@ let mytype = register_new_url
 (* ------------------------------------------------------------------ *)
 (* To create a link to a registered url, use the link function: *)
 
-let links = register_new_url (Url ["links"]) _noparam 
-  (let l = link "plop" plop in
-   let ll = link "plop2" plop2 in
-   let lll = link "uaprefix" uaprefix "suf" in
-   let llll = link "plop_params" plop_params 45 "hello" "plpl" in
-   let lllll = link "wikipedia" 
-     (new_external_url
-	(Url_Prefix ["http://fr.wikipedia.org";"wiki"])
-	(_url_suffix _noparam)) "Ocaml" 
-   in
-     << <html> $l$ <br/> $ll$ <br/> $lll$ <br/> $llll$ <br/> $lllll$</html> >>)
+let links = register_new_url (Url ["plop";"links"]) (_current_url _noparam)
+  (fun current_url ->
+     (let l = link "plop" current_url plop in
+      let ll = link "plop2" current_url plop2 in
+      let lll = link "uaprefix" current_url uaprefix "suf" in
+      let llll = 
+	link "plop_params" current_url plop_params 45 "hello" "plpl" in
+      let lllll = link "wikipedia" current_url
+	(new_external_url
+	   (Url_Prefix ["http://fr.wikipedia.org";"wiki"])
+	   (_url_suffix _noparam)) "Ocaml" 
+      in
+	<< <html> $l$ <br/> $ll$ <br/> $lll$ <br/> $llll$ <br/> $lllll$</html> >>))
+(* Note that to create a link we need to know the current url, because:
+   - the link from toto/titi to toto/tata is "tata" and not "toto/tata"
+   - "toto/titi/" is equivalent to "toto/titi", but the link for the
+   first one is "../tata" and the second "tata".
+*)
 
 
 
@@ -134,11 +150,12 @@ let links = register_new_url (Url ["links"]) _noparam
    Do not forget to register the url!!!
  *)
 
-let linkrec = new_url (Url ["linkrec"]) _noparam
+let linkrec = new_url (Url ["linkrec"]) (_current_url _noparam)
 
 let _ = register_url linkrec 
-  (let l = link "cliquez" linkrec in
-     << <html> $l$ </html> >>)
+  (fun url -> 
+     let l = link "cliquez" url linkrec in
+       << <html> $l$ </html> >>)
 
 
 
@@ -160,9 +177,10 @@ let create_form =
 	             $b$
 	  >>)
 
-let form = register_new_url (Url ["form"]) _noparam 
-  (let f = form_get plop_params create_form in
-  << <html> $f$ </html> >>)
+let form = register_new_url (Url ["form"]) (_current_url _noparam)
+  (fun current_url -> 
+     let f = form_get current_url plop_params create_form in
+     << <html> $f$ </html> >>)
 
 
 
@@ -213,33 +231,36 @@ let my_url_with_get_and_post = register_new_post_url
    possibly applied to GET parameters (if any)
 *)
 
-let form2 = register_new_url (Url ["form2"]) _noparam 
-  (let f = 
-     (form_post my_url_with_post_params
-	(fun chaine -> 
-	   let sb = string_box chaine in
-	     <:xmllist< Write a string: $sb$ >>)) in
-     << <html> $f$ </html> >>)
+let form2 = register_new_url (Url ["form2"]) (_current_url _noparam)
+  (fun current_url -> 
+     let f = 
+       (form_post current_url my_url_with_post_params
+	  (fun chaine -> 
+	     let sb = string_box chaine in
+	       <:xmllist< Write a string: $sb$ >>)) in
+       << <html> $f$ </html> >>)
 
-let form3 = register_new_url (Url ["form3"]) _noparam 
-  (let f = 
-     (form_post my_url_with_get_and_post 
-	(fun chaine -> 
-	   let sb = string_box chaine in
-	     <:xmllist< Write a string: $sb$ >>) 222) in
-     << <html> $f$ </html> >>)
+let form3 = register_new_url (Url ["form3"]) (_current_url _noparam)
+  (fun current_url ->
+     let f = 
+       (form_post current_url my_url_with_get_and_post 
+	  (fun chaine -> 
+	     let sb = string_box chaine in
+	       <:xmllist< Write a string: $sb$ >>) 222) in
+       << <html> $f$ </html> >>)
 
-let form4 = register_new_url (Url ["form4"]) _noparam 
-  (let f = 
-     (form_post 
-	(new_external_post_url 
-	   ~name:(Url ["http://www.petitspois.com";"form"])
-	   ~params:(_int "i")
-	   ~post_params:(_string "chaine"))
-	(fun chaine -> 
-	   let sb = string_box chaine in
-	     <:xmllist< Write a string: $sb$ >>) 222) in
-     << <html> $f$ </html> >>)
+let form4 = register_new_url (Url ["form4"]) (_current_url _noparam) 
+  (fun current_url ->
+     let f = 
+       (form_post current_url
+	  (new_external_post_url 
+	     ~name:(Url ["http://www.petitspois.com";"form"])
+	     ~params:(_int "i")
+	     ~post_params:(_string "chaine"))
+	  (fun chaine -> 
+	     let sb = string_box chaine in
+	       <:xmllist< Write a string: $sb$ >>) 222) in
+       << <html> $f$ </html> >>)
        
 (* note new_external_post_url *)
 
@@ -271,22 +292,24 @@ let form4 = register_new_url (Url ["form4"]) _noparam
     - ... ?
  *)
 
-let ustate = new_url (Url ["state"]) _unit
+let ustate = new_url (Url ["state"]) (_current_url _noparam)
 
 let ustate2 = new_state_url ustate
 
 let _ = 
   let c = ref 0 in
-  let page () = 
+  let page url = 
     let i = string_of_int !c in
-    let l = link "reload" ustate in
-    let l2 = link "incr i" ustate2 in
-    let l3 = form_post ustate2 
+    let l = link "reload" url ustate in
+    let l2 = link "incr i" url ustate2 in
+    let l3 = form_post url ustate2
       (<:xmllist< <input type="submit" value="incr i" /> >>) in
-    << <html> i vaut $str:i$ <br/> $l$ <br/> $l2$ <br/> $l3$ </html> >>
+    let l4 = form_get url ustate2
+      (<:xmllist< <input type="submit" value="incr i" /> >>) in
+    << <html> i vaut $str:i$ <br/> $l$ <br/> $l2$ <br/> $l3$ $l4$ </html> >>
   in
     register_url ustate page;
-    register_url ustate2 (fun () -> c := !c + 1; page ())
+    register_url ustate2 (fun url -> c := !c + 1; page url)
 
 
 (* ------------------------------------------------------------------ *)
@@ -305,15 +328,15 @@ let _ =
 let public_session_without_post_params = 
   new_url 
     ~name:(Url ["session"]) 
-    ~params:_unit
+    ~params:(_current_url _noparam)
 
 let public_session_with_post_params = 
   new_post_url 
     ~fallback:public_session_without_post_params
     ~post_params:(_string "login")
 
-let accueil () = 
-  let f = form_post public_session_with_post_params
+let accueil url = 
+  let f = form_post url public_session_with_post_params
     (fun login -> 
        let sb = string_box login in
 	 <:xmllist< login: $sb$ >>) in
@@ -326,13 +349,13 @@ let _ = register_url
 let rec launch_session login =
   let close = register_new_session_url (* See later *)
     ~fallback:public_session_without_post_params 
-    ~action:(fun () -> close_session (); accueil ())
+    ~action:(fun url -> close_session (); accueil url)
   in
-  let new_main_page () =
-    let l1 = link "plop" plop
-    and l2 = link "plop2" plop2
-    and l3 = link "links" links
-    and l4 = link "close session" close in
+  let new_main_page url =
+    let l1 = link "plop" url plop
+    and l2 = link "plop2" url plop2
+    and l3 = link "links" url links
+    and l4 = link "close session" url close in
     << <html>
          Bienvenue $str:login$ ! <br/>
          $l1$ <br/>
@@ -368,21 +391,21 @@ let _ =
 let shop_without_post_params =
   new_url
     ~name:(Url ["shop"])
-    ~params:_unit
+    ~params:(_current_url _noparam)
 
 let shop_with_post_params =
   new_post_url
     ~fallback:shop_without_post_params
     ~post_params:(_string "article")
 
-let write_shop shop =
-  (form_post shop 
+let write_shop shop url =
+  (form_post url shop 
      (fun article -> 
 	let sb = string_box article in
 	  <:xmllist< What do you want to buy? $sb$ >>))
 
-let shop_public_main_page () =
-  let f = write_shop shop_with_post_params in
+let shop_public_main_page current_url =
+  let f = write_shop shop_with_post_params current_url in
     << <html> $f$ </html> >>
 
 let _ = 
@@ -397,7 +420,7 @@ let write_shopping_basket shopping_basket =
   let ffol = aux shopping_basket in
     <:xmllist< Your shopping basket: <br/> $list:ffol$ >>
 
-let rec page_for_shopping_basket shopping_basket =
+let rec page_for_shopping_basket url shopping_basket =
   let local_shop_with_post_params = 
     new_post_state_url
       ~fallback:shop_without_post_params
@@ -406,48 +429,50 @@ let rec page_for_shopping_basket shopping_basket =
   in
     register_post_session_url
       ~url:local_shop_with_post_params
-      ~action:(fun article () -> 
-		 page_for_shopping_basket (article::shopping_basket));
+      ~action:(fun article current_url -> 
+		 page_for_shopping_basket 
+		   current_url (article::shopping_basket));
     register_session_url
       local_pay
-      (fun () ->
+      (fun current_url ->
 	 let f = write_shopping_basket shopping_basket in
 	   << <html> You are going to pay: $list:f$ </html> >>);
     let sb = `Div ([], (write_shopping_basket shopping_basket)) in
-    let sh = write_shop local_shop_with_post_params in
-    let lp = link "pay" local_pay in
+    let sh = write_shop local_shop_with_post_params url in
+    let lp = link "pay" url local_pay in
       << <html> $sb$ $sh$ $lp$ </html> >>
 
 let _ = register_post_url
   ~url:shop_with_post_params
-  ~action:(fun article () -> page_for_shopping_basket [article])
+  ~action:(fun article url -> page_for_shopping_basket url [article])
 
 
 (* Main page for this example *)
-let _ = register_new_url (Url []) _noparam 
-  (let l1 = link "plop" plop in
-   let l2 = link "plip" plip in
-   let l3 = link "plop/plip" plop2 in
-   let l4 = link "plop3" plop3 in
-   let l5 = link "plop avec params" plop_params 45 "hello" "plpl" in
-   let l6 = link "uaprefix" uaprefix "suf" in
-   let l7 = link "iprefix" iprefix "popo" 333 in
-   let l8 = link "mytype" mytype A in
-   let l9 = link "links" links in
-   let l10 = link "linkrec" linkrec in
-   let l11 = link "form" form in
-   let l12 = link "post sans post_params" no_post_param_url in
-   let l13 = link "form2" form2 in
-   let l14 = link "form3" form3 in
-   let l15 = link "form4" form4 in
-   let l16 = link "state" ustate in
-   let l17 = link "session" public_session_without_post_params in
-   let l18 = link "shop" shop_without_post_params in
+let _ = register_new_url (Url []) (_current_url _noparam)
+  (fun url ->
+     let l1 = link "plop" url plop in
+     let l2 = link "plip" url plip in
+     let l3 = link "plop/plip" url plop2 in
+     let l4 = link "oups" url oups in
+     let l5 = link "plop avec params" url plop_params 45 "hello" "plpl" in
+     let l6 = link "uaprefix" url uaprefix "suf" in
+     let l7 = link "iprefix" url iprefix "popo" 333 in
+     let l8 = link "mytype" url mytype A in
+     let l9 = link "links" url links in
+     let l10 = link "linkrec" url linkrec in
+     let l11 = link "form" url form in
+     let l12 = link "post sans post_params" url no_post_param_url in
+     let l13 = link "form2" url form2 in
+     let l14 = link "form3" url form3 in
+     let l15 = link "form4" url form4 in
+     let l16 = link "state" url ustate in
+     let l17 = link "session" url public_session_without_post_params in
+     let l18 = link "shop" url shop_without_post_params in
      << <html> 
        Une page simple : $l1$ <br/>
        Une page avec un compteur : $l2$ <br/> 
        Une page simple dans un répertoire : $l3$ <br/>
-       Page par défaut d'un répertoire : $l4$ (plop/ n'est pas équivalent à plop)<br/>
+       Page par défaut d'un répertoire : $l4$ (oups/ est équivalent à oups)<br/>
        Une page avec paramètres GET : $l5$ (que se passe-t-il si le premier paramètre n'est pas un entier ?)<br/> 
        Une page avec URL "préfixe" qui récupère l'IP et l'user-agent : $l6$ <br/> 
        Une page URL "préfixe" avec des paramètres GET : $l7$ <br/> 

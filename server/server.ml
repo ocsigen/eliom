@@ -138,7 +138,7 @@ let service http_frame in_ch sockaddr xhtml_sender file_sender () =
 	     de &... à revoir !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! *)
       with _ -> None
     in
-    let cookie2,page = 
+    let cookie2,page =
       get_page (get_frame_infos http_frame) sockaddr cookie in
     let keep_alive = false 
       (* Je préfère pour l'instant ne jamais faire de keep-alive pour
@@ -169,10 +169,14 @@ let service http_frame in_ch sockaddr xhtml_sender file_sender () =
     | Omlet_Malformed_Url ->
     (*really_write "404 Not Found ??" false in_ch "error ??? (Malformed URL) \n"
     * 0 11 *)
-    (*send_error ~error_num:400 xhtml_sender*)
-    send_file ~code:200 "../pages/Volta.GIF" file_sender
-    >>= (fun _ ->
-    return true (* idem *))
+	send_error ~error_num:400 xhtml_sender
+	>>= (fun _ ->
+	       return true (* idem *))
+    | _ ->
+	send_error ~error_num:000 xhtml_sender
+    (* send_file ~code:200 "../pages/Volta.GIF" file_sender *)
+	>>= (fun _ ->
+	       return true (* idem *))
                                               
 
 
@@ -259,8 +263,10 @@ let _ =
        Dynlink.loadfile "../lib/krokache.cmo";
        Dynlink.loadfile "../lib/krokodata.cmo";
        Dynlink.loadfile "../lib/krokopages.cmo";
+       Dynlink.loadfile "../lib/krokosavable.cmo";
+       Dynlink.loadfile "../lib/krokoboxes.cmo";
        load_aaaaa_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo";
-       load_aaaaa_module ~dir:["kiko"] ~cmo:"../lib/krokoxample.cmo";
+       load_aaaaa_module ~dir:["krokoutils"] ~cmo:"../lib/krokoxample.cmo";
      with Aaaaa_error_while_loading m -> (warning ("Error while loading "^m)));
     listen ()
   )

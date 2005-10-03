@@ -7,6 +7,8 @@ psql -f createdb.sql krokobase
 
 drop table globalstore;
 drop table content;
+drop table users;
+drop table groups;
 
 create table globalstore (
 	key text primary key,
@@ -18,14 +20,13 @@ create table content (
 );
 
 
-/*
 create table users (
 	uid             serial primary key,
 	login           text unique not null,
  	password        text,
 	real_name       text,
-	user_creation_date timestamp,
-	last_connection_date timestamp,
+/*	user_creation_date timestamp,
+	last_connection_date timestamp,*/
 	groups          bytea
 );
 
@@ -48,7 +49,7 @@ create table categories (
 	description     text
 );
 */
-
+/*
 create table messages (
 	key             serial primary key,
 	title           text,

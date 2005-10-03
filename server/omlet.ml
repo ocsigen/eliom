@@ -25,11 +25,12 @@ type url_activator = Url of url_string | Url_Prefix of url_string
 
 
 (** Type of http parameters *)
-type http_param = {url_suffix: string;
-		   useragent: string;
-		   ip: Unix.inet_addr;
-		   get_params: (string * string) list;
-		   post_params: (string * string) list}
+type http_params = {url_suffix: string;
+		    current_url: string list;
+		    useragent: string;
+		    ip: Unix.inet_addr;
+		    get_params: (string * string) list;
+		    post_params: (string * string) list}
 
 
 (** state is a parameter to differenciate
@@ -52,11 +53,11 @@ exception Omlet_Wrong_parameter
 
 type postorget = Get | Post
 
-let find_param name pog http_param =
+let find_param name pog http_params =
   try 
     match pog with
-	Post -> List.assoc name http_param.post_params
-      | Get -> List.assoc name http_param.get_params
+	Post -> List.assoc name http_params.post_params
+      | Get -> List.assoc name http_params.get_params
   with Not_found -> raise Omlet_Wrong_parameter
 
 let id x = x
@@ -84,9 +85,9 @@ type ('a, 'b, 'c, 'd) parameters =
 	(but we may have something else instead of form when constructing
 	the value)
      *)
-     conversion_function: postorget -> 'a -> http_param -> 'b 
+     conversion_function: postorget -> 'a -> http_params -> 'b 
        (* for dynamic typing,
-	  for ex (int -> int -> page) -> http_param -> page 
+	  for ex (int -> int -> page) -> http_params -> page 
 	  (but 'b can be more complicated, for ex in register_post_url)
        *)}
 
@@ -162,7 +163,7 @@ let _useragent p =
      give_form_parameters=p.give_form_parameters;
      conversion_function=
      (fun pog f httpparam -> 
-	p.conversion_function pog (f (httpparam.useragent)) httpparam)
+	p.conversion_function pog (f httpparam.useragent) httpparam)
     }
 
 let _ip p = 
@@ -175,6 +176,15 @@ let _ip p =
         p.conversion_function pog (f ip) httpparam)
     }
 
+let _current_url p = 
+    {param_names=p.param_names;
+     write_parameters=p.write_parameters;
+     give_form_parameters=p.give_form_parameters;
+     conversion_function=
+     (fun pog f httpparam -> 
+        p.conversion_function pog (f httpparam.current_url) httpparam)
+    }
+
 let _url_suffix p =
     {param_names=p.param_names;
      write_parameters=
@@ -184,6 +194,15 @@ let _url_suffix p =
      give_form_parameters=p.give_form_parameters;
      conversion_function=
      (fun pog f httpparam -> p.conversion_function pog (f (httpparam.url_suffix)) httpparam)
+    }
+
+let _http_params p = 
+    {param_names=p.param_names;
+     write_parameters=p.write_parameters;
+     give_form_parameters=p.give_form_parameters;
+     conversion_function=
+     (fun pog f httpparam -> 
+        p.conversion_function pog (f httpparam) httpparam)
     }
 
 let ( ** ) p1 p2 =
@@ -225,7 +244,7 @@ let change_empty_activator = function
     Url l -> Url (change_empty_list l)
   | Url_Prefix l -> Url_Prefix (change_empty_list l)
 
-(** We associate to an URL a function http_param -> page *)
+(** We associate to an URL a function http_params -> page *)
 module type DIRECTORYTREE =
   sig
     type tree
@@ -236,11 +255,11 @@ module type DIRECTORYTREE =
     val empty_tree : unit -> tree
     val is_empty_table : tree -> bool
     val add_url : tree ->  url_activator -> 
-      page_table_key * (http_param -> page) -> unit
+      page_table_key * (http_params -> page) -> unit
     val find_url :
       tree ->
       url_string -> (string * string) list -> (string * string) list ->
-      internal_state option -> ((http_param -> page) * url_string) 
+      internal_state option -> ((http_params -> page) * url_string) 
       * url_string option
   end
 
@@ -252,30 +271,32 @@ module Directorytree : DIRECTORYTREE = struct
       {get_names: string list;
        post_names: string list;
        state: internal_state option}
-       (* action: http_param -> page *)
+       (* action: http_params -> page *)
 
-  module Page_Table = Hashtbl.Make(struct 
-				     type t = page_table_key 
-				     let equal = (=)
-				     let hash = Hashtbl.hash
-				   end)
-    (* pas sûr que ce soit bien d'utiliser des tables de hashage ici
-       mais ça m'évite d'implémenter une table avec remplacement moi-même *)
+  module Page_Table = Map.Make(struct type t = page_table_key 
+				      let compare = compare end)
 
-  type table = Vide | Table of ((http_param -> page) * url_string) Page_Table.t
+  type table = 
+      Vide
+    | Table of ((http_params -> page) * url_string) Page_Table.t
+	(* Here, the url_string is the working directory.
+	   That is, the directory in which we are when we register
+	   dynamically the pages.
+	   Each time we load a page, we change to this directory
+	   (in case the page registers new pages).
+	*)
 
   let empty_table () = Vide
 
   let add_table t (key,elt) = 
     match t with
-	Vide -> let t = (Page_Table.create 5) in
-	  Page_Table.add t key elt; Table t
-      | Table t -> Page_Table.add t key elt; Table t
+	Vide -> Table (Page_Table.add key elt Page_Table.empty)
+      | Table t -> Table (Page_Table.add key elt t)
 
   let find_table t k = 
     match t with
 	Vide -> raise Not_found
-      | Table t -> Page_Table.find t k
+      | Table t -> Page_Table.find k t
 
   type dircontent = Realdir of ((string * dir) list)
 		    | Dirprefix of table ref
@@ -304,7 +325,6 @@ module Directorytree : DIRECTORYTREE = struct
                search_table new_dir l)
       in function
             [] -> table,dircontent_ref
-	| [""] ->  print_endline "j'enregistre une page par défaut du répertoire" ; aux "" []
 	| ""::l -> print_endline "j'enrSLASH" ; search_table (Dir (table, dircontent_ref)) l
 	| a::l -> print_endline ("j'enregistre dans "^a) ; aux a l
     in
@@ -333,7 +353,6 @@ module Directorytree : DIRECTORYTREE = struct
            | Dirprefix tr -> !tr, (Some (a::l)))
       in function
             [] -> !tableref, None
-	| [""] -> print_endline "Je cherche la page par défaut"; aux "" []
 	| ""::l -> print_endline "SLASH"; search_table (Dir (tableref, dircontent_ref)) l
 	| a::l -> print_endline ("Je cherche dans "^a); aux a l
     in
@@ -394,22 +413,22 @@ type ('a,'b,'c,'d,'e,'f,'g) url =
        (* 'a is for example int name -> string name -> insideform *)
      create_post_form: 'b -> insideforml;  
                    (* idem, but for POST. If no post param 'b is insideform *)
-     create_get_url: (string -> formorlink) -> 'c;
+     create_get_url: string list -> (string -> formorlink) -> 'c;
          (* 'c is for example int -> int -> string, function that will create
 	    the name of the url, for ex the string "hello?int1=3&int2=4"
 	    Then the function will be applied to this string to create a link
 	    or a formular to this url.
 	  *)
-     get_conversion_function: 'd -> http_param -> page;
+     get_conversion_function: 'd -> http_params -> page;
          (* for dynamic typing, (as in parameters)
-	    for ex int -> int -> page -> http_param -> page 
+	    for ex int -> int -> page -> http_params -> page 
 	    (but 'b can be more complicated, for ex in register_post_url)
 	    We need this here in order to be able to re-register the same
 	    being sure we use exactly the same parameter's names and types.
 	    If we could have had parameters names in the type it wouldn't
 	    have been necessary...
 	  *)
-     post_conversion_function: 'e -> http_param -> 'f;
+     post_conversion_function: 'e -> http_params -> 'f;
     }
       
 (* En fait cette fonction est dans Neturl
@@ -431,18 +450,46 @@ let rec cut_url s =
 *)
 
 let rec reconstruct_url_string = function
-    [] -> "/"
+    [] -> ""
   | [a] -> a
   | a::l -> a^"/"^(reconstruct_url_string l)
+
+let reconstruct_absolute_url_string current_url = reconstruct_url_string
 
 let reconstruct_url_string_option = function
     None -> ""
   | Some l -> reconstruct_url_string l
 
+let reconstruct_relative_url_string current_url u =
+  let rec drop cururl desturl = match cururl, desturl with
+    | a::l, [b] -> l, desturl
+    | [a], m -> [], m
+    | a::l, b::m when a = b -> drop l m
+    | a::l, m -> l, m
+    | [], m -> [], m
+  in let rec makedotdot = function
+    | [] -> ""
+(*    | [a] -> "" *)
+    | _::l -> "../"^(makedotdot l)
+  in let aremonter, aaller = drop current_url (""::(!current_dir)@u)
+  in 
+
+Messages.warning (reconstruct_url_string current_url);
+Messages.warning (reconstruct_url_string !current_dir);
+Messages.warning (reconstruct_url_string u);
+Messages.warning (reconstruct_url_string aremonter);
+Messages.warning (reconstruct_url_string aaller);
+Messages.warning "-";
+
+(makedotdot aremonter)^(reconstruct_url_string aaller)
+
+
+
 (** Create an url *)
-let new_url_aux
+let new_url_aux_aux
     ~(name : url_activator)
     ~params
+    reconstruct_url_function
     : ('a, insideforml, 'b, 'c, page, page, 'popo) url =
 (* ici faire une vérification "duplicate parameter" ? SÉCURITÉ !! *) 
   let name = change_empty_activator name in
@@ -454,18 +501,35 @@ let new_url_aux
    create_post_form = id;
    create_get_url = (match name with
 			 Url s -> 
-			   let ss = (reconstruct_url_string s) in
-			     (fun f -> params.write_parameters 
-				(function Some v -> f (ss^"?"^v)
-				   | None -> f ss))
+			     (fun current_url f -> 
+				let ss = 
+				  (reconstruct_url_function current_url s) in
+				  Messages.warning ("=="^ss);
+				  params.write_parameters 
+				    (function Some v -> f (ss^"?"^v)
+				       | None -> f ss))
 		       | Url_Prefix s -> 
-			   let ss = (reconstruct_url_string s) in
-			     (fun f -> params.write_parameters
-				(function Some v -> f (ss^v)
-				   | None -> f ss)));
+			     (fun current_url f -> 			   
+				let ss = 
+				  (reconstruct_url_function current_url s) in
+				  params.write_parameters
+				    (function Some v -> f (ss^v)
+				       | None -> f ss)));
    get_conversion_function = params.conversion_function Get;
-   post_conversion_function = (fun a http_param -> a)
+   post_conversion_function = (fun a http_params -> a)
   }
+
+let new_url_aux
+    ~(name : url_activator)
+    ~params
+    : ('a, insideforml, 'b, 'c, page, page, 'popo internal_url) url =
+  new_url_aux_aux ~name ~params reconstruct_relative_url_string
+
+let new_external_url_aux
+    ~(name : url_activator)
+    ~params
+    : ('a, insideforml, 'b, 'c, page, page, external_url) url =
+  new_url_aux_aux ~name ~params reconstruct_absolute_url_string
 
 let new_url
     ~(name : url_activator)
@@ -482,7 +546,7 @@ let new_external_url
     ~(name : url_activator)
     ~params
     : ('a, insideforml, 'b, 'c, page, page, external_url) url =
-  new_url_aux name params
+  new_external_url_aux name params
 
 let register_url_aux
     tree
@@ -581,10 +645,10 @@ let register_post_url_aux
     ({get_names = url.get_param_names;
       post_names = url.post_param_names;
       state = state},
-     (fun http_param ->
+     (fun http_params ->
 	(url.get_conversion_function
-	   (url.post_conversion_function action http_param) 
-	   http_param)))
+	   (url.post_conversion_function action http_params) 
+	   http_params)))
     (* Je n'arrive pas à mettre les params2 avant params pour des raisons
        de typage... *)
 
@@ -621,9 +685,10 @@ let register_new_post_session_url
 (** Close a session *)
 let close_session () = session_tree := empty_tree ()
 
-let make_http_params url_suffix get_params post_params useragent ip = 
+let make_http_params url url_suffix get_params post_params useragent ip = 
   {url_suffix = (reconstruct_url_string_option url_suffix);
    useragent=useragent;
+   current_url=url;
    ip=ip;
    get_params = get_params;
    post_params = post_params}
@@ -632,28 +697,98 @@ let state_param_name = "__state__"
 
 (** Functions to construct web pages: *)
 
-let link name (url : ('a, insideforml,'c,'d,'e,'f,'g) url) = 
+let counter = let c = ref 0 in fun () -> c := !c + 1 ; !c
+
+let link name current_url (url : ('a, insideforml,'c,'d,'e,'f,'g) url) =
   match url.url_state with
-      None -> url.create_get_url
+      None -> url.create_get_url current_url
 	(fun v -> << <a href=$v$>$str:name$</a> >>)
-      | Some i -> url.create_get_url
+    | Some i -> url.create_get_url current_url
 	(fun v -> 
-	   let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
-	     << <a href=$vstateparam$>$str:name$</a> >>)
+	   let stateparam = string_of_int i in
+	   let formname="hiddenform"^(string_of_int (counter ())) in
+	   let href="javascript:document."^formname^".submit ()" in
+	     << <a href=$href$>$str:name$<form name=$formname$ method="post" action=$v$ style="display:none">
+	       <input type="hidden" name=$state_param_name$
+			  value=$stateparam$/>
+			  </form></a> >>) 
+	  (*	   let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
+	     << <a href=$vstateparam$>$str:name$</a> >>) *)
+(* 	   let stateparam = string_of_int i in
+	     << <form name="hiddenform" method="post" action=$v$>
+	           <input type="hidden" name=$state_param_name$
+			      value=$stateparam$/>
+                   <a href="javascript:document.hiddenform.submit ()">$str:name$</a>
+	        </form> >>) 
+
+
+
+À VOIR ! IMPORTANT ! :
+
+Pour les form get on peut faire pareil, du style :
+<input type="button"
+onClick="document.form1.submit();document.form2.submit()">
+(problème : on n'a pas accès au bouton)
+
+*)
+(*	   let stateparam = string_of_int i in
+	     << <span class="link" onclick="document.hiddenform.submit ()"><form name="hiddenform" method="post" action=$v$>
+	           <input type="hidden" name=$state_param_name$
+			      value=$stateparam$/>
+	        </form>$str:name$</span> >>) *)
 (* Pas vraiment de moyen simple pour passer un paramètre POST dans un lien...
 	   let stateparam = string_of_int i in
 	   let link = "submit()" in
 	     << <form method="post" action=$v$> 
-	           <input type="hidden" name=$state_param_name$ 
+	           <input type="hidden" name=$state_param_name$
 			      value=$stateparam$/>
 	           <input type="submit" style="background:none; border:none; cursor:pointer; color:red; text-align: left; line-height: 1" value=$name$/>
 	        </form> >>) *)
 
 
 
-let form_get (url : ('a,insideforml,'c,'d,'e,'f,'g) url) (f : 'a) =
+(*
+let form_get current_url (url : ('a,insideforml,'c,'d,'e,'f,'g) url) (f : 'a) =
   let urlname = (match url.url with Url_Prefix s | Url s -> 
-		   reconstruct_url_string s) in
+		   reconstruct_relative_url_string current_url s) in
+  let inside = url.create_get_form f in
+    (match  url.url_state with
+	 None ->   << <form method="get" action=$urlname$>
+           $list:inside$
+	   </form> >>
+       | Some i -> 
+	   let i' = string_of_int i in
+	   let formname="hiddenform"^(string_of_int (counter ())) in
+	   let onsubmit="document."^formname^".submit();" in
+	     << <form method="get" action=$urlname$ onsubmit=$onsubmit$>
+	           <form name=$formname$ method="post" action=$urlname$ 
+		           style="display:none">
+                     <input type="hidden" name=$state_param_name$ value=$i'$/>
+		   </form>
+                   $list:inside$
+                </form> >>)
+
+ou alors faire un form POST et du javascript qui va mettre 
+la chaîne ?blbla=truc&etc
+*)
+
+
+(*	   let i' = string_of_int i in
+	   let formname="hiddenform"^(string_of_int (counter ())) in
+	   let onsubmit="document."^formname^".submit();window.open('"^urlname^"','indexWindow',''); return true;" in
+	     << <form method="get" action=$urlname$ onsubmit=$onsubmit$>
+	           <form name=$formname$ method="post" action=$urlname$ 
+		           style="display:none">
+                     <input type="hidden" name=$state_param_name$ value=$i'$/>
+		   </form>
+                   $list:inside$
+                </form> >>)
+*)
+
+
+let form_get current_url (url : ('a,insideforml,'c,'d,'e,'f,'g) url) (f : 'a) =
+  let urlname = (match url.url with Url_Prefix s | Url s -> 
+		   reconstruct_relative_url_string current_url s) in
   let state_param =
     (match  url.url_state with
 	 None -> `PCData ""
@@ -669,7 +804,7 @@ let form_get (url : ('a,insideforml,'c,'d,'e,'f,'g) url) (f : 'a) =
      </form> >>
 
 
-let form_post (url : ('a,'b,'c,'d,'e,'f,'g) url) (f : 'b) = 
+let form_post current_url (url : ('a,'b,'c,'d,'e,'f,'g) url) (f : 'b) = 
   let state_param =
     (match  url.url_state with
 	 None -> `PCData ""
@@ -677,7 +812,7 @@ let form_post (url : ('a,'b,'c,'d,'e,'f,'g) url) (f : 'b) =
 	   let i' = string_of_int i in
 	  << <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
   in
-  url.create_get_url
+  url.create_get_url current_url
     (fun v -> 
        let inside = url.create_post_form f in
 (*	 `Form ([(`Method, "post"); (`Action, v)], state_param::inside)) *)
@@ -756,8 +891,8 @@ let get_page
 	in 
 	let page = 
 	  absolute_change_dir working_dir;
-	  action (make_http_params 
-		    url_suffix get_params post_params useragent ip) in
+	  action (make_http_params
+		    url url_suffix get_params post_params useragent ip) in
 	let cookie2 = 
 	  if is_empty_table !session_tree
 	  then ((if not new_session 
@@ -773,7 +908,8 @@ let get_page
       with 
 	  Omlet_Typing_Error -> (cookie, Error_pages.page_error_param_type)
 	| Omlet_Wrong_parameter -> (cookie, Error_pages.page_bad_param)
-  in current_dir := save_current_dir; answer
+  in current_dir := save_current_dir; 	
+    answer
 
 (** Module loading *)
 exception Aaaaa_error_while_loading of string
