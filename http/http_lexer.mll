@@ -10,8 +10,8 @@ let proto =['h' 'H'] ['t' 'T'] ['t' 'T'] ['p' 'P'] '/' integer '.' integer
 
 rule token =
   parse
-  |blank                {print_endline "blank";token lexbuf}
-  |"GET"                {print_endline "GET";METHOD "GET"}
+  |blank                {print_string " ";token lexbuf}
+  |"GET"                {print_string "GET";METHOD "GET"}
   |"POST"               {METHOD "POST"}
   |"HEAD"               {METHOD "HEAD"}
   |"PUT"                {METHOD "PUT"}
@@ -22,12 +22,13 @@ rule token =
   |"LINK"               {METHOD "LINK"}
   |"UNLINK"             {METHOD "UNLINK"}
   |"PATCH"              {METHOD "PATCH"}
-  |"\r\n"               {print_endline "rn";EOL}
-  |":"                  {print_endline "colon";COLON}
-  |"\n"                 {print_endline "n";EOL}
-  |integer              {print_endline "->code";CODE (int_of_string (Lexing.lexeme lexbuf))}
-  |proto                {print_endline "proto";PROTO (Lexing.lexeme lexbuf)}
-  |strin                {print_endline ("string : "^(Lexing.lexeme lexbuf));STRING (Lexing.lexeme lexbuf)}
+  |"\r\n"               {print_endline "";EOL}
+  |":"                  {print_string ":";COLON}
+  |"\n"                 {print_endline "";EOL}
+  |integer              {print_string "<code>";CODE (int_of_string (Lexing.lexeme lexbuf))}
+  |proto                {print_string "<proto>";PROTO (Lexing.lexeme lexbuf)}
+  |strin                {print_string (Lexing.lexeme lexbuf);
+			 STRING (Lexing.lexeme lexbuf)}
   |eof                  {raise (Http_error.Http_exception (Some 400,["Unexpected end of
                                 file"]))}
   |_                    {raise (Http_error.Http_exception (Some 400,["lexer error"

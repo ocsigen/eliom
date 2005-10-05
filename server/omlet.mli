@@ -25,6 +25,7 @@ type url_activator = Url of url_string | Url_Prefix of url_string
 
 (** Type of http parameters *)
 type http_params = {url_suffix: string;
+		    full_url: string;
 		    current_url: string list;
 		    useragent: string;
 		    ip: Unix.inet_addr;
@@ -84,8 +85,8 @@ val new_external_url :
   ('b, insideforml, 'c, 'a, page, page, external_url) url
 
 val new_state_url :
-  fallback:('b, insideforml, 'c, 'a, page, page, public_url internal_url) url ->
-  ('b, insideforml, 'c, 'a, page, page, state_url internal_url) url
+  fallback:('b, insideforml, 'c, 'a, page, page, public_url internal_url) url 
+  -> ('b, insideforml, 'c, 'a, page, page, state_url internal_url) url
 
 val register_url :
   url:('a, insideforml, 'b, 'c, 'd, 'e, 'f internal_url) url -> action:'c -> unit
@@ -111,8 +112,8 @@ val register_new_session_url :
 
 val new_post_url :
   fallback:('a, 'b, 'c, 'd, 'e, 'f, public_url internal_url) url ->
-  post_params:('h, 'i, 'j -> insideforml, 'k) parameters ->
-  ('a, 'j, 'c, 'd, 'h, 'i, public_url internal_url) url
+  post_params:('h, 'd, 'j -> insideforml, 'k) parameters ->
+  ('a, 'j, 'c, 'd, 'h, 'd, public_url internal_url) url
 
 val new_external_post_url :
   name:url_activator ->
@@ -141,6 +142,30 @@ val register_new_post_session_url :
     post_params:('g, 'd, ('h -> 'i) -> insideforml, 'j) parameters ->
     action:'g -> ('a, 'h -> 'i, 'c, 'd, 'g, 'd, state_url internal_url) url
 
+
+(* actions (new 10/05) *)
+type ('a,'b) actionurl
+
+val new_actionurl :
+  params:('a, unit, 'b -> insideforml, 'c) parameters -> ('b, 'a) actionurl
+
+val register_actionurl : actionurl:('a, 'b) actionurl -> action:'b -> unit
+
+val register_session_actionurl :
+  actionurl:('a, 'b) actionurl -> action:'b -> unit
+
+
+val register_new_actionurl :
+  params:('a, unit, 'b -> insideforml, 'c) parameters ->
+  action:'a 
+  -> ('b, 'a) actionurl
+
+val register_new_session_actionurl :
+  params:('a, unit, 'b -> insideforml, 'c) parameters ->
+  action:'a 
+  -> ('b, 'a) actionurl
+
+
 (** to close a session: *)
 val close_session : unit -> unit
 
@@ -160,12 +185,29 @@ val int_box : int name -> insideform
 val string_box : string name -> insideform
 val button : string -> insideform
 
+val action_link : 
+  ?reload:bool ->
+  string -> 
+  http_params -> 
+  (insideforml, unit -> unit) actionurl -> formorlink
+
+val action_form :
+  ?reload:bool ->
+  http_params ->
+  ('a, 'b) actionurl ->
+  'a -> form
 
 (** return a page from an url and parameters *)
 val get_page :
-  url_string * int option * (string * string) list *
+  url_string * string * int option * (string * string) list *
   (string * string) list * string -> 
   Unix.sockaddr -> string option -> string option * page
+
+val make_action :
+  string -> (string * string) list ->
+  url_string * string * int option * (string * string) list *
+  (string * string) list * string -> 
+  Unix.sockaddr -> string option -> string option * unit
 
 (** loads a module in the server *)
 val load_aaaaa_module : dir:url_string -> cmo:string -> unit
@@ -173,3 +215,6 @@ val load_aaaaa_module : dir:url_string -> cmo:string -> unit
 
 exception Aaaaa_error_while_loading of string
 val state_param_name : string
+val action_prefix : string
+val action_name : string
+val action_reload : string

@@ -13,6 +13,12 @@ module Xhtml_content =
     let content_of_string s =assert false
   end
 
+module Empty_content =
+  struct
+    type t = unit
+    let string_of_content c = ""
+    let content_of_string s = ()
+  end
 
 let read_file ?(buffer_size=512) fd =
   let rec read_aux (res:string) =
@@ -45,6 +51,12 @@ module File_content =
     let content_of_string s = assert false
       
   end
+
+(** this module is a Http_frame with empty content*)
+module Empty_http_frame = FHttp_frame (Empty_content)
+
+(** this module is a sender that send Http_frame with empty content*)
+module Empty_sender = FHttp_sender(Empty_content)
 
 (** this module is a Http_frame with Xhtml content*)
 module Xhtml_htttp_frame = FHttp_frame (Xhtml_content)
@@ -81,15 +93,41 @@ let create_xhtml_sender ?server_name ?proto fd =
   |Some p -> 
       Xhtml_sender.create ~headers:hd2 ~proto:p fd
 
-(** fonction that sends a xhtml page
+(** fonction that create a sender with empty content
+server_name is the name of the server send in the HTTP header
+proto is the protocol, default is HTTP/1.1
+fd is the Unix file descriptor *)
+let create_empty_sender ?server_name ?proto fd =
+  let hd =
+    match server_name with
+    |None -> []
+    |Some s -> [("Server",s)]
+  in
+  let hd2 =
+    [
+      ("Accept-Ranges","bytes");
+      ("Cache-Control","no-cache")
+    ]@hd
+  in
+  match proto with
+  |None ->
+      Empty_sender.create ~headers:hd2 fd
+  |Some p -> 
+      Empty_sender.create ~headers:hd2 ~proto:p fd
+
+(** fonction that sends something
 * code is the code of the http answer
 * keep_alive is a boolean value that set the field Connection
 * cookie is a string value that give a value to the session cookie
 * page is the page to send
 * xhtml_sender is the used sender*)
-let send_page ?code ?keep_alive ?cookie page xhtml_sender =
-  (*debug*)
-  print_endline "début send_page";
+let send_generic ?code ?keep_alive ?cookie ?location page sender 
+    (send : ?mode:Xhtml_sender.H.http_mode ->
+      ?proto:string ->
+      ?headers:(string * string) list ->
+      ?meth:'c ->
+      ?url:string ->
+      ?code:int -> ?content:'a -> 'b -> unit Lwt.t) =
   (*ajout des option spécifique à la page*)
   (*ici il faudrait récupérer la valeur e la commande date*)
   let date = "Tue, 31 May 2006 16:34:59 GMT" in
@@ -98,32 +136,52 @@ let send_page ?code ?keep_alive ?cookie page xhtml_sender =
   (*il faut récupérer la date de dernière modification si ca a une
   * signification*)
   let last_mod = "Wed, 20 Oct 1900 12:51:24 GMT" in 
-  (*debug*)
-  print_endline "avant_hds";
   let hds = 
     [
       ("Date",date);
-      ("Last-Modified",last_mod);
+      ("Last-Modified",last_mod)
     ]
   in
-  print_endline "avant hds2";
   let hds2 =
     match cookie with
     |None -> hds
     |Some c -> ("Set-Cookie","session="^c)::hds
   in
-  print_endline "avant hds3";
   let hds3 =
     match keep_alive with
     |None ->  hds2
     |Some true  -> ("Connection","Keep-Alive")::hds2
     |Some false -> ("Connection","Close")::hds2
   in
-  print_endline "avant envoie";
+  let hds4 =
+    match location with
+    |None ->  hds3
+    |Some l  -> ("Location",l)::hds3
+  in
   match code with
-    |None -> Xhtml_sender.send ~code:200 ~content:page ~headers:hds3 xhtml_sender
-    |Some c -> Xhtml_sender.send ~code:c ~content:page ~headers:hds3
-    xhtml_sender
+    |None -> send ~code:200 ~content:page ~headers:hds4 sender
+    |Some c -> send ~code:c ~content:page ~headers:hds4 sender
+  
+(** fonction that sends a xhtml page
+* code is the code of the http answer
+* keep_alive is a boolean value that set the field Connection
+* cookie is a string value that give a value to the session cookie
+* page is the page to send
+* xhtml_sender is the used sender*)
+let send_page ?code ?keep_alive ?cookie ?location page xhtml_sender =
+  send_generic 
+    ?code ?keep_alive ?cookie ?location page xhtml_sender Xhtml_sender.send
+  
+(** fonction that sends an empty answer
+* code is the code of the http answer
+* keep_alive is a boolean value that set the field Connection
+* cookie is a string value that give a value to the session cookie
+* page is the page to send
+* empty_sender is the used sender *)
+let send_empty ?code ?keep_alive ?cookie ?location empty_sender =
+  send_generic 
+    ?code ?keep_alive ?cookie ?location () empty_sender Empty_sender.send
+
   
 
 (** sends an error page that fit the error number *)

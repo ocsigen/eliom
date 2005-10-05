@@ -42,8 +42,8 @@ let fold_string_messages_headers_list_box =
 
 let forumadmin = Rights.connect "root" ""
 
-let messageslist_number =
-  Krokopersist.make_persistant_lazy "messageslist_number"
+let stringmessageslist_number =
+  Krokopersist.make_persistant_lazy "stringmessageslist_number"
     (fun () -> 
        MessagesList.dbinsert forumadmin
 	 [StringMessage.dbinsert forumadmin "Ceci est un premier message";
@@ -63,7 +63,7 @@ let example_main_page_number =
 	 [RegisterHPUserBoxes.make_box (fold_title_box "Titre");
 	  RegisterHPUserBoxes.make_box 
 	    (fold_string_messages_headers_list_box 
-	       (Krokopersist.get messageslist_number))]
+	       (Krokopersist.get stringmessageslist_number))]
     )
 
 let example_msg_page_number = 
@@ -74,27 +74,6 @@ let example_msg_page_number =
 	  RegisterUserIntBoxes.make_box (fold_string_message_box ())]
     )
 
-
-(************* aefffffffffff
-let example_main_page_number =
-  Krokopersist.make_persistant_lazy "example_page_number"
-    (fun () -> 
-       let boxlist = new userboxes_list in
-	 boxlist#add_string_messages_headers_list_box
-	   (Krokopersist.get messageslist_number);
-	 boxlist#add_title_box "Kikoo (eheh) !";
-	 boxlist#dbinsertpage forumadmin
-    )
-
-let example_msg_page_number = 
-  Krokopersist.make_persistant_lazy "example_msg_page_number"
-    (fun () -> 
-       let boxlist = new userintboxes_list in
-	 boxlist#add_string_message_box ();
-	 boxlist#add_title_box "Voici le message";
-	 boxlist#dbinsertpage forumadmin
-    )
-  *)
 
 (* An user *)
 let toto_created =
@@ -143,7 +122,7 @@ let public_session_with_post_params =
 let accueil h =
   let f = login_box h public_session_with_post_params in
   let ml = string_messages_headers_list_box h
-    (Krokopersist.get messageslist_number) Rights.anonymoususer in
+    (Krokopersist.get stringmessageslist_number) Rights.anonymoususer in
   << <html> (user : toto and password : titi) $f$ $ml$ </html> >>
 
 let _ = register_url
@@ -157,7 +136,7 @@ let rec launch_session h user =
   in
   let new_main_page h =
     let ml = string_messages_headers_list_box h
-      (Krokopersist.get messageslist_number) user
+      (Krokopersist.get stringmessageslist_number) user
     and l = link "close session" h.current_url close in
     << <html>
          Bienvenue ! <br/>

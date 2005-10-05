@@ -15,7 +15,15 @@ let create_login_form =
 	 $b$
        >>)
 
+let login_box_action h actionurl = action_form h actionurl create_login_form
+
 let login_box h url = form_post h.current_url url create_login_form
+
+let deconnect_action = 
+  register_new_actionurl _unit close_session
+
+let deconnect_box h s = action_link s h deconnect_action
+
 
 (* I think the right way is to register the login box for each page,
    with a fix url. (There is a register for each kind of page).

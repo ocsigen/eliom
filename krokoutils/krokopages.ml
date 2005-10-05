@@ -27,7 +27,10 @@ let box_exn_handler ex = match ex with
   | Rights.Write_Forbidden -> error_box "You don't have write access to this data"
   | Rights.Permission_Denied -> error_box "Permission denied"
   | Rights.Wrong_Password -> error_box "Wrong password"
+  | Krokodata.Box_not_available s -> error_box ("Box not available here : "^s)
   | Not_found -> error_box "not found"
+  | Krokodata.Dyn.Dyn_typing_error_while_unfolding (_,_) -> 
+      error_box "Wrong data (index error?)"
   | _ -> error_box "unknown error while creating box"
 
 

@@ -26,6 +26,7 @@ type url_activator = Url of url_string | Url_Prefix of url_string
 
 (** Type of http parameters *)
 type http_params = {url_suffix: string;
+		    full_url: string;
 		    current_url: string list;
 		    useragent: string;
 		    ip: Unix.inet_addr;
@@ -38,6 +39,8 @@ type http_params = {url_suffix: string;
 	(for internal use)
  *)
 type internal_state = int
+
+let counter = let c = ref 0 in fun () -> c := !c + 1 ; !c
 
 let new_state =
   let c : internal_state ref = ref (-1) in
@@ -256,11 +259,16 @@ module type DIRECTORYTREE =
     val is_empty_table : tree -> bool
     val add_url : tree ->  url_activator -> 
       page_table_key * (http_params -> page) -> unit
+    val add_action : 
+      tree -> string -> string list -> (http_params -> unit) -> unit
     val find_url :
       tree ->
       url_string -> (string * string) list -> (string * string) list ->
       internal_state option -> ((http_params -> page) * url_string) 
       * url_string option
+    val find_action :
+      tree -> string -> (string * string) list -> 
+      ((http_params -> unit) * url_string)
   end
 
 module Directorytree : DIRECTORYTREE = struct
@@ -276,6 +284,9 @@ module Directorytree : DIRECTORYTREE = struct
   module Page_Table = Map.Make(struct type t = page_table_key 
 				      let compare = compare end)
 
+  module Action_Table = Map.Make(struct type t = string
+					let compare = compare end)
+
   type table = 
       Vide
     | Table of ((http_params -> page) * url_string) Page_Table.t
@@ -286,7 +297,13 @@ module Directorytree : DIRECTORYTREE = struct
 	   (in case the page registers new pages).
 	*)
 
+  type action_table = 
+      AVide 
+    | ATable of (string list * (http_params -> unit) *
+		   url_string) Action_Table.t
+
   let empty_table () = Vide
+  let empty_action_table () = AVide
 
   let add_table t (key,elt) = 
     match t with
@@ -298,15 +315,43 @@ module Directorytree : DIRECTORYTREE = struct
 	Vide -> raise Not_found
       | Table t -> Page_Table.find k t
 
+  let add_action_table at (key,elt) = 
+    match at with
+	AVide -> ATable (Action_Table.add key elt Action_Table.empty)
+      | ATable t -> ATable (Action_Table.add key elt t)
+
+  let find_action_table at k = 
+    match at with
+	AVide -> raise Not_found
+      | ATable t -> Action_Table.find k t
+
   type dircontent = Realdir of ((string * dir) list)
 		    | Dirprefix of table ref
   and dir = Dir of (table ref * dircontent ref)
-  type tree = dir
+  type tree = dir * (action_table ref)
       
-  let empty_tree () = Dir (ref (empty_table ()), ref (Realdir []))
-  let is_empty_table (Dir (r1,r2)) = (!r1 = Vide && !r2 = Realdir [])
+  let empty_dir () = (Dir (ref (empty_table ()), ref (Realdir [])))
+
+  let empty_tree () = ((empty_dir ()), ref (empty_action_table ()))
+
+  let is_empty_table ((Dir (r1,r2)),at) = 
+    (!r1 = Vide 
+	&& !r2 = Realdir []
+	&& !at = AVide)
+
+  let add_action (_,actiontableref) name paramslist action =
+    actiontableref :=
+      add_action_table !actiontableref 
+	(name,((List.sort compare paramslist),action,!current_dir))
+
+  let find_action (_,atr) name paramslist =
+    let paramsattendus,action,working_dir = find_action_table !atr name in
+    let pl = List.sort compare (fst (List.split paramslist)) in
+      if pl = paramsattendus 
+      then action, working_dir
+      else raise Not_found
     
-  let add_url tree url_act (page_table_key, action) =
+  let add_url (tree,_) url_act (page_table_key, action) =
     let rec search_table (Dir (table, dircontent_ref)) =
       let aux a l =
 	(match !dircontent_ref with
@@ -315,12 +360,12 @@ module Directorytree : DIRECTORYTREE = struct
                   search_table (List.assoc a str_dir_list_ref) l
 		with
                     Not_found ->
-                      let new_dir = empty_tree () in
+                      let new_dir = empty_dir () in
 			dircontent_ref :=
                           Realdir ((a, new_dir)::str_dir_list_ref);
 			search_table new_dir l)
            | Dirprefix t -> if l = [] then table,dircontent_ref
-             else let new_dir = empty_tree () in
+             else let new_dir = empty_dir () in
                dircontent_ref := Realdir [(a, new_dir)];
                search_table new_dir l)
       in function
@@ -344,7 +389,8 @@ module Directorytree : DIRECTORYTREE = struct
 	      dircontentref := 
 		Dirprefix (ref (add_table (empty_table ()) content))
 	 
-  let find_url dir string_list get_param_list post_param_list state_option =
+  let find_url 
+      (dir,_) string_list get_param_list post_param_list state_option =
     let rec search_table (Dir (tableref, dircontent_ref)) =
       let aux a l =
 	(match !dircontent_ref with
@@ -472,16 +518,7 @@ let reconstruct_relative_url_string current_url u =
 (*    | [a] -> "" *)
     | _::l -> "../"^(makedotdot l)
   in let aremonter, aaller = drop current_url (""::(!current_dir)@u)
-  in 
-
-Messages.warning (reconstruct_url_string current_url);
-Messages.warning (reconstruct_url_string !current_dir);
-Messages.warning (reconstruct_url_string u);
-Messages.warning (reconstruct_url_string aremonter);
-Messages.warning (reconstruct_url_string aaller);
-Messages.warning "-";
-
-(makedotdot aremonter)^(reconstruct_url_string aaller)
+  in (makedotdot aremonter)^(reconstruct_url_string aaller)
 
 
 
@@ -504,7 +541,6 @@ let new_url_aux_aux
 			     (fun current_url f -> 
 				let ss = 
 				  (reconstruct_url_function current_url s) in
-				  Messages.warning ("=="^ss);
 				  params.write_parameters 
 				    (function Some v -> f (ss^"?"^v)
 				       | None -> f ss))
@@ -681,23 +717,66 @@ let register_new_post_session_url
   u
 
 
+(** actions (new 10/05) *)
+type ('a,'b) actionurl =
+    {action_name: string;
+     action_param_names: string list;
+     create_action_form: 'a -> insideforml;
+     action_conversion_function : 'b -> http_params -> unit}
+
+let action_prefix = "__krokaction__"
+let action_name = "name"
+let action_reload = "reload"
+
+let new_action_name () = string_of_int (counter ())
+
+let new_actionurl ~(params: ('a, unit, 'c -> insideforml, 'd) parameters) =
+  {
+    action_name = new_action_name ();
+    action_param_names = params.param_names;
+    create_action_form = params.give_form_parameters;
+    action_conversion_function = params.conversion_function Post
+  }
+
+let register_actionurl_aux tree ~actionurl ~action =
+  add_action tree 
+    actionurl.action_name
+    actionurl.action_param_names
+    (fun h -> actionurl.action_conversion_function action h)
+
+let register_actionurl ~actionurl ~action =
+  register_actionurl_aux global_tree actionurl action
+
+let register_new_actionurl ~params ~action = 
+  let a = new_actionurl params in
+    register_actionurl a action;
+    a
+
+let register_session_actionurl ~actionurl ~action =
+  register_actionurl_aux !session_tree actionurl action
+
+let register_new_session_actionurl ~params ~action =
+  let a = new_actionurl params in
+    register_session_actionurl a action;
+    a
+
 
 (** Close a session *)
 let close_session () = session_tree := empty_tree ()
 
-let make_http_params url url_suffix get_params post_params useragent ip = 
+let make_http_params 
+    url fullurl url_suffix get_params post_params useragent ip = 
   {url_suffix = (reconstruct_url_string_option url_suffix);
+   full_url= fullurl;
    useragent=useragent;
    current_url=url;
    ip=ip;
    get_params = get_params;
    post_params = post_params}
 
-let state_param_name = "__state__"
+let state_param_name = "__kroketat__"
 
 (** Functions to construct web pages: *)
-
-let counter = let c = ref 0 in fun () -> c := !c + 1 ; !c
 
 let link name current_url (url : ('a, insideforml,'c,'d,'e,'f,'g) url) =
   match url.url_state with
@@ -821,6 +900,42 @@ let form_post current_url (url : ('a,'b,'c,'d,'e,'f,'g) url) (f : 'b) =
 	   $list:inside$
 	   </form> >>)
 
+(* actions : *)
+let action_link ?(reload=true) name h actionurl =
+  let formname="hiddenform"^(string_of_int (counter ())) in
+  let href="javascript:document."^formname^".submit ()" in
+  let action_param_name = action_prefix^action_name in
+  let action_param = (actionurl.action_name) in
+  let reload_name = action_prefix^action_reload in
+  let reload_param = 
+    if reload 
+    then <:xmllist< <input type="hidden" name=$reload_name$ value=$reload_name$/> >> 
+    else [] in
+  let v = h.full_url in
+    << <a href=$href$>$str:name$<form name=$formname$ method="post" action=$v$ style="display:none">
+      <input type="hidden" name=$action_param_name$ value=$action_param$/>
+      $list:reload_param$
+      </form></a> >>
+
+let action_form ?(reload=true) h (actionurl : ('a,'b) actionurl) (f : 'a) = 
+  let action_param_name = action_prefix^action_name in
+  let action_param = (actionurl.action_name) in
+  let reload_name = action_prefix^action_reload in
+  let action_line =
+    << <input type="hidden" name=$action_param_name$ value=$action_param$/> >>
+  in
+  let v = h.full_url in
+  let inside = actionurl.create_action_form f in
+  let inside_reload = 
+    if reload 
+    then << <input type="hidden" name=$reload_name$ value=$reload_name$/> >> 
+		       :: inside
+    else inside in
+    << <form method="post" action=$v$>
+         $action_line$
+         $list:inside_reload$
+       </form> >>
+
 
 let int_box (name : int name) = 
   << <input type="text" name=$name$/> >>
@@ -835,8 +950,47 @@ let button (name : string) =
 (** return a page from an url and parameters *)
 let localhost = Unix.inet_addr_of_string "127.0.0.1"
 
+let execute find 
+    (url, fullurl, get_params, post_params, useragent)
+    sockaddr cookie = 
+  let ip = match sockaddr with
+      Unix.ADDR_INET (ip,port) -> ip
+    | _ -> localhost
+  in
+  let save_current_dir = !current_dir in
+  let answer =
+    let (tree, new_session) = 
+      (match cookie with
+	   None -> (new_session_table (), true)
+	 | Some c -> try (Cookies.find cookie_table (ip,c), false)
+	   with Not_found -> (new_session_table (), true))
+    in
+      session_tree := tree;
+      let ((action, working_dir), url_suffix) = find ()
+      in 
+      let page = 
+	absolute_change_dir working_dir;
+	action 
+	  (make_http_params
+	     url fullurl url_suffix get_params post_params useragent ip) in
+      let cookie2 = 
+	if is_empty_table !session_tree
+	then ((if not new_session 
+	       then match cookie with
+		   Some c -> Cookies.remove cookie_table (ip,c)
+		 | None -> ());None)
+	else (if new_session 
+	      then let c = new_cookie () in
+		(Cookies.add cookie_table (ip,c) !session_tree;
+		 Some c)
+	      else cookie)
+      in (cookie2, page)
+  in current_dir := save_current_dir; 	
+    answer
+
+(* AEFFFF
 let get_page 
-    (url, internal_state, get_params, post_params, useragent)
+    (url, fullurl, internal_state, get_params, post_params, useragent)
     sockaddr cookie = 
   let ip = match sockaddr with
       Unix.ADDR_INET (ip,port) -> ip
@@ -891,8 +1045,9 @@ let get_page
 	in 
 	let page = 
 	  absolute_change_dir working_dir;
-	  action (make_http_params
-		    url url_suffix get_params post_params useragent ip) in
+	  action 
+	    (make_http_params
+	       url fullurl url_suffix get_params post_params useragent ip) in
 	let cookie2 = 
 	  if is_empty_table !session_tree
 	  then ((if not new_session 
@@ -910,6 +1065,73 @@ let get_page
 	| Omlet_Wrong_parameter -> (cookie, Error_pages.page_bad_param)
   in current_dir := save_current_dir; 	
     answer
+*)
+
+let get_page 
+    (url, fullurl, internal_state, get_params, post_params, useragent)
+    sockaddr cookie = 
+  let find () =
+    try (* D'abord recherche dans la table de session *)
+      print_endline "--- recherche dans la table de session :";
+      (find_url 
+	 !session_tree
+	 url
+	 get_params
+	 post_params
+	 internal_state)
+    with Not_found -> try (* ensuite dans la table globale *)
+      print_endline "--- recherche dans la table globale :";
+      (find_url 
+	 global_tree
+	 url
+	 get_params
+	 post_params
+	 internal_state)
+    with Not_found -> (* si pas trouvé avec, on essaie sans l'état *)
+      match internal_state with
+	  None -> raise Not_found
+	| _ -> try (* d'abord la table de session *)
+	    print_endline "--- recherche dans la table de session, sans état :";
+	    (find_url 
+	       !session_tree
+	       url
+	       get_params
+	       post_params
+	       None)
+	  with Not_found -> (* ensuite dans la table globale *)
+	    print_endline "--- recherche dans la table globale, sans état :";
+	    (find_url 
+	       global_tree
+	       url
+	       get_params
+	       post_params
+	       None)
+  in try 
+      execute 
+	find 
+	(url, fullurl, get_params, post_params, useragent)
+	sockaddr cookie
+    with 
+	Omlet_Typing_Error -> (cookie, Error_pages.page_error_param_type)
+      | Omlet_Wrong_parameter -> (cookie, Error_pages.page_bad_param)
+
+
+let make_action action_name action_params 
+    (url, fullurl, _, _, _, useragent) sockaddr cookie =
+  let find () =
+    (try 
+       find_action global_tree action_name action_params
+     with Not_found ->
+       find_action !session_tree action_name action_params),None
+  in try 
+      execute 
+	find
+	(url,fullurl,[],action_params,useragent)
+	sockaddr cookie
+    with 
+	Omlet_Typing_Error -> (cookie, ())
+      | Omlet_Wrong_parameter -> (cookie, ())
+
 
 (** Module loading *)
 exception Aaaaa_error_while_loading of string

@@ -42,14 +42,12 @@ let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
 exception Omlet_Malformed_Url
 
 (* *)
-let get_frame_infos http_frame =
-(*  let remove_slash = function
-      ""::l -> l
-    | l -> l
-  in *)
+let get_frame_infos =
+(*let full_action_param_prefix = action_prefix^action_param_prefix in
+let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
+  fun http_frame ->
   try 
     let url = Http_header.get_url http_frame.Http_frame.header in
-      warning url;
     let url2 = 
       Neturl.parse_url 
 	~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
@@ -80,14 +78,32 @@ let get_frame_infos http_frame =
 	  | _ -> (internal_state, get_params)
       with Not_found -> (internal_state, get_params)
     in
+    let action_info, post_params3 =
+      try
+	let action_name, pp = 
+	  ((List.assoc (action_prefix^action_name) post_params2),
+	   (List.remove_assoc (action_prefix^action_name) post_params2)) in
+	let reload,pp2 = 
+	  try
+	    ignore (List.assoc (action_prefix^action_reload) pp);
+	    (true, (List.remove_assoc (action_prefix^action_reload) pp))
+	  with Not_found -> false, pp in
+	let ap,pp3 = pp2,[]
+(*	  List.partition 
+	    (fun (a,b) -> 
+	       ((String.sub a 0 action_param_prefix_end)= 
+		   full_action_param_prefix)) pp2 *) in
+	  (Some (action_name, reload, ap), pp3)
+      with Not_found -> None, post_params2 in
     let useragent = (Http_header.get_headers_value
 		       http_frame.Http_frame.header "user-agent")
     in
       ((*remove_slash*) (Neturl.url_path url2), (* the url path *)
+       url,
        internal_state2,
        get_params2,
-       post_params2,
-       useragent)
+       post_params3,
+       useragent),action_info
   with _ -> raise Omlet_Malformed_Url
 
     
@@ -124,7 +140,8 @@ print_endline buffer;
  really_write_aux out_ch buffer pos len)
 *)
 
-let service http_frame in_ch sockaddr xhtml_sender file_sender () =
+let service http_frame in_ch sockaddr 
+    xhtml_sender file_sender empty_sender () =
   try 
     let cookie = 
       try 
@@ -138,27 +155,53 @@ let service http_frame in_ch sockaddr xhtml_sender file_sender () =
 	     de &... à revoir !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! *)
       with _ -> None
     in
-    let cookie2,page =
-      get_page (get_frame_infos http_frame) sockaddr cookie in
-    let keep_alive = false 
-      (* Je préfère pour l'instant ne jamais faire de keep-alive pour
-	 éviter d'avoir un nombre de threads qui croit sans arrêt *) in
-    (*let page_string = (Xhtmlpp.xh_print page) in
-      really_write "200 OK" 
-	keep_alive 
-	?cookie:(if cookie2 <> cookie then cookie2 else None)
-	in_ch page_string 0 
-	(String.length page_string) >>= (fun _ ->
-					   return keep_alive)*)
-    (*debug*)
-    print_endline "avant send_page";
-    send_page ~keep_alive:keep_alive 
-    ?cookie:(if cookie2 <> cookie then cookie2 else None)
-    page xhtml_sender >>=
-      (fun _ ->
-        (*debug*)
-        print_endline "après send page";
-        return keep_alive)
+    let (_,fullurl,_,_,_,_) as frame_info, action_info = 
+      get_frame_infos http_frame in
+      match action_info with
+	  None ->
+	    let cookie2,page = get_page frame_info sockaddr cookie in
+	    let keep_alive = false 
+	      (* Je préfère pour l'instant ne jamais faire de keep-alive pour
+		 éviter d'avoir un nombre de threads qui croit sans arrêt *) in
+	      (*let page_string = (Xhtmlpp.xh_print page) in
+		really_write "200 OK" 
+		keep_alive 
+		?cookie:(if cookie2 <> cookie then cookie2 else None)
+		in_ch page_string 0 
+		(String.length page_string) >>= (fun _ ->
+		return keep_alive)*)
+	      send_page ~keep_alive:keep_alive 
+		?cookie:(if cookie2 <> cookie then 
+			   (if cookie2 = None 
+			    then Some("0; expires=Wednesday, 09-Nov-99 23:12:40 GMT")
+			    else cookie2) 
+			 else None)
+		page xhtml_sender >>=
+		(fun _ -> return keep_alive)
+	| Some (action_name, reload, action_params) ->
+	    let cookie2,() = 
+	      make_action 
+		action_name action_params frame_info sockaddr cookie in
+	    let keep_alive = false in
+	      (if reload then
+		 let cookie3,page = get_page frame_info sockaddr cookie2 in
+		   (send_page ~keep_alive:keep_alive 
+		      ?cookie:(if cookie3 <> cookie then 
+				 (if cookie3 = None 
+				  then Some("0; expires=Wednesday, 09-Nov-99 23:12:40 GMT")
+				  else cookie3) 
+			       else None)
+	              page xhtml_sender)
+	       else
+		 (send_empty ~keep_alive:keep_alive 
+		    ?cookie:(if cookie2 <> cookie then 
+			       (if cookie2 = None 
+				then Some("0; expires=Wednesday, 09-Nov-99 23:12:40 GMT")
+				else cookie2) 
+			     else None)
+                    ~code:204
+	            empty_sender)) >>=
+		(fun _ -> return keep_alive)
   with Not_found -> 
    (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
    send_error ~error_num:404 xhtml_sender
@@ -173,7 +216,7 @@ let service http_frame in_ch sockaddr xhtml_sender file_sender () =
 	>>= (fun _ ->
 	       return true (* idem *))
     | _ ->
-	send_error ~error_num:000 xhtml_sender
+	send_error ~error_num:400 xhtml_sender
     (* send_file ~code:200 "../pages/Volta.GIF" file_sender *)
 	>>= (fun _ ->
 	       return true (* idem *))
@@ -184,13 +227,15 @@ let service http_frame in_ch sockaddr xhtml_sender file_sender () =
 (** Thread waiting for events on a the listening port *)
 let listen () =
 
-  let listen_connexion receiver in_ch sockaddr xhtml_sender file_sender=
+  let listen_connexion receiver in_ch sockaddr 
+      xhtml_sender file_sender empty_sender =
 
     let rec listen_connexion_aux () =
       let analyse_http () = 
         Http_receiver.get_http_frame receiver () >>=(fun
           http_frame ->
-             catch (service http_frame in_ch sockaddr xhtml_sender file_sender)
+             catch (service http_frame in_ch sockaddr 
+		      xhtml_sender file_sender empty_sender)
             (fun ex ->
               match ex with
               | _ -> fail ex
@@ -231,9 +276,13 @@ let listen () =
           create_file_sender ~server_name:"ploplop (Unix) (gentoo/Linux) omlet"
         inputchan
         in
+        let empty_sender =
+          create_empty_sender ~server_name:"ploplop (Unix) (gentoo/Linux) omlet"
+        inputchan
+        in
 	listen_connexion 
 	  (Http_receiver.create inputchan) inputchan sockaddr xhtml_sender
-        file_sender;
+        file_sender empty_sender;
           wait_connexion_rec ()) (* je relance une autre attente *)
       in wait_connexion_rec ()
     
@@ -257,7 +306,7 @@ let _ =
 (*       Dynlink.loadfile "/opt/godi/lib/ocaml/pkg-lib/pcre/pcre.cma";
        Dynlink.loadfile "/opt/godi/lib/ocaml/site-lib/postgres/postgres.cma";
        Dynlink.loadfile "/opt/godi/lib/ocaml/std-lib/dbi/dbi.cma";
-       Dynlink.loadfile "/opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmo";*)
+       Dynlink.loadfile "/opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmo"; *)
        Dynlink.loadfile "../lib/db_create.cmo";
        Dynlink.loadfile "../lib/krokopersist.cmo";
        Dynlink.loadfile "../lib/krokache.cmo";
@@ -266,7 +315,8 @@ let _ =
        Dynlink.loadfile "../lib/krokosavable.cmo";
        Dynlink.loadfile "../lib/krokoboxes.cmo";
        load_aaaaa_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo";
-       load_aaaaa_module ~dir:["krokoutils"] ~cmo:"../lib/krokoxample.cmo";
+(*       load_aaaaa_module ~dir:["krokoutils"] ~cmo:"../lib/krokoxample.cmo";*)
+       load_aaaaa_module ~dir:["kiko"] ~cmo:"../../kiko/lib/kiko.cmo";
      with Aaaaa_error_while_loading m -> (warning ("Error while loading "^m)));
     listen ()
   )
