@@ -23,6 +23,8 @@ type url_string = string list
  *)
 type url_activator = Url of url_string | Url_Prefix of url_string
 
+val counter : unit -> int
+
 (** Type of http parameters *)
 type http_params = {url_suffix: string;
 		    full_url: string;
@@ -165,14 +167,34 @@ val register_new_session_actionurl :
   action:'a 
   -> ('b, 'a) actionurl
 
+(** static pages (new 10/05) *)
+val register_new_static_directory :
+    name:url_string ->
+    location:string -> 
+  (insideforml, insideforml, string -> formorlink, page, page, page, 
+   public_url internal_url) url
+
+val register_new_session_static_directory :
+    name:url_string ->
+    location:string -> 
+  (insideforml, insideforml, string -> formorlink, page, page, page, 
+   public_url internal_url) url
 
 (** to close a session: *)
 val close_session : unit -> unit
 
 (** Functions to create web pages: *)
 
-val link : string -> string list -> 
+val link : string -> url_string -> 
   ('a, insideforml, 'c, 'd, 'e, 'f, 'g) url -> 'c
+
+val css_link : url_string -> 
+  ('a, insideforml, string -> Xhtmlpp.xhtmlcont, 'd, 'e, 'f, 'g) url -> 
+  string -> Xhtmlpp.xhtmlcont
+
+val js_link : url_string -> 
+  ('a, insideforml, string -> Xhtmlpp.xhtmlcont, 'd, 'e, 'f, 'g) url -> 
+  string -> Xhtmlpp.xhtmlcont
 
 (** Link a registrated URL with the function that takes the url and
     names of the parameters, and creates a form for these parameters
@@ -182,6 +204,7 @@ val form_get : string list ->
 val form_post : string list -> 
   ('a, 'b, 'c, 'd, 'e, 'f, 'g) url -> 'b -> 'c
 val int_box : int name -> insideform
+val hidden_int_box : int name -> int -> insideform
 val string_box : string name -> insideform
 val button : string -> insideform
 
@@ -213,6 +236,7 @@ val make_action :
 val load_aaaaa_module : dir:url_string -> cmo:string -> unit
 
 
+exception Static_File of string
 exception Aaaaa_error_while_loading of string
 val state_param_name : string
 val action_prefix : string

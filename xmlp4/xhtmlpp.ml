@@ -352,21 +352,26 @@ and xh_print_inlinetag tag attrs taglist i is_first = pp_open_tbox xh_string ();
        pp_print_string xh_string ("</"^tag^">");
        pp_close_tbox xh_string ();
        
-and xh_print_blocktag tag attrs taglist i = pp_open_tbox xh_string ();
-	pp_force_newline xh_string ();
-       if i > 0 then
-         pp_print_tbreak xh_string (taille_tab*i) 0;
-       pp_print_string xh_string ("<"^tag);
-       xh_print_attrs attrs;
-       pp_print_string xh_string ">";
-
-       xh_print_taglist taglist (i+1) true;
-	
-	pp_force_newline xh_string ();
-       if i > 0 then
-         pp_print_tbreak xh_string (taille_tab*i) 0;
-       pp_print_string xh_string ("</"^tag^">");
-       pp_close_tbox xh_string ();
+and xh_print_blocktag tag attrs taglist i = 
+  if taglist = [] 
+  then xh_print_closedtag tag attrs i true
+  else begin
+    pp_open_tbox xh_string ();
+    pp_force_newline xh_string ();
+    if i > 0 then
+      pp_print_tbreak xh_string (taille_tab*i) 0;
+    pp_print_string xh_string ("<"^tag);
+    xh_print_attrs attrs;
+    pp_print_string xh_string ">";
+    
+    xh_print_taglist taglist (i+1) true;
+    
+    pp_force_newline xh_string ();
+    if i > 0 then
+      pp_print_tbreak xh_string (taille_tab*i) 0;
+    pp_print_string xh_string ("</"^tag^">");
+    pp_close_tbox xh_string ()
+  end
 
 and xh_print_taglist taglist i is_first = match taglist with 
 	

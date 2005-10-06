@@ -13,8 +13,8 @@ krokopages.cmo: krokodata.cmi
 krokopages.cmx: krokodata.cmx 
 krokosavable.cmo: krokopages.cmo krokodata.cmi 
 krokosavable.cmx: krokopages.cmx krokodata.cmx 
-krokoboxes.cmo: krokosavable.cmo 
-krokoboxes.cmx: krokosavable.cmx 
+krokoboxes.cmo: krokosavable.cmo krokodata.cmi 
+krokoboxes.cmx: krokosavable.cmx krokodata.cmx 
 krokoxample.cmo: krokosavable.cmo krokopersist.cmi krokopages.cmo \
     krokodata.cmi krokoboxes.cmo 
 krokoxample.cmx: krokosavable.cmx krokopersist.cmx krokopages.cmx \

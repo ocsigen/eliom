@@ -43,11 +43,22 @@ let box_exn_handler ex = match ex with
     the other one manually.
  *)
 
-let page bl = << <html> $list:bl$ </html> >>
+let page h ?(js=[]) ?(css=[]) bl = 
+  let rec make_hl make_link l = function
+      [] -> l
+    | (filedir, filename)::ll -> 
+	(make_link h.Omlet.current_url filedir filename)
+	::(make_hl make_link l ll)
+  in 
+  let hl = make_hl Omlet.js_link (make_hl Omlet.css_link [] css) js in
+<< <html> 
+     <head> $list:hl$ </head> 
+     <body> $list:bl$ </body> 
+   </html> >>
 
-let empty_page = page <:xmllist< <b>empty page</b> >>
+let empty_page h = page h <:xmllist< <b>empty page</b> >>
 
-let page_exn_handler ex = page [box_exn_handler ex]
+let page_exn_handler h ex = page h [box_exn_handler ex]
 
 
 

@@ -1,0 +1,47 @@
+À faire
+
+ - Mécanisme de cache (en mémoire ?) (de taille configurable) pour l'accès
+   à la base de données (table des messages) pour éviter de faire des requêtes
+   dans la grosse table des messages pour tous les petits messages de la page 
+   principale. (Messages les plus fréquemment accédés ou plus récemment).
+   Éventuellement cache à deux niveaux (mémoire/disque).
+   cache en lecture seulement. Dès qu'il y a modification, on écrit dans
+   la base de données.
+ - Voir lien avec le cache de omlet
+
+ - Écrire une doc technique sur l'implémentation, très vite.
+
+ - Création de la base (et des tables ?) si elles n'existent pas
+   (dans Db-create).
+
+ - Écrire config.ml
+
+ - Finir de créer les caches dans db.ml et mes tables dans createdb.sql
+ - Implémenter le cache dans cache.ml
+ - Faire créer les tables par le module Cache si elles n'existent pas ?
+ - Réunifier et implémenter bien messages.ml et Kikomessages.ml
+ - Changer les noms des modules visibles de l'extérieur pour éviter
+   d'avoir le même nom que des modules existants. Ex Cache -> Krokocache
+
+
+ - Gestion des droits en mettant les infos de droits sur les données de
+   la table content comme des fichiers. Implémenter un chmod pour ces
+   données.
+
+ - VOIR LA ROBUSTESSE : NUMEROS DE MESSAGES ET MAUVAIS TYPES...
+	Dans Register notamment
+   Il vaut mieux ne rien donner qu'un mauvais message (message auquel on n'a pas accès)
+   Faire un bon système de droits d'accès avec des exceptions qui sont bien rattrapées.
+ - revoir les noms de classes en expliquant à qqun ou en faisant la doc
+ - GESTION DE version ?
+ - VÉRIFIER CE QU'IL SE PASSE QD ON APPELLE dbinsert_message ou dbupdate_message
+ - FAIRE UNE DOUBLE CLÉ DANS LA TABLE CONTENT serial X string - inutile je pense
+   avec un bon système de droits d'accès.
+ - relire krokodata et son interface. Enlever Dyn de l'interface ?
+ - cryptage des mots de passe
+
+ - Voir s'il faut vraiment passer l'utilisateur aux fonctions du module Rights
+ ou si le programmeur est toujours root ?
+
+ - actions de session : est-ce qu'il faut qu'elle soit enregistrée
+   comme action publique avant ?

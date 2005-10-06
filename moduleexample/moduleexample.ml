@@ -75,7 +75,7 @@ let plop_params = register_new_url
 *)
 let uaprefix = 
   register_new_url 
-    (Url_Prefix ["uaprefix"]) 
+    (Url_Prefix ["uaprefix"])
     (_useragent (_ip (_url_suffix _noparam)))
     (fun ua ip suff -> 
 	 <<
@@ -448,9 +448,17 @@ let _ = register_post_url
   ~action:(fun article url -> page_for_shopping_basket url [article])
 
 
+(* Actions: *)
+
+(* Static files: *)
+let filedir = register_new_static_directory ["files"] "moduleexample-files"
+(* This url works like a "prefix url". The suffix is the file name *)
+
+
 (* Main page for this example *)
 let _ = register_new_url (Url []) (_current_url _noparam)
   (fun url ->
+     let lcss = css_link url filedir "style.css" in
      let l1 = link "plop" url plop in
      let l2 = link "plip" url plip in
      let l3 = link "plop/plip" url plop2 in
@@ -470,6 +478,10 @@ let _ = register_new_url (Url []) (_current_url _noparam)
      let l17 = link "session" url public_session_without_post_params in
      let l18 = link "shop" url shop_without_post_params in
      << <html> 
+       <head>
+         $lcss$
+       </head>
+       <body>
        Une page simple : $l1$ <br/>
        Une page avec un compteur : $l2$ <br/> 
        Une page simple dans un répertoire : $l3$ <br/>
@@ -488,6 +500,7 @@ let _ = register_new_url (Url []) (_current_url _noparam)
        URL avec état : $l16$ (problème des paramètres GET bookmarkés...) <br/> 
        Une session basée sur les cookies : $l17$ <br/> 
        Une session avec "url de sessions" : $l18$ 
+       </body>
      </html> >>)
 
 

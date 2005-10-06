@@ -35,6 +35,7 @@ module ExpoOrPatt = struct
       EPanyattr of tvarval * tvarval
     | EPanytag1 of string * texprpatt tlist * texprpatt tlist
     | EPanytag2 of string
+    | EPcomment of string
     | EPanytagvar of string
     | EPanytagvars of string
 
@@ -83,6 +84,9 @@ module ExpoOrPatt = struct
 
     | EPanytagvars v -> <:expr< `PCData $lid:v$ >>
 
+    | EPcomment c -> 
+	let com = "<!--"^c^"-->" in <:expr< `PCData $str:com$ >>
+
   and to_expr_taglist = function
       PLEmpty -> <:expr< [] >>
     | PLVar v -> <:expr< $lid:v$ >>
@@ -115,6 +119,9 @@ module ExpoOrPatt = struct
     | EPanytagvar v -> <:patt< $lid:v$ >>
 
     | EPanytagvars v -> <:patt< `PCData $lid:v$ >>
+
+    | EPcomment c -> 
+	let com = "<!--"^c^"-->" in <:patt< `PCData $str:com$ >>
 
   and to_patt_taglist = function
       PLEmpty -> <:patt< [] >>
@@ -168,6 +175,7 @@ EXTEND
 	 attlist, 
 	 taglist)
   | dt = DATA -> EPanytag2 dt
+  | c = COMMENT -> EPcomment c
   | v = CAMLVARXML -> EPanytagvar v
   | v = CAMLVARXMLS -> EPanytagvars v
   ] ];

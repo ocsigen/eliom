@@ -121,13 +121,14 @@ let create_empty_sender ?server_name ?proto fd =
 * cookie is a string value that give a value to the session cookie
 * page is the page to send
 * xhtml_sender is the used sender*)
-let send_generic ?code ?keep_alive ?cookie ?location page sender 
+let send_generic ?code ?keep_alive ?cookie ?location ?(header=[]) page sender 
     (send : ?mode:Xhtml_sender.H.http_mode ->
       ?proto:string ->
       ?headers:(string * string) list ->
       ?meth:'c ->
       ?url:string ->
-      ?code:int -> ?content:'a -> 'b -> unit Lwt.t) =
+      ?code:int -> 
+      ?content:'a -> 'b -> unit Lwt.t) =
   (*ajout des option spécifique à la page*)
   (*ici il faudrait récupérer la valeur e la commande date*)
   let date = "Tue, 31 May 2006 16:34:59 GMT" in
@@ -136,11 +137,9 @@ let send_generic ?code ?keep_alive ?cookie ?location page sender
   (*il faut récupérer la date de dernière modification si ca a une
   * signification*)
   let last_mod = "Wed, 20 Oct 1900 12:51:24 GMT" in 
-  let hds = 
-    [
-      ("Date",date);
-      ("Last-Modified",last_mod)
-    ]
+  let hds =
+      ("Date",date)::
+      ("Last-Modified",last_mod)::header
   in
   let hds2 =
     match cookie with
@@ -238,41 +237,28 @@ let create_file_sender ?server_name ?proto fd =
       File_sender.create ~headers:hd2 ~proto:p fd
 
 (* send a file in an HTTP frame*)
-let send_file ?code ?keep_alive ?cookie file file_sender =
-  (*debug*)
-  print_endline "début send_page";
-  (*ajout des option spécifique à la page*)
-  (*ici il faudrait récupérer la valeur e la commande date*)
-  let date = "Tue, 31 May 2006 16:34:59 GMT" in
-  (*ici il faudrait récupérer la valeur de la commande uname*)
-  let server = "ploplop (Unix) (Gentoo/Linux) omlet"in
-  (*il faut récupérer la date de dernière modification si ca a une
-  * signification*)
-  let last_mod = "Wed, 20 Oct 1900 12:51:24 GMT" in 
-  (*debug*)
-  print_endline "avant_hds";
-  let hds = 
-    [
-      ("Date",date);
-      ("Last-Modified",last_mod);
-    ]
+let content_type_from_file_name filename =
+  (* Il faudrait un parseur du fichier mime.types d'Apache *)
+  let extens = 
+    try 
+      let pos = (String.rindex filename '.') in 
+      String.sub filename 
+	(pos+1)
+	((String.length filename) - pos - 1)
+    with _ -> filename 
   in
-  print_endline "avant hds2";
-  let hds2 =
-    match cookie with
-    |None -> hds
-    |Some c -> ("Set-Cookie","session="^c)::hds
-  in
-  print_endline "avant hds3";
-  let hds3 =
-    match keep_alive with
-    |None ->  hds2
-    |Some true  -> ("Connection","Keep-Alive")::hds2
-    |Some false -> ("Connection","Close")::hds2
-  in
-  print_endline "avant envoie";
-  match code with
-    |None -> File_sender.send ~code:200 ~content:file ~headers:hds3 file_sender
-    |Some c -> File_sender.send ~code:c ~content:file ~headers:hds3
-    file_sender
+    match extens with
+	"css" -> "text/css"
+      | "html" -> "text/html"
+      | "xhtml" -> "application/xhtml+xml"
+      | "jpg" | "jpeg" -> "image/jpeg"
+      | "js" -> "application/x-javascript"
+      | _ -> "unknown"
+
+let send_file ?code ?keep_alive ?cookie ?location file file_sender =
+  send_generic 
+    ?code ?keep_alive ?cookie ?location 
+    ~header:[("Content-Type",content_type_from_file_name file)]
+    file file_sender File_sender.send
+
   

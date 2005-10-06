@@ -2,6 +2,7 @@
 
 open Omlet
 open Krokosavable
+open Krokodata
 
 (** Authentification *)
 let create_login_form = 
@@ -25,8 +26,19 @@ let deconnect_action =
 let deconnect_box h s = action_link s h deconnect_action
 
 
-(* I think the right way is to register the login box for each page,
-   with a fix url. (There is a register for each kind of page).
+(** User information *)
+let connected_box h user =
+  let login,name,_ = Rights.get_user_info user in
+  let deconnect = deconnect_box h "déconnexion" in
+    << <div> 
+         Vous êtes connecté comme utilisateur $str:login$ <br/>
+         $deconnect$
+       </div>
+    >>
+  
+
+
+(* 
    If we want to make the url a box parameter saved in the db, it is not
    easy, because we need to make a table of url in which we register
    all the url we want to be able to save. For ex:

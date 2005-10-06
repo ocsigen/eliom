@@ -247,6 +247,54 @@ let change_empty_activator = function
     Url l -> Url (change_empty_list l)
   | Url_Prefix l -> Url_Prefix (change_empty_list l)
 
+
+(* En fait cette fonction est dans Neturl
+let rec cut_url s = 
+  try
+    let length = String.length s in
+      if length = 0 then []
+      else
+	let pos_slash = String.index s '/' in
+	  if pos_slash = 0 
+	  then cut_url (String.sub s 1 (length-1))
+	  else 
+	    let prefix = String.sub s 0 pos_slash in
+	      (*  if length > (pos_slash+1)
+		  then *)
+	      prefix::(cut_url (String.sub s (pos_slash+1) (length - pos_slash - 1)))
+		(* else [prefix] *)
+  with _ -> [s]
+*)
+
+let rec reconstruct_url_string = function
+    [] -> ""
+  | [a] -> a
+  | a::l -> a^"/"^(reconstruct_url_string l)
+
+let reconstruct_absolute_url_string current_url = reconstruct_url_string
+
+let reconstruct_url_string_option = function
+    None -> ""
+  | Some l -> reconstruct_url_string l
+
+let reconstruct_relative_url_string current_url u =
+  let rec drop cururl desturl = match cururl, desturl with
+    | a::l, [b] -> l, desturl
+    | [a], m -> [], m
+    | a::l, b::m when a = b -> drop l m
+    | a::l, m -> l, m
+    | [], m -> [], m
+  in let rec makedotdot = function
+    | [] -> ""
+(*    | [a] -> "" *)
+    | _::l -> "../"^(makedotdot l)
+  in let aremonter, aaller = drop current_url (""::(!current_dir)@u)
+  in (makedotdot aremonter)^(reconstruct_url_string aaller)
+
+
+
+exception Static_File of string
+
 (** We associate to an URL a function http_params -> page *)
 module type DIRECTORYTREE =
   sig
@@ -261,6 +309,8 @@ module type DIRECTORYTREE =
       page_table_key * (http_params -> page) -> unit
     val add_action : 
       tree -> string -> string list -> (http_params -> unit) -> unit
+    val add_static_dir : 
+      tree -> name:string list -> location:string -> unit
     val find_url :
       tree ->
       url_string -> (string * string) list -> (string * string) list ->
@@ -274,7 +324,7 @@ module type DIRECTORYTREE =
 module Directorytree : DIRECTORYTREE = struct
   (* Each node contains either a list of nodes (case directory)
      or a table of "answers" (functions that will generate the page) *)
-  
+
   type page_table_key =
       {get_names: string list;
        post_names: string list;
@@ -327,6 +377,7 @@ module Directorytree : DIRECTORYTREE = struct
 
   type dircontent = Realdir of ((string * dir) list)
 		    | Dirprefix of table ref
+		    | StaticDir of string
   and dir = Dir of (table ref * dircontent ref)
   type tree = dir * (action_table ref)
       
@@ -351,44 +402,52 @@ module Directorytree : DIRECTORYTREE = struct
       then action, working_dir
       else raise Not_found
     
+  let rec search_table (Dir (table, dircontent_ref)) =
+    let aux a l =
+      (match !dircontent_ref with
+           Realdir str_dir_list_ref ->
+             (try
+                search_table (List.assoc a str_dir_list_ref) l
+	      with
+                  Not_found ->
+                    let new_dir = empty_dir () in
+		      dircontent_ref :=
+                        Realdir ((a, new_dir)::str_dir_list_ref);
+		      search_table new_dir l)
+         | Dirprefix _
+	 | StaticDir _ -> if l = [] then table,dircontent_ref
+           else let new_dir = empty_dir () in
+             dircontent_ref := Realdir [(a, new_dir)];
+             search_table new_dir l)
+    in function
+          [] -> table,dircontent_ref
+      | ""::l -> search_table (Dir (table, dircontent_ref)) l
+      | a::l -> aux a l
+
   let add_url (tree,_) url_act (page_table_key, action) =
-    let rec search_table (Dir (table, dircontent_ref)) =
-      let aux a l =
-	(match !dircontent_ref with
-             Realdir str_dir_list_ref ->
-               (try
-                  search_table (List.assoc a str_dir_list_ref) l
-		with
-                    Not_found ->
-                      let new_dir = empty_dir () in
-			dircontent_ref :=
-                          Realdir ((a, new_dir)::str_dir_list_ref);
-			search_table new_dir l)
-           | Dirprefix t -> if l = [] then table,dircontent_ref
-             else let new_dir = empty_dir () in
-               dircontent_ref := Realdir [(a, new_dir)];
-               search_table new_dir l)
-      in function
-            [] -> table,dircontent_ref
-	| ""::l -> print_endline "j'enrSLASH" ; search_table (Dir (table, dircontent_ref)) l
-	| a::l -> print_endline ("j'enregistre dans "^a) ; aux a l
-    in
     let content = ({get_names = List.sort compare page_table_key.get_names;
 		    post_names = List.sort compare page_table_key.post_names;
 		    state = page_table_key.state},
 		   (action, !current_dir)) in
-    let current_tree = print_endline "--------"; Dir (search_table tree !current_dir) in
+    let current_tree = Dir (search_table tree !current_dir) in
       match url_act with 
 	  Url u2 ->
 	    let table,dircontentref = 
 	      (search_table current_tree (change_empty_list u2)) in
               table := add_table !table content
 	| Url_Prefix u2 ->
-            let table,dircontentref = 
+            let _,dircontentref = 
 	      (search_table current_tree (change_empty_list u2)) in
 	      dircontentref := 
 		Dirprefix (ref (add_table (empty_table ()) content))
 	 
+  let add_static_dir (tree,_) ~name ~location =
+    let current_tree = Dir (search_table tree !current_dir) in
+    let _,dircontentref = 
+      (search_table current_tree (change_empty_list name)) in
+      dircontentref := StaticDir location
+
+
   let find_url 
       (dir,_) string_list get_param_list post_param_list state_option =
     let rec search_table (Dir (tableref, dircontent_ref)) =
@@ -396,11 +455,13 @@ module Directorytree : DIRECTORYTREE = struct
 	(match !dircontent_ref with
              Realdir str_dir_list_ref ->
                search_table (List.assoc a str_dir_list_ref) l
-           | Dirprefix tr -> !tr, (Some (a::l)))
+           | Dirprefix tr -> !tr, (Some (a::l))
+	   | StaticDir location -> 
+	       raise (Static_File (reconstruct_url_string (location::a::l))))
       in function
             [] -> !tableref, None
-	| ""::l -> print_endline "SLASH"; search_table (Dir (tableref, dircontent_ref)) l
-	| a::l -> print_endline ("Je cherche dans "^a); aux a l
+	| ""::l -> search_table (Dir (tableref, dircontent_ref)) l
+	| a::l -> aux a l
     in
     let get_names  = List.sort compare (fst (List.split  get_param_list))
     and post_names = List.sort compare (fst (List.split post_param_list)) in
@@ -477,49 +538,6 @@ type ('a,'b,'c,'d,'e,'f,'g) url =
      post_conversion_function: 'e -> http_params -> 'f;
     }
       
-(* En fait cette fonction est dans Neturl
-let rec cut_url s = 
-  try
-    let length = String.length s in
-      if length = 0 then []
-      else
-	let pos_slash = String.index s '/' in
-	  if pos_slash = 0 
-	  then cut_url (String.sub s 1 (length-1))
-	  else 
-	    let prefix = String.sub s 0 pos_slash in
-	      (*  if length > (pos_slash+1)
-		  then *)
-	      prefix::(cut_url (String.sub s (pos_slash+1) (length - pos_slash - 1)))
-		(* else [prefix] *)
-  with _ -> [s]
-*)
-
-let rec reconstruct_url_string = function
-    [] -> ""
-  | [a] -> a
-  | a::l -> a^"/"^(reconstruct_url_string l)
-
-let reconstruct_absolute_url_string current_url = reconstruct_url_string
-
-let reconstruct_url_string_option = function
-    None -> ""
-  | Some l -> reconstruct_url_string l
-
-let reconstruct_relative_url_string current_url u =
-  let rec drop cururl desturl = match cururl, desturl with
-    | a::l, [b] -> l, desturl
-    | [a], m -> [], m
-    | a::l, b::m when a = b -> drop l m
-    | a::l, m -> l, m
-    | [], m -> [], m
-  in let rec makedotdot = function
-    | [] -> ""
-(*    | [a] -> "" *)
-    | _::l -> "../"^(makedotdot l)
-  in let aremonter, aaller = drop current_url (""::(!current_dir)@u)
-  in (makedotdot aremonter)^(reconstruct_url_string aaller)
-
 
 
 (** Create an url *)
@@ -761,6 +779,43 @@ let register_new_session_actionurl ~params ~action =
     a
 
 
+(** static pages (new 10/05) *)
+let register_new_static_directory_aux
+    tree
+    ~(name : url_string)
+    ~(location : string)
+    : ('a, insideforml, 'b, 'c, page, page, 'd internal_url) url =
+  add_static_dir tree name location;
+  {url = Url_Prefix name;
+   url_state = None;
+   get_param_names = [];
+   post_param_names = [];
+   create_get_form = id;
+   create_post_form = id;
+   create_get_url = (fun current_url f -> 			   
+		       let ss = 
+			 (reconstruct_relative_url_string current_url name) in
+			 (fun suffix -> f (ss^"/"^suffix))
+		    );
+   get_conversion_function = (fun a http_params -> a);
+   post_conversion_function = (fun a http_params -> a)
+  }
+
+let register_new_static_directory
+    ~(name : url_string)
+    ~(location : string) :
+    (insideforml, insideforml, string -> formorlink, page, page, page, 
+     public_url internal_url) url =
+  register_new_static_directory_aux global_tree name location
+
+let register_new_session_static_directory
+    ~(name : url_string)
+    ~(location : string) :
+    (insideforml, insideforml, string -> formorlink, page, page, page, 
+     public_url internal_url) url =
+  register_new_static_directory_aux !session_tree name location
+
+
 (** Close a session *)
 let close_session () = session_tree := empty_tree ()
 
@@ -791,6 +846,15 @@ let link name current_url (url : ('a, insideforml,'c,'d,'e,'f,'g) url) =
 	       <input type="hidden" name=$state_param_name$
 			  value=$stateparam$/>
 			  </form></a> >>) 
+
+let css_link current_url (url : ('a, insideforml,'c,'d,'e,'f,'g) url) =
+  url.create_get_url current_url
+    (fun v -> << <link href=$v$ type="text/css" rel="stylesheet"/> >>)
+
+let js_link current_url (url : ('a, insideforml,'c,'d,'e,'f,'g) url) =
+  url.create_get_url current_url
+    (fun v -> << <script type="text/javascript" src=$v$ /> >>)
+
 	  (*	   let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
 	     << <a href=$vstateparam$>$str:name$</a> >>) *)
 (* 	   let stateparam = string_of_int i in
@@ -939,6 +1003,10 @@ let action_form ?(reload=true) h (actionurl : ('a,'b) actionurl) (f : 'a) =
 
 let int_box (name : int name) = 
   << <input type="text" name=$name$/> >>
+
+let hidden_int_box (name : int name) v = 
+  let vv = string_of_int v in
+  << <input type="hidden" name=$name$ value=$vv$/> >>
 
 let string_box (name : string name) = 
   << <input type="text" name=$name$/> >>
@@ -1120,9 +1188,9 @@ let make_action action_name action_params
     (url, fullurl, _, _, _, useragent) sockaddr cookie =
   let find () =
     (try 
-       find_action global_tree action_name action_params
+       find_action !session_tree action_name action_params
      with Not_found ->
-       find_action !session_tree action_name action_params),None
+       find_action global_tree action_name action_params),None
   in try 
       execute 
 	find

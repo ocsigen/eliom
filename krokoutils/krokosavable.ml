@@ -112,6 +112,7 @@ module RegisterBoxes =
 		 let default_tables = []
 	       end)
 
+(*
 module RegisterUserBoxes = 
   MakeRegister(struct 
 		 type t = Rights.user -> Xhtmlpp.xhtmlcont
@@ -164,9 +165,9 @@ module RegisterHPUserIntBoxes =
 	  RegisterUserBoxes.get_table (fun d h u i -> d u);
 	  RegisterBoxes.get_table (fun d h u i -> d)]
      end)
+*)
 
-
-
+(*
 let boxes_page ~key =
   page (RegisterBoxes.dbgetlist 
 	  ~user:Rights.anonymoususer
@@ -202,6 +203,7 @@ let hpuserintboxes_page ~key h u i =
 	  ~user:u
 	  ~filter:(fun d -> d h u i)
 	  ~key:key)
+*)
 
 (* Then register all constructors in the right register *)
 
@@ -214,10 +216,11 @@ let fold_text_box =
   RegisterBoxes.register 
     ~name:"text_box" ~constructor:(fun ~box_param -> text_box box_param)
 
+(*
 let fold_string_message_box = 
   RegisterUserIntBoxes.register ~name:"string_message_box" 
     ~constructor:(fun ~(box_param:unit) u i -> string_message_box i u)
-
+*)
 
 
 

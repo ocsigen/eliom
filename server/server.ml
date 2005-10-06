@@ -8,6 +8,8 @@ open Http_frame
 open Http_com
 open Sender_helpers
 
+let static_pages_dir = ref "/"
+
 module Content = 
   struct
     type t = string
@@ -159,30 +161,31 @@ let service http_frame in_ch sockaddr
       get_frame_infos http_frame in
       match action_info with
 	  None ->
-	    let cookie2,page = get_page frame_info sockaddr cookie in
-	    let keep_alive = false 
-	      (* Je préfère pour l'instant ne jamais faire de keep-alive pour
-		 éviter d'avoir un nombre de threads qui croit sans arrêt *) in
-	      (*let page_string = (Xhtmlpp.xh_print page) in
-		really_write "200 OK" 
-		keep_alive 
-		?cookie:(if cookie2 <> cookie then cookie2 else None)
-		in_ch page_string 0 
-		(String.length page_string) >>= (fun _ ->
-		return keep_alive)*)
-	      send_page ~keep_alive:keep_alive 
-		?cookie:(if cookie2 <> cookie then 
-			   (if cookie2 = None 
-			    then Some("0; expires=Wednesday, 09-Nov-99 23:12:40 GMT")
-			    else cookie2) 
-			 else None)
-		page xhtml_sender >>=
-		(fun _ -> return keep_alive)
+	    (* Je préfère pour l'instant ne jamais faire de keep-alive pour
+	       éviter d'avoir un nombre de threads qui croit sans arrêt *)
+	    let keep_alive = false in
+	    (try 
+	      let cookie2,page = get_page frame_info sockaddr cookie in
+		send_page ~keep_alive:keep_alive 
+		  ?cookie:(if cookie2 <> cookie then 
+			     (if cookie2 = None 
+			      then Some("0; expires=Wednesday, 09-Nov-99 23:12:40 GMT")
+			      else cookie2) 
+			   else None)
+		  page xhtml_sender 
+	    with Static_File l -> 
+	      Messages.warning ("Fichier statique : "^l);
+	      send_file 
+		~keep_alive:keep_alive 
+		~code:200 (!static_pages_dir^l) file_sender
+	    )
+	      >>= (fun _ -> return keep_alive)
 	| Some (action_name, reload, action_params) ->
 	    let cookie2,() = 
 	      make_action 
 		action_name action_params frame_info sockaddr cookie in
 	    let keep_alive = false in
+	      Messages.warning "Action efffffffffffffffffffffffffffffffffffectué !";
 	      (if reload then
 		 let cookie3,page = get_page frame_info sockaddr cookie2 in
 		   (send_page ~keep_alive:keep_alive 
@@ -300,6 +303,7 @@ let listen () =
 let _ = 
   Lwt_unix.run (
     (* Initialisations *)
+    static_pages_dir := "../pages/";
     (* On charge les modules *)
     (try
        Dynlink.init();
@@ -315,7 +319,7 @@ let _ =
        Dynlink.loadfile "../lib/krokosavable.cmo";
        Dynlink.loadfile "../lib/krokoboxes.cmo";
        load_aaaaa_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo";
-(*       load_aaaaa_module ~dir:["krokoutils"] ~cmo:"../lib/krokoxample.cmo";*)
+       load_aaaaa_module ~dir:["krokoutils"] ~cmo:"../lib/krokoxample.cmo";
        load_aaaaa_module ~dir:["kiko"] ~cmo:"../../kiko/lib/kiko.cmo";
      with Aaaaa_error_while_loading m -> (warning ("Error while loading "^m)));
     listen ()

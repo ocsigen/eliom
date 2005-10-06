@@ -164,7 +164,9 @@ value next_token_fun find_kwd fname lnum bolpos =
 	   :] ep -> (("XMLDECL", get_buff len), mkloc (bp, ep))
       |	[: `'!'; s :] ->
 	  match s with parser
-	    [ [: `'-'; `'-'; _ = comment_tag bp; a = next_token :] -> a
+	    [ [: `'-'; `'-'; ct :] ep -> 
+		(("COMMENT", get_buff (comment_tag bp 0 ct)),
+		 mkloc (bp,ep))
 	    | [: len = exclamation_mark_tag bp 0
 		 :] ep -> (("DECL", get_buff len),mkloc (bp,ep)) ]
       |	[: `'/'; `('a'..'z' | 'A'..'Z' | '_' | ':' as c); s
@@ -186,15 +188,15 @@ value next_token_fun find_kwd fname lnum bolpos =
     [ [: `'?'; `'>' :] -> len
     | [: `c; s :] -> question_mark_tag bp (store len c) s
     | [: :] ep -> err (mkloc (bp, ep)) "XMLDecl tag (<? ?>) not terminated" ]
-  and comment_tag bp =
+  and comment_tag bp len =
     parser
-    [ [: `'-'; s :] -> dash_in_comment_tag bp s
-      |	[: `c; s :] -> comment_tag bp s
+    [ [: `'-'; s :] -> dash_in_comment_tag bp len s
+      |	[: `c; s :] -> comment_tag bp (store len c) s
       | [: :] ep -> err (mkloc (bp, ep)) "comment (<!-- -->) not terminated" ]
-  and dash_in_comment_tag bp =
+  and dash_in_comment_tag bp len =
     parser
-    [ [: `'-'; `'>' :] -> ()
-      |	[: a = comment_tag bp :] -> a ]
+    [ [: `'-'; `'>' :] -> len
+      |	[: a = comment_tag bp len :] -> a ]
   and exclamation_mark_tag bp len =
     parser bp_sb
     [ [: `'>' :] -> len
@@ -452,7 +454,7 @@ value using_token kwd_table ident_table (p_con, p_prm) =
   | "QUOTATION" |
     "CAMLVAR" | "CAMLVARXML" | 
     "CAMLVARL" | "CAMLVARXMLL" |  
-    "CAMLVARXMLS" | 
+    "CAMLVARXMLS" | "COMMENT" |
     "TAG" | "GAT" | "ATTR" | "VALUE" | "XMLDECL" |
     "DECL" | "DATA" | "EOI" ->
       ()
@@ -479,6 +481,7 @@ value text =
   | ("CAMLVARXML", k) -> "camlvarxml \"" ^ k ^ "\""
   | ("CAMLVARL", k) -> "camlvarl \"" ^ k ^ "\""
   | ("CAMLVARXMLL", k) -> "camlvarxmll \"" ^ k ^ "\""
+  | ("COMMENT", k) -> "comment \"" ^ k ^ "\""
 
   | ("TAG","") -> "tag"
   | ("TAG",t) -> "tag \"" ^ t ^ "\""
