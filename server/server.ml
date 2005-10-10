@@ -17,19 +17,9 @@ module Content =
     let string_of_content s = s
   end
 
-module Xhtml_content =
-  struct
-    type t = Xhtmlpp.xhtml
-    let string_of_content c = Xhtmlpp.xh_print c
-    (*il n'y a pas encore de parser pour ce type*)
-    let content_of_string s =assert false
-  end
-
 module Http_frame = FHttp_frame (Content)
 
-
 module Http_receiver = FHttp_receiver (Content)
-
 
 let listening_port = int_of_string Sys.argv.(1)
 
@@ -185,7 +175,6 @@ let service http_frame in_ch sockaddr
 	      make_action 
 		action_name action_params frame_info sockaddr cookie in
 	    let keep_alive = false in
-	      Messages.warning "Action efffffffffffffffffffffffffffffffffffectué !";
 	      (if reload then
 		 let cookie3,page = get_page frame_info sockaddr cookie2 in
 		   (send_page ~keep_alive:keep_alive 
@@ -245,10 +234,9 @@ let listen () =
             )
             >>= (fun keep_alive -> 
               if keep_alive then
-		(warning "---------------->KEEP ALIVE!<-------------------";
-                listen_connexion_aux ())
+                listen_connexion_aux ()
                 (* Pour laisser la connexion ouverte, je relance *)
-              else (warning "---------------->CLOSE!<--------------";return ())
+              else return ()
             )
         ) in
       catch analyse_http 
@@ -270,7 +258,7 @@ let listen () =
     let wait_connexion socket =
       let rec wait_connexion_rec () =
         Lwt_unix.accept socket >>= (fun (inputchan, sockaddr) ->
-	warning "NEW CONNECTION";
+	warning "\n____________________________NEW CONNECTION__________________________";
         let xhtml_sender =
           create_xhtml_sender ~server_name:"ploplop (Unix) (gentoo/Linux) omlet"
         inputchan 

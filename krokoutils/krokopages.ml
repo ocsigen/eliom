@@ -3,7 +3,7 @@ open Krokodata
 (* The boxes that can appear in pages and pages *)
 
   
-(*****************************************************************************)
+(******************************************************************)
 (** Some usefull boxes: *)
 (** Title *)
 let title_box titre = << <h1>$str:titre$</h1> >>

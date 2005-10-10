@@ -39,52 +39,27 @@ struct
                 
   (** return a thread that return when data where received *)
   let receive file_descr buffer ()=
-    (*debug*)
-    print_endline "dans receive";
     wait_can_write buffer >>=(fun free ->
-      (*debug*)
-      print_endline ("free : "^(string_of_int free));
     let temp_buf = String.create free in
       Lwt_unix.read file_descr temp_buf 0 free >>= (fun len ->
-        (*debug*)
-        print_endline ("len : "^(string_of_int len));
         if len = 0 then Lwt.fail End_of_file
         else
           (*copy of the temp buffer in the circular buffer*)
-          (*debug*)
           try
             (
-          (*print_endline ("tempbuf : "^temp_buf); *)
-          (*Unix.sleep 1;*)
             (if buffer.read_pos mod buffer.size > buffer.write_pos mod
             buffer.size 
             then
-              (*debug*)
-             ( (*print_endline "ici";*)
               String.blit temp_buf 0 buffer.buf buffer.write_pos len
-             )
             else
               (let write_to_buf_end = buffer.size -(buffer.write_pos mod buffer.size) in
-              (*debug*)
-              (*print_endline ("write_to_buf_end : "^(string_of_int
-              write_to_buf_end));*)
                 if write_to_buf_end > len then
-                  (
-                  String.blit temp_buf 0 buffer.buf buffer.write_pos len;
-                  (*debug*)
-                  (*print_endline ("blit reussi !");
-                  print_endline ("buffer :"^buffer.buf);
-                  print_endline ("ici");
-                  Unix.sleep 1*)
-                  )
-                else
-                  (
-                  String.blit temp_buf 0 buffer.buf buffer.write_pos write_to_buf_end;
-                String.blit temp_buf write_to_buf_end buffer.buf 0 (len -
+                  String.blit temp_buf 0 buffer.buf buffer.write_pos len
+               else
+		 (
+                   String.blit temp_buf 0 buffer.buf buffer.write_pos write_to_buf_end;
+                   String.blit temp_buf write_to_buf_end buffer.buf 0 (len -
                 write_to_buf_end);
-                (*debug*)
-                (*print_endline ("blit 2 reussi");
-                print_endline ("buffer : "^buffer.buf)*)
                   )
               );
             (*update the buffer*)
@@ -94,8 +69,6 @@ struct
               |Some thread -> Lwt.wakeup thread ()
               |None -> ()
             );
-            (*debug*)
-            (*print_endline "fin de receive";*)
             return ()
             )
           )
@@ -211,8 +184,6 @@ struct
         |0 -> 
            (*wait for more bytes to analyse*)
             catch (receive fd buffer) (fun e -> Lwt.fail e) >>= (fun () ->
-              (*debug*)
-              (*print_endline "receive effectue"; *)
               wait_http_header_aux cur_ind)
         |available ->
             try
@@ -245,34 +216,20 @@ module FHttp_receiver =
       let http_header_of_string s =
         let lexbuf = Lexing.from_string s in
         try
-          (*debug*)
-          (*print_endline ("avvant parsing");*)
           Http_parser.header Http_lexer.token lexbuf
         with
         |Parsing.Parse_error -> 
-          (*debug*)
-          (*print_endline "parsing_error";*)
            raise (Failure ("erreur de parsing vers"^ 
                           (Lexing.lexeme lexbuf)))
          
       (** get an http frame *)
       let get_http_frame receiver () =
         catch (Com_buffer.wait_http_header receiver.fd receiver.buffer) (fun e -> Lwt.fail e) >>=(fun len ->
-          (*debug*)
-          (*print_endline (string_of_int len);*)
           catch (Com_buffer.extract receiver.fd receiver.buffer len) (fun e -> Lwt.fail e) >>= (fun string_header ->
             try
-              (*debug*)
-              (*print_endline "avant parsing du header";
-              let out = open_out "dump" in
-              output_string out string_header;
-              flush out;
-              close_out out;*)
             let header = http_header_of_string string_header in
-            print_endline ("après parsing");
             let body_length=
               try
-                print_endline ("------>"^Http_frame.Http_header.get_headers_value header "content-length");
                 int_of_string (Http_frame.Http_header.get_headers_value header "content-length")
               with
                 |_ -> 0
@@ -282,13 +239,10 @@ module FHttp_receiver =
                 |x when x < 0 -> assert false
                 |0 -> Lwt.return None
                 |_ -> 
-            print_endline ("avant body");
                     catch (Com_buffer.extract receiver.fd receiver.buffer body_length) (fun e -> Lwt.fail e) >>= (fun s ->
-            print_endline ("après body");
                       Lwt.return (Some (C.content_of_string s)))
             in
               body >>= (fun b ->
-print_endline ("BODY "^(match Obj.magic b with None -> "" | Some s -> s));
                 Lwt.return {Http.header=header;Http.content=b}
               )
             with e -> fail e
@@ -319,16 +273,14 @@ module FHttp_sender =
       mutable headers : (string*string) list
     }
 
-    (*fonction de dump pour le debuggage*)
+(*    (*fonction de dump pour le debuggage*)
     let dump str file =
       let out_chan = open_out file in
       output_string out_chan str;
       close_out out_chan 
-
+*)
     (*fonction d'écriture sur le réseau*)
     let really_write out_ch buffer pos len =
-      (*debug*)
-      dump buffer "dump";
       let rec really_write_aux pos len =
         Lwt_unix.write out_ch buffer pos len >>=
           (
@@ -474,8 +426,8 @@ module FHttp_sender =
     let frame = {Http.header = hd;Http.content=content} in
     (*convert the frame into a string*)
     let str = PP.string_of_http_frame frame in
-    (*debug*)
-    print_endline ("réponse envoyé :"^str);
+      (*debug*)
+      print_endline str;
     really_write sender.fd str 0 (String.length str)
     
   end

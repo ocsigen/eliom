@@ -63,8 +63,8 @@ firstline :
 				 mode := Answer;proto:=$1;code:= Some $2}
 
 lines :
-  |line                         {print_endline (snd $1);headers:=$1::!headers}
-  |line lines                   {print_endline (snd $1);headers:=$1::!headers;$2}
+  |line                         {headers:=$1::!headers}
+  |line lines                   {headers:=$1::!headers;$2}
 
 line :
   STRING COLON strings EOL    {(String.lowercase($1),$3)}

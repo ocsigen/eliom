@@ -12,7 +12,7 @@ rule token =
   parse
   |blank                {print_string " ";token lexbuf}
   |"GET"                {print_string "GET";METHOD "GET"}
-  |"POST"               {METHOD "POST"}
+  |"POST"               {print_string "POST";METHOD "POST"}
   |"HEAD"               {METHOD "HEAD"}
   |"PUT"                {METHOD "PUT"}
   |"DELETE"             {METHOD "DELETE"}
@@ -25,8 +25,10 @@ rule token =
   |"\r\n"               {print_endline "";EOL}
   |":"                  {print_string ":";COLON}
   |"\n"                 {print_endline "";EOL}
-  |integer              {print_string "<code>";CODE (int_of_string (Lexing.lexeme lexbuf))}
-  |proto                {print_string "<proto>";PROTO (Lexing.lexeme lexbuf)}
+  |integer              {print_string (Lexing.lexeme lexbuf);
+			 CODE (int_of_string (Lexing.lexeme lexbuf))}
+  |proto                {print_string (Lexing.lexeme lexbuf);
+			 PROTO (Lexing.lexeme lexbuf)}
   |strin                {print_string (Lexing.lexeme lexbuf);
 			 STRING (Lexing.lexeme lexbuf)}
   |eof                  {raise (Http_error.Http_exception (Some 400,["Unexpected end of

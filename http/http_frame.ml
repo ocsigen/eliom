@@ -170,7 +170,6 @@ module FHttp_frame =
   functor(C:HTTP_CONTENT) ->
     struct
 
-          
         (** type of the http frames*)
         type http_frame = {header: Http_header.http_header;content: C.t option}
 
