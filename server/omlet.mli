@@ -238,6 +238,7 @@ val load_aaaaa_module : dir:url_string -> cmo:string -> unit
 
 exception Static_File of string
 exception Aaaaa_error_while_loading of string
+exception Omlet_404
 val state_param_name : string
 val action_prefix : string
 val action_name : string

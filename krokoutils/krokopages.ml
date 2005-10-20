@@ -31,7 +31,17 @@ let box_exn_handler ex = match ex with
   | Not_found -> error_box "not found"
   | Krokodata.Dyn.Dyn_typing_error_while_unfolding (_,_) -> 
       error_box "Wrong data (index error?)"
+  | Krokodata.Unfolds_not_registered s -> 
+      error_box ("Internal error : Unfolds not registered for "^s)
   | _ -> error_box "unknown error while creating box"
+
+
+(** Container *)
+let container ?classe ?id l =
+  let attrid = (match id with None -> [] | Some c -> [`Id,c]) in
+  let attrs = 
+    (match classe with None -> attrid | Some c -> (`Class,c)::attrid) in
+  << <div $list:attrs$>$list:l$</div> >>
 
 
 
@@ -62,6 +72,7 @@ let page_exn_handler h ex = page h [box_exn_handler ex]
 
 
 
+(*
 (******************************************************************)
 (** It can be usefull to have late binding. To do that, we organize
     boxes and pages in classes.
@@ -81,4 +92,6 @@ class message_boxes_class = object
   method print_string_message u i : Xhtmlpp.xhtmlcont = string_message_box i u
 end
 
+
+*)
 

@@ -53,6 +53,7 @@ let new_cookie =
 
 exception Omlet_Typing_Error
 exception Omlet_Wrong_parameter
+exception Omlet_404
 
 type postorget = Get | Post
 
@@ -438,6 +439,9 @@ module Directorytree : DIRECTORYTREE = struct
 	| Url_Prefix u2 ->
             let _,dircontentref = 
 	      (search_table current_tree (change_empty_list u2)) in
+	    match !dircontentref with
+	      Dirprefix tr -> tr := (add_table !tr content)
+	    | _ ->
 	      dircontentref := 
 		Dirprefix (ref (add_table (empty_table ()) content))
 	 
@@ -1037,6 +1041,7 @@ let execute find
       let ((action, working_dir), url_suffix) = find ()
       in 
       let page = 
+	Messages.warning "Page found";
 	absolute_change_dir working_dir;
 	action 
 	  (make_http_params
@@ -1056,91 +1061,13 @@ let execute find
   in current_dir := save_current_dir; 	
     answer
 
-(* AEFFFF
-let get_page 
-    (url, fullurl, internal_state, get_params, post_params, useragent)
-    sockaddr cookie = 
-  let ip = match sockaddr with
-      Unix.ADDR_INET (ip,port) -> ip
-    | _ -> localhost
-  in
-  let save_current_dir = !current_dir in
-  let answer =
-    let (tree, new_session) = 
-      (match cookie with
-	   None -> (new_session_table (), true)
-	 | Some c -> try (Cookies.find cookie_table (ip,c), false)
-	   with Not_found -> (new_session_table (), true))
-    in
-      session_tree := tree;
-      try
-	let ((action, working_dir), url_suffix) =
-	  try (* D'abord recherche dans la table de session *)
-	    print_endline "--- recherche dans la table de session :";
-	    (find_url 
-	       !session_tree
-	       url
-	       get_params
-	       post_params
-	       internal_state)
-	  with Not_found -> try (* ensuite dans la table globale *)
-	    print_endline "--- recherche dans la table globale :";
-	    (find_url 
-	       global_tree
-	       url
-	       get_params
-	       post_params
-	       internal_state)
-	  with Not_found -> (* si pas trouvé avec, on essaie sans l'état *)
-	    match internal_state with
-		None -> raise Not_found
-	      | _ -> try (* d'abord la table de session *)
-		  print_endline "--- recherche dans la table de session, sans état :";
-		  (find_url 
-		     !session_tree
-		     url
-		     get_params
-		     post_params
-		     None)
-		with Not_found -> (* ensuite dans la table globale *)
-	    print_endline "--- recherche dans la table globale, sans état :";
-		  (find_url 
-		     global_tree
-		     url
-		     get_params
-		     post_params
-		     None)
-	in 
-	let page = 
-	  absolute_change_dir working_dir;
-	  action 
-	    (make_http_params
-	       url fullurl url_suffix get_params post_params useragent ip) in
-	let cookie2 = 
-	  if is_empty_table !session_tree
-	  then ((if not new_session 
-		 then match cookie with
-		     Some c -> print_endline "J'efface la table de session <---------------------------------------------------"; Cookies.remove cookie_table (ip,c)
-		   | None -> ());None)
-	  else (if new_session 
-		then let c = new_cookie () in
-		  (Cookies.add cookie_table (ip,c) !session_tree;
-		   Some c)
-		else cookie)
-	in (cookie2, page)
-      with 
-	  Omlet_Typing_Error -> (cookie, Error_pages.page_error_param_type)
-	| Omlet_Wrong_parameter -> (cookie, Error_pages.page_bad_param)
-  in current_dir := save_current_dir; 	
-    answer
-*)
 
 let get_page 
     (url, fullurl, internal_state, get_params, post_params, useragent)
     sockaddr cookie = 
   let find () =
     try (* D'abord recherche dans la table de session *)
-      print_endline "--- recherche dans la table de session :";
+      print_endline ("--- recherche "^(reconstruct_url_string url)^" dans la table de session :");
       (find_url 
 	 !session_tree
 	 url
@@ -1157,7 +1084,7 @@ let get_page
 	 internal_state)
     with Not_found -> (* si pas trouvé avec, on essaie sans l'état *)
       match internal_state with
-	  None -> raise Not_found
+	  None -> raise Omlet_404
 	| _ -> try (* d'abord la table de session *)
 	    print_endline "--- recherche dans la table de session, sans état :";
 	    (find_url 
@@ -1167,18 +1094,20 @@ let get_page
 	       post_params
 	       None)
 	  with Not_found -> (* ensuite dans la table globale *)
-	    print_endline "--- recherche dans la table globale, sans état :";
-	    (find_url 
-	       global_tree
-	       url
-	       get_params
-	       post_params
-	       None)
+	    try 
+	      print_endline "--- recherche dans la table globale, sans état :";
+	      (find_url 
+		 global_tree
+		 url
+		 get_params
+		 post_params
+		 None)
+	    with Not_found -> raise Omlet_404
   in try 
-      execute 
-	find 
-	(url, fullurl, get_params, post_params, useragent)
-	sockaddr cookie
+    execute 
+      find 
+      (url, fullurl, get_params, post_params, useragent)
+      sockaddr cookie
     with 
 	Omlet_Typing_Error -> (cookie, Error_pages.page_error_param_type)
       | Omlet_Wrong_parameter -> (cookie, Error_pages.page_bad_param)

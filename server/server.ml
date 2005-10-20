@@ -30,6 +30,14 @@ let _ = Unix.set_nonblock Unix.stderr*)
 let new_socket () = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
 
+let error_page s =
+          <<
+          <html>
+          <h1> Error </h1>
+          $str:s$
+          </html>
+          >>
+
 
 exception Omlet_Malformed_Url
 
@@ -194,7 +202,7 @@ let service http_frame in_ch sockaddr
                     ~code:204
 	            empty_sender)) >>=
 		(fun _ -> return keep_alive)
-  with Not_found -> 
+  with Omlet_404 -> 
    (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
    send_error ~error_num:404 xhtml_sender
    (*send_file ~code:404 "../pages/error.html" file_sender*)
@@ -207,8 +215,10 @@ let service http_frame in_ch sockaddr
 	send_error ~error_num:400 xhtml_sender
 	>>= (fun _ ->
 	       return true (* idem *))
-    | _ ->
-	send_error ~error_num:400 xhtml_sender
+    | e ->
+	send_page ~keep_alive:false
+	  (error_page ("Exception : "^(Printexc.to_string e)))
+	  xhtml_sender
     (* send_file ~code:200 "../pages/Volta.GIF" file_sender *)
 	>>= (fun _ ->
 	       return true (* idem *))
@@ -228,10 +238,11 @@ let listen () =
           http_frame ->
              catch (service http_frame in_ch sockaddr 
 		      xhtml_sender file_sender empty_sender)
-            (fun ex ->
+	      fail
+            (*fun ex ->
               match ex with
               | _ -> fail ex
-            )
+            *)
             >>= (fun keep_alive -> 
               if keep_alive then
                 listen_connexion_aux ()

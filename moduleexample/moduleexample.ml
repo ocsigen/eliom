@@ -76,13 +76,14 @@ let plop_params = register_new_url
 let uaprefix = 
   register_new_url 
     (Url_Prefix ["uaprefix"])
-    (_useragent (_ip (_url_suffix _noparam)))
-    (fun ua ip suff -> 
+    (_useragent (_ip (_url_suffix (_string "s"))))
+    (fun ua ip suff s -> 
 	 <<
 	   <html>
 	     The suffix of the url is <b>$str:suff$</b>
              and your user-agent is <b>$str:ua$</b>
              and your IP is <b>$str:ip$</b>
+             and s is <b>$str:s$</b>
            </html>
          >>)
 
@@ -127,7 +128,7 @@ let links = register_new_url (Url ["plop";"links"]) (_current_url _noparam)
   (fun current_url ->
      (let l = link "plop" current_url plop in
       let ll = link "plop2" current_url plop2 in
-      let lll = link "uaprefix" current_url uaprefix "suf" in
+      let lll = link "uaprefix" current_url uaprefix "suf" "toto" in
       let llll = 
 	link "plop_params" current_url plop_params 45 "hello" "plpl" in
       let lllll = link "wikipedia" current_url
@@ -450,6 +451,7 @@ let _ = register_post_url
 
 (* Actions: *)
 
+
 (* Static files: *)
 let filedir = register_new_static_directory ["files"] "moduleexample-files"
 (* This url works like a "prefix url". The suffix is the file name *)
@@ -464,7 +466,7 @@ let _ = register_new_url (Url []) (_current_url _noparam)
      let l3 = link "plop/plip" url plop2 in
      let l4 = link "oups" url oups in
      let l5 = link "plop avec params" url plop_params 45 "hello" "plpl" in
-     let l6 = link "uaprefix" url uaprefix "suf" in
+     let l6 = link "uaprefix" url uaprefix "suf" "toto" in
      let l7 = link "iprefix" url iprefix "popo" 333 in
      let l8 = link "mytype" url mytype A in
      let l9 = link "links" url links in

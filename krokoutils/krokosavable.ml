@@ -17,12 +17,28 @@ de nouvelles boîtes dans une page sans créer un nouveau Register de boîtes
 (* First of all, we create a register for all kind of pages we want *)
 module RegisterBoxes =
   MakeRegister(struct 
-		 type t = Xhtmlpp.xhtmlcont
-		 let name = "boxes"
-		 let default_handler = box_exn_handler
-		 let default_tables = []
-	       end)
+    type content = Xhtmlpp.xhtmlcont
+    type 'a t = 'a
+    type box = [`Box of tfolded]
+    type boxes = box
+    let name = "boxes"
+    let tag x = `Box x
+    let untag (`Box x) = x
+    let default_handler = box_exn_handler
+      let make_boxofboxes ~filter l = 
+	List.map (fun b -> (filter b)) l
+  end)
 
+let fold_boxes = 
+  RegisterBoxes.register_unfolds
+    ~box_constructor:RegisterBoxes.unfold
+
+let fold_boxes_container = 
+  RegisterBoxes.register
+    ~name:"boxes_container"
+    ~constructor:(fun ~box_param:(classe,id,l) -> 
+      container ~classe:classe ~id:id 
+	(RegisterBoxes.tfoldedlist_to_contentlistt l))
 
 (* Then register all constructors in the right register *)
 let fold_title_box = 
@@ -33,6 +49,12 @@ let fold_title_box =
 let fold_text_box = 
   RegisterBoxes.register 
     ~name:"text_box" ~constructor:(fun ~box_param -> text_box box_param)
+
+let fold_container = 
+  RegisterBoxes.register 
+    ~name:"container" 
+    ~constructor:(fun ~box_param:(classe,id,boxlist) -> 
+      container ~classe:classe ~id:id boxlist)
 
 
 
