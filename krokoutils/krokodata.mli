@@ -54,7 +54,8 @@ module MakeSaver :
 exception Box_not_available of string
 exception Unfolds_not_registered of string
 
-type tfolded
+type 'a tfolded
+type 'a tfolded_list
 
 module type REGISTER =
 sig
@@ -62,7 +63,7 @@ sig
   type 'a t
   type box
   type boxes
-  type tfolded_list
+  type container_param
 
   exception Duplicate_registering of string
   
@@ -70,8 +71,8 @@ sig
     name:string -> 
     constructor:(box_param:'boxparam -> content t) -> 'boxparam -> box
 
-  val unfold : box ->content t
-  val unfolds : boxes ->content t
+  val unfold : box -> content t
+  val unfolds : boxes -> content t
 
   val dbget : user:Rights.user -> key:content t index -> content t
 
@@ -80,16 +81,17 @@ sig
   val dbupdate : user:Rights.user -> key:content t index -> value:box -> unit
 
   val register_unfolds : box_constructor:(boxes -> content t) -> 
-    boxes list -> tfolded_list
+    boxes list -> content t tfolded_list
 
-  val tfoldedlist_to_contentlistt : tfolded_list -> content list t
-
-  val dbgetlist : user:Rights.user -> key:tfolded_list index -> 
+  val dbgetlist : user:Rights.user -> key:content t tfolded_list index -> 
     content list t
   val dbinsertlist : user:Rights.user -> ?rights:Rights.rights ->
-    tfolded_list -> tfolded_list index
-  val dbupdatelist : user:Rights.user -> key:tfolded_list index ->
-    value:tfolded_list -> unit
+    content t tfolded_list -> content t tfolded_list index
+  val dbupdatelist : user:Rights.user -> key:content t tfolded_list index ->
+    value:content t tfolded_list -> unit
+
+  val fold_container : container_param * content t tfolded_list -> box
+  val fold_subpage : container_param * content t tfolded_list index -> box
 
 end
   
@@ -100,17 +102,23 @@ module MakeRegister :
       type box
       type boxes
       val name : string
-      val tag : tfolded -> box
-      val untag : box -> tfolded
+      val tag : content t tfolded -> box
+      val untag : box -> content t tfolded
       val default_handler : exn -> content t
       val make_boxofboxes : filter:('a -> content t) -> 
 	'a list -> content list t
+      type container_param
+      val container : (content t tfolded_list -> content list t)
+	-> box_param:(container_param * content t tfolded_list) -> content t
+      val subpage : (user:Rights.user -> key:content t tfolded_list index -> content list t) 
+	-> box_param:(container_param * content t tfolded_list index)-> content t
   end) -> 
     REGISTER
 with type 'a t = 'a A.t 
 and type content = A.content
 and type box = A.box
 and type boxes = A.boxes
+and type container_param = A.container_param
 
 module StringMessage : SAVER with type t = string
 

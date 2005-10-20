@@ -19,7 +19,7 @@ module RegisterBoxes =
   MakeRegister(struct 
     type content = Xhtmlpp.xhtmlcont
     type 'a t = 'a
-    type box = [`Box of tfolded]
+    type box = [`Box of content t tfolded]
     type boxes = box
     let name = "boxes"
     let tag x = `Box x
@@ -27,18 +27,16 @@ module RegisterBoxes =
     let default_handler = box_exn_handler
       let make_boxofboxes ~filter l = 
 	List.map (fun b -> (filter b)) l
+    type container_param = string option * string option
+    let container f ~box_param:((classe,id),l) = 
+      boxes_container ?classe:classe ?id:id (f l)
+    let subpage f ~box_param:((classe,id),i) = 
+      boxes_container ?classe:classe ?id:id (f ~user:Rights.anonymoususer ~key:i)
   end)
 
 let fold_boxes = 
   RegisterBoxes.register_unfolds
     ~box_constructor:RegisterBoxes.unfold
-
-let fold_boxes_container = 
-  RegisterBoxes.register
-    ~name:"boxes_container"
-    ~constructor:(fun ~box_param:(classe,id,l) -> 
-      container ~classe:classe ~id:id 
-	(RegisterBoxes.tfoldedlist_to_contentlistt l))
 
 (* Then register all constructors in the right register *)
 let fold_title_box = 
@@ -49,12 +47,6 @@ let fold_title_box =
 let fold_text_box = 
   RegisterBoxes.register 
     ~name:"text_box" ~constructor:(fun ~box_param -> text_box box_param)
-
-let fold_container = 
-  RegisterBoxes.register 
-    ~name:"container" 
-    ~constructor:(fun ~box_param:(classe,id,boxlist) -> 
-      container ~classe:classe ~id:id boxlist)
 
 
 

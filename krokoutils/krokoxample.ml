@@ -86,7 +86,7 @@ module RegisterPublicOrNotBoxes =
     (struct 
       type content = Xhtmlpp.xhtmlcont
       type 'a t = Omlet.http_params -> Rights.user -> 'a
-      type box = [`PublicOrNotBox of tfolded]
+      type box = [`PublicOrNotBox of content t tfolded]
       type boxes = [ box | RegisterBoxes.boxes ]
       let name = "KrokoxampleRegisterPublicOrNotBoxes"
       let tag x = `PublicOrNotBox x
@@ -94,6 +94,11 @@ module RegisterPublicOrNotBoxes =
       let default_handler ex h u = box_exn_handler ex
       let make_boxofboxes ~filter l h u = 
 	List.map (fun b -> (filter b) h u) l
+      type container_param = string option * string option
+      let container f ~box_param:((classe,id),l) h u = 
+	boxes_container ?classe:classe ?id:id (f l h u)
+      let subpage f ~box_param:((classe,id),i) h u = 
+	boxes_container ?classe:classe ?id:id (f ~user:u ~key:i h u)
      end)
 
 let fold_publicornotboxes = 
@@ -110,7 +115,7 @@ module RegisterPublicBoxes =
     (struct 
       type content = Xhtmlpp.xhtmlcont
       type 'a t = Omlet.http_params -> 'a
-      type box = [`PublicBox of tfolded]
+      type box = [`PublicBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
       let name = "KrokoxampleRegisterPublicBoxes"
       let tag x = `PublicBox x
@@ -118,6 +123,11 @@ module RegisterPublicBoxes =
       let default_handler ex h = box_exn_handler ex
       let make_boxofboxes ~filter l h = 
 	List.map (fun b -> (filter b) h) l
+      type container_param = string option * string option
+      let container f ~box_param:((classe,id),l) h = 
+	boxes_container ?classe:classe ?id:id (f l h)
+      let subpage f ~box_param:((classe,id),i) h = 
+	boxes_container ?classe:classe ?id:id (f ~user:Rights.anonymoususer ~key:i h)
      end)
 
 let fold_publicboxes = 
@@ -136,7 +146,7 @@ module RegisterNewsBoxes =
       type content = Xhtmlpp.xhtmlcont
       type 'a t = Omlet.http_params -> Rights.user -> 
 	StringMessage.t index -> 'a
-      type box = [`NewsBox of tfolded]
+      type box = [`NewsBox of content t tfolded]
       type boxes = box
       let name = "KrokoxampleRegisterNewsBoxes"
       let tag x = `NewsBox x
@@ -144,6 +154,11 @@ module RegisterNewsBoxes =
       let default_handler ex h u i = box_exn_handler ex
       let make_boxofboxes ~filter l h u i = 
 	List.map (fun b -> (filter b) h u i) l
+      type container_param = string option * string option
+      let container f ~box_param:((classe,id),l) h u i = 
+	boxes_container ?classe:classe ?id:id (f l h u i)
+      let subpage f ~box_param:((classe,id),ii) h u i = 
+	boxes_container ?classe:classe ?id:id (f ~user:u ~key:ii h u i)
     end)
 
 let fold_newsboxes = 
@@ -156,7 +171,7 @@ module RegisterPublicNewsBoxes =
     (struct 
       type content = Xhtmlpp.xhtmlcont
       type 'a t = Omlet.http_params -> StringMessage.t index -> 'a
-      type box = [`PublicNewsBox of tfolded]
+      type box = [`PublicNewsBox of content t tfolded]
       type boxes = [ box
 	| RegisterNewsBoxes.boxes
 	| RegisterPublicBoxes.boxes ]
@@ -166,6 +181,11 @@ module RegisterPublicNewsBoxes =
       let default_handler ex h i = box_exn_handler ex
       let make_boxofboxes ~filter l h i = 
 	List.map (fun b -> (filter b) h i) l
+      type container_param = string option * string option
+      let container f ~box_param:((classe,id),l) h i = 
+	boxes_container ?classe:classe ?id:id (f l h i)
+      let subpage f ~box_param:((classe,id),ii) h i = 
+	boxes_container ?classe:classe ?id:id (f ~user:Rights.anonymoususer ~key:ii h i)
     end)
 
 let fold_publicnewsboxes = 
@@ -184,7 +204,7 @@ module RegisterUserBoxes =
     (struct 
       type content = Xhtmlpp.xhtmlcont
       type 'a t = Omlet.http_params -> Rights.user -> 'a
-      type box = [`UserBox of tfolded]
+      type box = [`UserBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
       let name = "KrokoxampleRegisterUserBoxes"
       let tag x = `UserBox x
@@ -192,6 +212,11 @@ module RegisterUserBoxes =
       let default_handler ex h u = box_exn_handler ex
       let make_boxofboxes ~filter l h u = 
 	List.map (fun b -> (filter b) h u) l
+      type container_param = string option * string option
+      let container f ~box_param:((classe,id),l) h u = 
+	boxes_container ?classe:classe ?id:id (f l h u)
+      let subpage f ~box_param:((classe,id),i) h u = 
+	boxes_container ?classe:classe ?id:id (f ~user:u ~key:i h u)
     end)
 
 let fold_userboxes = 
@@ -209,7 +234,7 @@ module RegisterUserNewsBoxes =
       type content = Xhtmlpp.xhtmlcont
       type 'a t = Omlet.http_params -> Rights.user -> 
 	StringMessage.t index -> 'a
-      type box = [`UserNewsBox of tfolded]
+      type box = [`UserNewsBox of content t tfolded]
       type boxes = [ box | RegisterUserBoxes.boxes | RegisterNewsBoxes.boxes ]
       let name = "KrokoxampleRegisterUserNewsBoxes"
       let tag x = `UserNewsBox x
@@ -217,6 +242,11 @@ module RegisterUserNewsBoxes =
       let default_handler ex h u i = box_exn_handler ex
       let make_boxofboxes ~filter l h u i = 
 	List.map (fun b -> (filter b) h u i) l
+      type container_param = string option * string option
+      let container f ~box_param:((classe,id),l) h u i = 
+	boxes_container ?classe:classe ?id:id (f l h u i)
+      let subpage f ~box_param:((classe,id),ii) h u i = 
+	boxes_container ?classe:classe ?id:id (f ~user:u ~key:ii h u i)
     end)
 
 let fold_usernewsboxes = 
