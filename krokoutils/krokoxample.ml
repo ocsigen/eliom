@@ -96,9 +96,7 @@ module RegisterPublicOrNotBoxes =
 	List.map (fun b -> (filter b) h u) l
       type container_param = string option * string option
       let container f ~box_param:((classe,id),l) h u = 
-	boxes_container ?classe:classe ?id:id (f l h u)
-      let subpage f ~box_param:((classe,id),i) h u = 
-	boxes_container ?classe:classe ?id:id (f ~user:u ~key:i h u)
+	boxes_container ?classe:classe ?id:id (f ~user:u l h u)
      end)
 
 let fold_publicornotboxes = 
@@ -125,9 +123,8 @@ module RegisterPublicBoxes =
 	List.map (fun b -> (filter b) h) l
       type container_param = string option * string option
       let container f ~box_param:((classe,id),l) h = 
-	boxes_container ?classe:classe ?id:id (f l h)
-      let subpage f ~box_param:((classe,id),i) h = 
-	boxes_container ?classe:classe ?id:id (f ~user:Rights.anonymoususer ~key:i h)
+	boxes_container ?classe:classe ?id:id 
+	  (f ~user:Rights.anonymoususer l h)
      end)
 
 let fold_publicboxes = 
@@ -156,9 +153,7 @@ module RegisterNewsBoxes =
 	List.map (fun b -> (filter b) h u i) l
       type container_param = string option * string option
       let container f ~box_param:((classe,id),l) h u i = 
-	boxes_container ?classe:classe ?id:id (f l h u i)
-      let subpage f ~box_param:((classe,id),ii) h u i = 
-	boxes_container ?classe:classe ?id:id (f ~user:u ~key:ii h u i)
+	boxes_container ?classe:classe ?id:id (f ~user:u l h u i)
     end)
 
 let fold_newsboxes = 
@@ -183,9 +178,7 @@ module RegisterPublicNewsBoxes =
 	List.map (fun b -> (filter b) h i) l
       type container_param = string option * string option
       let container f ~box_param:((classe,id),l) h i = 
-	boxes_container ?classe:classe ?id:id (f l h i)
-      let subpage f ~box_param:((classe,id),ii) h i = 
-	boxes_container ?classe:classe ?id:id (f ~user:Rights.anonymoususer ~key:ii h i)
+	boxes_container ?classe:classe ?id:id (f ~user:Rights.anonymoususer l h i)
     end)
 
 let fold_publicnewsboxes = 
@@ -214,9 +207,7 @@ module RegisterUserBoxes =
 	List.map (fun b -> (filter b) h u) l
       type container_param = string option * string option
       let container f ~box_param:((classe,id),l) h u = 
-	boxes_container ?classe:classe ?id:id (f l h u)
-      let subpage f ~box_param:((classe,id),i) h u = 
-	boxes_container ?classe:classe ?id:id (f ~user:u ~key:i h u)
+	boxes_container ?classe:classe ?id:id (f ~user:u l h u)
     end)
 
 let fold_userboxes = 
@@ -244,9 +235,7 @@ module RegisterUserNewsBoxes =
 	List.map (fun b -> (filter b) h u i) l
       type container_param = string option * string option
       let container f ~box_param:((classe,id),l) h u i = 
-	boxes_container ?classe:classe ?id:id (f l h u i)
-      let subpage f ~box_param:((classe,id),ii) h u i = 
-	boxes_container ?classe:classe ?id:id (f ~user:u ~key:ii h u i)
+	boxes_container ?classe:classe ?id:id (f ~user:u l h u i)
     end)
 
 let fold_usernewsboxes = 

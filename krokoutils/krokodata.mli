@@ -108,10 +108,8 @@ module MakeRegister :
       val make_boxofboxes : filter:('a -> content t) -> 
 	'a list -> content list t
       type container_param
-      val container : (content t tfolded_list -> content list t)
-	-> box_param:(container_param * content t tfolded_list) -> content t
-      val subpage : (user:Rights.user -> key:content t tfolded_list index -> content list t) 
-	-> box_param:(container_param * content t tfolded_list index)-> content t
+      val container : (user:Rights.user -> 'a -> content list t)
+	-> box_param:(container_param * 'a) -> content t
   end) -> 
     REGISTER
 with type 'a t = 'a A.t 

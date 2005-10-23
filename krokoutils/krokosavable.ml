@@ -29,9 +29,7 @@ module RegisterBoxes =
 	List.map (fun b -> (filter b)) l
     type container_param = string option * string option
     let container f ~box_param:((classe,id),l) = 
-      boxes_container ?classe:classe ?id:id (f l)
-    let subpage f ~box_param:((classe,id),i) = 
-      boxes_container ?classe:classe ?id:id (f ~user:Rights.anonymoususer ~key:i)
+      boxes_container ?classe:classe ?id:id (f ~user:Rights.anonymoususer l)
   end)
 
 let fold_boxes = 
