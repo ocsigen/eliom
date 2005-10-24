@@ -1,6 +1,6 @@
 (* Copyright Vincent Balat 2005 *)
 
-open Omlet
+open Kroko
 open Krokosavable
 open Krokodata
 

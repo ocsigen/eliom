@@ -1,6 +1,6 @@
-NAME = server
+NAME = krokoserver
 
-FILES=  messages.ml error_pages.ml omlet.ml server.ml
+FILES=  messages.ml error_pages.ml kroko.ml krokoserver.ml
 
 CAMLC = ocamlc -g $(LIB)
 CAMLOPT = ocamlopt $(LIB)
@@ -21,7 +21,7 @@ OBJS = $(FILES:.ml=.cmo)
 
 all: depend $(OBJS) $(NAME) doc
 #	cp *.cmo *.cmi ../lib
-	cp omlet.cmo omlet.cmi ../lib
+	cp kroko.cmo kroko.cmi ../lib
 	cp messages.cmi ../lib
 	cp $(NAME) ../bin
 
@@ -42,7 +42,7 @@ $(NAME): $(OBJS)
 	$(CAMLOPT) $(PP) -c $<
 
 doc:
-	$(CAMLDOC) -d doc -html omlet.mli
+	$(CAMLDOC) -d doc -html kroko.mli
 
 clean:
 	-rm -f *.cm[iox] *~ $(NAME)

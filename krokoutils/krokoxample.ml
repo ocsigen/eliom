@@ -2,7 +2,7 @@
 (** An example of Kroko module using Krokoutils *)
 
 
-open Omlet
+open Kroko
 open Krokodata
 open Krokopages
 open Krokosavable
@@ -85,7 +85,7 @@ module RegisterPublicOrNotBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = Omlet.http_params -> Rights.user -> 'a
+      type 'a t = http_params -> Rights.user -> 'a
       type box = [`PublicOrNotBox of content t tfolded]
       type boxes = [ box | RegisterBoxes.boxes ]
       let name = "KrokoxampleRegisterPublicOrNotBoxes"
@@ -112,7 +112,7 @@ module RegisterPublicBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = Omlet.http_params -> 'a
+      type 'a t = http_params -> 'a
       type box = [`PublicBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
       let name = "KrokoxampleRegisterPublicBoxes"
@@ -141,7 +141,7 @@ module RegisterNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = Omlet.http_params -> Rights.user -> 
+      type 'a t = http_params -> Rights.user -> 
 	StringMessage.t index -> 'a
       type box = [`NewsBox of content t tfolded]
       type boxes = box
@@ -165,7 +165,7 @@ module RegisterPublicNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = Omlet.http_params -> StringMessage.t index -> 'a
+      type 'a t = http_params -> StringMessage.t index -> 'a
       type box = [`PublicNewsBox of content t tfolded]
       type boxes = [ box
 	| RegisterNewsBoxes.boxes
@@ -196,7 +196,7 @@ module RegisterUserBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = Omlet.http_params -> Rights.user -> 'a
+      type 'a t = http_params -> Rights.user -> 'a
       type box = [`UserBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
       let name = "KrokoxampleRegisterUserBoxes"
@@ -223,7 +223,7 @@ module RegisterUserNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = Omlet.http_params -> Rights.user -> 
+      type 'a t = http_params -> Rights.user -> 
 	StringMessage.t index -> 'a
       type box = [`UserNewsBox of content t tfolded]
       type boxes = [ box | RegisterUserBoxes.boxes | RegisterNewsBoxes.boxes ]

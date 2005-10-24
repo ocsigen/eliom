@@ -1,7 +1,7 @@
 (* Copyright Vincent Balat 2005 *)
 (* Do not redistribute without permission *)
 
-open Omlet
+open Kroko
 
 (* ------------------------------------------------------------------ *)
 (* To create a web page without parameter: *)

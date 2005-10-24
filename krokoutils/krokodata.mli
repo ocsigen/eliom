@@ -11,7 +11,8 @@ module Rights :
 sig
   type user
   type group
-  type rights = (user * bool * bool) * (group * bool * bool) * (bool * bool)
+  type rights = (bool * bool) * (group list * group list) * (bool * bool)
+  type 'a protected
 
   exception Read_Forbidden
   exception Write_Forbidden
@@ -30,21 +31,26 @@ sig
   val in_group : user:user -> group:group -> bool
   val put_user_in_group : user:user -> u:user -> group:group -> unit
 
+  val protect :
+      user:user -> ?group:group -> ?rights:rights -> 'a -> 'a protected
+  val get_protected : user:user -> data:'d protected -> 'd
+
 end
 
 module type SAVER =
 sig
   type t
-  val dbinsert : user:Rights.user -> ?rights:Rights.rights -> t -> t index
+  val dbinsert : user:Rights.user ->
+    ?group:Rights.group -> ?rights:Rights.rights -> t -> t index
   val dbupdate : user:Rights.user -> key:t index -> value:t -> unit
   val dbget : user:Rights.user -> key:t index -> t
   val _index : 
     string ->
-    (t index -> 'a, 'a, (t index Omlet.name -> 'b) -> 'b, 
-      t index -> Omlet.formorlink) 
-	Omlet.parameters
+    (t index -> 'a, 'a, (t index Kroko.name -> 'b) -> 'b, 
+      t index -> Kroko.formorlink) 
+	Kroko.parameters
   val int_of_index : t index -> int
-  val intname_of_indexname : t index Omlet.name -> int Omlet.name
+  val intname_of_indexname : t index Kroko.name -> int Kroko.name
 end
 
 module MakeSaver :

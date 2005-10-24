@@ -1,6 +1,8 @@
-omlet.cmo: messages.cmo error_pages.cmo omlet.cmi 
-omlet.cmx: messages.cmx error_pages.cmx omlet.cmi 
-server.cmo: omlet.cmi /opt/godi/lib/ocaml/std-lib/netstring/neturl.cmi \
-    /opt/godi/lib/ocaml/std-lib/netstring/netencoding.cmi messages.cmo 
-server.cmx: omlet.cmx /opt/godi/lib/ocaml/std-lib/netstring/neturl.cmi \
-    /opt/godi/lib/ocaml/std-lib/netstring/netencoding.cmi messages.cmx 
+kroko.cmo: messages.cmo error_pages.cmo kroko.cmi 
+kroko.cmx: messages.cmx error_pages.cmx kroko.cmi 
+krokoserver.cmo: /opt/godi/lib/ocaml/std-lib/netstring/neturl.cmi \
+    /opt/godi/lib/ocaml/std-lib/netstring/netencoding.cmi messages.cmo \
+    kroko.cmi 
+krokoserver.cmx: /opt/godi/lib/ocaml/std-lib/netstring/neturl.cmi \
+    /opt/godi/lib/ocaml/std-lib/netstring/netencoding.cmi messages.cmx \
+    kroko.cmx 
