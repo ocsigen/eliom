@@ -1,0 +1,16 @@
+div.box{
+  border: 1px solid #555555;
+}
+
+div.colonnegauche{
+  float: left;
+  width: 200px;
+}
+
+div.colonnedroite{
+  margin-left: 210px;
+}
+
+div{
+  border: 1px solid #555555;
+}
