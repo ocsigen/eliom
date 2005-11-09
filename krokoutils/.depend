@@ -15,7 +15,19 @@ krokosavable.cmo: krokopages.cmo krokodata.cmi
 krokosavable.cmx: krokopages.cmx krokodata.cmx 
 krokoboxes.cmo: krokosavable.cmo krokodata.cmi 
 krokoboxes.cmx: krokosavable.cmx krokodata.cmx 
-krokoxample.cmo: krokosavable.cmo krokopersist.cmi krokopages.cmo \
+krokoxample_util.cmo: krokosavable.cmo krokopersist.cmi krokopages.cmo \
     krokodata.cmi krokoboxes.cmo 
-krokoxample.cmx: krokosavable.cmx krokopersist.cmx krokopages.cmx \
+krokoxample_util.cmx: krokosavable.cmx krokopersist.cmx krokopages.cmx \
+    krokodata.cmx krokoboxes.cmx 
+krokoxample3.cmo: krokoxample_util.cmo krokosavable.cmo krokopersist.cmi \
+    krokopages.cmo krokodata.cmi krokoboxes.cmo 
+krokoxample3.cmx: krokoxample_util.cmx krokosavable.cmx krokopersist.cmx \
+    krokopages.cmx krokodata.cmx krokoboxes.cmx 
+krokoxample1.cmo: krokoxample_util.cmo krokosavable.cmo krokopages.cmo \
+    krokodata.cmi krokoboxes.cmo 
+krokoxample1.cmx: krokoxample_util.cmx krokosavable.cmx krokopages.cmx \
+    krokodata.cmx krokoboxes.cmx 
+krokoxample2.cmo: krokoxample_util.cmo krokosavable.cmo krokopages.cmo \
+    krokodata.cmi krokoboxes.cmo 
+krokoxample2.cmx: krokoxample_util.cmx krokosavable.cmx krokopages.cmx \
     krokodata.cmx krokoboxes.cmx 

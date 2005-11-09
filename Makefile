@@ -1,9 +1,9 @@
 
-REPS = lwt xmlp4 http server moduleexample krokoutils
+REPS = lwt xmlp4 http server moduleexample
 
 all: $(REPS)
 
-.PHONY: $(REPS) clean
+.PHONY: $(REPS) krokoutils clean
 
 
 lwt:
@@ -25,6 +25,9 @@ krokoutils:
 	make -C krokoutils depend all install
 
 clean:
-	@for i in $(REPS) ; do make -C $$i clean ; done
+	@for i in $(REPS) krokoutils ; do make -C $$i clean ; done
 	-rm -f lib/* *~
 	-rm -f bin/* *~
+
+depend: xmlp4
+	@for i in $(REPS) krokoutils ; do make -C $$i depend ; done

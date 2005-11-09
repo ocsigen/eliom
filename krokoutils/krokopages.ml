@@ -18,13 +18,18 @@ let error_box s = << <b>$str:s$</b> >>
 let div l = << <div>$list:l$</div> >>
 
 (** A simple box that prints a message of the db *)
-let string_message_box key user =
-  let msg = StringMessage.dbget user key
+let string_message_box key user resource =
+  let msg = StringMessage.dbget user resource key
   in << <div>$str:msg$</div> >>
 
 let box_exn_handler ex = match ex with
-    Rights.Read_Forbidden -> error_box "You cannot read this data"
-  | Rights.Write_Forbidden -> error_box "You don't have write access to this data"
+    Rights.Read_Forbidden_for_user -> error_box "You cannot read this data"
+  | Rights.Write_Forbidden_for_user -> 
+      error_box "You don't have write access to this data"
+  | Rights.Read_Forbidden_for_resource -> 
+      error_box "Data not readable in this context"
+  | Rights.Write_Forbidden_for_resource -> 
+      error_box "Data not writable in this context"
   | Rights.Permission_Denied -> error_box "Permission denied"
   | Rights.Wrong_Password -> error_box "Wrong password"
   | Krokodata.Box_not_available s -> error_box ("Box not available here : "^s)
@@ -53,14 +58,14 @@ let boxes_container ?classe ?id l =
     the other one manually.
  *)
 
-let page h ?(js=[]) ?(css=[]) bl = 
+let page h ?(js=[]) ?(css=[]) (bl : Xhtmlpp.xhtmlcontl) = 
   let rec make_hl make_link l = function
       [] -> l
     | (filedir, filename)::ll -> 
 	(make_link h.Kroko.current_url filedir filename)
 	::(make_hl make_link l ll)
   in 
-  let hl = make_hl Kroko.js_link (make_hl Kroko.css_link [] css) js in
+  let hl = make_hl Kroko.css_link (make_hl Kroko.js_link [] js) css in
 << <html> 
      <head> $list:hl$ </head> 
      <body> $list:bl$ </body> 

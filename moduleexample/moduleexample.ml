@@ -303,10 +303,8 @@ let _ =
     let i = string_of_int !c in
     let l = link "reload" url ustate in
     let l2 = link "incr i" url ustate2 in
-    let l3 = form_post url ustate2
-      (<:xmllist< <input type="submit" value="incr i" /> >>) in
-    let l4 = form_get url ustate2
-      (<:xmllist< <input type="submit" value="incr i" /> >>) in
+    let l3 = form_post url ustate2 [button "incr i (post)"] in
+    let l4 = form_get url ustate2 [button "incr i (get)"] in
     << <html> i vaut $str:i$ <br/> $l$ <br/> $l2$ <br/> $l3$ $l4$ </html> >>
   in
     register_url ustate page;
@@ -389,6 +387,9 @@ let _ =
 (* You can register url with states in session tables.
    Use this if you want a link or a form which depends precisely on an
    instance of the web page, for example to buy something on an internet shop.
+   UPDATE: Actually it is not a good example, because what we want in a shop
+   is the same shoping basket for all pages. 
+   SEE queinnec example instead.
 *)
 let shop_without_post_params =
   new_url
@@ -449,7 +450,113 @@ let _ = register_post_url
   ~action:(fun article url -> page_for_shopping_basket url [article])
 
 
+(* Queinnec example: *)
+
+let queinnec = 
+  new_url
+    ~name:(Url ["queinnec"])
+    ~params:(_current_url _noparam)
+
+let queinnec_post = 
+  new_post_url 
+    ~fallback:queinnec
+    ~post_params:(_int "i")
+
+let _ = 
+  let create_form is = 
+    (fun entier ->
+      let ib = int_box entier in
+      let b = button "Somme" in
+      <:xmllist< $str:is$ + $ib$ <br/>
+      $b$
+      >>)
+  in
+  register_post_url
+    ~url:queinnec_post
+    ~action:(fun i current_url ->
+      let is = string_of_int i in
+      let queinnec_result = register_new_post_session_url
+	  ~fallback:queinnec_post
+	  ~post_params:(_int "j")
+	  ~action:(fun j current_url -> 
+	    let js = string_of_int j in
+	    let ijs = string_of_int (i+j) in
+	    << <html> <body> $str:is$ + $str:js$ = $str:ijs$ </body></html> >>)
+      in
+      let f = form_post current_url queinnec_result (create_form is) in
+      << <html> $f$ </html> >>)
+    
+let _ =   
+  let create_form = 
+    (fun entier ->
+      let ib = int_box entier in
+      let b = button "Envoyer" in
+      <:xmllist< Write a number: $ib$ <br/>
+      $b$
+      >>)
+  in
+  register_url
+    queinnec
+    (fun current_url ->
+      let f = form_post current_url queinnec_post create_form in
+      << <html> $f$ </html> >>)
+      
+
+
 (* Actions: *)
+(* Actions are like url but they do not generate any page.
+   For ex, when you have the same form (or link) on several pages 
+   (for ex a connect form),
+   instead of making a version with post params of all these pages,
+   you can use actions.
+   Create and register an action with new_actionurl, register_actionurl,
+     register_new_actionurl, register_session_actionurl,
+     register_new_session_actionurl
+   Make a form or a link to an action with action_form or action_link.
+   By default, they print the page again after having done the action.
+   But you can give the optional boolean parameter reload to action_form
+   or action link to prevent reloading the page.
+*)
+let action_session = 
+  new_url ~name:(Url ["action"]) ~params:(_http_params _noparam)
+
+let connect_action = new_actionurl ~params:(_string "login")
+
+let accueil_action h = 
+  let f = action_form h connect_action
+    (fun login -> 
+       let sb = string_box login in
+	 <:xmllist< login: $sb$ >>) in
+    << <html> $f$ </html> >>
+
+let _ = register_url
+  ~url:action_session
+  ~action:accueil_action
+
+let rec launch_session login =
+  let deconnect_action = register_new_actionurl _unit close_session in
+  let deconnect_box h s = action_link s h deconnect_action in
+  let new_main_page h =
+    let l1 = link "plop" h.current_url plop
+    and l2 = link "plop2" h.current_url plop2
+    and l3 = link "links" h.current_url links
+    and deconnect_link = deconnect_box h "Close session" in
+    << <html>
+         Bienvenue $str:login$ ! <br/>
+         $l1$ <br/>
+         $l2$ <br/>
+         $l3$ <br/>
+         $deconnect_link$ <br/>
+      </html> >>
+  in
+    register_session_url ~url:action_session ~action:new_main_page;
+    register_session_url plop << <html> Plop $str:login$ ! </html> >>;
+    register_session_url plop2 << <html> Plop2 $str:login$ ! </html> >>
+      
+let _ = register_actionurl
+    ~actionurl:connect_action
+    ~action:(fun login -> launch_session login)
+
 
 
 (* Static files: *)
@@ -465,7 +572,7 @@ let _ = register_new_url (Url []) (_current_url _noparam)
      let l2 = link "plip" url plip in
      let l3 = link "plop/plip" url plop2 in
      let l4 = link "oups" url oups in
-     let l5 = link "plop avec params" url plop_params 45 "hello" "plpl" in
+     let l5 = link "plop avec params" url plop_params 45 "hello" "krokodile" in
      let l6 = link "uaprefix" url uaprefix "suf" "toto" in
      let l7 = link "iprefix" url iprefix "popo" 333 in
      let l8 = link "mytype" url mytype A in
@@ -478,7 +585,9 @@ let _ = register_new_url (Url []) (_current_url _noparam)
      let l15 = link "form4" url form4 in
      let l16 = link "state" url ustate in
      let l17 = link "session" url public_session_without_post_params in
-     let l18 = link "shop" url shop_without_post_params in
+     let l19 = link "actions" url action_session in
+     let l20 = link "shop" url shop_without_post_params in
+     let l18 = link "queinnec" url queinnec in
      << <html> 
        <head>
          $lcss$
@@ -494,14 +603,16 @@ let _ = register_new_url (Url []) (_current_url _noparam)
        Une page qui récupère un paramètre d'un type utilisateur : $l8$ <br/> 
        Une page avec des liens : $l9$ <br/> 
        Une page avec un lien vers elle-même : $l10$ <br/> 
-       Une page avec un formulaire GET qui pointe vers post_params : $l11$ <br/> 
+       Une page avec un formulaire GET qui pointe vers la page plop avec params : $l11$ <br/> 
        Un formulaire POST qui pointe vers la page "post" : $l13$ <br/> 
        La page "post" quand elle ne reçoit pas de paramètres POST : $l12$ <br/> 
        Un formulaire POST qui pointe vers une URL avec paramètres GET : $l14$ <br/> 
        Un formulaire POST vers une page externe : $l15$ <br/> 
        URL avec état : $l16$ (problème des paramètres GET bookmarkés...) <br/> 
        Une session basée sur les cookies : $l17$ <br/> 
-       Une session avec "url de sessions" : $l18$ 
+       Une session avec des actions : $l19$ <br/>
+       Une session avec "url de sessions" : $l18$
+       - (ancienne version : $l20$)
        </body>
      </html> >>)
 

@@ -1,3 +1,20 @@
+(* Kroko
+ * sender_helpers.ml Copyright (C) 2005 Denis Berthod
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
 (** this module provides helpers fonctions to create senders*)
 
 open Http_frame
@@ -121,7 +138,8 @@ let create_empty_sender ?server_name ?proto fd =
 * cookie is a string value that give a value to the session cookie
 * page is the page to send
 * xhtml_sender is the used sender*)
-let send_generic ?code ?keep_alive ?cookie ?location ?(header=[]) page sender 
+let send_generic 
+    ?code ?keep_alive ?cookie ?path ?location ?(header=[]) page sender 
     (send : ?mode:Xhtml_sender.H.http_mode ->
       ?proto:string ->
       ?headers:(string * string) list ->
@@ -144,7 +162,10 @@ let send_generic ?code ?keep_alive ?cookie ?location ?(header=[]) page sender
   let hds2 =
     match cookie with
     |None -> hds
-    |Some c -> ("Set-Cookie","session="^c)::hds
+    |Some c -> ("Set-Cookie",("session="^c^
+			      (match path with 
+				Some s -> ("; path="^s) 
+			      | None -> "")))::hds
   in
   let hds3 =
     match keep_alive with
@@ -165,11 +186,13 @@ let send_generic ?code ?keep_alive ?cookie ?location ?(header=[]) page sender
 * code is the code of the http answer
 * keep_alive is a boolean value that set the field Connection
 * cookie is a string value that give a value to the session cookie
+* path is the path associated to the cookie
 * page is the page to send
 * xhtml_sender is the used sender*)
-let send_page ?code ?keep_alive ?cookie ?location page xhtml_sender =
+let send_page ?code ?keep_alive ?cookie ?path ?location page xhtml_sender =
   send_generic 
-    ?code ?keep_alive ?cookie ?location page xhtml_sender Xhtml_sender.send
+    ?code ?keep_alive ?cookie ?path ?location 
+    page xhtml_sender Xhtml_sender.send
   
 (** fonction that sends an empty answer
 * code is the code of the http answer
@@ -177,9 +200,9 @@ let send_page ?code ?keep_alive ?cookie ?location page xhtml_sender =
 * cookie is a string value that give a value to the session cookie
 * page is the page to send
 * empty_sender is the used sender *)
-let send_empty ?code ?keep_alive ?cookie ?location empty_sender =
+let send_empty ?code ?keep_alive ?cookie ?path ?location empty_sender =
   send_generic 
-    ?code ?keep_alive ?cookie ?location () empty_sender Empty_sender.send
+    ?code ?keep_alive ?cookie ?path ?location () empty_sender Empty_sender.send
 
   
 
@@ -255,9 +278,9 @@ let content_type_from_file_name filename =
       | "js" -> "application/x-javascript"
       | _ -> "unknown"
 
-let send_file ?code ?keep_alive ?cookie ?location file file_sender =
+let send_file ?code ?keep_alive ?cookie ?path ?location file file_sender =
   send_generic 
-    ?code ?keep_alive ?cookie ?location 
+    ?code ?keep_alive ?cookie ?path ?location 
     ~header:[("Content-Type",content_type_from_file_name file)]
     file file_sender File_sender.send
 

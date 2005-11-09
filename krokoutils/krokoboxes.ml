@@ -1,4 +1,20 @@
-(* Copyright Vincent Balat 2005 *)
+(* Kroko
+ * Copyright (C) 2005 Vincent Balat
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
 
 open Kroko
 open Krokosavable
@@ -16,7 +32,8 @@ let create_login_form =
 	 $b$
        >>)
 
-let login_box_action h actionurl = action_form h actionurl create_login_form
+let login_box_action h actionurl = 
+  action_form ~id:"loginbox" ~classe:"userbox" h actionurl create_login_form
 
 let login_box h url = form_post h.current_url url create_login_form
 
@@ -30,7 +47,7 @@ let deconnect_box h s = action_link s h deconnect_action
 let connected_box h user =
   let login,name,_ = Rights.get_user_info user in
   let deconnect = deconnect_box h "déconnexion" in
-    << <div> 
+    << <div id="loggedbox" class="userbox"> 
          Vous êtes connecté comme utilisateur $str:login$ <br/>
          $deconnect$
        </div>

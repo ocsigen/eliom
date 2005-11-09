@@ -7,7 +7,8 @@ open Krokodata
 open Krokopages
 open Krokosavable
 open Krokoboxes
-
+open Rights
+open Krokoxample_util
 
 (*****************************************************************************)
 (* All the urls: *)
@@ -19,64 +20,6 @@ let news_page = new_url (Url ["msg"]) (_http_params (StringMessage._index "num")
 let connect_action = 
   new_actionurl ~params:(_string "login" ** _string "password")
 
-(** A list of messages numbers *)
-module StringMessageIndexList = 
-  MakeSaver (struct 
-	       type t = StringMessage.t index list
-	       let name = "string_message_index_list"
-	     end)
-
-
-(******************************************************************)
-(* -- Here I populate the database with some examples: *)
-
-let forumadmin = Rights.connect "root" ""
-
-let messageslist_number =
-  Krokopersist.get
-    (Krokopersist.make_persistant_lazy "krokoxample_messageslist_number"
-       (fun () -> 
-	  StringMessageIndexList.dbinsert forumadmin
-	    [StringMessage.dbinsert forumadmin "Ceci est un premier message";
-	     StringMessage.dbinsert forumadmin "Ceci est un deuxième message";
-	     StringMessage.dbinsert forumadmin "Ceci est un troisième message";
-	     StringMessage.dbinsert forumadmin "Ceci est un quatrième message";
-	     StringMessage.dbinsert forumadmin "Ceci est un cinquième message";
-	     StringMessage.dbinsert forumadmin "Ceci est un sixième message";
-	     StringMessage.dbinsert forumadmin "Ceci est un septième message"])
-    )
-
-
-(* An user *)
-let toto_created =
-  Krokopersist.make_persistant_lazy "toto_created"
-  (fun () -> 
-     ignore (Rights.create_user forumadmin "toto" "Toto" "titi"); 
-     true)
-
-(* -- End population of the database with an example *)
-
-
-(******************************************************************)
-(* My boxes *)
-
-(** A box that prints the beginning of a message, with a link to the 
-    full message *)
-let news_header_box httpparam key user = 
-  let msg = StringMessage.dbget user key
-  in let l = link "see" httpparam.current_url news_page key
-  in << <div> $str:msg$ $l$ </div> >>
-
-(** A box that prints a list of a message headers *)
-let news_headers_list_box httpparam key user = 
-  let msglist = 
-    List.map 
-      (fun n -> news_header_box httpparam n user)
-      (StringMessageIndexList.dbget user key)
-  in << <div>$list:msglist$</div> >>
-
-
-
 
 
 (*****************************************************************************)
@@ -85,25 +28,25 @@ module RegisterPublicOrNotBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = http_params -> Rights.user -> 'a
+      type 'a t = http_params -> user -> resource -> 'a
       type box = [`PublicOrNotBox of content t tfolded]
       type boxes = [ box | RegisterBoxes.boxes ]
       let name = "KrokoxampleRegisterPublicOrNotBoxes"
       let tag x = `PublicOrNotBox x
       let untag (`PublicOrNotBox x) = x
-      let default_handler ex h u = box_exn_handler ex
-      let make_boxofboxes ~filter l h u = 
-	List.map (fun b -> (filter b) h u) l
+      let default_handler ex h u r = box_exn_handler ex
+      let make_boxofboxes ~filter l h u r = 
+	List.map (fun b -> (filter b) h u r) l
       type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h u = 
-	boxes_container ?classe:classe ?id:id (f ~user:u l h u)
+      let container f ~box_param:((classe,id),l) h u r = 
+	boxes_container ?classe:classe ?id:id (f ~user:u ~resource:r l h u r)
      end)
 
 let fold_publicornotboxes = 
   RegisterPublicOrNotBoxes.register_unfolds
-    ~box_constructor:(fun b h u -> match b with
+    ~box_constructor:(fun b h u r -> match b with
       #RegisterPublicOrNotBoxes.box as bb -> 
-	RegisterPublicOrNotBoxes.unfold bb h u
+	RegisterPublicOrNotBoxes.unfold bb h u r
     | #RegisterBoxes.boxes as bb -> RegisterBoxes.unfolds bb
 		     )
 
@@ -112,28 +55,28 @@ module RegisterPublicBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = http_params -> 'a
+      type 'a t = http_params -> resource -> 'a
       type box = [`PublicBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
       let name = "KrokoxampleRegisterPublicBoxes"
       let tag x = `PublicBox x
       let untag (`PublicBox x) = x
-      let default_handler ex h = box_exn_handler ex
-      let make_boxofboxes ~filter l h = 
-	List.map (fun b -> (filter b) h) l
+      let default_handler ex h r = box_exn_handler ex
+      let make_boxofboxes ~filter l h r = 
+	List.map (fun b -> (filter b) h r) l
       type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h = 
+      let container f ~box_param:((classe,id),l) h r = 
 	boxes_container ?classe:classe ?id:id 
-	  (f ~user:Rights.anonymoususer l h)
+	  (f ~user:anonymoususer ~resource:r l h r)
      end)
 
 let fold_publicboxes = 
   RegisterPublicBoxes.register_unfolds
-    ~box_constructor:(fun b h -> match b with
+    ~box_constructor:(fun b h r -> match b with
       #RegisterPublicBoxes.box as bb -> 
-	RegisterPublicBoxes.unfold bb h
+	RegisterPublicBoxes.unfold bb h r
     | #RegisterPublicOrNotBoxes.boxes as bb -> 
-	RegisterPublicOrNotBoxes.unfolds bb h Rights.anonymoususer
+	RegisterPublicOrNotBoxes.unfolds bb h anonymoususer r
 		     )
 
 (* Register for piece of news pages: *)
@@ -141,19 +84,19 @@ module RegisterNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = http_params -> Rights.user -> 
+      type 'a t = http_params -> user -> resource ->
 	StringMessage.t index -> 'a
       type box = [`NewsBox of content t tfolded]
       type boxes = box
       let name = "KrokoxampleRegisterNewsBoxes"
       let tag x = `NewsBox x
       let untag (`NewsBox x) = x
-      let default_handler ex h u i = box_exn_handler ex
-      let make_boxofboxes ~filter l h u i = 
-	List.map (fun b -> (filter b) h u i) l
+      let default_handler ex h u r i = box_exn_handler ex
+      let make_boxofboxes ~filter l h u r i = 
+	List.map (fun b -> (filter b) h u r i) l
       type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h u i = 
-	boxes_container ?classe:classe ?id:id (f ~user:u l h u i)
+      let container f ~box_param:((classe,id),l) h u r i = 
+	boxes_container ?classe:classe ?id:id (f ~user:u ~resource:r l h u r i)
     end)
 
 let fold_newsboxes = 
@@ -165,7 +108,7 @@ module RegisterPublicNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = http_params -> StringMessage.t index -> 'a
+      type 'a t = http_params -> resource -> StringMessage.t index -> 'a
       type box = [`PublicNewsBox of content t tfolded]
       type boxes = [ box
 	| RegisterNewsBoxes.boxes
@@ -173,96 +116,100 @@ module RegisterPublicNewsBoxes =
       let name = "KrokoxampleRegisterPublicNewsBoxes"
       let tag x = `PublicNewsBox x
       let untag (`PublicNewsBox x) = x
-      let default_handler ex h i = box_exn_handler ex
-      let make_boxofboxes ~filter l h i = 
-	List.map (fun b -> (filter b) h i) l
+      let default_handler ex h r i = box_exn_handler ex
+      let make_boxofboxes ~filter l h r i = 
+	List.map (fun b -> (filter b) h r i) l
       type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h i = 
-	boxes_container ?classe:classe ?id:id (f ~user:Rights.anonymoususer l h i)
+      let container f ~box_param:((classe,id),l) h r i = 
+	boxes_container ?classe:classe ?id:id 
+	  (f ~user:anonymoususer ~resource:r l h r i)
     end)
 
 let fold_publicnewsboxes = 
   RegisterPublicNewsBoxes.register_unfolds
-    ~box_constructor:(fun b h i -> match b with
+    ~box_constructor:(fun b h r i -> match b with
       #RegisterPublicNewsBoxes.box as bb -> 
-	RegisterPublicNewsBoxes.unfold bb h i
+	RegisterPublicNewsBoxes.unfold bb h r i
     | #RegisterNewsBoxes.boxes as bb -> 
-	RegisterNewsBoxes.unfolds bb h Rights.anonymoususer i
+	RegisterNewsBoxes.unfolds bb h anonymoususer r i
     | #RegisterPublicBoxes.boxes as bb -> 
-	RegisterPublicBoxes.unfolds bb h
+	RegisterPublicBoxes.unfolds bb h r
 		     )
 
 module RegisterUserBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = http_params -> Rights.user -> 'a
+      type 'a t = http_params -> user -> resource -> 'a
       type box = [`UserBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
       let name = "KrokoxampleRegisterUserBoxes"
       let tag x = `UserBox x
       let untag (`UserBox x) = x
-      let default_handler ex h u = box_exn_handler ex
-      let make_boxofboxes ~filter l h u = 
-	List.map (fun b -> (filter b) h u) l
+      let default_handler ex h u r = box_exn_handler ex
+      let make_boxofboxes ~filter l h u r = 
+	List.map (fun b -> (filter b) h u r) l
       type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h u = 
-	boxes_container ?classe:classe ?id:id (f ~user:u l h u)
+      let container f ~box_param:((classe,id),l) h u r = 
+	boxes_container ?classe:classe ?id:id 
+	  (f ~user:u ~resource:r l h u r)
     end)
 
 let fold_userboxes = 
   RegisterUserBoxes.register_unfolds
-    ~box_constructor:(fun b h u -> match b with
+    ~box_constructor:(fun b h u r -> match b with
       #RegisterUserBoxes.box as bb -> 
-	RegisterUserBoxes.unfold bb h u
+	RegisterUserBoxes.unfold bb h u r
     | #RegisterPublicOrNotBoxes.boxes as bb -> 
-	RegisterPublicOrNotBoxes.unfolds bb h u
+	RegisterPublicOrNotBoxes.unfolds bb h u r
 		     )
 
 module RegisterUserNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmlpp.xhtmlcont
-      type 'a t = http_params -> Rights.user -> 
+      type 'a t = http_params -> user -> resource ->
 	StringMessage.t index -> 'a
       type box = [`UserNewsBox of content t tfolded]
       type boxes = [ box | RegisterUserBoxes.boxes | RegisterNewsBoxes.boxes ]
       let name = "KrokoxampleRegisterUserNewsBoxes"
       let tag x = `UserNewsBox x
       let untag (`UserNewsBox x) = x
-      let default_handler ex h u i = box_exn_handler ex
-      let make_boxofboxes ~filter l h u i = 
-	List.map (fun b -> (filter b) h u i) l
+      let default_handler ex h u r i = box_exn_handler ex
+      let make_boxofboxes ~filter l h u r i = 
+	List.map (fun b -> (filter b) h u r i) l
       type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h u i = 
-	boxes_container ?classe:classe ?id:id (f ~user:u l h u i)
+      let container f ~box_param:((classe,id),l) h u r i = 
+	boxes_container ?classe:classe ?id:id 
+	  (f ~user:u ~resource:r l h u r i)
     end)
 
 let fold_usernewsboxes = 
   RegisterUserNewsBoxes.register_unfolds
-    ~box_constructor:(fun b h u i -> match b with
+    ~box_constructor:(fun b h u r i -> match b with
       #RegisterUserNewsBoxes.box as bb -> 
-	RegisterUserNewsBoxes.unfold bb h u i
-    | #RegisterUserBoxes.boxes as bb -> RegisterUserBoxes.unfolds bb h u
-    | #RegisterNewsBoxes.boxes as bb -> RegisterNewsBoxes.unfolds bb h u i
+	RegisterUserNewsBoxes.unfold bb h u r i
+    | #RegisterUserBoxes.boxes as bb -> RegisterUserBoxes.unfolds bb h u r
+    | #RegisterNewsBoxes.boxes as bb -> RegisterNewsBoxes.unfolds bb h u r i
 		     )
 
 
 let fold_news_headers_list_box =
   RegisterPublicOrNotBoxes.register ~name:"krokoxample_news_headers_list_box" 
-    ~constructor:(fun ~box_param:i h u -> news_headers_list_box h i u)
+    ~constructor:(fun ~box_param:i h u r -> 
+      news_headers_list_box h i u r news_page)
 
-let fold_user_pages_deconnect_box =
+let fold_user_pages_connected_box =
   RegisterUserBoxes.register ~name:"krokoxample_user_pages_deconnect_box" 
-    ~constructor:(fun ~box_param:() h u -> deconnect_box h "close session")
+    ~constructor:(fun ~box_param:() h u r -> connected_box h u)
 
 let fold_news_box =
   RegisterNewsBoxes.register ~name:"krokoxample_news_box" 
-    ~constructor:(fun ~box_param:() h u i -> string_message_box i u)
+    ~constructor:(fun ~box_param:() h u r i -> string_message_box i u r)
 
 let fold_login_box_action =
   RegisterPublicBoxes.register ~name:"krokoxample_login_box_action" 
-    ~constructor:(fun ~box_param:() h -> login_box_action h connect_action)
+    ~constructor:(fun ~box_param:() h r -> login_box_action h connect_action)
 
 
 (*****************************************************************************)
@@ -272,7 +219,8 @@ let public_main_page_number =
   Krokopersist.get
     (Krokopersist.make_persistant_lazy "krokoxample_public_main_page_number"
        (fun () -> 
-	  RegisterPublicBoxes.dbinsertlist forumadmin
+	  RegisterPublicBoxes.dbinsertlist
+	   ~rights:([anonymoususer],[root],[rkrokexample],[rkrokexample]) 
 	   (fold_publicboxes
 	      [((fold_title_box "Mon site") :> RegisterPublicBoxes.boxes);
 	       ((fold_text_box "(user : toto and password : titi)")
@@ -287,7 +235,8 @@ let public_news_page_number =
   Krokopersist.get
     (Krokopersist.make_persistant_lazy "krokoxample_public_news_page_number"
        (fun () ->
-	  RegisterPublicNewsBoxes.dbinsertlist forumadmin
+	  RegisterPublicNewsBoxes.dbinsertlist
+	   ~rights:([anonymoususer],[root],[rkrokexample],[rkrokexample]) 
 	   (fold_publicnewsboxes
 	      [((fold_title_box "Info")
 		  :> RegisterPublicNewsBoxes.boxes);
@@ -301,13 +250,14 @@ let user_main_page_number =
   Krokopersist.get
     (Krokopersist.make_persistant_lazy "krokoxample_user_main_page_number"
        (fun () -> 
-	  RegisterUserBoxes.dbinsertlist forumadmin
+	  RegisterUserBoxes.dbinsertlist
+	   ~rights:([anonymoususer],[root],[rkrokexample],[rkrokexample]) 
 	   (fold_userboxes
 	      [((fold_title_box "Mon site")
 		  :> RegisterUserBoxes.boxes);
 	       ((fold_text_box "Bonjour !")
 		  :> RegisterUserBoxes.boxes);
-	       ((fold_user_pages_deconnect_box ())
+	       ((fold_user_pages_connected_box ())
 		  :> RegisterUserBoxes.boxes);
 	       ((fold_news_headers_list_box messageslist_number)
 		  :> RegisterUserBoxes.boxes)])
@@ -317,11 +267,12 @@ let user_news_page_number =
   Krokopersist.get
     (Krokopersist.make_persistant_lazy "krokoxample_user_news_page_number"
        (fun () ->
-	  RegisterUserNewsBoxes.dbinsertlist forumadmin
+	  RegisterUserNewsBoxes.dbinsertlist	   
+	   ~rights:([anonymoususer],[root],[rkrokexample],[rkrokexample]) 
 	   (fold_usernewsboxes
 	      [((fold_title_box "Info")
 		  :> RegisterUserNewsBoxes.boxes);
-	       ((fold_user_pages_deconnect_box ())
+	       ((fold_user_pages_connected_box ())
 		  :> RegisterUserNewsBoxes.boxes);
 	       ((fold_news_box ())
 		  :> RegisterUserNewsBoxes.boxes)])
@@ -332,14 +283,16 @@ let user_news_page_number =
 let accueil h = 
   page h
     ((RegisterPublicBoxes.dbgetlist
-	~user:Rights.anonymoususer
-	~key:public_main_page_number) h)
+	~user:anonymoususer
+	~resource:rkrokexample
+	~key:public_main_page_number) h rkrokexample)
 
 let print_news_page h i = 
   page h
     ((RegisterPublicNewsBoxes.dbgetlist
-	~user:Rights.anonymoususer
-	~key:public_news_page_number) h i)
+	~user:anonymoususer
+	~resource:rkrokexample
+	~key:public_news_page_number) h rkrokexample i)
 
 let _ = register_url
   ~url:main_page
@@ -353,13 +306,15 @@ let user_main_page user h =
   page h
     ((RegisterUserBoxes.dbgetlist
 	~user:user
-	~key:user_main_page_number) h user)
+	~resource:rkrokexample
+	~key:user_main_page_number) h user rkrokexample)
 
 let user_news_page user h i =
   page h
     ((RegisterUserNewsBoxes.dbgetlist
 	~user:user
-	~key:user_news_page_number) h user i)
+	~resource:rkrokexample
+	~key:user_news_page_number) h user rkrokexample i)
 
 let launch_session user =
   register_session_url ~url:main_page ~action:(user_main_page user);
@@ -368,6 +323,6 @@ let launch_session user =
 let _ = register_actionurl
   ~actionurl:connect_action
   ~action:(fun login password ->
-	     launch_session (Rights.connect login password))
+	     launch_session (connect login password))
 
 

@@ -5,10 +5,11 @@ then do
 psql -f createdb.sql krokobase
 */
 
+
 drop table globalstore;
 drop table content;
 drop table users;
-drop table groups;
+drop table ressources;
 
 create table globalstore (
 	key text primary key,
@@ -23,18 +24,25 @@ create table content (
 create table users (
 	uid             serial primary key,
 	login           text unique not null,
- 	password        text,
+ 	password        bytea,
 	real_name       text,
 /*	user_creation_date timestamp,
 	last_connection_date timestamp,*/
 	groups          bytea
 );
 
+create table ressources (
+	rid             serial primary key,
+	rgroups          bytea
+);
+
+/*
 create table groups (
 	gid             serial primary key,
 	group_name      text unique not null,
 	group_description text
 );
+*/
 
 /*
 create table rights (

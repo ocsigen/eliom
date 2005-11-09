@@ -9,41 +9,48 @@ end
 
 module Rights :
 sig
+
   type user
-  type group
-  type rights = (bool * bool) * (group list * group list) * (bool * bool)
+  type resource
+  type rights = user list * user list * resource list * resource list
   type 'a protected
 
-  exception Read_Forbidden
-  exception Write_Forbidden
+  exception Read_Forbidden_for_user
+  exception Write_Forbidden_for_user
+  exception Read_Forbidden_for_resource
+  exception Write_Forbidden_for_resource
   exception Permission_Denied
   exception Wrong_Password
   exception No_such_user
 
   val anonymoususer : user
   val root : user
+  val anyresource : resource
+  val users : user
 
   val connect : user:string -> password:string -> user
-  val create_user : user:user -> login:string -> name:string -> 
-    password:string -> user
-  val create_group : user:user -> name:string -> description:string -> group
-  val get_user_info : user:user -> string * string * (group list)
-  val in_group : user:user -> group:group -> bool
-  val put_user_in_group : user:user -> u:user -> group:group -> unit
+  val create_user : login:string -> name:string -> 
+    password:string -> ?groups:user list -> unit -> user
+  val create_group : name:string -> description:string -> 
+    ?groups:user list -> unit -> user
+  val create_resource : ?rgroups:resource list -> unit -> resource
+  val get_user_info : user:user -> string * string * (user list)
+  val in_group : user:user -> group:user -> bool
+  val put_user_in_group : user:user -> group:user -> unit
 
-  val protect :
-      user:user -> ?group:group -> ?rights:rights -> 'a -> 'a protected
-  val get_protected : user:user -> data:'d protected -> 'd
+  val default_rights : user:user -> resource:resource -> rights
+  val protect : rights:rights -> 'a -> 'a protected
+  val get_protected : user:user -> resource:resource -> data:'d protected -> 'd
 
 end
 
 module type SAVER =
 sig
   type t
-  val dbinsert : user:Rights.user ->
-    ?group:Rights.group -> ?rights:Rights.rights -> t -> t index
-  val dbupdate : user:Rights.user -> key:t index -> value:t -> unit
-  val dbget : user:Rights.user -> key:t index -> t
+  val dbinsert : rights:Rights.rights -> t -> t index
+  val dbupdate : user:Rights.user -> resource:Rights.resource -> 
+    ?rights:Rights.rights -> key:t index -> t -> unit
+  val dbget : user:Rights.user -> resource:Rights.resource -> key:t index -> t
   val _index : 
     string ->
     (t index -> 'a, 'a, (t index Kroko.name -> 'b) -> 'b, 
@@ -80,21 +87,23 @@ sig
   val unfold : box -> content t
   val unfolds : boxes -> content t
 
-  val dbget : user:Rights.user -> key:content t index -> content t
+  val dbget : user:Rights.user -> resource:Rights.resource -> 
+    key:content t index -> content t
 
-  val dbinsert : user:Rights.user -> ?rights:Rights.rights -> box -> 
-    content t index
-  val dbupdate : user:Rights.user -> key:content t index -> value:box -> unit
+  val dbinsert : rights:Rights.rights -> box -> content t index
+  val dbupdate : user:Rights.user -> resource:Rights.resource ->
+    ?rights:Rights.rights -> key:content t index -> box -> unit
 
   val register_unfolds : box_constructor:(boxes -> content t) -> 
     boxes list -> content t tfolded_list
 
-  val dbgetlist : user:Rights.user -> key:content t tfolded_list index -> 
-    content list t
-  val dbinsertlist : user:Rights.user -> ?rights:Rights.rights ->
+  val dbgetlist : user:Rights.user -> resource:Rights.resource -> 
+    key:content t tfolded_list index -> content list t
+  val dbinsertlist : rights:Rights.rights ->
     content t tfolded_list -> content t tfolded_list index
-  val dbupdatelist : user:Rights.user -> key:content t tfolded_list index ->
-    value:content t tfolded_list -> unit
+  val dbupdatelist : user:Rights.user -> resource:Rights.resource ->
+    ?rights:Rights.rights -> key:content t tfolded_list index ->
+      content t tfolded_list -> unit
 
   val fold_container : container_param * content t tfolded_list -> box
   val fold_subpage : container_param * content t tfolded_list index -> box
@@ -114,7 +123,8 @@ module MakeRegister :
       val make_boxofboxes : filter:('a -> content t) -> 
 	'a list -> content list t
       type container_param
-      val container : (user:Rights.user -> 'a -> content list t)
+      val container : (user:Rights.user -> resource:Rights.resource
+	-> 'a -> content list t) 
 	-> box_param:(container_param * 'a) -> content t
   end) -> 
     REGISTER
@@ -125,5 +135,6 @@ and type boxes = A.boxes
 and type container_param = A.container_param
 
 module StringMessage : SAVER with type t = string
+module StringMessageIndexList : SAVER with type t = StringMessage.t index list
 
 

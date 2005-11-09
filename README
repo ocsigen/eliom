@@ -1,14 +1,18 @@
+Kroko
+
 This is alpha-code.
 Do not redistribute without permission.
 
 ------------------------------------------------------------------
 Instructions :
 
-Paquets  nécessaires pour compiler  : ocamlnet  (en fait  seulement le
-module netstring) et lui-même a besoin de pcre
+Paquets  nécessaires pour compiler  : 
+ocaml
+ocamlnet (en fait seulement le module netstring) et lui-même a besoin de pcre
 
 Il faut faire :
 
+  make depend
   make 
 
 pour compiler
@@ -29,28 +33,55 @@ qui est pour l'instant chargé par défaut au démarrage du serveur.
 Pour l'extension de syntaxe xhtml, voir des exemples dans
 xmlp4/exemple/essai.ml
 
-Des paramètres manquant aboutissent à une erreur 404
+For the while, there is no config file telling which module to load.
+To add a module, (for example moduleexample.cmo),
+load it from server/krokoserver.ml (end of the file), 
+then recompile the server (make server).
 
+To see the list of modules loaded by default, see the file krokoserver.ml
+
+
+__________________________________________________________________
+Krokoutils :
+
+Krokoutils are a set of tools to make creation of pages easier:
+ - Cached access to the database without sql (very basic)
+ - Persistant data
+ - Users and rights management 
+ - Common pages components (login box, etc)
+ - Save page layout in the database
+
+You don't need Krokoutils to use Kroko. 
+Krokoutils is at early stage of development, and could be improved a lot.
+
+To use Krokoutils,
+ - install postgresql, create a database named krokobase
+   (and give the rights to write in to the user that will launch kroko)
+ - install the postgres library for ocaml
+ - compile krokoutils ("make krokoutils")
+ - load krokoutils modules in krokoserver.ml (and then "make server")
+ - create the tables : psql -f krokoutils/createdb.sql krokobase
 
 
 ------------------------------------------------------------------
-AAAAA
+Kroko
 ------------------------------------------------------------------
 Written by:
 
-Vincent Balat (project leader, xml parser, omlet, server, moduleexample)
-Denis Berthod (http protocol, server)
+Vincent Balat (project leader, xml parser, kroko.ml, krokoserver.ml, 
+               moduleexample, krokoutils...)
+Denis Berthod (http protocol, Krokoserver)
 Jérôme Vouillon (lwt library, from unison)
 Julien Mineraud (xhtml pretty-printing)
 
 Acknowledgements:
 
 Emmanuel Chailloux
-Juliusz Chroboczek
 Jean-Vincent Loddo
 Jérôme Vouillon
 Grégoire Henry
 Christophe Fouqueré
+Juliusz Chroboczek
 
 and thanks to my (other) students who participated in the first version:
 
@@ -58,4 +89,4 @@ Yann Binot
 Julien Chapuis
 Arnaud Delattre
 Alexandre Erisay
-Julien Mineraud
+
