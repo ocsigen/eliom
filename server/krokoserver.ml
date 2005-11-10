@@ -300,23 +300,28 @@ let _ =
     (try
       Dynlink.init();
       load_kroko_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo"
-(* For krokoutils :
+
+
+(*;
+(* For krokoutils : *)
       Dynlink.loadfile "../lib/db_create.cmo";
       Dynlink.loadfile "../lib/krokopersist.cmo";
       Dynlink.loadfile "../lib/krokache.cmo";
       Dynlink.loadfile "../lib/krokodata.cmo";
       Dynlink.loadfile "../lib/krokopages.cmo";
       Dynlink.loadfile "../lib/krokosavable.cmo";
-      Dynlink.loadfile "../lib/krokoboxes.cmo"; *)
-(* krokoutils examples :
+      Dynlink.loadfile "../lib/krokoboxes.cmo";
+(* krokoutils examples : *)
       Dynlink.loadfile "../lib/krokoxample_util.cmo";
       load_kroko_module ~dir:["krokoutils1"] ~cmo:"../lib/krokoxample1.cmo";
       load_kroko_module ~dir:["krokoutils"] ~cmo:"../lib/krokoxample2.cmo";
-      load_kroko_module ~dir:["krokosav"] ~cmo:"../lib/krokoxample3.cmo"; *)
-(* Krokespace :
+      load_kroko_module ~dir:["krokosav"] ~cmo:"../lib/krokoxample3.cmo";
+(* Krokespace : *)
       Dynlink.loadfile "../../krokespace/lib/krokespace.cmo";
 (*      load_kroko_module ~dir:["krokespace"] ~cmo:"../../krokespace/lib/demo.cmo"; *)
-      load_kroko_module ~dir:["camlcom"] ~cmo:"../../krokespace/lib/camlcom.cmo";*)
+      load_kroko_module ~dir:["camlcom"] ~cmo:"../../krokespace/lib/camlcom.cmo";
+*)
+
     with Kroko_error_while_loading m -> (warning ("Error while loading "^m)));
     listen ()
   )

@@ -5,7 +5,6 @@ then do
 psql -f createdb.sql krokobase
 */
 
-
 drop table globalstore;
 drop table content;
 drop table users;

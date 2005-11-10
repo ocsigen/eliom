@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* Warning: the cache is NOT implemented... *)
+
 open Db_create
 
 exception Cache_error of string
@@ -68,8 +70,8 @@ struct
     let s = dbh#prepare ("SELECT currval('"^A.table^"_"^A.key^"_seq"^"')") in
       s#execute [];
       match s#fetch1 () with
-	  [`Int i] -> i
-	| _ -> raise (Cache_error "size")
+      | [`Bigint i] -> Big_int.int_of_big_int i
+      | _ -> raise (Cache_error "size")
 
   let insert ~value =
     let s = dbh#prepare ("INSERT INTO "^A.table^" ("^fields_string^") VALUES ("^question_marks_string^")") in

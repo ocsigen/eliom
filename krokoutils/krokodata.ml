@@ -238,7 +238,10 @@ end = struct
       "root_uid"
       (fun () -> 
 	UsersCache.insert 
-	  {login="root";real_name="Admin";password=Some (get_passwd ());groups=[]})
+	  {login="root";
+	   real_name="Admin";
+	   password=Some (get_passwd ());
+	   groups=[]})
 
   let root = Krokopersist.get root_uid
 

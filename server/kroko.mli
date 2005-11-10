@@ -220,10 +220,18 @@ val form_get : string list ->
   ('a, insideforml, 'c, 'd, 'e, 'f, 'g) url -> 'a -> form
 val form_post : string list -> 
   ('a, 'b, 'c, 'd, 'e, 'f, 'g) url -> 'b -> 'c
-val int_box : int name -> insideform
+val int_box : ?size:int -> ?maxlength:int -> 
+  ?classe:string list -> ?id:string -> 
+    ?accesskey:string -> ?disabled:bool -> int name -> insideform
 val hidden_int_box : int name -> int -> insideform
-val string_box : string name -> insideform
-val button : string -> insideform
+val string_box : ?size:int -> ?maxlength:int -> 
+  ?classe:string list -> ?id:string -> 
+    ?accesskey:string -> ?disabled:bool -> string name -> insideform
+val password_box : ?size:int -> ?maxlength:int -> 
+  ?classe:string list -> ?id:string -> 
+    ?accesskey:string -> ?disabled:bool -> string name -> insideform
+val button : ?classe:string list -> ?id:string -> 
+  ?accesskey:string -> ?disabled:bool -> string -> insideform
 
 val action_link : 
   ?reload:bool ->
@@ -233,7 +241,7 @@ val action_link :
 
 val action_form :
     ?reload:bool ->
-      ?classe:string ->
+      ?classe:string list ->
 	?id:string ->
 	  http_params ->
 	    ('a, 'b) actionurl ->

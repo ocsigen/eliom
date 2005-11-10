@@ -852,6 +852,30 @@ let make_http_params
 let state_param_name = "__kroketat__"
 
 (** Functions to construct web pages: *)
+let make_attrs ?size ?maxlength ?classe ?id ?accesskey ?(disabled=false) () =
+  let rec make_class = function
+      [] -> ""
+    | [a] -> a
+    | a::l -> a^" "^(make_class l)
+  in
+  let attrs = match size with
+    Some s -> [`Size,(string_of_int s)] 
+  | None -> [] in
+  let attrs = match maxlength with
+    Some s -> (`Maxlength,(string_of_int s))::attrs
+  | None -> attrs in
+  let attrs = match classe with
+    Some s -> (`Class, (make_class s))::attrs
+  | None -> attrs in
+  let attrs = match id with
+    Some s -> (`Id, s)::attrs
+  | None -> attrs in
+  let attrs = match accesskey with
+    Some s -> (`Accesskey, s)::attrs
+  | None -> attrs in
+  let attrs = if disabled then (`Disabled,"disabled")::attrs else attrs
+  in
+  attrs
 
 let link name current_url (url : ('a, insideforml,'c,'d,'e,'f,'g) url) =
   match url.url_state with
@@ -1016,27 +1040,36 @@ let action_form
     then << <input type="hidden" name=$reload_name$ value=$reload_name$/> >> 
 		       :: inside
     else inside in
-  let attrid = (match id with None -> [] | Some c -> [`Id,c]) in
-  let attrs = 
-    (match classe with None -> attrid | Some c -> (`Class,c)::attrid) in
+  let attrs = make_attrs ?id ?classe () in
     << <form method="post" action=$v$ $list:attrs$>
          $action_line$
          $list:inside_reload$
        </form> >>
 
 
-let int_box (name : int name) = 
-  << <input type="text" name=$name$/> >>
+let gen_box ?size ?maxlength ?classe ?id ?accesskey ?disabled name = 
+  let attrs = 
+    make_attrs ?size ?maxlength ?classe ?id ?accesskey ?disabled () in
+  << <input type="text" name=$name$ $list:attrs$ /> >>
+
+let password_box ?size ?maxlength ?classe ?id ?accesskey ?disabled name = 
+  let attrs = 
+    make_attrs ?size ?maxlength ?classe ?id ?accesskey ?disabled () in
+  << <input type="password" name=$name$ $list:attrs$ /> >>
+
+let int_box ?size ?maxlength ?classe ?id ?accesskey ?disabled (name : int name) = 
+  gen_box ?size ?maxlength ?classe ?id ?accesskey ?disabled name
 
 let hidden_int_box (name : int name) v = 
   let vv = string_of_int v in
   << <input type="hidden" name=$name$ value=$vv$/> >>
 
-let string_box (name : string name) = 
-  << <input type="text" name=$name$/> >>
+let string_box ?size ?maxlength ?classe ?id ?accesskey ?disabled (name : string name) = 
+  gen_box ?size ?maxlength ?classe ?id ?accesskey name
 
-let button (name : string) = 
-  << <input type="submit" value=$name$/> >>
+let button ?classe ?id ?accesskey ?disabled (name : string) = 
+  let attrs = make_attrs ?classe ?id ?accesskey ?disabled () in
+  << <input type="submit" value=$name$ $list:attrs$ /> >>
 
 
 (** return a page from an url and parameters *)

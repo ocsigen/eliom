@@ -8,7 +8,8 @@ Instructions :
 
 Paquets  nécessaires pour compiler  : 
 ocaml
-ocamlnet (en fait seulement le module netstring) et lui-même a besoin de pcre
+ocamlnet (en fait seulement le module netstring) 
+(et lui-même a besoin de pcre ?)
 
 Il faut faire :
 
@@ -57,9 +58,11 @@ Krokoutils is at early stage of development, and could be improved a lot.
 To use Krokoutils,
  - install postgresql, create a database named krokobase
    (and give the rights to write in to the user that will launch kroko)
- - install the ocamldbi library for ocaml
+ - install the postgresql and ocamldbi (with postgresql support) libraries 
+   for ocaml. (Markus Mottl version of postgresql, not Alain Frish's)
  - compile krokoutils ("make krokoutils")
- - load krokoutils modules in krokoserver.ml (and then "make server")
+ - add lines at the end of krokoserver.ml to load krokoutils modules
+   (and then "make server")
  - create the tables : psql -f krokoutils/createdb.sql krokobase
 
 

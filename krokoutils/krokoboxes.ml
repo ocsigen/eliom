@@ -23,8 +23,8 @@ open Krokodata
 (** Authentification *)
 let create_login_form = 
   (fun login password ->
-     let login = string_box login in
-     let password = string_box password in
+     let login = string_box ~size:8 login in
+     let password = string_box ~size:8 password in
      let b = button "Entrer" in
        <:xmllist< 
          Login: $login$ <br/>
@@ -33,7 +33,7 @@ let create_login_form =
        >>)
 
 let login_box_action h actionurl = 
-  action_form ~id:"loginbox" ~classe:"userbox" h actionurl create_login_form
+  action_form ~id:"loginbox" ~classe:["userbox"] h actionurl create_login_form
 
 let login_box h url = form_post h.current_url url create_login_form
 
