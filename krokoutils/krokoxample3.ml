@@ -296,11 +296,11 @@ let print_news_page h i =
 
 let _ = register_url
   ~url:main_page
-  ~action:accueil
+  ~page:accueil
 
 let _ = register_url
   ~url:news_page
-  ~action:print_news_page
+  ~page:print_news_page
 
 let user_main_page user h =
   page h
@@ -317,8 +317,8 @@ let user_news_page user h i =
 	~key:user_news_page_number) h user rkrokexample i)
 
 let launch_session user =
-  register_session_url ~url:main_page ~action:(user_main_page user);
-  register_session_url ~url:news_page ~action:(user_news_page user)
+  register_session_url ~url:main_page ~page:(user_main_page user);
+  register_session_url ~url:news_page ~page:(user_news_page user)
 
 let _ = register_actionurl
   ~actionurl:connect_action

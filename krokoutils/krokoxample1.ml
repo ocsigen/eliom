@@ -39,11 +39,11 @@ let print_news_page h i =
 
 let _ = register_url
   ~url:main_page
-  ~action:accueil
+  ~page:accueil
 
 let _ = register_url
   ~url:news_page
-  ~action:print_news_page
+  ~page:print_news_page
 
 
 

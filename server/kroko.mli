@@ -108,10 +108,10 @@ val new_state_url :
   -> ('b, insideforml, 'c, 'a, page, page, state_url internal_url) url
 
 val register_url :
-  url:('a, insideforml, 'b, 'c, 'd, 'e, 'f internal_url) url -> action:'c -> unit
+  url:('a, insideforml, 'b, 'c, 'd, 'e, 'f internal_url) url -> page:'c -> unit
 
 val register_session_url :
-    url:('a, insideforml, 'b, 'c, 'd, 'e, 'f internal_url) url -> action:'c -> unit
+    url:('a, insideforml, 'b, 'c, 'd, 'e, 'f internal_url) url -> page:'c -> unit
 
 (**  Create a new URL and register it in the server with the associated action.
    [register_new_url url t f] will associate the url [url] to the function [f].
@@ -123,11 +123,11 @@ val register_session_url :
 val register_new_url :
   name:url_activator ->
   params:('a, page, 'b -> insideforml, 'c) parameters ->
-  action:'a -> ('b, insideforml, 'c, 'a, page, page, public_url internal_url) url
+  page:'a -> ('b, insideforml, 'c, 'a, page, page, public_url internal_url) url
 
 val register_new_session_url :
     fallback:('a, insideforml, 'b, 'c, page, page, public_url internal_url) url ->
-    action:'c -> ('a, insideforml, 'b, 'c, page, page, state_url internal_url) url
+    page:'c -> ('a, insideforml, 'b, 'c, page, page, state_url internal_url) url
 
 val new_post_url :
   fallback:('a, 'b, 'c, 'd, 'e, 'f, public_url internal_url) url ->
@@ -146,20 +146,20 @@ val new_post_state_url :
   ('a, 'i, 'c, 'd, 'g, 'h, state_url internal_url) url
 
 val register_post_url :
-    url:('a, 'b -> 'c, 'd, 'e, 'f, 'e, 'g internal_url) url -> action:'f -> unit
+    url:('a, 'b -> 'c, 'd, 'e, 'f, 'e, 'g internal_url) url -> page:'f -> unit
 
 val register_post_session_url :
-    url:('a, 'b -> 'c, 'd, 'e, 'f, 'e, 'g internal_url) url -> action:'f -> unit
+    url:('a, 'b -> 'c, 'd, 'e, 'f, 'e, 'g internal_url) url -> page:'f -> unit
 
 val register_new_post_url :
     fallback:('a, 'b, 'c, 'd, 'e, 'f, public_url internal_url) url ->
     post_params:('h, 'd, ('i -> 'j) -> insideforml, 'k) parameters ->
-    action:'h -> ('a, 'i -> 'j, 'c, 'd, 'h, 'd, public_url internal_url) url
+    page:'h -> ('a, 'i -> 'j, 'c, 'd, 'h, 'd, public_url internal_url) url
 
 val register_new_post_session_url :
     fallback:('a, 'b, 'c, 'd, 'e, 'f, public_url internal_url) url ->
     post_params:('g, 'd, ('h -> 'i) -> insideforml, 'j) parameters ->
-    action:'g -> ('a, 'h -> 'i, 'c, 'd, 'g, 'd, state_url internal_url) url
+    page:'g -> ('a, 'h -> 'i, 'c, 'd, 'g, 'd, state_url internal_url) url
 
 
 (* actions (new 10/05) *)

@@ -16,11 +16,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* Vincent Balat 2005 *)    
-
 (** Module Db_create *)
 (** Initialize the connection to the db. *)
 
-module DB = Dbi_postgres
+module DB = Dbi_postgresql
 
 let dbh = new DB.connection "krokobase";;

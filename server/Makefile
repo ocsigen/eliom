@@ -2,18 +2,18 @@ NAME = krokoserver
 
 FILES=  messages.ml error_pages.ml kroko.ml krokoserver.ml
 
-CAMLC = ocamlc -g $(LIB)
-CAMLOPT = ocamlopt $(LIB)
-CAMLDOC = ocamldoc $(LIB)
-CAMLDEP = ocamldep
-LIB = -I ../lib -I +netstring  -I +postgres -I +dbi -I +pcre
+CAMLC = ocamlfind ocamlc -g $(LIB)
+CAMLOPT = ocamlfind ocamlopt $(LIB)
+CAMLDOC = ocamlfind ocamldoc $(LIB)
+CAMLDEP = ocamlfind ocamldep
+LIB = -package netstring,dbi.postgresql -I ../lib
 PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo"
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtmlpp.cmo sender_helpers.cmo\
        error_pages.cmo\
-       postgres.cma dbi.cma dbi_postgres.cmo
+       postgresql.cma dbi.cma dbi_postgresql.cmo
 # dernière ligne pas nécessaire pour server mais je n'arrive pas à le lier ailleurs...
 
 
@@ -48,7 +48,7 @@ clean:
 	-rm -f *.cm[iox] *~ $(NAME)
 
 depend:
-	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
+	$(CAMLDEP) $(PP) $(FILES:.ml=.mli) $(FILES) > .depend
 
 FORCE:
 

@@ -9,7 +9,7 @@ let plop =
   register_new_url 
     ~name:(Url ["plop"]) 
     ~params:_noparam 
-    ~action:<< <html><head></head><body> plop </body></html> >>
+    ~page:<< <html><head></head><body> plop </body></html> >>
 
 (* Pages can have side effects: *)
 let plip = 
@@ -20,7 +20,7 @@ let plip =
   register_new_url 
     ~name:(Url ["plip"]) 
     ~params:_unit
-    ~action:(fun () -> 
+    ~page:(fun () -> 
 	       let str = string_of_int (next ()) in 
 	       << <html> $str:str$ </html> >>)
 
@@ -161,6 +161,7 @@ let _ = register_url linkrec
 
 
 
+
 (* ------------------------------------------------------------------ *)
 (* To create a form, call the function form with the name of a registered
    url and a function that takes the names of the parameters and
@@ -201,12 +202,12 @@ let no_post_param_url =
   register_new_url 
     ~name:(Url ["post"]) 
     ~params:_noparam 
-    ~action:<< <html> Version of the page without POST parameters </html> >>
+    ~page:<< <html> Version of the page without POST parameters </html> >>
     
 let my_url_with_post_params = register_new_post_url
     ~fallback:no_post_param_url
     ~post_params:(_string "value")
-    ~action:(fun value -> 
+    ~page:(fun value -> 
 	       << <html> $str:value$ </html> >>)
 
 (* You can mix get and post parameters *)
@@ -214,14 +215,14 @@ let get_no_post_param_url =
   register_new_url 
     ~name:(Url ["post2"]) 
     ~params:(_int "i")
-    ~action:(fun i -> 
+    ~page:(fun i -> 
 	       let i' = string_of_int i in
 	       << <html> No POST parameter, i: <b>$str:i'$</b> </html> >>)
     
 let my_url_with_get_and_post = register_new_post_url 
   ~fallback:get_no_post_param_url
   ~post_params:(_string "value")
-  ~action:(fun value i -> 
+  ~page:(fun value i -> 
 	       let i' = string_of_int i in
 	       << <html> Value: <b>$str:value$</b> <br/> 
 		 i: <b>$str:i'$</b> </html> >>)
@@ -344,12 +345,12 @@ let accueil url =
 
 let _ = register_url
   ~url:public_session_without_post_params
-  ~action:accueil
+  ~page:accueil
 
 let rec launch_session login =
   let close = register_new_session_url (* See later *)
     ~fallback:public_session_without_post_params 
-    ~action:(fun url -> close_session (); accueil url)
+    ~page:(fun url -> close_session (); accueil url)
   in
   let new_main_page url =
     let l1 = link "plop" url plop
@@ -367,7 +368,7 @@ let rec launch_session login =
     register_session_url 
       ~url:public_session_without_post_params 
                                (* url is any public url already registered *)
-      ~action:new_main_page;
+      ~page:new_main_page;
     register_session_url 
       plop (* any public url already registered *)
       << <html> Plop $str:login$ ! </html> >>;
@@ -379,7 +380,7 @@ let rec launch_session login =
 let _ =
   register_post_url
     ~url:public_session_with_post_params
-    ~action:launch_session
+    ~page:launch_session
 
 
 
@@ -432,7 +433,7 @@ let rec page_for_shopping_basket url shopping_basket =
   in
     register_post_session_url
       ~url:local_shop_with_post_params
-      ~action:(fun article current_url -> 
+      ~page:(fun article current_url -> 
 		 page_for_shopping_basket 
 		   current_url (article::shopping_basket));
     register_session_url
@@ -447,7 +448,7 @@ let rec page_for_shopping_basket url shopping_basket =
 
 let _ = register_post_url
   ~url:shop_with_post_params
-  ~action:(fun article url -> page_for_shopping_basket url [article])
+  ~page:(fun article url -> page_for_shopping_basket url [article])
 
 
 (* Queinnec example: *)
@@ -473,12 +474,12 @@ let _ =
   in
   register_post_url
     ~url:queinnec_post
-    ~action:(fun i current_url ->
+    ~page:(fun i current_url ->
       let is = string_of_int i in
       let queinnec_result = register_new_post_session_url
 	  ~fallback:queinnec_post
 	  ~post_params:(_int "j")
-	  ~action:(fun j current_url -> 
+	  ~page:(fun j current_url -> 
 	    let js = string_of_int j in
 	    let ijs = string_of_int (i+j) in
 	    << <html> <body> $str:is$ + $str:js$ = $str:ijs$ </body></html> >>)
@@ -531,7 +532,7 @@ let accueil_action h =
 
 let _ = register_url
   ~url:action_session
-  ~action:accueil_action
+  ~page:accueil_action
 
 let rec launch_session login =
   let deconnect_action = register_new_actionurl _unit close_session in
@@ -549,7 +550,7 @@ let rec launch_session login =
          $deconnect_link$ <br/>
       </html> >>
   in
-    register_session_url ~url:action_session ~action:new_main_page;
+    register_session_url ~url:action_session ~page:new_main_page;
     register_session_url plop << <html> Plop $str:login$ ! </html> >>;
     register_session_url plop2 << <html> Plop2 $str:login$ ! </html> >>
       
@@ -593,21 +594,27 @@ let _ = register_new_url (Url []) (_current_url _noparam)
          $lcss$
        </head>
        <body>
+       <h1>Kroko</h1>
+       <h2>Examples</h2>
+       <h3>Simple pages</h3>
        Une page simple : $l1$ <br/>
        Une page avec un compteur : $l2$ <br/> 
        Une page simple dans un répertoire : $l3$ <br/>
        Page par défaut d'un répertoire : $l4$ (oups/ est équivalent à oups)<br/>
+       <h3>Parameters</h3>
        Une page avec paramètres GET : $l5$ (que se passe-t-il si le premier paramètre n'est pas un entier ?)<br/> 
        Une page avec URL "préfixe" qui récupère l'IP et l'user-agent : $l6$ <br/> 
        Une page URL "préfixe" avec des paramètres GET : $l7$ <br/> 
        Une page qui récupère un paramètre d'un type utilisateur : $l8$ <br/> 
+       <h3>Links and Formulars</h3>
        Une page avec des liens : $l9$ <br/> 
-       Une page avec un lien vers elle-même : $l10$ <br/> 
+       Une page avec un lien vers elle-même : $l10$ <br/>
        Une page avec un formulaire GET qui pointe vers la page plop avec params : $l11$ <br/> 
        Un formulaire POST qui pointe vers la page "post" : $l13$ <br/> 
        La page "post" quand elle ne reçoit pas de paramètres POST : $l12$ <br/> 
        Un formulaire POST qui pointe vers une URL avec paramètres GET : $l14$ <br/> 
        Un formulaire POST vers une page externe : $l15$ <br/> 
+       <h3>Sessions</h3>
        URL avec état : $l16$ (problème des paramètres GET bookmarkés...) <br/> 
        Une session basée sur les cookies : $l17$ <br/> 
        Une session avec des actions : $l19$ <br/>

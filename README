@@ -57,7 +57,7 @@ Krokoutils is at early stage of development, and could be improved a lot.
 To use Krokoutils,
  - install postgresql, create a database named krokobase
    (and give the rights to write in to the user that will launch kroko)
- - install the postgres library for ocaml
+ - install the ocamldbi library for ocaml
  - compile krokoutils ("make krokoutils")
  - load krokoutils modules in krokoserver.ml (and then "make server")
  - create the tables : psql -f krokoutils/createdb.sql krokobase
@@ -68,7 +68,7 @@ Kroko
 ------------------------------------------------------------------
 Written by:
 
-Vincent Balat (project leader, xml parser, kroko.ml, krokoserver.ml, 
+Vincent Balat (project leader, xml parser, kroko.ml, Krokoserver, 
                moduleexample, krokoutils...)
 Denis Berthod (http protocol, Krokoserver)
 Jérôme Vouillon (lwt library, from unison)
@@ -83,7 +83,7 @@ Grégoire Henry
 Christophe Fouqueré
 Juliusz Chroboczek
 
-and thanks to my (other) students who participated in the first version:
+and thanks to my (other) students who took part to the very first version:
 
 Yann Binot
 Julien Chapuis

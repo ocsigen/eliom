@@ -66,7 +66,7 @@ let new_cookie =
   let c = ref (-1) in
   fun () -> c := !c + 1 ; string_of_int !c
 
-exception Kroko_Typing_Error
+exception Kroko_Typing_Error of string
 exception Kroko_Wrong_parameter
 exception Kroko_404
 
@@ -132,7 +132,7 @@ let _user_type (mytype_of_string : string -> 'a) string_of_mytype name =
 			    let p =
 			      let pa = (find_param name pog httpparam) in
 			      try mytype_of_string pa
-			      with _ -> raise Kroko_Typing_Error
+			      with _ -> raise (Kroko_Typing_Error name)
 			    in f p)}
 (* 
 let _int name = 
@@ -144,7 +144,7 @@ let _int name =
 			    let p = 
                               let pa = (find_param name httpparam) in
 			      try int_of_string pa
-			      with _ -> raise Kroko_Typing_Error
+			      with _ -> raise (Kroko_Typing_Error name)
 *)
 
 let _int name = _user_type int_of_string string_of_int name
@@ -625,18 +625,18 @@ let register_url_aux
     tree
     state
     ~(url : ('a,insideforml,'c,'d,'e,'f,'g) url)
-    ~action =
+    ~page =
 (* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
   add_url tree url.url
     ({get_names = url.get_param_names;
       post_names = []; (* url.post_param_names; *)
       state = state},
-     (url.get_conversion_function action))
+     (url.get_conversion_function page))
 
 let register_url 
     ~(url : ('a,insideforml,'c,'d,'e,'f,'g internal_url) url)
-    ~action =
-  register_url_aux global_tree (url.url_state) url action
+    ~page =
+  register_url_aux global_tree (url.url_state) url page
 
 (* WARNING: if we create a new URL without registering it,
    we can have a link towards a page that does not exist!!! :-(
@@ -646,24 +646,24 @@ let register_url
 
 let register_session_url
     ~(url : ('a,insideforml,'c,'d,'e,'f,'g internal_url) url)
-    ~action =
-  register_url_aux !session_tree url.url_state url action
+    ~page =
+  register_url_aux !session_tree url.url_state url page
 
 let register_new_url 
     ~name
     ~params
-    ~action 
+    ~page
     : ('a,insideforml,'b, 'c, page, page, public_url internal_url) url =
   let u = (new_url name params) in
-  register_url u action;
+  register_url u page;
   u
 
 let register_new_session_url
    ~(fallback : ('a, insideforml, 'b, 'c, page, page, public_url internal_url)url)
-   ~action 
+   ~page
    : ('a,insideforml,'b, 'c, page, page, state_url internal_url) url =
   let u = (new_state_url fallback) in
-    register_session_url u action;
+    register_session_url u page;
     u
 
 
@@ -712,7 +712,7 @@ let register_post_url_aux
     tree
     state
     ~(url : ('a,'b->'bb,'c,'d,'e,'f,'g) url)
-    ~action =
+    ~page =
 (* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
   add_url tree url.url
     ({get_names = url.get_param_names;
@@ -720,37 +720,37 @@ let register_post_url_aux
       state = state},
      (fun http_params ->
 	(url.get_conversion_function
-	   (url.post_conversion_function action http_params) 
+	   (url.post_conversion_function page http_params) 
 	   http_params)))
     (* Je n'arrive pas à mettre les params2 avant params pour des raisons
        de typage... *)
 
 let register_post_url 
     ~(url : ('a,'b->'bb,'c,'d,'e,'f,'g internal_url) url)
-    ~action =
-  register_post_url_aux global_tree (url.url_state) url action
+    ~page =
+  register_post_url_aux global_tree (url.url_state) url page
 
 let register_post_session_url
     ~(url : ('a,'b->'bb,'c,'d,'e,'f,'g internal_url) url)
-    ~action =
-  register_post_url_aux !session_tree url.url_state url action
+    ~page =
+  register_post_url_aux !session_tree url.url_state url page
 
 let register_new_post_url 
     ~fallback
     ~post_params
-    ~action
+    ~page
     : ('a,'b,'c,'d,'e,'f, public_url internal_url) url =
   let u = new_post_url ~fallback:fallback ~post_params:post_params in
-  register_post_url u action;
+  register_post_url u page;
   u
 
 let register_new_post_session_url
     ~(fallback : ('a,'b,'c,'d,'e,'f, public_url internal_url) url)
     ~post_params 
-    ~action
+    ~page
     : ('aa,'bb,'cc,'dd,'ee,'ff, state_url internal_url) url =
   let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
-  register_post_session_url u action;
+  register_post_session_url u page;
   u
 
 
@@ -1129,7 +1129,8 @@ let get_page
       (url, fullurl, get_params, post_params, useragent)
       sockaddr cookie
     with 
-	Kroko_Typing_Error -> (cookie, Error_pages.page_error_param_type, "/")
+	Kroko_Typing_Error n -> 
+	  (cookie, (Error_pages.page_error_param_type n), "/")
       | Kroko_Wrong_parameter -> (cookie, Error_pages.page_bad_param, "/")
 
 
@@ -1146,7 +1147,7 @@ let make_action action_name action_params
 	(url,fullurl,[],action_params,useragent)
 	sockaddr cookie
     with 
-	Kroko_Typing_Error -> (cookie, (),"/")
+	Kroko_Typing_Error _ -> (cookie, (),"/")
       | Kroko_Wrong_parameter -> (cookie, (),"/")
 
 

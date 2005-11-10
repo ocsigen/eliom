@@ -1,11 +1,11 @@
 
 FILES= db_create.ml krokopersist.ml krokache.ml krokodata.ml krokopages.ml krokosavable.ml krokoboxes.ml krokoxample_util.ml krokoxample3.ml krokoxample1.ml krokoxample2.ml
 
-CAMLC = ocamlc -g $(LIB)
-CAMLOPT = ocamlopt $(LIB)
-CAMLDOC = ocamldoc $(LIB)
-CAMLDEP = ocamldep
-LIB = -I +postgres -I +dbi -I +pcre -I ../lib
+CAMLC = ocamlfind ocamlc -g $(LIB)
+CAMLOPT = ocamlfind ocamlopt $(LIB)
+CAMLDOC = ocamlfind ocamldoc $(LIB)
+CAMLDEP = ocamlfind ocamldep
+LIB = -package dbi.postgresql -I ../lib
 PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo"
 
 OBJS = $(FILES:.ml=.cmo)
@@ -35,7 +35,7 @@ clean:
 	-rm -f *.cm[iox] *~ $(NAME)
 
 depend:
-	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
+	$(CAMLDEP) $(PP) $(FILES:.ml=.mli) $(FILES) > .depend
 
 FORCE:
 

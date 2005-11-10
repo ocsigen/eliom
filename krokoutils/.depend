@@ -1,12 +1,7 @@
-krokache.cmi: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi 
-db_create.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmi 
-db_create.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi_postgres.cmi 
 krokopersist.cmo: db_create.cmo krokopersist.cmi 
 krokopersist.cmx: db_create.cmx krokopersist.cmi 
-krokache.cmo: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmo \
-    krokache.cmi 
-krokache.cmx: /opt/godi/lib/ocaml/std-lib/dbi/dbi.cmi db_create.cmx \
-    krokache.cmi 
+krokache.cmo: db_create.cmo krokache.cmi 
+krokache.cmx: db_create.cmx krokache.cmi 
 krokodata.cmo: krokopersist.cmi krokache.cmi krokodata.cmi 
 krokodata.cmx: krokopersist.cmx krokache.cmx krokodata.cmi 
 krokopages.cmo: krokodata.cmi 
