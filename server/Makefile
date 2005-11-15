@@ -22,7 +22,7 @@ OBJS = $(FILES:.ml=.cmo)
 all: depend $(OBJS) $(NAME) doc
 #	cp *.cmo *.cmi ../lib
 	cp ocsigen.cmo ocsigen.cmi ../lib
-	cp messages.cmi ../lib
+	cp messages.cmi config.cmi ../lib
 	cp $(NAME) ../bin
 
 .SUFFIXES:
