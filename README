@@ -21,7 +21,7 @@ pour compiler
 puis lancer le serveur :
 
   cd bin
-  ./server 2222
+  ./ocsigen 2222
 
 (en remplaçant 2222 par un numéro de port quelconque)
 

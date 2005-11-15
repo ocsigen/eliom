@@ -1103,7 +1103,7 @@ let form_get current_url (url : ('a,xhformcontl,'calink,'cform,'cheadlink,'cscri
   let inside = url.create_get_form f in
 (* `Form ([(`Method, "get"); (`Action, urlname)], state_param::inside) *)
   << <form method="get" action=$urlname$>
-       <p>
+       <p style="display:none">
 	$state_param$
        </p>
         $list:inside$
@@ -1123,7 +1123,7 @@ let form_post current_url (url : ('a,'b,'calink,'cform,'cheadlink,'cscript,'d,'e
        let inside = url.create_post_form f in
 (*	 `Form ([(`Method, "post"); (`Action, v)], state_param::inside)) *)
 	 << <form method="post" action=$v$>
-	   <p>$state_param$</p>
+	   <p style="display:none">$state_param$</p>
 	   $list:inside$
 	   </form> >>)
 

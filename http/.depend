@@ -1,15 +1,10 @@
 framepp.cmo: http_frame.cmo 
 framepp.cmx: http_frame.cmx 
-http_com.cmo: http_parser.cmi http_lexer.cmo http_frame.cmo framepp.cmo 
-http_com.cmx: http_parser.cmx http_lexer.cmx http_frame.cmx framepp.cmx 
-http_lexer.cmo: http_parser.cmi http_frame.cmo 
-http_lexer.cmx: http_parser.cmx http_frame.cmx 
-http_parser.cmo: http_frame.cmo http_parser.cmi 
-http_parser.cmx: http_frame.cmx http_parser.cmi 
+http_com.cmo: http_frame.cmo framepp.cmo 
+http_com.cmx: http_frame.cmx framepp.cmx 
 sender_helpers.cmo: http_frame.cmo http_com.cmo 
 sender_helpers.cmx: http_frame.cmx http_com.cmx 
-test_parser.cmo: http_parser.cmi http_lexer.cmo http_frame.cmo 
-test_parser.cmx: http_parser.cmx http_lexer.cmx http_frame.cmx 
+test_parser.cmo: http_frame.cmo 
+test_parser.cmx: http_frame.cmx 
 test_pp.cmo: http_frame.cmo framepp.cmo 
 test_pp.cmx: http_frame.cmx framepp.cmx 
-http_parser.cmi: http_frame.cmo 

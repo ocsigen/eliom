@@ -136,6 +136,7 @@ let rec getcookie s =
   else getcookie (String.sub s (pointvirgule+1) (longueur-pointvirgule-1))
 (* On peut améliorer ça *)
 
+let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
 let service http_frame in_ch sockaddr 
     xhtml_sender file_sender empty_sender () =
@@ -158,7 +159,7 @@ let service http_frame in_ch sockaddr
 	      send_page ~keep_alive:keep_alive 
 		?cookie:(if cookie2 <> cookie then 
 		  (if cookie2 = None 
-		  then Some("; expires=Wednesday, 09-Nov-99 23:12:40 GMT")
+		  then Some remove_cookie_str
 		  else cookie2) 
 		else None)
 		~path:path
@@ -181,7 +182,7 @@ let service http_frame in_ch sockaddr
 		   (send_page ~keep_alive:keep_alive 
 		      ?cookie:(if cookie3 <> cookie then 
 				 (if cookie3 = None 
-				  then Some("; expires=Wednesday, 09-Nov-99 23:12:40 GMT")
+				  then Some remove_cookie_str
 				  else cookie3) 
 			       else None)
 		      ~path:path
@@ -190,7 +191,7 @@ let service http_frame in_ch sockaddr
 		 (send_empty ~keep_alive:keep_alive 
 		    ?cookie:(if cookie2 <> cookie then 
 			       (if cookie2 = None 
-				then Some("; expires=Wednesday, 09-Nov-99 23:12:40 GMT")
+				then Some remove_cookie_str
 				else cookie2) 
 			     else None)
 		    ~path:path
@@ -312,7 +313,7 @@ let _ =
       Dynlink.loadfile "../lib/ocsicache.cmo";
       Dynlink.loadfile "../lib/ocsidata.cmo";
       Dynlink.loadfile "../lib/ocsipages.cmo";
-      Dynlink.loadfile "../lib/ocsisavable.cmo";
+      Dynlink.loadfile "../lib/ocsisav.cmo";
       Dynlink.loadfile "../lib/ocsiboxes.cmo";
 (* Ocsimore examples : *)
       Dynlink.loadfile "../lib/ocsexample_util.cmo";
