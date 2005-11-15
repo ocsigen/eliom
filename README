@@ -34,6 +34,9 @@ qui est pour l'instant chargé par défaut au démarrage du serveur.
 
 Pour l'extension de syntaxe xhtml, voir des exemples dans
 xmlp4/exemple/essai.ml
+Attention : Le typage force à respecter l'imbrication des balises xhtml
+mais pour l'instant c'est tout ce qu'il vérifie (il ne vérifie pas la
+présence de balises obligatoires par exemple, ou l'ordre des balises).
 
 For the while, there is no config file telling which module to load.
 To add a module, (for example moduleexample.cmo),

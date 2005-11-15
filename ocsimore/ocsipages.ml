@@ -42,7 +42,7 @@ let box_exn_handler ex = match ex with
 
 
 (** Container *)
-let boxes_container ?classe ?id l :> [> Xhtmlpp.xhbodycont ] =
+let boxes_container ?classe ?id l =
   let attrid = (match id with None -> [] | Some c -> [`Id,c]) in
   let attrs = 
     (match classe with None -> attrid | Some c -> (`Class,c)::attrid) in
