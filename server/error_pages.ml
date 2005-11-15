@@ -1,4 +1,4 @@
-(* Kroko
+(* Ocsigen
  * Copyright (C) 2005 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,6 @@
 
 
 let page_error_param_type n = 
-  << <html>Wrong type for parameter <em>$str:n$</em></html> >>
-let page_bad_param        = << <html>Wrong parameters</html> >>
-let page_session_expired  = << <html>Session expired</html> >>
+  << <html><body><h1>Wrong type for parameter <em>$str:n$</em></h1></body></html> >>
+let page_bad_param        = << <html><body><h1>Wrong parameters</h1></body></html> >>
+let page_session_expired  = << <html><body><h1>Session expired</h1></body></html> >>

@@ -1,4 +1,4 @@
-(* Kroko
+(* Ocsigen
  * Copyright (C) 2005 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify

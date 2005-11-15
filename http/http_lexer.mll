@@ -1,5 +1,5 @@
 {
-(* Kroko
+(* Ocsigen
  * http_lexer.mll Copyright (C) 2005 Denis Berthod
  *
  * This program is free software; you can redistribute it and/or modify

@@ -1,6 +1,6 @@
-NAME = krokoserver
+NAME = ocsigen
 
-FILES=  messages.ml error_pages.ml kroko.ml krokoserver.ml
+FILES=  messages.ml error_pages.ml ocsigen.ml server.ml
 
 CAMLC = ocamlfind ocamlc -g $(LIB)
 CAMLOPT = ocamlfind ocamlopt $(LIB)
@@ -21,7 +21,7 @@ OBJS = $(FILES:.ml=.cmo)
 
 all: depend $(OBJS) $(NAME) doc
 #	cp *.cmo *.cmi ../lib
-	cp kroko.cmo kroko.cmi ../lib
+	cp ocsigen.cmo ocsigen.cmi ../lib
 	cp messages.cmi ../lib
 	cp $(NAME) ../bin
 
@@ -41,8 +41,8 @@ $(NAME): $(OBJS)
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
 
-doc:
-	$(CAMLDOC) -d doc -html kroko.mli
+#doc:
+#	$(CAMLDOC) -d doc -html ocsigen.mli
 
 clean:
 	-rm -f *.cm[iox] *~ $(NAME)

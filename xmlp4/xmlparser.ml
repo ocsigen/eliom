@@ -1,4 +1,4 @@
-(* Kroko
+(* Ocsigen
  * Copyright (C) 2005 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,6 +31,8 @@
 On pourrait decider d'ecrire << <plop number=$string_of_int n$ /> >>
 Mais du coup cela fait int_of_string (string_of_int n) 
 et ensuite encore string_of_int au moment de l'affichage
+
+   Revoir aussi la gestion des commentaires
 
 à revoir 
 
@@ -101,8 +103,7 @@ module ExpoOrPatt = struct
 
     | EPanytagvars v -> <:expr< `PCData $lid:v$ >>
 
-    | EPcomment c -> 
-	let com = "<!--"^c^"-->" in <:expr< `PCData $str:com$ >>
+    | EPcomment c -> <:expr< `Comment $str:c$ >>
 
   and to_expr_taglist = function
       PLEmpty -> <:expr< [] >>
@@ -137,8 +138,7 @@ module ExpoOrPatt = struct
 
     | EPanytagvars v -> <:patt< `PCData $lid:v$ >>
 
-    | EPcomment c -> 
-	let com = "<!--"^c^"-->" in <:patt< `PCData $str:com$ >>
+    | EPcomment c -> <:patt< `Comment $str:c$ >>
 
   and to_patt_taglist = function
       PLEmpty -> <:patt< [] >>

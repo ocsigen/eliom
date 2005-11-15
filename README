@@ -1,4 +1,4 @@
-Kroko
+Ocsigen
 
 This is alpha-code.
 Do not redistribute without permission.
@@ -10,6 +10,7 @@ Paquets  nécessaires pour compiler  :
 ocaml
 ocamlnet (en fait seulement le module netstring) 
 (et lui-même a besoin de pcre ?)
+ocamlfind
 
 Il faut faire :
 
@@ -36,44 +37,44 @@ xmlp4/exemple/essai.ml
 
 For the while, there is no config file telling which module to load.
 To add a module, (for example moduleexample.cmo),
-load it from server/krokoserver.ml (end of the file), 
+load it from server/server.ml (end of the file), 
 then recompile the server (make server).
 
-To see the list of modules loaded by default, see the file krokoserver.ml
+To see the list of modules loaded by default, see the file server.ml
 
 
 __________________________________________________________________
-Krokoutils :
+Ocsimore :
 
-Krokoutils are a set of tools to make creation of pages easier:
+Ocsimore is a set of tools to make creation of pages easier:
  - Cached access to the database without sql (very basic)
  - Persistant data
  - Users and rights management 
  - Common pages components (login box, etc)
  - Save page layout in the database
 
-You don't need Krokoutils to use Kroko. 
-Krokoutils is at early stage of development, and could be improved a lot.
+You don't need Ocsimore to use Ocsigen. 
+Ocsimore is at early stage of development, and could be improved a lot.
 
-To use Krokoutils,
- - install postgresql, create a database named krokobase
-   (and give the rights to write in to the user that will launch kroko)
+To use Ocsimore,
+ - install postgresql, create a database named ocsibase
+   (and give the rights to write in to the user that will launch ocsi)
  - install the postgresql and ocamldbi (with postgresql support) libraries 
    for ocaml. (Markus Mottl version of postgresql, not Alain Frish's)
- - compile krokoutils ("make krokoutils")
- - add lines at the end of krokoserver.ml to load krokoutils modules
+ - compile ocsimore ("make ocsimore")
+ - add lines at the end of server.ml to load ocsimore modules
    (and then "make server")
- - create the tables : psql -f krokoutils/createdb.sql krokobase
+ - create the tables : psql -f ocsimore/createdb.sql ocsibase
 
 
 ------------------------------------------------------------------
-Kroko
+Ocsigen
 ------------------------------------------------------------------
 Written by:
 
-Vincent Balat (project leader, xml parser, kroko.ml, Krokoserver, 
-               moduleexample, krokoutils...)
-Denis Berthod (http protocol, Krokoserver)
+Vincent Balat (project leader, xml parser, ocsigen.ml, server, 
+               moduleexample, ocsimore...)
+Denis Berthod (http protocol, server)
 Jérôme Vouillon (lwt library, from unison)
 Julien Mineraud (xhtml pretty-printing)
 

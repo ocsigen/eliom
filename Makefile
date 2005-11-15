@@ -3,7 +3,7 @@ REPS = lwt xmlp4 http server moduleexample
 
 all: $(REPS)
 
-.PHONY: $(REPS) krokoutils clean
+.PHONY: $(REPS) ocsimore clean
 
 
 lwt:
@@ -21,11 +21,11 @@ moduleexample:
 server:
 	make -C server depend all
 
-krokoutils:
-	make -C krokoutils depend all install
+ocsimore:
+	make -C ocsimore depend all install
 
 clean:
-	@for i in $(REPS) krokoutils ; do make -C $$i clean ; done
+	@for i in $(REPS) ocsimore ; do make -C $$i clean ; done
 	-rm -f lib/* *~
 	-rm -f bin/* *~
 

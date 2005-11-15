@@ -11,7 +11,7 @@ LIB= -I $(LIBDIR)
 PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo" 
 ALL_CMO  = http_frame.cmo http_parser.cmo http_lexer.cmo framepp.cmo http_com.cmo sender_helpers.cmo test_pp.cmo
 
-all: byte  doc
+all: byte
 	cp *.cmi *.cmo  ../lib
 
 byte: $(ALL_CMO)

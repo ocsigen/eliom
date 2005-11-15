@@ -1,4 +1,4 @@
-(* Kroko
+(* Ocsigen
  * sender_helpers.ml Copyright (C) 2005 Denis Berthod
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,9 +25,9 @@ open Lwt
 module Xhtml_content =
   struct
     type t = Xhtmlpp.xhtml
-    let string_of_content c = Xhtmlpp.xh_print c
+    let string_of_content = Xhtmlpp.xh_print
     (*il n'y a pas encore de parser pour ce type*)
-    let content_of_string s =assert false
+    let content_of_string s = assert false
   end
 
 module Empty_content =
@@ -232,8 +232,10 @@ let send_error ?(http_exception) ?(error_num=500) xhtml_sender =
         let err_page =
           <<
           <html>
+	  <body>
           <h1> Error $str:str_code$ </h1> 
-          $str:error_msg$
+          <p>$str:error_msg$</p>
+	  </body>
           </html>
           >>
   in
