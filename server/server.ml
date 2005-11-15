@@ -320,10 +320,12 @@ let _ =
       load_ocsigen_module ~dir:["ocsimore1"] ~cmo:"../lib/ocsexample1.cmo";
       load_ocsigen_module ~dir:["ocsimore"] ~cmo:"../lib/ocsexample2.cmo";
       load_ocsigen_module ~dir:["ocsisav"] ~cmo:"../lib/ocsexample3.cmo";
-(* ocsespace : *)
+(*
+(* ocsespace (not part of the distrib for the while) : *)
       Dynlink.loadfile "../../ocsespace/lib/ocsespace.cmo";
 (*      load_ocsigen_module ~dir:["ocsespace"] ~cmo:"../../ocsespace/lib/demo.cmo"; *)
       load_ocsigen_module ~dir:["camlcom"] ~cmo:"../../ocsespace/lib/camlcom.cmo";
+*)
 *)
 
     with Ocsigen_error_while_loading m -> (warning ("Error while loading "^m)));
