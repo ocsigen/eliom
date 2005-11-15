@@ -40,10 +40,10 @@ présence de balises obligatoires par exemple, ou l'ordre des balises).
 
 For the while, there is no config file telling which module to load.
 To add a module, (for example moduleexample.cmo),
-load it from server/server.ml (end of the file), 
+load it from server/config.ml, 
 then recompile the server (make server).
 
-To see the list of modules loaded by default, see the file server.ml
+To see the list of modules loaded by default, see the file config.ml
 
 
 __________________________________________________________________
@@ -65,7 +65,7 @@ To use Ocsimore,
  - install the postgresql and ocamldbi (with postgresql support) libraries 
    for ocaml. (Markus Mottl version of postgresql, not Alain Frish's)
  - compile ocsimore ("make ocsimore")
- - add lines at the end of server.ml to load ocsimore modules
+ - add lines in server/config.ml to load ocsimore modules
    (and then "make server")
  - create the tables : psql -f ocsimore/createdb.sql ocsibase
 

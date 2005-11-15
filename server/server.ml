@@ -155,7 +155,19 @@ let service http_frame in_ch sockaddr
 	  Unix.ADDR_INET (ip,port) -> Unix.string_of_inet_addr ip
 	| _ -> "127.0.0.1"
 	in
-	lwtlog ("new connection from "^ip^" : "^fullurl);
+	let date = 
+	  let t = Unix.localtime (Unix.time ()) in
+	  Printf.sprintf 
+	    "%02d-%02d-%04d %02d:%02d:%02d" 
+	    t.Unix.tm_mday 
+	    t.Unix.tm_mon 
+	    (1900 + t.Unix.tm_year)
+	    t.Unix.tm_hour
+	    t.Unix.tm_min
+	    t.Unix.tm_sec 
+	in
+
+	lwtlog (date^" - connection from "^ip^" : "^fullurl);
       (* end log *)
 
       match action_info with
@@ -308,7 +320,7 @@ let listen () =
 let _ = 
   Lwt_unix.run (
     (* Initialisations *)
-    static_pages_dir := "../pages/";
+    static_pages_dir := ((Config.get_var "static_pages_directory")^"/");
     (* On charge les modules *)
     (try
       Dynlink.init();
