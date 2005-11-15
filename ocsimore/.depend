@@ -1,0 +1,28 @@
+ocsipersist.cmo: db_create.cmo ocsipersist.cmi 
+ocsipersist.cmx: db_create.cmx ocsipersist.cmi 
+ocsicache.cmo: db_create.cmo ocsicache.cmi 
+ocsicache.cmx: db_create.cmx ocsicache.cmi 
+ocsidata.cmo: ocsipersist.cmi ocsicache.cmi ocsidata.cmi 
+ocsidata.cmx: ocsipersist.cmx ocsicache.cmx ocsidata.cmi 
+ocsipages.cmo: ocsidata.cmi 
+ocsipages.cmx: ocsidata.cmx 
+ocsisav.cmo: ocsipages.cmo ocsidata.cmi 
+ocsisav.cmx: ocsipages.cmx ocsidata.cmx 
+ocsiboxes.cmo: ocsisav.cmo ocsidata.cmi 
+ocsiboxes.cmx: ocsisav.cmx ocsidata.cmx 
+ocsexample_util.cmo: ocsisav.cmo ocsipersist.cmi ocsipages.cmo ocsidata.cmi \
+    ocsiboxes.cmo 
+ocsexample_util.cmx: ocsisav.cmx ocsipersist.cmx ocsipages.cmx ocsidata.cmx \
+    ocsiboxes.cmx 
+ocsexample3.cmo: ocsisav.cmo ocsipersist.cmi ocsipages.cmo ocsidata.cmi \
+    ocsiboxes.cmo ocsexample_util.cmo 
+ocsexample3.cmx: ocsisav.cmx ocsipersist.cmx ocsipages.cmx ocsidata.cmx \
+    ocsiboxes.cmx ocsexample_util.cmx 
+ocsexample1.cmo: ocsisav.cmo ocsipages.cmo ocsidata.cmi ocsiboxes.cmo \
+    ocsexample_util.cmo 
+ocsexample1.cmx: ocsisav.cmx ocsipages.cmx ocsidata.cmx ocsiboxes.cmx \
+    ocsexample_util.cmx 
+ocsexample2.cmo: ocsisav.cmo ocsipages.cmo ocsidata.cmi ocsiboxes.cmo \
+    ocsexample_util.cmo 
+ocsexample2.cmx: ocsisav.cmx ocsipages.cmx ocsidata.cmx ocsiboxes.cmx \
+    ocsexample_util.cmx 
