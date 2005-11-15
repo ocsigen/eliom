@@ -16,9 +16,12 @@ SRCLIBREP = ../lib
 REQUIRES =
 PREDICATES =
 
+
 all: $(ARCHIVE) 
 	-cp $(NAME).cma *.cmi $(SRCLIBREP)
 opt: $(XARCHIVE)
+
+.PHONY: depend
 
 $(ARCHIVE): $(OBJECTS)
 	$(OCAMLC) -a -o $(ARCHIVE) -package "$(REQUIRES)" -linkpkg \

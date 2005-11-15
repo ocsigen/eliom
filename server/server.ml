@@ -149,6 +149,15 @@ let service http_frame in_ch sockaddr
     in
     let (_,fullurl,_,_,_,_) as frame_info, action_info = 
       get_frame_infos http_frame in
+
+      (* log *)
+	let ip =  match sockaddr with
+	  Unix.ADDR_INET (ip,port) -> Unix.string_of_inet_addr ip
+	| _ -> "127.0.0.1"
+	in
+	lwtlog ("new connection from "^ip^" : "^fullurl);
+      (* end log *)
+
       match action_info with
 	  None ->
 	    (* Je préfère pour l'instant ne jamais faire de keep-alive pour
@@ -303,31 +312,10 @@ let _ =
     (* On charge les modules *)
     (try
       Dynlink.init();
-      load_ocsigen_module ~dir:[""] ~cmo:"../lib/moduleexample.cmo"
-
-(*
-;
-(* For Ocsimore : *)
-      Dynlink.loadfile "../lib/db_create.cmo";
-      Dynlink.loadfile "../lib/ocsipersist.cmo";
-      Dynlink.loadfile "../lib/ocsicache.cmo";
-      Dynlink.loadfile "../lib/ocsidata.cmo";
-      Dynlink.loadfile "../lib/ocsipages.cmo";
-      Dynlink.loadfile "../lib/ocsisav.cmo";
-      Dynlink.loadfile "../lib/ocsiboxes.cmo";
-(* Ocsimore examples : *)
-      Dynlink.loadfile "../lib/ocsexample_util.cmo";
-      load_ocsigen_module ~dir:["ocsimore1"] ~cmo:"../lib/ocsexample1.cmo";
-      load_ocsigen_module ~dir:["ocsimore"] ~cmo:"../lib/ocsexample2.cmo";
-      load_ocsigen_module ~dir:["ocsisav"] ~cmo:"../lib/ocsexample3.cmo";
-(*
-(* ocsespace (not part of the distrib for the while) : *)
-      Dynlink.loadfile "../../ocsespace/lib/ocsespace.cmo";
-(*      load_ocsigen_module ~dir:["ocsespace"] ~cmo:"../../ocsespace/lib/demo.cmo"; *)
-      load_ocsigen_module ~dir:["camlcom"] ~cmo:"../../ocsespace/lib/camlcom.cmo";
-*)
-*)
-
+      List.iter Dynlink.loadfile Config.cmo_list;
+      List.iter 
+	(fun (dir,cmo) -> load_ocsigen_module ~dir:dir ~cmo:cmo) 
+	Config.module_list;
     with Ocsigen_error_while_loading m -> (warning ("Error while loading "^m)));
     listen ()
   )

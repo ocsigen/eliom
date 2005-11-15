@@ -18,7 +18,7 @@ install: all
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-.PHONY: doc
+.PHONY: doc depend
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<

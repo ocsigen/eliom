@@ -16,6 +16,9 @@ OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
 all: $(OBJS) essai
 	cp xmlparser.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi $(SRCLIBREP)
 
+
+.PHONY: depend
+
 essai: $(OBJS)
 	make -C exemple
 

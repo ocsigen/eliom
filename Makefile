@@ -30,4 +30,4 @@ clean:
 	-rm -f bin/* *~
 
 depend: xmlp4
-	@for i in $(REPS) ; do make -C $$i depend ; done
+	@for i in $(REPS) ; do > .depend; make -C $$i depend ; done

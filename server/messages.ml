@@ -24,6 +24,16 @@ let lwtwarning s =
   let s = s^"\n" in
   Lwt_unix.write Unix.stderr s 0 (String.length s)
 
+let lwtlog = 
+  let logfile = Config.get_var "logfile" in
+  fun s ->
+    let s = s^"\n" in
+    let file = 
+      Unix.openfile 
+	logfile [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640 in
+    Lwt_unix.write file s 0 (String.length s);
+    Unix.close file
+
 let warning s = prerr_endline s
 
 let bip i = prerr_endline ("bip"^(string_of_int i))

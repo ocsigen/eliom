@@ -1,6 +1,6 @@
 NAME = ocsigen
 
-FILES=  messages.ml error_pages.ml ocsigen.ml server.ml
+FILES= config.ml messages.ml error_pages.ml ocsigen.ml server.ml
 
 CAMLC = ocamlfind ocamlc -g $(LIB)
 CAMLOPT = ocamlfind ocamlopt $(LIB)
@@ -28,7 +28,7 @@ all: depend $(OBJS) $(NAME) doc
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-.PHONY: doc
+.PHONY: doc depend
 
 $(NAME): $(OBJS)
 	$(CAMLC) -o $(NAME) $(CMAO) $(OBJS)

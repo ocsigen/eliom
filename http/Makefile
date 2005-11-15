@@ -14,6 +14,8 @@ ALL_CMO  = http_frame.cmo http_parser.cmo http_lexer.cmo framepp.cmo http_com.cm
 all: byte
 	cp *.cmi *.cmo  ../lib
 
+.PHONY: depend
+
 byte: $(ALL_CMO)
 	$(CAMLC) -I $(LIBDIR) -o $(NAME) unix.cma lwt.cma  xhtmlpp.cmo $(ALL_CMO)
 

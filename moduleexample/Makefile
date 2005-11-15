@@ -14,6 +14,8 @@ all: depend $(OBJS)
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
+.PHONY: depend
+
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
 .mli.cmi:
