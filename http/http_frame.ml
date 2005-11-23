@@ -138,7 +138,7 @@ module Http_error =
             |412 -> "Precondition Failed"
             |413 -> "Request Entity Too Large"
             |414 -> "Request URL Too Long"
-            |415 -> "Unsuppoted Media type"
+            |415 -> "Unsupported Media type"
             |416 -> "Request Range Not Satisfiable"
             |417 -> "Expectation Failed"
             |500 -> "Internal Server Error"

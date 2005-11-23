@@ -1,13 +1,13 @@
-CAMLC    = ocamlc
+CAMLC    = ocamlfind ocamlc
 CAMLLEX  = ocamllex
 CAMLYACC = ocamlyacc
-CAMLDOC  = ocamldoc
+CAMLDOC  = ocamlfind ocamldoc
 FLAGS    = -g
-CAMLCOPT = ocamlopt
-CAMLDEP  = ocamldep
+CAMLCOPT = ocamlfind ocamlopt
+CAMLDEP  = ocamlfind ocamldep
 NAME 	 =  test_pp
 LIBDIR 	= ../lib
-LIB= -I $(LIBDIR)
+LIB= -package netstring -I $(LIBDIR)
 PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo" 
 ALL_CMO  = http_frame.cmo http_parser.cmo http_lexer.cmo framepp.cmo http_com.cmo sender_helpers.cmo test_pp.cmo
 
@@ -17,7 +17,7 @@ all: byte
 .PHONY: depend
 
 byte: $(ALL_CMO)
-	$(CAMLC) -I $(LIBDIR) -o $(NAME) unix.cma lwt.cma  xhtmlpp.cmo $(ALL_CMO)
+	$(CAMLC) $(LIB) -o $(NAME) unix.cma lwt.cma netstring.cma xhtmlpp.cmo $(ALL_CMO)
 
 
 doc: 
@@ -59,20 +59,20 @@ http_parser.ml: http_parser.mly
 	$(CAMLYACC) $<
 
 .mli.cmi:
-	$(CAMLC) -c $(FLAGS) -I $(LIBDIR) $<
+	$(CAMLC) -c $(FLAGS) $(LIB) $<
 
 .ml.cmi:
-	$(CAMLC) -c $(FLAGS) -I $(LIBDIR) $<
+	$(CAMLC) -c $(FLAGS) $(LIB) $<
 
 .ml.cmo:
 	-rm $(LIBDIR)/$(<:.ml=.cmo)
 	-rm $(LIBDIR)/$(<:.ml=.cmi)
-	$(CAMLC) $(PP) -c $(FLAGS) -I $(LIBDIR) $<
+	$(CAMLC) $(PP) -c $(FLAGS) $(LIB) $<
 
 .ml.o:
-	$(CAMLCOPT) -c $(FLAGS) -I $(LIBDIR) $<
+	$(CAMLCOPT) -c $(FLAGS) $(LIB) $<
 
 .ml.cmx:
-	$(CAMLCOPT) $(PP) -c $(PROFILE) $(FLAGS) -I $(LIBDIR) $<
+	$(CAMLCOPT) $(PP) -c $(PROFILE) $(FLAGS) $(LIB) $<
 
 include .depend

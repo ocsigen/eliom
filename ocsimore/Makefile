@@ -1,6 +1,9 @@
 
-FILES= db_create.ml ocsipersist.ml ocsicache.ml ocsidata.ml ocsipages.ml ocsisav.ml ocsiboxes.ml ocsexample_util.ml ocsexample3.ml ocsexample1.ml ocsexample2.ml
+FILES= db_create.ml ocsipersist.ml ocsicache.ml ocsidata.ml ocsipages.ml ocsisav.ml ocsiboxes.ml
 
+OTHERFILES= ocsexample_util.ml ocsexample3.ml ocsexample1.ml ocsexample2.ml
+
+OCAMLFIND = ocamlfind
 CAMLC = ocamlfind ocamlc -g $(LIB)
 CAMLOPT = ocamlfind ocamlopt $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
@@ -9,11 +12,17 @@ LIB = -package dbi.postgresql -I ../lib
 PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo"
 
 OBJS = $(FILES:.ml=.cmo)
+OTHEROBJS = $(OTHERFILES:.ml=.cmo)
 
-all: depend $(OBJS) doc
+CMA = ocsimore.cma
 
-install: all
-	cp *.cm? ../lib
+all: depend $(CMA) $(OTHEROBJS)
+	cp *.cma $(OTHEROBJS) ../lib
+
+$(CMA): $(OBJS)
+	$(CAMLC) -a -o $(CMA) $(OBJS)
+
+
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -33,6 +42,15 @@ doc:
 
 clean:
 	-rm -f *.cm[iox] *~ $(NAME)
+
+.PHONY: install
+install:
+	$(OCAMLFIND) install ocsigen $(CMA) META
+
+.PHONY: uninstall
+uninstall:
+	$(OCAMLFIND) remove ocsigen
+
 
 depend:
 	$(CAMLDEP) $(PP) $(FILES:.ml=.mli) $(FILES) > .depend

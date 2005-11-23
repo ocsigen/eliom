@@ -1,5 +1,6 @@
 
-REPS = lwt xmlp4 http server moduleexample
+REPS = lwt xmlp4 http server modules
+OCAMLFIND = ocamlfind
 
 all: $(REPS)
 
@@ -15,14 +16,14 @@ xmlp4:
 http :
 	make -C http depend all
 
-moduleexample:
-	make -C moduleexample all
+modules:
+	make -C modules all
 
 server:
 	make -C server depend all
 
 ocsimore:
-	make -C ocsimore depend all install
+	make -C ocsimore depend all
 
 clean:
 	@for i in $(REPS) ocsimore ; do make -C $$i clean ; done
@@ -30,4 +31,18 @@ clean:
 	-rm -f bin/* *~
 
 depend: xmlp4
-	@for i in $(REPS) ; do > .depend; make -C $$i depend ; done
+	@for i in $(REPS) ; do > "$$i"/.depend; make -C $$i depend ; done
+
+
+.PHONY: install
+install:
+	make -C server install
+	make -C ocsimore install
+
+.PHONY: uninstall
+uninstall:
+	make -C server uninstall
+	make -C ocsimore uninstall
+
+
+

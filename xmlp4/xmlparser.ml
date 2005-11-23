@@ -32,7 +32,7 @@ On pourrait decider d'ecrire << <plop number=$string_of_int n$ /> >>
 Mais du coup cela fait int_of_string (string_of_int n) 
 et ensuite encore string_of_int au moment de l'affichage
 
-   Revoir aussi la gestion des commentaires
+   Revoir aussi la gestion des commentaires ?
 
 à revoir 
 
@@ -40,7 +40,14 @@ et ensuite encore string_of_int au moment de l'affichage
 
 open Pcaml
 
+(* Instead of using Pcaml.gram, we use a new grammar, using xmllexer *)
+let g = Grammar.gcreate (Xmllexer.gmake ())
+
+
 module ExpoOrPatt = struct
+
+  let loc = (Lexing.dummy_pos, Lexing.dummy_pos)
+
   type tvarval =
       EPVstr of string
     | EPVvar of string 
@@ -52,18 +59,12 @@ module ExpoOrPatt = struct
 
   type texprpatt = 
       EPanyattr of tvarval * tvarval
-    | EPanytag1 of string * texprpatt tlist * texprpatt tlist
-    | EPanytag2 of string
+    | EPanytag of string * texprpatt tlist * texprpatt tlist
+    | EPpcdata of string
+    | EPwhitespace of string
     | EPcomment of string
     | EPanytagvar of string
     | EPanytagvars of string
-
-  let loc =
-    let nowhere =
-      {(Lexing.dummy_pos) with 
-	 Lexing.pos_lnum = 111111; 
-	 Lexing.pos_cnum = 111111 } in
-    (nowhere,nowhere)
 
   let list_of_mlast_expr el = 
     List.fold_right 
@@ -91,13 +92,15 @@ module ExpoOrPatt = struct
 	let vv = expr_valorval v in
 	<:expr< ($lid:aa$, $vv$) >>
 
-    | EPanytag1 (tag, attribute_list, child_list) ->
+    | EPanytag (tag, attribute_list, child_list) ->
 	<:expr< `$uid:String.capitalize tag$
 	  $to_expr_attlist attribute_list$
           $to_expr_taglist child_list$
 	>>
 	
-    | EPanytag2 dt -> <:expr< `PCData $str:dt$ >>
+    | EPpcdata dt -> <:expr< `PCData $str:dt$ >>
+
+    | EPwhitespace dt -> <:expr< `Whitespace $str:dt$ >>
 
     | EPanytagvar v -> <:expr< $lid:v$ >>
 
@@ -126,13 +129,15 @@ module ExpoOrPatt = struct
 	let vv = patt_valorval v in
 	<:patt< ($lid:a$, $vv$) >>
 
-    | EPanytag1 (tag, attribute_list, child_list) ->
+    | EPanytag (tag, attribute_list, child_list) ->
 	<:patt< `$uid:String.capitalize tag$
 	  $to_patt_attlist attribute_list$
           $to_patt_taglist child_list$
         >>
 
-    | EPanytag2 dt -> <:patt< `PCData $str:dt$ >>
+    | EPpcdata dt -> <:patt< `PCData $str:dt$ >>
+
+    | EPwhitespace dt -> <:patt< `Whitespace $str:dt$ >>
 
     | EPanytagvar v -> <:patt< $lid:v$ >>
 
@@ -154,8 +159,6 @@ end
 
 open ExpoOrPatt
 
-(* Instead of using Pcaml.gram, we use a new grammar, using xmllexer *)
-let g = Grammar.gcreate (Xmllexer.gmake ())
 
 let exprpatt_xml = Grammar.Entry.create g "xml"
 let exprpatt_any_tag = Grammar.Entry.create g "xml tag"
@@ -170,7 +173,9 @@ EXTEND
   exprpatt_xml:
   [ [
     declaration_list = LIST0 [ DECL | XMLDECL ];
+    OPT WHITESPACE;
     root_tag = exprpatt_any_tag;
+    OPT WHITESPACE;
     EOI -> root_tag
   ] ];
 
@@ -187,11 +192,12 @@ EXTEND
       let taglist = match child_list with
 	  None -> PLEmpty
 	| Some l -> l
-      in EPanytag1
+      in EPanytag
 	(tag,
 	 attlist, 
 	 taglist)
-  | dt = DATA -> EPanytag2 dt
+  | dt = WHITESPACE -> EPwhitespace dt
+  | dt = DATA -> EPpcdata dt
   | c = COMMENT -> EPcomment c
   | v = CAMLVARXML -> EPanytagvar v
   | v = CAMLVARXMLS -> EPanytagvars v
@@ -212,7 +218,8 @@ EXTEND
 
   exprpatt_any_tag_list:
   [ [
-      v = CAMLVARXMLL -> PLVar v
+      v = CAMLVARXMLL;
+      OPT WHITESPACE -> PLVar v
     | anytag = exprpatt_any_tag;
       suite  = OPT exprpatt_any_tag_list ->
       let suite = match suite with

@@ -1,5 +1,6 @@
 À faire
 
+ - associer des ressources aux utilisateurs
  - Mécanisme de cache (en mémoire ?) (de taille configurable) pour l'accès
    à la base de données (table des messages) pour éviter de faire des requêtes
    dans la grosse table des messages pour tous les petits messages de la page 

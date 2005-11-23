@@ -31,4 +31,4 @@ $(NAME2): $(NAME2).ml
 	$(CAMLOPT) $(PP) ../xhtmlpp.cmo -c $<
 
 clean:
-	-rm -f *.cm[iox] *~ essai
+	-rm -f *.cm[iox] *~ essai essai2

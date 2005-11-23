@@ -90,6 +90,9 @@ module Fframepp =
           |None -> ""
           |Some c -> C.string_of_content c
         in
-        (string_of_header (http_frame.Http.header))^body 
+	let h = string_of_header (http_frame.Http.header)
+	in (* debug *)
+	   print_endline h;
+	h^body 
         
     end

@@ -9,7 +9,7 @@ let g = << <ark> </ark> >> in
 let s = << <youpi> $a$ $str:b$ $$ $g$ <bobo $c$=$d$ $e$=$f$> </bobo> </youpi> >> in
 let la = [(`A, "popo");(`Ggg, "lkjl")] in
 let l = <:xmllist< <ark $c$=$f$ $list:la$> </ark> <wow> </wow> >> in
-  << <youpi> $a$ zzz $list:l$ </youpi> >>
+<< <youpi> $a$ zzz $list:l$ </youpi> >>
 (* $$ permet d'écrire un $ *)
 
 function << <html $list:l1$> $a$ ljl $list:l2$ </html> >> -> 1 | _ -> 2
@@ -53,8 +53,9 @@ let print_attrs l = ()
 let print_pcdata =  function 
     << $str:s$ >> -> print_string s
 
+(*
 let print_html =  function 
-    << <body $list:la$> $list:lt$ </body> >> -> 
+    << <body $list:la$>$list:lt$</body> >> -> 
       print_string "<body";
       print_attrs la;
       print_string ">";
@@ -72,7 +73,7 @@ let print = function
 let _ = print << <html> <body> kjl </body> </html> >>
 
 let çacloche = << <body> <html> alala </html> </body> >>
-
+*)
 
 (*
 

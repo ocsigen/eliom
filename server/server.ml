@@ -187,9 +187,11 @@ let service http_frame in_ch sockaddr
 		page xhtml_sender
 	    with Static_File l -> 
 	      Messages.warning ("Fichier statique : "^l);
+	      let filename = (!static_pages_dir^l) in
 	      send_file 
-		~keep_alive:keep_alive 
-		~code:200 (!static_pages_dir^l) file_sender
+		~keep_alive:keep_alive
+		~last_modified:((Unix.stat filename).Unix.st_mtime)
+		~code:200 filename file_sender
 	    )
 	      >>= (fun _ -> return keep_alive)
 	| Some (action_name, reload, action_params) ->
@@ -222,8 +224,6 @@ let service http_frame in_ch sockaddr
   with Ocsigen_404 -> 
    (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
    send_error ~error_num:404 xhtml_sender
-   (*send_file ~code:404 "../pages/error.html" file_sender*)
-   (*send_file ~code:200 "../pages/Volta.GIF" file_sender*)
    >>= (fun _ ->
      return true (* idem *))
     | Ocsigen_Malformed_Url ->
@@ -236,7 +236,6 @@ let service http_frame in_ch sockaddr
 	send_page ~keep_alive:false
 	  (error_page ("Exception : "^(Printexc.to_string e)))
 	  xhtml_sender
-    (* send_file ~code:200 "../pages/Volta.GIF" file_sender *)
 	>>= (fun _ ->
 	       return true (* idem *))
                                               

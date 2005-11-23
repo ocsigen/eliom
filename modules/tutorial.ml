@@ -656,3 +656,13 @@ let _ = register_new_url (Url []) (_current_url _noparam)
      </html> >>)
 
 
+(* WARNING! As we don't use threads, 
+   the following page will stop the server 5 seconds!!!
+let _ = 
+  register_new_url 
+    ~name:(Url ["loooooooooong"]) 
+    ~params:_unit
+    ~page:(fun () -> 
+               Unix.sleep 5;
+	       << <html><body><p>Ok now, you can read the page.</p></body></html> >>)
+*)

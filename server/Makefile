@@ -1,7 +1,10 @@
+include ../Makefile.config
+
 NAME = ocsigen
 
 FILES= config.ml messages.ml error_pages.ml ocsigen.ml server.ml
 
+INSTALL = install -c
 CAMLC = ocamlfind ocamlc -g $(LIB)
 CAMLOPT = ocamlfind ocamlopt $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
@@ -15,7 +18,6 @@ CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        error_pages.cmo\
        postgresql.cma dbi.cma dbi_postgresql.cmo
 # dernière ligne pas nécessaire pour server mais je n'arrive pas à le lier ailleurs...
-
 
 OBJS = $(FILES:.ml=.cmo)
 
@@ -44,8 +46,19 @@ $(NAME): $(OBJS)
 #doc:
 #	$(CAMLDOC) -d doc -html ocsigen.mli
 
+.PHONY: clean
 clean:
 	-rm -f *.cm[iox] *~ $(NAME)
+
+.PHONY: install
+install:
+	@echo "Installing binary"
+	mkdir -p $(BINDIR)
+	$(INSTALL) -m755 $(NAME) $(BINDIR)/
+
+.PHONY: uninstall
+uninstall:
+	rm -f $(BINDIR)/$(NAME)
 
 depend:
 	$(CAMLDEP) $(PP) $(FILES:.ml=.mli) $(FILES) > .depend

@@ -10,19 +10,3 @@ ocsisav.cmo: ocsipages.cmo ocsidata.cmi
 ocsisav.cmx: ocsipages.cmx ocsidata.cmx 
 ocsiboxes.cmo: ocsisav.cmo ocsidata.cmi 
 ocsiboxes.cmx: ocsisav.cmx ocsidata.cmx 
-ocsexample_util.cmo: ocsisav.cmo ocsipersist.cmi ocsipages.cmo ocsidata.cmi \
-    ocsiboxes.cmo 
-ocsexample_util.cmx: ocsisav.cmx ocsipersist.cmx ocsipages.cmx ocsidata.cmx \
-    ocsiboxes.cmx 
-ocsexample3.cmo: ocsisav.cmo ocsipersist.cmi ocsipages.cmo ocsidata.cmi \
-    ocsiboxes.cmo ocsexample_util.cmo 
-ocsexample3.cmx: ocsisav.cmx ocsipersist.cmx ocsipages.cmx ocsidata.cmx \
-    ocsiboxes.cmx ocsexample_util.cmx 
-ocsexample1.cmo: ocsisav.cmo ocsipages.cmo ocsidata.cmi ocsiboxes.cmo \
-    ocsexample_util.cmo 
-ocsexample1.cmx: ocsisav.cmx ocsipages.cmx ocsidata.cmx ocsiboxes.cmx \
-    ocsexample_util.cmx 
-ocsexample2.cmo: ocsisav.cmo ocsipages.cmo ocsidata.cmi ocsiboxes.cmo \
-    ocsexample_util.cmo 
-ocsexample2.cmx: ocsisav.cmx ocsipages.cmx ocsidata.cmx ocsiboxes.cmx \
-    ocsexample_util.cmx 

@@ -229,6 +229,7 @@ type closed_tag = [ `Br | `Base | `Meta | `Link  | `Hr | `Param | `Img | `Area |
 type xhnotag
 
 type xhpcdata = [ `PCData of string
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *) ]
 
 type xhalltags = 
@@ -286,6 +287,7 @@ type xhalltags =
   | `Option of (attr * string) list * xhpcdata list
   | `P of (attr * string) list * xhinlinecont list
   | `PCData of string
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)
   | `Param of (attr * string) list * xhnotag list
   | `Pre of (attr * string) list * xhprecont list
@@ -317,6 +319,7 @@ and xhalltagsl = xhalltags list
 and xhtmlcont =
     [ `Body of (attr * string) list * xhbodycont list
   | `Comment of string (* A special one for comments *)
+  | `Whitespace of string
   | `Head of (attr * string) list * xhheadcont list ]
 
 and xhbodycont =
@@ -342,6 +345,7 @@ and xhbodycont =
   | `Pre of (attr * string) list * xhprecont list
   | `Script of (attr * string) list * xhpcdata list
   | `Table of (attr * string) list * xhtablecont list
+  | `Whitespace of string
   | `Ul of (attr * string) list * xhulcont list ]
 
 and xhdivcont = 
@@ -383,6 +387,7 @@ and xhdivcont =
   | `Ol of (attr * string) list * xhulcont list
   | `P of (attr * string) list * xhinlinecont list
   | `PCData of string
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)
   | `Pre of (attr * string) list * xhprecont list
   | `Q of (attr * string) list * xhinlinecont list
@@ -440,6 +445,7 @@ and xhobjectcont =
   | `P of (attr * string) list * xhinlinecont list
   | `Param of (attr * string) list * xhnotag list
   | `PCData of string
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)
   | `Pre of (attr * string) list * xhprecont list
   | `Q of (attr * string) list * xhinlinecont list
@@ -497,6 +503,7 @@ and xhfieldsetcont =
   | `Ol of (attr * string) list * xhulcont list
   | `P of (attr * string) list * xhinlinecont list
   | `PCData of string
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)
   | `Pre of (attr * string) list * xhprecont list
   | `Q of (attr * string) list * xhinlinecont list
@@ -547,6 +554,7 @@ and xhbuttoncont =
   | `Ol of (attr * string) list * xhulcont list
   | `P of (attr * string) list * xhinlinecont list
   | `PCData of string
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)
   | `Pre of (attr * string) list * xhprecont list
   | `Q of (attr * string) list * xhinlinecont list
@@ -566,6 +574,7 @@ and xhheadcont =
     [ `Base of (attr * string) list * xhnotag list
   | `Link of (attr * string) list * xhpcdata list
   | `Comment of string (* A special one for comments *)
+  | `Whitespace of string
   | `Object of (attr * string) list * xhobjectcont list
   | `Script of (attr * string) list * xhpcdata list
   | `Style of (attr * string) list * xhpcdata list
@@ -574,6 +583,7 @@ and xhheadcont =
 and xhformcont = 
     [ `Address of (attr * string) list * xhinlinecont list
   | `Comment of string (* A special one for comments *)
+  | `Whitespace of string
   | `Blockquote of (attr * string) list * xhblockquotecont list
   | `Del of (attr * string) list * xhdivcont list
   | `Div of (attr * string) list * xhdivcont list
@@ -598,6 +608,7 @@ and xhformcont =
 and xhblockquotecont = 
     [ `Address of (attr * string) list * xhinlinecont list
   | `Comment of string (* A special one for comments *)
+  | `Whitespace of string
   | `Blockquote of (attr * string) list * xhblockquotecont list
   | `Del of (attr * string) list * xhdivcont list
   | `Div of (attr * string) list * xhdivcont list
@@ -625,6 +636,7 @@ and xhmapcont =
   | `Area of (attr * string) list * xhnotag list
   | `Blockquote of (attr * string) list * xhblockquotecont list
   | `Comment of string (* A special one for comments *)
+  | `Whitespace of string
   | `Del of (attr * string) list * xhdivcont list
   | `Div of (attr * string) list * xhdivcont list
   | `Dl of (attr * string) list * xhdlcont list
@@ -670,6 +682,7 @@ and xhinlinecont =
   | `Map of (attr * string) list * xhmapcont list
   | `Object of (attr * string) list * xhobjectcont list
   | `PCData of string
+  | `Whitespace of string
   | `Q of (attr * string) list * xhinlinecont list
   | `Samp of (attr * string) list * xhinlinecont list
   | `Script of (attr * string) list * xhpcdata list
@@ -706,6 +719,7 @@ and xhlabelcont =
   | `Map of (attr * string) list * xhmapcont list
   | `Object of (attr * string) list * xhobjectcont list
   | `PCData of string
+  | `Whitespace of string
   | `Q of (attr * string) list * xhinlinecont list
   | `Samp of (attr * string) list * xhinlinecont list
   | `Script of (attr * string) list * xhpcdata list
@@ -742,6 +756,7 @@ and xhacont =
   | `Map of (attr * string) list * xhmapcont list
   | `Object of (attr * string) list * xhobjectcont list
   | `PCData of string
+  | `Whitespace of string
   | `Q of (attr * string) list * xhinlinecont list
   | `Samp of (attr * string) list * xhinlinecont list
   | `Script of (attr * string) list * xhpcdata list
@@ -770,6 +785,7 @@ and xhprecont =
   | `Kbd of (attr * string) list * xhinlinecont list
   | `Map of (attr * string) list * xhmapcont list
   | `PCData of string
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)
   | `Q of (attr * string) list * xhinlinecont list
   | `Samp of (attr * string) list * xhinlinecont list
@@ -782,10 +798,12 @@ and xhprecont =
 and xhdlcont =
     [ `Dd of (attr * string) list * xhdivcont list
   | `Comment of string (* A special one for comments *)
+  | `Whitespace of string
   | `Dt of (attr * string) list * xhinlinecont list ]
 
 and xhtml = 
   [ `Html of (attr * string) list * xhtmlcont list 
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *) ]
 
 and xhform = [ `Form of (attr * string) list * xhformcont list ]
@@ -802,27 +820,33 @@ and xhtextarea = [ `Textarea of (attr * string) list * xhpcdata list ]
 
 and xhoptgroupcont = 
     [ `Option of (attr * string) list * xhpcdata list 
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)]
 
 and xhcolgroupcont = 
     [ `Col of (attr * string) list * xhnotag list 
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)]
 
 and xhulcont =
     [ `Li of (attr * string) list * xhdivcont list 
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)]
 
 and xhselectcont =
     [ `Optgroup of (attr * string) list * xhoptgroupcont list
   | `Option of (attr * string) list * xhpcdata list
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)]
 
 and xhtbodycont =
     [ `Tr of (attr * string) list * xhtrcont list
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *)]
 
 and xhtablecont =
     [ `Caption of (attr * string) list * xhinlinecont list
+  | `Whitespace of string
   | `Col of (attr * string) list * xhnotag list
   | `Colgroup of (attr * string) list * xhcolgroupcont list
   | `Comment of string (* A special one for comments *)
@@ -834,6 +858,7 @@ and xhtablecont =
 and xhtrcont =
     [ `Td of (attr * string) list * xhdivcont list
   | `Th of (attr * string) list * xhdivcont list
+  | `Whitespace of string
   | `Comment of string (* A special one for comments *) ]
 
 
@@ -848,7 +873,7 @@ let rec xh_search l xh_type = match l with
 		open Format
 
 let xh_string = str_formatter
-let taille_tab = 4
+let taille_tab = 2
 
 let xh_topxml = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>"
 let xh_topdoctype = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
@@ -859,13 +884,14 @@ let rec xh_print_attrs attrs = match attrs with
 | (xh_type,texte)::queue -> pp_print_string xh_string (" "^(xh_search attrlist xh_type)^"=\""^texte^"\"");
     xh_print_attrs queue;;
 
-let rec xh_print_pcdata texte i is_first = pp_open_tbox xh_string ();
+let rec xh_print_pcdata texte i is_first = 
+(*  pp_open_tbox xh_string ();
   if ((i > 0) || is_first) then 
     pp_force_newline xh_string ();
   if ((i > 0) || is_first) then
-    pp_print_tbreak xh_string (taille_tab*i) 0;
+    pp_print_tbreak xh_string (taille_tab*i) 0; *)
   pp_print_string xh_string texte;
-  pp_close_tbox xh_string ();
+(*  pp_close_tbox xh_string (); *)
 
 and xh_print_closedtag tag attrs i is_first =  pp_open_tbox xh_string ();
   if (i > 0) || is_first then 
@@ -877,17 +903,18 @@ and xh_print_closedtag tag attrs i is_first =  pp_open_tbox xh_string ();
   pp_print_string xh_string "/>";
   pp_close_tbox xh_string ();
 
-and xh_print_inlinetag tag attrs taglist i is_first = pp_open_tbox xh_string ();
+and xh_print_inlinetag tag attrs taglist i is_first = 
+(*  pp_open_tbox xh_string ();
   if (i > 0) || is_first then 
     pp_force_newline xh_string ();
   if ((i > 0) || is_first) then
-    pp_print_tbreak xh_string (taille_tab*i) 0;
+    pp_print_tbreak xh_string (taille_tab*i) 0; ?????? *)
   pp_print_string xh_string ("<"^tag);
   xh_print_attrs attrs;
   pp_print_string xh_string ">";
-  xh_print_taglist taglist 0 false;
+  xh_print_taglist taglist 0 false false;
   pp_print_string xh_string ("</"^tag^">");
-  pp_close_tbox xh_string ();
+(*  pp_close_tbox xh_string (); *)
   
 and xh_print_blocktag tag attrs taglist i = 
   if taglist = [] 
@@ -901,7 +928,7 @@ and xh_print_blocktag tag attrs taglist i =
     xh_print_attrs attrs;
     pp_print_string xh_string ">";
     
-    xh_print_taglist taglist (i+1) true;
+    xh_print_taglist_removews taglist (i+1) true;
     
     pp_force_newline xh_string ();
     if i > 0 then
@@ -910,7 +937,12 @@ and xh_print_blocktag tag attrs taglist i =
     pp_close_tbox xh_string ()
   end
 
-and xh_print_taglist taglist i is_first = match taglist with 
+and xh_print_taglist_removews taglist i is_first = 
+  match taglist with
+    (`Whitespace s)::l -> xh_print_taglist_removews l i is_first
+  | l -> xh_print_taglist l i is_first true
+  
+and xh_print_taglist taglist i is_first removetailingws = match taglist with 
   
   (* ici on a fini la liste *)
   [] -> pp_open_tbox xh_string ();
@@ -919,335 +951,431 @@ and xh_print_taglist taglist i is_first = match taglist with
   (* Comentaires *)
 | (`Comment(texte))::queue ->
     xh_print_pcdata ("<!--"^texte^"-->") i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
   (* texte version nature *)
 | (`PCData(texte))::queue ->
     xh_print_pcdata texte i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
   (* Balises n'ayant aucun tag a l'interieur *)
 | (`Br(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "br" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Base(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "base" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Meta(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "meta" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Link(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "link" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
+| (`Whitespace _)::(`Hr(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Hr(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Hr(xh_attrs,xh_taglist))::queue
 | (`Hr(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "hr" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Param(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "param" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`Img(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "img" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Area(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "area" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`Input(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "input" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Col(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "col" xh_attrs i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
     (* Balises de presentation, type inline *)
 | (`B(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "b" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Big(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "big" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`I(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "i" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Small(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "small" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Sub(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "sub" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Sup(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "sup" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Tt(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "tt" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
     (* Balises de formulaire de type block *)
-| (`Button(xh_attrs,xh_taglist))::queue ->
-    xh_print_blocktag "button" xh_attrs (xh_taglist : xhbuttoncont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
-
+| (`Whitespace _)::(`Fieldset(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Fieldset(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Fieldset(xh_attrs,xh_taglist))::queue
 | (`Fieldset(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "fieldset" xh_attrs (xh_taglist : xhfieldsetcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Form(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Form(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Form(xh_attrs,xh_taglist))::queue
 | (`Form(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "form" xh_attrs (xh_taglist : xhformcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
-
-| (`Select(xh_attrs,xh_taglist))::queue ->
-    xh_print_blocktag "select" xh_attrs (xh_taglist : xhselectcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;	
+    xh_print_taglist queue i false removetailingws;
 
     (* Balise de formulaire de type inline*)
+| (`Select(xh_attrs,xh_taglist))::queue ->
+    xh_print_inlinetag "select" xh_attrs (xh_taglist : xhselectcont list :> xhalltagsl) i is_first;
+    xh_print_taglist queue i false removetailingws;	
+
+| (`Button(xh_attrs,xh_taglist))::queue ->
+    xh_print_inlinetag "button" xh_attrs (xh_taglist : xhbuttoncont list :> xhalltagsl) i is_first;
+    xh_print_taglist queue i false removetailingws;
+
 | (`Label(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "label" xh_attrs (xh_taglist : xhlabelcont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Legend(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "legend" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`Optgroup(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "optgroup" xh_attrs (xh_taglist : xhoptgroupcont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Option(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "option" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`Textarea(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "textarea" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
     (* Balise de texte de type inline *)
 | (`A(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "a" xh_attrs (xh_taglist : xhacont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Abbr(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "abbr" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`Acronym(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "acronym" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Cite(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "cite" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`Code(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "code" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Dfn(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "dfn" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Em(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "em" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`Kbd(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "kbd" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Q(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "q" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`Samp(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "samp" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Span(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "span" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Strong(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "strong" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
 | (`Var(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "var" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
     (* Balise de division de type block *)
+| (`Whitespace _)::(`Address(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Address(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Address(xh_attrs,xh_taglist))::queue
 | (`Address(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "address" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Body(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Body(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Body(xh_attrs,xh_taglist))::queue
 | (`Body(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "body" xh_attrs (xh_taglist : xhbodycont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Head(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Head(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Head(xh_attrs,xh_taglist))::queue
 | (`Head(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "head" xh_attrs (xh_taglist : xhheadcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Blockquote(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Blockquote(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Blockquote(xh_attrs,xh_taglist))::queue
 | (`Blockquote(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "blockquote" xh_attrs (xh_taglist : xhblockquotecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Div(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Div(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Div(xh_attrs,xh_taglist))::queue
 | (`Div(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "div" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Html(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Html(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Html(xh_attrs,xh_taglist))::queue
 | (`Html(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "html" xh_attrs (xh_taglist : xhtmlcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`H1(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`H1(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`H1(xh_attrs,xh_taglist))::queue
 | (`H1(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "h1" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`H2(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`H2(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`H2(xh_attrs,xh_taglist))::queue
 | (`H2(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "h2" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`H3(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`H3(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`H3(xh_attrs,xh_taglist))::queue
 | (`H3(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "h3" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`H4(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`H4(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`H4(xh_attrs,xh_taglist))::queue
 | (`H4(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "h4" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`H5(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`H5(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`H5(xh_attrs,xh_taglist))::queue
 | (`H5(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "h5" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`H6(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`H6(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`H6(xh_attrs,xh_taglist))::queue
 | (`H6(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "h6" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`P(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`P(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`P(xh_attrs,xh_taglist))::queue
 | (`P(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "p" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Pre(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Pre(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Pre(xh_attrs,xh_taglist))::queue
 | (`Pre(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "pre" xh_attrs (xh_taglist : xhprecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
     (* Balise interactif de type block *)
 | (`Map(xh_attrs,xh_taglist))::queue ->
-    xh_print_blocktag "map" xh_attrs (xh_taglist : xhmapcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_inlinetag "map" xh_attrs (xh_taglist : xhmapcont list :> xhalltagsl) i is_first;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Noscript(xh_attrs,xh_taglist))::queue ->
-    xh_print_blocktag "noscript" xh_attrs (xh_taglist : xhbodycont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_inlinetag "noscript" xh_attrs (xh_taglist : xhbodycont list :> xhalltagsl) i is_first;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Object(xh_attrs,xh_taglist))::queue ->
-    xh_print_blocktag "object" xh_attrs (xh_taglist : xhobjectcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_inlinetag "object" xh_attrs (xh_taglist : xhobjectcont list :> xhalltagsl) i is_first;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Script(xh_attrs,xh_taglist))::queue ->
-    xh_print_blocktag "script" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_inlinetag "script" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i is_first;
+    xh_print_taglist queue i false removetailingws;
 
     (* Balise d'entete de type inline *)
 | (`Title(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "title" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Style(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "style" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
     (* Balise de liste de type inline *)
 | (`Dt(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "dt" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
     (* Balise de liste de type block *)
 | (`Dd(xh_attrs,xh_taglist))::queue ->
     
     xh_print_blocktag "dd" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
+| (`Whitespace _)::(`Dl(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Dl(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Dl(xh_attrs,xh_taglist))::queue
 | (`Dl(xh_attrs,xh_taglist))::queue -> 
     xh_print_blocktag "dl" xh_attrs (xh_taglist : xhdlcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Li(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Li(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Li(xh_attrs,xh_taglist))::queue
 | (`Li(xh_attrs,xh_taglist))::queue -> 
     xh_print_blocktag "li" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Ol(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Ol(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Ol(xh_attrs,xh_taglist))::queue
 | (`Ol(xh_attrs,xh_taglist))::queue -> 
     xh_print_blocktag "ol" xh_attrs (xh_taglist : xhulcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Ul(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Ul(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Ul(xh_attrs,xh_taglist))::queue
 | (`Ul(xh_attrs,xh_taglist))::queue -> 
     xh_print_blocktag "ul" xh_attrs (xh_taglist : xhulcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
     (* Balises de tableau de type inline *)
 | (`Caption(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "caption" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
     (* Balises de tableau de type block *)
+| (`Whitespace _)::(`Colgroup(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Colgroup(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Colgroup(xh_attrs,xh_taglist))::queue
 | (`Colgroup(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "colgroup" xh_attrs (xh_taglist : xhcolgroupcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
+| (`Whitespace _)::(`Table(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Table(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Table(xh_attrs,xh_taglist))::queue
 | (`Table(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "table" xh_attrs (xh_taglist : xhtablecont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Tbody(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Tbody(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Tbody(xh_attrs,xh_taglist))::queue
 | (`Tbody(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "tbody" xh_attrs (xh_taglist : xhtbodycont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
+| (`Whitespace _)::(`Tfoot(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Tfoot(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Tfoot(xh_attrs,xh_taglist))::queue
 | (`Tfoot(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "tfoot" xh_attrs (xh_taglist : xhtbodycont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
+| (`Whitespace _)::(`Thead(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Thead(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Thead(xh_attrs,xh_taglist))::queue
 | (`Thead(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "thead" xh_attrs (xh_taglist : xhtbodycont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
+| (`Whitespace _)::(`Td(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Td(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Td(xh_attrs,xh_taglist))::queue
 | (`Td(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "td" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Th(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Th(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Th(xh_attrs,xh_taglist))::queue
 | (`Th(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "th" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
+| (`Whitespace _)::(`Tr(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Tr(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Tr(xh_attrs,xh_taglist))::queue
 | (`Tr(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "tr" xh_attrs (xh_taglist : xhtrcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
     
     (* Balises divers de type inline *)
 | (`Bdo(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "bdo" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false;
+    xh_print_taglist queue i false removetailingws;
 
-    (*Balise divers de type block *)
 | (`Del(xh_attrs,xh_taglist))::queue ->
-    xh_print_blocktag "del" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_inlinetag "del" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i is_first;
+    xh_print_taglist queue i false removetailingws;
 
 | (`Ins(xh_attrs,xh_taglist))::queue ->
-    xh_print_blocktag "ins" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
-    xh_print_taglist queue i false;
+    xh_print_inlinetag "ins" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i is_first;
+    xh_print_taglist queue i false removetailingws;
+
+  (* espaces et retours-chariots *)
+| [`Whitespace(texte)] ->
+    if not removetailingws
+    then pp_print_string xh_string texte
+
+| (`Whitespace(texte))::queue ->
+    pp_print_string xh_string texte;
+    xh_print_taglist queue i false removetailingws;
+
 
     and xh_print (arbre : xhtml)  = 
 	pp_open_tbox xh_string ();
@@ -1256,7 +1384,7 @@ and xh_print_taglist taglist i is_first = match taglist with
     pp_print_string xh_string xh_topdoctype;
     pp_force_newline xh_string ();
     
-    xh_print_taglist ([arbre] :> xhalltagsl) 0 true;
+    xh_print_taglist ([arbre] :> xhalltagsl) 0 true false;
 
     pp_force_newline xh_string ();
     pp_close_tbox xh_string ();

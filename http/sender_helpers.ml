@@ -25,7 +25,10 @@ open Lwt
 module Xhtml_content =
   struct
     type t = Xhtmlpp.xhtml
-    let string_of_content = Xhtmlpp.xh_print
+    let string_of_content c = 
+      let s = Xhtmlpp.xh_print c in
+      (* debug *) print_endline s; 
+      s
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_string s = assert false
   end
@@ -76,7 +79,7 @@ module Empty_http_frame = FHttp_frame (Empty_content)
 module Empty_sender = FHttp_sender(Empty_content)
 
 (** this module is a Http_frame with Xhtml content*)
-module Xhtml_htttp_frame = FHttp_frame (Xhtml_content)
+module Xhtml_http_frame = FHttp_frame (Xhtml_content)
 
 (** this module is a sender that send Http_frame with Xhtml content*)
 module Xhtml_sender = FHttp_sender(Xhtml_content)
@@ -139,7 +142,8 @@ let create_empty_sender ?server_name ?proto fd =
 * page is the page to send
 * xhtml_sender is the used sender*)
 let send_generic 
-    ?code ?keep_alive ?cookie ?path ?location ?(header=[]) page sender 
+    ?code ?keep_alive ?cookie ?last_modified
+    ?path ?location ?(header=[]) page sender 
     (send : ?mode:Xhtml_sender.H.http_mode ->
       ?proto:string ->
       ?headers:(string * string) list ->
@@ -148,13 +152,14 @@ let send_generic
       ?code:int -> 
       ?content:'a -> 'b -> unit Lwt.t) =
   (*ajout des option spécifique à la page*)
-  (*ici il faudrait récupérer la valeur e la commande date*)
-  let date = "Tue, 31 May 2006 16:34:59 GMT" in
-  (*ici il faudrait récupérer la valeur de la commande uname*)
-  let server = "ploplop (Unix) (Gentoo/Linux) omlet"in
+  let date = Netdate.mk_mail_date ~zone:0 (Unix.time ()) in
   (*il faut récupérer la date de dernière modification si ca a une
   * signification*)
-  let last_mod = "Wed, 20 Oct 1900 12:51:24 GMT" in 
+  let last_mod =
+    match last_modified with
+    |None -> date
+    |Some l  -> Netdate.mk_mail_date ~zone:0 l
+  in
   let hds =
       ("Date",date)::
       ("Last-Modified",last_mod)::header
@@ -189,9 +194,10 @@ let send_generic
 * path is the path associated to the cookie
 * page is the page to send
 * xhtml_sender is the used sender*)
-let send_page ?code ?keep_alive ?cookie ?path ?location page xhtml_sender =
+let send_page ?code ?keep_alive ?cookie ?path 
+    ?last_modified ?location page xhtml_sender =
   send_generic 
-    ?code ?keep_alive ?cookie ?path ?location 
+    ?code ?keep_alive ?cookie ?path ?location ?last_modified
     page xhtml_sender Xhtml_sender.send
   
 (** fonction that sends an empty answer
@@ -200,8 +206,9 @@ let send_page ?code ?keep_alive ?cookie ?path ?location page xhtml_sender =
 * cookie is a string value that give a value to the session cookie
 * page is the page to send
 * empty_sender is the used sender *)
-let send_empty ?code ?keep_alive ?cookie ?path ?location empty_sender =
-  send_generic 
+let send_empty ?code ?keep_alive ?cookie 
+    ?path ?location ?last_modified empty_sender =
+  send_generic  ?last_modified
     ?code ?keep_alive ?cookie ?path ?location () empty_sender Empty_sender.send
 
   
@@ -280,9 +287,10 @@ let content_type_from_file_name filename =
       | "js" -> "application/x-javascript"
       | _ -> "unknown"
 
-let send_file ?code ?keep_alive ?cookie ?path ?location file file_sender =
+let send_file ?code ?keep_alive ?cookie ?path
+    ?last_modified ?location file file_sender =
   send_generic 
-    ?code ?keep_alive ?cookie ?path ?location 
+    ?code ?keep_alive ?cookie ?path ?location ?last_modified
     ~header:[("Content-Type",content_type_from_file_name file)]
     file file_sender File_sender.send
 

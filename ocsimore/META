@@ -1,0 +1,4 @@
+description = "Ocsimore tools for Ocsigen"
+version = "0.1.x"
+requires = "netstring dbi.postgresql"
+archive(byte) = "ocsimore.cma"

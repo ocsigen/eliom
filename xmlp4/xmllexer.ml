@@ -3,7 +3,7 @@
 (* xmllexer.ml provide a generic XML lexer for Camlp4. *)
 (* Manuel.Maarek@macs.hw.ac.uk (Heriot-Watt University) *)
 (* Manuel.Maarek@spi.lip6.fr (LIP6) *)
-
+(* Modif by VB for xmlp4 *)
 
 
 (* derived from the default lexer of Camlp4: plexer.ml *)
@@ -147,15 +147,18 @@ value next_token_fun find_kwd fname lnum bolpos =
     ]
   and next_token_normal =
     parser bp
-    [ [: `' ' | '\010' | '\013' | '\t' | '\026' | '\012'; s :] ->
-        next_token s
+    [ [: `(' ' | '\010' | '\013' | '\t' | '\026' | '\012' as c); s :] ep ->
+      let c_string = string_of_space_char c in
+      (("WHITESPACE", 
+	get_buff (whitespaces bp (mstore 0 c_string) s)),mkloc (bp,ep))
     | [: `('A'..'Z' | '\192'..'\214' | '\216'..'\222' | 'a'..'z' |
       '\223'..'\246' | '\248'..'\255' | '_' | '1'..'9' | '0' | '\'' | '"' |
       (* '$' | *) 
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
       '?' | ':' | '|' | '[' | ']' | '{' | '}' | '.' | ';' | ',' | '\\' | '(' |
       ')' | '#' | '>'
-	as c); s :] ep -> (("DATA", get_buff (data bp (store 0 c) s)),mkloc (bp,ep))
+	as c); s :] ep -> 
+	  (("DATA", get_buff (data bp (store 0 c) s)),mkloc (bp,ep))
     | [: `'$'; s :] ep -> (* for caml varnames *) camlvarattr bp 0 s
     | [: `'<'; s :] ->
 	match s with parser
@@ -182,6 +185,7 @@ value next_token_fun find_kwd fname lnum bolpos =
 	else
 	  err (mkloc (bp, ep)) ( (string_of_int size) ^ " tag" ^ (if size == 1 then "" else "s") ^ " not terminated (" ^ (string_of_tag_stack ()) ^ ").")
     ]
+
 (* XML *)
   and question_mark_tag bp len =
     parser
@@ -315,10 +319,10 @@ value next_token_fun find_kwd fname lnum bolpos =
       |	[: :] ep -> err (mkloc (bp, ep)) "attribut value not terminated" ]
   and data bp len =
     parser
-    [ [: `(' ' | '\n' | '\t' as c); s :] ->
+    [ (* [: `(' ' | '\n' | '\t' as c); s :] ->
       let c_string = string_of_space_char c in
       spaces_in_data bp len c_string s
-    | [: `('A'..'Z' | '\192'..'\214' | '\216'..'\222' | 'a'..'z' |
+    | *) [: `('A'..'Z' | '\192'..'\214' | '\216'..'\222' | 'a'..'z' |
       '\223'..'\246' | '\248'..'\255' | '_' | '1'..'9' | '0' | '\'' | '"' |
       (* '$' | *)
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
@@ -326,7 +330,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       ')' | '#' | '>'
 	as c) ; s :] -> data bp (store len c) s
     | [: s :] -> len ]
-  and spaces_in_data bp len spaces =
+(*  and spaces_in_data bp len spaces =
     parser
     [ [: `(' ' | '\n' | '\t' as c); s :] ->
       let c_string = string_of_space_char c in
@@ -339,6 +343,12 @@ value next_token_fun find_kwd fname lnum bolpos =
       ')' | '#'
 	as c) ; s :] ->
        	  data bp (store (mstore len spaces) c) s
+    | [: s :] -> len ] *)
+  and whitespaces bp len =
+    parser
+    [ [: `(' ' | '\010' | '\013' | '\t' | '\026' | '\012' as c); s :] ->
+      let c_string = string_of_space_char c in
+      whitespaces bp (mstore len c_string) s
     | [: s :] -> len ]
 (* /XML *)
 
@@ -456,7 +466,7 @@ value using_token kwd_table ident_table (p_con, p_prm) =
     "CAMLVARL" | "CAMLVARXMLL" |  
     "CAMLVARXMLS" | "COMMENT" |
     "TAG" | "GAT" | "ATTR" | "VALUE" | "XMLDECL" |
-    "DECL" | "DATA" | "EOI" ->
+    "DECL" | "DATA" | "WHITESPACE" | "EOI" ->
       ()
   | _ ->
       raise
@@ -493,6 +503,7 @@ value text =
   | ("XMLDECL","") -> "XML declaration"
   | ("DECL","") -> "declaration"
   | ("DATA","") -> "data"
+  | ("WHITESPACE","") -> "whitespace"
 
   | ("EOI", "") -> "end of input"
   | (con, "") -> con

@@ -30,14 +30,8 @@ let get_var = function
 let cmo_list =
   [
    
-   (* for Ocsimore : *)
-   "../lib/db_create.cmo";
-   "../lib/ocsipersist.cmo";
-   "../lib/ocsicache.cmo";
-   "../lib/ocsidata.cmo";
-   "../lib/ocsipages.cmo";
-   "../lib/ocsisav.cmo";
-   "../lib/ocsiboxes.cmo";
+   (* Ocsimore : *)
+   "../lib/ocsimore.cma";
    
    (* Ocsimore examples : *)
    "../lib/ocsexample_util.cmo"
@@ -58,8 +52,15 @@ let module_list =
    (* Ocsimore examples : *)
    (["ocsimore1"],"../lib/ocsexample1.cmo");
    (["ocsimore"],"../lib/ocsexample2.cmo");
-   (["ocsisav"],"../lib/ocsexample3.cmo")
-   
+   (["ocsisav"],"../lib/ocsexample3.cmo");
+
+   (* Profiling : *)
+   (["prof"],"../lib/profiling.cmo")
+
+   (* Ocsigen website (not part of the distrib) *)
+   ;(["site"],"../../site/site_ocsigen.cmo");
+   (* *)
+
    (*;
    (* Ocsespace (not part of the distrib for the while) *)
    (["camlcom"],"../../ocsespace/lib/camlcom.cmo")

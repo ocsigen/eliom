@@ -1370,4 +1370,4 @@ let load_ocsigen_module ~dir ~cmo =
 	raise e (*Ocsigen_error_while_loading cmo*)
 
 
-
+let number_of_sessions () = Cookies.length cookie_table

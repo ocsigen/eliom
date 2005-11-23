@@ -308,3 +308,6 @@ val state_param_name : string
 val action_prefix : string
 val action_name : string
 val action_reload : string
+
+(** Profiling *)
+val number_of_sessions : unit -> int
