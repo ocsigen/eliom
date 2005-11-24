@@ -16,53 +16,35 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* For the while, no config file. We use this file instead.
-   Later, all these informations we be parsed from a file.
- *)
 
 exception Config_file_error of string
 
-let get_var = function
-    "logfile" -> "../ocsigen.log"
-  | "static_pages_directory" -> "../pages"
-  | s -> raise (Config_file_error s)
+let port = ref 80
+let logfile = ref "/var/log/ocsigen.log"
+let staticpages = ref "/var/www/ocsigen"
+let config_file = ref "/etc/ocsigen/ocsigen.conf"
 
-let cmo_list =
-  [
-   
-   (* Ocsimore : *)
-   "../lib/ocsimore.cma";
-   
-   (* Ocsimore examples : *)
-   "../lib/ocsexample_util.cmo"
-     
-     (*;
-	(* For Ocsespace (not part of the distrib for the while) *)
-	"../../ocsespace/lib/ocsespace.cmo";
-      *)
-     
- ]
+let set_port i = port := i
+let set_logfile s = logfile := s
+let set_staticpages s = staticpages := s
+let get_port () = !port
+let get_logfile () = !logfile
+let get_staticpages () = !staticpages
+let get_config_file () = !config_file
 
-let module_list =
-  [
+let print_location loc =
+  Printf.sprintf "%d-%d" (fst loc).Lexing.pos_cnum (snd loc).Lexing.pos_cnum
 
-   (* Tutorial *)
-   ([""],"../lib/moduleexample.cmo");
+let config = 
+  try
+    Xmlparser.xmlparser (get_config_file ())
+  with
+    Stdpp.Exc_located (fl,exn) -> 
+      Printf.eprintf "%s" 
+	("Syntax error in config file at location : "^(print_location fl));
+      raise exn
 
-   (* Ocsimore examples : *)
-   (["ocsimore1"],"../lib/ocsexample1.cmo");
-   (["ocsimore"],"../lib/ocsexample2.cmo");
-   (["ocsisav"],"../lib/ocsexample3.cmo");
 
-   (* Profiling : *)
-   (["prof"],"../lib/profiling.cmo")
 
-   (* Ocsigen website (not part of the distrib) *)
-   ;(["site"],"../../site/site_ocsigen.cmo");
-   (* *)
 
-   (*;
-   (* Ocsespace (not part of the distrib for the while) *)
-   (["camlcom"],"../../ocsespace/lib/camlcom.cmo")
-    *)
- ]
+

@@ -159,7 +159,6 @@ end
 
 open ExpoOrPatt
 
-
 let exprpatt_xml = Grammar.Entry.create g "xml"
 let exprpatt_any_tag = Grammar.Entry.create g "xml tag"
 let exprpatt_any_tag_list = Grammar.Entry.create g "xml tag list"
@@ -243,16 +242,13 @@ EXTEND
 END;;
 
 let xml_exp s = to_expr (Grammar.Entry.parse exprpatt_xml (Stream.of_string s))
-let xml_pat s = to_patt (Grammar.Entry.parse exprpatt_xml (Stream.of_string s)) 
-let _ = Quotation.add "xml" (Quotation.ExAst (xml_exp, xml_pat))
+let xml_pat s = to_patt (Grammar.Entry.parse exprpatt_xml (Stream.of_string s))
 
-let xml_expl s = to_expr_taglist 
-  (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s))
-let xml_patl s = to_patt_taglist 
-  (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s)) 
-let _ = Quotation.add "xmllist" (Quotation.ExAst (xml_expl, xml_patl))
-
-let _ = Quotation.default := "xml"
+let xmlparser s =
+  let chan = open_in s in
+  let tree = Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_channel chan) in
+  close_in chan;
+  tree
 
 
 

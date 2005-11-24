@@ -328,7 +328,7 @@ let change_empty_activator = function
   | Url_Prefix l -> Url_Prefix (change_empty_list l)
 
 
-(* En fait cette fonction est dans Neturl
+(* En fait cette fonction est dans Neturl (split_path)
 let rec cut_url s = 
   try
     let length = String.length s in

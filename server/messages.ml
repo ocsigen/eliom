@@ -25,7 +25,7 @@ let lwtwarning s =
   Lwt_unix.write Unix.stderr s 0 (String.length s)
 
 let lwtlog = 
-  let logfile = Config.get_var "logfile" in
+  let logfile = Config.get_logfile () in
   fun s ->
     let s = s^"\n" in
     let file = 

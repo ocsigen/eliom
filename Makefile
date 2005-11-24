@@ -1,3 +1,4 @@
+include Makefile.config
 
 REPS = lwt xmlp4 http server modules
 OCAMLFIND = ocamlfind
@@ -34,15 +35,28 @@ depend: xmlp4
 	@for i in $(REPS) ; do > "$$i"/.depend; make -C $$i depend ; done
 
 
-.PHONY: install
+.PHONY: install fullinstall
 install:
 	make -C server install
 	make -C ocsimore install
 
-.PHONY: uninstall
+fullinstall: install
+	mkdir -p $(CONFIGDIR)
+	mkdir -p $(MODULEINSTALLDIR)
+	mkdir -p $(STATICPAGESDIR)
+	cp files/ocsigen.conf $(CONFIGDIR)
+	touch $(LOGDIR)/ocsigen.log
+
+.PHONY: uninstall fulluninstall
 uninstall:
 	make -C server uninstall
 	make -C ocsimore uninstall
+
+fulluninstall: uninstall
+# dangerous
+#	rm -f $(CONFIGDIR)/ocsigen.conf
+#	rm -f $(LOGDIR)/ocsigen.log
+#	rm -rf $(MODULEINSTALLDIR)
 
 
 

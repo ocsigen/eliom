@@ -9,7 +9,7 @@ CAMLOPT = ocamlfind ocamlopt $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
 CAMLDEP = ocamlfind ocamldep
 LIB = -package dbi.postgresql -I ../lib
-PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo"
+PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo ../lib/xmlsyntax.cmo"
 
 OBJS = $(FILES:.ml=.cmo)
 OTHEROBJS = $(OTHERFILES:.ml=.cmo)
@@ -45,7 +45,7 @@ clean:
 
 .PHONY: install
 install:
-	$(OCAMLFIND) install ocsigen $(CMA) META
+	$(OCAMLFIND) install ocsigen $(CMA) $(OTHEROBJS) ../modules/tutorial.cmo ../modules/profiling.cmo META
 
 .PHONY: uninstall
 uninstall:

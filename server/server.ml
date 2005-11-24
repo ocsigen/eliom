@@ -23,8 +23,6 @@ open Http_frame
 open Http_com
 open Sender_helpers
 
-let static_pages_dir = ref "/"
-
 module Content = 
   struct
     type t = string
@@ -35,8 +33,6 @@ module Content =
 module Http_frame = FHttp_frame (Content)
 
 module Http_receiver = FHttp_receiver (Content)
-
-let listening_port = int_of_string Sys.argv.(1)
 
 (*let _ = Unix.set_nonblock Unix.stdin
 let _ = Unix.set_nonblock Unix.stdout
@@ -187,7 +183,7 @@ let service http_frame in_ch sockaddr
 		page xhtml_sender
 	    with Static_File l -> 
 	      Messages.warning ("Fichier statique : "^l);
-	      let filename = (!static_pages_dir^l) in
+	      let filename = ((Config.get_staticpages ())^"/"^l) in
 	      send_file 
 		~keep_alive:keep_alive
 		~last_modified:((Unix.stat filename).Unix.st_mtime)
@@ -309,27 +305,96 @@ let listen () =
     ((* Initialize the listening address *)
     new_socket () >>= (fun listening_socket ->
       Unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
-      Unix.bind listening_socket (local_addr listening_port);
+      Unix.bind listening_socket (local_addr (Config.get_port ()));
       Unix.listen listening_socket 1;
       wait_connexion  listening_socket
     ))
 
 
+open Xmlparser
+open ExpoOrPatt
+open Config
+
+(* I put the parser here and not in config.ml because of cyclic dependancies *)
+
+(* My xml parser is not really adapted to this.
+   It is the parser for the syntax extension.
+   But it works.
+ *)
+
+let _ = Dynlink.init ()
+
+let rec parser_config = 
+  let rec verify_empty = function
+      PLEmpty -> ()
+    | PLCons ((EPcomment _), l) -> verify_empty l
+    | PLCons ((EPwhitespace _), l) -> verify_empty l
+    | _ -> raise (Config_file_error "Don't know what to do with tailing data")
+  in
+  let rec parse_string = function
+      PLEmpty -> ""
+    | PLCons ((EPpcdata s), l) -> s^(parse_string l)
+    | PLCons ((EPwhitespace s), l) -> s^(parse_string l)
+    | PLCons ((EPcomment _), l) -> parse_string l
+    | _ -> raise (Config_file_error "string expected")
+  in let rec parse_site2 = function
+      PLCons ((EPanytag ("module", PLEmpty, s)), l) -> 
+	verify_empty l; 
+	parse_string s
+    | PLCons ((EPcomment _), l) -> parse_site2 l
+    | PLCons ((EPwhitespace _), l) -> parse_site2 l
+    | _ -> raise (Config_file_error "<module> tag expected inside <site>")
+  in
+  let rec parse_site = function
+      PLCons ((EPanytag ("url", PLEmpty, s)), l) -> 
+	Ocsigen.load_ocsigen_module 
+	  ~dir:(Neturl.split_path (parse_string s))
+	  ~cmo:(parse_site2 l)
+    | PLCons ((EPcomment _), l) -> parse_site l
+    | PLCons ((EPwhitespace _), l) -> parse_site l
+    | _ -> raise (Config_file_error "<url> tag expected inside <site>")
+  in
+  let rec parse_ocsigen = function
+      PLEmpty -> ()
+    | PLCons ((EPanytag ("port", PLEmpty, p)), ll) -> 
+	set_port (int_of_string (parse_string p));
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("logfile", PLEmpty, p)), ll) -> 
+	set_logfile (parse_string p);
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("staticpages", PLEmpty, p)), ll) -> 
+	set_staticpages (parse_string p);
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
+	Dynlink.loadfile (parse_string l);
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("site", PLEmpty, l)), ll) -> parse_site l;
+	parse_ocsigen ll
+    | PLCons ((EPcomment _), ll) -> parse_ocsigen ll
+    | PLCons ((EPwhitespace _), ll) -> parse_ocsigen ll
+    | PLCons ((EPanytag (tag, PLEmpty, l)), ll) -> 
+	raise (Config_file_error ("tag "^tag^" unexpected inside <ocsigen>"))
+    | _ ->
+	raise (Config_file_error "Syntax error")
+  in function 
+      PLCons ((EPanytag ("ocsigen", PLEmpty, l)), ll) -> 
+	verify_empty ll; 
+	parse_ocsigen l
+    | PLCons ((EPcomment _), ll) -> parser_config ll
+    | PLCons ((EPwhitespace _), ll) -> parser_config ll
+    | _ -> raise (Config_file_error "<ocsigen> tag expected")
+
+
+
+let parse_config () = parser_config Config.config
 
 let _ = 
   Lwt_unix.run (
-    (* Initialisations *)
-    static_pages_dir := ((Config.get_var "static_pages_directory")^"/");
-    (* On charge les modules *)
-    (try
-      Dynlink.init();
-      List.iter Dynlink.loadfile Config.cmo_list;
-      List.iter 
-	(fun (dir,cmo) -> load_ocsigen_module ~dir:dir ~cmo:cmo) 
-	Config.module_list;
-    with Ocsigen_error_while_loading m -> (warning ("Error while loading "^m)));
-    listen ()
+  (* Initialisations *)
+  (try
+    parse_config ()
+  with 
+    Ocsigen.Ocsigen_error_while_loading m -> 
+      (Messages.warning ("Error while loading "^m)));
+  listen ()
   )
-
-
-

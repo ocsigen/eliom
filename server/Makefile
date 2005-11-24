@@ -9,15 +9,16 @@ CAMLC = ocamlfind ocamlc -g $(LIB)
 CAMLOPT = ocamlfind ocamlopt $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
 CAMLDEP = ocamlfind ocamldep
-LIB = -package netstring,dbi.postgresql -I ../lib
-PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo"
+LIB = -package netstring,dbi.postgresql -I ../lib -I +camlp4
+PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo ../lib/xmlsyntax.cmo"
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtmlpp.cmo sender_helpers.cmo\
        error_pages.cmo\
-       postgresql.cma dbi.cma dbi_postgresql.cmo
-# dernière ligne pas nécessaire pour server mais je n'arrive pas à le lier ailleurs...
+       postgresql.cma dbi.cma dbi_postgresql.cmo\
+       gramlib.cma xmllexer.cmo xmlparser.cmo
+# avant dernière ligne pas nécessaire pour server mais je n'arrive pas à le lier ailleurs...
 
 OBJS = $(FILES:.ml=.cmo)
 

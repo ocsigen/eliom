@@ -16,10 +16,15 @@ To compile:
   make depend
   make 
 
-Then become root, and do
-  make install
+If you want system-wide installation, 
+modify Makefile.config,
+then become root, and do
+  make fullinstall
 
-(make uninstall to remove all)
+(make fulluninstall to remove all
+ make install to install only ocsigen and ocsimore.cma
+ without changing config or lof files
+ make uninstall)
 
 To run the web server
 
