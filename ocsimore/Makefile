@@ -12,6 +12,7 @@ LIB = -package dbi.postgresql -I ../lib
 PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo ../lib/xmlsyntax.cmo"
 
 OBJS = $(FILES:.ml=.cmo)
+CMI = $(FILES:.ml=.cmi)
 OTHEROBJS = $(OTHERFILES:.ml=.cmo)
 
 CMA = ocsimore.cma
@@ -45,7 +46,7 @@ clean:
 
 .PHONY: install
 install:
-	$(OCAMLFIND) install ocsigen $(CMA) $(OTHEROBJS) ../modules/tutorial.cmo ../modules/profiling.cmo META
+	$(OCAMLFIND) install ocsigen $(CMA) $(CMI) $(OTHEROBJS) ../modules/tutorial.cmo ../modules/profiling.cmo ../server/ocsigen.cmi ../xmlp4/xhtmlpp.cm* ../xmlp4/xmllexer.cmo ../xmlp4/xmlparser.cmo ../xmlp4/xmlsyntax.cmo META
 
 .PHONY: uninstall
 uninstall:

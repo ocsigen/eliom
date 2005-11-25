@@ -55,7 +55,7 @@ clean:
 install:
 	@echo "Installing binary"
 	mkdir -p $(BINDIR)
-	$(INSTALL) -m755 $(NAME) $(BINDIR)/
+	$(INSTALL) -m755 $(NAME) ocsigen.cmi $(BINDIR)/
 
 .PHONY: uninstall
 uninstall:

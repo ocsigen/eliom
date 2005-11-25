@@ -586,7 +586,7 @@ let _ = register_actionurl
 
 
 (* Static files: *)
-let filedir = register_new_static_directory ["files"] "moduleexample-files"
+let filedir = register_new_static_directory ["files"] "modules-files"
 (* This url works like a "prefix url". The suffix is the file name *)
 
 
@@ -619,6 +619,7 @@ let _ = register_new_url (Url []) (_current_url _noparam)
        <!-- This is a comment! -->
        <head>
          $lcss$
+	 <title>Ocsigen Tutorial</title>
        </head>
        <body>
        <h1>Ocsigen</h1>

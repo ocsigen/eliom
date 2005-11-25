@@ -27,6 +27,7 @@ let config_file = ref "/etc/ocsigen/ocsigen.conf"
 let set_port i = port := i
 let set_logfile s = logfile := s
 let set_staticpages s = staticpages := s
+let set_configfile s = config_file := s
 let get_port () = !port
 let get_logfile () = !logfile
 let get_staticpages () = !staticpages
@@ -34,6 +35,13 @@ let get_config_file () = !config_file
 
 let print_location loc =
   Printf.sprintf "%d-%d" (fst loc).Lexing.pos_cnum (snd loc).Lexing.pos_cnum
+
+
+let _ = Arg.parse
+    [("-c", Arg.String set_configfile, 
+      "Alternate config file (default /etc/ocsigen.conf)")]
+    (fun _ -> ())
+    "usage: ocsigen [-c configfile]"
 
 let config = 
   try

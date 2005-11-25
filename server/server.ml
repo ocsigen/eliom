@@ -181,7 +181,7 @@ let service http_frame in_ch sockaddr
 		else None)
 		~path:path
 		page xhtml_sender
-	    with Static_File l -> 
+	    with Static_File l ->
 	      Messages.warning ("Fichier statique : "^l);
 	      let filename = ((Config.get_staticpages ())^"/"^l) in
 	      send_file 

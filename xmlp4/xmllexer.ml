@@ -168,7 +168,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       |	[: `'!'; s :] ->
 	  match s with parser
 	    [ [: `'-'; `'-'; ct :] ep -> 
-		(("COMMENT", get_buff (comment_tag bp 0 ct)),
+		(("COMMENT", get_buff (comment_tag 0 bp 0 ct)),
 		 mkloc (bp,ep))
 	    | [: len = exclamation_mark_tag bp 0
 		 :] ep -> (("DECL", get_buff len),mkloc (bp,ep)) ]
@@ -192,15 +192,34 @@ value next_token_fun find_kwd fname lnum bolpos =
     [ [: `'?'; `'>' :] -> len
     | [: `c; s :] -> question_mark_tag bp (store len c) s
     | [: :] ep -> err (mkloc (bp, ep)) "XMLDecl tag (<? ?>) not terminated" ]
-  and comment_tag bp len =
+  and comment_tag prof bp len =
     parser
-    [ [: `'-'; s :] -> dash_in_comment_tag bp len s
-      |	[: `c; s :] -> comment_tag bp (store len c) s
+    [ [: `'-'; s :] -> dash_in_comment_tag prof bp len s
+      |	[: `'<'; s :] -> comment_tag2 prof bp len s
+      |	[: `c; s :] -> comment_tag prof bp (store len c) s
       | [: :] ep -> err (mkloc (bp, ep)) "comment (<!-- -->) not terminated" ]
-  and dash_in_comment_tag bp len =
+  and comment_tag2 prof bp len =
     parser
-    [ [: `'-'; `'>' :] -> len
-      |	[: a = comment_tag bp len :] -> a ]
+    [ [: `'!'; s :] -> comment_tag3 prof bp len s
+      |	[: s :] -> comment_tag prof bp (store len '<') s ]
+  and comment_tag3 prof bp len =
+    parser
+    [ [: `'-'; s :] -> comment_tag4 prof bp len s
+      |	[: s :] -> comment_tag prof bp (mstore len "<!") s ]
+  and comment_tag4 prof bp len =
+    parser
+    [ [: `'-'; s :] -> comment_tag (prof+1) bp (mstore len "<!--") s
+      |	[: s :] -> comment_tag prof bp (mstore len "<!-") s ]
+  and dash_in_comment_tag prof bp len =
+    parser
+    [ [: `'-'; s :] -> dash_in_comment_tag2 prof bp len s
+    | [: a = comment_tag prof bp (store len '-') :] -> a ]
+  and dash_in_comment_tag2 prof bp len =
+    parser
+    [ [: `'>'; s :] -> if prof = 0 
+                    then len 
+                    else comment_tag (prof-1) bp (mstore len "-->") s
+    | [: a = comment_tag prof bp (mstore len "--") :] -> a ]
   and exclamation_mark_tag bp len =
     parser bp_sb
     [ [: `'>' :] -> len

@@ -55,6 +55,7 @@ sig
     string ->
     (t index -> 'a, 'a, (t index Ocsigen.name -> 'b) -> 'b, 
       t index -> [>Xhtmlpp.xhalink], t index -> [>Xhtmlpp.xhform], 
+	t index -> [>Xhtmlpp.xhimg], 
 	t index -> [>Xhtmlpp.xhheadlink], t index -> [>Xhtmlpp.xhscript]) 
 	Ocsigen.parameters
   val int_of_index : t index -> int

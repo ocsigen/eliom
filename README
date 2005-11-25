@@ -26,16 +26,17 @@ then become root, and do
  without changing config or lof files
  make uninstall)
 
+Adapt the config file to set the port, the modules you want to load
+(by default the config file is /etc/ocsigen/ocsigen.conf,
+but you can specify another one: ocsigen -c configfile)
+
 To run the web server
 
-  ocsigen 80
-
-(where 80 is the port number)
+  ocsigen
 
 Then you can connect to the server with your browser:
 
 http://localhost
-http://localhost:80
 
 See the file modules/tutorial.ml for a tutorial
 
@@ -44,13 +45,6 @@ xmlp4/exemple/
 Warning : Typing forces to respect overlapping (?) of xhtml tags
 but that's all (it does not verify for example that mandatory tags are 
 present, or the order of tags)
-
-For the while, there is no config file telling which module to load.
-To add a module, (for example tutorial.cmo),
-load it from server/config.ml, 
-then recompile the server (make server).
-
-To see the list of modules loaded by default, see the file config.ml
 
 
 __________________________________________________________________
@@ -72,8 +66,8 @@ To use Ocsimore,
  - install the postgresql and ocamldbi (with postgresql support) libraries 
    for ocaml. (Markus Mottl version of postgresql, not Alain Frish's)
  - compile ocsimore ("make ocsimore")
- - add lines in server/config.ml to load ocsimore modules
-   (and then "make server")
+ - add lines in config file to load ocsimore.cma and the modules
+   you want
  - create the tables : psql -f ocsimore/createdb.sql ocsibase
 
 

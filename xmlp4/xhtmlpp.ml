@@ -806,18 +806,6 @@ and xhtml =
   | `Whitespace of string
   | `Comment of string (* A special one for comments *) ]
 
-and xhform = [ `Form of (attr * string) list * xhformcont list ]
-
-and xhalink = [ `A of (attr * string) list * xhacont list ]
-
-and xhheadlink = [ `Link of (attr * string) list * xhpcdata list ]
-
-and xhscript = [ `Script of (attr * string) list * xhpcdata list ]
-
-and xhinput = [ `Input of (attr * string) list * xhnotag list ]
-
-and xhtextarea = [ `Textarea of (attr * string) list * xhpcdata list ]
-
 and xhoptgroupcont = 
     [ `Option of (attr * string) list * xhpcdata list 
   | `Whitespace of string
@@ -861,6 +849,20 @@ and xhtrcont =
   | `Whitespace of string
   | `Comment of string (* A special one for comments *) ]
 
+and xhform = [ `Form of (attr * string) list * xhformcont list ]
+
+and xhalink = [ `A of (attr * string) list * xhacont list ]
+
+and xhimg = [ `Img of (attr * string) list * xhnotag list ]
+
+and xhheadlink = [ `Link of (attr * string) list * xhpcdata list ]
+
+and xhscript = [ `Script of (attr * string) list * xhpcdata list ]
+
+and xhinput = [ `Input of (attr * string) list * xhnotag list ]
+
+and xhtextarea = [ `Textarea of (attr * string) list * xhpcdata list ]
+
 
 
 
@@ -876,7 +878,7 @@ let xh_string = str_formatter
 let taille_tab = 2
 
 let xh_topxml = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>"
-let xh_topdoctype = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
+let xh_topdoctype = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">"
 
 
 let rec xh_print_attrs attrs = match attrs with
