@@ -966,6 +966,11 @@ let make_http_params
 
 let state_param_name = "__ocsetat__"
 
+
+
+
+
+
 (** Functions to construct web pages: *)
 let make_attrs ?size ?maxlength ?classe ?id ?title ?accesskey ?alt
     ?(disabled=false) ?(readonly=false) ?(checked=false) () =
@@ -999,58 +1004,61 @@ let make_attrs ?size ?maxlength ?classe ?id ?title ?accesskey ?alt
   let attrs = if readonly then (`Readonly,"readonly")::attrs else attrs in
   let attrs = if checked then (`Checked,"checked")::attrs else attrs in
   attrs
+    
+let make_a ?(a=[]) l = << <a $list:a$>$list:l$</a> >>
+
 
 
 (* à enlever !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-let create_url_string 
-    current_url (url : ('a, xhformcontl,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) =
-  match url.url_state with
-      None -> url.create_get_url current_url
-    | Some i -> url.create_get_url current_url
-	(fun v -> 
-	   let stateparam = string_of_int i in
-	   let formname="hiddenform"^(string_of_int (counter ())) in
-	   let href="javascript:document."^formname^".submit ()" in
-	     << <a href=$href$>$str:name$<form name=$formname$ method="post" action=$v$ style="display:none">
-	       <input type="hidden" name=$state_param_name$
-			  value=$stateparam$/>
-			  </form></a> >>) 
-*)
+   let create_url_string 
+   current_url (url : ('a, xhformcontl,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) =
+   match url.url_state with
+   None -> url.create_get_url current_url
+   | Some i -> url.create_get_url current_url
+   (fun v -> 
+   let stateparam = string_of_int i in
+   let formname="hiddenform"^(string_of_int (counter ())) in
+   let href="javascript:document."^formname^".submit ()" in
+   << <a href=$href$>$str:name$<form name=$formname$ method="post" action=$v$ style="display:none">
+   <input type="hidden" name=$state_param_name$
+   value=$stateparam$/>
+   </form></a> >>) 
+ *)
 
-let link (name :string) current_url
-    (url : ('a, xhformcontl,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) =
-  match url.url_state with
+  let a name current_url
+      (url : ('a, xhformcontl,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) =
+    match url.url_state with
       None -> url.create_alink_url current_url
-	(fun v -> << <a href=$v$>$str:name$</a> >>)
+	  (fun v -> make_a ~a:[(`Href, v)] name)
     | Some i -> url.create_alink_url current_url
 	  (fun v -> 
-   let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
-   << <a href=$vstateparam$>$str:name$</a> >>)
+	    let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
+	    make_a ~a:[(`Href,vstateparam)] name)
 
 (* avec un formulaire caché (ça marche mais ce n'est pas du xhtml valide
-	   let stateparam = string_of_int i in
-	   let formname="hiddenform"^(string_of_int (counter ())) in
-	   let href="javascript:document."^formname^".submit ()" in
-	     << <a href=$href$>$str:name$<form name=$formname$ method="post" action=$v$ style="display:none">
-	       <input type="hidden" name=$state_param_name$
-			  value=$stateparam$/>
-			  </form></a> >>) *)
+   let stateparam = string_of_int i in
+   let formname="hiddenform"^(string_of_int (counter ())) in
+   let href="javascript:document."^formname^".submit ()" in
+   << <a href=$href$>$str:name$<form name=$formname$ method="post" action=$v$ style="display:none">
+   <input type="hidden" name=$state_param_name$
+   value=$stateparam$/>
+   </form></a> >>) *)
 
 (* 	   let stateparam = string_of_int i in
-	     << <form name="hiddenform" method="post" action=$v$>
-	           <input type="hidden" name=$state_param_name$
-			      value=$stateparam$/>
-                   <a href="javascript:document.hiddenform.submit ()">$str:name$</a>
-	        </form> >>)
+   << <form name="hiddenform" method="post" action=$v$>
+   <input type="hidden" name=$state_param_name$
+   value=$stateparam$/>
+   <a href="javascript:document.hiddenform.submit ()">$str:name$</a>
+   </form> >>)
 
-À VOIR ! IMPORTANT ! :
+   À VOIR ! IMPORTANT ! :
 
-Pour les form get on peut faire pareil, du style :
-<input type="button"
-onClick="document.form1.submit();document.form2.submit()">
-(problème : on n'a pas accès au bouton)
+   Pour les form get on peut faire pareil, du style :
+   <input type="button"
+   onClick="document.form1.submit();document.form2.submit()">
+   (problème : on n'a pas accès au bouton)
 
-*)
+ *)
 
 let css_link current_url (url : ('a, xhformcontl,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) =
   url.create_headlink_url current_url
@@ -1062,107 +1070,107 @@ let js_link current_url (url : ('a, xhformcontl,'calink,'cform,'cimg,'cheadlink,
 
 
 (*	   let stateparam = string_of_int i in
-	     << <span class="link" onclick="document.hiddenform.submit ()"><form name="hiddenform" method="post" action=$v$>
-	           <input type="hidden" name=$state_param_name$
-			      value=$stateparam$/>
-	        </form>$str:name$</span> >>) *)
+   << <span class="link" onclick="document.hiddenform.submit ()"><form name="hiddenform" method="post" action=$v$>
+   <input type="hidden" name=$state_param_name$
+   value=$stateparam$/>
+   </form>$str:name$</span> >>) *)
 (* Pas vraiment de moyen simple pour passer un paramètre POST dans un lien...
-	   let stateparam = string_of_int i in
-	   let link = "submit()" in
-	     << <form method="post" action=$v$> 
-	           <input type="hidden" name=$state_param_name$
-			      value=$stateparam$/>
-	           <input type="submit" style="background:none; border:none; cursor:pointer; color:red; text-align: left; line-height: 1" value=$name$/>
-	        </form> >>) *)
+   let stateparam = string_of_int i in
+   let link = "submit()" in
+   << <form method="post" action=$v$> 
+   <input type="hidden" name=$state_param_name$
+   value=$stateparam$/>
+   <input type="submit" style="background:none; border:none; cursor:pointer; color:red; text-align: left; line-height: 1" value=$name$/>
+   </form> >>) *)
 
 
 
 (*
-let form_get current_url (url : ('a,xhformcontl,'c,'d,'e,'f,'g) url) (f : 'a) =
-  let urlname = (match url.url with Url_Prefix s | Url s -> 
-		   reconstruct_relative_url_string current_url s) in
-  let inside = url.create_get_form f in
-    (match  url.url_state with
-	 None ->   << <form method="get" action=$urlname$>
-           $list:inside$
-	   </form> >>
-       | Some i -> 
-	   let i' = string_of_int i in
-	   let formname="hiddenform"^(string_of_int (counter ())) in
-	   let onsubmit="document."^formname^".submit();" in
-	     << <form method="get" action=$urlname$ onsubmit=$onsubmit$>
-	           <form name=$formname$ method="post" action=$urlname$ 
-		           style="display:none">
-                     <input type="hidden" name=$state_param_name$ value=$i'$/>
-		   </form>
-                   $list:inside$
-                </form> >>)
+   let form_get current_url (url : ('a,xhformcontl,'c,'d,'e,'f,'g) url) (f : 'a) =
+   let urlname = (match url.url with Url_Prefix s | Url s -> 
+   reconstruct_relative_url_string current_url s) in
+   let inside = url.create_get_form f in
+   (match  url.url_state with
+   None ->   << <form method="get" action=$urlname$>
+   $list:inside$
+   </form> >>
+   | Some i -> 
+   let i' = string_of_int i in
+   let formname="hiddenform"^(string_of_int (counter ())) in
+   let onsubmit="document."^formname^".submit();" in
+   << <form method="get" action=$urlname$ onsubmit=$onsubmit$>
+   <form name=$formname$ method="post" action=$urlname$ 
+   style="display:none">
+   <input type="hidden" name=$state_param_name$ value=$i'$/>
+   </form>
+   $list:inside$
+   </form> >>)
 
-ou alors faire un form POST et du javascript qui va mettre 
-la chaîne ?blbla=truc&etc
-*)
+   ou alors faire un form POST et du javascript qui va mettre 
+   la chaîne ?blbla=truc&etc
+ *)
 
 
 (*	   let i' = string_of_int i in
-	   let formname="hiddenform"^(string_of_int (counter ())) in
-	   let onsubmit="document."^formname^".submit();window.open('"^urlname^"','indexWindow',''); return true;" in
-	     << <form method="get" action=$urlname$ onsubmit=$onsubmit$>
-	           <form name=$formname$ method="post" action=$urlname$ 
-		           style="display:none">
-                     <input type="hidden" name=$state_param_name$ value=$i'$/>
-		   </form>
-                   $list:inside$
-                </form> >>)
-*)
+   let formname="hiddenform"^(string_of_int (counter ())) in
+   let onsubmit="document."^formname^".submit();window.open('"^urlname^"','indexWindow',''); return true;" in
+   << <form method="get" action=$urlname$ onsubmit=$onsubmit$>
+   <form name=$formname$ method="post" action=$urlname$ 
+   style="display:none">
+   <input type="hidden" name=$state_param_name$ value=$i'$/>
+   </form>
+   $list:inside$
+   </form> >>)
+ *)
 
 
 let form_get current_url (url : ('a,xhformcontl,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) (f : 'a) =
   let urlname = (match url.url with Url_Prefix s | Url s -> 
-		   reconstruct_relative_url_string current_url s) in
+    reconstruct_relative_url_string current_url s) in
   let state_param =
     (match  url.url_state with
-	 None -> `PCData ""
-       | Some i -> 
-	   let i' = string_of_int i in
-	  << <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
+      None -> `PCData ""
+    | Some i -> 
+	let i' = string_of_int i in
+	<< <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
   in
   let inside = url.create_get_form f in
 (* `Form ([(`Method, "get"); (`Action, urlname)], state_param::inside) *)
   << <form method="get" action=$urlname$>
-       <p style="display:none">
-	$state_param$
-       </p>
-        $list:inside$
-     </form> >>
+    <p style="display:none">
+    $state_param$
+    </p>
+    $list:inside$
+    </form> >>
 
 
-let form_post current_url (url : ('a,'b,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) (f : 'b) = 
-  let state_param =
-    (match  url.url_state with
-	 None -> `PCData ""
-       | Some i -> 
-	   let i' = string_of_int i in
-	   << <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
-  in
-  url.create_form_url current_url
-    (fun v -> 
-       let inside = url.create_post_form f in
+    let form_post current_url (url : ('a,'b,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) (f : 'b) = 
+      let state_param =
+	(match  url.url_state with
+	  None -> `PCData ""
+	| Some i -> 
+	    let i' = string_of_int i in
+	    << <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
+      in
+      url.create_form_url current_url
+	(fun v -> 
+	  let inside = url.create_post_form f in
 (*	 `Form ([(`Method, "post"); (`Action, v)], state_param::inside)) *)
-	 << <form method="post" action=$v$>
-	   <p style="display:none">$state_param$</p>
-	   $list:inside$
-	   </form> >>)
+	  << <form method="post" action=$v$>
+	    <p style="display:none">$state_param$</p>
+	    $list:inside$
+	    </form> >>)
 
 let img ?id ?classe ?alt ?title current_url
     (url : ('a, xhformcontl,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) =
   let attrs = make_attrs ?classe ?id ?alt ?title () in
   match url.url_state with
-      None -> url.create_img_url current_url
+    None -> url.create_img_url current_url
 	(fun v -> << <img src=$v$ $list:attrs$/> >>)
-    | Some i -> url.create_img_url current_url
-	  (fun v -> 
-   let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
-   << <img src=$vstateparam$ $list:attrs$ /> >>)
+  | Some i -> url.create_img_url current_url
+	(fun v -> 
+	  let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
+	  << <img src=$vstateparam$ $list:attrs$ /> >>)
 
 
 (* actions : *)
@@ -1177,33 +1185,36 @@ let action_link ?(reload=true) name h actionurl =
     then <:xmllist< <input type="hidden" name=$reload_name$ value=$reload_name$/> >> 
     else [] in
   let v = h.full_url in
-    << <form name=$formname$ method="post" action=$v$ >
-      <p><a href=$href$>$str:name$</a>
-      <input type="hidden" name=$action_param_name$ value=$action_param$/>
-      $list:reload_param$
-      </p>
-      </form> >>
+  << <form name=$formname$ method="post" action=$v$ >
+    <p><a href=$href$>$str:name$</a>
+    <input type="hidden" name=$action_param_name$ value=$action_param$/>
+	$list:reload_param$
+	</p>
+	</form> >>
 
-let action_form
-    ?(reload=true) ?classe ?id h (actionurl : ('a,'b) actionurl) (f : 'a) = 
-  let action_param_name = action_prefix^action_name in
-  let action_param = (actionurl.action_name) in
-  let reload_name = action_prefix^action_reload in
-  let action_line =
-    << <input type="hidden" name=$action_param_name$ value=$action_param$/> >>
-  in
-  let v = h.full_url in
-  let inside = actionurl.create_action_form f in
-  let inside_reload = 
-    if reload 
-    then << <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p> >> 
-		       :: inside
-    else inside in
-  let attrs = make_attrs ?id ?classe () in
-    << <form method="post" action=$v$ $list:attrs$>
-         <p>$action_line$</p>
-         $list:inside_reload$
-       </form> >>
+    let action_form
+	?(reload=true) ?classe ?id h (actionurl : ('a,'b) actionurl) (f : 'a) = 
+      let action_param_name = action_prefix^action_name in
+      let action_param = (actionurl.action_name) in
+      let reload_name = action_prefix^action_reload in
+      let action_line =
+	<< <input type="hidden" name=$action_param_name$ value=$action_param$/> >>
+      in
+      let v = h.full_url in
+      let inside = actionurl.create_action_form f in
+      let inside_reload = 
+	if reload 
+	then << <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p> >> 
+	  :: inside
+	else inside in
+      let attrs = make_attrs ?id ?classe () in
+      << <form method="post" action=$v$ $list:attrs$>
+        <p>$action_line$</p>
+        $list:inside_reload$
+	</form> >>
+
+
+
 
 
 let gen_input ?size ?maxlength ?classe ?id ?title ?accesskey ?disabled ?readonly name = 

@@ -227,7 +227,7 @@ val close_session : unit -> unit
 
 (** Functions to create web pages: *)
 
-val link : string -> url_string -> 
+val a : Xhtmlpp.xhacont list -> url_string -> 
   ('a, xhformcontl, 'calink,'cform,'cimg,'cheadlink,'cscript, 'd, 'e, 'f, 'g) url -> 'calink
 
 val css_link : url_string -> 

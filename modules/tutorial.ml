@@ -1,7 +1,6 @@
 (* Copyright Vincent Balat 2005 *)
 
 open Ocsigen
-open Xhtmlpp
 
 (* ------------------------------------------------------------------ *)
 (* To create a web page without parameter: *)
@@ -9,7 +8,10 @@ let plop =
   register_new_url 
     ~name:(Url ["plop"]) 
     ~params:_noparam 
-    ~page:<< <html><head></head><body><h1>plop</h1></body></html> >>
+    ~page:<< <html>
+               <head><title></title></head>
+               <body><h1>plop</h1></body>
+             </html> >>
 
 (* Pages can have side effects: *)
 let plip = 
@@ -137,18 +139,18 @@ let mytype = register_new_url
 
 
 (* ------------------------------------------------------------------ *)
-(* To create a link to a registered url, use the link function: *)
+(* To create a link to a registered url, use the a function: *)
 
 open Xhtmlpp
 
 let links = register_new_url (Url ["plop";"links"]) (_current_url _noparam)
   (fun current_url ->
-     (let l = link "plop" current_url plop in
-      let ll = link "plop2" current_url plop2 in
-      let lll = link "uaprefix" current_url uaprefix "suf" "toto" in
+     (let l = a <:xmllist< plop >> current_url plop in
+      let ll = a <:xmllist< plop2 >> current_url plop2 in
+      let lll = a <:xmllist< uaprefix >> current_url uaprefix "suf" "toto" in
       let llll = 
-	link "plop_params" current_url plop_params 45 "hello" "plpl" in
-      let lllll  = link "wikipedia" current_url
+	a <:xmllist< plop_params >> current_url plop_params 45 "hello" "plpl" in
+      let lllll  = a <:xmllist< wikipedia >> current_url
 	  (new_external_url
 	     (Url_Prefix ["http://fr.wikipedia.org";"wiki"])
 	     (_url_suffix _noparam)) "Ocaml"
@@ -172,7 +174,7 @@ let linkrec = new_url (Url ["linkrec"]) (_current_url _noparam)
 
 let _ = register_url linkrec 
   (fun url -> 
-     let l = link "cliquez" url linkrec in
+     let l = a <:xmllist< cliquez >> url linkrec in
        << <html><body><p> $l$ </p></body></html> >>)
 
 
@@ -320,8 +322,8 @@ let _ =
   let c = ref 0 in
   let page url = 
     let i = string_of_int !c in
-    let l = link "reload" url ustate in
-    let l2 = link "incr i" url ustate2 in
+    let l = a <:xmllist< reload >> url ustate in
+    let l2 = a <:xmllist< incr i >> url ustate2 in
     let si1 = submit_input "incr i (post)" in
     let si2 = submit_input "incr i (get)" in
     let l3 = form_post url ustate2 [<< <p> $si1$ </p> >>] in
@@ -373,10 +375,10 @@ let rec launch_session login =
     ~page:(fun url -> close_session (); accueil url)
   in
   let new_main_page url =
-    let l1 = link "plop" url plop
-    and l2 = link "plop2" url plop2
-    and l3 = link "links" url links
-    and l4 = link "close session" url close in
+    let l1 = a <:xmllist< plop >> url plop
+    and l2 = a <:xmllist< plop2 >> url plop2
+    and l3 = a <:xmllist< links >> url links
+    and l4 = a <:xmllist< close session >> url close in
     << <html>
     <body><p>
          Bienvenue $str:login$ ! <br/>
@@ -465,7 +467,7 @@ let rec page_for_shopping_basket url shopping_basket =
 	   << <html><body><p>You are going to pay: $list:f$ </p></body></html> >>);
     let sb = `Div ([], (write_shopping_basket shopping_basket)) in
     let sh = write_shop local_shop_with_post_params url in
-    let lp   = link "pay" url local_pay in
+    let lp   = a <:xmllist< pay >> url local_pay in
       << <html><body> $sb$ $sh$ <p>$lp$ </p></body></html> >>
 
 let _ = register_post_url
@@ -561,9 +563,9 @@ let rec launch_session login =
   let deconnect_action = register_new_actionurl _unit close_session in
   let deconnect_box h s = action_link s h deconnect_action in
   let new_main_page h =
-    let l1  = link "plop" h.current_url plop
-    and l2  = link "plop2" h.current_url plop2
-    and l3  = link "links" h.current_url links
+    let l1  = a <:xmllist< plop >> h.current_url plop
+    and l2  = a <:xmllist< plop2 >> h.current_url plop2
+    and l3  = a <:xmllist< links >> h.current_url links
     and deconnect_link = deconnect_box h "Close session" in
     << <html>
        <body><p>
@@ -594,26 +596,26 @@ let filedir = register_new_static_directory ["files"] "modules-files"
 let _ = register_new_url (Url []) (_current_url _noparam)
   (fun url ->
      let lcss = css_link url filedir "style.css" in
-     let l1 = link "plop" url plop in
-     let l2 = link "plip" url plip in
-     let l3 = link "plop/plip" url plop2 in
-     let l4 = link "oups" url oups in
-     let l5 = link "plop avec params" url plop_params 45 "hello" "krokodile" in
-     let l6 = link "uaprefix" url uaprefix "suf" "toto" in
-     let l7 = link "iprefix" url iprefix "popo" 333 in
-     let l8 = link "mytype" url mytype A in
-     let l9 = link "links" url links in
-     let l10 = link "linkrec" url linkrec in
-     let l11 = link "form" url form in
-     let l12 = link "post sans post_params" url no_post_param_url in
-     let l13 = link "form2" url form2 in
-     let l14 = link "form3" url form3 in
-     let l15 = link "form4" url form4 in
-     let l16 = link "state" url ustate in
-     let l17 = link "session" url public_session_without_post_params in
-     let l19 = link "actions" url action_session in
-     let l20 = link "shop" url shop_without_post_params in
-     let l18 = link "queinnec" url queinnec in
+     let l1 = a <:xmllist< plop >> url plop in
+     let l2 = a <:xmllist< plip >> url plip in
+     let l3 = a <:xmllist< plop/plip >> url plop2 in
+     let l4 = a <:xmllist< oups >> url oups in
+     let l5 = a <:xmllist< plop avec params >> url plop_params 45 "hello" "krokodile" in
+     let l6 = a <:xmllist< uaprefix >> url uaprefix "suf" "toto" in
+     let l7 = a <:xmllist< iprefix >> url iprefix "popo" 333 in
+     let l8 = a <:xmllist< mytype >> url mytype A in
+     let l9 = a <:xmllist< links >> url links in
+     let l10 = a <:xmllist< linkrec >> url linkrec in
+     let l11 = a <:xmllist< form >> url form in
+     let l12 = a <:xmllist< post sans post_params >> url no_post_param_url in
+     let l13 = a <:xmllist< form2 >> url form2 in
+     let l14 = a <:xmllist< form3 >> url form3 in
+     let l15 = a <:xmllist< form4 >> url form4 in
+     let l16 = a <:xmllist< state >> url ustate in
+     let l17 = a <:xmllist< session >> url public_session_without_post_params in
+     let l19 = a <:xmllist< actions >> url action_session in
+     let l20 = a <:xmllist< shop >> url shop_without_post_params in
+     let l18 = a <:xmllist< queinnec >> url queinnec in
      << 
        <html> 
        <!-- This is a comment! -->

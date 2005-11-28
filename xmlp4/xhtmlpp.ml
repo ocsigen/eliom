@@ -939,6 +939,25 @@ and xh_print_blocktag tag attrs taglist i =
     pp_close_tbox xh_string ()
   end
 
+and xh_print_semiblocktag tag attrs taglist i = 
+  (* New line before and after but not inside, for ex for <pre> *)
+  if taglist = []
+  then xh_print_closedtag tag attrs i true
+  else begin
+    pp_open_tbox xh_string ();
+    pp_force_newline xh_string ();
+    if i > 0 then
+      pp_print_tbreak xh_string (taille_tab*i) 0;
+    pp_print_string xh_string ("<"^tag);
+    xh_print_attrs attrs;
+    pp_print_string xh_string ">";
+    
+    xh_print_taglist taglist 0 false false;
+
+    pp_print_string xh_string ("</"^tag^">");
+    pp_close_tbox xh_string ()
+  end
+
 and xh_print_taglist_removews taglist i is_first = 
   match taglist with
     (`Whitespace s)::l -> xh_print_taglist_removews l i is_first
@@ -1226,7 +1245,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Pre(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Pre(xh_attrs,xh_taglist))::queue
 | (`Pre(xh_attrs,xh_taglist))::queue ->
-    xh_print_blocktag "pre" xh_attrs (xh_taglist : xhprecont list :> xhalltagsl) i;
+    xh_print_semiblocktag "pre" xh_attrs (xh_taglist : xhprecont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
 
     (* Balise interactif de type block *)
