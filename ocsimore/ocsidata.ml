@@ -390,9 +390,9 @@ sig
   val _index : 
     string ->
     (t index -> 'a, 'a, (t index Ocsigen.name -> 'b) -> 'b, 
-      t index -> [>Xhtmlpp.xhalink], t index -> [>Xhtmlpp.xhform], 
-	t index -> [>Xhtmlpp.xhimg], 
-	t index -> [>Xhtmlpp.xhheadlink], t index -> [>Xhtmlpp.xhscript]) 
+      t index -> [>Xhtml.xhalink] Xhtml.t, t index -> [>Xhtml.xhform] Xhtml.t, 
+	t index -> [>Xhtml.xhimg] Xhtml.t, 
+	t index -> [>Xhtml.xhheadlink] Xhtml.t, t index -> [>Xhtml.xhscript] Xhtml.t) 
 	Ocsigen.parameters
   val int_of_index : t index -> int
   val intname_of_indexname : t index Ocsigen.name -> int Ocsigen.name

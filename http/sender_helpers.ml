@@ -24,9 +24,9 @@ open Lwt
 (** this module instantiate the HTTP_CONTENT signature for an Xhtml content*)
 module Xhtml_content =
   struct
-    type t = Xhtmlpp.xhtml
+    type t = Xhtml.xhtml Xhtml.t
     let string_of_content c = 
-      let s = Xhtmlpp.xh_print c in
+      let s = Xhtml.xh_print c in
       (* debug *) print_endline s; 
       s
     (*il n'y a pas encore de parser pour ce type*)

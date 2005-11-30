@@ -8,7 +8,7 @@ CAMLDEP  = ocamlfind ocamldep
 NAME 	 =  test_pp
 LIBDIR 	= ../lib
 LIB= -package netstring -I $(LIBDIR)
-PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo ../lib/xmlsyntax.cmo" 
+PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xhtmlparser.cmo ../lib/xhtmlsyntax.cmo" 
 ALL_CMO  = http_frame.cmo http_parser.cmo http_lexer.cmo framepp.cmo http_com.cmo sender_helpers.cmo test_pp.cmo
 
 all: byte
@@ -17,7 +17,7 @@ all: byte
 .PHONY: depend
 
 byte: $(ALL_CMO)
-	$(CAMLC) $(LIB) -o $(NAME) unix.cma lwt.cma netstring.cma xhtmlpp.cmo $(ALL_CMO)
+	$(CAMLC) $(LIB) -o $(NAME) unix.cma lwt.cma netstring.cma xhtml.cmo $(ALL_CMO)
 
 
 doc: 

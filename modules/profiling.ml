@@ -19,7 +19,6 @@
 (* A page providing infos about the server (number of sessions, uptime...) *)
 
 open Ocsigen
-open Xhtmlpp
 open Unix
 
 let launchtime = Unix.time ()

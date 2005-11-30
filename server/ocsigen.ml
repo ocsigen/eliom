@@ -18,13 +18,13 @@
 
 open Http_frame
 open Http_com
-open Xhtmlpp
+open Xhtml
 
 (** Type of answers from modules (web pages) *)
-type page = Xhtmlpp.xhtml
+type page = xhtml t
 
 (** Type of formulars *)
-type xhformcontl = xhformcont list
+type xhformcontl = xhformcont t list
 
 (** type of URL, without parameter *)
 type url_string = string list
@@ -90,15 +90,15 @@ let write_param name value = name^"="^value
 *)
 type ('a, 'b, 'c, 'dalink, 'dform, 'dimg, 'dheadlink, 'dscript) parameters =
     {param_names: string list;
-     write_parameters_alink: (string option -> xhalink) -> 'dalink;
+     write_parameters_alink: (string option -> xhalink t) -> 'dalink;
      (* corresponds to the 3rd argument in ('a,'b,'calink,...) url
 	'dalink is for example int -> int -> 'alink, 
 	and the first function is the function to apply after construction
      *)
-     write_parameters_form: (string option -> xhform) -> 'dform;
-     write_parameters_img: (string option -> xhimg) -> 'dimg;
-     write_parameters_headlink: (string option -> xhheadlink) -> 'dheadlink;
-     write_parameters_script: (string option -> xhscript) -> 'dscript;
+     write_parameters_form: (string option -> xhform t) -> 'dform;
+     write_parameters_img: (string option -> xhimg t) -> 'dimg;
+     write_parameters_headlink: (string option -> xhheadlink t) -> 'dheadlink;
+     write_parameters_script: (string option -> xhscript t) -> 'dscript;
      give_form_parameters: 'c;
      (* 'c is exactly the same as 'a or 'b in ('a,'b,'c) url type,
 	usually something like (int name -> int name -> xhform) -> xhform
@@ -111,19 +111,19 @@ type ('a, 'b, 'c, 'dalink, 'dform, 'dimg, 'dheadlink, 'dscript) parameters =
 	  (but 'b can be more complicated, for ex in register_post_url)
        *)}
 
-let _noparam = 
+let _noparam : ('a, 'a, 'b -> 'b, [>xhalink] t, [>xhform] t, [>xhimg] t, [>xhheadlink] t, [>xhscript] t) parameters = 
   let write_parameters = (fun f -> f None) in
   {param_names=[];
    write_parameters_alink = 
-   (write_parameters :> (string option -> xhalink) -> [>xhalink]);
+   (write_parameters :> (string option -> xhalink t) -> [>xhalink] t);
    write_parameters_form = 
-   (write_parameters :> (string option -> xhform) -> [>xhform]);
+   (write_parameters :> (string option -> xhform t) -> [>xhform] t);
    write_parameters_img = 
-   (write_parameters :> (string option -> xhimg) -> [>xhimg]);
+   (write_parameters :> (string option -> xhimg t) -> [>xhimg] t);
    write_parameters_headlink = 
-   (write_parameters :> (string option -> xhheadlink) -> [>xhheadlink]);
+   (write_parameters :> (string option -> xhheadlink t) -> [>xhheadlink] t);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript) -> [>xhscript]);
+   (write_parameters :> (string option -> xhscript t) -> [>xhscript] t);
    give_form_parameters = id;
    conversion_function= (fun pog f _ -> f)}
 
@@ -131,15 +131,15 @@ let _string name =
   let write_parameters = (fun f s -> f (Some (write_param name s))) in
   {param_names=[name];
    write_parameters_alink = 
-   (write_parameters :> (string option -> xhalink) -> string -> [>xhalink]);
+   (write_parameters :> (string option -> xhalink t) -> string -> [>xhalink] t);
    write_parameters_form = 
-   (write_parameters :> (string option -> xhform) -> string -> [>xhform]);
+   (write_parameters :> (string option -> xhform t) -> string -> [>xhform] t);
    write_parameters_img = 
-   (write_parameters :> (string option -> xhimg) -> string -> [>xhimg]);
+   (write_parameters :> (string option -> xhimg t) -> string -> [>xhimg] t);
    write_parameters_headlink = 
-   (write_parameters :> (string option -> xhheadlink) -> string -> [>xhheadlink]);
+   (write_parameters :> (string option -> xhheadlink t) -> string -> [>xhheadlink] t);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript) -> string -> [>xhscript]);
+   (write_parameters :> (string option -> xhscript t) -> string -> [>xhscript] t);
    give_form_parameters=(fun h -> h (name : string name));
    conversion_function= (fun pog f httpparam -> 
      f (find_param name pog httpparam))}
@@ -149,15 +149,15 @@ let _user_type (mytype_of_string : string -> 'a) string_of_mytype name =
     (fun f i -> f (Some (write_param name (string_of_mytype i)))) in
   {param_names=[name];
    write_parameters_alink = 
-   (write_parameters :> (string option -> xhalink) -> 'a -> [>xhalink]);
+   (write_parameters :> (string option -> xhalink t) -> 'a -> [>xhalink] t);
    write_parameters_form = 
-   (write_parameters :> (string option -> xhform) -> 'a -> [>xhform]);
+   (write_parameters :> (string option -> xhform t) -> 'a -> [>xhform] t);
    write_parameters_img = 
-   (write_parameters :> (string option -> xhimg) -> 'a -> [>xhimg]);
+   (write_parameters :> (string option -> xhimg t) -> 'a -> [>xhimg] t);
    write_parameters_headlink = 
-   (write_parameters :> (string option -> xhheadlink) -> 'a -> [>xhheadlink]);
+   (write_parameters :> (string option -> xhheadlink t) -> 'a -> [>xhheadlink] t);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript) -> 'a -> [>xhscript]);
+   (write_parameters :> (string option -> xhscript t) -> 'a -> [>xhscript] t);
    give_form_parameters=(fun h -> h (name : 'a name));
    conversion_function=(fun pog f httpparam -> 
      let p =
@@ -184,15 +184,15 @@ let _unit =
   let write_parameters= (fun f -> f None) in
   {param_names=[];
    write_parameters_alink = 
-   (write_parameters :> (string option -> xhalink) -> [>xhalink]);
+   (write_parameters :> (string option -> xhalink t) -> [>xhalink] t);
    write_parameters_form = 
-   (write_parameters :> (string option -> xhform) -> [>xhform]);
+   (write_parameters :> (string option -> xhform t) -> [>xhform] t);
    write_parameters_img = 
-   (write_parameters :> (string option -> xhimg) -> [>xhimg]);
+   (write_parameters :> (string option -> xhimg t) -> [>xhimg] t);
    write_parameters_headlink = 
-   (write_parameters :> (string option -> xhheadlink) -> [>xhheadlink]);
+   (write_parameters :> (string option -> xhheadlink t) -> [>xhheadlink] t);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript) -> [>xhscript]);
+   (write_parameters :> (string option -> xhscript t) -> [>xhscript] t);
    give_form_parameters=id;
    conversion_function=(fun pog f httpparam -> f ())}
     
@@ -210,15 +210,15 @@ let _option p =
    {param_names=[];
    opt_param_names=p.param_names;
    write_parameters_alink = 
-   (write_parameters :> (string option -> xhalink) -> [>xhalink]);
+   (write_parameters :> (string option -> xhalink t) -> [>xhalink] t);
    write_parameters_form = 
-   (write_parameters :> (string option -> xhform) -> [>xhform]);
+   (write_parameters :> (string option -> xhform t) -> [>xhform] t);
    write_parameters_img = 
-   (write_parameters :> (string option -> xhimg) -> [>xhimg]);
+   (write_parameters :> (string option -> xhimg t) -> [>xhimg] t);
    write_parameters_headlink = 
-   (write_parameters :> (string option -> xhheadlink) -> [>xhheadlink]);
+   (write_parameters :> (string option -> xhheadlink t) -> [>xhheadlink] t);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript) -> [>xhscript]);
+   (write_parameters :> (string option -> xhscript t) -> [>xhscript] t);
    give_form_parameters=p.give_form_parameters;
    conversion_function=
    (fun f httpparam -> 
@@ -621,7 +621,7 @@ type ('a,'b,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url =
        (* 'a is for example int name -> string name -> xhformcont *)
      create_post_form: 'b -> xhformcontl;  
                    (* idem, but for POST. If no post param 'b is xhformcont *)
-     create_alink_url: string list -> (string -> xhalink) -> 'calink;
+     create_alink_url: string list -> (string -> xhalink t) -> 'calink;
          (* 'c is for example
 	    int -> int -> xhalink, 
 	    function that will create
@@ -629,10 +629,10 @@ type ('a,'b,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url =
 	    Then the function will be applied to this string to create a link
 	    or a formular to this url.
 	  *)
-     create_form_url: string list -> (string -> xhform) -> 'cform;
-     create_img_url: string list -> (string -> xhimg) -> 'cimg;
-     create_headlink_url: string list -> (string -> xhheadlink) -> 'cheadlink;
-     create_script_url: string list -> (string -> xhscript) -> 'cscript;
+     create_form_url: string list -> (string -> xhform t) -> 'cform;
+     create_img_url: string list -> (string -> xhimg t) -> 'cimg;
+     create_headlink_url: string list -> (string -> xhheadlink t) -> 'cheadlink;
+     create_script_url: string list -> (string -> xhscript t) -> 'cscript;
      get_conversion_function: 'd -> http_params -> page;
          (* for dynamic typing, (as in parameters)
 	    for ex int -> int -> page -> http_params -> page 
@@ -919,15 +919,15 @@ let register_new_static_directory_aux
    create_get_form = id;
    create_post_form = id;
    create_alink_url = 
-   (create_get_url :> string list -> (string -> xhalink) -> string -> [>xhalink]);
+   (create_get_url :> string list -> (string -> xhalink t) -> string -> [>xhalink] t);
    create_form_url = 
-   (create_get_url :> string list -> (string -> xhform) -> string -> [>xhform]);
+   (create_get_url :> string list -> (string -> xhform t) -> string -> [>xhform] t);
    create_img_url = 
-   (create_get_url :> string list -> (string -> xhimg) -> string -> [>xhimg]);
+   (create_get_url :> string list -> (string -> xhimg t) -> string -> [>xhimg] t);
    create_headlink_url = 
-   (create_get_url :> string list -> (string -> xhheadlink) -> string -> [>xhheadlink]);
+   (create_get_url :> string list -> (string -> xhheadlink t) -> string -> [>xhheadlink] t);
    create_script_url = 
-   (create_get_url :> string list -> (string -> xhscript) -> string -> [>xhscript]);
+   (create_get_url :> string list -> (string -> xhscript t) -> string -> [>xhscript] t);
    get_conversion_function = (fun a http_params -> a);
    post_conversion_function = (fun a http_params -> a)
   }
@@ -980,29 +980,29 @@ let make_attrs ?size ?maxlength ?classe ?id ?title ?accesskey ?alt
     | a::l -> a^" "^(make_class l)
   in
   let attrs = match size with
-    Some s -> [`Size,(string_of_int s)] 
+    Some s -> ["size",(string_of_int s)] 
   | None -> [] in
   let attrs = match maxlength with
-    Some s -> (`Maxlength,(string_of_int s))::attrs
+    Some s -> ("maxlength",(string_of_int s))::attrs
   | None -> attrs in
   let attrs = match classe with
-    Some s -> (`Class, (make_class s))::attrs
+    Some s -> ("class", (make_class s))::attrs
   | None -> attrs in
   let attrs = match id with
-    Some s -> (`Id, s)::attrs
+    Some s -> ("id", s)::attrs
   | None -> attrs in
   let attrs = match alt with
-    Some s -> (`Alt, s)::attrs
+    Some s -> ("alt", s)::attrs
   | None -> attrs in
   let attrs = match title with
-    Some s -> (`Title, s)::attrs
+    Some s -> ("title", s)::attrs
   | None -> attrs in
   let attrs = match accesskey with
-    Some s -> (`Accesskey, s)::attrs
+    Some s -> ("accesskey", s)::attrs
   | None -> attrs in
-  let attrs = if disabled then (`Disabled,"disabled")::attrs else attrs in
-  let attrs = if readonly then (`Readonly,"readonly")::attrs else attrs in
-  let attrs = if checked then (`Checked,"checked")::attrs else attrs in
+  let attrs = if disabled then ("disabled","disabled")::attrs else attrs in
+  let attrs = if readonly then ("readonly","readonly")::attrs else attrs in
+  let attrs = if checked then ("checked","checked")::attrs else attrs in
   attrs
     
 let make_a ?(a=[]) l = << <a $list:a$>$list:l$</a> >>
@@ -1029,11 +1029,11 @@ let make_a ?(a=[]) l = << <a $list:a$>$list:l$</a> >>
       (url : ('a, xhformcontl,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) =
     match url.url_state with
       None -> url.create_alink_url current_url
-	  (fun v -> make_a ~a:[(`Href, v)] name)
+	  (fun v -> make_a ~a:[("href", v)] name)
     | Some i -> url.create_alink_url current_url
 	  (fun v -> 
 	    let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
-	    make_a ~a:[(`Href,vstateparam)] name)
+	    make_a ~a:[("href",vstateparam)] name)
 
 (* avec un formulaire caché (ça marche mais ce n'est pas du xhtml valide
    let stateparam = string_of_int i in
@@ -1129,16 +1129,16 @@ let form_get current_url (url : ('a,xhformcontl,'calink,'cform,'cimg,'cheadlink,
     reconstruct_relative_url_string current_url s) in
   let state_param =
     (match  url.url_state with
-      None -> `PCData ""
+      None -> []
     | Some i -> 
 	let i' = string_of_int i in
-	<< <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
+	[<< <input type="hidden" name=$state_param_name$ value=$i'$/> >>])
   in
   let inside = url.create_get_form f in
 (* `Form ([(`Method, "get"); (`Action, urlname)], state_param::inside) *)
   << <form method="get" action=$urlname$>
     <p style="display:none">
-    $state_param$
+    $list:state_param$
     </p>
     $list:inside$
     </form> >>
@@ -1147,7 +1147,7 @@ let form_get current_url (url : ('a,xhformcontl,'calink,'cform,'cimg,'cheadlink,
     let form_post current_url (url : ('a,'b,'calink,'cform,'cimg,'cheadlink,'cscript,'d,'e,'f,'g) url) (f : 'b) = 
       let state_param =
 	(match  url.url_state with
-	  None -> `PCData ""
+	  None -> tot (Pcdata "")
 	| Some i -> 
 	    let i' = string_of_int i in
 	    << <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
@@ -1204,8 +1204,7 @@ let action_link ?(reload=true) name h actionurl =
       let inside = actionurl.create_action_form f in
       let inside_reload = 
 	if reload 
-	then << <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p> >> 
-	  :: inside
+	then <:xmllist< <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p>$list:inside$ >>
 	else inside in
       let attrs = make_attrs ?id ?classe () in
       << <form method="post" action=$v$ $list:attrs$>
@@ -1259,10 +1258,10 @@ let textarea ?classe ?id ?title ?accesskey ?disabled ?readonly ~rows ~cols ?(dir
   let attrs = 
     make_attrs ?classe ?id ?title ?accesskey ?disabled ?readonly () in
   let attrs = 
-    (`Rows, (string_of_int rows))::(`Cols, (string_of_int cols))::attrs in
+    ("rows", (string_of_int rows))::("cols", (string_of_int cols))::attrs in
   let attrs = match dir with
-    Some `Rtl -> (`Dir, "rtl")::attrs
-  | Some `Ltr -> (`Dir, "ltr")::attrs
+    Some `Rtl -> ("dir", "rtl")::attrs
+  | Some `Ltr -> ("dir", "ltr")::attrs
   | None -> attrs in
   << <textarea name=$name$ $list:attrs$ /> >>
 
@@ -1272,8 +1271,8 @@ let select ?classe ?id ?title ?disabled ?size ?(dir:[`Rtl|`Ltr] option)
   let attrs = 
     make_attrs ?classe ?id ?title ?disabled ?size () in
   let attrs = match dir with
-    Some `Rtl -> (`Dir, "rtl")::attrs
-  | Some `Ltr -> (`Dir, "ltr")::attrs
+    Some `Rtl -> ("dir", "rtl")::attrs
+  | Some `Ltr -> ("dir", "ltr")::attrs
   | None -> attrs in
   let l =
   << <select name=$name$ $list:attrs$ >$l$</select>>>
@@ -1283,8 +1282,8 @@ let mutliple_select ?classe ?id ?title ?disabled ?size
   let attrs = 
     make_attrs ?classe ?id ?title ?disabled ?size () in
   let attrs = match dir with
-    Some `Rtl -> (`Dir, "rtl")::attrs
-  | Some `Ltr -> (`Dir, "ltr")::attrs
+    Some `Rtl -> ("dir", "rtl")::attrs
+  | Some `Ltr -> ("dir", "ltr")::attrs
   | None -> attrs in
   let l =
   << <select name=$name$ multiple="multiple" $list:attrs$ >$l$</select>>>

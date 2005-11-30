@@ -1,10 +1,33 @@
 xmlp4 is a pre-processor and pretty-printer for xml.
-Written by Vincent Balat and Julien Mineraud
+Written by Vincent Balat
+xhtmlpp.ml by Julien Mineraud
 
 It creates a syntax extension for caml allowing to write xml inside a caml program
 using xml syntax, and a pretty printer.
 
-You define your DTD (for ex xhtml.ml)
-Then you apply the functor Xmlparser.make (for ex xhtmlsyntax.ml)
-And you write your pretty-printer (for ex xhtmlpp.ml)
+There are two versions of the parser:
+ - First version, creating `Html([(`Class,"plop")],[])
+ - Second version for creating Element ("html",[("class","plop")],[])
+   of type [> `Html] t. Here, we use phantom types.
 
+First version uses xmllexer xmlparser xmlsyntax xhtmlpp
+Second version uses xmllexer xhtmlparser xhtmlsyntax xhtml
+
+
+
+Example:
+darmstadtium:xmlp4$ ledit ocaml -I +camlp4
+        Objective Caml version 3.08.4
+
+# #load "camlp4o.cma";;
+        Camlp4 Parsing version 3.08.4
+
+# #load "xmllexer.cmo";;
+# #load "xhtmlparser.cmo";;
+# #load "xhtmlsyntax.cmo";;
+# #load "xhtml.cmo";;
+# open Xhtml;;
+# << <lkj> <kj> </kj> </lkj> >>;;
+- : [> `Lkj ] Xhtml.t =
+Element ("lkj", [],
+ [Pcdata " "; Element ("kj", [], [Pcdata " "]); Pcdata " "])

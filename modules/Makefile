@@ -4,7 +4,7 @@ CAMLC = ocamlc $(LIB)
 CAMLOPT = ocamlopt $(LIB)
 CAMLDEP = ocamldep
 LIB = -I ../lib
-PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo ../lib/xmlsyntax.cmo"
+PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xhtmlparser.cmo ../lib/xhtmlsyntax.cmo"
 
 OBJS = $(FILES:.ml=.cmo)
 

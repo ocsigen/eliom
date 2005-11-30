@@ -10,11 +10,11 @@ CAMLOPT = ocamlfind ocamlopt $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
 CAMLDEP = ocamlfind ocamldep
 LIB = -package netstring,dbi.postgresql -I ../lib -I +camlp4
-PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xmlparser.cmo ../lib/xmlsyntax.cmo"
+PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xhtmlparser.cmo ../lib/xhtmlsyntax.cmo"
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
-       xhtmlpp.cmo sender_helpers.cmo\
+       xhtml.cmo sender_helpers.cmo\
        error_pages.cmo\
        postgresql.cma dbi.cma dbi_postgresql.cmo\
        gramlib.cma xmllexer.cmo xmlparser.cmo
@@ -55,7 +55,7 @@ clean:
 install:
 	@echo "Installing binary"
 	mkdir -p $(BINDIR)
-	$(INSTALL) -m755 $(NAME) ocsigen.cmi $(BINDIR)/
+	$(INSTALL) -m755 $(NAME) $(BINDIR)/
 
 .PHONY: uninstall
 uninstall:

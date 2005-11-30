@@ -871,8 +871,8 @@ let rec xh_search l xh_type = match l with
        	(texte,xh_type2)::queue when xh_type2 = xh_type -> texte;
        	| (_,_)::queue -> xh_search queue xh_type;
 	| _  -> assert false;;
-		
-		open Format
+
+open Format
 
 let xh_string = str_formatter
 let taille_tab = 2
@@ -1266,12 +1266,18 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
     xh_print_taglist queue i false removetailingws;
 
     (* Balise d'entete de type inline *)
+| (`Whitespace _)::(`Title(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Title(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Title(xh_attrs,xh_taglist))::queue
 | (`Title(xh_attrs,xh_taglist))::queue ->
-    xh_print_inlinetag "title" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i is_first;
+    xh_print_semiblocktag "title" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
 
+| (`Whitespace _)::(`Style(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Style(xh_attrs,xh_taglist))::(`Whitespace _)::queue
+| (`Whitespace _)::(`Style(xh_attrs,xh_taglist))::queue
 | (`Style(xh_attrs,xh_taglist))::queue ->
-    xh_print_inlinetag "style" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i is_first;
+    xh_print_semiblocktag "style" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
 
     (* Balise de liste de type inline *)

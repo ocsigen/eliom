@@ -80,7 +80,6 @@ Vincent Balat (project leader, xml parser, ocsigen.ml, server,
                moduleexample, ocsimore...)
 Denis Berthod (http protocol, server)
 Jérôme Vouillon (lwt library, from unison)
-Julien Mineraud (xhtml pretty-printing)
 
 Acknowledgements:
 
@@ -88,8 +87,10 @@ Emmanuel Chailloux
 Jean-Vincent Loddo
 Jérôme Vouillon
 Grégoire Henry
+Alain Frisch
 Christophe Fouqueré
 Juliusz Chroboczek
+Roberto Di Cosmo
 
 and thanks to my (other) students who took part to the very first version:
 
@@ -97,4 +98,5 @@ Yann Binot
 Julien Chapuis
 Arnaud Delattre
 Alexandre Erisay
+Julien Mineraud (Xhtmlpp - xhtml pretty-printing)
 

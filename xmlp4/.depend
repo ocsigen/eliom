@@ -1,12 +1,28 @@
+xhtml.cmo: xhtml.cmi 
+xhtml.cmx: xhtml.cmi 
 xmlsyntax.cmo: xmlparser.cmo /opt/godi/lib/ocaml/std-lib/camlp4/quotation.cmi \
     /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi 
 xmlsyntax.cmx: xmlparser.cmx /opt/godi/lib/ocaml/std-lib/camlp4/quotation.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi 
+xhtmlsyntax.cmo: xhtmlparser.cmo \
+    /opt/godi/lib/ocaml/std-lib/camlp4/quotation.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi 
+xhtmlsyntax.cmx: xhtmlparser.cmx \
+    /opt/godi/lib/ocaml/std-lib/camlp4/quotation.cmi \
     /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi 
 xmlparser.cmo: xmllexer.cmo /opt/godi/lib/ocaml/std-lib/camlp4/pcaml.cmi \
     /opt/godi/lib/ocaml/std-lib/camlp4/mLast.cmi \
     /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi \
     /opt/godi/lib/ocaml/std-lib/camlp4/gramext.cmi 
 xmlparser.cmx: xmllexer.cmx /opt/godi/lib/ocaml/std-lib/camlp4/pcaml.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/mLast.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/gramext.cmi 
+xhtmlparser.cmo: xmllexer.cmo /opt/godi/lib/ocaml/std-lib/camlp4/pcaml.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/mLast.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi \
+    /opt/godi/lib/ocaml/std-lib/camlp4/gramext.cmi 
+xhtmlparser.cmx: xmllexer.cmx /opt/godi/lib/ocaml/std-lib/camlp4/pcaml.cmi \
     /opt/godi/lib/ocaml/std-lib/camlp4/mLast.cmi \
     /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi \
     /opt/godi/lib/ocaml/std-lib/camlp4/gramext.cmi 

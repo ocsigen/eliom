@@ -31,7 +31,7 @@ let plop2 =
   register_new_url 
     (Url ["plop";"plip"])  (* the url plop/plip *)
     _noparam 
-    << <html><body><h1>plop2</h1></body></html> >>
+    << <html> <body> <h1>plop2</h1> </body> </html> >>
 
 let oups = 
   register_new_url 
@@ -465,10 +465,11 @@ let rec page_for_shopping_basket url shopping_basket =
       (fun current_url ->
 	 let f = write_shopping_basket shopping_basket in
 	   << <html><body><p>You are going to pay: $list:f$ </p></body></html> >>);
-    let sb = `Div ([], (write_shopping_basket shopping_basket)) in
+    let sb' = write_shopping_basket shopping_basket in
+    let sb = << <div>$list:sb'$</div> >> in
     let sh = write_shop local_shop_with_post_params url in
     let lp   = a <:xmllist< pay >> url local_pay in
-      << <html><body> $sb$ $sh$ <p>$lp$ </p></body></html> >>
+      << <html><body> $sb$ $sh$ <p>$lp$</p></body></html> >>
 
 let _ = register_post_url
   ~url:shop_with_post_params
