@@ -304,7 +304,7 @@ let ( ** ) p1 p2 =
 	 (function 
 	     Some ss -> 
 	       (p1wp
-		  (function Some s' -> s (Some (s'^"&amp;"^ss))
+		  (function Some s' -> s (Some (s'^"&"^ss))
 		    | None -> assert false (*** ???????? ****)) v1)
 	   | None -> (p1wp (fun s' -> s s') v1))
 	 v2)) in

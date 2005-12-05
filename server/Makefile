@@ -17,7 +17,7 @@ CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        xhtml.cma sender_helpers.cmo\
        error_pages.cmo\
        postgresql.cma dbi.cma dbi_postgresql.cmo\
-       gramlib.cma xmllexer.cmo xmlparser.cmo
+       gramlib.cma xmllexer.cmo simplexmlparser.cmo
 # avant dernière ligne pas nécessaire pour server mais je n'arrive pas à le lier ailleurs...
 
 OBJS = $(FILES:.ml=.cmo)

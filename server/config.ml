@@ -45,7 +45,7 @@ let _ = Arg.parse
 
 let config = 
   try
-    Xmlparser.xmlparser (get_config_file ())
+    Simplexmlparser.xmlparser (get_config_file ())
   with
     Stdpp.Exc_located (fl,exn) -> 
       Printf.eprintf "%s" 

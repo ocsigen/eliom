@@ -110,12 +110,11 @@ let uaprefix =
 let iprefix = 
   register_new_url (Url_Prefix ["iprefix"]) (_url_suffix (_int "i"))
     (fun suff i -> 
-       let i' = string_of_int i in
 <<
   <html>
     <body>
     <p>
-  The suffix of the url is <strong>$str:suff$</strong> and i is equal to <strong>$str:i'$</strong>
+  The suffix of the url is <strong>$str:suff$</strong> and i is <strong>$str:string_of_int i$</strong>
     </p></body>
   </html>
 >>)
@@ -154,17 +153,20 @@ open Xhtmlpp
 
 let links = register_new_url (Url ["plop";"links"]) (_current_url _noparam)
   (fun current_url ->
-     (let l = a <:xmllist< plop >> current_url plop in
-      let ll = a <:xmllist< plop2 >> current_url plop2 in
-      let lll = a <:xmllist< uaprefix >> current_url uaprefix "suf" "toto" in
-      let llll = 
-	a <:xmllist< plop_params >> current_url plop_params 45 "hello" "plpl" in
-      let lllll  = a <:xmllist< wikipedia >> current_url
-	  (new_external_url
-	     (Url_Prefix ["http://fr.wikipedia.org";"wiki"])
-	     (_url_suffix _noparam)) "Ocaml"
-      in
-	<< <html><body><p> $l$ <br/> $ll$ <br/> $lll$ <br/> $llll$ <br/> $lllll$</p></body></html> >>))
+     (<< <html>
+             <body>
+               <p> 
+                 $a <:xmllist< plop >> current_url plop$ <br/> 
+                 $a <:xmllist< plop2 >> current_url plop2$ <br/> 
+                 $a <:xmllist< uaprefix >> current_url uaprefix "suf" "toto"$ <br/>
+                 $a <:xmllist< plop_params >> current_url plop_params 45 "hello" "plpl"$ <br/> 
+                 $a <:xmllist< wikipedia >> current_url
+	            (new_external_url
+		       (Url_Prefix ["http://fr.wikipedia.org";"wiki"])
+		       (_url_suffix _noparam)) "Ocaml"$
+               </p>
+             </body>
+           </html> >>))
 (* Note that to create a link we need to know the current url, because:
    - the link from toto/titi to toto/tata is "tata" and not "toto/tata"
    - "toto/titi/" is equivalent to "toto/titi", but the link for the
@@ -197,14 +199,10 @@ let _ = register_url linkrec
 *)
 let create_form = 
      (fun entier chaine chaine2 ->
-	let ib = int_input entier in
-	let sb = string_input chaine in
-	let sb2 = string_input chaine2 in
-	let b = submit_input "Cliquez" in
-	  <:xmllist< <p>Write an int: $ib$ <br/>
-                     Write a string: $sb$ <br/>
-                     Write a string: $sb2$ <br/>
-	             $b$</p>
+	  <:xmllist< <p>Write an int: $int_input entier$ <br/>
+                     Write a string: $string_input chaine$ <br/>
+                     Write a string: $string_input chaine2$ <br/>
+	             $submit_input "Cliquez"$</p>
 	  >>)
 
 let form = register_new_url (Url ["form"]) (_current_url _noparam)
@@ -244,8 +242,7 @@ let get_no_post_param_url =
     ~name:(Url ["post2"]) 
     ~params:(_int "i")
     ~page:(fun i -> 
-	       let i' = string_of_int i in
-	       << <html><body><p>No POST parameter, i: <strong>$str:i'$</strong></p></body></html> >>)
+	       << <html><body><p>No POST parameter, i: <strong>$str:string_of_int i$</strong></p></body></html> >>)
     
 let my_url_with_get_and_post = register_new_post_url 
   ~fallback:get_no_post_param_url

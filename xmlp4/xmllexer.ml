@@ -137,7 +137,7 @@ value next_token_fun find_kwd fname lnum bolpos =
 	  (("VALUE", get_buff (value_attribut_in_double_quote bp 0 s)),mkloc (bp,ep))
       |	[: `'''; s :] ep ->
 	  (("VALUE", get_buff (value_attribut_in_quote bp 0 s)),mkloc (bp,ep))
-      |	[: `'$'; s :] ep -> (* for caml varnames *) camlvar bp 0 s
+      |	[: `'$'; s :] ep -> (* for caml expressions *) camlexprattr bp 0 s
       |	[: `'/'; `'>' :] ep ->
 	  let name = pop_tag () in
 	  do { 
@@ -159,7 +159,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       ')' | '#' | '>'
 	as c); s :] ep -> 
 	  (("DATA", get_buff (data bp (store 0 c) s)),mkloc (bp,ep))
-    | [: `'$'; s :] ep -> (* for caml varnames *) camlvarattr bp 0 s
+    | [: `'$'; s :] ep -> (* for caml varnames *) camlexpr bp s
     | [: `'<'; s :] ->
 	match s with parser
       [	[: `'?'; `'x'; `'m'; `'l';
@@ -291,43 +291,44 @@ value next_token_fun find_kwd fname lnum bolpos =
       |	[: `c; s :] ->
 	  value_attribut_in_double_quote bp (store len c) s
       |	[: :] ep -> err (mkloc (bp, ep)) "attribut value not terminated" ]
-  and camlvar bp len =
+  and camlexpr bp =
     parser
     [ [: `('a'..'z' | '\223'..'\246' | '\248'..'\255' | '_' as c); s :] ->
-      impose_dollar bp ((ident (store 0 c)) s) s
-    | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep)) ]
-  and impose_dollar bp id =
+      antiquotname bp ((ident (store 0 c)) s) s
+    | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep))
+    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep)) ]
+  and antiquotname bp len =
     parser
-    [ [: `':'; s :] ep -> let buff = get_buff id in 
+    [ [: `':'; s :] ep -> let buff = get_buff len in 
 	if buff = "list" 
-	then (("CAMLVARL", get_buff (camlvarend bp 0 s)), mkloc (bp,ep))
-	else err (mkloc (bp, ep)) "unknown antiquotation"
-    | [: `'$'; s :] ep -> (("CAMLVAR", (get_buff id)), mkloc (bp,ep))
-    | [: :] ep -> err (mkloc (bp, ep)) "$ missing" ]
-  and camlvarattr bp len =
-    parser
-    [ [: `('a'..'z' | '\223'..'\246' | '\248'..'\255' | '_' as c); s :] ->
-      impose_dollar_attr bp ((ident (store 0 c)) s) s
-    | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep)) ]
-  and impose_dollar_attr bp id =
-    parser
-    [ [: `':'; s :] ep -> let buff = get_buff id in 
-	if buff = "list" 
-	then (("CAMLVARXMLL", get_buff (camlvarend bp 0 s)), mkloc (bp,ep))
+	then (("CAMLEXPRXMLL", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep))
 	else if buff = "str" 
-	then (("CAMLVARXMLS", get_buff (camlvarend bp 0 s)), mkloc (bp,ep))
+	then (("CAMLEXPRXMLS", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep))
 	else err (mkloc (bp, ep)) "unknown antiquotation"
-    | [: `'$'; s :] ep -> (("CAMLVARXML", get_buff id), mkloc (bp,ep))
-    | [: :] ep -> err (mkloc (bp, ep)) "$ missing" ]
-  and camlvarend bp len =
+    | [: `'$'; s :] ep -> (("CAMLEXPRXML", (get_buff len)), mkloc (bp,ep))
+    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp len s)), mkloc (bp,ep)) ]
+  and camlexpr2 bp len =
+    parser
+    [ [: `'$'; s :] ep -> len
+    | [: `(_ as c) ; s :] ep -> camlexpr2 bp (store len c) s ]
+
+
+
+  and camlexprattr bp len =
     parser
     [ [: `('a'..'z' | '\223'..'\246' | '\248'..'\255' | '_' as c); s :] ->
-      impose_dollarend bp ((ident (store 0 c)) s) s
-    | [: :] ep -> err (mkloc (bp, ep)) "name expected" ]
-  and impose_dollarend bp id =
+      antiquotname_attr bp ((ident (store 0 c)) s) s
+    | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep))
+    | [: s :] ep -> (("CAMLEXPR", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep)) ]
+  and antiquotname_attr bp len =
     parser
-    [ [: `'$'; s :] -> id
-    | [: :] ep -> err (mkloc (bp, ep)) "$ missing" ]
+    [ [: `':'; s :] ep -> let buff = get_buff len in 
+	if buff = "list" 
+	then (("CAMLEXPRL", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep))
+	else err (mkloc (bp, ep)) "unknown antiquotation"
+    | [: `'$'; s :] ep -> (("CAMLEXPR", get_buff len), mkloc (bp,ep))
+    | [: s :] ep -> (("CAMLEXPR", get_buff (camlexpr2 bp len s)), mkloc (bp,ep)) ]
+
   and value_attribut_in_quote bp len =
     parser
     [ [: `''' :] -> len
@@ -481,9 +482,9 @@ value using_token kwd_table ident_table (p_con, p_prm) =
         else error_no_respect_rules p_con p_prm
       else ()
   | "QUOTATION" |
-    "CAMLVAR" | "CAMLVARXML" | 
-    "CAMLVARL" | "CAMLVARXMLL" |  
-    "CAMLVARXMLS" | "COMMENT" |
+    "CAMLEXPR" | "CAMLEXPRXML" | 
+    "CAMLEXPRL" | "CAMLEXPRXMLL" |  
+    "CAMLEXPRXMLS" | "COMMENT" |
     "TAG" | "GAT" | "ATTR" | "VALUE" | "XMLDECL" |
     "DECL" | "DATA" | "WHITESPACE" | "EOI" ->
       ()
@@ -506,10 +507,10 @@ value removing_token kwd_table ident_table (p_con, p_prm) =
 value text =
   fun
   [ ("", t) -> "'" ^ t ^ "'"
-  | ("CAMLVAR", k) -> "camlvar \"" ^ k ^ "\""
-  | ("CAMLVARXML", k) -> "camlvarxml \"" ^ k ^ "\""
-  | ("CAMLVARL", k) -> "camlvarl \"" ^ k ^ "\""
-  | ("CAMLVARXMLL", k) -> "camlvarxmll \"" ^ k ^ "\""
+  | ("CAMLEXPR", k) -> "camlexpr \"" ^ k ^ "\""
+  | ("CAMLEXPRXML", k) -> "camlvarxml \"" ^ k ^ "\""
+  | ("CAMLEXPRL", k) -> "camlexprl \"" ^ k ^ "\""
+  | ("CAMLEXPRXMLL", k) -> "camlvarxmll \"" ^ k ^ "\""
   | ("COMMENT", k) -> "comment \"" ^ k ^ "\""
 
   | ("TAG","") -> "tag"

@@ -54,7 +54,7 @@ module ExpoOrPatt = struct
 
   type 'a tlist =
       PLEmpty
-    | PLVar of string
+    | PLExpr of string
     | PLCons of 'a * 'a tlist
 
   type texprpatt = 
@@ -65,6 +65,10 @@ module ExpoOrPatt = struct
     | EPcomment of string
     | EPanytagvar of string
     | EPanytagvars of string
+
+  let get_expr = function
+      [MLast.StExp (v,w),_],_ -> w
+    | _ -> failwith "XML parsing error: problem in antiquotations $...$"
 
   let list_of_mlast_expr el = 
     List.fold_right 
@@ -102,20 +106,23 @@ module ExpoOrPatt = struct
 
     | EPwhitespace dt -> <:expr< `Whitespace $str:dt$ >>
 
-    | EPanytagvar v -> <:expr< $lid:v$ >>
+    | EPanytagvar v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
+(*	<:expr< $lid:v$ >> *)
 
-    | EPanytagvars v -> <:expr< `PCData $lid:v$ >>
+    | EPanytagvars v -> 
+	let s = get_expr ((!Pcaml.parse_implem) (Stream.of_string v)) in
+	<:expr< `PCData $s$ >>
 
     | EPcomment c -> <:expr< `Comment $str:c$ >>
 
   and to_expr_taglist = function
       PLEmpty -> <:expr< [] >>
-    | PLVar v -> <:expr< $lid:v$ >>
+    | PLExpr v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
     | PLCons (a,l) -> <:expr< [ $to_expr a$ :: $to_expr_taglist l$ ] >>
 
   and to_expr_attlist = function
       PLEmpty -> <:expr< [] >>
-    | PLVar v -> <:expr< $lid:v$ >>
+    | PLExpr v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
     | PLCons (a,l) -> <:expr< [ $to_expr a$ :: $to_expr_attlist l$ ] >>
 
 
@@ -147,12 +154,12 @@ module ExpoOrPatt = struct
 
   and to_patt_taglist = function
       PLEmpty -> <:patt< [] >>
-    | PLVar v -> <:patt< $lid:v$ >>
+    | PLExpr v -> <:patt< $lid:v$ >>
     | PLCons (a,l) -> <:patt< [ $to_patt a$ :: $to_patt_taglist l$ ] >>
 
   and to_patt_attlist = function
       PLEmpty -> <:patt< [] >>
-    | PLVar v -> <:patt< $lid:v$ >>
+    | PLExpr v -> <:patt< $lid:v$ >>
     | PLCons (a,l) -> <:patt< [ $to_patt a$ :: $to_patt_attlist l$ ] >>
 
 end
@@ -198,13 +205,13 @@ EXTEND
   | dt = WHITESPACE -> EPwhitespace dt
   | dt = DATA -> EPpcdata dt
   | c = COMMENT -> EPcomment c
-  | v = CAMLVARXML -> EPanytagvar v
-  | v = CAMLVARXMLS -> EPanytagvars v
+  | v = CAMLEXPRXML -> EPanytagvar v
+  | v = CAMLEXPRXMLS -> EPanytagvars v
   ] ];
 
   exprpatt_any_attribute_list:
   [ [
-      v = CAMLVARL -> PLVar v
+      v = CAMLEXPRL -> PLExpr v
     | a = exprpatt_attr_or_var;
       "=";
       value = exprpatt_value_or_var;
@@ -217,8 +224,8 @@ EXTEND
 
   exprpatt_any_tag_list:
   [ [
-      v = CAMLVARXMLL;
-      OPT WHITESPACE -> PLVar v
+      v = CAMLEXPRXMLL;
+      OPT WHITESPACE -> PLExpr v
     | anytag = exprpatt_any_tag;
       suite  = OPT exprpatt_any_tag_list ->
       let suite = match suite with
@@ -230,13 +237,13 @@ EXTEND
   exprpatt_value_or_var:
   [ [
     v = VALUE -> EPVstr v
-  | v = CAMLVAR -> EPVvar v
+  | v = CAMLEXPR -> EPVvar v
   ] ];
 
   exprpatt_attr_or_var:
   [ [
     v = ATTR -> EPVstr v
-  | v = CAMLVAR -> EPVvar v
+  | v = CAMLEXPR -> EPVvar v
   ] ];
 
 END;;

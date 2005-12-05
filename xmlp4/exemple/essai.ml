@@ -1,3 +1,9 @@
+let fff x = x
+let aaa = "a"
+let l = << <a $aaa$="pp">$fff aaa$</a> >>
+let ff x = <:xmllist< <o>$str:x$</o><i/> >>
+let l = << <a $aaa$="pp">$list:ff aaa$</a> >>
+
 (* Pour les expressions et les patterns on peut écrire *)
 let a = << a >> in
 let b = "bb" in
@@ -25,6 +31,7 @@ fun << <html $list:l1$> $list:l2$ $a$ </html> >> -> 1
 fun << <html $list:l1$> $list:l3$ <body> $list:l2$ </body> </html> >> -> 1
 (* car les $list:l$ sont des listes *)
 *)
+
 
 
 

@@ -1,5 +1,5 @@
 FILESR = xmllexer.ml 
-FILES = xhtmltypes.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml xhtmlparser.ml xhtmlpp.ml
+FILES = xhtmltypes.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml simplexmlparser.ml xhtmlparser.ml xhtmlpp.ml
 
 CAMLC = ocamlc $(LIB)
 CAMLOPT = ocamlopt $(LIB)
@@ -15,7 +15,7 @@ OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
 
 all: $(OBJS) essai
 	make -C ohl-xhtml all
-	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlparser.cmi xhtmlparser.cmo xhtmlsyntax.cmo ohl-xhtml/xhtml.cma ohl-xhtml/xHTML.cmi ohl-xhtml/xML.cmi $(SRCLIBREP)
+	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlparser.cmi xhtmlparser.cmo xhtmlsyntax.cmo ohl-xhtml/xhtml.cma ohl-xhtml/xHTML.cmi ohl-xhtml/xML.cmi $(SRCLIBREP)
 
 
 .PHONY: depend

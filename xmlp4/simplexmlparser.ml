@@ -17,7 +17,7 @@
  *)
 
 (* 
-   Parseur camlp4 pour XHTML
+   Parseur camlp4 pour XML sans antiquotations
 
    Attention c'est juste un essai
    Je ne colle peut-être pas à la syntaxe XML
@@ -38,15 +38,7 @@ et ensuite encore string_of_int au moment de l'affichage
 
 *)
 
-
-
 open Pcaml
-
-let blocktags = [ "fieldset"; "form"; "address"; "body"; "head"; "blockquote"; "div"; "html"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "p"; "dd"; "dl"; "li"; "ol"; "ul"; "colgroup"; "table"; "tbody"; "tfoot"; "thead"; "td"; "th"; "tr" ]
-
-let semiblocktags = [ "pre"; "style"; "title" ]
-
-
 
 (* Instead of using Pcaml.gram, we use a new grammar, using xmllexer *)
 let g = Grammar.gcreate (Xmllexer.gmake ())
@@ -62,7 +54,6 @@ module ExpoOrPatt = struct
 
   type 'a tlist =
       PLEmpty
-    | PLExpr of string
     | PLCons of 'a * 'a tlist
 
   type texprpatt = 
@@ -71,12 +62,6 @@ module ExpoOrPatt = struct
     | EPpcdata of string
     | EPwhitespace of string
     | EPcomment of string
-    | EPanytagvar of string
-    | EPanytagvars of string
-
-  let get_expr = function
-      [MLast.StExp (v,w),_],_ -> w
-    | _ -> failwith "XML parsing error: problem in antiquotations $...$"
 
   let list_of_mlast_expr el = 
     List.fold_right 
@@ -98,56 +83,62 @@ module ExpoOrPatt = struct
 
       EPanyattr (EPVstr aa, v) ->
 	let vv = expr_valorval v in
-	<:expr< XML.AStr ($str:aa$, $vv$) >>
+	<:expr< (`$uid:String.capitalize aa$, $vv$) >>
 
     | EPanyattr (EPVvar aa, v) ->
 	let vv = expr_valorval v in
-	<:expr< XML.AStr ($lid:aa$, $vv$) >>
+	<:expr< ($lid:aa$, $vv$) >>
 
     | EPanytag (tag, attribute_list, child_list) ->
-	let constr =
-	  if List.mem tag blocktags
-	  then "BlockElement"
-	  else (if List.mem tag semiblocktags
-	  then "SemiBlockElement"
-	  else "Element")
-	in
-	(match child_list with
-	  PLEmpty ->
-	    <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
-                $to_expr_attlist attribute_list$
-		[])) : XHTML.M.elt [> `$uid: String.capitalize tag$])
-            >>
-	| _ ->
-	    <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
-               $to_expr_attlist attribute_list$
-               (XHTML.M.toeltl ($to_expr_taglist child_list$ :> list (XHTML.M.elt [< Xhtmltypes.$lid:"xh"^tag^"cont"$])))))
-		   : XHTML.M.elt [> `$uid: String.capitalize tag$])
-	    >>)
+	<:expr< `$uid:String.capitalize tag$
+	  $to_expr_attlist attribute_list$
+          $to_expr_taglist child_list$
+	>>
 	
-    | EPpcdata dt -> <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $str:dt$)) : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
+    | EPpcdata dt -> <:expr< `PCData $str:dt$ >>
 
-    | EPwhitespace dt -> <:expr< XHTML.M.tot (XML.Whitespace $str:dt$) >>
+    | EPwhitespace dt -> <:expr< `Whitespace $str:dt$ >>
 
-    | EPanytagvar v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
-(* <:expr< $lid:v$ >> *)
-
-    | EPanytagvars v -> 
-	let s = get_expr ((!Pcaml.parse_implem) (Stream.of_string v)) in
-	<:expr< ((XHTML.M.tot (XML.EncodedPCDATA $s$)) : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
-
-    | EPcomment c -> <:expr< XHTML.M.tot (XML.Comment $str:c$) >>
+    | EPcomment c -> <:expr< `Comment $str:c$ >>
 
   and to_expr_taglist = function
       PLEmpty -> <:expr< [] >>
-    | PLExpr v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
     | PLCons (a,l) -> <:expr< [ $to_expr a$ :: $to_expr_taglist l$ ] >>
 
   and to_expr_attlist = function
       PLEmpty -> <:expr< [] >>
-    | PLExpr v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
     | PLCons (a,l) -> <:expr< [ $to_expr a$ :: $to_expr_attlist l$ ] >>
 
+
+  let rec to_patt = function
+
+      EPanyattr (EPVstr a, v) -> 
+	let vv = patt_valorval v in
+	<:patt< ((`$uid:String.capitalize a$), $vv$) >>
+
+    | EPanyattr (EPVvar a, v) ->
+	let vv = patt_valorval v in
+	<:patt< ($lid:a$, $vv$) >>
+
+    | EPanytag (tag, attribute_list, child_list) ->
+	<:patt< `$uid:String.capitalize tag$
+	  $to_patt_attlist attribute_list$
+          $to_patt_taglist child_list$
+        >>
+
+    | EPpcdata dt -> <:patt< `PCData $str:dt$ >>
+
+    | EPwhitespace dt -> <:patt< `Whitespace $str:dt$ >>
+
+    | EPcomment c -> <:patt< `Comment $str:c$ >>
+
+  and to_patt_taglist = function
+      PLEmpty -> <:patt< [] >>
+    | PLCons (a,l) -> <:patt< [ $to_patt a$ :: $to_patt_taglist l$ ] >>
+
+  and to_patt_attlist = function
+      PLEmpty -> <:patt< [] >>
+    | PLCons (a,l) -> <:patt< [ $to_patt a$ :: $to_patt_attlist l$ ] >>
 
 end
 
@@ -192,14 +183,11 @@ EXTEND
   | dt = WHITESPACE -> EPwhitespace dt
   | dt = DATA -> EPpcdata dt
   | c = COMMENT -> EPcomment c
-  | v = CAMLEXPRXML -> EPanytagvar v
-  | v = CAMLEXPRXMLS -> EPanytagvars v
   ] ];
 
   exprpatt_any_attribute_list:
   [ [
-      v = CAMLEXPRL -> PLExpr v
-    | a = exprpatt_attr_or_var;
+     a = exprpatt_attr_or_var;
       "=";
       value = exprpatt_value_or_var;
       suite  = OPT exprpatt_any_attribute_list ->
@@ -211,9 +199,7 @@ EXTEND
 
   exprpatt_any_tag_list:
   [ [
-      v = CAMLEXPRXMLL;
-      OPT WHITESPACE -> PLExpr v
-    | anytag = exprpatt_any_tag;
+     anytag = exprpatt_any_tag;
       suite  = OPT exprpatt_any_tag_list ->
       let suite = match suite with
 	  None -> PLEmpty
@@ -224,25 +210,17 @@ EXTEND
   exprpatt_value_or_var:
   [ [
     v = VALUE -> EPVstr v
-  | v = CAMLEXPR -> EPVvar v
   ] ];
 
   exprpatt_attr_or_var:
   [ [
     v = ATTR -> EPVstr v
-  | v = CAMLEXPR -> EPVvar v
   ] ];
 
 END;;
 
 let xml_exp s = to_expr (Grammar.Entry.parse exprpatt_xml (Stream.of_string s))
-
-(*  let ep = Grammar.Entry.parse exprpatt_xml (Stream.of_string s) in
-  match ep with
-    EPanytag (tag,_,_) -> <:expr< (($to_expr ep$) : XHTML.M.elt [= `$uid: String.capitalize tag$]) >>
-  | _ -> failwith "Prepocessor error in xhtmlparser: there must be only one root tag"
-*)
-
+let xml_pat s = to_patt (Grammar.Entry.parse exprpatt_xml (Stream.of_string s))
 
 let xmlparser s =
   let chan = open_in s in
@@ -252,33 +230,3 @@ let xmlparser s =
 
 
 
-(*
-(* Pour les expressions et les patterns on peut écrire *)
-let a = << a >> in
-let b = << bb >> in
-let c = `Cc in
-let d = "dd" in
-let e = `Ee in
-let f = "ff" in
-let g = << <ark> </ark> >> in
-let s = << <youpi> $a$ $b$ $$ $g$ <bobo $c$=$d$ $e$=$f$> </bobo> </youpi> >> in
-let la = [(`A, "popo");(`Ggg, "lkjl")] in
-let l = [<< <ark $c$=$f$ %la%> </ark> >>; << <wow> </wow> >>] in
-  << <youpi> $a$ zzz %l% </youpi> >>
-(* $$ permet d'écrire un $ *)
-(* %% permet d'écrire un % *)
-
-function << <html %l1%> $a$ ljl %l2% </html> >> -> 1 | _ -> 2
-function << <html $n$=$v$ a="b" %l1%> <body> %l2% </body> </html> >> 
-    -> 1 | _ -> 2
-function << <html %l1%> <body> %l2% </body> %l3% </html> >> -> 1 | _ -> 2
-(*
-(* mais pas : *)
-fun << <html %l1%> %l2% %l3% </html> >> -> 1
-(* ni : *)
-fun << <html %l1%> %l2% $a$ </html> >> -> 1
-(* ni : *)
-fun << <html %l1%> %l3% <body> %l2% </body> </html> >> -> 1
-(* car les %l% sont des listes *)
-*)
-*)

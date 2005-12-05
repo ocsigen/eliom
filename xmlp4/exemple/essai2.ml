@@ -9,7 +9,7 @@ let arbre = << <html>   <head>
 				<div>
 					je suis   dans <b><i>div</i></b> avec div en gras 
 				</div>
-				<h1>  <!-- commentaire --> a$ je suis dans h1  </h1>
+				<h1>  <!-- commentaire --> a$$ je suis dans h1  </h1>
 			</body>
 
 			<!-- qq < <!-- commentaires -- <!- imbriqués -> --> ss -->
