@@ -43,10 +43,10 @@ let box_exn_handler ex = match ex with
 
 (** Container *)
 let boxes_container ?classe ?id l =
-  let attrid = (match id with None -> [] | Some c -> ["id",c]) in
+  let attrid = (match id with None -> [] | Some c -> [XML.AStr ("id",c)]) in
   let attrs = 
-    (match classe with None -> attrid | Some c -> ("class",c)::attrid) in
-  let l = (l :> Xhtml.xhdivcont Xhtml.t list) in
+    (match classe with None -> attrid | Some c -> (XML.AStr ("class",c))::attrid) in
+  let l = (l :> Xhtmltypes.xhdivcont XHTML.M.elt list) in
   << <div $list:attrs$>$list:l$</div> >>
 
 
@@ -59,7 +59,7 @@ let boxes_container ?classe ?id l =
     the other one manually.
  *)
 
-let page h ?(js=[]) ?(css=[]) (bl : [> Xhtml.xhbodycont] Xhtml.t list) = 
+let page h ?(js=[]) ?(css=[]) (bl : [> Xhtmltypes.xhbodycont] XHTML.M.elt list) = 
   let rec make_hl make_link l = function
       [] -> l
     | (filedir, filename)::ll -> 
@@ -85,9 +85,9 @@ let page_exn_handler h ex = page h [box_exn_handler ex]
     pages can take such a register as a parameter
 *)
 class boxes_class = object
-  method print_title s : Xhtml.xhtmlcont = title_box s
-  method print_text s : Xhtml.xhtmlcont = text_box s
-  method print_error s : Xhtml.xhtmlcont = error_box s
+  method print_title s : Xhtmltypes.xhtmlcont = title_box s
+  method print_text s : Xhtmltypes.xhtmlcont = text_box s
+  method print_error s : Xhtmltypes.xhtmlcont = error_box s
 end
 
 (* Put in the class message_boxes all the boxes you want to be able
@@ -95,7 +95,7 @@ end
 *)
 class message_boxes_class = object
   inherit boxes_class
-  method print_string_message u i : Xhtml.xhtmlcont = string_message_box i u
+  method print_string_message u i : Xhtmltypes.xhtmlcont = string_message_box i u
 end
 
 

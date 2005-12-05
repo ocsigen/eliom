@@ -42,7 +42,6 @@ et ensuite encore string_of_int au moment de l'affichage
 
 open Pcaml
 
-
 let blocktags = [ "fieldset"; "form"; "address"; "body"; "head"; "blockquote"; "div"; "html"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "p"; "dd"; "dl"; "li"; "ol"; "ul"; "colgroup"; "table"; "tbody"; "tfoot"; "thead"; "td"; "th"; "tr" ]
 
 let semiblocktags = [ "pre"; "style"; "title" ]
@@ -95,11 +94,11 @@ module ExpoOrPatt = struct
 
       EPanyattr (EPVstr aa, v) ->
 	let vv = expr_valorval v in
-	<:expr< ($str:aa$, $vv$) >>
+	<:expr< XML.AStr ($str:aa$, $vv$) >>
 
     | EPanyattr (EPVvar aa, v) ->
 	let vv = expr_valorval v in
-	<:expr< ($lid:aa$, $vv$) >>
+	<:expr< XML.AStr ($lid:aa$, $vv$) >>
 
     | EPanytag (tag, attribute_list, child_list) ->
 	let constr =
@@ -111,26 +110,26 @@ module ExpoOrPatt = struct
 	in
 	(match child_list with
 	  PLEmpty ->
-	    <:expr< ((Xhtml.tot (Xhtml.$uid:constr$ $str:tag$
+	    <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
                 $to_expr_attlist attribute_list$
-		[])) : Xhtml.t [> `$uid: String.capitalize tag$])
+		[])) : XHTML.M.elt [> `$uid: String.capitalize tag$])
             >>
 	| _ ->
-	    <:expr< ((Xhtml.tot (Xhtml.$uid:constr$ $str:tag$
+	    <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
                $to_expr_attlist attribute_list$
-               (Xhtml.toeltl ($to_expr_taglist child_list$ :> list (Xhtml.t [< Xhtml.$lid:"xh"^tag^"cont"$])))))
-		   : Xhtml.t [> `$uid: String.capitalize tag$])
+               (XHTML.M.toeltl ($to_expr_taglist child_list$ :> list (XHTML.M.elt [< Xhtmltypes.$lid:"xh"^tag^"cont"$])))))
+		   : XHTML.M.elt [> `$uid: String.capitalize tag$])
 	    >>)
 	
-    | EPpcdata dt -> <:expr< ((Xhtml.tot (Xhtml.Pcdata $str:dt$)) : Xhtml.t [> Xhtml.pcdata ]) >>
+    | EPpcdata dt -> <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $str:dt$)) : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
 
-    | EPwhitespace dt -> <:expr< Xhtml.tot (Xhtml.Whitespace $str:dt$) >>
+    | EPwhitespace dt -> <:expr< XHTML.M.tot (XML.Whitespace $str:dt$) >>
 
     | EPanytagvar v -> <:expr< $lid:v$ >>
 
-    | EPanytagvars v -> <:expr< ((Xhtml.tot (Xhtml.Pcdata $lid:v$)) : Xhtml.t [> Xhtml.pcdata ]) >>
+    | EPanytagvars v -> <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $lid:v$)) : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
 
-    | EPcomment c -> <:expr< Xhtml.tot (Xhtml.Comment $str:c$) >>
+    | EPcomment c -> <:expr< XHTML.M.tot (XML.Comment $str:c$) >>
 
   and to_expr_taglist = function
       PLEmpty -> <:expr< [] >>
@@ -142,42 +141,6 @@ module ExpoOrPatt = struct
     | PLVar v -> <:expr< $lid:v$ >>
     | PLCons (a,l) -> <:expr< [ $to_expr a$ :: $to_expr_attlist l$ ] >>
 
-
-  let rec to_patt = function
-
-      EPanyattr (EPVstr a, v) -> 
-	let vv = patt_valorval v in
-	<:patt< (($str:a$), $vv$) >>
-
-    | EPanyattr (EPVvar a, v) ->
-	let vv = patt_valorval v in
-	<:patt< ($lid:a$, $vv$) >>
-
-    | EPanytag (tag, attribute_list, child_list) ->
-	<:patt< Element $str:tag$
-	  $to_patt_attlist attribute_list$
-          $to_patt_taglist child_list$
-        >>
-
-    | EPpcdata dt -> <:patt< Pcdata $str:dt$ >>
-
-    | EPwhitespace dt -> <:patt< Whitespace $str:dt$ >>
-
-    | EPanytagvar v -> <:patt< $lid:v$ >>
-
-    | EPanytagvars v -> <:patt< Pcdata $lid:v$ >>
-
-    | EPcomment c -> <:patt< Comment $str:c$ >>
-
-  and to_patt_taglist = function
-      PLEmpty -> <:patt< [] >>
-    | PLVar v -> <:patt< $lid:v$ >>
-    | PLCons (a,l) -> <:patt< [ $to_patt a$ :: $to_patt_taglist l$ ] >>
-
-  and to_patt_attlist = function
-      PLEmpty -> <:patt< [] >>
-    | PLVar v -> <:patt< $lid:v$ >>
-    | PLCons (a,l) -> <:patt< [ $to_patt a$ :: $to_patt_attlist l$ ] >>
 
 end
 
@@ -269,11 +232,10 @@ let xml_exp s = to_expr (Grammar.Entry.parse exprpatt_xml (Stream.of_string s))
 
 (*  let ep = Grammar.Entry.parse exprpatt_xml (Stream.of_string s) in
   match ep with
-    EPanytag (tag,_,_) -> <:expr< (($to_expr ep$) : Xhtml.t [= `$uid: String.capitalize tag$]) >>
+    EPanytag (tag,_,_) -> <:expr< (($to_expr ep$) : XHTML.M.elt [= `$uid: String.capitalize tag$]) >>
   | _ -> failwith "Prepocessor error in xhtmlparser: there must be only one root tag"
 *)
 
-let xml_pat s = to_patt (Grammar.Entry.parse exprpatt_xml (Stream.of_string s))
 
 let xmlparser s =
   let chan = open_in s in

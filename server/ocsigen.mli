@@ -16,13 +16,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Xhtml
+open XHTML.M
+open Xhtmltypes
 
 (** Type of answers from modules (web pages) *)
-type page = Xhtml.xhtml t
+type page = xhtml elt
 
 (** Type of formulars *)
-type xhformcontl = xhformcont t list
+type xhformcontl = xhformcont elt list
 
 (** Typed URLs *)
 type public_url
@@ -57,20 +58,20 @@ type 'a name
 type ('a,'b,'c,'dalink, 'dform, 'dimg, 'dheadlink, 'dscript) parameters
 
 val _noparam : 
-    ('a, 'a, 'b -> 'b, [>xhalink] t, [>xhform] t, [>xhimg] t, [>xhheadlink] t, [>xhscript] t) parameters
+    ('a, 'a, 'b -> 'b, [>xhalink] elt, [>xhform] elt, [>xhimg] elt, [>xhheadlink] elt, [>xhscript] elt) parameters
 val _int :
     string ->
     (int -> 'a, 'a, (int name -> 'b) -> 'b, 
-      int -> [>xhalink] t, int -> [>xhform] t, int -> [>xhimg] t, int -> [>xhheadlink] t, int -> [>xhscript] t) parameters
-val _unit : (unit -> 'a, 'a, 'b -> 'b, [>xhalink] t, [>xhform] t, [>xhimg] t, [>xhheadlink] t, [>xhscript] t) parameters
+      int -> [>xhalink] elt, int -> [>xhform] elt, int -> [>xhimg] elt, int -> [>xhheadlink] elt, int -> [>xhscript] elt) parameters
+val _unit : (unit -> 'a, 'a, 'b -> 'b, [>xhalink] elt, [>xhform] elt, [>xhimg] elt, [>xhheadlink] elt, [>xhscript] elt) parameters
 val _string :
   string ->
   (string -> 'a, 'a, (string name -> 'b) -> 'b, 
-     string -> [>xhalink] t, string -> [>xhform] t, string -> [>xhimg] t, string -> [>xhheadlink] t, string -> [>xhscript] t) parameters
+     string -> [>xhalink] elt, string -> [>xhform] elt, string -> [>xhimg] elt, string -> [>xhheadlink] elt, string -> [>xhscript] elt) parameters
 val _user_type :
   (string -> 'c) -> ('c -> string) -> string ->
   ('c -> 'a, 'a, ('c name -> 'b) -> 'b, 
-    'c -> [>xhalink] t, 'c -> [>xhform] t, 'c -> [>xhimg] t, 'c -> [>xhheadlink] t, 'c -> [>xhscript] t) parameters
+    'c -> [>xhalink] elt, 'c -> [>xhform] elt, 'c -> [>xhimg] elt, 'c -> [>xhheadlink] elt, 'c -> [>xhscript] elt) parameters
 val _useragent :
   ('a, 'b, 'c, 'dalink, 'dform, 'dimg, 'dheadlink, 'dscript) parameters -> 
     (string -> 'a, 'b, 'c,  'dalink, 'dform, 'dimg, 'dheadlink, 'dscript) parameters
@@ -88,8 +89,8 @@ val _http_params :
   ('a, 'b, 'c, 'dalink, 'dform, 'dimg, 'dheadlink, 'dscript) parameters ->
   (http_params -> 'a, 'b, 'c, 'dalink, 'dform, 'dimg, 'dheadlink, 'dscript) parameters
 val ( ** ) :
-    ('a, 'b, 'c -> 'd, 'e -> xhalink t, 'e -> xhform t,  'e -> xhimg t,
-      'e -> xhheadlink t, 'e -> xhscript t) parameters ->
+    ('a, 'b, 'c -> 'd, 'e -> xhalink elt, 'e -> xhform elt,  'e -> xhimg elt,
+      'e -> xhheadlink elt, 'e -> xhscript elt) parameters ->
       ('b, 'g, 'd -> 'h,  'i -> 'jalink, 'i -> 'jform, 'i -> 'jimg, 'i -> 'jheadlink, 'i -> 'jscript) parameters ->
 	('a, 'g, 'c -> 'h, 'e -> 'i -> 'jalink, 'e -> 'i -> 'jform, 'e -> 'i -> 'jimg, 'e -> 'i -> 'jheadlink, 'e -> 'i -> 'jscript) parameters
 
@@ -210,7 +211,7 @@ val register_new_static_directory :
     name:url_string ->
     location:string -> 
   (xhformcontl, xhformcontl, 
-   string -> [>xhalink] t, string -> [>xhform] t, string -> [>xhimg] t, string -> [>xhheadlink] t, string -> [>xhscript] t, 
+   string -> [>xhalink] elt, string -> [>xhform] elt, string -> [>xhimg] elt, string -> [>xhheadlink] elt, string -> [>xhscript] elt, 
    page, page, page, 
    public_url internal_url) url
 
@@ -218,7 +219,7 @@ val register_new_session_static_directory :
     name:url_string ->
     location:string -> 
   (xhformcontl, xhformcontl, 
-   string -> [>xhalink] t, string -> [>xhform] t, string -> [>xhimg] t, string -> [>xhheadlink] t, string -> [>xhscript] t, 
+   string -> [>xhalink] elt, string -> [>xhform] elt, string -> [>xhimg] elt, string -> [>xhheadlink] elt, string -> [>xhscript] elt, 
    page, page, page, 
    public_url internal_url) url
 
@@ -227,7 +228,7 @@ val close_session : unit -> unit
 
 (** Functions to create web pages: *)
 
-val a : xhacont t list -> url_string -> 
+val a : xhacont elt list -> url_string -> 
   ('a, xhformcontl, 'calink,'cform,'cimg,'cheadlink,'cscript, 'd, 'e, 'f, 'g) url -> 'calink
 
 val css_link : url_string -> 
@@ -241,12 +242,12 @@ val js_link : url_string ->
 *)
 val form_get : url_string -> 
   ('a, xhformcontl, 'calink,'cform,'cimg,'cheadlink,'cscript, 'd, 'e, 'f, 'g) url -> 
-    'a -> [> xhform ] t
+    'a -> [> xhform ] elt
 val form_post : url_string -> 
   ('a, 'b, 'calink,'cform,'cimg,'cheadlink,'cscript, 'd, 'e, 'f, 'g) url -> 'b 
     -> 'cform
 val img : 
-  ?id:string -> ?classe:string list -> ?alt:string -> ?title:string ->
+  ?id:string -> ?classe:string list -> alt:string -> ?title:string ->
     url_string -> 
   ('a, xhformcontl, 'calink,'cform,'cimg,'cheadlink,'cscript, 'd, 'e, 'f, 'g) url -> 'cimg
 
@@ -254,33 +255,33 @@ val img :
 val int_input : ?size:int -> ?maxlength:int -> 
   ?classe:string list -> ?id:string -> ?title:string -> 
     ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> int name -> 
-      [> xhinput ] t
-val hidden_int_input : int name -> int -> [> xhinput ] t
+      [> xhinput ] elt
+val hidden_int_input : int name -> int -> [> xhinput ] elt
 val string_input : ?size:int -> ?maxlength:int -> 
   ?classe:string list -> ?id:string -> ?title:string -> 
     ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> string name -> 
-      [> xhinput ] t
+      [> xhinput ] elt
 val password_input : ?size:int -> ?maxlength:int -> 
   ?classe:string list -> ?id:string -> ?title:string -> 
     ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> string name -> 
-      [> xhinput ] t
+      [> xhinput ] elt
 val submit_input : ?classe:string list -> ?id:string -> ?title:string -> 
-  ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> string -> [> xhinput ] t
+  ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> string -> [> xhinput ] elt
 val reset_input : ?classe:string list -> ?id:string -> ?title:string -> 
-  ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> string -> [> xhinput ] t
+  ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> string -> [> xhinput ] elt
 val checkbox_input : ?classe:string list -> ?id:string -> ?title:string -> 
-  ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> ?checked:bool -> string -> [> xhinput ] t
+  ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> ?checked:bool -> string -> [> xhinput ] elt
 val radio_input : ?classe:string list -> ?id:string -> ?title:string -> 
-  ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> ?checked:bool -> string -> [> xhinput ] t
+  ?accesskey:string -> ?disabled:bool -> ?readonly:bool -> ?checked:bool -> string -> [> xhinput ] elt
 val textarea : ?classe:string list -> ?id:string -> ?title:string -> ?accesskey:string ->
   ?disabled:bool -> ?readonly:bool -> rows:int -> cols:int ->
-    ?dir:[`Rtl|`Ltr] -> string name -> [> xhtextarea ] t
+    ?dir:[`Rtl|`Ltr] -> string name -> [> xhtextarea ] elt
 
 val action_link : 
   ?reload:bool ->
   string -> 
   http_params -> 
-  (xhformcontl, unit -> unit) actionurl -> [> xhform] t
+  (xhformcontl, unit -> unit) actionurl -> [> xhform] elt
 
 val action_form :
     ?reload:bool ->
@@ -288,7 +289,7 @@ val action_form :
 	?id:string ->
 	  http_params ->
 	    ('a, 'b) actionurl ->
-	      'a -> [> xhform] t
+	      'a -> [> xhform] elt
 
 (** return a page from an url and parameters *)
 val get_page :

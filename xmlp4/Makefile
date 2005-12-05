@@ -1,5 +1,5 @@
 FILESR = xmllexer.ml 
-FILES = xhtml.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml xhtmlparser.ml xhtmlpp.ml
+FILES = xhtmltypes.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml xhtmlparser.ml xhtmlpp.ml
 
 CAMLC = ocamlc $(LIB)
 CAMLOPT = ocamlopt $(LIB)
@@ -14,7 +14,8 @@ SRCLIBREP = ../lib
 OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
 
 all: $(OBJS) essai
-	cp xmlparser.cmi xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlparser.cmi xhtmlparser.cmo xhtmlsyntax.cmo xhtml.cmi xhtml.cmo $(SRCLIBREP)
+	make -C ohl-xhtml all
+	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlparser.cmi xhtmlparser.cmo xhtmlsyntax.cmo ohl-xhtml/xhtml.cma ohl-xhtml/xHTML.cmi ohl-xhtml/xML.cmi $(SRCLIBREP)
 
 
 .PHONY: depend
@@ -47,6 +48,7 @@ doc:
 clean:
 	-rm -f *.cm[iox] *~
 	make -C exemple clean
+	make -C ohl-xhtml clean
 	touch .depend
 
 

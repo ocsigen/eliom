@@ -16,8 +16,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Xhtml
-
 let page_error_param_type n = 
   << <html><body><h1>Wrong type for parameter <em>$str:n$</em></h1></body></html> >>
 let page_bad_param        = << <html><body><h1>Wrong parameters</h1></body></html> >>

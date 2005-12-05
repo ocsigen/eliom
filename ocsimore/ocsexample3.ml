@@ -26,7 +26,7 @@ let connect_action =
 module RegisterPublicOrNotBoxes =
   MakeRegister
     (struct 
-      type content = Xhtml.xhbodycont Xhtml.t
+      type content = Xhtmltypes.xhbodycont XHTML.M.elt
       type 'a t = http_params -> user -> resource -> 'a
       type box = [`PublicOrNotBox of content t tfolded]
       type boxes = [ box | RegisterBoxes.boxes ]
@@ -53,7 +53,7 @@ let fold_publicornotboxes =
 module RegisterPublicBoxes =
   MakeRegister
     (struct 
-      type content = Xhtml.xhbodycont Xhtml.t
+      type content = Xhtmltypes.xhbodycont XHTML.M.elt
       type 'a t = http_params -> resource -> 'a
       type box = [`PublicBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
@@ -82,7 +82,7 @@ let fold_publicboxes =
 module RegisterNewsBoxes =
   MakeRegister
     (struct 
-      type content = Xhtml.xhbodycont Xhtml.t
+      type content = Xhtmltypes.xhbodycont XHTML.M.elt
       type 'a t = http_params -> user -> resource ->
 	StringMessage.t index -> 'a
       type box = [`NewsBox of content t tfolded]
@@ -106,7 +106,7 @@ let fold_newsboxes =
 module RegisterPublicNewsBoxes =
   MakeRegister
     (struct 
-      type content = Xhtml.xhbodycont Xhtml.t
+      type content = Xhtmltypes.xhbodycont XHTML.M.elt
       type 'a t = http_params -> resource -> StringMessage.t index -> 'a
       type box = [`PublicNewsBox of content t tfolded]
       type boxes = [ box
@@ -138,7 +138,7 @@ let fold_publicnewsboxes =
 module RegisterUserBoxes =
   MakeRegister
     (struct 
-      type content = Xhtml.xhbodycont Xhtml.t
+      type content = Xhtmltypes.xhbodycont XHTML.M.elt
       type 'a t = http_params -> user -> resource -> 'a
       type box = [`UserBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
@@ -166,7 +166,7 @@ let fold_userboxes =
 module RegisterUserNewsBoxes =
   MakeRegister
     (struct 
-      type content = Xhtml.xhbodycont Xhtml.t
+      type content = Xhtmltypes.xhbodycont XHTML.M.elt
       type 'a t = http_params -> user -> resource ->
 	StringMessage.t index -> 'a
       type box = [`UserNewsBox of content t tfolded]

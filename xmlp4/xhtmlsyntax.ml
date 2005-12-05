@@ -24,6 +24,8 @@
 open Xhtmlparser
 open ExpoOrPatt
 
+let xml_pat s = failwith "Syntax extension not implemented for patterns"
+
 let _ = Quotation.add "xml" (Quotation.ExAst (xml_exp, xml_pat))
 
 let remove_ws = 
@@ -37,8 +39,8 @@ let remove_ws =
 
 let xml_expl s = to_expr_taglist 
   (remove_ws (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s)))
-let xml_patl s = to_patt_taglist 
-  (remove_ws (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s)))
+let xml_patl s = failwith "Syntax extension not implemented for patterns"
+
 let _ = Quotation.add "xmllist" (Quotation.ExAst (xml_expl, xml_patl))
 
 let _ = Quotation.default := "xml"

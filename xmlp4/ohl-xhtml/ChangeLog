@@ -1,0 +1,19 @@
+2005-11-30 Vincent Balat <balat at pps.jussieu.fr> 
+
+	* Adapted for Ocsigen
+	
+2005-06-20  Thorsten Ohl  <ohl@physik.uni-wuerzburg.de>
+
+	* xHTML.mli, xHTML.ml: FORMS.block was missing from FORMS.flow
+
+2004-01-26  Thorsten Ohl  <ohl@physik.uni-wuerzburg.de>
+
+	* xML.mli, xML.ml: improved pretty printing
+
+2004-01-21  Thorsten Ohl  <ohl@physik.uni-wuerzburg.de>
+
+	* xHTML.ml: replace functor by module, moving the encoding of
+	PCDATA elements from the functor argument to an optional argument
+	of the printing functions.
+
+$Id: ChangeLog,v 1.3 2005/06/20 17:57:58 ohl Exp $

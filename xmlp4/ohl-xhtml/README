@@ -1,0 +1,32 @@
+WARNING
+This is a version of xhtml by Thorsten Ohl 
+modified by Vincent Balat for Ocsigen!
+WARNING
+
+
+XHTML is a O'Caml module for creating valid XHTML 1.1 (and XHTML 1.0)
+documents.  The validity of the pages is guaranteed by the O'Caml type
+system.  (NB: at the time of writing, forms support was not complete,
+only basic forms are implemented.  Image maps are also not implemented
+yet.)
+
+XHTML can be used for creating static documents, but it is not the
+most conventient way to key in text heavy documents.  Instead, it
+should be most useful for database frontends etc.
+
+XHTML is not a general XML processor that parses a DTD and checks the
+validity of a document with respect to this DTD.  This lack in
+flexibility is made up for by the ability to perform prove validity by
+static type checking.
+
+The implementation uses a XML module for generating well formed---but
+not necessarily valid with respect to some DTD---XML documents.  The
+elements of type XML.elt and attributes of type XML.attrib are then
+hidden behind polymorphic phantom types type 'a elt = XML.elt and type
+'a attrib = XML.attrib with 'a set to appropriate polymorphic
+variants.
+
+This approach can be adopted easily to other XML document types:
+MathML and MusicML come to mind.
+
+$Id: README,v 1.3 2004/01/28 09:20:34 ohl Exp $

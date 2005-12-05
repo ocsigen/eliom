@@ -17,7 +17,7 @@ all: byte
 .PHONY: depend
 
 byte: $(ALL_CMO)
-	$(CAMLC) $(LIB) -o $(NAME) unix.cma lwt.cma netstring.cma xhtml.cmo $(ALL_CMO)
+	$(CAMLC) $(LIB) -o $(NAME) unix.cma lwt.cma netstring.cma xhtml.cma $(ALL_CMO)
 
 
 doc: 

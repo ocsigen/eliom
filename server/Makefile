@@ -14,7 +14,7 @@ PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xhtmlparser.cmo ../lib/xhtmlsyntax.
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
-       xhtml.cmo sender_helpers.cmo\
+       xhtml.cma sender_helpers.cmo\
        error_pages.cmo\
        postgresql.cma dbi.cma dbi_postgresql.cmo\
        gramlib.cma xmllexer.cmo xmlparser.cmo

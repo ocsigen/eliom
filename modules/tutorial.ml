@@ -1,17 +1,26 @@
-(* Copyright Vincent Balat 2005 *)
+(* Ocsigen Tutorial *)
 
+open XHTML.M
 open Ocsigen
 
 (* ------------------------------------------------------------------ *)
 (* To create a web page without parameter: *)
-let plop = 
+let plop1 = 
   register_new_url 
-    ~name:(Url ["plop"]) 
+    ~name:(Url ["plop1"]) 
     ~params:_noparam 
     ~page:<< <html>
                <head><title></title></head>
                <body><h1>plop</h1></body>
              </html> >>
+
+let plop = 
+  register_new_url 
+    ~name:(Url ["plop"]) 
+    ~params:_noparam 
+    ~page:(html
+	     (head (title (pcdata "")) [])
+	     (body [h1 [pcdata "ploooop"]]))
 
 (* Pages can have side effects: *)
 let plip = 
