@@ -66,7 +66,7 @@ let toto_created =
     full message *)
 let news_header_box httpparam key user resource news_page = 
   let msg = StringMessage.dbget user resource key
-  in let l = a <:xmllist< read >> httpparam.current_url news_page key
+  in let l = a news_page httpparam.current_url <:xmllist< read >> key
   in << <div> $str:msg$ $l$ <br/> </div> >>
 
 (** A box that prints a list of a message headers *)

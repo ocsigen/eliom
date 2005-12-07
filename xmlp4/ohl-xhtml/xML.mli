@@ -18,13 +18,8 @@
 
 type aname = string
 type separator = Space | Comma
-(* For Ocsigen I need to unabstract elt: *)
-type attrib =
-  | AInt of aname * int
-  | AStr of aname * string
-  | AStrL of separator * aname * string list
-type attribs = attrib list
-(* Vincent *)
+type attrib 
+type attribs
 val int_attrib : aname -> int -> attrib
 val string_attrib : aname -> string -> attrib
 val space_sep_attrib : aname -> string list -> attrib

@@ -36,9 +36,9 @@ module RegisterPublicOrNotBoxes =
       let default_handler ex h u r = box_exn_handler ex
       let make_boxofboxes ~filter l h u r = 
 	List.map (fun b -> (filter b) h u r) l
-      type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h u r = 
-	boxes_container ?classe:classe ?id:id (f ~user:u ~resource:r l h u r)
+      type container_param = Xhtmltypes.xhdivattrib XHTML.M.attrib list option
+      let container f ~box_param:(a,l) h u r = 
+	boxes_container ?a:a (f ~user:u ~resource:r l h u r)
      end)
 
 let fold_publicornotboxes = 
@@ -63,9 +63,9 @@ module RegisterPublicBoxes =
       let default_handler ex h r = box_exn_handler ex
       let make_boxofboxes ~filter l h r = 
 	List.map (fun b -> (filter b) h r) l
-      type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h r = 
-	boxes_container ?classe:classe ?id:id 
+      type container_param = Xhtmltypes.xhdivattrib XHTML.M.attrib list option
+      let container f ~box_param:(a,l) h r = 
+	boxes_container ?a:a 
 	  (f ~user:anonymoususer ~resource:r l h r)
      end)
 
@@ -93,9 +93,9 @@ module RegisterNewsBoxes =
       let default_handler ex h u r i = box_exn_handler ex
       let make_boxofboxes ~filter l h u r i = 
 	List.map (fun b -> (filter b) h u r i) l
-      type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h u r i = 
-	boxes_container ?classe:classe ?id:id (f ~user:u ~resource:r l h u r i)
+      type container_param = Xhtmltypes.xhdivattrib XHTML.M.attrib list option
+      let container f ~box_param:(a,l) h u r i = 
+	boxes_container ?a:a (f ~user:u ~resource:r l h u r i)
     end)
 
 let fold_newsboxes = 
@@ -118,9 +118,9 @@ module RegisterPublicNewsBoxes =
       let default_handler ex h r i = box_exn_handler ex
       let make_boxofboxes ~filter l h r i = 
 	List.map (fun b -> (filter b) h r i) l
-      type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h r i = 
-	boxes_container ?classe:classe ?id:id 
+      type container_param = Xhtmltypes.xhdivattrib XHTML.M.attrib list option
+      let container f ~box_param:(a,l) h r i = 
+	boxes_container ?a:a 
 	  (f ~user:anonymoususer ~resource:r l h r i)
     end)
 
@@ -148,9 +148,9 @@ module RegisterUserBoxes =
       let default_handler ex h u r = box_exn_handler ex
       let make_boxofboxes ~filter l h u r = 
 	List.map (fun b -> (filter b) h u r) l
-      type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h u r = 
-	boxes_container ?classe:classe ?id:id 
+      type container_param = Xhtmltypes.xhdivattrib XHTML.M.attrib list option
+      let container f ~box_param:(a,l) h u r = 
+	boxes_container ?a:a 
 	  (f ~user:u ~resource:r l h u r)
     end)
 
@@ -177,9 +177,9 @@ module RegisterUserNewsBoxes =
       let default_handler ex h u r i = box_exn_handler ex
       let make_boxofboxes ~filter l h u r i = 
 	List.map (fun b -> (filter b) h u r i) l
-      type container_param = string option * string option
-      let container f ~box_param:((classe,id),l) h u r i = 
-	boxes_container ?classe:classe ?id:id 
+      type container_param = Xhtmltypes.xhdivattrib XHTML.M.attrib list option
+      let container f ~box_param:(a,l) h u r i = 
+	boxes_container ?a:a 
 	  (f ~user:u ~resource:r l h u r i)
     end)
 

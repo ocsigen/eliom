@@ -1,4 +1,5 @@
 open Ocsidata
+open XHTML.M
 (******************************************************************)
 (* The boxes that can appear in pages and pages *)
 
@@ -13,9 +14,6 @@ let text_box msg = << <div>$str:msg$</div> >>
 
 (** A box that prints an error message *)
 let error_box s = << <p><b>$str:s$</b></p> >>
-
-(** A simple box that contains other boxes *)
-let div l = << <div>$list:l$</div> >>
 
 (** A simple box that prints a message of the db *)
 let string_message_box key user resource =
@@ -42,12 +40,8 @@ let box_exn_handler ex = match ex with
 
 
 (** Container *)
-let boxes_container ?classe ?id l =
-  let attrid = (match id with None -> [] | Some c -> [XML.AStr ("id",c)]) in
-  let attrs = 
-    (match classe with None -> attrid | Some c -> (XML.AStr ("class",c))::attrid) in
-  let l = (l :> Xhtmltypes.xhdivcont XHTML.M.elt list) in
-  << <div $list:attrs$>$list:l$</div> >>
+let boxes_container ?a l =
+  div ?a (l :> Xhtmltypes.xhdivcont XHTML.M.elt list)
 
 
 
@@ -63,10 +57,10 @@ let page h ?(js=[]) ?(css=[]) (bl : [> Xhtmltypes.xhbodycont] XHTML.M.elt list) 
   let rec make_hl make_link l = function
       [] -> l
     | (filedir, filename)::ll -> 
-	(make_link h.Ocsigen.current_url filedir filename)
+	(make_link filedir h.Ocsigen.current_url filename)
 	::(make_hl make_link l ll)
   in 
-  let hl = make_hl Ocsigen.css_link (make_hl Ocsigen.js_link [] js) css in
+  let hl = make_hl (Ocsigen.css_link ~a:[]) (make_hl (Ocsigen.script ~a:[]) [] js) css in
   << <html> 
       <head> $list:hl$ </head> 
       <body> $list:bl$ </body> 

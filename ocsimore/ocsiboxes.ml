@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open XHTML.M
 open Ocsigen
 open Ocsisav
 open Ocsidata
@@ -23,32 +24,29 @@ open Ocsidata
 (** Authentification *)
 let create_login_form = 
   (fun login password ->
-     let login = string_input ~size:8 login in
-     let password = string_input ~size:8 password in
-     let b = submit_input "Entrer" in
        <:xmllist< 
          <p>
-         Login: $login$ <br/>
-         Password: $password$ <br/>
-	 $b$
+         Login: $string_input ~a:[a_size 8] login$ <br/>
+         Password: $string_input ~a:[a_size 8] password$ <br/>
+	 $submit_input "Entrer"$
          </p>
        >>)
 
 let login_box_action h actionurl = 
-  action_form ~id:"loginbox" ~classe:["userbox"] h actionurl create_login_form
+  action_form ~id:"loginbox" ~classe:["userbox"] actionurl h create_login_form
 
-let login_box h url = form_post h.current_url url create_login_form
+let login_box h url = form_post url h.current_url create_login_form
 
 let deconnect_action = 
   register_new_actionurl _unit close_session
 
-let deconnect_box h s = action_link s h deconnect_action
+let deconnect_box h s = action_link deconnect_action h s
 
 
 (** User information *)
 let connected_box h user =
   let login,name,_ = Rights.get_user_info user in
-  let deconnect = deconnect_box h "déconnexion" in
+  let deconnect = deconnect_box h <:xmllist< déconnexion >> in
     << <div id="loggedbox" class="userbox"> 
          <p>Vous êtes connecté comme utilisateur $str:login$ </p>
          $deconnect$

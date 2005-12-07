@@ -98,11 +98,11 @@ module ExpoOrPatt = struct
 
       EPanyattr (EPVstr aa, v) ->
 	let vv = expr_valorval v in
-	<:expr< XML.AStr ($str:aa$, $vv$) >>
+	<:expr< XML.string_attrib $str:aa$ $vv$ >>
 
     | EPanyattr (EPVvar aa, v) ->
 	let vv = expr_valorval v in
-	<:expr< XML.AStr ($lid:aa$, $vv$) >>
+	<:expr< XML.string_attrib $lid:aa$ $vv$ >>
 
     | EPanytag (tag, attribute_list, child_list) ->
 	let constr =
@@ -145,7 +145,8 @@ module ExpoOrPatt = struct
 
   and to_expr_attlist = function
       PLEmpty -> <:expr< [] >>
-    | PLExpr v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
+    | PLExpr v -> let e = get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
+    in <:expr< XHTML.M.to_xmlattribs $e$ >>
     | PLCons (a,l) -> <:expr< [ $to_expr a$ :: $to_expr_attlist l$ ] >>
 
 

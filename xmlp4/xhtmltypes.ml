@@ -35,9 +35,9 @@ open XHTML.M
 
 type xhtml = [ `Html ]
 type xhform = [ `Form ]
-type xhalink = [ `A ]
+type xha = [ `A ]
 type xhimg = [ `Img ]
-type xhheadlink = [ `Link ]
+type xhlink = [ `Link ]
 type xhscript = [ `Script ]
 type xhinput = [ `Input ]
 type xhtextarea = [ `Textarea ]
@@ -195,3 +195,20 @@ type xholcont = xhulcont
 type xhtheadcont = xhtbodycont
 type xhtfootcont = xhtbodycont
 
+type xhaattrib =
+  [ common | `Accesskey | `Charset | `Href | `Hreflang
+| `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type 
+| `Shape | `Coords ]
+type xhlinkattrib =
+    [ common | `Charset | `Href | `Hreflang | `Media
+  | `Rel | `Rev | `Target | `Type ]
+type xhscriptattrib = [ `XMLns | `Charset | `Src | `Defer | `XML_space ]
+type xhformattrib = [ common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept ]
+type xhimgattrib = 
+    [ common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap ]
+type xhdivattrib = [ common ]
+type xhinputattrib =
+    [ common | `Accesskey | `Checked | `Maxlength | `Name | `Size
+  | `Src | `Tabindex | `Input_Type | `Value | `Usemap ]
+type xhtextareaattrib =
+    [ common | `Accesskey | `Name | `Tabindex ]

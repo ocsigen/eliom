@@ -2,7 +2,7 @@ include ../Makefile.config
 
 NAME = ocsigen
 
-FILES= config.ml messages.ml error_pages.ml ocsigen.ml server.ml ocsigenboxes.ml
+FILES= config.ml messages.ml error_pages.ml ocsigen.ml ocsigenboxes.ml server.ml
 
 INSTALL = install -c
 CAMLC = ocamlfind ocamlc -g $(LIB)
@@ -26,7 +26,7 @@ all: depend $(OBJS) $(NAME) doc
 #	cp *.cmo *.cmi ../lib
 	cp ocsigen.cmo ocsigen.cmi ../lib
 	cp messages.cmi config.cmi ../lib
-	cp ocsigenboxes.cmi ocsigenboxes.cmi ../lib
+	cp ocsigenboxes.cmi ../lib
 	cp $(NAME) ../bin
 
 .SUFFIXES:

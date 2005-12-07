@@ -156,14 +156,17 @@ let links = register_new_url (Url ["plop";"links"]) (_current_url _noparam)
      (<< <html>
              <body>
                <p> 
-                 $a <:xmllist< plop >> current_url plop$ <br/> 
-                 $a <:xmllist< plop2 >> current_url plop2$ <br/> 
-                 $a <:xmllist< uaprefix >> current_url uaprefix "suf" "toto"$ <br/>
-                 $a <:xmllist< plop_params >> current_url plop_params 45 "hello" "plpl"$ <br/> 
-                 $a <:xmllist< wikipedia >> current_url
+                 $a plop current_url <:xmllist< plop >>$ <br/> 
+                 $a plop2 current_url <:xmllist< plop2 >>$ <br/> 
+                 $a uaprefix current_url <:xmllist< uaprefix >> "suf" "toto"$ <br/>
+                 $a plop_params current_url <:xmllist< plop_params >> 45 "hello" "plpl"$ <br/> 
+                 $a
 	            (new_external_url
 		       (Url_Prefix ["http://fr.wikipedia.org";"wiki"])
-		       (_url_suffix _noparam)) "Ocaml"$
+		       (_url_suffix _noparam)) 
+                    current_url
+	            <:xmllist< wikipedia >> 
+                    "Ocaml"$
                </p>
              </body>
            </html> >>))
@@ -185,8 +188,10 @@ let linkrec = new_url (Url ["linkrec"]) (_current_url _noparam)
 
 let _ = register_url linkrec 
   (fun url -> 
-     let l = a <:xmllist< cliquez >> url linkrec in
-       << <html><body><p> $l$ </p></body></html> >>)
+       << <html><body>
+            <p> $a linkrec url <:xmllist< cliquez >>$ 
+            </p>
+          </body></html> >>)
 
 
 
@@ -202,12 +207,12 @@ let create_form =
 	  <:xmllist< <p>Write an int: $int_input entier$ <br/>
                      Write a string: $string_input chaine$ <br/>
                      Write a string: $string_input chaine2$ <br/>
-	             $submit_input "Cliquez"$</p>
+	             $input ~a:[(a_input_type `Submit);(a_name "Cliquez")] ()$</p>
 	  >>)
 
 let form = register_new_url (Url ["form"]) (_current_url _noparam)
   (fun current_url -> 
-     let f = form_get current_url plop_params create_form in
+     let f = form_get plop_params current_url create_form in
      << <html><body> $f$ </body></html> >>)
 
 
@@ -262,32 +267,31 @@ let my_url_with_get_and_post = register_new_post_url
 let form2 = register_new_url (Url ["form2"]) (_current_url _noparam)
   (fun current_url -> 
      let f  = 
-       (form_post current_url my_url_with_post_params
+       (form_post my_url_with_post_params current_url
 	  (fun chaine -> 
-	     let sb = string_input chaine in
-	       <:xmllist< <p> Write a string: $sb$ </p> >>)) in
+	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)) in
        << <html><body>$f$</body></html> >>)
 
 let form3 = register_new_url (Url ["form3"]) (_current_url _noparam)
   (fun current_url ->
      let f  = 
-       (form_post current_url my_url_with_get_and_post 
+       (form_post my_url_with_get_and_post current_url
 	  (fun chaine -> 
-	     let sb = string_input chaine in
-	       <:xmllist< <p> Write a string: $sb$ </p> >>) 222) in
+	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
+	  222) in
        << <html><body>$f$</body></html> >>)
 
 let form4 = register_new_url (Url ["form4"]) (_current_url _noparam) 
   (fun current_url ->
      let f  = 
-       (form_post current_url
+       (form_post
 	  (new_external_post_url 
 	     ~name:(Url ["http://www.petitspois.com";"form"])
 	     ~params:(_int "i")
-	     ~post_params:(_string "chaine"))
+	     ~post_params:(_string "chaine")) current_url
 	  (fun chaine -> 
-	     let sb = string_input chaine in
-	       <:xmllist< <p> Write a string: $sb$ </p> >>) 222) in
+	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
+	  222) in
        << <html><body>$f$</body></html> >>)
        
 (* note new_external_post_url *)
@@ -328,12 +332,12 @@ let _ =
   let c = ref 0 in
   let page url = 
     let i = string_of_int !c in
-    let l = a <:xmllist< reload >> url ustate in
-    let l2 = a <:xmllist< incr i >> url ustate2 in
+    let l = a ustate url <:xmllist< reload >> in
+    let l2 = a ustate2 url <:xmllist< incr i >> in
     let si1 = submit_input "incr i (post)" in
     let si2 = submit_input "incr i (get)" in
-    let l3 = form_post url ustate2 [<< <p> $si1$ </p> >>] in
-    let l4 = form_get url ustate2 [<< <p> $si2$ </p> >>] in
+    let l3 = form_post ustate2 url [<< <p> $si1$ </p> >>] in
+    let l4 = form_get ustate2 url [<< <p> $si2$ </p> >>] in
     << <html><body><p> i vaut $str:i$ <br/> $l$ <br/> $l2$ </p> $l3$ $l4$ </body></html> >>
   in
     register_url ustate page;
@@ -365,10 +369,9 @@ let public_session_with_post_params =
 
 
 let accueil url = 
-  let f  = form_post url public_session_with_post_params
+  let f = form_post public_session_with_post_params url
     (fun login -> 
-       let sb = string_input login in
-	 <:xmllist< <p> login: $sb$ </p> >>) in
+	 <:xmllist< <p> login: $string_input login$ </p> >>) in
     << <html><body>$f$</body></html> >>
 
 let _ = register_url
@@ -381,17 +384,13 @@ let rec launch_session login =
     ~page:(fun url -> close_session (); accueil url)
   in
   let new_main_page url =
-    let l1 = a <:xmllist< plop >> url plop
-    and l2 = a <:xmllist< plop2 >> url plop2
-    and l3 = a <:xmllist< links >> url links
-    and l4 = a <:xmllist< close session >> url close in
     << <html>
     <body><p>
          Bienvenue $str:login$ ! <br/>
-         $l1$ <br/>
-         $l2$ <br/>
-         $l3$ <br/>
-         $l4$ <br/>
+         $a plop url <:xmllist< plop >>$ <br/>
+         $a plop2 url <:xmllist< plop2 >>$ <br/>
+         $a links url <:xmllist< links >>$ <br/>
+         $a close url <:xmllist< close session >>$ <br/>
     </p></body>
       </html> >>
   in
@@ -433,7 +432,7 @@ let shop_with_post_params =
     ~post_params:(_string "article")
 
 let write_shop shop url  =
-  (form_post url shop 
+  (form_post shop url
      (fun article -> 
 	let sb = string_input article in
 	  <:xmllist< <p> What do you want to buy? $sb$ </p> >>))
@@ -474,7 +473,7 @@ let rec page_for_shopping_basket url shopping_basket =
     let sb' = write_shopping_basket shopping_basket in
     let sb = << <div>$list:sb'$</div> >> in
     let sh = write_shop local_shop_with_post_params url in
-    let lp   = a <:xmllist< pay >> url local_pay in
+    let lp   = a local_pay url <:xmllist< pay >> in
       << <html><body> $sb$ $sh$ <p>$lp$</p></body></html> >>
 
 let _ = register_post_url
@@ -516,22 +515,20 @@ let _ =
 	    << <html> <body><p> $str:is$ + $str:js$ = $str:ijs$ </p></body></html> >>)
       in
       let f  = 
-	form_post current_url queinnec_result (create_form is) in
+	form_post queinnec_result current_url (create_form is) in
       << <html><body>$f$</body></html> >>)
     
 let _ =   
   let create_form = 
     (fun entier ->
-      let ib = int_input entier in
-      let b = submit_input "Envoyer" in
-      <:xmllist< <p> Write a number: $ib$ <br/>
-      $b$ </p>
+      <:xmllist< <p> Write a number: $int_input entier$ <br/>
+      $submit_input "Envoyer"$ </p>
       >>)
   in
   register_url
     queinnec
     (fun current_url ->
-      let f  = form_post current_url queinnec_post create_form in
+      let f  = form_post queinnec_post current_url create_form in
       << <html><body>$f$</body></html> >>)
       
 
@@ -556,7 +553,7 @@ let action_session =
 let connect_action = new_actionurl ~params:(_string "login")
 
 let accueil_action h = 
-  let f = action_form h connect_action
+  let f = action_form connect_action h
     (fun login -> 
        let sb = string_input login in
 	 <:xmllist< <p> login: $sb$ </p> >>) in
@@ -568,19 +565,15 @@ let _ = register_url
 
 let rec launch_session login =
   let deconnect_action = register_new_actionurl _unit close_session in
-  let deconnect_box h s = action_link s h deconnect_action in
+  let deconnect_box h s = action_link deconnect_action h s in
   let new_main_page h =
-    let l1  = a <:xmllist< plop >> h.current_url plop
-    and l2  = a <:xmllist< plop2 >> h.current_url plop2
-    and l3  = a <:xmllist< links >> h.current_url links
-    and deconnect_link = deconnect_box h "Close session" in
     << <html>
        <body><p>
          Bienvenue $str:login$ ! <br/>
-         $l1$ <br/>
-         $l2$ <br/>
-         $l3$ </p>
-         $deconnect_link$
+         $a plop h.current_url <:xmllist< plop >>$ <br/>
+         $a plop2 h.current_url <:xmllist< plop2 >>$ <br/>
+         $a links h.current_url <:xmllist< links >>$ </p>
+         $deconnect_box h <:xmllist< Close session >>$
       </body>
       </html> >>
   in
@@ -602,32 +595,11 @@ let filedir = register_new_static_directory ["files"] "modules-files"
 (* Main page for this example *)
 let _ = register_new_url (Url []) (_current_url _noparam)
   (fun url ->
-     let lcss = css_link url filedir "style.css" in
-     let l1 = a <:xmllist< plop >> url plop in
-     let l2 = a <:xmllist< plip >> url plip in
-     let l3 = a <:xmllist< plop/plip >> url plop2 in
-     let l4 = a <:xmllist< oups >> url oups in
-     let l5 = a <:xmllist< plop avec params >> url plop_params 45 "hello" "krokodile" in
-     let l6 = a <:xmllist< uaprefix >> url uaprefix "suf" "toto" in
-     let l7 = a <:xmllist< iprefix >> url iprefix "popo" 333 in
-     let l8 = a <:xmllist< mytype >> url mytype A in
-     let l9 = a <:xmllist< links >> url links in
-     let l10 = a <:xmllist< linkrec >> url linkrec in
-     let l11 = a <:xmllist< form >> url form in
-     let l12 = a <:xmllist< post sans post_params >> url no_post_param_url in
-     let l13 = a <:xmllist< form2 >> url form2 in
-     let l14 = a <:xmllist< form3 >> url form3 in
-     let l15 = a <:xmllist< form4 >> url form4 in
-     let l16 = a <:xmllist< state >> url ustate in
-     let l17 = a <:xmllist< session >> url public_session_without_post_params in
-     let l19 = a <:xmllist< actions >> url action_session in
-     let l20 = a <:xmllist< shop >> url shop_without_post_params in
-     let l18 = a <:xmllist< queinnec >> url queinnec in
      << 
        <html> 
        <!-- This is a comment! -->
        <head>
-         $lcss$
+         $css_link filedir url "style.css"$
 	 <title>Ocsigen Tutorial</title>
        </head>
        <body>
@@ -635,32 +607,48 @@ let _ = register_new_url (Url []) (_current_url _noparam)
        <h2>Examples</h2>
        <h3>Simple pages</h3>
        <p>
-       Une page simple : $l1$ <br/>
-       Une page avec un compteur : $l2$ <br/> 
-       Une page simple dans un répertoire : $l3$ <br/>
-       Page par défaut d'un répertoire : $l4$ (oups/ est équivalent à oups)</p>
+       Une page simple : $a plop url <:xmllist< plop >>$ <br/>
+       Une page avec un compteur : $a plip url <:xmllist< plip >>$ <br/> 
+       Une page simple dans un répertoire : 
+	   $a plop2 url <:xmllist< plop/plip >>$ <br/>
+       Page par défaut d'un répertoire : 
+	   $a oups url <:xmllist< oups >>$ (oups/ est équivalent à oups)</p>
        <h3>Parameters</h3>
        <p>
-       Une page avec paramètres GET : $l5$ (que se passe-t-il si le premier paramètre n'est pas un entier ?)<br/> 
-       Une page avec URL "préfixe" qui récupère l'IP et l'user-agent : $l6$ <br/> 
-       Une page URL "préfixe" avec des paramètres GET : $l7$ <br/> 
-       Une page qui récupère un paramètre d'un type utilisateur : $l8$ </p>
+       Une page avec paramètres GET : 
+	   $a plop_params url <:xmllist< plop avec params >> 45 "hello" "krokodile"$ (que se passe-t-il si le premier paramètre n'est pas un entier ?)<br/> 
+       Une page avec URL "préfixe" qui récupère l'IP et l'user-agent : 
+	   $a uaprefix url <:xmllist< uaprefix >> "suf" "toto"$ <br/> 
+       Une page URL "préfixe" avec des paramètres GET : 
+	   $a iprefix url <:xmllist< iprefix >> "popo" 333$ <br/> 
+       Une page qui récupère un paramètre d'un type utilisateur : 
+	     $a mytype url <:xmllist< mytype >> A$ </p>
        <h3>Links and Formulars</h3>
        <p>
-       Une page avec des liens : $l9$ <br/> 
-       Une page avec un lien vers elle-même : $l10$ <br/>
-       Une page avec un formulaire GET qui pointe vers la page plop avec params : $l11$ <br/> 
-       Un formulaire POST qui pointe vers la page "post" : $l13$ <br/> 
-       La page "post" quand elle ne reçoit pas de paramètres POST : $l12$ <br/> 
-       Un formulaire POST qui pointe vers une URL avec paramètres GET : $l14$ <br/> 
-       Un formulaire POST vers une page externe : $l15$ </p> 
+       Une page avec des liens : $a links url <:xmllist< links >> $ <br/> 
+       Une page avec un lien vers elle-même : 
+	     $a linkrec url <:xmllist< linkrec >>$ <br/>
+       Une page avec un formulaire GET qui pointe vers la page plop avec params : 
+	     $a form url <:xmllist< form >>$ <br/> 
+       Un formulaire POST qui pointe vers la page "post" : 
+	     $a form2 url <:xmllist< form2 >>$ <br/> 
+       La page "post" quand elle ne reçoit pas de paramètres POST : 
+	     $a no_post_param_url url <:xmllist< post sans post_params >>$ <br/> 
+       Un formulaire POST qui pointe vers une URL avec paramètres GET : 
+	     $a form3 url <:xmllist< form3 >>$ <br/> 
+       Un formulaire POST vers une page externe : 
+	     $a form4 url <:xmllist< form4 >>$ </p> 
        <h3>Sessions</h3>
        <p>
-       URL avec état : $l16$ (problème des paramètres GET bookmarkés...) <br/> 
-       Une session basée sur les cookies : $l17$ <br/> 
-       Une session avec des actions : $l19$ <br/>
-       Une session avec "url de sessions" : $l18$
-       - (ancienne version : $l20$)
+       URL avec état : 
+	     $a ustate url <:xmllist< state >>$ (problème des paramètres GET bookmarkés...) <br/> 
+       Une session basée sur les cookies : 
+	     $a public_session_without_post_params url <:xmllist< session >>$ <br/> 
+       Une session avec des actions : 
+	     $a action_session url <:xmllist< actions >>$ <br/>
+       Une session avec "url de sessions" : 
+	     $a queinnec url <:xmllist< queinnec >>$
+       - (ancienne version : $a shop_without_post_params url <:xmllist< shop >>$)
        </p>
        </body>
      </html> >>)

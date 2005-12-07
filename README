@@ -80,6 +80,7 @@ Vincent Balat (project leader, xml parser, ocsigen.ml, server,
                moduleexample, ocsimore...)
 Denis Berthod (http protocol, server)
 Jérôme Vouillon (lwt library, from unison)
+Thorsten Ohl (functions to generate xhtml (xML and xHTML modules))
 
 Acknowledgements:
 

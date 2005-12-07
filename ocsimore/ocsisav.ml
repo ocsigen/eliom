@@ -45,9 +45,10 @@ module RegisterBoxes =
     let default_handler = box_exn_handler
       let make_boxofboxes ~filter l = 
 	List.map (fun b -> (filter b)) l
-    type container_param = string option * string option
-    let container f ~box_param:((classe,id),l) = 
-      boxes_container ?classe:classe ?id:id 
+    type container_param = 
+	Xhtmltypes.xhdivattrib XHTML.M.attrib list option
+    let container f ~box_param:(a,l) = 
+      boxes_container ?a:a
 	(f ~user:Rights.anonymoususer ~resource:Rights.anyresource l)
   end)
 
