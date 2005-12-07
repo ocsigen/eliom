@@ -31,6 +31,7 @@ type tag = [ `Br | `Span | `Bdo | `Map | `Object | `Img | `Tt | `I | `B | `Big
            | `Col | `Tr | `Th | `Td]
 *)
 
+open XHTML.M
 
 type xhtml = [ `Html ]
 type xhform = [ `Form ]
@@ -45,50 +46,54 @@ type pcdata = [ `PCDATA ]
 
 type xhnotag
 
-type xhhtmlcont = [ `Body | `Head ]
+type xhhtmlcont = [ `Body | `Head | `Frameset ]
 
-type xhbodycont = [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
+type xhbodycont = [ block ]
+(* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
 | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol
-| `P | `Pre | `Script | `Table | `Ul ]
+| `P | `Pre | `Script | `Table | `Ul ] *)
 
-type xhdivcont = 
-    [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ]
+type xhdivcont = [ `PCDATA | flow ]
+(* [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ] *)
 
-type xhobjectcont = 
- [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `Param | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ]
+type xhobjectcont = [ `PCDATA | flow | `Param ]
+(* [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `Param | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ] *)
 
-type xhfieldsetcont = 
-    [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Legend | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ]
+type xhfieldsetcont = [ `PCDATA | `Legend | flow ]
+(* [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Legend | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ] *)
 
-type xhbuttoncont =
-   [ `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Ins | `Kbd | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Tt | `Ul | `Var ]
+type xhbuttoncont = [ `PCDATA | buttoncontent ]
+(* [ `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Ins | `Kbd | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Tt | `Ul | `Var ] *)
 
-type xhheadcont =
-    [ `Base | `Link | `Object | `Script | `Style | `Title ]
+type xhheadcont = [ `Base | `Link | `Object | `Script | `Style | `Title | `Meta ]
+(* [ `Base | `Link | `Object | `Script | `Style | `Title | `Meta ] *)
 
-type xhformcont = 
-    [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ]
+type xhformcont = [ block_sans_form | `Fieldset ]
+(* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ] *)
 
-type xhblockquotecont =
-  [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table  | `Ul ]
+type xhblockquotecont = [ `PCDATA | block ]
+(* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table  | `Ul ] *)
 
-type xhmapcont =
-    [ `Address | `Area | `Blockquote | `Del | `Div | `Dl | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ]
+type xhmapcont = [ block | `Area ]
+(* [ `Address | `Area | `Blockquote | `Del | `Div | `Dl | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ] *)
 
-type xhinlinecont =
+(* type xhinlinecont =
     [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var ]
+*)
 
-type xhlabelcont =
-    [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var ]
+type xhinlinemix = [ `PCDATA | inline ]
+(* [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var ] *)
 
-type xhacont =
-    [ `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var ]
+type xhlabelcont = [ `PCDATA | inline_sans_label ]
+(* [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var | `Noscript ] *)
 
-type xhprecont =
-    [ `A | `Abbr | `Acronym | `B | `Bdo | `Br | `Cite | `Code | `Dfn | `Em | `I | `Kbd | `Map | `PCDATA | `Q | `Samp | `Script | `Span | `Strong | `Tt | `Var ]
+type xhacont = [ `PCDATA | inline_sans_a_mix ]
+(* [ `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var | `Noscript ] *)
 
-type xhdlcont =
-    [ `Dd | `Dt ]
+type xhprecont = [ `PCDATA | precontent ]
+(* [ `A | `Abbr | `Acronym | `B | `Bdo | `Br | `Cite | `Code | `Dfn | `Em | `I | `Kbd | `Map | `PCDATA | `Q | `Samp | `Script | `Span | `Strong | `Tt | `Var ] *)
+
+type xhdlcont = [ `Dd | `Dt ]
 
 type xhoptgroupcont = [ `Option ]
 
@@ -105,37 +110,37 @@ type xhtablecont =
 
 type xhtrcont = [ `Td | `Th ]
 
-type xhabbrcont = xhinlinecont
-type xhacronymcont = xhinlinecont
-type xhaddresscont = xhinlinecont
-type xhbcont = xhinlinecont
-type xhbdocont = xhinlinecont
-type xhbigcont = xhinlinecont
-type xhcaptioncont = xhinlinecont
-type xhcitecont = xhinlinecont
-type xhcodecont = xhinlinecont
-type xhdfncont = xhinlinecont
-type xhdtcont = xhinlinecont
-type xhemcont = xhinlinecont
-type xhh1cont = xhinlinecont
-type xhh2cont = xhinlinecont
-type xhh3cont = xhinlinecont
-type xhh4cont = xhinlinecont
-type xhh5cont = xhinlinecont
-type xhh6cont = xhinlinecont
-type xhicont = xhinlinecont
-type xhkbdcont = xhinlinecont
-type xhlegendcont = xhinlinecont
-type xhpcont = xhinlinecont
-type xhqcont = xhinlinecont
-type xhsampcont = xhinlinecont
-type xhsmallcont = xhinlinecont
-type xhspancont = xhinlinecont
-type xhstrongcont = xhinlinecont
-type xhsubcont = xhinlinecont
-type xhsupcont = xhinlinecont
-type xhttcont = xhinlinecont
-type xhvarcont = xhinlinecont
+type xhabbrcont = xhinlinemix
+type xhacronymcont = xhinlinemix
+type xhaddresscont = xhinlinemix
+type xhbcont = xhinlinemix
+type xhbdocont = xhinlinemix
+type xhbigcont = xhinlinemix
+type xhcaptioncont = xhinlinemix
+type xhcitecont = xhinlinemix
+type xhcodecont = xhinlinemix
+type xhdfncont = xhinlinemix
+type xhdtcont = xhinlinemix
+type xhemcont = xhinlinemix
+type xhh1cont = xhinlinemix
+type xhh2cont = xhinlinemix
+type xhh3cont = xhinlinemix
+type xhh4cont = xhinlinemix
+type xhh5cont = xhinlinemix
+type xhh6cont = xhinlinemix
+type xhicont = xhinlinemix
+type xhkbdcont = xhinlinemix
+type xhlegendcont = xhinlinemix
+type xhpcont = xhinlinemix
+type xhqcont = xhinlinemix
+type xhsampcont = xhinlinemix
+type xhsmallcont = xhinlinemix
+type xhspancont = xhinlinemix
+type xhstrongcont = xhinlinemix
+type xhsubcont = xhinlinemix
+type xhsupcont = xhinlinemix
+type xhttcont = xhinlinemix
+type xhvarcont = xhinlinemix
 
 type xhddcont = xhdivcont
 type xhdelcont = xhdivcont

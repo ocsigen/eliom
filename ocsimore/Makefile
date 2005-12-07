@@ -46,7 +46,7 @@ clean:
 
 .PHONY: install
 install:
-	$(OCAMLFIND) install ocsigen $(CMA) $(CMI) $(OTHEROBJS) ../modules/tutorial.cmo ../modules/profiling.cmo ../server/ocsigen.cmi ../xmlp4/ohl-xhtml/xHTML.cmi ../xmlp4/ohl-xhtml/xML.cmi ../xmlp4/ohl-xhtml/xhtml.cma ../xmlp4/xhtmltypes.cmi ../xmlp4/xmllexer.cmo ../xmlp4/xhtmlparser.cmo ../xmlp4/xhtmlsyntax.cmo META
+	$(OCAMLFIND) install ocsigen $(CMA) $(CMI) $(OTHEROBJS) ../modules/tutorial.cmo ../modules/profiling.cmo ../server/ocsigen.cmi ../server/ocsigenboxes.cmi ../server/ocsigenboxes.cmo ../xmlp4/ohl-xhtml/xHTML.cmi ../xmlp4/ohl-xhtml/xML.cmi ../xmlp4/ohl-xhtml/xhtml.cma ../xmlp4/xhtmltypes.cmi ../xmlp4/xmllexer.cmo ../xmlp4/xhtmlparser.cmo ../xmlp4/xhtmlsyntax.cmo META
 
 .PHONY: uninstall
 uninstall:

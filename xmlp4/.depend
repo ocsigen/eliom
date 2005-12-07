@@ -1,3 +1,5 @@
+xhtmltypes.cmo: xhtmltypes.cmi 
+xhtmltypes.cmx: xhtmltypes.cmi 
 xmlsyntax.cmo: xmlparser.cmo /opt/godi/lib/ocaml/std-lib/camlp4/quotation.cmi \
     /opt/godi/lib/ocaml/std-lib/camlp4/grammar.cmi 
 xmlsyntax.cmx: xmlparser.cmx /opt/godi/lib/ocaml/std-lib/camlp4/quotation.cmi \

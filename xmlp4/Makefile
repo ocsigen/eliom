@@ -5,7 +5,7 @@ CAMLC = ocamlc $(LIB)
 CAMLOPT = ocamlopt $(LIB)
 CAMLDEP = ocamldep
 CAMLP4 = camlp4
-LIB = -I `$(CAMLP4) -where`
+LIB = -I `$(CAMLP4) -where` -I ../lib
 PP = -pp "camlp4o pa_extend.cmo q_MLast.cmo"
 PPLEXER = -pp "camlp4r"
 
@@ -13,12 +13,16 @@ SRCLIBREP = ../lib
 
 OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
 
-all: $(OBJS) essai
-	make -C ohl-xhtml all
-	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlparser.cmi xhtmlparser.cmo xhtmlsyntax.cmo ohl-xhtml/xhtml.cma ohl-xhtml/xHTML.cmi ohl-xhtml/xML.cmi $(SRCLIBREP)
+all: ohl-xhtml $(OBJS) essai
+	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlparser.cmi xhtmlparser.cmo xhtmlsyntax.cmo $(SRCLIBREP)
 
 
 .PHONY: depend
+.PHONY: ohl-xhtml
+
+ohl-xhtml:
+	make -C ohl-xhtml all
+	cp ohl-xhtml/xhtml.cma ohl-xhtml/xHTML.cmi ohl-xhtml/xML.cmi $(SRCLIBREP)
 
 essai: $(OBJS)
 	make -C exemple
