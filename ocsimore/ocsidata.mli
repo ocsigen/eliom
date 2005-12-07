@@ -54,9 +54,11 @@ sig
   val _index : 
     string ->
     (t index -> 'a, 'a, (t index Ocsigen.name -> 'b) -> 'b, 
-      t index -> [>Xhtmltypes.xha] XHTML.M.elt, t index -> [>Xhtmltypes.xhform] XHTML.M.elt, 
+      t index -> [>Xhtmltypes.xha] XHTML.M.elt,
+	t index -> [>Xhtmltypes.xhform] XHTML.M.elt, 
+	t index -> XHTML.M.uri(*,
 	t index -> [>Xhtmltypes.xhimg] XHTML.M.elt, 
-	t index -> [>Xhtmltypes.xhlink] XHTML.M.elt, t index -> [>Xhtmltypes.xhscript] XHTML.M.elt) 
+	t index -> [>Xhtmltypes.xhlink] XHTML.M.elt, t index -> [>Xhtmltypes.xhscript] XHTML.M.elt *)) 
 	Ocsigen.parameters
   val int_of_index : t index -> int
   val intname_of_indexname : t index Ocsigen.name -> int Ocsigen.name

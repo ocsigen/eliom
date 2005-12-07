@@ -599,7 +599,7 @@ let _ = register_new_url (Url []) (_current_url _noparam)
        <html> 
        <!-- This is a comment! -->
        <head>
-         $css_link filedir url "style.css"$
+         $css_link (make_uri filedir url "style.css")$
 	 <title>Ocsigen Tutorial</title>
        </head>
        <body>

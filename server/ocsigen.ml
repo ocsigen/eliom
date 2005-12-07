@@ -89,7 +89,7 @@ let write_param name value = name^"="^value
     where 'a has the shape 'b -> 'c ->... -> page
     The string list is the list of required parameters names
 *)
-type ('a, 'b, 'c, 'da, 'dform, 'dimg, 'dlink, 'dscript) parameters =
+type ('a, 'b, 'c, 'da, 'dform, 'duri (*,'dimg, 'dlink, 'dscript *)) parameters =
     {param_names: string list;
      write_parameters_a: (string option -> xha elt) -> 'da;
      (* corresponds to the 3rd argument in ('a,'b,'ca,...) url
@@ -97,9 +97,10 @@ type ('a, 'b, 'c, 'da, 'dform, 'dimg, 'dlink, 'dscript) parameters =
 	and the first function is the function to apply after construction
      *)
      write_parameters_form: (string option -> xhform elt) -> 'dform;
-     write_parameters_img: (string option -> xhimg elt) -> 'dimg;
+(*     write_parameters_img: (string option -> xhimg elt) -> 'dimg;
      write_parameters_link: (string option -> xhlink elt) -> 'dlink;
-     write_parameters_script: (string option -> xhscript elt) -> 'dscript;
+     write_parameters_script: (string option -> xhscript elt) -> 'dscript; *)
+     write_parameters_uri: (string option -> uri) -> 'duri;
      give_form_parameters: 'c;
      (* 'c is exactly the same as 'a or 'b in ('a,'b,'c) url type,
 	usually something like (int name -> int name -> xhform) -> xhform
@@ -112,19 +113,21 @@ type ('a, 'b, 'c, 'da, 'dform, 'dimg, 'dlink, 'dscript) parameters =
 	  (but 'b can be more complicated, for ex in register_post_url)
        *)}
 
-let _noparam : ('a, 'a, 'b -> 'b, [>xha] elt, [>xhform] elt, [>xhimg] elt, [>xhlink] elt, [>xhscript] elt) parameters = 
+let _noparam : ('a, 'a, 'b -> 'b, [>xha] elt, [>xhform] elt, uri (*, [>xhimg] elt, [>xhlink] elt, [>xhscript] elt*)) parameters = 
   let write_parameters = (fun f -> f None) in
   {param_names=[];
    write_parameters_a = 
    (write_parameters :> (string option -> xha elt) -> [>xha] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> xhform elt) -> [>xhform] elt);
-   write_parameters_img = 
+(*   write_parameters_img = 
    (write_parameters :> (string option -> xhimg elt) -> [>xhimg] elt);
    write_parameters_link = 
    (write_parameters :> (string option -> xhlink elt) -> [>xhlink] elt);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript elt) -> [>xhscript] elt);
+   (write_parameters :> (string option -> xhscript elt) -> [>xhscript] elt); *)
+   write_parameters_uri = 
+   (write_parameters :> (string option -> uri) -> uri);
    give_form_parameters = id;
    conversion_function= (fun pog f _ -> f)}
 
@@ -135,12 +138,14 @@ let _string name =
    (write_parameters :> (string option -> xha elt) -> string -> [>xha] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> xhform elt) -> string -> [>xhform] elt);
-   write_parameters_img = 
+(*   write_parameters_img = 
    (write_parameters :> (string option -> xhimg elt) -> string -> [>xhimg] elt);
    write_parameters_link = 
    (write_parameters :> (string option -> xhlink elt) -> string -> [>xhlink] elt);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript elt) -> string -> [>xhscript] elt);
+   (write_parameters :> (string option -> xhscript elt) -> string -> [>xhscript] elt); *)
+   write_parameters_uri = 
+   (write_parameters :> (string option -> uri) -> string -> uri);
    give_form_parameters=(fun h -> h (name : string name));
    conversion_function= (fun pog f httpparam -> 
      f (find_param name pog httpparam))}
@@ -153,12 +158,14 @@ let _user_type (mytype_of_string : string -> 'a) string_of_mytype name =
    (write_parameters :> (string option -> xha elt) -> 'a -> [>xha] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> xhform elt) -> 'a -> [>xhform] elt);
-   write_parameters_img = 
+(*   write_parameters_img = 
    (write_parameters :> (string option -> xhimg elt) -> 'a -> [>xhimg] elt);
    write_parameters_link = 
    (write_parameters :> (string option -> xhlink elt) -> 'a -> [>xhlink] elt);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript elt) -> 'a -> [>xhscript] elt);
+   (write_parameters :> (string option -> xhscript elt) -> 'a -> [>xhscript] elt);*)
+   write_parameters_uri = 
+   (write_parameters :> (string option -> uri) -> 'a -> uri);
    give_form_parameters=(fun h -> h (name : 'a name));
    conversion_function=(fun pog f httpparam -> 
      let p =
@@ -188,12 +195,14 @@ let _unit =
    (write_parameters :> (string option -> xha elt) -> [>xha] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> xhform elt) -> [>xhform] elt);
-   write_parameters_img = 
+(*   write_parameters_img = 
    (write_parameters :> (string option -> xhimg elt) -> [>xhimg] elt);
    write_parameters_link = 
    (write_parameters :> (string option -> xhlink elt) -> [>xhlink] elt);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript elt) -> [>xhscript] elt);
+   (write_parameters :> (string option -> xhscript elt) -> [>xhscript] elt); *)
+   write_parameters_uri = 
+   (write_parameters :> (string option -> uri) -> uri);
    give_form_parameters=id;
    conversion_function=(fun pog f httpparam -> f ())}
     
@@ -214,12 +223,14 @@ let _option p =
    (write_parameters :> (string option -> xha elt) -> [>xha] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> xhform elt) -> [>xhform] elt);
-   write_parameters_img = 
+(*   write_parameters_img = 
    (write_parameters :> (string option -> xhimg elt) -> [>xhimg] elt);
    write_parameters_link = 
    (write_parameters :> (string option -> xhlink elt) -> [>xhlink] elt);
    write_parameters_script = 
-   (write_parameters :> (string option -> xhscript elt) -> [>xhscript] elt);
+   (write_parameters :> (string option -> xhscript elt) -> [>xhscript] elt); *)
+   write_parameters_uri = 
+   (write_parameters :> (string option -> uri) -> uri);
    give_form_parameters=p.give_form_parameters;
    conversion_function=
    (fun f httpparam -> 
@@ -232,9 +243,10 @@ let _useragent p =
     {param_names=p.param_names;
      write_parameters_a=p.write_parameters_a;
      write_parameters_form=p.write_parameters_form;
-     write_parameters_img=p.write_parameters_img;
+(*     write_parameters_img=p.write_parameters_img;
      write_parameters_link=p.write_parameters_link;
-     write_parameters_script=p.write_parameters_script;
+     write_parameters_script=p.write_parameters_script; *)
+     write_parameters_uri=p.write_parameters_uri;
      give_form_parameters=p.give_form_parameters;
      conversion_function=
      (fun pog f httpparam -> 
@@ -245,9 +257,10 @@ let _ip p =
     {param_names=p.param_names;
      write_parameters_a=p.write_parameters_a;
      write_parameters_form=p.write_parameters_form;
-     write_parameters_img=p.write_parameters_img;
+(*     write_parameters_img=p.write_parameters_img;
      write_parameters_link=p.write_parameters_link;
-     write_parameters_script=p.write_parameters_script;
+     write_parameters_script=p.write_parameters_script; *)
+     write_parameters_uri=p.write_parameters_uri;
      give_form_parameters=p.give_form_parameters;
      conversion_function=
      (fun pog f httpparam -> 
@@ -259,9 +272,10 @@ let _current_url p =
     {param_names=p.param_names;
      write_parameters_a=p.write_parameters_a;
      write_parameters_form=p.write_parameters_form;
-     write_parameters_img=p.write_parameters_img;
+(*     write_parameters_img=p.write_parameters_img;
      write_parameters_link=p.write_parameters_link;
-     write_parameters_script=p.write_parameters_script;
+     write_parameters_script=p.write_parameters_script;*)
+     write_parameters_uri=p.write_parameters_uri;
      give_form_parameters=p.give_form_parameters;
      conversion_function=
      (fun pog f httpparam -> 
@@ -276,9 +290,10 @@ let _url_suffix p =
   {param_names=p.param_names;
    write_parameters_a = write_parameters p.write_parameters_a;
    write_parameters_form = write_parameters p.write_parameters_form;
-   write_parameters_img = write_parameters p.write_parameters_img;
+(*   write_parameters_img = write_parameters p.write_parameters_img;
    write_parameters_link = write_parameters p.write_parameters_link;
-   write_parameters_script = write_parameters p.write_parameters_script;
+   write_parameters_script = write_parameters p.write_parameters_script; *)
+   write_parameters_uri = write_parameters p.write_parameters_uri;
    give_form_parameters=p.give_form_parameters;
    conversion_function=
    (fun pog f httpparam -> p.conversion_function pog (f (httpparam.url_suffix)) httpparam)
@@ -288,9 +303,10 @@ let _http_params p =
     {param_names=p.param_names;
      write_parameters_a=p.write_parameters_a;
      write_parameters_form=p.write_parameters_form;
-     write_parameters_img=p.write_parameters_img;
+(*     write_parameters_img=p.write_parameters_img;
      write_parameters_link=p.write_parameters_link;
-     write_parameters_script=p.write_parameters_script;
+     write_parameters_script=p.write_parameters_script;*)
+     write_parameters_uri=p.write_parameters_uri;
      give_form_parameters=p.give_form_parameters;
      conversion_function=
      (fun pog f httpparam -> 
@@ -314,12 +330,14 @@ let ( ** ) p1 p2 =
    write_parameters p1.write_parameters_a p2.write_parameters_a;
    write_parameters_form = 
    write_parameters p1.write_parameters_form p2.write_parameters_form;
-   write_parameters_img = 
+(*   write_parameters_img = 
    write_parameters p1.write_parameters_img p2.write_parameters_img;
    write_parameters_link = 
    write_parameters p1.write_parameters_link p2.write_parameters_link;
    write_parameters_script = 
-   write_parameters p1.write_parameters_script p2.write_parameters_script;
+   write_parameters p1.write_parameters_script p2.write_parameters_script;*)
+   write_parameters_uri = 
+   write_parameters p1.write_parameters_uri p2.write_parameters_uri;
    give_form_parameters=
    (fun h -> p2.give_form_parameters (p1.give_form_parameters h));
    conversion_function=
@@ -606,7 +624,7 @@ type external_url
 
 
 (* Comment rendre cette structure moins lourde ? *)
-type ('a,'b,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url = 
+type ('a,'b,'ca,'cform,'curi(*,'cimg,'clink,'cscript*),'d,'e,'f,'g) url = 
     {url: url_activator; (* name of the URL without parameters *)
      url_state: internal_state option;
        (* 'g is just a type information: it can be only 
@@ -631,9 +649,10 @@ type ('a,'b,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url =
 	    or a formular to this url.
 	  *)
      create_form_url: string list -> (string -> xhform elt) -> 'cform;
-     create_img_url: string list -> (string -> xhimg elt) -> 'cimg;
+(*     create_img_url: string list -> (string -> xhimg elt) -> 'cimg;
      create_link_url: string list -> (string -> xhlink elt) -> 'clink;
-     create_script_url: string list -> (string -> xhscript elt) -> 'cscript;
+     create_script_url: string list -> (string -> xhscript elt) -> 'cscript; *)
+     create_uri: string list -> (string -> uri) -> 'curi;
      get_conversion_function: 'd -> http_params -> page;
          (* for dynamic typing, (as in parameters)
 	    for ex int -> int -> page -> http_params -> page 
@@ -653,7 +672,7 @@ let new_url_aux_aux
     ~(name : url_activator)
     ~params
     reconstruct_url_function
-    : ('a, xhformcontl, 'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, 'popo) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo) url =
 (* ici faire une vérification "duplicate parameter" ? SÉCURITÉ !! *) 
   let name = change_empty_activator name in
   let create_get_url write_param = 
@@ -681,9 +700,10 @@ let new_url_aux_aux
    create_post_form = id;
    create_a_url = create_get_url params.write_parameters_a;
    create_form_url = create_get_url params.write_parameters_form;
-   create_img_url = create_get_url params.write_parameters_img;
+(*   create_img_url = create_get_url params.write_parameters_img;
    create_link_url = create_get_url params.write_parameters_link;
-   create_script_url = create_get_url params.write_parameters_script;
+   create_script_url = create_get_url params.write_parameters_script;*)
+   create_uri = create_get_url params.write_parameters_uri;
    get_conversion_function = params.conversion_function Get;
    post_conversion_function = (fun a http_params -> a)
   }
@@ -691,36 +711,36 @@ let new_url_aux_aux
 let new_url_aux
     ~(name : url_activator)
     ~params
-    : ('a, xhformcontl, 'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, 'popo internal_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo internal_url) url =
   new_url_aux_aux ~name ~params reconstruct_relative_url_string
 
 let new_external_url_aux
     ~(name : url_activator)
     ~params
-    : ('a, xhformcontl, 'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, external_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, external_url) url =
   new_url_aux_aux ~name ~params reconstruct_absolute_url_string
 
 let new_url
     ~(name : url_activator)
     ~params
-    : ('a, xhformcontl, 'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, public_url internal_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
   new_url_aux name params
 
 let new_state_url
-   ~(fallback : ('a, xhformcontl, 'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, public_url internal_url)url)
-    : ('a, xhformcontl, 'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, state_url internal_url) url =
+   ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, state_url internal_url) url =
   {fallback with url_state = new_state ()}
 
 let new_external_url
     ~(name : url_activator)
     ~params
-    : ('a, xhformcontl, 'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, external_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, external_url) url =
   new_external_url_aux name params
 
 let register_url_aux
     tree
     state
-    ~(url : ('a,xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url)
+    ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
     ~page =
 (* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
   add_url tree url.url
@@ -730,7 +750,7 @@ let register_url_aux
      (url.get_conversion_function page))
 
 let register_url 
-    ~(url : ('a,xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g internal_url) url)
+    ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     ~page =
   register_url_aux global_tree (url.url_state) url page
 
@@ -741,7 +761,7 @@ let register_url
  *)
 
 let register_session_url
-    ~(url : ('a,xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g internal_url) url)
+    ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     ~page =
   register_url_aux !session_tree url.url_state url page
 
@@ -749,15 +769,15 @@ let register_new_url
     ~name
     ~params
     ~page
-    : ('a,xhformcontl,'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, public_url internal_url) url =
+    : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
   let u = (new_url name params) in
   register_url u page;
   u
 
 let register_new_session_url
-   ~(fallback : ('a, xhformcontl, 'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, public_url internal_url)url)
+   ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
    ~page
-   : ('a,xhformcontl,'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, state_url internal_url) url =
+   : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, state_url internal_url) url =
   let u = (new_state_url fallback) in
     register_session_url u page;
     u
@@ -767,7 +787,7 @@ let register_new_session_url
 let new_post_url_aux
     ~fallback
     ~post_params
-    : ('a,'b,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f, 'popo) url = 
+    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, 'popo) url = 
 (* ici faire une vérification "duplicate parameter" ? SÉCURITÉ !! *) 
   {url = fallback.url;
    url_state = None;
@@ -777,9 +797,10 @@ let new_post_url_aux
    create_post_form = post_params.give_form_parameters;
    create_a_url = fallback.create_a_url;
    create_form_url = fallback.create_form_url;
-   create_img_url = fallback.create_img_url;
+(*   create_img_url = fallback.create_img_url;
    create_link_url = fallback.create_link_url;
-   create_script_url = fallback.create_script_url;
+   create_script_url = fallback.create_script_url; *)
+   create_uri = fallback.create_uri;
    get_conversion_function = fallback.get_conversion_function;
    post_conversion_function = post_params.conversion_function Post
   }
@@ -787,20 +808,20 @@ let new_post_url_aux
 let new_post_url
     ~fallback
     ~post_params
-    : ('a,'b,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f, public_url internal_url) url = 
+    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url = 
   new_post_url_aux fallback post_params
 
 let new_external_post_url
     ~(name : url_activator)
     ~params
     ~post_params
-    : ('a,'b,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f, external_url) url = 
+    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, external_url) url = 
   new_post_url_aux (new_url_aux name params) post_params
 
 let new_post_state_url
-    ~(fallback : ('a,'b,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f, public_url internal_url) url)
+    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
     ~post_params 
-    : ('aa,'bb,'cca,'ccform,'ccimg,'cclink,'ccscript,'dd,'ee,'ff, state_url internal_url) url = 
+    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, state_url internal_url) url = 
   {fallback with 
    url_state = new_state ();
    post_param_names = post_params.param_names;
@@ -811,7 +832,7 @@ let new_post_state_url
 let register_post_url_aux
     tree
     state
-    ~(url : ('a,'b->'bb,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url)
+    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
     ~page =
 (* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
   add_url tree url.url
@@ -826,12 +847,12 @@ let register_post_url_aux
        de typage... *)
 
 let register_post_url 
-    ~(url : ('a,'b->'bb,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g internal_url) url)
+    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     ~page =
   register_post_url_aux global_tree (url.url_state) url page
 
 let register_post_session_url
-    ~(url : ('a,'b->'bb,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g internal_url) url)
+    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     ~page =
   register_post_url_aux !session_tree url.url_state url page
 
@@ -839,16 +860,16 @@ let register_new_post_url
     ~fallback
     ~post_params
     ~page
-    : ('a,'b,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f, public_url internal_url) url =
+    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url =
   let u = new_post_url ~fallback:fallback ~post_params:post_params in
   register_post_url u page;
   u
 
 let register_new_post_session_url
-    ~(fallback : ('a,'b,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f, public_url internal_url) url)
+    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
     ~post_params 
     ~page
-    : ('aa,'bb,'cca,'ccform,'ccimg,'cclink,'ccscript,'dd,'ee,'ff, state_url internal_url) url =
+    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, state_url internal_url) url =
   let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
   register_post_session_url u page;
   u
@@ -867,7 +888,7 @@ let action_reload = "reload"
 
 let new_action_name () = string_of_int (counter ())
 
-let new_actionurl ~(params: ('a, unit, 'ca,'cform,'cimg,'clink,'cscript, 'd) parameters) =
+let new_actionurl ~(params: ('a, unit, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'd) parameters) =
   {
     action_name = new_action_name ();
     action_param_names = params.param_names;
@@ -904,7 +925,7 @@ let register_new_static_directory_aux
     tree
     ~(name : url_string)
     ~(location : string)
-    : ('a, xhformcontl, 'ca,'cform,'cimg,'clink,'cscript, 'c, page, page, 'd internal_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'd internal_url) url =
   add_static_dir tree name location;
   let create_get_url = 
     (fun current_url f -> 			   
@@ -923,12 +944,14 @@ let register_new_static_directory_aux
    (create_get_url :> string list -> (string -> xha elt) -> string -> [>xha] elt);
    create_form_url = 
    (create_get_url :> string list -> (string -> xhform elt) -> string -> [>xhform] elt);
-   create_img_url = 
+(*   create_img_url = 
    (create_get_url :> string list -> (string -> xhimg elt) -> string -> [>xhimg] elt);
    create_link_url = 
    (create_get_url :> string list -> (string -> xhlink elt) -> string -> [>xhlink] elt);
    create_script_url = 
-   (create_get_url :> string list -> (string -> xhscript elt) -> string -> [>xhscript] elt);
+   (create_get_url :> string list -> (string -> xhscript elt) -> string -> [>xhscript] elt); *)
+   create_uri = 
+   (create_get_url :> string list -> (string -> uri) -> string -> uri);
    get_conversion_function = (fun a http_params -> a);
    post_conversion_function = (fun a http_params -> a)
   }
@@ -937,7 +960,7 @@ let register_new_static_directory
     ~(name : url_string)
     ~(location : string) :
     (xhformcontl, xhformcontl, 
-     'ca,'cform,'cimg,'clink,'cscript,
+     'ca,'cform,'curi(*'cimg,'clink,'cscript*),
      page, page, page, 
      public_url internal_url) url =
   register_new_static_directory_aux global_tree name location
@@ -946,7 +969,7 @@ let register_new_session_static_directory
     ~(name : url_string)
     ~(location : string) :
     (xhformcontl, xhformcontl, 
-     'ca,'cform,'cimg,'clink,'cscript, 
+     'ca,'cform,'curi(*'cimg,'clink,'cscript*), 
      page, page, page, 
      public_url internal_url) url =
   register_new_static_directory_aux !session_tree name location
@@ -1012,7 +1035,7 @@ let make_a ?(a=[]) l = XHTML.M.a ~a:a l
 
 (* à enlever !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    let create_url_string 
-   current_url (url : ('a, xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url) =
+   current_url (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) =
    match url.url_state with
    None -> url.create_get_url current_url
    | Some i -> url.create_get_url current_url
@@ -1027,14 +1050,14 @@ let make_a ?(a=[]) l = XHTML.M.a ~a:a l
  *)
 
   let a ?(a=[])
-      (url : ('a, xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url) current_url content =
+      (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url content =
     match url.url_state with
       None -> url.create_a_url current_url
-	  (fun v -> make_a ~a:((a_href v)::a) content)
+	  (fun v -> make_a ~a:((a_href (make_uri_from_string v))::a) content)
     | Some i -> url.create_a_url current_url
 	  (fun v -> 
 	    let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
-	    make_a ~a:((a_href vstateparam)::a) content)
+	    make_a ~a:((a_href (make_uri_from_string vstateparam))::a) content)
 
 let a_ = a
 (* avec un formulaire caché (ça marche mais ce n'est pas du xhtml valide
@@ -1062,16 +1085,24 @@ let a_ = a
 
  *)
 
-let css_link ?(a=[]) (url : ('a, xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url) current_url =
+let css_link ?(a=[]) uri =
+      link ~a:((a_href uri)::
+	       (a_type "text/css")::(a_rel [`Stylesheet])::a) ()
+
+let js_script ?(a=[]) uri =
+  script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
+
+(*
+let css_link ?(a=[]) (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url =
   url.create_link_url current_url
     (fun v -> 
-      link ~a:((a_href v)::(a_type "text/css")::(a_rel [`Stylesheet])::a) ())
+      link ~a:((a_href (make_uri_from_string  v))::(a_type "text/css")::(a_rel [`Stylesheet])::a) ())
 
-let script ?(a=[]) (url : ('a, xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url) current_url =
+let script ?(a=[]) (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url =
   url.create_script_url current_url
     (fun v -> 
       script ~a:((a_src v)::a) ~contenttype:"text/javascript" (pcdata ""))
-
+*)
 
 (*	   let stateparam = string_of_int i in
    << <span class="link" onclick="document.hiddenform.submit ()"><form name="hiddenform" method="post" action=$v$>
@@ -1129,7 +1160,7 @@ let script ?(a=[]) (url : ('a, xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'
 
 
 let form_get ?(a=[])
-    (url : ('a,xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url) current_url (f : 'a) =
+    (url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url (f : 'a) =
   let urlname = (match url.url with Url_Prefix s | Url s -> 
     reconstruct_relative_url_string current_url s) in
   let state_param =
@@ -1141,7 +1172,7 @@ let form_get ?(a=[])
   in
   let inside = url.create_get_form f in
 (* `Form ([(`Method, "get"); (`Action, urlname)], state_param::inside) *)
-  form ~a:((a_method `Get)::a) ~action:urlname
+  form ~a:((a_method `Get)::a) ~action:(make_uri_from_string urlname)
     << <p style="display:none">
       $list:state_param$
       </p> >>
@@ -1149,7 +1180,7 @@ let form_get ?(a=[])
 
 
     let form_post ?(a=[])
-	(url : ('a,'b,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url) current_url (f : 'b) = 
+	(url : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url (f : 'b) = 
       let state_param =
 	(match  url.url_state with
 	  None -> []
@@ -1161,14 +1192,24 @@ let form_get ?(a=[])
 	(fun v -> 
 	  let inside = url.create_post_form f in
 (*	 `Form ([(`Method, "post"); (`Action, v)], state_param::inside)) *)
-	  form ~a:((a_method `Post)::a) ~action:v
+	  form ~a:((a_method `Post)::a) ~action:(make_uri_from_string v)
 	    << <p style="display:none">
           	  $list:state_param$
 	       </p> >>
 	  inside)
 
+let make_uri 
+    (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url =
+  match url.url_state with
+    None -> url.create_uri current_url make_uri_from_string
+  | Some i -> url.create_uri current_url
+	(fun v -> make_uri_from_string 
+	    (v^"?"^state_param_name^"="^(string_of_int i)))
+
+
+(*
 let img ?a ~alt
-    (url : ('a, xhformcontl,'ca,'cform,'cimg,'clink,'cscript,'d,'e,'f,'g) url) current_url =
+    (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url =
   match url.url_state with
     None -> url.create_img_url current_url
 	(fun v -> img ~src:v ~alt ?a ())
@@ -1176,7 +1217,7 @@ let img ?a ~alt
 	(fun v -> 
 	  let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
 	  img ~src:vstateparam ~alt ?a ())
-
+*)
 
 (* actions : *)
 let action_link ?(a=[]) ?(reload=true) actionurl h content =
@@ -1191,7 +1232,7 @@ let action_link ?(a=[]) ?(reload=true) actionurl h content =
     else [] in
   let v = h.full_url in
   << <form name=$formname$ method="post" action=$v$ >
-    <p>$XHTML.M.a ~a:((a_href href)::a) content$
+    <p>$XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) content$
     <input type="hidden" name=$action_param_name$ value=$action_param$/>
 	$list:reload_param$
 	</p>
@@ -1212,7 +1253,7 @@ let action_link ?(a=[]) ?(reload=true) actionurl h content =
 	then <:xmllist< <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p>$list:inside$ >>
 	else inside in
       let attrs = make_attrs ?id ?classe () in
-	  form ~a:((a_method `Get)::a) ~action:v
+	  form ~a:((a_method `Get)::a) ~action:(make_uri_from_string v)
 	    << <p>$action_line$</p> >>
             inside_reload
 

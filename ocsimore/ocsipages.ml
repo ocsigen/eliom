@@ -57,10 +57,10 @@ let page h ?(js=[]) ?(css=[]) (bl : [> Xhtmltypes.xhbodycont] XHTML.M.elt list) 
   let rec make_hl make_link l = function
       [] -> l
     | (filedir, filename)::ll -> 
-	(make_link filedir h.Ocsigen.current_url filename)
+	(make_link (Ocsigen.make_uri filedir h.Ocsigen.current_url filename))
 	::(make_hl make_link l ll)
   in 
-  let hl = make_hl (Ocsigen.css_link ~a:[]) (make_hl (Ocsigen.script ~a:[]) [] js) css in
+  let hl = make_hl (Ocsigen.css_link ~a:[]) (make_hl (Ocsigen.js_script ~a:[]) [] js) css in
   << <html> 
       <head> $list:hl$ </head> 
       <body> $list:bl$ </body> 
