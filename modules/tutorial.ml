@@ -331,14 +331,19 @@ let ustate2 = new_state_url ustate
 let _ = 
   let c = ref 0 in
   let page url = 
-    let i = string_of_int !c in
-    let l = a ustate url <:xmllist< reload >> in
-    let l2 = a ustate2 url <:xmllist< incr i >> in
-    let si1 = submit_input "incr i (post)" in
-    let si2 = submit_input "incr i (get)" in
-    let l3 = form_post ustate2 url [<< <p> $si1$ </p> >>] in
-    let l4 = form_get ustate2 url [<< <p> $si2$ </p> >>] in
-    << <html><body><p> i vaut $str:i$ <br/> $l$ <br/> $l2$ </p> $l3$ $l4$ </body></html> >>
+    let l3 = 
+      form_post ustate2 url [<< <p> $submit_input "incr i (post)"$ </p> >>] in
+    let l4 = 
+      form_get ustate2 url [<< <p> $submit_input "incr i (get)"$ </p> >>] in
+    << <html>
+         <body>
+          <p> i vaut $str:string_of_int !c$ <br/> 
+             $a ustate url <:xmllist< reload >>$ <br/> 
+             $a ustate2 url <:xmllist< incr i >>$ 
+          </p> 
+          $l3$ $l4$ 
+         </body>
+       </html> >>
   in
     register_url ustate page;
     register_url ustate2 (fun url -> c := !c + 1; page url)
@@ -468,13 +473,17 @@ let rec page_for_shopping_basket url shopping_basket =
     register_session_url
       local_pay
       (fun current_url ->
-	 let f = write_shopping_basket shopping_basket in
-	   << <html><body><p>You are going to pay: $list:f$ </p></body></html> >>);
-    let sb' = write_shopping_basket shopping_basket in
-    let sb = << <div>$list:sb'$</div> >> in
-    let sh = write_shop local_shop_with_post_params url in
-    let lp   = a local_pay url <:xmllist< pay >> in
-      << <html><body> $sb$ $sh$ <p>$lp$</p></body></html> >>
+	   << <html><body>
+	        <p>You are going to pay: 
+                  $list:write_shopping_basket shopping_basket$ </p>
+              </body></html> >>);
+      << <html>
+           <body> 
+             <div>$list:write_shopping_basket shopping_basket$</div>
+             $write_shop local_shop_with_post_params url$ 
+             <p>$a local_pay url <:xmllist< pay >>$</p>
+           </body>
+         </html> >>
 
 let _ = register_post_url
   ~url:shop_with_post_params
