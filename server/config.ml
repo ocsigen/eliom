@@ -20,16 +20,16 @@
 exception Config_file_error of string
 
 let port = ref 80
-let logfile = ref "/var/log/ocsigen.log"
+let logdir = ref "/var/log/ocsigen/"
 let staticpages = ref "/var/www/ocsigen"
 let config_file = ref "/etc/ocsigen/ocsigen.conf"
 
 let set_port i = port := i
-let set_logfile s = logfile := s
+let set_logdir s = logdir := s
 let set_staticpages s = staticpages := s
 let set_configfile s = config_file := s
 let get_port () = !port
-let get_logfile () = !logfile
+let get_logdir () = !logdir
 let get_staticpages () = !staticpages
 let get_config_file () = !config_file
 

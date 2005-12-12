@@ -359,8 +359,8 @@ let rec parser_config =
     | PLCons ((EPanytag ("port", PLEmpty, p)), ll) -> 
 	set_port (int_of_string (parse_string p));
 	parse_ocsigen ll
-    | PLCons ((EPanytag ("logfile", PLEmpty, p)), ll) -> 
-	set_logfile (parse_string p);
+    | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
+	set_logdir (parse_string p);
 	parse_ocsigen ll
     | PLCons ((EPanytag ("staticpages", PLEmpty, p)), ll) -> 
 	set_staticpages (parse_string p);

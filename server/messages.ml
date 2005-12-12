@@ -24,8 +24,9 @@ let lwtwarning s =
   let s = s^"\n" in
   Lwt_unix.write Unix.stderr s 0 (String.length s)
 
+
 let lwtlog = 
-  let logfile = Config.get_logfile () in
+  let logfile = (Config.get_logdir ())^"/ocsigen.log" in
   fun s ->
     let s = s^"\n" in
     let file = 
@@ -33,6 +34,16 @@ let lwtlog =
 	logfile [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640 in
     Lwt_unix.write file s 0 (String.length s);
     Unix.close file
+
+(*
+let lwtlog = 
+  fun s ->
+    let s = s^"\n" in
+    let syslog = Syslog.openlog ~facility:`LOG_DAEMON ~logpath:????
+           ~flags:[ `LOG_CONS ] "ocsigen" in
+    Syslog.syslog syslog `LOG_NOTICE s;
+    Syslog.closelog syslog
+*)
 
 let warning s = prerr_endline s
 
