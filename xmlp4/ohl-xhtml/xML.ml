@@ -516,17 +516,22 @@ let xh_print ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags do
 
 
   and print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws =
-    if (List.mem name blocktags)
-    then xh_print_blocktag encode name xh_attrs xh_taglist i
-    else 
-      (if (List.mem name semiblocktags)
-      then xh_print_semiblocktag encode name xh_attrs xh_taglist i
-      else begin
-	xh_print_text (encode ws1) i is_first;
-	xh_print_inlinetag encode name xh_attrs xh_taglist i is_first;
-	xh_print_text (encode ws2) i is_first;
-      end);
-    xh_print_taglist queue i false removetailingws;
+    if xh_taglist = []
+    then xh_print_closedtag encode name xh_attrs i is_first
+    else begin
+print_string (name^"-------------------------------------------------------");
+      if (List.mem name blocktags)
+      then xh_print_blocktag encode name xh_attrs xh_taglist i
+      else 
+	(if (List.mem name semiblocktags)
+	then xh_print_semiblocktag encode name xh_attrs xh_taglist i
+	else begin
+	  xh_print_text (encode ws1) i is_first;
+	  xh_print_inlinetag encode name xh_attrs xh_taglist i is_first;
+	  xh_print_text (encode ws2) i is_first;
+	end);
+      xh_print_taglist queue i false removetailingws
+    end
 
   and xh_print_taglist taglist i is_first removetailingws = match taglist with 
     

@@ -1285,7 +1285,7 @@ let textarea ?(a=[]) (name : string name) =
   textarea ~a:((a_name name)::a)
 
 let submit_input ?(a=[]) s =
-  input ~a:((a_input_type `Submit)::(a_name s)::a) ()
+  input ~a:((a_input_type `Submit)::(a_value s)::a) ()
 
 
 

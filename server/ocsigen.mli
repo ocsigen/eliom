@@ -288,7 +288,7 @@ val radio_input : ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) ->
 val textarea : ?a:([< xhtextareaattrib > `Name ] attrib list ) -> 
   string name -> rows:number -> cols:number -> [ `PCDATA ] XHTML.M.elt ->
     [> xhtextarea ] elt
-val submit_input : ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) -> 
+val submit_input : ?a:([< xhinputattrib > `Input_Type `Value ] attrib list ) -> 
   string -> [> xhinput ] elt
 
 val action_link : ?a:([< xhaattrib > `Href ] attrib list) ->
