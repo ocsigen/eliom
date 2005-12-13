@@ -415,26 +415,26 @@ exception Static_File of string
 (** We associate to an URL a function http_params -> page *)
 module type DIRECTORYTREE =
   sig
-    type tree
+    type tables
     type page_table_key =
 	{get_names: string list;
 	 post_names: string list;
 	 state: internal_state option}
-    val empty_tree : unit -> tree
-    val is_empty_table : tree -> bool
-    val add_url : tree ->  url_activator -> 
+    val empty_tables : unit -> tables
+    val is_empty_table : tables -> bool
+    val add_url : tables ->  url_activator -> 
       page_table_key * (http_params -> page) -> unit
     val add_action : 
-      tree -> string -> string list -> (http_params -> unit) -> unit
+      tables -> string -> string list -> (http_params -> unit) -> unit
     val add_static_dir : 
-      tree -> name:string list -> location:string -> unit
+      tables -> name:string list -> location:string -> unit
     val find_url :
-      tree ->
+      tables ->
       url_string -> (string * string) list -> (string * string) list ->
       internal_state option -> ((http_params -> page) * url_string) 
       * url_string option
     val find_action :
-      tree -> string -> (string * string) list -> 
+      tables -> string -> (string * string) list -> 
       ((http_params -> unit) * url_string)
   end
 
@@ -454,7 +454,7 @@ module Directorytree : DIRECTORYTREE = struct
   module Action_Table = Map.Make(struct type t = string
 					let compare = compare end)
 
-  type table = 
+  type page_table = 
       Vide
     | Table of ((http_params -> page) * url_string) Page_Table.t
 	(* Here, the url_string is the working directory.
@@ -469,15 +469,15 @@ module Directorytree : DIRECTORYTREE = struct
     | ATable of (string list * (http_params -> unit) *
 		   url_string) Action_Table.t
 
-  let empty_table () = Vide
+  let empty_page_table () = Vide
   let empty_action_table () = AVide
 
-  let add_table t (key,elt) = 
+  let add_page_table t (key,elt) = 
     match t with
 	Vide -> Table (Page_Table.add key elt Page_Table.empty)
       | Table t -> Table (Page_Table.add key elt t)
 
-  let find_table t k = 
+  let find_page_table t k = 
     match t with
 	Vide -> raise Not_found
       | Table t -> Page_Table.find k t
@@ -490,17 +490,17 @@ module Directorytree : DIRECTORYTREE = struct
   let find_action_table at k = 
     match at with
 	AVide -> raise Not_found
-      | ATable t -> Messages.warning "table pas vide - recherche";Action_Table.find k t
+      | ATable t -> Messages.warning "page_table pas vide - recherche";Action_Table.find k t
 
   type dircontent = Realdir of ((string * dir) list)
-		    | Dirprefix of table ref
+		    | Dirprefix of page_table ref
 		    | StaticDir of string
-  and dir = Dir of (table ref * dircontent ref)
-  type tree = dir * (action_table ref)
+  and dir = Dir of (page_table ref * dircontent ref)
+  type tables = dir * (action_table ref)
       
-  let empty_dir () = (Dir (ref (empty_table ()), ref (Realdir [])))
+  let empty_dir () = (Dir (ref (empty_page_table ()), ref (Realdir [])))
 
-  let empty_tree () = ((empty_dir ()), ref (empty_action_table ()))
+  let empty_tables () = ((empty_dir ()), ref (empty_action_table ()))
 
   let is_empty_table ((Dir (r1,r2)),at) = 
     (!r1 = Vide 
@@ -519,75 +519,75 @@ module Directorytree : DIRECTORYTREE = struct
       then action, working_dir
       else raise Not_found
     
-  let rec search_table (Dir (table, dircontent_ref)) =
+  let rec search_page_table (Dir (page_table, dircontent_ref)) =
     let aux a l =
       (match !dircontent_ref with
            Realdir str_dir_list_ref ->
              (try
-                search_table (List.assoc a str_dir_list_ref) l
+                search_page_table (List.assoc a str_dir_list_ref) l
 	      with
                   Not_found ->
                     let new_dir = empty_dir () in
 		      dircontent_ref :=
                         Realdir ((a, new_dir)::str_dir_list_ref);
-		      search_table new_dir l)
+		      search_page_table new_dir l)
          | Dirprefix _
-	 | StaticDir _ -> if l = [] then table,dircontent_ref
+	 | StaticDir _ -> if l = [] then page_table,dircontent_ref
            else let new_dir = empty_dir () in
              dircontent_ref := Realdir [(a, new_dir)];
-             search_table new_dir l)
+             search_page_table new_dir l)
     in function
-          [] -> table,dircontent_ref
-      | ""::l -> search_table (Dir (table, dircontent_ref)) l
+          [] -> page_table,dircontent_ref
+      | ""::l -> search_page_table (Dir (page_table, dircontent_ref)) l
       | a::l -> aux a l
 
-  let add_url (tree,_) url_act (page_table_key, action) =
+  let add_url (tables,_) url_act (page_table_key, action) =
     let content = ({get_names = List.sort compare page_table_key.get_names;
 		    post_names = List.sort compare page_table_key.post_names;
 		    state = page_table_key.state},
 		   (action, !current_dir)) in
-    let current_tree = Dir (search_table tree !current_dir) in
+    let current_tables = Dir (search_page_table tables !current_dir) in
       match url_act with 
 	  Url u2 ->
-	    let table,dircontentref = 
-	      (search_table current_tree (change_empty_list u2)) in
-              table := add_table !table content
+	    let page_table,dircontentref = 
+	      (search_page_table current_tables (change_empty_list u2)) in
+              page_table := add_page_table !page_table content
 	| Url_Prefix u2 ->
             let _,dircontentref = 
-	      (search_table current_tree (change_empty_list u2)) in
+	      (search_page_table current_tables (change_empty_list u2)) in
 	    match !dircontentref with
-	      Dirprefix tr -> tr := (add_table !tr content)
+	      Dirprefix tr -> tr := (add_page_table !tr content)
 	    | _ ->
 	      dircontentref := 
-		Dirprefix (ref (add_table (empty_table ()) content))
+		Dirprefix (ref (add_page_table (empty_page_table ()) content))
 	 
-  let add_static_dir (tree,_) ~name ~location =
-    let current_tree = Dir (search_table tree !current_dir) in
+  let add_static_dir (tables,_) ~name ~location =
+    let current_tables = Dir (search_page_table tables !current_dir) in
     let _,dircontentref = 
-      (search_table current_tree (change_empty_list name)) in
+      (search_page_table current_tables (change_empty_list name)) in
       dircontentref := StaticDir location
 
 
   let find_url 
       (dir,_) string_list get_param_list post_param_list state_option =
-    let rec search_table (Dir (tableref, dircontent_ref)) =
+    let rec search_page_table (Dir (page_tableref, dircontent_ref)) =
       let aux a l =
 	(match !dircontent_ref with
              Realdir str_dir_list_ref ->
-               search_table (List.assoc a str_dir_list_ref) l
+               search_page_table (List.assoc a str_dir_list_ref) l
            | Dirprefix tr -> !tr, (Some (a::l))
 	   | StaticDir location -> 
 	       raise (Static_File (reconstruct_url_string (location::a::l))))
       in function
-            [] -> !tableref, None
-	| ""::l -> search_table (Dir (tableref, dircontent_ref)) l
+            [] -> !page_tableref, None
+	| ""::l -> search_page_table (Dir (page_tableref, dircontent_ref)) l
 	| a::l -> aux a l
     in
     let get_names  = List.sort compare (fst (List.split  get_param_list))
     and post_names = List.sort compare (fst (List.split post_param_list)) in
-    let table, suffix = (search_table dir (change_empty_list string_list)) in
-      ((find_table 
-	  table
+    let page_table, suffix = (search_page_table dir (change_empty_list string_list)) in
+      ((find_page_table 
+	  page_table
 	  {get_names = get_names;
 	   post_names = post_names;
 	   state = state_option}),
@@ -596,11 +596,11 @@ end
 
 open Directorytree
 
-type url_table = tree
+type url_table = tables
 
-let global_tree =  (empty_tree ())
-let session_tree = ref (empty_tree ())
-let new_session_table = empty_tree
+let global_tables =  (empty_tables ())
+let session_tables = ref (empty_tables ())
+let new_session_table = empty_tables
 let is_empty_table = is_empty_table
 
 
@@ -738,12 +738,12 @@ let new_external_url
   new_external_url_aux name params
 
 let register_url_aux
-    tree
+    tables
     state
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
     ~page =
 (* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
-  add_url tree url.url
+  add_url tables url.url
     ({get_names = url.get_param_names;
       post_names = []; (* url.post_param_names; *)
       state = state},
@@ -752,7 +752,7 @@ let register_url_aux
 let register_url 
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     ~page =
-  register_url_aux global_tree (url.url_state) url page
+  register_url_aux global_tables (url.url_state) url page
 
 (* WARNING: if we create a new URL without registering it,
    we can have a link towards a page that does not exist!!! :-(
@@ -763,7 +763,7 @@ let register_url
 let register_session_url
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     ~page =
-  register_url_aux !session_tree url.url_state url page
+  register_url_aux !session_tables url.url_state url page
 
 let register_new_url 
     ~name
@@ -830,12 +830,12 @@ let new_post_state_url
   }
 
 let register_post_url_aux
-    tree
+    tables
     state
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
     ~page =
 (* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
-  add_url tree url.url
+  add_url tables url.url
     ({get_names = url.get_param_names;
       post_names = url.post_param_names;
       state = state},
@@ -849,12 +849,12 @@ let register_post_url_aux
 let register_post_url 
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     ~page =
-  register_post_url_aux global_tree (url.url_state) url page
+  register_post_url_aux global_tables (url.url_state) url page
 
 let register_post_session_url
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     ~page =
-  register_post_url_aux !session_tree url.url_state url page
+  register_post_url_aux !session_tables url.url_state url page
 
 let register_new_post_url 
     ~fallback
@@ -896,14 +896,14 @@ let new_actionurl ~(params: ('a, unit, 'ca,'cform,'curi(*'cimg,'clink,'cscript*)
     action_conversion_function = params.conversion_function Post
   }
 
-let register_actionurl_aux tree ~actionurl ~action =
-  add_action tree 
+let register_actionurl_aux tables ~actionurl ~action =
+  add_action tables 
     actionurl.action_name
     actionurl.action_param_names
     (fun h -> actionurl.action_conversion_function action h)
 
 let register_actionurl ~actionurl ~action =
-  register_actionurl_aux global_tree actionurl action
+  register_actionurl_aux global_tables actionurl action
 
 let register_new_actionurl ~params ~action = 
   let a = new_actionurl params in
@@ -911,7 +911,7 @@ let register_new_actionurl ~params ~action =
     a
 
 let register_session_actionurl ~actionurl ~action =
-  register_actionurl_aux !session_tree actionurl action
+  register_actionurl_aux !session_tables actionurl action
 
 
 let register_new_session_actionurl ~params ~action =
@@ -922,11 +922,11 @@ let register_new_session_actionurl ~params ~action =
 
 (** static pages (new 10/05) *)
 let register_new_static_directory_aux
-    tree
+    tables
     ~(name : url_string)
     ~(location : string)
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'd internal_url) url =
-  add_static_dir tree name location;
+  add_static_dir tables name location;
   let create_get_url = 
     (fun current_url f -> 			   
       let ss = 
@@ -963,7 +963,7 @@ let register_new_static_directory
      'ca,'cform,'curi(*'cimg,'clink,'cscript*),
      page, page, page, 
      public_url internal_url) url =
-  register_new_static_directory_aux global_tree name location
+  register_new_static_directory_aux global_tables name location
 
 let register_new_session_static_directory
     ~(name : url_string)
@@ -972,11 +972,11 @@ let register_new_session_static_directory
      'ca,'cform,'curi(*'cimg,'clink,'cscript*), 
      page, page, page, 
      public_url internal_url) url =
-  register_new_static_directory_aux !session_tree name location
+  register_new_static_directory_aux !session_tables name location
 
 
 (** Close a session *)
-let close_session () = session_tree := empty_tree ()
+let close_session () = session_tables := empty_tables ()
 
 let make_http_params 
     url fullurl url_suffix get_params post_params useragent ip = 
@@ -1307,13 +1307,13 @@ let execute find
   in
   let save_current_dir = !current_dir in
   let answer =
-    let (tree, new_session) = 
+    let (tables, new_session) = 
       (match cookie with
 	   None -> (new_session_table (), true)
 	 | Some c -> try (Cookies.find cookie_table (ip,c), false)
 	   with Not_found -> (new_session_table (), true))
     in
-      session_tree := tree;
+      session_tables := tables;
       let ((action, working_dir), url_suffix) = find ()
       in 
       let page = 
@@ -1323,14 +1323,14 @@ let execute find
 	  (make_http_params
 	     url fullurl url_suffix get_params post_params useragent ip) in
       let cookie2 = 
-	if is_empty_table !session_tree
+	if is_empty_table !session_tables
 	then ((if not new_session 
 	       then match cookie with
 		   Some c -> Cookies.remove cookie_table (ip,c)
 		 | None -> ());None)
 	else (if new_session 
 	      then let c = new_cookie () in
-		(Cookies.add cookie_table (ip,c) !session_tree;
+		(Cookies.add cookie_table (ip,c) !session_tables;
 		 Some c)
 	      else cookie)
       in (cookie2, page, ("/"^(reconstruct_url_string working_dir)))
@@ -1345,7 +1345,7 @@ let get_page
     try (* D'abord recherche dans la table de session *)
       print_endline ("--- recherche "^(reconstruct_url_string url)^" dans la table de session :");
       (find_url 
-	 !session_tree
+	 !session_tables
 	 url
 	 get_params
 	 post_params
@@ -1353,7 +1353,7 @@ let get_page
     with Not_found -> try (* ensuite dans la table globale *)
       print_endline "--- recherche dans la table globale :";
       (find_url 
-	 global_tree
+	 global_tables
 	 url
 	 get_params
 	 post_params
@@ -1364,7 +1364,7 @@ let get_page
 	| _ -> try (* d'abord la table de session *)
 	    print_endline "--- recherche dans la table de session, sans état :";
 	    (find_url 
-	       !session_tree
+	       !session_tables
 	       url
 	       get_params
 	       post_params
@@ -1373,7 +1373,7 @@ let get_page
 	    try 
 	      print_endline "--- recherche dans la table globale, sans état :";
 	      (find_url 
-		 global_tree
+		 global_tables
 		 url
 		 get_params
 		 post_params
@@ -1394,9 +1394,9 @@ let make_action action_name action_params
     (url, fullurl, _, _, _, useragent) sockaddr cookie =
   let find () =
     (try 
-       find_action !session_tree action_name action_params
+       find_action !session_tables action_name action_params
      with Not_found ->
-       (find_action global_tree action_name action_params)),None
+       (find_action global_tables action_name action_params)),None
   in try 
       execute 
 	find

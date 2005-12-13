@@ -333,7 +333,7 @@ let _ =
   let page url = 
     let l3 = 
       form_post ustate2 url [<< <p> $submit_input "incr i (post)"$ </p> >>] in
-    let l4 = 
+    let l4 =
       form_get ustate2 url [<< <p> $submit_input "incr i (get)"$ </p> >>] in
     << <html>
          <body>
