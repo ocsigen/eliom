@@ -517,9 +517,11 @@ let xh_print ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags do
 
   and print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws =
     if xh_taglist = []
-    then xh_print_closedtag encode name xh_attrs i is_first
+    then begin
+      xh_print_closedtag encode name xh_attrs i is_first;
+      xh_print_taglist queue i false removetailingws
+    end
     else begin
-print_string (name^"-------------------------------------------------------");
       if (List.mem name blocktags)
       then xh_print_blocktag encode name xh_attrs xh_taglist i
       else 

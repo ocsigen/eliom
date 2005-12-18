@@ -27,7 +27,7 @@ module Xhtml_content =
     type t = [ `Html ] XHTML.M.elt
     let string_of_content c = 
       let s = XHTML.M.ocsigen_print c in
-      (* debug *) print_endline s; 
+      (* debug *) Messages.debug s;
       s
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_string s = assert false

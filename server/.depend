@@ -1,8 +1,6 @@
-messages.cmo: config.cmo 
-messages.cmx: config.cmx 
-ocsigen.cmo: messages.cmo error_pages.cmo ocsigen.cmi 
-ocsigen.cmx: messages.cmx error_pages.cmx ocsigen.cmi 
+ocsigen.cmo: error_pages.cmo ocsigen.cmi 
+ocsigen.cmx: error_pages.cmx ocsigen.cmi 
 ocsigenboxes.cmo: ocsigen.cmi 
 ocsigenboxes.cmx: ocsigen.cmx 
-server.cmo: ocsigen.cmi messages.cmo config.cmo 
-server.cmx: ocsigen.cmx messages.cmx config.cmx 
+server.cmo: ocsigen.cmi 
+server.cmx: ocsigen.cmx 

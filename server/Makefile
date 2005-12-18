@@ -2,7 +2,7 @@ include ../Makefile.config
 
 NAME = ocsigen
 
-FILES= config.ml messages.ml error_pages.ml ocsigen.ml ocsigenboxes.ml server.ml
+FILES= error_pages.ml ocsigen.ml ocsigenboxes.ml server.ml
 
 INSTALL = install -c
 CAMLC = ocamlfind ocamlc -g $(LIB)
@@ -13,19 +13,20 @@ LIB = -package netstring,dbi.postgresql -I ../lib -I +camlp4
 PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xhtmlparser.cmo ../lib/xhtmlsyntax.cmo"
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
+       gramlib.cma xmllexer.cmo simplexmlparser.cmo\
+       ocsiconfig.cmo messages.cmo\
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtml.cma sender_helpers.cmo\
        error_pages.cmo\
-       postgresql.cma dbi.cma dbi_postgresql.cmo\
-       gramlib.cma xmllexer.cmo simplexmlparser.cmo
-# avant dernière ligne pas nécessaire pour server mais je n'arrive pas à le lier ailleurs...
+       postgresql.cma dbi.cma dbi_postgresql.cmo
+# dernière ligne pas nécessaire pour server mais je n'arrive pas à le lier ailleurs...
 
 OBJS = $(FILES:.ml=.cmo)
 
 all: depend $(OBJS) $(NAME) doc
 #	cp *.cmo *.cmi ../lib
 	cp ocsigen.cmo ocsigen.cmi ../lib
-	cp messages.cmi config.cmi ../lib
+#	cp config.cmi ../lib
 	cp ocsigenboxes.cmi ../lib
 	cp $(NAME) ../bin
 

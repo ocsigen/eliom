@@ -7,9 +7,9 @@ CAMLCOPT = ocamlfind ocamlopt
 CAMLDEP  = ocamlfind ocamldep
 NAME 	 =  test_pp
 LIBDIR 	= ../lib
-LIB= -package netstring -I $(LIBDIR)
+LIB= -package netstring -I $(LIBDIR) -I +camlp4
 PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xhtmlparser.cmo ../lib/xhtmlsyntax.cmo" 
-ALL_CMO  = http_frame.cmo http_parser.cmo http_lexer.cmo framepp.cmo http_com.cmo sender_helpers.cmo test_pp.cmo
+ALL_CMO  = ocsiconfig.cmo messages.cmo http_frame.cmo http_parser.cmo http_lexer.cmo framepp.cmo http_com.cmo sender_helpers.cmo #test_pp.cmo
 
 all: byte
 	cp *.cmi *.cmo  ../lib
@@ -17,7 +17,7 @@ all: byte
 .PHONY: depend
 
 byte: $(ALL_CMO)
-	$(CAMLC) $(LIB) -o $(NAME) unix.cma lwt.cma netstring.cma xhtml.cma $(ALL_CMO)
+#	$(CAMLC) $(LIB) -o $(NAME) unix.cma lwt.cma netstring.cma xhtml.cma $(ALL_CMO)
 
 
 doc: 
@@ -35,7 +35,7 @@ depend:
 
 http_parser.cmo:http_parser.cmi http_parser.ml http_parser.mli
 
-http_lexer.cmo:http_lexer.cmi http_lexer.ml
+http_lexer.cmo:http_lexer.cmi http_lexer.ml messages.cmi
 
 http_lexer.ml: http_lexer.mll
 

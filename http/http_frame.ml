@@ -38,7 +38,6 @@ module type HTTP_CONTENT =
 (**this module discribes the type of an http header*)
 module Http_header =
   struct
-
       
       (** type of http_frame mode*)
       type http_mode = Query | Answer
@@ -153,7 +152,7 @@ module Http_error =
             function
               |[] -> ()
               |hd::tl -> 
-                  print_endline hd;
+                  Messages.debug hd;
                   display_list tl
 
         let string_of_list l =
@@ -166,7 +165,7 @@ module Http_error =
         let display_http_exception =
           function
             |Http_exception (Some n,l) ->
-                print_endline (expl_of_code n);
+                Messages.debug (expl_of_code n);
                 display_list l
             |Http_exception (None,l) ->
                 display_list l

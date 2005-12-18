@@ -33,12 +33,9 @@ type external_url
 type (-'a, -'b, +'c, +'e, +'u (*, +'f, +'g*), -'h, -'i, +'j, 'k) url
 
 
-type url_string = string list
-(** Url matches the exact string
-    Url_Prefix matches any string with this prefix
-   (for ex to make the string "wiki/" activate all pages like "wiki/toto")
- *)
-type url_activator = Url of url_string | Url_Prefix of url_string
+type url_path = string list
+
+val reconstruct_url_path : url_path -> string
 
 val counter : unit -> int
 
@@ -103,17 +100,19 @@ val ( ** ) :
    to page. t can be written using _unit _int (++) etc.
  *)
 val new_url :
-    name:url_activator ->
-    params:('a, page, 'b -> xhformcontl, 
-      'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
-    ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
-      page, page, public_url internal_url) url
+    name:url_path ->
+      prefix:bool ->
+	params:('a, page, 'b -> xhformcontl, 
+	  'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
+	      ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
+	       page, page, public_url internal_url) url
 
 val new_external_url :
-  name:url_activator ->
-  params:('a, page, 'b -> xhformcontl, 
-    'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
-  ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, external_url) url
+  name:url_path ->
+    prefix:bool ->
+      params:('a, page, 'b -> xhformcontl, 
+	'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
+	    ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, external_url) url
 
 val new_state_url :
   fallback:('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, public_url internal_url) url 
@@ -133,7 +132,8 @@ val register_session_url :
    to page. [t] can be written using [_unit _int (++)] etc.
 *)
 val register_new_url :
-  name:url_activator ->
+  name:url_path ->
+  prefix:bool -> 
   params:('a, page, 'b -> xhformcontl, 
     'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
   page:'a -> ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
@@ -149,7 +149,8 @@ val new_post_url :
   ('a, 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'h, 'd, public_url internal_url) url
 
 val new_external_post_url :
-  name:url_activator ->
+  name:url_path ->
+  prefix:bool -> 
   params:('a, page, 'b -> xhformcontl, 
     'ca, 'cform, 'curi (*'cimg, 'clink, 'cscript *)) parameters ->
   post_params:('h, 'i, 'j -> xhformcontl, 
@@ -206,9 +207,10 @@ val register_new_session_actionurl :
   action:'a 
   -> ('b, 'a) actionurl
 
+(*
 (** static pages (new 10/05) *)
 val register_new_static_directory :
-    name:url_string ->
+    name:url_path ->
     location:string -> 
   (xhformcontl, xhformcontl, 
    string -> [>xha] elt, string -> [>xhform] elt, string -> uri (*, string -> [>xhimg] elt, string -> [>xhlink] elt, string -> [>xhscript] elt*), 
@@ -216,12 +218,20 @@ val register_new_static_directory :
    public_url internal_url) url
 
 val register_new_session_static_directory :
-    name:url_string ->
+    name:url_path ->
     location:string -> 
   (xhformcontl, xhformcontl, 
    string -> [>xha] elt, string -> [>xhform] elt, string -> uri (*, string -> [>xhimg] elt, string -> [>xhlink] elt, string -> [>xhscript] elt*), 
    page, page, page, 
    public_url internal_url) url
+*)
+
+val static_dir :
+    (xhformcontl, xhformcontl, string -> [> Xhtmltypes.xha ] XHTML.M.elt,
+     string -> [> Xhtmltypes.xhform ] XHTML.M.elt, string -> XHTML.M.uri,
+     page, 'a, 'a, 'b)
+    url
+
 
 (** to close a session: *)
 val close_session : unit -> unit
@@ -230,7 +240,7 @@ val close_session : unit -> unit
 
 val a : ?a:([< xhaattrib > `Href ] attrib list) ->
   ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url ->
-    url_string -> 
+    url_path -> 
       xhacont elt list -> 'ca
 
 val css_link : ?a:([< xhlinkattrib > `Href `Rel `Type ] attrib list) ->
@@ -241,15 +251,15 @@ val js_script : ?a:([< xhscriptattrib > `Src ] attrib list) ->
 
 (*
 val css_link : ?a:([< xhlinkattrib > `Href `Rel `Type ] attrib list) ->
-  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> url_string -> 'clink
+  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> url_path -> 'clink
 
 val script : ?a:([< xhscriptattrib > `Src ] attrib list) ->
-  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> url_string -> 'cscript
+  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> url_path -> 'cscript
 *)
 
 val make_uri :
     ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url
-  -> url_string -> 'curi
+  -> url_path -> 'curi
 
 
 
@@ -258,15 +268,15 @@ val make_uri :
 *)
 val form_get : ?a:([< xhformattrib > `Method ] attrib list) ->
   ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> 
-    url_string -> 'a -> [> xhform ] elt
+    url_path -> 'a -> [> xhform ] elt
 val form_post : ?a:([< xhformattrib > `Method ] attrib list) ->
   ('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url
-    -> url_string -> 'b -> 'cform
+    -> url_path -> 'b -> 'cform
 
 (*
 val img : ?a:([< xhimgattrib ] attrib list) ->
   alt:string ->
-  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> url_string -> 'cimg
+  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> url_path -> 'cimg
 *)
 
 val int_input : ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) -> 
@@ -309,22 +319,22 @@ val action_form : ?a:([< xhformattrib > `Method ] attrib list) ->
 
 (** return a page from an url and parameters *)
 val get_page :
-  url_string * string * int option * (string * string) list *
+  url_path * string * string * int option * (string * string) list *
   (string * string) list * string -> 
   Unix.sockaddr -> string option -> string option * page * string
 
 val make_action :
   string -> (string * string) list ->
-  url_string * string * int option * (string * string) list *
+  url_path * string * string * int option * (string * string) list *
   (string * string) list * string -> 
   Unix.sockaddr -> string option -> string option * unit * string
 
 (** loads a module in the server *)
-val load_ocsigen_module : dir:url_string -> cmo:string -> unit
+val load_ocsigen_module : dir:url_path -> cmo:string -> unit
 
 
-exception Static_File of string
 exception Ocsigen_error_while_loading of string
+exception Ocsigen_Is_a_directory
 exception Ocsigen_404
 val state_param_name : string
 val action_prefix : string

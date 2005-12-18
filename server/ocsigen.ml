@@ -28,14 +28,7 @@ type page = xhtml elt
 type xhformcontl = xhformcont elt list
 
 (** type of URL, without parameter *)
-type url_string = string list
-
-(** Url matches the exact string
-    Url_Prefix matches any string with this prefix
-   (for ex to make the string "wiki/" activate all pages like "wiki/toto")
- *)
-type url_activator = Url of url_string | Url_Prefix of url_string
-
+type url_path = string list
 
 (** Type of http parameters *)
 type http_params = {url_suffix: string;
@@ -66,6 +59,7 @@ let new_cookie =
 
 exception Ocsigen_Typing_Error of string
 exception Ocsigen_Wrong_parameter
+exception Ocsigen_Is_a_directory
 exception Ocsigen_404
 
 type postorget = Get | Post
@@ -347,7 +341,9 @@ let ( ** ) p1 p2 =
     
 
 (* The current working directory *)
-let current_dir : url_string ref = ref []
+let current_dir : url_path ref = ref []
+
+let defaultpagename = "index"
 
 let remove_slash = function
     [] -> []
@@ -359,10 +355,6 @@ let absolute_change_dir dir = current_dir := remove_slash dir
 let change_empty_list = function
     [] -> [""] (* It is not possible to register an empty URL *)
   | l -> l
-
-let change_empty_activator = function
-    Url l -> Url (change_empty_list l)
-  | Url_Prefix l -> Url_Prefix (change_empty_list l)
 
 
 (* En fait cette fonction est dans Neturl (split_path)
@@ -383,18 +375,14 @@ let rec cut_url s =
   with _ -> [s]
 *)
 
-let rec reconstruct_url_string = function
+let rec reconstruct_url_path = function
     [] -> ""
   | [a] -> a
-  | a::l -> a^"/"^(reconstruct_url_string l)
+  | a::l -> a^"/"^(reconstruct_url_path l)
 
-let reconstruct_absolute_url_string current_url = reconstruct_url_string
+let reconstruct_absolute_url_path current_url = reconstruct_url_path
 
-let reconstruct_url_string_option = function
-    None -> ""
-  | Some l -> reconstruct_url_string l
-
-let reconstruct_relative_url_string current_url u =
+let reconstruct_relative_url_path current_url u =
   let rec drop cururl desturl = match cururl, desturl with
     | a::l, [b] -> l, desturl
     | [a], m -> [], m
@@ -406,11 +394,10 @@ let reconstruct_relative_url_string current_url u =
 (*    | [a] -> "" *)
     | _::l -> "../"^(makedotdot l)
   in let aremonter, aaller = drop current_url (""::(!current_dir)@u)
-  in (makedotdot aremonter)^(reconstruct_url_string aaller)
+  in let s = (makedotdot aremonter)^(reconstruct_url_path aaller) in
+  if s = "" then defaultpagename else s
 
 
-
-exception Static_File of string
 
 (** We associate to an URL a function http_params -> page *)
 module type DIRECTORYTREE =
@@ -419,23 +406,22 @@ module type DIRECTORYTREE =
     type page_table_key =
 	{get_names: string list;
 	 post_names: string list;
+	 prefix:bool;
 	 state: internal_state option}
     val empty_tables : unit -> tables
-    val is_empty_table : tables -> bool
-    val add_url : tables ->  url_activator -> 
+    val are_empty_tables : tables -> bool
+    val add_url : tables -> url_path -> 
       page_table_key * (http_params -> page) -> unit
     val add_action : 
       tables -> string -> string list -> (http_params -> unit) -> unit
-    val add_static_dir : 
-      tables -> name:string list -> location:string -> unit
     val find_url :
       tables ->
-      url_string -> (string * string) list -> (string * string) list ->
-      internal_state option -> ((http_params -> page) * url_string) 
-      * url_string option
+      url_path -> (string * string) list -> (string * string) list ->
+      internal_state option -> ((http_params -> page) * url_path)
+      * url_path
     val find_action :
       tables -> string -> (string * string) list -> 
-      ((http_params -> unit) * url_string)
+      ((http_params -> unit) * url_path)
   end
 
 module Directorytree : DIRECTORYTREE = struct
@@ -445,19 +431,18 @@ module Directorytree : DIRECTORYTREE = struct
   type page_table_key =
       {get_names: string list;
        post_names: string list;
+       prefix:bool;
        state: internal_state option}
        (* action: http_params -> page *)
 
   module Page_Table = Map.Make(struct type t = page_table_key 
 				      let compare = compare end)
 
-  module Action_Table = Map.Make(struct type t = string
+  module String_Table = Map.Make(struct type t = string
 					let compare = compare end)
 
-  type page_table = 
-      Vide
-    | Table of ((http_params -> page) * url_string) Page_Table.t
-	(* Here, the url_string is the working directory.
+  type page_table = ((http_params -> page) * url_path) Page_Table.t
+	(* Here, the url_path is the working directory.
 	   That is, the directory in which we are when we register
 	   dynamically the pages.
 	   Each time we load a page, we change to this directory
@@ -467,45 +452,51 @@ module Directorytree : DIRECTORYTREE = struct
   type action_table = 
       AVide 
     | ATable of (string list * (http_params -> unit) *
-		   url_string) Action_Table.t
+		   url_path) String_Table.t
 
-  let empty_page_table () = Vide
+  type dircontent = 
+      Vide
+    | Table of direlt ref String_Table.t
+
+  and direlt = 
+      Dir of dircontent ref
+    | File of page_table ref
+
+  type tables = dircontent ref * action_table ref
+
+  let empty_page_table () = Page_Table.empty
   let empty_action_table () = AVide
+  let empty_dircontent () = Vide
 
-  let add_page_table t (key,elt) = 
-    match t with
-	Vide -> Table (Page_Table.add key elt Page_Table.empty)
-      | Table t -> Table (Page_Table.add key elt t)
+  let add_page_table t (key,elt) = Page_Table.add key elt t
 
-  let find_page_table t k = 
-    match t with
-	Vide -> raise Not_found
-      | Table t -> Page_Table.find k t
+  let find_page_table t k = Page_Table.find k t
+
+  let add_dircontent dc (key,elt) =
+    match dc with
+      Vide -> Table (String_Table.add key elt String_Table.empty)
+    | Table t -> Table (String_Table.add key elt t)
+
+  let find_dircontent dc k =
+    match dc with
+      Vide -> raise Not_found
+    | Table t -> String_Table.find k t
 
   let add_action_table at (key,elt) = 
     match at with
-	AVide -> ATable (Action_Table.add key elt Action_Table.empty)
-      | ATable t -> ATable (Action_Table.add key elt t)
+	AVide -> ATable (String_Table.add key elt String_Table.empty)
+      | ATable t -> ATable (String_Table.add key elt t)
 
   let find_action_table at k = 
     match at with
 	AVide -> raise Not_found
-      | ATable t -> Messages.warning "page_table pas vide - recherche";Action_Table.find k t
+      | ATable t -> String_Table.find k t
 
-  type dircontent = Realdir of ((string * dir) list)
-		    | Dirprefix of page_table ref
-		    | StaticDir of string
-  and dir = Dir of (page_table ref * dircontent ref)
-  type tables = dir * (action_table ref)
-      
-  let empty_dir () = (Dir (ref (empty_page_table ()), ref (Realdir [])))
+  let empty_tables () = 
+    (ref (empty_dircontent ()), ref (empty_action_table ()))
 
-  let empty_tables () = ((empty_dir ()), ref (empty_action_table ()))
-
-  let is_empty_table ((Dir (r1,r2)),at) = 
-    (!r1 = Vide 
-	&& !r2 = Realdir []
-	&& !at = AVide)
+  let are_empty_tables (dcr,atr) = 
+    (!dcr = Vide && !atr = AVide)
 
   let add_action (_,actiontableref) name paramslist action =
     actiontableref :=
@@ -518,80 +509,89 @@ module Directorytree : DIRECTORYTREE = struct
       if pl = paramsattendus 
       then action, working_dir
       else raise Not_found
-    
-  let rec search_page_table (Dir (page_table, dircontent_ref)) =
-    let aux a l =
-      (match !dircontent_ref with
-           Realdir str_dir_list_ref ->
-             (try
-                search_page_table (List.assoc a str_dir_list_ref) l
-	      with
-                  Not_found ->
-                    let new_dir = empty_dir () in
-		      dircontent_ref :=
-                        Realdir ((a, new_dir)::str_dir_list_ref);
-		      search_page_table new_dir l)
-         | Dirprefix _
-	 | StaticDir _ -> if l = [] then page_table,dircontent_ref
-           else let new_dir = empty_dir () in
-             dircontent_ref := Realdir [(a, new_dir)];
-             search_page_table new_dir l)
-    in function
-          [] -> page_table,dircontent_ref
-      | ""::l -> search_page_table (Dir (page_table, dircontent_ref)) l
-      | a::l -> aux a l
 
-  let add_url (tables,_) url_act (page_table_key, action) =
+  let add_url (dircontentref,_) url_act (page_table_key, action) =
+    let aux search a l =
+      try 
+	let direltref = find_dircontent !dircontentref a in
+	match !direltref with
+	  Dir dcr -> search dcr l
+	| File ptr ->
+	    Messages.warning ("Ocsigen page registering: Page "^
+				 a^" has been replaced by a directory");
+	    let newdcr = ref (empty_dircontent ()) in
+	    (direltref := Dir newdcr;
+	     search newdcr l)
+      with
+	Not_found -> 
+	  let newdcr = ref (empty_dircontent ()) in
+	  (dircontentref := 
+	    add_dircontent !dircontentref (a, ref (Dir newdcr));
+	   search newdcr l)
+    in 
+    let rec search_page_table_ref dircontentref = function
+          [] | [""] -> search_page_table_ref dircontentref [defaultpagename]
+	| [a] -> 
+	    (try 
+	      let direltref = find_dircontent !dircontentref a in
+	      (match !direltref with
+		Dir _ ->
+		  Messages.warning ("Ocsigen page registering: Directory "^
+				       a^" has been replaced by a page");
+		  let newpagetableref = ref (empty_page_table ()) in
+		  (direltref := File newpagetableref;
+		   newpagetableref)
+	      | File ptr -> ptr)
+	    with
+	      Not_found ->
+		let newpagetableref = ref (empty_page_table ()) in
+		(dircontentref := 
+		  add_dircontent !dircontentref (a,ref (File newpagetableref));
+		 newpagetableref))
+	| ""::l -> search_page_table_ref dircontentref l
+	| a::l -> aux search_page_table_ref a l
+    and search_dircontentref dircontentref = function
+          [] -> dircontentref
+	| ""::l -> search_dircontentref dircontentref l
+	| a::l -> aux search_dircontentref a l
+    in
     let content = ({get_names = List.sort compare page_table_key.get_names;
 		    post_names = List.sort compare page_table_key.post_names;
+		    prefix = page_table_key.prefix;
 		    state = page_table_key.state},
 		   (action, !current_dir)) in
-    let current_tables = Dir (search_page_table tables !current_dir) in
-      match url_act with 
-	  Url u2 ->
-	    let page_table,dircontentref = 
-	      (search_page_table current_tables (change_empty_list u2)) in
-              page_table := add_page_table !page_table content
-	| Url_Prefix u2 ->
-            let _,dircontentref = 
-	      (search_page_table current_tables (change_empty_list u2)) in
-	    match !dircontentref with
-	      Dirprefix tr -> tr := (add_page_table !tr content)
-	    | _ ->
-	      dircontentref := 
-		Dirprefix (ref (add_page_table (empty_page_table ()) content))
+    let current_dircontentref = 
+      search_dircontentref dircontentref !current_dir in
+    let page_table_ref = 
+      search_page_table_ref current_dircontentref url_act in
+    page_table_ref := add_page_table !page_table_ref content
+
 	 
-  let add_static_dir (tables,_) ~name ~location =
-    let current_tables = Dir (search_page_table tables !current_dir) in
-    let _,dircontentref = 
-      (search_page_table current_tables (change_empty_list name)) in
-      dircontentref := StaticDir location
-
-
   let find_url 
-      (dir,_) string_list get_param_list post_param_list state_option =
-    let rec search_page_table (Dir (page_tableref, dircontent_ref)) =
+      (dircontentref,_) 
+      string_list get_param_list post_param_list state_option =
+    let rec search_page_table dircontent =
       let aux a l =
-	(match !dircontent_ref with
-             Realdir str_dir_list_ref ->
-               search_page_table (List.assoc a str_dir_list_ref) l
-           | Dirprefix tr -> !tr, (Some (a::l))
-	   | StaticDir location -> 
-	       raise (Static_File (reconstruct_url_string (location::a::l))))
+	(match !(find_dircontent dircontent a) with
+	  Dir dircontentref2 -> search_page_table !dircontentref2 l
+	| File page_table_ref -> !page_table_ref, l)
       in function
-            [] -> !page_tableref, None
-	| ""::l -> search_page_table (Dir (page_tableref, dircontent_ref)) l
+          [] -> raise Ocsigen_Is_a_directory
+        | [""] -> aux defaultpagename []
+	| ""::l -> search_page_table dircontent l
 	| a::l -> aux a l
     in
     let get_names  = List.sort compare (fst (List.split  get_param_list))
     and post_names = List.sort compare (fst (List.split post_param_list)) in
-    let page_table, suffix = (search_page_table dir (change_empty_list string_list)) in
-      ((find_page_table 
-	  page_table
-	  {get_names = get_names;
-	   post_names = post_names;
-	   state = state_option}),
-       suffix)
+    let page_table, suffix = 
+      (search_page_table !dircontentref (change_empty_list string_list)) in
+    ((find_page_table 
+	page_table
+	{get_names = get_names;
+	 post_names = post_names;
+	 prefix = (suffix <> []);
+	 state = state_option}),
+     suffix)
 end
 
 open Directorytree
@@ -600,8 +600,8 @@ type url_table = tables
 
 let global_tables =  (empty_tables ())
 let session_tables = ref (empty_tables ())
-let new_session_table = empty_tables
-let is_empty_table = is_empty_table
+let new_session_tables = empty_tables
+let are_empty_tables = are_empty_tables
 
 
 (* The table of tables for each session. Keys are (hostname,cookie) *)
@@ -625,7 +625,8 @@ type external_url
 
 (* Comment rendre cette structure moins lourde ? *)
 type ('a,'b,'ca,'cform,'curi(*,'cimg,'clink,'cscript*),'d,'e,'f,'g) url = 
-    {url: url_activator; (* name of the URL without parameters *)
+    {url: url_path; (* name of the URL without parameters *)
+     url_prefix: bool;
      url_state: internal_state option;
        (* 'g is just a type information: it can be only 
 	  public_url internal_url or session_url internal_url
@@ -669,30 +670,31 @@ type ('a,'b,'ca,'cform,'curi(*,'cimg,'clink,'cscript*),'d,'e,'f,'g) url =
 
 (** Create an url *)
 let new_url_aux_aux
-    ~(name : url_activator)
+    ~(name : url_path)
+    ~prefix
     ~params
     reconstruct_url_function
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo) url =
 (* ici faire une vérification "duplicate parameter" ? SÉCURITÉ !! *) 
-  let name = change_empty_activator name in
+  let name = change_empty_list name in
   let create_get_url write_param = 
-    (match name with
-      Url s -> 
-	(fun current_url f -> 
-	  let ss = 
-	    (reconstruct_url_function current_url s) in
-	  write_param
-	    (function Some v -> f (ss^"?"^v)
-	      | None -> f ss))
-    | Url_Prefix s -> 
-	(fun current_url f -> 			   
-	  let ss = 
-	    (reconstruct_url_function current_url s) in
-	  write_param
-	    (function Some v -> f (ss^v)
-	      | None -> f ss)))
+    (if prefix then
+      (fun current_url f -> 			   
+	let ss = 
+	  (reconstruct_url_function current_url name) in
+	write_param
+	  (function Some v -> f (ss^v)
+	    | None -> f ss))
+    else
+      (fun current_url f -> 
+	let ss = 
+	  (reconstruct_url_function current_url name) in
+	write_param
+	  (function Some v -> f (ss^"?"^v)
+	    | None -> f ss)))
   in
   {url = name;
+   url_prefix = prefix;
    url_state = None;
    get_param_names = params.param_names;
    post_param_names = [];
@@ -709,22 +711,25 @@ let new_url_aux_aux
   }
 
 let new_url_aux
-    ~(name : url_activator)
+    ~(name : url_path)
+    ~prefix
     ~params
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo internal_url) url =
-  new_url_aux_aux ~name ~params reconstruct_relative_url_string
+  new_url_aux_aux ~name ~prefix ~params reconstruct_relative_url_path
 
 let new_external_url_aux
-    ~(name : url_activator)
+    ~(name : url_path)
+    ~prefix
     ~params
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, external_url) url =
-  new_url_aux_aux ~name ~params reconstruct_absolute_url_string
+  new_url_aux_aux ~name ~prefix ~params reconstruct_absolute_url_path
 
 let new_url
-    ~(name : url_activator)
+    ~(name : url_path)
+    ~prefix
     ~params
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
-  new_url_aux name params
+  new_url_aux ~name ~prefix ~params
 
 let new_state_url
    ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
@@ -732,10 +737,11 @@ let new_state_url
   {fallback with url_state = new_state ()}
 
 let new_external_url
-    ~(name : url_activator)
+    ~(name : url_path)
+    ~prefix
     ~params
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, external_url) url =
-  new_external_url_aux name params
+  new_external_url_aux name prefix params
 
 let register_url_aux
     tables
@@ -746,6 +752,7 @@ let register_url_aux
   add_url tables url.url
     ({get_names = url.get_param_names;
       post_names = []; (* url.post_param_names; *)
+      prefix = url.url_prefix;
       state = state},
      (url.get_conversion_function page))
 
@@ -767,10 +774,11 @@ let register_session_url
 
 let register_new_url 
     ~name
+    ~prefix
     ~params
     ~page
     : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
-  let u = (new_url name params) in
+  let u = new_url ~prefix ~name ~params in
   register_url u page;
   u
 
@@ -790,6 +798,7 @@ let new_post_url_aux
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, 'popo) url = 
 (* ici faire une vérification "duplicate parameter" ? SÉCURITÉ !! *) 
   {url = fallback.url;
+   url_prefix = fallback.url_prefix;
    url_state = None;
    get_param_names = fallback.get_param_names;
    post_param_names = post_params.param_names;
@@ -812,11 +821,12 @@ let new_post_url
   new_post_url_aux fallback post_params
 
 let new_external_post_url
-    ~(name : url_activator)
+    ~(name : url_path)
+    ~prefix
     ~params
     ~post_params
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, external_url) url = 
-  new_post_url_aux (new_url_aux name params) post_params
+  new_post_url_aux (new_url_aux name prefix params) post_params
 
 let new_post_state_url
     ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
@@ -838,6 +848,7 @@ let register_post_url_aux
   add_url tables url.url
     ({get_names = url.get_param_names;
       post_names = url.post_param_names;
+      prefix = url.url_prefix;
       state = state},
      (fun http_params ->
 	(url.get_conversion_function
@@ -919,18 +930,44 @@ let register_new_session_actionurl ~params ~action =
     register_session_actionurl a action;
     a
 
+let static_dir =
+  let create_get_url = (fun current_url f -> (fun suffix -> f suffix))
+  in
+  {url = [""];
+   url_state = None;
+   url_prefix = true;
+   get_param_names = [];
+   post_param_names = [];
+   create_get_form = id;
+   create_post_form = id;
+   create_a_url = 
+   (create_get_url :> string list -> (string -> xha elt) -> string -> [>xha] elt);
+   create_form_url = 
+   (create_get_url :> string list -> (string -> xhform elt) -> string -> [>xhform] elt);
+(*   create_img_url = 
+   (create_get_url :> string list -> (string -> xhimg elt) -> string -> [>xhimg] elt);
+   create_link_url = 
+   (create_get_url :> string list -> (string -> xhlink elt) -> string -> [>xhlink] elt);
+   create_script_url = 
+   (create_get_url :> string list -> (string -> xhscript elt) -> string -> [>xhscript] elt); *)
+   create_uri = 
+   (create_get_url :> string list -> (string -> uri) -> string -> uri);
+   get_conversion_function = (fun a http_params -> a);
+   post_conversion_function = (fun a http_params -> a)
+  }
 
-(** static pages (new 10/05) *)
+(** static pages (new 10/05) (removed 13/12/05) *)
+(*
 let register_new_static_directory_aux
     tables
-    ~(name : url_string)
+    ~(name : url_path)
     ~(location : string)
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'd internal_url) url =
   add_static_dir tables name location;
   let create_get_url = 
     (fun current_url f -> 			   
       let ss = 
-	(reconstruct_relative_url_string current_url name) in
+	(reconstruct_relative_url_path current_url name) in
       (fun suffix -> f (ss^"/"^suffix))
     )
   in
@@ -957,7 +994,7 @@ let register_new_static_directory_aux
   }
 
 let register_new_static_directory
-    ~(name : url_string)
+    ~(name : url_path)
     ~(location : string) :
     (xhformcontl, xhformcontl, 
      'ca,'cform,'curi(*'cimg,'clink,'cscript*),
@@ -966,21 +1003,21 @@ let register_new_static_directory
   register_new_static_directory_aux global_tables name location
 
 let register_new_session_static_directory
-    ~(name : url_string)
+    ~(name : url_path)
     ~(location : string) :
     (xhformcontl, xhformcontl, 
      'ca,'cform,'curi(*'cimg,'clink,'cscript*), 
      page, page, page, 
      public_url internal_url) url =
   register_new_static_directory_aux !session_tables name location
-
+*)
 
 (** Close a session *)
 let close_session () = session_tables := empty_tables ()
 
 let make_http_params 
     url fullurl url_suffix get_params post_params useragent ip = 
-  {url_suffix = (reconstruct_url_string_option url_suffix);
+  {url_suffix = (reconstruct_url_path url_suffix);
    full_url= fullurl;
    useragent=useragent;
    current_url=url;
@@ -1034,7 +1071,7 @@ let make_a ?(a=[]) l = XHTML.M.a ~a:a l
 
 
 (* à enlever !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   let create_url_string 
+   let create_url_path 
    current_url (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) =
    match url.url_state with
    None -> url.create_get_url current_url
@@ -1123,7 +1160,7 @@ let script ?(a=[]) (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscri
 (*
    let form_get (url : ('a,xhformcontl,'c,'d,'e,'f,'g) url) current_url (f : 'a) =
    let urlname = (match url.url with Url_Prefix s | Url s -> 
-   reconstruct_relative_url_string current_url s) in
+   reconstruct_relative_url_path current_url s) in
    let inside = url.create_get_form f in
    (match  url.url_state with
    None ->   << <form method="get" action=$urlname$>
@@ -1161,8 +1198,7 @@ let script ?(a=[]) (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscri
 
 let form_get ?(a=[])
     (url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url (f : 'a) =
-  let urlname = (match url.url with Url_Prefix s | Url s -> 
-    reconstruct_relative_url_string current_url s) in
+  let urlname = reconstruct_relative_url_path current_url url.url in
   let state_param =
     (match  url.url_state with
       None -> []
@@ -1299,7 +1335,7 @@ let submit_input ?(a=[]) s =
 let localhost = Unix.inet_addr_of_string "127.0.0.1"
 
 let execute find 
-    (url, fullurl, get_params, post_params, useragent)
+    (url, path, params, get_params, post_params, useragent)
     sockaddr cookie = 
   let ip = match sockaddr with
       Unix.ADDR_INET (ip,port) -> ip
@@ -1309,21 +1345,22 @@ let execute find
   let answer =
     let (tables, new_session) = 
       (match cookie with
-	   None -> (new_session_table (), true)
+	   None -> (new_session_tables (), true)
 	 | Some c -> try (Cookies.find cookie_table (ip,c), false)
-	   with Not_found -> (new_session_table (), true))
+	   with Not_found -> (new_session_tables (), true))
     in
       session_tables := tables;
       let ((action, working_dir), url_suffix) = find ()
       in 
+      let fullurl = path^params in
       let page = 
-	Messages.warning "Page found";
+	Messages.debug "Page found";
 	absolute_change_dir working_dir;
 	action 
 	  (make_http_params
 	     url fullurl url_suffix get_params post_params useragent ip) in
       let cookie2 = 
-	if is_empty_table !session_tables
+	if are_empty_tables !session_tables
 	then ((if not new_session 
 	       then match cookie with
 		   Some c -> Cookies.remove cookie_table (ip,c)
@@ -1333,17 +1370,17 @@ let execute find
 		(Cookies.add cookie_table (ip,c) !session_tables;
 		 Some c)
 	      else cookie)
-      in (cookie2, page, ("/"^(reconstruct_url_string working_dir)))
+      in (cookie2, page, ("/"^(reconstruct_url_path working_dir)))
   in current_dir := save_current_dir; 	
     answer
 
 
 let get_page 
-    (url, fullurl, internal_state, get_params, post_params, useragent)
+    (url, path, params, internal_state, get_params, post_params, useragent)
     sockaddr cookie = 
   let find () =
     try (* D'abord recherche dans la table de session *)
-      print_endline ("--- recherche "^(reconstruct_url_string url)^" dans la table de session :");
+      Messages.debug ("--- recherche "^(reconstruct_url_path url)^" dans la table de session :");
       (find_url 
 	 !session_tables
 	 url
@@ -1351,7 +1388,7 @@ let get_page
 	 post_params
 	 internal_state)
     with Not_found -> try (* ensuite dans la table globale *)
-      print_endline "--- recherche dans la table globale :";
+      Messages.debug "--- recherche dans la table globale :";
       (find_url 
 	 global_tables
 	 url
@@ -1362,7 +1399,7 @@ let get_page
       match internal_state with
 	  None -> raise Ocsigen_404
 	| _ -> try (* d'abord la table de session *)
-	    print_endline "--- recherche dans la table de session, sans état :";
+	    Messages.debug "--- recherche dans la table de session, sans état :";
 	    (find_url 
 	       !session_tables
 	       url
@@ -1371,7 +1408,7 @@ let get_page
 	       None)
 	  with Not_found -> (* ensuite dans la table globale *)
 	    try 
-	      print_endline "--- recherche dans la table globale, sans état :";
+	      Messages.debug "--- recherche dans la table globale, sans état :";
 	      (find_url 
 		 global_tables
 		 url
@@ -1382,7 +1419,7 @@ let get_page
   in try 
     execute 
       find 
-      (url, fullurl, get_params, post_params, useragent)
+      (url, path, params, get_params, post_params, useragent)
       sockaddr cookie
     with 
 	Ocsigen_Typing_Error n -> 
@@ -1391,16 +1428,16 @@ let get_page
 
 
 let make_action action_name action_params 
-    (url, fullurl, _, _, _, useragent) sockaddr cookie =
+    (url, path, params, _, _, _, useragent) sockaddr cookie =
   let find () =
     (try 
        find_action !session_tables action_name action_params
      with Not_found ->
-       (find_action global_tables action_name action_params)),None
+       (find_action global_tables action_name action_params)),[]
   in try 
       execute 
 	find
-	(url,fullurl,[],action_params,useragent)
+	(url,path,params,[],action_params,useragent)
 	sockaddr cookie
     with 
 	Ocsigen_Typing_Error _ -> (cookie, (),"/")

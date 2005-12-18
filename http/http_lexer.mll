@@ -28,9 +28,9 @@ let proto =['h' 'H'] ['t' 'T'] ['t' 'T'] ['p' 'P'] '/' integer '.' integer
 
 rule token =
   parse
-  |blank                {print_string " ";token lexbuf}
-  |"GET"                {print_string "GET";METHOD "GET"}
-  |"POST"               {print_string "POST";METHOD "POST"}
+  |blank                {Messages.debug_noel " ";token lexbuf}
+  |"GET"                {Messages.debug_noel "GET";METHOD "GET"}
+  |"POST"               {Messages.debug_noel "POST";METHOD "POST"}
   |"HEAD"               {METHOD "HEAD"}
   |"PUT"                {METHOD "PUT"}
   |"DELETE"             {METHOD "DELETE"}
@@ -40,14 +40,14 @@ rule token =
   |"LINK"               {METHOD "LINK"}
   |"UNLINK"             {METHOD "UNLINK"}
   |"PATCH"              {METHOD "PATCH"}
-  |"\r\n"               {print_endline "";EOL}
-  |":"                  {print_string ":";COLON}
-  |"\n"                 {print_endline "";EOL}
-  |integer              {print_string (Lexing.lexeme lexbuf);
+  |"\r\n"               {Messages.debug "";EOL}
+  |":"                  {Messages.debug_noel ":";COLON}
+  |"\n"                 {Messages.debug "";EOL}
+  |integer              {Messages.debug_noel (Lexing.lexeme lexbuf);
 			 CODE (int_of_string (Lexing.lexeme lexbuf))}
-  |proto                {print_string (Lexing.lexeme lexbuf);
+  |proto                {Messages.debug_noel (Lexing.lexeme lexbuf);
 			 PROTO (Lexing.lexeme lexbuf)}
-  |strin                {print_string (Lexing.lexeme lexbuf);
+  |strin                {Messages.debug_noel (Lexing.lexeme lexbuf);
 			 STRING (Lexing.lexeme lexbuf)}
   |eof                  {raise (Http_error.Http_exception (Some 400,["Unexpected end of
                                 file"]))}

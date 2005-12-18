@@ -445,7 +445,7 @@ module FHttp_sender =
     (*convert the frame into a string*)
     let str = PP.string_of_http_frame frame in
       (*debug*)
-      (*print_endline str;*)
+      (*Messages.debug str;*)
     really_write sender.fd str 0 (String.length str)
     
   end
