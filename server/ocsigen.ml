@@ -726,8 +726,8 @@ let new_external_url_aux
 
 let new_url
     ~(name : url_path)
-    ~prefix
-    ~params
+    ?(prefix=false)
+    ~params ()
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
   new_url_aux ~name ~prefix ~params
 
@@ -738,8 +738,8 @@ let new_state_url
 
 let new_external_url
     ~(name : url_path)
-    ~prefix
-    ~params
+    ?(prefix=false)
+    ~params ()
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, external_url) url =
   new_external_url_aux name prefix params
 
@@ -747,7 +747,7 @@ let register_url_aux
     tables
     state
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
-    ~page =
+    page =
 (* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
   add_url tables url.url
     ({get_names = url.get_param_names;
@@ -758,7 +758,7 @@ let register_url_aux
 
 let register_url 
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
-    ~page =
+    page =
   register_url_aux global_tables (url.url_state) url page
 
 (* WARNING: if we create a new URL without registering it,
@@ -769,22 +769,22 @@ let register_url
 
 let register_session_url
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
-    ~page =
+    page =
   register_url_aux !session_tables url.url_state url page
 
 let register_new_url 
     ~name
-    ~prefix
+    ?(prefix=false)
     ~params
-    ~page
+    page
     : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
-  let u = new_url ~prefix ~name ~params in
+  let u = new_url ~prefix ~name ~params () in
   register_url u page;
   u
 
 let register_new_session_url
    ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
-   ~page
+   page
    : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, state_url internal_url) url =
   let u = (new_state_url fallback) in
     register_session_url u page;
@@ -822,9 +822,9 @@ let new_post_url
 
 let new_external_post_url
     ~(name : url_path)
-    ~prefix
+    ?(prefix=false)
     ~params
-    ~post_params
+    ~post_params ()
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, external_url) url = 
   new_post_url_aux (new_url_aux name prefix params) post_params
 
@@ -843,7 +843,7 @@ let register_post_url_aux
     tables
     state
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
-    ~page =
+    page =
 (* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
   add_url tables url.url
     ({get_names = url.get_param_names;
@@ -859,18 +859,18 @@ let register_post_url_aux
 
 let register_post_url 
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
-    ~page =
+    page =
   register_post_url_aux global_tables (url.url_state) url page
 
 let register_post_session_url
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
-    ~page =
+    page =
   register_post_url_aux !session_tables url.url_state url page
 
 let register_new_post_url 
     ~fallback
     ~post_params
-    ~page
+    page
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url =
   let u = new_post_url ~fallback:fallback ~post_params:post_params in
   register_post_url u page;
@@ -879,7 +879,7 @@ let register_new_post_url
 let register_new_post_session_url
     ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
     ~post_params 
-    ~page
+    page
     : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, state_url internal_url) url =
   let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
   register_post_session_url u page;

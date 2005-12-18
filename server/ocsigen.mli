@@ -101,17 +101,19 @@ val ( ** ) :
  *)
 val new_url :
     name:url_path ->
-      prefix:bool ->
+      ?prefix:bool ->
 	params:('a, page, 'b -> xhformcontl, 
 	  'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
+	    unit ->
 	      ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
 	       page, page, public_url internal_url) url
 
 val new_external_url :
   name:url_path ->
-    prefix:bool ->
+    ?prefix:bool ->
       params:('a, page, 'b -> xhformcontl, 
 	'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
+	  unit -> 
 	    ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, external_url) url
 
 val new_state_url :
@@ -119,10 +121,10 @@ val new_state_url :
   -> ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, state_url internal_url) url
 
 val register_url :
-  url:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, 'f internal_url) url -> page:'c -> unit
+  url:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, 'f internal_url) url -> 'c -> unit
 
 val register_session_url :
-    url:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, 'f internal_url) url -> page:'c -> unit
+    url:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, 'f internal_url) url -> 'c -> unit
 
 (**  Create a new URL and register it in the server with the associated action.
    [register_new_url url t f] will associate the url [url] to the function [f].
@@ -133,15 +135,15 @@ val register_session_url :
 *)
 val register_new_url :
   name:url_path ->
-  prefix:bool -> 
+  ?prefix:bool -> 
   params:('a, page, 'b -> xhformcontl, 
     'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
-  page:'a -> ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
+  'a -> ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
 	      page, page, public_url internal_url) url
 
 val register_new_session_url :
     fallback:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, public_url internal_url) url ->
-    page:'c -> ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, state_url internal_url) url
+    'c -> ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, state_url internal_url) url
 
 val new_post_url :
   fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, public_url internal_url) url ->
@@ -150,11 +152,12 @@ val new_post_url :
 
 val new_external_post_url :
   name:url_path ->
-  prefix:bool -> 
+  ?prefix:bool -> 
   params:('a, page, 'b -> xhformcontl, 
     'ca, 'cform, 'curi (*'cimg, 'clink, 'cscript *)) parameters ->
   post_params:('h, 'i, 'j -> xhformcontl, 
     'ka, 'kform, 'kuri (* 'kimg, 'klink, 'kscript *)) parameters ->
+  unit -> 
   ('b, 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 'h, 'i, external_url) url
 
 val new_post_state_url :
@@ -164,22 +167,22 @@ val new_post_state_url :
   ('a, 'i, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'g, 'h, state_url internal_url) url
 
 val register_post_url :
-    url:('a, 'b -> 'c, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'e, 'f, 'e, 'g internal_url) url -> page:'f -> unit
+    url:('a, 'b -> 'c, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'e, 'f, 'e, 'g internal_url) url -> 'f -> unit
 
 val register_post_session_url :
-    url:('a, 'b -> 'c, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'e, 'f, 'e, 'g internal_url) url -> page:'f -> unit
+    url:('a, 'b -> 'c, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'e, 'f, 'e, 'g internal_url) url -> 'f -> unit
 
 val register_new_post_url :
     fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, public_url internal_url) url ->
     post_params:('h, 'd, ('i -> 'j) -> xhformcontl, 
       'ka, 'kform, 'kuri (* 'kimg, 'klink, 'kscript *)) parameters ->
-    page:'h -> ('a, 'i -> 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'h, 'd, public_url internal_url) url
+    'h -> ('a, 'i -> 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'h, 'd, public_url internal_url) url
 
 val register_new_post_session_url :
     fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, public_url internal_url) url ->
     post_params:('g, 'd, ('h -> 'i) -> xhformcontl, 
       'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
-    page:'g -> ('a, 'h -> 'i, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'g, 'd, state_url internal_url) url
+    'g -> ('a, 'h -> 'i, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'g, 'd, state_url internal_url) url
 
 
 (* actions (new 10/05) *)

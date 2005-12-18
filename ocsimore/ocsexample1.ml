@@ -13,9 +13,9 @@ open Ocsexample_util
 (*****************************************************************************)
 (* All the urls: *)
 
-let main_page = new_url ~name:[""] ~prefix:false ~params:(_http_params _noparam)
+let main_page = new_url ~name:[""] ~params:(_http_params _noparam) ()
 
-let news_page = new_url ["msg"] false (_http_params (StringMessage._index "num"))
+let news_page = new_url ["msg"] (_http_params (StringMessage._index "num")) ()
 
 
 (*****************************************************************************)
@@ -39,11 +39,11 @@ let print_news_page h i =
 
 let _ = register_url
   ~url:main_page
-  ~page:accueil
+  accueil
 
 let _ = register_url
   ~url:news_page
-  ~page:print_news_page
+  print_news_page
 
 
 

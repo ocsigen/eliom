@@ -26,9 +26,8 @@ let launchtime = Unix.time ()
 let _ = 
   register_new_url 
     ~name:[]
-    ~prefix:false
     ~params:_unit
-    ~page: fun () ->
+    (fun () ->
       let n = string_of_int (number_of_sessions ()) in
       let tm = Unix.gmtime ((Unix.time ()) -. launchtime) in
       let year = if tm.tm_year>0 then (string_of_int (tm.tm_year - 70))^" years, "
@@ -64,5 +63,5 @@ let _ =
        </ul>
    </body>
  </html>
->>
+>>)
 

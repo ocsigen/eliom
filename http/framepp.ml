@@ -84,14 +84,13 @@ module Fframepp =
 
       module Http = FHttp_frame(C)
       
-      let string_of_http_frame http_frame =
+      let string_of_http_frame http_frame content =
 	let h = string_of_header (http_frame.Http.header) in
+	Messages.debug h;
         let body =
-          match http_frame.Http.content with
+          match content with
           |None -> ""
-          |Some c -> C.string_of_content c
-	in (* debug *)
-	   Messages.debug h;
-	h^body 
+          |Some c -> c
+	in h^body 
         
     end

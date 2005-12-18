@@ -155,6 +155,8 @@ let find_static_page path =
   let rec aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) = function
       [] -> dir
     | ""::l -> aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) l
+    | ".."::l -> aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) l
+	  (* For security reasons, .. is not allowed in paths *)
     | a::l -> try 
 	let e = (List.assoc a subdir_list) in
 	aux (dir^"/"^a) e l
@@ -201,12 +203,14 @@ let service http_frame in_ch sockaddr
 		page xhtml_sender
 	    with Ocsigen_404 ->
 	      if params = "" then
-		let filename = find_static_page path in
-		Messages.debug ("--- Is it a static file? ("^filename^")");
-		send_file 
-		  ~keep_alive:keep_alive
-		  ~last_modified:((Unix.stat filename).Unix.st_mtime)
-		  ~code:200 filename file_sender
+		try
+		  let filename = find_static_page path in
+		  Messages.debug ("--- Is it a static file? ("^filename^")");
+		  send_file 
+		    ~keep_alive:keep_alive
+		    ~last_modified:((Unix.stat filename).Unix.st_mtime)
+		    ~code:200 filename file_sender
+		with _ -> raise Ocsigen_404
 	      else raise Ocsigen_404
 	    | Ocsigen.Ocsigen_Is_a_directory -> 
 		send_empty

@@ -422,7 +422,7 @@ module FHttp_sender =
     let str_content = 
       match content with 
       | None -> None 
-      | Some c ->  Some (C.string_of_content c)
+      | Some c -> Some (C.string_of_content c)
     in
     let content_length = 
       match str_content with
@@ -443,7 +443,7 @@ module FHttp_sender =
       }in
     let frame = {Http.header = hd;Http.content=content} in
     (*convert the frame into a string*)
-    let str = PP.string_of_http_frame frame in
+    let str = PP.string_of_http_frame frame str_content in
       (*debug*)
       (*Messages.debug str;*)
     really_write sender.fd str 0 (String.length str)
