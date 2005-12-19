@@ -13,8 +13,10 @@ SRCLIBREP = ../lib
 
 OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
 
-all: ohl-xhtml $(OBJS) essai
-	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlparser.cmi xhtmlparser.cmo xhtmlsyntax.cmo $(SRCLIBREP)
+CMA = xhtmlsyntax.cma
+
+all: ohl-xhtml $(CMA) $(OBJS) essai
+	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlsyntax.cma $(SRCLIBREP)
 
 
 .PHONY: depend
@@ -26,6 +28,9 @@ ohl-xhtml:
 
 essai: $(OBJS)
 	make -C exemple
+
+$(CMA): xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
+	$(CAMLC) -a -o $(CMA) xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
 
 xmllexer.cmo: xmllexer.ml
 	$(CAMLC) $(PPLEXER) -c $<

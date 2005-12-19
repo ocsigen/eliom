@@ -156,7 +156,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       (* '$' | *) 
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
       '?' | ':' | '|' | '[' | ']' | '{' | '}' | '.' | ';' | ',' | '\\' | '(' |
-      ')' | '#' | '>'
+      ')' | '#' | '>' | '`'
 	as c); s :] ep -> 
 	  (("DATA", get_buff (data bp (store 0 c) s)),mkloc (bp,ep))
     | [: `'$'; s :] ep -> (* for caml varnames *) camlexpr bp s
@@ -347,7 +347,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       (* '$' | *)
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
       '?' | ':' | '|' | '[' | ']' | '{' | '}' | '.' | ';' | ',' | '\\' | '(' |
-      ')' | '#' | '>'
+      ')' | '#' | '>' | '`'
 	as c) ; s :] -> data bp (store len c) s
     | [: s :] -> len ]
 (*  and spaces_in_data bp len spaces =
@@ -360,7 +360,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       (* '$' | *) 
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
       '?' | ':' | '|' | '[' | ']' | '{' | '}' | '.' | ';' | ',' | '\\' | '(' |
-      ')' | '#'
+      ')' | '#' | '`'
 	as c) ; s :] ->
        	  data bp (store (mstore len spaces) c) s
     | [: s :] -> len ] *)

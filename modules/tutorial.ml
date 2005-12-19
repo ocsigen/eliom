@@ -7,7 +7,7 @@ open Ocsigen
 (* To create a web page without parameter: *)
 let plop1 = 
   register_new_url 
-    ~name:["plop1"]
+    ~path:["plop1"]
     ~params:_noparam 
     << <html>
          <head><title></title></head>
@@ -16,7 +16,7 @@ let plop1 =
 
 let plop = 
   register_new_url 
-    ~name:["plop"]
+    ~path:["plop"]
     ~params:_noparam 
     (html
        (head (title (pcdata "")) [])
@@ -29,68 +29,70 @@ let compt =
       (fun () -> c := !c + 1; !c)
   in
   register_new_url 
-    ~name:["compt"]
+    ~path:["compt"]
     ~params:_unit
     (fun () -> 
-      let str = string_of_int (next ()) in 
-      << <html><body><p>$str:str$</p></body></html> >>)
+      (html
+       (head (title (pcdata "counter")) [])
+       (body [p [pcdata (string_of_int (next ()))]])))
 
 (* As usual in OCaml, you can forget labels when the application is total: *)
 let plip = 
   register_new_url 
     ["dir";"plip"]  (* the url dir/plip *)
     _noparam
-    << <html> <body> <h1>plip</h1> </body> </html> >>
+    << <html> 
+         <head><title>plip</title></head>
+         <body><h1>plip</h1></body>
+       </html> >>
 
 let oups = 
   register_new_url 
     ["rep"]
     _noparam 
-    << <html><body><h1>La première</h1></body></html> >>
+    (html
+       (head (title (pcdata "")) [])
+       (body [h1 [pcdata "The first one."]]))
 
 let rep2 = 
   register_new_url 
     ["rep";"toto"] 
     _noparam 
-    << <html><body><p>
-      Here there was a page rep but it has been erased by the directory rep/.
-       </p></body>
-       </html> >>
+    (html
+       (head (title (pcdata "")) [])
+       (body [h1 [pcdata "Here there was a page rep 
+		    but it has been erased by the directory rep/."]]))
 (* rep2 will erase oups in the table (with a warning) *)
 
-(* the url plop/ is not equivalent to plop *)
-let default = register_new_url ["rep";""] (_current_url _noparam)
-  (fun current_url ->
-     (<< <html>
-             <body>
-               <p> 
-                 default page. rep is redirected to rep/.
-               </p>
-             </body>
-           </html> >>))
+(* the url rep/ is not equivalent to rep *)
+let default = register_new_url ["rep";""] _noparam
+  << <html>
+       <head><title></title></head>
+       <body>
+         <p>default page. rep is redirected to rep/</p>
+       </body>
+     </html> >>
 
 
 (* ------------------------------------------------------------------ *)
-let repeteparams entier chaine chaine2 = 
-  let i = string_of_int entier in
-<<
-  <html>
+let writeparams entier chaine chaine2 = 
+<< <html>
+    <head><title></title></head>
     <body>
     <p>
-    Vous m'avez envoyé : 
-    <strong>$str:i$</strong> et 
-    <strong>$str:chaine$</strong> et 
-    <strong>$str:chaine2$</strong>
+      You sent to me: 
+      <strong>$str:string_of_int entier$</strong> et 
+      <strong>$str:chaine$</strong> et 
+      <strong>$str:chaine2$</strong>
     </p>
     </body>
-  </html>
->>
+  </html> >>
 
 (* you can register twice the same url, with different parameters names *)
 let plop_params = register_new_url 
-  ["plop"]
-  ((_int "entier") ** (_string "chaine") ** (_string "chaine2"))
-  repeteparams
+  ~path:["plop"]
+  ~params:((_int "entier") ** (_string "chaine") ** (_string "chaine2"))
+  writeparams
 (* If you register twice exactly the same URL, the first one will 
    disappear! *)
 
@@ -101,34 +103,35 @@ let plop_params = register_new_url
 *)
 let uaprefix = 
   register_new_url 
-    ~name:["uaprefix"]
+    ~path:["uaprefix"]
     ~params:(_useragent (_ip (_url_suffix (_string "s"))))
     ~prefix:true
     (fun ua ip suff s -> 
-	 <<
-	   <html>
+       << <html>
+            <head><title></title></head>
             <body>
-             <p>
-	     The suffix of the url is <strong>$str:suff$</strong>
-             and your user-agent is <strong>$str:ua$</strong>
-             and your IP is <strong>$str:ip$</strong>
-             and s is <strong>$str:s$</strong>
-             </p>
+              <p>
+	      The suffix of the url is <strong>$str:suff$</strong>
+              and your user-agent is <strong>$str:ua$</strong>
+              and your IP is <strong>$str:ip$</strong>
+              and s is <strong>$str:s$</strong>
+              </p>
             </body>
-           </html>
-         >>)
+          </html> >>)
 
 let iprefix = 
-  register_new_url ~name:["iprefix"] ~prefix:true ~params:(_url_suffix (_int "i"))
+  register_new_url 
+    ~path:["iprefix"] 
+    ~prefix:true 
+    ~params:(_url_suffix (_int "i"))
     (fun suff i -> 
-<<
-  <html>
-    <body>
-    <p>
-  The suffix of the url is <strong>$str:suff$</strong> and i is <strong>$str:string_of_int i$</strong>
-    </p></body>
-  </html>
->>)
+<< <html>
+     <head><title></title></head>
+     <body><p>
+       The suffix of the url is <strong>$str:suff$</strong> 
+       and i is <strong>$str:string_of_int i$</strong>
+     </p></body>
+   </html> >>)
 
 
 (* ------------------------------------------------------------------ *)
@@ -146,46 +149,40 @@ let mytype = register_new_url
   ["mytype"]
   (_user_type mysum_of_string string_of_mysum "valeur")
   (fun x -> let v = string_of_mysum x in
-<<
-  <html>
-    <body>
-    <p>
-  $str:v$
-    </p></body>
-  </html>
->>)
+    (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata v]])))
 
 
 
 (* ------------------------------------------------------------------ *)
 (* To create a link to a registered url, use the a function: *)
 
-open Xhtmlpp
-
 let links = register_new_url ["rep";"links"] (_current_url _noparam)
-  (fun current_url ->
-     (<< <html>
-             <body>
-               <p> 
-                 $a plop current_url <:xmllist< plop >>$ <br/> 
-                 $a plip current_url <:xmllist< plip >>$ <br/> 
-                 $a default current_url <:xmllist< default page of the directory >>$ <br/> 
-                 $a uaprefix current_url <:xmllist< uaprefix >> "suf" "toto"$ <br/>
-                 $a plop_params current_url <:xmllist< plop_params >> 45 "hello" "plpl"$ <br/> 
-                 $a
-	            (new_external_url
-		       ["http://fr.wikipedia.org";"wiki"]
-		       (_url_suffix _noparam) ()) 
-                    current_url
-	            <:xmllist< wikipedia >> 
-                    "Ocaml"$
-               </p>
-             </body>
-           </html> >>))
+    (fun current_url ->
+      (html
+	 (head (title (pcdata "")) [])
+	 (body 
+	    [p
+	       [a plop current_url [pcdata "plop"]; br ();
+		a plip current_url [pcdata "plip"]; br ();
+		a default current_url 
+		  [pcdata "default page of the directory"]; br ();
+                a uaprefix current_url 
+		  [pcdata "uaprefix"] "suf" "toto"; br ();
+                a plop_params current_url 
+		  [pcdata "plop_params"] 45 "hello" "plpl"; br ();
+                a
+	          (new_external_url
+		     ~path:["http://fr.wikipedia.org";"wiki"]
+		     ~prefix:true
+		     ~params:(_url_suffix _noparam) ()) 
+                  current_url
+	          [pcdata "ocaml on wikipedia"]
+                  "Ocaml"]])))
+    
 (* Note that to create a link we need to know the current url, because:
-   - the link from toto/titi to toto/tata is "tata" and not "toto/tata"
-   - "toto/titi/" is equivalent to "toto/titi", but the link for the
-   first one is "../tata" and the second "tata".
+   the link from toto/titi to toto/tata is "tata" and not "toto/tata"
 *)
 
 
@@ -199,11 +196,11 @@ let links = register_new_url ["rep";"links"] (_current_url _noparam)
 let linkrec = new_url ["linkrec"] (_current_url _noparam) ()
 
 let _ = register_url linkrec 
-  (fun url -> 
-       << <html><body>
-            <p> $a linkrec url <:xmllist< cliquez >>$ 
-            </p>
-          </body></html> >>)
+    (fun url -> 
+      << <html>
+          <head><title></title></head>
+          <body><p>$a linkrec url <:xmllist< cli >>$</p></body>
+         </html> >>)
 
 
 
@@ -215,17 +212,20 @@ let _ = register_url linkrec
    build the formular
 *)
 let create_form = 
-     (fun entier chaine chaine2 ->
-	  <:xmllist< <p>Write an int: $int_input entier$ <br/>
-                     Write a string: $string_input chaine$ <br/>
-                     Write a string: $string_input chaine2$ <br/>
-	             $input ~a:[(a_input_type `Submit);(a_name "Cliquez")] ()$</p>
-	  >>)
+  (fun entier chaine chaine2 ->
+    <:xmllist< <p>Write an int: $int_input entier$ <br/>
+    Write a string: $string_input chaine$ <br/>
+    Write a string: $string_input chaine2$ <br/>
+    $input ~a:[(a_input_type `Submit);(a_value "Click")] ()$</p>
+    >>)
 
 let form = register_new_url ["form"] (_current_url _noparam)
   (fun current_url -> 
      let f = form_get plop_params current_url create_form in
-     << <html><body> $f$ </body></html> >>)
+     << <html>
+          <head><title></title></head>
+          <body> $f$ </body>
+        </html> >>)
 
 
 
@@ -243,7 +243,7 @@ let form = register_new_url ["form"] (_current_url _noparam)
  *)
 let no_post_param_url = 
   register_new_url 
-    ~name:["post"]
+    ~path:["post"]
     ~params:_noparam 
     << <html><body><p>Version of the page without POST parameters</p></body></html> >>
     
@@ -256,7 +256,7 @@ let my_url_with_post_params = register_new_post_url
 (* You can mix get and post parameters *)
 let get_no_post_param_url = 
   register_new_url 
-    ~name:["post2"]
+    ~path:["post2"]
     ~params:(_int "i")
     (fun i -> 
 	       << <html><body><p>No POST parameter, i: <strong>$str:string_of_int i$</strong></p></body></html> >>)
@@ -298,7 +298,7 @@ let form4 = register_new_url ["form4"] (_current_url _noparam)
      let f  = 
        (form_post
 	  (new_external_post_url 
-	     ~name:["http://www.petitspois.com";"form"]
+	     ~path:["http://www.petitspois.com";"form"]
 	     ~params:(_int "i")
 	     ~post_params:(_string "chaine") ()) current_url
 	  (fun chaine -> 
@@ -376,7 +376,7 @@ let _ =
 *)
 let public_session_without_post_params = 
   new_url 
-    ~name:["session"]
+    ~path:["session"]
     ~params:(_current_url _noparam)
     ()
 
@@ -440,7 +440,7 @@ let _ =
 *)
 let shop_without_post_params =
   new_url
-    ~name:["shop"]
+    ~path:["shop"]
     ~params:(_current_url _noparam)
     ()
 
@@ -507,7 +507,7 @@ let _ = register_post_url
 
 let queinnec = 
   new_url
-    ~name:["queinnec"]
+    ~path:["queinnec"]
     ~params:(_current_url _noparam)
     ()
 
@@ -571,7 +571,7 @@ let _ =
    or action link to prevent reloading the page.
 *)
 let action_session = 
-  new_url ~name:["action"] ~params:(_http_params _noparam) ()
+  new_url ~path:["action"] ~params:(_http_params _noparam) ()
 
 let connect_action = new_actionurl ~params:(_string "login")
 
@@ -681,7 +681,7 @@ let _ = register_url main
    the following page will stop the server 5 seconds!!!
 let _ = 
   register_new_url 
-    ~name:["loooooooooong"]
+    ~path:["loooooooooong"]
     ~params:_unit
     (fun () -> 
                Unix.sleep 5;

@@ -8,7 +8,7 @@ CAMLDEP  = ocamlfind ocamldep
 NAME 	 =  test_pp
 LIBDIR 	= ../lib
 LIB= -package netstring -I $(LIBDIR) -I +camlp4
-PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xhtmlparser.cmo ../lib/xhtmlsyntax.cmo" 
+PP = -pp "camlp4o ../lib/xhtmlsyntax.cma" 
 ALL_CMO  = ocsiconfig.cmo messages.cmo http_frame.cmo http_parser.cmo http_lexer.cmo framepp.cmo http_com.cmo sender_helpers.cmo #test_pp.cmo
 
 all: byte

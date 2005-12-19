@@ -10,7 +10,7 @@ CAMLOPT = ocamlfind ocamlopt $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
 CAMLDEP = ocamlfind ocamldep
 LIB = -package netstring,dbi.postgresql -I ../lib -I +camlp4
-PP = -pp "camlp4o ../lib/xmllexer.cmo ../lib/xhtmlparser.cmo ../lib/xhtmlsyntax.cmo"
+PP = -pp "camlp4o ../lib/xhtmlsyntax.cma"
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        gramlib.cma xmllexer.cmo simplexmlparser.cmo\

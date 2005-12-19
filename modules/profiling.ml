@@ -25,7 +25,7 @@ let launchtime = Unix.time ()
 
 let _ = 
   register_new_url 
-    ~name:[]
+    ~path:[]
     ~params:_unit
     (fun () ->
       let n = string_of_int (number_of_sessions ()) in

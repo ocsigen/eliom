@@ -393,7 +393,7 @@ let reconstruct_relative_url_path current_url u =
     | [] -> ""
 (*    | [a] -> "" *)
     | _::l -> "../"^(makedotdot l)
-  in let aremonter, aaller = drop current_url (""::(!current_dir)@u)
+  in let aremonter, aaller = drop current_url (""::u)
   in let s = (makedotdot aremonter)^(reconstruct_url_path aaller) in
   if s = "" then defaultpagename else s
 
@@ -511,7 +511,7 @@ module Directorytree : DIRECTORYTREE = struct
       else raise Not_found
 
   let add_url (dircontentref,_) url_act (page_table_key, action) =
-    let aux search a l =
+    let aux search dircontentref a l =
       try 
 	let direltref = find_dircontent !dircontentref a in
 	match !direltref with
@@ -549,21 +549,21 @@ module Directorytree : DIRECTORYTREE = struct
 		  add_dircontent !dircontentref (a,ref (File newpagetableref));
 		 newpagetableref))
 	| ""::l -> search_page_table_ref dircontentref l
-	| a::l -> aux search_page_table_ref a l
-    and search_dircontentref dircontentref = function
+	| a::l -> aux search_page_table_ref dircontentref a l
+    (* and search_dircontentref dircontentref = function
           [] -> dircontentref
 	| ""::l -> search_dircontentref dircontentref l
-	| a::l -> aux search_dircontentref a l
+	| a::l -> aux search_dircontentref a l *)
     in
     let content = ({get_names = List.sort compare page_table_key.get_names;
 		    post_names = List.sort compare page_table_key.post_names;
 		    prefix = page_table_key.prefix;
 		    state = page_table_key.state},
 		   (action, !current_dir)) in
-    let current_dircontentref = 
-      search_dircontentref dircontentref !current_dir in
+    (* let current_dircontentref = 
+      search_dircontentref dircontentref !current_dir in *)
     let page_table_ref = 
-      search_page_table_ref current_dircontentref url_act in
+      search_page_table_ref (*current_*)dircontentref url_act in
     page_table_ref := add_page_table !page_table_ref content
 
 	 
@@ -670,30 +670,29 @@ type ('a,'b,'ca,'cform,'curi(*,'cimg,'clink,'cscript*),'d,'e,'f,'g) url =
 
 (** Create an url *)
 let new_url_aux_aux
-    ~(name : url_path)
+    ~(path : url_path)
     ~prefix
     ~params
     reconstruct_url_function
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo) url =
 (* ici faire une vérification "duplicate parameter" ? SÉCURITÉ !! *) 
-  let name = change_empty_list name in
   let create_get_url write_param = 
     (if prefix then
       (fun current_url f -> 			   
 	let ss = 
-	  (reconstruct_url_function current_url name) in
+	  (reconstruct_url_function current_url path) in
 	write_param
 	  (function Some v -> f (ss^v)
 	    | None -> f ss))
     else
       (fun current_url f -> 
 	let ss = 
-	  (reconstruct_url_function current_url name) in
+	  (reconstruct_url_function current_url path) in
 	write_param
 	  (function Some v -> f (ss^"?"^v)
 	    | None -> f ss)))
   in
-  {url = name;
+  {url = path;
    url_prefix = prefix;
    url_state = None;
    get_param_names = params.param_names;
@@ -711,25 +710,28 @@ let new_url_aux_aux
   }
 
 let new_url_aux
-    ~(name : url_path)
+    ~(path : url_path)
     ~prefix
     ~params
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo internal_url) url =
-  new_url_aux_aux ~name ~prefix ~params reconstruct_relative_url_path
+  new_url_aux_aux
+    ~path:(!current_dir@(change_empty_list path))
+    ~prefix
+    ~params reconstruct_relative_url_path
 
 let new_external_url_aux
-    ~(name : url_path)
+    ~(path : url_path)
     ~prefix
     ~params
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, external_url) url =
-  new_url_aux_aux ~name ~prefix ~params reconstruct_absolute_url_path
+  new_url_aux_aux ~path ~prefix ~params reconstruct_absolute_url_path
 
 let new_url
-    ~(name : url_path)
+    ~(path : url_path)
     ?(prefix=false)
     ~params ()
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
-  new_url_aux ~name ~prefix ~params
+  new_url_aux ~path ~prefix ~params
 
 let new_state_url
    ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
@@ -737,11 +739,11 @@ let new_state_url
   {fallback with url_state = new_state ()}
 
 let new_external_url
-    ~(name : url_path)
+    ~(path : url_path)
     ?(prefix=false)
     ~params ()
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, external_url) url =
-  new_external_url_aux name prefix params
+  new_external_url_aux ~path ~prefix ~params
 
 let register_url_aux
     tables
@@ -773,12 +775,12 @@ let register_session_url
   register_url_aux !session_tables url.url_state url page
 
 let register_new_url 
-    ~name
+    ~path
     ?(prefix=false)
     ~params
     page
     : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
-  let u = new_url ~prefix ~name ~params () in
+  let u = new_url ~prefix ~path ~params () in
   register_url u page;
   u
 
@@ -821,12 +823,12 @@ let new_post_url
   new_post_url_aux fallback post_params
 
 let new_external_post_url
-    ~(name : url_path)
+    ~(path : url_path)
     ?(prefix=false)
     ~params
     ~post_params ()
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, external_url) url = 
-  new_post_url_aux (new_url_aux name prefix params) post_params
+  new_post_url_aux (new_url_aux path prefix params) post_params
 
 let new_post_state_url
     ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
@@ -960,18 +962,18 @@ let static_dir =
 (*
 let register_new_static_directory_aux
     tables
-    ~(name : url_path)
+    ~(path : url_path)
     ~(location : string)
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'd internal_url) url =
-  add_static_dir tables name location;
+  add_static_dir tables path location;
   let create_get_url = 
     (fun current_url f -> 			   
       let ss = 
-	(reconstruct_relative_url_path current_url name) in
+	(reconstruct_relative_url_path current_url path) in
       (fun suffix -> f (ss^"/"^suffix))
     )
   in
-  {url = Url_Prefix name;
+  {url = Url_Prefix path;
    url_state = None;
    get_param_names = [];
    post_param_names = [];
@@ -994,22 +996,22 @@ let register_new_static_directory_aux
   }
 
 let register_new_static_directory
-    ~(name : url_path)
+    ~(path : url_path)
     ~(location : string) :
     (xhformcontl, xhformcontl, 
      'ca,'cform,'curi(*'cimg,'clink,'cscript*),
      page, page, page, 
      public_url internal_url) url =
-  register_new_static_directory_aux global_tables name location
+  register_new_static_directory_aux global_tables path location
 
 let register_new_session_static_directory
-    ~(name : url_path)
+    ~(path : url_path)
     ~(location : string) :
     (xhformcontl, xhformcontl, 
      'ca,'cform,'curi(*'cimg,'clink,'cscript*), 
      page, page, page, 
      public_url internal_url) url =
-  register_new_static_directory_aux !session_tables name location
+  register_new_static_directory_aux !session_tables path location
 *)
 
 (** Close a session *)

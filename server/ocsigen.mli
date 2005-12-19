@@ -100,7 +100,7 @@ val ( ** ) :
    to page. t can be written using _unit _int (++) etc.
  *)
 val new_url :
-    name:url_path ->
+    path:url_path ->
       ?prefix:bool ->
 	params:('a, page, 'b -> xhformcontl, 
 	  'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
@@ -109,7 +109,7 @@ val new_url :
 	       page, page, public_url internal_url) url
 
 val new_external_url :
-  name:url_path ->
+  path:url_path ->
     ?prefix:bool ->
       params:('a, page, 'b -> xhformcontl, 
 	'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
@@ -134,7 +134,7 @@ val register_session_url :
    to page. [t] can be written using [_unit _int (++)] etc.
 *)
 val register_new_url :
-  name:url_path ->
+  path:url_path ->
   ?prefix:bool -> 
   params:('a, page, 'b -> xhformcontl, 
     'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
@@ -151,7 +151,7 @@ val new_post_url :
   ('a, 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'h, 'd, public_url internal_url) url
 
 val new_external_post_url :
-  name:url_path ->
+  path:url_path ->
   ?prefix:bool -> 
   params:('a, page, 'b -> xhformcontl, 
     'ca, 'cform, 'curi (*'cimg, 'clink, 'cscript *)) parameters ->
@@ -213,7 +213,7 @@ val register_new_session_actionurl :
 (*
 (** static pages (new 10/05) *)
 val register_new_static_directory :
-    name:url_path ->
+    path:url_path ->
     location:string -> 
   (xhformcontl, xhformcontl, 
    string -> [>xha] elt, string -> [>xhform] elt, string -> uri (*, string -> [>xhimg] elt, string -> [>xhlink] elt, string -> [>xhscript] elt*), 
@@ -221,7 +221,7 @@ val register_new_static_directory :
    public_url internal_url) url
 
 val register_new_session_static_directory :
-    name:url_path ->
+    path:url_path ->
     location:string -> 
   (xhformcontl, xhformcontl, 
    string -> [>xha] elt, string -> [>xhform] elt, string -> uri (*, string -> [>xhimg] elt, string -> [>xhlink] elt, string -> [>xhscript] elt*), 
