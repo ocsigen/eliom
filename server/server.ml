@@ -23,6 +23,112 @@ open Http_frame
 open Http_com
 open Sender_helpers
 
+(******************************************************************)
+(* Config file parsing *)
+
+open Simplexmlparser
+open ExpoOrPatt
+open Ocsiconfig
+
+(* I put the parser here and not in config.ml because of cyclic dependancies *)
+
+(* My xml parser is not really adapted to this.
+   It is the parser for the syntax extension.
+   But it works.
+ *)
+
+type modules = Cmo of string | Mod of string list * string
+
+let rec parser_config = 
+  let rec verify_empty = function
+      PLEmpty -> ()
+    | PLCons ((EPcomment _), l) -> verify_empty l
+    | PLCons ((EPwhitespace _), l) -> verify_empty l
+    | _ -> raise (Config_file_error "Don't know what to do with tailing data")
+  in
+  let rec parse_string = function
+      PLEmpty -> ""
+    | PLCons ((EPpcdata s), l) -> s^(parse_string l)
+    | PLCons ((EPwhitespace s), l) -> s^(parse_string l)
+    | PLCons ((EPcomment _), l) -> parse_string l
+    | _ -> raise (Config_file_error "string expected")
+  in let rec parse_site2 (cmo,stat) = function
+      PLCons ((EPanytag ("module", PLEmpty, s)), l) -> 
+	(match cmo with
+	  None -> parse_site2 (Some (parse_string s),stat) l
+	| _ -> raise 
+	      (Config_file_error "Only one <module> tag allowed inside <url>"))
+    | PLCons ((EPanytag ("staticdir", PLEmpty, s)), l) -> 
+	(match stat with
+	  None -> parse_site2 (cmo, Some (parse_string s)) l
+	| _ -> raise 
+	      (Config_file_error 
+		 "Only one <staticdir> tag allowed inside <url>"))
+    | PLCons ((EPcomment _), l) -> parse_site2 (cmo,stat) l
+    | PLCons ((EPwhitespace _), l) -> parse_site2 (cmo,stat) l
+    | PLEmpty -> 
+	(match (cmo,stat) with
+	  None, None -> raise (Config_file_error "<module> or <staticdir> tag expected inside <site>")
+	| _ -> (cmo,stat))
+    | _ -> raise 
+	  (Config_file_error "Only <module> or <staticdir> tag expected inside <site>")
+  in
+  let rec parse_site = function
+      PLCons ((EPanytag ("url", PLEmpty, s)), l) -> 
+	let path = Neturl.split_path (parse_string s) in
+	let cmo,static = parse_site2 (None,None) l in
+	(match static with
+	  None -> ()
+	| Some s -> Ocsiconfig.set_static_dir s path);
+	(match cmo with
+	  None -> []
+	| Some cmo -> [Mod (path,cmo)])
+    | PLCons ((EPcomment _), l) -> parse_site l
+    | PLCons ((EPwhitespace _), l) -> parse_site l
+    | _ -> raise (Config_file_error "<url> tag expected inside <site>")
+  in
+  let rec parse_ocsigen = function
+      PLEmpty -> []
+    | PLCons ((EPanytag ("port", PLEmpty, p)), ll) -> 
+	set_port (int_of_string (parse_string p));
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
+	set_logdir (parse_string p);
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("staticdir", PLEmpty, p)), ll) -> 
+	set_staticpages (parse_string p);
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("user", PLEmpty, p)), ll) -> 
+	set_user (parse_string p);
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("group", PLEmpty, p)), ll) -> 
+	set_group (parse_string p);
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
+	(Cmo (parse_string l))::parse_ocsigen ll
+    | PLCons ((EPanytag ("site", PLEmpty, l)), ll) -> 
+	(parse_site l)@(parse_ocsigen ll)
+    | PLCons ((EPcomment _), ll) -> parse_ocsigen ll
+    | PLCons ((EPwhitespace _), ll) -> parse_ocsigen ll
+    | PLCons ((EPanytag (tag, PLEmpty, l)), ll) -> 
+	raise (Config_file_error ("tag "^tag^" unexpected inside <ocsigen>"))
+    | _ ->
+	raise (Config_file_error "Syntax error")
+  in function 
+      PLCons ((EPanytag ("ocsigen", PLEmpty, l)), ll) -> 
+	verify_empty ll; 
+	parse_ocsigen l
+    | PLCons ((EPcomment _), ll) -> parser_config ll
+    | PLCons ((EPwhitespace _), ll) -> parser_config ll
+    | _ -> raise (Config_file_error "<ocsigen> tag expected")
+
+
+
+let parse_config () = parser_config Ocsiconfig.config
+
+(******************************************************************)
+
+
 module Content = 
   struct
     type t = string
@@ -266,10 +372,22 @@ let service http_frame in_ch sockaddr
 	       return true (* idem *))
                                               
 
+let load_modules modules_list =
+  let rec aux = function
+      [] -> ()
+    | (Cmo s)::l -> Dynlink.loadfile s; aux l
+    | (Mod (path,cmo))::l -> 
+	Ocsigen.load_ocsigen_module ~dir:path ~cmo:cmo; 
+	aux l
+  in
+  Dynlink.init ();
+  aux modules_list
+
+
 
 
 (** Thread waiting for events on a the listening port *)
-let listen () =
+let listen modules_list =
 
   let listen_connexion receiver in_ch sockaddr 
       xhtml_sender file_sender empty_sender =
@@ -337,10 +455,11 @@ let listen () =
       Unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
       Unix.bind listening_socket (local_addr (Ocsiconfig.get_port ()));
       Unix.listen listening_socket 1;
-      (* Now I change the user for the process *)
+      (* I change the user for the process *)
       Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
       Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
-      (* *)
+      (* Now I can load the modules *)
+      load_modules modules_list;
       let rec run () =
 	try 
 	  wait_connexion listening_socket
@@ -355,114 +474,12 @@ let listen () =
       run ()
     ))
 
-
-open Simplexmlparser
-open ExpoOrPatt
-open Ocsiconfig
-
-(* I put the parser here and not in config.ml because of cyclic dependancies *)
-
-(* My xml parser is not really adapted to this.
-   It is the parser for the syntax extension.
-   But it works.
- *)
-
-let _ = Dynlink.init ()
-
-let rec parser_config = 
-  let rec verify_empty = function
-      PLEmpty -> ()
-    | PLCons ((EPcomment _), l) -> verify_empty l
-    | PLCons ((EPwhitespace _), l) -> verify_empty l
-    | _ -> raise (Config_file_error "Don't know what to do with tailing data")
-  in
-  let rec parse_string = function
-      PLEmpty -> ""
-    | PLCons ((EPpcdata s), l) -> s^(parse_string l)
-    | PLCons ((EPwhitespace s), l) -> s^(parse_string l)
-    | PLCons ((EPcomment _), l) -> parse_string l
-    | _ -> raise (Config_file_error "string expected")
-  in let rec parse_site2 (cmo,stat) = function
-      PLCons ((EPanytag ("module", PLEmpty, s)), l) -> 
-	(match cmo with
-	  None -> parse_site2 (Some (parse_string s),stat) l
-	| _ -> raise 
-	      (Config_file_error "Only one <module> tag allowed inside <url>"))
-    | PLCons ((EPanytag ("staticdir", PLEmpty, s)), l) -> 
-	(match stat with
-	  None -> parse_site2 (cmo, Some (parse_string s)) l
-	| _ -> raise 
-	      (Config_file_error 
-		 "Only one <staticdir> tag allowed inside <url>"))
-    | PLCons ((EPcomment _), l) -> parse_site2 (cmo,stat) l
-    | PLCons ((EPwhitespace _), l) -> parse_site2 (cmo,stat) l
-    | PLEmpty -> 
-	(match (cmo,stat) with
-	  None, None -> raise (Config_file_error "<module> or <staticdir> tag expected inside <site>")
-	| _ -> (cmo,stat))
-    | _ -> raise 
-	  (Config_file_error "Only <module> or <staticdir> tag expected inside <site>")
-  in
-  let rec parse_site = function
-      PLCons ((EPanytag ("url", PLEmpty, s)), l) -> 
-	let path = Neturl.split_path (parse_string s) in
-	let cmo,static = parse_site2 (None,None) l in
-	(match static with
-	  None -> ()
-	| Some s -> Ocsiconfig.set_static_dir s path);
-	(match cmo with
-	  None -> ()
-	| Some cmo -> Ocsigen.load_ocsigen_module ~dir:path ~cmo:cmo)
-    | PLCons ((EPcomment _), l) -> parse_site l
-    | PLCons ((EPwhitespace _), l) -> parse_site l
-    | _ -> raise (Config_file_error "<url> tag expected inside <site>")
-  in
-  let rec parse_ocsigen = function
-      PLEmpty -> ()
-    | PLCons ((EPanytag ("port", PLEmpty, p)), ll) -> 
-	set_port (int_of_string (parse_string p));
-	parse_ocsigen ll
-    | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
-	set_logdir (parse_string p);
-	parse_ocsigen ll
-    | PLCons ((EPanytag ("staticdir", PLEmpty, p)), ll) -> 
-	set_staticpages (parse_string p);
-	parse_ocsigen ll
-    | PLCons ((EPanytag ("user", PLEmpty, p)), ll) -> 
-	set_user (parse_string p);
-	parse_ocsigen ll
-    | PLCons ((EPanytag ("group", PLEmpty, p)), ll) -> 
-	set_group (parse_string p);
-	parse_ocsigen ll
-    | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
-	Dynlink.loadfile (parse_string l);
-	parse_ocsigen ll
-    | PLCons ((EPanytag ("site", PLEmpty, l)), ll) -> parse_site l;
-	parse_ocsigen ll
-    | PLCons ((EPcomment _), ll) -> parse_ocsigen ll
-    | PLCons ((EPwhitespace _), ll) -> parse_ocsigen ll
-    | PLCons ((EPanytag (tag, PLEmpty, l)), ll) -> 
-	raise (Config_file_error ("tag "^tag^" unexpected inside <ocsigen>"))
-    | _ ->
-	raise (Config_file_error "Syntax error")
-  in function 
-      PLCons ((EPanytag ("ocsigen", PLEmpty, l)), ll) -> 
-	verify_empty ll; 
-	parse_ocsigen l
-    | PLCons ((EPcomment _), ll) -> parser_config ll
-    | PLCons ((EPwhitespace _), ll) -> parser_config ll
-    | _ -> raise (Config_file_error "<ocsigen> tag expected")
-
-
-
-let parse_config () = parser_config Ocsiconfig.config
-
 let _ = 
   Lwt_unix.run (
   (* Initialisations *)
   (try
-    parse_config ()
+    listen (parse_config ())
   with 
     Ocsigen.Ocsigen_error_while_loading m -> 
-      (Messages.warning ("Error while loading "^m)));
-  listen ())
+      errlog ("Error while loading "^m); 
+      return ()))
