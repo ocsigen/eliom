@@ -27,18 +27,24 @@ let config_file = ref "/etc/ocsigen/ocsigen.conf"
 let verbose = ref false
 let veryverbose = ref false
 let static_tree = ref (Static_dir (Some "/var/www/ocsigen", []))
+let user = ref "ocsigen"
+let group = ref "ocsigen"
 
 let set_port i = port := i
 let set_logdir s = logdir := s
 let set_configfile s = config_file := s
 let set_verbose () = verbose := true
 let set_veryverbose () = verbose := true; veryverbose := true
+let set_user s = user := s
+let set_group s = group := s
 let get_port () = !port
 let get_logdir () = !logdir
 let get_config_file () = !config_file
 let get_verbose () = !verbose
 let get_veryverbose () = !veryverbose
 let get_static_tree () = !static_tree
+let get_user () = !user
+let get_group () = !group
 
 let set_static_dir s path =
   let rec assoc_and_remove a = function

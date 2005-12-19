@@ -46,7 +46,7 @@ fullinstall: install
 	mkdir -p $(STATICPAGESDIR)
 	cp files/ocsigen.conf $(CONFIGDIR)
 	mkdir -p $(LOGDIR)
-	touch $(LOGDIR)/ocsigen.log
+
 
 .PHONY: uninstall fulluninstall
 uninstall:

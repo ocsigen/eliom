@@ -337,7 +337,22 @@ let listen () =
       Unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
       Unix.bind listening_socket (local_addr (Ocsiconfig.get_port ()));
       Unix.listen listening_socket 1;
-      wait_connexion  listening_socket
+      (* Now I change the user for the process *)
+      Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
+      Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
+      (* *)
+      let rec run () =
+	try 
+	  wait_connexion listening_socket
+	with
+	  Unix.Unix_error (e,func,param) ->
+	    errlog ((Unix.error_message e)^" in function "^func^" ("^param^")");
+	    run () (*  return? *)
+	| exn -> 
+	    errlog ("Uncaught exception: "^(Printexc.to_string exn)); 
+	    run ()
+      in
+      run ()
     ))
 
 
@@ -413,6 +428,12 @@ let rec parser_config =
     | PLCons ((EPanytag ("staticdir", PLEmpty, p)), ll) -> 
 	set_staticpages (parse_string p);
 	parse_ocsigen ll
+    | PLCons ((EPanytag ("user", PLEmpty, p)), ll) -> 
+	set_user (parse_string p);
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("group", PLEmpty, p)), ll) -> 
+	set_group (parse_string p);
+	parse_ocsigen ll
     | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
 	Dynlink.loadfile (parse_string l);
 	parse_ocsigen ll
@@ -437,13 +458,6 @@ let rec parser_config =
 let parse_config () = parser_config Ocsiconfig.config
 
 let _ = 
-  let rec run () =
-  try 
-    listen ()
-  with exn -> 
-    errlog ("Uncaught exception: "^(Printexc.to_string exn)); 
-    run ()
-  in
   Lwt_unix.run (
   (* Initialisations *)
   (try
@@ -451,4 +465,4 @@ let _ =
   with 
     Ocsigen.Ocsigen_error_while_loading m -> 
       (Messages.warning ("Error while loading "^m)));
-  run ())
+  listen ())

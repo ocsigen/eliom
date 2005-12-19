@@ -23,7 +23,7 @@ let log_aux f s =
     Printf.sprintf 
       "%02d-%02d-%04d %02d:%02d:%02d" 
       t.Unix.tm_mday 
-      t.Unix.tm_mon 
+      (t.Unix.tm_mon + 1)
       (1900 + t.Unix.tm_year)
       t.Unix.tm_hour
       t.Unix.tm_min
