@@ -153,8 +153,7 @@ let send_generic
       ?content:'a -> 'b -> unit Lwt.t) =
   (*ajout des option spécifique à la page*)
   let date = Netdate.mk_mail_date ~zone:0 (Unix.time ()) in
-  (*il faut récupérer la date de dernière modification si ca a une
-  * signification*)
+  (*il faut récupérer la date de dernière modification *)
   let last_mod =
     match last_modified with
     |None -> date
@@ -285,6 +284,7 @@ let content_type_from_file_name filename =
       | "xhtml" -> "application/xhtml+xml"
       | "jpg" | "jpeg" -> "image/jpeg"
       | "js" -> "application/x-javascript"
+      | "tar" -> "application/x-tar"
       | _ -> "unknown"
 
 let send_file ?code ?keep_alive ?cookie ?path

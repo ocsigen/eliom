@@ -391,7 +391,7 @@ let listen modules_list =
 
   let listen_connexion receiver in_ch sockaddr 
       xhtml_sender file_sender empty_sender =
-
+    
     let rec listen_connexion_aux () =
       let analyse_http () = 
         Http_receiver.get_http_frame receiver () >>=(fun
@@ -432,16 +432,13 @@ let listen modules_list =
 	debug "\n____________________________NEW CONNECTION__________________________";
 	  let server_name = "Ocsigen server" in
           let xhtml_sender =
-            create_xhtml_sender ~server_name:server_name
-              inputchan 
+            create_xhtml_sender ~server_name:server_name inputchan 
           in
           let file_sender =
-            create_file_sender ~server_name:server_name
-              inputchan
+            create_file_sender ~server_name:server_name inputchan
           in
           let empty_sender =
-            create_empty_sender ~server_name:server_name
-              inputchan
+            create_empty_sender ~server_name:server_name inputchan
           in
 	  listen_connexion 
 	    (Http_receiver.create inputchan) inputchan sockaddr xhtml_sender
@@ -482,4 +479,7 @@ let _ =
   with 
     Ocsigen.Ocsigen_error_while_loading m -> 
       errlog ("Error while loading "^m); 
+      return ()
+  | exn -> 
+      errlog ("Uncaught exception during init: "^(Printexc.to_string exn));
       return ()))

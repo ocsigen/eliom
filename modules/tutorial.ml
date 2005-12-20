@@ -251,7 +251,7 @@ let my_url_with_post_params = register_new_post_url
     ~fallback:no_post_param_url
     ~post_params:(_string "value")
     (fun value -> 
-	       << <html><body><p>$str:value$</p></body></html> >>)
+      << <html><body><p>$str:value$</p></body></html> >>)
 
 (* You can mix get and post parameters *)
 let get_no_post_param_url = 
@@ -259,16 +259,16 @@ let get_no_post_param_url =
     ~path:["post2"]
     ~params:(_int "i")
     (fun i -> 
-	       << <html><body><p>No POST parameter, i: <strong>$str:string_of_int i$</strong></p></body></html> >>)
+      << <html><body><p>No POST parameter, i: <strong>$str:string_of_int i$</strong></p></body></html> >>)
     
 let my_url_with_get_and_post = register_new_post_url 
   ~fallback:get_no_post_param_url
   ~post_params:(_string "value")
   (fun value i -> 
-	       let i' = string_of_int i in
-	       << <html><body><p>Value: <strong>$str:value$</strong> <br/> 
-		 i: <strong>$str:i'$</strong>
-	       </p></body></html> >>)
+    let i' = string_of_int i in
+    << <html><body><p>Value: <strong>$str:value$</strong> <br/> 
+    i: <strong>$str:i'$</strong>
+    </p></body></html> >>)
 
 
 (* ------------------------------------------------------------------ *)
