@@ -269,10 +269,10 @@ val make_uri :
 (** Link a registrated URL with the function that takes the url and
     names of the parameters, and creates a form for these parameters
 *)
-val form_get : ?a:([< xhformattrib > `Method ] attrib list) ->
+val get_form : ?a:([< xhformattrib > `Method ] attrib list) ->
   ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> 
     url_path -> 'a -> [> xhform ] elt
-val form_post : ?a:([< xhformattrib > `Method ] attrib list) ->
+val post_form : ?a:([< xhformattrib > `Method ] attrib list) ->
   ('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url
     -> url_path -> 'b -> 'cform
 

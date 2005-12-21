@@ -221,7 +221,7 @@ let create_form =
 
 let form = register_new_url ["form"] (_current_url _noparam)
   (fun current_url -> 
-     let f = form_get plop_params current_url create_form in
+     let f = get_form plop_params current_url create_form in
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -272,14 +272,14 @@ let my_url_with_get_and_post = register_new_post_url
 
 
 (* ------------------------------------------------------------------ *)
-(* To create a POST form, use the form_post function,
+(* To create a POST form, use the post_form function,
    possibly applied to GET parameters (if any)
 *)
 
 let form2 = register_new_url ["form2"] (_current_url _noparam)
   (fun current_url -> 
      let f  = 
-       (form_post my_url_with_post_params current_url
+       (post_form my_url_with_post_params current_url
 	  (fun chaine -> 
 	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)) in
        << <html><body>$f$</body></html> >>)
@@ -287,7 +287,7 @@ let form2 = register_new_url ["form2"] (_current_url _noparam)
 let form3 = register_new_url ["form3"] (_current_url _noparam)
   (fun current_url ->
      let f  = 
-       (form_post my_url_with_get_and_post current_url
+       (post_form my_url_with_get_and_post current_url
 	  (fun chaine -> 
 	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
 	  222) in
@@ -296,7 +296,7 @@ let form3 = register_new_url ["form3"] (_current_url _noparam)
 let form4 = register_new_url ["form4"] (_current_url _noparam)
   (fun current_url ->
      let f  = 
-       (form_post
+       (post_form
 	  (new_external_post_url 
 	     ~path:["http://www.petitspois.com";"form"]
 	     ~params:(_int "i")
@@ -344,9 +344,9 @@ let _ =
   let c = ref 0 in
   let page url = 
     let l3 = 
-      form_post ustate2 url [<< <p> $submit_input "incr i (post)"$ </p> >>] in
+      post_form ustate2 url [<< <p> $submit_input "incr i (post)"$ </p> >>] in
     let l4 =
-      form_get ustate2 url [<< <p> $submit_input "incr i (get)"$ </p> >>] in
+      get_form ustate2 url [<< <p> $submit_input "incr i (get)"$ </p> >>] in
     << <html>
          <body>
           <p> i vaut $str:string_of_int !c$ <br/> 
@@ -386,7 +386,7 @@ let public_session_with_post_params =
     ~post_params:(_string "login")
 
 let accueil url = 
-  let f = form_post public_session_with_post_params url
+  let f = post_form public_session_with_post_params url
     (fun login -> 
 	 <:xmllist< <p> login: $string_input login$ </p> >>) in
     << <html><body>$f$</body></html> >>
@@ -450,7 +450,7 @@ let shop_with_post_params =
     ~post_params:(_string "article")
 
 let write_shop shop url  =
-  (form_post shop url
+  (post_form shop url
      (fun article -> 
 	let sb = string_input article in
 	  <:xmllist< <p> What do you want to buy? $sb$ </p> >>))
@@ -538,7 +538,7 @@ let _ =
 	    << <html> <body><p> $str:is$ + $str:js$ = $str:ijs$ </p></body></html> >>)
       in
       let f  = 
-	form_post queinnec_result current_url (create_form is) in
+	post_form queinnec_result current_url (create_form is) in
       << <html><body>$f$</body></html> >>)
     
 let _ =   
@@ -551,7 +551,7 @@ let _ =
   register_url
     queinnec
     (fun current_url ->
-      let f  = form_post queinnec_post current_url create_form in
+      let f  = post_form queinnec_post current_url create_form in
       << <html><body>$f$</body></html> >>)
       
 
@@ -686,4 +686,5 @@ let _ =
     (fun () -> 
                Unix.sleep 5;
 	       << <html><body><p>Ok now, you can read the page.</p></body></html> >>)
-*)
+
+ *)

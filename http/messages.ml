@@ -42,11 +42,11 @@ let lwtbip i =
     let s = "bip"^(string_of_int i)^"\n" in
     ignore (Unix.write Unix.stderr s 0 (String.length s))
 
-let accesslog =
-  log_aux "access.log"
+let accesslog s =
+  log_aux "access.log" s
 
-let errlog =
-  log_aux "errors.log"
+let errlog s =
+  log_aux "errors.log" s
 
 let warning s =
   log_aux "warnings.log" s

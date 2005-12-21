@@ -308,7 +308,9 @@ module FHttp_sender =
               else really_write_aux (pos+len') (len-len')
           )
       in
-      really_write_aux pos len
+      try
+	really_write_aux pos len
+      with e -> prerr_endline "XXX"; raise e
 
     (**create a new sender*)
     let create ?(mode=Http_frame.Http_header.Answer) ?(headers=[])

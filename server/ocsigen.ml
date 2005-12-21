@@ -340,17 +340,19 @@ let ( ** ) p1 p2 =
 	(p1.conversion_function pog f httpparam) httpparam))}
     
 
-(* The current working directory *)
-let current_dir : url_path ref = ref []
-
-let defaultpagename = "index"
-
 let remove_slash = function
     [] -> []
   | ""::l -> l
-  | a::l -> a::l
+  | l -> l
 
-let absolute_change_dir dir = current_dir := remove_slash dir
+(* The current working directory *)
+let absolute_change_dir, get_current_dir =
+  let current_dir : url_path ref = ref [] in
+  ((fun dir -> current_dir := remove_slash dir), 
+   (fun () -> !current_dir))
+
+let defaultpagename = "index"
+
 
 let change_empty_list = function
     [] -> [""] (* It is not possible to register an empty URL *)
@@ -501,7 +503,7 @@ module Directorytree : DIRECTORYTREE = struct
   let add_action (_,actiontableref) name paramslist action =
     actiontableref :=
       add_action_table !actiontableref 
-	(name,((List.sort compare paramslist),action,!current_dir))
+	(name,((List.sort compare paramslist),action,get_current_dir ()))
 
   let find_action (_,atr) name paramslist =
     let paramsattendus,action,working_dir = find_action_table !atr name in
@@ -559,9 +561,9 @@ module Directorytree : DIRECTORYTREE = struct
 		    post_names = List.sort compare page_table_key.post_names;
 		    prefix = page_table_key.prefix;
 		    state = page_table_key.state},
-		   (action, !current_dir)) in
+		   (action, get_current_dir ())) in
     (* let current_dircontentref = 
-      search_dircontentref dircontentref !current_dir in *)
+      search_dircontentref dircontentref (get_current_dir ()) in *)
     let page_table_ref = 
       search_page_table_ref (*current_*)dircontentref url_act in
     page_table_ref := add_page_table !page_table_ref content
@@ -715,7 +717,7 @@ let new_url_aux
     ~params
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo internal_url) url =
   new_url_aux_aux
-    ~path:(!current_dir@(change_empty_list path))
+    ~path:((get_current_dir ())@(change_empty_list path))
     ~prefix
     ~params reconstruct_relative_url_path
 
@@ -1160,7 +1162,7 @@ let script ?(a=[]) (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscri
 
 
 (*
-   let form_get (url : ('a,xhformcontl,'c,'d,'e,'f,'g) url) current_url (f : 'a) =
+   let get_form (url : ('a,xhformcontl,'c,'d,'e,'f,'g) url) current_url (f : 'a) =
    let urlname = (match url.url with Url_Prefix s | Url s -> 
    reconstruct_relative_url_path current_url s) in
    let inside = url.create_get_form f in
@@ -1198,7 +1200,7 @@ let script ?(a=[]) (url : ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscri
  *)
 
 
-let form_get ?(a=[])
+let get_form ?(a=[])
     (url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url (f : 'a) =
   let urlname = reconstruct_relative_url_path current_url url.url in
   let state_param =
@@ -1217,7 +1219,7 @@ let form_get ?(a=[])
     inside
 
 
-    let form_post ?(a=[])
+    let post_form ?(a=[])
 	(url : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url (f : 'b) = 
       let state_param =
 	(match  url.url_state with
@@ -1343,7 +1345,7 @@ let execute find
       Unix.ADDR_INET (ip,port) -> ip
     | _ -> localhost
   in
-  let save_current_dir = !current_dir in
+  let save_current_dir = get_current_dir () in
   let answer =
     let (tables, new_session) = 
       (match cookie with
@@ -1373,7 +1375,7 @@ let execute find
 		 Some c)
 	      else cookie)
       in (cookie2, page, ("/"^(reconstruct_url_path working_dir)))
-  in current_dir := save_current_dir; 	
+  in absolute_change_dir save_current_dir; 	
     answer
 
 
@@ -1442,25 +1444,26 @@ let make_action action_name action_params
 	(url,path,params,[],action_params,useragent)
 	sockaddr cookie
     with 
-	Ocsigen_Typing_Error _ -> (cookie, (),"/")
-      | Ocsigen_Wrong_parameter -> (cookie, (),"/")
+	Ocsigen_Typing_Error _ -> (cookie, (), "/")
+      | Ocsigen_Wrong_parameter -> (cookie, (), "/")
 
 
 (** Module loading *)
 exception Ocsigen_error_while_loading of string
 	
 let load_ocsigen_module ~dir ~cmo =
-  let save_current_dir = !current_dir in
+  let save_current_dir = get_current_dir () in
   try
     absolute_change_dir dir;
     Dynlink.loadfile cmo;
-    current_dir := save_current_dir
+    absolute_change_dir save_current_dir
   with Dynlink.Error e -> 
-    current_dir := save_current_dir;
-    raise (Ocsigen_error_while_loading (cmo^" ("^(Dynlink.error_message e)^")"))
-    | e -> 
-	current_dir := save_current_dir;
-	raise e (*Ocsigen_error_while_loading cmo*)
+    absolute_change_dir save_current_dir;
+    raise
+      (Ocsigen_error_while_loading (cmo^" ("^(Dynlink.error_message e)^")"))
+  | e -> 
+      absolute_change_dir save_current_dir;
+      raise e (*Ocsigen_error_while_loading cmo*)
 
 
 let number_of_sessions () = Cookies.length cookie_table

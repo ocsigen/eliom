@@ -76,7 +76,7 @@ let rec parser_config =
   let rec parse_site = function
       PLCons ((EPanytag ("url", PLEmpty, s)), l) -> 
 	let path = Neturl.split_path (parse_string s) in
-	let cmo,static = parse_site2 (None,None) l in
+	let cmo,static = parse_site2 (None, None) l in
 	(match static with
 	  None -> ()
 	| Some s -> Ocsiconfig.set_static_dir s path);
@@ -128,6 +128,7 @@ let parse_config () = parser_config Ocsiconfig.config
 
 (******************************************************************)
 
+let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
 
 module Content = 
   struct
@@ -407,21 +408,27 @@ let listen modules_list =
               if keep_alive then
                 listen_connexion_aux ()
                 (* Pour laisser la connexion ouverte, je relance *)
-              else return ()
+              else begin 
+		Unix.close in_ch; 
+		return ()
+	      end
             )
         ) in
       catch analyse_http 
-      (function
+      (function e ->
+	Unix.close in_ch; 
+	match e with
         |Com_buffer.End_of_file -> return ()
         |Http_error.Http_exception (_,_) as http_ex->
             (*let mes = Http_error.string_of_http_exception http_ex in
-            really_write "404 Plop" (* à revoir ! *) 
+               really_write "404 Plop" (* à revoir ! *) 
 	      false in_ch mes 0 
 	      (String.length mes);*)
             send_error ~http_exception:http_ex xhtml_sender;
             return ()
-        |ex -> fail ex
-      )
+        |exn -> (* fail exn *)
+	    errlog ("Uncaught exception (in listen): "^(Printexc.to_string exn));
+	    return ())
 
     in listen_connexion_aux ()
 
