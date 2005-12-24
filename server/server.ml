@@ -216,10 +216,11 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     in
     let action_info, post_params3 =
       try
+	List.iter (fun a,b -> print_endline (a^","^b)) post_params2; 
 	let action_name, pp = 
 	  ((List.assoc (action_prefix^action_name) post_params2),
 	   (List.remove_assoc (action_prefix^action_name) post_params2)) in
-	let reload,pp2 = 
+	let reload,pp2 =
 	  try
 	    ignore (List.assoc (action_prefix^action_reload) pp);
 	    (true, (List.remove_assoc (action_prefix^action_reload) pp))
@@ -234,7 +235,8 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     let useragent = (Http_header.get_headers_value
 		       http_frame.Http_frame.header "user-agent")
     in
-      (Neturl.url_path url2, (* the url path (string list) *)
+    (Ocsigen.remove_slash (Neturl.url_path url2), 
+                              (* the url path (string list) *)
        path,
        params,
        internal_state2,
@@ -478,15 +480,5 @@ let listen modules_list =
       run ()
     ))
 
-let _ = 
-  Lwt_unix.run (
-  (* Initialisations *)
-  (try
-    listen (parse_config ())
-  with 
-    Ocsigen.Ocsigen_error_while_loading m -> 
-      errlog ("Error while loading "^m); 
-      return ()
-  | exn -> 
-      errlog ("Uncaught exception during init: "^(Printexc.to_string exn));
-      return ()))
+let _ = Lwt_unix.run (Unix.handle_unix_error listen (parse_config ()))
+

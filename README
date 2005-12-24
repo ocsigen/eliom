@@ -29,6 +29,9 @@ then become root, and do
 Adapt the config file to set the port, the modules you want to load
 (by default the config file is /etc/ocsigen/ocsigen.conf,
 but you can specify another one: ocsigen -c configfile)
+Set the user and group that will run ocsigen and give him read access to
+the modules you load, to the config file, and rwx access to log directory.
+(e.g. chown www-data:www-data /var/log/ocsigen/)
 
 To run the web server
 
@@ -37,6 +40,9 @@ To run the web server
 Then you can connect to the server with your browser:
 
 http://localhost
+
+If it does not work, look at the logs or run ocsigen with option -v or -vv
+(verbose and debug mode)
 
 See the file modules/tutorial.ml for a tutorial
 
@@ -62,13 +68,22 @@ Ocsimore is at early stage of development, and could be improved a lot.
 
 To use Ocsimore,
  - install postgresql, create a database named ocsibase
-   (and give the rights to write in to the user that will launch ocsi)
+   (and give the rights to write in to the user that will launch ocsigen)
  - install the postgresql and ocamldbi (with postgresql support) libraries 
    for ocaml. (Markus Mottl version of postgresql, not Alain Frish's)
  - compile ocsimore ("make ocsimore")
  - add lines in config file to load ocsimore.cma and the modules
    you want
  - create the tables : psql -f ocsimore/createdb.sql ocsibase
+ - run ocsigen. 
+   The first time, it will ask for a new password for the administrator
+   of your web-site.
+
+(e.g. once you have installed postgres, write:
+sudo -u postgres createdb ocsibase
+sudo -u postgres createuser www-data
+sudo -u www-data psql -f /path_to/createdb.sql ocsibase
+)
 
 
 ------------------------------------------------------------------

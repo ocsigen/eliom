@@ -395,8 +395,10 @@ let reconstruct_relative_url_path current_url u =
     | [] -> ""
 (*    | [a] -> "" *)
     | _::l -> "../"^(makedotdot l)
-  in let aremonter, aaller = drop current_url (""::u)
+  in 
+let aremonter, aaller = drop current_url u
   in let s = (makedotdot aremonter)^(reconstruct_url_path aaller) in
+  (* print_endline ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s);
   if s = "" then defaultpagename else s
 
 
@@ -631,7 +633,7 @@ type ('a,'b,'ca,'cform,'curi(*,'cimg,'clink,'cscript*),'d,'e,'f,'g) url =
      url_prefix: bool;
      url_state: internal_state option;
        (* 'g is just a type information: it can be only 
-	  public_url internal_url or session_url internal_url
+	  public_url internal_url or url_for_session internal_url
 	  or external_url, so that we can't use session urls as fallbacks for
 	  other session urls. If it is a session url, it contains a value
 	  (internal state) that will allow to differenciate between
@@ -771,7 +773,7 @@ let register_url
    like "let rec" for url...
  *)
 
-let register_session_url
+let register_url_for_session
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     page =
   register_url_aux !session_tables url.url_state url page
@@ -785,14 +787,22 @@ let register_new_url
   let u = new_url ~prefix ~path ~params () in
   register_url u page;
   u
-
-let register_new_session_url
-   ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
-   page
-   : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, state_url internal_url) url =
+    
+let register_new_state_url
+    ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
+    page
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, state_url internal_url) url =
   let u = (new_state_url fallback) in
-    register_session_url u page;
-    u
+  register_url u page;
+  u
+
+let register_new_state_url_for_session
+    ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
+    page
+    : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, state_url internal_url) url =
+  let u = (new_state_url fallback) in
+  register_url_for_session u page;
+  u
 
 
 (** Register an url with post parameters in the server *)
@@ -866,7 +876,7 @@ let register_post_url
     page =
   register_post_url_aux global_tables (url.url_state) url page
 
-let register_post_session_url
+let register_post_url_for_session
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     page =
   register_post_url_aux !session_tables url.url_state url page
@@ -880,13 +890,22 @@ let register_new_post_url
   register_post_url u page;
   u
 
-let register_new_post_session_url
+let register_new_post_state_url
+    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
+    ~post_params 
+    page
+    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, state_url internal_url) url = 
+  let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
+  register_post_url u page;
+  u
+
+let register_new_post_state_url_for_session
     ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
     ~post_params 
     page
     : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, state_url internal_url) url =
   let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
-  register_post_session_url u page;
+  register_post_url_for_session u page;
   u
 
 
@@ -925,13 +944,13 @@ let register_new_actionurl ~params ~action =
     register_actionurl a action;
     a
 
-let register_session_actionurl ~actionurl ~action =
+let register_actionurl_for_session ~actionurl ~action =
   register_actionurl_aux !session_tables actionurl action
 
 
-let register_new_session_actionurl ~params ~action =
+let register_new_actionurl_for_session ~params ~action =
   let a = new_actionurl params in
-    register_session_actionurl a action;
+    register_actionurl_for_session a action;
     a
 
 let static_dir =
@@ -1277,25 +1296,25 @@ let action_link ?(a=[]) ?(reload=true) actionurl h content =
 	$list:reload_param$
 	</p>
 	</form> >>
-
-    let action_form ?(a=[])
-	?(reload=true) ?classe ?id (actionurl : ('a,'b) actionurl) h (f : 'a) = 
-      let action_param_name = action_prefix^action_name in
-      let action_param = (actionurl.action_name) in
-      let reload_name = action_prefix^action_reload in
-      let action_line =
-	<< <input type="hidden" name=$action_param_name$ value=$action_param$/> >>
-      in
-      let v = h.full_url in
-      let inside = actionurl.create_action_form f in
-      let inside_reload = 
-	if reload 
-	then <:xmllist< <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p>$list:inside$ >>
-	else inside in
-      let attrs = make_attrs ?id ?classe () in
-	  form ~a:((a_method `Get)::a) ~action:(make_uri_from_string v)
-	    << <p>$action_line$</p> >>
-            inside_reload
+	
+let action_form ?(a=[])
+    ?(reload=true) ?classe ?id (actionurl : ('a,'b) actionurl) h (f : 'a) = 
+  let action_param_name = action_prefix^action_name in
+  let action_param = (actionurl.action_name) in
+  let reload_name = action_prefix^action_reload in
+  let action_line =
+    << <input type="hidden" name=$action_param_name$ value=$action_param$/> >>
+  in
+  let v = h.full_url in
+  let inside = actionurl.create_action_form f in
+  let inside_reload = 
+    if reload 
+    then <:xmllist< <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p>$list:inside$ >>
+    else inside in
+  let attrs = make_attrs ?id ?classe () in
+  form ~a:((a_method `Post)::a) ~action:(make_uri_from_string v)
+    << <p>$action_line$</p> >>
+  inside_reload
 
 
 
@@ -1438,7 +1457,7 @@ let make_action action_name action_params
        find_action !session_tables action_name action_params
      with Not_found ->
        (find_action global_tables action_name action_params)),[]
-  in try 
+  in try
       execute 
 	find
 	(url,path,params,[],action_params,useragent)

@@ -63,8 +63,8 @@ let _ = register_url
   print_news_page
 
 let launch_session user =
-  register_session_url ~url:main_page (user_main_page user);
-  register_session_url ~url:news_page (user_news_page user)
+  register_url_for_session ~url:main_page (user_main_page user);
+  register_url_for_session ~url:news_page (user_news_page user)
 
 let _ = register_actionurl
   ~actionurl:connect_action

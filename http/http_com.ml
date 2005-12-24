@@ -237,7 +237,7 @@ module FHttp_receiver =
           Http_parser.header Http_lexer.token lexbuf
         with
         |Parsing.Parse_error -> 
-           raise (Failure ("erreur de parsing vers"^ 
+           raise (Failure ("erreur de parsing vers "^ 
                           (Lexing.lexeme lexbuf)))
          
       (** get an http frame *)

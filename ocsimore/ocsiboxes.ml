@@ -35,7 +35,7 @@ let create_login_form =
 let login_box_action h actionurl = 
   action_form ~id:"loginbox" ~classe:["userbox"] actionurl h create_login_form
 
-let login_box h url = form_post url h.current_url create_login_form
+let login_box h url = post_form url h.current_url create_login_form
 
 let deconnect_action = 
   register_new_actionurl _unit close_session
@@ -74,6 +74,6 @@ let urltag = fold_url "mapage" url
 
 (*
 let form = register_new_url (Url ["form"]) _noparam 
-  (let f = form_get plop_params create_form in
+  (let f = get_form plop_params create_form in
   << <html> $f$ </html> >>)
 *)

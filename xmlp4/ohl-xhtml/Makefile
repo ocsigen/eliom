@@ -40,7 +40,7 @@ DISTFILES = README ChangeLog COPYING Makefile $(SRC_MLI) $(SRC_ML) \
 
 ########################################################################
 
-all: bin opt
+all: bin #opt
 
 bin: xhtml.cma
 opt: xhtml.cmxa

@@ -46,6 +46,7 @@ let plip =
          <body><h1>plip</h1></body>
        </html> >>
 
+(* This is not true any more:
 let oups = 
   register_new_url 
     ["rep"]
@@ -63,6 +64,7 @@ let rep2 =
        (body [h1 [pcdata "Here there was a page rep 
 		    but it has been erased by the directory rep/."]]))
 (* rep2 will erase oups in the table (with a warning) *)
+*)
 
 (* the url rep/ is not equivalent to rep *)
 let default = register_new_url ["rep";""] _noparam
@@ -231,12 +233,12 @@ let form = register_new_url ["form"] (_current_url _noparam)
 
 (* ------------------------------------------------------------------ *)
 (* By default parameters of a web page are in the URL (GET parameters).
-   A web page may expect parameters from the http header (POST parameters)
-   (that is parameters which are not in the URL)
+   A web page may expect parameters from the http header (POST parameters,
+   that is parameters which are not in the URL).
    Use this if you don't want the user to be able to bookmark
    the URL with parameters, for example if you want to post some
-   data which will change the state of the server (database, etc).
-   When you register an URL with hidden parameters, you must register
+   data that will change the state of the server (database, etc).
+   When you register an URL with POST parameters, you must register
    before an url (fallback) without these parameters (for example that will
    answer if the page is reloaded without the hidden parameters, or
    bookmarked).
@@ -244,14 +246,19 @@ let form = register_new_url ["form"] (_current_url _noparam)
 let no_post_param_url = 
   register_new_url 
     ~path:["post"]
-    ~params:_noparam 
-    << <html><body><p>Version of the page without POST parameters</p></body></html> >>
+    ~params:_noparam
+    (html
+       (head (title (pcdata "")) [])
+       (body [h1 [pcdata 
+"Version of the page without POST parameters"]]))
     
 let my_url_with_post_params = register_new_post_url
     ~fallback:no_post_param_url
     ~post_params:(_string "value")
     (fun value -> 
-      << <html><body><p>$str:value$</p></body></html> >>)
+    (html
+       (head (title (pcdata "")) [])
+       (body [h1 [pcdata value]])))
 
 (* You can mix get and post parameters *)
 let get_no_post_param_url = 
@@ -259,16 +266,21 @@ let get_no_post_param_url =
     ~path:["post2"]
     ~params:(_int "i")
     (fun i -> 
-      << <html><body><p>No POST parameter, i: <strong>$str:string_of_int i$</strong></p></body></html> >>)
-    
+      (html
+	 (head (title (pcdata "")) [])
+	 (body [p [pcdata "No POST parameter, i:";
+		   em [pcdata (string_of_int i)]]])))
+
 let my_url_with_get_and_post = register_new_post_url 
   ~fallback:get_no_post_param_url
   ~post_params:(_string "value")
   (fun value i -> 
-    let i' = string_of_int i in
-    << <html><body><p>Value: <strong>$str:value$</strong> <br/> 
-    i: <strong>$str:i'$</strong>
-    </p></body></html> >>)
+      (html
+	 (head (title (pcdata "")) [])
+	 (body [p [pcdata "Value: ";
+		   em [pcdata value];
+		   pcdata ", i: ";
+		   em [pcdata (string_of_int i)]]])))
 
 
 (* ------------------------------------------------------------------ *)
@@ -278,11 +290,15 @@ let my_url_with_get_and_post = register_new_post_url
 
 let form2 = register_new_url ["form2"] (_current_url _noparam)
   (fun current_url -> 
-     let f  = 
+     let f = 
        (post_form my_url_with_post_params current_url
 	  (fun chaine -> 
-	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)) in
-       << <html><body>$f$</body></html> >>)
+	    [p [pcdata "Write a string: ";
+		string_input chaine]])) in
+     (html
+	(head (title (pcdata "")) [])
+	(body [f])))
+
 
 let form3 = register_new_url ["form3"] (_current_url _noparam)
   (fun current_url ->
@@ -291,14 +307,14 @@ let form3 = register_new_url ["form3"] (_current_url _noparam)
 	  (fun chaine -> 
 	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
 	  222) in
-       << <html><body>$f$</body></html> >>)
+       << <html><head><title></title></head><body>$f$</body></html> >>)
 
 let form4 = register_new_url ["form4"] (_current_url _noparam)
   (fun current_url ->
      let f  = 
        (post_form
 	  (new_external_post_url 
-	     ~path:["http://www.petitspois.com";"form"]
+	     ~path:["http://www.petitspois.com"]
 	     ~params:(_int "i")
 	     ~post_params:(_string "chaine") ()) current_url
 	  (fun chaine -> 
@@ -338,24 +354,23 @@ let form4 = register_new_url ["form4"] (_current_url _noparam)
 
 let ustate = new_url ["state"] (_current_url _noparam) ()
 
-let ustate2 = new_state_url ustate
+let ustate2 = new_state_url ~fallback:ustate
 
 let _ = 
   let c = ref 0 in
   let page url = 
-    let l3 = 
-      post_form ustate2 url [<< <p> $submit_input "incr i (post)"$ </p> >>] in
-    let l4 =
-      get_form ustate2 url [<< <p> $submit_input "incr i (get)"$ </p> >>] in
-    << <html>
-         <body>
-          <p> i vaut $str:string_of_int !c$ <br/> 
-             $a ustate url <:xmllist< reload >>$ <br/> 
-             $a ustate2 url <:xmllist< incr i >>$ 
-          </p> 
-          $l3$ $l4$ 
-         </body>
-       </html> >>
+    let l3 = post_form ustate2 url 
+	[p [submit_input "incr i (post)"]] in
+    let l4 = get_form ustate2 url 
+	[p [submit_input "incr i (get)"]] in
+    (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "i is equal to ";
+		 pcdata (string_of_int !c); br ();
+		 a ustate url [pcdata "reload"]; br ();
+		 a ustate2 url [pcdata "incr i"]];
+              l3;
+	      l4]))
   in
     register_url ustate page;
     register_url ustate2 (fun url -> c := !c + 1; page url)
@@ -363,11 +378,8 @@ let _ =
 
 (* ------------------------------------------------------------------ *)
 (* You can replace some public url by an url valid only for one session.
-   To do that, use the optional parameter url_table of the make_page function.
-   It contains a set of url you want to register only for this session.
-   To create this value, use register_session_url or
-   register_post_session_url
-   (and session_table () for the empty table)
+   To create this value, use register_url_for_session or
+   register_post_url_for_session
 
    Use this for example if you want two versions of each page,
    one public, one for connected users
@@ -388,41 +400,53 @@ let public_session_with_post_params =
 let accueil url = 
   let f = post_form public_session_with_post_params url
     (fun login -> 
-	 <:xmllist< <p> login: $string_input login$ </p> >>) in
-    << <html><body>$f$</body></html> >>
+	 [p [pcdata "login: ";
+	     string_input login]]) in
+  (html
+     (head (title (pcdata "")) [])
+     (body [f]))
+
 
 let _ = register_url
   ~url:public_session_without_post_params
   accueil
 
 let rec launch_session login =
-  let close = register_new_session_url (* See later *)
+  let close = register_new_state_url_for_session (* See later *)
     ~fallback:public_session_without_post_params 
     (fun url -> close_session (); accueil url)
   in
   let new_main_page url =
-    << <html>
-    <body><p>
-         Bienvenue $str:login$ ! <br/>
-         $a plop url <:xmllist< plop >>$ <br/>
-         $a plip url <:xmllist< plip >>$ <br/>
-         $a links url <:xmllist< links >>$ <br/>
-         $a close url <:xmllist< close session >>$ <br/>
-    </p></body>
-      </html> >>
+    (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "Welcome ";
+		 pcdata login; 
+		 pcdata "!"; br ();
+		 a plop url [pcdata "plop"]; br ();
+		 a plip url [pcdata "plip"]; br ();
+		 a links url [pcdata "links"]; br ();
+		 a close url [pcdata "close session"]]]))
   in
-    register_session_url 
-      ~url:public_session_without_post_params 
-                               (* url is any public url already registered *)
-      new_main_page;
-    register_session_url 
-      plop (* any public url already registered *)
-      << <html><body><p> Plop $str:login$ ! </p></body></html> >>;
-    register_session_url 
-      plip
-      << <html><body><p> Plop2 $str:login$ ! </p></body></html> >>;
-    new_main_page
-      
+  register_url_for_session 
+    ~url:public_session_without_post_params 
+    (* url is any public url already registered *)
+    new_main_page;
+  register_url_for_session 
+    ~url:plop
+    (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "Plop ";
+		 pcdata login;
+		 pcdata "!"]]));
+  register_url_for_session 
+    plip
+    (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "Plop2 ";
+		 pcdata login;
+		 pcdata "!"]]));
+  new_main_page
+    
 let _ =
   register_post_url
     ~url:public_session_with_post_params
@@ -436,7 +460,7 @@ let _ =
    instance of the web page, for example to buy something on an internet shop.
    UPDATE: Actually it is not a good example, because what we want in a shop
    is the same shoping basket for all pages. 
-   SEE queinnec example instead.
+   SEE calc example instead.
 *)
 let shop_without_post_params =
   new_url
@@ -456,7 +480,7 @@ let write_shop shop url  =
 	  <:xmllist< <p> What do you want to buy? $sb$ </p> >>))
 
 let shop_public_main_page current_url =
-  let f  = write_shop shop_with_post_params current_url in
+  let f = write_shop shop_with_post_params current_url in
     << <html><body>$f$</body></html> >>
 
 let _ = 
@@ -478,12 +502,12 @@ let rec page_for_shopping_basket url shopping_basket =
       ~post_params:(_string "article")
   and local_pay = new_state_url ~fallback:shop_without_post_params
   in
-    register_post_session_url
+    register_post_url_for_session
       ~url:local_shop_with_post_params
       (fun article current_url -> 
 		 page_for_shopping_basket 
 		   current_url (article::shopping_basket));
-    register_session_url
+    register_url_for_session
       local_pay
       (fun current_url ->
 	   << <html><body>
@@ -505,15 +529,15 @@ let _ = register_post_url
 
 (* Queinnec example: *)
 
-let queinnec = 
+let calc = 
   new_url
-    ~path:["queinnec"]
+    ~path:["calc"]
     ~params:(_current_url _noparam)
     ()
 
-let queinnec_post = 
+let calc_post = 
   new_post_url 
-    ~fallback:queinnec
+    ~fallback:calc
     ~post_params:(_int "i")
 
 let _ = 
@@ -526,19 +550,22 @@ let _ =
       >>)
   in
   register_post_url
-    ~url:queinnec_post
+    ~url:calc_post
     (fun i current_url ->
       let is = string_of_int i in
-      let queinnec_result = register_new_post_session_url
-	  ~fallback:queinnec_post
+      let calc_result = register_new_post_state_url_for_session
+	  ~fallback:calc_post
 	  ~post_params:(_int "j")
 	  (fun j current_url -> 
 	    let js = string_of_int j in
 	    let ijs = string_of_int (i+j) in
-	    << <html> <body><p> $str:is$ + $str:js$ = $str:ijs$ </p></body></html> >>)
+	    << <html> 
+                 <body><p> 
+                   $str:is$ + $str:js$ = $str:ijs$ </p>
+                 </body></html> >>)
       in
-      let f  = 
-	post_form queinnec_result current_url (create_form is) in
+      let f = 
+	post_form calc_result current_url (create_form is) in
       << <html><body>$f$</body></html> >>)
     
 let _ =   
@@ -549,9 +576,9 @@ let _ =
       >>)
   in
   register_url
-    queinnec
+    calc
     (fun current_url ->
-      let f  = post_form queinnec_post current_url create_form in
+      let f = post_form calc_post current_url create_form in
       << <html><body>$f$</body></html> >>)
       
 
@@ -563,8 +590,8 @@ let _ =
    instead of making a version with post params of all these pages,
    you can use actions.
    Create and register an action with new_actionurl, register_actionurl,
-     register_new_actionurl, register_session_actionurl,
-     register_new_session_actionurl
+     register_new_actionurl, register_actionurl_for_session,
+     register_state_actionurl_for_session
    Make a form or a link to an action with action_form or action_link.
    By default, they print the page again after having done the action.
    But you can give the optional boolean parameter reload to action_form
@@ -577,10 +604,13 @@ let connect_action = new_actionurl ~params:(_string "login")
 
 let accueil_action h = 
   let f = action_form connect_action h
-    (fun login -> 
-       let sb = string_input login in
-	 <:xmllist< <p> login: $sb$ </p> >>) in
-    << <html><body>$f$</body></html> >>
+      (fun login -> 
+	[p [pcdata "login: "; 
+	    string_input login]]) in
+  html
+    (head (title (pcdata "")) [])
+    (body [f])
+
 
 let _ = register_url
   ~url:action_session
@@ -590,20 +620,29 @@ let rec launch_session login =
   let deconnect_action = register_new_actionurl _unit close_session in
   let deconnect_box h s = action_link deconnect_action h s in
   let new_main_page h =
-    << <html>
-       <body><p>
-         Bienvenue $str:login$ ! <br/>
-         $a plop h.current_url <:xmllist< plop >>$ <br/>
-         $a plip h.current_url <:xmllist< plip >>$ <br/>
-         $a links h.current_url <:xmllist< links >>$ </p>
-         $deconnect_box h <:xmllist< Close session >>$
-      </body>
-      </html> >>
+    html
+      (head (title (pcdata "")) [])
+      (body [p [pcdata "Welcome ";
+		pcdata login; br ();
+		a plop h.current_url [pcdata "plop"]; br ();
+		a plip h.current_url [pcdata "plip"]; br ();
+		a links h.current_url [pcdata "links"]; br ()];
+	     deconnect_box h [pcdata "Close session"]])
   in
-    register_session_url ~url:action_session new_main_page;
-    register_session_url plop << <html><body><p> Plop $str:login$ ! </p></body></html> >>;
-    register_session_url plip << <html><body><p> Plop2 $str:login$ ! </p></body></html> >>
-      
+  register_url_for_session ~url:action_session new_main_page;
+  register_url_for_session plop
+    (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "Plop ";
+		 pcdata login;
+		 pcdata "!"]]));
+  register_url_for_session plip 
+    (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "Plop2 ";
+		 pcdata login;
+		 pcdata "!"]]))
+    
 let _ = register_actionurl
     ~actionurl:connect_action
     ~action:(fun login -> launch_session login)
@@ -630,10 +669,8 @@ let _ = register_url main
        Une page avec un compteur : $a compt url <:xmllist< compt >>$ <br/> 
        Une page simple dans un répertoire : 
 	   $a plip url <:xmllist< dir/plip >>$ <br/>
-       Page erased by another one: $a rep2 url <:xmllist< rep2 >>$ <br/>
        Default page of a directory:
-	 $a oups url <:xmllist< rep >>$ will be redirected to
-     $a default url <:xmllist< rep/ >>$</p>
+           $a default url <:xmllist< rep/ >>$</p>
        <h3>Parameters</h3>
        <p>
        Une page avec paramètres GET : 
@@ -670,7 +707,7 @@ let _ = register_url main
        Une session avec des actions : 
 	     $a action_session url <:xmllist< actions >>$ <br/>
        Une session avec "url de sessions" : 
-	     $a queinnec url <:xmllist< queinnec >>$
+	     $a calc url <:xmllist< calc >>$
        - (ancienne version : $a shop_without_post_params url <:xmllist< shop >>$)
        </p>
        </body>

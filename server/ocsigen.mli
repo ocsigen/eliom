@@ -39,6 +39,8 @@ val reconstruct_url_path : url_path -> string
 
 val counter : unit -> int
 
+val remove_slash : url_path -> url_path
+
 (** Type of http parameters *)
 type http_params = {url_suffix: string;
 		    full_url: string;
@@ -117,13 +119,13 @@ val new_external_url :
 	    ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, external_url) url
 
 val new_state_url :
-  fallback:('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, public_url internal_url) url 
+    fallback:('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, public_url internal_url) url 
   -> ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, state_url internal_url) url
 
 val register_url :
-  url:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, 'f internal_url) url -> 'c -> unit
-
-val register_session_url :
+    url:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, 'f internal_url) url -> 'c -> unit
+	
+val register_url_for_session :
     url:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, 'f internal_url) url -> 'c -> unit
 
 (**  Create a new URL and register it in the server with the associated action.
@@ -141,7 +143,14 @@ val register_new_url :
   'a -> ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
 	      page, page, public_url internal_url) url
 
-val register_new_session_url :
+val register_new_state_url :
+    fallback:('a, xhformcontl, 'b, 'c, 'd, 'e, page, page,
+              public_url internal_url)
+    url ->
+      'e ->
+	('a, xhformcontl, 'b, 'c, 'd, 'e, page, page, state_url internal_url) url
+
+val register_new_state_url_for_session :
     fallback:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, public_url internal_url) url ->
     'c -> ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, state_url internal_url) url
 
@@ -169,7 +178,7 @@ val new_post_state_url :
 val register_post_url :
     url:('a, 'b -> 'c, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'e, 'f, 'e, 'g internal_url) url -> 'f -> unit
 
-val register_post_session_url :
+val register_post_url_for_session :
     url:('a, 'b -> 'c, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'e, 'f, 'e, 'g internal_url) url -> 'f -> unit
 
 val register_new_post_url :
@@ -178,7 +187,12 @@ val register_new_post_url :
       'ka, 'kform, 'kuri (* 'kimg, 'klink, 'kscript *)) parameters ->
     'h -> ('a, 'i -> 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'h, 'd, public_url internal_url) url
 
-val register_new_post_session_url :
+val register_new_post_state_url :
+    fallback:('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, public_url internal_url) url ->
+      post_params:('i, 'f, ('j -> 'k) -> xhformcontl, 'l, 'm, 'n) parameters ->
+	'i -> ('a, 'j -> 'k, 'c, 'd, 'e, 'f, 'i, 'f, state_url internal_url) url
+
+val register_new_post_state_url_for_session :
     fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, public_url internal_url) url ->
     post_params:('g, 'd, ('h -> 'i) -> xhformcontl, 
       'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
@@ -194,7 +208,7 @@ val new_actionurl :
 
 val register_actionurl : actionurl:('a, 'b) actionurl -> action:'b -> unit
 
-val register_session_actionurl :
+val register_actionurl_for_session :
   actionurl:('a, 'b) actionurl -> action:'b -> unit
 
 
@@ -204,30 +218,11 @@ val register_new_actionurl :
   action:'a 
   -> ('b, 'a) actionurl
 
-val register_new_session_actionurl :
+val register_new_actionurl_for_session :
   params:('a, unit, 'b -> xhformcontl, 
     'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
   action:'a 
   -> ('b, 'a) actionurl
-
-(*
-(** static pages (new 10/05) *)
-val register_new_static_directory :
-    path:url_path ->
-    location:string -> 
-  (xhformcontl, xhformcontl, 
-   string -> [>xha] elt, string -> [>xhform] elt, string -> uri (*, string -> [>xhimg] elt, string -> [>xhlink] elt, string -> [>xhscript] elt*), 
-   page, page, page, 
-   public_url internal_url) url
-
-val register_new_session_static_directory :
-    path:url_path ->
-    location:string -> 
-  (xhformcontl, xhformcontl, 
-   string -> [>xha] elt, string -> [>xhform] elt, string -> uri (*, string -> [>xhimg] elt, string -> [>xhlink] elt, string -> [>xhscript] elt*), 
-   page, page, page, 
-   public_url internal_url) url
-*)
 
 val static_dir :
     (xhformcontl, xhformcontl, string -> [> Xhtmltypes.xha ] XHTML.M.elt,
