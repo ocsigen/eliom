@@ -466,6 +466,7 @@ let listen modules_list =
       Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
       (* Now I can load the modules *)
       load_modules modules_list;
+      Ocsigen.end_initialisation ();
       let rec run () =
 	try 
 	  wait_connexion listening_socket
@@ -480,5 +481,16 @@ let listen modules_list =
       run ()
     ))
 
-let _ = Lwt_unix.run (Unix.handle_unix_error listen (parse_config ()))
-
+let _ = 
+  try 
+    Lwt_unix.run (Unix.handle_unix_error listen (parse_config ()))
+  with
+    Ocsigen.Ocsigen_duplicate_registering s -> 
+      errlog ("Duplicate registering of url \""^s^"\". Please correct the module.")
+  | Ocsigen.Ocsigen_there_are_unregistered_url s ->
+      errlog ("Some public url have not been registered. Please correct your modules. (ex: "^s^")")
+  | Ocsigen.Ocsigen_page_erasing s ->
+      errlog ("Page or directory erased: "^s^". Please correct your modules.")
+  | Ocsigen.Ocsigen_register_for_session_outside_session ->
+      errlog ("Register session during initialisation forbidden.")
+  | Dynlink.Error e -> errlog (Dynlink.error_message e)

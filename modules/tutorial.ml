@@ -204,7 +204,12 @@ let _ = register_url linkrec
           <body><p>$a linkrec url <:xmllist< cli >>$</p></body>
          </html> >>)
 
-
+(* If some url are not registered, the server will not start:
+let essai = 
+  new_url 
+    ~path:["essai"]
+    ~params:_noparam
+*)
 
 
 
@@ -452,7 +457,14 @@ let _ =
     ~url:public_session_with_post_params
     launch_session
 
-
+(* Registering for session during initialisation is forbidden:
+let _ = register_url_for_session
+    ~url:plop1 
+    << <html>
+         <head><title></title></head>
+         <body><h1>humhum</h1></body>
+       </html> >>
+*)
 
 (* ------------------------------------------------------------------ *)
 (* You can register url with states in session tables.
@@ -653,6 +665,15 @@ let main = new_url [] (_current_url _noparam) ()
 
 let _ = register_url main
   (fun url ->
+    (* Do not register a page after initialisation.
+       This will cause an error:
+       let plop6 = 
+       new_url 
+	~path:["plop6"]
+	~params:_noparam 
+        ()
+       in *)
+    (* This will be ignored: register_url plop1 << <html></html> >>; *)
      << 
        <html> 
        <!-- This is a comment! -->

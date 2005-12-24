@@ -93,6 +93,15 @@ val ( ** ) :
       ('b, 'g, 'd -> 'h,  'i -> 'ja, 'i -> 'jform, 'i -> 'juri(*, 'i -> 'jimg, 'i -> 'jlink, 'i -> 'jscript*)) parameters ->
 	('a, 'g, 'c -> 'h, 'e -> 'i -> 'ja, 'e -> 'i -> 'jform, 'e -> 'i -> 'juri (*, 'e -> 'i -> 'jimg, 'e -> 'i -> 'jlink, 'e -> 'i -> 'jscript *)) parameters
 
+exception Ocsigen_url_created_after_init
+exception Ocsigen_duplicate_registering of string
+exception Ocsigen_page_erasing of string
+exception Ocsigen_there_are_unregistered_url of string
+exception Ocsigen_register_for_session_outside_session
+exception Ocsigen_error_while_loading of string
+exception Ocsigen_Is_a_directory
+exception Ocsigen_404
+val end_initialisation : unit -> unit
 
 (** Register an url in the server with the associated action.
    register_url url t f will associate the url url to the function f.
@@ -331,9 +340,6 @@ val make_action :
 val load_ocsigen_module : dir:url_path -> cmo:string -> unit
 
 
-exception Ocsigen_error_while_loading of string
-exception Ocsigen_Is_a_directory
-exception Ocsigen_404
 val state_param_name : string
 val action_prefix : string
 val action_name : string

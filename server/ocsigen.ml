@@ -61,6 +61,11 @@ exception Ocsigen_Typing_Error of string
 exception Ocsigen_Wrong_parameter
 exception Ocsigen_Is_a_directory
 exception Ocsigen_404
+exception Ocsigen_page_erasing of string
+exception Ocsigen_url_created_after_init
+exception Ocsigen_there_are_unregistered_url of string
+exception Ocsigen_duplicate_registering of string
+exception Ocsigen_register_for_session_outside_session
 
 type postorget = Get | Post
 
@@ -398,10 +403,8 @@ let reconstruct_relative_url_path current_url u =
   in 
 let aremonter, aaller = drop current_url u
   in let s = (makedotdot aremonter)^(reconstruct_url_path aaller) in
-  (* print_endline ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s);
+  (* print_endline ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s); *)
   if s = "" then defaultpagename else s
-
-
 
 (** We associate to an URL a function http_params -> page *)
 module type DIRECTORYTREE =
@@ -414,7 +417,7 @@ module type DIRECTORYTREE =
 	 state: internal_state option}
     val empty_tables : unit -> tables
     val are_empty_tables : tables -> bool
-    val add_url : tables -> url_path -> 
+    val add_url : tables -> bool -> url_path -> 
       page_table_key * (http_params -> page) -> unit
     val add_action : 
       tables -> string -> string list -> (http_params -> unit) -> unit
@@ -472,9 +475,16 @@ module Directorytree : DIRECTORYTREE = struct
   let empty_action_table () = AVide
   let empty_dircontent () = Vide
 
-  let add_page_table t (key,elt) = Page_Table.add key elt t
-
   let find_page_table t k = Page_Table.find k t
+
+  let add_page_table session url_act t (key,elt) = 
+    (* Duplicate registering forbidden in global table *)
+    if not session then
+      try
+	let _ = find_page_table t key in
+	raise (Ocsigen_duplicate_registering (reconstruct_url_path url_act))
+      with Not_found -> Page_Table.add key elt t
+    else Page_Table.add key elt t
 
   let add_dircontent dc (key,elt) =
     match dc with
@@ -514,18 +524,18 @@ module Directorytree : DIRECTORYTREE = struct
       then action, working_dir
       else raise Not_found
 
-  let add_url (dircontentref,_) url_act (page_table_key, action) =
+  let add_url (dircontentref,_) session url_act (page_table_key, action) =
     let aux search dircontentref a l =
       try 
 	let direltref = find_dircontent !dircontentref a in
 	match !direltref with
 	  Dir dcr -> search dcr l
-	| File ptr ->
-	    Messages.warning ("Ocsigen page registering: Page "^
+	| File ptr -> raise (Ocsigen_page_erasing a)
+	    (* Messages.warning ("Ocsigen page registering: Page "^
 				 a^" has been replaced by a directory");
 	    let newdcr = ref (empty_dircontent ()) in
 	    (direltref := Dir newdcr;
-	     search newdcr l)
+	     search newdcr l) *)
       with
 	Not_found -> 
 	  let newdcr = ref (empty_dircontent ()) in
@@ -539,12 +549,12 @@ module Directorytree : DIRECTORYTREE = struct
 	    (try 
 	      let direltref = find_dircontent !dircontentref a in
 	      (match !direltref with
-		Dir _ ->
-		  Messages.warning ("Ocsigen page registering: Directory "^
+		Dir _ -> raise (Ocsigen_page_erasing a)
+		  (* Messages.warning ("Ocsigen page registering: Directory "^
 				       a^" has been replaced by a page");
 		  let newpagetableref = ref (empty_page_table ()) in
 		  (direltref := File newpagetableref;
-		   newpagetableref)
+		   newpagetableref) *)
 	      | File ptr -> ptr)
 	    with
 	      Not_found ->
@@ -567,8 +577,8 @@ module Directorytree : DIRECTORYTREE = struct
     (* let current_dircontentref = 
       search_dircontentref dircontentref (get_current_dir ()) in *)
     let page_table_ref = 
-      search_page_table_ref (*current_*)dircontentref url_act in
-    page_table_ref := add_page_table !page_table_ref content
+      search_page_table_ref (*current_*) dircontentref url_act in
+    page_table_ref := add_page_table session url_act !page_table_ref content
 
 	 
   let find_url 
@@ -602,8 +612,16 @@ open Directorytree
 
 type url_table = tables
 
-let global_tables =  (empty_tables ())
-let session_tables = ref (empty_tables ())
+let global_tables = empty_tables ()
+
+let get_session_tables, set_session_tables =
+  let session_tables = ref (empty_tables ()) in
+  let err () = raise Ocsigen_register_for_session_outside_session in
+  let ok () = !session_tables in
+  let get = ref err in
+  ((fun () -> !get ()),
+   (fun st -> session_tables := st; get := ok))
+
 let new_session_tables = empty_tables
 let are_empty_tables = are_empty_tables
 
@@ -671,6 +689,26 @@ type ('a,'b,'ca,'cform,'curi(*,'cimg,'clink,'cscript*),'d,'e,'f,'g) url =
     }
       
 
+let rec list_remove a = function
+    [] -> []
+  | b::l when a = b -> l
+  | b::l -> b::(list_remove a l)
+
+let add_unregistered, remove_unregistered, verify_all_registered =
+  let l = ref [] in
+  ((fun a -> l := a::!l),
+   (fun a -> l := list_remove a !l),
+   (fun () -> 
+     match !l with [] -> () 
+     | (a,_,_)::_ -> raise (Ocsigen_there_are_unregistered_url (reconstruct_url_path a))))
+
+let during_initialisation, end_initialisation =
+  let init = ref true in
+  ((fun () -> !init), 
+   (fun () -> 
+     init := false;
+     verify_all_registered ()))
+
 
 (** Create an url *)
 let new_url_aux_aux
@@ -679,7 +717,7 @@ let new_url_aux_aux
     ~params
     reconstruct_url_function
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo) url =
-(* ici faire une vérification "duplicate parameter" ? SÉCURITÉ !! *) 
+(* ici faire une vérification "duplicate parameter" ? *) 
   let create_get_url write_param = 
     (if prefix then
       (fun current_url f -> 			   
@@ -718,10 +756,15 @@ let new_url_aux
     ~prefix
     ~params
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo internal_url) url =
-  new_url_aux_aux
-    ~path:((get_current_dir ())@(change_empty_list path))
-    ~prefix
-    ~params reconstruct_relative_url_path
+  if during_initialisation () then
+    let full_path = (get_current_dir ())@(change_empty_list path) in
+    let u = new_url_aux_aux
+	~path:full_path
+	~prefix
+	~params 
+	reconstruct_relative_url_path in
+    add_unregistered (full_path, u.get_param_names, u.post_param_names); u
+  else raise Ocsigen_url_created_after_init
 
 let new_external_url_aux
     ~(path : url_path)
@@ -751,11 +794,11 @@ let new_external_url
 
 let register_url_aux
     tables
+    session
     state
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
     page =
-(* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
-  add_url tables url.url
+  add_url tables session url.url
     ({get_names = url.get_param_names;
       post_names = []; (* url.post_param_names; *)
       prefix = url.url_prefix;
@@ -765,7 +808,10 @@ let register_url_aux
 let register_url 
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     page =
-  register_url_aux global_tables (url.url_state) url page
+  if during_initialisation () then begin
+    remove_unregistered (url.url, url.get_param_names, url.post_param_names);
+    register_url_aux global_tables false (url.url_state) url page; end
+  else Messages.warning "Public URL registration after init (ignored)"
 
 (* WARNING: if we create a new URL without registering it,
    we can have a link towards a page that does not exist!!! :-(
@@ -776,7 +822,7 @@ let register_url
 let register_url_for_session
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     page =
-  register_url_aux !session_tables url.url_state url page
+  register_url_aux (get_session_tables ()) true url.url_state url page
 
 let register_new_url 
     ~path
@@ -810,7 +856,7 @@ let new_post_url_aux
     ~fallback
     ~post_params
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, 'popo) url = 
-(* ici faire une vérification "duplicate parameter" ? SÉCURITÉ !! *) 
+(* ici faire une vérification "duplicate parameter" ? *) 
   {url = fallback.url;
    url_prefix = fallback.url_prefix;
    url_state = None;
@@ -832,15 +878,19 @@ let new_post_url
     ~fallback
     ~post_params
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url = 
-  new_post_url_aux fallback post_params
-
+  if during_initialisation () then
+    let u = new_post_url_aux fallback post_params in
+    add_unregistered 
+      (fallback.url, fallback.get_param_names, post_params.param_names); u
+  else raise Ocsigen_url_created_after_init
+  
 let new_external_post_url
     ~(path : url_path)
     ?(prefix=false)
     ~params
     ~post_params ()
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, external_url) url = 
-  new_post_url_aux (new_url_aux path prefix params) post_params
+  new_post_url_aux (new_external_url_aux path prefix params) post_params
 
 let new_post_state_url
     ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
@@ -855,11 +905,11 @@ let new_post_state_url
 
 let register_post_url_aux
     tables
+    session
     state
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
     page =
-(* ici faire une vérification "duplicate url" et REMPLACER si elle existe *)
-  add_url tables url.url
+  add_url tables session url.url
     ({get_names = url.get_param_names;
       post_names = url.post_param_names;
       prefix = url.url_prefix;
@@ -874,12 +924,15 @@ let register_post_url_aux
 let register_post_url 
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     page =
-  register_post_url_aux global_tables (url.url_state) url page
+  if during_initialisation () then begin
+    remove_unregistered (url.url, url.get_param_names, url.post_param_names);
+    register_post_url_aux global_tables false (url.url_state) url page; end
+  else Messages.warning "Public URL registration after init (ignored)"
 
 let register_post_url_for_session
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
     page =
-  register_post_url_aux !session_tables url.url_state url page
+  register_post_url_aux (get_session_tables ()) true url.url_state url page
 
 let register_new_post_url 
     ~fallback
@@ -945,7 +998,7 @@ let register_new_actionurl ~params ~action =
     a
 
 let register_actionurl_for_session ~actionurl ~action =
-  register_actionurl_aux !session_tables actionurl action
+  register_actionurl_aux (get_session_tables ()) actionurl action
 
 
 let register_new_actionurl_for_session ~params ~action =
@@ -1032,11 +1085,11 @@ let register_new_session_static_directory
      'ca,'cform,'curi(*'cimg,'clink,'cscript*), 
      page, page, page, 
      public_url internal_url) url =
-  register_new_static_directory_aux !session_tables path location
+  register_new_static_directory_aux (get_session_tables ()) path location
 *)
 
 (** Close a session *)
-let close_session () = session_tables := empty_tables ()
+let close_session () = set_session_tables (empty_tables ())
 
 let make_http_params 
     url fullurl url_suffix get_params post_params useragent ip = 
@@ -1372,7 +1425,7 @@ let execute find
 	 | Some c -> try (Cookies.find cookie_table (ip,c), false)
 	   with Not_found -> (new_session_tables (), true))
     in
-      session_tables := tables;
+      set_session_tables tables;
       let ((action, working_dir), url_suffix) = find ()
       in 
       let fullurl = path^params in
@@ -1383,14 +1436,14 @@ let execute find
 	  (make_http_params
 	     url fullurl url_suffix get_params post_params useragent ip) in
       let cookie2 = 
-	if are_empty_tables !session_tables
+	if are_empty_tables (get_session_tables ())
 	then ((if not new_session 
 	       then match cookie with
 		   Some c -> Cookies.remove cookie_table (ip,c)
 		 | None -> ());None)
 	else (if new_session 
 	      then let c = new_cookie () in
-		(Cookies.add cookie_table (ip,c) !session_tables;
+		(Cookies.add cookie_table (ip,c) (get_session_tables ());
 		 Some c)
 	      else cookie)
       in (cookie2, page, ("/"^(reconstruct_url_path working_dir)))
@@ -1405,7 +1458,7 @@ let get_page
     try (* D'abord recherche dans la table de session *)
       Messages.debug ("--- recherche "^(reconstruct_url_path url)^" dans la table de session :");
       (find_url 
-	 !session_tables
+	 (get_session_tables ())
 	 url
 	 get_params
 	 post_params
@@ -1424,7 +1477,7 @@ let get_page
 	| _ -> try (* d'abord la table de session *)
 	    Messages.debug "--- recherche dans la table de session, sans état :";
 	    (find_url 
-	       !session_tables
+	       (get_session_tables ())
 	       url
 	       get_params
 	       post_params
@@ -1454,7 +1507,7 @@ let make_action action_name action_params
     (url, path, params, _, _, _, useragent) sockaddr cookie =
   let find () =
     (try 
-       find_action !session_tables action_name action_params
+       find_action (get_session_tables ()) action_name action_params
      with Not_found ->
        (find_action global_tables action_name action_params)),[]
   in try

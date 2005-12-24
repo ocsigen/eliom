@@ -7,8 +7,8 @@ Instructions:
 
 Requirements: 
 ocaml
-ocamlnet (en fait seulement le module netstring) 
-(et lui-même a besoin de pcre ?)
+ocamlnet (actually only module netstring) 
+(ocamlnet needs pcre?)
 ocamlfind
 
 To compile:
@@ -44,11 +44,12 @@ http://localhost
 If it does not work, look at the logs or run ocsigen with option -v or -vv
 (verbose and debug mode)
 
-See the file modules/tutorial.ml for a tutorial
+See the file modules/tutorial.ml for a tutorial or www.ocsigen.org
 
 To learn the syntax extension for xhtml, see exemples in
-xmlp4/exemple/
-Warning : Typing forces to respect overlapping (?) of xhtml tags
+xmlp4/exemple/ or www.ocsigen.org
+Warning: In the syntax extension, typing forces to respect 
+overlapping (?) of xhtml tags
 but that's all (it does not verify for example that mandatory tags are 
 present, or the order of tags)
 

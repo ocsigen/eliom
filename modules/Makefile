@@ -1,4 +1,4 @@
-FILES=tutorial.ml profiling.ml
+FILES=tutorial.ml ocsiprof.ml
 
 CAMLC = ocamlc $(LIB)
 CAMLOPT = ocamlopt $(LIB)
