@@ -20,7 +20,7 @@
 open Http_frame
 open Lwt
 
-
+exception Ocsigen_HTTP_parsing_error of string * string
 
 (** buffer de comunication permettant la reception et la recupération des messages *)
 module Com_buffer =
@@ -237,8 +237,7 @@ module FHttp_receiver =
           Http_parser.header Http_lexer.token lexbuf
         with
         |Parsing.Parse_error -> 
-           raise (Failure ("erreur de parsing vers "^ 
-                          (Lexing.lexeme lexbuf)))
+           raise (Ocsigen_HTTP_parsing_error ((Lexing.lexeme lexbuf),s))
          
       (** get an http frame *)
       let get_http_frame receiver () =

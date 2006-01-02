@@ -448,6 +448,9 @@ let listen modules_list =
 		  " in function "^func^" ("^param^") - (I continue)");
 	  return ()
       | Com_buffer.End_of_file -> return ()
+      | Ocsigen_HTTP_parsing_error (s1,s2) ->
+	  errlog ("HTTP parsing error near ("^s1^") in\n"^s2);
+	  return ()
       | Ocsigen_Timeout -> warning "Timeout"; return ()
       | exn -> 
 	  errlog ("Uncaught exception: "
@@ -504,20 +507,22 @@ let listen modules_list =
        (* Now I can load the modules *)
        load_modules modules_list;
        Ocsigen.end_initialisation ();
+       warning "End of initialisations";
        wait_connexion listening_socket >>=
        wait))
 
 let _ = 
-  try 
+  try
+    warning "Ocsigen has been launched";
     Lwt_unix.run (Unix.handle_unix_error listen (parse_config ()))
   with
     Ocsigen.Ocsigen_duplicate_registering s -> 
-      errlog ("Duplicate registering of url \""^s^"\". Please correct the module.")
+      errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
   | Ocsigen.Ocsigen_there_are_unregistered_url s ->
-      errlog ("Some public url have not been registered. Please correct your modules. (ex: "^s^")")
+      errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
   | Ocsigen.Ocsigen_page_erasing s ->
-      errlog ("Page or directory erased: "^s^". Please correct your modules.")
+      errlog ("Fatal - Page or directory erased: "^s^". Please correct your modules.")
   | Ocsigen.Ocsigen_register_for_session_outside_session ->
-      errlog ("Register session during initialisation forbidden.")
-  | Dynlink.Error e -> errlog (Dynlink.error_message e)
+      errlog ("Fatal - Register session during initialisation forbidden.")
+  | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
   | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
