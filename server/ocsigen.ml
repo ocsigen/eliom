@@ -21,6 +21,8 @@ open Http_com
 open XHTML.M
 open Xhtmltypes
 
+let _ = Random.self_init ()
+
 (** Type of answers from modules (web pages) *)
 type page = xhtml elt
 
@@ -46,16 +48,12 @@ type http_params = {url_suffix: string;
  *)
 type internal_state = int
 
-let counter = let c = ref 0 in fun () -> c := !c + 1 ; !c
+let counter = let c = ref (Random.int max_int) in fun () -> c := !c + 1 ; !c
 
 let new_state =
-  let c : internal_state ref = ref (-1) in
+  let c : internal_state ref = ref (Random.int max_int) in
   fun () -> c := !c + 1 ; Some !c
 
-(* À revoir !!!!!!!!!!!!!!!!!!!!!!!!! Faire des cookies plus compliqués *)
-let new_cookie =
-  let c = ref (-1) in
-  fun () -> c := !c + 1 ; string_of_int !c
 
 exception Ocsigen_Typing_Error of string
 exception Ocsigen_Wrong_parameter
@@ -634,6 +632,14 @@ module Cookies = Hashtbl.Make(struct
 			      end)
 
 let cookie_table = Cookies.create 100
+
+let rec new_cookie table ip = 
+  let c = Int64.to_string (Random.int64 Int64.max_int) in
+  try 
+    Cookies.find table (ip,c);
+    new_cookie table ip
+  with Not_found -> c
+
 
 (** Typed URLs *)
 type public_url
@@ -1443,7 +1449,7 @@ let execute find
 		   Some c -> Cookies.remove cookie_table (ip,c)
 		 | None -> ());None)
 	else (if new_session 
-	      then let c = new_cookie () in
+	      then let c = new_cookie cookie_table ip in
 		(Cookies.add cookie_table (ip,c) (get_session_tables ());
 		 Some c)
 	      else cookie)

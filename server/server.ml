@@ -483,7 +483,6 @@ let listen modules_list =
 	Lwt_unix.accept socket >>= 
 	(fun c -> 
 	  max_connect := !max_connect - 1;
-	  prerr_endline ("max_connect = "^(string_of_int !max_connect));
 	  if !max_connect > 0 then
 	    ignore_result (wait_connexion_rec ());
 	  handle_connection c) >>= 
@@ -513,7 +512,6 @@ let listen modules_list =
 
 let _ = 
   try
-    warning "Ocsigen has been launched";
     Lwt_unix.run (Unix.handle_unix_error listen (parse_config ()))
   with
     Ocsigen.Ocsigen_duplicate_registering s -> 

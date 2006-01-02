@@ -222,18 +222,45 @@ end = struct
 
     end)
 
+
+  let read_passwd message =
+    match
+      try
+	let default = Unix.tcgetattr Unix.stdin in
+	let silent =
+          { default with
+            Unix.c_echo = false;
+            Unix.c_echoe = false;
+            Unix.c_echok = false;
+            Unix.c_echonl = false;
+          } in
+	Some (default, silent)
+      with _ -> None
+    with
+    | None -> input_line Pervasives.stdin
+    | Some (default, silent) ->
+	print_string message;
+	flush Pervasives.stdout;
+	Unix.tcsetattr Unix.stdin Unix.TCSANOW silent;
+	try
+          let s = input_line Pervasives.stdin in
+          Unix.tcsetattr Unix.stdin Unix.TCSANOW default; s
+	with x ->
+          Unix.tcsetattr Unix.stdin Unix.TCSANOW default; raise x;;
+
   let rec get_passwd () = 
     let pwd1 =
-      Printf.printf "Enter Ocsimore admin password:%!";
-      Scanf.scanf "%s" (fun x -> x)
+      read_passwd "Enter new password for Ocsimore admin: "
     in
     let pwd2 =
-      Printf.printf "Enter Ocsimore admin password once again:%!";
-      Scanf.scanf "%s" (fun x -> x)
+      read_passwd "\nEnter Ocsimore admin password once again: "
     in if pwd1 = pwd2 
-    then pwd1 
+    then begin 
+      print_endline "\nNew password registered. Thank you!"; 
+      pwd1 
+    end
     else begin
-      print_endline "Passwords do not match.";
+      print_endline "\nPasswords do not match.";
       get_passwd ();
     end
 

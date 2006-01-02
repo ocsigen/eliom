@@ -141,7 +141,7 @@ value next_token_fun find_kwd fname lnum bolpos =
 	  (("VALUE", get_buff (value_attribut_in_double_quote bp 0 s)),mkloc (bp,ep))
       |	[: `'''; s :] ep ->
 	  (("VALUE", get_buff (value_attribut_in_quote bp 0 s)),mkloc (bp,ep))
-      |	[: `'$'; s :] -> (* for caml expressions *) camlexprattr bp 0 s
+      |	[: `'$'; s :] -> (* for caml expressions *) camlexprattr (bp+1) 0 s
       |	[: `'/'; `'>' :] ep ->
 	  let name = pop_tag () in
 	  do { 
@@ -168,7 +168,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       ')' | '#' | '>' | '`'
 	as c); s :] ep -> 
 	  (("DATA", get_buff (data bp (store 0 c) s)),mkloc (bp,ep))
-    | [: `'$'; s :] -> (* for caml expr *) camlexpr bp s
+    | [: `'$'; s :] -> (* for caml expr *) camlexpr (bp+1) s
     | [: `'<'; s :] ->
 	match s with parser
       [	[: `'?'; `'x'; `'m'; `'l';
@@ -314,7 +314,8 @@ value next_token_fun find_kwd fname lnum bolpos =
     [ [: `('a'..'z' | '\223'..'\246' | '\248'..'\255' | '_' as c); s :] ->
       antiquotname bp ((ident (store 0 c)) s) s
     | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep))
-    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep)) ]
+    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp 0 s)), 
+		     mkloc (bp,ep)) ]
   and antiquotname bp len =
     parser bp2 
     [ [: `':'; s :] ep -> let buff = get_buff len in 
@@ -325,7 +326,8 @@ value next_token_fun find_kwd fname lnum bolpos =
     then (("CAMLEXPRXMLS", get_buff (camlexpr2 bp2 0 s)), mkloc (bp2,ep))
     else err (mkloc (bp, ep)) "unknown antiquotation"
     | [: `'$'; s :] ep -> (("CAMLEXPRXML", (get_buff len)), mkloc (bp,ep))
-    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp len s)), mkloc (bp,ep)) ]
+    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp len s)), 
+		     mkloc (bp,ep)) ]
   and camlexpr2 bp len =
     parser
     [ [: `'$'; s :] -> len
@@ -341,7 +343,8 @@ value next_token_fun find_kwd fname lnum bolpos =
     [ [: `('a'..'z' | '\223'..'\246' | '\248'..'\255' | '_' as c); s :] ->
       antiquotname_attr bp ((ident (store 0 c)) s) s
     | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep))
-    | [: s :] ep -> (("CAMLEXPR", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep)) ]
+    | [: s :] ep -> (("CAMLEXPR", get_buff (camlexpr2 bp 0 s)), 
+		     mkloc (bp,ep)) ]
   and antiquotname_attr bp len =
     parser
     [ [: `':'; s :] ep -> let buff = get_buff len in 
