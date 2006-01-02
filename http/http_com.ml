@@ -242,27 +242,33 @@ module FHttp_receiver =
          
       (** get an http frame *)
       let get_http_frame receiver () =
-        catch (Com_buffer.wait_http_header receiver.fd receiver.buffer) (fun e -> Lwt.fail e) >>=(fun len ->
-          catch (Com_buffer.extract receiver.fd receiver.buffer len) (fun e -> Lwt.fail e) >>= (fun string_header ->
+        catch 
+	  (Com_buffer.wait_http_header receiver.fd receiver.buffer) 
+	  (fun e -> Lwt.fail e) >>=
+	(fun len ->
+          catch 
+	    (Com_buffer.extract receiver.fd receiver.buffer len)
+	    (fun e -> Lwt.fail e) >>= 
+	  (fun string_header ->
             try
-            let header = http_header_of_string string_header in
-            let body_length=
-              try
-                int_of_string (Http_frame.Http_header.get_headers_value header "content-length")
-              with
+              let header = http_header_of_string string_header in
+              let body_length=
+		try
+                  int_of_string (Http_frame.Http_header.get_headers_value header "content-length")
+		with
                 |_ -> 0
-            in 
-            let body =
-              match body_length with
+              in 
+              let body =
+		match body_length with
                 |x when x < 0 -> assert false
                 |0 -> Lwt.return None
                 |_ -> 
                     catch (Com_buffer.extract receiver.fd receiver.buffer body_length) (fun e -> Lwt.fail e) >>= (fun s ->
                       Lwt.return (Some (C.content_of_string s)))
-            in
+              in
               body >>= (fun b ->
                 Lwt.return {Http.header=header;Http.content=b}
-              )
+		       )
             with e -> fail e
           )
         )

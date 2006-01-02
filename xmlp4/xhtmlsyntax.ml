@@ -30,15 +30,17 @@ let _ = Quotation.add "xml" (Quotation.ExAst (xml_exp, xml_pat))
 
 let remove_ws = 
   let rec remove_end_ws = function
-      PLCons ((EPwhitespace _),PLEmpty) -> PLEmpty
-    | PLCons (a,l) -> PLCons (a,(remove_end_ws l))
+      PLCons ((EPwhitespace _),PLEmpty _loc,_) -> PLEmpty _loc
+    | PLCons (a,l,_loc) -> PLCons (a,(remove_end_ws l),_loc)
     | l -> l
   in function
-      PLCons ((EPwhitespace _),l) -> remove_end_ws l
+      PLCons ((EPwhitespace _),l,_loc) -> remove_end_ws l
     | l -> remove_end_ws l
 
-let xml_expl s = to_expr_taglist 
-  (remove_ws (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s)))
+let xml_expl s = 
+  (to_expr_taglist 
+     (remove_ws 
+	(Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s))))
 let xml_patl s = failwith "Syntax extension not implemented for patterns"
 
 let _ = Quotation.add "xmllist" (Quotation.ExAst (xml_expl, xml_patl))

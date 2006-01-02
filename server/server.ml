@@ -23,6 +23,13 @@ open Http_frame
 open Http_com
 open Sender_helpers
 
+(* Max number of simultaneous connections *)
+let max_number_of_connections = 500 (* too much? *)
+(* max time of connection *)
+let connect_time_max = 300. (* 5 min *)
+
+exception Ocsigen_Timeout
+
 (******************************************************************)
 (* Config file parsing *)
 
@@ -141,9 +148,11 @@ module Http_frame = FHttp_frame (Content)
 
 module Http_receiver = FHttp_receiver (Content)
 
-(*let _ = Unix.set_nonblock Unix.stdin
+(*
+let _ = Unix.set_nonblock Unix.stdin
 let _ = Unix.set_nonblock Unix.stdout
-let _ = Unix.set_nonblock Unix.stderr*)
+let _ = Unix.set_nonblock Unix.stderr
+*)
 
 let new_socket () = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
@@ -275,7 +284,7 @@ let find_static_page path =
       | Some s -> s)^"/"^(Ocsigen.reconstruct_url_path (a::l))
   in aux "/" (Ocsiconfig.get_static_tree ()) path
 
-let service http_frame in_ch sockaddr 
+let service http_frame sockaddr 
     xhtml_sender file_sender empty_sender () =
   try 
     let cookie = 
@@ -284,7 +293,7 @@ let service http_frame in_ch sockaddr
 			   http_frame.Http_frame.header "Cookie"))
       with _ -> None
     in
-    let (path,stringpath,params,_,_,_,_) as frame_info, action_info = 
+    let (path,stringpath,params,_,_,_,ua) as frame_info, action_info = 
       get_frame_infos http_frame in
 
       (* log *)
@@ -292,7 +301,7 @@ let service http_frame in_ch sockaddr
 	  Unix.ADDR_INET (ip,port) -> Unix.string_of_inet_addr ip
 	| _ -> "127.0.0.1"
 	in
-	accesslog ("connection from "^ip^" : "^stringpath^params);
+	accesslog ("connection from "^ip^" ("^ua^") : "^stringpath^params);
       (* end log *)
 
       match action_info with
@@ -391,95 +400,112 @@ let load_modules modules_list =
 
 (** Thread waiting for events on a the listening port *)
 let listen modules_list =
-
+  
   let listen_connexion receiver in_ch sockaddr 
       xhtml_sender file_sender empty_sender =
     
     let rec listen_connexion_aux () =
-      let analyse_http () = 
-        Http_receiver.get_http_frame receiver () >>=(fun
-          http_frame ->
-             catch (service http_frame in_ch sockaddr 
-		      xhtml_sender file_sender empty_sender)
-	      fail
-            (*fun ex ->
-              match ex with
-              | _ -> fail ex
-            *)
+      let analyse_http () =
+	choose
+	  [Http_receiver.get_http_frame receiver ();
+	   (Lwt_unix.sleep connect_time_max >>= 
+	    (fun () -> fail Ocsigen_Timeout))] >>=
+	(fun http_frame ->
+          catch 
+	    (service http_frame sockaddr 
+	       xhtml_sender file_sender empty_sender)
+	    fail
             >>= (fun keep_alive -> 
-              if keep_alive then
+	      if keep_alive then
                 listen_connexion_aux ()
-                (* Pour laisser la connexion ouverte, je relance *)
-              else begin 
+                  (* Pour laisser la connexion ouverte, je relance *)
+	      else begin 
 		Unix.close in_ch; 
 		return ()
-	      end
-            )
-        ) in
-      catch analyse_http 
-      (function e ->
-	Unix.close in_ch; 
-	match e with
-        |Com_buffer.End_of_file -> return ()
-        |Http_error.Http_exception (_,_) as http_ex->
-            (*let mes = Http_error.string_of_http_exception http_ex in
-               really_write "404 Plop" (* à revoir ! *) 
-	      false in_ch mes 0 
-	      (String.length mes);*)
-            send_error ~http_exception:http_ex xhtml_sender;
-            return ()
-        |exn -> (* fail exn *)
-	    errlog ("Uncaught exception (in listen): "^(Printexc.to_string exn));
-	    return ())
-
+	      end)
+	) in
+      catch 
+	analyse_http
+	(function
+            Http_error.Http_exception (_,_) as http_ex ->
+              (*let mes = Http_error.string_of_http_exception http_ex in
+		 really_write "404 Plop" (* à revoir ! *) 
+		 false in_ch mes 0 
+		 (String.length mes);*)
+	      Unix.close in_ch;
+              send_error ~http_exception:http_ex xhtml_sender
+          | exn -> fail exn)
+	
     in listen_connexion_aux ()
-
-    in 
-    let wait_connexion socket =
-      let rec wait_connexion_rec () =
-        Lwt_unix.accept socket >>= (fun (inputchan, sockaddr) ->
-	debug "\n____________________________NEW CONNECTION__________________________";
-	  let server_name = "Ocsigen server" in
-          let xhtml_sender =
-            create_xhtml_sender ~server_name:server_name inputchan 
-          in
-          let file_sender =
-            create_file_sender ~server_name:server_name inputchan
-          in
-          let empty_sender =
-            create_empty_sender ~server_name:server_name inputchan
-          in
-	  listen_connexion 
-	    (Http_receiver.create inputchan) inputchan sockaddr xhtml_sender
-            file_sender empty_sender;
-          wait_connexion_rec ()) (* je relance une autre attente *)
-      in wait_connexion_rec ()
-    
+      
+  in 
+  let wait_connexion socket =
+    let handle_exn in_ch exn = 
+      Unix.close in_ch;
+      match exn with
+	Unix.Unix_error (e,func,param) ->
+	  errlog ((Unix.error_message e)^
+		  " in function "^func^" ("^param^") - (I continue)");
+	  return ()
+      | Com_buffer.End_of_file -> return ()
+      | Ocsigen_Timeout -> warning "Timeout"; return ()
+      | exn -> 
+	  errlog ("Uncaught exception: "
+		  ^(Printexc.to_string exn)^" - (I continue)");
+	  return ()
     in
-    ((* Initialize the listening address *)
-    new_socket () >>= (fun listening_socket ->
-      Unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
-      Unix.bind listening_socket (local_addr (Ocsiconfig.get_port ()));
-      Unix.listen listening_socket 1;
-      (* I change the user for the process *)
-      Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
-      Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
-      (* Now I can load the modules *)
-      load_modules modules_list;
-      Ocsigen.end_initialisation ();
-      let rec run () =
-	try 
-	  wait_connexion listening_socket
-	with
-	  Unix.Unix_error (e,func,param) ->
-	    errlog ((Unix.error_message e)^" in function "^func^" ("^param^")");
-	    run () (*  return? *)
-	| exn -> 
-	    errlog ("Uncaught exception: "^(Printexc.to_string exn)); 
-	    run ()
-      in
-      run ()
-    ))
+    let handle_connection (inputchan, sockaddr) =
+      debug "\n__________________NEW CONNECTION__________________________";
+      catch
+	(fun () -> 
+	  let server_name = "Ocsigen server" in
+	  let xhtml_sender =
+	    create_xhtml_sender ~server_name:server_name inputchan 
+	  in
+	  let file_sender =
+	    create_file_sender ~server_name:server_name inputchan
+	  in
+	  let empty_sender =
+	    create_empty_sender ~server_name:server_name inputchan
+	  in
+	  listen_connexion 
+	    (Http_receiver.create inputchan) 
+	    inputchan sockaddr xhtml_sender
+	    file_sender empty_sender)
+	(handle_exn inputchan)
+    in
+    let rec wait_connexion_rec = 
+      let max_connect = ref max_number_of_connections in
+      fun () ->
+	Lwt_unix.accept socket >>= 
+	(fun c -> 
+	  max_connect := !max_connect - 1;
+	  prerr_endline ("max_connect = "^(string_of_int !max_connect));
+	  if !max_connect > 0 then
+	    ignore_result (wait_connexion_rec ());
+	  handle_connection c) >>= 
+	(fun () -> 
+	  max_connect := !max_connect + 1; 
+	  if !max_connect = 1 
+	  then wait_connexion_rec ()
+	  else return ())
+    in wait_connexion_rec ()
+  in
+  ((* Initialize the listening address *)
+     new_socket () >>= (fun listening_socket ->
+       Unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
+       Unix.bind listening_socket (local_addr (Ocsiconfig.get_port ()));
+       Unix.listen listening_socket 1;
+       (* I change the user for the process *)
+       (try
+	 Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
+	 Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
+       with e -> errlog ("Error: wrong user or group"); raise e);
+       (* Now I can load the modules *)
+       load_modules modules_list;
+       Ocsigen.end_initialisation ();
+       wait_connexion listening_socket >>=
+       wait))
 
 let _ = 
   try 
@@ -494,3 +520,4 @@ let _ =
   | Ocsigen.Ocsigen_register_for_session_outside_session ->
       errlog ("Register session during initialisation forbidden.")
   | Dynlink.Error e -> errlog (Dynlink.error_message e)
+  | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))

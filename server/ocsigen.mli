@@ -317,12 +317,10 @@ val action_link : ?a:([< xhaattrib > `Href ] attrib list) ->
 
 val action_form : ?a:([< xhformattrib > `Method ] attrib list) ->
     ?reload:bool ->
-      ?classe:string list ->
-	?id:string ->
-	    ('a, 'b) actionurl ->
-	      http_params -> 
-		'a ->
-		  [> xhform] elt
+      ('a, 'b) actionurl ->
+	http_params -> 
+	  'a ->
+	    [> xhform] elt
 
 (** return a page from an url and parameters *)
 val get_page :

@@ -121,7 +121,9 @@ end = struct
 	let sql_t_list_to_tvalue = function
             [`Binary data
             ] -> ((Marshal.from_string data 0) : tvalue)
-          | _ -> raise (Ocsicache.Cache_error "content (probably database table wrong?)")
+          | _ -> raise 
+		(Ocsicache.Ocsigen_Cache_error 
+		   "content (probably database table wrong?)")
 
 	let tvalue_to_sql_t_list o =
           [`Binary (Marshal.to_string o [])
@@ -164,7 +166,8 @@ end = struct
              user_creation_date= user_creation_date;
              last_connection_date= last_connection_date;*)
              groups=(Marshal.from_string groups 0)}
-	| _ -> raise (Ocsicache.Cache_error "users (probably database table wrong?)")
+	| _ -> raise (Ocsicache.Ocsigen_Cache_error
+			"users (probably database table wrong?)")
 
       let tvalue_to_sql_t_list
           {login=login;
@@ -202,7 +205,8 @@ end = struct
       let sql_t_list_to_tvalue = function
           [`Binary groups
           ] -> (Marshal.from_string groups 0 : resource list)
-	| _ -> raise (Ocsicache.Cache_error "resources (probably database table wrong?)")
+	| _ -> raise (Ocsicache.Ocsigen_Cache_error
+			"resources (probably database table wrong?)")
 
       let tvalue_to_sql_t_list l
           =

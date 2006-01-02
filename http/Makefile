@@ -24,11 +24,11 @@ doc:
 	$(CAMLDOC) $(PP) $(LIB) -html -d documentation *.ml *.mli
 
 clean:
-	rm $(NAME) $(OPTNAME) *.cm[oix] *.o \
+	-rm $(NAME) $(OPTNAME) *.cm[oix] *.o \
 	http_parser.ml http_parser.mli http_lexer.ml  documentation/*	
 
 viclean: clean
-	rm *~
+	-rm *~
 
 depend:
 	$(CAMLDEP) $(PP) *.ml *.mli > .depend

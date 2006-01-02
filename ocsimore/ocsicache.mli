@@ -5,7 +5,7 @@
 
 (** The key must be the first field in the database *)
 
-exception Cache_error of string
+exception Ocsigen_Cache_error of string
 
 module Make (A : sig 
 	       type tvalue

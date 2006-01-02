@@ -1107,7 +1107,7 @@ let state_param_name = "__ocsetat__"
 
 
 
-
+(* aeff
 (** Functions to construct web pages: *)
 let make_attrs ?size ?maxlength ?classe ?id ?title ?accesskey ?alt
     ?(disabled=false) ?(readonly=false) ?(checked=false) () =
@@ -1141,7 +1141,9 @@ let make_attrs ?size ?maxlength ?classe ?id ?title ?accesskey ?alt
   let attrs = if readonly then (XML.string_attrib "readonly" "readonly")::attrs else attrs in
   let attrs = if checked then (XML.string_attrib "checked" "checked")::attrs else attrs in
   attrs
-    
+*)
+
+
 let make_a ?(a=[]) l = XHTML.M.a ~a:a l
 
 
@@ -1351,7 +1353,7 @@ let action_link ?(a=[]) ?(reload=true) actionurl h content =
 	</form> >>
 	
 let action_form ?(a=[])
-    ?(reload=true) ?classe ?id (actionurl : ('a,'b) actionurl) h (f : 'a) = 
+    ?(reload=true) (actionurl : ('a,'b) actionurl) h (f : 'a) = 
   let action_param_name = action_prefix^action_name in
   let action_param = (actionurl.action_name) in
   let reload_name = action_prefix^action_reload in
@@ -1364,7 +1366,6 @@ let action_form ?(a=[])
     if reload 
     then <:xmllist< <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p>$list:inside$ >>
     else inside in
-  let attrs = make_attrs ?id ?classe () in
   form ~a:((a_method `Post)::a) ~action:(make_uri_from_string v)
     << <p>$action_line$</p> >>
   inside_reload

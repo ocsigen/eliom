@@ -20,7 +20,7 @@
 
 open Db_create
 
-exception Cache_error of string
+exception Ocsigen_Cache_error of string
 
 module Make = 
   functor (A : sig 
@@ -64,14 +64,15 @@ struct
       sth#execute [value];
       match (sth#fetch1 ()) with
 	  (`Int a)::l -> (a, (A.sql_t_list_to_tvalue l))
-	| _ -> raise (Cache_error "get_by_field")
+	| _ -> raise (Ocsigen_Cache_error  
+			("Database Table "^A.table^" (get_by_field"))
 
   let size () = 
     let s = dbh#prepare ("SELECT currval('"^A.table^"_"^A.key^"_seq"^"')") in
       s#execute [];
       match s#fetch1 () with
       | [`Bigint i] -> Big_int.int_of_big_int i
-      | _ -> raise (Cache_error "size")
+      | _ -> raise (Ocsigen_Cache_error ("Database Table "^A.table^" (size)"))
 
   let insert ~value =
     let s = dbh#prepare ("INSERT INTO "^A.table^" ("^fields_string^") VALUES ("^question_marks_string^")") in

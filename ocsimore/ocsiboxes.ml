@@ -33,7 +33,8 @@ let create_login_form =
        >>)
 
 let login_box_action h actionurl = 
-  action_form ~id:"loginbox" ~classe:["userbox"] actionurl h create_login_form
+  action_form ~a:[a_id "loginbox";a_class ["userbox"]]
+    actionurl h create_login_form
 
 let login_box h url = post_form url h.current_url create_login_form
 

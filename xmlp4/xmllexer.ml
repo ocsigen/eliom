@@ -22,6 +22,7 @@
 open Stdpp;
 open Token;
 
+
 (* The string buffering machinery *)
 
 value buff = ref (String.create 80);
@@ -111,8 +112,9 @@ value ((push_tag,pop_tag),(size_tag_stack,string_of_tag_stack)) =
 
 value next_token_fun find_kwd fname lnum bolpos =
   let make_pos p =
+    do{
      {Lexing.pos_fname = fname.val; Lexing.pos_lnum = lnum.val;
-      Lexing.pos_bol = bolpos.val; Lexing.pos_cnum = p} in
+      Lexing.pos_bol = bolpos.val; Lexing.pos_cnum = p}} in
   let mkloc (bp, ep) = (make_pos bp, make_pos ep) in
   let keyword_or_error (bp,ep) s =
     let loc = mkloc (bp, ep) in
@@ -129,7 +131,9 @@ value next_token_fun find_kwd fname lnum bolpos =
 	next_token_normal s )
   and next_token_attr =
     parser bp
-    [ [: `(' ' | '\t' | '\n'); s :] -> next_token s
+    [ [: `(' ' | '\t'); s :] -> next_token s
+      | [: `('\013' | '\010'); s :] ep -> 
+        do {bolpos.val := ep; incr lnum; next_token s}
       |	[: `('a'..'z' | 'A'..'Z' | '_' | ':' as c); s
 	 :] -> name_attribut bp (store 0 c) s
       |	[: `'=' :] ep -> (("","="),mkloc (bp,ep))
@@ -137,7 +141,7 @@ value next_token_fun find_kwd fname lnum bolpos =
 	  (("VALUE", get_buff (value_attribut_in_double_quote bp 0 s)),mkloc (bp,ep))
       |	[: `'''; s :] ep ->
 	  (("VALUE", get_buff (value_attribut_in_quote bp 0 s)),mkloc (bp,ep))
-      |	[: `'$'; s :] ep -> (* for caml expressions *) camlexprattr bp 0 s
+      |	[: `'$'; s :] -> (* for caml expressions *) camlexprattr bp 0 s
       |	[: `'/'; `'>' :] ep ->
 	  let name = pop_tag () in
 	  do { 
@@ -147,10 +151,15 @@ value next_token_fun find_kwd fname lnum bolpos =
     ]
   and next_token_normal =
     parser bp
-    [ [: `(' ' | '\010' | '\013' | '\t' | '\026' | '\012' as c); s :] ep ->
+    [ [: `(' ' | '\t' | '\026' | '\012' as c); s :] ep ->
       let c_string = string_of_space_char c in
       (("WHITESPACE", 
 	get_buff (whitespaces bp (mstore 0 c_string) s)),mkloc (bp,ep))
+    | [: `('\013' | '\010' as c); s :] ep ->
+      let c_string = string_of_space_char c in
+      do {bolpos.val := ep; incr lnum;
+      (("WHITESPACE", 
+	get_buff (whitespaces bp (mstore 0 c_string) s)),mkloc (bp,ep))}
     | [: `('A'..'Z' | '\192'..'\214' | '\216'..'\222' | 'a'..'z' |
       '\223'..'\246' | '\248'..'\255' | '_' | '1'..'9' | '0' | '\'' | '"' |
       (* '$' | *) 
@@ -159,7 +168,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       ')' | '#' | '>' | '`'
 	as c); s :] ep -> 
 	  (("DATA", get_buff (data bp (store 0 c) s)),mkloc (bp,ep))
-    | [: `'$'; s :] ep -> (* for caml varnames *) camlexpr bp s
+    | [: `'$'; s :] -> (* for caml expr *) camlexpr bp s
     | [: `'<'; s :] ->
 	match s with parser
       [	[: `'?'; `'x'; `'m'; `'l';
@@ -181,7 +190,8 @@ value next_token_fun find_kwd fname lnum bolpos =
 	let size = size_tag_stack () in
 	if (size == 0)
 	then
-	  (("EOI", ""), mkloc (bp, succ bp))
+	  do {lnum.val := 1;
+	    (("EOI", ""), mkloc (bp, succ bp))}
 	else
 	  err (mkloc (bp, ep)) ( (string_of_int size) ^ " tag" ^ (if size == 1 then "" else "s") ^ " not terminated (" ^ (string_of_tag_stack ()) ^ ").")
     ]
@@ -260,24 +270,32 @@ value next_token_fun find_kwd fname lnum bolpos =
       let name = get_buff len in
       do { push_tag name;
 	   (("TAG", name), mkloc (bp,ep)) }
-      |	[: `(' ' | '\n' | '\t' as c) :] ep ->
+      |	[: `('\013' | ' ' | '\t') :] ep ->
 	  let name = get_buff len in
           do { push_tag name;
+	       begin_attr ();
+	       (("TAG", name), mkloc (bp,ep)) }
+      |	[: `('\010') :] ep ->
+	  let name = get_buff len in
+          do { bolpos.val := ep; incr lnum;
+               push_tag name;
 	       begin_attr ();
 	       (("TAG", name), mkloc (bp,ep)) }
       | [: `( 'a'..'z' | 'A'..'Z' | '1'..'9' | '0' |
 	'.' | '-' | '_' | ':' as c); s :] ->
 	    start_tag bp (store len c) s
-      |	[: s :] ep ->
+      |	[: :] ep ->
 	  let name = get_buff len in
           do { push_tag name;
 	       begin_attr ();
-	       (("TAG", name), mkloc (bp,ep)) }
-      |	[: :] ep -> err (mkloc (bp, ep)) "start tag (< > or < />) not terminated" ]
+	       (("TAG", name), mkloc (bp,ep)) } ]
+ (*     |	[: :] ep -> err (mkloc (bp, ep)) "start tag (< > or < />) not terminated" ] *)
   and name_attribut bp len =
     parser
-    [ [: `(' ' | '\n' | '\t' as c) :] ep ->
+    [ [: `('\013' | ' ' | '\t') :] ep ->
       (("ATTR",get_buff len), mkloc (bp,ep))
+      |	[: `('\010') :] ep ->
+      do { bolpos.val := ep; incr lnum ; (("ATTR",get_buff len), mkloc (bp,ep))}
       |	[: `( 'a'..'z' | 'A'..'Z' | '1'..'9' | '0' |
     '.' | '-' | '_' | ':'
       as c); s :] -> name_attribut bp (store len c) s
@@ -298,19 +316,23 @@ value next_token_fun find_kwd fname lnum bolpos =
     | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep))
     | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep)) ]
   and antiquotname bp len =
-    parser
+    parser bp2 
     [ [: `':'; s :] ep -> let buff = get_buff len in 
-	if buff = "list" 
-	then (("CAMLEXPRXMLL", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep))
-	else if buff = "str" 
-	then (("CAMLEXPRXMLS", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep))
-	else err (mkloc (bp, ep)) "unknown antiquotation"
+    let bp2 = bp2+2 in
+    if buff = "list" 
+    then (("CAMLEXPRXMLL", get_buff (camlexpr2 bp2 0 s)), mkloc (bp2,ep))
+    else if buff = "str" 
+    then (("CAMLEXPRXMLS", get_buff (camlexpr2 bp2 0 s)), mkloc (bp2,ep))
+    else err (mkloc (bp, ep)) "unknown antiquotation"
     | [: `'$'; s :] ep -> (("CAMLEXPRXML", (get_buff len)), mkloc (bp,ep))
     | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp len s)), mkloc (bp,ep)) ]
   and camlexpr2 bp len =
     parser
-    [ [: `'$'; s :] ep -> len
-    | [: `(_ as c) ; s :] ep -> camlexpr2 bp (store len c) s ]
+    [ [: `'$'; s :] -> len
+    | [: `('\010' as c) ; s :] ep -> 
+     do { bolpos.val := ep; incr lnum; 
+     camlexpr2 bp (store len c) s}
+    | [: `(_ as c) ; s :] -> camlexpr2 bp (store len c) s ]
 
 
 
@@ -352,7 +374,10 @@ value next_token_fun find_kwd fname lnum bolpos =
     | [: s :] -> len ]
 (*  and spaces_in_data bp len spaces =
     parser
-    [ [: `(' ' | '\n' | '\t' as c); s :] ->
+    [ [: `('\n' as c); s :] ep ->
+      let c_string = string_of_space_char c in
+      do { bolpos.val := ep; incr lnum ; spaces_in_data bp len (spaces ^ c_string) s}
+    | [: `(' ' | '\t' as c); s :] ->
       let c_string = string_of_space_char c in
       spaces_in_data bp len (spaces ^ c_string) s
     | [: `('A'..'Z' | '\192'..'\214' | '\216'..'\222' | 'a'..'z' |
@@ -366,9 +391,13 @@ value next_token_fun find_kwd fname lnum bolpos =
     | [: s :] -> len ] *)
   and whitespaces bp len =
     parser
-    [ [: `(' ' | '\010' | '\013' | '\t' | '\026' | '\012' as c); s :] ->
+    [ [: `('\013' | ' ' | '\t' | '\026' | '\012' as c); s :] ->
       let c_string = string_of_space_char c in
       whitespaces bp (mstore len c_string) s
+    | [: `('\010' as c); s :] ep ->
+      let c_string = string_of_space_char c in
+      do { bolpos.val := ep; incr lnum;
+           whitespaces bp (mstore len c_string) s}
     | [: s :] -> len ]
 (* /XML *)
 
@@ -410,7 +439,7 @@ and check =
        _ =
          parser
          [ [: `']' | ':' | '=' | '>' :] -> ()
-         | [: :] -> () ] :] ep ->
+         | [: :] -> () ] :] ->
       ()
   | [: `'>' | '|';
        _ =

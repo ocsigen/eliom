@@ -21,8 +21,6 @@
 
    Attention c'est juste un essai
    Je ne colle peut-être pas à la syntaxe XML
-   par ex il faut revoir si un attribut peut être vide en xml
-   Si oui, il faut remplacer le "string" par "string option"
 
    Le typage des attributs n'est pas evident donc pour l'instant ils sont tous string
    exemple << <plop number="5" /> >> ----> `Number 5  (en fait `Number (int_of_string "5"))
@@ -46,30 +44,36 @@ let g = Grammar.gcreate (Xmllexer.gmake ())
 
 module ExpoOrPatt = struct
 
-  let loc = (Lexing.dummy_pos, Lexing.dummy_pos)
-
   type tvarval =
-      EPVstr of string
-    | EPVvar of string 
+      EPVstr of string * MLast.loc
+    | EPVvar of string * MLast.loc 
 
   type 'a tlist =
-      PLEmpty
-    | PLExpr of string
-    | PLCons of 'a * 'a tlist
+      PLEmpty of MLast.loc
+    | PLExpr of string * MLast.loc
+    | PLCons of 'a * 'a tlist * MLast.loc
 
   type texprpatt = 
-      EPanyattr of tvarval * tvarval
-    | EPanytag of string * texprpatt tlist * texprpatt tlist
-    | EPpcdata of string
-    | EPwhitespace of string
-    | EPcomment of string
-    | EPanytagvar of string
-    | EPanytagvars of string
+      EPanyattr of tvarval * tvarval * MLast.loc
+    | EPanytag of string * texprpatt tlist * texprpatt tlist * MLast.loc
+    | EPpcdata of string * MLast.loc
+    | EPwhitespace of string * MLast.loc
+    | EPcomment of string * MLast.loc
+    | EPanytagvar of string * MLast.loc
+    | EPanytagvars of string * MLast.loc
 
-  let get_expr = function
-      [MLast.StExp (v,w),_],_ -> w
+  let get_expr v = (* <:expr< $lid:v$ >> *)
+    match (!Pcaml.parse_implem) (Stream.of_string v) with
+      [MLast.StExp (v,w), loc],_ -> (* w *)
+(*	let w = Pcaml.expr_reloc (fun x -> loc) 
+	    {Lexing.pos_fname="";
+	     Lexing.pos_lnum=1;
+	     Lexing.pos_bol=1;
+	     Lexing.pos_cnum=1} w in*)
+	<:expr< $anti:w$ >>
     | _ -> failwith "XML parsing error: problem in antiquotations $...$"
 
+(*
   let list_of_mlast_expr el = 
     List.fold_right 
       (fun x l -> <:expr< [$x$ :: $l$] >>) el <:expr< [] >>
@@ -77,90 +81,90 @@ module ExpoOrPatt = struct
   let list_of_mlast_patt pl = 
     List.fold_right 
       (fun x l -> <:patt< [$x$ :: $l$] >>) pl <:patt< [] >>
-
+*)
   let expr_valorval = function
-      EPVstr v -> <:expr< $str:v$ >>
-    | EPVvar v -> <:expr< $lid:v$ >>
+      EPVstr (v, loc) -> <:expr< $str:v$ >>
+    | EPVvar (v, loc) -> <:expr< $lid:v$ >>
 
   let patt_valorval = function
-      EPVstr v -> <:patt< $str:v$ >>
-    | EPVvar v -> <:patt< $lid:v$ >>
+      EPVstr (v, loc) -> <:patt< $str:v$ >>
+    | EPVvar (v, loc) -> <:patt< $lid:v$ >>
 
   let rec to_expr = function
 
-      EPanyattr (EPVstr aa, v) ->
+      EPanyattr (EPVstr (aa,_), v, loc) ->
 	let vv = expr_valorval v in
 	<:expr< (`$uid:String.capitalize aa$, $vv$) >>
 
-    | EPanyattr (EPVvar aa, v) ->
+    | EPanyattr (EPVvar (aa,_), v, loc) ->
 	let vv = expr_valorval v in
 	<:expr< ($lid:aa$, $vv$) >>
 
-    | EPanytag (tag, attribute_list, child_list) ->
+    | EPanytag (tag, attribute_list, child_list, loc) ->
 	<:expr< `$uid:String.capitalize tag$
 	  $to_expr_attlist attribute_list$
           $to_expr_taglist child_list$
 	>>
 	
-    | EPpcdata dt -> <:expr< `PCData $str:dt$ >>
+    | EPpcdata (dt, loc) -> <:expr< `PCData $str:dt$ >>
 
-    | EPwhitespace dt -> <:expr< `Whitespace $str:dt$ >>
+    | EPwhitespace (dt, loc) -> <:expr< `Whitespace $str:dt$ >>
 
-    | EPanytagvar v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
+    | EPanytagvar (v, loc) -> get_expr v
 (*	<:expr< $lid:v$ >> *)
 
-    | EPanytagvars v -> 
-	let s = get_expr ((!Pcaml.parse_implem) (Stream.of_string v)) in
+    | EPanytagvars (v, loc) -> 
+	let s = get_expr v in
 	<:expr< `PCData $s$ >>
 
-    | EPcomment c -> <:expr< `Comment $str:c$ >>
+    | EPcomment (c, loc) -> <:expr< `Comment $str:c$ >>
 
   and to_expr_taglist = function
-      PLEmpty -> <:expr< [] >>
-    | PLExpr v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
-    | PLCons (a,l) -> <:expr< [ $to_expr a$ :: $to_expr_taglist l$ ] >>
+      PLEmpty loc -> <:expr< [] >>
+    | PLExpr (v, loc) -> get_expr v
+    | PLCons (a,l, loc) -> <:expr< [ $to_expr a$ :: $to_expr_taglist l$ ] >>
 
   and to_expr_attlist = function
-      PLEmpty -> <:expr< [] >>
-    | PLExpr v -> get_expr ((!Pcaml.parse_implem) (Stream.of_string v))
-    | PLCons (a,l) -> <:expr< [ $to_expr a$ :: $to_expr_attlist l$ ] >>
+      PLEmpty loc -> <:expr< [] >>
+    | PLExpr (v, loc) -> get_expr v
+    | PLCons (a,l, loc) -> <:expr< [ $to_expr a$ :: $to_expr_attlist l$ ] >>
 
 
   let rec to_patt = function
 
-      EPanyattr (EPVstr a, v) -> 
+      EPanyattr (EPVstr (a,_), v, loc) -> 
 	let vv = patt_valorval v in
 	<:patt< ((`$uid:String.capitalize a$), $vv$) >>
 
-    | EPanyattr (EPVvar a, v) ->
+    | EPanyattr (EPVvar (a,_), v, loc) ->
 	let vv = patt_valorval v in
 	<:patt< ($lid:a$, $vv$) >>
 
-    | EPanytag (tag, attribute_list, child_list) ->
+    | EPanytag (tag, attribute_list, child_list, loc) ->
 	<:patt< `$uid:String.capitalize tag$
 	  $to_patt_attlist attribute_list$
           $to_patt_taglist child_list$
         >>
 
-    | EPpcdata dt -> <:patt< `PCData $str:dt$ >>
+    | EPpcdata (dt, loc) -> <:patt< `PCData $str:dt$ >>
 
-    | EPwhitespace dt -> <:patt< `Whitespace $str:dt$ >>
+    | EPwhitespace (dt, loc) -> <:patt< `Whitespace $str:dt$ >>
 
-    | EPanytagvar v -> <:patt< $lid:v$ >>
+    | EPanytagvar (v, loc) -> <:patt< $lid:v$ >>
 
-    | EPanytagvars v -> <:patt< `PCData $lid:v$ >>
+    | EPanytagvars (v, loc) -> <:patt< `PCData $lid:v$ >>
 
-    | EPcomment c -> <:patt< `Comment $str:c$ >>
+    | EPcomment (c, loc) -> <:patt< `Comment $str:c$ >>
 
   and to_patt_taglist = function
-      PLEmpty -> <:patt< [] >>
-    | PLExpr v -> <:patt< $lid:v$ >>
-    | PLCons (a,l) -> <:patt< [ $to_patt a$ :: $to_patt_taglist l$ ] >>
+      PLEmpty loc -> <:patt< [] >>
+    | PLExpr (v, loc) -> <:patt< $lid:v$ >>
+    | PLCons (a,l, loc) -> <:patt< [ $to_patt a$ :: $to_patt_taglist l$ ] >>
 
   and to_patt_attlist = function
-      PLEmpty -> <:patt< [] >>
-    | PLExpr v -> <:patt< $lid:v$ >>
-    | PLCons (a,l) -> <:patt< [ $to_patt a$ :: $to_patt_attlist l$ ] >>
+      PLEmpty loc -> <:patt< [] >>
+    | PLExpr (v, loc) -> <:patt< $lid:v$ >>
+    | PLCons (a,l, loc) -> <:patt< [ $to_patt a$ :: $to_patt_attlist l$ ] >>
 
 end
 
@@ -192,58 +196,59 @@ EXTEND
     child_list = OPT exprpatt_any_tag_list;
     GAT -> 
       let attlist = match attribute_list with
-	  None -> PLEmpty
+	  None -> PLEmpty loc
 	| Some l -> l
       in
       let taglist = match child_list with
-	  None -> PLEmpty
+	  None -> PLEmpty loc
 	| Some l -> l
       in EPanytag
 	(tag,
 	 attlist, 
-	 taglist)
-  | dt = WHITESPACE -> EPwhitespace dt
-  | dt = DATA -> EPpcdata dt
-  | c = COMMENT -> EPcomment c
-  | v = CAMLEXPRXML -> EPanytagvar v
-  | v = CAMLEXPRXMLS -> EPanytagvars v
+	 taglist,
+	 loc)
+  | dt = WHITESPACE -> EPwhitespace (dt, loc)
+  | dt = DATA -> EPpcdata (dt, loc)
+  | c = COMMENT -> EPcomment (c, loc)
+  | v = CAMLEXPRXML -> EPanytagvar (v, loc)
+  | v = CAMLEXPRXMLS -> EPanytagvars (v, loc)
   ] ];
 
   exprpatt_any_attribute_list:
   [ [
-      v = CAMLEXPRL -> PLExpr v
+      v = CAMLEXPRL -> PLExpr (v, loc)
     | a = exprpatt_attr_or_var;
       "=";
       value = exprpatt_value_or_var;
       suite  = OPT exprpatt_any_attribute_list ->
       let suite = match suite with
-	  None -> PLEmpty
+	  None -> PLEmpty loc
 	| Some l -> l
-      in PLCons (EPanyattr (a,value), suite)
+      in PLCons (EPanyattr (a,value, loc), suite, loc)
   ] ];
 
   exprpatt_any_tag_list:
   [ [
       v = CAMLEXPRXMLL;
-      OPT WHITESPACE -> PLExpr v
+      OPT WHITESPACE -> PLExpr (v, loc)
     | anytag = exprpatt_any_tag;
       suite  = OPT exprpatt_any_tag_list ->
       let suite = match suite with
-	  None -> PLEmpty
+	  None -> PLEmpty loc
 	| Some l -> l
-      in PLCons (anytag, suite)
+      in PLCons (anytag, suite, loc)
   ] ];
 
   exprpatt_value_or_var:
   [ [
-    v = VALUE -> EPVstr v
-  | v = CAMLEXPR -> EPVvar v
+    v = VALUE -> EPVstr (v, loc)
+  | v = CAMLEXPR -> EPVvar (v, loc)
   ] ];
 
   exprpatt_attr_or_var:
   [ [
-    v = ATTR -> EPVstr v
-  | v = CAMLEXPR -> EPVvar v
+    v = ATTR -> EPVstr (v, loc)
+  | v = CAMLEXPR -> EPVvar (v, loc)
   ] ];
 
 END;;
