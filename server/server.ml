@@ -28,7 +28,7 @@ let max_number_of_connections = 500 (* too much? *)
 (* max time of connection *)
 let connect_time_max = 300. (* 5 min *)
 
-exception Ocsigen_Timeout
+exception Ocsigen_Timeout of string
 
 (******************************************************************)
 (* Config file parsing *)
@@ -156,6 +156,10 @@ let _ = Unix.set_nonblock Unix.stderr
 
 let new_socket () = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
+
+let ip_of_socket = function
+    Unix.ADDR_INET (ip,port) -> Unix.string_of_inet_addr ip
+  | _ -> "127.0.0.1"
 
 let error_page s =
           <<
@@ -297,10 +301,7 @@ let service http_frame sockaddr
       get_frame_infos http_frame in
 
       (* log *)
-	let ip =  match sockaddr with
-	  Unix.ADDR_INET (ip,port) -> Unix.string_of_inet_addr ip
-	| _ -> "127.0.0.1"
-	in
+	let ip = ip_of_socket sockaddr in
 	accesslog ("connection from "^ip^" ("^ua^") : "^stringpath^params);
       (* end log *)
 
@@ -409,7 +410,7 @@ let listen modules_list =
 	choose
 	  [Http_receiver.get_http_frame receiver ();
 	   (Lwt_unix.sleep connect_time_max >>= 
-	    (fun () -> fail Ocsigen_Timeout))] >>=
+	    (fun () -> fail (Ocsigen_Timeout (ip_of_socket sockaddr))))] >>=
 	(fun http_frame ->
           catch 
 	    (service http_frame sockaddr 
@@ -449,9 +450,13 @@ let listen modules_list =
 	  return ()
       | Com_buffer.End_of_file -> return ()
       | Ocsigen_HTTP_parsing_error (s1,s2) ->
-	  errlog ("HTTP parsing error near ("^s1^") in\n"^s2);
+	  errlog ("HTTP parsing error near ("^s1^") in:\n"^
+		  (if (String.length s2)>2000 
+		  then ((String.sub s2 0 1999)^"...<truncated>")
+		  else s2)^"\n---");
 	  return ()
-      | Ocsigen_Timeout -> warning "Timeout"; return ()
+      | Ocsigen_Timeout s -> warning ("Timeout during connection from "^s); 
+	  return ()
       | exn -> 
 	  errlog ("Uncaught exception: "
 		  ^(Printexc.to_string exn)^" - (I continue)");
@@ -484,12 +489,18 @@ let listen modules_list =
 	(fun c -> 
 	  max_connect := !max_connect - 1;
 	  if !max_connect > 0 then
-	    ignore_result (wait_connexion_rec ());
+	    ignore_result (wait_connexion_rec ())
+	  else warning ("Max simultaneous connections ("^
+			(string_of_int max_number_of_connections)^
+			")reached!!");
 	  handle_connection c) >>= 
 	(fun () -> 
 	  max_connect := !max_connect + 1; 
 	  if !max_connect = 1 
-	  then wait_connexion_rec ()
+	  then begin
+	    warning "Ok releasing one connection";
+	    wait_connexion_rec ()
+	  end
 	  else return ())
     in wait_connexion_rec ()
   in
@@ -506,7 +517,7 @@ let listen modules_list =
        (* Now I can load the modules *)
        load_modules modules_list;
        Ocsigen.end_initialisation ();
-       warning "End of initialisations";
+       warning "Ocsigen has been launched (initialisations ok)";
        wait_connexion listening_socket >>=
        wait))
 
