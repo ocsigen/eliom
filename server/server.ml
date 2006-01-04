@@ -23,7 +23,7 @@ open Http_frame
 open Http_com
 open Sender_helpers
 
-exception Ocsigen_Timeout of string
+exception Ocsigen_Timeout
 
 (******************************************************************)
 (* Config file parsing *)
@@ -158,7 +158,7 @@ let _ = Unix.set_nonblock Unix.stderr
 let new_socket () = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
 
-let ip_of_socket = function
+let ip_of_sockaddr = function
     Unix.ADDR_INET (ip,port) -> Unix.string_of_inet_addr ip
   | _ -> "127.0.0.1"
 
@@ -302,7 +302,7 @@ let service http_frame sockaddr
       get_frame_infos http_frame in
 
       (* log *)
-	let ip = ip_of_socket sockaddr in
+	let ip = ip_of_sockaddr sockaddr in
 	accesslog ("connection from "^ip^" ("^ua^") : "^stringpath^params);
       (* end log *)
 
@@ -408,7 +408,7 @@ let listen modules_list =
 	choose
 	  [Http_receiver.get_http_frame receiver ();
 	   (Lwt_unix.sleep (get_connect_time_max ()) >>= 
-	    (fun () -> fail (Ocsigen_Timeout (ip_of_socket sockaddr))))] >>=
+	    (fun () -> fail Ocsigen_Timeout))] >>=
 	(fun http_frame ->
           catch 
 	    (service http_frame sockaddr 
@@ -439,24 +439,25 @@ let listen modules_list =
       
   in 
   let wait_connexion socket =
-    let handle_exn in_ch exn = 
+    let handle_exn sockaddr in_ch exn = 
+      let ip = ip_of_sockaddr sockaddr in
       Unix.close in_ch;
       match exn with
 	Unix.Unix_error (e,func,param) ->
-	  errlog ((Unix.error_message e)^
+	  errlog ("While talking to "^ip^": "^(Unix.error_message e)^
 		  " in function "^func^" ("^param^") - (I continue)");
 	  return ()
       | Com_buffer.End_of_file -> return ()
       | Ocsigen_HTTP_parsing_error (s1,s2) ->
-	  errlog ("HTTP parsing error near ("^s1^") in:\n"^
+	  errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^") in:\n"^
 		  (if (String.length s2)>2000 
 		  then ((String.sub s2 0 1999)^"...<truncated>")
 		  else s2)^"\n---");
 	  return ()
-      | Ocsigen_Timeout s -> warning ("Timeout during connection from "^s); 
+      | Ocsigen_Timeout -> warning ("While talking to "^ip^": Timeout");
 	  return ()
       | exn -> 
-	  errlog ("Uncaught exception: "
+	  errlog ("While talking to "^ip^": Uncaught exception - "
 		  ^(Printexc.to_string exn)^" - (I continue)");
 	  return ()
     in
@@ -478,7 +479,7 @@ let listen modules_list =
 	    (Http_receiver.create inputchan) 
 	    inputchan sockaddr xhtml_sender
 	    file_sender empty_sender)
-	(handle_exn inputchan)
+	(handle_exn sockaddr inputchan)
     in
     let rec wait_connexion_rec = 
       fun () ->
@@ -512,7 +513,7 @@ let listen modules_list =
        (try
 	 Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
 	 Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
-       with e -> errlog ("Error: wrong user or group"); raise e);
+       with e -> errlog ("Error: Wrong user or group"); raise e);
        (* Now I can load the modules *)
        load_modules modules_list;
        Ocsigen.end_initialisation ();
