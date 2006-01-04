@@ -25,26 +25,38 @@ let port = ref 80
 let logdir = ref "/var/log/ocsigen/"
 let config_file = ref "/etc/ocsigen/ocsigen.conf"
 let verbose = ref false
+let silent = ref false
 let veryverbose = ref false
 let static_tree = ref (Static_dir (Some "/var/www/ocsigen", []))
 let user = ref "ocsigen"
 let group = ref "ocsigen"
+(* Max number of simultaneous connections *)
+let max_number_of_connections = ref 500 (* too much? *)
+(* Max connection time *)
+let connect_time_max = ref 300. (* 5 min *)
+
 
 let set_port i = port := i
 let set_logdir s = logdir := s
 let set_configfile s = config_file := s
 let set_verbose () = verbose := true
+let set_silent () = silent := true
 let set_veryverbose () = verbose := true; veryverbose := true
 let set_user s = user := s
 let set_group s = group := s
+let set_max_number_of_connections i = max_number_of_connections := i
+let set_connect_time_max i = connect_time_max := i
 let get_port () = !port
 let get_logdir () = !logdir
 let get_config_file () = !config_file
 let get_verbose () = !verbose
+let get_silent () = !silent
 let get_veryverbose () = !veryverbose
 let get_static_tree () = !static_tree
 let get_user () = !user
 let get_group () = !group
+let get_max_number_of_connections () = !max_number_of_connections
+let get_connect_time_max () = !connect_time_max
 
 let set_static_dir s path =
   let rec assoc_and_remove a = function
@@ -77,6 +89,7 @@ let print_location loc =
 let _ = Arg.parse
     [("-c", Arg.String set_configfile, 
       "Alternate config file (default /etc/ocsigen.conf)");
+     ("-s", Arg.Unit set_silent, "Silent mode (erroe messages in errors.log only)");
      ("-v", Arg.Unit set_verbose, "Verbose mode");
      ("-vv", Arg.Unit set_veryverbose, "Very verbose mode (debug)")
    ]

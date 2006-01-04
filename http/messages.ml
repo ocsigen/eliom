@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let log_aux f s =
+let log_aux f console_print s =
   let logfile = (Ocsiconfig.get_logdir ())^"/"^f in
   let date = 
     let t = Unix.localtime (Unix.time ()) in
@@ -30,7 +30,7 @@ let log_aux f s =
       t.Unix.tm_sec 
   in
   let s = date^" - "^s^"\n" in
-  if Ocsiconfig.get_verbose () then prerr_endline ("["^f^"] "^s);
+  if console_print then prerr_endline ("["^f^"] "^s);
   let file = 
     Unix.openfile 
       logfile [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640 in
@@ -43,13 +43,13 @@ let lwtbip i =
     ignore (Unix.write Unix.stderr s 0 (String.length s))
 
 let accesslog s =
-  log_aux "access.log" s
+  log_aux "access.log" (Ocsiconfig.get_verbose ()) s
 
 let errlog s =
-  log_aux "errors.log" s
+  log_aux "errors.log" (not (Ocsiconfig.get_silent ())) s
 
 let warning s =
-  log_aux "warnings.log" s
+  log_aux "warnings.log" (Ocsiconfig.get_verbose ()) s
 
 (*
 let lwtlog = 

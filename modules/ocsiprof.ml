@@ -54,6 +54,8 @@ let _ =
      <h1>Ocsigen server profiling</h1>
      <p>Uptime: $str:uptime$.</p>
      <p>There are currently $str:n$ sessions.</p>
+     <p>Number of clients connected: 
+	 $str:(string_of_int (get_number_of_connected ()))$.</p>
      <p>Size of major heap: $str:size$ words (max: $str:maxsize$).</p>
      <p>Since the beginning:</p>
        <ul><li>$str:mincol$ minor garbage collections,</li>

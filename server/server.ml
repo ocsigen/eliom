@@ -23,11 +23,6 @@ open Http_frame
 open Http_com
 open Sender_helpers
 
-(* Max number of simultaneous connections *)
-let max_number_of_connections = 500 (* too much? *)
-(* max time of connection *)
-let connect_time_max = 300. (* 5 min *)
-
 exception Ocsigen_Timeout of string
 
 (******************************************************************)
@@ -110,6 +105,12 @@ let rec parser_config =
 	parse_ocsigen ll
     | PLCons ((EPanytag ("group", PLEmpty, p)), ll) -> 
 	set_group (parse_string p);
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("maxconnected", PLEmpty, p)), ll) -> 
+	set_max_number_of_connections (int_of_string (parse_string p));
+	parse_ocsigen ll
+    | PLCons ((EPanytag ("timeout", PLEmpty, p)), ll) -> 
+	set_connect_time_max (float_of_string (parse_string p));
 	parse_ocsigen ll
     | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
 	(Cmo (parse_string l))::parse_ocsigen ll
@@ -396,9 +397,6 @@ let load_modules modules_list =
   Dynlink.init ();
   aux modules_list
 
-
-
-
 (** Thread waiting for events on a the listening port *)
 let listen modules_list =
   
@@ -409,7 +407,7 @@ let listen modules_list =
       let analyse_http () =
 	choose
 	  [Http_receiver.get_http_frame receiver ();
-	   (Lwt_unix.sleep connect_time_max >>= 
+	   (Lwt_unix.sleep (get_connect_time_max ()) >>= 
 	    (fun () -> fail (Ocsigen_Timeout (ip_of_socket sockaddr))))] >>=
 	(fun http_frame ->
           catch 
@@ -483,20 +481,21 @@ let listen modules_list =
 	(handle_exn inputchan)
     in
     let rec wait_connexion_rec = 
-      let max_connect = ref max_number_of_connections in
       fun () ->
 	Lwt_unix.accept socket >>= 
-	(fun c -> 
-	  max_connect := !max_connect - 1;
-	  if !max_connect > 0 then
+	(fun c ->
+	  incr_connected ();
+	  if (get_number_of_connected ()) <
+	    (get_max_number_of_connections ()) then
 	    ignore_result (wait_connexion_rec ())
 	  else warning ("Max simultaneous connections ("^
-			(string_of_int max_number_of_connections)^
+			(string_of_int (get_max_number_of_connections ()))^
 			")reached!!");
 	  handle_connection c) >>= 
 	(fun () -> 
-	  max_connect := !max_connect + 1; 
-	  if !max_connect = 1 
+	  decr_connected (); 
+	  if (get_number_of_connected ()) = 
+	    (get_max_number_of_connections ()) - 1
 	  then begin
 	    warning "Ok releasing one connection";
 	    wait_connexion_rec ()

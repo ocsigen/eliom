@@ -334,9 +334,6 @@ val make_action :
   (string * string) list * string -> 
   Unix.sockaddr -> string option -> string option * unit * string
 
-(** loads a module in the server *)
-val load_ocsigen_module : dir:url_path -> cmo:string -> unit
-
 
 val state_param_name : string
 val action_prefix : string
@@ -345,3 +342,13 @@ val action_reload : string
 
 (** Profiling *)
 val number_of_sessions : unit -> int
+val get_number_of_connected : unit -> int
+
+val get_number_of_connected : unit -> int
+(** Server internal functions: *)
+(** loads a module in the server *)
+val load_ocsigen_module : dir:url_path -> cmo:string -> unit
+val incr_connected : unit -> unit
+val decr_connected : unit -> unit
+
+
