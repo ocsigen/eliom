@@ -1,4 +1,5 @@
 (* Ocsigen Tutorial *)
+(* See http://www.ocsigen.org for a more detailed version *)
 
 open XHTML.M
 open Ocsigen
@@ -83,8 +84,8 @@ let writeparams entier chaine chaine2 =
     <body>
     <p>
       You sent to me: 
-      <strong>$str:string_of_int entier$</strong> et 
-      <strong>$str:chaine$</strong> et 
+      <strong>$str:string_of_int entier$</strong> and
+      <strong>$str:chaine$</strong> and
       <strong>$str:chaine2$</strong>
     </p>
     </body>
@@ -95,8 +96,7 @@ let plop_params = register_new_url
   ~path:["plop"]
   ~params:((_int "entier") ** (_string "chaine") ** (_string "chaine2"))
   writeparams
-(* If you register twice exactly the same URL, the first one will 
-   disappear! *)
+(* If you register twice exactly the same URL, the server won't start *)
 
 
 (* ------------------------------------------------------------------ *)
@@ -201,7 +201,7 @@ let _ = register_url linkrec
     (fun url -> 
       << <html>
           <head><title></title></head>
-          <body><p>$a linkrec url <:xmllist< cli >>$</p></body>
+          <body><p>$a linkrec url <:xmllist< click >>$</p></body>
          </html> >>)
 
 (* If some url are not registered, the server will not start:

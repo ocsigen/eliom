@@ -1,4 +1,5 @@
 (* Ocsigen
+ * Module server.ml
  * Copyright (C) 2005 Vincent Balat and Denis Berthod
  *
  * This program is free software; you can redistribute it and/or modify
@@ -230,7 +231,6 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     in
     let action_info, post_params3 =
       try
-	List.iter (fun a,b -> print_endline (a^","^b)) post_params2; 
 	let action_name, pp = 
 	  ((List.assoc (action_prefix^action_name) post_params2),
 	   (List.remove_assoc (action_prefix^action_name) post_params2)) in
@@ -246,8 +246,9 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 		   full_action_param_prefix)) pp2 *) in
 	  (Some (action_name, reload, ap), pp3)
       with Not_found -> None, post_params2 in
-    let useragent = (Http_header.get_headers_value
-		       http_frame.Http_frame.header "user-agent")
+    let useragent = try (Http_header.get_headers_value
+			   http_frame.Http_frame.header "user-agent")
+    with _ -> ""
     in
     (Ocsigen.remove_slash (Neturl.url_path url2), 
                               (* the url path (string list) *)

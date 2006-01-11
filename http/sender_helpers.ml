@@ -231,7 +231,7 @@ let send_error ?(http_exception) ?(error_num=500) xhtml_sender =
           )
           
         |_ ->
-           let  error_mes = Http_error.expl_of_code error_num in
+           let error_mes = Http_error.expl_of_code error_num in
            (error_num,error_mes)
      ) in
   let str_code = string_of_int error_code in

@@ -85,7 +85,8 @@ lines :
   |line lines                   {headers:=$1::!headers;$2}
 
 line :
-  STRING COLON strings EOL    {(String.lowercase($1),$3)}
+  |STRING COLON strings EOL    {(String.lowercase($1),$3)}
+  |CODE COLON strings EOL      {(String.lowercase(string_of_int $1),$3)}
   /* EOL                  {split_string $1}*/
 
 strings :

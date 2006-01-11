@@ -1,4 +1,5 @@
 (* Ocsigen
+ * Module ocsigen.ml
  * Copyright (C) 2005 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -817,11 +818,12 @@ let register_url
   if during_initialisation () then begin
     remove_unregistered (url.url, url.get_param_names, url.post_param_names);
     register_url_aux global_tables false (url.url_state) url page; end
-  else Messages.warning "Public URL registration after init (ignored)"
+  else Messages.warning "Public URL registration after init forbidden! Please correct your module! (ignored)"
 
 (* WARNING: if we create a new URL without registering it,
    we can have a link towards a page that does not exist!!! :-(
-   The only way I see to avoid this is to impose a syntax extension
+   That's why I impose to register all url during init.
+   The only other way I see to avoid this is to impose a syntax extension
    like "let rec" for url...
  *)
 
