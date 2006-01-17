@@ -1,5 +1,6 @@
 %{
 (* Ocsigen
+ * http://www.ocsigen.org
  * http_parser.mly Copyright (C) 2005 Denis Berthod
  *
  * This program is free software; you can redistribute it and/or modify
@@ -94,6 +95,12 @@ strings :
   |STRING                       {$1}
   |STRING COLON strings         {$1^":"^$3}
   |STRING strings               {$1^" "^$2}
+  |PROTO                        {$1}
+  |PROTO COLON strings          {$1^":"^$3}
+  |PROTO strings                {$1^" "^$2}
+  |METHOD                       {$1}
+  |METHOD COLON strings         {$1^":"^$3}
+  |METHOD strings               {$1^" "^$2}
   |CODE                         {string_of_int $1}
   |CODE strings                 {(string_of_int $1)^" "^$2}
   |CODE COLON strings           {(string_of_int $1)^":"^$3}

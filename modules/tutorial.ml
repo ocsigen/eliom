@@ -556,7 +556,7 @@ let _ =
   let create_form is = 
     (fun entier ->
       let ib = int_input entier in
-      let b = submit_input "Somme" in
+      let b = submit_input "Sum" in
       <:xmllist< <p> $str:is$ + $ib$ <br/>
       $b$ </p>
       >>)
@@ -584,7 +584,7 @@ let _ =
   let create_form = 
     (fun entier ->
       <:xmllist< <p> Write a number: $int_input entier$ <br/>
-      $submit_input "Envoyer"$ </p>
+      $submit_input "Send"$ </p>
       >>)
   in
   register_url

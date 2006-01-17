@@ -5,33 +5,46 @@ Warning: This is alpha-code. Use at your own risks ...
 ------------------------------------------------------------------
 Instructions:
 
+---
 Requirements: 
-ocaml
+ocaml (tested with version 3.08.x - may not work with 3.09 because of _loc issue)
+ocamlfind
 ocamlnet (actually only module netstring) 
 (ocamlnet needs pcre?)
-ocamlfind
 
-To compile:
+If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer, 
+you can use GODI to install them automatically.
+See http://godi.ocaml-programming.de
+
+---
+To compile Ocsigen:
+
+Modify Makefile.config to set OCSIMORE=YES or OCSIMORE=NO whether you want
+Ocsimore or not (advice: start with OCSIMORE=NO, especially if you don't
+have postgresql installed)
 
   make depend
   make 
 
 If you want system-wide installation, 
-modify Makefile.config,
+modify Makefile.config to set all the paths,
 then become root, and do
   make fullinstall
 
-(make fulluninstall to remove all
- make install to install only ocsigen and ocsimore.cma
- without changing config or lof files
+(make fulluninstall -> to remove all
+ make install -> to install only ocsigen and ocsimore.cma
+                 without changing config or log files
  make uninstall)
 
 Adapt the config file to set the port, the modules you want to load
 (by default the config file is /etc/ocsigen/ocsigen.conf,
+copied from files/ocsigen.conf,
 but you can specify another one: ocsigen -c configfile)
 Set the user and group that will run ocsigen and give him read access to
-the modules you load, to the config file, and rwx access to log directory.
-(e.g. chown www-data:www-data /var/log/ocsigen/)
+ - the modules you load, 
+ - to the config file, 
+ - and rwx access to log directory.
+   (e.g. chown www-data:www-data /var/log/ocsigen/)
 
 To run the web server
 
@@ -41,13 +54,13 @@ Then you can connect to the server with your browser:
 
 http://localhost
 
-If it does not work, look at the logs or run ocsigen with option -v or -vv
+If it does not work, look at the logs or run ocsigen with options -v or -vv
 (verbose and debug mode)
 
-See the file modules/tutorial.ml for a tutorial or www.ocsigen.org
+See the file modules/tutorial.ml for a tutorial or http://www.ocsigen.org
 
 To learn the syntax extension for xhtml, see exemples in
-xmlp4/exemple/ or www.ocsigen.org
+xmlp4/exemple/ or http://www.ocsigen.org
 Warning: In the syntax extension, typing forces to respect 
 overlapping (?) of xhtml tags
 but that's all (it does not verify for example that mandatory tags are 
@@ -72,8 +85,14 @@ To use Ocsimore,
    (and give the rights to write in to the user that will launch ocsigen)
  - install the postgresql and ocamldbi (with postgresql support) libraries 
    for ocaml. (Markus Mottl version of postgresql, not Alain Frish's)
- - compile ocsimore ("make ocsimore")
- - add lines in config file to load ocsimore.cma and the modules
+ - postgresql.cma dbi.cma and dbi_postgresql.cmo won't link dynamically
+   (I don't know why). A solution is to link them in the server. It is done
+   by default.
+ - Modify Makefile.config to set OCSIMORE=YES
+ - recompile ocsigen with ocsimore support: make clean; make
+ - for system-wide install, reinstall ocsigen: 
+   for ex: sudo make uninstall; sudo make install
+ - add lines in config file ocsigen.conf to load ocsimore.cma and the modules
    you want
  - create the tables : psql -f ocsimore/createdb.sql ocsibase
  - run ocsigen. 

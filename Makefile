@@ -1,11 +1,11 @@
 include Makefile.config
 
-REPS = lwt xmlp4 http server modules
+REPS = lwt xmlp4 http server modules ocsimore
 OCAMLFIND = ocamlfind
 
 all: $(REPS)
 
-.PHONY: $(REPS) ocsimore clean
+.PHONY: $(REPS) clean
 
 
 lwt:
@@ -24,7 +24,11 @@ server:
 	make -C server depend all
 
 ocsimore:
-	make -C ocsimore depend all
+	@if (test '$(OCSIMORE)' = 'YES');\
+	then echo "Compiling Ocsimore";\
+	make -C ocsimore depend all;\
+	else echo "Skiping Ocsimore compilation";\
+	fi
 
 clean:
 	@for i in $(REPS) ocsimore ; do make -C $$i clean ; done
@@ -38,7 +42,11 @@ depend: xmlp4
 .PHONY: install fullinstall
 install:
 	make -C server install
-	make -C ocsimore install
+	@if (test '$(OCSIMORE)' = 'YES');\
+	then echo "Ocsimore installation";\
+	make -C ocsimore install;\
+	else echo "Skiping Ocsimore installation";\
+	fi
 
 fullinstall: install
 	mkdir -p $(CONFIGDIR)

@@ -17,9 +17,10 @@ CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        ocsiconfig.cmo messages.cmo\
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtml.cma sender_helpers.cmo\
-       error_pages.cmo\
-       postgresql.cma dbi.cma dbi_postgresql.cmo
-# dernière ligne pas nécessaire pour server mais je n'arrive pas à le lier ailleurs...
+       error_pages.cmo
+
+OCSIMORECMAO = postgresql.cma dbi.cma dbi_postgresql.cmo
+# Last line is only for ocsimore. But I don't know how to link them elsewhere
 
 OBJS = $(FILES:.ml=.cmo)
 
@@ -36,7 +37,12 @@ all: depend $(OBJS) $(NAME) doc
 .PHONY: doc depend
 
 $(NAME): $(OBJS)
-	$(CAMLC) -o $(NAME) $(CMAO) $(OBJS)
+	@if (test '$(OCSIMORE)' = 'YES');\
+	then echo "Ocsigen server with ocsimore support";\
+	$(CAMLC) -o $(NAME) $(CMAO) $(OCSIMORECMAO) $(OBJS);\
+	else echo "Ocsigen server without ocsimore support";\
+	$(CAMLC) -o $(NAME) $(CMAO) $(OBJS);\
+	fi
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<

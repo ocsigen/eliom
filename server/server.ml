@@ -1,4 +1,5 @@
 (* Ocsigen
+ * http://www.ocsigen.org
  * Module server.ml
  * Copyright (C) 2005 Vincent Balat and Denis Berthod
  *
@@ -173,6 +174,8 @@ let error_page s =
           </html>
           >>
 
+let cookiename = "ocsigensession"
+
 
 exception Ocsigen_Malformed_Url
 
@@ -262,13 +265,16 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 
 
 let rec getcookie s =
+  let rec firstnonspace s i = 
+    if s.[i] = ' ' then firstnonspace s (i+1) else i in
   let longueur = String.length s in
   let pointvirgule = try 
     String.index s ';'
   with Not_found -> String.length s in
   let egal = String.index s '=' in
-  let nom = (String.sub s 0 egal) in
-  if nom = "session" 
+  let first = firstnonspace s 0 in
+  let nom = (String.sub s first (egal-first)) in
+  if nom = cookiename 
   then String.sub s (egal+1) (pointvirgule-egal-1)
   else getcookie (String.sub s (pointvirgule+1) (longueur-pointvirgule-1))
 (* On peut améliorer ça *)
