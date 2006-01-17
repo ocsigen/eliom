@@ -23,11 +23,11 @@ all: ohl-xhtml $(CMA) $(OBJS) essai
 .PHONY: ohl-xhtml
 
 ohl-xhtml:
-	make -C ohl-xhtml all
+	$(MAKE) -C ohl-xhtml all
 	cp ohl-xhtml/xhtml.cma ohl-xhtml/xHTML.cmi ohl-xhtml/xML.cmi $(SRCLIBREP)
 
 essai: $(OBJS)
-	make -C exemple
+	$(MAKE) -C exemple
 
 $(CMA): xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
 	$(CAMLC) -a -o $(CMA) xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
@@ -56,8 +56,8 @@ doc:
 # Clean up
 clean:
 	-rm -f *.cm[iox] *~
-	make -C exemple clean
-	make -C ohl-xhtml clean
+	$(MAKE) -C exemple clean
+	$(MAKE) -C ohl-xhtml clean
 	touch .depend
 
 

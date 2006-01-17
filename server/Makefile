@@ -9,7 +9,12 @@ CAMLC = ocamlfind ocamlc -g $(LIB)
 CAMLOPT = ocamlfind ocamlopt $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
 CAMLDEP = ocamlfind ocamldep
-LIB = -package netstring,dbi.postgresql -I ../lib -I +camlp4
+ifeq "$(OCSIMORE)" "YES"
+OCSIMOREPCKG = dbi.postgresql,
+else
+OCSIMOREPCKG =
+endif
+LIB = -package $(OCSIMOREPCKG)netstring -I ../lib -I +camlp4
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma"
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\

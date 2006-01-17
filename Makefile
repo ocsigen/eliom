@@ -9,42 +9,42 @@ all: $(REPS)
 
 
 lwt:
-	make -C lwt depend all
+	$(MAKE) -C lwt depend all
 
 xmlp4:
-	make -C xmlp4 depend all
+	$(MAKE) -C xmlp4 depend all
 
 http :
-	make -C http depend all
+	$(MAKE) -C http depend all
 
 modules:
-	make -C modules all
+	$(MAKE) -C modules all
 
 server:
-	make -C server depend all
+	$(MAKE) -C server depend all
 
 ocsimore:
 	@if (test '$(OCSIMORE)' = 'YES');\
 	then echo "Compiling Ocsimore";\
-	make -C ocsimore depend all;\
+	$(MAKE) -C ocsimore depend all;\
 	else echo "Skiping Ocsimore compilation";\
 	fi
 
 clean:
-	@for i in $(REPS) ocsimore ; do make -C $$i clean ; done
+	@for i in $(REPS) ocsimore ; do $(MAKE) -C $$i clean ; done
 	-rm -f lib/* *~
 	-rm -f bin/* *~
 
 depend: xmlp4
-	@for i in $(REPS) ; do > "$$i"/.depend; make -C $$i depend ; done
+	@for i in $(REPS) ; do > "$$i"/.depend; $(MAKE) -C $$i depend ; done
 
 
 .PHONY: install fullinstall
 install:
-	make -C server install
+	$(MAKE) -C server install
 	@if (test '$(OCSIMORE)' = 'YES');\
 	then echo "Ocsimore installation";\
-	make -C ocsimore install;\
+	$(MAKE) -C ocsimore install;\
 	else echo "Skiping Ocsimore installation";\
 	fi
 
@@ -58,8 +58,8 @@ fullinstall: install
 
 .PHONY: uninstall fulluninstall
 uninstall:
-	make -C server uninstall
-	make -C ocsimore uninstall
+	$(MAKE) -C server uninstall
+	$(MAKE) -C ocsimore uninstall
 
 fulluninstall: uninstall
 # dangerous
