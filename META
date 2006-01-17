@@ -1,0 +1,4 @@
+description = "Tools for Ocsigen"
+version = "0.3.x"
+requires = "netstring"
+archive(byte) = "ocsimore.cma"

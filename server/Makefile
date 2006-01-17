@@ -4,7 +4,7 @@ NAME = ocsigen
 
 FILES= error_pages.ml ocsigen.ml ocsigenboxes.ml server.ml
 
-INSTALL = install -c
+INSTALL = install
 CAMLC = ocamlfind ocamlc -g $(LIB)
 CAMLOPT = ocamlfind ocamlopt $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
