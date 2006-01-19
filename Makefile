@@ -1,8 +1,9 @@
 include Makefile.config
 
+INSTALL = install
 REPS = lwt xmlp4 http server modules ocsimore
 OCAMLFIND = ocamlfind
-INSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/ocsiprof.cmo server/ocsigen.cmi server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/xhtmlsyntax.cma META
+TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/ocsiprof.cmo server/ocsigen.cmi server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/xhtmlsyntax.cma META
 OCSIMOREINSTALL = ocsimore/ocsimore.cma ocsimore/db_create.cmi ocsimore/ocsipersist.cmi ocsimore/ocsicache.cmi ocsimore/ocsidata.cmi ocsimore/ocsipages.cmi ocsimore/ocsisav.cmi ocsimore/ocsiboxes.cmi ocsimore/ocsexample_util.cmo ocsimore/ocsexample3.cmo ocsimore/ocsexample1.cmo ocsimore/ocsexample2.cmo
 
 all: $(REPS)
@@ -44,10 +45,10 @@ depend: xmlp4
 .PHONY: install fullinstall
 install:
 	$(MAKE) -C server install
-	if (test '$(OCSIMORE)' = 'YES') ;\
+	@if (test '$(OCSIMORE)' = 'YES') ;\
 	then echo "Ocsimore installation";\
-	$(OCAMLFIND) install ocsigen $(INSTALL) $(OCSIMOREINSTALL);\
-	else $(OCAMLFIND) install ocsigen $(INSTALL);\
+	$(OCAMLFIND) install ocsigen $(TOINSTALL) $(OCSIMOREINSTALL);\
+	else $(OCAMLFIND) install ocsigen $(TOINSTALL);\
 	echo "Skiping Ocsimore installation";\
 	fi
 
@@ -55,7 +56,7 @@ fullinstall: install
 	mkdir -p $(CONFIGDIR)
 	mkdir -p $(MODULEINSTALLDIR)
 	mkdir -p $(STATICPAGESDIR)
-	cp files/ocsigen.conf $(CONFIGDIR)
+	$(INSTALL) files/ocsigen.conf $(CONFIGDIR)
 	mkdir -p $(LOGDIR)
 
 

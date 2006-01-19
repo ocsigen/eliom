@@ -9,7 +9,7 @@ CAMLOPT = ocamlfind ocamlopt $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
 CAMLDEP = ocamlfind ocamldep
 LIB = -package dbi.postgresql -I ../lib
-PP = -pp "camlp4o ../lib/xhtmlsyntax.cma"
+PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
 OBJS = $(FILES:.ml=.cmo)
 CMI = $(FILES:.ml=.cmi)

@@ -4,7 +4,7 @@ CAMLC = ocamlc $(LIB)
 CAMLOPT = ocamlopt $(LIB)
 CAMLDEP = ocamldep
 LIB = -I ../lib
-PP = -pp "camlp4o ../lib/xhtmlsyntax.cma"
+PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
 OBJS = $(FILES:.ml=.cmo)
 

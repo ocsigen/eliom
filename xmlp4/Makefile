@@ -6,8 +6,8 @@ CAMLOPT = ocamlopt $(LIB)
 CAMLDEP = ocamldep
 CAMLP4 = camlp4
 LIB = -I `$(CAMLP4) -where` -I ../lib
-PP = -pp "camlp4o pa_extend.cmo q_MLast.cmo"
-PPLEXER = -pp "camlp4r"
+PP = -pp "camlp4o pa_extend.cmo q_MLast.cmo -- -loc loc"
+PPLEXER = -pp "camlp4r -- -loc loc"
 
 SRCLIBREP = ../lib
 

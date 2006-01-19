@@ -8,7 +8,7 @@ CAMLOPT = ocamlopt $(LIB)
 CAMLDEP = ocamldep
 CAMLP4 = camlp4
 LIB = -I `$(CAMLP4) -where` -I ..
-PP = -pp "camlp4o ../xmllexer.cmo ../xmlparser.cmo ../xmlsyntax.cmo"
+PP = -pp "camlp4o ../xmllexer.cmo ../xmlparser.cmo ../xmlsyntax.cmo -- -loc loc"
 
 OBJS = $(FILES:.ml=.cmo)
 

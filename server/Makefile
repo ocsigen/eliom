@@ -15,7 +15,7 @@ else
 OCSIMOREPCKG =
 endif
 LIB = -package $(OCSIMOREPCKG)netstring -I ../lib -I +camlp4
-PP = -pp "camlp4o ../lib/xhtmlsyntax.cma"
+PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        gramlib.cma xmllexer.cmo simplexmlparser.cmo\
@@ -68,7 +68,7 @@ clean:
 install:
 	@echo "Installing binary"
 	mkdir -p $(BINDIR)
-	$(INSTALL) -m755 $(NAME) $(BINDIR)/
+	$(INSTALL) -m 755 $(NAME) $(BINDIR)/
 
 .PHONY: uninstall
 uninstall:
