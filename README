@@ -27,7 +27,7 @@ have postgresql installed)
   make 
 
 If you want system-wide installation, 
-modify Makefile.config to set all the paths,
+modify Makefile.config to set all the informations (paths, user...),
 then become root, and do
   make fullinstall
 
@@ -40,11 +40,12 @@ Adapt the config file to set the port, the modules you want to load
 (by default the config file is /etc/ocsigen/ocsigen.conf,
 copied from files/ocsigen.conf,
 but you can specify another one: ocsigen -c configfile)
-Set the user and group that will run ocsigen and give him read access to
+Set the user and group that will run ocsigen and 
+verify he has read access to
  - the modules you load, 
  - to the config file, 
  - and rwx access to log directory.
-   (e.g. chown www-data:www-data /var/log/ocsigen/)
+
 
 To run the web server
 

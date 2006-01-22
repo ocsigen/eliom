@@ -1,3 +1,5 @@
+include ../Makefile.config
+
 CAMLC    = ocamlfind ocamlc
 CAMLLEX  = ocamllex
 CAMLYACC = ocamlyacc
@@ -25,7 +27,7 @@ doc:
 
 clean:
 	-rm $(NAME) $(OPTNAME) *.cm[oix] *.o \
-	http_parser.ml http_parser.mli http_lexer.ml  documentation/*	
+	http_parser.ml http_parser.mli http_lexer.ml ocsiconfig.ml documentation/*	
 
 viclean: clean
 	-rm *~
@@ -33,15 +35,22 @@ viclean: clean
 depend:
 	$(CAMLDEP) $(PP) *.ml *.mli > .depend
 
-http_parser.cmo:http_parser.cmi http_parser.ml http_parser.mli
+http_parser.cmo:http_parser.ml http_parser.mli http_parser.cmi
 
-http_lexer.cmo:http_lexer.cmi http_lexer.ml messages.cmi
+http_lexer.cmo:http_lexer.ml http_lexer.cmi messages.cmi
 
 http_lexer.ml: http_lexer.mll
 
 http_parser.ml: http_parser.mly
 
-
+ocsiconfig.ml: ocsiconfig.ml.IN
+	cat ocsiconfig.ml.IN \
+	| sed s°0000000000000000°`cat ../VERSION`° \
+	| sed s°_WARNING_°"Warning: this file has been generated from ocsiconfig.ml.IN - DO NOT MODIFY MANUALLY!"° \
+	| sed s°_LOGDIR_°$(LOGDIR)° \
+	| sed s°_CONFIGDIR_°$(CONFIGDIR)° \
+	| sed s°_STATICPAGESDIR_°$(STATICPAGESDIR)° \
+	> ocsiconfig.ml
 
 
 # generic rules :
@@ -56,6 +65,9 @@ http_parser.ml: http_parser.mly
 	$(CAMLLEX) $<
 
 .mly.ml:
+	$(CAMLYACC) $<
+
+.mly.mli:
 	$(CAMLYACC) $<
 
 .mli.cmi:

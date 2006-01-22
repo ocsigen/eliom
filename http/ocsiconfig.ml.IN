@@ -22,18 +22,19 @@ exception Config_file_error of string
 type static_dir = Static_dir of string option * (string * static_dir) list
 
 let port = ref 80
-let logdir = ref "/var/log/ocsigen/"
-let config_file = ref "/etc/ocsigen/ocsigen.conf"
+let logdir = ref "_LOGDIR_"
+let config_file = ref "_CONFIGDIR_/ocsigen.conf"
 let verbose = ref false
 let silent = ref false
 let veryverbose = ref false
-let static_tree = ref (Static_dir (Some "/var/www/ocsigen", []))
+let static_tree = ref (Static_dir (Some "_STATICPAGESDIR_", []))
 let user = ref "ocsigen"
 let group = ref "ocsigen"
 (* Max number of simultaneous connections *)
 let max_number_of_connections = ref 500 (* too much? *)
 (* Max connection time *)
 let connect_time_max = ref 300. (* 5 min *)
+let version_number = (**)"0000000000000000"(**)
 
 
 let set_port i = port := i
@@ -81,6 +82,10 @@ let set_static_dir s path =
 
 let set_staticpages s = set_static_dir s []
 
+let display_version () =
+  print_string version_number;
+  print_newline ();
+  exit 0
 
 let print_location loc =
   Printf.sprintf "%d-%d" (fst loc).Lexing.pos_cnum (snd loc).Lexing.pos_cnum
@@ -91,7 +96,8 @@ let _ = Arg.parse
       "Alternate config file (default /etc/ocsigen.conf)");
      ("-s", Arg.Unit set_silent, "Silent mode (erroe messages in errors.log only)");
      ("-v", Arg.Unit set_verbose, "Verbose mode");
-     ("-vv", Arg.Unit set_veryverbose, "Very verbose mode (debug)")
+     ("-vv", Arg.Unit set_veryverbose, "Very verbose mode (debug)");
+     ("-version", Arg.Unit display_version, "Display version number and exit")
    ]
     (fun _ -> ())
     "usage: ocsigen [-c configfile]"

@@ -47,23 +47,32 @@ install:
 	$(MAKE) -C server install
 	@if (test '$(OCSIMORE)' = 'YES') ;\
 	then echo "Ocsimore installation";\
-	$(OCAMLFIND) install ocsigen $(TOINSTALL) $(OCSIMOREINSTALL);\
-	else $(OCAMLFIND) install ocsigen $(TOINSTALL);\
+	$(OCAMLFIND) install ocsigen -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL) $(OCSIMOREINSTALL);\
+	else $(OCAMLFIND) install ocsigen -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL);\
 	echo "Skiping Ocsimore installation";\
 	fi
 
 fullinstall: install
 	mkdir -p $(CONFIGDIR)
-	mkdir -p $(MODULEINSTALLDIR)
 	mkdir -p $(STATICPAGESDIR)
-	$(INSTALL) files/ocsigen.conf $(CONFIGDIR)
+	cat files/ocsigen.conf | sed s°_LOGDIR_°$(LOGDIR)°g \
+	| sed s°_STATICPAGESDIR_°$(STATICPAGESDIR)°g \
+	| sed s°_OCSIGENUSER_°$(OCSIGENUSER)°g \
+	| sed s°_OCSIGENGROUP_°$(OCSIGENGROUP)°g \
+	| sed s°_MODULEINSTALLDIR_°$(MODULEINSTALLDIR)/ocsigen°g \
+	> $(CONFIGDIR)/ocsigen.conf
 	mkdir -p $(LOGDIR)
+	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(LOGDIR)
+	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(STATICPAGESDIR)
+	chmod u+rwx $(LOGDIR)
+	chmod a+rx $(CONFIGDIR)
+	chmod a+r $(CONFIGDIR)/ocsigen.conf
 
 
 .PHONY: uninstall fulluninstall
 uninstall:
 	$(MAKE) -C server uninstall
-	$(OCAMLFIND) remove ocsigen
+	$(OCAMLFIND) remove ocsigen -destdir "$(MODULEINSTALLDIR)"
 
 fulluninstall: uninstall
 # dangerous

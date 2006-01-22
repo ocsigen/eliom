@@ -451,7 +451,7 @@ let listen modules_list =
       Unix.close in_ch;
       match exn with
 	Unix.Unix_error (e,func,param) ->
-	  errlog ("While talking to "^ip^": "^(Unix.error_message e)^
+	  warning ("While talking to "^ip^": "^(Unix.error_message e)^
 		  " in function "^func^" ("^param^") - (I continue)");
 	  return ()
       | Com_buffer.End_of_file -> return ()
