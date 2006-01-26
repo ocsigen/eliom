@@ -84,10 +84,14 @@ firstline :
 lines :
   |line                         {headers:=$1::!headers}
   |line lines                   {headers:=$1::!headers;$2}
+  |strings EOL                  {}
+  |strings EOL lines            {$3}
 
 line :
   |STRING COLON strings EOL    {(String.lowercase($1),$3)}
   |CODE COLON strings EOL      {(String.lowercase(string_of_int $1),$3)}
+  |STRING COLON EOL            {(String.lowercase($1),"")}
+  |CODE COLON EOL              {(String.lowercase(string_of_int $1),"")}
   /* EOL                  {split_string $1}*/
 
 strings :

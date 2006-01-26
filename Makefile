@@ -55,11 +55,11 @@ install:
 fullinstall: install
 	mkdir -p $(CONFIGDIR)
 	mkdir -p $(STATICPAGESDIR)
-	cat files/ocsigen.conf | sed s°_LOGDIR_°$(LOGDIR)°g \
-	| sed s°_STATICPAGESDIR_°$(STATICPAGESDIR)°g \
-	| sed s°_OCSIGENUSER_°$(OCSIGENUSER)°g \
-	| sed s°_OCSIGENGROUP_°$(OCSIGENGROUP)°g \
-	| sed s°_MODULEINSTALLDIR_°$(MODULEINSTALLDIR)/ocsigen°g \
+	cat files/ocsigen.conf | sed s%_LOGDIR_%$(LOGDIR)%g \
+	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
+	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
+	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
+	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/ocsigen%g \
 	> $(CONFIGDIR)/ocsigen.conf
 	mkdir -p $(LOGDIR)
 	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(LOGDIR)
