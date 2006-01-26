@@ -1,3 +1,5 @@
+(* Warning! ocsiconfig.ml is generated automatically from ocsiconfig.ml.IN!
+   Do not modify it manually *)
 (* Ocsigen
  * Copyright (C) 2005 Vincent Balat
  *

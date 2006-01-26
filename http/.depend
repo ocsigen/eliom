@@ -4,8 +4,6 @@ http_com.cmo: http_frame.cmo framepp.cmo
 http_com.cmx: http_frame.cmx framepp.cmx 
 http_frame.cmo: messages.cmo 
 http_frame.cmx: messages.cmx 
-messages.cmo: ocsiconfig.cmo 
-messages.cmx: ocsiconfig.cmx 
 sender_helpers.cmo: messages.cmo http_frame.cmo http_com.cmo 
 sender_helpers.cmx: messages.cmx http_frame.cmx http_com.cmx 
 test_parser.cmo: http_frame.cmo 

@@ -472,7 +472,7 @@ let listen modules_list =
       debug "\n__________________NEW CONNECTION__________________________";
       catch
 	(fun () -> 
-	  let server_name = "Ocsigen server" in
+	  let server_name = ("Ocsigen server ("^Ocsiconfig.version_number^")") in
 	  let xhtml_sender =
 	    create_xhtml_sender ~server_name:server_name inputchan 
 	  in
