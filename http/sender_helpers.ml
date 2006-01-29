@@ -22,6 +22,8 @@ open Http_frame
 open Http_com
 open Lwt
 
+let cookiename = "ocsigensession"
+
 (** this module instantiate the HTTP_CONTENT signature for an Xhtml content*)
 module Xhtml_content =
   struct
@@ -167,7 +169,7 @@ let send_generic
   let hds2 =
     match cookie with
     |None -> hds
-    |Some c -> ("Set-Cookie",("session="^c^
+    |Some c -> ("Set-Cookie",(cookiename^"="^c^
 			      (match path with 
 				Some s -> ("; path="^s) 
 			      | None -> "")))::hds

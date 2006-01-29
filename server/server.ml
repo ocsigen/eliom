@@ -174,8 +174,6 @@ let error_page s =
           </html>
           >>
 
-let cookiename = "ocsigensession"
-
 
 exception Ocsigen_Malformed_Url
 
