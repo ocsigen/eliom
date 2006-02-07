@@ -67,6 +67,9 @@ overlapping (?) of xhtml tags
 but that's all (it does not verify for example that mandatory tags are 
 present, or the order of tags)
 
+If you make fullinstall, it will generate and install the documentation.
+Otherwise, you can generate it in the doc directory by typing:
+make doc
 
 __________________________________________________________________
 Ocsimore:

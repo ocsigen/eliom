@@ -29,7 +29,7 @@ OCSIMORECMAO = postgresql.cma dbi.cma dbi_postgresql.cmo
 
 OBJS = $(FILES:.ml=.cmo)
 
-all: depend $(OBJS) $(NAME) doc
+all: depend $(OBJS) $(NAME)
 #	cp *.cmo *.cmi ../lib
 	cp ocsigen.cmo ocsigen.cmi ../lib
 #	cp config.cmi ../lib
@@ -57,12 +57,12 @@ $(NAME): $(OBJS)
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
 
-#doc:
-#	$(CAMLDOC) -d doc -html ocsigen.mli
+doc:
+	$(CAMLDOC) -d doc -html ocsigen.mli
 
 .PHONY: clean
 clean:
-	-rm -f *.cm[iox] *~ $(NAME)
+	-rm -f *.cm[iox] *~ doc/* $(NAME)
 
 .PHONY: install
 install:

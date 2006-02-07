@@ -3,8 +3,10 @@ include Makefile.config
 INSTALL = install
 REPS = lwt xmlp4 http server modules ocsimore
 OCAMLFIND = ocamlfind
+CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/ocsiprof.cmo server/ocsigen.cmi server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/xhtmlsyntax.cma META
 OCSIMOREINSTALL = ocsimore/ocsimore.cma ocsimore/db_create.cmi ocsimore/ocsipersist.cmi ocsimore/ocsicache.cmi ocsimore/ocsidata.cmi ocsimore/ocsipages.cmi ocsimore/ocsisav.cmi ocsimore/ocsiboxes.cmi ocsimore/ocsexample_util.cmo ocsimore/ocsexample3.cmo ocsimore/ocsexample1.cmo ocsimore/ocsexample2.cmo
+PP = -pp "camlp4o ./lib/xhtmlsyntax.cma -loc loc"
 
 all: $(REPS)
 
@@ -33,6 +35,9 @@ ocsimore:
 	else echo "Skiping Ocsimore compilation";\
 	fi
 
+doc:
+	$(CAMLDOC) $(PP) -I lib -d doc -html server/ocsigen.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli
+
 clean:
 	@for i in $(REPS) ocsimore ; do $(MAKE) -C $$i clean ; done
 	-rm -f lib/* *~
@@ -42,7 +47,7 @@ depend: xmlp4
 	@for i in $(REPS) ; do > "$$i"/.depend; $(MAKE) -C $$i depend ; done
 
 
-.PHONY: install fullinstall
+.PHONY: install fullinstall doc
 install:
 	$(MAKE) -C server install
 	@if (test '$(OCSIMORE)' = 'YES') ;\
@@ -52,7 +57,8 @@ install:
 	echo "Skiping Ocsimore installation";\
 	fi
 
-fullinstall: install
+
+fullinstall: install doc
 	mkdir -p $(CONFIGDIR)
 	mkdir -p $(STATICPAGESDIR)
 	cat files/ocsigen.conf | sed s%_LOGDIR_%$(LOGDIR)%g \
@@ -67,6 +73,10 @@ fullinstall: install
 	chmod u+rwx $(LOGDIR)
 	chmod a+rx $(CONFIGDIR)
 	chmod a+r $(CONFIGDIR)/ocsigen.conf
+	mkdir -p $(DOCDIR)
+	cp doc/* $(DOCDIR)
+	chmod a+rx $(DOCDIR)
+	chmod a+r $(DOCDIR)/*
 
 
 .PHONY: uninstall fulluninstall

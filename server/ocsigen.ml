@@ -33,11 +33,14 @@ type xhformcontl = xhformcont elt list
 
 (** type of URL, without parameter *)
 type url_path = string list
+type current_url = string list
+
+let string_list_of_current_url x = x
 
 (** Type of http parameters *)
 type http_params = {url_suffix: string;
 		    full_url: string;
-		    current_url: string list;
+		    current_url: current_url;
 		    useragent: string;
 		    ip: Unix.inet_addr;
 		    get_params: (string * string) list;
@@ -642,7 +645,7 @@ let rec new_cookie table ip =
     new_cookie table ip
   with Not_found -> c
 
-
+(*
 (** Typed URLs *)
 type public_url
 
@@ -651,6 +654,8 @@ type state_url
 type 'a internal_url
 
 type external_url
+*)
+type url_kind = [`Internal_Url of [`Public_Url | `State_Url] | `External_Url]
 
 
 (* Comment rendre cette structure moins lourde ? *)
@@ -659,8 +664,8 @@ type ('a,'b,'ca,'cform,'curi(*,'cimg,'clink,'cscript*),'d,'e,'f,'g) url =
      url_prefix: bool;
      url_state: internal_state option;
        (* 'g is just a type information: it can be only 
-	  public_url internal_url or url_for_session internal_url
-	  or external_url, so that we can't use session urls as fallbacks for
+	  `Internal_Url `Public_Url or  `Internal_Url `State_Url
+	  or `External_Url, so that we can't use session urls as fallbacks for
 	  other session urls. If it is a session url, it contains a value
 	  (internal state) that will allow to differenciate between
 	  url that have the same name.
@@ -763,7 +768,7 @@ let new_url_aux
     ~(path : url_path)
     ~prefix
     ~params
-    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo internal_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of 'popo]) url =
   if during_initialisation () then
     let full_path = (get_current_dir ())@(change_empty_list path) in
     let u = new_url_aux_aux
@@ -778,26 +783,26 @@ let new_external_url_aux
     ~(path : url_path)
     ~prefix
     ~params
-    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, external_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`External_Url]) url =
   new_url_aux_aux ~path ~prefix ~params reconstruct_absolute_url_path
 
 let new_url
     ~(path : url_path)
     ?(prefix=false)
     ~params ()
-    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]]) url =
   new_url_aux ~path ~prefix ~params
 
 let new_state_url
-   ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
-    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, state_url internal_url) url =
+   ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]])url)
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`State_Url]]) url =
   {fallback with url_state = new_state ()}
 
 let new_external_url
     ~(path : url_path)
     ?(prefix=false)
     ~params ()
-    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, external_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`External_Url]) url =
   new_external_url_aux ~path ~prefix ~params
 
 let register_url_aux
@@ -814,7 +819,7 @@ let register_url_aux
      (url.get_conversion_function page))
 
 let register_url 
-    ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
+    ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
     page =
   if during_initialisation () then begin
     remove_unregistered (url.url, url.get_param_names, url.post_param_names);
@@ -829,7 +834,7 @@ let register_url
  *)
 
 let register_url_for_session
-    ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
+    ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
     page =
   register_url_aux (get_session_tables ()) true url.url_state url page
 
@@ -838,23 +843,23 @@ let register_new_url
     ?(prefix=false)
     ~params
     page
-    : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url) url =
+    : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]]) url =
   let u = new_url ~prefix ~path ~params () in
   register_url u page;
   u
     
 let register_new_state_url
-    ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
+    ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]])url)
     page
-    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, state_url internal_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`State_Url]]) url =
   let u = (new_state_url fallback) in
   register_url u page;
   u
 
 let register_new_state_url_for_session
-    ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, public_url internal_url)url)
+    ~(fallback : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]])url)
     page
-    : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, state_url internal_url) url =
+    : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`State_Url]]) url =
   let u = (new_state_url fallback) in
   register_url_for_session u page;
   u
@@ -886,7 +891,7 @@ let new_post_url_aux
 let new_post_url
     ~fallback
     ~post_params
-    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url = 
+    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url = 
   if during_initialisation () then
     let u = new_post_url_aux fallback post_params in
     add_unregistered 
@@ -898,13 +903,13 @@ let new_external_post_url
     ?(prefix=false)
     ~params
     ~post_params ()
-    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, external_url) url = 
+    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`External_Url]) url = 
   new_post_url_aux (new_external_url_aux path prefix params) post_params
 
 let new_post_state_url
-    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
+    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url)
     ~post_params 
-    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, state_url internal_url) url = 
+    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, [`Internal_Url of [`State_Url]]) url = 
   {fallback with 
    url_state = new_state ();
    post_param_names = post_params.param_names;
@@ -931,7 +936,7 @@ let register_post_url_aux
        de typage... *)
 
 let register_post_url 
-    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
+    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
     page =
   if during_initialisation () then begin
     remove_unregistered (url.url, url.get_param_names, url.post_param_names);
@@ -939,7 +944,7 @@ let register_post_url
   else Messages.warning "Public URL registration after init (ignored)"
 
 let register_post_url_for_session
-    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g internal_url) url)
+    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
     page =
   register_post_url_aux (get_session_tables ()) true url.url_state url page
 
@@ -947,25 +952,25 @@ let register_new_post_url
     ~fallback
     ~post_params
     page
-    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url =
+    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url =
   let u = new_post_url ~fallback:fallback ~post_params:post_params in
   register_post_url u page;
   u
 
 let register_new_post_state_url
-    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
+    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url)
     ~post_params 
     page
-    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, state_url internal_url) url = 
+    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, [`Internal_Url of [`State_Url]]) url = 
   let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
   register_post_url u page;
   u
 
 let register_new_post_state_url_for_session
-    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, public_url internal_url) url)
+    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url)
     ~post_params 
     page
-    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, state_url internal_url) url =
+    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, [`Internal_Url of [`State_Url]]) url =
   let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
   register_post_url_for_session u page;
   u
@@ -1047,7 +1052,7 @@ let register_new_static_directory_aux
     tables
     ~(path : url_path)
     ~(location : string)
-    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'd internal_url) url =
+    : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of 'd]) url =
   add_static_dir tables path location;
   let create_get_url = 
     (fun current_url f -> 			   
@@ -1084,7 +1089,7 @@ let register_new_static_directory
     (xhformcontl, xhformcontl, 
      'ca,'cform,'curi(*'cimg,'clink,'cscript*),
      page, page, page, 
-     public_url internal_url) url =
+     [`Internal_Url of [`Public_Url]]) url =
   register_new_static_directory_aux global_tables path location
 
 let register_new_session_static_directory
@@ -1093,7 +1098,7 @@ let register_new_session_static_directory
     (xhformcontl, xhformcontl, 
      'ca,'cform,'curi(*'cimg,'clink,'cscript*), 
      page, page, page, 
-     public_url internal_url) url =
+     [`Internal_Url of [`Public_Url]]) url =
   register_new_static_directory_aux (get_session_tables ()) path location
 *)
 
