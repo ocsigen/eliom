@@ -25,7 +25,7 @@ let connect_action =
 (* Construction of default pages *)
 
 let accueil h =
-  page h
+  page ~css:["moncss.css"] h
     [title_box "Mon site";
      text_box "(user : toto and password : titi)";
      login_box_action h connect_action;
@@ -33,20 +33,20 @@ let accueil h =
        h messageslist_number anonymoususer rocsexample news_page]
 
 let print_news_page h i = 
-  page h
+  page ~css:["moncss.css"] h
     [title_box "Info";
      login_box_action h connect_action;
      string_message_box i anonymoususer rocsexample]
 
 let user_main_page user h =
-  page h
+  page ~css:["moncss.css"] h
     [title_box "Mon site";
      text_box "Bonjour !";
      connected_box h user;
      news_headers_list_box h messageslist_number user rocsexample news_page]
 
 let user_news_page user h i = 
-  page h
+  page ~css:["moncss.css"] h
     [title_box "Info";
      connected_box h user;
      string_message_box i user rocsexample]

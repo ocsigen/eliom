@@ -12,7 +12,7 @@ let plop1 =
     ~params:_noparam 
     << <html>
          <head><title></title></head>
-         <body><h1>plop</h1></body>
+         <body><h1>Coucou</h1></body>
        </html> >>
 
 let plop = 
@@ -21,7 +21,7 @@ let plop =
     ~params:_noparam 
     (html
        (head (title (pcdata "")) [])
-       (body [h1 [pcdata "ploooop"]]))
+       (body [h1 [pcdata "Hallo"]]))
     
 (* Pages can have side effects: *)
 let compt = 
@@ -173,7 +173,7 @@ let links = register_new_url ["rep";"links"] (_current_url _noparam)
                 a uaprefix current_url 
 		  [pcdata "uaprefix"] "suf" "toto"; br ();
                 a plop_params current_url 
-		  [pcdata "plop_params"] 45 "hello" "plpl"; br ();
+		  [pcdata "plop_params"] 42 "ciao" "hallo"; br ();
                 a
 	          (new_external_url
 		     ~path:["http://fr.wikipedia.org";"wiki"]

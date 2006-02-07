@@ -22,13 +22,13 @@ let news_page = new_url ["msg"] (_http_params (StringMessage._index "num")) ()
 (* Construction of default pages *)
 
 let accueil h =
-  page h
+  page ~css:["moncss.css"] h
     [title_box "Mon site";
      news_headers_list_box 
        h messageslist_number anonymoususer rocsexample news_page]
 
 let print_news_page h i = 
-  page h
+  page ~css:["moncss.css"] h
     [title_box "Info";
      string_message_box i anonymoususer rocsexample]
 

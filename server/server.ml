@@ -281,7 +281,9 @@ let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
 let find_static_page path =
   let rec aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) = function
-      [] -> dir
+      [] -> (match dir_option with
+	None -> dir
+      | Some s -> s)
     | ""::l -> aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) l
     | ".."::l -> aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) l
 	  (* For security reasons, .. is not allowed in paths *)
@@ -331,17 +333,26 @@ let service http_frame sockaddr
 		try
 		  let filename = find_static_page path in
 		  Messages.debug ("--- Is it a static file? ("^filename^")");
-		  send_file 
-		    ~keep_alive:keep_alive
-		    ~last_modified:((Unix.stat filename).Unix.st_mtime)
-		    ~code:200 filename file_sender
-		with _ -> raise Ocsigen_404
+		  if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
+		  then begin
+		    Unix.access filename [Unix.R_OK];
+		    send_file 
+		      ~keep_alive:keep_alive
+		      ~last_modified:((Unix.stat filename).Unix.st_mtime)
+		      ~code:200 filename file_sender
+		  end
+		  else 
+		    send_error ~error_num:403 xhtml_sender (* Forbidden *)
+		with 
+		  Unix.Unix_error (Unix.EACCES,_,_) ->
+		    send_error ~error_num:403 xhtml_sender (* Forbidden *)
+		| _ -> raise Ocsigen_404
 	      else raise Ocsigen_404
 	    | Ocsigen.Ocsigen_Is_a_directory -> 
 		send_empty
 		  ~keep_alive:keep_alive
 		  ~location:(stringpath^"/"^params)
-                  ~code:301
+                  ~code:301 (* Moved permanently *)
 	          empty_sender		
 	    )
 	      >>= (fun _ -> return keep_alive)
