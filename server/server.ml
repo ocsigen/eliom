@@ -332,8 +332,9 @@ let service http_frame sockaddr
 	      if params = "" then
 		try
 		  let filename = find_static_page path in
+		  let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
 		  let filename = 
-		    if ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR)
+		    if dir
 		    then filename^"/index.html"
 		    else filename
 		  in

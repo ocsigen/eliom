@@ -53,7 +53,7 @@ type http_params = {url_suffix: string;
  *)
 type internal_state = int
 
-let counter = let c = ref (Random.int max_int) in fun () -> c := !c + 1 ; !c
+let counter = let c = ref (Random.int 100000) in fun () -> c := !c + 1 ; !c
 
 let new_state =
   let c : internal_state ref = ref (Random.int max_int) in

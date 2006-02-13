@@ -95,7 +95,7 @@ let print_location loc =
 
 let _ = Arg.parse
     [("-c", Arg.String set_configfile, 
-      "Alternate config file (default /etc/ocsigen.conf)");
+      "Alternate config file (default _CONFIGDIR_/ocsigen.conf");
      ("-s", Arg.Unit set_silent, "Silent mode (erroe messages in errors.log only)");
      ("-v", Arg.Unit set_verbose, "Verbose mode");
      ("-vv", Arg.Unit set_veryverbose, "Very verbose mode (debug)");

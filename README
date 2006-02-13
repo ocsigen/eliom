@@ -7,7 +7,7 @@ Instructions:
 
 ---
 Requirements: 
-ocaml (tested with version 3.08.x - may not work with 3.09 because of _loc issue)
+ocaml (tested with version 3.08.4 and 3.09.1. Does not work with 3.08.1)
 ocamlfind
 ocamlnet (actually only module netstring) 
 (ocamlnet needs pcre?)
@@ -87,6 +87,8 @@ Ocsimore is at early stage of development, and could be improved a lot.
 To use Ocsimore,
  - install postgresql, create a database named ocsibase
    (and give the rights to write in to the user that will launch ocsigen)
+   (It seems that the ocaml module does not work with PostgreSQL version 8
+	for the while (?))
  - install the postgresql and ocamldbi (with postgresql support) libraries 
    for ocaml. (Markus Mottl version of postgresql, not Alain Frish's)
  - postgresql.cma dbi.cma and dbi_postgresql.cmo won't link dynamically

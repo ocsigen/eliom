@@ -223,7 +223,7 @@ let create_form =
     <:xmllist< <p>Write an int: $int_input entier$ <br/>
     Write a string: $string_input chaine$ <br/>
     Write a string: $string_input chaine2$ <br/>
-    $input ~a:[(a_input_type `Submit);(a_value "Click")] ()$</p>
+    $submit_input "Click"$</p>
     >>)
 
 let form = register_new_url ["form"] (_current_url _noparam)
