@@ -56,7 +56,7 @@ type internal_state = int
 let counter = let c = ref (Random.int 100000) in fun () -> c := !c + 1 ; !c
 
 let new_state =
-  let c : internal_state ref = ref (Random.int max_int) in
+  let c : internal_state ref = ref (Random.int 1000000) in
   fun () -> c := !c + 1 ; Some !c
 
 
@@ -1348,7 +1348,7 @@ let img ?a ~alt
 *)
 
 (* actions : *)
-let action_link ?(a=[]) ?(reload=true) actionurl h content =
+let action_a ?(a=[]) ?(reload=true) actionurl h content =
   let formname="hiddenform"^(string_of_int (counter ())) in
   let href="javascript:document."^formname^".submit ()" in
   let action_param_name = action_prefix^action_name in

@@ -41,7 +41,7 @@ let login_box h url = post_form url h.current_url create_login_form
 let deconnect_action = 
   register_new_actionurl _unit close_session
 
-let deconnect_box h s = action_link deconnect_action h s
+let deconnect_box h s = action_a deconnect_action h s
 
 
 (** User information *)

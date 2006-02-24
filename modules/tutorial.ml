@@ -4,6 +4,7 @@
 open XHTML.M
 open Ocsigen
 
+
 (* ------------------------------------------------------------------ *)
 (* To create a web page without parameter: *)
 let plop1 = 
@@ -14,6 +15,7 @@ let plop1 =
          <head><title></title></head>
          <body><h1>Coucou</h1></body>
        </html> >>
+
 
 let plop = 
   register_new_url 
@@ -417,7 +419,7 @@ let _ = register_url
   accueil
 
 let rec launch_session login =
-  let close = register_new_state_url_for_session (* See later *)
+  let close = register_new_state_url_for_session
     ~fallback:public_session_without_post_params 
     (fun url -> close_session (); accueil url)
   in
@@ -566,7 +568,7 @@ let _ =
     (fun i current_url ->
       let is = string_of_int i in
       let calc_result = register_new_post_state_url_for_session
-	  ~fallback:calc_post
+	  ~fallback:calc
 	  ~post_params:(_int "j")
 	  (fun j current_url -> 
 	    let js = string_of_int j in
@@ -604,7 +606,7 @@ let _ =
    Create and register an action with new_actionurl, register_actionurl,
      register_new_actionurl, register_actionurl_for_session,
      register_state_actionurl_for_session
-   Make a form or a link to an action with action_form or action_link.
+   Make a form or a link to an action with action_form or action_a.
    By default, they print the page again after having done the action.
    But you can give the optional boolean parameter reload to action_form
    or action link to prevent reloading the page.
@@ -630,7 +632,7 @@ let _ = register_url
 
 let rec launch_session login =
   let deconnect_action = register_new_actionurl _unit close_session in
-  let deconnect_box h s = action_link deconnect_action h s in
+  let deconnect_box h s = action_a deconnect_action h s in
   let new_main_page h =
     html
       (head (title (pcdata "")) [])

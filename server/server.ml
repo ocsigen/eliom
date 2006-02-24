@@ -393,19 +393,19 @@ let service http_frame sockaddr
    (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
    send_error ~error_num:404 xhtml_sender
    >>= (fun _ ->
-     return true (* idem *))
+     return false (* keep_alive *))
     | Ocsigen_Malformed_Url ->
     (*really_write "404 Not Found ??" false in_ch "error ??? (Malformed URL) \n"
     * 0 11 *)
 	send_error ~error_num:400 xhtml_sender
 	>>= (fun _ ->
-	       return true (* idem *))
+	       return false (* keep_alive *))
     | e ->
 	send_page ~keep_alive:false
 	  (error_page ("Exception : "^(Printexc.to_string e)))
 	  xhtml_sender
 	>>= (fun _ ->
-	       return true (* idem *))
+	       return false (* keep_alive *))
                                               
 
 let load_modules modules_list =

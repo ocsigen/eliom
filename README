@@ -87,7 +87,7 @@ Ocsimore is at early stage of development, and could be improved a lot.
 To use Ocsimore,
  - install postgresql, create a database named ocsibase
    (and give the rights to write in to the user that will launch ocsigen)
-   (It seems that the ocaml module does not work with PostgreSQL version 8
+   (Not sure that the ocaml module works with PostgreSQL version > 8.0.1
 	for the while (?))
  - install the postgresql and ocamldbi (with postgresql support) libraries 
    for ocaml. (Markus Mottl version of postgresql, not Alain Frish's)

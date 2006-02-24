@@ -69,7 +69,9 @@ module File_content =
     let string_of_content c  =
       (*ouverture du fichier*)
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
-      Lwt_unix.run (read_file fd ) (***** à revoir ! -- Vincent *****)
+      let resultat = Lwt_unix.run (read_file fd ) (***** à revoir ! -- Vincent *****) in
+      Unix.close fd;
+      resultat
 
     let content_of_string s = assert false
       

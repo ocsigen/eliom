@@ -23,8 +23,8 @@ RM = rm
 MV = mv
 DIFF = diff
 
-OCAMLC = ocamlc.opt
-OCAMLOPT = ocamlopt.opt
+OCAMLC = ocamlc
+OCAMLOPT = ocamlopt
 
 DOLLAR = $$
 

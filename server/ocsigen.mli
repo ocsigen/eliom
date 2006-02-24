@@ -455,7 +455,7 @@ val submit_input : ?a:([< xhinputattrib > `Input_Type `Value ] attrib list ) ->
 (** Creates a submit [<input>] tag *)
 
 
-val action_link : ?a:([< xhaattrib > `Href ] attrib list) ->
+val action_a : ?a:([< xhaattrib > `Href ] attrib list) ->
   ?reload:bool ->
     (xhformcontl, unit -> unit) actionurl -> 
       http_params -> 
