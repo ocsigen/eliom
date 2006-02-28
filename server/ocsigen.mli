@@ -438,11 +438,11 @@ val password_input :
 
 val checkbox_input :
     ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) -> 
-  bool name -> [> xhinput ] elt
+  string name -> [> xhinput ] elt
 (** Creates a checkbox [<input>] tag *)
 
 val radio_input : ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) -> 
-  bool name -> [> xhinput ] elt
+  string name -> [> xhinput ] elt
 (** Creates a radio [<input>] tag *)
 
 val textarea : ?a:([< xhtextareaattrib > `Name ] attrib list ) -> 

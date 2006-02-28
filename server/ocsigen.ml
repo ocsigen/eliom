@@ -53,7 +53,7 @@ type http_params = {url_suffix: string;
  *)
 type internal_state = int
 
-let counter = let c = ref (Random.int 100000) in fun () -> c := !c + 1 ; !c
+let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 
 let new_state =
   let c : internal_state ref = ref (Random.int 1000000) in
@@ -1405,7 +1405,7 @@ let hidden_int_input ?(a=[]) (name : int name) v =
 let checkbox_input ?(a=[]) (name : bool name) =
   input ~a:((a_name name)::(a_input_type `Checkbox)::a) ()
 
-let radio_input ?(a=[]) (name : bool name) =
+let radio_input ?(a=[]) (name : string name) =
   input ~a:((a_name name)::(a_input_type `Radio)::a) ()
 
 let textarea ?(a=[]) (name : string name) =
