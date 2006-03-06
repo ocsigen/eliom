@@ -25,7 +25,9 @@ CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        error_pages.cmo
 
 OCSIMORECMAO = postgresql.cma dbi.cma dbi_postgresql.cmo
-# Last line is only for ocsimore. But I don't know how to link them elsewhere
+# Last line is only for ocsimore.
+# The alternative is to load them in the config file
+# (if unsafe_modules are allowed)
 
 OBJS = $(FILES:.ml=.cmo)
 

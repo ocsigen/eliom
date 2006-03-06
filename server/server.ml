@@ -417,6 +417,7 @@ let load_modules modules_list =
 	aux l
   in
   Dynlink.init ();
+  Dynlink.allow_unsafe_modules true;
   aux modules_list
 
 (** Thread waiting for events on a the listening port *)

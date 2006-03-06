@@ -65,7 +65,7 @@ exception Ocsigen_Wrong_parameter
 exception Ocsigen_Is_a_directory
 exception Ocsigen_404
 exception Ocsigen_page_erasing of string
-exception Ocsigen_url_created_after_init
+exception Ocsigen_url_created_outside_site_loading
 exception Ocsigen_there_are_unregistered_url of string
 exception Ocsigen_duplicate_registering of string
 exception Ocsigen_register_for_session_outside_session
@@ -722,6 +722,16 @@ let during_initialisation, end_initialisation =
      init := false;
      verify_all_registered ()))
 
+let during_ocsigen_module_loading, 
+  begin_load_ocsigen_module, 
+  end_load_ocsigen_module =
+  let during_ocsigen_module_loading = ref false in
+  ((fun () -> !during_ocsigen_module_loading),
+   (fun () -> during_ocsigen_module_loading := true),
+   (fun () -> during_ocsigen_module_loading := false))
+
+let global_register_allowed () = 
+  (during_initialisation ()) && (during_ocsigen_module_loading ())
 
 (** Create an url *)
 let new_url_aux_aux
@@ -769,7 +779,7 @@ let new_url_aux
     ~prefix
     ~params
     : ('a, xhformcontl, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of 'popo]) url =
-  if during_initialisation () then
+  if global_register_allowed () then
     let full_path = (get_current_dir ())@(change_empty_list path) in
     let u = new_url_aux_aux
 	~path:full_path
@@ -777,7 +787,7 @@ let new_url_aux
 	~params 
 	reconstruct_relative_url_path in
     add_unregistered (full_path, u.get_param_names, u.post_param_names); u
-  else raise Ocsigen_url_created_after_init
+  else raise Ocsigen_url_created_outside_site_loading
 
 let new_external_url_aux
     ~(path : url_path)
@@ -821,7 +831,7 @@ let register_url_aux
 let register_url 
     ~(url : ('a,xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
     page =
-  if during_initialisation () then begin
+  if global_register_allowed () then begin
     remove_unregistered (url.url, url.get_param_names, url.post_param_names);
     register_url_aux global_tables false (url.url_state) url page; end
   else Messages.warning "Public URL registration after init forbidden! Please correct your module! (ignored)"
@@ -892,11 +902,11 @@ let new_post_url
     ~fallback
     ~post_params
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url = 
-  if during_initialisation () then
+  if global_register_allowed () then
     let u = new_post_url_aux fallback post_params in
     add_unregistered 
       (fallback.url, fallback.get_param_names, post_params.param_names); u
-  else raise Ocsigen_url_created_after_init
+  else raise Ocsigen_url_created_outside_site_loading
   
 let new_external_post_url
     ~(path : url_path)
@@ -938,7 +948,7 @@ let register_post_url_aux
 let register_post_url 
     ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
     page =
-  if during_initialisation () then begin
+  if global_register_allowed () then begin
     remove_unregistered (url.url, url.get_param_names, url.post_param_names);
     register_post_url_aux global_tables false (url.url_state) url page; end
   else Messages.warning "Public URL registration after init (ignored)"
@@ -1541,15 +1551,19 @@ exception Ocsigen_error_while_loading of string
 let load_ocsigen_module ~dir ~cmo =
   let save_current_dir = get_current_dir () in
   try
+    begin_load_ocsigen_module ();
     absolute_change_dir dir;
     Dynlink.loadfile cmo;
-    absolute_change_dir save_current_dir
+    absolute_change_dir save_current_dir;
+    end_load_ocsigen_module ()
   with Dynlink.Error e -> 
     absolute_change_dir save_current_dir;
+    end_load_ocsigen_module ();
     raise
       (Ocsigen_error_while_loading (cmo^" ("^(Dynlink.error_message e)^")"))
   | e -> 
       absolute_change_dir save_current_dir;
+      end_load_ocsigen_module ();
       raise e (*Ocsigen_error_while_loading cmo*)
 
 

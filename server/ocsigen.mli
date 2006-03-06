@@ -507,7 +507,7 @@ val incr_connected : unit -> unit
 val decr_connected : unit -> unit
 
 
-exception Ocsigen_url_created_after_init
+exception Ocsigen_url_created_outside_site_loading
 exception Ocsigen_duplicate_registering of string
 exception Ocsigen_page_erasing of string
 exception Ocsigen_there_are_unregistered_url of string
@@ -516,3 +516,4 @@ exception Ocsigen_error_while_loading of string
 exception Ocsigen_Is_a_directory
 exception Ocsigen_404
 val end_initialisation : unit -> unit
+
