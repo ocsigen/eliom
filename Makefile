@@ -52,8 +52,8 @@ install:
 	$(MAKE) -C server install
 	@if (test '$(OCSIMORE)' = 'YES') ;\
 	then echo "Ocsimore installation";\
-	$(OCAMLFIND) install ocsigen -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL) $(OCSIMOREINSTALL);\
-	else $(OCAMLFIND) install ocsigen -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL);\
+	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL) $(OCSIMOREINSTALL);\
+	else $(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL);\
 	echo "Skiping Ocsimore installation";\
 	fi
 
@@ -65,7 +65,7 @@ fullinstall: install doc
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
-	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/ocsigen%g \
+	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	> $(CONFIGDIR)/ocsigen.conf
 	mkdir -p $(LOGDIR)
 	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(LOGDIR)
@@ -82,7 +82,7 @@ fullinstall: install doc
 .PHONY: uninstall fulluninstall
 uninstall:
 	$(MAKE) -C server uninstall
-	$(OCAMLFIND) remove ocsigen -destdir "$(MODULEINSTALLDIR)"
+	$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)"
 
 fulluninstall: uninstall
 # dangerous

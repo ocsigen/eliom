@@ -146,7 +146,7 @@ module ExpoOrPatt = struct
                (XHTML.M.toeltl 
 		  ($to_expr_taglist child_list$ 
 		   :> list (XHTML.M.elt 
-			      [< Xhtmltypes.$lid:"xh"^tag^"cont"$])))))
+			      [< Xhtmltypes.$lid:tag^"_content"$])))))
 		   : XHTML.M.elt [> `$uid: String.capitalize tag$])
 	    >>)
 	

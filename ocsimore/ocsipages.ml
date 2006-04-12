@@ -41,7 +41,7 @@ let box_exn_handler ex = match ex with
 
 (** Container *)
 let boxes_container ?a l =
-  div ?a (l :> Xhtmltypes.xhdivcont XHTML.M.elt list)
+  div ?a (l :> Xhtmltypes.div_content XHTML.M.elt list)
 
 
 
@@ -53,7 +53,7 @@ let boxes_container ?a l =
     the other one manually.
  *)
 
-let page h ?(js=[]) ?(css=[]) (bl : [> Xhtmltypes.xhbodycont] XHTML.M.elt list) = 
+let page h ?(js=[]) ?(css=[]) (bl : [> Xhtmltypes.body_content] XHTML.M.elt list) = 
   let rec make_hl make_link l = function
       [] -> l
     | filename::ll -> 
@@ -79,9 +79,9 @@ let page_exn_handler h ex = page h [box_exn_handler ex]
     pages can take such a register as a parameter
 *)
 class boxes_class = object
-  method print_title s : Xhtmltypes.xhtmlcont = title_box s
-  method print_text s : Xhtmltypes.xhtmlcont = text_box s
-  method print_error s : Xhtmltypes.xhtmlcont = error_box s
+  method print_title s : Xhtmltypes.html_content = title_box s
+  method print_text s : Xhtmltypes.html_content = text_box s
+  method print_error s : Xhtmltypes.html_content = error_box s
 end
 
 (* Put in the class message_boxes all the boxes you want to be able
@@ -89,7 +89,7 @@ end
 *)
 class message_boxes_class = object
   inherit boxes_class
-  method print_string_message u i : Xhtmltypes.xhtmlcont = string_message_box i u
+  method print_string_message u i : Xhtmltypes.html_content = string_message_box i u
 end
 
 

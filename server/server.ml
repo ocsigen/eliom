@@ -326,7 +326,7 @@ let service http_frame sockaddr
 		  then Some remove_cookie_str
 		  else cookie2) 
 		else None)
-		~path:path
+		~path:path (* path pour le cookie *)
 		page xhtml_sender
 	    with Ocsigen_404 ->
 	      if params = "" then

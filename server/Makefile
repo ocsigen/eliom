@@ -1,6 +1,6 @@
 include ../Makefile.config
 
-NAME = ocsigen
+NAME=$(OCSIGENNAME)
 
 FILES= error_pages.ml ocsigen.ml ocsigenboxes.ml server.ml
 

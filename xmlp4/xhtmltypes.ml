@@ -34,181 +34,181 @@ type tag = [ `Br | `Span | `Bdo | `Map | `Object | `Img | `Tt | `I | `B | `Big
 open XHTML.M
 
 type xhtml = [ `Html ]
-type xhform = [ `Form ]
-type xha = [ `A ]
-type xhimg = [ `Img ]
-type xhlink = [ `Link ]
-type xhscript = [ `Script ]
-type xhinput = [ `Input ]
-type xhtextarea = [ `Textarea ]
+type form = [ `Form ]
+type a = [ `A ]
+type img = [ `Img ]
+type link = [ `Link ]
+type script = [ `Script ]
+type input = [ `Input ]
+type textarea = [ `Textarea ]
 
 type pcdata = [ `PCDATA ]
 
-type xhnotag
+type notag
 
-type xhhtmlcont = [ `Body | `Head | `Frameset ]
+type html_content = [ `Body | `Head | `Frameset ]
 
-type xhbodycont = [ block ]
+type body_content = [ block ]
 (* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
 | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol
 | `P | `Pre | `Script | `Table | `Ul ] *)
 
-type xhdivcont = [ `PCDATA | flow ]
+type div_content = [ `PCDATA | flow ]
 (* [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ] *)
 
-type xhobjectcont = [ `PCDATA | flow | `Param ]
+type object_content = [ `PCDATA | flow | `Param ]
 (* [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `Param | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ] *)
 
-type xhfieldsetcont = [ `PCDATA | `Legend | flow ]
+type fieldset_content = [ `PCDATA | `Legend | flow ]
 (* [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Legend | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ] *)
 
-type xhbuttoncont = [ `PCDATA | buttoncontent ]
+type button_content = [ `PCDATA | buttoncontent ]
 (* [ `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Ins | `Kbd | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Tt | `Ul | `Var ] *)
 
-type xhheadcont = [ `Base | `Link | `Object | `Script | `Style | `Title | `Meta ]
+type head_content = [ `Base | `Link | `Object | `Script | `Style | `Title | `Meta ]
 (* [ `Base | `Link | `Object | `Script | `Style | `Title | `Meta ] *)
 
-type xhformcont = [ block_sans_form | `Fieldset ]
+type form_content = [ block_sans_form | `Fieldset ]
 (* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ] *)
 
-type xhblockquotecont = [ `PCDATA | block ]
+type blockquote_content = [ `PCDATA | block ]
 (* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table  | `Ul ] *)
 
-type xhmapcont = [ block | `Area ]
+type map_content = [ block | `Area ]
 (* [ `Address | `Area | `Blockquote | `Del | `Div | `Dl | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ] *)
 
-(* type xhinlinecont =
+(* type inline_content =
     [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var ]
 *)
 
-type xhinlinemix = [ `PCDATA | inline ]
+type inlinemix = [ `PCDATA | inline ]
 (* [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var ] *)
 
-type xhlabelcont = [ `PCDATA | inline_sans_label ]
+type label_content = [ `PCDATA | inline_sans_label ]
 (* [ `A | `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var | `Noscript ] *)
 
-type xhacont = [ `PCDATA | inline_sans_a_mix ]
+type a_content = [ `PCDATA | inline_sans_a_mix ]
 (* [ `Abbr | `Acronym | `B | `Bdo | `Big | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Em | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Object | `PCDATA | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Textarea | `Tt | `Var | `Noscript ] *)
 
-type xhprecont = [ `PCDATA | precontent ]
+type pre_content = [ `PCDATA | precontent ]
 (* [ `A | `Abbr | `Acronym | `B | `Bdo | `Br | `Cite | `Code | `Dfn | `Em | `I | `Kbd | `Map | `PCDATA | `Q | `Samp | `Script | `Span | `Strong | `Tt | `Var ] *)
 
-type xhdlcont = [ `Dd | `Dt ]
+type dl_content = [ `Dd | `Dt ]
 
-type xhoptgroupcont = [ `Option ]
+type optgroup_content = [ `Option ]
 
-type xhcolgroupcont = [ `Col ]
+type colgroup_content = [ `Col ]
 
-type xhulcont = [ `Li ]
+type ul_content = [ `Li ]
 
-type xhselectcont = [ `Optgroup | `Option ]
+type select_content = [ `Optgroup | `Option ]
 
-type xhtbodycont = [ `Tr ]
+type tbody_content = [ `Tr ]
 
-type xhtablecont =
+type table_content =
     [ `Caption | `Col | `Colgroup | `Tbody | `Tfoot | `Thead | `Tr ]
 
-type xhtrcont = [ `Td | `Th ]
+type tr_content = [ `Td | `Th ]
 
-type xhabbrcont = xhinlinemix
-type xhacronymcont = xhinlinemix
-type xhaddresscont = xhinlinemix
-type xhbcont = xhinlinemix
-type xhbdocont = xhinlinemix
-type xhbigcont = xhinlinemix
-type xhcaptioncont = xhinlinemix
-type xhcitecont = xhinlinemix
-type xhcodecont = xhinlinemix
-type xhdfncont = xhinlinemix
-type xhdtcont = xhinlinemix
-type xhemcont = xhinlinemix
-type xhh1cont = xhinlinemix
-type xhh2cont = xhinlinemix
-type xhh3cont = xhinlinemix
-type xhh4cont = xhinlinemix
-type xhh5cont = xhinlinemix
-type xhh6cont = xhinlinemix
-type xhicont = xhinlinemix
-type xhkbdcont = xhinlinemix
-type xhlegendcont = xhinlinemix
-type xhpcont = xhinlinemix
-type xhqcont = xhinlinemix
-type xhsampcont = xhinlinemix
-type xhsmallcont = xhinlinemix
-type xhspancont = xhinlinemix
-type xhstrongcont = xhinlinemix
-type xhsubcont = xhinlinemix
-type xhsupcont = xhinlinemix
-type xhttcont = xhinlinemix
-type xhvarcont = xhinlinemix
+type abbr_content = inlinemix
+type acronym_content = inlinemix
+type address_content = inlinemix
+type b_content = inlinemix
+type bdo_content = inlinemix
+type big_content = inlinemix
+type caption_content = inlinemix
+type cite_content = inlinemix
+type code_content = inlinemix
+type dfn_content = inlinemix
+type dt_content = inlinemix
+type em_content = inlinemix
+type h1_content = inlinemix
+type h2_content = inlinemix
+type h3_content = inlinemix
+type h4_content = inlinemix
+type h5_content = inlinemix
+type h6_content = inlinemix
+type i_content = inlinemix
+type kbd_content = inlinemix
+type legend_content = inlinemix
+type p_content = inlinemix
+type q_content = inlinemix
+type samp_content = inlinemix
+type small_content = inlinemix
+type span_content = inlinemix
+type strong_content = inlinemix
+type sub_content = inlinemix
+type sup_content = inlinemix
+type tt_content = inlinemix
+type var_content = inlinemix
 
-type xhddcont = xhdivcont
-type xhdelcont = xhdivcont
-(* type xhdivcont = xhdivcont *)
-type xhinscont = xhdivcont
-type xhlicont = xhdivcont
-type xhthcont = xhdivcont
-type xhtdcont = xhdivcont
+type dd_content = div_content
+type del_content = div_content
+(* type div_content = div_content *)
+type ins_content = div_content
+type li_content = div_content
+type th_content = div_content
+type td_content = div_content
 
-(* type xhtbodycont = xhbodycont *)
-type xhnoscriptcont = xhbodycont
+(* type tbody_content = body_content *)
+type noscript_content = body_content
 
-type xhareacont = xhnotag
-type xhbasecont = xhnotag
-type xhbrcont = xhnotag
-type xhcolcont = xhnotag
-type xhhrcont = xhnotag
-type xhimgcont = xhnotag
-type xhinputcont = xhnotag
-type xhmetacont = xhnotag
-type xhparamcont = xhnotag
+type area_content = notag
+type base_content = notag
+type br_content = notag
+type col_content = notag
+type hr_content = notag
+type img_content = notag
+type input_content = notag
+type meta_content = notag
+type param_content = notag
 
 
 (*
-type xhobjectcont = xhobjectcont
-type xhfieldsetcont = xhfieldsetcont
-type xhheadcont = xhheadcont
-type xhformcont = xhformcont
-type xhmapcont = xhmapcont
-type xhlabelcont = xhlabelcont
-type xhacont = xhacont
-type xhprecont = xhprecont
-type xhdlcont = xhdlcont
-type xhoptgroupcont = xhoptgroupcont
-type xhcolgroupcont = xhcolgroupcont
-type xhulcont = xhulcont
-type xhselectcont = xhselectcont
-type xhtablecont = xhtablecont
-type xhtrcont = xhtrcont
-type xhbuttoncont = xhbuttoncont
-type xhblockquotecont = xhblockquotecont
+type object_content = object_content
+type fieldset_content = fieldset_content
+type head_content = head_content
+type form_content = form_content
+type map_content = map_content
+type label_content = label_content
+type a_content = a_content
+type pre_content = pre_content
+type dl_content = dl_content
+type optgroup_content = optgroup_content
+type colgroup_content = colgroup_content
+type ul_content = ul_content
+type select_content = select_content
+type table_content = table_content
+type tr_content = tr_content
+type button_content = button_content
+type blockquote_content = blockquote_content
 *)
 
-type xhlinkcont = pcdata
-type xhoptioncont = pcdata
-type xhscriptcont = pcdata
-type xhstylecont = pcdata
-type xhtextareacont = pcdata
-type xhtitlecont = pcdata
+type link_content = pcdata
+type option_content = pcdata
+type script_content = pcdata
+type style_content = pcdata
+type textarea_content = pcdata
+type title_content = pcdata
 
-type xholcont = xhulcont
-type xhtheadcont = xhtbodycont
-type xhtfootcont = xhtbodycont
+type ol_content = ul_content
+type thead_content = tbody_content
+type tfoot_content = tbody_content
 
-type xhaattrib =
+type a_attrib =
   [ common | `Accesskey | `Charset | `Href | `Hreflang
 | `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type 
 | `Shape | `Coords ]
-type xhlinkattrib =
+type link_attrib =
     [ common | `Charset | `Href | `Hreflang | `Media
   | `Rel | `Rev | `Target | `Type ]
-type xhscriptattrib = [ `XMLns | `Charset | `Src | `Defer | `XML_space ]
-type xhformattrib = [ common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept ]
-type xhimgattrib = 
+type script_attrib = [ `XMLns | `Charset | `Src | `Defer | `XML_space ]
+type form_attrib = [ common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept ]
+type img_attrib = 
     [ common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap ]
-type xhdivattrib = [ common ]
-type xhinputattrib =
+type div_attrib = [ common ]
+type input_attrib =
     [ common | `Accesskey | `Checked | `Maxlength | `Name | `Size
   | `Src | `Tabindex | `Input_Type | `Value | `Usemap ]
-type xhtextareaattrib =
+type textarea_attrib =
     [ common | `Accesskey | `Name | `Tabindex ]

@@ -35,7 +35,7 @@ de nouvelles boîtes dans une page sans créer un nouveau Register de boîtes
 (* First of all, we create a register for all kind of pages we want *)
 module RegisterBoxes =
   MakeRegister(struct 
-    type content = Xhtmltypes.xhbodycont XHTML.M.elt
+    type content = Xhtmltypes.body_content XHTML.M.elt
     type 'a t = 'a
     type box = [`Box of content t tfolded]
     type boxes = box
@@ -46,7 +46,7 @@ module RegisterBoxes =
       let make_boxofboxes ~filter l = 
 	List.map (fun b -> (filter b)) l
     type container_param = 
-	Xhtmltypes.xhdivattrib XHTML.M.attrib list option
+	Xhtmltypes.div_attrib XHTML.M.attrib list option
     let container f ~box_param:(a,l) = 
       boxes_container ?a:a
 	(f ~user:Rights.anonymoususer ~resource:Rights.anyresource l)

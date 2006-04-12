@@ -32,7 +32,7 @@ open Xhtmltypes
 type page = xhtml elt
 (** Type of web pages. It is the result type for function generating xhtml *)
 
-type xhformcontl = xhformcont elt list
+type form_content_l = form_content elt list
 (** Type of formulars *)
 
 (*
@@ -104,28 +104,28 @@ type ('a,'b,'c,'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters
 
 
 val _noparam : 
-    ('a, 'a, 'b -> 'b, [>xha] elt, [>xhform] elt, uri (*, [>xhimg] elt, [>xhlink] elt, [>xhscript] elt*)) parameters
+    ('a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt*)) parameters
 (** Used for pages that don't have any parameters (static pages) *)
 
-val _unit : (unit -> 'a, 'a, 'b -> 'b, [>xha] elt, [>xhform] elt, uri (*, [>xhimg] elt, [>xhlink] elt, [>xhscript] elt *)) parameters
+val _unit : (unit -> 'a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt *)) parameters
 (** used for pages that don't have any parameters but may have side-effects *)
 
 val _int :
     string ->
     (int -> 'a, 'a, (int name -> 'b) -> 'b, 
-      int -> [>xha] elt, int -> [>xhform] elt, int -> uri (*, int -> [>xhimg] elt, int -> [>xhlink] elt, int -> [>xhscript] elt *)) parameters
+      int -> [>a] elt, int -> [>form] elt, int -> uri (*, int -> [>img] elt, int -> [>link] elt, int -> [>script] elt *)) parameters
 (** [_int s] tells that the page take an integer as parameter, labeled [s] *)
 
 val _string :
   string ->
   (string -> 'a, 'a, (string name -> 'b) -> 'b, 
-     string -> [>xha] elt, string -> [>xhform] elt, string -> uri (*, string -> [>xhimg] elt, string -> [>xhlink] elt, string -> [>xhscript] elt *)) parameters
+     string -> [>a] elt, string -> [>form] elt, string -> uri (*, string -> [>img] elt, string -> [>link] elt, string -> [>script] elt *)) parameters
 (** [_string s] tells that the page take a string as parameter, labeled [s] *)
 
 val _user_type :
   (string -> 'c) -> ('c -> string) -> string ->
   ('c -> 'a, 'a, ('c name -> 'b) -> 'b, 
-    'c -> [>xha] elt, 'c -> [>xhform] elt, 'c -> uri (*, 'c -> [>xhimg] elt, 'c -> [>xhlink] elt, 'c -> [>xhscript] elt*)) parameters
+    'c -> [>a] elt, 'c -> [>form] elt, 'c -> uri (*, 'c -> [>img] elt, 'c -> [>link] elt, 'c -> [>script] elt*)) parameters
 (** Allows to use whatever type you want for a parameter of the page.
    [_user_type s_to_t t_to_s s] tells that the page take a parameter, labeled [s], and that the server will have to use [s_to_t] and [t_to_s] to make the conversion from and to string.
  *)
@@ -157,8 +157,8 @@ val _http_params :
 (** Tells that one of the parameters of the function that will generate the page is the set of HTTP parameters (see the type {{:#TYPEhttp_params}[http_params]}). *)
 
 val ( ** ) :
-    ('a, 'b, 'c -> 'd, 'e -> xha elt, 'e -> xhform elt, 'e -> uri (*,  'e -> xhimg elt,
-      'e -> xhlink elt, 'e -> xhscript elt *)) parameters ->
+    ('a, 'b, 'c -> 'd, 'e -> a elt, 'e -> form elt, 'e -> uri (*,  'e -> img elt,
+      'e -> link elt, 'e -> script elt *)) parameters ->
       ('b, 'g, 'd -> 'h,  'i -> 'ja, 'i -> 'jform, 'i -> 'juri(*, 'i -> 'jimg, 'i -> 'jlink, 'i -> 'jscript*)) parameters ->
 	('a, 'g, 'c -> 'h, 'e -> 'i -> 'ja, 'e -> 'i -> 'jform, 'e -> 'i -> 'juri (*, 'e -> 'i -> 'jimg, 'e -> 'i -> 'jlink, 'e -> 'i -> 'jscript *)) parameters
 (** This is a combinator to allow the page to take several parameters (see examples above) *)
@@ -168,10 +168,10 @@ val ( ** ) :
 val new_url :
     path:url_path ->
       ?prefix:bool ->
-	params:('a, page, 'b -> xhformcontl, 
+	params:('a, page, 'b -> form_content_l, 
 	  'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
 	    unit ->
-	      ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
+	      ('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
 	       page, page, [`Internal_Url of [`Public_Url]]) url
 (** [new_url ~path:p ~params:pa ()] creates an {{:#TYPEurl}[url]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
 
@@ -180,19 +180,19 @@ If you specify [~prefix:true], your URL will match all requests from client begi
 val new_external_url :
   path:url_path ->
     ?prefix:bool ->
-      params:('a, page, 'b -> xhformcontl, 
+      params:('a, page, 'b -> form_content_l, 
 	'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
 	  unit -> 
-	    ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, [`External_Url]) url
+	    ('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, [`External_Url]) url
 (** Creates an URL for an external web site *)
 
 val new_state_url :
-    fallback:('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, [`Internal_Url of [`Public_Url]]) url 
-  -> ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, [`Internal_Url of [`State_Url]]) url
+    fallback:('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, [`Internal_Url of [`Public_Url]]) url 
+  -> ('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, [`Internal_Url of [`State_Url]]) url
 (** Creates another version of an already existing URL, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
 val register_url :
-    url:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, [`Internal_Url of 'f]) url -> 'c -> unit
+    url:('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, [`Internal_Url of 'f]) url -> 'c -> unit
 (** Register an url in the global table of the server 
    with the associated generation function.
    [register_url url t f] will associate the url [url] to the function [f].*)
@@ -205,7 +205,7 @@ val register_url :
 
 	
 val register_url_for_session :
-    url:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, [`Internal_Url of 'f]) url -> 'c -> unit
+    url:('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, [`Internal_Url of 'f]) url -> 'c -> unit
 (** Registers an url and the associated function in the session table.
    If the same client does a request to this url, this function will be
    used instead of the one from the global table.
@@ -227,28 +227,28 @@ val register_url_for_session :
 val register_new_url :
   path:url_path ->
   ?prefix:bool -> 
-  params:('a, page, 'b -> xhformcontl, 
+  params:('a, page, 'b -> form_content_l, 
     'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
-  'a -> ('b, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
+  'a -> ('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
 	      page, page, [`Internal_Url of [`Public_Url]]) url
 (** Same as [new_url] followed by [register_url] *)
 
 val register_new_state_url :
-    fallback:('a, xhformcontl, 'b, 'c, 'd, 'e, page, page,
+    fallback:('a, form_content_l, 'b, 'c, 'd, 'e, page, page,
               [`Internal_Url of [`Public_Url]])
     url ->
       'e ->
-	('a, xhformcontl, 'b, 'c, 'd, 'e, page, page, [`Internal_Url of [`State_Url]]) url
+	('a, form_content_l, 'b, 'c, 'd, 'e, page, page, [`Internal_Url of [`State_Url]]) url
 (** Same as [new_state_url] followed by [register_url] *)
 
 val register_new_state_url_for_session :
-    fallback:('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, [`Internal_Url of [`Public_Url]]) url ->
-    'c -> ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, [`Internal_Url of [`State_Url]]) url
+    fallback:('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, [`Internal_Url of [`Public_Url]]) url ->
+    'c -> ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, [`Internal_Url of [`State_Url]]) url
 (** Same as [new_state_url] followed by [register_url_for_session] *)
 
 val new_post_url :
   fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
-  post_params:('h, 'd, 'j -> xhformcontl, 'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
+  post_params:('h, 'd, 'j -> form_content_l, 'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
   ('a, 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'h, 'd, [`Internal_Url of [`Public_Url]]) url
 (** Creates an URL that takes POST parameters. 
    [fallback] is the same URL without POST parameters.
@@ -260,9 +260,9 @@ val new_post_url :
 val new_external_post_url :
   path:url_path ->
   ?prefix:bool -> 
-  params:('a, page, 'b -> xhformcontl, 
+  params:('a, page, 'b -> form_content_l, 
     'ca, 'cform, 'curi (*'cimg, 'clink, 'cscript *)) parameters ->
-  post_params:('h, 'i, 'j -> xhformcontl, 
+  post_params:('h, 'i, 'j -> form_content_l, 
     'ka, 'kform, 'kuri (* 'kimg, 'klink, 'kscript *)) parameters ->
   unit -> 
   ('b, 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 'h, 'i, [`External_Url]) url
@@ -270,7 +270,7 @@ val new_external_post_url :
 
 val new_post_state_url :
   fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
-  post_params:('g, 'h, 'i -> xhformcontl, 
+  post_params:('g, 'h, 'i -> form_content_l, 
     'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
   ('a, 'i, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'g, 'h, [`Internal_Url of [`State_Url]]) url
 (** Creates a state URL with POST parameters *)
@@ -285,27 +285,27 @@ val register_post_url_for_session :
 
 val register_new_post_url :
     fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
-    post_params:('h, 'd, ('i -> 'j) -> xhformcontl, 
+    post_params:('h, 'd, ('i -> 'j) -> form_content_l, 
       'ka, 'kform, 'kuri (* 'kimg, 'klink, 'kscript *)) parameters ->
     'h -> ('a, 'i -> 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'h, 'd, [`Internal_Url of [`Public_Url]]) url
 (** Same as [new_post_url] followed by [register_post_url] *)
 
 val register_new_post_state_url :
     fallback:('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, [`Internal_Url of [`Public_Url]]) url ->
-      post_params:('i, 'f, ('j -> 'k) -> xhformcontl, 'l, 'm, 'n) parameters ->
+      post_params:('i, 'f, ('j -> 'k) -> form_content_l, 'l, 'm, 'n) parameters ->
 	'i -> ('a, 'j -> 'k, 'c, 'd, 'e, 'f, 'i, 'f, [`Internal_Url of [`State_Url]]) url
 (** Same as [new_post_state_url] followed by [register_post_url] *)
 
 val register_new_post_state_url_for_session :
     fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
-    post_params:('g, 'd, ('h -> 'i) -> xhformcontl, 
+    post_params:('g, 'd, ('h -> 'i) -> form_content_l, 
       'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
     'g -> ('a, 'h -> 'i, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'g, 'd, [`Internal_Url of [`State_Url]]) url
 (** Same as [new_post_state_url] followed by [register_post_url_for_session] *)
 
 val static_dir :
-    (xhformcontl, xhformcontl, string -> [> Xhtmltypes.xha ] XHTML.M.elt,
-     string -> [> Xhtmltypes.xhform ] XHTML.M.elt, string -> XHTML.M.uri,
+    (form_content_l, form_content_l, string -> [> Xhtmltypes.a ] XHTML.M.elt,
+     string -> [> Xhtmltypes.form ] XHTML.M.elt, string -> XHTML.M.uri,
      page, 'a, 'a, 'b)
     url
 (** The URL that correponds to the directory where static pages are.
@@ -327,7 +327,7 @@ type ('a,'b) actionurl
  *)
 
 val new_actionurl :
-  params:('a, unit, 'b -> xhformcontl, 
+  params:('a, unit, 'b -> form_content_l, 
     'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters -> ('b, 'a) actionurl
 (** Creates an action *)
 
@@ -339,14 +339,14 @@ val register_actionurl_for_session :
 (** Register an action in the session table *)
 
 val register_new_actionurl :
-  params:('a, unit, 'b -> xhformcontl, 
+  params:('a, unit, 'b -> form_content_l, 
     'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
   action:'a 
   -> ('b, 'a) actionurl
 (** Same as [new_actionurl] followed by [register_actionurl] *)
 
 val register_new_actionurl_for_session :
-  params:('a, unit, 'b -> xhformcontl, 
+  params:('a, unit, 'b -> form_content_l, 
     'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
   action:'a 
   -> ('b, 'a) actionurl
@@ -355,10 +355,10 @@ val register_new_actionurl_for_session :
 
 (** {2 Creating links, forms, etc.} *)
 
-val a : ?a:([< xhaattrib > `Href ] attrib list) ->
-  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url ->
+val a : ?a:([< a_attrib > `Href ] attrib list) ->
+  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url ->
     current_url -> 
-      xhacont elt list -> 'ca
+      a_content elt list -> 'ca
 (** [a url current cont] creates a link from [current] to [url]. The text of
    the link is [cont]. For example [cont] may be something like
    [\[pcdata "click here"\]]. To know the current URL (for [current]),
@@ -370,25 +370,25 @@ val a : ?a:([< xhaattrib > `Href ] attrib list) ->
  The [~a] optional parameter is used for extra attributes 
    (see the module XHTML.M) *)
 
-val css_link : ?a:([< xhlinkattrib > `Href `Rel `Type ] attrib list) ->
-  uri -> [> xhlink ] elt
+val css_link : ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
+  uri -> [> link ] elt
 (** Creates a [<link>] tag for a Cascading StyleSheet (CSS).
  *)
 
-val js_script : ?a:([< xhscriptattrib > `Src ] attrib list) ->
-  uri -> [> xhscript ] elt
+val js_script : ?a:([< script_attrib > `Src ] attrib list) ->
+  uri -> [> script ] elt
 (** Creates a [<script>] tag to add a javascript file *)
 
 (*
-val css_link : ?a:([< xhlinkattrib > `Href `Rel `Type ] attrib list) ->
-  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> current_url -> 'clink
+val css_link : ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
+  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> current_url -> 'clink
 
-val script : ?a:([< xhscriptattrib > `Src ] attrib list) ->
-  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> current_url -> 'cscript
+val script : ?a:([< script_attrib > `Src ] attrib list) ->
+  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> current_url -> 'cscript
 *)
 
 val make_uri :
-    ('a, xhformcontl,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url
+    ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url
   -> current_url -> 'curi
 (** Create the text of the URL. Like the [a] function, it may take
    extra parameters. *)
@@ -397,80 +397,80 @@ val make_uri :
 (** Link a registrated URL with the function that takes the url and
     names of the parameters, and creates a form for these parameters
 *)
-val get_form : ?a:([< xhformattrib > `Method ] attrib list) ->
-  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> 
-    current_url -> 'a -> [> xhform ] elt
+val get_form : ?a:([< form_attrib > `Method ] attrib list) ->
+  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> 
+    current_url -> 'a -> [> form ] elt
 (** [get_form url current formgen] creates a GET form from [current] to [url]. 
    The content of
    the form is generated by the function [formgen], that takes the names
    of page parameters as parameters. *)
 
-val post_form : ?a:([< xhformattrib > `Method ] attrib list) ->
+val post_form : ?a:([< form_attrib > `Method ] attrib list) ->
   ('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url
     -> current_url -> 'b -> 'cform
 (** [post_form url current formgen] creates a POST form from [current] to [url]. 
 *)
 
 (*
-val img : ?a:([< xhimgattrib ] attrib list) ->
+val img : ?a:([< img_attrib ] attrib list) ->
   alt:string ->
-  ('a, xhformcontl, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> current_url -> 'cimg
+  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> current_url -> 'cimg
 *)
 
-val int_input : ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) -> 
-  int name -> [> xhinput ] elt
+val int_input : ?a:([< input_attrib > `Input_Type `Name ] attrib list ) -> 
+  int name -> [> input ] elt
 (** Creates an [<input>] tag for an integer *)
 
 val hidden_int_input : 
-    ?a:([< xhinputattrib > `Input_Type `Name `Value ] attrib list ) -> 
-      int name -> int -> [> xhinput ] elt
+    ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+      int name -> int -> [> input ] elt
 (** Creates an hidden [<input>] tag for an integer *)
 
 val string_input : 
-    ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) -> string name -> 
-      [> xhinput ] elt
+    ?a:([< input_attrib > `Input_Type `Name ] attrib list ) -> string name -> 
+      [> input ] elt
 (** Creates an [<input>] tag for a string *)
 
 val password_input : 
-    ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) -> string name -> 
-      [> xhinput ] elt
+    ?a:([< input_attrib > `Input_Type `Name ] attrib list ) -> string name -> 
+      [> input ] elt
 (** Creates an [<password>] tag *)
 
 val checkbox_input :
-    ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) -> 
-  string name -> [> xhinput ] elt
+    ?a:([< input_attrib > `Input_Type `Name ] attrib list ) -> 
+  string name -> [> input ] elt
 (** Creates a checkbox [<input>] tag *)
 
-val radio_input : ?a:([< xhinputattrib > `Input_Type `Name ] attrib list ) -> 
-  string name -> [> xhinput ] elt
+val radio_input : ?a:([< input_attrib > `Input_Type `Name ] attrib list ) -> 
+  string name -> [> input ] elt
 (** Creates a radio [<input>] tag *)
 
-val textarea : ?a:([< xhtextareaattrib > `Name ] attrib list ) -> 
+val textarea : ?a:([< textarea_attrib > `Name ] attrib list ) -> 
   string name -> rows:number -> cols:number -> [ `PCDATA ] XHTML.M.elt ->
-    [> xhtextarea ] elt
+    [> textarea ] elt
 (** Creates a [<textarea>] tag *)
 
-val submit_input : ?a:([< xhinputattrib > `Input_Type `Value ] attrib list ) -> 
-  string -> [> xhinput ] elt
+val submit_input : ?a:([< input_attrib > `Input_Type `Value ] attrib list ) -> 
+  string -> [> input ] elt
 (** Creates a submit [<input>] tag *)
 
 
-val action_a : ?a:([< xhaattrib > `Href ] attrib list) ->
+val action_a : ?a:([< a_attrib > `Href ] attrib list) ->
   ?reload:bool ->
-    (xhformcontl, unit -> unit) actionurl -> 
+    (form_content_l, unit -> unit) actionurl -> 
       http_params -> 
-	xhacont elt list -> 
-	  [> xhform] elt
+	a_content elt list -> 
+	  [> form] elt
 (** Creates a link that will perform an action (see {{:#TYPEactionurl}[actionurl]}).
    If [~reload:false] is specified, the current page will not be reloaded.
  *)
 
-val action_form : ?a:([< xhformattrib > `Method ] attrib list) ->
+val action_form : ?a:([< form_attrib > `Method ] attrib list) ->
     ?reload:bool ->
       ('a, 'b) actionurl ->
 	http_params -> 
 	  'a ->
-	    [> xhform] elt
+	    [> form] elt
 (** Creates a form that will perform an action (see {{:#TYPEactionurl}[actionurl]}).
    If [~reload:false] is specified, the current page will not be reloaded.
  *)
