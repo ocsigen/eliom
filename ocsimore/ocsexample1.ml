@@ -13,7 +13,7 @@ open Ocsexample_util
 (*****************************************************************************)
 (* All the urls: *)
 
-let main_page = new_url ~path:[""] ~params:(_http_params _noparam) ()
+let main_page = new_url ~path:[""] ~get_params:(_http_params _noparam) ()
 
 let news_page = new_url ["msg"] (_http_params (StringMessage._index "num")) ()
 

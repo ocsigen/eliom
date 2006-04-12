@@ -115,44 +115,33 @@ type ('a, 'b, 'c, 'da, 'dform, 'duri (*,'dimg, 'dlink, 'dscript *)) parameters =
 	  (but 'b can be more complicated, for ex in register_post_url)
        *)}
 
-let _noparam : ('a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt*)) parameters = 
+let no_get_param : ('a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt*)) parameters = 
+
   let write_parameters = (fun f -> f None) in
   {param_names=[];
    write_parameters_a = 
    (write_parameters :> (string option -> a elt) -> [>a] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> form elt) -> [>form] elt);
-(*   write_parameters_img = 
-   (write_parameters :> (string option -> img elt) -> [>img] elt);
-   write_parameters_link = 
-   (write_parameters :> (string option -> link elt) -> [>link] elt);
-   write_parameters_script = 
-   (write_parameters :> (string option -> script elt) -> [>script] elt); *)
    write_parameters_uri = 
    (write_parameters :> (string option -> uri) -> uri);
    give_form_parameters = id;
    conversion_function= (fun pog f _ -> f)}
 
-let _string name = 
+let string name = 
   let write_parameters = (fun f s -> f (Some (write_param name s))) in
   {param_names=[name];
    write_parameters_a = 
    (write_parameters :> (string option -> a elt) -> string -> [>a] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> form elt) -> string -> [>form] elt);
-(*   write_parameters_img = 
-   (write_parameters :> (string option -> img elt) -> string -> [>img] elt);
-   write_parameters_link = 
-   (write_parameters :> (string option -> link elt) -> string -> [>link] elt);
-   write_parameters_script = 
-   (write_parameters :> (string option -> script elt) -> string -> [>script] elt); *)
    write_parameters_uri = 
    (write_parameters :> (string option -> uri) -> string -> uri);
    give_form_parameters=(fun h -> h (name : string name));
    conversion_function= (fun pog f httpparam -> 
      f (find_param name pog httpparam))}
 
-let _user_type (mytype_of_string : string -> 'a) string_of_mytype name = 
+let user_type (mytype_of_string : string -> 'a) string_of_mytype name = 
   let write_parameters =
     (fun f i -> f (Some (write_param name (string_of_mytype i)))) in
   {param_names=[name];
@@ -160,12 +149,6 @@ let _user_type (mytype_of_string : string -> 'a) string_of_mytype name =
    (write_parameters :> (string option -> a elt) -> 'a -> [>a] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> form elt) -> 'a -> [>form] elt);
-(*   write_parameters_img = 
-   (write_parameters :> (string option -> img elt) -> 'a -> [>img] elt);
-   write_parameters_link = 
-   (write_parameters :> (string option -> link elt) -> 'a -> [>link] elt);
-   write_parameters_script = 
-   (write_parameters :> (string option -> script elt) -> 'a -> [>script] elt);*)
    write_parameters_uri = 
    (write_parameters :> (string option -> uri) -> 'a -> uri);
    give_form_parameters=(fun h -> h (name : 'a name));
@@ -176,7 +159,7 @@ let _user_type (mytype_of_string : string -> 'a) string_of_mytype name =
        with _ -> raise (Ocsigen_Typing_Error name)
      in f p)}
 (* 
-let _int name = 
+let int name = 
     {param_names=[name];
      write_parameters=
 	(fun f i -> f (Some (write_param name (string_of_int i))));
@@ -188,21 +171,15 @@ let _int name =
 			      with _ -> raise (Ocsigen_Typing_Error name)
 *)
 
-let _int name = _user_type int_of_string string_of_int name
+let int name = user_type int_of_string string_of_int name
 
-let _unit = 
+let unit = 
   let write_parameters= (fun f -> f None) in
   {param_names=[];
    write_parameters_a = 
    (write_parameters :> (string option -> a elt) -> [>a] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> form elt) -> [>form] elt);
-(*   write_parameters_img = 
-   (write_parameters :> (string option -> img elt) -> [>img] elt);
-   write_parameters_link = 
-   (write_parameters :> (string option -> link elt) -> [>link] elt);
-   write_parameters_script = 
-   (write_parameters :> (string option -> script elt) -> [>script] elt); *)
    write_parameters_uri = 
    (write_parameters :> (string option -> uri) -> uri);
    give_form_parameters=id;
@@ -212,8 +189,8 @@ let _unit =
 (* Dans une ancienne version on pouvait mettre des paramètres optionnels.
    mais la sémantique n'est pas claire.
    maintenant il faut enregistrer plusieurs URL différentes.
-let _option p =
-  (* By typing, _option can take only one parameter.
+let option p =
+  (* By typing, option can take only one parameter.
      So opt_param_names is empty and param_names contains at most one element
   *)
    let write_parameters=(fun f s -> match s with 
@@ -225,12 +202,6 @@ let _option p =
    (write_parameters :> (string option -> a elt) -> [>a] elt);
    write_parameters_form = 
    (write_parameters :> (string option -> form elt) -> [>form] elt);
-(*   write_parameters_img = 
-   (write_parameters :> (string option -> img elt) -> [>img] elt);
-   write_parameters_link = 
-   (write_parameters :> (string option -> link elt) -> [>link] elt);
-   write_parameters_script = 
-   (write_parameters :> (string option -> script elt) -> [>script] elt); *)
    write_parameters_uri = 
    (write_parameters :> (string option -> uri) -> uri);
    give_form_parameters=p.give_form_parameters;
@@ -241,13 +212,10 @@ let _option p =
    with Ocsigen_Wrong_parameter -> f None)}
  *)
 
-let _useragent p = 
+let useragent p = 
     {param_names=p.param_names;
      write_parameters_a=p.write_parameters_a;
      write_parameters_form=p.write_parameters_form;
-(*     write_parameters_img=p.write_parameters_img;
-     write_parameters_link=p.write_parameters_link;
-     write_parameters_script=p.write_parameters_script; *)
      write_parameters_uri=p.write_parameters_uri;
      give_form_parameters=p.give_form_parameters;
      conversion_function=
@@ -255,13 +223,10 @@ let _useragent p =
 	p.conversion_function pog (f httpparam.useragent) httpparam)
     }
 
-let _ip p = 
+let ip p = 
     {param_names=p.param_names;
      write_parameters_a=p.write_parameters_a;
      write_parameters_form=p.write_parameters_form;
-(*     write_parameters_img=p.write_parameters_img;
-     write_parameters_link=p.write_parameters_link;
-     write_parameters_script=p.write_parameters_script; *)
      write_parameters_uri=p.write_parameters_uri;
      give_form_parameters=p.give_form_parameters;
      conversion_function=
@@ -270,13 +235,10 @@ let _ip p =
         p.conversion_function pog (f ip) httpparam)
     }
 
-let _current_url p = 
+let current_url p = 
     {param_names=p.param_names;
      write_parameters_a=p.write_parameters_a;
      write_parameters_form=p.write_parameters_form;
-(*     write_parameters_img=p.write_parameters_img;
-     write_parameters_link=p.write_parameters_link;
-     write_parameters_script=p.write_parameters_script;*)
      write_parameters_uri=p.write_parameters_uri;
      give_form_parameters=p.give_form_parameters;
      conversion_function=
@@ -284,7 +246,7 @@ let _current_url p =
         p.conversion_function pog (f httpparam.current_url) httpparam)
     }
 
-let _url_suffix p =
+let url_suffix p =
   let write_parameters wp =
     (fun f suffix -> wp
 	(function None -> f (Some ("/"^suffix))
@@ -292,22 +254,16 @@ let _url_suffix p =
   {param_names=p.param_names;
    write_parameters_a = write_parameters p.write_parameters_a;
    write_parameters_form = write_parameters p.write_parameters_form;
-(*   write_parameters_img = write_parameters p.write_parameters_img;
-   write_parameters_link = write_parameters p.write_parameters_link;
-   write_parameters_script = write_parameters p.write_parameters_script; *)
    write_parameters_uri = write_parameters p.write_parameters_uri;
    give_form_parameters=p.give_form_parameters;
    conversion_function=
    (fun pog f httpparam -> p.conversion_function pog (f (httpparam.url_suffix)) httpparam)
  }
 
-let _http_params p = 
+let http_params p = 
     {param_names=p.param_names;
      write_parameters_a=p.write_parameters_a;
      write_parameters_form=p.write_parameters_form;
-(*     write_parameters_img=p.write_parameters_img;
-     write_parameters_link=p.write_parameters_link;
-     write_parameters_script=p.write_parameters_script;*)
      write_parameters_uri=p.write_parameters_uri;
      give_form_parameters=p.give_form_parameters;
      conversion_function=
@@ -332,12 +288,6 @@ let ( ** ) p1 p2 =
    write_parameters p1.write_parameters_a p2.write_parameters_a;
    write_parameters_form = 
    write_parameters p1.write_parameters_form p2.write_parameters_form;
-(*   write_parameters_img = 
-   write_parameters p1.write_parameters_img p2.write_parameters_img;
-   write_parameters_link = 
-   write_parameters p1.write_parameters_link p2.write_parameters_link;
-   write_parameters_script = 
-   write_parameters p1.write_parameters_script p2.write_parameters_script;*)
    write_parameters_uri = 
    write_parameters p1.write_parameters_uri p2.write_parameters_uri;
    give_form_parameters=
@@ -346,7 +296,10 @@ let ( ** ) p1 p2 =
    (fun pog f httpparam -> 
      (p2.conversion_function pog
 	(p1.conversion_function pog f httpparam) httpparam))}
-    
+
+let ( *** ) f g = fun x -> f (g x)    
+
+let no_server_param x = x
 
 let remove_slash = function
     [] -> []
@@ -737,9 +690,11 @@ let global_register_allowed () =
 let new_url_aux_aux
     ~(path : url_path)
     ~prefix
-    ~params
+    ~server_params
+    ~get_params
     reconstruct_url_function
     : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo) url =
+  let all_params = server_params get_params in
 (* ici faire une vérification "duplicate parameter" ? *) 
   let create_get_url write_param = 
     (if prefix then
@@ -760,31 +715,33 @@ let new_url_aux_aux
   {url = path;
    url_prefix = prefix;
    url_state = None;
-   get_param_names = params.param_names;
+   get_param_names = all_params.param_names;
    post_param_names = [];
-   create_get_form = params.give_form_parameters;
+   create_get_form = all_params.give_form_parameters;
    create_post_form = id;
-   create_a_url = create_get_url params.write_parameters_a;
-   create_form_url = create_get_url params.write_parameters_form;
-(*   create_img_url = create_get_url params.write_parameters_img;
-   create_link_url = create_get_url params.write_parameters_link;
-   create_script_url = create_get_url params.write_parameters_script;*)
-   create_uri = create_get_url params.write_parameters_uri;
-   get_conversion_function = params.conversion_function Get;
+   create_a_url = create_get_url all_params.write_parameters_a;
+   create_form_url = create_get_url all_params.write_parameters_form;
+(*   create_img_url = create_get_url all_params.write_parameters_img;
+   create_link_url = create_get_url all_params.write_parameters_link;
+   create_script_url = create_get_url all_params.write_parameters_script;*)
+   create_uri = create_get_url all_params.write_parameters_uri;
+   get_conversion_function = all_params.conversion_function Get;
    post_conversion_function = (fun a http_params -> a)
   }
 
 let new_url_aux
     ~(path : url_path)
     ~prefix
-    ~params
+    ~server_params
+    ~get_params
     : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of 'popo]) url =
   if global_register_allowed () then
     let full_path = (get_current_dir ())@(change_empty_list path) in
     let u = new_url_aux_aux
 	~path:full_path
 	~prefix
-	~params 
+	~server_params
+	~get_params 
 	reconstruct_relative_url_path in
     add_unregistered (full_path, u.get_param_names, u.post_param_names); u
   else raise Ocsigen_url_created_outside_site_loading
@@ -792,16 +749,22 @@ let new_url_aux
 let new_external_url_aux
     ~(path : url_path)
     ~prefix
-    ~params
+    ~get_params
     : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`External_Url]) url =
-  new_url_aux_aux ~path ~prefix ~params reconstruct_absolute_url_path
+  new_url_aux_aux
+    ~path
+    ~prefix
+    ~server_params:id
+    ~get_params 
+    reconstruct_absolute_url_path
 
 let new_url
     ~(path : url_path)
     ?(prefix=false)
-    ~params ()
+    ~server_params
+    ~get_params ()
     : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]]) url =
-  new_url_aux ~path ~prefix ~params
+  new_url_aux ~path ~prefix ~server_params ~get_params
 
 let new_state_url
    ~(fallback : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]])url)
@@ -811,9 +774,9 @@ let new_state_url
 let new_external_url
     ~(path : url_path)
     ?(prefix=false)
-    ~params ()
+    ~get_params ()
     : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`External_Url]) url =
-  new_external_url_aux ~path ~prefix ~params
+  new_external_url_aux ~path ~prefix ~get_params
 
 let register_url_aux
     tables
@@ -851,10 +814,11 @@ let register_url_for_session
 let register_new_url 
     ~path
     ?(prefix=false)
-    ~params
+    ~server_params
+    ~get_params
     page
     : ('a,form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]]) url =
-  let u = new_url ~prefix ~path ~params () in
+  let u = new_url ~prefix ~path ~server_params ~get_params () in
   register_url u page;
   u
     
@@ -911,10 +875,10 @@ let new_post_url
 let new_external_post_url
     ~(path : url_path)
     ?(prefix=false)
-    ~params
+    ~get_params
     ~post_params ()
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`External_Url]) url = 
-  new_post_url_aux (new_external_url_aux path prefix params) post_params
+  new_post_url_aux (new_external_url_aux path prefix get_params) post_params
 
 let new_post_state_url
     ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url)
@@ -999,12 +963,15 @@ let action_reload = "reload"
 
 let new_action_name () = string_of_int (counter ())
 
-let new_actionurl ~(params: ('a, unit, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'd) parameters) =
+let new_actionurl
+    ~server_params
+    ~(get_params: ('a, unit, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'd) parameters) =
+  let all_params = server_params get_params in
   {
     action_name = new_action_name ();
-    action_param_names = params.param_names;
-    create_action_form = params.give_form_parameters;
-    action_conversion_function = params.conversion_function Post
+    action_param_names = all_params.param_names;
+    create_action_form = all_params.give_form_parameters;
+    action_conversion_function = all_params.conversion_function Post
   }
 
 let register_actionurl_aux tables ~actionurl ~action =
@@ -1016,8 +983,8 @@ let register_actionurl_aux tables ~actionurl ~action =
 let register_actionurl ~actionurl ~action =
   register_actionurl_aux global_tables actionurl action
 
-let register_new_actionurl ~params ~action = 
-  let a = new_actionurl params in
+let register_new_actionurl ~server_params ~get_params ~action = 
+  let a = new_actionurl server_params get_params in
     register_actionurl a action;
     a
 
@@ -1025,8 +992,8 @@ let register_actionurl_for_session ~actionurl ~action =
   register_actionurl_aux (get_session_tables ()) actionurl action
 
 
-let register_new_actionurl_for_session ~params ~action =
-  let a = new_actionurl params in
+let register_new_actionurl_for_session ~server_params ~get_params ~action =
+  let a = new_actionurl server_params get_params in
     register_actionurl_for_session a action;
     a
 
@@ -1519,7 +1486,7 @@ let get_page
 	    with Not_found -> raise Ocsigen_404
   in try 
     execute 
-      find 
+      find
       (url, path, params, get_params, post_params, useragent)
       sockaddr cookie
     with 

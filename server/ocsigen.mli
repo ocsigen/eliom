@@ -73,13 +73,13 @@ val remove_slash : url_path -> url_path
 (** {2 Types of pages parameters} *)
 
 (** Here are some examples of how to specify the types and names of pages parameters:
- - [_noparam] for a page without parameter. Call a "register" function with a parameter of type {{:#TYPEpage}[page]}
- - [_unit] for a page without parameter, but that may have an effect. Call a "register" function with a parameter of type [unit ->] {{:#TYPEpage}[page]}
- - [(_int "myvalue")] for a page that takes one parameter, of type [int], called [myvalue]. (You must register a function of type [int ->] {{:#TYPEpage}[page]}).
- - [((_int "myvalue") ** (_string "mystring"))] for a page that takes two parameters, one of type [int] called [myvalue], and one of type [string] called [mystring]. (You must register a function of type [int -> string ->] {{:#TYPEpage}[page]}).
- - [_ip _noparam] for a page that takes no parameter but when you want to have access to the IP address of the client inside the function that generates the page. That function has type  [string ->] {{:#TYPEpage}[page]}.
- - [_current_url _noparam] for a page that takes no parameter but when you want to have access to the current URL inside the function that generates the page. That function has type  {{:#TYPEcurrent_url}[current_url]}[ -> ]{{:#TYPEpage}[page]}. It is needed when you want to make links or forms towards internal url.
- - [_current_url (_ip (_string "hello"))] for a page that takes one string parameter, when you want to have access to the current URL inside the function that generates the page. That function has type {{:#TYPEcurrent_url}[current_url]}[ -> string -> string -> ]{{:#TYPEpage}[page]}.
+ - [no_get_param] for a page without parameter. Call a "register" function with a parameter of type {{:#TYPEpage}[page]}
+ - [unit] for a page without parameter, but that may have an effect. Call a "register" function with a parameter of type [unit ->] {{:#TYPEpage}[page]}
+ - [(int "myvalue")] for a page that takes one parameter, of type [int], called [myvalue]. (You must register a function of type [int ->] {{:#TYPEpage}[page]}).
+ - [((int "myvalue") ** (string "mystring"))] for a page that takes two parameters, one of type [int] called [myvalue], and one of type [string] called [mystring]. (You must register a function of type [int -> string ->] {{:#TYPEpage}[page]}).
+ - [ip no_get_param] for a page that takes no parameter but when you want to have access to the IP address of the client inside the function that generates the page. That function has type  [string ->] {{:#TYPEpage}[page]}.
+ - [current_url no_get_param] for a page that takes no parameter but when you want to have access to the current URL inside the function that generates the page. That function has type  {{:#TYPEcurrent_url}[current_url]}[ -> ]{{:#TYPEpage}[page]}. It is needed when you want to make links or forms towards internal url.
+ - [current_url (ip (string "hello"))] for a page that takes one string parameter, when you want to have access to the current URL inside the function that generates the page. That function has type {{:#TYPEcurrent_url}[current_url]}[ -> string -> string -> ]{{:#TYPEpage}[page]}.
 
 
 Remember that:
@@ -103,55 +103,55 @@ type ('a,'b,'c,'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters
 (** Type for parameters of a web page *)
 
 
-val _noparam : 
+val no_get_param : 
     ('a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt*)) parameters
 (** Used for pages that don't have any parameters (static pages) *)
 
-val _unit : (unit -> 'a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt *)) parameters
+val unit : (unit -> 'a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt *)) parameters
 (** used for pages that don't have any parameters but may have side-effects *)
 
-val _int :
+val int :
     string ->
     (int -> 'a, 'a, (int name -> 'b) -> 'b, 
       int -> [>a] elt, int -> [>form] elt, int -> uri (*, int -> [>img] elt, int -> [>link] elt, int -> [>script] elt *)) parameters
-(** [_int s] tells that the page take an integer as parameter, labeled [s] *)
+(** [int s] tells that the page take an integer as parameter, labeled [s] *)
 
-val _string :
+val string :
   string ->
   (string -> 'a, 'a, (string name -> 'b) -> 'b, 
      string -> [>a] elt, string -> [>form] elt, string -> uri (*, string -> [>img] elt, string -> [>link] elt, string -> [>script] elt *)) parameters
-(** [_string s] tells that the page take a string as parameter, labeled [s] *)
+(** [string s] tells that the page take a string as parameter, labeled [s] *)
 
-val _user_type :
+val user_type :
   (string -> 'c) -> ('c -> string) -> string ->
   ('c -> 'a, 'a, ('c name -> 'b) -> 'b, 
     'c -> [>a] elt, 'c -> [>form] elt, 'c -> uri (*, 'c -> [>img] elt, 'c -> [>link] elt, 'c -> [>script] elt*)) parameters
 (** Allows to use whatever type you want for a parameter of the page.
-   [_user_type s_to_t t_to_s s] tells that the page take a parameter, labeled [s], and that the server will have to use [s_to_t] and [t_to_s] to make the conversion from and to string.
+   [user_type s_to_t t_to_s s] tells that the page take a parameter, labeled [s], and that the server will have to use [s_to_t] and [t_to_s] to make the conversion from and to string.
  *)
 
-val _useragent :
+val useragent :
   ('a, 'b, 'c, 'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters -> 
     (string -> 'a, 'b, 'c,  'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters
 (** Tells that one of the parameters of the function that will generate the page is the user-agent of the browser. *)
 
-val _ip :
+val ip :
   ('a, 'b, 'c, 'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters -> 
     (string -> 'a, 'b, 'c, 'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters
 (** Tells that one of the parameters of the function that will generate the page is the IP address of the client. *)
 
-val _current_url :
+val current_url :
   ('a, 'b, 'c,  'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters -> 
     (current_url -> 'a, 'b, 'c,  'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters
 (** Tells that one of the parameters of the function that will generate the page is the URL of the current page. *)
 
-val _url_suffix :
+val url_suffix :
     ('a, 'b, 'c,  'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
       (string -> 'a, 'b, 'c, 
 	string -> 'da, string -> 'dform, string -> 'duri (*, string -> 'dimg, string -> 'dlink, string -> 'dscript*)) parameters
 (** Tells that one of the parameters of the function that will generate the page is the suffix of the URL of the current page. (see {{:#VALregister_new_url}[register_new_url]}) *)
 
-val _http_params :
+val http_params :
   ('a, 'b, 'c, 'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
   (http_params -> 'a, 'b, 'c, 'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters
 (** Tells that one of the parameters of the function that will generate the page is the set of HTTP parameters (see the type {{:#TYPEhttp_params}[http_params]}). *)
@@ -163,36 +163,41 @@ val ( ** ) :
 	('a, 'g, 'c -> 'h, 'e -> 'i -> 'ja, 'e -> 'i -> 'jform, 'e -> 'i -> 'juri (*, 'e -> 'i -> 'jimg, 'e -> 'i -> 'jlink, 'e -> 'i -> 'jscript *)) parameters
 (** This is a combinator to allow the page to take several parameters (see examples above) *)
 
+val ( *** ) : ('b -> 'c) -> ('a -> 'b) -> ('a -> 'c)
+
+val no_server_param : 'a -> 'a
+
 (** {2 Pages registration} *)
 
 val new_url :
     path:url_path ->
-      ?prefix:bool ->
-	params:('a, page, 'b -> form_content_l, 
-	  'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
-	    unit ->
-	      ('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
-	       page, page, [`Internal_Url of [`Public_Url]]) url
-(** [new_url ~path:p ~params:pa ()] creates an {{:#TYPEurl}[url]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
+    ?prefix:bool ->
+    server_params:
+	(('a, page, 'b -> form_content_l, 'ca, 'cform, 'curi) parameters ->
+         ('a2, page, 'b2 -> form_content_l, 'ca2, 'cform2, 'curi2) parameters) ->
+    get_params:('a, page, 'b -> form_content_l, 'ca, 'cform, 'curi) parameters ->
+    unit ->
+    ('b2, form_content_l, 'ca2,'cform2, 'curi2 , 'a2, 
+     page, page, [`Internal_Url of [`Public_Url]]) url
+(** [new_url ~path:p ~get_params:pa ()] creates an {{:#TYPEurl}[url]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
 
-If you specify [~prefix:true], your URL will match all requests from client beginning by [path]. You can have acces the the suffix of the URL using {{:VAL_url_suffix}[_url_suffix]}. For example [new_url ["mysite";"mywiki"] ~prefix:true (_url_suffix _noparam)] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
+If you specify [~prefix:true], your URL will match all requests from client beginning by [path]. You can have acces the the suffix of the URL using {{:VAL_url_suffix}[url_suffix]}. For example [new_url ["mysite";"mywiki"] ~prefix:true (url_suffix no_get_param)] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
 
 val new_external_url :
-  path:url_path ->
+    path:url_path ->
     ?prefix:bool ->
-      params:('a, page, 'b -> form_content_l, 
-	'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
-	  unit -> 
-	    ('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, [`External_Url]) url
+    get_params:('a, page, 'b -> form_content_l, 'ca, 'cform, 'curi) parameters ->
+    unit -> 
+    ('b, form_content_l, 'ca,'cform, 'curi, 'a, page, page, [`External_Url]) url
 (** Creates an URL for an external web site *)
 
 val new_state_url :
-    fallback:('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, [`Internal_Url of [`Public_Url]]) url 
-  -> ('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, page, page, [`Internal_Url of [`State_Url]]) url
+    fallback:('b, form_content_l, 'ca,'cform, 'curi, 'a, page, page, [`Internal_Url of [`Public_Url]]) url 
+  -> ('b, form_content_l, 'ca,'cform, 'curi, 'a, page, page, [`Internal_Url of [`State_Url]]) url
 (** Creates another version of an already existing URL, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
 val register_url :
-    url:('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, [`Internal_Url of 'f]) url -> 'c -> unit
+    url:('a, form_content_l, 'ca,'cform, 'curi, 'c, 'd, 'e, [`Internal_Url of 'f]) url -> 'c -> unit
 (** Register an url in the global table of the server 
    with the associated generation function.
    [register_url url t f] will associate the url [url] to the function [f].*)
@@ -200,12 +205,12 @@ val register_url :
 (*   f is usually a function that takes any number of parameters of
    any types and that creates a page.
    t is a function that will translate f to a function from http_params
-   to page. t can be written using _unit _int (++) etc.
+   to page. t can be written using unit int (++) etc.
  *)
 
 	
 val register_url_for_session :
-    url:('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, 'd, 'e, [`Internal_Url of 'f]) url -> 'c -> unit
+    url:('a, form_content_l, 'ca,'cform, 'curi, 'c, 'd, 'e, [`Internal_Url of 'f]) url -> 'c -> unit
 (** Registers an url and the associated function in the session table.
    If the same client does a request to this url, this function will be
    used instead of the one from the global table.
@@ -222,14 +227,16 @@ val register_url_for_session :
    [f] is usually a function that takes any number of parameters of
    any types and that creates a page.
    [t] is a function that will translate f to a function from http_params
-   to page. [t] can be written using [_unit _int (++)] etc.
+   to page. [t] can be written using [unit int (++)] etc.
 *)
 val register_new_url :
   path:url_path ->
   ?prefix:bool -> 
-  params:('a, page, 'b -> form_content_l, 
-    'ca, 'cform, 'curi (* 'cimg, 'clink, 'cscript *)) parameters ->
-  'a -> ('b, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 
+  server_params:
+      (('a, page, 'b -> form_content_l, 'ca, 'cform, 'curi) parameters ->
+       ('a2, page, 'b2 -> form_content_l, 'ca2, 'cform2, 'curi2) parameters) ->
+  get_params:('a, page, 'b -> form_content_l, 'ca, 'cform, 'curi) parameters ->
+  'a2 -> ('b2, form_content_l, 'ca2,'cform2, 'curi2 , 'a2, 
 	      page, page, [`Internal_Url of [`Public_Url]]) url
 (** Same as [new_url] followed by [register_url] *)
 
@@ -242,14 +249,14 @@ val register_new_state_url :
 (** Same as [new_state_url] followed by [register_url] *)
 
 val register_new_state_url_for_session :
-    fallback:('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, [`Internal_Url of [`Public_Url]]) url ->
-    'c -> ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'c, page, page, [`Internal_Url of [`State_Url]]) url
+    fallback:('a, form_content_l, 'ca,'cform, 'curi, 'c, page, page, [`Internal_Url of [`Public_Url]]) url ->
+    'c -> ('a, form_content_l, 'ca,'cform, 'curi, 'c, page, page, [`Internal_Url of [`State_Url]]) url
 (** Same as [new_state_url] followed by [register_url_for_session] *)
 
 val new_post_url :
-  fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
+  fallback:('a, 'b, 'ca,'cform, 'curi, 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
   post_params:('h, 'd, 'j -> form_content_l, 'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
-  ('a, 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'h, 'd, [`Internal_Url of [`Public_Url]]) url
+  ('a, 'j, 'ca,'cform, 'curi, 'd, 'h, 'd, [`Internal_Url of [`Public_Url]]) url
 (** Creates an URL that takes POST parameters. 
    [fallback] is the same URL without POST parameters.
    You can create an URL with POST parameters if the same URL does not exist
@@ -260,34 +267,34 @@ val new_post_url :
 val new_external_post_url :
   path:url_path ->
   ?prefix:bool -> 
-  params:('a, page, 'b -> form_content_l, 
+  get_params:('a, page, 'b -> form_content_l, 
     'ca, 'cform, 'curi (*'cimg, 'clink, 'cscript *)) parameters ->
   post_params:('h, 'i, 'j -> form_content_l, 
     'ka, 'kform, 'kuri (* 'kimg, 'klink, 'kscript *)) parameters ->
   unit -> 
-  ('b, 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'a, 'h, 'i, [`External_Url]) url
+  ('b, 'j, 'ca,'cform, 'curi, 'a, 'h, 'i, [`External_Url]) url
 (** Creates an external URL with POST parameters *)
 
 val new_post_state_url :
-  fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
+  fallback:('a, 'b, 'ca,'cform, 'curi, 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
   post_params:('g, 'h, 'i -> form_content_l, 
     'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
-  ('a, 'i, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'g, 'h, [`Internal_Url of [`State_Url]]) url
+  ('a, 'i, 'ca,'cform, 'curi, 'd, 'g, 'h, [`Internal_Url of [`State_Url]]) url
 (** Creates a state URL with POST parameters *)
 
 val register_post_url :
-    url:('a, 'b -> 'c, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'e, 'f, 'e, [`Internal_Url of 'g]) url -> 'f -> unit
+    url:('a, 'b -> 'c, 'ca,'cform, 'curi, 'e, 'f, 'e, [`Internal_Url of 'g]) url -> 'f -> unit
 (** Registers an URL with POST parameters in the global table *)
 
 val register_post_url_for_session :
-    url:('a, 'b -> 'c, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'e, 'f, 'e, [`Internal_Url of 'g]) url -> 'f -> unit
+    url:('a, 'b -> 'c, 'ca,'cform, 'curi, 'e, 'f, 'e, [`Internal_Url of 'g]) url -> 'f -> unit
 (** Registers an URL with POST parameters in the session table *)
 
 val register_new_post_url :
-    fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
+    fallback:('a, 'b, 'ca,'cform, 'curi, 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
     post_params:('h, 'd, ('i -> 'j) -> form_content_l, 
       'ka, 'kform, 'kuri (* 'kimg, 'klink, 'kscript *)) parameters ->
-    'h -> ('a, 'i -> 'j, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'h, 'd, [`Internal_Url of [`Public_Url]]) url
+    'h -> ('a, 'i -> 'j, 'ca,'cform, 'curi, 'd, 'h, 'd, [`Internal_Url of [`Public_Url]]) url
 (** Same as [new_post_url] followed by [register_post_url] *)
 
 val register_new_post_state_url :
@@ -297,10 +304,10 @@ val register_new_post_state_url :
 (** Same as [new_post_state_url] followed by [register_post_url] *)
 
 val register_new_post_state_url_for_session :
-    fallback:('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
+    fallback:('a, 'b, 'ca,'cform, 'curi, 'd, 'e, 'f, [`Internal_Url of [`Public_Url]]) url ->
     post_params:('g, 'd, ('h -> 'i) -> form_content_l, 
       'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
-    'g -> ('a, 'h -> 'i, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'g, 'd, [`Internal_Url of [`State_Url]]) url
+    'g -> ('a, 'h -> 'i, 'ca,'cform, 'curi, 'd, 'g, 'd, [`Internal_Url of [`State_Url]]) url
 (** Same as [new_post_state_url] followed by [register_post_url_for_session] *)
 
 val static_dir :
@@ -327,8 +334,12 @@ type ('a,'b) actionurl
  *)
 
 val new_actionurl :
-  params:('a, unit, 'b -> form_content_l, 
-    'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters -> ('b, 'a) actionurl
+  server_params:
+    (('a, unit, 'b -> form_content_l, 'ca, 'cform, 'curi) parameters ->
+     ('a2, unit, 'b2 -> form_content_l, 'ca2, 'cform2, 'curi2) parameters) ->
+  get_params:('a, unit, 'b -> form_content_l, 
+    'ca, 'cform, 'curi (* 'dimg, 'dlink, 'dscript *)) parameters -> 
+      ('b2, 'a2) actionurl
 (** Creates an action *)
 
 val register_actionurl : actionurl:('a, 'b) actionurl -> action:'b -> unit
@@ -339,24 +350,30 @@ val register_actionurl_for_session :
 (** Register an action in the session table *)
 
 val register_new_actionurl :
-  params:('a, unit, 'b -> form_content_l, 
-    'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
-  action:'a 
-  -> ('b, 'a) actionurl
+  server_params:
+    (('a, unit, 'b -> form_content_l, 'ca, 'cform, 'curi) parameters ->
+     ('a2, unit, 'b2 -> form_content_l, 'ca2, 'cform2, 'curi2) parameters) ->
+  get_params:('a, unit, 'b -> form_content_l, 
+    'ca, 'cform, 'curi (* 'dimg, 'dlink, 'dscript *)) parameters ->
+  action:'a2
+  -> ('b2, 'a2) actionurl
 (** Same as [new_actionurl] followed by [register_actionurl] *)
 
 val register_new_actionurl_for_session :
-  params:('a, unit, 'b -> form_content_l, 
-    'da, 'dform, 'duri (* 'dimg, 'dlink, 'dscript *)) parameters ->
-  action:'a 
-  -> ('b, 'a) actionurl
+  server_params:
+    (('a, unit, 'b -> form_content_l, 'ca, 'cform, 'curi) parameters ->
+     ('a2, unit, 'b2 -> form_content_l, 'ca2, 'cform2, 'curi2) parameters) ->
+  get_params:('a, unit, 'b -> form_content_l, 
+    'ca, 'cform, 'curi (* 'dimg, 'dlink, 'dscript *)) parameters ->
+  action:'a2
+  -> ('b2, 'a2) actionurl
 (** Same as [new_actionurl] followed by [register_actionurl_for_session] *)
 
 
 (** {2 Creating links, forms, etc.} *)
 
 val a : ?a:([< a_attrib > `Href ] attrib list) ->
-  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url ->
+  ('a, form_content_l, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) url ->
     current_url -> 
       a_content elt list -> 'ca
 (** [a url current cont] creates a link from [current] to [url]. The text of
@@ -381,10 +398,10 @@ val js_script : ?a:([< script_attrib > `Src ] attrib list) ->
 
 (*
 val css_link : ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
-  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> current_url -> 'clink
+  ('a, form_content_l, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) url -> current_url -> 'clink
 
 val script : ?a:([< script_attrib > `Src ] attrib list) ->
-  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> current_url -> 'cscript
+  ('a, form_content_l, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) url -> current_url -> 'cscript
 *)
 
 val make_uri :
@@ -398,7 +415,7 @@ val make_uri :
     names of the parameters, and creates a form for these parameters
 *)
 val get_form : ?a:([< form_attrib > `Method ] attrib list) ->
-  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> 
+  ('a, form_content_l, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) url -> 
     current_url -> 'a -> [> form ] elt
 (** [get_form url current formgen] creates a GET form from [current] to [url]. 
    The content of
@@ -406,7 +423,7 @@ val get_form : ?a:([< form_attrib > `Method ] attrib list) ->
    of page parameters as parameters. *)
 
 val post_form : ?a:([< form_attrib > `Method ] attrib list) ->
-  ('a, 'b, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url
+  ('a, 'b, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) url
     -> current_url -> 'b -> 'cform
 (** [post_form url current formgen] creates a POST form from [current] to [url]. 
 *)
@@ -414,7 +431,7 @@ val post_form : ?a:([< form_attrib > `Method ] attrib list) ->
 (*
 val img : ?a:([< img_attrib ] attrib list) ->
   alt:string ->
-  ('a, form_content_l, 'ca,'cform, 'curi (*'cimg,'clink,'cscript *), 'd, 'e, 'f, 'g) url -> current_url -> 'cimg
+  ('a, form_content_l, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) url -> current_url -> 'cimg
 *)
 
 val int_input : ?a:([< input_attrib > `Input_Type `Name ] attrib list ) -> 
