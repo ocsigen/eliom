@@ -191,7 +191,8 @@ let links = register_new_url ["rep";"links"] current_url no_get_param
 	          (new_external_url
 		     ~path:["http://fr.wikipedia.org";"wiki"]
 		     ~prefix:true
-		     ~get_params:(url_suffix no_get_param) ()) 
+                     ~server_params:url_suffix
+		     ~get_params:no_get_param ()) 
                   current_url
 	          [pcdata "ocaml on wikipedia"]
                   "Ocaml"]])))
@@ -336,6 +337,7 @@ let form4 = register_new_url ["form4"] current_url no_get_param
        (post_form
 	  (new_external_post_url 
 	     ~path:["http://www.petitspois.com"]
+             ~server_params:no_server_param
 	     ~get_params:(int "i")
 	     ~post_params:(string "chaine") ()) current_url
 	  (fun chaine -> 

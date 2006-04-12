@@ -115,6 +115,13 @@ type ('a, 'b, 'c, 'da, 'dform, 'duri (*,'dimg, 'dlink, 'dscript *)) parameters =
 	  (but 'b can be more complicated, for ex in register_post_url)
        *)}
 
+type ('a,'b,'ca,'cform,'curi) server_parameters =
+    {sp_wp_a:'ca;
+     sp_wp_form:'cform;
+     sp_wp_uri:'curi;
+     sp_conversion_function: postorget -> 'a -> http_params -> 'b
+    }
+
 let no_get_param : ('a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt*)) parameters = 
 
   let write_parameters = (fun f -> f None) in
@@ -213,37 +220,31 @@ let option p =
  *)
 
 let useragent p = 
-    {param_names=p.param_names;
-     write_parameters_a=p.write_parameters_a;
-     write_parameters_form=p.write_parameters_form;
-     write_parameters_uri=p.write_parameters_uri;
-     give_form_parameters=p.give_form_parameters;
-     conversion_function=
+    {sp_wp_a=p.sp_wp_a;
+     sp_wp_form=p.sp_wp_form;
+     sp_wp_uri=p.sp_wp_uri;
+     sp_conversion_function=
      (fun pog f httpparam -> 
-	p.conversion_function pog (f httpparam.useragent) httpparam)
+	p.sp_conversion_function pog (f httpparam.useragent) httpparam)
     }
 
 let ip p = 
-    {param_names=p.param_names;
-     write_parameters_a=p.write_parameters_a;
-     write_parameters_form=p.write_parameters_form;
-     write_parameters_uri=p.write_parameters_uri;
-     give_form_parameters=p.give_form_parameters;
-     conversion_function=
+    {sp_wp_a=p.sp_wp_a;
+     sp_wp_form=p.sp_wp_form;
+     sp_wp_uri=p.sp_wp_uri;
+     sp_conversion_function=
      (fun pog f httpparam -> 
 	let ip = Unix.string_of_inet_addr httpparam.ip in
-        p.conversion_function pog (f ip) httpparam)
+        p.sp_conversion_function pog (f ip) httpparam)
     }
 
 let current_url p = 
-    {param_names=p.param_names;
-     write_parameters_a=p.write_parameters_a;
-     write_parameters_form=p.write_parameters_form;
-     write_parameters_uri=p.write_parameters_uri;
-     give_form_parameters=p.give_form_parameters;
-     conversion_function=
+    {sp_wp_a=p.sp_wp_a;
+     sp_wp_form=p.sp_wp_form;
+     sp_wp_uri=p.sp_wp_uri;
+     sp_conversion_function=
      (fun pog f httpparam -> 
-        p.conversion_function pog (f httpparam.current_url) httpparam)
+        p.sp_conversion_function pog (f httpparam.current_url) httpparam)
     }
 
 let url_suffix p =
@@ -251,24 +252,19 @@ let url_suffix p =
     (fun f suffix -> wp
 	(function None -> f (Some ("/"^suffix))
 	  | Some v -> f (Some ("/"^suffix^"?"^v)))) in
-  {param_names=p.param_names;
-   write_parameters_a = write_parameters p.write_parameters_a;
-   write_parameters_form = write_parameters p.write_parameters_form;
-   write_parameters_uri = write_parameters p.write_parameters_uri;
-   give_form_parameters=p.give_form_parameters;
-   conversion_function=
-   (fun pog f httpparam -> p.conversion_function pog (f (httpparam.url_suffix)) httpparam)
+  {sp_wp_a= write_parameters;
+   sp_wp_form= write_parameters;
+   sp_wp_uri= p.sp_wp_form;
+   sp_conversion_function=
+   (fun pog f httpparam -> p.sp_conversion_function pog (f (httpparam.url_suffix)) httpparam)
  }
 
 let http_params p = 
-    {param_names=p.param_names;
-     write_parameters_a=p.write_parameters_a;
-     write_parameters_form=p.write_parameters_form;
-     write_parameters_uri=p.write_parameters_uri;
-     give_form_parameters=p.give_form_parameters;
-     conversion_function=
-     (fun pog f httpparam -> 
-        p.conversion_function pog (f httpparam) httpparam)
+    {sp_wp_a=p.sp_wp_a;
+     sp_wp_form=p.sp_wp_form;
+     sp_wp_uri=p.sp_wp_uri;
+     sp_conversion_function=
+     (fun pog f httpparam -> p.sp_conversion_function pog (f httpparam) httpparam)
     }
 
 let ( ** ) p1 p2 =
@@ -300,6 +296,20 @@ let ( ** ) p1 p2 =
 let ( *** ) f g = fun x -> f (g x)    
 
 let no_server_param x = x
+
+let compose_server_and_get_param sp gp =
+  let gp2 = {sp_wp_a = (fun f -> f);
+	     sp_wp_form = (fun f -> f);
+	     sp_wp_uri = (fun f -> f);
+	     sp_conversion_function=gp.conversion_function} in
+  let sp2 = sp gp2 in
+    {param_names=gp.param_names;
+     write_parameters_a=sp2.sp_wp_a gp.write_parameters_a;
+     write_parameters_form=sp2.sp_wp_form gp.write_parameters_form;
+     write_parameters_uri=sp2.sp_wp_uri gp.write_parameters_uri;
+     give_form_parameters=gp.give_form_parameters;
+     conversion_function=sp2.sp_conversion_function
+    }
 
 let remove_slash = function
     [] -> []
@@ -694,7 +704,7 @@ let new_url_aux_aux
     ~get_params
     reconstruct_url_function
     : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo) url =
-  let all_params = server_params get_params in
+  let all_params = compose_server_and_get_param server_params get_params in
 (* ici faire une vérification "duplicate parameter" ? *) 
   let create_get_url write_param = 
     (if prefix then
@@ -749,12 +759,13 @@ let new_url_aux
 let new_external_url_aux
     ~(path : url_path)
     ~prefix
+    ~server_params
     ~get_params
     : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`External_Url]) url =
   new_url_aux_aux
     ~path
     ~prefix
-    ~server_params:id
+    ~server_params
     ~get_params 
     reconstruct_absolute_url_path
 
@@ -774,9 +785,10 @@ let new_state_url
 let new_external_url
     ~(path : url_path)
     ?(prefix=false)
+    ~server_params
     ~get_params ()
     : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`External_Url]) url =
-  new_external_url_aux ~path ~prefix ~get_params
+  new_external_url_aux ~path ~prefix ~server_params ~get_params
 
 let register_url_aux
     tables
@@ -875,10 +887,11 @@ let new_post_url
 let new_external_post_url
     ~(path : url_path)
     ?(prefix=false)
+    ~server_params
     ~get_params
     ~post_params ()
     : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`External_Url]) url = 
-  new_post_url_aux (new_external_url_aux path prefix get_params) post_params
+  new_post_url_aux (new_external_url_aux path prefix server_params get_params) post_params
 
 let new_post_state_url
     ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url)
