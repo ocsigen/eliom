@@ -35,22 +35,22 @@ let compt =
   in
   register_new_url 
     ~path:["compt"]
-    ~server_params:no_server_param
-    ~get_params:unit
+    ~server_params:unit
+    ~get_params:no_get_param
     (fun () -> 
       (html
        (head (title (pcdata "counter")) [])
        (body [p [pcdata (string_of_int (next ()))]])))
 
 (* As usual in OCaml, you can forget labels when the application is total: *)
-let plip = 
+let hello = 
   register_new_url 
-    ["dir";"plip"]  (* the url dir/plip *)
+    ["dir";"hello"]  (* the url dir/hello *)
     no_server_param
     no_get_param
     << <html> 
-         <head><title>plip</title></head>
-         <body><h1>plip</h1></body>
+         <head><title>hello</title></head>
+         <body><h1>hello</h1></body>
        </html> >>
 
 
@@ -112,6 +112,7 @@ let coucou_params = register_new_url
 (* ------------------------------------------------------------------ *)
 (* A web page without parameter which has access to the user-agent 
    and which answers to any url of the form uaprefix/*
+   Warning: for server params, use *** instead of **
 *)
 let uaprefix = 
   register_new_url 
@@ -180,7 +181,7 @@ let links = register_new_url ["rep";"links"] current_url no_get_param
 	 (body 
 	    [p
 	       [a coucou current_url [pcdata "coucou"]; br ();
-		a plip current_url [pcdata "plip"]; br ();
+		a hello current_url [pcdata "hello"]; br ();
 		a default current_url 
 		  [pcdata "default page of the directory"]; br ();
                 a uaprefix current_url 
@@ -447,7 +448,7 @@ let rec launch_session login =
 		 pcdata login; 
 		 pcdata "!"; br ();
 		 a coucou url [pcdata "coucou"]; br ();
-		 a plip url [pcdata "plip"]; br ();
+		 a hello url [pcdata "hello"]; br ();
 		 a links url [pcdata "links"]; br ();
 		 a close url [pcdata "close session"]]]))
   in
@@ -463,7 +464,7 @@ let rec launch_session login =
 		 pcdata login;
 		 pcdata "!"]]));
   register_url_for_session 
-    plip
+    hello
     (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "Ciao ";
@@ -651,7 +652,7 @@ let _ = register_url
 
 let rec launch_session login =
   let deconnect_action = 
-   register_new_actionurl no_server_param unit close_session in
+   register_new_actionurl unit no_get_param close_session in
   let deconnect_box h s = action_a deconnect_action h s in
   let new_main_page h =
     html
@@ -659,7 +660,7 @@ let rec launch_session login =
       (body [p [pcdata "Welcome ";
 		pcdata login; br ();
 		a coucou h.current_url [pcdata "coucou"]; br ();
-		a plip h.current_url [pcdata "plip"]; br ();
+		a hello h.current_url [pcdata "hello"]; br ();
 		a links h.current_url [pcdata "links"]; br ()];
 	     deconnect_box h [pcdata "Close session"]])
   in
@@ -670,7 +671,7 @@ let rec launch_session login =
        (body [p [pcdata "Coucou ";
 		 pcdata login;
 		 pcdata "!"]]));
-  register_url_for_session plip 
+  register_url_for_session hello 
     (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "Ciao ";
@@ -712,7 +713,7 @@ let _ = register_url main
        Une page simple : $a coucou url <:xmllist< coucou >>$ <br/>
        Une page avec un compteur : $a compt url <:xmllist< compt >>$ <br/> 
        Une page simple dans un répertoire : 
-	   $a plip url <:xmllist< dir/plip >>$ <br/>
+	   $a hello url <:xmllist< dir/hello >>$ <br/>
        Default page of a directory:
            $a default url <:xmllist< rep/ >>$</p>
        <h3>Parameters</h3>
@@ -763,8 +764,8 @@ let _ = register_url main
 let _ = 
   register_new_url 
     ~path:["loooooooooong"]
-    ~server_params:no_server_param
-    ~get_params:unit
+    ~server_params:unit
+    ~get_params:no_get_param
     (fun () -> 
                Unix.sleep 5;
 	       << <html><body><p>Ok now, you can read the page.</p></body></html> >>)

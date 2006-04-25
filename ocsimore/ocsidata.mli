@@ -51,7 +51,7 @@ sig
   val dbupdate : user:Rights.user -> resource:Rights.resource -> 
     ?rights:Rights.rights -> key:t index -> t -> unit
   val dbget : user:Rights.user -> resource:Rights.resource -> key:t index -> t
-  val _index : 
+  val index : 
     string ->
     (t index -> 'a, 'a, (t index Ocsigen.name -> 'b) -> 'b, 
       t index -> [>Xhtmltypes.a] XHTML.M.elt,

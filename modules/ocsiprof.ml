@@ -26,7 +26,8 @@ let launchtime = Unix.time ()
 let _ = 
   register_new_url 
     ~path:[]
-    ~get_params:unit
+    ~server_params:unit
+    ~get_params:no_get_param
     (fun () ->
       let n = string_of_int (number_of_sessions ()) in
       let tm = Unix.gmtime ((Unix.time ()) -. launchtime) in

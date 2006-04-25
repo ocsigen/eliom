@@ -180,6 +180,7 @@ let int name =
 
 let int name = user_type int_of_string string_of_int name
 
+(* Pour mettre unit dans les params GET :
 let unit = 
   let write_parameters= (fun f -> f None) in
   {param_names=[];
@@ -191,7 +192,7 @@ let unit =
    (write_parameters :> (string option -> uri) -> uri);
    give_form_parameters=id;
    conversion_function=(fun pog f httpparam -> f ())}
-    
+*)    
 
 (* Dans une ancienne version on pouvait mettre des paramètres optionnels.
    mais la sémantique n'est pas claire.
@@ -218,6 +219,14 @@ let option p =
    p.conversion_function (fun x -> f (Some x)) httpparam
    with Ocsigen_Wrong_parameter -> f None)}
  *)
+
+let unit p = 
+    {sp_wp_a=p.sp_wp_a;
+     sp_wp_form=p.sp_wp_form;
+     sp_wp_uri=p.sp_wp_uri;
+     sp_conversion_function=
+     (fun pog f httpparam -> p.sp_conversion_function pog (f ()) httpparam)
+    }
 
 let useragent p = 
     {sp_wp_a=p.sp_wp_a;
@@ -704,7 +713,8 @@ let new_url_aux_aux
     ~get_params
     reconstruct_url_function
     : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo) url =
-  let all_params = compose_server_and_get_param server_params get_params in
+  let all_params = 
+      compose_server_and_get_param server_params get_params in
 (* ici faire une vérification "duplicate parameter" ? *) 
   let create_get_url write_param = 
     (if prefix then
@@ -979,7 +989,7 @@ let new_action_name () = string_of_int (counter ())
 let new_actionurl
     ~server_params
     ~(get_params: ('a, unit, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'd) parameters) =
-  let all_params = server_params get_params in
+  let all_params = compose_server_and_get_param server_params get_params in
   {
     action_name = new_action_name ();
     action_param_names = all_params.param_names;

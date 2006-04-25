@@ -13,12 +13,15 @@ open Ocsexample_util
 (*****************************************************************************)
 (* All the urls: *)
 
-let main_page = new_url ~path:[""] ~get_params:(_http_params _noparam) ()
+let main_page = new_url ~path:[""]
+    ~server_params:http_params ~get_params:no_get_param ()
 
-let news_page = new_url ["msg"] (_http_params (StringMessage._index "num")) ()
+let news_page = new_url ["msg"] http_params (StringMessage.index "num") ()
 
 let connect_action = 
-  new_actionurl ~get_params:(_string "login" ** _string "password")
+  new_actionurl
+    ~server_params:no_server_param
+    ~get_params:(string "login" ** string "password")
 
 
 (*****************************************************************************)

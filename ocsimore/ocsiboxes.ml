@@ -39,7 +39,7 @@ let login_box_action h actionurl =
 let login_box h url = post_form url h.current_url create_login_form
 
 let deconnect_action = 
-  register_new_actionurl _unit close_session
+  register_new_actionurl unit no_get_param close_session
 
 let deconnect_box h s = action_a deconnect_action h s
 

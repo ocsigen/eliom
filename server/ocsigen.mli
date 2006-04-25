@@ -110,9 +110,6 @@ val no_get_param :
     ('a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt*)) parameters
 (** Used for pages that don't have any parameters (static pages) *)
 
-val unit : (unit -> 'a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt *)) parameters
-(** used for pages that don't have any parameters but may have side-effects *)
-
 val int :
     string ->
     (int -> 'a, 'a, (int name -> 'b) -> 'b, 
@@ -132,6 +129,11 @@ val user_type :
 (** Allows to use whatever type you want for a parameter of the page.
    [user_type s_to_t t_to_s s] tells that the page take a parameter, labeled [s], and that the server will have to use [s_to_t] and [t_to_s] to make the conversion from and to string.
  *)
+
+val unit :
+    ('a, 'b, 'c, 'd, 'e) server_parameters ->
+    (unit -> 'a, 'b, 'c, 'd, 'e) server_parameters
+(** used for pages that don't have any parameters but may have side-effects *)
 
 val useragent :
     ('a,'b,'ca,'cform,'curi) server_parameters -> 
@@ -202,10 +204,10 @@ val new_external_url :
     ?prefix:bool ->
     server_params:(('a, 'b, 'c -> 'c, 'd -> 'd, 'e -> 'e) server_parameters ->
                    ('f, page,
-                    ((string option -> Xhtmltypes.a XHTML.M.elt) -> 'g) ->
-                    (string option -> Xhtmltypes.a XHTML.M.elt) -> 'h,
-                    ((string option -> Xhtmltypes.form XHTML.M.elt) -> 'i) ->
-                    (string option -> Xhtmltypes.form XHTML.M.elt) -> 'j,
+                    ((string option -> a XHTML.M.elt) -> 'g) ->
+                    (string option -> a XHTML.M.elt) -> 'h,
+                    ((string option -> form XHTML.M.elt) -> 'i) ->
+                    (string option -> form XHTML.M.elt) -> 'j,
                     ((string option -> XHTML.M.uri) -> 'k) ->
                     (string option -> XHTML.M.uri) -> 'l)
                    server_parameters) ->
@@ -302,10 +304,10 @@ val new_external_post_url :
   ?prefix:bool -> 
   server_params:(('a, 'b, 'c -> 'c, 'd -> 'd, 'e -> 'e) server_parameters ->
                    ('f, page,
-                    ((string option -> Xhtmltypes.a XHTML.M.elt) -> 'g) ->
-                    (string option -> Xhtmltypes.a XHTML.M.elt) -> 'h,
-                    ((string option -> Xhtmltypes.form XHTML.M.elt) -> 'i) ->
-                    (string option -> Xhtmltypes.form XHTML.M.elt) -> 'j,
+                    ((string option -> a XHTML.M.elt) -> 'g) ->
+                    (string option -> a XHTML.M.elt) -> 'h,
+                    ((string option -> form XHTML.M.elt) -> 'i) ->
+                    (string option -> form XHTML.M.elt) -> 'j,
                     ((string option -> XHTML.M.uri) -> 'k) ->
                     (string option -> XHTML.M.uri) -> 'l)
                    server_parameters) ->
@@ -350,8 +352,8 @@ val register_new_post_state_url_for_session :
 (** Same as [new_post_state_url] followed by [register_post_url_for_session] *)
 
 val static_dir :
-    (form_content_l, form_content_l, string -> [> Xhtmltypes.a ] XHTML.M.elt,
-     string -> [> Xhtmltypes.form ] XHTML.M.elt, string -> XHTML.M.uri,
+    (form_content_l, form_content_l, string -> [> a ] XHTML.M.elt,
+     string -> [> form ] XHTML.M.elt, string -> XHTML.M.uri,
      page, 'a, 'a, 'b)
     url
 (** The URL that correponds to the directory where static pages are.
@@ -373,9 +375,17 @@ type ('a,'b) actionurl
  *)
 
 val new_actionurl :
-    server_params:(('a, unit, 'b, 'c, 'd, 'e) parameters ->
-      ('f, unit, 'g -> form_content_l, 'h, 'i, 'j) parameters) ->
-    get_params:('a, unit, 'b, 'c, 'd, 'e) parameters -> ('g, 'f) actionurl
+  server_params:(('a, unit, 'b -> 'b, 'c -> 'c, 'd -> 'd) server_parameters ->
+                 ('e, unit,
+		  ((string option -> a XHTML.M.elt) -> 'f) ->
+		  (string option -> a XHTML.M.elt) -> 'g,
+		  ((string option -> form XHTML.M.elt) -> 'h) ->
+		  (string option -> form XHTML.M.elt) -> 'i,
+		  ((string option -> XHTML.M.uri) -> 'j) ->
+		  (string option -> XHTML.M.uri) -> 'k)
+                  server_parameters) ->
+  get_params:('a, unit, 'l -> form_content_l, 'f, 'h, 'j) parameters ->
+  ('l, 'e) actionurl
 (** Creates an action *)
 
 val register_actionurl : actionurl:('a, 'b) actionurl -> action:'b -> unit
@@ -386,17 +396,31 @@ val register_actionurl_for_session :
 (** Register an action in the session table *)
 
 val register_new_actionurl :
-    server_params:(('a, unit, 'b, 'c, 'd, 'e) parameters ->
-                   ('f, unit, 'g -> form_content_l, 'h, 'i, 'j) parameters) ->
-    get_params:('a, unit, 'b, 'c, 'd, 'e) parameters ->
-    action:'f -> ('g, 'f) actionurl
+  server_params:(('a, unit, 'b -> 'b, 'c -> 'c, 'd -> 'd) server_parameters ->
+                 ('e, unit,
+                  ((string option -> a XHTML.M.elt) -> 'f) ->
+                  (string option -> a XHTML.M.elt) -> 'g,
+                  ((string option -> form XHTML.M.elt) -> 'h) ->
+                  (string option -> form XHTML.M.elt) -> 'i,
+                  ((string option -> XHTML.M.uri) -> 'j) ->
+                  (string option -> XHTML.M.uri) -> 'k)
+                 server_parameters) ->
+  get_params:('a, unit, 'l -> form_content_l, 'f, 'h, 'j) parameters ->
+  action:'e -> ('l, 'e) actionurl
 (** Same as [new_actionurl] followed by [register_actionurl] *)
 
 val register_new_actionurl_for_session :
-    server_params:(('a, unit, 'b, 'c, 'd, 'e) parameters ->
-                   ('f, unit, 'g -> form_content_l, 'h, 'i, 'j) parameters) ->
-    get_params:('a, unit, 'b, 'c, 'd, 'e) parameters ->
-    action:'f -> ('g, 'f) actionurl
+  server_params:(('a, unit, 'b -> 'b, 'c -> 'c, 'd -> 'd) server_parameters ->
+                 ('e, unit,
+                  ((string option -> a XHTML.M.elt) -> 'f) ->
+                  (string option -> a XHTML.M.elt) -> 'g,
+                  ((string option -> form XHTML.M.elt) -> 'h) ->
+                  (string option -> form XHTML.M.elt) -> 'i,
+                  ((string option -> XHTML.M.uri) -> 'j) ->
+                  (string option -> XHTML.M.uri) -> 'k)
+                 server_parameters) ->
+  get_params:('a, unit, 'l -> form_content_l, 'f, 'h, 'j) parameters ->
+  action:'e -> ('l, 'e) actionurl
 (** Same as [new_actionurl] followed by [register_actionurl_for_session] *)
 
 
