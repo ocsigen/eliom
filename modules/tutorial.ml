@@ -10,23 +10,22 @@ open Ocsigen
 let coucou1 = 
   register_new_url 
     ~path:["coucou1"]
-    ~server_params:no_server_param
-    ~get_params:no_get_param 
+    ~get_params:unit
+    (fun _ () () ->
     << <html>
          <head><title></title></head>
          <body><h1>Coucou</h1></body>
-       </html> >>
-
+       </html> >>)
 
 let coucou = 
   register_new_url 
     ~path:["coucou"]
-    ~server_params:no_server_param
-    ~get_params:no_get_param 
-    (html
-       (head (title (pcdata "")) [])
-       (body [h1 [pcdata "Hallo"]]))
-    
+    ~get_params:unit
+    (fun _ () () ->
+      (html
+	 (head (title (pcdata "")) [])
+	 (body [h1 [pcdata "Hallo"]])))
+
 (* Pages can have side effects: *)
 let compt = 
   let next =
@@ -35,9 +34,8 @@ let compt =
   in
   register_new_url 
     ~path:["compt"]
-    ~server_params:unit
-    ~get_params:no_get_param
-    (fun () -> 
+    ~get_params:unit
+    (fun _ () () -> 
       (html
        (head (title (pcdata "counter")) [])
        (body [p [pcdata (string_of_int (next ()))]])))
@@ -46,48 +44,27 @@ let compt =
 let hello = 
   register_new_url 
     ["dir";"hello"]  (* the url dir/hello *)
-    no_server_param
-    no_get_param
+    unit
+    (fun _ () () ->
     << <html> 
          <head><title>hello</title></head>
          <body><h1>hello</h1></body>
-       </html> >>
+       </html> >>)
 
-
-(* This is not true any more:
-let oups = 
-  register_new_url 
-    ["rep"]
-    no_server_param
-    no_get_param 
-    (html
-       (head (title (pcdata "")) [])
-       (body [h1 [pcdata "The first one."]]))
-
-let rep2 = 
-  register_new_url 
-    ["rep";"toto"] 
-    no_server_param
-    no_get_param 
-    (html
-       (head (title (pcdata "")) [])
-       (body [h1 [pcdata "Here there was a page rep 
-		    but it has been erased by the directory rep/."]]))
-(* rep2 will erase oups in the table (with a warning) *)
-*)
 
 (* the url rep/ is not equivalent to rep *)
-let default = register_new_url ["rep";""] no_server_param no_get_param
+let default = register_new_url ["rep";""] unit
+  (fun _ () () ->
   << <html>
        <head><title></title></head>
        <body>
          <p>default page. rep is redirected to rep/</p>
        </body>
-     </html> >>
+     </html> >>)
 
 
 (* ------------------------------------------------------------------ *)
-let writeparams entier chaine chaine2 = 
+let writeparams _ (entier, (chaine, chaine2)) () = 
 << <html>
     <head><title></title></head>
     <body>
@@ -103,11 +80,9 @@ let writeparams entier chaine chaine2 =
 (* you can register twice the same url, with different parameters names *)
 let coucou_params = register_new_url 
     ~path:["coucou"]
-    ~server_params:no_server_param
     ~get_params:((int "entier") ** (string "chaine") ** (string "chaine2"))
     writeparams
 (* If you register twice exactly the same URL, the server won't start *)
-
 
 (* ------------------------------------------------------------------ *)
 (* A web page without parameter which has access to the user-agent 
@@ -117,17 +92,17 @@ let coucou_params = register_new_url
 let uaprefix = 
   register_new_url 
     ~path:["uaprefix"]
-    ~server_params:(useragent *** ip *** url_suffix)
     ~get_params:(string "s")
     ~prefix:true
-    (fun ua ip suff s -> 
+    (fun h s () -> 
        << <html>
             <head><title></title></head>
             <body>
               <p>
-	      The suffix of the url is <strong>$str:suff$</strong>
-              and your user-agent is <strong>$str:ua$</strong>
-              and your IP is <strong>$str:ip$</strong>
+	      The suffix of the url is <strong>$str:h.url_suffix$</strong>
+              and your user-agent is <strong>$str:h.user_agent$</strong>
+              and your IP is <strong>$str:Unix.string_of_inet_addr h.ip$
+                             </strong>
               and s is <strong>$str:s$</strong>
               </p>
             </body>
@@ -137,13 +112,12 @@ let iprefix =
   register_new_url 
     ~path:["iprefix"] 
     ~prefix:true 
-    ~server_params:url_suffix
     ~get_params:(int "i")
-    (fun suff i -> 
+    (fun h i () -> 
 << <html>
      <head><title></title></head>
      <body><p>
-       The suffix of the url is <strong>$str:suff$</strong> 
+       The suffix of the url is <strong>$str:h.url_suffix$</strong> 
        and i is <strong>$str:string_of_int i$</strong>
      </p></body>
    </html> >>)
@@ -162,9 +136,8 @@ let string_of_mysum = function
 
 let mytype = register_new_url 
   ["mytype"]
-  no_server_param
   (user_type mysum_of_string string_of_mysum "valeur")
-  (fun x -> let v = string_of_mysum x in
+  (fun _ x () -> let v = string_of_mysum x in
     (html
        (head (title (pcdata "")) [])
        (body [p [pcdata v]])))
@@ -174,29 +147,29 @@ let mytype = register_new_url
 (* ------------------------------------------------------------------ *)
 (* To create a link to a registered url, use the a function: *)
 
-let links = register_new_url ["rep";"links"] current_url no_get_param
-    (fun current_url ->
+let links = register_new_url ["rep";"links"] unit
+    (fun h () () ->
       (html
 	 (head (title (pcdata "")) [])
 	 (body 
 	    [p
-	       [a coucou current_url [pcdata "coucou"]; br ();
-		a hello current_url [pcdata "hello"]; br ();
-		a default current_url 
-		  [pcdata "default page of the directory"]; br ();
-                a uaprefix current_url 
-		  [pcdata "uaprefix"] "suf" "toto"; br ();
-                a coucou_params current_url 
-		  [pcdata "coucou_params"] 42 "ciao" "hallo"; br ();
+	       [a coucou h.current_url [pcdata "coucou"] (); br ();
+		a hello h.current_url [pcdata "hello"] (); br ();
+		a default h.current_url 
+		  [pcdata "default page of the directory"] (); br ();
+                a uaprefix h.current_url 
+		  [pcdata "uaprefix"] "toto"; br ();
+                a coucou_params h.current_url 
+		  [pcdata "coucou_params"] (42,("ciao","hallo")); br ();
                 a
 	          (new_external_url
 		     ~path:["http://fr.wikipedia.org";"wiki"]
 		     ~prefix:true
-                     ~server_params:url_suffix
-		     ~get_params:no_get_param ()) 
-                  current_url
+		     ~get_params:unit
+		     ~post_params: unit ()) 
+                  h.current_url
 	          [pcdata "ocaml on wikipedia"]
-                  "Ocaml"]])))
+                  ()]])))
     
 (* Note that to create a link we need to know the current url, because:
    the link from toto/titi to toto/tata is "tata" and not "toto/tata"
@@ -210,13 +183,13 @@ let links = register_new_url ["rep";"links"] current_url no_get_param
    Do not forget to register the url!!!
  *)
 
-let linkrec = new_url ["linkrec"] current_url no_get_param ()
+let linkrec = new_url ["linkrec"] unit ()
 
 let _ = register_url linkrec 
-    (fun url -> 
+    (fun h () () -> 
       << <html>
           <head><title></title></head>
-          <body><p>$a linkrec url <:xmllist< click >>$</p></body>
+          <body><p>$a linkrec h.current_url <:xmllist< click >> ()$</p></body>
          </html> >>)
 
 (* If some url are not registered, the server will not start:
@@ -228,6 +201,7 @@ let essai =
    ()
 *)
 
+(*-*-*
 
 (* ------------------------------------------------------------------ *)
 (* To create a form, call the function form with the name of a registered
@@ -772,3 +746,4 @@ let _ =
 
  *)
 
+*)

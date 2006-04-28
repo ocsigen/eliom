@@ -25,6 +25,17 @@ open Xhtmltypes
 
 let _ = Random.self_init ()
 
+let rec list_remove a = function
+    [] -> []
+  | b::l when a = b -> l
+  | b::l -> b::(list_remove a l)
+
+let rec list_assoc_remove a = function
+    [] -> raise Not_found
+  | (b,c)::l when a = b -> c,l
+  | b::l -> let v,ll = list_assoc_remove a l in v,b::ll
+
+
 (** Type of answers from modules (web pages) *)
 type page = xhtml elt
 
@@ -37,289 +48,8 @@ type current_url = string list
 
 let string_list_of_current_url x = x
 
-(** Type of http parameters *)
-type http_params = {url_suffix: string;
-		    full_url: string;
-		    current_url: current_url;
-		    useragent: string;
-		    ip: Unix.inet_addr;
-		    get_params: (string * string) list;
-		    post_params: (string * string) list}
 
-
-(** state is a parameter to differenciate
-    several instances of the same URL.
-	(for internal use)
- *)
-type internal_state = int
-
-let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
-
-let new_state =
-  let c : internal_state ref = ref (Random.int 1000000) in
-  fun () -> c := !c + 1 ; Some !c
-
-
-exception Ocsigen_Typing_Error of string
-exception Ocsigen_Wrong_parameter
-exception Ocsigen_Is_a_directory
-exception Ocsigen_404
-exception Ocsigen_page_erasing of string
-exception Ocsigen_url_created_outside_site_loading
-exception Ocsigen_there_are_unregistered_url of string
-exception Ocsigen_duplicate_registering of string
-exception Ocsigen_register_for_session_outside_session
-
-type postorget = Get | Post
-
-let find_param name pog http_params =
-  try 
-    match pog with
-	Post -> List.assoc name http_params.post_params
-      | Get -> List.assoc name http_params.get_params
-  with Not_found -> raise Ocsigen_Wrong_parameter
-
-let id x = x
-
-(** Type of names in a formular *)
-type 'a name = string
-
-let write_param name value = name^"="^value
-
-(** Constructors for parameters *)
-(** The type of conversion_function is ('a -> httpparam -> page)
-    where 'a has the shape 'b -> 'c ->... -> page
-    The string list is the list of required parameters names
-*)
-type ('a, 'b, 'c, 'da, 'dform, 'duri (*,'dimg, 'dlink, 'dscript *)) parameters =
-    {param_names: string list;
-     write_parameters_a: (string option -> a elt) -> 'da;
-     (* corresponds to the 3rd argument in ('a,'b,'ca,...) url
-	'da is for example int -> int -> 'a, 
-	and the first function is the function to apply after construction
-     *)
-     write_parameters_form: (string option -> form elt) -> 'dform;
-(*     write_parameters_img: (string option -> img elt) -> 'dimg;
-     write_parameters_link: (string option -> link elt) -> 'dlink;
-     write_parameters_script: (string option -> script elt) -> 'dscript; *)
-     write_parameters_uri: (string option -> uri) -> 'duri;
-     give_form_parameters: 'c;
-     (* 'c is exactly the same as 'a or 'b in ('a,'b,'c) url type,
-	usually something like (int name -> int name -> form) -> form
-	(but we may have something else instead of form when constructing
-	the value)
-     *)
-     conversion_function: postorget -> 'a -> http_params -> 'b 
-       (* for dynamic typing,
-	  for ex (int -> int -> page) -> http_params -> page 
-	  (but 'b can be more complicated, for ex in register_post_url)
-       *)}
-
-type ('a,'b,'ca,'cform,'curi) server_parameters =
-    {sp_wp_a:'ca;
-     sp_wp_form:'cform;
-     sp_wp_uri:'curi;
-     sp_conversion_function: postorget -> 'a -> http_params -> 'b
-    }
-
-let no_get_param : ('a, 'a, 'b -> 'b, [>a] elt, [>form] elt, uri (*, [>img] elt, [>link] elt, [>script] elt*)) parameters = 
-
-  let write_parameters = (fun f -> f None) in
-  {param_names=[];
-   write_parameters_a = 
-   (write_parameters :> (string option -> a elt) -> [>a] elt);
-   write_parameters_form = 
-   (write_parameters :> (string option -> form elt) -> [>form] elt);
-   write_parameters_uri = 
-   (write_parameters :> (string option -> uri) -> uri);
-   give_form_parameters = id;
-   conversion_function= (fun pog f _ -> f)}
-
-let string name = 
-  let write_parameters = (fun f s -> f (Some (write_param name s))) in
-  {param_names=[name];
-   write_parameters_a = 
-   (write_parameters :> (string option -> a elt) -> string -> [>a] elt);
-   write_parameters_form = 
-   (write_parameters :> (string option -> form elt) -> string -> [>form] elt);
-   write_parameters_uri = 
-   (write_parameters :> (string option -> uri) -> string -> uri);
-   give_form_parameters=(fun h -> h (name : string name));
-   conversion_function= (fun pog f httpparam -> 
-     f (find_param name pog httpparam))}
-
-let user_type (mytype_of_string : string -> 'a) string_of_mytype name = 
-  let write_parameters =
-    (fun f i -> f (Some (write_param name (string_of_mytype i)))) in
-  {param_names=[name];
-   write_parameters_a = 
-   (write_parameters :> (string option -> a elt) -> 'a -> [>a] elt);
-   write_parameters_form = 
-   (write_parameters :> (string option -> form elt) -> 'a -> [>form] elt);
-   write_parameters_uri = 
-   (write_parameters :> (string option -> uri) -> 'a -> uri);
-   give_form_parameters=(fun h -> h (name : 'a name));
-   conversion_function=(fun pog f httpparam -> 
-     let p =
-       let pa = (find_param name pog httpparam) in
-       try mytype_of_string pa
-       with _ -> raise (Ocsigen_Typing_Error name)
-     in f p)}
-(* 
-let int name = 
-    {param_names=[name];
-     write_parameters=
-	(fun f i -> f (Some (write_param name (string_of_int i))));
-     give_form_parameters=(fun h -> h (name : int name));
-     conversion_function=(fun f httpparam -> 
-			    let p = 
-                              let pa = (find_param name httpparam) in
-			      try int_of_string pa
-			      with _ -> raise (Ocsigen_Typing_Error name)
-*)
-
-let int name = user_type int_of_string string_of_int name
-
-(* Pour mettre unit dans les params GET :
-let unit = 
-  let write_parameters= (fun f -> f None) in
-  {param_names=[];
-   write_parameters_a = 
-   (write_parameters :> (string option -> a elt) -> [>a] elt);
-   write_parameters_form = 
-   (write_parameters :> (string option -> form elt) -> [>form] elt);
-   write_parameters_uri = 
-   (write_parameters :> (string option -> uri) -> uri);
-   give_form_parameters=id;
-   conversion_function=(fun pog f httpparam -> f ())}
-*)    
-
-(* Dans une ancienne version on pouvait mettre des paramètres optionnels.
-   mais la sémantique n'est pas claire.
-   maintenant il faut enregistrer plusieurs URL différentes.
-let option p =
-  (* By typing, option can take only one parameter.
-     So opt_param_names is empty and param_names contains at most one element
-  *)
-   let write_parameters=(fun f s -> match s with 
-   None -> f None
-   | Some v -> p.write_parameters f v) in
-   {param_names=[];
-   opt_param_names=p.param_names;
-   write_parameters_a = 
-   (write_parameters :> (string option -> a elt) -> [>a] elt);
-   write_parameters_form = 
-   (write_parameters :> (string option -> form elt) -> [>form] elt);
-   write_parameters_uri = 
-   (write_parameters :> (string option -> uri) -> uri);
-   give_form_parameters=p.give_form_parameters;
-   conversion_function=
-   (fun f httpparam -> 
-   try
-   p.conversion_function (fun x -> f (Some x)) httpparam
-   with Ocsigen_Wrong_parameter -> f None)}
- *)
-
-let unit p = 
-    {sp_wp_a=p.sp_wp_a;
-     sp_wp_form=p.sp_wp_form;
-     sp_wp_uri=p.sp_wp_uri;
-     sp_conversion_function=
-     (fun pog f httpparam -> p.sp_conversion_function pog (f ()) httpparam)
-    }
-
-let useragent p = 
-    {sp_wp_a=p.sp_wp_a;
-     sp_wp_form=p.sp_wp_form;
-     sp_wp_uri=p.sp_wp_uri;
-     sp_conversion_function=
-     (fun pog f httpparam -> 
-	p.sp_conversion_function pog (f httpparam.useragent) httpparam)
-    }
-
-let ip p = 
-    {sp_wp_a=p.sp_wp_a;
-     sp_wp_form=p.sp_wp_form;
-     sp_wp_uri=p.sp_wp_uri;
-     sp_conversion_function=
-     (fun pog f httpparam -> 
-	let ip = Unix.string_of_inet_addr httpparam.ip in
-        p.sp_conversion_function pog (f ip) httpparam)
-    }
-
-let current_url p = 
-    {sp_wp_a=p.sp_wp_a;
-     sp_wp_form=p.sp_wp_form;
-     sp_wp_uri=p.sp_wp_uri;
-     sp_conversion_function=
-     (fun pog f httpparam -> 
-        p.sp_conversion_function pog (f httpparam.current_url) httpparam)
-    }
-
-let url_suffix p =
-  let write_parameters wp =
-    (fun f suffix -> wp
-	(function None -> f (Some ("/"^suffix))
-	  | Some v -> f (Some ("/"^suffix^"?"^v)))) in
-  {sp_wp_a= write_parameters;
-   sp_wp_form= write_parameters;
-   sp_wp_uri= p.sp_wp_form;
-   sp_conversion_function=
-   (fun pog f httpparam -> p.sp_conversion_function pog (f (httpparam.url_suffix)) httpparam)
- }
-
-let http_params p = 
-    {sp_wp_a=p.sp_wp_a;
-     sp_wp_form=p.sp_wp_form;
-     sp_wp_uri=p.sp_wp_uri;
-     sp_conversion_function=
-     (fun pog f httpparam -> p.sp_conversion_function pog (f httpparam) httpparam)
-    }
-
-let ( ** ) p1 p2 =
-  let write_parameters p1wp p2wp =
-    (fun s v1 v2 -> 
-      (p2wp
-	 (function 
-	     Some ss -> 
-	       (p1wp
-		  (function Some s' -> s (Some (s'^"&"^ss))
-		    | None -> assert false (*** ???????? ****)) v1)
-	   | None -> (p1wp (fun s' -> s s') v1))
-	 v2)) in
-  {param_names=(p1.param_names@p2.param_names);
-   (* p1.param_names has length 0 or 1 so @ is not expensive *)
-   write_parameters_a = 
-   write_parameters p1.write_parameters_a p2.write_parameters_a;
-   write_parameters_form = 
-   write_parameters p1.write_parameters_form p2.write_parameters_form;
-   write_parameters_uri = 
-   write_parameters p1.write_parameters_uri p2.write_parameters_uri;
-   give_form_parameters=
-   (fun h -> p2.give_form_parameters (p1.give_form_parameters h));
-   conversion_function=
-   (fun pog f httpparam -> 
-     (p2.conversion_function pog
-	(p1.conversion_function pog f httpparam) httpparam))}
-
-let ( *** ) f g = fun x -> f (g x)    
-
-let no_server_param x = x
-
-let compose_server_and_get_param sp gp =
-  let gp2 = {sp_wp_a = (fun f -> f);
-	     sp_wp_form = (fun f -> f);
-	     sp_wp_uri = (fun f -> f);
-	     sp_conversion_function=gp.conversion_function} in
-  let sp2 = sp gp2 in
-    {param_names=gp.param_names;
-     write_parameters_a=sp2.sp_wp_a gp.write_parameters_a;
-     write_parameters_form=sp2.sp_wp_form gp.write_parameters_form;
-     write_parameters_uri=sp2.sp_wp_uri gp.write_parameters_uri;
-     give_form_parameters=gp.give_form_parameters;
-     conversion_function=sp2.sp_conversion_function
-    }
-
+(** various functions for URLs *)
 let remove_slash = function
     [] -> []
   | ""::l -> l
@@ -357,6 +87,7 @@ let rec cut_url s =
   with _ -> [s]
 *)
 
+
 let rec reconstruct_url_path = function
     [] -> ""
   | [a] -> a
@@ -381,29 +112,205 @@ let aremonter, aaller = drop current_url u
   (* print_endline ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s); *)
   if s = "" then defaultpagename else s
 
-(** We associate to an URL a function http_params -> page *)
+
+
+(** Type of http parameters *)
+type server_params = {url_suffix: string;
+		    full_url: string;
+		    current_url: current_url;
+		    user_agent: string;
+		    ip: Unix.inet_addr;
+		    get_params: (string * string) list;
+		    post_params: (string * string) list}
+
+(** Create server parameters record *)
+let make_server_params 
+    url fullurl url_suffix get_params post_params useragent ip = 
+  {url_suffix = (reconstruct_url_path url_suffix);
+   full_url= fullurl;
+   user_agent=useragent;
+   current_url=url;
+   ip=ip;
+   get_params = get_params;
+   post_params = post_params}
+
+
+
+
+(** state is a parameter to differenciate
+    several instances of the same URL.
+	(for internal use)
+ *)
+type internal_state = int
+
+let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
+
+let new_state =
+  let c : internal_state ref = ref (Random.int 1000000) in
+  fun () -> c := !c + 1 ; Some !c
+
+
+exception Ocsigen_Typing_Error of string
+exception Ocsigen_Wrong_parameter
+exception Ocsigen_Is_a_directory
+exception Ocsigen_404
+exception Ocsigen_page_erasing of string
+exception Ocsigen_url_created_outside_site_loading
+exception Ocsigen_there_are_unregistered_url of string
+exception Ocsigen_duplicate_registering of string
+exception Ocsigen_register_for_session_outside_session
+
+let id x = x
+
+(** Type of names in a formular *)
+type 'a name = string
+
+type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
+
+type tlist (* used only for tlist name *)
+
+(* This is a generalized algebraic datatype *)
+type 'a params_type =
+    TProd of (* 'b *) 'a params_type * (* 'c *) 'a params_type (* 'a = 'b * 'c *)
+  | TOption of (* 'b *) 'a params_type (* 'a = 'b option *)
+  | TList of tlist name * (* 'b *) 'a params_type (* 'a = 'b list *)
+  | TSum of (* 'b *) 'a params_type * (* 'c *) 'a params_type (* 'a = ('b, 'c) binsum *)
+  | TString of string name (* 'a = string *)
+  | TInt of int name (* 'a = int *)
+  | TUserType of ('a name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
+  | TUnit (* 'a = unit *);;
+
+(* As GADT are not implemented in OCaml for the while, we define our own
+   constructors for params_type *)
+let int (n : string) : int params_type = TInt n
+let string (n : string) : string params_type = TString n
+let unit : unit params_type = TUnit
+let user_type
+    (of_string : string -> 'a) (from_string : 'a -> string) (n : string)
+    : 'a params_type =
+  Obj.magic (TUserType (n,of_string,from_string))
+let sum (t1 : 'a params_type) (t2 : 'b params_type) : ('a,'b) binsum params_type =
+  Obj.magic (TSum (t1, t2))
+let prod (t1 : 'a params_type) (t2 : 'b params_type)
+    : ('a * 'b) params_type =
+  Obj.magic (TProd ((Obj.magic t1), (Obj.magic t2)))
+let option (t : 'a params_type) : 'a option params_type = 
+  Obj.magic (TOption t)
+let list (n : string) (t : 'a params_type) : 'a list params_type = 
+  Obj.magic (TList (n,t))
+let ( ** ) = prod
+
+let make_list_suffix i = "["^(string_of_int i)^"]"
+
+let add_to_string s1 sep = function
+    "" -> s1
+  | s2 -> s1^sep^s2
+
+let concat_strings s1 sep s2 = match s1,s2 with
+  _,"" -> s1
+| "",_ -> s2
+| _ -> s1^sep^s2
+
+(* The following function reconstruct the value of parameters
+   from expected type and GET or POST parameters *)
+let reconstruct_params (typ : 'a params_type) params : 'a = 
+  let rec aux_list t p name pref suff =
+    let length,l = list_assoc_remove (pref^name^suff) params in
+    let long = int_of_string length in
+    let rec aa i p pref suff =
+      if i=long 
+      then (Obj.magic []), p
+      else
+	let v,l = Obj.magic (aux t p pref (suff^(make_list_suffix i))) in
+	let v2,l2 = aa (i+1) l pref suff in
+	(Obj.magic (v::v2)),l2
+    in 
+    aa 0 l (pref^name^".") suff
+  and aux typ params pref suff =
+    match typ with
+      TProd (t1, t2) ->
+	let v1,l1 = Obj.magic (aux t1 params pref suff) in
+	let v2,l2 = Obj.magic (aux t2 l1 pref suff) in
+	(Obj.magic (v1,v2)),l2
+    | TOption t -> 
+	(try 
+	  let v,l = Obj.magic (aux t params pref suff) in
+	  (Obj.magic (Some v)),l
+	with Not_found -> (Obj.magic None), params)
+    | TList (n,t) -> Obj.magic (aux_list t params n pref suff)
+    | TSum (t1, t2) -> 
+	(try let v,l = Obj.magic (aux t1 params pref suff) in
+	(Obj.magic (Inj1 v)),l
+	with Not_found -> 
+	  let v,l = Obj.magic (aux t2 params pref suff) in 
+	  (Obj.magic (Inj2 v)),l)
+    | TString name -> let v,l = list_assoc_remove (pref^name^suff) params in
+      (Obj.magic v),l
+    | TInt name -> 
+	let v,l = (list_assoc_remove (pref^name^suff) params) in 
+	(Obj.magic (int_of_string v)),l
+    | TUserType (name, of_string, string_of) ->
+	let v,l = (list_assoc_remove (pref^name^suff) params) in 
+	(Obj.magic (of_string v)),l
+    | TUnit -> (Obj.magic ()), params
+  in 
+  let v,l = Obj.magic (aux typ params "" "") in
+  if l = [] then v else raise Not_found
+
+(* The following function takes a 'a params_type and a 'a and
+   constructs the string of parameters (GET or POST) 
+   (This is a marshalling function towards HTTP parameters format) *)
+let construct_params (typ : 'a params_type) (params : 'a) : string =
+  let rec aux typ params pref suff =
+    match typ with
+      TProd (t1, t2) ->
+	let s1 = aux t1 (fst (Obj.magic params)) pref suff
+	and s2 = aux t2 (snd (Obj.magic params)) pref suff in
+	(concat_strings s1 "&" s2)
+    | TOption t -> (match ((Obj.magic params) : 'zozo option) with None -> "" 
+      | Some v -> aux t v pref suff)
+    | TList (list_name, t) -> 
+	let long = List.length ((Obj.magic params) : 'a list) in
+	let beg = (pref^list_name^suff^"="^(string_of_int long)) in
+	let pref2 = pref^list_name^suff^"." in
+	fst 
+	  (List.fold_left
+	     (fun (s,i) p -> 
+	       let ss = 
+		 aux t p pref2 (suff^(make_list_suffix i)) in
+	       ((concat_strings s "&" ss),(i+1))) (beg,0) (Obj.magic params))
+    | TSum (t1, t2) -> (match Obj.magic params with
+	Inj1 v -> aux t1 v pref suff
+      | Inj2 v -> aux t2 v pref suff)
+    | TString name -> pref^name^suff^"="^(Obj.magic params)
+    | TInt name -> pref^name^suff^"="^(string_of_int (Obj.magic params))
+    | TUserType (name, of_string, string_of) ->
+	pref^name^suff^"="^(string_of (Obj.magic params))
+    | TUnit -> ""
+  in
+  aux typ params "" ""
+	
+
+(** We associate to an URL a function server_params -> page *)
 module type DIRECTORYTREE =
   sig
     type tables
     type page_table_key =
-	{get_names: string list;
-	 post_names: string list;
-	 prefix:bool;
+	{prefix:bool;
 	 state: internal_state option}
     val empty_tables : unit -> tables
     val are_empty_tables : tables -> bool
     val add_url : tables -> bool -> url_path -> 
-      page_table_key * (http_params -> page) -> unit
-    val add_action : 
-      tables -> string -> string list -> (http_params -> unit) -> unit
+      page_table_key * (server_params -> page) -> unit
+    val add_action :
+	tables -> string -> (server_params -> unit) -> unit
     val find_url :
-      tables ->
-      url_path -> (string * string) list -> (string * string) list ->
-      internal_state option -> ((http_params -> page) * url_path)
-      * url_path
+	tables ->
+	  current_url * internal_state option * (string * string) list *
+	    (string * string) list * string * Unix.inet_addr * string -> 
+	      page * url_path
     val find_action :
-      tables -> string -> (string * string) list -> 
-      ((http_params -> unit) * url_path)
+	tables -> string -> (server_params -> unit) * url_path
   end
 
 module Directorytree : DIRECTORYTREE = struct
@@ -411,11 +318,11 @@ module Directorytree : DIRECTORYTREE = struct
      or a table of "answers" (functions that will generate the page) *)
 
   type page_table_key =
-      {get_names: string list;
-       post_names: string list;
+      {(* *********** AEFFFFFFFFF get_names: 'a params_type;
+	  post_names: 'a params_type; *)
        prefix:bool;
        state: internal_state option}
-       (* action: http_params -> page *)
+       (* action: server_params -> page *)
 
   module Page_Table = Map.Make(struct type t = page_table_key 
 				      let compare = compare end)
@@ -423,7 +330,7 @@ module Directorytree : DIRECTORYTREE = struct
   module String_Table = Map.Make(struct type t = string
 					let compare = compare end)
 
-  type page_table = ((http_params -> page) * url_path) Page_Table.t
+  type page_table = ((server_params -> page) * url_path) list Page_Table.t
 	(* Here, the url_path is the working directory.
 	   That is, the directory in which we are when we register
 	   dynamically the pages.
@@ -433,8 +340,7 @@ module Directorytree : DIRECTORYTREE = struct
 
   type action_table = 
       AVide 
-    | ATable of (string list * (http_params -> unit) *
-		   url_path) String_Table.t
+    | ATable of ((server_params -> unit) * url_path) String_Table.t
 
   type dircontent = 
       Vide
@@ -450,16 +356,31 @@ module Directorytree : DIRECTORYTREE = struct
   let empty_action_table () = AVide
   let empty_dircontent () = Vide
 
-  let find_page_table t k = Page_Table.find k t
+  let find_page_table t (url,getp,postp,ua,ip,fullurl) k url_suffix = 
+    let rec aux = function
+      [] -> raise Not_found
+    | (funct,working_dir)::l ->
+	try 
+	  absolute_change_dir working_dir;
+	  let p = funct
+	      (make_server_params url fullurl url_suffix getp postp ua ip)
+	  in
+	  Messages.debug "Page found";
+	  p,working_dir
+	with _ -> aux l
+    in aux (Page_Table.find k t)
 
   let add_page_table session url_act t (key,elt) = 
     (* Duplicate registering forbidden in global table *)
     if not session then
       try
-	let _ = find_page_table t key in
-	raise (Ocsigen_duplicate_registering (reconstruct_url_path url_act))
-      with Not_found -> Page_Table.add key elt t
-    else Page_Table.add key elt t
+	let l = Page_Table.find key t in
+        if (* mettre ici le test duplicate *) false (***************) 
+        then
+          raise (Ocsigen_duplicate_registering (reconstruct_url_path url_act))
+        else Page_Table.add key (elt::l) t
+      with Not_found -> Page_Table.add key [elt] t
+    else Page_Table.add key [elt] t
 
   let add_dircontent dc (key,elt) =
     match dc with
@@ -487,17 +408,13 @@ module Directorytree : DIRECTORYTREE = struct
   let are_empty_tables (dcr,atr) = 
     (!dcr = Vide && !atr = AVide)
 
-  let add_action (_,actiontableref) name paramslist action =
+  let add_action (_,actiontableref) name action =
     actiontableref :=
-      add_action_table !actiontableref 
-	(name,((List.sort compare paramslist),action,get_current_dir ()))
+      add_action_table !actiontableref
+	(name,(action,get_current_dir ()))
 
-  let find_action (_,atr) name paramslist =
-    let paramsattendus,action,working_dir = find_action_table !atr name in
-    let pl = List.sort compare (fst (List.split paramslist)) in
-      if pl = paramsattendus 
-      then action, working_dir
-      else raise Not_found
+  let find_action (_,atr) name =
+    find_action_table !atr name
 
   let add_url (dircontentref,_) session url_act (page_table_key, action) =
     let aux search dircontentref a l =
@@ -544,11 +461,9 @@ module Directorytree : DIRECTORYTREE = struct
 	| ""::l -> search_dircontentref dircontentref l
 	| a::l -> aux search_dircontentref a l *)
     in
-    let content = ({get_names = List.sort compare page_table_key.get_names;
-		    post_names = List.sort compare page_table_key.post_names;
-		    prefix = page_table_key.prefix;
+    let content = ({prefix = page_table_key.prefix;
 		    state = page_table_key.state},
-		   (action, get_current_dir ())) in
+		    (action, get_current_dir ())) in
     (* let current_dircontentref = 
       search_dircontentref dircontentref (get_current_dir ()) in *)
     let page_table_ref = 
@@ -558,7 +473,8 @@ module Directorytree : DIRECTORYTREE = struct
 	 
   let find_url 
       (dircontentref,_) 
-      string_list get_param_list post_param_list state_option =
+      (string_list, state_option, get_param_list, post_param_list, 
+       ua, ip, fullurl) =
     let rec search_page_table dircontent =
       let aux a l =
 	(match !(find_dircontent dircontent a) with
@@ -570,17 +486,20 @@ module Directorytree : DIRECTORYTREE = struct
 	| ""::l -> search_page_table dircontent l
 	| a::l -> aux a l
     in
-    let get_names  = List.sort compare (fst (List.split  get_param_list))
-    and post_names = List.sort compare (fst (List.split post_param_list)) in
     let page_table, suffix = 
       (search_page_table !dircontentref (change_empty_list string_list)) in
-    ((find_page_table 
-	page_table
-	{get_names = get_names;
-	 post_names = post_names;
-	 prefix = (suffix <> []);
-	 state = state_option}),
-     suffix)
+    find_page_table 
+      page_table
+      (string_list,
+       get_param_list,
+       post_param_list,
+       ua,
+       ip,
+       fullurl)
+      {prefix = (suffix <> []);
+       state = state_option}
+      suffix
+
 end
 
 open Directorytree
@@ -617,67 +536,26 @@ let rec new_cookie table ip =
     new_cookie table ip
   with Not_found -> c
 
-(*
 (** Typed URLs *)
-type public_url
+type internal_url_kind = [`Public_Url | `State_Url]
+type url_kind = [`Internal_Url of internal_url_kind | `External_Url]
 
-type state_url
-
-type 'a internal_url
-
-type external_url
-*)
-type url_kind = [`Internal_Url of [`Public_Url | `State_Url] | `External_Url]
-
-
-(* Comment rendre cette structure moins lourde ? *)
-type ('a,'b,'ca,'cform,'curi(*,'cimg,'clink,'cscript*),'d,'e,'f,'g) url = 
+type ('get,'post,'kind) url = 
     {url: url_path; (* name of the URL without parameters *)
+     unique_id: int;
      url_prefix: bool;
+     external_url: bool;
      url_state: internal_state option;
-       (* 'g is just a type information: it can be only 
+       (* 'kind is just a type information: it can be only 
 	  `Internal_Url `Public_Url or  `Internal_Url `State_Url
 	  or `External_Url, so that we can't use session urls as fallbacks for
 	  other session urls. If it is a session url, it contains a value
 	  (internal state) that will allow to differenciate between
 	  url that have the same name.
 	*)
-     get_param_names: string list;
-     post_param_names: string list;
-     create_get_form: 'a -> form_content_l; 
-       (* 'a is for example int name -> string name -> formcont *)
-     create_post_form: 'b -> form_content_l;  
-                   (* idem, but for POST. If no post param 'b is formcont *)
-     create_a_url: string list -> (string -> a elt) -> 'ca;
-         (* 'c is for example
-	    int -> int -> a, 
-	    function that will create
-	    the name of the url, for ex the string "hello?int1=3&int2=4"
-	    Then the function will be applied to this string to create a link
-	    or a formular to this url.
-	  *)
-     create_form_url: string list -> (string -> form elt) -> 'cform;
-(*     create_img_url: string list -> (string -> img elt) -> 'cimg;
-     create_link_url: string list -> (string -> link elt) -> 'clink;
-     create_script_url: string list -> (string -> script elt) -> 'cscript; *)
-     create_uri: string list -> (string -> uri) -> 'curi;
-     get_conversion_function: 'd -> http_params -> page;
-         (* for dynamic typing, (as in parameters)
-	    for ex int -> int -> page -> http_params -> page 
-	    (but 'b can be more complicated, for ex in register_post_url)
-	    We need this here in order to be able to re-register the same
-	    being sure we use exactly the same parameter's names and types.
-	    If we could have had parameters names in the type it wouldn't
-	    have been necessary...
-	  *)
-     post_conversion_function: 'e -> http_params -> 'f;
+     get_params_type: 'get params_type;
+     post_params_type: 'post params_type;
     }
-      
-
-let rec list_remove a = function
-    [] -> []
-  | b::l when a = b -> l
-  | b::l -> b::(list_remove a l)
 
 let add_unregistered, remove_unregistered, verify_all_registered =
   let l = ref [] in
@@ -685,7 +563,7 @@ let add_unregistered, remove_unregistered, verify_all_registered =
    (fun a -> l := list_remove a !l),
    (fun () -> 
      match !l with [] -> () 
-     | (a,_,_)::_ -> raise (Ocsigen_there_are_unregistered_url (reconstruct_url_path a))))
+     | (a,_)::_ -> raise (Ocsigen_there_are_unregistered_url (reconstruct_url_path a))))
 
 let during_initialisation, end_initialisation =
   let init = ref true in
@@ -709,116 +587,83 @@ let global_register_allowed () =
 let new_url_aux_aux
     ~(path : url_path)
     ~prefix
-    ~server_params
-    ~get_params
-    reconstruct_url_function
-    : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, 'popo) url =
-  let all_params = 
-      compose_server_and_get_param server_params get_params in
+    ~externalurl
+    ~(get_params : 'get params_type)
+    ~(post_params : 'post params_type)
+    : ('get,'post,'kind) url =
 (* ici faire une vérification "duplicate parameter" ? *) 
-  let create_get_url write_param = 
-    (if prefix then
-      (fun current_url f -> 			   
-	let ss = 
-	  (reconstruct_url_function current_url path) in
-	write_param
-	  (function Some v -> f (ss^v)
-	    | None -> f ss))
-    else
-      (fun current_url f -> 
-	let ss = 
-	  (reconstruct_url_function current_url path) in
-	write_param
-	  (function Some v -> f (ss^"?"^v)
-	    | None -> f ss)))
-  in
   {url = path;
+   unique_id = counter ();
    url_prefix = prefix;
    url_state = None;
-   get_param_names = all_params.param_names;
-   post_param_names = [];
-   create_get_form = all_params.give_form_parameters;
-   create_post_form = id;
-   create_a_url = create_get_url all_params.write_parameters_a;
-   create_form_url = create_get_url all_params.write_parameters_form;
-(*   create_img_url = create_get_url all_params.write_parameters_img;
-   create_link_url = create_get_url all_params.write_parameters_link;
-   create_script_url = create_get_url all_params.write_parameters_script;*)
-   create_uri = create_get_url all_params.write_parameters_uri;
-   get_conversion_function = all_params.conversion_function Get;
-   post_conversion_function = (fun a http_params -> a)
+   external_url = externalurl;
+   get_params_type = get_params;
+   post_params_type = post_params;
   }
 
 let new_url_aux
     ~(path : url_path)
     ~prefix
-    ~server_params
-    ~get_params
-    : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of 'popo]) url =
+    ~(get_params : 'get params_type)
+    : ('get,unit,[`Internal_Url of 'popo]) url =
   if global_register_allowed () then
     let full_path = (get_current_dir ())@(change_empty_list path) in
     let u = new_url_aux_aux
 	~path:full_path
 	~prefix
-	~server_params
-	~get_params 
-	reconstruct_relative_url_path in
-    add_unregistered (full_path, u.get_param_names, u.post_param_names); u
+	~externalurl:false
+	~get_params
+	~post_params:unit
+    in
+    add_unregistered (u.url,u.unique_id); u
   else raise Ocsigen_url_created_outside_site_loading
-
-let new_external_url_aux
-    ~(path : url_path)
-    ~prefix
-    ~server_params
-    ~get_params
-    : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`External_Url]) url =
-  new_url_aux_aux
-    ~path
-    ~prefix
-    ~server_params
-    ~get_params 
-    reconstruct_absolute_url_path
-
-let new_url
-    ~(path : url_path)
-    ?(prefix=false)
-    ~server_params
-    ~get_params ()
-    : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]]) url =
-  new_url_aux ~path ~prefix ~server_params ~get_params
-
-let new_state_url
-   ~(fallback : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]])url)
-    : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`State_Url]]) url =
-  {fallback with url_state = new_state ()}
 
 let new_external_url
     ~(path : url_path)
     ?(prefix=false)
-    ~server_params
-    ~get_params ()
-    : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`External_Url]) url =
-  new_external_url_aux ~path ~prefix ~server_params ~get_params
+    ~(get_params : 'get params_type)
+    ~(post_params : 'post params_type)
+    ()
+    : ('get,unit,[`External_Url]) url =
+  new_url_aux_aux
+    ~path
+    ~prefix
+    ~externalurl:true
+    ~get_params 
+    ~post_params
+
+let new_url
+    ~(path : url_path)
+    ?(prefix=false)
+    ~(get_params : 'get params_type)
+    ()
+    : ('get,unit,[`Internal_Url of [`Public_Url]]) url =
+  new_url_aux ~path ~prefix ~get_params
+
+let new_state_url
+   ~(fallback : ('get,unit, [`Internal_Url of [`Public_Url]])url)
+    : ('get,unit,[`Internal_Url of [`State_Url]]) url =
+  {fallback with url_state = new_state ()}
 
 let register_url_aux
     tables
     session
     state
-    ~(url : ('a,form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
-    page =
+    ~(url : ('get,'post,[`Internal_Url of 'popo]) url)
+    (page_generator : server_params -> 'get -> 'post -> 'fin) =
   add_url tables session url.url
-    ({get_names = url.get_param_names;
-      post_names = []; (* url.post_param_names; *)
-      prefix = url.url_prefix;
+    ({prefix = url.url_prefix;
       state = state},
-     (url.get_conversion_function page))
+     (fun h -> page_generator h 
+	 (reconstruct_params url.get_params_type h.get_params)
+	 (reconstruct_params url.post_params_type h.post_params)))
 
 let register_url 
-    ~(url : ('a,form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
-    page =
+    ~(url : ('get,unit,[`Internal_Url of 'g]) url)
+    (page_gen : server_params -> 'get -> 'post -> 'fin) =
   if global_register_allowed () then begin
-    remove_unregistered (url.url, url.get_param_names, url.post_param_names);
-    register_url_aux global_tables false (url.url_state) url page; end
+    remove_unregistered (url.url,url.unique_id);
+    register_url_aux global_tables false (url.url_state) url page_gen; end
   else Messages.warning "Public URL registration after init forbidden! Please correct your module! (ignored)"
 
 (* WARNING: if we create a new URL without registering it,
@@ -829,33 +674,32 @@ let register_url
  *)
 
 let register_url_for_session
-    ~(url : ('a,form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
+    ~(url : ('get,'post,[`Internal_Url of 'g]) url)
     page =
   register_url_aux (get_session_tables ()) true url.url_state url page
 
 let register_new_url 
     ~path
     ?(prefix=false)
-    ~server_params
     ~get_params
     page
-    : ('a,form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]]) url =
-  let u = new_url ~prefix ~path ~server_params ~get_params () in
+    : ('get,unit, [`Internal_Url of [`Public_Url]]) url =
+  let u = new_url ~prefix ~path ~get_params () in
   register_url u page;
   u
     
 let register_new_state_url
-    ~(fallback : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]])url)
+    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]]) url)
     page
-    : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`State_Url]]) url =
+    : ('get, unit, [`Internal_Url of [`State_Url]]) url =
   let u = (new_state_url fallback) in
   register_url u page;
   u
 
 let register_new_state_url_for_session
-    ~(fallback : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`Public_Url]])url)
+    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]])url)
     page
-    : ('a,form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of [`State_Url]]) url =
+    : ('get, unit, [`Internal_Url of [`State_Url]]) url =
   let u = (new_state_url fallback) in
   register_url_for_session u page;
   u
@@ -863,122 +707,69 @@ let register_new_state_url_for_session
 
 (** Register an url with post parameters in the server *)
 let new_post_url_aux
-    ~fallback
-    ~post_params
-    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, 'popo) url = 
+    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]]) url)
+    ~(post_params : 'post params_type)
+    : ('get, 'post, [`Internal_Url of [`Public_Url]]) url = 
 (* ici faire une vérification "duplicate parameter" ? *) 
   {url = fallback.url;
+   unique_id = counter ();
    url_prefix = fallback.url_prefix;
+   external_url = false;
    url_state = None;
-   get_param_names = fallback.get_param_names;
-   post_param_names = post_params.param_names;
-   create_get_form = fallback.create_get_form;
-   create_post_form = post_params.give_form_parameters;
-   create_a_url = fallback.create_a_url;
-   create_form_url = fallback.create_form_url;
-(*   create_img_url = fallback.create_img_url;
-   create_link_url = fallback.create_link_url;
-   create_script_url = fallback.create_script_url; *)
-   create_uri = fallback.create_uri;
-   get_conversion_function = fallback.get_conversion_function;
-   post_conversion_function = post_params.conversion_function Post
+   get_params_type = fallback.get_params_type;
+   post_params_type = post_params;
   }
 
 let new_post_url
-    ~fallback
-    ~post_params
-    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url = 
+    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]]) url)
+    ~(post_params : 'post params_type)
+    : ('get, 'post, [`Internal_Url of [`Public_Url]]) url = 
   if global_register_allowed () then
     let u = new_post_url_aux fallback post_params in
-    add_unregistered 
-      (fallback.url, fallback.get_param_names, post_params.param_names); u
+    add_unregistered (u.url,u.unique_id); u
   else raise Ocsigen_url_created_outside_site_loading
   
-let new_external_post_url
-    ~(path : url_path)
-    ?(prefix=false)
-    ~server_params
-    ~get_params
-    ~post_params ()
-    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`External_Url]) url = 
-  new_post_url_aux (new_external_url_aux path prefix server_params get_params) post_params
-
 let new_post_state_url
-    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url)
-    ~post_params 
-    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, [`Internal_Url of [`State_Url]]) url = 
+    ~(fallback : ('get, 'post1, [`Internal_Url of [`Public_Url]]) url)
+    ~(post_params : 'post params_type)
+    : ('get, 'post, [`Internal_Url of [`State_Url]]) url = 
   {fallback with 
    url_state = new_state ();
-   post_param_names = post_params.param_names;
-   create_post_form = post_params.give_form_parameters;
-   post_conversion_function = post_params.conversion_function Post
+   post_params_type = post_params;
   }
 
-let register_post_url_aux
-    tables
-    session
-    state
-    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url)
-    page =
-  add_url tables session url.url
-    ({get_names = url.get_param_names;
-      post_names = url.post_param_names;
-      prefix = url.url_prefix;
-      state = state},
-     (fun http_params ->
-	(url.get_conversion_function
-	   (url.post_conversion_function page http_params) 
-	   http_params)))
-    (* Je n'arrive pas à mettre les params2 avant params pour des raisons
-       de typage... *)
-
-let register_post_url 
-    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
-    page =
-  if global_register_allowed () then begin
-    remove_unregistered (url.url, url.get_param_names, url.post_param_names);
-    register_post_url_aux global_tables false (url.url_state) url page; end
-  else Messages.warning "Public URL registration after init (ignored)"
-
-let register_post_url_for_session
-    ~(url : ('a,'b->'bb,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,[`Internal_Url of 'g]) url)
-    page =
-  register_post_url_aux (get_session_tables ()) true url.url_state url page
-
 let register_new_post_url 
-    ~fallback
-    ~post_params
-    page
-    : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url =
+    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]]) url)
+    ~(post_params : 'post params_type)
+    (page_gen : server_params -> 'get -> 'post -> 'fin)
+    : ('get,'post, [`Internal_Url of [`Public_Url]]) url =
   let u = new_post_url ~fallback:fallback ~post_params:post_params in
-  register_post_url u page;
+  register_url u page_gen;
   u
 
 let register_new_post_state_url
-    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url)
-    ~post_params 
-    page
-    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, [`Internal_Url of [`State_Url]]) url = 
+    ~(fallback : ('get, 'post1, [`Internal_Url of [`Public_Url]]) url)
+    ~(post_params : 'post params_type)
+    page_gen
+    : ('get, 'post, [`Internal_Url of [`State_Url]]) url = 
   let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
-  register_post_url u page;
+  register_url u page_gen;
   u
 
 let register_new_post_state_url_for_session
-    ~(fallback : ('a,'b,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f, [`Internal_Url of [`Public_Url]]) url)
-    ~post_params 
-    page
-    : ('aa,'bb,'cca,'ccform,'ccuri(*,'ccimg,'cclink,'ccscript*),'dd,'ee,'ff, [`Internal_Url of [`State_Url]]) url =
+    ~(fallback : ('get, 'post1, [`Internal_Url of [`Public_Url]]) url)
+    ~(post_params : 'post params_type)
+    page_gen
+    : ('get, 'post, [`Internal_Url of [`State_Url]]) url = 
   let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
-  register_post_url_for_session u page;
+  register_url_for_session u page_gen;
   u
 
 
 (** actions (new 10/05) *)
-type ('a,'b) actionurl =
+type 'post actionurl =
     {action_name: string;
-     action_param_names: string list;
-     create_action_form: 'a -> form_content_l;
-     action_conversion_function : 'b -> http_params -> unit}
+     action_params_type: 'post params_type}
 
 let action_prefix = "__ocsigen_action__"
 let action_name = "name"
@@ -987,27 +778,23 @@ let action_reload = "reload"
 let new_action_name () = string_of_int (counter ())
 
 let new_actionurl
-    ~server_params
-    ~(get_params: ('a, unit, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'd) parameters) =
-  let all_params = compose_server_and_get_param server_params get_params in
+    ~(params: 'post params_type) =
   {
     action_name = new_action_name ();
-    action_param_names = all_params.param_names;
-    create_action_form = all_params.give_form_parameters;
-    action_conversion_function = all_params.conversion_function Post
+    action_params_type = params;
   }
 
 let register_actionurl_aux tables ~actionurl ~action =
   add_action tables 
     actionurl.action_name
-    actionurl.action_param_names
-    (fun h -> actionurl.action_conversion_function action h)
+    (fun h -> action h 
+	(reconstruct_params actionurl.action_params_type h.post_params))
 
 let register_actionurl ~actionurl ~action =
   register_actionurl_aux global_tables actionurl action
 
-let register_new_actionurl ~server_params ~get_params ~action = 
-  let a = new_actionurl server_params get_params in
+let register_new_actionurl ~params ~action = 
+  let a = new_actionurl params in
     register_actionurl a action;
     a
 
@@ -1015,179 +802,53 @@ let register_actionurl_for_session ~actionurl ~action =
   register_actionurl_aux (get_session_tables ()) actionurl action
 
 
-let register_new_actionurl_for_session ~server_params ~get_params ~action =
-  let a = new_actionurl server_params get_params in
+let register_new_actionurl_for_session ~params ~action =
+  let a = new_actionurl params in
     register_actionurl_for_session a action;
     a
 
-let static_dir =
-  let create_get_url = (fun current_url f -> (fun suffix -> f suffix))
-  in
+(** Satic directories **)
+let static_dir : (unit, unit, [`Internal_Url of [`Public_Url]]) url =
   {url = [""];
+   unique_id = counter ();
    url_state = None;
    url_prefix = true;
-   get_param_names = [];
-   post_param_names = [];
-   create_get_form = id;
-   create_post_form = id;
-   create_a_url = 
-   (create_get_url :> string list -> (string -> a elt) -> string -> [>a] elt);
-   create_form_url = 
-   (create_get_url :> string list -> (string -> form elt) -> string -> [>form] elt);
-(*   create_img_url = 
-   (create_get_url :> string list -> (string -> img elt) -> string -> [>img] elt);
-   create_link_url = 
-   (create_get_url :> string list -> (string -> link elt) -> string -> [>link] elt);
-   create_script_url = 
-   (create_get_url :> string list -> (string -> script elt) -> string -> [>script] elt); *)
-   create_uri = 
-   (create_get_url :> string list -> (string -> uri) -> string -> uri);
-   get_conversion_function = (fun a http_params -> a);
-   post_conversion_function = (fun a http_params -> a)
+   external_url = false;
+   get_params_type = unit;
+   post_params_type = unit
   }
 
-(** static pages (new 10/05) (removed 13/12/05) *)
-(*
-let register_new_static_directory_aux
-    tables
-    ~(path : url_path)
-    ~(location : string)
-    : ('a, form_content_l, 'ca,'cform,'curi(*'cimg,'clink,'cscript*), 'c, page, page, [`Internal_Url of 'd]) url =
-  add_static_dir tables path location;
-  let create_get_url = 
-    (fun current_url f -> 			   
-      let ss = 
-	(reconstruct_relative_url_path current_url path) in
-      (fun suffix -> f (ss^"/"^suffix))
-    )
-  in
-  {url = Url_Prefix path;
-   url_state = None;
-   get_param_names = [];
-   post_param_names = [];
-   create_get_form = id;
-   create_post_form = id;
-   create_a_url = 
-   (create_get_url :> string list -> (string -> a elt) -> string -> [>a] elt);
-   create_form_url = 
-   (create_get_url :> string list -> (string -> form elt) -> string -> [>form] elt);
-(*   create_img_url = 
-   (create_get_url :> string list -> (string -> img elt) -> string -> [>img] elt);
-   create_link_url = 
-   (create_get_url :> string list -> (string -> link elt) -> string -> [>link] elt);
-   create_script_url = 
-   (create_get_url :> string list -> (string -> script elt) -> string -> [>script] elt); *)
-   create_uri = 
-   (create_get_url :> string list -> (string -> uri) -> string -> uri);
-   get_conversion_function = (fun a http_params -> a);
-   post_conversion_function = (fun a http_params -> a)
-  }
 
-let register_new_static_directory
-    ~(path : url_path)
-    ~(location : string) :
-    (form_content_l, form_content_l, 
-     'ca,'cform,'curi(*'cimg,'clink,'cscript*),
-     page, page, page, 
-     [`Internal_Url of [`Public_Url]]) url =
-  register_new_static_directory_aux global_tables path location
-
-let register_new_session_static_directory
-    ~(path : url_path)
-    ~(location : string) :
-    (form_content_l, form_content_l, 
-     'ca,'cform,'curi(*'cimg,'clink,'cscript*), 
-     page, page, page, 
-     [`Internal_Url of [`Public_Url]]) url =
-  register_new_static_directory_aux (get_session_tables ()) path location
-*)
 
 (** Close a session *)
 let close_session () = set_session_tables (empty_tables ())
 
-let make_http_params 
-    url fullurl url_suffix get_params post_params useragent ip = 
-  {url_suffix = (reconstruct_url_path url_suffix);
-   full_url= fullurl;
-   useragent=useragent;
-   current_url=url;
-   ip=ip;
-   get_params = get_params;
-   post_params = post_params}
-
 let state_param_name = "__ocsigen_etat__"
 
 
-
-
-
-(* aeff
 (** Functions to construct web pages: *)
-let make_attrs ?size ?maxlength ?classe ?id ?title ?accesskey ?alt
-    ?(disabled=false) ?(readonly=false) ?(checked=false) () =
-  let rec make_class = function
-      [] -> ""
-    | [a] -> a
-    | a::l -> a^" "^(make_class l)
-  in
-  let attrs = match size with
-    Some s -> [XML.string_attrib "size" (string_of_int s)] 
-  | None -> [] in
-  let attrs = match maxlength with
-    Some s -> (XML.string_attrib "maxlength" (string_of_int s))::attrs
-  | None -> attrs in
-  let attrs = match classe with
-    Some s -> (XML.string_attrib "class"  (make_class s))::attrs
-  | None -> attrs in
-  let attrs = match id with
-    Some s -> (XML.string_attrib "id" s)::attrs
-  | None -> attrs in
-  let attrs = match alt with
-    Some s -> (XML.string_attrib "alt" s)::attrs
-  | None -> attrs in
-  let attrs = match title with
-    Some s -> (XML.string_attrib "title" s)::attrs
-  | None -> attrs in
-  let attrs = match accesskey with
-    Some s -> (XML.string_attrib "accesskey" s)::attrs
-  | None -> attrs in
-  let attrs = if disabled then (XML.string_attrib "disabled" "disabled")::attrs else attrs in
-  let attrs = if readonly then (XML.string_attrib "readonly" "readonly")::attrs else attrs in
-  let attrs = if checked then (XML.string_attrib "checked" "checked")::attrs else attrs in
-  attrs
-*)
-
 
 let make_a ?(a=[]) l = XHTML.M.a ~a:a l
 
-
-
-(* à enlever !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   let create_url_path 
-   current_url (url : ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) =
-   match url.url_state with
-   None -> url.create_get_url current_url
-   | Some i -> url.create_get_url current_url
-   (fun v -> 
-   let stateparam = string_of_int i in
-   let formname="hiddenform"^(string_of_int (counter ())) in
-   let href="javascript:document."^formname^".submit ()" in
-   << <a href=$href$>$str:name$<form name=$formname$ method="post" action=$v$ style="display:none">
-   <input type="hidden" name=$state_param_name$
-   value=$stateparam$/>
-   </form></a> >>) 
- *)
-
-  let a ?(a=[])
-      (url : ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url content =
-    match url.url_state with
-      None -> url.create_a_url current_url
-	  (fun v -> make_a ~a:((a_href (make_uri_from_string v))::a) content)
-    | Some i -> url.create_a_url current_url
-	  (fun v -> 
-	    let vstateparam = (v^"?"^state_param_name^"="^(string_of_int i)) in
-	    make_a ~a:((a_href (make_uri_from_string vstateparam))::a) content)
-
+let a ?(a=[])
+    (url : ('get, unit, 'kind) url) current_url content (getparams : 'get) =
+  let params_string = construct_params url.get_params_type getparams in
+  let uri = 
+    (if url.external_url 
+    then (reconstruct_absolute_url_path current_url url.url)
+    else (reconstruct_relative_url_path current_url url.url)) in
+  match url.url_state with
+    None ->
+      make_a ~a:((a_href (make_uri_from_string 
+			    (add_to_string uri "?" params_string)))::a) 
+	content
+  | Some i -> 
+      make_a ~a:((a_href (make_uri_from_string 
+			    (add_to_string 
+			       (uri^"?"^state_param_name^"="^(string_of_int i))
+			       "&" params_string)))::a)
+	content
+	
 let a_ = a
 (* avec un formulaire caché (ça marche mais ce n'est pas du xhtml valide
    let stateparam = string_of_int i in
@@ -1287,9 +948,9 @@ let script ?(a=[]) (url : ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cs
    </form> >>)
  *)
 
-
+(*
 let get_form ?(a=[])
-    (url : ('a,form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url (f : 'a) =
+    (url : ('get,'form,'kind) url) current_url (getparams : 'get) =
   let urlname = reconstruct_relative_url_path current_url url.url in
   let state_param =
     (match  url.url_state with
@@ -1417,7 +1078,7 @@ let submit_input ?(a=[]) s =
 
 
 
-
+*)
 
 
 
@@ -1425,9 +1086,7 @@ let submit_input ?(a=[]) s =
 (** return a page from an url and parameters *)
 let localhost = Unix.inet_addr_of_string "127.0.0.1"
 
-let execute find 
-    (url, path, params, get_params, post_params, useragent)
-    sockaddr cookie = 
+let execute generate_page sockaddr cookie = 
   let ip = match sockaddr with
       Unix.ADDR_INET (ip,port) -> ip
     | _ -> localhost
@@ -1440,52 +1099,51 @@ let execute find
 	 | Some c -> try (Cookies.find cookie_table (ip,c), false)
 	   with Not_found -> (new_session_tables (), true))
     in
-      set_session_tables tables;
-      let ((action, working_dir), url_suffix) = find ()
-      in 
-      let fullurl = path^params in
-      let page = 
-	Messages.debug "Page found";
-	absolute_change_dir working_dir;
-	action 
-	  (make_http_params
-	     url fullurl url_suffix get_params post_params useragent ip) in
-      let cookie2 = 
-	if are_empty_tables (get_session_tables ())
-	then ((if not new_session 
-	       then match cookie with
-		   Some c -> Cookies.remove cookie_table (ip,c)
-		 | None -> ());None)
-	else (if new_session 
-	      then let c = new_cookie cookie_table ip in
-		(Cookies.add cookie_table (ip,c) (get_session_tables ());
-		 Some c)
-	      else cookie)
-      in (cookie2, page, ("/"^(reconstruct_url_path working_dir)))
+    set_session_tables tables;
+    let page,working_dir = generate_page ip in
+    let cookie2 = 
+      if are_empty_tables (get_session_tables ())
+      then ((if not new_session 
+      then match cookie with
+	Some c -> Cookies.remove cookie_table (ip,c)
+      | None -> ());None)
+      else (if new_session 
+      then let c = new_cookie cookie_table ip in
+      (Cookies.add cookie_table (ip,c) (get_session_tables ());
+       Some c)
+      else cookie)
+    in (cookie2, page, ("/"^(reconstruct_url_path working_dir)))
   in absolute_change_dir save_current_dir; 	
-    answer
+  answer
 
 
 let get_page 
     (url, path, params, internal_state, get_params, post_params, useragent)
     sockaddr cookie = 
-  let find () =
+  let fullurl = path^params in
+  let generate_page ip =
     try (* D'abord recherche dans la table de session *)
       Messages.debug ("--- recherche "^(reconstruct_url_path url)^" dans la table de session :");
       (find_url 
 	 (get_session_tables ())
-	 url
-	 get_params
-	 post_params
-	 internal_state)
+	 (url,
+	  internal_state,
+	  get_params,
+	  post_params,
+	  useragent,
+	  ip,
+	  fullurl))
     with Not_found -> try (* ensuite dans la table globale *)
       Messages.debug "--- recherche dans la table globale :";
       (find_url 
 	 global_tables
-	 url
-	 get_params
-	 post_params
-	 internal_state)
+	 (url,
+	  internal_state,
+	  get_params,
+	  post_params,
+	  useragent,
+	  ip,
+	  fullurl))
     with Not_found -> (* si pas trouvé avec, on essaie sans l'état *)
       match internal_state with
 	  None -> raise Ocsigen_404
@@ -1493,43 +1151,55 @@ let get_page
 	    Messages.debug "--- recherche dans la table de session, sans état :";
 	    (find_url 
 	       (get_session_tables ())
-	       url
-	       get_params
-	       post_params
-	       None)
+	       (url,
+		None,
+		get_params,
+		post_params,
+		useragent,
+		ip,
+		fullurl))
 	  with Not_found -> (* ensuite dans la table globale *)
 	    try 
 	      Messages.debug "--- recherche dans la table globale, sans état :";
 	      (find_url 
 		 global_tables
-		 url
-		 get_params
-		 post_params
-		 None)
+		 (url,
+		  None,
+		  get_params,
+		  post_params,
+		  useragent,
+		  ip,
+		  fullurl))
 	    with Not_found -> raise Ocsigen_404
   in try 
-    execute 
-      find
-      (url, path, params, get_params, post_params, useragent)
-      sockaddr cookie
-    with 
-	Ocsigen_Typing_Error n -> 
-	  (cookie, (Error_pages.page_error_param_type n), "/")
-      | Ocsigen_Wrong_parameter -> (cookie, Error_pages.page_bad_param, "/")
+    execute generate_page sockaddr cookie
+  with 
+    Ocsigen_Typing_Error n -> 
+      (cookie, (Error_pages.page_error_param_type n), "/")
+  | Ocsigen_Wrong_parameter -> (cookie, Error_pages.page_bad_param, "/")
 
 
 let make_action action_name action_params 
     (url, path, params, _, _, _, useragent) sockaddr cookie =
-  let find () =
-    (try 
-       find_action (get_session_tables ()) action_name action_params
-     with Not_found ->
-       (find_action global_tables action_name action_params)),[]
+  let fullurl = path^params in
+  let generate_page ip =
+    let action,working_dir = 
+      (try 
+	find_action (get_session_tables ()) action_name
+      with Not_found ->
+	(find_action global_tables action_name))
+    in 
+    absolute_change_dir working_dir;
+    (action 
+       (make_server_params 
+	  url fullurl [] [] action_params useragent ip)),
+    working_dir
   in try
-      execute 
-	find
-	(url,path,params,[],action_params,useragent)
-	sockaddr cookie
+    let r = execute 
+	generate_page
+	sockaddr cookie in
+    Messages.debug "Action executed";
+    r
     with 
 	Ocsigen_Typing_Error _ -> (cookie, (), "/")
       | Ocsigen_Wrong_parameter -> (cookie, (), "/")
