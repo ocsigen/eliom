@@ -9,7 +9,7 @@ Instructions:
 Requirements: 
 ocaml (tested with version 3.08.4 and 3.09.1. Does not work with 3.08.1)
 ocamlfind
-ocamlnet (actually only module netstring) 
+ocamlnet >= 1.1.2 (actually only module netstring) 
 (ocamlnet needs pcre?)
 
 If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer, 

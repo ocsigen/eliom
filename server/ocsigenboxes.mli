@@ -1,10 +1,10 @@
 (** Predefined boxes *)
 
 val menu : ?classe:XHTML.M.nmtoken list ->
-       ((unit,unit, [<`Internal_Url of [<`Public_Url | `State_Url] | `External_Url])
+       ((unit,unit, [<`Internal_Url of [<`Public_Url | `State_Url] | `External_Url],[<`WithSuffix|`WithoutSuffix] as 'tipo,unit Ocsigen.name, unit Ocsigen.name)
         Ocsigen.url * Xhtmltypes.a_content XHTML.M.elt list)
        list ->
-       (unit,unit, [<`Internal_Url of [<`Public_Url | `State_Url] | `External_Url]) Ocsigen.url ->
+       (unit,unit, [<`Internal_Url of [<`Public_Url | `State_Url] | `External_Url],'tipo, unit Ocsigen.name, unit Ocsigen.name) Ocsigen.url ->
        Ocsigen.current_url -> [> `Ul ] XHTML.M.elt
 (** Creates a menu 
 

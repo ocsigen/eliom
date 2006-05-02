@@ -187,7 +187,8 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     let url2 = 
       Neturl.parse_url 
 	~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
-	url
+	(* ~accept_8bits:true *)
+	(Neturl.fixup_url_string url)
     in
     let path = Neturl.string_of_url
 	(Neturl.remove_from_url 
