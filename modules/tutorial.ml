@@ -80,7 +80,7 @@ let writeparams _ (entier, (chaine, chaine2)) () =
 (* you can register twice the same url, with different parameters names *)
 let coucou_params = register_new_url 
     ~path:["coucou"]
-    ~get_params:((int "entier") ** (string "chaine") ** (string "chaine2"))
+    ~get_params:(int "entier" ** (string "chaine" ** string "chaine2"))
     writeparams
 (* If you register twice exactly the same URL, the server won't start *)
 

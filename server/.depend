@@ -1,7 +1,7 @@
-ocsigenboxes.cmi: ocsigen.cmo 
-ocsigen.cmo: error_pages.cmo 
-ocsigen.cmx: error_pages.cmx 
-ocsigenboxes.cmo: ocsigen.cmo ocsigenboxes.cmi 
+ocsigenboxes.cmi: ocsigen.cmi 
+ocsigen.cmo: error_pages.cmo ocsigen.cmi 
+ocsigen.cmx: error_pages.cmx ocsigen.cmi 
+ocsigenboxes.cmo: ocsigen.cmi ocsigenboxes.cmi 
 ocsigenboxes.cmx: ocsigen.cmx ocsigenboxes.cmi 
-server.cmo: ocsigen.cmo 
+server.cmo: ocsigen.cmi 
 server.cmx: ocsigen.cmx 

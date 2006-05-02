@@ -174,8 +174,6 @@ type 'a name = string
 
 type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
 
-type tlist (* used only for tlist name *)
-
 let ocsigen_suffix_name = "__ocsigen_suffix"
 
 (* This is a generalized algebraic datatype *)
@@ -183,7 +181,7 @@ type ('a,'tipo,'names) params_type =
     (* 'tipo is [`WithSuffix] or [`WithoutSuffix] *)
     TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
   | TOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
-  | TList of tlist name * (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
+  | TList of 'a name * (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
   | TSum of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = ('a1, 'a2) binsum *)
   | TString of string name (* 'a = string *)
   | TInt of int name (* 'a = int *)
@@ -419,6 +417,7 @@ module Directorytree : DIRECTORYTREE = struct
     try
       let l,newt = list_assoc_remove key t in
       try 
+(********** Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ! *)
 	let _,oldl = list_assoc_remove id l in
 	if not session then
           raise (Ocsigen_duplicate_registering (reconstruct_url_path url_act))
@@ -887,7 +886,8 @@ let state_param_name = "__ocsigen_etat__"
 let make_a ?(a=[]) l = XHTML.M.a ~a:a l
 
 let a ?(a=[])
-    (url : ('get, unit, 'kind, 'tipo,'gn,'pn) url) current_url content
+    (url : ('get, unit, 'kind, 'tipo,'gn,'pn) url) 
+    (current_url : current_url) content
     (getparams : 'get) : [>a] elt =
   let suff,params_string = construct_params url.get_params_type getparams in
   let uri = 
@@ -982,7 +982,8 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
 in aux "" "" params
 
 let get_form ?(a=[])
-    (url : ('get,'form,'kind,'tipo,'gn,'pn) url) current_url 
+    (url : ('get,unit,'kind,'tipo,'gn,unit name) url) 
+    (current_url : current_url)
     (f : 'gn -> form_content_l) : [>form] elt =
   let urlname =
     (if url.external_url
@@ -1003,8 +1004,8 @@ let get_form ?(a=[])
     inside
 
 let post_form ?(a=[])
-    (url : ('get,'form,'kind,'tipo,'gn,'pn) url) current_url 
-    (f : 'gn -> form_content_l) (getparams : 'get) : [>form] elt =
+    (url : ('get,'form,'kind,'tipo,'gn,'pn) url) (current_url : current_url)
+    (f : 'pn -> form_content_l) (getparams : 'get) : [>form] elt =
   let suff,params_string = construct_params url.get_params_type getparams in
   let urlname = 
     (if url.external_url 
