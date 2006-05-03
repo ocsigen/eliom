@@ -14,22 +14,21 @@ open Ocsexample_util
 (* All the urls: *)
 
 let main_page = new_url ~path:[""]
-    ~server_params:http_params
-    ~get_params:no_get_param ()
+    ~get_params:unit ()
 
-let news_page = new_url ["msg"] http_params (StringMessage.index "num") ()
+let news_page = new_url ["msg"] (StringMessage.index "num") ()
 
 
 (*****************************************************************************)
 (* Construction of default pages *)
 
-let accueil h =
+let accueil h () () =
   page ~css:["moncss.css"] h
     [title_box "Mon site";
      news_headers_list_box 
        h messageslist_number anonymoususer rocsexample news_page]
 
-let print_news_page h i = 
+let print_news_page h i () = 
   page ~css:["moncss.css"] h
     [title_box "Info";
      string_message_box i anonymoususer rocsexample]

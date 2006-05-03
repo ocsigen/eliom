@@ -13,21 +13,19 @@ open Ocsexample_util
 (*****************************************************************************)
 (* All the urls: *)
 
-let main_page = new_url ~path:[""]
-    ~server_params:http_params ~get_params:no_get_param ()
+let main_page = new_url ~path:[""] ~get_params:unit ()
 
-let news_page = new_url ["msg"] http_params (StringMessage.index "num") ()
+let news_page = new_url ["msg"] (StringMessage.index "num") ()
 
 let connect_action = 
   new_actionurl
-    ~server_params:no_server_param
-    ~get_params:(string "login" ** string "password")
+    ~post_params:(string "login" ** string "password")
 
 
 (*****************************************************************************)
 (* Construction of default pages *)
 
-let accueil h =
+let accueil h () () =
   page ~css:["moncss.css"] h
     [title_box "Mon site";
      text_box "(user : toto and password : titi)";
@@ -35,20 +33,20 @@ let accueil h =
      news_headers_list_box 
        h messageslist_number anonymoususer rocsexample news_page]
 
-let print_news_page h i = 
+let print_news_page h i () = 
   page ~css:["moncss.css"] h
     [title_box "Info";
      login_box_action h connect_action;
      string_message_box i anonymoususer rocsexample]
 
-let user_main_page user h =
+let user_main_page user h () () =
   page ~css:["moncss.css"] h
     [title_box "Mon site";
      text_box "Bonjour !";
      connected_box h user;
      news_headers_list_box h messageslist_number user rocsexample news_page]
 
-let user_news_page user h i = 
+let user_news_page user h i () = 
   page ~css:["moncss.css"] h
     [title_box "Info";
      connected_box h user;
@@ -71,7 +69,7 @@ let launch_session user =
 
 let _ = register_actionurl
   ~actionurl:connect_action
-  ~action:(fun login password ->
+  ~action:(fun h (login, password) ->
 	     launch_session (connect login password))
 
 

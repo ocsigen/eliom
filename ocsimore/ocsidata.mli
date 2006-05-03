@@ -53,13 +53,7 @@ sig
   val dbget : user:Rights.user -> resource:Rights.resource -> key:t index -> t
   val index : 
     string ->
-    (t index -> 'a, 'a, (t index Ocsigen.name -> 'b) -> 'b, 
-      t index -> [>Xhtmltypes.a] XHTML.M.elt,
-	t index -> [>Xhtmltypes.form] XHTML.M.elt, 
-	t index -> XHTML.M.uri(*,
-	t index -> [>Xhtmltypes.img] XHTML.M.elt, 
-	t index -> [>Xhtmltypes.link] XHTML.M.elt, t index -> [>Xhtmltypes.script] XHTML.M.elt *)) 
-	Ocsigen.parameters
+      (t index, [`WithoutSuffix], t index Ocsigen.name)	Ocsigen.params_type
   val int_of_index : t index -> int
   val intname_of_indexname : t index Ocsigen.name -> int Ocsigen.name
 end

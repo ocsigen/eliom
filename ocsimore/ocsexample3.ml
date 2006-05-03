@@ -13,14 +13,13 @@ open Ocsexample_util
 (* All the urls: *)
 
 let main_page = new_url ~path:[""] 
-    ~server_params:http_params ~get_params:no_get_param ()
+    ~get_params:unit ()
 
-let news_page = new_url ["msg"] http_params (StringMessage.index "num") ()
+let news_page = new_url ["msg"] (StringMessage.index "num") ()
 
 let connect_action = 
   new_actionurl
-    ~server_params:no_server_param
-    ~get_params:(string "login" ** string "password")
+    ~post_params:(string "login" ** string "password")
 
 
 
@@ -30,7 +29,7 @@ module RegisterPublicOrNotBoxes =
   MakeRegister
     (struct 
       type content = Xhtmltypes.body_content XHTML.M.elt
-      type 'a t = http_params -> user -> resource -> 'a
+      type 'a t = server_params -> user -> resource -> 'a
       type box = [`PublicOrNotBox of content t tfolded]
       type boxes = [ box | RegisterBoxes.boxes ]
       let name = "OcsexampleRegisterPublicOrNotBoxes"
@@ -57,7 +56,7 @@ module RegisterPublicBoxes =
   MakeRegister
     (struct 
       type content = Xhtmltypes.body_content XHTML.M.elt
-      type 'a t = http_params -> resource -> 'a
+      type 'a t = server_params -> resource -> 'a
       type box = [`PublicBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
       let name = "OcsexampleRegisterPublicBoxes"
@@ -86,7 +85,7 @@ module RegisterNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmltypes.body_content XHTML.M.elt
-      type 'a t = http_params -> user -> resource ->
+      type 'a t = server_params -> user -> resource ->
 	StringMessage.t index -> 'a
       type box = [`NewsBox of content t tfolded]
       type boxes = box
@@ -110,7 +109,7 @@ module RegisterPublicNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmltypes.body_content XHTML.M.elt
-      type 'a t = http_params -> resource -> StringMessage.t index -> 'a
+      type 'a t = server_params -> resource -> StringMessage.t index -> 'a
       type box = [`PublicNewsBox of content t tfolded]
       type boxes = [ box
 	| RegisterNewsBoxes.boxes
@@ -142,7 +141,7 @@ module RegisterUserBoxes =
   MakeRegister
     (struct 
       type content = Xhtmltypes.body_content XHTML.M.elt
-      type 'a t = http_params -> user -> resource -> 'a
+      type 'a t = server_params -> user -> resource -> 'a
       type box = [`UserBox of content t tfolded]
       type boxes = [ box | RegisterPublicOrNotBoxes.boxes ]
       let name = "OcsexampleRegisterUserBoxes"
@@ -170,7 +169,7 @@ module RegisterUserNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmltypes.body_content XHTML.M.elt
-      type 'a t = http_params -> user -> resource ->
+      type 'a t = server_params -> user -> resource ->
 	StringMessage.t index -> 'a
       type box = [`UserNewsBox of content t tfolded]
       type boxes = [ box | RegisterUserBoxes.boxes | RegisterNewsBoxes.boxes ]
@@ -282,14 +281,14 @@ let user_news_page_number =
 
 
 (*****************************************************************************)
-let accueil h = 
+let accueil h () () = 
   page h
     ((RegisterPublicBoxes.dbgetlist
 	~user:anonymoususer
 	~resource:rocsexample
 	~key:public_main_page_number) h rocsexample)
 
-let print_news_page h i = 
+let print_news_page h i () = 
   page h
     ((RegisterPublicNewsBoxes.dbgetlist
 	~user:anonymoususer
@@ -304,14 +303,14 @@ let _ = register_url
   ~url:news_page
   print_news_page
 
-let user_main_page user h =
+let user_main_page user h () () =
   page h
     ((RegisterUserBoxes.dbgetlist
 	~user:user
 	~resource:rocsexample
 	~key:user_main_page_number) h user rocsexample)
 
-let user_news_page user h i =
+let user_news_page user h i () =
   page h
     ((RegisterUserNewsBoxes.dbgetlist
 	~user:user
@@ -324,7 +323,7 @@ let launch_session user =
 
 let _ = register_actionurl
   ~actionurl:connect_action
-  ~action:(fun login password ->
+  ~action:(fun h (login, password) ->
 	     launch_session (connect login password))
 
 

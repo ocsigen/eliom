@@ -60,7 +60,7 @@ val remove_slash : url_path -> url_path
 (** {2 Types of pages parameters} *)
 
 (** Here are some examples of how to specify the types and names of pages parameters:
- - [unit] for a page without parameter. }
+ - [unit] for a page without parameter.
  - [(int "myvalue")] for a page that takes one parameter, of type [int], called [myvalue]. (You must register a function of type [int ->] {{:#TYPEpage}[page]}).
  - [(int "myvalue" ** string "mystring")] for a page that takes two parameters, one of type [int] called [myvalue], and one of type [string] called [mystring]. (The function you will register has a parameter of type [(int * string)]).
  - [list "l" (int "myvalue" ** string "mystring")] for a page that takes a list of pairs. (The function you will register has a parameter of type [(int * string) list]).

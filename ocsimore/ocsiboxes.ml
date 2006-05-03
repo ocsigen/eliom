@@ -23,7 +23,7 @@ open Ocsidata
 
 (** Authentification *)
 let create_login_form = 
-  (fun login password ->
+  (fun (login, password) ->
        <:xmllist< 
          <p>
          Login: $string_input ~a:[a_size 8] login$ <br/>
@@ -36,10 +36,10 @@ let login_box_action h actionurl =
   action_form ~a:[a_id "loginbox";a_class ["userbox"]]
     actionurl h create_login_form
 
-let login_box h url = post_form url h.current_url create_login_form
+let login_box h url = post_form url h create_login_form
 
 let deconnect_action = 
-  register_new_actionurl unit no_get_param close_session
+  register_new_actionurl unit (fun h () -> close_session ())
 
 let deconnect_box h s = action_a deconnect_action h s
 
