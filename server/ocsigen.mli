@@ -78,7 +78,7 @@ type server_params = {full_url: string;
 type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 (** Binary sums *)
 
-type 'a name
+type 'a name = string
 (** Type for names of page parameters *)
 
 type ('a, 'b, 'c) params_type
