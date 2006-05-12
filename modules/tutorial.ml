@@ -669,7 +669,13 @@ let coucou_list = register_new_url
 
 (* Advanced forms *)
 (* Form with list: *)
-let create_listform f =
+let create_listform f = 
+  (* Here, f.it is an iterator like List.map, 
+     but it must be applied to a function taking 2 arguments 
+     (and not 1 as in map), the first one being the name of the parameter.
+     The last parameter of f.it is the code that must be appended at the 
+     end of the list created
+   *)
   f.it (fun intname v ->
     <:xmllist< <p>Write the value for $str:v$: $int_input intname$ </p> >>)
     ["one";"two";"three";"four"]

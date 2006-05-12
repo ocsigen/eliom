@@ -333,13 +333,13 @@ let service http_frame sockaddr
 	      if params = "" then
 		try
 		  let filename = find_static_page path in
+		  Messages.debug ("--- Is it a static file? ("^filename^")");
 		  let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
 		  let filename = 
 		    if dir
 		    then filename^"/index.html"
 		    else filename
 		  in
-		  Messages.debug ("--- Is it a static file? ("^filename^")");
 		  if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
 		  then begin
 		    Unix.access filename [Unix.R_OK];

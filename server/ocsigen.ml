@@ -95,7 +95,7 @@ let rec reconstruct_url_path = function
 
 let reconstruct_absolute_url_path current_url = reconstruct_url_path
 
-let reconstruct_relative_url_path current_url u =
+let reconstruct_relative_url_path current_url u suff =
   let rec drop cururl desturl = match cururl, desturl with
     | a::l, [b] -> l, desturl
     | [a], m -> [], m
@@ -108,7 +108,7 @@ let reconstruct_relative_url_path current_url u =
     | _::l -> "../"^(makedotdot l)
   in 
 let aremonter, aaller = drop current_url u
-  in let s = (makedotdot aremonter)^(reconstruct_url_path aaller) in
+  in let s = (makedotdot aremonter)^(reconstruct_url_path aaller)^suff in
   (* print_endline ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s); *)
   if s = "" then defaultpagename else s
 
@@ -864,7 +864,7 @@ let register_new_actionurl_for_session ~params ~action =
 
 (** Satic directories **)
 let static_dir : (string, unit, [`Internal_Url of [`Public_Url]],[`WithSuffix],string name, unit name) url =
-  {url = [""];
+  {url = [];
    unique_id = counter ();
    url_state = None;
    url_prefix = true;
@@ -893,8 +893,9 @@ let a ?(a=[])
   let uri = 
     (if url.external_url 
     then (reconstruct_absolute_url_path current_url url.url)
-    else (reconstruct_relative_url_path current_url url.url))^
-    (if url.url_prefix then "/"^suff else "") in
+    else (reconstruct_relative_url_path current_url url.url 
+	    (if url.url_prefix then "/"^suff else "")))
+  in
   match url.url_state with
     None ->
       make_a ~a:((a_href (make_uri_from_string 
@@ -988,7 +989,7 @@ let get_form ?(a=[])
   let urlname =
     (if url.external_url
     then (reconstruct_absolute_url_path current_url url.url)
-    else (reconstruct_relative_url_path current_url url.url)) in
+    else (reconstruct_relative_url_path current_url url.url "")) in
   let state_param =
     (match  url.url_state with
       None -> []
@@ -1010,8 +1011,9 @@ let post_form ?(a=[])
   let urlname = 
     (if url.external_url 
     then (reconstruct_absolute_url_path current_url url.url)
-    else (reconstruct_relative_url_path current_url url.url))^
-    (if url.url_prefix then "/"^suff else "") in
+    else (reconstruct_relative_url_path current_url url.url 
+	    (if url.url_prefix then "/"^suff else "")))
+  in
   let state_param =
     (match  url.url_state with
       None -> []
@@ -1033,8 +1035,9 @@ let make_uri
   let uri = 
     (if url.external_url 
     then (reconstruct_absolute_url_path current_url url.url)
-    else (reconstruct_relative_url_path current_url url.url))^
-    (if url.url_prefix then "/"^suff else "") in
+    else (reconstruct_relative_url_path current_url url.url
+	    (if url.url_prefix then "/"^suff else "")))
+  in
   match url.url_state with
     None ->
       make_uri_from_string (add_to_string uri "?" params_string)
@@ -1268,4 +1271,5 @@ let get_number_of_connected,
   ((fun () -> !connected),
    (fun () -> connected := !connected + 1),
    (fun () -> connected := !connected - 1))
+
 
