@@ -177,6 +177,20 @@ let error_page s =
 
 exception Ocsigen_Malformed_Url
 
+
+(* Ces deux trucs sont dans Neturl version 1.1.2 mais en attendant qu'ils
+ soient dans debian, je les mets ici *)
+let problem_re = Pcre.regexp "[ <>\"{}|\\\\^\\[\\]`]"
+
+let fixup_url_string =
+  Netstring_pcre.global_substitute
+    problem_re
+    (fun m s ->
+       Printf.sprintf "%%%02x" (Char.code s.[Netstring_pcre.match_beginning m]))
+;;
+
+
+
 (* *)
 let get_frame_infos =
 (*let full_action_param_prefix = action_prefix^action_param_prefix in
@@ -188,7 +202,8 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
       Neturl.parse_url 
 	~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
 	(* ~accept_8bits:true *)
-	(Neturl.fixup_url_string url)
+	(* Neturl.fixup_url_string url *)
+	(fixup_url_string url)
     in
     let path = Neturl.string_of_url
 	(Neturl.remove_from_url 

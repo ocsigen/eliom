@@ -93,7 +93,11 @@ let rec reconstruct_url_path = function
   | [a] -> a
   | a::l -> a^"/"^(reconstruct_url_path l)
 
-let reconstruct_absolute_url_path current_url = reconstruct_url_path
+let rec reconstruct_url_path_suff u = function
+    None -> reconstruct_url_path u
+  | Some suff -> (reconstruct_url_path u)^"/"^suff
+
+let reconstruct_absolute_url_path current_url = reconstruct_url_path_suff
 
 let reconstruct_relative_url_path current_url u suff =
   let rec drop cururl desturl = match cururl, desturl with
@@ -108,7 +112,7 @@ let reconstruct_relative_url_path current_url u suff =
     | _::l -> "../"^(makedotdot l)
   in 
 let aremonter, aaller = drop current_url u
-  in let s = (makedotdot aremonter)^(reconstruct_url_path aaller)^suff in
+  in let s = (makedotdot aremonter)^(reconstruct_url_path_suff aaller suff) in
   (* print_endline ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s); *)
   if s = "" then defaultpagename else s
 
@@ -519,38 +523,40 @@ module Directorytree : DIRECTORYTREE = struct
       (dircontentref,_) 
       (string_list, state_option, get_param_list, post_param_list, 
        ua, ip, fullurl) =
-    let rec search_page_table dircontent =
-      let aux a l =
-	(match !(find_dircontent dircontent a) with
-	  Dir dircontentref2 -> search_page_table !dircontentref2 l
-	| File page_table_ref -> !page_table_ref, l)
-      in function
-          [] -> raise Ocsigen_Is_a_directory
-        | [""] -> aux defaultpagename []
-	| ""::l -> search_page_table dircontent l
-	| a::l -> aux a l
-    in
-    let page_table, suffix = 
-      (search_page_table !dircontentref (change_empty_list string_list)) in
-    let suffix,get_param_list = 
-      if  suffix = []
-      then try
-	let s,l = list_assoc_remove ocsigen_suffix_name get_param_list in
-	[s],l
-      with Not_found -> suffix,get_param_list
-      else suffix,get_param_list in
-    let pref = suffix <> [] in
-    find_page_table 
-      page_table
-      (string_list,
-       get_param_list,
-       post_param_list,
-       ua,
-       ip,
-       fullurl,
-       suffix)
-      {prefix = pref;
-       state = state_option}
+    try
+      let rec search_page_table dircontent =
+	let aux a l =
+	  (match !(find_dircontent dircontent a) with
+	    Dir dircontentref2 -> search_page_table !dircontentref2 l
+	  | File page_table_ref -> !page_table_ref, l)
+	in function
+            [] -> raise Ocsigen_Is_a_directory
+          | [""] -> aux defaultpagename []
+	  | ""::l -> search_page_table dircontent l
+	  | a::l -> aux a l
+      in
+      let page_table, suffix = 
+	(search_page_table !dircontentref (change_empty_list string_list)) in
+      let suffix,get_param_list = 
+	if  suffix = []
+	then try
+	  let s,l = list_assoc_remove ocsigen_suffix_name get_param_list in
+	  [s],l
+	with Not_found -> suffix,get_param_list
+	else suffix,get_param_list in
+      let pref = suffix <> [] in
+      find_page_table 
+	page_table
+	(string_list,
+	 get_param_list,
+	 post_param_list,
+	 ua,
+	 ip,
+	 fullurl,
+	 suffix)
+	{prefix = pref;
+	 state = state_option}
+    with Not_found -> raise Ocsigen_404
 
 end
 
@@ -890,11 +896,11 @@ let a ?(a=[])
     (current_url : current_url) content
     (getparams : 'get) : [>a] elt =
   let suff,params_string = construct_params service.get_params_type getparams in
+  let suff = (if service.url_prefix then Some suff else None) in
   let uri = 
     (if service.external_service 
-    then (reconstruct_absolute_url_path current_url service.url)
-    else (reconstruct_relative_url_path current_url service.url 
-	    (if service.url_prefix then "/"^suff else "")))
+    then (reconstruct_absolute_url_path current_url service.url suff)
+    else (reconstruct_relative_url_path current_url service.url suff))
   in
   match service.url_state with
     None ->
@@ -988,8 +994,8 @@ let get_form ?(a=[])
     (f : 'gn -> form_content_l) : [>form] elt =
   let urlname =
     (if service.external_service
-    then (reconstruct_absolute_url_path current_url service.url)
-    else (reconstruct_relative_url_path current_url service.url "")) in
+    then (reconstruct_absolute_url_path current_url service.url None)
+    else (reconstruct_relative_url_path current_url service.url None)) in
   let state_param =
     (match  service.url_state with
       None -> []
@@ -1008,11 +1014,11 @@ let post_form ?(a=[])
     (service : ('get,'form,'kind,'tipo,'gn,'pn) service) (current_url : current_url)
     (f : 'pn -> form_content_l) (getparams : 'get) : [>form] elt =
   let suff,params_string = construct_params service.get_params_type getparams in
+  let suff = (if service.url_prefix then Some suff else None) in
   let urlname = 
     (if service.external_service 
-    then (reconstruct_absolute_url_path current_url service.url)
-    else (reconstruct_relative_url_path current_url service.url 
-	    (if service.url_prefix then "/"^suff else "")))
+    then (reconstruct_absolute_url_path current_url service.url suff)
+    else (reconstruct_relative_url_path current_url service.url suff))
   in
   let state_param =
     (match  service.url_state with
@@ -1022,7 +1028,8 @@ let post_form ?(a=[])
        <:xmllist< <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
   in
   let inside = f (make_params_names service.post_params_type) in
-  form ~a:((a_method `Post)::a) ~action:(make_uri_from_string urlname)
+  form ~a:((a_method `Post)::a) 
+    ~action:(make_uri_from_string (add_to_string urlname "?" params_string))
     << <p style="display:none">
       $list:state_param$
       </p> >>
@@ -1032,11 +1039,11 @@ let make_uri
     (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) current_url
     (getparams : 'get) : uri =
   let suff,params_string = construct_params service.get_params_type getparams in
+  let suff = (if service.url_prefix then Some suff else None) in
   let uri = 
     (if service.external_service 
-    then (reconstruct_absolute_url_path current_url service.url)
-    else (reconstruct_relative_url_path current_url service.url
-	    (if service.url_prefix then "/"^suff else "")))
+    then (reconstruct_absolute_url_path current_url service.url suff)
+    else (reconstruct_relative_url_path current_url service.url suff))
   in
   match service.url_state with
     None ->
@@ -1167,7 +1174,8 @@ let get_page
 	  useragent,
 	  ip,
 	  fullurl))
-    with Not_found -> try (* ensuite dans la table globale *)
+    with Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+      try (* ensuite dans la table globale *)
       Messages.debug "--- recherche dans la table globale :";
       (find_service 
 	 global_tables
@@ -1178,25 +1186,16 @@ let get_page
 	  useragent,
 	  ip,
 	  fullurl))
-    with Not_found -> (* si pas trouvé avec, on essaie sans l'état *)
-      match internal_state with
-	  None -> raise Ocsigen_404
-	| _ -> try (* d'abord la table de session *)
-	    Messages.debug "--- recherche dans la table de session, sans état :";
-	    (find_service 
-	       (get_session_tables ())
-	       (url,
-		None,
-		get_params,
-		post_params,
-		useragent,
-		ip,
-		fullurl))
-	  with Not_found -> (* ensuite dans la table globale *)
-	    try 
-	      Messages.debug "--- recherche dans la table globale, sans état :";
+    with exn ->
+      match exn with 
+	Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+        (* si pas trouvé avec, on essaie sans l'état *)
+	  (match internal_state with
+	    None -> raise exn
+	  | _ -> try (* d'abord la table de session *)
+	      Messages.debug "--- recherche dans la table de session, sans état :";
 	      (find_service 
-		 global_tables
+		 (get_session_tables ())
 		 (url,
 		  None,
 		  get_params,
@@ -1204,7 +1203,19 @@ let get_page
 		  useragent,
 		  ip,
 		  fullurl))
-	    with Not_found -> raise Ocsigen_404
+	  with Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+          (* ensuite dans la table globale *)
+	    Messages.debug "--- recherche dans la table globale, sans état :";
+	    (find_service 
+	       global_tables
+	       (url,
+		None,
+		get_params,
+		post_params,
+		useragent,
+		ip,
+		fullurl)))
+      | _ -> raise exn
   in try 
     execute generate_page sockaddr cookie
   with 

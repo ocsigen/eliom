@@ -285,7 +285,7 @@ let form4 = register_new_service ["form4"] unit
      let f  = 
        (post_form
 	  (new_external_service 
-	     ~url:["http://www.petitspois.com"]
+	     ~url:["http://www.petizomverts.com"]
 	     ~get_params:(int "i")
 	     ~post_params:(string "chaine") ()) sp.current_url
 	  (fun chaine -> 
@@ -579,7 +579,7 @@ let action_session =
 let connect_action = new_action ~post_params:(string "login")
 
 let accueil_action sp () () = 
-  let f = action_form connect_action h
+  let f = action_form connect_action sp
       (fun login -> 
 	[p [pcdata "login: "; 
 	    string_input login]]) in
