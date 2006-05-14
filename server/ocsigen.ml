@@ -1283,3 +1283,59 @@ let get_number_of_connected,
    (fun () -> connected := !connected - 1))
 
 
+
+
+
+
+
+
+
+
+(* DEPRECATED FUNCTIONS : *)
+
+let new_url ~path ?prefix ~get_params () =
+  new_service ~url:path ?prefix ~get_params () 
+
+let new_external_url ~path ?prefix ~get_params ~post_params () =
+  new_external_service ~url:path ?prefix ~get_params ~post_params () 
+
+let new_state_url = new_local_service
+
+let register_url ~url f = register_service ~service:url f
+
+let register_url_for_session ~url f = 
+  register_service_for_session ~service:url f
+
+let register_new_url ~path ?prefix ~get_params f =
+  register_new_service ~url:path ?prefix ~get_params f
+
+let register_new_state_url = register_new_local_service
+
+let register_new_state_url_for_session =
+  register_new_local_service_for_session
+
+let new_post_url = new_post_service
+
+let new_post_state_url = new_post_local_service
+
+let register_new_post_url = register_new_post_service
+
+let register_new_post_state_url = register_new_post_local_service
+
+let register_new_post_state_url_for_session =
+  register_new_post_local_service_for_session
+
+let new_actionurl = new_action
+
+let register_actionurl ~actionurl ~action =
+  register_action ~action:actionurl action 
+
+let register_actionurl_for_session ~actionurl ~action =
+  register_action_for_session ~action:actionurl action 
+
+let register_new_actionurl ~post_params ~action =
+  register_new_action ~post_params action
+
+let register_new_actionurl_for_session ~post_params ~action =
+  register_new_action ~post_params action
+
