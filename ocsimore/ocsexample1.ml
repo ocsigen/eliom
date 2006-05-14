@@ -13,10 +13,10 @@ open Ocsexample_util
 (*****************************************************************************)
 (* All the urls: *)
 
-let main_page = new_url ~path:[""]
+let main_page = new_service ~url:[""]
     ~get_params:unit ()
 
-let news_page = new_url ["msg"] (StringMessage.index "num") ()
+let news_page = new_service ["msg"] (StringMessage.index "num") ()
 
 
 (*****************************************************************************)
@@ -38,12 +38,12 @@ let print_news_page h i () =
 (*****************************************************************************)
 (* Page registering *)
 
-let _ = register_url
-  ~url:main_page
+let _ = register_service
+  ~service:main_page
   accueil
 
-let _ = register_url
-  ~url:news_page
+let _ = register_service
+  ~service:news_page
   print_news_page
 
 

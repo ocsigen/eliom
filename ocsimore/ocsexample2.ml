@@ -13,12 +13,12 @@ open Ocsexample_util
 (*****************************************************************************)
 (* All the urls: *)
 
-let main_page = new_url ~path:[""] ~get_params:unit ()
+let main_page = new_service ~url:[""] ~get_params:unit ()
 
-let news_page = new_url ["msg"] (StringMessage.index "num") ()
+let news_page = new_service ["msg"] (StringMessage.index "num") ()
 
 let connect_action = 
-  new_actionurl
+  new_action
     ~post_params:(string "login" ** string "password")
 
 
@@ -55,21 +55,21 @@ let user_news_page user h i () =
 
 (* Page registering *)
 
-let _ = register_url
-  ~url:main_page
+let _ = register_service
+  ~service:main_page
   accueil
 
-let _ = register_url
-  ~url:news_page
+let _ = register_service
+  ~service:news_page
   print_news_page
 
 let launch_session user =
-  register_url_for_session ~url:main_page (user_main_page user);
-  register_url_for_session ~url:news_page (user_news_page user)
+  register_service_for_session ~service:main_page (user_main_page user);
+  register_service_for_session ~service:news_page (user_news_page user)
 
-let _ = register_actionurl
-  ~actionurl:connect_action
-  ~action:(fun h (login, password) ->
-	     launch_session (connect login password))
+let _ = register_action
+  ~action:connect_action
+    (fun h (login, password) ->
+      launch_session (connect login password))
 
 

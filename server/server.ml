@@ -551,7 +551,7 @@ let _ =
   with
     Ocsigen.Ocsigen_duplicate_registering s -> 
       errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
-  | Ocsigen.Ocsigen_there_are_unregistered_url s ->
+  | Ocsigen.Ocsigen_there_are_unregistered_services s ->
       errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
   | Ocsigen.Ocsigen_page_erasing s ->
       errlog ("Fatal - Page or directory erased: "^s^". Please correct your modules.")

@@ -32,14 +32,14 @@ let create_login_form =
          </p>
        >>)
 
-let login_box_action h actionurl = 
+let login_box_action h action = 
   action_form ~a:[a_id "loginbox";a_class ["userbox"]]
-    actionurl h create_login_form
+    action h create_login_form
 
-let login_box h url = post_form url h create_login_form
+let login_box h serv = post_form serv h create_login_form
 
 let deconnect_action = 
-  register_new_actionurl unit (fun h () -> close_session ())
+  register_new_action unit (fun h () -> close_session ())
 
 let deconnect_box h s = action_a deconnect_action h s
 
@@ -74,7 +74,7 @@ let urltag = fold_url "mapage" url
 *)
 
 (*
-let form = register_new_url (Url ["form"]) _noparam 
+let form = register_new_service (Url ["form"]) _noparam 
   (let f = get_form plop_params create_form in
   << <html> $f$ </html> >>)
 *)

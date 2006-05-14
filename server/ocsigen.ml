@@ -162,8 +162,8 @@ exception Ocsigen_Wrong_parameter
 exception Ocsigen_Is_a_directory
 exception Ocsigen_404
 exception Ocsigen_page_erasing of string
-exception Ocsigen_url_created_outside_site_loading
-exception Ocsigen_there_are_unregistered_url of string
+exception Ocsigen_service_created_outside_site_loading
+exception Ocsigen_there_are_unregistered_services of string
 exception Ocsigen_duplicate_registering of string
 exception Ocsigen_register_for_session_outside_session
 
@@ -335,7 +335,7 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
   | TSuffix -> (Obj.magic params),""
   | _ -> "",(aux typ params "" "")
 	
-(** We associate to an URL a function server_params2 -> page *)
+(** We associate to a service a function server_params2 -> page *)
 module type DIRECTORYTREE =
   sig
     type tables
@@ -344,11 +344,11 @@ module type DIRECTORYTREE =
 	 state: internal_state option}
     val empty_tables : unit -> tables
     val are_empty_tables : tables -> bool
-    val add_url : tables -> bool -> url_path -> 
+    val add_service : tables -> bool -> url_path -> 
       page_table_key * (int * (server_params2 -> page)) -> unit
     val add_action :
 	tables -> string -> (server_params -> unit) -> unit
-    val find_url :
+    val find_service :
 	tables ->
 	  current_url * internal_state option * (string * string) list *
 	    (string * string) list * string * Unix.inet_addr * string -> 
@@ -459,7 +459,7 @@ module Directorytree : DIRECTORYTREE = struct
   let find_action (_,atr) name =
     find_action_table !atr name
 
-  let add_url (dircontentref,_) session url_act 
+  let add_service (dircontentref,_) session url_act 
       (page_table_key, (unique_id, action)) =
     let aux search dircontentref a l =
       try 
@@ -515,7 +515,7 @@ module Directorytree : DIRECTORYTREE = struct
     page_table_ref := add_page_table session url_act !page_table_ref content
 
 	 
-  let find_url 
+  let find_service 
       (dircontentref,_) 
       (string_list, state_option, get_param_list, post_param_list, 
        ua, ip, fullurl) =
@@ -588,22 +588,22 @@ let rec new_cookie table ip =
     new_cookie table ip
   with Not_found -> c
 
-(** Typed URLs *)
-type internal_url_kind = [`Public_Url | `State_Url]
-type url_kind = [`Internal_Url of internal_url_kind | `External_Url]
+(** Typed services *)
+type internal_service_kind = [`Public_Service | `State_Service]
+type service_kind = [`Internal_Service of internal_service_kind | `External_Service]
 
-type ('get,'post,'kind,'tipo,'getnames,'postnames) url = 
-    {url: url_path; (* name of the URL without parameters *)
+type ('get,'post,'kind,'tipo,'getnames,'postnames) service = 
+    {url: url_path; (* name of the service without parameters *)
      unique_id: int;
      url_prefix: bool;
-     external_url: bool;
+     external_service: bool;
      url_state: internal_state option;
        (* 'kind is just a type information: it can be only 
-	  `Internal_Url `Public_Url or  `Internal_Url `State_Url
-	  or `External_Url, so that we can't use session urls as fallbacks for
-	  other session urls. If it is a session url, it contains a value
+	  `Internal_Service `Public_Service or  `Internal_Service `State_Service
+	  or `External_Service, so that we can't use session services as fallbacks for
+	  other session services. If it is a session service, it contains a value
 	  (internal state) that will allow to differenciate between
-	  url that have the same name.
+	  services that have the same url.
 	*)
      get_params_type: ('get,'tipo,'getnames) params_type;
      post_params_type: ('post,[`WithoutSuffix],'postnames) params_type;
@@ -615,7 +615,7 @@ let add_unregistered, remove_unregistered, verify_all_registered =
    (fun a -> l := list_remove a !l),
    (fun () -> 
      match !l with [] -> () 
-     | (a,_)::_ -> raise (Ocsigen_there_are_unregistered_url (reconstruct_url_path a))))
+     | (a,_)::_ -> raise (Ocsigen_there_are_unregistered_services (reconstruct_url_path a))))
 
 let during_initialisation, end_initialisation =
   let init = ref true in
@@ -635,192 +635,192 @@ let during_ocsigen_module_loading,
 let global_register_allowed () = 
   (during_initialisation ()) && (during_ocsigen_module_loading ())
 
-(** Create an url *)
-let new_url_aux_aux
-    ~(path : url_path)
+(** Create a service *)
+let new_service_aux_aux
+    ~(url : url_path)
     ~prefix
-    ~externalurl
+    ~external_service
     ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-    : ('get,'post,'kind,'tipo,'gn,'pn) url =
+    : ('get,'post,'kind,'tipo,'gn,'pn) service =
 (* ici faire une vérification "duplicate parameter" ? *) 
-  {url = path;
+  {url = url;
    unique_id = counter ();
    url_prefix = prefix;
    url_state = None;
-   external_url = externalurl;
+   external_service = external_service;
    get_params_type = get_params;
    post_params_type = post_params;
   }
 
-let new_url_aux
-    ~(path : url_path)
+let new_service_aux
+    ~(url : url_path)
     ~prefix
     ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
-    : ('get,unit,[`Internal_Url of 'popo],'tipo,'gn,unit name) url =
+    : ('get,unit,[`Internal_Service of 'popo],'tipo,'gn,unit name) service =
   if global_register_allowed () then
-    let full_path = (get_current_dir ())@(change_empty_list path) in
-    let u = new_url_aux_aux
-	~path:full_path
+    let full_path = (get_current_dir ())@(change_empty_list url) in
+    let u = new_service_aux_aux
+	~url:full_path
 	~prefix
-	~externalurl:false
+	~external_service:false
 	~get_params
 	~post_params:unit
     in
     add_unregistered (u.url,u.unique_id); u
-  else raise Ocsigen_url_created_outside_site_loading
+  else raise Ocsigen_service_created_outside_site_loading
 
-let new_external_url
-    ~(path : url_path)
+let new_external_service
+    ~(url : url_path)
     ?(prefix=false)
     ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     ()
-    : ('get,'post,[`External_Url],'tipo,'gn,'pn) url =
-  new_url_aux_aux
-    ~path
+    : ('get,'post,[`External_Service],'tipo,'gn,'pn) service =
+  new_service_aux_aux
+    ~url
     ~prefix
-    ~externalurl:true
+    ~external_service:true
     ~get_params 
     ~post_params
 
-let new_url
-    ~(path : url_path)
+let new_service
+    ~(url : url_path)
     ?(prefix=false)
     ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
     ()
-    : ('get,unit,[`Internal_Url of [`Public_Url]],'tipo,'gn, unit name) url =
-  new_url_aux ~path ~prefix ~get_params
+    : ('get,unit,[`Internal_Service of [`Public_Service]],'tipo,'gn, unit name) service =
+  new_service_aux ~url ~prefix ~get_params
 
-let new_state_url
-   ~(fallback : ('get,unit, [`Internal_Url of [`Public_Url]],'tipo,'gn,'pn)url)
-    : ('get,unit,[`Internal_Url of [`State_Url]],'tipo,'gn,'pn) url =
+let new_local_service
+   ~(fallback : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
+    : ('get,unit,[`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service =
   {fallback with url_state = new_state ()}
 
-let register_url_aux
+let register_service_aux
     tables
     session
     state
-    ~(url : ('get,'post,[`Internal_Url of 'popo],'tipo,'gn,'pn) url)
+    ~(service : ('get,'post,[`Internal_Service of 'popo],'tipo,'gn,'pn) service)
     (page_generator : server_params -> 'get -> 'post -> 'fin) =
-  add_url tables session url.url
-    ({prefix = url.url_prefix;
+  add_service tables session service.url
+    ({prefix = service.url_prefix;
       state = state},
-     (url.unique_id,
+     (service.unique_id,
       (fun (suff,h) -> page_generator h 
-	  (reconstruct_params url.get_params_type h.get_params suff)
-	  (reconstruct_params url.post_params_type h.post_params suff))))
+	  (reconstruct_params service.get_params_type h.get_params suff)
+	  (reconstruct_params service.post_params_type h.post_params suff))))
 
-let register_url 
-    ~(url : ('get,'post,[`Internal_Url of 'g],'tipo,'gn,'pn) url)
+let register_service 
+    ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
     (page_gen : server_params -> 'get -> 'post -> 'fin) =
   if global_register_allowed () then begin
-    remove_unregistered (url.url,url.unique_id);
-    register_url_aux global_tables false (url.url_state) url page_gen; end
-  else Messages.warning "Public URL registration after init forbidden! Please correct your module! (ignored)"
+    remove_unregistered (service.url,service.unique_id);
+    register_service_aux global_tables false (service.url_state) service page_gen; end
+  else Messages.warning "Public service registration after init forbidden! Please correct your module! (ignored)"
 
-(* WARNING: if we create a new URL without registering it,
+(* WARNING: if we create a new service without registering it,
    we can have a link towards a page that does not exist!!! :-(
-   That's why I impose to register all url during init.
+   That's why I impose to register all service during init.
    The only other way I see to avoid this is to impose a syntax extension
-   like "let rec" for url...
+   like "let rec" for service...
  *)
 
-let register_url_for_session
-    ~(url : ('get,'post,[`Internal_Url of 'g],'tipo,'gn,'pn) url)
+let register_service_for_session
+    ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
     page =
-  register_url_aux (get_session_tables ()) true url.url_state url page
+  register_service_aux (get_session_tables ()) true service.url_state service page
 
-let register_new_url 
-    ~path
+let register_new_service 
+    ~url
     ?(prefix=false)
     ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
     page
-    : ('get,unit, [`Internal_Url of [`Public_Url]],'tipo,'gn,unit name) url =
-  let u = new_url ~prefix ~path ~get_params () in
-  register_url u page;
+    : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit name) service =
+  let u = new_service ~prefix ~url ~get_params () in
+  register_service u page;
   u
     
-let register_new_state_url
-    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]],'tipo,'gn,'pn) url)
+let register_new_local_service
+    ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
     page
-    : ('get, unit, [`Internal_Url of [`State_Url]],'tipo,'gn,'pn) url =
-  let u = (new_state_url fallback) in
-  register_url u page;
+    : ('get, unit, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service =
+  let u = (new_local_service fallback) in
+  register_service u page;
   u
 
-let register_new_state_url_for_session
-    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]],'tipo,'gn,'pn)url)
+let register_new_local_service_for_session
+    ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
     page
-    : ('get, unit, [`Internal_Url of [`State_Url]],'tipo,'gn,'pn) url =
-  let u = (new_state_url fallback) in
-  register_url_for_session u page;
+    : ('get, unit, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service =
+  let u = (new_local_service fallback) in
+  register_service_for_session u page;
   u
 
 
-(** Register an url with post parameters in the server *)
-let new_post_url_aux
-    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]],'tipo,'gn,unit name) url)
+(** Register an service with post parameters in the server *)
+let new_post_service_aux
+    ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit name) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-    : ('get, 'post, [`Internal_Url of [`Public_Url]], 'tipo,'gn,'pn) url = 
+    : ('get, 'post, [`Internal_Service of [`Public_Service]], 'tipo,'gn,'pn) service = 
 (* ici faire une vérification "duplicate parameter" ? *) 
   {url = fallback.url;
    unique_id = counter ();
    url_prefix = fallback.url_prefix;
-   external_url = false;
+   external_service = false;
    url_state = None;
    get_params_type = fallback.get_params_type;
    post_params_type = post_params;
   }
 
-let new_post_url
-    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]],'tipo,'gn,unit name) url)
+let new_post_service
+    ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit name) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-    : ('get, 'post, [`Internal_Url of [`Public_Url]],'tipo,'gn,'pn) url = 
+    : ('get, 'post, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service = 
   if global_register_allowed () then
-    let u = new_post_url_aux fallback post_params in
+    let u = new_post_service_aux fallback post_params in
     add_unregistered (u.url,u.unique_id); u
-  else raise Ocsigen_url_created_outside_site_loading
+  else raise Ocsigen_service_created_outside_site_loading
   
-let new_post_state_url
-    ~(fallback : ('get, 'post1, [`Internal_Url of [`Public_Url]],'tipo,'gn,'pn1) url)
+let new_post_local_service
+    ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn2) params_type)
-    : ('get, 'post, [`Internal_Url of [`State_Url]],'tipo,'gn,'pn2) url = 
+    : ('get, 'post, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn2) service = 
   {fallback with 
    url_state = new_state ();
    post_params_type = post_params;
   }
 
-let register_new_post_url 
-    ~(fallback : ('get, unit, [`Internal_Url of [`Public_Url]],'tipo,'gn,unit name) url)
+let register_new_post_service 
+    ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit name) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     (page_gen : server_params -> 'get -> 'post -> 'fin)
-    : ('get,'post, [`Internal_Url of [`Public_Url]],'tipo,'gn,'pn) url =
-  let u = new_post_url ~fallback:fallback ~post_params:post_params in
-  register_url u page_gen;
+    : ('get,'post, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service =
+  let u = new_post_service ~fallback:fallback ~post_params:post_params in
+  register_service u page_gen;
   u
 
-let register_new_post_state_url
-    ~(fallback : ('get, 'post1, [`Internal_Url of [`Public_Url]],'tipo,'gn,'pn1) url)
+let register_new_post_local_service
+    ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     page_gen
-    : ('get, 'post, [`Internal_Url of [`State_Url]],'tipo,'gn,'pn) url = 
-  let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
-  register_url u page_gen;
+    : ('get, 'post, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service = 
+  let u = new_post_local_service ~fallback:fallback ~post_params:post_params in
+  register_service u page_gen;
   u
 
-let register_new_post_state_url_for_session
-    ~(fallback : ('get, 'post1, [`Internal_Url of [`Public_Url]],'tipo,'gn,'pn1) url)
+let register_new_post_local_service_for_session
+    ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     page_gen
-    : ('get, 'post, [`Internal_Url of [`State_Url]],'tipo,'gn,'pn) url = 
-  let u = new_post_state_url ~fallback:fallback ~post_params:post_params in
-  register_url_for_session u page_gen;
+    : ('get, 'post, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service = 
+  let u = new_post_local_service ~fallback:fallback ~post_params:post_params in
+  register_service_for_session u page_gen;
   u
 
 
 (** actions (new 10/05) *)
-type ('post,'pn) actionurl =
+type ('post,'pn) action =
     {action_name: string;
      action_params_type: ('post,[`WithoutSuffix],'pn) params_type}
 
@@ -830,45 +830,45 @@ let action_reload = "reload"
 
 let new_action_name () = string_of_int (counter ())
 
-let new_actionurl
+let new_action
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type) =
     {
      action_name = new_action_name ();
      action_params_type = post_params;
    }
 
-let register_actionurl_aux tables ~actionurl ~action =
+let register_action_aux tables ~action actionfun =
   add_action tables 
-    actionurl.action_name
-    (fun h -> action h 
-	(reconstruct_params actionurl.action_params_type h.post_params []))
+    action.action_name
+    (fun h -> actionfun h 
+	(reconstruct_params action.action_params_type h.post_params []))
 
-let register_actionurl
-    ~(actionurl : ('post,'pn) actionurl)
-    ~(action : (server_params -> 'post -> unit)) : unit =
-  register_actionurl_aux global_tables actionurl action
+let register_action
+    ~(action : ('post,'pn) action)
+    (actionfun : (server_params -> 'post -> unit)) : unit =
+  register_action_aux global_tables action actionfun
 
-let register_new_actionurl ~params ~action = 
-  let a = new_actionurl params in
-    register_actionurl a action;
+let register_new_action ~post_params actionfun = 
+  let a = new_action post_params in
+    register_action a actionfun;
     a
 
-let register_actionurl_for_session ~actionurl ~action =
-  register_actionurl_aux (get_session_tables ()) actionurl action
+let register_action_for_session ~action actionfun =
+  register_action_aux (get_session_tables ()) action actionfun
 
 
-let register_new_actionurl_for_session ~params ~action =
-  let a = new_actionurl params in
-    register_actionurl_for_session a action;
+let register_new_action_for_session ~params actionfun =
+  let a = new_action params in
+    register_action_for_session a actionfun;
     a
 
 (** Satic directories **)
-let static_dir : (string, unit, [`Internal_Url of [`Public_Url]],[`WithSuffix],string name, unit name) url =
+let static_dir : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string name, unit name) service =
   {url = [];
    unique_id = counter ();
    url_state = None;
    url_prefix = true;
-   external_url = false;
+   external_service = false;
    get_params_type = suffix_only;
    post_params_type = unit
   }
@@ -886,17 +886,17 @@ let state_param_name = "__ocsigen_etat__"
 let make_a ?(a=[]) l = XHTML.M.a ~a:a l
 
 let a ?(a=[])
-    (url : ('get, unit, 'kind, 'tipo,'gn,'pn) url) 
+    (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) 
     (current_url : current_url) content
     (getparams : 'get) : [>a] elt =
-  let suff,params_string = construct_params url.get_params_type getparams in
+  let suff,params_string = construct_params service.get_params_type getparams in
   let uri = 
-    (if url.external_url 
-    then (reconstruct_absolute_url_path current_url url.url)
-    else (reconstruct_relative_url_path current_url url.url 
-	    (if url.url_prefix then "/"^suff else "")))
+    (if service.external_service 
+    then (reconstruct_absolute_url_path current_url service.url)
+    else (reconstruct_relative_url_path current_url service.url 
+	    (if service.url_prefix then "/"^suff else "")))
   in
-  match url.url_state with
+  match service.url_state with
     None ->
       make_a ~a:((a_href (make_uri_from_string 
 			    (add_to_string uri "?" params_string)))::a) 
@@ -942,13 +942,13 @@ let js_script ?(a=[]) uri =
   script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
 (*
-let css_link ?(a=[]) (url : ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url =
-  url.create_link_url current_url
+let css_link ?(a=[]) (service : ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) service) current_url =
+  service.create_link_url current_url
     (fun v -> 
       link ~a:((a_href (make_uri_from_string  v))::(a_type "text/css")::(a_rel [`Stylesheet])::a) ())
 
-let script ?(a=[]) (url : ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) url) current_url =
-  url.create_script_url current_url
+let script ?(a=[]) (service : ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) service) current_url =
+  service.create_script_url current_url
     (fun v -> 
       script ~a:((a_src v)::a) ~contenttype:"text/javascript" (pcdata ""))
 *)
@@ -983,21 +983,21 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
 in aux "" "" params
 
 let get_form ?(a=[])
-    (url : ('get,unit,'kind,'tipo,'gn,unit name) url) 
+    (service : ('get,unit,'kind,'tipo,'gn,unit name) service) 
     (current_url : current_url)
     (f : 'gn -> form_content_l) : [>form] elt =
   let urlname =
-    (if url.external_url
-    then (reconstruct_absolute_url_path current_url url.url)
-    else (reconstruct_relative_url_path current_url url.url "")) in
+    (if service.external_service
+    then (reconstruct_absolute_url_path current_url service.url)
+    else (reconstruct_relative_url_path current_url service.url "")) in
   let state_param =
-    (match  url.url_state with
+    (match  service.url_state with
       None -> []
     | Some i -> 
 	let i' = string_of_int i in
 	[<< <input type="hidden" name=$state_param_name$ value=$i'$/> >>])
   in
-  let inside = f (make_params_names url.get_params_type) in
+  let inside = f (make_params_names service.get_params_type) in
   form ~a:((a_method `Get)::a) ~action:(make_uri_from_string urlname)
     << <p style="display:none">
       $list:state_param$
@@ -1005,23 +1005,23 @@ let get_form ?(a=[])
     inside
 
 let post_form ?(a=[])
-    (url : ('get,'form,'kind,'tipo,'gn,'pn) url) (current_url : current_url)
+    (service : ('get,'form,'kind,'tipo,'gn,'pn) service) (current_url : current_url)
     (f : 'pn -> form_content_l) (getparams : 'get) : [>form] elt =
-  let suff,params_string = construct_params url.get_params_type getparams in
+  let suff,params_string = construct_params service.get_params_type getparams in
   let urlname = 
-    (if url.external_url 
-    then (reconstruct_absolute_url_path current_url url.url)
-    else (reconstruct_relative_url_path current_url url.url 
-	    (if url.url_prefix then "/"^suff else "")))
+    (if service.external_service 
+    then (reconstruct_absolute_url_path current_url service.url)
+    else (reconstruct_relative_url_path current_url service.url 
+	    (if service.url_prefix then "/"^suff else "")))
   in
   let state_param =
-    (match  url.url_state with
+    (match  service.url_state with
       None -> []
     | Some i -> 
        let i' = string_of_int i in
        <:xmllist< <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
   in
-  let inside = f (make_params_names url.post_params_type) in
+  let inside = f (make_params_names service.post_params_type) in
   form ~a:((a_method `Post)::a) ~action:(make_uri_from_string urlname)
     << <p style="display:none">
       $list:state_param$
@@ -1029,16 +1029,16 @@ let post_form ?(a=[])
     inside
 
 let make_uri 
-    (url : ('get, unit, 'kind, 'tipo,'gn,'pn) url) current_url
+    (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) current_url
     (getparams : 'get) : uri =
-  let suff,params_string = construct_params url.get_params_type getparams in
+  let suff,params_string = construct_params service.get_params_type getparams in
   let uri = 
-    (if url.external_url 
-    then (reconstruct_absolute_url_path current_url url.url)
-    else (reconstruct_relative_url_path current_url url.url
-	    (if url.url_prefix then "/"^suff else "")))
+    (if service.external_service 
+    then (reconstruct_absolute_url_path current_url service.url)
+    else (reconstruct_relative_url_path current_url service.url
+	    (if service.url_prefix then "/"^suff else "")))
   in
-  match url.url_state with
+  match service.url_state with
     None ->
       make_uri_from_string (add_to_string uri "?" params_string)
   | Some i -> 
@@ -1047,11 +1047,11 @@ let make_uri
 	   "&" params_string)
 
 (* actions : *)
-let action_a ?(a=[]) ?(reload=true) actionurl h content : [>form] elt  =
+let action_a ?(a=[]) ?(reload=true) action h content : [>form] elt  =
   let formname="hiddenform"^(string_of_int (counter ())) in
   let href="javascript:document."^formname^".submit ()" in
   let action_param_name = action_prefix^action_name in
-  let action_param = (actionurl.action_name) in
+  let action_param = (action.action_name) in
   let reload_name = action_prefix^action_reload in
   let reload_param = 
     if reload 
@@ -1066,16 +1066,16 @@ let action_a ?(a=[]) ?(reload=true) actionurl h content : [>form] elt  =
 	</form> >>
 	
 let action_form ?(a=[])
-    ?(reload=true) (actionurl : ('a,'pn) actionurl) h 
+    ?(reload=true) (action : ('a,'pn) action) h 
     (f : 'pn -> form_content_l) : [>form] elt = 
   let action_param_name = action_prefix^action_name in
-  let action_param = (actionurl.action_name) in
+  let action_param = (action.action_name) in
   let reload_name = action_prefix^action_reload in
   let action_line =
     << <input type="hidden" name=$action_param_name$ value=$action_param$/> >>
   in
   let v = h.full_url in
-  let inside = f (make_params_names actionurl.action_params_type) in
+  let inside = f (make_params_names action.action_params_type) in
   let inside_reload = 
     if reload 
     then <:xmllist< <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p>$list:inside$ >>
@@ -1118,7 +1118,6 @@ let submit_input ?(a=[]) s =
 
 
 
-(** return a page from an url and parameters *)
 let localhost = Unix.inet_addr_of_string "127.0.0.1"
 
 let execute generate_page sockaddr cookie = 
@@ -1159,7 +1158,7 @@ let get_page
   let generate_page ip =
     try (* D'abord recherche dans la table de session *)
       Messages.debug ("--- recherche "^(reconstruct_url_path url)^" dans la table de session :");
-      (find_url 
+      (find_service
 	 (get_session_tables ())
 	 (url,
 	  internal_state,
@@ -1170,7 +1169,7 @@ let get_page
 	  fullurl))
     with Not_found -> try (* ensuite dans la table globale *)
       Messages.debug "--- recherche dans la table globale :";
-      (find_url 
+      (find_service 
 	 global_tables
 	 (url,
 	  internal_state,
@@ -1184,7 +1183,7 @@ let get_page
 	  None -> raise Ocsigen_404
 	| _ -> try (* d'abord la table de session *)
 	    Messages.debug "--- recherche dans la table de session, sans état :";
-	    (find_url 
+	    (find_service 
 	       (get_session_tables ())
 	       (url,
 		None,
@@ -1196,7 +1195,7 @@ let get_page
 	  with Not_found -> (* ensuite dans la table globale *)
 	    try 
 	      Messages.debug "--- recherche dans la table globale, sans état :";
-	      (find_url 
+	      (find_service 
 		 global_tables
 		 (url,
 		  None,

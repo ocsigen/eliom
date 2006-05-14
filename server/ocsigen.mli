@@ -18,9 +18,9 @@
 
 
 (** Ocsigen.ml defines the functions you need to interact with Ocsigen:
-   - To create the "typed URLs" and associate them to a path (directories/name)
-   - To specify the types and names of the parameters of this URL
-   - To register the functions that generate pages for each of these URLs
+   - To create the "typed services" and associate them to a path (directories/name)
+   - To specify the types and names of the parameters of this service
+   - To register the functions that generate pages for each of these services
    - To create links or forms etc.
  *)
 
@@ -35,11 +35,11 @@ type page = xhtml elt
 type form_content_l = form_content elt list
 (** Type of formulars *)
 
-type url_kind = [`Internal_Url of [`Public_Url | `State_Url] | `External_Url]
-(** Kind of URL *)
+type service_kind = [`Internal_Service of [`Public_Service | `State_Service] | `External_Service]
+(** Kind of service *)
 
-type ('get,'post,'kind,'tipo,'getnames,'postnames) url
-(** Typed URLs. The ['kind] parameter is subset of url_kind. ['get] 
+type ('get,'post,'kind,'tipo,'getnames,'postnames) service
+(** Typed services. The ['kind] parameter is subset of service_kind. ['get] 
 and ['post] are the type of GET and POST parameters. *)
 
 type url_path = string list
@@ -138,47 +138,47 @@ val ( ** ) :
 (** This is a combinator to allow the page to take several parameters (see examples above) Warning: it is a binary operator. Pages cannot take tuples but only pairs. *)
 
 val suffix_only : (string, [ `WithSuffix ], string name) params_type
-(** Tells that the only parameter of the function that will generate the page is the suffix of the URL of the current page. (see {{:#VALregister_new_url}[register_new_url]}) *)
+(** Tells that the only parameter of the function that will generate the page is the suffix of the URL of the current page. (see {{:#VALregister_new_service}[register_new_service]}) *)
 
 val suffix :
   ('a, [ `WithoutSuffix ], 'b) params_type ->
   (string * 'a, [ `WithSuffix ], string name * 'b) params_type
-(** Tells that the function that will generate the page takes a pair whose first element is the suffix of the URL of the current page. (see {{:#VALregister_new_url}[register_new_url]}). e.g. [suffix (int "i" ** string "s")] *)
+(** Tells that the function that will generate the page takes a pair whose first element is the suffix of the URL of the current page. (see {{:#VALregister_new_service}[register_new_service]}). e.g. [suffix (int "i" ** string "s")] *)
 
 
 (** {2 Pages registration} *)
 
-val new_url :
-  path:url_path ->
+val new_service :
+  url:url_path ->
   ?prefix:bool ->
   get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
   unit ->
-  ('a, unit, [ `Internal_Url of [ `Public_Url ] ], 'b, 'c, unit name) url
-(** [new_url ~path:p ~get_params:pa ()] creates an {{:#TYPEurl}[url]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
+  ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, unit name) service
+(** [new_service ~url:p ~get_params:pa ()] creates an {{:#TYPEservice}[service]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
 
-If you specify [~prefix:true], your URL will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_url ["mysite";"mywiki"] ~prefix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
+If you specify [~prefix:true], your service will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_service ["mysite";"mywiki"] ~prefix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
 
-val new_external_url :
-  path:url_path ->
+val new_external_service :
+  url:url_path ->
   ?prefix:bool ->
   get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
   post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-  unit -> ('a, 'd, [ `External_Url ], 'b, 'c, 'e) url
-(** Creates an URL for an external web site *)
+  unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
+(** Creates an service for an external web site *)
 
-val new_state_url :
-  fallback:('a, unit, [ `Internal_Url of [ `Public_Url ] ], 'b, 'c, 'd) url ->
-  ('a, unit, [ `Internal_Url of [ `State_Url ] ], 'b, 'c, 'd) url
-(** Creates another version of an already existing URL, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
+val new_local_service :
+  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'd) service ->
+  ('a, unit, [ `Internal_Service of [ `State_Service ] ], 'b, 'c, 'd) service
+(** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
-val register_url :
-  url:('a, 'b, [ `Internal_Url of 'c ], [< `WithSuffix | `WithoutSuffix ],
+val register_service :
+  service:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
        'd, 'e)
-      url ->
+      service ->
   (server_params -> 'a -> 'b -> page) -> unit
-(** Register an url in the global table of the server 
+(** Register an service in the global table of the server 
    with the associated generation function.
-   [register_url url t f] will associate the url [url] to the function [f].
+   [register_service service t f] will associate the service [service] to the function [f].
    [f] is the function that creates a page. 
    It takes three parameters. The first one has type [server_params]
    and allows to have acces to informations about the request.
@@ -186,100 +186,100 @@ val register_url :
    For example if [t] is (int "s"), then ['a] is int.
  *)
 
-val register_url_for_session :
-  url:('a, 'b, [ `Internal_Url of 'c ], [< `WithSuffix | `WithoutSuffix ],
+val register_service_for_session :
+  service:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
        'd, 'e)
-      url ->
+      service ->
   (server_params -> 'a -> 'b -> page) -> unit
-(** Registers an url and the associated function in the session table.
-   If the same client does a request to this url, this function will be
+(** Registers an service and the associated function in the session table.
+   If the same client does a request to this service, this function will be
    used instead of the one from the global table.
 
    Warning:
-   - All URL must be registered in the global table during initialisation,
+   - All service must be registered in the global table during initialisation,
    but never after,
-   - You (obviously) can't register an url in a session table 
+   - You (obviously) can't register an service in a session table 
    when no session is active
  *)
 
 
-val register_new_url :
-  path:url_path ->
+val register_new_service :
+  url:url_path ->
   ?prefix:bool ->
   get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
   (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Url of [ `Public_Url ] ], 'b, 'c, unit name) url
-(** Same as [new_url] followed by [register_url] *)
+  ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, unit name) service
+(** Same as [new_service] followed by [register_service] *)
 
-val register_new_state_url :
-  fallback:('a, unit, [ `Internal_Url of [ `Public_Url ] ],
+val register_new_local_service :
+  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
-           url ->
+           service ->
   (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Url of [ `State_Url ] ], 'b, 'c, 'd) url
-(** Same as [new_state_url] followed by [register_url] *)
+  ('a, unit, [ `Internal_Service of [ `State_Service ] ], 'b, 'c, 'd) service
+(** Same as [new_local_service] followed by [register_service] *)
 
-val register_new_state_url_for_session :
-  fallback:('a, unit, [ `Internal_Url of [ `Public_Url ] ],
+val register_new_local_service_for_session :
+  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
-           url ->
+           service ->
   (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Url of [ `State_Url ] ], 'b, 'c, 'd) url
-(** Same as [new_state_url] followed by [register_url_for_session] *)
+  ('a, unit, [ `Internal_Service of [ `State_Service ] ], 'b, 'c, 'd) service
+(** Same as [new_local_service] followed by [register_service_for_session] *)
 
-val new_post_url :
-  fallback:('a, unit, [ `Internal_Url of [ `Public_Url ] ], 'b, 'c,
+val new_post_service :
+  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
             unit name)
-           url ->
+           service ->
   post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-  ('a, 'd, [ `Internal_Url of [ `Public_Url ] ], 'b, 'c, 'e) url
-(** Creates an URL that takes POST parameters. 
-   [fallback] is the same URL without POST parameters.
-   You can create an URL with POST parameters if the same URL does not exist
+  ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e) service
+(** Creates an service that takes POST parameters. 
+   [fallback] is the same service without POST parameters.
+   You can create an service with POST parameters if the same service does not exist
    without POST parameters. Thus, the user can't bookmark a page that does not
    exist.
  *)
 
-val new_post_state_url :
-  fallback:('a, 'b, [ `Internal_Url of [ `Public_Url ] ], 'c, 'd, 'e) url ->
+val new_post_local_service :
+  fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c, 'd, 'e) service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-  ('a, 'f, [ `Internal_Url of [ `State_Url ] ], 'c, 'd, 'g) url
-(** Creates a state URL with POST parameters *)
+  ('a, 'f, [ `Internal_Service of [ `State_Service ] ], 'c, 'd, 'g) service
+(** Creates a local service with POST parameters *)
 
-val register_new_post_url :
-  fallback:('a, unit, [ `Internal_Url of [ `Public_Url ] ],
+val register_new_post_service :
+  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, unit name)
-           url ->
+           service ->
   post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
   (server_params -> 'a -> 'd -> page) ->
-  ('a, 'd, [ `Internal_Url of [ `Public_Url ] ], 'b, 'c, 'e) url
-(** Same as [new_post_url] followed by [register_post_url] *)
+  ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e) service
+(** Same as [new_post_service] followed by [register_post_service] *)
 
-val register_new_post_state_url :
-  fallback:('a, 'b, [ `Internal_Url of [ `Public_Url ] ],
+val register_new_post_local_service :
+  fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
-           url ->
+           service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
   (server_params -> 'a -> 'f -> page) ->
-  ('a, 'f, [ `Internal_Url of [ `State_Url ] ], 'c, 'd, 'g) url
-(** Same as [new_post_state_url] followed by [register_post_url] *)
+  ('a, 'f, [ `Internal_Service of [ `State_Service ] ], 'c, 'd, 'g) service
+(** Same as [new_post_local_service] followed by [register_post_service] *)
 
-val register_new_post_state_url_for_session :
-  fallback:('a, 'b, [ `Internal_Url of [ `Public_Url ] ],
+val register_new_post_local_service_for_session :
+  fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
-           url ->
+           service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
   (server_params -> 'a -> 'f -> page) ->
-  ('a, 'f, [ `Internal_Url of [ `State_Url ] ], 'c, 'd, 'g) url
-(** Same as [new_post_state_url] followed by [register_post_url_for_session] *)
+  ('a, 'f, [ `Internal_Service of [ `State_Service ] ], 'c, 'd, 'g) service
+(** Same as [new_post_local_service] followed by [register_post_service_for_session] *)
 
 val static_dir :
-  (string, unit, [ `Internal_Url of [ `Public_Url ] ], [ `WithSuffix ],
+  (string, unit, [ `Internal_Service of [ `Public_Service ] ], [ `WithSuffix ],
    string name, unit name)
-  url
-(** The URL that correponds to the directory where static pages are.
+  service
+(** The service that correponds to the directory where static pages are.
    This directory is chosen in the config file (ocsigen.conf).
-   This URL takes the name of the static file as a parameter.
+   This service takes the name of the static file as a parameter.
  *)
 
 val close_session : unit -> unit
@@ -289,50 +289,50 @@ val close_session : unit -> unit
 (** {2 Registering actions} *)
 
 (* actions (new 10/05) *)
-type ('a,'b) actionurl
-(** Type of actions. Actions are like URLs but they do not generate any page.
+type ('a,'b) action
+(** Type of actions. Actions are like services but they do not generate any page.
    When an action is called, the function associated is launched and
    current page is (possibly) reloaded.
  *)
 
-val new_actionurl :
-  post_params:('a, [ `WithoutSuffix ], 'b) params_type -> ('a, 'b) actionurl
+val new_action :
+  post_params:('a, [ `WithoutSuffix ], 'b) params_type -> ('a, 'b) action
 (** Creates an action *)
 
-val register_actionurl :
-  actionurl:('a, 'b) actionurl ->
-  action:(server_params -> 'a -> unit) -> unit
+val register_action :
+  action:('a, 'b) action ->
+  (server_params -> 'a -> unit) -> unit
 (** Register an action in the global table *)
 
-val register_actionurl_for_session :
-  actionurl:('a, 'b) actionurl ->
-  action:(server_params -> 'a -> unit) -> unit
+val register_action_for_session :
+  action:('a, 'b) action ->
+  (server_params -> 'a -> unit) -> unit
 (** Register an action in the session table *)
 
-val register_new_actionurl :
-  params:('a, [ `WithoutSuffix ], 'b) params_type ->
-  action:(server_params -> 'a -> unit) -> ('a, 'b) actionurl
-(** Same as [new_actionurl] followed by [register_actionurl] *)
+val register_new_action :
+  post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
+  (server_params -> 'a -> unit) -> ('a, 'b) action
+(** Same as [new_action] followed by [register_action] *)
 
-val register_new_actionurl_for_session :
+val register_new_action_for_session :
   params:('a, [ `WithoutSuffix ], 'b) params_type ->
-  action:(server_params -> 'a -> unit) -> ('a, 'b) actionurl
-(** Same as [new_actionurl] followed by [register_actionurl_for_session] *)
+  (server_params -> 'a -> unit) -> ('a, 'b) action
+(** Same as [new_action] followed by [register_action_for_session] *)
 
 
 (** {2 Creating links, forms, etc.} *)
 
 val a : ?a:([< a_attrib > `Href ] attrib list) ->
-  ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit name) url ->
+  ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit name) service ->
     current_url -> 
       a_content elt list -> 'get -> [>a] XHTML.M.elt
-(** [a url current cont ()] creates a link from [current] to [url]. The text of
+(** [a service current cont ()] creates a link from [current] to [service]. The text of
    the link is [cont]. For example [cont] may be something like
    [\[pcdata "click here"\]]. To know the current URL (for [current]),
-   use {{:#VAL_current_url}_current_url}.
+   use {{:#VALcurrent_url}current_url}.
 
    The last  parameter is for GET parameters.
-   For example [a url current cont (42,"hello")]
+   For example [a service current cont (42,"hello")]
 
  The [~a] optional parameter is used for extra attributes 
    (see the module XHTML.M) *)
@@ -346,35 +346,32 @@ val js_script : ?a:([< script_attrib > `Src ] attrib list) ->
 (** Creates a [<script>] tag to add a javascript file *)
 
 val make_uri :
-  ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) url ->
+  ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
   current_url -> 'a -> uri
-(** Create the text of the URL. Like the [a] function, it may take
+(** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
 
-(** Link a registrated URL with the function that takes the url and
-    names of the parameters, and creates a form for these parameters
-*)
 val get_form : ?a:([< form_attrib > `Method ] attrib list) ->
-  ('get, unit, 'c, 'd, 'getnames, unit name) url ->
+  ('get, unit, 'c, 'd, 'getnames, unit name) service ->
   current_url -> ('getnames -> form_content_l) -> [>form] elt
-(** [get_form url current formgen] creates a GET form from [current] to [url]. 
+(** [get_form service current formgen] creates a GET form from [current] to [service]. 
    The content of
    the form is generated by the function [formgen], that takes the names
    of page parameters as parameters. *)
 
 val post_form : ?a:([< form_attrib > `Method ] attrib list) ->
-  ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames) url ->
+  ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames) service ->
   current_url ->
   ('postnames -> form_content_l) -> 'get -> [>form] elt
-(** [post_form url current formgen] creates a POST form from [current] 
-   to [url]. The last parameter is for GET parameters (as in the function [a]).
+(** [post_form service current formgen] creates a POST form from [current] 
+   to [service]. The last parameter is for GET parameters (as in the function [a]).
 *)
 
 (*
 val img : ?a:([< img_attrib ] attrib list) ->
   alt:string ->
-  ('a, form_content_l, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) url -> current_url -> 'cimg
+  ('a, form_content_l, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) service -> current_url -> 'cimg
 *)
 
 val int_input : ?a:([< input_attrib > `Input_Type `Name ] attrib list ) -> 
@@ -417,27 +414,27 @@ val submit_input : ?a:([< input_attrib > `Input_Type `Value ] attrib list ) ->
 
 val action_a : ?a:([< a_attrib > `Href ] attrib list) ->
   ?reload:bool ->
-    ('a,'b) actionurl -> 
+    ('a,'b) action -> 
       server_params -> 
 	a_content elt list -> 
 	  [> form] elt
-(** Creates a link that will perform an action (see {{:#TYPEactionurl}[actionurl]}).
+(** Creates a link that will perform an action (see {{:#TYPEaction}[action]}).
    If [~reload:false] is specified, the current page will not be reloaded.
  *)
 
 val action_form : ?a:([< form_attrib > `Method ] attrib list) ->
     ?reload:bool ->
-      ('a, 'b) actionurl ->
+      ('a, 'b) action ->
 	server_params -> 
 	  ('b -> form_content_l) ->
 	    [> form] elt
-(** Creates a form that will perform an action (see {{:#TYPEactionurl}[actionurl]}).
+(** Creates a form that will perform an action (see {{:#TYPEaction}[action]}).
    If [~reload:false] is specified, the current page will not be reloaded.
  *)
 
 (**/**) (* Internal functions *)
 
-(** return a page from an url and parameters *)
+(** return a page from an service and parameters *)
 val get_page :
   url_path * string * string * int option * (string * string) list *
   (string * string) list * string -> 
@@ -467,10 +464,10 @@ val incr_connected : unit -> unit
 val decr_connected : unit -> unit
 
 
-exception Ocsigen_url_created_outside_site_loading
+exception Ocsigen_service_created_outside_site_loading
 exception Ocsigen_duplicate_registering of string
 exception Ocsigen_page_erasing of string
-exception Ocsigen_there_are_unregistered_url of string
+exception Ocsigen_there_are_unregistered_services of string
 exception Ocsigen_register_for_session_outside_session
 exception Ocsigen_error_while_loading of string
 exception Ocsigen_Is_a_directory
