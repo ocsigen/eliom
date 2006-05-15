@@ -5,6 +5,12 @@ open XHTML.M
 open Ocsigen
 
 
+
+
+
+
+
+
 (* ------------------------------------------------------------------ *)
 (* To create a web page without parameter: *)
 let coucou1 = 
@@ -189,7 +195,7 @@ let essai =
 let create_form = 
   (fun (entier,(chaine,chaine2)) ->
     <:xmllist< <p>Write an int: $int_input entier$ <br/>
-    Write a string: $string_input chaine$ <br/>
+    Write a string: $password_input chaine$ <br/>
     Write a string: $string_input chaine2$ <br/>
     $submit_input "Click"$</p>
     >>)
@@ -698,6 +704,32 @@ let create_suffixform (suff,i) =
 let suffixform = register_new_service ["suffixform"] unit
   (fun sp () () -> 
      let f = get_form iprefix sp.current_url create_suffixform in
+     << <html>
+          <head><title></title></head>
+          <body> $f$ </body>
+        </html> >>)
+
+(* Form with checkbox: *)
+let bool_params = register_new_service 
+    ~url:["bool"]
+    ~get_params:(bool "case")
+  (fun _ case () ->
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         $pcdata (if case then "checked" else "not checked")$
+       </p>
+       </body>
+     </html> >>)
+
+let create_form_bool casename =
+    <:xmllist< <p>check? $checkbox_input casename$ <br/>
+      $submit_input "Click"$</p> >>
+
+let form_bool = register_new_service ["formbool"] unit
+  (fun sp () () -> 
+     let f = get_form bool_params sp.current_url create_form_bool in
      << <html>
           <head><title></title></head>
           <body> $f$ </body>

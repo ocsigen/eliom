@@ -99,6 +99,11 @@ val string :
   string -> (string, [ `WithoutSuffix ], string name) params_type
 (** [string s] tells that the page take a string as parameter, labeled [s] *)
 
+val bool :
+  string -> (bool, [ `WithoutSuffix ], bool name) params_type
+(** [bool s] tells that the page take a boolean as parameter, labeled [s]
+    (to use for example with checkboxes) *)
+
 val unit : (unit, [ `WithoutSuffix ], unit name) params_type
 (** used for pages that don't have any parameters *)
 
@@ -395,7 +400,7 @@ val password_input :
 
 val checkbox_input :
     ?a:([< input_attrib > `Input_Type `Name ] attrib list ) -> 
-  string name -> [> input ] elt
+  bool name -> [> input ] elt
 (** Creates a checkbox [<input>] tag *)
 
 val radio_input : ?a:([< input_attrib > `Input_Type `Name ] attrib list ) -> 

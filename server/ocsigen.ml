@@ -189,6 +189,7 @@ type ('a,'tipo,'names) params_type =
   | TSum of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = ('a1, 'a2) binsum *)
   | TString of string name (* 'a = string *)
   | TInt of int name (* 'a = int *)
+  | TBool of bool name (* 'a = bool *)
   | TUserType of ('a name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
   | TSuffix (* 'a = string *)
   | TUnit (* 'a = unit *);;
@@ -200,6 +201,7 @@ type 'an listnames =
 (* As GADT are not implemented in OCaml for the while, we define our own
    constructors for params_type *)
 let int (n : string) : (int,[`WithoutSuffix], int name) params_type = TInt n
+let bool (n : string) : (bool,[`WithoutSuffix], bool name) params_type= TBool n
 let string (n : string) : (string,[`WithoutSuffix], string name) params_type = 
   TString n
 let unit : (unit,[`WithoutSuffix], unit name) params_type = TUnit
@@ -269,6 +271,11 @@ let reconstruct_params
 	  let v,l = Obj.magic (aux t params pref suff) in
 	  (Obj.magic (Some v)),l
 	with Not_found -> (Obj.magic None), params)
+    | TBool name -> 
+	(try 
+	  let v,l = (list_assoc_remove (pref^name^suff) params) in
+	  (Obj.magic true),l
+	with Not_found -> (Obj.magic false), params)
     | TList (n,t) -> Obj.magic (aux_list t params n pref suff)
     | TSum (t1, t2) -> 
 	(try let v,l = Obj.magic (aux t1 params pref suff) in
@@ -313,6 +320,10 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
 	(concat_strings s1 "&" s2)
     | TOption t -> (match ((Obj.magic params) : 'zozo option) with None -> "" 
       | Some v -> aux t v pref suff)
+    | TBool name -> 
+	(if ((Obj.magic params) : bool)
+         then pref^name^suff^"="^"on"
+	 else "")
     | TList (list_name, t) -> 
 	let long = List.length ((Obj.magic params) : 'a list) in
 	let beg = (pref^list_name^suff^"="^(string_of_int long)) in
@@ -968,6 +979,7 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
     | TUnit -> Obj.magic ("")
     | TSuffix -> Obj.magic ocsigen_suffix_name
     | TOption t -> Obj.magic (aux prefix suffix t)
+    | TBool name -> Obj.magic (prefix^name^suffix)
     | TSum (t1,t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
     | TList (name,t1) -> Obj.magic 
 	  {it =
