@@ -75,12 +75,20 @@ let coucou_list = register_new_service
        </html> >>)
 
 let create_listform f = 
-  f.it (fun (nomname, chkbxname) nom ->
-    <:xmllist< <p>Write the value for $str:nom$: $string_input nomname$
-      $input ~a:[a_name chkbxname; a_input_type `Checkbox] ()$
-      </p> >>)
+  match 
+   f.it (fun (nomname, chkbxname) nom ->
+    <:xmllist< <tr>
+      <td>Write the value for $str:nom$:</td>
+      <td>$string_input nomname$</td>
+      <td>$input ~a:[a_name chkbxname; a_input_type `Checkbox] ()$</td>
+      </tr> >>)
     ["durand";"dupont";"dupond";"durateau"]
-    <:xmllist< <p>$submit_input "Click"$</p> >>
+      []
+  with 
+    [] -> []
+  | a::l -> 
+      [(table a l); p [submit_input "Click"]]
+
 
 let listform = register_new_service ["listform"] unit
   (fun sp () () -> 

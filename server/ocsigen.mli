@@ -84,12 +84,8 @@ type 'a name = string
 type ('a, 'b, 'c) params_type
 (** Type for parameters of a web page *)
 
-type 'a listnames = {
-  it :
-    'b.
-      ('a -> 'b -> form_content_l) ->
-      'b list -> form_content_l -> form_content_l;
-}
+type 'an listnames =
+    {it:'el 'a. ('an -> 'el -> 'a list) -> 'el list -> 'a list -> 'a list}
 (** Type of the iterator used to construct forms from lists *)
 
 val int : string -> (int, [ `WithoutSuffix ], int name) params_type

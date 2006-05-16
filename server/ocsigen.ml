@@ -195,8 +195,7 @@ type ('a,'tipo,'names) params_type =
   | TUnit (* 'a = unit *);;
 
 type 'an listnames = 
-    {it:'el. ('an -> 'el -> form_content_l) -> 
-      'el list -> form_content_l -> form_content_l}
+    {it:'el 'a. ('an -> 'el -> 'a list) -> 'el list -> 'a list -> 'a list}
 
 (* As GADT are not implemented in OCaml for the while, we define our own
    constructors for params_type *)
@@ -247,7 +246,8 @@ let concat_strings s1 sep s2 = match s1,s2 with
 let reconstruct_params 
     (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type) 
     params urlsuffix : 'a = 
-  let rec aux_list t p name pref suff =
+(* AEFFFFFFFFFFFFFFF
+  let rec aux_list t params name pref suff =
     let length,l = list_assoc_remove (pref^name^suff) params in
     let long = try int_of_string length 
     with _ -> raise (Ocsigen_Typing_Error (pref^name^suff)) in
@@ -259,7 +259,16 @@ let reconstruct_params
 	let v2,l2 = aa (i+1) l pref suff in
 	(Obj.magic (v::v2)),l2
     in 
-    aa 0 l (pref^name^".") suff
+    aa 0 params (pref^name^".") suff *)
+  let rec aux_list t params name pref suff =
+    let rec aa i lp pref suff =
+      try
+	let v,lp2 = Obj.magic (aux t lp pref (suff^(make_list_suffix i))) in
+	let v2,lp3 = aa (i+1) lp2 pref suff in
+	(Obj.magic (v::v2)),lp3
+      with Not_found -> ((Obj.magic []),lp)
+    in 
+    aa 0 params (pref^name^".") suff
   and aux typ params pref suff =
     match typ with
       TProd (t1, t2) ->
@@ -325,6 +334,14 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
          then pref^name^suff^"="^"on"
 	 else "")
     | TList (list_name, t) -> 
+	let pref2 = pref^list_name^suff^"." in
+	fst 
+	  (List.fold_left
+	     (fun (s,i) p -> 
+	       let ss = 
+		 aux t p pref2 (suff^(make_list_suffix i)) in
+	       ((concat_strings s "&" ss),(i+1))) ("",0) (Obj.magic params))
+(* AEFFFFFFFF
 	let long = List.length ((Obj.magic params) : 'a list) in
 	let beg = (pref^list_name^suff^"="^(string_of_int long)) in
 	let pref2 = pref^list_name^suff^"." in
@@ -334,6 +351,7 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
 	       let ss = 
 		 aux t p pref2 (suff^(make_list_suffix i)) in
 	       ((concat_strings s "&" ss),(i+1))) (beg,0) (Obj.magic params))
+*)
     | TSum (t1, t2) -> (match Obj.magic params with
 	Inj1 v -> aux t1 v pref suff
       | Inj2 v -> aux t2 v pref suff)
@@ -616,7 +634,7 @@ type ('get,'post,'kind,'tipo,'getnames,'postnames) service =
      external_service: bool;
      url_state: internal_state option;
        (* 'kind is just a type information: it can be only 
-	  `Internal_Service `Public_Service or  `Internal_Service `State_Service
+	  `Internal_Service `Public_Service or `Internal_Service `State_Service
 	  or `External_Service, so that we can't use session services as fallbacks for
 	  other session services. If it is a session service, it contains a value
 	  (internal state) that will allow to differenciate between
@@ -983,23 +1001,28 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
     | TSum (t1,t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
     | TList (name,t1) -> Obj.magic 
 	  {it =
-	  (fun f l endlist -> 
-	    let length = List.length l in
-	    let fcl = snd
-	      (List.fold_right 
-		 (fun el (i,l2) -> 
-		   let i'= i-1 in
-		   (i',(f (aux (prefix^name^".") (make_list_suffix i') t1) el)
-		    @l2))
-		 l
-		 (length,endlist)) in
-	    let pn = prefix^name in
-	    let ls = string_of_int length in
-	    let lengthparam = 
-	      << <p style="display:none"><input type="hidden" name=$pn$ value=$ls$/></p> >> in
-	    lengthparam::fcl)}
-in aux "" "" params
-
+	   (fun f l endlist ->
+	     let length = List.length l in
+	     snd
+	       (List.fold_right 
+		  (fun el (i,l2) -> 
+		    let i'= i-1 in
+		    (i',(f (aux (prefix^name^".") (make_list_suffix i') t1) el)
+		     @l2))
+		  l
+		  (length,endlist)))}
+(* AEFFFFFFFFFFFFFFFF
+	     let length = List.length l in
+	     snd
+	       (List.fold_right 
+		  (fun el (i,l2) -> 
+		    let i'= i-1 in
+		    (i',(f (aux (prefix^name^".") (make_list_suffix i') t1) el)
+		     @l2))
+		  l
+		  (length,endlist)))} *)
+  in aux "" "" params
+    
 let get_form ?(a=[])
     (service : ('get,unit,'kind,'tipo,'gn,unit name) service) 
     (current_url : current_url)
