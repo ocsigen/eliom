@@ -2,7 +2,7 @@ open XHTML.M
 open Ocsigen
 
 let def = new_url 
-    ~path:["essai"]  
+    ~path:["essai";"essai"]  
     ~get_params:unit
     ()
 
@@ -10,14 +10,16 @@ let post =
   new_post_url
     ~fallback:def
     ~post_params:(string "group" ** 
-		    (option (string "macase") ** 
-		       option (string "monradio")))
+		    (bool "macase" ** 
+		       (option (string "madeuxiemecase")
+			  ** option (string "monradio"))))
 
-let create_form (group,(case,radio)) =
+let create_form (group,(case,(case2,radio))) =
     [p [select ~a:[a_name group]
           (XHTML.M.option (pcdata "choi1")) 
 	  [XHTML.M.option (pcdata "choi2")];
-	input ~a:[a_name case; a_input_type `Checkbox] ();
+	checkbox_input case;
+	input ~a:[a_name case2; a_value "Bip"; a_input_type `Checkbox] ();
 	input ~a:[a_name radio; a_value "premier"; a_input_type `Radio] ();
 	input ~a:[a_name radio; a_value "deuxieme"; a_input_type `Radio] ();
         submit_input "Envoyer"
@@ -28,16 +30,22 @@ let genere_form current_url = post_form post current_url create_form ()
 let _ = register_url def
               (fun sp () () ->
                        (html
-                           (head (title (pcdata "")) [])
+                           (head (title (pcdata "")) 
+			      [css_link (make_uri static_dir sp.current_url "style.css")])
                            (body [genere_form sp.current_url])))
 
-let fonction sp () (group,(case_opt,radio_opt)) = 
+let fonction sp () (group,(case,(case2, radio_opt))) = 
   (html
-     (head (title (pcdata "")) [])
+     (head (title (pcdata "")) 
+	[css_link (make_uri static_dir sp.current_url "style.css")])
      (body [h1 [pcdata group; br (); 
-		(match case_opt with
-		  None -> pcdata "Case pas cochée"
-		| Some case -> pcdata ("Case cochée : "^case));
+		pcdata (if case
+ 		        then "Case cochée"
+		        else "Case pas cochée");
+		br ();
+		pcdata (match case2 with
+ 		  None -> "Deuxième case pas cochée"
+		| Some v -> ("Deuxième case cochée : "^v));
 		br ();
 		(match radio_opt with
 		  None -> pcdata "Pas de bouton radio enfoncé"
@@ -51,17 +59,20 @@ let _ = register_url post fonction
 (* lists *)
 let coucou_list = register_new_service 
     ~url:["coucou"]
-    ~get_params:(list "a" (string "nom" ** option (string "chkbx")))
-  (fun _ l () ->
+    ~get_params:(list "a" (string "nom" ** (option (int "entier") ** bool "chkbx")))
+  (fun _ l () ->  (* l est une liste de (nom * (string option)) *)
     let ll = 
-      List.map (fun (nom, chkbxopt) -> 
+      List.map (fun (nom, (entieropt, chkbxopt)) -> 
     << <tr>
 	 <td>
          <strong>$str:nom$</strong></td>
+	<td>$str:(match entieropt with
+	  None -> "pas de valeur"
+	| Some entier -> string_of_int entier)$</td>
 	 <td>
-         $match chkbxopt with
-		None -> pcdata "pas coché"
-	      | Some _ -> pcdata "coché" $
+         $if chkbxopt
+	  then pcdata "coché"
+          else pcdata "pas coché"$
 	 </td>
        </tr> >>) l in
     << <html>
@@ -76,16 +87,25 @@ let coucou_list = register_new_service
 
 let create_listform f = 
   match 
-   f.it (fun (nomname, chkbxname) nom ->
+  (* f.it est un itérateur dans le style List.map *)
+  (* Pour chaque valeur de la liste ["durand"; etc.] 
+     il applique la fonction.
+     nomname, chainename et chkbxname sont les noms des champs du formulaires ;
+     nom est successivement "durand" "dupont", etc.
+  *)
+   f.it (fun (nomname, (intname, chkbxname)) nom ->
     <:xmllist< <tr>
-      <td>Write the value for $str:nom$:</td>
-      <td>$string_input nomname$</td>
-      <td>$input ~a:[a_name chkbxname; a_input_type `Checkbox] ()$</td>
+      <td>Write the value for $str:nom$:
+	$input ~a:[(a_name nomname);(a_input_type `Hidden);(a_value nom)] ()$
+	<!-- Un champ caché pour envoyer le nom -->
+      </td>
+      <td>$int_input intname$</td>
+      <td>$checkbox_input chkbxname$</td>
       </tr> >>)
     ["durand";"dupont";"dupond";"durateau"]
       []
   with 
-    [] -> []
+    [] -> [] (* liste vide, on ne crée pas de tableau ? *)
   | a::l -> 
       [(table a l); p [submit_input "Click"]]
 
