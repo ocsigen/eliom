@@ -1,8 +1,8 @@
 FILES=tutorial.ml ocsiprof.ml essais.ml
 
-CAMLC = ocamlc $(LIB)
-CAMLOPT = ocamlopt $(LIB)
-CAMLDEP = ocamldep
+CAMLC = ocamlfind ocamlc $(LIB)
+CAMLOPT = ocamlfind ocamlopt $(LIB)
+CAMLDEP = ocamlfind ocamldep
 LIB = -I ../lib
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -loc loc"
 

@@ -287,3 +287,60 @@ let fo = register_new_url ["fo"] (_current_url _noparam)
 
 
 *)
+
+
+let coucou_list = register_new_service
+    ~url:["coucou"]
+    ~get_params:((list "a" (option (string "chkbx"))) ** string "login")
+  (fun _ (l,login) () ->     (* l est une liste de (nom * (string option))
+*)
+    let ll =
+      List.map (fun (chkbxopt) ->
+                  << <tr>
+                      <td>
+                       <strong>teste</strong></td>
+                      <td>
+                       $match chkbxopt with
+                         None -> pcdata "pas coché"
+                       | Some _ -> pcdata "coché" $
+                      </td>
+                     </tr> >>) l in
+    << <html>
+         <head><title></title></head>
+         <body>
+          <p>You sent:</p>
+          <table>
+           $list:ll$
+          </table>
+      </body>
+       </html> >>)
+
+let f = Netsendmail.compose 
+
+let create_listform (l,login) (f,loginname) =
+  (* f.it est un itérateur comme List.map *)
+  (* Pour chaque valeur de la liste ["durand"; etc.]
+      il applique la fonction.
+      nomname et chkbxname sont les noms des champs du formulaires
+      nom est successivement "durand" "dupont", etc.
+  *)
+  f.it (fun (chkbxname) nom ->
+      <:xmllist< <p>Write the value for $str:nom$
+      $input ~a:[a_name chkbxname; a_input_type `Checkbox] ()$
+      </p> >>)l
+
+  <:xmllist< <p>
+    $input ~a:[(a_name loginname);(a_input_type `Hidden);
+           (a_value login)] ()$ (*le paramètre string login *)
+    $submit_input "Click"$</p> >>
+
+let listform = register_new_service ["listform"] unit
+  (fun sp () () ->
+     let l = ["durand";"dupont";"dupond";"durateau"]
+     and login = "sam" in
+     let f = get_form coucou_list sp.current_url (create_listform (l,login))
+in
+     << <html>
+          <head><title></title></head>
+          <body> $f$ </body>
+        </html> >>)

@@ -625,7 +625,7 @@ let rec new_cookie table ip =
   with Not_found -> c
 
 (** Typed services *)
-type internal_service_kind = [`Public_Service | `State_Service]
+type internal_service_kind = [`Public_Service | `Local_Service]
 type service_kind = [`Internal_Service of internal_service_kind | `External_Service]
 
 type ('get,'post,'kind,'tipo,'getnames,'postnames) service = 
@@ -635,7 +635,7 @@ type ('get,'post,'kind,'tipo,'getnames,'postnames) service =
      external_service: bool;
      url_state: internal_state option;
        (* 'kind is just a type information: it can be only 
-	  `Internal_Service `Public_Service or `Internal_Service `State_Service
+	  `Internal_Service `Public_Service or `Internal_Service `Local_Service
 	  or `External_Service, so that we can't use session services as fallbacks for
 	  other session services. If it is a session service, it contains a value
 	  (internal state) that will allow to differenciate between
@@ -730,7 +730,7 @@ let new_service
 
 let new_local_service
    ~(fallback : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
-    : ('get,unit,[`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service =
+    : ('get,unit,[`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
   {fallback with url_state = new_state ()}
 
 let register_service_aux
@@ -780,7 +780,7 @@ let register_new_service
 let register_new_local_service
     ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
     page
-    : ('get, unit, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service =
+    : ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
   let u = (new_local_service fallback) in
   register_service u page;
   u
@@ -788,7 +788,7 @@ let register_new_local_service
 let register_new_local_service_for_session
     ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
     page
-    : ('get, unit, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service =
+    : ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
   let u = (new_local_service fallback) in
   register_service_for_session u page;
   u
@@ -821,7 +821,7 @@ let new_post_service
 let new_post_local_service
     ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn2) params_type)
-    : ('get, 'post, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn2) service = 
+    : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn2) service = 
   {fallback with 
    url_state = new_state ();
    post_params_type = post_params;
@@ -840,7 +840,7 @@ let register_new_post_local_service
     ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     page_gen
-    : ('get, 'post, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service = 
+    : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
   let u = new_post_local_service ~fallback:fallback ~post_params:post_params in
   register_service u page_gen;
   u
@@ -849,7 +849,7 @@ let register_new_post_local_service_for_session
     ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     page_gen
-    : ('get, 'post, [`Internal_Service of [`State_Service]],'tipo,'gn,'pn) service = 
+    : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
   let u = new_post_local_service ~fallback:fallback ~post_params:post_params in
   register_service_for_session u page_gen;
   u

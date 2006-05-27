@@ -71,17 +71,28 @@ let default = register_new_service ["rep";""] unit
 
 (* ------------------------------------------------------------------ *)
 let writeparams _ (entier, (chaine, chaine2)) () = 
+  (html
+    (head (title (pcdata "")) [])
+    (body [p [pcdata "You sent: ";
+              strong [pcdata (string_of_int entier)];
+	      pcdata ", ";
+              strong [pcdata chaine];
+	      pcdata " and ";
+              strong [pcdata chaine2]]]))
+
+(*
 << <html>
     <head><title></title></head>
     <body>
     <p>
-      You sent to me: 
+      You sent: 
       <strong>$str:string_of_int entier$</strong> and
       <strong>$str:chaine$</strong> and
       <strong>$str:chaine2$</strong>
     </p>
     </body>
   </html> >>
+*)
 
 (* you can register twice the same url, with different parameters names *)
 let coucou_params = register_new_service 
@@ -819,11 +830,10 @@ let _ = register_service main
 let _ = 
   register_new_service 
     ~url:["loooooooooong"]
-    ~server_params:unit
-    ~get_params:no_get_param
-    (fun () -> 
-               Unix.sleep 5;
+    ~get_params:unit
+    (fun sp () () -> 
+               Unix.sleep 10;
 	       << <html><body><p>Ok now, you can read the page.</p></body></html> >>)
 
- *)
+*)
 

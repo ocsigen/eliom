@@ -35,7 +35,7 @@ type page = xhtml elt
 type form_content_l = form_content elt list
 (** Type of formulars *)
 
-type service_kind = [`Internal_Service of [`Public_Service | `State_Service] | `External_Service]
+type service_kind = [`Internal_Service of [`Public_Service | `Local_Service] | `External_Service]
 (** Kind of service *)
 
 type ('get,'post,'kind,'tipo,'getnames,'postnames) service
@@ -169,7 +169,7 @@ val new_external_service :
 
 val new_local_service :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'd) service ->
-  ('a, unit, [ `Internal_Service of [ `State_Service ] ], 'b, 'c, 'd) service
+  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 (** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
 val register_service :
@@ -217,7 +217,7 @@ val register_new_local_service :
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
            service ->
   (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Service of [ `State_Service ] ], 'b, 'c, 'd) service
+  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 (** Same as [new_local_service] followed by [register_service] *)
 
 val register_new_local_service_for_session :
@@ -225,7 +225,7 @@ val register_new_local_service_for_session :
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
            service ->
   (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Service of [ `State_Service ] ], 'b, 'c, 'd) service
+  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 (** Same as [new_local_service] followed by [register_service_for_session] *)
 
 val new_post_service :
@@ -244,7 +244,7 @@ val new_post_service :
 val new_post_local_service :
   fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c, 'd, 'e) service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-  ('a, 'f, [ `Internal_Service of [ `State_Service ] ], 'c, 'd, 'g) service
+  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
 (** Creates a local service with POST parameters *)
 
 val register_new_post_service :
@@ -262,7 +262,7 @@ val register_new_post_local_service :
            service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
   (server_params -> 'a -> 'f -> page) ->
-  ('a, 'f, [ `Internal_Service of [ `State_Service ] ], 'c, 'd, 'g) service
+  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
 (** Same as [new_post_local_service] followed by [register_post_service] *)
 
 val register_new_post_local_service_for_session :
@@ -271,7 +271,7 @@ val register_new_post_local_service_for_session :
            service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
   (server_params -> 'a -> 'f -> page) ->
-  ('a, 'f, [ `Internal_Service of [ `State_Service ] ], 'c, 'd, 'g) service
+  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
 (** Same as [new_post_local_service] followed by [register_post_service_for_session] *)
 
 val static_dir :
@@ -508,7 +508,7 @@ val new_external_url :
 
 val new_state_url :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'd) service ->
-  ('a, unit, [ `Internal_Service of [ `State_Service ] ], 'b, 'c, 'd) service
+  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 
 val register_url :
   url:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
@@ -534,14 +534,14 @@ val register_new_state_url :
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
            service ->
   (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Service of [ `State_Service ] ], 'b, 'c, 'd) service
+  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 
 val register_new_state_url_for_session :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
            service ->
   (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Service of [ `State_Service ] ], 'b, 'c, 'd) service
+  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 
 val new_post_url :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
@@ -553,7 +553,7 @@ val new_post_url :
 val new_post_state_url :
   fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c, 'd, 'e) service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-  ('a, 'f, [ `Internal_Service of [ `State_Service ] ], 'c, 'd, 'g) service
+  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
 
 val register_new_post_url :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
@@ -569,7 +569,7 @@ val register_new_post_state_url :
            service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
   (server_params -> 'a -> 'f -> page) ->
-  ('a, 'f, [ `Internal_Service of [ `State_Service ] ], 'c, 'd, 'g) service
+  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
 
 val register_new_post_state_url_for_session :
   fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
@@ -577,7 +577,7 @@ val register_new_post_state_url_for_session :
            service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
   (server_params -> 'a -> 'f -> page) ->
-  ('a, 'f, [ `Internal_Service of [ `State_Service ] ], 'c, 'd, 'g) service
+  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
 
 val new_actionurl :
   post_params:('a, [ `WithoutSuffix ], 'b) params_type -> ('a, 'b) action
