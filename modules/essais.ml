@@ -315,7 +315,6 @@ let coucou_list = register_new_service
       </body>
        </html> >>)
 
-let f = Netsendmail.compose 
 
 let create_listform (l,login) (f,loginname) =
   (* f.it est un itérateur comme List.map *)
