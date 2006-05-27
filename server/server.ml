@@ -576,3 +576,4 @@ let _ =
       errlog ("Fatal - Register session during initialisation forbidden.")
   | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
   | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
+

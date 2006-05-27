@@ -315,7 +315,6 @@ let coucou_list = register_new_service
       </body>
        </html> >>)
 
-
 let create_listform (l,login) (f,loginname) =
   (* f.it est un itérateur comme List.map *)
   (* Pour chaque valeur de la liste ["durand"; etc.]

@@ -46,9 +46,9 @@ all: depend $(OBJS) $(NAME)
 $(NAME): $(OBJS)
 	@if (test '$(OCSIMORE)' = 'YES');\
 	then echo "Ocsigen server with ocsimore support";\
-	$(CAMLC) -o $(NAME) $(CMAO) $(OCSIMORECMAO) $(OBJS);\
+	$(CAMLC) -o $(NAME) -linkall $(CMAO) $(OCSIMORECMAO) $(OBJS);\
 	else echo "Ocsigen server without ocsimore support";\
-	$(CAMLC) -o $(NAME) $(CMAO) $(OBJS);\
+	$(CAMLC) -o $(NAME) -linkall $(CMAO) $(OBJS);\
 	fi
 
 .ml.cmo:
