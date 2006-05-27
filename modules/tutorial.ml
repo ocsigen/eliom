@@ -667,7 +667,7 @@ let mytype = register_new_service
 
 (* lists *)
 let coucou_list = register_new_service 
-    ~url:["coucou"]
+    ~url:["coucoulist"]
     ~get_params:(list "a" (int "entier"))
   (fun _ l () ->
     let ll = 

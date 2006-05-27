@@ -1101,8 +1101,8 @@ let action_a ?(a=[]) ?(reload=true) action h content : [>form] elt  =
     then <:xmllist< <input type="hidden" name=$reload_name$ value=$reload_name$/> >> 
     else [] in
   let v = h.full_url in
-  << <form name=$formname$ method="post" action=$v$ >
-    <p>$XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) content$
+  << <form style="display: inline" name=$formname$ method="post" action=$v$ >
+    <p  style="display: inline">$XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) content$
     <input type="hidden" name=$action_param_name$ value=$action_param$/>
 	$list:reload_param$
 	</p>
