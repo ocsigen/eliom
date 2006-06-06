@@ -342,3 +342,56 @@ in
           <head><title></title></head>
           <body> $f$ </body>
         </html> >>)
+
+
+(******* essai register_for_session *************)
+
+let public_session_without_post_params = 
+  new_service ~url:["session"] ~get_params:unit ()
+
+let public_session_with_post_params = 
+  new_post_service 
+    ~fallback:public_session_without_post_params
+    ~post_params:(string "login")
+
+let accueil sp () () = 
+  let f = post_form public_session_with_post_params sp.current_url
+    (fun login -> 
+	 [p [pcdata "login: ";
+	     string_input login]]) () in
+  (html
+     (head (title (pcdata "")) [])
+     (body [f]))
+
+
+let _ = register_service
+  ~service:public_session_without_post_params
+  accueil
+
+let rec launch_session sp () login =
+  let close = register_new_local_service_for_session
+    ~fallback:public_session_without_post_params 
+    (fun sp () () -> close_session (); accueil sp () ())
+  in
+  let new_main_page sp () () =
+    Messages.debug "plo";
+    raise Not_found;
+    (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "Welcome ";
+		 pcdata login; 
+		 pcdata "!"; br ();
+		 a close sp.current_url [pcdata "close session"] ()]]))
+  in
+  register_service_for_session 
+    ~service:public_session_without_post_params 
+    (* service is any public service already registered *)
+    new_main_page;
+  Messages.debug "registration done";
+  new_main_page sp () ()
+    
+let _ =
+  register_service
+    ~service:public_session_with_post_params
+    launch_session
+

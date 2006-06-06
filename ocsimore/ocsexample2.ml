@@ -53,7 +53,7 @@ let user_news_page user h i () =
      string_message_box i user rocsexample]
 
 
-(* Page registering *)
+(* Services registration *)
 
 let _ = register_service
   ~service:main_page

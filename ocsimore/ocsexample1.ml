@@ -36,7 +36,7 @@ let print_news_page h i () =
 
 
 (*****************************************************************************)
-(* Page registering *)
+(* Services registration *)
 
 let _ = register_service
   ~service:main_page

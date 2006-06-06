@@ -39,9 +39,6 @@ let rec list_assoc_remove a = function
 (** Type of answers from modules (web pages) *)
 type page = xhtml elt
 
-(** Type of formulars *)
-type form_content_l = form_content elt list
-
 (** type of URL, without parameter *)
 type url_path = string list
 type current_url = string list
@@ -440,11 +437,14 @@ module Directorytree : DIRECTORYTREE = struct
     | (_,(funct,working_dir))::l ->
 	try 
 	  absolute_change_dir working_dir;
+	  Messages.debug "Je vais exécuter";
 	  let p = funct sp in
 	  Messages.debug "Page found";
 	  p,working_dir
 	with Ocsigen_Wrong_parameter -> aux l
-    in aux (List.assoc k t)
+    in 
+    let r = try List.assoc k t with Not_found -> raise Ocsigen_404 in
+    aux r
 
   let add_page_table session url_act t (key,(id,elt)) = 
     (* Duplicate registering forbidden in global table *)
@@ -550,43 +550,44 @@ module Directorytree : DIRECTORYTREE = struct
 
 	 
   let find_service 
-      (dircontentref,_) 
+      (dircontentref,_)
       (string_list, state_option, get_param_list, post_param_list, 
        ua, ip, fullurl) =
-    try
-      let rec search_page_table dircontent =
-	let aux a l =
-	  (match !(find_dircontent dircontent a) with
-	    Dir dircontentref2 -> search_page_table !dircontentref2 l
-	  | File page_table_ref -> !page_table_ref, l)
-	in function
-            [] -> raise Ocsigen_Is_a_directory
-          | [""] -> aux defaultpagename []
-	  | ""::l -> search_page_table dircontent l
-	  | a::l -> aux a l
-      in
-      let page_table, suffix = 
-	(search_page_table !dircontentref (change_empty_list string_list)) in
-      let suffix,get_param_list = 
-	if  suffix = []
-	then try
-	  let s,l = list_assoc_remove ocsigen_suffix_name get_param_list in
-	  [s],l
-	with Not_found -> suffix,get_param_list
-	else suffix,get_param_list in
-      let pref = suffix <> [] in
-      find_page_table 
-	page_table
-	(string_list,
-	 get_param_list,
-	 post_param_list,
-	 ua,
-	 ip,
-	 fullurl,
-	 suffix)
-	{prefix = pref;
-	 state = state_option}
-    with Not_found -> raise Ocsigen_404
+    let rec search_page_table dircontent =
+      let aux a l =
+	(match !(find_dircontent dircontent a) with
+	  Dir dircontentref2 -> search_page_table !dircontentref2 l
+	| File page_table_ref -> !page_table_ref, l)
+      in function
+          [] -> raise Ocsigen_Is_a_directory
+        | [""] -> aux defaultpagename []
+	| ""::l -> search_page_table dircontent l
+	| a::l -> aux a l
+    in
+    let page_table, suffix = 
+      try 
+	(search_page_table !dircontentref (change_empty_list string_list)) 
+      with Not_found -> raise Ocsigen_404
+    in
+    let suffix,get_param_list = 
+      if  suffix = []
+      then try
+	let s,l = list_assoc_remove ocsigen_suffix_name get_param_list in
+	[s],l
+      with Not_found -> suffix,get_param_list
+      else suffix,get_param_list in
+    let pref = suffix <> [] in
+    find_page_table 
+      page_table
+      (string_list,
+       get_param_list,
+       post_param_list,
+       ua,
+       ip,
+       fullurl,
+       suffix)
+      {prefix = pref;
+       state = state_option}
 
 end
 
@@ -978,12 +979,12 @@ let js_script ?(a=[]) uri =
   script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
 (*
-let css_link ?(a=[]) (service : ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) service) current_url =
+let css_link ?(a=[]) (service : ('a, form_content elt list,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) service) current_url =
   service.create_link_url current_url
     (fun v -> 
       link ~a:((a_href (make_uri_from_string  v))::(a_type "text/css")::(a_rel [`Stylesheet])::a) ())
 
-let script ?(a=[]) (service : ('a, form_content_l,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) service) current_url =
+let script ?(a=[]) (service : ('a, form_content elt list,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) service) current_url =
   service.create_script_url current_url
     (fun v -> 
       script ~a:((a_src v)::a) ~contenttype:"text/javascript" (pcdata ""))
@@ -1027,7 +1028,7 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
 let get_form ?(a=[])
     (service : ('get,unit,'kind,'tipo,'gn,unit name) service) 
     (current_url : current_url)
-    (f : 'gn -> form_content_l) : [>form] elt =
+    (f : 'gn -> form_content elt list) : [>form] elt =
   let urlname =
     (if service.external_service
     then (reconstruct_absolute_url_path current_url service.url None)
@@ -1048,7 +1049,7 @@ let get_form ?(a=[])
 
 let post_form ?(a=[])
     (service : ('get,'form,'kind,'tipo,'gn,'pn) service) (current_url : current_url)
-    (f : 'pn -> form_content_l) (getparams : 'get) : [>form] elt =
+    (f : 'pn -> form_content elt list) (getparams : 'get) : [>form] elt =
   let suff,params_string = construct_params service.get_params_type getparams in
   let suff = (if service.url_prefix then Some suff else None) in
   let urlname = 
@@ -1092,7 +1093,7 @@ let make_uri
 (* actions : *)
 let action_a ?(a=[]) ?(reload=true) action h content : [>form] elt  =
   let formname="hiddenform"^(string_of_int (counter ())) in
-  let href="javascript:document."^formname^".submit ()" in
+  let href="javascript:document.getElementById(\""^formname^"\").submit ()" in
   let action_param_name = action_prefix^action_name in
   let action_param = (action.action_name) in
   let reload_name = action_prefix^action_reload in
@@ -1101,8 +1102,8 @@ let action_a ?(a=[]) ?(reload=true) action h content : [>form] elt  =
     then <:xmllist< <input type="hidden" name=$reload_name$ value=$reload_name$/> >> 
     else [] in
   let v = h.full_url in
-  << <form style="display: inline" name=$formname$ method="post" action=$v$ >
-    <p  style="display: inline">$XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) content$
+  << <form style="display: inline" id=$formname$ method="post" action=$v$ >
+    <p style="display: inline">$XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) content$
     <input type="hidden" name=$action_param_name$ value=$action_param$/>
 	$list:reload_param$
 	</p>
@@ -1110,7 +1111,7 @@ let action_a ?(a=[]) ?(reload=true) action h content : [>form] elt  =
 	
 let action_form ?(a=[])
     ?(reload=true) (action : ('a,'pn) action) h 
-    (f : 'pn -> form_content_l) : [>form] elt = 
+    (f : 'pn -> form_content elt list) : [>form] elt = 
   let action_param_name = action_prefix^action_name in
   let action_param = (action.action_name) in
   let reload_name = action_prefix^action_reload in
@@ -1200,7 +1201,7 @@ let get_page
   let fullurl = path^params in
   let generate_page ip =
     try (* D'abord recherche dans la table de session *)
-      Messages.debug ("--- recherche "^(reconstruct_url_path url)^" dans la table de session :");
+      Messages.debug ("--- I search "^(reconstruct_url_path url)^" in the session table:");
       (find_service
 	 (get_session_tables ())
 	 (url,
@@ -1212,7 +1213,7 @@ let get_page
 	  fullurl))
     with Ocsigen_404 | Ocsigen_Wrong_parameter -> 
       try (* ensuite dans la table globale *)
-      Messages.debug "--- recherche dans la table globale :";
+      Messages.debug "--- I search in the global table:";
       (find_service 
 	 global_tables
 	 (url,
@@ -1229,7 +1230,7 @@ let get_page
 	  (match internal_state with
 	    None -> raise exn
 	  | _ -> try (* d'abord la table de session *)
-	      Messages.debug "--- recherche dans la table de session, sans état :";
+	      Messages.debug "--- I search in the session table, without state parameter:";
 	      (find_service 
 		 (get_session_tables ())
 		 (url,
@@ -1241,7 +1242,7 @@ let get_page
 		  fullurl))
 	  with Ocsigen_404 | Ocsigen_Wrong_parameter -> 
           (* ensuite dans la table globale *)
-	    Messages.debug "--- recherche dans la table globale, sans état :";
+	    Messages.debug "--- I search in the global table, without state parameter:";
 	    (find_service 
 	       global_tables
 	       (url,

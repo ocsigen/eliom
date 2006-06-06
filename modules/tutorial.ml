@@ -5,12 +5,6 @@ open XHTML.M
 open Ocsigen
 
 
-
-
-
-
-
-
 (* ------------------------------------------------------------------ *)
 (* To create a web page without parameter: *)
 let coucou1 = 
@@ -205,11 +199,20 @@ let essai =
 *)
 let create_form = 
   (fun (entier,(chaine,chaine2)) ->
+    [p [pcdata "Write an int: ";
+	int_input entier;
+	pcdata "Write a string: ";
+	string_input entier;
+	pcdata "Write another string: ";
+	string_input entier;
+	submit_input "Click"]])
+(*zap*	
     <:xmllist< <p>Write an int: $int_input entier$ <br/>
     Write a string: $password_input chaine$ <br/>
     Write a string: $string_input chaine2$ <br/>
     $submit_input "Click"$</p>
     >>)
+*zap*)
 
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
@@ -413,7 +416,7 @@ let rec launch_session sp () login =
   in
   register_service_for_session 
     ~service:public_session_without_post_params 
-    (* url is any public url already registered *)
+    (* service is any public service already registered *)
     new_main_page;
   register_service_for_session 
     ~service:coucou
@@ -537,11 +540,10 @@ let calc_post =
 let _ = 
   let create_form is = 
     (fun entier ->
-      let ib = int_input entier in
-      let b = submit_input "Sum" in
-      <:xmllist< <p> $str:is$ + $ib$ <br/>
-      $b$ </p>
-      >>)
+       [p [pcdata (is^" + ");
+           int_input entier;
+	   br ();
+           submit_input "Sum"]])
   in
   register_service
     ~service:calc_post
@@ -553,27 +555,30 @@ let _ =
 	  (fun sp () j -> 
 	    let js = string_of_int j in
 	    let ijs = string_of_int (i+j) in
-	    << <html> 
-                 <body><p> 
-                   $str:is$ + $str:js$ = $str:ijs$ </p>
-                 </body></html> >>)
+	    (html
+	       (head (title (pcdata "")) [])
+	       (body
+		  [p [pcdata (is^" + "^js^" = "^ijs)]])))
       in
       let f = 
 	post_form calc_result sp.current_url (create_form is) () in
-      << <html><body>$f$</body></html> >>)
+      (html (head (title (pcdata "")) []) (body [f])))
+
     
 let _ =   
   let create_form = 
     (fun entier ->
-      <:xmllist< <p> Write a number: $int_input entier$ <br/>
-      $submit_input "Send"$ </p>
-      >>)
+      [p [pcdata "Write a number: ";
+	  int_input entier;
+	  br ();
+	  submit_input "Send"]])
   in
   register_service
     calc
     (fun sp () () ->
       let f = post_form calc_post sp.current_url create_form () in
-      << <html><body>$f$</body></html> >>)
+      (html (head (title (pcdata "")) []) (body [f])))
+
       
 
 (* Actions: *)
