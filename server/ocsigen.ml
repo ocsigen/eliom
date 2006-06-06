@@ -729,7 +729,7 @@ let new_service
     : ('get,unit,[`Internal_Service of [`Public_Service]],'tipo,'gn, unit name) service =
   new_service_aux ~url ~prefix ~get_params
 
-let new_local_service
+let new_auxiliary_service
    ~(fallback : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
     : ('get,unit,[`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
   {fallback with url_state = new_state ()}
@@ -778,19 +778,19 @@ let register_new_service
   register_service u page;
   u
     
-let register_new_local_service
+let register_new_auxiliary_service
     ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
     page
     : ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
-  let u = (new_local_service fallback) in
+  let u = (new_auxiliary_service fallback) in
   register_service u page;
   u
 
-let register_new_local_service_for_session
+let register_new_auxiliary_service_for_session
     ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
     page
     : ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
-  let u = (new_local_service fallback) in
+  let u = (new_auxiliary_service fallback) in
   register_service_for_session u page;
   u
 
@@ -819,7 +819,7 @@ let new_post_service
     add_unregistered (u.url,u.unique_id); u
   else raise Ocsigen_service_created_outside_site_loading
   
-let new_post_local_service
+let new_post_auxiliary_service
     ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn2) params_type)
     : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn2) service = 
@@ -837,21 +837,21 @@ let register_new_post_service
   register_service u page_gen;
   u
 
-let register_new_post_local_service
+let register_new_post_auxiliary_service
     ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     page_gen
     : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
-  let u = new_post_local_service ~fallback:fallback ~post_params:post_params in
+  let u = new_post_auxiliary_service ~fallback:fallback ~post_params:post_params in
   register_service u page_gen;
   u
 
-let register_new_post_local_service_for_session
+let register_new_post_auxiliary_service_for_session
     ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     page_gen
     : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
-  let u = new_post_local_service ~fallback:fallback ~post_params:post_params in
+  let u = new_post_auxiliary_service ~fallback:fallback ~post_params:post_params in
   register_service_for_session u page_gen;
   u
 
@@ -1328,7 +1328,7 @@ let get_number_of_connected,
 
 
 
-(* DEPRECATED FUNCTIONS : *)
+(* DEPRECATED FUNCTIONS :
 
 let new_url ~path ?prefix ~get_params () =
   new_service ~url:path ?prefix ~get_params () 
@@ -1336,7 +1336,7 @@ let new_url ~path ?prefix ~get_params () =
 let new_external_url ~path ?prefix ~get_params ~post_params () =
   new_external_service ~url:path ?prefix ~get_params ~post_params () 
 
-let new_state_url = new_local_service
+let new_state_url = new_auxiliary_service
 
 let register_url ~url f = register_service ~service:url f
 
@@ -1346,21 +1346,21 @@ let register_url_for_session ~url f =
 let register_new_url ~path ?prefix ~get_params f =
   register_new_service ~url:path ?prefix ~get_params f
 
-let register_new_state_url = register_new_local_service
+let register_new_state_url = register_new_auxiliary_service
 
 let register_new_state_url_for_session =
-  register_new_local_service_for_session
+  register_new_auxiliary_service_for_session
 
 let new_post_url = new_post_service
 
-let new_post_state_url = new_post_local_service
+let new_post_state_url = new_post_auxiliary_service
 
 let register_new_post_url = register_new_post_service
 
-let register_new_post_state_url = register_new_post_local_service
+let register_new_post_state_url = register_new_post_auxiliary_service
 
 let register_new_post_state_url_for_session =
-  register_new_post_local_service_for_session
+  register_new_post_auxiliary_service_for_session
 
 let new_actionurl = new_action
 
@@ -1376,3 +1376,4 @@ let register_new_actionurl ~post_params ~action =
 let register_new_actionurl_for_session ~post_params ~action =
   register_new_action ~post_params action
 
+*)

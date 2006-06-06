@@ -319,10 +319,10 @@ let form4 = register_new_service ["form4"] unit
 (* Local services:
    You can define new urls that differs from public url only by a (hidden)
    parameter (internal state).
-   To do that, use new_local_service and new_post_local_service.
+   To do that, use new_auxiliary_service and new_post_auxiliary_service.
    Actually the text of the URL need to be exactly the same as a public
    url, so that it doesn't fail if you bookmark the page.
-   That's why new_local_service and new_post_local_service take a public
+   That's why new_auxiliary_service and new_post_auxiliary_service take a public
    service as parameter (called fallback).
    The session service will have the same GET parameters but may have
    different POST parameters.
@@ -342,28 +342,28 @@ let form4 = register_new_service ["form4"] unit
     - ... ?
  *)
 
-let localserv = new_service ["local"] unit ()
+let auxiliaryserv = new_service ["auxiliary"] unit ()
 
-let localserv2 = new_local_service ~fallback:localserv
+let auxiliaryserv2 = new_auxiliary_service ~fallback:auxiliaryserv
 
 let _ = 
   let c = ref 0 in
   let page sp () () = 
-    let l3 = post_form localserv2 sp.current_url 
+    let l3 = post_form auxiliaryserv2 sp.current_url 
 	(fun _ -> [p [submit_input "incr i (post)"]]) () in
-    let l4 = get_form localserv2 sp.current_url 
+    let l4 = get_form auxiliaryserv2 sp.current_url 
 	(fun _ -> [p [submit_input "incr i (get)"]]) in
     (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "i is equal to ";
 		 pcdata (string_of_int !c); br ();
-		 a localserv sp.current_url [pcdata "reload"] (); br ();
-		 a localserv2 sp.current_url [pcdata "incr i"] ()];
+		 a auxiliaryserv sp.current_url [pcdata "reload"] (); br ();
+		 a auxiliaryserv2 sp.current_url [pcdata "incr i"] ()];
               l3;
 	      l4]))
   in
-    register_service localserv page;
-    register_service localserv2 (fun sp () () -> c := !c + 1; page sp () ())
+    register_service auxiliaryserv page;
+    register_service auxiliaryserv2 (fun sp () () -> c := !c + 1; page sp () ())
 
 
 (* ------------------------------------------------------------------ *)
@@ -399,7 +399,7 @@ let _ = register_service
   accueil
 
 let rec launch_session sp () login =
-  let close = register_new_local_service_for_session
+  let close = register_new_auxiliary_service_for_session
     ~fallback:public_session_without_post_params 
     (fun sp () () -> close_session (); accueil sp () ())
   in
@@ -452,7 +452,7 @@ let _ = register_service_for_session
 
 
 (* ------------------------------------------------------------------ *)
-(* You can register local services in session tables.
+(* You can register auxiliary services in session tables.
    Use this if you want a link or a form which depends precisely on an
    instance of the web page, for example to buy something on an internet shop.
    UPDATE: Actually it is not a good example, because what we want in a shop
@@ -493,19 +493,19 @@ let write_shopping_basket shopping_basket =
     <:xmllist< Your shopping basket: <br/> $list:ffol$ >>
 
 let rec page_for_shopping_basket url shopping_basket =
-  let local_shop_with_post_params = 
-    new_post_local_service
+  let auxiliary_shop_with_post_params = 
+    new_post_auxiliary_service
       ~fallback:shop_without_post_params
       ~post_params:(string "article")
-  and local_pay = new_local_service ~fallback:shop_without_post_params
+  and auxiliary_pay = new_auxiliary_service ~fallback:shop_without_post_params
   in
     register_service_for_session
-      ~service:local_shop_with_post_params
+      ~service:auxiliary_shop_with_post_params
       (fun sp () article -> 
 		 page_for_shopping_basket 
 		   sp.current_url (article::shopping_basket));
     register_service_for_session
-      local_pay
+      auxiliary_pay
       (fun sp () () ->
 	   << <html><body>
 	        <p>You are going to pay: 
@@ -514,8 +514,8 @@ let rec page_for_shopping_basket url shopping_basket =
       << <html>
            <body> 
              <div>$list:write_shopping_basket shopping_basket$</div>
-             $write_shop local_shop_with_post_params url$ 
-             <p>$a local_pay url <:xmllist< pay >> ()$</p>
+             $write_shop auxiliary_shop_with_post_params url$ 
+             <p>$a auxiliary_pay url <:xmllist< pay >> ()$</p>
            </body>
          </html> >>
 
@@ -549,7 +549,7 @@ let _ =
     ~service:calc_post
     (fun sp () i ->
       let is = string_of_int i in
-      let calc_result = register_new_post_local_service_for_session
+      let calc_result = register_new_post_auxiliary_service_for_session
 	  ~fallback:calc
 	  ~post_params:(int "j")
 	  (fun sp () j -> 
@@ -589,7 +589,7 @@ let _ =
    you can use actions.
    Create and register an action with new_action, register_action,
      register_new_action, register_action_for_session,
-     register_local_action_for_session
+     register_auxiliary_action_for_session
    Make a form or a link to an action with action_form or action_a.
    By default, they print the page again after having done the action.
    But you can give the optional boolean parameter reload to action_form
@@ -817,7 +817,7 @@ let _ = register_service main
        <h3>Sessions</h3>
        <p>
        Service locaux : 
-	     $a localserv url <:xmllist< local >> ()$ (problème des paramètres GET bookmarkés...) <br/> 
+	     $a auxiliaryserv url <:xmllist< auxiliary >> ()$ (problème des paramètres GET bookmarkés...) <br/> 
        Une session basée sur les cookies : 
 	     $a public_session_without_post_params url <:xmllist< session >> ()$ <br/> 
        Une session avec des actions : 

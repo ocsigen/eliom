@@ -1,13 +1,13 @@
 open XHTML.M
 open Ocsigen
 
-let def = new_url 
-    ~path:["essai";"essai"]  
+let def = new_service
+    ~url:["essai";"essai"]  
     ~get_params:unit
     ()
 
 let post = 
-  new_post_url
+  new_post_service
     ~fallback:def
     ~post_params:(string "group" ** 
 		    (bool "macase" ** 
@@ -27,7 +27,7 @@ let create_form (group,(case,(case2,radio))) =
 
 let genere_form current_url = post_form post current_url create_form ()
 
-let _ = register_url def
+let _ = register_service def
               (fun sp () () ->
                        (html
                            (head (title (pcdata "")) 
@@ -52,7 +52,7 @@ let fonction sp () (group,(case,(case2, radio_opt))) =
 		| Some nom -> pcdata ("Bouton radio : "^nom))]; 
 	    genere_form sp.current_url]))
 
-let _ = register_url post fonction
+let _ = register_service post fonction
 
 
 (*********)
@@ -251,7 +251,7 @@ let form = register_new_url ["form"] (_current_url _noparam)
 
 (* radio checkboxes *)
 
-let foboo = register_new_url 
+let foboo = register_new_service
     ~path:["fo"]
     ~params:((_int "i") ** (_string "radio") ** (_string "chk2") ** (_string "chk2"))
     (fun i radio chk1 chk2 -> 
@@ -277,7 +277,7 @@ let cf =
     </p>
     >>)
 
-let fo = register_new_url ["fo"] (_current_url _noparam)
+let fo = register_new_service ["fo"] (_current_url _noparam)
   (fun current_url -> 
      let f = get_form foboo current_url cf in
      << <html>
@@ -369,7 +369,7 @@ let _ = register_service
   accueil
 
 let rec launch_session sp () login =
-  let close = register_new_local_service_for_session
+  let close = register_new_auxiliary_service_for_session
     ~fallback:public_session_without_post_params 
     (fun sp () () -> close_session (); accueil sp () ())
   in

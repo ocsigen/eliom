@@ -164,7 +164,7 @@ val new_external_service :
   unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
 (** Creates an service for an external web site *)
 
-val new_local_service :
+val new_auxiliary_service :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'd) service ->
   ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 (** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
@@ -209,21 +209,21 @@ val register_new_service :
   ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, unit name) service
 (** Same as [new_service] followed by [register_service] *)
 
-val register_new_local_service :
+val register_new_auxiliary_service :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
            service ->
   (server_params -> 'a -> unit -> page) ->
   ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
-(** Same as [new_local_service] followed by [register_service] *)
+(** Same as [new_auxiliary_service] followed by [register_service] *)
 
-val register_new_local_service_for_session :
+val register_new_auxiliary_service_for_session :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
            service ->
   (server_params -> 'a -> unit -> page) ->
   ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
-(** Same as [new_local_service] followed by [register_service_for_session] *)
+(** Same as [new_auxiliary_service] followed by [register_service_for_session] *)
 
 val new_post_service :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
@@ -238,11 +238,11 @@ val new_post_service :
    exist.
  *)
 
-val new_post_local_service :
+val new_post_auxiliary_service :
   fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c, 'd, 'e) service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
   ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
-(** Creates a local service with POST parameters *)
+(** Creates a auxiliary service with POST parameters *)
 
 val register_new_post_service :
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
@@ -253,23 +253,23 @@ val register_new_post_service :
   ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e) service
 (** Same as [new_post_service] followed by [register_post_service] *)
 
-val register_new_post_local_service :
+val register_new_post_auxiliary_service :
   fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
            service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
   (server_params -> 'a -> 'f -> page) ->
   ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
-(** Same as [new_post_local_service] followed by [register_post_service] *)
+(** Same as [new_post_auxiliary_service] followed by [register_post_service] *)
 
-val register_new_post_local_service_for_session :
+val register_new_post_auxiliary_service_for_session :
   fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
            service ->
   post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
   (server_params -> 'a -> 'f -> page) ->
   ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
-(** Same as [new_post_local_service] followed by [register_post_service_for_session] *)
+(** Same as [new_post_auxiliary_service] followed by [register_post_service_for_session] *)
 
 val static_dir :
   (string, unit, [ `Internal_Service of [ `Public_Service ] ], [ `WithSuffix ],
@@ -487,7 +487,7 @@ val end_initialisation : unit -> unit
 
 
 
-(* DEPRECATED FUNCTIONS : *)
+(* DEPRECATED FUNCTIONS :
 
 val new_url :
   path:url_path ->
@@ -594,3 +594,4 @@ val register_new_actionurl :
 val register_new_actionurl_for_session :
   post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
   action:(server_params -> 'a -> unit) -> ('a, 'b) action
+*)
