@@ -317,13 +317,13 @@ let user_news_page user h i () =
 	~resource:rocsexample
 	~key:user_news_page_number) h user rocsexample i)
 
-let launch_session user =
-  register_service_for_session ~service:main_page (user_main_page user);
-  register_service_for_session ~service:news_page (user_news_page user)
+let launch_session sp user =
+  register_service_for_session sp ~service:main_page (user_main_page user);
+  register_service_for_session sp ~service:news_page (user_news_page user)
 
 let _ = register_action
   ~action:connect_action
-    (fun h (login, password) ->
-      launch_session (connect login password))
+    (fun sp (login, password) ->
+      launch_session sp (connect login password))
 
 

@@ -42,6 +42,7 @@ type page = xhtml elt
 (** type of URL, without parameter *)
 type url_path = string list
 type current_url = string list
+type current_dir = string list
 
 let string_list_of_current_url x = x
 
@@ -57,6 +58,11 @@ let absolute_change_dir, get_current_dir =
   let current_dir : url_path ref = ref [] in
   ((fun dir -> current_dir := remove_slash dir), 
    (fun () -> !current_dir))
+(* Warning: these functions are used only during the initialisation
+phase, which is not threaded ... That's why it works, but ...
+it is not really clean ... public registration relies on this
+directory (defined for each site in the config file) 
+*)
 
 let defaultpagename = "index"
 
@@ -113,35 +119,6 @@ let aremonter, aaller = drop current_url u
   in let s = (makedotdot aremonter)^(reconstruct_url_path_suff aaller suff) in
   Messages.debug ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s);
   if s = "" then defaultpagename else s
-
-
-
-(** Type of http parameters *)
-type server_params = {full_url: string;
-		      current_url: current_url;
-		      user_agent: string;
-		      ip: Unix.inet_addr;
-		      get_params: (string * string) list;
-		      post_params: (string * string) list}
-
-(* abstract *)
-type server_params2 = url_path * server_params
-
-(** Create server parameters record *)
-let make_server_params
-    url fullurl get_params post_params useragent ip = 
-  {full_url= fullurl;
-   user_agent=useragent;
-   current_url=url;
-   ip=ip;
-   get_params = get_params;
-   post_params = post_params}
-
-let make_server_params2
-    url fullurl get_params post_params useragent ip urlsuffix = 
-  urlsuffix,
-  (make_server_params url fullurl get_params post_params useragent ip)
-
 
 
 
@@ -365,27 +342,49 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
       (fst (Obj.magic params)),(aux t (snd (Obj.magic params)) "" "")
   | TSuffix -> (Obj.magic params),""
   | _ -> "",(aux typ params "" "")
-	
+
+
+type 'a server_params1 = {full_url: string;
+		      user_agent: string;
+		      ip: Unix.inet_addr;
+		      get_params: (string * string) list;
+		      post_params: (string * string) list;
+		      current_url: current_url;
+		      current_dir: current_dir;
+		      session_table: 'a ref
+		    }
+      
+type 'a server_params2 = url_path * 'a server_params1
+      
 (** We associate to a service a function server_params2 -> page *)
 module type DIRECTORYTREE =
   sig
     type tables
+
     type page_table_key =
 	{prefix:bool;
 	 state: internal_state option}
+
+    val make_server_params :
+	current_dir -> tables ref -> current_url -> string ->
+	  (string * string) list -> (string * string) list -> 
+	    string -> Unix.inet_addr -> tables server_params1
+
     val empty_tables : unit -> tables
     val are_empty_tables : tables -> bool
-    val add_service : tables -> bool -> url_path -> 
-      page_table_key * (int * (server_params2 -> page)) -> unit
+    val add_service : tables -> current_dir -> bool -> url_path -> 
+      page_table_key * (int * (tables server_params2 -> page)) -> unit
     val add_action :
-	tables -> string -> (server_params -> unit) -> unit
+	tables -> current_dir
+	  -> string -> (tables server_params1 -> unit) -> unit
     val find_service :
 	tables ->
-	  current_url * internal_state option * (string * string) list *
+	  tables ref * 
+	    current_url * internal_state option * (string * string) list *
 	    (string * string) list * string * Unix.inet_addr * string -> 
 	      page * url_path
     val find_action :
-	tables -> string -> (server_params -> unit) * url_path
+	tables -> string -> (tables server_params1 -> unit) * url_path
   end
 
 module Directorytree : DIRECTORYTREE = struct
@@ -395,7 +394,7 @@ module Directorytree : DIRECTORYTREE = struct
   type page_table_key =
       {prefix:bool;
        state: internal_state option}
-       (* action: server_params2 -> page *)
+       (* action: tables server_params2 -> page *)
 
   (* module Page_Table = Map.Make(struct type t = page_table_key 
 				      let compare = compare end) *)
@@ -404,7 +403,7 @@ module Directorytree : DIRECTORYTREE = struct
 					let compare = compare end)
 
   type page_table = 
-      (page_table_key * ((int * ((server_params2 -> page) * url_path)) list)) list
+      (page_table_key * ((int * ((tables server_params2 -> page) * url_path)) list)) list
 	(* Here, the url_path is the working directory.
 	   That is, the directory in which we are when we register
 	   dynamically the pages.
@@ -412,11 +411,11 @@ module Directorytree : DIRECTORYTREE = struct
 	   (in case the page registers new pages).
 	 *)
 
-  type action_table = 
+  and action_table = 
       AVide 
-    | ATable of ((server_params -> unit) * url_path) String_Table.t
+    | ATable of ((tables server_params1 -> unit) * url_path) String_Table.t
 
-  type dircontent = 
+  and dircontent = 
       Vide
     | Table of direlt ref String_Table.t
 
@@ -424,21 +423,34 @@ module Directorytree : DIRECTORYTREE = struct
       Dir of dircontent ref
     | File of page_table ref
 
-  type tables = dircontent ref * action_table ref
+  and tables = dircontent ref * action_table ref
+
+
+  (** Create server parameters record *)
+  let make_server_params
+      dir st url fullurl get_params post_params useragent ip = 
+    {full_url= fullurl;
+     user_agent=useragent;
+     current_url=url;
+     ip=ip;
+     get_params = get_params;
+     post_params = post_params;
+     current_dir = dir;
+     session_table = st;
+   }
 
   let empty_page_table () = []
   let empty_action_table () = AVide
   let empty_dircontent () = Vide
 
-  let find_page_table t (url,getp,postp,ua,ip,fullurl,urlsuffix) k = 
-    let sp = (make_server_params2 url fullurl getp postp ua ip urlsuffix) in
+  let find_page_table t (str,url,getp,postp,ua,ip,fullurl,urlsuffix) k = 
+    let sp = make_server_params [] str url fullurl getp postp ua ip in
     let rec aux = function
       [] -> raise Ocsigen_Wrong_parameter
     | (_,(funct,working_dir))::l ->
-	try 
-	  absolute_change_dir working_dir;
+	try
 	  Messages.debug "Je vais exécuter";
-	  let p = funct sp in
+	  let p = funct (urlsuffix, {sp with current_dir = working_dir}) in
 	  Messages.debug "Page found";
 	  p,working_dir
 	with Ocsigen_Wrong_parameter -> aux l
@@ -485,15 +497,15 @@ module Directorytree : DIRECTORYTREE = struct
   let are_empty_tables (dcr,atr) = 
     (!dcr = Vide && !atr = AVide)
 
-  let add_action (_,actiontableref) name action =
+  let add_action (_,actiontableref) current_dir name action =
     actiontableref :=
       add_action_table !actiontableref
-	(name,(action,get_current_dir ()))
+	(name,(action,current_dir))
 
   let find_action (_,atr) name =
     find_action_table !atr name
 
-  let add_service (dircontentref,_) session url_act 
+  let add_service (dircontentref,_) current_dir session url_act 
       (page_table_key, (unique_id, action)) =
     let aux search dircontentref a l =
       try 
@@ -541,9 +553,9 @@ module Directorytree : DIRECTORYTREE = struct
     in
     let content = ({prefix = page_table_key.prefix;
 		    state = page_table_key.state},
-		    (unique_id, (action, get_current_dir ()))) in
+		    (unique_id, (action, current_dir))) in
     (* let current_dircontentref = 
-      search_dircontentref dircontentref (get_current_dir ()) in *)
+      search_dircontentref dircontentref current_dir) in *)
     let page_table_ref = 
       search_page_table_ref (*current_*) dircontentref url_act in
     page_table_ref := add_page_table session url_act !page_table_ref content
@@ -551,7 +563,8 @@ module Directorytree : DIRECTORYTREE = struct
 	 
   let find_service 
       (dircontentref,_)
-      (string_list, state_option, get_param_list, post_param_list, 
+      (session_table_ref, 
+       string_list, state_option, get_param_list, post_param_list, 
        ua, ip, fullurl) =
     let rec search_page_table dircontent =
       let aux a l =
@@ -579,7 +592,8 @@ module Directorytree : DIRECTORYTREE = struct
     let pref = suffix <> [] in
     find_page_table 
       page_table
-      (string_list,
+      (session_table_ref,
+       string_list,
        get_param_list,
        post_param_list,
        ua,
@@ -593,20 +607,16 @@ end
 
 open Directorytree
 
-type url_table = tables
+type session_table = Directorytree.tables
+
+(** Type of http parameters *)
+(* type server_params = Directorytree.server_params it doesn't work *)
+type server_params = session_table server_params1
 
 let global_tables = empty_tables ()
 
-let get_session_tables, set_session_tables =
-  let session_tables = ref (empty_tables ()) in
-  let err () = raise Ocsigen_register_for_session_outside_session in
-  let ok () = !session_tables in
-  let get = ref err in
-  ((fun () -> !get ()),
-   (fun st -> session_tables := st; get := ok))
-
 let new_session_tables = empty_tables
-let are_empty_tables = are_empty_tables
+
 
 
 (* The table of tables for each session. Keys are (hostname,cookie) *)
@@ -735,12 +745,13 @@ let new_auxiliary_service
   {fallback with url_state = new_state ()}
 
 let register_service_aux
+    current_dir
     tables
     session
     state
     ~(service : ('get,'post,[`Internal_Service of 'popo],'tipo,'gn,'pn) service)
     (page_generator : server_params -> 'get -> 'post -> 'fin) =
-  add_service tables session service.url
+  add_service tables current_dir session service.url
     ({prefix = service.url_prefix;
       state = state},
      (service.unique_id,
@@ -753,7 +764,10 @@ let register_service
     (page_gen : server_params -> 'get -> 'post -> 'fin) =
   if global_register_allowed () then begin
     remove_unregistered (service.url,service.unique_id);
-    register_service_aux global_tables false (service.url_state) service page_gen; end
+    register_service_aux 
+      (get_current_dir ()) global_tables false (service.url_state)
+      service page_gen; 
+  end
   else Messages.warning "Public service registration after init forbidden! Please correct your module! (ignored)"
 
 (* WARNING: if we create a new service without registering it,
@@ -764,9 +778,11 @@ let register_service
  *)
 
 let register_service_for_session
+    sp
     ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
     page =
-  register_service_aux (get_session_tables ()) true service.url_state service page
+  register_service_aux sp.current_dir
+    !(sp.session_table) true service.url_state service page
 
 let register_new_service 
     ~url
@@ -787,11 +803,12 @@ let register_new_auxiliary_service
   u
 
 let register_new_auxiliary_service_for_session
+    sp
     ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
     page
     : ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
   let u = (new_auxiliary_service fallback) in
-  register_service_for_session u page;
+  register_service_for_session sp u page;
   u
 
 
@@ -847,12 +864,13 @@ let register_new_post_auxiliary_service
   u
 
 let register_new_post_auxiliary_service_for_session
+    sp
     ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     page_gen
     : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
   let u = new_post_auxiliary_service ~fallback:fallback ~post_params:post_params in
-  register_service_for_session u page_gen;
+  register_service_for_session sp u page_gen;
   u
 
 
@@ -874,8 +892,8 @@ let new_action
      action_params_type = post_params;
    }
 
-let register_action_aux tables ~action actionfun =
-  add_action tables 
+let register_action_aux current_dir tables ~action actionfun =
+  add_action tables current_dir 
     action.action_name
     (fun h -> actionfun h 
 	(reconstruct_params action.action_params_type h.post_params []))
@@ -883,25 +901,25 @@ let register_action_aux tables ~action actionfun =
 let register_action
     ~(action : ('post,'pn) action)
     (actionfun : (server_params -> 'post -> unit)) : unit =
-  register_action_aux global_tables action actionfun
+  register_action_aux (get_current_dir ()) global_tables action actionfun
 
 let register_new_action ~post_params actionfun = 
   let a = new_action post_params in
     register_action a actionfun;
     a
 
-let register_action_for_session ~action actionfun =
-  register_action_aux (get_session_tables ()) action actionfun
+let register_action_for_session sp ~action actionfun =
+  register_action_aux sp.current_dir !(sp.session_table) action actionfun
 
 
-let register_new_action_for_session ~params actionfun =
+let register_new_action_for_session sp ~params actionfun =
   let a = new_action params in
-    register_action_for_session a actionfun;
+    register_action_for_session sp a actionfun;
     a
 
 (** Satic directories **)
-let static_dir () : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string name, unit name) service =
-  {url = get_current_dir ();
+let static_dir sp : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string name, unit name) service =
+  {url = sp.current_dir;
    unique_id = counter ();
    url_state = None;
    url_prefix = true;
@@ -913,7 +931,7 @@ let static_dir () : (string, unit, [`Internal_Service of [`Public_Service]],[`Wi
 
 
 (** Close a session *)
-let close_session () = set_session_tables (empty_tables ())
+let close_session sp = sp.session_table := empty_tables ()
 
 let state_param_name = "__ocsigen_etat__"
 
@@ -1170,42 +1188,38 @@ let execute generate_page sockaddr cookie =
       Unix.ADDR_INET (ip,port) -> ip
     | _ -> localhost
   in
-  let save_current_dir = get_current_dir () in
-  let answer =
-    let (tables, new_session) = 
-      (match cookie with
-	   None -> (new_session_tables (), true)
-	 | Some c -> try (Cookies.find cookie_table (ip,c), false)
-	   with Not_found -> (new_session_tables (), true))
-    in
-    set_session_tables tables;
-    let page,working_dir = generate_page ip in
-    let cookie2 = 
-      if are_empty_tables (get_session_tables ())
-      then ((if not new_session 
-      then match cookie with
-	Some c -> Cookies.remove cookie_table (ip,c)
-      | None -> ());None)
-      else (if new_session 
-      then let c = new_cookie cookie_table ip in
-      (Cookies.add cookie_table (ip,c) (get_session_tables ());
-       Some c)
-      else cookie)
-    in (cookie2, page, ("/"^(reconstruct_url_path working_dir)))
-  in absolute_change_dir save_current_dir; 	
-  answer
+  let (tablesref, new_session) = 
+    (match cookie with
+      None -> (ref (new_session_tables ()), true)
+    | Some c -> try (ref (Cookies.find cookie_table (ip,c)), false)
+    with Not_found -> (ref (new_session_tables ()), true))
+  in
+  let page,working_dir = generate_page ip tablesref in
+  let cookie2 = 
+    if are_empty_tables !tablesref
+    then ((if not new_session 
+    then match cookie with
+      Some c -> Cookies.remove cookie_table (ip,c)
+    | None -> ());None)
+    else (if new_session 
+    then let c = new_cookie cookie_table ip in
+    (Cookies.add cookie_table (ip,c) !tablesref;
+     Some c)
+    else cookie)
+  in (cookie2, page, ("/"^(reconstruct_url_path working_dir)))
 
 
 let get_page 
     (url, path, params, internal_state, get_params, post_params, useragent)
     sockaddr cookie = 
   let fullurl = path^params in
-  let generate_page ip =
+  let generate_page ip session_tables_ref =
     try (* D'abord recherche dans la table de session *)
       Messages.debug ("--- I search "^(reconstruct_url_path url)^" in the session table:");
       (find_service
-	 (get_session_tables ())
-	 (url,
+	 !session_tables_ref
+	 (session_tables_ref,
+	  url,
 	  internal_state,
 	  get_params,
 	  post_params,
@@ -1217,7 +1231,8 @@ let get_page
       Messages.debug "--- I search in the global table:";
       (find_service 
 	 global_tables
-	 (url,
+	 (session_tables_ref,
+	  url,
 	  internal_state,
 	  get_params,
 	  post_params,
@@ -1233,8 +1248,9 @@ let get_page
 	  | _ -> try (* d'abord la table de session *)
 	      Messages.debug "--- I search in the session table, without state parameter:";
 	      (find_service 
-		 (get_session_tables ())
-		 (url,
+		 !session_tables_ref
+		 (session_tables_ref,
+		  url,
 		  None,
 		  get_params,
 		  post_params,
@@ -1246,7 +1262,8 @@ let get_page
 	    Messages.debug "--- I search in the global table, without state parameter:";
 	    (find_service 
 	       global_tables
-	       (url,
+	       (session_tables_ref,
+		url,
 		None,
 		get_params,
 		post_params,
@@ -1265,15 +1282,17 @@ let get_page
 let make_action action_name action_params 
     (url, path, params, _, _, _, useragent) sockaddr cookie =
   let fullurl = path^params in
-  let generate_page ip =
+  let generate_page ip session_tables_ref =
     let action,working_dir = 
       (try 
-	find_action (get_session_tables ()) action_name
+	find_action !session_tables_ref action_name
       with Not_found ->
 	(find_action global_tables action_name))
     in 
-    absolute_change_dir working_dir;
-    (action (make_server_params url fullurl [] action_params useragent ip)),
+    (action 
+       (make_server_params 
+	  working_dir session_tables_ref url fullurl [] 
+	  action_params useragent ip)),
     working_dir
   in try
     let r = execute 

@@ -8,7 +8,7 @@ TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/ocsiprof.cmo serve
 OCSIMOREINSTALL = ocsimore/ocsimore.cma ocsimore/db_create.cmi ocsimore/ocsipersist.cmi ocsimore/ocsicache.cmi ocsimore/ocsidata.cmi ocsimore/ocsipages.cmi ocsimore/ocsisav.cmi ocsimore/ocsiboxes.cmi ocsimore/ocsexample_util.cmo ocsimore/ocsexample3.cmo ocsimore/ocsexample1.cmo ocsimore/ocsexample2.cmo
 PP = -pp "camlp4o ./lib/xhtmlsyntax.cma -loc loc"
 
-all: depend $(REPS)
+all: $(REPS)
 
 .PHONY: $(REPS) clean
 

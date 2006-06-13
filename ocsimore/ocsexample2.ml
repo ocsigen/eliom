@@ -63,13 +63,13 @@ let _ = register_service
   ~service:news_page
   print_news_page
 
-let launch_session user =
-  register_service_for_session ~service:main_page (user_main_page user);
-  register_service_for_session ~service:news_page (user_news_page user)
+let launch_session sp user =
+  register_service_for_session sp ~service:main_page (user_main_page user);
+  register_service_for_session sp ~service:news_page (user_news_page user)
 
 let _ = register_action
   ~action:connect_action
-    (fun h (login, password) ->
-      launch_session (connect login password))
+    (fun sp (login, password) ->
+      launch_session sp (connect login password))
 
 

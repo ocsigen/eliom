@@ -202,9 +202,9 @@ let create_form =
     [p [pcdata "Write an int: ";
 	int_input entier;
 	pcdata "Write a string: ";
-	string_input entier;
+	string_input chaine;
 	pcdata "Write another string: ";
-	string_input entier;
+	string_input chaine2;
 	submit_input "Click"]])
 (*zap*	
     <:xmllist< <p>Write an int: $int_input entier$ <br/>
@@ -400,8 +400,9 @@ let _ = register_service
 
 let rec launch_session sp () login =
   let close = register_new_auxiliary_service_for_session
+    sp
     ~fallback:public_session_without_post_params 
-    (fun sp () () -> close_session (); accueil sp () ())
+    (fun sp () () -> close_session sp; accueil sp () ())
   in
   let new_main_page sp () () =
     (html
@@ -415,10 +416,12 @@ let rec launch_session sp () login =
 		 a close sp [pcdata "close session"] ()]]))
   in
   register_service_for_session 
+    sp
     ~service:public_session_without_post_params 
     (* service is any public service already registered *)
     new_main_page;
   register_service_for_session 
+    sp
     ~service:coucou
     (fun _ () () ->
       (html
@@ -427,6 +430,7 @@ let rec launch_session sp () login =
 		   pcdata login;
 		   pcdata "!"]])));
   register_service_for_session 
+    sp
     hello
     (fun _ () () ->
       (html
@@ -443,6 +447,7 @@ let _ =
 
 (* Registering for session during initialisation is forbidden:
 let _ = register_service_for_session
+    sp
     ~service:coucou1 
     << <html>
          <head><title></title></head>
@@ -492,7 +497,7 @@ let write_shopping_basket shopping_basket =
   let ffol = aux shopping_basket in
     <:xmllist< Your shopping basket: <br/> $list:ffol$ >>
 
-let rec page_for_shopping_basket url shopping_basket =
+let rec page_for_shopping_basket sp shopping_basket =
   let auxiliary_shop_with_post_params = 
     new_post_auxiliary_service
       ~fallback:shop_without_post_params
@@ -500,11 +505,13 @@ let rec page_for_shopping_basket url shopping_basket =
   and auxiliary_pay = new_auxiliary_service ~fallback:shop_without_post_params
   in
     register_service_for_session
+      sp
       ~service:auxiliary_shop_with_post_params
       (fun sp () article -> 
 		 page_for_shopping_basket 
 		   sp (article::shopping_basket));
     register_service_for_session
+      sp
       auxiliary_pay
       (fun sp () () ->
 	   << <html><body>
@@ -514,8 +521,8 @@ let rec page_for_shopping_basket url shopping_basket =
       << <html>
            <body> 
              <div>$list:write_shopping_basket shopping_basket$</div>
-             $write_shop auxiliary_shop_with_post_params url$ 
-             <p>$a auxiliary_pay url <:xmllist< pay >> ()$</p>
+             $write_shop auxiliary_shop_with_post_params sp$ 
+             <p>$a auxiliary_pay sp <:xmllist< pay >> ()$</p>
            </body>
          </html> >>
 
@@ -550,6 +557,7 @@ let _ =
     (fun sp () i ->
       let is = string_of_int i in
       let calc_result = register_new_post_auxiliary_service_for_session
+	  sp
 	  ~fallback:calc
 	  ~post_params:(int "j")
 	  (fun sp () j -> 
@@ -614,9 +622,9 @@ let _ = register_service
   ~service:action_session
   accueil_action
 
-let rec launch_session login =
+let rec launch_session sp login =
   let deconnect_action = 
-   register_new_action unit (fun _ () -> close_session ()) in
+   register_new_action unit (fun _ () -> close_session sp) in
   let deconnect_box sp s = action_a deconnect_action sp s in
   let new_main_page sp () () =
     html
@@ -628,15 +636,15 @@ let rec launch_session login =
 		a links sp [pcdata "links"] (); br ()];
 	     deconnect_box sp [pcdata "Close session"]])
   in
-  register_service_for_session ~service:action_session new_main_page;
-  register_service_for_session coucou
+  register_service_for_session sp ~service:action_session new_main_page;
+  register_service_for_session sp coucou
    (fun _ () () ->
      (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "Coucou ";
 		 pcdata login;
 		 pcdata "!"]])));
-  register_service_for_session hello 
+  register_service_for_session sp hello 
    (fun _ () () ->
      (html
        (head (title (pcdata "")) [])
@@ -646,7 +654,7 @@ let rec launch_session login =
     
 let _ = register_action
     ~action:connect_action
-    (fun _ login -> launch_session login)
+    (fun sp login -> launch_session sp login)
 
 
 (* ------------------------------------------------------------------ *)
@@ -772,7 +780,7 @@ let _ = register_service main
        <html> 
        <!-- This is a comment! -->
        <head>
-	 $css_link (make_uri (static_dir ()) sp "style.css")$
+	 $css_link (make_uri (static_dir sp) sp "style.css")$
 	 <title>Ocsigen Tutorial</title>
        </head>
        <body>

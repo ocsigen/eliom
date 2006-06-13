@@ -64,16 +64,16 @@ let toto_created =
 
 (** A box that prints the beginning of a message, with a link to the 
     full message *)
-let news_header_box httpparam key user resource news_page = 
+let news_header_box sp key user resource news_page = 
   let msg = StringMessage.dbget user resource key
-  in let l = a news_page httpparam.current_url <:xmllist< read >> key
+  in let l = a news_page sp <:xmllist< read >> key
   in << <div> $str:msg$ $l$ <br/> </div> >>
 
 (** A box that prints a list of a message headers *)
-let news_headers_list_box httpparam key user resource news_page = 
+let news_headers_list_box sp key user resource news_page = 
   let msglist = 
     List.map 
-      (fun n -> news_header_box httpparam n user resource news_page)
+      (fun n -> news_header_box sp n user resource news_page)
       (StringMessageIndexList.dbget user resource key)
   in << <div>$list:msglist$</div> >>
 

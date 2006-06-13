@@ -45,6 +45,9 @@ type url_path = string list
 type current_url
 (** This type is used to represent the current URL paths. It is used to create relative links from the current page. *)
 
+type current_dir
+(** internal use *)
+
 val string_list_of_current_url : current_url -> url_path
 (** Converts a [current_url] to an [url_path] *)
 
@@ -64,12 +67,18 @@ val remove_slash : url_path -> url_path
 
  *)
 
-type server_params = {full_url: string;
-		      current_url: current_url;
-		      user_agent: string;
-		      ip: Unix.inet_addr;
-		      get_params: (string * string) list;
-		      post_params: (string * string) list}
+type session_table
+type 'a server_params1 = private 
+      {full_url: string;
+       user_agent: string;
+       ip: Unix.inet_addr;
+       get_params: (string * string) list;
+       post_params: (string * string) list;
+       current_url: current_url;
+       current_dir: current_dir;
+       session_table: 'a ref
+     }
+type server_params = session_table server_params1
 (** Type of server parameters *)
 
 type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
@@ -185,6 +194,7 @@ val register_service :
  *)
 
 val register_service_for_session :
+  server_params ->
   service:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
        'd, 'e)
       service ->
@@ -218,6 +228,7 @@ val register_new_auxiliary_service :
 (** Same as [new_auxiliary_service] followed by [register_service] *)
 
 val register_new_auxiliary_service_for_session :
+  server_params ->
   fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
            service ->
@@ -263,6 +274,7 @@ val register_new_post_auxiliary_service :
 (** Same as [new_post_auxiliary_service] followed by [register_post_service] *)
 
 val register_new_post_auxiliary_service_for_session :
+  server_params ->
   fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
             [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
            service ->
@@ -272,7 +284,7 @@ val register_new_post_auxiliary_service_for_session :
 (** Same as [new_post_auxiliary_service] followed by [register_post_service_for_session] *)
 
 val static_dir :
-    unit -> 
+  server_params -> 
   (string, unit, [ `Internal_Service of [ `Public_Service ] ], [ `WithSuffix ],
    string name, unit name)
   service
@@ -281,7 +293,7 @@ val static_dir :
    This service takes the name of the static file as a parameter.
  *)
 
-val close_session : unit -> unit
+val close_session : server_params -> unit
 (** Close the session *)
 
 
@@ -304,6 +316,7 @@ val register_action :
 (** Register an action in the global table *)
 
 val register_action_for_session :
+  server_params ->
   action:('a, 'b) action ->
   (server_params -> 'a -> unit) -> unit
 (** Register an action in the session table *)
@@ -314,6 +327,7 @@ val register_new_action :
 (** Same as [new_action] followed by [register_action] *)
 
 val register_new_action_for_session :
+  server_params ->
   params:('a, [ `WithoutSuffix ], 'b) params_type ->
   (server_params -> 'a -> unit) -> ('a, 'b) action
 (** Same as [new_action] followed by [register_action_for_session] *)

@@ -25,19 +25,19 @@ let create_form (group,(case,(case2,radio))) =
         submit_input "Envoyer"
      ]]
 
-let genere_form current_url = post_form post current_url create_form ()
+let genere_form sp = post_form post sp create_form ()
 
 let _ = register_service def
               (fun sp () () ->
                        (html
                            (head (title (pcdata "")) 
-			      [css_link (make_uri (static_dir ()) sp.current_url "style.css")])
-                           (body [genere_form sp.current_url])))
+			      [css_link (make_uri (static_dir sp) sp "style.css")])
+                           (body [genere_form sp])))
 
 let fonction sp () (group,(case,(case2, radio_opt))) = 
   (html
      (head (title (pcdata "")) 
-	[css_link (make_uri (static_dir ()) sp.current_url "style.css")])
+	[css_link (make_uri (static_dir sp) sp "style.css")])
      (body [h1 [pcdata group; br (); 
 		pcdata (if case
  		        then "Case cochée"
@@ -50,7 +50,7 @@ let fonction sp () (group,(case,(case2, radio_opt))) =
 		(match radio_opt with
 		  None -> pcdata "Pas de bouton radio enfoncé"
 		| Some nom -> pcdata ("Bouton radio : "^nom))]; 
-	    genere_form sp.current_url]))
+	    genere_form sp]))
 
 let _ = register_service post fonction
 
@@ -112,7 +112,7 @@ let create_listform f =
 
 let listform = register_new_service ["listform"] unit
   (fun sp () () -> 
-     let f = get_form coucou_list sp.current_url create_listform in
+     let f = get_form coucou_list sp create_listform in
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -336,7 +336,7 @@ let listform = register_new_service ["listform"] unit
   (fun sp () () ->
      let l = ["durand";"dupont";"dupond";"durateau"]
      and login = "sam" in
-     let f = get_form coucou_list sp.current_url (create_listform (l,login))
+     let f = get_form coucou_list sp (create_listform (l,login))
 in
      << <html>
           <head><title></title></head>
@@ -355,7 +355,7 @@ let public_session_with_post_params =
     ~post_params:(string "login")
 
 let accueil sp () () = 
-  let f = post_form public_session_with_post_params sp.current_url
+  let f = post_form public_session_with_post_params sp
     (fun login -> 
 	 [p [pcdata "login: ";
 	     string_input login]]) () in
@@ -370,8 +370,9 @@ let _ = register_service
 
 let rec launch_session sp () login =
   let close = register_new_auxiliary_service_for_session
+    sp
     ~fallback:public_session_without_post_params 
-    (fun sp () () -> close_session (); accueil sp () ())
+    (fun sp () () -> close_session sp; accueil sp () ())
   in
   let new_main_page sp () () =
     Messages.debug "plo";
@@ -381,9 +382,10 @@ let rec launch_session sp () login =
        (body [p [pcdata "Welcome ";
 		 pcdata login; 
 		 pcdata "!"; br ();
-		 a close sp.current_url [pcdata "close session"] ()]]))
+		 a close sp [pcdata "close session"] ()]]))
   in
   register_service_for_session 
+    sp
     ~service:public_session_without_post_params 
     (* service is any public service already registered *)
     new_main_page;
