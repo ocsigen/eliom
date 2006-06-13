@@ -773,7 +773,7 @@ let _ = register_service main
        <html> 
        <!-- This is a comment! -->
        <head>
-	 $css_link (make_uri static_dir url "style.css")$
+	 $css_link (make_uri (static_dir ()) url "style.css")$
 	 <title>Ocsigen Tutorial</title>
        </head>
        <body>

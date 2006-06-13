@@ -8,38 +8,44 @@ TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/ocsiprof.cmo serve
 OCSIMOREINSTALL = ocsimore/ocsimore.cma ocsimore/db_create.cmi ocsimore/ocsipersist.cmi ocsimore/ocsicache.cmi ocsimore/ocsidata.cmi ocsimore/ocsipages.cmi ocsimore/ocsisav.cmi ocsimore/ocsiboxes.cmi ocsimore/ocsexample_util.cmo ocsimore/ocsexample3.cmo ocsimore/ocsexample1.cmo ocsimore/ocsexample2.cmo
 PP = -pp "camlp4o ./lib/xhtmlsyntax.cma -loc loc"
 
-all: $(REPS)
+all: depend $(REPS)
 
 .PHONY: $(REPS) clean
 
 
 lwt:
-	$(MAKE) -C lwt depend all
+#	$(MAKE) -C lwt depend
+	$(MAKE) -C lwt all
 
 xmlp4:
-	$(MAKE) -C xmlp4 depend all
+	touch xmlp4/.depend
+	$(MAKE) -C xmlp4 depend
+	$(MAKE) -C xmlp4 all
 
 http :
-	$(MAKE) -C http depend all
+#	$(MAKE) -C http depend
+	$(MAKE) -C http all
 
 modules:
 	$(MAKE) -C modules all
 
 server:
-	$(MAKE) -C server depend all
+#	$(MAKE) -C server depend
+	$(MAKE) -C server all
 
 ocsimore:
 	@if (test '$(OCSIMORE)' = 'YES');\
 	then echo "Compiling Ocsimore";\
-	$(MAKE) -C ocsimore depend all;\
+	$(MAKE) -C ocsimore all;\
 	else echo "Skiping Ocsimore compilation";\
 	fi
 
 doc:
-	$(CAMLDOC) $(PP) -I lib -d doc -html server/ocsigen.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli
+	$(CAMLDOC) $(PP) -I lib -d doc -html server/ocsigen.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli messages.ml
 
 clean:
-	@for i in $(REPS) ocsimore ; do $(MAKE) -C $$i clean ; done
+	@for i in $(REPS) ; do touch "$$i"/.depend ; done
+	@for i in $(REPS) ; do $(MAKE) -C $$i clean ; rm -f "$$i"/.depend ; done
 	-rm -f lib/* *~
 	-rm -f bin/* *~
 

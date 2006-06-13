@@ -111,7 +111,7 @@ let reconstruct_relative_url_path current_url u suff =
   in 
 let aremonter, aaller = drop current_url u
   in let s = (makedotdot aremonter)^(reconstruct_url_path_suff aaller suff) in
-  (* print_endline ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s); *)
+  Messages.debug ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s);
   if s = "" then defaultpagename else s
 
 
@@ -900,8 +900,8 @@ let register_new_action_for_session ~params actionfun =
     a
 
 (** Satic directories **)
-let static_dir : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string name, unit name) service =
-  {url = [];
+let static_dir () : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string name, unit name) service =
+  {url = get_current_dir ();
    unique_id = counter ();
    url_state = None;
    url_prefix = true;

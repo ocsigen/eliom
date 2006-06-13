@@ -272,6 +272,7 @@ val register_new_post_auxiliary_service_for_session :
 (** Same as [new_post_auxiliary_service] followed by [register_post_service_for_session] *)
 
 val static_dir :
+    unit -> 
   (string, unit, [ `Internal_Service of [ `Public_Service ] ], [ `WithSuffix ],
    string name, unit name)
   service

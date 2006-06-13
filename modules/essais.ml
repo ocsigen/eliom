@@ -31,13 +31,13 @@ let _ = register_service def
               (fun sp () () ->
                        (html
                            (head (title (pcdata "")) 
-			      [css_link (make_uri static_dir sp.current_url "style.css")])
+			      [css_link (make_uri (static_dir ()) sp.current_url "style.css")])
                            (body [genere_form sp.current_url])))
 
 let fonction sp () (group,(case,(case2, radio_opt))) = 
   (html
      (head (title (pcdata "")) 
-	[css_link (make_uri static_dir sp.current_url "style.css")])
+	[css_link (make_uri (static_dir ()) sp.current_url "style.css")])
      (body [h1 [pcdata group; br (); 
 		pcdata (if case
  		        then "Case cochée"

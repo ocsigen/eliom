@@ -312,7 +312,8 @@ let find_static_page path =
       (match dir_option with
 	None -> dir
       | Some s -> s)^"/"^(Ocsigen.reconstruct_url_path (a::l))
-  in aux "/" (Ocsiconfig.get_static_tree ()) path
+  in 
+  aux "/" (Ocsiconfig.get_static_tree ()) path
 
 let service http_frame sockaddr 
     xhtml_sender file_sender empty_sender () =
@@ -350,6 +351,8 @@ let service http_frame sockaddr
 	      if params = "" then
 		try
 		  let filename = find_static_page path in
+		  Messages.debug ("--- Is it a static file? ("^filename^")");
+		  (Unix.lstat filename);
 		  Messages.debug ("--- Is it a static file? ("^filename^")");
 		  let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
 		  let filename = 
