@@ -2,7 +2,7 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= error_pages.ml ocsigen.ml ocsigenboxes.ml server.ml
+FILES= error_pages.ml ocsigen.ml ocsigenboxes.ml parseconfig.ml server.ml
 
 INSTALL = install
 CAMLC = ocamlfind ocamlc -g $(LIB)

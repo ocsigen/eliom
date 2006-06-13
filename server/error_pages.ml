@@ -18,5 +18,17 @@
 
 let page_error_param_type n = 
   << <html><body><h1>Wrong type for parameter <em>$str:n$</em></h1></body></html> >>
+
 let page_bad_param        = << <html><body><h1>Wrong parameters</h1></body></html> >>
+
 let page_session_expired  = << <html><body><h1>Session expired</h1></body></html> >>
+
+let error_page s =
+  << <html>
+       <body>
+          <h1> Error </h1>
+          <p>$str:s$</p>
+        </body>
+      </html>
+  >>
+
