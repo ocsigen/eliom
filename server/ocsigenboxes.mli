@@ -5,7 +5,7 @@ val menu : ?classe:XHTML.M.nmtoken list ->
         Ocsigen.service * Xhtmltypes.a_content XHTML.M.elt list)
        list ->
        (unit,unit, [<`Internal_Service of [<`Public_Service | `Local_Service] | `External_Service],'tipo, unit Ocsigen.name, unit Ocsigen.name) Ocsigen.service ->
-       Ocsigen.current_url -> [> `Ul ] XHTML.M.elt
+       Ocsigen.server_params -> [> `Ul ] XHTML.M.elt
 (** Creates a menu 
 
    Example:
@@ -14,7 +14,7 @@ val menu : ?classe:XHTML.M.nmtoken list ->
     [
      (home, <:xmllist< Home >>);
      (infos, <:xmllist< More infos >>)
-   ] current current_url]
+   ] current sp]
 
    Tip: How to make a menu with different kinds of services (external, internal...)?
 

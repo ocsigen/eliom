@@ -144,13 +144,13 @@ let links = register_new_service ["rep";"links"] unit
 	 (head (title (pcdata "")) [])
 	 (body 
 	    [p
-	       [a coucou sp.current_url [pcdata "coucou"] (); br ();
-		a hello sp.current_url [pcdata "hello"] (); br ();
-		a default sp.current_url 
+	       [a coucou sp [pcdata "coucou"] (); br ();
+		a hello sp [pcdata "hello"] (); br ();
+		a default sp 
 		  [pcdata "default page of the directory"] (); br ();
-                a uaprefix sp.current_url 
+                a uaprefix sp 
 		  [pcdata "uaprefix"] ("suff","toto"); br ();
-                a coucou_params sp.current_url 
+                a coucou_params sp 
 		  [pcdata "coucou_params"] (42,("ciao","hallo")); br ();
                 a
 	          (new_external_service
@@ -158,7 +158,7 @@ let links = register_new_service ["rep";"links"] unit
 		     ~prefix:true
 		     ~get_params:suffix_only
 		     ~post_params:unit ()) 
-                  sp.current_url
+                  sp
 	          [pcdata "ocaml on wikipedia"]
                   "OCaml"]])))
     
@@ -180,7 +180,7 @@ let _ = register_service linkrec
     (fun sp () () -> 
       << <html>
           <head><title></title></head>
-          <body><p>$a linkrec sp.current_url <:xmllist< click >> ()$</p></body>
+          <body><p>$a linkrec sp <:xmllist< click >> ()$</p></body>
          </html> >>)
 
 (* If some url are not registered, the server will not start:
@@ -216,7 +216,7 @@ let create_form =
 
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
-     let f = get_form coucou_params sp.current_url create_form in
+     let f = get_form coucou_params sp create_form in
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -283,7 +283,7 @@ let my_service_with_get_and_post = register_new_post_service
 let form2 = register_new_service ["form2"] unit
   (fun sp () () -> 
      let f =
-       (post_form my_service_with_post_params sp.current_url
+       (post_form my_service_with_post_params sp
 	  (fun chaine -> 
 	    [p [pcdata "Write a string: ";
 		string_input chaine]]) ()) in
@@ -294,7 +294,7 @@ let form2 = register_new_service ["form2"] unit
 let form3 = register_new_service ["form3"] unit
   (fun sp () () ->
      let f  = 
-       (post_form my_service_with_get_and_post sp.current_url
+       (post_form my_service_with_get_and_post sp
 	  (fun chaine -> 
 	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
 	  222) in
@@ -307,7 +307,7 @@ let form4 = register_new_service ["form4"] unit
 	  (new_external_service 
 	     ~url:["http://www.petizomverts.com"]
 	     ~get_params:(int "i")
-	     ~post_params:(string "chaine") ()) sp.current_url
+	     ~post_params:(string "chaine") ()) sp
 	  (fun chaine -> 
 	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
 	  222) in
@@ -349,16 +349,16 @@ let auxiliaryserv2 = new_auxiliary_service ~fallback:auxiliaryserv
 let _ = 
   let c = ref 0 in
   let page sp () () = 
-    let l3 = post_form auxiliaryserv2 sp.current_url 
+    let l3 = post_form auxiliaryserv2 sp 
 	(fun _ -> [p [submit_input "incr i (post)"]]) () in
-    let l4 = get_form auxiliaryserv2 sp.current_url 
+    let l4 = get_form auxiliaryserv2 sp 
 	(fun _ -> [p [submit_input "incr i (get)"]]) in
     (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "i is equal to ";
 		 pcdata (string_of_int !c); br ();
-		 a auxiliaryserv sp.current_url [pcdata "reload"] (); br ();
-		 a auxiliaryserv2 sp.current_url [pcdata "incr i"] ()];
+		 a auxiliaryserv sp [pcdata "reload"] (); br ();
+		 a auxiliaryserv2 sp [pcdata "incr i"] ()];
               l3;
 	      l4]))
   in
@@ -385,7 +385,7 @@ let public_session_with_post_params =
     ~post_params:(string "login")
 
 let accueil sp () () = 
-  let f = post_form public_session_with_post_params sp.current_url
+  let f = post_form public_session_with_post_params sp
     (fun login -> 
 	 [p [pcdata "login: ";
 	     string_input login]]) () in
@@ -409,10 +409,10 @@ let rec launch_session sp () login =
        (body [p [pcdata "Welcome ";
 		 pcdata login; 
 		 pcdata "!"; br ();
-		 a coucou sp.current_url [pcdata "coucou"] (); br ();
-		 a hello sp.current_url [pcdata "hello"] (); br ();
-		 a links sp.current_url [pcdata "links"] (); br ();
-		 a close sp.current_url [pcdata "close session"] ()]]))
+		 a coucou sp [pcdata "coucou"] (); br ();
+		 a hello sp [pcdata "hello"] (); br ();
+		 a links sp [pcdata "links"] (); br ();
+		 a close sp [pcdata "close session"] ()]]))
   in
   register_service_for_session 
     ~service:public_session_without_post_params 
@@ -477,7 +477,7 @@ let write_shop shop url =
 	  <:xmllist< <p> What do you want to buy? $sb$ </p> >>) ())
 
 let shop_public_main_page sp () () =
-  let f = write_shop shop_with_post_params sp.current_url in
+  let f = write_shop shop_with_post_params sp in
     << <html><body>$f$</body></html> >>
 
 let _ = 
@@ -503,7 +503,7 @@ let rec page_for_shopping_basket url shopping_basket =
       ~service:auxiliary_shop_with_post_params
       (fun sp () article -> 
 		 page_for_shopping_basket 
-		   sp.current_url (article::shopping_basket));
+		   sp (article::shopping_basket));
     register_service_for_session
       auxiliary_pay
       (fun sp () () ->
@@ -521,7 +521,7 @@ let rec page_for_shopping_basket url shopping_basket =
 
 let _ = register_service
   ~service:shop_with_post_params
-  (fun sp () article -> page_for_shopping_basket sp.current_url [article])
+  (fun sp () article -> page_for_shopping_basket sp [article])
 
 
 (* Queinnec example: *)
@@ -561,7 +561,7 @@ let _ =
 		  [p [pcdata (is^" + "^js^" = "^ijs)]])))
       in
       let f = 
-	post_form calc_result sp.current_url (create_form is) () in
+	post_form calc_result sp (create_form is) () in
       (html (head (title (pcdata "")) []) (body [f])))
 
     
@@ -576,7 +576,7 @@ let _ =
   register_service
     calc
     (fun sp () () ->
-      let f = post_form calc_post sp.current_url create_form () in
+      let f = post_form calc_post sp create_form () in
       (html (head (title (pcdata "")) []) (body [f])))
 
       
@@ -623,9 +623,9 @@ let rec launch_session login =
       (head (title (pcdata "")) [])
       (body [p [pcdata "Welcome ";
 		pcdata login; br ();
-		a coucou sp.current_url [pcdata "coucou"] (); br ();
-		a hello sp.current_url [pcdata "hello"] (); br ();
-		a links sp.current_url [pcdata "links"] (); br ()];
+		a coucou sp [pcdata "coucou"] (); br ();
+		a hello sp [pcdata "hello"] (); br ();
+		a links sp [pcdata "links"] (); br ()];
 	     deconnect_box sp [pcdata "Close session"]])
   in
   register_service_for_session ~service:action_session new_main_page;
@@ -705,7 +705,7 @@ let create_listform f =
 
 let listform = register_new_service ["listform"] unit
   (fun sp () () -> 
-     let f = get_form coucou_list sp.current_url create_listform in
+     let f = get_form coucou_list sp create_listform in
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -719,7 +719,7 @@ let create_suffixform (suff,i) =
 
 let suffixform = register_new_service ["suffixform"] unit
   (fun sp () () -> 
-     let f = get_form iprefix sp.current_url create_suffixform in
+     let f = get_form iprefix sp create_suffixform in
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -745,7 +745,7 @@ let create_form_bool casename =
 
 let form_bool = register_new_service ["formbool"] unit
   (fun sp () () -> 
-     let f = get_form bool_params sp.current_url create_form_bool in
+     let f = get_form bool_params sp create_form_bool in
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -758,7 +758,6 @@ let main = new_service [] unit ()
 
 let _ = register_service main
   (fun sp () () ->
-    let url = sp.current_url in
     (* Do not register a page after initialisation.
        This will cause an error:
        let coucou6 = 
@@ -773,7 +772,7 @@ let _ = register_service main
        <html> 
        <!-- This is a comment! -->
        <head>
-	 $css_link (make_uri (static_dir ()) url "style.css")$
+	 $css_link (make_uri (static_dir ()) sp "style.css")$
 	 <title>Ocsigen Tutorial</title>
        </head>
        <body>
@@ -781,50 +780,50 @@ let _ = register_service main
        <h2>Examples</h2>
        <h3>Simple pages</h3>
        <p>
-       Une page simple : $a coucou url <:xmllist< coucou >> ()$ <br/>
-       Une page avec un compteur : $a compt url <:xmllist< compt >> ()$ <br/> 
+       Une page simple : $a coucou sp <:xmllist< coucou >> ()$ <br/>
+       Une page avec un compteur : $a compt sp <:xmllist< compt >> ()$ <br/> 
        Une page simple dans un répertoire : 
-	   $a hello url <:xmllist< dir/hello >> ()$ <br/>
+	   $a hello sp <:xmllist< dir/hello >> ()$ <br/>
        Default page of a directory:
-           $a default url <:xmllist< rep/ >> ()$</p>
+           $a default sp <:xmllist< rep/ >> ()$</p>
        <h3>Parameters</h3>
        <p>
        Une page avec paramètres GET : 
-	   $a coucou_params url <:xmllist< coucou avec params >> (45,("hello","krokodile"))$ (que se passe-t-il si le premier paramètre n'est pas un entier ?)<br/> 
+	   $a coucou_params sp <:xmllist< coucou avec params >> (45,("hello","krokodile"))$ (que se passe-t-il si le premier paramètre n'est pas un entier ?)<br/> 
        Une page avec URL "préfixe" qui récupère l'IP et l'user-agent : 
-	   $a uaprefix url <:xmllist< uaprefix >> ("suf", "toto")$ <br/> 
+	   $a uaprefix sp <:xmllist< uaprefix >> ("suf", "toto")$ <br/> 
        Une page URL "préfixe" avec des paramètres GET : 
-	   $a iprefix url <:xmllist< iprefix >> ("popo", 333)$ <br/> 
+	   $a iprefix sp <:xmllist< iprefix >> ("popo", 333)$ <br/> 
        Une page qui récupère un paramètre d'un type utilisateur : 
-	     $a mytype url <:xmllist< mytype >> A$ </p>
+	     $a mytype sp <:xmllist< mytype >> A$ </p>
        <h3>Links and Formulars</h3>
        <p>
-       Une page avec des liens : $a links url <:xmllist< links >>  ()$ <br/> 
+       Une page avec des liens : $a links sp <:xmllist< links >>  ()$ <br/> 
        Une page avec un lien vers elle-même : 
-	     $a linkrec url <:xmllist< linkrec >> ()$ <br/>
-       The $a main url <:xmllist< default page >> ()$ 
+	     $a linkrec sp <:xmllist< linkrec >> ()$ <br/>
+       The $a main sp <:xmllist< default page >> ()$ 
 	   of this directory (myself) <br/>
        Une page avec un formulaire GET qui pointe vers la page coucou avec params : 
-	     $a form url <:xmllist< form >> ()$ <br/> 
+	     $a form sp <:xmllist< form >> ()$ <br/> 
        Un formulaire POST qui pointe vers la page "post" : 
-	     $a form2 url <:xmllist< form2 >> ()$ <br/> 
+	     $a form2 sp <:xmllist< form2 >> ()$ <br/> 
        La page "post" quand elle ne reçoit pas de paramètres POST : 
-	     $a no_post_param_service url <:xmllist< post sans post_params >> ()$ <br/> 
+	     $a no_post_param_service sp <:xmllist< post sans post_params >> ()$ <br/> 
        Un formulaire POST qui pointe vers une URL avec paramètres GET : 
-	     $a form3 url <:xmllist< form3 >> ()$ <br/> 
+	     $a form3 sp <:xmllist< form3 >> ()$ <br/> 
        Un formulaire POST vers une page externe : 
-	     $a form4 url <:xmllist< form4 >> ()$ </p> 
+	     $a form4 sp <:xmllist< form4 >> ()$ </p> 
        <h3>Sessions</h3>
        <p>
        Service locaux : 
-	     $a auxiliaryserv url <:xmllist< auxiliary >> ()$ (problème des paramètres GET bookmarkés...) <br/> 
+	     $a auxiliaryserv sp <:xmllist< auxiliary >> ()$ (problème des paramètres GET bookmarkés...) <br/> 
        Une session basée sur les cookies : 
-	     $a public_session_without_post_params url <:xmllist< session >> ()$ <br/> 
+	     $a public_session_without_post_params sp <:xmllist< session >> ()$ <br/> 
        Une session avec des actions : 
-	     $a action_session url <:xmllist< actions >> ()$ <br/>
-       Une session avec "url de sessions" : 
-	     $a calc url <:xmllist< calc >> ()$
-       - (ancienne version : $a shop_without_post_params url <:xmllist< shop >> ()$)
+	     $a action_session sp <:xmllist< actions >> ()$ <br/>
+       Une session avec "table de sessions" : 
+	     $a calc sp <:xmllist< calc >> ()$
+       - (ancienne version : $a shop_without_post_params sp <:xmllist< shop >> ()$)
        </p>
        </body>
      </html> >>)

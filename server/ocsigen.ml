@@ -924,14 +924,14 @@ let make_a ?(a=[]) l = XHTML.M.a ~a:a l
 
 let a ?(a=[])
     (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) 
-    (current_url : current_url) content
+    (sp : server_params) content
     (getparams : 'get) : [>a] elt =
   let suff,params_string = construct_params service.get_params_type getparams in
   let suff = (if service.url_prefix then Some suff else None) in
   let uri = 
     (if service.external_service 
-    then (reconstruct_absolute_url_path current_url service.url suff)
-    else (reconstruct_relative_url_path current_url service.url suff))
+    then (reconstruct_absolute_url_path sp.current_url service.url suff)
+    else (reconstruct_relative_url_path sp.current_url service.url suff))
   in
   match service.url_state with
     None ->
@@ -1027,12 +1027,12 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
     
 let get_form ?(a=[])
     (service : ('get,unit,'kind,'tipo,'gn,unit name) service) 
-    (current_url : current_url)
+    (sp : server_params)
     (f : 'gn -> form_content elt list) : [>form] elt =
   let urlname =
     (if service.external_service
-    then (reconstruct_absolute_url_path current_url service.url None)
-    else (reconstruct_relative_url_path current_url service.url None)) in
+    then (reconstruct_absolute_url_path sp.current_url service.url None)
+    else (reconstruct_relative_url_path sp.current_url service.url None)) in
   let state_param =
     (match  service.url_state with
       None -> []
@@ -1048,14 +1048,15 @@ let get_form ?(a=[])
     inside
 
 let post_form ?(a=[])
-    (service : ('get,'form,'kind,'tipo,'gn,'pn) service) (current_url : current_url)
+    (service : ('get,'form,'kind,'tipo,'gn,'pn) service) 
+    (sp : server_params)
     (f : 'pn -> form_content elt list) (getparams : 'get) : [>form] elt =
   let suff,params_string = construct_params service.get_params_type getparams in
   let suff = (if service.url_prefix then Some suff else None) in
   let urlname = 
     (if service.external_service 
-    then (reconstruct_absolute_url_path current_url service.url suff)
-    else (reconstruct_relative_url_path current_url service.url suff))
+    then (reconstruct_absolute_url_path sp.current_url service.url suff)
+    else (reconstruct_relative_url_path sp.current_url service.url suff))
   in
   let state_param =
     (match  service.url_state with
@@ -1073,14 +1074,14 @@ let post_form ?(a=[])
     inside
 
 let make_uri 
-    (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) current_url
+    (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) sp
     (getparams : 'get) : uri =
   let suff,params_string = construct_params service.get_params_type getparams in
   let suff = (if service.url_prefix then Some suff else None) in
   let uri = 
     (if service.external_service 
-    then (reconstruct_absolute_url_path current_url service.url suff)
-    else (reconstruct_relative_url_path current_url service.url suff))
+    then (reconstruct_absolute_url_path sp.current_url service.url suff)
+    else (reconstruct_relative_url_path sp.current_url service.url suff))
   in
   match service.url_state with
     None ->
