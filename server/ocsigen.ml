@@ -53,17 +53,6 @@ let remove_slash = function
   | ""::l -> l
   | l -> l
 
-(* The current working directory *)
-let absolute_change_dir, get_current_dir =
-  let current_dir : url_path ref = ref [] in
-  ((fun dir -> current_dir := remove_slash dir), 
-   (fun () -> !current_dir))
-(* Warning: these functions are used only during the initialisation
-phase, which is not threaded ... That's why it works, but ...
-it is not really clean ... public registration relies on this
-directory (defined for each site in the config file) 
-*)
-
 let defaultpagename = "index"
 
 
@@ -656,6 +645,25 @@ type ('get,'post,'kind,'tipo,'getnames,'postnames) service =
      post_params_type: ('post,[`WithoutSuffix],'postnames) params_type;
     }
 
+
+(* The current registration directory *)
+let absolute_change_dir, get_current_dir, end_current_dir =
+  let current_dir : url_path ref = ref [] in
+  let f1 = ref (fun dir -> current_dir := remove_slash dir) in
+  let f2 = ref (fun () -> !current_dir) in
+  let exn1 _ = 
+    raise (Ocsigen_Internal_Error "absolute_change_dir after init") in
+  let exn2 () = 
+    raise (Ocsigen_Internal_Error "get_current_dir after init") in
+  ((fun dir -> !f1 dir),
+   (fun () -> !f2 ()),
+   (fun () -> f1 := exn1; f2 := exn2))
+(* Warning: these functions are used only during the initialisation
+phase, which is not threaded ... That's why it works, but ...
+it is not really clean ... public registration relies on this
+directory (defined for each site in the config file) 
+*)
+
 let add_unregistered, remove_unregistered, verify_all_registered =
   let l = ref [] in
   ((fun a -> l := a::!l),
@@ -669,6 +677,7 @@ let during_initialisation, end_initialisation =
   ((fun () -> !init), 
    (fun () -> 
      init := false;
+     end_current_dir ();
      verify_all_registered ()))
 
 let during_ocsigen_module_loading, 
