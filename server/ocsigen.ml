@@ -20,8 +20,6 @@
 
 open Http_frame
 open Http_com
-open XHTML.M
-open Xhtmltypes
 
 let _ = Random.self_init ()
 
@@ -36,111 +34,134 @@ let rec list_assoc_remove a = function
   | b::l -> let v,ll = list_assoc_remove a l in v,b::ll
 
 
+module Make = functor
+  (Pages : sig
 (** Type of answers from modules (web pages) *)
-type page = xhtml elt
+    type page
+    type form_content_elt
+    type form_elt
+    type a_content_elt
+    type a_elt
+    type div_content_elt
+    type uri
+    val make_a : ?a:unit list -> href:string -> a_content_elt list -> a_elt
+    val make_get_form : ?a:unit list -> action:string -> 
+      form_content_elt -> form_content_elt list -> form_elt
+    val make_post_form : ?a:unit list -> ?id:string -> ?hidden:bool -> 
+      action:string -> form_content_elt -> form_content_elt list -> unit
+    val make_hidden_field : div_content_elt -> form_content_elt
+    val make_empty_form_content : unit -> form_content_elt
+    val make_input : ?a:unit list -> ?name:string -> 
+      ?value:string -> typ:[`Button | `Checkbox | `File | `Hidden | `Image
+    | `Password | `Radio | `Reset | `Submit | `Text] -> unit -> div_content_elt
+    val make_textarea : ?a:unit list -> ?name:string -> div_content_elt
+    val make_div : style:string -> a_elt list -> form_content_elt
+    val make_uri_from_string : string -> uri
+   end) ->
+  struct
 
 (** type of URL, without parameter *)
-type url_path = string list
-type current_url = string list
-type current_dir = string list
+    type url_path = string list
+    type current_url = string list
+    type current_dir = string list
 
-let string_list_of_current_url x = x
+    let string_list_of_current_url x = x
 
 
 (** various functions for URLs *)
-let remove_slash = function
-    [] -> []
-  | ""::l -> l
-  | l -> l
+    let remove_slash = function
+	[] -> []
+      | ""::l -> l
+      | l -> l
 
-let defaultpagename = "index"
+    let defaultpagename = "index"
 
 
-let change_empty_list = function
-    [] -> [""] (* It is not possible to register an empty URL *)
-  | l -> l
+    let change_empty_list = function
+	[] -> [""] (* It is not possible to register an empty URL *)
+      | l -> l
 
 
 (* En fait cette fonction est dans Neturl (split_path)
-let rec cut_url s = 
-  try
-    let length = String.length s in
-      if length = 0 then []
-      else
-	let pos_slash = String.index s '/' in
-	  if pos_slash = 0 
-	  then cut_url (String.sub s 1 (length-1))
-	  else 
-	    let prefix = String.sub s 0 pos_slash in
-	      (*  if length > (pos_slash+1)
-		  then *)
-	      prefix::(cut_url (String.sub s (pos_slash+1) (length - pos_slash - 1)))
-		(* else [prefix] *)
-  with _ -> [s]
-*)
+   let rec cut_url s = 
+   try
+   let length = String.length s in
+   if length = 0 then []
+   else
+   let pos_slash = String.index s '/' in
+   if pos_slash = 0 
+   then cut_url (String.sub s 1 (length-1))
+   else 
+   let prefix = String.sub s 0 pos_slash in
+   (*  if length > (pos_slash+1)
+      then *)
+   prefix::(cut_url (String.sub s (pos_slash+1) (length - pos_slash - 1)))
+   (* else [prefix] *)
+   with _ -> [s]
+ *)
 
 
-let rec reconstruct_url_path = function
-    [] -> ""
-  | [a] -> a
-  | a::l -> a^"/"^(reconstruct_url_path l)
+    let rec reconstruct_url_path = function
+	[] -> ""
+      | [a] -> a
+      | a::l -> a^"/"^(reconstruct_url_path l)
 
-let rec reconstruct_url_path_suff u = function
-    None -> reconstruct_url_path u
-  | Some suff -> let deb = (reconstruct_url_path u) in
-    if deb = "" then suff else deb^"/"^suff
+    let rec reconstruct_url_path_suff u = function
+	None -> reconstruct_url_path u
+      | Some suff -> let deb = (reconstruct_url_path u) in
+	if deb = "" then suff else deb^"/"^suff
 
-let reconstruct_absolute_url_path current_url = reconstruct_url_path_suff
+    let reconstruct_absolute_url_path current_url = reconstruct_url_path_suff
 
-let reconstruct_relative_url_path current_url u suff =
-  let rec drop cururl desturl = match cururl, desturl with
-    | a::l, [b] -> l, desturl
-    | [a], m -> [], m
-    | a::l, b::m when a = b -> drop l m
-    | a::l, m -> l, m
-    | [], m -> [], m
-  in let rec makedotdot = function
-    | [] -> ""
+    let reconstruct_relative_url_path current_url u suff =
+      let rec drop cururl desturl = match cururl, desturl with
+      | a::l, [b] -> l, desturl
+      | [a], m -> [], m
+      | a::l, b::m when a = b -> drop l m
+      | a::l, m -> l, m
+      | [], m -> [], m
+      in let rec makedotdot = function
+	| [] -> ""
 (*    | [a] -> "" *)
-    | _::l -> "../"^(makedotdot l)
-  in 
-let aremonter, aaller = drop current_url u
-  in let s = (makedotdot aremonter)^(reconstruct_url_path_suff aaller suff) in
-  Messages.debug ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s);
-  if s = "" then defaultpagename else s
+	| _::l -> "../"^(makedotdot l)
+      in 
+      let aremonter, aaller = drop current_url u
+      in let s = (makedotdot aremonter)^(reconstruct_url_path_suff aaller suff) in
+      Messages.debug ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s);
+      if s = "" then defaultpagename else s
 
 
 
 (** state is a parameter to differenciate
-    several instances of the same URL.
-	(for internal use)
+   several instances of the same URL.
+   (for internal use)
  *)
-type internal_state = int
+    type internal_state = int
 
-let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
+    let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 
-let new_state =
-  let c : internal_state ref = ref (Random.int 1000000) in
-  fun () -> c := !c + 1 ; Some !c
+    let new_state =
+      let c : internal_state ref = ref (Random.int 1000000) in
+      fun () -> c := !c + 1 ; Some !c
 
 
-exception Ocsigen_Internal_Error of string
-exception Ocsigen_Typing_Error of string
-exception Ocsigen_Wrong_parameter
-exception Ocsigen_Is_a_directory
-exception Ocsigen_404
-exception Ocsigen_page_erasing of string
-exception Ocsigen_service_created_outside_site_loading
-exception Ocsigen_there_are_unregistered_services of string
-exception Ocsigen_duplicate_registering of string
-exception Ocsigen_register_for_session_outside_session
+    exception Ocsigen_Internal_Error of string
+    exception Ocsigen_Typing_Error of string
+    exception Ocsigen_Wrong_parameter
+    exception Ocsigen_Is_a_directory
+    exception Ocsigen_404
+    exception Ocsigen_page_erasing of string
+    exception Ocsigen_service_created_outside_site_loading
+    exception Ocsigen_there_are_unregistered_services of string
+    exception Ocsigen_duplicate_registering of string
+    exception Ocsigen_register_for_session_outside_session
 
-let id x = x
+    let id x = x
 
 (** Type of names in a formular *)
-type 'a name = string
+    type 'a name = string
 
-type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
+    type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
 
 let ocsigen_suffix_name = "__ocsigen_suffix"
 
@@ -210,20 +231,6 @@ let concat_strings s1 sep s2 = match s1,s2 with
 let reconstruct_params 
     (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type) 
     params urlsuffix : 'a = 
-(* AEFFFFFFFFFFFFFFF
-  let rec aux_list t params name pref suff =
-    let length,l = list_assoc_remove (pref^name^suff) params in
-    let long = try int_of_string length 
-    with _ -> raise (Ocsigen_Typing_Error (pref^name^suff)) in
-    let rec aa i p pref suff =
-      if i=long 
-      then (Obj.magic []), p
-      else
-	let v,l = Obj.magic (aux t p pref (suff^(make_list_suffix i))) in
-	let v2,l2 = aa (i+1) l pref suff in
-	(Obj.magic (v::v2)),l2
-    in 
-    aa 0 params (pref^name^".") suff *)
   let rec aux_list t params name pref suff =
     let rec aa i lp pref suff =
       try
@@ -295,8 +302,8 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
       | Some v -> aux t v pref suff)
     | TBool name -> 
 	(if ((Obj.magic params) : bool)
-         then pref^name^suff^"="^"on"
-	 else "")
+        then pref^name^suff^"="^"on"
+	else "")
     | TList (list_name, t) -> 
 	let pref2 = pref^list_name^suff^"." in
 	fst 
@@ -305,17 +312,6 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
 	       let ss = 
 		 aux t p pref2 (suff^(make_list_suffix i)) in
 	       ((concat_strings s "&" ss),(i+1))) ("",0) (Obj.magic params))
-(* AEFFFFFFFF
-	let long = List.length ((Obj.magic params) : 'a list) in
-	let beg = (pref^list_name^suff^"="^(string_of_int long)) in
-	let pref2 = pref^list_name^suff^"." in
-	fst 
-	  (List.fold_left
-	     (fun (s,i) p -> 
-	       let ss = 
-		 aux t p pref2 (suff^(make_list_suffix i)) in
-	       ((concat_strings s "&" ss),(i+1))) (beg,0) (Obj.magic params))
-*)
     | TSum (t1, t2) -> (match Obj.magic params with
 	Inj1 v -> aux t1 v pref suff
       | Inj2 v -> aux t2 v pref suff)
@@ -334,14 +330,14 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
 
 
 type 'a server_params1 = {full_url: string;
-		      user_agent: string;
-		      ip: Unix.inet_addr;
-		      get_params: (string * string) list;
-		      post_params: (string * string) list;
-		      current_url: current_url;
-		      current_dir: current_dir;
-		      session_table: 'a ref
-		    }
+			  user_agent: string;
+			  ip: Unix.inet_addr;
+			  get_params: (string * string) list;
+			  post_params: (string * string) list;
+			  current_url: current_url;
+			  current_dir: current_dir;
+			  session_table: 'a ref
+			}
       
 type 'a server_params2 = url_path * 'a server_params1
       
@@ -362,7 +358,7 @@ module type DIRECTORYTREE =
     val empty_tables : unit -> tables
     val are_empty_tables : tables -> bool
     val add_service : tables -> current_dir -> bool -> url_path -> 
-      page_table_key * (int * (tables server_params2 -> page)) -> unit
+      page_table_key * (int * (tables server_params2 -> Pages.page)) -> unit
     val add_action :
 	tables -> current_dir
 	  -> string -> (tables server_params1 -> unit) -> unit
@@ -371,7 +367,7 @@ module type DIRECTORYTREE =
 	  tables ref * 
 	    current_url * internal_state option * (string * string) list *
 	    (string * string) list * string * Unix.inet_addr * string -> 
-	      page * url_path
+	      Pages.page * url_path
     val find_action :
 	tables -> string -> (tables server_params1 -> unit) * url_path
   end
@@ -383,16 +379,17 @@ module Directorytree : DIRECTORYTREE = struct
   type page_table_key =
       {prefix:bool;
        state: internal_state option}
-       (* action: tables server_params2 -> page *)
+	(* action: tables server_params2 -> page *)
 
-  (* module Page_Table = Map.Make(struct type t = page_table_key 
-				      let compare = compare end) *)
+	(* module Page_Table = Map.Make(struct type t = page_table_key 
+	   let compare = compare end) *)
 
   module String_Table = Map.Make(struct type t = string
-					let compare = compare end)
+    let compare = compare end)
 
   type page_table = 
-      (page_table_key * ((int * ((tables server_params2 -> page) * url_path)) list)) list
+      (page_table_key * ((int * ((tables server_params2 -> Pages.page) 
+				   * url_path)) list)) list
 	(* Here, the url_path is the working directory.
 	   That is, the directory in which we are when we register
 	   dynamically the pages.
@@ -415,7 +412,7 @@ module Directorytree : DIRECTORYTREE = struct
   and tables = dircontent ref * action_table ref
 
 
-  (** Create server parameters record *)
+	(** Create server parameters record *)
   let make_server_params
       dir st url fullurl get_params post_params useragent ip = 
     {full_url= fullurl;
@@ -435,14 +432,14 @@ module Directorytree : DIRECTORYTREE = struct
   let find_page_table t (str,url,getp,postp,ua,ip,fullurl,urlsuffix) k = 
     let sp = make_server_params [] str url fullurl getp postp ua ip in
     let rec aux = function
-      [] -> raise Ocsigen_Wrong_parameter
-    | (_,(funct,working_dir))::l ->
-	try
-	  Messages.debug "Je vais exécuter";
-	  let p = funct (urlsuffix, {sp with current_dir = working_dir}) in
-	  Messages.debug "Page found";
-	  p,working_dir
-	with Ocsigen_Wrong_parameter -> aux l
+	[] -> raise Ocsigen_Wrong_parameter
+      | (_,(funct,working_dir))::l ->
+	  try
+	    Messages.debug "Je vais exécuter";
+	    let p = funct (urlsuffix, {sp with current_dir = working_dir}) in
+	    Messages.debug "Page found";
+	    p,working_dir
+	  with Ocsigen_Wrong_parameter -> aux l
     in 
     let r = try List.assoc k t with Not_found -> raise Ocsigen_404 in
     aux r
@@ -451,7 +448,7 @@ module Directorytree : DIRECTORYTREE = struct
     (* Duplicate registering forbidden in global table *)
     try
       let l,newt = list_assoc_remove key t in
-      try 
+      try
 (********** Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ! *)
 	let _,oldl = list_assoc_remove id l in
 	if not session then
@@ -472,13 +469,13 @@ module Directorytree : DIRECTORYTREE = struct
 
   let add_action_table at (key,elt) = 
     match at with
-	AVide -> ATable (String_Table.add key elt String_Table.empty)
-      | ATable t -> ATable (String_Table.add key elt t)
+      AVide -> ATable (String_Table.add key elt String_Table.empty)
+    | ATable t -> ATable (String_Table.add key elt t)
 
   let find_action_table at k = 
     match at with
-	AVide -> raise Not_found
-      | ATable t -> String_Table.find k t
+      AVide -> raise Not_found
+    | ATable t -> String_Table.find k t
 
   let empty_tables () = 
     (ref (empty_dircontent ()), ref (empty_action_table ()))
@@ -502,11 +499,11 @@ module Directorytree : DIRECTORYTREE = struct
 	match !direltref with
 	  Dir dcr -> search dcr l
 	| File ptr -> raise (Ocsigen_page_erasing a)
-	    (* Messages.warning ("Ocsigen page registering: Page "^
-				 a^" has been replaced by a directory");
-	    let newdcr = ref (empty_dircontent ()) in
-	    (direltref := Dir newdcr;
-	     search newdcr l) *)
+	      (* Messages.warning ("Ocsigen page registering: Page "^
+		 a^" has been replaced by a directory");
+		 let newdcr = ref (empty_dircontent ()) in
+		 (direltref := Dir newdcr;
+		 search newdcr l) *)
       with
 	Not_found -> 
 	  let newdcr = ref (empty_dircontent ()) in
@@ -515,41 +512,41 @@ module Directorytree : DIRECTORYTREE = struct
 	   search newdcr l)
     in 
     let rec search_page_table_ref dircontentref = function
-          [] | [""] -> search_page_table_ref dircontentref [defaultpagename]
-	| [a] -> 
-	    (try 
-	      let direltref = find_dircontent !dircontentref a in
-	      (match !direltref with
-		Dir _ -> raise (Ocsigen_page_erasing a)
+        [] | [""] -> search_page_table_ref dircontentref [defaultpagename]
+      | [a] -> 
+	  (try 
+	    let direltref = find_dircontent !dircontentref a in
+	    (match !direltref with
+	      Dir _ -> raise (Ocsigen_page_erasing a)
 		  (* Messages.warning ("Ocsigen page registering: Directory "^
-				       a^" has been replaced by a page");
-		  let newpagetableref = ref (empty_page_table ()) in
-		  (direltref := File newpagetableref;
-		   newpagetableref) *)
-	      | File ptr -> ptr)
-	    with
-	      Not_found ->
-		let newpagetableref = ref (empty_page_table ()) in
-		(dircontentref := 
-		  add_dircontent !dircontentref (a,ref (File newpagetableref));
-		 newpagetableref))
-	| ""::l -> search_page_table_ref dircontentref l
-	| a::l -> aux search_page_table_ref dircontentref a l
-    (* and search_dircontentref dircontentref = function
-          [] -> dircontentref
-	| ""::l -> search_dircontentref dircontentref l
-	| a::l -> aux search_dircontentref a l *)
+		     a^" has been replaced by a page");
+		     let newpagetableref = ref (empty_page_table ()) in
+		     (direltref := File newpagetableref;
+		     newpagetableref) *)
+	    | File ptr -> ptr)
+	  with
+	    Not_found ->
+	      let newpagetableref = ref (empty_page_table ()) in
+	      (dircontentref := 
+		add_dircontent !dircontentref (a,ref (File newpagetableref));
+	       newpagetableref))
+      | ""::l -> search_page_table_ref dircontentref l
+      | a::l -> aux search_page_table_ref dircontentref a l
+	    (* and search_dircontentref dircontentref = function
+               [] -> dircontentref
+	       | ""::l -> search_dircontentref dircontentref l
+	       | a::l -> aux search_dircontentref a l *)
     in
     let content = ({prefix = page_table_key.prefix;
 		    state = page_table_key.state},
-		    (unique_id, (action, current_dir))) in
+		   (unique_id, (action, current_dir))) in
     (* let current_dircontentref = 
-      search_dircontentref dircontentref current_dir) in *)
+       search_dircontentref dircontentref current_dir) in *)
     let page_table_ref = 
       search_page_table_ref (*current_*) dircontentref url_act in
     page_table_ref := add_page_table session url_act !page_table_ref content
 
-	 
+	
   let find_service 
       (dircontentref,_)
       (session_table_ref, 
@@ -610,10 +607,10 @@ let new_session_tables = empty_tables
 
 (* The table of tables for each session. Keys are (hostname,cookie) *)
 module Cookies = Hashtbl.Make(struct 
-				type t = Unix.inet_addr * string
-				let equal = (=)
-				let hash = Hashtbl.hash
-			      end)
+  type t = Unix.inet_addr * string
+  let equal = (=)
+  let hash = Hashtbl.hash
+end)
 
 let cookie_table = Cookies.create 100
 
@@ -634,16 +631,16 @@ type ('get,'post,'kind,'tipo,'getnames,'postnames) service =
      url_prefix: bool;
      external_service: bool;
      url_state: internal_state option;
-       (* 'kind is just a type information: it can be only 
-	  `Internal_Service `Public_Service or `Internal_Service `Local_Service
-	  or `External_Service, so that we can't use session services as fallbacks for
-	  other session services. If it is a session service, it contains a value
-	  (internal state) that will allow to differenciate between
-	  services that have the same url.
-	*)
+     (* 'kind is just a type information: it can be only 
+	`Internal_Service `Public_Service or `Internal_Service `Local_Service
+	or `External_Service, so that we can't use session services as fallbacks for
+	other session services. If it is a session service, it contains a value
+	(internal state) that will allow to differenciate between
+	services that have the same url.
+      *)
      get_params_type: ('get,'tipo,'getnames) params_type;
      post_params_type: ('post,[`WithoutSuffix],'postnames) params_type;
-    }
+   }
 
 
 (* The current registration directory *)
@@ -659,10 +656,10 @@ let absolute_change_dir, get_current_dir, end_current_dir =
    (fun () -> !f2 ()),
    (fun () -> f1 := exn1; f2 := exn2))
 (* Warning: these functions are used only during the initialisation
-phase, which is not threaded ... That's why it works, but ...
-it is not really clean ... public registration relies on this
-directory (defined for each site in the config file) 
-*)
+   phase, which is not threaded ... That's why it works, but ...
+   it is not really clean ... public registration relies on this
+   directory (defined for each site in the config file) 
+ *)
 
 let add_unregistered, remove_unregistered, verify_all_registered =
   let l = ref [] in
@@ -707,7 +704,7 @@ let new_service_aux_aux
    external_service = external_service;
    get_params_type = get_params;
    post_params_type = post_params;
-  }
+ }
 
 let new_service_aux
     ~(url : url_path)
@@ -749,7 +746,7 @@ let new_service
   new_service_aux ~url ~prefix ~get_params
 
 let new_auxiliary_service
-   ~(fallback : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
+    ~(fallback : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
     : ('get,unit,[`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
   {fallback with url_state = new_state ()}
 
@@ -834,7 +831,7 @@ let new_post_service_aux
    url_state = None;
    get_params_type = fallback.get_params_type;
    post_params_type = post_params;
-  }
+ }
 
 let new_post_service
     ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit name) service)
@@ -844,7 +841,7 @@ let new_post_service
     let u = new_post_service_aux fallback post_params in
     add_unregistered (u.url,u.unique_id); u
   else raise Ocsigen_service_created_outside_site_loading
-  
+      
 let new_post_auxiliary_service
     ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn2) params_type)
@@ -852,7 +849,7 @@ let new_post_auxiliary_service
   {fallback with 
    url_state = new_state ();
    post_params_type = post_params;
-  }
+ }
 
 let register_new_post_service 
     ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit name) service)
@@ -896,10 +893,10 @@ let new_action_name () = string_of_int (counter ())
 
 let new_action
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type) =
-    {
-     action_name = new_action_name ();
-     action_params_type = post_params;
-   }
+  {
+   action_name = new_action_name ();
+   action_params_type = post_params;
+ }
 
 let register_action_aux current_dir tables ~action actionfun =
   add_action tables current_dir 
@@ -914,8 +911,8 @@ let register_action
 
 let register_new_action ~post_params actionfun = 
   let a = new_action post_params in
-    register_action a actionfun;
-    a
+  register_action a actionfun;
+  a
 
 let register_action_for_session sp ~action actionfun =
   register_action_aux sp.current_dir !(sp.session_table) action actionfun
@@ -923,8 +920,8 @@ let register_action_for_session sp ~action actionfun =
 
 let register_new_action_for_session sp ~params actionfun =
   let a = new_action params in
-    register_action_for_session sp a actionfun;
-    a
+  register_action_for_session sp a actionfun;
+  a
 
 (** Satic directories **)
 let static_dir sp : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string name, unit name) service =
@@ -935,7 +932,7 @@ let static_dir sp : (string, unit, [`Internal_Service of [`Public_Service]],[`Wi
    external_service = false;
    get_params_type = suffix_only;
    post_params_type = unit
-  }
+ }
 
 
 
@@ -947,12 +944,10 @@ let state_param_name = "__ocsigen_etat__"
 
 (** Functions to construct web pages: *)
 
-let make_a ?(a=[]) l = XHTML.M.a ~a:a l
-
 let a ?(a=[])
     (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) 
     (sp : server_params) content
-    (getparams : 'get) : [>a] elt =
+    (getparams : 'get) =
   let suff,params_string = construct_params service.get_params_type getparams in
   let suff = (if service.url_prefix then Some suff else None) in
   let uri = 
@@ -962,17 +957,14 @@ let a ?(a=[])
   in
   match service.url_state with
     None ->
-      make_a ~a:((a_href (make_uri_from_string 
-			    (add_to_string uri "?" params_string)))::a) 
-	content
+      Pages.make_a ~a:a ~href:(add_to_string uri "?" params_string) content
   | Some i -> 
-      make_a ~a:((a_href (make_uri_from_string 
-			    (add_to_string 
-			       (uri^"?"^state_param_name^"="^(string_of_int i))
-			       "&" params_string)))::a)
+      Pages.make_a ~a:a 
+	~href:(add_to_string 
+		 (uri^"?"^state_param_name^"="^(string_of_int i))
+		 "&" params_string)
 	content
-	
-let a_ = a
+
 (* avec un formulaire caché (ça marche mais ce n'est pas du xhtml valide
    let stateparam = string_of_int i in
    let formname="hiddenform"^(string_of_int (counter ())) in
@@ -998,25 +990,6 @@ let a_ = a
 
  *)
 
-let css_link ?(a=[]) uri =
-      link ~a:((a_href uri)::
-	       (a_type "text/css")::(a_rel [`Stylesheet])::a) ()
-
-let js_script ?(a=[]) uri =
-  script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
-
-(*
-let css_link ?(a=[]) (service : ('a, form_content elt list,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) service) current_url =
-  service.create_link_url current_url
-    (fun v -> 
-      link ~a:((a_href (make_uri_from_string  v))::(a_type "text/css")::(a_rel [`Stylesheet])::a) ())
-
-let script ?(a=[]) (service : ('a, form_content elt list,'ca,'cform,'curi(*'cimg,'clink,'cscript*),'d,'e,'f,'g) service) current_url =
-  service.create_script_url current_url
-    (fun v -> 
-      script ~a:((a_src v)::a) ~contenttype:"text/javascript" (pcdata ""))
-*)
-
 let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
   let rec aux prefix suffix = function
       TProd (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
@@ -1040,44 +1013,35 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
 		     @l2))
 		  l
 		  (length,endlist)))}
-(* AEFFFFFFFFFFFFFFFF
-	     let length = List.length l in
-	     snd
-	       (List.fold_right 
-		  (fun el (i,l2) -> 
-		    let i'= i-1 in
-		    (i',(f (aux (prefix^name^".") (make_list_suffix i') t1) el)
-		     @l2))
-		  l
-		  (length,endlist)))} *)
   in aux "" "" params
     
 let get_form ?(a=[])
     (service : ('get,unit,'kind,'tipo,'gn,unit name) service) 
     (sp : server_params)
-    (f : 'gn -> form_content elt list) : [>form] elt =
+    (f : 'gn -> Pages.form_content_elt list) =
   let urlname =
     (if service.external_service
     then (reconstruct_absolute_url_path sp.current_url service.url None)
     else (reconstruct_relative_url_path sp.current_url service.url None)) in
   let state_param =
     (match  service.url_state with
-      None -> []
+      None -> None
     | Some i -> 
 	let i' = string_of_int i in
-	[<< <input type="hidden" name=$state_param_name$ value=$i'$/> >>])
+	Some (Pages.make_input ~typ:`Hidden ~name:state_param_name ~value:i' ()))
   in
   let inside = f (make_params_names service.get_params_type) in
-  form ~a:((a_method `Get)::a) ~action:(make_uri_from_string urlname)
-    << <p style="display:none">
-      $list:state_param$
-      </p> >>
-    inside
+  let i1, i =
+    match state_param, inside with
+      Some s, i -> (Pages.make_hidden_field s),i
+    | None, i1::i -> i1, i
+    | None, [] -> (Pages.make_empty_form_content ()),[]
+  in Pages.make_get_form ~a:a ~action:urlname i1 i
 
 let post_form ?(a=[])
     (service : ('get,'form,'kind,'tipo,'gn,'pn) service) 
     (sp : server_params)
-    (f : 'pn -> form_content elt list) (getparams : 'get) : [>form] elt =
+    (f : 'pn -> Pages.form_content_elt list) (getparams : 'get) =
   let suff,params_string = construct_params service.get_params_type getparams in
   let suff = (if service.url_prefix then Some suff else None) in
   let urlname = 
@@ -1087,22 +1051,24 @@ let post_form ?(a=[])
   in
   let state_param =
     (match  service.url_state with
-      None -> []
+      None -> None
     | Some i -> 
-       let i' = string_of_int i in
-       <:xmllist< <input type="hidden" name=$state_param_name$ value=$i'$/> >>)
+	let i' = string_of_int i in
+	Some (Pages.make_input ~typ:`Hidden ~name:state_param_name ~value:i' ()))
   in
   let inside = f (make_params_names service.post_params_type) in
-  form ~a:((a_method `Post)::a) 
-    ~action:(make_uri_from_string (add_to_string urlname "?" params_string))
-    << <p style="display:none">
-      $list:state_param$
-      </p> >>
-    inside
+  let i1, i =
+    match state_param, inside with
+      Some s, i -> (Pages.make_hidden_field s),i
+    | None, i1::i -> i1, i
+    | None, [] -> (Pages.make_empty_form_content ()),[]
+  in Pages.make_post_form ~a:a
+    ~action:(add_to_string urlname "?" params_string)
+    i1 i
 
 let make_uri 
     (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) sp
-    (getparams : 'get) : uri =
+    (getparams : 'get) : Pages.uri =
   let suff,params_string = construct_params service.get_params_type getparams in
   let suff = (if service.url_prefix then Some suff else None) in
   let uri = 
@@ -1112,14 +1078,14 @@ let make_uri
   in
   match service.url_state with
     None ->
-      make_uri_from_string (add_to_string uri "?" params_string)
+      Pages.make_uri_from_string (add_to_string uri "?" params_string)
   | Some i -> 
-      make_uri_from_string 
+      Pages.make_uri_from_string 
 	(add_to_string (uri^"?"^state_param_name^"="^(string_of_int i))
 	   "&" params_string)
 
 (* actions : *)
-let action_a ?(a=[]) ?(reload=true) action h content : [>form] elt  =
+let action_a ?(a=[]) ?(reload=true) action h content =
   let formname="hiddenform"^(string_of_int (counter ())) in
   let href="javascript:document.getElementById(\""^formname^"\").submit ()" in
   let action_param_name = action_prefix^action_name in
@@ -1127,63 +1093,67 @@ let action_a ?(a=[]) ?(reload=true) action h content : [>form] elt  =
   let reload_name = action_prefix^action_reload in
   let reload_param = 
     if reload 
-    then <:xmllist< <input type="hidden" name=$reload_name$ value=$reload_name$/> >> 
+    then [Pages.make_hidden_field
+	    (Pages.make_input ~typ:`Hidden ~name:reload_name ~value:reload_name ())]
     else [] in
   let v = h.full_url in
-  << <form style="display: inline" id=$formname$ method="post" action=$v$ >
-    <p style="display: inline">$XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) content$
-    <input type="hidden" name=$action_param_name$ value=$action_param$/>
-	$list:reload_param$
-	</p>
-	</form> >>
+  Pages.make_post_form ~hidden:true 
+    ~id:formname ~action:v
+    (Pages.make_div ~style:"display: inline" 
+       [Pages.make_a ~a:a ~href:href content])
+    ((Pages.make_hidden_field
+	(Pages.make_input ~typ:`Hidden ~name:action_param_name
+	   ~value:action_param ()))
+     ::reload_param)
 	
 let action_form ?(a=[])
     ?(reload=true) (action : ('a,'pn) action) h 
-    (f : 'pn -> form_content elt list) : [>form] elt = 
+    (f : 'pn -> Pages.form_content_elt list) = 
   let action_param_name = action_prefix^action_name in
   let action_param = (action.action_name) in
   let reload_name = action_prefix^action_reload in
-  let action_line =
-    << <input type="hidden" name=$action_param_name$ value=$action_param$/> >>
-  in
+  let action_line = Pages.make_input ~typ:`Hidden ~name:action_param_name ~value:action_param () in
   let v = h.full_url in
   let inside = f (make_params_names action.action_params_type) in
   let inside_reload = 
     if reload 
-    then <:xmllist< <p><input type="hidden" name=$reload_name$ value=$reload_name$/></p>$list:inside$ >>
-    else inside in
-  form ~a:((a_method `Post)::a) ~action:(make_uri_from_string v)
-    << <p>$action_line$</p> >>
-  inside_reload
+    then (Pages.make_hidden_field 
+	    (Pages.make_input ~typ:`Hidden ~name:reload_name ~value:reload_name ()))
+      ::inside
+    else inside 
+  in
+  Pages.make_post_form ~a:a ~action:v
+    (Pages.make_hidden_field action_line)
+    inside_reload
 
 
 
 
 
 let gen_input ?(a=[]) name = 
-  input ~a:((a_name name)::(a_input_type `Text)::a) ()
+  Pages.make_input ~a ~typ:`Text ~name:name ()
 
 let password_input ?(a=[]) (name : string name) = 
-  input ~a:((a_name name)::(a_input_type `Password)::a) ()
+  Pages.make_input ~a ~typ:`Password ~name:name ()
 
 let int_input ?a (name : int name) = gen_input ?a name
 let string_input ?a (name : string name) = gen_input ?a name
 
 let hidden_int_input ?(a=[]) (name : int name) v = 
   let vv = string_of_int v in
-  input ~a:((a_name name)::(a_input_type `Hidden)::(a_value vv)::a) ()
+  Pages.make_input ~a ~typ:`Hidden ~name:name ~value:vv ()
 
 let checkbox_input ?(a=[]) (name : bool name) =
-  input ~a:((a_name name)::(a_input_type `Checkbox)::a) ()
+  Pages.make_input ~a ~typ:`Checkbox ~name:name ()
 
 let radio_input ?(a=[]) (name : string name) =
-  input ~a:((a_name name)::(a_input_type `Radio)::a) ()
+  Pages.make_input ~a ~typ:`Radio ~name:name ()
 
 let textarea ?(a=[]) (name : string name) =
-  textarea ~a:((a_name name)::a)
+  Pages.make_textarea ~a ~name:name
 
 let submit_input ?(a=[]) s =
-  input ~a:((a_input_type `Submit)::(a_value s)::a) ()
+  Pages.make_input ~a ~typ:`Submit ~value:s ()
 
 
 
@@ -1194,8 +1164,8 @@ let localhost = Unix.inet_addr_of_string "127.0.0.1"
 
 let execute generate_page sockaddr cookie = 
   let ip = match sockaddr with
-      Unix.ADDR_INET (ip,port) -> ip
-    | _ -> localhost
+    Unix.ADDR_INET (ip,port) -> ip
+  | _ -> localhost
   in
   let (tablesref, new_session) = 
     (match cookie with
@@ -1237,27 +1207,40 @@ let get_page
 	  fullurl))
     with Ocsigen_404 | Ocsigen_Wrong_parameter -> 
       try (* ensuite dans la table globale *)
-      Messages.debug "--- I search in the global table:";
-      (find_service 
-	 global_tables
-	 (session_tables_ref,
-	  url,
-	  internal_state,
-	  get_params,
-	  post_params,
-	  useragent,
-	  ip,
-	  fullurl))
-    with exn ->
-      match exn with 
-	Ocsigen_404 | Ocsigen_Wrong_parameter -> 
-        (* si pas trouvé avec, on essaie sans l'état *)
-	  (match internal_state with
-	    None -> raise exn
-	  | _ -> try (* d'abord la table de session *)
-	      Messages.debug "--- I search in the session table, without state parameter:";
+	Messages.debug "--- I search in the global table:";
+	(find_service 
+	   global_tables
+	   (session_tables_ref,
+	    url,
+	    internal_state,
+	    get_params,
+	    post_params,
+	    useragent,
+	    ip,
+	    fullurl))
+      with exn ->
+	match exn with 
+	  Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+            (* si pas trouvé avec, on essaie sans l'état *)
+	    (match internal_state with
+	      None -> raise exn
+	    | _ -> try (* d'abord la table de session *)
+		Messages.debug "--- I search in the session table, without state parameter:";
+		(find_service 
+		   !session_tables_ref
+		   (session_tables_ref,
+		    url,
+		    None,
+		    get_params,
+		    post_params,
+		    useragent,
+		    ip,
+		    fullurl))
+	    with Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+              (* ensuite dans la table globale *)
+	      Messages.debug "--- I search in the global table, without state parameter:";
 	      (find_service 
-		 !session_tables_ref
+		 global_tables
 		 (session_tables_ref,
 		  url,
 		  None,
@@ -1265,21 +1248,8 @@ let get_page
 		  post_params,
 		  useragent,
 		  ip,
-		  fullurl))
-	  with Ocsigen_404 | Ocsigen_Wrong_parameter -> 
-          (* ensuite dans la table globale *)
-	    Messages.debug "--- I search in the global table, without state parameter:";
-	    (find_service 
-	       global_tables
-	       (session_tables_ref,
-		url,
-		None,
-		get_params,
-		post_params,
-		useragent,
-		ip,
-		fullurl)))
-      | _ -> raise exn
+		  fullurl)))
+	| _ -> raise exn
   in try 
     execute generate_page sockaddr cookie
   with 
@@ -1309,14 +1279,14 @@ let make_action action_name action_params
 	sockaddr cookie in
     Messages.debug "Action executed";
     r
-    with 
-	Ocsigen_Typing_Error _ -> (cookie, (), "/")
-      | Ocsigen_Wrong_parameter -> (cookie, (), "/")
+  with 
+    Ocsigen_Typing_Error _ -> (cookie, (), "/")
+  | Ocsigen_Wrong_parameter -> (cookie, (), "/")
 
 
 (** Module loading *)
 exception Ocsigen_error_while_loading of string
-	
+    
 let load_ocsigen_module ~dir ~cmo =
   let save_current_dir = get_current_dir () in
   try
@@ -1359,50 +1329,117 @@ let get_number_of_connected,
 
 (* DEPRECATED FUNCTIONS :
 
-let new_url ~path ?prefix ~get_params () =
-  new_service ~url:path ?prefix ~get_params () 
+   let new_url ~path ?prefix ~get_params () =
+   new_service ~url:path ?prefix ~get_params () 
 
-let new_external_url ~path ?prefix ~get_params ~post_params () =
-  new_external_service ~url:path ?prefix ~get_params ~post_params () 
+   let new_external_url ~path ?prefix ~get_params ~post_params () =
+   new_external_service ~url:path ?prefix ~get_params ~post_params () 
 
-let new_state_url = new_auxiliary_service
+   let new_state_url = new_auxiliary_service
 
-let register_url ~url f = register_service ~service:url f
+   let register_url ~url f = register_service ~service:url f
 
-let register_url_for_session ~url f = 
-  register_service_for_session ~service:url f
+   let register_url_for_session ~url f = 
+   register_service_for_session ~service:url f
 
-let register_new_url ~path ?prefix ~get_params f =
-  register_new_service ~url:path ?prefix ~get_params f
+   let register_new_url ~path ?prefix ~get_params f =
+   register_new_service ~url:path ?prefix ~get_params f
 
-let register_new_state_url = register_new_auxiliary_service
+   let register_new_state_url = register_new_auxiliary_service
 
-let register_new_state_url_for_session =
-  register_new_auxiliary_service_for_session
+   let register_new_state_url_for_session =
+   register_new_auxiliary_service_for_session
 
-let new_post_url = new_post_service
+   let new_post_url = new_post_service
 
-let new_post_state_url = new_post_auxiliary_service
+   let new_post_state_url = new_post_auxiliary_service
 
-let register_new_post_url = register_new_post_service
+   let register_new_post_url = register_new_post_service
 
-let register_new_post_state_url = register_new_post_auxiliary_service
+   let register_new_post_state_url = register_new_post_auxiliary_service
 
-let register_new_post_state_url_for_session =
-  register_new_post_auxiliary_service_for_session
+   let register_new_post_state_url_for_session =
+   register_new_post_auxiliary_service_for_session
 
-let new_actionurl = new_action
+   let new_actionurl = new_action
 
-let register_actionurl ~actionurl ~action =
-  register_action ~action:actionurl action 
+   let register_actionurl ~actionurl ~action =
+   register_action ~action:actionurl action 
 
-let register_actionurl_for_session ~actionurl ~action =
-  register_action_for_session ~action:actionurl action 
+   let register_actionurl_for_session ~actionurl ~action =
+   register_action_for_session ~action:actionurl action 
 
-let register_new_actionurl ~post_params ~action =
-  register_new_action ~post_params action
+   let register_new_actionurl ~post_params ~action =
+   register_new_action ~post_params action
 
-let register_new_actionurl_for_session ~post_params ~action =
-  register_new_action ~post_params action
+   let register_new_actionurl_for_session ~post_params ~action =
+   register_new_action ~post_params action
 
-*)
+ *)
+end
+
+module X = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = xhtml elt
+  type form_content_elt = form_content elt
+  type uri = XHTML.M.uri
+
+  type 'a t_a = 'a elt constraint 'a = [> a]
+  type 'a t_form = 'a elt constraint 'a = [> form]
+  
+  let make_a ?(a=[]) ~href l : 'a t_a = 
+    XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) l
+
+  let make_get_form ?(a=[]) ~action elt1 elts : 'a t_form = 
+    form ~a:((a_method `Get)::a) 
+      ~action:(make_uri_from_string action) elt1 elts
+
+  let make_post_form ?(a=[]) ~action ?id ?(hidden = false) elt1 elts : 'a t_form = 
+    let aa = (match id with
+      None -> a
+    | Some i -> (a_id i)::a) 
+    in
+    form ~a:((a_method `Post)::
+	     (if hidden then (a_style "display: inline")::aa else aa))
+      ~action:(make_uri_from_string action) elt1 elts
+
+  let make_hidden_field content = 
+    div ~a:[a_style "display:none"] [content]
+
+  let make_div ~style c =
+    div ~a:(a_style style) c
+
+  let make_empty_form_content () = pcdata ""
+
+  let make_input ?a ~typ ?name ?value () = 
+    let a2 = match value with
+      None -> a
+    | Some v -> (a_value value)::a
+    in
+    let a3 = match name with
+      None -> a2
+    | Some v -> (a_name name)::a2
+    in
+    input ~a:((a_input_type typ)::a3)
+
+  let make_textarea ?(a=[]) name = 
+    let a3 = match name with
+      None -> a2
+    | Some v -> (a_name name)::a
+    in
+    input ~a:((a_input_type typ)::a3)
+
+  let make_uri_from_string = XHTML.M.make_uri_from_string
+
+  let css_link ?(a=[]) uri =
+    link ~a:((a_href uri)::
+	     (a_type "text/css")::(a_rel [`Stylesheet])::a) ()
+      
+  let js_script ?(a=[]) uri =
+    script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
+
+end
+
+module O = F(Xhtml)
