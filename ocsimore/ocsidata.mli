@@ -53,9 +53,9 @@ sig
   val dbget : user:Rights.user -> resource:Rights.resource -> key:t index -> t
   val index : 
     string ->
-      (t index, [`WithoutSuffix], t index Ocsigen.name)	Ocsigen.params_type
+      (t index, [`WithoutSuffix], t index Ocsigen.param_name)	Ocsigen.params_type
   val int_of_index : t index -> int
-  val intname_of_indexname : t index Ocsigen.name -> int Ocsigen.name
+  val intname_of_indexname : t index Ocsigen.param_name -> int Ocsigen.param_name
 end
 
 module MakeSaver :

@@ -3,6 +3,7 @@
 
 
 open Ocsigen
+open Ocsigen.Xhtml
 open Ocsidata
 open Ocsipages
 open Ocsisav

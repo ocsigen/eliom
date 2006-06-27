@@ -36,6 +36,15 @@ module Xhtml_content =
     let content_of_string s = assert false
   end
 
+module Text_content =
+  struct
+    type t = string
+    let string_of_content c =
+      (* debug *) Messages.debug c;
+      c
+    let content_of_string s = s
+  end
+
 module Empty_content =
   struct
     type t = unit
@@ -88,6 +97,12 @@ module Xhtml_http_frame = FHttp_frame (Xhtml_content)
 
 (** this module is a sender that send Http_frame with Xhtml content*)
 module Xhtml_sender = FHttp_sender(Xhtml_content)
+
+(** this module is a Http_frame with text content*)
+module Text_http_frame = FHttp_frame (Text_content)
+
+(** this module is a sender that send Http_frame with text content*)
+module Text_sender = FHttp_sender(Text_content)
 
 (** this module is a Http_frame with file content*) 
 module File_http_frame = FHttp_frame (File_content)
@@ -148,7 +163,7 @@ let create_empty_sender ?server_name ?proto fd =
 * xhtml_sender is the used sender*)
 let send_generic 
     ?code ?keep_alive ?cookie ?last_modified
-    ?path ?location ?(header=[]) page sender 
+    ?path ?location ?(header=[]) ~content sender 
     (send : ?mode:Xhtml_sender.H.http_mode ->
       ?proto:string ->
       ?headers:(string * string) list ->
@@ -185,36 +200,55 @@ let send_generic
   let hds4 =
     match location with
     |None ->  hds3
-    |Some l  -> ("Location",l)::hds3
+    |Some l -> ("Location",l)::hds3
   in
   match code with
-    |None -> send ~code:200 ~content:page ~headers:hds4 sender
-    |Some c -> send ~code:c ~content:page ~headers:hds4 sender
+    |None -> send ~code:200 ~content ~headers:hds4 sender
+    |Some c -> send ~code:c ~content ~headers:hds4 sender
+
+
+type create_sender_type = ?server_name:string ->
+    ?proto:string -> Unix.file_descr -> Http_com.sender_type
+
+type send_page_type =
+    ?code:int ->
+      ?keep_alive:bool ->
+	?cookie:string ->
+	  ?path:string ->
+	    ?last_modified:float ->
+	      ?location:string -> Http_com.sender_type -> unit Lwt.t
   
 (** fonction that sends a xhtml page
-* code is the code of the http answer
-* keep_alive is a boolean value that set the field Connection
-* cookie is a string value that give a value to the session cookie
-* path is the path associated to the cookie
-* page is the page to send
-* xhtml_sender is the used sender*)
-let send_page ?code ?keep_alive ?cookie ?path 
-    ?last_modified ?location page xhtml_sender =
+ * code is the code of the http answer
+ * keep_alive is a boolean value that set the field Connection
+ * cookie is a string value that give a value to the session cookie
+ * path is the path associated to the cookie
+ * page is the page to send
+ * xhtml_sender is the sender to be used *)
+let send_xhtml_page ~content ?code ?keep_alive ?cookie ?path 
+    ?last_modified ?location xhtml_sender =
   send_generic 
     ?code ?keep_alive ?cookie ?path ?location ?last_modified
-    page xhtml_sender Xhtml_sender.send
+    ~content xhtml_sender Xhtml_sender.send
   
 (** fonction that sends an empty answer
-* code is the code of the http answer
-* keep_alive is a boolean value that set the field Connection
-* cookie is a string value that give a value to the session cookie
-* page is the page to send
-* empty_sender is the used sender *)
+ * code is the code of the http answer
+ * keep_alive is a boolean value that set the field Connection
+ * cookie is a string value that give a value to the session cookie
+ * page is the page to send
+ * empty_sender is the used sender *)
 let send_empty ?code ?keep_alive ?cookie 
     ?path ?location ?last_modified empty_sender =
   send_generic  ?last_modified
-    ?code ?keep_alive ?cookie ?path ?location () empty_sender Empty_sender.send
+    ?code ?keep_alive ?cookie ?path ?location ~content:() 
+    empty_sender Empty_sender.send
 
+let send_text_page ~content ?code ?keep_alive ?cookie ?path 
+    ?last_modified ?location xhtml_sender =
+  send_generic 
+    ?code ?keep_alive ?cookie ?path ?location ?last_modified
+    ~content xhtml_sender Text_sender.send
+  
   
 
 (** sends an error page that fit the error number *)
@@ -250,7 +284,7 @@ let send_error ?(http_exception) ?(error_num=500) xhtml_sender =
           </html>
           >>
   in
-  send_page ~code:error_code err_page xhtml_sender
+  send_xhtml_page ~code:error_code ~content:err_page xhtml_sender
 (*Xhtml_sender.send ~code:error_code (*~content:err_page*) xhtml_sender*)
 
 (** this fonction create a sender that send http_frame with fiel content*)
@@ -297,6 +331,6 @@ let send_file ?code ?keep_alive ?cookie ?path
   send_generic 
     ?code ?keep_alive ?cookie ?path ?location ?last_modified
     ~header:[("Content-Type",content_type_from_file_name file)]
-    file file_sender File_sender.send
+    ~content:file file_sender File_sender.send
 
   

@@ -1,6 +1,7 @@
 (** An example of Ocsigen module using Ocsimore *)
 
 open Ocsigen
+open Ocsigen.Xhtml
 open Ocsidata
 open Ocsipages
 open Ocsisav

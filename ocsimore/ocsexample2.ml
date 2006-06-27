@@ -2,6 +2,7 @@
 (** An example of Ocsigen module using Ocsimore without savable pages *)
 
 open Ocsigen
+open Ocsigen.Xhtml
 open Ocsidata
 open Ocsipages
 open Ocsisav

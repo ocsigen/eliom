@@ -63,6 +63,8 @@ let ip_of_sockaddr = function
 
 exception Ocsigen_Malformed_Url
 
+let server_name = ("Ocsigen server ("^Ocsiconfig.version_number^")")
+
 
 (* Ces deux trucs sont dans Neturl version 1.1.2 mais en attendant qu'ils
  soient dans debian, je les mets ici *)
@@ -200,7 +202,7 @@ let find_static_page path =
   aux "/" (Ocsiconfig.get_static_tree ()) path
 
 let service http_frame sockaddr 
-    xhtml_sender file_sender empty_sender () =
+    xhtml_sender file_sender empty_sender inputchan () =
   try 
     let cookie = 
       try 
@@ -222,7 +224,8 @@ let service http_frame sockaddr
 	       éviter d'avoir un nombre de threads qui croit sans arrêt *)
 	    let keep_alive = false in
 	    (try
-	      let cookie2,page,path = get_page frame_info sockaddr cookie in
+	      let cookie2,send_page,sender,path = 
+		get_page frame_info sockaddr cookie in
 	      send_page ~keep_alive:keep_alive 
 		?cookie:(if cookie2 <> cookie then 
 		  (if cookie2 = None 
@@ -230,7 +233,7 @@ let service http_frame sockaddr
 		  else cookie2) 
 		else None)
 		~path:path (* path pour le cookie *)
-		page xhtml_sender
+		(sender ~server_name:server_name inputchan)
 	    with Ocsigen_404 ->
 	      if params = "" then
 		try
@@ -268,12 +271,12 @@ let service http_frame sockaddr
 	    )
 	      >>= (fun _ -> return keep_alive)
 	| Some (action_name, reload, action_params) ->
-	    let cookie2,(),path = 
+	    let cookie2,path = 
 	      make_action 
 		action_name action_params frame_info sockaddr cookie in
 	    let keep_alive = false in
 	      (if reload then
-		 let cookie3,page,path = 
+		 let cookie3,send_page,sender,path = 
 		   get_page frame_info sockaddr cookie2 in
 		   (send_page ~keep_alive:keep_alive 
 		      ?cookie:(if cookie3 <> cookie then 
@@ -282,7 +285,7 @@ let service http_frame sockaddr
 				  else cookie3) 
 			       else None)
 		      ~path:path
-	              page xhtml_sender)
+	              (sender ~server_name:server_name inputchan))
 	       else
 		 (send_empty ~keep_alive:keep_alive 
 		    ?cookie:(if cookie2 <> cookie then 
@@ -306,8 +309,8 @@ let service http_frame sockaddr
 	>>= (fun _ ->
 	       return false (* keep_alive *))
     | e ->
-	send_page ~keep_alive:false
-	  (error_page ("Exception : "^(Printexc.to_string e)))
+	send_xhtml_page ~keep_alive:false
+	  ~content:(error_page ("Exception : "^(Printexc.to_string e)))
 	  xhtml_sender
 	>>= (fun _ ->
 	       return false (* keep_alive *))
@@ -340,7 +343,7 @@ let listen modules_list =
 	(fun http_frame ->
           catch 
 	    (service http_frame sockaddr 
-	       xhtml_sender file_sender empty_sender)
+	       xhtml_sender file_sender empty_sender in_ch)
 	    fail
             >>= (fun keep_alive -> 
 	      if keep_alive then
@@ -393,10 +396,9 @@ let listen modules_list =
       debug "\n__________________NEW CONNECTION__________________________";
       catch
 	(fun () -> 
-	  let server_name = ("Ocsigen server ("^Ocsiconfig.version_number^")") in
-	  let xhtml_sender =
-	    create_xhtml_sender ~server_name:server_name inputchan 
-	  in
+	  let xhtml_sender = 
+	    Sender_helpers.create_xhtml_sender
+	      ~server_name:server_name inputchan in
 	  let file_sender =
 	    create_file_sender ~server_name:server_name inputchan
 	  in

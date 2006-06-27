@@ -18,6 +18,7 @@
 
 open XHTML.M
 open Ocsigen
+open Ocsigen.Xhtml
 open Ocsisav
 open Ocsidata
 

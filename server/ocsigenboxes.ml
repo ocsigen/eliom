@@ -18,7 +18,7 @@
 
 
 open XHTML.M
-open Ocsigen
+open Ocsigen.Xhtml
 
 let menu ?(classe=[]) l current server_params =
   let rec aux = function

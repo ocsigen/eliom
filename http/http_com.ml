@@ -276,6 +276,18 @@ module FHttp_receiver =
  
     end
 
+
+type sender_type = { 
+    (** the file descriptor*)
+    fd : Unix.file_descr;
+    (**the mode of the sender Query or Answer*)
+    mutable mode : Http_frame.Http_header.http_mode;
+    (**protocole to be used : HTTP/1.0 HTTP/1.1*)
+    mutable proto : string;
+    (**the options to send with each frame, for exemple : server name , ...*)
+    mutable headers : (string*string) list
+  }
+
 module FHttp_sender =
   functor(C:Http_frame.HTTP_CONTENT) ->
   struct
@@ -286,16 +298,7 @@ module FHttp_sender =
 
     module PP = Framepp.Fframepp(C)
 
-    type t = { 
-      (** the file descriptor*)
-      fd : Unix.file_descr;
-      (**the mode of the sender Query or Answer*)
-      mutable mode : Http_frame.Http_header.http_mode;
-      (**protocole to be used : HTTP/1.0 HTTP/1.1*)
-      mutable proto : string;
-      (**the options to send with each frame, for exemple : server name , ...*)
-      mutable headers : (string*string) list
-    }
+    type t = sender_type
 
 (*    (*fonction de dump pour le debuggage*)
     let dump str file =

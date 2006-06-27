@@ -3,6 +3,7 @@
 
 open XHTML.M
 open Ocsigen
+open Ocsigen.Xhtml
 
 
 (* ------------------------------------------------------------------ *)
@@ -759,6 +760,14 @@ let form_bool = register_new_service ["formbool"] unit
           <body> $f$ </body>
         </html> >>)
 
+
+(* Other Ocsigen module: *)
+let coucoutext = 
+  Ocsigen.Text.register_new_service 
+    ~url:["coucoutext"]
+    ~get_params:unit
+    (fun sp () () ->
+      "<html>n'importe quoi "^(Ocsigen.Text.a coucou sp ["clic"] ())^"</html>")
 
 
 (* Main page for this example *)
