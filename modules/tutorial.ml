@@ -625,7 +625,7 @@ let _ = register_service
 
 let rec launch_session sp login =
   let deconnect_action = 
-   register_new_action unit (fun _ () -> close_session sp) in
+   register_new_action_for_session sp unit (fun _ () -> close_session sp) in
   let deconnect_box sp s = action_a deconnect_action sp s in
   let new_main_page sp () () =
     html

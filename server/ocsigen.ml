@@ -738,7 +738,7 @@ module type PAGES =
 	action:string -> 
 	  form_content_elt -> form_content_elt list -> form_elt
       val make_post_form : ?a:form_attrib_t ->
-	action:string -> ?id:string -> ?hidden:bool -> 
+	action:string -> ?id:string -> ?inline:bool -> 
 	  form_content_elt -> form_content_elt list -> form_elt
       val make_hidden_field : input_elt -> form_content_elt
       val make_empty_form_content : unit -> form_content_elt
@@ -894,7 +894,7 @@ module type OCSIGENSIG =
             (Directorytree.tables server_params1 -> 'a -> unit) -> unit
     val register_new_action_for_session :
         Directorytree.tables server_params1 ->
-          params:('a, [ `WithoutSuffix ], 'b) params_type ->
+          post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
             (Directorytree.tables server_params1 -> 'a -> unit) ->
               ('a, 'b) action
     val static_dir :
@@ -1200,7 +1200,10 @@ module Make = functor
     let register_action
 	~(action : ('post,'pn) action)
 	(actionfun : (server_params -> 'post -> unit)) : unit =
-      register_action_aux (get_current_dir ()) global_tables action actionfun
+      if global_register_allowed () then begin
+	register_action_aux (get_current_dir ()) global_tables action actionfun
+      end
+      else Messages.warning "Public action registration after init forbidden! Please correct your module! (ignored)"
 
     let register_new_action ~post_params actionfun = 
       let a = new_action post_params in
@@ -1210,9 +1213,8 @@ module Make = functor
     let register_action_for_session sp ~action actionfun =
       register_action_aux sp.current_dir !(sp.session_table) action actionfun
 
-
-    let register_new_action_for_session sp ~params actionfun =
-      let a = new_action params in
+    let register_new_action_for_session sp ~post_params actionfun =
+      let a = new_action post_params in
       register_action_for_session sp a actionfun;
       a
 
@@ -1391,9 +1393,9 @@ module Make = functor
 		   ~name:reload_name ~value:reload_name ())]
 	else [] in
       let v = h.full_url in
-      Pages.make_post_form ~hidden:true 
+      Pages.make_post_form ~inline:true 
 	~id:formname ~action:v
-	(Pages.make_div ~classe:["display: inline"] (** à revoir!!!! *)
+	(Pages.make_div ~classe:["inline"]
 	   [Pages.make_a ?a ~href:href content])
 	((Pages.make_hidden_field
 	    (Pages.make_input ~typ:Pages.hidden ~name:action_param_name
@@ -1503,9 +1505,6 @@ module Xhtml_ = struct
 
   type pcdata_elt = pcdata elt
 
-  let create_sender = Sender_helpers.create_xhtml_sender
-  let send = Sender_helpers.send_xhtml_page
-
   type a_attrib_t = Xhtmltypes.a_attrib XHTML.M.attrib list
   type form_attrib_t = Xhtmltypes.form_attrib XHTML.M.attrib list
   type input_attrib_t = Xhtmltypes.input_attrib XHTML.M.attrib list
@@ -1526,6 +1525,35 @@ module Xhtml_ = struct
 
   let make_uri_from_string = XHTML.M.make_uri_from_string
 
+  let add_css (a : 'a) : 'a = 
+    let css = 
+      XHTML.M.toelt 
+	(XHTML.M.style ~contenttype:"text/css"
+	   [pcdata "\n.inline {display: inline}\n.nodisplay {display: none}\n"])
+    in
+    let rec aux = function
+    | (XML.Element ("head",al,el))::l -> (XML.Element ("head",al,css::el))::l
+    | (XML.BlockElement ("head",al,el))::l -> 
+	(XML.BlockElement ("head",al,css::el))::l
+    | (XML.SemiBlockElement ("head",al,el))::l -> 
+	(XML.SemiBlockElement ("head",al,css::el))::l
+    | (XML.Node ("head",al,el))::l -> (XML.Node ("head",al,css::el))::l
+    | e::l -> e::(aux l)
+    | [] -> []
+    in
+    XHTML.M.tot
+      (match XHTML.M.toelt a with
+      | XML.Element ("html",al,el) -> XML.Element ("html",al,aux el) 
+      | XML.BlockElement ("html",al,el) -> XML.BlockElement ("html",al,aux el) 
+      | XML.SemiBlockElement ("html",al,el) -> 
+	  XML.SemiBlockElement ("html",al,aux el)
+      | XML.Node ("html",al,el) -> XML.Node ("html",al,aux el)
+      | e -> e)
+
+  let create_sender = Sender_helpers.create_xhtml_sender
+  let send ~content = 
+    Sender_helpers.send_xhtml_page ~content:(add_css content)
+
   let make_a ?(a=[]) ~href l : a_elt = 
     XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) l
 
@@ -1533,18 +1561,18 @@ module Xhtml_ = struct
     form ~a:((a_method `Get)::a) 
       ~action:(make_uri_from_string action) elt1 elts
 
-  let make_post_form ?(a=[]) ~action ?id ?(hidden = false) elt1 elts 
+  let make_post_form ?(a=[]) ~action ?id ?(inline = false) elt1 elts 
       : form_elt = 
     let aa = (match id with
       None -> a
     | Some i -> (a_id i)::a) 
     in
     form ~a:((a_method `Post)::
-	     (if hidden then (a_class ["display: inline"])::aa else aa))
+	     (if inline then (a_class ["inline"])::aa else aa))
       ~action:(make_uri_from_string action) elt1 elts
 
   let make_hidden_field content = 
-    div ~a:[a_class ["display:none"]] [content]
+    div ~a:[a_class ["nodisplay"]] [content]
 
   let make_div ~classe (c : a_elt list) =
     div ~a:[a_class classe] (c :> div_content_elt list)
@@ -1766,14 +1794,14 @@ module Text_ = struct
     "<form method=\"get\" action=\""^(make_uri_from_string action)^"\""^a^">"^
     elt1^(List.fold_left (^) "" elts)^"</form>"
 
-  let make_post_form ?(a="") ~action ?id ?(hidden = false) elt1 elts 
+  let make_post_form ?(a="") ~action ?id ?(inline = false) elt1 elts 
       : form_elt = 
     let aa = (match id with
       None -> a
     | Some i -> " id="^i^" "^a)
     in
     "<form method=\"post\" action=\""^(make_uri_from_string action)^"\""^
-    (if hidden then "style=\"display: inline\"" else "")^aa^">"^
+    (if inline then "style=\"display: inline\"" else "")^aa^">"^
     elt1^(List.fold_left (^) "" elts)^"</form>"
 
   let make_hidden_field content = 

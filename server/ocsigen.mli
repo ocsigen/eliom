@@ -328,7 +328,7 @@ module Xhtml : sig
 
   val register_new_action_for_session :
       server_params ->
-	params:('a, [ `WithoutSuffix ], 'b) params_type ->
+	post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
 	  (server_params -> 'a -> unit) -> ('a, 'b) action
 (** Same as [new_action] followed by [register_action_for_session] *)
 
@@ -489,7 +489,7 @@ module type PAGES =
         ?a:form_attrib_t ->
           action:string ->
             ?id:string ->
-              ?hidden:bool ->
+              ?inline:bool ->
                 form_content_elt -> form_content_elt list -> form_elt
     val make_hidden_field : input_elt -> form_content_elt
     val make_empty_form_content : unit -> form_content_elt
@@ -643,7 +643,7 @@ module type OCSIGENSIG =
             (server_params -> 'a -> unit) -> unit
     val register_new_action_for_session :
         server_params ->
-          params:('a, [ `WithoutSuffix ], 'b) params_type ->
+          post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
             (server_params -> 'a -> unit) ->
               ('a, 'b) action
     val static_dir :
@@ -788,127 +788,3 @@ exception Ocsigen_error_while_loading of string
 exception Ocsigen_Is_a_directory
 exception Ocsigen_404
 val end_initialisation : unit -> unit
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(* DEPRECATED FUNCTIONS :
-
-val new_url :
-  path:url_path ->
-  ?prefix:bool ->
-  get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
-  unit ->
-  ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, unit param_name) service
-
-val new_external_url :
-  path:url_path ->
-  ?prefix:bool ->
-  get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
-  post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-  unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
-
-val new_state_url :
-  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'd) service ->
-  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
-
-val register_url :
-  url:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
-       'd, 'e)
-      service ->
-  (server_params -> 'a -> 'b -> page) -> unit
-
-val register_url_for_session :
-  url:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
-       'd, 'e)
-      service ->
-  (server_params -> 'a -> 'b -> page) -> unit
-
-val register_new_url :
-  path:url_path ->
-  ?prefix:bool ->
-  get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
-  (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, unit param_name) service
-
-val register_new_state_url :
-  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
-            [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
-           service ->
-  (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
-
-val register_new_state_url_for_session :
-  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
-            [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
-           service ->
-  (server_params -> 'a -> unit -> page) ->
-  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
-
-val new_post_url :
-  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
-            unit param_name)
-           service ->
-  post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-  ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e) service
-
-val new_post_state_url :
-  fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c, 'd, 'e) service ->
-  post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
-
-val register_new_post_url :
-  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
-            [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, unit param_name)
-           service ->
-  post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-  (server_params -> 'a -> 'd -> page) ->
-  ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e) service
-
-val register_new_post_state_url :
-  fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
-            [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
-           service ->
-  post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-  (server_params -> 'a -> 'f -> page) ->
-  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
-
-val register_new_post_state_url_for_session :
-  fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
-            [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
-           service ->
-  post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-  (server_params -> 'a -> 'f -> page) ->
-  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
-
-val new_actionurl :
-  post_params:('a, [ `WithoutSuffix ], 'b) params_type -> ('a, 'b) action
-
-val register_actionurl :
-  actionurl:('a, 'b) action ->
-  action:(server_params -> 'a -> unit) -> unit
-
-val register_actionurl_for_session :
-  actionurl:('a, 'b) action ->
-  action:(server_params -> 'a -> unit) -> unit
-
-val register_new_actionurl :
-  post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-  action:(server_params -> 'a -> unit) -> ('a, 'b) action
-
-val register_new_actionurl_for_session :
-  post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-  action:(server_params -> 'a -> unit) -> ('a, 'b) action
-*)
