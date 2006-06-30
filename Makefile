@@ -41,7 +41,7 @@ ocsimore:
 	fi
 
 doc:
-	$(CAMLDOC) $(PP) -I lib -d doc -html server/ocsigen.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli messages.ml
+	$(CAMLDOC) $(PP) -I lib -d doc -html server/ocsigen.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli http/messages.ml
 
 clean:
 	@for i in $(REPS) ; do touch "$$i"/.depend ; done
