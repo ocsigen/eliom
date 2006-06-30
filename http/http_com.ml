@@ -307,20 +307,16 @@ module FHttp_sender =
       close_out out_chan 
 *)
     (*fonction d'écriture sur le réseau*)
-    let really_write out_ch buffer pos len =
-      let rec really_write_aux pos len =
-        Lwt_unix.write out_ch buffer pos len >>=
-          (
-            fun len' ->
-              if len = len'
-              then return ()
-              else really_write_aux (pos+len') (len-len')
-          )
-      in
-      try
-	really_write_aux pos len
-      with e -> prerr_endline "XXX"; raise e
-
+      let rec really_write out_ch = function
+          | C.Finished -> Messages.debug "write finished"; Lwt.return ()
+	  | C.Cont (s, next) ->
+	     Lwt_unix.write out_ch s 0 (String.length s) >>=
+	     ( fun len' ->
+	        if (String.length s) = len'
+		then really_write out_ch (next ())
+		else really_write out_ch (C.Cont (String.sub s len' ((String.length s)-len'), next))
+             )
+												    
     (**create a new sender*)
     let create ?(mode=Http_frame.Http_header.Answer) ?(headers=[])
     ?(proto="HTTP/1.1") fd = 
@@ -430,15 +426,16 @@ module FHttp_sender =
       (*creation du header*)
     let md = match mode with None -> sender.mode | Some m -> m in
     let prot = match proto with None -> sender.proto | Some p -> p in
-    let str_content = 
-      match content with 
-      | None -> None 
-      | Some c -> Some (C.string_of_content c)
-    in
     let content_length = 
-      match str_content with
+    	let rec cont_len acc = function
+	   | C.Finished -> acc
+	   | C.Cont (s, next) ->
+                    cont_len (acc+(String.length s)) (next ()) in					
+      match content with
       |None -> None
-      |Some s -> Some (String.length s)
+      |Some c -> let x = cont_len 0 (C.stream_of_content c) in
+                      Messages.debug ("len="^(string_of_int x)^" for cont_len");
+                      Some (x(*cont_len 0 (C.stream_of_content c)*))				      
     in
     let hds = hds_fusion content_length sender.headers 
     (match headers with Some h ->h | None -> []) 
@@ -452,11 +449,11 @@ module FHttp_sender =
         H.proto = prot;
         H.headers = hds;
       }in
-    let frame = {Http.header = hd;Http.content=content} in
-    (*convert the frame into a string*)
-    let str = PP.string_of_http_frame frame str_content in
-      (*debug*)
-      (*Messages.debug str;*)
-    really_write sender.fd str 0 (String.length str)
+      really_write sender.fd 
+         (C.Cont ((Framepp.string_of_header hd), (fun () -> C.Finished))) >>=
+      (fun nb_ecrit ->
+      	match content with
+	| None -> Lwt.return ()
+	| Some c -> really_write sender.fd (C.stream_of_content c))
     
   end

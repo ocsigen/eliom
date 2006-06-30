@@ -27,11 +27,14 @@ module type HTTP_CONTENT =
     (** abstract type of the content*)
     type t
     
+    type stream = | Finished
+                  | Cont of string * (unit -> stream)
+		     
     (** convert a string into the contetn type*)
     val content_of_string : string -> t
 
     (** convert a content type into a string*)
-    val string_of_content : t -> string
+    val stream_of_content : t -> stream
     
   end
 

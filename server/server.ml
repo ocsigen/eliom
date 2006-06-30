@@ -38,8 +38,10 @@ let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
 module Content = 
   struct
     type t = string
+    type stream = | Finished
+    		  | Cont of string * (unit -> stream)
     let content_of_string c = c
-    let string_of_content s = s
+    let stream_of_content s = Cont (s, (fun () -> Finished))
   end
 
 module Http_frame = FHttp_frame (Content)

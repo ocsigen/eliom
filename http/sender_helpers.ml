@@ -28,9 +28,11 @@ let cookiename = "ocsigensession"
 module Xhtml_content =
   struct
     type t = [ `Html ] XHTML.M.elt
-    let string_of_content c = 
-      let s = XHTML.M.ocsigen_print c in
-      (* debug *)Messages.debug s;
+    type stream = | Finished
+                  | Cont of string * (unit -> stream)		     
+    let stream_of_content c = 
+      let s = Cont ((XHTML.M.ocsigen_print c),(fun () -> Finished)) in
+      (* debug Messages.debug s;*)
       s
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_string s = assert false
@@ -39,48 +41,50 @@ module Xhtml_content =
 module Text_content =
   struct
     type t = string
-    let string_of_content c =
+    type stream = | Finished
+                   | Cont of string * (unit -> stream)		     
+    let stream_of_content c =
       (* debug *) Messages.debug c;
-      c
+      Cont (c, (fun () -> Finished))
     let content_of_string s = s
   end
 
 module Empty_content =
   struct
     type t = unit
-    let string_of_content c = ""
+    type stream = | Finished
+                  | Cont of string * (unit -> stream)
+    let stream_of_content c = Cont("",(fun () -> Finished))
     let content_of_string s = ()
   end
-
-let read_file ?(buffer_size=512) fd =
-  let rec read_aux (res:string) =
-    function
-      |0 ->  return res
-      |_ ->
-          let buf = String.create buffer_size in
-          Lwt_unix.read fd buf 0 buffer_size >>=
-            (fun nb_lu -> 
-              let str_lu = String.sub buf 0 nb_lu in
-              read_aux (res^str_lu) nb_lu
-            )
-  in let buf = String.create buffer_size in
-  Lwt_unix.read fd buf 0 buffer_size >>=
-    (fun nb_lu ->
-      let str_lu = String.sub buf 0 nb_lu in
-      read_aux str_lu nb_lu 
-     
-    )
 
 (** this module instanciate the HTTP_CONTENT signature for the files*)
 module File_content =
   struct
     type t = string (*nom du fichier*)
-    let string_of_content c  =
+    type stream = | Finished
+                  | Cont of string * (unit -> stream) 
+    let read_file ?(buffer_size=512) fd =
+	Messages.debug ("start reading ");
+  	let buf = String.create buffer_size in
+        let rec read_aux () =
+		let lu = Unix.read fd buf 0 buffer_size in
+         	   if lu = 0 then  begin
+	             Unix.close fd;
+		     Messages.debug ("Finished ");
+		     Finished
+		   end
+		   else begin 
+		   	if lu = buffer_size
+		        then Cont (buf, (fun () -> read_aux ()))
+			else Cont ((String.sub buf 0 lu), (fun () -> read_aux ()))
+			end
+	in read_aux ()			 
+						      
+    let stream_of_content c  =
       (*ouverture du fichier*)
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
-      let resultat = Lwt_unix.run (read_file fd ) (***** à revoir ! -- Vincent *****) in
-      Unix.close fd;
-      resultat
+      read_file fd
 
     let content_of_string s = assert false
       
