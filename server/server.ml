@@ -50,10 +50,11 @@ module Http_receiver = FHttp_receiver (Content)
 
 
 (* non blocking input and output (for use with lwt): *)
+(*
 let _ = Unix.set_nonblock Unix.stdin
 let _ = Unix.set_nonblock Unix.stdout
 let _ = Unix.set_nonblock Unix.stderr
-
+*)
 
 let new_socket () = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)

@@ -8,7 +8,7 @@
 *zap*)
 (*html*
     <div class="twocol1">
-      <p>This is the tutorial for Ocsigen version 0.4.0.
+      <p>This is the tutorial for Ocsigen (development version).
 	  (Please report any error).</p>
       <p><em>Warning: This tutorial assumes you know the 
 	<em>Objective Caml</em> language.</em></p>
@@ -192,10 +192,9 @@ let hello =
     ["dir";"hello"]  (* the url dir/hello *)
     unit
     (fun _ () () ->
-    << <html> 
-         <head><title>hello</title></head>
-         <body><h1>hello</h1></body>
-       </html> >>)
+      (html
+	 (head (title (pcdata "Hello")) [])
+	 (body [h1 [pcdata "Hello"]])))
 (*html*
       <p>
       See this example $a Tutorial.plip url <:xmllist< here >>$.
@@ -208,12 +207,9 @@ let hello =
 *html*)
 let default = register_new_service ["rep";""] unit
   (fun _ () () ->
-  << <html>
-       <head><title></title></head>
-       <body>
-         <p>default page. rep is redirected to rep/</p>
-       </body>
-     </html> >>)
+    html
+      (head (title (pcdata "")) [])
+      (body [p [pcdata "default page. rep is redirected to rep/"]]))
 (*html*
       <p>
       See $a Tutorial.default url <:xmllist< default >>$.
@@ -276,18 +272,17 @@ let uaprefix =
     ~get_params:(suffix (string "s"))
     ~prefix:true
     (fun sp (suff, s) () -> 
-       << <html>
-            <head><title></title></head>
-            <body>
-              <p>
-	      The suffix of the url is <strong>$str:suff$</strong>
-              and your user-agent is <strong>$str:sp.user_agent$</strong>
-              and your IP is <strong>$str:Unix.string_of_inet_addr sp.ip$
-                             </strong>
-              and s is <strong>$str:s$</strong>
-              </p>
-            </body>
-          </html> >>)
+      html
+	(head (title (pcdata "")) [])
+	(body
+	   [p [pcdata "The suffix of the url is ";
+	       strong [pcdata suff];
+	       pcdata ", your user-agent is ";
+	       strong [pcdata sp.user_agent];
+               pcdata ", your IP is ";
+	       strong [pcdata (Unix.string_of_inet_addr sp.ip)];
+	       pcdata " and s is ";
+	       strong [pcdata s]]]))
 (*html*
     </div>
     <div class="twocol2">
@@ -298,13 +293,13 @@ let iprefix =
     ~prefix:true 
     ~get_params:(suffix (int "i"))
     (fun sp (suff, i) () -> 
-<< <html>
-     <head><title></title></head>
-     <body><p>
-       The suffix of the url is <strong>$str:suff$</strong> 
-       and i is <strong>$str:string_of_int i$</strong>
-     </p></body>
-   </html> >>)
+      html
+	(head (title (pcdata "")) [])
+	(body
+	   [p [pcdata "The suffix of the url is ";
+	       strong [pcdata suff];
+	       pcdata " and i is equal to ";
+	       strong [pcdata (string_of_int i)]]]))
 (*html*
       <p>See $a Tutorial.uaprefix url <:xmllist< uaprefix >> "suffix" "gni"$,
          $a Tutorial.iprefix url <:xmllist< iprefix >> "mm/aa/gg" 22$.</p>
@@ -351,8 +346,8 @@ let catch = register_new_service
          where <code>n</code> is the name of the wrong parameter, and
          <code>ex</code> is the exception that has been raised while
          parsing its value.</p>
-      <p>See $a Tutorial.catch url <:xmllist< catch >> 22$ (change the value
-   of the parameter).</p>
+      <!-- p>See $a Tutorial.catch url <:xmllist< catch >> 22$ (change the value
+   of the parameter).</p -->
      </div>
     </div>
     <h2>Links</h2>
@@ -410,10 +405,9 @@ let linkrec = new_service ["linkrec"] unit ()
 
 let _ = register_service linkrec 
     (fun sp () () -> 
-      << <html>
-          <head><title></title></head>
-          <body><p>$a linkrec sp <:xmllist< click >> ()$</p></body>
-         </html> >>)
+      html
+	(head (title (pcdata "")) [])
+	(body [p [a linkrec sp [pcdata "click"] ()]]))
 (*zap* If some url are not registered, the server will not start:
 let essai = 
   new_url 
@@ -451,14 +445,12 @@ let create_form =
     $submit_input "Click"$</p>
     >>)
 *zap*)
-
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
      let f = get_form coucou_params sp create_form in
-     << <html>
-          <head><title></title></head>
-          <body> $f$ </body>
-        </html> >>)
+     html
+       (head (title (pcdata "")) [])
+       (body [f]))
 (*html*
       <p>See the function $a Tutorial.form url <:xmllist< form >>$ in action.</p>
 
@@ -527,7 +519,7 @@ let my_service_with_get_and_post = register_new_post_service
            to the service <code>post</code> (using XHTML.M's functions) 
            and <code>form3</code> (defined using the syntax extension)
            contains a form to <code>post2</code>, with a GET parameter.
-           <code>form3</code> is a form to an external page.
+           <code>form4</code> is a form to an external page.
        </p>
 *html*)
 let form2 = register_new_service ["form2"] unit
@@ -538,7 +530,7 @@ let form2 = register_new_service ["form2"] unit
 	    [p [pcdata "Write a string: ";
 		string_input chaine]]) ()) in
      (html
-	(head (title (pcdata "--")) [])
+	(head (title (pcdata "form")) [])
 	(body [f])))
 
 let form3 = register_new_service ["form3"] unit
@@ -561,7 +553,9 @@ let form4 = register_new_service ["form4"] unit
 	  (fun chaine -> 
 	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
 	  222) in
-       << <html><body>$f$</body></html> >>)
+     (html
+	(head (title (pcdata "form")) [])
+	(body [f])))
 (*html*
       <p>See the url
       $a Tutorial.no_post_param_url url <:xmllist< <code>post</code> without parameter >>$,
