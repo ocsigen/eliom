@@ -242,7 +242,6 @@ let service http_frame sockaddr
 		  let filename = find_static_page path in
 		  Messages.debug ("--- Is it a static file? ("^filename^")");
 		  (Unix.lstat filename);
-		  Messages.debug ("--- Is it a static file? ("^filename^")");
 		  let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
 		  let filename = 
 		    if dir

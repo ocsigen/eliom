@@ -123,7 +123,7 @@ let new_state =
 
 
 exception Ocsigen_Internal_Error of string
-exception Ocsigen_Typing_Error of string
+exception Ocsigen_Typing_Error of (string * exn) list
 exception Ocsigen_Wrong_parameter
 exception Ocsigen_Is_a_directory
 exception Ocsigen_404
@@ -205,57 +205,77 @@ let concat_strings s1 sep s2 = match s1,s2 with
 
 (* The following function reconstruct the value of parameters
    from expected type and GET or POST parameters *)
-let reconstruct_params 
-    (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type) 
+type 'a res_reconstr_param = 
+    Res_ of ('a * (string * string) list)
+  | Errors_ of (string * exn) list
+let reconstruct_params
+    (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type)
     params urlsuffix : 'a = 
   let rec aux_list t params name pref suff =
     let rec aa i lp pref suff =
       try
-	let v,lp2 = Obj.magic (aux t lp pref (suff^(make_list_suffix i))) in
-	let v2,lp3 = aa (i+1) lp2 pref suff in
-	(Obj.magic (v::v2)),lp3
-      with Not_found -> ((Obj.magic []),lp)
+	match Obj.magic (aux t lp pref (suff^(make_list_suffix i))) with
+	  Res_ (v,lp2) ->
+	    (match aa (i+1) lp2 pref suff with
+	      Res_ (v2,lp3) -> Res_ ((Obj.magic (v::v2)),lp3)
+	    | err -> err)
+	| Errors_ errs ->
+	  (match aa (i+1) lp pref suff with
+	    Res_ _ -> Errors_ errs
+	  | Errors_ errs2 -> Errors_ (errs2@errs))
+      with Not_found -> Res_ ((Obj.magic []),lp)
     in 
     aa 0 params (pref^name^".") suff
-  and aux typ params pref suff =
+  and aux typ params pref suff : 'a res_reconstr_param =
     match typ with
       TProd (t1, t2) ->
-	let v1,l1 = Obj.magic (aux t1 params pref suff) in
-	let v2,l2 = Obj.magic (aux t2 l1 pref suff) in
-	(Obj.magic (v1,v2)),l2
+	(match Obj.magic (aux t1 params pref suff) with
+	  Res_ (v1,l1) ->
+	    (match Obj.magic (aux t2 l1 pref suff) with
+	      Res_ (v2,l2) -> Res_ ((Obj.magic (v1,v2)),l2)
+	    | err -> err)
+	| Errors_ errs ->
+	    (match aux t2 params pref suff with
+	      Res_ _ -> Errors_ errs
+	    | Errors_ errs2 -> Errors_ (errs2@errs)))
     | TOption t -> 
 	(try 
-	  let v,l = Obj.magic (aux t params pref suff) in
-	  (Obj.magic (Some v)),l
-	with Not_found -> (Obj.magic None), params)
+	  (match Obj.magic (aux t params pref suff) with
+	    Res_ (v,l) -> Res_ ((Obj.magic (Some v)),l)
+	  | err -> err)
+	with Not_found -> Res_ ((Obj.magic None), params))
     | TBool name -> 
 	(try 
 	  let v,l = (list_assoc_remove (pref^name^suff) params) in
-	  (Obj.magic true),l
-	with Not_found -> (Obj.magic false), params)
+	  Res_ ((Obj.magic true),l)
+	with Not_found -> Res_ ((Obj.magic false), params))
     | TList (n,t) -> Obj.magic (aux_list t params n pref suff)
     | TSum (t1, t2) -> 
-	(try let v,l = Obj.magic (aux t1 params pref suff) in
-	(Obj.magic (Inj1 v)),l
+	(try 
+	  match Obj.magic (aux t1 params pref suff) with
+	    Res_ (v,l) -> Res_ ((Obj.magic (Inj1 v)),l)
+	  | err -> err
 	with Not_found -> 
-	  let v,l = Obj.magic (aux t2 params pref suff) in 
-	  (Obj.magic (Inj2 v)),l)
+	  (match Obj.magic (aux t2 params pref suff) with
+	    Res_ (v,l) -> Res_ ((Obj.magic (Inj2 v)),l)
+	  | err -> err))
     | TString name -> let v,l = list_assoc_remove (pref^name^suff) params in
-      (Obj.magic v),l
+      Res_ ((Obj.magic v),l)
     | TInt name -> 
 	let v,l = (list_assoc_remove (pref^name^suff) params) in 
-	(Obj.magic (try int_of_string v
-	with _ -> raise (Ocsigen_Typing_Error (pref^name^suff)))),l
+	(try (Res_ ((Obj.magic (int_of_string v)),l))
+	with e -> Errors_ [(pref^name^suff),e])
     | TUserType (name, of_string, string_of) ->
 	let v,l = (list_assoc_remove (pref^name^suff) params) in 
-	(Obj.magic (try of_string v
-	with _ -> raise (Ocsigen_Typing_Error (pref^name^suff)))),l
-    | TUnit -> (Obj.magic ()), params
+	(try (Res_ ((Obj.magic (of_string v)),l))
+	with e -> Errors_ [(pref^name^suff),e])
+    | TUnit -> Res_ ((Obj.magic ()), params)
     | TSuffix -> raise (Ocsigen_Internal_Error "Bad use of suffix")
   in
   let aux2 typ =
-    let v,l = Obj.magic (aux typ params "" "") in
-    if l = [] then v else raise Ocsigen_Wrong_parameter
+    match Obj.magic (aux typ params "" "") with
+      Res_ (v,l) -> if l = [] then v else raise Ocsigen_Wrong_parameter
+    | Errors_ errs -> raise (Ocsigen_Typing_Error errs)
   in
   try 
     match typ with
@@ -806,9 +826,9 @@ module type OCSIGENSIG =
             service
     val register_service :
         service:('a, 'b, [ `Internal_Service of 'c ],
-                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
-        service ->
-          (server_params -> 'a -> 'b -> page) -> unit
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+	   ?error_handler:(server_params -> (string * exn) list -> page) ->
+	     (server_params -> 'a -> 'b -> page) -> unit
     val register_service_for_session :
         Directorytree.tables server_params1 ->
           service:('a, 'b, [ `Internal_Service of 'c ],
@@ -1048,6 +1068,7 @@ module Make = functor
 	session
 	state
 	~(service : ('get,'post,[`Internal_Service of 'popo],'tipo,'gn,'pn) service)
+	?(error_handler = fun sp l -> raise (Ocsigen_Typing_Error l))
 	(page_generator : server_params -> 'get -> 'post -> 'fin) =
       add_service tables current_dir session service.url 
 	Pages.create_sender
@@ -1056,20 +1077,23 @@ module Make = functor
 	 (service.unique_id,
 	  (fun (suff,h) -> 
 	    Pages.send 
-	      ~content:(page_generator h 
-			  (reconstruct_params 
-			     service.get_params_type h.get_params suff)
-			  (reconstruct_params
-			     service.post_params_type h.post_params suff)))))
+	      ~content:(try 
+		page_generator h 
+		  (reconstruct_params 
+		     service.get_params_type h.get_params suff)
+		  (reconstruct_params
+		     service.post_params_type h.post_params suff)
+	      with Ocsigen_Typing_Error l -> error_handler h l))))
 
     let register_service 
 	~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
+	?error_handler
 	(page_gen : server_params -> 'get -> 'post -> 'fin) =
       if global_register_allowed () then begin
 	remove_unregistered (service.url,service.unique_id);
 	register_service_aux 
 	  (get_current_dir ()) global_tables false (service.url_state)
-	  service page_gen; 
+	  ~service ?error_handler page_gen; 
       end
       else Messages.warning "Public service registration after init forbidden! Please correct your module! (ignored)"
 
@@ -1942,9 +1966,9 @@ let get_page
   in try 
     execute generate_page sockaddr cookie
   with 
-    Ocsigen_Typing_Error n -> 
+    Ocsigen_Typing_Error l -> 
       (cookie, (Sender_helpers.send_xhtml_page 
-	 ~content:(Error_pages.page_error_param_type n)), 
+	 ~content:(Error_pages.page_error_param_type l)),
        Sender_helpers.create_xhtml_sender, "/")
   | Ocsigen_Wrong_parameter -> 
       (cookie, (Sender_helpers.send_xhtml_page 

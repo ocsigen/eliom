@@ -234,20 +234,20 @@ let default = register_new_service ["rep";""] unit
        for POST parameters (parameters in the body of the HTTP request).</p>
       <p>Here is an example of a service with GET parameters:</p>
 *html*)
-let writeparams _ (entier, (chaine, chaine2)) () = 
+let writeparams _ (i1, (i2, s1)) () = 
   (html
     (head (title (pcdata "")) [])
     (body [p [pcdata "You sent: ";
-              strong [pcdata (string_of_int entier)];
+              strong [pcdata (string_of_int i1)];
 	      pcdata ", ";
-              strong [pcdata chaine];
+              strong [pcdata (string_of_int i2)];
 	      pcdata " and ";
-              strong [pcdata chaine2]]]))
+              strong [pcdata s1]]]))
 (*zap* you can register twice the same service, with different parameters names 
  *zap*)
 let coucou_params = register_new_service 
     ~url:["coucou"]
-    ~get_params:(int "entier" ** (string "chaine" ** string "chaine2"))
+    ~get_params:(int "i" ** (int "ii" ** string "s"))
     writeparams
 (*zap* If you register twice exactly the same URL, the server won't start 
  *zap*)
@@ -329,6 +329,33 @@ let mytype = register_new_service
        (body [p [pcdata v]])))
 (*html*
       <p>See $a Tutorial.mytype url <:xmllist< mytype >> Tutorial.A$.</p>
+      <div class="encadre">
+	<h3>Catching errors</h3>
+	<p>You can catch errors using the optional parameter
+        <code>error_handler</code>:</p>
+*html*)
+let catch = new_service 
+  ~url:["catch"]
+  ~get_params:(int "i")
+    ()
+let _ = register_service
+    ~service:catch
+    ~error_handler:(fun sp l -> 
+      (html
+	 (head (title (pcdata "")) [])
+	 (body [p [pcdata ("i is not an integer.")]])))
+    (fun _ i () -> let v = string_of_int i in
+    (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata ("i is an integer: "^v)]])))
+(*html*
+      <p><code>error_handler</code> takes as parameters the usual 
+         <code>sp</code>, and a list of pairs <code>(n,ex)</code>,
+         where <code>n</code> is the name of the wrong parameter, and
+         <code>ex</code> is the exception that has been raised while
+         parsing its value.</p>
+      <p>See $a Tutorial.catch url <:xmllist< catch >> 22$ (change the value
+   of the parameter).</p>
     </div>
     <h2>Links</h2>
     <div class="twocol1">
@@ -349,7 +376,7 @@ let links = register_new_service ["rep";"links"] unit
                 a uaprefix sp 
 		  [pcdata "uaprefix"] ("suff","toto"); br ();
                 a coucou_params sp 
-		  [pcdata "coucou_params"] (42,("ciao","hallo")); br ();
+		  [pcdata "coucou_params"] (42,(22,"ciao")); br ();
                 a
 	          (new_external_service
 		     ~url:["http://fr.wikipedia.org";"wiki"]
@@ -411,13 +438,13 @@ let essai =
       </p>
 *html*)
 let create_form = 
-  (fun (entier,(chaine,chaine2)) ->
+  (fun (number_name,(number2_name,string_name)) ->
     [p [pcdata "Write an int: ";
-	int_input entier;
+	int_input number_name;
+	pcdata "Write another int: ";
+	int_input number2_name;
 	pcdata "Write a string: ";
-	string_input chaine;
-	pcdata "Write another string: ";
-	string_input chaine2;
+	string_input string_name;
 	submit_input "Click"]])
 (*zap*	
     <:xmllist< <p>Write an int: $int_input entier$ <br/>
@@ -660,7 +687,7 @@ let _ = register_service
     </div>
     <div class="twocol2">
 *html*)
-let rec launch_session sp () login =
+let launch_session sp () login =
   let close = register_new_auxiliary_service_for_session
     sp
     ~fallback:public_session_without_post_params 
@@ -1314,7 +1341,7 @@ let _ = register_service main
        <h3>Parameters</h3>
        <p>
        Une page avec paramètres GET : 
-	   $a coucou_params sp <:xmllist< coucou avec params >> (45,("hello","krokodile"))$ (que se passe-t-il si le premier paramètre n'est pas un entier ?)<br/> 
+	   $a coucou_params sp <:xmllist< coucou avec params >> (45,(22,"krokodile"))$ (que se passe-t-il si le premier paramètre n'est pas un entier ?)<br/> 
        Une page avec URL "préfixe" qui récupère l'IP et l'user-agent : 
 	   $a uaprefix sp <:xmllist< uaprefix >> ("suf", "toto")$ <br/> 
        Une page URL "préfixe" avec des paramètres GET : 

@@ -180,8 +180,8 @@ module Xhtml : sig
 
   val register_service :
       service:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
-	       'd, 'e)
-      service ->
+	       'd, 'e) service ->
+      ?error_handler:(server_params -> (string * exn) list -> page) ->
 	(server_params -> 'a -> 'b -> page) -> unit
 (** Register an service in the global table of the server 
    with the associated generation function.
@@ -555,8 +555,8 @@ module type OCSIGENSIG =
             service
     val register_service :
         service:('a, 'b, [ `Internal_Service of 'c ],
-                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
-        service ->
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+	?error_handler:(server_params -> (string * exn) list -> page) ->
           (server_params -> 'a -> 'b -> page) -> unit
     val register_service_for_session :
         server_params ->

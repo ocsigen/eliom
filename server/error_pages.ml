@@ -16,8 +16,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let page_error_param_type n = 
-  << <html><body><h1>Wrong type for parameter <em>$str:n$</em></h1></body></html> >>
+open XHTML.M
+
+let page_error_param_type l = 
+  let s = match l with
+    [] -> [pcdata "Wrong type for parameter"]
+  | [(n,_)] -> [pcdata "Wrong type for parameter ";em [pcdata n];pcdata "."]
+  | (n,_)::ll ->
+      (pcdata "Wrong type for parameters ")::
+      (List.fold_left (fun deb (n,_) -> (em [pcdata n])::(pcdata ", ")::deb) 
+	 [em [pcdata n];pcdata "."] ll)
+  in
+  html
+    (head (title (pcdata "")) [])
+    (body
+       [h1 s]
+    )
 
 let page_bad_param        = << <html><body><h1>Wrong parameters</h1></body></html> >>
 
