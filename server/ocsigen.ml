@@ -151,6 +151,7 @@ type ('a,'tipo,'names) params_type =
   | TSum of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = ('a1, 'a2) binsum *)
   | TString of string param_name (* 'a = string *)
   | TInt of int param_name (* 'a = int *)
+  | TFloat of float param_name (* 'a = float *)
   | TBool of bool param_name (* 'a = bool *)
   | TUserType of ('a param_name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
   | TSuffix (* 'a = string *)
@@ -162,6 +163,7 @@ type 'an listnames =
 (* As GADT are not implemented in OCaml for the while, we define our own
    constructors for params_type *)
 let int (n : string) : (int,[`WithoutSuffix], int param_name) params_type = TInt n
+let float (n : string) : (float,[`WithoutSuffix], float param_name) params_type = TFloat n
 let bool (n : string) : (bool,[`WithoutSuffix], bool param_name) params_type= TBool n
 let string (n : string) : (string,[`WithoutSuffix], string param_name) params_type = 
   TString n
@@ -178,7 +180,7 @@ let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type)
     (t2 : ('b,[`WithoutSuffix], 'bn) params_type)
     : (('a * 'b),[`WithoutSuffix], 'an * 'bn) params_type =
   Obj.magic (TProd ((Obj.magic t1), (Obj.magic t2)))
-let option (t : ('a,[`WithoutSuffix], 'an) params_type) 
+let opt (t : ('a,[`WithoutSuffix], 'an) params_type) 
     : ('a option,[`WithoutSuffix], 'an) params_type = 
   Obj.magic (TOption t)
 let list (n : string) (t : ('a,[`WithoutSuffix], 'an) params_type) 
@@ -265,6 +267,10 @@ let reconstruct_params
 	let v,l = (list_assoc_remove (pref^name^suff) params) in 
 	(try (Res_ ((Obj.magic (int_of_string v)),l))
 	with e -> Errors_ [(pref^name^suff),e])
+    | TFloat name -> 
+	let v,l = (list_assoc_remove (pref^name^suff) params) in 
+	(try (Res_ ((Obj.magic (float_of_string v)),l))
+	with e -> Errors_ [(pref^name^suff),e])
     | TUserType (name, of_string, string_of) ->
 	let v,l = (list_assoc_remove (pref^name^suff) params) in 
 	(try (Res_ ((Obj.magic (of_string v)),l))
@@ -314,6 +320,7 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
       | Inj2 v -> aux t2 v pref suff)
     | TString name -> pref^name^suff^"="^(Obj.magic params)
     | TInt name -> pref^name^suff^"="^(string_of_int (Obj.magic params))
+    | TFloat name -> pref^name^suff^"="^(string_of_float (Obj.magic params))
     | TUserType (name, of_string, string_of) ->
 	pref^name^suff^"="^(string_of (Obj.magic params))
     | TUnit -> ""
@@ -966,6 +973,8 @@ module type OCSIGENSIG =
         ?a:input_attrib_t -> string param_name -> input_elt
     val int_input :
         ?a:input_attrib_t -> int param_name -> input_elt
+    val float_input :
+        ?a:input_attrib_t -> float param_name -> input_elt
     val string_input :
         ?a:input_attrib_t -> string param_name -> input_elt
     val hidden_int_input :
@@ -1324,6 +1333,7 @@ module Make = functor
       let rec aux prefix suffix = function
 	  TProd (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
 	| TInt name -> Obj.magic (prefix^name^suffix)
+	| TFloat name -> Obj.magic (prefix^name^suffix)
 	| TString name -> Obj.magic (prefix^name^suffix)
 	| TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
 	| TUnit -> Obj.magic ("")
@@ -1474,6 +1484,7 @@ module Make = functor
       Pages.make_input ?a ~typ:Pages.password ~name:name ()
 
     let int_input ?a (name : int param_name) = gen_input ?a name
+    let float_input ?a (name : float param_name) = gen_input ?a name
     let string_input ?a (name : string param_name) = gen_input ?a name
 
     let hidden_int_input ?a (name : int param_name) v = 
@@ -1700,6 +1711,12 @@ module Xhtml = struct
       int param_name -> [ input ] elt
     :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
       int param_name -> [> input ] elt)
+
+  let float_input = (float_input 
+    : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+      float param_name -> [ input ] elt
+    :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+      float param_name -> [> input ] elt)
 
   let hidden_int_input = (hidden_int_input
     : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 

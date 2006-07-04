@@ -94,6 +94,9 @@ type 'an listnames =
 val int : string -> (int, [ `WithoutSuffix ], int param_name) params_type
 (** [int s] tells that the page take an integer as parameter, labeled [s] *)
 
+val float : string -> (float, [ `WithoutSuffix ], float param_name) params_type
+(** [float s] tells that the page take a floating point number as parameter, labeled [s] *)
+
 val string :
     string -> (string, [ `WithoutSuffix ], string param_name) params_type
 (** [string s] tells that the page take a string as parameter, labeled [s] *)
@@ -123,7 +126,7 @@ val prod :
 	('a * 'c, [ `WithoutSuffix ], 'b * 'd) params_type
 (** See [**] above *)
 
-val option :
+val opt :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
       ('a option, [ `WithoutSuffix ], 'b) params_type
 (** Use this if you want a parameter to be optional *)
@@ -398,6 +401,10 @@ module Xhtml : sig
   val int_input : ?a:(input_attrib attrib list ) -> 
     int param_name -> [> input ] elt
 (** Creates an [<input>] tag for an integer *)
+
+  val float_input : ?a:(input_attrib attrib list ) -> 
+    float param_name -> [> input ] elt
+(** Creates an [<input>] tag for a float *)
 
   val hidden_int_input : 
       ?a:(input_attrib attrib list ) -> 
@@ -702,6 +709,8 @@ module type OCSIGENSIG =
         ?a:input_attrib_t -> string param_name -> input_elt
     val int_input :
         ?a:input_attrib_t -> int param_name -> input_elt
+    val float_input :
+        ?a:input_attrib_t -> float param_name -> input_elt
     val string_input :
         ?a:input_attrib_t -> string param_name -> input_elt
     val hidden_int_input :

@@ -19,13 +19,13 @@ let post =
     ~fallback:def
     ~post_params:(string "group" ** 
 		    (bool "macase" ** 
-		       (option (string "madeuxiemecase")
-			  ** option (string "monradio"))))
+		       (opt (string "madeuxiemecase")
+			  ** opt (string "monradio"))))
 
 let create_form (group,(case,(case2,radio))) =
     [p [select ~a:[a_name group]
-          (XHTML.M.option (pcdata "choi1")) 
-	  [XHTML.M.option (pcdata "choi2")];
+          (option (pcdata "choi1")) 
+	  [option (pcdata "choi2")];
 	checkbox_input case;
 	input ~a:[a_name case2; a_value "Bip"; a_input_type `Checkbox] ();
 	input ~a:[a_name radio; a_value "premier"; a_input_type `Radio] ();
@@ -67,7 +67,7 @@ let _ = register_service post fonction
 (* lists *)
 let coucou_list = register_new_service 
     ~url:["coucou"]
-    ~get_params:(list "a" (string "nom" ** (option (int "entier") ** bool "chkbx")))
+    ~get_params:(list "a" (string "nom" ** (opt (int "entier") ** bool "chkbx")))
   (fun _ l () ->  (* l est une liste de (nom * (string option)) *)
     let ll = 
       List.map (fun (nom, (entieropt, chkbxopt)) -> 
@@ -299,7 +299,7 @@ let fo = register_new_service ["fo"] (_current_url _noparam)
 
 let coucou_list = register_new_service
     ~url:["coucou"]
-    ~get_params:((list "a" (option (string "chkbx"))) ** string "login")
+    ~get_params:((list "a" (opt (string "chkbx"))) ** string "login")
   (fun _ (l,login) () ->     (* l est une liste de (nom * (string option))
 *)
     let ll =
