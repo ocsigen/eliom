@@ -834,12 +834,14 @@ module type OCSIGENSIG =
           service:('a, 'b, [ `Internal_Service of 'c ],
                    [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
             service ->
+	      ?error_handler:(server_params -> (string * exn) list -> page) ->
               (server_params -> 'a -> 'b -> page) -> unit
     val register_new_service :
         url:url_path ->
           ?prefix:bool ->
             get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
               params_type ->
+	   ?error_handler:(server_params -> (string * exn) list -> page) ->
 		(server_params -> 'a -> unit -> page) ->
 		  ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
 		   unit param_name)
@@ -848,6 +850,7 @@ module type OCSIGENSIG =
         fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
                   [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
         service ->
+	   ?error_handler:(server_params -> (string * exn) list -> page) ->
           (server_params -> 'a -> unit -> page) ->
             ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
               service
@@ -856,6 +859,7 @@ module type OCSIGENSIG =
           fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
                     [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
             service ->
+	   ?error_handler:(server_params -> (string * exn) list -> page) ->
               (server_params -> 'a -> unit -> page) ->
 		('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
 		  service
@@ -879,6 +883,7 @@ module type OCSIGENSIG =
                   unit param_name)
         service ->
           post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
+	   ?error_handler:(server_params -> (string * exn) list -> page) ->
             (server_params -> 'a -> 'd -> page) ->
               ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e)
 		service
@@ -887,6 +892,7 @@ module type OCSIGENSIG =
                   [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
         service ->
           post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+	   ?error_handler:(server_params -> (string * exn) list -> page) ->
             (server_params -> 'a -> 'f -> page) ->
               ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
 		service
@@ -896,6 +902,7 @@ module type OCSIGENSIG =
                     [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
             service ->
               post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+	   ?error_handler:(server_params -> (string * exn) list -> page) ->
 		(server_params -> 'a -> 'f -> page) ->
 		  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
 		    service
@@ -1106,36 +1113,39 @@ module Make = functor
 
     let register_service_for_session
 	sp
-	~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
+	~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service) 	?error_handler
 	page =
-      register_service_aux sp.current_dir
-	!(sp.session_table) true service.url_state service page
+      register_service_aux ?error_handler sp.current_dir
+	!(sp.session_table) true service.url_state ~service page
 
     let register_new_service 
 	~url
 	?(prefix=false)
 	~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
+	?error_handler
 	page
 	: ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service =
       let u = new_service ~prefix ~url ~get_params () in
-      register_service u page;
+      register_service ~service:u ?error_handler page;
       u
 	
     let register_new_auxiliary_service
-	~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
+	~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service) 	
+	?error_handler
 	page
 	: ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
       let u = (new_auxiliary_service fallback) in
-      register_service u page;
+      register_service ~service:u ?error_handler page;
       u
 
     let register_new_auxiliary_service_for_session
 	sp
 	~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
+	?error_handler
 	page
 	: ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
       let u = (new_auxiliary_service fallback) in
-      register_service_for_session sp u page;
+      register_service_for_session sp ~service:u ?error_handler page;
       u
 
 
@@ -1175,29 +1185,32 @@ module Make = functor
     let register_new_post_service 
 	~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service)
 	~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+	?error_handler
 	(page_gen : server_params -> 'get -> 'post -> 'fin)
 	: ('get,'post, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service =
       let u = new_post_service ~fallback:fallback ~post_params:post_params in
-      register_service u page_gen;
+      register_service ~service:u ?error_handler page_gen;
       u
 
     let register_new_post_auxiliary_service
 	~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
 	~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+	?error_handler
 	page_gen
 	: ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
       let u = new_post_auxiliary_service ~fallback:fallback ~post_params:post_params in
-      register_service u page_gen;
+      register_service ~service:u ?error_handler page_gen;
       u
 
     let register_new_post_auxiliary_service_for_session
 	sp
 	~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
 	~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+	?error_handler
 	page_gen
 	: ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
       let u = new_post_auxiliary_service ~fallback:fallback ~post_params:post_params in
-      register_service_for_session sp u page_gen;
+      register_service_for_session sp ~service:u ?error_handler page_gen;
       u
 
 

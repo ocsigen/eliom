@@ -334,12 +334,9 @@ let mytype = register_new_service
 	<p>You can catch errors using the optional parameter
         <code>error_handler</code>:</p>
 *html*)
-let catch = new_service 
-  ~url:["catch"]
-  ~get_params:(int "i")
-    ()
-let _ = register_service
-    ~service:catch
+let catch = register_new_service
+    ~url:["catch"]
+    ~get_params:(int "i")
     ~error_handler:(fun sp l -> 
       (html
 	 (head (title (pcdata "")) [])
@@ -356,6 +353,7 @@ let _ = register_service
          parsing its value.</p>
       <p>See $a Tutorial.catch url <:xmllist< catch >> 22$ (change the value
    of the parameter).</p>
+     </div>
     </div>
     <h2>Links</h2>
     <div class="twocol1">
