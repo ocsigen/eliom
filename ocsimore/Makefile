@@ -1,11 +1,18 @@
+include ../Makefile.config
+
+ifeq "$(DEBUG)" "YES"
+DBG = -dtypes -g
+else
+DBG =
+endif
 
 FILES= db_create.ml ocsipersist.ml ocsicache.ml ocsidata.ml ocsipages.ml ocsisav.ml ocsiboxes.ml
 
 OTHERFILES= ocsexample_util.ml ocsexample3.ml ocsexample1.ml ocsexample2.ml
 
 OCAMLFIND = ocamlfind
-CAMLC = ocamlfind ocamlc -g $(LIB)
-CAMLOPT = ocamlfind ocamlopt $(LIB)
+CAMLC = ocamlfind ocamlc $(DBG) $(LIB)
+CAMLOPT = ocamlfind ocamlopt $(DBG) $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
 CAMLDEP = ocamlfind ocamldep
 LIB = -package dbi.postgresql -I ../lib
@@ -42,7 +49,7 @@ doc:
 	$(CAMLDOC) -d doc -html ocsicache.mli
 
 clean:
-	-rm -f *.cm[iox] *~ $(NAME)
+	-rm -f *.cm[iox] *~ $(NAME) *.annot
 
 depend:
 	$(CAMLDEP) $(PP) $(FILES:.ml=.mli) $(FILES) > .depend

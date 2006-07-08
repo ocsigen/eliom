@@ -81,7 +81,7 @@ type server_params = session_table server_params1
 type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 (** Binary sums *)
 
-type 'a param_name = string
+type 'a param_name
 (** Type for names of page parameters *)
 
 type ('a, 'b, 'c) params_type
@@ -92,19 +92,25 @@ type 'an listnames =
 (** Type of the iterator used to construct forms from lists *)
 
 val int : string -> (int, [ `WithoutSuffix ], int param_name) params_type
-(** [int s] tells that the page take an integer as parameter, labeled [s] *)
+(** [int s] tells that the page takes an integer as parameter, labeled [s] *)
 
 val float : string -> (float, [ `WithoutSuffix ], float param_name) params_type
-(** [float s] tells that the page take a floating point number as parameter, labeled [s] *)
+(** [float s] tells that the page takes a floating point number as parameter, labeled [s] *)
 
 val string :
     string -> (string, [ `WithoutSuffix ], string param_name) params_type
-(** [string s] tells that the page take a string as parameter, labeled [s] *)
+(** [string s] tells that the page takes a string as parameter, labeled [s] *)
 
 val bool :
     string -> (bool, [ `WithoutSuffix ], bool param_name) params_type
-(** [bool s] tells that the page take a boolean as parameter, labeled [s]
-   (to use for example with checkboxes) *)
+(** [bool s] tells that the page takes a boolean as parameter, labeled [s]
+   (to use for example with boolean checkboxes) *)
+
+val radio_answer :
+    string -> (string option, [ `WithoutSuffix ], 
+	       string option param_name) params_type
+(** [radio_answer s] tells that the page takes the result of a click on
+   a radio button as parameter. *)
 
 val unit : (unit, [ `WithoutSuffix ], unit param_name) params_type
 (** used for pages that don't have any parameters *)
@@ -399,36 +405,90 @@ module Xhtml : sig
  *)
 
   val int_input : ?a:(input_attrib attrib list ) -> 
+    ?value:int ->
     int param_name -> [> input ] elt
 (** Creates an [<input>] tag for an integer *)
 
   val float_input : ?a:(input_attrib attrib list ) -> 
+    ?value:float ->
     float param_name -> [> input ] elt
 (** Creates an [<input>] tag for a float *)
+
+  val string_input : 
+      ?a:(input_attrib attrib list ) -> 
+	?value:string ->
+	  string param_name -> [> input ] elt
+(** Creates an [<input>] tag for a string *)
+
+  val user_type_input : 
+      ?a:(input_attrib attrib list ) -> 
+	?value:'a ->
+	  ('a -> string) ->
+	    'a param_name -> 
+	      [> input ] elt
+(** Creates an [<input>] tag for a user type *)
+
+  val int_password_input : ?a:(input_attrib attrib list ) -> 
+    ?value:int ->
+    int param_name -> [> input ] elt
+(** Creates an [<input type="password">] tag for an integer *)
+
+  val float_password_input : ?a:(input_attrib attrib list ) -> 
+    ?value:float ->
+    float param_name -> [> input ] elt
+(** Creates an [<input type="password">] tag for a float *)
+
+  val string_password_input : 
+      ?a:(input_attrib attrib list ) -> 
+	?value:string ->
+	  string param_name -> [> input ] elt
+(** Creates an [<input type="password">] tag for a string *)
+
+  val user_type_password_input : 
+      ?a:(input_attrib attrib list ) -> 
+	?value:'a ->
+	  ('a -> string) ->
+	    'a param_name -> 
+	      [> input ] elt
+(** Creates an [<input type="password">] tag for a user type *)
 
   val hidden_int_input : 
       ?a:(input_attrib attrib list ) -> 
 	int param_name -> int -> [> input ] elt
 (** Creates an hidden [<input>] tag for an integer *)
 
-  val string_input : 
-      ?a:(input_attrib attrib list ) -> string param_name -> 
-	[> input ] elt
-(** Creates an [<input>] tag for a string *)
-
-  val password_input : 
-      ?a:(input_attrib attrib list ) -> string param_name -> 
-	[> input ] elt
-(** Creates an [<password>] tag *)
-
-  val checkbox_input :
+  val hidden_float_input : 
       ?a:(input_attrib attrib list ) -> 
+	float param_name -> float -> [> input ] elt
+(** Creates an hidden [<input>] tag for a float *)
+
+  val hidden_string_input : 
+      ?a:(input_attrib attrib list ) -> 
+	string param_name -> string -> [> input ] elt
+(** Creates an hidden [<input>] tag for a string *)
+
+  val hidden_user_type_input : 
+      ?a:(input_attrib attrib list ) -> ('a -> string) ->
+	'a param_name -> 'a -> [> input ] elt
+(** Creates an hidden [<input>] tag for a user type *)
+
+  val bool_checkbox :
+      ?a:(input_attrib attrib list ) -> ?checked:bool -> 
 	bool param_name -> [> input ] elt
 (** Creates a checkbox [<input>] tag *)
 
-  val radio_input : ?a:(input_attrib attrib list ) -> 
-    string param_name -> [> input ] elt
-(** Creates a radio [<input>] tag *)
+  val string_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+    string option param_name -> string -> [> input ] elt
+(** Creates a radio [<input>] tag with string content *)
+  val int_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     int option param_name -> int -> [> input ] elt
+(** Creates a radio [<input>] tag with int content *)
+  val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     float option param_name -> float -> [> input ] elt
+(** Creates a radio [<input>] tag with float content *)
+  val user_type_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
+    ('a -> string) -> 'a option param_name -> 'a -> [> input ] elt
+(** Creates a radio [<input>] tag with user_type content *)
 
   val textarea : ?a:(textarea_attrib attrib list ) -> 
     string param_name -> rows:number -> cols:number -> [ `PCDATA ] XHTML.M.elt ->
@@ -509,8 +569,9 @@ module type PAGES =
     val make_empty_form_content : unit -> form_content_elt
     val make_input :
         ?a:input_attrib_t ->
-          typ:input_type_t ->
-            ?name:string -> ?value:string -> unit -> input_elt
+	  ?checked:bool ->
+            typ:input_type_t ->
+              ?name:string -> ?value:string -> unit -> input_elt
     val make_textarea :
         ?a:textarea_attrib_t ->
           name:string ->
@@ -704,21 +765,46 @@ module type OCSIGENSIG =
     val js_script :
         ?a:script_attrib_t -> uri -> script_elt
     val css_link : ?a:link_attrib_t -> uri -> link_elt
-    val gen_input : ?a:input_attrib_t -> string -> input_elt
-    val password_input :
-        ?a:input_attrib_t -> string param_name -> input_elt
     val int_input :
-        ?a:input_attrib_t -> int param_name -> input_elt
+        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
     val float_input :
-        ?a:input_attrib_t -> float param_name -> input_elt
+        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
     val string_input :
-        ?a:input_attrib_t -> string param_name -> input_elt
+        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+    val user_type_input :
+        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
+	  'a param_name -> input_elt
+    val int_password_input :
+        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
+    val float_password_input :
+        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
+    val string_password_input :
+        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+    val user_type_password_input :
+        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
+	  'a param_name -> input_elt
     val hidden_int_input :
         ?a:input_attrib_t -> int param_name -> int -> input_elt
-    val checkbox_input :
-        ?a:input_attrib_t -> bool param_name -> input_elt
-    val radio_input :
-        ?a:input_attrib_t -> string param_name -> input_elt
+    val hidden_float_input :
+        ?a:input_attrib_t -> float param_name -> float -> input_elt
+    val hidden_string_input :
+        ?a:input_attrib_t -> string param_name -> string -> input_elt
+    val hidden_user_type_input :
+        ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
+    val bool_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
+    val string_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+	  string option param_name -> string -> input_elt
+    val int_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+	   int option param_name -> int -> input_elt
+    val float_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+	   float option param_name -> float -> input_elt
+    val user_type_radio :
+        ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
+	   'a option param_name -> 'a -> input_elt
     val textarea :
         ?a:textarea_attrib_t ->
           string param_name ->

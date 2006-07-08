@@ -1,8 +1,15 @@
+include ../Makefile.config
+
+ifeq "$(DEBUG)" "YES"
+DBG = -dtypes -g
+else
+DBG =
+endif
 
 NAME = lwt
 
-OCAMLC = ocamlfind ocamlc -g
-OCAMLOPT = ocamlfind ocamlopt
+OCAMLC = ocamlfind ocamlc $(DBG)
+OCAMLOPT = ocamlfind ocamlopt $(DBG)
 OCAMLDEP = ocamldep
 
 OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_unix.cmo
@@ -54,7 +61,7 @@ uninstall:
 	ocamlfind remove $(NAME)
 
 clean::
-	rm -f *.cmi *.cmo *.cmx *.cma *.cmxa *.a *.o *~ *.bak
+	rm -f *.cmi *.cmo *.cmx *.cma *.cmxa *.a *.o *~ *.bak *.annot
 
 clean::
 	cd example && make clean

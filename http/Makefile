@@ -1,13 +1,19 @@
 include ../Makefile.config
 
-CAMLC    = ocamlfind ocamlc
+ifeq "$(DEBUG)" "YES"
+DBG = -dtypes -g
+else
+DBG =
+endif
+
+CAMLC    = ocamlfind ocamlc $(DBG)
 CAMLLEX  = ocamllex
 CAMLYACC = ocamlyacc
 CAMLDOC  = ocamlfind ocamldoc
 FLAGS    = -g
-CAMLCOPT = ocamlfind ocamlopt
+CAMLCOPT = ocamlfind ocamlopt $(DBG)
 CAMLDEP  = ocamlfind ocamldep
-NAME 	 =  test_pp
+NAME 	 = test_pp
 LIBDIR 	= ../lib
 LIB= -package netstring -I $(LIBDIR) -I +camlp4
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
@@ -26,7 +32,7 @@ doc:
 	$(CAMLDOC) $(PP) $(LIB) -html -d documentation *.ml *.mli
 
 clean:
-	-rm $(NAME) $(OPTNAME) *.cm[oix] *.o \
+	-rm $(NAME) $(OPTNAME) *.cm[oix] *.o *.annot \
 	http_parser.ml http_parser.mli http_lexer.ml ocsiconfig.ml documentation/*	
 
 viclean: clean

@@ -1,7 +1,15 @@
+include ../Makefile.config
+
 FILES=tutorial.ml ocsiprof.ml essais.ml
 
-CAMLC = ocamlfind ocamlc $(LIB)
-CAMLOPT = ocamlfind ocamlopt $(LIB)
+ifeq "$(DEBUG)" "YES"
+DBG = -dtypes -g
+else
+DBG =
+endif
+
+CAMLC = ocamlfind ocamlc $(DBG) $(LIB)
+CAMLOPT = ocamlfind ocamlopt $(DBG) $(LIB)
 CAMLDEP = ocamlfind ocamldep
 LIB = -I ../lib
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -loc loc"

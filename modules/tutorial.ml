@@ -1276,7 +1276,7 @@ let bool_params = register_new_service
      </html> >>)
 
 let create_form_bool casename =
-    <:xmllist< <p>check? $checkbox_input casename$ <br/>
+    <:xmllist< <p>check? $bool_checkbox casename$ <br/>
       $submit_input "Click"$</p> >>
 
 let form_bool = register_new_service ["formbool"] unit

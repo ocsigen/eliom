@@ -1,8 +1,16 @@
+include ../Makefile.config
+
+ifeq "$(DEBUG)" "YES"
+DBG = -dtypes -g
+else
+DBG =
+endif
+
 FILESR = xmllexer.ml 
 FILES = xhtmltypes.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml simplexmlparser.ml xhtmlparser.ml xhtmlpp.ml
 
-CAMLC = ocamlc $(LIB)
-CAMLOPT = ocamlopt $(LIB)
+CAMLC = ocamlc $(DBG) $(LIB)
+CAMLOPT = ocamlopt $(DBG) $(LIB)
 CAMLDEP = ocamldep
 CAMLP4 = camlp4
 LIB = -I `$(CAMLP4) -where` -I ../lib
@@ -55,7 +63,7 @@ doc:
 
 # Clean up
 clean:
-	-rm -f *.cm[iox] *~
+	-rm -f *.cm[iox] *~ *.annot
 	$(MAKE) -C exemple clean
 	$(MAKE) -C ohl-xhtml clean
 	touch .depend

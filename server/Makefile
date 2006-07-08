@@ -4,9 +4,15 @@ NAME=$(OCSIGENNAME)
 
 FILES= error_pages.ml ocsigen.ml ocsigenboxes.ml parseconfig.ml server.ml
 
+ifeq "$(DEBUG)" "YES"
+DBG = -dtypes -g
+else
+DBG =
+endif
+
 INSTALL = install
-CAMLC = ocamlfind ocamlc -g $(LIB)
-CAMLOPT = ocamlfind ocamlopt $(LIB)
+CAMLC = ocamlfind ocamlc $(DBG) $(LIB)
+CAMLOPT = ocamlfind ocamlopt $(DBG) $(LIB)
 CAMLDOC = ocamlfind ocamldoc $(LIB)
 CAMLDEP = ocamlfind ocamldep
 ifeq "$(OCSIMORE)" "YES"
@@ -64,7 +70,7 @@ doc:
 
 .PHONY: clean
 clean:
-	-rm -f *.cm[iox] *~ doc/* $(NAME)
+	-rm -f *.cm[iox] *~ doc/* $(NAME) *.annot
 
 .PHONY: install
 install:
