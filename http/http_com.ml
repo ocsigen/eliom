@@ -426,16 +426,10 @@ module FHttp_sender =
       (*creation du header*)
     let md = match mode with None -> sender.mode | Some m -> m in
     let prot = match proto with None -> sender.proto | Some p -> p in
-    let content_length = 
-    	let rec cont_len acc = function
-	   | C.Finished -> acc
-	   | C.Cont (s, next) ->
-                    cont_len (acc+(String.length s)) (next ()) in					
+    let content_length =  
       match content with
       |None -> None
-      |Some c -> let x = cont_len 0 (C.stream_of_content c) in
-                      Messages.debug ("len="^(string_of_int x)^" for cont_len");
-                      Some (x(*cont_len 0 (C.stream_of_content c)*))				      
+      |Some c -> Some (C.size_of_content c)			      
     in
     let hds = hds_fusion content_length sender.headers 
     (match headers with Some h ->h | None -> []) 

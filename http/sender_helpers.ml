@@ -34,6 +34,7 @@ module Xhtml_content =
       let s = Cont ((XHTML.M.ocsigen_print c),(fun () -> Finished)) in
       (* debug Messages.debug s;*)
       s
+    let size_of_content c = String.length (XHTML.M.ocsigen_print c) 
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_string s = assert false
   end
@@ -46,6 +47,7 @@ module Text_content =
     let stream_of_content c =
       (* debug *) Messages.debug c;
       Cont (c, (fun () -> Finished))
+    let size_of_content c = String.length c
     let content_of_string s = s
   end
 
@@ -55,6 +57,7 @@ module Empty_content =
     type stream = | Finished
                   | Cont of string * (unit -> stream)
     let stream_of_content c = Cont("",(fun () -> Finished))
+    let size_of_content c = 0
     let content_of_string s = ()
   end
 
@@ -85,7 +88,7 @@ module File_content =
       (*ouverture du fichier*)
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
       read_file fd
-
+    let size_of_content c = (Unix.stat c).Unix.st_size	
     let content_of_string s = assert false
       
   end

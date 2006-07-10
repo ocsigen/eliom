@@ -35,7 +35,7 @@ module type HTTP_CONTENT =
 
     (** convert a content type into a string*)
     val stream_of_content : t -> stream
-    
+    val size_of_content : t -> int    
   end
 
 

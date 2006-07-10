@@ -42,6 +42,7 @@ module Content =
     		  | Cont of string * (unit -> stream)
     let content_of_string c = c
     let stream_of_content s = Cont (s, (fun () -> Finished))
+    let size_of_content s = String.length s
   end
 
 module Http_frame = FHttp_frame (Content)
