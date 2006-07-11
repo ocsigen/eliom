@@ -6,13 +6,11 @@ else
 DBG =
 endif
 
-CAMLC    = ocamlfind ocamlc $(DBG)
-CAMLLEX  = ocamllex
-CAMLYACC = ocamlyacc
-CAMLDOC  = ocamlfind ocamldoc
+CAMLC    = $(OCAMLFIND) ocamlc $(DBG)
+CAMLDOC  = $(OCAMLFIND) ocamldoc
 FLAGS    = -g
-CAMLCOPT = ocamlfind ocamlopt $(DBG)
-CAMLDEP  = ocamlfind ocamldep
+CAMLCOPT = $(OCAMLFIND) ocamlopt $(DBG)
+CAMLDEP  = $(OCAMLFIND) ocamldep
 NAME 	 = test_pp
 LIBDIR 	= ../lib
 LIB= -package netstring -I $(LIBDIR) -I +camlp4

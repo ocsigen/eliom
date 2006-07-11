@@ -11,10 +11,10 @@ DBG =
 endif
 
 INSTALL = install
-CAMLC = ocamlfind ocamlc $(DBG) $(LIB)
-CAMLOPT = ocamlfind ocamlopt $(DBG) $(LIB)
-CAMLDOC = ocamlfind ocamldoc $(LIB)
-CAMLDEP = ocamlfind ocamldep
+CAMLC = $(OCAMLFIND) ocamlc $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
+CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
+CAMLDEP = $(OCAMLFIND) ocamldep
 ifeq "$(OCSIMORE)" "YES"
 OCSIMOREPCKG = dbi.postgresql,
 else

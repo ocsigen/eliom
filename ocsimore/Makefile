@@ -10,11 +10,10 @@ FILES= db_create.ml ocsipersist.ml ocsicache.ml ocsidata.ml ocsipages.ml ocsisav
 
 OTHERFILES= ocsexample_util.ml ocsexample3.ml ocsexample1.ml ocsexample2.ml
 
-OCAMLFIND = ocamlfind
-CAMLC = ocamlfind ocamlc $(DBG) $(LIB)
-CAMLOPT = ocamlfind ocamlopt $(DBG) $(LIB)
-CAMLDOC = ocamlfind ocamldoc $(LIB)
-CAMLDEP = ocamlfind ocamldep
+CAMLC = $(OCAMLFIND) ocamlc $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
+CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
+CAMLDEP = $(OCAMLFIND) ocamldep
 LIB = -package dbi.postgresql -I ../lib
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 

@@ -5,6 +5,10 @@ xhtmlpp.ml by Julien Mineraud
 Xmlp4 creates a syntax extension for caml allowing to write xml inside a caml 
 program using xml syntax, and a pretty printer.
 
+For the new camlp4 (ocaml >= 3.10) (dir newocaml):
+...
+
+For the old camlp4 (ocaml < 3.10) (dir oldocaml):
 There are three versions of the parser:
  - First version xmlparser.cmo, creating `Html([(`Class,"plop")],[])
  - Second version xhtmlparser.cmo for creating 

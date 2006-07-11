@@ -1,79 +1,33 @@
-include ../Makefile.config
+VERSION = $(shell bash -c '\
+        version=`ocamlc -version`; \
+        n1=$${version:0:1}; \
+        n2=$${version:2:2}; \
+        n3=$${version:5}; \
+        if [ $$n1 = "3" ] && [ $$n2 -le 9 ]; then \
+                echo "OLD"; \
+        else \
+                echo "NEW"; \
+        fi' )
 
-ifeq "$(DEBUG)" "YES"
-DBG = -dtypes -g
-else
-DBG =
-endif
+all:
+	@if (test '$(VERSION)' = 'OLD');\
+	then make -C oldocaml all;\
+	else make -C newocaml all;\
+	fi
 
-FILESR = xmllexer.ml 
-FILES = xhtmltypes.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml simplexmlparser.ml xhtmlparser.ml xhtmlpp.ml
-
-CAMLC = ocamlc $(DBG) $(LIB)
-CAMLOPT = ocamlopt $(DBG) $(LIB)
-CAMLDEP = ocamldep
-CAMLP4 = camlp4
-LIB = -I `$(CAMLP4) -where` -I ../lib
-PP = -pp "camlp4o pa_extend.cmo q_MLast.cmo -- -loc loc"
-PPLEXER = -pp "camlp4r -- -loc loc"
-
-SRCLIBREP = ../lib
-
-OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
-
-CMA = xhtmlsyntax.cma
-
-all: ohl-xhtml $(CMA) $(OBJS) essai
-	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlsyntax.cma $(SRCLIBREP)
-
-
-.PHONY: depend
-.PHONY: ohl-xhtml
-
-ohl-xhtml:
-	$(MAKE) -C ohl-xhtml all
-	cp ohl-xhtml/xhtml.cma ohl-xhtml/xHTML.cmi ohl-xhtml/xML.cmi $(SRCLIBREP)
-
-essai: $(OBJS)
-	$(MAKE) -C exemple
-
-$(CMA): xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
-	$(CAMLC) -a -o $(CMA) xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
-
-xmllexer.cmo: xmllexer.ml
-	$(CAMLC) $(PPLEXER) -c $<
-
-
-# Common rules
-.SUFFIXES: .ml .mli .cmo .cmi .cmx
-
-.ml.cmo:
-	$(CAMLC) $(PP) -c $<
-.mli.cmi:
-	$(CAMLC) -c $<
-.ml.cmx:
-	$(CAMLOPT) $(PP) -c $<
-
-
-# doc
-doc:
-	mkdir doc
-	ocamldoc -sort -html -d doc tdpe.ml # tdpe.mli
-
-
-# Clean up
 clean:
-	-rm -f *.cm[iox] *~ *.annot
-	$(MAKE) -C exemple clean
-	$(MAKE) -C ohl-xhtml clean
-	touch .depend
+	rm .depend
+	touch oldocaml/.depend
+	touch newocaml/.depend
+	make -C oldocaml clean
+	make -C newocaml clean
+	rm oldocaml/.depend
+	rm newocaml/.depend
 
-
-# Dependencies
 depend:
-	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
-
-FORCE:
-
-include .depend
-
+	> oldocaml/.depend
+	> newocaml/.depend
+	@if (test '$(VERSION)' = 'OLD');\
+	then make -C oldocaml depend;\
+	else make -C newocaml depend;\
+	fi

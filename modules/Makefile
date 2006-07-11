@@ -8,9 +8,9 @@ else
 DBG =
 endif
 
-CAMLC = ocamlfind ocamlc $(DBG) $(LIB)
-CAMLOPT = ocamlfind ocamlopt $(DBG) $(LIB)
-CAMLDEP = ocamlfind ocamldep
+CAMLC = $(OCAMLFIND) ocamlc $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
+CAMLDEP = $(OCAMLFIND) ocamldep
 LIB = -I ../lib
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -loc loc"
 
@@ -32,7 +32,7 @@ all: depend $(OBJS)
 	$(CAMLOPT) $(PP) -c $<
 
 clean:
-	-rm -f *.cm[iox] *~ $(NAME)
+	-rm -f *.cm[ioax] *~ $(NAME) *.annot
 
 depend:
 	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend

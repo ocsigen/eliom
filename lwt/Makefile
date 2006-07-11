@@ -8,9 +8,9 @@ endif
 
 NAME = lwt
 
-OCAMLC = ocamlfind ocamlc $(DBG)
-OCAMLOPT = ocamlfind ocamlopt $(DBG)
-OCAMLDEP = ocamldep
+OCAMLC = $(OCAMLFIND) ocamlc $(DBG)
+OCAMLOPT = $(OCAMLFIND) ocamlopt $(DBG)
+OCAMLDEP = $(OCAMLFIND) ocamldep
 
 OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_unix.cmo
 XOBJECTS = $(OBJECTS:cmo=cmx)
@@ -55,10 +55,10 @@ include depend
 
 install: all
 	{ test ! -f $(XARCHIVE) || extra="$(XARCHIVE) "`basename $(XARCHIVE) .cmxa`.a; }; \
-	ocamlfind install $(NAME) *.mli *.cmi $(ARCHIVE) META $$extra
+	$(OCAMLFIND) install $(NAME) *.mli *.cmi $(ARCHIVE) META $$extra
 
 uninstall:
-	ocamlfind remove $(NAME)
+	$(OCAMLFIND) remove $(NAME)
 
 clean::
 	rm -f *.cmi *.cmo *.cmx *.cma *.cmxa *.a *.o *~ *.bak *.annot
