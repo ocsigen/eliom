@@ -163,7 +163,8 @@ module ExpoOrPatt = struct
 
     | EPanytagvars (v, loc) -> 
 	let s = get_expr v loc in
-	<:expr< ((XHTML.M.tot (XML.EncodedPCDATA $s$)) 
+(*	<:expr< ((XHTML.M.tot (XML.EncodedPCDATA $s$)) *)
+	<:expr< ((XHTML.M.tot (XML.PCDATA $s$)) 
 		   : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
 
     | EPcomment (c, loc) -> <:expr< XHTML.M.tot (XML.Comment $str:c$) >>
