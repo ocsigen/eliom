@@ -24,15 +24,38 @@ open Lwt
 
 let cookiename = "ocsigensession"
 
+let add_css (a : 'a) : 'a = 
+    let css = 
+      XHTML.M.toelt 
+	(XHTML.M.style ~contenttype:"text/css"
+	   [XHTML.M.pcdata "\n.inline {display: inline}\n.nodisplay {display: none}\n"])
+    in
+    let rec aux = function
+    | (XML.Element ("head",al,el))::l -> (XML.Element ("head",al,css::el))::l
+    | (XML.BlockElement ("head",al,el))::l -> 
+	(XML.BlockElement ("head",al,css::el))::l
+    | (XML.SemiBlockElement ("head",al,el))::l -> 
+	(XML.SemiBlockElement ("head",al,css::el))::l
+    | (XML.Node ("head",al,el))::l -> (XML.Node ("head",al,css::el))::l
+    | e::l -> e::(aux l)
+    | [] -> []
+    in
+    XHTML.M.tot
+      (match XHTML.M.toelt a with
+      | XML.Element ("html",al,el) -> XML.Element ("html",al,aux el) 
+      | XML.BlockElement ("html",al,el) -> XML.BlockElement ("html",al,aux el) 
+      | XML.SemiBlockElement ("html",al,el) -> 
+	  XML.SemiBlockElement ("html",al,aux el)
+      | XML.Node ("html",al,el) -> XML.Node ("html",al,aux el)
+      | e -> e)
+
 (** this module instantiate the HTTP_CONTENT signature for an Xhtml content*)
 module Xhtml_content =
   struct
-    type t = [ `Html ] XHTML.M.elt
+    type t = [ `Html ] XHTML.M.elt Lwt.t
     let stream_of_content c = 
-      let s = Cont ((XHTML.M.ocsigen_print c),(fun () -> Finished)) in
-      (* debug Messages.debug s;*)
-      s
-    let size_of_content c = String.length (XHTML.M.ocsigen_print c) 
+      c >>= (fun res -> let x = (XHTML.M.ocsigen_print (add_css res)) in
+      	Lwt.return (String.length x, (Cont (x, (fun () -> Finished)))))
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_string s = assert false
   end
@@ -41,17 +64,14 @@ module Text_content =
   struct
     type t = string
     let stream_of_content c =
-      (* debug *) Messages.debug c;
-      Cont (c, (fun () -> Finished))
-    let size_of_content c = String.length c
+      Lwt.return (String.length c, Cont (c, (fun () -> Finished)))
     let content_of_string s = s
   end
 
 module Empty_content =
   struct
     type t = unit
-    let stream_of_content c = Cont("",(fun () -> Finished))
-    let size_of_content c = 0
+    let stream_of_content c = Lwt.return (0, Cont("",(fun () -> Finished)))
     let content_of_string s = ()
   end
 
@@ -79,8 +99,7 @@ module File_content =
     let stream_of_content c  =
       (*ouverture du fichier*)
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
-      read_file fd
-    let size_of_content c = (Unix.stat c).Unix.st_size	
+      	Lwt.return ((Unix.stat c).Unix.st_size, read_file fd)	
     let content_of_string s = assert false
       
   end
@@ -283,7 +302,7 @@ let send_error ?(http_exception) ?(error_num=500) xhtml_sender =
           </html>
           >>
   in
-  send_xhtml_page ~code:error_code ~content:err_page xhtml_sender
+  send_xhtml_page ~code:error_code ~content:(Lwt.return err_page) xhtml_sender
 (*Xhtml_sender.send ~code:error_code (*~content:err_page*) xhtml_sender*)
 
 (** this fonction create a sender that send http_frame with fiel content*)

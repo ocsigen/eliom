@@ -36,7 +36,7 @@ ocsimore:
 	@if (test '$(OCSIMORE)' = 'YES');\
 	then echo "Compiling Ocsimore";\
 	$(MAKE) -C ocsimore all;\
-	else echo "Skiping Ocsimore compilation";\
+	else echo "Skipping Ocsimore compilation";\
 	fi
 
 doc:

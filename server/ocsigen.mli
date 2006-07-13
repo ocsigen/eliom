@@ -162,7 +162,7 @@ val suffix :
 (** {2 Pages registration (typed xhtml)} *)
 module Xhtml : sig
 
-  type page = xhtml elt
+  type page = xhtml elt Lwt.t
 
   val new_service :
       url:url_path ->

@@ -37,13 +37,13 @@ let create_form ((*groupname,*)(casename(*,(casename2,radioname)*))) =
 let genere_form sp = post_form post sp create_form ()
 
 let _ = register_service def
-              (fun sp () () ->
+              (fun sp () () -> Lwt.return
                        (html
                            (head (title (pcdata "")) 
 			      [css_link (make_uri (static_dir sp) sp "style.css")])
                            (body [genere_form sp])))
 
-let fonction sp () ((* group,*)(case(*,(case2, radio_opt*))) = 
+let fonction sp () ((* group,*)(case(*,(case2, radio_opt*))) = Lwt.return
   (html
      (head (title (pcdata "")) 
 	[css_link (make_uri (static_dir sp) sp "style.css")])
@@ -83,7 +83,7 @@ let coucou_list = register_new_service
 	  then pcdata "coché"
           else pcdata "pas coché"$
 	 </td>
-       </tr> >>) l in
+       </tr> >>) l in Lwt.return
     << <html>
          <head><title></title></head>
          <body>
@@ -121,7 +121,7 @@ let create_listform f =
 
 let listform = register_new_service ["lf"] unit
   (fun sp () () -> 
-     let f = get_form coucou_list sp create_listform in
+     let f = get_form coucou_list sp create_listform in Lwt.return
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -143,7 +143,7 @@ let coucou_list = register_new_service
                         then pcdata "pas coché"
                         else pcdata "coché" $
                       </td>
-                     </tr> >>) l in
+                     </tr> >>) l in Lwt.return
     << <html>
          <head><title></title></head>
          <body>
@@ -175,7 +175,7 @@ let listform = register_new_service ["listform"] unit
      let l = ["durand";"dupont";"dupond";"durateau"]
      and login = "sam" in
      let f = get_form coucou_list sp (create_listform (l,login))
-in
+in Lwt.return
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -196,7 +196,7 @@ let accueil sp () () =
   let f = post_form public_session_with_post_params sp
     (fun login -> 
 	 [p [pcdata "login: ";
-	     string_input login]]) () in
+	     string_input login]]) () in Lwt.return
   (html
      (head (title (pcdata "")) [])
      (body [f]))
@@ -215,7 +215,7 @@ let rec launch_session sp () login =
   let new_main_page sp () () =
     Messages.debug "plo";
     raise Not_found;
-    (html
+    Lwt.return (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "Welcome ";
 		 pcdata login; 

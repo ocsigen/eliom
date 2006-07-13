@@ -1603,7 +1603,7 @@ module Xhtml_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = xhtml elt
+  type page = xhtml elt Lwt.t
   type form_content_elt = form_content elt
   type uri = XHTML.M.uri
   type a_content_elt = a_content elt
@@ -1667,7 +1667,7 @@ module Xhtml_ = struct
 
   let create_sender = Sender_helpers.create_xhtml_sender
   let send ~content = 
-    Sender_helpers.send_xhtml_page ~content:(add_css content)
+    Sender_helpers.send_xhtml_page ~content:content
 
   let make_a ?(a=[]) ~href l : a_elt = 
     XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) l
@@ -2172,11 +2172,11 @@ let get_page
   with 
     Ocsigen_Typing_Error l -> 
       (cookie, (Sender_helpers.send_xhtml_page 
-		  ~content:(Error_pages.page_error_param_type l)),
+		  ~content:(Lwt.return (Error_pages.page_error_param_type l))),
        Sender_helpers.create_xhtml_sender, "/")
   | Ocsigen_Wrong_parameter -> 
       (cookie, (Sender_helpers.send_xhtml_page 
-		  ~content:Error_pages.page_bad_param),
+		  ~content:(Lwt.return Error_pages.page_bad_param)),
        Sender_helpers.create_xhtml_sender, "/")
 
 

@@ -39,8 +39,8 @@ module Content =
   struct
     type t = string
     let content_of_string c = c
-    let stream_of_content s = Cont (s, (fun () -> Finished))
-    let size_of_content s = String.length s
+    let stream_of_content s = Lwt.return 
+    		(String.length s, Cont (s, (fun () -> Finished)))
   end
 
 module Http_frame = FHttp_frame (Content)
@@ -226,8 +226,8 @@ let service http_frame sockaddr
 	       éviter d'avoir un nombre de threads qui croit sans arrêt *)
 	    let keep_alive = false in
 	    (try
-	      let cookie2,send_page,sender,path = 
-		get_page frame_info sockaddr cookie in
+	      Lwt.return (get_page frame_info sockaddr cookie) >>=
+	      (fun cookie2,send_page,sender,path ->
 	      send_page ~keep_alive:keep_alive 
 		?cookie:(if cookie2 <> cookie then 
 		  (if cookie2 = None 
@@ -235,7 +235,7 @@ let service http_frame sockaddr
 		  else cookie2) 
 		else None)
 		~path:path (* path pour le cookie *)
-		(sender ~server_name:server_name inputchan)
+		(sender ~server_name:server_name inputchan))
 	    with Ocsigen_404 ->
 	      if params = "" then
 		try
@@ -251,17 +251,19 @@ let service http_frame sockaddr
 		  if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
 		  then begin
 		    Unix.access filename [Unix.R_OK];
+		    try
 		    send_file 
 		      ~keep_alive:keep_alive
 		      ~last_modified:((Unix.stat filename).Unix.st_mtime)
 		      ~code:200 filename file_sender
+		      with _ -> Lwt.return () (*stop if error while sending *)
 		  end
 		  else 
 		    send_error ~error_num:403 xhtml_sender (* Forbidden *)
 		with 
 		  Unix.Unix_error (Unix.EACCES,_,_) ->
 		    send_error ~error_num:403 xhtml_sender (* Forbidden *)
-		| _ -> raise Ocsigen_404
+		| _ -> raise Ocsigen_404 (*lstat errors, etc.*)
 	      else raise Ocsigen_404
 	    | Ocsigen.Ocsigen_Is_a_directory -> 
 		send_empty
@@ -311,7 +313,7 @@ let service http_frame sockaddr
 	       return false (* keep_alive *))
     | e ->
 	send_xhtml_page ~keep_alive:false
-	  ~content:(error_page ("Exception : "^(Printexc.to_string e)))
+	  ~content:(Lwt.return (error_page ("Exception : "^(Printexc.to_string e))))
 	  xhtml_sender
 	>>= (fun _ ->
 	       return false (* keep_alive *))

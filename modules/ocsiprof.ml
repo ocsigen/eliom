@@ -46,7 +46,7 @@ let _ =
       let mincol = string_of_int stat.Gc.minor_collections in
       let majcol = string_of_int stat.Gc.major_collections in
       let top_heap_words = string_of_int stat.Gc.top_heap_words in
-
+Lwt.return
 <<
  <html>
    <head>

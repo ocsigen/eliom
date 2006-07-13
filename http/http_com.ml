@@ -426,15 +426,13 @@ module FHttp_sender =
       (*creation du header*)
     let md = match mode with None -> sender.mode | Some m -> m in
     let prot = match proto with None -> sender.proto | Some p -> p in
-    let content_length =  
-      match content with
-      |None -> None
-      |Some c -> Some (C.size_of_content c)			      
-    in
-    let hds = hds_fusion content_length sender.headers 
-    (match headers with Some h ->h | None -> []) 
-    in
-    let hd =
+    match content with
+      |None -> Lwt.return ()
+      |Some c -> (C.stream_of_content c >>=
+                 (fun (lon,flux) -> Lwt.return (Some lon) >>=
+    (fun cl -> Lwt.return (hds_fusion cl sender.headers 
+    (match headers with Some h ->h | None -> []) )) >>=
+    (fun hds -> Lwt.return
       {
         H.mode = md;
         H.meth=meth;
@@ -442,12 +440,9 @@ module FHttp_sender =
         H.code=code;
         H.proto = prot;
         H.headers = hds;
-      }in
+      }) >>= (fun hd ->
       really_write sender.fd 
-         (Cont ((Framepp.string_of_header hd), (fun () -> Finished))) >>=
-      (fun nb_ecrit ->
-      	match content with
-	| None -> Lwt.return ()
-	| Some c -> really_write sender.fd (C.stream_of_content c))
+         (Cont ((Framepp.string_of_header hd), (fun () -> Finished)))) >>=
+      (fun _ -> really_write sender.fd flux)))
     
   end
