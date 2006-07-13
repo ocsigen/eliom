@@ -38,8 +38,6 @@ let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
 module Content = 
   struct
     type t = string
-    type stream = | Finished
-    		  | Cont of string * (unit -> stream)
     let content_of_string c = c
     let stream_of_content s = Cont (s, (fun () -> Finished))
     let size_of_content s = String.length s

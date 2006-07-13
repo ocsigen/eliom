@@ -22,14 +22,15 @@ the operation on this protocol*)
 
 (** this signature provides a template to discribe the content of a http
 frame*)
+
+type stream = | Finished
+              | Cont of string * (unit -> stream)
+		     
 module type HTTP_CONTENT =
   sig
     (** abstract type of the content*)
     type t
     
-    type stream = | Finished
-                  | Cont of string * (unit -> stream)
-		     
     (** convert a string into the contetn type*)
     val content_of_string : string -> t
 

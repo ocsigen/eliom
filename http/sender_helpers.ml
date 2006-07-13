@@ -28,8 +28,6 @@ let cookiename = "ocsigensession"
 module Xhtml_content =
   struct
     type t = [ `Html ] XHTML.M.elt
-    type stream = | Finished
-                  | Cont of string * (unit -> stream)		     
     let stream_of_content c = 
       let s = Cont ((XHTML.M.ocsigen_print c),(fun () -> Finished)) in
       (* debug Messages.debug s;*)
@@ -42,8 +40,6 @@ module Xhtml_content =
 module Text_content =
   struct
     type t = string
-    type stream = | Finished
-                   | Cont of string * (unit -> stream)		     
     let stream_of_content c =
       (* debug *) Messages.debug c;
       Cont (c, (fun () -> Finished))
@@ -54,8 +50,6 @@ module Text_content =
 module Empty_content =
   struct
     type t = unit
-    type stream = | Finished
-                  | Cont of string * (unit -> stream)
     let stream_of_content c = Cont("",(fun () -> Finished))
     let size_of_content c = 0
     let content_of_string s = ()
@@ -65,8 +59,6 @@ module Empty_content =
 module File_content =
   struct
     type t = string (*nom du fichier*)
-    type stream = | Finished
-                  | Cont of string * (unit -> stream) 
     let read_file ?(buffer_size=512) fd =
 	Messages.debug ("start reading ");
   	let buf = String.create buffer_size in

@@ -308,13 +308,13 @@ module FHttp_sender =
 *)
     (*fonction d'écriture sur le réseau*)
       let rec really_write out_ch = function
-          | C.Finished -> Messages.debug "write finished"; Lwt.return ()
-	  | C.Cont (s, next) ->
+          | Finished -> Messages.debug "write finished"; Lwt.return ()
+	  | Cont (s, next) ->
 	     Lwt_unix.write out_ch s 0 (String.length s) >>=
 	     ( fun len' ->
 	        if (String.length s) = len'
 		then really_write out_ch (next ())
-		else really_write out_ch (C.Cont (String.sub s len' ((String.length s)-len'), next))
+		else really_write out_ch (Cont (String.sub s len' ((String.length s)-len'), next))
              )
 												    
     (**create a new sender*)
@@ -444,7 +444,7 @@ module FHttp_sender =
         H.headers = hds;
       }in
       really_write sender.fd 
-         (C.Cont ((Framepp.string_of_header hd), (fun () -> C.Finished))) >>=
+         (Cont ((Framepp.string_of_header hd), (fun () -> Finished))) >>=
       (fun nb_ecrit ->
       	match content with
 	| None -> Lwt.return ()
