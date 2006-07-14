@@ -385,8 +385,6 @@ let links = register_new_service ["rep";"links"] unit
 *zap*)
 (*html*
       <p>See $a Tutorial.links url <:xmllist< links >>$.</p>
-    </div>
-    <div class="twocol2">
       <p>
       Note that to create a (relative) link we need to know the current URL.
       That's why the page has a <code>current_url</code> parameter.<br/>
@@ -396,6 +394,8 @@ let links = register_new_service ["rep";"links"] unit
       You give page parameters as additional parameters to the 
       function <code>Ocsigen.a</code>.
       </p>
+    </div>
+    <div class="twocol2">
       <p>
 	If you want to create (mutually or not) recursive pages,
 	first create the service, then register it in the table:
@@ -420,6 +420,30 @@ let essai =
       <p>See $a Tutorial.linkrec url <:xmllist< linkrec >>$.</p>
       <p>The server won't accept to start if there are
          unregistered services.</p>
+      <div class="encadre">
+	<h3>Continuations</h3>
+	<p>Ocsigen is using the concept of <em>continuation</em>. 
+        A continuation represents the future of a program (what to do after). 
+        When a user clicks on a link or a form, he chooses the future of the
+        computation. When he uses the "back" button of the browser, he chooses
+        to go back to an old continuation. Continuations for Web programming
+        have been introduced by 
+        $a (new_external_url ["http://www-spi.lip6.fr/~queinnec/PDF/www.pdf"]
+           _noparam ()) url <:xmllist< Christian Queinnec >>$,
+        and are a big step in
+        the understanding of Web interaction.</p>
+        <p>
+        Some programming languages (Scheme...) allow to manipulate
+        continuations using <em>control operators</em> (like 
+        <code>call/cc</code>). The style of programming used by Ocsigen
+        is called <em>Continuation Passing Style</em> (CPS), and has the 
+        advantage that it does not need control operators, and fits
+        very well Web programming.
+        </p>
+        <p>In the following, we will see how to create dynamically 
+        new continuations dedicated to a particular user
+        (auxiliary services in session table).</p>
+      </div>
     </div>
     <h2>Forms</h2>
     <div class="twocol1">
@@ -644,7 +668,10 @@ let _ =
       one public, one for connected users.
       <br/>	
       To close a session, use 
-		<span class="Cem"><code>close_session ()</code></span>.</p>
+		<span class="Cem"><code>close_session</code></span>.</p>
+      <p>Note that <code>register_for_session</code>
+         and <code>close_session</code> take <code>sp</code> as parameter
+         (because sp contains the session table).</p>
       <p>The following is an example of web site that behaves differently
       when users are connected.
       We first define the main page, with a login form:
