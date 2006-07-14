@@ -41,10 +41,11 @@ let coucou =
   register_new_service 
     ~url:["coucou"]
     ~get_params:unit
-    (fun _ () () -> Lwt.return 
-      (html
-	 (head (title (pcdata "")) [])
-	 (body [h1 [pcdata "Hallo"]])))
+    (fun _ () () -> 
+      return 
+        (html
+	  (head (title (pcdata "")) [])
+	  (body [h1 [pcdata "Hallo"]])))
 (*html*
       <p>
       Now you can compile your file (here tutorial.ml) by doing:</p>
@@ -109,7 +110,7 @@ let coucou1 =
   register_new_service 
     ~url:["coucou1"]
     ~get_params:unit
-    (fun _ () () -> Lwt.return
+    (fun _ () () -> return
     << <html>
          <head><title></title></head>
          <body><h1>Coucou</h1></body>
@@ -177,7 +178,7 @@ let compt =
   register_new_service 
     ~url:["compt"]
     ~get_params:unit
-    (fun _ () () ->  Lwt.return
+    (fun _ () () ->  return
       (html
        (head (title (pcdata "counter")) [])
        (body [p [pcdata (string_of_int (next ()))]])))
@@ -192,7 +193,7 @@ let hello =
   register_new_service 
     ["dir";"hello"]  (* the url dir/hello *)
     unit
-    (fun _ () () ->  Lwt.return
+    (fun _ () () ->  return
       (html
 	 (head (title (pcdata "Hello")) [])
 	 (body [h1 [pcdata "Hello"]])))
@@ -207,7 +208,7 @@ let hello =
 	<code>["rep";"index"]</code>.)</p>
 *html*)
 let default = register_new_service ["rep";""] unit
-  (fun _ () () -> Lwt.return
+  (fun _ () () -> return
     (html
       (head (title (pcdata "")) [])
       (body [p [pcdata "default page. rep is redirected to rep/"]])))
@@ -231,7 +232,7 @@ let default = register_new_service ["rep";""] unit
        for POST parameters (parameters in the body of the HTTP request).</p>
       <p>Here is an example of a service with GET parameters:</p>
 *html*)
-let writeparams _ (i1, (i2, s1)) () =  Lwt.return
+let writeparams _ (i1, (i2, s1)) () =  return
   (html
     (head (title (pcdata "")) [])
     (body [p [pcdata "You sent: ";
@@ -272,7 +273,7 @@ let uaprefix =
     ~url:["uaprefix"]
     ~get_params:(suffix (string "s"))
     ~prefix:true
-    (fun sp (suff, s) () ->  Lwt.return
+    (fun sp (suff, s) () ->  return
       (html
 	(head (title (pcdata "")) [])
 	(body
@@ -293,7 +294,7 @@ let iprefix =
     ~url:["iprefix"] 
     ~prefix:true 
     ~get_params:(suffix (int "i"))
-    (fun sp (suff, i) () -> Lwt.return
+    (fun sp (suff, i) () -> return
       (html
 	(head (title (pcdata "")) [])
 	(body
@@ -319,7 +320,7 @@ let string_of_mysum = function
 let mytype = register_new_service 
   ["mytype"]
   (user_type mysum_of_string string_of_mysum "valeur")
-  (fun _ x () -> let v = string_of_mysum x in  Lwt.return
+  (fun _ x () -> let v = string_of_mysum x in  return
     (html
        (head (title (pcdata "")) [])
        (body [p [pcdata v]])))
@@ -333,11 +334,11 @@ let mytype = register_new_service
 let catch = register_new_service
     ~url:["catch"]
     ~get_params:(int "i")
-    ~error_handler:(fun sp l ->  Lwt.return
+    ~error_handler:(fun sp l ->  return
       (html
 	 (head (title (pcdata "")) [])
 	 (body [p [pcdata ("i is not an integer.")]])))
-    (fun _ i () -> let v = string_of_int i in  Lwt.return
+    (fun _ i () -> let v = string_of_int i in  return
     (html
        (head (title (pcdata "")) [])
        (body [p [pcdata ("i is an integer: "^v)]])))
@@ -358,7 +359,7 @@ let catch = register_new_service
       </p>
 *html*)
 let links = register_new_service ["rep";"links"] unit
-    (fun sp () () -> Lwt.return
+    (fun sp () () -> return
       (html
 	 (head (title (pcdata "")) [])
 	 (body 
@@ -405,7 +406,7 @@ let links = register_new_service ["rep";"links"] unit
 let linkrec = new_service ["linkrec"] unit ()
 
 let _ = register_service linkrec 
-    (fun sp () () ->  Lwt.return
+    (fun sp () () ->  return
       (html
 	(head (title (pcdata "")) [])
 	(body [p [a linkrec sp [pcdata "click"] ()]])))
@@ -472,7 +473,7 @@ let create_form =
 *zap*)
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
-     let f = get_form coucou_params sp create_form in  Lwt.return
+     let f = get_form coucou_params sp create_form in  return
      (html
        (head (title (pcdata "")) [])
        (body [f])))
@@ -498,7 +499,7 @@ let no_post_param_service =
   register_new_service 
     ~url:["post"]
     ~get_params:unit
-    (fun _ () () -> Lwt.return
+    (fun _ () () -> return
       (html
 	 (head (title (pcdata "")) [])
 	 (body [h1 [pcdata 
@@ -507,7 +508,7 @@ let no_post_param_service =
 let my_service_with_post_params = register_new_post_service
     ~fallback:no_post_param_service
     ~post_params:(string "value")
-    (fun _ () value ->  Lwt.return
+    (fun _ () value ->  return
       (html
 	 (head (title (pcdata "")) [])
 	 (body [h1 [pcdata value]])))
@@ -518,7 +519,7 @@ let getno_post_param_service =
   register_new_service 
     ~url:["post2"]
     ~get_params:(int "i")
-    (fun _ i () ->  Lwt.return
+    (fun _ i () ->  return
       (html
 	 (head (title (pcdata "")) [])
 	 (body [p [pcdata "No POST parameter, i:";
@@ -530,7 +531,7 @@ let getno_post_param_service =
 let my_service_with_get_and_post = register_new_post_service 
   ~fallback:getno_post_param_service
   ~post_params:(string "value")
-  (fun _ i value ->  Lwt.return
+  (fun _ i value ->  return
       (html
 	 (head (title (pcdata "")) [])
 	 (body [p [pcdata "Value: ";
@@ -553,7 +554,7 @@ let form2 = register_new_service ["form2"] unit
        (post_form my_service_with_post_params sp
 	  (fun chaine -> 
 	    [p [pcdata "Write a string: ";
-		string_input chaine]]) ()) in  Lwt.return
+		string_input chaine]]) ()) in  return
      (html
 	(head (title (pcdata "form")) [])
 	(body [f])))
@@ -564,7 +565,7 @@ let form3 = register_new_service ["form3"] unit
        (post_form my_service_with_get_and_post sp
 	  (fun chaine -> 
 	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
-	  222) in  Lwt.return
+	  222) in  return
        << <html><head><title></title></head><body>$f$</body></html> >>)
 
 let form4 = register_new_service ["form4"] unit
@@ -577,7 +578,7 @@ let form4 = register_new_service ["form4"] unit
 	     ~post_params:(string "chaine") ()) sp
 	  (fun chaine -> 
 	    <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
-	  222) in Lwt.return
+	  222) in return
      (html
 	(head (title (pcdata "form")) [])
 	(body [f])))
@@ -628,7 +629,7 @@ let _ =
     let l3 = post_form auxiliaryserv2 sp 
 	(fun _ -> [p [submit_input "incr i (post)"]]) () in
     let l4 = get_form auxiliaryserv2 sp 
-	(fun _ -> [p [submit_input "incr i (get)"]]) in Lwt.return
+	(fun _ -> [p [submit_input "incr i (get)"]]) in return
     (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "i is equal to ";
@@ -690,7 +691,7 @@ let accueil sp () () =
   let f = post_form public_session_with_post_params sp
     (fun login -> 
 	 [p [pcdata "login: ";
-	     string_input login]]) () in Lwt.return
+	     string_input login]]) () in return
   (html
      (head (title (pcdata "")) [])
      (body [f]))
@@ -713,7 +714,7 @@ let launch_session sp () login =
     ~fallback:public_session_without_post_params 
     (fun sp () () -> close_session sp; accueil sp () ())
   in
-  let new_main_page sp () () = Lwt.return
+  let new_main_page sp () () = return
     (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "Welcome ";
@@ -732,7 +733,7 @@ let launch_session sp () login =
   register_service_for_session 
     sp
     ~service:coucou
-    (fun _ () () -> Lwt.return
+    (fun _ () () -> return
       (html
 	 (head (title (pcdata "")) [])
 	 (body [p [pcdata "Coucou ";
@@ -741,7 +742,7 @@ let launch_session sp () login =
   register_service_for_session 
     sp
     hello
-    (fun _ () () -> Lwt.return
+    (fun _ () () -> return
       (html
 	 (head (title (pcdata "")) [])
 	 (body [p [pcdata "Ciao ";
@@ -803,7 +804,7 @@ let write_shop shop url =
 	  <:xmllist< <p> What do you want to buy? $sb$ </p> >>) ())
 
 let shop_public_main_page sp () () =
-  let f = write_shop shop_with_post_params sp in Lwt.return
+  let f = write_shop shop_with_post_params sp in return
     << <html><body>$f$</body></html> >>
 
 let _ = 
@@ -834,12 +835,12 @@ let rec page_for_shopping_basket sp shopping_basket =
     register_service_for_session
       sp
       auxiliary_pay
-      (fun sp () () -> Lwt.return
+      (fun sp () () -> return
 	   << <html><body>
 	        <p>You are going to pay: 
                   $list:write_shopping_basket shopping_basket$ </p>
               </body></html> >>);
-       Lwt.return << <html>
+       return << <html>
            <body> 
              <div>$list:write_shopping_basket shopping_basket$</div>
              $write_shop auxiliary_shop_with_post_params sp$ 
@@ -881,14 +882,14 @@ let _ =
 	  ~post_params:(int "j")
 	  (fun sp () j -> 
 	    let js = string_of_int j in
-	    let ijs = string_of_int (i+j) in  Lwt.return
+	    let ijs = string_of_int (i+j) in  return
 	    (html
 	       (head (title (pcdata "")) [])
 	       (body
 		  [p [pcdata (is^" + "^js^" = "^ijs)]])))
       in
       let f = 
-	post_form calc_result sp (create_form is) () in Lwt.return
+	post_form calc_result sp (create_form is) () in return
       (html (head (title (pcdata "")) []) (body [f])))
 (*html*
     </div>
@@ -905,7 +906,7 @@ let _ =
   register_service
     calc
     (fun sp () () ->
-      let f = post_form calc_post sp create_form () in Lwt.return
+      let f = post_form calc_post sp create_form () in return
       (html (head (title (pcdata "")) []) (body [f])))
 (*html*
       <p>See the $a Tutorial.calc url <:xmllist< result >>$.</p>
@@ -973,7 +974,7 @@ let accueil_action sp () () =
   let f = action_form connect_action sp
       (fun login -> 
 	[p [pcdata "login: "; 
-	    string_input login]]) in Lwt.return
+	    string_input login]]) in return
   (html
     (head (title (pcdata "")) [])
     (body [f]))
@@ -987,9 +988,10 @@ let _ = register_service
 *html*)
 let rec launch_session sp login =
   let deconnect_action = 
-   register_new_action_for_session sp unit (fun sp () -> close_session sp) in
+   register_new_action_for_session sp unit 
+      (fun sp () -> return (close_session sp)) in
   let deconnect_box sp s = action_a deconnect_action sp s in
-  let new_main_page sp () () = Lwt.return
+  let new_main_page sp () () = return
     (html
       (head (title (pcdata "")) [])
       (body [p [pcdata "Welcome ";
@@ -1001,14 +1003,14 @@ let rec launch_session sp login =
   in
   register_service_for_session sp ~service:action_session new_main_page;
   register_service_for_session sp coucou
-   (fun _ () () -> Lwt.return
+   (fun _ () () -> return
      (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "Coucou ";
 		 pcdata login;
 		 pcdata "!"]])));
   register_service_for_session sp hello 
-   (fun _ () () -> Lwt.return
+   (fun _ () () -> return
      (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "Ciao ";
@@ -1017,7 +1019,7 @@ let rec launch_session sp login =
     
 let _ = register_action
     ~action:connect_action
-    (fun sp login -> launch_session sp login)
+    (fun sp login -> return (launch_session sp login))
 (*html*
       <p>See these $a Tutorial.action_session url <:xmllist< pages >>$.</p>
     </div>
@@ -1225,8 +1227,23 @@ let _ = register_action
     </div>
 
 *html*)
+(*zap* À AJOUTER AU TUTO *)
 
-(*zap* *)
+(* Threads *)
+(* If you don't use cooperative functions 
+   (for ex Lwt_unix.sleep instead of Unix.sleep), 
+   the following page will stop the server for seconds!!!*)
+let looong = 
+  register_new_service 
+    ~url:["looong"]
+    ~get_params:unit
+    (fun sp () () -> 
+      Lwt_unix.sleep 10.0 >>= (fun _ ->
+	return
+	  << <html><body><p>Ok now, you can read the page.</p></body></html> >>))
+
+
+
 
 
 (* ------------------------------------------------------------------ *)
@@ -1240,7 +1257,7 @@ let coucou_list = register_new_service
     ~get_params:(list "a" (int "entier"))
   (fun _ l () ->
     let ll = 
-      List.map (fun i -> << <strong>$str:string_of_int i$</strong> >>) l in  Lwt.return
+      List.map (fun i -> << <strong>$str:string_of_int i$</strong> >>) l in  return
   << <html>
        <head><title></title></head>
        <body>
@@ -1269,7 +1286,7 @@ let create_listform f =
 
 let listform = register_new_service ["listform"] unit
   (fun sp () () -> 
-     let f = get_form coucou_list sp create_listform in Lwt.return
+     let f = get_form coucou_list sp create_listform in return
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -1283,7 +1300,7 @@ let create_suffixform (suff,i) =
 
 let suffixform = register_new_service ["suffixform"] unit
   (fun sp () () -> 
-     let f = get_form iprefix sp create_suffixform in Lwt.return
+     let f = get_form iprefix sp create_suffixform in return
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -1293,7 +1310,7 @@ let suffixform = register_new_service ["suffixform"] unit
 let bool_params = register_new_service 
     ~url:["bool"]
     ~get_params:(bool "case")
-  (fun _ case () -> Lwt.return
+  (fun _ case () -> return
   << <html>
        <head><title></title></head>
        <body>
@@ -1309,7 +1326,7 @@ let create_form_bool casename =
 
 let form_bool = register_new_service ["formbool"] unit
   (fun sp () () -> 
-     let f = get_form bool_params sp create_form_bool in Lwt.return
+     let f = get_form bool_params sp create_form_bool in return
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -1321,15 +1338,16 @@ let coucoutext =
   Ocsigen.Text.register_new_service 
     ~url:["coucoutext"]
     ~get_params:unit
-    (fun sp () () ->
-      "<html>n'importe quoi "^(Ocsigen.Text.a coucou sp ["clic"] ())^"</html>")
+    (fun sp () () -> return
+      ("<html>n'importe quoi "^(Ocsigen.Text.a coucou sp ["clic"] ())^"</html>"))
 
 
+(* Fin À AJOUTER *)
 (* Main page for this example *)
 let main = new_service [] unit ()
 
 let _ = register_service main
-  (fun sp () () -> Lwt.return
+  (fun sp () () -> return
     (* Do not register a page after initialisation.
        This will cause an error:
        let coucou6 = 
@@ -1397,20 +1415,13 @@ let _ = register_service main
 	     $a calc sp <:xmllist< calc >> ()$
        - (ancienne version : $a shop_without_post_params sp <:xmllist< shop >> ()$)
        </p>
+       <h3>Other</h3>
+       <p>
+       A page that is very slow : 
+	     $a looong sp <:xmllist< looong >> ()$
+       </p>
        </body>
      </html> >>)
-
-
-(* WARNING! As we don't use threads, 
-   the following page will stop the server 5 seconds!!!*)
-let _ = 
-  register_new_service 
-    ~url:["looong"]
-    ~get_params:unit
-    (fun sp () () -> 
-               Lwt_unix.sleep 15.0 >>= (fun _ -> Lwt.return
-	       << <html><body><p>Ok now, you can read the page.</p></body></html> >>))
-
 
 
 (* *zap*)

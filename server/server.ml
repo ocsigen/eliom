@@ -38,7 +38,7 @@ let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
 module Content = 
   struct
     type t = string
-    let content_of_string c = c
+    let content_of_string c = Lwt.return c
     let stream_of_content s = Lwt.return 
     		(String.length s, Cont (s, (fun () -> Finished)))
   end
@@ -226,7 +226,7 @@ let service http_frame sockaddr
 	       éviter d'avoir un nombre de threads qui croit sans arrêt *)
 	    let keep_alive = false in
 	    (try
-	      Lwt.return (get_page frame_info sockaddr cookie) >>=
+	      get_page frame_info sockaddr cookie >>=
 	      (fun cookie2,send_page,sender,path ->
 	      send_page ~keep_alive:keep_alive 
 		?cookie:(if cookie2 <> cookie then 
@@ -274,13 +274,12 @@ let service http_frame sockaddr
 	    )
 	      >>= (fun _ -> return keep_alive)
 	| Some (action_name, reload, action_params) ->
-	    let cookie2,path = 
-	      make_action 
-		action_name action_params frame_info sockaddr cookie in
-	    let keep_alive = false in
+	    make_action action_name action_params frame_info sockaddr cookie
+	    >>= (fun (cookie2,path) ->
+	      let keep_alive = false in
 	      (if reload then
-		 let cookie3,send_page,sender,path = 
-		   get_page frame_info sockaddr cookie2 in
+		get_page frame_info sockaddr cookie2 >>=
+		(fun cookie3,send_page,sender,path ->
 		   (send_page ~keep_alive:keep_alive 
 		      ?cookie:(if cookie3 <> cookie then 
 				 (if cookie3 = None 
@@ -288,7 +287,7 @@ let service http_frame sockaddr
 				  else cookie3) 
 			       else None)
 		      ~path:path
-	              (sender ~server_name:server_name inputchan))
+	              (sender ~server_name:server_name inputchan)))
 	       else
 		 (send_empty ~keep_alive:keep_alive 
 		    ?cookie:(if cookie2 <> cookie then 
@@ -299,7 +298,7 @@ let service http_frame sockaddr
 		    ~path:path
                     ~code:204
 	            empty_sender)) >>=
-		(fun _ -> return keep_alive)
+		(fun _ -> return keep_alive))
   with Ocsigen_404 -> 
    (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
    send_error ~error_num:404 xhtml_sender
@@ -313,7 +312,7 @@ let service http_frame sockaddr
 	       return false (* keep_alive *))
     | e ->
 	send_xhtml_page ~keep_alive:false
-	  ~content:(Lwt.return (error_page ("Exception : "^(Printexc.to_string e))))
+	  ~content:(error_page ("Exception : "^(Printexc.to_string e)))
 	  xhtml_sender
 	>>= (fun _ ->
 	       return false (* keep_alive *))

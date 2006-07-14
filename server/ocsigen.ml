@@ -20,6 +20,7 @@
 
 open Http_frame
 open Http_com
+open Lwt
 
 let _ = Random.self_init ()
 
@@ -34,7 +35,7 @@ let rec list_assoc_remove a = function
   | b::l -> let v,ll = list_assoc_remove a l in v,b::ll
 
 
-
+let sync f sp g p = Lwt.return (f sp g p)
 
 
 (** type of URL, without parameter *)
@@ -454,19 +455,19 @@ module type DIRECTORYTREE =
     val add_service : tables -> current_dir -> bool -> url_path ->
       Sender_helpers.create_sender_type ->
 	page_table_key * (int * (tables server_params2 -> 
-	  Sender_helpers.send_page_type)) -> unit
+	  Sender_helpers.send_page_type Lwt.t)) -> unit
     val add_action :
 	tables -> current_dir
-	  -> string -> (tables server_params1 -> unit) -> unit
+	  -> string -> (tables server_params1 -> unit Lwt.t) -> unit
     val find_service :
 	tables ->
 	  tables ref * 
 	    current_url * internal_state option * (string * string) list *
 	    (string * string) list * string * Unix.inet_addr * string -> 
-	      Sender_helpers.send_page_type * 
-		Sender_helpers.create_sender_type * url_path
+	      (Sender_helpers.send_page_type * 
+		 Sender_helpers.create_sender_type * url_path) Lwt.t
     val find_action :
-	tables -> string -> (tables server_params1 -> unit) * url_path
+	tables -> string -> (tables server_params1 -> unit Lwt.t) * url_path
   end
 
 module Directorytree : DIRECTORYTREE = struct
@@ -486,8 +487,9 @@ module Directorytree : DIRECTORYTREE = struct
 
   type page_table = 
       (page_table_key * 
-	 ((int * ((tables server_params2 -> Sender_helpers.send_page_type)
-		    * Sender_helpers.create_sender_type * url_path)) list)) list
+	 ((int * 
+	     ((tables server_params2 -> Sender_helpers.send_page_type Lwt.t)
+		* Sender_helpers.create_sender_type * url_path)) list)) list
 	(* Here, the url_path is the working directory.
 	   That is, the directory in which we are when we register
 	   dynamically the pages.
@@ -497,7 +499,8 @@ module Directorytree : DIRECTORYTREE = struct
 
   and action_table = 
       AVide 
-    | ATable of ((tables server_params1 -> unit) * url_path) String_Table.t
+    | ATable of ((tables server_params1 -> unit Lwt.t) * url_path)
+	  String_Table.t
 
   and dircontent = 
       Vide
@@ -534,9 +537,10 @@ module Directorytree : DIRECTORYTREE = struct
       | (_,(funct,create_sender,working_dir))::l ->
 	  try
 	    Messages.debug "I'm trying a service";
-	    let p = funct (urlsuffix, {sp with current_dir = working_dir}) in
-	    Messages.debug "Page found";
-	    p,create_sender,working_dir
+	    funct (urlsuffix, {sp with current_dir = working_dir}) >>=
+	    (fun p -> 
+	      Messages.debug "Page found";
+	      Lwt.return (p,create_sender,working_dir))
 	  with Ocsigen_Wrong_parameter -> aux l
     in 
     let r = try List.assoc k t with Not_found -> raise Ocsigen_404 in
@@ -837,22 +841,22 @@ module type OCSIGENSIG =
     val register_service :
 	service:('a, 'b, [ `Internal_Service of 'c ],
 		 [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
-		   ?error_handler:(server_params -> (string * exn) list -> page) ->
-		     (server_params -> 'a -> 'b -> page) -> unit
+		   ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		     (server_params -> 'a -> 'b -> page Lwt.t) -> unit
     val register_service_for_session :
 	Directorytree.tables server_params1 ->
 	  service:('a, 'b, [ `Internal_Service of 'c ],
 		   [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
 	    service ->
-	      ?error_handler:(server_params -> (string * exn) list -> page) ->
-		(server_params -> 'a -> 'b -> page) -> unit
+	      ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		(server_params -> 'a -> 'b -> page Lwt.t) -> unit
     val register_new_service :
 	url:url_path ->
 	  ?prefix:bool ->
 	    get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
 	      params_type ->
-		?error_handler:(server_params -> (string * exn) list -> page) ->
-		  (server_params -> 'a -> unit -> page) ->
+		?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		  (server_params -> 'a -> unit -> page Lwt.t) ->
 		    ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
 		     unit param_name)
 		      service
@@ -860,8 +864,8 @@ module type OCSIGENSIG =
 	fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
 		  [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
 	service ->
-	  ?error_handler:(server_params -> (string * exn) list -> page) ->
-	    (server_params -> 'a -> unit -> page) ->
+	  ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+	    (server_params -> 'a -> unit -> page Lwt.t) ->
 	      ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
 		service
     val register_new_auxiliary_service_for_session :
@@ -869,8 +873,8 @@ module type OCSIGENSIG =
 	  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
 		    [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
 	    service ->
-	      ?error_handler:(server_params -> (string * exn) list -> page) ->
-		(server_params -> 'a -> unit -> page) ->
+	      ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		(server_params -> 'a -> unit -> page Lwt.t) ->
 		  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
 		    service
     val new_post_service :
@@ -893,8 +897,8 @@ module type OCSIGENSIG =
 		  unit param_name)
 	service ->
 	  post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-	    ?error_handler:(server_params -> (string * exn) list -> page) ->
-	      (server_params -> 'a -> 'd -> page) ->
+	    ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+	      (server_params -> 'a -> 'd -> page Lwt.t) ->
 		('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e)
 		  service
     val register_new_post_auxiliary_service :
@@ -902,8 +906,8 @@ module type OCSIGENSIG =
 		  [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
 	service ->
 	  post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-	    ?error_handler:(server_params -> (string * exn) list -> page) ->
-	      (server_params -> 'a -> 'f -> page) ->
+	    ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+	      (server_params -> 'a -> 'f -> page Lwt.t) ->
 		('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
 		  service
     val register_new_post_auxiliary_service_for_session :
@@ -912,8 +916,8 @@ module type OCSIGENSIG =
 		    [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
 	    service ->
 	      post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-		?error_handler:(server_params -> (string * exn) list -> page) ->
-		  (server_params -> 'a -> 'f -> page) ->
+		?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		  (server_params -> 'a -> 'f -> page Lwt.t) ->
 		    ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
 		      service
     type ('a, 'b) action
@@ -921,18 +925,18 @@ module type OCSIGENSIG =
 	post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
 	  ('a, 'b) action
     val register_action :
-	action:('a, 'b) action -> (server_params -> 'a -> unit) -> unit
+	action:('a, 'b) action -> (server_params -> 'a -> unit Lwt.t) -> unit
     val register_new_action :
 	post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-	  (server_params -> 'a -> unit) -> ('a, 'b) action
+	  (server_params -> 'a -> unit Lwt.t) -> ('a, 'b) action
     val register_action_for_session :
 	Directorytree.tables server_params1 ->
 	  action:('a, 'b) action ->
-	    (Directorytree.tables server_params1 -> 'a -> unit) -> unit
+	    (Directorytree.tables server_params1 -> 'a -> unit Lwt.t) -> unit
     val register_new_action_for_session :
 	Directorytree.tables server_params1 ->
 	  post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-	    (Directorytree.tables server_params1 -> 'a -> unit) ->
+	    (Directorytree.tables server_params1 -> 'a -> unit Lwt.t) ->
 	      ('a, 'b) action
     val static_dir :
 	'a server_params1 ->
@@ -1114,26 +1118,26 @@ module Make = functor
 	  state
 	  ~(service : ('get,'post,[`Internal_Service of 'popo],'tipo,'gn,'pn) service)
 	  ?(error_handler = fun sp l -> raise (Ocsigen_Typing_Error l))
-	  (page_generator : server_params -> 'get -> 'post -> 'fin) =
+	  (page_generator : server_params -> 'get -> 'post -> page Lwt.t) =
 	add_service tables current_dir session service.url 
 	  Pages.create_sender
 	  ({prefix = service.url_prefix;
 	    state = state},
 	   (service.unique_id,
 	    (fun (suff,h) -> 
-	      Pages.send 
-		~content:(try 
-		  page_generator h 
-		    (reconstruct_params 
-		       service.get_params_type h.get_params suff)
-		    (reconstruct_params
-		       service.post_params_type h.post_params suff)
-		with Ocsigen_Typing_Error l -> error_handler h l))))
+	      (try 
+		(page_generator h 
+		   (reconstruct_params 
+		      service.get_params_type h.get_params suff)
+		   (reconstruct_params
+		      service.post_params_type h.post_params suff))
+	      with Ocsigen_Typing_Error l -> error_handler h l) >>=
+	      (fun c -> return (Pages.send ~content:c)))))
 
       let register_service 
 	  ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
 	  ?error_handler
-	  (page_gen : server_params -> 'get -> 'post -> 'fin) =
+	  (page_gen : server_params -> 'get -> 'post -> page Lwt.t) =
 	if global_register_allowed () then begin
 	  remove_unregistered (service.url,service.unique_id);
 	  register_service_aux 
@@ -1274,7 +1278,7 @@ module Make = functor
 
       let register_action
 	  ~(action : ('post,'pn) action)
-	  (actionfun : (server_params -> 'post -> unit)) : unit =
+	  (actionfun : (server_params -> 'post -> unit Lwt.t)) : unit =
 	if global_register_allowed () then begin
 	  register_action_aux (get_current_dir ()) global_tables action actionfun
 	end
@@ -1603,7 +1607,7 @@ module Xhtml_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = xhtml elt Lwt.t
+  type page = xhtml elt
   type form_content_elt = form_content elt
   type uri = XHTML.M.uri
   type a_content_elt = a_content elt
@@ -1666,8 +1670,7 @@ module Xhtml_ = struct
       | e -> e)
 
   let create_sender = Sender_helpers.create_xhtml_sender
-  let send ~content = 
-    Sender_helpers.send_xhtml_page ~content:content
+  let send = Sender_helpers.send_xhtml_page
 
   let make_a ?(a=[]) ~href l : a_elt = 
     XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) l
@@ -2090,19 +2093,21 @@ let execute generate_page sockaddr cookie =
     | Some c -> try (ref (Cookies.find cookie_table (ip,c)), false)
     with Not_found -> (ref (new_session_tables ()), true))
   in
-  let send_page,sender,working_dir = generate_page ip tablesref in
-  let cookie2 = 
-    if are_empty_tables !tablesref
-    then ((if not new_session 
-    then match cookie with
-      Some c -> Cookies.remove cookie_table (ip,c)
-    | None -> ());None)
-    else (if new_session 
-    then let c = new_cookie cookie_table ip in
-    (Cookies.add cookie_table (ip,c) !tablesref;
-     Some c)
-    else cookie)
-  in (cookie2, send_page, sender, ("/"^(reconstruct_url_path working_dir)))
+  generate_page ip tablesref >>=
+  (fun send_page,sender,working_dir ->
+    let cookie2 = 
+      if are_empty_tables !tablesref
+      then ((if not new_session 
+      then match cookie with
+	Some c -> Cookies.remove cookie_table (ip,c)
+      | None -> ());None)
+      else (if new_session 
+      then let c = new_cookie cookie_table ip in
+      (Cookies.add cookie_table (ip,c) !tablesref;
+       Some c)
+      else cookie)
+    in return 
+      (cookie2, send_page, sender, ("/"^(reconstruct_url_path working_dir))))
 
 
 let get_page 
@@ -2171,13 +2176,13 @@ let get_page
     execute generate_page sockaddr cookie
   with 
     Ocsigen_Typing_Error l -> 
-      (cookie, (Sender_helpers.send_xhtml_page 
-		  ~content:(Lwt.return (Error_pages.page_error_param_type l))),
-       Sender_helpers.create_xhtml_sender, "/")
-  | Ocsigen_Wrong_parameter -> 
-      (cookie, (Sender_helpers.send_xhtml_page 
-		  ~content:(Lwt.return Error_pages.page_bad_param)),
-       Sender_helpers.create_xhtml_sender, "/")
+      return (cookie, (Sender_helpers.send_xhtml_page 
+			 ~content:(Error_pages.page_error_param_type l)),
+	      Sender_helpers.create_xhtml_sender, "/")
+  | Ocsigen_Wrong_parameter -> return 
+	(cookie, (Sender_helpers.send_xhtml_page 
+		    ~content:(Error_pages.page_bad_param)),
+	 Sender_helpers.create_xhtml_sender, "/")
 
 
 let make_action action_name action_params 
@@ -2193,18 +2198,16 @@ let make_action action_name action_params
     (action 
        (make_server_params 
 	  working_dir session_tables_ref url fullurl [] 
-	  action_params useragent ip)),
-    (),
-    working_dir
+	  action_params useragent ip)) >>=
+    (fun r -> return (r,(), working_dir))
   in try
-    let (c,(),(),wd) = execute 
-	generate_page
-	sockaddr cookie in
-    Messages.debug "Action executed";
-    (c,wd)
+    execute generate_page sockaddr cookie >>=
+    (fun (c,(),(),wd) ->
+      Messages.debug "Action executed";
+      return (c,wd))
   with 
-    Ocsigen_Typing_Error _ -> (cookie, "/")
-  | Ocsigen_Wrong_parameter -> (cookie, "/")
+    Ocsigen_Typing_Error _ -> return (cookie, "/")
+  | Ocsigen_Wrong_parameter -> return (cookie, "/")
 
 
 (** Module loading *)

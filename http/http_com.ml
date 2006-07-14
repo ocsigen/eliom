@@ -263,8 +263,8 @@ module FHttp_receiver =
                 |x when x < 0 -> assert false
                 |0 -> Lwt.return None
                 |_ -> 
-                    catch (Com_buffer.extract receiver.fd receiver.buffer body_length) (fun e -> Lwt.fail e) >>= (fun s ->
-                      Lwt.return (Some (C.content_of_string s)))
+                    catch (Com_buffer.extract receiver.fd receiver.buffer body_length) (fun e -> Lwt.fail e) >>= C.content_of_string >>= 
+		    (fun c -> Lwt.return (Some c))
               in
               body >>= (fun b ->
                 Lwt.return {Http.header=header;Http.content=b}
@@ -429,20 +429,23 @@ module FHttp_sender =
     match content with
       |None -> Lwt.return ()
       |Some c -> (C.stream_of_content c >>=
-                 (fun (lon,flux) -> Lwt.return (Some lon) >>=
-    (fun cl -> Lwt.return (hds_fusion cl sender.headers 
-    (match headers with Some h ->h | None -> []) )) >>=
-    (fun hds -> Lwt.return
-      {
-        H.mode = md;
-        H.meth=meth;
-        H.url=url;
-        H.code=code;
-        H.proto = prot;
-        H.headers = hds;
-      }) >>= (fun hd ->
-      really_write sender.fd 
-         (Cont ((Framepp.string_of_header hd), (fun () -> Finished)))) >>=
-      (fun _ -> really_write sender.fd flux)))
+                 (fun (lon,flux) -> 
+		   Lwt.return (hds_fusion (Some lon) sender.headers 
+				 (match headers with 
+				   Some h ->h
+				 | None -> []) ) >>=
+		  (fun hds -> 
+		    let hd = {
+		      H.mode = md;
+		      H.meth=meth;
+		      H.url=url;
+		      H.code=code;
+		      H.proto = prot;
+		      H.headers = hds;
+		    } in
+		    really_write sender.fd 
+		      (Cont ((Framepp.string_of_header hd), 
+			     (fun () -> Finished)))) >>=
+		  (fun _ -> really_write sender.fd flux)))
     
   end

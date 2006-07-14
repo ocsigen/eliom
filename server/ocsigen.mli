@@ -27,6 +27,12 @@
 open XHTML.M
 open Xhtmltypes
 
+(** This function may be used for services that can not be interrupted
+  (no cooperation point for threads). It is defined by
+  [let sync f sp g p = Lwt.return (f sp g p)]
+ *)
+val sync : ('a -> 'b -> 'c -> 'd) -> ('a -> 'b -> 'c -> 'd Lwt.t)
+
 (** {2 Types} *)
 
 type service_kind = [`Internal_Service of [`Public_Service | `Local_Service] | `External_Service]
@@ -162,7 +168,7 @@ val suffix :
 (** {2 Pages registration (typed xhtml)} *)
 module Xhtml : sig
 
-  type page = xhtml elt Lwt.t
+  type page = xhtml elt
 
   val new_service :
       url:url_path ->
@@ -190,8 +196,8 @@ module Xhtml : sig
   val register_service :
       service:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
 	       'd, 'e) service ->
-		 ?error_handler:(server_params -> (string * exn) list -> page) ->
-		   (server_params -> 'a -> 'b -> page) -> unit
+		 ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		   (server_params -> 'a -> 'b -> page Lwt.t) -> unit
 (** Register an service in the global table of the server 
    with the associated generation function.
    [register_service service t f] will associate the service [service] to the function [f].
@@ -207,8 +213,8 @@ module Xhtml : sig
 	service:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
 		 'd, 'e)
 	  service ->
-	    ?error_handler:(server_params -> (string * exn) list -> page) ->
-	      (server_params -> 'a -> 'b -> page) -> unit
+	    ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+	      (server_params -> 'a -> 'b -> page Lwt.t) -> unit
 (** Registers an service and the associated function in the session table.
    If the same client does a request to this service, this function will be
    used instead of the one from the global table.
@@ -225,8 +231,8 @@ module Xhtml : sig
       url:url_path ->
 	?prefix:bool ->
 	  get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
-	    ?error_handler:(server_params -> (string * exn) list -> page) ->
-	      (server_params -> 'a -> unit -> page) ->
+	    ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+	      (server_params -> 'a -> unit -> page Lwt.t) ->
 		('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, unit param_name) service
 (** Same as [new_service] followed by [register_service] *)
 
@@ -234,8 +240,8 @@ module Xhtml : sig
       fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
 		[< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
       service ->
-	?error_handler:(server_params -> (string * exn) list -> page) ->
-	  (server_params -> 'a -> unit -> page) ->
+	?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+	  (server_params -> 'a -> unit -> page Lwt.t) ->
 	    ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 (** Same as [new_auxiliary_service] followed by [register_service] *)
 
@@ -244,8 +250,8 @@ module Xhtml : sig
 	fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
 		  [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
           service ->
-	    ?error_handler:(server_params -> (string * exn) list -> page) ->
-	      (server_params -> 'a -> unit -> page) ->
+	    ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+	      (server_params -> 'a -> unit -> page Lwt.t) ->
 		('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 (** Same as [new_auxiliary_service] followed by [register_service_for_session] *)
 
@@ -273,8 +279,8 @@ module Xhtml : sig
 		[< `WithSuffix | `WithoutSuffix ] as 'b, 'c, unit param_name)
       service ->
 	post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-	  ?error_handler:(server_params -> (string * exn) list -> page) ->
-	    (server_params -> 'a -> 'd -> page) ->
+	  ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+	    (server_params -> 'a -> 'd -> page Lwt.t) ->
 	      ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e) service
 (** Same as [new_post_service] followed by [register_post_service] *)
 
@@ -283,8 +289,8 @@ module Xhtml : sig
 		[< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
       service ->
 	post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-	  ?error_handler:(server_params -> (string * exn) list -> page) ->
-	    (server_params -> 'a -> 'f -> page) ->
+	  ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+	    (server_params -> 'a -> 'f -> page Lwt.t) ->
 	      ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
 (** Same as [new_post_auxiliary_service] followed by [register_post_service] *)
 
@@ -294,8 +300,8 @@ module Xhtml : sig
 		  [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
           service ->
 	    post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-	      ?error_handler:(server_params -> (string * exn) list -> page) ->
-		(server_params -> 'a -> 'f -> page) ->
+	      ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		(server_params -> 'a -> 'f -> page Lwt.t) ->
 		  ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
 (** Same as [new_post_auxiliary_service] followed by [register_post_service_for_session] *)
 
@@ -328,24 +334,24 @@ module Xhtml : sig
 
   val register_action :
       action:('a, 'b) action ->
-	(server_params -> 'a -> unit) -> unit
+	(server_params -> 'a -> unit Lwt.t) -> unit
 (** Register an action in the global table *)
 
   val register_action_for_session :
       server_params ->
 	action:('a, 'b) action ->
-	  (server_params -> 'a -> unit) -> unit
+	  (server_params -> 'a -> unit Lwt.t) -> unit
 (** Register an action in the session table *)
 
   val register_new_action :
       post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-	(server_params -> 'a -> unit) -> ('a, 'b) action
+	(server_params -> 'a -> unit Lwt.t) -> ('a, 'b) action
 (** Same as [new_action] followed by [register_action] *)
 
   val register_new_action_for_session :
       server_params ->
 	post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-	  (server_params -> 'a -> unit) -> ('a, 'b) action
+	  (server_params -> 'a -> unit Lwt.t) -> ('a, 'b) action
 (** Same as [new_action] followed by [register_action_for_session] *)
 
 
@@ -631,22 +637,22 @@ module type OCSIGENSIG =
     val register_service :
         service:('a, 'b, [ `Internal_Service of 'c ],
                  [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
-		   ?error_handler:(server_params -> (string * exn) list -> page) ->
-		     (server_params -> 'a -> 'b -> page) -> unit
+		   ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		     (server_params -> 'a -> 'b -> page Lwt.t) -> unit
     val register_service_for_session :
         server_params ->
           service:('a, 'b, [ `Internal_Service of 'c ],
                    [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
             service ->
-	      ?error_handler:(server_params -> (string * exn) list -> page) ->
-		(server_params -> 'a -> 'b -> page) -> unit
+	      ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		(server_params -> 'a -> 'b -> page Lwt.t) -> unit
     val register_new_service :
         url:url_path ->
           ?prefix:bool ->
             get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
               params_type ->
-		?error_handler:(server_params -> (string * exn) list -> page) ->
-		  (server_params -> 'a -> unit -> page) ->
+		?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		  (server_params -> 'a -> unit -> page Lwt.t) ->
 		    ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
 		     unit param_name)
 		      service
@@ -654,8 +660,8 @@ module type OCSIGENSIG =
         fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
                   [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
         service ->
-	  ?error_handler:(server_params -> (string * exn) list -> page) ->
-            (server_params -> 'a -> unit -> page) ->
+	  ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+            (server_params -> 'a -> unit -> page Lwt.t) ->
               ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
 		service
     val register_new_auxiliary_service_for_session :
@@ -663,8 +669,8 @@ module type OCSIGENSIG =
           fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
                     [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
             service ->
-	      ?error_handler:(server_params -> (string * exn) list -> page) ->
-		(server_params -> 'a -> unit -> page) ->
+	      ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		(server_params -> 'a -> unit -> page Lwt.t) ->
 		  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
 		    service
     val new_post_service :
@@ -687,8 +693,8 @@ module type OCSIGENSIG =
                   unit param_name)
         service ->
           post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-	    ?error_handler:(server_params -> (string * exn) list -> page) ->
-              (server_params -> 'a -> 'd -> page) ->
+	    ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+              (server_params -> 'a -> 'd -> page Lwt.t) ->
 		('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e)
 		  service
     val register_new_post_auxiliary_service :
@@ -696,8 +702,8 @@ module type OCSIGENSIG =
                   [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
         service ->
           post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-	    ?error_handler:(server_params -> (string * exn) list -> page) ->
-              (server_params -> 'a -> 'f -> page) ->
+	    ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+              (server_params -> 'a -> 'f -> page Lwt.t) ->
 		('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
 		  service
     val register_new_post_auxiliary_service_for_session :
@@ -706,8 +712,8 @@ module type OCSIGENSIG =
                     [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
             service ->
               post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-		?error_handler:(server_params -> (string * exn) list -> page) ->
-		  (server_params -> 'a -> 'f -> page) ->
+		?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+		  (server_params -> 'a -> 'f -> page Lwt.t) ->
 		    ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
 		      service
     type ('a, 'b) action
@@ -715,18 +721,18 @@ module type OCSIGENSIG =
         post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
           ('a, 'b) action
     val register_action :
-        action:('a, 'b) action -> (server_params -> 'a -> unit) -> unit
+        action:('a, 'b) action -> (server_params -> 'a -> unit Lwt.t) -> unit
     val register_new_action :
         post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-          (server_params -> 'a -> unit) -> ('a, 'b) action
+          (server_params -> 'a -> unit Lwt.t) -> ('a, 'b) action
     val register_action_for_session :
         server_params ->
           action:('a, 'b) action ->
-            (server_params -> 'a -> unit) -> unit
+            (server_params -> 'a -> unit Lwt.t) -> unit
     val register_new_action_for_session :
         server_params ->
           post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-            (server_params -> 'a -> unit) ->
+            (server_params -> 'a -> unit Lwt.t) ->
               ('a, 'b) action
     val static_dir :
         'a server_params1 ->
@@ -860,15 +866,17 @@ and type input_type_t = string
 val get_page :
     url_path * string * string * int option * (string * string) list *
     (string * string) list * string -> 
-      Unix.sockaddr -> string option -> string option * 
-	  Sender_helpers.send_page_type *
-	  Sender_helpers.create_sender_type * string
+      Unix.sockaddr -> string option -> 
+	(string option * 
+	   Sender_helpers.send_page_type *
+	   Sender_helpers.create_sender_type * string) Lwt.t
 
 val make_action :
     string -> (string * string) list ->
       url_path * string * string * int option * (string * string) list *
 	(string * string) list * string -> 
-	  Unix.sockaddr -> string option -> string option * string
+	  Unix.sockaddr -> string option -> 
+	    (string option * string) Lwt.t
 
 
 val state_param_name : string

@@ -40,7 +40,7 @@ let login_box_action h action =
 let login_box h serv = post_form serv h create_login_form
 
 let deconnect_action = 
-  register_new_action unit (fun sp () -> close_session sp)
+  register_new_action unit (fun sp () -> Lwt.return (close_session sp))
 
 let deconnect_box h s = action_a deconnect_action h s
 

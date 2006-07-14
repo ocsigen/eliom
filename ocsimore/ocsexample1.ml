@@ -41,11 +41,11 @@ let print_news_page h i () =
 
 let _ = register_service
   ~service:main_page
-  accueil
+  (sync accueil)
 
 let _ = register_service
   ~service:news_page
-  print_news_page
+  (sync print_news_page)
 
 
 

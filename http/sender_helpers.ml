@@ -52,10 +52,10 @@ let add_css (a : 'a) : 'a =
 (** this module instantiate the HTTP_CONTENT signature for an Xhtml content*)
 module Xhtml_content =
   struct
-    type t = [ `Html ] XHTML.M.elt Lwt.t
+    type t = [ `Html ] XHTML.M.elt
     let stream_of_content c = 
-      c >>= (fun res -> let x = (XHTML.M.ocsigen_print (add_css res)) in
-      	Lwt.return (String.length x, (Cont (x, (fun () -> Finished)))))
+      let x = (XHTML.M.ocsigen_print (add_css c)) in
+      Lwt.return (String.length x, (Cont (x, (fun () -> Finished))))
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_string s = assert false
   end
@@ -65,14 +65,14 @@ module Text_content =
     type t = string
     let stream_of_content c =
       Lwt.return (String.length c, Cont (c, (fun () -> Finished)))
-    let content_of_string s = s
+    let content_of_string s = Lwt.return s
   end
 
 module Empty_content =
   struct
     type t = unit
     let stream_of_content c = Lwt.return (0, Cont("",(fun () -> Finished)))
-    let content_of_string s = ()
+    let content_of_string s = Lwt.return ()
   end
 
 (** this module instanciate the HTTP_CONTENT signature for the files*)
@@ -302,8 +302,7 @@ let send_error ?(http_exception) ?(error_num=500) xhtml_sender =
           </html>
           >>
   in
-  send_xhtml_page ~code:error_code ~content:(Lwt.return err_page) xhtml_sender
-(*Xhtml_sender.send ~code:error_code (*~content:err_page*) xhtml_sender*)
+  send_xhtml_page ~code:error_code ~content:err_page xhtml_sender
 
 (** this fonction create a sender that send http_frame with fiel content*)
 let create_file_sender ?server_name ?proto fd =
