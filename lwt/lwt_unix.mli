@@ -1,15 +1,15 @@
-(* Module [Lwt_unix]: thread-compatible system calls *)
+(** Module [Lwt_unix]: thread-compatible system calls *)
 
 val sleep : float -> unit Lwt.t
-      (* [sleep d] is a threads which remain suspended for [d] seconds
+      (** [sleep d] is a threads which remain suspended for [d] seconds
          (letting other threads run) and then terminates. *)
 val yield : unit -> unit Lwt.t
-      (* [yield ()] is a threads which suspends itself (letting other
+      (** [yield ()] is a threads which suspends itself (letting other
          thread run) and then resumes as soon as possible and
          terminates. *)
 
 val run : 'a Lwt.t -> 'a
-      (* [run t] lets the thread [t] run until it terminates.  It
+      (** [run t] lets the thread [t] run until it terminates.  It
          evaluates to the return value of [t], or raise the exception
          associated to [t] if [t] fails.
 
@@ -22,7 +22,7 @@ val run : 'a Lwt.t -> 'a
 
 (****)
 
-(* These functions behaves as their [Unix] counterparts, but let other
+(** These functions behave as their [Unix] counterparts, but let other
    threads run while waiting for the completion of the system call.
 
    PITFALL
