@@ -212,7 +212,7 @@ let send_generic
   let hds3 =
     match keep_alive with
     |None ->  hds2
-    |Some true  -> ("Connection","Keep-Alive")::hds2
+    |Some true  -> ("Connection","Keep-Alive")::hds2(* obsolete? *)
     |Some false -> ("Connection","Close")::hds2
   in
   let hds4 =

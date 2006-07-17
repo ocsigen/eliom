@@ -87,6 +87,9 @@ module Http_header =
         let get_headers_value header key = 
           List.assoc (String.lowercase(key)) header.headers
 
+	(* gets the value of the used protocol *)
+	let get_proto header = header.proto
+
         (** adds an header option in the header option list*)
         let add_headers header key value =
           {

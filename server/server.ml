@@ -205,6 +205,17 @@ let find_static_page path =
 
 let service http_frame sockaddr 
     xhtml_sender file_sender empty_sender inputchan () =
+    let ka = try (
+          let kah = (Http_header.get_headers_value http_frame.Http_frame.header
+	            "Connection") in 
+			if kah = "Close" then false else 
+			  (if kah = "Keep-Alive" then true 
+			  else false(* should not happen *)))
+	  with _ -> let prot = Http_header.get_proto http_frame.Http_frame.header in
+	  		if prot.[(String.index (prot) '/')+3] = '1' 
+	  		then true else false in
+      Messages.debug ("Keep-Alive:"^(string_of_bool ka));
+     
   catch (fun () ->
     let cookie = 
       try 
@@ -219,12 +230,11 @@ let service http_frame sockaddr
 	let ip = ip_of_sockaddr sockaddr in
 	accesslog ("connection from "^ip^" ("^ua^") : "^stringpath^params);
       (* end log *)
-
       match action_info with
 	  None ->
 	    (* Je préfère pour l'instant ne jamais faire de keep-alive pour
 	       éviter d'avoir un nombre de threads qui croit sans arrêt *)
-	    let keep_alive = false in
+	    let keep_alive = ka in
 	    (catch
 	       (fun () ->
 		 get_page frame_info sockaddr cookie >>=
@@ -278,7 +288,7 @@ let service http_frame sockaddr
 	| Some (action_name, reload, action_params) ->
 	    make_action action_name action_params frame_info sockaddr cookie
 	    >>= (fun (cookie2,path) ->
-	      let keep_alive = false in
+	      let keep_alive = ka in
 	      (if reload then
 		get_page frame_info sockaddr cookie2 >>=
 		(fun cookie3,send_page,sender,path ->
@@ -306,17 +316,17 @@ let service http_frame sockaddr
 	  (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
 	  send_error ~error_num:404 xhtml_sender
 	    >>= (fun _ ->
-	      return false (* keep_alive *))
+	      return ka (* keep_alive *))
       | Ocsigen_Malformed_Url ->
 	  (*really_write "404 Not Found ??" false in_ch "error ??? (Malformed URL) \n"
 	   * 0 11 *)
 	  send_error ~error_num:400 xhtml_sender
-	    >>= (fun _ -> return false (* keep_alive *))
+	    >>= (fun _ -> return ka (* keep_alive *))
       | e ->
-	  send_xhtml_page ~keep_alive:false
+	  send_xhtml_page ~keep_alive:ka(*false*)
 	    ~content:(error_page ("Exception : "^(Printexc.to_string e)))
 	    xhtml_sender
-	    >>= (fun _ -> return false (* keep_alive *)))
+	    >>= (fun _ -> return ka (* keep_alive *)))
                                               
 
 let load_modules modules_list =
@@ -353,7 +363,7 @@ let listen modules_list =
                 listen_connexion_aux ()
                   (* Pour laisser la connexion ouverte, je relance *)
 	      else begin 
-		Unix.close in_ch; 
+		Unix.close in_ch; (* not gracefule close: client's keep_alive*) 
 		return ()
 	      end)
 	) in
