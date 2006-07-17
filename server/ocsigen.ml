@@ -533,18 +533,21 @@ module Directorytree : DIRECTORYTREE = struct
   let find_page_table t (str,url,getp,postp,ua,ip,fullurl,urlsuffix) k = 
     let sp = make_server_params [] str url fullurl getp postp ua ip in
     let rec aux = function
-	[] -> raise Ocsigen_Wrong_parameter
+	[] -> fail Ocsigen_Wrong_parameter
       | (_,(funct,create_sender,working_dir))::l ->
-	  try
+	  catch (fun () ->
 	    Messages.debug "I'm trying a service";
 	    funct (urlsuffix, {sp with current_dir = working_dir}) >>=
 	    (fun p -> 
 	      Messages.debug "Page found";
-	      Lwt.return (p,create_sender,working_dir))
-	  with Ocsigen_Wrong_parameter -> aux l
+	      Lwt.return (p,create_sender,working_dir)))
+	    (function Ocsigen_Wrong_parameter -> aux l
+	      | e -> fail e)
     in 
-    let r = try List.assoc k t with Not_found -> raise Ocsigen_404 in
-    aux r
+    (catch 
+       (fun () -> return (List.assoc k t))
+       (function Not_found -> fail Ocsigen_404 | e -> fail e)) >>=
+    (fun r -> aux r)
 
   let add_page_table session url_act t (key,(id,elt)) = 
     (* Duplicate registering forbidden in global table *)
@@ -1125,13 +1128,15 @@ module Make = functor
 	    state = state},
 	   (service.unique_id,
 	    (fun (suff,h) -> 
-	      (try 
+	      (catch (fun () -> 
 		(page_generator h 
 		   (reconstruct_params 
 		      service.get_params_type h.get_params suff)
 		   (reconstruct_params
-		      service.post_params_type h.post_params suff))
-	      with Ocsigen_Typing_Error l -> error_handler h l) >>=
+		      service.post_params_type h.post_params suff)))
+		 (function
+		     Ocsigen_Typing_Error l -> error_handler h l
+		   | e -> fail e)) >>=
 	      (fun c -> return (Pages.send ~content:c)))))
 
       let register_service 
@@ -2115,23 +2120,11 @@ let get_page
     sockaddr cookie = 
   let fullurl = path^params in
   let generate_page ip session_tables_ref =
-    try (* D'abord recherche dans la table de session *)
-      Messages.debug ("--- I search "^(reconstruct_url_path url)^" in the session table:");
-      (find_service
-	 !session_tables_ref
-	 (session_tables_ref,
-	  url,
-	  internal_state,
-	  get_params,
-	  post_params,
-	  useragent,
-	  ip,
-	  fullurl))
-    with Ocsigen_404 | Ocsigen_Wrong_parameter -> 
-      try (* ensuite dans la table globale *)
-	Messages.debug "--- I search in the global table:";
-	(find_service 
-	   global_tables
+    catch (* D'abord recherche dans la table de session *)
+      (fun () -> 
+	Messages.debug ("--- I search "^(reconstruct_url_path url)^" in the session table:");
+	(find_service
+	   !session_tables_ref
 	   (session_tables_ref,
 	    url,
 	    internal_state,
@@ -2139,50 +2132,68 @@ let get_page
 	    post_params,
 	    useragent,
 	    ip,
-	    fullurl))
-      with exn ->
-	match exn with 
-	  Ocsigen_404 | Ocsigen_Wrong_parameter -> 
-            (* si pas trouvé avec, on essaie sans l'état *)
-	    (match internal_state with
-	      None -> raise exn
-	    | _ -> try (* d'abord la table de session *)
-		Messages.debug "--- I search in the session table, without state parameter:";
-		(find_service 
-		   !session_tables_ref
-		   (session_tables_ref,
-		    url,
-		    None,
-		    get_params,
-		    post_params,
-		    useragent,
-		    ip,
-		    fullurl))
-	    with Ocsigen_404 | Ocsigen_Wrong_parameter -> 
-              (* ensuite dans la table globale *)
-	      Messages.debug "--- I search in the global table, without state parameter:";
-	      (find_service 
-		 global_tables
-		 (session_tables_ref,
-		  url,
-		  None,
-		  get_params,
-		  post_params,
-		  useragent,
-		  ip,
-		  fullurl)))
-	| _ -> raise exn
-  in try 
-    execute generate_page sockaddr cookie
-  with 
-    Ocsigen_Typing_Error l -> 
-      return (cookie, (Sender_helpers.send_xhtml_page 
-			 ~content:(Error_pages.page_error_param_type l)),
-	      Sender_helpers.create_xhtml_sender, "/")
-  | Ocsigen_Wrong_parameter -> return 
-	(cookie, (Sender_helpers.send_xhtml_page 
-		    ~content:(Error_pages.page_bad_param)),
-	 Sender_helpers.create_xhtml_sender, "/")
+	    fullurl)))
+      (function Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+	catch (* ensuite dans la table globale *)
+	  (fun () -> 
+	    Messages.debug "--- I search in the global table:";
+	    (find_service 
+	       global_tables
+	       (session_tables_ref,
+		url,
+		internal_state,
+		get_params,
+		post_params,
+		useragent,
+		ip,
+		fullurl)))
+	  (function
+	      Ocsigen_404 | Ocsigen_Wrong_parameter as exn -> 
+		(* si pas trouvé avec, on essaie sans l'état *)
+		(match internal_state with
+		  None -> fail exn
+		| _ -> catch (* d'abord la table de session *)
+		      (fun () ->
+			Messages.debug "--- I search in the session table, without state parameter:";
+			(find_service 
+			   !session_tables_ref
+			   (session_tables_ref,
+			    url,
+			    None,
+			    get_params,
+			    post_params,
+			    useragent,
+			    ip,
+			    fullurl)))
+		      (function
+			  Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+			    (* ensuite dans la table globale *)
+			    Messages.debug "--- I search in the global table, without state parameter:";
+			    (find_service 
+			       global_tables
+			       (session_tables_ref,
+				url,
+				None,
+				get_params,
+				post_params,
+				useragent,
+				ip,
+				fullurl))
+			| e -> fail e))
+	    | e -> fail e)
+    | e -> fail e)
+  in catch 
+    (fun () -> execute generate_page sockaddr cookie)
+    (function
+	Ocsigen_Typing_Error l -> 
+	  return (cookie, (Sender_helpers.send_xhtml_page 
+			     ~content:(Error_pages.page_error_param_type l)),
+		  Sender_helpers.create_xhtml_sender, "/")
+      | Ocsigen_Wrong_parameter -> return 
+	    (cookie, (Sender_helpers.send_xhtml_page 
+			~content:(Error_pages.page_bad_param)),
+	     Sender_helpers.create_xhtml_sender, "/")
+      | e -> fail e)
 
 
 let make_action action_name action_params 
@@ -2190,24 +2201,26 @@ let make_action action_name action_params
   let fullurl = path^params in
   let generate_page ip session_tables_ref =
     let action,working_dir = 
-      (try 
+      (try
 	find_action !session_tables_ref action_name
-      with Not_found ->
-	(find_action global_tables action_name))
+      with
+	Not_found -> (find_action global_tables action_name)
+      | e -> raise e)
     in 
     (action 
        (make_server_params 
 	  working_dir session_tables_ref url fullurl [] 
 	  action_params useragent ip)) >>=
     (fun r -> return (r,(), working_dir))
-  in try
-    execute generate_page sockaddr cookie >>=
-    (fun (c,(),(),wd) ->
-      Messages.debug "Action executed";
-      return (c,wd))
-  with 
-    Ocsigen_Typing_Error _ -> return (cookie, "/")
-  | Ocsigen_Wrong_parameter -> return (cookie, "/")
+  in catch
+    (fun () -> execute generate_page sockaddr cookie >>=
+      (fun (c,(),(),wd) ->
+	Messages.debug "Action executed";
+	return (c,wd)))
+    (function
+	Ocsigen_Typing_Error _ -> return (cookie, "/")
+      | Ocsigen_Wrong_parameter -> return (cookie, "/")
+      | e -> fail e)
 
 
 (** Module loading *)

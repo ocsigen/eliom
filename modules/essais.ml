@@ -1,6 +1,20 @@
 open XHTML.M
 open Ocsigen
 open Ocsigen.Xhtml
+open Lwt
+
+let looong = 
+  register_new_service 
+    ~url:["looong"]
+    ~get_params:unit
+    (fun sp () () -> 
+      Lwt_unix.sleep 10.0 >>= (fun _ ->
+	failwith "lkljk";
+	return
+        (html
+	  (head (title (pcdata "")) [])
+	  (body [h1 [pcdata "Ok now, you can read the page."]]))))
+
 
 
 (************************)

@@ -1240,7 +1240,9 @@ let looong =
     (fun sp () () -> 
       Lwt_unix.sleep 10.0 >>= (fun _ ->
 	return
-	  << <html><body><p>Ok now, you can read the page.</p></body></html> >>))
+        (html
+	  (head (title (pcdata "")) [])
+	  (body [h1 [pcdata "Ok now, you can read the page."]]))))
 
 
 
@@ -1418,7 +1420,9 @@ let _ = register_service main
        <h3>Other</h3>
        <p>
        A page that is very slow : 
-	     $a looong sp <:xmllist< looong >> ()$
+	     $a looong sp <:xmllist< looong >> ()$<br/>
+       Catching errors:
+	     $a catch sp <:xmllist< catch >> 22$ (change the value in the URL)<br/>
        </p>
        </body>
      </html> >>)

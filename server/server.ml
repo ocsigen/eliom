@@ -205,7 +205,7 @@ let find_static_page path =
 
 let service http_frame sockaddr 
     xhtml_sender file_sender empty_sender inputchan () =
-  try 
+  catch (fun () ->
     let cookie = 
       try 
 	Some (getcookie (Http_header.get_headers_value 
@@ -225,54 +225,56 @@ let service http_frame sockaddr
 	    (* Je préfère pour l'instant ne jamais faire de keep-alive pour
 	       éviter d'avoir un nombre de threads qui croit sans arrêt *)
 	    let keep_alive = false in
-	    (try
-	      get_page frame_info sockaddr cookie >>=
-	      (fun cookie2,send_page,sender,path ->
-	      send_page ~keep_alive:keep_alive 
-		?cookie:(if cookie2 <> cookie then 
-		  (if cookie2 = None 
-		  then Some remove_cookie_str
-		  else cookie2) 
-		else None)
-		~path:path (* path pour le cookie *)
-		(sender ~server_name:server_name inputchan))
-	    with Ocsigen_404 ->
-	      if params = "" then
-		try
-		  let filename = find_static_page path in
-		  Messages.debug ("--- Is it a static file? ("^filename^")");
-		  (Unix.lstat filename);
-		  let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
-		  let filename = 
-		    if dir
-		    then filename^"/index.html"
-		    else filename
-		  in
-		  if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
-		  then begin
-		    Unix.access filename [Unix.R_OK];
-		    try
-		    send_file 
-		      ~keep_alive:keep_alive
-		      ~last_modified:((Unix.stat filename).Unix.st_mtime)
-		      ~code:200 filename file_sender
-		      with _ -> Lwt.return () (*stop if error while sending *)
-		  end
-		  else 
-		    send_error ~error_num:403 xhtml_sender (* Forbidden *)
-		with 
-		  Unix.Unix_error (Unix.EACCES,_,_) ->
-		    send_error ~error_num:403 xhtml_sender (* Forbidden *)
-		| _ -> raise Ocsigen_404 (*lstat errors, etc.*)
-	      else raise Ocsigen_404
-	    | Ocsigen.Ocsigen_Is_a_directory -> 
-		send_empty
-		  ~keep_alive:keep_alive
-		  ~location:(stringpath^"/"^params)
-                  ~code:301 (* Moved permanently *)
-	          empty_sender		
-	    )
-	      >>= (fun _ -> return keep_alive)
+	    (catch
+	       (fun () ->
+		 get_page frame_info sockaddr cookie >>=
+		 (fun cookie2,send_page,sender,path ->
+		   send_page ~keep_alive:keep_alive 
+		     ?cookie:(if cookie2 <> cookie then 
+		       (if cookie2 = None 
+		       then Some remove_cookie_str
+		       else cookie2) 
+		     else None)
+		     ~path:path (* path pour le cookie *)
+		     (sender ~server_name:server_name inputchan)))
+	       (function
+		   Ocsigen_404 ->
+		     if params = "" then
+		       catch (fun () ->
+			 let filename = find_static_page path in
+			 Messages.debug ("--- Is it a static file? ("^filename^")");
+			 (Unix.lstat filename);
+			 let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
+			 let filename = 
+			   if dir
+			   then filename^"/index.html"
+			   else filename
+			 in
+			 if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
+			 then begin
+			   Unix.access filename [Unix.R_OK];
+			   catch (fun () ->
+			     send_file 
+			       ~keep_alive:keep_alive
+			       ~last_modified:((Unix.stat filename).Unix.st_mtime)
+			       ~code:200 filename file_sender)
+			    (function _ -> Lwt.return ()) (* stops if error while sending *)
+			 end
+			 else 
+			   send_error ~error_num:403 xhtml_sender (* Forbidden *))
+		       (function
+			   Unix.Unix_error (Unix.EACCES,_,_) ->
+			     send_error ~error_num:403 xhtml_sender (* Forbidden *)
+			 | _ -> fail Ocsigen_404 (*lstat errors, etc.*))
+		     else fail Ocsigen_404
+		 | Ocsigen.Ocsigen_Is_a_directory -> 
+		     send_empty
+		       ~keep_alive:keep_alive
+		       ~location:(stringpath^"/"^params)
+                       ~code:301 (* Moved permanently *)
+	               empty_sender		
+		 | e -> fail e)
+	      >>= (fun _ -> return keep_alive))
 	| Some (action_name, reload, action_params) ->
 	    make_action action_name action_params frame_info sockaddr cookie
 	    >>= (fun (cookie2,path) ->
@@ -298,24 +300,23 @@ let service http_frame sockaddr
 		    ~path:path
                     ~code:204
 	            empty_sender)) >>=
-		(fun _ -> return keep_alive))
-  with Ocsigen_404 -> 
-   (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
-   send_error ~error_num:404 xhtml_sender
-   >>= (fun _ ->
-     return false (* keep_alive *))
-    | Ocsigen_Malformed_Url ->
-    (*really_write "404 Not Found ??" false in_ch "error ??? (Malformed URL) \n"
-    * 0 11 *)
-	send_error ~error_num:400 xhtml_sender
-	>>= (fun _ ->
-	       return false (* keep_alive *))
-    | e ->
-	send_xhtml_page ~keep_alive:false
-	  ~content:(error_page ("Exception : "^(Printexc.to_string e)))
-	  xhtml_sender
-	>>= (fun _ ->
-	       return false (* keep_alive *))
+		(fun _ -> return keep_alive)))
+    (function
+	Ocsigen_404 -> 
+	  (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
+	  send_error ~error_num:404 xhtml_sender
+	    >>= (fun _ ->
+	      return false (* keep_alive *))
+      | Ocsigen_Malformed_Url ->
+	  (*really_write "404 Not Found ??" false in_ch "error ??? (Malformed URL) \n"
+	   * 0 11 *)
+	  send_error ~error_num:400 xhtml_sender
+	    >>= (fun _ -> return false (* keep_alive *))
+      | e ->
+	  send_xhtml_page ~keep_alive:false
+	    ~content:(error_page ("Exception : "^(Printexc.to_string e)))
+	    xhtml_sender
+	    >>= (fun _ -> return false (* keep_alive *)))
                                               
 
 let load_modules modules_list =
