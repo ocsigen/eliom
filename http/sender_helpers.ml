@@ -142,6 +142,7 @@ let create_xhtml_sender ?server_name ?proto fd =
     [
       ("Accept-Ranges","bytes");
       ("Cache-Control","no-cache");
+      ("Expires", "0");
       ("Content-Type","text/html")
     ]@hd
   in
@@ -173,6 +174,15 @@ let create_empty_sender ?server_name ?proto fd =
   |Some p -> 
       Empty_sender.create ~headers:hd2 ~proto:p fd
 
+let gmtdate d =  
+	let x = Netdate.mk_mail_date ~zone:0 d in try
+	let ind_plus =  String.index x '+' in  
+	Messages.debug "ind_plus";
+	String.set x ind_plus 'G';
+	String.set x (ind_plus + 1) 'M';
+	String.set x (ind_plus + 2) 'T';
+	String.sub x 0 (ind_plus + 3)
+	with _ -> Messages.debug "no +"; x
 (** fonction that sends something
 * code is the code of the http answer
 * keep_alive is a boolean value that set the field Connection
@@ -190,12 +200,12 @@ let send_generic
       ?code:int -> 
       ?content:'a -> 'b -> unit Lwt.t) =
   (*ajout des option spécifique à la page*)
-  let date = Netdate.mk_mail_date ~zone:0 (Unix.time ()) in
+  let date = gmtdate (Unix.time ()) in
   (*il faut récupérer la date de dernière modification *)
   let last_mod =
     match last_modified with
     |None -> date
-    |Some l  -> Netdate.mk_mail_date ~zone:0 l
+    |Some l  -> gmtdate l
   in
   let hds =
       ("Date",date)::

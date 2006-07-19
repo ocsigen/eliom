@@ -90,6 +90,9 @@ module Http_header =
 	(* gets the value of the used protocol *)
 	let get_proto header = header.proto
 
+	(* gets the value of the used http method *)
+	let get_method header = header.meth
+	
         (** adds an header option in the header option list*)
         let add_headers header key value =
           {

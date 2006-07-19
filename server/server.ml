@@ -87,6 +87,7 @@ let get_frame_infos =
 let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
   fun http_frame ->
   try 
+    let meth = Http_header.get_method http_frame.Http_frame.header in
     let url = Http_header.get_url http_frame.Http_frame.header in
     let url2 = 
       Neturl.parse_url 
@@ -117,10 +118,11 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     in
     let get_params = Netencoding.Url.dest_url_encoded_parameters params_string 
     in
-    let post_params =
+    let post_params = if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) then
       match http_frame.Http_frame.content with
 	  None -> []
 	| Some s -> Netencoding.Url.dest_url_encoded_parameters s
+      else []
     in
     let internal_state,post_params2 = 
       try (Some (int_of_string (List.assoc state_param_name post_params)),
@@ -204,7 +206,7 @@ let find_static_page path =
   aux "/" (Ocsiconfig.get_static_tree ()) path
 
 let service http_frame sockaddr 
-    xhtml_sender file_sender empty_sender inputchan () =
+    xhtml_sender file_sender empty_sender inputchan () =  			
     let ka = try (
           let kah = (Http_header.get_headers_value http_frame.Http_frame.header
 	            "Connection") in 
@@ -215,7 +217,7 @@ let service http_frame sockaddr
 	  		if prot.[(String.index (prot) '/')+3] = '1' 
 	  		then true else false in
       Messages.debug ("Keep-Alive:"^(string_of_bool ka));
-     
+   let serv =  
   catch (fun () ->
     let cookie = 
       try 
@@ -327,7 +329,23 @@ let service http_frame sockaddr
 	    ~content:(error_page ("Exception : "^(Printexc.to_string e)))
 	    xhtml_sender
 	    >>= (fun _ -> return ka (* keep_alive *)))
-                                              
+       in 
+       let meth =  (Http_header.get_method http_frame.Http_frame.header) in
+	if ((meth <> Some (Http_header.GET)) && (meth <> Some (Http_header.POST)) 
+	    && (meth <> Some(Http_header.HEAD))) 
+	then (send_error ~error_num:501 xhtml_sender>>=(fun _ -> return ka)) 
+	else begin try
+      	if (int_of_string (Http_header.get_headers_value http_frame.Http_frame.header 
+			  "content-length")) > 0
+	    && (meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD))  
+	      then (send_error ~error_num:501 xhtml_sender >>= 
+	                                         (fun _ -> return ka)) 
+	      else serv  
+         with _ -> if meth = Some(Http_header.POST)
+	           then (send_error ~error_num:400 xhtml_sender
+		                            >>= (fun _ -> return ka )) else serv
+	end 
+       
 
 let load_modules modules_list =
   let rec aux = function
