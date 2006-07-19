@@ -68,57 +68,72 @@ let rec parser_config =
     | _ -> raise 
 	  (Config_file_error "Only <module> or <staticdir> tag expected inside <site>")
   in
-  let rec parse_site = function
+  let rec parse_site n = function
       PLCons ((EPanytag ("url", PLEmpty, s)), l) -> 
 	let path = Neturl.split_path (parse_string s) in
 	let cmo,static = parse_site2 (None, None) l in
 	(match static with
 	  None -> ()
-	| Some s -> Ocsiconfig.set_static_dir s path);
+	| Some s -> Ocsiconfig.set_static_dir n s path);
 	(match cmo with
 	  None -> []
 	| Some cmo -> [Mod (path,cmo)])
-    | PLCons ((EPcomment _), l) -> parse_site l
-    | PLCons ((EPwhitespace _), l) -> parse_site l
+    | PLCons ((EPcomment _), l) -> parse_site n l
+    | PLCons ((EPwhitespace _), l) -> parse_site n l
     | _ -> raise (Config_file_error "<url> tag expected inside <site>")
   in
-  let rec parse_ocsigen = function
+  let rec parse_ocsigen n = function
       PLEmpty -> []
     | PLCons ((EPanytag ("port", PLEmpty, p)), ll) -> 
-	set_port (int_of_string (parse_string p));
-	parse_ocsigen ll
+	set_port n (int_of_string (parse_string p));
+	parse_ocsigen n ll
+    | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
+    	(match parse_string p with
+	| "on" -> set_ssl n true
+	| "off" -> set_ssl n false
+	| _ -> raise (Config_file_error "wrong value for <ssl> tag"));
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
-	set_logdir (parse_string p);
-	parse_ocsigen ll
+	set_logdir n (parse_string p);
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("staticdir", PLEmpty, p)), ll) -> 
-	set_staticpages (parse_string p);
-	parse_ocsigen ll
+	set_staticpages n (parse_string p);
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("user", PLEmpty, p)), ll) -> 
-	set_user (parse_string p);
-	parse_ocsigen ll
+	set_user n (parse_string p);
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("group", PLEmpty, p)), ll) -> 
-	set_group (parse_string p);
-	parse_ocsigen ll
+	set_group n (parse_string p);
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("maxconnected", PLEmpty, p)), ll) -> 
-	set_max_number_of_connections (int_of_string (parse_string p));
-	parse_ocsigen ll
+	set_max_number_of_connections n (int_of_string (parse_string p));
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("timeout", PLEmpty, p)), ll) -> 
-	set_connect_time_max (float_of_string (parse_string p));
-	parse_ocsigen ll
+	set_connect_time_max n (float_of_string (parse_string p));
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
-	(Cmo (parse_string l))::parse_ocsigen ll
+	(Cmo (parse_string l))::parse_ocsigen n ll
     | PLCons ((EPanytag ("site", PLEmpty, l)), ll) -> 
-	(parse_site l)@(parse_ocsigen ll)
-    | PLCons ((EPcomment _), ll) -> parse_ocsigen ll
-    | PLCons ((EPwhitespace _), ll) -> parse_ocsigen ll
+	(parse_site n l)@(parse_ocsigen n ll)
+    | PLCons ((EPcomment _), ll) -> parse_ocsigen n ll
+    | PLCons ((EPwhitespace _), ll) -> parse_ocsigen n ll
     | PLCons ((EPanytag (tag, PLEmpty, l)), ll) -> 
-	raise (Config_file_error ("tag "^tag^" unexpected inside <ocsigen>"))
+	raise (Config_file_error ("tag "^tag^" unexpected inside <server>"))
     | _ ->
 	raise (Config_file_error "Syntax error")
+  in let rec parse_servers n = function
+      PLEmpty -> if n > 0 then [] else raise(Config_file_error ("<server> tag expected"))
+    | PLCons((EPanytag ("server", PLEmpty, p)), ll) ->
+    	if n >= Ocsiconfig.max_servers then raise (Config_file_error ("too many servers"))
+    	else incr Ocsiconfig.number_of_servers; 
+	     ((parse_ocsigen n p) @ (parse_servers (n + 1) ll))
+    | PLCons ((EPcomment _), ll) -> parse_servers n ll
+    | PLCons ((EPwhitespace _), ll) -> parse_servers n ll
+    | _ -> raise (Config_file_error ("syntax error inside <ocsigen>"))
   in function 
       PLCons ((EPanytag ("ocsigen", PLEmpty, l)), ll) -> 
 	verify_empty ll; 
-	parse_ocsigen l
+	parse_servers 0 l
     | PLCons ((EPcomment _), ll) -> parser_config ll
     | PLCons ((EPwhitespace _), ll) -> parser_config ll
     | _ -> raise (Config_file_error "<ocsigen> tag expected")

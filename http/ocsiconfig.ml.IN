@@ -20,48 +20,58 @@
 
 
 exception Config_file_error of string
+let max_servers = 10
+let number_of_servers = ref 0
 
 type static_dir = Static_dir of string option * (string * static_dir) list
+type config = { mutable port: int;
+		mutable ssl: bool;
+		mutable logdir: string;
+		mutable static_tree: static_dir;
+		mutable user: string;
+		mutable group: string;
+		mutable max_number_of_connections: int;
+		mutable connect_time_max: float }
 
-let port = ref 80
-let logdir = ref "_LOGDIR_"
 let config_file = ref "_CONFIGDIR_/ocsigen.conf"
 let verbose = ref false
 let silent = ref false
 let veryverbose = ref false
-let static_tree = ref (Static_dir (Some "_STATICPAGESDIR_", []))
-let user = ref "ocsigen"
-let group = ref "ocsigen"
-(* Max number of simultaneous connections *)
-let max_number_of_connections = ref 500 (* too much? *)
-(* Max connection time *)
-let connect_time_max = ref 300. (* 5 min *)
 let version_number = (**)"0000000000000000"(**)
 
-
-let set_port i = port := i
-let set_logdir s = logdir := s
+let init_config n = {port = n*1000 + 80; ssl = false; logdir = "_LOGDIR_"; 
+		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
+		      user = "ocsigen"; group = "ocsigen";
+		      max_number_of_connections = 500;
+		      connect_time_max = 300. }
+let sconf  = ref (init_config 0)
+let cfgs = Array.init max_servers (init_config) 
+let set_port n i = cfgs.(n).port <- i
+let set_ssl  n b = cfgs.(n).ssl <- b
+let set_logdir n s = cfgs.(n).logdir <- s
 let set_configfile s = config_file := s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
 let set_veryverbose () = verbose := true; veryverbose := true
-let set_user s = user := s
-let set_group s = group := s
-let set_max_number_of_connections i = max_number_of_connections := i
-let set_connect_time_max i = connect_time_max := i
-let get_port () = !port
-let get_logdir () = !logdir
+let set_user n s = cfgs.(n).user <- s
+let set_group n s = cfgs.(n).group <- s
+let set_max_number_of_connections n i = cfgs.(n).max_number_of_connections <- i
+let set_connect_time_max n i = cfgs.(n).connect_time_max <- i
+let set_number_of_servers x = number_of_servers := x
+let get_port () = !sconf.port
+let get_ssl () = !sconf.ssl
+let get_logdir () = !sconf.logdir
 let get_config_file () = !config_file
 let get_verbose () = !verbose
 let get_silent () = !silent
 let get_veryverbose () = !veryverbose
-let get_static_tree () = !static_tree
-let get_user () = !user
-let get_group () = !group
-let get_max_number_of_connections () = !max_number_of_connections
-let get_connect_time_max () = !connect_time_max
+let get_static_tree () = !sconf.static_tree
+let get_user () = !sconf.user
+let get_group () = !sconf.group
+let get_max_number_of_connections () = !sconf.max_number_of_connections
+let get_connect_time_max () = !sconf.connect_time_max
 
-let set_static_dir s path =
+let set_static_dir n s path =
   let rec assoc_and_remove a = function
       [] -> raise Not_found
     | (b,v)::l when a = b -> (v,l)
@@ -80,9 +90,9 @@ let set_static_dir s path =
 	  let sd = aux sd1 l in
 	  Static_dir (s1,(a,sd)::l2)
 	with Not_found -> Static_dir (s1,(a,(add_path l))::l1)
-  in static_tree := aux !static_tree path
+  in (cfgs.(n)).static_tree <- aux (cfgs.(n)).static_tree path
 
-let set_staticpages s = set_static_dir s []
+let set_staticpages n s = set_static_dir n s []
 
 let display_version () =
   print_string version_number;
