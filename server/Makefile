@@ -16,7 +16,8 @@ CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
 ifeq "$(OCSIMORE)" "YES"
-OCSIMOREPCKG = dbi.postgresql,
+OCSIMOREPCKG = 
+# dbi.postgresql,
 else
 OCSIMOREPCKG =
 endif
@@ -30,7 +31,8 @@ CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
        xhtml.cma sender_helpers.cmo\
        error_pages.cmo
 
-OCSIMORECMAO = postgresql.cma dbi.cma dbi_postgresql.cmo
+OCSIMORECMAO = 
+# postgresql.cma dbi.cma dbi_postgresql.cmo
 # Last line is only for ocsimore.
 # The alternative is to load them in the config file
 # (if unsafe_modules are allowed)

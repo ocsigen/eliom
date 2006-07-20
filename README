@@ -95,11 +95,12 @@ To use Ocsimore,
    (I don't know why). A solution is to link them in the server. It is done
    by default.
  - Modify Makefile.config to set OCSIMORE=YES
- - recompile ocsigen with ocsimore support: make clean; make
+ - recompile ocsigen with ocsimore support: make clean; make depend; make
  - for system-wide install, reinstall ocsigen: 
    for ex: sudo make uninstall; sudo make install
- - add lines in config file ocsigen.conf to load ocsimore.cma and the modules
-   you want
+ - add lines in config file ocsigen.conf to load
+   postgresql.cma, dbi.cma, dbi_postgresql.cmo, 
+   ocsimore.cma and the other modules you need
  - create the tables : psql -f ocsimore/createdb.sql ocsibase
  - run ocsigen. 
    The first time, it will ask for a new password for the administrator

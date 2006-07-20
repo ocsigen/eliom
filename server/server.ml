@@ -486,30 +486,28 @@ let listen modules_list =
        wait))
 
 let _ = 
-    let modules  = parse_config () in 
-   (* let rec print_cfg n = Messages.debug (string_of_int n); if n < !Ocsiconfig.number_of_servers 
-    	then (Messages.debug ("port:" ^ (string_of_int (Ocsiconfig.cfgs.(n)).port )); print_cfg (n+1))
-	else () in print_cfg 0; *)
-   Messages.debug ("number_of_servers:"^ (string_of_int !Ocsiconfig.number_of_servers));
-   let rec launch nb = if nb < !Ocsiconfig.number_of_servers then begin 
-    	match Unix.fork () with
-    		| 0 -> begin try
-    			Ocsiconfig.sconf := Ocsiconfig.cfgs.(nb);
-    			Lwt_unix.run (Unix.handle_unix_error listen modules)
-  with
-    Ocsigen.Ocsigen_duplicate_registering s -> 
-      errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
-  | Ocsigen.Ocsigen_there_are_unregistered_services s ->
-      errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
-  | Ocsigen.Ocsigen_page_erasing s ->
-      errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.")
-  | Ocsigen.Ocsigen_register_for_session_outside_session ->
-      errlog ("Fatal - Register session during initialisation forbidden.")
-  | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
-  | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
-end
-		| _ -> launch (nb + 1)
-   end else () in
-	launch 0;
-	
-		
+  let modules  = parse_config () in 
+  (* let rec print_cfg n = Messages.debug (string_of_int n); if n < !Ocsiconfig.number_of_servers 
+     then (Messages.debug ("port:" ^ (string_of_int (Ocsiconfig.cfgs.(n)).port )); print_cfg (n+1))
+     else () in print_cfg 0; *)
+  Messages.debug ("number_of_servers: "^ (string_of_int !Ocsiconfig.number_of_servers));
+  let rec launch nb = if nb < !Ocsiconfig.number_of_servers then begin 
+    match Unix.fork () with
+    | 0 -> begin try
+    	Ocsiconfig.sconf := Ocsiconfig.cfgs.(nb);
+    	Lwt_unix.run (Unix.handle_unix_error listen modules)
+    with
+	Ocsigen.Ocsigen_duplicate_registering s -> 
+	  errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
+      | Ocsigen.Ocsigen_there_are_unregistered_services s ->
+	  errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
+      | Ocsigen.Ocsigen_page_erasing s ->
+	  errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.")
+      | Ocsigen.Ocsigen_register_for_session_outside_session ->
+	  errlog ("Fatal - Register session during initialisation forbidden.")
+      | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
+      | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
+    end
+    | _ -> launch (nb + 1)
+  end else () in
+  launch 0;
