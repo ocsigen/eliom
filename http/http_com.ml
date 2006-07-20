@@ -421,7 +421,7 @@ module FHttp_sender =
     * fusioned with those of the sender, the priority is given to the newly
     * defined header when there is a conflict
     * the content-length tag is automaticaly calculated*)
-    let send ?mode ?proto ?headers ?meth ?url ?code ?content sender =
+    let send ?mode ?proto ?headers ?meth ?url ?code ?content ?head sender =
       (*creation d'une http_frame*)
       (*creation du header*)
     let md = match mode with None -> sender.mode | Some m -> m in
@@ -446,6 +446,8 @@ module FHttp_sender =
 		    really_write sender.fd 
 		      (Cont ((Framepp.string_of_header hd), 
 			     (fun () -> Finished)))) >>=
-		  (fun _ -> really_write sender.fd flux)))
+		  (fun _ -> match head with 
+				| Some true -> Lwt.return ()
+				| _ -> really_write sender.fd flux)))
     
   end

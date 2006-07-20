@@ -191,14 +191,14 @@ let gmtdate d =
 * xhtml_sender is the used sender*)
 let send_generic 
     ?code ?keep_alive ?cookie ?last_modified
-    ?path ?location ?(header=[]) ~content sender 
+    ?path ?location ?(header=[]) ?head ~content sender 
     (send : ?mode:Xhtml_sender.H.http_mode ->
       ?proto:string ->
       ?headers:(string * string) list ->
       ?meth:'c ->
       ?url:string ->
       ?code:int -> 
-      ?content:'a -> 'b -> unit Lwt.t) =
+      ?content:'a -> ?head:bool -> 'b -> unit Lwt.t) =
   (*ajout des option spécifique à la page*)
   let date = gmtdate (Unix.time ()) in
   (*il faut récupérer la date de dernière modification *)
@@ -231,8 +231,8 @@ let send_generic
     |Some l -> ("Location",l)::hds3
   in
   match code with
-    |None -> send ~code:200 ~content ~headers:hds4 sender
-    |Some c -> send ~code:c ~content ~headers:hds4 sender
+    |None -> send ~code:200 ~content ~headers:hds4 ?head sender
+    |Some c -> send ~code:c ~content ~headers:hds4 ?head sender
 
 
 type create_sender_type = ?server_name:string ->
@@ -244,7 +244,8 @@ type send_page_type =
 	?cookie:string ->
 	  ?path:string ->
 	    ?last_modified:float ->
-	      ?location:string -> Http_com.sender_type -> unit Lwt.t
+	      ?location:string -> 
+	        ?head:bool ->Http_com.sender_type -> unit Lwt.t
   
 (** fonction that sends a xhtml page
  * code is the code of the http answer
@@ -254,10 +255,10 @@ type send_page_type =
  * page is the page to send
  * xhtml_sender is the sender to be used *)
 let send_xhtml_page ~content ?code ?keep_alive ?cookie ?path 
-    ?last_modified ?location xhtml_sender =
+    ?last_modified ?location ?head xhtml_sender =
   send_generic 
     ?code ?keep_alive ?cookie ?path ?location ?last_modified
-    ~content xhtml_sender Xhtml_sender.send
+    ~content ?head xhtml_sender Xhtml_sender.send
   
 (** fonction that sends an empty answer
  * code is the code of the http answer
@@ -266,16 +267,16 @@ let send_xhtml_page ~content ?code ?keep_alive ?cookie ?path
  * page is the page to send
  * empty_sender is the used sender *)
 let send_empty ?code ?keep_alive ?cookie 
-    ?path ?location ?last_modified empty_sender =
+    ?path ?location ?last_modified ?head empty_sender =
   send_generic  ?last_modified
     ?code ?keep_alive ?cookie ?path ?location ~content:() 
-    empty_sender Empty_sender.send
+    ?head empty_sender Empty_sender.send
 
 let send_text_page ~content ?code ?keep_alive ?cookie ?path 
-    ?last_modified ?location xhtml_sender =
+    ?last_modified ?location ?head xhtml_sender =
   send_generic 
     ?code ?keep_alive ?cookie ?path ?location ?last_modified
-    ~content xhtml_sender Text_sender.send
+    ~content ?head xhtml_sender Text_sender.send
   
   
 
@@ -354,10 +355,10 @@ let content_type_from_file_name filename =
       | _ -> "unknown"
 
 let send_file ?code ?keep_alive ?cookie ?path
-    ?last_modified ?location file file_sender =
+    ?last_modified ?location ?head file file_sender =
   send_generic 
     ?code ?keep_alive ?cookie ?path ?location ?last_modified
     ~header:[("Content-Type",content_type_from_file_name file)]
-    ~content:file file_sender File_sender.send
+    ~content:file ?head file_sender File_sender.send
 
   

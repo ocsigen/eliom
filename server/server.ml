@@ -207,6 +207,8 @@ let find_static_page path =
 
 let service http_frame sockaddr 
     xhtml_sender file_sender empty_sender inputchan () =  			
+    let head =  ((Http_header.get_method http_frame.Http_frame.header) 
+    		= Some (Http_header.HEAD)) in
     let ka = try (
           let kah = (Http_header.get_headers_value http_frame.Http_frame.header
 	            "Connection") in 
@@ -217,6 +219,7 @@ let service http_frame sockaddr
 	  		if prot.[(String.index (prot) '/')+3] = '1' 
 	  		then true else false in
       Messages.debug ("Keep-Alive:"^(string_of_bool ka));
+      Messages.debug("HEAD:"^(string_of_bool head));
    let serv =  
   catch (fun () ->
     let cookie = 
@@ -247,7 +250,7 @@ let service http_frame sockaddr
 		       then Some remove_cookie_str
 		       else cookie2) 
 		     else None)
-		     ~path:path (* path pour le cookie *)
+		     ~path:path (* path pour le cookie *) ~head:head
 		     (sender ~server_name:server_name inputchan)))
 	       (function
 		   Ocsigen_404 ->
@@ -269,7 +272,7 @@ let service http_frame sockaddr
 			     send_file 
 			       ~keep_alive:keep_alive
 			       ~last_modified:((Unix.stat filename).Unix.st_mtime)
-			       ~code:200 filename file_sender)
+			       ~code:200 ~head:head filename file_sender)
 			    (function _ -> Lwt.return ()) (* stops if error while sending *)
 			 end
 			 else 
@@ -284,7 +287,7 @@ let service http_frame sockaddr
 		       ~keep_alive:keep_alive
 		       ~location:(stringpath^"/"^params)
                        ~code:301 (* Moved permanently *)
-	               empty_sender		
+	               ~head:head empty_sender		
 		 | e -> fail e)
 	      >>= (fun _ -> return keep_alive))
 	| Some (action_name, reload, action_params) ->
@@ -300,7 +303,7 @@ let service http_frame sockaddr
 				  then Some remove_cookie_str
 				  else cookie3) 
 			       else None)
-		      ~path:path
+		      ~path:path ~head:head
 	              (sender ~server_name:server_name inputchan)))
 	       else
 		 (send_empty ~keep_alive:keep_alive 
@@ -310,7 +313,7 @@ let service http_frame sockaddr
 				else cookie2) 
 			     else None)
 		    ~path:path
-                    ~code:204
+                    ~code:204 ~head:head
 	            empty_sender)) >>=
 		(fun _ -> return keep_alive)))
     (function
@@ -327,7 +330,7 @@ let service http_frame sockaddr
       | e ->
 	  send_xhtml_page ~keep_alive:ka(*false*)
 	    ~content:(error_page ("Exception : "^(Printexc.to_string e)))
-	    xhtml_sender
+	    ~head:head xhtml_sender
 	    >>= (fun _ -> return ka (* keep_alive *)))
        in 
        let meth =  (Http_header.get_method http_frame.Http_frame.header) in
