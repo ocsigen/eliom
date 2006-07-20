@@ -140,7 +140,7 @@ let create_xhtml_sender ?server_name ?proto fd =
   in
   let hd2 =
     [
-      ("Accept-Ranges","bytes");
+      ("Accept-Ranges","none");
       ("Cache-Control","no-cache");
       ("Expires", "0");
       ("Content-Type","text/html")
@@ -164,7 +164,7 @@ let create_empty_sender ?server_name ?proto fd =
   in
   let hd2 =
     [
-      ("Accept-Ranges","bytes");
+      ("Accept-Ranges","none");
       ("Cache-Control","no-cache")
     ]@hd
   in
@@ -324,7 +324,7 @@ let create_file_sender ?server_name ?proto fd =
   in
   let hd2 =
     [
-      ("Accept-Ranges","bytes");
+      ("Accept-Ranges","none");
       ("Cache-Control","no-cache")
     ]@hd
   in

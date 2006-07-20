@@ -118,11 +118,11 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     in
     let get_params = Netencoding.Url.dest_url_encoded_parameters params_string 
     in
-    let post_params = if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) then
+    let post_params = if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
+    then [] else 
       match http_frame.Http_frame.content with
 	  None -> []
 	| Some s -> Netencoding.Url.dest_url_encoded_parameters s
-      else []
     in
     let internal_state,post_params2 = 
       try (Some (int_of_string (List.assoc state_param_name post_params)),
@@ -406,7 +406,7 @@ let listen modules_list =
   let wait_connexion socket =
     let handle_exn sockaddr in_ch exn = 
       let ip = ip_of_sockaddr sockaddr in
-      Unix.close in_ch;
+      Unix.shutdown in_ch Unix.SHUTDOWN_ALL;
       match exn with
 	Unix.Unix_error (e,func,param) ->
 	  warning ("While talking to "^ip^": "^(Unix.error_message e)^

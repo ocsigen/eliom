@@ -60,7 +60,7 @@ install:
 	then echo "Ocsimore installation";\
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL) $(OCSIMOREINSTALL);\
 	else $(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL);\
-	echo "Skiping Ocsimore installation";\
+	echo "Skipping Ocsimore installation";\
 	fi
 
 
