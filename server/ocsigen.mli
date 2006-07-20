@@ -528,7 +528,7 @@ module Xhtml : sig
 
 end
 
-(** {2 Using other ways (than the Ocsigen.Xhtml module) to create pages} *)
+(** {2 Using other ways (than the module Ocsigen.Xhtml) to create pages} *)
 
 module type PAGES =
   sig

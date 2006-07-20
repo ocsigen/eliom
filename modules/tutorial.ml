@@ -1144,6 +1144,95 @@ let _ = register_action
 
 
     </div>
+    <h2>Threads</h2>
+    <div class="twocol1">
+      <p>
+      Remember that a Web site written with Ocsigen is an OCaml application.
+      This application must be able to handle several requests at the same 
+      time, if one of the requests takes time. To make this possible, Ocsigen
+      is using <em>cooperative threads</em> (fair threads), 
+      implemented in monadic style
+      by Jérôme Vouillon (<code>Lwt</code> module), which make them really easy
+      to use.
+      </p>
+      <p>With respect to preemptive threads, cooperative threads are not using
+      a scheduler to distribute processor time between threads. Instead of 
+      this, each thread must tell the others that he wants to let the other
+      work. If a fair thread does not cooperate, the others will be blocked.
+      </p>
+      <dl>
+        <dt>Advantages</dt><dd><ul>
+          <li> - It is much lighter</li>
+          <li> - No need of mutex and no risk of deadlock</li></ul></dd>
+        <dt>Drawbacks</dt><dd><ul>
+          <li> - Threads must cooperate ...</li></ul></dd>
+      </dl>
+      <p>As it does not cooperate, the following page will stop the
+      server for 10 seconds. No one will be able to do a request during
+      this delay:</p>
+<pre><span style="color:green">let</span> looong =
+  register_new_service
+    <span style="color:#770000">~url:</span>[<span style="color:#aa4444">"looong"</span>]
+    <span style="color:#770000">~get_params:</span>unit
+    (<span style="color:green">fun</span> sp () () -&gt;
+      <span style="color:#0033cc">Unix</span>.sleep 10.0;
+      return
+        (html
+          (head (title (pcdata <span style="color:#aa4444">""</span>)) [])
+          (body [h1 [pcdata <span style="color:#aa4444">"Ok now, you can read the page."</span>]])))</pre>
+      <p>To solve this problem, use a cooperative version of 
+         <code>sleep</code>:</p>
+*html*)
+let looong = 
+  register_new_service 
+    ~url:["looong"]
+    ~get_params:unit
+    (fun sp () () -> 
+      Lwt_unix.sleep 10.0 >>= (fun () ->
+	return
+        (html
+	  (head (title (pcdata "")) [])
+	  (body [h1 [pcdata "Ok now, you can read the page."]]))))
+(*html*
+     <p>Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
+     you can write <code>bind e1 (fun r -&gt; return e2)</code>.
+     This will try to evaluate <code>e1</code>, and once <code>e1</code>
+     is evaluated, it will give the result to the function given as second
+     parameter.
+     </p>
+     <!-- p>See $a Tutorial.looong url <:xmllist< looong >>$.</p -->
+    </div>
+    <div class="twocol2">
+     <p><code>Lwt.bind</code> has type<br/>
+        <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
+     <p><code>Lwt.return</code> has type<br/>
+        <code>'a -&gt; 'a Lwt.t</code></p>
+     <p><code>'a Lwt.t</code> is the type of threads returning 
+        a result of type <code>'a</code>.</p>
+     <p>Cooperation points are inserted when you call cooperative functions
+     such as <code>Lwt_unix.read</code> or <code>Lwt_unix.write</code>.
+     You can add other cooperation points by calling
+     <code>Lwt_unix.yield ()</code>. The thread will suspend itself,
+     let other threads run, and resume as soon as possible.
+     </p>
+     <h3>Catching exceptions</h3>
+     <p>You must be careful when catching exception with <code>Lwt</code>.
+     If you use the <code>try ... with</code> construct for an expression
+     of type <code>'a Lwt.t</code>, it may not work (as the computation
+     may happen later).</p>
+     <p>Remember the following: if e has type <code>'a Lwt.t</code> 
+      (where <code>'a</code> is any type), do not write:</p>
+<pre><span style="color:#77aaaa">try</span>
+  e
+<span style="color:#77aaaa">with</span>
+  ...</pre>
+     <p>but write:</p>
+<pre>catch
+  (<span style="color:green">fun</span> () -&gt; e)
+  (<span style="color:green">function</span> ... <span style="color:#77aaaa">|</span> exn -&gt; fail exn)</pre>
+     <h3>What if my function is not implemented in cooperative way?</h3>
+     <p><em>To be available soon</em></p>
+    </div>
     <h2>Static parts</h2>
     <div class="twocol1">
       <h3>Fully static pages</h3>
@@ -1228,95 +1317,6 @@ let _ = register_action
     <div class="twocol2">
       <h3>Others</h3>
       <em>To be available soon</em>
-    </div>
-    <h2>Threads</h2>
-    <div class="twocol1">
-      <p>
-      Remember that a Web site written with Ocsigen is an OCaml application.
-      This application must be able to handle several requests at the same 
-      time, if one of the requests takes time. To make this possible, Ocsigen
-      is using <em>cooperative threads</em> (fair threads), 
-      implemented in monadic style
-      by Jérôme Vouillon (<code>Lwt</code> module), which make them really easy
-      to use.
-      </p>
-      <p>With respect to preemptive threads, cooperative threads are not using
-      a scheduler to distribute processor time between threads. Instead of 
-      this, each thread must tell the others that he wants to let the other
-      work. If a fair thread does not cooperate, the others will be blocked.
-      </p>
-      <dl>
-        <dt>Adavantages</dt><dd><ul>
-          <li> - It is much lighter</li>
-          <li> - No need of mutex and no risk of deadlock</li></ul></dd>
-        <dt>Drawbacks</dt><dd><ul>
-          <li> - Threads must cooperate ...</li></ul></dd>
-      </dl>
-      <p>As it does not cooperate, the following page will stop the
-      server for 10 seconds. No one will be able to do a request during
-      this delay:</p>
-<pre><span style="color:green">let</span> looong =
-  register_new_service
-    <span style="color:#770000">~url:</span>[<span style="color:#aa4444">"looong"</span>]
-    <span style="color:#770000">~get_params:</span>unit
-    (<span style="color:green">fun</span> sp () () -&gt;
-      <span style="color:#0033cc">Unix</span>.sleep 10.0;
-      return
-        (html
-          (head (title (pcdata <span style="color:#aa4444">""</span>)) [])
-          (body [h1 [pcdata <span style="color:#aa4444">"Ok now, you can read the page."</span>]])))</pre>
-      <p>To solve this problem, use a cooperative version of 
-         <code>sleep</code>:</p>
-*html*)
-let looong = 
-  register_new_service 
-    ~url:["looong"]
-    ~get_params:unit
-    (fun sp () () -> 
-      Lwt_unix.sleep 10.0 >>= (fun () ->
-	return
-        (html
-	  (head (title (pcdata "")) [])
-	  (body [h1 [pcdata "Ok now, you can read the page."]]))))
-(*html*
-     <p>Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
-     you can write <code>bind e1 (fun r -&gt; return e2)</code>.
-     This will try to evaluate <code>e1</code>, and once <code>e1</code>
-     is evaluated, it will give the result to the function given as second
-     parameter.
-     </p>
-     <!-- p>See $a Tutorial.looong url <:xmllist< looong >>$.</p -->
-    </div>
-    <div class="twocol2">
-     <p><code>Lwt.bind</code> has type<br/>
-        <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
-     <p><code>Lwt.return</code> has type<br/>
-        <code>'a -&gt; 'a Lwt.t</code></p>
-     <p><code>'a Lwt.t</code> is the type of threads returning 
-        a result of type <code>'a</code>.</p>
-     <p>Cooperation points are inserted when you call cooperative functions
-     such as <code>Lwt_unix.read</code> or <code>Lwt_unix.write</code>.
-     You can add other cooperation points by calling
-     <code>Lwt_unix.yield ()</code>. The thread will suspend itself,
-     let other threads run, and resume as soon as possible.
-     </p>
-     <h3>Catching exceptions</h3>
-     <p>You must be carefull when catching exception with <code>Lwt</code>.
-     If you use the <code>try ... with</code> construct for an expression
-     of type <code>'a Lwt.t</code>, it may not work (as the computation
-     may happen later).</p>
-     <p>Remember the following: if e has type <code>'a Lwt.t</code> 
-      (where <code>'a</code> is any type), do not write:</p>
-<pre><span style="color:#77aaaa">try</span>
-  e
-<span style="color:#77aaaa">with</span>
-  ...</pre>
-     <p>but write:</p>
-<pre>catch
-  (<span style="color:green">fun</span> () -&gt; e)
-  (<span style="color:green">function</span> ... <span style="color:#77aaaa">|</span> exn -&gt; fail exn)</pre>
-     <h3>What if my function is not implemented in cooperative way?</h3>
-     <p><em>To be available soon</em></p>
     </div>
 *html*)
 (*zap* À AJOUTER AU TUTO *)
