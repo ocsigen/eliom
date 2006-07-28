@@ -241,7 +241,7 @@ let send_generic
 
 
 type create_sender_type = ?server_name:string ->
-    ?proto:string -> Unix.file_descr -> Http_com.sender_type
+    ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
 
 type send_page_type =
     ?code:int ->

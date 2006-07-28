@@ -29,12 +29,14 @@ open Parseconfig
 open Error_pages
 
 exception Ocsigen_Timeout
-
+exception Ssl_Exception
 
 (* Without the following line, it stops with "Broken Pipe" without raising
    an exception ... *)
 let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
-
+let ctx = Ssl.init ();
+	  ref (Ssl.create_context Ssl.SSLv23 Ssl.Server_context)
+	  
 module Content = 
   struct
     type t = string
@@ -385,7 +387,7 @@ let listen modules_list =
                 listen_connexion_aux ()
                   (* Pour laisser la connexion ouverte, je relance *)
 	      else begin 
-		Unix.close in_ch; (* not gracefule close: client's keep_alive*) 
+		Lwt_unix.shutdown in_ch; (* not gracefule close: client's keep_alive*) 
 		return ()
 	      end)
 	) in
@@ -397,7 +399,7 @@ let listen modules_list =
 		 really_write "404 Plop" (* à revoir ! *) 
 		 false in_ch mes 0 
 		 (String.length mes);*)
-	      Unix.close in_ch;
+	      Lwt_unix.shutdown in_ch;
               send_error ~http_exception:http_ex xhtml_sender
           | exn -> fail exn)
 	
@@ -407,7 +409,7 @@ let listen modules_list =
   let wait_connexion socket =
     let handle_exn sockaddr in_ch exn = 
       let ip = ip_of_sockaddr sockaddr in
-      Unix.shutdown in_ch Unix.SHUTDOWN_ALL;
+      Lwt_unix.shutdown in_ch;
       match exn with
 	Unix.Unix_error (e,func,param) ->
 	  warning ("While talking to "^ip^": "^(Unix.error_message e)^
@@ -446,9 +448,18 @@ let listen modules_list =
 	    file_sender empty_sender)
 	(handle_exn sockaddr inputchan)
     in
-    let rec wait_connexion_rec = 
-      fun () ->
-	Lwt_unix.accept socket >>= 
+    let rec wait_connexion_rec = (fun () -> 
+    	let rec do_accept () = Lwt_unix.accept (Lwt_unix.Plain(socket)) >>= 
+    	(fun (s, sa) -> if false (* Ocsiconfig.get_ssl () *) then begin
+    	  let s_unix = match s with Lwt_unix.Plain fd -> fd 
+    		         | _ -> raise Ssl_Exception (* impossible *) in
+    	  catch 
+    	     (fun () -> Lwt_unix.accept (Lwt_unix.Encrypted 
+	                    (s_unix, Ssl.embed_socket s_unix !ctx)))
+    	  (function  Ssl.Accept_error e -> warning "Accept_error"; do_accept ()
+    	     | e -> warning (Printexc.to_string e); do_accept ())
+         end else Lwt.return (s, sa)) in
+       (do_accept ()) >>= 
 	(fun c ->
 	  incr_connected ();
 	  if (get_number_of_connected ()) <
@@ -466,7 +477,7 @@ let listen modules_list =
 	    warning "Ok releasing one connection";
 	    wait_connexion_rec ()
 	  end
-	  else return ())
+	  else return ()))
     in wait_connexion_rec ()
   in
   ((* Initialize the listening address *)
@@ -481,6 +492,8 @@ let listen modules_list =
        with e -> errlog ("Error: Wrong user or group"); raise e);
        (* Now I can load the modules *)
        load_modules modules_list;
+       if false (* Ocsiconfig.get_ssl () *) then 
+	  Ssl.use_certificate !ctx ("/home/natasha/ocsi/server.crt") ("/home/natasha/ocsi/server.key");	
        Ocsigen.end_initialisation ();
        warning "Ocsigen has been launched (initialisations ok)";
        wait_connexion listening_socket >>=

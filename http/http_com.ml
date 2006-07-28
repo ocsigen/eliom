@@ -224,7 +224,7 @@ module FHttp_receiver =
 
       module Http = Http_frame.FHttp_frame (C)
       
-      type t = {buffer:Com_buffer.t;fd:Unix.file_descr}
+      type t = {buffer:Com_buffer.t;fd:Lwt_unix.descr}
 
       (**create a new receiver*)
       let create ?(buffer_size=8096) fd =
@@ -279,7 +279,7 @@ module FHttp_receiver =
 
 type sender_type = { 
     (** the file descriptor*)
-    fd : Unix.file_descr;
+    fd : Lwt_unix.descr;
     (**the mode of the sender Query or Answer*)
     mutable mode : Http_frame.Http_header.http_mode;
     (**protocole to be used : HTTP/1.0 HTTP/1.1*)

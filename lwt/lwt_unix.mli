@@ -1,5 +1,7 @@
 (** Module [Lwt_unix]: thread-compatible system calls *)
-
+type descr = Plain of Unix.file_descr
+           | Encrypted of Unix.file_descr * Ssl.socket
+   
 val sleep : float -> unit Lwt.t
       (** [sleep d] is a threads which remain suspended for [d] seconds
          (letting other threads run) and then terminates. *)
@@ -30,16 +32,17 @@ val run : 'a Lwt.t -> 'a
    this library, you must first turn them into non-blocking mode
    using [Unix.set_nonblock]. *)
 
-val read : Unix.file_descr -> string -> int -> int -> int Lwt.t
-val write : Unix.file_descr -> string -> int -> int -> int Lwt.t
+val read : descr -> string -> int -> int -> int Lwt.t
+val write : descr -> string -> int -> int -> int Lwt.t
 val pipe : unit -> (Unix.file_descr * Unix.file_descr) Lwt.t
 val socket :
   Unix.socket_domain -> Unix.socket_type -> int -> Unix.file_descr Lwt.t
 val socketpair :
   Unix.socket_domain -> Unix.socket_type -> int ->
   (Unix.file_descr * Unix.file_descr) Lwt.t
-val accept : Unix.file_descr -> (Unix.file_descr * Unix.sockaddr) Lwt.t
-val connect : Unix.file_descr -> Unix.sockaddr -> unit Lwt.t
+val shutdown : descr -> unit
+val accept : descr -> (descr * Unix.sockaddr) Lwt.t
+val connect : descr -> Unix.sockaddr -> unit Lwt.t
 
 val wait : unit -> (int * Unix.process_status) Lwt.t
 val waitpid : Unix.wait_flag list -> int -> (int * Unix.process_status) Lwt.t

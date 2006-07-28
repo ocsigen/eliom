@@ -21,7 +21,7 @@ OCSIMOREPCKG =
 else
 OCSIMOREPCKG =
 endif
-LIB = -package $(OCSIMOREPCKG)netstring -I ../lib -I +camlp4
+LIB = -package $(OCSIMOREPCKG)netstring -package ssl -I ../lib -I +camlp4
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
 CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\

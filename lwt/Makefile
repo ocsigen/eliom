@@ -20,7 +20,7 @@ XARCHIVE = $(NAME).cmxa
 
 SRCLIBREP = ../lib
 
-REQUIRES =
+REQUIRES = ssl
 PREDICATES =
 
 
