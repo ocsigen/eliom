@@ -39,8 +39,9 @@ module Content =
   struct
     type t = string
     let content_of_string c = Lwt.return c
-    let stream_of_content s = Lwt.return 
-    		(String.length s, Cont (s, (fun () -> Finished)))
+    let stream_of_content s = 
+    	let md5 = Digest.to_hex (Digest.string s) in
+    	Lwt.return (String.length s, md5, Cont (s, (fun () -> Finished)))
   end
 
 module Http_frame = FHttp_frame (Content)

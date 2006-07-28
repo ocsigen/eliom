@@ -429,8 +429,8 @@ module FHttp_sender =
     match content with
       |None -> Lwt.return ()
       |Some c -> (C.stream_of_content c >>=
-                 (fun (lon,flux) -> 
-		   Lwt.return (hds_fusion (Some lon) sender.headers 
+                 (fun (lon,etag,flux) -> 
+		   Lwt.return (hds_fusion (Some lon) (("ETag",etag)::sender.headers) 
 				 (match headers with 
 				   Some h ->h
 				 | None -> []) ) >>=

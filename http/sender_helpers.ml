@@ -55,7 +55,8 @@ module Xhtml_content =
     type t = [ `Html ] XHTML.M.elt
     let stream_of_content c = 
       let x = (XHTML.M.ocsigen_print (add_css c)) in
-      Lwt.return (String.length x, (Cont (x, (fun () -> Finished))))
+      let md5 = Digest.to_hex (Digest.string x) in
+      	 Lwt.return (String.length x, md5, (Cont (x, (fun () -> Finished))))
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_string s = assert false
   end
@@ -64,14 +65,15 @@ module Text_content =
   struct
     type t = string
     let stream_of_content c =
-      Lwt.return (String.length c, Cont (c, (fun () -> Finished)))
+    let md5 = Digest.to_hex (Digest.string c) in
+      Lwt.return (String.length c, md5, Cont (c, (fun () -> Finished)))
     let content_of_string s = Lwt.return s
   end
 
 module Empty_content =
   struct
     type t = unit
-    let stream_of_content c = Lwt.return (0, Cont("",(fun () -> Finished)))
+    let stream_of_content c = Lwt.return (0, "same", Cont("",(fun () -> Finished)))
     let content_of_string s = Lwt.return ()
   end
 
@@ -99,7 +101,10 @@ module File_content =
     let stream_of_content c  =
       (*ouverture du fichier*)
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
-      	Lwt.return ((Unix.stat c).Unix.st_size, read_file fd)	
+      let st = Unix.stat c in 
+      let etag = Printf.sprintf "%x-%x-%f" st.Unix.st_size
+                        st.Unix.st_ino st.Unix.st_mtime in    	
+      	Lwt.return (st.Unix.st_size, etag, read_file fd)	
     let content_of_string s = assert false
       
   end

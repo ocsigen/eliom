@@ -31,11 +31,11 @@ module type HTTP_CONTENT =
     (** abstract type of the content*)
     type t
     
-    (** convert a string into the contetn type*)
+    (** convert a string into the content type*)
     val content_of_string : string -> t Lwt.t
 
-    (** convert a content type into a string*)
-    val stream_of_content : t -> (int * stream) Lwt.t
+    (** convert a content type into a thread returning its size,etag,stream*)
+    val stream_of_content : t -> (int * string * stream) Lwt.t
   end
 
 
