@@ -93,6 +93,12 @@ let rec parser_config =
 	| "off" -> set_ssl n false
 	| _ -> raise (Config_file_error "wrong value for <ssl> tag"));
 	parse_ocsigen n ll
+    | PLCons ((EPanytag ("privatekey", PLEmpty, p)), ll) ->
+    	set_key n (parse_string p);
+	parse_ocsigen n ll
+    | PLCons ((EPanytag ("certificate", PLEmpty, p)), ll) ->
+        set_certificate n (parse_string p);
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
 	set_logdir n (parse_string p);
 	parse_ocsigen n ll

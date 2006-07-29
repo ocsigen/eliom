@@ -450,7 +450,7 @@ let listen modules_list =
     in
     let rec wait_connexion_rec = (fun () -> 
     	let rec do_accept () = Lwt_unix.accept (Lwt_unix.Plain(socket)) >>= 
-    	(fun (s, sa) -> if false (* Ocsiconfig.get_ssl () *) then begin
+    	(fun (s, sa) -> if Ocsiconfig.get_ssl () then begin
     	  let s_unix = match s with Lwt_unix.Plain fd -> fd 
     		         | _ -> raise Ssl_Exception (* impossible *) in
     	  catch 
@@ -492,8 +492,8 @@ let listen modules_list =
        with e -> errlog ("Error: Wrong user or group"); raise e);
        (* Now I can load the modules *)
        load_modules modules_list;
-       if false (* Ocsiconfig.get_ssl () *) then 
-	  Ssl.use_certificate !ctx ("/home/natasha/ocsi/server.crt") ("/home/natasha/ocsi/server.key");	
+       if Ocsiconfig.get_ssl ()  then 
+	  Ssl.use_certificate !ctx (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ());	
        Ocsigen.end_initialisation ();
        warning "Ocsigen has been launched (initialisations ok)";
        wait_connexion listening_socket >>=
