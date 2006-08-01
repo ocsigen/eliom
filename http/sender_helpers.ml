@@ -182,7 +182,6 @@ let create_empty_sender ?server_name ?proto fd =
 let gmtdate d =  
 	let x = Netdate.mk_mail_date ~zone:0 d in try
 	let ind_plus =  String.index x '+' in  
-	Messages.debug "ind_plus";
 	String.set x ind_plus 'G';
 	String.set x (ind_plus + 1) 'M';
 	String.set x (ind_plus + 2) 'T';

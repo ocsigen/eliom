@@ -505,6 +505,8 @@ module Xhtml : sig
     string -> [> input ] elt
 (** Creates a submit [<input>] tag *)
 
+  val file_input : ?a:(input_attrib attrib list ) ->
+    ?value:string -> string param_name -> [> input ] elt
 
   val action_a : ?a:(a_attrib attrib list) ->
     ?reload:bool ->
@@ -559,6 +561,7 @@ module type PAGES =
     val checkbox : input_type_t
     val radio : input_type_t
     val submit : input_type_t
+    val file : input_type_t
     val make_a :
         ?a:a_attrib_t -> href:string -> a_content_elt list -> a_elt
     val make_get_form :
@@ -816,6 +819,8 @@ module type OCSIGENSIG =
           string param_name ->
             rows:int -> cols:int -> pcdata_elt -> textarea_elt
     val submit_input : ?a:input_attrib_t -> string -> input_elt
+    val file_input : ?a:input_attrib_t -> ?value:string -> 
+    		string param_name ->input_elt
   end
 
 module Make : functor (Pages: PAGES) -> OCSIGENSIG with 

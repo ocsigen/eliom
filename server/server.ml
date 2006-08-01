@@ -82,7 +82,15 @@ let fixup_url_string =
        Printf.sprintf "%%%02x" (Char.code s.[Netstring_pcre.match_beginning m]))
 ;;
 
-
+let get_boundary header =
+	let cont_enc = Http_header.get_headers_value header "Content-Type" in
+	let (_,res) = Netstring_pcre.search_forward
+	   (Netstring_pcre.regexp "boundary=([^;]*);?") cont_enc 0 in
+	  Netstring_pcre.matched_group res 1 cont_enc
+let find_name content_disp = 
+	let (_,res) = Netstring_pcre.search_forward
+	   (Netstring_pcre.regexp "name=.(\\w*).;?") content_disp 0 in
+	  Netstring_pcre.matched_group res 1 content_disp
 
 (* *)
 let get_frame_infos =
@@ -125,7 +133,23 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     then [] else 
       match http_frame.Http_frame.content with
 	  None -> []
-	| Some s -> Netencoding.Url.dest_url_encoded_parameters s
+	| Some s -> 
+      		Messages.debug ("content="^s);
+		let ct = (Http_header.get_headers_value http_frame.Http_frame.header "Content-Type") in
+		match (Netstring_pcre.string_match (Netstring_pcre.regexp ".*multipart.*")) ct 0
+		with None -> 
+			let pp = Netencoding.Url.dest_url_encoded_parameters s in
+			List.iter (fun (h,v) -> Messages.debug (h^"==="^v)) pp; pp
+		| _ -> (try 
+			let bound = get_boundary http_frame.Http_frame.header in
+			let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
+				(String.length s) bound in
+			Messages.debug (string_of_int (List.length bdlist));
+			let simplify (hs,b) = ((find_name (List.assoc "content-disposition" hs)),b) in
+			List.iter (fun (hs,b) -> List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
+			List.map simplify bdlist
+			
+			with e -> Messages.debug (Printexc.to_string e); [])
     in
     let internal_state,post_params2 = 
       try (Some (int_of_string (List.assoc state_param_name post_params)),
@@ -170,7 +194,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
        get_params2,
        post_params3,
        useragent), action_info
-  with _ -> raise Ocsigen_Malformed_Url
+  with e -> Messages.debug (Printexc.to_string e); raise Ocsigen_Malformed_Url
 
 
 let rec getcookie s =

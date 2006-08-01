@@ -769,6 +769,7 @@ module type PAGES =
     val checkbox : input_type_t
     val radio : input_type_t
     val submit : input_type_t
+    val file : input_type_t
 
     val make_a : ?a:a_attrib_t -> href:string -> a_content_elt list -> a_elt
     val make_get_form : ?a:form_attrib_t -> 
@@ -1024,6 +1025,8 @@ module type OCSIGENSIG =
 	  string param_name ->
 	    rows:int -> cols:int -> pcdata_elt -> textarea_elt
     val submit_input : ?a:input_attrib_t -> string -> input_elt
+    val file_input : ?a:input_attrib_t -> ?value:string -> 
+    			string param_name-> input_elt
   end
 
 
@@ -1579,6 +1582,8 @@ module Make = functor
       let submit_input ?a s =
 	Pages.make_input ?a ~typ:Pages.submit ~value:s ()
 
+      let file_input ?a ?value (name : string param_name)  = 
+        Pages.make_input ?a ~typ:Pages.file ?value ~name:name ()
 
     end : OCSIGENSIG with 
      type page = Pages.page
@@ -1646,6 +1651,7 @@ module Xhtml_ = struct
   let checkbox = `Checkbox
   let radio = `Radio
   let submit = `Submit
+  let file = `File
 
   let make_uri_from_string = XHTML.M.make_uri_from_string
 
@@ -1944,6 +1950,12 @@ module Xhtml = struct
 			  string -> [ input ] elt
 			      :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
 				string -> [> input ] elt)
+				
+  let file_input = (file_input
+  			: ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
+			  ?value:string -> string param_name -> [ input ] elt
+			      :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
+			        ?value:string -> string param_name -> [> input ] elt)
 
   let action_a = (action_a
 		    : ?a:([< a_attrib > `Href ] attrib list) ->
@@ -2019,6 +2031,7 @@ module Text_ = struct
   let checkbox = "checkbox"
   let radio = "radio"
   let submit = "submit"
+  let file = "file"
 
   let make_uri_from_string x = x
 
