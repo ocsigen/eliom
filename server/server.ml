@@ -115,6 +115,14 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	   ~query:true 
 	   ~fragment:true 
 	   url2) in
+    let host = 	   
+      if Ocsiconfig.get_virtual () then try
+        let hostport = 
+          Http_header.get_headers_value http_frame.Http_frame.header "Host" in
+    	  String.sub hostport 0 (String.index hostport ':') 
+        with Not_found -> ""
+      else "" in
+    Messages.debug ("host="^host);
     let params = Neturl.string_of_url
 	(Neturl.remove_from_url
 	   ~user:true
@@ -215,9 +223,9 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 			   http_frame.Http_frame.header "user-agent")
     with _ -> ""
     in
-    (Ocsigen.remove_slash (Neturl.url_path url2), 
+    (Ocsigen.remove_slash (host :: (Neturl.url_path url2)), 
                               (* the url path (string list) *)
-       path,
+       (host^path),
        params,
        internal_state2,
        get_params2,

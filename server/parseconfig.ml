@@ -68,9 +68,9 @@ let rec parser_config =
     | _ -> raise 
 	  (Config_file_error "Only <module> or <staticdir> tag expected inside <site>")
   in
-  let rec parse_site n = function
-      PLCons ((EPanytag ("url", PLEmpty, s)), l) -> 
-	let path = Neturl.split_path (parse_string s) in
+  let rec parse_site n host = function
+      PLCons ((EPanytag ("url", PLEmpty, s)), l) ->
+      	let path = Neturl.split_path (host^(parse_string s)) in
 	let cmo,static = parse_site2 (None, None) l in
 	(match static with
 	  None -> ()
@@ -78,8 +78,8 @@ let rec parser_config =
 	(match cmo with
 	  None -> []
 	| Some cmo -> [Mod (path,cmo)])
-    | PLCons ((EPcomment _), l) -> parse_site n l
-    | PLCons ((EPwhitespace _), l) -> parse_site n l
+    | PLCons ((EPcomment _), l) -> parse_site n host l
+    | PLCons ((EPwhitespace _), l) -> parse_site n host l
     | _ -> raise (Config_file_error "<url> tag expected inside <site>")
   in
   let rec parse_ocsigen n = function
@@ -87,6 +87,12 @@ let rec parser_config =
     | PLCons ((EPanytag ("port", PLEmpty, p)), ll) -> 
 	set_port n (int_of_string (parse_string p));
 	parse_ocsigen n ll
+    | PLCons ((EPanytag ("virtual", PLEmpty, p)), ll) ->
+    	 (match parse_string p with
+         | "on" -> set_virtual n true
+         | "off" -> set_virtual n false
+         | _ -> raise (Config_file_error "wrong value for <port> tag"));
+         parse_ocsigen n ll			 
     | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
     	(match parse_string p with
 	| "on" -> set_ssl n true
@@ -122,8 +128,12 @@ let rec parser_config =
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
 	(Cmo (parse_string l))::parse_ocsigen n ll
-    | PLCons ((EPanytag ("site", PLEmpty, l)), ll) -> 
-	(parse_site n l)@(parse_ocsigen n ll)
+    | PLCons ((EPanytag ("site", atts, l)), ll) ->
+       let host = match atts with
+        | PLEmpty -> ""
+        | PLCons ((EPanyattr (EPVstr("host"), EPVstr(s))), PLEmpty) -> (s^"/")
+        | _ -> raise (Config_file_error "Wrong attribute for <url> ") in
+	(parse_site n host l)@(parse_ocsigen n ll)
     | PLCons ((EPcomment _), ll) -> parse_ocsigen n ll
     | PLCons ((EPwhitespace _), ll) -> parse_ocsigen n ll
     | PLCons ((EPanytag (tag, PLEmpty, l)), ll) -> 
