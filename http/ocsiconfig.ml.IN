@@ -28,6 +28,7 @@ type config = { mutable port: int;
 		mutable ssl: bool;
 		mutable private_key: string;
 		mutable certificate: string;
+		mutable uploaddir: string;
 		mutable logdir: string;
 		mutable static_tree: static_dir;
 		mutable user: string;
@@ -42,7 +43,7 @@ let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
 
 let init_config n = {port = n*1000 + 80; ssl = false; private_key = "";
-		      certificate = ""; logdir = "_LOGDIR_"; 
+		      certificate = ""; uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
 		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
 		      user = "ocsigen"; group = "ocsigen";
 		      max_number_of_connections = 500;
@@ -53,6 +54,7 @@ let set_port n i = cfgs.(n).port <- i
 let set_ssl  n b = cfgs.(n).ssl <- b
 let set_key n k = cfgs.(n).private_key <- k
 let set_certificate n c = cfgs.(n).certificate <- c
+let set_uploaddir n u = cfgs.(n).uploaddir <- u
 let set_logdir n s = cfgs.(n).logdir <- s
 let set_configfile s = config_file := s
 let set_verbose () = verbose := true
@@ -67,6 +69,7 @@ let get_port () = !sconf.port
 let get_ssl () = !sconf.ssl
 let get_key () = !sconf.private_key
 let get_certificate () = !sconf.certificate
+let get_uploaddir () = !sconf.uploaddir
 let get_logdir () = !sconf.logdir
 let get_config_file () = !config_file
 let get_verbose () = !verbose

@@ -87,10 +87,12 @@ let get_boundary header =
 	let (_,res) = Netstring_pcre.search_forward
 	   (Netstring_pcre.regexp "boundary=([^;]*);?") cont_enc 0 in
 	  Netstring_pcre.matched_group res 1 cont_enc
-let find_name content_disp = 
+let find_field field content_disp = 
 	let (_,res) = Netstring_pcre.search_forward
-	   (Netstring_pcre.regexp "name=.(\\w*).;?") content_disp 0 in
+	   (Netstring_pcre.regexp (field^"=.([^\"]*).;?")) content_disp 0 in
 	  Netstring_pcre.matched_group res 1 content_disp
+
+type to_write = No_File of string*Buffer.t | A_File of out_channel
 
 (* *)
 let get_frame_infos =
@@ -129,27 +131,54 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     in
     let get_params = Netencoding.Url.dest_url_encoded_parameters params_string 
     in
-    let post_params = if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
+    let post_params = 
+    if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
     then [] else 
       match http_frame.Http_frame.content with
 	  None -> []
 	| Some s -> 
-      		Messages.debug ("content="^s);
-		let ct = (Http_header.get_headers_value http_frame.Http_frame.header "Content-Type") in
-		match (Netstring_pcre.string_match (Netstring_pcre.regexp ".*multipart.*")) ct 0
-		with None -> 
-			let pp = Netencoding.Url.dest_url_encoded_parameters s in
-			List.iter (fun (h,v) -> Messages.debug (h^"==="^v)) pp; pp
-		| _ -> (try 
-			let bound = get_boundary http_frame.Http_frame.header in
-			let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
+      	   Messages.debug ("content="^s);
+	   let ct = (Http_header.get_headers_value 
+	   		http_frame.Http_frame.header "Content-Type") in
+	   match (Netstring_pcre.string_match 
+	   		(Netstring_pcre.regexp ".*multipart.*")) ct 0
+	   with 
+	    None -> Netencoding.Url.dest_url_encoded_parameters s 
+	   | _ -> 	(* File stockage *)
+	     let bound = get_boundary http_frame.Http_frame.header in
+	     let ch = new Netchannels.input_string s in
+	     let nstr = new Netstream.input_stream ch in
+             let param_names = ref [||] in
+	     let create hs = 
+	       let cd = List.assoc "content-disposition" hs in
+	       let store = try find_field "filename" cd with _ -> "" in
+	       let p_name = find_field "name" cd in
+	        (if store = "" 
+	         then No_File (p_name, Buffer.create 1024)
+	         else let now = Printf.sprintf "%s-%f" store (Unix.time ()) in
+		   param_names := Array.append !param_names [|(p_name, now)|];
+		   A_File (open_out ((Ocsiconfig.get_uploaddir ())^"/"^now))) in
+	     let add where from k n = 
+	        let buf = String.create n in
+		    from#really_input buf 0 n;
+		    match where with 
+		      No_File (p_name, to_buf) -> Buffer.add_string to_buf buf 
+		    | A_File wh -> output wh buf 0 n in
+	     let stop  = function 
+		  No_File (p_name, to_buf) -> 
+		   param_names := Array.append !param_names 
+		   			[|(p_name, Buffer.contents to_buf)|]
+		| A_File wh -> close_out wh in
+	     Mimestring.scan_multipart_body_from_netstream nstr bound create 
+	     							add stop;
+	     Array.to_list !param_names
+		(*	IN-MEMORY STOCKAGE *)
+		(*	let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
 				(String.length s) bound in
 			Messages.debug (string_of_int (List.length bdlist));
-			let simplify (hs,b) = ((find_name (List.assoc "content-disposition" hs)),b) in
+			let simplify (hs,b) = ((find_field "name" (List.assoc "content-disposition" hs)),b) in
 			List.iter (fun (hs,b) -> List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
-			List.map simplify bdlist
-			
-			with e -> Messages.debug (Printexc.to_string e); [])
+			List.map simplify bdlist *)
     in
     let internal_state,post_params2 = 
       try (Some (int_of_string (List.assoc state_param_name post_params)),
