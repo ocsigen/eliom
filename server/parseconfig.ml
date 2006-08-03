@@ -82,6 +82,19 @@ let rec parser_config =
     | PLCons ((EPwhitespace _), l) -> parse_site n host l
     | _ -> raise (Config_file_error "<url> tag expected inside <site>")
   in
+  let rec parse_ssl n = function
+     PLEmpty -> ()
+    | PLCons ((EPanytag ("certificate", PLEmpty, p)), l) ->
+     
+          set_certificate n (parse_string p);
+	  parse_ssl n l 
+    | PLCons ((EPanytag ("privatekey", PLEmpty, p)), l) ->
+    	set_key n (parse_string p);
+	parse_ssl n l
+    | PLCons ((EPcomment _), l) -> parse_ssl n l
+    | PLCons ((EPwhitespace _), l) -> parse_ssl n l
+    | PLCons ((EPanytag (tag,_,_)),l) -> raise (Config_file_error (tag^"Unexpected tag inside <ssl>"))		  
+  in
   let rec parse_ocsigen n = function
       PLEmpty -> []
     | PLCons ((EPanytag ("port", PLEmpty, p)), ll) -> 
@@ -94,16 +107,8 @@ let rec parser_config =
          | _ -> raise (Config_file_error "wrong value for <port> tag"));
          parse_ocsigen n ll			 
     | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
-    	(match parse_string p with
-	| "on" -> set_ssl n true
-	| "off" -> set_ssl n false
-	| _ -> raise (Config_file_error "wrong value for <ssl> tag"));
-	parse_ocsigen n ll
-    | PLCons ((EPanytag ("privatekey", PLEmpty, p)), ll) ->
-    	set_key n (parse_string p);
-	parse_ocsigen n ll
-    | PLCons ((EPanytag ("certificate", PLEmpty, p)), ll) ->
-        set_certificate n (parse_string p);
+    	set_ssl n true;
+	parse_ssl n p;
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("uploaddir", PLEmpty, p)), ll) ->
     	set_uploaddir n (parse_string p);
