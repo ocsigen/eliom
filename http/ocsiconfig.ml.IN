@@ -53,6 +53,7 @@ let sconf  = ref (init_config 0)
 let cfgs = Array.init max_servers (init_config) 
 let set_port n i = cfgs.(n).port <- i
 let set_virtual n b = cfgs.(n).virt <- b
+let get_virtual_n n = cfgs.(n).virt
 let set_ssl  n b = cfgs.(n).ssl <- b
 let set_key n k = cfgs.(n).private_key <- k
 let set_certificate n c = cfgs.(n).certificate <- c

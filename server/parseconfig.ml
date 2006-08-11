@@ -85,7 +85,6 @@ let rec parser_config =
   let rec parse_ssl n = function
      PLEmpty -> ()
     | PLCons ((EPanytag ("certificate", PLEmpty, p)), l) ->
-     
           set_certificate n (parse_string p);
 	  parse_ssl n l 
     | PLCons ((EPanytag ("privatekey", PLEmpty, p)), l) ->
@@ -136,7 +135,8 @@ let rec parser_config =
     | PLCons ((EPanytag ("site", atts, l)), ll) ->
        let host = match atts with
         | PLEmpty -> ""
-        | PLCons ((EPanyattr (EPVstr("host"), EPVstr(s))), PLEmpty) -> (s^"/")
+        | PLCons ((EPanyattr (EPVstr("host"), EPVstr(s))), PLEmpty) -> 
+	   if get_virtual_n n then (s^"/") else ""
         | _ -> raise (Config_file_error "Wrong attribute for <url> ") in
 	(parse_site n host l)@(parse_ocsigen n ll)
     | PLCons ((EPcomment _), ll) -> parse_ocsigen n ll
