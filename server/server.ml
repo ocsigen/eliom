@@ -557,7 +557,8 @@ let listen modules_list =
        (* Now I can load the modules *)
        load_modules modules_list;
        if Ocsiconfig.get_ssl ()  then begin 
-          (*if false then Ssl.set_password_callback !ctx (fun _ -> "coucou");*)
+          if Ocsiconfig.get_passwd () <> "" then 
+	    Ssl.set_password_callback !ctx (fun _ -> Ocsiconfig.get_passwd ());
 	  Ssl.use_certificate !ctx (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ())
 	  end;
        Ocsigen.end_initialisation ();
@@ -566,11 +567,19 @@ let listen modules_list =
        wait))
 
 let _ = 
-  let modules  = parse_config () in 
+  let modules = parse_config () in 
   (* let rec print_cfg n = Messages.debug (string_of_int n); if n < !Ocsiconfig.number_of_servers 
      then (Messages.debug ("port:" ^ (string_of_int (Ocsiconfig.cfgs.(n)).port )); print_cfg (n+1))
      else () in print_cfg 0; *)
   Messages.debug ("number_of_servers: "^ (string_of_int !Ocsiconfig.number_of_servers));
+  let rec ask_for_passwds nb = if nb < !Ocsiconfig.number_of_servers then begin
+    if Ocsiconfig.get_ssl_n nb then begin
+    print_string "Please enter the password for the HTTPS server listening on port ";
+    print_int (Ocsiconfig.get_port_n nb);
+    print_endline ":";
+    Ocsiconfig.set_passwd nb (read_line ());
+    end; ask_for_passwds (nb + 1)
+  end else () in  
   let rec launch nb = if nb < !Ocsiconfig.number_of_servers then begin 
     match Unix.fork () with
     | 0 -> begin try
@@ -590,4 +599,11 @@ let _ =
     end
     | _ -> launch (nb + 1)
   end else () in
+  let old_term= Unix.tcgetattr Unix.stdin in
+  let old_echo = old_term.Unix.c_echo in
+  old_term.Unix.c_echo <- false;
+  Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
+  ask_for_passwds 0;
+  old_term.Unix.c_echo <- old_echo;
+  Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
   launch 0

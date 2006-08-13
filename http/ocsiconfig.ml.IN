@@ -29,6 +29,7 @@ type config = { mutable port: int;
 		mutable ssl: bool;
 		mutable private_key: string;
 		mutable certificate: string;
+		mutable passwd: string;
 		mutable uploaddir: string;
 		mutable logdir: string;
 		mutable static_tree: static_dir;
@@ -43,8 +44,9 @@ let silent = ref false
 let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
 
-let init_config n = {port = n*1000 + 80; virt = false; ssl = false; private_key = "";
-		      certificate = ""; uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
+let init_config n = {port = n*1000 + 80; virt = false; ssl = false; 
+		      private_key = ""; certificate = ""; passwd = ""; 
+		      uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
 		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
 		      user = "ocsigen"; group = "ocsigen";
 		      max_number_of_connections = 500;
@@ -52,11 +54,14 @@ let init_config n = {port = n*1000 + 80; virt = false; ssl = false; private_key 
 let sconf  = ref (init_config 0)
 let cfgs = Array.init max_servers (init_config) 
 let set_port n i = cfgs.(n).port <- i
+let get_port_n n = cfgs.(n).port
 let set_virtual n b = cfgs.(n).virt <- b
 let get_virtual_n n = cfgs.(n).virt
 let set_ssl  n b = cfgs.(n).ssl <- b
+let get_ssl_n n = cfgs.(n).ssl
 let set_key n k = cfgs.(n).private_key <- k
 let set_certificate n c = cfgs.(n).certificate <- c
+let set_passwd n p = cfgs.(n).passwd <- p
 let set_uploaddir n u = cfgs.(n).uploaddir <- u
 let set_logdir n s = cfgs.(n).logdir <- s
 let set_configfile s = config_file := s
@@ -73,6 +78,7 @@ let get_virtual () = !sconf.virt
 let get_ssl () = !sconf.ssl
 let get_key () = !sconf.private_key
 let get_certificate () = !sconf.certificate
+let get_passwd () = !sconf.passwd
 let get_uploaddir () = !sconf.uploaddir
 let get_logdir () = !sconf.logdir
 let get_config_file () = !config_file
