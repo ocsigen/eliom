@@ -221,7 +221,8 @@ let read ch buf pos len =
     Lwt.return (match ch with Plain fdesc -> Unix.read fdesc buf pos len
     			  | Encrypted (fdesc,sock) -> Ssl.read sock buf pos len)
   with
-    Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) ->
+    Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) 
+    | Ssl.Read_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
       let res = Lwt.wait () in
       inputs := (ch, `Read (buf, pos, len, res)) :: !inputs;
       res
@@ -233,7 +234,8 @@ let write ch buf pos len =
     Lwt.return (match ch with Plain fdesc -> Unix.write fdesc buf pos len
     			| Encrypted (fdesc, sock) -> Ssl.write sock buf pos len)
   with
-    Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) ->
+    Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) 
+    | Ssl.Read_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
       let res = Lwt.wait () in
       outputs := (ch, `Write (buf, pos, len, res)) :: !outputs;
       res
@@ -256,7 +258,8 @@ let socket dom typ proto =
 let shutdown ch = 
   match ch with
     Plain fdesc -> Unix.shutdown fdesc Unix.SHUTDOWN_ALL
-    | Encrypted (fdesc, sock) -> Ssl.shutdown sock
+    | Encrypted (fdesc, sock) -> Ssl.shutdown sock;
+    	       Unix.shutdown fdesc Unix.SHUTDOWN_ALL	
 
 let socketpair dom typ proto =
   let (s1, s2) as spair = Unix.socketpair dom typ proto in
@@ -282,7 +285,8 @@ let connect s addr =
     Lwt.return ()
   with
     Unix.Unix_error
-      ((Unix.EINPROGRESS | Unix.EWOULDBLOCK | Unix.EAGAIN), _, _) ->
+      ((Unix.EINPROGRESS | Unix.EWOULDBLOCK | Unix.EAGAIN), _, _)
+    | Ssl.Connection_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
         check_socket s
   | e ->
       Lwt.fail e

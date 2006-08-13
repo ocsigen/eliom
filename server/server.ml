@@ -448,7 +448,7 @@ let listen modules_list =
                 listen_connexion_aux ()
                   (* Pour laisser la connexion ouverte, je relance *)
 	      else begin 
-		Lwt_unix.shutdown in_ch; (* not gracefule close: client's keep_alive*) 
+		Lwt_unix.shutdown in_ch;
 		return ()
 	      end)
 	) in
@@ -515,8 +515,9 @@ let listen modules_list =
     	  let s_unix = match s with Lwt_unix.Plain fd -> fd 
     		         | _ -> raise Ssl_Exception (* impossible *) in
     	  catch 
-    	     (fun () -> Lwt_unix.accept (Lwt_unix.Encrypted 
-	                    (s_unix, Ssl.embed_socket s_unix !ctx)))
+    	     (fun () -> ((Lwt_unix.accept (Lwt_unix.Encrypted 
+	                    (s_unix, Ssl.embed_socket s_unix !ctx))) >>=
+			    (fun (ss, ssa) -> Lwt.return (ss, sa))))
     	  (function  Ssl.Accept_error e -> warning "Accept_error"; do_accept ()
     	     | e -> warning (Printexc.to_string e); do_accept ())
          end else Lwt.return (s, sa)) in
@@ -553,8 +554,10 @@ let listen modules_list =
        with e -> errlog ("Error: Wrong user or group"); raise e);
        (* Now I can load the modules *)
        load_modules modules_list;
-       if Ocsiconfig.get_ssl ()  then 
-	  Ssl.use_certificate !ctx (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ());	
+       if Ocsiconfig.get_ssl ()  then begin 
+          (*if false then Ssl.set_password_callback !ctx (fun _ -> "coucou");*)
+	  Ssl.use_certificate !ctx (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ())
+	  end;
        Ocsigen.end_initialisation ();
        warning "Ocsigen has been launched (initialisations ok)";
        wait_connexion listening_socket >>=
@@ -585,4 +588,4 @@ let _ =
     end
     | _ -> launch (nb + 1)
   end else () in
-  launch 0;
+  launch 0
