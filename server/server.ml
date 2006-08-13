@@ -470,7 +470,9 @@ let listen modules_list =
   let wait_connexion socket =
     let handle_exn sockaddr in_ch exn = 
       let ip = ip_of_sockaddr sockaddr in
+      (try
       Lwt_unix.shutdown in_ch;
+      with e -> ());
       match exn with
 	Unix.Unix_error (e,func,param) ->
 	  warning ("While talking to "^ip^": "^(Unix.error_message e)^
