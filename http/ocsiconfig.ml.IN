@@ -43,6 +43,7 @@ let verbose = ref false
 let silent = ref false
 let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
+let mimefile = ref "/etc/mime.types"
 
 let init_config n = {port = n*1000 + 80; virt = false; ssl = false; 
 		      private_key = ""; certificate = ""; passwd = ""; 
@@ -65,6 +66,7 @@ let set_passwd n p = cfgs.(n).passwd <- p
 let set_uploaddir n u = cfgs.(n).uploaddir <- u
 let set_logdir n s = cfgs.(n).logdir <- s
 let set_configfile s = config_file := s
+let set_mimefile s = mimefile := s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
 let set_veryverbose () = verbose := true; veryverbose := true
@@ -82,6 +84,7 @@ let get_passwd () = !sconf.passwd
 let get_uploaddir () = !sconf.uploaddir
 let get_logdir () = !sconf.logdir
 let get_config_file () = !config_file
+let get_mimefile () = !mimefile
 let get_verbose () = !verbose
 let get_silent () = !silent
 let get_veryverbose () = !veryverbose

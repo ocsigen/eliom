@@ -112,6 +112,9 @@ let rec parser_config =
     | PLCons ((EPanytag ("uploaddir", PLEmpty, p)), ll) ->
     	set_uploaddir n (parse_string p);
 	parse_ocsigen n ll
+    | PLCons ((EPanytag ("mimefile", PLEmpty, p)), ll) ->
+    	set_mimefile (parse_string p);
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
 	set_logdir n (parse_string p);
 	parse_ocsigen n ll

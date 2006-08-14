@@ -338,25 +338,52 @@ let create_file_sender ?server_name ?proto fd =
   |Some p ->
       File_sender.create ~headers:hd2 ~proto:p fd
 
+
+let parse_mime_types filename =
+  let rec read_and_split in_ch res = try
+    let line = input_line in_ch in
+    let line_upto = try 
+    	let upto = String.index line '#' in 
+	String.sub line 0 upto 
+    with Not_found -> line in
+    let strlist = Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto in
+    match  List.length strlist with
+    0 | 1 -> read_and_split in_ch res
+    | _ -> let make_pair = (fun acc h -> (h, List.hd strlist) :: acc) in
+    	   let pairs = (List.fold_left make_pair [] (List.tl strlist)) in
+    	     read_and_split in_ch (pairs @ res)
+    with End_of_file -> res
+  in
+  let pairs_list = try
+    let in_ch =  open_in filename in
+    let pairs_l = read_and_split in_ch [] in
+    close_in in_ch; pairs_l
+  with _ -> [] in
+  let frequent = [("css","text/css");("html","text/html");("htm","text/html");
+	        ("xhtml","application/xhtml+xml"); ("jpeg","image/jpeg");
+		("jpg","image/jpeg");("js","application/x-javascript");
+		("tar","application/x-tar")] in				  
+  let fmap l a = try List.remove_assoc a l with Not_found -> l in
+    frequent @ (List.fold_left fmap pairs_list (List.map (fun x -> fst x) frequent))
+
+let mime_list = ref []
+
+let rec affiche_mime = function
+  [] -> print_newline ()
+    | ((f,s)::l) -> print_endline (f^" "^s); affiche_mime l
+    
 (* send a file in an HTTP frame*)
 let content_type_from_file_name filename =
-  (* Il faudrait un parseur du fichier mime.types d'Apache *)
-  let extens = 
-    try 
-      let pos = (String.rindex filename '.') in 
+  if !mime_list = [] then mime_list := parse_mime_types (Ocsiconfig.get_mimefile ()); 
+  affiche_mime !mime_list;
+  try 
+    let pos = (String.rindex filename '.') in 
+    let extens = 
       String.sub filename 
 	(pos+1)
 	((String.length filename) - pos - 1)
-    with _ -> filename 
-  in
-    match extens with
-	"css" -> "text/css"
-      | "html" -> "text/html"
-      | "xhtml" -> "application/xhtml+xml"
-      | "jpg" | "jpeg" -> "image/jpeg"
-      | "js" -> "application/x-javascript"
-      | "tar" -> "application/x-tar"
-      | _ -> "unknown"
+    in List.assoc extens !mime_list
+  with _ -> "unknown" 
 
 let send_file ?code ?keep_alive ?cookie ?path
     ?last_modified ?location ?head file file_sender =
