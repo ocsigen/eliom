@@ -198,7 +198,8 @@ module FHttp_frame =
     struct
 
         (** type of the http frames*)
-        type http_frame = {header: Http_header.http_header;content: C.t option}
+	type frame_content = Ready of C.t option | Streamed of Netlwtstream.in_descr_stream
+        type http_frame = {header: Http_header.http_header;content: frame_content}
 
     end
 

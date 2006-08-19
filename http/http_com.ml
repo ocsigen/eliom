@@ -258,6 +258,21 @@ module FHttp_receiver =
 		with
                 |_ -> 0
               in 
+	      let rp = receiver.buffer.Com_buffer.read_pos in
+	      let wp = receiver.buffer.Com_buffer.write_pos in
+	      let sz = receiver.buffer.Com_buffer.size in
+	      let bf = receiver.buffer.Com_buffer.buf in
+	      let available = if wp >= rp
+	      		      then String.sub bf rp (wp - rp)
+			      else (String.sub bf 0 wp)^(String.sub bf rp (sz-rp))
+	      in (*Messages.debug ("available: "^available);*)
+	      let ct = try 
+	        Http_frame.Http_header.get_headers_value header "content-type"
+	      with Not_found -> "" in
+	      match (Netstring_pcre.string_match 
+	   		(Netstring_pcre.regexp ".*multipart.*")) ct 0
+	      with 
+	        None -> begin 
               let body =
 		match body_length with
                 |x when x < 0 -> assert false
@@ -267,8 +282,19 @@ module FHttp_receiver =
 		    (fun c -> Lwt.return (Some c))
               in
               body >>= (fun b ->
-                Lwt.return {Http.header=header;Http.content=b}
+                Lwt.return {Http.header=header;Http.content=Http.Ready b}
 		       )
+		end
+		| _ -> (* multipart, create a netstream *) begin
+		let netchan = new Netlwtstream.input_descr receiver.fd
+		(*match receiver.fd with
+		Lwt_unix.Plain fdesc -> new Multipart.input_channel (Lwt_unix.in_channel_of_descr fdesc)
+		| Lwt_unix.Encrypted (fdesc,sock) -> new Multipart.input_ssl sock *) in
+		Messages.debug "before creation";
+		let netstr = new Netlwtstream.input_stream ~init:available ~len:body_length netchan in
+		Messages.debug "new Netstream created";
+		Lwt.return {Http.header=header;Http.content=Http.Streamed netstr}
+		end
             with e -> fail e
           )
         )

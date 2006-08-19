@@ -92,14 +92,14 @@ let find_field field content_disp =
 	   (Netstring_pcre.regexp (field^"=.([^\"]*).;?")) content_disp 0 in
 	  Netstring_pcre.matched_group res 1 content_disp
 
-type to_write = No_File of string*Buffer.t | A_File of out_channel
+type to_write = No_File of string*Buffer.t | A_File of Lwt_unix.descr
 
 (* *)
 let get_frame_infos =
 (*let full_action_param_prefix = action_prefix^action_param_prefix in
 let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
   fun http_frame ->
-  try 
+  catch (fun () -> 
     let meth = Http_header.get_method http_frame.Http_frame.header in
     let url = Http_header.get_url http_frame.Http_frame.header in
     let url2 = 
@@ -139,23 +139,25 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     in
     let get_params = Netencoding.Url.dest_url_encoded_parameters params_string 
     in
-    let post_params = 
+    let find_post_params = 
     if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
-    then [] else 
+    then return [] else 
       match http_frame.Http_frame.content with
-	  None -> []
+      Http_frame.Ready cnt -> begin match cnt with
+	  None -> return []
 	| Some s -> 
       	   Messages.debug ("content="^s);
+	   (*
 	   let ct = (Http_header.get_headers_value 
 	   		http_frame.Http_frame.header "Content-Type") in
 	   match (Netstring_pcre.string_match 
 	   		(Netstring_pcre.regexp ".*multipart.*")) ct 0
 	   with 
-	    None -> Netencoding.Url.dest_url_encoded_parameters s 
-	   | _ -> 	(* File stockage *)
+	    None -> *)return (Netencoding.Url.dest_url_encoded_parameters s) 
+	   (*| _ -> 	(* File stockage *)*)
+	   end
+	|Http_frame.Streamed nstr -> begin
 	     let bound = get_boundary http_frame.Http_frame.header in
-	     let ch = new Netchannels.input_string s in
-	     let nstr = new Netstream.input_stream ch in
              let param_names = ref [||] in
 	     let create hs = 
 	       let cd = List.assoc "content-disposition" hs in
@@ -163,23 +165,31 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	       let p_name = find_field "name" cd in
 	        (if store = "" 
 	         then No_File (p_name, Buffer.create 1024)
-	         else let now = Printf.sprintf "%s-%f" store (Unix.time ()) in
+	         else let now = Printf.sprintf "%s-%f" store (Unix.gettimeofday ()) in
+		 Messages.debug ("file="^now);
 		   param_names := Array.append !param_names [|(p_name, now)|];
-		   A_File (open_out ((Ocsiconfig.get_uploaddir ())^"/"^now))) in
+		   let fname = ((Ocsiconfig.get_uploaddir ())^"/"^now) in
+		   let fd = Unix.openfile fname [Unix.O_CREAT;Unix.O_TRUNC;Unix.O_WRONLY;Unix.O_NONBLOCK] 0o666 in
+		   A_File (Lwt_unix.Plain fd)) in
 	     let add where from k n = 
-	        let buf = String.create n in
-		    from#really_input buf 0 n;
-		    match where with 
-		      No_File (p_name, to_buf) -> Buffer.add_string to_buf buf 
-		    | A_File wh -> output wh buf 0 n in
+		 let buf = Netbuffer.sub (from#window) k n in 
+		 match where with 
+		   No_File (p_name, to_buf) -> Buffer.add_string to_buf buf;
+		      				return ()
+		   | A_File wh -> Messages.debug ("partsize="^string_of_int n);
+		    		   Lwt_unix.write wh buf 0 n >>= 
+				     (fun r -> Lwt_unix.yield ()) in
 	     let stop  = function 
 		  No_File (p_name, to_buf) -> 
 		   param_names := Array.append !param_names 
 		   			[|(p_name, Buffer.contents to_buf)|]
-		| A_File wh -> close_out wh in
-	     Mimestring.scan_multipart_body_from_netstream nstr bound create 
-	     							add stop;
-	     Array.to_list !param_names
+		| A_File wh -> match wh with 
+			Lwt_unix.Plain fdscr-> Unix.close fdscr 
+			| _ -> () in
+	     Multipart.scan_multipart_body_from_netstream nstr bound create 
+	     							add stop >>=
+	     (fun () -> return (Array.to_list !param_names))
+	     end
 		(*	IN-MEMORY STOCKAGE *)
 		(*	let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
 				(String.length s) bound in
@@ -188,6 +198,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 			List.iter (fun (hs,b) -> List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
 			List.map simplify bdlist *)
     in
+    find_post_params >>= (fun post_params ->
     let internal_state,post_params2 = 
       try (Some (int_of_string (List.assoc state_param_name post_params)),
 	   List.remove_assoc state_param_name post_params)
@@ -222,16 +233,16 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     let useragent = try (Http_header.get_headers_value
 			   http_frame.Http_frame.header "user-agent")
     with _ -> ""
-    in
-    (Ocsigen.remove_slash (host :: (Neturl.url_path url2)), 
+    in return
+    ((Ocsigen.remove_slash (host :: (Neturl.url_path url2)), 
                               (* the url path (string list) *)
        (host^path),
        params,
        internal_state2,
        get_params2,
        post_params3,
-       useragent), action_info
-  with e -> Messages.debug (Printexc.to_string e); raise Ocsigen_Malformed_Url
+       useragent), action_info)))
+  (function e -> Messages.debug (Printexc.to_string e); fail Ocsigen_Malformed_Url)
 
 
 let rec getcookie s =
@@ -292,9 +303,9 @@ let service http_frame sockaddr
 			   http_frame.Http_frame.header "Cookie"))
       with _ -> None
     in
-    let (path,stringpath,params,_,_,_,ua) as frame_info, action_info = 
-      get_frame_infos http_frame in
-
+    get_frame_infos http_frame >>=
+    (fun ((path,stringpath,params,a,b,c,ua), action_info) -> 
+      let frame_info = (path,stringpath,params,a,b,c,ua) in  
       (* log *)
 	let ip = ip_of_sockaddr sockaddr in
 	accesslog ("connection from "^ip^" ("^ua^") : "^stringpath^params);
@@ -322,7 +333,7 @@ let service http_frame sockaddr
 		       catch (fun () ->
 			 let filename = find_static_page path in
 			 Messages.debug ("--- Is it a static file? ("^filename^")");
-			 (Unix.lstat filename);
+			 ignore (Unix.lstat filename);
 			 let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
 			 let filename = 
 			   if dir
@@ -379,7 +390,7 @@ let service http_frame sockaddr
 		    ~path:path
                     ~code:204 ~head:head
 	            empty_sender)) >>=
-		(fun _ -> return keep_alive)))
+		(fun _ -> return keep_alive))))
     (function
 	Ocsigen_404 -> 
 	  (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
