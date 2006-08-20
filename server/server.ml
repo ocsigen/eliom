@@ -161,19 +161,20 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
              let param_names = ref [||] in
 	     let create hs = 
 	       let cd = List.assoc "content-disposition" hs in
-	       let store = try find_field "filename" cd with _ -> "" in
+	       let st = try Some (find_field "filename" cd) with _ -> None in
 	       let p_name = find_field "name" cd in
-	        (if store = "" 
-	         then No_File (p_name, Buffer.create 1024)
-	         else let now = Printf.sprintf "%s-%f" store (Unix.gettimeofday ()) in
-		 Messages.debug ("file="^now);
+	       match st with 
+	       None -> No_File (p_name, Buffer.create 1024)
+	       | Some store -> 
+	           begin let now = Printf.sprintf "%sx-%f" store (Unix.gettimeofday ()) in
+		   Messages.debug ("file="^now);
 		   param_names := Array.append !param_names [|(p_name, now)|];
 		   let fname = ((Ocsiconfig.get_uploaddir ())^"/"^now) in
 		   let fd = Unix.openfile fname [Unix.O_CREAT;Unix.O_TRUNC;Unix.O_WRONLY;Unix.O_NONBLOCK] 0o666 in
-		   A_File (Lwt_unix.Plain fd)) in
-	     let add where from k n = 
-		 let buf = Netbuffer.sub (from#window) k n in 
-		 match where with 
+		   A_File (Lwt_unix.Plain fd) end in
+	       let add where from k n =  
+		   let buf = Netbuffer.sub (from#window) k n in
+		   match where with 
 		   No_File (p_name, to_buf) -> Buffer.add_string to_buf buf;
 		      				return ()
 		   | A_File wh -> Messages.debug ("partsize="^string_of_int n);

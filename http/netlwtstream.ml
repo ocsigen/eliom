@@ -6,8 +6,6 @@
   * - non-blocking i/o 
   *)
 
-open Netchannels;;
-
 module S = Netstring_pcre
 open Lwt
 
@@ -213,7 +211,7 @@ object (self)
     try
       Lwt_unix.run (self # want_minimum())   (* may raise Buffer_underrun *)
     with
-	Buffer_underrun ->
+	Netchannels.Buffer_underrun ->
 	  s_underrun <- true
 
   method private debug msg =
@@ -317,7 +315,7 @@ object (self)
     ( catch 
 	(fun () -> self # want_minimum())  (* may raise Buffer_underrun *)
       (function
-	  Buffer_underrun ->
+	  Netchannels.Buffer_underrun ->
 	    s_underrun <- true; return () | e -> fail e)
     ) >>=
     (fun () -> if len'=0 && len>0 then fail End_of_file else
@@ -390,7 +388,7 @@ object(self)
     try
       Lwt_unix.run (self # want_minimum())
     with
-	Buffer_underrun ->
+	Netchannels.Buffer_underrun ->
 	  s_underrun <- true
 
   method block_size = s # block_size
@@ -507,7 +505,7 @@ object(self)
     ( catch
 	(fun () -> self # want_minimum())
       (function 
-	  Buffer_underrun ->
+	  Netchannels.Buffer_underrun ->
 	    return (s_underrun <- true) | _ -> return ()
     ))) >>= (fun () ->
     if len'=0 && len>0 then fail End_of_file
