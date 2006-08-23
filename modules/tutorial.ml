@@ -1150,7 +1150,7 @@ let _ = register_action
       Remember that a Web site written with Ocsigen is an OCaml application.
       This application must be able to handle several requests at the same 
       time, if one of the requests takes time. To make this possible, Ocsigen
-      is using <em>cooperative threads</em> (fair threads), 
+      is using <em>cooperative threads</em>, 
       implemented in monadic style
       by Jérôme Vouillon (<code>Lwt</code> module), which make them really easy
       to use.
