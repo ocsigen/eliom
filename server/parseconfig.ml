@@ -83,27 +83,30 @@ let rec parser_config =
     | _ -> raise (Config_file_error "<url> tag expected inside <site>")
   in
   let rec parse_ssl n = function
-     PLEmpty -> ()
+      PLEmpty -> ()
     | PLCons ((EPanytag ("certificate", PLEmpty, p)), l) ->
-          set_certificate n (parse_string p);
-	  parse_ssl n l 
+        set_certificate n (parse_string p);
+	parse_ssl n l 
     | PLCons ((EPanytag ("privatekey", PLEmpty, p)), l) ->
     	set_key n (parse_string p);
 	parse_ssl n l
     | PLCons ((EPcomment _), l) -> parse_ssl n l
     | PLCons ((EPwhitespace _), l) -> parse_ssl n l
-    | PLCons ((EPanytag (tag,_,_)),l) -> raise (Config_file_error (tag^"Unexpected tag inside <ssl>"))		  
+    | PLCons ((EPanytag (tag,_,_)),l) -> raise (Config_file_error ("<"^tag^"> tag unexpected inside <ssl>"))		  
+    | _ -> raise (Config_file_error ("Unexpected content inside <ssl>"))		  
   in
   let rec parse_ocsigen n = function
       PLEmpty -> []
     | PLCons ((EPanytag ("port", PLEmpty, p)), ll) -> 
-	set_port n (int_of_string (parse_string p));
+	(try
+	  set_port n (int_of_string (parse_string p))
+	with _ -> raise (Config_file_error "wrong value for <port> tag"));
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("virtual", PLEmpty, p)), ll) ->
     	 (match parse_string p with
          | "on" -> set_virtual n true
          | "off" -> set_virtual n false
-         | _ -> raise (Config_file_error "wrong value for <port> tag"));
+         | _ -> raise (Config_file_error "wrong value for <virtual> tag"));
          parse_ocsigen n ll			 
     | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
     	set_ssl n true;
@@ -140,7 +143,7 @@ let rec parser_config =
         | PLEmpty -> ""
         | PLCons ((EPanyattr (EPVstr("host"), EPVstr(s))), PLEmpty) -> 
 	   if get_virtual_n n then (s^"/") else ""
-        | _ -> raise (Config_file_error "Wrong attribute for <url> ") in
+        | _ -> raise (Config_file_error "Wrong attribute for <site>") in
 	(parse_site n host l)@(parse_ocsigen n ll)
     | PLCons ((EPcomment _), ll) -> parse_ocsigen n ll
     | PLCons ((EPwhitespace _), ll) -> parse_ocsigen n ll
@@ -150,8 +153,9 @@ let rec parser_config =
 	raise (Config_file_error "Syntax error")
   in let rec parse_servers n = function
       PLEmpty -> if n > 0 then [] else raise(Config_file_error ("<server> tag expected"))
-    | PLCons((EPanytag ("server", PLEmpty, p)), ll) ->
-    	if n >= Ocsiconfig.max_servers then raise (Config_file_error ("too many servers"))
+    | PLCons ((EPanytag ("server", PLEmpty, p)), ll) ->
+    	if n >= Ocsiconfig.max_servers 
+	then raise (Config_file_error ("too many servers ("^(string_of_int Ocsiconfig.max_servers)^" max)"))
     	else incr Ocsiconfig.number_of_servers; 
 	     ((parse_ocsigen n p) @ (parse_servers (n + 1) ll))
     | PLCons ((EPcomment _), ll) -> parse_servers n ll

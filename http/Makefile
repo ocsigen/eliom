@@ -54,8 +54,11 @@ ocsiconfig.ml: ocsiconfig.ml.IN
 	| sed s°0000000000000000°`cat ../VERSION`° \
 	| sed s°_WARNING_°"Warning: this file has been generated from ocsiconfig.ml.IN - DO NOT MODIFY MANUALLY!"° \
 	| sed s°_LOGDIR_°$(LOGDIR)° \
-	| sed s°_CONFIGDIR_°$(CONFIGDIR)° \
 	| sed s°_STATICPAGESDIR_°$(STATICPAGESDIR)° \
+	| sed s%_UP_%$(UPLOADDIR)%g \
+	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
+	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
+	| sed s°_CONFIGDIR_°$(CONFIGDIR)° \
 	> ocsiconfig.ml
 
 

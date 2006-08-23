@@ -40,7 +40,7 @@ ocsimore:
 	fi
 
 doc:
-	$(CAMLDOC) $(PP) -I lib -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
+	$(CAMLDOC) $(PP) -package ssl -I lib -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
 	$(CAMLDOC) $(PP) -I lib -d doc/oc -html server/ocsigen.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli http/messages.ml
 clean:
 	@for i in $(REPS) ; do touch "$$i"/.depend ; done
@@ -64,23 +64,29 @@ install:
 	fi
 
 
-fullinstall: install doc
+fullinstall: doc install
 	mkdir -p $(CONFIGDIR)
 	mkdir -p $(STATICPAGESDIR)
-	cat files/ocsigen.conf | sed s%_LOGDIR_%$(LOGDIR)%g \
+	-mv $(CONFIGDIR)/ocsigen.conf $(CONFIGDIR)/ocsigen.conf.old
+	cat files/ocsigen.conf \
+	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
+	| sed s%_UP_%$(UPLOADDIR)%g \
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	> $(CONFIGDIR)/ocsigen.conf
+	-mv $(CONFIGDIR)/mime.types $(CONFIGDIR)/mime.types.old
+	cp -f files/mime.types $(CONFIGDIR)
 	mkdir -p $(LOGDIR)
 	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(LOGDIR)
 	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(STATICPAGESDIR)
 	chmod u+rwx $(LOGDIR)
 	chmod a+rx $(CONFIGDIR)
 	chmod a+r $(CONFIGDIR)/ocsigen.conf
+	chmod a+r $(CONFIGDIR)/mime.types
 	mkdir -p $(DOCDIR)
-	cp doc/* $(DOCDIR)
+	cp -a doc/* $(DOCDIR)
 	chmod a+rx $(DOCDIR)
 	chmod a+r $(DOCDIR)/*
 

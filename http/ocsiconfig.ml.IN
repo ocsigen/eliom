@@ -43,13 +43,13 @@ let verbose = ref false
 let silent = ref false
 let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
-let mimefile = ref "/etc/mime.types"
+let mimefile = ref "_CONFIGDIR_/mime.types"
 
-let init_config n = {port = n*1000 + 80; virt = false; ssl = false; 
+let init_config n = {port = 80; virt = false; ssl = false; 
 		      private_key = ""; certificate = ""; passwd = ""; 
 		      uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
 		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
-		      user = "ocsigen"; group = "ocsigen";
+		      user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
 		      max_number_of_connections = 500;
 		      connect_time_max = 300. }
 let sconf  = ref (init_config 0)

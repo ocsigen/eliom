@@ -115,7 +115,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	   ~query:true 
 	   ~fragment:true 
 	   url2) in
-    let host = 	   
+    let host =
       if Ocsiconfig.get_virtual () then try
         let hostport = 
           Http_header.get_headers_value http_frame.Http_frame.header "Host" in

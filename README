@@ -11,6 +11,7 @@ ocaml (tested with version 3.08.4 and 3.09.1. Does not work with 3.08.1)
 ocamlfind
 ocamlnet >= 1.1.2 (actually only module netstring) 
 (ocamlnet needs pcre?)
+ocamlssl >= 0.4.0 (ocamlssl needs openssl)
 
 If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer, 
 you can use GODI to install them automatically.
