@@ -53,27 +53,27 @@ let init_config n = {port = 80; virt = false; ssl = false;
 		      max_number_of_connections = 500;
 		      connect_time_max = 300. }
 let sconf  = ref (init_config 0)
-let cfgs = Array.init max_servers (init_config) 
-let set_port n i = cfgs.(n).port <- i
-let get_port_n n = cfgs.(n).port
-let set_virtual n b = cfgs.(n).virt <- b
-let get_virtual_n n = cfgs.(n).virt
-let set_ssl  n b = cfgs.(n).ssl <- b
-let get_ssl_n n = cfgs.(n).ssl
-let set_key n k = cfgs.(n).private_key <- k
-let set_certificate n c = cfgs.(n).certificate <- c
-let set_passwd n p = cfgs.(n).passwd <- p
-let set_uploaddir n u = cfgs.(n).uploaddir <- u
-let set_logdir n s = cfgs.(n).logdir <- s
+let cfgs = ref (Array.init max_servers (init_config)) 
+let set_port n i = !cfgs.(n).port <- i
+let get_port_n n = !cfgs.(n).port
+let set_virtual n b = !cfgs.(n).virt <- b
+let get_virtual_n n = !cfgs.(n).virt
+let set_ssl  n b = !cfgs.(n).ssl <- b
+let get_ssl_n n = !cfgs.(n).ssl
+let set_key n k = !cfgs.(n).private_key <- k
+let set_certificate n c = !cfgs.(n).certificate <- c
+let set_passwd n p = !cfgs.(n).passwd <- p
+let set_uploaddir n u = !cfgs.(n).uploaddir <- u
+let set_logdir n s = !cfgs.(n).logdir <- s
 let set_configfile s = config_file := s
 let set_mimefile s = mimefile := s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
 let set_veryverbose () = verbose := true; veryverbose := true
-let set_user n s = cfgs.(n).user <- s
-let set_group n s = cfgs.(n).group <- s
-let set_max_number_of_connections n i = cfgs.(n).max_number_of_connections <- i
-let set_connect_time_max n i = cfgs.(n).connect_time_max <- i
+let set_user n s = !cfgs.(n).user <- s
+let set_group n s = !cfgs.(n).group <- s
+let set_max_number_of_connections n i = !cfgs.(n).max_number_of_connections <- i
+let set_connect_time_max n i = !cfgs.(n).connect_time_max <- i
 let set_number_of_servers x = number_of_servers := x
 let get_port () = !sconf.port
 let get_virtual () = !sconf.virt
@@ -113,7 +113,7 @@ let set_static_dir n s path =
 	  let sd = aux sd1 l in
 	  Static_dir (s1,(a,sd)::l2)
 	with Not_found -> Static_dir (s1,(a,(add_path l))::l1)
-  in (cfgs.(n)).static_tree <- aux (cfgs.(n)).static_tree path
+  in (!cfgs.(n)).static_tree <- aux (!cfgs.(n)).static_tree path
 
 let set_staticpages n s = set_static_dir n s []
 

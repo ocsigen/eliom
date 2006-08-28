@@ -591,12 +591,15 @@ let _ =
     print_endline ":";
     Ocsiconfig.set_passwd nb (read_line ());
     end; ask_for_passwds (nb + 1)
-  end else () in  
+  end else () in
+  let run nb = 
+    	Ocsiconfig.sconf := !Ocsiconfig.cfgs.(nb);
+	Ocsiconfig.cfgs := [||];
+	Gc.full_major ();
+    	Lwt_unix.run (Unix.handle_unix_error listen modules) in
   let rec launch nb = if nb < !Ocsiconfig.number_of_servers then begin 
     match Unix.fork () with
-    | 0 -> begin try
-    	Ocsiconfig.sconf := Ocsiconfig.cfgs.(nb);
-    	Lwt_unix.run (Unix.handle_unix_error listen modules)
+    | 0 -> begin try run nb
     with
 	Ocsigen.Ocsigen_duplicate_registering s -> 
 	  errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
@@ -618,7 +621,4 @@ let _ =
   ask_for_passwds 0;
   old_term.Unix.c_echo <- old_echo;
   Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
-  if !Ocsiconfig.number_of_servers = 1 then begin
-    	Ocsiconfig.sconf := Ocsiconfig.cfgs.(0);
-    	Lwt_unix.run (Unix.handle_unix_error listen modules)
-  end else launch 0
+  if !Ocsiconfig.number_of_servers = 1 then run 0 else launch 0
