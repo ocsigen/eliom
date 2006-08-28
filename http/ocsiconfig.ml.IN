@@ -25,6 +25,7 @@ let number_of_servers = ref 0
 
 type static_dir = Static_dir of string option * (string * static_dir) list
 type config = { mutable port: int;
+		mutable port_modified: bool;
 		mutable virt: bool;
 		mutable ssl: bool;
 		mutable private_key: string;
@@ -46,7 +47,7 @@ let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
 let mimefile = ref "_CONFIGDIR_/mime.types"
 
-let init_config n = {port = 80; virt = false; ssl = false; 
+let init_config n = {port = 80; port_modified = false; virt = false; ssl = false; 
 		      private_key = ""; certificate = ""; passwd = ""; 
 		      uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
 		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
@@ -56,7 +57,8 @@ let init_config n = {port = 80; virt = false; ssl = false;
 let sconf  = ref (init_config 0)
 let cfgs = ref (Array.init max_servers (init_config)) 
 let set_port n i = !cfgs.(n).port <- i
-let get_port_n n = !cfgs.(n).port
+let get_port_n n = !cfgs.(n).port_modified <- true; !cfgs.(n).port
+let get_port_n_modif n = !cfgs.(n).port_modified
 let set_virtual n b = !cfgs.(n).virt <- b
 let get_virtual_n n = !cfgs.(n).virt
 let set_ssl  n b = !cfgs.(n).ssl <- b
@@ -77,6 +79,7 @@ let set_max_number_of_connections n i = !cfgs.(n).max_number_of_connections <- i
 let set_connect_time_max n i = !cfgs.(n).connect_time_max <- i
 let set_number_of_servers x = number_of_servers := x
 let get_port () = !sconf.port
+let get_port_modified () = !sconf.port_modified
 let get_virtual () = !sconf.virt
 let get_ssl () = !sconf.ssl
 let get_key () = !sconf.private_key

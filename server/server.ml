@@ -586,6 +586,7 @@ let _ =
   Messages.debug ("number_of_servers: "^ (string_of_int !Ocsiconfig.number_of_servers));
   let rec ask_for_passwds nb = if nb < !Ocsiconfig.number_of_servers then begin
     if Ocsiconfig.get_ssl_n nb then begin
+    if not (Ocsiconfig.get_port_n_modif nb) then Ocsiconfig.set_port nb 443; 
     print_string "Please enter the password for the HTTPS server listening on port ";
     print_int (Ocsiconfig.get_port_n nb);
     print_endline ":";
