@@ -618,4 +618,7 @@ let _ =
   ask_for_passwds 0;
   old_term.Unix.c_echo <- old_echo;
   Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
-  launch 0
+  if !Ocsiconfig.number_of_servers = 1 then begin
+    	Ocsiconfig.sconf := Ocsiconfig.cfgs.(0);
+    	Lwt_unix.run (Unix.handle_unix_error listen modules)
+  end else launch 0
