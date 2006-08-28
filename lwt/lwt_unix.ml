@@ -235,7 +235,7 @@ let write ch buf pos len =
     			| Encrypted (fdesc, sock) -> Ssl.write sock buf pos len)
   with
     Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) 
-    | Ssl.Read_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
+    | Ssl.Write_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
       let res = Lwt.wait () in
       outputs := (ch, `Write (buf, pos, len, res)) :: !outputs;
       res
