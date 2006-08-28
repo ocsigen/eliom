@@ -36,6 +36,7 @@ type config = { mutable port: int;
 		mutable user: string;
 		mutable group: string;
 		mutable max_number_of_connections: int;
+		mutable mimefile: string;
 		mutable connect_time_max: float }
 
 let config_file = ref "_CONFIGDIR_/ocsigen.conf"
@@ -51,7 +52,7 @@ let init_config n = {port = 80; virt = false; ssl = false;
 		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
 		      user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
 		      max_number_of_connections = 500;
-		      connect_time_max = 300. }
+		      mimefile = "_CONFIGDIR_/mime.types"; connect_time_max = 300. }
 let sconf  = ref (init_config 0)
 let cfgs = ref (Array.init max_servers (init_config)) 
 let set_port n i = !cfgs.(n).port <- i
@@ -66,7 +67,7 @@ let set_passwd n p = !cfgs.(n).passwd <- p
 let set_uploaddir n u = !cfgs.(n).uploaddir <- u
 let set_logdir n s = !cfgs.(n).logdir <- s
 let set_configfile s = config_file := s
-let set_mimefile s = mimefile := s
+let set_mimefile n s = !cfgs.(n).mimefile <- s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
 let set_veryverbose () = verbose := true; veryverbose := true
@@ -84,7 +85,7 @@ let get_passwd () = !sconf.passwd
 let get_uploaddir () = !sconf.uploaddir
 let get_logdir () = !sconf.logdir
 let get_config_file () = !config_file
-let get_mimefile () = !mimefile
+let get_mimefile () = !sconf.mimefile
 let get_verbose () = !verbose
 let get_silent () = !silent
 let get_veryverbose () = !veryverbose

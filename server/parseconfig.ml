@@ -47,34 +47,41 @@ let rec parser_config =
     | PLCons ((EPwhitespace s), l) -> s^(parse_string l)
     | PLCons ((EPcomment _), l) -> parse_string l
     | _ -> raise (Config_file_error "string expected")
-  in let rec parse_site2 (cmo,stat) = function
+  in let rec parse_site2 (cmo,stat,mime) = function
       PLCons ((EPanytag ("module", PLEmpty, s)), l) -> 
 	(match cmo with
-	  None -> parse_site2 (Some (parse_string s),stat) l
+	  None -> parse_site2 (Some (parse_string s),stat,mime) l
 	| _ -> raise 
-	      (Config_file_error "Only one <module> tag allowed inside <url>"))
+	      (Config_file_error "Only one <module> tag allowed inside <site>"))
     | PLCons ((EPanytag ("staticdir", PLEmpty, s)), l) -> 
 	(match stat with
-	  None -> parse_site2 (cmo, Some (parse_string s)) l
+	  None -> parse_site2 (cmo, Some (parse_string s), mime) l
 	| _ -> raise 
 	      (Config_file_error 
-		 "Only one <staticdir> tag allowed inside <url>"))
-    | PLCons ((EPcomment _), l) -> parse_site2 (cmo,stat) l
-    | PLCons ((EPwhitespace _), l) -> parse_site2 (cmo,stat) l
+		 "Only one <staticdir> tag allowed inside <site>"))
+    | PLCons ((EPanytag ("mimefile", PLEmpty, p)), l) ->
+        (match mime with
+	  None -> parse_site2 (cmo, stat, Some (parse_string p)) l
+	| _ -> raise (Config_file_error "Only one <mimefile> tag allowed inside <site>"))
+    | PLCons ((EPcomment _), l) -> parse_site2 (cmo,stat,mime) l
+    | PLCons ((EPwhitespace _), l) -> parse_site2 (cmo,stat,mime) l
     | PLEmpty -> 
-	(match (cmo,stat) with
-	  None, None -> raise (Config_file_error "<module> or <staticdir> tag expected inside <site>")
-	| _ -> (cmo,stat))
+	(match (cmo,stat,mime) with
+	  None, None, _ -> raise (Config_file_error "<module> or <staticdir> tag expected inside <site>")
+	| _ -> (cmo,stat,mime))
     | _ -> raise 
-	  (Config_file_error "Only <module> or <staticdir> tag expected inside <site>")
+	  (Config_file_error "Unexpected tag inside <site>")
   in
   let rec parse_site n host = function
       PLCons ((EPanytag ("url", PLEmpty, s)), l) ->
       	let path = Neturl.split_path (host^(parse_string s)) in
-	let cmo,static = parse_site2 (None, None) l in
+	let cmo,static,mime = parse_site2 (None, None, None) l in
 	(match static with
 	  None -> ()
 	| Some s -> Ocsiconfig.set_static_dir n s path);
+	(match mime with
+	  None -> ()
+	| Some m -> Ocsiconfig.set_mimefile n m);
 	(match cmo with
 	  None -> []
 	| Some cmo -> [Mod (path,cmo)])
@@ -114,9 +121,6 @@ let rec parser_config =
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("uploaddir", PLEmpty, p)), ll) ->
     	set_uploaddir n (parse_string p);
-	parse_ocsigen n ll
-    | PLCons ((EPanytag ("mimefile", PLEmpty, p)), ll) ->
-    	set_mimefile (parse_string p);
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
 	set_logdir n (parse_string p);
