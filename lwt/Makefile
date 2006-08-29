@@ -31,10 +31,10 @@ opt: $(XARCHIVE)
 .PHONY: depend
 
 $(ARCHIVE): $(OBJECTS)
-	$(OCAMLC) -a -o $(ARCHIVE) -package "$(REQUIRES)" -linkpkg \
+	$(OCAMLC) -a -o $(ARCHIVE) -package "$(REQUIRES)" \
 	          -predicates "$(PREDICATES)" $(OBJECTS)
 $(XARCHIVE): $(XOBJECTS)
-	$(OCAMLOPT) -a -o $(XARCHIVE) -package "$(REQUIRES)" -linkpkg \
+	$(OCAMLOPT) -a -o $(XARCHIVE) -package "$(REQUIRES)" \
 	          -predicates "$(PREDICATES)" $(XOBJECTS)
 
 .SUFFIXES: .cmo .cmi .cmx .ml .mli

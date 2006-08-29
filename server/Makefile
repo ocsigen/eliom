@@ -24,7 +24,7 @@ endif
 LIB = -package $(OCSIMOREPCKG)netstring -package ssl -I ../lib -I +camlp4
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
-CMAO = nums.cma dynlink.cma unix.cma pcre.cma netstring.cma lwt.cma\
+CMAO = nums.cma dynlink.cma unix.cma ssl.cma pcre.cma netstring.cma lwt.cma\
        gramlib.cma xmllexer.cmo simplexmlparser.cmo\
        ocsiconfig.cmo messages.cmo netlwtstream.cmo multipart.cmo \
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
