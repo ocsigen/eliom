@@ -56,8 +56,8 @@ let init_config n = {port = 80; port_modified = false; virt = false; ssl = false
 		      mimefile = "_CONFIGDIR_/mime.types"; connect_time_max = 300. }
 let sconf  = ref (init_config 0)
 let cfgs = ref (Array.init max_servers (init_config)) 
-let set_port n i = !cfgs.(n).port <- i
-let get_port_n n = !cfgs.(n).port_modified <- true; !cfgs.(n).port
+let set_port n i = !cfgs.(n).port <- i; !cfgs.(n).port_modified <- true
+let get_port_n n = !cfgs.(n).port
 let get_port_n_modif n = !cfgs.(n).port_modified
 let set_virtual n b = !cfgs.(n).virt <- b
 let get_virtual_n n = !cfgs.(n).virt
