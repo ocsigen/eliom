@@ -134,6 +134,9 @@ let rec parser_config =
     | PLCons ((EPanytag ("group", PLEmpty, p)), ll) -> 
 	set_group n (parse_string p);
 	parse_ocsigen n ll
+    | PLCons ((EPanytag ("maxthreads", PLEmpty, p)), ll) ->
+    	set_maxthreads n (int_of_string (parse_string p));
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("maxconnected", PLEmpty, p)), ll) -> 
 	set_max_number_of_connections n (int_of_string (parse_string p));
 	parse_ocsigen n ll

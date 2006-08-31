@@ -36,6 +36,7 @@ type config = { mutable port: int;
 		mutable static_tree: static_dir;
 		mutable user: string;
 		mutable group: string;
+		mutable maxthreads : int;
 		mutable max_number_of_connections: int;
 		mutable mimefile: string;
 		mutable connect_time_max: float }
@@ -52,7 +53,7 @@ let init_config n = {port = 80; port_modified = false; virt = false; ssl = false
 		      uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
 		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
 		      user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
-		      max_number_of_connections = 500;
+		      maxthreads = 3; max_number_of_connections = 500;
 		      mimefile = "_CONFIGDIR_/mime.types"; connect_time_max = 300. }
 let sconf  = ref (init_config 0)
 let cfgs = ref (Array.init max_servers (init_config)) 
@@ -75,6 +76,7 @@ let set_silent () = silent := true
 let set_veryverbose () = verbose := true; veryverbose := true
 let set_user n s = !cfgs.(n).user <- s
 let set_group n s = !cfgs.(n).group <- s
+let set_maxthreads n i = !cfgs.(n).maxthreads <- i
 let set_max_number_of_connections n i = !cfgs.(n).max_number_of_connections <- i
 let set_connect_time_max n i = !cfgs.(n).connect_time_max <- i
 let set_number_of_servers x = number_of_servers := x
@@ -95,6 +97,7 @@ let get_veryverbose () = !veryverbose
 let get_static_tree () = !sconf.static_tree
 let get_user () = !sconf.user
 let get_group () = !sconf.group
+let get_maxthreads () = !sconf.maxthreads
 let get_max_number_of_connections () = !sconf.max_number_of_connections
 let get_connect_time_max () = !sconf.connect_time_max
 
