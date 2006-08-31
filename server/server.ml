@@ -497,6 +497,9 @@ let listen modules_list =
 	  return ()
       | Ocsigen_Timeout -> warning ("While talking to "^ip^": Timeout");
 	  return () (* should be a graceful close *)
+      | Ssl.Write_error(Ssl.Error_ssl) -> errlog ("While talking to "^ip
+                                       ^": Ssl broken pipe - (I continue)");
+          return ()
       | exn -> 
 	  errlog ("While talking to "^ip^": Uncaught exception - "
 		  ^(Printexc.to_string exn)^" - (I continue)");

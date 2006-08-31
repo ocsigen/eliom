@@ -86,8 +86,8 @@ let wrap_syscall queue fd cont syscall =
            might be interrupted to handle the signal; this lets us restart
            the system call eventually. *)
         None
-    | Ssl.Accept_error (Ssl.Error_want_read | Ssl.Error_want_write)
-    | Ssl.Connection_error (Ssl.Error_want_read | Ssl.Error_want_write)
+    | Ssl.Accept_error (Ssl.Error_want_read | Ssl.Error_want_write | Ssl.Error_want_accept)
+    | Ssl.Connection_error (Ssl.Error_want_read | Ssl.Error_want_write | Ssl.Error_want_connect)
     | Ssl.Read_error (Ssl.Error_want_read | Ssl.Error_want_write)
     | Ssl.Write_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
     	None
@@ -231,6 +231,7 @@ let read ch buf pos len =
 
 let write ch buf pos len =
   try
+    if len = 0 then Lwt.return 0 else 
     Lwt.return (match ch with Plain fdesc -> Unix.write fdesc buf pos len
     			| Encrypted (fdesc, sock) -> Ssl.write sock buf pos len)
   with
@@ -286,7 +287,7 @@ let connect s addr =
   with
     Unix.Unix_error
       ((Unix.EINPROGRESS | Unix.EWOULDBLOCK | Unix.EAGAIN), _, _)
-    | Ssl.Connection_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
+    | Ssl.Connection_error (Ssl.Error_want_read | Ssl.Error_want_write | Ssl.Error_want_connect) ->
         check_socket s
   | e ->
       Lwt.fail e
