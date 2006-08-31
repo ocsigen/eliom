@@ -12,7 +12,7 @@ OCAMLC = $(OCAMLFIND) ocamlc $(DBG)
 OCAMLOPT = $(OCAMLFIND) ocamlopt $(DBG)
 OCAMLDEP = $(OCAMLFIND) ocamldep
 
-OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_unix.cmo
+OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_unix.cmo preemptive.cmo
 XOBJECTS = $(OBJECTS:cmo=cmx)
 
 ARCHIVE  = $(NAME).cma
@@ -40,10 +40,10 @@ $(XARCHIVE): $(XOBJECTS)
 .SUFFIXES: .cmo .cmi .cmx .ml .mli
 
 .ml.cmo:
-	$(OCAMLC) -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
+	$(OCAMLC) -thread -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
 	          -c $<
 .mli.cmi:
-	$(OCAMLC) -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
+	$(OCAMLC) -thread -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
 	          -c $<
 .ml.cmx:
 	$(OCAMLOPT) -package "$(REQUIRES)" -predicates "$(PREDICATES)" \

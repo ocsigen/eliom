@@ -598,7 +598,7 @@ let _ =
     	Ocsiconfig.sconf := !Ocsiconfig.cfgs.(nb);
 	Ocsiconfig.cfgs := [||];
 	Gc.full_major ();
-    	Lwt_unix.run (Unix.handle_unix_error listen modules) in
+    	Lwt_unix.run (Preemptive.dispatch (); Unix.handle_unix_error listen modules) in
   let rec launch nb = if nb < !Ocsiconfig.number_of_servers then begin 
     match Unix.fork () with
     | 0 -> begin try run nb
