@@ -404,10 +404,8 @@ let service http_frame sockaddr
 	  send_error ~error_num:400 xhtml_sender
 	    >>= (fun _ -> return ka (* keep_alive *))
       | e ->
-	  send_xhtml_page ~keep_alive:ka(*false*)
-	    ~content:(error_page ("Exception : "^(Printexc.to_string e)))
-	    ~head:head xhtml_sender
-	    >>= (fun _ -> return ka (* keep_alive *)))
+          send_error ~error_num:500 xhtml_sender
+	    >>= (fun _ -> fail e))
        in 
        let meth =  (Http_header.get_method http_frame.Http_frame.header) in
 	if ((meth <> Some (Http_header.GET)) && (meth <> Some (Http_header.POST)) 
