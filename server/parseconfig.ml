@@ -157,20 +157,20 @@ let rec parser_config =
     | _ ->
 	raise (Config_file_error "Syntax error")
   in let rec parse_servers n = function
-      PLEmpty -> if n > 0 then () else raise(Config_file_error ("<server> tag expected"))
+      PLEmpty -> (match n with [] -> raise(Config_file_error ("<server> tag expected"))
+      		| _ -> n)
     | PLCons ((EPanytag ("server", PLEmpty, p)), ll) ->
-    	(*if n >= Ocsiconfig.max_servers 
-	then raise (Config_file_error ("too many servers ("^(string_of_int Ocsiconfig.max_servers)^" max)"))
-    	else *)incr Ocsiconfig.number_of_servers;
-	     set_modules n (parse_ocsigen n p);
-	     parse_servers (n + 1) ll
+    	let nouveau = Ocsiconfig.init_config () in
+    	incr Ocsiconfig.number_of_servers;
+	set_modules nouveau (parse_ocsigen nouveau p);
+	parse_servers (nouveau :: n) ll
     | PLCons ((EPcomment _), ll) -> parse_servers n ll
     | PLCons ((EPwhitespace _), ll) -> parse_servers n ll
     | _ -> raise (Config_file_error ("syntax error inside <ocsigen>"))
   in function 
       PLCons ((EPanytag ("ocsigen", PLEmpty, l)), ll) -> 
 	verify_empty ll; 
-	parse_servers 0 l
+	cfgs := parse_servers [] l (* : config list TODO*)
     | PLCons ((EPcomment _), ll) -> parser_config ll
     | PLCons ((EPwhitespace _), ll) -> parser_config ll
     | _ -> raise (Config_file_error "<ocsigen> tag expected")

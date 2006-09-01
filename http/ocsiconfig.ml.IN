@@ -20,7 +20,6 @@
 
 
 exception Config_file_error of string
-let max_servers = 10
 let number_of_servers = ref 0
 
 type modules = Cmo of string | Mod of string list * string
@@ -50,7 +49,7 @@ let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
 let mimefile = ref "_CONFIGDIR_/mime.types"
 
-let init_config n = {port = 80; port_modified = false; virt = false; ssl = false;
+let init_config () = {port = 80; port_modified = false; virt = false; ssl = false;
 		      modu = [];
 		      private_key = ""; certificate = ""; passwd = ""; 
 		      uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
@@ -58,35 +57,35 @@ let init_config n = {port = 80; port_modified = false; virt = false; ssl = false
 		      user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
 		      maxthreads = 3; max_number_of_connections = 500;
 		      mimefile = "_CONFIGDIR_/mime.types"; connect_time_max = 15. }
-let sconf  = ref (init_config 0)
-let cfgs = ref (Array.init max_servers (init_config)) 
-let set_port n i = !cfgs.(n).port <- i; !cfgs.(n).port_modified <- true
-let get_port_n n = !cfgs.(n).port
-let set_modules n m = !cfgs.(n).modu <- m
-let get_port_n_modif n = !cfgs.(n).port_modified
-let set_virtual n b = !cfgs.(n).virt <- b
-let get_virtual_n n = !cfgs.(n).virt
-let set_ssl  n b = !cfgs.(n).ssl <- b
-let get_ssl_n n = !cfgs.(n).ssl
-let set_key n k = !cfgs.(n).private_key <- k
-let set_certificate n c = !cfgs.(n).certificate <- c
-let set_passwd n p = !cfgs.(n).passwd <- p
-let set_uploaddir n u = !cfgs.(n).uploaddir <- u
-let set_logdir n s = !cfgs.(n).logdir <- s
+let sconf  = ref (init_config ())
+let cfgs : config list ref = ref [](*(Array.init max_servers (init_config))*) 
+let set_port cf i = cf.port <- i; cf.port_modified <- true
+let get_port_n cf = cf.port
+let set_modules cf m = cf.modu <- m
+let get_port_n_modif cf = cf.port_modified
+let set_virtual cf b = cf.virt <- b
+let get_virtual_n cf = cf.virt
+let set_ssl  cf b = cf.ssl <- b
+let get_ssl_n cf = cf.ssl
+let set_key cf k = cf.private_key <- k
+let set_certificate cf c = cf.certificate <- c
+let set_passwd cf p = cf.passwd <- p
+let set_uploaddir cf u = cf.uploaddir <- u
+let set_logdir cf s = cf.logdir <- s
 let set_configfile s = config_file := s
-let set_mimefile n s = !cfgs.(n).mimefile <- s
+let set_mimefile cf s = cf.mimefile <- s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
 let set_veryverbose () = verbose := true; veryverbose := true
-let set_user n s = !cfgs.(n).user <- s
-let set_group n s = !cfgs.(n).group <- s
-let set_maxthreads n i = !cfgs.(n).maxthreads <- i
-let set_max_number_of_connections n i = !cfgs.(n).max_number_of_connections <- i
-let set_connect_time_max n i = !cfgs.(n).connect_time_max <- i
+let set_user cf s = cf.user <- s
+let set_group cf s = cf.group <- s
+let set_maxthreads cf i = cf.maxthreads <- i
+let set_max_number_of_connections cf i = cf.max_number_of_connections <- i
+let set_connect_time_max cf i = cf.connect_time_max <- i
 let set_number_of_servers x = number_of_servers := x
 let get_port () = !sconf.port
 let get_port_modified () = !sconf.port_modified
-let get_modules n = !sconf.modu
+let get_modules cf = !sconf.modu
 let get_virtual () = !sconf.virt
 let get_ssl () = !sconf.ssl
 let get_key () = !sconf.private_key
@@ -106,7 +105,7 @@ let get_maxthreads () = !sconf.maxthreads
 let get_max_number_of_connections () = !sconf.max_number_of_connections
 let get_connect_time_max () = !sconf.connect_time_max
 
-let set_static_dir n s path =
+let set_static_dir cf s path =
   let rec assoc_and_remove a = function
       [] -> raise Not_found
     | (b,v)::l when a = b -> (v,l)
@@ -125,9 +124,9 @@ let set_static_dir n s path =
 	  let sd = aux sd1 l in
 	  Static_dir (s1,(a,sd)::l2)
 	with Not_found -> Static_dir (s1,(a,(add_path l))::l1)
-  in (!cfgs.(n)).static_tree <- aux (!cfgs.(n)).static_tree path
+  in (cf).static_tree <- aux (cf).static_tree path
 
-let set_staticpages n s = set_static_dir n s []
+let set_staticpages cf s = set_static_dir cf s []
 
 let display_version () =
   print_string version_number;

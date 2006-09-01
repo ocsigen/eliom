@@ -587,24 +587,24 @@ let _ =
      then (Messages.debug ("port:" ^ (string_of_int (Ocsiconfig.cfgs.(n)).port )); print_cfg (n+1))
      else () in print_cfg 0; *)
   Messages.debug ("number_of_servers: "^ (string_of_int !Ocsiconfig.number_of_servers));
-  let rec ask_for_passwds nb = if nb < !Ocsiconfig.number_of_servers then begin
-    if Ocsiconfig.get_ssl_n nb then begin
-    if not (Ocsiconfig.get_port_n_modif nb) then Ocsiconfig.set_port nb 443; 
-    print_string "Please enter the password for the HTTPS server listening on port ";
-    print_int (Ocsiconfig.get_port_n nb);
-    print_endline ":";
-    Ocsiconfig.set_passwd nb (read_line ());
-    end; ask_for_passwds (nb + 1)
-  end else () in
-  let run nb = 
-    	Ocsiconfig.sconf := !Ocsiconfig.cfgs.(nb);
-	Ocsiconfig.cfgs := [||];
+  let rec ask_for_passwds = function 
+    [] -> ()
+    | h :: t -> if Ocsiconfig.get_ssl_n h then begin
+      if not (Ocsiconfig.get_port_n_modif h) then Ocsiconfig.set_port h 443; 
+      print_string "Please enter the password for the HTTPS server listening on port ";
+      print_int (Ocsiconfig.get_port_n h);
+      print_endline ":";
+      Ocsiconfig.set_passwd h (read_line ());
+    end; ask_for_passwds t in
+  let run s =
+    	Ocsiconfig.sconf := s;
+	Ocsiconfig.cfgs := [];
 	Gc.full_major ();
     	Lwt_unix.run (Preemptive.init (Ocsiconfig.get_maxthreads ()); 
 			Unix.handle_unix_error listen (Ocsiconfig.get_modules ())) in
-  let rec launch nb = if nb < !Ocsiconfig.number_of_servers then begin 
+  let rec launch l = match l with [] -> () | (h :: t) -> begin 
     match Unix.fork () with
-    | 0 -> begin try run nb
+    | 0 -> begin try run h
     with
 	Ocsigen.Ocsigen_duplicate_registering s -> 
 	  errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
@@ -617,13 +617,14 @@ let _ =
       | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
       | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
     end
-    | _ -> launch (nb + 1)
-  end else () in
+    | _ -> launch t
+  end in
   let old_term= Unix.tcgetattr Unix.stdin in
   let old_echo = old_term.Unix.c_echo in
   old_term.Unix.c_echo <- false;
   Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
-  ask_for_passwds 0;
+  ask_for_passwds !Ocsiconfig.cfgs;
   old_term.Unix.c_echo <- old_echo;
   Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
-  if !Ocsiconfig.number_of_servers = 1 then run 0 else launch 0
+  if !Ocsiconfig.number_of_servers = 1 then run (List.hd !Ocsiconfig.cfgs) 
+  else launch !Ocsiconfig.cfgs
