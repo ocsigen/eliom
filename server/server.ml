@@ -582,7 +582,7 @@ let listen modules_list =
        wait))
 
 let _ = 
-  let modules = parse_config () in 
+  parse_config ();
   (* let rec print_cfg n = Messages.debug (string_of_int n); if n < !Ocsiconfig.number_of_servers 
      then (Messages.debug ("port:" ^ (string_of_int (Ocsiconfig.cfgs.(n)).port )); print_cfg (n+1))
      else () in print_cfg 0; *)
@@ -601,7 +601,7 @@ let _ =
 	Ocsiconfig.cfgs := [||];
 	Gc.full_major ();
     	Lwt_unix.run (Preemptive.init (Ocsiconfig.get_maxthreads ()); 
-			Unix.handle_unix_error listen modules) in
+			Unix.handle_unix_error listen (Ocsiconfig.get_modules ())) in
   let rec launch nb = if nb < !Ocsiconfig.number_of_servers then begin 
     match Unix.fork () with
     | 0 -> begin try run nb

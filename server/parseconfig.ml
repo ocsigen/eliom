@@ -32,8 +32,6 @@ open Ocsiconfig
    But it works.
  *)
 
-type modules = Cmo of string | Mod of string list * string
-
 let rec parser_config = 
   let rec verify_empty = function
       PLEmpty -> ()
@@ -159,12 +157,13 @@ let rec parser_config =
     | _ ->
 	raise (Config_file_error "Syntax error")
   in let rec parse_servers n = function
-      PLEmpty -> if n > 0 then [] else raise(Config_file_error ("<server> tag expected"))
+      PLEmpty -> if n > 0 then () else raise(Config_file_error ("<server> tag expected"))
     | PLCons ((EPanytag ("server", PLEmpty, p)), ll) ->
-    	if n >= Ocsiconfig.max_servers 
+    	(*if n >= Ocsiconfig.max_servers 
 	then raise (Config_file_error ("too many servers ("^(string_of_int Ocsiconfig.max_servers)^" max)"))
-    	else incr Ocsiconfig.number_of_servers; 
-	     ((parse_ocsigen n p) @ (parse_servers (n + 1) ll))
+    	else *)incr Ocsiconfig.number_of_servers;
+	     set_modules n (parse_ocsigen n p);
+	     parse_servers (n + 1) ll
     | PLCons ((EPcomment _), ll) -> parse_servers n ll
     | PLCons ((EPwhitespace _), ll) -> parse_servers n ll
     | _ -> raise (Config_file_error ("syntax error inside <ocsigen>"))
