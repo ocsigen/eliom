@@ -54,7 +54,7 @@ let init_config n = {port = 80; port_modified = false; virt = false; ssl = false
 		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
 		      user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
 		      maxthreads = 3; max_number_of_connections = 500;
-		      mimefile = "_CONFIGDIR_/mime.types"; connect_time_max = 300. }
+		      mimefile = "_CONFIGDIR_/mime.types"; connect_time_max = 15. }
 let sconf  = ref (init_config 0)
 let cfgs = ref (Array.init max_servers (init_config)) 
 let set_port n i = !cfgs.(n).port <- i; !cfgs.(n).port_modified <- true

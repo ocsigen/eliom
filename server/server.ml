@@ -286,10 +286,10 @@ let service http_frame sockaddr
     let head =  ((Http_header.get_method http_frame.Http_frame.header) 
     		= Some (Http_header.HEAD)) in
     let ka = try (
-          let kah = (Http_header.get_headers_value http_frame.Http_frame.header
-	            "Connection") in 
-			if kah = "Close" then false else 
-			  (if kah = "Keep-Alive" then true 
+          let kah = String.lowercase (Http_header.get_headers_value 
+	  		http_frame.Http_frame.header "Connection") in 
+			if kah = "close" then false else 
+			  (if kah = "keep-alive" then true 
 			  else false(* should not happen *)))
 	  with _ -> let prot = Http_header.get_proto http_frame.Http_frame.header in
 	  		if prot.[(String.index (prot) '/')+3] = '1' 
@@ -572,7 +572,9 @@ let listen modules_list =
        if Ocsiconfig.get_ssl ()  then begin 
           if Ocsiconfig.get_passwd () <> "" then 
 	    Ssl.set_password_callback !ctx (fun _ -> Ocsiconfig.get_passwd ());
-	  Ssl.use_certificate !ctx (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ())
+	  Ssl.use_certificate !ctx (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ());
+	  print_string ("HTTPS server on port ");
+	  print_endline (string_of_int (Ocsiconfig.get_port ()) ^" launched");
 	  end;
        Ocsigen.end_initialisation ();
        warning "Ocsigen has been launched (initialisations ok)";

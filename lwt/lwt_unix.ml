@@ -217,9 +217,11 @@ let wait_write ch =
 
 let read ch buf pos len =
   try
+    if len = 0 then Lwt.return 0 else begin
     if windows_hack then raise (Unix.Unix_error (Unix.EAGAIN, "", ""));
     Lwt.return (match ch with Plain fdesc -> Unix.read fdesc buf pos len
     			  | Encrypted (fdesc,sock) -> Ssl.read sock buf pos len)
+    end
   with
     Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) 
     | Ssl.Read_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
