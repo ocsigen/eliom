@@ -1157,8 +1157,9 @@ let _ = register_action
       </p>
       <p>With respect to preemptive threads, cooperative threads are not using
       a scheduler to distribute processor time between threads. Instead of 
-      this, each thread must tell the others that he wants to let the other
-      work. If a fair thread does not cooperate, the others will be blocked.
+      this, each thread must tell the others that he wants to let them
+      work. If a thread does not cooperate, 
+	the others will be blocked.
       </p>
       <dl>
         <dt>Advantages</dt><dd><ul>
@@ -1175,7 +1176,7 @@ let _ = register_action
     <span style="color:#770000">~url:</span>[<span style="color:#aa4444">"looong"</span>]
     <span style="color:#770000">~get_params:</span>unit
     (<span style="color:green">fun</span> sp () () -&gt;
-      <span style="color:#0033cc">Unix</span>.sleep 10.0;
+      <span style="color:#0033cc">Unix</span>.sleep 10;
       return
         (html
           (head (title (pcdata <span style="color:#aa4444">""</span>)) [])
@@ -1194,16 +1195,26 @@ let looong =
 	  (head (title (pcdata "")) [])
 	  (body [h1 [pcdata "Ok now, you can read the page."]]))))
 (*html*
-     <p>Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
-     you can write <code>bind e1 (fun r -&gt; return e2)</code>.
-     This will try to evaluate <code>e1</code>, and once <code>e1</code>
+     <p>The <code>&gt;&gt;=</code> operator (from <code>Lwt</code>) is used to
+     specify a sequence of computations that depend one from another.
+     It is a kind of <code>let</code> binding.
+     <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>
+     will try to evaluate <code>e1</code>, and once <code>e1</code>
      is evaluated, it will give the result to the function given as second
      parameter.
+     If the left handside (<code>e1</code>)
+     takes time (for example because it is waiting for a read on a socket),
+     the whole computation will be saved in a table and the program will
+     continue to the next instruction that does not depend on <code>e1</code>. 
+     The computation will resume at a future
+     cooperation point, if it is ready to continue.
+     Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
+     you can write <code>bind e1 (fun r -&gt; return e2)</code>.
      </p>
      <!-- p>See $a Tutorial.looong url <:xmllist< looong >>$.</p -->
     </div>
     <div class="twocol2">
-     <p><code>Lwt.bind</code> has type<br/>
+     <p><code>Lwt.bind</code>, (or <code>&gt;&gt;=</code>) has type<br/>
         <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
      <p><code>Lwt.return</code> has type<br/>
         <code>'a -&gt; 'a Lwt.t</code></p>
@@ -1231,7 +1242,36 @@ let looong =
   (<span style="color:green">fun</span> () -&gt; e)
   (<span style="color:green">function</span> ... <span style="color:#77aaaa">|</span> exn -&gt; fail exn)</pre>
      <h3>What if my function is not implemented in cooperative way?</h3>
-     <p><em>To be available soon</em></p>
+      <h4>If my function is thread-safe (for preemptive threads)</h4>
+      <p>Ocsigen implements a way to make a non cooperative computation be
+      executed automatically by a another preemptive thread. To do this,
+      use the <code>detach</code> function. For example:</p>
+*html*)
+let looong2 = 
+  register_new_service 
+    ~url:["looong2"]
+    ~get_params:unit
+    (fun sp () () -> 
+      (Preemptive.detach Unix.sleep 10) >>= (fun () ->
+	return
+        (html
+	  (head (title (pcdata "")) [])
+	  (body [h1 [pcdata "Ok now, you can read the page."]]))))
+(*html*
+      <p>A pool of preemptive threads is waiting for such 
+      "detached functions". You can specify the number of threads in the pool
+      in the configuration file.</p>
+      <p>Warning: Detached functions must be thread-safe! Be careful to
+      concurrent access to data. Be sure to use mutexes for your own functions,
+      and use only thread-safe libraries.<!-- For example <code></code>
+      (version ) is NOT thread-safe, <code></code>
+      (version ) is thread-safe. --> The libraries from Ocsigen
+      are NOT thread-safe for now. Let us know if you need them to be
+      thread-safe.</p>
+      <h4>If my function is not thread-safe (for preemptive threads)</h4>
+      <p>If you want to use a function that take time to execute but
+      it not written in thread-safe way, consider rewriting it in cooperative
+      manner, or delegate the work to another process.</p>
     </div>
     <h2>Static parts</h2>
     <div class="twocol1">

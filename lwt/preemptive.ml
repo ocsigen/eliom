@@ -1,3 +1,23 @@
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Module preemptive.ml
+ * Copyright (C) 2005 Nataliya Guts, Vincent Balat, Jérôme Vouillon
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
+
 open Lwt;;
 
 exception Task_failed
@@ -18,8 +38,10 @@ let taskchannels : (unit -> unit) Event.channel array ref = ref [||]
 let busy : bool array ref = ref [||]
 
 let busylock = Mutex.create () 
-let setbusy n b = Mutex.lock busylock; !busy.(n) <- b;
-		Mutex.unlock busylock
+let setbusy n b = 
+  Mutex.lock busylock; 
+  !busy.(n) <- b;
+  Mutex.unlock busylock
 
 let rec worker (n : int) : unit =
 	let me = Thread.id (Thread.self ()) in
@@ -32,30 +54,36 @@ let rec worker (n : int) : unit =
 let workers : Thread.t array ref = ref [||]
 
 
+exception All_preemptive_threads_are_busy
 let rec free () : int Lwt.t =
     let rec free1 i : int = 
-	if i >= !maxthreads then -1 else
-	if not !busy.(i) then i else free1 (i+1) in
-    let libre = Mutex.lock busylock; 
-    		let f = free1 0 in Mutex.unlock busylock; f in
-    if libre = -1 then Lwt_unix.sleep 1.0 >>= (fun () -> free ())
-    else begin setbusy libre true; Lwt.return libre end
+	if i >= !maxthreads 
+	then raise All_preemptive_threads_are_busy 
+	else if not !busy.(i) then i else free1 (i+1) 
+    in
+    try
+      let libre = 
+	Mutex.lock busylock; 
+	let f = free1 0 in
+	Mutex.unlock busylock; f in
+      setbusy libre true; Lwt.return libre
+    with e -> Mutex.unlock busylock; fail e
 
 let detach (f : 'a -> 'b) (args : 'a) : 'b Lwt.t = 
-	let res : 'b option ref = ref None in
-	let exc : exn option ref = ref None in
-	let ch = Event.new_channel () in 
-
-	let g () = try res := Some (f args) with e -> exc := Some e
-	in
-	free () >>= (fun whatthread ->
-	Event.sync (Event.send !taskchannels.(whatthread) g);
-	!clients.(whatthread) <- Lwt.wait ();
-	!clients.(whatthread) >>= 
-	(fun _ -> match !res with 
-		None -> (match !exc with None -> assert false; fail Task_failed 
-					| Some e -> fail e)
-		| Some r -> Lwt.return r))
+  let res : 'b option ref = ref None in
+  let exc : exn option ref = ref None in
+  let g () = try res := Some (f args) with e -> exc := Some e
+  in
+  free () >>= (fun whatthread ->
+    Event.sync (Event.send !taskchannels.(whatthread) g);
+    !clients.(whatthread) <- Lwt.wait ();
+    !clients.(whatthread) >>= 
+    (fun () -> match !res with 
+      None -> 
+	(match !exc with
+	  None -> assert false; fail Task_failed
+	| Some e -> fail e)
+    | Some r -> Lwt.return r))
 
 let try_type x = 
     let tag = Obj.tag (Obj.repr x) in
@@ -67,18 +95,21 @@ let try_type x =
       end;
     print_newline ()
 
-let buf = String.create 20
-let rec dispatch maxthreads = 
-  (catch 
-  (fun () -> Lwt_unix.read (Lwt_unix.Plain (fst finishedpipe)) buf 0 20)
-  (function e -> Lwt.fail e)) >>= 
-  (fun n ->
-  let who = try 
-    if n = maxthreads then int_of_string buf
-    else int_of_string (String.sub buf 0 n)
-    with e -> -1 in
-  if who >= 0 then Lwt.wakeup !clients.(who) ();
-  dispatch maxthreads)
+let sizebuf = 20
+let buf = String.create sizebuf
+let dispatch maxthreads = 
+  let rec aux () =
+    (catch
+       (fun () ->
+	 (Lwt_unix.read
+	    (Lwt_unix.Plain (fst finishedpipe)) buf 0 sizebuf) >>=
+	 (fun n ->
+	   return
+	     (wakeup !clients.(int_of_string (String.sub buf 0 n)) ())))
+       (fun e -> (* error message? *) return ())
+    ) >>= (fun () -> aux ())
+  in aux ()
+
 
 let init max = 
 	clients := Array.create max (Lwt.return ());
@@ -88,3 +119,12 @@ let init max =
 	maxthreads := max;
 	dispatch max
 	
+
+let nbthreads () = 
+  Array.length !clients
+
+let nbbusy () =
+  Mutex.lock busylock; 
+  let r = Array.fold_left (fun nb elt -> if elt then nb+1 else nb) 0 !busy in
+  Mutex.unlock busylock;
+  r

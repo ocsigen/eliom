@@ -73,7 +73,7 @@ struct
       match s#fetch1 () with
 	(* with old versions of ocamldbi, remove the line `Int64 *)
       | [`Bigint i] -> Big_int.int_of_big_int i
-(*      | [`Int64 i] -> Int64.to_int i *)
+      | [`Int64 i] -> Int64.to_int i
       | _ -> raise (Ocsigen_Cache_error ("Database Table "^A.table^" (size)"))
 
   let insert ~value =

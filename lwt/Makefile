@@ -33,9 +33,11 @@ opt: $(XARCHIVE)
 $(ARCHIVE): $(OBJECTS)
 	$(OCAMLC) -a -o $(ARCHIVE) -package "$(REQUIRES)" \
 	          -predicates "$(PREDICATES)" $(OBJECTS)
+# -linkpkg
 $(XARCHIVE): $(XOBJECTS)
 	$(OCAMLOPT) -a -o $(XARCHIVE) -package "$(REQUIRES)" \
 	          -predicates "$(PREDICATES)" $(XOBJECTS)
+# -linkpkg
 
 .SUFFIXES: .cmo .cmi .cmx .ml .mli
 

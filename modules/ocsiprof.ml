@@ -64,6 +64,9 @@ Lwt.return
            <li>$str:compactions$ compactions of the heap.</li>
            <li>Maximum size reached by the major heap: $str:top_heap_words$ words.</li>
        </ul>
+     <p>There are currently $str:(string_of_int (Preemptive.nbthreads ()))$ 
+	     detached threads running,
+      from which $str:(string_of_int (Preemptive.nbbusy ()))$ are busy.</p>
    </body>
  </html>
 >>)
