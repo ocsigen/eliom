@@ -579,7 +579,7 @@ let listen modules_list =
        Ocsigen.end_initialisation ();
        warning "Ocsigen has been launched (initialisations ok)";
        wait_connexion listening_socket >>=
-       wait))
+       Lwt.wait))
 
 let _ = 
   parse_config ();
@@ -593,15 +593,22 @@ let _ =
       if not (Ocsiconfig.get_port_n_modif h) then Ocsiconfig.set_port h 443; 
       print_string "Please enter the password for the HTTPS server listening on port ";
       print_int (Ocsiconfig.get_port_n h);
-      print_endline ":";
+      print_string ": ";
       Ocsiconfig.set_passwd h (read_line ());
+      print_newline ();
     end; ask_for_passwds t in
   let run s =
-    	Ocsiconfig.sconf := s;
-	Ocsiconfig.cfgs := [];
-	Gc.full_major ();
-    	Lwt_unix.run (Preemptive.init (Ocsiconfig.get_maxthreads ()); 
-			Unix.handle_unix_error listen (Ocsiconfig.get_modules ())) in
+    Ocsiconfig.sconf := s;
+    Ocsiconfig.cfgs := [];
+    Gc.full_major ();
+    if (get_maxthreads ())<(get_minthreads ())
+    then 
+      raise (Config_file_error "maxthreads should be greater than minthreads");
+    Lwt_unix.run 
+      (ignore (Preemptive.init 
+		 (Ocsiconfig.get_minthreads ()) 
+		 (Ocsiconfig.get_maxthreads ()));
+       Unix.handle_unix_error listen (Ocsiconfig.get_modules ())) in
   let rec launch l = match l with [] -> () | (h :: t) -> begin 
     match Unix.fork () with
     | 0 -> begin try run h

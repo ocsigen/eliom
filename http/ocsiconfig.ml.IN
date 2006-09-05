@@ -37,7 +37,9 @@ type config = { mutable port: int;
 		mutable static_tree: static_dir;
 		mutable user: string;
 		mutable group: string;
-		mutable maxthreads : int;
+		mutable minthreads: int;
+		mutable maxthreads: int;
+		mutable max_number_of_threads_queued: int;
 		mutable max_number_of_connections: int;
 		mutable mimefile: string;
 		mutable connect_time_max: float }
@@ -55,7 +57,10 @@ let init_config () = {port = 80; port_modified = false; virt = false; ssl = fals
 		      uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
 		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
 		      user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
-		      maxthreads = 3; max_number_of_connections = 500;
+		      minthreads = 10; 
+		      maxthreads = 300; 
+		      max_number_of_threads_queued = 100;
+		      max_number_of_connections = 500;
 		      mimefile = "_CONFIGDIR_/mime.types"; connect_time_max = 15. }
 let sconf  = ref (init_config ())
 let cfgs : config list ref = ref [](*(Array.init max_servers (init_config))*) 
@@ -79,7 +84,10 @@ let set_silent () = silent := true
 let set_veryverbose () = verbose := true; veryverbose := true
 let set_user cf s = cf.user <- s
 let set_group cf s = cf.group <- s
+let set_minthreads cf i = cf.minthreads <- i
 let set_maxthreads cf i = cf.maxthreads <- i
+let set_max_number_of_threads_queued cf i = 
+  cf.max_number_of_threads_queued <- i
 let set_max_number_of_connections cf i = cf.max_number_of_connections <- i
 let set_connect_time_max cf i = cf.connect_time_max <- i
 let set_number_of_servers x = number_of_servers := x
@@ -101,7 +109,9 @@ let get_veryverbose () = !veryverbose
 let get_static_tree () = !sconf.static_tree
 let get_user () = !sconf.user
 let get_group () = !sconf.group
+let get_minthreads () = !sconf.minthreads
 let get_maxthreads () = !sconf.maxthreads
+let get_max_number_of_threads_queued () = !sconf.max_number_of_threads_queued
 let get_max_number_of_connections () = !sconf.max_number_of_connections
 let get_connect_time_max () = !sconf.connect_time_max
 

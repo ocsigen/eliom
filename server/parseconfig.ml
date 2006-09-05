@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module parseconfig.ml
- * Copyright (C) 2005 Vincent Balat
+ * Copyright (C) 2005 Vincent Balat, Nataliya Guts
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 (******************************************************************)
 (* Config file parsing *)
+(* 2006 07 : Add multiple servers -- Nataliya *)
 
 open Simplexmlparser
 open ExpoOrPatt
@@ -132,8 +133,14 @@ let rec parser_config =
     | PLCons ((EPanytag ("group", PLEmpty, p)), ll) -> 
 	set_group n (parse_string p);
 	parse_ocsigen n ll
+    | PLCons ((EPanytag ("minthreads", PLEmpty, p)), ll) ->
+    	set_minthreads n (int_of_string (parse_string p));
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("maxthreads", PLEmpty, p)), ll) ->
     	set_maxthreads n (int_of_string (parse_string p));
+	parse_ocsigen n ll
+    | PLCons ((EPanytag ("maxdetachedcomputationsqueued", PLEmpty, p)), ll) ->
+    	set_max_number_of_threads_queued n (int_of_string (parse_string p));
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("maxconnected", PLEmpty, p)), ll) -> 
 	set_max_number_of_connections n (int_of_string (parse_string p));
@@ -157,8 +164,9 @@ let rec parser_config =
     | _ ->
 	raise (Config_file_error "Syntax error")
   in let rec parse_servers n = function
-      PLEmpty -> (match n with [] -> raise(Config_file_error ("<server> tag expected"))
-      		| _ -> n)
+      PLEmpty -> (match n with [] -> 
+	raise(Config_file_error ("<server> tag expected"))
+      | _ -> n)
     | PLCons ((EPanytag ("server", PLEmpty, p)), ll) ->
     	let nouveau = Ocsiconfig.init_config () in
     	incr Ocsiconfig.number_of_servers;

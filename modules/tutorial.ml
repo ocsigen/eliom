@@ -1169,14 +1169,14 @@ let _ = register_action
           <li> - Threads must cooperate ...</li></ul></dd>
       </dl>
       <p>As it does not cooperate, the following page will stop the
-      server for 10 seconds. No one will be able to do a request during
+      server for 5 seconds. No one will be able to do a request during
       this delay:</p>
 <pre><span style="color:green">let</span> looong =
   register_new_service
     <span style="color:#770000">~url:</span>[<span style="color:#aa4444">"looong"</span>]
     <span style="color:#770000">~get_params:</span>unit
     (<span style="color:green">fun</span> sp () () -&gt;
-      <span style="color:#0033cc">Unix</span>.sleep 10;
+      <span style="color:#0033cc">Unix</span>.sleep 5;
       return
         (html
           (head (title (pcdata <span style="color:#aa4444">""</span>)) [])
@@ -1189,7 +1189,7 @@ let looong =
     ~url:["looong"]
     ~get_params:unit
     (fun sp () () -> 
-      Lwt_unix.sleep 10.0 >>= (fun () ->
+      Lwt_unix.sleep 5.0 >>= (fun () ->
 	return
         (html
 	  (head (title (pcdata "")) [])
@@ -1252,7 +1252,7 @@ let looong2 =
     ~url:["looong2"]
     ~get_params:unit
     (fun sp () () -> 
-      (Preemptive.detach Unix.sleep 10) >>= (fun () ->
+      (Preemptive.detach Unix.sleep 100) >>= (fun () ->
 	return
         (html
 	  (head (title (pcdata "")) [])
@@ -1269,7 +1269,7 @@ let looong2 =
       are NOT thread-safe for now. Let us know if you need them to be
       thread-safe.</p>
       <h4>If my function is not thread-safe (for preemptive threads)</h4>
-      <p>If you want to use a function that take time to execute but
+      <p>If you want to use a function that takes time to execute but
       it not written in thread-safe way, consider rewriting it in cooperative
       manner, or delegate the work to another process.</p>
     </div>

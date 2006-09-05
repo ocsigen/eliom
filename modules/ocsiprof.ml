@@ -65,8 +65,13 @@ Lwt.return
            <li>Maximum size reached by the major heap: $str:top_heap_words$ words.</li>
        </ul>
      <p>There are currently $str:(string_of_int (Preemptive.nbthreads ()))$ 
-	     detached threads running,
-      from which $str:(string_of_int (Preemptive.nbbusy ()))$ are busy.</p>
+	     detached threads running
+	     (min $str:(string_of_int (Ocsiconfig.get_minthreads ()))$,
+	     max $str:(string_of_int (Ocsiconfig.get_maxthreads ()))$),
+      from which $str:(string_of_int (Preemptive.nbthreadsbusy ()))$ are busy.
+	$str:(string_of_int (Preemptive.nbthreadsqueued ()))$ computations 
+	   queued (max 
+	$str:(string_of_int (Ocsiconfig.get_max_number_of_threads_queued ()))$).</p>
    </body>
  </html>
 >>)

@@ -265,7 +265,7 @@ module FHttp_receiver =
 	      let available = if wp >= rp
 	      		      then String.sub bf rp (wp - rp)
 			      else (String.sub bf 0 wp)^(String.sub bf rp (sz-rp))
-	      in (*Messages.debug ("available: "^available);*)
+	      in (* Messages.debug ("available: "^available);*)
 	      let ct = try 
 	        Http_frame.Http_header.get_headers_value header "content-type"
 	      with Not_found -> "" in

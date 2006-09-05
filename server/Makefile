@@ -2,7 +2,7 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= error_pages.ml ocsigen.ml ocsigenboxes.ml parseconfig.ml server.ml
+FILES= error_pages.ml preemptive.ml ocsigen.ml ocsigenboxes.ml parseconfig.ml server.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -24,9 +24,12 @@ endif
 LIB = -thread -package $(OCSIMOREPCKG)netstring -package ssl -I ../lib -I +camlp4
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
-CMAO = nums.cma dynlink.cma unix.cma ssl.cma pcre.cma netstring.cma threads.cma \
-       lwt.cma gramlib.cma xmllexer.cmo simplexmlparser.cmo \
-       ocsiconfig.cmo messages.cmo netlwtstream.cmo multipart.cmo \
+CMAO = nums.cma dynlink.cma unix.cma ssl.cma pcre.cma netstring.cma \
+       threads.cma \
+       gramlib.cma xmllexer.cmo simplexmlparser.cmo \
+       ocsiconfig.cmo messages.cmo \
+       lwt.cma preemptive.cmo \
+       netlwtstream.cmo multipart.cmo \
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtml.cma sender_helpers.cmo\
        error_pages.cmo
@@ -41,7 +44,7 @@ OBJS = $(FILES:.ml=.cmo)
 
 all: depend $(OBJS) $(NAME)
 #	cp *.cmo *.cmi ../lib
-	cp ocsigen.cmo ocsigen.cmi ../lib
+	cp ocsigen.cmo ocsigen.cmi preemptive.cmi ../lib
 #	cp config.cmi ../lib
 	cp ocsigenboxes.cmi ../lib
 	cp $(NAME) ../bin
