@@ -139,111 +139,115 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     let get_params = Netencoding.Url.dest_url_encoded_parameters params_string 
     in
     let find_post_params = 
-    if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
-    then return [] else 
-      match http_frame.Http_frame.content with
-      Http_frame.Ready cnt -> begin match cnt with
-	  None -> return []
-	| Some s -> 
-      	   Messages.debug ("content="^s);
-	   (*
-	   let ct = (Http_header.get_headers_value 
-	   		http_frame.Http_frame.header "Content-Type") in
-	   match (Netstring_pcre.string_match 
-	   		(Netstring_pcre.regexp ".*multipart.*")) ct 0
-	   with 
-	    None -> *)return (Netencoding.Url.dest_url_encoded_parameters s) 
-	   (*| _ -> 	(* File stockage *)*)
-	   end
-	|Http_frame.Streamed nstr -> begin
-	     let bound = get_boundary http_frame.Http_frame.header in
-             let param_names = ref [||] in
-	     let create hs = 
-	       let cd = List.assoc "content-disposition" hs in
-	       let st = try Some (find_field "filename" cd) with _ -> None in
-	       let p_name = find_field "name" cd in
-	       match st with 
-	       None -> No_File (p_name, Buffer.create 1024)
-	       | Some store -> 
-	           begin let now = Printf.sprintf "%sx-%f" store (Unix.gettimeofday ()) in
-		   Messages.debug ("file="^now);
-		   param_names := Array.append !param_names [|(p_name, now)|];
-		   let fname = ((Ocsiconfig.get_uploaddir ())^"/"^now) in
-		   let fd = Unix.openfile fname [Unix.O_CREAT;Unix.O_TRUNC;Unix.O_WRONLY;Unix.O_NONBLOCK] 0o666 in
-		   A_File (Lwt_unix.Plain fd) end in
-	       let add where from k n =  
-		   let buf = Netbuffer.sub (from#window) k n in
-		   match where with 
-		   No_File (p_name, to_buf) -> Buffer.add_string to_buf buf;
-		      				return ()
-		   | A_File wh -> Messages.debug ("partsize="^string_of_int n);
-		    		   Lwt_unix.write wh buf 0 n >>= 
-				     (fun r -> Lwt_unix.yield ()) in
-	     let stop  = function 
-		  No_File (p_name, to_buf) -> 
-		   param_names := Array.append !param_names 
-		   			[|(p_name, Buffer.contents to_buf)|]
-		| A_File wh -> match wh with 
-			Lwt_unix.Plain fdscr-> Unix.close fdscr 
-			| _ -> () in
-	     Multipart.scan_multipart_body_from_netstream nstr bound create 
-	     							add stop >>=
-	     (fun () -> return (Array.to_list !param_names))
-	     end
-		(*	IN-MEMORY STOCKAGE *)
-		(*	let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
-				(String.length s) bound in
-			Messages.debug (string_of_int (List.length bdlist));
-			let simplify (hs,b) = ((find_field "name" (List.assoc "content-disposition" hs)),b) in
-			List.iter (fun (hs,b) -> List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
-			List.map simplify bdlist *)
+      if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
+      then return [] else 
+	match http_frame.Http_frame.content with
+	  Http_frame.Ready cnt -> begin match cnt with
+	    None -> return []
+	  | Some s -> 
+      	      Messages.debug ("content="^s);
+	      (*
+		 let ct = (Http_header.get_headers_value 
+	   	 http_frame.Http_frame.header "Content-Type") in
+		 match (Netstring_pcre.string_match 
+	   	 (Netstring_pcre.regexp ".*multipart.*")) ct 0
+		 with 
+		 None -> *)return (Netencoding.Url.dest_url_encoded_parameters s) 
+		(*| _ -> 	(* File stockage *)*)
+	  end
+	| Http_frame.Streamed nstr -> begin
+	    let bound = get_boundary http_frame.Http_frame.header in
+            let param_names = ref [||] in
+	    let create hs = 
+	      let cd = List.assoc "content-disposition" hs in
+	      let st = try Some (find_field "filename" cd) with _ -> None in
+	      let p_name = find_field "name" cd in
+	      match st with 
+		None -> No_File (p_name, Buffer.create 1024)
+	      | Some store -> 
+	          begin let now = Printf.sprintf "%sx-%f" store (Unix.gettimeofday ()) in
+		  Messages.debug ("file="^now);
+		  param_names := Array.append !param_names [|(p_name, now)|];
+		  let fname = ((Ocsiconfig.get_uploaddir ())^"/"^now) in
+		  let fd = Unix.openfile fname 
+		      [Unix.O_CREAT;Unix.O_TRUNC;Unix.O_WRONLY;
+		       Unix.O_NONBLOCK] 0o666 in
+		  A_File (Lwt_unix.Plain fd) end in
+	    let add where from k n =  
+	      let buf = Netbuffer.sub (from#window) k n in
+	      match where with 
+		No_File (p_name, to_buf) -> 
+		  Buffer.add_string to_buf buf;
+		  return ()
+	      | A_File wh -> 
+		  (* Messages.debug ("partsize="^string_of_int n); *)
+		  Lwt_unix.write wh buf 0 n >>= 
+		  (fun r -> Lwt_unix.yield ()) in
+	    let stop  = function 
+		No_File (p_name, to_buf) -> 
+		  param_names := Array.append !param_names 
+		      [|(p_name, Buffer.contents to_buf)|]
+	      | A_File wh -> match wh with 
+		  Lwt_unix.Plain fdscr-> Unix.close fdscr 
+		| _ -> () in
+	    Multipart.scan_multipart_body_from_netstream nstr bound create 
+	      add stop >>=
+	    (fun () -> return (Array.to_list !param_names))
+	end
+	      (*	IN-MEMORY STOCKAGE *)
+	      (*	let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
+		 (String.length s) bound in
+		 Messages.debug (string_of_int (List.length bdlist));
+		 let simplify (hs,b) = ((find_field "name" (List.assoc "content-disposition" hs)),b) in
+		 List.iter (fun (hs,b) -> List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
+		 List.map simplify bdlist *)
     in
     find_post_params >>= (fun post_params ->
-    let internal_state,post_params2 = 
-      try (Some (int_of_string (List.assoc state_param_name post_params)),
-	   List.remove_assoc state_param_name post_params)
-      with Not_found -> (None, post_params)
-    in
-    let internal_state2,get_params2 = 
-      try 
-	match internal_state with
+      let internal_state,post_params2 = 
+	try (Some (int_of_string (List.assoc state_param_name post_params)),
+	     List.remove_assoc state_param_name post_params)
+	with Not_found -> (None, post_params)
+      in
+      let internal_state2,get_params2 = 
+	try 
+	  match internal_state with
 	    None ->
 	      (Some (int_of_string (List.assoc state_param_name get_params)),
 	       List.remove_assoc state_param_name get_params)
 	  | _ -> (internal_state, get_params)
-      with Not_found -> (internal_state, get_params)
-    in
-    let action_info, post_params3 =
-      try
-	let action_name, pp = 
-	  ((List.assoc (action_prefix^action_name) post_params2),
-	   (List.remove_assoc (action_prefix^action_name) post_params2)) in
-	let reload,pp2 =
-	  try
-	    ignore (List.assoc (action_prefix^action_reload) pp);
-	    (true, (List.remove_assoc (action_prefix^action_reload) pp))
-	  with Not_found -> false, pp in
-	let ap,pp3 = pp2,[]
+	with Not_found -> (internal_state, get_params)
+      in
+      let action_info, post_params3 =
+	try
+	  let action_name, pp = 
+	    ((List.assoc (action_prefix^action_name) post_params2),
+	     (List.remove_assoc (action_prefix^action_name) post_params2)) in
+	  let reload,pp2 =
+	    try
+	      ignore (List.assoc (action_prefix^action_reload) pp);
+	      (true, (List.remove_assoc (action_prefix^action_reload) pp))
+	    with Not_found -> false, pp in
+	  let ap,pp3 = pp2,[]
 (*	  List.partition 
-	    (fun (a,b) -> 
-	       ((String.sub a 0 action_param_prefix_end)= 
-		   full_action_param_prefix)) pp2 *) in
+   (fun (a,b) -> 
+   ((String.sub a 0 action_param_prefix_end)= 
+   full_action_param_prefix)) pp2 *) in
 	  (Some (action_name, reload, ap), pp3)
-      with Not_found -> None, post_params2 in
-    let useragent = try (Http_header.get_headers_value
-			   http_frame.Http_frame.header "user-agent")
-    with _ -> ""
-    in return
-    ((Ocsigen.remove_slash (host :: (Neturl.url_path url2)), 
-                              (* the url path (string list) *)
-       (host^path),
-       params,
-       internal_state2,
-       get_params2,
-       post_params3,
-       useragent), action_info)))
-  (function e -> Messages.debug (Printexc.to_string e); fail Ocsigen_Malformed_Url)
-
+	with Not_found -> None, post_params2 in
+      let useragent = try (Http_header.get_headers_value
+			     http_frame.Http_frame.header "user-agent")
+      with _ -> ""
+      in return
+	((Ocsigen.remove_slash (host :: (Neturl.url_path url2)), 
+          (* the url path (string list) *)
+	  (host^path),
+	  params,
+	  internal_state2,
+	  get_params2,
+	  post_params3,
+	  useragent), action_info)))
+      (function e -> Messages.debug (Printexc.to_string e); fail Ocsigen_Malformed_Url)
+      
 
 let rec getcookie s =
   let rec firstnonspace s i = 

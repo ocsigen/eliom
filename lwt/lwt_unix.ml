@@ -521,4 +521,4 @@ let inputs_length () = List.length !inputs
 let outputs_length () = List.length !outputs
 let wait_children_length () = List.length !wait_children
 let get_event_counter () = !event_counter
-
+let sleep_queue_size () = SleepQueue.size !sleep_queue

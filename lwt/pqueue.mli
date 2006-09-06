@@ -18,6 +18,7 @@ module type S =
     val union: t -> t -> t
     val find_min: t -> elt
     val remove_min: t -> t
+    val size: t -> int
   end
 
 module Make(Ord: OrderedType) : S with type elt = Ord.t

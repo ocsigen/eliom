@@ -18,6 +18,7 @@ module type S =
     val union: t -> t -> t
     val find_min: t -> elt
     val remove_min: t -> t
+    val size: t -> int
   end
 
 module Make(Ord: OrderedType) : (S with type elt = Ord.t) =
@@ -77,4 +78,8 @@ module Make(Ord: OrderedType) : (S with type elt = Ord.t) =
       | ts ->
           let (Node (x, r, c), ts) = get_min ts in
           union (List.rev c) ts
+
+    let rec size l =
+      let rec sizetree (Node (_,_,tl)) = 1 + size tl in
+      List.fold_left (fun s t -> s + sizetree t) 0 l
   end

@@ -249,7 +249,7 @@ object (self)
       assert(m >= 0);
       (* Try to read m bytes: *)
       let rec read_block k =
-      self # debug ("read_block "^string_of_int k);
+      (* self # debug ("read_block "^string_of_int k);*)
 	if k < m then
 	  let temp = String.create (m-k) in
 	  (s_channel # input temp 0 (m-k)) >>= 

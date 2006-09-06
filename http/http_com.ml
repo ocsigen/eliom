@@ -40,24 +40,24 @@ struct
   let create size = { buf=String.create size;
 		      read_pos=0;
 		      write_pos=0; 
-		      size=size}
+		      size=size }
 
   (** the number of free byte in the buffer *)
-  let nb_free buffer = buffer.size - ( buffer.write_pos - buffer.read_pos)
+  let nb_free buffer = buffer.size - (buffer.write_pos - buffer.read_pos)
 
   (** the number of byte in the buffer*)
   let content_length buffer = buffer.write_pos - buffer.read_pos
                          
-  (** wait until the buffer has free slot an d return the number of free slots*)
+  (** wait until the buffer has free slot and return the number of free slots*)
   let rec wait_can_write buffer =
     let free = nb_free buffer in
       if free = 0 then
         begin
           let waiting_thread = Lwt.wait () in
-            thread_waiting_write_enable := Some waiting_thread;
-            waiting_thread >>= (fun () -> 
-              thread_waiting_write_enable := None;
-              wait_can_write buffer)
+          thread_waiting_write_enable := Some waiting_thread;
+          waiting_thread >>= (fun () -> 
+            thread_waiting_write_enable := None;
+            wait_can_write buffer)
         end
       else Lwt.return free
 
@@ -72,32 +72,34 @@ struct
         else
           (*copy of the temp buffer in the circular buffer*)
           try
-            (
-            (if buffer.read_pos mod buffer.size > buffer.write_pos mod
-            buffer.size 
-            then
-              String.blit temp_buf 0 buffer.buf buffer.write_pos len
-            else
-              (let write_to_buf_end = buffer.size -(buffer.write_pos mod buffer.size) in
-                if write_to_buf_end > len then
-                  String.blit temp_buf 0 buffer.buf buffer.write_pos len
+            (print_endline temp_buf;
+             (if buffer.read_pos mod buffer.size > buffer.write_pos mod
+               buffer.size 
+             then
+               String.blit temp_buf 0 buffer.buf buffer.write_pos len
+             else
+               (let write_to_buf_end = 
+		 buffer.size - (buffer.write_pos mod buffer.size) in
+               if write_to_buf_end > len then
+                 String.blit temp_buf 0 buffer.buf buffer.write_pos len
                else
 		 (
-                   String.blit temp_buf 0 buffer.buf buffer.write_pos write_to_buf_end;
-                   String.blit temp_buf write_to_buf_end buffer.buf 0 (len -
-                write_to_buf_end);
-                  )
-              );
-            (*update the buffer*)
-            buffer.write_pos <- buffer.write_pos + len;
-            (* if a thread wait for reading wake it up *)
-            (match !thread_waiting_read_enable with
+                  String.blit 
+		    temp_buf 0 buffer.buf buffer.write_pos write_to_buf_end;
+                  String.blit temp_buf write_to_buf_end buffer.buf 0 
+		    (len - write_to_buf_end);
+                 )
+               );
+              (* update the buffer *)
+              buffer.write_pos <- buffer.write_pos + len;
+              (* if a thread wait for reading wake it up *)
+              (match !thread_waiting_read_enable with
               |Some thread -> Lwt.wakeup thread ()
               |None -> ()
-            );
-            return ()
+              );
+              return ()
+             )
             )
-          )
           with e -> fail e
       )
     )
@@ -122,9 +124,11 @@ struct
                       receive fd buffer >>=
 		      (fun () -> read_aux result read_p rem_len)
                   |_ ->
-                      let nb_read = min3 rem_len available (buffer.size - r_buffer_pos) in
+                      let nb_read = 
+			min3 rem_len available (buffer.size - r_buffer_pos) in
                       let string_read = String.sub buffer.buf read_p nb_read in
-                        read_aux (result^string_read) (read_p + nb_read) (rem_len - nb_read)
+                      read_aux (result^string_read) 
+			(read_p + nb_read) (rem_len - nb_read)
                       
             )
     in
