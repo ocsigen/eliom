@@ -314,7 +314,7 @@ object (self)
     Netbuffer.blit s_netbuf 0 buf pos len';
     Netbuffer.delete s_netbuf 0 len';
     s_pos <- s_pos + len';
-    ( catch 
+    (catch 
 	(fun () -> self # want_minimum())  (* may raise Buffer_underrun *)
       (function
 	  Netchannels.Buffer_underrun ->
@@ -504,7 +504,7 @@ object(self)
     Netbuffer.blit s_netbuf 0 buf pos len';
     s # skip len' >>=              (* never raises Buffer_underrun *)
     (fun () -> s_pos <- s_pos + len';
-    ( catch
+    (catch
 	(fun () -> self # want_minimum())
       (function 
 	  Netchannels.Buffer_underrun ->

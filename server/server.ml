@@ -450,10 +450,10 @@ let listen modules_list =
   let listen_connexion receiver in_ch sockaddr 
       xhtml_sender file_sender empty_sender =
     
-    let rec listen_connexion_aux () =
+    let rec listen_connexion_aux ~keep_alive =
       let analyse_http () =
 	choose
-	  [Http_receiver.get_http_frame receiver ();
+	  [Http_receiver.get_http_frame receiver ~keep_alive ();
 	   (Lwt_unix.sleep (get_connect_time_max ()) >>= 
 	    (fun () -> fail Ocsigen_Timeout))] >>=
 	(fun http_frame ->
@@ -462,12 +462,12 @@ let listen modules_list =
             >>= (fun keep_alive -> 
 	      if keep_alive then begin
 		print_endline "KEEP ALIVE";
-                listen_connexion_aux ()
+                listen_connexion_aux ~keep_alive:true
                   (* Pour laisser la connexion ouverte, je relance *)
 	      end
 	      else (Lwt_unix.lingering_close in_ch; 
-		    return ()))
-	) in
+		    return ())))
+      in
       catch
 	analyse_http
 	(function
@@ -482,7 +482,7 @@ let listen modules_list =
 		return ())
           | exn -> fail exn)
 	
-    in listen_connexion_aux ()
+    in listen_connexion_aux ~keep_alive:false
       
   in 
   let wait_connexion socket =
@@ -492,7 +492,8 @@ let listen modules_list =
 	Lwt_unix.lingering_close in_ch
       with _ -> ());
       match exn with
-	Unix.Unix_error (e,func,param) ->
+	Http_com.Ocsigen_KeepaliveTimeout -> return ()
+      | Unix.Unix_error (e,func,param) ->
 	  warning ("While talking to "^ip^": "^(Unix.error_message e)^
 		  " in function "^func^" ("^param^") - (I continue)");
 	  return ()
@@ -503,7 +504,7 @@ let listen modules_list =
 		  then ((String.sub s2 0 1999)^"...<truncated>")
 		  else s2)^"\n---");
 	  return ()
-      | Ocsigen_Timeout -> debug ("While talking to "^ip^": Timeout");
+      | Ocsigen_Timeout -> warning ("While talking to "^ip^": Timeout");
 	  return ()
       | Ssl.Write_error(Ssl.Error_ssl) -> errlog ("While talking to "^ip
                                        ^": Ssl broken pipe - (I continue)");
@@ -538,12 +539,16 @@ let listen modules_list =
     	  let s_unix = match s with Lwt_unix.Plain fd -> fd 
     		         | _ -> raise Ssl_Exception (* impossible *) in
     	  catch 
-    	     (fun () -> ((Lwt_unix.accept (Lwt_unix.Encrypted 
-	                    (s_unix, Ssl.embed_socket s_unix !ctx))) >>=
-			    (fun (ss, ssa) -> Lwt.return (ss, sa))))
-    	  (function  Ssl.Accept_error e -> warning "Accept_error"; do_accept ()
-    	     | e -> warning (Printexc.to_string e); do_accept ())
-         end else Lwt.return (s, sa)) in
+    	    (fun () -> 
+	      ((Lwt_unix.accept
+		  (Lwt_unix.Encrypted 
+		     (s_unix, Ssl.embed_socket s_unix !ctx))) >>=
+	       (fun (ss, ssa) -> Lwt.return (ss, sa))))
+    	    (function
+		Ssl.Accept_error e -> 
+		  warning "Accept_error"; do_accept ()
+    	      | e -> warning (Printexc.to_string e); do_accept ())
+        end else Lwt.return (s, sa)) in
        (do_accept ()) >>= 
 	(fun c ->
 	  incr_connected ();

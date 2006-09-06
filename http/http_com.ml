@@ -22,18 +22,25 @@ open Http_frame
 open Lwt
 
 exception Ocsigen_HTTP_parsing_error of string * string
+exception Ocsigen_KeepaliveTimeout
 
 (** buffer de comunication permettant la reception et la recupération des messages *)
 module Com_buffer =
 struct
-  type t = { mutable buf :string;mutable  read_pos:int;mutable  write_pos:int; size:int}
+  type t = { mutable buf :string; 
+	     mutable read_pos:int; 
+	     mutable write_pos:int; 
+	     size:int }
 
   let thread_waiting_read_enable = ref None
 
   let thread_waiting_write_enable = ref None
              
   (** create a buffer *)
-  let create size = { buf=String.create size;read_pos=0;write_pos=0; size=size}
+  let create size = { buf=String.create size;
+		      read_pos=0;
+		      write_pos=0; 
+		      size=size}
 
   (** the number of free byte in the buffer *)
   let nb_free buffer = buffer.size - ( buffer.write_pos - buffer.read_pos)
@@ -56,9 +63,9 @@ struct
 
   exception End_of_file         
                 
-  (** return a thread that return when data where received *)
-  let receive file_descr buffer ()=
-    wait_can_write buffer >>=(fun free ->
+  (** returns a thread that returns when data were received *)
+  let receive file_descr buffer =
+    wait_can_write buffer >>= (fun free ->
     let temp_buf = String.create free in
       Lwt_unix.read file_descr temp_buf 0 free >>= (fun len ->
         if len = 0 then Lwt.fail End_of_file
@@ -112,7 +119,8 @@ struct
                   |x when x < 0 -> assert false
                   |0 -> 
                       (* wait until can read more bytes*)
-                      catch (receive fd buffer) (fun e -> Lwt.fail e) >>=(fun () -> read_aux result read_p rem_len)
+                      receive fd buffer >>=
+		      (fun () -> read_aux result read_p rem_len)
                   |_ ->
                       let nb_read = min3 rem_len available (buffer.size - r_buffer_pos) in
                       let string_read = String.sub buffer.buf read_p nb_read in
@@ -125,7 +133,7 @@ struct
       else read_aux "" (off + buffer.read_pos) len
 
    (** extract a given number bytes in the destructive way from the buffer *)
-  let extract fd buffer len ()=
+  let extract fd buffer len =
     let rec extract_aux  result =
       function
         |0 -> Lwt.return result
@@ -137,9 +145,8 @@ struct
                   |x when x < 0 -> assert false
                   |0 ->
                       (* wait more bytes to read *)
-                      catch (receive fd buffer) (fun e -> Lwt.fail e) >>=( fun () ->
+                      receive fd buffer >>= (fun () ->
                         extract_aux result rem_len)
-                                                            
                   |_ -> 
                          let nb_extract = min3 rem_len available (buffer.size - r_buffer_pos) in
                          let string_extract = String.sub buffer.buf buffer.read_pos nb_extract in
@@ -195,14 +202,14 @@ struct
             |_ -> assert false
           )
             
-    (** return when the seqence \r\n\r\n is found in the buffer the result is number of char to read *)
-  let wait_http_header fd buffer ()=
-    let rec wait_http_header_aux cur_ind=
+  (** returns when the seqence \r\n\r\n is found in the buffer the result is number of char to read *)
+  let wait_http_header fd buffer ~keep_alive =
+    let rec wait_http_header_aux cur_ind =
       match buffer.write_pos - cur_ind with
         |x when x < 0 -> assert false
         |0 -> 
            (*wait for more bytes to analyse*)
-            catch (receive fd buffer) (fun e -> Lwt.fail e) >>= (fun () ->
+            receive fd buffer >>= (fun () ->
               wait_http_header_aux cur_ind)
         |available ->
             try
@@ -210,10 +217,18 @@ struct
                 Lwt.return (end_ind - buffer.read_pos +1)
             with 
                 Not_found ->
-                  catch (receive fd buffer) (fun e -> Lwt.fail e) >>= (fun () ->
-                    wait_http_header_aux (cur_ind + available - (min available 3))
-                  )
-    in wait_http_header_aux buffer.read_pos
+                  receive fd buffer >>= (fun () ->
+                    wait_http_header_aux 
+		      (cur_ind + available - (min available 3)))
+    in (* wait_http_header_aux buffer.read_pos 
+	  Pour keep-alive timeout je remplace ça par *)
+    (if keep_alive
+    then
+      Lwt.choose
+	[receive fd buffer;
+	 (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
+	  (fun () -> fail Ocsigen_KeepaliveTimeout))]
+    else return ()) >>= (fun () -> wait_http_header_aux buffer.read_pos)
              
 end
 
@@ -241,14 +256,10 @@ module FHttp_receiver =
            raise (Ocsigen_HTTP_parsing_error ((Lexing.lexeme lexbuf),s))
          
       (** get an http frame *)
-      let get_http_frame receiver () =
-        catch 
-	  (Com_buffer.wait_http_header receiver.fd receiver.buffer) 
-	  (fun e -> Lwt.fail e) >>=
+      let get_http_frame receiver ~keep_alive () =
+	Com_buffer.wait_http_header ~keep_alive receiver.fd receiver.buffer >>=
 	(fun len ->
-          catch 
-	    (Com_buffer.extract receiver.fd receiver.buffer len)
-	    (fun e -> Lwt.fail e) >>= 
+	  Com_buffer.extract receiver.fd receiver.buffer len >>= 
 	  (fun string_header ->
             try
               let header = http_header_of_string string_header in
@@ -278,7 +289,8 @@ module FHttp_receiver =
                 |x when x < 0 -> assert false
                 |0 -> Lwt.return None
                 |_ -> 
-                    catch (Com_buffer.extract receiver.fd receiver.buffer body_length) (fun e -> Lwt.fail e) >>= C.content_of_string >>= 
+                    Com_buffer.extract receiver.fd receiver.buffer body_length
+		      >>= C.content_of_string >>= 
 		    (fun c -> Lwt.return (Some c))
               in
               body >>= (fun b ->
