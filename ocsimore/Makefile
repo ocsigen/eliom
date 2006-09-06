@@ -23,7 +23,7 @@ OTHEROBJS = $(OTHERFILES:.ml=.cmo)
 
 CMA = ocsimore.cma
 
-all: depend $(CMA) $(OTHEROBJS)
+all: $(CMA) $(OTHEROBJS)
 	cp *.cma $(OTHEROBJS) ../lib
 
 $(CMA): $(OBJS)

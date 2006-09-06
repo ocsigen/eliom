@@ -16,7 +16,7 @@ PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -loc loc"
 
 OBJS = $(FILES:.ml=.cmo)
 
-all: depend $(OBJS)
+all: $(OBJS)
 	cp *.cmo *.cmi ../lib
 
 .SUFFIXES:

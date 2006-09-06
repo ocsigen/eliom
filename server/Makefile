@@ -42,7 +42,7 @@ OCSIMORECMAO =
 
 OBJS = $(FILES:.ml=.cmo)
 
-all: depend $(OBJS) $(NAME)
+all: $(OBJS) $(NAME)
 #	cp *.cmo *.cmi ../lib
 	cp ocsigen.cmo ocsigen.cmi preemptive.cmi ../lib
 #	cp config.cmi ../lib
