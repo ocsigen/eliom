@@ -258,11 +258,11 @@ let socket dom typ proto =
   if not windows_hack then Unix.set_nonblock s;
   Lwt.return s
 
-let shutdown ch = 
+let shutdown ch shutdown_command = 
   match ch with
-    Plain fdesc -> Unix.shutdown fdesc Unix.SHUTDOWN_ALL
-    | Encrypted (fdesc, sock) -> Ssl.shutdown sock;
-    	       Unix.shutdown fdesc Unix.SHUTDOWN_ALL	
+    Plain fdesc -> Unix.shutdown fdesc shutdown_command
+  | Encrypted (fdesc, sock) -> Ssl.shutdown sock;
+      Unix.shutdown fdesc shutdown_command
 
 let socketpair dom typ proto =
   let (s1, s2) as spair = Unix.socketpair dom typ proto in
@@ -503,6 +503,17 @@ let close_process_full (inchan, outchan, errchan) =
                  (Process_full(inchan, outchan, errchan)) in
   close_in inchan; close_out outchan; close_in errchan;
   Lwt.bind (waitpid [] pid) (fun (_, status) -> Lwt.return status)
+
+
+let lingering_close ch =
+  print_endline "SHUTDOWN";
+  try shutdown ch Unix.SHUTDOWN_SEND with _ -> ();
+  ignore (Lwt.bind (sleep 10.0) (fun () -> 
+    Lwt.return
+      (match ch with 
+	Plain fd -> print_endline "CLOSE"; Unix.close fd
+      | Encrypted (fd,sock) -> print_endline "CLOSE"; Unix.close fd)))
+
 
 (**/**)
 (* Monitoring functions *)

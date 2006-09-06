@@ -13,7 +13,7 @@ CAMLCOPT = $(OCAMLFIND) ocamlopt $(DBG)
 CAMLDEP  = $(OCAMLFIND) ocamldep
 NAME 	 = test_pp
 LIBDIR 	= ../lib
-LIB= -package netstring -I $(LIBDIR) -I +camlp4
+LIB= -package netstring,ssl -I $(LIBDIR) -I +camlp4
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
 ALL_CMO  = netlwtstream.cmo multipart.cmo ocsiconfig.cmo \
            messages.cmo http_frame.cmo http_parser.cmo http_lexer.cmo \

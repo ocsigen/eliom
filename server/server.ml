@@ -70,7 +70,6 @@ exception Ocsigen_Malformed_Url
 
 let server_name = ("Ocsigen server ("^Ocsiconfig.version_number^")")
 
-
 (* Ces deux trucs sont dans Neturl version 1.1.2 mais en attendant qu'ils
  soient dans debian, je les mets ici *)
 let problem_re = Pcre.regexp "[ <>\"{}|\\\\^\\[\\]`]"
@@ -354,10 +353,12 @@ let service http_frame sockaddr
 			     (function _ -> Lwt.return ()) (* stops if error while sending *)
 			 end
 			 else 
-			   send_error ~error_num:403 xhtml_sender (* Forbidden *))
+			   send_error ~keep_alive:keep_alive
+			     ~error_num:403 xhtml_sender (* Forbidden *))
 			 (function
 			     Unix.Unix_error (Unix.EACCES,_,_) ->
-			       send_error ~error_num:403 xhtml_sender (* Forbidden *)
+			       send_error ~keep_alive:keep_alive
+				 ~error_num:403 xhtml_sender (* Forbidden *)
 			   | _ -> fail Ocsigen_404 (*lstat errors, etc.*))
 		     else fail Ocsigen_404
 		 | Ocsigen.Ocsigen_Is_a_directory -> 
@@ -397,36 +398,37 @@ let service http_frame sockaddr
       (function
 	  Ocsigen_404 -> 
 	    (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
-	    send_error ~error_num:404 xhtml_sender
+	    send_error ~keep_alive:ka ~error_num:404 xhtml_sender
 	      >>= (fun _ ->
 		return ka (* keep_alive *))
 	| Ocsigen_Malformed_Url ->
 	    (*really_write "404 Not Found ??" false in_ch "error ??? (Malformed URL) \n"
 	     * 0 11 *)
-	    send_error ~error_num:400 xhtml_sender
+	    send_error ~keep_alive:ka ~error_num:400 xhtml_sender
 	      >>= (fun _ -> return ka (* keep_alive *))
 	| e ->
-            send_error ~error_num:500 xhtml_sender
+            send_error ~keep_alive:ka ~error_num:500 xhtml_sender
 	      >>= (fun _ -> fail e))
   in 
   let meth = (Http_header.get_method http_frame.Http_frame.header) in
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
       (meth <> Some(Http_header.HEAD))) 
-  then (send_error ~error_num:501 xhtml_sender>>=(fun _ -> return ka)) 
+  then (send_error ~keep_alive:ka ~error_num:501 xhtml_sender>>=
+	(fun _ -> return ka)) 
   else begin 
     try
       if ((int_of_string 
 	     (Http_header.get_headers_value http_frame.Http_frame.header 
 		"content-length")) > 0) &&
 	(meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD))
-      then (send_error ~error_num:501 xhtml_sender >>= 
+      then (send_error ~keep_alive:ka ~error_num:501 xhtml_sender >>= 
 	    (fun _ -> return ka)) 
       else serv  
     with _ -> 
       if meth = Some(Http_header.POST)
-      then (send_error ~error_num:400 xhtml_sender
-	      >>= (fun _ -> return ka )) else serv
+      then (send_error ~keep_alive:ka ~error_num:400 xhtml_sender
+	      >>= (fun _ -> return ka)) else serv
   end 
        
 
@@ -455,29 +457,29 @@ let listen modules_list =
 	   (Lwt_unix.sleep (get_connect_time_max ()) >>= 
 	    (fun () -> fail Ocsigen_Timeout))] >>=
 	(fun http_frame ->
-          catch 
-	    (service http_frame sockaddr 
-	       xhtml_sender file_sender empty_sender in_ch)
-	    fail
+	  (service http_frame sockaddr 
+	     xhtml_sender file_sender empty_sender in_ch ())
             >>= (fun keep_alive -> 
-	      if keep_alive then
+	      if keep_alive then begin
+		print_endline "KEEP ALIVE";
                 listen_connexion_aux ()
                   (* Pour laisser la connexion ouverte, je relance *)
-	      else begin 
-		Lwt_unix.shutdown in_ch;
-		return ()
-	      end)
+	      end
+	      else (Lwt_unix.lingering_close in_ch; 
+		    return ()))
 	) in
-      catch 
+      catch
 	analyse_http
 	(function
             Http_error.Http_exception (_,_) as http_ex ->
               (*let mes = Http_error.string_of_http_exception http_ex in
-		 really_write "404 Plop" (* à revoir ! *) 
+		 really_write "404 Plop"
 		 false in_ch mes 0 
-		 (String.length mes);*)
-	      Lwt_unix.shutdown in_ch;
-              send_error ~http_exception:http_ex xhtml_sender
+		 (String.length mes); *)
+              send_error 
+		~keep_alive:false ~http_exception:http_ex xhtml_sender >>=
+	      (fun () -> Lwt_unix.lingering_close in_ch;
+		return ())
           | exn -> fail exn)
 	
     in listen_connexion_aux ()
@@ -487,8 +489,8 @@ let listen modules_list =
     let handle_exn sockaddr in_ch exn = 
       let ip = ip_of_sockaddr sockaddr in
       (try
-      Lwt_unix.shutdown in_ch;
-      with e -> ());
+	Lwt_unix.lingering_close in_ch
+      with _ -> ());
       match exn with
 	Unix.Unix_error (e,func,param) ->
 	  warning ("While talking to "^ip^": "^(Unix.error_message e)^
@@ -501,8 +503,8 @@ let listen modules_list =
 		  then ((String.sub s2 0 1999)^"...<truncated>")
 		  else s2)^"\n---");
 	  return ()
-      | Ocsigen_Timeout -> warning ("While talking to "^ip^": Timeout");
-	  return () (* should be a graceful close *)
+      | Ocsigen_Timeout -> debug ("While talking to "^ip^": Timeout");
+	  return ()
       | Ssl.Write_error(Ssl.Error_ssl) -> errlog ("While talking to "^ip
                                        ^": Ssl broken pipe - (I continue)");
           return ()

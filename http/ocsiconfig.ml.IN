@@ -42,7 +42,9 @@ type config = { mutable port: int;
 		mutable max_number_of_threads_queued: int;
 		mutable max_number_of_connections: int;
 		mutable mimefile: string;
-		mutable connect_time_max: float }
+		mutable connect_time_max: float;
+		mutable keepalive_timeout: float;
+	 }
 
 let config_file = ref "_CONFIGDIR_/ocsigen.conf"
 let verbose = ref false
@@ -51,17 +53,21 @@ let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
 let mimefile = ref "_CONFIGDIR_/mime.types"
 
-let init_config () = {port = 80; port_modified = false; virt = false; ssl = false;
-		      modu = [];
-		      private_key = ""; certificate = ""; passwd = ""; 
-		      uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
-		      static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
-		      user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
-		      minthreads = 10; 
-		      maxthreads = 300; 
-		      max_number_of_threads_queued = 100;
-		      max_number_of_connections = 500;
-		      mimefile = "_CONFIGDIR_/mime.types"; connect_time_max = 15. }
+let init_config () = 
+  {port = 80; port_modified = false; virt = false; ssl = false;
+   modu = [];
+   private_key = ""; certificate = ""; passwd = ""; 
+   uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
+   static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
+   user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
+   minthreads = 10; 
+   maxthreads = 300; 
+   max_number_of_threads_queued = 100;
+   max_number_of_connections = 500;
+   mimefile = "_CONFIGDIR_/mime.types"; 
+   connect_time_max = 60.;
+   keepalive_timeout = 15.
+ }
 let sconf  = ref (init_config ())
 let cfgs : config list ref = ref [](*(Array.init max_servers (init_config))*) 
 let set_port cf i = cf.port <- i; cf.port_modified <- true
@@ -76,7 +82,7 @@ let set_key cf k = cf.private_key <- k
 let set_certificate cf c = cf.certificate <- c
 let set_passwd cf p = cf.passwd <- p
 let set_uploaddir cf u = cf.uploaddir <- u
-let set_logdir cf s = cf.logdir <- s; Messages.open_files ()
+let set_logdir cf s = cf.logdir <- s
 let set_configfile s = config_file := s
 let set_mimefile cf s = cf.mimefile <- s
 let set_verbose () = verbose := true
@@ -90,6 +96,7 @@ let set_max_number_of_threads_queued cf i =
   cf.max_number_of_threads_queued <- i
 let set_max_number_of_connections cf i = cf.max_number_of_connections <- i
 let set_connect_time_max cf i = cf.connect_time_max <- i
+let set_keepalive_timeout cf i = cf.keepalive_timeout <- i
 let set_number_of_servers x = number_of_servers := x
 let get_port () = !sconf.port
 let get_port_modified () = !sconf.port_modified
@@ -114,6 +121,7 @@ let get_maxthreads () = !sconf.maxthreads
 let get_max_number_of_threads_queued () = !sconf.max_number_of_threads_queued
 let get_max_number_of_connections () = !sconf.max_number_of_connections
 let get_connect_time_max () = !sconf.connect_time_max
+let get_keepalive_timeout () = !sconf.keepalive_timeout
 
 let set_static_dir cf s path =
   let rec assoc_and_remove a = function

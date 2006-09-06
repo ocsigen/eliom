@@ -194,7 +194,7 @@ let gmtdate d =
 * page is the page to send
 * xhtml_sender is the used sender*)
 let send_generic 
-    ?code ?keep_alive ?cookie ?last_modified
+    ?code ~keep_alive ?cookie ?last_modified
     ?path ?location ?(header=[]) ?head ~content sender 
     (send : ?mode:Xhtml_sender.H.http_mode ->
       ?proto:string ->
@@ -224,10 +224,9 @@ let send_generic
 			      | None -> "")))::hds
   in
   let hds3 =
-    match keep_alive with
-    |None ->  hds2
-    |Some true  -> ("Connection","Keep-Alive")::hds2(* obsolete? *)
-    |Some false -> ("Connection","Close")::hds2
+    if keep_alive
+    then ("Connection","Keep-Alive")::hds2 (* obsolete? *)
+    else ("Connection","Close")::hds2
   in
   let hds4 =
     match location with
@@ -244,7 +243,7 @@ type create_sender_type = ?server_name:string ->
 
 type send_page_type =
     ?code:int ->
-      ?keep_alive:bool ->
+      keep_alive:bool ->
 	?cookie:string ->
 	  ?path:string ->
 	    ?last_modified:float ->
@@ -258,10 +257,10 @@ type send_page_type =
  * path is the path associated to the cookie
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_xhtml_page ~content ?code ?keep_alive ?cookie ?path 
+let send_xhtml_page ~content ?code ~keep_alive ?cookie ?path 
     ?last_modified ?location ?head xhtml_sender =
   send_generic 
-    ?code ?keep_alive ?cookie ?path ?location ?last_modified
+    ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~content ?head xhtml_sender Xhtml_sender.send
   
 (** fonction that sends an empty answer
@@ -270,16 +269,16 @@ let send_xhtml_page ~content ?code ?keep_alive ?cookie ?path
  * cookie is a string value that give a value to the session cookie
  * page is the page to send
  * empty_sender is the used sender *)
-let send_empty ?code ?keep_alive ?cookie 
+let send_empty ?code ~keep_alive ?cookie 
     ?path ?location ?last_modified ?head empty_sender =
   send_generic  ?last_modified
-    ?code ?keep_alive ?cookie ?path ?location ~content:() 
+    ?code ~keep_alive ?cookie ?path ?location ~content:() 
     ?head empty_sender Empty_sender.send
 
-let send_text_page ~content ?code ?keep_alive ?cookie ?path 
+let send_text_page ~content ?code ~keep_alive ?cookie ?path 
     ?last_modified ?location ?head xhtml_sender =
   send_generic 
-    ?code ?keep_alive ?cookie ?path ?location ?last_modified
+    ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~content ?head xhtml_sender Text_sender.send
   
   
@@ -378,10 +377,10 @@ let content_type_from_file_name filename =
     in Hashtbl.find mimeht extens
   with _ -> "unknown" 
 
-let send_file ?code ?keep_alive ?cookie ?path
+let send_file ?code ~keep_alive ?cookie ?path
     ?last_modified ?location ?head file file_sender =
   send_generic 
-    ?code ?keep_alive ?cookie ?path ?location ?last_modified
+    ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~header:[("Content-Type",content_type_from_file_name file)]
     ~content:file ?head file_sender File_sender.send
 

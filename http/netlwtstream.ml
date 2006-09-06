@@ -9,6 +9,7 @@
 module S = Netstring_pcre
 open Lwt
 
+
 class type in_descr_channel = 
 object 
    method pos_in : int
@@ -82,7 +83,8 @@ object (self)
 
   method close_in() =
       if closed then raise Netchannels.Closed_channel (*self # complain_closed()*);
-      Lwt_unix.shutdown sock;
+      print_string "LWTSTREAM-";
+      Lwt_unix.lingering_close sock;
       closed <- true
 
   method pos_in =

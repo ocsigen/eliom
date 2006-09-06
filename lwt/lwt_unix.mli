@@ -40,7 +40,7 @@ val socket :
 val socketpair :
   Unix.socket_domain -> Unix.socket_type -> int ->
   (Unix.file_descr * Unix.file_descr) Lwt.t
-val shutdown : descr -> unit
+val shutdown : descr -> Unix.shutdown_command -> unit
 val accept : descr -> (descr * Unix.sockaddr) Lwt.t
 val connect : descr -> Unix.sockaddr -> unit Lwt.t
 
@@ -70,6 +70,8 @@ val close_process:
 val close_process_full:
   lwt_in_channel * lwt_out_channel * lwt_in_channel ->
   Unix.process_status Lwt.t
+
+val lingering_close : descr -> unit
 
 (**/**)
 (* monitoring *)

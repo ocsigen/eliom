@@ -148,6 +148,9 @@ let rec parser_config =
     | PLCons ((EPanytag ("timeout", PLEmpty, p)), ll) -> 
 	set_connect_time_max n (float_of_string (parse_string p));
 	parse_ocsigen n ll
+    | PLCons ((EPanytag ("keepalivetimeout", PLEmpty, p)), ll) -> 
+	set_keepalive_timeout n (float_of_string (parse_string p));
+	parse_ocsigen n ll
     | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
 	(Cmo (parse_string l))::parse_ocsigen n ll
     | PLCons ((EPanytag ("site", atts, l)), ll) ->
