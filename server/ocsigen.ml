@@ -79,17 +79,17 @@ let change_empty_list = function
  *)
 
 
-let rec reconstruct_url_path = function
+let rec string_of_url_path = function
     [] -> ""
   | [a] -> a
-  | a::l -> a^"/"^(reconstruct_url_path l)
+  | a::l -> a^"/"^(string_of_url_path l)
 
-let rec reconstruct_url_path_suff u = function
-    None -> reconstruct_url_path u
-  | Some suff -> let deb = (reconstruct_url_path u) in
+let rec string_of_url_path_suff u = function
+    None -> string_of_url_path u
+  | Some suff -> let deb = (string_of_url_path u) in
     if deb = "" then suff else deb^"/"^suff
 
-let reconstruct_absolute_url_path current_url = reconstruct_url_path_suff
+let reconstruct_absolute_url_path current_url = string_of_url_path_suff
 
 let reconstruct_relative_url_path current_url u suff =
   let rec drop cururl desturl = match cururl, desturl with
@@ -104,8 +104,8 @@ let reconstruct_relative_url_path current_url u suff =
     | _::l -> "../"^(makedotdot l)
   in 
   let aremonter, aaller = drop current_url u
-  in let s = (makedotdot aremonter)^(reconstruct_url_path_suff aaller suff) in
-(*  Messages.debug ((reconstruct_url_path current_url)^"->"^(reconstruct_url_path u)^"="^s);*)
+  in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
+(*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
   if s = "" then defaultpagename else s
 
 
@@ -289,8 +289,8 @@ let reconstruct_params
   in
   try 
     match typ with
-      TProd(TSuffix,t) -> Obj.magic ((reconstruct_url_path urlsuffix), aux2 t)
-    | TSuffix -> Obj.magic (reconstruct_url_path urlsuffix)
+      TProd(TSuffix,t) -> Obj.magic ((string_of_url_path urlsuffix), aux2 t)
+    | TSuffix -> Obj.magic (string_of_url_path urlsuffix)
     | _ -> Obj.magic (aux2 typ)
   with Not_found -> raise Ocsigen_Wrong_parameter
 
@@ -397,7 +397,7 @@ let add_unregistered, remove_unregistered, verify_all_registered =
    (fun a -> l := list_remove a !l),
    (fun () -> 
      match !l with [] -> () 
-     | (a,_)::_ -> raise (Ocsigen_there_are_unregistered_services (reconstruct_url_path a))))
+     | (a,_)::_ -> raise (Ocsigen_there_are_unregistered_services (string_of_url_path a))))
 
 let during_initialisation, end_initialisation =
   let init = ref true in
@@ -557,7 +557,7 @@ module Directorytree : DIRECTORYTREE = struct
 (********** Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ! *)
 	let _,oldl = list_assoc_remove id l in
 	if not session then
-	  raise (Ocsigen_duplicate_registering (reconstruct_url_path url_act))
+	  raise (Ocsigen_duplicate_registering (string_of_url_path url_act))
 	else (key,((id,elt)::oldl))::newt
       with Not_found -> (key,((id,elt)::l))::newt
     with Not_found -> (key,[(id,elt)])::t
@@ -1152,7 +1152,9 @@ module Make = functor
 	    (get_current_dir ()) global_tables false (service.url_state)
 	    ~service ?error_handler page_gen; 
 	end
-	else Messages.warning "Public service registration after init forbidden! Please correct your module! (ignored)"
+	else Messages.warning ("URL .../"^
+			       (string_of_url_path service.url)^
+			       " : Public service registration outside <site></site> or after init forbidden! Please correct your module! (ignored)")
 
 (* WARNING: if we create a new service without registering it,
    we can have a link towards a page that does not exist!!! :-(
@@ -1287,9 +1289,9 @@ module Make = functor
       let register_action
 	  ~(action : ('post,'pn) action)
 	  (actionfun : (server_params -> 'post -> unit Lwt.t)) : unit =
-	if global_register_allowed () then begin
+	(* if global_register_allowed () then *)
+	if during_initialisation () then
 	  register_action_aux (get_current_dir ()) global_tables action actionfun
-	end
 	else Messages.warning "Public action registration after init forbidden! Please correct your module! (ignored)"
 
       let register_new_action ~post_params actionfun = 
@@ -2125,7 +2127,7 @@ let execute generate_page sockaddr cookie =
        Some c)
       else cookie)
     in return 
-      (cookie2, send_page, sender, ("/"^(reconstruct_url_path working_dir))))
+      (cookie2, send_page, sender, ("/"^(string_of_url_path working_dir))))
 
 
 let get_page 
@@ -2135,7 +2137,7 @@ let get_page
   let generate_page ip session_tables_ref =
     catch (* D'abord recherche dans la table de session *)
       (fun () -> 
-	Messages.debug ("--- I search "^(reconstruct_url_path url)^" in the session table:");
+	Messages.debug ("--- I search "^(string_of_url_path url)^" in the session table:");
 	(find_service
 	   !session_tables_ref
 	   (session_tables_ref,

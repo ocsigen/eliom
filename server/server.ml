@@ -277,25 +277,27 @@ let find_static_page path =
     with Not_found -> 
       (match dir_option with
 	None -> dir
-      | Some s -> s)^"/"^(Ocsigen.reconstruct_url_path (a::l))
+      | Some s -> s)^"/"^(Ocsigen.string_of_url_path (a::l))
   in 
   aux "/" (Ocsiconfig.get_static_tree ()) path
 
 let service http_frame sockaddr 
     xhtml_sender file_sender empty_sender inputchan () =  			
-    let head =  ((Http_header.get_method http_frame.Http_frame.header) 
-    		= Some (Http_header.HEAD)) in
-    let ka = try (
-          let kah = String.lowercase (Http_header.get_headers_value 
-	  		http_frame.Http_frame.header "Connection") in 
-			if kah = "close" then false else 
-			  (if kah = "keep-alive" then true 
-			  else false(* should not happen *)))
-	  with _ -> let prot = Http_header.get_proto http_frame.Http_frame.header in
-	  		if prot.[(String.index (prot) '/')+3] = '1' 
-	  		then true else false in
-      Messages.debug ("Keep-Alive:"^(string_of_bool ka));
-      Messages.debug("HEAD:"^(string_of_bool head));
+    let head = ((Http_header.get_method http_frame.Http_frame.header) 
+    		  = Some (Http_header.HEAD)) in
+    let ka = try
+      let kah =	String.lowercase 
+	  (Http_header.get_headers_value
+	     http_frame.Http_frame.header "Connection") 
+      in 
+      if kah = "close" then false else 
+      (if kah = "keep-alive" then true else false (* should not happen *))
+    with _ ->
+      (* if prot.[(String.index prot '/')+3] = '1' *)
+      if (Http_header.get_proto http_frame.Http_frame.header) = "HTTP/1.1"
+      then true else false in
+    Messages.debug ("Keep-Alive:"^(string_of_bool ka));
+    Messages.debug("HEAD:"^(string_of_bool head));
    let serv =  
   catch (fun () ->
     let cookie = 
@@ -407,20 +409,24 @@ let service http_frame sockaddr
           send_error ~error_num:500 xhtml_sender
 	    >>= (fun _ -> fail e))
        in 
-       let meth =  (Http_header.get_method http_frame.Http_frame.header) in
-	if ((meth <> Some (Http_header.GET)) && (meth <> Some (Http_header.POST)) 
-	    && (meth <> Some(Http_header.HEAD))) 
+       let meth = (Http_header.get_method http_frame.Http_frame.header) in
+	if ((meth <> Some (Http_header.GET)) && 
+	    (meth <> Some (Http_header.POST)) && 
+	    (meth <> Some(Http_header.HEAD))) 
 	then (send_error ~error_num:501 xhtml_sender>>=(fun _ -> return ka)) 
-	else begin try
-      	if (int_of_string (Http_header.get_headers_value http_frame.Http_frame.header 
-			  "content-length")) > 0
-	    && (meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD))  
-	      then (send_error ~error_num:501 xhtml_sender >>= 
-	                                         (fun _ -> return ka)) 
-	      else serv  
-         with _ -> if meth = Some(Http_header.POST)
-	           then (send_error ~error_num:400 xhtml_sender
-		                            >>= (fun _ -> return ka )) else serv
+	else begin 
+	  try
+      	    if ((int_of_string 
+		   (Http_header.get_headers_value http_frame.Http_frame.header 
+		      "content-length")) > 0) &&
+	      (meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD))
+	    then (send_error ~error_num:501 xhtml_sender >>= 
+		  (fun _ -> return ka)) 
+	    else serv  
+          with _ -> 
+	    if meth = Some(Http_header.POST)
+	    then (send_error ~error_num:400 xhtml_sender
+		    >>= (fun _ -> return ka )) else serv
 	end 
        
 

@@ -70,3 +70,10 @@ val close_process:
 val close_process_full:
   lwt_in_channel * lwt_out_channel * lwt_in_channel ->
   Unix.process_status Lwt.t
+
+(**/**)
+(* monitoring *)
+val inputs_length : unit -> int
+val outputs_length : unit -> int
+val wait_children_length : unit -> int
+val get_event_counter : unit -> int

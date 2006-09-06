@@ -54,7 +54,7 @@ type current_dir
 val string_list_of_current_url : current_url -> url_path
 (** Converts a [current_url] to an [url_path] *)
 
-val reconstruct_url_path : url_path -> string
+val string_of_url_path : url_path -> string
 (** Reconstructs the string from a [url_path] *)
 
 val remove_slash : url_path -> url_path

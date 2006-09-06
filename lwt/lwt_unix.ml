@@ -503,3 +503,11 @@ let close_process_full (inchan, outchan, errchan) =
                  (Process_full(inchan, outchan, errchan)) in
   close_in inchan; close_out outchan; close_in errchan;
   Lwt.bind (waitpid [] pid) (fun (_, status) -> Lwt.return status)
+
+(**/**)
+(* Monitoring functions *)
+let inputs_length () = List.length !inputs
+let outputs_length () = List.length !outputs
+let wait_children_length () = List.length !wait_children
+let get_event_counter () = !event_counter
+

@@ -1,6 +1,6 @@
 include ../Makefile.config
 
-FILES=tutorial.ml ocsiprof.ml essais.ml
+FILES=tutorial.ml monitoring.ml essais.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g

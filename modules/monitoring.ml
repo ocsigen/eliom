@@ -46,17 +46,33 @@ let _ =
       let mincol = string_of_int stat.Gc.minor_collections in
       let majcol = string_of_int stat.Gc.major_collections in
       let top_heap_words = string_of_int stat.Gc.top_heap_words in
+      let pid = string_of_int (Unix.getpid ()) in
+      let fd = 
+	let dir = Unix.opendir 
+	    ("/proc/"^pid^"/fd") in
+	let rec aux v =
+	  try ignore ((* print_endline *) (readdir dir)); aux (v+1) 
+	  with End_of_file -> v
+	in
+	let r = try string_of_int ((aux 0) - 2) 
+	with e -> ("(Error: "^(Printexc.to_string e)^")") in
+	Unix.closedir dir;
+	r
+      in
 Lwt.return
 <<
  <html>
    <head>
    </head>
    <body>
-     <h1>Ocsigen server profiling</h1>
+     <h1>Ocsigen server monitoring</h1>
      <p>Uptime: $str:uptime$.</p>
      <p>There are currently $str:n$ sessions.</p>
      <p>Number of clients connected: 
 	 $str:(string_of_int (get_number_of_connected ()))$.</p>
+     <p>PID : $str:pid$</p>
+     <p>$str:fd$ file descriptors opened.</p>
+     <h2>GC</h2>
      <p>Size of major heap: $str:size$ words (max: $str:maxsize$).</p>
      <p>Since the beginning:</p>
        <ul><li>$str:mincol$ minor garbage collections,</li>
@@ -64,6 +80,17 @@ Lwt.return
            <li>$str:compactions$ compactions of the heap.</li>
            <li>Maximum size reached by the major heap: $str:top_heap_words$ words.</li>
        </ul>
+     <h2>Lwt threads</h2>
+     <p>
+       $str:(string_of_int (Lwt_unix.inputs_length ()))$ 
+	     lwt threads waiting for inputs<br/>
+       $str:(string_of_int (Lwt_unix.outputs_length ()))$ 
+	       lwt threads waiting for outputs<br/>
+       $str:(string_of_int (Lwt_unix.wait_children_length ()))$
+	       lwt threads waiting for children<br/>
+       Total $str:(string_of_int (Lwt_unix.get_event_counter ()))$ events.<br/>
+     </p>
+     <h2>Preemptive threads</h2>
      <p>There are currently $str:(string_of_int (Preemptive.nbthreads ()))$ 
 	     detached threads running
 	     (min $str:(string_of_int (Ocsiconfig.get_minthreads ()))$,

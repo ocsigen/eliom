@@ -1252,7 +1252,7 @@ let looong2 =
     ~url:["looong2"]
     ~get_params:unit
     (fun sp () () -> 
-      (Preemptive.detach Unix.sleep 100) >>= (fun () ->
+      (Preemptive.detach Unix.sleep 5) >>= (fun () ->
 	return
         (html
 	  (head (title (pcdata "")) [])
