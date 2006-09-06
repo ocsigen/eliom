@@ -76,7 +76,7 @@ let set_key cf k = cf.private_key <- k
 let set_certificate cf c = cf.certificate <- c
 let set_passwd cf p = cf.passwd <- p
 let set_uploaddir cf u = cf.uploaddir <- u
-let set_logdir cf s = cf.logdir <- s
+let set_logdir cf s = cf.logdir <- s; Messages.open_files ()
 let set_configfile s = config_file := s
 let set_mimefile cf s = cf.mimefile <- s
 let set_verbose () = verbose := true

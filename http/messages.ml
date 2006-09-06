@@ -16,8 +16,30 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-let log_aux f console_print s =
-  let logfile = (Ocsiconfig.get_logdir ())^"/"^f in
+let access = "access.log",ref Unix.stdout
+let warning = "warnings.log",ref Unix.stderr
+let error = "errors.log",ref Unix.stderr
+
+let open_files =
+  let opened = ref false in
+  let openlog f =
+    Unix.openfile
+      ((Ocsiconfig.get_logdir ())^"/"^f)
+      [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640
+  in
+  fun () ->
+    if !opened
+    then begin
+      Unix.close !(snd access);
+      Unix.close !(snd warning);
+      Unix.close !(snd error)
+    end;
+    opened := true;
+    snd access := openlog (fst access);
+    snd warning := openlog (fst warning);
+    snd error := openlog (fst error)
+
+let log_aux file console_print s =
   let date = 
     let t = Unix.localtime (Unix.time ()) in
     Printf.sprintf 
@@ -30,12 +52,8 @@ let log_aux f console_print s =
       t.Unix.tm_sec 
   in
   let s = date^" - "^s^"\n" in
-  if console_print then prerr_endline ("["^f^"] "^s);
-  let file = 
-    Unix.openfile 
-      logfile [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640 in
-  ignore(Unix.write file s 0 (String.length s));
-  Unix.close file
+  if console_print then prerr_endline ("["^(fst file)^"] "^s);
+  ignore(Unix.write !(snd file) s 0 (String.length s))
       
 let lwtbip i = 
   if Ocsiconfig.get_veryverbose () then
@@ -43,13 +61,13 @@ let lwtbip i =
     ignore (Unix.write Unix.stderr s 0 (String.length s))
 
 let accesslog s =
-  log_aux "access.log" (Ocsiconfig.get_verbose ()) s
+  log_aux access (Ocsiconfig.get_verbose ()) s
 
 let errlog s =
-  log_aux "errors.log" (not (Ocsiconfig.get_silent ())) s
+  log_aux error (not (Ocsiconfig.get_silent ())) s
 
 let warning s =
-  log_aux "warnings.log" (Ocsiconfig.get_verbose ()) s
+  log_aux warning (Ocsiconfig.get_verbose ()) s
 
 (*
 let lwtlog = 
@@ -73,5 +91,4 @@ let debug s =
 let bip i = 
   if Ocsiconfig.get_veryverbose () then
     prerr_endline ("bip"^(string_of_int i))
-
 

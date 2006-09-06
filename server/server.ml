@@ -282,41 +282,39 @@ let find_static_page path =
   aux "/" (Ocsiconfig.get_static_tree ()) path
 
 let service http_frame sockaddr 
-    xhtml_sender file_sender empty_sender inputchan () =  			
-    let head = ((Http_header.get_method http_frame.Http_frame.header) 
-    		  = Some (Http_header.HEAD)) in
-    let ka = try
-      let kah =	String.lowercase 
-	  (Http_header.get_headers_value
-	     http_frame.Http_frame.header "Connection") 
-      in 
-      if kah = "close" then false else 
-      (if kah = "keep-alive" then true else false (* should not happen *))
-    with _ ->
-      (* if prot.[(String.index prot '/')+3] = '1' *)
-      if (Http_header.get_proto http_frame.Http_frame.header) = "HTTP/1.1"
-      then true else false in
-    Messages.debug ("Keep-Alive:"^(string_of_bool ka));
-    Messages.debug("HEAD:"^(string_of_bool head));
-   let serv =  
-  catch (fun () ->
-    let cookie = 
-      try 
-	Some (getcookie (Http_header.get_headers_value 
-			   http_frame.Http_frame.header "Cookie"))
-      with _ -> None
-    in
-    get_frame_infos http_frame >>=
-    (fun ((path,stringpath,params,a,b,c,ua), action_info) -> 
-      let frame_info = (path,stringpath,params,a,b,c,ua) in  
-      (* log *)
+    xhtml_sender file_sender empty_sender inputchan () =
+  let head = ((Http_header.get_method http_frame.Http_frame.header) 
+    		= Some (Http_header.HEAD)) in
+  let ka = try
+    let kah =	String.lowercase 
+	(Http_header.get_headers_value
+	   http_frame.Http_frame.header "Connection") 
+    in 
+    if kah = "close" then false else 
+    (if kah = "keep-alive" then true else false (* should not happen *))
+  with _ ->
+    (* if prot.[(String.index prot '/')+3] = '1' *)
+    if (Http_header.get_proto http_frame.Http_frame.header) = "HTTP/1.1"
+    then true else false in
+  Messages.debug ("Keep-Alive:"^(string_of_bool ka));
+  Messages.debug("HEAD:"^(string_of_bool head));
+  let serv =  
+    catch (fun () ->
+      let cookie = 
+	try 
+	  Some (getcookie (Http_header.get_headers_value 
+			     http_frame.Http_frame.header "Cookie"))
+	with _ -> None
+      in
+      get_frame_infos http_frame >>=
+      (fun ((path,stringpath,params,a,b,c,ua), action_info) -> 
+	let frame_info = (path,stringpath,params,a,b,c,ua) in  
+	(* log *)
 	let ip = ip_of_sockaddr sockaddr in
 	accesslog ("connection from "^ip^" ("^ua^") : "^stringpath^params);
-      (* end log *)
-      match action_info with
+	(* end log *)
+	match action_info with
 	  None ->
-	    (* Je préfère pour l'instant ne jamais faire de keep-alive pour
-	       éviter d'avoir un nombre de threads qui croit sans arrêt *)
 	    let keep_alive = ka in
 	    (catch
 	       (fun () ->
@@ -335,9 +333,11 @@ let service http_frame sockaddr
 		     if params = "" then
 		       catch (fun () ->
 			 let filename = find_static_page path in
-			 Messages.debug ("--- Is it a static file? ("^filename^")");
+			 Messages.debug ("--- Is it a static file? ("^filename
+					 ^")");
 			 ignore (Unix.lstat filename);
-			 let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
+			 let dir = ((Unix.lstat filename).Unix.st_kind = 
+				    Unix.S_DIR) in
 			 let filename = 
 			   if dir
 			   then filename^"/index.html"
@@ -351,14 +351,14 @@ let service http_frame sockaddr
 			       ~keep_alive:keep_alive
 			       ~last_modified:((Unix.stat filename).Unix.st_mtime)
 			       ~code:200 ~head:head filename file_sender)
-			    (function _ -> Lwt.return ()) (* stops if error while sending *)
+			     (function _ -> Lwt.return ()) (* stops if error while sending *)
 			 end
 			 else 
 			   send_error ~error_num:403 xhtml_sender (* Forbidden *))
-		       (function
-			   Unix.Unix_error (Unix.EACCES,_,_) ->
-			     send_error ~error_num:403 xhtml_sender (* Forbidden *)
-			 | _ -> fail Ocsigen_404 (*lstat errors, etc.*))
+			 (function
+			     Unix.Unix_error (Unix.EACCES,_,_) ->
+			       send_error ~error_num:403 xhtml_sender (* Forbidden *)
+			   | _ -> fail Ocsigen_404 (*lstat errors, etc.*))
 		     else fail Ocsigen_404
 		 | Ocsigen.Ocsigen_Is_a_directory -> 
 		     send_empty
@@ -367,67 +367,67 @@ let service http_frame sockaddr
                        ~code:301 (* Moved permanently *)
 	               ~head:head empty_sender		
 		 | e -> fail e)
-	      >>= (fun _ -> return keep_alive))
+	       >>= (fun _ -> return keep_alive))
 	| Some (action_name, reload, action_params) ->
 	    make_action action_name action_params frame_info sockaddr cookie
-	    >>= (fun (cookie2,path) ->
-	      let keep_alive = ka in
-	      (if reload then
-		get_page frame_info sockaddr cookie2 >>=
-		(fun cookie3,send_page,sender,path ->
-		   (send_page ~keep_alive:keep_alive 
-		      ?cookie:(if cookie3 <> cookie then 
-				 (if cookie3 = None 
-				  then Some remove_cookie_str
-				  else cookie3) 
-			       else None)
-		      ~path:path ~head:head
-	              (sender ~server_name:server_name inputchan)))
-	       else
-		 (send_empty ~keep_alive:keep_alive 
-		    ?cookie:(if cookie2 <> cookie then 
-			       (if cookie2 = None 
-				then Some remove_cookie_str
-				else cookie2) 
-			     else None)
-		    ~path:path
-                    ~code:204 ~head:head
-	            empty_sender)) >>=
+	      >>= (fun (cookie2,path) ->
+		let keep_alive = ka in
+		(if reload then
+		  get_page frame_info sockaddr cookie2 >>=
+		  (fun cookie3,send_page,sender,path ->
+		    (send_page ~keep_alive:keep_alive 
+		       ?cookie:(if cookie3 <> cookie then 
+			 (if cookie3 = None 
+			 then Some remove_cookie_str
+			 else cookie3) 
+		       else None)
+		       ~path:path ~head:head
+	               (sender ~server_name:server_name inputchan)))
+		else
+		  (send_empty ~keep_alive:keep_alive 
+		     ?cookie:(if cookie2 <> cookie then 
+		       (if cookie2 = None 
+		       then Some remove_cookie_str
+		       else cookie2) 
+		     else None)
+		     ~path:path
+                     ~code:204 ~head:head
+	             empty_sender)) >>=
 		(fun _ -> return keep_alive))))
-    (function
-	Ocsigen_404 -> 
-	  (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
-	  send_error ~error_num:404 xhtml_sender
-	    >>= (fun _ ->
-	      return ka (* keep_alive *))
-      | Ocsigen_Malformed_Url ->
-	  (*really_write "404 Not Found ??" false in_ch "error ??? (Malformed URL) \n"
-	   * 0 11 *)
-	  send_error ~error_num:400 xhtml_sender
-	    >>= (fun _ -> return ka (* keep_alive *))
-      | e ->
-          send_error ~error_num:500 xhtml_sender
-	    >>= (fun _ -> fail e))
-       in 
-       let meth = (Http_header.get_method http_frame.Http_frame.header) in
-	if ((meth <> Some (Http_header.GET)) && 
-	    (meth <> Some (Http_header.POST)) && 
-	    (meth <> Some(Http_header.HEAD))) 
-	then (send_error ~error_num:501 xhtml_sender>>=(fun _ -> return ka)) 
-	else begin 
-	  try
-      	    if ((int_of_string 
-		   (Http_header.get_headers_value http_frame.Http_frame.header 
-		      "content-length")) > 0) &&
-	      (meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD))
-	    then (send_error ~error_num:501 xhtml_sender >>= 
-		  (fun _ -> return ka)) 
-	    else serv  
-          with _ -> 
-	    if meth = Some(Http_header.POST)
-	    then (send_error ~error_num:400 xhtml_sender
-		    >>= (fun _ -> return ka )) else serv
-	end 
+      (function
+	  Ocsigen_404 -> 
+	    (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
+	    send_error ~error_num:404 xhtml_sender
+	      >>= (fun _ ->
+		return ka (* keep_alive *))
+	| Ocsigen_Malformed_Url ->
+	    (*really_write "404 Not Found ??" false in_ch "error ??? (Malformed URL) \n"
+	     * 0 11 *)
+	    send_error ~error_num:400 xhtml_sender
+	      >>= (fun _ -> return ka (* keep_alive *))
+	| e ->
+            send_error ~error_num:500 xhtml_sender
+	      >>= (fun _ -> fail e))
+  in 
+  let meth = (Http_header.get_method http_frame.Http_frame.header) in
+  if ((meth <> Some (Http_header.GET)) && 
+      (meth <> Some (Http_header.POST)) && 
+      (meth <> Some(Http_header.HEAD))) 
+  then (send_error ~error_num:501 xhtml_sender>>=(fun _ -> return ka)) 
+  else begin 
+    try
+      if ((int_of_string 
+	     (Http_header.get_headers_value http_frame.Http_frame.header 
+		"content-length")) > 0) &&
+	(meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD))
+      then (send_error ~error_num:501 xhtml_sender >>= 
+	    (fun _ -> return ka)) 
+      else serv  
+    with _ -> 
+      if meth = Some(Http_header.POST)
+      then (send_error ~error_num:400 xhtml_sender
+	      >>= (fun _ -> return ka )) else serv
+  end 
        
 
 let load_modules modules_list =
@@ -605,6 +605,7 @@ let _ =
     end; ask_for_passwds t in
   let run s =
     Ocsiconfig.sconf := s;
+    Messages.open_files ();
     Ocsiconfig.cfgs := [];
     Gc.full_major ();
     if (get_maxthreads ())<(get_minthreads ())
