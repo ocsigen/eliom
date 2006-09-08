@@ -478,39 +478,6 @@ module Directorytree : DIRECTORYTREE = struct
   (* Each node contains either a list of nodes (case directory)
      or a table of "answers" (functions that will generate the page) *)
 
-  let rec host_match host =
-    let hostlen = String.length host in
-    let rec host_match1 beg =
-      let rec aux t len l p0 =
-	try 
-	  let (p,_) = 
-	    Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
-	  let beg2 = p + len in
-	  (host_match1 beg2 l) || (aux t len l (p+1))
-	with _ -> false
-      in
-      function
-	[] -> beg = hostlen
-      | [Ocsiconfig.Wildcard] -> true
-      | (Ocsiconfig.Wildcard)::(Ocsiconfig.Wildcard)::l -> 
-	  host_match1 beg ((Ocsiconfig.Wildcard)::l)
-      | (Ocsiconfig.Wildcard)::(Ocsiconfig.Text (t,len))::l -> aux t len l beg
-      | (Ocsiconfig.Text (t,len))::l -> 
-	  try
-	    (t = String.sub host beg len) && (host_match1 (beg+len) l)
-	  with _ -> false
-    in
-    function
-      [] -> false
-    | a::l -> (host_match1 0 a) || host_match host l
-
-  let string_of_host h = 
-    let rec aux = function
-      [] -> ""
-    | Ocsiconfig.Wildcard::l -> "*"^(aux l)
-    | (Ocsiconfig.Text (t,_))::l -> t^(aux l)
-    in List.fold_left (fun d hh -> d^(aux hh)^" ") "" h
-
   type page_table_key =
       {prefix:bool;
        state: internal_state option}
@@ -708,8 +675,8 @@ module Directorytree : DIRECTORYTREE = struct
     let find_dircontent_for_host hlist = 
       let rec aux host = function
 	  [] -> raise Ocsigen_404
-	| (h,d)::l when host_match host h -> Messages.debug ("host found: "^host^" matches "^(string_of_host h)); (d,l)
-	| (h,_)::l -> Messages.debug ("host = "^host^" does not match "^(string_of_host h)); aux host l
+	| (h,d)::l when Ocsiconfig.host_match host h -> Messages.debug ("host found: "^host^" matches "^(Ocsiconfig.string_of_host h)); (d,l)
+	| (h,_)::l -> Messages.debug ("host = "^host^" does not match "^(Ocsiconfig.string_of_host h)); aux host l
       in match host with 
 	None -> (match hlist with
 	  [] -> raise Ocsigen_404

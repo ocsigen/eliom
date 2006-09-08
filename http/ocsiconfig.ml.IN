@@ -25,6 +25,41 @@ let number_of_servers = ref 0
 type virtual_host_part = Text of string * int | Wildcard
 type virtual_hosts = virtual_host_part list list
 
+let rec host_match host =
+  let hostlen = String.length host in
+  let rec host_match1 beg =
+    let rec aux t len l p0 =
+      try 
+	let (p,_) = 
+	  Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
+	let beg2 = p + len in
+	(host_match1 beg2 l) || (aux t len l (p+1))
+      with _ -> false
+    in
+    function
+	[] -> beg = hostlen
+      | [Wildcard] -> true
+      | (Wildcard)::(Wildcard)::l -> 
+	  host_match1 beg ((Wildcard)::l)
+      | (Wildcard)::(Text (t,len))::l -> aux t len l beg
+      | (Text (t,len))::l -> 
+	  try
+	    (t = String.sub host beg len) && (host_match1 (beg+len) l)
+	  with _ -> false
+  in
+  function
+      [] -> false
+    | a::l -> (host_match1 0 a) || host_match host l
+
+let string_of_host h = 
+  let rec aux = function
+      [] -> ""
+    | Wildcard::l -> "*"^(aux l)
+    | (Text (t,_))::l -> t^(aux l)
+  in List.fold_left (fun d hh -> d^(aux hh)^" ") "" h
+
+
+
 type modules = Cmo of string | Mod of virtual_hosts * string list * string
 type static_dir = Static_dir of string option * (string * static_dir) list
 type config = { mutable port: int;
@@ -36,7 +71,8 @@ type config = { mutable port: int;
 		mutable passwd: string;
 		mutable uploaddir: string;
 		mutable logdir: string;
-		mutable static_tree: static_dir;
+		mutable static_tree: (virtual_hosts * static_dir ref) list;
+		mutable default_static_tree: static_dir;
 		mutable user: string;
 		mutable group: string;
 		mutable minthreads: int;
@@ -60,7 +96,8 @@ let init_config () =
    modu = [];
    private_key = ""; certificate = ""; passwd = ""; 
    uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
-   static_tree = (Static_dir (Some "_STATICPAGESDIR_", []));
+   static_tree = [];
+   default_static_tree = Static_dir (Some "_STATICPAGESDIR_", []);
    user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
    minthreads = 10; 
    maxthreads = 300; 
@@ -76,7 +113,7 @@ let set_port cf i = cf.port <- i; cf.port_modified <- true
 let get_port_n cf = cf.port
 let set_modules cf m = cf.modu <- m
 let get_port_n_modif cf = cf.port_modified
-let set_ssl  cf b = cf.ssl <- b
+let set_ssl cf b = cf.ssl <- b
 let get_ssl_n cf = cf.ssl
 let set_key cf k = cf.private_key <- k
 let set_certificate cf c = cf.certificate <- c
@@ -84,6 +121,8 @@ let set_passwd cf p = cf.passwd <- p
 let set_uploaddir cf u = cf.uploaddir <- u
 let set_logdir cf s = cf.logdir <- s
 let set_configfile s = config_file := s
+let set_default_static_tree cf s = 
+  (cf).default_static_tree <- Static_dir (Some "_STATICPAGESDIR_", [])
 let set_mimefile cf s = cf.mimefile <- s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
@@ -113,6 +152,7 @@ let get_verbose () = !verbose
 let get_silent () = !silent
 let get_veryverbose () = !veryverbose
 let get_static_tree () = !sconf.static_tree
+let get_default_static_tree () = !sconf.default_static_tree
 let get_user () = !sconf.user
 let get_group () = !sconf.group
 let get_minthreads () = !sconf.minthreads
@@ -122,7 +162,7 @@ let get_max_number_of_connections () = !sconf.max_number_of_connections
 let get_connect_time_max () = !sconf.connect_time_max
 let get_keepalive_timeout () = !sconf.keepalive_timeout
 
-let set_static_dir cf s path =
+let set_static_dir cf host s path =
   let rec assoc_and_remove a = function
       [] -> raise Not_found
     | (b,v)::l when a = b -> (v,l)
@@ -141,9 +181,20 @@ let set_static_dir cf s path =
 	  let sd = aux sd1 l in
 	  Static_dir (s1,(a,sd)::l2)
 	with Not_found -> Static_dir (s1,(a,(add_path l))::l1)
-  in (cf).static_tree <- aux (cf).static_tree path
-
-let set_staticpages cf s = set_static_dir cf s []
+  in
+  let find_add_static_dir () = 
+    let rec auxx = function
+	[] -> let r = ref (Static_dir ((Some "_STATICPAGESDIR_"),[])) in
+	(cf).static_tree <- 
+	  (host,r)::(cf).static_tree (* new one at the beginning *);
+	r
+      | (h,r)::_ when h == host (* physical equality *) -> r
+      | _::l -> auxx l
+    in auxx (cf).static_tree 
+  in
+  print_endline ("set_static_dir "^(string_of_host host));
+  let static_dir = find_add_static_dir () in
+  static_dir := aux !static_dir path
 
 let display_version () =
   print_string version_number;

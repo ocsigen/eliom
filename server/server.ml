@@ -274,7 +274,7 @@ let rec getcookie s =
 
 let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
-let find_static_page path =
+let find_static_page host path =
   let rec aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) = function
       [] -> (match dir_option with
 	None -> dir
@@ -290,7 +290,33 @@ let find_static_page path =
 	None -> dir
       | Some s -> s)^"/"^(Ocsigen.string_of_url_path (a::l))
   in 
-  aux "/" (Ocsiconfig.get_static_tree ()) path
+  let static_trees = Ocsiconfig.get_static_tree () in
+  let find_static_tree_for_host trees =
+      let rec aux host = function
+	  [] -> raise Not_found
+	| (h,d)::l when host_match host h -> Messages.debug ("host found: "^host^" matches "^(string_of_host h)); (d,l)
+	| (h,_)::l -> Messages.debug ("host = "^host^" does not match "^(string_of_host h)); aux host l
+      in match host with 
+	None -> (match trees with
+	  [] -> raise Not_found
+	| (_,d)::l -> (d,l))
+      | Some hh -> aux hh trees
+  in
+  let find_file filename = 
+    Messages.debug ("Looking for ("^filename^")");
+    ignore (Unix.lstat filename);
+    let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
+    if dir
+    then filename^"/index.html"
+    else filename
+  in
+  let rec aux_host = function
+      [] -> print_endline "default"; 
+	find_file (aux "/" (get_default_static_tree ()) path)
+    | trees -> let st,others = find_static_tree_for_host trees in
+      try find_file (aux "/" !st path)
+      with _ -> aux_host others
+  in aux_host static_trees
 
 let service http_frame sockaddr 
     xhtml_sender file_sender empty_sender inputchan () =
@@ -347,17 +373,8 @@ let service http_frame sockaddr
 		   Ocsigen_404 ->
 		     if params = "" then
 		       catch (fun () ->
-			 let filename = find_static_page path in
-			 Messages.debug ("--- Is it a static file? ("^filename
-					 ^")");
-			 ignore (Unix.lstat filename);
-			 let dir = ((Unix.lstat filename).Unix.st_kind = 
-				    Unix.S_DIR) in
-			 let filename = 
-			   if dir
-			   then filename^"/index.html"
-			   else filename
-			 in
+			 Messages.debug ("--- Is it a static file?");
+			 let filename = find_static_page host path in
 			 if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
 			 then begin
 			   Unix.access filename [Unix.R_OK];

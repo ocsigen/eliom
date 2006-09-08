@@ -77,7 +77,7 @@ let rec parser_config =
 	let cmo,static,mime = parse_site2 (None, None, None) l in
 	(match static with
 	  None -> ()
-	| Some s -> Ocsiconfig.set_static_dir n s path);
+	| Some s -> print_endline ("site "^s);Ocsiconfig.set_static_dir n host s path);
 	(match mime with
 	  None -> ()
 	| Some m -> Ocsiconfig.set_mimefile n m);
@@ -119,7 +119,7 @@ let rec parser_config =
 	set_logdir n (parse_string p);
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("staticdir", PLEmpty, p)), ll) -> 
-	set_staticpages n (parse_string p);
+	set_default_static_tree n (parse_string p);
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("user", PLEmpty, p)), ll) -> 
 	set_user n (parse_string p);
