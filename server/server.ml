@@ -115,13 +115,15 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	   ~fragment:true 
 	   url2) in
     let host =
-      if Ocsiconfig.get_virtual () then try
+      try
         let hostport = 
           Http_header.get_headers_value http_frame.Http_frame.header "Host" in
-    	  String.sub hostport 0 (String.index hostport ':') 
-        with Not_found -> ""
-      else "" in
-    Messages.debug ("host="^host);
+    	try 
+	  Some (String.sub hostport 0 (String.index hostport ':'))
+	with _ -> Some hostport
+      with _ -> None
+    in
+    Messages.debug ("host="^(match host with None -> "<none>" | Some h -> h));
     let params = Neturl.string_of_url
 	(Neturl.remove_from_url
 	   ~user:true
@@ -195,12 +197,15 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	    (fun () -> return (Array.to_list !param_names))
 	end
 	      (*	IN-MEMORY STOCKAGE *)
-	      (*	let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
-		 (String.length s) bound in
-		 Messages.debug (string_of_int (List.length bdlist));
-		 let simplify (hs,b) = ((find_field "name" (List.assoc "content-disposition" hs)),b) in
-		 List.iter (fun (hs,b) -> List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
-		 List.map simplify bdlist *)
+	      (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
+	       * (String.length s) bound in
+	       * Messages.debug (string_of_int (List.length bdlist));
+	       * let simplify (hs,b) = 
+	       * ((find_field "name" 
+	       * (List.assoc "content-disposition" hs)),b) in
+	       * List.iter (fun (hs,b) -> 
+	       * List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
+	       * List.map simplify bdlist *)
     in
     find_post_params >>= (fun post_params ->
       let internal_state,post_params2 = 
@@ -238,16 +243,19 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 			     http_frame.Http_frame.header "user-agent")
       with _ -> ""
       in return
-	((Ocsigen.remove_slash (host :: (Neturl.url_path url2)), 
+	(((Ocsigen.remove_slash (Neturl.url_path url2)), 
           (* the url path (string list) *)
-	  (host^path),
+	  host,
+	  path,
 	  params,
 	  internal_state2,
 	  get_params2,
 	  post_params3,
-	  useragent), action_info)))
-      (function e -> Messages.debug (Printexc.to_string e); fail Ocsigen_Malformed_Url)
-      
+	 useragent), action_info)))
+      (function e -> 
+	Messages.debug (Printexc.to_string e); 
+	fail Ocsigen_Malformed_Url (* ?? *))
+
 
 let rec getcookie s =
   let rec firstnonspace s i = 
@@ -310,11 +318,15 @@ let service http_frame sockaddr
 	with _ -> None
       in
       get_frame_infos http_frame >>=
-      (fun ((path,stringpath,params,a,b,c,ua), action_info) -> 
-	let frame_info = (path,stringpath,params,a,b,c,ua) in  
+      (fun ((path,host,stringpath,params,a,b,c,ua), action_info) -> 
+	let frame_info = (host,path,stringpath,params,a,b,c,ua) in  
 	(* log *)
 	let ip = ip_of_sockaddr sockaddr in
-	accesslog ("connection from "^ip^" ("^ua^") : "^stringpath^params);
+	accesslog ("connection"^
+		   (match host with 
+		     None -> ""
+		   | Some h -> (" for "^h))^
+		   " from "^ip^" ("^ua^") : "^stringpath^params);
 	(* end log *)
 	match action_info with
 	  None ->
@@ -354,7 +366,8 @@ let service http_frame sockaddr
 			       ~keep_alive:keep_alive
 			       ~last_modified:((Unix.stat filename).Unix.st_mtime)
 			       ~code:200 ~head:head filename file_sender)
-			     (function _ -> Lwt.return ()) (* stops if error while sending *)
+			     (function _ -> Lwt.return ()) 
+                                        (* stops if error while sending *)
 			 end
 			 else 
 			   send_error ~keep_alive:keep_alive
@@ -406,7 +419,8 @@ let service http_frame sockaddr
 	      >>= (fun _ ->
 		return ka (* keep_alive *))
 	| Ocsigen_Malformed_Url ->
-	    (*really_write "404 Not Found ??" false in_ch "error ??? (Malformed URL) \n"
+	    (*really_write "404 Not Found ??" false in_ch "error ??? 
+	       (Malformed URL) \n"
 	     * 0 11 *)
 	    send_error ~keep_alive:ka ~error_num:400 xhtml_sender
 	      >>= (fun _ -> return ka (* keep_alive *))
@@ -440,8 +454,8 @@ let load_modules modules_list =
   let rec aux = function
       [] -> ()
     | (Cmo s)::l -> Dynlink.loadfile s; aux l
-    | (Mod (path,cmo))::l -> 
-	Ocsigen.load_ocsigen_module ~dir:path ~cmo:cmo; 
+    | (Mod (host,path,cmo))::l -> 
+	Ocsigen.load_ocsigen_module ~host:host ~dir:path ~cmo:cmo; 
 	aux l
   in
   Dynlink.init ();
@@ -503,7 +517,8 @@ let listen modules_list =
 	  return ()
       | Com_buffer.End_of_file -> return ()
       | Ocsigen_HTTP_parsing_error (s1,s2) ->
-	  errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^") in:\n"^
+	  errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^
+		  ") in:\n"^
 		  (if (String.length s2)>2000 
 		  then ((String.sub s2 0 1999)^"...<truncated>")
 		  else s2)^"\n---");
@@ -608,7 +623,8 @@ let _ =
     [] -> ()
     | h :: t -> if Ocsiconfig.get_ssl_n h then begin
       if not (Ocsiconfig.get_port_n_modif h) then Ocsiconfig.set_port h 443; 
-      print_string "Please enter the password for the HTTPS server listening on port ";
+      print_string "Please enter the password for the HTTPS server listening \
+	  on port ";
       print_int (Ocsiconfig.get_port_n h);
       print_string ": ";
       Ocsiconfig.set_passwd h (read_line ());
@@ -629,27 +645,28 @@ let _ =
        Unix.handle_unix_error listen (Ocsiconfig.get_modules ())) in
   let rec launch l = match l with [] -> () | (h :: t) -> begin 
     match Unix.fork () with
-    | 0 -> begin try run h
-    with
-	Ocsigen.Ocsigen_duplicate_registering s -> 
-	  errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
-      | Ocsigen.Ocsigen_there_are_unregistered_services s ->
-	  errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
-      | Ocsigen.Ocsigen_page_erasing s ->
-	  errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.")
-      | Ocsigen.Ocsigen_register_for_session_outside_session ->
-	  errlog ("Fatal - Register session during initialisation forbidden.")
-      | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
-      | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
-    end
+    | 0 -> run h
     | _ -> launch t
   end in
-  let old_term= Unix.tcgetattr Unix.stdin in
-  let old_echo = old_term.Unix.c_echo in
-  old_term.Unix.c_echo <- false;
-  Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
-  ask_for_passwds !Ocsiconfig.cfgs;
-  old_term.Unix.c_echo <- old_echo;
-  Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
-  if !Ocsiconfig.number_of_servers = 1 then run (List.hd !Ocsiconfig.cfgs) 
-  else launch !Ocsiconfig.cfgs
+  try 
+    let old_term= Unix.tcgetattr Unix.stdin in
+    let old_echo = old_term.Unix.c_echo in
+    old_term.Unix.c_echo <- false;
+    Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
+    ask_for_passwds !Ocsiconfig.cfgs;
+    old_term.Unix.c_echo <- old_echo;
+    Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
+    if !Ocsiconfig.number_of_servers = 1 then run (List.hd !Ocsiconfig.cfgs) 
+    else launch !Ocsiconfig.cfgs
+  with
+    Ocsigen.Ocsigen_duplicate_registering s -> 
+      errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
+  | Ocsigen.Ocsigen_there_are_unregistered_services s ->
+      errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
+  | Ocsigen.Ocsigen_page_erasing s ->
+      errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.")
+  | Ocsigen.Ocsigen_register_for_session_outside_session ->
+      errlog ("Fatal - Register session during initialisation forbidden.")
+  | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
+  | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
+

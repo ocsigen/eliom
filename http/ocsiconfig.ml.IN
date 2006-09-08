@@ -22,12 +22,14 @@
 exception Config_file_error of string
 let number_of_servers = ref 0
 
-type modules = Cmo of string | Mod of string list * string
+type virtual_host_part = Text of string * int | Wildcard
+type virtual_hosts = virtual_host_part list list
+
+type modules = Cmo of string | Mod of virtual_hosts * string list * string
 type static_dir = Static_dir of string option * (string * static_dir) list
 type config = { mutable port: int;
 		mutable port_modified: bool;
 		mutable modu: modules list;
-		mutable virt: bool;
 		mutable ssl: bool;
 		mutable private_key: string;
 		mutable certificate: string;
@@ -54,7 +56,7 @@ let version_number = (**)"0000000000000000"(**)
 let mimefile = ref "_CONFIGDIR_/mime.types"
 
 let init_config () = 
-  {port = 80; port_modified = false; virt = false; ssl = false;
+  {port = 80; port_modified = false; ssl = false;
    modu = [];
    private_key = ""; certificate = ""; passwd = ""; 
    uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
@@ -74,8 +76,6 @@ let set_port cf i = cf.port <- i; cf.port_modified <- true
 let get_port_n cf = cf.port
 let set_modules cf m = cf.modu <- m
 let get_port_n_modif cf = cf.port_modified
-let set_virtual cf b = cf.virt <- b
-let get_virtual_n cf = cf.virt
 let set_ssl  cf b = cf.ssl <- b
 let get_ssl_n cf = cf.ssl
 let set_key cf k = cf.private_key <- k
@@ -101,7 +101,6 @@ let set_number_of_servers x = number_of_servers := x
 let get_port () = !sconf.port
 let get_port_modified () = !sconf.port_modified
 let get_modules cf = !sconf.modu
-let get_virtual () = !sconf.virt
 let get_ssl () = !sconf.ssl
 let get_key () = !sconf.private_key
 let get_certificate () = !sconf.certificate

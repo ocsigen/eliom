@@ -869,6 +869,7 @@ and type input_type_t = string
 
 (** return a page from a service and parameters *)
 val get_page :
+    string option *
     url_path * string * string * int option * (string * string) list *
     (string * string) list * string -> 
       Unix.sockaddr -> string option -> 
@@ -878,7 +879,8 @@ val get_page :
 
 val make_action :
     string -> (string * string) list ->
-      url_path * string * string * int option * (string * string) list *
+      string option * url_path * string * string * 
+	int option * (string * string) list *
 	(string * string) list * string -> 
 	  Unix.sockaddr -> string option -> 
 	    (string option * string) Lwt.t
@@ -896,7 +898,8 @@ val get_number_of_connected : unit -> int
 val get_number_of_connected : unit -> int
 (** Server internal functions: *)
 (** loads a module in the server *)
-val load_ocsigen_module : dir:url_path -> cmo:string -> unit
+val load_ocsigen_module : host: Ocsiconfig.virtual_hosts -> 
+  dir:url_path -> cmo:string -> unit
 val incr_connected : unit -> unit
 val decr_connected : unit -> unit
 

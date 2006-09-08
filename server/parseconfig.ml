@@ -73,7 +73,7 @@ let rec parser_config =
   in
   let rec parse_site n host = function
       PLCons ((EPanytag ("url", PLEmpty, s)), l) ->
-      	let path = Neturl.split_path (host^(parse_string s)) in
+      	let path = Neturl.split_path (parse_string s) in
 	let cmo,static,mime = parse_site2 (None, None, None) l in
 	(match static with
 	  None -> ()
@@ -83,7 +83,7 @@ let rec parser_config =
 	| Some m -> Ocsiconfig.set_mimefile n m);
 	(match cmo with
 	  None -> []
-	| Some cmo -> [Mod (path,cmo)])
+	| Some cmo -> [Mod (host,path,cmo)])
     | PLCons ((EPcomment _), l) -> parse_site n host l
     | PLCons ((EPwhitespace _), l) -> parse_site n host l
     | _ -> raise (Config_file_error "<url> tag expected inside <site>")
@@ -108,12 +108,6 @@ let rec parser_config =
 	  set_port n (int_of_string (parse_string p))
 	with _ -> raise (Config_file_error "wrong value for <port> tag"));
 	parse_ocsigen n ll
-    | PLCons ((EPanytag ("virtual", PLEmpty, p)), ll) ->
-    	 (match parse_string p with
-         | "on" -> set_virtual n true
-         | "off" -> set_virtual n false
-         | _ -> raise (Config_file_error "wrong value for <virtual> tag"));
-         parse_ocsigen n ll			 
     | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
     	set_ssl n true;
 	parse_ssl n p;
@@ -155,9 +149,15 @@ let rec parser_config =
 	(Cmo (parse_string l))::parse_ocsigen n ll
     | PLCons ((EPanytag ("site", atts, l)), ll) ->
        let host = match atts with
-        | PLEmpty -> ""
+        | PLEmpty -> [[Ocsiconfig.Wildcard]] (* default = "*" *)
         | PLCons ((EPanyattr (EPVstr("host"), EPVstr(s))), PLEmpty) -> 
-	   if get_virtual_n n then (s^"/") else ""
+	    List.map
+	      (fun ss -> List.map
+		  (function Netstring_str.Delim _ -> Ocsiconfig.Wildcard
+		    | Netstring_str.Text t -> 
+			Ocsiconfig.Text (t, String.length t))
+		  (Netstring_str.full_split (Netstring_str.regexp "[*]+") ss))
+	      (Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
         | _ -> raise (Config_file_error "Wrong attribute for <site>") in
 	(parse_site n host l)@(parse_ocsigen n ll)
     | PLCons ((EPcomment _), ll) -> parse_ocsigen n ll

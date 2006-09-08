@@ -357,6 +357,8 @@ type service_kind = [`Internal_Service of internal_service_kind | `External_Serv
 
 type ('get,'post,'kind,'tipo,'getnames,'postnames) service = 
     {url: url_path; (* name of the service without parameters *)
+     host: Ocsiconfig.virtual_hosts; 
+        (* only for registrering on top of this service *)
      unique_id: int;
      url_prefix: bool;
      external_service: bool;
@@ -374,15 +376,16 @@ type ('get,'post,'kind,'tipo,'getnames,'postnames) service =
 
 
 (* The current registration directory *)
-let absolute_change_dir, get_current_dir, end_current_dir =
-  let current_dir : url_path ref = ref [] in
-  let f1 = ref (fun dir -> current_dir := remove_slash dir) in
+let absolute_change_hostdir, get_current_hostdir, end_current_hostdir =
+  let current_dir : (Ocsiconfig.virtual_hosts * url_path) ref = ref ([],[]) in
+  let f1 = ref (fun host,dir -> 
+    current_dir := host,remove_slash dir) in
   let f2 = ref (fun () -> !current_dir) in
   let exn1 _ = 
-    raise (Ocsigen_Internal_Error "absolute_change_dir after init") in
+    raise (Ocsigen_Internal_Error "absolute_change_hostdir after init") in
   let exn2 () = 
-    raise (Ocsigen_Internal_Error "get_current_dir after init") in
-  ((fun dir -> !f1 dir),
+    raise (Ocsigen_Internal_Error "get_current_hostdir after init") in
+  ((fun hostdir -> !f1 hostdir),
    (fun () -> !f2 ()),
    (fun () -> f1 := exn1; f2 := exn2))
 (* Warning: these functions are used only during the initialisation
@@ -404,7 +407,7 @@ let during_initialisation, end_initialisation =
   ((fun () -> !init), 
    (fun () -> 
      init := false;
-     end_current_dir ();
+     end_current_hostdir ();
      verify_all_registered ()))
 
 let during_ocsigen_module_loading, 
@@ -452,7 +455,8 @@ module type DIRECTORYTREE =
 
     val empty_tables : unit -> tables
     val are_empty_tables : tables -> bool
-    val add_service : tables -> current_dir -> bool -> url_path ->
+    val add_service : tables -> Ocsiconfig.virtual_hosts ->
+      current_dir -> bool -> url_path ->
       Sender_helpers.create_sender_type ->
 	page_table_key * (int * (tables server_params2 -> 
 	  Sender_helpers.send_page_type Lwt.t)) -> unit
@@ -461,7 +465,7 @@ module type DIRECTORYTREE =
 	  -> string -> (tables server_params1 -> unit Lwt.t) -> unit
     val find_service :
 	tables ->
-	  tables ref * 
+	  tables ref * string option * 
 	    current_url * internal_state option * (string * string) list *
 	    (string * string) list * string * Unix.inet_addr * string -> 
 	      (Sender_helpers.send_page_type * 
@@ -473,6 +477,42 @@ module type DIRECTORYTREE =
 module Directorytree : DIRECTORYTREE = struct
   (* Each node contains either a list of nodes (case directory)
      or a table of "answers" (functions that will generate the page) *)
+
+  let rec host_match host =
+    let rec host_match1 host =
+      let hostlen = String.length host in
+      let rec aux t len l p0 =
+	try 
+	  let (p,r) = 
+	    Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
+	  let len = p + len in
+	  (host_match1 
+	     (String.sub host len (hostlen - len)) l) ||
+	     (aux t len l (p+1))
+	with _ -> false
+      in
+      function
+	[] -> host = ""
+      | [Ocsiconfig.Wildcard] -> true
+      | (Ocsiconfig.Wildcard)::(Ocsiconfig.Wildcard)::l -> 
+	  host_match1 host ((Ocsiconfig.Wildcard)::l)
+      | (Ocsiconfig.Wildcard)::(Ocsiconfig.Text (t,len))::l -> aux t len l 0
+      | (Ocsiconfig.Text (t,len))::l -> 
+	  try
+	    (t = String.sub host 0 len) &&
+	    (host_match1 (String.sub host len (hostlen - len)) l)
+	  with _ -> false
+    in
+    function
+      [] -> false
+    | a::l -> (host_match1 host a) || host_match host l
+
+  let string_of_host h = 
+    let rec aux = function
+      [] -> ""
+    | Ocsiconfig.Wildcard::l -> "*"^(aux l)
+    | (Ocsiconfig.Text (t,_))::l -> t^(aux l)
+    in List.fold_left (fun d hh -> d^(aux hh)^" ") "" h
 
   type page_table_key =
       {prefix:bool;
@@ -510,7 +550,8 @@ module Directorytree : DIRECTORYTREE = struct
       Dir of dircontent ref
     | File of page_table ref
 
-  and tables = dircontent ref * action_table ref
+  and tables = (Ocsiconfig.virtual_hosts * dircontent ref) list ref 
+	* action_table ref
 
 
 	(** Create server parameters record *)
@@ -530,7 +571,7 @@ module Directorytree : DIRECTORYTREE = struct
   let empty_action_table () = AVide
   let empty_dircontent () = Vide
 
-  let find_page_table t (str,url,getp,postp,ua,ip,fullurl,urlsuffix) k = 
+  let find_page_table t (str,host,url,getp,postp,ua,ip,fullurl,urlsuffix) k = 
     let sp = make_server_params [] str url fullurl getp postp ua ip in
     let rec aux = function
 	[] -> fail Ocsigen_Wrong_parameter
@@ -583,10 +624,10 @@ module Directorytree : DIRECTORYTREE = struct
     | ATable t -> String_Table.find k t
 
   let empty_tables () = 
-    (ref (empty_dircontent ()), ref (empty_action_table ()))
+    (ref [], ref (empty_action_table ()))
 
-  let are_empty_tables (dcr,atr) = 
-    (!dcr = Vide && !atr = AVide)
+  let are_empty_tables (lr,atr) = 
+    (!lr = [] && !atr = AVide)
 
   let add_action (_,actiontableref) current_dir name action =
     actiontableref :=
@@ -596,9 +637,18 @@ module Directorytree : DIRECTORYTREE = struct
   let find_action (_,atr) name =
     find_action_table !atr name
 
-  let add_service (dircontentref,_) current_dir session url_act
+  let add_service tables host current_dir session url_act
       create_sender
       (page_table_key, (unique_id, action)) =
+    let find_dircontent_for_host (listref,_) = 
+      let rec aux = function
+	  [] -> let dcr = ref (empty_dircontent ()) in
+	  listref := !listref@[(host,dcr)] (* at the end *); dcr 
+	| (h,d)::l when h == host (* physical equality? *) -> d
+	| _::l -> aux l
+      in aux !listref
+    in
+    let dircontentref = find_dircontent_for_host tables in
     let aux search dircontentref a l =
       try 
 	let direltref = find_dircontent !dircontentref a in
@@ -654,10 +704,21 @@ module Directorytree : DIRECTORYTREE = struct
 
 	
   let find_service 
-      (dircontentref,_)
-      (session_table_ref, 
+      (listref,_)
+      (session_table_ref, host, 
        string_list, state_option, get_param_list, post_param_list, 
        ua, ip, fullurl) =
+    let find_dircontent_for_host hlist = 
+      let rec aux host = function
+	  [] -> raise Ocsigen_404
+	| (h,d)::l when host_match host h -> Messages.debug ("host found: "^host^" matches "^(string_of_host h)); (d,l)
+	| (h,_)::l -> Messages.debug ("host = "^host^" does not match "^(string_of_host h)); aux host l
+      in match host with 
+	None -> (match hlist with
+	  [] -> raise Ocsigen_404
+	| (_,d)::l -> (d,l))
+      | Some hh -> aux hh hlist
+    in
     let rec search_page_table dircontent =
       let aux a l =
 	(match !(find_dircontent dircontent a) with
@@ -669,11 +730,16 @@ module Directorytree : DIRECTORYTREE = struct
 	| ""::l -> search_page_table dircontent l
 	| a::l -> aux a l
     in
-    let page_table, suffix = 
-      try 
-	(search_page_table !dircontentref (change_empty_list string_list)) 
-      with Not_found -> raise Ocsigen_404
+    let string_list = change_empty_list string_list in
+    let rec find_pagetablesuf = function
+	[] -> raise Ocsigen_404
+      | hostlist ->
+	  let dcr,othershosts = find_dircontent_for_host hostlist in
+	  try 
+	    search_page_table !dcr string_list 
+	  with Not_found -> find_pagetablesuf othershosts
     in
+    let page_table, suffix = find_pagetablesuf !listref in
     let suffix,get_param_list = 
       if  suffix = []
       then try
@@ -685,6 +751,7 @@ module Directorytree : DIRECTORYTREE = struct
     find_page_table 
       page_table
       (session_table_ref,
+       host,
        string_list,
        get_param_list,
        post_param_list,
@@ -1058,6 +1125,7 @@ module Make = functor
 (** Create a service *)
       let new_service_aux_aux
 	  ~(url : url_path)
+	  ~host
 	  ~prefix
 	  ~external_service
 	  ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
@@ -1066,6 +1134,7 @@ module Make = functor
 (* ici faire une vérification "duplicate parameter" ? *) 
 	{url = url;
 	 unique_id = counter ();
+	 host= host;
 	 url_prefix = prefix;
 	 url_state = None;
 	 external_service = external_service;
@@ -1079,9 +1148,11 @@ module Make = functor
 	  ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
 	  : ('get,unit,[`Internal_Service of 'popo],'tipo,'gn,unit param_name) service =
 	if global_register_allowed () then
-	  let full_path = (get_current_dir ())@(change_empty_list url) in
+	  let curhost,curdir = get_current_hostdir () in
+	  let full_path = curdir@(change_empty_list url) in
 	  let u = new_service_aux_aux
 	      ~url:full_path
+	      ~host:curhost
 	      ~prefix
 	      ~external_service:false
 	      ~get_params
@@ -1099,6 +1170,7 @@ module Make = functor
 	  : ('get,'post,[`External_Service],'tipo,'gn,'pn) service =
 	new_service_aux_aux
 	  ~url
+	  ~host:[]
 	  ~prefix
 	  ~external_service:true
 	  ~get_params 
@@ -1118,14 +1190,14 @@ module Make = functor
 	{fallback with url_state = new_state ()}
 
       let register_service_aux
-	  current_dir
+	  (current_host, current_dir)
 	  tables
 	  session
 	  state
 	  ~(service : ('get,'post,[`Internal_Service of 'popo],'tipo,'gn,'pn) service)
 	  ?(error_handler = fun sp l -> raise (Ocsigen_Typing_Error l))
 	  (page_generator : server_params -> 'get -> 'post -> page Lwt.t) =
-	add_service tables current_dir session service.url 
+	add_service tables current_host current_dir session service.url 
 	  Pages.create_sender
 	  ({prefix = service.url_prefix;
 	    state = state},
@@ -1149,7 +1221,7 @@ module Make = functor
 	if global_register_allowed () then begin
 	  remove_unregistered (service.url,service.unique_id);
 	  register_service_aux 
-	    (get_current_dir ()) global_tables false (service.url_state)
+	    (get_current_hostdir ()) global_tables false service.url_state
 	    ~service ?error_handler page_gen; 
 	end
 	else Messages.warning ("URL .../"^
@@ -1165,9 +1237,11 @@ module Make = functor
 
       let register_service_for_session
 	  sp
-	  ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service) 	?error_handler
+	  ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) 
+	      service)
+ 	  ?error_handler
 	  page =
-	register_service_aux ?error_handler sp.current_dir
+	register_service_aux ?error_handler (service.host, sp.current_dir)
 	  !(sp.session_table) true service.url_state ~service page
 
       let register_new_service 
@@ -1208,6 +1282,7 @@ module Make = functor
 	  : ('get, 'post, [`Internal_Service of [`Public_Service]], 'tipo,'gn,'pn) service = 
 (* ici faire une vérification "duplicate parameter" ? *) 
 	{url = fallback.url;
+	 host = fallback.host;
 	 unique_id = counter ();
 	 url_prefix = fallback.url_prefix;
 	 external_service = false;
@@ -1280,10 +1355,11 @@ module Make = functor
 	 action_params_type = post_params;
        }
 
-      let register_action_aux current_dir tables ~action actionfun =
+      let register_action_aux
+	  current_dir tables ~action actionfun =
 	add_action tables current_dir 
 	  action.action_name
-	  (fun h -> actionfun h 
+	  (fun h -> actionfun h
 	      (reconstruct_params action.action_params_type h.post_params []))
 
       let register_action
@@ -1291,7 +1367,8 @@ module Make = functor
 	  (actionfun : (server_params -> 'post -> unit Lwt.t)) : unit =
 	(* if global_register_allowed () then *)
 	if during_initialisation () then
-	  register_action_aux (get_current_dir ()) global_tables action actionfun
+	  register_action_aux 
+	    (snd (get_current_hostdir ())) global_tables action actionfun
 	else Messages.warning "Public action registration after init forbidden! Please correct your module! (ignored)"
 
       let register_new_action ~post_params actionfun = 
@@ -1300,7 +1377,8 @@ module Make = functor
 	a
 
       let register_action_for_session sp ~action actionfun =
-	register_action_aux sp.current_dir !(sp.session_table) action actionfun
+	register_action_aux sp.current_dir
+	  !(sp.session_table) action actionfun
 
       let register_new_action_for_session sp ~post_params actionfun =
 	let a = new_action post_params in
@@ -1310,6 +1388,7 @@ module Make = functor
 (** Satic directories **)
       let static_dir sp : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string param_name, unit param_name) service =
 	{url = sp.current_dir;
+	 host = [];
 	 unique_id = counter ();
 	 url_state = None;
 	 url_prefix = true;
@@ -2131,7 +2210,8 @@ let execute generate_page sockaddr cookie =
 
 
 let get_page 
-    (url, path, params, internal_state, get_params, post_params, useragent)
+    (host, url, path, params, internal_state, 
+     get_params, post_params, useragent)
     sockaddr cookie = 
   let fullurl = path^params in
   let generate_page ip session_tables_ref =
@@ -2141,6 +2221,7 @@ let get_page
 	(find_service
 	   !session_tables_ref
 	   (session_tables_ref,
+	    host,
 	    url,
 	    internal_state,
 	    get_params,
@@ -2155,6 +2236,7 @@ let get_page
 	    (find_service 
 	       global_tables
 	       (session_tables_ref,
+		host,
 		url,
 		internal_state,
 		get_params,
@@ -2173,6 +2255,7 @@ let get_page
 			(find_service 
 			   !session_tables_ref
 			   (session_tables_ref,
+			    host,
 			    url,
 			    None,
 			    get_params,
@@ -2187,6 +2270,7 @@ let get_page
 			    (find_service 
 			       global_tables
 			       (session_tables_ref,
+				host,
 				url,
 				None,
 				get_params,
@@ -2212,7 +2296,7 @@ let get_page
 
 
 let make_action action_name action_params 
-    (url, path, params, _, _, _, useragent) sockaddr cookie =
+    (host, url, path, params, _, _, _, useragent) sockaddr cookie =
   let fullurl = path^params in
   let generate_page ip session_tables_ref =
     let action,working_dir = 
@@ -2241,21 +2325,21 @@ let make_action action_name action_params
 (** Module loading *)
 exception Ocsigen_error_while_loading of string
     
-let load_ocsigen_module ~dir ~cmo =
-  let save_current_dir = get_current_dir () in
+let load_ocsigen_module ~host ~dir ~cmo =
+  let save_current_dir = get_current_hostdir () in
   try
     begin_load_ocsigen_module ();
-    absolute_change_dir dir;
+    absolute_change_hostdir (host, dir);
     Dynlink.loadfile cmo;
-    absolute_change_dir save_current_dir;
+    absolute_change_hostdir save_current_dir;
     end_load_ocsigen_module ()
   with Dynlink.Error e -> 
-    absolute_change_dir save_current_dir;
+    absolute_change_hostdir save_current_dir;
     end_load_ocsigen_module ();
     raise
       (Ocsigen_error_while_loading (cmo^" ("^(Dynlink.error_message e)^")"))
   | e -> 
-      absolute_change_dir save_current_dir;
+      absolute_change_hostdir save_current_dir;
       end_load_ocsigen_module ();
       raise e (*Ocsigen_error_while_loading cmo*)
 

@@ -65,44 +65,45 @@ struct
                 
   (** returns a thread that returns when data were received *)
   let receive file_descr buffer =
-    wait_can_write buffer >>= (fun free ->
-    let temp_buf = String.create free in
-      Lwt_unix.read file_descr temp_buf 0 free >>= (fun len ->
-        if len = 0 then Lwt.fail End_of_file
-        else
-          (*copy of the temp buffer in the circular buffer*)
-          try
-            (print_endline temp_buf;
+    try
+      wait_can_write buffer >>= (fun free ->
+	let temp_buf = String.create free in
+	Lwt_unix.read file_descr temp_buf 0 free >>= (fun len ->
+          if len = 0 then Lwt.fail End_of_file
+          else
+            (*copy of the temp buffer in the circular buffer*)
+            ((* print_endline temp_buf; *)
              (if buffer.read_pos mod buffer.size > buffer.write_pos mod
-               buffer.size 
+	       buffer.size 
              then
-               String.blit temp_buf 0 buffer.buf buffer.write_pos len
+	       String.blit temp_buf 0 buffer.buf buffer.write_pos len
              else
-               (let write_to_buf_end = 
+	       (let write_to_buf_end = 
 		 buffer.size - (buffer.write_pos mod buffer.size) in
-               if write_to_buf_end > len then
+	       if write_to_buf_end > len then
                  String.blit temp_buf 0 buffer.buf buffer.write_pos len
-               else
+	       else
 		 (
                   String.blit 
 		    temp_buf 0 buffer.buf buffer.write_pos write_to_buf_end;
                   String.blit temp_buf write_to_buf_end buffer.buf 0 
 		    (len - write_to_buf_end);
                  )
-               );
-              (* update the buffer *)
-              buffer.write_pos <- buffer.write_pos + len;
-              (* if a thread wait for reading wake it up *)
-              (match !thread_waiting_read_enable with
-              |Some thread -> Lwt.wakeup thread ()
-              |None -> ()
-              );
-              return ()
+	       );
+	      (* update the buffer *)
+	      buffer.write_pos <- buffer.write_pos + len;
+	      (* if a thread wait for reading wake it up *)
+	      (match !thread_waiting_read_enable with
+	      |Some thread -> Lwt.wakeup thread ()
+	      |None -> ()
+	      );
+	      return ()
              )
             )
-          with e -> fail e
-      )
-    )
+						     )
+				)
+    with e -> fail e
+	
 
   let min3 int1 int2 int3 = min (min int1 int2) int3
             
@@ -161,8 +162,9 @@ struct
                            );
                            extract_aux (result^string_extract) (rem_len - nb_extract)
             )
-    in 
+    in try
       extract_aux "" len
+    with e -> fail e
 
 (**find the sequence crlfcrlf in the buffer*)
   let rec find buffer ind nb_read =
@@ -226,14 +228,15 @@ struct
 		      (cur_ind + available - (min available 3)))
     in (* wait_http_header_aux buffer.read_pos 
 	  Pour keep-alive timeout je remplace ça par *)
-    (if keep_alive
-    then
-      Lwt.choose
-	[receive fd buffer;
-	 (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
-	  (fun () -> fail Ocsigen_KeepaliveTimeout))]
-    else return ()) >>= (fun () -> wait_http_header_aux buffer.read_pos)
-             
+    try
+      (if keep_alive
+      then
+	Lwt.choose
+	  [receive fd buffer;
+	   (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
+	    (fun () -> fail Ocsigen_KeepaliveTimeout))]
+      else return ()) >>= (fun () -> wait_http_header_aux buffer.read_pos)
+    with e -> fail e
 end
 
 
