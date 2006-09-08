@@ -479,33 +479,30 @@ module Directorytree : DIRECTORYTREE = struct
      or a table of "answers" (functions that will generate the page) *)
 
   let rec host_match host =
-    let rec host_match1 host =
-      let hostlen = String.length host in
+    let hostlen = String.length host in
+    let rec host_match1 beg =
       let rec aux t len l p0 =
 	try 
-	  let (p,r) = 
+	  let (p,_) = 
 	    Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
-	  let len = p + len in
-	  (host_match1 
-	     (String.sub host len (hostlen - len)) l) ||
-	     (aux t len l (p+1))
+	  let beg2 = p + len in
+	  (host_match1 beg2 l) || (aux t len l (p+1))
 	with _ -> false
       in
       function
-	[] -> host = ""
+	[] -> beg = hostlen
       | [Ocsiconfig.Wildcard] -> true
       | (Ocsiconfig.Wildcard)::(Ocsiconfig.Wildcard)::l -> 
-	  host_match1 host ((Ocsiconfig.Wildcard)::l)
-      | (Ocsiconfig.Wildcard)::(Ocsiconfig.Text (t,len))::l -> aux t len l 0
+	  host_match1 beg ((Ocsiconfig.Wildcard)::l)
+      | (Ocsiconfig.Wildcard)::(Ocsiconfig.Text (t,len))::l -> aux t len l beg
       | (Ocsiconfig.Text (t,len))::l -> 
 	  try
-	    (t = String.sub host 0 len) &&
-	    (host_match1 (String.sub host len (hostlen - len)) l)
+	    (t = String.sub host beg len) && (host_match1 (beg+len) l)
 	  with _ -> false
     in
     function
       [] -> false
-    | a::l -> (host_match1 host a) || host_match host l
+    | a::l -> (host_match1 0 a) || host_match host l
 
   let string_of_host h = 
     let rec aux = function
