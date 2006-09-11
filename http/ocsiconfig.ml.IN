@@ -97,7 +97,7 @@ let init_config () =
    private_key = ""; certificate = ""; passwd = ""; 
    uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
    static_tree = [];
-   default_static_tree = Static_dir (Some "_STATICPAGESDIR_", []);
+   default_static_tree = Static_dir (None , []);
    user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
    minthreads = 10; 
    maxthreads = 300; 
@@ -122,7 +122,7 @@ let set_uploaddir cf u = cf.uploaddir <- u
 let set_logdir cf s = cf.logdir <- s
 let set_configfile s = config_file := s
 let set_default_static_tree cf s = 
-  (cf).default_static_tree <- Static_dir (Some "_STATICPAGESDIR_", [])
+  (cf).default_static_tree <- Static_dir (Some s, [])
 let set_mimefile cf s = cf.mimefile <- s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
@@ -184,7 +184,7 @@ let set_static_dir cf host s path =
   in
   let find_add_static_dir () = 
     let rec auxx = function
-	[] -> let r = ref (Static_dir ((Some "_STATICPAGESDIR_"),[])) in
+	[] -> let r = ref (Static_dir (None ,[])) in
 	(cf).static_tree <- 
 	  (host,r)::(cf).static_tree (* new one at the beginning *);
 	r

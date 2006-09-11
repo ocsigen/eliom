@@ -279,17 +279,20 @@ let find_static_page host path =
   let rec aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) = function
       [] -> (match dir_option with
 	None -> dir
-      | Some s -> s)
+      | s -> s)
     | ""::l -> aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) l
     | ".."::l -> aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) l
 	  (* For security reasons, .. is not allowed in paths *)
     | a::l -> try 
 	let e = (List.assoc a subdir_list) in
-	aux (dir^"/"^a) e l
+	match dir with
+	  None -> aux None e l
+	| Some dir -> aux (Some (dir^"/"^a)) e l
     with Not_found -> 
-      (match dir_option with
-	None -> dir
-      | Some s -> s)^"/"^(Ocsigen.string_of_url_path (a::l))
+      (match dir,dir_option with
+	None,None -> None
+      | (Some d), None -> Some (d^"/"^(Ocsigen.string_of_url_path (a::l)))
+      | _,Some s -> Some (s^"/"^(Ocsigen.string_of_url_path (a::l))))
   in 
   let static_trees = Ocsiconfig.get_static_tree () in
   let find_static_tree_for_host trees =
@@ -309,30 +312,32 @@ let find_static_page host path =
 	| (_,d)::l -> (!d,l))
       | Some hh -> aux hh trees
   in
-  let find_file filename = 
-    Messages.debug ("Looking for ("^filename^")");
-    ignore (Unix.lstat filename);
-    let filename = 
-      if ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR)
-      then filename^"/index.html"
-      else filename
-    in
-    if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
-    then begin
-      Unix.access filename [Unix.R_OK];
-      filename
-    end
-    else raise Ocsigen_404 (* ??? *)
+  let find_file = function
+      None -> raise Ocsigen_404
+    | Some filename ->
+	Messages.debug ("Looking for ("^filename^")");
+	ignore (Unix.lstat filename);
+	let filename = 
+	  if ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR)
+	  then filename^"/index.html"
+	  else filename
+	in
+	if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
+	then begin
+	  Unix.access filename [Unix.R_OK];
+	  filename
+	end
+	else raise Ocsigen_404 (* ??? *)
   in
   let rec aux_host trees =
     try
       let st,others = find_static_tree_for_host trees in
-      try find_file (aux "/" st path)
+      try find_file (aux None st path)
       with _ -> aux_host others
     with 
       Serv_no_host_match -> 
 	Messages.debug ("default host");
-	find_file (aux "/" (get_default_static_tree ()) path)
+	find_file (aux None (get_default_static_tree ()) path)
   in aux_host static_trees
 
 let service http_frame sockaddr 
