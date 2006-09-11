@@ -274,6 +274,7 @@ let rec getcookie s =
 
 let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
+exception Serv_no_host_match
 let find_static_page host path =
   let rec aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) = function
       [] -> (match dir_option with
@@ -293,29 +294,45 @@ let find_static_page host path =
   let static_trees = Ocsiconfig.get_static_tree () in
   let find_static_tree_for_host trees =
       let rec aux host = function
-	  [] -> raise Not_found
-	| (h,d)::l when host_match host h -> Messages.debug ("host found: "^host^" matches "^(string_of_host h)); (d,l)
-	| (h,_)::l -> Messages.debug ("host = "^host^" does not match "^(string_of_host h)); aux host l
+	  [] -> raise Serv_no_host_match
+	| (h,d)::l when host_match host h -> 
+	    Messages.debug ("host found: "^host^
+			    " matches "^(string_of_host h)); 
+	    (!d,l)
+	| (h,_)::l -> 
+	    Messages.debug ("host = "^host^" does not match "^
+			    (string_of_host h)); 
+	    aux host l
       in match host with 
 	None -> (match trees with
-	  [] -> raise Not_found
-	| (_,d)::l -> (d,l))
+	  [] -> raise Serv_no_host_match
+	| (_,d)::l -> (!d,l))
       | Some hh -> aux hh trees
   in
   let find_file filename = 
     Messages.debug ("Looking for ("^filename^")");
     ignore (Unix.lstat filename);
-    let dir = ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR) in
-    if dir
-    then filename^"/index.html"
-    else filename
+    let filename = 
+      if ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR)
+      then filename^"/index.html"
+      else filename
+    in
+    if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
+    then begin
+      Unix.access filename [Unix.R_OK];
+      filename
+    end
+    else raise Ocsigen_404 (* ??? *)
   in
-  let rec aux_host = function
-      [] -> print_endline "default"; 
-	find_file (aux "/" (get_default_static_tree ()) path)
-    | trees -> let st,others = find_static_tree_for_host trees in
-      try find_file (aux "/" !st path)
+  let rec aux_host trees =
+    try
+      let st,others = find_static_tree_for_host trees in
+      try find_file (aux "/" st path)
       with _ -> aux_host others
+    with 
+      Serv_no_host_match -> 
+	Messages.debug ("default host");
+	find_file (aux "/" (get_default_static_tree ()) path)
   in aux_host static_trees
 
 let service http_frame sockaddr 
@@ -375,20 +392,13 @@ let service http_frame sockaddr
 		       catch (fun () ->
 			 Messages.debug ("--- Is it a static file?");
 			 let filename = find_static_page host path in
-			 if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
-			 then begin
-			   Unix.access filename [Unix.R_OK];
-			   catch (fun () ->
-			     send_file 
-			       ~keep_alive:keep_alive
-			       ~last_modified:((Unix.stat filename).Unix.st_mtime)
-			       ~code:200 ~head:head filename file_sender)
-			     (function _ -> Lwt.return ()) 
-                                        (* stops if error while sending *)
-			 end
-			 else 
-			   send_error ~keep_alive:keep_alive
-			     ~error_num:403 xhtml_sender (* Forbidden *))
+			 catch (fun () ->
+			   send_file 
+			     ~keep_alive:keep_alive
+			     ~last_modified:((Unix.stat filename).Unix.st_mtime)
+			     ~code:200 ~head:head filename file_sender)
+			   (function _ -> Lwt.return ())
+                           (* stops if error while sending *))
 			 (function
 			     Unix.Unix_error (Unix.EACCES,_,_) ->
 			       send_error ~keep_alive:keep_alive
@@ -432,6 +442,7 @@ let service http_frame sockaddr
       (function
 	  Ocsigen_404 -> 
 	    (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
+	    Messages.debug "Sending 404";
 	    send_error ~keep_alive:ka ~error_num:404 xhtml_sender
 	      >>= (fun _ ->
 		return ka (* keep_alive *))
@@ -439,9 +450,11 @@ let service http_frame sockaddr
 	    (*really_write "404 Not Found ??" false in_ch "error ??? 
 	       (Malformed URL) \n"
 	     * 0 11 *)
+	    Messages.debug "Sending 400";
 	    send_error ~keep_alive:ka ~error_num:400 xhtml_sender
 	      >>= (fun _ -> return ka (* keep_alive *))
 	| e ->
+	    Messages.debug "Sending 500";
             send_error ~keep_alive:ka ~error_num:500 xhtml_sender
 	      >>= (fun _ -> fail e))
   in 
