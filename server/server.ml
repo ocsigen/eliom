@@ -167,7 +167,8 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	      match st with 
 		None -> No_File (p_name, Buffer.create 1024)
 	      | Some store -> 
-	          begin let now = Printf.sprintf "%sx-%f" store (Unix.gettimeofday ()) in
+	          begin let now = 
+		    Printf.sprintf "%sx-%f" store (Unix.gettimeofday ()) in
 		  Messages.debug ("file="^now);
 		  param_names := Array.append !param_names [|(p_name, now)|];
 		  let fname = ((Ocsiconfig.get_uploaddir ())^"/"^now) in
@@ -514,7 +515,7 @@ let listen modules_list =
 	     xhtml_sender file_sender empty_sender in_ch ())
             >>= (fun keep_alive -> 
 	      if keep_alive then begin
-		print_endline "KEEP ALIVE";
+		Messages.debug "KEEP ALIVE";
                 listen_connexion_aux ~keep_alive:true
                   (* Pour laisser la connexion ouverte, je relance *)
 	      end
@@ -648,7 +649,7 @@ let listen modules_list =
        wait_connexion listening_socket >>=
        Lwt.wait))
 
-let _ = 
+let _ = try
   parse_config ();
   (* let rec print_cfg n = Messages.debug (string_of_int n); if n < !Ocsiconfig.number_of_servers 
      then (Messages.debug ("port:" ^ (string_of_int (Ocsiconfig.cfgs.(n)).port )); print_cfg (n+1))
@@ -677,31 +678,36 @@ let _ =
       (ignore (Preemptive.init 
 		 (Ocsiconfig.get_minthreads ()) 
 		 (Ocsiconfig.get_maxthreads ()));
-       Unix.handle_unix_error listen (Ocsiconfig.get_modules ())) in
+       listen (Ocsiconfig.get_modules ())) in
   let rec launch l = match l with [] -> () | (h :: t) -> begin 
     match Unix.fork () with
     | 0 -> run h
     | _ -> launch t
   end in
-  try 
-    let old_term= Unix.tcgetattr Unix.stdin in
-    let old_echo = old_term.Unix.c_echo in
-    old_term.Unix.c_echo <- false;
-    Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
-    ask_for_passwds !Ocsiconfig.cfgs;
-    old_term.Unix.c_echo <- old_echo;
-    Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
-    if !Ocsiconfig.number_of_servers = 1 then run (List.hd !Ocsiconfig.cfgs) 
-    else launch !Ocsiconfig.cfgs
-  with
-    Ocsigen.Ocsigen_duplicate_registering s -> 
-      errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
-  | Ocsigen.Ocsigen_there_are_unregistered_services s ->
-      errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
-  | Ocsigen.Ocsigen_page_erasing s ->
-      errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.")
-  | Ocsigen.Ocsigen_register_for_session_outside_session ->
-      errlog ("Fatal - Register session during initialisation forbidden.")
-  | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
-  | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
+  let old_term= Unix.tcgetattr Unix.stdin in
+  let old_echo = old_term.Unix.c_echo in
+  old_term.Unix.c_echo <- false;
+  Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
+  ask_for_passwds !Ocsiconfig.cfgs;
+  old_term.Unix.c_echo <- old_echo;
+  Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
+  if !Ocsiconfig.number_of_servers = 1 then run (List.hd !Ocsiconfig.cfgs) 
+  else launch !Ocsiconfig.cfgs
+with
+  Ocsigen.Ocsigen_duplicate_registering s -> 
+    errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
+| Ocsigen.Ocsigen_there_are_unregistered_services s ->
+    errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
+| Ocsigen.Ocsigen_page_erasing s ->
+    errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.")
+| Ocsigen.Ocsigen_register_for_session_outside_session ->
+    errlog ("Fatal - Register session during initialisation forbidden.")
+| Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
+| Unix.Unix_error (Unix.EACCES,"bind",s2) ->
+    errlog ("Fatal - You are not allowed to use this port")
+| Unix.Unix_error (Unix.EADDRINUSE,"bind",s2) ->
+    errlog ("Fatal - This port is already in use")
+| Unix.Unix_error (e,s1,s2) ->
+    errlog ("Fatal - "^(Unix.error_message e)^" in: "^s1^" "^s2)
+| exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
 

@@ -9,30 +9,30 @@ open Ocsisav
 open Ocsiboxes
 open Rights
 open Ocsexample_util
-
+open Lwt
 
 (*****************************************************************************)
 (* All the urls: *)
 
-let main_page = new_service ~url:[""]
+let home_service = new_service ~url:[""]
     ~get_params:unit ()
 
-let news_page = new_service ["msg"] (StringMessage.index "num") ()
+let message_service = new_service ["msg"] (StringMessage.index "num") ()
 
 
 (*****************************************************************************)
 (* Construction of default pages *)
 
-let accueil h () () =
-  page ~css:["moncss.css"] h
-    [title_box "Mon site";
+let print_home_page sp () () = return
+  (page ~css:["moncss.css"] sp
+    [title_box "My forum";
      news_headers_list_box 
-       h messageslist_number anonymoususer rocsexample news_page]
+       sp messageslist_number anonymoususer rocsexample message_service])
 
-let print_news_page h i () = 
-  page ~css:["moncss.css"] h
-    [title_box "Info";
-     string_message_box i anonymoususer rocsexample]
+let print_message_page sp i () = return 
+  (page ~css:["moncss.css"] sp
+    [title_box "My message";
+     string_message_box i anonymoususer rocsexample])
 
 
 
@@ -40,12 +40,12 @@ let print_news_page h i () =
 (* Services registration *)
 
 let _ = register_service
-  ~service:main_page
-  (sync accueil)
+  ~service:home_service
+  print_home_page
 
 let _ = register_service
-  ~service:news_page
-  (sync print_news_page)
+  ~service:message_service
+  print_message_page
 
 
 

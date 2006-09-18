@@ -192,7 +192,6 @@ let set_static_dir cf host s path =
       | _::l -> auxx l
     in auxx (cf).static_tree 
   in
-  print_endline ("set_static_dir "^(string_of_host host));
   let static_dir = find_add_static_dir () in
   static_dir := aux !static_dir path
 
@@ -207,8 +206,8 @@ let print_location loc =
 
 let _ = Arg.parse
     [("-c", Arg.String set_configfile, 
-      "Alternate config file (default _CONFIGDIR_/ocsigen.conf");
-     ("-s", Arg.Unit set_silent, "Silent mode (erroe messages in errors.log only)");
+      "Alternate config file (default _CONFIGDIR_/ocsigen.conf)");
+     ("-s", Arg.Unit set_silent, "Silent mode (error messages in errors.log only)");
      ("-v", Arg.Unit set_verbose, "Verbose mode");
      ("-vv", Arg.Unit set_veryverbose, "Very verbose mode (debug)");
      ("-version", Arg.Unit display_version, "Display version number and exit")

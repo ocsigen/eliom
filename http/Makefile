@@ -15,8 +15,8 @@ NAME 	 = test_pp
 LIBDIR 	= ../lib
 LIB= -package netstring,ssl -I $(LIBDIR) -I +camlp4
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
-ALL_CMO  = netlwtstream.cmo multipart.cmo ocsiconfig.cmo \
-           messages.cmo http_frame.cmo http_parser.cmo http_lexer.cmo \
+ALL_CMO  = netlwtstream.cmo multipart.cmo \
+           http_frame.cmo http_parser.cmo http_lexer.cmo \
 	   framepp.cmo http_com.cmo sender_helpers.cmo #test_pp.cmo
 
 all: byte
@@ -33,7 +33,7 @@ doc:
 
 clean:
 	-rm $(NAME) $(OPTNAME) *.cm[oix] *.o *.annot \
-	http_parser.ml http_parser.mli http_lexer.ml ocsiconfig.ml documentation/*	
+	http_parser.ml http_parser.mli http_lexer.ml documentation/*	
 
 viclean: clean
 	-rm *~
@@ -43,23 +43,11 @@ depend:
 
 http_parser.cmo:http_parser.ml http_parser.mli http_parser.cmi
 
-http_lexer.cmo:http_lexer.ml http_lexer.cmi messages.cmi
+http_lexer.cmo:http_lexer.ml http_lexer.cmi
 
 http_lexer.ml: http_lexer.mll
 
 http_parser.ml: http_parser.mly
-
-ocsiconfig.ml: ocsiconfig.ml.IN
-	cat ocsiconfig.ml.IN \
-	| sed s°0000000000000000°`cat ../VERSION`° \
-	| sed s°_WARNING_°"Warning: this file has been generated from ocsiconfig.ml.IN - DO NOT MODIFY MANUALLY!"° \
-	| sed s°_LOGDIR_°$(LOGDIR)° \
-	| sed s°_STATICPAGESDIR_°$(STATICPAGESDIR)° \
-	| sed s%_UP_%$(UPLOADDIR)%g \
-	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
-	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
-	| sed s°_CONFIGDIR_°$(CONFIGDIR)° \
-	> ocsiconfig.ml
 
 
 # generic rules :

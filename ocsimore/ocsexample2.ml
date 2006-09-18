@@ -9,14 +9,15 @@ open Ocsisav
 open Ocsiboxes
 open Rights
 open Ocsexample_util
+open Lwt
 
 
 (*****************************************************************************)
 (* All the urls: *)
 
-let main_page = new_service ~url:[""] ~get_params:unit ()
+let home_service = new_service ~url:[""] ~get_params:unit ()
 
-let news_page = new_service ["msg"] (StringMessage.index "num") ()
+let message_service = new_service ["msg"] (StringMessage.index "num") ()
 
 let connect_action = 
   new_action
@@ -26,53 +27,53 @@ let connect_action =
 (*****************************************************************************)
 (* Construction of default pages *)
 
-let accueil h () () =
-  page ~css:["moncss.css"] h
-    [title_box "Mon site";
+let print_home_page sp () () = return
+  (page ~css:["moncss.css"] sp
+    [title_box "My forum";
      text_box "(user : toto and password : titi)";
-     login_box_action h connect_action;
+     login_box_action sp connect_action;
      news_headers_list_box 
-       h messageslist_number anonymoususer rocsexample news_page]
+       sp messageslist_number anonymoususer rocsexample message_service])
 
-let print_news_page h i () = 
-  page ~css:["moncss.css"] h
-    [title_box "Info";
-     login_box_action h connect_action;
-     string_message_box i anonymoususer rocsexample]
+let print_message_page sp i () = return
+  (page ~css:["moncss.css"] sp
+    [title_box "My message";
+     login_box_action sp connect_action;
+     string_message_box i anonymoususer rocsexample])
 
-let user_main_page user h () () =
-  page ~css:["moncss.css"] h
-    [title_box "Mon site";
+let user_home_page user sp () () = return
+  (page ~css:["moncss.css"] sp
+    [title_box "My forum";
      text_box "Bonjour !";
-     connected_box h user;
-     news_headers_list_box h messageslist_number user rocsexample news_page]
+     connected_box sp user;
+     news_headers_list_box sp messageslist_number user rocsexample message_service])
 
-let user_news_page user h i () = 
-  page ~css:["moncss.css"] h
-    [title_box "Info";
-     connected_box h user;
-     string_message_box i user rocsexample]
+let user_message_page user sp i () = return
+  (page ~css:["moncss.css"] sp
+    [title_box "My message";
+     connected_box sp user;
+     string_message_box i user rocsexample])
 
 
 (* Services registration *)
 
 let _ = register_service
-  ~service:main_page
-  (sync accueil)
+  ~service:home_service
+  print_home_page
 
 let _ = register_service
-  ~service:news_page
-  (sync print_news_page)
+  ~service:message_service
+  print_message_page
 
 let launch_session sp user =
-  register_service_for_session sp ~service:main_page 
-    (sync (user_main_page user));
-  register_service_for_session sp ~service:news_page 
-    (sync (user_news_page user))
+  register_service_for_session sp ~service:home_service 
+    (user_home_page user);
+  register_service_for_session sp ~service:message_service 
+    (user_message_page user)
 
 let _ = register_action
   ~action:connect_action
-    (fun sp (login, password) -> Lwt.return
+    (fun sp (login, password) -> return
 	(launch_session sp (connect login password)))
 
 

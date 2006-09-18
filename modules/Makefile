@@ -1,6 +1,6 @@
 include ../Makefile.config
 
-FILES=tutorial.ml monitoring.ml essais.ml
+FILES=$(wildcard *.ml)
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g

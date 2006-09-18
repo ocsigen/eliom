@@ -518,7 +518,7 @@ module Directorytree : DIRECTORYTREE = struct
 	* action_table ref
 
 
-	(** Create server parameters record *)
+  (** Create server parameters record *)
   let make_server_params
       dir st url fullurl get_params post_params useragent ip = 
     {full_url= fullurl;
@@ -587,7 +587,7 @@ module Directorytree : DIRECTORYTREE = struct
       AVide -> raise Not_found
     | ATable t -> String_Table.find k t
 
-  let empty_tables () = 
+  let empty_tables () : tables = 
     (ref [], ref (empty_action_table ()))
 
   let are_empty_tables (lr,atr) = 
@@ -675,8 +675,13 @@ module Directorytree : DIRECTORYTREE = struct
     let find_dircontent_for_host hlist = 
       let rec aux host = function
 	  [] -> raise Ocsigen_404
-	| (h,d)::l when Ocsiconfig.host_match host h -> Messages.debug ("host found: "^host^" matches "^(Ocsiconfig.string_of_host h)); (d,l)
-	| (h,_)::l -> Messages.debug ("host = "^host^" does not match "^(Ocsiconfig.string_of_host h)); aux host l
+	| (h,d)::l when Ocsiconfig.host_match host h -> 
+	    Messages.debug ("host found: "^host^" matches "^
+			    (Ocsiconfig.string_of_host h)); 
+	    (d,l)
+	| (h,_)::l -> Messages.debug ("host = "^host^" does not match "^
+				      (Ocsiconfig.string_of_host h)); 
+	    aux host l
       in match host with 
 	None -> (match hlist with
 	  [] -> raise Ocsigen_404

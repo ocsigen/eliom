@@ -32,27 +32,27 @@ opt: $(XARCHIVE)
 
 $(ARCHIVE): $(OBJECTS)
 	$(OCAMLC) -a -o $(ARCHIVE) -package "$(REQUIRES)" \
-	          -predicates "$(PREDICATES)" $(OBJECTS)
+	          -predicates "$(PREDICATES)" -I $(SRCLIBREP) $(OBJECTS)
 # -linkpkg
 $(XARCHIVE): $(XOBJECTS)
 	$(OCAMLOPT) -a -o $(XARCHIVE) -package "$(REQUIRES)" \
-	          -predicates "$(PREDICATES)" $(XOBJECTS)
+	          -predicates "$(PREDICATES)" -I $(SRCLIBREP) $(XOBJECTS)
 # -linkpkg
 
 .SUFFIXES: .cmo .cmi .cmx .ml .mli
 
 .ml.cmo:
 	$(OCAMLC) -thread -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
-	          -c $<
+	           -I $(SRCLIBREP) -c $<
 .mli.cmi:
 	$(OCAMLC) -thread -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
-	          -c $<
+	           -I $(SRCLIBREP) -c $<
 .ml.cmx:
 	$(OCAMLOPT) -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
-	          -c $<
+	            -I $(SRCLIBREP) -c $<
 
 depend: *.ml *.mli
-	$(OCAMLDEP) *.ml *.mli > depend
+	$(OCAMLDEP)  -I $(SRCLIBREP) *.ml *.mli > depend
 include depend
 
 install: all

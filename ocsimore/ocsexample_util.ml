@@ -68,7 +68,7 @@ let toto_created =
 let news_header_box sp key user resource news_page = 
   let msg = StringMessage.dbget user resource key
   in let l = a news_page sp <:xmllist< read >> key
-  in << <div> $str:msg$ $l$ <br/> </div> >>
+  in << <div class="news_header_box"> $str:msg$ $l$ <br/> </div> >>
 
 (** A box that prints a list of a message headers *)
 let news_headers_list_box sp key user resource news_page = 
@@ -76,6 +76,6 @@ let news_headers_list_box sp key user resource news_page =
     List.map 
       (fun n -> news_header_box sp n user resource news_page)
       (StringMessageIndexList.dbget user resource key)
-  in << <div>$list:msglist$</div> >>
+  in << <div class="news_headers_list_box">$list:msglist$</div> >>
 
 

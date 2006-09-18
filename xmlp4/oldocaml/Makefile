@@ -23,6 +23,9 @@ OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
 CMA = xhtmlsyntax.cma
 
 all: ohl-xhtml $(CMA) $(OBJS) essai
+	ln -sf oldocaml/xhtmlsyntax.cma ..
+	ln -sf oldocaml/xhtmltypes.cma ..
+	ln -sf oldocaml/xhtmltypes.cmi ..
 	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlsyntax.cma $(SRCLIBREP)
 
 

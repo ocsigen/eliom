@@ -77,7 +77,8 @@ let rec parser_config =
 	let cmo,static,mime = parse_site2 (None, None, None) l in
 	(match static with
 	  None -> ()
-	| Some s -> print_endline ("site "^s);Ocsiconfig.set_static_dir n host s path);
+	| Some s -> Messages.debug ("site "^s);
+	    Ocsiconfig.set_static_dir n host s path);
 	(match mime with
 	  None -> ()
 	| Some m -> Ocsiconfig.set_mimefile n m);
