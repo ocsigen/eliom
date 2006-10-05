@@ -18,6 +18,7 @@
 
 (* A page providing infos about the server (number of sessions, uptime...) *)
 
+open Pagesearch
 open Ocsigen
 open Ocsigen.Xhtml
 open Unix

@@ -2,7 +2,7 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= error_pages.ml preemptive.ml ocsigen.ml ocsigenboxes.ml parseconfig.ml server.ml
+FILES= error_pages.ml preemptive.ml pagesearch.ml ocsigen.ml ocsigenboxes.ml parseconfig.ml server.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -26,6 +26,7 @@ PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
 CMAO = nums.cma dynlink.cma unix.cma ssl.cma pcre.cma netstring.cma \
        threads.cma \
+       ocsimisc.cmo \
        gramlib.cma xmllexer.cmo simplexmlparser.cmo \
        ocsiconfig.cmo messages.cmo \
        lwt.cma preemptive.cmo \
@@ -44,7 +45,7 @@ OBJS = $(FILES:.ml=.cmo)
 
 all: $(OBJS) $(NAME)
 #	cp *.cmo *.cmi ../lib
-	cp ocsigen.cmo ocsigen.cmi preemptive.cmi ../lib
+	cp ocsigen.cmo ocsigen.cmi preemptive.cmi pagesearch.cmi ../lib
 #	cp config.cmi ../lib
 	cp ocsigenboxes.cmi ../lib
 	cp $(NAME) ../bin

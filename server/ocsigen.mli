@@ -45,21 +45,6 @@ type ('get,'post,'kind,'tipo,'getnames,'postnames) service
 type url_path = string list
 (** This type is used to represent URL paths; For example the path [coucou/ciao] is represented by the list [\["coucou";"ciao"\]] *)
 
-type current_url
-(** This type is used to represent the current URL paths. It is used to create relative links from the current page. *)
-
-type current_dir
-(** internal use *)
-
-val string_list_of_current_url : current_url -> url_path
-(** Converts a [current_url] to an [url_path] *)
-
-val string_of_url_path : url_path -> string
-(** Reconstructs the string from a [url_path] *)
-
-val remove_slash : url_path -> url_path
-(** remove the first [/] in a path *)
-
 (** {2 Types of pages parameters} *)
 
 (** Here are some examples of how to specify the types and names of pages parameters:
@@ -70,19 +55,14 @@ val remove_slash : url_path -> url_path
 
  *)
 
-type session_table
-type 'a server_params1 = private 
-      {full_url: string;
-       user_agent: string;
-       ip: Unix.inet_addr;
-       get_params: (string * string) list;
-       post_params: (string * string) list;
-       current_url: current_url;
-       current_dir: current_dir;
-       session_table: 'a ref
-     }
-type server_params = session_table server_params1
+type server_params
 (** Type of server parameters *)
+val get_user_agent : server_params -> string
+val get_full_url : server_params -> string
+val get_ip : server_params -> Unix.inet_addr
+val get_get_params : server_params -> (string * string) list
+val get_post_params : server_params -> (string * string) list
+val get_current_url : server_params -> url_path
 
 type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 (** Binary sums *)
@@ -362,13 +342,13 @@ module Xhtml : sig
       service ->
 	server_params -> 
 	  a_content elt list -> 'get -> [> a] XHTML.M.elt
-(** [a service current cont ()] creates a link from [current] to [service]. The text of
+(** [a service sp cont ()] creates a link from [current] to [service]. 
+   The text of
    the link is [cont]. For example [cont] may be something like
-   [\[pcdata "click here"\]]. To know the current URL (for [current]),
-   use {{:#VALcurrent_url}current_url}.
+   [\[pcdata "click here"\]]. 
 
    The last  parameter is for GET parameters.
-   For example [a service current cont (42,"hello")]
+   For example [a service sp cont (42,"hello")]
 
    The [~a] optional parameter is used for extra attributes 
    (see the module XHTML.M) *)
@@ -738,7 +718,7 @@ module type OCSIGENSIG =
             (server_params -> 'a -> unit Lwt.t) ->
               ('a, 'b) action
     val static_dir :
-        'a server_params1 ->
+        server_params ->
           (string, unit, [ `Internal_Service of [ `Public_Service ] ],
            [ `WithSuffix ], string param_name, unit param_name)
             service
@@ -759,17 +739,17 @@ module type OCSIGENSIG =
               ('e -> form_content_elt list) -> 'a -> form_elt
     val make_uri :
         ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
-          'e server_params1 -> 'a -> uri
+          server_params -> 'a -> uri
     val action_a :
         ?a:a_attrib_t ->
           ?reload:bool ->
             ('a, 'b) action ->
-              'c server_params1 -> a_content_elt list -> form_elt
+              server_params -> a_content_elt list -> form_elt
     val action_form :
         ?a:form_attrib_t ->
           ?reload:bool ->
             ('a, 'b) action ->
-              'c server_params1 ->
+              server_params ->
 		('b -> form_content_elt list) -> form_elt
     val js_script :
         ?a:script_attrib_t -> uri -> script_elt
@@ -865,51 +845,3 @@ and type link_attrib_t = string
 and type script_attrib_t = string 
 and type input_type_t = string 
 
-(**/**) (* Internal functions *)
-
-(** return a page from a service and parameters *)
-val get_page :
-    string option *
-    url_path * string * string * int option * (string * string) list *
-    (string * string) list * string -> 
-      Unix.sockaddr -> string option -> 
-	(string option * 
-	   Sender_helpers.send_page_type *
-	   Sender_helpers.create_sender_type * string) Lwt.t
-
-val make_action :
-    string -> (string * string) list ->
-      string option * url_path * string * string * 
-	int option * (string * string) list *
-	(string * string) list * string -> 
-	  Unix.sockaddr -> string option -> 
-	    (string option * string) Lwt.t
-
-
-val state_param_name : string
-val action_prefix : string
-val action_name : string
-val action_reload : string
-
-(** Profiling *)
-val number_of_sessions : unit -> int
-val get_number_of_connected : unit -> int
-
-val get_number_of_connected : unit -> int
-(** Server internal functions: *)
-(** loads a module in the server *)
-val load_ocsigen_module : host: Ocsiconfig.virtual_hosts -> 
-  dir:url_path -> cmo:string -> unit
-val incr_connected : unit -> unit
-val decr_connected : unit -> unit
-
-
-exception Ocsigen_service_created_outside_site_loading
-exception Ocsigen_duplicate_registering of string
-exception Ocsigen_page_erasing of string
-exception Ocsigen_there_are_unregistered_services of string
-exception Ocsigen_register_for_session_outside_session
-exception Ocsigen_error_while_loading of string
-exception Ocsigen_Is_a_directory
-exception Ocsigen_404
-val end_initialisation : unit -> unit

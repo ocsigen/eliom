@@ -20,6 +20,7 @@
 
 open Lwt
 open Messages
+open Pagesearch
 open Ocsigen
 open Http_frame
 open Http_com
@@ -244,7 +245,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 			     http_frame.Http_frame.header "user-agent")
       with _ -> ""
       in return
-	(((Ocsigen.remove_slash (Neturl.url_path url2)), 
+	(((Ocsimisc.remove_slash (Neturl.url_path url2)), 
           (* the url path (string list) *)
 	  host,
 	  path,
@@ -292,8 +293,8 @@ let find_static_page host path =
     with Not_found -> 
       (match dir,dir_option with
 	None,None -> None
-      | (Some d), None -> Some (d^"/"^(Ocsigen.string_of_url_path (a::l)))
-      | _,Some s -> Some (s^"/"^(Ocsigen.string_of_url_path (a::l))))
+      | (Some d), None -> Some (d^"/"^(Ocsimisc.string_of_url_path (a::l)))
+      | _,Some s -> Some (s^"/"^(Ocsimisc.string_of_url_path (a::l))))
   in 
   let static_trees = Ocsiconfig.get_static_tree () in
   let find_static_tree_for_host trees =
@@ -411,7 +412,7 @@ let service http_frame sockaddr
 				 ~error_num:403 xhtml_sender (* Forbidden *)
 			   | _ -> fail Ocsigen_404 (*lstat errors, etc.*))
 		     else fail Ocsigen_404
-		 | Ocsigen.Ocsigen_Is_a_directory -> 
+		 | Ocsigen_Is_a_directory -> 
 		     send_empty
 		       ~keep_alive:keep_alive
 		       ~location:(stringpath^"/"^params)
@@ -491,7 +492,7 @@ let load_modules modules_list =
       [] -> ()
     | (Cmo s)::l -> Dynlink.loadfile s; aux l
     | (Mod (host,path,cmo))::l -> 
-	Ocsigen.load_ocsigen_module ~host:host ~dir:path ~cmo:cmo; 
+	load_ocsigen_module ~host:host ~dir:path ~cmo:cmo; 
 	aux l
   in
   Dynlink.init ();
@@ -644,7 +645,7 @@ let listen modules_list =
 	  print_string ("HTTPS server on port ");
 	  print_endline (string_of_int (Ocsiconfig.get_port ()) ^" launched");
 	  end;
-       Ocsigen.end_initialisation ();
+       end_initialisation ();
        warning "Ocsigen has been launched (initialisations ok)";
        wait_connexion listening_socket >>=
        Lwt.wait))
@@ -694,17 +695,18 @@ let _ = try
   if !Ocsiconfig.number_of_servers = 1 then run (List.hd !Ocsiconfig.cfgs) 
   else launch !Ocsiconfig.cfgs
 with
-  Ocsigen.Ocsigen_duplicate_registering s -> 
+  Ocsigen_duplicate_registering s -> 
     errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
-| Ocsigen.Ocsigen_there_are_unregistered_services s ->
+| Ocsigen_there_are_unregistered_services s ->
     errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
-| Ocsigen.Ocsigen_page_erasing s ->
+| Ocsigen_page_erasing s ->
     errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.")
-| Ocsigen.Ocsigen_register_for_session_outside_session ->
+| Ocsigen_register_for_session_outside_session ->
     errlog ("Fatal - Register session during initialisation forbidden.")
 | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
 | Unix.Unix_error (Unix.EACCES,"bind",s2) ->
-    errlog ("Fatal - You are not allowed to use this port")
+    errlog ("Fatal - You are not allowed to use port "^
+	    (string_of_int (Ocsiconfig.get_port ())))
 | Unix.Unix_error (Unix.EADDRINUSE,"bind",s2) ->
     errlog ("Fatal - This port is already in use")
 | Unix.Unix_error (e,s1,s2) ->

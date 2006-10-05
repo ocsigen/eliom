@@ -74,8 +74,7 @@ let coucou =
 	      which your server is running, the user who runs it, the path
 	    of the log files, etc.
       </p>
-    </div>
-    <div class="twocol2">
+      <h3>Static typing of XHTML</h3>
 	<p>
 	Typing of html is very strict and forces you to respect
 	xhtml 1.1 standard (with some limitations). 
@@ -96,6 +95,8 @@ Type 'a is not compatible with type
    <p><code>'b</code> is the list of tags allowed in a 
 	block tag (here <code>&lt;body&gt;</code>), but PCDATA
 	(i.e. raw text) is not allowed here.</p>
+    </div>
+    <div class="twocol2">
    <p>In XHTML, some tags cannot be empty. For example 
    <code>&lt;table&gt;</code> must contains at least one row.
    To enforce this, the <code>table</code> function takes two parameters:
@@ -284,9 +285,9 @@ let uaprefix =
 	   [p [pcdata "The suffix of the url is ";
 	       strong [pcdata suff];
 	       pcdata ", your user-agent is ";
-	       strong [pcdata sp.user_agent];
+	       strong [pcdata (get_user_agent sp)];
                pcdata ", your IP is ";
-	       strong [pcdata (Unix.string_of_inet_addr sp.ip)];
+	       strong [pcdata (Unix.string_of_inet_addr (get_ip sp))];
 	       pcdata " and s is ";
 	       strong [pcdata s]]])))
 (*html*
