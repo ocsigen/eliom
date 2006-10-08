@@ -245,16 +245,24 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
       let useragent = try (Http_header.get_headers_value
 			     http_frame.Http_frame.header "user-agent")
       with _ -> ""
+      in
+      let ifmodifiedsince = try 
+	Some (Netdate.parse_epoch 
+		(Http_header.get_headers_value
+		   http_frame.Http_frame.header "if-modified-since"))
+      with _ -> None
       in return
 	(((path,
-          (* the url path (string list) *)
-	  params,
-	  internal_state2,
-	   ((Ocsimisc.remove_slash (Neturl.url_path url2)), 
-	    host,
-	    get_params2,
-	    post_params3,
-	    useragent)), action_info))))
+   (* the url path (string list) *)
+	   params,
+	   internal_state2,
+	     ((Ocsimisc.remove_slash (Neturl.url_path url2)), 
+	      host,
+	      get_params2,
+	      post_params3,
+	      useragent)),
+	  action_info,
+	  ifmodifiedsince))))
       (function e -> 
 	Messages.debug (Printexc.to_string e); 
 	fail Ocsigen_Malformed_Url (* ?? *))
@@ -304,7 +312,7 @@ let service http_frame sockaddr
       in
       get_frame_infos http_frame >>=
       (fun (((stringpath,params,is,(path,host,gp,pp,ua)) as frame_info), 
-	    action_info) -> 
+	    action_info,ifmodifiedsince) -> 
 	(* log *)
 	let ip = ip_of_sockaddr sockaddr in
 	accesslog ("connection"^
@@ -320,23 +328,33 @@ let service http_frame sockaddr
 	       (fun () ->
 		 get_page frame_info sockaddr cookie >>=
 		 (fun (cookie2,send_page,sender,path),lastmodified ->
-		   send_page ~keep_alive:keep_alive
-		     ?last_modified:lastmodified
-		     ?cookie:(if cookie2 <> cookie then 
-		       (if cookie2 = None 
-		       then Some remove_cookie_str
-		       else cookie2) 
-		     else None)
-		     ~path:path (* path pour le cookie *) ~head:head
-		     (sender ~server_name:server_name inputchan)))
+		   match lastmodified,ifmodifiedsince with
+		     Some l, Some i when l<=i -> 
+		       Messages.debug "Sending 304 Not modified";
+		       send_empty
+			 ~keep_alive:keep_alive
+			 ~code:304 (* Not modified *)
+			 ~head:head empty_sender
+		   | _ ->
+		       send_page ~keep_alive:keep_alive
+			 ?last_modified:lastmodified
+			 ?cookie:(if cookie2 <> cookie then 
+			   (if cookie2 = None 
+			   then Some remove_cookie_str
+			   else cookie2) 
+			 else None)
+			 ~path:path (* path pour le cookie *) ~head:head
+			 (sender ~server_name:server_name inputchan)))
 	       (function
 		   Ocsigen_Is_a_directory -> 
+		     Messages.debug "Sending 301 Moved permanently";
 		     send_empty
 		       ~keep_alive:keep_alive
 		       ~location:(stringpath^"/"^params)
                        ~code:301 (* Moved permanently *)
 	               ~head:head empty_sender
 		 | Unix.Unix_error (Unix.EACCES,_,_) ->
+		     Messages.debug "Sending 303 Forbidden";
 		     send_error ~keep_alive:keep_alive
 		       ~error_num:403 xhtml_sender (* Forbidden *)
 		 | e -> fail e)

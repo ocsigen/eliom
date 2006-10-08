@@ -280,14 +280,14 @@ let do_for_host_matching host f =
   let rec aux e = function
       [] -> fail e
     | (h,pt)::l when host_match host h -> 
-	Messages.debug ("host found: "^(string_of_host_option host)^
+	Messages.debug ("---- host found: "^(string_of_host_option host)^
 			" matches "^(string_of_host h)); 
 	catch (fun () -> f pt) 
 	  (function
 	      Ocsigen_404 | Ocsigen_Wrong_parameter as e -> aux e l
 	    | e -> fail e)
     | (h,_)::l -> 
-	Messages.debug ("host = "^(string_of_host_option host)^
+	Messages.debug ("---- host = "^(string_of_host_option host)^
 			" does not match "^(string_of_host h)); 
 	aux e l
   in aux Serv_no_host_match !pages_trees
@@ -584,7 +584,7 @@ let get_page
 	    ((catch (* Generate a dynamic page *)
 	       (fun () -> 
 		 Messages.debug 
-		   ("--- I search "^(string_of_url_path url)^
+		   ("-- I'm looking for "^(string_of_url_path url)^
 		    " in the session table:");
 		 (find_service
 		    !session_tables_ref
@@ -597,7 +597,7 @@ let get_page
 		   Ocsigen_404 | Ocsigen_Wrong_parameter -> 
 		     catch (* ensuite dans la table globale *)
 		       (fun () -> 
-			 Messages.debug "--- I search in the global table:";
+			 Messages.debug "-- I'm searching in the global table:";
 			 (find_service 
 			    global_tables
 			    (session_tables_ref,
@@ -613,7 +613,7 @@ let get_page
 			     | _ -> catch (* d'abord la table de session *)
 				   (fun () ->
 				     Messages.debug 
-				       "--- I search in the session table, without state parameter:";
+				       "-- I'm searching in the session table, without state parameter:";
 				     (find_service 
 					!session_tables_ref
 					(session_tables_ref,
@@ -624,7 +624,7 @@ let get_page
 				   (function
 				       Ocsigen_404 | Ocsigen_Wrong_parameter -> 
 					 (* ensuite dans la table globale *)
-					 Messages.debug "--- I search in the global table, without state parameter:";
+					 Messages.debug "-- I'm searching in the global table, without state parameter:";
 					 (find_service 
 					    global_tables
 					    (session_tables_ref,
