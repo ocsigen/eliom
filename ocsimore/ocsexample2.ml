@@ -23,6 +23,8 @@ let connect_action =
   new_action
     ~post_params:(string "login" ** string "password")
 
+let deconnect_action = 
+  register_new_action unit (fun sp () -> Lwt.return (close_session sp))
 
 (*****************************************************************************)
 (* Construction of default pages *)
@@ -45,13 +47,13 @@ let user_home_page user sp () () = return
   (page ~css:["moncss.css"] sp
     [title_box "My forum";
      text_box "Bonjour !";
-     connected_box sp user;
+     connected_box deconnect_action sp user;
      news_headers_list_box sp messageslist_number user rocsexample message_service])
 
 let user_message_page user sp i () = return
   (page ~css:["moncss.css"] sp
     [title_box "My message";
-     connected_box sp user;
+     connected_box deconnect_action sp user;
      string_message_box i user rocsexample])
 
 

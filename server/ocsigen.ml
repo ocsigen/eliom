@@ -36,6 +36,7 @@ let get_ip sp = sp.ip
 let get_get_params sp = sp.get_params
 let get_post_params sp = sp.post_params
 let get_current_url sp = sp.current_url
+let get_hostname sp = sp.hostname
 
 let sync f sp g p = Lwt.return (f sp g p)
     
@@ -255,8 +256,7 @@ type service_kind = [`Internal_Service of internal_service_kind | `External_Serv
 
 type ('get,'post,'kind,'tipo,'getnames,'postnames) service = 
     {url: url_path; (* name of the service without parameters *)
-     host: Ocsiconfig.virtual_hosts; 
-        (* only for registrering on top of this service *)
+        (* unique_id is here only for registrering on top of this service *)
      unique_id: int;
      url_prefix: bool;
      external_service: bool;
@@ -603,7 +603,6 @@ module Make = functor
 (** Create a service *)
       let new_service_aux_aux
 	  ~(url : url_path)
-	  ~host
 	  ~prefix
 	  ~external_service
 	  ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
@@ -612,7 +611,6 @@ module Make = functor
 (* ici faire une vérification "duplicate parameter" ? *) 
 	{url = url;
 	 unique_id = counter ();
-	 host= host;
 	 url_prefix = prefix;
 	 url_state = None;
 	 external_service = external_service;
@@ -626,18 +624,17 @@ module Make = functor
 	  ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
 	  : ('get,unit,[`Internal_Service of 'popo],'tipo,'gn,unit param_name) service =
 	if global_register_allowed () then
-	  let curhost,curdir = get_current_hostdir () in
+	  let _,curdir = get_current_hostdir () in
 	  let full_path = curdir@(change_empty_list url) in
 	  let u = new_service_aux_aux
 	      ~url:full_path
-	      ~host:curhost
 	      ~prefix
 	      ~external_service:false
 	      ~get_params
 	      ~post_params:unit
 	  in
 	  add_unregistered (u.url,u.unique_id); u
-	else raise Ocsigen_service_created_outside_site_loading
+	else raise Ocsigen_service_or_action_created_outside_site_loading
 
       let new_external_service
 	  ~(url : url_path)
@@ -648,7 +645,6 @@ module Make = functor
 	  : ('get,'post,[`External_Service],'tipo,'gn,'pn) service =
 	new_service_aux_aux
 	  ~url
-	  ~host:[]
 	  ~prefix
 	  ~external_service:true
 	  ~get_params 
@@ -668,14 +664,14 @@ module Make = functor
 	{fallback with url_state = new_state ()}
 
       let register_service_aux
-	  (current_host, current_dir)
+	  current_dir
 	  tables
 	  session
 	  state
 	  ~(service : ('get,'post,[`Internal_Service of 'popo],'tipo,'gn,'pn) service)
 	  ?(error_handler = fun sp l -> raise (Ocsigen_Typing_Error l))
 	  (page_generator : server_params -> 'get -> 'post -> page Lwt.t) =
-	add_service tables current_host current_dir session service.url 
+	add_service tables current_dir session service.url 
 	  Pages.create_sender
 	  ({prefix = service.url_prefix;
 	    state = state},
@@ -698,8 +694,11 @@ module Make = functor
 	  (page_gen : server_params -> 'get -> 'post -> page Lwt.t) =
 	if global_register_allowed () then begin
 	  remove_unregistered (service.url,service.unique_id);
+	  let (_,globtables,_),curdir = get_current_hostdir () in
 	  register_service_aux 
-	    (get_current_hostdir ()) global_tables false service.url_state
+	    curdir
+	    globtables
+	    false service.url_state
 	    ~service ?error_handler page_gen; 
 	end
 	else Messages.warning ("URL .../"^
@@ -719,8 +718,9 @@ module Make = functor
 	      service)
  	  ?error_handler
 	  page =
-	register_service_aux ?error_handler (service.host, sp.current_dir)
-	  !(sp.session_table) true service.url_state ~service page
+	register_service_aux ?error_handler sp.current_dir
+	  !(sp.session_table)
+	  true service.url_state ~service page
 
       let register_new_service 
 	  ~url
@@ -760,7 +760,6 @@ module Make = functor
 	  : ('get, 'post, [`Internal_Service of [`Public_Service]], 'tipo,'gn,'pn) service = 
 (* ici faire une vérification "duplicate parameter" ? *) 
 	{url = fallback.url;
-	 host = fallback.host;
 	 unique_id = counter ();
 	 url_prefix = fallback.url_prefix;
 	 external_service = false;
@@ -776,7 +775,7 @@ module Make = functor
 	if global_register_allowed () then
 	  let u = new_post_service_aux fallback post_params in
 	  add_unregistered (u.url,u.unique_id); u
-	else raise Ocsigen_service_created_outside_site_loading
+	else raise Ocsigen_service_or_action_created_outside_site_loading
 	    
       let new_post_auxiliary_service
 	  ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
@@ -843,11 +842,11 @@ module Make = functor
       let register_action
 	  ~(action : ('post,'pn) action)
 	  (actionfun : (server_params -> 'post -> unit Lwt.t)) : unit =
-	(* if global_register_allowed () then *)
-	if during_initialisation () then
-	  register_action_aux 
-	    (snd (get_current_hostdir ())) global_tables action actionfun
-	else Messages.warning "Public action registration after init forbidden! Please correct your module! (ignored)"
+	if global_register_allowed () then
+	  (* if during_initialisation () then *)
+	  let (_,globtables,_),curdir = get_current_hostdir () in
+	  register_action_aux curdir globtables action actionfun
+	else raise Ocsigen_service_or_action_created_outside_site_loading
 
       let register_new_action ~post_params actionfun = 
 	let a = new_action post_params in
@@ -866,7 +865,6 @@ module Make = functor
 (** Satic directories **)
       let static_dir sp : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string param_name, unit param_name) service =
 	{url = sp.current_dir;
-	 host = [];
 	 unique_id = counter ();
 	 url_state = None;
 	 url_prefix = true;

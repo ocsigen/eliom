@@ -474,24 +474,26 @@ module FHttp_sender =
     match content with
       |None -> Lwt.return ()
       |Some c -> (C.stream_of_content c >>=
-                 (fun (lon,etag,flux) -> 
-		   Lwt.return (hds_fusion (Some lon) (("ETag",etag)::sender.headers) 
-				 (match headers with 
-				   Some h ->h
-				 | None -> []) ) >>=
-		  (fun hds -> 
-		    let hd = {
-		      H.mode = md;
-		      H.meth=meth;
-		      H.url=url;
-		      H.code=code;
-		      H.proto = prot;
-		      H.headers = hds;
-		    } in
-		    really_write sender.fd 
-		      (Cont ((Framepp.string_of_header hd), 
-			     (fun () -> Finished)))) >>=
-		  (fun _ -> match head with 
-				| Some true -> Lwt.return ()
-				| _ -> really_write sender.fd flux)))
-end
+                  (fun (lon,etag,flux) -> 
+		    Lwt.return (hds_fusion (Some lon) (("ETag",etag)::sender.headers) 
+				  (match headers with 
+				    Some h ->h
+				  | None -> []) ) >>=
+		    (fun hds -> 
+		      let hd = {
+			H.mode = md;
+			H.meth=meth;
+			H.url=url;
+			H.code=code;
+			H.proto = prot;
+			H.headers = hds;
+		      } in
+		      Messages.debug "writing header";
+		      really_write sender.fd 
+			(Cont ((Framepp.string_of_header hd), 
+			       (fun () -> Finished)))) >>=
+		    (fun _ -> match head with 
+		    | Some true -> Lwt.return ()
+		    | _ -> Messages.debug "writing body"; 
+			really_write sender.fd flux)))
+  end

@@ -39,16 +39,13 @@ let login_box_action h action =
 
 let login_box h serv = post_form serv h create_login_form
 
-let deconnect_action = 
-  register_new_action unit (fun sp () -> Lwt.return (close_session sp))
-
-let deconnect_box h s = action_a deconnect_action h s
+let deconnect_box deconnect_action h s = action_a deconnect_action h s
 
 
 (** User information *)
-let connected_box h user =
+let connected_box deconnect_action h user =
   let login,name,_ = Rights.get_user_info user in
-  let deconnect = deconnect_box h <:xmllist< déconnexion >> in
+  let deconnect = deconnect_box deconnect_action h <:xmllist< déconnexion >> in
     << <div id="loggedbox" class="userbox"> 
          <p>Vous êtes connecté comme utilisateur $str:login$ </p>
          $deconnect$

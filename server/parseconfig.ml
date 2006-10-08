@@ -46,48 +46,32 @@ let rec parser_config =
     | PLCons ((EPwhitespace s), l) -> s^(parse_string l)
     | PLCons ((EPcomment _), l) -> parse_string l
     | _ -> raise (Config_file_error "string expected")
-  in let rec parse_site2 (cmo,stat,mime) = function
+  in let rec parse_site n (cmos,stat,mime) = function
       PLCons ((EPanytag ("module", PLEmpty, s)), l) -> 
-	(match cmo with
-	  None -> parse_site2 (Some (parse_string s),stat,mime) l
-	| _ -> raise 
-	      (Config_file_error "Only one <module> tag allowed inside <site>"))
+	parse_site n (cmos@[parse_string s],stat,mime) l
     | PLCons ((EPanytag ("staticdir", PLEmpty, s)), l) -> 
 	(match stat with
-	  None -> parse_site2 (cmo, Some (parse_string s), mime) l
+	  None -> parse_site n (cmos, Some (parse_string s), mime) l
 	| _ -> raise 
 	      (Config_file_error 
 		 "Only one <staticdir> tag allowed inside <site>"))
     | PLCons ((EPanytag ("mimefile", PLEmpty, p)), l) ->
         (match mime with
-	  None -> parse_site2 (cmo, stat, Some (parse_string p)) l
-	| _ -> raise (Config_file_error "Only one <mimefile> tag allowed inside <site>"))
-    | PLCons ((EPcomment _), l) -> parse_site2 (cmo,stat,mime) l
-    | PLCons ((EPwhitespace _), l) -> parse_site2 (cmo,stat,mime) l
+	  None -> parse_site n (cmos, stat, Some (parse_string p)) l
+	| _ -> raise (Config_file_error 
+			"Only one <mimefile> tag allowed inside <site>"))
+    | PLCons ((EPcomment _), l) -> parse_site n (cmos,stat,mime) l
+    | PLCons ((EPwhitespace _), l) -> parse_site n (cmos,stat,mime) l
     | PLEmpty -> 
-	(match (cmo,stat,mime) with
-	  None, None, _ -> raise (Config_file_error "<module> or <staticdir> tag expected inside <site>")
-	| _ -> (cmo,stat,mime))
-    | _ -> raise 
-	  (Config_file_error "Unexpected tag inside <site>")
-  in
-  let rec parse_site n host = function
-      PLCons ((EPanytag ("url", PLEmpty, s)), l) ->
-      	let path = Neturl.split_path (parse_string s) in
-	let cmo,static,mime = parse_site2 (None, None, None) l in
-	(match static with
-	  None -> ()
-	| Some s -> Messages.debug ("site "^s);
-	    Ocsiconfig.set_static_dir n host s path);
-	(match mime with
-	  None -> ()
-	| Some m -> Ocsiconfig.set_mimefile n m);
-	(match cmo with
-	  None -> []
-	| Some cmo -> [Mod (host,path,cmo)])
-    | PLCons ((EPcomment _), l) -> parse_site n host l
-    | PLCons ((EPwhitespace _), l) -> parse_site n host l
-    | _ -> raise (Config_file_error "<url> tag expected inside <site>")
+	(match (cmos,stat) with
+	  [], None -> 
+	    raise (Config_file_error 
+		     "<module> or <staticdir> tag expected inside <site>")
+	| _ ->(match mime with
+            None -> ()
+          | Some m -> Ocsiconfig.set_mimefile n m);
+	    (cmos,stat))
+    | _ -> raise (Config_file_error "Unexpected tag inside <site>")
   in
   let rec parse_ssl n = function
       PLEmpty -> ()
@@ -99,8 +83,26 @@ let rec parser_config =
 	parse_ssl n l
     | PLCons ((EPcomment _), l) -> parse_ssl n l
     | PLCons ((EPwhitespace _), l) -> parse_ssl n l
-    | PLCons ((EPanytag (tag,_,_)),l) -> raise (Config_file_error ("<"^tag^"> tag unexpected inside <ssl>"))		  
-    | _ -> raise (Config_file_error ("Unexpected content inside <ssl>"))		  
+    | PLCons ((EPanytag (tag,_,_)),l) -> 
+	raise (Config_file_error ("<"^tag^"> tag unexpected inside <ssl>"))
+    | _ -> raise (Config_file_error ("Unexpected content inside <ssl>"))
+  in
+  let rec parse_host n = function
+      PLEmpty -> []
+    | PLCons ((EPanytag ("site", atts, l)), ll) ->
+	let dir = match atts with
+        | PLEmpty -> 
+	    raise (Config_file_error "dir attribute expected for <site>")
+        | PLCons ((EPanyattr (EPVstr("dir"), EPVstr(s))), PLEmpty) -> s
+        | _ -> raise (Config_file_error "Wrong attribute for <site>") 
+	in
+      	let path = Neturl.split_path dir in
+	(path, parse_site n ([],None,None) l)::(parse_host n ll)
+    | PLCons ((EPcomment _), l) -> parse_host n l
+    | PLCons ((EPwhitespace _), l) -> parse_host n l
+    | PLCons ((EPanytag (tag,_,_)),l) -> 
+	raise (Config_file_error ("<"^tag^"> tag unexpected inside <host>"))
+    | _ -> raise (Config_file_error ("Unexpected content inside <host>"))
   in
   let rec parse_ocsigen n = function
       PLEmpty -> []
@@ -120,7 +122,7 @@ let rec parser_config =
 	set_logdir n (parse_string p);
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("staticdir", PLEmpty, p)), ll) -> 
-	set_default_static_tree n (parse_string p);
+	set_default_static_dir n (parse_string p);
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("user", PLEmpty, p)), ll) -> 
 	set_user n (parse_string p);
@@ -148,23 +150,23 @@ let rec parser_config =
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
 	(Cmo (parse_string l))::parse_ocsigen n ll
-    | PLCons ((EPanytag ("site", atts, l)), ll) ->
+    | PLCons ((EPanytag ("host", atts, l)), ll) ->
        let host = match atts with
-        | PLEmpty -> [[Ocsiconfig.Wildcard]] (* default = "*" *)
-        | PLCons ((EPanyattr (EPVstr("host"), EPVstr(s))), PLEmpty) -> 
+        | PLEmpty -> [[Ocsimisc.Wildcard]] (* default = "*" *)
+        | PLCons ((EPanyattr (EPVstr("name"), EPVstr(s))), PLEmpty) -> 
 	    List.map
 	      (fun ss -> List.map
-		  (function Netstring_str.Delim _ -> Ocsiconfig.Wildcard
+		  (function Netstring_str.Delim _ -> Ocsimisc.Wildcard
 		    | Netstring_str.Text t -> 
-			Ocsiconfig.Text (t, String.length t))
+			Ocsimisc.Text (t, String.length t))
 		  (Netstring_str.full_split (Netstring_str.regexp "[*]+") ss))
 	      (Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
-        | _ -> raise (Config_file_error "Wrong attribute for <site>") in
-	(parse_site n host l)@(parse_ocsigen n ll)
+        | _ -> raise (Config_file_error "Wrong attribute for <host>") 
+       in (Host (host, parse_host n l))::(parse_ocsigen n ll)
     | PLCons ((EPcomment _), ll) -> parse_ocsigen n ll
     | PLCons ((EPwhitespace _), ll) -> parse_ocsigen n ll
-    | PLCons ((EPanytag (tag, PLEmpty, l)), ll) -> 
-	raise (Config_file_error ("tag "^tag^" unexpected inside <server>"))
+    | PLCons ((EPanytag (tag, _, _)), _) -> 
+	raise (Config_file_error ("tag <"^tag^"> unexpected inside <server>"))
     | _ ->
 	raise (Config_file_error "Syntax error")
   in let rec parse_servers n = function

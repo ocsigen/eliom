@@ -1,3 +1,4 @@
+
 let rec list_remove a = function
     [] -> []
   | b::l when a = b -> l
@@ -7,6 +8,16 @@ let rec list_assoc_remove a = function
     [] -> raise Not_found
   | (b,c)::l when a = b -> c,l
   | b::l -> let v,ll = list_assoc_remove a l in v,b::ll
+
+
+(* virtual hosts: *)
+type virtual_host_part = Text of string * int | Wildcard
+type virtual_hosts = virtual_host_part list list
+
+(* static pages *)
+type static_dir = Static_dir of string option * (string * static_dir) list
+
+
 
 (** various functions for URLs *)
 let defaultpagename = "index"

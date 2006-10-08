@@ -73,7 +73,8 @@ module Text_content =
 module Empty_content =
   struct
     type t = unit
-    let stream_of_content c = Lwt.return (0, "same", Cont("",(fun () -> Finished)))
+    let stream_of_content c = 
+      Lwt.return (0, "same", Cont("",(fun () -> Finished)))
     let content_of_string s = Lwt.return ()
   end
 
@@ -85,26 +86,25 @@ module File_content =
 	Messages.debug ("start reading ");
   	let buf = String.create buffer_size in
         let rec read_aux () =
-		let lu = Unix.read fd buf 0 buffer_size in
-         	   if lu = 0 then  begin
-	             Unix.close fd;
-		     Messages.debug ("Finished ");
-		     Finished
-		   end
-		   else begin 
-		   	if lu = buffer_size
-		        then Cont (buf, (fun () -> read_aux ()))
-			else Cont ((String.sub buf 0 lu), (fun () -> read_aux ()))
-			end
+	  let lu = Unix.read fd buf 0 buffer_size in
+          if lu = 0 then  begin
+	    Unix.close fd;
+	    Finished
+	  end
+	  else begin 
+	    if lu = buffer_size
+	    then Cont (buf, (fun () -> read_aux ()))
+	    else Cont ((String.sub buf 0 lu), (fun () -> read_aux ()))
+	  end
 	in read_aux ()			 
-						      
+
     let stream_of_content c  =
       (*ouverture du fichier*)
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
       let st = Unix.stat c in 
       let etag = Printf.sprintf "%x-%x-%f" st.Unix.st_size
                         st.Unix.st_ino st.Unix.st_mtime in    	
-      	Lwt.return (st.Unix.st_size, etag, read_file fd)	
+      	Lwt.return (st.Unix.st_size, etag, read_file fd)
     let content_of_string s = assert false
       
   end
@@ -248,7 +248,7 @@ type send_page_type =
 	  ?path:string ->
 	    ?last_modified:float ->
 	      ?location:string -> 
-	        ?head:bool ->Http_com.sender_type -> unit Lwt.t
+	        ?head:bool -> Http_com.sender_type -> unit Lwt.t
   
 (** fonction that sends a xhtml page
  * code is the code of the http answer
@@ -377,8 +377,8 @@ let content_type_from_file_name filename =
     in Hashtbl.find mimeht extens
   with _ -> "unknown" 
 
-let send_file ?code ~keep_alive ?cookie ?path
-    ?last_modified ?location ?head file file_sender =
+let send_file file ?code ~keep_alive ?cookie ?path
+    ?last_modified ?location ?head file_sender =
   send_generic 
     ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~header:[("Content-Type",content_type_from_file_name file)]

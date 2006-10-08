@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module server.ml
- * Copyright (C) 2005 Vincent Balat and Denis Berthod
+ * Copyright (C) 2005 Vincent Balat, Denis Berthod, Nataliya Guts
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 open Lwt
 open Messages
+open Ocsimisc
 open Pagesearch
 open Ocsigen
 open Http_frame
@@ -245,15 +246,15 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 			     http_frame.Http_frame.header "user-agent")
       with _ -> ""
       in return
-	(((Ocsimisc.remove_slash (Neturl.url_path url2)), 
+	(((path,
           (* the url path (string list) *)
-	  host,
-	  path,
 	  params,
 	  internal_state2,
-	  get_params2,
-	  post_params3,
-	 useragent), action_info)))
+	   ((Ocsimisc.remove_slash (Neturl.url_path url2)), 
+	    host,
+	    get_params2,
+	    post_params3,
+	    useragent)), action_info))))
       (function e -> 
 	Messages.debug (Printexc.to_string e); 
 	fail Ocsigen_Malformed_Url (* ?? *))
@@ -276,74 +277,8 @@ let rec getcookie s =
 
 let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
-exception Serv_no_host_match
-let find_static_page host path =
-  let rec aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) = function
-      [] -> (match dir_option with
-	None -> dir
-      | s -> s)
-    | ""::l -> aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) l
-    | ".."::l -> aux dir (Ocsiconfig.Static_dir (dir_option, subdir_list)) l
-	  (* For security reasons, .. is not allowed in paths *)
-    | a::l -> try 
-	let e = (List.assoc a subdir_list) in
-	match dir with
-	  None -> aux None e l
-	| Some dir -> aux (Some (dir^"/"^a)) e l
-    with Not_found -> 
-      (match dir,dir_option with
-	None,None -> None
-      | (Some d), None -> Some (d^"/"^(Ocsimisc.string_of_url_path (a::l)))
-      | _,Some s -> Some (s^"/"^(Ocsimisc.string_of_url_path (a::l))))
-  in 
-  let static_trees = Ocsiconfig.get_static_tree () in
-  let find_static_tree_for_host trees =
-      let rec aux host = function
-	  [] -> raise Serv_no_host_match
-	| (h,d)::l when host_match host h -> 
-	    Messages.debug ("host found: "^host^
-			    " matches "^(string_of_host h)); 
-	    (!d,l)
-	| (h,_)::l -> 
-	    Messages.debug ("host = "^host^" does not match "^
-			    (string_of_host h)); 
-	    aux host l
-      in match host with 
-	None -> (match trees with
-	  [] -> raise Serv_no_host_match
-	| (_,d)::l -> (!d,l))
-      | Some hh -> aux hh trees
-  in
-  let find_file = function
-      None -> raise Ocsigen_404
-    | Some filename ->
-	Messages.debug ("Looking for ("^filename^")");
-	ignore (Unix.lstat filename);
-	let filename = 
-	  if ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR)
-	  then filename^"/index.html"
-	  else filename
-	in
-	if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
-	then begin
-	  Unix.access filename [Unix.R_OK];
-	  filename
-	end
-	else raise Ocsigen_404 (* ??? *)
-  in
-  let rec aux_host trees =
-    try
-      let st,others = find_static_tree_for_host trees in
-      try find_file (aux None st path)
-      with _ -> aux_host others
-    with 
-      Serv_no_host_match -> 
-	Messages.debug ("default host");
-	find_file (aux None (get_default_static_tree ()) path)
-  in aux_host static_trees
-
 let service http_frame sockaddr 
-    xhtml_sender file_sender empty_sender inputchan () =
+    xhtml_sender empty_sender inputchan () =
   let head = ((Http_header.get_method http_frame.Http_frame.header) 
     		= Some (Http_header.HEAD)) in
   let ka = try
@@ -368,8 +303,8 @@ let service http_frame sockaddr
 	with _ -> None
       in
       get_frame_infos http_frame >>=
-      (fun ((path,host,stringpath,params,a,b,c,ua), action_info) -> 
-	let frame_info = (host,path,stringpath,params,a,b,c,ua) in  
+      (fun (((stringpath,params,is,(path,host,gp,pp,ua)) as frame_info), 
+	    action_info) -> 
 	(* log *)
 	let ip = ip_of_sockaddr sockaddr in
 	accesslog ("connection"^
@@ -384,8 +319,9 @@ let service http_frame sockaddr
 	    (catch
 	       (fun () ->
 		 get_page frame_info sockaddr cookie >>=
-		 (fun cookie2,send_page,sender,path ->
-		   send_page ~keep_alive:keep_alive 
+		 (fun (cookie2,send_page,sender,path),lastmodified ->
+		   send_page ~keep_alive:keep_alive
+		     ?last_modified:lastmodified
 		     ?cookie:(if cookie2 <> cookie then 
 		       (if cookie2 = None 
 		       then Some remove_cookie_str
@@ -394,30 +330,15 @@ let service http_frame sockaddr
 		     ~path:path (* path pour le cookie *) ~head:head
 		     (sender ~server_name:server_name inputchan)))
 	       (function
-		   Ocsigen_404 ->
-		     if params = "" then
-		       catch (fun () ->
-			 Messages.debug ("--- Is it a static file?");
-			 let filename = find_static_page host path in
-			 catch (fun () ->
-			   send_file 
-			     ~keep_alive:keep_alive
-			     ~last_modified:((Unix.stat filename).Unix.st_mtime)
-			     ~code:200 ~head:head filename file_sender)
-			   (function _ -> Lwt.return ())
-                           (* stops if error while sending *))
-			 (function
-			     Unix.Unix_error (Unix.EACCES,_,_) ->
-			       send_error ~keep_alive:keep_alive
-				 ~error_num:403 xhtml_sender (* Forbidden *)
-			   | _ -> fail Ocsigen_404 (*lstat errors, etc.*))
-		     else fail Ocsigen_404
-		 | Ocsigen_Is_a_directory -> 
+		   Ocsigen_Is_a_directory -> 
 		     send_empty
 		       ~keep_alive:keep_alive
 		       ~location:(stringpath^"/"^params)
                        ~code:301 (* Moved permanently *)
-	               ~head:head empty_sender		
+	               ~head:head empty_sender
+		 | Unix.Unix_error (Unix.EACCES,_,_) ->
+		     send_error ~keep_alive:keep_alive
+		       ~error_num:403 xhtml_sender (* Forbidden *)
 		 | e -> fail e)
 	       >>= (fun _ -> return keep_alive))
 	| Some (action_name, reload, action_params) ->
@@ -426,8 +347,9 @@ let service http_frame sockaddr
 		let keep_alive = ka in
 		(if reload then
 		  get_page frame_info sockaddr cookie2 >>=
-		  (fun cookie3,send_page,sender,path ->
+		  (fun (cookie3,send_page,sender,path),lastmodified ->
 		    (send_page ~keep_alive:keep_alive 
+		       ?last_modified:lastmodified
 		       ?cookie:(if cookie3 <> cookie then 
 			 (if cookie3 = None 
 			 then Some remove_cookie_str
@@ -491,19 +413,22 @@ let load_modules modules_list =
   let rec aux = function
       [] -> ()
     | (Cmo s)::l -> Dynlink.loadfile s; aux l
-    | (Mod (host,path,cmo))::l -> 
-	load_ocsigen_module ~host:host ~dir:path ~cmo:cmo; 
+    | (Host (host,sites))::l -> 
+	load_ocsigen_module host sites; 
 	aux l
   in
   Dynlink.init ();
   Dynlink.allow_unsafe_modules true;
-  aux modules_list
+  aux modules_list;
+  load_ocsigen_module
+    [[Wildcard]] [[],([(* no cmo *)], (get_default_static_dir ()))]
+    (* for default static dir *)
 
 (** Thread waiting for events on a the listening port *)
 let listen modules_list =
   
   let listen_connexion receiver in_ch sockaddr 
-      xhtml_sender file_sender empty_sender =
+      xhtml_sender empty_sender =
     
     let rec listen_connexion_aux ~keep_alive =
       let analyse_http () =
@@ -513,7 +438,7 @@ let listen modules_list =
 	    (fun () -> fail Ocsigen_Timeout))] >>=
 	(fun http_frame ->
 	  (service http_frame sockaddr 
-	     xhtml_sender file_sender empty_sender in_ch ())
+	     xhtml_sender empty_sender in_ch ())
             >>= (fun keep_alive -> 
 	      if keep_alive then begin
 		Messages.debug "KEEP ALIVE";
@@ -577,16 +502,16 @@ let listen modules_list =
 	  let xhtml_sender = 
 	    Sender_helpers.create_xhtml_sender
 	      ~server_name:server_name inputchan in
-	  let file_sender =
+	  (* let file_sender =
 	    create_file_sender ~server_name:server_name inputchan
-	  in
+	  in *)
 	  let empty_sender =
 	    create_empty_sender ~server_name:server_name inputchan
 	  in
 	  listen_connexion 
 	    (Http_receiver.create inputchan) 
 	    inputchan sockaddr xhtml_sender
-	    file_sender empty_sender)
+	    empty_sender)
 	(handle_exn sockaddr inputchan)
     in
     let rec wait_connexion_rec = (fun () -> 
@@ -666,12 +591,13 @@ let _ = try
       print_string ": ";
       Ocsiconfig.set_passwd h (read_line ());
       print_newline ();
-    end; ask_for_passwds t in
+    end; ask_for_passwds t 
+  in
   let run s =
     Ocsiconfig.sconf := s;
     Messages.open_files ();
     Ocsiconfig.cfgs := [];
-    Gc.full_major ();
+    (* Gc.full_major (); *)
     if (get_maxthreads ())<(get_minthreads ())
     then 
       raise (Config_file_error "maxthreads should be greater than minthreads");
@@ -679,12 +605,16 @@ let _ = try
       (ignore (Preemptive.init 
 		 (Ocsiconfig.get_minthreads ()) 
 		 (Ocsiconfig.get_maxthreads ()));
-       listen (Ocsiconfig.get_modules ())) in
-  let rec launch l = match l with [] -> () | (h :: t) -> begin 
-    match Unix.fork () with
-    | 0 -> run h
-    | _ -> launch t
-  end in
+       listen (Ocsiconfig.get_modules ())) 
+  in
+  let rec launch = function
+      [] -> () 
+    | (h :: t) -> begin 
+	match Unix.fork () with
+	| 0 -> run h
+	| _ -> launch t
+    end
+  in
   let old_term= Unix.tcgetattr Unix.stdin in
   let old_echo = old_term.Unix.c_echo in
   old_term.Unix.c_echo <- false;
@@ -699,6 +629,8 @@ with
     errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
 | Ocsigen_there_are_unregistered_services s ->
     errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
+| Ocsigen_service_or_action_created_outside_site_loading ->
+    errlog ("Fatal - An action or a service is created outside site loading phase")
 | Ocsigen_page_erasing s ->
     errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.")
 | Ocsigen_register_for_session_outside_session ->

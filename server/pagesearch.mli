@@ -24,7 +24,7 @@ exception Ocsigen_duplicate_registering of string
 exception Ocsigen_register_for_session_outside_session
 exception Ocsigen_page_erasing of string
 exception Ocsigen_Is_a_directory
-exception Ocsigen_service_created_outside_site_loading
+exception Ocsigen_service_or_action_created_outside_site_loading
 exception Ocsigen_there_are_unregistered_services of string
 exception Ocsigen_error_while_loading of string
 exception Ocsigen_Typing_Error of (string * exn) list
@@ -46,6 +46,7 @@ type current_url = string list
 type current_dir = string list
 
 type 'a server_params1 = {full_url: string;
+			  hostname: string option;
 			  user_agent: string;
 			  ip: Unix.inet_addr;
 			  get_params: (string * string) list;
@@ -65,67 +66,85 @@ type internal_state = int
 
 
 (*****************************************************************************)
+(*
 type tables
-      
-type page_table_key =
-    {prefix:bool;
-     state: internal_state option}
+type cookiestable
+type pages_tree =
+    Ocsimisc.static_dir ref (* static pages *)
+      * tables (* global tables of continuations/actions *)
+      * cookiestable (* session tables *)
+
+
       
 val make_server_params :
     current_dir -> tables ref -> current_url -> string ->
       (string * string) list -> (string * string) list -> 
 	string -> Unix.inet_addr -> tables server_params1
+
 	    
-val empty_tables : unit -> tables
 val are_empty_tables : tables -> bool
-val add_service : tables -> Ocsiconfig.virtual_hosts ->
-  current_dir -> bool -> url_path ->
-    Sender_helpers.create_sender_type ->
-      page_table_key * (int * (tables server_params2 -> 
-	Sender_helpers.send_page_type Lwt.t)) -> unit
-val add_action :
-    tables -> current_dir
-      -> string -> (tables server_params1 -> unit Lwt.t) -> unit
 val find_service :
     tables ->
-      tables ref * string option * 
+      tables ref * 
 	current_url * internal_state option * (string * string) list *
 	(string * string) list * string * Unix.inet_addr * string -> 
 	  (Sender_helpers.send_page_type * 
 	     Sender_helpers.create_sender_type * url_path) Lwt.t
 val find_action :
     tables -> string -> (tables server_params1 -> unit Lwt.t) * url_path
-
+*)
 
 
 
 (*****************************************************************************)
+type tables
+type cookiestable
+type pages_tree = 
+    Ocsimisc.static_dir ref (* static pages *)
+      * tables (* global tables of continuations/actions *)
+      * cookiestable (* session tables *)
 type session_table = tables
+
+type page_table_key =
+    {prefix:bool;
+     state: internal_state option}
+
+val empty_tables : unit -> tables
+
+val add_service : tables ->
+  current_dir -> bool -> url_path ->
+    Sender_helpers.create_sender_type ->
+      page_table_key * (int * (tables server_params2 -> 
+	Sender_helpers.send_page_type Lwt.t)) -> unit
+
+val add_action :
+    tables -> current_dir
+      -> string -> (tables server_params1 -> unit Lwt.t) -> unit
 
 (** Type of http parameters *)
 type server_params = session_table server_params1
-
-val global_tables : tables
 
 
 (*****************************************************************************)
 (** return a page from a service and parameters *)
 val get_page :
-    string option *
-    url_path * string * string * int option * (string * string) list *
-    (string * string) list * string -> 
-      Unix.sockaddr -> string option -> 
-	(string option * 
-	   Sender_helpers.send_page_type *
-	   Sender_helpers.create_sender_type * string) Lwt.t
+    string * string * internal_state option *
+    (current_url * string option * (string * string) list *
+       (string * string) list * string) ->
+	 Unix.sockaddr -> string option -> 
+	   ((string option * 
+	       Sender_helpers.send_page_type *
+	       Sender_helpers.create_sender_type * string) * 
+	      float option) Lwt.t
 
 val make_action :
-    string -> (string * string) list ->
-      string option * url_path * string * string * 
-	int option * (string * string) list *
-	(string * string) list * string -> 
-	  Unix.sockaddr -> string option -> 
-	    (string option * string) Lwt.t
+    string ->
+      (string * string) list ->
+	string * string * internal_state option * 
+	  (current_url * string option * (string * string) list *
+	     (string * string) list * string) ->
+	       Unix.sockaddr -> string option -> 
+		 (string option * string) Lwt.t
 
 
 val state_param_name : string
@@ -138,14 +157,16 @@ val number_of_sessions : unit -> int
 val get_number_of_connected : unit -> int
 
 val get_number_of_connected : unit -> int
+
+
 (** Server internal functions: *)
 (** loads a module in the server *)
-val load_ocsigen_module : host: Ocsiconfig.virtual_hosts -> 
-  dir:url_path -> cmo:string -> unit
+val load_ocsigen_module : Ocsimisc.virtual_hosts -> 
+  (url_path * (string list * string option)) list -> unit
 val incr_connected : unit -> unit
 val decr_connected : unit -> unit
 
-val get_current_hostdir : unit -> Ocsiconfig.virtual_hosts * url_path
+val get_current_hostdir : unit -> pages_tree * url_path
 val add_unregistered : string list * int -> unit
 val remove_unregistered : string list * int -> unit
 

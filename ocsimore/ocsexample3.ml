@@ -22,7 +22,8 @@ let connect_action =
   new_action
     ~post_params:(string "login" ** string "password")
 
-
+let deconnect_action = 
+  register_new_action unit (fun sp () -> Lwt.return (close_session sp))
 
 (*****************************************************************************)
 (* Register for public pages: *)
@@ -203,7 +204,7 @@ let fold_news_headers_list_box =
 
 let fold_user_pages_connected_box =
   RegisterUserBoxes.register ~name:"ocsexample_user_pages_deconnect_box" 
-    ~constructor:(fun ~box_param:() h u r -> connected_box h u)
+    ~constructor:(fun ~box_param:() h u r -> connected_box deconnect_action h u)
 
 let fold_news_box =
   RegisterNewsBoxes.register ~name:"ocsexample_news_box" 

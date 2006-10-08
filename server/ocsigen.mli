@@ -58,6 +58,7 @@ type url_path = string list
 type server_params
 (** Type of server parameters *)
 val get_user_agent : server_params -> string
+val get_hostname : server_params -> string option
 val get_full_url : server_params -> string
 val get_ip : server_params -> Unix.inet_addr
 val get_get_params : server_params -> (string * string) list

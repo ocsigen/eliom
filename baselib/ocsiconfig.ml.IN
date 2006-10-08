@@ -18,50 +18,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+open Ocsimisc
 
 exception Config_file_error of string
 let number_of_servers = ref 0
 
-type virtual_host_part = Text of string * int | Wildcard
-type virtual_hosts = virtual_host_part list list
+type modules = 
+    Cmo of string 
+  | Host of 
+      virtual_hosts * ((string list (* path *)
+			  * (string list (* cmo to be loaded *)
+			       * string option (* static dir *))) list)
 
-let rec host_match host =
-  let hostlen = String.length host in
-  let rec host_match1 beg =
-    let rec aux t len l p0 =
-      try 
-	let (p,_) = 
-	  Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
-	let beg2 = p + len in
-	(host_match1 beg2 l) || (aux t len l (p+1))
-      with _ -> false
-    in
-    function
-	[] -> beg = hostlen
-      | [Wildcard] -> true
-      | (Wildcard)::(Wildcard)::l -> 
-	  host_match1 beg ((Wildcard)::l)
-      | (Wildcard)::(Text (t,len))::l -> aux t len l beg
-      | (Text (t,len))::l -> 
-	  try
-	    (t = String.sub host beg len) && (host_match1 (beg+len) l)
-	  with _ -> false
-  in
-  function
-      [] -> false
-    | a::l -> (host_match1 0 a) || host_match host l
-
-let string_of_host h = 
-  let rec aux = function
-      [] -> ""
-    | Wildcard::l -> "*"^(aux l)
-    | (Text (t,_))::l -> t^(aux l)
-  in List.fold_left (fun d hh -> d^(aux hh)^" ") "" h
-
-
-
-type modules = Cmo of string | Mod of virtual_hosts * string list * string
-type static_dir = Static_dir of string option * (string * static_dir) list
 type config = { mutable port: int;
 		mutable port_modified: bool;
 		mutable modu: modules list;
@@ -71,8 +39,7 @@ type config = { mutable port: int;
 		mutable passwd: string;
 		mutable uploaddir: string;
 		mutable logdir: string;
-		mutable static_tree: (virtual_hosts * static_dir ref) list;
-		mutable default_static_tree: static_dir;
+		mutable default_static_dir: string option;
 		mutable user: string;
 		mutable group: string;
 		mutable minthreads: int;
@@ -82,7 +49,7 @@ type config = { mutable port: int;
 		mutable mimefile: string;
 		mutable connect_time_max: float;
 		mutable keepalive_timeout: float;
-	 }
+	      }
 
 let config_file = ref "_CONFIGDIR_/ocsigen.conf"
 let verbose = ref false
@@ -96,8 +63,7 @@ let init_config () =
    modu = [];
    private_key = ""; certificate = ""; passwd = ""; 
    uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
-   static_tree = [];
-   default_static_tree = Static_dir (None , []);
+   default_static_dir = None;
    user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
    minthreads = 10; 
    maxthreads = 300; 
@@ -121,8 +87,8 @@ let set_passwd cf p = cf.passwd <- p
 let set_uploaddir cf u = cf.uploaddir <- u
 let set_logdir cf s = cf.logdir <- s
 let set_configfile s = config_file := s
-let set_default_static_tree cf s = 
-  (cf).default_static_tree <- Static_dir (Some s, [])
+let set_default_static_dir cf s = 
+  (cf).default_static_dir <- Some s
 let set_mimefile cf s = cf.mimefile <- s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
@@ -151,8 +117,7 @@ let get_mimefile () = !sconf.mimefile
 let get_verbose () = !verbose
 let get_silent () = !silent
 let get_veryverbose () = !veryverbose
-let get_static_tree () = !sconf.static_tree
-let get_default_static_tree () = !sconf.default_static_tree
+let get_default_static_dir () = !sconf.default_static_dir
 let get_user () = !sconf.user
 let get_group () = !sconf.group
 let get_minthreads () = !sconf.minthreads
@@ -161,39 +126,6 @@ let get_max_number_of_threads_queued () = !sconf.max_number_of_threads_queued
 let get_max_number_of_connections () = !sconf.max_number_of_connections
 let get_connect_time_max () = !sconf.connect_time_max
 let get_keepalive_timeout () = !sconf.keepalive_timeout
-
-let set_static_dir cf host s path =
-  let rec assoc_and_remove a = function
-      [] -> raise Not_found
-    | (b,v)::l when a = b -> (v,l)
-    | e::l -> let v,ll = assoc_and_remove a l
-	  in v,(e::ll)
-  in
-  let rec add_path = function
-      [] -> Static_dir (Some s,[])
-    | a::l -> Static_dir (None, [(a,add_path l)])
-  in
-  let rec aux (Static_dir (s1,l1)) = function
-      [] -> Static_dir (Some s,l1)
-    | a::l -> 
-	try
-	  let sd1,l2 = assoc_and_remove a l1 in
-	  let sd = aux sd1 l in
-	  Static_dir (s1,(a,sd)::l2)
-	with Not_found -> Static_dir (s1,(a,(add_path l))::l1)
-  in
-  let find_add_static_dir () = 
-    let rec auxx = function
-	[] -> let r = ref (Static_dir (None ,[])) in
-	(cf).static_tree <- 
-	  (host,r)::(cf).static_tree (* new one at the beginning *);
-	r
-      | (h,r)::_ when h == host (* physical equality *) -> r
-      | _::l -> auxx l
-    in auxx (cf).static_tree 
-  in
-  let static_dir = find_add_static_dir () in
-  static_dir := aux !static_dir path
 
 let display_version () =
   print_string version_number;
