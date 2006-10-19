@@ -35,7 +35,7 @@ module type HTTP_CONTENT =
     val content_of_string : string -> t Lwt.t
 
     (** convert a content type into a thread returning its size,etag,stream*)
-    val stream_of_content : t -> (int * string * stream) Lwt.t
+    val stream_of_content : t -> (int64 * string * stream) Lwt.t
   end
 
 

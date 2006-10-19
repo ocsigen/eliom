@@ -46,7 +46,8 @@ module Content =
     let content_of_string c = Lwt.return c
     let stream_of_content s = 
     	let md5 = Digest.to_hex (Digest.string s) in
-    	Lwt.return (String.length s, md5, Cont (s, (fun () -> Finished)))
+    	Lwt.return (Int64.of_int (String.length s), 
+		    md5, Cont (s, (fun () -> Finished)))
   end
 
 module Http_frame = FHttp_frame (Content)
@@ -416,12 +417,12 @@ let service http_frame sockaddr
     catch
       (fun () ->
 	let cl = try
-	  (int_of_string 
+	  (Int64.of_string 
 	     (Http_header.get_headers_value http_frame.Http_frame.header 
 		"content-length"))
 	with _ -> raise Ocsigen_Bad_Request
 	in
-	if (cl > 0) &&
+	if (Int64.compare cl Int64.zero) > 0 &&
 	  (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
 	then (send_error ~keep_alive:ka ~error_num:501 xhtml_sender >>= 
 	      (fun _ -> return ka)) 

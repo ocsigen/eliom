@@ -1,4 +1,7 @@
 (* Using code from OcamlNet: mimestring.ml *)
+ (* Copyright Gerd Stolpmann *) 
+ (* Modified for Ocsigen/Lwt by Nataliya Guts *)
+ (* Warning: see the license in separate file *)
 module S = Netstring_pcre
 open Lwt
 

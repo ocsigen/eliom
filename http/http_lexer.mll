@@ -45,7 +45,7 @@ rule token =
   |":"                  {Messages.debug_noel ":";COLON}
   |"\n"                 {Messages.debug "";EOL}
   |integer              {Messages.debug_noel (Lexing.lexeme lexbuf);
-			 CODE (int_of_string (Lexing.lexeme lexbuf))}
+			 CODE (Lexing.lexeme lexbuf)}
   |proto                {Messages.debug_noel (Lexing.lexeme lexbuf);
 			 PROTO (Lexing.lexeme lexbuf)}
   |strin                {Messages.debug_noel (Lexing.lexeme lexbuf);

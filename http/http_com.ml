@@ -92,6 +92,7 @@ struct
 	       );
 	      (* update the buffer *)
 	      buffer.write_pos <- buffer.write_pos + len;
+	      print_endline "################ réveille thread_waiting_read_enable";
 	      (* if a thread wait for reading wake it up *)
 	      (match !thread_waiting_read_enable with
 	      |Some thread -> Lwt.wakeup thread ()
@@ -105,63 +106,71 @@ struct
     with e -> fail e
 	
 
+  let min64 a b = if (Int64.compare a b) < 0 then a else b
   let min3 int1 int2 int3 = min (min int1 int2) int3
+  let min3' (int1 : int64) int2 int3 = 
+    Int64.to_int (min64 (min64 int1 (Int64.of_int int2)) (Int64.of_int int3))
             
   (** read a given number of bytes from the buffer without destroying the buffer content *)
-  let read fd buffer off len () =
-    let rec read_aux result read_p =
-      function
-        |x when x < 0 -> assert false 
-        |0 -> Lwt.return result
-        |rem_len->
-            (
-              let available = buffer.write_pos - read_p in
-              (* convert the positions into buffer indices *)
-              let r_buffer_pos = read_p mod buffer.size in
-                match available with
-                  |x when x < 0 -> assert false
-                  |0 -> 
-                      (* wait until can read more bytes*)
-                      receive fd buffer >>=
-		      (fun () -> read_aux result read_p rem_len)
-                  |_ ->
-                      let nb_read = 
-			min3 rem_len available (buffer.size - r_buffer_pos) in
-                      let string_read = String.sub buffer.buf read_p nb_read in
-                      read_aux (result^string_read) 
-			(read_p + nb_read) (rem_len - nb_read)
-                      
-            )
+(* j'enlève; à remettre
+ let read fd buffer off len () =
+    let rec read_aux result read_p rem_len =
+      let co = (Int64.compare rem_len 0) in
+      if co < 0 
+      then assert false 
+      else if co = 0 
+      then Lwt.return result
+      else (
+        let available = Int64.sub buffer.write_pos read_p in
+        (* convert the positions into buffer indices *)
+        let r_buffer_pos = read_p mod buffer.size in
+	let co = (Int64.compare available 0) in
+	if co < 0 
+	then assert false 
+	else if co = 0 
+	then (* wait until can read more bytes*)
+          receive fd buffer >>=
+	  (fun () -> read_aux result read_p rem_len)
+	else let nb_read = 
+	  min3 rem_len available (buffer.size - r_buffer_pos) in
+        let string_read = String.sub buffer.buf read_p nb_read in
+        read_aux 
+	  (result^string_read) 
+	  (Int64.add read_p nb_read)
+	  (Int64.sub rem_len nb_read)
+       )
     in
       if (buffer.read_pos + off> buffer.write_pos) 
       then Lwt.fail (Invalid_argument ("offset out of bound"))
-      else read_aux "" (off + buffer.read_pos) len
+      else read_aux "" (off + buffer.read_pos) len *)
 
    (** extract a given number bytes in the destructive way from the buffer *)
-  let extract fd buffer len =
-    let rec extract_aux  result =
-      function
-        |0 -> Lwt.return result
-        |rem_len ->
-            (
-              let available = buffer.write_pos - buffer.read_pos in
-              let r_buffer_pos =buffer.read_pos mod buffer.size in
-                match available with
-                  |x when x < 0 -> assert false
-                  |0 ->
-                      (* wait more bytes to read *)
-                      receive fd buffer >>= (fun () ->
-                        extract_aux result rem_len)
-                  |_ -> 
-                         let nb_extract = min3 rem_len available (buffer.size - r_buffer_pos) in
-                         let string_extract = String.sub buffer.buf buffer.read_pos nb_extract in
-                           buffer.read_pos <- buffer.read_pos + nb_extract;
-                           (match !thread_waiting_write_enable with
-                              |None -> ()
-                              |Some thread -> Lwt.wakeup thread ()
-                           );
-                           extract_aux (result^string_extract) (rem_len - nb_extract)
-            )
+  let extract fd buffer (len : int64) =
+    let rec extract_aux result rem_len =
+      if rem_len = Int64.zero 
+      then Lwt.return result
+      else (
+        let available = buffer.write_pos - buffer.read_pos in
+        let r_buffer_pos =buffer.read_pos mod buffer.size in
+        match available with
+        | x when x < 0 -> assert false
+        | 0 ->
+            (* wait more bytes to read *)
+            receive fd buffer >>= (fun () ->
+              extract_aux result rem_len)
+        | _ -> 
+            let nb_extract = 
+	      min3' rem_len available (buffer.size - r_buffer_pos) in
+            let string_extract = 
+	      String.sub buffer.buf buffer.read_pos nb_extract in
+            buffer.read_pos <- buffer.read_pos + nb_extract;
+            (match !thread_waiting_write_enable with
+            |None -> ()
+            |Some thread -> Lwt.wakeup thread ()
+            );
+            extract_aux (result^string_extract) 
+	      (Int64.sub rem_len (Int64.of_int nb_extract))
+       )
     in try
       extract_aux "" len
     with e -> fail e
@@ -212,12 +221,12 @@ struct
   let wait_http_header fd buffer ~keep_alive =
     let rec wait_http_header_aux cur_ind =
       match buffer.write_pos - cur_ind with
-        |x when x < 0 -> assert false
-        |0 -> 
+        | x when x < 0 -> assert false
+        | 0 -> 
            (*wait for more bytes to analyse*)
             receive fd buffer >>= (fun () ->
               wait_http_header_aux cur_ind)
-        |available ->
+        | available ->
             try
               let end_ind = find buffer cur_ind 4 available in
                 Lwt.return (end_ind - buffer.read_pos +1)
@@ -266,15 +275,17 @@ module FHttp_receiver =
       let get_http_frame receiver ~keep_alive () =
 	Com_buffer.wait_http_header ~keep_alive receiver.fd receiver.buffer >>=
 	(fun len ->
-	  Com_buffer.extract receiver.fd receiver.buffer len >>= 
+	  Com_buffer.extract receiver.fd receiver.buffer (Int64.of_int len) >>=
 	  (fun string_header ->
             try
               let header = http_header_of_string string_header in
               let body_length=
 		try
-                  int_of_string (Http_frame.Http_header.get_headers_value header "content-length")
+                  Int64.of_string
+		    (Http_frame.Http_header.get_headers_value 
+		       header "content-length")
 		with
-                |_ -> 0
+                |_ -> Int64.zero
               in 
 	      let rp = receiver.buffer.Com_buffer.read_pos in
 	      let wp = receiver.buffer.Com_buffer.write_pos in
@@ -292,13 +303,15 @@ module FHttp_receiver =
 	      with 
 	        None -> begin 
               let body =
-		match body_length with
-                |x when x < 0 -> assert false
-                |0 -> Lwt.return None
-                |_ -> 
-                    Com_buffer.extract receiver.fd receiver.buffer body_length
-		      >>= C.content_of_string >>= 
-		    (fun c -> Lwt.return (Some c))
+		let comp = Int64.compare body_length Int64.zero in
+		if comp < 0 
+		then assert false
+		else if comp = 0 
+		then Lwt.return None
+		else
+                  Com_buffer.extract receiver.fd receiver.buffer body_length
+		    >>= C.content_of_string >>= 
+		  (fun c -> Lwt.return (Some c))
               in
               body >>= (fun b ->
                 Lwt.return {Http.header=header;Http.content=Http.Ready b}
@@ -310,7 +323,8 @@ module FHttp_receiver =
 		Lwt_unix.Plain fdesc -> new Multipart.input_channel (Lwt_unix.in_channel_of_descr fdesc)
 		| Lwt_unix.Encrypted (fdesc,sock) -> new Multipart.input_ssl sock *) in
 		Messages.debug "before creation";
-		let netstr = new Netlwtstream.input_stream ~init:available ~len:body_length netchan in
+		let netstr = new Netlwtstream.input_stream
+		    ~init:available ~len:body_length netchan in
 		Messages.debug "new Netstream created";
 		Lwt.return {Http.header=header;Http.content=Http.Streamed netstr}
 		end
@@ -455,7 +469,7 @@ module FHttp_sender =
       let length_header =
         match content_length with
         |None -> []
-        |Some n -> [("Content-Length",string_of_int n)]
+        |Some n -> [("Content-Length", Int64.to_string n)]
       in
       length_header@
         (fusion_aux [] 
@@ -475,7 +489,8 @@ module FHttp_sender =
       |None -> Lwt.return ()
       |Some c -> (C.stream_of_content c >>=
                   (fun (lon,etag,flux) -> 
-		    Lwt.return (hds_fusion (Some lon) (("ETag",etag)::sender.headers) 
+		    Lwt.return (hds_fusion (Some lon)
+				  (("ETag",etag)::sender.headers) 
 				  (match headers with 
 				    Some h ->h
 				  | None -> []) ) >>=

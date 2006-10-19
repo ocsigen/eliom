@@ -64,7 +64,7 @@
 %token <string>METHOD
 %token <string>PROTO
 %token <string>STRING
-%token <int>CODE
+%token <string>CODE
 
 %start header
 %type <Http_frame.Http_header.http_header>header
@@ -79,7 +79,9 @@ firstline :
       mode := Query;meth:=Some(meth_of_string($1));
       url:=Some $2;proto:=$3}
   |PROTO CODE strings EOL       {reset_header ();
-				 mode := Answer;proto:=$1;code:= Some $2}
+				 mode := Answer;
+				 proto:=$1;
+				 code:= Some (int_of_string $2)}
 
 lines :
   |line                         {headers:=$1::!headers}
@@ -89,9 +91,9 @@ lines :
 
 line :
   |STRING COLON strings EOL    {(String.lowercase($1),$3)}
-  |CODE COLON strings EOL      {(String.lowercase(string_of_int $1),$3)}
+  |CODE COLON strings EOL      {($1,$3)}
   |STRING COLON EOL            {(String.lowercase($1),"")}
-  |CODE COLON EOL              {(String.lowercase(string_of_int $1),"")}
+  |CODE COLON EOL              {($1,"")}
   /* EOL                  {split_string $1}*/
 
 strings :
@@ -105,6 +107,6 @@ strings :
   |METHOD                       {$1}
   |METHOD COLON strings         {$1^":"^$3}
   |METHOD strings               {$1^" "^$2}
-  |CODE                         {string_of_int $1}
-  |CODE strings                 {(string_of_int $1)^" "^$2}
-  |CODE COLON strings           {(string_of_int $1)^":"^$3}
+  |CODE                         {$1}
+  |CODE strings                 {$1^" "^$2}
+  |CODE COLON strings           {$1^":"^$3}

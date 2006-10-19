@@ -1,14 +1,18 @@
  (* Using code from OcamlNet: netchannels.ml, netstream.ml *)
- 
+ (* Copyright Gerd Stolpmann *) 
+ (* Modified for Ocsigen/Lwt by Nataliya Guts *)
+ (* Warning: see the license in separate file *)
  (* Main differences with the original version:
   * - ?init:string argument for input_stream creation
   *    that is added to s_netbuf if present
   * - non-blocking i/o 
+  * - int64 for length
   *)
 
 module S = Netstring_pcre
 open Lwt
 
+let min64 a b = if (Int64.compare a b) < 0 then a else b
 
 class type in_descr_channel = 
 object 
@@ -65,7 +69,7 @@ object (self)
   
   method input_line() =
   print_endline "ch.inpline;";
-      if closed then fail Netchannels.Closed_channel(*self # complain_closed()*) else begin
+      if closed then fail Netchannels.Closed_channel (* self # complain_closed()*) else begin
       let buf = Buffer.create 80 in
       let rec while_not_lf c = 
         if c <> '\n' then begin
@@ -191,7 +195,7 @@ object(self)
 end
 
 
-class input_stream ?init ?len ?(block_size = 4096) in_ch  =
+class input_stream ?init ?(len : int64 option) ?(block_size = 4096) in_ch  =
 object (self)
   val s_channel = (in_ch : in_descr_channel)
   val s_maxlength = len
@@ -243,8 +247,12 @@ object (self)
       (* How much are we allowed to read? *)
       let m =
 	match s_maxlength with
-	    None   -> s_blocksize
-	  | Some l -> min (l - s_pos - Netbuffer.length s_netbuf) s_blocksize
+	  None   -> s_blocksize
+	| Some l -> Int64.to_int 
+	      (min64 
+		 (Int64.sub l 
+		    (Int64.of_int (s_pos - Netbuffer.length s_netbuf)))
+		 (Int64.of_int s_blocksize))
       in
       assert(m >= 0);
       (* Try to read m bytes: *)

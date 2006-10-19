@@ -30,7 +30,7 @@ class input_descr :
 
 class input_stream : 
 	?init:string ->
-        ?len:int -> 
+        ?len:int64 -> 
 	?block_size:int -> 
 	in_descr_channel -> 
 	  in_descr_stream
