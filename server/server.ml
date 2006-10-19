@@ -31,6 +31,7 @@ open Parseconfig
 open Error_pages
 
 exception Ocsigen_Timeout
+exception Ocsigen_Bad_Request
 exception Ssl_Exception
 
 (* Without the following line, it stops with "Broken Pipe" without raising
@@ -302,7 +303,7 @@ let service http_frame sockaddr
     then true else false in
   Messages.debug ("Keep-Alive:"^(string_of_bool ka));
   Messages.debug("HEAD:"^(string_of_bool head));
-  let serv =  
+  let serv () =  
     catch (fun () ->
       let cookie = 
 	try 
@@ -410,21 +411,28 @@ let service http_frame sockaddr
       (meth <> Some (Http_header.POST)) && 
       (meth <> Some(Http_header.HEAD))) 
   then (send_error ~keep_alive:ka ~error_num:501 xhtml_sender>>=
-	(fun _ -> return ka)) 
-  else begin 
-    try
-      if ((int_of_string 
+	(fun _ -> return ka))
+  else 
+    catch
+      (fun () ->
+	let cl = try
+	  (int_of_string 
 	     (Http_header.get_headers_value http_frame.Http_frame.header 
-		"content-length")) > 0) &&
-	(meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD))
-      then (send_error ~keep_alive:ka ~error_num:501 xhtml_sender >>= 
-	    (fun _ -> return ka)) 
-      else serv  
-    with _ -> 
-      if meth = Some(Http_header.POST)
-      then (send_error ~keep_alive:ka ~error_num:400 xhtml_sender
-	      >>= (fun _ -> return ka)) else serv
-  end 
+		"content-length"))
+	with _ -> raise Ocsigen_Bad_Request
+	in
+	if (cl > 0) &&
+	  (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
+	then (send_error ~keep_alive:ka ~error_num:501 xhtml_sender >>= 
+	      (fun _ -> return ka)) 
+	else serv ())
+      (function Ocsigen_Bad_Request ->
+	if meth = Some Http_header.POST
+	then (send_error ~keep_alive:ka ~error_num:400 xhtml_sender
+		>>= (fun _ -> return ka))
+	else serv ()
+	| e -> fail e)
+
        
 
 let load_modules modules_list =
