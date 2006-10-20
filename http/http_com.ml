@@ -25,6 +25,7 @@ exception Ocsigen_HTTP_parsing_error of string * string
 exception Ocsigen_KeepaliveTimeout
 exception Ocsigen_Timeout
 
+
 (** buffer de comunication permettant la reception et la recupération des messages *)
 module Com_buffer =
 struct
@@ -43,11 +44,18 @@ struct
 		      write_pos=0; 
 		      size=size }
 
-  (** the number of free byte in the buffer *)
-  let nb_free buffer = buffer.size - (buffer.write_pos - buffer.read_pos)
+  let submod a b m = 
+    let diff = a - b in
+    if diff >= 0
+    then diff
+    else m + diff
 
   (** the number of byte in the buffer*)
-  let content_length buffer = buffer.write_pos - buffer.read_pos
+  let content_length buffer = 
+    submod buffer.write_pos buffer.read_pos buffer.size
+
+  (** the number of free byte in the buffer *)
+  let nb_free buffer = buffer.size - (content_length buffer)
                          
   (** wait until the buffer has free slot and return the number of free slots*)
   let rec wait_can_write buffer =
@@ -78,13 +86,12 @@ struct
           else
             (*copy of the temp buffer in the circular buffer*)
             ((* print_endline temp_buf; *)
-             (if buffer.read_pos mod buffer.size > buffer.write_pos mod
-	       buffer.size 
+             (if buffer.read_pos > buffer.write_pos  
              then
 	       String.blit temp_buf 0 buffer.buf buffer.write_pos len
              else
 	       (let write_to_buf_end = 
-		 buffer.size - (buffer.write_pos mod buffer.size) in
+		 buffer.size - buffer.write_pos in
 	       if write_to_buf_end > len then
                  String.blit temp_buf 0 buffer.buf buffer.write_pos len
 	       else
@@ -96,7 +103,7 @@ struct
                  )
 	       );
 	      (* update the buffer *)
-	      buffer.write_pos <- buffer.write_pos + len;
+	      buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
 	      print_endline "################ thread_waiting_read_enable plein ?";
 	      (* if a thread wait for reading wake it up *)
 	      (match !thread_waiting_read_enable with
@@ -127,7 +134,7 @@ Lwt.wakeup thread ()
       else if co = 0 
       then Lwt.return result
       else (
-        let available = Int64.sub buffer.write_pos read_p in
+        let available = buffer.write_pos - read_p in
         (* convert the positions into buffer indices *)
         let r_buffer_pos = read_p mod buffer.size in
 	let co = (Int64.compare available 0) in
@@ -156,8 +163,7 @@ Lwt.wakeup thread ()
       if rem_len = Int64.zero 
       then Lwt.return result
       else (
-        let available = buffer.write_pos - buffer.read_pos in
-        let r_buffer_pos =buffer.read_pos mod buffer.size in
+        let available = content_length buffer in
         match available with
         | x when x < 0 -> assert false
         | 0 ->
@@ -166,10 +172,10 @@ Lwt.wakeup thread ()
               extract_aux result rem_len)
         | _ -> 
             let nb_extract = 
-	      min3' rem_len available (buffer.size - r_buffer_pos) in
+	      min3' rem_len available (buffer.size - buffer.read_pos) in
             let string_extract = 
 	      String.sub buffer.buf buffer.read_pos nb_extract in
-            buffer.read_pos <- buffer.read_pos + nb_extract;
+            buffer.read_pos <- (buffer.read_pos + nb_extract) mod buffer.size;
             (match !thread_waiting_write_enable with
             |None -> ()
             |Some thread -> Lwt.wakeup thread ()
@@ -181,35 +187,38 @@ Lwt.wakeup thread ()
       extract_aux "" len
     with e -> fail e
 
-(**find the sequence crlfcrlf in the buffer*)
+(** find the sequence crlfcrlf in the buffer *)
   let rec find buffer ind nb_read =
     function
-      |rem_len when rem_len < nb_read -> raise Not_found
-      |rem_len ->
+      | rem_len when rem_len < nb_read -> raise Not_found
+      | rem_len ->
           (
           match nb_read with
-            |4 ->
-                (match (buffer.buf.[ind mod buffer.size ],buffer.buf.[(ind+1) mod buffer.size ],
-                                                         buffer.buf.[(ind+2) mod buffer.size],
-                                                         buffer.buf.[(ind+3) mod buffer.size]) with
+            | 4 ->
+                (match (buffer.buf.[ind mod buffer.size ],
+			buffer.buf.[(ind+1) mod buffer.size ],
+                        buffer.buf.[(ind+2) mod buffer.size],
+                        buffer.buf.[(ind+3) mod buffer.size]) with
                   |('\r','\n','\r','\n') -> ind + 3
                   |(_,'\r','\n','\r') -> find buffer (ind + 4) 1 (rem_len -4)
                   |(_,_,'\r','\n') -> find buffer (ind +4) 2 (rem_len -4)
                   |(_,_,_,'\r') -> find buffer (ind+4) 3 (rem_len -4)
                   |(_,_,_,_) -> find buffer (ind+4) 4 (rem_len -4)
                 )
-            |3 ->
+            | 3 ->
                 (
-                  match (buffer.buf.[ind mod buffer.size],buffer.buf.[(ind+1) mod buffer.size],
-                                                          buffer.buf.[(ind +2) mod buffer.size]) with
+                  match (buffer.buf.[ind mod buffer.size],
+			 buffer.buf.[(ind+1) mod buffer.size],
+                         buffer.buf.[(ind +2) mod buffer.size]) with
                     |('\n','\r','\n') -> ind + 2
                     |(_,'\r','\n') -> find buffer (ind + 3) 2 (rem_len -3)
                     |(_,_,'\r') -> find buffer (ind +3) 3 (rem_len -3)
                     |(_,_,_) -> find buffer (ind+3) 4 (rem_len -3)
                 )
-            |2 -> 
+            | 2 -> 
                 (
-                  match (buffer.buf.[ind mod buffer.size],buffer.buf.[(ind+1) mod buffer.size]) with
+                  match (buffer.buf.[ind mod buffer.size],
+			 buffer.buf.[(ind+1) mod buffer.size]) with
                     |('\r','\n') -> ind + 1
                     |(_,'\r') -> find buffer (ind+2) 3 (rem_len -2)
                     |(_,_) -> find buffer (ind+2) 4 (rem_len -2)
@@ -221,26 +230,28 @@ Lwt.wakeup thread ()
                     |_ -> find buffer (ind+1) 4 (rem_len -1)
                 )
             |_ -> assert false
-          )
+          ) mod buffer.size
             
-  (** returns when the seqence \r\n\r\n is found in the buffer the result is number of char to read *)
+  (** returns when the seqence \r\n\r\n is found in the buffer
+     the result is number of char to read *)
   let wait_http_header fd buffer ~doing_keep_alive =
     let rec wait_http_header_aux cur_ind =
-      match buffer.write_pos - cur_ind with
+      match submod buffer.write_pos cur_ind buffer.size with
         | x when x < 0 -> assert false
         | 0 -> 
-           (*wait for more bytes to analyse*)
+            (* wait for more bytes to analyse *)
             receive fd buffer >>= (fun () ->
               wait_http_header_aux cur_ind)
         | available ->
             try
               let end_ind = find buffer cur_ind 4 available in
-                Lwt.return (end_ind - buffer.read_pos +1)
+                Lwt.return (submod (end_ind+1) buffer.read_pos buffer.size)
             with 
-                Not_found ->
-                  receive fd buffer >>= (fun () ->
-                    wait_http_header_aux 
-		      (cur_ind + available - (min available 3)))
+              Not_found ->
+                receive fd buffer >>= (fun () ->
+                  wait_http_header_aux 
+		    ((cur_ind + available - 
+			(min available 3)) mod buffer.size))
     in (* wait_http_header_aux buffer.read_pos 
 	  Pour keep-alive timeout je remplace ça par *)
     try
@@ -258,17 +269,21 @@ end
 module FHttp_receiver =
   functor(C:Http_frame.HTTP_CONTENT) ->
     struct
-
-      module Http = Http_frame.FHttp_frame (C)
       
+      module Http = Http_frame.FHttp_frame (C)
+	  
       type t = {buffer:Com_buffer.t;fd:Lwt_unix.descr}
-
-      (** create a new receiver *)
-      let create ?(buffer_size=8096) fd =
-      let buffer = Com_buffer.create buffer_size in
+	    
+	    (** create a new receiver *)
+      let create ?buffer_size fd =
+	let buffer_size = match buffer_size with
+	  None -> Ocsiconfig.get_buffersize ()
+	| Some s -> s
+	in
+	let buffer = Com_buffer.create buffer_size in
         {buffer=buffer;fd=fd}
-
-      (** convert a string into an header *)
+	  
+	  (** convert a string into an header *)
       let http_header_of_string s =
         let lexbuf = Lexing.from_string s in
         try
@@ -298,11 +313,6 @@ module FHttp_receiver =
 	      let wp = receiver.buffer.Com_buffer.write_pos in
 	      let sz = receiver.buffer.Com_buffer.size in
 	      let bf = receiver.buffer.Com_buffer.buf in
-	      let available = 
-		if wp >= rp
-	      	then String.sub bf rp (wp - rp)
-		else (String.sub bf 0 wp)^(String.sub bf rp (sz-rp))
-	      in (* Messages.debug ("available: "^available);*)
 	      let ct = try 
 	        Http_frame.Http_header.get_headers_value header "content-type"
 	      with Not_found -> "" in
@@ -332,10 +342,16 @@ module FHttp_receiver =
 			 Lwt_unix.Plain fdesc -> new Multipart.input_channel (Lwt_unix.in_channel_of_descr fdesc)
 			 | Lwt_unix.Encrypted (fdesc,sock) -> new Multipart.input_ssl sock *) in
 		  Messages.debug "before creation";
+		  let available = 
+		    if wp >= rp
+	      	    then String.sub bf rp (wp - rp)
+		    else (String.sub bf rp (sz-rp))^(String.sub bf 0 wp)
+		  in (* Messages.debug ("available: "^available);*)
 		  let netstr = new Netlwtstream.input_stream
 		      ~init:available ~len:body_length netchan in
 		  Messages.debug "new Netstream created";
-		  Lwt.return {Http.header=header;Http.content=Http.Streamed netstr}
+		  Lwt.return 
+		    {Http.header=header;Http.content=Http.Streamed netstr}
 	      end
             with e -> fail e
           )
