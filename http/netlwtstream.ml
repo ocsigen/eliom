@@ -93,7 +93,7 @@ object (self)
 
   method pos_in =
       if closed 
-      then raise Netchannels.Closed_channel(*self # complain_closed()*);
+      then raise Netchannels.Closed_channel (* self # complain_closed() *);
       sock_pos
 end
 ;;

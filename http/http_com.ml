@@ -23,6 +23,7 @@ open Lwt
 
 exception Ocsigen_HTTP_parsing_error of string * string
 exception Ocsigen_KeepaliveTimeout
+exception Ocsigen_Timeout
 
 (** buffer de comunication permettant la reception et la recupération des messages *)
 module Com_buffer =
@@ -68,7 +69,11 @@ struct
     try
       wait_can_write buffer >>= (fun free ->
 	let temp_buf = String.create free in
-	Lwt_unix.read file_descr temp_buf 0 free >>= (fun len ->
+	choose
+	  [Lwt_unix.read file_descr temp_buf 0 free;
+	   (Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= 
+	    (fun () -> fail Ocsigen_Timeout))] >>=
+	(fun len ->
           if len = 0 then Lwt.fail End_of_file
           else
             (*copy of the temp buffer in the circular buffer*)
@@ -95,9 +100,9 @@ struct
 	      print_endline "################ thread_waiting_read_enable plein ?";
 	      (* if a thread wait for reading wake it up *)
 	      (match !thread_waiting_read_enable with
-	      |Some thread -> 	      print_endline "################ réveille";
+	      | Some thread -> 	      print_endline "################ réveille";
 Lwt.wakeup thread ()
-	      |None -> ()
+	      | None -> ()
 	      );
 	      return ()
              )
@@ -219,7 +224,7 @@ Lwt.wakeup thread ()
           )
             
   (** returns when the seqence \r\n\r\n is found in the buffer the result is number of char to read *)
-  let wait_http_header fd buffer ~keep_alive =
+  let wait_http_header fd buffer ~doing_keep_alive =
     let rec wait_http_header_aux cur_ind =
       match buffer.write_pos - cur_ind with
         | x when x < 0 -> assert false
@@ -239,7 +244,7 @@ Lwt.wakeup thread ()
     in (* wait_http_header_aux buffer.read_pos 
 	  Pour keep-alive timeout je remplace ça par *)
     try
-      (if keep_alive
+      (if doing_keep_alive && (buffer.write_pos = buffer.read_pos)
       then
 	Lwt.choose
 	  [receive fd buffer;
@@ -273,8 +278,9 @@ module FHttp_receiver =
            raise (Ocsigen_HTTP_parsing_error ((Lexing.lexeme lexbuf),s))
          
       (** get an http frame *)
-      let get_http_frame receiver ~keep_alive () =
-	Com_buffer.wait_http_header ~keep_alive receiver.fd receiver.buffer >>=
+      let get_http_frame receiver ~doing_keep_alive () =
+	Com_buffer.wait_http_header 
+	  ~doing_keep_alive receiver.fd receiver.buffer >>=
 	(fun len ->
 	  Com_buffer.extract receiver.fd receiver.buffer (Int64.of_int len) >>=
 	  (fun string_header ->
@@ -301,39 +307,39 @@ module FHttp_receiver =
 	        Http_frame.Http_header.get_headers_value header "content-type"
 	      with Not_found -> "" in
 	      match (Netstring_pcre.string_match 
-	   		(Netstring_pcre.regexp ".*multipart.*")) ct 0
+	   	       (Netstring_pcre.regexp ".*multipart.*")) ct 0
 	      with 
 	        None -> begin 
-              let body =
-		let comp = Int64.compare body_length Int64.zero in
-		if comp < 0 
-		then assert false
-		else if comp = 0 
-		then Lwt.return None
-		else
-                  Com_buffer.extract receiver.fd receiver.buffer body_length
-		    >>= C.content_of_string >>= 
-		  (fun c -> Lwt.return (Some c))
-              in
-              body >>= (fun b ->
-                Lwt.return {Http.header=header;Http.content=Http.Ready b}
-		       )
+		  let body =
+		    let comp = Int64.compare body_length Int64.zero in
+		    if comp < 0 
+		    then assert false
+		    else if comp = 0 
+		    then Lwt.return None
+		    else
+                      Com_buffer.extract 
+			receiver.fd receiver.buffer body_length
+			>>= C.content_of_string >>= 
+		      (fun c -> Lwt.return (Some c))
+		  in
+		  body >>= (fun b ->
+                    Lwt.return {Http.header=header;Http.content=Http.Ready b}
+			   )
 		end
-		| _ -> (* multipart, create a netstream *) begin
-		let netchan = new Netlwtstream.input_descr receiver.fd
-		(*match receiver.fd with
-		Lwt_unix.Plain fdesc -> new Multipart.input_channel (Lwt_unix.in_channel_of_descr fdesc)
-		| Lwt_unix.Encrypted (fdesc,sock) -> new Multipart.input_ssl sock *) in
-		Messages.debug "before creation";
-		let netstr = new Netlwtstream.input_stream
-		    ~init:available ~len:body_length netchan in
-		Messages.debug "new Netstream created";
-		Lwt.return {Http.header=header;Http.content=Http.Streamed netstr}
-		end
+	      | _ -> (* multipart, create a netstream *) begin
+		  let netchan = new Netlwtstream.input_descr receiver.fd
+		      (*match receiver.fd with
+			 Lwt_unix.Plain fdesc -> new Multipart.input_channel (Lwt_unix.in_channel_of_descr fdesc)
+			 | Lwt_unix.Encrypted (fdesc,sock) -> new Multipart.input_ssl sock *) in
+		  Messages.debug "before creation";
+		  let netstr = new Netlwtstream.input_stream
+		      ~init:available ~len:body_length netchan in
+		  Messages.debug "new Netstream created";
+		  Lwt.return {Http.header=header;Http.content=Http.Streamed netstr}
+	      end
             with e -> fail e
           )
         )
-      
  
     end
 
@@ -375,7 +381,8 @@ module FHttp_sender =
 	     ( fun len' ->
 	        if (String.length s) = len'
 		then really_write out_ch (next ())
-		else really_write out_ch (Cont (String.sub s len' ((String.length s)-len'), next))
+		else really_write out_ch
+		    (Cont (String.sub s len' ((String.length s)-len'), next))
              )
 												    
     (**create a new sender*)

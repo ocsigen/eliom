@@ -30,7 +30,6 @@ open Ocsiconfig
 open Parseconfig
 open Error_pages
 
-exception Ocsigen_Timeout
 exception Ocsigen_Bad_Request
 exception Ssl_Exception
 
@@ -158,7 +157,8 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 		 match (Netstring_pcre.string_match 
 	   	 (Netstring_pcre.regexp ".*multipart.*")) ct 0
 		 with 
-		 None -> *)return (Netencoding.Url.dest_url_encoded_parameters s) 
+		 None -> *)
+	      return (Netencoding.Url.dest_url_encoded_parameters s) 
 		(*| _ -> 	(* File stockage *)*)
 	  end
 	| Http_frame.Streamed nstr -> begin
@@ -457,19 +457,16 @@ let listen modules_list =
   let listen_connexion receiver in_ch sockaddr 
       xhtml_sender empty_sender =
     
-    let rec listen_connexion_aux ~keep_alive =
+    let rec listen_connexion_aux ~doing_keep_alive =
       let analyse_http () =
-	choose
-	  [Http_receiver.get_http_frame receiver ~keep_alive ();
-	   (Lwt_unix.sleep (get_connect_time_max ()) >>= 
-	    (fun () -> fail Ocsigen_Timeout))] >>=
+	Http_receiver.get_http_frame receiver ~doing_keep_alive () >>=
 	(fun http_frame ->
 	  (service http_frame sockaddr 
 	     xhtml_sender empty_sender in_ch ())
             >>= (fun keep_alive -> 
 	      if keep_alive then begin
 		Messages.debug "KEEP ALIVE";
-                listen_connexion_aux ~keep_alive:true
+                listen_connexion_aux ~doing_keep_alive:true
                   (* Pour laisser la connexion ouverte, je relance *)
 	      end
 	      else (Lwt_unix.lingering_close in_ch; 
@@ -489,7 +486,7 @@ let listen modules_list =
 		return ())
           | exn -> fail exn)
 	
-    in listen_connexion_aux ~keep_alive:false
+    in listen_connexion_aux ~doing_keep_alive:false
       
   in 
   let wait_connexion socket =
