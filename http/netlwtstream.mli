@@ -2,7 +2,7 @@
 
 class type in_descr_channel = 
 object 
-   method pos_in : int
+   method pos_in : int64
    method close_in : unit -> unit
    method input : string -> int -> int -> int Lwt.t
    method really_input : string -> int -> int -> unit Lwt.t
@@ -36,7 +36,7 @@ class input_stream :
 	  in_descr_stream
 	  
 class sub_stream :
-        ?len:int ->             (* default: no maximum length *)
+        ?len:int64 ->             (* default: no maximum length *)
 	?delimiter:string ->    (* default: no delimiter *)
 	in_descr_stream ->
 	  in_descr_stream 

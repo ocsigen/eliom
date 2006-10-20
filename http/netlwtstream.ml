@@ -16,7 +16,7 @@ let min64 a b = if (Int64.compare a b) < 0 then a else b
 
 class type in_descr_channel = 
 object 
-   method pos_in : int
+   method pos_in : int64
    method close_in : unit -> unit
    method input : string -> int -> int -> int Lwt.t
    method really_input : string -> int -> int -> unit Lwt.t
@@ -28,7 +28,7 @@ end
 class input_descr (sock:Lwt_unix.descr) : in_descr_channel =
 object (self)
   val ch = sock
-  val mutable sock_pos = 0
+  val mutable sock_pos = Int64.zero
   val mutable closed = false
 
   method private complain_closed: 'a.unit -> 'a Lwt.t = fun () ->
@@ -44,7 +44,7 @@ object (self)
       (Lwt_unix.read sock buf pos len) >>=
       (fun n -> 
       (* print_endline ("buf="^String.sub buf pos n); *)
-      sock_pos <- sock_pos + n;
+	sock_pos <- Int64.add sock_pos (Int64.of_int n);
       if n=0 && len>0 then fail End_of_file else return n)
       end end
 
@@ -92,7 +92,8 @@ object (self)
       closed <- true
 
   method pos_in =
-      if closed then raise Netchannels.Closed_channel(*self # complain_closed()*);
+      if closed 
+      then raise Netchannels.Closed_channel(*self # complain_closed()*);
       sock_pos
 end
 ;;
@@ -112,7 +113,7 @@ end
 
 class virtual input_methods init_s_netbuf =
 object(self)
-  val mutable s_pos = 0
+  val mutable s_pos = Int64.zero
   val mutable s_at_eof = false
   val s_netbuf = init_s_netbuf
   val mutable s_closed = false
@@ -221,7 +222,7 @@ object (self)
 	  s_underrun <- true
 
   method private debug msg =
-    prerr_endline (msg ^ ": s_pos=" ^ string_of_int s_pos ^ 
+    prerr_endline (msg ^ ": s_pos=" ^ Int64.to_string s_pos ^ 
 		   " s_at_eof=" ^ string_of_bool s_at_eof ^ 
 		   " buflen=" ^ string_of_int (Netbuffer.length s_netbuf) ^
 		   " s_closed=" ^ string_of_bool s_closed);
@@ -249,9 +250,10 @@ object (self)
 	match s_maxlength with
 	  None   -> s_blocksize
 	| Some l -> Int64.to_int 
-	      (min64 
-		 (Int64.sub l 
-		    (Int64.of_int (s_pos - Netbuffer.length s_netbuf)))
+	      (min64
+		 (Int64.sub 
+		    (Int64.sub l s_pos)
+		    (Int64.of_int (Netbuffer.length s_netbuf)))
 		 (Int64.of_int s_blocksize))
       in
       assert(m >= 0);
@@ -304,9 +306,11 @@ object (self)
       if len > 0 then begin
 	let k = min (Netbuffer.length s_netbuf) len in
 	Netbuffer.delete s_netbuf 0 k;
-	s_pos <- s_pos + k;
+	s_pos <- Int64.add s_pos (Int64.of_int k);
 	self # want_minimum() >>=    (* may raise Buffer_underrun *)
-	(fun () -> if k > 0 then read (len - k) else return ())
+	(fun () -> if k > 0 
+	then read (len - k)
+	else return ())
       end else return ()
     in
     read len
@@ -321,7 +325,7 @@ object (self)
     (fun () -> let len' = min len (Netbuffer.length s_netbuf) in
     Netbuffer.blit s_netbuf 0 buf pos len';
     Netbuffer.delete s_netbuf 0 len';
-    s_pos <- s_pos + len';
+    s_pos <- Int64.add s_pos (Int64.of_int len');
     (catch 
 	(fun () -> self # want_minimum())  (* may raise Buffer_underrun *)
       (function
@@ -380,7 +384,7 @@ object(self)
   val s = (in_stream : in_descr_stream)
   val mutable s_winlen = 0
   val mutable s_del = None    (* initialized below *)
-  val s_len = len
+  val s_len : int64 option = len
   val mutable s_underrun = false
 
   inherit input_methods (in_stream # window)
@@ -392,7 +396,8 @@ object(self)
        | None    -> s_del <- None
     );
     (match s_len with 
-	 Some l -> if l<0 then invalid_arg "new Netstream.sub_stream";
+	 Some l -> if (Int64.compare l Int64.zero) < 0 
+	 then invalid_arg "new Netstream.sub_stream";
        | None   -> ()
     );
     try
@@ -454,9 +459,10 @@ object(self)
 	None ->
 	  ()
       | Some l ->
-	  if l - s_pos < s_winlen then begin
+	  if (Int64.compare (Int64.sub l s_pos) (Int64.of_int s_winlen)) < 0 
+	  then begin
 	    ambigous := false;
-	    s_winlen <- l - s_pos;
+	    s_winlen <- Int64.to_int (Int64.sub l s_pos);
 	    s_at_eof <- true;
 	  end
     end;
@@ -493,9 +499,11 @@ object(self)
       if len > 0 then begin
 	let k = min s_winlen len in
 	s # skip k >>=              (* may raise Buffer_underrun *)
-	(fun () -> s_pos <- s_pos + k;
+	(fun () -> s_pos <- Int64.add s_pos (Int64.of_int k);
 	self # want_minimum()) >>=   (* may raise Buffer_underrun *)
-	(fun () -> if k > 0 then read (len - k) else return ())
+	(fun () -> if k > 0 
+	then read (len - k)
+	else return ())
       end else return ()
     in
     read len
@@ -511,7 +519,7 @@ object(self)
     let len' = min len s_winlen in
     Netbuffer.blit s_netbuf 0 buf pos len';
     s # skip len' >>=              (* never raises Buffer_underrun *)
-    (fun () -> s_pos <- s_pos + len';
+    (fun () -> s_pos <- Int64.add s_pos (Int64.of_int len');
     (catch
 	(fun () -> self # want_minimum())
       (function 

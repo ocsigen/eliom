@@ -316,13 +316,16 @@ let find_static_page staticdirref path =
       None -> raise Ocsigen_404
     | Some filename ->
 	Messages.debug ("Looking for ("^filename^")");
-	ignore (Unix.lstat filename);
+
+	ignore (Unix.LargeFile.lstat filename);
 	let filename = 
-	  if ((Unix.lstat filename).Unix.st_kind = Unix.S_DIR)
+	  if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind
+		= Unix.S_DIR)
 	  then filename^"/index.html"
 	  else filename
 	in
-	if ((Unix.lstat filename).Unix.st_kind = Unix.S_REG)
+	if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind 
+	      = Unix.S_REG)
 	then begin
 	  Unix.access filename [Unix.R_OK];
 	  filename
@@ -575,7 +578,7 @@ let get_page
 	    (((Sender_helpers.send_file filename),
 	      Sender_helpers.create_file_sender,
 	      []),
-	     Some ((Unix.stat filename).Unix.st_mtime))
+	     Some ((Unix.LargeFile.stat filename).Unix.LargeFile.st_mtime))
 	end
 	else fail Ocsigen_404)
       (function

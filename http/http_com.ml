@@ -92,10 +92,11 @@ struct
 	       );
 	      (* update the buffer *)
 	      buffer.write_pos <- buffer.write_pos + len;
-	      print_endline "################ réveille thread_waiting_read_enable";
+	      print_endline "################ thread_waiting_read_enable plein ?";
 	      (* if a thread wait for reading wake it up *)
 	      (match !thread_waiting_read_enable with
-	      |Some thread -> Lwt.wakeup thread ()
+	      |Some thread -> 	      print_endline "################ réveille";
+Lwt.wakeup thread ()
 	      |None -> ()
 	      );
 	      return ()
@@ -112,7 +113,7 @@ struct
     Int64.to_int (min64 (min64 int1 (Int64.of_int int2)) (Int64.of_int int3))
             
   (** read a given number of bytes from the buffer without destroying the buffer content *)
-(* j'enlève; à remettre
+(* j'enlève ; ça n'a pas l'air utilisé... à remettre ???
  let read fd buffer off len () =
     let rec read_aux result read_p rem_len =
       let co = (Int64.compare rem_len 0) in
@@ -257,7 +258,7 @@ module FHttp_receiver =
       
       type t = {buffer:Com_buffer.t;fd:Lwt_unix.descr}
 
-      (**create a new receiver*)
+      (** create a new receiver *)
       let create ?(buffer_size=8096) fd =
       let buffer = Com_buffer.create buffer_size in
         {buffer=buffer;fd=fd}
@@ -291,9 +292,10 @@ module FHttp_receiver =
 	      let wp = receiver.buffer.Com_buffer.write_pos in
 	      let sz = receiver.buffer.Com_buffer.size in
 	      let bf = receiver.buffer.Com_buffer.buf in
-	      let available = if wp >= rp
-	      		      then String.sub bf rp (wp - rp)
-			      else (String.sub bf 0 wp)^(String.sub bf rp (sz-rp))
+	      let available = 
+		if wp >= rp
+	      	then String.sub bf rp (wp - rp)
+		else (String.sub bf 0 wp)^(String.sub bf rp (sz-rp))
 	      in (* Messages.debug ("available: "^available);*)
 	      let ct = try 
 	        Http_frame.Http_header.get_headers_value header "content-type"
