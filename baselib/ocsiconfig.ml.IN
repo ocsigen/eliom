@@ -49,7 +49,8 @@ type config = { mutable port: int;
 		mutable mimefile: string;
 		mutable connect_time_max: float;
 		mutable keepalive_timeout: float;
-		mutable buffersize: int
+		mutable netbuffersize: int;
+		mutable filebuffersize: int
 	      }
 
 let config_file = ref "_CONFIGDIR_/ocsigen.conf"
@@ -73,7 +74,8 @@ let init_config () =
    mimefile = "_CONFIGDIR_/mime.types"; 
    connect_time_max = 60.;
    keepalive_timeout = 15.;
-   buffersize = 8000
+   netbuffersize = 8000;
+   filebuffersize = 500
  }
 let sconf  = ref (init_config ())
 let cfgs : config list ref = ref [](*(Array.init max_servers (init_config))*) 
@@ -104,7 +106,8 @@ let set_max_number_of_threads_queued cf i =
 let set_max_number_of_connections cf i = cf.max_number_of_connections <- i
 let set_connect_time_max cf i = cf.connect_time_max <- i
 let set_keepalive_timeout cf i = cf.keepalive_timeout <- i
-let set_buffersize cf i = cf.buffersize <- i
+let set_netbuffersize cf i = cf.netbuffersize <- i
+let set_filebuffersize cf i = cf.filebuffersize <- i
 let set_number_of_servers x = number_of_servers := x
 let get_port () = !sconf.port
 let get_port_modified () = !sconf.port_modified
@@ -129,7 +132,8 @@ let get_max_number_of_threads_queued () = !sconf.max_number_of_threads_queued
 let get_max_number_of_connections () = !sconf.max_number_of_connections
 let get_connect_time_max () = !sconf.connect_time_max
 let get_keepalive_timeout () = !sconf.keepalive_timeout
-let get_buffersize () = !sconf.buffersize
+let get_netbuffersize () = !sconf.netbuffersize
+let get_filebuffersize () = !sconf.filebuffersize
 
 let display_version () =
   print_string version_number;

@@ -155,7 +155,7 @@ let rec run thread =
              `Read (buf, pos, len, res) ->
 	     let f = (match fd with
 	              Plain fdesc -> 
-                        (fun () -> Unix.read fdesc buf pos len)
+                        (fun () -> Unix.set_nonblock fdesc; Unix.read fdesc buf pos len)
 		     | Encrypted (fdesc, sock) ->
 		        (fun () -> Ssl.read sock buf pos len)) in
                 wrap_syscall inputs fd res f 

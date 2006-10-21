@@ -148,8 +148,11 @@ let rec parser_config =
     | PLCons ((EPanytag ("keepalivetimeout", PLEmpty, p)), ll) -> 
 	set_keepalive_timeout n (float_of_string (parse_string p));
 	parse_ocsigen n ll
-    | PLCons ((EPanytag ("buffersize", PLEmpty, p)), ll) -> 
-	set_buffersize n (int_of_string (parse_string p));
+    | PLCons ((EPanytag ("netbuffersize", PLEmpty, p)), ll) -> 
+	set_netbuffersize n (int_of_string (parse_string p));
+	parse_ocsigen n ll
+    | PLCons ((EPanytag ("filebuffersize", PLEmpty, p)), ll) -> 
+	set_filebuffersize n (int_of_string (parse_string p));
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
 	(Cmo (parse_string l))::parse_ocsigen n ll

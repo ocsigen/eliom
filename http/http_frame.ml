@@ -23,16 +23,24 @@ the operation on this protocol*)
 (** this signature provides a template to discribe the content of a http
     frame *)
 
-type stream = | Finished
-              | Cont of string * (unit -> stream)
+type stream = 
+    Finished
+  | Cont of string * (unit -> stream Lwt.t)
 		     
+let rec string_of_stream = function
+    Finished -> Lwt.return ""
+  | Cont (s,f) -> 
+      print_endline s;
+      Lwt.bind (f ()) (fun r -> 
+	Lwt.bind (string_of_stream r) (fun r -> Lwt.return (s^r)))
+
 module type HTTP_CONTENT =
   sig
     (** abstract type of the content*)
     type t
     
     (** convert a string into the content type *)
-    val content_of_string : string -> t Lwt.t
+    val content_of_stream : stream -> t Lwt.t
 
     (** convert a content type into a thread returning its size,etag,stream*)
     val stream_of_content : t -> (int64 * string * stream) Lwt.t
@@ -198,9 +206,7 @@ module FHttp_frame =
     struct
 
         (** type of the http frames*)
-	type frame_content = 
-	    Ready of C.t option
-	  | Streamed of Netlwtstream.in_descr_stream
+	type frame_content = C.t option
 
         type http_frame = 
 	    {header: Http_header.http_header;

@@ -39,27 +39,12 @@ let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
 let ctx = Ssl.init ();
 	  ref (Ssl.create_context Ssl.SSLv23 Ssl.Server_context)
 	  
-module Content = 
-  struct
-    type t = string
-    let content_of_string c = Lwt.return c
-    let stream_of_content s = 
-    	let md5 = Digest.to_hex (Digest.string s) in
-    	Lwt.return (Int64.of_int (String.length s), 
-		    md5, Cont (s, (fun () -> Finished)))
-  end
-
-module Http_frame = FHttp_frame (Content)
-
-module Http_receiver = FHttp_receiver (Content)
-
-
 (* non blocking input and output (for use with lwt): *)
-(*
+
 let _ = Unix.set_nonblock Unix.stdin
 let _ = Unix.set_nonblock Unix.stdout
 let _ = Unix.set_nonblock Unix.stderr
-*)
+
 
 let new_socket () = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
@@ -102,8 +87,8 @@ let get_frame_infos =
 let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
   fun http_frame ->
   catch (fun () -> 
-    let meth = Http_header.get_method http_frame.Http_frame.header in
-    let url = Http_header.get_url http_frame.Http_frame.header in
+    let meth = Http_header.get_method http_frame.Text_http_frame.header in
+    let url = Http_header.get_url http_frame.Text_http_frame.header in
     let url2 = 
       Neturl.parse_url 
 	~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
@@ -120,7 +105,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     let host =
       try
         let hostport = 
-          Http_header.get_headers_value http_frame.Http_frame.header "Host" in
+          Http_header.get_headers_value http_frame.Text_http_frame.header "Host" in
     	try 
 	  Some (String.sub hostport 0 (String.index hostport ':'))
 	with _ -> Some hostport
@@ -146,23 +131,22 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     let find_post_params = 
       if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
       then return [] else 
-	match http_frame.Http_frame.content with
-	  Http_frame.Ready cnt -> begin match cnt with
-	    None -> return []
-	  | Some s -> 
-      	      Messages.debug ("content="^s);
-	      (*
-		 let ct = (Http_header.get_headers_value 
-	   	 http_frame.Http_frame.header "Content-Type") in
-		 match (Netstring_pcre.string_match 
-	   	 (Netstring_pcre.regexp ".*multipart.*")) ct 0
-		 with 
-		 None -> *)
-	      return (Netencoding.Url.dest_url_encoded_parameters s) 
-		(*| _ -> 	(* File stockage *)*)
-	  end
-	| Http_frame.Streamed nstr -> begin
-	    let bound = get_boundary http_frame.Http_frame.header in
+	match http_frame.Text_http_frame.content with
+	  None -> return []
+	| Some s -> 
+	    (*
+	    (stream_of_content s);	      
+	       let ct = (Http_header.get_headers_value 
+	       http_frame.Text_http_frame.header "Content-Type") in
+	       match (Netstring_pcre.string_match 
+	       (Netstring_pcre.regexp ".*multipart.*")) ct 0
+	       with 
+	       None -> *)
+	    return (Netencoding.Url.dest_url_encoded_parameters s) 
+	      (*| _ -> 	(* File stockage *)*)
+(*
+	| Text_http_frame.Streamed nstr -> begin
+	    let bound = get_boundary http_frame.Text_http_frame.header in
             let param_names = ref [||] in
 	    let create hs = 
 	      let cd = List.assoc "content-disposition" hs in
@@ -195,7 +179,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 		  param_names := Array.append !param_names 
 		      [|(p_name, Buffer.contents to_buf)|]
 	      | A_File wh -> match wh with 
-		  Lwt_unix.Plain fdscr-> Unix.close fdscr 
+		  Lwt_unix.Plain fdscr-> Unix.close fdscr
 		| _ -> () in
 	    Multipart.scan_multipart_body_from_netstream nstr bound create 
 	      add stop >>=
@@ -211,6 +195,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	       * List.iter (fun (hs,b) -> 
 	       * List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
 	       * List.map simplify bdlist *)
+*)
     in
     find_post_params >>= (fun post_params ->
       let internal_state,post_params2 = 
@@ -245,13 +230,13 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	  (Some (action_name, reload, ap), pp3)
 	with Not_found -> None, post_params2 in
       let useragent = try (Http_header.get_headers_value
-			     http_frame.Http_frame.header "user-agent")
+			     http_frame.Text_http_frame.header "user-agent")
       with _ -> ""
       in
       let ifmodifiedsince = try 
 	Some (Netdate.parse_epoch 
 		(Http_header.get_headers_value
-		   http_frame.Http_frame.header "if-modified-since"))
+		   http_frame.Text_http_frame.header "if-modified-since"))
       with _ -> None
       in return
 	(((path,
@@ -289,18 +274,18 @@ let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
 let service http_frame sockaddr 
     xhtml_sender empty_sender inputchan () =
-  let head = ((Http_header.get_method http_frame.Http_frame.header) 
+  let head = ((Http_header.get_method http_frame.Text_http_frame.header) 
     		= Some (Http_header.HEAD)) in
   let ka = try
     let kah =	String.lowercase 
 	(Http_header.get_headers_value
-	   http_frame.Http_frame.header "Connection") 
+	   http_frame.Text_http_frame.header "Connection") 
     in 
     if kah = "close" then false else 
     (if kah = "keep-alive" then true else false (* should not happen *))
   with _ ->
     (* if prot.[(String.index prot '/')+3] = '1' *)
-    if (Http_header.get_proto http_frame.Http_frame.header) = "HTTP/1.1"
+    if (Http_header.get_proto http_frame.Text_http_frame.header) = "HTTP/1.1"
     then true else false in
   Messages.debug ("Keep-Alive:"^(string_of_bool ka));
   Messages.debug("HEAD:"^(string_of_bool head));
@@ -309,7 +294,7 @@ let service http_frame sockaddr
       let cookie = 
 	try 
 	  Some (getcookie (Http_header.get_headers_value 
-			     http_frame.Http_frame.header "Cookie"))
+			     http_frame.Text_http_frame.header "Cookie"))
 	with _ -> None
       in
       get_frame_infos http_frame >>=
@@ -338,15 +323,18 @@ let service http_frame sockaddr
 			 ~code:304 (* Not modified *)
 			 ~head:head empty_sender
 		   | _ ->
-		       send_page ~keep_alive:keep_alive
-			 ?last_modified:lastmodified
-			 ?cookie:(if cookie2 <> cookie then 
-			   (if cookie2 = None 
-			   then Some remove_cookie_str
-			   else cookie2) 
-			 else None)
-			 ~path:path (* path pour le cookie *) ~head:head
-			 (sender ~server_name:server_name inputchan)))
+		       print_endline "envoi----------------";
+		       let aaaaaaa =
+			 send_page ~keep_alive:keep_alive
+			   ?last_modified:lastmodified
+			   ?cookie:(if cookie2 <> cookie then 
+			     (if cookie2 = None 
+			     then Some remove_cookie_str
+			     else cookie2) 
+			   else None)
+			   ~path:path (* path pour le cookie *) ~head:head
+			   (sender ~server_name:server_name inputchan)
+		       in print_endline "fin envoi-----------";aaaaaaa))
 	       (function
 		   Ocsigen_Is_a_directory -> 
 		     Messages.debug "Sending 301 Moved permanently";
@@ -407,7 +395,7 @@ let service http_frame sockaddr
             send_error ~keep_alive:ka ~error_num:500 xhtml_sender
 	      >>= (fun _ -> fail e))
   in 
-  let meth = (Http_header.get_method http_frame.Http_frame.header) in
+  let meth = (Http_header.get_method http_frame.Text_http_frame.header) in
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
       (meth <> Some(Http_header.HEAD))) 
@@ -418,7 +406,7 @@ let service http_frame sockaddr
       (fun () ->
 	let cl = try
 	  (Int64.of_string 
-	     (Http_header.get_headers_value http_frame.Http_frame.header 
+	     (Http_header.get_headers_value http_frame.Text_http_frame.header 
 		"content-length"))
 	with _ -> raise Ocsigen_Bad_Request
 	in
@@ -459,7 +447,7 @@ let listen modules_list =
     
     let rec listen_connexion_aux ~doing_keep_alive =
       let analyse_http () =
-	Http_receiver.get_http_frame receiver ~doing_keep_alive () >>=
+	Text_receiver.get_http_frame receiver ~doing_keep_alive () >>=
 	(fun http_frame ->
 	  (service http_frame sockaddr 
 	     xhtml_sender empty_sender in_ch ())
@@ -533,7 +521,7 @@ let listen modules_list =
 	    create_empty_sender ~server_name:server_name inputchan
 	  in
 	  listen_connexion 
-	    (Http_receiver.create inputchan) 
+	    (Text_receiver.create inputchan) 
 	    inputchan sockaddr xhtml_sender
 	    empty_sender)
 	(handle_exn sockaddr inputchan)
@@ -629,6 +617,11 @@ let _ = try
       (ignore (Preemptive.init 
 		 (Ocsiconfig.get_minthreads ()) 
 		 (Ocsiconfig.get_maxthreads ()));
+(* Je suis fou
+       let rec f () = 
+   print_endline "---"; 
+   Lwt_unix.yield () >>= f
+   in f(); *)
        listen (Ocsiconfig.get_modules ())) 
   in
   let rec launch = function

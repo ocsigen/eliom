@@ -57,48 +57,59 @@ module Xhtml_content =
       let x = (XHTML.M.ocsigen_print (add_css c)) in
       let md5 = Digest.to_hex (Digest.string x) in
       	 Lwt.return (Int64.of_int (String.length x), 
-		     md5, (Cont (x, (fun () -> Finished))))
+		     md5, (Cont (x, (fun () -> Lwt.return Finished))))
     (*il n'y a pas encore de parser pour ce type*)
-    let content_of_string s = assert false
+    let content_of_stream s = assert false
   end
 
 module Text_content =
   struct
     type t = string
     let stream_of_content c =
-    let md5 = Digest.to_hex (Digest.string c) in
+      let md5 = Digest.to_hex (Digest.string c) in
       Lwt.return (Int64.of_int (String.length c), 
-		  md5, Cont (c, (fun () -> Finished)))
-    let content_of_string s = Lwt.return s
+		  md5, Cont (c, (fun () -> Lwt.return Finished)))
+    let content_of_stream = string_of_stream
   end
 
 module Empty_content =
   struct
     type t = unit
     let stream_of_content c = 
-      Lwt.return (Int64.of_int 0, "same", Cont("",(fun () -> Finished)))
-    let content_of_string s = Lwt.return ()
+      Lwt.return (Int64.of_int 0, "same", 
+		  Cont("",(fun () -> Lwt.return Finished)))
+    let content_of_stream s = Lwt.return ()
   end
 
 (** this module instanciate the HTTP_CONTENT signature for the files*)
 module File_content =
   struct
-    type t = string (*nom du fichier*)
-    let read_file ?(buffer_size=512) fd =
-	Messages.debug ("start reading ");
-  	let buf = String.create buffer_size in
-        let rec read_aux () =
-	  let lu = Unix.read fd buf 0 buffer_size in
+    type t = string (* nom du fichier *)
+    let read_file ?buffer_size fd =
+      let buffer_size = match buffer_size with
+	None -> Ocsiconfig.get_filebuffersize ()
+      | Some s -> s
+      in
+      Messages.debug ("start reading ");
+      let buf = String.create buffer_size in
+      let rec read_aux () =
+(*********************AEFF	print_endline "a";*)
+(*	(Preemptive.detach (Unix.read fd buf 0) buffer_size) >>= *)
+	Lwt_unix.read (Lwt_unix.Plain fd) buf 0 buffer_size >>=
+	(fun lu ->
+(******??????	  Lwt_unix.yield () >>= (fun () -> *)
+(*********************AEFF	print_endline "b"; *)
           if lu = 0 then  begin
 	    Unix.close fd;
-	    Finished
+	    Lwt.return Finished
 	  end
 	  else begin 
 	    if lu = buffer_size
-	    then Cont (buf, (fun () -> read_aux ()))
-	    else Cont ((String.sub buf 0 lu), (fun () -> read_aux ()))
-	  end
-	in read_aux ()			 
+	    then Lwt.return (Cont (buf, (fun () -> read_aux ())))
+	    else Lwt.return (Cont ((String.sub buf 0 lu), 
+				   (fun () -> read_aux ())))
+	  end)
+      in read_aux ()			 
 
     let stream_of_content c  =
       (*ouverture du fichier*)
@@ -106,33 +117,39 @@ module File_content =
       let st = Unix.LargeFile.stat c in 
       let etag = Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
                         st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime in
-      	Lwt.return (st.Unix.LargeFile.st_size, etag, read_file fd)
-    let content_of_string s = assert false
+      read_file fd >>=
+      (fun r ->
+      	Lwt.return (st.Unix.LargeFile.st_size, etag, r))
+
+    let content_of_stream s = assert false
       
   end
 
 (** this module is a Http_frame with empty content
 module Empty_http_frame = FHttp_frame (Empty_content) *)
 
-(** this module is a sender that send Http_frame with empty content*)
+(** this module is a sender that send Http_frame with empty content *)
 module Empty_sender = FHttp_sender(Empty_content)
 
 (** this module is a Http_frame with Xhtml content
 module Xhtml_http_frame = FHttp_frame (Xhtml_content) *)
 
-(** this module is a sender that send Http_frame with Xhtml content*)
+(** this module is a sender that send Http_frame with Xhtml content *)
 module Xhtml_sender = FHttp_sender(Xhtml_content)
 
-(** this module is a Http_frame with text content
-module Text_http_frame = FHttp_frame (Text_content) *)
+(** this module is a Http_frame with text content *)
+module Text_http_frame = FHttp_frame (Text_content)
 
-(** this module is a sender that send Http_frame with text content*)
+(** this module is a sender that send Http_frame with text content *)
 module Text_sender = FHttp_sender(Text_content)
+
+(** this module is a receiver that receives Http_frame with text content *)
+module Text_receiver = FHttp_receiver (Text_content)
 
 (** this module is a Http_frame with file content
 module File_http_frame = FHttp_frame (File_content) *)
 
-(** this module is a sender that send Http_frame with file content*)
+(** this module is a sender that send Http_frame with file content *)
 module File_sender = FHttp_sender(File_content)
 
 (** fonction that create a sender with xhtml content
