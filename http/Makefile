@@ -15,7 +15,7 @@ NAME 	 = test_pp
 LIBDIR 	= ../lib
 LIB= -package netstring,ssl -I $(LIBDIR) -I +camlp4
 PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
-ALL_CMO  = netlwtstream.cmo multipart.cmo \
+ALL_CMO  = ocsistream.cmo multipart.cmo \
            http_frame.cmo http_parser.cmo http_lexer.cmo \
 	   framepp.cmo http_com.cmo sender_helpers.cmo #test_pp.cmo
 

@@ -31,6 +31,7 @@ open Parseconfig
 open Error_pages
 
 exception Ocsigen_Bad_Request
+exception Ocsigen_unsupported_media
 exception Ssl_Exception
 
 (* Without the following line, it stops with "Broken Pipe" without raising
@@ -69,17 +70,17 @@ let fixup_url_string =
        Printf.sprintf "%%%02x" (Char.code s.[Netstring_pcre.match_beginning m]))
 ;;
 
-let get_boundary header =
-	let cont_enc = Http_header.get_headers_value header "Content-Type" in
-	let (_,res) = Netstring_pcre.search_forward
-	   (Netstring_pcre.regexp "boundary=([^;]*);?") cont_enc 0 in
-	  Netstring_pcre.matched_group res 1 cont_enc
-let find_field field content_disp = 
-	let (_,res) = Netstring_pcre.search_forward
-	   (Netstring_pcre.regexp (field^"=.([^\"]*).;?")) content_disp 0 in
-	  Netstring_pcre.matched_group res 1 content_disp
+let get_boundary cont_enc =
+  let (_,res) = Netstring_pcre.search_forward
+      (Netstring_pcre.regexp "boundary=([^;]*);?") cont_enc 0 in
+  Netstring_pcre.matched_group res 1 cont_enc
 
-type to_write = No_File of string*Buffer.t | A_File of Lwt_unix.descr
+let find_field field content_disp = 
+  let (_,res) = Netstring_pcre.search_forward
+      (Netstring_pcre.regexp (field^"=.([^\"]*).;?")) content_disp 0 in
+  Netstring_pcre.matched_group res 1 content_disp
+
+type to_write = No_File of string * Buffer.t | A_File of Lwt_unix.descr
 
 (* *)
 let get_frame_infos =
@@ -87,8 +88,8 @@ let get_frame_infos =
 let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
   fun http_frame ->
   catch (fun () -> 
-    let meth = Http_header.get_method http_frame.Text_http_frame.header in
-    let url = Http_header.get_url http_frame.Text_http_frame.header in
+    let meth = Http_header.get_method http_frame.Stream_http_frame.header in
+    let url = Http_header.get_url http_frame.Stream_http_frame.header in
     let url2 = 
       Neturl.parse_url 
 	~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
@@ -105,7 +106,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     let host =
       try
         let hostport = 
-          Http_header.get_headers_value http_frame.Text_http_frame.header "Host" in
+          Http_header.get_headers_value http_frame.Stream_http_frame.header "Host" in
     	try 
 	  Some (String.sub hostport 0 (String.index hostport ':'))
 	with _ -> Some hostport
@@ -131,61 +132,72 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
     let find_post_params = 
       if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
       then return [] else 
-	match http_frame.Text_http_frame.content with
+	match http_frame.Stream_http_frame.content with
 	  None -> return []
-	| Some s -> 
-	    (*
-	    (stream_of_content s);	      
-	       let ct = (Http_header.get_headers_value 
-	       http_frame.Text_http_frame.header "Content-Type") in
-	       match (Netstring_pcre.string_match 
-	       (Netstring_pcre.regexp ".*multipart.*")) ct 0
-	       with 
-	       None -> *)
-	    return (Netencoding.Url.dest_url_encoded_parameters s) 
-	      (*| _ -> 	(* File stockage *)*)
-(*
-	| Text_http_frame.Streamed nstr -> begin
-	    let bound = get_boundary http_frame.Text_http_frame.header in
-            let param_names = ref [||] in
-	    let create hs = 
-	      let cd = List.assoc "content-disposition" hs in
-	      let st = try Some (find_field "filename" cd) with _ -> None in
-	      let p_name = find_field "name" cd in
-	      match st with 
-		None -> No_File (p_name, Buffer.create 1024)
-	      | Some store -> 
-	          begin let now = 
-		    Printf.sprintf "%sx-%f" store (Unix.gettimeofday ()) in
-		  Messages.debug ("file="^now);
-		  param_names := Array.append !param_names [|(p_name, now)|];
-		  let fname = ((Ocsiconfig.get_uploaddir ())^"/"^now) in
-		  let fd = Unix.openfile fname 
-		      [Unix.O_CREAT;Unix.O_TRUNC;Unix.O_WRONLY;
-		       Unix.O_NONBLOCK] 0o666 in
-		  A_File (Lwt_unix.Plain fd) end in
-	    let add where from k n =  
-	      let buf = Netbuffer.sub (from#window) k n in
-	      match where with 
-		No_File (p_name, to_buf) -> 
-		  Buffer.add_string to_buf buf;
-		  return ()
-	      | A_File wh -> 
-		  (* Messages.debug ("partsize="^string_of_int n); *)
-		  Lwt_unix.write wh buf 0 n >>= 
-		  (fun r -> Lwt_unix.yield ()) in
-	    let stop  = function 
-		No_File (p_name, to_buf) -> 
-		  param_names := Array.append !param_names 
-		      [|(p_name, Buffer.contents to_buf)|]
-	      | A_File wh -> match wh with 
-		  Lwt_unix.Plain fdscr-> Unix.close fdscr
-		| _ -> () in
-	    Multipart.scan_multipart_body_from_netstream nstr bound create 
-	      add stop >>=
-	    (fun () -> return (Array.to_list !param_names))
-	end
-	      (*	IN-MEMORY STOCKAGE *)
+	| Some body -> 
+	    let ct = (String.lowercase
+		  (Http_header.get_headers_value 
+		     http_frame.Stream_http_frame.header "Content-Type")) in
+	    if ct = "application/x-www-form-urlencoded"
+	    then 
+	      Ocsistream.string_of_stream body >>=
+	      (fun r -> return (Netencoding.Url.dest_url_encoded_parameters r))
+	    else 
+	      match (Netstring_pcre.string_match 
+		       (Netstring_pcre.regexp "multipart/form-data*")) ct 0
+	      with 
+	      | None -> fail Ocsigen_unsupported_media
+	      | _ ->
+		  let bound = get_boundary ct in
+		  let param_names = ref [] in
+		  let create hs =
+		    let cd = List.assoc "content-disposition" hs in
+		    let st = try 
+		      Some (find_field "filename" cd) 
+		    with _ -> None in
+		    let p_name = find_field "name" cd in
+		    match st with 
+		      None -> No_File (p_name, Buffer.create 1024)
+		    | Some store -> 
+			let now = 
+			  Printf.sprintf 
+			    "%sx-%f" store (Unix.gettimeofday ()) in
+			param_names := !param_names@[(p_name, now)];
+			(* à la fin ? *)
+			let fname = ((Ocsiconfig.get_uploaddir ())^"/"^now) in
+			let fd = Unix.openfile fname 
+			    [Unix.O_CREAT;
+			     Unix.O_TRUNC;
+			     Unix.O_WRONLY;
+			     Unix.O_NONBLOCK] 0o666 in
+			A_File (Lwt_unix.Plain fd)
+		  in
+		  let add where s =
+		    match where with 
+		      No_File (p_name, to_buf) -> 
+			Buffer.add_string to_buf s;
+			return ()
+		    | A_File wh -> 
+			(* Messages.debug ("partsize="^string_of_int n); *)
+			Lwt_unix.write wh s 0 (String.length s) >>= 
+			(fun r -> Lwt_unix.yield ())
+		  in
+		  let stop  = function 
+		      No_File (p_name, to_buf) -> 
+			return 
+			  (param_names := !param_names @
+			    [(p_name, Buffer.contents to_buf)])
+			    (* à la fin ? *)
+		    | A_File wh -> (match wh with 
+			Lwt_unix.Plain fdscr -> Unix.close fdscr
+		      | _ -> ());
+			return ()
+		  in
+		  Multipart.scan_multipart_body_from_stream 
+		    body bound create add stop >>=
+		  (fun () -> return !param_names)
+
+(* AEFF *)	      (*	IN-MEMORY STOCKAGE *)
 	      (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
 	       * (String.length s) bound in
 	       * Messages.debug (string_of_int (List.length bdlist));
@@ -195,7 +207,6 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	       * List.iter (fun (hs,b) -> 
 	       * List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
 	       * List.map simplify bdlist *)
-*)
     in
     find_post_params >>= (fun post_params ->
       let internal_state,post_params2 = 
@@ -230,13 +241,13 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	  (Some (action_name, reload, ap), pp3)
 	with Not_found -> None, post_params2 in
       let useragent = try (Http_header.get_headers_value
-			     http_frame.Text_http_frame.header "user-agent")
+			     http_frame.Stream_http_frame.header "user-agent")
       with _ -> ""
       in
       let ifmodifiedsince = try 
 	Some (Netdate.parse_epoch 
 		(Http_header.get_headers_value
-		   http_frame.Text_http_frame.header "if-modified-since"))
+		   http_frame.Stream_http_frame.header "if-modified-since"))
       with _ -> None
       in return
 	(((path,
@@ -274,18 +285,18 @@ let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
 let service http_frame sockaddr 
     xhtml_sender empty_sender inputchan () =
-  let head = ((Http_header.get_method http_frame.Text_http_frame.header) 
+  let head = ((Http_header.get_method http_frame.Stream_http_frame.header) 
     		= Some (Http_header.HEAD)) in
   let ka = try
     let kah =	String.lowercase 
 	(Http_header.get_headers_value
-	   http_frame.Text_http_frame.header "Connection") 
+	   http_frame.Stream_http_frame.header "Connection") 
     in 
     if kah = "close" then false else 
     (if kah = "keep-alive" then true else false (* should not happen *))
   with _ ->
     (* if prot.[(String.index prot '/')+3] = '1' *)
-    if (Http_header.get_proto http_frame.Text_http_frame.header) = "HTTP/1.1"
+    if (Http_header.get_proto http_frame.Stream_http_frame.header) = "HTTP/1.1"
     then true else false in
   Messages.debug ("Keep-Alive:"^(string_of_bool ka));
   Messages.debug("HEAD:"^(string_of_bool head));
@@ -294,7 +305,7 @@ let service http_frame sockaddr
       let cookie = 
 	try 
 	  Some (getcookie (Http_header.get_headers_value 
-			     http_frame.Text_http_frame.header "Cookie"))
+			     http_frame.Stream_http_frame.header "Cookie"))
 	with _ -> None
       in
       get_frame_infos http_frame >>=
@@ -390,12 +401,16 @@ let service http_frame sockaddr
 	    Messages.debug "Sending 400";
 	    send_error ~keep_alive:ka ~error_num:400 xhtml_sender
 	      >>= (fun _ -> return ka (* keep_alive *))
+	| Ocsigen_unsupported_media ->
+	    Messages.debug "Sending 415";
+	    send_error ~keep_alive:ka ~error_num:415 xhtml_sender
+	      >>= (fun _ -> return ka (* keep_alive *))
 	| e ->
 	    Messages.debug "Sending 500";
             send_error ~keep_alive:ka ~error_num:500 xhtml_sender
 	      >>= (fun _ -> fail e))
   in 
-  let meth = (Http_header.get_method http_frame.Text_http_frame.header) in
+  let meth = (Http_header.get_method http_frame.Stream_http_frame.header) in
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
       (meth <> Some(Http_header.HEAD))) 
@@ -406,7 +421,8 @@ let service http_frame sockaddr
       (fun () ->
 	let cl = try
 	  (Int64.of_string 
-	     (Http_header.get_headers_value http_frame.Text_http_frame.header 
+	     (Http_header.get_headers_value 
+		http_frame.Stream_http_frame.header 
 		"content-length"))
 	with _ -> raise Ocsigen_Bad_Request
 	in
@@ -447,7 +463,7 @@ let listen modules_list =
     
     let rec listen_connexion_aux ~doing_keep_alive =
       let analyse_http () =
-	Text_receiver.get_http_frame receiver ~doing_keep_alive () >>=
+	Stream_receiver.get_http_frame receiver ~doing_keep_alive () >>=
 	(fun http_frame ->
 	  (service http_frame sockaddr 
 	     xhtml_sender empty_sender in_ch ())
@@ -521,7 +537,7 @@ let listen modules_list =
 	    create_empty_sender ~server_name:server_name inputchan
 	  in
 	  listen_connexion 
-	    (Text_receiver.create inputchan) 
+	    (Stream_receiver.create inputchan) 
 	    inputchan sockaddr xhtml_sender
 	    empty_sender)
 	(handle_exn sockaddr inputchan)

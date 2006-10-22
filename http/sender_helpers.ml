@@ -21,6 +21,7 @@
 open Http_frame
 open Http_com
 open Lwt
+open Ocsistream
 
 let cookiename = "ocsigensession"
 
@@ -57,7 +58,7 @@ module Xhtml_content =
       let x = (XHTML.M.ocsigen_print (add_css c)) in
       let md5 = Digest.to_hex (Digest.string x) in
       	 Lwt.return (Int64.of_int (String.length x), 
-		     md5, (Cont (x, (fun () -> Lwt.return Finished))))
+		     md5, (Cont (x, (fun () -> Lwt.return (Finished None)))))
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_stream s = assert false
   end
@@ -68,8 +69,16 @@ module Text_content =
     let stream_of_content c =
       let md5 = Digest.to_hex (Digest.string c) in
       Lwt.return (Int64.of_int (String.length c), 
-		  md5, Cont (c, (fun () -> Lwt.return Finished)))
+		  md5, Cont (c, (fun () -> Lwt.return (Finished None))))
     let content_of_stream = string_of_stream
+  end
+
+module Stream_content =
+  (* Use to receive any type of data, before knowing the content-type *)
+  struct
+    type t = stream
+    let stream_of_content c = assert false
+    let content_of_stream = Lwt.return
   end
 
 module Empty_content =
@@ -77,7 +86,7 @@ module Empty_content =
     type t = unit
     let stream_of_content c = 
       Lwt.return (Int64.of_int 0, "same", 
-		  Cont("",(fun () -> Lwt.return Finished)))
+		  Cont("",(fun () -> Lwt.return (Finished None))))
     let content_of_stream s = Lwt.return ()
   end
 
@@ -101,7 +110,7 @@ module File_content =
 (*********************AEFF	print_endline "b"; *)
           if lu = 0 then  begin
 	    Unix.close fd;
-	    Lwt.return Finished
+	    Lwt.return (Finished None)
 	  end
 	  else begin 
 	    if lu = buffer_size
@@ -145,6 +154,13 @@ module Text_sender = FHttp_sender(Text_content)
 
 (** this module is a receiver that receives Http_frame with text content *)
 module Text_receiver = FHttp_receiver (Text_content)
+
+(** this module is a Http_frame with text content *)
+module Stream_http_frame = FHttp_frame (Stream_content)
+
+(** this module is a receiver that receives Http_frame with stream content
+   (any text stream, when we don't know the type) *)
+module Stream_receiver = FHttp_receiver (Stream_content)
 
 (** this module is a Http_frame with file content
 module File_http_frame = FHttp_frame (File_content) *)

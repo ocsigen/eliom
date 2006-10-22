@@ -23,16 +23,7 @@ the operation on this protocol*)
 (** this signature provides a template to discribe the content of a http
     frame *)
 
-type stream = 
-    Finished
-  | Cont of string * (unit -> stream Lwt.t)
-		     
-let rec string_of_stream = function
-    Finished -> Lwt.return ""
-  | Cont (s,f) -> 
-      print_endline s;
-      Lwt.bind (f ()) (fun r -> 
-	Lwt.bind (string_of_stream r) (fun r -> Lwt.return (s^r)))
+open Ocsistream
 
 module type HTTP_CONTENT =
   sig

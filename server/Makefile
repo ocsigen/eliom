@@ -30,7 +30,7 @@ CMAO = nums.cma dynlink.cma unix.cma ssl.cma pcre.cma netstring.cma \
        gramlib.cma xmllexer.cmo simplexmlparser.cmo \
        ocsiconfig.cmo messages.cmo \
        lwt.cma preemptive.cmo \
-       netlwtstream.cmo multipart.cmo \
+       ocsistream.cmo multipart.cmo \
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtml.cma sender_helpers.cmo\
        error_pages.cmo

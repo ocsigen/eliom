@@ -20,6 +20,7 @@
 (** this module provide a mecanisme to comunicate with some htttp frames*)
 open Http_frame
 open Lwt
+open Ocsistream
 
 exception Ocsigen_HTTP_parsing_error of string * string
 exception Ocsigen_KeepaliveTimeout
@@ -32,6 +33,7 @@ struct
   type t = { mutable buf :string; 
 	     mutable read_pos:int; 
 	     mutable write_pos:int; 
+	     mutable datasize:int;
 	     size:int }
 
   let thread_waiting_read_enable = ref None
@@ -42,17 +44,17 @@ struct
   let create size = { buf=String.create size;
 		      read_pos=0;
 		      write_pos=0; 
+		      datasize=0; 
 		      size=size }
 
-  let submod a b m = 
+  let sizedata a b m = 
     let diff = a - b in
-    if diff >= 0
+    if diff > 0
     then diff
     else m + diff
 
   (** the number of byte in the buffer*)
-  let content_length buffer = 
-    submod buffer.write_pos buffer.read_pos buffer.size
+  let content_length buffer = buffer.datasize
 
   (** the number of free byte in the buffer *)
   let nb_free buffer = buffer.size - (content_length buffer)
@@ -84,7 +86,7 @@ struct
 	(fun len ->
           if len = 0 then Lwt.fail End_of_file
           else
-            (*copy of the temp buffer in the circular buffer*)
+            (* copy of the temp buffer in the circular buffer *)
             ((* print_endline temp_buf; *)
              (if buffer.read_pos > buffer.write_pos  
              then
@@ -104,7 +106,7 @@ struct
 	       );
 	      (* update the buffer *)
 	      buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
-	      print_endline "################ thread_waiting_read_enable plein ?";
+	      buffer.datasize <- buffer.datasize + len;
 	      (* if a thread wait for reading wake it up *)
 	      (match !thread_waiting_read_enable with
 	      | Some thread -> 	      print_endline "################ réveille";
@@ -126,6 +128,7 @@ Lwt.wakeup thread ()
             
   (** read a given number of bytes from the buffer without destroying the buffer content *)
 (* j'enlève ; ça n'a pas l'air utilisé... à remettre ???
+   ça doit être tout faux
  let read fd buffer off len () =
     let rec read_aux result read_p rem_len =
       let co = (Int64.compare rem_len 0) in
@@ -157,23 +160,22 @@ Lwt.wakeup thread ()
       then Lwt.fail (Invalid_argument ("offset out of bound"))
       else read_aux "" (off + buffer.read_pos) len *)
 
-  (** extract a given number bytes in the destructive way from the buffer *)
+  (** extract a given number bytes in destructive way from the buffer *)
   let extract fd buffer (len : int64) =
     let rec extract_aux rem_len =
-      print_int (Int64.to_int rem_len);
-      print_endline "-";
       let extract_one available rem_len = 
         let nb_extract = 
 	  min3' rem_len available (buffer.size - buffer.read_pos) in
         let string_extract = 
 	  String.sub buffer.buf buffer.read_pos nb_extract in
         buffer.read_pos <- (buffer.read_pos + nb_extract) mod buffer.size;
+	buffer.datasize <- buffer.datasize - nb_extract;
 	Lwt.return 
 	  (string_extract,
 	   (Int64.sub rem_len (Int64.of_int nb_extract)))
       in try
 	if rem_len = Int64.zero 
-	then Lwt.return Finished
+	then Lwt.return (Finished None)
 	else 
           let available = content_length buffer in
           match available with
@@ -237,32 +239,32 @@ Lwt.wakeup thread ()
      the result is number of char to read *)
   let wait_http_header fd buffer ~doing_keep_alive =
     let rec wait_http_header_aux cur_ind =
-      match submod buffer.write_pos cur_ind buffer.size with
-        | x when x < 0 -> assert false
-        | 0 -> 
-            (* wait for more bytes to analyse *)
-            receive fd buffer >>= (fun () ->
-              wait_http_header_aux cur_ind)
-        | available ->
-            try
-              let end_ind = find buffer cur_ind 4 available in
-                Lwt.return (submod (end_ind+1) buffer.read_pos buffer.size)
-            with 
-              Not_found ->
-                receive fd buffer >>= (fun () ->
-                  wait_http_header_aux 
-		    ((cur_ind + available - 
-			(min available 3)) mod buffer.size))
-    in (* wait_http_header_aux buffer.read_pos 
-	  Pour keep-alive timeout je remplace ça par *)
+      (* here the buffer is not empty *)
+      match sizedata buffer.write_pos cur_ind buffer.size with
+      | x when x <= 0 -> assert false
+      | available ->
+          try
+            let end_ind = find buffer cur_ind 4 available in
+            Lwt.return (sizedata (end_ind+1) buffer.read_pos buffer.size)
+          with 
+            Not_found ->
+              receive fd buffer >>= (fun () ->
+                wait_http_header_aux 
+		  ((cur_ind + available - 
+		      (min available 3)) mod buffer.size))
+    in 
     try
-      (if doing_keep_alive && (buffer.write_pos = buffer.read_pos)
+      (if doing_keep_alive && (buffer.datasize = 0)
       then
 	Lwt.choose
 	  [receive fd buffer;
 	   (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
 	    (fun () -> fail Ocsigen_KeepaliveTimeout))]
-      else return ()) >>= (fun () -> wait_http_header_aux buffer.read_pos)
+      else return ()) >>= 
+      (fun () -> 
+	(if buffer.datasize = 0
+	then receive fd buffer
+	else return ()) >>= (fun () -> wait_http_header_aux buffer.read_pos))
     with e -> fail e
 end
 
@@ -313,50 +315,17 @@ module FHttp_receiver =
 		  with
                   |_ -> Int64.zero
 		in 
-		let rp = receiver.buffer.Com_buffer.read_pos in
-		let wp = receiver.buffer.Com_buffer.write_pos in
-		let sz = receiver.buffer.Com_buffer.size in
-		let bf = receiver.buffer.Com_buffer.buf in
-		let ct = try 
-	          Http_frame.Http_header.get_headers_value header "content-type"
-		with Not_found -> "" in
-		match (Netstring_pcre.string_match 
-	   		 (Netstring_pcre.regexp ".*multipart.*")) ct 0
-		with 
-	          None -> begin
-		    let body =
-		      let comp = Int64.compare body_length Int64.zero in
-		      if comp < 0 
-		      then assert false
-		      else if comp = 0 
-		      then Lwt.return None
-		      else
-			Com_buffer.extract 
-			  receiver.fd receiver.buffer body_length
-			  >>= C.content_of_stream >>= 
-			(fun c -> Lwt.return (Some c))
-		    in
-		    body >>= (fun b ->
-                      Lwt.return {Http.header=header; Http.content=b}
-			     )
-		  end
-(* AEFF		| _ -> (* multipart, create a netstream *) begin
-		    let netchan = new Netlwtstream.input_descr receiver.fd
-			(*match receiver.fd with
-			   Lwt_unix.Plain fdesc -> new Multipart.input_channel (Lwt_unix.in_channel_of_descr fdesc)
-			   | Lwt_unix.Encrypted (fdesc,sock) -> new Multipart.input_ssl sock *) in
-		    Messages.debug "before creation";
-		    let available = 
-		      if wp >= rp
-	      	      then String.sub bf rp (wp - rp)
-		      else (String.sub bf rp (sz-rp))^(String.sub bf 0 wp)
-		    in (* Messages.debug ("available: "^available);*)
-		    let netstr = new Netlwtstream.input_stream
-			~init:available ~len:body_length netchan in
-		    Messages.debug "new Netstream created";
-		    Lwt.return 
-		      {Http.header=header;Http.content=Http.Streamed netstr}
-		end *))
+		let comp = Int64.compare body_length Int64.zero in
+		(if comp < 0 
+		then assert false
+		else if comp = 0 
+		then Lwt.return None
+		else
+		  Com_buffer.extract 
+		    receiver.fd receiver.buffer body_length
+		    >>= C.content_of_stream >>= 
+		  (fun c -> Lwt.return (Some c))) >>=
+		(fun b -> Lwt.return {Http.header=header; Http.content=b}))
             with e -> fail e
           )
         )
@@ -395,7 +364,7 @@ module FHttp_sender =
 *)
     (*fonction d'écriture sur le réseau*)
       let rec really_write out_ch = function
-          | Finished -> Messages.debug "write finished"; Lwt.return ()
+          | Finished _ -> Messages.debug "write finished"; Lwt.return ()
 	  | Cont (s, next) ->
 	      let l = String.length s in
 	      Lwt_unix.write out_ch s 0 l >>=
@@ -537,7 +506,7 @@ module FHttp_sender =
 		      Messages.debug "writing header";
 		      really_write sender.fd 
 			(Cont ((Framepp.string_of_header hd), 
-			       (fun () -> Lwt.return Finished)))) >>=
+			       (fun () -> Lwt.return (Finished None))))) >>=
 		    (fun _ -> match head with 
 		    | Some true -> Lwt.return ()
 		    | _ -> Messages.debug "writing body"; 

@@ -68,7 +68,7 @@ let init_config () =
    default_static_dir = None;
    user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
    minthreads = 10; 
-   maxthreads = 300; 
+   maxthreads = 1500; 
    max_number_of_threads_queued = 100;
    max_number_of_connections = 500;
    mimefile = "_CONFIGDIR_/mime.types"; 
