@@ -25,7 +25,8 @@ open Ocsistream
 exception Ocsigen_HTTP_parsing_error of string * string
 exception Ocsigen_KeepaliveTimeout
 exception Ocsigen_Timeout
-
+exception Ocsigen_buffer_is_full
+exception Ocsigen_header_too_long
 
 (** buffer de comunication permettant la reception et la recupération des messages *)
 module Com_buffer =
@@ -36,10 +37,6 @@ struct
 	     mutable datasize:int;
 	     size:int }
 
-  let thread_waiting_read_enable = ref None
-
-  let thread_waiting_write_enable = ref None
-             
   (** create a buffer *)
   let create size = { buf=String.create size;
 		      read_pos=0;
@@ -62,14 +59,8 @@ struct
   (** wait until the buffer has free slot and return the number of free slots*)
   let rec wait_can_write buffer =
     let free = nb_free buffer in
-      if free = 0 then
-        begin
-          let waiting_thread = Lwt.wait () in
-          thread_waiting_write_enable := Some waiting_thread;
-          waiting_thread >>= (fun () -> 
-            thread_waiting_write_enable := None;
-            wait_can_write buffer)
-        end
+      if free = 0 
+      then fail Ocsigen_buffer_is_full
       else Lwt.return free
 
   exception End_of_file         
@@ -107,16 +98,10 @@ struct
 	      (* update the buffer *)
 	      buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
 	      buffer.datasize <- buffer.datasize + len;
-	      (* if a thread wait for reading wake it up *)
-	      (match !thread_waiting_read_enable with
-	      | Some thread -> 	      print_endline "################ réveille";
-Lwt.wakeup thread ()
-	      | None -> ()
-	      );
 	      return ()
              )
             )
-						     )
+	)
 				)
     with e -> fail e
 	
@@ -248,10 +233,15 @@ Lwt.wakeup thread ()
             Lwt.return (sizedata (end_ind+1) buffer.read_pos buffer.size)
           with 
             Not_found ->
-              receive fd buffer >>= (fun () ->
-                wait_http_header_aux 
-		  ((cur_ind + available - 
-		      (min available 3)) mod buffer.size))
+	      catch
+		(fun () ->
+		  receive fd buffer >>= (fun () ->
+                    wait_http_header_aux 
+		      ((cur_ind + available - 
+			  (min available 3)) mod buffer.size)))
+		(function
+		    Ocsigen_buffer_is_full -> fail Ocsigen_header_too_long
+		  | e -> fail e)
     in 
     try
       (if doing_keep_alive && (buffer.datasize = 0)
