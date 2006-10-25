@@ -1,3 +1,4 @@
+exception Input_is_too_large
 
 let rec list_remove a = function
     [] -> []

@@ -116,7 +116,7 @@ let rec parser_config =
 	parse_ssl n p;
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("uploaddir", PLEmpty, p)), ll) ->
-    	set_uploaddir n (parse_string p);
+    	set_uploaddir n (Some (parse_string p));
 	parse_ocsigen n ll
     | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
 	set_logdir n (parse_string p);

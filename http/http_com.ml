@@ -27,6 +27,7 @@ exception Ocsigen_KeepaliveTimeout
 exception Ocsigen_Timeout
 exception Ocsigen_buffer_is_full
 exception Ocsigen_header_too_long
+exception Connection_reset_by_peer
 
 (** buffer de comunication permettant la reception et la recupération des messages *)
 module Com_buffer =
@@ -155,6 +156,9 @@ struct
 	  String.sub buffer.buf buffer.read_pos nb_extract in
         buffer.read_pos <- (buffer.read_pos + nb_extract) mod buffer.size;
 	buffer.datasize <- buffer.datasize - nb_extract;
+	if buffer.datasize = 0
+	then (buffer.read_pos <- 0; buffer.write_pos <- 0);
+	(* je recale le buffer pour avoir des blocs de buffersize exactement *)
 	Lwt.return 
 	  (string_extract,
 	   (Int64.sub rem_len (Int64.of_int nb_extract)))
@@ -233,31 +237,32 @@ struct
             Lwt.return (sizedata (end_ind+1) buffer.read_pos buffer.size)
           with 
             Not_found ->
-	      catch
-		(fun () ->
-		  receive fd buffer >>= (fun () ->
-                    wait_http_header_aux 
-		      ((cur_ind + available - 
-			  (min available 3)) mod buffer.size)))
-		(function
-		    Ocsigen_buffer_is_full -> fail Ocsigen_header_too_long
-		  | e -> fail e)
+	      receive fd buffer >>= (fun () ->
+                wait_http_header_aux 
+		  ((cur_ind + available - 
+		      (min available 3)) mod buffer.size)))
     in 
-    try
-      (if doing_keep_alive && (buffer.datasize = 0)
-      then
-	Lwt.choose
-	  [receive fd buffer;
-	   (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
-	    (fun () -> fail Ocsigen_KeepaliveTimeout))]
-      else return ()) >>= 
-      (fun () -> 
-	(if buffer.datasize = 0
-	then receive fd buffer
-	else return ()) >>= (fun () -> wait_http_header_aux buffer.read_pos))
-    with e -> fail e
-end
+    catch 
+      (fun () ->
+	(if doing_keep_alive && (buffer.datasize = 0)
+	then
+	  Lwt.choose
+	    [receive fd buffer;
+	     (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
+	      (fun () -> fail Ocsigen_KeepaliveTimeout))]
+	else return ()) >>= 
+	(fun () -> 
+	  (if buffer.datasize = 0
+	  then receive fd buffer
+	  else return ()) >>= 
+	  (fun () -> wait_http_header_aux buffer.read_pos))
+      )
+      (function
+	  Ocsigen_buffer_is_full -> fail Ocsigen_header_too_long
+	| e -> fail e)
 
+end
+    
 
 module FHttp_receiver =
   functor(C:Http_frame.HTTP_CONTENT) ->
@@ -276,16 +281,24 @@ module FHttp_receiver =
 	let buffer = Com_buffer.create buffer_size in
         {buffer=buffer;fd=fd}
 	  
-	  (** convert a string into an header *)
+	  (** convert a stream into an header *)
       let http_header_of_stream s =
-	Lwt.bind (string_of_stream s)
-	(fun s ->
-          let lexbuf = Lexing.from_string s in
-          try
-            Lwt.return (Http_parser.header Http_lexer.token lexbuf)
-          with
-          |Parsing.Parse_error -> 
-              raise (Ocsigen_HTTP_parsing_error ((Lexing.lexeme lexbuf),s)))
+          catch
+	    (fun () -> 
+	      (string_of_stream s) >>=
+	      (fun s ->
+		let lexbuf = Lexing.from_string s in
+		catch
+		  (fun () ->
+		    Lwt.return (Http_parser.header Http_lexer.token lexbuf))
+		  (function
+		      Parsing.Parse_error -> 
+			fail (Ocsigen_HTTP_parsing_error
+				((Lexing.lexeme lexbuf),s))
+		    | e -> fail e)))
+	  (function
+	    | String_too_large -> fail Ocsigen_header_too_long
+	    | e -> fail e)
          
       (** get an http frame *)
       let get_http_frame receiver ~doing_keep_alive () =
@@ -303,7 +316,7 @@ module FHttp_receiver =
 		      (Http_frame.Http_header.get_headers_value 
 			 header "content-length")
 		  with
-                  |_ -> Int64.zero
+                    _ -> Int64.zero
 		in 
 		let comp = Int64.compare body_length Int64.zero in
 		(if comp < 0 
@@ -356,15 +369,23 @@ module FHttp_sender =
       let rec really_write out_ch = function
           | Finished _ -> Messages.debug "write finished"; Lwt.return ()
 	  | Cont (s, next) ->
-	      let l = String.length s in
-	      Lwt_unix.write out_ch s 0 l >>=
-	      (fun len' ->
-		Lwt_unix.yield () >>= (fun () ->
-	        if l = len'
-		then next () >>= really_write out_ch
-		else really_write out_ch
-		    (Cont (String.sub s len' (l-len'), next))
-              ))
+	      catch
+		(fun () ->
+		  let l = String.length s in
+		  Lwt_unix.write out_ch s 0 l >>=
+		  (fun len' ->
+		    Lwt_unix.yield () >>= (fun () ->
+	              if l = len'
+		      then next () >>= really_write out_ch
+		      else really_write out_ch
+			  (Cont (String.sub s len' (l-len'), next))
+					  )))
+		(function
+		    Unix.Unix_error (Unix.EPIPE, _, _)
+		  | Unix.Unix_error (Unix.ECONNRESET, _, _) 
+		  | Ssl.Write_error _ ->
+		      fail Connection_reset_by_peer
+		  | e -> fail e)
 												    
     (**create a new sender*)
     let create ?(mode=Http_frame.Http_header.Answer) ?(headers=[])
@@ -473,32 +494,32 @@ module FHttp_sender =
     let send ?mode ?proto ?headers ?meth ?url ?code ?content ?head sender =
       (*creation d'une http_frame*)
       (*creation du header*)
-    let md = match mode with None -> sender.mode | Some m -> m in
-    let prot = match proto with None -> sender.proto | Some p -> p in
-    match content with
-      |None -> Lwt.return ()
-      |Some c -> (C.stream_of_content c >>=
-                  (fun (lon,etag,flux) -> 
-		    Lwt.return (hds_fusion (Some lon)
-				  (("ETag",etag)::sender.headers) 
-				  (match headers with 
-				    Some h ->h
-				  | None -> []) ) >>=
-		    (fun hds -> 
-		      let hd = {
-			H.mode = md;
-			H.meth=meth;
-			H.url=url;
-			H.code=code;
-			H.proto = prot;
-			H.headers = hds;
-		      } in
-		      Messages.debug "writing header";
-		      really_write sender.fd 
-			(Cont ((Framepp.string_of_header hd), 
-			       (fun () -> Lwt.return (Finished None))))) >>=
-		    (fun _ -> match head with 
-		    | Some true -> Lwt.return ()
-		    | _ -> Messages.debug "writing body"; 
-			really_write sender.fd flux)))
+      let md = match mode with None -> sender.mode | Some m -> m in
+      let prot = match proto with None -> sender.proto | Some p -> p in
+      match content with
+      | None -> Lwt.return ()
+      | Some c -> (C.stream_of_content c >>=
+                   (fun (lon,etag,flux) -> 
+		     Lwt.return (hds_fusion (Some lon)
+				   (("ETag",etag)::sender.headers) 
+				   (match headers with 
+				     Some h ->h
+				   | None -> []) ) >>=
+		     (fun hds -> 
+		       let hd = {
+			 H.mode = md;
+			 H.meth=meth;
+			 H.url=url;
+			 H.code=code;
+			 H.proto = prot;
+			 H.headers = hds;
+		       } in
+		       Messages.debug "writing header";
+		       really_write sender.fd 
+			 (Cont ((Framepp.string_of_header hd), 
+				(fun () -> Lwt.return (Finished None))))) >>=
+		     (fun _ -> match head with 
+		     | Some true -> Lwt.return ()
+		     | _ -> Messages.debug "writing body"; 
+			 really_write sender.fd flux)))
   end

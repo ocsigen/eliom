@@ -37,7 +37,7 @@ type config = { mutable port: int;
 		mutable private_key: string;
 		mutable certificate: string;
 		mutable passwd: string;
-		mutable uploaddir: string;
+		mutable uploaddir: string option;
 		mutable logdir: string;
 		mutable default_static_dir: string option;
 		mutable user: string;
@@ -64,7 +64,7 @@ let init_config () =
   {port = 80; port_modified = false; ssl = false;
    modu = [];
    private_key = ""; certificate = ""; passwd = ""; 
-   uploaddir = "_UP_"; logdir = "_LOGDIR_"; 
+   uploaddir = None; logdir = "_LOGDIR_"; 
    default_static_dir = None;
    user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
    minthreads = 10; 

@@ -507,13 +507,15 @@ let close_process_full (inchan, outchan, errchan) =
 
 let lingering_close ch =
   Messages.debug "SHUTDOWN";
-  (try shutdown ch Unix.SHUTDOWN_SEND with e -> ());
+  (try shutdown ch Unix.SHUTDOWN_SEND 
+  with e -> Messages.debug "shutdown failed"; ());
   ignore (Lwt.bind (sleep 2.0) (fun () -> 
     Lwt.return
-      (match ch with 
-	Plain fd -> Messages.debug "CLOSE"; Unix.close fd
-      | Encrypted (fd,sock) -> print_endline "CLOSE"; Unix.close fd)))
-
+      (try
+	(match ch with 
+	  Plain fd -> Messages.debug "CLOSE"; Unix.close fd
+	| Encrypted (fd,sock) -> Messages.debug "CLOSE (SSL)"; Unix.close fd)
+      with e -> Messages.debug "close failed"; ())))
 
 (**/**)
 (* Monitoring functions *)

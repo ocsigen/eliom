@@ -33,6 +33,7 @@ open Error_pages
 exception Ocsigen_Bad_Request
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
+exception Ocsigen_upload_forbidden
 
 (* Without the following line, it stops with "Broken Pipe" without raising
    an exception ... *)
@@ -42,9 +43,9 @@ let ctx = Ssl.init ();
 	  
 (* non blocking input and output (for use with lwt): *)
 
-let _ = Unix.set_nonblock Unix.stdin
+(* let _ = Unix.set_nonblock Unix.stdin
 let _ = Unix.set_nonblock Unix.stdout
-let _ = Unix.set_nonblock Unix.stderr
+let _ = Unix.set_nonblock Unix.stderr *)
 
 
 let new_socket () = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
@@ -53,9 +54,6 @@ let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
 let ip_of_sockaddr = function
     Unix.ADDR_INET (ip,port) -> Unix.string_of_inet_addr ip
   | _ -> "127.0.0.1"
-
-
-exception Ocsigen_Malformed_Url
 
 let server_name = ("Ocsigen server ("^Ocsiconfig.version_number^")")
 
@@ -67,7 +65,8 @@ let fixup_url_string =
   Netstring_pcre.global_substitute
     problem_re
     (fun m s ->
-       Printf.sprintf "%%%02x" (Char.code s.[Netstring_pcre.match_beginning m]))
+       Printf.sprintf "%%%02x" 
+	(Char.code s.[Netstring_pcre.match_beginning m]))
 ;;
 
 let get_boundary cont_enc =
@@ -140,8 +139,14 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 		     http_frame.Stream_http_frame.header "Content-Type")) in
 	    if ct = "application/x-www-form-urlencoded"
 	    then 
-	      Ocsistream.string_of_stream body >>=
-	      (fun r -> return (Netencoding.Url.dest_url_encoded_parameters r))
+	      catch
+		(fun () ->
+		  Ocsistream.string_of_stream body >>=
+		  (fun r -> return
+		      (Netencoding.Url.dest_url_encoded_parameters r)))
+		(function
+		    Ocsistream.String_too_large -> fail Input_is_too_large
+		  | e -> fail e)
 	    else 
 	      match (Netstring_pcre.string_match 
 		       (Netstring_pcre.regexp "multipart/form-data*")) ct 0
@@ -161,16 +166,20 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 		    | Some store -> 
 			let now = 
 			  Printf.sprintf 
-			    "%sx-%f" store (Unix.gettimeofday ()) in
+			    "%s-%f" store (Unix.gettimeofday ()) in
 			param_names := !param_names@[(p_name, now)];
 			(* à la fin ? *)
-			let fname = ((Ocsiconfig.get_uploaddir ())^"/"^now) in
-			let fd = Unix.openfile fname 
-			    [Unix.O_CREAT;
-			     Unix.O_TRUNC;
-			     Unix.O_WRONLY;
-			     Unix.O_NONBLOCK] 0o666 in
-			A_File (Lwt_unix.Plain fd)
+			match ((Ocsiconfig.get_uploaddir ())) with
+			  Some dname ->
+			    let fname = dname^"/"^now in
+			    let fd = Unix.openfile fname 
+				[Unix.O_CREAT;
+				 Unix.O_TRUNC;
+				 Unix.O_WRONLY;
+				 Unix.O_NONBLOCK] 0o666 in
+			    (* Messages.debug "file opened"; *)
+			    A_File (Lwt_unix.Plain fd)
+			| None -> raise Ocsigen_upload_forbidden
 		  in
 		  let add where s =
 		    match where with 
@@ -178,7 +187,6 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 			Buffer.add_string to_buf s;
 			return ()
 		    | A_File wh -> 
-			(* Messages.debug ("partsize="^string_of_int n); *)
 			Lwt_unix.write wh s 0 (String.length s) >>= 
 			(fun r -> Lwt_unix.yield ())
 		  in
@@ -189,7 +197,9 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 			    [(p_name, Buffer.contents to_buf)])
 			    (* à la fin ? *)
 		    | A_File wh -> (match wh with 
-			Lwt_unix.Plain fdscr -> Unix.close fdscr
+			Lwt_unix.Plain fdscr -> 
+			  (* Messages.debug "closing file"; *)
+			  Unix.close fdscr
 		      | _ -> ());
 			return ()
 		  in
@@ -261,9 +271,13 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	      useragent)),
 	  action_info,
 	  ifmodifiedsince))))
-      (function e -> 
-	Messages.debug (Printexc.to_string e); 
-	fail Ocsigen_Malformed_Url (* ?? *))
+      (function
+	  Http_com.Com_buffer.End_of_file -> 
+	    fail Connection_reset_by_peer
+	| e -> 
+	    Messages.debug ("Exn during get_frame_infos : "^
+			    (Printexc.to_string e)); 
+	    fail Ocsigen_Bad_Request (* ? *))
 
 
 let rec getcookie s =
@@ -334,18 +348,15 @@ let service http_frame sockaddr
 			 ~code:304 (* Not modified *)
 			 ~head:head empty_sender
 		   | _ ->
-		       print_endline "envoi----------------";
-		       let aaaaaaa =
-			 send_page ~keep_alive:keep_alive
-			   ?last_modified:lastmodified
-			   ?cookie:(if cookie2 <> cookie then 
-			     (if cookie2 = None 
-			     then Some remove_cookie_str
-			     else cookie2) 
-			   else None)
-			   ~path:path (* path pour le cookie *) ~head:head
-			   (sender ~server_name:server_name inputchan)
-		       in print_endline "fin envoi-----------";aaaaaaa))
+		       send_page ~keep_alive:keep_alive
+			 ?last_modified:lastmodified
+			 ?cookie:(if cookie2 <> cookie then 
+			   (if cookie2 = None 
+			   then Some remove_cookie_str
+			   else cookie2) 
+			 else None)
+			 ~path:path (* path pour le cookie *) ~head:head
+			 (sender ~server_name:server_name inputchan)))
 	       (function
 		   Ocsigen_Is_a_directory -> 
 		     Messages.debug "Sending 301 Moved permanently";
@@ -389,23 +400,35 @@ let service http_frame sockaddr
 		(fun _ -> return keep_alive))))
       (function
 	  Ocsigen_404 -> 
-	    (*really_write "404 Not Found" false in_ch "error 404 \n" 0 11 *)
-	    Messages.debug "Sending 404";
+	    Messages.debug "Sending 404 Not Found";
 	    send_error ~keep_alive:ka ~error_num:404 xhtml_sender
 	      >>= (fun _ ->
 		return ka (* keep_alive *))
-	| Ocsigen_Malformed_Url ->
-	    (*really_write "404 Not Found ??" false in_ch "error ??? 
-	       (Malformed URL) \n"
-	     * 0 11 *)
+	| Multipart.Multipart_error _ as e ->
+	    Messages.debug (Printexc.to_string e);
 	    Messages.debug "Sending 400";
 	    send_error ~keep_alive:ka ~error_num:400 xhtml_sender
-	      >>= (fun _ -> return ka (* keep_alive *))
+	      >>= (fun _ -> return ka)
+	| Ocsigen_Bad_Request ->
+	    Messages.debug "Sending 400";
+	    send_error ~keep_alive:ka ~error_num:400 xhtml_sender
+	      >>= (fun _ -> return ka)
+	| Input_is_too_large ->
+	    Messages.debug "Sending 400";
+	    send_error ~keep_alive:ka ~error_num:400 xhtml_sender
+	      >>= (fun _ -> return ka)
+	| Ocsigen_upload_forbidden ->
+	    Messages.debug "Sending 403 Forbidden";
+	    send_error ~keep_alive:ka ~error_num:400 xhtml_sender
+	      >>= (fun _ -> return ka)
 	| Ocsigen_unsupported_media ->
 	    Messages.debug "Sending 415";
 	    send_error ~keep_alive:ka ~error_num:415 xhtml_sender
-	      >>= (fun _ -> return ka (* keep_alive *))
+	      >>= (fun _ -> return ka)
+	| Connection_reset_by_peer -> fail Connection_reset_by_peer
 	| e ->
+	    Messages.warning ("Exn during serv function : "^
+			      (Printexc.to_string e)^" (sending 500)"); 
 	    Messages.debug "Sending 500";
             send_error ~keep_alive:ka ~error_num:500 xhtml_sender
 	      >>= (fun _ -> fail e))
@@ -424,19 +447,22 @@ let service http_frame sockaddr
 	     (Http_header.get_headers_value 
 		http_frame.Stream_http_frame.header 
 		"content-length"))
-	with _ -> raise Ocsigen_Bad_Request
+	with 
+	  Not_found -> Int64.zero
+	| _ -> raise Ocsigen_Bad_Request
 	in
 	if (Int64.compare cl Int64.zero) > 0 &&
 	  (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
 	then (send_error ~keep_alive:ka ~error_num:501 xhtml_sender >>= 
 	      (fun _ -> return ka)) 
 	else serv ())
-      (function Ocsigen_Bad_Request ->
-	if meth = Some Http_header.POST
-	then (send_error ~keep_alive:ka ~error_num:400 xhtml_sender
-		>>= (fun _ -> return ka))
-	else serv ()
-	| e -> fail e)
+      (function
+	  Ocsigen_Bad_Request ->
+	    (send_error ~keep_alive:ka ~error_num:400 xhtml_sender
+	       >>= (fun _ -> return ka))
+	| e -> Messages.debug ("Exn during service : "^
+			       (Printexc.to_string e)); 
+	    fail e)
 
        
 
@@ -488,6 +514,14 @@ let listen modules_list =
 		~keep_alive:false ~http_exception:http_ex xhtml_sender >>=
 	      (fun () -> Lwt_unix.lingering_close in_ch;
 		return ())
+	  | Connection_reset_by_peer -> 
+	      Messages.debug "Connection closed by client";
+	      Lwt_unix.lingering_close in_ch; return ()
+	  | Ocsigen_header_too_long ->
+	      Messages.debug "Sending 400";
+	      (* 414 URI too long. Actually, it is "header too long..." *)
+	      send_error ~keep_alive:false ~error_num:400 xhtml_sender
+		>>= (fun _ -> Lwt_unix.lingering_close in_ch; return ())
           | exn -> fail exn)
 	
     in listen_connexion_aux ~doing_keep_alive:false
@@ -543,22 +577,27 @@ let listen modules_list =
 	(handle_exn sockaddr inputchan)
     in
     let rec wait_connexion_rec = (fun () -> 
-    	let rec do_accept () = Lwt_unix.accept (Lwt_unix.Plain(socket)) >>= 
-    	(fun (s, sa) -> if Ocsiconfig.get_ssl () then begin
-    	  let s_unix = match s with Lwt_unix.Plain fd -> fd 
-    		         | _ -> raise Ssl_Exception (* impossible *) in
-    	  catch 
-    	    (fun () -> 
-	      ((Lwt_unix.accept
-		  (Lwt_unix.Encrypted 
-		     (s_unix, Ssl.embed_socket s_unix !ctx))) >>=
-	       (fun (ss, ssa) -> Lwt.return (ss, sa))))
-    	    (function
-		Ssl.Accept_error e -> 
-		  warning "Accept_error"; do_accept ()
-    	      | e -> warning (Printexc.to_string e); do_accept ())
-        end else Lwt.return (s, sa)) in
-       (do_accept ()) >>= 
+    	let rec do_accept () = 
+	  Lwt_unix.accept (Lwt_unix.Plain(socket)) >>= 
+    	  (fun (s, sa) -> if Ocsiconfig.get_ssl () then begin
+    	    let s_unix = 
+	      match s with
+		Lwt_unix.Plain fd -> fd 
+    	      | _ -> raise Ssl_Exception (* impossible *) 
+	    in
+    	    catch 
+    	      (fun () -> 
+		((Lwt_unix.accept
+		    (Lwt_unix.Encrypted 
+		       (s_unix, Ssl.embed_socket s_unix !ctx))) >>=
+		 (fun (ss, ssa) -> Lwt.return (ss, sa))))
+    	      (function
+		  Ssl.Accept_error e -> 
+		    Messages.debug "Accept_error"; do_accept ()
+    		| e -> warning ("Exn in do_accept : "^
+				(Printexc.to_string e)); do_accept ())
+          end else Lwt.return (s, sa)) in
+	(do_accept ()) >>= 
 	(fun c ->
 	  incr_connected ();
 	  if (get_number_of_connected ()) <

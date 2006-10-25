@@ -2,30 +2,33 @@ open Lwt
 
 exception Stream_too_small
 exception Stream_error of string
-exception Input_is_too_large
+exception String_too_large
 
 type stream = 
     Finished of stream option (* If there is another stream following
 				 (usefull for substreams) *)
   | Cont of string * (unit -> stream Lwt.t)
 		     
-let rec string_of_stream = function
-    Finished _ -> return ""
-  | Cont (s,f) -> 
-      print_endline s;
-      f () >>= 
-      (fun r -> string_of_stream r >>=
-	(fun r -> return (s^r)))
+let string_of_stream = 
+  let rec aux l = function
+      Finished _ -> return ""
+    | Cont (s,f) -> 
+	let l2 = l+(String.length s) in
+	if l2 > Ocsiconfig.get_netbuffersize ()
+	then fail String_too_large
+	else 
+	  (f () >>= 
+	   (fun r -> aux l2 r >>=
+	     (fun r -> return (s^r))))
+  in aux 0
 
 let enlarge_stream = function 
     Finished a -> fail Stream_too_small
   | Cont (s, f) ->
-      if (String.length s) > (Ocsiconfig.get_netbuffersize ())
-      then raise Input_is_too_large
-      else f () >>= 
-	(function
-	    Finished _ -> fail Stream_too_small
-	  | Cont (r, ff) -> return (Cont (s^r, ff)))
+      f () >>= 
+      (function
+	  Finished _ -> fail Stream_too_small
+	| Cont (r, ff) -> return (Cont (s^r, ff)))
 
 let rec stream_want s len =
  (* returns a stream with at most len bytes read if possible *)
@@ -83,3 +86,5 @@ let substream delim s =
 				 (Cont ((String.sub s pos (len - pos))^s', f'))
 			 ))))
     in aux s
+
+

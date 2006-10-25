@@ -68,21 +68,29 @@ let scan_header ?(downcase=true)
 
 let read_header ?downcase ?unfold ?strip (s : Ocsistream.stream) =
   let rec find_end_of_header s =
-    try
-      let b = Ocsistream.current_buffer s in
-      (* Maybe the header is empty. In this case, there is an empty line
-       * right at the beginning
-       *)
-      begin match S.string_match empty_line_re b 0 with
+    catch
+      (fun () ->
+	let b = Ocsistream.current_buffer s in
+	(* Maybe the header is empty. In this case, there is an empty line
+	 * right at the beginning
+	 *)
+	match S.string_match empty_line_re b 0 with
 	  Some r ->
 	    return (s, (S.match_end r))
 	| None ->
 	    (* Search the empty line: *)
 	    return
 	      (s, (S.match_end (snd (S.search_forward end_of_header_re b 0))))
-      end
-    with
-	Not_found -> Ocsistream.enlarge_stream s >>= find_end_of_header
+      )
+      (function
+	  Not_found -> Ocsistream.enlarge_stream s >>= 
+	    (function
+		Finished _ -> fail Stream_too_small
+	      | Cont (stri,_) as s ->
+		  if (String.length stri) > (Ocsiconfig.get_netbuffersize ())
+		  then fail Ocsimisc.Input_is_too_large
+		  else find_end_of_header s)
+	| e -> fail e)
   in
   find_end_of_header s >>= (fun s, end_pos ->
     let b = Ocsistream.current_buffer s in
@@ -105,10 +113,13 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
     with
       Not_found -> 
 	Ocsistream.enlarge_stream s >>=
-	(fun s -> search_window s re start)
-         (* try again with enlarged window *)
+	(function
+	    Finished _ -> fail Stream_too_small
+	  | Cont (stri,_) as s ->
+	      if (String.length stri) > (Ocsiconfig.get_netbuffersize ())
+	      then fail Ocsimisc.Input_is_too_large
+	      else search_window s re start)
   in
-
   let search_end_of_line s k =
     (* Search LF beginning at position k *)
     catch
@@ -218,8 +229,13 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
 	(function
 	    error -> stop p >>= (fun _ -> fail error)))
   in
-  (* read the multipart body: *)
-  read_multipart_body decode_part boundary s >>=
-  (fun _ -> return ())
+  catch
+    (fun () ->
+      (* read the multipart body: *)
+      read_multipart_body decode_part boundary s >>=
+      (fun _ -> return ()))
+    (function
+	Stream_too_small -> fail Ocsigen_Bad_Request
+      | e -> fail e)
 ;;
 
