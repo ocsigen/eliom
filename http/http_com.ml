@@ -57,55 +57,37 @@ struct
   (** the number of free byte in the buffer *)
   let nb_free buffer = buffer.size - (content_length buffer)
                          
-  (** wait until the buffer has free slot and return the number of free slots*)
+  (** wait until the buffer has free slot and 
+     return the number of free slots till the end of the buffer *)
   let rec wait_can_write buffer =
     let free = nb_free buffer in
       if free = 0 
       then fail Ocsigen_buffer_is_full
-      else Lwt.return free
+      else Lwt.return (min free (buffer.size - buffer.write_pos))
 
   exception End_of_file         
                 
   (** returns a thread that returns when data were received *)
   let receive file_descr buffer =
-    try
-      wait_can_write buffer >>= (fun free ->
-	let temp_buf = String.create free in
-	choose
-	  [Lwt_unix.read file_descr temp_buf 0 free;
-	   (Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= 
-	    (fun () -> fail Ocsigen_Timeout))] >>=
-	(fun len ->
-          if len = 0 then Lwt.fail End_of_file
-          else
-            (* copy of the temp buffer in the circular buffer *)
-            ((* print_endline temp_buf; *)
-             (if buffer.read_pos > buffer.write_pos  
-             then
-	       String.blit temp_buf 0 buffer.buf buffer.write_pos len
-             else
-	       (let write_to_buf_end = 
-		 buffer.size - buffer.write_pos in
-	       if write_to_buf_end > len then
-                 String.blit temp_buf 0 buffer.buf buffer.write_pos len
-	       else
-		 (
-                  String.blit 
-		    temp_buf 0 buffer.buf buffer.write_pos write_to_buf_end;
-                  String.blit temp_buf write_to_buf_end buffer.buf 0 
-		    (len - write_to_buf_end);
-                 )
-	       );
-	      (* update the buffer *)
+    catch
+      (fun () ->
+	wait_can_write buffer >>= 
+	(fun free ->
+	  choose
+	    [Lwt_unix.read file_descr buffer.buf buffer.write_pos free;
+	     (Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= 
+	      (fun () -> fail Ocsigen_Timeout))] >>=
+	  (fun len ->
+            if len = 0 
+	    then Lwt.fail End_of_file
+	    else begin
 	      buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
 	      buffer.datasize <- buffer.datasize + len;
 	      return ()
-             )
-            )
-	)
-				)
-    with e -> fail e
-	
+	    end
+	  ))
+      )
+      fail
 
   let min64 a b = if (Int64.compare a b) < 0 then a else b
   let min3 int1 int2 int3 = min (min int1 int2) int3
@@ -164,7 +146,7 @@ struct
 	   (Int64.sub rem_len (Int64.of_int nb_extract)))
       in try
 	if rem_len = Int64.zero 
-	then Lwt.return (Finished None)
+	then Lwt.return (empty_stream None)
 	else 
           let available = content_length buffer in
           match available with
@@ -175,7 +157,7 @@ struct
           | _ -> 
 	      extract_one available rem_len >>= 
 	      (fun (s,rem_len) -> 
-		Lwt.return (Cont (s, fun () -> extract_aux rem_len)))
+		Lwt.return (new_stream s (fun () -> extract_aux rem_len)))
       with e -> fail e
     in extract_aux len
 
@@ -240,7 +222,7 @@ struct
 	      receive fd buffer >>= (fun () ->
                 wait_http_header_aux 
 		  ((cur_ind + available - 
-		      (min available 3)) mod buffer.size)))
+		      (min available 3)) mod buffer.size))
     in 
     catch 
       (fun () ->
@@ -368,18 +350,18 @@ module FHttp_sender =
     (*fonction d'écriture sur le réseau*)
       let rec really_write out_ch = function
           | Finished _ -> Messages.debug "write finished"; Lwt.return ()
-	  | Cont (s, next) ->
+	  | Cont (s, l, next) ->
 	      catch
 		(fun () ->
-		  let l = String.length s in
 		  Lwt_unix.write out_ch s 0 l >>=
 		  (fun len' ->
 		    Lwt_unix.yield () >>= (fun () ->
 	              if l = len'
 		      then next () >>= really_write out_ch
 		      else really_write out_ch
-			  (Cont (String.sub s len' (l-len'), next))
-					  )))
+			  (new_stream (String.sub s len' (l-len')) next))
+		  )
+		)
 		(function
 		    Unix.Unix_error (Unix.EPIPE, _, _)
 		  | Unix.Unix_error (Unix.ECONNRESET, _, _) 
@@ -516,8 +498,9 @@ module FHttp_sender =
 		       } in
 		       Messages.debug "writing header";
 		       really_write sender.fd 
-			 (Cont ((Framepp.string_of_header hd), 
-				(fun () -> Lwt.return (Finished None))))) >>=
+			 (new_stream (Framepp.string_of_header hd)
+			    (fun () -> 
+			      Lwt.return (empty_stream None)))) >>=
 		     (fun _ -> match head with 
 		     | Some true -> Lwt.return ()
 		     | _ -> Messages.debug "writing body"; 

@@ -58,7 +58,8 @@ module Xhtml_content =
       let x = (XHTML.M.ocsigen_print (add_css c)) in
       let md5 = Digest.to_hex (Digest.string x) in
       	 Lwt.return (Int64.of_int (String.length x), 
-		     md5, (Cont (x, (fun () -> Lwt.return (Finished None)))))
+		     md5, (new_stream x 
+			     (fun () -> Lwt.return (empty_stream None))))
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_stream s = assert false
   end
@@ -69,7 +70,8 @@ module Text_content =
     let stream_of_content c =
       let md5 = Digest.to_hex (Digest.string c) in
       Lwt.return (Int64.of_int (String.length c), 
-		  md5, Cont (c, (fun () -> Lwt.return (Finished None))))
+		  md5, 
+		  new_stream c (fun () -> Lwt.return (empty_stream None)))
     let content_of_stream = string_of_stream
   end
 
@@ -86,7 +88,7 @@ module Empty_content =
     type t = unit
     let stream_of_content c = 
       Lwt.return (Int64.of_int 0, "same", 
-		  Cont("",(fun () -> Lwt.return (Finished None))))
+		  new_stream "" (fun () -> Lwt.return (empty_stream None)))
     let content_of_stream s = Lwt.return ()
   end
 
@@ -110,13 +112,13 @@ module File_content =
 (*********************AEFF	print_endline "b"; *)
           if lu = 0 then  begin
 	    Unix.close fd;
-	    Lwt.return (Finished None)
+	    Lwt.return (empty_stream None)
 	  end
 	  else begin 
 	    if lu = buffer_size
-	    then Lwt.return (Cont (buf, (fun () -> read_aux ())))
-	    else Lwt.return (Cont ((String.sub buf 0 lu), 
-				   (fun () -> read_aux ())))
+	    then Lwt.return (new_stream buf (fun () -> read_aux ()))
+	    else Lwt.return (new_stream (String.sub buf 0 lu)
+			       (fun () -> read_aux ()))
 	  end)
       in read_aux ()			 
 

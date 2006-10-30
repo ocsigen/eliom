@@ -86,8 +86,8 @@ let read_header ?downcase ?unfold ?strip (s : Ocsistream.stream) =
 	  Not_found -> Ocsistream.enlarge_stream s >>= 
 	    (function
 		Finished _ -> fail Stream_too_small
-	      | Cont (stri,_) as s ->
-		  if (String.length stri) > (Ocsiconfig.get_netbuffersize ())
+	      | Cont (stri, long, _) as s ->
+		  if long > (Ocsiconfig.get_netbuffersize ())
 		  then fail Ocsimisc.Input_is_too_large
 		  else find_end_of_header s)
 	| e -> fail e)
@@ -115,8 +115,8 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
 	Ocsistream.enlarge_stream s >>=
 	(function
 	    Finished _ -> fail Stream_too_small
-	  | Cont (stri,_) as s ->
-	      if (String.length stri) > (Ocsiconfig.get_netbuffersize ())
+	  | Cont (stri, long, _) as s ->
+	      if long > (Ocsiconfig.get_netbuffersize ())
 	      then fail Ocsimisc.Input_is_too_large
 	      else search_window s re start)
   in
@@ -146,8 +146,8 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
     let ldel = String.length del in
     Ocsistream.stream_want s ldel >>= (function
 	Finished _ as str2 -> return (str2, false)
-      | Cont (ss, f) as str2 -> 
-	  return (str2, (((String.length ss) >= ldel) && 
+      | Cont (ss, long, f) as str2 -> 
+	  return (str2, ((long >= ldel) && 
 			 (String.sub ss 0 ldel = del))))
   in
 
@@ -167,8 +167,8 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
       Ocsistream.stream_want s (l_delimiter+2) >>= (fun s ->
 	let last_part = match s with
 	  Finished _ -> false
-	| Cont (ss, f) ->
-	    ((String.length ss) >= (l_delimiter+2)) &&
+	| Cont (ss, long, f) ->
+	    (long >= (l_delimiter+2)) &&
 	    (ss.[l_delimiter] = '-') && 
 	    (ss.[l_delimiter+1] = '-')
 	in
@@ -216,9 +216,9 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
     read_header stream >>= (fun (s, header) ->
       let p = create header in
       let rec while_stream = function
-	  Finished None -> return (Finished None)
+	  Finished None -> return (empty_stream None)
 	| Finished (Some ss) -> return ss
-	| Cont (stri, f) ->
+	| Cont (stri, long, f) ->
 	    if stri = ""
 	    then f () >>= while_stream
 	    else (add p stri >>= f >>= while_stream)
@@ -235,7 +235,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
       read_multipart_body decode_part boundary s >>=
       (fun _ -> return ()))
     (function
-	Stream_too_small -> fail Ocsigen_Bad_Request
+	Stream_too_small -> fail Ocsimisc.Ocsigen_Bad_Request
       | e -> fail e)
 ;;
 

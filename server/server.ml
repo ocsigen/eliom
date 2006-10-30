@@ -30,7 +30,6 @@ open Ocsiconfig
 open Parseconfig
 open Error_pages
 
-exception Ocsigen_Bad_Request
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
 exception Ocsigen_upload_forbidden

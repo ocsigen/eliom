@@ -19,7 +19,7 @@ ALL_CMO  = ocsistream.cmo multipart.cmo \
            http_frame.cmo http_parser.cmo http_lexer.cmo \
 	   framepp.cmo http_com.cmo sender_helpers.cmo #test_pp.cmo
 
-all: byte
+all:  ocsistream.cmi byte
 	cp *.cmi *.cmo  ../lib
 
 .PHONY: depend

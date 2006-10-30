@@ -1,4 +1,5 @@
 exception Input_is_too_large
+exception Ocsigen_Bad_Request
 
 let rec list_remove a = function
     [] -> []
