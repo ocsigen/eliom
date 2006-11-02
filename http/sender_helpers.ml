@@ -231,9 +231,11 @@ let gmtdate d =
 * page is the page to send
 * xhtml_sender is the used sender*)
 let send_generic 
+    waiter
     ?code ~keep_alive ?cookie ?last_modified
     ?path ?location ?(header=[]) ?head ~content sender 
-    (send : ?mode:Xhtml_sender.H.http_mode ->
+    (send : unit Lwt.t ->
+      ?mode:Xhtml_sender.H.http_mode ->
       ?proto:string ->
       ?headers:(string * string) list ->
       ?meth:'c ->
@@ -271,14 +273,15 @@ let send_generic
     |Some l -> ("Location",l)::hds3
   in
   match code with
-    |None -> send ~code:200 ~content ~headers:hds4 ?head sender
-    |Some c -> send ~code:c ~content ~headers:hds4 ?head sender
+    |None -> send waiter ~code:200 ~content ~headers:hds4 ?head sender
+    |Some c -> send waiter ~code:c ~content ~headers:hds4 ?head sender
 
 
 type create_sender_type = ?server_name:string ->
     ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
 
 type send_page_type =
+    unit Lwt.t ->
     ?code:int ->
       keep_alive:bool ->
 	?cookie:string ->
@@ -294,9 +297,9 @@ type send_page_type =
  * path is the path associated to the cookie
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_xhtml_page ~content ?code ~keep_alive ?cookie ?path 
+let send_xhtml_page ~content waiter ?code ~keep_alive ?cookie ?path 
     ?last_modified ?location ?head xhtml_sender =
-  send_generic 
+  send_generic waiter
     ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~content ?head xhtml_sender Xhtml_sender.send
   
@@ -306,22 +309,22 @@ let send_xhtml_page ~content ?code ~keep_alive ?cookie ?path
  * cookie is a string value that give a value to the session cookie
  * page is the page to send
  * empty_sender is the used sender *)
-let send_empty ?code ~keep_alive ?cookie 
+let send_empty waiter ?code ~keep_alive ?cookie 
     ?path ?location ?last_modified ?head empty_sender =
-  send_generic  ?last_modified
+  send_generic waiter ?last_modified
     ?code ~keep_alive ?cookie ?path ?location ~content:() 
     ?head empty_sender Empty_sender.send
 
-let send_text_page ~content ?code ~keep_alive ?cookie ?path 
+let send_text_page ~content waiter ?code ~keep_alive ?cookie ?path 
     ?last_modified ?location ?head xhtml_sender =
-  send_generic 
+  send_generic waiter
     ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~content ?head xhtml_sender Text_sender.send
   
   
 
 (** sends an error page that fit the error number *)
-let send_error ?(http_exception) ?(error_num=500) xhtml_sender =
+let send_error waiter ?(http_exception) ?(error_num=500) xhtml_sender =
   let (error_code,error_msg) =
     (
       match http_exception with
@@ -353,7 +356,7 @@ let send_error ?(http_exception) ?(error_num=500) xhtml_sender =
           </html>
           >>
   in
-  send_xhtml_page ~code:error_code ~content:err_page xhtml_sender
+  send_xhtml_page waiter ~code:error_code ~content:err_page xhtml_sender
 
 (** this fonction create a sender that send http_frame with fiel content*)
 let create_file_sender ?server_name ?proto fd =
@@ -414,9 +417,9 @@ let content_type_from_file_name filename =
     in Hashtbl.find mimeht extens
   with _ -> "unknown" 
 
-let send_file file ?code ~keep_alive ?cookie ?path
+let send_file file waiter ?code ~keep_alive ?cookie ?path
     ?last_modified ?location ?head file_sender =
-  send_generic 
+  send_generic waiter
     ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~header:[("Content-Type",content_type_from_file_name file)]
     ~content:file ?head file_sender File_sender.send

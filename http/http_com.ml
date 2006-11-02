@@ -67,16 +67,21 @@ struct
 
   exception End_of_file         
                 
+  let now = return ()
+
   (** returns a thread that returns when data were received *)
-  let receive file_descr buffer =
+  let receive waiter file_descr buffer =
+    (* waiter will be awoken when we should begin counting the timeout *)
     catch
       (fun () ->
 	wait_can_write buffer >>= 
 	(fun free ->
 	  choose
 	    [Lwt_unix.read file_descr buffer.buf buffer.write_pos free;
-	     (Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= 
-	      (fun () -> fail Ocsigen_Timeout))] >>=
+	     waiter >>=
+	     (fun () ->
+	       (Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= 
+		(fun () -> fail Ocsigen_Timeout)))] >>=
 	  (fun len ->
             if len = 0 
 	    then Lwt.fail End_of_file
@@ -153,7 +158,7 @@ struct
           | x when x < 0 -> assert false
           | 0 ->
               (* wait more bytes to read *)
-              receive fd buffer >>= (fun () -> extract_aux rem_len)
+              receive now fd buffer >>= (fun () -> extract_aux rem_len)
           | _ -> 
 	      extract_one available rem_len >>= 
 	      (fun (s,rem_len) -> 
@@ -208,7 +213,7 @@ struct
             
   (** returns when the seqence \r\n\r\n is found in the buffer
      the result is number of char to read *)
-  let wait_http_header fd buffer ~doing_keep_alive =
+  let wait_http_header waiter fd buffer ~doing_keep_alive =
     let rec wait_http_header_aux cur_ind =
       (* here the buffer is not empty *)
       match sizedata buffer.write_pos cur_ind buffer.size with
@@ -219,7 +224,7 @@ struct
             Lwt.return (sizedata (end_ind+1) buffer.read_pos buffer.size)
           with 
             Not_found ->
-	      receive fd buffer >>= (fun () ->
+	      receive now fd buffer >>= (fun () ->
                 wait_http_header_aux 
 		  ((cur_ind + available - 
 		      (min available 3)) mod buffer.size))
@@ -229,13 +234,15 @@ struct
 	(if doing_keep_alive && (buffer.datasize = 0)
 	then
 	  Lwt.choose
-	    [receive fd buffer;
-	     (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
-	      (fun () -> fail Ocsigen_KeepaliveTimeout))]
+	    [receive waiter fd buffer;
+	     waiter >>= 
+	     (fun () -> 
+	       (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
+		(fun () -> fail Ocsigen_KeepaliveTimeout)))]
 	else return ()) >>= 
 	(fun () -> 
 	  (if buffer.datasize = 0
-	  then receive fd buffer
+	  then receive waiter fd buffer
 	  else return ()) >>= 
 	  (fun () -> wait_http_header_aux buffer.read_pos))
       )
@@ -283,8 +290,12 @@ module FHttp_receiver =
 	    | e -> fail e)
          
       (** get an http frame *)
-      let get_http_frame receiver ~doing_keep_alive () =
-	Com_buffer.wait_http_header 
+      let get_http_frame waiter receiver ~doing_keep_alive () =
+	(* waiter is here only for pipelining and timeout:
+	   we trigger the sleep only when the previous request has been
+	   answered (waiter awoken)
+	 *)
+	Com_buffer.wait_http_header waiter
 	  ~doing_keep_alive receiver.fd receiver.buffer >>=
 	(fun len ->
 	  Com_buffer.extract receiver.fd receiver.buffer (Int64.of_int len) >>=
@@ -473,36 +484,43 @@ module FHttp_sender =
     * fusioned with those of the sender, the priority is given to the newly
     * defined header when there is a conflict
     * the content-length tag is automaticaly calculated*)
-    let send ?mode ?proto ?headers ?meth ?url ?code ?content ?head sender =
+    let send waiter 
+	?mode ?proto ?headers ?meth ?url ?code ?content ?head sender =
       (*creation d'une http_frame*)
       (*creation du header*)
+      (* waiter is here for pipelining: we must wait before sending the page,
+	 because the previous one may not be sent.
+	 If we don't want to wait, use waiter = return ()
+       *)
       let md = match mode with None -> sender.mode | Some m -> m in
       let prot = match proto with None -> sender.proto | Some p -> p in
       match content with
       | None -> Lwt.return ()
-      | Some c -> (C.stream_of_content c >>=
-                   (fun (lon,etag,flux) -> 
-		     Lwt.return (hds_fusion (Some lon)
-				   (("ETag",etag)::sender.headers) 
-				   (match headers with 
-				     Some h ->h
-				   | None -> []) ) >>=
-		     (fun hds -> 
-		       let hd = {
-			 H.mode = md;
-			 H.meth=meth;
-			 H.url=url;
-			 H.code=code;
-			 H.proto = prot;
-			 H.headers = hds;
-		       } in
-		       Messages.debug "writing header";
-		       really_write sender.fd 
-			 (new_stream (Framepp.string_of_header hd)
-			    (fun () -> 
-			      Lwt.return (empty_stream None)))) >>=
-		     (fun _ -> match head with 
-		     | Some true -> Lwt.return ()
-		     | _ -> Messages.debug "writing body"; 
-			 really_write sender.fd flux)))
+      | Some c -> waiter >>=
+	  (fun () -> 
+	    (C.stream_of_content c >>=
+             (fun (lon,etag,flux) -> 
+	       Lwt.return (hds_fusion (Some lon)
+			     (("ETag",etag)::sender.headers) 
+			     (match headers with 
+			       Some h ->h
+			     | None -> []) ) >>=
+	       (fun hds -> 
+		 let hd = {
+		   H.mode = md;
+		   H.meth=meth;
+		   H.url=url;
+		   H.code=code;
+		   H.proto = prot;
+		   H.headers = hds;
+		 } in
+		 Messages.debug "writing header";
+		 really_write sender.fd 
+		   (new_stream (Framepp.string_of_header hd)
+		      (fun () -> 
+			Lwt.return (empty_stream None)))) >>=
+	       (fun _ -> match head with 
+	       | Some true -> Lwt.return ()
+	       | _ -> Messages.debug "writing body"; 
+		   really_write sender.fd flux))))
   end
