@@ -25,6 +25,8 @@ the operation on this protocol*)
 
 open Ocsistream
 
+type etag = string
+
 module type HTTP_CONTENT =
   sig
     (** abstract type of the content*)
@@ -34,7 +36,11 @@ module type HTTP_CONTENT =
     val content_of_stream : stream -> t Lwt.t
 
     (** convert a content type into a thread returning its size,etag,stream*)
-    val stream_of_content : t -> (int64 * string * stream) Lwt.t
+    val stream_of_content : t -> (int64 * etag * stream * (unit -> unit)) Lwt.t
+	(* unit -> unit is the close function for the stream *)
+
+    (** compute etag for content *)
+    val get_etag : t -> etag
   end
 
 

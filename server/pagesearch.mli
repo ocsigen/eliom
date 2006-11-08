@@ -135,7 +135,7 @@ val get_page :
 	   ((string option * 
 	       Sender_helpers.send_page_type *
 	       Sender_helpers.create_sender_type * string) * 
-	      float option) Lwt.t
+	      float option * Http_frame.etag option) Lwt.t
 
 val make_action :
     string ->

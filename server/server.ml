@@ -33,6 +33,8 @@ open Error_pages
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
 exception Ocsigen_upload_forbidden
+exception Stop_sending (* Something bad happened to another request 
+                          on the same channel. Stop the current request. *)
 
 (* Without the following line, it stops with "Broken Pipe" without raising
    an exception ... *)
@@ -79,6 +81,8 @@ let find_field field content_disp =
   Netstring_pcre.matched_group res 1 content_disp
 
 type to_write = No_File of string * Buffer.t | A_File of Lwt_unix.descr
+
+let now = return ()
 
 (* *)
 let get_frame_infos =
@@ -271,7 +275,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	  action_info,
 	  ifmodifiedsince))))
       (function
-	  Http_com.Com_buffer.End_of_file -> 
+	  Http_com.Com_buffer.End_of_input -> 
 	    fail Connection_reset_by_peer
 	| e -> 
 	    Messages.debug ("Exn during get_frame_infos : "^
@@ -344,12 +348,15 @@ let service waiter http_frame sockaddr
 	    (catch
 	       (fun () ->
 		 get_page frame_info sockaddr cookie >>=
-		 (fun (cookie2,send_page,sender,path),lastmodified ->
+		 (fun (cookie2,send_page,sender,path),
+		   lastmodified,etag ->
 		   match lastmodified,ifmodifiedsince with
 		     Some l, Some i when l<=i -> 
-		       Messages.debug "Sending 304 Not modified";
+		       Messages.debug "Sending 304 Not modified ";
 		       send_empty
 			 waiter
+			 ?last_modified:lastmodified
+			 ?etag:etag
 			 ~keep_alive:keep_alive
 			 ~code:304 (* Not modified *)
 			 ~head:head empty_sender
@@ -384,7 +391,7 @@ let service waiter http_frame sockaddr
 		let keep_alive = ka in
 		(if reload then
 		  get_page frame_info sockaddr cookie2 >>=
-		  (fun (cookie3,send_page,sender,path),lastmodified ->
+		  (fun (cookie3,send_page,sender,path),lastmodified,etag ->
 		    (send_page waiter ~keep_alive:keep_alive 
 		       ?last_modified:lastmodified
 		       ?cookie:(if cookie3 <> cookie then 
@@ -427,6 +434,7 @@ let service waiter http_frame sockaddr
 	    Messages.debug "Sending 415";
 	    send_error waiter ~keep_alive:ka ~error_num:415 xhtml_sender
 	| Connection_reset_by_peer -> fail Connection_reset_by_peer
+	| Stop_sending -> fail Stop_sending
 	| e ->
 	    Messages.warning ("Exn during serv function : "^
 			      (Printexc.to_string e)^" (sending 500)"); 
@@ -458,6 +466,7 @@ let service waiter http_frame sockaddr
       (function
 	  Ocsigen_Bad_Request ->
 	    send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
+	| Stop_sending -> fail Stop_sending
 	| e -> Messages.debug ("Exn during service : "^
 			       (Printexc.to_string e)); 
 	    fail e)
@@ -483,27 +492,21 @@ let load_modules modules_list =
 let handle_broken_pipe_exn sockaddr in_ch exn = 
   (* EXCEPTIONS WHILE REQUEST OR SENDING WHEN WE CANNOT ANSWER *)
   let ip = ip_of_sockaddr sockaddr in
+  (* We do not close the connection here.
+     Either the error is during a request, and the connection is already 
+     closed, or during the answer, but the thread waiting for requests will
+     close the connections (for example by timeout of keepalive).
+     If we close here, we will always close twice.
   (try
     Lwt_unix.lingering_close in_ch
-  with _ -> ());
+  with _ -> ()); *)
   match exn with
-    Http_com.Ocsigen_KeepaliveTimeout -> return ()
-  | Connection_reset_by_peer -> 
+    Connection_reset_by_peer -> 
       Messages.debug "Connection closed by client";
       return ()
   | Unix.Unix_error (e,func,param) ->
       warning ("While talking to "^ip^": "^(Unix.error_message e)^
 	       " in function "^func^" ("^param^") - (I continue)");
-      return ()
-  | Com_buffer.End_of_file -> return ()
-  | Ocsigen_HTTP_parsing_error (s1,s2) ->
-      errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^
-	      ") in:\n"^
-	      (if (String.length s2)>2000 
-	      then ((String.sub s2 0 1999)^"...<truncated>")
-	      else s2)^"\n---");
-      return ()
-  | Ocsigen_Timeout -> warning ("While talking to "^ip^": Timeout");
       return ()
   | Ssl.Write_error(Ssl.Error_ssl) -> errlog ("While talking to "^ip
 					      ^": Ssl broken pipe - (I continue)");
@@ -515,7 +518,6 @@ let handle_broken_pipe_exn sockaddr in_ch exn =
 
 
 
-exception Stop_sending
 
 (** Thread waiting for events on a the listening port *)
 let listen modules_list =
@@ -525,19 +527,47 @@ let listen modules_list =
     
     (* (With pipeline) *)
 
-    let handle_request_errors waiter = function
-	(* EXCEPTIONS SENDING ERRORS ABOUT THE REQUEST *)
-        Http_error.Http_exception (_,_) as http_ex ->
-	  send_error waiter 
-	    ~keep_alive:false ~http_exception:http_ex xhtml_sender >>=
-	  (fun () -> Lwt_unix.lingering_close in_ch;
-	    return ())
-      | Ocsigen_header_too_long ->
-	  Messages.debug "Sending 400";
-	  (* 414 URI too long. Actually, it is "header too long..." *)
-	  send_error waiter ~keep_alive:false ~error_num:400 xhtml_sender
-	    >>= (fun _ -> Lwt_unix.lingering_close in_ch; return ())
-      | e -> fail e
+    let handle_request_errors waiter exn = 
+      (* EXCEPTIONS ABOUT THE REQUEST *)
+      (* We wait the end of current answers before sending an error
+         and closing the connection. *)
+      waiter >>=
+      (fun () -> 
+	print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn));
+	let ip = ip_of_sockaddr sockaddr in
+	match exn with
+          Http_error.Http_exception (_,_) as http_ex ->
+	    send_error now 
+	      ~keep_alive:false ~http_exception:http_ex xhtml_sender >>=
+	    (fun () -> Lwt_unix.lingering_close in_ch;
+	      return ())
+	| Ocsigen_header_too_long ->
+	    Messages.debug "Sending 400";
+	    (* 414 URI too long. Actually, it is "header too long..." *)
+	    send_error now ~keep_alive:false ~error_num:400 xhtml_sender
+	      >>= (fun _ ->
+		Lwt_unix.lingering_close in_ch; return ())
+	| Ocsigen_HTTP_parsing_error (s1,s2) ->
+	    errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^
+		    ") in:\n"^
+		    (if (String.length s2)>2000 
+		    then ((String.sub s2 0 1999)^"...<truncated>")
+		    else s2)^"\n---");
+	    Lwt_unix.lingering_close in_ch; return ()
+	| Ocsigen_Timeout -> 
+	    warning ("While talking to "^ip^": Timeout");
+	    Lwt_unix.lingering_close in_ch; return ()
+	| Http_com.Ocsigen_KeepaliveTimeout
+	| Stop_sending ->
+	    Lwt_unix.lingering_close in_ch; return ()
+	| Com_buffer.End_of_input
+	    (* The request is finished (input closed). 
+	       We close the channel, after our answer.  *)
+	| Connection_reset_by_peer 
+	| Unix.Unix_error(Unix.ECONNRESET,_,_) ->
+	    debug "Connection reset by peer: I don't close the connection";
+	    return ()
+	| e -> Lwt_unix.lingering_close in_ch; fail e)
     in
     
     let rec handle_request waiter http_frame =
@@ -579,11 +609,16 @@ let listen modules_list =
 	  (handle_request_errors waiter2)
       end
       else begin (* No keep-alive => no pipeline *)
-	service waiter http_frame sockaddr
-	  xhtml_sender empty_sender in_ch () >>=
-	(fun () ->
-	  (Lwt_unix.lingering_close in_ch; 
-	   return ()))
+	catch
+	  (fun () ->
+	    service waiter http_frame sockaddr
+	      xhtml_sender empty_sender in_ch () >>=
+	    (fun () ->
+	print_endline "~~~~ ERREUR NOKEEPALIVE";
+	      (Lwt_unix.lingering_close in_ch; 
+	       return ())))
+	  (fun e -> 	print_endline "~~~~ ERREUR NOKEEPALIVE 2";
+	    Lwt_unix.lingering_close in_ch; fail e)
       end
 
     in
@@ -734,6 +769,7 @@ let _ = try
    print_endline "---"; 
    Lwt_unix.yield () >>= f
    in f(); *)
+
        listen (Ocsiconfig.get_modules ())) 
   in
   let rec launch = function
@@ -773,4 +809,5 @@ with
 | Unix.Unix_error (e,s1,s2) ->
     errlog ("Fatal - "^(Unix.error_message e)^" in: "^s1^" "^s2)
 | exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
+
 

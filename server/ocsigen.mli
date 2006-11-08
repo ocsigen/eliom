@@ -38,7 +38,7 @@ val sync : ('a -> 'b -> 'c -> 'd) -> ('a -> 'b -> 'c -> 'd Lwt.t)
 type service_kind = [`Internal_Service of [`Public_Service | `Local_Service] | `External_Service]
 (** Kind of service *)
 
-type ('get,'post,'kind,'tipo,'getnames,'postnames) service
+type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) service
 (** Typed services. The ['kind] parameter is subset of service_kind. ['get] 
    and ['post] are the type of GET and POST parameters. *)
 

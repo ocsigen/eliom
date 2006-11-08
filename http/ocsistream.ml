@@ -8,6 +8,7 @@ type stream =
     Finished of stream option (* If there is another stream following
 				 (usefull for substreams) *)
   | Cont of string * int * (unit -> stream Lwt.t)
+	(* current buffer, size, follow *)
 
 let empty_stream follow = Finished follow
 

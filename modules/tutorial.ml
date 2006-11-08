@@ -67,8 +67,8 @@ let coucou =
   &lt;module&gt;/<em>path_to</em>/tutorial.cmo&lt;/module&gt;
 &lt;/site&gt;</pre>
       <p>Then run ocsigen. You should see your page at url
-	   <code>http://<em>your_server</em>/examples/plop</code>.
-	   See this example $a Tutorial.plop url <:xmllist< here >>$.
+	   <code>http://<em>your_server</em>/examples/coucou</code>.
+	   See this example $a Tutorial.coucou sp <:xmllist< here >> ()$.
       </p>
       <p>NB: See the default config file to see how to set the port on
 	      which your server is running, the user who runs it, the path
@@ -128,7 +128,7 @@ let coucou1 =
       <p>
 	 (Replace <code>/<em>path_to</em>/ocsigen/</code>
        by the directory where ocsigen is installed). 
-	   See this example $a Tutorial.plop1 url <:xmllist< here >>$.
+	   See this example $a Tutorial.coucou1 sp <:xmllist< here >> ()$.
       </p>
       <p>
 	 You can mix the two syntaxes (see later).
@@ -150,19 +150,19 @@ let coucou1 =
         always get valid xhtml.
 	Use the syntax extension for example to enclose already created pieces
 	of html, and verify the validity of your pages with the
-        $a (new_external_url ["http://validator.w3.org"] _noparam ()) 
-           url <:xmllist< W3C validator >>$.
+        $a (new_external_service ["http://validator.w3.org"] unit unit ()) 
+           sp <:xmllist< W3C validator >> ()$.
       </p>
       <p>
-        $a (new_external_url 
+        $a (new_external_service
 	      ["doc/Ocsigen.html"]
 (*	      ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
-	      _noparam ())
-           url <:xmllist< More info >>$
+	      unit unit ())
+           sp <:xmllist< More info >> ()$
         on <code>XHTML.M</code>.
       </p>
       <p>
-       $a xhtmlsyntax url <:xmllist< More info >>$ on the syntax extension.
+       $a xhtmlsyntax sp <:xmllist< More info >> ()$ on the syntax extension.
       </p>
       </div>
     </div>
@@ -189,7 +189,7 @@ let compt =
        (body [p [pcdata (string_of_int (next ()))]])))
 (*html*
       <p>
-      See this example $a Tutorial.compt url <:xmllist< here >>$.
+      See this example $a Tutorial.compt sp <:xmllist< here >> ()$.
       </p>
       <p>As usual in OCaml, you can forget labels when the application 
 	  is total:</p>
@@ -204,7 +204,7 @@ let hello =
 	 (body [h1 [pcdata "Hello"]])))
 (*html*
       <p>
-      See this example $a Tutorial.plip url <:xmllist< here >>$.
+      See this example $a Tutorial.hello sp <:xmllist< here >> ()$.
       </p>
     </div>
     <div class="twocol2">
@@ -219,7 +219,7 @@ let default = register_new_service ["rep";""] unit
       (body [p [pcdata "default page. rep is redirected to rep/"]])))
 (*html*
       <p>
-      See $a Tutorial.default url <:xmllist< default >>$.
+      See $a Tutorial.default sp <:xmllist< default >> ()$.
       </p>
     </div>
     <h2>Parameters</h2>
@@ -258,9 +258,9 @@ let coucou_params = register_new_service
       <p>Note that the URLs of <code>coucou</code> 
       and <code>coucou_params</code>
       differ only by parameters. Url 
-      $a Tutorial.plop url <:xmllist< <code>http://<em>your_server</em>/examples/plop</code> >>$
+      $a Tutorial.coucou sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou</code> >> ()$
       will run the first one,<br/>
-      $a Tutorial.plop_params url <:xmllist< <code>http://<em>your_server</em>/examples/plop?entier=42&amp;chaine=hello&amp;chaine2=krokodile</code> >> 42 "hello" "krokodile" $
+      $a Tutorial.coucou_params sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code> >> (42, (17, "krokodile")) $
       will run the second one.<br/> 
       If <code>entier</code> is not an integer,
       the server displays an error-message.<br/>
@@ -308,8 +308,8 @@ let iprefix =
 	       pcdata " and i is equal to ";
 	       strong [pcdata (string_of_int i)]]])))
 (*html*
-      <p>See $a Tutorial.uaprefix url <:xmllist< uaprefix >> "suffix" "gni"$,
-         $a Tutorial.iprefix url <:xmllist< iprefix >> "mm/aa/gg" 22$.</p>
+      <p>See $a Tutorial.uaprefix sp <:xmllist< uaprefix >> ("suffix", "gni")$,
+         $a Tutorial.iprefix sp <:xmllist< iprefix >> ("mm/aa/gg", 22)$.</p>
 
       <p>The following example shows how to use your own types:</p>
 *html*)
@@ -330,7 +330,7 @@ let mytype = register_new_service
        (head (title (pcdata "")) [])
        (body [p [pcdata v]])))
 (*html*
-      <p>See $a Tutorial.mytype url <:xmllist< mytype >> Tutorial.A$.</p>
+      <p>See $a Tutorial.mytype sp <:xmllist< mytype >> Tutorial.A$.</p>
       <div class="encadre">
 	<h3>Catching errors</h3>
 	<p>You can catch errors using the optional parameter
@@ -353,7 +353,7 @@ let catch = register_new_service
          where <code>n</code> is the name of the wrong parameter, and
          <code>ex</code> is the exception that has been raised while
          parsing its value.</p>
-      <!-- p>See $a Tutorial.catch url <:xmllist< catch >> 22$ (change the value
+      <!-- p>See $a Tutorial.catch sp <:xmllist< catch >> 22$ (change the value
    of the parameter).</p -->
      </div>
     </div>
@@ -391,7 +391,7 @@ let links = register_new_service ["rep";"links"] unit
    the link from toto/titi to toto/tata is "tata" and not "toto/tata"
 *zap*)
 (*html*
-      <p>See $a Tutorial.links url <:xmllist< links >>$.</p>
+      <p>See $a Tutorial.links sp <:xmllist< links >> ()$.</p>
       <p>
       Note that to create a (relative) link we need to know the current URL.
       That's why the page has a <code>current_url</code> parameter.<br/>
@@ -424,7 +424,7 @@ let essai =
    ()
 *zap*)
 (*html*
-      <p>See $a Tutorial.linkrec url <:xmllist< linkrec >>$.</p>
+      <p>See $a Tutorial.linkrec sp <:xmllist< linkrec >> ()$.</p>
       <p>The server won't accept to start if there are
          unregistered services.</p>
       <div class="encadre">
@@ -435,8 +435,9 @@ let essai =
         computation. When he uses the "back" button of the browser, he chooses
         to go back to an old continuation. Continuations for Web programming
         have been introduced by 
-        $a (new_external_url ["http://www-spi.lip6.fr/~queinnec/PDF/www.pdf"]
-           _noparam ()) url <:xmllist< Christian Queinnec >>$,
+        $a (new_external_service
+             ["http://www-spi.lip6.fr/~queinnec/PDF/www.pdf"]
+             unit unit ()) sp <:xmllist< Christian Queinnec >> ()$,
         and are a big step in
         the understanding of Web interaction.</p>
         <p>
@@ -483,7 +484,7 @@ let form = register_new_service ["form"] unit
        (head (title (pcdata "")) [])
        (body [f])))
 (*html*
-      <p>See the function $a Tutorial.form url <:xmllist< form >>$ in action.</p>
+      <p>See the function $a Tutorial.form sp <:xmllist< form >> ()$ in action.</p>
 
       <h3>POST parameters</h3>
       <p>
@@ -520,7 +521,7 @@ let my_service_with_post_params = register_new_post_service
 (*html*
       <p>Services may take both GET and POST parameters:</p>
 *html*)
-let getno_post_param_service = 
+let get_no_post_param_service = 
   register_new_service 
     ~url:["post2"]
     ~get_params:(int "i")
@@ -534,7 +535,7 @@ let getno_post_param_service =
     <div class="twocol2">
 *html*)
 let my_service_with_get_and_post = register_new_post_service 
-  ~fallback:getno_post_param_service
+  ~fallback:get_no_post_param_service
   ~post_params:(string "value")
   (fun _ i value ->  return
       (html
@@ -589,11 +590,11 @@ let form4 = register_new_service ["form4"] unit
 	(body [f])))
 (*html*
       <p>See the url
-      $a Tutorial.no_post_param_url url <:xmllist< <code>post</code> without parameter >>$,
-      $a Tutorial.get_no_post_param_url url <:xmllist< <code>post2</code> without POST parameter >> 123$,
-      $a Tutorial.form2 url <:xmllist< form2 >>$,
-      $a Tutorial.form3 url <:xmllist< form3 >>$,
-      $a Tutorial.form4 url <:xmllist< form4 >>$.
+      $a Tutorial.no_post_param_service sp <:xmllist< <code>post</code> without parameter >> ()$,
+      $a Tutorial.get_no_post_param_service sp <:xmllist< <code>post2</code> without POST parameter >> 123$,
+      $a Tutorial.form2 sp <:xmllist< form2 >> ()$,
+      $a Tutorial.form3 sp <:xmllist< form3 >> ()$,
+      $a Tutorial.form4 sp <:xmllist< form4 >> ()$.
       </p>
 
     </div>
@@ -651,7 +652,7 @@ let _ =
     <div class="twocol2">
    <p>The auxiliary service has the same GET parameters as its fallback,
    but may have different POST parameters.</p>
-      <p>Try $a Tutorial.ustate url <:xmllist< <code>ustate</code> >>$.</p>
+      <p>Try $a Tutorial.auxiliaryserv sp <:xmllist< <code>auxiliaryserv</code> >> ()$.</p>
       <p>Note that with links or GET forms, it is not possible to send
       the state parameter in the body of the HTTP request. 
       That's why we send the state parameter
@@ -769,7 +770,7 @@ let _ = register_service_for_session
 *zap*)
 (*html*
       <p>See the
-      $a Tutorial.public_session_without_post_params url <:xmllist< result >>$.</p>
+      $a Tutorial.public_session_without_post_params sp <:xmllist< result >> ()$.</p>
     </div>
     <h2>Auxiliary services in session tables</h2>
     <div class="twocol1">
@@ -914,7 +915,7 @@ let _ =
       let f = post_form calc_post sp create_form () in return
       (html (head (title (pcdata "")) []) (body [f])))
 (*html*
-      <p>See the $a Tutorial.calc url <:xmllist< result >>$.</p>
+      <p>See the $a Tutorial.calc sp <:xmllist< result >> ()$.</p>
       <p>Services registered in session tables are called 
        <em>session services</em>. Services registered in the global table
        are called <em>public</em> (or <em>global</em>).
@@ -1026,7 +1027,7 @@ let _ = register_action
     ~action:connect_action
     (fun sp login -> return (launch_session sp login))
 (*html*
-      <p>See these $a Tutorial.action_session url <:xmllist< pages >>$.</p>
+      <p>See these $a Tutorial.action_session sp <:xmllist< pages >> ()$.</p>
     </div>
     <h2>Example: write a forum</h2>
     <div class="twocol1">
@@ -1212,7 +1213,7 @@ let looong =
      Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
      you can write <code>bind e1 (fun r -&gt; return e2)</code>.
      </p>
-     <!-- p>See $a Tutorial.looong url <:xmllist< looong >>$.</p -->
+     <p>See $a Tutorial.looong sp <:xmllist< looong >> ()$.</p>
     </div>
     <div class="twocol2">
      <p><code>Lwt.bind</code>, (or <code>&gt;&gt;=</code>) has type<br/>
@@ -1293,7 +1294,7 @@ let looong2 =
   [pcdata "download image"] 
   "$str:small_logo$"</pre>
 	  <p>creates this link:
-	 $a static_dir url [pcdata "download image"] small_logo$
+	 $a (static_dir sp) sp [pcdata "download image"] small_logo$
       </p>
       <h3>Static parts of a page</h3>
       <em>To be available soon</em>
@@ -1307,7 +1308,7 @@ let looong2 =
       To include an image, use simply the function <code>XHTML.M.img</code>:
       </p>
       <pre>img <span class="Clabel">~alt:</span>"Ocsigen" 
-    <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> static_dir current_url <span class="Cstring">"ocsigen1024.jpg"</span>)
+    <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> (static_dir sp) sp <span class="Cstring">"ocsigen1024.jpg"</span>)
     ()</pre>
       <p>The function <code><span class="Cem">make_uri</span></code>
 	creates the relative URL string from <code>current_url</code>
@@ -1347,11 +1348,12 @@ let looong2 =
 &lt;/ul&gt;</pre>
     <p>Personalise it in your CSS style-sheet.</p>
       <div class="encadre">
-	<h3>Tip: How to make a menu with different kinds of urls (external, internal...)?</h3>
+	<h3>Tip: How to make a menu with different kinds of urls 
+   (external, internal...)?</h3>
 	  <p>
    You need to coerce each of them. For example</p>
        <pre>
- [(home :> (('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, Ocsigen.url_kind) url))]
+ [(home :> (('a,'b,Ocsigen.service_kind,'c,'d,'e) service))]
        </pre>
       </div>
     </div>

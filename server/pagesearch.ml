@@ -540,7 +540,7 @@ let execute generate_page sockaddr cookie (globtable,cookie_table) =
     with Not_found -> (ref (new_session_tables ()), true))
   in
   generate_page ip globtable sessiontablesref >>=
-  (fun (send_page,sender,working_dir),lastmod ->
+  (fun (send_page,sender,working_dir),lastmod,etag ->
     let cookie2 = 
       if are_empty_tables !sessiontablesref
       then ((if not new_session 
@@ -554,7 +554,7 @@ let execute generate_page sockaddr cookie (globtable,cookie_table) =
       else cookie)
     in return 
       ((cookie2, send_page, sender, ("/"^(string_of_url_path working_dir))),
-      lastmod))
+      lastmod,etag))
 
 
 let get_page 
@@ -578,7 +578,8 @@ let get_page
 	    (((Sender_helpers.send_file filename),
 	      Sender_helpers.create_file_sender,
 	      []),
-	     Some ((Unix.LargeFile.stat filename).Unix.LargeFile.st_mtime))
+	     Some ((Unix.LargeFile.stat filename).Unix.LargeFile.st_mtime),
+	     Some (Sender_helpers.File_content.get_etag filename))
 	end
 	else fail Ocsigen_404)
       (function
@@ -637,7 +638,7 @@ let get_page
 					     None))
 				     | e -> fail e))
 			 | e -> fail e)
-		 | e -> fail e)) >>= (fun r -> return (r,None))))
+		 | e -> fail e)) >>= (fun r -> return (r,None,None))))
   in catch 
     (fun () ->
       do_for_host_matching 
@@ -650,11 +651,11 @@ let get_page
 	Ocsigen_Typing_Error l -> 
 	  return ((cookie, (Sender_helpers.send_xhtml_page 
 			     ~content:(Error_pages.page_error_param_type l)),
-		   Sender_helpers.create_xhtml_sender, "/"),None)
+		   Sender_helpers.create_xhtml_sender, "/"),None,None)
       | Ocsigen_Wrong_parameter -> return 
 	    ((cookie, (Sender_helpers.send_xhtml_page 
 			 ~content:(Error_pages.page_bad_param)),
-	      Sender_helpers.create_xhtml_sender, "/"),None)
+	      Sender_helpers.create_xhtml_sender, "/"),None,None)
       | e -> fail e)
 
 
@@ -677,7 +678,7 @@ let make_action action_name action_params
        (make_server_params 
 	  working_dir session_tables_ref 
 	  ((url, host, [], action_params, useragent), ip, fullurl))) >>=
-    (fun r -> return ((r,(), working_dir),None))
+    (fun r -> return ((r,(), working_dir),None,None))
   in catch
     (fun () ->
       do_for_host_matching 
@@ -685,7 +686,7 @@ let make_action action_name action_params
 	(fun (staticdirref, global_tables, session_tables) -> 
 	  execute 
 	    generate_page sockaddr cookie (global_tables, session_tables) >>=
-	  (fun ((c,(),(),wd),_) ->
+	  (fun ((c,(),(),wd),_,_) ->
 	    Messages.debug "Action executed";
 	    return (c,wd))))
     (function

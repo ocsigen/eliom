@@ -55,7 +55,7 @@ type 'a param_name = string
 type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
 
 (* This is a generalized algebraic datatype *)
-type ('a,'tipo,'names) params_type =
+type ('a,+'tipo,+'names) params_type =
     (* 'tipo is [`WithSuffix] or [`WithoutSuffix] *)
     TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
   | TOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
@@ -252,9 +252,11 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
 
 (** Typed services *)
 type internal_service_kind = [`Public_Service | `Local_Service]
-type service_kind = [`Internal_Service of internal_service_kind | `External_Service]
+type service_kind = 
+    [ `Internal_Service of internal_service_kind
+    | `External_Service]
 
-type ('get,'post,'kind,'tipo,'getnames,'postnames) service = 
+type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) service = 
     {url: url_path; (* name of the service without parameters *)
         (* unique_id is here only for registrering on top of this service *)
      unique_id: int;

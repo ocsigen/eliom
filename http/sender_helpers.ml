@@ -25,6 +25,8 @@ open Ocsistream
 
 let cookiename = "ocsigensession"
 
+let id x = x
+
 let add_css (a : 'a) : 'a = 
     let css = 
       XHTML.M.toelt 
@@ -54,12 +56,24 @@ let add_css (a : 'a) : 'a =
 module Xhtml_content =
   struct
     type t = [ `Html ] XHTML.M.elt
+
+    let get_etag_aux x =
+      Digest.to_hex (Digest.string x)
+
+    let get_etag c =
+      let x = (XHTML.M.ocsigen_print (add_css c)) in
+      get_etag_aux x
+
     let stream_of_content c = 
       let x = (XHTML.M.ocsigen_print (add_css c)) in
-      let md5 = Digest.to_hex (Digest.string x) in
-      	 Lwt.return (Int64.of_int (String.length x), 
-		     md5, (new_stream x 
-			     (fun () -> Lwt.return (empty_stream None))))
+      let md5 = get_etag_aux x in
+      Lwt.return (Int64.of_int (String.length x), 
+		  md5, 
+		  (new_stream x 
+		     (fun () -> Lwt.return (empty_stream None))),
+		  id
+		 )
+
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_stream s = assert false
   end
@@ -67,11 +81,17 @@ module Xhtml_content =
 module Text_content =
   struct
     type t = string
+
+    let get_etag x =
+      Digest.to_hex (Digest.string x)
+
     let stream_of_content c =
-      let md5 = Digest.to_hex (Digest.string c) in
+      let md5 = get_etag c in
       Lwt.return (Int64.of_int (String.length c), 
 		  md5, 
-		  new_stream c (fun () -> Lwt.return (empty_stream None)))
+		  new_stream c (fun () -> Lwt.return (empty_stream None)),
+		  id)
+
     let content_of_stream = string_of_stream
   end
 
@@ -79,16 +99,23 @@ module Stream_content =
   (* Use to receive any type of data, before knowing the content-type *)
   struct
     type t = stream
+
+    let get_etag c = assert false
+
     let stream_of_content c = assert false
+
     let content_of_stream = Lwt.return
   end
 
 module Empty_content =
   struct
     type t = unit
+
+    let get_etag c = "empty"
+
     let stream_of_content c = 
-      Lwt.return (Int64.of_int 0, "same", 
-		  new_stream "" (fun () -> Lwt.return (empty_stream None)))
+      Lwt.return (Int64.of_int 0, (get_etag ()), empty_stream None, id)
+
     let content_of_stream s = Lwt.return ()
   end
 
@@ -96,24 +123,19 @@ module Empty_content =
 module File_content =
   struct
     type t = string (* nom du fichier *)
+
     let read_file ?buffer_size fd =
       let buffer_size = match buffer_size with
 	None -> Ocsiconfig.get_filebuffersize ()
       | Some s -> s
       in
-      Messages.debug ("start reading ");
+      Messages.debug ("start reading file (file opened)");
       let buf = String.create buffer_size in
       let rec read_aux () =
-(*********************AEFF	print_endline "a";*)
-(*	(Preemptive.detach (Unix.read fd buf 0) buffer_size) >>= *)
 	Lwt_unix.read (Lwt_unix.Plain fd) buf 0 buffer_size >>=
 	(fun lu ->
-(******??????	  Lwt_unix.yield () >>= (fun () -> *)
-(*********************AEFF	print_endline "b"; *)
-          if lu = 0 then  begin
-	    Unix.close fd;
+          if lu = 0 then  
 	    Lwt.return (empty_stream None)
-	  end
 	  else begin 
 	    if lu = buffer_size
 	    then Lwt.return (new_stream buf (fun () -> read_aux ()))
@@ -122,16 +144,24 @@ module File_content =
 	  end)
       in read_aux ()			 
 
+    let get_etag_aux st =
+      Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
+        st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime
+	
+    let get_etag f =
+      let st = Unix.LargeFile.stat f in 
+      get_etag_aux st
+
     let stream_of_content c  =
       (*ouverture du fichier*)
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
       let st = Unix.LargeFile.stat c in 
-      let etag = Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
-                        st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime in
+      let etag = get_etag_aux st in
       read_file fd >>=
       (fun r ->
-      	Lwt.return (st.Unix.LargeFile.st_size, etag, r))
-
+      	Lwt.return (st.Unix.LargeFile.st_size, etag, r, 
+		   fun () -> Unix.close fd))
+  
     let content_of_stream s = assert false
       
   end
@@ -183,7 +213,7 @@ let create_xhtml_sender ?server_name ?proto fd =
   let hd2 =
     [
       ("Accept-Ranges","none");
-      ("Cache-Control","no-cache");
+      (* ("Cache-Control","no-cache"); *)
       ("Expires", "0");
       ("Content-Type","text/html")
     ]@hd
@@ -232,9 +262,10 @@ let gmtdate d =
 * xhtml_sender is the used sender*)
 let send_generic 
     waiter
-    ?code ~keep_alive ?cookie ?last_modified
+    ?etag ?code ~keep_alive ?cookie ?last_modified
     ?path ?location ?(header=[]) ?head ~content sender 
     (send : unit Lwt.t ->
+      ?etag:etag ->
       ?mode:Xhtml_sender.H.http_mode ->
       ?proto:string ->
       ?headers:(string * string) list ->
@@ -254,7 +285,7 @@ let send_generic
       ("Date",date)::
       ("Last-Modified",last_mod)::header
   in
-  let hds2 =
+  let hds =
     match cookie with
     |None -> hds
     |Some c -> ("Set-Cookie",(cookiename^"="^c^
@@ -262,19 +293,24 @@ let send_generic
 				Some s -> ("; path="^s) 
 			      | None -> "")))::hds
   in
-  let hds3 =
+  let hds =
     if keep_alive
-    then ("Connection","Keep-Alive")::hds2 (* obsolete? *)
-    else ("Connection","Close")::hds2
+    then ("Connection","keep-alive")::hds (* obsolete? *)
+    else ("Connection","close")::hds
   in
-  let hds4 =
+  let hds =
     match location with
-    |None ->  hds3
-    |Some l -> ("Location",l)::hds3
+    |None ->  hds
+    |Some l -> ("Location",l)::hds
+  in
+  let hds =
+    match etag with
+    |None ->  hds
+    |Some l -> ("ETag", "\""^l^"\"")::hds
   in
   match code with
-    |None -> send waiter ~code:200 ~content ~headers:hds4 ?head sender
-    |Some c -> send waiter ~code:c ~content ~headers:hds4 ?head sender
+    |None -> send waiter ?etag ~code:200 ~content ~headers:hds ?head sender
+    |Some c -> send waiter ?etag ~code:c ~content ~headers:hds ?head sender
 
 
 type create_sender_type = ?server_name:string ->
@@ -282,13 +318,14 @@ type create_sender_type = ?server_name:string ->
 
 type send_page_type =
     unit Lwt.t ->
-    ?code:int ->
-      keep_alive:bool ->
-	?cookie:string ->
-	  ?path:string ->
-	    ?last_modified:float ->
-	      ?location:string -> 
-	        ?head:bool -> Http_com.sender_type -> unit Lwt.t
+      ?etag:etag ->
+	?code:int ->
+	  keep_alive:bool ->
+	    ?cookie:string ->
+	      ?path:string ->
+		?last_modified:float ->
+		  ?location:string -> 
+	            ?head:bool -> Http_com.sender_type -> unit Lwt.t
   
 (** fonction that sends a xhtml page
  * code is the code of the http answer
@@ -297,9 +334,9 @@ type send_page_type =
  * path is the path associated to the cookie
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_xhtml_page ~content waiter ?code ~keep_alive ?cookie ?path 
+let send_xhtml_page ~content waiter ?etag ?code ~keep_alive ?cookie ?path 
     ?last_modified ?location ?head xhtml_sender =
-  send_generic waiter
+  send_generic waiter ?etag
     ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~content ?head xhtml_sender Xhtml_sender.send
   
@@ -309,16 +346,16 @@ let send_xhtml_page ~content waiter ?code ~keep_alive ?cookie ?path
  * cookie is a string value that give a value to the session cookie
  * page is the page to send
  * empty_sender is the used sender *)
-let send_empty waiter ?code ~keep_alive ?cookie 
+let send_empty waiter ?etag ?code ~keep_alive ?cookie 
     ?path ?location ?last_modified ?head empty_sender =
-  send_generic waiter ?last_modified
+  send_generic waiter ?etag ?last_modified
     ?code ~keep_alive ?cookie ?path ?location ~content:() 
     ?head empty_sender Empty_sender.send
 
-let send_text_page ~content waiter ?code ~keep_alive ?cookie ?path 
+let send_text_page ~content waiter ?etag ?code ~keep_alive ?cookie ?path 
     ?last_modified ?location ?head xhtml_sender =
   send_generic waiter
-    ?code ~keep_alive ?cookie ?path ?location ?last_modified
+    ?etag ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~content ?head xhtml_sender Text_sender.send
   
   
@@ -367,8 +404,7 @@ let create_file_sender ?server_name ?proto fd =
   in
   let hd2 =
     [
-      ("Accept-Ranges","none");
-      ("Cache-Control","no-cache")
+      ("Accept-Ranges","none")
     ]@hd
   in
   match proto with
@@ -417,10 +453,10 @@ let content_type_from_file_name filename =
     in Hashtbl.find mimeht extens
   with _ -> "unknown" 
 
-let send_file file waiter ?code ~keep_alive ?cookie ?path
+let send_file file waiter ?etag ?code ~keep_alive ?cookie ?path
     ?last_modified ?location ?head file_sender =
   send_generic waiter
-    ?code ~keep_alive ?cookie ?path ?location ?last_modified
+    ?etag ?code ~keep_alive ?cookie ?path ?location ?last_modified
     ~header:[("Content-Type",content_type_from_file_name file)]
     ~content:file ?head file_sender File_sender.send
 

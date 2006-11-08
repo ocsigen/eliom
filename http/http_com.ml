@@ -65,7 +65,7 @@ struct
       then fail Ocsigen_buffer_is_full
       else Lwt.return (min free (buffer.size - buffer.write_pos))
 
-  exception End_of_file         
+  exception End_of_input
                 
   let now = return ()
 
@@ -84,7 +84,7 @@ struct
 		(fun () -> fail Ocsigen_Timeout)))] >>=
 	  (fun len ->
             if len = 0 
-	    then Lwt.fail End_of_file
+	    then Lwt.fail End_of_input
 	    else begin
 	      buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
 	      buffer.datasize <- buffer.datasize + len;
@@ -359,27 +359,35 @@ module FHttp_sender =
       close_out out_chan 
 *)
     (*fonction d'écriture sur le réseau*)
-      let rec really_write out_ch = function
-          | Finished _ -> Messages.debug "write finished"; Lwt.return ()
-	  | Cont (s, l, next) ->
-	      catch
-		(fun () ->
-		  Lwt_unix.write out_ch s 0 l >>=
-		  (fun len' ->
-		    Lwt_unix.yield () >>= (fun () ->
-	              if l = len'
-		      then next () >>= really_write out_ch
-		      else really_write out_ch
-			  (new_stream (String.sub s len' (l-len')) next))
-		  )
-		)
-		(function
-		    Unix.Unix_error (Unix.EPIPE, _, _)
-		  | Unix.Unix_error (Unix.ECONNRESET, _, _) 
-		  | Ssl.Write_error _ ->
-		      fail Connection_reset_by_peer
-		  | e -> fail e)
-												    
+    let rec really_write out_ch close_fun = function
+      | Finished _ -> 
+	  Messages.debug "write finished (closing stream)"; 
+	  (try 
+	    close_fun () 
+	  with _ -> 
+	    Messages.debug "Error while closing stream (at end of stream)");
+	  Lwt.return ()
+      | Cont (s, l, next) ->
+	  catch
+	    (fun () ->
+	      Lwt_unix.write out_ch s 0 l >>=
+	      (fun len' ->
+		Lwt_unix.yield () >>= (fun () ->
+	          if l = len'
+		  then next () >>= really_write out_ch close_fun
+		  else really_write out_ch close_fun
+		      (new_stream (String.sub s len' (l-len')) next))
+	      )
+	    )
+	    (function
+		Unix.Unix_error (Unix.EPIPE, _, _)
+	      | Unix.Unix_error (Unix.ECONNRESET, _, _) 
+	      | Ssl.Write_error _  ->
+		print_endline  ("~~~~~~~~~~~~ PPPPPPPPPPPPPPPPPPPPPPPPPProblème pour    : '"^(Digest.to_hex (Digest.string s))^"'");
+		  fail Connection_reset_by_peer
+	      | e -> fail e)
+
+
     (**create a new sender*)
     let create ?(mode=Http_frame.Http_header.Answer) ?(headers=[])
     ?(proto="HTTP/1.1") fd = 
@@ -484,7 +492,7 @@ module FHttp_sender =
     * fusioned with those of the sender, the priority is given to the newly
     * defined header when there is a conflict
     * the content-length tag is automaticaly calculated*)
-    let send waiter 
+    let send waiter ?etag
 	?mode ?proto ?headers ?meth ?url ?code ?content ?head sender =
       (*creation d'une http_frame*)
       (*creation du header*)
@@ -492,35 +500,50 @@ module FHttp_sender =
 	 because the previous one may not be sent.
 	 If we don't want to wait, use waiter = return ()
        *)
-      let md = match mode with None -> sender.mode | Some m -> m in
-      let prot = match proto with None -> sender.proto | Some p -> p in
-      match content with
-      | None -> Lwt.return ()
-      | Some c -> waiter >>=
-	  (fun () -> 
+      waiter >>=
+      (fun () ->
+	let md = match mode with None -> sender.mode | Some m -> m in
+	let prot = match proto with None -> sender.proto | Some p -> p in
+	match content with
+	| None -> Lwt.return ()
+	| Some c -> 
 	    (C.stream_of_content c >>=
-             (fun (lon,etag,flux) -> 
-	       Lwt.return (hds_fusion (Some lon)
-			     (("ETag",etag)::sender.headers) 
-			     (match headers with 
-			       Some h ->h
-			     | None -> []) ) >>=
-	       (fun hds -> 
-		 let hd = {
-		   H.mode = md;
-		   H.meth=meth;
-		   H.url=url;
-		   H.code=code;
-		   H.proto = prot;
-		   H.headers = hds;
-		 } in
-		 Messages.debug "writing header";
-		 really_write sender.fd 
-		   (new_stream (Framepp.string_of_header hd)
-		      (fun () -> 
-			Lwt.return (empty_stream None)))) >>=
-	       (fun _ -> match head with 
-	       | Some true -> Lwt.return ()
-	       | _ -> Messages.debug "writing body"; 
-		   really_write sender.fd flux))))
+	     (* Here the stream is opened *)
+             (fun (lon, etag2, flux, close_fun) ->
+	       catch
+		 (fun () ->
+		   Lwt.return (hds_fusion (Some lon)
+				 (("ETag", ("\""^(match etag with 
+				   None -> etag2
+				 | Some etag -> etag)^"\""))::sender.headers)
+				 (match headers with 
+				   Some h ->h
+				 | None -> []) ) >>=
+		   (fun hds -> 
+		     let hd = {
+		       H.mode = md;
+		       H.meth=meth;
+		       H.url=url;
+		       H.code=code;
+		       H.proto = prot;
+		       H.headers = hds;
+		     } in
+		     Messages.debug "writing header";
+		     really_write sender.fd (fun () -> ())
+		       (new_stream (Framepp.string_of_header hd)
+			  (fun () -> 
+			    Lwt.return (empty_stream None)))) >>=
+		   (fun _ -> match head with 
+		   | Some true -> Lwt.return ()
+		   | _ -> Messages.debug "writing body"; 
+		       really_write sender.fd close_fun flux)
+		 )
+		 (fun e -> 
+		   (try 
+		     close_fun () 
+		   with e -> 
+		     Messages.debug
+		       ("Error while closing stream (error during stream) : "^
+			(Printexc.to_string e)));
+		   fail e))))
   end
