@@ -91,7 +91,7 @@ Lwt.return
 	       lwt threads waiting for children<br/>
        $str:(string_of_int (Lwt_unix.sleep_queue_size ()))$
 	       sleeping lwt threads<br/>
-       Total $str:(string_of_int (Lwt_unix.get_event_counter ()))$ events.<br/>
+       $str:(string_of_int (Lwt_unix.get_new_sleeps ()))$ new sleeps.<br/>
      </p>
      <h2>Preemptive threads</h2>
      <p>There are currently $str:(string_of_int (Preemptive.nbthreads ()))$ 

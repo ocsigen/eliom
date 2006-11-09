@@ -85,10 +85,8 @@ type to_write = No_File of string * Buffer.t | A_File of Lwt_unix.descr
 let now = return ()
 
 (* *)
-let get_frame_infos =
-(*let full_action_param_prefix = action_prefix^action_param_prefix in
-let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
-  fun http_frame ->
+let get_frame_infos http_frame filenames =
+
   catch (fun () -> 
     let meth = Http_header.get_method http_frame.Stream_http_frame.header in
     let url = Http_header.get_url http_frame.Stream_http_frame.header in
@@ -170,17 +168,17 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 			let now = 
 			  Printf.sprintf 
 			    "%s-%f" store (Unix.gettimeofday ()) in
-			param_names := !param_names@[(p_name, now)];
-			(* à la fin ? *)
 			match ((Ocsiconfig.get_uploaddir ())) with
 			  Some dname ->
 			    let fname = dname^"/"^now in
+			    param_names := !param_names@[(p_name, fname)];
 			    let fd = Unix.openfile fname 
 				[Unix.O_CREAT;
 				 Unix.O_TRUNC;
 				 Unix.O_WRONLY;
 				 Unix.O_NONBLOCK] 0o666 in
 			    (* Messages.debug "file opened"; *)
+			    filenames := fname::!filenames;
 			    A_File (Lwt_unix.Plain fd)
 			| None -> raise Ocsigen_upload_forbidden
 		  in
@@ -279,7 +277,7 @@ let action_param_prefix_end = String.length full_action_param_prefix - 1 in*)
 	    fail Connection_reset_by_peer
 	| e -> 
 	    Messages.debug ("Exn during get_frame_infos : "^
-			    (Printexc.to_string e)); 
+			    (Printexc.to_string e));
 	    fail Ocsigen_Bad_Request (* ? *))
 
 
@@ -314,7 +312,7 @@ let find_keepalive http_header =
     then true
     else false
 
-let service waiter http_frame sockaddr 
+let service wait_end_request waiter http_frame sockaddr 
     xhtml_sender empty_sender inputchan () =
   (* waiter is here for pipelining: we must wait before sending the page,
      because the previous one may not be sent *)
@@ -323,17 +321,40 @@ let service waiter http_frame sockaddr
   let ka = find_keepalive http_frame.Stream_http_frame.header in
   Messages.debug ("Keep-Alive:"^(string_of_bool ka));
   Messages.debug("HEAD:"^(string_of_bool head));
+
+  let remove_files l = 
+    let rec aux = function
+	(* We remove all the files created by the request (files sent) *)
+	[] -> return ()
+      | a::l -> (try Unix.unlink a with _ -> ()); remove_files l
+    in Messages.debug "Removing files"; aux l
+  in
+
   let serv () =  
+
+    let filenames = ref [] (* All the files sent by the request *) in
     catch (fun () ->
+
       let cookie = 
 	try 
 	  Some (getcookie (Http_header.get_headers_value 
 			     http_frame.Stream_http_frame.header "Cookie"))
 	with _ -> None
       in
-      get_frame_infos http_frame >>=
+
+      (catch
+	 (fun () -> get_frame_infos http_frame filenames)
+	 (fun e -> 
+	   ignore(remove_files !filenames);
+	   wakeup wait_end_request (); 
+	   fail e)) >>=
+
       (fun (((stringpath,params,is,(path,host,gp,pp,ua)) as frame_info), 
 	    action_info,ifmodifiedsince) -> 
+	(* here we are sure that the request is terminated. 
+	   We can wait another request *)
+
+	wakeup wait_end_request ();
 	(* log *)
 	let ip = ip_of_sockaddr sockaddr in
 	accesslog ("connection"^
@@ -342,6 +363,8 @@ let service waiter http_frame sockaddr
 		   | Some h -> (" for "^h))^
 		   " from "^ip^" ("^ua^") : "^stringpath^params);
 	(* end log *)
+
+
 	match action_info with
 	  None ->
 	    let keep_alive = ka in
@@ -385,6 +408,7 @@ let service waiter http_frame sockaddr
 		       ~error_num:403 xhtml_sender (* Forbidden *)
 		 | e -> fail e)
 	    )
+
 	| Some (action_name, reload, action_params) ->
 	    make_action action_name action_params frame_info sockaddr cookie
 	      >>= (fun (cookie2,path) ->
@@ -411,8 +435,12 @@ let service waiter http_frame sockaddr
 		     ~path:path
                      ~code:204 ~head:head
 	             empty_sender))
-		  )))
-      (function
+		  )) >>=
+	  (fun () -> remove_files !filenames))
+
+      (fun e ->
+	ignore(remove_files !filenames);
+	match e with
 	  (* EXCEPTIONS WHILE COMPUTING A PAGE *)
 	  Ocsigen_404 -> 
 	    Messages.debug "Sending 404 Not Found";
@@ -442,6 +470,10 @@ let service waiter http_frame sockaddr
             send_error waiter ~keep_alive:ka ~error_num:500 xhtml_sender
       )
   in 
+  let consume = function
+	None -> return ()
+      | Some body -> Ocsistream.consume body
+  in
   let meth = (Http_header.get_method http_frame.Stream_http_frame.header) in
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
@@ -450,19 +482,27 @@ let service waiter http_frame sockaddr
   else 
     catch
       (fun () ->
-	let cl = try
-	  (Int64.of_string 
-	     (Http_header.get_headers_value 
-		http_frame.Stream_http_frame.header 
-		"content-length"))
+	(try
+	  return 
+	    (Int64.of_string 
+	       (Http_header.get_headers_value 
+		  http_frame.Stream_http_frame.header 
+		  "content-length"))
 	with 
-	  Not_found -> Int64.zero
-	| _ -> raise Ocsigen_Bad_Request
-	in
-	if (Int64.compare cl Int64.zero) > 0 &&
-	  (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
-	then send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender
-	else serv ())
+	  Not_found -> return Int64.zero
+	| _ -> (consume http_frame.Stream_http_frame.content >>= 
+		(fun () -> 
+		  wakeup wait_end_request (); 
+		  fail Ocsigen_Bad_Request)))
+	>>=
+	    (fun cl ->
+	      if (Int64.compare cl Int64.zero) > 0 &&
+		(meth = Some Http_header.GET || meth = Some Http_header.HEAD)
+	      then consume http_frame.Stream_http_frame.content >>= 
+		(fun () ->
+		  wakeup wait_end_request ();
+		  send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender)
+	      else serv ()))
       (function
 	  Ocsigen_Bad_Request ->
 	    send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
@@ -533,7 +573,7 @@ let listen modules_list =
          and closing the connection. *)
       waiter >>=
       (fun () -> 
-	print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn));
+	(* print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn)); *)
 	let ip = ip_of_sockaddr sockaddr in
 	match exn with
           Http_error.Http_exception (_,_) as http_ex ->
@@ -571,6 +611,14 @@ let listen modules_list =
     in
     
     let rec handle_request waiter http_frame =
+      let test_end_request_awoken wait_end_request =
+	try
+	  wakeup wait_end_request ();
+	  Messages.debug 
+	    "wait_end_request has not been awoken! \
+	    (should not succeed ...)"
+	with _ -> ()
+      in
       let keep_alive = 
 	find_keepalive http_frame.Stream_http_frame.header in
       if keep_alive 
@@ -580,12 +628,19 @@ let listen modules_list =
 	(* The following request must wait the end of this one
 	   before being answered *)
 	(* waiter is awoken when the previous request has been answered *)
+	let wait_end_request = wait () in
+	(* The following request must wait the end of this one.
+	   (It may not be finished, for example if we are downloading files) *)
+	(* wait_end_request is awoken when we are sure it is terminated *)
 	ignore_result 
 	  (catch
 	     (fun () ->
-	       service waiter http_frame sockaddr 
+	       service wait_end_request waiter http_frame sockaddr 
 		 xhtml_sender empty_sender in_ch () >>=
-	       (fun () -> wakeup waiter2 (); return ()))
+	       (fun () ->
+		 test_end_request_awoken wait_end_request;
+		 wakeup waiter2 (); 
+		 return ()))
 	     (function
 		 (* Serious error (we cannot answer to the request)
 		    Probably the pipe is broken.
@@ -593,9 +648,11 @@ let listen modules_list =
 		    with an exception.
 		  *)
 		 Stop_sending -> 
+		   test_end_request_awoken wait_end_request;
 		   wakeup_exn waiter2 Stop_sending;
 		   return ()
 	       | e -> 
+		   test_end_request_awoken wait_end_request;
 		   handle_broken_pipe_exn sockaddr in_ch e >>=
 		   (fun () -> 
 		     wakeup_exn waiter2 Stop_sending;
@@ -603,25 +660,27 @@ let listen modules_list =
 	
 	catch
 	  (fun () ->
-	    Stream_receiver.get_http_frame waiter2
-	      receiver ~doing_keep_alive:true () >>=
-	    (handle_request waiter2))
+	    wait_end_request >>=
+	    (fun () -> 
+	      Messages.debug "Waiting for new request (pipeline)";
+	      Stream_receiver.get_http_frame waiter2
+		receiver ~doing_keep_alive:true () >>=
+	      (handle_request waiter2)))
 	  (handle_request_errors waiter2)
       end
       else begin (* No keep-alive => no pipeline *)
 	catch
 	  (fun () ->
-	    service waiter http_frame sockaddr
+	    service (wait ()) waiter http_frame sockaddr
 	      xhtml_sender empty_sender in_ch () >>=
 	    (fun () ->
-	print_endline "~~~~ ERREUR NOKEEPALIVE";
 	      (Lwt_unix.lingering_close in_ch; 
 	       return ())))
-	  (fun e -> 	print_endline "~~~~ ERREUR NOKEEPALIVE 2";
+	  (fun e ->
 	    Lwt_unix.lingering_close in_ch; fail e)
       end
 
-    in
+    in (* body of listen_connexion *)
     catch
       (fun () ->
 	catch
@@ -668,10 +727,12 @@ let listen modules_list =
 	    empty_sender)
 	(handle_broken_pipe_exn sockaddr inputchan)
     in
-    let rec wait_connexion_rec = (fun () -> 
-    	let rec do_accept () = 
-	  Lwt_unix.accept (Lwt_unix.Plain socket) >>= 
-    	  (fun (s, sa) -> if Ocsiconfig.get_ssl () then begin
+    let rec wait_connexion_rec () =
+      let rec do_accept () = 
+	Lwt_unix.accept (Lwt_unix.Plain socket) >>= 
+    	(fun (s, sa) -> 
+	  if Ocsiconfig.get_ssl () 
+	  then begin
     	    let s_unix = 
 	      match s with
 		Lwt_unix.Plain fd -> fd 
@@ -688,26 +749,29 @@ let listen modules_list =
 		    Messages.debug "Accept_error"; do_accept ()
     		| e -> warning ("Exn in do_accept : "^
 				(Printexc.to_string e)); do_accept ())
-          end else Lwt.return (s, sa)) in
-	(do_accept ()) >>= 
-	(fun c ->
-	  incr_connected ();
-	  if (get_number_of_connected ()) <
-	    (get_max_number_of_connections ()) then
-	    ignore_result (wait_connexion_rec ())
-	  else warning ("Max simultaneous connections ("^
-			(string_of_int (get_max_number_of_connections ()))^
-			")reached!!");
-	  handle_connection c) >>= 
-	(fun () -> 
-	  decr_connected (); 
-	  if (get_number_of_connected ()) = 
-	    (get_max_number_of_connections ()) - 1
-	  then begin
-	    warning "Ok releasing one connection";
-	    wait_connexion_rec ()
-	  end
-	  else return ()))
+          end 
+	  else Lwt.return (s, sa))
+
+      in
+      (do_accept ()) >>= 
+      (fun c ->
+	incr_connected ();
+	if (get_number_of_connected ()) <
+	  (get_max_number_of_connections ()) then
+	  ignore_result (wait_connexion_rec ())
+	else warning ("Max simultaneous connections ("^
+		      (string_of_int (get_max_number_of_connections ()))^
+		      ") reached.");
+	handle_connection c) >>= 
+      (fun () -> 
+	decr_connected (); 
+	if (get_number_of_connected ()) = 
+	  (get_max_number_of_connections ()) - 1
+	then begin
+	  warning "Ok releasing one connection";
+	  wait_connexion_rec ()
+	end
+	else return ())
     in wait_connexion_rec ()
   in
   ((* Initialize the listening address *)
@@ -725,10 +789,12 @@ let listen modules_list =
        if Ocsiconfig.get_ssl ()  then begin 
           if Ocsiconfig.get_passwd () <> "" then 
 	    Ssl.set_password_callback !ctx (fun _ -> Ocsiconfig.get_passwd ());
-	  Ssl.use_certificate !ctx (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ());
+	  Ssl.use_certificate !ctx
+	   (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ());
 	  print_string ("HTTPS server on port ");
 	  print_endline (string_of_int (Ocsiconfig.get_port ()) ^" launched");
 	  end;
+       ignore (Http_com.Timeout.start_timeout_killer ());
        end_initialisation ();
        warning "Ocsigen has been launched (initialisations ok)";
        wait_connexion listening_socket >>=
@@ -766,7 +832,7 @@ let _ = try
 		 (Ocsiconfig.get_maxthreads ()));
 (* Je suis fou
        let rec f () = 
-   print_endline "---"; 
+(*   print_string "-"; *)
    Lwt_unix.yield () >>= f
    in f(); *)
 

@@ -14,3 +14,4 @@ val stream_want : stream -> int -> stream Lwt.t
 val current_buffer : stream -> string
 val skip : stream -> int -> stream Lwt.t
 val substream : string -> stream -> stream Lwt.t
+val consume : stream -> unit Lwt.t

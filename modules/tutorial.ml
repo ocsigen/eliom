@@ -155,7 +155,7 @@ let coucou1 =
       </p>
       <p>
         $a (new_external_service
-	      ["doc/Ocsigen.html"]
+	      ["doc/0.5.0/Ocsigen.html"]
 (*	      ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
 	      unit unit ())
            sp <:xmllist< More info >> ()$

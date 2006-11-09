@@ -29,6 +29,82 @@ exception Ocsigen_buffer_is_full
 exception Ocsigen_header_too_long
 exception Connection_reset_by_peer
 
+(** Implements a thread that will kill all connections that are too old. *)
+module Timeout : sig
+
+  type timeout
+  val get_thread : timeout -> int Lwt.t
+  val new_timeout : unit -> timeout
+  val begin_timeout : timeout -> unit
+  val remove_timeout : timeout -> unit
+  val start_timeout_killer : unit -> unit Lwt.t
+
+end = struct
+
+  type timeout = 
+      {timeout_thread: int Lwt.t option;
+       mutable timeout_succ: timeout;
+       mutable timeout_prev: timeout}
+
+  let get_thread l = 
+    match l.timeout_thread with
+      None -> assert false (* Should not happen because last_timeout is
+			      not visible outside the module *)
+    | Some t -> t
+
+  let new_timeout () =
+    (* A new timeout, not started *)
+    let rec t =
+      {timeout_thread = Some (Lwt.wait ());
+       timeout_succ = t;
+       timeout_prev = t}
+    in t
+
+  let last_timeout () =
+    (* A new timeout, not started *)
+    let rec t =
+      {timeout_thread = None;
+       timeout_succ = t;
+       timeout_prev = t}
+    in t
+
+  let waiters = ref (last_timeout ())
+  let olds = ref (last_timeout ())
+
+  let begin_timeout t =
+    (* Starting a timeout = putting it in the list *)
+    !waiters.timeout_succ.timeout_prev <- t;
+    t.timeout_succ <- !waiters.timeout_succ;
+    t.timeout_prev <- !waiters;
+    !waiters.timeout_succ <- t
+
+  let remove_timeout t =
+    (* Stoping a timeout = removing it from the list *)
+    t.timeout_prev.timeout_succ <- t.timeout_succ;
+    t.timeout_succ.timeout_prev <- t.timeout_prev
+
+  let start_timeout_killer () =
+    let t = Ocsiconfig.get_connect_time_max () in
+    let rec killall l =
+      match l.timeout_thread with
+	None -> ()
+      | Some t -> (Lwt.wakeup_exn t Ocsigen_Timeout;
+		   killall l.timeout_succ)
+    in
+    let rec aux () =
+      Lwt_unix.sleep t >>=
+      (fun () -> 
+	Messages.debug "Killing timeouted connections";
+	killall !olds.timeout_succ; 
+	olds := !waiters; 
+	waiters := last_timeout ();
+	return ()) >>=
+      aux
+    in aux ()
+
+end
+
+
 (** buffer de comunication permettant la reception et la recupération des messages *)
 module Com_buffer =
 struct
@@ -76,12 +152,20 @@ struct
       (fun () ->
 	wait_can_write buffer >>= 
 	(fun free ->
+	  let wait_timeout = Timeout.new_timeout () in
 	  choose
-	    [Lwt_unix.read file_descr buffer.buf buffer.write_pos free;
-	     waiter >>=
-	     (fun () ->
+	    [Lwt_unix.yield () >>= 
+	     (fun () -> 
+	       Lwt_unix.read file_descr buffer.buf buffer.write_pos free) >>=
+	     (fun l -> 
+	       Timeout.remove_timeout wait_timeout; 
+	       return l);
+	     waiter >>= 
+	     (fun () -> Timeout.begin_timeout wait_timeout; 
+	       Timeout.get_thread wait_timeout)
+	     (* old solution: too much sleeps. fun () ->
 	       (Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= 
-		(fun () -> fail Ocsigen_Timeout)))] >>=
+		(fun () -> fail Ocsigen_Timeout)) *)] >>=
 	  (fun len ->
             if len = 0 
 	    then Lwt.fail End_of_input
@@ -262,11 +346,8 @@ module FHttp_receiver =
       type t = {buffer:Com_buffer.t; fd:Lwt_unix.descr}
 	    
 	    (** create a new receiver *)
-      let create ?buffer_size fd =
-	let buffer_size = match buffer_size with
-	  None -> Ocsiconfig.get_netbuffersize ()
-	| Some s -> s
-	in
+      let create fd =
+	let buffer_size = Ocsiconfig.get_netbuffersize () in
 	let buffer = Com_buffer.create buffer_size in
         {buffer=buffer;fd=fd}
 	  

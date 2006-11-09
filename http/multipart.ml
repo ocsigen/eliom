@@ -83,13 +83,11 @@ let read_header ?downcase ?unfold ?strip (s : Ocsistream.stream) =
 	      (s, (S.match_end (snd (S.search_forward end_of_header_re b 0))))
       )
       (function
-	  Not_found -> Ocsistream.enlarge_stream s >>= 
+	  Not_found -> 
+	    Ocsistream.enlarge_stream s >>= 
 	    (function
 		Finished _ -> fail Stream_too_small
-	      | Cont (stri, long, _) as s ->
-		  if long > (Ocsiconfig.get_netbuffersize ())
-		  then fail Ocsimisc.Input_is_too_large
-		  else find_end_of_header s)
+	      | Cont (stri, long, _) as s -> find_end_of_header s)
 	| e -> fail e)
   in
   find_end_of_header s >>= (fun s, end_pos ->
@@ -115,10 +113,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
 	Ocsistream.enlarge_stream s >>=
 	(function
 	    Finished _ -> fail Stream_too_small
-	  | Cont (stri, long, _) as s ->
-	      if long > (Ocsiconfig.get_netbuffersize ())
-	      then fail Ocsimisc.Input_is_too_large
-	      else search_window s re start)
+	  | Cont (stri, long, _) as s -> search_window s re start)
   in
   let search_end_of_line s k =
     (* Search LF beginning at position k *)
@@ -221,7 +216,12 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
 	| Cont (stri, long, f) ->
 	    if stri = ""
 	    then f () >>= while_stream
-	    else (add p stri >>= f >>= while_stream)
+	    else ((catch 
+		    (fun () -> add p stri)
+		    (fun e -> f () >>= 
+		      Ocsistream.consume >>= 
+		      (fun () -> fail e)))
+		    >>= f >>= while_stream)
       in 
       catch 
 	(fun () -> while_stream s >>= 

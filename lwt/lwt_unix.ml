@@ -24,21 +24,16 @@ let descr_of_fd ldescr lfd =
 
 module SleepQueue =
   Pqueue.Make (struct
-    type t = float * int * unit Lwt.t
-    let compare (t, i, _) (t', i', _) =
-      let c = compare t t' in
-      if c = 0 then i - i' else c
+    type t = float * unit Lwt.t
+    let compare (t, _) (t', _) = compare t t'
   end)
 let sleep_queue = ref SleepQueue.empty
-
-let event_counter = ref 0
+let new_sleeps = ref []
 
 let sleep d =
   let res = Lwt.wait () in
-  incr event_counter;
   let t = if d <= 0. then 0. else Unix.gettimeofday () +. d in
-  sleep_queue :=
-    SleepQueue.add (t, !event_counter, res) !sleep_queue;
+  new_sleeps := (t, res) :: !new_sleeps;
   res
 
 let yield () = sleep 0.
@@ -50,14 +45,14 @@ let get_time t =
 let in_the_past now t =
   t = 0. || t <= get_time now
 
-let rec restart_threads imax now =
+let rec restart_threads now =
   match
     try Some (SleepQueue.find_min !sleep_queue) with Not_found -> None
   with
-    Some (time, i, thr) when in_the_past now time && i - imax <= 0 ->
+    Some (time, thr) when in_the_past now time ->
       sleep_queue := SleepQueue.remove_min !sleep_queue;
       Lwt.wakeup thr ();
-      restart_threads imax now
+      restart_threads now
   | _ ->
       ()
 
@@ -108,9 +103,13 @@ let rec run thread =
     Some v ->
       v
   | None ->
+      sleep_queue :=
+        List.fold_left
+          (fun q e -> SleepQueue.add e q) !sleep_queue !new_sleeps;
+      new_sleeps := [];
       let next_event =
         try
-          let (time, _, _) = SleepQueue.find_min !sleep_queue in Some time
+          let (time, _) = SleepQueue.find_min !sleep_queue in Some time
         with Not_found ->
           None
       in
@@ -148,7 +147,7 @@ let rec run thread =
               (descr_of_fd infds (List.filter bad_fd ins), 
 	      descr_of_fd outfds (List.filter bad_fd outs), [])
       in
-      restart_threads !event_counter now;
+      restart_threads now;
       List.iter
         (fun fd ->
            match List.assoc fd !inputs with
@@ -522,5 +521,5 @@ let lingering_close ch =
 let inputs_length () = List.length !inputs
 let outputs_length () = List.length !outputs
 let wait_children_length () = List.length !wait_children
-let get_event_counter () = !event_counter
+let get_new_sleeps () = List.length !new_sleeps
 let sleep_queue_size () = SleepQueue.size !sleep_queue

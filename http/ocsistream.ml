@@ -20,7 +20,7 @@ let string_of_stream =
     | Cont (s, long, f) -> 
 	let l2 = l+long in
 	if l2 > Ocsiconfig.get_netbuffersize ()
-	then fail String_too_large
+	then  (print_endline "----------------------------";fail String_too_large)
 	else 
 	  (f () >>= 
 	   (fun r -> aux l2 r >>=
@@ -30,10 +30,23 @@ let string_of_stream =
 let enlarge_stream = function 
     Finished a -> fail Stream_too_small
   | Cont (s, long, f) ->
-      f () >>= 
-      (function
-	  Finished _ -> fail Stream_too_small
-	| Cont (r, long2, ff) -> return (Cont (s^r, long+long2, ff)))
+      let max = Ocsiconfig.get_netbuffersize () in
+      if long >= max
+      then fail Ocsimisc.Input_is_too_large
+      else
+	f () >>= 
+	(function
+	    Finished _ -> fail Stream_too_small
+	  | Cont (r, long2, ff) -> 
+	      let long3=long+long2 in
+	      let new_s = s^r in
+	      if long3 <= max
+	      then return (Cont (new_s, long+long2, ff))
+	      else let long4 = long3 - max in
+	      return
+		(Cont ((String.sub new_s 0 max), max,
+		       (fun () -> return 
+			   (Cont ((String.sub new_s max long4), long4, ff))))))
 
 let rec stream_want s len =
  (* returns a stream with at most len bytes read if possible *)
@@ -96,4 +109,10 @@ let substream delim s =
 			 ))))
     in aux s
 
+
+let rec consume = function
+    (* read the stream until the end, without decoding *)
+    Cont (_, _, f) -> Lwt_unix.yield () >>= (fun () -> f () >>= consume)
+  | Finished (Some ss) -> consume ss
+  | _ -> return ()
 

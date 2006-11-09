@@ -78,5 +78,5 @@ val lingering_close : descr -> unit
 val inputs_length : unit -> int
 val outputs_length : unit -> int
 val wait_children_length : unit -> int
-val get_event_counter : unit -> int
+val get_new_sleeps : unit -> int
 val sleep_queue_size : unit -> int
