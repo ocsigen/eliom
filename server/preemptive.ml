@@ -137,16 +137,26 @@ let dispatch () =
 
 let initthread =
   let def = Lwt.return () in
-  fun min n -> {client = def;
-		busy = false;
-		taskchannel = worker_chan n;
-		worker = if n<min then Some (Thread.create worker n) else None}
-let init min max = 
-  pool := Array.init max (initthread min);
+  fun n ->
+    {client = def;
+     busy = false;
+     taskchannel = worker_chan n;
+     worker = None}
+
+let rec start_initial_threads min n =
+  if n<min
+  then begin
+    !pool.(n).worker <- Some (Thread.create worker n);
+    start_initial_threads min (n+1);
+  end
+
+let init min max =
+  pool := Array.init max initthread;
   minthreads := min;
   maxthreads := max;
+  start_initial_threads min 0;
   dispatch ()
-	
+
 
 let nbthreads () = 
   Array.fold_left (fun nb elt -> 

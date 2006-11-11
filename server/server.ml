@@ -136,7 +136,7 @@ let get_frame_infos http_frame filenames =
 	  None -> return []
 	| Some body -> 
 	    let ct = (String.lowercase
-		  (Http_header.get_headers_value 
+		  (Http_header.get_headers_value
 		     http_frame.Stream_http_frame.header "Content-Type")) in
 	    if ct = "application/x-www-form-urlencoded"
 	    then 
@@ -326,7 +326,7 @@ let service wait_end_request waiter http_frame sockaddr
     let rec aux = function
 	(* We remove all the files created by the request (files sent) *)
 	[] -> return ()
-      | a::l -> (try Unix.unlink a with _ -> ()); remove_files l
+      | a::l -> (try Unix.unlink a with _ -> ()); aux l
     in Messages.debug "Removing files"; aux l
   in
 
@@ -573,7 +573,7 @@ let listen modules_list =
          and closing the connection. *)
       waiter >>=
       (fun () -> 
-	(* print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn)); *)
+	print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn));
 	let ip = ip_of_sockaddr sockaddr in
 	match exn with
           Http_error.Http_exception (_,_) as http_ex ->
