@@ -24,25 +24,25 @@ let menu ?(classe=[]) l current server_params =
   let rec aux = function
       [] -> []
     | [(url,text)] -> 
-	let classe = ["last"] in
-	if url == current 
-	then [li ~a:[a_class ("current"::classe)] text]
-	else [li ~a:[a_class classe] [a url server_params text ()]]
+        let classe = ["last"] in
+        if url == current 
+        then [li ~a:[a_class ("current"::classe)] text]
+        else [li ~a:[a_class classe] [a url server_params text ()]]
     | (url,text)::l -> 
-	(if url == current 
-	then  (li ~a:[a_class ["current"]] text)
-	else (li [a url server_params text ()]))::(aux l)
+        (if url == current 
+        then  (li ~a:[a_class ["current"]] text)
+        else (li [a url server_params text ()]))::(aux l)
   in match l with
     [] -> << <!-- empty menu --> >>
   | [(url,text)] ->
       ul ~a:[a_class ("menu"::classe)] 
-	(let liclasse = ["first";"last"] in
-	if url == current 
-	then (li ~a:[a_class ("current"::liclasse)] text) 
-	else (li ~a:[a_class liclasse] [a url server_params text ()])) []
+        (let liclasse = ["first";"last"] in
+        if url == current 
+        then (li ~a:[a_class ("current"::liclasse)] text) 
+        else (li ~a:[a_class liclasse] [a url server_params text ()])) []
   | (url,text)::l -> 
       ul ~a:[a_class ("menu"::classe)]
-	(let liclasse = ["first"] in
-	if url == current 
-	then (li ~a:[a_class ("current"::liclasse)] text)
-	else (li ~a:[a_class liclasse] [a url server_params text ()])) (aux l)
+        (let liclasse = ["first"] in
+        if url == current 
+        then (li ~a:[a_class ("current"::liclasse)] text)
+        else (li ~a:[a_class liclasse] [a url server_params text ()])) (aux l)

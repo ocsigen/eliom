@@ -76,6 +76,6 @@ let launch_session sp user =
 let _ = register_action
   ~action:connect_action
     (fun sp (login, password) -> return
-	(launch_session sp (connect login password)))
+        (launch_session sp (connect login password)))
 
 

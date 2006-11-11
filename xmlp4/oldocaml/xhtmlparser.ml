@@ -92,8 +92,8 @@ module ExpoOrPatt = struct
       Grammar.Entry.parse Pcaml.expr_eoi (Stream.of_string v)
     with
       Stdpp.Exc_located (locc, exc) ->
-	let loc2 = locadd (fst loc) locc in
-	Stdpp.raise_with_loc loc2 exc
+        let loc2 = locadd (fst loc) locc in
+        Stdpp.raise_with_loc loc2 exc
     in  
     refpos1 := sauv1;
     refpos2 := sauv2;
@@ -119,53 +119,53 @@ module ExpoOrPatt = struct
   let rec to_expr = function
 
       EPanyattr (EPVstr (aa,_), v, loc) ->
-	let vv = expr_valorval v in
-	<:expr< XML.string_attrib $str:aa$ $vv$ >>
+        let vv = expr_valorval v in
+        <:expr< XML.string_attrib $str:aa$ $vv$ >>
 
     | EPanyattr (EPVvar (aa,_), v, loc) ->
-	let vv = expr_valorval v in
-	<:expr< XML.string_attrib $lid:aa$ $vv$ >>
+        let vv = expr_valorval v in
+        <:expr< XML.string_attrib $lid:aa$ $vv$ >>
 
     | EPanytag (tag, attribute_list, child_list, loc) ->
-	let constr =
-	  if List.mem tag blocktags
-	  then "BlockElement"
-	  else (if List.mem tag semiblocktags
-	  then "SemiBlockElement"
-	  else "Element")
-	in
+        let constr =
+          if List.mem tag blocktags
+          then "BlockElement"
+          else (if List.mem tag semiblocktags
+          then "SemiBlockElement"
+          else "Element")
+        in
         (match child_list with
-	  PLEmpty loc ->
-	    <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
+          PLEmpty loc ->
+            <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
                 $to_expr_attlist attribute_list$
-		[])) : XHTML.M.elt [> `$uid: String.capitalize tag$])
+                [])) : XHTML.M.elt [> `$uid: String.capitalize tag$])
             >>
-	| PLExpr (_, loc) | PLCons (_,_, loc) ->
-	    <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
+        | PLExpr (_, loc) | PLCons (_,_, loc) ->
+            <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
                $to_expr_attlist attribute_list$
                (XHTML.M.toeltl 
-		  ($to_expr_taglist child_list$ 
-		   :> list (XHTML.M.elt 
-			      [< Xhtmltypes.$lid:tag^"_content"$])))))
-		   : XHTML.M.elt [> `$uid: String.capitalize tag$])
-	    >>)
-	
+                  ($to_expr_taglist child_list$ 
+                   :> list (XHTML.M.elt 
+                              [< Xhtmltypes.$lid:tag^"_content"$])))))
+                   : XHTML.M.elt [> `$uid: String.capitalize tag$])
+            >>)
+        
     | EPpcdata (dt, loc) -> 
-	<:expr< ((XHTML.M.tot 
-		    (XML.EncodedPCDATA $str:dt$)) 
-		   : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
+        <:expr< ((XHTML.M.tot 
+                    (XML.EncodedPCDATA $str:dt$)) 
+                   : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
 
     | EPwhitespace (dt, loc) -> 
-	<:expr< XHTML.M.tot (XML.Whitespace $str:dt$) >>
+        <:expr< XHTML.M.tot (XML.Whitespace $str:dt$) >>
 
     | EPanytagvar (v, loc) -> get_expr v loc
       (* <:expr< $lid:v$ >> *)
 
     | EPanytagvars (v, loc) -> 
-	let s = get_expr v loc in
-(*	<:expr< ((XHTML.M.tot (XML.EncodedPCDATA $s$)) *)
-	<:expr< ((XHTML.M.tot (XML.PCDATA $s$)) 
-		   : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
+        let s = get_expr v loc in
+(*        <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $s$)) *)
+        <:expr< ((XHTML.M.tot (XML.PCDATA $s$)) 
+                   : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
 
     | EPcomment (c, loc) -> <:expr< XHTML.M.tot (XML.Comment $str:c$) >>
 
@@ -173,7 +173,7 @@ module ExpoOrPatt = struct
       PLEmpty loc -> <:expr< [] >>
     | PLExpr (v, loc) -> get_expr v loc
     | PLCons (a,l, loc) ->
-	<:expr< [ $to_expr a$ :: $to_expr_taglist l$ ] >>
+        <:expr< [ $to_expr a$ :: $to_expr_taglist l$ ] >>
 
   and to_expr_attlist = function
       PLEmpty loc -> <:expr< [] >>
@@ -212,17 +212,17 @@ EXTEND
     child_list = OPT exprpatt_any_tag_list;
     GAT -> 
       let attlist = match attribute_list with
-	  None -> PLEmpty loc
-	| Some l -> l
+          None -> PLEmpty loc
+        | Some l -> l
       in
       let taglist = match child_list with
-	  None -> PLEmpty loc
-	| Some l -> l
+          None -> PLEmpty loc
+        | Some l -> l
       in EPanytag
-	(tag,
-	 attlist, 
-	 taglist,
-	 loc)
+        (tag,
+         attlist, 
+         taglist,
+         loc)
   | dt = WHITESPACE -> EPwhitespace (dt, loc)
   | dt = DATA -> EPpcdata (dt, loc)
   | c = COMMENT -> EPcomment (c, loc)
@@ -238,8 +238,8 @@ EXTEND
       value = exprpatt_value_or_var;
       suite  = OPT exprpatt_any_attribute_list ->
       let suite = match suite with
-	  None -> PLEmpty loc
-	| Some l -> l
+          None -> PLEmpty loc
+        | Some l -> l
       in PLCons (EPanyattr (a,value, loc), suite, loc)
   ] ];
 
@@ -250,8 +250,8 @@ EXTEND
     | anytag = exprpatt_any_tag;
       suite  = OPT exprpatt_any_tag_list ->
       let suite = match suite with
-	  None -> PLEmpty loc
-	| Some l -> l
+          None -> PLEmpty loc
+        | Some l -> l
       in PLCons (anytag, suite, loc)
   ] ];
 

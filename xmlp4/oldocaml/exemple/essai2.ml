@@ -38,18 +38,18 @@ let sa = <<
 
 <html>   <head>
            <title>Essai2</title> 
-	 </head>
-	<body>
-	  <div>
-	    je suis   dans <b><i>div</i></b> avec div en gras 
-	  </div>
-	  <h1>  <!-- commentaire --> a$$ je suis dans h1
+         </head>
+        <body>
+          <div>
+            je suis   dans <b><i>div</i></b> avec div en gras 
+          </div>
+          <h1>  <!-- commentaire --> a$$ je suis dans h1
  $list: 
-	          (*  fgd
-		       fddf   *)
+                  (*  fgd
+                       fddf   *)
 
 
-		  a
+                  a
 
 
 
@@ -63,27 +63,27 @@ let arbre = <<
 
 <html>   <head>
            <title>Essai2</title> 
-	 </head>
-	<body>
-	  <div>
-	    je suis   dans <b><i>div</i></b> avec div en gras 
-	  </div>
-	  <h1>  <!-- commentaire --> a$$ je suis dans h1
-	      $list: 
-	          (*  fgd
-		       fddf   *)
+         </head>
+        <body>
+          <div>
+            je suis   dans <b><i>div</i></b> avec div en gras 
+          </div>
+          <h1>  <!-- commentaire --> a$$ je suis dans h1
+              $list: 
+                  (*  fgd
+                       fddf   *)
 
 
-		  a
+                  a
 
 
               $
-	  </h1>
+          </h1>
 
 
-	</body>
+        </body>
 
-			<!-- qq < <!-- commentaires -- <!- imbriqués -> --> ss -->
+                        <!-- qq < <!-- commentaires -- <!- imbriqués -> --> ss -->
 </html> >>;;
 
 

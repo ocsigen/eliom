@@ -473,7 +473,7 @@ module type T =
         sig
           type block = [ `Hr ]
           type inline = [ `B | `Big | `I | `Small | `Sub | `Sup | `Tt ]
-	  type flow = [ inline | block ]
+          type flow = [ inline | block ]
         end
     
 (** {3 5.4.2. Edit Module} *)
@@ -739,7 +739,7 @@ module type T =
       | IMAGE.inline | SPECIAL.inline | i18nclass | block_sans_form ]
     type precontent = (* VB *)
         [ TEXT.inline | HYPERTEXT.inline | `Tt | `I | `B | `Script | `Map |
-	  i18nclass ]
+          i18nclass ]
     type inline_sans_label =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
         | FORMS.inline_sans_label | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
@@ -772,7 +772,7 @@ module type T =
     val head : ?a:([< i18n | `Profile ] attrib list) ->
       [< `Base | `Title ] elt ->
         [< `Meta | `Link | `Style | `Object | `Script ] elt list
-	-> [>`Head] elt
+        -> [>`Head] elt
     val title : ([< i18n ], [< `PCDATA ], [>`Title]) unary
     val body : ([< common ], [< block ], [>`Body]) star
     
@@ -797,7 +797,7 @@ module type T =
     val div : ([< common ], [< `PCDATA | flow ], [>`Div]) star
     val p : ([< common ], [< `PCDATA | inline ], [>`P]) star
     val pre : ([< common | `XML_space ], 
-	       [< `PCDATA | precontent ], [>`Pre]) star
+               [< `PCDATA | precontent ], [>`Pre]) star
     
     val abbr : ([< common ], [< `PCDATA | inline ], [>`Abbr]) star
     val acronym : ([< common ], [< `PCDATA | inline ], [>`Acronym]) star
@@ -817,7 +817,7 @@ module type T =
     
     val a : ([< common | `Accesskey | `Charset | `Href | `Hreflang
              | `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type 
-	     | `Shape | `Coords ],
+             | `Shape | `Coords ],
              [< `PCDATA | inline_sans_a_mix ], [>`A]) star
     
 (** {2 List} *)
@@ -1022,7 +1022,7 @@ module type T =
 
     val pretty_print : ?width:int ->
       ?encode:(string -> string) -> ?encoding:string ->
-	(string -> unit) -> html -> unit
+        (string -> unit) -> html -> unit
     
 (** {1 Tools} *)
 
@@ -1055,7 +1055,7 @@ module type T =
 
     val rm_attrib : (string -> bool) -> 'a attribs -> 'a attribs
     val rm_attrib_from_list :
-	(string -> bool) -> (string -> bool) -> 'a attribs -> 'a attribs
+        (string -> bool) -> (string -> bool) -> 'a attribs -> 'a attribs
 
 (** Exporting the following will drive a hole through the type system,
    because they allow to add any attribute to any element. *)
@@ -1070,7 +1070,7 @@ module type T =
     val toeltl : 'a elt list -> XML.elt list
 
     val ocsigen_print : 
-	?width:int -> ?encode:(string -> string) -> [ `Html ] elt -> string
+        ?width:int -> ?encode:(string -> string) -> [ `Html ] elt -> string
 
   end
 
@@ -1508,7 +1508,7 @@ module Version =
       struct
         type block = [ `Hr ]
         type inline = [ `B | `Big | `I | `Small | `Sub | `Sup | `Tt ]
-	type flow = [ inline | block ]
+        type flow = [ inline | block ]
       end
     
     let hr = terminal "hr"
@@ -1533,11 +1533,11 @@ module Version =
 
     let a_shape d = 
       string_attrib "shape" 
-	(match d with 
-	  `Rect -> "rect" 
-	| `Circle -> "circle"
-	| `Poly -> "poly"
-	| `Default -> "default")
+        (match d with 
+          `Rect -> "rect" 
+        | `Circle -> "circle"
+        | `Poly -> "poly"
+        | `Default -> "default")
     let a_coords = string_attrib "coords"
     let a_nohref `Nohref = string_attrib "nohref" "nohref"
     let a_usemap = string_attrib "coords"
@@ -1732,7 +1732,7 @@ module Version =
       | IMAGE.inline | SPECIAL.inline | i18nclass | block_sans_form ]
     type precontent = (* VB *)
         [ TEXT.inline | HYPERTEXT.inline | `Tt | `I | `B | `Script | `Map |
-	  i18nclass ]
+          i18nclass ]
     type inline_sans_label =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
         | FORMS.inline_sans_label | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
@@ -1796,9 +1796,9 @@ module Version =
         
     let validator_icon = function
       | `XHTML_01_00 -> compose_validator_icon
-	    "http://www.w3.org/Icons/valid-xhtml10" "Valid XHTML 1.0!"
+            "http://www.w3.org/Icons/valid-xhtml10" "Valid XHTML 1.0!"
       | `XHTML_01_01 -> compose_validator_icon
-	    "http://www.w3.org/Icons/valid-xhtml11" "Valid XHTML 1.1!"
+            "http://www.w3.org/Icons/valid-xhtml11" "Valid XHTML 1.1!"
 
     let addto_class name =
       XML.amap (fun _ a -> XML.add_space_sep_attrib "class" name a)
@@ -1834,7 +1834,7 @@ module Version =
 
     let ocsigen_print version ?width ?encode arbre =
       XML.xh_print ?width ?encode blocktags semiblocktags (doctype version) arbre
-	
+        
   end    
 
 module M_01_00 : T_01_00 =

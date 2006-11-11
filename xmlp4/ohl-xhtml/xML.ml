@@ -34,7 +34,7 @@ let int_attrib name value = AInt (name, value)
 let string_attrib name value = AStr (name, value)
 let space_sep_attrib name values = AStrL (Space, name, values)
 let comma_sep_attrib name values = AStrL (Comma, name, values)
-	
+        
 let attrib_to_string encode = function
   | AInt (name, i) -> name ^ "=\"" ^ string_of_int i ^ "\""
   | AStr (name, s) -> name ^ "=\"" ^ encode s ^ "\""
@@ -131,8 +131,8 @@ let rec rm_attrib_from_list is_attrib is_value = function
   | [] -> []
   | AStrL (sep, name, values) :: tail when is_attrib name ->
       begin match List.filter (fun v -> not (is_value v)) values with
-      |	[] -> tail
-      |	values' -> AStrL (sep, name, values') :: tail
+      |        [] -> tail
+      |        values' -> AStrL (sep, name, values') :: tail
       end
   | head :: tail -> head :: rm_attrib_from_list is_attrib is_value tail
 
@@ -150,7 +150,7 @@ let rec fold of_empty of_comment of_pcdata of_entity of_leaf of_node = function
   | Leaf (name, attribs) -> of_leaf name attribs
   | Node (name, attribs, elts) ->
       of_node name attribs
-	(List.map (fold of_empty of_comment of_pcdata of_entity of_leaf of_node) elts)
+        (List.map (fold of_empty of_comment of_pcdata of_entity of_leaf of_node) elts)
   | _ -> failwith "not implemented for Ocsigen syntax extension"
 
 (* (* is this AT ALL useful??? *)
@@ -162,8 +162,8 @@ let rec foldx of_empty of_comment of_pcdata of_entity of_leaf of_node update_sta
   | Leaf (name, attribs) -> of_leaf state name attribs
   | Node (name, attribs, elts) ->
       of_node state name attribs
-	(List.map (foldx of_empty of_comment of_pcdata of_entity of_leaf of_node
-		     update_state (update_state name attribs state)) elts)
+        (List.map (foldx of_empty of_comment of_pcdata of_entity of_leaf of_node
+                     update_state (update_state name attribs state)) elts)
 *)
 
 let all_attribs access ?(is_elt = fun ename -> true) aname elt =
@@ -210,10 +210,10 @@ let translate root_leaf root_node sub_leaf sub_node update_state state elt =
   let rec translate' state = function
     | (Empty | Comment _ | PCDATA _ | Entity _) as elt -> [elt]
     | Leaf (name, attribs) ->
-	sub_leaf state name attribs
+        sub_leaf state name attribs
     | Node (name, attribs, elts) ->
-	sub_node state name attribs
-	  (flatmap (translate' (update_state name attribs state)) elts) 
+        sub_node state name attribs
+          (flatmap (translate' (update_state name attribs state)) elts) 
     | _ -> failwith "not implemented for Ocsigen syntax extension"
   in
   match elt with
@@ -266,7 +266,7 @@ let encode_unsafe s =
     | '"' -> Buffer.add_string b "&quot;"
     | '&' -> Buffer.add_string b "&amp;"
     | c when is_control c ->
-	Buffer.add_string b ("&#" ^ string_of_int (Char.code c) ^ ";")
+        Buffer.add_string b ("&#" ^ string_of_int (Char.code c) ^ ";")
     | c -> Buffer.add_char b c) s;
   Buffer.contents b
 
@@ -279,7 +279,7 @@ let encode_unsafe_and_at s =
     | '&' -> Buffer.add_string b "&amp;"
     | '@' -> Buffer.add_string b "&#64;"
     | c when is_control c ->
-	Buffer.add_string b ("&#" ^ string_of_int (Char.code c) ^ ";")
+        Buffer.add_string b ("&#" ^ string_of_int (Char.code c) ^ ";")
     | c -> Buffer.add_char b c) s;
   Buffer.contents b
 
@@ -394,8 +394,8 @@ let rec to_formatter ios encode f = function
       open_box ios f 4;
       print_string ios f ("<" ^ name);
       List.iter (fun a ->
-	print_space ios f ();
-	Format.pp_print_string f (attrib_to_string encode a)) attribs;
+        print_space ios f ();
+        Format.pp_print_string f (attrib_to_string encode a)) attribs;
       print_string ios f " />";
       close_box ios f ();
       print_cut ios f ()
@@ -406,8 +406,8 @@ let rec to_formatter ios encode f = function
       open_box ios f 4;
       print_string ios f ("<" ^ name);
       List.iter (fun a ->
-	print_space ios f ();
-	Format.pp_print_string f (attrib_to_string encode a)) attribs;
+        print_space ios f ();
+        Format.pp_print_string f (attrib_to_string encode a)) attribs;
       print_string ios f ">";
       close_box ios f ();
       print_cut ios_elt f ();
@@ -481,7 +481,7 @@ let xh_print ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags do
       pp_open_tbox xh_string ();
       pp_force_newline xh_string ();
       if i > 0 then
-	pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_tbreak xh_string (taille_tab*i) 0;
       pp_print_string xh_string ("<"^tag);
       xh_print_attrs encode attrs;
       pp_print_string xh_string ">";
@@ -490,7 +490,7 @@ let xh_print ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags do
       
       pp_force_newline xh_string ();
       if i > 0 then
-	pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_tbreak xh_string (taille_tab*i) 0;
       pp_print_string xh_string ("</"^tag^">");
       pp_close_tbox xh_string ()
     end
@@ -503,7 +503,7 @@ let xh_print ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags do
       pp_open_tbox xh_string ();
       pp_force_newline xh_string ();
       if i > 0 then
-	pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_tbreak xh_string (taille_tab*i) 0;
       pp_print_string xh_string ("<"^tag);
       xh_print_attrs encode attrs;
       pp_print_string xh_string ">";
@@ -530,13 +530,13 @@ let xh_print ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags do
       if (List.mem name blocktags)
       then xh_print_blocktag encode name xh_attrs xh_taglist i
       else 
-	(if (List.mem name semiblocktags)
-	then xh_print_semiblocktag encode name xh_attrs xh_taglist i
-	else begin
-	  xh_print_text (encode ws1) i is_first;
-	  xh_print_inlinetag encode name xh_attrs xh_taglist i is_first;
-	  xh_print_text (encode ws2) i is_first;
-	end);
+        (if (List.mem name semiblocktags)
+        then xh_print_semiblocktag encode name xh_attrs xh_taglist i
+        else begin
+          xh_print_text (encode ws1) i is_first;
+          xh_print_inlinetag encode name xh_attrs xh_taglist i is_first;
+          xh_print_text (encode ws2) i is_first;
+        end);
       xh_print_taglist queue i false removetailingws
     end
 
@@ -618,7 +618,7 @@ let xh_print ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags do
   | (Leaf (name,xh_attrs))::queue ->
       print_nodes "" name xh_attrs [] "" queue i is_first removetailingws
 
-	(* Whitespaces *)
+        (* Whitespaces *)
   | (Whitespace(texte))::queue ->
       xh_print_text (encode texte) i is_first;
       xh_print_taglist queue i false removetailingws

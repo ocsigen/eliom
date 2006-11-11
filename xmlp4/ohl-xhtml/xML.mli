@@ -140,9 +140,9 @@ val all_entities : elt -> string list
 val translate :
     (ename -> attrib list -> elt) ->
       (ename -> attrib list -> elt list -> elt) ->
-	('state -> ename -> attrib list -> elt list) ->
-	  ('state -> ename -> attrib list -> elt list -> elt list) ->
-	    (ename -> attrib list -> 'state -> 'state) -> 'state -> elt -> elt
+        ('state -> ename -> attrib list -> elt list) ->
+          ('state -> ename -> attrib list -> elt list -> elt list) ->
+            (ename -> attrib list -> 'state -> 'state) -> 'state -> elt -> elt
 
 
 
@@ -154,4 +154,4 @@ val translate :
 val xh_print :
     ?width:int ->
       ?encode:(string -> string) ->
-	ename list -> ename list -> string -> elt -> string
+        ename list -> ename list -> string -> elt -> string

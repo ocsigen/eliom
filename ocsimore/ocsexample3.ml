@@ -39,19 +39,19 @@ module RegisterPublicOrNotBoxes =
       let untag (`PublicOrNotBox x) = x
       let default_handler ex h u r = box_exn_handler ex
       let make_boxofboxes ~filter l h u r = 
-	List.map (fun b -> (filter b) h u r) l
+        List.map (fun b -> (filter b) h u r) l
       type container_param = Xhtmltypes.div_attrib XHTML.M.attrib list option
       let container f ~box_param:(a,l) h u r = 
-	boxes_container ?a:a (f ~user:u ~resource:r l h u r)
+        boxes_container ?a:a (f ~user:u ~resource:r l h u r)
      end)
 
 let fold_publicornotboxes = 
   RegisterPublicOrNotBoxes.register_unfolds
     ~box_constructor:(fun b h u r -> match b with
       #RegisterPublicOrNotBoxes.box as bb -> 
-	RegisterPublicOrNotBoxes.unfold bb h u r
+        RegisterPublicOrNotBoxes.unfold bb h u r
     | #RegisterBoxes.boxes as bb -> RegisterBoxes.unfolds bb
-		     )
+                     )
 
 (* Register for public pages: *)
 module RegisterPublicBoxes =
@@ -66,21 +66,21 @@ module RegisterPublicBoxes =
       let untag (`PublicBox x) = x
       let default_handler ex h r = box_exn_handler ex
       let make_boxofboxes ~filter l h r = 
-	List.map (fun b -> (filter b) h r) l
+        List.map (fun b -> (filter b) h r) l
       type container_param = Xhtmltypes.div_attrib XHTML.M.attrib list option
       let container f ~box_param:(a,l) h r = 
-	boxes_container ?a:a 
-	  (f ~user:anonymoususer ~resource:r l h r)
+        boxes_container ?a:a 
+          (f ~user:anonymoususer ~resource:r l h r)
      end)
 
 let fold_publicboxes = 
   RegisterPublicBoxes.register_unfolds
     ~box_constructor:(fun b h r -> match b with
       #RegisterPublicBoxes.box as bb -> 
-	RegisterPublicBoxes.unfold bb h r
+        RegisterPublicBoxes.unfold bb h r
     | #RegisterPublicOrNotBoxes.boxes as bb -> 
-	RegisterPublicOrNotBoxes.unfolds bb h anonymoususer r
-		     )
+        RegisterPublicOrNotBoxes.unfolds bb h anonymoususer r
+                     )
 
 (* Register for piece of news pages: *)
 module RegisterNewsBoxes =
@@ -88,7 +88,7 @@ module RegisterNewsBoxes =
     (struct 
       type content = Xhtmltypes.body_content XHTML.M.elt
       type 'a t = server_params -> user -> resource ->
-	StringMessage.t index -> 'a
+        StringMessage.t index -> 'a
       type box = [`NewsBox of content t tfolded]
       type boxes = box
       let name = "OcsexampleRegisterNewsBoxes"
@@ -96,10 +96,10 @@ module RegisterNewsBoxes =
       let untag (`NewsBox x) = x
       let default_handler ex h u r i = box_exn_handler ex
       let make_boxofboxes ~filter l h u r i = 
-	List.map (fun b -> (filter b) h u r i) l
+        List.map (fun b -> (filter b) h u r i) l
       type container_param = Xhtmltypes.div_attrib XHTML.M.attrib list option
       let container f ~box_param:(a,l) h u r i = 
-	boxes_container ?a:a (f ~user:u ~resource:r l h u r i)
+        boxes_container ?a:a (f ~user:u ~resource:r l h u r i)
     end)
 
 let fold_newsboxes = 
@@ -114,30 +114,30 @@ module RegisterPublicNewsBoxes =
       type 'a t = server_params -> resource -> StringMessage.t index -> 'a
       type box = [`PublicNewsBox of content t tfolded]
       type boxes = [ box
-	| RegisterNewsBoxes.boxes
-	| RegisterPublicBoxes.boxes ]
+        | RegisterNewsBoxes.boxes
+        | RegisterPublicBoxes.boxes ]
       let name = "OcsexampleRegisterPublicNewsBoxes"
       let tag x = `PublicNewsBox x
       let untag (`PublicNewsBox x) = x
       let default_handler ex h r i = box_exn_handler ex
       let make_boxofboxes ~filter l h r i = 
-	List.map (fun b -> (filter b) h r i) l
+        List.map (fun b -> (filter b) h r i) l
       type container_param = Xhtmltypes.div_attrib XHTML.M.attrib list option
       let container f ~box_param:(a,l) h r i = 
-	boxes_container ?a:a 
-	  (f ~user:anonymoususer ~resource:r l h r i)
+        boxes_container ?a:a 
+          (f ~user:anonymoususer ~resource:r l h r i)
     end)
 
 let fold_publicnewsboxes = 
   RegisterPublicNewsBoxes.register_unfolds
     ~box_constructor:(fun b h r i -> match b with
       #RegisterPublicNewsBoxes.box as bb -> 
-	RegisterPublicNewsBoxes.unfold bb h r i
+        RegisterPublicNewsBoxes.unfold bb h r i
     | #RegisterNewsBoxes.boxes as bb -> 
-	RegisterNewsBoxes.unfolds bb h anonymoususer r i
+        RegisterNewsBoxes.unfolds bb h anonymoususer r i
     | #RegisterPublicBoxes.boxes as bb -> 
-	RegisterPublicBoxes.unfolds bb h r
-		     )
+        RegisterPublicBoxes.unfolds bb h r
+                     )
 
 module RegisterUserBoxes =
   MakeRegister
@@ -151,28 +151,28 @@ module RegisterUserBoxes =
       let untag (`UserBox x) = x
       let default_handler ex h u r = box_exn_handler ex
       let make_boxofboxes ~filter l h u r = 
-	List.map (fun b -> (filter b) h u r) l
+        List.map (fun b -> (filter b) h u r) l
       type container_param = Xhtmltypes.div_attrib XHTML.M.attrib list option
       let container f ~box_param:(a,l) h u r = 
-	boxes_container ?a:a 
-	  (f ~user:u ~resource:r l h u r)
+        boxes_container ?a:a 
+          (f ~user:u ~resource:r l h u r)
     end)
 
 let fold_userboxes = 
   RegisterUserBoxes.register_unfolds
     ~box_constructor:(fun b h u r -> match b with
       #RegisterUserBoxes.box as bb -> 
-	RegisterUserBoxes.unfold bb h u r
+        RegisterUserBoxes.unfold bb h u r
     | #RegisterPublicOrNotBoxes.boxes as bb -> 
-	RegisterPublicOrNotBoxes.unfolds bb h u r
-		     )
+        RegisterPublicOrNotBoxes.unfolds bb h u r
+                     )
 
 module RegisterUserNewsBoxes =
   MakeRegister
     (struct 
       type content = Xhtmltypes.body_content XHTML.M.elt
       type 'a t = server_params -> user -> resource ->
-	StringMessage.t index -> 'a
+        StringMessage.t index -> 'a
       type box = [`UserNewsBox of content t tfolded]
       type boxes = [ box | RegisterUserBoxes.boxes | RegisterNewsBoxes.boxes ]
       let name = "OcsexampleRegisterUserNewsBoxes"
@@ -180,21 +180,21 @@ module RegisterUserNewsBoxes =
       let untag (`UserNewsBox x) = x
       let default_handler ex h u r i = box_exn_handler ex
       let make_boxofboxes ~filter l h u r i = 
-	List.map (fun b -> (filter b) h u r i) l
+        List.map (fun b -> (filter b) h u r i) l
       type container_param = Xhtmltypes.div_attrib XHTML.M.attrib list option
       let container f ~box_param:(a,l) h u r i = 
-	boxes_container ?a:a 
-	  (f ~user:u ~resource:r l h u r i)
+        boxes_container ?a:a 
+          (f ~user:u ~resource:r l h u r i)
     end)
 
 let fold_usernewsboxes = 
   RegisterUserNewsBoxes.register_unfolds
     ~box_constructor:(fun b h u r i -> match b with
       #RegisterUserNewsBoxes.box as bb -> 
-	RegisterUserNewsBoxes.unfold bb h u r i
+        RegisterUserNewsBoxes.unfold bb h u r i
     | #RegisterUserBoxes.boxes as bb -> RegisterUserBoxes.unfolds bb h u r
     | #RegisterNewsBoxes.boxes as bb -> RegisterNewsBoxes.unfolds bb h u r i
-		     )
+                     )
 
 
 let fold_news_headers_list_box =
@@ -222,63 +222,63 @@ let public_main_page_number =
   Ocsipersist.get
     (Ocsipersist.make_persistant_lazy "ocsexample_public_main_page_number"
        (fun () -> 
-	  RegisterPublicBoxes.dbinsertlist
-	   ~rights:([anonymoususer],[root],[rocsexample],[rocsexample]) 
-	   (fold_publicboxes
-	      [((fold_title_box "Mon site") :> RegisterPublicBoxes.boxes);
-	       ((fold_text_box "(user : toto and password : titi)")
-		  :> RegisterPublicBoxes.boxes);
-	       ((fold_login_box_action ())
-		  :> RegisterPublicBoxes.boxes);
-	       ((fold_news_headers_list_box messageslist_number)
-		  :> RegisterPublicBoxes.boxes)])
+          RegisterPublicBoxes.dbinsertlist
+           ~rights:([anonymoususer],[root],[rocsexample],[rocsexample]) 
+           (fold_publicboxes
+              [((fold_title_box "Mon site") :> RegisterPublicBoxes.boxes);
+               ((fold_text_box "(user : toto and password : titi)")
+                  :> RegisterPublicBoxes.boxes);
+               ((fold_login_box_action ())
+                  :> RegisterPublicBoxes.boxes);
+               ((fold_news_headers_list_box messageslist_number)
+                  :> RegisterPublicBoxes.boxes)])
        ))
 
 let public_news_page_number = 
   Ocsipersist.get
     (Ocsipersist.make_persistant_lazy "ocsexample_public_news_page_number"
        (fun () ->
-	  RegisterPublicNewsBoxes.dbinsertlist
-	   ~rights:([anonymoususer],[root],[rocsexample],[rocsexample]) 
-	   (fold_publicnewsboxes
-	      [((fold_title_box "Info")
-		  :> RegisterPublicNewsBoxes.boxes);
-	       ((fold_login_box_action ())
-		  :> RegisterPublicNewsBoxes.boxes);
-	       ((fold_news_box ())
-		  :> RegisterPublicNewsBoxes.boxes)])
+          RegisterPublicNewsBoxes.dbinsertlist
+           ~rights:([anonymoususer],[root],[rocsexample],[rocsexample]) 
+           (fold_publicnewsboxes
+              [((fold_title_box "Info")
+                  :> RegisterPublicNewsBoxes.boxes);
+               ((fold_login_box_action ())
+                  :> RegisterPublicNewsBoxes.boxes);
+               ((fold_news_box ())
+                  :> RegisterPublicNewsBoxes.boxes)])
        ))
 
 let user_main_page_number =
   Ocsipersist.get
     (Ocsipersist.make_persistant_lazy "ocsexample_user_main_page_number"
        (fun () -> 
-	  RegisterUserBoxes.dbinsertlist
-	   ~rights:([anonymoususer],[root],[rocsexample],[rocsexample]) 
-	   (fold_userboxes
-	      [((fold_title_box "Mon site")
-		  :> RegisterUserBoxes.boxes);
-	       ((fold_text_box "Bonjour !")
-		  :> RegisterUserBoxes.boxes);
-	       ((fold_user_pages_connected_box ())
-		  :> RegisterUserBoxes.boxes);
-	       ((fold_news_headers_list_box messageslist_number)
-		  :> RegisterUserBoxes.boxes)])
+          RegisterUserBoxes.dbinsertlist
+           ~rights:([anonymoususer],[root],[rocsexample],[rocsexample]) 
+           (fold_userboxes
+              [((fold_title_box "Mon site")
+                  :> RegisterUserBoxes.boxes);
+               ((fold_text_box "Bonjour !")
+                  :> RegisterUserBoxes.boxes);
+               ((fold_user_pages_connected_box ())
+                  :> RegisterUserBoxes.boxes);
+               ((fold_news_headers_list_box messageslist_number)
+                  :> RegisterUserBoxes.boxes)])
        ))
 
 let user_news_page_number = 
   Ocsipersist.get
     (Ocsipersist.make_persistant_lazy "ocsexample_user_news_page_number"
        (fun () ->
-	  RegisterUserNewsBoxes.dbinsertlist	   
-	   ~rights:([anonymoususer],[root],[rocsexample],[rocsexample]) 
-	   (fold_usernewsboxes
-	      [((fold_title_box "Info")
-		  :> RegisterUserNewsBoxes.boxes);
-	       ((fold_user_pages_connected_box ())
-		  :> RegisterUserNewsBoxes.boxes);
-	       ((fold_news_box ())
-		  :> RegisterUserNewsBoxes.boxes)])
+          RegisterUserNewsBoxes.dbinsertlist           
+           ~rights:([anonymoususer],[root],[rocsexample],[rocsexample]) 
+           (fold_usernewsboxes
+              [((fold_title_box "Info")
+                  :> RegisterUserNewsBoxes.boxes);
+               ((fold_user_pages_connected_box ())
+                  :> RegisterUserNewsBoxes.boxes);
+               ((fold_news_box ())
+                  :> RegisterUserNewsBoxes.boxes)])
        ))
 
 
@@ -286,16 +286,16 @@ let user_news_page_number =
 let accueil h () () = 
   page h
     ((RegisterPublicBoxes.dbgetlist
-	~user:anonymoususer
-	~resource:rocsexample
-	~key:public_main_page_number) h rocsexample)
+        ~user:anonymoususer
+        ~resource:rocsexample
+        ~key:public_main_page_number) h rocsexample)
 
 let print_news_page h i () = 
   page h
     ((RegisterPublicNewsBoxes.dbgetlist
-	~user:anonymoususer
-	~resource:rocsexample
-	~key:public_news_page_number) h rocsexample i)
+        ~user:anonymoususer
+        ~resource:rocsexample
+        ~key:public_news_page_number) h rocsexample i)
 
 let _ = register_service
   ~service:main_page
@@ -308,16 +308,16 @@ let _ = register_service
 let user_main_page user h () () =
   page h
     ((RegisterUserBoxes.dbgetlist
-	~user:user
-	~resource:rocsexample
-	~key:user_main_page_number) h user rocsexample)
+        ~user:user
+        ~resource:rocsexample
+        ~key:user_main_page_number) h user rocsexample)
 
 let user_news_page user h i () =
   page h
     ((RegisterUserNewsBoxes.dbgetlist
-	~user:user
-	~resource:rocsexample
-	~key:user_news_page_number) h user rocsexample i)
+        ~user:user
+        ~resource:rocsexample
+        ~key:user_news_page_number) h user rocsexample i)
 
 let launch_session sp user =
   register_service_for_session sp ~service:main_page 

@@ -40,8 +40,8 @@ exception Stop_sending (* Something bad happened to another request
    an exception ... *)
 let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
 let ctx = Ssl.init ();
-	  ref (Ssl.create_context Ssl.SSLv23 Ssl.Server_context)
-	  
+          ref (Ssl.create_context Ssl.SSLv23 Ssl.Server_context)
+          
 (* non blocking input and output (for use with lwt): *)
 
 (* let _ = Unix.set_nonblock Unix.stdin
@@ -67,7 +67,7 @@ let fixup_url_string =
     problem_re
     (fun m s ->
        Printf.sprintf "%%%02x" 
-	(Char.code s.[Netstring_pcre.match_beginning m]))
+        (Char.code s.[Netstring_pcre.match_beginning m]))
 ;;
 
 let get_boundary cont_enc =
@@ -92,37 +92,37 @@ let get_frame_infos http_frame filenames =
     let url = Http_header.get_url http_frame.Stream_http_frame.header in
     let url2 = 
       Neturl.parse_url 
-	~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
-	(* ~accept_8bits:true *)
-	(* Neturl.fixup_url_string url *)
-	(fixup_url_string url)
+        ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
+        (* ~accept_8bits:true *)
+        (* Neturl.fixup_url_string url *)
+        (fixup_url_string url)
     in
     let path = Neturl.string_of_url
-	(Neturl.remove_from_url 
-	   ~param:true
-	   ~query:true 
-	   ~fragment:true 
-	   url2) in
+        (Neturl.remove_from_url 
+           ~param:true
+           ~query:true 
+           ~fragment:true 
+           url2) in
     let host =
       try
         let hostport = 
           Http_header.get_headers_value http_frame.Stream_http_frame.header "Host" in
-    	try 
-	  Some (String.sub hostport 0 (String.index hostport ':'))
-	with _ -> Some hostport
+            try 
+          Some (String.sub hostport 0 (String.index hostport ':'))
+        with _ -> Some hostport
       with _ -> None
     in
     Messages.debug ("host="^(match host with None -> "<none>" | Some h -> h));
     let params = Neturl.string_of_url
-	(Neturl.remove_from_url
-	   ~user:true
-	   ~user_param:true
-	   ~password:true
-	   ~host:true
-	   ~port:true
-	   ~path:true
-	   ~other:true
-	   url2) in
+        (Neturl.remove_from_url
+           ~user:true
+           ~user_param:true
+           ~password:true
+           ~host:true
+           ~port:true
+           ~path:true
+           ~other:true
+           url2) in
     let params_string = try
       Neturl.url_query ~encoded:true url2
     with Not_found -> ""
@@ -132,153 +132,153 @@ let get_frame_infos http_frame filenames =
     let find_post_params = 
       if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
       then return [] else 
-	match http_frame.Stream_http_frame.content with
-	  None -> return []
-	| Some body -> 
-	    let ct = (String.lowercase
-		  (Http_header.get_headers_value
-		     http_frame.Stream_http_frame.header "Content-Type")) in
-	    if ct = "application/x-www-form-urlencoded"
-	    then 
-	      catch
-		(fun () ->
-		  Ocsistream.string_of_stream body >>=
-		  (fun r -> return
-		      (Netencoding.Url.dest_url_encoded_parameters r)))
-		(function
-		    Ocsistream.String_too_large -> fail Input_is_too_large
-		  | e -> fail e)
-	    else 
-	      match (Netstring_pcre.string_match 
-		       (Netstring_pcre.regexp "multipart/form-data*")) ct 0
-	      with 
-	      | None -> fail Ocsigen_unsupported_media
-	      | _ ->
-		  let bound = get_boundary ct in
-		  let param_names = ref [] in
-		  let create hs =
-		    let cd = List.assoc "content-disposition" hs in
-		    let st = try 
-		      Some (find_field "filename" cd) 
-		    with _ -> None in
-		    let p_name = find_field "name" cd in
-		    match st with 
-		      None -> No_File (p_name, Buffer.create 1024)
-		    | Some store -> 
-			let now = 
-			  Printf.sprintf 
-			    "%s-%f" store (Unix.gettimeofday ()) in
-			match ((Ocsiconfig.get_uploaddir ())) with
-			  Some dname ->
-			    let fname = dname^"/"^now in
-			    param_names := !param_names@[(p_name, fname)];
-			    let fd = Unix.openfile fname 
-				[Unix.O_CREAT;
-				 Unix.O_TRUNC;
-				 Unix.O_WRONLY;
-				 Unix.O_NONBLOCK] 0o666 in
-			    (* Messages.debug "file opened"; *)
-			    filenames := fname::!filenames;
-			    A_File (Lwt_unix.Plain fd)
-			| None -> raise Ocsigen_upload_forbidden
-		  in
-		  let add where s =
-		    match where with 
-		      No_File (p_name, to_buf) -> 
-			Buffer.add_string to_buf s;
-			return ()
-		    | A_File wh -> 
-			Lwt_unix.write wh s 0 (String.length s) >>= 
-			(fun r -> Lwt_unix.yield ())
-		  in
-		  let stop  = function 
-		      No_File (p_name, to_buf) -> 
-			return 
-			  (param_names := !param_names @
-			    [(p_name, Buffer.contents to_buf)])
-			    (* à la fin ? *)
-		    | A_File wh -> (match wh with 
-			Lwt_unix.Plain fdscr -> 
-			  (* Messages.debug "closing file"; *)
-			  Unix.close fdscr
-		      | _ -> ());
-			return ()
-		  in
-		  Multipart.scan_multipart_body_from_stream 
-		    body bound create add stop >>=
-		  (fun () -> return !param_names)
+        match http_frame.Stream_http_frame.content with
+          None -> return []
+        | Some body -> 
+            let ct = (String.lowercase
+                  (Http_header.get_headers_value
+                     http_frame.Stream_http_frame.header "Content-Type")) in
+            if ct = "application/x-www-form-urlencoded"
+            then 
+              catch
+                (fun () ->
+                  Ocsistream.string_of_stream body >>=
+                  (fun r -> return
+                      (Netencoding.Url.dest_url_encoded_parameters r)))
+                (function
+                    Ocsistream.String_too_large -> fail Input_is_too_large
+                  | e -> fail e)
+            else 
+              match (Netstring_pcre.string_match 
+                       (Netstring_pcre.regexp "multipart/form-data*")) ct 0
+              with 
+              | None -> fail Ocsigen_unsupported_media
+              | _ ->
+                  let bound = get_boundary ct in
+                  let param_names = ref [] in
+                  let create hs =
+                    let cd = List.assoc "content-disposition" hs in
+                    let st = try 
+                      Some (find_field "filename" cd) 
+                    with _ -> None in
+                    let p_name = find_field "name" cd in
+                    match st with 
+                      None -> No_File (p_name, Buffer.create 1024)
+                    | Some store -> 
+                        let now = 
+                          Printf.sprintf 
+                            "%s-%f" store (Unix.gettimeofday ()) in
+                        match ((Ocsiconfig.get_uploaddir ())) with
+                          Some dname ->
+                            let fname = dname^"/"^now in
+                            param_names := !param_names@[(p_name, fname)];
+                            let fd = Unix.openfile fname 
+                                [Unix.O_CREAT;
+                                 Unix.O_TRUNC;
+                                 Unix.O_WRONLY;
+                                 Unix.O_NONBLOCK] 0o666 in
+                            (* Messages.debug "file opened"; *)
+                            filenames := fname::!filenames;
+                            A_File (Lwt_unix.Plain fd)
+                        | None -> raise Ocsigen_upload_forbidden
+                  in
+                  let add where s =
+                    match where with 
+                      No_File (p_name, to_buf) -> 
+                        Buffer.add_string to_buf s;
+                        return ()
+                    | A_File wh -> 
+                        Lwt_unix.write wh s 0 (String.length s) >>= 
+                        (fun r -> Lwt_unix.yield ())
+                  in
+                  let stop  = function 
+                      No_File (p_name, to_buf) -> 
+                        return 
+                          (param_names := !param_names @
+                            [(p_name, Buffer.contents to_buf)])
+                            (* à la fin ? *)
+                    | A_File wh -> (match wh with 
+                        Lwt_unix.Plain fdscr -> 
+                          (* Messages.debug "closing file"; *)
+                          Unix.close fdscr
+                      | _ -> ());
+                        return ()
+                  in
+                  Multipart.scan_multipart_body_from_stream 
+                    body bound create add stop >>=
+                  (fun () -> return !param_names)
 
-(* AEFF *)	      (*	IN-MEMORY STOCKAGE *)
-	      (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
-	       * (String.length s) bound in
-	       * Messages.debug (string_of_int (List.length bdlist));
-	       * let simplify (hs,b) = 
-	       * ((find_field "name" 
-	       * (List.assoc "content-disposition" hs)),b) in
-	       * List.iter (fun (hs,b) -> 
-	       * List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
-	       * List.map simplify bdlist *)
+(* AEFF *)              (*        IN-MEMORY STOCKAGE *)
+              (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
+               * (String.length s) bound in
+               * Messages.debug (string_of_int (List.length bdlist));
+               * let simplify (hs,b) = 
+               * ((find_field "name" 
+               * (List.assoc "content-disposition" hs)),b) in
+               * List.iter (fun (hs,b) -> 
+               * List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
+               * List.map simplify bdlist *)
     in
     find_post_params >>= (fun post_params ->
       let internal_state,post_params2 = 
-	try (Some (int_of_string (List.assoc state_param_name post_params)),
-	     List.remove_assoc state_param_name post_params)
-	with Not_found -> (None, post_params)
+        try (Some (int_of_string (List.assoc state_param_name post_params)),
+             List.remove_assoc state_param_name post_params)
+        with Not_found -> (None, post_params)
       in
       let internal_state2,get_params2 = 
-	try 
-	  match internal_state with
-	    None ->
-	      (Some (int_of_string (List.assoc state_param_name get_params)),
-	       List.remove_assoc state_param_name get_params)
-	  | _ -> (internal_state, get_params)
-	with Not_found -> (internal_state, get_params)
+        try 
+          match internal_state with
+            None ->
+              (Some (int_of_string (List.assoc state_param_name get_params)),
+               List.remove_assoc state_param_name get_params)
+          | _ -> (internal_state, get_params)
+        with Not_found -> (internal_state, get_params)
       in
       let action_info, post_params3 =
-	try
-	  let action_name, pp = 
-	    ((List.assoc (action_prefix^action_name) post_params2),
-	     (List.remove_assoc (action_prefix^action_name) post_params2)) in
-	  let reload,pp2 =
-	    try
-	      ignore (List.assoc (action_prefix^action_reload) pp);
-	      (true, (List.remove_assoc (action_prefix^action_reload) pp))
-	    with Not_found -> false, pp in
-	  let ap,pp3 = pp2,[]
-(*	  List.partition 
+        try
+          let action_name, pp = 
+            ((List.assoc (action_prefix^action_name) post_params2),
+             (List.remove_assoc (action_prefix^action_name) post_params2)) in
+          let reload,pp2 =
+            try
+              ignore (List.assoc (action_prefix^action_reload) pp);
+              (true, (List.remove_assoc (action_prefix^action_reload) pp))
+            with Not_found -> false, pp in
+          let ap,pp3 = pp2,[]
+(*          List.partition 
    (fun (a,b) -> 
    ((String.sub a 0 action_param_prefix_end)= 
    full_action_param_prefix)) pp2 *) in
-	  (Some (action_name, reload, ap), pp3)
-	with Not_found -> None, post_params2 in
+          (Some (action_name, reload, ap), pp3)
+        with Not_found -> None, post_params2 in
       let useragent = try (Http_header.get_headers_value
-			     http_frame.Stream_http_frame.header "user-agent")
+                             http_frame.Stream_http_frame.header "user-agent")
       with _ -> ""
       in
       let ifmodifiedsince = try 
-	Some (Netdate.parse_epoch 
-		(Http_header.get_headers_value
-		   http_frame.Stream_http_frame.header "if-modified-since"))
+        Some (Netdate.parse_epoch 
+                (Http_header.get_headers_value
+                   http_frame.Stream_http_frame.header "if-modified-since"))
       with _ -> None
       in return
-	(((path,
+        (((path,
    (* the url path (string list) *)
-	   params,
-	   internal_state2,
-	     ((Ocsimisc.remove_slash (Neturl.url_path url2)), 
-	      host,
-	      get_params2,
-	      post_params3,
-	      useragent)),
-	  action_info,
-	  ifmodifiedsince))))
+           params,
+           internal_state2,
+             ((Ocsimisc.remove_slash (Neturl.url_path url2)), 
+              host,
+              get_params2,
+              post_params3,
+              useragent)),
+          action_info,
+          ifmodifiedsince))))
       (function
-	  Http_com.Com_buffer.End_of_input -> 
-	    fail Connection_reset_by_peer
-	| e -> 
-	    Messages.debug ("Exn during get_frame_infos : "^
-			    (Printexc.to_string e));
-	    fail Ocsigen_Bad_Request (* ? *))
+          Http_com.Com_buffer.End_of_input -> 
+            fail Connection_reset_by_peer
+        | e -> 
+            Messages.debug ("Exn during get_frame_infos : "^
+                            (Printexc.to_string e));
+            fail Ocsigen_Bad_Request (* ? *))
 
 
 let rec getcookie s =
@@ -301,7 +301,7 @@ let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 let find_keepalive http_header =
   try
     let kah = String.lowercase 
-	(Http_header.get_headers_value http_header "Connection") 
+        (Http_header.get_headers_value http_header "Connection") 
     in
     if kah = "keep-alive" 
     then true 
@@ -317,15 +317,15 @@ let service wait_end_request waiter http_frame sockaddr
   (* waiter is here for pipelining: we must wait before sending the page,
      because the previous one may not be sent *)
   let head = ((Http_header.get_method http_frame.Stream_http_frame.header) 
-    		= Some (Http_header.HEAD)) in
+                    = Some (Http_header.HEAD)) in
   let ka = find_keepalive http_frame.Stream_http_frame.header in
   Messages.debug ("Keep-Alive:"^(string_of_bool ka));
   Messages.debug("HEAD:"^(string_of_bool head));
 
   let remove_files l = 
     let rec aux = function
-	(* We remove all the files created by the request (files sent) *)
-	[] -> return ()
+        (* We remove all the files created by the request (files sent) *)
+        [] -> return ()
       | a::l -> (try Unix.unlink a with _ -> ()); aux l
     in Messages.debug "Removing files"; aux l
   in
@@ -336,142 +336,142 @@ let service wait_end_request waiter http_frame sockaddr
     catch (fun () ->
 
       let cookie = 
-	try 
-	  Some (getcookie (Http_header.get_headers_value 
-			     http_frame.Stream_http_frame.header "Cookie"))
-	with _ -> None
+        try 
+          Some (getcookie (Http_header.get_headers_value 
+                             http_frame.Stream_http_frame.header "Cookie"))
+        with _ -> None
       in
 
       (catch
-	 (fun () -> get_frame_infos http_frame filenames)
-	 (fun e -> 
-	   ignore(remove_files !filenames);
-	   wakeup wait_end_request (); 
-	   fail e)) >>=
+         (fun () -> get_frame_infos http_frame filenames)
+         (fun e -> 
+           ignore(remove_files !filenames);
+           wakeup wait_end_request (); 
+           fail e)) >>=
 
       (fun (((stringpath,params,is,(path,host,gp,pp,ua)) as frame_info), 
-	    action_info,ifmodifiedsince) -> 
-	(* here we are sure that the request is terminated. 
-	   We can wait another request *)
+            action_info,ifmodifiedsince) -> 
+        (* here we are sure that the request is terminated. 
+           We can wait another request *)
 
-	wakeup wait_end_request ();
-	(* log *)
-	let ip = ip_of_sockaddr sockaddr in
-	accesslog ("connection"^
-		   (match host with 
-		     None -> ""
-		   | Some h -> (" for "^h))^
-		   " from "^ip^" ("^ua^") : "^stringpath^params);
-	(* end log *)
+        wakeup wait_end_request ();
+        (* log *)
+        let ip = ip_of_sockaddr sockaddr in
+        accesslog ("connection"^
+                   (match host with 
+                     None -> ""
+                   | Some h -> (" for "^h))^
+                   " from "^ip^" ("^ua^") : "^stringpath^params);
+        (* end log *)
 
 
-	match action_info with
-	  None ->
-	    let keep_alive = ka in
-	    (catch
-	       (fun () ->
-		 get_page frame_info sockaddr cookie >>=
-		 (fun (cookie2,send_page,sender,path),
-		   lastmodified,etag ->
-		   match lastmodified,ifmodifiedsince with
-		     Some l, Some i when l<=i -> 
-		       Messages.debug "Sending 304 Not modified ";
-		       send_empty
-			 waiter
-			 ?last_modified:lastmodified
-			 ?etag:etag
-			 ~keep_alive:keep_alive
-			 ~code:304 (* Not modified *)
-			 ~head:head empty_sender
-		   | _ ->
-		       send_page waiter ~keep_alive:keep_alive
-			 ?last_modified:lastmodified
-			 ?cookie:(if cookie2 <> cookie then 
-			   (if cookie2 = None 
-			   then Some remove_cookie_str
-			   else cookie2) 
-			 else None)
-			 ~path:path (* path pour le cookie *) ~head:head
-			 (sender ~server_name:server_name inputchan)))
-	       (function
-		   Ocsigen_Is_a_directory -> 
-		     Messages.debug "Sending 301 Moved permanently";
-		     send_empty
-		       waiter
-		       ~keep_alive:keep_alive
-		       ~location:(stringpath^"/"^params)
+        match action_info with
+          None ->
+            let keep_alive = ka in
+            (catch
+               (fun () ->
+                 get_page frame_info sockaddr cookie >>=
+                 (fun (cookie2,send_page,sender,path),
+                   lastmodified,etag ->
+                   match lastmodified,ifmodifiedsince with
+                     Some l, Some i when l<=i -> 
+                       Messages.debug "Sending 304 Not modified ";
+                       send_empty
+                         waiter
+                         ?last_modified:lastmodified
+                         ?etag:etag
+                         ~keep_alive:keep_alive
+                         ~code:304 (* Not modified *)
+                         ~head:head empty_sender
+                   | _ ->
+                       send_page waiter ~keep_alive:keep_alive
+                         ?last_modified:lastmodified
+                         ?cookie:(if cookie2 <> cookie then 
+                           (if cookie2 = None 
+                           then Some remove_cookie_str
+                           else cookie2) 
+                         else None)
+                         ~path:path (* path pour le cookie *) ~head:head
+                         (sender ~server_name:server_name inputchan)))
+               (function
+                   Ocsigen_Is_a_directory -> 
+                     Messages.debug "Sending 301 Moved permanently";
+                     send_empty
+                       waiter
+                       ~keep_alive:keep_alive
+                       ~location:(stringpath^"/"^params)
                        ~code:301 (* Moved permanently *)
-	               ~head:head empty_sender
-		 | Unix.Unix_error (Unix.EACCES,_,_) ->
-		     Messages.debug "Sending 303 Forbidden";
-		     send_error waiter ~keep_alive:keep_alive
-		       ~error_num:403 xhtml_sender (* Forbidden *)
-		 | e -> fail e)
-	    )
+                       ~head:head empty_sender
+                 | Unix.Unix_error (Unix.EACCES,_,_) ->
+                     Messages.debug "Sending 303 Forbidden";
+                     send_error waiter ~keep_alive:keep_alive
+                       ~error_num:403 xhtml_sender (* Forbidden *)
+                 | e -> fail e)
+            )
 
-	| Some (action_name, reload, action_params) ->
-	    make_action action_name action_params frame_info sockaddr cookie
-	      >>= (fun (cookie2,path) ->
-		let keep_alive = ka in
-		(if reload then
-		  get_page frame_info sockaddr cookie2 >>=
-		  (fun (cookie3,send_page,sender,path),lastmodified,etag ->
-		    (send_page waiter ~keep_alive:keep_alive 
-		       ?last_modified:lastmodified
-		       ?cookie:(if cookie3 <> cookie then 
-			 (if cookie3 = None 
-			 then Some remove_cookie_str
-			 else cookie3) 
-		       else None)
-		       ~path:path ~head:head
-	               (sender ~server_name:server_name inputchan)))
-		else
-		  (send_empty waiter ~keep_alive:keep_alive 
-		     ?cookie:(if cookie2 <> cookie then 
-		       (if cookie2 = None 
-		       then Some remove_cookie_str
-		       else cookie2) 
-		     else None)
-		     ~path:path
+        | Some (action_name, reload, action_params) ->
+            make_action action_name action_params frame_info sockaddr cookie
+              >>= (fun (cookie2,path) ->
+                let keep_alive = ka in
+                (if reload then
+                  get_page frame_info sockaddr cookie2 >>=
+                  (fun (cookie3,send_page,sender,path),lastmodified,etag ->
+                    (send_page waiter ~keep_alive:keep_alive 
+                       ?last_modified:lastmodified
+                       ?cookie:(if cookie3 <> cookie then 
+                         (if cookie3 = None 
+                         then Some remove_cookie_str
+                         else cookie3) 
+                       else None)
+                       ~path:path ~head:head
+                       (sender ~server_name:server_name inputchan)))
+                else
+                  (send_empty waiter ~keep_alive:keep_alive 
+                     ?cookie:(if cookie2 <> cookie then 
+                       (if cookie2 = None 
+                       then Some remove_cookie_str
+                       else cookie2) 
+                     else None)
+                     ~path:path
                      ~code:204 ~head:head
-	             empty_sender))
-		  )) >>=
-	  (fun () -> remove_files !filenames))
+                     empty_sender))
+                  )) >>=
+          (fun () -> remove_files !filenames))
 
       (fun e ->
-	ignore(remove_files !filenames);
-	match e with
-	  (* EXCEPTIONS WHILE COMPUTING A PAGE *)
-	  Ocsigen_404 -> 
-	    Messages.debug "Sending 404 Not Found";
-	    send_error waiter ~keep_alive:ka ~error_num:404 xhtml_sender
-	| Multipart.Multipart_error _ as e ->
-	    Messages.debug (Printexc.to_string e);
-	    Messages.debug "Sending 400";
-	    send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-	| Ocsigen_Bad_Request ->
-	    Messages.debug "Sending 400";
-	    send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-	| Input_is_too_large ->
-	    Messages.debug "Sending 400";
-	    send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-	| Ocsigen_upload_forbidden ->
-	    Messages.debug "Sending 403 Forbidden";
-	    send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-	| Ocsigen_unsupported_media ->
-	    Messages.debug "Sending 415";
-	    send_error waiter ~keep_alive:ka ~error_num:415 xhtml_sender
-	| Connection_reset_by_peer -> fail Connection_reset_by_peer
-	| Stop_sending -> fail Stop_sending
-	| e ->
-	    Messages.warning ("Exn during serv function : "^
-			      (Printexc.to_string e)^" (sending 500)"); 
-	    Messages.debug "Sending 500";
+        ignore(remove_files !filenames);
+        match e with
+          (* EXCEPTIONS WHILE COMPUTING A PAGE *)
+          Ocsigen_404 -> 
+            Messages.debug "Sending 404 Not Found";
+            send_error waiter ~keep_alive:ka ~error_num:404 xhtml_sender
+        | Multipart.Multipart_error _ as e ->
+            Messages.debug (Printexc.to_string e);
+            Messages.debug "Sending 400";
+            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
+        | Ocsigen_Bad_Request ->
+            Messages.debug "Sending 400";
+            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
+        | Input_is_too_large ->
+            Messages.debug "Sending 400";
+            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
+        | Ocsigen_upload_forbidden ->
+            Messages.debug "Sending 403 Forbidden";
+            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
+        | Ocsigen_unsupported_media ->
+            Messages.debug "Sending 415";
+            send_error waiter ~keep_alive:ka ~error_num:415 xhtml_sender
+        | Connection_reset_by_peer -> fail Connection_reset_by_peer
+        | Stop_sending -> fail Stop_sending
+        | e ->
+            Messages.warning ("Exn during serv function : "^
+                              (Printexc.to_string e)^" (sending 500)"); 
+            Messages.debug "Sending 500";
             send_error waiter ~keep_alive:ka ~error_num:500 xhtml_sender
       )
   in 
   let consume = function
-	None -> return ()
+        None -> return ()
       | Some body -> Ocsistream.consume body
   in
   let meth = (Http_header.get_method http_frame.Stream_http_frame.header) in
@@ -482,34 +482,34 @@ let service wait_end_request waiter http_frame sockaddr
   else 
     catch
       (fun () ->
-	(try
-	  return 
-	    (Int64.of_string 
-	       (Http_header.get_headers_value 
-		  http_frame.Stream_http_frame.header 
-		  "content-length"))
-	with 
-	  Not_found -> return Int64.zero
-	| _ -> (consume http_frame.Stream_http_frame.content >>= 
-		(fun () -> 
-		  wakeup wait_end_request (); 
-		  fail Ocsigen_Bad_Request)))
-	>>=
-	    (fun cl ->
-	      if (Int64.compare cl Int64.zero) > 0 &&
-		(meth = Some Http_header.GET || meth = Some Http_header.HEAD)
-	      then consume http_frame.Stream_http_frame.content >>= 
-		(fun () ->
-		  wakeup wait_end_request ();
-		  send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender)
-	      else serv ()))
+        (try
+          return 
+            (Int64.of_string 
+               (Http_header.get_headers_value 
+                  http_frame.Stream_http_frame.header 
+                  "content-length"))
+        with 
+          Not_found -> return Int64.zero
+        | _ -> (consume http_frame.Stream_http_frame.content >>= 
+                (fun () -> 
+                  wakeup wait_end_request (); 
+                  fail Ocsigen_Bad_Request)))
+        >>=
+            (fun cl ->
+              if (Int64.compare cl Int64.zero) > 0 &&
+                (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
+              then consume http_frame.Stream_http_frame.content >>= 
+                (fun () ->
+                  wakeup wait_end_request ();
+                  send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender)
+              else serv ()))
       (function
-	  Ocsigen_Bad_Request ->
-	    send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-	| Stop_sending -> fail Stop_sending
-	| e -> Messages.debug ("Exn during service : "^
-			       (Printexc.to_string e)); 
-	    fail e)
+          Ocsigen_Bad_Request ->
+            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
+        | Stop_sending -> fail Stop_sending
+        | e -> Messages.debug ("Exn during service : "^
+                               (Printexc.to_string e)); 
+            fail e)
 
        
 
@@ -518,8 +518,8 @@ let load_modules modules_list =
       [] -> ()
     | (Cmo s)::l -> Dynlink.loadfile s; aux l
     | (Host (host,sites))::l -> 
-	load_ocsigen_module host sites; 
-	aux l
+        load_ocsigen_module host sites; 
+        aux l
   in
   Dynlink.init ();
   Dynlink.allow_unsafe_modules true;
@@ -546,14 +546,14 @@ let handle_broken_pipe_exn sockaddr in_ch exn =
       return ()
   | Unix.Unix_error (e,func,param) ->
       warning ("While talking to "^ip^": "^(Unix.error_message e)^
-	       " in function "^func^" ("^param^") - (I continue)");
+               " in function "^func^" ("^param^") - (I continue)");
       return ()
   | Ssl.Write_error(Ssl.Error_ssl) -> errlog ("While talking to "^ip
-					      ^": Ssl broken pipe - (I continue)");
+                                              ^": Ssl broken pipe - (I continue)");
       return ()
   | exn -> 
       errlog ("While talking to "^ip^": Uncaught exception - "
-	      ^(Printexc.to_string exn)^" - (I continue)");
+              ^(Printexc.to_string exn)^" - (I continue)");
       return ()
 
 
@@ -573,205 +573,205 @@ let listen modules_list =
          and closing the connection. *)
       waiter >>=
       (fun () -> 
-	print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn));
-	let ip = ip_of_sockaddr sockaddr in
-	match exn with
+        print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn));
+        let ip = ip_of_sockaddr sockaddr in
+        match exn with
           Http_error.Http_exception (_,_) as http_ex ->
-	    send_error now 
-	      ~keep_alive:false ~http_exception:http_ex xhtml_sender >>=
-	    (fun () -> Lwt_unix.lingering_close in_ch;
-	      return ())
-	| Ocsigen_header_too_long ->
-	    Messages.debug "Sending 400";
-	    (* 414 URI too long. Actually, it is "header too long..." *)
-	    send_error now ~keep_alive:false ~error_num:400 xhtml_sender
-	      >>= (fun _ ->
-		Lwt_unix.lingering_close in_ch; return ())
-	| Ocsigen_HTTP_parsing_error (s1,s2) ->
-	    errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^
-		    ") in:\n"^
-		    (if (String.length s2)>2000 
-		    then ((String.sub s2 0 1999)^"...<truncated>")
-		    else s2)^"\n---");
-	    Lwt_unix.lingering_close in_ch; return ()
-	| Ocsigen_Timeout -> 
-	    warning ("While talking to "^ip^": Timeout");
-	    Lwt_unix.lingering_close in_ch; return ()
-	| Http_com.Ocsigen_KeepaliveTimeout
-	| Stop_sending ->
-	    Lwt_unix.lingering_close in_ch; return ()
-	| Com_buffer.End_of_input
-	    (* The request is finished (input closed). 
-	       We close the channel, after our answer.  *)
-	| Connection_reset_by_peer 
-	| Unix.Unix_error(Unix.ECONNRESET,_,_) ->
-	    debug "Connection reset by peer: I don't close the connection";
-	    return ()
-	| e -> Lwt_unix.lingering_close in_ch; fail e)
+            send_error now 
+              ~keep_alive:false ~http_exception:http_ex xhtml_sender >>=
+            (fun () -> Lwt_unix.lingering_close in_ch;
+              return ())
+        | Ocsigen_header_too_long ->
+            Messages.debug "Sending 400";
+            (* 414 URI too long. Actually, it is "header too long..." *)
+            send_error now ~keep_alive:false ~error_num:400 xhtml_sender
+              >>= (fun _ ->
+                Lwt_unix.lingering_close in_ch; return ())
+        | Ocsigen_HTTP_parsing_error (s1,s2) ->
+            errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^
+                    ") in:\n"^
+                    (if (String.length s2)>2000 
+                    then ((String.sub s2 0 1999)^"...<truncated>")
+                    else s2)^"\n---");
+            Lwt_unix.lingering_close in_ch; return ()
+        | Ocsigen_Timeout -> 
+            warning ("While talking to "^ip^": Timeout");
+            Lwt_unix.lingering_close in_ch; return ()
+        | Http_com.Ocsigen_KeepaliveTimeout
+        | Stop_sending ->
+            Lwt_unix.lingering_close in_ch; return ()
+        | Com_buffer.End_of_input
+            (* The request is finished (input closed). 
+               We close the channel, after our answer.  *)
+        | Connection_reset_by_peer 
+        | Unix.Unix_error(Unix.ECONNRESET,_,_) ->
+            debug "Connection reset by peer: I don't close the connection";
+            return ()
+        | e -> Lwt_unix.lingering_close in_ch; fail e)
     in
     
     let rec handle_request waiter http_frame =
       let test_end_request_awoken wait_end_request =
-	try
-	  wakeup wait_end_request ();
-	  Messages.debug 
-	    "wait_end_request has not been awoken! \
-	    (should not succeed ...)"
-	with _ -> ()
+        try
+          wakeup wait_end_request ();
+          Messages.debug 
+            "wait_end_request has not been awoken! \
+            (should not succeed ...)"
+        with _ -> ()
       in
       let keep_alive = 
-	find_keepalive http_frame.Stream_http_frame.header in
+        find_keepalive http_frame.Stream_http_frame.header in
       if keep_alive 
       then begin
-	Messages.debug "KEEP ALIVE (pipelined)";
-	let waiter2 = wait () in
-	(* The following request must wait the end of this one
-	   before being answered *)
-	(* waiter is awoken when the previous request has been answered *)
-	let wait_end_request = wait () in
-	(* The following request must wait the end of this one.
-	   (It may not be finished, for example if we are downloading files) *)
-	(* wait_end_request is awoken when we are sure it is terminated *)
-	ignore_result 
-	  (catch
-	     (fun () ->
-	       service wait_end_request waiter http_frame sockaddr 
-		 xhtml_sender empty_sender in_ch () >>=
-	       (fun () ->
-		 test_end_request_awoken wait_end_request;
-		 wakeup waiter2 (); 
-		 return ()))
-	     (function
-		 (* Serious error (we cannot answer to the request)
-		    Probably the pipe is broken.
-		    We awake all the waiting threads in cascade
-		    with an exception.
-		  *)
-		 Stop_sending -> 
-		   test_end_request_awoken wait_end_request;
-		   wakeup_exn waiter2 Stop_sending;
-		   return ()
-	       | e -> 
-		   test_end_request_awoken wait_end_request;
-		   handle_broken_pipe_exn sockaddr in_ch e >>=
-		   (fun () -> 
-		     wakeup_exn waiter2 Stop_sending;
-		     return ())));
-	
-	catch
-	  (fun () ->
-	    wait_end_request >>=
-	    (fun () -> 
-	      Messages.debug "Waiting for new request (pipeline)";
-	      Stream_receiver.get_http_frame waiter2
-		receiver ~doing_keep_alive:true () >>=
-	      (handle_request waiter2)))
-	  (handle_request_errors waiter2)
+        Messages.debug "KEEP ALIVE (pipelined)";
+        let waiter2 = wait () in
+        (* The following request must wait the end of this one
+           before being answered *)
+        (* waiter is awoken when the previous request has been answered *)
+        let wait_end_request = wait () in
+        (* The following request must wait the end of this one.
+           (It may not be finished, for example if we are downloading files) *)
+        (* wait_end_request is awoken when we are sure it is terminated *)
+        ignore_result 
+          (catch
+             (fun () ->
+               service wait_end_request waiter http_frame sockaddr 
+                 xhtml_sender empty_sender in_ch () >>=
+               (fun () ->
+                 test_end_request_awoken wait_end_request;
+                 wakeup waiter2 (); 
+                 return ()))
+             (function
+                 (* Serious error (we cannot answer to the request)
+                    Probably the pipe is broken.
+                    We awake all the waiting threads in cascade
+                    with an exception.
+                  *)
+                 Stop_sending -> 
+                   test_end_request_awoken wait_end_request;
+                   wakeup_exn waiter2 Stop_sending;
+                   return ()
+               | e -> 
+                   test_end_request_awoken wait_end_request;
+                   handle_broken_pipe_exn sockaddr in_ch e >>=
+                   (fun () -> 
+                     wakeup_exn waiter2 Stop_sending;
+                     return ())));
+        
+        catch
+          (fun () ->
+            wait_end_request >>=
+            (fun () -> 
+              Messages.debug "Waiting for new request (pipeline)";
+              Stream_receiver.get_http_frame waiter2
+                receiver ~doing_keep_alive:true () >>=
+              (handle_request waiter2)))
+          (handle_request_errors waiter2)
       end
       else begin (* No keep-alive => no pipeline *)
-	catch
-	  (fun () ->
-	    service (wait ()) waiter http_frame sockaddr
-	      xhtml_sender empty_sender in_ch () >>=
-	    (fun () ->
-	      (Lwt_unix.lingering_close in_ch; 
-	       return ())))
-	  (fun e ->
-	    Lwt_unix.lingering_close in_ch; fail e)
+        catch
+          (fun () ->
+            service (wait ()) waiter http_frame sockaddr
+              xhtml_sender empty_sender in_ch () >>=
+            (fun () ->
+              (Lwt_unix.lingering_close in_ch; 
+               return ())))
+          (fun e ->
+            Lwt_unix.lingering_close in_ch; fail e)
       end
 
     in (* body of listen_connexion *)
     catch
       (fun () ->
-	catch
-	  (fun () ->
-	    Stream_receiver.get_http_frame (return ())
-	      receiver ~doing_keep_alive:false () >>=
-	    handle_request (return ()))
-	  (handle_request_errors (return ())))
+        catch
+          (fun () ->
+            Stream_receiver.get_http_frame (return ())
+              receiver ~doing_keep_alive:false () >>=
+            handle_request (return ()))
+          (handle_request_errors (return ())))
       (handle_broken_pipe_exn sockaddr in_ch)
 
-	(* Without pipeline:
-	Stream_receiver.get_http_frame receiver ~doing_keep_alive () >>=
-	(fun http_frame ->
-	  (service http_frame sockaddr 
-	     xhtml_sender empty_sender in_ch ())
+        (* Without pipeline:
+        Stream_receiver.get_http_frame receiver ~doing_keep_alive () >>=
+        (fun http_frame ->
+          (service http_frame sockaddr 
+             xhtml_sender empty_sender in_ch ())
             >>= (fun keep_alive -> 
-	      if keep_alive then begin
-		Messages.debug "KEEP ALIVE";
+              if keep_alive then begin
+                Messages.debug "KEEP ALIVE";
                 listen_connexion_aux ~doing_keep_alive:true
                   (* Pour laisser la connexion ouverte, je relance *)
-	      end
-	      else (Lwt_unix.lingering_close in_ch; 
-		    return ())))
-	*)
-	
+              end
+              else (Lwt_unix.lingering_close in_ch; 
+                    return ())))
+        *)
+        
   in 
   let wait_connexion socket =
     let handle_connection (inputchan, sockaddr) =
       debug "\n__________________NEW CONNECTION__________________________";
       catch
-	(fun () -> 
-	  let xhtml_sender = 
-	    Sender_helpers.create_xhtml_sender
-	      ~server_name:server_name inputchan in
-	  (* let file_sender =
-	    create_file_sender ~server_name:server_name inputchan
-	  in *)
-	  let empty_sender =
-	    create_empty_sender ~server_name:server_name inputchan
-	  in
-	  listen_connexion 
-	    (Stream_receiver.create inputchan)
-	    inputchan sockaddr xhtml_sender
-	    empty_sender)
-	(handle_broken_pipe_exn sockaddr inputchan)
+        (fun () -> 
+          let xhtml_sender = 
+            Sender_helpers.create_xhtml_sender
+              ~server_name:server_name inputchan in
+          (* let file_sender =
+            create_file_sender ~server_name:server_name inputchan
+          in *)
+          let empty_sender =
+            create_empty_sender ~server_name:server_name inputchan
+          in
+          listen_connexion 
+            (Stream_receiver.create inputchan)
+            inputchan sockaddr xhtml_sender
+            empty_sender)
+        (handle_broken_pipe_exn sockaddr inputchan)
     in
     let rec wait_connexion_rec () =
       let rec do_accept () = 
-	Lwt_unix.accept (Lwt_unix.Plain socket) >>= 
-    	(fun (s, sa) -> 
-	  if Ocsiconfig.get_ssl () 
-	  then begin
-    	    let s_unix = 
-	      match s with
-		Lwt_unix.Plain fd -> fd 
-    	      | _ -> raise Ssl_Exception (* impossible *) 
-	    in
-    	    catch 
-    	      (fun () -> 
-		((Lwt_unix.accept
-		    (Lwt_unix.Encrypted 
-		       (s_unix, Ssl.embed_socket s_unix !ctx))) >>=
-		 (fun (ss, ssa) -> Lwt.return (ss, sa))))
-    	      (function
-		  Ssl.Accept_error e -> 
-		    Messages.debug "Accept_error"; do_accept ()
-    		| e -> warning ("Exn in do_accept : "^
-				(Printexc.to_string e)); do_accept ())
+        Lwt_unix.accept (Lwt_unix.Plain socket) >>= 
+            (fun (s, sa) -> 
+          if Ocsiconfig.get_ssl () 
+          then begin
+                let s_unix = 
+              match s with
+                Lwt_unix.Plain fd -> fd 
+                  | _ -> raise Ssl_Exception (* impossible *) 
+            in
+                catch 
+                  (fun () -> 
+                ((Lwt_unix.accept
+                    (Lwt_unix.Encrypted 
+                       (s_unix, Ssl.embed_socket s_unix !ctx))) >>=
+                 (fun (ss, ssa) -> Lwt.return (ss, sa))))
+                  (function
+                  Ssl.Accept_error e -> 
+                    Messages.debug "Accept_error"; do_accept ()
+                    | e -> warning ("Exn in do_accept : "^
+                                (Printexc.to_string e)); do_accept ())
           end 
-	  else Lwt.return (s, sa))
+          else Lwt.return (s, sa))
 
       in
       (do_accept ()) >>= 
       (fun c ->
-	incr_connected ();
-	if (get_number_of_connected ()) <
-	  (get_max_number_of_connections ()) then
-	  ignore_result (wait_connexion_rec ())
-	else warning ("Max simultaneous connections ("^
-		      (string_of_int (get_max_number_of_connections ()))^
-		      ") reached.");
-	handle_connection c) >>= 
+        incr_connected ();
+        if (get_number_of_connected ()) <
+          (get_max_number_of_connections ()) then
+          ignore_result (wait_connexion_rec ())
+        else warning ("Max simultaneous connections ("^
+                      (string_of_int (get_max_number_of_connections ()))^
+                      ") reached.");
+        handle_connection c) >>= 
       (fun () -> 
-	decr_connected (); 
-	if (get_number_of_connected ()) = 
-	  (get_max_number_of_connections ()) - 1
-	then begin
-	  warning "Ok releasing one connection";
-	  wait_connexion_rec ()
-	end
-	else return ())
+        decr_connected (); 
+        if (get_number_of_connected ()) = 
+          (get_max_number_of_connections ()) - 1
+        then begin
+          warning "Ok releasing one connection";
+          wait_connexion_rec ()
+        end
+        else return ())
     in wait_connexion_rec ()
   in
   ((* Initialize the listening address *)
@@ -781,19 +781,19 @@ let listen modules_list =
        Unix.listen listening_socket 1;
        (* I change the user for the process *)
        (try
-	 Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
-	 Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
+         Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
+         Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
        with e -> errlog ("Error: Wrong user or group"); raise e);
        (* Now I can load the modules *)
        load_modules modules_list;
        if Ocsiconfig.get_ssl ()  then begin 
           if Ocsiconfig.get_passwd () <> "" then 
-	    Ssl.set_password_callback !ctx (fun _ -> Ocsiconfig.get_passwd ());
-	  Ssl.use_certificate !ctx
-	   (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ());
-	  print_string ("HTTPS server on port ");
-	  print_endline (string_of_int (Ocsiconfig.get_port ()) ^" launched");
-	  end;
+            Ssl.set_password_callback !ctx (fun _ -> Ocsiconfig.get_passwd ());
+          Ssl.use_certificate !ctx
+           (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ());
+          print_string ("HTTPS server on port ");
+          print_endline (string_of_int (Ocsiconfig.get_port ()) ^" launched");
+          end;
        ignore (Http_com.Timeout.start_timeout_killer ());
        end_initialisation ();
        warning "Ocsigen has been launched (initialisations ok)";
@@ -811,7 +811,7 @@ let _ = try
     | h :: t -> if Ocsiconfig.get_ssl_n h then begin
       if not (Ocsiconfig.get_port_n_modif h) then Ocsiconfig.set_port h 443; 
       print_string "Please enter the password for the HTTPS server listening \
-	  on port ";
+          on port ";
       print_int (Ocsiconfig.get_port_n h);
       print_string ": ";
       Ocsiconfig.set_passwd h (read_line ());
@@ -828,8 +828,8 @@ let _ = try
       raise (Config_file_error "maxthreads should be greater than minthreads");
     Lwt_unix.run 
       (ignore (Preemptive.init 
-		 (Ocsiconfig.get_minthreads ()) 
-		 (Ocsiconfig.get_maxthreads ()));
+                 (Ocsiconfig.get_minthreads ()) 
+                 (Ocsiconfig.get_maxthreads ()));
 (* Je suis fou
        let rec f () = 
 (*   print_string "-"; *)
@@ -841,9 +841,9 @@ let _ = try
   let rec launch = function
       [] -> () 
     | (h :: t) -> begin 
-	match Unix.fork () with
-	| 0 -> run h
-	| _ -> launch t
+        match Unix.fork () with
+        | 0 -> run h
+        | _ -> launch t
     end
   in
   let old_term= Unix.tcgetattr Unix.stdin in
@@ -869,7 +869,7 @@ with
 | Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
 | Unix.Unix_error (Unix.EACCES,"bind",s2) ->
     errlog ("Fatal - You are not allowed to use port "^
-	    (string_of_int (Ocsiconfig.get_port ())))
+            (string_of_int (Ocsiconfig.get_port ())))
 | Unix.Unix_error (Unix.EADDRINUSE,"bind",s2) ->
     errlog ("Fatal - This port is already in use")
 | Unix.Unix_error (e,s1,s2) ->

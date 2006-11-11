@@ -44,12 +44,12 @@ module RegisterBoxes =
     let untag (`Box x) = x
     let default_handler = box_exn_handler
       let make_boxofboxes ~filter l = 
-	List.map (fun b -> (filter b)) l
+        List.map (fun b -> (filter b)) l
     type container_param = 
-	Xhtmltypes.div_attrib XHTML.M.attrib list option
+        Xhtmltypes.div_attrib XHTML.M.attrib list option
     let container f ~box_param:(a,l) = 
       boxes_container ?a:a
-	(f ~user:Rights.anonymoususer ~resource:Rights.anyresource l)
+        (f ~user:Rights.anonymoususer ~resource:Rights.anyresource l)
   end)
 
 let fold_boxes = 

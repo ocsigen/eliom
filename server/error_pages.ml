@@ -25,7 +25,7 @@ let page_error_param_type l =
   | (n,_)::ll ->
       (pcdata "Wrong type for parameters ")::
       (List.fold_left (fun deb (n,_) -> (em [pcdata n])::(pcdata ", ")::deb) 
-	 [em [pcdata n];pcdata "."] ll)
+         [em [pcdata n];pcdata "."] ll)
   in
   html
     (head (title (pcdata "")) [])

@@ -15,12 +15,12 @@ therefore have the following limitations:
 *)
 let windows_hack = Sys.os_type <> "Unix"
 type descr = Plain of Unix.file_descr
-	   | Encrypted of Unix.file_descr * Ssl.socket
+           | Encrypted of Unix.file_descr * Ssl.socket
 let fd_of_descr = function
-	  Plain x -> x
+          Plain x -> x
         | Encrypted (fd, s) -> fd
 let descr_of_fd ldescr lfd =   
-	(List.map (fun x -> List.find (fun y -> x=(fd_of_descr y)) ldescr) lfd)
+        (List.map (fun x -> List.find (fun y -> x=(fd_of_descr y)) ldescr) lfd)
 
 module SleepQueue =
   Pqueue.Make (struct
@@ -85,7 +85,7 @@ let wrap_syscall queue fd cont syscall =
     | Ssl.Connection_error (Ssl.Error_want_read | Ssl.Error_want_write | Ssl.Error_want_connect)
     | Ssl.Read_error (Ssl.Error_want_read | Ssl.Error_want_write)
     | Ssl.Write_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
-    	None
+            None
     | e ->
         queue := List.remove_assoc fd !queue;
         Lwt.wakeup_exn cont e;
@@ -131,45 +131,45 @@ let rec run thread =
         else if infds = [] && outfds = [] && delay = 0. then
           ([], [], [])
         else
-	let ins = List.map fd_of_descr infds in
-	let outs = List.map fd_of_descr outfds in
+        let ins = List.map fd_of_descr infds in
+        let outs = List.map fd_of_descr outfds in
           try
             let (readers, writers, _) as res =
-	      let (rds, wrs, err) = Unix.select ins outs [] delay in
-	         (descr_of_fd infds rds, descr_of_fd outfds wrs, err) in
+              let (rds, wrs, err) = Unix.select ins outs [] delay in
+                 (descr_of_fd infds rds, descr_of_fd outfds wrs, err) in
             if readers = [] && writers = [] && delay > 0. && !now <> -1. then
-	      now := !now +. delay;
+              now := !now +. delay;
             res
           with
             Unix.Unix_error (Unix.EINTR, _, _) ->
               ([], [], [])
           | Unix.Unix_error (Unix.EBADF, _, _) ->
               (descr_of_fd infds (List.filter bad_fd ins), 
-	      descr_of_fd outfds (List.filter bad_fd outs), [])
+              descr_of_fd outfds (List.filter bad_fd outs), [])
       in
       restart_threads now;
       List.iter
         (fun fd ->
            match List.assoc fd !inputs with
              `Read (buf, pos, len, res) ->
-	     let f = (match fd with
-	              Plain fdesc -> 
+             let f = (match fd with
+                      Plain fdesc -> 
                         (fun () -> Unix.set_nonblock fdesc; Unix.read fdesc buf pos len)
-		     | Encrypted (fdesc, sock) ->
-		        (fun () -> Ssl.read sock buf pos len)) in
+                     | Encrypted (fdesc, sock) ->
+                        (fun () -> Ssl.read sock buf pos len)) in
                 wrap_syscall inputs fd res f 
            | `Accept res ->
                 let f = match fd with
-		 Plain fdesc ->
+                 Plain fdesc ->
                   (fun () ->
                      let (s, a) = Unix.accept fdesc in
                      if not windows_hack then Unix.set_nonblock s;
                       (Plain (s),a))
-		| Encrypted (fdesc, sock) ->
-		   (fun () -> Ssl.accept sock; 
-		   (fd,Unix.ADDR_INET(Unix.inet_addr_any, 80))) in
-		wrap_syscall inputs fd res f
-		      
+                | Encrypted (fdesc, sock) ->
+                   (fun () -> Ssl.accept sock; 
+                   (fd,Unix.ADDR_INET(Unix.inet_addr_any, 80))) in
+                wrap_syscall inputs fd res f
+                      
            | `Wait res ->
                 wrap_syscall inputs fd res (fun () -> ()))
         readers;
@@ -177,11 +177,11 @@ let rec run thread =
         (fun fd ->
            match List.assoc fd !outputs with
              `Write (buf, pos, len, res) ->
-		let f = match fd with
-		  Plain fdesc -> 
+                let f = match fd with
+                  Plain fdesc -> 
                    (fun () -> Unix.write fdesc buf pos len)
-		| Encrypted (fdesc, sock) ->
-		   (fun () -> Ssl.write sock buf pos len) in
+                | Encrypted (fdesc, sock) ->
+                   (fun () -> Ssl.write sock buf pos len) in
                wrap_syscall outputs fd res f
            | `CheckSocket res ->
                 wrap_syscall outputs fd res
@@ -219,7 +219,7 @@ let read ch buf pos len =
     if len = 0 then Lwt.return 0 else begin
     if windows_hack then raise (Unix.Unix_error (Unix.EAGAIN, "", ""));
     Lwt.return (match ch with Plain fdesc -> Unix.read fdesc buf pos len
-    			  | Encrypted (fdesc,sock) -> Ssl.read sock buf pos len)
+                              | Encrypted (fdesc,sock) -> Ssl.read sock buf pos len)
     end
   with
     Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) 
@@ -234,7 +234,7 @@ let write ch buf pos len =
   try
     if len = 0 then Lwt.return 0 else 
     Lwt.return (match ch with Plain fdesc -> Unix.write fdesc buf pos len
-    			| Encrypted (fdesc, sock) -> Ssl.write sock buf pos len)
+                            | Encrypted (fdesc, sock) -> Ssl.write sock buf pos len)
   with
     Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) 
     | Ssl.Write_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
@@ -511,9 +511,9 @@ let lingering_close ch =
   ignore (Lwt.bind (sleep 2.0) (fun () -> 
     Lwt.return
       (try
-	(match ch with 
-	  Plain fd -> Messages.debug "CLOSE"; Unix.close fd
-	| Encrypted (fd,sock) -> Messages.debug "CLOSE (SSL)"; Unix.close fd)
+        (match ch with 
+          Plain fd -> Messages.debug "CLOSE"; Unix.close fd
+        | Encrypted (fd,sock) -> Messages.debug "CLOSE (SSL)"; Unix.close fd)
       with e -> Messages.debug "close failed"; ())))
 
 (**/**)

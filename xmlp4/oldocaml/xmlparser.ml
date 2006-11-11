@@ -65,12 +65,12 @@ module ExpoOrPatt = struct
   let get_expr v = (* <:expr< $lid:v$ >> *)
     match (!Pcaml.parse_implem) (Stream.of_string v) with
       [MLast.StExp (v,w), loc],_ -> (* w *)
-(*	let w = Pcaml.expr_reloc (fun x -> loc) 
-	    {Lexing.pos_fname="";
-	     Lexing.pos_lnum=1;
-	     Lexing.pos_bol=1;
-	     Lexing.pos_cnum=1} w in*)
-	<:expr< $anti:w$ >>
+(*        let w = Pcaml.expr_reloc (fun x -> loc) 
+            {Lexing.pos_fname="";
+             Lexing.pos_lnum=1;
+             Lexing.pos_bol=1;
+             Lexing.pos_cnum=1} w in*)
+        <:expr< $anti:w$ >>
     | _ -> failwith "XML parsing error: problem in antiquotations $...$"
 
 (*
@@ -93,29 +93,29 @@ module ExpoOrPatt = struct
   let rec to_expr = function
 
       EPanyattr (EPVstr (aa,_), v, loc) ->
-	let vv = expr_valorval v in
-	<:expr< (`$uid:String.capitalize aa$, $vv$) >>
+        let vv = expr_valorval v in
+        <:expr< (`$uid:String.capitalize aa$, $vv$) >>
 
     | EPanyattr (EPVvar (aa,_), v, loc) ->
-	let vv = expr_valorval v in
-	<:expr< ($lid:aa$, $vv$) >>
+        let vv = expr_valorval v in
+        <:expr< ($lid:aa$, $vv$) >>
 
     | EPanytag (tag, attribute_list, child_list, loc) ->
-	<:expr< `$uid:String.capitalize tag$
-	  $to_expr_attlist attribute_list$
+        <:expr< `$uid:String.capitalize tag$
+          $to_expr_attlist attribute_list$
           $to_expr_taglist child_list$
-	>>
-	
+        >>
+        
     | EPpcdata (dt, loc) -> <:expr< `PCData $str:dt$ >>
 
     | EPwhitespace (dt, loc) -> <:expr< `Whitespace $str:dt$ >>
 
     | EPanytagvar (v, loc) -> get_expr v
-(*	<:expr< $lid:v$ >> *)
+(*        <:expr< $lid:v$ >> *)
 
     | EPanytagvars (v, loc) -> 
-	let s = get_expr v in
-	<:expr< `PCData $s$ >>
+        let s = get_expr v in
+        <:expr< `PCData $s$ >>
 
     | EPcomment (c, loc) -> <:expr< `Comment $str:c$ >>
 
@@ -133,16 +133,16 @@ module ExpoOrPatt = struct
   let rec to_patt = function
 
       EPanyattr (EPVstr (a,_), v, loc) -> 
-	let vv = patt_valorval v in
-	<:patt< ((`$uid:String.capitalize a$), $vv$) >>
+        let vv = patt_valorval v in
+        <:patt< ((`$uid:String.capitalize a$), $vv$) >>
 
     | EPanyattr (EPVvar (a,_), v, loc) ->
-	let vv = patt_valorval v in
-	<:patt< ($lid:a$, $vv$) >>
+        let vv = patt_valorval v in
+        <:patt< ($lid:a$, $vv$) >>
 
     | EPanytag (tag, attribute_list, child_list, loc) ->
-	<:patt< `$uid:String.capitalize tag$
-	  $to_patt_attlist attribute_list$
+        <:patt< `$uid:String.capitalize tag$
+          $to_patt_attlist attribute_list$
           $to_patt_taglist child_list$
         >>
 
@@ -196,17 +196,17 @@ EXTEND
     child_list = OPT exprpatt_any_tag_list;
     GAT -> 
       let attlist = match attribute_list with
-	  None -> PLEmpty loc
-	| Some l -> l
+          None -> PLEmpty loc
+        | Some l -> l
       in
       let taglist = match child_list with
-	  None -> PLEmpty loc
-	| Some l -> l
+          None -> PLEmpty loc
+        | Some l -> l
       in EPanytag
-	(tag,
-	 attlist, 
-	 taglist,
-	 loc)
+        (tag,
+         attlist, 
+         taglist,
+         loc)
   | dt = WHITESPACE -> EPwhitespace (dt, loc)
   | dt = DATA -> EPpcdata (dt, loc)
   | c = COMMENT -> EPcomment (c, loc)
@@ -222,8 +222,8 @@ EXTEND
       value = exprpatt_value_or_var;
       suite  = OPT exprpatt_any_attribute_list ->
       let suite = match suite with
-	  None -> PLEmpty loc
-	| Some l -> l
+          None -> PLEmpty loc
+        | Some l -> l
       in PLCons (EPanyattr (a,value, loc), suite, loc)
   ] ];
 
@@ -234,8 +234,8 @@ EXTEND
     | anytag = exprpatt_any_tag;
       suite  = OPT exprpatt_any_tag_list ->
       let suite = match suite with
-	  None -> PLEmpty loc
-	| Some l -> l
+          None -> PLEmpty loc
+        | Some l -> l
       in PLCons (anytag, suite, loc)
   ] ];
 

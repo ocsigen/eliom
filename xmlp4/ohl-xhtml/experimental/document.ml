@@ -18,12 +18,12 @@ let rec concat_elts joint = function
   | [] -> []
   | [head] -> [head]
   | head :: tail -> head :: joint :: concat_elts joint tail
-				      
+                                      
 let rec concat_lists joint = function
   | [] -> []
   | [head] -> head
   | head :: tail -> head @ joint @ concat_lists joint tail
-				     
+                                     
 (*
 
 let fold2_rev f l1 l2 acc =
@@ -49,14 +49,14 @@ module URL : URL =
   struct
 
     type t =
-	{ base : string option;
-	  name : string option;
-	  anchor : string option }
+        { base : string option;
+          name : string option;
+          anchor : string option }
 
     let create ?base ?name ?anchor () =
       { base = base;
-	name = name;
-	anchor = anchor }
+        name = name;
+        anchor = anchor }
 
     let to_string url =
       (match url.base with None -> "" | Some b -> b ^ "/") ^
@@ -69,9 +69,9 @@ module URL : URL =
 
     let append_to_name suffix url =
       let name =
-	(match url.name with
-	 | None -> ""
-	 | Some n -> n) ^ "_" ^ suffix in
+        (match url.name with
+         | None -> ""
+         | Some n -> n) ^ "_" ^ suffix in
       { url with name = Some name }
 
     let add_anchor anchor url =
@@ -97,22 +97,22 @@ module Make (X : XHTML.T) : T with module X = X =
       | None -> pcdata name
 
     type section =
-	{ (* A human readable description, used for the link text.  *)
-	  label : string;
+        { (* A human readable description, used for the link text.  *)
+          label : string;
           
           (* A unique identifier, must be suitable as part of a file name and
-	     as a in-page link. *)
+             as a in-page link. *)
           anchor : string;
-	  
+          
           (* The content proper. *)
-	  content : [ heading | block | LIST.list ] elt list }
+          content : [ heading | block | LIST.list ] elt list }
 
     type style =
       | External of uri
       | Internal of string option * string list
 
     type t =
-	{ title : string;
+        { title : string;
           rev_sections : section list;
           style : style list }
           
@@ -135,8 +135,8 @@ module Make (X : XHTML.T) : T with module X = X =
 
     let append label content d =
       { d with rev_sections = { label = label;
-				anchor = anchor_of_label label;
-				content = content } :: d.rev_sections }
+                                anchor = anchor_of_label label;
+                                content = content } :: d.rev_sections }
 
     let add_style_internal ?title css d =
       { d with style = Internal (title, css) :: d.style }
@@ -160,9 +160,9 @@ module Make (X : XHTML.T) : T with module X = X =
       List.fold_right Id_Set.add ids Id_Set.empty
           
     type page =
-	{ section : section;
+        { section : section;
           file_name : URL.t option;
-	  anchors : Id_Set.t }
+          anchors : Id_Set.t }
 
     module Href_Map = Map.Make (struct type t = id let compare = compare end)
 
@@ -171,7 +171,7 @@ module Make (X : XHTML.T) : T with module X = X =
       and to_url = URL.add_anchor anchor name in
       (* Printf.eprintf "%s -> %s\n" (URL.to_string from_url) (URL.to_string to_url); *)
       Href_Map.add (URL.to_string from_url) to_url  map
-	  
+          
     let grow_href_map to_page map =
       match to_page.file_name with
       | None -> map
@@ -200,8 +200,8 @@ module Make (X : XHTML.T) : T with module X = X =
 
     let link_of_rel_link rel = function
       | Active_Relative page ->
-	  [link ~a:[a_href (URL.to_string (url_of_page page));
-		    a_rel [rel]] ()]
+          [link ~a:[a_href (URL.to_string (url_of_page page));
+                    a_rel [rel]] ()]
       | Inactive_Relative -> []
 
     let elt_of_abs_link = function
@@ -209,33 +209,33 @@ module Make (X : XHTML.T) : T with module X = X =
       | Inactive page -> pcdata page.section.label
 
     type xref =
-	{ first : rel_link;
-	  prev : rel_link;
-	  next : rel_link;
-	  last : rel_link;
-	  sections : abs_link list;
-	  self : page }
+        { first : rel_link;
+          prev : rel_link;
+          next : rel_link;
+          last : rel_link;
+          sections : abs_link list;
+          self : page }
 
     let xref section backward self forward =
       let rel_link_of_list = function
-	| [] -> Inactive_Relative
-	| head :: _ -> Active_Relative head in
+        | [] -> Inactive_Relative
+        | head :: _ -> Active_Relative head in
       { first = rel_link_of_list (List.rev backward);
-	prev = rel_link_of_list backward;
-	next = rel_link_of_list forward;
-	last = rel_link_of_list (List.rev forward);
-	sections =
-	List.rev_map (fun p -> Active p) backward @
-	[Inactive self] @
-	List.map (fun p -> Active p) forward;
-	self = self }
+        prev = rel_link_of_list backward;
+        next = rel_link_of_list forward;
+        last = rel_link_of_list (List.rev forward);
+        sections =
+        List.rev_map (fun p -> Active p) backward @
+        [Inactive self] @
+        List.map (fun p -> Active p) forward;
+        self = self }
 
     let rec xrefs_of_sections' links = function
       | [] -> invalid_arg "xrefs_of_sections' _ []"
       | [section] ->
           [xref section (Zipper.rev_left links) (Zipper.center links) []]
       | section1 :: sections ->
-	  xref section1 (Zipper.rev_left links) (Zipper.center links) (Zipper.right links) ::
+          xref section1 (Zipper.rev_left links) (Zipper.center links) (Zipper.right links) ::
           xrefs_of_sections' (Zipper.step_right links) sections
 
     let xrefs_of_sections mk_link = function
@@ -249,92 +249,92 @@ module Make (X : XHTML.T) : T with module X = X =
 
     let p_of_xref ?single ?multi x =
       p ~a:[a_class ["navigation"]]
-	([pcdata "Navigation: ";
-	  elt_of_rel_link "First" x.first;
-	  pcdata ", ";
-	  elt_of_rel_link "Previous" x.prev;
-	  pcdata ", ";
-	  elt_of_rel_link "Next" x.next;
-	  pcdata ", ";
-	  elt_of_rel_link "Last" x.last;
-	  pcdata ". Pages: "] @
-	 concat_elts (pcdata ", ") (List.map elt_of_abs_link x.sections) @
-	 [pcdata ". "] @
-	 (match single with
-	 | None -> []
-	 | Some s -> [href s [pcdata "(single file version)"]]) @
-	 (match multi with
-	 | None -> []
-	 | Some m -> [href m [pcdata "(multi file version)"]]))
+        ([pcdata "Navigation: ";
+          elt_of_rel_link "First" x.first;
+          pcdata ", ";
+          elt_of_rel_link "Previous" x.prev;
+          pcdata ", ";
+          elt_of_rel_link "Next" x.next;
+          pcdata ", ";
+          elt_of_rel_link "Last" x.last;
+          pcdata ". Pages: "] @
+         concat_elts (pcdata ", ") (List.map elt_of_abs_link x.sections) @
+         [pcdata ". "] @
+         (match single with
+         | None -> []
+         | Some s -> [href s [pcdata "(single file version)"]]) @
+         (match multi with
+         | None -> []
+         | Some m -> [href m [pcdata "(multi file version)"]]))
 
     let table_of_xref ?single ?multi x =
       table ~a:[a_class ["navigation"]; a_width (`Percent 100)]
-	(tr ~a:[a_class ["absolute"]]
-	   (td ~a:[a_colspan 5; a_align `Center]
-	      ((concat_elts (pcdata ", ") (List.map elt_of_abs_link x.sections)) @
-	       [pcdata ". "]))
-	   [])
-	[tr ~a:[a_class ["relative"]]
-	   (td ~a:[a_align `Left] [elt_of_rel_link "First" x.first])
-	   [td ~a:[a_align `Left] [elt_of_rel_link "Previous" x.prev];
-	    td ~a:[a_align `Center]
-	      ([space ()] @
-	       (match single with
-	        | None -> []
-	        | Some s -> [href s [pcdata "(single file version)"]]) @
-	       (match multi with
-	        | None -> []
-		| Some m -> [href m [pcdata "(multi file version)"]]) @
-	       [space ()]);
-	    td ~a:[a_align `Right] [elt_of_rel_link "Next" x.next];
-	    td ~a:[a_align `Right] [elt_of_rel_link "Last" x.last]]]
+        (tr ~a:[a_class ["absolute"]]
+           (td ~a:[a_colspan 5; a_align `Center]
+              ((concat_elts (pcdata ", ") (List.map elt_of_abs_link x.sections)) @
+               [pcdata ". "]))
+           [])
+        [tr ~a:[a_class ["relative"]]
+           (td ~a:[a_align `Left] [elt_of_rel_link "First" x.first])
+           [td ~a:[a_align `Left] [elt_of_rel_link "Previous" x.prev];
+            td ~a:[a_align `Center]
+              ([space ()] @
+               (match single with
+                | None -> []
+                | Some s -> [href s [pcdata "(single file version)"]]) @
+               (match multi with
+                | None -> []
+                | Some m -> [href m [pcdata "(multi file version)"]]) @
+               [space ()]);
+            td ~a:[a_align `Right] [elt_of_rel_link "Next" x.next];
+            td ~a:[a_align `Right] [elt_of_rel_link "Last" x.last]]]
 
     let ul_of_xref ?single ?multi x =
       ul ~a:[a_class ["navigation"]]
-	(li
-	   ([pcdata "Navigation: ";
-	     elt_of_rel_link "First" x.first;
-	     pcdata ", ";
-	     elt_of_rel_link "Previous" x.prev;
-	     pcdata ", ";
-	     elt_of_rel_link "Next" x.next;
-	     pcdata ", ";
-	     elt_of_rel_link "Last" x.last;
-	     pcdata ". "] @
-	    (match single with
-	    | None -> []
-	    | Some s -> [href s [pcdata "(single file version)"]]) @
-	    (match multi with
-	    | None -> []
-	    | Some m -> [href m [pcdata "(multi file version)"]])))
-	[li
-	   ([pcdata "Pages: "] @
-	    concat_elts (pcdata ", ") (List.map elt_of_abs_link x.sections) @
-	    [pcdata ". "])]
+        (li
+           ([pcdata "Navigation: ";
+             elt_of_rel_link "First" x.first;
+             pcdata ", ";
+             elt_of_rel_link "Previous" x.prev;
+             pcdata ", ";
+             elt_of_rel_link "Next" x.next;
+             pcdata ", ";
+             elt_of_rel_link "Last" x.last;
+             pcdata ". "] @
+            (match single with
+            | None -> []
+            | Some s -> [href s [pcdata "(single file version)"]]) @
+            (match multi with
+            | None -> []
+            | Some m -> [href m [pcdata "(multi file version)"]])))
+        [li
+           ([pcdata "Pages: "] @
+            concat_elts (pcdata ", ") (List.map elt_of_abs_link x.sections) @
+            [pcdata ". "])]
 
     let format_xref = ul_of_xref
     let format_xref = table_of_xref
 
     let valid_xhtml ?url ~name ~email () =
       table ~a:[a_width (`Percent 100)]
-	(tr
-	   (td [pcdata "This WWW page is brought to you by ";
-		href_person ?url name;
-		pcdata " ";
-		href_email email;
-		pcdata ".  It is valid ";
-		a ~a:[a_href standard] [pcdata version];
-		pcdata ", as can be verified online by going to the ";
-		a ~a:[a_href "http://www.w3.org/"] [pcdata "W3C"];
-		pcdata " ";
-		a ~a:[a_href validator] [pcdata "MarkUp Validation Service"];
-		pcdata "."])
-	   [td [validator_icon ()]])
-	[]
+        (tr
+           (td [pcdata "This WWW page is brought to you by ";
+                href_person ?url name;
+                pcdata " ";
+                href_email email;
+                pcdata ".  It is valid ";
+                a ~a:[a_href standard] [pcdata version];
+                pcdata ", as can be verified online by going to the ";
+                a ~a:[a_href "http://www.w3.org/"] [pcdata "W3C"];
+                pcdata " ";
+                a ~a:[a_href validator] [pcdata "MarkUp Validation Service"];
+                pcdata "."])
+           [td [validator_icon ()]])
+        []
 
     let address =
       [valid_xhtml ~url:"http://theorie.physik.uni-wuerzburg.de/~ohl/"
-	 ~name:"Thorsten Ohl" ~email:"ohl@physik.uni-wuerzburg.de" ()]
+         ~name:"Thorsten Ohl" ~email:"ohl@physik.uni-wuerzburg.de" ()]
 
     let page_to_file name page =
       let oc = open_out name in
@@ -342,7 +342,7 @@ module Make (X : XHTML.T) : T with module X = X =
       close_out oc
 
     let body_to_file name ~title:t
-	?style:(s = []) ?links:(l = []) body_elts =
+        ?style:(s = []) ?links:(l = []) body_elts =
       let page =
         html ~a:[a_xmlns `W3_org_1999_xhtml; a_xml_lang "en"]
           (head (title (pcdata t)) (l @ List.map style_elt s))
@@ -352,13 +352,13 @@ module Make (X : XHTML.T) : T with module X = X =
     let single_page section =
       { section = section;
         file_name = None;
-	anchors = id_set_of_list (List.flatten (List.map all_anchors section.content)) }
+        anchors = id_set_of_list (List.flatten (List.map all_anchors section.content)) }
 
     let multi_page prefix section =
       let name = URL.create ~name:(prefix ^ "_" ^ section.anchor) () in
       { section = section;
         file_name = Some name;
-	anchors = id_set_of_list (List.flatten (List.map all_anchors section.content)) }
+        anchors = id_set_of_list (List.flatten (List.map all_anchors section.content)) }
 
     let flatten ?multi d =
       let xrefs = xrefs_of_sections single_page (List.rev d.rev_sections) in
@@ -367,21 +367,21 @@ module Make (X : XHTML.T) : T with module X = X =
            (fun x ->
              hr () ::
              p [a ~a:[a_id x.self.section.anchor] []] ::
-	     (match multi with
-	     | None -> format_xref x
-	     | Some m ->
-		 let multi = URL.append_to_name x.self.section.anchor m in
-		 format_xref ~multi x) ::
+             (match multi with
+             | None -> format_xref x
+             | Some m ->
+                 let multi = URL.append_to_name x.self.section.anchor m in
+                 format_xref ~multi x) ::
              x.self.section.content)
-	   xrefs)
+           xrefs)
 
     let to_file ?multi name d =
       let flat_d =
-	match multi with
-	| None -> flatten d
-	| Some name -> flatten ~multi:(URL.create ~name ()) d in
+        match multi with
+        | None -> flatten d
+        | Some name -> flatten ~multi:(URL.create ~name ()) d in
       body_to_file (URL.file_name (URL.create ~name ()))
-	~title:d.title ~style:d.style flat_d
+        ~title:d.title ~style:d.style flat_d
 
     let require_file_name p =
       match p.file_name with
@@ -392,18 +392,18 @@ module Make (X : XHTML.T) : T with module X = X =
       let xrefs = xrefs_of_sections (multi_page prefix) (List.rev d.rev_sections) in
       let rewrite_map = href_map (List.map (fun x -> x.self) xrefs) in
       let rewrite id =
-	try URL.to_string (Href_Map.find id rewrite_map) with Not_found -> id in
+        try URL.to_string (Href_Map.find id rewrite_map) with Not_found -> id in
       List.iter (fun x ->
         body_to_file (require_file_name x.self)
-	  ~title:d.title
-	  ~style:d.style
-	  ~links:(link_of_rel_link `Start x.first @
-		  link_of_rel_link `Prev x.prev @
-		  link_of_rel_link `Next x.next)
+          ~title:d.title
+          ~style:d.style
+          ~links:(link_of_rel_link `Start x.first @
+                  link_of_rel_link `Prev x.prev @
+                  link_of_rel_link `Next x.next)
           ((match single with
-	    | None -> format_xref x
-	    | Some s -> format_xref ~single:(URL.create ~name:s ()) x) :: hr () ::
-	   List.map (rewrite_hrefs rewrite) x.self.section.content)) xrefs
+            | None -> format_xref x
+            | Some s -> format_xref ~single:(URL.create ~name:s ()) x) :: hr () ::
+           List.map (rewrite_hrefs rewrite) x.self.section.content)) xrefs
 
 (*
    let frameset_section =

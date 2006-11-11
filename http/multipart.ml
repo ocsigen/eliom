@@ -28,39 +28,39 @@ let end_of_header_re =
 
 let scan_header ?(downcase=true) 
                 ?(unfold=true) 
-		?(strip=false)
-		parstr ~start_pos:i0 ~end_pos:i1 =
+                ?(strip=false)
+                parstr ~start_pos:i0 ~end_pos:i1 =
   let header_re =
     if unfold || strip then header_stripped_re else header_unstripped_re in
   let rec parse_header i l =
     match S.string_match header_re parstr i with
-	Some r ->
-	  let i' = S.match_end r in
-	  if i' > i1 then
-	    raise (Multipart_error "Mimestring.scan_header");
-	  let name = 
-	    if downcase then
-	      String.lowercase(S.matched_group r 1 parstr) 
-	    else
-	      S.matched_group r 1 parstr
-	  in
-	  let value_with_crlf =
-	    S.matched_group r 2 parstr in
-	  let value =
-	    if unfold then
-	      S.global_replace cr_or_lf_re "" value_with_crlf
-	    else
-	      value_with_crlf
-	  in
-	  parse_header i' ( (name,value) :: l)
+        Some r ->
+          let i' = S.match_end r in
+          if i' > i1 then
+            raise (Multipart_error "Mimestring.scan_header");
+          let name = 
+            if downcase then
+              String.lowercase(S.matched_group r 1 parstr) 
+            else
+              S.matched_group r 1 parstr
+          in
+          let value_with_crlf =
+            S.matched_group r 2 parstr in
+          let value =
+            if unfold then
+              S.global_replace cr_or_lf_re "" value_with_crlf
+            else
+              value_with_crlf
+          in
+          parse_header i' ( (name,value) :: l)
       | None ->
-	  (* The header must end with an empty line *)
-	  begin match S.string_match empty_line_re parstr i with
-	      Some r' ->
-		List.rev l, S.match_end r'
-	    | None ->
-		raise (Multipart_error "Mimestring.scan_header")
-	  end
+          (* The header must end with an empty line *)
+          begin match S.string_match empty_line_re parstr i with
+              Some r' ->
+                List.rev l, S.match_end r'
+            | None ->
+                raise (Multipart_error "Mimestring.scan_header")
+          end
   in
   parse_header i0 []
 ;;
@@ -70,25 +70,25 @@ let read_header ?downcase ?unfold ?strip (s : Ocsistream.stream) =
   let rec find_end_of_header s =
     catch
       (fun () ->
-	let b = Ocsistream.current_buffer s in
-	(* Maybe the header is empty. In this case, there is an empty line
-	 * right at the beginning
-	 *)
-	match S.string_match empty_line_re b 0 with
-	  Some r ->
-	    return (s, (S.match_end r))
-	| None ->
-	    (* Search the empty line: *)
-	    return
-	      (s, (S.match_end (snd (S.search_forward end_of_header_re b 0))))
+        let b = Ocsistream.current_buffer s in
+        (* Maybe the header is empty. In this case, there is an empty line
+         * right at the beginning
+         *)
+        match S.string_match empty_line_re b 0 with
+          Some r ->
+            return (s, (S.match_end r))
+        | None ->
+            (* Search the empty line: *)
+            return
+              (s, (S.match_end (snd (S.search_forward end_of_header_re b 0))))
       )
       (function
-	  Not_found -> 
-	    Ocsistream.enlarge_stream s >>= 
-	    (function
-		Finished _ -> fail Stream_too_small
-	      | Cont (stri, long, _) as s -> find_end_of_header s)
-	| e -> fail e)
+          Not_found -> 
+            Ocsistream.enlarge_stream s >>= 
+            (function
+                Finished _ -> fail Stream_too_small
+              | Cont (stri, long, _) as s -> find_end_of_header s)
+        | e -> fail e)
   in
   find_end_of_header s >>= (fun s, end_pos ->
     let b = Ocsistream.current_buffer s in
@@ -110,21 +110,21 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
       return (s, snd (S.search_forward re (Ocsistream.current_buffer s) start))
     with
       Not_found -> 
-	Ocsistream.enlarge_stream s >>=
-	(function
-	    Finished _ -> fail Stream_too_small
-	  | Cont (stri, long, _) as s -> search_window s re start)
+        Ocsistream.enlarge_stream s >>=
+        (function
+            Finished _ -> fail Stream_too_small
+          | Cont (stri, long, _) as s -> search_window s re start)
   in
   let search_end_of_line s k =
     (* Search LF beginning at position k *)
     catch
       (fun () -> (search_window s lf_re k) >>= 
-	(fun s,x -> return (s, (S.match_end x))))
+        (fun s,x -> return (s, (S.match_end x))))
     (function
-	Not_found ->
-	    fail (Multipart_error 
-		    "read_multipart_body: MIME boundary without line end")
-	| e -> fail e)
+        Not_found ->
+            fail (Multipart_error 
+                    "read_multipart_body: MIME boundary without line end")
+        | e -> fail e)
   in
 
   let search_first_boundary s =
@@ -140,10 +140,10 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
     let del = "--" ^ boundary in
     let ldel = String.length del in
     Ocsistream.stream_want s ldel >>= (function
-	Finished _ as str2 -> return (str2, false)
+        Finished _ as str2 -> return (str2, false)
       | Cont (ss, long, f) as str2 -> 
-	  return (str2, ((long >= ldel) && 
-			 (String.sub ss 0 ldel = del))))
+          return (str2, ((long >= ldel) && 
+                         (String.sub ss 0 ldel = del))))
   in
 
   let rec parse_parts s uses_crlf =
@@ -160,20 +160,20 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
        *)
       let l_delimiter = String.length delimiter in
       Ocsistream.stream_want s (l_delimiter+2) >>= (fun s ->
-	let last_part = match s with
-	  Finished _ -> false
-	| Cont (ss, long, f) ->
-	    (long >= (l_delimiter+2)) &&
-	    (ss.[l_delimiter] = '-') && 
-	    (ss.[l_delimiter+1] = '-')
-	in
-	if last_part then return [ y ]
-	else begin
-	  search_end_of_line s 2 >>=  (* [k]: Beginning of next part *)
-	  (fun s, k -> Ocsistream.skip s k >>=
-	    (fun s -> parse_parts s uses_crlf >>= 
-	      (fun l -> return (y :: l))))
-	end ))
+        let last_part = match s with
+          Finished _ -> false
+        | Cont (ss, long, f) ->
+            (long >= (l_delimiter+2)) &&
+            (ss.[l_delimiter] = '-') && 
+            (ss.[l_delimiter+1] = '-')
+        in
+        if last_part then return [ y ]
+        else begin
+          search_end_of_line s 2 >>=  (* [k]: Beginning of next part *)
+          (fun s, k -> Ocsistream.skip s k >>=
+            (fun s -> parse_parts s uses_crlf >>= 
+              (fun l -> return (y :: l))))
+        end ))
   in
 
   (* Check whether s directly begins with a boundary: *)
@@ -191,17 +191,17 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
       search_first_boundary s >>= (fun s, k_eob ->   (* or Not_found *)
       (* Printf.printf "k_eob=%d\n" k_eob; *)
       (* Move to the beginning of the next line: *)
-	search_end_of_line s k_eob >>= (fun s, k_eol ->
-	  let uses_crlf = (Ocsistream.current_buffer s).[k_eol-2] = '\r' in
-	  (* Printf.printf "k_eol=%d\n" k_eol; *)
-	  Ocsistream.skip s k_eol >>=
-	  (* Begin with first part: *)
-	  (fun s -> parse_parts s uses_crlf))))
+        search_end_of_line s k_eob >>= (fun s, k_eol ->
+          let uses_crlf = (Ocsistream.current_buffer s).[k_eol-2] = '\r' in
+          (* Printf.printf "k_eol=%d\n" k_eol; *)
+          Ocsistream.skip s k_eol >>=
+          (* Begin with first part: *)
+          (fun s -> parse_parts s uses_crlf))))
       (function 
-	  Not_found ->
-	    (* No boundary at all: The body is empty. *)
-	    return []
-	| e -> fail e)  
+          Not_found ->
+            (* No boundary at all: The body is empty. *)
+            return []
+        | e -> fail e)  
   end)
 ;;
 
@@ -211,23 +211,23 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
     read_header stream >>= (fun (s, header) ->
       let p = create header in
       let rec while_stream = function
-	  Finished None -> return (empty_stream None)
-	| Finished (Some ss) -> return ss
-	| Cont (stri, long, f) ->
-	    if stri = ""
-	    then f () >>= while_stream
-	    else ((catch 
-		    (fun () -> add p stri)
-		    (fun e -> f () >>= 
-		      Ocsistream.consume >>= 
-		      (fun () -> fail e)))
-		    >>= f >>= while_stream)
+          Finished None -> return (empty_stream None)
+        | Finished (Some ss) -> return ss
+        | Cont (stri, long, f) ->
+            if stri = ""
+            then f () >>= while_stream
+            else ((catch 
+                    (fun () -> add p stri)
+                    (fun e -> f () >>= 
+                      Ocsistream.consume >>= 
+                      (fun () -> fail e)))
+                    >>= f >>= while_stream)
       in 
       catch 
-	(fun () -> while_stream s >>= 
-	  (fun s -> stop p >>= (fun r -> return (r,s))))
-	(function
-	    error -> stop p >>= (fun _ -> fail error)))
+        (fun () -> while_stream s >>= 
+          (fun s -> stop p >>= (fun r -> return (r,s))))
+        (function
+            error -> stop p >>= (fun _ -> fail error)))
   in
   catch
     (fun () ->
@@ -235,7 +235,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
       read_multipart_body decode_part boundary s >>=
       (fun _ -> return ()))
     (function
-	Stream_too_small -> fail Ocsimisc.Ocsigen_Bad_Request
+        Stream_too_small -> fail Ocsimisc.Ocsigen_Bad_Request
       | e -> fail e)
 ;;
 

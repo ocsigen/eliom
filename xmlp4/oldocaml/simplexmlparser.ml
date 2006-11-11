@@ -82,19 +82,19 @@ module ExpoOrPatt = struct
   let rec to_expr = function
 
       EPanyattr (EPVstr aa, v) ->
-	let vv = expr_valorval v in
-	<:expr< (`$uid:String.capitalize aa$, $vv$) >>
+        let vv = expr_valorval v in
+        <:expr< (`$uid:String.capitalize aa$, $vv$) >>
 
     | EPanyattr (EPVvar aa, v) ->
-	let vv = expr_valorval v in
-	<:expr< ($lid:aa$, $vv$) >>
+        let vv = expr_valorval v in
+        <:expr< ($lid:aa$, $vv$) >>
 
     | EPanytag (tag, attribute_list, child_list) ->
-	<:expr< `$uid:String.capitalize tag$
-	  $to_expr_attlist attribute_list$
+        <:expr< `$uid:String.capitalize tag$
+          $to_expr_attlist attribute_list$
           $to_expr_taglist child_list$
-	>>
-	
+        >>
+        
     | EPpcdata dt -> <:expr< `PCData $str:dt$ >>
 
     | EPwhitespace dt -> <:expr< `Whitespace $str:dt$ >>
@@ -113,16 +113,16 @@ module ExpoOrPatt = struct
   let rec to_patt = function
 
       EPanyattr (EPVstr a, v) -> 
-	let vv = patt_valorval v in
-	<:patt< ((`$uid:String.capitalize a$), $vv$) >>
+        let vv = patt_valorval v in
+        <:patt< ((`$uid:String.capitalize a$), $vv$) >>
 
     | EPanyattr (EPVvar a, v) ->
-	let vv = patt_valorval v in
-	<:patt< ($lid:a$, $vv$) >>
+        let vv = patt_valorval v in
+        <:patt< ($lid:a$, $vv$) >>
 
     | EPanytag (tag, attribute_list, child_list) ->
-	<:patt< `$uid:String.capitalize tag$
-	  $to_patt_attlist attribute_list$
+        <:patt< `$uid:String.capitalize tag$
+          $to_patt_attlist attribute_list$
           $to_patt_taglist child_list$
         >>
 
@@ -170,16 +170,16 @@ EXTEND
     child_list = OPT exprpatt_any_tag_list;
     GAT -> 
       let attlist = match attribute_list with
-	  None -> PLEmpty
-	| Some l -> l
+          None -> PLEmpty
+        | Some l -> l
       in
       let taglist = match child_list with
-	  None -> PLEmpty
-	| Some l -> l
+          None -> PLEmpty
+        | Some l -> l
       in EPanytag
-	(tag,
-	 attlist, 
-	 taglist)
+        (tag,
+         attlist, 
+         taglist)
   | dt = WHITESPACE -> EPwhitespace dt
   | dt = DATA -> EPpcdata dt
   | c = COMMENT -> EPcomment c
@@ -192,8 +192,8 @@ EXTEND
       value = exprpatt_value_or_var;
       suite  = OPT exprpatt_any_attribute_list ->
       let suite = match suite with
-	  None -> PLEmpty
-	| Some l -> l
+          None -> PLEmpty
+        | Some l -> l
       in PLCons (EPanyattr (a,value), suite)
   ] ];
 
@@ -202,8 +202,8 @@ EXTEND
      anytag = exprpatt_any_tag;
       suite  = OPT exprpatt_any_tag_list ->
       let suite = match suite with
-	  None -> PLEmpty
-	| Some l -> l
+          None -> PLEmpty
+        | Some l -> l
       in PLCons (anytag, suite)
   ] ];
 

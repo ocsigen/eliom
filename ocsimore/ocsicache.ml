@@ -24,32 +24,32 @@ exception Ocsigen_Cache_error of string
 
 module Make = 
   functor (A : sig 
-	     type tvalue 
-	     val sql_t_list_to_tvalue : Dbi.sql_t list -> tvalue
-	     val tvalue_to_sql_t_list : tvalue -> Dbi.sql_t list
-	     val sql_fields_list_without_key : string list
-	     val table : string 
-	     val key : string
-	   end) ->
+             type tvalue 
+             val sql_t_list_to_tvalue : Dbi.sql_t list -> tvalue
+             val tvalue_to_sql_t_list : tvalue -> Dbi.sql_t list
+             val sql_fields_list_without_key : string list
+             val table : string 
+             val key : string
+           end) ->
 struct
 
   let fields_string = 
     let rec aux = function
-	[] -> ""
+        [] -> ""
       | [a] -> a
       | a::l -> (a^", "^(aux l))
     in aux A.sql_fields_list_without_key
 
   let set_string = 
     let rec aux = function
-	[] -> ""
+        [] -> ""
       | [a] -> a^" = ?"
       | a::l -> (a^" = ?, "^(aux l))
     in aux A.sql_fields_list_without_key
 
   let question_marks_string =
     let rec aux = function
-	[] -> ""
+        [] -> ""
       | [_] -> "?"
       | _::l -> ("?, "^(aux l))
     in aux A.sql_fields_list_without_key
@@ -63,15 +63,15 @@ struct
     let sth = dbh#prepare ("SELECT * FROM "^A.table^" WHERE "^field^" = ?") in
       sth#execute [value];
       match (sth#fetch1 ()) with
-	  (`Int a)::l -> (a, (A.sql_t_list_to_tvalue l))
-	| _ -> raise (Ocsigen_Cache_error  
-			("Database Table "^A.table^" (get_by_field"))
+          (`Int a)::l -> (a, (A.sql_t_list_to_tvalue l))
+        | _ -> raise (Ocsigen_Cache_error  
+                        ("Database Table "^A.table^" (get_by_field"))
 
   let size () = 
     let s = dbh#prepare ("SELECT currval('"^A.table^"_"^A.key^"_seq"^"')") in
       s#execute [];
       match s#fetch1 () with
-	(* with old versions of ocamldbi, remove the line `Int64 *)
+        (* with old versions of ocamldbi, remove the line `Int64 *)
       | [`Bigint i] -> Big_int.int_of_big_int i
 (*      | [`Int64 i] -> Int64.to_int i *)
       | _ -> raise (Ocsigen_Cache_error ("Database Table "^A.table^" (size)"))
@@ -81,7 +81,7 @@ struct
       s#execute (A.tvalue_to_sql_t_list value);
       dbh#commit ();
       size ()
-	
+        
   let update ~key ~value =
     (dbh#prepare ("UPDATE "^A.table^" SET "^set_string^" WHERE "^A.key^" = ?"))#execute ((A.tvalue_to_sql_t_list value)@[`Int key]);
     dbh#commit ()

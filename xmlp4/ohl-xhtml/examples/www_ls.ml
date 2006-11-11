@@ -14,10 +14,10 @@ let ls url files =
     (head (title (pcdata heading)) [])
     (body
        [h1 [pcdata heading];
-	p [pcdata "toto"; em [pcdata "titi"]; pcdata "toto"];
-	match files with
-	| [] -> p [pcdata "empty!"]
-	| first :: rest -> ul (item first) (List.map item rest)])
+        p [pcdata "toto"; em [pcdata "titi"]; pcdata "toto"];
+        match files with
+        | [] -> p [pcdata "empty!"]
+        | first :: rest -> ul (item first) (List.map item rest)])
 
 let usage = "usage: ./www_ls [-url url] [files]"
 

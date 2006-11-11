@@ -126,74 +126,74 @@ value next_token_fun find_kwd fname lnum bolpos =
   let rec next_token =
     ( fun s ->
       if waiting_for_attr () then
-	next_token_attr s
+        next_token_attr s
       else
-	next_token_normal s )
+        next_token_normal s )
   and next_token_attr =
     parser bp
     [ [: `(' ' | '\t'); s :] -> next_token s
       | [: `('\013' | '\010'); s :] ep -> 
         do {bolpos.val := ep; incr lnum; next_token s}
-      |	[: `('a'..'z' | 'A'..'Z' | '_' | ':' as c); s
-	 :] -> name_attribut bp (store 0 c) s
-      |	[: `'=' :] ep -> (("","="),mkloc (bp,ep))
-      |	[: `'"'; s :] ep ->
-	  (("VALUE", get_buff (value_attribut_in_double_quote bp 0 s)),mkloc (bp,ep))
-      |	[: `'''; s :] ep ->
-	  (("VALUE", get_buff (value_attribut_in_quote bp 0 s)),mkloc (bp,ep))
-      |	[: `'$'; s :] -> (* for caml expressions *) camlexprattr (bp+1) 0 s
-      |	[: `'/'; `'>' :] ep ->
-	  let name = pop_tag () in
-	  do { 
-	  end_attr ();
-	  (("GAT",name),mkloc (bp,ep)) }
-      |	[: `'>'; s :] -> do { end_attr (); next_token s}
+      |        [: `('a'..'z' | 'A'..'Z' | '_' | ':' as c); s
+         :] -> name_attribut bp (store 0 c) s
+      |        [: `'=' :] ep -> (("","="),mkloc (bp,ep))
+      |        [: `'"'; s :] ep ->
+          (("VALUE", get_buff (value_attribut_in_double_quote bp 0 s)),mkloc (bp,ep))
+      |        [: `'''; s :] ep ->
+          (("VALUE", get_buff (value_attribut_in_quote bp 0 s)),mkloc (bp,ep))
+      |        [: `'$'; s :] -> (* for caml expressions *) camlexprattr (bp+1) 0 s
+      |        [: `'/'; `'>' :] ep ->
+          let name = pop_tag () in
+          do { 
+          end_attr ();
+          (("GAT",name),mkloc (bp,ep)) }
+      |        [: `'>'; s :] -> do { end_attr (); next_token s}
     ]
   and next_token_normal =
     parser bp
     [ [: `(' ' | '\t' | '\026' | '\012' as c); s :] ep ->
       let c_string = string_of_space_char c in
       (("WHITESPACE", 
-	get_buff (whitespaces bp (mstore 0 c_string) s)),mkloc (bp,ep))
+        get_buff (whitespaces bp (mstore 0 c_string) s)),mkloc (bp,ep))
     | [: `('\013' | '\010' as c); s :] ep ->
       let c_string = string_of_space_char c in
       do {bolpos.val := ep; incr lnum;
       (("WHITESPACE", 
-	get_buff (whitespaces bp (mstore 0 c_string) s)),mkloc (bp,ep))}
+        get_buff (whitespaces bp (mstore 0 c_string) s)),mkloc (bp,ep))}
     | [: `('A'..'Z' | '\192'..'\214' | '\216'..'\222' | 'a'..'z' |
       '\223'..'\246' | '\248'..'\255' | '_' | '1'..'9' | '0' | '\'' | '"' |
       (* '$' | *) 
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
       '?' | ':' | '|' | '[' | ']' | '{' | '}' | '.' | ';' | ',' | '\\' | '(' |
       ')' | '#' | '>' | '`'
-	as c); s :] ep -> 
-	  (("DATA", get_buff (data bp (store 0 c) s)),mkloc (bp,ep))
+        as c); s :] ep -> 
+          (("DATA", get_buff (data bp (store 0 c) s)),mkloc (bp,ep))
     | [: `'$'; s :] -> (* for caml expr *) camlexpr (bp+1) s
     | [: `'<'; s :] ->
-	match s with parser
-      [	[: `'?'; `'x'; `'m'; `'l';
-	 len = question_mark_tag bp 0
-	   :] ep -> (("XMLDECL", get_buff len), mkloc (bp, ep))
-      |	[: `'!'; s :] ->
-	  match s with parser
-	    [ [: `'-'; `'-'; ct :] ep -> 
-		(("COMMENT", get_buff (comment_tag 0 bp 0 ct)),
-		 mkloc (bp,ep))
-	    | [: len = exclamation_mark_tag bp 0
-		 :] ep -> (("DECL", get_buff len),mkloc (bp,ep)) ]
-      |	[: `'/'; `('a'..'z' | 'A'..'Z' | '_' | ':' as c); s
-	   :] -> end_tag bp (store 0 c) s
-      |	[: `('a'..'z' | 'A'..'Z' | '_' (* | ':'*) as c); s
-	   :] -> start_tag bp (store 0 c) s ] 
+        match s with parser
+      [        [: `'?'; `'x'; `'m'; `'l';
+         len = question_mark_tag bp 0
+           :] ep -> (("XMLDECL", get_buff len), mkloc (bp, ep))
+      |        [: `'!'; s :] ->
+          match s with parser
+            [ [: `'-'; `'-'; ct :] ep -> 
+                (("COMMENT", get_buff (comment_tag 0 bp 0 ct)),
+                 mkloc (bp,ep))
+            | [: len = exclamation_mark_tag bp 0
+                 :] ep -> (("DECL", get_buff len),mkloc (bp,ep)) ]
+      |        [: `'/'; `('a'..'z' | 'A'..'Z' | '_' | ':' as c); s
+           :] -> end_tag bp (store 0 c) s
+      |        [: `('a'..'z' | 'A'..'Z' | '_' (* | ':'*) as c); s
+           :] -> start_tag bp (store 0 c) s ] 
     | [: `c :] ep -> keyword_or_error (bp,ep) (String.make 1 c)
     | [: _ = Stream.empty :] ep ->
-	let size = size_tag_stack () in
-	if (size == 0)
-	then
-	  do {lnum.val := 1;
-	    (("EOI", ""), mkloc (bp, succ bp))}
-	else
-	  err (mkloc (bp, ep)) ( (string_of_int size) ^ " tag" ^ (if size == 1 then "" else "s") ^ " not terminated (" ^ (string_of_tag_stack ()) ^ ").")
+        let size = size_tag_stack () in
+        if (size == 0)
+        then
+          do {lnum.val := 1;
+            (("EOI", ""), mkloc (bp, succ bp))}
+        else
+          err (mkloc (bp, ep)) ( (string_of_int size) ^ " tag" ^ (if size == 1 then "" else "s") ^ " not terminated (" ^ (string_of_tag_stack ()) ^ ").")
     ]
 
 (* XML *)
@@ -205,21 +205,21 @@ value next_token_fun find_kwd fname lnum bolpos =
   and comment_tag prof bp len =
     parser
     [ [: `'-'; s :] -> dash_in_comment_tag prof bp len s
-      |	[: `'<'; s :] -> comment_tag2 prof bp len s
-      |	[: `c; s :] -> comment_tag prof bp (store len c) s
+      |        [: `'<'; s :] -> comment_tag2 prof bp len s
+      |        [: `c; s :] -> comment_tag prof bp (store len c) s
       | [: :] ep -> err (mkloc (bp, ep)) "comment (<!-- -->) not terminated" ]
   and comment_tag2 prof bp len =
     parser
     [ [: `'!'; s :] -> comment_tag3 prof bp len s
-      |	[: s :] -> comment_tag prof bp (store len '<') s ]
+      |        [: s :] -> comment_tag prof bp (store len '<') s ]
   and comment_tag3 prof bp len =
     parser
     [ [: `'-'; s :] -> comment_tag4 prof bp len s
-      |	[: s :] -> comment_tag prof bp (mstore len "<!") s ]
+      |        [: s :] -> comment_tag prof bp (mstore len "<!") s ]
   and comment_tag4 prof bp len =
     parser
     [ [: `'-'; s :] -> comment_tag (prof+1) bp (mstore len "<!--") s
-      |	[: s :] -> comment_tag prof bp (mstore len "<!-") s ]
+      |        [: s :] -> comment_tag prof bp (mstore len "<!-") s ]
   and dash_in_comment_tag prof bp len =
     parser
     [ [: `'-'; s :] -> dash_in_comment_tag2 prof bp len s
@@ -234,88 +234,88 @@ value next_token_fun find_kwd fname lnum bolpos =
     parser bp_sb
     [ [: `'>' :] -> len
     | [: `('[' as c); s :] ->
-	sq_bracket_in_exclamation_mark_tag bp_sb (store len c) s
+        sq_bracket_in_exclamation_mark_tag bp_sb (store len c) s
     | [: `c; s :] -> exclamation_mark_tag bp (store len c) s
     | [: :] ep -> err (mkloc (bp, ep)) "Decl tag (<! >) not terminated" ]
   and sq_bracket_in_exclamation_mark_tag bp len =
     parser
       [ [: `(']' as c ); s :] ->
-	  exclamation_mark_tag bp (store len c) s
+          exclamation_mark_tag bp (store len c) s
       | [: `c; s :] -> sq_bracket_in_exclamation_mark_tag bp (store len c) s
       | [: :] ep -> err (mkloc (bp, ep))
-	    "Decl tag with open square bracket (<! ... [) not terminated" ]
+            "Decl tag with open square bracket (<! ... [) not terminated" ]
   and end_tag bp len =
     parser
     [ [: `'>' :] ep ->
       let name = get_buff len in
       let last_open = pop_tag () in
       if last_open = name then
-	(("GAT",name), mkloc (bp,ep))
+        (("GAT",name), mkloc (bp,ep))
       else
-       	err (mkloc (bp, ep)) ("bad end tag: </"
-		      ^ name
-		      ^ ">"
-		      ^ (
-			if last_open = "" then
-			  ""
-			else
-			  " (</" ^last_open ^ "> expected)"
-		       ))
+               err (mkloc (bp, ep)) ("bad end tag: </"
+                      ^ name
+                      ^ ">"
+                      ^ (
+                        if last_open = "" then
+                          ""
+                        else
+                          " (</" ^last_open ^ "> expected)"
+                       ))
       | [: `('a'..'z' | 'A'..'Z' | '1'..'9' | '0' |
-	'.' | '-' | '_' | ':'  as c); s :] -> end_tag bp (store len c) s
-      |	[: :] ep -> err (mkloc (bp, ep)) "end tag (</ >) not terminated" ]
+        '.' | '-' | '_' | ':'  as c); s :] -> end_tag bp (store len c) s
+      |        [: :] ep -> err (mkloc (bp, ep)) "end tag (</ >) not terminated" ]
   and start_tag bp len =
     parser
     [ [: `'>' :] ep ->
       let name = get_buff len in
       do { push_tag name;
-	   (("TAG", name), mkloc (bp,ep)) }
-      |	[: `('\013' | ' ' | '\t') :] ep ->
-	  let name = get_buff len in
+           (("TAG", name), mkloc (bp,ep)) }
+      |        [: `('\013' | ' ' | '\t') :] ep ->
+          let name = get_buff len in
           do { push_tag name;
-	       begin_attr ();
-	       (("TAG", name), mkloc (bp,ep)) }
-      |	[: `('\010') :] ep ->
-	  let name = get_buff len in
+               begin_attr ();
+               (("TAG", name), mkloc (bp,ep)) }
+      |        [: `('\010') :] ep ->
+          let name = get_buff len in
           do { bolpos.val := ep; incr lnum;
                push_tag name;
-	       begin_attr ();
-	       (("TAG", name), mkloc (bp,ep)) }
+               begin_attr ();
+               (("TAG", name), mkloc (bp,ep)) }
       | [: `( 'a'..'z' | 'A'..'Z' | '1'..'9' | '0' |
-	'.' | '-' | '_' | ':' as c); s :] ->
-	    start_tag bp (store len c) s
-      |	[: :] ep ->
-	  let name = get_buff len in
+        '.' | '-' | '_' | ':' as c); s :] ->
+            start_tag bp (store len c) s
+      |        [: :] ep ->
+          let name = get_buff len in
           do { push_tag name;
-	       begin_attr ();
-	       (("TAG", name), mkloc (bp,ep)) } ]
- (*     |	[: :] ep -> err (mkloc (bp, ep)) "start tag (< > or < />) not terminated" ] *)
+               begin_attr ();
+               (("TAG", name), mkloc (bp,ep)) } ]
+ (*     |        [: :] ep -> err (mkloc (bp, ep)) "start tag (< > or < />) not terminated" ] *)
   and name_attribut bp len =
     parser
     [ [: `('\013' | ' ' | '\t') :] ep ->
       (("ATTR",get_buff len), mkloc (bp,ep))
-      |	[: `('\010') :] ep ->
+      |        [: `('\010') :] ep ->
       do { bolpos.val := ep; incr lnum ; (("ATTR",get_buff len), mkloc (bp,ep))}
-      |	[: `( 'a'..'z' | 'A'..'Z' | '1'..'9' | '0' |
+      |        [: `( 'a'..'z' | 'A'..'Z' | '1'..'9' | '0' |
     '.' | '-' | '_' | ':'
       as c); s :] -> name_attribut bp (store len c) s
-      |	[: s :] ep -> (("ATTR",get_buff len), mkloc (bp,ep))
-      |	[: :] ep -> err (mkloc (bp, ep)) "start tag (< > or < />) not terminated" ]
+      |        [: s :] ep -> (("ATTR",get_buff len), mkloc (bp,ep))
+      |        [: :] ep -> err (mkloc (bp, ep)) "start tag (< > or < />) not terminated" ]
   and value_attribut_in_double_quote bp len =
     parser
     [ [: `'"' :] -> len
-      |	[: `'\\'; `'"'; s :] ->
-	  value_attribut_in_double_quote bp (store (store len '\\') '"') s
-      |	[: `c; s :] ->
-	  value_attribut_in_double_quote bp (store len c) s
-      |	[: :] ep -> err (mkloc (bp, ep)) "attribut value not terminated" ]
+      |        [: `'\\'; `'"'; s :] ->
+          value_attribut_in_double_quote bp (store (store len '\\') '"') s
+      |        [: `c; s :] ->
+          value_attribut_in_double_quote bp (store len c) s
+      |        [: :] ep -> err (mkloc (bp, ep)) "attribut value not terminated" ]
   and camlexpr bp =
     parser
     [ [: `('a'..'z' | '\223'..'\246' | '\248'..'\255' | '_' as c); s :] ->
       antiquotname bp ((ident (store 0 c)) s) s
     | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep))
     | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp 0 s)), 
-		     mkloc (bp,ep)) ]
+                     mkloc (bp,ep)) ]
   and antiquotname bp len =
     parser bp2 
     [ [: `':'; s :] ep -> let buff = get_buff len in 
@@ -327,7 +327,7 @@ value next_token_fun find_kwd fname lnum bolpos =
     else err (mkloc (bp, ep)) "unknown antiquotation"
     | [: `'$'; s :] ep -> (("CAMLEXPRXML", (get_buff len)), mkloc (bp,ep))
     | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp len s)), 
-		     mkloc (bp,ep)) ]
+                     mkloc (bp,ep)) ]
   and camlexpr2 bp len =
     parser
     [ [: `'$'; s :] -> len
@@ -344,24 +344,24 @@ value next_token_fun find_kwd fname lnum bolpos =
       antiquotname_attr bp ((ident (store 0 c)) s) s
     | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep))
     | [: s :] ep -> (("CAMLEXPR", get_buff (camlexpr2 bp 0 s)), 
-		     mkloc (bp,ep)) ]
+                     mkloc (bp,ep)) ]
   and antiquotname_attr bp len =
     parser
     [ [: `':'; s :] ep -> let buff = get_buff len in 
-	if buff = "list" 
-	then (("CAMLEXPRL", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep))
-	else err (mkloc (bp, ep)) "unknown antiquotation"
+        if buff = "list" 
+        then (("CAMLEXPRL", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep))
+        else err (mkloc (bp, ep)) "unknown antiquotation"
     | [: `'$'; s :] ep -> (("CAMLEXPR", get_buff len), mkloc (bp,ep))
     | [: s :] ep -> (("CAMLEXPR", get_buff (camlexpr2 bp len s)), mkloc (bp,ep)) ]
 
   and value_attribut_in_quote bp len =
     parser
     [ [: `''' :] -> len
-      |	[: `'\\'; `'''; s :] ->
-	  value_attribut_in_quote bp (store (store len '\\') ''') s
-      |	[: `c; s :] ->
-	  value_attribut_in_quote bp (store len c) s
-      |	[: :] ep -> err (mkloc (bp, ep)) "attribut value not terminated" ]
+      |        [: `'\\'; `'''; s :] ->
+          value_attribut_in_quote bp (store (store len '\\') ''') s
+      |        [: `c; s :] ->
+          value_attribut_in_quote bp (store len c) s
+      |        [: :] ep -> err (mkloc (bp, ep)) "attribut value not terminated" ]
   and data bp len =
     parser
     [ (* [: `(' ' | '\n' | '\t' as c); s :] ->
@@ -373,7 +373,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
       '?' | ':' | '|' | '[' | ']' | '{' | '}' | '.' | ';' | ',' | '\\' | '(' |
       ')' | '#' | '>' | '`'
-	as c) ; s :] -> data bp (store len c) s
+        as c) ; s :] -> data bp (store len c) s
     | [: s :] -> len ]
 (*  and spaces_in_data bp len spaces =
     parser
@@ -389,8 +389,8 @@ value next_token_fun find_kwd fname lnum bolpos =
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
       '?' | ':' | '|' | '[' | ']' | '{' | '}' | '.' | ';' | ',' | '\\' | '(' |
       ')' | '#' | '`'
-	as c) ; s :] ->
-       	  data bp (store (mstore len spaces) c) s
+        as c) ; s :] ->
+                 data bp (store (mstore len spaces) c) s
     | [: s :] -> len ] *)
   and whitespaces bp len =
     parser

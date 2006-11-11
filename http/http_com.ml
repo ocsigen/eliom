@@ -49,7 +49,7 @@ end = struct
   let get_thread l = 
     match l.timeout_thread with
       None -> assert false (* Should not happen because last_timeout is
-			      not visible outside the module *)
+                              not visible outside the module *)
     | Some t -> t
 
   let new_timeout () =
@@ -87,18 +87,18 @@ end = struct
     let t = Ocsiconfig.get_connect_time_max () in
     let rec killall l =
       match l.timeout_thread with
-	None -> ()
+        None -> ()
       | Some t -> (Lwt.wakeup_exn t Ocsigen_Timeout;
-		   killall l.timeout_succ)
+                   killall l.timeout_succ)
     in
     let rec aux () =
       Lwt_unix.sleep t >>=
       (fun () -> 
-	Messages.debug "Killing timeouted connections";
-	killall !olds.timeout_succ; 
-	olds := !waiters; 
-	waiters := last_timeout ();
-	return ()) >>=
+        Messages.debug "Killing timeouted connections";
+        killall !olds.timeout_succ; 
+        olds := !waiters; 
+        waiters := last_timeout ();
+        return ()) >>=
       aux
     in aux ()
 
@@ -109,17 +109,17 @@ end
 module Com_buffer =
 struct
   type t = { mutable buf :string; 
-	     mutable read_pos:int; 
-	     mutable write_pos:int; 
-	     mutable datasize:int;
-	     size:int }
+             mutable read_pos:int; 
+             mutable write_pos:int; 
+             mutable datasize:int;
+             size:int }
 
   (** create a buffer *)
   let create size = { buf=String.create size;
-		      read_pos=0;
-		      write_pos=0; 
-		      datasize=0; 
-		      size=size }
+                      read_pos=0;
+                      write_pos=0; 
+                      datasize=0; 
+                      size=size }
 
   let sizedata a b m = 
     let diff = a - b in
@@ -150,31 +150,31 @@ struct
     (* waiter will be awoken when we should begin counting the timeout *)
     catch
       (fun () ->
-	wait_can_write buffer >>= 
-	(fun free ->
-	  let wait_timeout = Timeout.new_timeout () in
-	  choose
-	    [Lwt_unix.yield () >>= 
-	     (fun () -> 
-	       Lwt_unix.read file_descr buffer.buf buffer.write_pos free) >>=
-	     (fun l -> 
-	       Timeout.remove_timeout wait_timeout; 
-	       return l);
-	     waiter >>= 
-	     (fun () -> Timeout.begin_timeout wait_timeout; 
-	       Timeout.get_thread wait_timeout)
-	     (* old solution: too much sleeps. fun () ->
-	       (Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= 
-		(fun () -> fail Ocsigen_Timeout)) *)] >>=
-	  (fun len ->
+        wait_can_write buffer >>= 
+        (fun free ->
+          let wait_timeout = Timeout.new_timeout () in
+          choose
+            [Lwt_unix.yield () >>= 
+             (fun () -> 
+               Lwt_unix.read file_descr buffer.buf buffer.write_pos free) >>=
+             (fun l -> 
+               Timeout.remove_timeout wait_timeout; 
+               return l);
+             waiter >>= 
+             (fun () -> Timeout.begin_timeout wait_timeout; 
+               Timeout.get_thread wait_timeout)
+             (* old solution: too much sleeps. fun () ->
+               (Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= 
+                (fun () -> fail Ocsigen_Timeout)) *)] >>=
+          (fun len ->
             if len = 0 
-	    then Lwt.fail End_of_input
-	    else begin
-	      buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
-	      buffer.datasize <- buffer.datasize + len;
-	      return ()
-	    end
-	  ))
+            then Lwt.fail End_of_input
+            else begin
+              buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
+              buffer.datasize <- buffer.datasize + len;
+              return ()
+            end
+          ))
       )
       fail
 
@@ -197,20 +197,20 @@ struct
         let available = buffer.write_pos - read_p in
         (* convert the positions into buffer indices *)
         let r_buffer_pos = read_p mod buffer.size in
-	let co = (Int64.compare available 0) in
-	if co < 0 
-	then assert false 
-	else if co = 0 
-	then (* wait until can read more bytes*)
+        let co = (Int64.compare available 0) in
+        if co < 0 
+        then assert false 
+        else if co = 0 
+        then (* wait until can read more bytes*)
           receive fd buffer >>=
-	  (fun () -> read_aux result read_p rem_len)
-	else let nb_read = 
-	  min3 rem_len available (buffer.size - r_buffer_pos) in
+          (fun () -> read_aux result read_p rem_len)
+        else let nb_read = 
+          min3 rem_len available (buffer.size - r_buffer_pos) in
         let string_read = String.sub buffer.buf read_p nb_read in
         read_aux 
-	  (result^string_read) 
-	  (Int64.add read_p nb_read)
-	  (Int64.sub rem_len nb_read)
+          (result^string_read) 
+          (Int64.add read_p nb_read)
+          (Int64.sub rem_len nb_read)
        )
     in
       if (buffer.read_pos + off> buffer.write_pos) 
@@ -222,21 +222,21 @@ struct
     let rec extract_aux rem_len =
       let extract_one available rem_len = 
         let nb_extract = 
-	  min3' rem_len available (buffer.size - buffer.read_pos) in
+          min3' rem_len available (buffer.size - buffer.read_pos) in
         let string_extract = 
-	  String.sub buffer.buf buffer.read_pos nb_extract in
+          String.sub buffer.buf buffer.read_pos nb_extract in
         buffer.read_pos <- (buffer.read_pos + nb_extract) mod buffer.size;
-	buffer.datasize <- buffer.datasize - nb_extract;
-	if buffer.datasize = 0
-	then (buffer.read_pos <- 0; buffer.write_pos <- 0);
-	(* je recale le buffer pour avoir des blocs de buffersize exactement *)
-	Lwt.return 
-	  (string_extract,
-	   (Int64.sub rem_len (Int64.of_int nb_extract)))
+        buffer.datasize <- buffer.datasize - nb_extract;
+        if buffer.datasize = 0
+        then (buffer.read_pos <- 0; buffer.write_pos <- 0);
+        (* je recale le buffer pour avoir des blocs de buffersize exactement *)
+        Lwt.return 
+          (string_extract,
+           (Int64.sub rem_len (Int64.of_int nb_extract)))
       in try
-	if rem_len = Int64.zero 
-	then Lwt.return (empty_stream None)
-	else 
+        if rem_len = Int64.zero 
+        then Lwt.return (empty_stream None)
+        else 
           let available = content_length buffer in
           match available with
           | x when x < 0 -> assert false
@@ -244,9 +244,9 @@ struct
               (* wait more bytes to read *)
               receive now fd buffer >>= (fun () -> extract_aux rem_len)
           | _ -> 
-	      extract_one available rem_len >>= 
-	      (fun (s,rem_len) -> 
-		Lwt.return (new_stream s (fun () -> extract_aux rem_len)))
+              extract_one available rem_len >>= 
+              (fun (s,rem_len) -> 
+                Lwt.return (new_stream s (fun () -> extract_aux rem_len)))
       with e -> fail e
     in extract_aux len
 
@@ -259,7 +259,7 @@ struct
           match nb_read with
             | 4 ->
                 (match (buffer.buf.[ind mod buffer.size ],
-			buffer.buf.[(ind+1) mod buffer.size ],
+                        buffer.buf.[(ind+1) mod buffer.size ],
                         buffer.buf.[(ind+2) mod buffer.size],
                         buffer.buf.[(ind+3) mod buffer.size]) with
                   |('\r','\n','\r','\n') -> ind + 3
@@ -271,7 +271,7 @@ struct
             | 3 ->
                 (
                   match (buffer.buf.[ind mod buffer.size],
-			 buffer.buf.[(ind+1) mod buffer.size],
+                         buffer.buf.[(ind+1) mod buffer.size],
                          buffer.buf.[(ind +2) mod buffer.size]) with
                     |('\n','\r','\n') -> ind + 2
                     |(_,'\r','\n') -> find buffer (ind + 3) 2 (rem_len -3)
@@ -281,7 +281,7 @@ struct
             | 2 -> 
                 (
                   match (buffer.buf.[ind mod buffer.size],
-			 buffer.buf.[(ind+1) mod buffer.size]) with
+                         buffer.buf.[(ind+1) mod buffer.size]) with
                     |('\r','\n') -> ind + 1
                     |(_,'\r') -> find buffer (ind+2) 3 (rem_len -2)
                     |(_,_) -> find buffer (ind+2) 4 (rem_len -2)
@@ -308,31 +308,31 @@ struct
             Lwt.return (sizedata (end_ind+1) buffer.read_pos buffer.size)
           with 
             Not_found ->
-	      receive now fd buffer >>= (fun () ->
+              receive now fd buffer >>= (fun () ->
                 wait_http_header_aux 
-		  ((cur_ind + available - 
-		      (min available 3)) mod buffer.size))
+                  ((cur_ind + available - 
+                      (min available 3)) mod buffer.size))
     in 
     catch 
       (fun () ->
-	(if doing_keep_alive && (buffer.datasize = 0)
-	then
-	  Lwt.choose
-	    [receive waiter fd buffer;
-	     waiter >>= 
-	     (fun () -> 
-	       (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
-		(fun () -> fail Ocsigen_KeepaliveTimeout)))]
-	else return ()) >>= 
-	(fun () -> 
-	  (if buffer.datasize = 0
-	  then receive waiter fd buffer
-	  else return ()) >>= 
-	  (fun () -> wait_http_header_aux buffer.read_pos))
+        (if doing_keep_alive && (buffer.datasize = 0)
+        then
+          Lwt.choose
+            [receive waiter fd buffer;
+             waiter >>= 
+             (fun () -> 
+               (Lwt_unix.sleep (Ocsiconfig.get_keepalive_timeout ()) >>= 
+                (fun () -> fail Ocsigen_KeepaliveTimeout)))]
+        else return ()) >>= 
+        (fun () -> 
+          (if buffer.datasize = 0
+          then receive waiter fd buffer
+          else return ()) >>= 
+          (fun () -> wait_http_header_aux buffer.read_pos))
       )
       (function
-	  Ocsigen_buffer_is_full -> fail Ocsigen_header_too_long
-	| e -> fail e)
+          Ocsigen_buffer_is_full -> fail Ocsigen_header_too_long
+        | e -> fail e)
 
 end
     
@@ -342,67 +342,67 @@ module FHttp_receiver =
     struct
       
       module Http = Http_frame.FHttp_frame (C)
-	  
+          
       type t = {buffer:Com_buffer.t; fd:Lwt_unix.descr}
-	    
-	    (** create a new receiver *)
+            
+            (** create a new receiver *)
       let create fd =
-	let buffer_size = Ocsiconfig.get_netbuffersize () in
-	let buffer = Com_buffer.create buffer_size in
+        let buffer_size = Ocsiconfig.get_netbuffersize () in
+        let buffer = Com_buffer.create buffer_size in
         {buffer=buffer;fd=fd}
-	  
-	  (** convert a stream into an header *)
+          
+          (** convert a stream into an header *)
       let http_header_of_stream s =
           catch
-	    (fun () -> 
-	      (string_of_stream s) >>=
-	      (fun s ->
-		let lexbuf = Lexing.from_string s in
-		catch
-		  (fun () ->
-		    Lwt.return (Http_parser.header Http_lexer.token lexbuf))
-		  (function
-		      Parsing.Parse_error -> 
-			fail (Ocsigen_HTTP_parsing_error
-				((Lexing.lexeme lexbuf),s))
-		    | e -> fail e)))
-	  (function
-	    | String_too_large -> fail Ocsigen_header_too_long
-	    | e -> fail e)
+            (fun () -> 
+              (string_of_stream s) >>=
+              (fun s ->
+                let lexbuf = Lexing.from_string s in
+                catch
+                  (fun () ->
+                    Lwt.return (Http_parser.header Http_lexer.token lexbuf))
+                  (function
+                      Parsing.Parse_error -> 
+                        fail (Ocsigen_HTTP_parsing_error
+                                ((Lexing.lexeme lexbuf),s))
+                    | e -> fail e)))
+          (function
+            | String_too_large -> fail Ocsigen_header_too_long
+            | e -> fail e)
          
       (** get an http frame *)
       let get_http_frame waiter receiver ~doing_keep_alive () =
-	(* waiter is here only for pipelining and timeout:
-	   we trigger the sleep only when the previous request has been
-	   answered (waiter awoken)
-	 *)
-	Com_buffer.wait_http_header waiter
-	  ~doing_keep_alive receiver.fd receiver.buffer >>=
-	(fun len ->
-	  Com_buffer.extract receiver.fd receiver.buffer (Int64.of_int len) >>=
-	  (fun string_header ->
+        (* waiter is here only for pipelining and timeout:
+           we trigger the sleep only when the previous request has been
+           answered (waiter awoken)
+         *)
+        Com_buffer.wait_http_header waiter
+          ~doing_keep_alive receiver.fd receiver.buffer >>=
+        (fun len ->
+          Com_buffer.extract receiver.fd receiver.buffer (Int64.of_int len) >>=
+          (fun string_header ->
             try
               (http_header_of_stream string_header) >>=
-	      (fun header ->
-		let body_length=
-		  try
+              (fun header ->
+                let body_length=
+                  try
                     Int64.of_string
-		      (Http_frame.Http_header.get_headers_value 
-			 header "content-length")
-		  with
+                      (Http_frame.Http_header.get_headers_value 
+                         header "content-length")
+                  with
                     _ -> Int64.zero
-		in 
-		let comp = Int64.compare body_length Int64.zero in
-		(if comp < 0 
-		then assert false
-		else if comp = 0 
-		then Lwt.return None
-		else
-		  Com_buffer.extract 
-		    receiver.fd receiver.buffer body_length
-		    >>= C.content_of_stream >>= 
-		  (fun c -> Lwt.return (Some c))) >>=
-		(fun b -> Lwt.return {Http.header=header; Http.content=b}))
+                in 
+                let comp = Int64.compare body_length Int64.zero in
+                (if comp < 0 
+                then assert false
+                else if comp = 0 
+                then Lwt.return None
+                else
+                  Com_buffer.extract 
+                    receiver.fd receiver.buffer body_length
+                    >>= C.content_of_stream >>= 
+                  (fun c -> Lwt.return (Some c))) >>=
+                (fun b -> Lwt.return {Http.header=header; Http.content=b}))
             with e -> fail e
           )
         )
@@ -442,31 +442,31 @@ module FHttp_sender =
     (*fonction d'écriture sur le réseau*)
     let rec really_write out_ch close_fun = function
       | Finished _ -> 
-	  Messages.debug "write finished (closing stream)"; 
-	  (try 
-	    close_fun () 
-	  with _ -> 
-	    Messages.debug "Error while closing stream (at end of stream)");
-	  Lwt.return ()
+          Messages.debug "write finished (closing stream)"; 
+          (try 
+            close_fun () 
+          with _ -> 
+            Messages.debug "Error while closing stream (at end of stream)");
+          Lwt.return ()
       | Cont (s, l, next) ->
-	  catch
-	    (fun () ->
-	      Lwt_unix.write out_ch s 0 l >>=
-	      (fun len' ->
-		Lwt_unix.yield () >>= (fun () ->
-	          if l = len'
-		  then next () >>= really_write out_ch close_fun
-		  else really_write out_ch close_fun
-		      (new_stream (String.sub s len' (l-len')) next))
-	      )
-	    )
-	    (function
-		Unix.Unix_error (Unix.EPIPE, _, _)
-	      | Unix.Unix_error (Unix.ECONNRESET, _, _) 
-	      | Ssl.Write_error _  ->
-		print_endline  ("~~~~~~~~~~~~ PPPPPPPPPPPPPPPPPPPPPPPPPProblème pour    : '"^(Digest.to_hex (Digest.string s))^"'");
-		  fail Connection_reset_by_peer
-	      | e -> fail e)
+          catch
+            (fun () ->
+              Lwt_unix.write out_ch s 0 l >>=
+              (fun len' ->
+                Lwt_unix.yield () >>= (fun () ->
+                  if l = len'
+                  then next () >>= really_write out_ch close_fun
+                  else really_write out_ch close_fun
+                      (new_stream (String.sub s len' (l-len')) next))
+              )
+            )
+            (function
+                Unix.Unix_error (Unix.EPIPE, _, _)
+              | Unix.Unix_error (Unix.ECONNRESET, _, _) 
+              | Ssl.Write_error _  ->
+                print_endline  ("~~~~~~~~~~~~ PPPPPPPPPPPPPPPPPPPPPPPPPProblème pour    : '"^(Digest.to_hex (Digest.string s))^"'");
+                  fail Connection_reset_by_peer
+              | e -> fail e)
 
 
     (**create a new sender*)
@@ -574,57 +574,57 @@ module FHttp_sender =
     * defined header when there is a conflict
     * the content-length tag is automaticaly calculated*)
     let send waiter ?etag
-	?mode ?proto ?headers ?meth ?url ?code ?content ?head sender =
+        ?mode ?proto ?headers ?meth ?url ?code ?content ?head sender =
       (*creation d'une http_frame*)
       (*creation du header*)
       (* waiter is here for pipelining: we must wait before sending the page,
-	 because the previous one may not be sent.
-	 If we don't want to wait, use waiter = return ()
+         because the previous one may not be sent.
+         If we don't want to wait, use waiter = return ()
        *)
       waiter >>=
       (fun () ->
-	let md = match mode with None -> sender.mode | Some m -> m in
-	let prot = match proto with None -> sender.proto | Some p -> p in
-	match content with
-	| None -> Lwt.return ()
-	| Some c -> 
-	    (C.stream_of_content c >>=
-	     (* Here the stream is opened *)
+        let md = match mode with None -> sender.mode | Some m -> m in
+        let prot = match proto with None -> sender.proto | Some p -> p in
+        match content with
+        | None -> Lwt.return ()
+        | Some c -> 
+            (C.stream_of_content c >>=
+             (* Here the stream is opened *)
              (fun (lon, etag2, flux, close_fun) ->
-	       catch
-		 (fun () ->
-		   Lwt.return (hds_fusion (Some lon)
-				 (("ETag", ("\""^(match etag with 
-				   None -> etag2
-				 | Some etag -> etag)^"\""))::sender.headers)
-				 (match headers with 
-				   Some h ->h
-				 | None -> []) ) >>=
-		   (fun hds -> 
-		     let hd = {
-		       H.mode = md;
-		       H.meth=meth;
-		       H.url=url;
-		       H.code=code;
-		       H.proto = prot;
-		       H.headers = hds;
-		     } in
-		     Messages.debug "writing header";
-		     really_write sender.fd (fun () -> ())
-		       (new_stream (Framepp.string_of_header hd)
-			  (fun () -> 
-			    Lwt.return (empty_stream None)))) >>=
-		   (fun _ -> match head with 
-		   | Some true -> Lwt.return ()
-		   | _ -> Messages.debug "writing body"; 
-		       really_write sender.fd close_fun flux)
-		 )
-		 (fun e -> 
-		   (try 
-		     close_fun () 
-		   with e -> 
-		     Messages.debug
-		       ("Error while closing stream (error during stream) : "^
-			(Printexc.to_string e)));
-		   fail e))))
+               catch
+                 (fun () ->
+                   Lwt.return (hds_fusion (Some lon)
+                                 (("ETag", ("\""^(match etag with 
+                                   None -> etag2
+                                 | Some etag -> etag)^"\""))::sender.headers)
+                                 (match headers with 
+                                   Some h ->h
+                                 | None -> []) ) >>=
+                   (fun hds -> 
+                     let hd = {
+                       H.mode = md;
+                       H.meth=meth;
+                       H.url=url;
+                       H.code=code;
+                       H.proto = prot;
+                       H.headers = hds;
+                     } in
+                     Messages.debug "writing header";
+                     really_write sender.fd (fun () -> ())
+                       (new_stream (Framepp.string_of_header hd)
+                          (fun () -> 
+                            Lwt.return (empty_stream None)))) >>=
+                   (fun _ -> match head with 
+                   | Some true -> Lwt.return ()
+                   | _ -> Messages.debug "writing body"; 
+                       really_write sender.fd close_fun flux)
+                 )
+                 (fun e -> 
+                   (try 
+                     close_fun () 
+                   with e -> 
+                     Messages.debug
+                       ("Error while closing stream (error during stream) : "^
+                        (Printexc.to_string e)));
+                   fail e))))
   end

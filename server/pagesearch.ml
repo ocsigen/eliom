@@ -49,15 +49,15 @@ type current_url = string list
 type current_dir = string list
 
 type 'a server_params1 = {full_url: string;
-			  hostname: string option;
-			  user_agent: string;
-			  ip: Unix.inet_addr;
-			  get_params: (string * string) list;
-			  post_params: (string * string) list;
-			  current_url: current_url;
-			  current_dir: current_dir;
-			  session_table: 'a ref
-			}
+                          hostname: string option;
+                          user_agent: string;
+                          ip: Unix.inet_addr;
+                          get_params: (string * string) list;
+                          post_params: (string * string) list;
+                          current_url: current_url;
+                          current_dir: current_dir;
+                          session_table: 'a ref
+                        }
       
 type 'a server_params2 = url_path * 'a server_params1
       
@@ -95,7 +95,7 @@ type page_table_key =
       (* action: tables server_params2 -> page *)
 
       (* module Page_Table = Map.Make(struct type t = page_table_key 
-	 let compare = compare end) *)
+         let compare = compare end) *)
 
 module String_Table = Map.Make(struct type t = string
   let compare = compare end)
@@ -103,19 +103,19 @@ module String_Table = Map.Make(struct type t = string
 type page_table = 
     (page_table_key * 
        ((int * 
-	   ((tables server_params2 -> Sender_helpers.send_page_type Lwt.t)
-	      * Sender_helpers.create_sender_type * url_path)) list)) list
+           ((tables server_params2 -> Sender_helpers.send_page_type Lwt.t)
+              * Sender_helpers.create_sender_type * url_path)) list)) list
       (* Here, the url_path is the working directory.
-	 That is, the directory in which we are when we register
-	 dynamically the pages.
-	 Each time we load a page, we change to this directory
-	 (in case the page registers new pages).
+         That is, the directory in which we are when we register
+         dynamically the pages.
+         Each time we load a page, we change to this directory
+         (in case the page registers new pages).
        *)
 
 and action_table = 
     AVide 
   | ATable of ((tables server_params1 -> unit Lwt.t) * url_path)
-	String_Table.t
+        String_Table.t
 
 and dircontent = 
     Vide
@@ -217,7 +217,7 @@ let set_static_dir staticdirref s path =
       [] -> raise Not_found
     | (b,v)::l when a = b -> (v,l)
     | e::l -> let v,ll = assoc_and_remove a l
-	  in v,(e::ll)
+          in v,(e::ll)
   in
   let rec add_path = function
       [] -> Static_dir (Some s,[])
@@ -226,11 +226,11 @@ let set_static_dir staticdirref s path =
   let rec aux (Static_dir (s1,l1)) = function
       [] -> Static_dir (Some s,l1)
     | a::l -> 
-	try
-	  let sd1,l2 = assoc_and_remove a l1 in
-	  let sd = aux sd1 l in
-	  Static_dir (s1,(a,sd)::l2)
-	with Not_found -> Static_dir (s1,(a,(add_path l))::l1)
+        try
+          let sd1,l2 = assoc_and_remove a l1 in
+          let sd = aux sd1 l in
+          Static_dir (s1,(a,sd)::l2)
+        with Not_found -> Static_dir (s1,(a,(add_path l))::l1)
   in
   staticdirref := aux !staticdirref path
 
@@ -239,26 +239,26 @@ let host_match =
     let hostlen = String.length host in
     let rec host_match1 beg =
       let rec aux t len l p0 =
-	try 
-	  let (p,_) = 
-	    Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
-	  let beg2 = p + len in
-	  (host_match1 beg2 l) || (aux t len l (p+1))
-	with _ -> false
+        try 
+          let (p,_) = 
+            Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
+          let beg2 = p + len in
+          (host_match1 beg2 l) || (aux t len l (p+1))
+        with _ -> false
       in
       function
-	  [] -> beg = hostlen
-	| [Wildcard] -> true
-	| (Wildcard)::(Wildcard)::l -> 
-	    host_match1 beg ((Wildcard)::l)
-	| (Wildcard)::(Text (t,len))::l -> aux t len l beg
-	| (Text (t,len))::l -> 
-	    try
-	      (t = String.sub host beg len) && (host_match1 (beg+len) l)
-	    with _ -> false
+          [] -> beg = hostlen
+        | [Wildcard] -> true
+        | (Wildcard)::(Wildcard)::l -> 
+            host_match1 beg ((Wildcard)::l)
+        | (Wildcard)::(Text (t,len))::l -> aux t len l beg
+        | (Text (t,len))::l -> 
+            try
+              (t = String.sub host beg len) && (host_match1 (beg+len) l)
+            with _ -> false
     in
     function
-	[] -> false
+        [] -> false
       | a::l -> (host_match1 0 a) || aux host l
   in function
       None -> fun _ -> true
@@ -280,57 +280,57 @@ let do_for_host_matching host f =
   let rec aux e = function
       [] -> fail e
     | (h,pt)::l when host_match host h -> 
-	Messages.debug ("---- host found: "^(string_of_host_option host)^
-			" matches "^(string_of_host h)); 
-	catch (fun () -> f pt) 
-	  (function
-	      Ocsigen_404 | Ocsigen_Wrong_parameter as e -> aux e l
-	    | e -> fail e)
+        Messages.debug ("---- host found: "^(string_of_host_option host)^
+                        " matches "^(string_of_host h)); 
+        catch (fun () -> f pt) 
+          (function
+              Ocsigen_404 | Ocsigen_Wrong_parameter as e -> aux e l
+            | e -> fail e)
     | (h,_)::l -> 
-	Messages.debug ("---- host = "^(string_of_host_option host)^
-			" does not match "^(string_of_host h)); 
-	aux e l
+        Messages.debug ("---- host = "^(string_of_host_option host)^
+                        " does not match "^(string_of_host h)); 
+        aux e l
   in aux Serv_no_host_match !pages_trees
 
 
 let find_static_page staticdirref path =
   let rec aux dir (Static_dir (dir_option, subdir_list)) = function
       [] -> (match dir_option with
-	None -> dir
+        None -> dir
       | s -> s)
     | ""::l -> aux dir (Static_dir (dir_option, subdir_list)) l
     | ".."::l -> aux dir (Static_dir (dir_option, subdir_list)) l
-	  (* For security reasons, .. is not allowed in paths *)
+          (* For security reasons, .. is not allowed in paths *)
     | a::l -> try 
-	let e = (List.assoc a subdir_list) in
-	match dir with
-	  None -> aux None e l
-	| Some dir -> aux (Some (dir^"/"^a)) e l
+        let e = (List.assoc a subdir_list) in
+        match dir with
+          None -> aux None e l
+        | Some dir -> aux (Some (dir^"/"^a)) e l
     with Not_found -> 
       (match dir,dir_option with
-	None,None -> None
+        None,None -> None
       | (Some d), None -> Some (d^"/"^(Ocsimisc.string_of_url_path (a::l)))
       | _,Some s -> Some (s^"/"^(Ocsimisc.string_of_url_path (a::l))))
   in 
   let find_file = function
       None -> raise Ocsigen_404
     | Some filename ->
-	Messages.debug ("Looking for ("^filename^")");
+        Messages.debug ("Looking for ("^filename^")");
 
-	ignore (Unix.LargeFile.lstat filename);
-	let filename = 
-	  if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind
-		= Unix.S_DIR)
-	  then filename^"/index.html"
-	  else filename
-	in
-	if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind 
-	      = Unix.S_REG)
-	then begin
-	  Unix.access filename [Unix.R_OK];
-	  filename
-	end
-	else raise Ocsigen_404 (* ??? *)
+        ignore (Unix.LargeFile.lstat filename);
+        let filename = 
+          if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind
+                = Unix.S_DIR)
+          then filename^"/index.html"
+          else filename
+        in
+        if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind 
+              = Unix.S_REG)
+        then begin
+          Unix.access filename [Unix.R_OK];
+          filename
+        end
+        else raise Ocsigen_404 (* ??? *)
   in
   find_file (aux None !staticdirref path)
 
@@ -362,14 +362,14 @@ let find_page_table
   let rec aux = function
       [] -> fail Ocsigen_Wrong_parameter
     | (_,(funct,create_sender,working_dir))::l ->
-	catch (fun () ->
-	  Messages.debug "I'm trying a service";
-	  funct (urlsuffix, {sp with current_dir = working_dir}) >>=
-	  (fun p -> 
-	    Messages.debug "Page found";
-	    Lwt.return (p,create_sender,working_dir)))
-	  (function Ocsigen_Wrong_parameter -> aux l
-	    | e -> fail e)
+        catch (fun () ->
+          Messages.debug "I'm trying a service";
+          funct (urlsuffix, {sp with current_dir = working_dir}) >>=
+          (fun p -> 
+            Messages.debug "Page found";
+            Lwt.return (p,create_sender,working_dir)))
+          (function Ocsigen_Wrong_parameter -> aux l
+            | e -> fail e)
   in 
   (catch 
      (fun () -> return (List.assoc k t))
@@ -384,7 +384,7 @@ let add_page_table session url_act t (key,(id,elt)) =
 (********* Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
       let _,oldl = list_assoc_remove id l in
       if not session then
-	raise (Ocsigen_duplicate_registering (string_of_url_path url_act))
+        raise (Ocsigen_duplicate_registering (string_of_url_path url_act))
       else (key,((id,elt)::oldl))::newt
     with Not_found -> (key,((id,elt)::l))::newt
   with Not_found -> (key,[(id,elt)])::t
@@ -424,49 +424,49 @@ let add_service (dircontentref,_) current_dir session url_act
     try 
       let direltref = find_dircontent !dircontentref a in
       match !direltref with
-	Dir dcr -> search dcr l
+        Dir dcr -> search dcr l
       | File ptr -> raise (Ocsigen_page_erasing a)
-	    (* Messages.warning ("Ocsigen page registering: Page "^
-	       a^" has been replaced by a directory");
-	       let newdcr = ref (empty_dircontent ()) in
-	       (direltref := Dir newdcr;
-	       search newdcr l) *)
+            (* Messages.warning ("Ocsigen page registering: Page "^
+               a^" has been replaced by a directory");
+               let newdcr = ref (empty_dircontent ()) in
+               (direltref := Dir newdcr;
+               search newdcr l) *)
     with
       Not_found -> 
-	let newdcr = ref (empty_dircontent ()) in
-	(dircontentref := 
-	  add_dircontent !dircontentref (a, ref (Dir newdcr));
-	 search newdcr l)
+        let newdcr = ref (empty_dircontent ()) in
+        (dircontentref := 
+          add_dircontent !dircontentref (a, ref (Dir newdcr));
+         search newdcr l)
   in 
   let rec search_page_table_ref dircontentref = function
       [] | [""] -> search_page_table_ref dircontentref [defaultpagename]
     | [a] -> 
-	(try 
-	  let direltref = find_dircontent !dircontentref a in
-	  (match !direltref with
-	    Dir _ -> raise (Ocsigen_page_erasing a)
-		(* Messages.warning ("Ocsigen page registering: Directory "^
-		   a^" has been replaced by a page");
-		   let newpagetableref = ref (empty_page_table ()) in
-		   (direltref := File newpagetableref;
-		   newpagetableref) *)
-	  | File ptr -> ptr)
-	with
-	  Not_found ->
-	    let newpagetableref = ref (empty_page_table ()) in
-	    (dircontentref := 
-	      add_dircontent !dircontentref (a,ref (File newpagetableref));
-	     newpagetableref))
+        (try 
+          let direltref = find_dircontent !dircontentref a in
+          (match !direltref with
+            Dir _ -> raise (Ocsigen_page_erasing a)
+                (* Messages.warning ("Ocsigen page registering: Directory "^
+                   a^" has been replaced by a page");
+                   let newpagetableref = ref (empty_page_table ()) in
+                   (direltref := File newpagetableref;
+                   newpagetableref) *)
+          | File ptr -> ptr)
+        with
+          Not_found ->
+            let newpagetableref = ref (empty_page_table ()) in
+            (dircontentref := 
+              add_dircontent !dircontentref (a,ref (File newpagetableref));
+             newpagetableref))
     | ""::l -> search_page_table_ref dircontentref l
     | a::l -> aux search_page_table_ref dircontentref a l
-	  (* and search_dircontentref dircontentref = function
-	     [] -> dircontentref
-	     | ""::l -> search_dircontentref dircontentref l
-	     | a::l -> aux search_dircontentref a l *)
+          (* and search_dircontentref dircontentref = function
+             [] -> dircontentref
+             | ""::l -> search_dircontentref dircontentref l
+             | a::l -> aux search_dircontentref a l *)
   in
   let content = ({prefix = page_table_key.prefix;
-		  state = page_table_key.state},
-		 (unique_id, (action, create_sender, current_dir))) in
+                  state = page_table_key.state},
+                 (unique_id, (action, create_sender, current_dir))) in
   (* let current_dircontentref = 
      search_dircontentref dircontentref current_dir) in *)
   let page_table_ref = 
@@ -482,10 +482,10 @@ let find_service
   let rec search_page_table dircontent =
     let aux a l =
       (match !(find_dircontent dircontent a) with
-	Dir dircontentref2 -> search_page_table !dircontentref2 l
+        Dir dircontentref2 -> search_page_table !dircontentref2 l
       | File page_table_ref -> !page_table_ref, l)
     in function
-	[] -> raise Ocsigen_Is_a_directory
+        [] -> raise Ocsigen_Is_a_directory
       | [""] -> aux defaultpagename []
       | ""::l -> search_page_table dircontent l
       | a::l -> aux a l
@@ -545,7 +545,7 @@ let execute generate_page sockaddr cookie (globtable,cookie_table) =
       if are_empty_tables !sessiontablesref
       then ((if not new_session 
       then match cookie with
-	Some c -> Cookies.remove cookie_table (ip,c)
+        Some c -> Cookies.remove cookie_table (ip,c)
       | None -> ());None)
       else (if new_session 
       then let c = new_cookie cookie_table ip in
@@ -570,92 +570,92 @@ let get_page
     catch
       (* Is it a static page? *)
       (fun () -> 
-	if params = "" (* static pages do not have parameters *)
-	then begin
-	  Messages.debug ("--- Is it a static file?");
-	  let filename = find_static_page staticdirref url in
-	  return 
-	    (((Sender_helpers.send_file filename),
-	      Sender_helpers.create_file_sender,
-	      []),
-	     Some ((Unix.LargeFile.stat filename).Unix.LargeFile.st_mtime),
-	     Some (Sender_helpers.File_content.get_etag filename))
-	end
-	else fail Ocsigen_404)
+        if params = "" (* static pages do not have parameters *)
+        then begin
+          Messages.debug ("--- Is it a static file?");
+          let filename = find_static_page staticdirref url in
+          return 
+            (((Sender_helpers.send_file filename),
+              Sender_helpers.create_file_sender,
+              []),
+             Some ((Unix.LargeFile.stat filename).Unix.LargeFile.st_mtime),
+             Some (Sender_helpers.File_content.get_etag filename))
+        end
+        else fail Ocsigen_404)
       (function
-	  Unix.Unix_error (Unix.EACCES,_,_) as e -> fail e
-	| _ -> 
-	    ((catch (* Generate a dynamic page *)
-	       (fun () -> 
-		 Messages.debug 
-		   ("-- I'm looking for "^(string_of_url_path url)^
-		    " in the session table:");
-		 (find_service
-		    !session_tables_ref
-		    (session_tables_ref,
-		     (sp,
-		      ip,
-		      fullurl),
-		     internal_state)))
-	       (function 
-		   Ocsigen_404 | Ocsigen_Wrong_parameter -> 
-		     catch (* ensuite dans la table globale *)
-		       (fun () -> 
-			 Messages.debug "-- I'm searching in the global table:";
-			 (find_service 
-			    global_tables
-			    (session_tables_ref,
-			     (sp,
-			      ip,
-			      fullurl),
-			     internal_state)))
-		       (function
-			   Ocsigen_404 | Ocsigen_Wrong_parameter as exn -> 
-			     (* si pas trouvé avec, on essaie sans l'état *)
-			     (match internal_state with
-			       None -> fail exn
-			     | _ -> catch (* d'abord la table de session *)
-				   (fun () ->
-				     Messages.debug 
-				       "-- I'm searching in the session table, without state parameter:";
-				     (find_service 
-					!session_tables_ref
-					(session_tables_ref,
-					 (sp,
-					  ip,
-					  fullurl),
-					 None)))
-				   (function
-				       Ocsigen_404 | Ocsigen_Wrong_parameter -> 
-					 (* ensuite dans la table globale *)
-					 Messages.debug "-- I'm searching in the global table, without state parameter:";
-					 (find_service 
-					    global_tables
-					    (session_tables_ref,
-					     (sp,
-					      ip,
-					      fullurl),
-					     None))
-				     | e -> fail e))
-			 | e -> fail e)
-		 | e -> fail e)) >>= (fun r -> return (r,None,None))))
+          Unix.Unix_error (Unix.EACCES,_,_) as e -> fail e
+        | _ -> 
+            ((catch (* Generate a dynamic page *)
+               (fun () -> 
+                 Messages.debug 
+                   ("-- I'm looking for "^(string_of_url_path url)^
+                    " in the session table:");
+                 (find_service
+                    !session_tables_ref
+                    (session_tables_ref,
+                     (sp,
+                      ip,
+                      fullurl),
+                     internal_state)))
+               (function 
+                   Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+                     catch (* ensuite dans la table globale *)
+                       (fun () -> 
+                         Messages.debug "-- I'm searching in the global table:";
+                         (find_service 
+                            global_tables
+                            (session_tables_ref,
+                             (sp,
+                              ip,
+                              fullurl),
+                             internal_state)))
+                       (function
+                           Ocsigen_404 | Ocsigen_Wrong_parameter as exn -> 
+                             (* si pas trouvé avec, on essaie sans l'état *)
+                             (match internal_state with
+                               None -> fail exn
+                             | _ -> catch (* d'abord la table de session *)
+                                   (fun () ->
+                                     Messages.debug 
+                                       "-- I'm searching in the session table, without state parameter:";
+                                     (find_service 
+                                        !session_tables_ref
+                                        (session_tables_ref,
+                                         (sp,
+                                          ip,
+                                          fullurl),
+                                         None)))
+                                   (function
+                                       Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+                                         (* ensuite dans la table globale *)
+                                         Messages.debug "-- I'm searching in the global table, without state parameter:";
+                                         (find_service 
+                                            global_tables
+                                            (session_tables_ref,
+                                             (sp,
+                                              ip,
+                                              fullurl),
+                                             None))
+                                     | e -> fail e))
+                         | e -> fail e)
+                 | e -> fail e)) >>= (fun r -> return (r,None,None))))
   in catch 
     (fun () ->
       do_for_host_matching 
-	host 
-	(fun (staticdirref, global_tables, session_tables) -> 
-	  execute (generate_page staticdirref)
-	    sockaddr cookie 
-	    (global_tables, session_tables)))
+        host 
+        (fun (staticdirref, global_tables, session_tables) -> 
+          execute (generate_page staticdirref)
+            sockaddr cookie 
+            (global_tables, session_tables)))
     (function
-	Ocsigen_Typing_Error l -> 
-	  return ((cookie, (Sender_helpers.send_xhtml_page 
-			     ~content:(Error_pages.page_error_param_type l)),
-		   Sender_helpers.create_xhtml_sender, "/"),None,None)
+        Ocsigen_Typing_Error l -> 
+          return ((cookie, (Sender_helpers.send_xhtml_page 
+                             ~content:(Error_pages.page_error_param_type l)),
+                   Sender_helpers.create_xhtml_sender, "/"),None,None)
       | Ocsigen_Wrong_parameter -> return 
-	    ((cookie, (Sender_helpers.send_xhtml_page 
-			 ~content:(Error_pages.page_bad_param)),
-	      Sender_helpers.create_xhtml_sender, "/"),None,None)
+            ((cookie, (Sender_helpers.send_xhtml_page 
+                         ~content:(Error_pages.page_bad_param)),
+              Sender_helpers.create_xhtml_sender, "/"),None,None)
       | e -> fail e)
 
 
@@ -667,30 +667,30 @@ let make_action action_name action_params
   let generate_page ip global_tables session_tables_ref =
     let action,working_dir = 
       try
-	try
-	  find_action !session_tables_ref action_name
-	with
-	  Not_found -> (find_action global_tables action_name)
+        try
+          find_action !session_tables_ref action_name
+        with
+          Not_found -> (find_action global_tables action_name)
       with
-	Not_found -> raise Ocsigen_404
+        Not_found -> raise Ocsigen_404
     in 
     (action 
        (make_server_params 
-	  working_dir session_tables_ref 
-	  ((url, host, [], action_params, useragent), ip, fullurl))) >>=
+          working_dir session_tables_ref 
+          ((url, host, [], action_params, useragent), ip, fullurl))) >>=
     (fun r -> return ((r,(), working_dir),None,None))
   in catch
     (fun () ->
       do_for_host_matching 
-	host 
-	(fun (staticdirref, global_tables, session_tables) -> 
-	  execute 
-	    generate_page sockaddr cookie (global_tables, session_tables) >>=
-	  (fun ((c,(),(),wd),_,_) ->
-	    Messages.debug "Action executed";
-	    return (c,wd))))
+        host 
+        (fun (staticdirref, global_tables, session_tables) -> 
+          execute 
+            generate_page sockaddr cookie (global_tables, session_tables) >>=
+          (fun ((c,(),(),wd),_,_) ->
+            Messages.debug "Action executed";
+            return (c,wd))))
     (function
-	Ocsigen_Typing_Error _ -> return (cookie, "/")
+        Ocsigen_Typing_Error _ -> return (cookie, "/")
       | Ocsigen_Wrong_parameter -> return (cookie, "/")
       | e -> fail e)
 
@@ -701,37 +701,37 @@ exception Ocsigen_error_while_loading of string
 let load_ocsigen_module host sites =
   let rec load_sites ((statdirref, _, _) as pages_tree) = 
     function
-	[] -> ()
+        [] -> ()
       | (path, (cmos, static))::l ->
-	  (match static with
-	    None -> ()
-	  | Some static -> set_static_dir statdirref static path);
-	  (* let save_current_dir = get_current_hostdir () in *)
-	  (try
-	    begin_load_ocsigen_module ();
-	    absolute_change_hostdir (pages_tree, path);
-	    List.iter 
-	      (fun cmo -> 
-		try
-		  Dynlink.loadfile cmo
-		with Dynlink.Error e -> 
-		  raise
-		    (Ocsigen_error_while_loading 
-		       (cmo^" ("^(Dynlink.error_message e)^")")))
-	      cmos;
-	    (* absolute_change_hostdir save_current_dir; *)
-	    end_load_ocsigen_module ()
-	  with 
-	  | e -> 
-	      (* absolute_change_hostdir save_current_dir; *)
-	      end_load_ocsigen_module ();
-	      raise e (*Ocsigen_error_while_loading cmo*));
-	  load_sites pages_tree l
+          (match static with
+            None -> ()
+          | Some static -> set_static_dir statdirref static path);
+          (* let save_current_dir = get_current_hostdir () in *)
+          (try
+            begin_load_ocsigen_module ();
+            absolute_change_hostdir (pages_tree, path);
+            List.iter 
+              (fun cmo -> 
+                try
+                  Dynlink.loadfile cmo
+                with Dynlink.Error e -> 
+                  raise
+                    (Ocsigen_error_while_loading 
+                       (cmo^" ("^(Dynlink.error_message e)^")")))
+              cmos;
+            (* absolute_change_hostdir save_current_dir; *)
+            end_load_ocsigen_module ()
+          with 
+          | e -> 
+              (* absolute_change_hostdir save_current_dir; *)
+              end_load_ocsigen_module ();
+              raise e (*Ocsigen_error_while_loading cmo*));
+          load_sites pages_tree l
   in 
   let pages_tree = new_pages_tree () in
   load_sites pages_tree sites;
   pages_trees := !pages_trees@[(host, pages_tree)]
-				
+                                
 
 let number_of_sessions () = 
   List.fold_left 

@@ -129,15 +129,15 @@ let reconstruct_params
   let rec aux_list t params name pref suff =
     let rec aa i lp pref suff =
       try 
-	match aux t lp pref (suff^(make_list_suffix i)) with
-	  Res_ (v,lp2) ->
-	    (match aa (i+1) lp2 pref suff with
-	      Res_ (v2,lp3) -> Res_ ((Obj.magic (v::v2)),lp3)
-	    | err -> err)
-	| Errors_ errs ->
-	    (match aa (i+1) lp pref suff with
-	      Res_ _ -> Errors_ errs
-	    | Errors_ errs2 -> Errors_ (errs@errs2))
+        match aux t lp pref (suff^(make_list_suffix i)) with
+          Res_ (v,lp2) ->
+            (match aa (i+1) lp2 pref suff with
+              Res_ (v2,lp3) -> Res_ ((Obj.magic (v::v2)),lp3)
+            | err -> err)
+        | Errors_ errs ->
+            (match aa (i+1) lp pref suff with
+              Res_ _ -> Errors_ errs
+            | Errors_ errs2 -> Errors_ (errs@errs2))
       with Not_found -> Res_ ((Obj.magic []),lp)
     in 
     aa 0 params (pref^name^".") suff
@@ -145,51 +145,51 @@ let reconstruct_params
       params pref suff : 'a res_reconstr_param =
     match typ with
       TProd (t1, t2) ->
-	(match aux t1 params pref suff with
-	  Res_ (v1,l1) ->
-	    (match aux t2 l1 pref suff with
-	      Res_ (v2,l2) -> Res_ ((Obj.magic (v1,v2)),l2)
-	    | err -> err)
-	| Errors_ errs ->
-	    (match aux t2 params pref suff with
-	      Res_ _ -> Errors_ errs
-	    | Errors_ errs2 -> Errors_ (errs2@errs)))
+        (match aux t1 params pref suff with
+          Res_ (v1,l1) ->
+            (match aux t2 l1 pref suff with
+              Res_ (v2,l2) -> Res_ ((Obj.magic (v1,v2)),l2)
+            | err -> err)
+        | Errors_ errs ->
+            (match aux t2 params pref suff with
+              Res_ _ -> Errors_ errs
+            | Errors_ errs2 -> Errors_ (errs2@errs)))
     | TOption t -> 
-	(try 
-	  (match aux t params pref suff with
-	    Res_ (v,l) -> Res_ ((Obj.magic (Some v)),l)
-	  | err -> err)
-	with Not_found -> Res_ ((Obj.magic None), params))
+        (try 
+          (match aux t params pref suff with
+            Res_ (v,l) -> Res_ ((Obj.magic (Some v)),l)
+          | err -> err)
+        with Not_found -> Res_ ((Obj.magic None), params))
     | TBool name -> 
-	(try 
-	  let v,l = (list_assoc_remove (pref^name^suff) params) in
-	  Res_ ((Obj.magic true),l)
-	with Not_found -> Res_ ((Obj.magic false), params))
+        (try 
+          let v,l = (list_assoc_remove (pref^name^suff) params) in
+          Res_ ((Obj.magic true),l)
+        with Not_found -> Res_ ((Obj.magic false), params))
     | TList (n,t) -> Obj.magic (aux_list t params n pref suff)
     | TSum (t1, t2) -> 
-	(try 
-	  match aux t1 params pref suff with
-	    Res_ (v,l) -> Res_ ((Obj.magic (Inj1 v)),l)
-	  | err -> err
-	with Not_found -> 
-	  (match aux t2 params pref suff with
-	    Res_ (v,l) -> Res_ ((Obj.magic (Inj2 v)),l)
-	  | err -> err))
+        (try 
+          match aux t1 params pref suff with
+            Res_ (v,l) -> Res_ ((Obj.magic (Inj1 v)),l)
+          | err -> err
+        with Not_found -> 
+          (match aux t2 params pref suff with
+            Res_ (v,l) -> Res_ ((Obj.magic (Inj2 v)),l)
+          | err -> err))
     | TString name -> 
-	let v,l = list_assoc_remove (pref^name^suff) params in
-	Res_ ((Obj.magic v),l)
+        let v,l = list_assoc_remove (pref^name^suff) params in
+        Res_ ((Obj.magic v),l)
     | TInt name -> 
-	let v,l = (list_assoc_remove (pref^name^suff) params) in 
-	(try (Res_ ((Obj.magic (int_of_string v)),l))
-	with e -> Errors_ [(pref^name^suff),e])
+        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+        (try (Res_ ((Obj.magic (int_of_string v)),l))
+        with e -> Errors_ [(pref^name^suff),e])
     | TFloat name -> 
-	let v,l = (list_assoc_remove (pref^name^suff) params) in 
-	(try (Res_ ((Obj.magic (float_of_string v)),l))
-	with e -> Errors_ [(pref^name^suff),e])
+        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+        (try (Res_ ((Obj.magic (float_of_string v)),l))
+        with e -> Errors_ [(pref^name^suff),e])
     | TUserType (name, of_string, string_of) ->
-	let v,l = (list_assoc_remove (pref^name^suff) params) in 
-	(try (Res_ ((Obj.magic (of_string v)),l))
-	with e -> Errors_ [(pref^name^suff),e])
+        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+        (try (Res_ ((Obj.magic (of_string v)),l))
+        with e -> Errors_ [(pref^name^suff),e])
     | TUnit -> Res_ ((Obj.magic ()), params)
     | TSuffix -> raise (Ocsigen_Internal_Error "Bad use of suffix")
   in
@@ -213,31 +213,31 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
   let rec aux typ params pref suff =
     match typ with
       TProd (t1, t2) ->
-	let s1 = aux t1 (fst (Obj.magic params)) pref suff
-	and s2 = aux t2 (snd (Obj.magic params)) pref suff in
-	(concat_strings s1 "&" s2)
+        let s1 = aux t1 (fst (Obj.magic params)) pref suff
+        and s2 = aux t2 (snd (Obj.magic params)) pref suff in
+        (concat_strings s1 "&" s2)
     | TOption t -> (match ((Obj.magic params) : 'zozo option) with None -> "" 
       | Some v -> aux t v pref suff)
     | TBool name -> 
-	(if ((Obj.magic params) : bool)
-	then pref^name^suff^"="^"on"
-	else "")
+        (if ((Obj.magic params) : bool)
+        then pref^name^suff^"="^"on"
+        else "")
     | TList (list_name, t) -> 
-	let pref2 = pref^list_name^suff^"." in
-	fst 
-	  (List.fold_left
-	     (fun (s,i) p -> 
-	       let ss = 
-		 aux t p pref2 (suff^(make_list_suffix i)) in
-	       ((concat_strings s "&" ss),(i+1))) ("",0) (Obj.magic params))
+        let pref2 = pref^list_name^suff^"." in
+        fst 
+          (List.fold_left
+             (fun (s,i) p -> 
+               let ss = 
+                 aux t p pref2 (suff^(make_list_suffix i)) in
+               ((concat_strings s "&" ss),(i+1))) ("",0) (Obj.magic params))
     | TSum (t1, t2) -> (match Obj.magic params with
-	Inj1 v -> aux t1 v pref suff
+        Inj1 v -> aux t1 v pref suff
       | Inj2 v -> aux t2 v pref suff)
     | TString name -> pref^name^suff^"="^(Obj.magic params)
     | TInt name -> pref^name^suff^"="^(string_of_int (Obj.magic params))
     | TFloat name -> pref^name^suff^"="^(string_of_float (Obj.magic params))
     | TUserType (name, of_string, string_of) ->
-	pref^name^suff^"="^(string_of (Obj.magic params))
+        pref^name^suff^"="^(string_of (Obj.magic params))
     | TUnit -> ""
     | TSuffix -> raise (Ocsigen_Internal_Error "Bad use of suffix")
   in
@@ -264,11 +264,11 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) service =
      external_service: bool;
      url_state: internal_state option;
      (* 'kind is just a type information: it can be only 
-	`Internal_Service `Public_Service or `Internal_Service `Local_Service
-	or `External_Service, so that we can't use session services as fallbacks for
-	other session services. If it is a session service, it contains a value
-	(internal state) that will allow to differenciate between
-	services that have the same url.
+        `Internal_Service `Public_Service or `Internal_Service `Local_Service
+        or `External_Service, so that we can't use session services as fallbacks for
+        other session services. If it is a session service, it contains a value
+        (internal state) that will allow to differenciate between
+        services that have the same url.
       *)
      get_params_type: ('get,'tipo,'getnames) params_type;
      post_params_type: ('post,[`WithoutSuffix],'postnames) params_type;
@@ -321,19 +321,19 @@ module type PAGES =
     val make_a : ?a:a_attrib_t -> href:string -> a_content_elt list -> a_elt
     val make_get_form : ?a:form_attrib_t -> 
       action:string -> 
-	form_content_elt -> form_content_elt list -> form_elt
+        form_content_elt -> form_content_elt list -> form_elt
     val make_post_form : ?a:form_attrib_t ->
       action:string -> ?id:string -> ?inline:bool -> 
-	form_content_elt -> form_content_elt list -> form_elt
+        form_content_elt -> form_content_elt list -> form_elt
     val make_hidden_field : input_elt -> form_content_elt
     val make_empty_form_content : unit -> form_content_elt
     val make_input : ?a:input_attrib_t -> ?checked:bool ->
       typ:input_type_t -> ?name:string -> 
-	?value:string -> unit -> input_elt
+        ?value:string -> unit -> input_elt
     val make_textarea : ?a:textarea_attrib_t -> 
       name:string -> rows:int -> cols:int ->
-	pcdata_elt -> 
-	  textarea_elt
+        pcdata_elt -> 
+          textarea_elt
     val make_div : classe:(string list) -> a_elt list -> form_content_elt
     val make_uri_from_string : string -> uri
 
@@ -358,7 +358,7 @@ module type OCSIGENSIG =
     type textarea_elt
     type input_elt
     type pcdata_elt
-	  
+          
     type a_attrib_t
     type form_attrib_t
     type input_attrib_t
@@ -368,212 +368,212 @@ module type OCSIGENSIG =
     type input_type_t
 
     val new_external_service :
-	url:url_path ->
-	  ?prefix:bool ->
-	    get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
-	      params_type ->
-		post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-		  unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
+        url:url_path ->
+          ?prefix:bool ->
+            get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
+              params_type ->
+                post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
+                  unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
     val new_service :
-	url:url_path ->
-	  ?prefix:bool ->
-	    get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
-	      params_type ->
-		unit ->
-		  ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
-		   unit param_name)
-		    service
+        url:url_path ->
+          ?prefix:bool ->
+            get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
+              params_type ->
+                unit ->
+                  ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
+                   unit param_name)
+                    service
     val new_auxiliary_service :
-	fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b,
-		  'c, 'd)
-	service ->
-	  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
-	    service
+        fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b,
+                  'c, 'd)
+        service ->
+          ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
+            service
     val register_service :
-	service:('a, 'b, [ `Internal_Service of 'c ],
-		 [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
-		   ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-		     (server_params -> 'a -> 'b -> page Lwt.t) -> unit
+        service:('a, 'b, [ `Internal_Service of 'c ],
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+                   ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+                     (server_params -> 'a -> 'b -> page Lwt.t) -> unit
     val register_service_for_session :
-	server_params ->
-	  service:('a, 'b, [ `Internal_Service of 'c ],
-		   [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
-	    service ->
-	      ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-		(server_params -> 'a -> 'b -> page Lwt.t) -> unit
+        server_params ->
+          service:('a, 'b, [ `Internal_Service of 'c ],
+                   [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
+            service ->
+              ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+                (server_params -> 'a -> 'b -> page Lwt.t) -> unit
     val register_new_service :
-	url:url_path ->
-	  ?prefix:bool ->
-	    get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
-	      params_type ->
-		?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-		  (server_params -> 'a -> unit -> page Lwt.t) ->
-		    ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
-		     unit param_name)
-		      service
+        url:url_path ->
+          ?prefix:bool ->
+            get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
+              params_type ->
+                ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+                  (server_params -> 'a -> unit -> page Lwt.t) ->
+                    ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
+                     unit param_name)
+                      service
     val register_new_auxiliary_service :
-	fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
-		  [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
-	service ->
-	  ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-	    (server_params -> 'a -> unit -> page Lwt.t) ->
-	      ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
-		service
+        fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
+                  [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
+        service ->
+          ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+            (server_params -> 'a -> unit -> page Lwt.t) ->
+              ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
+                service
     val register_new_auxiliary_service_for_session :
-	server_params ->
-	  fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
-		    [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
-	    service ->
-	      ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-		(server_params -> 'a -> unit -> page Lwt.t) ->
-		  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
-		    service
+        server_params ->
+          fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
+                    [< `WithSuffix | `WithoutSuffix ] as 'b, 'c, 'd)
+            service ->
+              ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+                (server_params -> 'a -> unit -> page Lwt.t) ->
+                  ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
+                    service
     val new_post_service :
-	fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b,
-		  'c, unit param_name)
-	service ->
-	  post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-	    ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e)
-	      service
+        fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b,
+                  'c, unit param_name)
+        service ->
+          post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
+            ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e)
+              service
     val new_post_auxiliary_service :
-	fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c,
-		  'd, 'e)
-	service ->
-	  post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-	    ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
-	      service
+        fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c,
+                  'd, 'e)
+        service ->
+          post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+            ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
+              service
     val register_new_post_service :
-	fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
-		  [< `WithSuffix | `WithoutSuffix ] as 'b, 'c,
-		  unit param_name)
-	service ->
-	  post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-	    ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-	      (server_params -> 'a -> 'd -> page Lwt.t) ->
-		('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e)
-		  service
+        fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
+                  [< `WithSuffix | `WithoutSuffix ] as 'b, 'c,
+                  unit param_name)
+        service ->
+          post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
+            ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+              (server_params -> 'a -> 'd -> page Lwt.t) ->
+                ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e)
+                  service
     val register_new_post_auxiliary_service :
-	fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
-		  [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
-	service ->
-	  post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-	    ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-	      (server_params -> 'a -> 'f -> page Lwt.t) ->
-		('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
-		  service
+        fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
+                  [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
+        service ->
+          post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+            ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+              (server_params -> 'a -> 'f -> page Lwt.t) ->
+                ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
+                  service
     val register_new_post_auxiliary_service_for_session :
-	server_params ->
-	  fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
-		    [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
-	    service ->
-	      post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-		?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-		  (server_params -> 'a -> 'f -> page Lwt.t) ->
-		    ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
-		      service
+        server_params ->
+          fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ],
+                    [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, 'e)
+            service ->
+              post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+                ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
+                  (server_params -> 'a -> 'f -> page Lwt.t) ->
+                    ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
+                      service
     type ('a, 'b) action
     val new_action :
-	post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-	  ('a, 'b) action
+        post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
+          ('a, 'b) action
     val register_action :
-	action:('a, 'b) action -> (server_params -> 'a -> unit Lwt.t) -> unit
+        action:('a, 'b) action -> (server_params -> 'a -> unit Lwt.t) -> unit
     val register_new_action :
-	post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-	  (server_params -> 'a -> unit Lwt.t) -> ('a, 'b) action
+        post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
+          (server_params -> 'a -> unit Lwt.t) -> ('a, 'b) action
     val register_action_for_session :
-	server_params ->
-	  action:('a, 'b) action ->
-	    (server_params -> 'a -> unit Lwt.t) -> unit
+        server_params ->
+          action:('a, 'b) action ->
+            (server_params -> 'a -> unit Lwt.t) -> unit
     val register_new_action_for_session :
-	server_params ->
-	  post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-	    (server_params -> 'a -> unit Lwt.t) ->
-	      ('a, 'b) action
+        server_params ->
+          post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
+            (server_params -> 'a -> unit Lwt.t) ->
+              ('a, 'b) action
     val static_dir :
-	server_params ->
-	  (string, unit, [ `Internal_Service of [ `Public_Service ] ],
-	   [ `WithSuffix ], string param_name, unit param_name)
-	    service
+        server_params ->
+          (string, unit, [ `Internal_Service of [ `Public_Service ] ],
+           [ `WithSuffix ], string param_name, unit param_name)
+            service
     val close_session : server_params -> unit
     val a :
-	?a:a_attrib_t ->
-	  ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
-	    server_params -> a_content_elt list -> 'a -> a_elt
+        ?a:a_attrib_t ->
+          ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
+            server_params -> a_content_elt list -> 'a -> a_elt
     val get_form :
-	?a:form_attrib_t ->
-	  ('a, unit, 'b, 'c, 'd, unit param_name) service ->
-	    server_params ->
-	      ('d -> form_content_elt list) -> form_elt
+        ?a:form_attrib_t ->
+          ('a, unit, 'b, 'c, 'd, unit param_name) service ->
+            server_params ->
+              ('d -> form_content_elt list) -> form_elt
     val post_form :
-	?a:form_attrib_t ->
-	  ('a, 'b, 'c, [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
-	    server_params ->
-	      ('e -> form_content_elt list) -> 'a -> form_elt
+        ?a:form_attrib_t ->
+          ('a, 'b, 'c, [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+            server_params ->
+              ('e -> form_content_elt list) -> 'a -> form_elt
     val make_uri :
-	('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
-	  server_params -> 'a -> uri
+        ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
+          server_params -> 'a -> uri
     val action_a :
-	?a:a_attrib_t ->
-	  ?reload:bool ->
-	    ('a, 'b) action ->
-	      server_params -> a_content_elt list -> form_elt
+        ?a:a_attrib_t ->
+          ?reload:bool ->
+            ('a, 'b) action ->
+              server_params -> a_content_elt list -> form_elt
     val action_form :
-	?a:form_attrib_t ->
-	  ?reload:bool ->
-	    ('a, 'b) action ->
-	      server_params ->
-		('b -> form_content_elt list) -> form_elt
+        ?a:form_attrib_t ->
+          ?reload:bool ->
+            ('a, 'b) action ->
+              server_params ->
+                ('b -> form_content_elt list) -> form_elt
     val js_script :
-	?a:script_attrib_t -> uri -> script_elt
+        ?a:script_attrib_t -> uri -> script_elt
     val css_link : ?a:link_attrib_t -> uri -> link_elt
 
     val int_input :
-	?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
+        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
     val float_input :
-	?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
+        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
     val string_input :
-	?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
     val user_type_input :
-	?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-	  'a param_name -> input_elt
+        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
+          'a param_name -> input_elt
     val int_password_input :
-	?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
+        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
     val float_password_input :
-	?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
+        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
     val string_password_input :
-	?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
     val user_type_password_input :
-	?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-	  'a param_name -> input_elt
+        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
+          'a param_name -> input_elt
     val hidden_int_input :
-	?a:input_attrib_t -> int param_name -> int -> input_elt
+        ?a:input_attrib_t -> int param_name -> int -> input_elt
     val hidden_float_input :
-	?a:input_attrib_t -> float param_name -> float -> input_elt
+        ?a:input_attrib_t -> float param_name -> float -> input_elt
     val hidden_string_input :
-	?a:input_attrib_t -> string param_name -> string -> input_elt
+        ?a:input_attrib_t -> string param_name -> string -> input_elt
     val hidden_user_type_input :
-	?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
+        ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
     val bool_checkbox :
-	?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
+        ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
     val string_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-	  string option param_name -> string -> input_elt
+          string option param_name -> string -> input_elt
     val int_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-	   int option param_name -> int -> input_elt
+           int option param_name -> int -> input_elt
     val float_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-	   float option param_name -> float -> input_elt
+           float option param_name -> float -> input_elt
     val user_type_radio :
         ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
-	   'a option param_name -> 'a -> input_elt
+           'a option param_name -> 'a -> input_elt
     val textarea :
-	?a:textarea_attrib_t ->
-	  string param_name ->
-	    rows:int -> cols:int -> pcdata_elt -> textarea_elt
+        ?a:textarea_attrib_t ->
+          string param_name ->
+            rows:int -> cols:int -> pcdata_elt -> textarea_elt
     val submit_input : ?a:input_attrib_t -> string -> input_elt
     val file_input : ?a:input_attrib_t -> ?value:string -> 
-    			string param_name-> input_elt
+                            string param_name-> input_elt
   end
 
 
@@ -593,7 +593,7 @@ module Make = functor
       type textarea_elt = Pages.textarea_elt
       type input_elt = Pages.input_elt
       type pcdata_elt = Pages.pcdata_elt
-	    
+            
       type a_attrib_t = Pages.a_attrib_t
       type form_attrib_t = Pages.form_attrib_t
       type input_attrib_t = Pages.input_attrib_t
@@ -604,108 +604,108 @@ module Make = functor
 
 (** Create a service *)
       let new_service_aux_aux
-	  ~(url : url_path)
-	  ~prefix
-	  ~external_service
-	  ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
-	  ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-	  : ('get,'post,'kind,'tipo,'gn,'pn) service =
+          ~(url : url_path)
+          ~prefix
+          ~external_service
+          ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          : ('get,'post,'kind,'tipo,'gn,'pn) service =
 (* ici faire une vérification "duplicate parameter" ? *) 
-	{url = url;
-	 unique_id = counter ();
-	 url_prefix = prefix;
-	 url_state = None;
-	 external_service = external_service;
-	 get_params_type = get_params;
-	 post_params_type = post_params;
+        {url = url;
+         unique_id = counter ();
+         url_prefix = prefix;
+         url_state = None;
+         external_service = external_service;
+         get_params_type = get_params;
+         post_params_type = post_params;
        }
 
       let new_service_aux
-	  ~(url : url_path)
-	  ~prefix
-	  ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
-	  : ('get,unit,[`Internal_Service of 'popo],'tipo,'gn,unit param_name) service =
-	if global_register_allowed () then
-	  let _,curdir = get_current_hostdir () in
-	  let full_path = curdir@(change_empty_list url) in
-	  let u = new_service_aux_aux
-	      ~url:full_path
-	      ~prefix
-	      ~external_service:false
-	      ~get_params
-	      ~post_params:unit
-	  in
-	  add_unregistered (u.url,u.unique_id); u
-	else raise Ocsigen_service_or_action_created_outside_site_loading
+          ~(url : url_path)
+          ~prefix
+          ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
+          : ('get,unit,[`Internal_Service of 'popo],'tipo,'gn,unit param_name) service =
+        if global_register_allowed () then
+          let _,curdir = get_current_hostdir () in
+          let full_path = curdir@(change_empty_list url) in
+          let u = new_service_aux_aux
+              ~url:full_path
+              ~prefix
+              ~external_service:false
+              ~get_params
+              ~post_params:unit
+          in
+          add_unregistered (u.url,u.unique_id); u
+        else raise Ocsigen_service_or_action_created_outside_site_loading
 
       let new_external_service
-	  ~(url : url_path)
-	  ?(prefix=false)
-	  ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
-	  ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-	  ()
-	  : ('get,'post,[`External_Service],'tipo,'gn,'pn) service =
-	new_service_aux_aux
-	  ~url
-	  ~prefix
-	  ~external_service:true
-	  ~get_params 
-	  ~post_params
+          ~(url : url_path)
+          ?(prefix=false)
+          ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          ()
+          : ('get,'post,[`External_Service],'tipo,'gn,'pn) service =
+        new_service_aux_aux
+          ~url
+          ~prefix
+          ~external_service:true
+          ~get_params 
+          ~post_params
 
       let new_service
-	  ~(url : url_path)
-	  ?(prefix=false)
-	  ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
-	  ()
-	  : ('get,unit,[`Internal_Service of [`Public_Service]],'tipo,'gn, unit param_name) service =
-	new_service_aux ~url ~prefix ~get_params
+          ~(url : url_path)
+          ?(prefix=false)
+          ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
+          ()
+          : ('get,unit,[`Internal_Service of [`Public_Service]],'tipo,'gn, unit param_name) service =
+        new_service_aux ~url ~prefix ~get_params
 
       let new_auxiliary_service
-	  ~(fallback : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
-	  : ('get,unit,[`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
-	{fallback with url_state = new_state ()}
+          ~(fallback : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
+          : ('get,unit,[`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
+        {fallback with url_state = new_state ()}
 
       let register_service_aux
-	  current_dir
-	  tables
-	  session
-	  state
-	  ~(service : ('get,'post,[`Internal_Service of 'popo],'tipo,'gn,'pn) service)
-	  ?(error_handler = fun sp l -> raise (Ocsigen_Typing_Error l))
-	  (page_generator : server_params -> 'get -> 'post -> page Lwt.t) =
-	add_service tables current_dir session service.url 
-	  Pages.create_sender
-	  ({prefix = service.url_prefix;
-	    state = state},
-	   (service.unique_id,
-	    (fun (suff,h) -> 
-	      (catch (fun () -> 
-		(page_generator h 
-		   (reconstruct_params 
-		      service.get_params_type h.get_params suff)
-		   (reconstruct_params
-		      service.post_params_type h.post_params suff)))
-		 (function
-		     Ocsigen_Typing_Error l -> error_handler h l
-		   | e -> fail e)) >>=
-	      (fun c -> return (Pages.send ~content:c)))))
+          current_dir
+          tables
+          session
+          state
+          ~(service : ('get,'post,[`Internal_Service of 'popo],'tipo,'gn,'pn) service)
+          ?(error_handler = fun sp l -> raise (Ocsigen_Typing_Error l))
+          (page_generator : server_params -> 'get -> 'post -> page Lwt.t) =
+        add_service tables current_dir session service.url 
+          Pages.create_sender
+          ({prefix = service.url_prefix;
+            state = state},
+           (service.unique_id,
+            (fun (suff,h) -> 
+              (catch (fun () -> 
+                (page_generator h 
+                   (reconstruct_params 
+                      service.get_params_type h.get_params suff)
+                   (reconstruct_params
+                      service.post_params_type h.post_params suff)))
+                 (function
+                     Ocsigen_Typing_Error l -> error_handler h l
+                   | e -> fail e)) >>=
+              (fun c -> return (Pages.send ~content:c)))))
 
       let register_service 
-	  ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
-	  ?error_handler
-	  (page_gen : server_params -> 'get -> 'post -> page Lwt.t) =
-	if global_register_allowed () then begin
-	  remove_unregistered (service.url,service.unique_id);
-	  let (_,globtables,_),curdir = get_current_hostdir () in
-	  register_service_aux 
-	    curdir
-	    globtables
-	    false service.url_state
-	    ~service ?error_handler page_gen; 
-	end
-	else Messages.warning ("URL .../"^
-			       (string_of_url_path service.url)^
-			       " : Public service registration outside <site></site> or after init forbidden! Please correct your module! (ignored)")
+          ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
+          ?error_handler
+          (page_gen : server_params -> 'get -> 'post -> page Lwt.t) =
+        if global_register_allowed () then begin
+          remove_unregistered (service.url,service.unique_id);
+          let (_,globtables,_),curdir = get_current_hostdir () in
+          register_service_aux 
+            curdir
+            globtables
+            false service.url_state
+            ~service ?error_handler page_gen; 
+        end
+        else Messages.warning ("URL .../"^
+                               (string_of_url_path service.url)^
+                               " : Public service registration outside <site></site> or after init forbidden! Please correct your module! (ignored)")
 
 (* WARNING: if we create a new service without registering it,
    we can have a link towards a page that does not exist!!! :-(
@@ -715,164 +715,164 @@ module Make = functor
  *)
 
       let register_service_for_session
-	  sp
-	  ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) 
-	      service)
- 	  ?error_handler
-	  page =
-	register_service_aux ?error_handler sp.current_dir
-	  !(sp.session_table)
-	  true service.url_state ~service page
+          sp
+          ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) 
+              service)
+           ?error_handler
+          page =
+        register_service_aux ?error_handler sp.current_dir
+          !(sp.session_table)
+          true service.url_state ~service page
 
       let register_new_service 
-	  ~url
-	  ?(prefix=false)
-	  ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
-	  ?error_handler
-	  page
-	  : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service =
-	let u = new_service ~prefix ~url ~get_params () in
-	register_service ~service:u ?error_handler page;
-	u
-	  
+          ~url
+          ?(prefix=false)
+          ~(get_params : ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
+          ?error_handler
+          page
+          : ('get,unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service =
+        let u = new_service ~prefix ~url ~get_params () in
+        register_service ~service:u ?error_handler page;
+        u
+          
       let register_new_auxiliary_service
-	  ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service) 	
-	  ?error_handler
-	  page
-	  : ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
-	let u = (new_auxiliary_service fallback) in
-	register_service ~service:u ?error_handler page;
-	u
+          ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)         
+          ?error_handler
+          page
+          : ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
+        let u = (new_auxiliary_service fallback) in
+        register_service ~service:u ?error_handler page;
+        u
 
       let register_new_auxiliary_service_for_session
-	  sp
-	  ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
-	  ?error_handler
-	  page
-	  : ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
-	let u = (new_auxiliary_service fallback) in
-	register_service_for_session sp ~service:u ?error_handler page;
-	u
+          sp
+          ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service)
+          ?error_handler
+          page
+          : ('get, unit, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service =
+        let u = (new_auxiliary_service fallback) in
+        register_service_for_session sp ~service:u ?error_handler page;
+        u
 
 
 (** Register an service with post parameters in the server *)
       let new_post_service_aux
-	  ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service)
-	  ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-	  : ('get, 'post, [`Internal_Service of [`Public_Service]], 'tipo,'gn,'pn) service = 
+          ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service)
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          : ('get, 'post, [`Internal_Service of [`Public_Service]], 'tipo,'gn,'pn) service = 
 (* ici faire une vérification "duplicate parameter" ? *) 
-	{url = fallback.url;
-	 unique_id = counter ();
-	 url_prefix = fallback.url_prefix;
-	 external_service = false;
-	 url_state = None;
-	 get_params_type = fallback.get_params_type;
-	 post_params_type = post_params;
+        {url = fallback.url;
+         unique_id = counter ();
+         url_prefix = fallback.url_prefix;
+         external_service = false;
+         url_state = None;
+         get_params_type = fallback.get_params_type;
+         post_params_type = post_params;
        }
 
       let new_post_service
-	  ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service)
-	  ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-	  : ('get, 'post, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service = 
-	if global_register_allowed () then
-	  let u = new_post_service_aux fallback post_params in
-	  add_unregistered (u.url,u.unique_id); u
-	else raise Ocsigen_service_or_action_created_outside_site_loading
-	    
+          ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service)
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          : ('get, 'post, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service = 
+        if global_register_allowed () then
+          let u = new_post_service_aux fallback post_params in
+          add_unregistered (u.url,u.unique_id); u
+        else raise Ocsigen_service_or_action_created_outside_site_loading
+            
       let new_post_auxiliary_service
-	  ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
-	  ~(post_params : ('post,[`WithoutSuffix],'pn2) params_type)
-	  : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn2) service = 
-	{fallback with 
-	 url_state = new_state ();
-	 post_params_type = post_params;
+          ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
+          ~(post_params : ('post,[`WithoutSuffix],'pn2) params_type)
+          : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn2) service = 
+        {fallback with 
+         url_state = new_state ();
+         post_params_type = post_params;
        }
 
       let register_new_post_service 
-	  ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service)
-	  ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-	  ?error_handler
-	  (page_gen : server_params -> 'get -> 'post -> 'fin)
-	  : ('get,'post, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service =
-	let u = new_post_service ~fallback:fallback ~post_params:post_params in
-	register_service ~service:u ?error_handler page_gen;
-	u
+          ~(fallback : ('get, unit, [`Internal_Service of [`Public_Service]],'tipo,'gn,unit param_name) service)
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          ?error_handler
+          (page_gen : server_params -> 'get -> 'post -> 'fin)
+          : ('get,'post, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn) service =
+        let u = new_post_service ~fallback:fallback ~post_params:post_params in
+        register_service ~service:u ?error_handler page_gen;
+        u
 
       let register_new_post_auxiliary_service
-	  ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
-	  ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-	  ?error_handler
-	  page_gen
-	  : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
-	let u = new_post_auxiliary_service ~fallback:fallback ~post_params:post_params in
-	register_service ~service:u ?error_handler page_gen;
-	u
+          ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          ?error_handler
+          page_gen
+          : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
+        let u = new_post_auxiliary_service ~fallback:fallback ~post_params:post_params in
+        register_service ~service:u ?error_handler page_gen;
+        u
 
       let register_new_post_auxiliary_service_for_session
-	  sp
-	  ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
-	  ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-	  ?error_handler
-	  page_gen
-	  : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
-	let u = new_post_auxiliary_service ~fallback:fallback ~post_params:post_params in
-	register_service_for_session sp ~service:u ?error_handler page_gen;
-	u
+          sp
+          ~(fallback : ('get, 'post1, [`Internal_Service of [`Public_Service]],'tipo,'gn,'pn1) service)
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          ?error_handler
+          page_gen
+          : ('get, 'post, [`Internal_Service of [`Local_Service]],'tipo,'gn,'pn) service = 
+        let u = new_post_auxiliary_service ~fallback:fallback ~post_params:post_params in
+        register_service_for_session sp ~service:u ?error_handler page_gen;
+        u
 
 
 (** actions (new 10/05) *)
       type ('post,'pn) action =
-	  {action_name: string;
-	   action_params_type: ('post,[`WithoutSuffix],'pn) params_type}
+          {action_name: string;
+           action_params_type: ('post,[`WithoutSuffix],'pn) params_type}
 
       let new_action_name () = string_of_int (counter ())
 
       let new_action
-	  ~(post_params : ('post,[`WithoutSuffix],'pn) params_type) =
-	{
-	 action_name = new_action_name ();
-	 action_params_type = post_params;
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type) =
+        {
+         action_name = new_action_name ();
+         action_params_type = post_params;
        }
 
       let register_action_aux
-	  current_dir tables ~action actionfun =
-	add_action tables current_dir 
-	  action.action_name
-	  (fun h -> actionfun h
-	      (reconstruct_params action.action_params_type h.post_params []))
+          current_dir tables ~action actionfun =
+        add_action tables current_dir 
+          action.action_name
+          (fun h -> actionfun h
+              (reconstruct_params action.action_params_type h.post_params []))
 
       let register_action
-	  ~(action : ('post,'pn) action)
-	  (actionfun : (server_params -> 'post -> unit Lwt.t)) : unit =
-	if global_register_allowed () then
-	  (* if during_initialisation () then *)
-	  let (_,globtables,_),curdir = get_current_hostdir () in
-	  register_action_aux curdir globtables action actionfun
-	else raise Ocsigen_service_or_action_created_outside_site_loading
+          ~(action : ('post,'pn) action)
+          (actionfun : (server_params -> 'post -> unit Lwt.t)) : unit =
+        if global_register_allowed () then
+          (* if during_initialisation () then *)
+          let (_,globtables,_),curdir = get_current_hostdir () in
+          register_action_aux curdir globtables action actionfun
+        else raise Ocsigen_service_or_action_created_outside_site_loading
 
       let register_new_action ~post_params actionfun = 
-	let a = new_action post_params in
-	register_action a actionfun;
-	a
+        let a = new_action post_params in
+        register_action a actionfun;
+        a
 
       let register_action_for_session sp ~action actionfun =
-	register_action_aux sp.current_dir
-	  !(sp.session_table) action actionfun
+        register_action_aux sp.current_dir
+          !(sp.session_table) action actionfun
 
       let register_new_action_for_session sp ~post_params actionfun =
-	let a = new_action post_params in
-	register_action_for_session sp a actionfun;
-	a
+        let a = new_action post_params in
+        register_action_for_session sp a actionfun;
+        a
 
 (** Satic directories **)
       let static_dir sp : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string param_name, unit param_name) service =
-	{url = sp.current_dir;
-	 unique_id = counter ();
-	 url_state = None;
-	 url_prefix = true;
-	 external_service = false;
-	 get_params_type = suffix_only;
-	 post_params_type = unit
+        {url = sp.current_dir;
+         unique_id = counter ();
+         url_state = None;
+         url_prefix = true;
+         external_service = false;
+         get_params_type = suffix_only;
+         post_params_type = unit
        }
 
 
@@ -884,25 +884,25 @@ module Make = functor
 (** Functions to construct web pages: *)
 
       let a ?a
-	  (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) 
-	  (sp : server_params) content
-	  (getparams : 'get) =
-	let suff,params_string = construct_params service.get_params_type getparams in
-	let suff = (if service.url_prefix then Some suff else None) in
-	let uri = 
-	  (if service.external_service 
-	  then (reconstruct_absolute_url_path sp.current_url service.url suff)
-	  else (reconstruct_relative_url_path sp.current_url service.url suff))
-	in
-	match service.url_state with
-	  None ->
-	    Pages.make_a ?a ~href:(add_to_string uri "?" params_string) content
-	| Some i -> 
-	    Pages.make_a ?a
-	      ~href:(add_to_string 
-		       (uri^"?"^state_param_name^"="^(string_of_int i))
-		       "&" params_string)
-	      content
+          (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) 
+          (sp : server_params) content
+          (getparams : 'get) =
+        let suff,params_string = construct_params service.get_params_type getparams in
+        let suff = (if service.url_prefix then Some suff else None) in
+        let uri = 
+          (if service.external_service 
+          then (reconstruct_absolute_url_path sp.current_url service.url suff)
+          else (reconstruct_relative_url_path sp.current_url service.url suff))
+        in
+        match service.url_state with
+          None ->
+            Pages.make_a ?a ~href:(add_to_string uri "?" params_string) content
+        | Some i -> 
+            Pages.make_a ?a
+              ~href:(add_to_string 
+                       (uri^"?"^state_param_name^"="^(string_of_int i))
+                       "&" params_string)
+              content
 
 (* avec un formulaire caché (ça marche mais ce n'est pas du xhtml valide
    let stateparam = string_of_int i in
@@ -913,7 +913,7 @@ module Make = functor
    value=$stateparam$/>
    </form></a> >>) *)
 
-(* 	   let stateparam = string_of_int i in
+(*            let stateparam = string_of_int i in
    << <form name="hiddenform" method="post" action=$v$>
    <input type="hidden" name=$state_param_name$
    value=$stateparam$/>
@@ -930,216 +930,216 @@ module Make = functor
  *)
 
       let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
-	let rec aux prefix suffix = function
-	    TProd (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
-	  | TInt name -> Obj.magic (prefix^name^suffix)
-	  | TFloat name -> Obj.magic (prefix^name^suffix)
-	  | TString name -> Obj.magic (prefix^name^suffix)
-	  | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
-	  | TUnit -> Obj.magic ("")
-	  | TSuffix -> Obj.magic ocsigen_suffix_name
-	  | TOption t -> Obj.magic (aux prefix suffix t)
-	  | TBool name -> Obj.magic (prefix^name^suffix)
-	  | TSum (t1,t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
-	  | TList (name,t1) -> Obj.magic 
-		{it =
-		 (fun f l endlist ->
-		   let length = List.length l in
-		   snd
-		     (List.fold_right 
-			(fun el (i,l2) -> 
-			  let i'= i-1 in
-			  (i',(f (aux (prefix^name^".") (make_list_suffix i') t1) el)
-			   @l2))
-			l
-			(length,endlist)))}
-	in aux "" "" params
-	  
+        let rec aux prefix suffix = function
+            TProd (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
+          | TInt name -> Obj.magic (prefix^name^suffix)
+          | TFloat name -> Obj.magic (prefix^name^suffix)
+          | TString name -> Obj.magic (prefix^name^suffix)
+          | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
+          | TUnit -> Obj.magic ("")
+          | TSuffix -> Obj.magic ocsigen_suffix_name
+          | TOption t -> Obj.magic (aux prefix suffix t)
+          | TBool name -> Obj.magic (prefix^name^suffix)
+          | TSum (t1,t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
+          | TList (name,t1) -> Obj.magic 
+                {it =
+                 (fun f l endlist ->
+                   let length = List.length l in
+                   snd
+                     (List.fold_right 
+                        (fun el (i,l2) -> 
+                          let i'= i-1 in
+                          (i',(f (aux (prefix^name^".") (make_list_suffix i') t1) el)
+                           @l2))
+                        l
+                        (length,endlist)))}
+        in aux "" "" params
+          
       let get_form ?a
-	  (service : ('get,unit,'kind,'tipo,'gn,unit param_name) service) 
-	  (sp : server_params)
-	  (f : 'gn -> Pages.form_content_elt list) =
-	let urlname =
-	  (if service.external_service
-	  then (reconstruct_absolute_url_path sp.current_url service.url None)
-	  else (reconstruct_relative_url_path sp.current_url service.url None)) in
-	let state_param =
-	  (match  service.url_state with
-	    None -> None
-	  | Some i -> 
-	      let i' = string_of_int i in
-	      Some (Pages.make_input ~typ:Pages.hidden
-		      ~name:state_param_name ~value:i' ()))
-	in
-	let inside = f (make_params_names service.get_params_type) in
-	let i1, i =
-	  match state_param, inside with
-	    Some s, i -> (Pages.make_hidden_field s),i
-	  | None, i1::i -> i1, i
-	  | None, [] -> (Pages.make_empty_form_content ()),[]
-	in Pages.make_get_form ?a ~action:urlname i1 i
+          (service : ('get,unit,'kind,'tipo,'gn,unit param_name) service) 
+          (sp : server_params)
+          (f : 'gn -> Pages.form_content_elt list) =
+        let urlname =
+          (if service.external_service
+          then (reconstruct_absolute_url_path sp.current_url service.url None)
+          else (reconstruct_relative_url_path sp.current_url service.url None)) in
+        let state_param =
+          (match  service.url_state with
+            None -> None
+          | Some i -> 
+              let i' = string_of_int i in
+              Some (Pages.make_input ~typ:Pages.hidden
+                      ~name:state_param_name ~value:i' ()))
+        in
+        let inside = f (make_params_names service.get_params_type) in
+        let i1, i =
+          match state_param, inside with
+            Some s, i -> (Pages.make_hidden_field s),i
+          | None, i1::i -> i1, i
+          | None, [] -> (Pages.make_empty_form_content ()),[]
+        in Pages.make_get_form ?a ~action:urlname i1 i
 
       let post_form ?a
-	  (service : ('get,'form,'kind,'tipo,'gn,'pn) service) 
-	  (sp : server_params)
-	  (f : 'pn -> Pages.form_content_elt list) (getparams : 'get) =
-	let suff,params_string = construct_params service.get_params_type getparams in
-	let suff = (if service.url_prefix then Some suff else None) in
-	let urlname = 
-	  (if service.external_service 
-	  then (reconstruct_absolute_url_path sp.current_url service.url suff)
-	  else (reconstruct_relative_url_path sp.current_url service.url suff))
-	in
-	let state_param =
-	  (match  service.url_state with
-	    None -> None
-	  | Some i -> 
-	      let i' = string_of_int i in
-	      Some (Pages.make_input ~typ:Pages.hidden
-		      ~name:state_param_name ~value:i' ()))
-	in
-	let inside = f (make_params_names service.post_params_type) in
-	let i1, i =
-	  match state_param, inside with
-	    Some s, i -> (Pages.make_hidden_field s),i
-	  | None, i1::i -> i1, i
-	  | None, [] -> (Pages.make_empty_form_content ()),[]
-	in Pages.make_post_form ?a
-	  ~action:(add_to_string urlname "?" params_string)
-	  i1 i
+          (service : ('get,'form,'kind,'tipo,'gn,'pn) service) 
+          (sp : server_params)
+          (f : 'pn -> Pages.form_content_elt list) (getparams : 'get) =
+        let suff,params_string = construct_params service.get_params_type getparams in
+        let suff = (if service.url_prefix then Some suff else None) in
+        let urlname = 
+          (if service.external_service 
+          then (reconstruct_absolute_url_path sp.current_url service.url suff)
+          else (reconstruct_relative_url_path sp.current_url service.url suff))
+        in
+        let state_param =
+          (match  service.url_state with
+            None -> None
+          | Some i -> 
+              let i' = string_of_int i in
+              Some (Pages.make_input ~typ:Pages.hidden
+                      ~name:state_param_name ~value:i' ()))
+        in
+        let inside = f (make_params_names service.post_params_type) in
+        let i1, i =
+          match state_param, inside with
+            Some s, i -> (Pages.make_hidden_field s),i
+          | None, i1::i -> i1, i
+          | None, [] -> (Pages.make_empty_form_content ()),[]
+        in Pages.make_post_form ?a
+          ~action:(add_to_string urlname "?" params_string)
+          i1 i
 
       let make_uri 
-	  (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) sp
-	  (getparams : 'get) : Pages.uri =
-	let suff,params_string = construct_params service.get_params_type getparams in
-	let suff = (if service.url_prefix then Some suff else None) in
-	let uri = 
-	  (if service.external_service 
-	  then (reconstruct_absolute_url_path sp.current_url service.url suff)
-	  else (reconstruct_relative_url_path sp.current_url service.url suff))
-	in
-	match service.url_state with
-	  None ->
-	    Pages.make_uri_from_string (add_to_string uri "?" params_string)
-	| Some i -> 
-	    Pages.make_uri_from_string 
-	      (add_to_string (uri^"?"^state_param_name^"="^(string_of_int i))
-		 "&" params_string)
+          (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) sp
+          (getparams : 'get) : Pages.uri =
+        let suff,params_string = construct_params service.get_params_type getparams in
+        let suff = (if service.url_prefix then Some suff else None) in
+        let uri = 
+          (if service.external_service 
+          then (reconstruct_absolute_url_path sp.current_url service.url suff)
+          else (reconstruct_relative_url_path sp.current_url service.url suff))
+        in
+        match service.url_state with
+          None ->
+            Pages.make_uri_from_string (add_to_string uri "?" params_string)
+        | Some i -> 
+            Pages.make_uri_from_string 
+              (add_to_string (uri^"?"^state_param_name^"="^(string_of_int i))
+                 "&" params_string)
 
 (* actions : *)
       let action_a ?a ?(reload=true) action h content =
-	let formname="hiddenform"^(string_of_int (counter ())) in
-	let href="javascript:document.getElementById(\""^formname^"\").submit ()" in
-	let action_param_name = action_prefix^action_name in
-	let action_param = (action.action_name) in
-	let reload_name = action_prefix^action_reload in
-	let reload_param = 
-	  if reload 
-	  then [Pages.make_hidden_field
-		  (Pages.make_input ~typ:Pages.hidden
-		     ~name:reload_name ~value:reload_name ())]
-	  else [] in
-	let v = h.full_url in
-	Pages.make_post_form ~inline:true 
-	  ~id:formname ~action:v
-	  (Pages.make_div ~classe:["inline"]
-	     [Pages.make_a ?a ~href:href content])
-	  ((Pages.make_hidden_field
-	      (Pages.make_input ~typ:Pages.hidden ~name:action_param_name
-		 ~value:action_param ()))
-	   ::reload_param)
-	  
+        let formname="hiddenform"^(string_of_int (counter ())) in
+        let href="javascript:document.getElementById(\""^formname^"\").submit ()" in
+        let action_param_name = action_prefix^action_name in
+        let action_param = (action.action_name) in
+        let reload_name = action_prefix^action_reload in
+        let reload_param = 
+          if reload 
+          then [Pages.make_hidden_field
+                  (Pages.make_input ~typ:Pages.hidden
+                     ~name:reload_name ~value:reload_name ())]
+          else [] in
+        let v = h.full_url in
+        Pages.make_post_form ~inline:true 
+          ~id:formname ~action:v
+          (Pages.make_div ~classe:["inline"]
+             [Pages.make_a ?a ~href:href content])
+          ((Pages.make_hidden_field
+              (Pages.make_input ~typ:Pages.hidden ~name:action_param_name
+                 ~value:action_param ()))
+           ::reload_param)
+          
       let action_form ?a
-	  ?(reload=true) (action : ('a,'pn) action) h 
-	  (f : 'pn -> Pages.form_content_elt list) = 
-	let action_param_name = action_prefix^action_name in
-	let action_param = (action.action_name) in
-	let reload_name = action_prefix^action_reload in
-	let action_line = Pages.make_input ~typ:Pages.hidden ~name:action_param_name ~value:action_param () in
-	let v = h.full_url in
-	let inside = f (make_params_names action.action_params_type) in
-	let inside_reload = 
-	  if reload 
-	  then (Pages.make_hidden_field 
-		  (Pages.make_input ~typ:Pages.hidden ~name:reload_name ~value:reload_name ()))
-	    ::inside
-	  else inside 
-	in
-	Pages.make_post_form ?a ~action:v
-	  (Pages.make_hidden_field action_line)
-	  inside_reload
+          ?(reload=true) (action : ('a,'pn) action) h 
+          (f : 'pn -> Pages.form_content_elt list) = 
+        let action_param_name = action_prefix^action_name in
+        let action_param = (action.action_name) in
+        let reload_name = action_prefix^action_reload in
+        let action_line = Pages.make_input ~typ:Pages.hidden ~name:action_param_name ~value:action_param () in
+        let v = h.full_url in
+        let inside = f (make_params_names action.action_params_type) in
+        let inside_reload = 
+          if reload 
+          then (Pages.make_hidden_field 
+                  (Pages.make_input ~typ:Pages.hidden ~name:reload_name ~value:reload_name ()))
+            ::inside
+          else inside 
+        in
+        Pages.make_post_form ?a ~action:v
+          (Pages.make_hidden_field action_line)
+          inside_reload
 
-	  
-	  
-	  
+          
+          
+          
       let js_script = Pages.make_js_script
       let css_link = Pages.make_css_link
 
 
       let gen_input ?a ?value ?(pwd = false)
-	  (string_of : 'a -> string) (name : 'a param_name) =
-	let typ = if pwd then Pages.password else Pages.text in
-	match value with
-	  None ->
-	    Pages.make_input ?a ~typ:typ ~name:name ()
-	| Some v -> 
-	    Pages.make_input
-	      ?a
-	      ~value:(string_of v)
-	      ~typ:typ ~name:name ()
+          (string_of : 'a -> string) (name : 'a param_name) =
+        let typ = if pwd then Pages.password else Pages.text in
+        match value with
+          None ->
+            Pages.make_input ?a ~typ:typ ~name:name ()
+        | Some v -> 
+            Pages.make_input
+              ?a
+              ~value:(string_of v)
+              ~typ:typ ~name:name ()
 
       let int_input ?a ?value (name : int param_name) = 
-	gen_input ?a ?value string_of_int name
+        gen_input ?a ?value string_of_int name
       let float_input ?a ?value (name : float param_name) =
-	gen_input ?a ?value string_of_float name
+        gen_input ?a ?value string_of_float name
       let string_input ?a ?value (name : string param_name) =
-	gen_input ?a ?value id name
+        gen_input ?a ?value id name
       let user_type_input = gen_input ~pwd:false
 
       let int_password_input ?a ?value (name : int param_name) = 
-	gen_input ~pwd:true ?a ?value string_of_int name
+        gen_input ~pwd:true ?a ?value string_of_int name
       let float_password_input ?a ?value (name : float param_name) =
-	gen_input ~pwd:true ?a ?value string_of_float name
+        gen_input ~pwd:true ?a ?value string_of_float name
       let string_password_input ?a ?value (name : string param_name) =
-	gen_input ~pwd:true ?a ?value id name
+        gen_input ~pwd:true ?a ?value id name
       let user_type_password_input = gen_input ~pwd:true
 
       let hidden_gen_input ?a string_of (name : 'a param_name) v = 
-	let vv = string_of v in
-	Pages.make_input ?a ~typ:Pages.hidden ~name:name ~value:vv ()
+        let vv = string_of v in
+        Pages.make_input ?a ~typ:Pages.hidden ~name:name ~value:vv ()
 
       let hidden_int_input ?a (name : int param_name) v = 
-	hidden_gen_input ?a string_of_int name v
+        hidden_gen_input ?a string_of_int name v
       let hidden_float_input ?a (name : float param_name) v =
-	hidden_gen_input ?a string_of_float name v
+        hidden_gen_input ?a string_of_float name v
       let hidden_string_input ?a (name : string param_name) v =
-	hidden_gen_input ?a id name v
+        hidden_gen_input ?a id name v
       let hidden_user_type_input = hidden_gen_input
 
       let bool_checkbox ?a ?checked (name : bool param_name) =
-	Pages.make_input ?a ?checked ~typ:Pages.checkbox ~name:name ()
+        Pages.make_input ?a ?checked ~typ:Pages.checkbox ~name:name ()
 
       let string_radio ?a ?checked (name : string option param_name) value =
-	Pages.make_input
-	  ?a ?checked ~typ:Pages.radio ~name:name ~value:value ()
+        Pages.make_input
+          ?a ?checked ~typ:Pages.radio ~name:name ~value:value ()
       let int_radio ?a ?checked (name : int option param_name) value =
-	Pages.make_input
-	  ?a ?checked ~typ:Pages.radio ~name:name 
-	  ~value:(string_of_int value) ()
+        Pages.make_input
+          ?a ?checked ~typ:Pages.radio ~name:name 
+          ~value:(string_of_int value) ()
       let float_radio ?a ?checked (name : float option param_name) value =
-	Pages.make_input
-	  ?a ?checked ~typ:Pages.radio ~name:name 
-	  ~value:(string_of_float value) ()
+        Pages.make_input
+          ?a ?checked ~typ:Pages.radio ~name:name 
+          ~value:(string_of_float value) ()
       let user_type_radio ?a ?checked string_of
-	  (name : 'a option param_name) (value : 'a) =
-	Pages.make_input
-	  ?a ?checked ~typ:Pages.radio ~name:name ~value:(string_of value) ()
+          (name : 'a option param_name) (value : 'a) =
+        Pages.make_input
+          ?a ?checked ~typ:Pages.radio ~name:name ~value:(string_of value) ()
 
       let textarea ?a (name : string param_name) =
-	Pages.make_textarea ?a ~name:name
+        Pages.make_textarea ?a ~name:name
 
       let submit_input ?a s =
-	Pages.make_input ?a ~typ:Pages.submit ~value:s ()
+        Pages.make_input ?a ~typ:Pages.submit ~value:s ()
 
       let file_input ?a ?value (name : string param_name)  = 
         Pages.make_input ?a ~typ:Pages.file ?value ~name:name ()
@@ -1217,15 +1217,15 @@ module Xhtml_ = struct
   let add_css (a : 'a) : 'a = 
     let css = 
       XHTML.M.toelt 
-	(XHTML.M.style ~contenttype:"text/css"
-	   [pcdata "\n.inline {display: inline}\n.nodisplay {display: none}\n"])
+        (XHTML.M.style ~contenttype:"text/css"
+           [pcdata "\n.inline {display: inline}\n.nodisplay {display: none}\n"])
     in
     let rec aux = function
       | (XML.Element ("head",al,el))::l -> (XML.Element ("head",al,css::el))::l
       | (XML.BlockElement ("head",al,el))::l -> 
-	  (XML.BlockElement ("head",al,css::el))::l
+          (XML.BlockElement ("head",al,css::el))::l
       | (XML.SemiBlockElement ("head",al,el))::l -> 
-	  (XML.SemiBlockElement ("head",al,css::el))::l
+          (XML.SemiBlockElement ("head",al,css::el))::l
       | (XML.Node ("head",al,el))::l -> (XML.Node ("head",al,css::el))::l
       | e::l -> e::(aux l)
       | [] -> []
@@ -1235,7 +1235,7 @@ module Xhtml_ = struct
       | XML.Element ("html",al,el) -> XML.Element ("html",al,aux el) 
       | XML.BlockElement ("html",al,el) -> XML.BlockElement ("html",al,aux el) 
       | XML.SemiBlockElement ("html",al,el) -> 
-	  XML.SemiBlockElement ("html",al,aux el)
+          XML.SemiBlockElement ("html",al,aux el)
       | XML.Node ("html",al,el) -> XML.Node ("html",al,aux el)
       | e -> e)
 
@@ -1256,7 +1256,7 @@ module Xhtml_ = struct
     | Some i -> (a_id i)::a) 
     in
     form ~a:((a_method `Post)::
-	     (if inline then (a_class ["inline"])::aa else aa))
+             (if inline then (a_class ["inline"])::aa else aa))
       ~action:(make_uri_from_string action) elt1 elts
 
   let make_hidden_field content = 
@@ -1285,7 +1285,7 @@ module Xhtml_ = struct
 
   let make_css_link ?(a=[]) uri =
     link ~a:((a_href uri)::
-	     (a_type "text/css")::(a_rel [`Stylesheet])::a) ()
+             (a_type "text/css")::(a_rel [`Stylesheet])::a) ()
       
   let make_js_script ?(a=[]) uri =
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
@@ -1307,242 +1307,242 @@ module Xhtml = struct
   let a = (a : ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.M.attrib list) ->
     ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name) 
       service ->
-	server_params -> 
-	  Xhtmltypes.a_content XHTML.M.elt list -> 
-	    'get -> [Xhtmltypes.a] XHTML.M.elt
-		:> ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.M.attrib list) ->
-		  ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name) 
-		    service ->
-		      server_params -> 
-			Xhtmltypes.a_content XHTML.M.elt list -> 
-			  'get -> [> Xhtmltypes.a] XHTML.M.elt)
+        server_params -> 
+          Xhtmltypes.a_content XHTML.M.elt list -> 
+            'get -> [Xhtmltypes.a] XHTML.M.elt
+                :> ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.M.attrib list) ->
+                  ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name) 
+                    service ->
+                      server_params -> 
+                        Xhtmltypes.a_content XHTML.M.elt list -> 
+                          'get -> [> Xhtmltypes.a] XHTML.M.elt)
 
   let css_link = 
     (css_link : ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
       uri -> [ link ] elt
-	  :> ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
-	    uri -> [> link ] elt)
+          :> ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
+            uri -> [> link ] elt)
 
   let js_script = (js_script
-		     : ?a:([< script_attrib > `Src ] attrib list) ->
-		       uri -> [ script ] elt
-			   :> ?a:([< script_attrib > `Src ] attrib list) ->
-			     uri -> [> script ] elt)
+                     : ?a:([< script_attrib > `Src ] attrib list) ->
+                       uri -> [ script ] elt
+                           :> ?a:([< script_attrib > `Src ] attrib list) ->
+                             uri -> [> script ] elt)
 
   let get_form = 
     (get_form
        : ?a:([< form_attrib > `Method ] attrib list) ->
-	 ('get, unit, 'c, 'd, 'getnames, unit param_name) service ->
-	   server_params -> ('getnames -> form_content elt list) -> [form] elt
-	       :> ?a:([< form_attrib > `Method ] attrib list) ->
-		 ('get, unit, 'c, 'd, 'getnames, unit param_name) service ->
-		   server_params -> ('getnames -> form_content elt list) -> [>form] elt)
+         ('get, unit, 'c, 'd, 'getnames, unit param_name) service ->
+           server_params -> ('getnames -> form_content elt list) -> [form] elt
+               :> ?a:([< form_attrib > `Method ] attrib list) ->
+                 ('get, unit, 'c, 'd, 'getnames, unit param_name) service ->
+                   server_params -> ('getnames -> form_content elt list) -> [>form] elt)
 
   let post_form = 
     (post_form
        : ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
-	 ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames) service ->
-	   server_params ->
-	     ('postnames -> form_content elt list) -> 'get -> [form] elt
-		 :> ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
-		   ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames) service ->
-		     server_params ->
-		       ('postnames -> form_content elt list) -> 'get -> [>form] elt)
+         ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames) service ->
+           server_params ->
+             ('postnames -> form_content elt list) -> 'get -> [form] elt
+                 :> ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
+                   ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames) service ->
+                     server_params ->
+                       ('postnames -> form_content elt list) -> 'get -> [>form] elt)
 
   let int_input = 
     (int_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?value:int ->
-	   int param_name -> [ input ] elt
-	       :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-		 ?value:int ->
-		 int param_name -> [> input ] elt)
+         ?value:int ->
+           int param_name -> [ input ] elt
+               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+                 ?value:int ->
+                 int param_name -> [> input ] elt)
       
   let float_input = 
     (float_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?value:float ->
-	 float param_name -> [ input ] elt
-	     :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	       ?value:float ->
-		 float param_name -> [> input ] elt)
+         ?value:float ->
+         float param_name -> [ input ] elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               ?value:float ->
+                 float param_name -> [> input ] elt)
 
   let user_type_input = 
     (user_type_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?value:'a ->
-	   ('a -> string) ->
-	     'a param_name -> [ input ] elt
-		 :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-		   ?value:'a ->
-		     ('a -> string) ->
-		       'a param_name -> [> input ] elt)
+         ?value:'a ->
+           ('a -> string) ->
+             'a param_name -> [ input ] elt
+                 :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+                   ?value:'a ->
+                     ('a -> string) ->
+                       'a param_name -> [> input ] elt)
       
   let string_input = 
     (string_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-	 ?value:string -> string param_name -> [ input ] elt
-	   :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-	     ?value:string -> string param_name -> [> input ] elt)
+         ?value:string -> string param_name -> [ input ] elt
+           :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
+             ?value:string -> string param_name -> [> input ] elt)
 
   let int_password_input = 
     (int_password_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?value:int ->
-	   int param_name -> [ input ] elt
-	       :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-		 ?value:int ->
-		 int param_name -> [> input ] elt)
+         ?value:int ->
+           int param_name -> [ input ] elt
+               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+                 ?value:int ->
+                 int param_name -> [> input ] elt)
       
   let float_password_input = 
     (float_password_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?value:float ->
-	 float param_name -> [ input ] elt
-	     :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	       ?value:float ->
-		 float param_name -> [> input ] elt)
+         ?value:float ->
+         float param_name -> [ input ] elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               ?value:float ->
+                 float param_name -> [> input ] elt)
 
   let user_type_password_input = 
     (user_type_password_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?value:'a ->
-	   ('a -> string) ->
-	     'a param_name -> [ input ] elt
-		 :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-		   ?value:'a ->
-		     ('a -> string) ->
-		       'a param_name -> [> input ] elt)
+         ?value:'a ->
+           ('a -> string) ->
+             'a param_name -> [ input ] elt
+                 :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+                   ?value:'a ->
+                     ('a -> string) ->
+                       'a param_name -> [> input ] elt)
       
   let string_password_input = 
     (string_password_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-	 ?value:string -> string param_name -> [ input ] elt
-	   :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-	     ?value:string -> string param_name -> [> input ] elt)
+         ?value:string -> string param_name -> [ input ] elt
+           :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
+             ?value:string -> string param_name -> [> input ] elt)
 
   let hidden_int_input = 
     (hidden_int_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 int param_name -> int -> [ input ] elt
-	     :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	       int param_name -> int -> [> input ] elt)
+         int param_name -> int -> [ input ] elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               int param_name -> int -> [> input ] elt)
   let hidden_float_input = 
     (hidden_float_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 float param_name -> float -> [ input ] elt
-	     :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	       float param_name -> float -> [> input ] elt)
+         float param_name -> float -> [ input ] elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               float param_name -> float -> [> input ] elt)
   let hidden_string_input = 
     (hidden_string_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 string param_name -> string -> [ input ] elt
-	     :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	       string param_name -> string -> [> input ] elt)
+         string param_name -> string -> [ input ] elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               string param_name -> string -> [> input ] elt)
   let hidden_user_type_input = 
     (hidden_user_type_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ('a -> string) ->
-	   'a param_name -> 'a -> [ input ] elt
-	       :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-		 ('a -> string) ->
-		   'a param_name -> 'a -> [> input ] elt)
+         ('a -> string) ->
+           'a param_name -> 'a -> [ input ] elt
+               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+                 ('a -> string) ->
+                   'a param_name -> 'a -> [> input ] elt)
       
 
 
   let bool_checkbox = 
     (bool_checkbox
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?checked:bool ->
-	   bool param_name -> [ input ] elt
-	       :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-		 ?checked:bool ->
-		   bool param_name -> [> input ] elt)
+         ?checked:bool ->
+           bool param_name -> [ input ] elt
+               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+                 ?checked:bool ->
+                   bool param_name -> [> input ] elt)
 
   let string_radio = 
     (string_radio
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?checked:bool ->
-	    string option param_name -> string -> [ input ] elt
-	     :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	       ?checked:bool ->
-		  string option param_name -> string -> [> input ] elt)
+         ?checked:bool ->
+            string option param_name -> string -> [ input ] elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               ?checked:bool ->
+                  string option param_name -> string -> [> input ] elt)
   let int_radio = 
     (int_radio
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?checked:bool ->
-	    int option param_name -> int -> [ input ] elt
-	     :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	       ?checked:bool ->
-		  int option param_name -> int -> [> input ] elt)
+         ?checked:bool ->
+            int option param_name -> int -> [ input ] elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               ?checked:bool ->
+                  int option param_name -> int -> [> input ] elt)
   let float_radio = 
     (float_radio
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?checked:bool ->
-	    float option param_name -> float -> [ input ] elt
-	     :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	       ?checked:bool ->
-		  float option param_name -> float -> [> input ] elt)
+         ?checked:bool ->
+            float option param_name -> float -> [ input ] elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               ?checked:bool ->
+                  float option param_name -> float -> [> input ] elt)
   let user_type_radio = 
     (user_type_radio
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-	 ?checked:bool ->
-	   ('a -> string) ->
-	     'a option param_name -> 'a -> [ input ] elt
-		 :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-		   ?checked:bool ->
-		     ('a -> string) ->
-		       'a option param_name -> 'a -> [> input ] elt)
+         ?checked:bool ->
+           ('a -> string) ->
+             'a option param_name -> 'a -> [ input ] elt
+                 :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+                   ?checked:bool ->
+                     ('a -> string) ->
+                       'a option param_name -> 'a -> [> input ] elt)
 
   let textarea = (textarea
-		    : ?a:([< textarea_attrib > `Name ] attrib list ) -> 
-		      string param_name -> rows:number -> cols:number -> 
-			[ `PCDATA ] XHTML.M.elt ->
-			  [ textarea ] elt
-			    :> ?a:([< textarea_attrib > `Name ] attrib list ) -> 
-			      string param_name -> rows:number -> cols:number -> 
-				[ `PCDATA ] XHTML.M.elt ->
-				  [> textarea ] elt)
+                    : ?a:([< textarea_attrib > `Name ] attrib list ) -> 
+                      string param_name -> rows:number -> cols:number -> 
+                        [ `PCDATA ] XHTML.M.elt ->
+                          [ textarea ] elt
+                            :> ?a:([< textarea_attrib > `Name ] attrib list ) -> 
+                              string param_name -> rows:number -> cols:number -> 
+                                [ `PCDATA ] XHTML.M.elt ->
+                                  [> textarea ] elt)
 
   let submit_input = (submit_input
-			: ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-			  string -> [ input ] elt
-			      :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-				string -> [> input ] elt)
-				
+                        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+                          string -> [ input ] elt
+                              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+                                string -> [> input ] elt)
+                                
   let file_input = (file_input
-  			: ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-			  ?value:string -> string param_name -> [ input ] elt
-			      :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-			        ?value:string -> string param_name -> [> input ] elt)
+                          : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
+                          ?value:string -> string param_name -> [ input ] elt
+                              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
+                                ?value:string -> string param_name -> [> input ] elt)
 
   let action_a = (action_a
-		    : ?a:([< a_attrib > `Href ] attrib list) ->
-		      ?reload:bool ->
-			('a,'b) action -> 
-			  server_params -> 
-			    a_content elt list -> 
-			      [ form ] elt
-				:> ?a:([< a_attrib > `Href ] attrib list) ->
-				  ?reload:bool ->
-				    ('a,'b) action -> 
-				      server_params -> 
-					a_content elt list -> 
-					  [> form ] elt)
+                    : ?a:([< a_attrib > `Href ] attrib list) ->
+                      ?reload:bool ->
+                        ('a,'b) action -> 
+                          server_params -> 
+                            a_content elt list -> 
+                              [ form ] elt
+                                :> ?a:([< a_attrib > `Href ] attrib list) ->
+                                  ?reload:bool ->
+                                    ('a,'b) action -> 
+                                      server_params -> 
+                                        a_content elt list -> 
+                                          [> form ] elt)
 
   let action_form = (action_form
-		       : ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
-			 ?reload:bool ->
-			   ('a, 'b) action ->
-			     server_params -> 
-			       ('b -> form_content elt list) ->
-				 [ form ] elt
-				   :> ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
-				     ?reload:bool ->
-				       ('a, 'b) action ->
-					 server_params -> 
-					   ('b -> form_content elt list) ->
-					     [> form ] elt)
+                       : ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
+                         ?reload:bool ->
+                           ('a, 'b) action ->
+                             server_params -> 
+                               ('b -> form_content elt list) ->
+                                 [ form ] elt
+                                   :> ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
+                                     ?reload:bool ->
+                                       ('a, 'b) action ->
+                                         server_params -> 
+                                           ('b -> form_content elt list) ->
+                                             [> form ] elt)
 
 end
 
@@ -1638,7 +1638,7 @@ module Text_ = struct
 
   let make_css_link ?(a="") uri =
     "<link href=\""^uri^" type=\"text/css\" rel=\"stylesheet\" "^a^"/>"
-								      
+                                                                      
   let make_js_script ?(a="") uri =
     "<script src=\""^uri^" contenttype=\"text/javascript\" "^a^"></script>"
 

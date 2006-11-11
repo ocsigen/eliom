@@ -46,15 +46,15 @@ type current_url = string list
 type current_dir = string list
 
 type 'a server_params1 = {full_url: string;
-			  hostname: string option;
-			  user_agent: string;
-			  ip: Unix.inet_addr;
-			  get_params: (string * string) list;
-			  post_params: (string * string) list;
-			  current_url: current_url;
-			  current_dir: current_dir;
-			  session_table: 'a ref
-			}
+                          hostname: string option;
+                          user_agent: string;
+                          ip: Unix.inet_addr;
+                          get_params: (string * string) list;
+                          post_params: (string * string) list;
+                          current_url: current_url;
+                          current_dir: current_dir;
+                          session_table: 'a ref
+                        }
       
 type 'a server_params2 = url_path * 'a server_params1
       
@@ -79,17 +79,17 @@ type pages_tree =
 val make_server_params :
     current_dir -> tables ref -> current_url -> string ->
       (string * string) list -> (string * string) list -> 
-	string -> Unix.inet_addr -> tables server_params1
+        string -> Unix.inet_addr -> tables server_params1
 
-	    
+            
 val are_empty_tables : tables -> bool
 val find_service :
     tables ->
       tables ref * 
-	current_url * internal_state option * (string * string) list *
-	(string * string) list * string * Unix.inet_addr * string -> 
-	  (Sender_helpers.send_page_type * 
-	     Sender_helpers.create_sender_type * url_path) Lwt.t
+        current_url * internal_state option * (string * string) list *
+        (string * string) list * string * Unix.inet_addr * string -> 
+          (Sender_helpers.send_page_type * 
+             Sender_helpers.create_sender_type * url_path) Lwt.t
 val find_action :
     tables -> string -> (tables server_params1 -> unit Lwt.t) * url_path
 *)
@@ -115,7 +115,7 @@ val add_service : tables ->
   current_dir -> bool -> url_path ->
     Sender_helpers.create_sender_type ->
       page_table_key * (int * (tables server_params2 -> 
-	Sender_helpers.send_page_type Lwt.t)) -> unit
+        Sender_helpers.send_page_type Lwt.t)) -> unit
 
 val add_action :
     tables -> current_dir
@@ -131,20 +131,20 @@ val get_page :
     string * string * internal_state option *
     (current_url * string option * (string * string) list *
        (string * string) list * string) ->
-	 Unix.sockaddr -> string option -> 
-	   ((string option * 
-	       Sender_helpers.send_page_type *
-	       Sender_helpers.create_sender_type * string) * 
-	      float option * Http_frame.etag option) Lwt.t
+         Unix.sockaddr -> string option -> 
+           ((string option * 
+               Sender_helpers.send_page_type *
+               Sender_helpers.create_sender_type * string) * 
+              float option * Http_frame.etag option) Lwt.t
 
 val make_action :
     string ->
       (string * string) list ->
-	string * string * internal_state option * 
-	  (current_url * string option * (string * string) list *
-	     (string * string) list * string) ->
-	       Unix.sockaddr -> string option -> 
-		 (string option * string) Lwt.t
+        string * string * internal_state option * 
+          (current_url * string option * (string * string) list *
+             (string * string) list * string) ->
+               Unix.sockaddr -> string option -> 
+                 (string option * string) Lwt.t
 
 
 val state_param_name : string

@@ -30,7 +30,7 @@ end = struct
 
   type t = string * Obj.t
       (* The string is the name of the class, 
-	 the Obj.t is a data of any type
+         the Obj.t is a data of any type
       *)
 
   exception Dyn_duplicate_registering of string
@@ -45,8 +45,8 @@ end = struct
       table := name::!table;
       ((fun v -> (name, Obj.repr v)),
        (fun (name', rv) ->
-	  if name = name' then Obj.magic rv 
-	  else raise (Dyn_typing_error_while_unfolding (name, name'))))
+          if name = name' then Obj.magic rv 
+          else raise (Dyn_typing_error_while_unfolding (name, name'))))
 
   let tag (n,_) = n
 
@@ -98,8 +98,8 @@ module Rights : sig
 end = struct
 
   type user = int (* (the uid). abstract in the interface for security reasons
-		     The only means to get it is to connect with a password
-		     (except for anonymous) *)
+                     The only means to get it is to connect with a password
+                     (except for anonymous) *)
   type resource = int
   type rights = user list * user list * resource list * resource list
   type 'a protected = rights * 'a
@@ -116,32 +116,32 @@ end = struct
   module DataCache =
     Ocsicache.Make(
       struct
-	type tvalue = data
+        type tvalue = data
 
-	let sql_t_list_to_tvalue = function
+        let sql_t_list_to_tvalue = function
             [`Binary data
             ] -> ((Marshal.from_string data 0) : tvalue)
           | _ -> raise 
-		(Ocsicache.Ocsigen_Cache_error 
-		   "content (probably database table wrong?)")
+                (Ocsicache.Ocsigen_Cache_error 
+                   "content (probably database table wrong?)")
 
-	let tvalue_to_sql_t_list o =
+        let tvalue_to_sql_t_list o =
           [`Binary (Marshal.to_string o [])
           ]
 
-	let sql_fields_list_without_key = ["data"]
+        let sql_fields_list_without_key = ["data"]
 
-	let table = "content"
+        let table = "content"
 
-	let key = "content_key"
+        let key = "content_key"
 
       end)
 
   type userdata =
       {login: string;
        password: string option; (* When there is no password, 
-				 it means that it is a group.
-				 Not possible to connect *)
+                                 it means that it is a group.
+                                 Not possible to connect *)
        real_name: string;(*
        user_creation_date: Dbi.datetime;
        last_connection_date: Dbi.datetime;*)
@@ -166,8 +166,8 @@ end = struct
              user_creation_date= user_creation_date;
              last_connection_date= last_connection_date;*)
              groups=(Marshal.from_string groups 0)}
-	| _ -> raise (Ocsicache.Ocsigen_Cache_error
-			"users (probably database table wrong?)")
+        | _ -> raise (Ocsicache.Ocsigen_Cache_error
+                        "users (probably database table wrong?)")
 
       let tvalue_to_sql_t_list
           {login=login;
@@ -185,12 +185,12 @@ end = struct
         ]
 
       let sql_fields_list_without_key =
-	["login";
-	 "password";
-	 "real_name";(*
-	 "user_creation_date";
-	 "last_connection_date";*)
-	 "groups"]
+        ["login";
+         "password";
+         "real_name";(*
+         "user_creation_date";
+         "last_connection_date";*)
+         "groups"]
 
       let table = "users"
 
@@ -205,16 +205,16 @@ end = struct
       let sql_t_list_to_tvalue = function
           [`Binary groups
           ] -> (Marshal.from_string groups 0 : resource list)
-	| _ -> raise (Ocsicache.Ocsigen_Cache_error
-			"resources (probably database table wrong?)")
+        | _ -> raise (Ocsicache.Ocsigen_Cache_error
+                        "resources (probably database table wrong?)")
 
       let tvalue_to_sql_t_list l
           =
-	[`Binary (Marshal.to_string l [])
-	]
+        [`Binary (Marshal.to_string l [])
+        ]
 
       let sql_fields_list_without_key =
-	["rgroups"]
+        ["rgroups"]
 
       let table = "ressources"
 
@@ -226,26 +226,26 @@ end = struct
   let read_passwd message =
     match
       try
-	let default = Unix.tcgetattr Unix.stdin in
-	let silent =
+        let default = Unix.tcgetattr Unix.stdin in
+        let silent =
           { default with
             Unix.c_echo = false;
             Unix.c_echoe = false;
             Unix.c_echok = false;
             Unix.c_echonl = false;
           } in
-	Some (default, silent)
+        Some (default, silent)
       with _ -> None
     with
     | None -> input_line Pervasives.stdin
     | Some (default, silent) ->
-	print_string message;
-	flush Pervasives.stdout;
-	Unix.tcsetattr Unix.stdin Unix.TCSANOW silent;
-	try
+        print_string message;
+        flush Pervasives.stdout;
+        Unix.tcsetattr Unix.stdin Unix.TCSANOW silent;
+        try
           let s = input_line Pervasives.stdin in
           Unix.tcsetattr Unix.stdin Unix.TCSANOW default; s
-	with x ->
+        with x ->
           Unix.tcsetattr Unix.stdin Unix.TCSANOW default; raise x;;
 
   let rec get_passwd () = 
@@ -268,11 +268,11 @@ end = struct
     Ocsipersist.make_persistant_lazy 
       "root_uid"
       (fun () -> 
-	UsersCache.insert 
-	  {login="root";
-	   real_name="Admin";
-	   password=Some (get_passwd ());
-	   groups=[]})
+        UsersCache.insert 
+          {login="root";
+           real_name="Admin";
+           password=Some (get_passwd ());
+           groups=[]})
 
   let root = Ocsipersist.get root_uid
 
@@ -295,20 +295,20 @@ end = struct
     Ocsipersist.make_persistant_lazy 
       "anonymoususer_uid"
       (fun () -> create_user 
-	  ~login:"anonymous" 
-	  ~name:"Anonymous User" 
-	  ~password:"" ())
+          ~login:"anonymous" 
+          ~name:"Anonymous User" 
+          ~password:"" ())
 
   let anonymoususer = Ocsipersist.get anonymoususer_uid
 
   let users = 
     Ocsipersist.get
       (Ocsipersist.make_persistant_lazy 
-	 "users_uid"
-	 (fun () -> create_group
-	     ~name:"users" 
-	     ~description:"All Users" 
-	     ~groups:[anonymoususer] ()))
+         "users_uid"
+         (fun () -> create_group
+             ~name:"users" 
+             ~description:"All Users" 
+             ~groups:[anonymoususer] ()))
 
   let create_resource ?(rgroups=[]) () = ResourceCache.insert rgroups
 
@@ -320,10 +320,10 @@ end = struct
   let connect ~(user : string) ~password : user = 
     try
       let uid,userdata = UsersCache.get_by_field "login" (`String user)
-	(* Vérification du mot de passe *)
+        (* Vérification du mot de passe *)
       in if (userdata.password = Some password)
-	then uid
-	else raise Wrong_Password
+        then uid
+        else raise Wrong_Password
     with Not_found -> raise No_such_user
 
   let rec in_group_aux getgroups (user : user) group = 
@@ -349,7 +349,7 @@ end = struct
     let ui = UsersCache.get user in
     if not (group = root) 
     then UsersCache.update 
-	~key:user ~value:{ui with groups = listadd group ui.groups}
+        ~key:user ~value:{ui with groups = listadd group ui.groups}
 
   let put_resource_in_rgroup ~resource ~rgroup =
     let ui = ResourceCache.get resource in
@@ -372,11 +372,11 @@ end = struct
 
   let get_protected ~(user : user)  ~(resource : resource) ~data:(r,d) =
     if (has_user_read_access user r) 
-	then begin
-	  if (has_resource_read_access resource r) 
-	  then d 
-	  else raise Read_Forbidden_for_resource
-	end
+        then begin
+          if (has_resource_read_access resource r) 
+          then d 
+          else raise Read_Forbidden_for_resource
+        end
     else raise Read_Forbidden_for_user
 
   let protect ~rights dyn = (rights, dyn)
@@ -398,14 +398,14 @@ end = struct
     let (r,d) = (DataCache.get key) 
     in if (has_user_write_access user r)
       then begin
-	if (has_resource_write_access resource r)
-	then DataCache.update key 
-	    (protect 
-	       ~rights:(match rights with
-		 None -> r
-	       | Some rr -> rr) 
-	       value)
-	else raise Write_Forbidden_for_resource
+        if (has_resource_write_access resource r)
+        then DataCache.update key 
+            (protect 
+               ~rights:(match rights with
+                 None -> r
+               | Some rr -> rr) 
+               value)
+        else raise Write_Forbidden_for_resource
       end
     else raise Write_Forbidden_for_user
 
@@ -420,7 +420,7 @@ sig
   val dbget : user:Rights.user -> resource:Rights.resource -> key:t index -> t
   val index : 
     string ->
-      (t index, [`WithoutSuffix], t index Ocsigen.param_name)	Ocsigen.params_type
+      (t index, [`WithoutSuffix], t index Ocsigen.param_name)        Ocsigen.params_type
   val int_of_index : t index -> int
   val intname_of_indexname : t index Ocsigen.param_name -> int Ocsigen.param_name
 end
@@ -428,9 +428,9 @@ end
 
 
 module MakeSaver (A: sig 
-		    type t
-		    val name : string
-		  end) : SAVER with type t = A.t =
+                    type t
+                    val name : string
+                  end) : SAVER with type t = A.t =
 struct
 
   type t = A.t
@@ -533,11 +533,11 @@ module MakeRegister
       val untag : box -> content t tfolded
       val default_handler : exn -> content t
       val make_boxofboxes : filter:('a -> content t) -> 
-	'a list -> content list t
+        'a list -> content list t
       type container_param
       val container : (user:Rights.user -> resource:Rights.resource
-	-> 'a -> content list t) 
-	-> box_param:(container_param * 'a) -> content t
+        -> 'a -> content list t) 
+        -> box_param:(container_param * 'a) -> content t
     end) 
   : REGISTER 
 with type 'a t = 'a A.t 
@@ -565,9 +565,9 @@ struct
     then raise (Duplicate_registering name)
     else let fold,unfold = Dyn.register name
     in (constr_table:=
-	  (Table.add name
-	     (fun data -> constructor ~box_param:(unfold data)) !constr_table);
-	(fun a -> A.tag (fold a)))
+          (Table.add name
+             (fun data -> constructor ~box_param:(unfold data)) !constr_table);
+        (fun a -> A.tag (fold a)))
 
   let unfold_tfolded saved_data =
     try 
@@ -621,7 +621,7 @@ struct
     register 
       ~name:"__container"
       ~constructor:(A.container (fun ~user ~resource -> 
-	tfoldedlist_to_contentlistt))
+        tfoldedlist_to_contentlistt))
 
   let fold_subpage = 
     register 
@@ -646,15 +646,15 @@ end
 (** A simple string message *)
 module StringMessage = 
   MakeSaver (struct 
-	       type t = string
-	       let name = "string_message"
-	     end)
+               type t = string
+               let name = "string_message"
+             end)
 
 
 (** A list of messages numbers *)
 module StringMessageIndexList = 
   MakeSaver (struct 
-	       type t = StringMessage.t index list
-	       let name = "string_message_index_list"
-	     end)
+               type t = StringMessage.t index list
+               let name = "string_message_index_list"
+             end)
 

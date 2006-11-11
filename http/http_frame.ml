@@ -37,7 +37,7 @@ module type HTTP_CONTENT =
 
     (** convert a content type into a thread returning its size,etag,stream*)
     val stream_of_content : t -> (int64 * etag * stream * (unit -> unit)) Lwt.t
-	(* unit -> unit is the close function for the stream *)
+        (* unit -> unit is the close function for the stream *)
 
     (** compute etag for content *)
     val get_etag : t -> etag
@@ -92,12 +92,12 @@ module Http_header =
         let get_headers_value header key = 
           List.assoc (String.lowercase(key)) header.headers
 
-	(* gets the value of the used protocol *)
-	let get_proto header = header.proto
+        (* gets the value of the used protocol *)
+        let get_proto header = header.proto
 
-	(* gets the value of the used http method *)
-	let get_method header = header.meth
-	
+        (* gets the value of the used http method *)
+        let get_method header = header.meth
+        
         (** adds an header option in the header option list*)
         let add_headers header key value =
           {
@@ -203,11 +203,11 @@ module FHttp_frame =
     struct
 
         (** type of the http frames*)
-	type frame_content = C.t option
+        type frame_content = C.t option
 
         type http_frame = 
-	    {header: Http_header.http_header;
-	     content: frame_content}
+            {header: Http_header.http_header;
+             content: frame_content}
 
     end
 

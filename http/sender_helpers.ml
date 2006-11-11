@@ -30,15 +30,15 @@ let id x = x
 let add_css (a : 'a) : 'a = 
     let css = 
       XHTML.M.toelt 
-	(XHTML.M.style ~contenttype:"text/css"
-	   [XHTML.M.pcdata "\n.inline {display: inline}\n.nodisplay {display: none}\n"])
+        (XHTML.M.style ~contenttype:"text/css"
+           [XHTML.M.pcdata "\n.inline {display: inline}\n.nodisplay {display: none}\n"])
     in
     let rec aux = function
     | (XML.Element ("head",al,el))::l -> (XML.Element ("head",al,css::el))::l
     | (XML.BlockElement ("head",al,el))::l -> 
-	(XML.BlockElement ("head",al,css::el))::l
+        (XML.BlockElement ("head",al,css::el))::l
     | (XML.SemiBlockElement ("head",al,el))::l -> 
-	(XML.SemiBlockElement ("head",al,css::el))::l
+        (XML.SemiBlockElement ("head",al,css::el))::l
     | (XML.Node ("head",al,el))::l -> (XML.Node ("head",al,css::el))::l
     | e::l -> e::(aux l)
     | [] -> []
@@ -48,7 +48,7 @@ let add_css (a : 'a) : 'a =
       | XML.Element ("html",al,el) -> XML.Element ("html",al,aux el) 
       | XML.BlockElement ("html",al,el) -> XML.BlockElement ("html",al,aux el) 
       | XML.SemiBlockElement ("html",al,el) -> 
-	  XML.SemiBlockElement ("html",al,aux el)
+          XML.SemiBlockElement ("html",al,aux el)
       | XML.Node ("html",al,el) -> XML.Node ("html",al,aux el)
       | e -> e)
 
@@ -68,11 +68,11 @@ module Xhtml_content =
       let x = (XHTML.M.ocsigen_print (add_css c)) in
       let md5 = get_etag_aux x in
       Lwt.return (Int64.of_int (String.length x), 
-		  md5, 
-		  (new_stream x 
-		     (fun () -> Lwt.return (empty_stream None))),
-		  id
-		 )
+                  md5, 
+                  (new_stream x 
+                     (fun () -> Lwt.return (empty_stream None))),
+                  id
+                 )
 
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_stream s = assert false
@@ -88,9 +88,9 @@ module Text_content =
     let stream_of_content c =
       let md5 = get_etag c in
       Lwt.return (Int64.of_int (String.length c), 
-		  md5, 
-		  new_stream c (fun () -> Lwt.return (empty_stream None)),
-		  id)
+                  md5, 
+                  new_stream c (fun () -> Lwt.return (empty_stream None)),
+                  id)
 
     let content_of_stream = string_of_stream
   end
@@ -126,28 +126,28 @@ module File_content =
 
     let read_file ?buffer_size fd =
       let buffer_size = match buffer_size with
-	None -> Ocsiconfig.get_filebuffersize ()
+        None -> Ocsiconfig.get_filebuffersize ()
       | Some s -> s
       in
       Messages.debug ("start reading file (file opened)");
       let buf = String.create buffer_size in
       let rec read_aux () =
-	Lwt_unix.read (Lwt_unix.Plain fd) buf 0 buffer_size >>=
-	(fun lu ->
+        Lwt_unix.read (Lwt_unix.Plain fd) buf 0 buffer_size >>=
+        (fun lu ->
           if lu = 0 then  
-	    Lwt.return (empty_stream None)
-	  else begin 
-	    if lu = buffer_size
-	    then Lwt.return (new_stream buf (fun () -> read_aux ()))
-	    else Lwt.return (new_stream (String.sub buf 0 lu)
-			       (fun () -> read_aux ()))
-	  end)
-      in read_aux ()			 
+            Lwt.return (empty_stream None)
+          else begin 
+            if lu = buffer_size
+            then Lwt.return (new_stream buf (fun () -> read_aux ()))
+            else Lwt.return (new_stream (String.sub buf 0 lu)
+                               (fun () -> read_aux ()))
+          end)
+      in read_aux ()                         
 
     let get_etag_aux st =
       Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
         st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime
-	
+        
     let get_etag f =
       let st = Unix.LargeFile.stat f in 
       get_etag_aux st
@@ -159,8 +159,8 @@ module File_content =
       let etag = get_etag_aux st in
       read_file fd >>=
       (fun r ->
-      	Lwt.return (st.Unix.LargeFile.st_size, etag, r, 
-		   fun () -> Unix.close fd))
+              Lwt.return (st.Unix.LargeFile.st_size, etag, r, 
+                   fun () -> Unix.close fd))
   
     let content_of_stream s = assert false
       
@@ -247,13 +247,13 @@ let create_empty_sender ?server_name ?proto fd =
       Empty_sender.create ~headers:hd2 ~proto:p fd
 
 let gmtdate d =  
-	let x = Netdate.mk_mail_date ~zone:0 d in try
-	let ind_plus =  String.index x '+' in  
-	String.set x ind_plus 'G';
-	String.set x (ind_plus + 1) 'M';
-	String.set x (ind_plus + 2) 'T';
-	String.sub x 0 (ind_plus + 3)
-	with _ -> Messages.debug "no +"; x
+        let x = Netdate.mk_mail_date ~zone:0 d in try
+        let ind_plus =  String.index x '+' in  
+        String.set x ind_plus 'G';
+        String.set x (ind_plus + 1) 'M';
+        String.set x (ind_plus + 2) 'T';
+        String.sub x 0 (ind_plus + 3)
+        with _ -> Messages.debug "no +"; x
 (** fonction that sends something
 * code is the code of the http answer
 * keep_alive is a boolean value that set the field Connection
@@ -289,9 +289,9 @@ let send_generic
     match cookie with
     |None -> hds
     |Some c -> ("Set-Cookie",(cookiename^"="^c^
-			      (match path with 
-				Some s -> ("; path="^s) 
-			      | None -> "")))::hds
+                              (match path with 
+                                Some s -> ("; path="^s) 
+                              | None -> "")))::hds
   in
   let hds =
     if keep_alive
@@ -319,13 +319,13 @@ type create_sender_type = ?server_name:string ->
 type send_page_type =
     unit Lwt.t ->
       ?etag:etag ->
-	?code:int ->
-	  keep_alive:bool ->
-	    ?cookie:string ->
-	      ?path:string ->
-		?last_modified:float ->
-		  ?location:string -> 
-	            ?head:bool -> Http_com.sender_type -> unit Lwt.t
+        ?code:int ->
+          keep_alive:bool ->
+            ?cookie:string ->
+              ?path:string ->
+                ?last_modified:float ->
+                  ?location:string -> 
+                    ?head:bool -> Http_com.sender_type -> unit Lwt.t
   
 (** fonction that sends a xhtml page
  * code is the code of the http answer
@@ -386,10 +386,10 @@ let send_error waiter ?(http_exception) ?(error_num=500) xhtml_sender =
         let err_page =
           <<
           <html>
-	  <body>
+          <body>
           <h1> Error $str:str_code$ </h1> 
           <p>$str:error_msg$</p>
-	  </body>
+          </body>
           </html>
           >>
   in
@@ -419,15 +419,15 @@ let parse_mime_types filename =
   let rec read_and_split in_ch = try
     let line = input_line in_ch in
     let line_upto = try 
-    	let upto = String.index line '#' in 
-	String.sub line 0 upto 
+            let upto = String.index line '#' in 
+        String.sub line 0 upto 
     with Not_found -> line in
     let strlist = Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto in
     match  List.length strlist with
     0 | 1 -> read_and_split in_ch
     | _ -> let make_pair = (fun h -> Hashtbl.add mimeht h (List.hd strlist)) in
-    	   List.iter make_pair (List.tl strlist);
-    	   read_and_split in_ch
+               List.iter make_pair (List.tl strlist);
+               read_and_split in_ch
     with End_of_file -> ()
   in
   try
@@ -448,8 +448,8 @@ let content_type_from_file_name filename =
     let pos = (String.rindex filename '.') in 
     let extens = 
       String.sub filename 
-	(pos+1)
-	((String.length filename) - pos - 1)
+        (pos+1)
+        ((String.length filename) - pos - 1)
     in Hashtbl.find mimeht extens
   with _ -> "unknown" 
 

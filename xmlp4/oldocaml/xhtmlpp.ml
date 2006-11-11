@@ -868,9 +868,9 @@ and xhtextarea = [ `Textarea of (attr * string) list * xhpcdata list ]
 
 
 let rec xh_search l xh_type = match l with
-       	(texte,xh_type2)::queue when xh_type2 = xh_type -> texte;
-       	| (_,_)::queue -> xh_search queue xh_type;
-	| _  -> assert false;;
+               (texte,xh_type2)::queue when xh_type2 = xh_type -> texte;
+               | (_,_)::queue -> xh_search queue xh_type;
+        | _  -> assert false;;
 
 open Format
 
@@ -1070,7 +1070,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
     (* Balise de formulaire de type inline*)
 | (`Select(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "select" xh_attrs (xh_taglist : xhselectcont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false removetailingws;	
+    xh_print_taglist queue i false removetailingws;        
 
 | (`Button(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "button" xh_attrs (xh_taglist : xhbuttoncont list :> xhalltagsl) i is_first;
@@ -1405,7 +1405,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 
 
     and xh_print (arbre : xhtml)  = 
-	pp_open_tbox xh_string ();
+        pp_open_tbox xh_string ();
     pp_print_string xh_string xh_topxml;
     pp_force_newline xh_string ();
     pp_print_string xh_string xh_topdoctype;

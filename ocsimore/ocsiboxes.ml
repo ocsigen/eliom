@@ -29,7 +29,7 @@ let create_login_form =
          <p>
          Login: $string_input ~a:[a_size 8] login$ <br/>
          Password: $string_input ~a:[a_size 8] password$ <br/>
-	 $submit_input "Entrer"$
+         $submit_input "Entrer"$
          </p>
        >>)
 

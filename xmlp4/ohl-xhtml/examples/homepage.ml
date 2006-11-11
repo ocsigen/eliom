@@ -27,12 +27,12 @@ let valid_xhtml ?url ~name ~email () =
   table ~a:[a_width (`Percent 100)]
     (tr
        (td [pcdata "This WWW page is brought to you by ";
-	    (match url with None -> pcdata name | Some u -> href u [pcdata name]);
-	    pcdata " "; href ("email:" ^ email) [pcdata ("<" ^ email ^ ">")];
-	    pcdata ".  It is valid "; href standard [pcdata version];
-	    pcdata ", as can be verified online by going to the ";
-	    href "http://www.w3.org/" [pcdata "W3C"]; pcdata " ";
-	    href validator [pcdata "MarkUp Validation Service"]; pcdata "."])
+            (match url with None -> pcdata name | Some u -> href u [pcdata name]);
+            pcdata " "; href ("email:" ^ email) [pcdata ("<" ^ email ^ ">")];
+            pcdata ".  It is valid "; href standard [pcdata version];
+            pcdata ", as can be verified online by going to the ";
+            href "http://www.w3.org/" [pcdata "W3C"]; pcdata " ";
+            href validator [pcdata "MarkUp Validation Service"]; pcdata "."])
        [td [validator_icon ()]])
     []
 
@@ -43,42 +43,42 @@ let sample tar_gz =
        [style ~contenttype:"text/css" [pcdata "H1 {color: red}"]])
     (body
        ([h1 [pcdata "A sample page for the XHTML module"];
-	 h2 [pcdata "Readme"];
-	 p [pcdata "The following is imported "; em [pcdata "verbatim"];
-	    pcdata " from the "; href "README" [pcdata "README"];
-	    pcdata " file, as ca be seen in the ";
-	    href "#source" [pcdata "source code of this page"];
-	    pcdata " below."]] @
-	List.map (fun s -> p [pcdata s]) (file_to_paragraphs "README") @
-	[h2 [pcdata "Example"];
-	 p [pcdata "This is a recursive example that contains its own description ";
-	    entity "hellip"];
-	 h2 [a ~a:[a_id "source"] [pcdata "Code"]];
-	 pre [pcdata (file_to_string self)];
-	 h2 [pcdata "Sources"];
-	 p [pcdata "The current sources are available as a gzip compressed tar archive: ";
-	    file tar_gz; pcdata ".  It includes";
-	    entity "mdash"; pcdata "among others"; entity "mdash"; pcdata "the files"];
-	 dl
-	   (dt [file self])
-	   [dd [pcdata "this example"];
-	    dt [file "xML.mli"];
-	    dd [pcdata "the interface XML, providing well formed documents"];
-	    dt [file "xML.ml"];
-	    dd [pcdata "the implementation of the XML interface"];
-	    dt [file "xHTML.mli"];
-	    dd [pcdata "the interface XHTML, providing documents, that are ";
-		pcdata "valid according to the XHTML 1.1 DTD."];
-	    dt [file "xHTML.ml"];
-	    dd [pcdata "the implementation of the interface XHTML"];
-	    dt [file "ChangeLog"];
-	    dd [pcdata "history of changes"]];
-	 hr ();
-	 valid_xhtml
-	   ~name:"Thorsten Ohl"
-	   ~url:"http://theorie.physik.uni-wuerzburg.de/~ohl/"
-	   ~email:"ohl@physik.uni-wuerzburg.de"
-	   ()]))
+         h2 [pcdata "Readme"];
+         p [pcdata "The following is imported "; em [pcdata "verbatim"];
+            pcdata " from the "; href "README" [pcdata "README"];
+            pcdata " file, as ca be seen in the ";
+            href "#source" [pcdata "source code of this page"];
+            pcdata " below."]] @
+        List.map (fun s -> p [pcdata s]) (file_to_paragraphs "README") @
+        [h2 [pcdata "Example"];
+         p [pcdata "This is a recursive example that contains its own description ";
+            entity "hellip"];
+         h2 [a ~a:[a_id "source"] [pcdata "Code"]];
+         pre [pcdata (file_to_string self)];
+         h2 [pcdata "Sources"];
+         p [pcdata "The current sources are available as a gzip compressed tar archive: ";
+            file tar_gz; pcdata ".  It includes";
+            entity "mdash"; pcdata "among others"; entity "mdash"; pcdata "the files"];
+         dl
+           (dt [file self])
+           [dd [pcdata "this example"];
+            dt [file "xML.mli"];
+            dd [pcdata "the interface XML, providing well formed documents"];
+            dt [file "xML.ml"];
+            dd [pcdata "the implementation of the XML interface"];
+            dt [file "xHTML.mli"];
+            dd [pcdata "the interface XHTML, providing documents, that are ";
+                pcdata "valid according to the XHTML 1.1 DTD."];
+            dt [file "xHTML.ml"];
+            dd [pcdata "the implementation of the interface XHTML"];
+            dt [file "ChangeLog"];
+            dd [pcdata "history of changes"]];
+         hr ();
+         valid_xhtml
+           ~name:"Thorsten Ohl"
+           ~url:"http://theorie.physik.uni-wuerzburg.de/~ohl/"
+           ~email:"ohl@physik.uni-wuerzburg.de"
+           ()]))
 
 let _ =
   let tar_gz = ref "xhtml-current.tar.gz" in
