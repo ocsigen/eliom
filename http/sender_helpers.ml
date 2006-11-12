@@ -160,7 +160,9 @@ module File_content =
       read_file fd >>=
       (fun r ->
               Lwt.return (st.Unix.LargeFile.st_size, etag, r, 
-                   fun () -> Unix.close fd))
+                   fun () ->     
+                     Messages.debug ("closing file"); 
+                     Unix.close fd))
   
     let content_of_stream s = assert false
       

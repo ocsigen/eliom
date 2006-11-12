@@ -315,15 +315,22 @@ let find_static_page staticdirref path =
   let find_file = function
       None -> raise Ocsigen_404
     | Some filename ->
-        Messages.debug ("Looking for ("^filename^")");
-
         ignore (Unix.LargeFile.lstat filename);
         let filename = 
           if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind
                 = Unix.S_DIR)
-          then filename^"/index.html"
+          then 
+            (if (filename.[(String.length filename) - 1]) = '/'
+            then filename^"index.html"
+            else
+              (if (path = [""])
+              then filename^"/index.html"
+              else (Messages.debug (filename^" is a directory");
+                    raise Ocsigen_Is_a_directory)))
           else filename
         in
+        Messages.debug ("Looking for ("^filename^")");
+
         if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind 
               = Unix.S_REG)
         then begin
@@ -573,7 +580,8 @@ let get_page
         if params = "" (* static pages do not have parameters *)
         then begin
           Messages.debug ("--- Is it a static file?");
-          let filename = find_static_page staticdirref url in
+          let filename = 
+            find_static_page staticdirref (change_empty_list url) in
           return 
             (((Sender_helpers.send_file filename),
               Sender_helpers.create_file_sender,
@@ -584,6 +592,7 @@ let get_page
         else fail Ocsigen_404)
       (function
           Unix.Unix_error (Unix.EACCES,_,_) as e -> fail e
+        | Ocsigen_Is_a_directory -> fail Ocsigen_Is_a_directory
         | _ -> 
             ((catch (* Generate a dynamic page *)
                (fun () -> 

@@ -210,24 +210,33 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
   let decode_part stream =
     read_header stream >>= (fun (s, header) ->
       let p = create header in
-      let rec while_stream = function
-          Finished None -> return (empty_stream None)
-        | Finished (Some ss) -> return ss
+      let rec while_stream size = function
+          Finished None -> return (size, empty_stream None)
+        | Finished (Some ss) -> return (size, ss)
         | Cont (stri, long, f) ->
-            if stri = ""
-            then f () >>= while_stream
-            else ((catch 
-                    (fun () -> add p stri)
-                    (fun e -> f () >>= 
-                      Ocsistream.consume >>= 
-                      (fun () -> fail e)))
-                    >>= f >>= while_stream)
+            let size2 = Int64.add size (Int64.of_int long) in
+            if Int64.compare size2 (Ocsiconfig.get_maxuploadfilesize ()) > 0
+            then 
+              fail (Ocsimisc.Ocsigen_Request_interrupted
+                      Ocsimisc.Ocsigen_Request_too_long)
+            else
+              if stri = ""
+              then f () >>= while_stream size
+              else ((* catch 
+                       (fun () -> 
+                         add p stri)
+                       (fun e -> f () >>= 
+                         Ocsistream.consume >>= 
+                         (fun () -> fail e)) *)
+                  add p stri >>= 
+                f >>= 
+                while_stream size2)
       in 
       catch 
-        (fun () -> while_stream s >>= 
-          (fun s -> stop p >>= (fun r -> return (r,s))))
+        (fun () -> while_stream Int64.zero s >>= 
+          (fun (size, s) -> stop size p >>= (fun r -> return (r,s))))
         (function
-            error -> stop p >>= (fun _ -> fail error)))
+            error -> stop Int64.zero p >>= (fun _ -> fail error)))
   in
   catch
     (fun () ->

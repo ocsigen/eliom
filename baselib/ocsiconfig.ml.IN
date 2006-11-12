@@ -50,7 +50,9 @@ type config = { mutable port: int;
 		mutable connect_time_max: float;
 		mutable keepalive_timeout: float;
 		mutable netbuffersize: int;
-		mutable filebuffersize: int
+		mutable filebuffersize: int;
+		mutable maxuploadfilesize: int64;
+		mutable maxrequestbodysize: int64
 	      }
 
 let config_file = ref "_CONFIGDIR_/ocsigen.conf"
@@ -75,7 +77,9 @@ let init_config () =
    connect_time_max = 60.;
    keepalive_timeout = 15.;
    netbuffersize = 8000;
-   filebuffersize = 500
+   filebuffersize = 500;
+   maxrequestbodysize = Int64.of_int 8000000;
+   maxuploadfilesize = Int64.of_int 2000000;
  }
 let sconf  = ref (init_config ())
 let cfgs : config list ref = ref [](*(Array.init max_servers (init_config))*) 
@@ -108,6 +112,8 @@ let set_connect_time_max cf i = cf.connect_time_max <- i
 let set_keepalive_timeout cf i = cf.keepalive_timeout <- i
 let set_netbuffersize cf i = cf.netbuffersize <- i
 let set_filebuffersize cf i = cf.filebuffersize <- i
+let set_maxuploadfilesize cf i = cf.maxuploadfilesize <- i
+let set_maxrequestbodysize cf i = cf.maxrequestbodysize <- i
 let set_number_of_servers x = number_of_servers := x
 let get_port () = !sconf.port
 let get_port_modified () = !sconf.port_modified
@@ -134,6 +140,8 @@ let get_connect_time_max () = !sconf.connect_time_max
 let get_keepalive_timeout () = !sconf.keepalive_timeout
 let get_netbuffersize () = !sconf.netbuffersize
 let get_filebuffersize () = !sconf.filebuffersize
+let get_maxuploadfilesize () = !sconf.maxuploadfilesize
+let get_maxrequestbodysize () = !sconf.maxrequestbodysize
 
 let display_version () =
   print_string version_number;

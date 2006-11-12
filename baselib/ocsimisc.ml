@@ -1,5 +1,7 @@
 exception Input_is_too_large
+exception Ocsigen_Request_interrupted of exn
 exception Ocsigen_Bad_Request
+exception Ocsigen_Request_too_long
 
 let rec list_remove a = function
     [] -> []
@@ -34,7 +36,7 @@ let change_empty_list = function
   | l -> l
 
 
-(* En fait cette fonction est dans Neturl (split_path)
+(* This function is in Neturl (split_path)
    let rec cut_url s = 
    try
    let length = String.length s in

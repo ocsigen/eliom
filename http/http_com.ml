@@ -21,6 +21,7 @@
 open Http_frame
 open Lwt
 open Ocsistream
+open Ocsimisc
 
 exception Ocsigen_HTTP_parsing_error of string * string
 exception Ocsigen_KeepaliveTimeout
@@ -28,6 +29,7 @@ exception Ocsigen_Timeout
 exception Ocsigen_buffer_is_full
 exception Ocsigen_header_too_long
 exception Connection_reset_by_peer
+exception Ocsigen_sending_error of exn
 
 (** Implements a thread that will kill all connections that are too old. *)
 module Timeout : sig
@@ -394,9 +396,15 @@ module FHttp_receiver =
                 in 
                 let comp = Int64.compare body_length Int64.zero in
                 (if comp < 0 
-                then assert false
+                then fail Ocsimisc.Ocsigen_Bad_Request
                 else if comp = 0 
                 then Lwt.return None
+                else if (Int64.compare 
+                           body_length
+                           (Ocsiconfig.get_maxrequestbodysize ())) > 0
+                then
+                  fail (Ocsimisc.Ocsigen_Request_interrupted
+                          Ocsigen_Request_too_long)
                 else
                   Com_buffer.extract 
                     receiver.fd receiver.buffer body_length
@@ -626,5 +634,5 @@ module FHttp_sender =
                      Messages.debug
                        ("Error while closing stream (error during stream) : "^
                         (Printexc.to_string e)));
-                   fail e))))
+                   fail (Ocsigen_sending_error e)))))
   end

@@ -33,8 +33,6 @@ open Error_pages
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
 exception Ocsigen_upload_forbidden
-exception Stop_sending (* Something bad happened to another request 
-                          on the same channel. Stop the current request. *)
 
 (* Without the following line, it stops with "Broken Pipe" without raising
    an exception ... *)
@@ -84,7 +82,80 @@ type to_write = No_File of string * Buffer.t | A_File of Lwt_unix.descr
 
 let now = return ()
 
-(* *)
+
+
+
+
+(* Errors during requests *)
+let handle_light_request_errors 
+    xhtml_sender sockaddr wait_end_request waiter exn = 
+  (* EXCEPTIONS ABOUT THE REQUEST *)
+  (* It can be an error during get_http_frame or during get_frame_info *)
+
+  print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn));
+  let ip = ip_of_sockaddr sockaddr in
+  waiter >>= (fun () ->
+    match exn with
+      
+      (* First light errors: we answer, then we wait the following request *)
+      (* For now: none *)
+      (* If the request has not been fully read, it must have been consumed *)
+      (* Do not forget to wake up wait_end_request after having read all
+       the resquest *)
+      (* Find the value of keep-alive in the request *)
+      
+      (* Request errors: we answer, then we close *)
+      Http_error.Http_exception (_,_) ->
+        send_error now
+          ~keep_alive:false ~http_exception:exn xhtml_sender >>=
+        (fun _ -> fail (Ocsigen_Request_interrupted exn))
+    | Ocsigen_header_too_long ->
+        Messages.debug "Sending 400";
+        (* 414 URI too long. Actually, it is "header too long..." *)
+        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        (fun _ -> fail (Ocsigen_Request_interrupted exn))
+    | Ocsigen_Request_too_long ->
+        Messages.debug "Sending 400";
+        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        (fun _ -> fail (Ocsigen_Request_interrupted exn))
+    | Ocsigen_Bad_Request ->
+        Messages.debug "Sending 400";
+        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        (fun _ -> fail (Ocsigen_Request_interrupted exn))
+    | Ocsigen_upload_forbidden ->
+        Messages.debug "Sending 403 Forbidden";
+        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        (fun _ -> fail (Ocsigen_Request_interrupted exn))
+    | Ocsigen_unsupported_media ->
+        Messages.debug "Sending 415";
+        send_error now ~keep_alive:false ~error_num:415 xhtml_sender >>= 
+        (fun _ -> fail (Ocsigen_Request_interrupted exn))
+
+    (* Now errors that close the socket: we raise the exception again: *)
+    | Ocsigen_HTTP_parsing_error (s1,s2) as e ->
+        errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^
+                ") in:\n"^
+                (if (String.length s2)>2000 
+                then ((String.sub s2 0 1999)^"...<truncated>")
+                else s2)^"\n---");
+        fail (Ocsigen_Request_interrupted e)
+    | Com_buffer.End_of_input
+        (* The request is finished (input closed). 
+           We close the channel, after our answer.  *)
+    | Unix.Unix_error(Unix.ECONNRESET,_,_) ->
+        debug "Connection reset by peer: I don't close the connection";
+        fail Connection_reset_by_peer
+    | Ocsigen_Timeout 
+    | Http_com.Ocsigen_KeepaliveTimeout
+    | Connection_reset_by_peer
+    | Ocsigen_Request_interrupted _ -> fail exn
+    | _ -> fail (Ocsigen_Request_interrupted exn)
+             )
+
+
+
+
+(* reading the request *)
 let get_frame_infos http_frame filenames =
 
   catch (fun () -> 
@@ -171,7 +242,6 @@ let get_frame_infos http_frame filenames =
                         match ((Ocsiconfig.get_uploaddir ())) with
                           Some dname ->
                             let fname = dname^"/"^now in
-                            param_names := !param_names@[(p_name, fname)];
                             let fd = Unix.openfile fname 
                                 [Unix.O_CREAT;
                                  Unix.O_TRUNC;
@@ -179,6 +249,10 @@ let get_frame_infos http_frame filenames =
                                  Unix.O_NONBLOCK] 0o666 in
                             (* Messages.debug "file opened"; *)
                             filenames := fname::!filenames;
+                            param_names := 
+                              !param_names@[(p_name, fname (* {tmp_filename=fname;
+                                                              filesize=size;
+                                                              original_filename=oname} *))];
                             A_File (Lwt_unix.Plain fd)
                         | None -> raise Ocsigen_upload_forbidden
                   in
@@ -191,7 +265,7 @@ let get_frame_infos http_frame filenames =
                         Lwt_unix.write wh s 0 (String.length s) >>= 
                         (fun r -> Lwt_unix.yield ())
                   in
-                  let stop  = function 
+                  let stop size  = function 
                       No_File (p_name, to_buf) -> 
                         return 
                           (param_names := !param_names @
@@ -261,8 +335,7 @@ let get_frame_infos http_frame filenames =
                    http_frame.Stream_http_frame.header "if-modified-since"))
       with _ -> None
       in return
-        (((path,
-   (* the url path (string list) *)
+        (((path,   (* the url path (string list) *)
            params,
            internal_state2,
              ((Ocsimisc.remove_slash (Neturl.url_path url2)), 
@@ -272,14 +345,15 @@ let get_frame_infos http_frame filenames =
               useragent)),
           action_info,
           ifmodifiedsince))))
-      (function
-          Http_com.Com_buffer.End_of_input -> 
-            fail Connection_reset_by_peer
-        | e -> 
-            Messages.debug ("Exn during get_frame_infos : "^
-                            (Printexc.to_string e));
-            fail Ocsigen_Bad_Request (* ? *))
 
+    (function
+        Http_com.Com_buffer.End_of_input -> 
+          fail Connection_reset_by_peer
+      | e ->
+          Messages.debug ("Exn during get_frame_infos : "^
+                          (Printexc.to_string e));
+          fail (Ocsigen_Request_interrupted e) (* ? *))
+    
 
 let rec getcookie s =
   let rec firstnonspace s i = 
@@ -322,19 +396,29 @@ let service wait_end_request waiter http_frame sockaddr
   Messages.debug ("Keep-Alive:"^(string_of_bool ka));
   Messages.debug("HEAD:"^(string_of_bool head));
 
-  let remove_files l = 
+  let remove_files = 
     let rec aux = function
-        (* We remove all the files created by the request (files sent) *)
-        [] -> return ()
-      | a::l -> (try Unix.unlink a with _ -> ()); aux l
-    in Messages.debug "Removing files"; aux l
+        (* We remove all the files created by the request 
+           (files sent by the client) *)
+        [] -> ()
+      | a::l -> 
+          (try Unix.unlink a 
+          with e -> Messages.warning ("Error while removing file "^a^
+                                      ": "^(Printexc.to_string e))); 
+          aux l
+    in function
+        [] -> ()
+      | l -> Messages.debug "Removing files"; 
+          aux l
   in
+
 
   let serv () =  
 
     let filenames = ref [] (* All the files sent by the request *) in
-    catch (fun () ->
 
+    catch (fun () ->
+      
       let cookie = 
         try 
           Some (getcookie (Http_header.get_headers_value 
@@ -342,138 +426,143 @@ let service wait_end_request waiter http_frame sockaddr
         with _ -> None
       in
 
-      (catch
-         (fun () -> get_frame_infos http_frame filenames)
-         (fun e -> 
-           ignore(remove_files !filenames);
-           wakeup wait_end_request (); 
-           fail e)) >>=
-
-      (fun (((stringpath,params,is,(path,host,gp,pp,ua)) as frame_info), 
-            action_info,ifmodifiedsince) -> 
-        (* here we are sure that the request is terminated. 
-           We can wait another request *)
+      (* *** First of all, we read all the request
+         (that will possibly create files) *)
+      get_frame_infos http_frame filenames >>=
+      
+      (* *** Now we generate the page and send it *)
+      (fun (((stringpath,params,is,(path,host,gp,pp,ua)) as frame_info), action_info,ifmodifiedsince) -> 
 
         wakeup wait_end_request ();
-        (* log *)
-        let ip = ip_of_sockaddr sockaddr in
-        accesslog ("connection"^
-                   (match host with 
-                     None -> ""
-                   | Some h -> (" for "^h))^
-                   " from "^ip^" ("^ua^") : "^stringpath^params);
-        (* end log *)
-
-
-        match action_info with
-          None ->
-            let keep_alive = ka in
-            (catch
-               (fun () ->
-                 get_page frame_info sockaddr cookie >>=
-                 (fun (cookie2,send_page,sender,path),
-                   lastmodified,etag ->
-                   match lastmodified,ifmodifiedsince with
-                     Some l, Some i when l<=i -> 
-                       Messages.debug "Sending 304 Not modified ";
-                       send_empty
-                         waiter
-                         ?last_modified:lastmodified
-                         ?etag:etag
-                         ~keep_alive:keep_alive
-                         ~code:304 (* Not modified *)
-                         ~head:head empty_sender
-                   | _ ->
-                       send_page waiter ~keep_alive:keep_alive
-                         ?last_modified:lastmodified
+        (* here we are sure that the request is terminated. 
+           We can wait for another request *)
+        
+        catch
+          (fun () ->
+            
+            (* log *)
+            let ip = ip_of_sockaddr sockaddr in
+            accesslog ("connection"^
+                       (match host with 
+                         None -> ""
+                       | Some h -> (" for "^h))^
+                       " from "^ip^" ("^ua^") : "^stringpath^params);
+            (* end log *)
+            
+            
+            match action_info with
+              None ->
+                let keep_alive = ka in
+                (catch
+                   (fun () ->
+                     get_page frame_info sockaddr cookie >>=
+                     (fun (cookie2,send_page,sender,path),
+                       lastmodified,etag ->
+                         match lastmodified,ifmodifiedsince with
+                           Some l, Some i when l<=i -> 
+                             Messages.debug "Sending 304 Not modified ";
+                             send_empty
+                               waiter
+                               ?last_modified:lastmodified
+                               ?etag:etag
+                               ~keep_alive:keep_alive
+                               ~code:304 (* Not modified *)
+                               ~head:head empty_sender
+                         | _ ->
+                             send_page waiter ~keep_alive:keep_alive
+                               ?last_modified:lastmodified
+                               ?cookie:(if cookie2 <> cookie then 
+                                 (if cookie2 = None 
+                                 then Some remove_cookie_str
+                                 else cookie2) 
+                               else None)
+                               ~path:path (* path pour le cookie *) ~head:head
+                               (sender ~server_name:server_name inputchan)))
+                   (function
+                       Ocsigen_Is_a_directory -> 
+                         Messages.debug "Sending 301 Moved permanently";
+                         send_empty
+                           waiter
+                           ~keep_alive:keep_alive
+                           ~location:(stringpath^"/"^params)
+                           ~code:301 (* Moved permanently *)
+                           ~head:head empty_sender
+                     | Unix.Unix_error (Unix.EACCES,_,_) ->
+                         Messages.debug "Sending 303 Forbidden";
+                         send_error waiter ~keep_alive:keep_alive
+                           ~error_num:403 xhtml_sender (* Forbidden *)
+                     | e -> fail e)
+                )
+                  
+            | Some (action_name, reload, action_params) ->
+                make_action action_name action_params frame_info sockaddr cookie
+                  >>= (fun (cookie2,path) ->
+                    let keep_alive = ka in
+                    (if reload then
+                      get_page frame_info sockaddr cookie2 >>=
+                      (fun (cookie3,send_page,sender,path),lastmodified,etag ->
+                        (send_page waiter ~keep_alive:keep_alive 
+                           ?last_modified:lastmodified
+                           ?cookie:(if cookie3 <> cookie then 
+                             (if cookie3 = None 
+                             then Some remove_cookie_str
+                             else cookie3) 
+                           else None)
+                           ~path:path ~head:head
+                           (sender ~server_name:server_name inputchan)))
+                    else
+                      (send_empty waiter ~keep_alive:keep_alive 
                          ?cookie:(if cookie2 <> cookie then 
                            (if cookie2 = None 
                            then Some remove_cookie_str
                            else cookie2) 
                          else None)
-                         ~path:path (* path pour le cookie *) ~head:head
-                         (sender ~server_name:server_name inputchan)))
-               (function
-                   Ocsigen_Is_a_directory -> 
-                     Messages.debug "Sending 301 Moved permanently";
-                     send_empty
-                       waiter
-                       ~keep_alive:keep_alive
-                       ~location:(stringpath^"/"^params)
-                       ~code:301 (* Moved permanently *)
-                       ~head:head empty_sender
-                 | Unix.Unix_error (Unix.EACCES,_,_) ->
-                     Messages.debug "Sending 303 Forbidden";
-                     send_error waiter ~keep_alive:keep_alive
-                       ~error_num:403 xhtml_sender (* Forbidden *)
-                 | e -> fail e)
-            )
+                         ~path:path
+                         ~code:204 ~head:head
+                         empty_sender))
+                      )
+          )
+          
+          
+          (fun e -> (* Exceptions during page generation *)
+            catch
+              (fun () ->
+                match e with
+                  (* EXCEPTIONS WHILE COMPUTING A PAGE *)
+                  Ocsigen_404 -> 
+                    Messages.debug "Sending 404 Not Found";
+                    send_error 
+                      waiter ~keep_alive:ka ~error_num:404 xhtml_sender
+                | Ocsigen_sending_error exn -> fail exn
+                | e ->
+                    Messages.warning
+                      ("Exn during page generation: "^
+                       (Printexc.to_string e)^" (sending 500)"); 
+                    Messages.debug "Sending 500";
+                    send_error
+                      waiter ~keep_alive:ka ~error_num:500 xhtml_sender)
+              (fun e -> fail (Ocsigen_sending_error e))
+            (* All generation exceptions have been handled here *)
+          )) >>=
 
-        | Some (action_name, reload, action_params) ->
-            make_action action_name action_params frame_info sockaddr cookie
-              >>= (fun (cookie2,path) ->
-                let keep_alive = ka in
-                (if reload then
-                  get_page frame_info sockaddr cookie2 >>=
-                  (fun (cookie3,send_page,sender,path),lastmodified,etag ->
-                    (send_page waiter ~keep_alive:keep_alive 
-                       ?last_modified:lastmodified
-                       ?cookie:(if cookie3 <> cookie then 
-                         (if cookie3 = None 
-                         then Some remove_cookie_str
-                         else cookie3) 
-                       else None)
-                       ~path:path ~head:head
-                       (sender ~server_name:server_name inputchan)))
-                else
-                  (send_empty waiter ~keep_alive:keep_alive 
-                     ?cookie:(if cookie2 <> cookie then 
-                       (if cookie2 = None 
-                       then Some remove_cookie_str
-                       else cookie2) 
-                     else None)
-                     ~path:path
-                     ~code:204 ~head:head
-                     empty_sender))
-                  )) >>=
-          (fun () -> remove_files !filenames))
-
-      (fun e ->
-        ignore(remove_files !filenames);
+      (fun () -> return (remove_files !filenames)))
+              
+      (fun e -> 
+        remove_files !filenames;
         match e with
-          (* EXCEPTIONS WHILE COMPUTING A PAGE *)
-          Ocsigen_404 -> 
-            Messages.debug "Sending 404 Not Found";
-            send_error waiter ~keep_alive:ka ~error_num:404 xhtml_sender
-        | Multipart.Multipart_error _ as e ->
-            Messages.debug (Printexc.to_string e);
-            Messages.debug "Sending 400";
-            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-        | Ocsigen_Bad_Request ->
-            Messages.debug "Sending 400";
-            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-        | Input_is_too_large ->
-            Messages.debug "Sending 400";
-            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-        | Ocsigen_upload_forbidden ->
-            Messages.debug "Sending 403 Forbidden";
-            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-        | Ocsigen_unsupported_media ->
-            Messages.debug "Sending 415";
-            send_error waiter ~keep_alive:ka ~error_num:415 xhtml_sender
-        | Connection_reset_by_peer -> fail Connection_reset_by_peer
-        | Stop_sending -> fail Stop_sending
-        | e ->
-            Messages.warning ("Exn during serv function : "^
-                              (Printexc.to_string e)^" (sending 500)"); 
-            Messages.debug "Sending 500";
-            send_error waiter ~keep_alive:ka ~error_num:500 xhtml_sender
-      )
+          Ocsigen_sending_error _ -> fail e
+        | _ -> handle_light_request_errors
+              xhtml_sender sockaddr wait_end_request waiter e)
+
   in 
-  let consume = function
+
+(*  let consume = function
         None -> return ()
       | Some body -> Ocsistream.consume body
-  in
+  in *)
+
+
+  (* body of service *)
   let meth = (Http_header.get_method http_frame.Stream_http_frame.header) in
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
@@ -481,6 +570,8 @@ let service wait_end_request waiter http_frame sockaddr
   then send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender
   else 
     catch
+
+      (* new version: in case of error, we close the request *)
       (fun () ->
         (try
           return 
@@ -488,30 +579,53 @@ let service wait_end_request waiter http_frame sockaddr
                (Http_header.get_headers_value 
                   http_frame.Stream_http_frame.header 
                   "content-length"))
-        with 
+        with
           Not_found -> return Int64.zero
-        | _ -> (consume http_frame.Stream_http_frame.content >>= 
-                (fun () -> 
-                  wakeup wait_end_request (); 
-                  fail Ocsigen_Bad_Request)))
+        | _ -> fail (Ocsigen_Request_interrupted Ocsigen_Bad_Request))
         >>=
             (fun cl ->
               if (Int64.compare cl Int64.zero) > 0 &&
                 (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
-              then consume http_frame.Stream_http_frame.content >>= 
-                (fun () ->
-                  wakeup wait_end_request ();
-                  send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender)
+              then fail (Ocsigen_Request_interrupted Ocsigen_Bad_Request)
               else serv ()))
+
+
+          (* old version: in case of error, 
+             we consume all the stream and wait another request
+             fun () ->
+             (try
+             return 
+             (Int64.of_string 
+             (Http_header.get_headers_value 
+             http_frame.Stream_http_frame.header 
+             "content-length"))
+             with
+             Not_found -> return Int64.zero
+             | _ -> (consume http_frame.Stream_http_frame.content >>=
+             (fun () ->
+             wakeup wait_end_request ();
+             fail Ocsigen_Bad_Request)))
+             >>=
+             (fun cl ->
+             if (Int64.compare cl Int64.zero) > 0 &&
+             (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
+             then consume http_frame.Stream_http_frame.content >>=
+             (fun () ->
+             wakeup wait_end_request ();
+             send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender)
+             else serv ()) *)
+
       (function
-          Ocsigen_Bad_Request ->
-            send_error waiter ~keep_alive:ka ~error_num:400 xhtml_sender
-        | Stop_sending -> fail Stop_sending
-        | e -> Messages.debug ("Exn during service : "^
+        | Ocsigen_Request_interrupted _ as e -> fail e
+        | Ocsigen_sending_error e ->
+            Messages.debug ("Exn while sending: "^
+                            (Printexc.to_string e)); 
+            fail e
+        | e -> Messages.debug ("Exn during service: "^
                                (Printexc.to_string e)); 
             fail e)
 
-       
+
 
 let load_modules modules_list =
   let rec aux = function
@@ -529,7 +643,7 @@ let load_modules modules_list =
     (* for default static dir *)
 
 
-let handle_broken_pipe_exn sockaddr in_ch exn = 
+let handle_broken_pipe_exn sockaddr exn = 
   (* EXCEPTIONS WHILE REQUEST OR SENDING WHEN WE CANNOT ANSWER *)
   let ip = ip_of_sockaddr sockaddr in
   (* We do not close the connection here.
@@ -546,14 +660,14 @@ let handle_broken_pipe_exn sockaddr in_ch exn =
       return ()
   | Unix.Unix_error (e,func,param) ->
       warning ("While talking to "^ip^": "^(Unix.error_message e)^
-               " in function "^func^" ("^param^") - (I continue)");
+               " in function "^func^" ("^param^").");
       return ()
   | Ssl.Write_error(Ssl.Error_ssl) -> errlog ("While talking to "^ip
-                                              ^": Ssl broken pipe - (I continue)");
+                                              ^": Ssl broken pipe.");
       return ()
   | exn -> 
-      errlog ("While talking to "^ip^": Uncaught exception - "
-              ^(Printexc.to_string exn)^" - (I continue)");
+      warning ("While talking to "^ip^": Uncaught exception - "
+              ^(Printexc.to_string exn)^".");
       return ()
 
 
@@ -567,60 +681,62 @@ let listen modules_list =
     
     (* (With pipeline) *)
 
-    let handle_request_errors waiter exn = 
-      (* EXCEPTIONS ABOUT THE REQUEST *)
-      (* We wait the end of current answers before sending an error
-         and closing the connection. *)
-      waiter >>=
-      (fun () -> 
-        print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn));
-        let ip = ip_of_sockaddr sockaddr in
-        match exn with
-          Http_error.Http_exception (_,_) as http_ex ->
-            send_error now 
-              ~keep_alive:false ~http_exception:http_ex xhtml_sender >>=
-            (fun () -> Lwt_unix.lingering_close in_ch;
-              return ())
-        | Ocsigen_header_too_long ->
-            Messages.debug "Sending 400";
-            (* 414 URI too long. Actually, it is "header too long..." *)
-            send_error now ~keep_alive:false ~error_num:400 xhtml_sender
-              >>= (fun _ ->
-                Lwt_unix.lingering_close in_ch; return ())
-        | Ocsigen_HTTP_parsing_error (s1,s2) ->
-            errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^
-                    ") in:\n"^
-                    (if (String.length s2)>2000 
-                    then ((String.sub s2 0 1999)^"...<truncated>")
-                    else s2)^"\n---");
-            Lwt_unix.lingering_close in_ch; return ()
-        | Ocsigen_Timeout -> 
-            warning ("While talking to "^ip^": Timeout");
-            Lwt_unix.lingering_close in_ch; return ()
-        | Http_com.Ocsigen_KeepaliveTimeout
-        | Stop_sending ->
-            Lwt_unix.lingering_close in_ch; return ()
-        | Com_buffer.End_of_input
-            (* The request is finished (input closed). 
-               We close the channel, after our answer.  *)
-        | Connection_reset_by_peer 
-        | Unix.Unix_error(Unix.ECONNRESET,_,_) ->
-            debug "Connection reset by peer: I don't close the connection";
-            return ()
-        | e -> Lwt_unix.lingering_close in_ch; fail e)
+    let handle_severe_errors = function
+        (* Serious error (we cannot answer to the request)
+           Probably the pipe is broken.
+           We awake all the waiting threads in cascade
+           with an exception.
+         *)
+(*        Stop_sending -> 
+          wakeup_exn waiter Stop_sending;
+          return () *)
+        (* Timeout errors: We close and do nothing *)
+      | Ocsigen_Timeout -> 
+          let ip = ip_of_sockaddr sockaddr in
+          warning ("While talking to "^ip^": Timeout");
+          Lwt_unix.lingering_close in_ch;
+          return ()
+      | Http_com.Ocsigen_KeepaliveTimeout -> 
+          Lwt_unix.lingering_close in_ch;
+          return ()
+      | Ocsigen_Request_interrupted e -> 
+          (* We decide to interrupt the request 
+             (for ex if it is too long) *)
+          (try
+            Lwt_unix.lingering_close in_ch
+          with _ -> ());                   
+          handle_broken_pipe_exn sockaddr e (* >>=
+          (fun () -> 
+            wakeup_exn waiter Stop_sending;
+            return ()) *)
+      | e ->
+          handle_broken_pipe_exn sockaddr e (* >>=
+          (fun () -> 
+            wakeup_exn waiter Stop_sending;
+            return ())) *)
+    in  
+
+    let handle_request_errors wait_end_request waiter exn =
+      catch
+        (fun () -> 
+          handle_light_request_errors 
+            xhtml_sender sockaddr wait_end_request waiter exn)
+        (fun e -> handle_severe_errors exn)
     in
-    
+
     let rec handle_request waiter http_frame =
-      let test_end_request_awoken wait_end_request =
+
+     let test_end_request_awoken wait_end_request =
         try
           wakeup wait_end_request ();
-          Messages.debug 
+          Messages.debug
             "wait_end_request has not been awoken! \
             (should not succeed ...)"
         with _ -> ()
       in
-      let keep_alive = 
-        find_keepalive http_frame.Stream_http_frame.header in
+
+      let keep_alive = find_keepalive http_frame.Stream_http_frame.header in
+
       if keep_alive 
       then begin
         Messages.debug "KEEP ALIVE (pipelined)";
@@ -641,22 +757,7 @@ let listen modules_list =
                  test_end_request_awoken wait_end_request;
                  wakeup waiter2 (); 
                  return ()))
-             (function
-                 (* Serious error (we cannot answer to the request)
-                    Probably the pipe is broken.
-                    We awake all the waiting threads in cascade
-                    with an exception.
-                  *)
-                 Stop_sending -> 
-                   test_end_request_awoken wait_end_request;
-                   wakeup_exn waiter2 Stop_sending;
-                   return ()
-               | e -> 
-                   test_end_request_awoken wait_end_request;
-                   handle_broken_pipe_exn sockaddr in_ch e >>=
-                   (fun () -> 
-                     wakeup_exn waiter2 Stop_sending;
-                     return ())));
+             handle_severe_errors);
         
         catch
           (fun () ->
@@ -666,7 +767,7 @@ let listen modules_list =
               Stream_receiver.get_http_frame waiter2
                 receiver ~doing_keep_alive:true () >>=
               (handle_request waiter2)))
-          (handle_request_errors waiter2)
+          (handle_request_errors wait_end_request waiter2)
       end
       else begin (* No keep-alive => no pipeline *)
         catch
@@ -688,8 +789,8 @@ let listen modules_list =
             Stream_receiver.get_http_frame (return ())
               receiver ~doing_keep_alive:false () >>=
             handle_request (return ()))
-          (handle_request_errors (return ())))
-      (handle_broken_pipe_exn sockaddr in_ch)
+          (handle_request_errors now now))
+      (handle_broken_pipe_exn sockaddr)
 
         (* Without pipeline:
         Stream_receiver.get_http_frame receiver ~doing_keep_alive () >>=
@@ -725,7 +826,7 @@ let listen modules_list =
             (Stream_receiver.create inputchan)
             inputchan sockaddr xhtml_sender
             empty_sender)
-        (handle_broken_pipe_exn sockaddr inputchan)
+        (handle_broken_pipe_exn sockaddr)
     in
     let rec wait_connexion_rec () =
       let rec do_accept () = 

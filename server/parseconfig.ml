@@ -154,6 +154,12 @@ let rec parser_config =
     | PLCons ((EPanytag ("filebuffersize", PLEmpty, p)), ll) -> 
         set_filebuffersize n (int_of_string (parse_string p));
         parse_ocsigen n ll
+    | PLCons ((EPanytag ("maxrequestbodysize", PLEmpty, p)), ll) -> 
+        set_maxrequestbodysize n (Int64.of_string (parse_string p));
+        parse_ocsigen n ll
+    | PLCons ((EPanytag ("maxuploadfilesize", PLEmpty, p)), ll) -> 
+        set_maxuploadfilesize n (Int64.of_string (parse_string p));
+        parse_ocsigen n ll
     | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
         (Cmo (parse_string l))::parse_ocsigen n ll
     | PLCons ((EPanytag ("host", atts, l)), ll) ->
