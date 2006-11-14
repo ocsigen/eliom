@@ -386,6 +386,12 @@ let find_keepalive http_header =
     then true
     else false
 
+
+
+
+
+
+
 let service wait_end_request waiter http_frame sockaddr 
     xhtml_sender empty_sender inputchan () =
   (* waiter is here for pipelining: we must wait before sending the page,
@@ -487,6 +493,11 @@ let service wait_end_request waiter http_frame sockaddr
                            ~location:(stringpath^"/"^params)
                            ~code:301 (* Moved permanently *)
                            ~head:head empty_sender
+                     | Pagesearch.Ocsigen_malformed_url
+                     | Neturl.Malformed_URL -> 
+                         Messages.debug "Sending 400 (Malformed URL)";
+                         send_error waiter ~keep_alive:keep_alive
+                           ~error_num:400 xhtml_sender (* Malformed URL *)
                      | Unix.Unix_error (Unix.EACCES,_,_) ->
                          Messages.debug "Sending 303 Forbidden";
                          send_error waiter ~keep_alive:keep_alive
@@ -624,6 +635,10 @@ let service wait_end_request waiter http_frame sockaddr
         | e -> Messages.debug ("Exn during service: "^
                                (Printexc.to_string e)); 
             fail e)
+
+
+
+
 
 
 
@@ -769,6 +784,7 @@ let listen modules_list =
               (handle_request waiter2)))
           (handle_request_errors wait_end_request waiter2)
       end
+
       else begin (* No keep-alive => no pipeline *)
         catch
           (fun () ->
@@ -828,7 +844,9 @@ let listen modules_list =
             empty_sender)
         (handle_broken_pipe_exn sockaddr)
     in
+
     let rec wait_connexion_rec () =
+
       let rec do_accept () = 
         Lwt_unix.accept (Lwt_unix.Plain socket) >>= 
             (fun (s, sa) -> 
@@ -846,14 +864,14 @@ let listen modules_list =
                        (s_unix, Ssl.embed_socket s_unix !ctx))) >>=
                  (fun (ss, ssa) -> Lwt.return (ss, sa))))
                   (function
-                  Ssl.Accept_error e -> 
-                    Messages.debug "Accept_error"; do_accept ()
+                      Ssl.Accept_error e -> 
+                        Messages.debug "Accept_error"; do_accept ()
                     | e -> warning ("Exn in do_accept : "^
-                                (Printexc.to_string e)); do_accept ())
+                                    (Printexc.to_string e)); do_accept ())
           end 
           else Lwt.return (s, sa))
-
       in
+
       (do_accept ()) >>= 
       (fun c ->
         incr_connected ();
@@ -864,6 +882,7 @@ let listen modules_list =
                       (string_of_int (get_max_number_of_connections ()))^
                       ") reached.");
         handle_connection c) >>= 
+
       (fun () -> 
         decr_connected (); 
         if (get_number_of_connected ()) = 
@@ -873,40 +892,63 @@ let listen modules_list =
           wait_connexion_rec ()
         end
         else return ())
+
     in wait_connexion_rec ()
+
   in
   ((* Initialize the listening address *)
-     new_socket () >>= (fun listening_socket ->
-       Unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
-       Unix.bind listening_socket (local_addr (Ocsiconfig.get_port ()));
-       Unix.listen listening_socket 1;
-       (* I change the user for the process *)
-       (try
-         Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
-         Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
-       with e -> errlog ("Error: Wrong user or group"); raise e);
-       (* Now I can load the modules *)
-       load_modules modules_list;
-       if Ocsiconfig.get_ssl ()  then begin 
-          if Ocsiconfig.get_passwd () <> "" then 
-            Ssl.set_password_callback !ctx (fun _ -> Ocsiconfig.get_passwd ());
-          Ssl.use_certificate !ctx
-           (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ());
-          print_string ("HTTPS server on port ");
-          print_endline (string_of_int (Ocsiconfig.get_port ()) ^" launched");
-          end;
-       ignore (Http_com.Timeout.start_timeout_killer ());
-       end_initialisation ();
-       warning "Ocsigen has been launched (initialisations ok)";
-       wait_connexion listening_socket >>=
-       Lwt.wait))
+     new_socket () >>= 
+   (fun listening_socket ->
+
+     Unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
+     Unix.bind listening_socket (local_addr (Ocsiconfig.get_port ()));
+     Unix.listen listening_socket 1;
+
+     (* I change the user for the process *)
+     (try
+       Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
+       Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
+     with e -> errlog ("Error: Wrong user or group"); raise e);
+     
+     (* Now I can load the modules *)
+     load_modules modules_list;
+     if Ocsiconfig.get_ssl ()  then begin 
+       if Ocsiconfig.get_passwd () <> "" then 
+         Ssl.set_password_callback !ctx (fun _ -> Ocsiconfig.get_passwd ());
+       Ssl.use_certificate !ctx
+         (Ocsiconfig.get_certificate ()) (Ocsiconfig.get_key ());
+       print_string ("HTTPS server on port ");
+       print_endline (string_of_int (Ocsiconfig.get_port ()) ^" launched");
+     end;
+
+     ignore (Http_com.Timeout.start_timeout_killer ());
+
+     end_initialisation ();
+
+     warning "Ocsigen has been launched (initialisations ok)";
+     wait_connexion listening_socket >>=
+     Lwt.wait))
+
+
+
+
 
 let _ = try
+
   parse_config ();
-  (* let rec print_cfg n = Messages.debug (string_of_int n); if n < !Ocsiconfig.number_of_servers 
-     then (Messages.debug ("port:" ^ (string_of_int (Ocsiconfig.cfgs.(n)).port )); print_cfg (n+1))
-     else () in print_cfg 0; *)
+
+  (* let rec print_cfg n = 
+     Messages.debug (string_of_int n); 
+     if n < !Ocsiconfig.number_of_servers 
+     then (Messages.debug
+     ("port:" ^ (string_of_int (Ocsiconfig.cfgs.(n)).port )); 
+     print_cfg (n+1))
+     else () 
+     in print_cfg 0;
+   *)
+
   Messages.debug ("number_of_servers: "^ (string_of_int !Ocsiconfig.number_of_servers));
+
   let rec ask_for_passwds = function 
     [] -> ()
     | h :: t -> if Ocsiconfig.get_ssl_n h then begin
@@ -919,6 +961,7 @@ let _ = try
       print_newline ();
     end; ask_for_passwds t 
   in
+
   let run s =
     Ocsiconfig.sconf := s;
     Messages.open_files ();
@@ -939,6 +982,7 @@ let _ = try
 
        listen (Ocsiconfig.get_modules ())) 
   in
+
   let rec launch = function
       [] -> () 
     | (h :: t) -> begin 
@@ -947,6 +991,7 @@ let _ = try
         | _ -> launch t
     end
   in
+
   let old_term= Unix.tcgetattr Unix.stdin in
   let old_echo = old_term.Unix.c_echo in
   old_term.Unix.c_echo <- false;
@@ -956,25 +1001,38 @@ let _ = try
   Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
   if !Ocsiconfig.number_of_servers = 1 then run (List.hd !Ocsiconfig.cfgs) 
   else launch !Ocsiconfig.cfgs
+
 with
   Ocsigen_duplicate_registering s -> 
-    errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.")
+    errlog ("Fatal - Duplicate registering of url \""^s^"\". Please correct the module.");
+    exit 1
 | Ocsigen_there_are_unregistered_services s ->
-    errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")")
+    errlog ("Fatal - Some public url have not been registered. Please correct your modules. (ex: "^s^")");
+    exit 2
 | Ocsigen_service_or_action_created_outside_site_loading ->
-    errlog ("Fatal - An action or a service is created outside site loading phase")
+    errlog ("Fatal - An action or a service is created outside site loading phase");
+    exit 3
 | Ocsigen_page_erasing s ->
-    errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.")
+    errlog ("Fatal - You cannot create a page or directory here: "^s^". Please correct your modules.");
+    exit 4
 | Ocsigen_register_for_session_outside_session ->
-    errlog ("Fatal - Register session during initialisation forbidden.")
-| Dynlink.Error e -> errlog ("Fatal - "^(Dynlink.error_message e))
+    errlog ("Fatal - Register session during initialisation forbidden.");
+    exit 5
+| Dynlink.Error e -> 
+    errlog ("Fatal - "^(Dynlink.error_message e));
+    exit 6
 | Unix.Unix_error (Unix.EACCES,"bind",s2) ->
     errlog ("Fatal - You are not allowed to use port "^
-            (string_of_int (Ocsiconfig.get_port ())))
+            (string_of_int (Ocsiconfig.get_port ())));
+    exit 7
 | Unix.Unix_error (Unix.EADDRINUSE,"bind",s2) ->
-    errlog ("Fatal - This port is already in use")
+    errlog ("Fatal - This port is already in use");
+    exit 8
 | Unix.Unix_error (e,s1,s2) ->
-    errlog ("Fatal - "^(Unix.error_message e)^" in: "^s1^" "^s2)
-| exn -> errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn))
+    errlog ("Fatal - "^(Unix.error_message e)^" in: "^s1^" "^s2);
+    exit 9
+| exn -> 
+    errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn));
+    exit 100
 
 

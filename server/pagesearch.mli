@@ -24,6 +24,7 @@ exception Ocsigen_duplicate_registering of string
 exception Ocsigen_register_for_session_outside_session
 exception Ocsigen_page_erasing of string
 exception Ocsigen_Is_a_directory
+exception Ocsigen_malformed_url
 exception Ocsigen_service_or_action_created_outside_site_loading
 exception Ocsigen_there_are_unregistered_services of string
 exception Ocsigen_error_while_loading of string

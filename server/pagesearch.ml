@@ -34,6 +34,7 @@ exception Ocsigen_duplicate_registering of string
 exception Ocsigen_register_for_session_outside_session
 exception Ocsigen_page_erasing of string
 exception Ocsigen_Is_a_directory
+exception Ocsigen_malformed_url
 exception Ocsigen_service_or_action_created_outside_site_loading
 exception Ocsigen_there_are_unregistered_services of string
 exception Ocsigen_error_while_loading of string
@@ -298,25 +299,34 @@ let find_static_page staticdirref path =
       [] -> (match dir_option with
         None -> dir
       | s -> s)
-    | ""::l -> aux dir (Static_dir (dir_option, subdir_list)) l
-    | ".."::l -> aux dir (Static_dir (dir_option, subdir_list)) l
+    | [""] -> (match dir, dir_option with
+        None, None -> None
+      | Some dir, None -> Some (dir^"/")
+      | _, Some s -> Some (s^"/"))
+    | ""::l
+    | ".."::l -> raise Ocsigen_malformed_url
           (* For security reasons, .. is not allowed in paths *)
-    | a::l -> try 
-        let e = (List.assoc a subdir_list) in
-        match dir with
-          None -> aux None e l
-        | Some dir -> aux (Some (dir^"/"^a)) e l
-    with Not_found -> 
-      (match dir,dir_option with
-        None,None -> None
-      | (Some d), None -> Some (d^"/"^(Ocsimisc.string_of_url_path (a::l)))
-      | _,Some s -> Some (s^"/"^(Ocsimisc.string_of_url_path (a::l))))
+    | a::l -> 
+        try 
+          let e = (List.assoc a subdir_list) in
+          match dir with
+            None -> aux None e l
+          | Some dir -> aux (Some (dir^"/"^a)) e l
+        with 
+          Not_found -> 
+            (match dir, dir_option with
+              None, None -> None
+            | (Some d), None -> 
+                Some (d^"/"^(Ocsimisc.string_of_url_path (a::l)))
+            | _, Some s -> 
+                Some (s^"/"^(Ocsimisc.string_of_url_path (a::l))))
   in 
   let find_file = function
       None -> raise Ocsigen_404
     | Some filename ->
         ignore (Unix.LargeFile.lstat filename);
         let filename = 
+          Messages.debug ("Testing \""^filename^"\".");
           if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind
                 = Unix.S_DIR)
           then 
@@ -590,9 +600,11 @@ let get_page
              Some (Sender_helpers.File_content.get_etag filename))
         end
         else fail Ocsigen_404)
-      (function
-          Unix.Unix_error (Unix.EACCES,_,_) as e -> fail e
-        | Ocsigen_Is_a_directory -> fail Ocsigen_Is_a_directory
+      (fun e -> 
+        match e with
+          (Unix.Unix_error (Unix.EACCES,_,_))
+        | Ocsigen_Is_a_directory
+        | Ocsigen_malformed_url -> fail e
         | _ -> 
             ((catch (* Generate a dynamic page *)
                (fun () -> 
