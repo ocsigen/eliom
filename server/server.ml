@@ -459,54 +459,36 @@ let service wait_end_request waiter http_frame sockaddr
             match action_info with
               None ->
                 let keep_alive = ka in
-                (catch
-                   (fun () ->
-                     get_page frame_info sockaddr cookie >>=
-                     (fun (cookie2,send_page,sender,path),
-                       lastmodified,etag ->
-                         match lastmodified,ifmodifiedsince with
-                           Some l, Some i when l<=i -> 
-                             Messages.debug "Sending 304 Not modified ";
-                             send_empty
-                               waiter
-                               ?last_modified:lastmodified
-                               ?etag:etag
-                               ~keep_alive:keep_alive
-                               ~code:304 (* Not modified *)
-                               ~head:head empty_sender
-                         | _ ->
-                             send_page waiter ~keep_alive:keep_alive
-                               ?last_modified:lastmodified
-                               ?cookie:(if cookie2 <> cookie then 
-                                 (if cookie2 = None 
-                                 then Some remove_cookie_str
-                                 else cookie2) 
-                               else None)
-                               ~path:path (* path pour le cookie *) ~head:head
-                               (sender ~server_name:server_name inputchan)))
-                   (function
-                       Ocsigen_Is_a_directory -> 
-                         Messages.debug "Sending 301 Moved permanently";
-                         send_empty
-                           waiter
-                           ~keep_alive:keep_alive
-                           ~location:(stringpath^"/"^params)
-                           ~code:301 (* Moved permanently *)
-                           ~head:head empty_sender
-                     | Pagesearch.Ocsigen_malformed_url
-                     | Neturl.Malformed_URL -> 
-                         Messages.debug "Sending 400 (Malformed URL)";
-                         send_error waiter ~keep_alive:keep_alive
-                           ~error_num:400 xhtml_sender (* Malformed URL *)
-                     | Unix.Unix_error (Unix.EACCES,_,_) ->
-                         Messages.debug "Sending 303 Forbidden";
-                         send_error waiter ~keep_alive:keep_alive
-                           ~error_num:403 xhtml_sender (* Forbidden *)
-                     | e -> fail e)
-                )
-                  
+                
+                get_page frame_info sockaddr cookie >>=
+                (fun (cookie2,send_page,sender,path),
+                  lastmodified,etag ->
+
+                    match lastmodified,ifmodifiedsince with
+                      Some l, Some i when l<=i -> 
+                        Messages.debug "Sending 304 Not modified ";
+                        send_empty
+                          waiter
+                          ?last_modified:lastmodified
+                          ?etag:etag
+                          ~keep_alive:keep_alive
+                          ~code:304 (* Not modified *)
+                          ~head:head empty_sender
+
+                    | _ ->
+                        send_page waiter ~keep_alive:keep_alive
+                          ?last_modified:lastmodified
+                          ?cookie:(if cookie2 <> cookie then 
+                            (if cookie2 = None 
+                            then Some remove_cookie_str
+                            else cookie2) 
+                          else None)
+                          ~path:path (* path pour le cookie *) ~head:head
+                          (sender ~server_name:server_name inputchan))
+
             | Some (action_name, reload, action_params) ->
-                make_action action_name action_params frame_info sockaddr cookie
+                make_action 
+                  action_name action_params frame_info sockaddr cookie
                   >>= (fun (cookie2,path) ->
                     let keep_alive = ka in
                     (if reload then
@@ -545,6 +527,23 @@ let service wait_end_request waiter http_frame sockaddr
                     send_error 
                       waiter ~keep_alive:ka ~error_num:404 xhtml_sender
                 | Ocsigen_sending_error exn -> fail exn
+                | Ocsigen_Is_a_directory -> 
+                    Messages.debug "Sending 301 Moved permanently";
+                    send_empty
+                      waiter
+                      ~keep_alive:ka
+                      ~location:(stringpath^"/"^params)
+                      ~code:301 (* Moved permanently *)
+                      ~head:head empty_sender
+                | Pagesearch.Ocsigen_malformed_url
+                | Neturl.Malformed_URL -> 
+                    Messages.debug "Sending 400 (Malformed URL)";
+                    send_error waiter ~keep_alive:ka
+                      ~error_num:400 xhtml_sender (* Malformed URL *)
+                | Unix.Unix_error (Unix.EACCES,_,_) ->
+                    Messages.debug "Sending 303 Forbidden";
+                    send_error waiter ~keep_alive:ka
+                      ~error_num:403 xhtml_sender (* Forbidden *)
                 | e ->
                     Messages.warning
                       ("Exn during page generation: "^
