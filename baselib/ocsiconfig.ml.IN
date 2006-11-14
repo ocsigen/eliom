@@ -58,6 +58,7 @@ type config = { mutable port: int;
 let config_file = ref "_CONFIGDIR_/ocsigen.conf"
 let verbose = ref false
 let silent = ref false
+let daemon = ref false
 let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
 let mimefile = ref "_CONFIGDIR_/mime.types"
@@ -100,6 +101,7 @@ let set_default_static_dir cf s =
 let set_mimefile cf s = cf.mimefile <- s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
+let set_daemon () = daemon := true
 let set_veryverbose () = verbose := true; veryverbose := true
 let set_user cf s = cf.user <- s
 let set_group cf s = cf.group <- s
@@ -128,6 +130,7 @@ let get_config_file () = !config_file
 let get_mimefile () = !sconf.mimefile
 let get_verbose () = !verbose
 let get_silent () = !silent
+let get_daemon () = !daemon
 let get_veryverbose () = !veryverbose
 let get_default_static_dir () = !sconf.default_static_dir
 let get_user () = !sconf.user
@@ -155,10 +158,17 @@ let print_location loc =
 let _ = Arg.parse
     [("-c", Arg.String set_configfile, 
       "Alternate config file (default _CONFIGDIR_/ocsigen.conf)");
+     ("--config", Arg.String set_configfile, 
+      "Alternate config file (default _CONFIGDIR_/ocsigen.conf)");
      ("-s", Arg.Unit set_silent, "Silent mode (error messages in errors.log only)");
+     ("--silent", Arg.Unit set_silent, "Silent mode (error messages in errors.log only)");
      ("-v", Arg.Unit set_verbose, "Verbose mode");
-     ("-vv", Arg.Unit set_veryverbose, "Very verbose mode (debug)");
-     ("-version", Arg.Unit display_version, "Display version number and exit")
+     ("--verbose", Arg.Unit set_verbose, "Verbose mode");
+     ("-V", Arg.Unit set_veryverbose, "Very verbose mode (debug)");
+     ("--veryverbose", Arg.Unit set_veryverbose, "Very verbose mode (debug)");
+     ("-d", Arg.Unit set_daemon, "Daemon mode (detach the process)");
+     ("--daemon", Arg.Unit set_daemon, "Daemon mode (detach the process)");
+     ("--version", Arg.Unit display_version, "Display version number and exit")
    ]
     (fun _ -> ())
     "usage: ocsigen [-c configfile]"

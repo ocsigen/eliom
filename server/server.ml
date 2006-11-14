@@ -133,7 +133,7 @@ let handle_light_request_errors
 
     (* Now errors that close the socket: we raise the exception again: *)
     | Ocsigen_HTTP_parsing_error (s1,s2) as e ->
-        errlog ("While talking to "^ip^": HTTP parsing error near ("^s1^
+        warning ("While talking to "^ip^": HTTP parsing error near ("^s1^
                 ") in:\n"^
                 (if (String.length s2)>2000 
                 then ((String.sub s2 0 1999)^"...<truncated>")
@@ -459,7 +459,8 @@ let service wait_end_request waiter http_frame sockaddr
             match action_info with
               None ->
                 let keep_alive = ka in
-                
+
+                (* page generation *)
                 get_page frame_info sockaddr cookie >>=
                 (fun (cookie2,send_page,sender,path),
                   lastmodified,etag ->
@@ -487,6 +488,8 @@ let service wait_end_request waiter http_frame sockaddr
                           (sender ~server_name:server_name inputchan))
 
             | Some (action_name, reload, action_params) ->
+
+                (* action *)
                 make_action 
                   action_name action_params frame_info sockaddr cookie
                   >>= (fun (cookie2,path) ->
@@ -576,7 +579,7 @@ let service wait_end_request waiter http_frame sockaddr
   let meth = (Http_header.get_method http_frame.Stream_http_frame.header) in
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
-      (meth <> Some(Http_header.HEAD))) 
+      (meth <> Some(Http_header.HEAD)))
   then send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender
   else 
     catch
@@ -985,9 +988,9 @@ let _ = try
   let rec launch = function
       [] -> () 
     | (h :: t) -> begin 
-        match Unix.fork () with
-        | 0 -> run h
-        | _ -> launch t
+        if Unix.fork () = 0
+        then run h
+        else launch t
     end
   in
 
@@ -998,7 +1001,9 @@ let _ = try
   ask_for_passwds !Ocsiconfig.cfgs;
   old_term.Unix.c_echo <- old_echo;
   Unix.tcsetattr Unix.stdin Unix.TCSAFLUSH old_term;
-  if !Ocsiconfig.number_of_servers = 1 then run (List.hd !Ocsiconfig.cfgs) 
+  if (not (get_daemon ())) &&
+    !Ocsiconfig.number_of_servers = 1 
+  then run (List.hd !Ocsiconfig.cfgs) 
   else launch !Ocsiconfig.cfgs
 
 with
@@ -1025,7 +1030,8 @@ with
             (string_of_int (Ocsiconfig.get_port ())));
     exit 7
 | Unix.Unix_error (Unix.EADDRINUSE,"bind",s2) ->
-    errlog ("Fatal - This port is already in use");
+    errlog ("Fatal - The port "^(string_of_int (Ocsiconfig.get_port ()))^
+            " is already in use.");
     exit 8
 | Unix.Unix_error (e,s1,s2) ->
     errlog ("Fatal - "^(Unix.error_message e)^" in: "^s1^" "^s2);
