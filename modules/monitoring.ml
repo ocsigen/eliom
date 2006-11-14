@@ -49,16 +49,19 @@ let _ =
       let top_heap_words = string_of_int stat.Gc.top_heap_words in
       let pid = string_of_int (Unix.getpid ()) in
       let fd = 
-        let dir = Unix.opendir 
-            ("/proc/"^pid^"/fd") in
-        let rec aux v =
-          try ignore ((* print_endline *) (readdir dir)); aux (v+1) 
-          with End_of_file -> v
-        in
-        let r = try string_of_int ((aux 0) - 2) 
-        with e -> ("(Error: "^(Printexc.to_string e)^")") in
-        Unix.closedir dir;
-        r
+        try
+          let dir = Unix.opendir 
+              ("/proc/"^pid^"/fd") in
+          let rec aux v =
+            try ignore ((* print_endline *) (readdir dir)); aux (v+1) 
+            with End_of_file -> v
+          in
+          let r = 
+            try string_of_int ((aux 0) - 2) 
+            with e -> ("(Error: "^(Printexc.to_string e)^")") in
+          Unix.closedir dir;
+          Some r
+        with _ -> None
       in
 Lwt.return
 <<
@@ -72,7 +75,9 @@ Lwt.return
      <p>Number of clients connected: 
          $str:(string_of_int (get_number_of_connected ()))$.</p>
      <p>PID : $str:pid$</p>
-     <p>$str:fd$ file descriptors opened.</p>
+     <p>$str:match fd with
+       None -> "Information on file descriptors not accessible in /proc."
+     | Some fd -> fd^" file descriptors opened."$</p>
      <h2>GC</h2>
      <p>Size of major heap: $str:size$ words (max: $str:maxsize$).</p>
      <p>Since the beginning:</p>
