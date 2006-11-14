@@ -399,17 +399,21 @@ module FHttp_receiver =
                 then fail Ocsimisc.Ocsigen_Bad_Request
                 else if comp = 0 
                 then Lwt.return None
-                else if (Int64.compare 
-                           body_length
-                           (Ocsiconfig.get_maxrequestbodysize ())) > 0
-                then
-                  fail (Ocsimisc.Ocsigen_Request_interrupted
-                          Ocsigen_Request_too_long)
-                else
-                  Com_buffer.extract 
-                    receiver.fd receiver.buffer body_length
-                    >>= C.content_of_stream >>= 
-                  (fun c -> Lwt.return (Some c))) >>=
+                else 
+                  let max = Ocsiconfig.get_maxrequestbodysize () in
+                  if 
+                    (match max with
+                      None -> false
+                    | Some m ->
+                        (Int64.compare body_length m) > 0)
+                  then
+                    fail (Ocsimisc.Ocsigen_Request_interrupted
+                            Ocsigen_Request_too_long)
+                  else
+                    Com_buffer.extract 
+                      receiver.fd receiver.buffer body_length
+                      >>= C.content_of_stream >>= 
+                    (fun c -> Lwt.return (Some c))) >>=
                 (fun b -> Lwt.return {Http.header=header; Http.content=b}))
             with e -> fail e
           )

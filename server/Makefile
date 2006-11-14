@@ -2,7 +2,7 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= error_pages.ml preemptive.ml pagesearch.ml ocsigen.ml ocsigenboxes.ml parseconfig.ml server.ml
+FILES= error_pages.ml preemptive.ml pagesearch.ml ocsigen.ml ocsigenboxes.ml server.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -28,7 +28,7 @@ CMAO = nums.cma dynlink.cma unix.cma ssl.cma pcre.cma netstring.cma \
        threads.cma \
        ocsimisc.cmo \
        gramlib.cma xmllexer.cmo simplexmlparser.cmo \
-       ocsiconfig.cmo messages.cmo \
+       ocsiconfig.cmo messages.cmo parseconfig.cmo \
        lwt.cma preemptive.cmo \
        ocsistream.cmo multipart.cmo \
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \

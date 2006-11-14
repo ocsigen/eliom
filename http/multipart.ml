@@ -215,7 +215,12 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
         | Finished (Some ss) -> return (size, ss)
         | Cont (stri, long, f) ->
             let size2 = Int64.add size (Int64.of_int long) in
-            if Int64.compare size2 (Ocsiconfig.get_maxuploadfilesize ()) > 0
+            let max = Ocsiconfig.get_maxuploadfilesize () in
+            if
+              (match max with
+                None -> false
+              | Some m ->
+                  (Int64.compare size2 m) > 0)
             then 
               fail (Ocsimisc.Ocsigen_Request_interrupted
                       Ocsimisc.Ocsigen_Request_too_long)

@@ -28,6 +28,68 @@ open Ocsiconfig
 
 (* I put the parser here and not in config.ml because of cyclic dependancies *)
 
+let parse_size =
+  let kilo = Int64.of_int 1000 in
+  let mega = Int64.of_int 1000000 in
+  let giga = Int64.mul kilo mega in
+  let tera = Int64.mul mega mega in
+  let kibi = Int64.of_int 1024 in
+  let mebi = Int64.of_int 1048576 in
+  let gibi = Int64.mul kibi mebi in
+  let tebi = Int64.mul mebi mebi in
+  fun s ->
+    let v l =
+      Int64.of_string (String.sub s 0 l)
+    in
+    let o l =
+      let l1 = l-1 in
+      if l1>0
+      then
+        let c1 = s.[l1] in
+        if (c1 = 'o') || (c1 = 'B')
+        then v l1
+        else v l
+      else v l
+    in
+    if (s = "") || (s = "infinity")
+    then None
+    else Some
+        (let l = String.length s in
+        let l2 = l-2 in
+        if l2>0
+        then
+          let c2 = String.sub s l2 2 in
+          if (c2 = "To") || (c2 = "TB")
+          then Int64.mul tera (v l2)
+          else
+            if (c2 = "Go") || (c2 = "GB")
+            then Int64.mul giga (v l2)
+            else
+              if (c2 = "Mo") || (c2 = "MB")
+              then Int64.mul mega (v l2)
+              else
+                if (c2 = "ko") || (c2 = "kB")
+                then Int64.mul kilo (v l2)
+                else       
+                  let l3 = l-3 in
+                  if l3>0
+                  then
+                    let c3 = String.sub s l3 3 in
+                    if (c3 = "Tio") || (c3 = "TiB")
+                    then Int64.mul tebi (v l3)
+                    else
+                      if (c3 = "Gio") || (c3 = "GiB")
+                      then Int64.mul gibi (v l3)
+                      else
+                        if (c3 = "Mio") || (c3 = "MiB")
+                        then Int64.mul mebi (v l3)
+                        else
+                          if (c3 = "kio") || (c3 = "kiB")
+                          then Int64.mul kibi (v l3)
+                          else o l
+                else o l
+        else o l)
+
 (* My xml parser is not really adapted to this.
    It is the parser for the syntax extension.
    But it works.
@@ -137,7 +199,7 @@ let rec parser_config =
             set_maxthreads n (int_of_string (parse_string p));
         parse_ocsigen n ll
     | PLCons ((EPanytag ("maxdetachedcomputationsqueued", PLEmpty, p)), ll) ->
-            set_max_number_of_threads_queued n (int_of_string (parse_string p));
+        set_max_number_of_threads_queued n (int_of_string (parse_string p));
         parse_ocsigen n ll
     | PLCons ((EPanytag ("maxconnected", PLEmpty, p)), ll) -> 
         set_max_number_of_connections n (int_of_string (parse_string p));
@@ -155,10 +217,10 @@ let rec parser_config =
         set_filebuffersize n (int_of_string (parse_string p));
         parse_ocsigen n ll
     | PLCons ((EPanytag ("maxrequestbodysize", PLEmpty, p)), ll) -> 
-        set_maxrequestbodysize n (Int64.of_string (parse_string p));
+        set_maxrequestbodysize n (parse_size (parse_string p));
         parse_ocsigen n ll
     | PLCons ((EPanytag ("maxuploadfilesize", PLEmpty, p)), ll) -> 
-        set_maxuploadfilesize n (Int64.of_string (parse_string p));
+        set_maxuploadfilesize n (parse_size (parse_string p));
         parse_ocsigen n ll
     | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
         (Cmo (parse_string l))::parse_ocsigen n ll

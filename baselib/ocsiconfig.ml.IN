@@ -51,8 +51,8 @@ type config = { mutable port: int;
 		mutable keepalive_timeout: float;
 		mutable netbuffersize: int;
 		mutable filebuffersize: int;
-		mutable maxuploadfilesize: int64;
-		mutable maxrequestbodysize: int64
+		mutable maxuploadfilesize: int64 option;
+		mutable maxrequestbodysize: int64 option
 	      }
 
 let config_file = ref "_CONFIGDIR_/ocsigen.conf"
@@ -78,8 +78,8 @@ let init_config () =
    keepalive_timeout = 15.;
    netbuffersize = 8000;
    filebuffersize = 500;
-   maxrequestbodysize = Int64.of_int 8000000;
-   maxuploadfilesize = Int64.of_int 2000000;
+   maxrequestbodysize = Some (Int64.of_int 8000000);
+   maxuploadfilesize = Some (Int64.of_int 2000000);
  }
 let sconf  = ref (init_config ())
 let cfgs : config list ref = ref [](*(Array.init max_servers (init_config))*) 
