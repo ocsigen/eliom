@@ -1260,6 +1260,7 @@ let looong2 =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "Ok now, you can read the page."]]))))
 (*html*
+      <p>See $a Tutorial.looong2 sp <:xmllist< looong2 >> ()$.</p>      
       <p>A pool of preemptive threads is waiting for such 
       "detached functions". You can specify the number of threads in the pool
       in the configuration file.</p>

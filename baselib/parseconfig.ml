@@ -168,13 +168,28 @@ let rec parser_config =
   in
   let rec parse_ocsigen n = function
       PLEmpty -> []
-    | PLCons ((EPanytag ("port", PLEmpty, p)), ll) -> 
-        (try
-          set_port n (int_of_string (parse_string p))
-        with _ -> raise (Config_file_error "wrong value for <port> tag"));
+    | PLCons ((EPanytag ("port", atts, p)), ll) ->
+        (match atts with
+          PLEmpty
+        | PLCons 
+            ((EPanyattr
+                (EPVstr("protocol"), 
+                 EPVstr "HTTP")), PLEmpty) -> 
+                   (try
+                     add_port n (int_of_string (parse_string p))
+                   with _ -> 
+                     raise (Config_file_error "wrong value for <port> tag"))
+        | PLCons
+            ((EPanyattr 
+                (EPVstr("protocol"), 
+                 EPVstr "HTTPS")), PLEmpty) ->
+                   (try
+                     add_sslport n (int_of_string (parse_string p))
+                   with _ -> 
+                     raise (Config_file_error "wrong value for <port> tag"))
+        | _ -> raise (Config_file_error "Wrong attribute for <port>"));
         parse_ocsigen n ll
     | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
-            set_ssl n true;
         parse_ssl n p;
         parse_ocsigen n ll
     | PLCons ((EPanytag ("uploaddir", PLEmpty, p)), ll) ->
@@ -251,7 +266,8 @@ let rec parser_config =
             let nouveau = Ocsiconfig.init_config () in
             incr Ocsiconfig.number_of_servers;
         set_modules nouveau (parse_ocsigen nouveau p);
-        parse_servers (nouveau :: n) ll
+        parse_servers (n@[nouveau]) ll
+        (* nouveau at the end *)
     | PLCons ((EPcomment _), ll) -> parse_servers n ll
     | PLCons ((EPwhitespace _), ll) -> parse_servers n ll
     | _ -> raise (Config_file_error ("syntax error inside <ocsigen>"))
