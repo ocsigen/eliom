@@ -142,11 +142,9 @@ let handle_light_request_errors
                 then ((String.sub s2 0 1999)^"...<truncated>")
                 else s2)^"\n---");
         fail (Ocsigen_Request_interrupted e)
-    | Com_buffer.End_of_input
-        (* The request is finished (input closed). 
-           We close the channel, after our answer.  *)
-    | Unix.Unix_error(Unix.ECONNRESET,_,_) ->
-        debug "Connection reset by peer: I don't close the connection";
+    | Unix.Unix_error(Unix.ECONNRESET,_,_)
+    | Ssl.Read_error Ssl.Error_zero_return
+    | Ssl.Read_error Ssl.Error_syscall ->
         fail Connection_reset_by_peer
     | Ocsigen_Timeout 
     | Http_com.Ocsigen_KeepaliveTimeout
@@ -349,13 +347,10 @@ let get_frame_infos http_frame filenames =
           action_info,
           ifmodifiedsince))))
 
-    (function
-        Http_com.Com_buffer.End_of_input -> 
-          fail Connection_reset_by_peer
-      | e ->
-          Messages.debug ("Exn during get_frame_infos : "^
-                          (Printexc.to_string e));
-          fail (Ocsigen_Request_interrupted e) (* ? *))
+    (fun e ->
+      Messages.debug ("Exn during get_frame_infos : "^
+                      (Printexc.to_string e));
+      fail (Ocsigen_Request_interrupted e) (* ? *))
     
 
 let rec getcookie s =
@@ -663,17 +658,21 @@ let load_modules modules_list =
     (* for default static dir *)
 
 
-let handle_broken_pipe_exn sockaddr exn = 
+let handle_broken_pipe_exn sockaddr in_ch exn = 
   (* EXCEPTIONS WHILE REQUEST OR SENDING WHEN WE CANNOT ANSWER *)
   let ip = ip_of_sockaddr sockaddr in
-  (* We do not close the connection here.
+  (* Do we close the connection here? Probably not.
      Either the error is during a request, and the connection is already 
      closed, or during the answer, but the thread waiting for requests will
      close the connections (for example by timeout of keepalive).
-     If we close here, we will always close twice.
+     If we close here, we will always close twice. 
+     But are we sure that it is closed for all possible exceptions?
+     Especially I don't think so for Ssl.Read_error
+     Better try to close.
+   *)
   (try
     Lwt_unix.lingering_close in_ch
-  with _ -> ()); *)
+  with _ -> ());
   match exn with
     Connection_reset_by_peer -> 
       Messages.debug "Connection closed by client";
@@ -682,8 +681,8 @@ let handle_broken_pipe_exn sockaddr exn =
       warning ("While talking to "^ip^": "^(Unix.error_message e)^
                " in function "^func^" ("^param^").");
       return ()
-  | Ssl.Write_error(Ssl.Error_ssl) -> errlog ("While talking to "^ip
-                                              ^": Ssl broken pipe.");
+  | Ssl.Write_error(Ssl.Error_ssl) -> 
+      errlog ("While talking to "^ip^": Ssl broken pipe.");
       return ()
   | exn -> 
       warning ("While talking to "^ip^": Uncaught exception - "
@@ -725,12 +724,12 @@ let listen ssl port wait_end_init =
           (try
             Lwt_unix.lingering_close in_ch
           with _ -> ());                   
-          handle_broken_pipe_exn sockaddr e (* >>=
+          handle_broken_pipe_exn sockaddr in_ch e (* >>=
           (fun () -> 
             wakeup_exn waiter Stop_sending;
             return ()) *)
       | e ->
-          handle_broken_pipe_exn sockaddr e (* >>=
+          handle_broken_pipe_exn sockaddr in_ch e (* >>=
           (fun () -> 
             wakeup_exn waiter Stop_sending;
             return ())) *)
@@ -811,7 +810,7 @@ let listen ssl port wait_end_init =
               receiver ~doing_keep_alive:false () >>=
             handle_request (return ()))
           (handle_request_errors now now))
-      (handle_broken_pipe_exn sockaddr)
+      (handle_broken_pipe_exn sockaddr in_ch)
 
         (* Without pipeline:
         Stream_receiver.get_http_frame receiver ~doing_keep_alive () >>=
@@ -847,7 +846,7 @@ let listen ssl port wait_end_init =
             (Stream_receiver.create inputchan)
             inputchan sockaddr xhtml_sender
             empty_sender)
-        (handle_broken_pipe_exn sockaddr)
+        (handle_broken_pipe_exn sockaddr inputchan)
     in
 
     let rec wait_connexion_rec () =
