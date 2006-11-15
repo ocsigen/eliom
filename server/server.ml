@@ -395,7 +395,7 @@ let find_keepalive http_header =
 
 
 
-let service wait_end_request waiter http_frame sockaddr 
+let service wait_end_request waiter http_frame port sockaddr 
     xhtml_sender empty_sender inputchan () =
   (* waiter is here for pipelining: we must wait before sending the page,
      because the previous one may not be sent *)
@@ -464,7 +464,7 @@ let service wait_end_request waiter http_frame sockaddr
                 let keep_alive = ka in
 
                 (* page generation *)
-                get_page frame_info sockaddr cookie >>=
+                get_page frame_info port sockaddr cookie >>=
                 (fun (cookie2,send_page,sender,path),
                   lastmodified,etag ->
 
@@ -498,7 +498,7 @@ let service wait_end_request waiter http_frame sockaddr
                   >>= (fun (cookie2,path) ->
                     let keep_alive = ka in
                     (if reload then
-                      get_page frame_info sockaddr cookie2 >>=
+                      get_page frame_info port sockaddr cookie2 >>=
                       (fun (cookie3,send_page,sender,path),lastmodified,etag ->
                         (send_page waiter ~keep_alive:keep_alive 
                            ?last_modified:lastmodified
@@ -659,7 +659,7 @@ let load_modules modules_list =
   Dynlink.allow_unsafe_modules true;
   aux modules_list;
   load_ocsigen_module
-    [[Wildcard]] [[],([(* no cmo *)], (get_default_static_dir ()))]
+    [[Wildcard],None] [[],([(* no cmo *)], (get_default_static_dir ()))]
     (* for default static dir *)
 
 
@@ -771,7 +771,7 @@ let listen ssl port wait_end_init =
         ignore_result 
           (catch
              (fun () ->
-               service wait_end_request waiter http_frame sockaddr 
+               service wait_end_request waiter http_frame port sockaddr 
                  xhtml_sender empty_sender in_ch () >>=
                (fun () ->
                  test_end_request_awoken wait_end_request;
@@ -793,7 +793,7 @@ let listen ssl port wait_end_init =
       else begin (* No keep-alive => no pipeline *)
         catch
           (fun () ->
-            service (wait ()) waiter http_frame sockaddr
+            service (wait ()) waiter http_frame port sockaddr
               xhtml_sender empty_sender in_ch () >>=
             (fun () ->
               (Lwt_unix.lingering_close in_ch; 
@@ -829,7 +829,7 @@ let listen ssl port wait_end_init =
         *)
         
   in 
-  let wait_connexion socket =
+  let wait_connexion port socket =
     let handle_connection (inputchan, sockaddr) =
       debug "\n__________________NEW CONNECTION__________________________";
       catch
@@ -912,7 +912,7 @@ let listen ssl port wait_end_init =
          Unix.listen listening_socket 1;
          
          wait_end_init >>=
-         (fun () -> wait_connexion listening_socket))
+         (fun () -> wait_connexion port listening_socket))
 
        (function
          | Unix.Unix_error (Unix.EACCES,"bind",s2) ->
@@ -1032,13 +1032,32 @@ let _ = try
           Ssl.use_certificate !sslctx c k
   in
 
+  let write_pid pid =
+    match Ocsiconfig.get_pidfile () with
+      None -> ()
+    | Some p ->
+        let spid = (string_of_int pid)^"\n" in
+        let len = String.length spid in
+        let f =
+          Unix.openfile
+            p
+            [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640 in
+        ignore (Unix.write f spid 0 len);
+        Unix.close f
+  in
+
   let rec launch = function
       [] -> () 
     | h::t -> 
         set_passwd_if_needed h;
-        if Unix.fork () = 0
+        let pid = Unix.fork () in
+        if pid = 0
         then run h
-        else launch t
+        else begin
+          print_endline ("Process "^(string_of_int pid)^" detached");
+          write_pid pid;
+          launch t
+        end
 
   in
 
@@ -1047,6 +1066,7 @@ let _ = try
   then
     let cf = List.hd !Ocsiconfig.cfgs in
     (set_passwd_if_needed cf;
+     write_pid (Unix.getpid ());
      run cf)
   else launch !Ocsiconfig.cfgs
 

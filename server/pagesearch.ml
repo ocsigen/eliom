@@ -235,16 +235,21 @@ let set_static_dir staticdirref s path =
   in
   staticdirref := aux !staticdirref path
 
-let host_match =
+
+let host_match host port =
+  let port_match = function
+      None -> true
+    | Some p -> p = port
+  in
   let rec aux host =
     let hostlen = String.length host in
     let rec host_match1 beg =
-      let rec aux t len l p0 =
+      let rec aux1 t len l p0 =
         try 
           let (p,_) = 
             Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
           let beg2 = p + len in
-          (host_match1 beg2 l) || (aux t len l (p+1))
+          (host_match1 beg2 l) || (aux1 t len l (p+1))
         with _ -> false
       in
       function
@@ -252,7 +257,7 @@ let host_match =
         | [Wildcard] -> true
         | (Wildcard)::(Wildcard)::l -> 
             host_match1 beg ((Wildcard)::l)
-        | (Wildcard)::(Text (t,len))::l -> aux t len l beg
+        | (Wildcard)::(Text (t,len))::l -> aux1 t len l beg
         | (Text (t,len))::l -> 
             try
               (t = String.sub host beg len) && (host_match1 (beg+len) l)
@@ -260,29 +265,40 @@ let host_match =
     in
     function
         [] -> false
-      | a::l -> (host_match1 0 a) || aux host l
-  in function
-      None -> fun _ -> true
-    | Some host -> aux host
+      | (a, p)::l -> ((port_match p) && (host_match1 0 a)) || aux host l
+  in match host with
+    None -> List.exists (fun (_, p) -> port_match p)
+      (* Warning! For HTTP/1.0 we take the first one,
+         even if it doesn't match! 
+         To be changed! *)
+  | Some host -> aux host
+
 
 let string_of_host h = 
-  let rec aux = function
-      [] -> ""
-    | Wildcard::l -> "*"^(aux l)
-    | (Text (t,_))::l -> t^(aux l)
-  in List.fold_left (fun d hh -> d^(aux hh)^" ") "" h
+  let aux1 (hh, port) = 
+    let p = match port with
+      None -> ""
+    | Some a -> ":"^(string_of_int a)
+    in
+    let rec aux2 = function
+        [] -> ""
+      | Wildcard::l -> "*"^(aux2 l)
+      | (Text (t,_))::l -> t^(aux2 l)
+    in (aux2 hh)^p
+  in List.fold_left (fun d hh -> d^(aux1 hh)^" ") "" h
+
 
 exception Serv_no_host_match
-let do_for_host_matching host f =
+let do_for_host_matching host port ip f =
   let string_of_host_option = function
-    None -> "\"\""
-  | Some h -> h
+    None -> "<no host>:"^(string_of_int port)
+  | Some h -> h^":"^(string_of_int port)
   in
   let rec aux e = function
       [] -> fail e
-    | (h,pt)::l when host_match host h -> 
+    | (h, pt)::l when host_match host port h -> 
         Messages.debug ("---- host found: "^(string_of_host_option host)^
-                        " matches "^(string_of_host h)); 
+                        " matches "^(string_of_host h));
         catch (fun () -> f pt) 
           (function
               Ocsigen_404 | Ocsigen_Wrong_parameter as e -> aux e l
@@ -545,11 +561,7 @@ let new_session_tables = empty_tables
 
 let localhost = Unix.inet_addr_of_string "127.0.0.1"
 
-let execute generate_page sockaddr cookie (globtable,cookie_table) =
-  let ip = match sockaddr with
-    Unix.ADDR_INET (ip,port) -> ip
-  | _ -> localhost
-  in
+let execute generate_page ip cookie (globtable,cookie_table) =
   let (sessiontablesref, new_session) = 
     (match cookie with
       None -> (ref (new_session_tables ()), true)
@@ -577,8 +589,12 @@ let execute generate_page sockaddr cookie (globtable,cookie_table) =
 let get_page 
     (path, params, internal_state, 
      ((url, host, get_params, post_params, useragent) as sp))
-    sockaddr cookie =
+    port sockaddr cookie =
   let fullurl = path^params in
+  let ip = match sockaddr with
+    Unix.ADDR_INET (ip,_) -> ip
+  | _ -> assert false
+  in
   let generate_page
       staticdirref
       ip
@@ -664,9 +680,11 @@ let get_page
     (fun () ->
       do_for_host_matching 
         host 
+        port
+        ip
         (fun (staticdirref, global_tables, session_tables) -> 
           execute (generate_page staticdirref)
-            sockaddr cookie 
+            ip cookie 
             (global_tables, session_tables)))
     (function
         Ocsigen_Typing_Error l -> 
@@ -685,6 +703,10 @@ let get_page
 let make_action action_name action_params 
     (path, params, _, (url, host, _, _, useragent)) sockaddr cookie =
   let fullurl = path^params in
+  let port,ip = match sockaddr with
+    Unix.ADDR_INET (ip,port) -> port,ip
+  | _ -> assert false
+  in
   let generate_page ip global_tables session_tables_ref =
     let action,working_dir = 
       try
@@ -703,10 +725,12 @@ let make_action action_name action_params
   in catch
     (fun () ->
       do_for_host_matching 
-        host 
+        host
+        port
+        ip
         (fun (staticdirref, global_tables, session_tables) -> 
           execute 
-            generate_page sockaddr cookie (global_tables, session_tables) >>=
+            generate_page ip cookie (global_tables, session_tables) >>=
           (fun ((c,(),(),wd),_,_) ->
             Messages.debug "Action executed";
             return (c,wd))))

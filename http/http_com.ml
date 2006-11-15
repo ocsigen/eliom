@@ -142,8 +142,6 @@ struct
       if free = 0 
       then fail Ocsigen_buffer_is_full
       else Lwt.return (min free (buffer.size - buffer.write_pos))
-
-  exception End_of_input
                 
   let now = return ()
 
@@ -170,7 +168,7 @@ struct
                 (fun () -> fail Ocsigen_Timeout)) *)] >>=
           (fun len ->
             if len = 0 
-            then Lwt.fail End_of_input
+            then Lwt.fail Connection_reset_by_peer
             else begin
               buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
               buffer.datasize <- buffer.datasize + len;

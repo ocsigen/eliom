@@ -26,9 +26,10 @@ let number_of_servers = ref 0
 type modules = 
     Cmo of string 
   | Host of 
-      virtual_hosts * ((string list (* path *)
-			  * (string list (* cmo to be loaded *)
-			       * string option (* static dir *))) list)
+      virtual_hosts * 
+        ((string list (* path *) *
+         (string list (* cmo to be loaded *) *
+                 string option (* static dir *))) list)
 
 type config = { mutable ports: int list;
                 mutable sslports: int list;
@@ -60,6 +61,7 @@ let daemon = ref false
 let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
 let mimefile = ref "_CONFIGDIR_/mime.types"
+let pidfile = ref None
 
 let init_config () = 
   {ports = [];
@@ -96,6 +98,7 @@ let set_certificate cf c = cf.certificate <- Some c
 let set_uploaddir cf u = cf.uploaddir <- u
 let set_logdir cf s = cf.logdir <- s
 let set_configfile s = config_file := s
+let set_pidfile s = pidfile := Some s
 let set_default_static_dir cf s = 
   (cf).default_static_dir <- Some s
 let set_mimefile cf s = cf.mimefile <- s
@@ -125,6 +128,7 @@ let get_certificate cf = cf.certificate
 let get_uploaddir () = !sconf.uploaddir
 let get_logdir () = !sconf.logdir
 let get_config_file () = !config_file
+let get_pidfile () = !pidfile
 let get_mimefile () = !sconf.mimefile
 let get_verbose () = !verbose
 let get_silent () = !silent
@@ -161,6 +165,8 @@ let _ = Arg.parse
       "Alternate config file (default _CONFIGDIR_/ocsigen.conf)");
      ("-s", Arg.Unit set_silent, "Silent mode (error messages in errors.log only)");
      ("--silent", Arg.Unit set_silent, "Silent mode (error messages in errors.log only)");
+     ("-p", Arg.String set_pidfile, "Specify a file where to write the PIDs of servers");
+     ("--pidfile", Arg.String set_pidfile, "Specify a file where to write the PIDs of servers");
      ("-v", Arg.Unit set_verbose, "Verbose mode");
      ("--verbose", Arg.Unit set_verbose, "Verbose mode");
      ("-V", Arg.Unit set_veryverbose, "Very verbose mode (debug)");

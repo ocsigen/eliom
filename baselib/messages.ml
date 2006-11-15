@@ -53,7 +53,7 @@ let log_aux file console_print s =
   in
   let s = date^" - "^s^"\n" in
   if console_print then prerr_endline ("["^(fst file)^"] "^s);
-  ignore(Unix.write !(snd file) s 0 (String.length s))
+  ignore (Unix.write !(snd file) s 0 (String.length s))
       
 let lwtbip i = 
   if Ocsiconfig.get_veryverbose () then

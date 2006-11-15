@@ -108,31 +108,23 @@ let rec parser_config =
     | PLCons ((EPwhitespace s), l) -> s^(parse_string l)
     | PLCons ((EPcomment _), l) -> parse_string l
     | _ -> raise (Config_file_error "string expected")
-  in let rec parse_site n (cmos,stat,mime) = function
+  in let rec parse_site n (cmos,stat) = function
       PLCons ((EPanytag ("module", PLEmpty, s)), l) -> 
-        parse_site n (cmos@[parse_string s],stat,mime) l
+        parse_site n (cmos@[parse_string s],stat) l
     | PLCons ((EPanytag ("staticdir", PLEmpty, s)), l) -> 
         (match stat with
-          None -> parse_site n (cmos, Some (parse_string s), mime) l
+          None -> parse_site n (cmos, Some (parse_string s)) l
         | _ -> raise 
               (Config_file_error 
                  "Only one <staticdir> tag allowed inside <site>"))
-    | PLCons ((EPanytag ("mimefile", PLEmpty, p)), l) ->
-        (match mime with
-          None -> parse_site n (cmos, stat, Some (parse_string p)) l
-        | _ -> raise (Config_file_error 
-                        "Only one <mimefile> tag allowed inside <site>"))
-    | PLCons ((EPcomment _), l) -> parse_site n (cmos,stat,mime) l
-    | PLCons ((EPwhitespace _), l) -> parse_site n (cmos,stat,mime) l
+    | PLCons ((EPcomment _), l) -> parse_site n (cmos,stat) l
+    | PLCons ((EPwhitespace _), l) -> parse_site n (cmos,stat) l
     | PLEmpty -> 
         (match (cmos,stat) with
           [], None -> 
             raise (Config_file_error 
                      "<module> or <staticdir> tag expected inside <site>")
-        | _ ->(match mime with
-            None -> ()
-          | Some m -> Ocsiconfig.set_mimefile n m);
-            (cmos,stat))
+        | _ -> (cmos,stat))
     | _ -> raise (Config_file_error "Unexpected tag inside <site>")
   in
   let rec parse_ssl n = function
@@ -159,7 +151,7 @@ let rec parser_config =
         | _ -> raise (Config_file_error "Wrong attribute for <site>") 
         in
               let path = Neturl.split_path dir in
-        (path, parse_site n ([],None,None) l)::(parse_host n ll)
+        (path, parse_site n ([],None) l)::(parse_host n ll)
     | PLCons ((EPcomment _), l) -> parse_host n l
     | PLCons ((EPwhitespace _), l) -> parse_host n l
     | PLCons ((EPanytag (tag,_,_)),l) -> 
@@ -219,6 +211,9 @@ let rec parser_config =
     | PLCons ((EPanytag ("maxconnected", PLEmpty, p)), ll) -> 
         set_max_number_of_connections n (int_of_string (parse_string p));
         parse_ocsigen n ll
+    | PLCons ((EPanytag ("mimefile", PLEmpty, p)), ll) ->
+        Ocsiconfig.set_mimefile n (parse_string p);
+        parse_ocsigen n ll
     | PLCons ((EPanytag ("timeout", PLEmpty, p)), ll) -> 
         set_connect_time_max n (float_of_string (parse_string p));
         parse_ocsigen n ll
@@ -241,14 +236,31 @@ let rec parser_config =
         (Cmo (parse_string l))::parse_ocsigen n ll
     | PLCons ((EPanytag ("host", atts, l)), ll) ->
        let host = match atts with
-        | PLEmpty -> [[Ocsimisc.Wildcard]] (* default = "*" *)
+        | PLEmpty -> [[Ocsimisc.Wildcard],None] (* default = "*:*" *)
         | PLCons ((EPanyattr (EPVstr("name"), EPVstr(s))), PLEmpty) -> 
             List.map
-              (fun ss -> List.map
-                  (function Netstring_str.Delim _ -> Ocsimisc.Wildcard
-                    | Netstring_str.Text t -> 
-                        Ocsimisc.Text (t, String.length t))
-                  (Netstring_str.full_split (Netstring_str.regexp "[*]+") ss))
+              (fun ss ->
+                let host, port = 
+                  try
+                    let dppos = String.index ss ':' in
+                    let len = String.length ss in
+                    ((String.sub ss 0 dppos),
+                     match String.sub ss (dppos+1) ((len - dppos) - 1) with
+                       "*" -> None
+                     | p -> Some (int_of_string p))
+                  with 
+                    Not_found -> ss, None
+                  | Failure _ ->
+                      raise (Config_file_error "bad port number")
+                in
+                ((List.map
+                    (function
+                        Netstring_str.Delim _ -> Ocsimisc.Wildcard
+                      | Netstring_str.Text t -> 
+                          Ocsimisc.Text (t, String.length t))
+                    (Netstring_str.full_split (Netstring_str.regexp "[*]+") 
+                       host)),
+                 port))
               (Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
         | _ -> raise (Config_file_error "Wrong attribute for <host>") 
        in (Host (host, parse_host n l))::(parse_ocsigen n ll)
