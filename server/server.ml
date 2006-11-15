@@ -694,7 +694,7 @@ let handle_broken_pipe_exn sockaddr exn =
 
 
 (** Thread waiting for events on a the listening port *)
-let listen ssl port =
+let listen ssl port wait_end_init =
   
   let listen_connexion receiver in_ch sockaddr 
       xhtml_sender empty_sender =
@@ -911,7 +911,8 @@ let listen ssl port =
          Unix.bind listening_socket (local_addr port);
          Unix.listen listening_socket 1;
          
-         wait_connexion listening_socket)
+         wait_end_init >>=
+         (fun () -> wait_connexion listening_socket))
 
        (function
          | Unix.Unix_error (Unix.EACCES,"bind",s2) ->
@@ -970,7 +971,7 @@ let _ = try
     Ocsiconfig.cfgs := [];
     (* Gc.full_major (); *)
 
-    if (get_maxthreads ())<(get_minthreads ())
+    if (get_maxthreads ()) < (get_minthreads ())
     then 
       raise (Config_file_error "maxthreads should be greater than minthreads");
 
@@ -984,7 +985,17 @@ let _ = try
           (*   print_string "-"; *)
           Lwt_unix.yield () >>= f
           in f(); *)
-       
+
+
+       let wait_end_init = wait () in
+       (* Listening on all ports: *)
+       List.iter 
+         (fun i -> 
+           ignore (listen false i wait_end_init)) (Ocsiconfig.get_ports ());
+       List.iter 
+         (fun i ->
+           ignore (listen true i wait_end_init)) (Ocsiconfig.get_sslports ());
+
        (* I change the user for the process *)
        (try
          Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
@@ -998,13 +1009,11 @@ let _ = try
        ignore (Http_com.Timeout.start_timeout_killer ());
        
        end_initialisation ();
+
+       wakeup wait_end_init ();
        
        warning "Ocsigen has been launched (initialisations ok)";
 
-       List.iter 
-         (fun i -> ignore (listen false i)) (Ocsiconfig.get_ports ());
-       List.iter 
-         (fun i -> ignore (listen true i)) (Ocsiconfig.get_sslports ());
        wait ()
       )
   in
