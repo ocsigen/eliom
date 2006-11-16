@@ -95,7 +95,7 @@ let handle_light_request_errors
   (* EXCEPTIONS ABOUT THE REQUEST *)
   (* It can be an error during get_http_frame or during get_frame_info *)
 
-  print_endline ("~~~~ ERREUR REQUETE "^(Printexc.to_string exn));
+  Messages.debug ("~~~~ Exception request: "^(Printexc.to_string exn));
   let ip = ip_of_sockaddr sockaddr in
   waiter >>= (fun () ->
     match exn with
@@ -519,6 +519,9 @@ let service wait_end_request waiter http_frame port sockaddr
           
           
           (fun e -> (* Exceptions during page generation *)
+            Messages.debug 
+              ("~~~~ Exception during generation/sending: "^
+               (Printexc.to_string e));
             catch
               (fun () ->
                 match e with
@@ -880,13 +883,23 @@ let listen ssl port wait_end_init =
       (do_accept ()) >>= 
       (fun c ->
         incr_connected ();
-        if (get_number_of_connected ()) <
-          (get_max_number_of_connections ()) then
-          ignore_result (wait_connexion_rec ())
-        else warning ("Max simultaneous connections ("^
-                      (string_of_int (get_max_number_of_connections ()))^
-                      ") reached.");
-        handle_connection c) >>= 
+        catch
+
+          (fun () ->
+            if (get_number_of_connected ()) <
+              (get_max_number_of_connections ()) then
+              ignore_result (wait_connexion_rec ())
+            else warning ("Max simultaneous connections ("^
+                          (string_of_int (get_max_number_of_connections ()))^
+                          ") reached.");
+            handle_connection c)
+
+          (fun e -> 
+            decr_connected ();
+            fail e
+          )
+
+      ) >>= 
 
       (fun () -> 
         decr_connected (); 

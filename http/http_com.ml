@@ -474,7 +474,6 @@ module FHttp_sender =
                 Unix.Unix_error (Unix.EPIPE, _, _)
               | Unix.Unix_error (Unix.ECONNRESET, _, _) 
               | Ssl.Write_error _  ->
-                print_endline  ("~~~~~~~~~~~~ PPPPPPPPPPPPPPPPPPPPPPPPPProblème pour    : '"^(Digest.to_hex (Digest.string s))^"'");
                   fail Connection_reset_by_peer
               | e -> fail e)
 
