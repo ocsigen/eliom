@@ -133,16 +133,18 @@ module File_content =
       Messages.debug ("start reading file (file opened)");
       let buf = String.create buffer_size in
       let rec read_aux () =
-        Lwt_unix.read (Lwt_unix.Plain fd) buf 0 buffer_size >>=
-        (fun lu ->
-          if lu = 0 then  
-            Lwt.return (empty_stream None)
-          else begin 
-            if lu = buffer_size
-            then Lwt.return (new_stream buf (fun () -> read_aux ()))
-            else Lwt.return (new_stream (String.sub buf 0 lu)
-                               (fun () -> read_aux ()))
-          end)
+        Lwt_unix.yield () >>=
+        (fun () ->
+          Lwt_unix.read (Lwt_unix.Plain fd) buf 0 buffer_size >>=
+          (fun lu ->
+            if lu = 0 then  
+              Lwt.return (empty_stream None)
+            else begin 
+              if lu = buffer_size
+              then Lwt.return (new_stream buf (fun () -> read_aux ()))
+              else Lwt.return (new_stream (String.sub buf 0 lu)
+                                 (fun () -> read_aux ()))
+            end))
       in read_aux ()                         
 
     let get_etag_aux st =
@@ -154,7 +156,7 @@ module File_content =
       get_etag_aux st
 
     let stream_of_content c  =
-      (*ouverture du fichier*)
+      (* open the file *)
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
       let st = Unix.LargeFile.stat c in 
       let etag = get_etag_aux st in
@@ -263,7 +265,7 @@ let gmtdate d =
 * cookie is a string value that give a value to the session cookie
 * page is the page to send
 * xhtml_sender is the used sender*)
-let send_generic 
+let send_generic
     waiter
     ?etag ?code ~keep_alive ?cookie ?last_modified
     ?path ?location ?(header=[]) ?head ~content sender 
@@ -276,6 +278,7 @@ let send_generic
       ?url:string ->
       ?code:int -> 
       ?content:'a -> ?head:bool -> 'b -> unit Lwt.t) =
+
   (*ajout des option spécifique à la page*)
   let date = gmtdate (Unix.time ()) in
   (*il faut récupérer la date de dernière modification *)
@@ -395,7 +398,7 @@ let send_error waiter ?(http_exception) ?(error_num=500) xhtml_sender =
   in
   send_xhtml_page waiter ~code:error_code ~content:err_page xhtml_sender
 
-(** this fonction create a sender that send http_frame with fiel content*)
+(** this fonction creates a sender that send http_frame with file content*)
 let create_file_sender ?server_name ?proto fd =
   let hd =
     match server_name with
@@ -455,9 +458,11 @@ let content_type_from_file_name filename =
 
 let send_file file waiter ?etag ?code ~keep_alive ?cookie ?path
     ?last_modified ?location ?head file_sender =
-  send_generic waiter
-    ?etag ?code ~keep_alive ?cookie ?path ?location ?last_modified
-    ~header:[("Content-Type",content_type_from_file_name file)]
-    ~content:file ?head file_sender File_sender.send
+  Lwt_unix.yield () >>=
+  (fun () ->
+    send_generic waiter
+      ?etag ?code ~keep_alive ?cookie ?path ?location ?last_modified
+      ~header:[("Content-Type", content_type_from_file_name file)]
+      ~content:file ?head file_sender File_sender.send)
 
   

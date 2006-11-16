@@ -450,52 +450,54 @@ module FHttp_sender =
       close_out out_chan 
 *)
     (*fonction d'écriture sur le réseau*)
-    let rec really_write out_ch close_fun = function
-      | Finished _ -> 
-          Messages.debug "write finished (closing stream)"; 
-          (try 
-            close_fun () 
-          with _ -> 
-            Messages.debug "Error while closing stream (at end of stream)");
-          Lwt.return ()
-      | Cont (s, l, next) ->
-          catch
-            (fun () ->
-              Lwt_unix.write out_ch s 0 l >>=
-              (fun len' ->
-                Lwt_unix.yield () >>= (fun () ->
-                  if l = len'
-                  then next () >>= really_write out_ch close_fun
-                  else really_write out_ch close_fun
-                      (new_stream (String.sub s len' (l-len')) next))
-              )
-            )
-            (function
-                Unix.Unix_error (Unix.EPIPE, _, _)
-              | Unix.Unix_error (Unix.ECONNRESET, _, _) 
-              | Ssl.Write_error _  ->
-                  fail Connection_reset_by_peer
-              | e -> fail e)
+    let really_write out_ch close_fun stream = 
+      let rec aux = function
+          | Finished _ -> 
+              Messages.debug "write finished (closing stream)"; 
+              (try 
+                close_fun () 
+              with _ -> 
+                Messages.debug
+                  "Error while closing stream (at end of stream)");
+              Lwt.return ()
+          | Cont (s, l, next) ->
+              Lwt_unix.yield () >>= 
+              (fun () ->         
+                (Lwt_unix.write out_ch s 0 l >>=
+                 (fun len' ->
+                   if l = len'
+                   then next () 
+                   else return 
+                       (new_stream (String.sub s len' (l-len')) next)))) >>=
+              aux
+      in catch
+        (fun () -> aux stream)
+        (function
+            Unix.Unix_error (Unix.EPIPE, _, _)
+          | Unix.Unix_error (Unix.ECONNRESET, _, _) 
+          | Ssl.Write_error _  ->
+              fail Connection_reset_by_peer
+          | e -> fail e)
 
 
-    (**create a new sender*)
+    (** create a new sender *)
     let create ?(mode=Http_frame.Http_header.Answer) ?(headers=[])
     ?(proto="HTTP/1.1") fd = 
       {fd =fd;mode=mode;headers=headers;proto=proto}
 
-    (**changes the protocol *)
+    (** changes the protocol *)
     let change_protocol proto sender =
       sender.proto <- proto
 
-    (**change the header list *)
+    (** change the header list *)
     let change_headers headers sender =
       sender.headers <- headers
 
-    (**change the mode *)
+    (** change the mode *)
     let change_mode  mode sender =
       sender.mode <- mode
 
-    (*case non sensitive equality*)
+    (* case non sensitive equality *)
     let non_case_equality s1 s2 =
       (String.lowercase s1) = (String.lowercase s2)
 
@@ -590,6 +592,7 @@ module FHttp_sender =
          because the previous one may not be sent.
          If we don't want to wait, use waiter = return ()
        *)
+
       waiter >>=
       (fun () ->
         let md = match mode with None -> sender.mode | Some m -> m in

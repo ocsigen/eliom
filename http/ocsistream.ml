@@ -20,7 +20,7 @@ let string_of_stream =
     | Cont (s, long, f) -> 
         let l2 = l+long in
         if l2 > Ocsiconfig.get_netbuffersize ()
-        then  (print_endline "----------------------------";fail String_too_large)
+        then fail String_too_large
         else 
           (f () >>= 
            (fun r -> aux l2 r >>=

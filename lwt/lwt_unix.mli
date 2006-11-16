@@ -71,7 +71,6 @@ val close_process_full:
   lwt_in_channel * lwt_out_channel * lwt_in_channel ->
   Unix.process_status Lwt.t
 
-val lingering_close : descr -> unit
 
 (**/**)
 (* monitoring *)

@@ -59,6 +59,28 @@ let ip_of_sockaddr = function
 
 let server_name = ("Ocsigen server ("^Ocsiconfig.version_number^")")
 
+
+(* Closing socket cleanly 
+   Must be called for each connection exactly once! 
+   even if it has been closed by the client.
+   Otherwise decr_connected won't decrease the number of connections.
+ *)
+let lingering_close ch =
+  Messages.debug "SHUTDOWN";
+  (try Lwt_unix.shutdown ch Unix.SHUTDOWN_SEND 
+  with e -> Messages.debug "shutdown failed"; ());
+  ignore (Lwt_unix.sleep 2.0 >>=
+          (fun () -> 
+            decr_connected ();
+            Lwt.return
+              (try
+                (match ch with 
+                  Lwt_unix.Plain fd -> Messages.debug "CLOSE"; Unix.close fd
+                | Lwt_unix.Encrypted (fd,sock) -> 
+                    Messages.debug "CLOSE (SSL)"; Unix.close fd)
+              with e -> Messages.debug "close failed"; ())))
+
+
 (* Ces deux trucs sont dans Neturl version 1.1.2 mais en attendant qu'ils
  soient dans debian, je les mets ici *)
 let problem_re = Pcre.regexp "[ <>\"{}|\\\\^\\[\\]`]"
@@ -457,7 +479,6 @@ let service wait_end_request waiter http_frame port sockaddr
             match action_info with
               None ->
                 let keep_alive = ka in
-
                 (* page generation *)
                 get_page frame_info port sockaddr cookie >>=
                 (fun ((cookie2,send_page,sender,path), lastmodified,etag) ->
@@ -661,21 +682,10 @@ let load_modules modules_list =
     (* for default static dir *)
 
 
-let handle_broken_pipe_exn sockaddr in_ch exn = 
+let handle_broken_pipe_exn sockaddr exn = 
   (* EXCEPTIONS WHILE REQUEST OR SENDING WHEN WE CANNOT ANSWER *)
   let ip = ip_of_sockaddr sockaddr in
-  (* Do we close the connection here? Probably not.
-     Either the error is during a request, and the connection is already 
-     closed, or during the answer, but the thread waiting for requests will
-     close the connections (for example by timeout of keepalive).
-     If we close here, we will always close twice. 
-     But are we sure that it is closed for all possible exceptions?
-     Especially I don't think so for Ssl.Read_error
-     Better try to close.
-   *)
-  (try
-    Lwt_unix.lingering_close in_ch
-  with _ -> ());
+  (* We don't close here because it is already done *)
   match exn with
     Connection_reset_by_peer -> 
       Messages.debug "Connection closed by client";
@@ -703,7 +713,7 @@ let listen ssl port wait_end_init =
     
     (* (With pipeline) *)
 
-    let handle_severe_errors = function
+    let handle_severe_errors e =
         (* Serious error (we cannot answer to the request)
            Probably the pipe is broken.
            We awake all the waiting threads in cascade
@@ -713,29 +723,20 @@ let listen ssl port wait_end_init =
           wakeup_exn waiter Stop_sending;
           return () *)
         (* Timeout errors: We close and do nothing *)
+      lingering_close in_ch;
+      match e with
       | Ocsigen_Timeout -> 
           let ip = ip_of_sockaddr sockaddr in
           warning ("While talking to "^ip^": Timeout");
-          Lwt_unix.lingering_close in_ch;
           return ()
       | Http_com.Ocsigen_KeepaliveTimeout -> 
-          Lwt_unix.lingering_close in_ch;
           return ()
       | Ocsigen_Request_interrupted e -> 
           (* We decide to interrupt the request 
              (for ex if it is too long) *)
-          (try
-            Lwt_unix.lingering_close in_ch
-          with _ -> ());                   
-          handle_broken_pipe_exn sockaddr in_ch e (* >>=
-          (fun () -> 
-            wakeup_exn waiter Stop_sending;
-            return ()) *)
+          handle_broken_pipe_exn sockaddr e
       | e ->
-          handle_broken_pipe_exn sockaddr in_ch e (* >>=
-          (fun () -> 
-            wakeup_exn waiter Stop_sending;
-            return ())) *)
+          handle_broken_pipe_exn sockaddr e
     in  
 
     let handle_request_errors wait_end_request waiter exn =
@@ -798,10 +799,10 @@ let listen ssl port wait_end_init =
             service (wait ()) waiter http_frame port sockaddr
               xhtml_sender empty_sender in_ch () >>=
             (fun () ->
-              (Lwt_unix.lingering_close in_ch; 
+              (lingering_close in_ch;
                return ())))
           (fun e ->
-            Lwt_unix.lingering_close in_ch; fail e)
+            lingering_close in_ch; fail e)
       end
 
     in (* body of listen_connexion *)
@@ -813,7 +814,7 @@ let listen ssl port wait_end_init =
               receiver ~doing_keep_alive:false () >>=
             handle_request (return ()))
           (handle_request_errors now now))
-      (handle_broken_pipe_exn sockaddr in_ch)
+      (handle_broken_pipe_exn sockaddr)
 
         (* Without pipeline:
         Stream_receiver.get_http_frame receiver ~doing_keep_alive () >>=
@@ -826,7 +827,7 @@ let listen ssl port wait_end_init =
                 listen_connexion_aux ~doing_keep_alive:true
                   (* Pour laisser la connexion ouverte, je relance *)
               end
-              else (Lwt_unix.lingering_close in_ch; 
+              else (lingering_close in_ch; 
                     return ())))
         *)
         
@@ -849,7 +850,7 @@ let listen ssl port wait_end_init =
             (Stream_receiver.create inputchan)
             inputchan sockaddr xhtml_sender
             empty_sender)
-        (handle_broken_pipe_exn sockaddr inputchan)
+        (handle_broken_pipe_exn sockaddr)
     in
 
     let rec wait_connexion_rec () =
@@ -880,36 +881,46 @@ let listen ssl port wait_end_init =
           else Lwt.return (s, sa))
       in
 
-      (do_accept ()) >>= 
-      (fun c ->
-        incr_connected ();
-        catch
+      catch
+        (fun () ->
+          (do_accept ()) >>= 
+          (fun c ->
+            incr_connected ();
 
-          (fun () ->
             if (get_number_of_connected ()) <
               (get_max_number_of_connections ()) then
               ignore_result (wait_connexion_rec ())
-            else warning ("Max simultaneous connections ("^
-                          (string_of_int (get_max_number_of_connections ()))^
-                          ") reached.");
-            handle_connection c)
+            else
+              warning ("Max simultaneous connections ("^
+                       (string_of_int (get_max_number_of_connections ()))^
+                       ") reached.");
 
-          (fun e -> 
-            decr_connected ();
-            fail e
-          )
-
-      ) >>= 
-
-      (fun () -> 
-        decr_connected (); 
-        if (get_number_of_connected ()) = 
-          (get_max_number_of_connections ()) - 1
-        then begin
-          warning "Ok releasing one connection";
-          wait_connexion_rec ()
-        end
-        else return ())
+            handle_connection c
+              
+          ) >>= 
+          
+          (fun () -> 
+            if (get_number_of_connected ()) = 
+              (get_max_number_of_connections ()) - 1
+            then begin
+              warning "Ok releasing one connection";
+              wait_connexion_rec ()
+            end
+            else return ()))
+        (fun exn ->
+          let t = Ocsiconfig.get_connect_time_max () in
+          (match exn with
+            Unix.Unix_error (e,func,param) ->
+              errlog ("Exception: "^(Unix.error_message e)^
+                      " in function "^func^" ("^param^"). Waiting "^
+                      (string_of_float t)^
+                      " seconds before accepting new connections.");
+          | _ ->
+              errlog ("Exception: "^(Printexc.to_string exn)^
+                      ". Waiting "^(string_of_float t)^
+                      " seconds before accepting new connections."));
+          Lwt_unix.sleep t >>=
+          wait_connexion_rec)
 
     in wait_connexion_rec ()
 
@@ -992,11 +1003,14 @@ let _ = try
                  (Ocsiconfig.get_minthreads ()) 
                  (Ocsiconfig.get_maxthreads ()));
 
-       (* Je suis fou
+       (* Je suis fou :
+          This is not tail-recursive, 
+          thus will result in a memory leak ...
           let rec f () = 
-          (*   print_string "-"; *)
-          Lwt_unix.yield () >>= f
-          in f(); *)
+            (*   print_string "-"; *)
+            Lwt_unix.yield () >>= f
+          in f(); 
+        *)
 
 
        let wait_end_init = wait () in

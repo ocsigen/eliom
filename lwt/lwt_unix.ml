@@ -218,8 +218,9 @@ let read ch buf pos len =
   try
     if len = 0 then Lwt.return 0 else begin
     if windows_hack then raise (Unix.Unix_error (Unix.EAGAIN, "", ""));
-    Lwt.return (match ch with Plain fdesc -> Unix.read fdesc buf pos len
-                              | Encrypted (fdesc,sock) -> Ssl.read sock buf pos len)
+      Lwt.return (match ch with
+        Plain fdesc -> Unix.read fdesc buf pos len
+      | Encrypted (fdesc,sock) -> Ssl.read sock buf pos len)
     end
   with
     Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) 
@@ -503,18 +504,6 @@ let close_process_full (inchan, outchan, errchan) =
   close_in inchan; close_out outchan; close_in errchan;
   Lwt.bind (waitpid [] pid) (fun (_, status) -> Lwt.return status)
 
-
-let lingering_close ch =
-  Messages.debug "SHUTDOWN";
-  (try shutdown ch Unix.SHUTDOWN_SEND 
-  with e -> Messages.debug "shutdown failed"; ());
-  ignore (Lwt.bind (sleep 2.0) (fun () -> 
-    Lwt.return
-      (try
-        (match ch with 
-          Plain fd -> Messages.debug "CLOSE"; Unix.close fd
-        | Encrypted (fd,sock) -> Messages.debug "CLOSE (SSL)"; Unix.close fd)
-      with e -> Messages.debug "close failed"; ())))
 
 (**/**)
 (* Monitoring functions *)
