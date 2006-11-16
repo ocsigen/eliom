@@ -22,6 +22,7 @@ open Http_frame
 open Http_com
 open Lwt
 open Ocsistream
+open XHTML.M
 
 let cookiename = "ocsigensession"
 
@@ -385,15 +386,12 @@ let send_error waiter ?(http_exception) ?(error_num=500) xhtml_sender =
            (error_num,error_mes)
      ) in
   let str_code = string_of_int error_code in
-        let err_page =
-          <<
-          <html>
-          <body>
-          <h1> Error $str:str_code$ </h1> 
-          <p>$str:error_msg$</p>
-          </body>
-          </html>
-          >>
+  let err_page =
+    (html
+       (head (title (pcdata "")) [])
+       (body [h1 [pcdata str_code];
+              p [pcdata error_msg]]))
+  
   in
   send_xhtml_page waiter ~code:error_code ~content:err_page xhtml_sender
 

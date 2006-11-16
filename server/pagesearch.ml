@@ -159,9 +159,9 @@ let absolute_change_hostdir, get_current_hostdir, end_current_hostdir =
     ref ((fun () ->
       raise (Ocsigen_Internal_Error "No pages tree available")), []) 
   in
-  let f1 = ref (fun pagetree,dir -> 
+  let f1 = ref (fun (pagetree,dir) -> 
     current_dir := (fun () -> pagetree),remove_slash dir) in
-  let f2 = ref (fun () -> let cd1,cd2 = !current_dir in (cd1 (), cd2)) in
+  let f2 = ref (fun () -> let (cd1,cd2) = !current_dir in (cd1 (), cd2)) in
   let exn1 _ = 
     raise (Ocsigen_Internal_Error "absolute_change_hostdir after init") in
   let exn2 () = 
@@ -569,7 +569,7 @@ let execute generate_page ip cookie (globtable,cookie_table) =
     with Not_found -> (ref (new_session_tables ()), true))
   in
   generate_page ip globtable sessiontablesref >>=
-  (fun (send_page,sender,working_dir),lastmod,etag ->
+  (fun ((send_page,sender,working_dir),lastmod,etag) ->
     let cookie2 = 
       if are_empty_tables !sessiontablesref
       then ((if not new_session 

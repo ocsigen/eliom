@@ -8,7 +8,7 @@ endif
 
 FILES= ocsimisc.ml messages.ml ocsiconfig.ml parseconfig.ml
 
-CAMLC = $(OCAMLFIND) ocamlc $(DBG) $(LIB)
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep

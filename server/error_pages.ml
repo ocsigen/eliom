@@ -33,16 +33,27 @@ let page_error_param_type l =
        [h1 s]
     )
 
-let page_bad_param        = << <html><body><h1>Wrong parameters</h1></body></html> >>
+let page_bad_param = 
+  let s = "Wrong parameters" in
+  html
+    (head (title (pcdata s)) [])
+    (body
+       [h1 [pcdata s]]
+    )
 
-let page_session_expired  = << <html><body><h1>Session expired</h1></body></html> >>
+let page_session_expired  = 
+  let s = "Session expired" in
+  html
+    (head (title (pcdata s)) [])
+    (body
+       [h1 [pcdata s]]
+    )
 
 let error_page s =
-  << <html>
-       <body>
-          <h1> Error </h1>
-          <p>$str:s$</p>
-        </body>
-      </html>
-  >>
+  html
+    (head (title (pcdata s)) [])
+    (body
+       [h1 [pcdata "Error"];
+        p [pcdata s]]
+    )
 

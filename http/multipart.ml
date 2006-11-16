@@ -90,7 +90,7 @@ let read_header ?downcase ?unfold ?strip (s : Ocsistream.stream) =
               | Cont (stri, long, _) as s -> find_end_of_header s)
         | e -> fail e)
   in
-  find_end_of_header s >>= (fun s, end_pos ->
+  find_end_of_header s >>= (fun (s, end_pos) ->
     let b = Ocsistream.current_buffer s in
     let header, _ = 
       scan_header ?downcase ?unfold ?strip b ~start_pos:0 ~end_pos 
@@ -119,7 +119,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
     (* Search LF beginning at position k *)
     catch
       (fun () -> (search_window s lf_re k) >>= 
-        (fun s,x -> return (s, (S.match_end x))))
+        (fun (s,x) -> return (s, (S.match_end x))))
     (function
         Not_found ->
             fail (Multipart_error 
@@ -133,7 +133,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
      * raise Not_found.
      *)
     let re = S.regexp ("\n--" ^ S.quote boundary) in
-    (search_window s re 0) >>= (fun s, x -> return (s, (S.match_end x)))
+    (search_window s re 0) >>= (fun (s, x) -> return (s, (S.match_end x)))
   in
 
   let check_beginning_is_boundary s =
@@ -170,7 +170,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
         if last_part then return [ y ]
         else begin
           search_end_of_line s 2 >>=  (* [k]: Beginning of next part *)
-          (fun s, k -> Ocsistream.skip s k >>=
+          (fun (s, k) -> Ocsistream.skip s k >>=
             (fun s -> parse_parts s uses_crlf >>= 
               (fun l -> return (y :: l))))
         end ))
@@ -179,7 +179,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
   (* Check whether s directly begins with a boundary: *)
   check_beginning_is_boundary s >>= (fun (s,b) -> if b then begin
     (* Move to the beginning of the next line: *)
-    search_end_of_line s 0 >>= (fun s, k_eol ->
+    search_end_of_line s 0 >>= (fun (s, k_eol) ->
       let uses_crlf = (Ocsistream.current_buffer s).[k_eol-2] = '\r' in
       Ocsistream.skip s k_eol >>=
       (* Begin with first part: *)
@@ -188,10 +188,10 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
   else begin
     (* Search the first boundary: *)
     catch (fun () -> 
-      search_first_boundary s >>= (fun s, k_eob ->   (* or Not_found *)
+      search_first_boundary s >>= (fun (s, k_eob) ->   (* or Not_found *)
       (* Printf.printf "k_eob=%d\n" k_eob; *)
       (* Move to the beginning of the next line: *)
-        search_end_of_line s k_eob >>= (fun s, k_eol ->
+        search_end_of_line s k_eob >>= (fun (s, k_eol) ->
           let uses_crlf = (Ocsistream.current_buffer s).[k_eol-2] = '\r' in
           (* Printf.printf "k_eol=%d\n" k_eol; *)
           Ocsistream.skip s k_eol >>=

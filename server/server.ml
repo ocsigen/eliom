@@ -460,8 +460,7 @@ let service wait_end_request waiter http_frame port sockaddr
 
                 (* page generation *)
                 get_page frame_info port sockaddr cookie >>=
-                (fun (cookie2,send_page,sender,path),
-                  lastmodified,etag ->
+                (fun ((cookie2,send_page,sender,path), lastmodified,etag) ->
 
                     match lastmodified,ifmodifiedsince with
                       Some l, Some i when l<=i -> 
@@ -494,7 +493,8 @@ let service wait_end_request waiter http_frame port sockaddr
                     let keep_alive = ka in
                     (if reload then
                       get_page frame_info port sockaddr cookie2 >>=
-                      (fun (cookie3,send_page,sender,path),lastmodified,etag ->
+                      (fun ((cookie3,send_page,sender,path),
+                            lastmodified,etag) ->
                         (send_page waiter ~keep_alive:keep_alive 
                            ?last_modified:lastmodified
                            ?cookie:(if cookie3 <> cookie then 

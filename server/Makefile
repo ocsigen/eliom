@@ -10,8 +10,14 @@ else
 DBG =
 endif
 
+ifeq "$(PROFILING)" "YES"
+CAMLCNAME= ocamlcp -p a
+else
+CAMLCNAME= ocamlc
+endif
+
 INSTALL = install
-CAMLC = $(OCAMLFIND) ocamlc $(DBG) $(LIB)
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
@@ -22,7 +28,8 @@ else
 OCSIMOREPCKG =
 endif
 LIB = -thread -package $(OCSIMOREPCKG)netstring -package ssl -I ../lib -I +camlp4
-PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
+PP = 
+PP2 = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
 CMAO = nums.cma dynlink.cma unix.cma ssl.cma pcre.cma netstring.cma \
        threads.cma \
@@ -63,6 +70,9 @@ $(NAME): $(OBJS)
 	$(CAMLC) -o $(NAME) -linkall $(CMAO) $(OBJS);\
 	fi
 
+ocsigenboxes.cmo:
+	$(OCAMLFIND) ocamlc $(DBG) $(LIB) $(PP2) -c ocsigenboxes.ml
+
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
 
@@ -89,7 +99,7 @@ uninstall:
 	rm -f $(BINDIR)/$(NAME)
 
 depend:
-	$(CAMLDEP) $(PP) $(FILES:.ml=.mli) $(FILES) > .depend
+	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) > .depend
 
 FORCE:
 

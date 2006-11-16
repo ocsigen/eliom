@@ -9,7 +9,7 @@ endif
 FILESR = xmllexer.ml 
 FILES = xhtmltypes.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml simplexmlparser.ml xhtmlparser.ml xhtmlpp.ml
 
-CAMLC = $(OCAMLFIND) ocamlc $(DBG) $(LIB)
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
 LIB = -I `$(CAMLP4) -where` -I ../../lib

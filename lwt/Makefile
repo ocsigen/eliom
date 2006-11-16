@@ -8,7 +8,7 @@ endif
 
 NAME = lwt
 
-OCAMLC = $(OCAMLFIND) ocamlc $(DBG)
+OCAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG)
 OCAMLOPT = $(OCAMLFIND) ocamlopt $(DBG)
 OCAMLDEP = $(OCAMLFIND) ocamldep
 

@@ -1309,7 +1309,7 @@ module Xhtml = struct
       service ->
         server_params -> 
           Xhtmltypes.a_content XHTML.M.elt list -> 
-            'get -> [Xhtmltypes.a] XHTML.M.elt
+            'get -> Xhtmltypes.a XHTML.M.elt
                 :> ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.M.attrib list) ->
                   ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name) 
                     service ->
@@ -1319,13 +1319,13 @@ module Xhtml = struct
 
   let css_link = 
     (css_link : ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
-      uri -> [ link ] elt
+      uri -> link elt
           :> ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
             uri -> [> link ] elt)
 
   let js_script = (js_script
                      : ?a:([< script_attrib > `Src ] attrib list) ->
-                       uri -> [ script ] elt
+                       uri -> script elt
                            :> ?a:([< script_attrib > `Src ] attrib list) ->
                              uri -> [> script ] elt)
 
@@ -1333,7 +1333,7 @@ module Xhtml = struct
     (get_form
        : ?a:([< form_attrib > `Method ] attrib list) ->
          ('get, unit, 'c, 'd, 'getnames, unit param_name) service ->
-           server_params -> ('getnames -> form_content elt list) -> [form] elt
+           server_params -> ('getnames -> form_content elt list) -> form elt
                :> ?a:([< form_attrib > `Method ] attrib list) ->
                  ('get, unit, 'c, 'd, 'getnames, unit param_name) service ->
                    server_params -> ('getnames -> form_content elt list) -> [>form] elt)
@@ -1343,7 +1343,7 @@ module Xhtml = struct
        : ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
          ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames) service ->
            server_params ->
-             ('postnames -> form_content elt list) -> 'get -> [form] elt
+             ('postnames -> form_content elt list) -> 'get -> form elt
                  :> ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
                    ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames) service ->
                      server_params ->
@@ -1353,7 +1353,7 @@ module Xhtml = struct
     (int_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?value:int ->
-           int param_name -> [ input ] elt
+           int param_name -> input elt
                :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                  ?value:int ->
                  int param_name -> [> input ] elt)
@@ -1362,7 +1362,7 @@ module Xhtml = struct
     (float_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?value:float ->
-         float param_name -> [ input ] elt
+         float param_name -> input elt
              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                ?value:float ->
                  float param_name -> [> input ] elt)
@@ -1372,7 +1372,7 @@ module Xhtml = struct
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?value:'a ->
            ('a -> string) ->
-             'a param_name -> [ input ] elt
+             'a param_name -> input elt
                  :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                    ?value:'a ->
                      ('a -> string) ->
@@ -1381,7 +1381,7 @@ module Xhtml = struct
   let string_input = 
     (string_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-         ?value:string -> string param_name -> [ input ] elt
+         ?value:string -> string param_name -> input elt
            :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
              ?value:string -> string param_name -> [> input ] elt)
 
@@ -1389,7 +1389,7 @@ module Xhtml = struct
     (int_password_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?value:int ->
-           int param_name -> [ input ] elt
+           int param_name -> input elt
                :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                  ?value:int ->
                  int param_name -> [> input ] elt)
@@ -1398,7 +1398,7 @@ module Xhtml = struct
     (float_password_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?value:float ->
-         float param_name -> [ input ] elt
+         float param_name -> input elt
              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                ?value:float ->
                  float param_name -> [> input ] elt)
@@ -1408,7 +1408,7 @@ module Xhtml = struct
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?value:'a ->
            ('a -> string) ->
-             'a param_name -> [ input ] elt
+             'a param_name -> input elt
                  :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                    ?value:'a ->
                      ('a -> string) ->
@@ -1417,33 +1417,33 @@ module Xhtml = struct
   let string_password_input = 
     (string_password_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-         ?value:string -> string param_name -> [ input ] elt
+         ?value:string -> string param_name -> input elt
            :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
              ?value:string -> string param_name -> [> input ] elt)
 
   let hidden_int_input = 
     (hidden_int_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         int param_name -> int -> [ input ] elt
+         int param_name -> int -> input elt
              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                int param_name -> int -> [> input ] elt)
   let hidden_float_input = 
     (hidden_float_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         float param_name -> float -> [ input ] elt
+         float param_name -> float -> input elt
              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                float param_name -> float -> [> input ] elt)
   let hidden_string_input = 
     (hidden_string_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         string param_name -> string -> [ input ] elt
+         string param_name -> string -> input elt
              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                string param_name -> string -> [> input ] elt)
   let hidden_user_type_input = 
     (hidden_user_type_input
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ('a -> string) ->
-           'a param_name -> 'a -> [ input ] elt
+           'a param_name -> 'a -> input elt
                :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                  ('a -> string) ->
                    'a param_name -> 'a -> [> input ] elt)
@@ -1454,7 +1454,7 @@ module Xhtml = struct
     (bool_checkbox
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?checked:bool ->
-           bool param_name -> [ input ] elt
+           bool param_name -> input elt
                :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                  ?checked:bool ->
                    bool param_name -> [> input ] elt)
@@ -1463,7 +1463,7 @@ module Xhtml = struct
     (string_radio
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?checked:bool ->
-            string option param_name -> string -> [ input ] elt
+            string option param_name -> string -> input elt
              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                ?checked:bool ->
                   string option param_name -> string -> [> input ] elt)
@@ -1471,7 +1471,7 @@ module Xhtml = struct
     (int_radio
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?checked:bool ->
-            int option param_name -> int -> [ input ] elt
+            int option param_name -> int -> input elt
              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                ?checked:bool ->
                   int option param_name -> int -> [> input ] elt)
@@ -1479,7 +1479,7 @@ module Xhtml = struct
     (float_radio
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?checked:bool ->
-            float option param_name -> float -> [ input ] elt
+            float option param_name -> float -> input elt
              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                ?checked:bool ->
                   float option param_name -> float -> [> input ] elt)
@@ -1488,7 +1488,7 @@ module Xhtml = struct
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
          ?checked:bool ->
            ('a -> string) ->
-             'a option param_name -> 'a -> [ input ] elt
+             'a option param_name -> 'a -> input elt
                  :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                    ?checked:bool ->
                      ('a -> string) ->
@@ -1498,7 +1498,7 @@ module Xhtml = struct
                     : ?a:([< textarea_attrib > `Name ] attrib list ) -> 
                       string param_name -> rows:number -> cols:number -> 
                         [ `PCDATA ] XHTML.M.elt ->
-                          [ textarea ] elt
+                          textarea elt
                             :> ?a:([< textarea_attrib > `Name ] attrib list ) -> 
                               string param_name -> rows:number -> cols:number -> 
                                 [ `PCDATA ] XHTML.M.elt ->
@@ -1506,13 +1506,13 @@ module Xhtml = struct
 
   let submit_input = (submit_input
                         : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                          string -> [ input ] elt
+                          string -> input elt
                               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                                 string -> [> input ] elt)
                                 
   let file_input = (file_input
                           : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-                          ?value:string -> string param_name -> [ input ] elt
+                          ?value:string -> string param_name -> input elt
                               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
                                 ?value:string -> string param_name -> [> input ] elt)
 
@@ -1522,7 +1522,7 @@ module Xhtml = struct
                         ('a,'b) action -> 
                           server_params -> 
                             a_content elt list -> 
-                              [ form ] elt
+                              form elt
                                 :> ?a:([< a_attrib > `Href ] attrib list) ->
                                   ?reload:bool ->
                                     ('a,'b) action -> 
@@ -1536,7 +1536,7 @@ module Xhtml = struct
                            ('a, 'b) action ->
                              server_params -> 
                                ('b -> form_content elt list) ->
-                                 [ form ] elt
+                                 form elt
                                    :> ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
                                      ?reload:bool ->
                                        ('a, 'b) action ->

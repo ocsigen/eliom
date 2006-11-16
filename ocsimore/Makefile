@@ -10,7 +10,7 @@ FILES= db_create.ml ocsipersist.ml ocsicache.ml ocsidata.ml ocsipages.ml ocsisav
 
 OTHERFILES= ocsexample_util.ml ocsexample3.ml ocsexample1.ml ocsexample2.ml
 
-CAMLC = $(OCAMLFIND) ocamlc $(DBG) $(LIB)
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep

@@ -6,6 +6,7 @@ val menu : ?classe:XHTML.M.nmtoken list ->
        list ->
        (unit,unit, [<`Internal_Service of [<`Public_Service | `Local_Service] | `External_Service],'tipo, unit Ocsigen.param_name, unit Ocsigen.param_name) Ocsigen.service ->
        Ocsigen.server_params -> [> `Ul ] XHTML.M.elt
+
 (** Creates a menu 
 
    Example:
