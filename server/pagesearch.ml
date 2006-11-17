@@ -340,24 +340,27 @@ let find_static_page staticdirref path =
   let find_file = function
       None -> raise Ocsigen_404
     | Some filename ->
-        ignore (Unix.LargeFile.lstat filename);
-        let filename = 
+        let lstat= Unix.LargeFile.lstat filename in
+        let (filename,lstat) = 
           Messages.debug ("Testing \""^filename^"\".");
-          if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind
-                = Unix.S_DIR)
+          if (lstat.Unix.LargeFile.st_kind = Unix.S_DIR)
           then 
             (if (filename.[(String.length filename) - 1]) = '/'
-            then filename^"index.html"
+            then
+              let fn2 = filename^"index.html" in
+              (fn2,(Unix.LargeFile.lstat filename))
             else
               (if (path = [""])
-              then filename^"/index.html"
+              then 
+              let fn2 = filename^"index.html" in
+              (fn2,(Unix.LargeFile.lstat filename))
               else (Messages.debug (filename^" is a directory");
                     raise Ocsigen_Is_a_directory)))
-          else filename
+          else (filename,lstat)
         in
         Messages.debug ("Looking for ("^filename^")");
 
-        if ((Unix.LargeFile.lstat filename).Unix.LargeFile.st_kind 
+        if (lstat.Unix.LargeFile.st_kind 
               = Unix.S_REG)
         then begin
           Unix.access filename [Unix.R_OK];

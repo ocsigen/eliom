@@ -425,7 +425,8 @@ let parse_mime_types filename =
             let upto = String.index line '#' in 
         String.sub line 0 upto 
     with Not_found -> line in
-    let strlist = Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto in
+    let strlist = 
+      Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto in
     match  List.length strlist with
     0 | 1 -> read_and_split in_ch
     | _ -> let make_pair = (fun h -> Hashtbl.add mimeht h (List.hd strlist)) in
@@ -439,22 +440,25 @@ let parse_mime_types filename =
     close_in in_ch
   with _ -> ()
 
-let parsed = ref false 
 
 let rec affiche_mime () =
     Hashtbl.iter (fun f s -> Messages.debug (f^" "^s)) mimeht
     
 (* send a file in an HTTP frame*)
-let content_type_from_file_name filename =
-  if not !parsed then parse_mime_types (Ocsiconfig.get_mimefile ());
-  try 
-    let pos = (String.rindex filename '.') in 
-    let extens = 
-      String.sub filename 
-        (pos+1)
-        ((String.length filename) - pos - 1)
-    in Hashtbl.find mimeht extens
-  with _ -> "unknown" 
+let content_type_from_file_name =
+  let parsed = ref false in
+  fun filename ->
+    if not !parsed
+    then (parse_mime_types (Ocsiconfig.get_mimefile ());
+          parsed := true);
+    try 
+      let pos = (String.rindex filename '.') in 
+      let extens = 
+        String.sub filename 
+          (pos+1)
+          ((String.length filename) - pos - 1)
+      in Hashtbl.find mimeht extens
+    with _ -> "unknown" 
 
 let send_file file waiter ?etag ?code ~keep_alive ?cookie ?path
     ?last_modified ?location ?head file_sender =

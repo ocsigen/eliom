@@ -1003,14 +1003,12 @@ let _ = try
                  (Ocsiconfig.get_minthreads ()) 
                  (Ocsiconfig.get_maxthreads ()));
 
-       (* Je suis fou :
-          This is not tail-recursive, 
-          thus will result in a memory leak ...
+       (* Je suis fou : *)
           let rec f () = 
             (*   print_string "-"; *)
             Lwt_unix.yield () >>= f
           in f(); 
-        *)
+
 
 
        let wait_end_init = wait () in
