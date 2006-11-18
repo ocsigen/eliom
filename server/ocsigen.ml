@@ -1284,7 +1284,9 @@ module Xhtml_ = struct
       None -> a
     | Some i -> (a_id i)::a) 
     in
-    form ~a:((a_method `Post)::
+    form ~a:((XHTML.M.a_enctype "multipart/form-data")::
+             (* Always Multipart!!! How to test if there is a file?? *)
+             (a_method `Post)::
              (if inline then (a_class ["inline"])::aa else aa))
       ~action:(make_uri_from_string action) elt1 elts
 
@@ -1632,9 +1634,11 @@ module Text_ = struct
 
   let make_post_form ?(a="") ~action ?id ?(inline = false) elt1 elts 
       : form_elt = 
-    let aa = (match id with
-      None -> a
-    | Some i -> " id="^i^" "^a)
+    let aa = "enctype=\"multipart/form-data\" "
+        (* Always Multipart!!! How to test if there is a file?? *)
+      ^(match id with
+        None -> a
+      | Some i -> " id="^i^" "^a)
     in
     "<form method=\"post\" action=\""^(make_uri_from_string action)^"\""^
     (if inline then "style=\"display: inline\"" else "")^aa^">"^

@@ -1012,11 +1012,11 @@ let _ = try
                  (Ocsiconfig.get_minthreads ()) 
                  (Ocsiconfig.get_maxthreads ()));
 
-       (* Je suis fou : *)
+       (* Je suis fou :
           let rec f () = 
             (*   print_string "-"; *)
             Lwt_unix.yield () >>= f
-          in f(); 
+          in f(); *)
           
 
 
