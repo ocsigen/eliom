@@ -46,12 +46,17 @@ type url_path = string list
 type current_url = string list
 type current_dir = string list
 
+type fileinfo = {tmp_filename: string;
+                 filesize: int64;
+                 original_filename: string}
+
 type 'a server_params1 = {full_url: string;
                           hostname: string option;
                           user_agent: string;
                           ip: Unix.inet_addr;
                           get_params: (string * string) list;
                           post_params: (string * string) list;
+                          files: (string * fileinfo) list;
                           current_url: current_url;
                           current_dir: current_dir;
                           session_table: 'a ref
@@ -130,8 +135,10 @@ type server_params = session_table server_params1
 (** return a page from a service and parameters *)
 val get_page :
     string * string * internal_state option *
-    (current_url * string option * (string * string) list *
-       (string * string) list * string) ->
+    (current_url * string option * 
+       (string * string) list *
+       (string * string) list * 
+       (string * fileinfo) list * string) ->
          int ->
          Unix.sockaddr -> string option -> 
            ((string option * 
@@ -143,8 +150,10 @@ val make_action :
     string ->
       (string * string) list ->
         string * string * internal_state option * 
-          (current_url * string option * (string * string) list *
-             (string * string) list * string) ->
+          (current_url * string option *
+             (string * string) list *
+             (string * string) list * 
+             (string * fileinfo) list * string) ->
                Unix.sockaddr -> string option -> 
                  (string option * string) Lwt.t
 

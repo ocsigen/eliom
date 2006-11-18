@@ -49,12 +49,17 @@ type url_path = string list
 type current_url = string list
 type current_dir = string list
 
+type fileinfo = {tmp_filename: string;
+                 filesize: int64;
+                 original_filename: string}
+
 type 'a server_params1 = {full_url: string;
                           hostname: string option;
                           user_agent: string;
                           ip: Unix.inet_addr;
                           get_params: (string * string) list;
                           post_params: (string * string) list;
+                          files: (string * fileinfo) list;
                           current_url: current_url;
                           current_dir: current_dir;
                           session_table: 'a ref
@@ -379,7 +384,7 @@ let find_static_page staticdirref path =
 
     (** Create server parameters record *)
 let make_server_params
-    dir str ((url,host,getp,postp,ua),ip,fullurl) = 
+    dir str ((url,host,getp,postp,files,ua),ip,fullurl) = 
   {full_url= fullurl;
    hostname=host;
    user_agent=ua;
@@ -387,13 +392,14 @@ let make_server_params
    ip=ip;
    get_params = getp;
    post_params = postp;
+   files = files;
    current_dir = dir;
    session_table = str;
  }
 
 let find_page_table 
     t str 
-    (((url,host,getp,postp,ua),ip,fullurl) as sp1) urlsuffix k = 
+    (((url,host,getp,postp,files,ua),ip,fullurl) as sp1) urlsuffix k = 
   let sp = make_server_params [] str sp1 in
   let rec aux = function
       [] -> fail Ocsigen_Wrong_parameter
@@ -513,7 +519,8 @@ let add_service (dircontentref,_) current_dir session url_act
 let find_service 
     (dircontentref,_)
     (session_table_ref, 
-     (((path, _, get_param_list, post_param_list, ua), ip, fullurl) as sp), 
+     (((path, _, get_param_list, post_param_list, files_list, ua), 
+       ip, fullurl) as sp), 
      state_option) =
   let rec search_page_table dircontent =
     let aux a l =
@@ -591,7 +598,7 @@ let execute generate_page ip cookie (globtable,cookie_table) =
 
 let get_page 
     (path, params, internal_state, 
-     ((url, host, get_params, post_params, useragent) as sp))
+     ((url, host, get_params, post_params, files, useragent) as sp))
     port sockaddr cookie =
   let fullurl = path^params in
   let ip = match sockaddr with
@@ -704,7 +711,7 @@ let get_page
 
 
 let make_action action_name action_params 
-    (path, params, _, (url, host, _, _, useragent)) sockaddr cookie =
+    (path, params, _, (url, host, _, _, files, useragent)) sockaddr cookie =
   let fullurl = path^params in
   let port,ip = match sockaddr with
     Unix.ADDR_INET (ip,port) -> port,ip
@@ -723,8 +730,8 @@ let make_action action_name action_params
     (action 
        (make_server_params 
           working_dir session_tables_ref 
-          ((url, host, [], action_params, useragent), ip, fullurl))) >>=
-    (fun r -> return ((r,(), working_dir),None,None))
+          ((url, host, [], action_params, files, useragent), ip, fullurl))) >>=
+    (fun r -> return ((r,(), working_dir), None, None))
   in catch
     (fun () ->
       do_for_host_matching 

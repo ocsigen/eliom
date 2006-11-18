@@ -103,10 +103,13 @@ let find_field field content_disp =
       (Netstring_pcre.regexp (field^"=.([^\"]*).;?")) content_disp 0 in
   Netstring_pcre.matched_group res 1 content_disp
 
-type to_write = No_File of string * Buffer.t | A_File of Lwt_unix.descr
+type to_write = 
+    No_File of string * Buffer.t 
+  | A_File of (string * string * string * Lwt_unix.descr)
 
 let now = return ()
 
+let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 
 
 
@@ -225,9 +228,9 @@ let get_frame_infos http_frame filenames =
     in
     let find_post_params = 
       if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
-      then return [] else 
+      then return ([],[]) else 
         match http_frame.Stream_http_frame.content with
-          None -> return []
+          None -> return ([],[])
         | Some body -> 
             let ct = (String.lowercase
                   (Http_header.get_headers_value
@@ -238,7 +241,8 @@ let get_frame_infos http_frame filenames =
                 (fun () ->
                   Ocsistream.string_of_stream body >>=
                   (fun r -> return
-                      (Netencoding.Url.dest_url_encoded_parameters r)))
+                      ((Netencoding.Url.dest_url_encoded_parameters r),
+                      [])))
                 (function
                     Ocsistream.String_too_large -> fail Input_is_too_large
                   | e -> fail e)
@@ -249,7 +253,8 @@ let get_frame_infos http_frame filenames =
               | None -> fail Ocsigen_unsupported_media
               | _ ->
                   let bound = get_boundary ct in
-                  let param_names = ref [] in
+                  let params = ref [] in
+                  let files = ref [] in
                   let create hs =
                     let cd = List.assoc "content-disposition" hs in
                     let st = try 
@@ -261,7 +266,9 @@ let get_frame_infos http_frame filenames =
                     | Some store -> 
                         let now = 
                           Printf.sprintf 
-                            "%s-%f" store (Unix.gettimeofday ()) in
+                            "%s-%f-%d" 
+                            store (Unix.gettimeofday ()) (counter ())
+                        in
                         match ((Ocsiconfig.get_uploaddir ())) with
                           Some dname ->
                             let fname = dname^"/"^now in
@@ -272,11 +279,7 @@ let get_frame_infos http_frame filenames =
                                  Unix.O_NONBLOCK] 0o666 in
                             (* Messages.debug "file opened"; *)
                             filenames := fname::!filenames;
-                            param_names := 
-                              !param_names@[(p_name, fname (* {tmp_filename=fname;
-                                                              filesize=size;
-                                                              original_filename=oname} *))];
-                            A_File (Lwt_unix.Plain fd)
+                            A_File (p_name, fname, store, Lwt_unix.Plain fd)
                         | None -> raise Ocsigen_upload_forbidden
                   in
                   let add where s =
@@ -284,26 +287,31 @@ let get_frame_infos http_frame filenames =
                       No_File (p_name, to_buf) -> 
                         Buffer.add_string to_buf s;
                         return ()
-                    | A_File wh -> 
+                    | A_File (_,_,_,wh) -> 
                         Lwt_unix.write wh s 0 (String.length s) >>= 
                         (fun r -> Lwt_unix.yield ())
                   in
                   let stop size  = function 
                       No_File (p_name, to_buf) -> 
                         return 
-                          (param_names := !param_names @
+                          (params := !params @
                             [(p_name, Buffer.contents to_buf)])
                             (* à la fin ? *)
-                    | A_File wh -> (match wh with 
-                        Lwt_unix.Plain fdscr -> 
-                          (* Messages.debug "closing file"; *)
-                          Unix.close fdscr
-                      | _ -> ());
+                    | A_File (p_name,fname,oname,wh) -> 
+                        (match wh with 
+                          Lwt_unix.Plain fdscr -> 
+                            (* Messages.debug "closing file"; *)
+                            files := 
+                              !files@[(p_name, {tmp_filename=fname;
+                                                filesize=size;
+                                                original_filename=oname})];
+                            Unix.close fdscr
+                        | _ -> ());
                         return ()
                   in
                   Multipart.scan_multipart_body_from_stream 
                     body bound create add stop >>=
-                  (fun () -> return !param_names)
+                  (fun () -> return (!params, !files))
 
 (* AEFF *)              (*        IN-MEMORY STOCKAGE *)
               (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
@@ -316,7 +324,7 @@ let get_frame_infos http_frame filenames =
                * List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
                * List.map simplify bdlist *)
     in
-    find_post_params >>= (fun post_params ->
+    find_post_params >>= (fun (post_params, files) ->
       let internal_state,post_params2 = 
         try (Some (int_of_string (List.assoc state_param_name post_params)),
              List.remove_assoc state_param_name post_params)
@@ -365,6 +373,7 @@ let get_frame_infos http_frame filenames =
               host,
               get_params2,
               post_params3,
+              files,
               useragent)),
           action_info,
           ifmodifiedsince))))
@@ -457,7 +466,7 @@ let service wait_end_request waiter http_frame port sockaddr
       get_frame_infos http_frame filenames >>=
       
       (* *** Now we generate the page and send it *)
-      (fun (((stringpath,params,is,(path,host,gp,pp,ua)) as frame_info), action_info,ifmodifiedsince) -> 
+      (fun (((stringpath,params,is,(path,host,gp,pp,files,ua)) as frame_info), action_info,ifmodifiedsince) -> 
 
         wakeup wait_end_request ();
         (* here we are sure that the request is terminated. 
@@ -1008,7 +1017,7 @@ let _ = try
             (*   print_string "-"; *)
             Lwt_unix.yield () >>= f
           in f(); 
-
+          
 
 
        let wait_end_init = wait () in

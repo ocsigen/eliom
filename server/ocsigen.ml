@@ -29,6 +29,7 @@ let _ = Random.self_init ()
 type current_url = Pagesearch.current_url
 type url_path = Pagesearch.url_path
 type server_params = Pagesearch.server_params
+type fileinfo = Pagesearch.fileinfo
 
 let get_user_agent sp = sp.user_agent
 let get_full_url sp = sp.full_url
@@ -37,6 +38,10 @@ let get_get_params sp = sp.get_params
 let get_post_params sp = sp.post_params
 let get_current_url sp = sp.current_url
 let get_hostname sp = sp.hostname
+
+let get_tmp_filename fi = fi.tmp_filename
+let get_filesize fi = fi.filesize
+let get_original_filename fi = fi.original_filename
 
 let sync f sp g p = Lwt.return (f sp g p)
     
@@ -65,6 +70,7 @@ type ('a,+'tipo,+'names) params_type =
   | TInt of int param_name (* 'a = int *)
   | TFloat of float param_name (* 'a = float *)
   | TBool of bool param_name (* 'a = bool *)
+  | TFile of fileinfo param_name (* 'a = fileinfo *)
   | TUserType of ('a param_name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
   | TSuffix (* 'a = string *)
   | TUnit (* 'a = unit *);;
@@ -79,6 +85,8 @@ let float (n : string) : (float,[`WithoutSuffix], float param_name) params_type 
 let bool (n : string) : (bool,[`WithoutSuffix], bool param_name) params_type= TBool n
 let string (n : string) : (string,[`WithoutSuffix], string param_name) params_type = 
   TString n
+let file (n : string) : (fileinfo ,[`WithoutSuffix], fileinfo param_name) params_type = 
+  TFile n
 let radio_answer (n : string) : (string option,[`WithoutSuffix], string option param_name) params_type= TString n
 let unit : (unit,[`WithoutSuffix], unit param_name) params_type = TUnit
 let user_type
@@ -121,81 +129,89 @@ let concat_strings s1 sep s2 = match s1,s2 with
 (* The following function reconstruct the value of parameters
    from expected type and GET or POST parameters *)
 type 'a res_reconstr_param = 
-    Res_ of ('a * (string * string) list)
+    Res_ of ('a * 
+               (string * string) list * 
+               (string * fileinfo) list)
   | Errors_ of (string * exn) list
 let reconstruct_params
     (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type)
-    params urlsuffix : 'a = 
-  let rec aux_list t params name pref suff =
-    let rec aa i lp pref suff =
+    params files urlsuffix : 'a = 
+  let rec aux_list t params files name pref suff =
+    let rec aa i lp fl pref suff =
       try 
-        match aux t lp pref (suff^(make_list_suffix i)) with
-          Res_ (v,lp2) ->
-            (match aa (i+1) lp2 pref suff with
-              Res_ (v2,lp3) -> Res_ ((Obj.magic (v::v2)),lp3)
+        match aux t lp fl pref (suff^(make_list_suffix i)) with
+          Res_ (v,lp2,f) ->
+            (match aa (i+1) lp2 f pref suff with
+              Res_ (v2,lp3,f2) -> Res_ ((Obj.magic (v::v2)),lp3,f2)
             | err -> err)
         | Errors_ errs ->
-            (match aa (i+1) lp pref suff with
+            (match aa (i+1) lp fl pref suff with
               Res_ _ -> Errors_ errs
             | Errors_ errs2 -> Errors_ (errs@errs2))
-      with Not_found -> Res_ ((Obj.magic []),lp)
+      with Not_found -> Res_ ((Obj.magic []),lp,files)
     in 
-    aa 0 params (pref^name^".") suff
+    aa 0 params files (pref^name^".") suff
   and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type)
-      params pref suff : 'a res_reconstr_param =
+      params files pref suff : 'a res_reconstr_param =
     match typ with
       TProd (t1, t2) ->
-        (match aux t1 params pref suff with
-          Res_ (v1,l1) ->
-            (match aux t2 l1 pref suff with
-              Res_ (v2,l2) -> Res_ ((Obj.magic (v1,v2)),l2)
+        (match aux t1 params files pref suff with
+          Res_ (v1,l1,f) ->
+            (match aux t2 l1 f pref suff with
+              Res_ (v2,l2,f2) -> Res_ ((Obj.magic (v1,v2)),l2,f2)
             | err -> err)
         | Errors_ errs ->
-            (match aux t2 params pref suff with
+            (match aux t2 params files pref suff with
               Res_ _ -> Errors_ errs
             | Errors_ errs2 -> Errors_ (errs2@errs)))
     | TOption t -> 
         (try 
-          (match aux t params pref suff with
-            Res_ (v,l) -> Res_ ((Obj.magic (Some v)),l)
+          (match aux t params files pref suff with
+            Res_ (v,l,f) -> Res_ ((Obj.magic (Some v)),l,f)
           | err -> err)
-        with Not_found -> Res_ ((Obj.magic None), params))
+        with Not_found -> Res_ ((Obj.magic None), params,files))
     | TBool name -> 
         (try 
           let v,l = (list_assoc_remove (pref^name^suff) params) in
-          Res_ ((Obj.magic true),l)
-        with Not_found -> Res_ ((Obj.magic false), params))
-    | TList (n,t) -> Obj.magic (aux_list t params n pref suff)
+          Res_ ((Obj.magic true),l,files)
+        with Not_found -> Res_ ((Obj.magic false), params, files))
+    | TList (n,t) -> Obj.magic (aux_list t params files n pref suff)
     | TSum (t1, t2) -> 
         (try 
-          match aux t1 params pref suff with
-            Res_ (v,l) -> Res_ ((Obj.magic (Inj1 v)),l)
+          match aux t1 params files pref suff with
+            Res_ (v,l,files) -> Res_ ((Obj.magic (Inj1 v)),l,files)
           | err -> err
         with Not_found -> 
-          (match aux t2 params pref suff with
-            Res_ (v,l) -> Res_ ((Obj.magic (Inj2 v)),l)
+          (match aux t2 params files pref suff with
+            Res_ (v,l,files) -> Res_ ((Obj.magic (Inj2 v)),l,files)
           | err -> err))
     | TString name -> 
         let v,l = list_assoc_remove (pref^name^suff) params in
-        Res_ ((Obj.magic v),l)
+        Res_ ((Obj.magic v),l,files)
     | TInt name -> 
         let v,l = (list_assoc_remove (pref^name^suff) params) in 
-        (try (Res_ ((Obj.magic (int_of_string v)),l))
+        (try (Res_ ((Obj.magic (int_of_string v)),l,files))
         with e -> Errors_ [(pref^name^suff),e])
     | TFloat name -> 
         let v,l = (list_assoc_remove (pref^name^suff) params) in 
-        (try (Res_ ((Obj.magic (float_of_string v)),l))
+        (try (Res_ ((Obj.magic (float_of_string v)),l,files))
         with e -> Errors_ [(pref^name^suff),e])
+    | TFile name -> 
+        let v,f = list_assoc_remove (pref^name^suff) files in
+        Res_ ((Obj.magic v),params,f)
     | TUserType (name, of_string, string_of) ->
         let v,l = (list_assoc_remove (pref^name^suff) params) in 
-        (try (Res_ ((Obj.magic (of_string v)),l))
+        (try (Res_ ((Obj.magic (of_string v)),l,files))
         with e -> Errors_ [(pref^name^suff),e])
-    | TUnit -> Res_ ((Obj.magic ()), params)
+    | TUnit -> Res_ ((Obj.magic ()), params, files)
     | TSuffix -> raise (Ocsigen_Internal_Error "Bad use of suffix")
   in
   let aux2 typ =
-    match Obj.magic (aux typ params "" "") with
-      Res_ (v,l) -> if l = [] then v else raise Ocsigen_Wrong_parameter
+    match Obj.magic (aux typ params files "" "") with
+      Res_ (v,l,files) -> 
+        if (l,files) = ([], [])
+        then v
+        else raise Ocsigen_Wrong_parameter
     | Errors_ errs -> raise (Ocsigen_Typing_Error errs)
   in
   try 
@@ -236,6 +252,9 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
     | TString name -> pref^name^suff^"="^(Obj.magic params)
     | TInt name -> pref^name^suff^"="^(string_of_int (Obj.magic params))
     | TFloat name -> pref^name^suff^"="^(string_of_float (Obj.magic params))
+    | TFile name -> 
+        raise (Failure
+                 "Constructing an URL with file parameters not implemented")
     | TUserType (name, of_string, string_of) ->
         pref^name^suff^"="^(string_of (Obj.magic params))
     | TUnit -> ""
@@ -573,7 +592,7 @@ module type OCSIGENSIG =
             rows:int -> cols:int -> pcdata_elt -> textarea_elt
     val submit_input : ?a:input_attrib_t -> string -> input_elt
     val file_input : ?a:input_attrib_t -> ?value:string -> 
-                            string param_name-> input_elt
+                            fileinfo param_name-> input_elt
   end
 
 
@@ -682,14 +701,20 @@ module Make = functor
               (catch (fun () -> 
                 (page_generator h 
                    (reconstruct_params 
-                      service.get_params_type h.get_params suff)
+                      service.get_params_type
+                      h.get_params
+                      []
+                      suff)
                    (reconstruct_params
-                      service.post_params_type h.post_params suff)))
+                      service.post_params_type
+                      h.post_params
+                      h.files
+                      suff)))
                  (function
                      Ocsigen_Typing_Error l -> error_handler h l
                    | e -> fail e)) >>=
               (fun c -> return (Pages.send ~content:c)))))
-
+      
       let register_service 
           ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
           ?error_handler
@@ -839,7 +864,10 @@ module Make = functor
         add_action tables current_dir 
           action.action_name
           (fun h -> actionfun h
-              (reconstruct_params action.action_params_type h.post_params []))
+              (reconstruct_params 
+                 action.action_params_type 
+                 h.post_params
+                 h.files []))
 
       let register_action
           ~(action : ('post,'pn) action)
@@ -935,6 +963,7 @@ module Make = functor
           | TInt name -> Obj.magic (prefix^name^suffix)
           | TFloat name -> Obj.magic (prefix^name^suffix)
           | TString name -> Obj.magic (prefix^name^suffix)
+          | TFile name -> Obj.magic (prefix^name^suffix)
           | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
           | TUnit -> Obj.magic ("")
           | TSuffix -> Obj.magic ocsigen_suffix_name
@@ -1141,7 +1170,7 @@ module Make = functor
       let submit_input ?a s =
         Pages.make_input ?a ~typ:Pages.submit ~value:s ()
 
-      let file_input ?a ?value (name : string param_name)  = 
+      let file_input ?a ?value (name : fileinfo param_name)  = 
         Pages.make_input ?a ~typ:Pages.file ?value ~name:name ()
 
     end : OCSIGENSIG with 
@@ -1514,7 +1543,7 @@ module Xhtml = struct
                           : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
                           ?value:string -> string param_name -> input elt
                               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-                                ?value:string -> string param_name -> [> input ] elt)
+                                ?value:string -> fileinfo param_name -> [> input ] elt)
 
   let action_a = (action_a
                     : ?a:([< a_attrib > `Href ] attrib list) ->

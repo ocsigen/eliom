@@ -65,6 +65,12 @@ val get_get_params : server_params -> (string * string) list
 val get_post_params : server_params -> (string * string) list
 val get_current_url : server_params -> url_path
 
+type fileinfo
+(** Type of files *)
+val get_tmp_filename : fileinfo -> string
+val get_filesize : fileinfo -> int64
+val get_original_filename : fileinfo -> string
+
 type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 (** Binary sums *)
 
@@ -92,6 +98,11 @@ val bool :
     string -> (bool, [ `WithoutSuffix ], bool param_name) params_type
 (** [bool s] tells that the page takes a boolean as parameter, labeled [s]
    (to use for example with boolean checkboxes) *)
+
+val file :
+    string -> (fileinfo, [ `WithoutSuffix ], 
+               fileinfo param_name) params_type
+(** [file s] tells that the page takes a file as parameter, labeled [s] *)
 
 val radio_answer :
     string -> (string option, [ `WithoutSuffix ], 
@@ -487,7 +498,7 @@ module Xhtml : sig
 (** Creates a submit [<input>] tag *)
 
   val file_input : ?a:(input_attrib attrib list ) ->
-    ?value:string -> string param_name -> [> input ] elt
+    ?value:string -> fileinfo param_name -> [> input ] elt
 
   val action_a : ?a:(a_attrib attrib list) ->
     ?reload:bool ->
@@ -801,7 +812,7 @@ module type OCSIGENSIG =
             rows:int -> cols:int -> pcdata_elt -> textarea_elt
     val submit_input : ?a:input_attrib_t -> string -> input_elt
     val file_input : ?a:input_attrib_t -> ?value:string -> 
-                    string param_name ->input_elt
+                    fileinfo param_name ->input_elt
   end
 
 module Make : functor (Pages: PAGES) -> OCSIGENSIG with 
