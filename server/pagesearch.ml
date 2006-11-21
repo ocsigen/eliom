@@ -306,7 +306,7 @@ let string_of_host h =
 
 
 exception Serv_no_host_match
-let do_for_host_matching host port ip f =
+let do_for_host_matching host port (* ip *) f =
   let string_of_host_option = function
     None -> "<no host>:"^(string_of_int port)
   | Some h -> h^":"^(string_of_int port)
@@ -365,21 +365,22 @@ let find_static_page staticdirref path =
             (if (filename.[(String.length filename) - 1]) = '/'
             then
               let fn2 = filename^"index.html" in
-              (fn2,(Unix.LargeFile.stat filename))
+              (fn2,(Unix.LargeFile.stat fn2))
             else
               (if (path = [""])
               then 
               let fn2 = filename^"index.html" in
-              (fn2,(Unix.LargeFile.stat filename))
+              (fn2,(Unix.LargeFile.stat fn2))
               else (Messages.debug ("- "^filename^" is a directory");
                     raise Ocsigen_Is_a_directory)))
           else (filename,stat)
         in
-        Messages.debug ("- Looking for ("^filename^")");
+        Messages.debug ("- Looking for \""^filename^"\".");
 
         if (stat.Unix.LargeFile.st_kind 
               = Unix.S_REG)
         then begin
+print_endline "reg";
           Unix.access filename [Unix.R_OK];
           (filename,stat)
         end
@@ -532,7 +533,7 @@ let add_service (dircontentref,_) current_dir session url_act
     search_page_table_ref (*current_*) dircontentref url_act in
   (* synchronize 
     (fun () -> *)
-      page_table_ref := add_page_table session url_act !page_table_ref content
+  page_table_ref := add_page_table session url_act !page_table_ref content
 
       
 let find_service 
@@ -710,7 +711,7 @@ let get_page
       do_for_host_matching 
         host 
         port
-        ip
+        (* ip *)
         (fun (staticdirref, global_tables, session_tables) -> 
           execute (generate_page staticdirref)
             ip cookie 
@@ -756,7 +757,7 @@ let make_action action_name action_params
       do_for_host_matching 
         host
         port
-        ip
+        (* ip *)
         (fun (staticdirref, global_tables, session_tables) -> 
           execute 
             generate_page ip cookie (global_tables, session_tables) >>=
