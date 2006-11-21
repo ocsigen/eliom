@@ -1008,19 +1008,7 @@ let _ = try
       raise (Config_file_error "maxthreads should be greater than minthreads");
 
     Lwt_unix.run 
-      (ignore (Preemptive.init 
-                 (Ocsiconfig.get_minthreads ()) 
-                 (Ocsiconfig.get_maxthreads ()));
-
-       (* Je suis fou :
-          let rec f () = 
-            (*   print_string "-"; *)
-            Lwt_unix.yield () >>= f
-          in f(); *)
-          
-
-
-       let wait_end_init = wait () in
+      (let wait_end_init = wait () in
        (* Listening on all ports: *)
        List.iter 
          (fun i -> 
@@ -1028,6 +1016,14 @@ let _ = try
        List.iter 
          (fun i ->
            ignore (listen true i wait_end_init)) (Ocsiconfig.get_sslports ());
+
+
+       (* Je suis fou :
+          let rec f () = 
+            (* print_string "-"; *)
+            Lwt_unix.yield () >>= f
+          in f(); *)
+
 
        (* I change the user for the process *)
        (try
@@ -1041,6 +1037,10 @@ let _ = try
        (* A thread that kills old connections every n seconds *)
        ignore (Http_com.Timeout.start_timeout_killer ());
        
+       ignore (Preemptive.init 
+                 (Ocsiconfig.get_minthreads ()) 
+                 (Ocsiconfig.get_maxthreads ()));
+
        end_initialisation ();
 
        wakeup wait_end_init ();
