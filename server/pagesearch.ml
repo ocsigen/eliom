@@ -74,6 +74,18 @@ type 'a server_params2 = url_path * 'a server_params1
 type internal_state = int
 
 (*****************************************************************************)
+(* locks *)
+(*
+let synchronize =
+  let lock = Mutex.create () in
+  fun f ->
+    Mutex.lock lock;
+    let r = f () in
+    Mutex.unlock lock;
+    r
+*)
+
+(*****************************************************************************)
 (* The table of static and dynamic page for each virtual server, and actions *)
 (* Each node contains either a list of nodes (case directory)
     or a table of "answers" (functions that will generate the page) *)
@@ -456,6 +468,7 @@ let find_action_table at k =
   | ATable t -> String_Table.find k t
 
 let add_action (_,actiontableref) current_dir name action =
+  (* synchronize (fun () -> *)
   actiontableref :=
     add_action_table !actiontableref
       (name,(action,current_dir))
@@ -517,7 +530,9 @@ let add_service (dircontentref,_) current_dir session url_act
      search_dircontentref dircontentref current_dir) in *)
   let page_table_ref = 
     search_page_table_ref (*current_*) dircontentref url_act in
-  page_table_ref := add_page_table session url_act !page_table_ref content
+  (* synchronize 
+    (fun () -> *)
+      page_table_ref := add_page_table session url_act !page_table_ref content
 
       
 let find_service 
