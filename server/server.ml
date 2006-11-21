@@ -66,19 +66,19 @@ let server_name = ("Ocsigen server ("^Ocsiconfig.version_number^")")
    Otherwise decr_connected won't decrease the number of connections.
  *)
 let lingering_close ch =
-  Messages.debug "SHUTDOWN";
+  Messages.debug "** SHUTDOWN";
   (try Lwt_unix.shutdown ch Unix.SHUTDOWN_SEND 
-  with e -> Messages.debug "shutdown failed"; ());
+  with e -> Messages.debug "** shutdown failed"; ());
   ignore (Lwt_unix.sleep 2.0 >>=
           (fun () -> 
             decr_connected ();
             Lwt.return
               (try
                 (match ch with 
-                  Lwt_unix.Plain fd -> Messages.debug "CLOSE"; Unix.close fd
+                  Lwt_unix.Plain fd -> Messages.debug "** CLOSE"; Unix.close fd
                 | Lwt_unix.Encrypted (fd,sock) -> 
-                    Messages.debug "CLOSE (SSL)"; Unix.close fd)
-              with e -> Messages.debug "close failed"; ())))
+                    Messages.debug "** CLOSE (SSL)"; Unix.close fd)
+              with e -> Messages.debug "** close failed"; ())))
 
 
 (* Ces deux trucs sont dans Neturl version 1.1.2 mais en attendant qu'ils
@@ -138,24 +138,24 @@ let handle_light_request_errors
           ~keep_alive:false ~http_exception:exn xhtml_sender >>=
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_header_too_long ->
-        Messages.debug "Sending 400";
+        Messages.debug "-> Sending 400";
         (* 414 URI too long. Actually, it is "header too long..." *)
         send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Request_too_long ->
-        Messages.debug "Sending 400";
+        Messages.debug "-> Sending 400";
         send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Bad_Request ->
-        Messages.debug "Sending 400";
+        Messages.debug "-> Sending 400";
         send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_upload_forbidden ->
-        Messages.debug "Sending 403 Forbidden";
+        Messages.debug "-> Sending 403 Forbidden";
         send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_unsupported_media ->
-        Messages.debug "Sending 415";
+        Messages.debug "-> Sending 415";
         send_error now ~keep_alive:false ~error_num:415 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
 
@@ -209,7 +209,7 @@ let get_frame_infos http_frame filenames =
         with _ -> Some hostport
       with _ -> None
     in
-    Messages.debug ("host="^(match host with None -> "<none>" | Some h -> h));
+    Messages.debug ("- host="^(match host with None -> "<none>" | Some h -> h));
     let params = Neturl.string_of_url
         (Neturl.remove_from_url
            ~user:true
@@ -379,7 +379,7 @@ let get_frame_infos http_frame filenames =
           ifmodifiedsince))))
 
     (fun e ->
-      Messages.debug ("Exn during get_frame_infos : "^
+      Messages.debug ("~~~ Exn during get_frame_infos : "^
                       (Printexc.to_string e));
       fail (Ocsigen_Request_interrupted e) (* ? *))
     
@@ -428,8 +428,8 @@ let service wait_end_request waiter http_frame port sockaddr
   let head = ((Http_header.get_method http_frame.Stream_http_frame.header) 
                     = Some (Http_header.HEAD)) in
   let ka = find_keepalive http_frame.Stream_http_frame.header in
-  Messages.debug ("Keep-Alive:"^(string_of_bool ka));
-  Messages.debug("HEAD:"^(string_of_bool head));
+  Messages.debug ("** Keep-Alive:"^(string_of_bool ka));
+  Messages.debug("** HEAD:"^(string_of_bool head));
 
   let remove_files = 
     let rec aux = function
@@ -443,7 +443,7 @@ let service wait_end_request waiter http_frame port sockaddr
           aux l
     in function
         [] -> ()
-      | l -> Messages.debug "Removing files"; 
+      | l -> Messages.debug "** Removing files"; 
           aux l
   in
 
@@ -494,7 +494,7 @@ let service wait_end_request waiter http_frame port sockaddr
 
                     match lastmodified,ifmodifiedsince with
                       Some l, Some i when l<=i -> 
-                        Messages.debug "Sending 304 Not modified ";
+                        Messages.debug "-> Sending 304 Not modified ";
                         send_empty
                           waiter
                           ?last_modified:lastmodified
@@ -550,19 +550,19 @@ let service wait_end_request waiter http_frame port sockaddr
           
           (fun e -> (* Exceptions during page generation *)
             Messages.debug 
-              ("~~~~ Exception during generation/sending: "^
+              ("~~~ Exception during generation/sending: "^
                (Printexc.to_string e));
             catch
               (fun () ->
                 match e with
                   (* EXCEPTIONS WHILE COMPUTING A PAGE *)
                   Ocsigen_404 -> 
-                    Messages.debug "Sending 404 Not Found";
+                    Messages.debug "-> Sending 404 Not Found";
                     send_error 
                       waiter ~keep_alive:ka ~error_num:404 xhtml_sender
                 | Ocsigen_sending_error exn -> fail exn
                 | Ocsigen_Is_a_directory -> 
-                    Messages.debug "Sending 301 Moved permanently";
+                    Messages.debug "-> Sending 301 Moved permanently";
                     send_empty
                       waiter
                       ~keep_alive:ka
@@ -571,18 +571,18 @@ let service wait_end_request waiter http_frame port sockaddr
                       ~head:head empty_sender
                 | Pagesearch.Ocsigen_malformed_url
                 | Neturl.Malformed_URL -> 
-                    Messages.debug "Sending 400 (Malformed URL)";
+                    Messages.debug "-> Sending 400 (Malformed URL)";
                     send_error waiter ~keep_alive:ka
                       ~error_num:400 xhtml_sender (* Malformed URL *)
                 | Unix.Unix_error (Unix.EACCES,_,_) ->
-                    Messages.debug "Sending 303 Forbidden";
+                    Messages.debug "-> Sending 303 Forbidden";
                     send_error waiter ~keep_alive:ka
                       ~error_num:403 xhtml_sender (* Forbidden *)
                 | e ->
                     Messages.warning
                       ("Exn during page generation: "^
                        (Printexc.to_string e)^" (sending 500)"); 
-                    Messages.debug "Sending 500";
+                    Messages.debug "-> Sending 500";
                     send_error
                       waiter ~keep_alive:ka ~error_num:500 xhtml_sender)
               (fun e -> fail (Ocsigen_sending_error e))
@@ -662,10 +662,10 @@ let service wait_end_request waiter http_frame port sockaddr
       (function
         | Ocsigen_Request_interrupted _ as e -> fail e
         | Ocsigen_sending_error e ->
-            Messages.debug ("Exn while sending: "^
+            Messages.debug ("~~~ Exn while sending: "^
                             (Printexc.to_string e)); 
             fail e
-        | e -> Messages.debug ("Exn during service: "^
+        | e -> Messages.debug ("~~~ Exn during service: "^
                                (Printexc.to_string e)); 
             fail e)
 
@@ -697,7 +697,7 @@ let handle_broken_pipe_exn sockaddr exn =
   (* We don't close here because it is already done *)
   match exn with
     Connection_reset_by_peer -> 
-      Messages.debug "Connection closed by client";
+      Messages.debug "** Connection closed by client";
       return ()
   | Unix.Unix_error (e,func,param) ->
       warning ("While talking to "^ip^": "^(Unix.error_message e)^
@@ -762,7 +762,7 @@ let listen ssl port wait_end_init =
         try
           wakeup wait_end_request ();
           Messages.debug
-            "wait_end_request has not been awoken! \
+            "!!! wait_end_request has not been awoken! \
             (should not succeed ...)"
         with _ -> ()
       in
@@ -771,7 +771,7 @@ let listen ssl port wait_end_init =
 
       if keep_alive 
       then begin
-        Messages.debug "KEEP ALIVE (pipelined)";
+        Messages.debug "** KEEP ALIVE (pipelined)";
         let waiter2 = wait () in
         (* The following request must wait the end of this one
            before being answered *)
@@ -795,7 +795,7 @@ let listen ssl port wait_end_init =
           (fun () ->
             wait_end_request >>=
             (fun () -> 
-              Messages.debug "Waiting for new request (pipeline)";
+              Messages.debug "** Waiting for new request (pipeline)";
               Stream_receiver.get_http_frame waiter2
                 receiver ~doing_keep_alive:true () >>=
               (handle_request waiter2)))
@@ -832,7 +832,7 @@ let listen ssl port wait_end_init =
              xhtml_sender empty_sender in_ch ())
             >>= (fun keep_alive -> 
               if keep_alive then begin
-                Messages.debug "KEEP ALIVE";
+                Messages.debug "** KEEP ALIVE";
                 listen_connexion_aux ~doing_keep_alive:true
                   (* Pour laisser la connexion ouverte, je relance *)
               end
@@ -883,7 +883,7 @@ let listen ssl port wait_end_init =
                  (fun (ss, ssa) -> Lwt.return (ss, sa))))
                   (function
                       Ssl.Accept_error e -> 
-                        Messages.debug "Accept_error"; do_accept ()
+                        Messages.debug "~~~ Accept_error"; do_accept ()
                     | e -> warning ("Exn in do_accept : "^
                                     (Printexc.to_string e)); do_accept ())
           end 
@@ -895,6 +895,7 @@ let listen ssl port wait_end_init =
           (do_accept ()) >>= 
           (fun c ->
             incr_connected ();
+
 
             if (get_number_of_connected ()) <
               (get_max_number_of_connections ()) then

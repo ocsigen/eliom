@@ -345,31 +345,31 @@ let find_static_page staticdirref path =
   let find_file = function
       None -> raise Ocsigen_404
     | Some filename ->
-        let lstat= Unix.LargeFile.lstat filename in
-        let (filename,lstat) = 
-          Messages.debug ("Testing \""^filename^"\".");
-          if (lstat.Unix.LargeFile.st_kind = Unix.S_DIR)
+        let stat= Unix.LargeFile.stat filename in
+        let (filename,stat) = 
+          Messages.debug ("- Testing \""^filename^"\".");
+          if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
           then 
             (if (filename.[(String.length filename) - 1]) = '/'
             then
               let fn2 = filename^"index.html" in
-              (fn2,(Unix.LargeFile.lstat filename))
+              (fn2,(Unix.LargeFile.stat filename))
             else
               (if (path = [""])
               then 
               let fn2 = filename^"index.html" in
-              (fn2,(Unix.LargeFile.lstat filename))
-              else (Messages.debug (filename^" is a directory");
+              (fn2,(Unix.LargeFile.stat filename))
+              else (Messages.debug ("- "^filename^" is a directory");
                     raise Ocsigen_Is_a_directory)))
-          else (filename,lstat)
+          else (filename,stat)
         in
-        Messages.debug ("Looking for ("^filename^")");
+        Messages.debug ("- Looking for ("^filename^")");
 
-        if (lstat.Unix.LargeFile.st_kind 
+        if (stat.Unix.LargeFile.st_kind 
               = Unix.S_REG)
         then begin
           Unix.access filename [Unix.R_OK];
-          filename
+          (filename,stat)
         end
         else raise Ocsigen_404 (* ??? *)
   in
@@ -397,6 +397,7 @@ let make_server_params
    session_table = str;
  }
 
+
 let find_page_table 
     t str 
     (((url,host,getp,postp,files,ua),ip,fullurl) as sp1) urlsuffix k = 
@@ -405,18 +406,21 @@ let find_page_table
       [] -> fail Ocsigen_Wrong_parameter
     | (_,(funct,create_sender,working_dir))::l ->
         catch (fun () ->
-          Messages.debug "I'm trying a service";
+          Messages.debug "- I'm trying a service";
           funct (urlsuffix, {sp with current_dir = working_dir}) >>=
           (fun p -> 
-            Messages.debug "Page found";
+            Messages.debug "- Page found";
             Lwt.return (p,create_sender,working_dir)))
-          (function Ocsigen_Wrong_parameter -> aux l
+          (function
+              Ocsigen_Wrong_parameter -> aux l
             | e -> fail e)
   in 
   (catch 
      (fun () -> return (List.assoc k t))
      (function Not_found -> fail Ocsigen_404 | e -> fail e)) >>=
   (fun r -> aux r)
+
+
 
 let add_page_table session url_act t (key,(id,elt)) = 
   (* Duplicate registering forbidden in global table *)
@@ -616,13 +620,13 @@ let get_page
         if params = "" (* static pages do not have parameters *)
         then begin
           Messages.debug ("--- Is it a static file?");
-          let filename = 
+          let filename,stat = 
             find_static_page staticdirref (change_empty_list url) in
           return 
             (((Sender_helpers.send_file filename),
               Sender_helpers.create_file_sender,
               []),
-             Some ((Unix.LargeFile.stat filename).Unix.LargeFile.st_mtime),
+             (Some stat.Unix.LargeFile.st_mtime),
              Some (Sender_helpers.File_content.get_etag filename))
         end
         else fail Ocsigen_404)
@@ -742,7 +746,7 @@ let make_action action_name action_params
           execute 
             generate_page ip cookie (global_tables, session_tables) >>=
           (fun ((c,(),(),wd),_,_) ->
-            Messages.debug "Action executed";
+            Messages.debug "- Action executed";
             return (c,wd))))
     (function
         Ocsigen_Typing_Error _ -> return (cookie, "/")

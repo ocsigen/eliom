@@ -71,34 +71,7 @@ type 'a server_params2 = url_path * 'a server_params1
 type internal_state = int
 
 
-(*****************************************************************************)
-(*
-type tables
-type cookiestable
-type pages_tree =
-    Ocsimisc.static_dir ref (* static pages *)
-      * tables (* global tables of continuations/actions *)
-      * cookiestable (* session tables *)
 
-
-      
-val make_server_params :
-    current_dir -> tables ref -> current_url -> string ->
-      (string * string) list -> (string * string) list -> 
-        string -> Unix.inet_addr -> tables server_params1
-
-            
-val are_empty_tables : tables -> bool
-val find_service :
-    tables ->
-      tables ref * 
-        current_url * internal_state option * (string * string) list *
-        (string * string) list * string * Unix.inet_addr * string -> 
-          (Sender_helpers.send_page_type * 
-             Sender_helpers.create_sender_type * url_path) Lwt.t
-val find_action :
-    tables -> string -> (tables server_params1 -> unit Lwt.t) * url_path
-*)
 
 
 
