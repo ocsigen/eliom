@@ -380,7 +380,6 @@ let find_static_page staticdirref path =
         if (stat.Unix.LargeFile.st_kind 
               = Unix.S_REG)
         then begin
-print_endline "reg";
           Unix.access filename [Unix.R_OK];
           (filename,stat)
         end
