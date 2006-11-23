@@ -1166,9 +1166,11 @@ let _ = register_action
       <dl>
         <dt>Advantages</dt><dd><ul>
           <li> - It is much lighter</li>
-          <li> - No need of mutex and no risk of deadlock</li></ul></dd>
+          <li> - No need of mutex and no risk of deadlock!</li>
+          <li> - - The use of many (small) threads make implementation very easy (for example, for user interfaces, no need to implement another event loop, make a thread for each widget!)</li>
+         </ul></dd>
         <dt>Drawbacks</dt><dd><ul>
-          <li> - Threads must cooperate ...</li></ul></dd>
+          <li> - Threads must cooperate ... Otherwise the whole program will hang.</li></ul></dd>
       </dl>
       <p>As it does not cooperate, the following page will stop the
       server for 5 seconds. No one will be able to do a request during
@@ -1246,7 +1248,9 @@ let looong =
      <h3>What if my function is not implemented in cooperative way?</h3>
       <h4>If my function is thread-safe (for preemptive threads)</h4>
       <p>Ocsigen implements a way to make a non cooperative computation be
-      executed automatically by a another preemptive thread. To do this,
+      executed automatically by a another preemptive thread (for example
+      a database request using a non-cooperative database library, such as 
+      postgresql-ocaml or pgocaml). To do this,
       use the <code>detach</code> function. For example:</p>
 *html*)
 let looong2 = 
@@ -1493,55 +1497,57 @@ let _ = register_service main
        <h2>Examples</h2>
        <h3>Simple pages</h3>
        <p>
-       Une page simple : $a coucou sp <:xmllist< coucou >> ()$ <br/>
-       Une page avec un compteur : $a compt sp <:xmllist< compt >> ()$ <br/> 
-       Une page simple dans un répertoire : 
+         A simple page: $a coucou sp <:xmllist< coucou >> ()$ <br/>
+         A page with a counter: $a compt sp <:xmllist< compt >> ()$ <br/> 
+         A page in a directory: 
            $a hello sp <:xmllist< dir/hello >> ()$ <br/>
        Default page of a directory:
            $a default sp <:xmllist< rep/ >> ()$</p>
        <h3>Parameters</h3>
        <p>
-       Une page avec paramètres GET : 
-           $a coucou_params sp <:xmllist< coucou avec params >> (45,(22,"krokodile"))$ (que se passe-t-il si le premier paramètre n'est pas un entier ?)<br/> 
-       Une page avec URL "préfixe" qui récupère l'IP et l'user-agent : 
+         A page with GET parameters: 
+           $a coucou_params sp <:xmllist< coucou with params >> (45,(22,"krokodile"))$ (what if the first parameter is not an integer?)<br/> 
+         A page with "prefix" URL that knows the IP and user-agent of the client: 
            $a uaprefix sp <:xmllist< uaprefix >> ("suf", "toto")$ <br/> 
-       Une page URL "préfixe" avec des paramètres GET : 
+         A page with "prefix" URL and GET parameters : 
            $a iprefix sp <:xmllist< iprefix >> ("popo", 333)$ <br/> 
-       Une page qui récupère un paramètre d'un type utilisateur : 
+         A page with a parameter of user-defined type : 
              $a mytype sp <:xmllist< mytype >> A$ </p>
        <h3>Links and Formulars</h3>
        <p>
-       Une page avec des liens : $a links sp <:xmllist< links >>  ()$ <br/> 
-       Une page avec un lien vers elle-même : 
+         A page with links: $a links sp <:xmllist< links >>  ()$ <br/> 
+         A page with a link towards itself: 
              $a linkrec sp <:xmllist< linkrec >> ()$ <br/>
-       The $a main sp <:xmllist< default page >> ()$ 
-           of this directory (myself) <br/>
-       Une page avec un formulaire GET qui pointe vers la page coucou avec params : 
+         The $a main sp <:xmllist< default page >> ()$ 
+             of this directory (myself) <br/>
+         A page with a GET form that leads to the "coucou" page with parameters: 
              $a form sp <:xmllist< form >> ()$ <br/> 
-       Un formulaire POST qui pointe vers la page "post" : 
+         A POST form towards the "post" page: 
              $a form2 sp <:xmllist< form2 >> ()$ <br/> 
-       La page "post" quand elle ne reçoit pas de paramètres POST : 
-             $a no_post_param_service sp <:xmllist< post sans post_params >> ()$ <br/> 
-       Un formulaire POST qui pointe vers une URL avec paramètres GET : 
+         The "post" page, when it does not receive parameters: 
+             $a no_post_param_service sp <:xmllist< post wihtout post_params >> ()$ <br/> 
+         A POST form towards a service with GET parameters: 
              $a form3 sp <:xmllist< form3 >> ()$ <br/> 
-       Un formulaire POST vers une page externe : 
+         A POST form towards an external page: 
              $a form4 sp <:xmllist< form4 >> ()$ </p> 
        <h3>Sessions</h3>
        <p>
-       Service locaux : 
-             $a auxiliaryserv sp <:xmllist< auxiliary >> ()$ (problème des paramètres GET bookmarkés...) <br/> 
-       Une session basée sur les cookies : 
+         Auxiliary services: 
+             $a auxiliaryserv sp <:xmllist< auxiliary >> ()$ (problem with bookmarked GET parameters ..s...) <br/> 
+         A session based on cookies: 
              $a public_session_without_post_params sp <:xmllist< session >> ()$ <br/> 
-       Une session avec des actions : 
+         A session based on cookies, implemented with actions: 
              $a action_session sp <:xmllist< actions >> ()$ <br/>
-       Une session avec "table de sessions" : 
+         Auxuiliary services in the session table:
              $a calc sp <:xmllist< calc >> ()$
-       - (ancienne version : $a shop_without_post_params sp <:xmllist< shop >> ()$)
+       <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< shop >> ()$) -->
        </p>
        <h3>Other</h3>
        <p>
-       A page that is very slow : 
+       A page that is very slow, implemented in cooperative way: 
              $a looong sp <:xmllist< looong >> ()$<br/>
+       A page that is very slow, using preemptive threads: 
+             $a looong sp <:xmllist< looong2 >> ()$<br/>
        Catching errors:
              $a catch sp <:xmllist< catch >> 22$ (change the value in the URL)<br/>
        </p>
