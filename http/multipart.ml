@@ -15,7 +15,7 @@ let header_stripped_re =
 
 let header_unstripped_re =
   S.regexp "([^ \t\r\n:]+):([ \t]*.*\n([ \t].*\n)*)";;
-(* This much simpler expression returnes the name and the unstripped 
+(* This much simpler expression returns the name and the unstripped 
  * value.
  *)
 
@@ -26,8 +26,8 @@ let end_of_header_re =
   S.regexp "\n\013?\n";;
 
 
-let scan_header ?(downcase=true) 
-                ?(unfold=true) 
+let scan_header ?(downcase=true)
+                ?(unfold=true)
                 ?(strip=false)
                 parstr ~start_pos:i0 ~end_pos:i1 =
   let header_re =

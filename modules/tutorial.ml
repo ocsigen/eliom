@@ -1216,8 +1216,6 @@ let looong =
      you can write <code>bind e1 (fun r -&gt; return e2)</code>.
      </p>
      <p>See $a Tutorial.looong sp <:xmllist< looong >> ()$.</p>
-    </div>
-    <div class="twocol2">
      <p><code>Lwt.bind</code>, (or <code>&gt;&gt;=</code>) has type<br/>
         <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
      <p><code>Lwt.return</code> has type<br/>
@@ -1230,6 +1228,8 @@ let looong =
      <code>Lwt_unix.yield ()</code>. The thread will suspend itself,
      let other threads run, and resume as soon as possible.
      </p>
+    </div>
+    <div class="twocol2">
      <h3>Catching exceptions</h3>
      <p>You must be careful when catching exception with <code>Lwt</code>.
      If you use the <code>try ... with</code> construct for an expression
@@ -1279,6 +1279,20 @@ let looong2 =
       <p>If you want to use a function that takes time to execute but
       it not written in thread-safe way, consider rewriting it in cooperative
       manner, or delegate the work to another process.</p>
+     <h3>Examples</h3>
+      <h4>A thread that prints "hello" every 10 seconds</h4>
+      <p>Just add the following lines to your program:</p>
+      <pre><span style="color:green">let rec</span> f () = 
+  print_endline "hello";
+  <span style="color:#0033cc">Lwt_unix</span>.sleep 10. &gt;&gt;= f
+in f ();
+      </pre>
+      <h4>Create a thread waiting for an event</h4>
+      <pre><span style="color:green">let</span> w = wait () in
+(w &gt;&gt;= (<span style="color:green">fun</span> v -&gt; return (print_endline v));
+...
+wakeup w "HELLO");
+      </pre>
     </div>
     <h2>Static parts</h2>
     <div class="twocol1">

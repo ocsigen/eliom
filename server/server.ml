@@ -232,10 +232,11 @@ let get_frame_infos http_frame filenames =
         match http_frame.Stream_http_frame.content with
           None -> return ([],[])
         | Some body -> 
-            let ct = (String.lowercase
-                  (Http_header.get_headers_value
-                     http_frame.Stream_http_frame.header "Content-Type")) in
-            if ct = "application/x-www-form-urlencoded"
+            let ct =
+              (Http_header.get_headers_value
+                 http_frame.Stream_http_frame.header "Content-Type") in
+            let ctlow = String.lowercase ct in
+            if ctlow = "application/x-www-form-urlencoded"
             then 
               catch
                 (fun () ->
@@ -248,7 +249,7 @@ let get_frame_infos http_frame filenames =
                   | e -> fail e)
             else 
               match (Netstring_pcre.string_match 
-                       (Netstring_pcre.regexp "multipart/form-data*")) ct 0
+                       (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
               with 
               | None -> fail Ocsigen_unsupported_media
               | _ ->
