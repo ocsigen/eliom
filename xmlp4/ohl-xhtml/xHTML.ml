@@ -1768,12 +1768,12 @@ module Version =
       ["pre"]
 
     let output version ?encode ?encoding outs page =
-      XML.decl ?encoding outs ();
+      (* XML.decl ?encoding outs (); Does not work with IE *)
       outs (doctype version);
       XML.output ~preformatted ~no_break ?encode outs page
     
     let pretty_print version ?width ?encode ?encoding outs page =
-      XML.decl ?encoding outs ();
+      (* XML.decl ?encoding outs (); Does not work with IE *)
       outs (doctype version);
       XML.pretty_print ?width ~preformatted ~no_break ?encode outs page
     
