@@ -631,8 +631,8 @@ let xh_print ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags do
   in
   pp_set_margin str_formatter width;
   pp_open_tbox xh_string ();
-  pp_print_string xh_string xh_topxml;
-  pp_force_newline xh_string ();
+(*  pp_print_string xh_string xh_topxml; Does not work with IE ...
+  pp_force_newline xh_string (); *)
   pp_print_string xh_string doctype;
   pp_force_newline xh_string ();
 
