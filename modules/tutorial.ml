@@ -394,7 +394,7 @@ let links = register_new_service ["rep";"links"] unit
       <p>See $a Tutorial.links sp <:xmllist< links >> ()$.</p>
       <p>
       Note that to create a (relative) link we need to know the current URL.
-      That's why the page has a <code>current_url</code> parameter.<br/>
+      That's why the page has a <code>sp</code> parameter.<br/>
       The link to Wikipedia shows how to define an external service (here it 
       uses a prefix URL).</p>
       <p>
@@ -1308,8 +1308,8 @@ wakeup w "HELLO");
                 <br/>
                 For example</p>
          <pre><span class="Cconstructor">Ocsigen</span>.a 
-  static_dir
-  current_url
+  (static_dir sp)
+  sp
   [pcdata "download image"] 
   "$str:small_logo$"</pre>
           <p>creates this link:
@@ -1330,32 +1330,32 @@ wakeup w "HELLO");
     <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> (static_dir sp) sp <span class="Cstring">"ocsigen1024.jpg"</span>)
     ()</pre>
       <p>The function <code><span class="Cem">make_uri</span></code>
-        creates the relative URL string from <code>current_url</code>
+        creates the relative URL string from current URL (in <code>sp</code>)
         (see above) to the URL of the image in the static directory
         configured in the configuration file.
       </p>
       <p>To simplify the creation of <code>&lt;link&gt;</code> tags
       for CSS or <code>&lt;script&gt;</code> tags for Javascript,
         use the following functions:</p>
-      <pre><span class="Cem">css_link</span> (make_uri static_dir current_url <span class="Cstring">"style.css"</span>)</pre>
-      <pre><span class="Cem">js_script</span> (make_uri static_dir current_url <span class="Cstring">"funs.js"</span>)</pre>
+      <pre><span class="Cem">css_link</span> (make_uri (static_dir sp) sp <span class="Cstring">"style.css"</span>)</pre>
+      <pre><span class="Cem">js_script</span> (make_uri (static_dir sp) sp <span class="Cstring">"funs.js"</span>)</pre>
       <h3>Menus</h3>
       <p>
       To make a menu an your web page, you can use the function 
           <code><span class="Cem">Ocsigenboxes.menu</span></code>.
       First, define your menu like this:
       </p>
-<pre><span class="Clet">let</span> mymenu current current_url <span class="Cnonalphakeyword">=</span>
+<pre><span class="Clet">let</span> mymenu current sp <span class="Cnonalphakeyword">=</span>
   <span class="Cconstructor">Ocsigenboxes</span>.menu <span class="Clabel">~classe:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"menuprincipal"</span><span class="Cnonalphakeyword">]</span>
     <span class="Cnonalphakeyword">[</span>
      <span class="Cnonalphakeyword">(</span>home<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> Home &gt;&gt;<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
      <span class="Cnonalphakeyword">(</span>infos<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> More infos &gt;&gt;<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
      <span class="Cnonalphakeyword">(</span>tutorial<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> Documentation &gt;&gt;<span class="Cnonalphakeyword">)</span>
-   <span class="Cnonalphakeyword">]</span> current current_url</pre>
+   <span class="Cnonalphakeyword">]</span> current sp</pre>
       <p>Here, <code>home</code>,  <code>infos</code>, 
         and <code>tutorial</code> are your three pages (generated for example
         by <code>Ocsigen.new_url</code>).</p>
-      <p>Then <code>mymenu home current_url</code> will generate the following
+      <p>Then <code>mymenu home sp</code> will generate the following
         code:</p>
       <pre>&lt;ul class="menu menuprincipal"&gt;
   &lt;li class="current first"&gt;Home

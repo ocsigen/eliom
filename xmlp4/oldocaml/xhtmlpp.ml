@@ -1406,7 +1406,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 
     and xh_print (arbre : xhtml)  = 
         pp_open_tbox xh_string ();
-    pp_print_string xh_string xh_topxml;
+    (* pp_print_string xh_string xh_topxml; Does not work with IE ... *)
     pp_force_newline xh_string ();
     pp_print_string xh_string xh_topdoctype;
     pp_force_newline xh_string ();
