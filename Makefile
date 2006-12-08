@@ -97,7 +97,7 @@ fullinstall: doc install
 	chmod a+r $(CONFIGDIR)/ocsigen.conf
 	chmod a+r $(CONFIGDIR)/mime.types
 	mkdir -p $(DOCDIR)
-	cp -a doc/* $(DOCDIR)
+	install -d -m 644 doc/* $(DOCDIR)
 	chmod a+rx $(DOCDIR)
 	chmod a+r $(DOCDIR)/*
 

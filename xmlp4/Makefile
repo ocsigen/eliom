@@ -11,16 +11,16 @@ VERSION = $(shell bash -c '\
 
 all:
 	@if (test '$(VERSION)' = 'OLD');\
-	then make -C oldocaml all;\
-	else make -C newocaml all;\
+	then $(MAKE) -C oldocaml all;\
+	else $(MAKE) -C newocaml all;\
 	fi
 
 clean:
 	rm .depend
 	touch oldocaml/.depend
 	touch newocaml/.depend
-	make -C oldocaml clean
-	make -C newocaml clean
+	$(MAKE) -C oldocaml clean
+	$(MAKE) -C newocaml clean
 	rm oldocaml/.depend
 	rm newocaml/.depend
 
@@ -28,6 +28,6 @@ depend:
 	> oldocaml/.depend
 	> newocaml/.depend
 	@if (test '$(VERSION)' = 'OLD');\
-	then make -C oldocaml depend;\
-	else make -C newocaml depend;\
+	then $(MAKE) -C oldocaml depend;\
+	else $(MAKE) -C newocaml depend;\
 	fi
