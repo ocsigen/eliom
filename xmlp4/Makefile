@@ -25,8 +25,8 @@ clean:
 	rm newocaml/.depend
 
 depend:
-	> oldocaml/.depend
-	> newocaml/.depend
+	touch oldocaml/.depend
+	touch newocaml/.depend
 	@if (test '$(VERSION)' = 'OLD');\
 	then $(MAKE) -C oldocaml depend;\
 	else $(MAKE) -C newocaml depend;\
