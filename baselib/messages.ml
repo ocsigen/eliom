@@ -20,6 +20,9 @@ let access = "access.log",ref Unix.stdout
 let warning = "warnings.log",ref Unix.stderr
 let error = "errors.log",ref Unix.stderr
 
+(* Several processes will access the same files, but if I am right, 
+   it is not a problem when opening with O_APPEND
+ *)
 let open_files =
   let opened = ref false in
   let openlog f =
@@ -92,3 +95,7 @@ let bip i =
   if Ocsiconfig.get_veryverbose () then
     prerr_endline ("bip"^(string_of_int i))
 
+let console s =
+  if (not (Ocsiconfig.get_silent ()))
+  then print_endline s
+      

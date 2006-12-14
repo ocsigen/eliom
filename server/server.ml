@@ -1008,48 +1008,63 @@ let _ = try
     if (get_maxthreads ()) < (get_minthreads ())
     then 
       raise (Config_file_error "maxthreads should be greater than minthreads");
-
+    
     Lwt_unix.run 
       (let wait_end_init = wait () in
-       (* Listening on all ports: *)
-       List.iter 
-         (fun i -> 
-           ignore (listen false i wait_end_init)) (Ocsiconfig.get_ports ());
-       List.iter 
-         (fun i ->
-           ignore (listen true i wait_end_init)) (Ocsiconfig.get_sslports ());
-
-
-       (* Je suis fou :
-          let rec f () = 
-            (* print_string "-"; *)
-            Lwt_unix.yield () >>= f
-          in f(); *)
-
-
-       (* I change the user for the process *)
-       (try
-         Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
-         Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
-       with e -> errlog ("Error: Wrong user or group"); raise e);
-       
-       (* Now I can load the modules *)
-       load_modules (Ocsiconfig.get_modules ());
-
-       (* A thread that kills old connections every n seconds *)
-       ignore (Http_com.Timeout.start_timeout_killer ());
-       
-       ignore (Preemptive.init 
-                 (Ocsiconfig.get_minthreads ()) 
-                 (Ocsiconfig.get_maxthreads ()));
-
-       end_initialisation ();
-
-       wakeup wait_end_init ();
-       
-       warning "Ocsigen has been launched (initialisations ok)";
-
-       wait ()
+      (* Listening on all ports: *)
+      List.iter 
+        (fun i -> 
+          ignore (listen false i wait_end_init)) (Ocsiconfig.get_ports ());
+      List.iter 
+        (fun i ->
+          ignore (listen true i wait_end_init)) (Ocsiconfig.get_sslports ());
+      
+      
+      (* Je suis fou :
+         let rec f () = 
+         (* print_string "-"; *)
+         Lwt_unix.yield () >>= f
+         in f(); *)
+      
+      
+      (* I change the user for the process *)
+      (try
+        Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
+        Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
+      with e -> errlog ("Error: Wrong user or group"); raise e);
+      
+      (* Now I can load the modules *)
+      load_modules (Ocsiconfig.get_modules ());
+      
+      (* Closing stderr, stdout stdin if silent *)
+      if (Ocsiconfig.get_silent ())
+      then begin
+        (* redirect stdout and stderr to /dev/null *)
+        let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
+        Unix.dup2 devnull Unix.stdout;
+        Unix.dup2 devnull Unix.stderr;
+        Unix.close devnull;
+        Unix.close Unix.stdin;
+      end;
+      
+      (* detach from the terminal *)
+      if (Ocsiconfig.get_daemon ())
+      then ignore (Unix.setsid ());
+          
+      (* A thread that kills old connections every n seconds *)
+      ignore (Http_com.Timeout.start_timeout_killer ());
+      
+      ignore (Preemptive.init 
+                (Ocsiconfig.get_minthreads ()) 
+                (Ocsiconfig.get_maxthreads ()));
+      
+      end_initialisation ();
+      
+      wakeup wait_end_init ();
+      
+      warning "Ocsigen has been launched (initialisations ok)";
+      
+      wait ()
       )
   in
 
@@ -1089,7 +1104,7 @@ let _ = try
         if pid = 0
         then run h
         else begin
-          print_endline ("Process "^(string_of_int pid)^" detached");
+          Messages.console ("Process "^(string_of_int pid)^" detached");
           write_pid pid;
           launch t
         end

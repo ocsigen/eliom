@@ -104,7 +104,7 @@ let set_default_static_dir cf s =
 let set_mimefile cf s = cf.mimefile <- s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
-let set_daemon () = daemon := true
+let set_daemon () = set_silent (); daemon := true
 let set_veryverbose () = verbose := true; veryverbose := true
 let set_user cf s = cf.user <- s
 let set_group cf s = cf.group <- s
@@ -171,7 +171,7 @@ let _ = Arg.parse
      ("--verbose", Arg.Unit set_verbose, "Verbose mode");
      ("-V", Arg.Unit set_veryverbose, "Very verbose mode (debug)");
      ("--veryverbose", Arg.Unit set_veryverbose, "Very verbose mode (debug)");
-     ("-d", Arg.Unit set_daemon, "Daemon mode (detach the process) (This is the default when there are more than 1 process)");
+     ("-d", Arg.Unit set_daemon, "Daemon mode (detach the process)");
      ("--daemon", Arg.Unit set_daemon, "Daemon mode (detach the process) (This is the default when there are more than 1 process)");
      ("--version", Arg.Unit display_version, "Display version number and exit")
    ]

@@ -104,6 +104,14 @@ fullinstall: doc install
 	install -m 644 doc/oc/* $(DOCDIR)/oc
 	chmod a+rx $(DOCDIR)
 	chmod a+r $(DOCDIR)/*
+	[ -d /etc/logrotate.d ] && \
+	 { cat files/logrotate.IN \
+	   | sed s%LOGDIR%$(LOGDIR)%g \
+	   | sed s%USER%$(OCSIGENUSER)%g \
+	   | sed s%GROUP%$(OCSIGENGROUP)%g \
+	  > /etc/logrotate.d/$(OCSIGENNAME); }
+	install -d -m 755 $(MANDIR)
+	install -m 644 files/ocsigen.1 $(MANDIR)
 
 
 .PHONY: uninstall fulluninstall
