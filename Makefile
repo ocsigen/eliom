@@ -55,8 +55,8 @@ clean:
 	-rm -f bin/* *~
 
 depend: xmlp4
-	> lwt/depend
-	@for i in $(REPS) ; do > "$$i"/.depend; $(MAKE) -C $$i depend ; done
+	touch lwt/depend
+	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 
 
 .PHONY: install fullinstall doc
