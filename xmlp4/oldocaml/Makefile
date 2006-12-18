@@ -68,7 +68,6 @@ clean:
 	-rm -f *.cm[ioax] *~ *.annot
 	$(MAKE) -C exemple clean
 	$(MAKE) -C ../ohl-xhtml clean
-	touch .depend
 
 
 # Dependencies
