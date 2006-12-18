@@ -50,8 +50,8 @@ doc:
 	$(CAMLDOC) $(PP) -I lib -d doc/oc -html server/ocsigen.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli baselib/messages.ml
 
 clean:
-	@for i in $(REPS) ; do touch "$$i"/.depend ; done
-	@for i in $(REPS) ; do $(MAKE) -C $$i clean ; rm -f "$$i"/.depend ; done
+	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
+	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; rm -f "$$i"/.depend ; done
 	-rm -f lib/* *~
 	-rm -f bin/* *~
 

@@ -19,8 +19,8 @@ clean:
 	rm .depend
 	touch oldocaml/.depend
 	touch newocaml/.depend
-	$(MAKE) -C oldocaml clean
-	$(MAKE) -C newocaml clean
+	-$(MAKE) -C oldocaml clean
+	-$(MAKE) -C newocaml clean
 	rm oldocaml/.depend
 	rm newocaml/.depend
 
