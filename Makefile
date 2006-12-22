@@ -51,7 +51,7 @@ doc:
 
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
-	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; rm -f "$$i"/.depend ; done
+	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
 	-rm -f lib/* *~
 	-rm -f bin/* *~
 
@@ -125,6 +125,4 @@ fulluninstall: uninstall
 #	rm -f $(CONFIGDIR)/ocsigen.conf
 #	rm -f $(LOGDIR)/ocsigen.log
 #	rm -rf $(MODULEINSTALLDIR)
-
-
 

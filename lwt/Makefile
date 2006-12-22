@@ -63,7 +63,7 @@ uninstall:
 	$(OCAMLFIND) remove $(NAME)
 
 clean::
-	rm -f *.cmi *.cmo *.cmx *.cma *.cmxa *.a *.o *~ *.bak *.annot depend
+	rm -f *.cmi *.cmo *.cmx *.cma *.cmxa *.a *.o *~ *.bak *.annot
 
 clean::
 	cd example && make clean
