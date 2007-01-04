@@ -161,7 +161,7 @@ let parse_config page_tree path = function
       set_static_dir page_tree (Parseconfig.parse_string s) path
   | Simplexmlparser.ExprOrPatt.EPanytag (t, _, _) -> 
       raise (Bad_config_tag_for_extension t)
-  | _ -> raise Error_in_config_file
+  | _ -> raise (Error_in_config_file "(staticmod extension)")
 
 
 (*****************************************************************************)

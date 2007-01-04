@@ -29,6 +29,10 @@ open Xhtmltypes
 open Extensions
 open Ocsigenmod
 
+(** *)
+val get_config : unit -> 
+  Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist
+
 (** This function may be used for services that can not be interrupted
   (no cooperation point for threads). It is defined by
   [let sync f sp g p = Lwt.return (f sp g p)]

@@ -618,7 +618,11 @@ let gen page_tree ri =
 
 (*****************************************************************************)
 (** Module loading *)
-let load_ocsigen_module pages_tree path cmo =
+open Simplexmlparser.ExprOrPatt
+let config = ref PLEmpty
+
+let load_ocsigen_module pages_tree path cmo content =
+  config := content;
   begin_load_ocsigen_module ();
   absolute_change_hostdir (pages_tree, path);
   (try
@@ -629,18 +633,26 @@ let load_ocsigen_module pages_tree path cmo =
              ("(ocsigenmod extension) "^cmo^": "^
               (Dynlink.error_message e))));
   (* absolute_change_hostdir save_current_dir; *)
-  end_load_ocsigen_module ()
+  end_load_ocsigen_module ();
+  config := PLEmpty
 
 
 (*****************************************************************************)
 (** Parsing of config file *)
 let parse_config page_tree path = function
-    Simplexmlparser.ExprOrPatt.EPanytag 
-      ("module", Simplexmlparser.ExprOrPatt.PLEmpty, s) -> 
-        load_ocsigen_module page_tree path (Parseconfig.parse_string s)
-  | Simplexmlparser.ExprOrPatt.EPanytag (t, _, _) -> 
-      raise (Bad_config_tag_for_extension t)
-  | _ -> raise Error_in_config_file
+    EPanytag 
+      ("module", atts, content) -> 
+        let mo = match atts with
+        | PLEmpty -> 
+            raise (Error_in_config_file
+                     "file attribute expected for <module>")
+        | PLCons ((EPanyattr (EPVstr("file"), EPVstr(s))), PLEmpty) -> s
+        | _ -> raise (Error_in_config_file "Wrong attribute for <module>")
+        in
+        load_ocsigen_module page_tree path mo content
+  | EPanytag (t, _, _) -> 
+      raise (Extensions.Bad_config_tag_for_extension t)
+  | _ -> raise (Error_in_config_file "(Ocsigenmod extension)")
 
 
 (*****************************************************************************)

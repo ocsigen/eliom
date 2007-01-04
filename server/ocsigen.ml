@@ -27,6 +27,8 @@ open Ocsigenmod
 
 let _ = Random.self_init ()
 
+let get_config () = !Ocsigenmod.config
+
 type current_url = Extensions.current_url
 type url_path = Extensions.url_path
 type server_params = Ocsigenmod.server_params

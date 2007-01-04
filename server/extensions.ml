@@ -42,7 +42,7 @@ exception Ocsigen_Typing_Error of (string * exn) list
 exception Ocsigen_Internal_Error of string
 exception Ocsigen_error_while_loading_site of string
 exception Bad_config_tag_for_extension of string
-exception Error_in_config_file
+exception Error_in_config_file of string
 
 (*****************************************************************************)
 (** type of URL, without parameter *)
@@ -110,7 +110,7 @@ let register_extension, create_virthost, get_beg_init, get_end_init =
   let fun_create_virthost =
     ref (fun hostpattern -> 
       ((fun ri -> return Ext_not_found), 
-       (fun path xml -> raise Error_in_config_file)))
+       (fun path xml -> raise (Error_in_config_file "No extension loaded"))))
   in
   let fun_beg = ref (fun () -> ()) in
   let fun_end = ref (fun () -> ()) in
@@ -131,7 +131,7 @@ let register_extension, create_virthost, get_beg_init, get_end_init =
            try
              p1 path xml
            with 
-             Error_in_config_file
+             Error_in_config_file _
            | Bad_config_tag_for_extension _ -> p2 path xml)));
     fun_beg := comp b !fun_beg;
     fun_end := comp e !fun_end),

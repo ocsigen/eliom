@@ -40,7 +40,7 @@ exception Ocsigen_error_while_loading_site of string
 exception Ocsigen_Typing_Error of (string * exn) list
 exception Ocsigen_Internal_Error of string
 exception Bad_config_tag_for_extension of string
-exception Error_in_config_file
+exception Error_in_config_file of string
 
 (*****************************************************************************)
 (** type of URLs, without parameter *)

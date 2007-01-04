@@ -64,6 +64,9 @@ val action_prefix : string
 val action_name : string
 val action_reload : string
 
+val config : 
+    Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ref
+
 (** Profiling *)
 (* val number_of_sessions : unit -> int *)
 
