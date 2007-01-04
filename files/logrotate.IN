@@ -1,0 +1,10 @@
+LOGDIR/*.log {
+        weekly
+        missingok
+        rotate 52
+        compress
+        delaycompress
+        notifempty
+        create 640 USER GROUP
+        sharedscripts
+}

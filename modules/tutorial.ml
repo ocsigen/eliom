@@ -62,10 +62,11 @@ let coucou =
       Add the following lines to Ocsigen's config file 
       (usually <code>/etc/ocsigen/ocsigen.conf</code>):
       </p>
-      <pre>&lt;site&gt;
-  &lt;url&gt;examples&lt;/url&gt;
+      <pre>&lt;host&gt;
+ &lt;site dir="examples"&gt;
   &lt;module&gt;/<em>path_to</em>/tutorial.cmo&lt;/module&gt;
-&lt;/site&gt;</pre>
+ &lt;/site&gt;
+&lt;/host&gt;</pre>
       <p>Then run ocsigen. You should see your page at url
            <code>http://<em>your_server</em>/examples/coucou</code>.
            See this example $a Tutorial.coucou sp <:xmllist< here >> ()$.
@@ -74,6 +75,8 @@ let coucou =
               which your server is running, the user who runs it, the path
             of the log files, etc.
       </p>
+      <p>Here is a sample 
+>>>>>>>>vérifier   $a (static_dir sp) sp [pcdata "Makefile"] "Makefile"$ for your modules.</p>
       <h3>Static typing of XHTML</h3>
         <p>
         Typing of html is very strict and forces you to respect
@@ -287,7 +290,7 @@ let uaprefix =
                pcdata ", your user-agent is ";
                strong [pcdata (get_user_agent sp)];
                pcdata ", your IP is ";
-               strong [pcdata (Unix.string_of_inet_addr (get_ip sp))];
+               strong [pcdata (get_ip sp)];
                pcdata " and s is ";
                strong [pcdata s]]])))
 (*html*
@@ -364,28 +367,28 @@ let catch = register_new_service
       </p>
 *html*)
 let links = register_new_service ["rep";"links"] unit
-    (fun sp () () -> return
-      (html
-         (head (title (pcdata "")) [])
-         (body 
-            [p
-               [a coucou sp [pcdata "coucou"] (); br ();
-                a hello sp [pcdata "hello"] (); br ();
-                a default sp 
-                  [pcdata "default page of the directory"] (); br ();
-                a uaprefix sp 
-                  [pcdata "uaprefix"] ("suff","toto"); br ();
-                a coucou_params sp 
-                  [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-                a
-                  (new_external_service
-                     ~url:["http://fr.wikipedia.org";"wiki"]
-                     ~prefix:true
-                     ~get_params:suffix_only
-                     ~post_params:unit ()) 
-                  sp
-                  [pcdata "ocaml on wikipedia"]
-                  "OCaml"]])))
+ (fun sp () () -> return
+   (html
+     (head (title (pcdata "")) [])
+     (body 
+       [p
+        [a coucou sp [pcdata "coucou"] (); br ();
+         a hello sp [pcdata "hello"] (); br ();
+         a default sp 
+           [pcdata "default page of the dir"] (); br ();
+         a uaprefix sp 
+           [pcdata "uaprefix"] ("suff","toto"); br ();
+         a coucou_params sp 
+           [pcdata "coucou_params"] (42,(22,"ciao")); br ();
+         a
+           (new_external_service
+              ~url:["http://fr.wikipedia.org";"wiki"]
+              ~prefix:true
+              ~get_params:suffix_only
+              ~post_params:unit ()) 
+           sp
+           [pcdata "ocaml on wikipedia"]
+           "OCaml"]])))
 (*zap* 
    Note that to create a link we need to know the current url, because:
    the link from toto/titi to toto/tata is "tata" and not "toto/tata"
@@ -479,10 +482,11 @@ let create_form =
 *zap*)
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
-     let f = get_form coucou_params sp create_form in  return
-     (html
-       (head (title (pcdata "")) [])
-       (body [f])))
+     let f = get_form coucou_params sp create_form in 
+     return
+       (html
+         (head (title (pcdata "")) [])
+         (body [f])))
 (*html*
       <p>See the function $a Tutorial.form sp <:xmllist< form >> ()$ in action.</p>
 
@@ -511,7 +515,8 @@ let no_post_param_service =
          (body [h1 [pcdata 
                       "Version of the page without POST parameters"]])))
     
-let my_service_with_post_params = register_new_post_service
+let my_service_with_post_params = 
+  register_new_post_service
     ~fallback:no_post_param_service
     ~post_params:(string "value")
     (fun _ () value ->  return
@@ -525,8 +530,9 @@ let get_no_post_param_service =
   register_new_service 
     ~url:["post2"]
     ~get_params:(int "i")
-    (fun _ i () ->  return
-      (html
+    (fun _ i () -> 
+      return
+        (html
          (head (title (pcdata "")) [])
          (body [p [pcdata "No POST parameter, i:";
                    em [pcdata (string_of_int i)]]])))
@@ -537,7 +543,8 @@ let get_no_post_param_service =
 let my_service_with_get_and_post = register_new_post_service 
   ~fallback:get_no_post_param_service
   ~post_params:(string "value")
-  (fun _ i value ->  return
+  (fun _ i value -> 
+    return
       (html
          (head (title (pcdata "")) [])
          (body [p [pcdata "Value: ";
@@ -560,19 +567,23 @@ let form2 = register_new_service ["form2"] unit
        (post_form my_service_with_post_params sp
           (fun chaine -> 
             [p [pcdata "Write a string: ";
-                string_input chaine]]) ()) in  return
-     (html
-        (head (title (pcdata "form")) [])
-        (body [f])))
+                string_input chaine]]) ()) in
+     return
+       (html
+         (head (title (pcdata "form")) [])
+         (body [f])))
 
 let form3 = register_new_service ["form3"] unit
   (fun sp () () ->
      let f  = 
        (post_form my_service_with_get_and_post sp
           (fun chaine -> 
-            <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
+            <:xmllist< <p> Write a string: 
+                    $string_input chaine$ </p> >>)
           222) in  return
-       << <html><head><title></title></head><body>$f$</body></html> >>)
+       << <html>
+            <head><title></title></head>
+            <body>$f$</body></html> >>)
 
 let form4 = register_new_service ["form4"] unit
   (fun sp () () ->
@@ -583,7 +594,8 @@ let form4 = register_new_service ["form4"] unit
              ~get_params:(int "i")
              ~post_params:(string "chaine") ()) sp
           (fun chaine -> 
-            <:xmllist< <p> Write a string: $string_input chaine$ </p> >>)
+            <:xmllist< <p> Write a string: 
+	             $string_input chaine$ </p> >>)
           222) in return
      (html
         (head (title (pcdata "form")) [])
@@ -627,7 +639,8 @@ let form4 = register_new_service ["form4"] unit
 *html*)
 let auxiliaryserv = new_service ["auxiliary"] unit ()
 
-let auxiliaryserv2 = new_auxiliary_service ~fallback:auxiliaryserv
+let auxiliaryserv2 = 
+  new_auxiliary_service ~fallback:auxiliaryserv
 
 let _ = 
   let c = ref 0 in
@@ -635,8 +648,9 @@ let _ =
     let l3 = post_form auxiliaryserv2 sp 
         (fun _ -> [p [submit_input "incr i (post)"]]) () in
     let l4 = get_form auxiliaryserv2 sp 
-        (fun _ -> [p [submit_input "incr i (get)"]]) in return
-    (html
+        (fun _ -> [p [submit_input "incr i (get)"]]) in 
+    return
+      (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "i is equal to ";
                  pcdata (string_of_int !c); br ();
@@ -646,7 +660,8 @@ let _ =
               l4]))
   in
     register_service auxiliaryserv page;
-    register_service auxiliaryserv2 (fun sp () () -> c := !c + 1; page sp () ())
+    register_service auxiliaryserv2
+      (fun sp () () -> c := !c + 1; page sp () ())
 (*html*
     </div>
     <div class="twocol2">
@@ -882,7 +897,8 @@ let _ =
     ~service:calc_post
     (fun sp () i ->
       let is = string_of_int i in
-      let calc_result = register_new_post_auxiliary_service_for_session
+      let calc_result = 
+	register_new_post_auxiliary_service_for_session
           sp
           ~fallback:calc
           ~post_params:(int "j")
@@ -895,8 +911,11 @@ let _ =
                   [p [pcdata (is^" + "^js^" = "^ijs)]])))
       in
       let f = 
-        post_form calc_result sp (create_form is) () in return
-      (html (head (title (pcdata "")) []) (body [f])))
+        post_form calc_result sp (create_form is) () in 
+      return
+        (html
+	   (head (title (pcdata "")) [])
+	   (body [f])))
 (*html*
     </div>
     <div class="twocol2">
@@ -912,8 +931,11 @@ let _ =
   register_service
     calc
     (fun sp () () ->
-      let f = post_form calc_post sp create_form () in return
-      (html (head (title (pcdata "")) []) (body [f])))
+      let f = post_form calc_post sp create_form () in
+      return
+        (html 
+	   (head (title (pcdata "")) [])
+	   (body [f])))
 (*html*
       <p>See the $a Tutorial.calc sp <:xmllist< result >> ()$.</p>
       <p>Services registered in session tables are called 
@@ -972,9 +994,10 @@ let _ =
       <p>Here we rewrite the example <code>session</code> using actions.</p>
 *html*)
 let action_session = 
-   new_service ~url:["action"] ~get_params:unit ()
+  new_service ~url:["action"] ~get_params:unit ()
 
-let connect_action = new_action ~post_params:(string "login")
+let connect_action = 
+  new_action ~post_params:(string "login")
 
 let accueil_action sp () () = 
   let f = action_form connect_action sp
@@ -996,7 +1019,8 @@ let rec launch_session sp login =
   let deconnect_action = 
    register_new_action_for_session sp unit 
       (fun sp () -> return (close_session sp)) in
-  let deconnect_box sp s = action_a deconnect_action sp s in
+  let deconnect_box sp s = 
+    action_a deconnect_action sp s in
   let new_main_page sp () () = return
     (html
       (head (title (pcdata "")) [])
@@ -1007,7 +1031,8 @@ let rec launch_session sp login =
                 a links sp [pcdata "links"] (); br ()];
              deconnect_box sp [pcdata "Close session"]]))
   in
-  register_service_for_session sp ~service:action_session new_main_page;
+  register_service_for_session 
+    sp ~service:action_session new_main_page;
   register_service_for_session sp coucou
    (fun _ () () -> return
      (html
@@ -1197,7 +1222,8 @@ let looong =
         return
         (html
           (head (title (pcdata "")) [])
-          (body [h1 [pcdata "Ok now, you can read the page."]]))))
+          (body [h1 [pcdata 
+	           "Ok now, you can read the page."]]))))
 (*html*
      <p>The <code>&gt;&gt;=</code> operator (from <code>Lwt</code>) is used to
      specify a sequence of computations that depend one from another.
@@ -1262,7 +1288,8 @@ let looong2 =
         return
         (html
           (head (title (pcdata "")) [])
-          (body [h1 [pcdata "Ok now, you can read the page."]]))))
+          (body [h1 [pcdata 
+		   "Ok now, you can read the page."]]))))
 (*html*
       <p>See $a Tutorial.looong2 sp <:xmllist< looong2 >> ()$.</p>      
       <p>A pool of preemptive threads is waiting for such 

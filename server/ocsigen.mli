@@ -26,6 +26,8 @@
 
 open XHTML.M
 open Xhtmltypes
+open Pagegen
+open Ocsigenmod
 
 (** This function may be used for services that can not be interrupted
   (no cooperation point for threads). It is defined by
@@ -60,16 +62,17 @@ type server_params
 val get_user_agent : server_params -> string
 val get_hostname : server_params -> string option
 val get_full_url : server_params -> string
-val get_ip : server_params -> Unix.inet_addr
+val get_inet_addr : server_params -> Unix.inet_addr
+val get_ip : server_params -> string
+val get_port : server_params -> int
 val get_get_params : server_params -> (string * string) list
 val get_post_params : server_params -> (string * string) list
 val get_current_url : server_params -> url_path
 
-type fileinfo
 (** Type of files *)
-val get_tmp_filename : fileinfo -> string
-val get_filesize : fileinfo -> int64
-val get_original_filename : fileinfo -> string
+val get_tmp_filename : file_info -> string
+val get_filesize : file_info -> int64
+val get_original_filename : file_info -> string
 
 type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 (** Binary sums *)
@@ -100,8 +103,8 @@ val bool :
    (to use for example with boolean checkboxes) *)
 
 val file :
-    string -> (fileinfo, [ `WithoutSuffix ], 
-               fileinfo param_name) params_type
+    string -> (file_info, [ `WithoutSuffix ], 
+               file_info param_name) params_type
 (** [file s] tells that the page takes a file as parameter, labeled [s] *)
 
 val radio_answer :
@@ -498,7 +501,7 @@ module Xhtml : sig
 (** Creates a submit [<input>] tag *)
 
   val file_input : ?a:(input_attrib attrib list ) ->
-    ?value:string -> fileinfo param_name -> [> input ] elt
+    ?value:string -> file_info param_name -> [> input ] elt
 
   val action_a : ?a:(a_attrib attrib list) ->
     ?reload:bool ->
@@ -538,8 +541,8 @@ module type PAGES =
     type textarea_elt
     type input_elt
     type pcdata_elt
-    val create_sender : Sender_helpers.create_sender_type
-    val send : content:page -> Sender_helpers.send_page_type
+    val create_sender : Predefined_senders.create_sender_type
+    val send : content:page -> Predefined_senders.send_page_type
     type a_attrib_t
     type form_attrib_t
     type input_attrib_t
@@ -812,7 +815,7 @@ module type OCSIGENSIG =
             rows:int -> cols:int -> pcdata_elt -> textarea_elt
     val submit_input : ?a:input_attrib_t -> string -> input_elt
     val file_input : ?a:input_attrib_t -> ?value:string -> 
-                    fileinfo param_name ->input_elt
+                    file_info param_name ->input_elt
   end
 
 module Make : functor (Pages: PAGES) -> OCSIGENSIG with 

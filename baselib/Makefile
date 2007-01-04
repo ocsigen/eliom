@@ -6,7 +6,7 @@ else
 DBG =
 endif
 
-FILES= ocsimisc.ml messages.ml ocsiconfig.ml parseconfig.ml
+FILES= ocsimisc.ml messages.ml ocsiconfig.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)

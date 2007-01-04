@@ -21,39 +21,8 @@
 open Ocsimisc
 
 exception Config_file_error of string
-let number_of_servers = ref 0
 
-type modules = 
-    Cmo of string 
-  | Host of 
-      virtual_hosts * 
-        ((string list (* path *) *
-         (string list (* cmo to be loaded *) *
-                 string option (* static dir *))) list)
-
-type config = { mutable ports: int list;
-                mutable sslports: int list;
-		mutable modu: modules list;
-		mutable private_key: string option;
-		mutable certificate: string option;
-		mutable uploaddir: string option;
-		mutable logdir: string;
-		mutable default_static_dir: string option;
-		mutable user: string;
-		mutable group: string;
-		mutable minthreads: int;
-		mutable maxthreads: int;
-		mutable max_number_of_threads_queued: int;
-		mutable max_number_of_connections: int;
-		mutable mimefile: string;
-		mutable connect_time_max: float;
-		mutable keepalive_timeout: float;
-		mutable netbuffersize: int;
-		mutable filebuffersize: int;
-		mutable maxuploadfilesize: int64 option;
-		mutable maxrequestbodysize: int64 option
-	      }
-
+(* General config *)
 let config_file = ref "_CONFIGDIR_/ocsigen.conf"
 let verbose = ref false
 let silent = ref false
@@ -63,90 +32,70 @@ let version_number = (**)"0000000000000000"(**)
 let mimefile = ref "_CONFIGDIR_/mime.types"
 let pidfile = ref None
 
-let init_config () = 
-  {ports = [];
-   sslports = [];
-   modu = [];
-   private_key = None; 
-   certificate = None; 
-   uploaddir = None; logdir = "_LOGDIR_"; 
-   default_static_dir = None;
-   user = "_OCSIGENUSER_"; group = "_OCSIGENGROUP_";
-   minthreads = 10; 
-   maxthreads = 1500; 
-   max_number_of_threads_queued = 100;
-   max_number_of_connections = 500;
-   mimefile = "_CONFIGDIR_/mime.types"; 
-   connect_time_max = 60.;
-   keepalive_timeout = 15.;
-   netbuffersize = 8000;
-   filebuffersize = 500;
-   maxrequestbodysize = Some (Int64.of_int 8000000);
-   maxuploadfilesize = Some (Int64.of_int 2000000);
- }
+(* Server config: *)
+let (uploaddir : string option ref) = ref None
+let logdir = ref "_LOGDIR_" 
+let (default_static_dir : string option ref) = ref None
+let default_user = ref "_OCSIGENUSER_" 
+let default_group = ref "_OCSIGENGROUP_"
+let minthreads = ref 10 
+let maxthreads = ref 1500 
+let max_number_of_threads_queued = ref 100
+let max_number_of_connections = ref 500
+let mimefile = ref "_CONFIGDIR_/mime.types" 
+let connect_time_max = ref 60.
+let keepalive_timeout = ref 15.
+let netbuffersize = ref 8000
+let filebuffersize = ref 500
+let maxrequestbodysize = ref (Some (Int64.of_int 8000000))
+let maxuploadfilesize = ref (Some (Int64.of_int 2000000))
 
 
-let sconf  = ref (init_config ())
-let cfgs : config list ref = ref [](*(Array.init max_servers (init_config))*) 
-let add_port cf i = cf.ports <- cf.ports@[i] (* I reverse the list *)
-let add_sslport cf i = cf.sslports <- cf.sslports@[i] (* I reverse the list *)
-let get_ports_n cf = cf.ports
-let get_sslports_n cf = cf.sslports
-let set_modules cf m = cf.modu <- m
-let set_key cf k = cf.private_key <- Some k
-let set_certificate cf c = cf.certificate <- Some c
-let set_uploaddir cf u = cf.uploaddir <- u
-let set_logdir cf s = cf.logdir <- s
+let set_uploaddir u = uploaddir := u
+let set_logdir s = logdir := s
 let set_configfile s = config_file := s
 let set_pidfile s = pidfile := Some s
-let set_default_static_dir cf s = 
-  (cf).default_static_dir <- Some s
-let set_mimefile cf s = cf.mimefile <- s
+let set_default_static_dir s = 
+   default_static_dir := Some s
+let set_mimefile s = mimefile := s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
 let set_daemon () = set_silent (); daemon := true
 let set_veryverbose () = verbose := true; veryverbose := true
-let set_user cf s = cf.user <- s
-let set_group cf s = cf.group <- s
-let set_minthreads cf i = cf.minthreads <- i
-let set_maxthreads cf i = cf.maxthreads <- i
-let set_max_number_of_threads_queued cf i = 
-  cf.max_number_of_threads_queued <- i
-let set_max_number_of_connections cf i = cf.max_number_of_connections <- i
-let set_connect_time_max cf i = cf.connect_time_max <- i
-let set_keepalive_timeout cf i = cf.keepalive_timeout <- i
-let set_netbuffersize cf i = cf.netbuffersize <- i
-let set_filebuffersize cf i = cf.filebuffersize <- i
-let set_maxuploadfilesize cf i = cf.maxuploadfilesize <- i
-let set_maxrequestbodysize cf i = cf.maxrequestbodysize <- i
-let set_number_of_servers x = number_of_servers := x
-let get_ports () = !sconf.ports
-let get_sslports () = !sconf.sslports
-let get_modules cf = !sconf.modu
-let get_key cf = cf.private_key
-let get_certificate cf = cf.certificate
-let get_uploaddir () = !sconf.uploaddir
-let get_logdir () = !sconf.logdir
+let set_minthreads i = minthreads := i
+let set_maxthreads i = maxthreads := i
+let set_max_number_of_threads_queued i = 
+  max_number_of_threads_queued := i
+let set_max_number_of_connections i = max_number_of_connections := i
+let set_connect_time_max i = connect_time_max := i
+let set_keepalive_timeout i = keepalive_timeout := i
+let set_netbuffersize i = netbuffersize := i
+let set_filebuffersize i = filebuffersize := i
+let set_maxuploadfilesize i = maxuploadfilesize := i
+let set_maxrequestbodysize i = maxrequestbodysize := i
+
+let get_uploaddir () = !uploaddir
+let get_logdir () = !logdir
 let get_config_file () = !config_file
 let get_pidfile () = !pidfile
-let get_mimefile () = !sconf.mimefile
+let get_mimefile () = !mimefile
 let get_verbose () = !verbose
 let get_silent () = !silent
 let get_daemon () = !daemon
 let get_veryverbose () = !veryverbose
-let get_default_static_dir () = !sconf.default_static_dir
-let get_user () = !sconf.user
-let get_group () = !sconf.group
-let get_minthreads () = !sconf.minthreads
-let get_maxthreads () = !sconf.maxthreads
-let get_max_number_of_threads_queued () = !sconf.max_number_of_threads_queued
-let get_max_number_of_connections () = !sconf.max_number_of_connections
-let get_connect_time_max () = !sconf.connect_time_max
-let get_keepalive_timeout () = !sconf.keepalive_timeout
-let get_netbuffersize () = !sconf.netbuffersize
-let get_filebuffersize () = !sconf.filebuffersize
-let get_maxuploadfilesize () = !sconf.maxuploadfilesize
-let get_maxrequestbodysize () = !sconf.maxrequestbodysize
+let get_default_static_dir () = !default_static_dir
+let get_default_user () = !default_user
+let get_default_group () = !default_group
+let get_minthreads () = !minthreads
+let get_maxthreads () = !maxthreads
+let get_max_number_of_threads_queued () = !max_number_of_threads_queued
+let get_max_number_of_connections () = !max_number_of_connections
+let get_connect_time_max () = !connect_time_max
+let get_keepalive_timeout () = !keepalive_timeout
+let get_netbuffersize () = !netbuffersize
+let get_filebuffersize () = !filebuffersize
+let get_maxuploadfilesize () = !maxuploadfilesize
+let get_maxrequestbodysize () = !maxrequestbodysize
 
 
 let display_version () =

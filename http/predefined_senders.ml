@@ -24,8 +24,6 @@ open Lwt
 open Ocsistream
 open XHTML.M
 
-let cookiename = "ocsigensession"
-
 let id x = x
 
 let add_css (a : 'a) : 'a = 
@@ -267,7 +265,7 @@ let gmtdate d =
 * xhtml_sender is the used sender*)
 let send_generic
     waiter
-    ?etag ?code ~keep_alive ?cookie ?last_modified
+    ?code ?etag ~keep_alive ?(cookies = []) ?last_modified
     ?path ?location ?(header=[]) ?head ~content sender 
     (send : unit Lwt.t ->
       ?etag:etag ->
@@ -291,13 +289,15 @@ let send_generic
       ("Date",date)::
       ("Last-Modified",last_mod)::header
   in
+  let mkcook (name,c) =
+    ("Set-Cookie",
+     (name^"="^c^
+      (match path with 
+        Some s -> ("; path="^s) 
+      | None -> "")))
+  in
   let hds =
-    match cookie with
-    |None -> hds
-    |Some c -> ("Set-Cookie",(cookiename^"="^c^
-                              (match path with 
-                                Some s -> ("; path="^s) 
-                              | None -> "")))::hds
+    List.fold_left (fun h c -> (mkcook c)::h) hds cookies
   in
   let hds =
     if keep_alive
@@ -324,10 +324,10 @@ type create_sender_type = ?server_name:string ->
 
 type send_page_type =
     unit Lwt.t ->
-      ?etag:etag ->
-        ?code:int ->
+      ?code:int ->
+        ?etag:etag ->
           keep_alive:bool ->
-            ?cookie:string ->
+            ?cookies:(string * string) list ->
               ?path:string ->
                 ?last_modified:float ->
                   ?location:string -> 
@@ -340,10 +340,10 @@ type send_page_type =
  * path is the path associated to the cookie
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_xhtml_page ~content waiter ?etag ?code ~keep_alive ?cookie ?path 
+let send_xhtml_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path 
     ?last_modified ?location ?head xhtml_sender =
   send_generic waiter ?etag
-    ?code ~keep_alive ?cookie ?path ?location ?last_modified
+    ?code ~keep_alive ?cookies ?path ?location ?last_modified
     ~content ?head xhtml_sender Xhtml_sender.send
   
 (** fonction that sends an empty answer
@@ -352,16 +352,16 @@ let send_xhtml_page ~content waiter ?etag ?code ~keep_alive ?cookie ?path
  * cookie is a string value that give a value to the session cookie
  * page is the page to send
  * empty_sender is the used sender *)
-let send_empty waiter ?etag ?code ~keep_alive ?cookie 
-    ?path ?location ?last_modified ?head empty_sender =
+let send_empty waiter ?code ?etag ~keep_alive ?cookies 
+    ?path ?last_modified ?location ?head empty_sender =
   send_generic waiter ?etag ?last_modified
-    ?code ~keep_alive ?cookie ?path ?location ~content:() 
+    ?code ~keep_alive ?cookies ?path ?location ~content:() 
     ?head empty_sender Empty_sender.send
 
-let send_text_page ~content waiter ?etag ?code ~keep_alive ?cookie ?path 
+let send_text_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path 
     ?last_modified ?location ?head xhtml_sender =
   send_generic waiter
-    ?etag ?code ~keep_alive ?cookie ?path ?location ?last_modified
+    ?etag ?code ~keep_alive ?cookies ?path ?location ?last_modified
     ~content ?head xhtml_sender Text_sender.send
   
   
@@ -460,12 +460,12 @@ let content_type_from_file_name =
       in Hashtbl.find mimeht extens
     with _ -> "unknown" 
 
-let send_file file waiter ?etag ?code ~keep_alive ?cookie ?path
+let send_file file waiter ?code ?etag ~keep_alive ?cookies ?path
     ?last_modified ?location ?head file_sender =
   Lwt_unix.yield () >>=
   (fun () ->
     send_generic waiter
-      ?etag ?code ~keep_alive ?cookie ?path ?location ?last_modified
+      ?etag ?code ~keep_alive ?cookies ?path ?location ?last_modified
       ~header:[("Content-Type", content_type_from_file_name file)]
       ~content:file ?head file_sender File_sender.send)
 

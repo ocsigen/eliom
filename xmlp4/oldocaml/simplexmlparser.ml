@@ -44,7 +44,7 @@ open Pcaml
 let g = Grammar.gcreate (Xmllexer.gmake ())
 
 
-module ExpoOrPatt = struct
+module ExprOrPatt = struct
 
   let loc = (Lexing.dummy_pos, Lexing.dummy_pos)
 
@@ -142,7 +142,7 @@ module ExpoOrPatt = struct
 
 end
 
-open ExpoOrPatt
+open ExprOrPatt
 
 let exprpatt_xml = Grammar.Entry.create g "xml"
 let exprpatt_any_tag = Grammar.Entry.create g "xml tag"

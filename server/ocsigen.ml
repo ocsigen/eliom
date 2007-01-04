@@ -22,22 +22,24 @@ open Http_frame
 open Http_com
 open Lwt
 open Ocsimisc
-open Pagesearch
+open Pagegen
+open Ocsigenmod
 
 let _ = Random.self_init ()
 
-type current_url = Pagesearch.current_url
-type url_path = Pagesearch.url_path
-type server_params = Pagesearch.server_params
-type fileinfo = Pagesearch.fileinfo
+type current_url = Pagegen.current_url
+type url_path = Pagegen.url_path
+type server_params = Ocsigenmod.server_params
 
-let get_user_agent sp = sp.user_agent
-let get_full_url sp = sp.full_url
-let get_ip sp = sp.ip
-let get_get_params sp = sp.get_params
-let get_post_params sp = sp.post_params
-let get_current_url sp = sp.current_url
-let get_hostname sp = sp.hostname
+let get_user_agent (ri,_,_) = ri.ri_user_agent
+let get_full_url (ri,_,_) = ri.ri_path_string^ri.ri_params
+let get_ip (ri,_,_) = ri.ri_ip
+let get_inet_addr (ri,_,_) = ri.ri_inet_addr
+let get_get_params (ri,_,_) = ri.ri_get_params
+let get_post_params (ri,_,_) = ri.ri_post_params
+let get_current_url (ri,_,_) = ri.ri_path
+let get_hostname (ri,_,_) = ri.ri_host
+let get_port (ri,_,_) = ri.ri_port
 
 let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
@@ -51,8 +53,6 @@ let new_state =
   let c : internal_state ref = ref (Random.int 1000000) in
   fun () -> c := !c + 1 ; Some !c
 
-
-let id x = x
 
 (** Type of names in a formular *)
 type 'a param_name = string
@@ -70,7 +70,7 @@ type ('a,+'tipo,+'names) params_type =
   | TInt of int param_name (* 'a = int *)
   | TFloat of float param_name (* 'a = float *)
   | TBool of bool param_name (* 'a = bool *)
-  | TFile of fileinfo param_name (* 'a = fileinfo *)
+  | TFile of file_info param_name (* 'a = file_info *)
   | TUserType of ('a param_name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
   | TSuffix (* 'a = string *)
   | TUnit (* 'a = unit *);;
@@ -85,7 +85,7 @@ let float (n : string) : (float,[`WithoutSuffix], float param_name) params_type 
 let bool (n : string) : (bool,[`WithoutSuffix], bool param_name) params_type= TBool n
 let string (n : string) : (string,[`WithoutSuffix], string param_name) params_type = 
   TString n
-let file (n : string) : (fileinfo ,[`WithoutSuffix], fileinfo param_name) params_type = 
+let file (n : string) : (file_info ,[`WithoutSuffix], file_info param_name) params_type = 
   TFile n
 let radio_answer (n : string) : (string option,[`WithoutSuffix], string option param_name) params_type= TString n
 let unit : (unit,[`WithoutSuffix], unit param_name) params_type = TUnit
@@ -131,7 +131,7 @@ let concat_strings s1 sep s2 = match s1,s2 with
 type 'a res_reconstr_param = 
     Res_ of ('a * 
                (string * string) list * 
-               (string * fileinfo) list)
+               (string * file_info) list)
   | Errors_ of (string * exn) list
 let reconstruct_params
     (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type)
@@ -318,8 +318,8 @@ module type PAGES =
     type input_elt
     type pcdata_elt
 
-    val create_sender : Sender_helpers.create_sender_type
-    val send : content:page -> Sender_helpers.send_page_type
+    val create_sender : Predefined_senders.create_sender_type
+    val send : content:page -> Predefined_senders.send_page_type
 
     type a_attrib_t
     type form_attrib_t
@@ -592,7 +592,7 @@ module type OCSIGENSIG =
             rows:int -> cols:int -> pcdata_elt -> textarea_elt
     val submit_input : ?a:input_attrib_t -> string -> input_elt
     val file_input : ?a:input_attrib_t -> ?value:string -> 
-                            fileinfo param_name-> input_elt
+                            file_info param_name-> input_elt
   end
 
 
@@ -697,18 +697,18 @@ module Make = functor
           ({prefix = service.url_prefix;
             state = state},
            (service.unique_id,
-            (fun (suff,h) -> 
+            (fun (suff,((ri,_,_) as h)) -> 
               (catch (fun () -> 
                 (page_generator h 
                    (reconstruct_params 
                       service.get_params_type
-                      h.get_params
+                      ri.ri_get_params
                       []
                       suff)
                    (reconstruct_params
                       service.post_params_type
-                      h.post_params
-                      h.files
+                      ri.ri_post_params
+                      ri.ri_files
                       suff)))
                  (function
                      Ocsigen_Typing_Error l -> error_handler h l
@@ -721,7 +721,7 @@ module Make = functor
           (page_gen : server_params -> 'get -> 'post -> page Lwt.t) =
         if global_register_allowed () then begin
           remove_unregistered (service.url,service.unique_id);
-          let (_,globtables,_),curdir = get_current_hostdir () in
+          let (globtables,_),curdir = get_current_hostdir () in
           register_service_aux 
             curdir
             globtables
@@ -740,13 +740,13 @@ module Make = functor
  *)
 
       let register_service_for_session
-          sp
+          (ri,curdir,sesstab)
           ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) 
               service)
            ?error_handler
           page =
-        register_service_aux ?error_handler sp.current_dir
-          !(sp.session_table)
+        register_service_aux ?error_handler curdir
+          !sesstab
           true service.url_state ~service page
 
       let register_new_service 
@@ -863,18 +863,18 @@ module Make = functor
           current_dir tables ~action actionfun =
         add_action tables current_dir 
           action.action_name
-          (fun h -> actionfun h
+          (fun ((ri,_,_) as h) -> actionfun h
               (reconstruct_params 
                  action.action_params_type 
-                 h.post_params
-                 h.files []))
+                 ri.ri_post_params
+                 ri.ri_files []))
 
       let register_action
           ~(action : ('post,'pn) action)
           (actionfun : (server_params -> 'post -> unit Lwt.t)) : unit =
         if global_register_allowed () then
           (* if during_initialisation () then *)
-          let (_,globtables,_),curdir = get_current_hostdir () in
+          let (globtables,_),curdir = get_current_hostdir () in
           register_action_aux curdir globtables action actionfun
         else raise Ocsigen_service_or_action_created_outside_site_loading
 
@@ -883,9 +883,9 @@ module Make = functor
         register_action a actionfun;
         a
 
-      let register_action_for_session sp ~action actionfun =
-        register_action_aux sp.current_dir
-          !(sp.session_table) action actionfun
+      let register_action_for_session (ri,curdir,sesstab) ~action actionfun =
+        register_action_aux curdir
+          !sesstab action actionfun
 
       let register_new_action_for_session sp ~post_params actionfun =
         let a = new_action post_params in
@@ -893,8 +893,9 @@ module Make = functor
         a
 
 (** Satic directories **)
-      let static_dir sp : (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string param_name, unit param_name) service =
-        {url = sp.current_dir;
+      let static_dir (ri,curdir,sesstab) : 
+          (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string param_name, unit param_name) service =
+        {url = curdir;
          unique_id = counter ();
          url_state = None;
          url_prefix = true;
@@ -906,7 +907,7 @@ module Make = functor
 
 
 (** Close a session *)
-      let close_session sp = sp.session_table := empty_tables ()
+      let close_session (_,_,sesstab) = sesstab := empty_tables ()
 
 
 (** Functions to construct web pages: *)
@@ -919,8 +920,12 @@ module Make = functor
         let suff = (if service.url_prefix then Some suff else None) in
         let uri = 
           (if service.external_service 
-          then (reconstruct_absolute_url_path sp.current_url service.url suff)
-          else (reconstruct_relative_url_path sp.current_url service.url suff))
+          then 
+            (reconstruct_absolute_url_path
+               (get_current_url sp) service.url suff)
+          else 
+            (reconstruct_relative_url_path
+               (get_current_url sp) service.url suff))
         in
         match service.url_state with
           None ->
@@ -990,8 +995,10 @@ module Make = functor
           (f : 'gn -> Pages.form_content_elt list) =
         let urlname =
           (if service.external_service
-          then (reconstruct_absolute_url_path sp.current_url service.url None)
-          else (reconstruct_relative_url_path sp.current_url service.url None)) in
+          then (reconstruct_absolute_url_path
+                  (get_current_url sp) service.url None)
+          else (reconstruct_relative_url_path
+                  (get_current_url sp) service.url None)) in
         let state_param =
           (match  service.url_state with
             None -> None
@@ -1016,8 +1023,10 @@ module Make = functor
         let suff = (if service.url_prefix then Some suff else None) in
         let urlname = 
           (if service.external_service 
-          then (reconstruct_absolute_url_path sp.current_url service.url suff)
-          else (reconstruct_relative_url_path sp.current_url service.url suff))
+          then (reconstruct_absolute_url_path
+                  (get_current_url sp) service.url suff)
+          else (reconstruct_relative_url_path
+                  (get_current_url sp) service.url suff))
         in
         let state_param =
           (match  service.url_state with
@@ -1044,8 +1053,10 @@ module Make = functor
         let suff = (if service.url_prefix then Some suff else None) in
         let uri = 
           (if service.external_service 
-          then (reconstruct_absolute_url_path sp.current_url service.url suff)
-          else (reconstruct_relative_url_path sp.current_url service.url suff))
+          then (reconstruct_absolute_url_path
+                  (get_current_url sp) service.url suff)
+          else (reconstruct_relative_url_path
+                  (get_current_url sp) service.url suff))
         in
         match service.url_state with
           None ->
@@ -1068,7 +1079,7 @@ module Make = functor
                   (Pages.make_input ~typ:Pages.hidden
                      ~name:reload_name ~value:reload_name ())]
           else [] in
-        let v = h.full_url in
+        let v = get_full_url h in
         Pages.make_post_form ~inline:true 
           ~id:formname ~action:v
           (Pages.make_div ~classe:["inline"]
@@ -1085,7 +1096,7 @@ module Make = functor
         let action_param = (action.action_name) in
         let reload_name = action_prefix^action_reload in
         let action_line = Pages.make_input ~typ:Pages.hidden ~name:action_param_name ~value:action_param () in
-        let v = h.full_url in
+        let v = get_full_url h in
         let inside = f (make_params_names action.action_params_type) in
         let inside_reload = 
           if reload 
@@ -1170,7 +1181,7 @@ module Make = functor
       let submit_input ?a s =
         Pages.make_input ?a ~typ:Pages.submit ~value:s ()
 
-      let file_input ?a ?value (name : fileinfo param_name)  = 
+      let file_input ?a ?value (name : file_info param_name)  = 
         Pages.make_input ?a ~typ:Pages.file ?value ~name:name ()
 
     end : OCSIGENSIG with 
@@ -1268,8 +1279,8 @@ module Xhtml_ = struct
       | XML.Node ("html",al,el) -> XML.Node ("html",al,aux el)
       | e -> e)
 
-  let create_sender = Sender_helpers.create_xhtml_sender
-  let send = Sender_helpers.send_xhtml_page
+  let create_sender = Predefined_senders.create_xhtml_sender
+  let send = Predefined_senders.send_xhtml_page
 
   let make_a ?(a=[]) ~href l : a_elt = 
     XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) l
@@ -1545,7 +1556,7 @@ module Xhtml = struct
                           : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
                           ?value:string -> string param_name -> input elt
                               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-                                ?value:string -> fileinfo param_name -> [> input ] elt)
+                                ?value:string -> file_info param_name -> [> input ] elt)
 
   let action_a = (action_a
                     : ?a:([< a_attrib > `Href ] attrib list) ->
@@ -1603,8 +1614,8 @@ module Text_ = struct
 
   type pcdata_elt = string
 
-  let create_sender = Sender_helpers.create_xhtml_sender
-  let send = Sender_helpers.send_text_page
+  let create_sender = Predefined_senders.create_xhtml_sender
+  let send = Predefined_senders.send_text_page
 
   type a_attrib_t = string
   type form_attrib_t = string

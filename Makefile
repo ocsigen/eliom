@@ -1,12 +1,10 @@
 include Makefile.config
 
 INSTALL = install
-REPS = baselib lwt xmlp4 http server modules ocsimore
+REPS = baselib lwt xmlp4 http server modules
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
-TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo server/ocsigen.cmi server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/xhtmlsyntax.cma META lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi
-OCSIMOREINSTALL = ocsimore/ocsimore.cma ocsimore/db_create.cmi ocsimore/ocsipersist.cmi ocsimore/ocsicache.cmi ocsimore/ocsidata.cmi ocsimore/ocsipages.cmi ocsimore/ocsisav.cmi ocsimore/ocsiboxes.cmi ocsimore/ocsexample_util.cmo ocsimore/ocsexample3.cmo ocsimore/ocsexample1.cmo ocsimore/ocsexample2.cmo
+TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo server/ocsigen.cmi server/ocsigen.cmo server/ocsigenmod.cmi server/ocsigenmod.cmo server/staticmod.cmi server/staticmod.cmo server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/xhtmlsyntax.cma META lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi
 EXAMPLES = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo
-OCSIMOREEXAMPLES = ocsimore/ocsexample_util.cmo ocsimore/ocsexample3.cmo ocsimore/ocsexample1.cmo ocsimore/ocsexample2.cmo
 PP = -pp "camlp4o ./lib/xhtmlsyntax.cma -loc loc"
 
 all: $(REPS)
@@ -38,13 +36,6 @@ server:
 #	$(MAKE) -C server depend
 	$(MAKE) -C server all
 
-ocsimore:
-	@if (test '$(OCSIMORE)' = 'YES');\
-	then echo "Compiling Ocsimore";\
-	$(MAKE) -C ocsimore all;\
-	else echo "Skipping Ocsimore compilation";\
-	fi
-
 doc:
 	$(CAMLDOC) $(PP) -package ssl -I lib -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
 	$(CAMLDOC) $(PP) -I lib -d doc/oc -html server/ocsigen.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli baselib/messages.ml
@@ -65,14 +56,8 @@ install:
 	mkdir -p $(EXAMPLESINSTALLDIR)
 	$(MAKE) -C server install
 	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
-	@if (test '$(OCSIMORE)' = 'YES') ;\
-	then echo "Ocsimore installation";\
-	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL) $(OCSIMOREINSTALL);\
-	cp -f $(EXAMPLES) $(OCSIMOREEXAMPLES) $(EXAMPLESINSTALLDIR);\
-	else $(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL);\
-	cp $(EXAMPLES) $(EXAMPLESINSTALLDIR);\
-	echo "Skipping Ocsimore installation";\
-	fi
+	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL)
+	cp $(EXAMPLES) $(EXAMPLESINSTALLDIR)
 	-rm META
 
 

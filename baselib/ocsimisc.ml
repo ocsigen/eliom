@@ -21,6 +21,10 @@ exception Ocsigen_Request_interrupted of exn
 exception Ocsigen_Bad_Request
 exception Ocsigen_Request_too_long
 
+let id x = x
+
+let comp f g x = f (g x)
+
 let rec list_remove a = function
     [] -> []
   | b::l when a = b -> l
@@ -40,6 +44,8 @@ type virtual_hosts = ((virtual_host_part list) * int option) list
 type static_dir = Static_dir of string option * (string * static_dir) list
 
 
+
+let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
 (** various functions for URLs *)
 let defaultpagename = "index"

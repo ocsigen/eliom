@@ -3,7 +3,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -20,7 +20,7 @@ let access = "access.log",ref Unix.stdout
 let warning = "warnings.log",ref Unix.stderr
 let error = "errors.log",ref Unix.stderr
 
-(* Several processes will access the same files, but if I am right, 
+(* Several processes will access the same files, but if I am right,
    it is not a problem when opening with O_APPEND
  *)
 let open_files =

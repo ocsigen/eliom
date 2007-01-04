@@ -2,7 +2,8 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= error_pages.ml preemptive.ml pagesearch.ml ocsigen.ml ocsigenboxes.ml server.ml
+FILES= error_pages.ml preemptive.ml pagegen.ml parseconfig.ml server.ml \
+       ocsigenmod.ml ocsigen.ml staticmod.ml ocsigenboxes.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -21,38 +22,28 @@ CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-ifeq "$(OCSIMORE)" "YES"
-OCSIMOREPCKG = 
-# dbi.postgresql,
-else
-OCSIMOREPCKG =
-endif
-LIB = -thread -package $(OCSIMOREPCKG)netstring -package ssl -I ../lib -I +camlp4
+LIB = -thread -package netstring,netsys,ssl -I ../lib -I +camlp4
 PP = 
 PP2 = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
-CMAO = nums.cma dynlink.cma unix.cma ssl.cma pcre.cma netstring.cma \
+CMAO = nums.cma dynlink.cma unix.cma \
+       ssl.cma pcre.cma netsys.cma netstring.cma \
        threads.cma \
        ocsimisc.cmo \
        gramlib.cma xmllexer.cmo simplexmlparser.cmo \
-       ocsiconfig.cmo messages.cmo parseconfig.cmo \
+       ocsiconfig.cmo messages.cmo \
        lwt.cma preemptive.cmo \
+       pagegen.cmo parseconfig.cmo \
        ocsistream.cmo multipart.cmo \
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
-       xhtml.cma sender_helpers.cmo\
+       xhtml.cma predefined_senders.cmo\
        error_pages.cmo
-
-OCSIMORECMAO = 
-# postgresql.cma dbi.cma dbi_postgresql.cmo
-# Last line is only for ocsimore.
-# The alternative is to load them in the config file
-# (if unsafe_modules are allowed)
 
 OBJS = $(FILES:.ml=.cmo)
 
 all: $(OBJS) $(NAME)
 #	cp *.cmo *.cmi ../lib
-	cp ocsigen.cmo ocsigen.cmi preemptive.cmi pagesearch.cmi ../lib
+	cp ocsigen.cmo ocsigen.cmi ocsigenmod.cmo ocsigenmod.cmi staticmod.cmo staticmod.cmi preemptive.cmi pagegen.cmi ../lib
 #	cp config.cmi ../lib
 	cp ocsigenboxes.cmi ../lib
 	cp $(NAME) ../bin
@@ -63,12 +54,7 @@ all: $(OBJS) $(NAME)
 .PHONY: doc depend
 
 $(NAME): $(OBJS)
-	@if (test '$(OCSIMORE)' = 'YES');\
-	then echo "Ocsigen server with ocsimore support";\
-	$(CAMLC) -o $(NAME) -linkall $(CMAO) $(OCSIMORECMAO) $(OBJS);\
-	else echo "Ocsigen server without ocsimore support";\
 	$(CAMLC) -o $(NAME) -linkall $(CMAO) $(OBJS);\
-	fi
 
 ocsigenboxes.cmo:
 	$(OCAMLFIND) ocamlc $(DBG) $(LIB) $(PP2) -c ocsigenboxes.ml

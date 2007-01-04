@@ -18,7 +18,8 @@
 
 (* A page providing infos about the server (number of sessions, uptime...) *)
 
-open Pagesearch
+open Pagegen (* for profiling info *)
+open Ocsigenmod
 open Ocsigen
 open Ocsigen.Xhtml
 open Unix
@@ -30,7 +31,7 @@ let _ =
     ~url:[]
     ~get_params:unit
     (fun _ () () ->
-      let n = string_of_int (number_of_sessions ()) in
+(*      let n = string_of_int (number_of_sessions ()) in *)
       let tm = Unix.gmtime ((Unix.time ()) -. launchtime) in
       let year = if tm.tm_year>0 then (string_of_int (tm.tm_year - 70))^" years, "
       else "" in
@@ -71,7 +72,8 @@ Lwt.return
    <body>
      <h1>Ocsigen server monitoring</h1>
      <p>Uptime: $str:uptime$.</p>
-     <p>There are currently $str:n$ sessions.</p>
+     <p>The number of sessions is not available in this version of ocsigenmod.</p>
+     <!-- p>There are currently $str:n$ sessions.</p -->
      <p>Number of clients connected: 
          $str:(string_of_int (get_number_of_connected ()))$.</p>
      <p>PID : $str:pid$</p>

@@ -21,11 +21,10 @@
 open Lwt
 open Messages
 open Ocsimisc
-open Pagesearch
-open Ocsigen
+open Pagegen
 open Http_frame
 open Http_com
-open Sender_helpers
+open Predefined_senders
 open Ocsiconfig
 open Parseconfig
 open Error_pages
@@ -54,8 +53,8 @@ let sslctx = ref (Ssl.create_context Ssl.SSLv23 Ssl.Server_context)
 
 
 let ip_of_sockaddr = function
-    Unix.ADDR_INET (ip,port) -> Unix.string_of_inet_addr ip
-  | _ -> "127.0.0.1"
+    Unix.ADDR_INET (ip,port) -> ip
+  | _ -> raise (Ocsigen_Internal_Error "ip of unix socket")
 
 let server_name = ("Ocsigen server ("^Ocsiconfig.version_number^")")
 
@@ -118,10 +117,10 @@ let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 let handle_light_request_errors 
     xhtml_sender sockaddr wait_end_request waiter exn = 
   (* EXCEPTIONS ABOUT THE REQUEST *)
-  (* It can be an error during get_http_frame or during get_frame_info *)
+  (* It can be an error during get_http_frame or during get_request_infos *)
 
   Messages.debug ("~~~~ Exception request: "^(Printexc.to_string exn));
-  let ip = ip_of_sockaddr sockaddr in
+  let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
   waiter >>= (fun () ->
     match exn with
       
@@ -180,9 +179,36 @@ let handle_light_request_errors
 
 
 
+let rec getcookies header =
+  let rec aux s longueur =
+    let rec firstnonspace s i = 
+      if s.[i] = ' ' then firstnonspace s (i+1) else i 
+    in
+    try
+      let pointvirgule = try 
+        String.index s ';'
+      with Not_found -> String.length s in
+      let egal = String.index s '=' in
+      let first = firstnonspace s 0 in
+      let nom = (String.sub s first (egal-first)) in
+      let value = String.sub s (egal+1) (pointvirgule-egal-1) in
+      let long = (longueur-pointvirgule-1) in
+      (nom, value)::
+      (if long > 0
+      then (aux (String.sub s (pointvirgule+1) long) long)
+      else [])
+    with _ -> []
+  in 
+  try 
+    let s = Http_header.get_headers_value header "Cookie" in
+    aux s (String.length s)
+  with _ -> []
+(* On peut améliorer ça *)
+
+
 
 (* reading the request *)
-let get_frame_infos http_frame filenames =
+let get_request_infos http_frame filenames sockaddr port =
 
   catch (fun () -> 
     let meth = Http_header.get_method http_frame.Stream_http_frame.header in
@@ -203,13 +229,15 @@ let get_frame_infos http_frame filenames =
     let host =
       try
         let hostport = 
-          Http_header.get_headers_value http_frame.Stream_http_frame.header "Host" in
-            try 
+          Http_header.get_headers_value
+            http_frame.Stream_http_frame.header "Host" in
+        try 
           Some (String.sub hostport 0 (String.index hostport ':'))
         with _ -> Some hostport
       with _ -> None
     in
-    Messages.debug ("- host="^(match host with None -> "<none>" | Some h -> h));
+    Messages.debug
+      ("- host="^(match host with None -> "<none>" | Some h -> h));
     let params = Neturl.string_of_url
         (Neturl.remove_from_url
            ~user:true
@@ -326,81 +354,44 @@ let get_frame_infos http_frame filenames =
                * List.map simplify bdlist *)
     in
     find_post_params >>= (fun (post_params, files) ->
-      let internal_state,post_params2 = 
-        try (Some (int_of_string (List.assoc state_param_name post_params)),
-             List.remove_assoc state_param_name post_params)
-        with Not_found -> (None, post_params)
-      in
-      let internal_state2,get_params2 = 
-        try 
-          match internal_state with
-            None ->
-              (Some (int_of_string (List.assoc state_param_name get_params)),
-               List.remove_assoc state_param_name get_params)
-          | _ -> (internal_state, get_params)
-        with Not_found -> (internal_state, get_params)
-      in
-      let action_info, post_params3 =
-        try
-          let action_name, pp = 
-            ((List.assoc (action_prefix^action_name) post_params2),
-             (List.remove_assoc (action_prefix^action_name) post_params2)) in
-          let reload,pp2 =
-            try
-              ignore (List.assoc (action_prefix^action_reload) pp);
-              (true, (List.remove_assoc (action_prefix^action_reload) pp))
-            with Not_found -> false, pp in
-          let ap,pp3 = pp2,[]
-(*          List.partition 
-   (fun (a,b) -> 
-   ((String.sub a 0 action_param_prefix_end)= 
-   full_action_param_prefix)) pp2 *) in
-          (Some (action_name, reload, ap), pp3)
-        with Not_found -> None, post_params2 in
+
       let useragent = try (Http_header.get_headers_value
                              http_frame.Stream_http_frame.header "user-agent")
       with _ -> ""
       in
+
+      let cookies = 
+          getcookies http_frame.Stream_http_frame.header
+      in
+
       let ifmodifiedsince = try 
         Some (Netdate.parse_epoch 
                 (Http_header.get_headers_value
                    http_frame.Stream_http_frame.header "if-modified-since"))
       with _ -> None
-      in return
-        (((path,   (* the url path (string list) *)
-           params,
-           internal_state2,
-             ((Ocsimisc.remove_slash (Neturl.url_path url2)), 
-              host,
-              get_params2,
-              post_params3,
-              files,
-              useragent)),
-          action_info,
-          ifmodifiedsince))))
+      in
+      let inet_addr = ip_of_sockaddr sockaddr in
+      return
+        {ri_path_string = path;
+         ri_path = Ocsimisc.remove_slash (Neturl.url_path url2);
+         ri_params = params ;
+         ri_host = host;
+         ri_get_params = get_params;
+         ri_post_params = post_params;
+         ri_files = files;
+         ri_inet_addr = inet_addr;
+         ri_ip = Unix.string_of_inet_addr inet_addr;
+         ri_port = port;
+         ri_user_agent = useragent;
+         ri_cookies = cookies;
+         ri_ifmodifiedsince = ifmodifiedsince;
+         ri_http_frame = http_frame}))
 
     (fun e ->
-      Messages.debug ("~~~ Exn during get_frame_infos : "^
+      Messages.debug ("~~~ Exn during get_request_infos : "^
                       (Printexc.to_string e));
       fail (Ocsigen_Request_interrupted e) (* ? *))
     
-
-let rec getcookie s =
-  let rec firstnonspace s i = 
-    if s.[i] = ' ' then firstnonspace s (i+1) else i in
-  let longueur = String.length s in
-  let pointvirgule = try 
-    String.index s ';'
-  with Not_found -> String.length s in
-  let egal = String.index s '=' in
-  let first = firstnonspace s 0 in
-  let nom = (String.sub s first (egal-first)) in
-  if nom = cookiename 
-  then String.sub s (egal+1) (pointvirgule-egal-1)
-  else getcookie (String.sub s (pointvirgule+1) (longueur-pointvirgule-1))
-(* On peut améliorer ça *)
-
-let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
 let find_keepalive http_header =
   try
@@ -455,19 +446,12 @@ let service wait_end_request waiter http_frame port sockaddr
 
     catch (fun () ->
       
-      let cookie = 
-        try 
-          Some (getcookie (Http_header.get_headers_value 
-                             http_frame.Stream_http_frame.header "Cookie"))
-        with _ -> None
-      in
-
       (* *** First of all, we read all the request
          (that will possibly create files) *)
-      get_frame_infos http_frame filenames >>=
+      get_request_infos http_frame filenames sockaddr port >>=
       
       (* *** Now we generate the page and send it *)
-      (fun (((stringpath,params,is,(path,host,gp,pp,files,ua)) as frame_info), action_info,ifmodifiedsince) -> 
+      (fun ri ->
 
         wakeup wait_end_request ();
         (* here we are sure that the request is terminated. 
@@ -477,75 +461,45 @@ let service wait_end_request waiter http_frame port sockaddr
           (fun () ->
             
             (* log *)
-            let ip = ip_of_sockaddr sockaddr in
-            accesslog ("connection"^
-                       (match host with 
-                         None -> ""
-                       | Some h -> (" for "^h))^
-                       " from "^ip^" ("^ua^") : "^stringpath^params);
+            accesslog 
+              ("connection"^
+               (match ri.ri_host with 
+                 None -> ""
+               | Some h -> (" for "^h))^
+               " from "^ri.ri_ip^" ("^ri.ri_user_agent^") : "^
+               ri.ri_path_string^ri.ri_params);
             (* end log *)
             
-            
-            match action_info with
-              None ->
-                let keep_alive = ka in
-                (* page generation *)
-                get_page frame_info port sockaddr cookie >>=
-                (fun ((cookie2,send_page,sender,path), lastmodified,etag) ->
 
-                    match lastmodified,ifmodifiedsince with
-                      Some l, Some i when l<=i -> 
-                        Messages.debug "-> Sending 304 Not modified ";
-                        send_empty
-                          waiter
-                          ?last_modified:lastmodified
-                          ?etag:etag
-                          ~keep_alive:keep_alive
-                          ~code:304 (* Not modified *)
-                          ~head:head empty_sender
+            Pagegen.do_for_host_matching 
+	      ri.ri_host ri.ri_port (Pagegen.get_virthosts ()) ri >>=
 
-                    | _ ->
-                        send_page waiter ~keep_alive:keep_alive
-                          ?last_modified:lastmodified
-                          ?cookie:(if cookie2 <> cookie then 
-                            (if cookie2 = None 
-                            then Some remove_cookie_str
-                            else cookie2) 
-                          else None)
-                          ~path:path (* path pour le cookie *) ~head:head
-                          (sender ~server_name:server_name inputchan))
+            (fun res ->
+              
+              match res.res_lastmodified, ri.ri_ifmodifiedsince with
+                Some l, Some i when l<=i -> 
+                  Messages.debug "-> Sending 304 Not modified ";
+                  send_empty
+                    waiter
+                    ~keep_alive:ka
+                    ?last_modified:res.res_lastmodified
+                    ~cookies:res.res_cookies
+                    ?etag:res.res_etag
+                    ~code:304 (* Not modified *)
+                    ~head:head 
+                    empty_sender
+                    
+              | _ ->
+                  res.res_send_page
+                    waiter
+                    ~keep_alive:ka
+                    ?last_modified:res.res_lastmodified
+                    ~cookies:res.res_cookies
+                    ~path:res.res_path (* path for the cookie *) 
+                    ?code:res.res_code
+                    ~head:head
+                    (res.res_sender ~server_name:server_name inputchan))
 
-            | Some (action_name, reload, action_params) ->
-
-                (* action *)
-                make_action 
-                  action_name action_params frame_info sockaddr cookie
-                  >>= (fun (cookie2,path) ->
-                    let keep_alive = ka in
-                    (if reload then
-                      get_page frame_info port sockaddr cookie2 >>=
-                      (fun ((cookie3,send_page,sender,path),
-                            lastmodified,etag) ->
-                        (send_page waiter ~keep_alive:keep_alive 
-                           ?last_modified:lastmodified
-                           ?cookie:(if cookie3 <> cookie then 
-                             (if cookie3 = None 
-                             then Some remove_cookie_str
-                             else cookie3) 
-                           else None)
-                           ~path:path ~head:head
-                           (sender ~server_name:server_name inputchan)))
-                    else
-                      (send_empty waiter ~keep_alive:keep_alive 
-                         ?cookie:(if cookie2 <> cookie then 
-                           (if cookie2 = None 
-                           then Some remove_cookie_str
-                           else cookie2) 
-                         else None)
-                         ~path:path
-                         ~code:204 ~head:head
-                         empty_sender))
-                      )
           )
           
           
@@ -567,10 +521,10 @@ let service wait_end_request waiter http_frame port sockaddr
                     send_empty
                       waiter
                       ~keep_alive:ka
-                      ~location:(stringpath^"/"^params)
+                      ~location:(ri.ri_path_string^"/"^ri.ri_params)
                       ~code:301 (* Moved permanently *)
                       ~head:head empty_sender
-                | Pagesearch.Ocsigen_malformed_url
+                | Pagegen.Ocsigen_malformed_url
                 | Neturl.Malformed_URL -> 
                     Messages.debug "-> Sending 400 (Malformed URL)";
                     send_error waiter ~keep_alive:ka
@@ -673,28 +627,9 @@ let service wait_end_request waiter http_frame port sockaddr
 
 
 
-
-
-
-let load_modules modules_list =
-  let rec aux = function
-      [] -> ()
-    | (Cmo s)::l -> Dynlink.loadfile s; aux l
-    | (Host (host,sites))::l -> 
-        load_ocsigen_module host sites; 
-        aux l
-  in
-  Dynlink.init ();
-  Dynlink.allow_unsafe_modules true;
-  aux modules_list;
-  load_ocsigen_module
-    [[Wildcard],None] [[],([(* no cmo *)], (get_default_static_dir ()))]
-    (* for default static dir *)
-
-
 let handle_broken_pipe_exn sockaddr exn = 
   (* EXCEPTIONS WHILE REQUEST OR SENDING WHEN WE CANNOT ANSWER *)
-  let ip = ip_of_sockaddr sockaddr in
+  let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
   (* We don't close here because it is already done *)
   match exn with
     Connection_reset_by_peer -> 
@@ -736,7 +671,7 @@ let listen ssl port wait_end_init =
       lingering_close in_ch;
       match e with
       | Ocsigen_Timeout -> 
-          let ip = ip_of_sockaddr sockaddr in
+          let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
           warning ("While talking to "^ip^": Timeout");
           return ()
       | Http_com.Ocsigen_KeepaliveTimeout -> 
@@ -848,7 +783,7 @@ let listen ssl port wait_end_init =
       catch
         (fun () -> 
           let xhtml_sender = 
-            Sender_helpers.create_xhtml_sender
+            Predefined_senders.create_xhtml_sender
               ~server_name:server_name inputchan in
           (* let file_sender =
             create_file_sender ~server_name:server_name inputchan
@@ -969,16 +904,15 @@ let listen ssl port wait_end_init =
 
 let _ = try
 
-  parse_config ();
+  let config_servers = parse_config () in
 
-  Messages.debug ("number_of_servers: "^ 
-                  (string_of_int !Ocsiconfig.number_of_servers));
+  let number_of_servers = List.length config_servers in
 
-  let ask_for_passwd h _ =
+  let ask_for_passwd sslports _ =
     print_string "Please enter the password for the HTTPS server listening \
       on port(s) ";
       print_string
-      (match Ocsiconfig.get_sslports_n h with
+      (match sslports with
         [] -> assert false
       | a::l -> List.fold_left
             (fun deb i -> deb^", "^(string_of_int i)) (string_of_int a) l);
@@ -999,44 +933,46 @@ let _ = try
       raise exn
   in
 
-  let run s =
-    Ocsiconfig.sconf := s;
-    Messages.open_files ();
-    Ocsiconfig.cfgs := [];
-    (* Gc.full_major (); *)
+  let run (user,group) (_, ports, sslports) s =
 
-    if (get_maxthreads ()) < (get_minthreads ())
-    then 
-      raise (Config_file_error "maxthreads should be greater than minthreads");
-    
+    Messages.open_files ();
+
     Lwt_unix.run 
       (let wait_end_init = wait () in
       (* Listening on all ports: *)
       List.iter 
         (fun i -> 
-          ignore (listen false i wait_end_init)) (Ocsiconfig.get_ports ());
+          ignore (listen false i wait_end_init)) ports;
       List.iter 
         (fun i ->
-          ignore (listen true i wait_end_init)) (Ocsiconfig.get_sslports ());
+          ignore (listen true i wait_end_init)) sslports;
       
-      
+      (* I change the user for the process *)
+      (try
+        Unix.setgid (Unix.getgrnam group).Unix.gr_gid;
+        Unix.setuid (Unix.getpwnam user).Unix.pw_uid;
+      with e -> errlog ("Error: Wrong user or group"); raise e);
+            
       (* Je suis fou :
          let rec f () = 
          (* print_string "-"; *)
          Lwt_unix.yield () >>= f
          in f(); *)
-      
-      
-      (* I change the user for the process *)
-      (try
-        Unix.setgid (Unix.getgrnam (Ocsiconfig.get_group ())).Unix.gr_gid;
-        Unix.setuid (Unix.getpwnam (Ocsiconfig.get_user ())).Unix.pw_uid;
-      with e -> errlog ("Error: Wrong user or group"); raise e);
-      
+
       (* Now I can load the modules *)
-      load_modules (Ocsiconfig.get_modules ());
+      Dynlink.init ();
+      Dynlink.allow_unsafe_modules true;
+
+      Pagegen.start_initialisation ();
+
+      parse_server s;
       
-      (* Closing stderr, stdout stdin if silent *)
+      if (get_maxthreads ()) < (get_minthreads ())
+      then 
+        raise
+          (Config_file_error "maxthreads should be greater than minthreads");
+
+            (* Closing stderr, stdout stdin if silent *)
       if (Ocsiconfig.get_silent ())
       then begin
         (* redirect stdout and stderr to /dev/null *)
@@ -1058,7 +994,7 @@ let _ = try
                 (Ocsiconfig.get_minthreads ()) 
                 (Ocsiconfig.get_maxthreads ()));
       
-      end_initialisation ();
+      Pagegen.end_initialisation ();
       
       wakeup wait_end_init ();
       
@@ -1068,17 +1004,18 @@ let _ = try
       )
   in
 
-  let set_passwd_if_needed h =
-    if get_sslports_n h <> []
+  let set_passwd_if_needed (ssl,ports,sslports) =
+    if sslports <> []
     then
-      match (get_certificate h), (get_key h) with
-        None, None -> ()
-      | None, _ -> raise (Ocsiconfig.Config_file_error
+      match ssl with
+        None
+      | Some (None, None) -> ()
+      | Some (None, _) -> raise (Ocsiconfig.Config_file_error
                             "SSL certificate is missing")
-      | _, None -> raise (Ocsiconfig.Config_file_error 
+      | Some (_, None) -> raise (Ocsiconfig.Config_file_error 
                             "SSL key is missing")
-      | (Some c), (Some k) -> 
-          Ssl.set_password_callback !sslctx (ask_for_passwd h);
+      | Some ((Some c), (Some k)) -> 
+          Ssl.set_password_callback !sslctx (ask_for_passwd sslports);
           Ssl.use_certificate !sslctx c k
   in
 
@@ -1099,10 +1036,11 @@ let _ = try
   let rec launch = function
       [] -> () 
     | h::t -> 
-        set_passwd_if_needed h;
+        let user_info,sslinfo = extract_info h in
+        set_passwd_if_needed sslinfo;
         let pid = Unix.fork () in
         if pid = 0
-        then run h
+        then run user_info sslinfo h
         else begin
           Messages.console ("Process "^(string_of_int pid)^" detached");
           write_pid pid;
@@ -1112,13 +1050,14 @@ let _ = try
   in
 
   if (not (get_daemon ())) &&
-    !Ocsiconfig.number_of_servers = 1 
+    number_of_servers = 1 
   then
-    let cf = List.hd !Ocsiconfig.cfgs in
-    (set_passwd_if_needed cf;
+    let cf = List.hd config_servers in
+    let (user_info,sslinfo) = extract_info cf in
+    (set_passwd_if_needed sslinfo;
      write_pid (Unix.getpid ());
-     run cf)
-  else launch !Ocsiconfig.cfgs
+     run user_info sslinfo cf)
+  else launch config_servers
 
 with
   Ocsigen_duplicate_registering s -> 
