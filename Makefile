@@ -38,7 +38,7 @@ server:
 
 doc:
 	$(CAMLDOC) $(PP) -package ssl -I lib -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
-	$(CAMLDOC) $(PP) -I lib -d doc/oc -html server/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/oldocaml/simplexmlparser.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli baselib/messages.ml
+	$(CAMLDOC) $(PP) -I lib -I `$(CAMLP4) -where` -d doc/oc -html server/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/oldocaml/simplexmlparser.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli baselib/messages.ml
 
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done

@@ -40,6 +40,9 @@ et ensuite encore string_of_int au moment de l'affichage
 
 open Pcaml
 
+type expr = MLast.expr
+type patt = MLast.patt
+
 (* Instead of using Pcaml.gram, we use a new grammar, using xmllexer *)
 let g = Grammar.gcreate (Xmllexer.gmake ())
 

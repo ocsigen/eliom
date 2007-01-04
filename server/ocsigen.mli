@@ -27,7 +27,6 @@
 open XHTML.M
 open Xhtmltypes
 open Extensions
-open Ocsigenmod
 
 (** *)
 val get_config : unit -> 

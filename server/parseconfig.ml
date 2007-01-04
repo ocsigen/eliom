@@ -156,7 +156,7 @@ let parse_server c =
           | PLCons ((EPanyattr (EPVstr("dir"), EPVstr(s))), PLEmpty) -> s
           | _ -> raise (Config_file_error "Wrong attribute for <site>") 
           in
-          let path = Neturl.split_path dir in
+          let path = Ocsimisc.remove_slash (Neturl.split_path dir) in
           parse_site psf path l;
           parse_host psf ll
       | PLCons ((EPcomment _), l) -> parse_host psf l
