@@ -271,7 +271,7 @@ let extract_info c =
         | _ -> raise (Config_file_error 
                         "Two certificates inside <ssl>"))
     | PLCons ((EPanytag ("privatekey", PLEmpty, p)), l) ->
-        (match certificate with
+        (match privatekey with
           None ->
             parse_ssl certificate (Some (parse_string p)) l 
         | _ -> raise (Config_file_error 
