@@ -1,4 +1,4 @@
-(** Predefined boxes *)
+(** Predefined boxes for Ocsigenmod *)
 
 val menu : ?classe:XHTML.M.nmtoken list ->
        ((unit,unit, [<`Internal_Service of [<`Public_Service | `Local_Service] | `External_Service],[<`WithSuffix|`WithoutSuffix] as 'tipo,unit Ocsigen.param_name, unit Ocsigen.param_name)

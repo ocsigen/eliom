@@ -17,7 +17,8 @@
  *)
 
 
-(** Ocsigen.ml defines the functions you need to interact with Ocsigen:
+(** Ocsigen.ml defines the functions you need to interact with the
+   Ocsigenmod module:
    - To create the "typed services" and associate them to a path (directories/name)
    - To specify the types and names of the parameters of this service
    - To register the functions that generate pages for each of these services

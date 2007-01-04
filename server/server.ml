@@ -742,12 +742,12 @@ let listen ssl port wait_end_init =
         catch
           (fun () ->
             service (wait ()) waiter http_frame port sockaddr
-              xhtml_sender empty_sender in_ch () >>=
+              xhtml_sender empty_sender in_ch ())
+          (fun e ->
+            lingering_close in_ch; fail e) >>=
             (fun () ->
               (lingering_close in_ch;
-               return ())))
-          (fun e ->
-            lingering_close in_ch; fail e)
+               return ()))
       end
 
     in (* body of listen_connexion *)

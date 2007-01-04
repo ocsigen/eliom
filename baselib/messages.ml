@@ -16,6 +16,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** Writing messages in the logs*)
+
 let access = "access.log",ref Unix.stdout
 let warning = "warnings.log",ref Unix.stderr
 let error = "errors.log",ref Unix.stderr

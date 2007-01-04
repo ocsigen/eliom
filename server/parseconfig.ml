@@ -19,7 +19,7 @@
  *)
 
 (******************************************************************)
-(* Config file parsing *)
+(** Config file parsing *)
 (* 2006 07 : Add multiple servers -- Nataliya *)
 (* 2006 12 : Changes for extensions -- Vincent *)
 

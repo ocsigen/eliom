@@ -21,6 +21,7 @@
 type create_sender_type =
     ?server_name:string ->
     ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
+
 type send_page_type =
     unit Lwt.t ->
     ?code:int ->
@@ -44,12 +45,6 @@ val send_empty : send_page_type
 val send_text_page :
   content:string -> send_page_type
 
-(** Sending an error page *)
-val send_error :
-  unit Lwt.t ->
-  ?http_exception:exn ->
-  ?error_num:int -> Http_com.sender_type -> keep_alive:bool -> unit Lwt.t
-
 (** Creating an xhtml (or text) sender *)
 val create_xhtml_sender : create_sender_type
 
@@ -60,6 +55,12 @@ val create_empty_sender : create_sender_type
 val create_file_sender : create_sender_type
 
 (**/**)
+(** Sending an error page *)
+val send_error :
+  unit Lwt.t ->
+  ?http_exception:exn ->
+  ?error_num:int -> Http_com.sender_type -> keep_alive:bool -> unit Lwt.t
+
 module Xhtml_content :
   sig
     type t = [ `Html ] XHTML.M.elt
