@@ -64,7 +64,7 @@ let coucou =
       </p>
       <pre>&lt;host&gt;
  &lt;site dir="examples"&gt;
-  &lt;module&gt;/<em>path_to</em>/tutorial.cmo&lt;/module&gt;
+  &lt;module file="/<em>path_to</em>/tutorial.cmo" /&gt;
  &lt;/site&gt;
 &lt;/host&gt;</pre>
       <p>Then run ocsigen. You should see your page at url
@@ -158,7 +158,7 @@ let coucou1 =
       </p>
       <p>
         $a (new_external_service
-              ["doc/0.5.0/Ocsigen.html"]
+              ["doc/0.6.0/Ocsigen.html"]
 (*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
               unit unit ())
            sp <:xmllist< More info >> ()$

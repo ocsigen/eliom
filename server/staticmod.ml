@@ -101,15 +101,17 @@ let find_static_page staticdirref path =
             (if (filename.[(String.length filename) - 1]) = '/'
             then
               let fn2 = filename^"index.html" in
+              Messages.debug ("- Testing \""^fn2^"\".");
               (fn2,(Unix.LargeFile.stat fn2))
             else
-              (if (path = [""])
+              (if (path= []) || (path = [""])
               then 
-              let fn2 = filename^"index.html" in
+              let fn2 = filename^"/index.html" in
+              Messages.debug ("- Testing \""^fn2^"\".");
               (fn2,(Unix.LargeFile.stat fn2))
               else (Messages.debug ("- "^filename^" is a directory");
                     raise Ocsigen_Is_a_directory)))
-          else (filename,stat)
+          else (filename, stat)
         in
         Messages.debug ("- Looking for \""^filename^"\".");
 
@@ -155,11 +157,19 @@ let gen pages_tree ri =
 
 (*****************************************************************************)
 (** Parsing of config file *)
+open Simplexmlparser.ExprOrPatt
 let parse_config page_tree path = function
-    Simplexmlparser.ExprOrPatt.EPanytag
-      ("staticdir", Simplexmlparser.ExprOrPatt.PLEmpty, s) -> 
-      set_static_dir page_tree (Parseconfig.parse_string s) path
-  | Simplexmlparser.ExprOrPatt.EPanytag (t, _, _) -> 
+    EPanytag
+      ("static", atts, PLEmpty) -> 
+        let dir = match atts with
+        | PLEmpty -> 
+            raise (Error_in_config_file
+                     "dir attribute expected for <staticdir>")
+        | PLCons ((EPanyattr (EPVstr("dir"), EPVstr(s))), PLEmpty) -> s
+        | _ -> raise (Error_in_config_file "Wrong attribute for <staticdir>")
+        in
+        set_static_dir page_tree dir path
+  | EPanytag (t, _, _) -> 
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(staticmod extension)")
 
