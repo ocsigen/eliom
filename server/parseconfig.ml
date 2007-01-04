@@ -140,7 +140,7 @@ let parse_server c =
       | PLCons (xml, l) -> 
           (try
             parse_site_function path xml
-          with Pagegen.Bad_config_tag_for_extension t -> 
+          with Extensions.Bad_config_tag_for_extension t -> 
             raise (Config_file_error ("Unexpected tag <"^t
                                       ^"> inside <site dir=\""^
 				      (Ocsimisc.string_of_url_path path)
@@ -249,7 +249,7 @@ let parse_server c =
 		(Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
           | _ -> raise (Config_file_error "Wrong attribute for <host>") 
 	  in 
-	  let (gen_page, parse_site_function) = Pagegen.create_virthost host in
+	  let (gen_page, parse_site_function) = Extensions.create_virthost host in
 	  parse_host parse_site_function l;
 	  (host,gen_page)::(parse_server_aux ll)
       | PLCons ((EPcomment _), ll) -> parse_server_aux ll
@@ -258,7 +258,7 @@ let parse_server c =
           raise (Config_file_error ("tag <"^tag^"> unexpected inside <server>"))
       | _ ->
           raise (Config_file_error "Syntax error")
-  in Pagegen.set_virthosts (parse_server_aux c)
+  in Extensions.set_virthosts (parse_server_aux c)
 
 (* First parsing of config file *)
 let extract_info c =

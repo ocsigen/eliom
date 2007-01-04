@@ -18,8 +18,7 @@
 
 (* A page providing infos about the server (number of sessions, uptime...) *)
 
-open Pagegen (* for profiling info *)
-open Ocsigenmod
+open Extensions (* for profiling info *)
 open Ocsigen
 open Ocsigen.Xhtml
 open Unix

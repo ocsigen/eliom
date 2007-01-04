@@ -27,7 +27,7 @@
 
 open Lwt
 open Ocsimisc
-open Pagegen
+open Extensions
 
 (*****************************************************************************)
 type 'a server_params1 = 
@@ -625,8 +625,8 @@ let load_ocsigen_module pages_tree path cmo =
     Dynlink.loadfile cmo
   with Dynlink.Error e -> 
     end_load_ocsigen_module ();
-    raise (Pagegen.Ocsigen_error_while_loading_site
-             ("(ocsigenmod extension) "^cmo^":"^
+    raise (Ocsigen_error_while_loading_site
+             ("(ocsigenmod extension) "^cmo^": "^
               (Dynlink.error_message e))));
   (* absolute_change_hostdir save_current_dir; *)
   end_load_ocsigen_module ()
@@ -639,8 +639,8 @@ let parse_config page_tree path = function
       ("module", Simplexmlparser.ExprOrPatt.PLEmpty, s) -> 
         load_ocsigen_module page_tree path (Parseconfig.parse_string s)
   | Simplexmlparser.ExprOrPatt.EPanytag (t, _, _) -> 
-      raise (Pagegen.Bad_config_tag_for_extension t)
-  | _ -> raise Pagegen.Error_in_config_file
+      raise (Bad_config_tag_for_extension t)
+  | _ -> raise Error_in_config_file
 
 
 (*****************************************************************************)

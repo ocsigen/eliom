@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Pagegen
+open Extensions
 
 type internal_state = int
 
@@ -39,13 +39,13 @@ type page_table_key =
 
 val gen :
     pages_tree ->
-      Pagegen.request_info -> Pagegen.answer Lwt.t
+      request_info -> answer Lwt.t
 
 val empty_tables : unit -> tables
 
 val add_service :
     tables ->
-      Pagegen.url_path ->
+      url_path ->
         bool ->
           string list ->
             Predefined_senders.create_sender_type ->

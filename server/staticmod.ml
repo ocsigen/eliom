@@ -26,7 +26,7 @@
 
 open Lwt
 open Ocsimisc
-open Pagegen
+open Extensions
 
 (*****************************************************************************)
 (* The table of static pages for each virtual server                         *)
@@ -160,8 +160,8 @@ let parse_config page_tree path = function
       ("staticdir", Simplexmlparser.ExprOrPatt.PLEmpty, s) -> 
       set_static_dir page_tree (Parseconfig.parse_string s) path
   | Simplexmlparser.ExprOrPatt.EPanytag (t, _, _) -> 
-      raise (Pagegen.Bad_config_tag_for_extension t)
-  | _ -> raise Pagegen.Error_in_config_file
+      raise (Bad_config_tag_for_extension t)
+  | _ -> raise Error_in_config_file
 
 
 (*****************************************************************************)
@@ -176,7 +176,7 @@ let end_init () =
   | Some path -> 
       let page_tree = new_pages_tree () in
       set_static_dir page_tree path [];
-      Pagegen.add_virthost ([([Ocsimisc.Wildcard],None)], gen page_tree)
+      add_virthost ([([Ocsimisc.Wildcard],None)], gen page_tree)
   (* for default static dir *)
 
 

@@ -21,7 +21,7 @@
 open Lwt
 open Messages
 open Ocsimisc
-open Pagegen
+open Extensions
 open Http_frame
 open Http_com
 open Predefined_senders
@@ -471,8 +471,8 @@ let service wait_end_request waiter http_frame port sockaddr
             (* end log *)
             
 
-            Pagegen.do_for_host_matching 
-	      ri.ri_host ri.ri_port (Pagegen.get_virthosts ()) ri >>=
+            Extensions.do_for_host_matching 
+	      ri.ri_host ri.ri_port (Extensions.get_virthosts ()) ri >>=
 
             (fun res ->
               
@@ -524,7 +524,7 @@ let service wait_end_request waiter http_frame port sockaddr
                       ~location:(ri.ri_path_string^"/"^ri.ri_params)
                       ~code:301 (* Moved permanently *)
                       ~head:head empty_sender
-                | Pagegen.Ocsigen_malformed_url
+                | Extensions.Ocsigen_malformed_url
                 | Neturl.Malformed_URL -> 
                     Messages.debug "-> Sending 400 (Malformed URL)";
                     send_error waiter ~keep_alive:ka
@@ -963,7 +963,7 @@ let _ = try
       Dynlink.init ();
       Dynlink.allow_unsafe_modules true;
 
-      Pagegen.start_initialisation ();
+      Extensions.start_initialisation ();
 
       parse_server s;
       
@@ -994,7 +994,7 @@ let _ = try
                 (Ocsiconfig.get_minthreads ()) 
                 (Ocsiconfig.get_maxthreads ()));
       
-      Pagegen.end_initialisation ();
+      Extensions.end_initialisation ();
       
       wakeup wait_end_init ();
       

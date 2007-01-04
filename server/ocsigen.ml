@@ -22,13 +22,13 @@ open Http_frame
 open Http_com
 open Lwt
 open Ocsimisc
-open Pagegen
+open Extensions
 open Ocsigenmod
 
 let _ = Random.self_init ()
 
-type current_url = Pagegen.current_url
-type url_path = Pagegen.url_path
+type current_url = Extensions.current_url
+type url_path = Extensions.url_path
 type server_params = Ocsigenmod.server_params
 
 let get_user_agent (ri,_,_) = ri.ri_user_agent

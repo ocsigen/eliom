@@ -2,8 +2,9 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= error_pages.ml preemptive.ml pagegen.ml parseconfig.ml server.ml \
-       ocsigenmod.ml ocsigen.ml staticmod.ml ocsigenboxes.ml
+FILES= error_pages.ml preemptive.ml extensions.ml parseconfig.ml server.ml
+
+EXTENSIONS= ocsigenmod.ml ocsigen.ml ocsigenboxes.ml staticmod.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -33,7 +34,7 @@ CMAO = nums.cma dynlink.cma unix.cma \
        gramlib.cma xmllexer.cmo simplexmlparser.cmo \
        ocsiconfig.cmo messages.cmo \
        lwt.cma preemptive.cmo \
-       pagegen.cmo parseconfig.cmo \
+       extensions.cmo parseconfig.cmo \
        ocsistream.cmo multipart.cmo \
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtml.cma predefined_senders.cmo\
@@ -41,9 +42,9 @@ CMAO = nums.cma dynlink.cma unix.cma \
 
 OBJS = $(FILES:.ml=.cmo)
 
-all: $(OBJS) $(NAME)
+all: $(OBJS) $(NAME) ocsigenmod.cma staticmod.cmo
 #	cp *.cmo *.cmi ../lib
-	cp ocsigen.cmo ocsigen.cmi ocsigenmod.cmo ocsigenmod.cmi staticmod.cmo staticmod.cmi preemptive.cmi pagegen.cmi ../lib
+	cp ocsigenmod.cma ocsigen.cmi staticmod.cmo preemptive.cmi extensions.cmi ../lib
 #	cp config.cmi ../lib
 	cp ocsigenboxes.cmi ../lib
 	cp $(NAME) ../bin
@@ -55,6 +56,10 @@ all: $(OBJS) $(NAME)
 
 $(NAME): $(OBJS)
 	$(CAMLC) -o $(NAME) -linkall $(CMAO) $(OBJS);\
+
+ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
+	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \
+	ocsigenboxes.cmo
 
 ocsigenboxes.cmo:
 	$(OCAMLFIND) ocamlc $(DBG) $(LIB) $(PP2) -c ocsigenboxes.ml
@@ -68,7 +73,7 @@ ocsigenboxes.cmo:
 	$(CAMLOPT) $(PP) -c $<
 
 doc:
-	$(CAMLDOC) -d doc -html ocsigen.mli
+	$(CAMLDOC) -d doc -html ocsigen.mli extensions.mli
 
 .PHONY: clean
 clean:
@@ -85,7 +90,7 @@ uninstall:
 	rm -f $(BINDIR)/$(NAME)
 
 depend:
-	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) > .depend
+	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(EXTENSIONS:.ml=.mli) $(EXTENSIONS) > .depend
 
 FORCE:
 

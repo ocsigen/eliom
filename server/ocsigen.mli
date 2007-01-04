@@ -26,7 +26,7 @@
 
 open XHTML.M
 open Xhtmltypes
-open Pagegen
+open Extensions
 open Ocsigenmod
 
 (** This function may be used for services that can not be interrupted

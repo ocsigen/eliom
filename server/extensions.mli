@@ -43,15 +43,17 @@ exception Bad_config_tag_for_extension of string
 exception Error_in_config_file
 
 (*****************************************************************************)
-(** type of URL, without parameter *)
+(** type of URLs, without parameter *)
 type url_path = string list
 type current_url = string list
 type current_dir = string list
 
+(** The files sent in the request *)
 type file_info = {tmp_filename: string;
                   filesize: int64;
                   original_filename: string}
 
+(** The request *)
 type request_info = 
     {ri_path_string: string; (** path of the URL *)
      ri_path: string list;   (** path of the URL *)
@@ -68,6 +70,7 @@ type request_info =
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
      ri_http_frame: Predefined_senders.Stream_http_frame.http_frame} (** The full http_frame *)
 
+(** The result of a page generation *)
 type result =
     {res_cookies: (string * string) list;
      res_path: string;
@@ -79,20 +82,31 @@ type result =
    }
 
 
-(** Registration of new extensions *)
+(** The result given by the extension (filter or page generation) *)
 type answer =
     Ext_found of result (** OK stop! I found the page *)
   | Ext_not_found (** Page not found. Try next extension. *)
   | Ext_continue_with of request_info (** Used to modify the request 
-                                         before giving it to next extension *)
+                               before giving it to next extension (filter) *)
 
- val register_extension :
-     (virtual_hosts -> 
-       (request_info -> answer Lwt.t) * 
-	 (string list -> Simplexmlparser.ExprOrPatt.texprpatt -> unit)) *
-     (unit -> unit) * 
-     (unit -> unit) -> unit
+(** We register for each extension three functions:
+   - a function that will be called for each
+   virtual server, generating two functions:
+     -- one that will be called to generate the pages
+     -- one to parse the configuration file
+   - a function that will be called at the beginning 
+   of the initialisation phase 
+   - a function that will be called at the end of the initialisation phase 
+   of the server
+ *)
+val register_extension :
+    (virtual_hosts -> 
+      (request_info -> answer Lwt.t) * 
+	(string list -> Simplexmlparser.ExprOrPatt.texprpatt -> unit)) *
+    (unit -> unit) * 
+    (unit -> unit) -> unit
 
+(**/**)
 val create_virthost : 
     Ocsimisc.virtual_hosts ->
       (request_info -> answer Lwt.t) * 
