@@ -291,20 +291,21 @@ let extract_info c =
             ((EPanyattr
                 (EPVstr("protocol"), 
                  EPVstr "HTTP")), PLEmpty) -> 
-                   (try
-                     aux user group ssl
-                       ((int_of_string (parse_string p))::ports) sslports ll
-                   with _ -> 
-                     raise (Config_file_error "wrong value for <port> tag"))
+                   let po = try
+                     int_of_string (parse_string p)
+                   with Failure _ -> 
+                     raise (Config_file_error "Wrong value for <port> tag")
+                   in aux user group ssl (po::ports) sslports ll
         | PLCons
             ((EPanyattr 
                 (EPVstr("protocol"), 
                  EPVstr "HTTPS")), PLEmpty) ->
-                   (try
-                     aux user group ssl ports
-                       ((int_of_string (parse_string p))::sslports) ll
-                   with _ -> 
-                     raise (Config_file_error "wrong value for <port> tag"))
+                   let po = try
+                     int_of_string (parse_string p)
+                   with Failure _ -> 
+                     raise (Config_file_error "Wrong value for <port> tag")
+                   in
+                   aux user group ssl ports (po::sslports) ll
         | _ -> raise (Config_file_error "Wrong attribute for <port>"))
     | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
         (match ssl with
