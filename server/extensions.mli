@@ -72,13 +72,13 @@ type request_info =
 
 (** The result of a page generation *)
 type result =
-    {res_cookies: (string * string) list;
-     res_path: string;
-     res_lastmodified: float option;
-     res_etag: Http_frame.etag option;
-     res_code: int option; (* HTTP code, if not 200 *)
-     res_send_page: Predefined_senders.send_page_type;
-     res_sender: Predefined_senders.create_sender_type
+    {res_cookies: (string * string) list; (** The cookies to set *)
+     res_path: string;                    (** The path for the cookies *)
+     res_lastmodified: float option;      (** Last modified date *)
+     res_etag: Http_frame.etag option;    (** ETag for the page *)
+     res_code: int option;                (** HTTP code to send, if not 200 *)
+     res_send_page: Predefined_senders.send_page_type; (** A function from {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.send_xhtml_page] *)
+     res_create_sender: Predefined_senders.create_sender_type (** A function from {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.create_xhtml_sender] *)
    }
 
 

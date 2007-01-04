@@ -517,7 +517,7 @@ let get_page
                 None -> []
               | Some c -> [(cookiename, c)]);
               res_send_page=sp;
-              res_sender=s;
+              res_create_sender=s;
               res_code=None;
               res_path=path;
               res_lastmodified=lm;
@@ -530,7 +530,7 @@ let get_page
                      res_send_page=
                      (Predefined_senders.send_xhtml_page 
                         ~content:(Error_pages.page_error_param_type l));
-                     res_sender=Predefined_senders.create_xhtml_sender;
+                     res_create_sender=Predefined_senders.create_xhtml_sender;
                      res_path="/";
                      res_code=None;
                      res_lastmodified=None;
@@ -541,7 +541,7 @@ let get_page
                      res_send_page=
                      (Predefined_senders.send_xhtml_page 
                         ~content:(Error_pages.page_bad_param));
-                     res_sender=Predefined_senders.create_xhtml_sender;
+                     res_create_sender=Predefined_senders.create_xhtml_sender;
                      res_path="/";
                      res_code=None;
                      res_lastmodified=None;
@@ -608,7 +608,7 @@ let gen page_tree ri =
                     None -> []
                   | Some c -> [(cookiename, c)]);
                   res_send_page=Predefined_senders.send_empty;
-                  res_sender=Predefined_senders.create_empty_sender;
+                  res_create_sender=Predefined_senders.create_empty_sender;
                   res_code=Some 204;
                   res_path=path;
                   res_lastmodified=None;

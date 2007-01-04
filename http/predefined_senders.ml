@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-(** this module provides helpers fonctions to create senders*)
+(** this module provides functions to create senders *)
 
 open Http_frame
 open Http_com
@@ -203,8 +203,8 @@ module File_http_frame = FHttp_frame (File_content) *)
 (** this module is a sender that send Http_frame with file content *)
 module File_sender = FHttp_sender(File_content)
 
-(** fonction that create a sender with xhtml content
-server_name is the name of the server send in the HTTP header
+(** fonction that creates a sender with xhtml content
+server_name is the name of the server sent in the HTTP header
 proto is the protocol, default is HTTP/1.1
 fd is the Unix file descriptor *)
 let create_xhtml_sender ?server_name ?proto fd =
@@ -227,8 +227,8 @@ let create_xhtml_sender ?server_name ?proto fd =
   |Some p -> 
       Xhtml_sender.create ~headers:hd2 ~proto:p fd
 
-(** fonction that create a sender with empty content
-server_name is the name of the server send in the HTTP header
+(** fonction that creates a sender with empty content
+server_name is the name of the server sent in the HTTP header
 proto is the protocol, default is HTTP/1.1
 fd is the Unix file descriptor *)
 let create_empty_sender ?server_name ?proto fd =
@@ -398,7 +398,7 @@ let send_error waiter ?(http_exception) ?(error_num=500) xhtml_sender =
   in
   send_xhtml_page waiter ~code:error_code ~content:err_page xhtml_sender
 
-(** this fonction creates a sender that send http_frame with file content*)
+(** this function creates a sender that send http_frame with file content *)
 let create_file_sender ?server_name ?proto fd =
   let hd =
     match server_name with

@@ -86,6 +86,8 @@ let coucou =
 <pre><span class="Cnonalphakeyword">(</span>html
    <span class="Cnonalphakeyword">(</span>head <span class="Cnonalphakeyword">(</span>title <span class="Cnonalphakeyword">(</span>pcdata <span class="Cstring">""</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span>
    <span class="Cnonalphakeyword">(</span>body <span class="Cnonalphakeyword">[</span>pcdata <span class="Cstring">"Hallo"</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span></pre>
+    </div>
+    <div class="twocol2">
         <p>You have the following error message:</p>
 <pre>This expression has type ([&gt; `PCDATA ] as 'a) XHTML.M.elt
 but is here used with type 
@@ -98,8 +100,6 @@ Type 'a is not compatible with type
    <p><code>'b</code> is the list of tags allowed in a 
         block tag (here <code>&lt;body&gt;</code>), but PCDATA
         (i.e. raw text) is not allowed here.</p>
-    </div>
-    <div class="twocol2">
    <p>In XHTML, some tags cannot be empty. For example 
    <code>&lt;table&gt;</code> must contains at least one row.
    To enforce this, the <code>table</code> function takes two parameters:

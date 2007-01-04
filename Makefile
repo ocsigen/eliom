@@ -3,7 +3,7 @@ include Makefile.config
 INSTALL = install
 REPS = baselib lwt xmlp4 http server modules
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
-TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo server/parseconfig.cmi server/ocsigen.cmi server/ocsigenmod.cma server/staticmod.cmi server/staticmod.cmo server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi xmlp4/xhtmlsyntax.cma META lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi
+TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo server/parseconfig.cmi server/ocsigen.cmi server/ocsigenmod.cma server/staticmod.cmi server/staticmod.cmo server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi xmlp4/xhtmlsyntax.cma META lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi
 EXAMPLES = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo
 PP = -pp "camlp4o ./lib/xhtmlsyntax.cma -loc loc"
 
@@ -38,7 +38,7 @@ server:
 
 doc:
 	$(CAMLDOC) $(PP) -package ssl -I lib -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
-	$(CAMLDOC) $(PP) -I lib -I `$(CAMLP4) -where` -d doc/oc -html server/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/oldocaml/simplexmlparser.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli baselib/messages.ml
+	$(CAMLDOC) $(PP) -package netstring -I lib -I `$(CAMLP4) -where` -d doc/oc -html server/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/oldocaml/simplexmlparser.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli
 
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done

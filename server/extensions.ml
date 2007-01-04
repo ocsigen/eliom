@@ -77,7 +77,7 @@ type result =
      res_etag: Http_frame.etag option;
      res_code: int option; (* HTTP code, if not 200 *)
      res_send_page: Predefined_senders.send_page_type;
-     res_sender: Predefined_senders.create_sender_type
+     res_create_sender: Predefined_senders.create_sender_type
    }
 
 type answer =

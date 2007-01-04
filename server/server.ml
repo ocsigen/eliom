@@ -498,7 +498,7 @@ let service wait_end_request waiter http_frame port sockaddr
                     ~path:res.res_path (* path for the cookie *) 
                     ?code:res.res_code
                     ~head:head
-                    (res.res_sender ~server_name:server_name inputchan))
+                    (res.res_create_sender ~server_name:server_name inputchan))
 
           )
           

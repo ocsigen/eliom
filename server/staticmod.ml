@@ -139,7 +139,7 @@ let gen pages_tree ri =
           (Ext_found
              {res_cookies=[];
               res_send_page=Predefined_senders.send_file filename;
-              res_sender=Predefined_senders.create_file_sender;
+              res_create_sender=Predefined_senders.create_file_sender;
               res_code=None;
               res_path="";
               res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
