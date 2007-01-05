@@ -28,19 +28,11 @@
 open Lwt
 open Ocsimisc
 
-exception Ocsigen_Wrong_parameter
 exception Ocsigen_404
-exception Ocsigen_duplicate_registering of string
-exception Ocsigen_register_for_session_outside_session
-exception Ocsigen_page_erasing of string
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
-exception Ocsigen_service_or_action_created_outside_site_loading
-exception Ocsigen_there_are_unregistered_services of string
-exception Ocsigen_error_while_loading_site of string
-exception Ocsigen_Typing_Error of (string * exn) list
 exception Ocsigen_Internal_Error of string
-exception Ocsigen_error_while_loading_site of string
+
 exception Bad_config_tag_for_extension of string
 exception Error_in_config_file of string
 
@@ -106,7 +98,8 @@ let add_virthost v = virthosts := v::!virthosts
    of the server
  *)
 
-let register_extension, create_virthost, get_beg_init, get_end_init =
+let register_extension, create_virthost, get_beg_init, get_end_init, 
+  get_init_exn_handler =
   let fun_create_virthost =
     ref (fun hostpattern -> 
       ((fun ri -> return Ext_not_found), 
@@ -114,12 +107,13 @@ let register_extension, create_virthost, get_beg_init, get_end_init =
   in
   let fun_beg = ref (fun () -> ()) in
   let fun_end = ref (fun () -> ()) in
-  ((fun (f,b,e) ->
+  let fun_exn = ref (fun exn -> raise exn) in
+  ((fun (fun_virthost,begin_init,end_init,handle_exn) ->
     let cur_fun = !fun_create_virthost in
     fun_create_virthost := 
       (fun hostpattern -> 
         let (g1,p1) = cur_fun hostpattern in
-        let (g2,p2) = f hostpattern in
+        let (g2,p2) = fun_virthost hostpattern in
         ((fun ri ->
 	  g1 ri >>=
           function
@@ -133,11 +127,13 @@ let register_extension, create_virthost, get_beg_init, get_end_init =
            with 
              Error_in_config_file _
            | Bad_config_tag_for_extension _ -> p2 path xml)));
-    fun_beg := comp b !fun_beg;
-    fun_end := comp e !fun_end),
+    fun_beg := comp begin_init !fun_beg;
+    fun_end := comp end_init !fun_end;
+    fun_exn := fun e -> try !fun_exn e with e -> handle_exn e),
    (fun h -> !fun_create_virthost h),
    (fun () -> !fun_beg),
-   (fun () -> !fun_end)
+   (fun () -> !fun_end),
+   (fun () -> !fun_exn)
   )
     
 

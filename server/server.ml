@@ -1060,25 +1060,6 @@ let _ = try
   else launch config_servers
 
 with
-  Ocsigen_duplicate_registering s -> 
-    errlog ("Fatal - Duplicate registering of url \""^s^
-            "\". Please correct the module.");
-    exit 1
-| Ocsigen_there_are_unregistered_services s ->
-    errlog ("Fatal - Some public url have not been registered. \
-              Please correct your modules. (ex: "^s^")");
-    exit 2
-| Ocsigen_service_or_action_created_outside_site_loading ->
-    errlog ("Fatal - An action or a service is created outside \
-              site loading phase");
-    exit 3
-| Ocsigen_page_erasing s ->
-    errlog ("Fatal - You cannot create a page or directory here: "^s^
-            ". Please correct your modules.");
-    exit 4
-| Ocsigen_register_for_session_outside_session ->
-    errlog ("Fatal - Register session during initialisation forbidden.");
-    exit 5
 | Dynlink.Error e -> 
     errlog ("Fatal - Dynamic linking error: "^(Dynlink.error_message e));
     exit 6
@@ -1089,7 +1070,12 @@ with
     errlog ("Fatal - bad password");
     exit 10
 | exn -> 
-    errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn));
-    exit 100
+    try
+      errlog (Extensions.get_init_exn_handler () exn);
+      exit 20
+    with
+      exn ->
+        errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn));
+        exit 100
 
 

@@ -27,18 +27,11 @@
 open Lwt
 open Ocsimisc
 
-exception Ocsigen_Wrong_parameter
 exception Ocsigen_404
-exception Ocsigen_duplicate_registering of string
-exception Ocsigen_register_for_session_outside_session
-exception Ocsigen_page_erasing of string
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
-exception Ocsigen_service_or_action_created_outside_site_loading
-exception Ocsigen_there_are_unregistered_services of string
-exception Ocsigen_error_while_loading_site of string
-exception Ocsigen_Typing_Error of (string * exn) list
 exception Ocsigen_Internal_Error of string
+
 exception Bad_config_tag_for_extension of string
 exception Error_in_config_file of string
 
@@ -89,22 +82,26 @@ type answer =
   | Ext_continue_with of request_info (** Used to modify the request 
                                before giving it to next extension (filter) *)
 
-(** We register for each extension three functions:
+(** We register for each extension four functions:
    - a function that will be called for each
    virtual server, generating two functions:
-     -- one that will be called to generate the pages
-     -- one to parse the configuration file
+     - one that will be called to generate the pages
+     - one to parse the configuration file
    - a function that will be called at the beginning 
    of the initialisation phase 
    - a function that will be called at the end of the initialisation phase 
    of the server
+   - a function that will create an error message from the exceptions
+   that may be raised during the initialisation phase, and raise again
+   all other exceptions
  *)
 val register_extension :
     (virtual_hosts -> 
       (request_info -> answer Lwt.t) * 
 	(string list -> Simplexmlparser.ExprOrPatt.texprpatt -> unit)) *
     (unit -> unit) * 
-    (unit -> unit) -> unit
+    (unit -> unit) *
+    (exn -> string) -> unit
 
 (**/**)
 val create_virthost : 
@@ -134,10 +131,11 @@ val get_number_of_connected : unit -> int
 
 
 (** Server internal functions: *)
-(** loads a module in the server *)
 val incr_connected : unit -> unit
 val decr_connected : unit -> unit
 
 val during_initialisation : unit -> bool
 val start_initialisation : unit -> unit
 val end_initialisation : unit -> unit
+
+val get_init_exn_handler : unit -> exn -> string

@@ -29,6 +29,15 @@ open Lwt
 open Ocsimisc
 open Extensions
 
+exception Ocsigen_Wrong_parameter
+exception Ocsigen_duplicate_registering of string
+exception Ocsigen_register_for_session_outside_session
+exception Ocsigen_page_erasing of string
+exception Ocsigen_service_or_action_created_outside_site_loading
+exception Ocsigen_there_are_unregistered_services of string
+exception Ocsigen_error_while_loading_site of string
+exception Ocsigen_Typing_Error of (string * exn) list
+
 (*****************************************************************************)
 type 'a server_params1 = 
     request_info * current_dir * 'a ref
@@ -665,6 +674,24 @@ let end_init () =
   end_current_hostdir ();
   verify_all_registered ()                                
 
+(** Function that will handle exceptions during the initialisation phase *)
+let handle_init_exn = function
+  Ocsigen_duplicate_registering s -> 
+    ("Fatal - Duplicate registering of url \""^s^
+     "\". Please correct the module.")
+| Ocsigen_there_are_unregistered_services s ->
+    ("Fatal - Some public url have not been registered. \
+              Please correct your modules. (ex: "^s^")")
+| Ocsigen_service_or_action_created_outside_site_loading ->
+    ("Fatal - An action or a service is created outside \
+              site loading phase")
+| Ocsigen_page_erasing s ->
+    ("Fatal - You cannot create a page or directory here: "^s^
+            ". Please correct your modules.")
+| Ocsigen_register_for_session_outside_session ->
+    ("Fatal - Register session during initialisation forbidden.")
+| e -> raise e
+
 
 (*****************************************************************************)
 (** extension registration *)
@@ -673,8 +700,9 @@ let _ = register_extension
       let page_tree = new_pages_tree () in
       (gen page_tree, 
        parse_config page_tree)),
-      start_init,
-      end_init)
+     start_init,
+     end_init,
+     handle_init_exn)
 
 
 (*****************************************************************************)

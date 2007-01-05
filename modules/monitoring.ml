@@ -70,6 +70,7 @@ Lwt.return
    </head>
    <body>
      <h1>Ocsigen server monitoring</h1>
+      <p>Version of Ocsigen: $str:Ocsiconfig.version_number$</p>
      <p>Uptime: $str:uptime$.</p>
      <p>The number of sessions is not available in this version of ocsigenmod.</p>
      <!-- p>There are currently $str:n$ sessions.</p -->

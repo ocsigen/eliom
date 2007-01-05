@@ -198,5 +198,6 @@ let _ = register_extension
       (gen page_tree, 
        parse_config page_tree)),
      start_init,
-     end_init)
+     end_init,
+     raise)
 
