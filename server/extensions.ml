@@ -129,7 +129,8 @@ let register_extension, create_virthost, get_beg_init, get_end_init,
            | Bad_config_tag_for_extension _ -> p2 path xml)));
     fun_beg := comp begin_init !fun_beg;
     fun_end := comp end_init !fun_end;
-    fun_exn := fun e -> try !fun_exn e with e -> handle_exn e),
+    let curexnfun = !fun_exn in
+    fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
    (fun h -> !fun_create_virthost h),
    (fun () -> !fun_beg),
    (fun () -> !fun_end),

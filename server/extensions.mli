@@ -42,9 +42,10 @@ type current_url = string list
 type current_dir = string list
 
 (** The files sent in the request *)
-type file_info = {tmp_filename: string;
-                  filesize: int64;
-                  original_filename: string}
+type file_info = {tmp_filename: string; (** Where the file is stored on the server*)
+                  filesize: int64; (** Size, in bytes *)
+                  original_filename: string (** Original file name *) }
+(** Note that the files are cancelled once the request has been fulfilled *)
 
 (** The request *)
 type request_info = 
@@ -61,7 +62,7 @@ type request_info =
      ri_user_agent: string;    (** User_agent of the browser *)
      ri_cookies: (string * string) list; (** Cookie sent by the browser *)
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
-     ri_http_frame: Predefined_senders.Stream_http_frame.http_frame} (** The full http_frame *)
+     ri_http_frame: Predefined_senders.Stream_http_frame.http_frame (** The full http_frame *)}
 
 (** The result of a page generation *)
 type result =

@@ -1507,7 +1507,7 @@ let coucoutext =
     ~url:["coucoutext"]
     ~get_params:unit
     (fun sp () () -> return
-      ("<html>n'importe quoi "^(Ocsigen.Text.a coucou sp ["clic"] ())^"</html>"))
+      ("<html>n'importe quoi "^(Ocsigen.Text.a coucou sp "clic" ())^"</html>"))
 
 
 (* Fin À AJOUTER *)

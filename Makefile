@@ -1,10 +1,21 @@
 include Makefile.config
 
+ifeq "$(OCAMLDUCE)" "YES"
+DUCEFILES=server/ocsigenduce.cmi server/ocsigenduce.cma \
+	server/xhtml1_strict.cmi
+DUCEEXAMPLES=modules/ocamlduce/exampleduce.cmo
+else
+DUCEFILES=
+DUCEEXAMPLES=
+endif
+
+
+
 INSTALL = install
 REPS = baselib lwt xmlp4 http server modules
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
-TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo server/parseconfig.cmi server/ocsigen.cmi server/ocsigenmod.cma server/staticmod.cmi server/staticmod.cmo server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi xmlp4/xhtmlsyntax.cma META lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi baselib/messages.cmi
-EXAMPLES = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo
+TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo server/parseconfig.cmi server/ocsigen.cmi server/ocsigenmod.cma server/staticmod.cmi server/staticmod.cmo server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi xmlp4/xhtmlsyntax.cma META lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi baselib/messages.cmi $(DUCEFILES)
+EXAMPLES = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo $(DUCEEXAMPLES)
 PP = -pp "camlp4o ./lib/xhtmlsyntax.cma -loc loc"
 
 all: $(REPS)
@@ -57,7 +68,7 @@ install:
 	$(MAKE) -C server install
 	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL)
-	cp $(EXAMPLES) $(EXAMPLESINSTALLDIR)
+	install -m 644 $(EXAMPLES) $(EXAMPLESINSTALLDIR)
 	-rm META
 
 

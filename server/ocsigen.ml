@@ -309,10 +309,14 @@ module type PAGES =
 (** Type of answers from modules (web pages) *)
     type page
     type form_content_elt
+    type form_content_elt_list
     type form_elt
     type a_content_elt
+    type a_content_elt_list
     type a_elt
+    type a_elt_list
     type div_content_elt
+    type div_content_elt_list
     type uri
     type link_elt
     type script_elt
@@ -339,15 +343,18 @@ module type PAGES =
     val submit : input_type_t
     val file : input_type_t
 
-    val make_a : ?a:a_attrib_t -> href:string -> a_content_elt list -> a_elt
+    val empty_seq : form_content_elt_list
+    val cons_form : form_content_elt -> form_content_elt_list -> form_content_elt_list 
+
+    val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
     val make_get_form : ?a:form_attrib_t -> 
       action:string -> 
-        form_content_elt -> form_content_elt list -> form_elt
+        form_content_elt -> form_content_elt_list -> form_elt
     val make_post_form : ?a:form_attrib_t ->
       action:string -> ?id:string -> ?inline:bool -> 
-        form_content_elt -> form_content_elt list -> form_elt
+        form_content_elt -> form_content_elt_list -> form_elt
     val make_hidden_field : input_elt -> form_content_elt
-    val make_empty_form_content : unit -> form_content_elt
+    val remove_first : form_content_elt_list -> form_content_elt * form_content_elt_list
     val make_input : ?a:input_attrib_t -> ?checked:bool ->
       typ:input_type_t -> ?name:string -> 
         ?value:string -> unit -> input_elt
@@ -355,7 +362,7 @@ module type PAGES =
       name:string -> rows:int -> cols:int ->
         pcdata_elt -> 
           textarea_elt
-    val make_div : classe:(string list) -> a_elt list -> form_content_elt
+    val make_div : classe:(string list) -> a_elt -> form_content_elt
     val make_uri_from_string : string -> uri
 
 
@@ -369,10 +376,14 @@ module type OCSIGENSIG =
   sig
     type page
     type form_content_elt
+    type form_content_elt_list
     type form_elt
     type a_content_elt
+    type a_content_elt_list
     type a_elt
+    type a_elt_list
     type div_content_elt
+    type div_content_elt_list
     type uri
     type link_elt
     type script_elt
@@ -519,17 +530,17 @@ module type OCSIGENSIG =
     val a :
         ?a:a_attrib_t ->
           ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
-            server_params -> a_content_elt list -> 'a -> a_elt
+            server_params -> a_content_elt_list -> 'a -> a_elt
     val get_form :
         ?a:form_attrib_t ->
           ('a, unit, 'b, 'c, 'd, unit param_name) service ->
             server_params ->
-              ('d -> form_content_elt list) -> form_elt
+              ('d -> form_content_elt_list) -> form_elt
     val post_form :
         ?a:form_attrib_t ->
           ('a, 'b, 'c, [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
             server_params ->
-              ('e -> form_content_elt list) -> 'a -> form_elt
+              ('e -> form_content_elt_list) -> 'a -> form_elt
     val make_uri :
         ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
           server_params -> 'a -> uri
@@ -537,13 +548,13 @@ module type OCSIGENSIG =
         ?a:a_attrib_t ->
           ?reload:bool ->
             ('a, 'b) action ->
-              server_params -> a_content_elt list -> form_elt
+              server_params -> a_content_elt_list -> form_elt
     val action_form :
         ?a:form_attrib_t ->
           ?reload:bool ->
             ('a, 'b) action ->
               server_params ->
-                ('b -> form_content_elt list) -> form_elt
+                ('b -> form_content_elt_list) -> form_elt
     val js_script :
         ?a:script_attrib_t -> uri -> script_elt
     val css_link : ?a:link_attrib_t -> uri -> link_elt
@@ -604,10 +615,14 @@ module Make = functor
 
       type page = Pages.page
       type form_content_elt = Pages.form_content_elt
+      type form_content_elt_list = Pages.form_content_elt_list
       type form_elt = Pages.form_elt
       type a_content_elt = Pages.a_content_elt
+      type a_content_elt_list = Pages.a_content_elt_list
       type a_elt = Pages.a_elt
+      type a_elt_list = Pages.a_elt_list
       type div_content_elt = Pages.div_content_elt
+      type div_content_elt_list = Pages.div_content_elt_list
       type uri = Pages.uri
       type link_elt = Pages.link_elt
       type script_elt = Pages.script_elt
@@ -994,7 +1009,7 @@ module Make = functor
       let get_form ?a
           (service : ('get,unit,'kind,'tipo,'gn,unit param_name) service) 
           (sp : server_params)
-          (f : 'gn -> Pages.form_content_elt list) =
+          (f : 'gn -> Pages.form_content_elt_list) =
         let urlname =
           (if service.external_service
           then (reconstruct_absolute_url_path
@@ -1013,14 +1028,13 @@ module Make = functor
         let i1, i =
           match state_param, inside with
             Some s, i -> (Pages.make_hidden_field s),i
-          | None, i1::i -> i1, i
-          | None, [] -> (Pages.make_empty_form_content ()),[]
+          | None, i -> Pages.remove_first i
         in Pages.make_get_form ?a ~action:urlname i1 i
 
       let post_form ?a
           (service : ('get,'form,'kind,'tipo,'gn,'pn) service) 
           (sp : server_params)
-          (f : 'pn -> Pages.form_content_elt list) (getparams : 'get) =
+          (f : 'pn -> Pages.form_content_elt_list) (getparams : 'get) =
         let suff,params_string = construct_params service.get_params_type getparams in
         let suff = (if service.url_prefix then Some suff else None) in
         let urlname = 
@@ -1042,8 +1056,7 @@ module Make = functor
         let i1, i =
           match state_param, inside with
             Some s, i -> (Pages.make_hidden_field s),i
-          | None, i1::i -> i1, i
-          | None, [] -> (Pages.make_empty_form_content ()),[]
+          | None, i -> Pages.remove_first i
         in Pages.make_post_form ?a
           ~action:(add_to_string urlname "?" params_string)
           i1 i
@@ -1077,23 +1090,27 @@ module Make = functor
         let reload_name = action_prefix^action_reload in
         let reload_param = 
           if reload 
-          then [Pages.make_hidden_field
-                  (Pages.make_input ~typ:Pages.hidden
-                     ~name:reload_name ~value:reload_name ())]
-          else [] in
+          then 
+	    Pages.cons_form
+	      (Pages.make_hidden_field
+                 (Pages.make_input ~typ:Pages.hidden
+                    ~name:reload_name ~value:reload_name ()))
+	      Pages.empty_seq
+          else Pages.empty_seq in
         let v = get_full_url h in
         Pages.make_post_form ~inline:true 
           ~id:formname ~action:v
           (Pages.make_div ~classe:["inline"]
-             [Pages.make_a ?a ~href:href content])
-          ((Pages.make_hidden_field
+             (Pages.make_a ?a ~href:href content))
+          (Pages.cons_form
+	   (Pages.make_hidden_field
               (Pages.make_input ~typ:Pages.hidden ~name:action_param_name
                  ~value:action_param ()))
-           ::reload_param)
+           reload_param)
           
       let action_form ?a
           ?(reload=true) (action : ('a,'pn) action) h 
-          (f : 'pn -> Pages.form_content_elt list) = 
+          (f : 'pn -> Pages.form_content_elt_list) = 
         let action_param_name = action_prefix^action_name in
         let action_param = (action.action_name) in
         let reload_name = action_prefix^action_reload in
@@ -1102,9 +1119,12 @@ module Make = functor
         let inside = f (make_params_names action.action_params_type) in
         let inside_reload = 
           if reload 
-          then (Pages.make_hidden_field 
-                  (Pages.make_input ~typ:Pages.hidden ~name:reload_name ~value:reload_name ()))
-            ::inside
+          then 
+	    Pages.cons_form
+	      (Pages.make_hidden_field 
+		 (Pages.make_input
+		    ~typ:Pages.hidden ~name:reload_name ~value:reload_name ()))
+              inside
           else inside 
         in
         Pages.make_post_form ?a ~action:v
@@ -1189,10 +1209,14 @@ module Make = functor
     end : OCSIGENSIG with 
      type page = Pages.page
      and type form_content_elt = Pages.form_content_elt
+     and type form_content_elt_list = Pages.form_content_elt_list
      and type form_elt = Pages.form_elt
      and type a_content_elt = Pages.a_content_elt
+     and type a_content_elt_list = Pages.a_content_elt_list
      and type a_elt = Pages.a_elt
+     and type a_elt_list = Pages.a_elt_list
      and type div_content_elt = Pages.div_content_elt
+     and type div_content_elt_list = Pages.div_content_elt_list
      and type uri = Pages.uri
      and type link_elt = Pages.link_elt
      and type script_elt = Pages.script_elt
@@ -1220,11 +1244,15 @@ module Xhtml_ = struct
 
   type page = xhtml elt
   type form_content_elt = form_content elt
+  type form_content_elt_list = form_content elt list
   type uri = XHTML.M.uri
   type a_content_elt = a_content elt
+  type a_content_elt_list = a_content elt list
   type div_content_elt = div_content elt
+  type div_content_elt_list = div_content elt list
 
   type a_elt = a elt
+  type a_elt_list = a elt list
   type form_elt = form elt
 
   type textarea_elt = textarea elt
@@ -1256,33 +1284,11 @@ module Xhtml_ = struct
 
   let make_uri_from_string = XHTML.M.make_uri_from_string
 
-  let add_css (a : 'a) : 'a = 
-    let css = 
-      XHTML.M.toelt 
-        (XHTML.M.style ~contenttype:"text/css"
-           [pcdata "\n.inline {display: inline}\n.nodisplay {display: none}\n"])
-    in
-    let rec aux = function
-      | (XML.Element ("head",al,el))::l -> (XML.Element ("head",al,css::el))::l
-      | (XML.BlockElement ("head",al,el))::l -> 
-          (XML.BlockElement ("head",al,css::el))::l
-      | (XML.SemiBlockElement ("head",al,el))::l -> 
-          (XML.SemiBlockElement ("head",al,css::el))::l
-      | (XML.Node ("head",al,el))::l -> (XML.Node ("head",al,css::el))::l
-      | e::l -> e::(aux l)
-      | [] -> []
-    in
-    XHTML.M.tot
-      (match XHTML.M.toelt a with
-      | XML.Element ("html",al,el) -> XML.Element ("html",al,aux el) 
-      | XML.BlockElement ("html",al,el) -> XML.BlockElement ("html",al,aux el) 
-      | XML.SemiBlockElement ("html",al,el) -> 
-          XML.SemiBlockElement ("html",al,aux el)
-      | XML.Node ("html",al,el) -> XML.Node ("html",al,aux el)
-      | e -> e)
-
   let create_sender = Predefined_senders.create_xhtml_sender
   let send = Predefined_senders.send_xhtml_page
+
+  let empty_seq = []
+  let cons_form a l = a::l
 
   let make_a ?(a=[]) ~href l : a_elt = 
     XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) l
@@ -1306,10 +1312,14 @@ module Xhtml_ = struct
   let make_hidden_field content = 
     div ~a:[a_class ["nodisplay"]] [content]
 
-  let make_div ~classe (c : a_elt list) =
-    div ~a:[a_class classe] (c :> div_content_elt list)
+  let make_div ~classe (c : a_elt) =
+    div ~a:[a_class classe] [(c :> div_content_elt)]
 
   let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
+
+  let remove_first = function
+      a::l -> a,l
+    | [] -> (make_empty_form_content ()), []
 
   let make_input ?(a=[]) ?(checked=false) ~typ ?name ?value () = 
     let a2 = match value with
@@ -1380,7 +1390,7 @@ module Xhtml = struct
            server_params -> ('getnames -> form_content elt list) -> form elt
                :> ?a:([< form_attrib > `Method ] attrib list) ->
                  ('get, unit, 'c, 'd, 'getnames, unit param_name) service ->
-                   server_params -> ('getnames -> form_content elt list) -> [>form] elt)
+                   server_params -> ('getnames -> form_content_elt_list) -> [>form] elt)
 
   let post_form = 
     (post_form
@@ -1391,7 +1401,7 @@ module Xhtml = struct
                  :> ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
                    ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames) service ->
                      server_params ->
-                       ('postnames -> form_content elt list) -> 'get -> [>form] elt)
+                       ('postnames -> form_content_elt_list) -> 'get -> [>form] elt)
 
   let int_input = 
     (int_input 
@@ -1571,7 +1581,7 @@ module Xhtml = struct
                                   ?reload:bool ->
                                     ('a,'b) action -> 
                                       server_params -> 
-                                        a_content elt list -> 
+                                        a_content_elt_list -> 
                                           [> form ] elt)
 
   let action_form = (action_form
@@ -1585,7 +1595,7 @@ module Xhtml = struct
                                      ?reload:bool ->
                                        ('a, 'b) action ->
                                          server_params -> 
-                                           ('b -> form_content elt list) ->
+                                           ('b -> form_content_elt_list) ->
                                              [> form ] elt)
 
 end
@@ -1601,11 +1611,15 @@ module Text_ = struct
 
   type page = string
   type form_content_elt = string
+  type form_content_elt_list = string
   type uri = string
   type a_content_elt = string
+  type a_content_elt_list = string
   type div_content_elt = string
+  type div_content_elt_list = string
 
   type a_elt = string
+  type a_elt_list = string
   type form_elt = string
 
   type textarea_elt = string
@@ -1638,12 +1652,15 @@ module Text_ = struct
 
   let make_uri_from_string x = x
 
+  let empty_seq = ""
+  let cons_form a l = a^l
+
   let make_a ?(a="") ~href l : a_elt = 
-    "<a href=\""^href^"\""^a^">"^(List.fold_left (^) "" l)^"</a>"
+    "<a href=\""^href^"\""^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 
   let make_get_form ?(a="") ~action elt1 elts : form_elt = 
     "<form method=\"get\" action=\""^(make_uri_from_string action)^"\""^a^">"^
-    elt1^(List.fold_left (^) "" elts)^"</form>"
+    elt1^(*List.fold_left (^) "" elts *) elts^"</form>"
 
   let make_post_form ?(a="") ~action ?id ?(inline = false) elt1 elts 
       : form_elt = 
@@ -1655,16 +1672,17 @@ module Text_ = struct
     in
     "<form method=\"post\" action=\""^(make_uri_from_string action)^"\""^
     (if inline then "style=\"display: inline\"" else "")^aa^">"^
-    elt1^(List.fold_left (^) "" elts)^"</form>"
+    elt1^(* List.fold_left (^) "" elts*) elts^"</form>"
 
   let make_hidden_field content = 
     "<div style=\"display: none\""^content^"</div>"
 
   let make_div ~classe c =
     "<div class=\""^(List.fold_left (fun a b -> a^" "^b) "" classe)^"\""^
-    (List.fold_left (^) "" c)^"</div>"
+    c^"</div>"
+(*    (List.fold_left (^) "" c)^"</div>" *)
 
-  let make_empty_form_content () = ""
+  let remove_first l = "",l
 
   let make_input ?(a="") ?(checked=false) ~typ ?name ?value () = 
     let a2 = match value with

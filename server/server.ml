@@ -413,10 +413,20 @@ let find_keepalive http_header =
 
 
 
-let service wait_end_request waiter http_frame port sockaddr 
-    xhtml_sender empty_sender inputchan () =
-  (* waiter is here for pipelining: we must wait before sending the page,
+let service 
+    wait_end_request
+    wait_end_answer
+    http_frame
+    port
+    sockaddr 
+    xhtml_sender
+    empty_sender
+    inputchan
+    () =
+  (* wait_end_answer is here for pipelining: 
+     we must wait before sending the page,
      because the previous one may not be sent *)
+  (* wait_end_request will be awoken when the full request has been read *)
   let head = ((Http_header.get_method http_frame.Stream_http_frame.header) 
                     = Some (Http_header.HEAD)) in
   let ka = find_keepalive http_frame.Stream_http_frame.header in
@@ -480,7 +490,7 @@ let service wait_end_request waiter http_frame port sockaddr
                 Some l, Some i when l<=i -> 
                   Messages.debug "-> Sending 304 Not modified ";
                   send_empty
-                    waiter
+                    wait_end_answer
                     ~keep_alive:ka
                     ?last_modified:res.res_lastmodified
                     ~cookies:res.res_cookies
@@ -491,7 +501,7 @@ let service wait_end_request waiter http_frame port sockaddr
                     
               | _ ->
                   res.res_send_page
-                    waiter
+                    wait_end_answer
                     ~keep_alive:ka
                     ?last_modified:res.res_lastmodified
                     ~cookies:res.res_cookies
@@ -514,12 +524,12 @@ let service wait_end_request waiter http_frame port sockaddr
                   Ocsigen_404 -> 
                     Messages.debug "-> Sending 404 Not Found";
                     send_error 
-                      waiter ~keep_alive:ka ~error_num:404 xhtml_sender
+                      wait_end_answer ~keep_alive:ka ~error_num:404 xhtml_sender
                 | Ocsigen_sending_error exn -> fail exn
                 | Ocsigen_Is_a_directory -> 
                     Messages.debug "-> Sending 301 Moved permanently";
                     send_empty
-                      waiter
+                      wait_end_answer
                       ~keep_alive:ka
                       ~location:(ri.ri_path_string^"/"^ri.ri_params)
                       ~code:301 (* Moved permanently *)
@@ -527,11 +537,11 @@ let service wait_end_request waiter http_frame port sockaddr
                 | Extensions.Ocsigen_malformed_url
                 | Neturl.Malformed_URL -> 
                     Messages.debug "-> Sending 400 (Malformed URL)";
-                    send_error waiter ~keep_alive:ka
+                    send_error wait_end_answer ~keep_alive:ka
                       ~error_num:400 xhtml_sender (* Malformed URL *)
                 | Unix.Unix_error (Unix.EACCES,_,_) ->
                     Messages.debug "-> Sending 303 Forbidden";
-                    send_error waiter ~keep_alive:ka
+                    send_error wait_end_answer ~keep_alive:ka
                       ~error_num:403 xhtml_sender (* Forbidden *)
                 | e ->
                     Messages.warning
@@ -539,7 +549,7 @@ let service wait_end_request waiter http_frame port sockaddr
                        (Printexc.to_string e)^" (sending 500)"); 
                     Messages.debug "-> Sending 500";
                     send_error
-                      waiter ~keep_alive:ka ~error_num:500 xhtml_sender)
+                      wait_end_answer ~keep_alive:ka ~error_num:500 xhtml_sender)
               (fun e -> fail (Ocsigen_sending_error e))
             (* All generation exceptions have been handled here *)
           )) >>=
@@ -551,7 +561,7 @@ let service wait_end_request waiter http_frame port sockaddr
         match e with
           Ocsigen_sending_error _ -> fail e
         | _ -> handle_light_request_errors
-              xhtml_sender sockaddr wait_end_request waiter e)
+              xhtml_sender sockaddr wait_end_request wait_end_answer e)
 
   in 
 
@@ -566,7 +576,7 @@ let service wait_end_request waiter http_frame port sockaddr
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
       (meth <> Some(Http_header.HEAD)))
-  then send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender
+  then send_error wait_end_answer ~keep_alive:ka ~error_num:501 xhtml_sender
   else 
     catch
 
@@ -611,7 +621,7 @@ let service wait_end_request waiter http_frame port sockaddr
              then consume http_frame.Stream_http_frame.content >>=
              (fun () ->
              wakeup wait_end_request ();
-             send_error waiter ~keep_alive:ka ~error_num:501 xhtml_sender)
+             send_error wait_end_answer ~keep_alive:ka ~error_num:501 xhtml_sender)
              else serv ()) *)
 
       (function
@@ -665,7 +675,7 @@ let listen ssl port wait_end_init =
            with an exception.
          *)
 (*        Stop_sending -> 
-          wakeup_exn waiter Stop_sending;
+          wakeup_exn wait_end_answer Stop_sending;
           return () *)
         (* Timeout errors: We close and do nothing *)
       lingering_close in_ch;
@@ -684,15 +694,15 @@ let listen ssl port wait_end_init =
           handle_broken_pipe_exn sockaddr e
     in  
 
-    let handle_request_errors wait_end_request waiter exn =
+    let handle_request_errors wait_end_request wait_end_answer exn =
       catch
-        (fun () -> 
+        (fun () ->
           handle_light_request_errors 
-            xhtml_sender sockaddr wait_end_request waiter exn)
+            xhtml_sender sockaddr wait_end_request wait_end_answer exn)
         (fun e -> handle_severe_errors exn)
     in
 
-    let rec handle_request waiter http_frame =
+    let rec handle_request wait_end_answer http_frame =
 
      let test_end_request_awoken wait_end_request =
         try
@@ -708,10 +718,11 @@ let listen ssl port wait_end_init =
       if keep_alive 
       then begin
         Messages.debug "** KEEP ALIVE (pipelined)";
-        let waiter2 = wait () in
+        let wait_end_answer2 = wait () in
         (* The following request must wait the end of this one
            before being answered *)
-        (* waiter is awoken when the previous request has been answered *)
+        (* wait_end_answer
+           is awoken when the previous request has been answered *)
         let wait_end_request = wait () in
         (* The following request must wait the end of this one.
            (It may not be finished, for example if we are downloading files) *)
@@ -719,11 +730,12 @@ let listen ssl port wait_end_init =
         ignore_result 
           (catch
              (fun () ->
-               service wait_end_request waiter http_frame port sockaddr 
+               service 
+                 wait_end_request wait_end_answer http_frame port sockaddr 
                  xhtml_sender empty_sender in_ch () >>=
                (fun () ->
                  test_end_request_awoken wait_end_request;
-                 wakeup waiter2 (); 
+                 wakeup wait_end_answer2 (); 
                  return ()))
              handle_severe_errors);
         
@@ -732,16 +744,16 @@ let listen ssl port wait_end_init =
             wait_end_request >>=
             (fun () -> 
               Messages.debug "** Waiting for new request (pipeline)";
-              Stream_receiver.get_http_frame waiter2
+              Stream_receiver.get_http_frame wait_end_answer2
                 receiver ~doing_keep_alive:true () >>=
-              (handle_request waiter2)))
-          (handle_request_errors wait_end_request waiter2)
+              (handle_request wait_end_answer2)))
+          (handle_request_errors wait_end_request wait_end_answer2)
       end
 
       else begin (* No keep-alive => no pipeline *)
         catch
           (fun () ->
-            service (wait ()) waiter http_frame port sockaddr
+            service (wait ()) wait_end_answer http_frame port sockaddr
               xhtml_sender empty_sender in_ch ())
           (fun e ->
             lingering_close in_ch; fail e) >>=
@@ -762,18 +774,18 @@ let listen ssl port wait_end_init =
       (handle_broken_pipe_exn sockaddr)
 
         (* Without pipeline:
-        Stream_receiver.get_http_frame receiver ~doing_keep_alive () >>=
-        (fun http_frame ->
-          (service http_frame sockaddr 
-             xhtml_sender empty_sender in_ch ())
-            >>= (fun keep_alive -> 
-              if keep_alive then begin
-                Messages.debug "** KEEP ALIVE";
-                listen_connexion_aux ~doing_keep_alive:true
-                  (* Pour laisser la connexion ouverte, je relance *)
-              end
-              else (lingering_close in_ch; 
-                    return ())))
+*        Stream_receiver.get_http_frame receiver ~doing_keep_alive () >>=
+*        (fun http_frame ->
+*          (service http_frame sockaddr 
+*             xhtml_sender empty_sender in_ch ())
+*            >>= (fun keep_alive -> 
+*              if keep_alive then begin
+*                Messages.debug "** KEEP ALIVE";
+*                listen_connexion_aux ~doing_keep_alive:true
+*                  (* Pour laisser la connexion ouverte, je relance *)
+*              end
+*              else (lingering_close in_ch; 
+*                    return ())))
         *)
         
   in 

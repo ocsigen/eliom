@@ -29,9 +29,10 @@ open XHTML.M
 open Xhtmltypes
 open Extensions
 
-(** *)
+(** Allows extensions of the configuration file for your modules *)
 val get_config : unit -> 
   Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist
+(** Put your options between <module ...> and </module> *)
 
 (** This function may be used for services that can not be interrupted
   (no cooperation point for threads). It is defined by
@@ -535,10 +536,14 @@ module type PAGES =
   sig
     type page
     type form_content_elt
+    type form_content_elt_list
     type form_elt
     type a_content_elt
+    type a_content_elt_list
     type a_elt
+    type a_elt_list
     type div_content_elt
+    type div_content_elt_list
     type uri
     type link_elt
     type script_elt
@@ -561,20 +566,22 @@ module type PAGES =
     val radio : input_type_t
     val submit : input_type_t
     val file : input_type_t
+    val empty_seq : form_content_elt_list
+    val cons_form : form_content_elt -> form_content_elt_list -> form_content_elt_list
     val make_a :
-        ?a:a_attrib_t -> href:string -> a_content_elt list -> a_elt
+        ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
     val make_get_form :
         ?a:form_attrib_t ->
           action:string ->
-            form_content_elt -> form_content_elt list -> form_elt
+            form_content_elt -> form_content_elt_list -> form_elt
     val make_post_form :
         ?a:form_attrib_t ->
           action:string ->
             ?id:string ->
               ?inline:bool ->
-                form_content_elt -> form_content_elt list -> form_elt
+                form_content_elt -> form_content_elt_list -> form_elt
     val make_hidden_field : input_elt -> form_content_elt
-    val make_empty_form_content : unit -> form_content_elt
+    val remove_first : form_content_elt_list -> form_content_elt * form_content_elt_list
     val make_input :
         ?a:input_attrib_t ->
           ?checked:bool ->
@@ -585,7 +592,7 @@ module type PAGES =
           name:string ->
             rows:int -> cols:int -> pcdata_elt -> textarea_elt
     val make_div :
-        classe:string list -> a_elt list -> form_content_elt
+        classe:string list -> a_elt -> form_content_elt
     val make_uri_from_string : string -> uri
     val make_css_link : ?a:link_attrib_t -> uri -> link_elt
     val make_js_script : ?a:script_attrib_t -> uri -> script_elt
@@ -595,10 +602,14 @@ module type OCSIGENSIG =
   sig
     type page
     type form_content_elt
+    type form_content_elt_list
     type form_elt
     type a_content_elt
+    type a_content_elt_list
     type a_elt
+    type a_elt_list
     type div_content_elt
+    type div_content_elt_list
     type uri
     type link_elt
     type script_elt
@@ -745,17 +756,17 @@ module type OCSIGENSIG =
     val a :
         ?a:a_attrib_t ->
           ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
-            server_params -> a_content_elt list -> 'a -> a_elt
+            server_params -> a_content_elt_list -> 'a -> a_elt
     val get_form :
         ?a:form_attrib_t ->
           ('a, unit, 'b, 'c, 'd, unit param_name) service ->
             server_params ->
-              ('d -> form_content_elt list) -> form_elt
+              ('d -> form_content_elt_list) -> form_elt
     val post_form :
         ?a:form_attrib_t ->
           ('a, 'b, 'c, [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
             server_params ->
-              ('e -> form_content_elt list) -> 'a -> form_elt
+              ('e -> form_content_elt_list) -> 'a -> form_elt
     val make_uri :
         ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
           server_params -> 'a -> uri
@@ -763,13 +774,13 @@ module type OCSIGENSIG =
         ?a:a_attrib_t ->
           ?reload:bool ->
             ('a, 'b) action ->
-              server_params -> a_content_elt list -> form_elt
+              server_params -> a_content_elt_list -> form_elt
     val action_form :
         ?a:form_attrib_t ->
           ?reload:bool ->
             ('a, 'b) action ->
               server_params ->
-                ('b -> form_content_elt list) -> form_elt
+                ('b -> form_content_elt_list) -> form_elt
     val js_script :
         ?a:script_attrib_t -> uri -> script_elt
     val css_link : ?a:link_attrib_t -> uri -> link_elt
@@ -825,10 +836,14 @@ module type OCSIGENSIG =
 module Make : functor (Pages: PAGES) -> OCSIGENSIG with 
 type page = Pages.page
 and type form_content_elt = Pages.form_content_elt
+and type form_content_elt_list = Pages.form_content_elt_list
 and type form_elt = Pages.form_elt
 and type a_content_elt = Pages.a_content_elt
+and type a_content_elt_list = Pages.a_content_elt_list
 and type a_elt = Pages.a_elt
+and type a_elt_list = Pages.a_elt_list
 and type div_content_elt = Pages.div_content_elt
+and type div_content_elt_list = Pages.div_content_elt_list
 and type uri = Pages.uri
 and type link_elt = Pages.link_elt
 and type script_elt = Pages.script_elt
@@ -846,10 +861,14 @@ and type input_type_t = Pages.input_type_t
 module Text : OCSIGENSIG with 
 type page = string
 and type form_content_elt = string
+and type form_content_elt_list = string
 and type form_elt = string 
 and type a_content_elt = string 
+and type a_content_elt_list = string 
 and type a_elt = string 
+and type a_elt_list = string 
 and type div_content_elt = string 
+and type div_content_elt_list = string 
 and type uri = string 
 and type link_elt = string 
 and type script_elt = string 
