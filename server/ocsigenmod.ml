@@ -607,8 +607,12 @@ let gen page_tree ri =
       make_action 
         page_tree action_name action_params ri cookie
         >>= (fun (cookie2,path) ->
+	  let cookie3 = match cookie2 with
+	    None -> cookie
+	  | Some c -> Some c
+	  in
           (if reload then
-            (get_page page_tree ri cookie2 internal_state >>=
+            (get_page page_tree ri cookie3 internal_state >>=
 	     (function
 		 Ext_found r -> return 
 		     (Ext_found
