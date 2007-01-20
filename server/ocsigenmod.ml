@@ -608,8 +608,29 @@ let gen page_tree ri =
         page_tree action_name action_params ri cookie
         >>= (fun (cookie2,path) ->
           (if reload then
-            get_page page_tree ri cookie2 internal_state
-              
+            (get_page page_tree ri cookie2 internal_state >>=
+	     (function
+		 Ext_found r -> return 
+		     (Ext_found
+			{r with 
+			 res_cookies=
+			 (match cookie2, r.res_cookies with
+			 | (Some c), [] -> [(cookiename, c)]
+			 | _,cl -> cl)})
+	       | _ -> return (Ext_found
+				{res_cookies=
+				 (match cookie2 with
+				   None -> []
+				 | Some c -> [(cookiename, c)]);
+				 res_send_page=
+				 (Predefined_senders.send_xhtml_page 
+				    ~content:(Error_pages.error_page "Error: redirection after action is experimental (it works only for ocsigenmod pages for now, and I didn't find any)"));
+				 res_create_sender=Predefined_senders.create_xhtml_sender;
+				 res_path="/";
+				 res_code=None;
+				 res_lastmodified=None;
+				 res_etag=None})))
+          
           else
 	    return
 	      (Ext_found

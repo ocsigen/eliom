@@ -3,7 +3,7 @@ open Ocsigen
 open Ocsigenduce.Xhtml
 open Lwt
 
-let plop = 
+let s = 
   register_new_service 
     ~url:[""]
     ~get_params:unit
@@ -11,6 +11,6 @@ let plop =
       return
         {{ <html>
              [<head> [<title> ""]
-              <body> [<h1> "This page has been typed by OcamlDuce"]] }})
+              <body> [<h1> "This page has been type checked by OcamlDuce"]] }})
 
 

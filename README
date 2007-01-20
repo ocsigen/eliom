@@ -7,7 +7,7 @@ Instructions:
 Requirements: 
 ocaml (tested with version 3.08.4 and 3.09.1. Does not work with 3.08.1)
 ocamlfind
-ocamlnet >= 2.2 (actually only modules netstring, netsys, pcre)
+ocamlnet >= 1.1.2 (actually only modules netstring, netsys, pcre)
 (ocamlnet needs pcre?)
 ocamlssl >= 0.4.0 (ocamlssl needs openssl)
 
@@ -18,16 +18,12 @@ See http://godi.ocaml-programming.de
 ---
 To compile Ocsigen:
 
-Modify Makefile.config to set OCSIMORE=YES or OCSIMORE=NO whether you want
-Ocsimore or not (advice: start with OCSIMORE=NO, especially if you don't
-have postgresql installed)
+Modify Makefile.config to set your preferences
 
   make depend
   make 
 
-If you want system-wide installation, 
-modify Makefile.config to set all the informations (paths, user...),
-then become root, and do
+If you want system-wide installation, become root, and do
   make fullinstall
 
 (make fulluninstall -> to remove all
@@ -54,62 +50,14 @@ Then you can connect to the server with your browser:
 
 http://localhost
 
-If it does not work, look at the logs or run ocsigen with options -v or -vv
+If it does not work, look at the logs or run ocsigen with options -v or -V
 (verbose and debug mode)
 
 See the file modules/tutorial.ml for a tutorial or http://www.ocsigen.org
 
-To learn the syntax extension for xhtml, see exemples in
-xmlp4/exemple/ or http://www.ocsigen.org
-Warning: In the syntax extension, typing forces to respect 
-overlapping (?) of xhtml tags
-but that's all (it does not verify for example that mandatory tags are 
-present, or the order of tags)
-
 If you make fullinstall, it will generate and install the documentation.
 Otherwise, you can generate it in the doc directory by typing:
 make doc
-
-__________________________________________________________________
-Ocsimore:
-
-Ocsimore is a set of tools to make creation of pages easier:
- - Cached access to the database without sql (very basic)
- - Persistant data
- - Users and rights management 
- - Common pages components (login box, etc)
- - Save page layout in the database
-
-You don't need Ocsimore to use Ocsigen. 
-Ocsimore is at early stage of development, and could be improved a lot.
-
-To use Ocsimore,
- - install postgresql, create a database named ocsibase
-   (and give the rights to write in to the user that will launch ocsigen)
-   (Not sure that the ocaml module works with PostgreSQL version > 8.0.1
-	for the while (?))
- - install the postgresql and ocamldbi (with postgresql support) libraries 
-   for ocaml. (Markus Mottl version of postgresql, not Alain Frish's)
- - postgresql.cma dbi.cma and dbi_postgresql.cmo won't link dynamically
-   (I don't know why). A solution is to link them in the server. It is done
-   by default.
- - Modify Makefile.config to set OCSIMORE=YES
- - recompile ocsigen with ocsimore support: make clean; make depend; make
- - for system-wide install, reinstall ocsigen: 
-   for ex: sudo make uninstall; sudo make install
- - add lines in config file ocsigen.conf to load
-   postgresql.cma, dbi.cma, dbi_postgresql.cmo, 
-   ocsimore.cma and the other modules you need
- - create the tables : psql -f ocsimore/createdb.sql ocsibase
- - run ocsigen. 
-   The first time, it will ask for a new password for the administrator
-   of your web-site.
-
-(e.g. once you have installed postgres, write:
-sudo -u postgres createdb ocsibase
-sudo -u postgres createuser www-data
-sudo -u www-data psql -f /path_to/createdb.sql ocsibase
-)
 
 
 ------------------------------------------------------------------
@@ -118,7 +66,7 @@ Ocsigen
 Written by:
 
 Vincent Balat (project leader, xml parser, ocsigen.ml, server, 
-               moduleexample, ocsimore...)
+               moduleexample, ocsimore 0.1...)
 Denis Berthod (http protocol, server)
 Jérôme Vouillon (lwt library, from unison)
 Thorsten Ohl (functions to generate xhtml (xML and xHTML modules))

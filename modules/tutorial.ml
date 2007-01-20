@@ -4,7 +4,7 @@
    You can find a more readable version of comments on http://www.ocsigen.org
 *zap*)
 (*zap*
-~/bin/caml2html -hc2 -oc tutorial.ml
+~/bin/caml2html -css -hc2 -oc tutorial.ml
 *zap*)
 (*html*
     <div class="twocol1">
@@ -167,6 +167,32 @@ let coucou1 =
       <p>
        $a xhtmlsyntax sp <:xmllist< More info >> ()$ on the syntax extension.
       </p>
+      </div>
+      <div class="encadre">
+        <h3>Ocsigen and OCamlDuce</h3>
+        <p>If OCamlDuce is installed on your system, it is now possible to use
+        it instead of XHTML.M to typecheck your pages. You get a stronger typing
+        and more flexibility (easier to use other XML types, easier to parse
+        incoming XML data, etc.).</p>
+        <p>The main drawback is that OCamlDuce is not part of the standard
+        OCaml distribution.</p>
+        <p>To use it, dynlink <code>ocamlduce.cma</code> and 
+          <code>ocsigenduce.cma</code> from the configuration file.</p>
+        <p>Here is an example:</p>
+        <pre><span style="color:#cc9900">open</span> <span style="color:#0033cc">XHTML</span>.<span style="color:#0033cc">M</span>
+<span style="color:#cc9900">open</span> <span style="color:#0033cc">Ocsigen</span>
+<span style="color:#cc9900">open</span> <span style="color:#0033cc">Ocsigenduce</span>.<span style="color:#0033cc">Xhtml</span>
+<span style="color:#cc9900">open</span> <span style="color:#0033cc">Lwt</span>
+
+<span style="color:green">let</span> s =
+  register_new_service
+    <span style="color:#770000">~url:</span>[<span style="color:#aa4444">""</span>]
+    <span style="color:#770000">~get_params:</span>unit
+    (<span style="color:green">fun</span> sp () () -&gt;
+      return
+        {{ &lt;html&gt;
+             [&lt;head&gt; [&lt;title&gt; <span style="color:#aa4444">""</span>]
+              &lt;body&gt; [&lt;h1&gt; <span style="color:#aa4444">"This page has been type checked by OcamlDuce"</span>]] }}) </pre>
       </div>
     </div>
     <h2>More examples</h2>
