@@ -85,6 +85,9 @@ ocsigenduce.cma: xhtml1_strict.cmo ocsigenduce.cmo
 xhtml1_strict.cmo:
 	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c xhtml1_strict.ml
 
+#xhtml1_strict.cmi:
+#	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c xhtml1_strict.mli
+
 ocsigenduce.cmo:
 	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c ocsigenduce.ml
 

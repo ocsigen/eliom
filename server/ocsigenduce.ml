@@ -37,7 +37,7 @@ let add_css (a : html) : html =
 
 module Ocamlduce_content =
   struct
-    type t = html
+    type t = {{ html }}
 
     let get_etag_aux x =
       Digest.to_hex (Digest.string x)
