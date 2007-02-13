@@ -49,6 +49,7 @@ let netbuffersize = ref 8000
 let filebuffersize = ref 500
 let maxrequestbodysize = ref (Some (Int64.of_int 8000000))
 let maxuploadfilesize = ref (Some (Int64.of_int 2000000))
+let defaultcharset = ref (None : string option)
 
 
 let set_uploaddir u = uploaddir := u
@@ -73,6 +74,7 @@ let set_netbuffersize i = netbuffersize := i
 let set_filebuffersize i = filebuffersize := i
 let set_maxuploadfilesize i = maxuploadfilesize := i
 let set_maxrequestbodysize i = maxrequestbodysize := i
+let set_default_charset o = defaultcharset := o
 
 let get_uploaddir () = !uploaddir
 let get_logdir () = !logdir
@@ -96,6 +98,7 @@ let get_netbuffersize () = !netbuffersize
 let get_filebuffersize () = !filebuffersize
 let get_maxuploadfilesize () = !maxuploadfilesize
 let get_maxrequestbodysize () = !maxrequestbodysize
+let get_default_charset () = !defaultcharset
 
 
 let display_version () =

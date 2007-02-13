@@ -507,6 +507,7 @@ let service
                     ~cookies:res.res_cookies
                     ~path:res.res_path (* path for the cookie *) 
                     ?code:res.res_code
+                    ?charset:res.res_charset
                     ~head:head
                     (res.res_create_sender ~server_name:server_name inputchan))
 

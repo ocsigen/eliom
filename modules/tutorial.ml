@@ -171,16 +171,16 @@ let coucou1 =
       <div class="encadre">
         <h3>Ocsigen and OCamlDuce</h3>
         <p>If OCamlDuce is installed on your system, it is now possible to use
-        it instead of XHTML.M to typecheck your pages. You get a stronger typing
+        it instead of XHTML.M to typecheck your pages. You get a stronger
+        typing
         and more flexibility (easier to use other XML types, easier to parse
         incoming XML data, etc.).</p>
-        <p>The main drawback is that OCamlDuce is not part of the standard
-        OCaml distribution.</p>
-        <p>To use it, dynlink <code>ocamlduce.cma</code> and 
-          <code>ocsigenduce.cma</code> from the configuration file.</p>
+        <p>To use it, make sure that you have Ocsigen compiled with OCamlDuce 
+         support. Then dynlink <code>ocamlduce.cma</code> and 
+          <code>ocsigenduce.cma</code> from the configuration file
+        (after <code>ocsigenmod.cma</code>).</p>
         <p>Here is an example:</p>
-        <pre><span style="color:#cc9900">open</span> <span style="color:#0033cc">XHTML</span>.<span style="color:#0033cc">M</span>
-<span style="color:#cc9900">open</span> <span style="color:#0033cc">Ocsigen</span>
+        <pre><span style="color:#cc9900">open</span> <span style="color:#0033cc">Ocsigen</span>
 <span style="color:#cc9900">open</span> <span style="color:#0033cc">Ocsigenduce</span>.<span style="color:#0033cc">Xhtml</span>
 <span style="color:#cc9900">open</span> <span style="color:#0033cc">Lwt</span>
 
@@ -389,7 +389,7 @@ let catch = register_new_service
     <h2>Links</h2>
     <div class="twocol1">
       <p>To create a link (anchor), use the function 
-          <code>Ocsigen.a</code>
+          <code>Ocsigen.Xhtml.a</code>
       </p>
 *html*)
 let links = register_new_service ["rep";"links"] unit
@@ -428,7 +428,7 @@ let links = register_new_service ["rep";"links"] unit
       uses a prefix URL).</p>
       <p>
       You give page parameters as additional parameters to the 
-      function <code>Ocsigen.a</code>.
+      function <code>Ocsigen.Xhtml.a</code>.
       </p>
     </div>
     <div class="twocol2">
@@ -486,7 +486,7 @@ let essai =
     <div class="twocol1">
       <p>The function <code>Ocsigen.get_form</code> allows to create a form
       that uses the GET method (parameters in the URL).
-      It works like <code>Ocsigen.a</code> but takes as parameter
+      It works like <code>Ocsigen.Xhtml.a</code> but takes as parameter
       a <em>function</em> that creates the form from parameters names.
       </p>
 *html*)

@@ -1,4 +1,3 @@
-open XHTML.M
 open Ocsigen
 open Ocsigenduce.Xhtml
 open Lwt

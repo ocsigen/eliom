@@ -72,9 +72,13 @@ type result =
      res_etag: Http_frame.etag option;    (** ETag for the page *)
      res_code: int option;                (** HTTP code to send, if not 200 *)
      res_send_page: Predefined_senders.send_page_type; (** A function from {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.send_xhtml_page] *)
-     res_create_sender: Predefined_senders.create_sender_type (** A function from {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.create_xhtml_sender] *)
+     res_create_sender: Predefined_senders.create_sender_type (** A function from {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.create_xhtml_sender] *);
+     res_charset: string option
    }
 
+
+(** Charset for each directory *)
+type charset_tree_type
 
 (** The result given by the extension (filter or page generation) *)
 type answer =
@@ -98,8 +102,10 @@ type answer =
  *)
 val register_extension :
     (virtual_hosts -> 
-      (request_info -> answer Lwt.t) * 
-	(string list -> Simplexmlparser.ExprOrPatt.texprpatt -> unit)) *
+      (string option -> request_info -> answer Lwt.t) * 
+	(string list ->
+          Simplexmlparser.ExprOrPatt.texprpatt -> 
+            unit)) *
     (unit -> unit) * 
     (unit -> unit) *
     (exn -> string) -> unit
@@ -107,8 +113,11 @@ val register_extension :
 (**/**)
 val create_virthost : 
     Ocsimisc.virtual_hosts ->
-      (request_info -> answer Lwt.t) * 
-	(string list -> Simplexmlparser.ExprOrPatt.texprpatt -> unit)
+      ((request_info -> answer Lwt.t) * 
+	 (string list ->
+           Simplexmlparser.ExprOrPatt.texprpatt ->
+             unit)) * 
+        (string option -> string list -> unit)
 
 val set_virthosts : (Ocsimisc.virtual_hosts * 
                        (request_info -> answer Lwt.t)) list -> unit

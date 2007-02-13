@@ -134,8 +134,10 @@ let rec parser_config =
 let parse_server c =
   let rec parse_server_aux =
     let rec parse_site parse_site_function path = function
-      | PLCons ((EPcomment _), l) -> parse_site parse_site_function path l
-      | PLCons ((EPwhitespace _), l) -> parse_site parse_site_function path l
+      | PLCons ((EPcomment _), l) -> 
+          parse_site parse_site_function path l
+      | PLCons ((EPwhitespace _), l) -> 
+          parse_site parse_site_function path l
       | PLEmpty -> ()
       | PLCons (xml, l) -> 
           (try
@@ -147,26 +149,49 @@ let parse_server c =
 				      ^"\">")));
           parse_site parse_site_function path l
     in
-    let rec parse_host psf = function
+    let rec parse_host psf acf = function
 	PLEmpty -> ()
       | PLCons ((EPanytag ("site", atts, l)), ll) ->
-          let dir = match atts with
-          | PLEmpty -> 
-              raise (Config_file_error "dir attribute expected for <site>")
-          | PLCons ((EPanyattr (EPVstr("dir"), EPVstr(s))), PLEmpty) -> s
-          | _ -> raise (Config_file_error "Wrong attribute for <site>") 
+          let rec parse_site_attrs (enc,dir) = function
+            | PLEmpty -> (match (enc,dir) with
+                _,None -> 
+                  raise (Config_file_error
+                           ("Missing dir attribute in <site>"))
+              | None, Some s -> (None, s)
+              | _, Some s -> (enc, s))
+            | PLCons ((EPanyattr (EPVstr("dir"), EPVstr(s))), suite) ->
+                (match dir with
+                  None -> parse_site_attrs (enc,Some s) suite
+                | _ -> raise (Config_file_error
+                                ("Duplicate attribute dir in <site>")))
+            | PLCons ((EPanyattr (EPVstr("charset"), EPVstr(s))), suite) ->
+                (match enc with
+                  None -> parse_site_attrs ((Some s),dir) suite
+                | _ -> raise (Config_file_error
+                                ("Duplicate attribute charset in <site>")))
+            | PLCons ((EPanyattr (EPVstr(s), _)), _) ->
+                raise
+                  (Config_file_error ("Wrong attribute for <site>: "^s))
+            | _ ->
+                raise
+                  (Config_file_error ("Error in attributes for <site>"))
           in
+          let enc,dir = parse_site_attrs (None, None) atts in
           let path = Ocsimisc.remove_slash (Neturl.split_path dir) in
+          acf enc path;
           parse_site psf path l;
-          parse_host psf ll
-      | PLCons ((EPcomment _), l) -> parse_host psf l
-      | PLCons ((EPwhitespace _), l) -> parse_host psf l
+          parse_host psf acf ll
+      | PLCons ((EPcomment _), l) -> parse_host psf acf l
+      | PLCons ((EPwhitespace _), l) -> parse_host psf acf l
       | PLCons ((EPanytag (tag,_,_)),l) -> 
           raise (Config_file_error ("<"^tag^"> tag unexpected inside <host>"))
       | _ -> raise (Config_file_error ("Unexpected content inside <host>"))
     in function
 	PLEmpty -> []
       | PLCons ((EPanytag ("port", atts, p)), ll) ->
+          parse_server_aux ll
+      | PLCons ((EPanytag ("charset", atts, p)), ll) ->
+          set_default_charset (Some (parse_string p));
           parse_server_aux ll
       | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
           parse_server_aux ll
@@ -189,7 +214,8 @@ let parse_server c =
       | PLCons ((EPanytag ("maxthreads", PLEmpty, p)), ll) ->
           set_maxthreads (int_of_string (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("maxdetachedcomputationsqueued", PLEmpty, p)), ll) ->
+      | PLCons 
+          ((EPanytag ("maxdetachedcomputationsqueued", PLEmpty, p)), ll) ->
           set_max_number_of_threads_queued (int_of_string (parse_string p));
           parse_server_aux ll
       | PLCons ((EPanytag ("maxconnected", PLEmpty, p)), ll) -> 
@@ -249,13 +275,16 @@ let parse_server c =
 		(Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
           | _ -> raise (Config_file_error "Wrong attribute for <host>") 
 	  in 
-	  let (gen_page, parse_site_function) = Extensions.create_virthost host in
-	  parse_host parse_site_function l;
+	  let ((gen_page, parse_site_function), add_charset_function) = 
+            Extensions.create_virthost host 
+          in
+	  parse_host parse_site_function add_charset_function l;
 	  (host,gen_page)::(parse_server_aux ll)
       | PLCons ((EPcomment _), ll) -> parse_server_aux ll
       | PLCons ((EPwhitespace _), ll) -> parse_server_aux ll
       | PLCons ((EPanytag (tag, _, _)), _) -> 
-          raise (Config_file_error ("tag <"^tag^"> unexpected inside <server>"))
+          raise (Config_file_error
+                   ("tag <"^tag^"> unexpected inside <server>"))
       | _ ->
           raise (Config_file_error "Syntax error")
   in Extensions.set_virthosts (parse_server_aux c)

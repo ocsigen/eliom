@@ -125,7 +125,7 @@ let find_static_page staticdirref path =
   in
   find_file (aux None !staticdirref path)
 
-let gen pages_tree ri = 
+let gen pages_tree charset ri = 
   catch
     (* Is it a static page? *)
     (fun () ->
@@ -144,7 +144,8 @@ let gen pages_tree ri =
               res_path="";
               res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
               res_etag=
-              Some (Predefined_senders.File_content.get_etag filename)})
+              Some (Predefined_senders.File_content.get_etag filename);
+              res_charset=charset})
       end
       else return Ext_not_found)
     (function
@@ -186,7 +187,8 @@ let end_init () =
   | Some path -> 
       let page_tree = new_pages_tree () in
       set_static_dir page_tree path [];
-      add_virthost ([([Ocsimisc.Wildcard],None)], gen page_tree)
+      add_virthost ([([Ocsimisc.Wildcard],None)], 
+                    gen page_tree (Ocsiconfig.get_default_charset ()))
   (* for default static dir *)
 
 

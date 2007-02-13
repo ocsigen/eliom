@@ -215,11 +215,10 @@ let create_xhtml_sender ?server_name ?proto fd =
   in
   let hd2 =
     [
-      ("Accept-Ranges","none");
-      (* ("Cache-Control","no-cache"); *)
-      ("Expires", "0");
-      ("Content-Type","text/html")
-    ]@hd
+     ("Accept-Ranges","none");
+     (* ("Cache-Control","no-cache"); *)
+     ("Expires", "0")
+   ]@hd
   in
   match proto with
   |None ->
@@ -265,7 +264,9 @@ let gmtdate d =
 * xhtml_sender is the used sender*)
 let send_generic
     waiter
-    ?code ?etag ~keep_alive ?(cookies = []) ?last_modified
+    ?code ?etag ~keep_alive ?(cookies = []) ?last_modified 
+    ?contenttype
+    ?charset
     ?path ?location ?(header=[]) ?head ~content sender 
     (send : unit Lwt.t ->
       ?etag:etag ->
@@ -314,6 +315,13 @@ let send_generic
     |None ->  hds
     |Some l -> ("ETag", "\""^l^"\"")::hds
   in
+  let hds = match contenttype with
+    None -> hds
+  | Some s -> ("Content-Type",
+               (match (String.sub s 0 4), charset with 
+                 "text", Some c -> (s^"; charset="^c)
+               | _ -> s))::hds
+  in
   match code with
     |None -> send waiter ?etag ~code:200 ~content ~headers:hds ?head sender
     |Some c -> send waiter ?etag ~code:c ~content ~headers:hds ?head sender
@@ -331,7 +339,8 @@ type send_page_type =
               ?path:string ->
                 ?last_modified:float ->
                   ?location:string -> 
-                    ?head:bool -> Http_com.sender_type -> unit Lwt.t
+                    ?head:bool -> 
+                      ?charset:string -> Http_com.sender_type -> unit Lwt.t
   
 (** fonction that sends a xhtml page
  * code is the code of the http answer
@@ -341,10 +350,13 @@ type send_page_type =
  * page is the page to send
  * xhtml_sender is the sender to be used *)
 let send_xhtml_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path 
-    ?last_modified ?location ?head xhtml_sender =
+    ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter ?etag
     ?code ~keep_alive ?cookies ?path ?location ?last_modified
-    ~content ?head xhtml_sender Xhtml_sender.send
+    ~contenttype:"text/html"
+    ?charset
+    ~content 
+    ?head xhtml_sender Xhtml_sender.send
   
 (** fonction that sends an empty answer
  * code is the code of the http answer
@@ -353,16 +365,17 @@ let send_xhtml_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path
  * page is the page to send
  * empty_sender is the used sender *)
 let send_empty waiter ?code ?etag ~keep_alive ?cookies 
-    ?path ?last_modified ?location ?head empty_sender =
+    ?path ?last_modified ?location ?head ?charset empty_sender =
   send_generic waiter ?etag ?last_modified
-    ?code ~keep_alive ?cookies ?path ?location ~content:() 
+    ?code ~keep_alive ?cookies ?path ?location
+    (*~contenttype:? ~charset:?*) ~content:() 
     ?head empty_sender Empty_sender.send
 
 let send_text_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path 
-    ?last_modified ?location ?head xhtml_sender =
+    ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter
     ?etag ?code ~keep_alive ?cookies ?path ?location ?last_modified
-    ~content ?head xhtml_sender Text_sender.send
+    (*~contenttype:? ~charset:?*) ~content ?head xhtml_sender Text_sender.send
   
   
 
@@ -461,12 +474,13 @@ let content_type_from_file_name =
     with _ -> "unknown" 
 
 let send_file file waiter ?code ?etag ~keep_alive ?cookies ?path
-    ?last_modified ?location ?head file_sender =
+    ?last_modified ?location ?head ?charset file_sender =
   Lwt_unix.yield () >>=
   (fun () ->
     send_generic waiter
       ?etag ?code ~keep_alive ?cookies ?path ?location ?last_modified
-      ~header:[("Content-Type", content_type_from_file_name file)]
+      ~contenttype:(content_type_from_file_name file)
+      ?charset
       ~content:file ?head file_sender File_sender.send)
 
   

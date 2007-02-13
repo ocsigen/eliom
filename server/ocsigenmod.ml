@@ -462,6 +462,7 @@ let execute generate_page ip cookie (globtable, cookie_table) =
 let get_page
     page_tree
     ri
+    charset
     cookie internal_state =
   let generate_page
       global_tables
@@ -531,7 +532,8 @@ let get_page
               res_code=None;
               res_path=path;
               res_lastmodified=lm;
-              res_etag=etag})
+              res_etag=etag;
+              res_charset=charset})
     )
     (function
         Ocsigen_Typing_Error l -> 
@@ -544,7 +546,8 @@ let get_page
                      res_path="/";
                      res_code=None;
                      res_lastmodified=None;
-                     res_etag=None})
+                     res_etag=None;
+                     res_charset=charset})
       | Ocsigen_Wrong_parameter -> 
 	  return (Ext_found 
                     {res_cookies=[];
@@ -555,7 +558,8 @@ let get_page
                      res_path="/";
                      res_code=None;
                      res_lastmodified=None;
-                     res_etag=None})
+                     res_etag=None;
+                     res_charset=charset})
       | Ocsigen_404 | Ocsigen_Wrong_parameter -> return Ext_not_found
       | e -> fail e)
 
@@ -592,14 +596,14 @@ let make_action page_tree action_name action_params
       | e -> fail e)
 
 
-let gen page_tree ri =
+let gen page_tree charset ri =
   let ri, (cookie, action_info, internal_state) = change_request_info ri in
 
   match action_info with
     None ->
 
       (* page generation *)
-      get_page page_tree ri cookie internal_state
+      get_page page_tree ri charset cookie internal_state
 
   | Some (action_name, reload, action_params) ->
 
@@ -612,7 +616,7 @@ let gen page_tree ri =
 	  | Some c -> Some c
 	  in
           (if reload then
-            (get_page page_tree ri cookie3 internal_state >>=
+            (get_page page_tree ri charset cookie3 internal_state >>=
 	     (function
 		 Ext_found r -> return 
 		     (Ext_found
@@ -633,7 +637,8 @@ let gen page_tree ri =
 				 res_path="/";
 				 res_code=None;
 				 res_lastmodified=None;
-				 res_etag=None})))
+				 res_etag=None;
+                                 res_charset=charset})))
           
           else
 	    return
@@ -647,9 +652,11 @@ let gen page_tree ri =
                   res_code=Some 204;
                   res_path=path;
                   res_lastmodified=None;
-                  res_etag=None})
+                  res_etag=None;
+                  res_charset=charset})
           )
             )
+
 
 (*****************************************************************************)
 (** Module loading *)
@@ -674,20 +681,32 @@ let load_ocsigen_module pages_tree path cmo content =
 
 (*****************************************************************************)
 (** Parsing of config file *)
-let parse_config page_tree path = function
-    EPanytag 
-      ("module", atts, content) -> 
-        let mo = match atts with
-        | PLEmpty -> 
-            raise (Error_in_config_file
-                     "file attribute expected for <module>")
-        | PLCons ((EPanyattr (EPVstr("file"), EPVstr(s))), PLEmpty) -> s
-        | _ -> raise (Error_in_config_file "Wrong attribute for <module>")
-        in
-        load_ocsigen_module page_tree path mo content
-  | EPanytag (t, _, _) -> 
-      raise (Extensions.Bad_config_tag_for_extension t)
-  | _ -> raise (Error_in_config_file "(Ocsigenmod extension)")
+let parse_config page_tree path = 
+  let rec parse_module_attrs file = function
+    | PLEmpty -> (match file with
+        None -> 
+          raise (Error_in_config_file
+                   ("Missing file attribute in <module>"))
+      | Some s -> s)
+    | PLCons ((EPanyattr (EPVstr("file"), EPVstr(s))), suite) ->
+        (match file with
+          None -> parse_module_attrs (Some s) suite
+        | _ -> raise (Error_in_config_file
+                        ("Duplicate attribute file in <module>")))
+    | PLCons ((EPanyattr (EPVstr(s), _)), _) ->
+        raise
+          (Error_in_config_file ("Wrong attribute for <module>: "^s))
+    | _ ->
+        raise
+          (Error_in_config_file ("Error in attributes for <module>"))
+  in function
+      EPanytag 
+        ("module", atts, content) -> 
+          let file = parse_module_attrs None atts in
+          load_ocsigen_module page_tree path file content
+    | EPanytag (t, _, _) -> 
+        raise (Extensions.Bad_config_tag_for_extension t)
+    | _ -> raise (Error_in_config_file "(Ocsigenmod extension)")
 
 
 (*****************************************************************************)

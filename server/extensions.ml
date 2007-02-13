@@ -45,7 +45,7 @@ type current_dir = string list
 type file_info = {tmp_filename: string;
                   filesize: int64;
                   original_filename: string}
-
+      
 type request_info = 
     {ri_path_string: string; (** path of the URL *)
      ri_path: string list;   (** path of the URL *)
@@ -63,16 +63,17 @@ type request_info =
      ri_http_frame: Predefined_senders.Stream_http_frame.http_frame} (** The full http_frame *)
 
 type result =
-    {res_cookies: (string * string) list;
-     res_path: string;
-     res_lastmodified: float option;
-     res_etag: Http_frame.etag option;
-     res_code: int option; (* HTTP code, if not 200 *)
-     res_send_page: Predefined_senders.send_page_type;
-     res_create_sender: Predefined_senders.create_sender_type
+   {res_cookies: (string * string) list;
+   res_path: string;
+   res_lastmodified: float option;
+   res_etag: Http_frame.etag option;
+   res_code: int option; (* HTTP code, if not 200 *)
+   res_send_page: Predefined_senders.send_page_type;
+   res_create_sender: Predefined_senders.create_sender_type;
+   res_charset: string option
    }
-
-type answer =
+   
+   type answer =
     Ext_found of result  (** OK stop! I found the page *)
   | Ext_not_found        (** Page not found. Try next extension. *)
   | Ext_continue_with of request_info (** Used to modify the request 
@@ -84,54 +85,112 @@ let (virthosts : (virtual_hosts * (request_info ->
 
 let set_virthosts v = virthosts := v
 let get_virthosts () = !virthosts
-let add_virthost v = virthosts := v::!virthosts
+   let add_virthost v = virthosts := v::!virthosts
+   
+(*****************************************************************************)
+(** Tree of charsets *)
+type charset_tree_type = 
+    Charset_tree of (string option * (string * charset_tree_type) list)
+        
+let new_charset_tree () = 
+  Charset_tree ((Ocsiconfig.get_default_charset ()), [])
+
+let add_charset charset path (Charset_tree charset_tree) =
+  let add_charset2 charset =
+    let rec make_tree = function
+        [] -> (charset, [])
+      | a::l -> (None, [(a, Charset_tree (make_tree l))])
+    in
+    let rec aux path charset_tree = 
+      match path, charset_tree with
+        [], (enc, l2) -> (charset, l2)
+      | (a::l), (enc, l2) ->
+          try
+            let (Charset_tree ct2),l3 = Ocsimisc.list_assoc_remove a l2 in
+            (enc, (a, Charset_tree (aux l ct2))::l3)
+          with Not_found -> 
+            (enc, (a, Charset_tree (make_tree l))::l2)
+    in
+    Charset_tree (aux path charset_tree)
+  in
+  let charset = match charset with 
+    None -> Ocsiconfig.get_default_charset ()
+  | _ -> charset
+  in
+  add_charset2 charset
+        
+let find_charset (Charset_tree charset_tree) path =
+  let rec aux current path tree =
+    let get_enc = function
+        None -> current
+      | enc -> enc
+    in
+    match path, tree with
+      [], (enc,_) -> get_enc enc
+    | (a::l), (enc, l2) ->
+        try
+          let Charset_tree ct2 = List.assoc a l2 in
+          aux (get_enc enc) l ct2
+        with Not_found -> get_enc enc
+  in aux None path charset_tree
 
 (*****************************************************************************)
-(** We register for each extension three functions:
+(** We register for each extension four functions:
    - a function that will be called for each
    virtual server, generating two functions:
-     -- one that will be called to generate the pages
-     -- one to parse the configuration file
+     - one that will be called to generate the pages
+     - one to parse the configuration file
    - a function that will be called at the beginning 
    of the initialisation phase 
    - a function that will be called at the end of the initialisation phase 
    of the server
+   - a function that will create an error message from the exceptions
+   that may be raised during the initialisation phase, and raise again
+   all other exceptions
  *)
-
 let register_extension, create_virthost, get_beg_init, get_end_init, 
   get_init_exn_handler =
   let fun_create_virthost =
     ref (fun hostpattern -> 
-      ((fun ri -> return Ext_not_found), 
-       (fun path xml -> raise (Error_in_config_file "No extension loaded"))))
+      let charset_tree = ref (new_charset_tree ()) in
+      ((fun cs ri -> return Ext_not_found), 
+       (fun path xml -> 
+         raise (Error_in_config_file "No extension loaded")),
+       charset_tree))
   in
   let fun_beg = ref (fun () -> ()) in
   let fun_end = ref (fun () -> ()) in
   let fun_exn = ref (fun exn -> raise exn) in
-  ((fun (fun_virthost,begin_init,end_init,handle_exn) ->
+  ((fun (fun_virthost, begin_init, end_init, handle_exn) ->
     let cur_fun = !fun_create_virthost in
     fun_create_virthost := 
       (fun hostpattern -> 
-        let (g1,p1) = cur_fun hostpattern in
+        let (g1,p1,charset_tree) = cur_fun hostpattern in
         let (g2,p2) = fun_virthost hostpattern in
-        ((fun ri ->
-	  g1 ri >>=
+        ((fun charset ri ->
+	  g1 charset ri >>=
           function
             | (Ext_found _) as r -> return r
-            | Ext_not_found -> g2 ri
-            | Ext_continue_with ri' -> g2 ri'
+            | Ext_not_found -> g2 charset ri
+            | Ext_continue_with ri' -> 
+                g2 (find_charset !charset_tree ri'.ri_path) ri'
          ),
 	 (fun path xml -> 
            try
              p1 path xml
            with 
              Error_in_config_file _
-           | Bad_config_tag_for_extension _ -> p2 path xml)));
+           | Bad_config_tag_for_extension _ -> p2 path xml),
+         charset_tree));
     fun_beg := comp begin_init !fun_beg;
     fun_end := comp end_init !fun_end;
     let curexnfun = !fun_exn in
     fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
-   (fun h -> !fun_create_virthost h),
+   (fun h ->
+     let (f,g,charset_tree) = !fun_create_virthost h in
+     (((fun ri -> f (find_charset !charset_tree ri.ri_path) ri), g),
+      (fun charset path -> 
+        charset_tree := add_charset charset path !charset_tree))),
    (fun () -> !fun_beg),
    (fun () -> !fun_end),
    (fun () -> !fun_exn)

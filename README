@@ -15,6 +15,8 @@ If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer,
 you can use GODI to install them automatically.
 See http://godi.ocaml-programming.de
 
+If you want to use OCamlDuce to check the validity of your pages,
+you need to install OCamlDuce (>= OCamlDuce 3.09.3 Patch Level 1)
 ---
 To compile Ocsigen:
 

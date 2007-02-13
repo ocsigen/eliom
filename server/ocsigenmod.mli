@@ -48,7 +48,8 @@ type page_table_key =
 
 val gen :
     pages_tree ->
-      request_info -> answer Lwt.t
+      string option -> 
+        request_info -> answer Lwt.t
 
 val empty_tables : unit -> tables
 

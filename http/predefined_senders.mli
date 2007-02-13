@@ -30,7 +30,10 @@ type send_page_type =
     ?cookies:(string * string) list ->
     ?path:string ->
     ?last_modified:float ->
-    ?location:string -> ?head:bool -> Http_com.sender_type -> unit Lwt.t
+    ?location:string -> 
+    ?head:bool -> 
+    ?charset:string ->
+      Http_com.sender_type -> unit Lwt.t
 
 (** Sending xhtml *)
 val send_xhtml_page : content: [ `Html ] XHTML.M.elt -> send_page_type
@@ -545,6 +548,8 @@ val send_generic :
   keep_alive:bool ->
   ?cookies:(string * string) list ->
   ?last_modified:float ->
+  ?contenttype:string ->
+  ?charset:string ->
   ?path:string ->
   ?location:string ->
   ?header:(string * string) list ->
