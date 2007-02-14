@@ -145,10 +145,11 @@ module Empty_sender :
       sig
         type frame_content = Empty_content.t option
         type http_frame =
-          Http_frame.FHttp_frame(Empty_content).http_frame = {
-          header : Http_frame.Http_header.http_header;
-          content : frame_content;
-        }
+            Http_frame.FHttp_frame(Empty_content).http_frame = {
+            header: Http_frame.Http_header.http_header;
+            content: frame_content;
+            waiter_thread: unit Lwt.t;
+          }
       end
     module PP :
       sig
@@ -156,9 +157,10 @@ module Empty_sender :
           sig
             type frame_content = Empty_content.t option
             type http_frame =
-              Http_frame.FHttp_frame(Empty_content).http_frame = {
-              header : Http_frame.Http_header.http_header;
-              content : frame_content;
+                Http_frame.FHttp_frame(Empty_content).http_frame = {
+                header : Http_frame.Http_header.http_header;
+                content : frame_content;
+                waiter_thread: unit Lwt.t;
             }
           end
         val string_of_http_frame : Http.http_frame -> string option -> string
@@ -237,9 +239,10 @@ module Xhtml_sender :
       sig
         type frame_content = Xhtml_content.t option
         type http_frame =
-          Http_frame.FHttp_frame(Xhtml_content).http_frame = {
-          header : Http_frame.Http_header.http_header;
-          content : frame_content;
+            Http_frame.FHttp_frame(Xhtml_content).http_frame = {
+            header : Http_frame.Http_header.http_header;
+            content : frame_content;
+            waiter_thread: unit Lwt.t;
         }
       end
     module PP :
@@ -248,10 +251,11 @@ module Xhtml_sender :
           sig
             type frame_content = Xhtml_content.t option
             type http_frame =
-              Http_frame.FHttp_frame(Xhtml_content).http_frame = {
-              header : Http_frame.Http_header.http_header;
-              content : frame_content;
-            }
+                Http_frame.FHttp_frame(Xhtml_content).http_frame = {
+                header : Http_frame.Http_header.http_header;
+                content : frame_content;
+                waiter_thread: unit Lwt.t;
+              }
           end
         val string_of_http_frame : Http.http_frame -> string option -> string
       end
@@ -296,9 +300,10 @@ module Text_http_frame :
   sig
     type frame_content = Text_content.t option
     type http_frame =
-      Http_frame.FHttp_frame(Text_content).http_frame = {
-      header : Http_frame.Http_header.http_header;
-      content : frame_content;
+        Http_frame.FHttp_frame(Text_content).http_frame = {
+        header : Http_frame.Http_header.http_header;
+        content : frame_content;
+        waiter_thread: unit Lwt.t;
     }
   end
 module Text_sender :
@@ -338,9 +343,10 @@ module Text_sender :
       sig
         type frame_content = Text_content.t option
         type http_frame =
-          Http_frame.FHttp_frame(Text_content).http_frame = {
-          header : Http_frame.Http_header.http_header;
-          content : frame_content;
+            Http_frame.FHttp_frame(Text_content).http_frame = {
+            header : Http_frame.Http_header.http_header;
+            content : frame_content;
+            waiter_thread: unit Lwt.t;
         }
       end
     module PP :
@@ -349,9 +355,10 @@ module Text_sender :
           sig
             type frame_content = Text_content.t option
             type http_frame =
-              Http_frame.FHttp_frame(Text_content).http_frame = {
-              header : Http_frame.Http_header.http_header;
-              content : frame_content;
+                Http_frame.FHttp_frame(Text_content).http_frame = {
+                header : Http_frame.Http_header.http_header;
+                content : frame_content;
+                waiter_thread: unit Lwt.t;
             }
           end
         val string_of_http_frame : Http.http_frame -> string option -> string
@@ -399,9 +406,10 @@ module Text_receiver :
       sig
         type frame_content = Text_content.t option
         type http_frame =
-          Http_frame.FHttp_frame(Text_content).http_frame = {
-          header : Http_frame.Http_header.http_header;
-          content : frame_content;
+            Http_frame.FHttp_frame(Text_content).http_frame = {
+            header : Http_frame.Http_header.http_header;
+            content : frame_content;
+            waiter_thread: unit Lwt.t;
         }
       end
     type t =
@@ -420,9 +428,10 @@ module Stream_http_frame :
   sig
     type frame_content = Stream_content.t option
     type http_frame =
-      Http_frame.FHttp_frame(Stream_content).http_frame = {
-      header : Http_frame.Http_header.http_header;
-      content : frame_content;
+        Http_frame.FHttp_frame(Stream_content).http_frame = {
+        header : Http_frame.Http_header.http_header;
+        content : frame_content;
+        waiter_thread: unit Lwt.t;
     }
   end
 module Stream_receiver :
@@ -431,9 +440,10 @@ module Stream_receiver :
       sig
         type frame_content = Stream_content.t option
         type http_frame =
-          Http_frame.FHttp_frame(Stream_content).http_frame = {
-          header : Http_frame.Http_header.http_header;
-          content : frame_content;
+            Http_frame.FHttp_frame(Stream_content).http_frame = {
+            header : Http_frame.Http_header.http_header;
+            content : frame_content;
+            waiter_thread: unit Lwt.t;
         }
       end
     type t =
@@ -485,9 +495,10 @@ module File_sender :
       sig
         type frame_content = File_content.t option
         type http_frame =
-          Http_frame.FHttp_frame(File_content).http_frame = {
-          header : Http_frame.Http_header.http_header;
-          content : frame_content;
+            Http_frame.FHttp_frame(File_content).http_frame = {
+            header : Http_frame.Http_header.http_header;
+            content : frame_content;
+            waiter_thread: unit Lwt.t;
         }
       end
     module PP :
@@ -496,10 +507,11 @@ module File_sender :
           sig
             type frame_content = File_content.t option
             type http_frame =
-              Http_frame.FHttp_frame(File_content).http_frame = {
-              header : Http_frame.Http_header.http_header;
-              content : frame_content;
-            }
+                Http_frame.FHttp_frame(File_content).http_frame = {
+                header : Http_frame.Http_header.http_header;
+                content : frame_content;
+                waiter_thread: unit Lwt.t;
+              }
           end
         val string_of_http_frame : Http.http_frame -> string option -> string
       end

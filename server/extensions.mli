@@ -49,20 +49,20 @@ type file_info = {tmp_filename: string; (** Where the file is stored on the serv
 
 (** The request *)
 type request_info = 
-    {ri_path_string: string; (** path of the URL *)
-     ri_path: string list;   (** path of the URL *)
-     ri_params: string;      (** string containing parameters *)
-     ri_host: string option; (** Host field of the request (if any) *)
-     ri_get_params: (string * string) list;  (** Association list of get parameters*)
-     ri_post_params: (string * string) list; (** Association list of post parameters*)
-     ri_files: (string * file_info) list; (** Files sent in the request *)
-     ri_inet_addr: Unix.inet_addr;        (** IP of the client *)
-     ri_ip: string;            (** IP of the client *)
-     ri_port: int;             (** Port of the request *)
-     ri_user_agent: string;    (** User_agent of the browser *)
-     ri_cookies: (string * string) list; (** Cookie sent by the browser *)
-     ri_ifmodifiedsince: float option;   (** if-modified-since field *)
-     ri_http_frame: Predefined_senders.Stream_http_frame.http_frame (** The full http_frame *)}
+    {ri_path_string: string (* Lazy.t *); (** path of the URL *)
+     ri_path: string list (* Lazy.t *);   (** path of the URL *)
+     ri_params: string (* Lazy.t *);      (** string containing parameters *)
+     ri_host: string option (* Lazy.t *); (** Host field of the request (if any) *)
+     ri_get_params: (string * string) list (* Lazy.t *);  (** Association list of get parameters*)
+     ri_post_params: (string * string) list (* Lazy.t *); (** Association list of post parameters*)
+     ri_files: (string * file_info) list (* Lazy.t *); (** Files sent in the request *)
+     ri_inet_addr: Unix.inet_addr (* Lazy.t *);        (** IP of the client *)
+     ri_ip: string (* Lazy.t *);            (** IP of the client *)
+     ri_port: int (* Lazy.t *);             (** Port of the request *)
+     ri_user_agent: string (* Lazy.t *);    (** User_agent of the browser *)
+     ri_cookies: (string * string) list (* Lazy.t *); (** Cookie sent by the browser *)
+     ri_ifmodifiedsince: float option (* Lazy.t *);   (** if-modified-since field *)
+     ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)}
 
 (** The result of a page generation *)
 type result =
@@ -73,7 +73,7 @@ type result =
      res_code: int option;                (** HTTP code to send, if not 200 *)
      res_send_page: Predefined_senders.send_page_type; (** A function from {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.send_xhtml_page] *)
      res_create_sender: Predefined_senders.create_sender_type (** A function from {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.create_xhtml_sender] *);
-     res_charset: string option
+     res_charset: string option;          (** Charset used by the page *)
    }
 
 

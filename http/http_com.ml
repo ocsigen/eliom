@@ -217,8 +217,11 @@ struct
       then Lwt.fail (Invalid_argument ("offset out of bound"))
       else read_aux "" (off + buffer.read_pos) len *)
 
-  (** extract a given number bytes in destructive way from the buffer *)
-  let extract fd buffer (len : int64) =
+  (** extract a given number bytes in destructive way from the buffer.
+     The optional [?wake_up] parameter is a sleeping lwt thread that
+     will be awoken when the stream is finished.
+    *)
+  let extract ?wake_up fd buffer (len : int64) =
     let rec extract_aux rem_len =
       let extract_one available rem_len = 
         let nb_extract = 
@@ -235,7 +238,14 @@ struct
            (Int64.sub rem_len (Int64.of_int nb_extract)))
       in try
         if rem_len = Int64.zero 
-        then Lwt.return (empty_stream None)
+        then Lwt.return
+            (match wake_up with
+              None -> empty_stream None
+            | Some t -> 
+                new_stream "" 
+                  (fun () -> 
+                    Lwt.wakeup t ();
+                    return (empty_stream None)))
         else 
           let available = content_length buffer in
           match available with
@@ -396,7 +406,7 @@ module FHttp_receiver =
                 (if comp < 0 
                 then fail Ocsimisc.Ocsigen_Bad_Request
                 else if comp = 0 
-                then Lwt.return None
+                then Lwt.return ((Lwt.return ()), None)
                 else 
                   let max = Ocsiconfig.get_maxrequestbodysize () in
                   if 
@@ -408,11 +418,16 @@ module FHttp_receiver =
                     fail (Ocsimisc.Ocsigen_Request_interrupted
                             Ocsigen_Request_too_long)
                   else
-                    Com_buffer.extract 
-                      receiver.fd receiver.buffer body_length
+                    let waiter_end_stream = wait () in
+                    Com_buffer.extract
+                      ~wake_up:waiter_end_stream
+                      receiver.fd receiver.buffer body_length 
                       >>= C.content_of_stream >>= 
-                    (fun c -> Lwt.return (Some c))) >>=
-                (fun b -> Lwt.return {Http.header=header; Http.content=b}))
+                    (fun c -> Lwt.return (waiter_end_stream, Some c))) >>=
+                (fun (waiter_end_stream, b) -> 
+                  Lwt.return {Http.header=header; 
+                              Http.content=b;
+                              Http.waiter_thread=waiter_end_stream}))
             with e -> fail e
           )
         )

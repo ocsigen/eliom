@@ -22,6 +22,7 @@ exception Stream_too_small
 exception Stream_error of string
 exception String_too_large
 
+(* The type must be private! *)
 type stream = 
     Finished of stream option (* If there is another stream following
                                  (usefull for substreams) *)
@@ -128,8 +129,8 @@ let substream delim s =
     in aux s
 
 
+(** read the stream until the end, without decoding *)
 let rec consume = function
-    (* read the stream until the end, without decoding *)
     Cont (_, _, f) -> Lwt_unix.yield () >>= (fun () -> f () >>= consume)
   | Finished (Some ss) -> consume ss
   | _ -> return ()

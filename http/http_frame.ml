@@ -197,7 +197,7 @@ module Http_error =
       
   end
 
-(**this module discribes an http frame*)
+(** this module describes an http frame *)
 module FHttp_frame = 
   functor(C:HTTP_CONTENT) ->
     struct
@@ -207,7 +207,8 @@ module FHttp_frame =
 
         type http_frame = 
             {header: Http_header.http_header;
-             content: frame_content}
+             content: frame_content;
+             waiter_thread: unit Lwt.t; (** A waiting Lwt thread that will be automatically awoken when the full frame has been read *)}
 
     end
 

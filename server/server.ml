@@ -115,7 +115,7 @@ let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 
 (* Errors during requests *)
 let handle_light_request_errors 
-    xhtml_sender sockaddr wait_end_request waiter exn = 
+    xhtml_sender sockaddr waiter exn = 
   (* EXCEPTIONS ABOUT THE REQUEST *)
   (* It can be an error during get_http_frame or during get_request_infos *)
 
@@ -127,8 +127,6 @@ let handle_light_request_errors
       (* First light errors: we answer, then we wait the following request *)
       (* For now: none *)
       (* If the request has not been fully read, it must have been consumed *)
-      (* Do not forget to wake up wait_end_request after having read all
-       the resquest *)
       (* Find the value of keep-alive in the request *)
       
       (* Request errors: we answer, then we close *)
@@ -276,8 +274,9 @@ let get_request_infos http_frame filenames sockaddr port =
                     Ocsistream.String_too_large -> fail Input_is_too_large
                   | e -> fail e)
             else 
-              match (Netstring_pcre.string_match 
-                       (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
+              match
+                (Netstring_pcre.string_match 
+                   (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
               with 
               | None -> fail Ocsigen_unsupported_media
               | _ ->
@@ -414,7 +413,6 @@ let find_keepalive http_header =
 
 
 let service 
-    wait_end_request
     wait_end_answer
     http_frame
     port
@@ -426,7 +424,6 @@ let service
   (* wait_end_answer is here for pipelining: 
      we must wait before sending the page,
      because the previous one may not be sent *)
-  (* wait_end_request will be awoken when the full request has been read *)
   let head = ((Http_header.get_method http_frame.Stream_http_frame.header) 
                     = Some (Http_header.HEAD)) in
   let ka = find_keepalive http_frame.Stream_http_frame.header in
@@ -463,10 +460,6 @@ let service
       (* *** Now we generate the page and send it *)
       (fun ri ->
 
-        wakeup wait_end_request ();
-        (* here we are sure that the request is terminated. 
-           We can wait for another request *)
-        
         catch
           (fun () ->
             
@@ -481,6 +474,7 @@ let service
             (* end log *)
             
 
+            (* Generation of pages is delegated to extensions: *)
             Extensions.do_for_host_matching 
 	      ri.ri_host ri.ri_port (Extensions.get_virthosts ()) ri >>=
 
@@ -547,7 +541,12 @@ let service
                 | e ->
                     Messages.warning
                       ("Exn during page generation: "^
-                       (Printexc.to_string e)^" (sending 500)"); 
+                       (match e with
+                         Unix.Unix_error (ee,func,param) -> 
+                           (Unix.error_message ee)^
+                           " in function "^func^" ("^param^")"
+                       | _ -> Printexc.to_string e)
+                       ^" (sending 500)"); 
                     Messages.debug "-> Sending 500";
                     send_error
                       wait_end_answer ~keep_alive:ka ~error_num:500 xhtml_sender)
@@ -562,7 +561,7 @@ let service
         match e with
           Ocsigen_sending_error _ -> fail e
         | _ -> handle_light_request_errors
-              xhtml_sender sockaddr wait_end_request wait_end_answer e)
+              xhtml_sender sockaddr wait_end_answer e)
 
   in 
 
@@ -613,7 +612,6 @@ let service
              Not_found -> return Int64.zero
              | _ -> (consume http_frame.Stream_http_frame.content >>=
              (fun () ->
-             wakeup wait_end_request ();
              fail Ocsigen_Bad_Request)))
              >>=
              (fun cl ->
@@ -621,7 +619,6 @@ let service
              (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
              then consume http_frame.Stream_http_frame.content >>=
              (fun () ->
-             wakeup wait_end_request ();
              send_error wait_end_answer ~keep_alive:ka ~error_num:501 xhtml_sender)
              else serv ()) *)
 
@@ -652,6 +649,9 @@ let handle_broken_pipe_exn sockaddr exn =
       return ()
   | Ssl.Write_error(Ssl.Error_ssl) -> 
       errlog ("While talking to "^ip^": Ssl broken pipe.");
+      return ()
+  | Ocsimisc.Ocsigen_Request_too_long ->
+      warning ("Request from "^ip^" is too long for the server configuration.");
       return ()
   | exn -> 
       warning ("While talking to "^ip^": Uncaught exception - "
@@ -695,24 +695,15 @@ let listen ssl port wait_end_init =
           handle_broken_pipe_exn sockaddr e
     in  
 
-    let handle_request_errors wait_end_request wait_end_answer exn =
+    let handle_request_errors wait_end_answer exn =
       catch
         (fun () ->
           handle_light_request_errors 
-            xhtml_sender sockaddr wait_end_request wait_end_answer exn)
+            xhtml_sender sockaddr wait_end_answer exn)
         (fun e -> handle_severe_errors exn)
     in
 
     let rec handle_request wait_end_answer http_frame =
-
-     let test_end_request_awoken wait_end_request =
-        try
-          wakeup wait_end_request ();
-          Messages.debug
-            "!!! wait_end_request has not been awoken! \
-            (should not succeed ...)"
-        with _ -> ()
-      in
 
       let keep_alive = find_keepalive http_frame.Stream_http_frame.header in
 
@@ -724,37 +715,37 @@ let listen ssl port wait_end_init =
            before being answered *)
         (* wait_end_answer
            is awoken when the previous request has been answered *)
-        let wait_end_request = wait () in
-        (* The following request must wait the end of this one.
-           (It may not be finished, for example if we are downloading files) *)
-        (* wait_end_request is awoken when we are sure it is terminated *)
         ignore_result 
           (catch
              (fun () ->
                service 
-                 wait_end_request wait_end_answer http_frame port sockaddr 
+                 wait_end_answer http_frame port sockaddr 
                  xhtml_sender empty_sender in_ch () >>=
                (fun () ->
-                 test_end_request_awoken wait_end_request;
                  wakeup wait_end_answer2 (); 
                  return ()))
              handle_severe_errors);
         
         catch
           (fun () ->
-            wait_end_request >>=
-            (fun () -> 
+            (* The following request must wait the end of this one.
+               (It may not be finished, 
+               for example if we are downloading files) *)
+            (* waiter_thread is automatically awoken 
+               when the stream is terminated *)
+            http_frame.Stream_http_frame.waiter_thread >>=
+            (fun () ->
               Messages.debug "** Waiting for new request (pipeline)";
               Stream_receiver.get_http_frame wait_end_answer2
                 receiver ~doing_keep_alive:true () >>=
               (handle_request wait_end_answer2)))
-          (handle_request_errors wait_end_request wait_end_answer2)
+          (handle_request_errors wait_end_answer2)
       end
 
       else begin (* No keep-alive => no pipeline *)
         catch
           (fun () ->
-            service (wait ()) wait_end_answer http_frame port sockaddr
+            service wait_end_answer http_frame port sockaddr
               xhtml_sender empty_sender in_ch ())
           (fun e ->
             lingering_close in_ch; fail e) >>=
@@ -771,7 +762,7 @@ let listen ssl port wait_end_init =
             Stream_receiver.get_http_frame (return ())
               receiver ~doing_keep_alive:false () >>=
             handle_request (return ()))
-          (handle_request_errors now now))
+          (handle_request_errors now))
       (handle_broken_pipe_exn sockaddr)
 
         (* Without pipeline:
