@@ -223,6 +223,7 @@ struct
     *)
   let extract ?wake_up fd buffer (len : int64) =
     let rec extract_aux rem_len =
+
       let extract_one available rem_len = 
         let nb_extract = 
           min3' rem_len available (buffer.size - buffer.read_pos) in
@@ -236,16 +237,10 @@ struct
         Lwt.return 
           (string_extract,
            (Int64.sub rem_len (Int64.of_int nb_extract)))
+
       in try
         if rem_len = Int64.zero 
-        then Lwt.return
-            (match wake_up with
-              None -> empty_stream None
-            | Some t -> 
-                new_stream "" 
-                  (fun () -> 
-                    Lwt.wakeup t ();
-                    return (empty_stream None)))
+        then Lwt.return (empty_stream None)
         else 
           let available = content_length buffer in
           match available with
@@ -256,6 +251,10 @@ struct
           | _ -> 
               extract_one available rem_len >>= 
               (fun (s,rem_len) -> 
+                (if rem_len = Int64.zero 
+                then (match wake_up with
+                  None -> ()
+                | Some t -> Lwt.wakeup t ()));
                 Lwt.return (new_stream s (fun () -> extract_aux rem_len)))
       with e -> fail e
     in extract_aux len
