@@ -1,0 +1,458 @@
+#! /bin/sh
+
+# $Id: configure 1080 2007-01-07 16:00:50Z gerd $
+# Adapted from the ocamlnet configure script.
+
+#######################################################################
+# Helpers:
+
+# Split $PATH into words:
+oldifs="$IFS"
+IFS="   :"
+spacepath=`echo $PATH`
+IFS="$oldifs"
+
+
+in_path () {
+    # Does $1 exist in $PATH?
+    for d in $spacepath; do
+        if test -x "$d/$1"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+
+get_path () {
+    for d in $spacepath; do
+        if test -x "$d/$1"; then
+            echo "$d/$1"
+            return
+        fi
+    done
+}
+
+#######################################################################
+# Defaults
+
+#--- Options ---
+# value 0: off
+# value 1: on
+# defaults:
+
+set_defaults () {
+    enable_bytecode=1
+    enable_nativecode=0
+    enable_debug=0
+    bindir="/usr/local/bin"
+    libdir="/usr/local/lib"
+    mandir="/usr/local/share/man/man1/"
+    docdir="/usr/share/doc"
+    name="ocsigen"
+    prefix="/"
+    ocsigen_user="www-data"
+    ocsigen_group="www-data"
+}
+
+set_defaults
+
+version="0.5.1"
+
+########################################################################
+## Option parsing
+#
+#
+ehelp_debug="Enable/disable debug output"
+ehelp_bytecode="Enable/disable bytecode version of Ocsigen"
+ehelp_nativecode="Enable/disable nativecode version of Ocsigen"
+
+## Which options exist? eoptions for enable/disable, woptions for with/without:
+eoptions="debug bytecode nativecode"
+woptions=""
+
+
+
+# Packages to include anyway:
+requires="netstring ssl"
+
+
+
+check_library () {
+    # $1: the name of the library (findlib)
+#   # $2: a typical file in $incdirs
+#    if [ "$enable_findlib" -gt 0 ]; then
+	ocamlfind query "$1" >/dev/null 2>/dev/null
+	return
+#    else
+#	stdlib=`ocamlc -where`
+#	for dir in $incdirs; do
+#	    case "$dir" in
+#		+*)
+#		    dir=`echo "$dir" | sed -e "s|^\+|$stdlib/|"` ;;
+#	    esac
+#	    if [ -f "$dir/$2" ]; then
+#		return 0
+#	    fi 
+#	done
+	return 1   # not found
+#    fi
+}
+
+
+print_options () {
+	for opt in $eoptions; do
+		e="o=\$enable_$opt"
+		eval "$e"
+		uopt=`echo $opt | sed -e 's/_/-/g'`
+		if [ $o -gt 0 ]; then
+			echo "    --enable-$uopt"
+		else
+			echo "    --disable-$uopt"
+		fi
+	done
+	for opt in $woptions; do
+		e="o=\$with_$opt"
+		eval "$e"
+		uopt=`echo $opt | sed -e 's/_/-/g'`
+		if [ $o -gt 0 ]; then
+			echo "    --with-$uopt"
+		else
+			echo "    --without-$uopt"
+		fi
+	done
+	echo "    --prefix $prefix"
+	echo "    --ocsigen-user $ocsigen_user"
+	echo "    --ocsigen-group $ocsigen_group"
+	echo "    --bindir $bindir"
+	echo "    --libdir $libdir"
+	echo "    --mandir $mandir"
+	echo "    --docdir $docdir"
+	echo "    --name $name"
+}
+
+
+usage () {
+	set_defaults
+	cat <<_EOF_ >&2
+usage: ./configure [ options ]
+
+_EOF_
+	for opt in $eoptions; do
+		e="help=\$ehelp_$opt"
+		eval "$e"
+		uopt=`echo $opt | sed -e 's/_/-/g'`
+		echo "--enable-$uopt:" >&2
+		echo "--disable-$uopt:" >&2
+		echo "        $help" >&2
+	done
+	for opt in $woptions; do
+		e="help=\$whelp_$opt"
+		eval "$e"
+		uopt=`echo $opt | sed -e 's/_/-/g'`
+		echo "--with-$uopt:" >&2
+		echo "--without-$uopt:" >&2
+		echo "        $help" >&2
+	done
+	cat <<_EOF_ >&2
+--prefix dir
+	Root directory to install the package
+
+--bindir dir
+        Install binaries into this directory
+
+--libdir dir
+        Install libraries into this directory
+
+--mandir dir
+	Install man pages in this directory
+
+--docdir dir
+	Install documentation in this directory
+
+--name name
+	The name of the server (and directory for the modules)
+
+--ocsigen-user name
+	The name of the ocsigen user
+
+--ocsigen-group name
+	The name of the ocsigen group
+
+Defaults are:
+
+_EOF_
+	print_options >&2
+	exit 1
+}
+
+
+check_eopt () {
+	for x in $eoptions; do
+		if [ "$x" = "$1" ]; then
+			return 0
+		fi
+	done
+	echo "Unknown option: $1" >&2
+	exit 1
+}
+
+
+check_wopt () {
+	for x in $woptions; do
+		if [ "$x" = "$1" ]; then
+			return 0
+		fi
+	done
+	echo "Unknown option: $1" >&2
+	exit 1
+}
+
+
+echo "Welcome to Ocsigen version $version" >&2
+
+while [ "$#" -gt 0 ]; do
+	case "$1" in
+		--enable-*)
+			opt=`echo "$1" | sed -e 's/--enable-//' -e 's/-/_/g'`
+			check_eopt "$opt"
+			eval "enable_$opt=2"
+			shift
+			;;
+		--disable-*)
+			opt=`echo "$1" | sed -e 's/--disable-//' -e 's/-/_/g'`
+			check_eopt "$opt"
+			eval "enable_$opt=-1"
+			shift
+			;;
+		--with-*)
+			opt=`echo "$1" | sed -e 's/--with-//' -e 's/-/_/g'`
+			check_wopt "$opt"
+			eval "with_$opt=2"
+			shift
+			;;
+		--without-*)
+			opt=`echo "$1" | sed -e 's/--without-//' -e 's/-/_/g'`
+			check_wopt "$opt"
+			eval "with_$opt=-1"
+			shift
+			;;
+		--prefix)
+			prefix="$2"
+			shift
+			shift
+			;;
+                --bindir)
+                        bindir="$2"
+                        shift
+                        shift
+                        ;;
+                --libdir)
+                        libdir="$2"
+                        shift
+                        shift
+                        ;;
+		--mandir)
+			mandir="$2"
+			shift 
+			shift
+			;;
+		--docdir)
+			docdir="$2"
+			shift
+			shift
+			;;
+		--name)
+			name="$2"
+			shift
+			shift
+			;;
+		--ocsigen-user)
+			ocsigen_user="$2"
+			shift
+			shift
+			;;
+		--ocsigen-group)
+			ocsigen_group="$2"
+			shift
+			shift
+			;;
+		--version)
+			echo "$version"
+			exit 0
+			;;
+		*)
+			usage
+	esac
+done
+
+
+
+######################################################################
+# Check ocamlfind
+
+printf "%s" "Checking for findlib... "
+if ocamlfind query stdlib >/dev/null 2>/dev/null; then
+    echo "found"
+else
+    echo "not found"
+    echo "Make sure that ocamlfind is in your PATH, or download findlib"
+    echo "from www.ocaml-programming.de"
+    exit 1
+fi
+
+
+
+######################################################################
+# Check SSL
+
+printf "%s" "Checking for ssl... "
+if ocamlfind query ssl >/dev/null 2>/dev/null; then
+    echo "found"
+else
+    echo "not found"
+    echo "Required library ssl not found!"
+    exit 1
+fi
+
+######################################################################
+# Check whether OCaml version is > 3.9
+version=`ocamlc -version`
+ocamlversion=`n1=${version:0:1}; \
+              n2=${version:2:2}; \
+              n3=${version:5}; \
+              if [ $n1 = "3" ] && [ $n2 -le 9 ]; then \
+                echo "OLD"; \
+              else \
+                echo "NEW"; \
+              fi`
+
+
+######################################################################
+# Summary
+
+echo
+echo "Effective options:"
+print_options
+echo
+
+
+#Convert 0/1 values to YES/NO
+if [ $enable_debug -gt 0 ] ; then
+	enable_debug="YES"
+else
+	enable_debug="NO"
+fi
+if [ $enable_bytecode -gt 0 ] ; then
+	enable_bytecode="YES"
+else
+	enable_bytecode="NO"
+fi
+if [ $enable_nativecode -gt 0 ] ; then
+	enable_nativecode="YES"
+        echo "Native code is not supported for now"
+else
+	enable_nativecode="NO"
+fi
+
+
+
+######################################################################
+# Write Makefile.conf
+
+echo "Writing Makefile.config"
+cat <<_EOF_ >Makefile.config
+# Which ocamlfind/camlp4/ ... version to use? 
+# ocamlfind will choose automatically the compiler.
+OCAMLFIND=ocamlfind
+CAMLP4=camlp4
+CAMLLEX=ocamllex
+CAMLYACC=ocamlyacc
+CAMLCNAME=ocamlc
+CAMLOPTNAME=ocamlopt
+# CAMLCNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
+
+# The root directory for the package install
+PREFIX = $prefix
+
+# Do you want the bytecode version ? YES/NO
+BYTECODE=$enable_bytecode
+
+# Do you want the native code version (ocsigen.opt) ? YES/NO
+NATIVECODE=$enable_nativecode
+
+# Do you want the ocamlduce extension? (YES/NO) 
+# (You need ocamlduce to be installed)
+OCAMLDUCE=NO
+# If you have OCamlduce installed, which ocamlducefind do you want?
+OCAMLDUCEFIND=ocamlducefind
+
+# The directory for ocsigen server (binary):
+BINDIR = $bindir
+
+# The directory for ocsigen manpage:
+MANDIR = $mandir
+
+# Where to install the directory for ocsigen modules:
+MODULEINSTALLDIR = \`\$(OCAMLFIND) printconf destdir\`
+
+# Where to install examples:
+EXAMPLESINSTALLDIR = $libdir/$name
+
+# User who will run Ocsigen server (not root) (eg, for debian, www-data)
+# (This user must exist on your system)
+OCSIGENUSER=$ocsigen_user
+
+# group who will run Ocsigen server (not root) (eg, for debian, www-data)
+# (This group must exist)
+OCSIGENGROUP=$ocsigen_user
+
+# The name of the server (and the directory for the modules)
+OCSIGENNAME=$name
+
+# ocsigen's logs:
+LOGDIR = /var/log/$name
+
+# Config files:
+CONFIGDIR = /etc/$name
+
+# Where to put static pages:
+STATICPAGESDIR = /var/www/$name
+
+# Default directory for file upload:
+UPLOADDIR = /tmp
+
+# Where to put Ocsigen documentation:
+DOCDIR = $docdir/$name
+
+# Do you want debugging information? (-g -dtypes)
+DEBUG=$enable_debug
+
+
+
+
+
+# If you are using ocamlnet 1, write NO here
+NEWOCAMLNET=YES
+
+# Profiling (always put NO here - but if you want to debug ocsigen):
+PROFILING=NO
+
+# Ocaml version
+OCAMLVERSION=$ocamlversion
+
+_EOF_
+
+######################################################################
+# Finish
+
+echo
+echo "Please check Makefile.config."
+echo
+echo "You can now compile Ocsigen by invoking"
+echo "   make depend"
+echo "   make"
+echo
+echo "Finally, a"
+echo "   make fullinstall"
+echo "will install the package."

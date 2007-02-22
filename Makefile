@@ -64,18 +64,19 @@ depend: xmlp4
 
 .PHONY: install fullinstall doc
 install:
-	mkdir -p $(EXAMPLESINSTALLDIR)
+	mkdir -p $(PREFIX)/$(MODULEINSTALLDIR)
+	mkdir -p $(PREFIX)/$(EXAMPLESINSTALLDIR)
 	$(MAKE) -C server install
 	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
-	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)" $(TOINSTALL)
-	install -m 644 $(EXAMPLES) $(EXAMPLESINSTALLDIR)
+	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(PREFIX)/$(MODULEINSTALLDIR)" $(TOINSTALL)
+	install -m 644 $(EXAMPLES) $(PREFIX)/$(EXAMPLESINSTALLDIR)
 	-rm META
 
 
 fullinstall: doc install
-	mkdir -p $(CONFIGDIR)
-	mkdir -p $(STATICPAGESDIR)
-	-mv $(CONFIGDIR)/ocsigen.conf $(CONFIGDIR)/ocsigen.conf.old
+	mkdir -p $(PREFIX)/$(CONFIGDIR)
+	mkdir -p $(PREFIX)/$(STATICPAGESDIR)
+	-mv $(PREFIX)/$(CONFIGDIR)/ocsigen.conf $(PREFIX)/$(CONFIGDIR)/ocsigen.conf.old
 	cat files/ocsigen.conf \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
@@ -83,38 +84,38 @@ fullinstall: doc install
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
-	> $(CONFIGDIR)/ocsigen.conf
-	-mv $(CONFIGDIR)/mime.types $(CONFIGDIR)/mime.types.old
-	cp -f files/mime.types $(CONFIGDIR)
-	mkdir -p $(LOGDIR)
-	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(LOGDIR)
-	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(STATICPAGESDIR)
-	chmod u+rwx $(LOGDIR)
-	chmod a+rx $(CONFIGDIR)
-	chmod a+r $(CONFIGDIR)/ocsigen.conf
-	chmod a+r $(CONFIGDIR)/mime.types
-	mkdir -p $(DOCDIR)
-	install -d -m 755 $(DOCDIR)/lwt
-	install -d -m 755 $(DOCDIR)/oc
-	-install -m 644 doc/* $(DOCDIR)
-	install -m 644 doc/lwt/* $(DOCDIR)/lwt
-	install -m 644 doc/oc/* $(DOCDIR)/oc
-	chmod a+rx $(DOCDIR)
-	chmod a+r $(DOCDIR)/*
+	> $(PREFIX)/$(CONFIGDIR)/ocsigen.conf
+	-mv $(PREFIX)/$(CONFIGDIR)/mime.types $(PREFIX)/$(CONFIGDIR)/mime.types.old
+	cp -f files/mime.types $(PREFIX)/$(CONFIGDIR)
+	mkdir -p $(PREFIX)/$(LOGDIR)
+	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
+	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
+	chmod u+rwx $(PREFIX)/$(LOGDIR)
+	chmod a+rx $(PREFIX)/$(CONFIGDIR)
+	chmod a+r $(PREFIX)/$(CONFIGDIR)/ocsigen.conf
+	chmod a+r $(PREFIX)/$(CONFIGDIR)/mime.types
+	mkdir -p $(PREFIX)/$(DOCDIR)
+	install -d -m 755 $(PREFIX)/$(DOCDIR)/lwt
+	install -d -m 755 $(PREFIX)/$(DOCDIR)/oc
+	-install -m 644 doc/* $(PREFIX)/$(DOCDIR)
+	install -m 644 doc/lwt/* $(PREFIX)/$(DOCDIR)/lwt
+	install -m 644 doc/oc/* $(PREFIX)/$(DOCDIR)/oc
+	chmod a+rx $(PREFIX)/$(DOCDIR)
+	chmod a+r $(PREFIX)/$(DOCDIR)/*
 	[ -d /etc/logrotate.d ] && \
 	 { cat files/logrotate.IN \
 	   | sed s%LOGDIR%$(LOGDIR)%g \
 	   | sed s%USER%$(OCSIGENUSER)%g \
 	   | sed s%GROUP%$(OCSIGENGROUP)%g \
-	  > /etc/logrotate.d/$(OCSIGENNAME); }
-	install -d -m 755 $(MANDIR)
-	install -m 644 files/ocsigen.1 $(MANDIR)
+	  > $(PREFIX)/etc/logrotate.d/$(OCSIGENNAME); }
+	install -d -m 755 $(PREFIX)/$(MANDIR)
+	install -m 644 files/ocsigen.1 $(PREFIX)/$(MANDIR)
 
 
 .PHONY: uninstall fulluninstall
 uninstall:
 	$(MAKE) -C server uninstall
-	$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(MODULEINSTALLDIR)"
+	$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(PREFIX)/$(MODULEINSTALLDIR)"
 
 fulluninstall: uninstall
 # dangerous

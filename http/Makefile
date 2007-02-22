@@ -81,8 +81,8 @@ http_parser.ml: http_parser.mly
 	$(CAMLC) -c $(FLAGS) $(LIB) $<
 
 .ml.cmo:
-	-rm $(LIBDIR)/$(<:.ml=.cmo)
-	-rm $(LIBDIR)/$(<:.ml=.cmi)
+#	-rm $(LIBDIR)/$(<:.ml=.cmo)
+#	-rm $(LIBDIR)/$(<:.ml=.cmi)
 	$(CAMLC) $(PP) -c $(FLAGS) $(LIB) $<
 
 .ml.o:

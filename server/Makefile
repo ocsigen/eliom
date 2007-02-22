@@ -71,7 +71,7 @@ all: $(OBJS) $(NAME) ocsigenmod.cma staticmod.cmo $(DUCEMOD)
 .PHONY: doc depend
 
 $(NAME): $(OBJS)
-	$(CAMLC) -o $(NAME) -linkall $(CMAO) $(OBJS);\
+	$(CAMLC) -o $(NAME) -linkall $(CMAO) $(OBJS)
 
 ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
 	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \
@@ -109,12 +109,12 @@ clean:
 .PHONY: install
 install:
 	@echo "Installing binary"
-	mkdir -p $(BINDIR)
-	$(INSTALL) -m 755 $(NAME) $(BINDIR)/
+	mkdir -p $(PREFIX)/$(BINDIR)
+	$(INSTALL) -m 755 $(NAME) $(PREFIX)/$(BINDIR)/
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(BINDIR)/$(NAME)
+	rm -f $(PREFIX)/$(BINDIR)/$(NAME)
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(EXTENSIONS:.ml=.mli) $(EXTENSIONS) > .depend

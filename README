@@ -7,25 +7,49 @@ Instructions:
 Requirements: 
 ocaml (tested with version 3.08.4 and 3.09.1. Does not work with 3.08.1)
 ocamlfind
-ocamlnet >= 1.1.2 (actually only modules netstring, netsys, pcre)
+ocamlnet >= 1.1.2 (actually only module netstring, netsys, pcre) 
 (ocamlnet needs pcre?)
-ocamlssl >= 0.4.0 (ocamlssl needs openssl)
+ocamlssl >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)
 
 If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer, 
 you can use GODI to install them automatically.
 See http://godi.ocaml-programming.de
 
-If you want to use OCamlDuce to check the validity of your pages,
-you need to install OCamlDuce (>= OCamlDuce 3.09.3 Patch Level 1)
 ---
 To compile Ocsigen:
 
-Modify Makefile.config to set your preferences
+Run 
+  
+  ./configure [options]
 
+Where the recognized options are:
+
+--enable-debug:
+--disable-debug:
+        Enable/disable debug output
+
+--bindir dir
+        Install binaries into this directory
+
+--mandir dir
+        Install man pages in this directory
+
+--docdir dir
+        Install documentation in this directory
+
+--name name
+	The name of the server (and directory for the modules)
+
+--prefix prefix
+        Prefix for installation (default /)
+
+Then, type
   make depend
   make 
 
-If you want system-wide installation, become root, and do
+If you want system-wide installation, 
+modify Makefile.config to set all the informations (paths, user...),
+then become root, and do
   make fullinstall
 
 (make fulluninstall -> to remove all
@@ -61,17 +85,17 @@ If you make fullinstall, it will generate and install the documentation.
 Otherwise, you can generate it in the doc directory by typing:
 make doc
 
-
 ------------------------------------------------------------------
 Ocsigen
 ------------------------------------------------------------------
 Written by:
 
-Vincent Balat (project leader, xml parser, ocsigen.ml, server, 
-               moduleexample, ocsimore 0.1...)
-Denis Berthod (http protocol, server)
+Vincent Balat (project leader, xml parser, ocsigenmod,
+        staticmod, Web server, ocsimore 0.1, extension mechanism...)
+Denis Berthod (http protocol, Web server)
 Jérôme Vouillon (lwt library, from unison)
 Thorsten Ohl (functions to generate xhtml (xML and xHTML modules))
+Nataliya Guts (Web server)
 
 Acknowledgements:
 
@@ -85,6 +109,9 @@ Juliusz Chroboczek
 Roberto Di Cosmo
 Alexandre Miquel
 Russ Harmer
+Pierre Clairambault
+Samuel Mimram
+Jaap Boender
 
 and thanks to my (other) students who took part to the very first version:
 
