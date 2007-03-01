@@ -22,26 +22,9 @@ Run
   
   ./configure [options]
 
-Where the recognized options are:
+Print the list of possible options using:
+./configure --help
 
---enable-debug:
---disable-debug:
-        Enable/disable debug output
-
---bindir dir
-        Install binaries into this directory
-
---mandir dir
-        Install man pages in this directory
-
---docdir dir
-        Install documentation in this directory
-
---name name
-	The name of the server (and directory for the modules)
-
---prefix prefix
-        Prefix for installation (default /)
 
 Then, type
   make depend

@@ -57,7 +57,7 @@ set_defaults () {
 
 set_defaults
 
-version="0.5.1"
+version=`head -n 1 VERSION`
 
 ########################################################################
 ## Option parsing

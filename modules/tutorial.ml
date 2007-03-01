@@ -860,7 +860,7 @@ let _ =
 
 let write_shopping_basket shopping_basket =
   let rec aux = function
-      [] -> [<< <br/> >>]
+      [] -> [ << <br/> >> ]
     | a::l -> let fol = aux l in <:xmllist< $str:a$ <br/> $list:fol$ >>
   in
   let ffol = aux shopping_basket in
