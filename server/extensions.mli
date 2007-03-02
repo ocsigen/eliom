@@ -65,6 +65,11 @@ type request_info =
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
      ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)}
 
+(** If you force [ri_files] or [ri_post_params], the request is fully read,
+   so it is not possible any more to read it from [ri_http_frame]
+   (and vice versa).
+ *)
+
 (** The result of a page generation *)
 type result =
     {res_cookies: (string * string) list; (** The cookies to set *)
