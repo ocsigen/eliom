@@ -76,9 +76,11 @@ module Ocamlduce_sender = FHttp_sender(Ocamlduce_content)
  * page is the page to send
  * xhtml_sender is the sender to be used *)
 let send_ocamlduce_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path 
-    ?last_modified ?location ?head xhtml_sender =
+    ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter ?etag
     ?code ~keep_alive ?cookies ?path ?location ?last_modified
+    ~contenttype:"text/html"
+    ?charset
     ~content ?head xhtml_sender Ocamlduce_sender.send
 
 

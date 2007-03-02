@@ -20,19 +20,19 @@ To compile Ocsigen:
 
 Run 
   
-  ./configure [options]
+  sh configure [options]
 
 Print the list of possible options using:
 ./configure --help
 
+Verify that Makefile.config is OK 
+(for ex if you use Ocamlnet 1, you'll need to change an option)
 
 Then, type
   make depend
   make 
 
-If you want system-wide installation, 
-modify Makefile.config to set all the informations (paths, user...),
-then become root, and do
+If you want system-wide installation, become root, and do
   make fullinstall
 
 (make fulluninstall -> to remove all
