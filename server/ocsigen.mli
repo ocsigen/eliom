@@ -71,7 +71,7 @@ val get_inet_addr : server_params -> Unix.inet_addr
 val get_ip : server_params -> string
 val get_port : server_params -> int
 val get_get_params : server_params -> (string * string) list
-val get_post_params : server_params -> (string * string) list
+val get_post_params : server_params -> (string * string) list Lwt.t
 val get_current_url : server_params -> url_path
 
 (** Type of files *)

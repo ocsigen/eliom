@@ -20,6 +20,9 @@ val empty_stream : stream option -> stream
 (** creates a new (non empty) stream *)
 val new_stream : string -> (unit -> stream Lwt.t) -> stream
 
+(** true if the stream is finished *)
+val is_finished : stream -> bool
+
 (** Creates a string from a stream *)
 val string_of_stream : stream -> string Lwt.t
 

@@ -47,20 +47,21 @@ type file_info = {tmp_filename: string;
                   original_filename: string}
       
 type request_info = 
-    {ri_path_string: string; (** path of the URL *)
+    {ri_url: string;
+     ri_path_string: string; (** path of the URL *)
      ri_path: string list;   (** path of the URL *)
      ri_params: string;      (** string containing parameters *)
      ri_host: string option; (** Host field of the request (if any) *)
-     ri_get_params: (string * string) list;  (** Association list of get parameters*)
-     ri_post_params: (string * string) list; (** Association list of post parameters*)
-     ri_files: (string * file_info) list; (** Files sent in the request *)
+     ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters*)
+     ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters*)
+     ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
      ri_inet_addr: Unix.inet_addr;        (** IP of the client *)
      ri_ip: string;            (** IP of the client *)
      ri_port: int;             (** Port of the request *)
      ri_user_agent: string;    (** User_agent of the browser *)
-     ri_cookies: (string * string) list; (** Cookies sent by the browser *)
+     ri_cookies: (string * string) list Lazy.t; (** Cookie sent by the browser *)
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
-     ri_http_frame: Predefined_senders.Stream_http_frame.http_frame} (** The full http_frame *)
+     ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)}
 
 type result =
    {res_cookies: (string * string) list;

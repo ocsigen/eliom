@@ -218,10 +218,10 @@ struct
       else read_aux "" (off + buffer.read_pos) len *)
 
   (** extract a given number bytes in destructive way from the buffer.
-     The optional [?wake_up] parameter is a sleeping lwt thread that
-     will be awoken when the stream is finished.
+     The optional [?finish] parameter is an action that
+     will be executed when the stream is finished.
     *)
-  let extract ?wake_up fd buffer (len : int64) =
+  let extract ?(finish = id) fd buffer (len : int64) =
     let rec extract_aux rem_len =
 
       let extract_one available rem_len = 
@@ -252,9 +252,7 @@ struct
               extract_one available rem_len >>= 
               (fun (s,rem_len) -> 
                 (if rem_len = Int64.zero 
-                then (match wake_up with
-                  None -> ()
-                | Some t -> Lwt.wakeup t ()));
+                then finish ());
                 Lwt.return (new_stream s (fun () -> extract_aux rem_len)))
       with e -> fail e
     in extract_aux len
@@ -419,7 +417,7 @@ module FHttp_receiver =
                   else
                     let waiter_end_stream = wait () in
                     Com_buffer.extract
-                      ~wake_up:waiter_end_stream
+                      ~finish:(Lwt.wakeup waiter_end_stream)
                       receiver.fd receiver.buffer body_length 
                       >>= C.content_of_stream >>= 
                     (fun c -> Lwt.return (waiter_end_stream, Some c))) >>=

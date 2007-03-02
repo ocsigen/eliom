@@ -94,16 +94,27 @@ module Text_content =
     let content_of_stream = string_of_stream
   end
 
+exception Stream_already_read
+
 module Stream_content =
   (* Use to receive any type of data, before knowing the content-type *)
   struct
-    type t = stream
+    type t = unit -> stream
 
     let get_etag c = assert false
 
     let stream_of_content c = assert false
 
-    let content_of_stream = Lwt.return
+    let content_of_stream s = 
+      Lwt.return
+        (let already_read = ref false in
+        fun () -> 
+          if !already_read
+          then raise Stream_already_read
+          else begin
+            already_read := true;
+            s
+          end)
   end
 
 module Empty_content =

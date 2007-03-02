@@ -28,6 +28,7 @@ open Predefined_senders
 open Ocsiconfig
 open Parseconfig
 open Error_pages
+open Lazy
 
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
@@ -204,26 +205,33 @@ let rec getcookies header =
 (* On peut améliorer ça *)
 
 
-
 (* reading the request *)
 let get_request_infos http_frame filenames sockaddr port =
 
-  catch (fun () -> 
+  try
+    
     let meth = Http_header.get_method http_frame.Stream_http_frame.header in
-    let url = Http_header.get_url http_frame.Stream_http_frame.header in
+
+    let url = 
+      fixup_url_string 
+        (Http_header.get_url http_frame.Stream_http_frame.header) in
+
     let url2 = 
-      Neturl.parse_url 
-        ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
-        (* ~accept_8bits:true *)
-        (* Neturl.fixup_url_string url *)
-        (fixup_url_string url)
+      (Neturl.parse_url 
+         ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
+         (* ~accept_8bits:true *)
+         (* Neturl.fixup_url_string url *)
+         url)
     in
-    let path = Neturl.string_of_url
-        (Neturl.remove_from_url 
-           ~param:true
-           ~query:true 
-           ~fragment:true 
-           url2) in
+
+    let path = 
+      (Neturl.string_of_url
+         (Neturl.remove_from_url 
+            ~param:true
+            ~query:true 
+            ~fragment:true 
+            url2)) in
+
     let host =
       try
         let hostport = 
@@ -236,110 +244,145 @@ let get_request_infos http_frame filenames sockaddr port =
     in
     Messages.debug
       ("- host="^(match host with None -> "<none>" | Some h -> h));
-    let params = Neturl.string_of_url
-        (Neturl.remove_from_url
-           ~user:true
-           ~user_param:true
-           ~password:true
-           ~host:true
-           ~port:true
-           ~path:true
-           ~other:true
-           url2) in
-    let params_string = try
-      Neturl.url_query ~encoded:true url2
-    with Not_found -> ""
+
+    let useragent = 
+      (try (Http_header.get_headers_value
+              http_frame.Stream_http_frame.header "user-agent")
+      with _ -> "")
     in
-    let get_params = Netencoding.Url.dest_url_encoded_parameters params_string 
+    
+    let cookies = 
+      lazy (getcookies http_frame.Stream_http_frame.header)
     in
+    
+    let ifmodifiedsince = 
+      try 
+        Some (Netdate.parse_epoch 
+                (Http_header.get_headers_value
+                   http_frame.Stream_http_frame.header "if-modified-since"))
+      with _ -> None
+    in
+    
+    let inet_addr = ip_of_sockaddr sockaddr in
+    
+    let params = 
+      (Neturl.string_of_url
+         (Neturl.remove_from_url
+            ~user:true
+            ~user_param:true
+            ~password:true
+            ~host:true
+            ~port:true
+            ~path:true
+            ~other:true
+            url2)) 
+    in
+
+    let get_params = 
+      lazy 
+        (let params_string = 
+          try
+            Neturl.url_query ~encoded:true url2
+          with Not_found -> ""
+        in
+        Netencoding.Url.dest_url_encoded_parameters params_string)
+    in
+
     let find_post_params = 
-      if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
-      then return ([],[]) else 
-        match http_frame.Stream_http_frame.content with
-          None -> return ([],[])
-        | Some body -> 
-            let ct =
-              (Http_header.get_headers_value
-                 http_frame.Stream_http_frame.header "Content-Type") in
-            let ctlow = String.lowercase ct in
-            if ctlow = "application/x-www-form-urlencoded"
-            then 
-              catch
-                (fun () ->
-                  Ocsistream.string_of_stream body >>=
-                  (fun r -> return
-                      ((Netencoding.Url.dest_url_encoded_parameters r),
-                      [])))
-                (function
-                    Ocsistream.String_too_large -> fail Input_is_too_large
-                  | e -> fail e)
-            else 
-              match
-                (Netstring_pcre.string_match 
-                   (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
-              with 
-              | None -> fail Ocsigen_unsupported_media
-              | _ ->
-                  let bound = get_boundary ct in
-                  let params = ref [] in
-                  let files = ref [] in
-                  let create hs =
-                    let cd = List.assoc "content-disposition" hs in
-                    let st = try 
-                      Some (find_field "filename" cd) 
-                    with _ -> None in
-                    let p_name = find_field "name" cd in
-                    match st with 
-                      None -> No_File (p_name, Buffer.create 1024)
-                    | Some store -> 
-                        let now = 
-                          Printf.sprintf 
-                            "%s-%f-%d" 
-                            store (Unix.gettimeofday ()) (counter ())
-                        in
-                        match ((Ocsiconfig.get_uploaddir ())) with
-                          Some dname ->
-                            let fname = dname^"/"^now in
-                            let fd = Unix.openfile fname 
-                                [Unix.O_CREAT;
-                                 Unix.O_TRUNC;
-                                 Unix.O_WRONLY;
-                                 Unix.O_NONBLOCK] 0o666 in
-                            (* Messages.debug "file opened"; *)
-                            filenames := fname::!filenames;
-                            A_File (p_name, fname, store, Lwt_unix.Plain fd)
-                        | None -> raise Ocsigen_upload_forbidden
-                  in
-                  let add where s =
-                    match where with 
-                      No_File (p_name, to_buf) -> 
-                        Buffer.add_string to_buf s;
-                        return ()
-                    | A_File (_,_,_,wh) -> 
-                        Lwt_unix.write wh s 0 (String.length s) >>= 
-                        (fun r -> Lwt_unix.yield ())
-                  in
-                  let stop size  = function 
-                      No_File (p_name, to_buf) -> 
-                        return 
-                          (params := !params @
-                            [(p_name, Buffer.contents to_buf)])
-                            (* à la fin ? *)
-                    | A_File (p_name,fname,oname,wh) -> 
-                        (match wh with 
-                          Lwt_unix.Plain fdscr -> 
-                            (* Messages.debug "closing file"; *)
-                            files := 
-                              !files@[(p_name, {tmp_filename=fname;
-                                                filesize=size;
-                                                original_filename=oname})];
-                            Unix.close fdscr
-                        | _ -> ());
-                        return ()
-                  in
-                  Multipart.scan_multipart_body_from_stream 
-                    body bound create add stop >>=
-                  (fun () -> return (!params, !files))
+      lazy
+        (if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
+        then return ([],[]) else 
+          match http_frame.Stream_http_frame.content with
+            None -> return ([],[])
+          | Some body_gen ->
+              try
+                let body = body_gen () (* Here we get the stream.
+                                          If it has already been taken,
+                                          it raises an exception *)
+                in
+                let ct =
+                  (Http_header.get_headers_value
+                     http_frame.Stream_http_frame.header "Content-Type") in
+                let ctlow = String.lowercase ct in
+                if ctlow = "application/x-www-form-urlencoded"
+                then 
+                  catch
+                    (fun () ->
+                      Ocsistream.string_of_stream body >>=
+                      (fun r -> return
+                          ((Netencoding.Url.dest_url_encoded_parameters r),
+                           [])))
+                    (function
+                        Ocsistream.String_too_large -> fail Input_is_too_large
+                      | e -> fail e)
+                else 
+                  match
+                    (Netstring_pcre.string_match 
+                       (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
+                  with 
+                  | None -> fail Ocsigen_unsupported_media
+                  | _ ->
+                      let bound = get_boundary ct in
+                      let params = ref [] in
+                      let files = ref [] in
+                      let create hs =
+                        let cd = List.assoc "content-disposition" hs in
+                        let st = try 
+                          Some (find_field "filename" cd) 
+                        with _ -> None in
+                        let p_name = find_field "name" cd in
+                        match st with 
+                          None -> No_File (p_name, Buffer.create 1024)
+                        | Some store -> 
+                            let now = 
+                              Printf.sprintf 
+                                "%s-%f-%d" 
+                                store (Unix.gettimeofday ()) (counter ())
+                            in
+                            match ((Ocsiconfig.get_uploaddir ())) with
+                              Some dname ->
+                                let fname = dname^"/"^now in
+                                let fd = Unix.openfile fname 
+                                    [Unix.O_CREAT;
+                                     Unix.O_TRUNC;
+                                     Unix.O_WRONLY;
+                                     Unix.O_NONBLOCK] 0o666 in
+                                (* Messages.debug "file opened"; *)
+                                filenames := fname::!filenames;
+                                A_File (p_name, fname, store, Lwt_unix.Plain fd)
+                            | None -> raise Ocsigen_upload_forbidden
+                      in
+                      let add where s =
+                        match where with 
+                          No_File (p_name, to_buf) -> 
+                            Buffer.add_string to_buf s;
+                            return ()
+                        | A_File (_,_,_,wh) -> 
+                            Lwt_unix.write wh s 0 (String.length s) >>= 
+                            (fun r -> Lwt_unix.yield ())
+                      in
+                      let stop size  = function 
+                          No_File (p_name, to_buf) -> 
+                            return 
+                              (params := !params @
+                                [(p_name, Buffer.contents to_buf)])
+                              (* à la fin ? *)
+                        | A_File (p_name,fname,oname,wh) -> 
+                            (match wh with 
+                              Lwt_unix.Plain fdscr -> 
+                                (* Messages.debug "closing file"; *)
+                                files := 
+                                  !files@[(p_name, {tmp_filename=fname;
+                                                    filesize=size;
+                                                    original_filename=oname})];
+                                Unix.close fdscr
+                            | _ -> ());
+                            return ()
+                      in
+                      Multipart.scan_multipart_body_from_stream 
+                        body bound create add stop >>=
+                      (fun () -> return (!params, !files))
+              with e -> fail e)
 
 (* AEFF *)              (*        IN-MEMORY STOCKAGE *)
               (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
@@ -352,45 +395,29 @@ let get_request_infos http_frame filenames sockaddr port =
                * List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
                * List.map simplify bdlist *)
     in
-    find_post_params >>= (fun (post_params, files) ->
-
-      let useragent = try (Http_header.get_headers_value
-                             http_frame.Stream_http_frame.header "user-agent")
-      with _ -> ""
-      in
-
-      let cookies = 
-          getcookies http_frame.Stream_http_frame.header
-      in
-
-      let ifmodifiedsince = try 
-        Some (Netdate.parse_epoch 
-                (Http_header.get_headers_value
-                   http_frame.Stream_http_frame.header "if-modified-since"))
-      with _ -> None
-      in
-      let inet_addr = ip_of_sockaddr sockaddr in
-      return
-        {ri_path_string = path;
-         ri_path = Ocsimisc.remove_slash (Neturl.url_path url2);
-         ri_params = params ;
-         ri_host = host;
-         ri_get_params = get_params;
-         ri_post_params = post_params;
-         ri_files = files;
-         ri_inet_addr = inet_addr;
-         ri_ip = Unix.string_of_inet_addr inet_addr;
-         ri_port = port;
-         ri_user_agent = useragent;
-         ri_cookies = cookies;
-         ri_ifmodifiedsince = ifmodifiedsince;
-         ri_http_frame = http_frame}))
-
-    (fun e ->
-      Messages.debug ("~~~ Exn during get_request_infos : "^
-                      (Printexc.to_string e));
-      fail (Ocsigen_Request_interrupted e) (* ? *))
-    
+    {ri_url = url;
+     ri_path_string = path;
+     ri_path = (Ocsimisc.remove_slash (Neturl.url_path url2));
+     ri_params = params;
+     ri_host = host;
+     ri_get_params = get_params;
+     ri_post_params = lazy ((force find_post_params) >>= 
+                                (fun (a,b) -> return a));
+     ri_files = lazy ((force find_post_params) >>= 
+                      (fun (a,b) -> return b));
+     ri_inet_addr = inet_addr;
+     ri_ip = Unix.string_of_inet_addr inet_addr;
+     ri_port = port;
+     ri_user_agent = useragent;
+     ri_cookies = cookies;
+     ri_ifmodifiedsince = ifmodifiedsince;
+     ri_http_frame = http_frame}
+      
+  with e ->
+    (Messages.debug ("~~~ Exn during get_request_infos : "^
+                     (Printexc.to_string e));
+     raise (Ocsigen_Request_interrupted e) (* ? *))
+  
 
 let find_keepalive http_header =
   try
@@ -455,107 +482,111 @@ let service
       
       (* *** First of all, we read all the request
          (that will possibly create files) *)
-      get_request_infos http_frame filenames sockaddr port >>=
+      let ri = get_request_infos http_frame filenames sockaddr port in
       
       (* *** Now we generate the page and send it *)
-      (fun ri ->
-
-        catch
-          (fun () ->
+      catch
+        (fun () ->
+          
+          (* log *)
+          accesslog 
+            ("connection"^
+             (match ri.ri_host with 
+               None -> ""
+             | Some h -> (" for "^h))^
+             " from "^ri.ri_ip^" ("^ri.ri_user_agent^") : "^
+             ri.ri_path_string^ri.ri_params);
+          (* end log *)
+          
+          
+          (* Generation of pages is delegated to extensions: *)
+          Extensions.do_for_host_matching 
+	    ri.ri_host ri.ri_port (Extensions.get_virthosts ()) ri >>=
+          
+          (fun res ->
             
-            (* log *)
-            accesslog 
-              ("connection"^
-               (match ri.ri_host with 
-                 None -> ""
-               | Some h -> (" for "^h))^
-               " from "^ri.ri_ip^" ("^ri.ri_user_agent^") : "^
-               ri.ri_path_string^ri.ri_params);
-            (* end log *)
+            match res.res_lastmodified, ri.ri_ifmodifiedsince with
+              Some l, Some i when l<=i -> 
+                Messages.debug "-> Sending 304 Not modified ";
+                send_empty
+                  wait_end_answer
+                  ~keep_alive:ka
+                  ?last_modified:res.res_lastmodified
+                  ~cookies:res.res_cookies
+                  ?etag:res.res_etag
+                  ~code:304 (* Not modified *)
+                  ~head:head 
+                  empty_sender
+                  
+            | _ ->
+                res.res_send_page
+                  wait_end_answer
+                  ~keep_alive:ka
+                  ?last_modified:res.res_lastmodified
+                  ~cookies:res.res_cookies
+                  ~path:res.res_path (* path for the cookie *) 
+                  ?code:res.res_code
+                  ?charset:res.res_charset
+                  ~head:head
+                  (res.res_create_sender ~server_name:server_name inputchan))
             
+        )
+        
+        
+        (fun e -> 
 
-            (* Generation of pages is delegated to extensions: *)
-            Extensions.do_for_host_matching 
-	      ri.ri_host ri.ri_port (Extensions.get_virthosts ()) ri >>=
-
-            (fun res ->
-              
-              match res.res_lastmodified, ri.ri_ifmodifiedsince with
-                Some l, Some i when l<=i -> 
-                  Messages.debug "-> Sending 304 Not modified ";
+          (* Exceptions during page generation *)
+          Messages.debug 
+            ("~~~ Exception during generation/sending: "^
+             (Printexc.to_string e));
+          catch
+            (fun () ->
+              match e with
+                (* EXCEPTIONS WHILE COMPUTING A PAGE *)
+                Ocsigen_404 -> 
+                  Messages.debug "-> Sending 404 Not Found";
+                  send_error 
+                    wait_end_answer ~keep_alive:ka ~error_num:404 xhtml_sender
+              | Ocsigen_sending_error exn -> fail exn
+              | Ocsigen_Is_a_directory -> 
+                  Messages.debug "-> Sending 301 Moved permanently";
                   send_empty
                     wait_end_answer
                     ~keep_alive:ka
-                    ?last_modified:res.res_lastmodified
-                    ~cookies:res.res_cookies
-                    ?etag:res.res_etag
-                    ~code:304 (* Not modified *)
-                    ~head:head 
-                    empty_sender
-                    
-              | _ ->
-                  res.res_send_page
-                    wait_end_answer
-                    ~keep_alive:ka
-                    ?last_modified:res.res_lastmodified
-                    ~cookies:res.res_cookies
-                    ~path:res.res_path (* path for the cookie *) 
-                    ?code:res.res_code
-                    ?charset:res.res_charset
-                    ~head:head
-                    (res.res_create_sender ~server_name:server_name inputchan))
-
-          )
-          
-          
-          (fun e -> (* Exceptions during page generation *)
-            Messages.debug 
-              ("~~~ Exception during generation/sending: "^
-               (Printexc.to_string e));
-            catch
-              (fun () ->
-                match e with
-                  (* EXCEPTIONS WHILE COMPUTING A PAGE *)
-                  Ocsigen_404 -> 
-                    Messages.debug "-> Sending 404 Not Found";
-                    send_error 
-                      wait_end_answer ~keep_alive:ka ~error_num:404 xhtml_sender
-                | Ocsigen_sending_error exn -> fail exn
-                | Ocsigen_Is_a_directory -> 
-                    Messages.debug "-> Sending 301 Moved permanently";
-                    send_empty
-                      wait_end_answer
-                      ~keep_alive:ka
-                      ~location:(ri.ri_path_string^"/"^ri.ri_params)
-                      ~code:301 (* Moved permanently *)
-                      ~head:head empty_sender
-                | Extensions.Ocsigen_malformed_url
-                | Neturl.Malformed_URL -> 
-                    Messages.debug "-> Sending 400 (Malformed URL)";
-                    send_error wait_end_answer ~keep_alive:ka
-                      ~error_num:400 xhtml_sender (* Malformed URL *)
-                | Unix.Unix_error (Unix.EACCES,_,_) ->
-                    Messages.debug "-> Sending 303 Forbidden";
-                    send_error wait_end_answer ~keep_alive:ka
-                      ~error_num:403 xhtml_sender (* Forbidden *)
-                | e ->
-                    Messages.warning
-                      ("Exn during page generation: "^
-                       (match e with
-                         Unix.Unix_error (ee,func,param) -> 
-                           (Unix.error_message ee)^
-                           " in function "^func^" ("^param^")"
-                       | _ -> Printexc.to_string e)
-                       ^" (sending 500)"); 
-                    Messages.debug "-> Sending 500";
-                    send_error
-                      wait_end_answer ~keep_alive:ka ~error_num:500 xhtml_sender)
-              (fun e -> fail (Ocsigen_sending_error e))
+                    ~location:(ri.ri_path_string^"/"^ri.ri_params)
+                    ~code:301 (* Moved permanently *)
+                    ~head:head empty_sender
+              | Extensions.Ocsigen_malformed_url
+              | Neturl.Malformed_URL -> 
+                  Messages.debug "-> Sending 400 (Malformed URL)";
+                  send_error wait_end_answer ~keep_alive:ka
+                    ~error_num:400 xhtml_sender (* Malformed URL *)
+              | Unix.Unix_error (Unix.EACCES,_,_) ->
+                  Messages.debug "-> Sending 303 Forbidden";
+                  send_error wait_end_answer ~keep_alive:ka
+                    ~error_num:403 xhtml_sender (* Forbidden *)
+              | Stream_already_read ->
+                  Messages.errlog "Cannot read the request twice. You probably have two incompatible extensions, or the order of the extensions in the config file is wrong.";
+                  send_error wait_end_answer ~keep_alive:ka
+                    ~error_num:500 xhtml_sender (* Internal error *)
+              | e ->
+                  Messages.warning
+                    ("Exn during page generation: "^
+                     (match e with
+                       Unix.Unix_error (ee,func,param) -> 
+                         (Unix.error_message ee)^
+                         " in function "^func^" ("^param^")"
+                     | _ -> Printexc.to_string e)
+                     ^" (sending 500)"); 
+                  Messages.debug "-> Sending 500";
+                  send_error
+                    wait_end_answer ~keep_alive:ka ~error_num:500 xhtml_sender)
+            (fun e -> fail (Ocsigen_sending_error e))
             (* All generation exceptions have been handled here *)
-          )) >>=
-
+        ) >>=
+      
       (fun () -> return (remove_files !filenames)))
-              
+      
       (fun e -> 
         remove_files !filenames;
         match e with
@@ -564,11 +595,6 @@ let service
               xhtml_sender sockaddr wait_end_answer e)
 
   in 
-
-(*  let consume = function
-        None -> return ()
-      | Some body -> Ocsistream.consume body
-  in *)
 
 
   (* body of service *)
@@ -722,9 +748,21 @@ let listen ssl port wait_end_init =
                  wait_end_answer http_frame port sockaddr 
                  xhtml_sender empty_sender in_ch () >>=
                (fun () ->
-                 wakeup wait_end_answer2 (); 
-                 return ()))
-             handle_severe_errors);
+
+                 (* If the request has not been fully read by the extensions,
+                    we force it to be read here, to be able to take
+                    another one on the same connexion: *)
+                 (match http_frame.Stream_http_frame.content with
+                   Some f -> 
+                     (try
+                       Ocsistream.consume (f ())
+                     with _ -> return ())
+                 | _ -> return ()) >>=
+
+                 (fun () ->
+                   wakeup wait_end_answer2 (); 
+                   return ())))
+             handle_severe_errors (* will close the connexion *) );
         
         catch
           (fun () ->

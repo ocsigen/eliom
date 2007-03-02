@@ -33,6 +33,11 @@ let empty_stream follow = Finished follow
 
 let new_stream stri f = Cont (stri, (String.length stri), f)
 
+let rec is_finished = function
+    Finished None -> true
+  | Finished (Some s) -> is_finished s
+  | _ -> false
+
 let string_of_stream = 
   let rec aux l = function
       Finished _ -> return ""

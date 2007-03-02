@@ -58,6 +58,8 @@ val create_empty_sender : create_sender_type
 val create_file_sender : create_sender_type
 
 (**/**)
+exception Stream_already_read
+
 (** Sending an error page *)
 val send_error :
   unit Lwt.t ->
@@ -80,14 +82,14 @@ module Text_content :
     val get_etag : string -> string
     val stream_of_content :
       string -> (int64 * string * Ocsistream.stream * ('a -> 'a)) Lwt.t
-    val content_of_stream : Ocsistream.stream -> string Lwt.t
+    val content_of_stream : Ocsistream.stream -> t Lwt.t
   end
 module Stream_content :
   sig
-    type t = Ocsistream.stream
+    type t = unit -> Ocsistream.stream
     val get_etag : 'a -> 'b
     val stream_of_content : 'a -> 'b
-    val content_of_stream : 'a -> 'a Lwt.t
+    val content_of_stream : Ocsistream.stream -> t Lwt.t
   end
 module Empty_content :
   sig
@@ -95,7 +97,7 @@ module Empty_content :
     val get_etag : 'a -> string
     val stream_of_content :
       'a -> (int64 * string * Ocsistream.stream * ('b -> 'b)) Lwt.t
-    val content_of_stream : 'a -> unit Lwt.t
+    val content_of_stream : Ocsistream.stream -> unit Lwt.t
   end
 module File_content :
   sig
@@ -428,10 +430,10 @@ module Stream_http_frame :
   sig
     type frame_content = Stream_content.t option
     type http_frame =
-        Http_frame.FHttp_frame(Stream_content).http_frame = {
-        header : Http_frame.Http_header.http_header;
-        content : frame_content;
-        waiter_thread: unit Lwt.t;
+      Http_frame.FHttp_frame(Stream_content).http_frame = {
+      header : Http_frame.Http_header.http_header;
+      content : frame_content;
+      waiter_thread : unit Lwt.t;
     }
   end
 module Stream_receiver :

@@ -24,6 +24,7 @@ open Lwt
 open Ocsimisc
 open Extensions
 open Ocsigenmod
+open Lazy
 
 let _ = Random.self_init ()
 
@@ -37,8 +38,8 @@ let get_user_agent (ri,_,_) = ri.ri_user_agent
 let get_full_url (ri,_,_) = ri.ri_path_string^ri.ri_params
 let get_ip (ri,_,_) = ri.ri_ip
 let get_inet_addr (ri,_,_) = ri.ri_inet_addr
-let get_get_params (ri,_,_) = ri.ri_get_params
-let get_post_params (ri,_,_) = ri.ri_post_params
+let get_get_params (ri,_,_) = force ri.ri_get_params
+let get_post_params (ri,_,_) = force ri.ri_post_params
 let get_current_url (ri,_,_) = ri.ri_path
 let get_hostname (ri,_,_) = ri.ri_host
 let get_port (ri,_,_) = ri.ri_port
@@ -135,6 +136,7 @@ type 'a res_reconstr_param =
                (string * string) list * 
                (string * file_info) list)
   | Errors_ of (string * exn) list
+
 let reconstruct_params
     (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type)
     params files urlsuffix : 'a = 
@@ -716,22 +718,26 @@ module Make = functor
            (service.unique_id,
             (fun (suff,((ri,_,_) as h)) -> 
               (catch (fun () -> 
-                (page_generator h 
-                   (reconstruct_params 
-                      service.get_params_type
-                      ri.ri_get_params
-                      []
-                      suff)
-                   (reconstruct_params
-                      service.post_params_type
-                      ri.ri_post_params
-                      ri.ri_files
-                      suff)))
+                (force ri.ri_post_params) >>=
+                (fun post_params ->
+                  (force ri.ri_files) >>=
+                  (fun files ->
+                    (page_generator h 
+                       (reconstruct_params 
+                          service.get_params_type
+                          (force ri.ri_get_params)
+                          []
+                          suff)
+                       (reconstruct_params
+                          service.post_params_type
+                          post_params
+                          files
+                          suff)))))
                  (function
                      Ocsigen_Typing_Error l -> error_handler h l
                    | e -> fail e)) >>=
               (fun c -> return (Pages.send ~content:c)))))
-      
+
       let register_service 
           ~(service : ('get,'post,[`Internal_Service of 'g],'tipo,'gn,'pn) service)
           ?error_handler
@@ -880,11 +886,17 @@ module Make = functor
           current_dir tables ~action actionfun =
         add_action tables current_dir 
           action.action_name
-          (fun ((ri,_,_) as h) -> actionfun h
-              (reconstruct_params 
-                 action.action_params_type 
-                 ri.ri_post_params
-                 ri.ri_files []))
+          (fun ((ri,_,_) as h) -> 
+            (force ri.ri_post_params) >>=
+            (fun post_params ->
+              (force ri.ri_files) >>=
+              (fun files ->
+                actionfun h
+                  (reconstruct_params 
+                     action.action_params_type 
+                     post_params
+                     files 
+                     []))))
 
       let register_action
           ~(action : ('post,'pn) action)

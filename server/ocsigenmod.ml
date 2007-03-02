@@ -28,6 +28,7 @@
 open Lwt
 open Ocsimisc
 open Extensions
+open Lazy
 
 exception Ocsigen_Wrong_parameter
 exception Ocsigen_Typing_Error of (string * exn) list
@@ -72,39 +73,45 @@ let getcookie cookies =
 
 
 let change_request_info ri =
-  let cookie = getcookie ri.ri_cookies in
-  let internal_state, post_params2 = 
-    try (Some (int_of_string (List.assoc state_param_name ri.ri_post_params)),
-         List.remove_assoc state_param_name ri.ri_post_params)
-    with Not_found -> (None, ri.ri_post_params)
-  in
-  let internal_state2, get_params2 = 
-    try 
-      match internal_state with
-        None ->
-          (Some (int_of_string (List.assoc state_param_name ri.ri_get_params)),
-           List.remove_assoc state_param_name ri.ri_get_params)
-      | _ -> (internal_state, ri.ri_get_params)
-    with Not_found -> (internal_state, ri.ri_get_params)
-  in
-  let action_info, post_params3 =
-    try
-      let action_name, pp = 
-        ((List.assoc (action_prefix^action_name) post_params2),
-         (List.remove_assoc (action_prefix^action_name) post_params2)) in
-      let reload,pp2 =
-        try
-          ignore (List.assoc (action_prefix^action_reload) pp);
-          (true, (List.remove_assoc (action_prefix^action_reload) pp))
-        with Not_found -> false, pp in
-      let ap,pp3 = pp2,[] in
-      (Some (action_name, reload, ap), pp3)
-    with Not_found -> None, post_params2 
-  in
-  {ri with 
-   ri_get_params = get_params2; 
-   ri_post_params = post_params3},
-  (cookie, action_info, internal_state2)
+  force ri.ri_post_params >>=
+  (fun post_params -> 
+    let get_params = force ri.ri_get_params in
+    let cookie = getcookie (force ri.ri_cookies) in
+    let internal_state, post_params2 = 
+      try (Some (int_of_string (List.assoc state_param_name post_params)),
+           List.remove_assoc state_param_name post_params)
+      with 
+        Not_found -> (None, post_params)
+    in
+    let internal_state2, get_params2 = 
+      try 
+        match internal_state with
+          None ->
+            (Some (int_of_string 
+                     (List.assoc state_param_name get_params)),
+             List.remove_assoc state_param_name get_params)
+        | _ -> (internal_state, get_params)
+      with Not_found -> (internal_state, get_params)
+    in
+    let action_info, post_params3 =
+      try
+        let action_name, pp = 
+          ((List.assoc (action_prefix^action_name) post_params2),
+           (List.remove_assoc (action_prefix^action_name) post_params2)) in
+        let reload,pp2 =
+          try
+            ignore (List.assoc (action_prefix^action_reload) pp);
+            (true, (List.remove_assoc (action_prefix^action_reload) pp))
+          with Not_found -> false, pp in
+        let ap,pp3 = pp2,[] in
+        (Some (action_name, reload, ap), pp3)
+      with Not_found -> None, post_params2 
+    in
+    return 
+      ({ri with 
+        ri_get_params = lazy get_params2; 
+        ri_post_params = lazy (return post_params3)},
+       (cookie, action_info, internal_state2)))
 
 
 
@@ -390,13 +397,14 @@ let find_service
     try search_page_table !dircontentref (change_empty_list ri.ri_path)
     with Not_found -> raise Ocsigen_404
   in
-  let suffix,get_param_list = 
+  let (suffix, get_param_list) = 
     if  suffix = []
     then try
-      let s,l = list_assoc_remove ocsigen_suffix_name ri.ri_get_params in
+      let s,l = 
+        list_assoc_remove ocsigen_suffix_name (force ri.ri_get_params) in
       [s],l
-    with Not_found -> suffix, ri.ri_get_params
-    else suffix, ri.ri_get_params in
+    with Not_found -> suffix, (force ri.ri_get_params)
+    else suffix, (force ri.ri_get_params) in
   let pref = suffix <> [] in
   find_page_table 
     page_table
@@ -581,7 +589,9 @@ let make_action page_tree action_name action_params
     (action
        (make_server_params 
           working_dir session_tables_ref 
-          {ri with ri_get_params=[]; ri_post_params = action_params})) >>=
+          {ri with
+           ri_get_params= lazy []; 
+           ri_post_params = lazy (return action_params)})) >>=
     (fun r -> return ((r,(), working_dir), None, None))
   in catch
     (fun () ->
@@ -597,65 +607,67 @@ let make_action page_tree action_name action_params
 
 
 let gen page_tree charset ri =
-  let ri, (cookie, action_info, internal_state) = change_request_info ri in
-
-  match action_info with
-    None ->
-
-      (* page generation *)
-      get_page page_tree ri charset cookie internal_state
-
-  | Some (action_name, reload, action_params) ->
-
-      (* action *)
-      make_action 
-        page_tree action_name action_params ri cookie
-        >>= (fun (cookie2,path) ->
-	  let cookie3 = match cookie2 with
-	    None -> cookie
-	  | Some c -> Some c
-	  in
-          (if reload then
-            (get_page page_tree ri charset cookie3 internal_state >>=
-	     (function
-		 Ext_found r -> return 
-		     (Ext_found
-			{r with 
-			 res_cookies=
-			 (match cookie2, r.res_cookies with
-			 | (Some c), [] -> [(cookiename, c)]
-			 | _,cl -> cl)})
-	       | _ -> return (Ext_found
-				{res_cookies=
-				 (match cookie2 with
-				   None -> []
-				 | Some c -> [(cookiename, c)]);
-				 res_send_page=
-				 (Predefined_senders.send_xhtml_page 
-				    ~content:(Error_pages.error_page "Error: redirection after action is experimental (it works only for ocsigenmod pages for now, and I didn't find any)"));
-				 res_create_sender=Predefined_senders.create_xhtml_sender;
-				 res_path="/";
-				 res_code=None;
-				 res_lastmodified=None;
-				 res_etag=None;
-                                 res_charset=charset})))
+  change_request_info ri >>=
+  (fun (ri, (cookie, action_info, internal_state)) ->
+    
+    match action_info with
+      None ->
+        
+        (* page generation *)
+        get_page page_tree ri charset cookie internal_state
           
-          else
-	    return
-	      (Ext_found
-                 {res_cookies=
-                  (match cookie2 with
-                    None -> []
-                  | Some c -> [(cookiename, c)]);
-                  res_send_page=Predefined_senders.send_empty;
-                  res_create_sender=Predefined_senders.create_empty_sender;
-                  res_code=Some 204;
-                  res_path=path;
-                  res_lastmodified=None;
-                  res_etag=None;
-                  res_charset=charset})
-          )
+    | Some (action_name, reload, action_params) ->
+        
+        (* action *)
+        make_action 
+          page_tree action_name action_params ri cookie
+          >>= (fun (cookie2,path) ->
+	    let cookie3 = match cookie2 with
+	      None -> cookie
+	    | Some c -> Some c
+	    in
+            (if reload then
+              (get_page page_tree ri charset cookie3 internal_state >>=
+	       (function
+		   Ext_found r -> return 
+		       (Ext_found
+			  {r with 
+			   res_cookies=
+			   (match cookie2, r.res_cookies with
+			   | (Some c), [] -> [(cookiename, c)]
+			   | _,cl -> cl)})
+	         | _ -> return (Ext_found
+				  {res_cookies=
+				   (match cookie2 with
+				     None -> []
+				   | Some c -> [(cookiename, c)]);
+				   res_send_page=
+				   (Predefined_senders.send_xhtml_page 
+				      ~content:(Error_pages.error_page "Error: redirection after action is experimental (it works only for ocsigenmod pages for now, and I didn't find any)"));
+				   res_create_sender=Predefined_senders.create_xhtml_sender;
+				   res_path="/";
+				   res_code=None;
+				   res_lastmodified=None;
+				   res_etag=None;
+                                   res_charset=charset})))
+                
+            else
+	      return
+	        (Ext_found
+                   {res_cookies=
+                    (match cookie2 with
+                      None -> []
+                    | Some c -> [(cookiename, c)]);
+                    res_send_page=Predefined_senders.send_empty;
+                    res_create_sender=Predefined_senders.create_empty_sender;
+                    res_code=Some 204;
+                    res_path=path;
+                    res_lastmodified=None;
+                    res_etag=None;
+                    res_charset=charset})
             )
+              )
+  )
 
 
 (*****************************************************************************)
