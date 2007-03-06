@@ -110,8 +110,8 @@ let rec parser_config =
     | PLCons ((EPwhitespace _), l) -> verify_empty l
     | _ -> raise (Config_file_error "Don't know what to do with tailing data")
   in let rec parse_servers n = function
-      PLEmpty -> (match n with [] -> 
-        raise(Config_file_error ("<server> tag expected"))
+      PLEmpty -> (match n with
+        [] -> raise(Config_file_error ("<server> tag expected"))
       | _ -> n)
     | PLCons ((EPanytag ("server", PLEmpty, nouveau)), ll) ->
         parse_servers (n@[nouveau]) ll
@@ -193,6 +193,8 @@ let parse_server c =
       | PLCons ((EPanytag ("charset", atts, p)), ll) ->
           set_default_charset (Some (parse_string p));
           parse_server_aux ll
+      | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) ->
+          parse_server_aux ll
       | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
           parse_server_aux ll
       | PLCons ((EPanytag ("user", PLEmpty, p)), ll) -> 
@@ -201,9 +203,6 @@ let parse_server c =
           parse_server_aux ll
       | PLCons ((EPanytag ("uploaddir", PLEmpty, p)), ll) ->
           set_uploaddir (Some (parse_string p));
-          parse_server_aux ll
-      | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
-          set_logdir (parse_string p);
           parse_server_aux ll
       | PLCons ((EPanytag ("staticdir", PLEmpty, p)), ll) -> 
           set_default_static_dir (parse_string p);
@@ -313,6 +312,9 @@ let extract_info c =
   in
   let rec aux user group ssl ports sslports = function
       PLEmpty -> ((user,group),(ssl,ports,sslports))
+    | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
+        set_logdir (parse_string p);
+        aux user group ssl ports sslports ll
     | PLCons ((EPanytag ("port", atts, p)), ll) ->
         (match atts with
           PLEmpty

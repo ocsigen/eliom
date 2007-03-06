@@ -418,19 +418,19 @@ OCSIGENGROUP=$ocsigen_user
 OCSIGENNAME=$name
 
 # ocsigen's logs:
-LOGDIR = /var/log/$name
+LOGDIR = /var/log/\$(OCSIGENNAME)
 
 # Config files:
-CONFIGDIR = /etc/$name
+CONFIGDIR = /etc/\$(OCSIGENNAME)
 
 # Where to put static pages:
-STATICPAGESDIR = /var/www/$name
+STATICPAGESDIR = /var/www/\$(OCSIGENNAME)
 
 # Default directory for file upload:
 UPLOADDIR = /tmp
 
 # Where to put Ocsigen documentation:
-DOCDIR = $docdir/$name
+DOCDIR = $docdir/\$(OCSIGENNAME)
 
 # Do you want debugging information? (-g -dtypes)
 DEBUG=$enable_debug
