@@ -409,7 +409,7 @@ let find_service
   find_page_table 
     page_table
     session_table_ref
-    ri
+    {ri with ri_get_params = lazy get_param_list}
     suffix
     {prefix = pref;
      state = state_option}
