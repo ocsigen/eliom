@@ -501,6 +501,28 @@ module Xhtml : sig
       [> textarea ] elt
 (** Creates a [<textarea>] tag *)
 
+  val select : ?a:(select_attrib attrib list ) ->
+    ?selected:((string option * string) option)
+    -> (string option * string) -> ((string option * string) list) ->
+    string param_name
+    -> [> select ] elt
+(** Basic support for the [<select>] tag.
+
+The associated parameter is of type "string". It is used in forms as for 
+example:
+
+[select (None, "inconnue") [(None, "C1"); (None, "C2")] classe]
+
+
+where "classe" is the parameter name. The different choices are of the form
+[(<optional string1>, <string2>)]. "string2" is presented to the user and 
+if selected it is the returned value except when "string1" is present 
+(where it is "string1"). It is modeled after the way "select" is done in 
+HTML.
+
+Not all features of "select" are implemented.
+ *)
+
   val submit_input : ?a:(input_attrib attrib list ) -> 
     string -> [> input ] elt
 (** Creates a submit [<input>] tag *)
@@ -548,6 +570,7 @@ module type PAGES =
     type link_elt
     type script_elt
     type textarea_elt
+    type select_elt
     type input_elt
     type pcdata_elt
     val create_sender : Predefined_senders.create_sender_type
@@ -556,6 +579,7 @@ module type PAGES =
     type form_attrib_t
     type input_attrib_t
     type textarea_attrib_t
+    type select_attrib_t
     type link_attrib_t
     type script_attrib_t
     type input_type_t
@@ -591,6 +615,11 @@ module type PAGES =
         ?a:textarea_attrib_t ->
           name:string ->
             rows:int -> cols:int -> pcdata_elt -> textarea_elt
+    val make_select : ?a:select_attrib_t ->
+      name:string ->
+      ?selected:((string option * string) option)
+        -> (string option * string) -> ((string option * string) list) ->
+      select_elt
     val make_div :
         classe:string list -> a_elt -> form_content_elt
     val make_uri_from_string : string -> uri
@@ -614,6 +643,7 @@ module type OCSIGENSIG =
     type link_elt
     type script_elt
     type textarea_elt
+    type select_elt
     type input_elt
     type pcdata_elt
           
@@ -621,6 +651,7 @@ module type OCSIGENSIG =
     type form_attrib_t
     type input_attrib_t
     type textarea_attrib_t
+    type select_attrib_t
     type link_attrib_t
     type script_attrib_t
     type input_type_t
@@ -828,6 +859,10 @@ module type OCSIGENSIG =
         ?a:textarea_attrib_t ->
           string param_name ->
             rows:int -> cols:int -> pcdata_elt -> textarea_elt
+    val select : ?a:select_attrib_t ->
+      ?selected:((string option * string) option) ->
+      (string option * string) -> ((string option * string) list) ->
+      string param_name -> select_elt
     val submit_input : ?a:input_attrib_t -> string -> input_elt
     val file_input : ?a:input_attrib_t -> ?value:string -> 
                     file_info param_name ->input_elt
@@ -848,12 +883,14 @@ and type uri = Pages.uri
 and type link_elt = Pages.link_elt
 and type script_elt = Pages.script_elt
 and type textarea_elt = Pages.textarea_elt
+and type select_elt = Pages.select_elt
 and type input_elt = Pages.input_elt
 and type pcdata_elt = Pages.pcdata_elt
 and type a_attrib_t = Pages.a_attrib_t
 and type form_attrib_t = Pages.form_attrib_t
 and type input_attrib_t = Pages.input_attrib_t
 and type textarea_attrib_t = Pages.textarea_attrib_t
+and type select_attrib_t = Pages.select_attrib_t
 and type link_attrib_t = Pages.link_attrib_t
 and type script_attrib_t = Pages.script_attrib_t
 and type input_type_t = Pages.input_type_t
@@ -873,12 +910,14 @@ and type uri = string
 and type link_elt = string 
 and type script_elt = string 
 and type textarea_elt = string 
+and type select_elt = string 
 and type input_elt = string 
 and type pcdata_elt = string 
 and type a_attrib_t = string 
 and type form_attrib_t = string 
 and type input_attrib_t = string 
 and type textarea_attrib_t = string 
+and type select_attrib_t = string 
 and type link_attrib_t = string 
 and type script_attrib_t = string 
 and type input_type_t = string 

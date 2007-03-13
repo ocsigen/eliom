@@ -323,6 +323,7 @@ module type PAGES =
     type link_elt
     type script_elt
     type textarea_elt
+    type select_elt
     type input_elt
     type pcdata_elt
 
@@ -333,6 +334,7 @@ module type PAGES =
     type form_attrib_t
     type input_attrib_t
     type textarea_attrib_t
+    type select_attrib_t
     type link_attrib_t
     type script_attrib_t
     type input_type_t
@@ -364,6 +366,11 @@ module type PAGES =
       name:string -> rows:int -> cols:int ->
         pcdata_elt -> 
           textarea_elt
+     val make_select : ?a:select_attrib_t ->
+       name:string ->
+       ?selected:((string option * string) option)
+         -> (string option * string) -> ((string option * string) list) ->
+       select_elt
     val make_div : classe:(string list) -> a_elt -> form_content_elt
     val make_uri_from_string : string -> uri
 
@@ -390,6 +397,7 @@ module type OCSIGENSIG =
     type link_elt
     type script_elt
     type textarea_elt
+    type select_elt
     type input_elt
     type pcdata_elt
           
@@ -397,6 +405,7 @@ module type OCSIGENSIG =
     type form_attrib_t
     type input_attrib_t
     type textarea_attrib_t
+    type select_attrib_t
     type link_attrib_t
     type script_attrib_t
     type input_type_t
@@ -605,6 +614,12 @@ module type OCSIGENSIG =
         ?a:textarea_attrib_t ->
           string param_name ->
             rows:int -> cols:int -> pcdata_elt -> textarea_elt
+    val select :
+      ?a:select_attrib_t ->
+      ?selected:((string option * string) option)
+      -> (string option * string) -> ((string option * string) list) ->
+      string param_name
+      -> select_elt
     val submit_input : ?a:input_attrib_t -> string -> input_elt
     val file_input : ?a:input_attrib_t -> ?value:string -> 
                             file_info param_name-> input_elt
@@ -629,6 +644,7 @@ module Make = functor
       type link_elt = Pages.link_elt
       type script_elt = Pages.script_elt
       type textarea_elt = Pages.textarea_elt
+      type select_elt = Pages.select_elt
       type input_elt = Pages.input_elt
       type pcdata_elt = Pages.pcdata_elt
             
@@ -636,6 +652,7 @@ module Make = functor
       type form_attrib_t = Pages.form_attrib_t
       type input_attrib_t = Pages.input_attrib_t
       type textarea_attrib_t = Pages.textarea_attrib_t
+      type select_attrib_t = Pages.select_attrib_t
       type link_attrib_t = Pages.link_attrib_t
       type script_attrib_t = Pages.script_attrib_t
       type input_type_t = Pages.input_type_t
@@ -1212,6 +1229,9 @@ module Make = functor
       let textarea ?a (name : string param_name) =
         Pages.make_textarea ?a ~name:name
 
+      let select ?a ?selected fp lp (name : string param_name) =
+        Pages.make_select ?a ~name:name ?selected fp lp
+
       let submit_input ?a s =
         Pages.make_input ?a ~typ:Pages.submit ~value:s ()
 
@@ -1233,12 +1253,14 @@ module Make = functor
      and type link_elt = Pages.link_elt
      and type script_elt = Pages.script_elt
      and type textarea_elt = Pages.textarea_elt
+     and type select_elt = Pages.select_elt
      and type input_elt = Pages.input_elt
      and type pcdata_elt = Pages.pcdata_elt
      and type a_attrib_t = Pages.a_attrib_t
      and type form_attrib_t = Pages.form_attrib_t
      and type input_attrib_t = Pages.input_attrib_t
      and type textarea_attrib_t = Pages.textarea_attrib_t
+     and type select_attrib_t = Pages.select_attrib_t
      and type link_attrib_t = Pages.link_attrib_t
      and type script_attrib_t = Pages.script_attrib_t
      and type input_type_t = Pages.input_type_t)
@@ -1268,6 +1290,7 @@ module Xhtml_ = struct
   type form_elt = form elt
 
   type textarea_elt = textarea elt
+  type select_elt = select elt
   type input_elt = input elt
 
   type link_elt = link elt
@@ -1279,6 +1302,7 @@ module Xhtml_ = struct
   type form_attrib_t = Xhtmltypes.form_attrib XHTML.M.attrib list
   type input_attrib_t = Xhtmltypes.input_attrib XHTML.M.attrib list
   type textarea_attrib_t = Xhtmltypes.textarea_attrib XHTML.M.attrib list
+  type select_attrib_t = Xhtmltypes.select_attrib XHTML.M.attrib list
   type link_attrib_t = Xhtmltypes.link_attrib XHTML.M.attrib list
   type script_attrib_t = Xhtmltypes.script_attrib XHTML.M.attrib list
 
@@ -1349,6 +1373,20 @@ module Xhtml_ = struct
     let a3 = (a_name name)::a in
     textarea ~a:a3
 
+  let make_select ?(a=[]) ~name:name ?(selected=None) fp lp =
+    let build_option selec p =
+      let lsel = if selec then [a_selected `Selected] else []
+      in
+        match p with 
+        | (None, s) -> option ~a:lsel (pcdata s)
+        | (Some v, s) -> option ~a:((a_value v)::lsel) (pcdata s)
+    in
+      match selected with
+      | None -> select ~a:((a_name name)::a) (build_option false fp)
+          (List.map (build_option false) lp)
+      | Some p -> select ~a:((a_name name)::a) (build_option true p)
+          ((build_option false fp)::(List.map (build_option false) lp))
+    
   let make_css_link ?(a=[]) uri =
     link ~a:((a_href uri)::
              (a_type "text/css")::(a_rel [`Stylesheet])::a) ()
@@ -1570,6 +1608,20 @@ module Xhtml = struct
                                 [ `PCDATA ] XHTML.M.elt ->
                                   [> textarea ] elt)
 
+  let select = (select
+                   : ?a:([< select_attrib > `Name ] attrib list ) ->
+                 ?selected:((string option * string) option) ->
+                 (string option * string) ->
+                 ((string option * string) list) ->
+                 string param_name ->
+                 select elt
+                   :> ?a:([< select_attrib > `Name ] attrib list ) ->
+                 ?selected:((string option * string) option) ->
+                 (string option * string) ->
+                 ((string option * string) list) ->
+                 string param_name -> 
+                 [> select ] elt)
+
   let submit_input = (submit_input
                         : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                           string -> input elt
@@ -1635,6 +1687,7 @@ module Text_ = struct
   type form_elt = string
 
   type textarea_elt = string
+  type select_elt = string
   type input_elt = string
 
   type link_elt = string
@@ -1649,6 +1702,7 @@ module Text_ = struct
   type form_attrib_t = string
   type input_attrib_t = string
   type textarea_attrib_t = string
+  type select_attrib_t = string
   type link_attrib_t = string
   type script_attrib_t = string
 
@@ -1711,6 +1765,25 @@ module Text_ = struct
   let make_textarea ?(a="") ~name:name ~rows ~cols s = 
     "<textarea name=\""^name^"\" rows=\""^(string_of_int rows)^
     "\" cols=\""^(string_of_int cols)^"\" "^a^">"^s^"</textarea>"
+
+  let make_select ?(a="") ~name:name ?(selected=None) fp lp =
+    let build_option selec p =
+      let lsel = if selec then " selected=\"selected\"" else ""
+      in
+        match p with 
+        | (None, s) -> "<option"^lsel^">"^s^"</option>"
+        | (Some v, s) -> "<option value=\""^v^"\""^lsel^">"^s^"</option>"
+    in
+      match selected with
+      | None -> ("<select name=\""^name^"\" "^a^">")^
+          (build_option false fp)^
+          (List.fold_left (fun s p -> (build_option false p)^s) "" lp)^
+          "</select>"
+      | Some p -> ("<select name=\""^name^"\" "^a^">")^
+          (build_option true p)^
+          ((build_option false fp)^
+           (List.fold_left (fun s p -> (build_option false p)^s) "" lp))^
+          "</select>"
 
   let make_css_link ?(a="") uri =
     "<link href=\""^uri^" type=\"text/css\" rel=\"stylesheet\" "^a^"/>"

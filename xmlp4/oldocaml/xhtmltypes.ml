@@ -41,6 +41,7 @@ type link = [ `Link ]
 type script = [ `Script ]
 type input = [ `Input ]
 type textarea = [ `Textarea ]
+type select = [ `Select ]
 
 type pcdata = [ `PCDATA ]
 
@@ -212,3 +213,5 @@ type input_attrib =
   | `Src | `Tabindex | `Input_Type | `Value | `Usemap ]
 type textarea_attrib =
     [ common | `Accesskey | `Name | `Tabindex ]
+type select_attrib =
+    [ common | `Multiple | `Name | `Size | `Tabindex | `Disabled ]

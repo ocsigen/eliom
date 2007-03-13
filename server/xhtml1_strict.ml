@@ -239,10 +239,17 @@ and input_attrs =
 
 and input = {{ <input (input_attrs)>[] }}
 
+and select_attrs =
+              {{ attrs ++ {onchange=?String 
+                             onblur=?String 
+                             onfocus=?String 
+			     tabindex=?String
+                             disabled=?"disabled" 
+                             multiple=?"multiple"
+			     size=?String
+                             name=?String} }}
 
-and select = {{ <select (attrs ++ {onchange=?String onblur=?String onfocus=?String 
-			     tabindex=?String disabled=?"disabled" multiple=?"multiple"
-			     size=?String name=?String})>[ (optgroup|option)+ ]}}
+and select = {{ <select (select_attrs)>[ (optgroup|option)+ ]}}
 
 and optgroup = {{ <optgroup (attrs ++ { disabled=?"disabled" label=String })>[ option+ ] }}
 and option = {{ <option (attrs ++ { selected=?"selected" disabled=?"disabled" 
@@ -250,9 +257,13 @@ and option = {{ <option (attrs ++ { selected=?"selected" disabled=?"disabled"
 
 and textarea_attrs =
     {{ attrs ++ focus ++ 
-	{ onchange=?String onselect=?String 
-	  readonly=?"readonly" disabled=?"disabled" cols=String rows=String 
-	  name=?String } }}
+	 { onchange=?String
+             onselect=?String 
+	     readonly=?"readonly" 
+             disabled=?"disabled" 
+             cols=String
+             rows=String 
+	     name=?String } }}
 
 and textarea = {{ <textarea (textarea_attrs)>[ PCDATA ] }}
 

@@ -101,6 +101,7 @@ module Xhtml_ = struct
   type form_elt = form
 
   type textarea_elt = textarea
+  type select_elt = select
   type input_elt = input
 
   type link_elt = link
@@ -115,9 +116,12 @@ module Xhtml_ = struct
 
   type input_attrib_t = input_attrs
   type textarea_attrib_t = {{ attrs ++ focus ++ 
-	{ onchange=?String onselect=?String 
-	  readonly=?"readonly" disabled=?"disabled" 
-	  name=?String } }}
+	{ onchange=?String
+            onselect=?String 
+	    readonly=?"readonly" 
+            disabled=?"disabled" 
+	    name=?String } }}
+  type select_attrib_t = select_attrs
   type link_attrib_t = link_attrs
   type script_attrib_t = {{ id ++ { defer=?"defer" src=?String charset=?String } }}
 (* {{ script_attrs -. type }} *)
@@ -172,6 +176,23 @@ module Xhtml_ = struct
   let make_div ~classe c =
     let classe = (List.fold_left (fun a b -> a^" "^b) "" classe) in
     {{ <div class={: classe :}> [ c ] }}
+
+  let make_select ?(a={{ {} }}) ~name:name ?(selected=None) fp lp =
+    let build_option selec p =
+      let lsel = if selec then {{ {selected="selected"} }} else {{ {} }}
+      in
+        match p with 
+        | (None, (s : string)) -> {{ <option (lsel)> {: s :} }}
+        | (Some (v : string), s) -> {{ <option ({value={: v :} } ++ lsel)> {: s :} }}
+    in
+      match selected with
+      | None -> {{ <select ({ name={: name :} } ++ a)>
+                   [ {: (build_option false fp) :}
+                     !{: (List.map (build_option false) lp) :} ] }}
+      | Some p -> {{ <select ({ name={: name :} } ++ a)> 
+                       [ {: (build_option true p) :}
+                         {: (build_option false fp) :}
+                         !{: (List.map (build_option false) lp) :} ] }}
 
   let make_empty_form_content () = {{ <p> [] }} (**** à revoir !!!!! *)
 
