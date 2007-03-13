@@ -88,8 +88,8 @@ fullinstall: doc install
 	-mv $(PREFIX)/$(CONFIGDIR)/mime.types $(PREFIX)/$(CONFIGDIR)/mime.types.old
 	cp -f files/mime.types $(PREFIX)/$(CONFIGDIR)
 	mkdir -p $(PREFIX)/$(LOGDIR)
-	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
-	chown -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
 	chmod u+rwx $(PREFIX)/$(LOGDIR)
 	chmod a+rx $(PREFIX)/$(CONFIGDIR)
 	chmod a+r $(PREFIX)/$(CONFIGDIR)/ocsigen.conf

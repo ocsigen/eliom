@@ -6,9 +6,9 @@ Instructions:
 ---
 Requirements: 
 ocaml (tested with version 3.08.4 and 3.09.1. Does not work with 3.08.1)
-ocamlfind
+findlib (ocamlfind)
 ocamlnet >= 1.1.2 (actually only module netstring, netsys, pcre) 
-(ocamlnet needs pcre?)
+(ocamlnet needs pcre-ocaml)
 ocamlssl >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)
 
 If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer, 
