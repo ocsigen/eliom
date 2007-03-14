@@ -103,7 +103,8 @@ fullinstall: doc install
 	chmod a+rx $(PREFIX)/$(DOCDIR)
 	chmod a+r $(PREFIX)/$(DOCDIR)/*
 	[ -d /etc/logrotate.d ] && \
-	 { cat files/logrotate.IN \
+	 { mkdir -p ${PREFIX}/etc/logrotate.d \
+	   cat files/logrotate.IN \
 	   | sed s%LOGDIR%$(LOGDIR)%g \
 	   | sed s%USER%$(OCSIGENUSER)%g \
 	   | sed s%GROUP%$(OCSIGENGROUP)%g \
