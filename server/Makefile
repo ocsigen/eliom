@@ -44,24 +44,33 @@ CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB = -thread -package netstring,$(NETSYS)ssl -I ../lib -I +camlp4
+LIB = -thread -package netstring,$(NETSYS)ssl -I ../lib -I +camlp4 -I +camlp4/Camlp4Parsers
 PP = 
 PP2 = 
 # -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
+
 # cma and cmo to be linked in the server:
+
+ifeq ($(OCAMLVERSION),OLD)
+  CMAOCAMLP4= gramlib.cma
+else
+  CMAOCAMLP4= camlp4lib.cma Camlp4OCamlRevisedParser.cmo Camlp4OCamlParser.cmo
+endif
+
 CMAO = nums.cma dynlink.cma unix.cma \
        ssl.cma pcre.cma $(NETSYSCMA) netstring.cma \
        threads.cma \
        ocsimisc.cmo \
-       gramlib.cma xmllexer.cmo simplexmlparser.cmo \
+       $(CMAOCAMLP4) \
+       xmllexer.cmo simplexmlparser.cmo \
        ocsiconfig.cmo messages.cmo \
        lwt.cma preemptive.cmo \
        extensions.cmo parseconfig.cmo \
        ocsistream.cmo multipart.cmo \
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
-       xhtml.cma predefined_senders.cmo\
-       error_pages.cmo
+       xhtml.cma predefined_senders.cmo error_pages.cmo
+
 
 OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 

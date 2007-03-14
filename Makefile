@@ -49,7 +49,7 @@ server:
 
 doc:
 	$(CAMLDOC) $(PP) -package ssl -I lib -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
-	$(CAMLDOC) $(PP) -package netstring -I lib -I `$(CAMLP4) -where` -d doc/oc -html server/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/oldocaml/simplexmlparser.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli
+	$(CAMLDOC) $(PP) -package netstring -I lib -I `$(CAMLP4) -where` -d doc/oc -html server/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli
 
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
@@ -73,7 +73,7 @@ install:
 	-rm META
 
 
-fullinstall: doc install
+fullinstall: install
 	mkdir -p $(PREFIX)/$(CONFIGDIR)
 	mkdir -p $(PREFIX)/$(STATICPAGESDIR)
 	-mv $(PREFIX)/$(CONFIGDIR)/ocsigen.conf $(PREFIX)/$(CONFIGDIR)/ocsigen.conf.old

@@ -1,10 +1,11 @@
 include ../Makefile.config
 
 all:
-	@if (test '$(OCAMLVERSION)' = 'OLD');\
-	then $(MAKE) -C oldocaml all;\
-	else $(MAKE) -C newocaml all;\
-	fi
+ifeq "$(OCAMLVERSION)" "OLD"
+	$(MAKE) -C oldocaml all
+else 
+	$(MAKE) -C newocaml all
+endif
 
 clean:
 	touch oldocaml/.depend
@@ -15,7 +16,8 @@ clean:
 depend:
 	touch oldocaml/.depend
 	touch newocaml/.depend
-	@if (test '$(OCAMLVERSION)' = 'OLD');\
-	then $(MAKE) -C oldocaml depend;\
-	else $(MAKE) -C newocaml depend;\
-	fi
+ifeq "$(OCAMLVERSION)" "OLD"
+	$(MAKE) -C oldocaml depend
+else 
+	$(MAKE) -C newocaml depend
+endif

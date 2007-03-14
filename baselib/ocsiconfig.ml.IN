@@ -131,15 +131,15 @@ let _ = Arg.parse
     "usage: ocsigen [-c configfile]"
 
 let config = 
-  try
+(*  try *)
     Simplexmlparser.xmlparser (get_config_file ())
-  with
+(*  with
     Stdpp.Exc_located (fl,exn) -> 
       Printf.eprintf "%s" 
 	("Syntax error in config file at location : "^(print_location fl));
       raise exn
 
-
+*)
 
 
 
