@@ -306,10 +306,92 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) service =
 (*****************************************************************************)
 (*****************************************************************************)
 
-module type PAGES = 
+(** Satic directories **)
+      let static_dir (ri,curdir,sesstab) : 
+          (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string param_name, unit param_name) service =
+        {url = curdir;
+         unique_id = counter ();
+         url_state = None;
+         url_prefix = true;
+         external_service = false;
+         get_params_type = suffix_only;
+         post_params_type = unit
+       }
+
+(** Close a session *)
+      let close_session (_,_,sesstab) = sesstab := empty_tables ()
+
+
+(** Actions *)
+(** actions (new 10/05) *)
+type ('post,'pn) action =
+    {action_name: string;
+     action_params_type: ('post,[`WithoutSuffix],'pn) params_type}
+      
+let new_action_name () = string_of_int (counter ())
+    
+let new_action
+    ~(post_params : ('post,[`WithoutSuffix],'pn) params_type) =
+  {
+   action_name = new_action_name ();
+   action_params_type = post_params;
+ }
+    
+let register_action_aux
+    current_dir tables ~action actionfun =
+  add_action tables current_dir 
+    action.action_name
+    (fun ((ri,_,_) as h) -> 
+      (force ri.ri_post_params) >>=
+      (fun post_params ->
+        (force ri.ri_files) >>=
+        (fun files ->
+          actionfun h
+            (reconstruct_params 
+               action.action_params_type 
+               post_params
+               files 
+               []))))
+    
+let register_action
+    ~(action : ('post,'pn) action)
+    (actionfun : (server_params -> 'post -> unit Lwt.t)) : unit =
+  if global_register_allowed () then
+    (* if during_initialisation () then *)
+    let (globtables,_),curdir = get_current_hostdir () in
+    register_action_aux curdir globtables action actionfun
+  else raise Ocsigen_service_or_action_created_outside_site_loading
+      
+let register_new_action ~post_params actionfun = 
+  let a = new_action post_params in
+  register_action a actionfun;
+  a
+    
+let register_action_for_session (ri,curdir,sesstab) ~action actionfun =
+  register_action_aux curdir
+    !sesstab action actionfun
+    
+let register_new_action_for_session sp ~post_params actionfun =
+  let a = new_action post_params in
+  register_action_for_session sp a actionfun;
+  a
+
+
+(****************************************************************************)
+(****************************************************************************)
+
+module type REGCREATE = 
   sig
-(** Type of answers from modules (web pages) *)
     type page
+
+    val create_sender : Predefined_senders.create_sender_type
+    val send : content:page -> Predefined_senders.send_page_type
+
+  end
+
+
+module type FORMCREATE = 
+  sig
     type form_content_elt
     type form_content_elt_list
     type form_elt
@@ -326,9 +408,6 @@ module type PAGES =
     type select_elt
     type input_elt
     type pcdata_elt
-
-    val create_sender : Predefined_senders.create_sender_type
-    val send : content:page -> Predefined_senders.send_page_type
 
     type a_attrib_t
     type form_attrib_t
@@ -381,9 +460,9 @@ module type PAGES =
 
   end
 
-module type OCSIGENSIG =
+module type OCSIGENFORMSIG =
   sig
-    type page
+
     type form_content_elt
     type form_content_elt_list
     type form_elt
@@ -409,6 +488,97 @@ module type OCSIGENSIG =
     type link_attrib_t
     type script_attrib_t
     type input_type_t
+
+    val a :
+        ?a:a_attrib_t ->
+          ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
+            server_params -> a_content_elt_list -> 'a -> a_elt
+    val get_form :
+        ?a:form_attrib_t ->
+          ('a, unit, 'b, 'c, 'd, unit param_name) service ->
+            server_params ->
+              ('d -> form_content_elt_list) -> form_elt
+    val post_form :
+        ?a:form_attrib_t ->
+          ('a, 'b, 'c, [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+            server_params ->
+              ('e -> form_content_elt_list) -> 'a -> form_elt
+    val make_uri :
+        ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
+          server_params -> 'a -> uri
+    val action_a :
+        ?a:a_attrib_t ->
+          ?reload:bool ->
+            ('a, 'b) action ->
+              server_params -> a_content_elt_list -> form_elt
+    val action_form :
+        ?a:form_attrib_t ->
+          ?reload:bool ->
+            ('a, 'b) action ->
+              server_params ->
+                ('b -> form_content_elt_list) -> form_elt
+    val js_script :
+        ?a:script_attrib_t -> uri -> script_elt
+    val css_link : ?a:link_attrib_t -> uri -> link_elt
+
+    val int_input :
+        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
+    val float_input :
+        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
+    val string_input :
+        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+    val user_type_input :
+        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
+          'a param_name -> input_elt
+    val int_password_input :
+        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
+    val float_password_input :
+        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
+    val string_password_input :
+        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+    val user_type_password_input :
+        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
+          'a param_name -> input_elt
+    val hidden_int_input :
+        ?a:input_attrib_t -> int param_name -> int -> input_elt
+    val hidden_float_input :
+        ?a:input_attrib_t -> float param_name -> float -> input_elt
+    val hidden_string_input :
+        ?a:input_attrib_t -> string param_name -> string -> input_elt
+    val hidden_user_type_input :
+        ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
+    val bool_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
+    val string_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          string option param_name -> string -> input_elt
+    val int_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+           int option param_name -> int -> input_elt
+    val float_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+           float option param_name -> float -> input_elt
+    val user_type_radio :
+        ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
+           'a option param_name -> 'a -> input_elt
+    val textarea :
+        ?a:textarea_attrib_t ->
+          string param_name ->
+            rows:int -> cols:int -> pcdata_elt -> textarea_elt
+    val select :
+      ?a:select_attrib_t ->
+      ?selected:((string option * string) option)
+      -> (string option * string) -> ((string option * string) list) ->
+      string param_name
+      -> select_elt
+    val submit_input : ?a:input_attrib_t -> string -> input_elt
+    val file_input : ?a:input_attrib_t -> ?value:string -> 
+                            file_info param_name-> input_elt
+  end
+
+module type OCSIGENREGSIG =
+  sig
+    type page
 
     val new_external_service :
         url:url_path ->
@@ -514,148 +684,20 @@ module type OCSIGENSIG =
                   (server_params -> 'a -> 'f -> page Lwt.t) ->
                     ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
                       service
-    type ('a, 'b) action
-    val new_action :
-        post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-          ('a, 'b) action
-    val register_action :
-        action:('a, 'b) action -> (server_params -> 'a -> unit Lwt.t) -> unit
-    val register_new_action :
-        post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-          (server_params -> 'a -> unit Lwt.t) -> ('a, 'b) action
-    val register_action_for_session :
-        server_params ->
-          action:('a, 'b) action ->
-            (server_params -> 'a -> unit Lwt.t) -> unit
-    val register_new_action_for_session :
-        server_params ->
-          post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-            (server_params -> 'a -> unit Lwt.t) ->
-              ('a, 'b) action
-    val static_dir :
-        server_params ->
-          (string, unit, [ `Internal_Service of [ `Public_Service ] ],
-           [ `WithSuffix ], string param_name, unit param_name)
-            service
-    val close_session : server_params -> unit
-    val a :
-        ?a:a_attrib_t ->
-          ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
-            server_params -> a_content_elt_list -> 'a -> a_elt
-    val get_form :
-        ?a:form_attrib_t ->
-          ('a, unit, 'b, 'c, 'd, unit param_name) service ->
-            server_params ->
-              ('d -> form_content_elt_list) -> form_elt
-    val post_form :
-        ?a:form_attrib_t ->
-          ('a, 'b, 'c, [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
-            server_params ->
-              ('e -> form_content_elt_list) -> 'a -> form_elt
-    val make_uri :
-        ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
-          server_params -> 'a -> uri
-    val action_a :
-        ?a:a_attrib_t ->
-          ?reload:bool ->
-            ('a, 'b) action ->
-              server_params -> a_content_elt_list -> form_elt
-    val action_form :
-        ?a:form_attrib_t ->
-          ?reload:bool ->
-            ('a, 'b) action ->
-              server_params ->
-                ('b -> form_content_elt_list) -> form_elt
-    val js_script :
-        ?a:script_attrib_t -> uri -> script_elt
-    val css_link : ?a:link_attrib_t -> uri -> link_elt
 
-    val int_input :
-        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
-    val float_input :
-        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
-    val string_input :
-        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
-    val user_type_input :
-        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-          'a param_name -> input_elt
-    val int_password_input :
-        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
-    val float_password_input :
-        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
-    val string_password_input :
-        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
-    val user_type_password_input :
-        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-          'a param_name -> input_elt
-    val hidden_int_input :
-        ?a:input_attrib_t -> int param_name -> int -> input_elt
-    val hidden_float_input :
-        ?a:input_attrib_t -> float param_name -> float -> input_elt
-    val hidden_string_input :
-        ?a:input_attrib_t -> string param_name -> string -> input_elt
-    val hidden_user_type_input :
-        ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
-    val bool_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
-    val string_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-          string option param_name -> string -> input_elt
-    val int_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           int option param_name -> int -> input_elt
-    val float_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           float option param_name -> float -> input_elt
-    val user_type_radio :
-        ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
-           'a option param_name -> 'a -> input_elt
-    val textarea :
-        ?a:textarea_attrib_t ->
-          string param_name ->
-            rows:int -> cols:int -> pcdata_elt -> textarea_elt
-    val select :
-      ?a:select_attrib_t ->
-      ?selected:((string option * string) option)
-      -> (string option * string) -> ((string option * string) list) ->
-      string param_name
-      -> select_elt
-    val submit_input : ?a:input_attrib_t -> string -> input_elt
-    val file_input : ?a:input_attrib_t -> ?value:string -> 
-                            file_info param_name-> input_elt
   end
 
+module type OCSIGENSIG = sig
+  include OCSIGENREGSIG
+  include OCSIGENFORMSIG
+end
 
-module Make = functor
-  (Pages : PAGES) ->
+
+module MakeRegister = functor
+  (Pages : REGCREATE) ->
     (struct
 
       type page = Pages.page
-      type form_content_elt = Pages.form_content_elt
-      type form_content_elt_list = Pages.form_content_elt_list
-      type form_elt = Pages.form_elt
-      type a_content_elt = Pages.a_content_elt
-      type a_content_elt_list = Pages.a_content_elt_list
-      type a_elt = Pages.a_elt
-      type a_elt_list = Pages.a_elt_list
-      type div_content_elt = Pages.div_content_elt
-      type div_content_elt_list = Pages.div_content_elt_list
-      type uri = Pages.uri
-      type link_elt = Pages.link_elt
-      type script_elt = Pages.script_elt
-      type textarea_elt = Pages.textarea_elt
-      type select_elt = Pages.select_elt
-      type input_elt = Pages.input_elt
-      type pcdata_elt = Pages.pcdata_elt
-            
-      type a_attrib_t = Pages.a_attrib_t
-      type form_attrib_t = Pages.form_attrib_t
-      type input_attrib_t = Pages.input_attrib_t
-      type textarea_attrib_t = Pages.textarea_attrib_t
-      type select_attrib_t = Pages.select_attrib_t
-      type link_attrib_t = Pages.link_attrib_t
-      type script_attrib_t = Pages.script_attrib_t
-      type input_type_t = Pages.input_type_t
 
 (** Create a service *)
       let new_service_aux_aux
@@ -885,75 +927,39 @@ module Make = functor
         u
 
 
-(** actions (new 10/05) *)
-      type ('post,'pn) action =
-          {action_name: string;
-           action_params_type: ('post,[`WithoutSuffix],'pn) params_type}
-
-      let new_action_name () = string_of_int (counter ())
-
-      let new_action
-          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type) =
-        {
-         action_name = new_action_name ();
-         action_params_type = post_params;
-       }
-
-      let register_action_aux
-          current_dir tables ~action actionfun =
-        add_action tables current_dir 
-          action.action_name
-          (fun ((ri,_,_) as h) -> 
-            (force ri.ri_post_params) >>=
-            (fun post_params ->
-              (force ri.ri_files) >>=
-              (fun files ->
-                actionfun h
-                  (reconstruct_params 
-                     action.action_params_type 
-                     post_params
-                     files 
-                     []))))
-
-      let register_action
-          ~(action : ('post,'pn) action)
-          (actionfun : (server_params -> 'post -> unit Lwt.t)) : unit =
-        if global_register_allowed () then
-          (* if during_initialisation () then *)
-          let (globtables,_),curdir = get_current_hostdir () in
-          register_action_aux curdir globtables action actionfun
-        else raise Ocsigen_service_or_action_created_outside_site_loading
-
-      let register_new_action ~post_params actionfun = 
-        let a = new_action post_params in
-        register_action a actionfun;
-        a
-
-      let register_action_for_session (ri,curdir,sesstab) ~action actionfun =
-        register_action_aux curdir
-          !sesstab action actionfun
-
-      let register_new_action_for_session sp ~post_params actionfun =
-        let a = new_action post_params in
-        register_action_for_session sp a actionfun;
-        a
-
-(** Satic directories **)
-      let static_dir (ri,curdir,sesstab) : 
-          (string, unit, [`Internal_Service of [`Public_Service]],[`WithSuffix],string param_name, unit param_name) service =
-        {url = curdir;
-         unique_id = counter ();
-         url_state = None;
-         url_prefix = true;
-         external_service = false;
-         get_params_type = suffix_only;
-         post_params_type = unit
-       }
+  end : OCSIGENREGSIG with 
+     type page = Pages.page)
 
 
-
-(** Close a session *)
-      let close_session (_,_,sesstab) = sesstab := empty_tables ()
+module MakeForms = functor
+  (Pages : FORMCREATE) ->
+    (struct
+      
+      type form_content_elt = Pages.form_content_elt
+      type form_content_elt_list = Pages.form_content_elt_list
+      type form_elt = Pages.form_elt
+      type a_content_elt = Pages.a_content_elt
+      type a_content_elt_list = Pages.a_content_elt_list
+      type a_elt = Pages.a_elt
+      type a_elt_list = Pages.a_elt_list
+      type div_content_elt = Pages.div_content_elt
+      type div_content_elt_list = Pages.div_content_elt_list
+      type uri = Pages.uri
+      type link_elt = Pages.link_elt
+      type script_elt = Pages.script_elt
+      type textarea_elt = Pages.textarea_elt
+      type select_elt = Pages.select_elt
+      type input_elt = Pages.input_elt
+      type pcdata_elt = Pages.pcdata_elt
+            
+      type a_attrib_t = Pages.a_attrib_t
+      type form_attrib_t = Pages.form_attrib_t
+      type input_attrib_t = Pages.input_attrib_t
+      type textarea_attrib_t = Pages.textarea_attrib_t
+      type select_attrib_t = Pages.select_attrib_t
+      type link_attrib_t = Pages.link_attrib_t
+      type script_attrib_t = Pages.script_attrib_t
+      type input_type_t = Pages.input_type_t
 
 
 (** Functions to construct web pages: *)
@@ -1132,10 +1138,10 @@ module Make = functor
           (Pages.make_div ~classe:["inline"]
              (Pages.make_a ?a ~href:href content))
           (Pages.cons_form
-	   (Pages.make_hidden_field
-              (Pages.make_input ~typ:Pages.hidden ~name:action_param_name
-                 ~value:action_param ()))
-           reload_param)
+	     (Pages.make_hidden_field
+                (Pages.make_input ~typ:Pages.hidden ~name:action_param_name
+                   ~value:action_param ()))
+             reload_param)
           
       let action_form ?a
           ?(reload=true) (action : ('a,'pn) action) h 
@@ -1151,7 +1157,7 @@ module Make = functor
           then 
 	    Pages.cons_form
 	      (Pages.make_hidden_field 
-		 (Pages.make_input
+	         (Pages.make_input
 		    ~typ:Pages.hidden ~name:reload_name ~value:reload_name ()))
               inside
           else inside 
@@ -1238,9 +1244,8 @@ module Make = functor
       let file_input ?a ?value (name : file_info param_name)  = 
         Pages.make_input ?a ~typ:Pages.file ?value ~name:name ()
 
-    end : OCSIGENSIG with 
-     type page = Pages.page
-     and type form_content_elt = Pages.form_content_elt
+    end : OCSIGENFORMSIG with 
+     type form_content_elt = Pages.form_content_elt
      and type form_content_elt_list = Pages.form_content_elt_list
      and type form_elt = Pages.form_elt
      and type a_content_elt = Pages.a_content_elt
@@ -1272,11 +1277,21 @@ module Make = functor
 (*****************************************************************************)
 
 
-module Xhtml_ = struct
+module Xhtmlreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
   type page = xhtml elt
+
+  let create_sender = Predefined_senders.create_xhtml_sender
+  let send = Predefined_senders.send_xhtml_page
+
+end
+
+module Xhtmlforms_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
   type form_content_elt = form_content elt
   type form_content_elt_list = form_content elt list
   type uri = XHTML.M.uri
@@ -1319,9 +1334,6 @@ module Xhtml_ = struct
   let file = `File
 
   let make_uri_from_string = XHTML.M.make_uri_from_string
-
-  let create_sender = Predefined_senders.create_xhtml_sender
-  let send = Predefined_senders.send_xhtml_page
 
   let empty_seq = []
   let cons_form a l = a::l
@@ -1401,13 +1413,15 @@ end
 (****************************************************************************)
 (*****************************************************************************)
 
-module Xhtml__ = Make(Xhtml_)
+module Xhtmlforms = MakeForms(Xhtmlforms_)
+module Xhtmlreg = MakeRegister(Xhtmlreg_)
 
 (* As we want -> [> a ] elt and not -> [ a ] elt, we define a new module: *)
 module Xhtml = struct
   open XHTML.M
   open Xhtmltypes
-  include Xhtml__
+  include Xhtmlforms
+  include Xhtmlreg
   let a = (a : ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.M.attrib list) ->
     ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name) 
       service ->
@@ -1669,7 +1683,18 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
-module Text_ = struct
+module Textreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = string
+
+  let create_sender = Predefined_senders.create_xhtml_sender
+  let send = Predefined_senders.send_text_page
+
+end
+
+module Textforms_ = struct
   open XHTML.M
   open Xhtmltypes
 
@@ -1694,9 +1719,6 @@ module Text_ = struct
   type script_elt = string
 
   type pcdata_elt = string
-
-  let create_sender = Predefined_senders.create_xhtml_sender
-  let send = Predefined_senders.send_text_page
 
   type a_attrib_t = string
   type form_attrib_t = string
@@ -1798,6 +1820,12 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
-module Text = Make(Text_)
+module Textforms = MakeForms(Textforms_)
+module Textreg = MakeRegister(Textreg_)
+
+module Text = struct
+  include Textforms
+  include Textreg
+end
 
 

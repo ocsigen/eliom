@@ -2,9 +2,8 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= error_pages.ml preemptive.ml extensions.ml parseconfig.ml server.ml
-
-EXTENSIONS= ocsigenmod.ml ocsigen.ml ocsigenboxes.ml staticmod.ml
+FILES= error_pages.ml preemptive.ml extensions.ml parseconfig.ml server.ml \
+	ocsigenmod.ml ocsigen.ml ocsigenboxes.ml staticmod.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -19,9 +18,15 @@ CAMLCNAME= ocamlc
 endif
 
 ifeq "$(OCAMLDUCE)" "YES"
+DUCEFILES= xhtml1_strict.ml ocsigenduce.ml
+# rss2.ml ocsigenrss.ml
 DUCEMOD=ocsigenduce.cma
-DUCEINSTALL=ocsigenduce.cma ocsigenduce.cmi xhtml1_strict.cmi 
+# ocsigenrss.cma
+DUCEINSTALL=ocsigenduce.cma ocsigenduce.cmi xhtml1_strict.cmi
+# ocsigenrss.cma ocsigenrss.cmi rss2.cmi
+OCAMLFIND=$(OCAMLDUCEFIND)
 else
+DUCEFILES=
 DUCEMOD=
 DUCEINSTALL=
 endif
@@ -41,8 +46,10 @@ CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
 LIB = -thread -package netstring,$(NETSYS)ssl -I ../lib -I +camlp4
 PP = 
-PP2 = -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
+PP2 = 
+# -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
 
+# cma and cmo to be linked in the server:
 CMAO = nums.cma dynlink.cma unix.cma \
        ssl.cma pcre.cma $(NETSYSCMA) netstring.cma \
        threads.cma \
@@ -56,7 +63,7 @@ CMAO = nums.cma dynlink.cma unix.cma \
        xhtml.cma predefined_senders.cmo\
        error_pages.cmo
 
-OBJS = $(FILES:.ml=.cmo)
+OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 
 all: $(OBJS) $(NAME) ocsigenmod.cma staticmod.cmo $(DUCEMOD)
 #	cp *.cmo *.cmi ../lib
@@ -77,19 +84,13 @@ ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
 	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \
 	ocsigenboxes.cmo
 
-ocsigenboxes.cmo:
-	$(OCAMLFIND) ocamlc $(DBG) $(LIB) $(PP2) -c ocsigenboxes.ml
-
 ocsigenduce.cma: xhtml1_strict.cmo ocsigenduce.cmo
 	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -a -o ocsigenduce.cma xhtml1_strict.cmo ocsigenduce.cmo 
 xhtml1_strict.cmo:
 	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c xhtml1_strict.ml
 
-#xhtml1_strict.cmi:
-#	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c xhtml1_strict.mli
-
-ocsigenduce.cmo:
-	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c ocsigenduce.ml
+ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
+	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -a -o ocsigenrss.cma $<
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
@@ -117,7 +118,8 @@ uninstall:
 	rm -f $(PREFIX)/$(BINDIR)/$(NAME)
 
 depend:
-	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(EXTENSIONS:.ml=.mli) $(EXTENSIONS) > .depend
+	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
+
 
 FORCE:
 

@@ -85,9 +85,17 @@ let send_ocamlduce_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path
 
 
 
-module Xhtml_ = struct
+module Xhtmlreg_ = struct
 
   type page = html
+
+  let create_sender = Predefined_senders.create_xhtml_sender
+  let send = send_ocamlduce_page
+
+end
+
+module Xhtmlforms_ = struct
+
   type form_content_elt = form_content
   type form_content_elt_list = {{ [ form_content* ] }}
   type uri = string
@@ -137,9 +145,6 @@ module Xhtml_ = struct
   let file = {{ "file" }}
 
   let make_uri_from_string x = x 
-
-  let create_sender = Predefined_senders.create_xhtml_sender
-  let send = send_ocamlduce_page
 
   let empty_seq = {{ [] }}
   let cons_form a l = {{ [ a !l ] }}
@@ -228,4 +233,9 @@ module Xhtml_ = struct
 
 end
 
-module Xhtml = Ocsigen.Make(Xhtml_)
+module Xhtmlreg = Ocsigen.MakeRegister(Xhtmlreg_)
+module Xhtmlforms = Ocsigen.MakeForms(Xhtmlforms_)
+module Xhtml = struct
+  include Xhtmlreg
+  include Xhtmlforms
+end

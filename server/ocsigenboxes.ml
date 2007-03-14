@@ -20,7 +20,7 @@
 open XHTML.M
 open Ocsigen.Xhtml
 
-let menu ?(classe=[]) l current server_params =
+let menu ?(classe=[])  first l current server_params =
   let rec aux = function
       [] -> []
     | [(url,text)] -> 
@@ -32,8 +32,8 @@ let menu ?(classe=[]) l current server_params =
         (if url == current 
         then  (li ~a:[a_class ["current"]] text)
         else (li [a url server_params text ()]))::(aux l)
-  in match l with
-    [] -> << <!-- empty menu --> >>
+  in match first::l with
+    [] -> assert false
   | [(url,text)] ->
       ul ~a:[a_class ("menu"::classe)] 
         (let liclasse = ["first";"last"] in
