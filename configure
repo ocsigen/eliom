@@ -46,6 +46,7 @@ set_defaults () {
     enable_nativecode=0
     enable_debug=0
     enable_ocamlduce=0
+    enable_newocamlnet=1
     bindir="/usr/local/bin"
     libdir="/usr/local/lib"
     mandir="/usr/local/share/man/man1/"
@@ -68,9 +69,10 @@ ehelp_debug="Enable/disable debug output"
 ehelp_bytecode="Enable/disable bytecode version of Ocsigen"
 ehelp_nativecode="Enable/disable nativecode version of Ocsigen"
 ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce to be installed)"
+ehelp_newocamlnet="Use old versions of Ocamlnet (< 2.0)"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
-eoptions="debug bytecode nativecode ocamlduce"
+eoptions="debug bytecode nativecode ocamlduce newocamlnet"
 woptions=""
 
 
@@ -361,6 +363,11 @@ if [ $enable_ocamlduce -gt 0 ] ; then
 else
 	enable_ocamlduce="NO"
 fi
+if [ $enable_newocamlnet -gt 0 ] ; then
+	enable_newocamlnet="YES"
+else
+	enable_newocamlnet="NO"
+fi
 
 
 
@@ -441,7 +448,7 @@ DEBUG=$enable_debug
 
 
 # If you are using ocamlnet 1, write NO here
-NEWOCAMLNET=YES
+NEWOCAMLNET=$enable_newocamlnet
 
 # Profiling (always put NO here - but if you want to debug ocsigen):
 PROFILING=NO
