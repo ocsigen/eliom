@@ -9,30 +9,39 @@ DBG =
 endif
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCEMOD=exampleduce.cmo
-DUCEINSTALL=ocamlduce/exampleduce.cmo
+DUCEMODBYTE=exampleduce.cmo
+DUCEINSTALLBYTE=ocamlduce/exampleduce.cmo
+DUCEMODOPT=exampleduce.cmxs
+DUCEINSTALLOPT=ocamlduce/exampleduce.cmxs
 else
-DUCEMOD=
-DUCEINSTALL=
+DUCEMODBYTE=
+DUCEINSTALLBYTE=
+DUCEMODOPT=
+DUCEINSTALLOPT=
 endif
 
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
-CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB = -I ../lib
-PP = -pp "camlp4o ../lib/xhtmlsyntax.cma -loc loc"
+LIB = $(LIBDIRS)
+PP = -pp "camlp4o ../xmlp4/xhtmlsyntax.cma -loc loc"
 
 OBJS = $(FILES:.ml=.cmo)
+OBJSOPT = $(FILES:.ml=.cmxs)
 
-all: $(OBJS) $(DUCEMOD)
-	cp *.cmo *.cmi $(DUCEINSTALL) ../lib
+byte: $(OBJS) $(DUCEMODBYTE)
+
+opt: $(OBJSOPT) $(DUCEMODOPT)
 
 exampleduce.cmo:
 	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
 
+exampleduce.cmx:
+	$(OCAMLDUCEFIND) ocamlopt $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
+
 .SUFFIXES:
-.SUFFIXES: .ml .mli .cmo .cmi .cmx
+.SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
 
 .PHONY: depend
 
@@ -42,9 +51,11 @@ exampleduce.cmo:
 	$(CAMLC) -c $<
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
+.cmx.cmxs:
+	$(CAMLOPT) -shared -linkall -o $@ $<
 
 clean:
-	-rm -f *.cm[ioax] *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*~ ocamlduce/*.annot
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot
 
 depend:
 	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend

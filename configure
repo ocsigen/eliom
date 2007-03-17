@@ -47,12 +47,13 @@ set_defaults () {
     enable_debug=0
     enable_ocamlduce=0
     enable_newocamlnet=1
-    bindir="/usr/local/bin"
-    libdir="/usr/local/lib"
-    mandir="/usr/local/share/man/man1/"
-    docdir="/usr/share/doc"
+    prefix="/usr/local"
+    bindir=""
+    libdir=""
+    mandir=""
+    docdir=""
     name="ocsigen"
-    prefix="/"
+    root="/"
     ocsigen_user="www-data"
     ocsigen_group="www-data"
 }
@@ -69,7 +70,7 @@ ehelp_debug="Enable/disable debug output"
 ehelp_bytecode="Enable/disable bytecode version of Ocsigen"
 ehelp_nativecode="Enable/disable nativecode version of Ocsigen"
 ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce to be installed)"
-ehelp_newocamlnet="Use old versions of Ocamlnet (< 2.0)"
+ehelp_newocamlnet="Use new/old versions of Ocamlnet (>= 2.0)"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
 eoptions="debug bytecode nativecode ocamlduce newocamlnet"
@@ -125,13 +126,33 @@ print_options () {
 			echo "    --without-$uopt"
 		fi
 	done
+        case "$bindir" in
+            "") bindir2="<prefix>/bin";;
+            *) bindir2=$bindir;;
+        esac
+        
+        case "$libdir" in
+            "") libdir2="<prefix>/lib";;
+            *) libdir2=$libdir;;
+        esac
+        
+        case "$mandir" in
+            "") mandir2="<prefix>/share/man/man1";;
+            *) mandir2=$mandir;;
+        esac
+        
+        case "$docdir" in
+            "") docdir2="<prefix>/share/doc";;
+            *) docdir2=$docdir;;
+        esac
+	echo "    --root $root"
 	echo "    --prefix $prefix"
 	echo "    --ocsigen-user $ocsigen_user"
 	echo "    --ocsigen-group $ocsigen_group"
-	echo "    --bindir $bindir"
-	echo "    --libdir $libdir"
-	echo "    --mandir $mandir"
-	echo "    --docdir $docdir"
+	echo "    --bindir $bindir2"
+	echo "    --libdir $libdir2"
+	echo "    --mandir $mandir2"
+	echo "    --docdir $docdir2"
 	echo "    --name $name"
 }
 
@@ -159,8 +180,11 @@ _EOF_
 		echo "        $help" >&2
 	done
 	cat <<_EOF_ >&2
+--root dir
+	Root directory to install the package (usually always / but for package makers)
+
 --prefix dir
-	Root directory to install the package
+	Subdirectory where to install binaries and libs (usually /usr or /usr/local)
 
 --bindir dir
         Install binaries into this directory
@@ -241,6 +265,11 @@ while [ "$#" -gt 0 ]; do
 			eval "with_$opt=-1"
 			shift
 			;;
+		--root)
+			root="$2"
+			shift
+			shift
+			;;
 		--prefix)
 			prefix="$2"
 			shift
@@ -290,6 +319,21 @@ while [ "$#" -gt 0 ]; do
 	esac
 done
 
+case "$bindir" in
+  "") bindir="$prefix/bin";;
+esac
+
+case "$libdir" in
+  "") libdir="$prefix/lib";;
+esac
+
+case "$mandir" in
+  "") mandir="$prefix/share/man/man1";;
+esac
+
+case "$docdir" in
+  "") docdir="$prefix/share/doc";;
+esac
 
 
 ######################################################################
@@ -354,7 +398,7 @@ else
 fi
 if [ $enable_nativecode -gt 0 ] ; then
 	enable_nativecode="YES"
-        echo "Native code is not supported for now"
+        echo "WARNING: Native code version is experimental and requires a modified ocaml compiler for now (does not work with ocaml 3.10)"
 else
 	enable_nativecode="NO"
 fi
@@ -387,8 +431,8 @@ CAMLOPTNAME=ocamlopt
 # CAMLCNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
 CHOWN=chown
 
-# The root directory for the package install
-PREFIX = $prefix
+# The root directory for the package install (usually always /, but for distrib package makers)
+PREFIX = $root
 
 # Do you want the bytecode version ? YES/NO
 BYTECODE=$enable_bytecode
@@ -455,6 +499,10 @@ PROFILING=NO
 
 # Ocaml version
 OCAMLVERSION=$ocamlversion
+
+# Do not modify this
+LIBDIRS= -I ../lwt -I ../baselib -I ../http -I ../xmlp4 -I ../server
+LIBDIRS2= -I ../../lwt -I ../../baselib -I ../../http -I ../../xmlp4 -I ../../server
 
 _EOF_
 

@@ -9,17 +9,21 @@ endif
 FILES= ocsimisc.ml messages.ml ocsiconfig.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
-CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB = -package netstring -I +camlp4 -I ../lib
+LIB = -package netstring -I +camlp4 $(LIBDIRS)
 PP =
 
 OBJS = $(FILES:.ml=.cmo)
+OBJSOPT = $(FILES:.ml=.cmx)
 CMI = $(FILES:.ml=.cmi)
 
-all: $(OBJS)
-	cp $(OBJS) $(CMI) ../lib
+byte: $(OBJS)
+#	cp -f $(OBJS) $(CMI) ../lib
+
+opt: $(OBJSOPT)
+#	cp -f $(OBJSOPT) $(OBJSOPT:.cmx=.o) $(CMI) ../lib
 
 
 .SUFFIXES:
@@ -44,6 +48,7 @@ ocsiconfig.ml: ocsiconfig.ml.IN
 	| sed s%_UP_%$(UPLOADDIR)%g \
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
+	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
 	| sed s°_CONFIGDIR_°$(CONFIGDIR)° \
 	> ocsiconfig.ml
 
@@ -51,7 +56,7 @@ doc:
 	$(CAMLDOC) -d doc -html ocsicache.mli
 
 clean:
-	-rm -f *.cm[iox] *~ *.annot ocsiconfig.ml
+	-rm -f *.cm[ioax] *.cmxa *~ *.annot ocsiconfig.ml
 
 depend: ocsiconfig.ml
 	$(CAMLDEP) $(PP) $(FILES:.ml=.mli) $(FILES) > .depend

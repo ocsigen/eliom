@@ -23,7 +23,7 @@ open Ocsimisc
 exception Config_file_error of string
 
 (* General config *)
-let config_file = ref "_CONFIGDIR_/ocsigen.conf"
+let config_file = ref "_CONFIGDIR_/_OCSIGENNAME_.conf"
 let verbose = ref false
 let silent = ref false
 let daemon = ref false
@@ -112,9 +112,9 @@ let print_location loc =
 
 let _ = Arg.parse
     [("-c", Arg.String set_configfile, 
-      "Alternate config file (default _CONFIGDIR_/ocsigen.conf)");
+      "Alternate config file (default _CONFIGDIR_/_OCSIGENNAME_.conf)");
      ("--config", Arg.String set_configfile, 
-      "Alternate config file (default _CONFIGDIR_/ocsigen.conf)");
+      "Alternate config file (default _CONFIGDIR_/_OCSIGENNAME_.conf)");
      ("-s", Arg.Unit set_silent, "Silent mode (error messages in errors.log only)");
      ("--silent", Arg.Unit set_silent, "Silent mode (error messages in errors.log only)");
      ("-p", Arg.String set_pidfile, "Specify a file where to write the PIDs of servers");
@@ -128,7 +128,7 @@ let _ = Arg.parse
      ("--version", Arg.Unit display_version, "Display version number and exit")
    ]
     (fun _ -> ())
-    "usage: ocsigen [-c configfile]"
+    "usage: _OCSIGENNAME_ [-c configfile]"
 
 let config = 
 (*  try *)

@@ -9,7 +9,7 @@ endif
 NAME = lwt
 
 OCAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG)
-OCAMLOPT = $(OCAMLFIND) ocamlopt $(DBG)
+OCAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG)
 OCAMLDEP = $(OCAMLFIND) ocamldep
 
 OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_unix.cmo
@@ -18,41 +18,41 @@ XOBJECTS = $(OBJECTS:cmo=cmx)
 ARCHIVE  = $(NAME).cma
 XARCHIVE = $(NAME).cmxa
 
-SRCLIBREP = ../lib
-
 REQUIRES = ssl
 PREDICATES =
 
+SRCLIBREP=$(LIBDIRS)
 
-all: $(ARCHIVE) 
-	-cp $(NAME).cma *.cmi $(SRCLIBREP)
+byte: $(ARCHIVE) 
+#	-cp -f $(NAME).cma *.cmi $(SRCLIBREP)
 opt: $(XARCHIVE)
+#	-cp -f $(NAME).cmxa $(NAME).a *.cmi $(SRCLIBREP)
 
 .PHONY: depend
 
 $(ARCHIVE): $(OBJECTS)
 	$(OCAMLC) -a -o $(ARCHIVE) -package "$(REQUIRES)" \
-	          -predicates "$(PREDICATES)" -I $(SRCLIBREP) $(OBJECTS)
+	          -predicates "$(PREDICATES)" $(SRCLIBREP) $(OBJECTS)
 # -linkpkg
 $(XARCHIVE): $(XOBJECTS)
 	$(OCAMLOPT) -a -o $(XARCHIVE) -package "$(REQUIRES)" \
-	          -predicates "$(PREDICATES)" -I $(SRCLIBREP) $(XOBJECTS)
+	          -predicates "$(PREDICATES)" $(SRCLIBREP) $(XOBJECTS)
 # -linkpkg
 
 .SUFFIXES: .cmo .cmi .cmx .ml .mli
 
 .ml.cmo:
 	$(OCAMLC) -thread -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
-	           -I $(SRCLIBREP) -c $<
+	           $(SRCLIBREP) -c $<
 .mli.cmi:
 	$(OCAMLC) -thread -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
-	           -I $(SRCLIBREP) -c $<
+	           $(SRCLIBREP) -c $<
 .ml.cmx:
 	$(OCAMLOPT) -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
-	            -I $(SRCLIBREP) -c $<
+	            $(SRCLIBREP) -c $<
 
 depend: *.ml *.mli
-	$(OCAMLDEP)  -I $(SRCLIBREP) *.ml *.mli > depend
+	$(OCAMLDEP)  $(SRCLIBREP) *.ml *.mli > depend
 include depend
 
 install: all

@@ -1,51 +1,106 @@
 include Makefile.config
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCEFILES=server/ocsigenduce.cmi server/ocsigenduce.cma \
-	server/xhtml1_strict.cmi
+DUCECMAO=server/ocsigenduce.cma
+# server/ocsigenrss.cma
+DUCECMI=server/ocsigenduce.cmi server/xhtml1_strict.cmi
+# server/rss2.cmi server/ocsigenrss.cmi
 DUCEEXAMPLES=modules/ocamlduce/exampleduce.cmo
+# modules/ocamlduce/examplerss.cmo
 else
-DUCEFILES=
+DUCECMAO=
+DUCECMI=
 DUCEEXAMPLES=
 endif
 
 
 
 INSTALL = install
-REPS = baselib lwt xmlp4 http server modules
+TARGETSBYTE = baselib.byte lwt.byte xmlp4.byte http.byte server.byte modules.byte
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
-TOINSTALL = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo server/parseconfig.cmi server/ocsigen.cmi server/ocsigenmod.cma server/staticmod.cmi server/staticmod.cmo server/ocsigenboxes.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/ohl-xhtml/xhtml.cma xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi xmlp4/xhtmlsyntax.cma META lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi baselib/messages.cmi $(DUCEFILES)
-EXAMPLES = modules/tutorial.cmo modules/tutorial.cmi modules/monitoring.cmo $(DUCEEXAMPLES)
-PP = -pp "camlp4o ./lib/xhtmlsyntax.cma -loc loc"
+PLUGINSCMAOTOINSTALL = server/ocsigenmod.cma server/staticmod.cmo $(DUCECMAO)
+PLUGINSCMITOINSTALL = server/ocsigen.cmi server/staticmod.cmi server/ocsigenboxes.cmi $(DUCECMI)
+CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
+CMITOINSTALL = server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi baselib/messages.cmi META
+EXAMPLESCMO = modules/tutorial.cmo modules/monitoring.cmo $(DUCEEXAMPLES)
+EXAMPLESCMI = modules/tutorial.cmi
+PP = -pp "camlp4o ./xmlp4/xhtmlsyntax.cma -loc loc"
 
-all: $(REPS)
+ifeq "$(BYTECODE)" "YES"
+TOINSTALLBYTE=$(CMAOTOINSTALL) $(PLUGINSCMAOTOINSTALL)
+EXAMPLESBYTE=$(EXAMPLESCMO)
+BYTE=byte
+else
+TOINSTALLBYTE=
+EXAMPLESBYTE=
+BYTE=
+endif
+
+ifeq "$(NATIVECODE)" "YES"
+TOINSTALLXTEMP1=$(PLUGINSCMAOTOINSTALL:.cmo=.cmxs)
+TOINSTALLXTEMP=$(CMAOTOINSTALL:.cmo=.cmx)
+TOINSTALLX=$(TOINSTALLXTEMP:.cma=.cmxa) $(TOINSTALLXTEMP1:.cma=.cmxs)
+EXAMPLESOPT=$(EXAMPLESCMO:.cmo=.cmxs)
+OPT=opt
+else
+TOINSTALLX=
+EXAMPLESOPT=
+OPT=
+endif
+
+TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL)
+EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
+
+REPS=$(TARGETSBYTE:.byte=)
+
+all: $(BYTE) $(OPT)
+
+byte: $(TARGETSBYTE)
+
+opt: $(TARGETSBYTE:.byte=.opt)
 
 .PHONY: $(REPS) clean
 
 
-baselib:
-#	$(MAKE) -C baselib depend
-	$(MAKE) -C baselib all
+baselib.byte:
+	$(MAKE) -C baselib byte
 
-lwt:
-#	$(MAKE) -C lwt depend
-	$(MAKE) -C lwt all
+baselib.opt:
+	$(MAKE) -C baselib opt
 
-xmlp4:
+lwt.byte:
+	$(MAKE) -C lwt byte
+
+lwt.opt:
+	$(MAKE) -C lwt opt
+
+xmlp4.byte:
 	touch xmlp4/.depend
 	$(MAKE) -C xmlp4 depend
-	$(MAKE) -C xmlp4 all
+	$(MAKE) -C xmlp4 byte
 
-http :
-#	$(MAKE) -C http depend
-	$(MAKE) -C http all
+xmlp4.opt:
+	touch xmlp4/.depend
+	$(MAKE) -C xmlp4 depend
+	$(MAKE) -C xmlp4 opt
 
-modules:
-	$(MAKE) -C modules all
+http.byte:
+	$(MAKE) -C http byte
 
-server:
-#	$(MAKE) -C server depend
-	$(MAKE) -C server all
+http.opt:
+	$(MAKE) -C http opt
+
+modules.byte:
+	$(MAKE) -C modules byte
+
+modules.opt:
+	$(MAKE) -C modules opt
+
+server.byte:
+	$(MAKE) -C server byte
+
+server.opt:
+	$(MAKE) -C server opt
 
 doc:
 	$(CAMLDOC) $(PP) -package ssl -I lib -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
@@ -57,7 +112,7 @@ clean:
 	-rm -f lib/* *~
 	-rm -f bin/* *~
 
-depend: xmlp4
+depend: xmlp4.byte
 	touch lwt/depend
 	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 
@@ -76,15 +131,20 @@ install:
 fullinstall: install
 	mkdir -p $(PREFIX)/$(CONFIGDIR)
 	mkdir -p $(PREFIX)/$(STATICPAGESDIR)
-	-mv $(PREFIX)/$(CONFIGDIR)/ocsigen.conf $(PREFIX)/$(CONFIGDIR)/ocsigen.conf.old
+	-mv $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
 	cat files/ocsigen.conf \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
 	| sed s%_UP_%$(UPLOADDIR)%g \
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
+	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
-	> $(PREFIX)/$(CONFIGDIR)/ocsigen.conf
+	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf
+	cat $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf \
+	| sed s%[.]cmo%.cmxs%g \
+	| sed s%[.]cma%.cmxs%g \
+	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt
 	-mv $(PREFIX)/$(CONFIGDIR)/mime.types $(PREFIX)/$(CONFIGDIR)/mime.types.old
 	cp -f files/mime.types $(PREFIX)/$(CONFIGDIR)
 	mkdir -p $(PREFIX)/$(LOGDIR)
@@ -92,7 +152,7 @@ fullinstall: install
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
 	chmod u+rwx $(PREFIX)/$(LOGDIR)
 	chmod a+rx $(PREFIX)/$(CONFIGDIR)
-	chmod a+r $(PREFIX)/$(CONFIGDIR)/ocsigen.conf
+	chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf
 	chmod a+r $(PREFIX)/$(CONFIGDIR)/mime.types
 	mkdir -p $(PREFIX)/$(DOCDIR)
 	install -d -m 755 $(PREFIX)/$(DOCDIR)/lwt
@@ -103,7 +163,7 @@ fullinstall: install
 	chmod a+rx $(PREFIX)/$(DOCDIR)
 	chmod a+r $(PREFIX)/$(DOCDIR)/*
 	[ -d /etc/logrotate.d ] && \
-	 { mkdir -p ${PREFIX}/etc/logrotate.d \
+	 { mkdir -p ${PREFIX}/etc/logrotate.d ; \
 	   cat files/logrotate.IN \
 	   | sed s%LOGDIR%$(LOGDIR)%g \
 	   | sed s%USER%$(OCSIGENUSER)%g \
@@ -120,7 +180,7 @@ uninstall:
 
 fulluninstall: uninstall
 # dangerous
-#	rm -f $(CONFIGDIR)/ocsigen.conf
-#	rm -f $(LOGDIR)/ocsigen.log
+#	rm -f $(CONFIGDIR)/$(OCSIGENNAME).conf
+#	rm -f $(LOGDIR)/$(OCSIGENNAME).log
 #	rm -rf $(MODULEINSTALLDIR)
 

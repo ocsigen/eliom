@@ -10,32 +10,39 @@ FILESR = xmllexer.ml
 FILES = xhtmltypes.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml simplexmlparser.ml xhtmlparser.ml xhtmlpp.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
-CAMLOPT = $(OCAMLFIND) ocamlopt $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB = -I `$(CAMLP4) -where` -I ../../lib
+LIB = -I `$(CAMLP4) -where` $(LIBDIRS2)
 PP = -pp "camlp4o pa_extend.cmo q_MLast.cmo -- -loc loc"
 PPLEXER = -pp "camlp4r -- -loc loc"
 
 SRCLIBREP = ../../lib
 
 OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
+OBJSOPT = $(FILESR:.ml=.cmx) $(FILES:.ml=.cmx)
 
 CMA = xhtmlsyntax.cma
+CMXA = xhtmlsyntax.cmxa
 
-all: ohl-xhtml $(CMA) $(OBJS) essai
-	ln -sf oldocaml/xhtmlsyntax.cma ..
-	ln -sf oldocaml/xhtmltypes.cma ..
-	ln -sf oldocaml/xhtmltypes.cmi ..
-	ln -sf oldocaml/simplexmlparser.cmi ..
-	cp xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlsyntax.cma $(SRCLIBREP)
+byte: ohl-xhtml-byte $(CMA) $(OBJS) essai
+	ln -sf oldocaml/xhtmltypes.cmi oldocaml/xhtmltypes.cmo oldocaml/xmlparser.cmi oldocaml/simplexmlparser.cmi oldocaml/simplexmlparser.cmo oldocaml/xmlparser.cmo oldocaml/xmlsyntax.cmo oldocaml/xmllexer.cmo oldocaml/xhtmlpp.cmo oldocaml/xhtmlpp.cmi oldocaml/xhtmlsyntax.cma ..
+
+opt: ohl-xhtml-opt $(CMXA) $(OBJSOPT)
+	ln -sf oldocaml/xhtmltypes.cmi oldocaml/xhtmltypes.cmx oldocaml/xhtmltypes.o oldocaml/xmlparser.cmi oldocaml/simplexmlparser.cmi oldocaml/simplexmlparser.cmx oldocaml/simplexmlparser.o oldocaml/xmlparser.cmx oldocaml/xmlparser.o oldocaml/xmlsyntax.cmx oldocaml/xmlsyntax.o oldocaml/xmllexer.cmx oldocaml/xmllexer.o oldocaml/xhtmlpp.cmx oldocaml/xhtmlpp.o oldocaml/xhtmlpp.cmi oldocaml/xhtmlsyntax.cmxa oldocaml/xhtmlsyntax.a ..
 
 
 .PHONY: depend
 .PHONY: ohl-xhtml
 
-ohl-xhtml:
-	$(MAKE) -C ../ohl-xhtml all
-	cp ../ohl-xhtml/xhtml.cma ../ohl-xhtml/xHTML.cmi ../ohl-xhtml/xML.cmi $(SRCLIBREP)
+ohl-xhtml-byte:
+	-rm -f ../xhtmltypes.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
+	$(MAKE) -C ../ohl-xhtml byte
+	cp ../ohl-xhtml/xhtml.cma ../ohl-xhtml/xHTML.cmi ../ohl-xhtml/xML.cmi ..
+
+ohl-xhtml-opt:
+	-rm -f ../xhtmltypes.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
+	$(MAKE) -C ../ohl-xhtml opt
+	cp ../ohl-xhtml/xhtml.cmxa ../ohl-xhtml/xhtml.a ../ohl-xhtml/xHTML.cmi ../ohl-xhtml/xML.cmi ..
 
 essai: $(OBJS)
 	$(MAKE) -C exemple
@@ -43,8 +50,14 @@ essai: $(OBJS)
 $(CMA): xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
 	$(CAMLC) -a -o $(CMA) xmllexer.cmo xhtmlparser.cmo xhtmlsyntax.cmo
 
+$(CMXA): xmllexer.cmx xhtmlparser.cmx xhtmlsyntax.cmx
+	$(CAMLOPT) -a -o $(CMXA) xmllexer.cmx xhtmlparser.cmx xhtmlsyntax.cmx
+
 xmllexer.cmo: xmllexer.ml
 	$(CAMLC) $(PPLEXER) -c $<
+
+xmllexer.cmx: xmllexer.ml
+	$(CAMLOPT) $(PPLEXER) -c $<
 
 
 # Common rules
@@ -66,7 +79,7 @@ doc:
 
 # Clean up
 clean:
-	-rm -f *.cm[ioax] *~ *.annot
+	-rm -f *.cm[ioax] *.cmxa *~ *.annot
 	$(MAKE) -C exemple clean
 	$(MAKE) -C ../ohl-xhtml clean
 

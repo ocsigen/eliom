@@ -15,31 +15,33 @@ endif
 CAMLC    = $(OCAMLFIND) $(CAMLCNAME) $(DBG)
 CAMLDOC  = $(OCAMLFIND) ocamldoc
 FLAGS    = -g
-CAMLCOPT = $(OCAMLFIND) ocamlopt $(DBG)
+CAMLCOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG)
 CAMLDEP  = $(OCAMLFIND) ocamldep
 NAME 	 = test_pp
-LIBDIR 	= ../lib
-LIB= -package netstring,ssl -I $(LIBDIR) -I +camlp4
+LIB= -package netstring,ssl $(LIBDIRS) -I +camlp4
 PP =
 # -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
 ALL_CMO  = ocsistream.cmo multipart.cmo \
            http_frame.cmo http_parser.cmo http_lexer.cmo \
 	   framepp.cmo http_com.cmo predefined_senders.cmo #test_pp.cmo
 
-all:  ocsistream.cmi byte
-	cp *.cmi *.cmo  ../lib
+ALL_CMX  = $(ALL_CMO:.cmo=.cmx)
 
 .PHONY: depend
 
-byte: $(ALL_CMO)
+byte: ocsistream.cmi $(ALL_CMO)
 #	$(CAMLC) $(LIB) -o $(NAME) unix.cma lwt.cma netstring.cma xhtml.cma $(ALL_CMO)
+#	cp *.cmi *.cmo  ../lib
+
+opt: ocsistream.cmi $(ALL_CMX)
+#	cp *.cmi *.cmx *.o ../lib
 
 
 doc: 
 	$(CAMLDOC) $(PP) $(LIB) -html -d documentation *.ml *.mli
 
 clean:
-	-rm $(NAME) $(OPTNAME) *.cm[oix] *.o *.annot \
+	-rm $(NAME) $(OPTNAME) *.cm[oiax] *.cmxa *.o *.annot \
 	http_parser.ml http_parser.mli http_lexer.ml documentation/*	
 
 viclean: clean
@@ -49,8 +51,10 @@ depend:
 	$(CAMLDEP) $(PP) *.ml *.mli > .depend
 
 http_parser.cmo:http_parser.ml http_parser.mli http_parser.cmi
+http_parser.cmx:http_parser.ml http_parser.mli http_parser.cmi
 
 http_lexer.cmo:http_lexer.ml http_lexer.cmi
+http_lexer.cmx:http_lexer.ml http_lexer.cmi
 
 http_lexer.ml: http_lexer.mll
 

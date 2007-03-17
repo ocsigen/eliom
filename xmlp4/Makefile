@@ -1,15 +1,23 @@
 include ../Makefile.config
 
-all:
+byte:
 ifeq "$(OCAMLVERSION)" "OLD"
-	$(MAKE) -C oldocaml all
+	$(MAKE) -C oldocaml byte
 else 
-	$(MAKE) -C newocaml all
+	$(MAKE) -C newocaml byte
+endif
+
+opt:
+ifeq "$(OCAMLVERSION)" "OLD"
+	$(MAKE) -C oldocaml opt
+else 
+	$(MAKE) -C newocaml opt
 endif
 
 clean:
 	touch oldocaml/.depend
 	touch newocaml/.depend
+	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *~ *.annot
 	-$(MAKE) -C oldocaml clean
 	-$(MAKE) -C newocaml clean
 
