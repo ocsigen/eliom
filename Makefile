@@ -140,6 +140,7 @@ fullinstall: install
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
 	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
+	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
 	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf
 	cat $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf \
 	| sed s%[.]cmo%.cmxs%g \

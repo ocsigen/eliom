@@ -510,6 +510,13 @@ _EOF_
 # Finish
 
 echo
+
+case "$ocamlversion" in
+    "OLD") echo "Compiling for OCaml < 3.10";;
+    "NEW") echo "Compiling for OCaml >= 3.10";;
+esac
+
+echo
 echo "Please check Makefile.config."
 echo
 echo "You can now compile Ocsigen by invoking"
