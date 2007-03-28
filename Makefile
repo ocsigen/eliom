@@ -1,12 +1,12 @@
 include Makefile.config
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCECMAO=server/ocsigenduce.cma
-# server/ocsigenrss.cma
-DUCECMI=server/ocsigenduce.cmi server/xhtml1_strict.cmi
-# server/rss2.cmi server/ocsigenrss.cmi
-DUCEEXAMPLES=modules/ocamlduce/exampleduce.cmo
-# modules/ocamlduce/examplerss.cmo
+DUCECMAO=modules/ocsigenduce.cma
+# modules/ocsigenrss.cma
+DUCECMI=modules/ocsigenduce.cmi modules/xhtml1_strict.cmi
+# modules/rss2.cmi modules/ocsigenrss.cmi
+DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
+# examples/ocamlduce/examplerss.cmo
 else
 DUCECMAO=
 DUCECMI=
@@ -16,14 +16,14 @@ endif
 
 
 INSTALL = install
-TARGETSBYTE = baselib.byte lwt.byte xmlp4.byte http.byte server.byte modules.byte
+TARGETSBYTE = baselib.byte lwt.byte xmlp4.byte http.byte server.byte modules.byte examples.byte
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
-PLUGINSCMAOTOINSTALL = server/ocsigenmod.cma server/staticmod.cmo $(DUCECMAO)
-PLUGINSCMITOINSTALL = server/ocsigen.cmi server/staticmod.cmi server/ocsigenboxes.cmi $(DUCECMI)
+PLUGINSCMAOTOINSTALL = modules/eliommod.cma modules/ocsigenmod.cma modules/staticmod.cmo $(DUCECMAO)
+PLUGINSCMITOINSTALL = modules/eliom.cmi modules/ocsigen.cmi modules/staticmod.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi $(DUCECMI)
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi baselib/messages.cmi META
-EXAMPLESCMO = modules/tutorial.cmo modules/monitoring.cmo $(DUCEEXAMPLES)
-EXAMPLESCMI = modules/tutorial.cmi
+EXAMPLESCMO = examples/tutorial.cmo examples/monitoring.cmo $(DUCEEXAMPLES)
+EXAMPLESCMI = examples/tutorial.cmi
 PP = -pp "camlp4o ./xmlp4/xhtmlsyntax.cma -loc loc"
 
 ifeq "$(BYTECODE)" "YES"
@@ -62,17 +62,25 @@ opt: $(TARGETSBYTE:.byte=.opt)
 .PHONY: $(REPS) clean
 
 
+baselib: baselib.byte
+
 baselib.byte:
 	$(MAKE) -C baselib byte
 
 baselib.opt:
 	$(MAKE) -C baselib opt
 
+lwt: lwt.byte
+
 lwt.byte:
 	$(MAKE) -C lwt byte
 
+lwt: lwt.opt
+
 lwt.opt:
 	$(MAKE) -C lwt opt
+
+xmlp4: xmlp4.byte
 
 xmlp4.byte:
 	touch xmlp4/.depend
@@ -84,17 +92,31 @@ xmlp4.opt:
 	$(MAKE) -C xmlp4 depend
 	$(MAKE) -C xmlp4 opt
 
+http: http.byte
+
 http.byte:
 	$(MAKE) -C http byte
 
 http.opt:
 	$(MAKE) -C http opt
 
+modules: modules.byte
+
 modules.byte:
 	$(MAKE) -C modules byte
 
 modules.opt:
 	$(MAKE) -C modules opt
+
+examples: examples.byte
+
+examples.byte:
+	$(MAKE) -C examples byte
+
+examples.opt:
+	$(MAKE) -C examples opt
+
+server: server.byte
 
 server.byte:
 	$(MAKE) -C server byte
@@ -103,8 +125,8 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) $(PP) -package ssl -I lib -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
-	$(CAMLDOC) $(PP) -package netstring -I lib -I `$(CAMLP4) -where` -d doc/oc -html server/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli server/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli
+	$(CAMLDOC) $(PP) -package ssl -I lwt -I baselib -I http -I xmlp4 -I server -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
+	$(CAMLDOC) $(PP) -package netstring -I lwt -I baselib -I http -I xmlp4 -I server -I `$(CAMLP4) -where` -d doc/oc -html server/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli modules/eliomboxes.mli
 
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
@@ -117,8 +139,8 @@ depend: xmlp4.byte
 	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 
 
-.PHONY: install fullinstall doc
-install:
+.PHONY: partialinstall install fullinstall doc
+partialinstall:
 	mkdir -p $(PREFIX)/$(MODULEINSTALLDIR)
 	mkdir -p $(PREFIX)/$(EXAMPLESINSTALLDIR)
 	$(MAKE) -C server install
@@ -128,7 +150,7 @@ install:
 	-rm META
 
 
-fullinstall: install
+fullinstall: partialinstall
 	mkdir -p $(PREFIX)/$(CONFIGDIR)
 	mkdir -p $(PREFIX)/$(STATICPAGESDIR)
 	-mv $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
@@ -173,6 +195,9 @@ fullinstall: install
 	install -d -m 755 $(PREFIX)/$(MANDIR)
 	install -m 644 files/ocsigen.1 $(PREFIX)/$(MANDIR)
 
+
+install:
+	echo "Please use make fullinstall (or make partialinstall to keep your config files)"
 
 .PHONY: uninstall fulluninstall
 uninstall:

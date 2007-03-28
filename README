@@ -36,8 +36,7 @@ If you want system-wide installation, become root, and do
   make fullinstall
 
 (make fulluninstall -> to remove all
- make install -> to install only ocsigen and ocsimore.cma
-                 without changing config or log files
+ make partialinstall -> to install without changing config or log files
  make uninstall)
 
 Adapt the config file to set the port, the modules you want to load

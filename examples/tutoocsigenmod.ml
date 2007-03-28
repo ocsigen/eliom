@@ -640,16 +640,17 @@ let form4 = register_new_service ["form4"] unit
     <div class="twocol1">
       <p>
    An auxiliary service is a service that uses the same URL as 
-   a public service, but distinguished only by a (hidden) special
+   a public service, but generates another page.
+   They are distinguished from public services only by a (hidden) special
    parameter, called <em>state</em> parameter.
    Use this if you want to particularize a link, but not the URL it points to.
    More precisely, auxiliary services are mainly used in two situations:
     </p>
    <ul>
-   <li> - To create a link that leads to a service after having performed
+   <li>To create a link that leads to a service after having performed
    a side-effect. For example a disconnection link that leads to the main
    page of the side, but with the side effect of disconnecting the user.</li>
-   <li> - In combination with session tables (see later), to create
+   <li>In combination with session tables (see later), to create
    dynamically new services
    corresponding to precise points of the interaction with the user.</li>
    </ul>
@@ -702,6 +703,22 @@ let _ =
       saved in bookmarks.
       Note that the state parameter is ignored if the auxiliary service
       does not exist in the table of services.</p>
+
+      <div class="encadre">
+        <h3>URLs</h3>
+          <p>While designing a Web site, think carefully about the URLs you
+          want to use. URLs are the entry points of your site. Think that
+          they may be bookmarked. If you create a link, you want to go to
+          another URL, and you want a page to be generated. That page may be
+          the default page for the URL (the one you get when you go back
+          to a bookmarked page), or another page, that depends on the precise
+          link or form you used to go to that URL (link to an auxiliary
+          service, or page depending on post data). 
+          Sometimes, you want that clicking
+          a link or submitting a form does something without changing the URL.
+          You can do this using <em>actions</em> (see below).
+          </p>
+      </div>
     </div>
     <h2>Sessions</h2>
     <div class="twocol1">
@@ -1216,12 +1233,12 @@ let _ = register_action
       </p>
       <dl>
         <dt>Advantages</dt><dd><ul>
-          <li> - It is much lighter</li>
-          <li> - No need of mutex and no risk of deadlock!</li>
-          <li> - - The use of many (small) threads make implementation very easy (for example, for user interfaces, no need to implement another event loop, make a thread for each widget!)</li>
+          <li>It is much lighter</li>
+          <li>No need of mutex and no risk of deadlock!</li>
+          <li>The use of many (small) threads make implementation very easy (for example, for user interfaces, no need to implement another event loop, make a thread for each widget!)</li>
          </ul></dd>
         <dt>Drawbacks</dt><dd><ul>
-          <li> - Threads must cooperate ... Otherwise the whole program will hang.</li></ul></dd>
+          <li>Threads must cooperate&nbsp;... Otherwise the whole program will hang.</li></ul></dd>
       </dl>
       <p>As it does not cooperate, the following page will stop the
       server for 5 seconds. No one will be able to do a request during

@@ -25,7 +25,7 @@ let create_form =
 
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
-     let f = get_form Tutorial.coucou_params sp create_form in 
+     let f = get_form Tutoocsigenmod.coucou_params sp create_form in 
      return
         {{ <html>
              [<head> [<title> ""]

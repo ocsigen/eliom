@@ -27,8 +27,7 @@ type send_page_type =
     ?code:int ->
     ?etag:Http_frame.etag ->
     keep_alive:bool ->
-    ?cookies:(string * string) list ->
-    ?path:string ->
+    ?cookies:(string option * (string * string) list) list ->
     ?last_modified:float ->
     ?location:string -> 
     ?head:bool -> 
@@ -39,10 +38,10 @@ type send_page_type =
 val send_xhtml_page : content: [ `Html ] XHTML.M.elt -> send_page_type
 
 (** Sending a file *)
-val send_file : string -> send_page_type
+val send_file : content: string -> send_page_type
 
 (** Sending an empty page (no content) *)
-val send_empty : send_page_type
+val send_empty : content: unit -> send_page_type
 
 (** Sending a text page *)
 val send_text_page :
@@ -560,11 +559,10 @@ val send_generic :
   ?code:int ->
   ?etag:Http_frame.etag ->
   keep_alive:bool ->
-  ?cookies:(string * string) list ->
+  ?cookies:(string option * (string * string) list) list ->
   ?last_modified:float ->
   ?contenttype:string ->
   ?charset:string ->
-  ?path:string ->
   ?location:string ->
   ?header:(string * string) list ->
   ?head:bool ->

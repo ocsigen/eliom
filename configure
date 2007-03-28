@@ -501,8 +501,8 @@ PROFILING=NO
 OCAMLVERSION=$ocamlversion
 
 # Do not modify this
-LIBDIRS= -I ../lwt -I ../baselib -I ../http -I ../xmlp4 -I ../server
-LIBDIRS2= -I ../../lwt -I ../../baselib -I ../../http -I ../../xmlp4 -I ../../server
+LIBDIRS= -I ../lwt -I ../baselib -I ../http -I ../xmlp4 -I ../server -I ../modules
+LIBDIRS2= -I ../../lwt -I ../../baselib -I ../../http -I ../../xmlp4 -I ../../server -I ../../modules
 
 _EOF_
 

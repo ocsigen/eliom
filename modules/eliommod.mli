@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module pagesearch.mli
+ * Module eliommod.mli
  * Copyright (C) 2005 Vincent Balat
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,21 +20,21 @@
 
 open Extensions
 
-exception Ocsigen_Wrong_parameter
-exception Ocsigen_duplicate_registering of string
-exception Ocsigen_register_for_session_outside_session
-exception Ocsigen_page_erasing of string
-exception Ocsigen_service_or_action_created_outside_site_loading
-exception Ocsigen_there_are_unregistered_services of string
-exception Ocsigen_error_while_loading_site of string
-exception Ocsigen_Typing_Error of (string * exn) list
+exception Eliom_Wrong_parameter
+exception Eliom_duplicate_registering of string
+exception Eliom_register_for_session_outside_session
+exception Eliom_page_erasing of string
+exception Eliom_service_created_outside_site_loading
+exception Eliom_there_are_unregistered_services of string
+exception Eliom_error_while_loading_site of string
+exception Eliom_Typing_Error of (string * exn) list
 
 type internal_state = int
 
 type tables
 type cookiestable
 type pages_tree =
-    tables (* global tables of continuations/actions *)
+    tables (* global tables of services *)
       * cookiestable (* session tables *)
 
 type 'a server_params1 = 
@@ -44,7 +44,7 @@ type server_params = tables server_params1
 
 type page_table_key =
     {prefix:bool;
-     state: internal_state option}
+     state: (internal_state option * internal_state option)}
 
 val gen :
     pages_tree ->
@@ -58,21 +58,27 @@ val add_service :
       url_path ->
         bool ->
           string list ->
-            Predefined_senders.create_sender_type ->
+            Predefined_senders.create_sender_type option ->
               page_table_key *
                 (int * (tables server_params2 -> 
                   Predefined_senders.send_page_type Lwt.t)) ->
                     unit
 
-val add_action :
-    tables -> current_dir
-      -> string -> (tables server_params1 -> unit Lwt.t) -> unit
+val add_anservice :
+    tables -> 
+      current_dir ->
+	bool -> 
+	  string -> 
+            Predefined_senders.create_sender_type option ->
+	      (tables server_params1 -> 
+		Predefined_senders.send_page_type Lwt.t) -> unit
 
-val state_param_name : string
-val ocsigen_suffix_name : string
-val action_prefix : string
-val action_name : string
-val action_reload : string
+
+val get_state_param_name : string
+val post_state_param_name : string
+val eliom_suffix_name : string
+val anservice_prefix : string
+val anservice_name : string
 
 val config : 
     Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ref

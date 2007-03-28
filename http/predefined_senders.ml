@@ -278,7 +278,7 @@ let send_generic
     ?code ?etag ~keep_alive ?(cookies = []) ?last_modified 
     ?contenttype
     ?charset
-    ?path ?location ?(header=[]) ?head ~content sender 
+    ?location ?(header=[]) ?head ~content sender 
     (send : unit Lwt.t ->
       ?etag:etag ->
       ?mode:Xhtml_sender.H.http_mode ->
@@ -301,15 +301,18 @@ let send_generic
       ("Date",date)::
       ("Last-Modified",last_mod)::header
   in
-  let mkcook (name,c) =
+  let mkcook path (name,c) =
     ("Set-Cookie",
      (name^"="^c^
       (match path with 
         Some s -> ("; path="^s) 
       | None -> "")))
   in
+  let mkcookl path cl hds =
+    List.fold_left (fun h c -> (mkcook path c)::h) hds cl
+  in
   let hds =
-    List.fold_left (fun h c -> (mkcook c)::h) hds cookies
+    List.fold_left (fun h (path,cl) -> (mkcookl path cl h)) hds cookies
   in
   let hds =
     if keep_alive
@@ -346,24 +349,23 @@ type send_page_type =
       ?code:int ->
         ?etag:etag ->
           keep_alive:bool ->
-            ?cookies:(string * string) list ->
-              ?path:string ->
-                ?last_modified:float ->
-                  ?location:string -> 
-                    ?head:bool -> 
-                      ?charset:string -> Http_com.sender_type -> unit Lwt.t
+            ?cookies: (string option * (string * string) list) list ->
+              ?last_modified:float ->
+                ?location:string -> 
+                  ?head:bool -> 
+                    ?charset:string -> Http_com.sender_type -> unit Lwt.t
   
 (** fonction that sends a xhtml page
  * code is the code of the http answer
  * keep_alive is a boolean value that set the field Connection
- * cookie is a string value that give a value to the session cookie
- * path is the path associated to the cookie
+ * cookies is a list of pairs: 
+ * string value (the path) and list of string pairs (name, value)   
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_xhtml_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path 
+let send_xhtml_page ~content waiter ?code ?etag ~keep_alive ?cookies
     ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter ?etag
-    ?code ~keep_alive ?cookies ?path ?location ?last_modified
+    ?code ~keep_alive ?cookies ?location ?last_modified
     ~contenttype:"text/html"
     ?charset
     ~content 
@@ -375,17 +377,17 @@ let send_xhtml_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path
  * cookie is a string value that give a value to the session cookie
  * page is the page to send
  * empty_sender is the used sender *)
-let send_empty waiter ?code ?etag ~keep_alive ?cookies 
-    ?path ?last_modified ?location ?head ?charset empty_sender =
+let send_empty ~content waiter ?code ?etag ~keep_alive ?cookies 
+    ?last_modified ?location ?head ?charset empty_sender =
   send_generic waiter ?etag ?last_modified
-    ?code ~keep_alive ?cookies ?path ?location
-    (*~contenttype:? ~charset:?*) ~content:() 
+    ?code ~keep_alive ?cookies ?location
+    (*~contenttype:? ~charset:?*) ~content
     ?head empty_sender Empty_sender.send
 
-let send_text_page ~content waiter ?code ?etag ~keep_alive ?cookies ?path 
+let send_text_page ~content waiter ?code ?etag ~keep_alive ?cookies
     ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter
-    ?etag ?code ~keep_alive ?cookies ?path ?location ?last_modified
+    ?etag ?code ~keep_alive ?cookies ?location ?last_modified
     (*~contenttype:? ~charset:?*) ~content ?head xhtml_sender Text_sender.send
   
   
@@ -484,12 +486,12 @@ let content_type_from_file_name =
       in Hashtbl.find mimeht extens
     with _ -> "unknown" 
 
-let send_file file waiter ?code ?etag ~keep_alive ?cookies ?path
+let send_file ~content:file waiter ?code ?etag ~keep_alive ?cookies
     ?last_modified ?location ?head ?charset file_sender =
   Lwt_unix.yield () >>=
   (fun () ->
     send_generic waiter
-      ?etag ?code ~keep_alive ?cookies ?path ?location ?last_modified
+      ?etag ?code ~keep_alive ?cookies ?location ?last_modified
       ~contenttype:(content_type_from_file_name file)
       ?charset
       ~content:file ?head file_sender File_sender.send)

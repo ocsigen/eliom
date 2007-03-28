@@ -372,8 +372,6 @@ let add_service (dircontentref,_) current_dir session url_act
      search_dircontentref dircontentref current_dir) in *)
   let page_table_ref = 
     search_page_table_ref (*current_*) dircontentref url_act in
-  (* synchronize 
-    (fun () -> *)
   page_table_ref := add_page_table session url_act !page_table_ref content
 
       
@@ -658,8 +656,9 @@ let gen page_tree charset ri =
                     (match cookie2 with
                       None -> []
                     | Some c -> [(cookiename, c)]);
-                    res_send_page=Predefined_senders.send_empty;
-                    res_create_sender=Predefined_senders.create_empty_sender;
+                    res_send_page=Predefined_senders.send_empty ~content:();
+                    res_create_sender=
+                    Predefined_senders.create_empty_sender;
                     res_code=Some 204;
                     res_path=path;
                     res_lastmodified=None;

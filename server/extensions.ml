@@ -45,7 +45,9 @@ type current_dir = string list
 type file_info = {tmp_filename: string;
                   filesize: int64;
                   original_filename: string}
-      
+
+type cookieslist = (string option * (string * string) list) list
+
 type request_info = 
     {ri_url: string;
      ri_path_string: string; (** path of the URL *)
@@ -64,29 +66,40 @@ type request_info =
      ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)}
 
 type result =
-   {res_cookies: (string * string) list;
-   res_path: string;
-   res_lastmodified: float option;
-   res_etag: Http_frame.etag option;
-   res_code: int option; (* HTTP code, if not 200 *)
-   res_send_page: Predefined_senders.send_page_type;
-   res_create_sender: Predefined_senders.create_sender_type;
-   res_charset: string option
+    {res_cookies: (string * string) list; (** cookies to set *)
+     res_path: string; (** path for the cookies *)
+     res_lastmodified: float option;
+     res_etag: Http_frame.etag option;
+     res_code: int option; (* HTTP code, if not 200 *)
+     res_send_page: Predefined_senders.send_page_type;
+     res_create_sender: Predefined_senders.create_sender_type;
+     res_charset: string option
    }
    
-   type answer =
+type answer =
     Ext_found of result  (** OK stop! I found the page *)
   | Ext_not_found        (** Page not found. Try next extension. *)
-  | Ext_continue_with of request_info (** Used to modify the request 
-                                          before giving it to next extension *)
+  | Ext_continue_with of request_info * 
+        (string option * ((string * string) list)) option
+        (** Used to modify the request before giving it to next extension ;
+           The extension may want to set cookies ; in that case, put the new
+           cookies in the list (and possibly the path in the string option), 
+           and possibly in the ri_cookies field
+           of request_info if you want them to be seen by the following
+           extension. *)
+  | Ext_retry_with of request_info * 
+        (string option * ((string * string) list)) option
+        (** Used to retry all the extensions with a new request_info ;
+           May set cookies (idem) *)
 
-
-let (virthosts : (virtual_hosts * (request_info -> 
-  answer Lwt.t)) list ref) = ref []
+let (virthosts : 
+       (virtual_hosts * (request_info -> 
+         (answer * cookieslist) Lwt.t)) list ref) = 
+  ref []
 
 let set_virthosts v = virthosts := v
 let get_virthosts () = !virthosts
-   let add_virthost v = virthosts := v::!virthosts
+let add_virthost v = virthosts := v::!virthosts
    
 (*****************************************************************************)
 (** Tree of charsets *)
@@ -154,7 +167,7 @@ let register_extension, create_virthost, get_beg_init, get_end_init,
   let fun_create_virthost =
     ref (fun hostpattern -> 
       let charset_tree = ref (new_charset_tree ()) in
-      ((fun cs ri -> return Ext_not_found), 
+      ((fun cs ri -> return (Ext_not_found,[])), 
        (fun path xml -> 
          raise (Error_in_config_file "No extension loaded")),
        charset_tree))
@@ -170,11 +183,17 @@ let register_extension, create_virthost, get_beg_init, get_end_init,
         let (g2,p2) = fun_virthost hostpattern in
         ((fun charset ri ->
 	  g1 charset ri >>=
-          function
-            | (Ext_found _) as r -> return r
-            | Ext_not_found -> g2 charset ri
-            | Ext_continue_with ri' -> 
-                g2 (find_charset !charset_tree ri'.ri_path) ri'
+          fun (ext_res,cookieslist) ->
+            match ext_res with
+            | Ext_not_found -> g2 charset ri >>= 
+                fun r -> return (r, cookieslist)
+            | Ext_continue_with (ri', cookiesopt) -> 
+                g2 (find_charset !charset_tree ri'.ri_path) ri' >>= 
+                fun r -> return (r, 
+                                 match cookiesopt with
+                                   None -> cookieslist
+                                 | Some c -> c::cookieslist)
+            | r -> return (r, cookieslist)
          ),
 	 (fun path xml -> 
            try
@@ -285,22 +304,31 @@ let do_for_host_matching host port virthosts ri =
     None -> "<no host>:"^(string_of_int port)
   | Some h -> h^":"^(string_of_int port)
   in
-  let rec aux e = function
+  let rec aux ri e = function
       [] -> fail e
-    | (h, f)::l when host_match host port h ->
+    | (h, f)::l as ll when host_match host port h ->
         Messages.debug ("---- host found: "^(string_of_host_option host)^
                         " matches "^(string_of_host h));
         (f ri >>=
-         function
-           | Ext_found r -> return r
+         fun (res, cookieslist) ->
+           match res with
+           | Ext_found r -> return (r, cookieslist)
            | Ext_not_found
-           | Ext_continue_with _ -> aux Ocsigen_404 l)
+           | Ext_continue_with _ -> aux ri Ocsigen_404 l
+           | Ext_retry_with (ri', cookiesopt) ->
+               aux ri' e ll >>=
+               fun (ext_res, cookieslist) ->
+                 return (ext_res, 
+                         match cookiesopt with
+                           None -> cookieslist
+                         | Some c -> c::cookieslist)
+        )
 
     | (h,_)::l ->
         Messages.debug ("---- host = "^(string_of_host_option host)^
                         " does not match "^(string_of_host h));
-        aux e l
-  in aux Serv_no_host_match virthosts
+        aux ri e l
+  in aux ri Serv_no_host_match virthosts
 
 
 (*****************************************************************************)

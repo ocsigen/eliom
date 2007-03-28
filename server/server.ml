@@ -503,16 +503,18 @@ let service
           Extensions.do_for_host_matching 
 	    ri.ri_host ri.ri_port (Extensions.get_virthosts ()) ri >>=
           
-          (fun res ->
+          (fun (res, cookieslist) ->
             
             match res.res_lastmodified, ri.ri_ifmodifiedsince with
               Some l, Some i when l<=i -> 
                 Messages.debug "-> Sending 304 Not modified ";
                 send_empty
+                  ~content:()
                   wait_end_answer
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified
-                  ~cookies:res.res_cookies
+                  ~cookies:(((Some res.res_path), res.res_cookies)
+                            ::cookieslist)
                   ?etag:res.res_etag
                   ~code:304 (* Not modified *)
                   ~head:head 
@@ -523,8 +525,7 @@ let service
                   wait_end_answer
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified
-                  ~cookies:res.res_cookies
-                  ~path:res.res_path (* path for the cookie *) 
+                  ~cookies:(((Some res.res_path), res.res_cookies)::cookieslist)
                   ?code:res.res_code
                   ?charset:res.res_charset
                   ~head:head
@@ -551,6 +552,7 @@ let service
               | Ocsigen_Is_a_directory -> 
                   Messages.debug "-> Sending 301 Moved permanently";
                   send_empty
+                    ~content:()
                     wait_end_answer
                     ~keep_alive:ka
                     ~location:(ri.ri_path_string^"/"^ri.ri_params)

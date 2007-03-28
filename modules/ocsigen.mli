@@ -224,6 +224,50 @@ val register_new_action_for_session :
 (** Same as [new_action] followed by [register_action_for_session] *)
 
 
+(** {2 Definitions of entry points (services/URLs)} *)
+val new_service :
+    url:url_path ->
+      ?prefix:bool ->
+        get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
+          unit ->
+            ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, unit param_name) service
+(** [new_service ~url:p ~get_params:pa ()] creates an {{:#TYPEservice}[service]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
+   
+   If you specify [~prefix:true], your service will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_service ["mysite";"mywiki"] ~prefix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
+	      
+val new_external_service :
+    url:url_path ->
+      ?prefix:bool ->
+        get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
+          post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
+            unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
+(** Creates an service for an external web site *)
+		
+val new_auxiliary_service :
+    fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'd) service ->
+      ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
+(** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
+
+val new_post_service :
+    fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
+              unit param_name)
+    service ->
+      post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
+        ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e) service
+(** Creates an service that takes POST parameters. 
+   [fallback] is the same service without POST parameters.
+   You can create an service with POST parameters if the same service does not exist
+   without POST parameters. Thus, the user can't bookmark a page that does not
+   exist.
+ *)
+	  
+val new_post_auxiliary_service :
+    fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c, 'd, 'e) service ->
+      post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+        ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
+(** Creates a auxiliary service with POST parameters *)
+
+
 
 
 
@@ -232,28 +276,6 @@ module Xhtml : sig
 
   type page = xhtml elt
 
-  val new_service :
-      url:url_path ->
-        ?prefix:bool ->
-          get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
-            unit ->
-              ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, unit param_name) service
-(** [new_service ~url:p ~get_params:pa ()] creates an {{:#TYPEservice}[service]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
-
-   If you specify [~prefix:true], your service will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_service ["mysite";"mywiki"] ~prefix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
-
-  val new_external_service :
-      url:url_path ->
-        ?prefix:bool ->
-          get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c) params_type ->
-            post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-              unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
-(** Creates an service for an external web site *)
-
-  val new_auxiliary_service :
-      fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'd) service ->
-        ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
-(** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
   val register_service :
       service:('a, 'b, [ `Internal_Service of 'c ], [< `WithSuffix | `WithoutSuffix ],
@@ -316,25 +338,6 @@ module Xhtml : sig
               (server_params -> 'a -> unit -> page Lwt.t) ->
                 ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd) service
 (** Same as [new_auxiliary_service] followed by [register_service_for_session] *)
-
-  val new_post_service :
-      fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
-                unit param_name)
-      service ->
-        post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-          ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e) service
-(** Creates an service that takes POST parameters. 
-   [fallback] is the same service without POST parameters.
-   You can create an service with POST parameters if the same service does not exist
-   without POST parameters. Thus, the user can't bookmark a page that does not
-   exist.
- *)
-
-  val new_post_auxiliary_service :
-      fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c, 'd, 'e) service ->
-        post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-          ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g) service
-(** Creates a auxiliary service with POST parameters *)
 
   val register_new_post_service :
       fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
@@ -767,28 +770,6 @@ module type OCSIGENREGSIG =
   sig
     type page
 
-    val new_external_service :
-        url:url_path ->
-          ?prefix:bool ->
-            get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
-              params_type ->
-                post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-                  unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
-    val new_service :
-        url:url_path ->
-          ?prefix:bool ->
-            get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
-              params_type ->
-                unit ->
-                  ('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c,
-                   unit param_name)
-                    service
-    val new_auxiliary_service :
-        fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b,
-                  'c, 'd)
-        service ->
-          ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
-            service
     val register_service :
         service:('a, 'b, [ `Internal_Service of 'c ],
                  [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
@@ -828,20 +809,7 @@ module type OCSIGENREGSIG =
                 (server_params -> 'a -> unit -> page Lwt.t) ->
                   ('a, unit, [ `Internal_Service of [ `Local_Service ] ], 'b, 'c, 'd)
                     service
-    val new_post_service :
-        fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ], 'b,
-                  'c, unit param_name)
-        service ->
-          post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-            ('a, 'd, [ `Internal_Service of [ `Public_Service ] ], 'b, 'c, 'e)
-              service
-    val new_post_auxiliary_service :
-        fallback:('a, 'b, [ `Internal_Service of [ `Public_Service ] ], 'c,
-                  'd, 'e)
-        service ->
-          post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-            ('a, 'f, [ `Internal_Service of [ `Local_Service ] ], 'c, 'd, 'g)
-              service
+
     val register_new_post_service :
         fallback:('a, unit, [ `Internal_Service of [ `Public_Service ] ],
                   [< `WithSuffix | `WithoutSuffix ] as 'b, 'c,

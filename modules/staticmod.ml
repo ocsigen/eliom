@@ -138,7 +138,7 @@ let gen pages_tree charset ri =
         return
           (Ext_found
              {res_cookies=[];
-              res_send_page=Predefined_senders.send_file filename;
+              res_send_page=Predefined_senders.send_file ~content:filename;
               res_create_sender=Predefined_senders.create_file_sender;
               res_code=None;
               res_path="";
@@ -188,7 +188,9 @@ let end_init () =
       let page_tree = new_pages_tree () in
       set_static_dir page_tree path [];
       add_virthost ([([Ocsimisc.Wildcard],None)], 
-                    gen page_tree (Ocsiconfig.get_default_charset ()))
+                    fun ri -> 
+                      gen page_tree (Ocsiconfig.get_default_charset ()) ri >>=
+                      (fun r -> return (r,[])))
   (* for default static dir *)
 
 

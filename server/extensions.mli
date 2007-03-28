@@ -88,10 +88,20 @@ type charset_tree_type
 
 (** The result given by the extension (filter or page generation) *)
 type answer =
-    Ext_found of result (** OK stop! I found the page *)
-  | Ext_not_found (** Page not found. Try next extension. *)
-  | Ext_continue_with of request_info (** Used to modify the request 
-                               before giving it to next extension (filter) *)
+    Ext_found of result  (** OK stop! I found the page *)
+  | Ext_not_found        (** Page not found. Try next extension. *)
+  | Ext_continue_with of request_info * 
+        (string option * ((string * string) list)) option
+        (** Used to modify the request before giving it to next extension ;
+           The extension may want to set cookies ; in that case, put the new
+           cookies in the list (and possibly the path in the string option), 
+           and possibly in the ri_cookies field
+           of request_info if you want them to be seen by the following
+           extension. *)
+  | Ext_retry_with of request_info * 
+        (string option * ((string * string) list)) option
+        (** Used to retry all the extensions with a new request_info ;
+           May set cookies (idem) *)
 
 (** We register for each extension four functions:
    - a function that will be called for each
@@ -116,30 +126,38 @@ val register_extension :
     (unit -> unit) *
     (exn -> string) -> unit
 
+type cookieslist = (string option * (string * string) list) list
+
 (**/**)
+
 val create_virthost : 
     Ocsimisc.virtual_hosts ->
-      ((request_info -> answer Lwt.t) * 
+      ((request_info -> 
+        (answer * cookieslist) Lwt.t) * 
 	 (string list ->
            Simplexmlparser.ExprOrPatt.texprpatt ->
              unit)) * 
         (string option -> string list -> unit)
 
 val set_virthosts : (Ocsimisc.virtual_hosts * 
-                       (request_info -> answer Lwt.t)) list -> unit
+                       (request_info -> 
+                         (answer * cookieslist) Lwt.t)) list -> unit
 
 val get_virthosts : unit -> (Ocsimisc.virtual_hosts * 
-                               (request_info -> answer Lwt.t)) list
+                               (request_info -> 
+                                 (answer * cookieslist) Lwt.t)) list
 
 val add_virthost : (Ocsimisc.virtual_hosts * 
-                      (request_info -> answer Lwt.t)) -> unit
+                      (request_info -> 
+                        (answer * cookieslist) Lwt.t)) -> unit
 
 val do_for_host_matching : 
     string option ->
       int ->
         ((Ocsimisc.virtual_host_part list * int option) list *
-           ('a -> answer Lwt.t))
-          list -> 'a -> result Lwt.t
+           (request_info -> 
+             (answer * cookieslist) Lwt.t))
+          list -> request_info -> (result * cookieslist) Lwt.t
 
 (** Profiling *)
 val get_number_of_connected : unit -> int
