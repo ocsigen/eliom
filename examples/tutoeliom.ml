@@ -85,14 +85,14 @@ let coucou =
 &lt;/host&gt;</pre>
       <p>Then run ocsigen. You should see your page at url
            <code>http://<em>your_server</em>/examples/coucou</code>.
-           See this example $a Tutorial.coucou sp <:xmllist< here >> ()$.
+           See this example $a Tutoeliom.coucou sp <:xmllist< here >> ()$.
       </p>
       <p>NB: See the default config file to see how to set the port on
               which your server is running, the user who runs it, the path
             of the log files, etc.
       </p>
       <p>Here is a sample 
->>>>>>>>vérifier   $a (static_dir sp) sp [pcdata "Makefile"] "Makefile"$ for your modules.</p>
+*********** vérifier   $a (static_dir sp) sp [pcdata "Makefile"] "Makefile"$ for your modules.</p>
       <h3>Static typing of XHTML</h3>
         <p>
         Typing of html is very strict and forces you to respect
@@ -147,7 +147,7 @@ let coucou1 =
       <p>
          (Replace <code>/<em>path_to</em>/ocsigen/</code>
        by the directory where ocsigen is installed). 
-           See this example $a Tutorial.coucou1 sp <:xmllist< here >> ()$.
+           See this example $a Tutoeliom.coucou1 sp <:xmllist< here >> ()$.
       </p>
       <p>
          You can mix the two syntaxes (see later).
@@ -234,7 +234,7 @@ let compt =
        (body [p [pcdata (string_of_int (next ()))]])))
 (*html*
       <p>
-      See this example $a Tutorial.compt sp <:xmllist< here >> ()$.
+      See this example $a Tutoeliom.compt sp <:xmllist< here >> ()$.
       </p>
       <p>As usual in OCaml, you can forget labels when the application 
           is total:</p>
@@ -249,7 +249,7 @@ let hello =
          (body [h1 [pcdata "Hello"]])))
 (*html*
       <p>
-      See this example $a Tutorial.hello sp <:xmllist< here >> ()$.
+      See this example $a Tutoeliom.hello sp <:xmllist< here >> ()$.
       </p>
     </div>
     <div class="twocol2">
@@ -264,7 +264,7 @@ let default = register_new_service ["rep";""] unit
       (body [p [pcdata "default page. rep is redirected to rep/"]])))
 (*html*
       <p>
-      See $a Tutorial.default sp <:xmllist< default >> ()$.
+      See $a Tutoeliom.default sp <:xmllist< default >> ()$.
       </p>
     </div>
     <h2>Parameters</h2>
@@ -303,9 +303,9 @@ let coucou_params = register_new_service
       <p>Note that the URLs of <code>coucou</code> 
       and <code>coucou_params</code>
       differ only by parameters. Url 
-      $a Tutorial.coucou sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou</code> >> ()$
+      $a Tutoeliom.coucou sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou</code> >> ()$
       will run the first one,<br/>
-      $a Tutorial.coucou_params sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code> >> (42, (17, "krokodile")) $
+      $a Tutoeliom.coucou_params sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code> >> (42, (17, "krokodile")) $
       will run the second one.<br/> 
       If <code>entier</code> is not an integer,
       the server displays an error-message.<br/>
@@ -313,16 +313,16 @@ let coucou_params = register_new_service
       The infix function <code>( ** )</code> is to be used to 
       construct <em>pairs</em> (not tuples).
       </p>
-      <p>The following examples shows how to create a service with "prefix" 
+      <p>The following examples shows how to create a service with "suffix" 
          service
          (taking the end of the URL as a parameter, as wikis do very often)
         and how to get values from the http header:</p>
 *html*)
-let uaprefix = 
+let uasuffix = 
   register_new_service 
-    ~url:["uaprefix"]
+    ~url:["uasuffix"]
     ~get_params:(suffix (string "s"))
-    ~prefix:true
+    ~suffix:true
     (fun sp (suff, s) () ->  return
       (html
         (head (title (pcdata "")) [])
@@ -339,10 +339,10 @@ let uaprefix =
     </div>
     <div class="twocol2">
 *html*)
-let iprefix = 
+let isuffix = 
   register_new_service 
-    ~url:["iprefix"] 
-    ~prefix:true 
+    ~url:["isuffix"] 
+    ~suffix:true 
     ~get_params:(suffix (int "i"))
     (fun sp (suff, i) () -> return
       (html
@@ -353,8 +353,8 @@ let iprefix =
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*html*
-      <p>See $a Tutorial.uaprefix sp <:xmllist< uaprefix >> ("suffix", "gni")$,
-         $a Tutorial.iprefix sp <:xmllist< iprefix >> ("mm/aa/gg", 22)$.</p>
+      <p>See $a Tutoeliom.uasuffix sp <:xmllist< uasuffix >> ("suffix", "gni")$,
+         $a Tutoeliom.isuffix sp <:xmllist< isuffix >> ("mm/aa/gg", 22)$.</p>
 
       <p>The following example shows how to use your own types:</p>
 *html*)
@@ -375,7 +375,7 @@ let mytype = register_new_service
        (head (title (pcdata "")) [])
        (body [p [pcdata v]])))
 (*html*
-      <p>See $a Tutorial.mytype sp <:xmllist< mytype >> Tutorial.A$.</p>
+      <p>See $a Tutoeliom.mytype sp <:xmllist< mytype >> Tutoeliom.A$.</p>
       <div class="encadre">
         <h3>Catching errors</h3>
         <p>You can catch errors using the optional parameter
@@ -398,7 +398,7 @@ let catch = register_new_service
          where <code>n</code> is the name of the wrong parameter, and
          <code>ex</code> is the exception that has been raised while
          parsing its value.</p>
-      <!-- p>See $a Tutorial.catch sp <:xmllist< catch >> 22$ (change the value
+      <!-- p>See $a Tutoeliom.catch sp <:xmllist< catch >> 22$ (change the value
    of the parameter).</p -->
      </div>
     </div>
@@ -418,14 +418,14 @@ let links = register_new_service ["rep";"links"] unit
          a hello sp [pcdata "hello"] (); br ();
          a default sp 
            [pcdata "default page of the dir"] (); br ();
-         a uaprefix sp 
-           [pcdata "uaprefix"] ("suff","toto"); br ();
+         a uasuffix sp 
+           [pcdata "uasuffix"] ("suff","toto"); br ();
          a coucou_params sp 
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
          a
            (new_external_service
               ~url:["http://fr.wikipedia.org";"wiki"]
-              ~prefix:true
+              ~suffix:true
               ~get_params:suffix_only
               ~post_params:unit ()) 
            sp
@@ -436,12 +436,12 @@ let links = register_new_service ["rep";"links"] unit
    the link from toto/titi to toto/tata is "tata" and not "toto/tata"
 *zap*)
 (*html*
-      <p>See $a Tutorial.links sp <:xmllist< links >> ()$.</p>
+      <p>See $a Tutoeliom.links sp <:xmllist< links >> ()$.</p>
       <p>
       Note that to create a (relative) link we need to know the current URL.
       That's why the page has a <code>sp</code> parameter.<br/>
       The link to Wikipedia shows how to define an external service (here it 
-      uses a prefix URL).</p>
+      uses a suffix URL).</p>
       <p>
       You give page parameters as additional parameters to the 
       function <code>Eliom.Xhtml.a</code>.
@@ -469,7 +469,7 @@ let essai =
    ()
 *zap*)
 (*html*
-      <p>See $a Tutorial.linkrec sp <:xmllist< linkrec >> ()$.</p>
+      <p>See $a Tutoeliom.linkrec sp <:xmllist< linkrec >> ()$.</p>
       <p>The server won't accept to start if there are
          unregistered services.</p>
       <div class="encadre">
@@ -495,7 +495,7 @@ let essai =
         </p>
         <p>In the following, we will see how to create dynamically 
         new continuations dedicated to a particular user
-        (auxiliary services in session table).</p>
+        (coservices in session table).</p>
       </div>
     </div>
     <h2>Forms</h2>
@@ -530,7 +530,7 @@ let form = register_new_service ["form"] unit
          (head (title (pcdata "")) [])
          (body [f])))
 (*html*
-      <p>See the function $a Tutorial.form sp <:xmllist< form >> ()$ in action.</p>
+      <p>See the function $a Tutoeliom.form sp <:xmllist< form >> ()$ in action.</p>
 
       <h3>POST parameters</h3>
       <p>
@@ -644,23 +644,23 @@ let form4 = register_new_service ["form4"] unit
         (body [f])))
 (*html*
       <p>See the url
-      $a Tutorial.no_post_param_service sp <:xmllist< <code>post</code> without parameter >> ()$,
-      $a Tutorial.get_no_post_param_service sp <:xmllist< <code>post2</code> without POST parameter >> 123$,
-      $a Tutorial.form2 sp <:xmllist< form2 >> ()$,
-      $a Tutorial.form3 sp <:xmllist< form3 >> ()$,
-      $a Tutorial.form4 sp <:xmllist< form4 >> ()$.
+      $a Tutoeliom.no_post_param_service sp <:xmllist< <code>post</code> without parameter >> ()$,
+      $a Tutoeliom.get_no_post_param_service sp <:xmllist< <code>post2</code> without POST parameter >> 123$,
+      $a Tutoeliom.form2 sp <:xmllist< form2 >> ()$,
+      $a Tutoeliom.form3 sp <:xmllist< form3 >> ()$,
+      $a Tutoeliom.form4 sp <:xmllist< form4 >> ()$.
       </p>
 
     </div>
-    <h2>Auxiliary services **************** TO BE REWRITTEN!!!!</h2>
+    <h2>Coservices **************** TO BE REWRITTEN!!!!</h2>
     <div class="twocol1">
       <p>
-   An auxiliary service is a service that uses the same URL as 
+   A coservice is a service that uses the same URL as 
    a public service, but generates another page.
    They are distinguished from public services only by a special
    parameter, called <em>state</em> parameter.
    Use this if you want to particularize a link, but not the URL it points to.
-   More precisely, auxiliary services are mainly used in two situations:
+   More precisely, coservices are mainly used in two situations:
     </p>
    <ul>
    <li>To create a link that leads to a service after having performed
@@ -671,57 +671,57 @@ let form4 = register_new_service ["form4"] unit
    corresponding to precise points of the interaction with the user.</li>
    </ul>
    <p>
-   To create an auxiliary service, use 
-   <span class="Cem"><code>new_auxiliary_service</code></span> and 
-   <span class="Cem"><code>new_post_auxiliary_service</code></span>.
+   To create a coservice, use 
+   <span class="Cem"><code>new_coservice</code></span> and 
+   <span class="Cem"><code>new_post_coservice</code></span>.
    Like <code>register_new_post_service</code>,
    they take a public service as parameter 
    (labelled <code><span class="Clabel">fallback</span></code>)
    to be used as fallback when the user comes back without the state
    parameter (for example if he put a bookmark on the page).</p>
 *html*)
-let auxiliaryserv = new_service ["auxiliary"] unit ()
+let coserv = new_service ["co"] unit ()
 
-let auxiliaryserv2 = 
-  new_post_auxiliary_service ~fallback:auxiliaryserv ~post_params:unit
+let coserv2 = 
+  new_post_coservice ~fallback:coserv ~post_params:unit
 
-let auxiliaryserv3 = 
-  new_auxiliary_service ~fallback:auxiliaryserv ~get_params:unit
+let coserv3 = 
+  new_coservice ~fallback:coserv ~get_params:unit
 
 let _ = 
   let c = ref 0 in
   let page sp () () = 
-    let l3 = post_form auxiliaryserv2 sp 
+    let l3 = post_form coserv2 sp 
         (fun _ -> [p [submit_input "incr i (post)"]]) () in
-    let l4 = get_form auxiliaryserv3 sp 
+    let l4 = get_form coserv3 sp 
         (fun _ -> [p [submit_input "incr i (get)"]]) in 
     return
       (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "i is equal to ";
                  pcdata (string_of_int !c); br ();
-                 a auxiliaryserv sp [pcdata "reload"] (); br ();
-                 a auxiliaryserv3 sp [pcdata "incr i"] ()];
+                 a coserv sp [pcdata "reload"] (); br ();
+                 a coserv3 sp [pcdata "incr i"] ()];
               l3;
               l4]))
   in
-  register_service auxiliaryserv page;
+  register_service coserv page;
   let f sp () () = c := !c + 1; page sp () () in
-  register_service auxiliaryserv2 f;
-  register_service auxiliaryserv3 f
+  register_service coserv2 f;
+  register_service coserv3 f
 (*html*
     </div>
     <div class="twocol2">
-   <p>The auxiliary service has the same GET parameters as its fallback,
+   <p>The coservice has the same GET parameters as its fallback,
    but may have different POST parameters.</p>
-      <p>Try $a Tutorial.auxiliaryserv sp <:xmllist< <code>auxiliaryserv</code> >> ()$.</p>
+      <p>Try $a Tutoeliom.serv sp <:xmllist< <code>coserv</code> >> ()$.</p>
       <p>Note that with links or GET forms, it is not possible to send
       the state parameter in the body of the HTTP request. 
       That's why we send the state parameter
       in the URL (using GET method). 
       This may cause some problems because the state parameter will be
       saved in bookmarks.
-      Note that the state parameter is ignored if the auxiliary service
+      Note that the state parameter is ignored if the coservice
       does not exist in the table of services.</p>
 
       <div class="encadre">
@@ -732,11 +732,11 @@ let _ =
           another URL, and you want a page to be generated. That page may be
           the default page for the URL (the one you get when you go back
           to a bookmarked page), or another page, that depends on the precise
-          link or form you used to go to that URL (link to an auxiliary
-          service, or page depending on post data). 
+          link or form you used to go to that URL (link to a coservice, 
+          or page depending on post data). 
           Sometimes, you want that clicking
           a link or submitting a form does something without changing the URL.
-          You can do this using <em>anonymous services</em> (see below).
+          You can do this using <em>non-attached coservices</em> (see below).
           </p>
       </div>
     </div>
@@ -793,7 +793,7 @@ let _ = register_service
     <div class="twocol2">
 *html*)
 let launch_session sp () login =
-  let close = register_new_auxiliary_service_for_session
+  let close = register_new_coservice_for_session
       sp
       ~fallback:public_session_without_post_params 
       ~get_params:unit
@@ -849,17 +849,17 @@ let _ = register_service_for_session
 *zap*)
 (*html*
       <p>See the
-      $a Tutorial.public_session_without_post_params sp <:xmllist< result >> ()$.</p>
+      $a Tutoeliom.public_session_without_post_params sp <:xmllist< result >> ()$.</p>
       <p>Warning: to implement such connection form, you probably
        get more flexibility using <em>actions</em> instead of xhtml services
        (see below for the same example with actions).</p>
     </div>
-    <h2>Auxiliary services in session tables</h2>
+    <h2>Coservices in session tables</h2>
     <div class="twocol1">
-    <p>You can register auxiliary services in session tables to create
+    <p>You can register coservices in session tables to create
        dynamically new services dedicated to an user.
        Here is an example of pages that add two integer.
-       Once the first number is sent by the user, an auxiliary service
+       Once the first number is sent by the user, a coservice
        is created and registered in the session table. This service
        takes the second number as parameter and displays the result of
        the sum with the first one.
@@ -867,7 +867,7 @@ let _ = register_service_for_session
        navigator to verify that it has the expected behaviour.</p>
 *html*)
 (*zap* ------------------------------------------------------------------ *)
-(* You can register auxiliary services in session tables.
+(* You can register coservices in session tables.
    Use this if you want a link or a form which depends precisely on an
    instance of the web page, for example to buy something on an internet shop.
    UPDATE: Actually it is not a good example, because what we want in a shop
@@ -908,24 +908,24 @@ let write_shopping_basket shopping_basket =
     <:xmllist< Your shopping basket: <br/> $list:ffol$ >>
 
 let rec page_for_shopping_basket sp shopping_basket =
-  let auxiliary_shop_with_post_params = 
-    new_post_auxiliary_service
+  let coshop_with_post_params = 
+    new_post_coservice
       ~fallback:shop_without_post_params
       ~post_params:(string "article")
-  and auxiliary_pay = 
-    new_post_auxiliary_service
+  and copay = 
+    new_post_coservice
       ~fallback:shop_without_post_params
       ~post_params:unit
   in
     register_service_for_session
       sp
-      ~service:auxiliary_shop_with_post_params
+      ~service:coshop_with_post_params
       (fun sp () article -> 
                  page_for_shopping_basket 
                    sp (article::shopping_basket));
     register_service_for_session
       sp
-      auxiliary_pay
+      copay
       (fun sp () () -> return
            << <html><body>
                 <p>You are going to pay: 
@@ -934,8 +934,8 @@ let rec page_for_shopping_basket sp shopping_basket =
        return << <html>
            <body> 
              <div>$list:write_shopping_basket shopping_basket$</div>
-             $write_shop auxiliary_shop_with_post_params sp$ 
-             $post_form auxiliary_pay sp 
+             $write_shop coshop_with_post_params sp$ 
+             $post_form copay sp 
                     (fun _ -> [p [submit_input "pay"]]) ()$
            </body>
          </html> >>
@@ -969,7 +969,7 @@ let _ =
     (fun sp () i ->
       let is = string_of_int i in
       let calc_result = 
-	register_new_post_auxiliary_service_for_session
+	register_new_post_coservice_for_session
           sp
           ~fallback:calc
           ~post_params:(int "j")
@@ -1008,20 +1008,17 @@ let _ =
 	   (head (title (pcdata "")) [])
 	   (body [f])))
 (*html*
-      <p>See the $a Tutorial.calc sp <:xmllist< result >> ()$.</p>
+      <p>See the $a Tutoeliom.calc sp <:xmllist< result >> ()$.</p>
       <p>Services registered in session tables are called 
        <em>session services</em>. Services registered in the public table
        are called <em>public</em>.
       </p>
     </div>
-    <h2>Anonymous services</h2>
+    <h2>Non-attached coservices</h2>
     <div class="twocol1">
-     Anonymous services are services that are not attached to an URL.
+     Non-attached coservices are services that are not attached to an URL.
      When you do a link or a form towards such a service, the URL do not
      change. The name of the service is sent as a hidden parameter.
-     Forms may send other parameters (only with POST method).
-     Make a link towards an anonymous service using <code>anonymous_a</code>
-     and use <code>anonymous_form</code> to create a form.
     </div>
     <div class="twocol2">
      *************** TO BE FINISHED
@@ -1039,7 +1036,7 @@ let _ =
    For ex, when you have the same form (or link) on several pages 
    (for ex a connection form),
    instead of making a version with post params of all these pages,
-   you can use only one action, registered on an anonymous service.
+   you can use only one action, registered on a non-attached coservice.
    To register actions, just use the module <code>Actions</code>
    instead of <code>Eliom.Xhtml</code> or <code>Eliomduce</code>.
    For example
@@ -1053,17 +1050,18 @@ let action_session =
   new_service ~url:["action"] ~get_params:unit ()
 
 let connect_action = 
-  new_anonymous_service ~post_params:(string "login")
-
+  new_post_coservice' ~post_params:(string "login")
+    
 let accueil_action sp () () = 
-  let f = anonymous_form connect_action sp
+  let f = post_form connect_action sp
       (fun login -> 
         [p [pcdata "login: "; 
-            string_input login]]) in return
-  (html
-    (head (title (pcdata "")) [])
-    (body [f]))
-
+            string_input login]]) () in 
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body [f]))
+    
 let _ = register_service
   ~service:action_session
   accueil_action
@@ -1073,10 +1071,14 @@ let _ = register_service
 *html*)
 let rec launch_session sp login =
   let deconnect_action = 
-   Actions.register_new_anonymous_service_for_session sp unit 
-      (fun sp () -> return (close_session sp)) in
+   Actions.register_new_post_coservice_for_session'
+      sp
+      unit 
+      (fun sp () () -> return (close_session sp)) in
   let deconnect_box sp s = 
-    anonymous_a deconnect_action sp s in
+    post_form deconnect_action sp 
+      (fun _ -> [p [submit_input s]]) ()
+  in
   let new_main_page sp () () = return
     (html
       (head (title (pcdata "")) [])
@@ -1085,7 +1087,7 @@ let rec launch_session sp login =
                 a coucou sp [pcdata "coucou"] (); br ();
                 a hello sp [pcdata "hello"] (); br ();
                 a links sp [pcdata "links"] (); br ()];
-             deconnect_box sp [pcdata "Close session"]]))
+             deconnect_box sp "Close session"]))
   in
   register_service_for_session 
     sp ~service:action_session new_main_page;
@@ -1104,11 +1106,11 @@ let rec launch_session sp login =
                  pcdata login;
                  pcdata "!"]])))
     
-let _ = Actions.register_anonymous_service
+let _ = Actions.register_service
     connect_action
-    (fun sp login -> return (launch_session sp login))
+    (fun sp () login -> return (launch_session sp login))
 (*html*
-      <p>See these $a Tutorial.action_session sp <:xmllist< pages >> ()$.</p>
+      <p>See these $a Tutoeliom.action_session sp <:xmllist< pages >> ()$.</p>
     </div>
     <h2>Summary of concepts ************* TO BE FINISHED</h2>
     <div class="twocol1 encadre">
@@ -1116,8 +1118,8 @@ let _ = Actions.register_anonymous_service
       <dl>
         <dt>Main services</dt><dd>are the main entry points of your sites.
         <code>new_service</code></dd>
-        <dt>Auxiliary services</dt><dd></dd>
-        <dt>Anonymous services</dt><dd></dd>
+        <dt>Coservices</dt><dd></dd>
+        <dt>Non-attached coservices</dt><dd></dd>
       </dl>
       <p>Each of these services has its a version with POST parameters.
       remember to use POST parameters when you want a different behaviour
@@ -1178,7 +1180,7 @@ let _ = Actions.register_anonymous_service
         during the initialisation phase of your module.
         If not, the server will not start (with an error message in the logs).
         This is to ensure that all the URLs the user can bookmark
-        will always give an answer, even if the session has expired.
+        will always give an answer, even if the session has expired.</li>
         <li>Main services cannot be registered in the public table
          after the initialisation phase.
         </li>
@@ -1189,15 +1191,15 @@ let _ = Actions.register_anonymous_service
           If this happens after, it will be ignored (with a warning in the 
           logs).
         </li>
-        <li>All services (but anonymous ones) must be created in
+        <li>All services (but non-attached ones) must be created in
         a module loaded inside a <code>&lt;site&gt;</code> tag of the
         config file (because they will be attached to a directory).
         </li>
-        <li>GET Auxiliary services (whithout POST parameters) can be registered
+        <li>GET coservices (whithout POST parameters) can be registered
         only with a main service without GET/POST parameters as fallback.
         </li>
-        <li>Services with POST parameters (main or auxiliary) 
-        can be registered with a (main or auxiliary) service without POST
+        <li>Services with POST parameters (main service or coservice) 
+        can be registered with a (main or co) service without POST
         parameters as fallback.</li>
         <li></li>
         <li></li>
@@ -1393,7 +1395,7 @@ let looong =
      Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
      you can write <code>bind e1 (fun r -&gt; return e2)</code>.
      </p>
-     <p>See $a Tutorial.looong sp <:xmllist< looong >> ()$.</p>
+     <p>See $a Tutoeliom.looong sp <:xmllist< looong >> ()$.</p>
      <p><code>Lwt.bind</code>, (or <code>&gt;&gt;=</code>) has type<br/>
         <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
      <p><code>Lwt.return</code> has type<br/>
@@ -1443,7 +1445,7 @@ let looong2 =
           (body [h1 [pcdata 
 		   "Ok now, you can read the page."]]))))
 (*html*
-      <p>See $a Tutorial.looong2 sp <:xmllist< looong2 >> ()$.</p>      
+      <p>See $a Tutoeliom.looong2 sp <:xmllist< looong2 >> ()$.</p>      
       <p>A pool of preemptive threads is waiting for such 
       "detached functions". You can specify the number of threads in the pool
       in the configuration file.</p>
@@ -1620,7 +1622,7 @@ let create_suffixform (suff,i) =
 
 let suffixform = register_new_service ["suffixform"] unit
   (fun sp () () -> 
-     let f = get_form iprefix sp create_suffixform in return
+     let f = get_form isuffix sp create_suffixform in return
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -1700,10 +1702,10 @@ let _ = register_service main
        <p>
          A page with GET parameters: 
            $a coucou_params sp <:xmllist< coucou with params >> (45,(22,"krokodile"))$ (what if the first parameter is not an integer?)<br/> 
-         A page with "prefix" URL that knows the IP and user-agent of the client: 
-           $a uaprefix sp <:xmllist< uaprefix >> ("suf", "toto")$ <br/> 
-         A page with "prefix" URL and GET parameters : 
-           $a iprefix sp <:xmllist< iprefix >> ("popo", 333)$ <br/> 
+         A page with "suffix" URL that knows the IP and user-agent of the client: 
+           $a uasuffix sp <:xmllist< uasuffix >> ("suf", "toto")$ <br/> 
+         A page with "suffix" URL and GET parameters : 
+           $a isuffix sp <:xmllist< isuffix >> ("popo", 333)$ <br/> 
          A page with a parameter of user-defined type : 
              $a mytype sp <:xmllist< mytype >> A$ </p>
        <h3>Links and Formulars</h3>
@@ -1725,8 +1727,8 @@ let _ = register_service main
              $a form4 sp <:xmllist< form4 >> ()$ </p> 
        <h3>Sessions</h3>
        <p>
-         Auxiliary services: 
-             $a auxiliaryserv sp <:xmllist< auxiliary >> ()$ (problem with bookmarked GET parameters ..s...) <br/> 
+         Coservices: 
+             $a coserv sp <:xmllist< coservice >> ()$ <br/> 
          A session based on cookies: 
              $a public_session_without_post_params sp <:xmllist< session >> ()$ <br/> 
          A session based on cookies, implemented with actions: 

@@ -22,8 +22,8 @@ PLUGINSCMAOTOINSTALL = modules/eliommod.cma modules/ocsigenmod.cma modules/stati
 PLUGINSCMITOINSTALL = modules/eliom.cmi modules/ocsigen.cmi modules/staticmod.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi $(DUCECMI)
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi baselib/messages.cmi META
-EXAMPLESCMO = examples/tutorial.cmo examples/monitoring.cmo $(DUCEEXAMPLES)
-EXAMPLESCMI = examples/tutorial.cmi
+EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo $(DUCEEXAMPLES)
+EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
 PP = -pp "camlp4o ./xmlp4/xhtmlsyntax.cma -loc loc"
 
 ifeq "$(BYTECODE)" "YES"
@@ -125,8 +125,8 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) $(PP) -package ssl -I lwt -I baselib -I http -I xmlp4 -I server -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
-	$(CAMLDOC) $(PP) -package netstring -I lwt -I baselib -I http -I xmlp4 -I server -I `$(CAMLP4) -where` -d doc/oc -html server/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli modules/eliomboxes.mli
+	$(CAMLDOC) $(PP) -package ssl $(LIBDIRS3) -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
+	$(CAMLDOC) $(PP) -package netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -d doc/oc -html modules/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli modules/eliomboxes.mli
 
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done

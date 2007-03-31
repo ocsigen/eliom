@@ -38,12 +38,11 @@ type pages_tree =
       * cookiestable (* session tables *)
 
 type 'a server_params1 = 
-    request_info * current_dir * 'a ref
-type 'a server_params2 = url_path * 'a server_params1
+    request_info * (current_dir * 'a ref * (string * string) list * url_path)
 type server_params = tables server_params1
 
 type page_table_key =
-    {prefix:bool;
+    {suffix:bool;
      state: (internal_state option * internal_state option)}
 
 val gen :
@@ -60,7 +59,7 @@ val add_service :
           string list ->
             Predefined_senders.create_sender_type option ->
               page_table_key *
-                (int * (tables server_params2 -> 
+                (int * (server_params -> 
                   Predefined_senders.send_page_type Lwt.t)) ->
                     unit
 
@@ -68,9 +67,9 @@ val add_anservice :
     tables -> 
       current_dir ->
 	bool -> 
-	  string -> 
+	  (string option * string option) -> 
             Predefined_senders.create_sender_type option ->
-	      (tables server_params1 -> 
+	      (server_params -> 
 		Predefined_senders.send_page_type Lwt.t) -> unit
 
 
@@ -79,6 +78,8 @@ val post_state_param_name : string
 val eliom_suffix_name : string
 val anservice_prefix : string
 val anservice_name : string
+val co_param_prefix : string
+val na_co_param_prefix : string
 
 val config : 
     Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ref
@@ -91,7 +92,7 @@ val config :
 val get_current_hostdir : unit -> pages_tree * url_path
 val end_current_hostdir : unit -> unit
 val verify_all_registered : unit -> unit
-val add_unregistered : string list * int -> unit
-val remove_unregistered : string list * int -> unit
+val add_unregistered : string list option * int -> unit
+val remove_unregistered : string list option * int -> unit
 val global_register_allowed : unit -> bool
 

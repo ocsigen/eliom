@@ -108,3 +108,8 @@ let reconstruct_relative_url_path current_url u suff =
 (*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
   if s = "" then defaultpagename else s
 
+let rec relative_url_path_to_myself = function
+    []
+  | [""] -> defaultpagename
+  | [a] -> a
+  | a::l -> relative_url_path_to_myself l

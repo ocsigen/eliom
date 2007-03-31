@@ -34,15 +34,18 @@ type current_url = Extensions.current_url
 type url_path = Extensions.url_path
 type server_params = Eliommod.server_params
 
-let get_user_agent (ri,_,_) = ri.ri_user_agent
-let get_full_url (ri,_,_) = ri.ri_path_string^ri.ri_params
-let get_ip (ri,_,_) = ri.ri_ip
-let get_inet_addr (ri,_,_) = ri.ri_inet_addr
-let get_get_params (ri,_,_) = force ri.ri_get_params
-let get_post_params (ri,_,_) = force ri.ri_post_params
-let get_current_url (ri,_,_) = ri.ri_path
-let get_hostname (ri,_,_) = ri.ri_host
-let get_port (ri,_,_) = ri.ri_port
+let get_user_agent (ri,_) = ri.ri_user_agent
+let get_full_url (ri,_) = ri.ri_path_string^ri.ri_params
+let get_ip (ri,_) = ri.ri_ip
+let get_inet_addr (ri,_) = ri.ri_inet_addr
+let get_get_params (ri,_) = force ri.ri_get_params
+let get_post_params (ri,_) = force ri.ri_post_params
+let get_current_path_string (ri,_) = ri.ri_path_string
+let get_current_path (ri,_) = ri.ri_path
+let get_hostname (ri,_) = ri.ri_host
+let get_port (ri,_) = ri.ri_port
+let get_other_get_params (_,(_,_,o,_)) = o
+let get_suffix (_,(_,_,_,o)) = o
 
 let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
@@ -271,10 +274,43 @@ let construct_params (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
   | _ -> "",(aux typ params "" "")
 
 
+(* Add a prefix to parameters *)
+let rec add_pref_params pref = function
+    TProd (t1, t2) -> TProd ((add_pref_params pref t1),
+                             (add_pref_params pref t2))
+  | TOption t -> TOption (add_pref_params pref t)
+  | TBool name -> TBool (pref^name)
+  | TList (list_name, t) -> TList (pref^list_name, t)
+  | TSum (t1, t2) -> TSum ((add_pref_params pref t1),
+                           (add_pref_params pref t2))
+  | TString name -> TString (pref^name)
+  | TInt name -> TInt (pref^name)
+  | TFloat name -> TFloat (pref^name)
+  | TFile name -> TFile (pref^name)
+  | TUserType (name, of_string, string_of) -> 
+      TUserType (pref^name, of_string, string_of)
+  | TUnit -> TUnit
+  | TSuffix -> TSuffix
+
+(* Remove all parameters whose name starts with pref *)
+let remove_prefixed_param pref l =
+  let len = String.length pref in
+  let rec aux = function
+      [] -> []
+    | ((n,v) as a)::l -> 
+        try if (String.sub n 0 len) = pref 
+        then aux l
+        else a::(aux l)
+        with _ -> a::(aux l)
+  in aux l
+
+
+
+
 
 
 (** Typed services *)
-type internal_service_kind = [ `Main_Service | `Aux_Service ]
+type internal_service_kind = [ `Service | `Coservice | `NonAttachedCoservice ]
 type internal_service_kind2 = [ `Get_serv | `Post_serv ]
       (* `Post_serv means that there is at least one post param
          (possibly only the state post param).
@@ -284,26 +320,40 @@ type service_kind =
     [ `Internal_Service of internal_service_kind * internal_service_kind2
     | `External_Service]
 
-type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) service = 
+type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) attached_service =
     {url: url_path; (* name of the service without parameters *)
-        (* unique_id is here only for registering on top of this service *)
+     (* unique_id is here only for registering on top of this service *)
      unique_id: int;
-     url_prefix: bool;
-     external_service: bool;
+     url_suffix: bool;
+     kind: service_kind;
      get_state: internal_state option;
      post_state: internal_state option;
      (* 'kind is just a type information: it can be only 
         `Internal_Service ...
         or `External_Service, 
 	so that we can't use session services as fallbacks for
-        other session services. If it is a session service, it contains a value
+        other session services. 
+        If it is a coservice, it contains a value
         (internal state) that will allow to differenciate between
         services that have the same url.
       *)
-     get_params_type: ('get,'tipo,'getnames) params_type;
-     post_params_type: ('post,[`WithoutSuffix],'postnames) params_type;
+     get_params_type: ('get, 'tipo, 'getnames) params_type;
+     post_params_type: ('post, [`WithoutSuffix], 'postnames) params_type;
+   }
+      
+type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) nonattached_service =
+    {na_name: string option * string option;
+     na_unique_id: int;
+     na_kind: service_kind;
+     na_get_params_type: ('get, 'tipo, 'getnames) params_type;
+     na_post_params_type: ('post, [`WithoutSuffix], 'postnames) params_type
    }
 
+type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) service = 
+    Attached of 
+      ('get,'post,'kind,'tipo,'getnames,'postnames) attached_service
+  | Nonattached of
+      ('get,'post,'kind,'tipo,'getnames,'postnames) nonattached_service
 
 
 
@@ -314,21 +364,22 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) service =
 (*****************************************************************************)
 
 (** Satic directories **)
-let static_dir (ri,curdir,sesstab) : 
-    (string, unit, [`Internal_Service of [`Main_Service] * [`Get_serv]],
+let static_dir (_,(curdir,_,_,_)) : 
+    (string, unit, [> `Internal_Service of [> `Service] * [> `Get_serv]],
      [`WithSuffix],string param_name, unit param_name) service =
-  {url = curdir;
-   unique_id = counter ();
-   get_state = None;
-   post_state = None;
-   url_prefix = true;
-   external_service = false;
-   get_params_type = suffix_only;
-   post_params_type = unit
- }
+  Attached
+    {url = curdir;
+     unique_id = counter ();
+     get_state = None;
+     post_state = None;
+     url_suffix = true;
+     kind = `Internal_Service (`Service, `Get_serv);
+     get_params_type = suffix_only;
+     post_params_type = unit
+   }
 
 (** Close a session *)
-let close_session (_,_,sesstab) = sesstab := empty_tables ()
+let close_session (_,(_,sesstab,_,_)) = sesstab := empty_tables ()
 
 
 (****************************************************************************)
@@ -338,26 +389,26 @@ let close_session (_,_,sesstab) = sesstab := empty_tables ()
 (** Create a service *)
 let new_service_aux_aux
     ~(url : url_path)
-    ~prefix
-    ~external_service
+    ~suffix
+    ~kind
     ~(get_params : 
         ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-    : ('get,'post,'kind,'tipo,'gn,'pn) service =
+    : ('get,'post,'kind,'tipo,'gn,'pn) attached_service =
 (* ici faire une vérification "duplicate parameter" ? *) 
   {url = url;
    unique_id = counter ();
-   url_prefix = prefix;
+   url_suffix = suffix;
    get_state = None;
    post_state = None;
-   external_service = external_service;
+   kind = kind;
    get_params_type = get_params;
    post_params_type = post_params;
  }
     
 let new_service_aux
     ~(url : url_path)
-    ~prefix
+    ~suffix
     ~(get_params : 
         ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
     : ('get,unit,[`Internal_Service of 'popo * 'lolo],
@@ -367,85 +418,120 @@ let new_service_aux
     let full_path = curdir@(change_empty_list url) in
     let u = new_service_aux_aux
         ~url:full_path
-        ~prefix
-        ~external_service:false
+        ~suffix
+        ~kind:(`Internal_Service (`Service, `Get_serv))
         ~get_params
         ~post_params:unit
     in
-    add_unregistered (u.url,u.unique_id); u
+    add_unregistered (Some u.url, u.unique_id); Attached u
   else raise Eliom_service_created_outside_site_loading
       
 let new_external_service
     ~(url : url_path)
-    ?(prefix=false)
+    ?(suffix=false)
     ~(get_params : 
         ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     ()
     : ('get,'post,[`External_Service],'tipo,'gn,'pn) service =
-  new_service_aux_aux
-    ~url
-    ~prefix
-    ~external_service:true
-    ~get_params 
-    ~post_params
+  Attached
+    (new_service_aux_aux
+       ~url
+       ~suffix
+       ~kind:`External_Service
+       ~get_params 
+       ~post_params)
     
 let new_service
     ~(url : url_path)
-    ?(prefix=false)
+    ?(suffix=false)
     ~(get_params : 
         ('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn) params_type)
     ()
-    : ('get,unit,[`Internal_Service of [`Main_Service] * [`Get_serv]],
-       'tipo,'gn, 
+    : ('get, unit, [`Internal_Service of [`Service] * [`Get_serv]],
+       'tipo, 'gn, 
        unit param_name) service =
-  new_service_aux ~url ~prefix ~get_params
-    
-let new_auxiliary_service
+  new_service_aux ~url ~suffix ~get_params
+
+let new_anservice_name () = string_of_int (counter ())
+
+let new_coservice
     ~(fallback : 
-        (unit,unit, [`Internal_Service of [`Main_Service] * [`Get_serv]],
+        (unit,unit, [`Internal_Service of [`Service] * [`Get_serv]],
          [`WithoutSuffix],
          unit param_name,unit param_name) service)
-    ~(get_params : 
-        ('get,[`WithoutSuffix],'gn) params_type)
-    : ('get,unit,[`Internal_Service of [`Aux_Service] * [`Get_serv]],
+    ~(get_params : ('get,[`WithoutSuffix],'gn) params_type)
+    : ('get,unit,[`Internal_Service of [< `Coservice ]
+        * [`Get_serv]],
+       [`WithoutSuffix],'gn,unit param_name) service =
+  let c = counter () in
+  match fallback with
+    Attached fallback ->
+      if global_register_allowed () then
+        add_unregistered (Some fallback.url, c);
+      Attached
+        {fallback with
+         unique_id = c;
+         kind = `Internal_Service (`Coservice, `Get_serv);
+         get_params_type = add_pref_params co_param_prefix get_params;
+         get_state = new_state ()}
+  | _ -> assert false
+(* Warning: here no GET parameters for the fallback.
+   Apply services with apply_service 
+   if you want fallbacks with GET parameters *)
+    
+
+let new_coservice'
+    ~(get_params : ('get,[`WithoutSuffix],'gn) params_type)
+    : ('get,unit,[`Internal_Service of [< `NonAttachedCoservice ]
+        * [`Get_serv]],
        [`WithoutSuffix],'gn,unit param_name) service =
   let c = counter () in
   if global_register_allowed () then
-    add_unregistered (fallback.url,c);
-  {fallback with
-   unique_id = c;
-   get_params_type = get_params;
-   get_state = new_state ()}
-(* Warning: here no GET parameters for the fallback *)
+    add_unregistered (None, c);
+  Nonattached
+    {na_name = (Some (new_anservice_name ()), None);
+     na_unique_id = c;
+     na_kind = `Internal_Service (`NonAttachedCoservice, `Get_serv);
+     na_get_params_type = add_pref_params na_co_param_prefix get_params;
+     na_post_params_type = unit;
+   }
     
     
 (****************************************************************************)
 (** Register a service with post parameters in the server *)
 let new_post_service_aux
     ~(fallback : ('get, unit, 
-                  [`Internal_Service of 
-                    ([<`Main_Service | `Aux_Service] as 'kind) *
+                  [ `Internal_Service of 
+                    ([< `Service | `Coservice ] as 'kind) *
                       [`Get_serv]],
                   'tipo,'gn,unit param_name) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-    : ('get, 'post, [`Internal_Service of 'kind * [`Post_serv]],
-       'tipo,'gn,'pn) service = 
+    : ('get, 'post, [> `Internal_Service of 'kind * [> `Post_serv]],
+       'tipo,'gn,'pn) attached_service = 
 (* ici faire une vérification "duplicate parameter" ? *) 
-  {url = fallback.url;
-   unique_id = counter ();
-   url_prefix = fallback.url_prefix;
-   external_service = false;
-   get_state = fallback.get_state;
-   post_state = None;
-   get_params_type = fallback.get_params_type;
-   post_params_type = post_params;
- }
+  match fallback with
+    Nonattached _ -> assert false
+  | Attached fallback ->
+      let k =
+        match fallback.kind with
+          `Internal_Service (`Service, _) -> `Service
+        | _ -> `Coservice
+      in
+        {url = fallback.url;
+         unique_id = counter ();
+         url_suffix = fallback.url_suffix;
+         kind = `Internal_Service (k, `Post_serv);
+         get_state = fallback.get_state;
+         post_state = None;
+         get_params_type = fallback.get_params_type;
+         post_params_type = post_params;
+       }
     
 let new_post_service
     ~(fallback : ('get, unit, 
-                  [`Internal_Service of 
-                    ([<`Main_Service | `Aux_Service] as 'kind) * [`Get_serv]],
+                  [ `Internal_Service of 
+                    ([<`Service | `Coservice] as 'kind) * [`Get_serv]],
                   'tipo,'gn,unit param_name) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
     : ('get, 'post, [`Internal_Service of 'kind * [`Post_serv]],
@@ -453,47 +539,102 @@ let new_post_service
   (if post_params = TUnit
   then Messages.warning "Probably error in the module: \
       Creation of a POST service without POST parameters.");
-  if ((fallback.get_state <> None) ||
-  (global_register_allowed ())) then 
-    let u = new_post_service_aux fallback post_params in
-    add_unregistered (u.url,u.unique_id); u
-  else raise Eliom_service_created_outside_site_loading
+  let (k, url) =
+    match fallback with
+      Attached service -> (service.kind, Some service.url)
+    | Nonattached service -> (service.na_kind, None)
+  in
+  let kind = 
+    (match k with
+      `Internal_Service (k, _) -> k
+    | _ -> assert false)
+  in
+  let u = new_post_service_aux fallback post_params in
+  if global_register_allowed () then begin
+    add_unregistered (url, u.unique_id); 
+    Attached u
+  end
+  else
+    if kind = `Service
+    then raise Eliom_service_created_outside_site_loading
+    else Attached u
 (* Warning: strange if post_params = unit... *)    
 
   
-let new_post_auxiliary_service
+let new_post_coservice
     ~(fallback : ('get, unit, [`Internal_Service of 
-      [<`Main_Service | `Aux_Service] * [`Get_serv]],
-                  'tipo,'gn,unit param_name) service)
+      [< `Service | `Coservice ] * [`Get_serv]],
+                  [< `WithSuffix | `WithoutSuffix] as 'tipo,
+                  'gn,unit param_name) service)
     ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
-    : ('get, 'post, [`Internal_Service of [`Aux_Service] * [`Post_serv]],
+    : ('get, 'post, [`Internal_Service of 
+      [< `Coservice ] * [`Post_serv]],
        'tipo,'gn,'pn) service = 
   let c = counter () in
-  if global_register_allowed () then
-    add_unregistered (fallback.url,c);
-  {fallback with 
-   unique_id = c;
-   post_state = new_state ();
-   post_params_type = post_params;
- }
-    
+  match fallback with
+    Attached fallback ->
+      if global_register_allowed () then
+        add_unregistered (Some fallback.url, c);
+      Attached
+        {fallback with 
+         unique_id = c;
+         kind = `Internal_Service (`Coservice, `Post_serv);
+         post_state = new_state ();
+         post_params_type = post_params;
+       }
+  | _ -> assert false
+(* It is not possible to make a new_post_coservice function 
+   with an optional ?fallback parameter
+   because the type 'get of the result depends on the 'get of the
+   fallback. Or we must impose 'get = unit ...
+ *)
 
-(** Anonymous services *)
-(* actions (new 10/05) *)
-(* replaced by anonymous services (new 03/07) *)
-type ('post,'pn) anonymous_service =
-    {anservice_name: string;
-     anservice_params_type: ('post,[`WithoutSuffix],'pn) params_type}
-      
-let new_anservice_name () = string_of_int (counter ())
-    
-let new_anonymous_service
-    ~(post_params : ('post,[`WithoutSuffix],'pn) params_type) =
-  {
-   anservice_name = new_anservice_name ();
-   anservice_params_type = post_params;
- }
-    
+let new_post_coservice'
+    ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+    : (unit, 'post, [`Internal_Service of 
+      [< `NonAttachedCoservice] * [`Post_serv]],
+       [`WithoutSuffix], unit param_name, 'pn) service = 
+  let c = counter () in
+  if global_register_allowed () then
+    add_unregistered (None, c);
+  Nonattached
+    {na_name = (None, Some (new_anservice_name ()));
+     na_unique_id = c;
+     na_kind = `Internal_Service (`NonAttachedCoservice, `Post_serv);
+     na_get_params_type = unit;
+     na_post_params_type = post_params;
+   }
+
+(*
+let new_get_post_coservice'
+    ~(fallback : ('get, unit, [`Internal_Service of 
+      [< `NonAttachedCoservice ] * [`Get_serv]],
+                  [< `WithSuffix | `WithoutSuffix] as 'tipo,
+                  'gn,unit param_name) service)
+    ~(post_params : ('post, [`WithoutSuffix], 'pn) params_type)
+    : ('get, 'post, [`Internal_Service of 
+      [< `NonAttachedCoservice ] * [`Post_serv]],
+       'tipo,'gn,'pn) service = 
+  let c = counter () in
+  match fallback with
+    Nonattached fallback ->
+      if global_register_allowed () then
+        add_unregistered (None, c);
+      Nonattached
+        {na_name = (fst fallback.na_name, Some (new_anservice_name ()));
+         na_unique_id = c;
+         na_kind = `Internal_Service (`NonAttachedCoservice, `Post_serv);
+         na_get_params_type = fallback.na_get_params_type;
+         na_post_params_type = post_params;
+       }
+  | _ -> assert false
+(* This is a nonattached coservice with GET and POST parameters!
+   When reloading, the fallback (a nonattached coservice with only GET 
+   parameters) will be called.
+ *)
+
+Forms towards that kind of service are not implemented
+*)
 
 
 (****************************************************************************)
@@ -579,7 +720,7 @@ module type FORMCREATE =
 
   end
 
-module type OCSIGENFORMSIG =
+module type ELIOMFORMSIG =
   sig
 
     type form_content_elt
@@ -631,15 +772,6 @@ module type OCSIGENFORMSIG =
     val make_uri :
         ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
           server_params -> 'a -> uri
-    val anonymous_a :
-        ?a:a_attrib_t ->
-          ('a, 'b) anonymous_service ->
-            server_params -> a_content_elt_list -> form_elt
-    val anonymous_form :
-        ?a:form_attrib_t ->
-          ('a, 'b) anonymous_service ->
-            server_params ->
-              ('b -> form_content_elt_list) -> form_elt
     val js_script :
         ?a:script_attrib_t -> uri -> script_elt
     val css_link : ?a:link_attrib_t -> uri -> link_elt
@@ -699,13 +831,14 @@ module type OCSIGENFORMSIG =
                             file_info param_name-> input_elt
   end
 
-module type OCSIGENREGSIG =
+module type ELIOMREGSIG =
   sig
     type page
 
     val register_service :
         service:('a, 'b, [ `Internal_Service of 
-          [<`Main_Service | `Aux_Service ] * [< `Get_serv | `Post_serv] ],
+          [<`Service | `Coservice | `NonAttachedCoservice ]
+            * [< `Get_serv | `Post_serv] ],
                  [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
                    ?error_handler:(server_params -> 
                      (string * exn) list -> page Lwt.t) ->
@@ -714,7 +847,8 @@ module type OCSIGENREGSIG =
     val register_service_for_session :
         server_params ->
           service:('a, 'b, [ `Internal_Service of 
-            [<`Main_Service | `Aux_Service ] * [< `Get_serv | `Post_serv] ],
+            [< `Service | `Coservice | `NonAttachedCoservice ]
+              * [< `Get_serv | `Post_serv] ],
                    [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
             service ->
               ?error_handler:(server_params -> (string * exn) list -> 
@@ -723,58 +857,85 @@ module type OCSIGENREGSIG =
 
     val register_new_service :
         url:url_path ->
-          ?prefix:bool ->
+          ?suffix:bool ->
             get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
               params_type ->
                 ?error_handler:(server_params -> (string * exn) list -> 
                   page Lwt.t) ->
                     (server_params -> 'a -> unit -> page Lwt.t) ->
                       ('a, unit, [ `Internal_Service of
-                        [ `Main_Service ] * [`Get_serv]], 
+                        [ `Service ] * [`Get_serv]], 
                        'b, 'c, unit param_name) service
 
 
-    (** Auxiliary services *)
+    (** Coservices *)
 
-    val register_new_auxiliary_service :
-        fallback:(unit, unit, [ `Internal_Service of [ `Main_Service ] *
+    val register_new_coservice :
+        fallback:(unit, unit, [ `Internal_Service of [ `Service ] *
             [`Get_serv]],
-                  [`WithoutSuffix], 
-                  unit param_name, unit param_name)
+                   [`WithoutSuffix], 
+                   unit param_name, unit param_name)
         service ->
           get_params: 
-            ('get,[`WithoutSuffix],'gn) params_type ->
+            ('get, [`WithoutSuffix], 'gn) params_type ->
               ?error_handler:(server_params -> 
                 (string * exn) list -> page Lwt.t) ->
                   (server_params -> 'get -> unit -> page Lwt.t) ->
                     ('get, unit, 
-                     [ `Internal_Service of [ `Aux_Service ] * [`Get_serv]], 
+                     [ `Internal_Service of
+                       [< `Coservice ] * [`Get_serv]], 
                      [`WithoutSuffix], 'gn, unit param_name)
                       service
 
-    val register_new_auxiliary_service_for_session :
+    val register_new_coservice' :
+        get_params: 
+        ('get, [`WithoutSuffix], 'gn) params_type ->
+          ?error_handler:(server_params -> 
+            (string * exn) list -> page Lwt.t) ->
+              (server_params -> 'get -> unit -> page Lwt.t) ->
+                ('get, unit, 
+                 [ `Internal_Service of
+                   [< `NonAttachedCoservice ] * [`Get_serv]], 
+                 [`WithoutSuffix], 'gn, unit param_name)
+                  service
+
+    val register_new_coservice_for_session :
         server_params ->
-          fallback:(unit, unit, [ `Internal_Service of [ `Main_Service ] * 
+          fallback:(unit, unit, [ `Internal_Service of [ `Service ] * 
               [`Get_serv]],
-                    [ `WithoutSuffix ] as 'b, 
+                    [ `WithoutSuffix ], 
                     unit param_name, unit param_name)
             service ->
               get_params: 
-                ('get,[`WithoutSuffix] as 'tipo,'gn) params_type ->
+                ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
                   ?error_handler:(server_params -> (string * exn) list -> 
                     page Lwt.t) ->
                       (server_params -> 'get -> unit -> page Lwt.t) ->
                         ('get, unit, [ `Internal_Service of
-                          [ `Aux_Service ] * [`Get_serv] ], 
+                          [< `Coservice ]
+                            * [`Get_serv] ], 
                          [`WithoutSuffix], 'gn, unit param_name)
                           service
+
+    val register_new_coservice_for_session' :
+        server_params ->
+          get_params: 
+            ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+              ?error_handler:(server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (server_params -> 'get -> unit -> page Lwt.t) ->
+                    ('get, unit, [ `Internal_Service of
+                      [< `NonAttachedCoservice ]
+                        * [`Get_serv] ], 
+                     [`WithoutSuffix], 'gn, unit param_name)
+                      service
 
 
     (** Services with post parameters *)
 
     val register_new_post_service :
         fallback:('a, unit, [ `Internal_Service of 
-          ([< `Main_Service | `Aux_Service ] as 'kind) * [`Get_serv] ],
+          ([< `Service | `Coservice ] as 'kind) * [`Get_serv] ],
                   [< `WithSuffix | `WithoutSuffix ] as 'b, 'c,
                   unit param_name)
         service ->
@@ -786,23 +947,52 @@ module type OCSIGENREGSIG =
                    'b, 'c, 'e)
                     service
 
-    val register_new_post_auxiliary_service :
+    val register_new_post_coservice :
         fallback:('a, unit , [ `Internal_Service of 
-          [< `Main_Service | `Aux_Service ] * [`Get_serv] ],
-                  [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, unit param_name)
+          [< `Service | `Coservice ] * [`Get_serv] ],
+                   [< `WithSuffix | `WithoutSuffix ] as 'c, 
+                   'd, unit param_name)
         service ->
           post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
               page Lwt.t) ->
                 (server_params -> 'a -> 'f -> page Lwt.t) ->
-                  ('a, 'f, [ `Internal_Service of [ `Aux_Service ] 
+                  ('a, 'f, [ `Internal_Service of
+                    [< `Coservice ] 
                       * [`Post_serv] ], 'c, 'd, 'g)
                     service
 
-    val register_new_post_auxiliary_service_for_session :
+    val register_new_post_coservice' :
+        post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+          ?error_handler:(server_params -> (string * exn) list -> 
+            page Lwt.t) ->
+              (server_params -> unit -> 'f -> page Lwt.t) ->
+                (unit, 'f, [ `Internal_Service of
+                  [< `NonAttachedCoservice ] 
+                    * [`Post_serv] ], [ `WithoutSuffix ], unit param_name, 'g)
+                  service
+
+(*
+    val register_new_get_post_coservice' :
+        fallback:('a, unit , [ `Internal_Service of 
+          [< `NonAttachedCoservice ] * [`Get_serv] ],
+                   [< `WithSuffix | `WithoutSuffix ] as 'c, 
+                   'd, unit param_name)
+        service ->
+          post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+            ?error_handler:(server_params -> (string * exn) list -> 
+              page Lwt.t) ->
+                (server_params -> 'a -> 'f -> page Lwt.t) ->
+                  ('a, 'f, [ `Internal_Service of
+                    [< `NonAttachedCoservice ] 
+                      * [`Post_serv] ], 'c, 'd, 'g)
+                    service
+*)
+
+    val register_new_post_coservice_for_session :
         server_params ->
           fallback:('a, unit, [ `Internal_Service of
-            [< `Main_Service | `Aux_Service ] * [`Get_serv] ],
+            [< `Service | `Coservice ] * [`Get_serv] ],
                     [< `WithSuffix | `WithoutSuffix ] as 'c, 
                     'd, unit param_name)
             service ->
@@ -811,43 +1001,49 @@ module type OCSIGENREGSIG =
                   (string * exn) list -> page Lwt.t) ->
                     (server_params -> 'a -> 'f -> page Lwt.t) ->
                       ('a, 'f, [ `Internal_Service of
-                        [ `Aux_Service ] * [`Post_serv] ], 
+                        [ `Coservice ]
+                          * [`Post_serv] ], 
                        'c, 'd, 'g)
                         service
 
-    val register_anonymous_service :
-        anonymous_service:('a, 'b) anonymous_service ->
-          ?error_handler:(server_params -> (string * exn) list -> 
-            page Lwt.t) ->
-	      (server_params -> 'a -> page Lwt.t) -> unit
-              
-    val register_anonymous_service_for_session :
+    val register_new_post_coservice_for_session' :
         server_params ->
-	  anonymous_service:('a, 'b) anonymous_service ->
-            ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-            (server_params -> 'a -> page Lwt.t) -> unit
-                
-    val register_new_anonymous_service :
-        post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-          ?error_handler:(server_params -> (string * exn) list -> 
-            page Lwt.t) ->
-	      (server_params -> 'a -> page Lwt.t) -> 
-                ('a, 'b) anonymous_service
-              
-    val register_new_anonymous_service_for_session :
-        server_params ->
-	  post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-            ?error_handler:(server_params -> (string * exn) list -> 
-              page Lwt.t) ->
-                (server_params -> 'a -> page Lwt.t) -> 
-                  ('a, 'b) anonymous_service
+          post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+            ?error_handler:(server_params -> 
+              (string * exn) list -> page Lwt.t) ->
+                (server_params -> unit -> 'f -> page Lwt.t) ->
+                  (unit, 'f, [ `Internal_Service of
+                    [ `NonAttachedCoservice ]
+                      * [`Post_serv] ], 
+                   [ `WithoutSuffix ], unit param_name, 'g)
+                    service
 
+(*
+    val register_new_get_post_coservice_for_session' :
+        server_params ->
+          fallback:('a, unit, [ `Internal_Service of
+            [< `NonAttachedCoservice ] * [`Get_serv] ],
+                    [< `WithSuffix | `WithoutSuffix ] as 'c, 
+                    'd, unit param_name)
+            service ->
+              post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+                ?error_handler:(server_params -> 
+                  (string * exn) list -> page Lwt.t) ->
+                    (server_params -> 'a -> 'f -> page Lwt.t) ->
+                      ('a, 'f, [ `Internal_Service of
+                        [ `NonAttachedCoservice ]
+                          * [`Post_serv] ], 
+                       'c, 'd, 'g)
+                        service
+*)
 
   end
 
-module type OCSIGENSIG = sig
-  include OCSIGENREGSIG
-  include OCSIGENFORMSIG
+
+
+module type ELIOMSIG = sig
+  include ELIOMREGSIG
+  include ELIOMFORMSIG
 end
 
 
@@ -861,66 +1057,116 @@ module MakeRegister = functor
           current_dir
           tables
           session
-          state
           ~(service : 
 	      ('get,'post,[`Internal_Service of 'popo * 'lolo],
                'tipo,'gn,'pn) service)
           ?(error_handler = fun sp l -> raise (Eliom_Typing_Error l))
           (page_generator : server_params -> 'get -> 'post -> page Lwt.t) =
-        add_service tables 
-	  current_dir
-	  session
-	  service.url 
-          Pages.create_sender
-          ({prefix = service.url_prefix;
-            state = state},
-           (service.unique_id,
-            (fun (suff,((ri,_,_) as h)) -> 
-              (catch (fun () -> 
-                (force ri.ri_post_params) >>=
-                (fun post_params ->
-                  (force ri.ri_files) >>=
-                  (fun files ->
-                    (page_generator h 
-                       (reconstruct_params 
-                          service.get_params_type
-                          (force ri.ri_get_params)
-                          []
-                          suff)
-                       (reconstruct_params
-                          service.post_params_type
-                          post_params
-                          files
-                          suff)))))
-                 (function
-                     Eliom_Typing_Error l -> error_handler h l
-                   | e -> fail e)) >>=
-              (fun c -> return (Pages.send ~content:c)))))
+        match service with
+          Attached service ->
+            add_service tables 
+	      current_dir
+	      session
+	      service.url 
+              Pages.create_sender
+              ({suffix = service.url_suffix;
+                state = (service.get_state, service.post_state)},
+               (service.unique_id,
+                (fun ((ri,(_,_,_,suff)) as h) -> 
+                  (catch (fun () -> 
+                    (force ri.ri_post_params) >>=
+                    (fun post_params ->
+                      (force ri.ri_files) >>=
+                      (fun files ->
+                        (page_generator h 
+                           (reconstruct_params 
+                              service.get_params_type
+                              (force ri.ri_get_params)
+                              []
+                              suff)
+                           (reconstruct_params
+                              service.post_params_type
+                              post_params
+                              files
+                              [])))))
+                     (function
+                         Eliom_Typing_Error l -> error_handler h l
+                       | e -> fail e)) >>=
+                  (fun c -> return (Pages.send ~content:c)))))
+        | Nonattached service ->
+            add_anservice 
+	      tables
+	      current_dir 
+	      session
+	      service.na_name
+	      Pages.create_sender
+	      (fun ((ri,_) as h) ->
+	        (catch
+	           (fun () ->
+	             (force ri.ri_post_params) >>=
+	             (fun post_params ->
+		       (force ri.ri_files) >>=
+		       (fun files ->
+                         (page_generator h 
+                            (reconstruct_params
+                               service.na_get_params_type
+                               (force ri.ri_get_params)
+                               []
+                               [])
+                            (reconstruct_params
+                               service.na_post_params_type
+                               post_params
+                               files
+                               [])))))
+	           (function
+                       Eliom_Typing_Error l -> error_handler h l
+                     | e -> fail e)) >>=
+                (fun c -> return (Pages.send ~content:c)))
+
 
       let register_service 
           ~(service : ('get,'post,
-		       [`Internal_Service of [<`Main_Service | `Aux_Service ] *
+		       [`Internal_Service of 
+                         [<`Service | `Coservice | `NonAttachedCoservice ] *
                            [< `Get_serv | `Post_serv]],
                        'tipo,'gn,'pn) service)
           ?error_handler
           (page_gen : server_params -> 'get -> 'post -> page Lwt.t) =
-        if ((service.get_state <> None) ||
-            (service.post_state <> None) ||
-            (global_register_allowed ())) then begin
-          remove_unregistered (service.url,service.unique_id);
+        let k, url, id =
+          match service with
+            Attached service -> 
+              (service.kind, Some service.url, service.unique_id)
+          | Nonattached service -> service.na_kind, None, service.na_unique_id
+        in
+        let kind = 
+          (match k with
+            `Internal_Service (k, _) -> k
+          | _ -> assert false)
+        in
+        let doo () =
           let (globtables,_),curdir = get_current_hostdir () in
           register_service_aux 
             curdir
             globtables
             false 
-            (service.get_state, service.post_state)
-            ~service ?error_handler page_gen; 
+            ~service ?error_handler page_gen
+        in
+        if global_register_allowed () then begin
+          remove_unregistered (url, id);
+          doo ()
         end
-        else Messages.warning
-            ("URL .../"^
-             (string_of_url_path service.url)^
-             " : Public main service registration outside <site></site> \
-               or after init forbidden! Please correct your module! (ignored)")
+        else
+          if kind = `Service
+          then 
+            Messages.warning
+              ((match url with
+                None -> "<Non-attached service>"
+              | Some u -> "URL .../"^(string_of_url_path u))^
+               " : Public main service registration outside <site></site> \
+                 or after init forbidden! \
+                 Please correct your module! (ignored)")
+          else doo ()
+
 
 (* WARNING: if we create a new service without registering it,
    we can have a link towards a page that does not exist!!! :-(
@@ -930,37 +1176,39 @@ module MakeRegister = functor
  *)
 
       let register_service_for_session
-          (ri,curdir,sesstab)
+          (ri,(curdir,sesstab,_,_))
           ~(service : ('get,'post,[`Internal_Service of 
-            [<`Main_Service | `Aux_Service ] * [< `Get_serv | `Post_serv]],
+            [<`Service | `Coservice | `NonAttachedCoservice ]
+              * [< `Get_serv | `Post_serv]],
                        'tipo,'gn,'pn) 
               service)
            ?error_handler
           page =
-        register_service_aux ?error_handler curdir
+        register_service_aux
+          ?error_handler
+          curdir
           !sesstab
           true 
-          (service.get_state, service.post_state)
           ~service page
 
       let register_new_service 
           ~url
-          ?(prefix=false)
+          ?(suffix=false)
           ~(get_params : ('get,
 			  [<`WithoutSuffix|`WithSuffix] as 'tipo,
 			  'gn) params_type)
           ?error_handler
           page
-          : ('get,unit, 
-	     [`Internal_Service of [`Main_Service] * [`Get_serv]],
-	     'tipo,'gn,unit param_name) service =
-        let u = new_service ~prefix ~url ~get_params () in
+          : ('get, unit, 
+	     [`Internal_Service of [`Service] * [`Get_serv]],
+	     'tipo, 'gn, unit param_name) service =
+        let u = new_service ~suffix ~url ~get_params () in
         register_service ~service:u ?error_handler page;
         u
           
-      let register_new_auxiliary_service
+      let register_new_coservice
           ~(fallback : (unit, unit, 
-			[`Internal_Service of [`Main_Service] * [`Get_serv]],
+			[`Internal_Service of [`Service] * [`Get_serv]],
 			[`WithoutSuffix],
                         unit param_name,unit param_name) service)
           ~(get_params : 
@@ -968,17 +1216,32 @@ module MakeRegister = functor
           ?error_handler
           page
           : ('get, unit,
-	     [`Internal_Service of [`Aux_Service] * [`Get_serv]],
+	     [`Internal_Service of 
+               [< `Coservice ] * [`Get_serv]],
              [`WithoutSuffix],
-             'gn,unit param_name) service =
-        let u = (new_auxiliary_service fallback get_params) in
+             'gn, unit param_name) service =
+        let u = new_coservice ~fallback ~get_params in
         register_service ~service:u ?error_handler page;
         u
 
-      let register_new_auxiliary_service_for_session
+      let register_new_coservice'
+          ~(get_params : 
+              ('get,[`WithoutSuffix],'gn) params_type)
+          ?error_handler
+          page
+          : ('get, unit,
+	     [`Internal_Service of 
+               [< `NonAttachedCoservice ] * [`Get_serv]],
+             [`WithoutSuffix],
+             'gn, unit param_name) service =
+        let u = new_coservice' ~get_params in
+        register_service ~service:u ?error_handler page;
+        u
+
+      let register_new_coservice_for_session
           sp
           ~(fallback : (unit, unit, 
-			[`Internal_Service of [`Main_Service] * [`Get_serv]],
+			[`Internal_Service of [`Service] * [`Get_serv]],
 			[`WithoutSuffix],
                         unit param_name,unit param_name) service)
           ~(get_params : 
@@ -986,10 +1249,26 @@ module MakeRegister = functor
           ?error_handler
           page
           : ('get, unit, 
-	     [`Internal_Service of [`Aux_Service] * [`Get_serv]],
+	     [`Internal_Service of [< `Coservice ]
+                 * [`Get_serv]],
              [`WithoutSuffix],
              'gn,unit param_name) service =
-        let u = (new_auxiliary_service fallback get_params) in
+        let u = new_coservice ?fallback ~get_params in
+        register_service_for_session sp ~service:u ?error_handler page;
+        u
+
+      let register_new_coservice_for_session'
+          sp
+          ~(get_params : 
+              ('get,[`WithoutSuffix] as 'tipo,'gn) params_type)
+          ?error_handler
+          page
+          : ('get, unit, 
+	     [`Internal_Service of [< `NonAttachedCoservice ]
+                 * [`Get_serv]],
+             [`WithoutSuffix],
+             'gn,unit param_name) service =
+        let u = new_coservice' ~get_params in
         register_service_for_session sp ~service:u ?error_handler page;
         u
 
@@ -998,7 +1277,7 @@ module MakeRegister = functor
       let register_new_post_service 
           ~(fallback : ('get, unit, 
 			[`Internal_Service of 
-                          ([<`Main_Service | `Aux_Service] as 'kind)
+                          ([<`Service | `Coservice] as 'kind)
                             * [`Get_serv]],
 			'tipo,'gn,unit param_name) service)
           ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
@@ -1011,107 +1290,106 @@ module MakeRegister = functor
         register_service ~service:u ?error_handler page_gen;
         u
 
-      let register_new_post_auxiliary_service
+      let register_new_post_coservice
           ~(fallback : ('get, unit, 
 			[`Internal_Service of 
-                          [<`Main_Service | `Aux_Service ] * [`Get_serv]],
-			'tipo,'gn,unit param_name) service)
+                          [<`Service | `Coservice ] * [`Get_serv]],
+			[< `WithSuffix | `WithoutSuffix ] as 'tipo,
+                        'gn,unit param_name) service)
           ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
           ?error_handler
           page_gen
           : ('get, 'post,
-	     [`Internal_Service of [`Aux_Service] * [`Post_serv] ],
+	     [`Internal_Service of
+               [< `Coservice ] * [`Post_serv] ],
              'tipo,'gn,'pn) service = 
-        let u = new_post_auxiliary_service
-	    ~fallback:fallback ~post_params:post_params in
+        let u = new_post_coservice ~fallback ~post_params in
         register_service ~service:u ?error_handler page_gen;
         u
 
-      let register_new_post_auxiliary_service_for_session
+      let register_new_post_coservice'
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          ?error_handler
+          page_gen
+          : (unit, 'post,
+	     [`Internal_Service of
+               [< `NonAttachedCoservice] * [`Post_serv] ],
+             [< `WithoutSuffix ], unit param_name, 'pn) service = 
+        let u = new_post_coservice' ~post_params in
+        register_service ~service:u ?error_handler page_gen;
+        u
+
+(*
+      let register_new_get_post_coservice'
+          ~(fallback : ('get, unit, 
+			[`Internal_Service of 
+                          [< `NonAttachedCoservice ] * [`Get_serv]],
+			[< `WithSuffix | `WithoutSuffix ] as 'tipo,
+                        'gn,unit param_name) service)
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          ?error_handler
+          page_gen
+          : ('get, 'post,
+	     [`Internal_Service of
+               [<  `NonAttachedCoservice] * [`Post_serv] ],
+             'tipo,'gn,'pn) service = 
+        let u = new_get_post_coservice' ~fallback ~post_params in
+        register_service ~service:u ?error_handler page_gen;
+        u
+*)
+
+      let register_new_post_coservice_for_session
           sp
           ~(fallback : ('get, unit,
 			[`Internal_Service of
-                          [< `Main_Service | `Aux_Service ] * [`Get_serv] ],
+                          [< `Service | `Coservice ] * [`Get_serv] ],
 			'tipo,'gn,unit param_name) service)
           ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
           ?error_handler
           page_gen
           : ('get, 'post,
-	     [`Internal_Service of [`Aux_Service] * [`Post_serv] ],
+	     [`Internal_Service of
+               [< `Coservice ] * [`Post_serv] ],
 	     'tipo,'gn,'pn) service = 
-        let u = new_post_auxiliary_service
-	    ~fallback:fallback ~post_params:post_params in
+        let u = new_post_coservice ~fallback ~post_params in
         register_service_for_session sp ~service:u ?error_handler page_gen;
         u
 
+      let register_new_post_coservice_for_session'
+          sp
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          ?error_handler
+          page_gen
+          : (unit, 'post,
+	     [`Internal_Service of
+               [< `NonAttachedCoservice ] * [`Post_serv] ],
+	     [ ` WithoutSuffix ], unit param_name, 'pn) service = 
+        let u = new_post_coservice' ~post_params in
+        register_service_for_session sp ~service:u ?error_handler page_gen;
+        u
 
-     (** Anonymous services *)
+(*
+      let register_new_get_post_coservice_for_session'
+          sp
+          ~(fallback : ('get, unit,
+			[`Internal_Service of
+                          [< `NonAttachedCoservice ] * [`Get_serv] ],
+			'tipo,'gn,unit param_name) service)
+          ~(post_params : ('post,[`WithoutSuffix],'pn) params_type)
+          ?error_handler
+          page_gen
+          : ('get, 'post,
+	     [`Internal_Service of
+               [< `NonAttachedCoservice ] * [`Post_serv] ],
+	     'tipo,'gn,'pn) service = 
+        let u = new_get_post_coservice' ~fallback ~post_params in
+        register_service_for_session sp ~service:u ?error_handler page_gen;
+        u
+*)
 
-    let register_anonymous_service_aux
-	current_dir 
-	tables
-	session
-	~anonymous_service
-        ?(error_handler = fun sp l -> raise (Eliom_Typing_Error l))
-	anservicefun =
-      add_anservice 
-	tables
-	current_dir 
-	session
-	anonymous_service.anservice_name
-	Pages.create_sender
-	(fun ((ri,_,_) as h) ->
-	  (catch
-	     (fun () ->
-	       (force ri.ri_post_params) >>=
-	       (fun post_params ->
-		 (force ri.ri_files) >>=
-		 (fun files ->
-		   anservicefun h
-		     (reconstruct_params 
-			anonymous_service.anservice_params_type 
-			post_params
-			files 
-			[]))))
-	     (function
-                 Eliom_Typing_Error l -> error_handler h l
-               | e -> fail e)) >>=
-              (fun c -> return (Pages.send ~content:c)))
-	
-    let register_anonymous_service
-	~(anonymous_service : ('post,'pn) anonymous_service)
-	?error_handler
-	(anservicefun : (server_params -> 'post -> page Lwt.t)) : unit =
-(*      if global_register_allowed () then *)
-	(* if during_initialisation () then *)
-	let (globtables,_),curdir = get_current_hostdir () in
-	register_anonymous_service_aux
-          curdir globtables false 
-          ~anonymous_service ?error_handler anservicefun
-(*      else Messages.warning ("Anonymous service registration in global table outside <site></site> or after init forbidden! Please correct your module! (ignored)") *)
 
-	  
-    let register_new_anonymous_service 
-	~post_params ?error_handler anservicefun = 
-      let a = new_anonymous_service post_params in
-      register_anonymous_service 
-        ~anonymous_service:a 
-        ?error_handler anservicefun;
-      a
-	
-    let register_anonymous_service_for_session 
-	(ri,curdir,sesstab) ~anonymous_service ?error_handler anservicefun =
-      register_anonymous_service_aux curdir
-	!sesstab true ~anonymous_service ?error_handler anservicefun
-	
-    let register_new_anonymous_service_for_session
-	sp ~post_params ?error_handler anservicefun =
-      let a = new_anonymous_service post_params in
-      register_anonymous_service_for_session
-        sp ~anonymous_service:a ?error_handler anservicefun;
-      a
 
-  end : OCSIGENREGSIG with 
+  end : ELIOMREGSIG with 
      type page = Pages.page)
 
 
@@ -1155,28 +1433,59 @@ module MakeForms = functor
                       'tipo,'gn,unit param_name) service) 
           (sp : server_params) content
           (getparams : 'get) =
-        let suff,params_string = 
-          construct_params service.get_params_type getparams in
-        let suff = (if service.url_prefix then Some suff else None) in
-        let uri = 
-          (if service.external_service 
-          then 
-            (reconstruct_absolute_url_path
-               (get_current_url sp) service.url suff)
-          else 
-            (reconstruct_relative_url_path
-               (get_current_url sp) service.url suff))
-        in
-        match service.get_state with
-          None ->
-            Pages.make_a ?a ~href:(add_to_string uri "?" params_string) content
-        | Some i -> 
+        match service with
+          Attached service ->
+            (let suff, params_string = 
+              construct_params service.get_params_type getparams in
+            let suff = (if service.url_suffix then Some suff else None) in
+            let uri = 
+              (if service.kind = `External_Service
+              then 
+                (reconstruct_absolute_url_path
+                   (get_current_path sp) service.url suff)
+              else 
+                (reconstruct_relative_url_path
+                   (get_current_path sp) service.url suff))
+            in
+            match service.get_state with
+              None ->
+                Pages.make_a 
+                  ?a ~href:(add_to_string uri "?" params_string) content
+            | Some i -> 
+                Pages.make_a ?a
+                  ~href:(add_to_string 
+                           (uri^"?"^get_state_param_name^"="^(string_of_int i))
+                           "&" params_string)
+                  content)
+        | Nonattached service ->
+            let get_params =
+              (get_other_get_params sp) @ 
+              (remove_prefixed_param na_co_param_prefix (get_get_params sp))
+            in
+            let _, params_string = 
+              construct_params service.na_get_params_type getparams in
+            let anservice_param = 
+              match fst service.na_name with
+                Some n -> anservice_prefix^anservice_name^"="^n
+              | _ -> assert false
+            in
+            let get_params_string = 
+              match get_params with
+                [] -> ""
+              | (n,v)::l ->
+                  List.fold_left
+                    (fun s (n,v) -> s^"&"^n^"="^v)
+                    (n^"="^v)
+                    l
+            in
             Pages.make_a ?a
-              ~href:(add_to_string 
-                       (uri^"?"^get_state_param_name^"="^(string_of_int i))
-                       "&" params_string)
+              ~href:((relative_url_path_to_myself (get_current_path sp))^"?"^
+                     (concat_strings
+                        get_params_string
+                        "&"
+                        (anservice_param^"&"^params_string))
+                    )
               content
-
 
       let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
         let rec aux prefix suffix = function
@@ -1212,26 +1521,62 @@ module MakeForms = functor
                       'tipo,'gn,unit param_name) service) 
           (sp : server_params)
           (f : 'gn -> Pages.form_content_elt_list) =
-        let urlname =
-          (if service.external_service
-          then (reconstruct_absolute_url_path
-                  (get_current_url sp) service.url None)
-          else (reconstruct_relative_url_path
-                  (get_current_url sp) service.url None)) in
-        let state_param =
-          (match service.get_state with
-            None -> None
-          | Some i -> 
-              let i' = string_of_int i in
-              Some (Pages.make_input ~typ:Pages.hidden
-                      ~name:get_state_param_name ~value:i' ()))
-        in
-        let inside = f (make_params_names service.get_params_type) in
-        let i1, i =
-          match state_param, inside with
-            Some s, i -> (Pages.make_hidden_field s),i
-          | None, i -> Pages.remove_first i
-        in Pages.make_get_form ?a ~action:urlname i1 i
+        match service with
+          Attached service ->
+            let urlname =
+              (if service.kind = `External_Service
+              then (reconstruct_absolute_url_path
+                      (get_current_path sp) service.url None)
+              else (reconstruct_relative_url_path
+                      (get_current_path sp) service.url None)) in
+            let state_param =
+              (match service.get_state with
+                None -> None
+              | Some i -> 
+                  let i' = string_of_int i in
+                  Some (Pages.make_input ~typ:Pages.hidden
+                          ~name:get_state_param_name ~value:i' ()))
+            in
+            let inside = f (make_params_names service.get_params_type) in
+            let i1, i =
+              match state_param, inside with
+                Some s, i -> (Pages.make_hidden_field s),i
+              | None, i -> Pages.remove_first i
+            in Pages.make_get_form ?a ~action:urlname i1 i
+        | Nonattached service ->
+            let urlname = relative_url_path_to_myself (get_current_path sp) in
+            let anservice_param_name = anservice_prefix^anservice_name in
+            let anservice_param = 
+              match fst service.na_name with
+                Some n -> n
+              | _ -> assert false
+            in
+            let anservice_line = 
+              Pages.make_hidden_field
+	        (Pages.make_input
+	           ~typ:Pages.hidden 
+                   ~name:anservice_param_name
+                   ~value:anservice_param ())
+            in
+            let get_params =
+              (get_other_get_params sp) @ 
+              (remove_prefixed_param na_co_param_prefix (get_get_params sp))
+            in
+            let inside = f (make_params_names service.na_get_params_type) in
+            let all_lines = 
+              List.fold_left
+                (fun s (n,v) -> 
+                  Pages.cons_form
+                    (Pages.make_hidden_field
+	               (Pages.make_input
+                          ~typ:Pages.hidden ~name:n ~value:v ()))
+                    s
+                )
+                inside
+                get_params
+            in
+            Pages.make_get_form ?a ~action:urlname anservice_line all_lines
+
 
       let post_form ?a
           (service : ('get,'form,
@@ -1240,96 +1585,122 @@ module MakeForms = functor
                       'tipo,'gn,'pn) service) 
           (sp : server_params)
           (f : 'pn -> Pages.form_content_elt_list) (getparams : 'get) =
-        let suff,params_string = 
-          construct_params service.get_params_type getparams in
-        let params_string =
-          match service.get_state with
-            None -> params_string
-        | Some i -> 
-            add_to_string
-              (get_state_param_name^"="^(string_of_int i))
-              "&"
-              params_string
-        in
-        let suff = (if service.url_prefix then Some suff else None) in
-        let urlname = 
-          (if service.external_service 
-          then (reconstruct_absolute_url_path
-                  (get_current_url sp) service.url suff)
-          else (reconstruct_relative_url_path
-                  (get_current_url sp) service.url suff))
-        in
-        let state_param =
-          (match  service.post_state with
-            None -> None
-          | Some i -> 
-              let i' = string_of_int i in
-              Some (Pages.make_input ~typ:Pages.hidden
-                      ~name:post_state_param_name ~value:i' ()))
-        in
-        let inside = f (make_params_names service.post_params_type) in
-        let i1, i =
-          match state_param, inside with
-            Some s, i -> (Pages.make_hidden_field s),i
-          | None, i -> Pages.remove_first i
-        in Pages.make_post_form ?a
-          ~action:(add_to_string urlname "?" params_string)
-          i1 i
+        match service with
+          Attached service ->
+            let suff,params_string = 
+              construct_params service.get_params_type getparams in
+            let params_string =
+              match service.get_state with
+                None -> params_string
+              | Some i -> 
+                  add_to_string
+                    (get_state_param_name^"="^(string_of_int i))
+                    "&"
+                    params_string
+            in
+            let suff = (if service.url_suffix then Some suff else None) in
+            let urlname = 
+              (if service.kind = `External_Service
+              then (reconstruct_absolute_url_path
+                      (get_current_path sp) service.url suff)
+              else (reconstruct_relative_url_path
+                      (get_current_path sp) service.url suff))
+            in
+            let state_param =
+              (match  service.post_state with
+                None -> None
+              | Some i -> 
+                  let i' = string_of_int i in
+                  Some (Pages.make_input ~typ:Pages.hidden
+                          ~name:post_state_param_name ~value:i' ()))
+            in
+            let inside = f (make_params_names service.post_params_type) in
+            let i1, i =
+              match state_param, inside with
+                Some s, i -> (Pages.make_hidden_field s),i
+              | None, i -> Pages.remove_first i
+            in Pages.make_post_form ?a
+              ~action:(add_to_string urlname "?" params_string)
+              i1 i
+        | Nonattached service ->
+            let anservice_param_name = anservice_prefix^anservice_name in
+            let anservice_param = 
+              match snd service.na_name with
+                Some n -> n
+              | _ -> assert false
+            in
+            let anservice_line = 
+	      Pages.make_input
+	        ~typ:Pages.hidden
+                ~name:anservice_param_name
+                ~value:anservice_param () 
+            in
+            let v = get_full_url sp in
+            let inside = f (make_params_names service.na_post_params_type) in
+            Pages.make_post_form ?a ~action:v
+              (Pages.make_hidden_field anservice_line)
+              inside
+
+          
+
+
 
       let make_uri 
           (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) sp
           (getparams : 'get) : Pages.uri =
-        let suff,params_string = 
-          construct_params service.get_params_type getparams in
-        let suff = (if service.url_prefix then Some suff else None) in
-        let uri = 
-          (if service.external_service 
-          then (reconstruct_absolute_url_path
-                  (get_current_url sp) service.url suff)
-          else (reconstruct_relative_url_path
-                  (get_current_url sp) service.url suff))
-        in
-        match service.get_state with
-          None ->
-            Pages.make_uri_from_string (add_to_string uri "?" params_string)
-        | Some i -> 
+        match service with
+          Attached service ->
+            begin
+              let suff,params_string = 
+                construct_params service.get_params_type getparams in
+              let suff = (if service.url_suffix then Some suff else None) in
+              let uri = 
+                (if service.kind = `External_Service
+                then (reconstruct_absolute_url_path
+                        (get_current_path sp) service.url suff)
+                else (reconstruct_relative_url_path
+                        (get_current_path sp) service.url suff))
+              in
+              match service.get_state with
+                None ->
+                  Pages.make_uri_from_string
+                    (add_to_string uri "?" params_string)
+              | Some i -> 
+                  Pages.make_uri_from_string 
+                    (add_to_string (uri^"?"^
+                                    get_state_param_name^"="^(string_of_int i))
+                       "&" params_string)
+            end
+        | Nonattached service ->
+            let get_params =
+              (get_other_get_params sp) @ 
+              (remove_prefixed_param na_co_param_prefix (get_get_params sp))
+            in
+            let _, params_string = 
+              construct_params service.na_get_params_type getparams in
+            let anservice_param = 
+              match fst service.na_name with
+                Some n -> anservice_prefix^anservice_name^"="^n
+              | _ -> assert false
+            in
+            let get_params_string = 
+              match get_params with
+                [] -> ""
+              | (n,v)::l ->
+                  List.fold_left
+                    (fun s (n,v) -> s^"&"^n^"="^v)
+                    (n^"="^v)
+                    l
+            in
             Pages.make_uri_from_string 
-              (add_to_string (uri^"?"^
-                              get_state_param_name^"="^(string_of_int i))
-                 "&" params_string)
+              ((relative_url_path_to_myself (get_current_path sp))^"?"^
+               (concat_strings
+                  get_params_string
+                  "&"
+                  (anservice_param^"&"^params_string))
+              )
 
-(* actions : *)
-      let anonymous_a ?a action h content =
-        let formname="hiddenform"^(string_of_int (counter ())) in
-        let href="javascript:document.getElementById(\""^formname^"\").submit ()" in
-        let anservice_param_name = anservice_prefix^anservice_name in
-        let anservice_param = (action.anservice_name) in
-        let v = get_full_url h in
-        Pages.make_post_form ~inline:true 
-          ~id:formname ~action:v
-          (Pages.make_div ~classe:["inline"]
-             (Pages.make_a ?a ~href:href content))
-          (Pages.cons_form
-	     (Pages.make_hidden_field
-                (Pages.make_input ~typ:Pages.hidden ~name:anservice_param_name
-                   ~value:anservice_param ()))
-             Pages.empty_seq)
-          
-      let anonymous_form ?a
-          (action : ('a,'pn) anonymous_service) h 
-          (f : 'pn -> Pages.form_content_elt_list) = 
-        let anservice_param_name = anservice_prefix^anservice_name in
-        let anservice_param = (action.anservice_name) in
-        let anservice_line = 
-	  Pages.make_input
-	    ~typ:Pages.hidden ~name:anservice_param_name ~value:anservice_param () in
-        let v = get_full_url h in
-        let inside = f (make_params_names action.anservice_params_type) in
-        Pages.make_post_form ?a ~action:v
-          (Pages.make_hidden_field anservice_line)
-          inside
-
-          
+                  
           
           
       let js_script = Pages.make_js_script
@@ -1407,7 +1778,7 @@ module MakeForms = functor
       let file_input ?a ?value (name : file_info param_name)  = 
         Pages.make_input ?a ~typ:Pages.file ?value ~name:name ()
 
-    end : OCSIGENFORMSIG with 
+    end : ELIOMFORMSIG with 
      type form_content_elt = Pages.form_content_elt
      and type form_content_elt_list = Pages.form_content_elt_list
      and type form_elt = Pages.form_elt
@@ -1811,30 +2182,6 @@ module Xhtml = struct
                               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
                                 ?value:string -> file_info param_name -> [> input ] elt)
 
-  let anonymous_a = (anonymous_a
-                    : ?a:([< a_attrib > `Href ] attrib list) ->
-                      ('a,'b) anonymous_service -> 
-                        server_params -> 
-                          a_content elt list -> 
-                            form elt
-                              :> ?a:([< a_attrib > `Href ] attrib list) ->
-                                ('a,'b) anonymous_service -> 
-                                  server_params -> 
-                                    a_content_elt_list -> 
-                                      [> form ] elt)
-
-  let anonymous_form = (anonymous_form
-                          : ?a:([< form_attrib > `Class `Id `Method ] 
-                                  attrib list) ->
-                           ('a, 'b) anonymous_service ->
-                             server_params -> 
-                               ('b -> form_content elt list) ->
-                                 form elt
-                                   :> ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
-                                     ('a, 'b) anonymous_service ->
-                                       server_params -> 
-                                         ('b -> form_content_elt_list) ->
-                                           [> form ] elt)
 
 end
 

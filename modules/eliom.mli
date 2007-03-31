@@ -44,7 +44,7 @@ val sync : ('a -> 'b -> 'c -> 'd) -> ('a -> 'b -> 'c -> 'd Lwt.t)
 
 type service_kind = 
     [ `Internal_Service of
-      [`Main_Service | `Aux_Service] *
+      [`Service | `Coservice | `NonAttachedCoservice ] *
         [`Get_serv | `Post_serv]
   | `External_Service]
 (** Kind of service *)
@@ -76,7 +76,11 @@ val get_ip : server_params -> string
 val get_port : server_params -> int
 val get_get_params : server_params -> (string * string) list
 val get_post_params : server_params -> (string * string) list Lwt.t
-val get_current_url : server_params -> url_path
+val get_current_path : server_params -> url_path
+val get_current_path_string : server_params -> string
+val get_other_get_params : server_params -> (string * string) list
+val get_suffix : server_params -> url_path
+
 
 (** Type of files *)
 val get_tmp_filename : file_info -> string
@@ -180,7 +184,7 @@ val suffix :
 (** {2 Misc} *)
 val static_dir :
     server_params -> 
-      (string, unit, [ `Internal_Service of [ `Main_Service ] * [`Get_serv] ],
+      (string, unit, [ `Internal_Service of [ `Service ] * [`Get_serv] ],
        [ `WithSuffix ],
        string param_name, unit param_name)
         service
@@ -196,42 +200,49 @@ val close_session : server_params -> unit
 (** {2 Definitions of entry points (services/URLs)} *)
 val new_service :
     url:url_path ->
-      ?prefix:bool ->
+      ?suffix:bool ->
         get_params:('get,[<`WithoutSuffix|`WithSuffix] as 'tipo,'gn)
           params_type ->
             unit ->
               ('get,unit,
-               [`Internal_Service of [`Main_Service] * [`Get_serv]],
+               [`Internal_Service of [`Service] * [`Get_serv]],
                'tipo,'gn, 
                unit param_name) service
 (** [new_service ~url:p ~get_params:pa ()] creates an {{:#TYPEservice}[service]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
    
-   If you specify [~prefix:true], your service will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_service ["mysite";"mywiki"] ~prefix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
+   If you specify [~suffix:true], your service will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_service ["mysite";"mywiki"] ~suffix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
 	      
 val new_external_service :
     url:url_path ->
-      ?prefix:bool ->
+      ?suffix:bool ->
         get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 
                     'c) params_type ->
           post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
             unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
 (** Creates an service for an external web site *)
 		
-val new_auxiliary_service :
+val new_coservice :
     fallback: 
-    (unit,unit, [`Internal_Service of [`Main_Service] * [`Get_serv]],
+    (unit,unit, [`Internal_Service of [`Service] * [`Get_serv]],
      [`WithoutSuffix],
      unit param_name,unit param_name) service ->
        get_params: 
          ('get,[`WithoutSuffix],'gn) params_type ->
-           ('get,unit,[`Internal_Service of [`Aux_Service] * [`Get_serv]],
+           ('get,unit,[`Internal_Service of [`Coservice] * [`Get_serv]],
             [`WithoutSuffix],'gn,unit param_name) service
 (** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
+val new_coservice' :
+    get_params: 
+    ('get,[`WithoutSuffix],'gn) params_type ->
+      ('get,unit,[`Internal_Service of [`NonAttachedCoservice] * [`Get_serv]],
+       [`WithoutSuffix],'gn,unit param_name) service
+(** Creates a non-attached coservice. Links towards such services will not change the URL, just add extra parameters. *)
+        
 val new_post_service :
     fallback: ('get, unit, 
                [`Internal_Service of 
-                 ([<`Main_Service | `Aux_Service] as 'kind) * [`Get_serv]],
+                 ([<`Service | `Coservice] as 'kind) * [`Get_serv]],
                'tipo,'gn,unit param_name) service ->
                  post_params: ('post,[`WithoutSuffix],'pn) params_type ->
                    ('get, 'post, [`Internal_Service of 'kind * [`Post_serv]],
@@ -243,54 +254,248 @@ val new_post_service :
    exist.
  *)
 	  
-val new_post_auxiliary_service :
+val new_post_coservice :
     fallback: ('get, unit, [`Internal_Service of 
-      [<`Main_Service | `Aux_Service] * [`Get_serv]],
-               'tipo,'gn,unit param_name) service ->
+      [<`Service | `Coservice] * [`Get_serv]],
+               [< `WithSuffix | `WithoutSuffix ] as 'tipo,
+               'gn, unit param_name) service ->
                  post_params: ('post,[`WithoutSuffix],'pn) params_type ->
                   ('get, 'post, 
-                   [`Internal_Service of [`Aux_Service] * [`Post_serv]],
-                   'tipo,'gn,'pn) service
-(** Creates a auxiliary service with POST parameters *)
+                   [`Internal_Service of [`Coservice] * [`Post_serv]],
+                   'tipo, 'gn, 'pn) service
+(** Creates a coservice with POST parameters *)
+
+val new_post_coservice' :
+    post_params: ('post,[`WithoutSuffix],'pn) params_type ->
+      (unit, 'post, 
+       [`Internal_Service of [`NonAttachedCoservice] * [`Post_serv]],
+       [ `WithoutSuffix ], unit param_name, 'pn) service
+(** Creates a non attached coservice with POST parameters *)
+
+(*
+val new_get_post_coservice' :
+    fallback: ('get, unit, [`Internal_Service of 
+      [<`NonAttachedCoservice] * [`Get_serv]],
+               [ `WithSuffix | `WithoutSuffix ] as 'tipo,
+               'gn, unit param_name) service ->
+                 post_params: ('post,[`WithoutSuffix],'pn) params_type ->
+                   ('get, 'post, 
+                    [`Internal_Service of [`NonAttachedCoservice] * 
+                        [`Post_serv]],
+                    'tipo,'gn,'pn) service
+(* * Creates a non-attached coservice with GET and POST parameters. The fallback is a non-attached coservice with GET parameters. *)
+*)
 
 
 
-(** {2 Anonymous services} *)
-    
-(* actions (new 10/05) *)
-(* replaced by anonymous services (new 03/07) *)
-type ('a,'b) anonymous_service
-(** Type of anonymous services. 
-   Anonymous services are services that are not attached to an URL.
-   They may take only POST parameters.
-   An unique name is generated for each action, and sent with the form as
-   an hidden parameter.
-   When clicking a link of a form towards an anonymous service,
-   the URL do not change.
- *)
-      
-val new_anonymous_service :
-    post_params:('a, [ `WithoutSuffix ], 'b) params_type -> ('a, 'b) anonymous_service
-(** Creates an anonymous service *)
-        
 
 
+(** {2 Using other ways (than the module Eliom.Xhtml) to create pages} *)
+
+module type REGCREATE = 
+  sig
+    type page
+
+    val create_sender : Predefined_senders.create_sender_type option
+    val send : content:page -> Predefined_senders.send_page_type
+
+  end
 
 
+module type FORMCREATE = 
+  sig
+    type form_content_elt
+    type form_content_elt_list
+    type form_elt
+    type a_content_elt
+    type a_content_elt_list
+    type a_elt
+    type a_elt_list
+    type div_content_elt
+    type div_content_elt_list
+    type uri
+    type link_elt
+    type script_elt
+    type textarea_elt
+    type select_elt
+    type input_elt
+    type pcdata_elt
 
-(** {2 Pages registration (typed xhtml)} *)
-module Xhtml : sig
+    type a_attrib_t
+    type form_attrib_t
+    type input_attrib_t
+    type textarea_attrib_t
+    type select_attrib_t
+    type link_attrib_t
+    type script_attrib_t
+    type input_type_t
 
-  type page = xhtml elt
+    val hidden : input_type_t
+    val text : input_type_t
+    val password : input_type_t
+    val checkbox : input_type_t
+    val radio : input_type_t
+    val submit : input_type_t
+    val file : input_type_t
+
+    val empty_seq : form_content_elt_list
+    val cons_form : form_content_elt -> form_content_elt_list -> form_content_elt_list 
+
+    val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
+    val make_get_form : ?a:form_attrib_t -> 
+      action:string -> 
+        form_content_elt -> form_content_elt_list -> form_elt
+    val make_post_form : ?a:form_attrib_t ->
+      action:string -> ?id:string -> ?inline:bool -> 
+        form_content_elt -> form_content_elt_list -> form_elt
+    val make_hidden_field : input_elt -> form_content_elt
+    val remove_first : form_content_elt_list -> form_content_elt * form_content_elt_list
+    val make_input : ?a:input_attrib_t -> ?checked:bool ->
+      typ:input_type_t -> ?name:string -> 
+        ?value:string -> unit -> input_elt
+    val make_textarea : ?a:textarea_attrib_t -> 
+      name:string -> rows:int -> cols:int ->
+        pcdata_elt -> 
+          textarea_elt
+     val make_select : ?a:select_attrib_t ->
+       name:string ->
+       ?selected:((string option * string) option)
+         -> (string option * string) -> ((string option * string) list) ->
+       select_elt
+    val make_div : classe:(string list) -> a_elt -> form_content_elt
+    val make_uri_from_string : string -> uri
 
 
-  val register_service :
-      service:('a, 'b, [ `Internal_Service of 
-        [<`Main_Service | `Aux_Service ] * [< `Get_serv | `Post_serv] ],
-               [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
-                 ?error_handler:(server_params -> 
-                   (string * exn) list -> page Lwt.t) ->
-                     (server_params -> 'a -> 'b -> page Lwt.t) -> unit
+    val make_css_link : ?a:link_attrib_t -> uri -> link_elt
+
+    val make_js_script : ?a:script_attrib_t -> uri -> script_elt
+
+  end
+
+module type ELIOMFORMSIG =
+  sig
+
+    type form_content_elt
+    type form_content_elt_list
+    type form_elt
+    type a_content_elt
+    type a_content_elt_list
+    type a_elt
+    type a_elt_list
+    type div_content_elt
+    type div_content_elt_list
+    type uri
+    type link_elt
+    type script_elt
+    type textarea_elt
+    type select_elt
+    type input_elt
+    type pcdata_elt
+          
+    type a_attrib_t
+    type form_attrib_t
+    type input_attrib_t
+    type textarea_attrib_t
+    type select_attrib_t
+    type link_attrib_t
+    type script_attrib_t
+    type input_type_t
+
+    val a :
+        ?a:a_attrib_t ->
+          ('a, unit, [< `External_Service | `Internal_Service of 
+            'b * [ `Get_serv ] ], 
+           [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name) service ->
+            server_params -> a_content_elt_list -> 'a -> a_elt
+    val get_form :
+        ?a:form_attrib_t ->
+          ('a, unit, [< `External_Service | `Internal_Service of
+            'b * [ `Get_serv ] ], 
+           'c, 'd, unit param_name) service ->
+            server_params ->
+              ('d -> form_content_elt_list) -> form_elt
+    val post_form :
+        ?a:form_attrib_t ->
+          ('a, 'b, [< `External_Service 
+      | `Internal_Service of 'kind * [ `Post_serv ] ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+            server_params ->
+              ('e -> form_content_elt_list) -> 'a -> form_elt
+    val make_uri :
+        ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
+          server_params -> 'a -> uri
+
+    val js_script :
+        ?a:script_attrib_t -> uri -> script_elt
+    val css_link : ?a:link_attrib_t -> uri -> link_elt
+
+    val int_input :
+        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
+    val float_input :
+        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
+    val string_input :
+        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+    val user_type_input :
+        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
+          'a param_name -> input_elt
+    val int_password_input :
+        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
+    val float_password_input :
+        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
+    val string_password_input :
+        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+    val user_type_password_input :
+        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
+          'a param_name -> input_elt
+    val hidden_int_input :
+        ?a:input_attrib_t -> int param_name -> int -> input_elt
+    val hidden_float_input :
+        ?a:input_attrib_t -> float param_name -> float -> input_elt
+    val hidden_string_input :
+        ?a:input_attrib_t -> string param_name -> string -> input_elt
+    val hidden_user_type_input :
+        ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
+    val bool_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
+    val string_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          string option param_name -> string -> input_elt
+    val int_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+           int option param_name -> int -> input_elt
+    val float_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+           float option param_name -> float -> input_elt
+    val user_type_radio :
+        ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
+           'a option param_name -> 'a -> input_elt
+    val textarea :
+        ?a:textarea_attrib_t ->
+          string param_name ->
+            rows:int -> cols:int -> pcdata_elt -> textarea_elt
+    val select :
+      ?a:select_attrib_t ->
+      ?selected:((string option * string) option)
+      -> (string option * string) -> ((string option * string) list) ->
+      string param_name
+      -> select_elt
+    val submit_input : ?a:input_attrib_t -> string -> input_elt
+    val file_input : ?a:input_attrib_t -> ?value:string -> 
+                            file_info param_name-> input_elt
+  end
+
+module type ELIOMREGSIG =
+  sig
+    type page
+
+    val register_service :
+        service:('a, 'b, [ `Internal_Service of 
+          [<`Service | `Coservice | `NonAttachedCoservice ]
+            * [< `Get_serv | `Post_serv] ],
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+                   ?error_handler:(server_params -> 
+                     (string * exn) list -> page Lwt.t) ->
+                       (server_params -> 'a -> 'b -> page Lwt.t) -> unit
 (** Register an service in the global table of the server 
    with the associated generation function.
    [register_service service t f] will associate the service [service] to the function [f].
@@ -301,15 +506,16 @@ module Xhtml : sig
    For example if [t] is (int "s"), then ['a] is int.
  *)
 
-  val register_service_for_session :
-      server_params ->
-        service:('a, 'b, [ `Internal_Service of 
-          [<`Main_Service | `Aux_Service ] * [< `Get_serv | `Post_serv] ],
-                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
-          service ->
-            ?error_handler:(server_params -> (string * exn) list -> 
-              page Lwt.t) ->
-                (server_params -> 'a -> 'b -> page Lwt.t) -> unit
+    val register_service_for_session :
+        server_params ->
+          service:('a, 'b, [ `Internal_Service of 
+            [< `Service | `Coservice | `NonAttachedCoservice ]
+              * [< `Get_serv | `Post_serv] ],
+                   [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
+            service ->
+              ?error_handler:(server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (server_params -> 'a -> 'b -> page Lwt.t) -> unit
 (** Registers an service and the associated function in the session table.
    If the same client does a request to this service, this function will be
    used instead of the one from the global table.
@@ -322,57 +528,86 @@ module Xhtml : sig
  *)
 
 
-  val register_new_service :
+    val register_new_service :
         url:url_path ->
-          ?prefix:bool ->
+          ?suffix:bool ->
             get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
               params_type ->
                 ?error_handler:(server_params -> (string * exn) list -> 
                   page Lwt.t) ->
                     (server_params -> 'a -> unit -> page Lwt.t) ->
                       ('a, unit, [ `Internal_Service of
-                        [ `Main_Service ] * [`Get_serv]], 
+                        [ `Service ] * [`Get_serv]], 
                        'b, 'c, unit param_name) service
 (** Same as [new_service] followed by [register_service] *)
                       
-  val register_new_auxiliary_service :
-        fallback:(unit, unit, [ `Internal_Service of [ `Main_Service ] *
+    val register_new_coservice :
+        fallback:(unit, unit, [ `Internal_Service of [ `Service ] *
             [`Get_serv]],
-                  [`WithoutSuffix], 
-                  unit param_name, unit param_name)
+                   [`WithoutSuffix], 
+                   unit param_name, unit param_name)
         service ->
           get_params: 
-            ('get,[`WithoutSuffix],'gn) params_type ->
+            ('get, [`WithoutSuffix], 'gn) params_type ->
               ?error_handler:(server_params -> 
                 (string * exn) list -> page Lwt.t) ->
                   (server_params -> 'get -> unit -> page Lwt.t) ->
                     ('get, unit, 
-                     [ `Internal_Service of [ `Aux_Service ] * [`Get_serv]], 
+                     [ `Internal_Service of
+                       [< `Coservice ] * [`Get_serv]], 
                      [`WithoutSuffix], 'gn, unit param_name)
                       service
-(** Same as [new_auxiliary_service] followed by [register_service] *)
+(** Same as [new_coservice] followed by [register_service] *)
 
-  val register_new_auxiliary_service_for_session :
+    val register_new_coservice' :
+        get_params: 
+        ('get, [`WithoutSuffix], 'gn) params_type ->
+          ?error_handler:(server_params -> 
+            (string * exn) list -> page Lwt.t) ->
+              (server_params -> 'get -> unit -> page Lwt.t) ->
+                ('get, unit, 
+                 [ `Internal_Service of
+                   [< `NonAttachedCoservice ] * [`Get_serv]], 
+                 [`WithoutSuffix], 'gn, unit param_name)
+                  service
+(** Same as [new_coservice'] followed by [register_service] *)
+
+    val register_new_coservice_for_session :
         server_params ->
-          fallback:(unit, unit, [ `Internal_Service of [ `Main_Service ] * 
+          fallback:(unit, unit, [ `Internal_Service of [ `Service ] * 
               [`Get_serv]],
-                    [ `WithoutSuffix ] as 'b, 
+                    [ `WithoutSuffix ], 
                     unit param_name, unit param_name)
             service ->
               get_params: 
-                ('get,[`WithoutSuffix] as 'tipo,'gn) params_type ->
+                ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
                   ?error_handler:(server_params -> (string * exn) list -> 
                     page Lwt.t) ->
                       (server_params -> 'get -> unit -> page Lwt.t) ->
                         ('get, unit, [ `Internal_Service of
-                          [ `Aux_Service ] * [`Get_serv] ], 
+                          [< `Coservice ]
+                            * [`Get_serv] ], 
                          [`WithoutSuffix], 'gn, unit param_name)
                           service
-(** Same as [new_auxiliary_service] followed by [register_service_for_session] *)
+(** Same as [new_coservice] followed by [register_service_for_session] *)
 
-  val register_new_post_service :
+    val register_new_coservice_for_session' :
+        server_params ->
+          get_params: 
+            ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+              ?error_handler:(server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (server_params -> 'get -> unit -> page Lwt.t) ->
+                    ('get, unit, [ `Internal_Service of
+                      [< `NonAttachedCoservice ]
+                        * [`Get_serv] ], 
+                     [`WithoutSuffix], 'gn, unit param_name)
+                      service
+(** Same as [new_coservice'] followed by [register_service_for_session] *)
+
+    val register_new_post_service :
         fallback:('a, unit, [ `Internal_Service of 
-          ([< `Main_Service | `Aux_Service ] as 'kind) * [`Get_serv] ],
+          ([< `Service | `Coservice ] as 'kind) * [`Get_serv] ],
                   [< `WithSuffix | `WithoutSuffix ] as 'b, 'c,
                   unit param_name)
         service ->
@@ -383,26 +618,57 @@ module Xhtml : sig
                   ('a, 'd, [ `Internal_Service of 'kind * [`Post_serv] ], 
                    'b, 'c, 'e)
                     service
-(** Same as [new_post_service] followed by [register_post_service] *)
+(** Same as [new_post_service] followed by [register_service] *)
 
-  val register_new_post_auxiliary_service :
+    val register_new_post_coservice :
         fallback:('a, unit , [ `Internal_Service of 
-          [< `Main_Service | `Aux_Service ] * [`Get_serv] ],
-                  [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, unit param_name)
+          [< `Service | `Coservice ] * [`Get_serv] ],
+                   [< `WithSuffix | `WithoutSuffix ] as 'c, 
+                   'd, unit param_name)
         service ->
           post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
               page Lwt.t) ->
                 (server_params -> 'a -> 'f -> page Lwt.t) ->
-                  ('a, 'f, [ `Internal_Service of [ `Aux_Service ] 
+                  ('a, 'f, [ `Internal_Service of
+                    [< `Coservice ] 
                       * [`Post_serv] ], 'c, 'd, 'g)
                     service
-(** Same as [new_post_auxiliary_service] followed by [register_post_service] *)
+(** Same as [new_post_coservice] followed by [register_service] *)
 
-  val register_new_post_auxiliary_service_for_session :
+    val register_new_post_coservice' :
+        post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+          ?error_handler:(server_params -> (string * exn) list -> 
+            page Lwt.t) ->
+              (server_params -> unit -> 'f -> page Lwt.t) ->
+                (unit, 'f, [ `Internal_Service of
+                  [< `NonAttachedCoservice ] 
+                    * [`Post_serv] ], [ `WithoutSuffix ], unit param_name, 'g)
+                  service
+(** Same as [new_post_coservice'] followed by [register_service] *)
+
+(*
+    val register_new_get_post_coservice' :
+        fallback:('a, unit , [ `Internal_Service of 
+          [< `NonAttachedCoservice ] * [`Get_serv] ],
+                   [< `WithSuffix | `WithoutSuffix ] as 'c, 
+                   'd, unit param_name)
+        service ->
+          post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+            ?error_handler:(server_params -> (string * exn) list -> 
+              page Lwt.t) ->
+                (server_params -> 'a -> 'f -> page Lwt.t) ->
+                  ('a, 'f, [ `Internal_Service of
+                    [< `NonAttachedCoservice ] 
+                      * [`Post_serv] ], 'c, 'd, 'g)
+                    service
+(* * Same as [new_get_post_coservice'] followed by [register_service] *)
+*)
+
+    val register_new_post_coservice_for_session :
         server_params ->
           fallback:('a, unit, [ `Internal_Service of
-            [< `Main_Service | `Aux_Service ] * [`Get_serv] ],
+            [< `Service | `Coservice ] * [`Get_serv] ],
                     [< `WithSuffix | `WithoutSuffix ] as 'c, 
                     'd, unit param_name)
             service ->
@@ -411,43 +677,89 @@ module Xhtml : sig
                   (string * exn) list -> page Lwt.t) ->
                     (server_params -> 'a -> 'f -> page Lwt.t) ->
                       ('a, 'f, [ `Internal_Service of
-                        [ `Aux_Service ] * [`Post_serv] ], 
+                        [ `Coservice ]
+                          * [`Post_serv] ], 
                        'c, 'd, 'g)
                         service
-(** Same as [new_post_auxiliary_service] followed by [register_post_service_for_session] *)
+(** Same as [new_post_coservice] followed by [register_service_for_session] *)
+
+    val register_new_post_coservice_for_session' :
+        server_params ->
+          post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+            ?error_handler:(server_params -> 
+              (string * exn) list -> page Lwt.t) ->
+                (server_params -> unit -> 'f -> page Lwt.t) ->
+                  (unit, 'f, [ `Internal_Service of
+                    [ `NonAttachedCoservice ]
+                      * [`Post_serv] ], 
+                   [ `WithoutSuffix ], unit param_name, 'g)
+                    service
+(** Same as [new_post_coservice'] followed by [register_service_for_session] *)
+
+(*
+    val register_new_get_post_coservice_for_session' :
+        server_params ->
+          fallback:('a, unit, [ `Internal_Service of
+            [< `NonAttachedCoservice ] * [`Get_serv] ],
+                    [< `WithSuffix | `WithoutSuffix ] as 'c, 
+                    'd, unit param_name)
+            service ->
+              post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
+                ?error_handler:(server_params -> 
+                  (string * exn) list -> page Lwt.t) ->
+                    (server_params -> 'a -> 'f -> page Lwt.t) ->
+                      ('a, 'f, [ `Internal_Service of
+                        [ `NonAttachedCoservice ]
+                          * [`Post_serv] ], 
+                       'c, 'd, 'g)
+                        service
+(* * Same as [new_get_post_coservice] followed by [register_service_for_session] *)
+*)
+
+  end
 
 
-(** {2 Registering anonymous services} *)
-  val register_anonymous_service :
-      anonymous_service:('a, 'b) anonymous_service ->
-        ?error_handler:(server_params -> (string * exn) list -> 
-          page Lwt.t) ->
-	    (server_params -> 'a -> page Lwt.t) -> unit
-(** Register an anonymous service in the global table (allowed only
-   during the initialization phase) *)
-            
-  val register_anonymous_service_for_session :
-      server_params ->
-	anonymous_service:('a, 'b) anonymous_service ->
-          ?error_handler:(server_params -> (string * exn) list -> 
-            page Lwt.t) ->
-              (server_params -> 'a -> page Lwt.t) -> unit
-(** Register an anonymous service in the session table *)
-              
-  val register_new_anonymous_service :
-      post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-        ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-	(server_params -> 'a -> page Lwt.t) -> ('a, 'b) anonymous_service
-(** Same as [new_anonymous_service] followed by [register_anonymous_service] *)
-            
-  val register_new_anonymous_service_for_session :
-      server_params ->
-	post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-          ?error_handler:(server_params -> (string * exn) list -> 
-            page Lwt.t) ->
-              (server_params -> 'a -> page Lwt.t) -> ('a, 'b) anonymous_service
-(** Same as [new_anonymous_service] followed by [register_anonymous_service_for_session] *)
-	      
+module type ELIOMSIG = sig
+  include ELIOMREGSIG
+  include ELIOMFORMSIG
+end
+
+
+
+module MakeRegister : functor (Pages: REGCREATE) -> ELIOMREGSIG with 
+type page = Pages.page
+
+module MakeForms : functor (Pages: FORMCREATE) -> ELIOMFORMSIG with 
+type form_content_elt = Pages.form_content_elt
+and type form_content_elt_list = Pages.form_content_elt_list
+and type form_elt = Pages.form_elt
+and type a_content_elt = Pages.a_content_elt
+and type a_content_elt_list = Pages.a_content_elt_list
+and type a_elt = Pages.a_elt
+and type a_elt_list = Pages.a_elt_list
+and type div_content_elt = Pages.div_content_elt
+and type div_content_elt_list = Pages.div_content_elt_list
+and type uri = Pages.uri
+and type link_elt = Pages.link_elt
+and type script_elt = Pages.script_elt
+and type textarea_elt = Pages.textarea_elt
+and type select_elt = Pages.select_elt
+and type input_elt = Pages.input_elt
+and type pcdata_elt = Pages.pcdata_elt
+and type a_attrib_t = Pages.a_attrib_t
+and type form_attrib_t = Pages.form_attrib_t
+and type input_attrib_t = Pages.input_attrib_t
+and type textarea_attrib_t = Pages.textarea_attrib_t
+and type select_attrib_t = Pages.select_attrib_t
+and type link_attrib_t = Pages.link_attrib_t
+and type script_attrib_t = Pages.script_attrib_t
+and type input_type_t = Pages.input_type_t
+
+(** {2 Pages registration (typed xhtml)} *)
+module Xhtml : sig
+
+  include ELIOMREGSIG with type page = xhtml elt
+
 (** {2 Creating links, forms, etc.} *)
 
   val a :
@@ -631,416 +943,10 @@ Not all features of "select" are implemented.
   val file_input : ?a:(input_attrib attrib list ) ->
     ?value:string -> file_info param_name -> [> input ] elt
 
-  val anonymous_a : 
-      ?a:(a_attrib attrib list) ->
-	('a,'b) anonymous_service -> 
-	  server_params -> 
-            a_content elt list -> 
-              [> form] elt
-(** Creates a link towards an anonymous service.
-   The URL is the current URL. The name of the service is sent as an
-   hidden parameter.
- *)
-
-  val anonymous_form :
-      ?a:(form_attrib attrib list) ->
-	('a, 'b) anonymous_service ->
-          server_params -> 
-            ('b -> form_content elt list) ->
-              [> form] elt
-(** Creates a form  towards an anonymous service.
-   It is always using method POST, with the name of the service sent as an
-   hidden parameter.
- *)
 
 end
 
-(** {2 Using other ways (than the module Eliom.Xhtml) to create pages} *)
-
-module type REGCREATE = 
-  sig
-    type page
-
-    val create_sender : Predefined_senders.create_sender_type option
-    val send : content:page -> Predefined_senders.send_page_type
-
-  end
-
-
-module type FORMCREATE = 
-  sig
-    type form_content_elt
-    type form_content_elt_list
-    type form_elt
-    type a_content_elt
-    type a_content_elt_list
-    type a_elt
-    type a_elt_list
-    type div_content_elt
-    type div_content_elt_list
-    type uri
-    type link_elt
-    type script_elt
-    type textarea_elt
-    type select_elt
-    type input_elt
-    type pcdata_elt
-
-    type a_attrib_t
-    type form_attrib_t
-    type input_attrib_t
-    type textarea_attrib_t
-    type select_attrib_t
-    type link_attrib_t
-    type script_attrib_t
-    type input_type_t
-
-    val hidden : input_type_t
-    val text : input_type_t
-    val password : input_type_t
-    val checkbox : input_type_t
-    val radio : input_type_t
-    val submit : input_type_t
-    val file : input_type_t
-
-    val empty_seq : form_content_elt_list
-    val cons_form : form_content_elt -> form_content_elt_list -> form_content_elt_list 
-
-    val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
-    val make_get_form : ?a:form_attrib_t -> 
-      action:string -> 
-        form_content_elt -> form_content_elt_list -> form_elt
-    val make_post_form : ?a:form_attrib_t ->
-      action:string -> ?id:string -> ?inline:bool -> 
-        form_content_elt -> form_content_elt_list -> form_elt
-    val make_hidden_field : input_elt -> form_content_elt
-    val remove_first : form_content_elt_list -> form_content_elt * form_content_elt_list
-    val make_input : ?a:input_attrib_t -> ?checked:bool ->
-      typ:input_type_t -> ?name:string -> 
-        ?value:string -> unit -> input_elt
-    val make_textarea : ?a:textarea_attrib_t -> 
-      name:string -> rows:int -> cols:int ->
-        pcdata_elt -> 
-          textarea_elt
-     val make_select : ?a:select_attrib_t ->
-       name:string ->
-       ?selected:((string option * string) option)
-         -> (string option * string) -> ((string option * string) list) ->
-       select_elt
-    val make_div : classe:(string list) -> a_elt -> form_content_elt
-    val make_uri_from_string : string -> uri
-
-
-    val make_css_link : ?a:link_attrib_t -> uri -> link_elt
-
-    val make_js_script : ?a:script_attrib_t -> uri -> script_elt
-
-  end
-
-module type OCSIGENFORMSIG =
-  sig
-
-    type form_content_elt
-    type form_content_elt_list
-    type form_elt
-    type a_content_elt
-    type a_content_elt_list
-    type a_elt
-    type a_elt_list
-    type div_content_elt
-    type div_content_elt_list
-    type uri
-    type link_elt
-    type script_elt
-    type textarea_elt
-    type select_elt
-    type input_elt
-    type pcdata_elt
-          
-    type a_attrib_t
-    type form_attrib_t
-    type input_attrib_t
-    type textarea_attrib_t
-    type select_attrib_t
-    type link_attrib_t
-    type script_attrib_t
-    type input_type_t
-
-    val a :
-        ?a:a_attrib_t ->
-          ('a, unit, [< `External_Service | `Internal_Service of 
-            'b * [ `Get_serv ] ], 
-           [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name) service ->
-            server_params -> a_content_elt_list -> 'a -> a_elt
-    val get_form :
-        ?a:form_attrib_t ->
-          ('a, unit, [< `External_Service | `Internal_Service of
-            'b * [ `Get_serv ] ], 
-           'c, 'd, unit param_name) service ->
-            server_params ->
-              ('d -> form_content_elt_list) -> form_elt
-    val post_form :
-        ?a:form_attrib_t ->
-          ('a, 'b, [< `External_Service 
-      | `Internal_Service of 'kind * [ `Post_serv ] ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
-            server_params ->
-              ('e -> form_content_elt_list) -> 'a -> form_elt
-    val make_uri :
-        ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
-          server_params -> 'a -> uri
-    val anonymous_a :
-        ?a:a_attrib_t ->
-          ('a, 'b) anonymous_service ->
-            server_params -> a_content_elt_list -> form_elt
-    val anonymous_form :
-        ?a:form_attrib_t ->
-          ('a, 'b) anonymous_service ->
-            server_params ->
-              ('b -> form_content_elt_list) -> form_elt
-    val js_script :
-        ?a:script_attrib_t -> uri -> script_elt
-    val css_link : ?a:link_attrib_t -> uri -> link_elt
-
-    val int_input :
-        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
-    val float_input :
-        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
-    val string_input :
-        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
-    val user_type_input :
-        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-          'a param_name -> input_elt
-    val int_password_input :
-        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
-    val float_password_input :
-        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
-    val string_password_input :
-        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
-    val user_type_password_input :
-        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-          'a param_name -> input_elt
-    val hidden_int_input :
-        ?a:input_attrib_t -> int param_name -> int -> input_elt
-    val hidden_float_input :
-        ?a:input_attrib_t -> float param_name -> float -> input_elt
-    val hidden_string_input :
-        ?a:input_attrib_t -> string param_name -> string -> input_elt
-    val hidden_user_type_input :
-        ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
-    val bool_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
-    val string_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-          string option param_name -> string -> input_elt
-    val int_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           int option param_name -> int -> input_elt
-    val float_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           float option param_name -> float -> input_elt
-    val user_type_radio :
-        ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
-           'a option param_name -> 'a -> input_elt
-    val textarea :
-        ?a:textarea_attrib_t ->
-          string param_name ->
-            rows:int -> cols:int -> pcdata_elt -> textarea_elt
-    val select :
-      ?a:select_attrib_t ->
-      ?selected:((string option * string) option)
-      -> (string option * string) -> ((string option * string) list) ->
-      string param_name
-      -> select_elt
-    val submit_input : ?a:input_attrib_t -> string -> input_elt
-    val file_input : ?a:input_attrib_t -> ?value:string -> 
-                            file_info param_name-> input_elt
-  end
-
-module type OCSIGENREGSIG =
-  sig
-    type page
-
-    val register_service :
-        service:('a, 'b, [ `Internal_Service of 
-          [<`Main_Service | `Aux_Service ] * [< `Get_serv | `Post_serv] ],
-                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
-                   ?error_handler:(server_params -> 
-                     (string * exn) list -> page Lwt.t) ->
-                       (server_params -> 'a -> 'b -> page Lwt.t) -> unit
-
-    val register_service_for_session :
-        server_params ->
-          service:('a, 'b, [ `Internal_Service of 
-            [<`Main_Service | `Aux_Service ] * [< `Get_serv | `Post_serv] ],
-                   [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
-            service ->
-              ?error_handler:(server_params -> (string * exn) list -> 
-                page Lwt.t) ->
-                  (server_params -> 'a -> 'b -> page Lwt.t) -> unit
-
-    val register_new_service :
-        url:url_path ->
-          ?prefix:bool ->
-            get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 'c)
-              params_type ->
-                ?error_handler:(server_params -> (string * exn) list -> 
-                  page Lwt.t) ->
-                    (server_params -> 'a -> unit -> page Lwt.t) ->
-                      ('a, unit, [ `Internal_Service of
-                        [ `Main_Service ] * [`Get_serv]], 
-                       'b, 'c, unit param_name) service
-
-
-    (** Auxiliary services *)
-
-    val register_new_auxiliary_service :
-        fallback:(unit, unit, [ `Internal_Service of [ `Main_Service ] *
-            [`Get_serv]],
-                  [`WithoutSuffix], 
-                  unit param_name, unit param_name)
-        service ->
-          get_params: 
-            ('get,[`WithoutSuffix],'gn) params_type ->
-              ?error_handler:(server_params -> 
-                (string * exn) list -> page Lwt.t) ->
-                  (server_params -> 'get -> unit -> page Lwt.t) ->
-                    ('get, unit, 
-                     [ `Internal_Service of [ `Aux_Service ] * [`Get_serv]], 
-                     [`WithoutSuffix], 'gn, unit param_name)
-                      service
-
-    val register_new_auxiliary_service_for_session :
-        server_params ->
-          fallback:(unit, unit, [ `Internal_Service of [ `Main_Service ] * 
-              [`Get_serv]],
-                    [ `WithoutSuffix ] as 'b, 
-                    unit param_name, unit param_name)
-            service ->
-              get_params: 
-                ('get,[`WithoutSuffix] as 'tipo,'gn) params_type ->
-                  ?error_handler:(server_params -> (string * exn) list -> 
-                    page Lwt.t) ->
-                      (server_params -> 'get -> unit -> page Lwt.t) ->
-                        ('get, unit, [ `Internal_Service of
-                          [ `Aux_Service ] * [`Get_serv] ], 
-                         [`WithoutSuffix], 'gn, unit param_name)
-                          service
-
-
-    (** Services with post parameters *)
-
-    val register_new_post_service :
-        fallback:('a, unit, [ `Internal_Service of 
-          ([< `Main_Service | `Aux_Service ] as 'kind) * [`Get_serv] ],
-                  [< `WithSuffix | `WithoutSuffix ] as 'b, 'c,
-                  unit param_name)
-        service ->
-          post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-            ?error_handler:(server_params -> (string * exn) list -> 
-              page Lwt.t) ->
-                (server_params -> 'a -> 'd -> page Lwt.t) ->
-                  ('a, 'd, [ `Internal_Service of 'kind * [`Post_serv] ], 
-                   'b, 'c, 'e)
-                    service
-
-    val register_new_post_auxiliary_service :
-        fallback:('a, unit , [ `Internal_Service of 
-          [< `Main_Service | `Aux_Service ] * [`Get_serv] ],
-                  [< `WithSuffix | `WithoutSuffix ] as 'c, 'd, unit param_name)
-        service ->
-          post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-            ?error_handler:(server_params -> (string * exn) list -> 
-              page Lwt.t) ->
-                (server_params -> 'a -> 'f -> page Lwt.t) ->
-                  ('a, 'f, [ `Internal_Service of [ `Aux_Service ] 
-                      * [`Post_serv] ], 'c, 'd, 'g)
-                    service
-
-    val register_new_post_auxiliary_service_for_session :
-        server_params ->
-          fallback:('a, unit, [ `Internal_Service of
-            [< `Main_Service | `Aux_Service ] * [`Get_serv] ],
-                    [< `WithSuffix | `WithoutSuffix ] as 'c, 
-                    'd, unit param_name)
-            service ->
-              post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
-                ?error_handler:(server_params -> 
-                  (string * exn) list -> page Lwt.t) ->
-                    (server_params -> 'a -> 'f -> page Lwt.t) ->
-                      ('a, 'f, [ `Internal_Service of
-                        [ `Aux_Service ] * [`Post_serv] ], 
-                       'c, 'd, 'g)
-                        service
-
-    val register_anonymous_service :
-        anonymous_service:('a, 'b) anonymous_service ->
-          ?error_handler:(server_params -> (string * exn) list -> 
-            page Lwt.t) ->
-	      (server_params -> 'a -> page Lwt.t) -> unit
-              
-    val register_anonymous_service_for_session :
-        server_params ->
-	  anonymous_service:('a, 'b) anonymous_service ->
-            ?error_handler:(server_params -> (string * exn) list -> page Lwt.t) ->
-            (server_params -> 'a -> page Lwt.t) -> unit
-                
-    val register_new_anonymous_service :
-        post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-          ?error_handler:(server_params -> (string * exn) list -> 
-            page Lwt.t) ->
-	      (server_params -> 'a -> page Lwt.t) -> 
-                ('a, 'b) anonymous_service
-              
-    val register_new_anonymous_service_for_session :
-        server_params ->
-	  post_params:('a, [ `WithoutSuffix ], 'b) params_type ->
-            ?error_handler:(server_params -> (string * exn) list -> 
-              page Lwt.t) ->
-                (server_params -> 'a -> page Lwt.t) -> 
-                  ('a, 'b) anonymous_service
-
-
-  end
-
-
-module type OCSIGENSIG = sig
-  include OCSIGENREGSIG
-  include OCSIGENFORMSIG
-end
-
-
-
-module MakeRegister : functor (Pages: REGCREATE) -> OCSIGENREGSIG with 
-type page = Pages.page
-
-module MakeForms : functor (Pages: FORMCREATE) -> OCSIGENFORMSIG with 
-type form_content_elt = Pages.form_content_elt
-and type form_content_elt_list = Pages.form_content_elt_list
-and type form_elt = Pages.form_elt
-and type a_content_elt = Pages.a_content_elt
-and type a_content_elt_list = Pages.a_content_elt_list
-and type a_elt = Pages.a_elt
-and type a_elt_list = Pages.a_elt_list
-and type div_content_elt = Pages.div_content_elt
-and type div_content_elt_list = Pages.div_content_elt_list
-and type uri = Pages.uri
-and type link_elt = Pages.link_elt
-and type script_elt = Pages.script_elt
-and type textarea_elt = Pages.textarea_elt
-and type select_elt = Pages.select_elt
-and type input_elt = Pages.input_elt
-and type pcdata_elt = Pages.pcdata_elt
-and type a_attrib_t = Pages.a_attrib_t
-and type form_attrib_t = Pages.form_attrib_t
-and type input_attrib_t = Pages.input_attrib_t
-and type textarea_attrib_t = Pages.textarea_attrib_t
-and type select_attrib_t = Pages.select_attrib_t
-and type link_attrib_t = Pages.link_attrib_t
-and type script_attrib_t = Pages.script_attrib_t
-and type input_type_t = Pages.input_type_t
-
-module Text : OCSIGENSIG with 
+module Text : ELIOMSIG with 
 type page = string
 and type form_content_elt = string
 and type form_content_elt_list = string
@@ -1068,8 +974,8 @@ and type script_attrib_t = string
 and type input_type_t = string 
 
 
-module Actions : OCSIGENREGSIG with 
+module Actions : ELIOMREGSIG with 
   type page = unit
 
-module Unit : OCSIGENREGSIG with 
+module Unit : ELIOMREGSIG with 
   type page = unit
