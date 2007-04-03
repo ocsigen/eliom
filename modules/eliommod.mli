@@ -37,8 +37,14 @@ type pages_tree =
     tables (* global tables of services *)
       * cookiestable (* session tables *)
 
+type sess_info =
+    {si_other_get_params: (string * string) list;
+     si_cookie: string option;
+     si_nonatt_info: (string option * string option);
+     si_state_info: (internal_state option * internal_state option)}
+
 type 'a server_params1 = 
-    request_info * (current_dir * 'a ref * (string * string) list * url_path)
+    request_info * sess_info * (current_dir * 'a ref * url_path)
 type server_params = tables server_params1
 
 type page_table_key =

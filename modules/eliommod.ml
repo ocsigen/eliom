@@ -30,16 +30,21 @@ open Ocsimisc
 open Extensions
 open Lazy
 
-type 'a server_params1 = 
-    request_info * 
-      (current_dir * 'a ref * ((string * string) list) * url_path)
-      
 (** state is a parameter to differenciate
    several instances of the same URL.
    (for internal use)
  *)
 type internal_state = int
 
+type sess_info =
+    {si_other_get_params: (string * string) list;
+     si_cookie: string option;
+     si_nonatt_info: (string option * string option);
+     si_state_info: (internal_state option * internal_state option)}
+
+type 'a server_params1 = 
+    request_info * sess_info * (current_dir * 'a ref * url_path)
+      
 (********)
 
 exception Eliom_Wrong_parameter
@@ -132,7 +137,10 @@ let change_request_info ri =
       ({ri with 
         ri_get_params = lazy get_params; 
         ri_post_params = lazy (return post_params)},
-       (cookie, anservice_info, (get_state, post_state), other_get_params)))
+       {si_cookie=cookie;
+        si_nonatt_info=anservice_info;
+        si_state_info=(get_state, post_state);
+        si_other_get_params=other_get_params}))
 
 
 
@@ -284,12 +292,12 @@ let global_register_allowed () =
 
 
     (** Create server parameters record *)
-let make_server_params dir str ri other_get_params suffix =
+let make_server_params dir str ri suffix si =
   (ri,
+   si,
    (dir,
-    str,
-    other_get_params,
-    suffix))
+   str,
+   suffix))
 
 
 let find_page_table 
@@ -298,15 +306,15 @@ let find_page_table
     ri
     urlsuffix
     k
-    other_get_params = 
-  let (sp0,(_,b,o,u)) = 
-    make_server_params [] str ri other_get_params urlsuffix in
+    si
+    = 
+  let (sp0,si,(_,s,u)) = make_server_params [] str ri urlsuffix si in
   let rec aux = function
       [] -> fail Eliom_Wrong_parameter
     | (_,(funct, create_sender,working_dir))::l ->
         catch (fun () ->
           Messages.debug "- I'm trying a service";
-          funct (sp0, (working_dir, b, o, u)) >>=
+          funct (sp0, si, (working_dir,s,u)) >>=
           (fun p -> 
             Messages.debug "- Page found";
             Lwt.return (p, create_sender, working_dir)))
@@ -433,8 +441,7 @@ let find_service
     (dircontentref,_)
     (session_table_ref, 
      ri,
-     states, 
-     other_get_params) =
+     si) =
   let rec search_page_table dircontent =
     let aux a l =
       (match !(find_dircontent dircontent a) with
@@ -465,8 +472,8 @@ let find_service
     {ri with ri_get_params = lazy get_param_list}
     suffix
     {suffix = pref;
-     state = states}
-    other_get_params
+     state = si.si_state_info}
+    si
 
 
 (****************************************************************************)
@@ -520,20 +527,13 @@ let execute generate_page ip cookie (globtable, cookie_table) =
        lastmod,
        etag))
 
-exception Eliom_retry_with of 
-  (request_info * 
-     (string option * 
-        (string option * string option) *
-        (internal_state option * internal_state option) *
-        (string * string) list))
+exception Eliom_retry_with of (request_info * sess_info) 
 
 let get_page
     page_tree
     ri
     charset
-    cookie 
-    internal_state 
-    other_get_params =
+    si =
   let generate_page
       global_tables
       session_tables_ref =
@@ -546,8 +546,7 @@ let get_page
              !session_tables_ref
              (session_tables_ref,
               ri,
-              internal_state,
-              other_get_params)))
+              si)))
         (function 
             Ocsigen_404 | Eliom_Wrong_parameter -> 
               catch (* ensuite dans la table globale *)
@@ -557,12 +556,11 @@ let get_page
                      global_tables
                      (session_tables_ref,
                       ri,
-                      internal_state,
-                      other_get_params)))
+                      si)))
                 (function
                     Ocsigen_404 (* | Eliom_Wrong_parameter *) as exn -> 
                       (* si pas trouvé avec, on essaie sans l'état *)
-                      (match internal_state with
+                      (match si.si_state_info with
                         (None, None) -> fail exn
                       | (g, Some _) -> 
                           (* There was a POST state. 
@@ -575,8 +573,10 @@ let get_page
                                     ri_post_params = lazy (return [])
 (***************************** ++++++++++++++++++++ exn *)
                                   }, 
-                                   (cookie, (None, None), 
-                                    (g, None), other_get_params)))
+                                   {si with
+                                    si_nonatt_info= (None, None);
+                                    si_state_info= (g, None)}
+                                  ))
                       | (Some _, None) -> 
                           (* There was a GET state, but no POST state. 
                              We remove it with its parameters, 
@@ -586,34 +586,36 @@ let get_page
                             "-- Session expired. I will try without GET state parameters and POST parameters:";
                           fail (Eliom_retry_with 
                                   ({ri with 
-                                    ri_get_params = lazy other_get_params;
+                                    ri_get_params = 
+                                    lazy si.si_other_get_params;
                                     ri_post_params = lazy (return [])
 (***************************** ++++++++++++++++++++ exn *)
                                   },
-                                   (cookie, (None, None), (None, None), []))))
+                                   {si with
+                                    si_nonatt_info=(None, None);
+                                    si_state_info=(None, None);
+                                    si_other_get_params=[]})))
                   | e -> fail e)
           | e -> fail e)) >>= (fun r -> return (r,None,None)))
-  in (generate_page, ri.ri_inet_addr, cookie, page_tree)
+  in (generate_page, ri.ri_inet_addr, si.si_cookie, page_tree)
 
 
 let make_anservice
     page_tree
-    anservice_info
     ri
-    cookie 
-    other_get_params =
+    si =
   let generate_page global_tables session_tables_ref =
     (try
       try
-        return (find_anservice !session_tables_ref anservice_info)
+        return (find_anservice !session_tables_ref si.si_nonatt_info)
       with
-        Not_found -> return (find_anservice global_tables anservice_info)
+        Not_found -> return (find_anservice global_tables si.si_nonatt_info)
     with
       Not_found ->
         (* It was an non-attached service.
            We call the same URL without non-attached parameters.
          *)
-        match anservice_info with
+        match si.si_nonatt_info with
           None, None -> assert false
         | Some _ as g, Some _ ->
             Messages.debug 
@@ -623,14 +625,15 @@ let make_anservice
                       ri_post_params = lazy (return [])
 (***************************** ++++++++++++++++++++ exn *)
                     },
-                     (cookie, (g, None), 
-                      (None, None), other_get_params)))
+                     {si with
+                      si_nonatt_info=(g, None);
+                      si_state_info=(None, None)}))
         | _ ->
             Messages.debug 
               "-- Session expired. I will try without non-attached parameters:";
             change_request_info
               {ri with 
-               ri_get_params = lazy other_get_params;
+               ri_get_params = lazy si.si_other_get_params;
                ri_post_params = lazy (return [])
 (***************************** ++++++++++++++++++++ exn *)
              } >>=
@@ -639,31 +642,28 @@ let make_anservice
     (fun (anservice, create_sender, working_dir) ->
       (anservice
          (make_server_params 
-            working_dir session_tables_ref 
+            working_dir
+            session_tables_ref 
             ri
-            other_get_params
-            [])) >>=
+            []
+            si)) >>=
       (fun r -> return ((r,create_sender, working_dir), None, None)))
-  in (generate_page, ri.ri_inet_addr, cookie, page_tree)
+  in (generate_page, ri.ri_inet_addr, si.si_cookie, page_tree)
     
 
 let gen page_tree charset ri =
-  let rec gen_aux 
-      (ri, (cookie, anservice_info, 
-            (get_state, post_state), other_get_params)) =
+  let rec gen_aux (ri, si) =
     let (gen,ia,c,pt) = 
-      match anservice_info with
+      match si.si_nonatt_info with
 	None, None ->
           
           (* page generation *)
-          get_page 
-            page_tree ri charset cookie
-            (get_state, post_state) other_get_params
+          get_page page_tree ri charset si
             
       | _ ->
           
           (* anonymous service *)
-          make_anservice page_tree anservice_info ri cookie other_get_params
+          make_anservice page_tree ri si
     in
     
     catch 
@@ -684,9 +684,8 @@ let gen page_tree charset ri =
                      *)
               force ri.ri_post_params >>=
               (fun ripp ->
-                (match anservice_info, get_state, post_state, ripp
-                with
-                  (None, None),None,None,[] ->
+                (match si.si_nonatt_info, si.si_state_info, ripp with
+                  (None, None),(None,None),[] ->
                     return
                       (Ext_found
                          {res_cookies=cookie;
