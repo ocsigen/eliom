@@ -1,25 +1,26 @@
 (** Predefined boxes for Eliommod *)
 
 val menu : ?classe:XHTML.M.nmtoken list ->
-       ((unit,unit, [<`Internal_Service of 
-         [<`Main_Service | `Aux_Service]
-           * [ `Get_serv ]
-       | `External_Service],
-         [<`WithSuffix|`WithoutSuffix] as 'tipo,
-         unit Eliom.param_name, unit Eliom.param_name)
-        Eliom.service * Xhtmltypes.a_content XHTML.M.elt list)
-        ->
-          ((unit,unit, [<`Internal_Service of [<`Main_Service | `Aux_Service]
-              * [ `Get_serv ] | `External_Service],
-            [<`WithSuffix|`WithoutSuffix] as 'tipo,
-            unit Eliom.param_name, unit Eliom.param_name)
-             Eliom.service * Xhtmltypes.a_content XHTML.M.elt list)
-            list ->
-              (unit,unit, [<`Internal_Service of 
-                [<`Main_Service | `Aux_Service] * [ `Get_serv ] |
-                `External_Service],'tipo, 
-               unit Eliom.param_name, unit Eliom.param_name) Eliom.service ->
-                 Eliom.server_params -> [> `Ul ] XHTML.M.elt
+  ((unit, unit, [<`Internal of 
+    [< `Service | `Coservice | `NonAttachedCoservice ]  * [ `Get ] 
+| `External],
+    [<`WithSuffix|`WithoutSuffix] as 'tipo,
+    unit Eliom.param_name, unit Eliom.param_name, [< Eliom.registrable ])
+     Eliom.service * Xhtmltypes.a_content XHTML.M.elt list)
+  ->
+    ((unit, unit, [<`Internal of
+      [< `Service | `Coservice | `NonAttachedCoservice ] * [ `Get ]
+| `External],
+      [<`WithSuffix|`WithoutSuffix] as 'tipo,
+      unit Eliom.param_name, unit Eliom.param_name, [< Eliom.registrable])
+       Eliom.service * Xhtmltypes.a_content XHTML.M.elt list)
+      list ->
+        (unit, unit, [<`Internal of 
+          [< `Service | `Coservice | `NonAttachedCoservice ] * [ `Get ] |
+          `External],'tipo, 
+         unit Eliom.param_name, unit Eliom.param_name, 
+         [< Eliom.registrable ]) Eliom.service ->
+           Eliom.server_params -> [> `Ul ] XHTML.M.elt
 
 (** Creates a menu 
 

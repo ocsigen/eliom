@@ -107,6 +107,7 @@ type answer =
    - a function that will be called for each
    virtual server, generating two functions:
      - one that will be called to generate the pages
+       (from charset (string option) and request_info)
      - one to parse the configuration file
    - a function that will be called at the beginning 
    of the initialisation phase 

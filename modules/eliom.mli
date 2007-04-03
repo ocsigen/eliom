@@ -42,14 +42,18 @@ val sync : ('a -> 'b -> 'c -> 'd) -> ('a -> 'b -> 'c -> 'd Lwt.t)
 
 (** {2 Types} *)
 
+type internal_service_kind = [ `Service | `Coservice | `NonAttachedCoservice ]
+type internal_service_kind2 = [ `Get | `Post ]
+
 type service_kind = 
-    [ `Internal_Service of
-      [`Service | `Coservice | `NonAttachedCoservice ] *
-        [`Get_serv | `Post_serv]
-  | `External_Service]
+    [ `Internal of internal_service_kind * internal_service_kind2
+  | `External]
 (** Kind of service *)
 
-type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames) service
+type registrable = [ `Registrable | `Unregistrable ]
+(** You can call register function only on registrable services *)
+
+type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 (** Typed services. The ['kind] parameter is subset of service_kind. ['get] 
    and ['post] are the type of GET and POST parameters. *)
 
@@ -184,9 +188,9 @@ val suffix :
 (** {2 Misc} *)
 val static_dir :
     server_params -> 
-      (string, unit, [ `Internal_Service of [ `Service ] * [`Get_serv] ],
+      (string, unit, [ `Internal of [ `Service ] * [`Get] ],
        [ `WithSuffix ],
-       string param_name, unit param_name)
+       string param_name, unit param_name, [ `Unregistrable ])
         service
 (** The service that correponds to the directory where static pages are.
    This directory is chosen in the config file (ocsigen.conf).
@@ -205,9 +209,9 @@ val new_service :
           params_type ->
             unit ->
               ('get,unit,
-               [`Internal_Service of [`Service] * [`Get_serv]],
+               [`Internal of [`Service] * [`Get]],
                'tipo,'gn, 
-               unit param_name) service
+               unit param_name, [ `Registrable ]) service
 (** [new_service ~url:p ~get_params:pa ()] creates an {{:#TYPEservice}[service]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
    
    If you specify [~suffix:true], your service will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_service ["mysite";"mywiki"] ~suffix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
@@ -218,35 +222,36 @@ val new_external_service :
         get_params:('a, [< `WithSuffix | `WithoutSuffix ] as 'b, 
                     'c) params_type ->
           post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
-            unit -> ('a, 'd, [ `External_Service ], 'b, 'c, 'e) service
+            unit -> ('a, 'd, [ `External ], 'b, 'c, 'e, 
+                     [ `Unregistrable ]) service
 (** Creates an service for an external web site *)
 		
 val new_coservice :
     fallback: 
-    (unit,unit, [`Internal_Service of [`Service] * [`Get_serv]],
+    (unit,unit, [`Internal of [`Service] * [`Get]],
      [`WithoutSuffix],
-     unit param_name,unit param_name) service ->
+     unit param_name, unit param_name, [< registrable ]) service ->
        get_params: 
          ('get,[`WithoutSuffix],'gn) params_type ->
-           ('get,unit,[`Internal_Service of [`Coservice] * [`Get_serv]],
-            [`WithoutSuffix],'gn,unit param_name) service
+           ('get,unit,[`Internal of [`Coservice] * [`Get]],
+            [`WithoutSuffix], 'gn, unit param_name, [ `Registrable ]) service
 (** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
 val new_coservice' :
     get_params: 
     ('get,[`WithoutSuffix],'gn) params_type ->
-      ('get,unit,[`Internal_Service of [`NonAttachedCoservice] * [`Get_serv]],
-       [`WithoutSuffix],'gn,unit param_name) service
+      ('get,unit,[`Internal of [`NonAttachedCoservice] * [`Get]],
+       [`WithoutSuffix], 'gn, unit param_name, [ `Registrable ]) service
 (** Creates a non-attached coservice. Links towards such services will not change the URL, just add extra parameters. *)
         
 val new_post_service :
     fallback: ('get, unit, 
-               [`Internal_Service of 
-                 ([<`Service | `Coservice] as 'kind) * [`Get_serv]],
-               'tipo,'gn,unit param_name) service ->
+               [`Internal of 
+                 ([<`Service | `Coservice] as 'kind) * [`Get]],
+               'tipo, 'gn, unit param_name, [< registrable ]) service ->
                  post_params: ('post,[`WithoutSuffix],'pn) params_type ->
-                   ('get, 'post, [`Internal_Service of 'kind * [`Post_serv]],
-                    'tipo,'gn,'pn) service
+                   ('get, 'post, [`Internal of 'kind * [`Post]],
+                    'tipo, 'gn, 'pn, [ `Registrable ]) service
 (** Creates an service that takes POST parameters. 
    [fallback] is the same service without POST parameters.
    You can create an service with POST parameters if the same service does not exist
@@ -255,34 +260,34 @@ val new_post_service :
  *)
 	  
 val new_post_coservice :
-    fallback: ('get, unit, [`Internal_Service of 
-      [<`Service | `Coservice] * [`Get_serv]],
+    fallback: ('get, unit, [`Internal of 
+      [<`Service | `Coservice] * [`Get]],
                [< `WithSuffix | `WithoutSuffix ] as 'tipo,
-               'gn, unit param_name) service ->
+               'gn, unit param_name, [< registrable ]) service ->
                  post_params: ('post,[`WithoutSuffix],'pn) params_type ->
                   ('get, 'post, 
-                   [`Internal_Service of [`Coservice] * [`Post_serv]],
-                   'tipo, 'gn, 'pn) service
+                   [`Internal of [`Coservice] * [`Post]],
+                   'tipo, 'gn, 'pn, [ `Registrable ]) service
 (** Creates a coservice with POST parameters *)
 
 val new_post_coservice' :
     post_params: ('post,[`WithoutSuffix],'pn) params_type ->
       (unit, 'post, 
-       [`Internal_Service of [`NonAttachedCoservice] * [`Post_serv]],
-       [ `WithoutSuffix ], unit param_name, 'pn) service
+       [`Internal of [`NonAttachedCoservice] * [`Post]],
+       [ `WithoutSuffix ], unit param_name, 'pn, [ `Registrable ]) service
 (** Creates a non attached coservice with POST parameters *)
 
 (*
 val new_get_post_coservice' :
-    fallback: ('get, unit, [`Internal_Service of 
-      [<`NonAttachedCoservice] * [`Get_serv]],
+    fallback: ('get, unit, [`Internal of 
+      [<`NonAttachedCoservice] * [`Get]],
                [ `WithSuffix | `WithoutSuffix ] as 'tipo,
-               'gn, unit param_name) service ->
+               'gn, unit param_name, [< registrable ]) service ->
                  post_params: ('post,[`WithoutSuffix],'pn) params_type ->
                    ('get, 'post, 
-                    [`Internal_Service of [`NonAttachedCoservice] * 
-                        [`Post_serv]],
-                    'tipo,'gn,'pn) service
+                    [`Internal of [`NonAttachedCoservice] * 
+                        [`Post]],
+                    'tipo,'gn,'pn, [ `Registrable ]) service
 (* * Creates a non-attached coservice with GET and POST parameters. The fallback is a non-attached coservice with GET parameters. *)
 *)
 
@@ -403,26 +408,33 @@ module type ELIOMFORMSIG =
 
     val a :
         ?a:a_attrib_t ->
-          ('a, unit, [< `External_Service | `Internal_Service of 
-            'b * [ `Get_serv ] ], 
-           [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name) service ->
+          ('a, unit, [< `External | `Internal of 
+            [< internal_service_kind ] * [ `Get ] ], 
+           [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name,
+           [< registrable ]) service ->
             server_params -> a_content_elt_list -> 'a -> a_elt
     val get_form :
         ?a:form_attrib_t ->
-          ('a, unit, [< `External_Service | `Internal_Service of
-            'b * [ `Get_serv ] ], 
-           'c, 'd, unit param_name) service ->
+          ('a, unit, [< `External | `Internal of
+            [< internal_service_kind ] * [ `Get ] ], 
+           'c, 'd, unit param_name, [< registrable ]) service ->
             server_params ->
               ('d -> form_content_elt_list) -> form_elt
     val post_form :
         ?a:form_attrib_t ->
-          ('a, 'b, [< `External_Service 
-      | `Internal_Service of 'kind * [ `Post_serv ] ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+          ('a, 'b, [< `External 
+      | `Internal of 
+          [< internal_service_kind ] * [ `Post ] ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+           [< registrable ]) service ->
             server_params ->
               ('e -> form_content_elt_list) -> 'a -> form_elt
     val make_uri :
-        ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
+        ('a, unit, 
+         [< `External | `Internal of 
+           [< internal_service_kind ] * [ `Get ] ],
+         [< `WithSuffix | `WithoutSuffix ], 'c, 'd, 
+         [< registrable ]) service ->
           server_params -> 'a -> uri
 
     val js_script :
@@ -488,17 +500,18 @@ module type ELIOMREGSIG =
   sig
     type page
 
-    val register_service :
-        service:('a, 'b, [ `Internal_Service of 
+    val register :
+        service:('a, 'b, [ `Internal of 
           [<`Service | `Coservice | `NonAttachedCoservice ]
-            * [< `Get_serv | `Post_serv] ],
-                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+            * [< `Get | `Post] ],
+                 [< `WithSuffix | `WithoutSuffix ], 'd, 'e, 
+                 [ `Registrable ]) service ->
                    ?error_handler:(server_params -> 
                      (string * exn) list -> page Lwt.t) ->
                        (server_params -> 'a -> 'b -> page Lwt.t) -> unit
 (** Register an service in the global table of the server 
    with the associated generation function.
-   [register_service service t f] will associate the service [service] to the function [f].
+   [register service t f] will associate the service [service] to the function [f].
    [f] is the function that creates a page. 
    It takes three parameters. The first one has type [server_params]
    and allows to have acces to informations about the request.
@@ -506,12 +519,12 @@ module type ELIOMREGSIG =
    For example if [t] is (int "s"), then ['a] is int.
  *)
 
-    val register_service_for_session :
+    val register_for_session :
         server_params ->
-          service:('a, 'b, [ `Internal_Service of 
+          service:('a, 'b, [ `Internal of 
             [< `Service | `Coservice | `NonAttachedCoservice ]
-              * [< `Get_serv | `Post_serv] ],
-                   [< `WithSuffix | `WithoutSuffix ], 'd, 'e)
+              * [< `Get | `Post] ],
+                   [< `WithSuffix | `WithoutSuffix ], 'd, 'e, [ `Registrable ])
             service ->
               ?error_handler:(server_params -> (string * exn) list -> 
                 page Lwt.t) ->
@@ -536,16 +549,16 @@ module type ELIOMREGSIG =
                 ?error_handler:(server_params -> (string * exn) list -> 
                   page Lwt.t) ->
                     (server_params -> 'a -> unit -> page Lwt.t) ->
-                      ('a, unit, [ `Internal_Service of
-                        [ `Service ] * [`Get_serv]], 
-                       'b, 'c, unit param_name) service
-(** Same as [new_service] followed by [register_service] *)
+                      ('a, unit, [ `Internal of
+                        [ `Service ] * [`Get]], 
+                       'b, 'c, unit param_name, [ `Registrable ]) service
+(** Same as [new_service] followed by [register] *)
                       
     val register_new_coservice :
-        fallback:(unit, unit, [ `Internal_Service of [ `Service ] *
-            [`Get_serv]],
+        fallback:(unit, unit, [ `Internal of [ `Service ] *
+            [`Get]],
                    [`WithoutSuffix], 
-                   unit param_name, unit param_name)
+                   unit param_name, unit param_name, [< registrable ])
         service ->
           get_params: 
             ('get, [`WithoutSuffix], 'gn) params_type ->
@@ -553,11 +566,11 @@ module type ELIOMREGSIG =
                 (string * exn) list -> page Lwt.t) ->
                   (server_params -> 'get -> unit -> page Lwt.t) ->
                     ('get, unit, 
-                     [ `Internal_Service of
-                       [< `Coservice ] * [`Get_serv]], 
-                     [`WithoutSuffix], 'gn, unit param_name)
+                     [ `Internal of
+                       [< `Coservice ] * [`Get]], 
+                     [`WithoutSuffix], 'gn, unit param_name, [ `Registrable ])
                       service
-(** Same as [new_coservice] followed by [register_service] *)
+(** Same as [new_coservice] followed by [register] *)
 
     val register_new_coservice' :
         get_params: 
@@ -566,30 +579,31 @@ module type ELIOMREGSIG =
             (string * exn) list -> page Lwt.t) ->
               (server_params -> 'get -> unit -> page Lwt.t) ->
                 ('get, unit, 
-                 [ `Internal_Service of
-                   [< `NonAttachedCoservice ] * [`Get_serv]], 
-                 [`WithoutSuffix], 'gn, unit param_name)
+                 [ `Internal of
+                   [< `NonAttachedCoservice ] * [`Get]], 
+                 [`WithoutSuffix], 'gn, unit param_name, [ `Registrable ])
                   service
-(** Same as [new_coservice'] followed by [register_service] *)
+(** Same as [new_coservice'] followed by [register] *)
 
     val register_new_coservice_for_session :
         server_params ->
-          fallback:(unit, unit, [ `Internal_Service of [ `Service ] * 
-              [`Get_serv]],
+          fallback:(unit, unit, [ `Internal of [ `Service ] * 
+              [`Get]],
                     [ `WithoutSuffix ], 
-                    unit param_name, unit param_name)
+                    unit param_name, unit param_name, [< registrable ])
             service ->
               get_params: 
                 ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
                   ?error_handler:(server_params -> (string * exn) list -> 
                     page Lwt.t) ->
                       (server_params -> 'get -> unit -> page Lwt.t) ->
-                        ('get, unit, [ `Internal_Service of
+                        ('get, unit, [ `Internal of
                           [< `Coservice ]
-                            * [`Get_serv] ], 
-                         [`WithoutSuffix], 'gn, unit param_name)
+                            * [`Get] ], 
+                         [`WithoutSuffix], 'gn, unit param_name, 
+                         [ `Registrable ])
                           service
-(** Same as [new_coservice] followed by [register_service_for_session] *)
+(** Same as [new_coservice] followed by [register_for_session] *)
 
     val register_new_coservice_for_session' :
         server_params ->
@@ -598,90 +612,91 @@ module type ELIOMREGSIG =
               ?error_handler:(server_params -> (string * exn) list -> 
                 page Lwt.t) ->
                   (server_params -> 'get -> unit -> page Lwt.t) ->
-                    ('get, unit, [ `Internal_Service of
+                    ('get, unit, [ `Internal of
                       [< `NonAttachedCoservice ]
-                        * [`Get_serv] ], 
-                     [`WithoutSuffix], 'gn, unit param_name)
+                        * [`Get] ], 
+                     [`WithoutSuffix], 'gn, unit param_name, [ `Registrable ])
                       service
-(** Same as [new_coservice'] followed by [register_service_for_session] *)
+(** Same as [new_coservice'] followed by [register_for_session] *)
 
     val register_new_post_service :
-        fallback:('a, unit, [ `Internal_Service of 
-          ([< `Service | `Coservice ] as 'kind) * [`Get_serv] ],
+        fallback:('a, unit, [ `Internal of 
+          ([< `Service | `Coservice ] as 'kind) * [`Get] ],
                   [< `WithSuffix | `WithoutSuffix ] as 'b, 'c,
-                  unit param_name)
+                  unit param_name, [< registrable ])
         service ->
           post_params:('d, [ `WithoutSuffix ], 'e) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
               page Lwt.t) ->
                 (server_params -> 'a -> 'd -> page Lwt.t) ->
-                  ('a, 'd, [ `Internal_Service of 'kind * [`Post_serv] ], 
-                   'b, 'c, 'e)
+                  ('a, 'd, [ `Internal of 'kind * [`Post] ], 
+                   'b, 'c, 'e, [ `Registrable ])
                     service
-(** Same as [new_post_service] followed by [register_service] *)
+(** Same as [new_post_service] followed by [register] *)
 
     val register_new_post_coservice :
-        fallback:('a, unit , [ `Internal_Service of 
-          [< `Service | `Coservice ] * [`Get_serv] ],
+        fallback:('a, unit , [ `Internal of 
+          [< `Service | `Coservice ] * [`Get] ],
                    [< `WithSuffix | `WithoutSuffix ] as 'c, 
-                   'd, unit param_name)
+                   'd, unit param_name, [< registrable ])
         service ->
           post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
               page Lwt.t) ->
                 (server_params -> 'a -> 'f -> page Lwt.t) ->
-                  ('a, 'f, [ `Internal_Service of
+                  ('a, 'f, [ `Internal of
                     [< `Coservice ] 
-                      * [`Post_serv] ], 'c, 'd, 'g)
+                      * [`Post] ], 'c, 'd, 'g, [ `Registrable ])
                     service
-(** Same as [new_post_coservice] followed by [register_service] *)
+(** Same as [new_post_coservice] followed by [register] *)
 
     val register_new_post_coservice' :
         post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
           ?error_handler:(server_params -> (string * exn) list -> 
             page Lwt.t) ->
               (server_params -> unit -> 'f -> page Lwt.t) ->
-                (unit, 'f, [ `Internal_Service of
+                (unit, 'f, [ `Internal of
                   [< `NonAttachedCoservice ] 
-                    * [`Post_serv] ], [ `WithoutSuffix ], unit param_name, 'g)
+                    * [`Post] ], [ `WithoutSuffix ], unit param_name, 'g,
+                 [ `Registrable ])
                   service
-(** Same as [new_post_coservice'] followed by [register_service] *)
+(** Same as [new_post_coservice'] followed by [register] *)
 
 (*
     val register_new_get_post_coservice' :
-        fallback:('a, unit , [ `Internal_Service of 
-          [< `NonAttachedCoservice ] * [`Get_serv] ],
+        fallback:('a, unit , [ `Internal of 
+          [< `NonAttachedCoservice ] * [`Get] ],
                    [< `WithSuffix | `WithoutSuffix ] as 'c, 
-                   'd, unit param_name)
+                   'd, unit param_name, [< registrable ])
         service ->
           post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
               page Lwt.t) ->
                 (server_params -> 'a -> 'f -> page Lwt.t) ->
-                  ('a, 'f, [ `Internal_Service of
+                  ('a, 'f, [ `Internal of
                     [< `NonAttachedCoservice ] 
-                      * [`Post_serv] ], 'c, 'd, 'g)
+                      * [`Post] ], 'c, 'd, 'g, [ `Registrable ])
                     service
-(* * Same as [new_get_post_coservice'] followed by [register_service] *)
+(* * Same as [new_get_post_coservice'] followed by [register] *)
 *)
 
     val register_new_post_coservice_for_session :
         server_params ->
-          fallback:('a, unit, [ `Internal_Service of
-            [< `Service | `Coservice ] * [`Get_serv] ],
+          fallback:('a, unit, [ `Internal of
+            [< `Service | `Coservice ] * [`Get] ],
                     [< `WithSuffix | `WithoutSuffix ] as 'c, 
-                    'd, unit param_name)
+                    'd, unit param_name, [< registrable ])
             service ->
               post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
                 ?error_handler:(server_params -> 
                   (string * exn) list -> page Lwt.t) ->
                     (server_params -> 'a -> 'f -> page Lwt.t) ->
-                      ('a, 'f, [ `Internal_Service of
+                      ('a, 'f, [ `Internal of
                         [ `Coservice ]
-                          * [`Post_serv] ], 
-                       'c, 'd, 'g)
+                          * [`Post] ], 
+                       'c, 'd, 'g, [ `Registrable ])
                         service
-(** Same as [new_post_coservice] followed by [register_service_for_session] *)
+(** Same as [new_post_coservice] followed by [register_for_session] *)
 
     val register_new_post_coservice_for_session' :
         server_params ->
@@ -689,31 +704,31 @@ module type ELIOMREGSIG =
             ?error_handler:(server_params -> 
               (string * exn) list -> page Lwt.t) ->
                 (server_params -> unit -> 'f -> page Lwt.t) ->
-                  (unit, 'f, [ `Internal_Service of
+                  (unit, 'f, [ `Internal of
                     [ `NonAttachedCoservice ]
-                      * [`Post_serv] ], 
-                   [ `WithoutSuffix ], unit param_name, 'g)
+                      * [`Post] ], 
+                   [ `WithoutSuffix ], unit param_name, 'g, [ `Registrable ])
                     service
-(** Same as [new_post_coservice'] followed by [register_service_for_session] *)
+(** Same as [new_post_coservice'] followed by [register_for_session] *)
 
 (*
     val register_new_get_post_coservice_for_session' :
         server_params ->
-          fallback:('a, unit, [ `Internal_Service of
-            [< `NonAttachedCoservice ] * [`Get_serv] ],
+          fallback:('a, unit, [ `Internal of
+            [< `NonAttachedCoservice ] * [`Get] ],
                     [< `WithSuffix | `WithoutSuffix ] as 'c, 
-                    'd, unit param_name)
+                    'd, unit param_name, [< registrable ])
             service ->
               post_params:('f, [ `WithoutSuffix ], 'g) params_type ->
                 ?error_handler:(server_params -> 
                   (string * exn) list -> page Lwt.t) ->
                     (server_params -> 'a -> 'f -> page Lwt.t) ->
-                      ('a, 'f, [ `Internal_Service of
+                      ('a, 'f, [ `Internal of
                         [ `NonAttachedCoservice ]
-                          * [`Post_serv] ], 
-                       'c, 'd, 'g)
+                          * [`Post] ], 
+                       'c, 'd, 'g, [ `Registrable ])
                         service
-(* * Same as [new_get_post_coservice] followed by [register_service_for_session] *)
+(* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
 
   end
@@ -764,9 +779,10 @@ module Xhtml : sig
 
   val a :
       ?a:a_attrib attrib list ->
-        ('a, unit, [< `External_Service | `Internal_Service of 
-          'b * [ `Get_serv ] ], 
-         [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name) service ->
+        ('a, unit, [< `External | `Internal of 
+          [< internal_service_kind ] * [ `Get ] ], 
+         [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name,
+         [< registrable ]) service ->
            server_params -> a_content elt list -> 'a -> [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link from [current] to [service]. 
    The text of
@@ -788,17 +804,20 @@ module Xhtml : sig
 (** Creates a [<script>] tag to add a javascript file *)
 
   val make_uri :
-      ('a, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, 'd) service ->
-        server_params -> 'a -> uri
+      ('a, unit, 
+       [< `External | `Internal of 
+         [< internal_service_kind ] * [ `Get ] ],
+       [< `WithSuffix | `WithoutSuffix ], 'c, 'd, [< registrable ]) service ->
+         server_params -> 'a -> uri
 (** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
 
   val get_form :
     ?a:form_attrib attrib list ->
-      ('a, unit, [< `External_Service | `Internal_Service of
-        'b * [ `Get_serv ] ], 
-       'c, 'd, unit param_name) service ->
+      ('a, unit, [< `External | `Internal of
+        [< internal_service_kind ] * [ `Get ] ], 
+       'c, 'd, unit param_name, [< registrable ]) service ->
          server_params ->
            ('d -> form_content elt list) -> [>form] elt
 (** [get_form service current formgen] creates a GET form from [current] to [service]. 
@@ -808,9 +827,10 @@ module Xhtml : sig
 
   val post_form :
         ?a:form_attrib attrib list ->
-          ('a, 'b, [< `External_Service 
-      | `Internal_Service of 'kind * [ `Post_serv ] ],
-           [< `WithSuffix | `WithoutSuffix ], 'd, 'e) service ->
+          ('a, 'b, [< `External 
+      | `Internal of 
+          [< internal_service_kind ] * [ `Post ] ],
+           [< `WithSuffix | `WithoutSuffix ], 'd, 'e, [< registrable ]) service ->
             server_params ->
               ('e -> form_content elt list) -> 'a -> [>form] elt
 (** [post_form service current formgen] creates a POST form from [current] 

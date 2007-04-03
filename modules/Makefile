@@ -16,18 +16,18 @@ CAMLCNAME= ocamlc
 endif
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCEFILES= xhtml1_strict.ml ocsigenduce.ml
+DUCEFILES= xhtml1_strict.ml ocsigenduce.ml eliomduce.ml
 # rss2.ml ocsigenrss.ml
 
   ifeq "$(BYTECODE)" "YES"
-  DUCEMODBYTE=ocsigenduce.cma
+  DUCEMODBYTE=ocsigenduce.cma eliomduce.cma
 # ocsigenrss.cma
   else
   DUCEMODBYTE=
   endif
 
   ifeq "$(NATIVECODE)" "YES"
-  DUCEMODOPT=ocsigenduce.cmxs
+  DUCEMODOPT=ocsigenduce.cmxs eliomduce.cmxs
 # ocsigenrss.cmxs
   else
   DUCEMODOPT=
@@ -70,9 +70,9 @@ OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
 
 
-byte: $(OBJS) eliommod.cma ocsigenmod.cma staticmod.cmo $(DUCEMODBYTE)
+byte: $(OBJS) eliom.cma ocsigenmod.cma staticmod.cmo $(DUCEMODBYTE)
 
-opt: $(OBJSX) eliommod.cmxs ocsigenmod.cmxs staticmod.cmxs $(DUCEMODOPT)
+opt: $(OBJSX) eliom.cmxs ocsigenmod.cmxs staticmod.cmxs $(DUCEMODOPT)
 
 
 .SUFFIXES:
@@ -80,11 +80,11 @@ opt: $(OBJSX) eliommod.cmxs ocsigenmod.cmxs staticmod.cmxs $(DUCEMODOPT)
 
 .PHONY: doc depend
 
-eliommod.cma: eliommod.cmo eliom.cmo eliomboxes.cmo
-	$(CAMLC) -a -o eliommod.cma eliommod.cmo eliom.cmo eliomboxes.cmo
+eliom.cma: eliommod.cmo eliom.cmo eliomboxes.cmo
+	$(CAMLC) -a -o eliom.cma eliommod.cmo eliom.cmo eliomboxes.cmo
 
-eliommod.cmxs: eliommod.cmx eliom.cmx eliomboxes.cmx
-	$(CAMLOPT) -shared -linkall -o eliommod.cmxs eliommod.cmx eliom.cmx \
+eliom.cmxs: eliommod.cmx eliom.cmx eliomboxes.cmx
+	$(CAMLOPT) -shared -linkall -o eliom.cmxs eliommod.cmx eliom.cmx \
 	eliomboxes.cmx
 
 ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
@@ -103,6 +103,12 @@ ocsigenduce.cma: xhtml1_strict.cmo ocsigenduce.cmo
 
 ocsigenduce.cmxs: xhtml1_strict.cmx ocsigenduce.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenduce.cmxs xhtml1_strict.cmx ocsigenduce.cmx 
+
+eliomduce.cma: xhtml1_strict.cmo eliomduce.cmo
+	$(CAMLC) -a -o eliomduce.cma xhtml1_strict.cmo eliomduce.cmo 
+
+eliomduce.cmxs: xhtml1_strict.cmx eliomduce.cmx
+	$(CAMLOPT) -shared -linkall -o eliomduce.cmxs xhtml1_strict.cmx eliomduce.cmx 
 
 ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
 	$(CAMLC) -a -o ocsigenrss.cma $^
