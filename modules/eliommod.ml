@@ -195,7 +195,8 @@ end)
 type page_table = 
     (page_table_key * 
        ((int * 
-           ((tables server_params1 -> Predefined_senders.result_to_send Lwt.t)
+           ((tables server_params1 -> 
+             (Predefined_senders.result_to_send * cookieslist) Lwt.t)
 	      * url_path)) list)) list
       (* Here, the url_path is the working directory.
          That is, the directory in which we are when we register
@@ -207,7 +208,8 @@ type page_table =
 and naservice_table = 
     AVide 
   | ATable of 
-      ((tables server_params1 -> Predefined_senders.result_to_send Lwt.t)
+      ((tables server_params1 -> 
+        (Predefined_senders.result_to_send * cookieslist) Lwt.t)
 	 * url_path)
         NAserv_Table.t
 
@@ -317,9 +319,9 @@ let find_page_table
           (fun () ->
             Messages.debug "- I'm trying a service";
             funct (sp0, si, (working_dir,s,u)) >>=
-            (fun p -> 
+            (fun (p, cookies_to_set) -> 
               Messages.debug "- Page found";
-              Lwt.return (p, working_dir)))
+              Lwt.return (p, working_dir, cookies_to_set)))
           (function
               Eliom_Wrong_parameter -> aux l
             | e -> fail e)
@@ -501,7 +503,7 @@ let execute generate_page ip cookie (globtable, cookie_table) =
     with Not_found -> (ref (new_session_tables ()), true))
   in
   generate_page globtable sessiontablesref >>=
-  (fun ((result_to_send, working_dir),lastmod,etag) ->
+  (fun ((result_to_send, working_dir, cookies_to_set),lastmod,etag) ->
     let cookie2 = 
       if are_empty_tables !sessiontablesref
       then ((if not new_session 
@@ -523,6 +525,7 @@ let execute generate_page ip cookie (globtable, cookie_table) =
     in return 
       ((cookie3, 
         result_to_send, 
+        cookies_to_set,
         ("/"^(string_of_url_path working_dir))),
        lastmod,
        etag))
@@ -659,12 +662,13 @@ let make_naservice
             ri
             []
             si)) >>=
-      (fun r -> return ((r, working_dir), None, None)))
+      (fun (r, cookies_to_set) -> 
+        return ((r, working_dir, cookies_to_set), None, None)))
   in (generate_page, ri.ri_inet_addr, si.si_cookie, page_tree)
     
 
 let gen page_tree charset ri =
-  let rec gen_aux ((ri, si, cookies_to_set) as info) =
+  let rec gen_aux ((ri, si, old_cookies_to_set) as info) =
     let (gen,ia,c,pt) = 
       match si.si_nonatt_info with
 	None, None ->
@@ -680,10 +684,18 @@ let gen page_tree charset ri =
     
     catch 
       (fun () ->
-	execute gen ia c pt >>=
-	fun ((new_cookie, result_to_send, path),lm,etag) ->
+        execute gen ia c pt >>=
+	fun ((new_cookie, result_to_send, new_cookies_to_set, path),lm,etag) ->
+          let new_cookies_to_set =
+            List.map (fun (pathopt,cl) -> 
+              ((match pathopt with
+                None -> Some path (* Not possible to set a cookie for another site (?) *)
+              | Some p -> Some (path^p)
+               ),cl)) new_cookies_to_set
+          in
+          let cookies_to_set = new_cookies_to_set@old_cookies_to_set in
           let all_new_cookies =
-	    match new_cookie with
+            match new_cookie with
               None -> cookies_to_set
             | Some c -> (Some path, [(cookiename, c)])::cookies_to_set
           in
@@ -714,12 +726,18 @@ let gen page_tree charset ri =
                     fail
                       (* Ext_retry_with or Eliom_retry_with? *)
                       (Eliom_retry_with 
+                         (let cookies_presents =
+                           List.fold_left
+                             (fun l (_, cl) -> cl@l)
+                             (force ri.ri_cookies)
+                             new_cookies_to_set
+                         in
                          ({ri with
                            ri_post_params = lazy (return []);
-                           ri_cookies= (match new_cookie with
-                             None -> ri.ri_cookies
-                           | Some c -> lazy ((cookiename,c)::
-                                             (force ri.ri_cookies)))},
+                           ri_cookies= lazy
+                             (match new_cookie with
+                               None -> cookies_presents
+                             | Some c -> ((cookiename,c)::cookies_presents))},
                           {si_other_get_params= si.si_other_get_params;
                            si_cookie= (match new_cookie with
                              Some c -> new_cookie
@@ -727,7 +745,7 @@ let gen page_tree charset ri =
                            si_nonatt_info= ((fst si.si_nonatt_info), None);
                            si_state_info= ((fst si.si_state_info), None);
                            si_exn = exnlist@si.si_exn},
-                          all_new_cookies))))
+                          all_new_cookies)))))
           | Predefined_senders.SP (create_sender, send_page) ->
               return 
                 (Ext_found 
@@ -742,7 +760,7 @@ let gen page_tree charset ri =
       (function
           Eliom_Typing_Error l -> 
             return (Ext_found
-                      {res_cookies= cookies_to_set;
+                      {res_cookies= old_cookies_to_set;
                        res_send_page=
                        (Predefined_senders.send_xhtml_page 
                           ~content:(Error_pages.page_error_param_type l));
@@ -754,7 +772,7 @@ let gen page_tree charset ri =
                        res_charset=charset})
 	| Eliom_Wrong_parameter -> 
 	    return (Ext_found 
-                      {res_cookies= cookies_to_set;
+                      {res_cookies= old_cookies_to_set;
                        res_send_page=
                        (Predefined_senders.send_xhtml_page 
                           ~content:(Error_pages.page_bad_param));

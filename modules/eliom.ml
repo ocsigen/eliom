@@ -47,6 +47,7 @@ let get_port (ri,_,_) = ri.ri_port
 let get_other_get_params (_,si,_) = si.si_other_get_params
 let get_suffix (_,_,(_,_,s)) = s
 let get_exn (_,si,_) = si.si_exn
+let get_cookies (ri,_,_) = force ri.ri_cookies
 
 let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
@@ -844,8 +845,7 @@ module type ELIOMFORMSIG =
   end
 
 
-
-module type ELIOMREGSIG =
+module type ELIOMREGSIG1 =
 (* pasted from mli *)
   sig
 
@@ -1078,9 +1078,17 @@ module type ELIOMREGSIG =
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
 
-
-
   end
+
+
+
+module type ELIOMREGSIG =
+  sig
+    include ELIOMREGSIG1
+    module Cookies : ELIOMREGSIG1 
+    with type page = page * Extensions.cookieslist
+  end
+
 
 
 
@@ -1096,104 +1104,111 @@ module MakeRegister = functor
 
       type page = Pages.page
 
-      let register_aux
-          current_dir
-          tables
-          session
-          ~service
-          ?(error_handler = fun sp l -> raise (Eliom_Typing_Error l))
-          page_generator =
-        match service.kind with
-          `Attached attser ->
-            add_service
-              tables 
-	      current_dir
-	      session
-	      attser.url
-              ({suffix = attser.url_suffix;
-                state = (attser.get_state, attser.post_state)},
-               (service.unique_id,
-                (fun ((ri,_,(_,_,suff)) as sp) -> 
-                  (catch (fun () -> 
-                    (force ri.ri_post_params) >>=
-                    (fun post_params ->
-                      (force ri.ri_files) >>=
-                      (fun files ->
-                        (page_generator sp
-                           (reconstruct_params 
-                              service.get_params_type
-                              (force ri.ri_get_params)
-                              []
-                              suff)
-                           (reconstruct_params
-                              service.post_params_type
-                              post_params
-                              files
-                              [])))))
-                     (function
+      module Cookies = struct
+        
+        type page = Pages.page * cookieslist
+            
+        let register_aux
+            current_dir
+            tables
+            session
+            ~service
+            ?(error_handler = fun sp l -> raise (Eliom_Typing_Error l))
+            page_generator =
+          match service.kind with
+            `Attached attser ->
+              add_service
+                tables 
+	        current_dir
+	        session
+	        attser.url
+                ({suffix = attser.url_suffix;
+                  state = (attser.get_state, attser.post_state)},
+                 (service.unique_id,
+                  (fun ((ri,_,(_,_,suff)) as sp) -> 
+                    (catch (fun () -> 
+                      (force ri.ri_post_params) >>=
+                      (fun post_params ->
+                        (force ri.ri_files) >>=
+                        (fun files ->
+                          (page_generator sp
+                             (reconstruct_params 
+                                service.get_params_type
+                                (force ri.ri_get_params)
+                                []
+                                suff)
+                             (reconstruct_params
+                                service.post_params_type
+                                post_params
+                                files
+                                [])))))
+                       (function
+                           Eliom_Typing_Error l -> error_handler sp l
+                         | e -> fail e)) >>=
+                    (fun (content, cookies_to_set) -> 
+                      return ((Pages.send ~content:content), 
+                              cookies_to_set)))))
+          | `Nonattached naser ->
+              add_naservice 
+	        tables
+	        current_dir 
+	        session
+	        naser.na_name
+	        (fun ((ri,_,_) as sp) ->
+	          (catch
+	             (fun () ->
+	               (force ri.ri_post_params) >>=
+	               (fun post_params ->
+		         (force ri.ri_files) >>=
+		         (fun files ->
+                           (page_generator sp 
+                              (reconstruct_params
+                                 service.get_params_type
+                                 (force ri.ri_get_params)
+                                 []
+                                 [])
+                              (reconstruct_params
+                                 service.post_params_type
+                                 post_params
+                                 files
+                                 [])))))
+	             (function
                          Eliom_Typing_Error l -> error_handler sp l
                        | e -> fail e)) >>=
-                  (fun c -> return (Pages.send ~content:c)))))
-        | `Nonattached naser ->
-            add_naservice 
-	      tables
-	      current_dir 
-	      session
-	      naser.na_name
-	      (fun ((ri,_,_) as sp) ->
-	        (catch
-	           (fun () ->
-	             (force ri.ri_post_params) >>=
-	             (fun post_params ->
-		       (force ri.ri_files) >>=
-		       (fun files ->
-                         (page_generator sp 
-                            (reconstruct_params
-                               service.get_params_type
-                               (force ri.ri_get_params)
-                               []
-                               [])
-                            (reconstruct_params
-                               service.post_params_type
-                               post_params
-                               files
-                               [])))))
-	           (function
-                       Eliom_Typing_Error l -> error_handler sp l
-                     | e -> fail e)) >>=
-                (fun c -> return (Pages.send ~content:c)))
+                  (fun (content, cookies_to_set) -> 
+                    return ((Pages.send ~content:content), cookies_to_set)))
 
 
-      let register ~service ?error_handler page_gen =
-        let kind, url =
-          match service.kind with
-            `Attached attser -> 
-              ((let `Internal (k,_) = attser.att_kind in k), Some attser.url)
-          | `Nonattached naser -> (`Coservice, None)
-        in
-        let doo () =
-          let (globtables,_),curdir = get_current_hostdir () in
-          register_aux 
-            curdir
-            globtables
-            false 
-            ~service ?error_handler page_gen
-        in
-        if global_register_allowed () then begin
-          remove_unregistered (url, service.unique_id);
-          doo ()
-        end
-        else
-          if kind = `Service
-          then 
-            Messages.warning
-              ((match url with
-                None -> "<Non-attached service>"
-              | Some u -> "URL .../"^(string_of_url_path u))^
-               " : Public main service registration outside <site></site> \
-                 or after init forbidden! \
-                 Please correct your module! (ignored)")
-          else doo ()
+        let register ~service ?error_handler page_gen =
+          let kind, url =
+            match service.kind with
+              `Attached attser -> 
+                ((let `Internal (k,_) = attser.att_kind in k), Some attser.url)
+            | `Nonattached naser -> (`Coservice, None)
+          in
+          let doo () =
+            let (globtables,_),curdir = get_current_hostdir () in
+            register_aux 
+              curdir
+              globtables
+              false 
+              ~service ?error_handler page_gen
+          in
+          if global_register_allowed () then begin
+            remove_unregistered (url, service.unique_id);
+            doo ()
+          end
+          else
+            if kind = `Service
+            then 
+              Messages.warning
+                ((match url with
+                  None -> "<Non-attached service>"
+                | Some u -> "URL .../"^(string_of_url_path u))^
+                 " : Public main service registration outside <site></site> \
+                   or after init forbidden! \
+                   Please correct your module! (ignored)")
+            else doo ()
 
 
 (* WARNING: if we create a new service without registering it,
@@ -1203,44 +1218,191 @@ module MakeRegister = functor
    like "let rec" for service...
  *)
 
-      let register_for_session
-          (ri,si,(curdir,sesstab,_))
+        let register_for_session
+            (ri,si,(curdir,sesstab,_))
+            ~service
+            ?error_handler
+            page =
+          register_aux
+            ?error_handler
+            curdir
+            !sesstab
+            true 
+            ~service page
+
+        let register_new_service 
+            ~url
+            ?(suffix=false)
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_service ~suffix ~url ~get_params () in
+          register ~service:u ?error_handler page;
+          u
+            
+        let register_new_coservice
+            ~fallback
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_coservice ~fallback ~get_params in
+          register ~service:u ?error_handler page;
+          u
+
+        let register_new_coservice'
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_coservice' ~get_params in
+          register ~service:u ?error_handler page;
+          u
+
+        let register_new_coservice_for_session
+            sp
+            ~fallback
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_coservice ?fallback ~get_params in
+          register_for_session sp ~service:u ?error_handler page;
+          u
+
+        let register_new_coservice_for_session'
+            sp
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_coservice' ~get_params in
+          register_for_session sp ~service:u ?error_handler page;
+          u
+
+
+
+        let register_new_post_service 
+            ~fallback
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_service ~fallback:fallback ~post_params:post_params in
+          register ~service:u ?error_handler page_gen;
+          u
+
+        let register_new_post_coservice
+            ~fallback
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_coservice ~fallback ~post_params in
+          register ~service:u ?error_handler page_gen;
+          u
+
+        let register_new_post_coservice'
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_coservice' ~post_params in
+          register ~service:u ?error_handler page_gen;
+          u
+
+(*
+   let register_new_get_post_coservice'
+   ~fallback
+   ~post_params
+   ?error_handler
+   page_gen =
+   let u = new_get_post_coservice' ~fallback ~post_params in
+   register ~service:u ?error_handler page_gen;
+   u
+ *)
+
+        let register_new_post_coservice_for_session
+            sp
+            ~fallback
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_coservice ~fallback ~post_params in
+          register_for_session sp ~service:u ?error_handler page_gen;
+          u
+
+        let register_new_post_coservice_for_session'
+            sp
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_coservice' ~post_params in
+          register_for_session sp ~service:u ?error_handler page_gen;
+          u
+
+(*
+   let register_new_get_post_coservice_for_session'
+   sp
+   ~fallback
+   ~post_params
+   ?error_handler
+   page_gen =
+   let u = new_get_post_coservice' ~fallback ~post_params in
+   register_for_session sp ~service:u ?error_handler page_gen;
+   u
+ *)
+
+      end
+
+
+      let make_error_handler ?error_handler () = 
+        match error_handler with
+          None -> None
+        | Some eh -> Some (fun sp l -> eh sp l >>= (fun r -> return (r,[])))
+
+      let register ~service ?error_handler page_gen =
+        Cookies.register
           ~service
-           ?error_handler
-          page =
-        register_aux
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+      let register_for_session
+          sp
+          ~service
           ?error_handler
-          curdir
-          !sesstab
-          true 
-          ~service page
+          page =
+        Cookies.register_for_session
+          sp
+          ~service
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
 
       let register_new_service 
           ~url
-          ?(suffix=false)
+          ?suffix
           ~get_params
           ?error_handler
           page =
-        let u = new_service ~suffix ~url ~get_params () in
-        register ~service:u ?error_handler page;
-        u
+        Cookies.register_new_service 
+          ~url
+          ?suffix
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
           
       let register_new_coservice
           ~fallback
           ~get_params
           ?error_handler
           page =
-        let u = new_coservice ~fallback ~get_params in
-        register ~service:u ?error_handler page;
-        u
+        Cookies.register_new_coservice
+          ~fallback
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
 
       let register_new_coservice'
           ~get_params
           ?error_handler
           page =
-        let u = new_coservice' ~get_params in
-        register ~service:u ?error_handler page;
-        u
+        Cookies.register_new_coservice'
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
 
       let register_new_coservice_for_session
           sp
@@ -1248,57 +1410,68 @@ module MakeRegister = functor
           ~get_params
           ?error_handler
           page =
-        let u = new_coservice ?fallback ~get_params in
-        register_for_session sp ~service:u ?error_handler page;
-        u
+      Cookies.register_new_coservice_for_session
+          sp
+          ~fallback
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
 
       let register_new_coservice_for_session'
           sp
           ~get_params
           ?error_handler
           page =
-        let u = new_coservice' ~get_params in
-        register_for_session sp ~service:u ?error_handler page;
-        u
-
-
+      Cookies.register_new_coservice_for_session'
+          sp
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
 
       let register_new_post_service 
           ~fallback
           ~post_params
           ?error_handler
           page_gen =
-        let u = new_post_service ~fallback:fallback ~post_params:post_params in
-        register ~service:u ?error_handler page_gen;
-        u
+      Cookies.register_new_post_service 
+          ~fallback
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
 
       let register_new_post_coservice
           ~fallback
           ~post_params
           ?error_handler
           page_gen =
-        let u = new_post_coservice ~fallback ~post_params in
-        register ~service:u ?error_handler page_gen;
-        u
+        Cookies.register_new_post_coservice
+          ~fallback
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
 
       let register_new_post_coservice'
           ~post_params
           ?error_handler
           page_gen =
-        let u = new_post_coservice' ~post_params in
-        register ~service:u ?error_handler page_gen;
-        u
+        Cookies.register_new_post_coservice'
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
 
 (*
-      let register_new_get_post_coservice'
-          ~fallback
-          ~post_params
-          ?error_handler
-          page_gen =
-        let u = new_get_post_coservice' ~fallback ~post_params in
-        register ~service:u ?error_handler page_gen;
-        u
-*)
+   let register_new_get_post_coservice'
+   ~fallback
+   ~post_params
+   ?error_handler
+   page_gen =
+   Cookies.register_new_get_post_coservice'
+   ~fallback
+   ~post_params
+   ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+ *)
 
       let register_new_post_coservice_for_session
           sp
@@ -1306,35 +1479,42 @@ module MakeRegister = functor
           ~post_params
           ?error_handler
           page_gen =
-        let u = new_post_coservice ~fallback ~post_params in
-        register_for_session sp ~service:u ?error_handler page_gen;
-        u
+        Cookies.register_new_post_coservice_for_session
+          sp
+          ~fallback
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
 
       let register_new_post_coservice_for_session'
           sp
           ~post_params
           ?error_handler
           page_gen =
-        let u = new_post_coservice' ~post_params in
-        register_for_session sp ~service:u ?error_handler page_gen;
-        u
+      Cookies.register_new_post_coservice_for_session'
+          sp
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
 
 (*
-      let register_new_get_post_coservice_for_session'
-          sp
-          ~fallback
-          ~post_params
-          ?error_handler
-          page_gen =
-        let u = new_get_post_coservice' ~fallback ~post_params in
-        register_for_session sp ~service:u ?error_handler page_gen;
-        u
-*)
+   let register_new_get_post_coservice_for_session'
+   sp
+   ~fallback
+   ~post_params
+   ?error_handler
+   page_gen =
+   Cookies.register_new_get_post_coservice_for_session'
+   sp
+   ~fallback
+   ~post_params
+   ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
 
+ *)
 
-
-  end : ELIOMREGSIG with 
-     type page = Pages.page)
+    end : ELIOMREGSIG with 
+                 type page = Pages.page)
 
 
 

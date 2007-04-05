@@ -1197,8 +1197,6 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     That list contains <code>Eliom_session_expired</code> if the coservice
     was not found.
     </p>
-    </div>
-    <div class="twocol2">
     <p>
     It is also possible to tell actions to send informations to the page
     generated after them. Just place exceptions in the list returned by the
@@ -1272,6 +1270,8 @@ let _ = Actions.register
       then (launch_session sp login; return [])
       else return [Bad_user])
 (*html*
+    </div>
+    <div class="twocol2">
     <h3>Redirections</h3>
     <p>
      The <code>Redirections</code> module allows to register HTTP redirections.
@@ -1285,6 +1285,46 @@ let redir = Redirections.register_new_service
    (fun sp o () -> return (make_string_uri coucou_params sp (o,(22,"ee"))))
 (*html*
       <p>Try $a Tutoeliom.redir sp <:xmllist< <code>it</code> >> 11$.</p>
+    <h3>Cookies</h3>
+    <p>
+      You can set cookies on the client, by using functions like
+      <code>Cookies.register</code> instead of <code>register</code>.
+      The function you register returns a pair containing the page as usual
+      and a list of cookies, of type
+      </p>
+      <pre>
+type cookieslist = (string option * (string * string) list) list
+</pre>
+    <p>
+     The <code>string option</code> is a the path for which you want
+     to set the cookie (relative to the main directory of your site, defined
+     in the configuration file). <code>None</code> means for all your site.
+    </p>
+    <p>
+      You can access the cookies sent by the browser using
+      <code>Eliom.get_cookies sp</code>.
+    </p>
+    <p>
+      Example:
+    </p>
+*html*)
+let cookiename = "mycookie"
+
+let cookies = new_service ["cookies"] unit ()
+
+let _ = Cookies.register cookies
+    (fun sp () () ->  return
+      ((html
+        (head (title (pcdata "")) [])
+        (body [p [pcdata (try
+                            "cookie value: "^
+                            (List.assoc cookiename (get_cookies sp))
+                          with _ -> "<cookie not set>");
+                  br ();
+                  a cookies sp [pcdata "send cookie"] ()]])),
+       [None, [(cookiename,(string_of_int (Random.int 100)))]]))
+(*html*
+      <p>Try $a Tutoeliom.cookies sp <:xmllist< <code>it</code> >> ()$.</p>
     </div>
     <h2>Summary of concepts</h2>
     <div class="twocol1 encadre">
@@ -1742,7 +1782,6 @@ wakeup w "HELLO");
           <p>
           Preapply your service.
           </p>
-       </pre>
       </div>
       <h3>Others</h3>
       <em>To be available soon</em>
@@ -1920,7 +1959,7 @@ let _ = register main
          A session based on cookies, implemented with actions: 
              $a action_session sp <:xmllist< actions >> ()$ <br/>
          The same with wrong user if not "toto": 
-             $a action_session2 sp <:xmllist< actions >> ()$ <br/>
+             $a action_session2 sp <:xmllist< actions2 >> ()$ <br/>
          Auxuiliary services in the session table:
              $a calc sp <:xmllist< calc >> ()$
        <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< shop >> ()$) -->
@@ -1935,6 +1974,8 @@ let _ = register main
              $a catch sp <:xmllist< catch >> 22$ (change the value in the URL)<br/>
        Redirection:
              $a redir sp <:xmllist< redir >> 11$<br/>
+       Cookies:
+             $a cookies sp <:xmllist< cookies >> ()$<br/>
        </p>
        </body>
      </html> >>)

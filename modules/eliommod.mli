@@ -68,7 +68,8 @@ val add_service :
           string list ->
             page_table_key *
               (int * (server_params -> 
-                Predefined_senders.result_to_send Lwt.t)) ->
+                (Predefined_senders.result_to_send
+                   * cookieslist)Lwt.t)) ->
                   unit
 
 val add_naservice :
@@ -77,7 +78,7 @@ val add_naservice :
 	bool -> 
 	  (string option * string option) -> 
 	    (server_params -> 
-	      Predefined_senders.result_to_send Lwt.t) -> unit
+	      (Predefined_senders.result_to_send * cookieslist) Lwt.t) -> unit
 
 
 val get_state_param_name : string

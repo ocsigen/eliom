@@ -129,6 +129,7 @@ val get_current_path_string : server_params -> string
 val get_other_get_params : server_params -> (string * string) list
 val get_suffix : server_params -> url_path
 val get_exn : server_params -> exn list
+val get_cookies : server_params -> (string * string) list
 
 
 
@@ -556,7 +557,7 @@ module type ELIOMFORMSIG =
 
   end
 
-module type ELIOMREGSIG =
+module type ELIOMREGSIG1 =
   sig
 
     type page
@@ -788,11 +789,16 @@ module type ELIOMREGSIG =
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
 
-
-
   end
 
 
+
+module type ELIOMREGSIG =
+  sig
+    include ELIOMREGSIG1
+    module Cookies : ELIOMREGSIG1 
+    with type page = page * Extensions.cookieslist
+  end
 
 module type ELIOMSIG = sig
   include ELIOMREGSIG
