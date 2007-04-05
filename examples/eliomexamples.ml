@@ -52,34 +52,29 @@ let _ =
                mymenu coucou sp ])))
 
 (* GET Non-attached coservice *)
-let nonatt =
-  register_new_coservice'
-    ~get_params:(string "e")
-    (fun sp e () -> 
-      return 
-        (html
-          (head (title (pcdata "")) [])
-          (body [h1 [pcdata e]])))
-
+let nonatt = new_coservice' ~get_params:(string "e")
 
 (* GET coservice with preapplied fallback *)
 (* + Non-attached coservice on a pre-applied coservice *)
-let getco = 
-  register_new_coservice
+(* + Non-attached coservice on a non-attached coservice *)
+let f sp s =
+  (html
+     (head (title (pcdata "")) [])
+     (body [h1 [pcdata s];
+            p [a nonatt sp [pcdata "clic"] "nonon"];
+            get_form nonatt sp 
+              (fun string_name ->
+                [p [pcdata "Non attached coservice: ";
+                    string_input string_name;
+                    submit_input "Click"]])
+          ]))
+
+let getco = register_new_coservice
     ~fallback:preappl
     ~get_params:(int "i" ** string "s")
-    (fun sp (i,s) () -> 
-      return 
-        (html
-          (head (title (pcdata "")) [])
-          (body [h1 [pcdata s];
-                 p [a nonatt sp [pcdata "clic"] "nonon"];
-                 get_form nonatt sp 
-                   (fun string_name ->
-                     [p [pcdata "Non attached coservice: ";
-                         string_input string_name;
-                         submit_input "Click"]])
-               ])))
+    (fun sp (i,s) () -> return (f sp s))
+
+let _ = register nonatt (fun sp s () -> return (f sp s))
 
 let _ = 
   register_new_service 

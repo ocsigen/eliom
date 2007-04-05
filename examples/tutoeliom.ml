@@ -18,6 +18,8 @@
          from all other Web programming tools.
          It allows to write a complex Web site in very few lines of code.
       </p>
+    </div>
+    <div class="twocol2">
       <p>
         The old <em>Ocsigenmod</em> used in version 0.6.0 is now deprecated
         but you can still use it.
@@ -806,10 +808,10 @@ let _ = register_for_session
    <li>For the same purpose (new services
    corresponding to precise points of the interaction with the user)
    but when you don't want this service to be bookmarkable.</li>
-   </ul>
    <li>To create a button that leads to a service after having performed
    a side-effect. For example a disconnection button that leads to the main
    page of the side, but with the side effect of disconnecting the user.</li>
+   </ul>
    <p>
    To create a coservice, use 
    <span class="Cem"><code>new_coservice</code></span> and 
@@ -1135,7 +1137,7 @@ let rec launch_session sp login =
    Actions.register_new_post_coservice_for_session'
       sp
       unit 
-      (fun sp () () -> return (close_session sp)) in
+      (fun sp () () -> close_session sp; return []) in
   let deconnect_box sp s = 
     post_form deconnect_action sp 
       (fun _ -> [p [submit_input s]]) ()
@@ -1169,18 +1171,107 @@ let rec launch_session sp login =
     
 let _ = Actions.register
     connect_action
-    (fun sp () login -> return (launch_session sp login))
+    (fun sp () login -> 
+      launch_session sp login;
+      return [])
 (*html*
       <p>See these $a Tutoeliom.action_session sp <:xmllist< pages >> ()$.</p>
     </div>
     <h2>Other concepts</h2>
     <div class="twocol1">
     <h3>Pre-applied services</h3>
-    <p>TO BE WRITTEN</p>
+    <p>Services or coservices with GET parameters can be preapplied
+     to obtain a service without parameters. Example:
+    </p>
+    <pre>
+let preappl = preapply coucou_params (3,(4,"cinq"))
+    </pre>
+    <p>
+     It is not possible to register something on e preapplied service,
+     but you can use them in links or as fallbacks for coservices.
+    </p>
     </div>
     <div class="twocol2">
     <h3>Giving informations to fallbacks</h3>
-    <p>TO BE WRITTEN</p>
+    <p>Fallbacks have access to some informations about what succeeded but
+    they were called. Get this information using 
+     <code>Eliom.get_exn sp</code>; That function returns a list of exceptions.
+    That list contains <code>Eliom_session_expired</code> if the coservice
+    was not found.
+    </p>
+    <p>
+    It is also possible to tell actions to send informations to the page
+    generated after them. Just place exceptions in the list returned by the
+    action. These exceptions will also be accessible with 
+    <code>Eliom.get_exn</code>. Try to replace the lines above by:
+    </p>
+*html*)
+(*zap* *)
+let action_session2 = 
+  new_service ~url:["action2"] ~get_params:unit ()
+
+let connect_action = 
+  new_post_coservice' ~post_params:(string "login")
+(* *zap*)    
+exception Bad_user
+let login_box sp login =
+   let l =
+     [pcdata "login: "; 
+      string_input login]
+   in
+   [p (if List.mem Bad_user (get_exn sp)
+       then (pcdata "Wrong user")::(br ())::l
+       else l
+   )]
+
+let accueil_action sp () () = 
+  let f = post_form connect_action sp (login_box sp) () in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body [f]))
+
+(*zap* *)    
+let _ = register
+  ~service:action_session2
+  accueil_action
+
+let rec launch_session sp login =
+  let deconnect_action = 
+   Actions.register_new_post_coservice_for_session'
+      sp
+      unit 
+      (fun sp () () -> close_session sp; return []) in
+  let deconnect_box sp s = 
+    post_form deconnect_action sp 
+      (fun _ -> [p [submit_input s]]) ()
+  in
+  let new_main_page sp () () = return
+    (html
+      (head (title (pcdata "")) [])
+      (body [p [pcdata "Welcome ";
+                pcdata login; br ();
+                a coucou sp [pcdata "coucou"] ()];
+             deconnect_box sp "Close session"]))
+  in
+  register_for_session 
+    sp ~service:action_session2 new_main_page;
+  register_for_session sp coucou
+   (fun _ () () -> return
+     (html
+       (head (title (pcdata "")) [])
+       (body [p [pcdata "Coucou ";
+                 pcdata login;
+                 pcdata "!"]])))
+    
+(* *zap*)
+let _ = Actions.register
+    connect_action
+    (fun sp () login -> 
+      if login = "toto" 
+      then (launch_session sp login; return [])
+      else return [Bad_user])
+(*html*
     </div>
     <h2>Summary of concepts</h2>
     <div class="twocol1 encadre">
@@ -1389,7 +1480,7 @@ let _ = Actions.register
 <span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Actions.register
   <span class="Clabel">~action:</span>connect_action
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> h <span class="Cnonalphakeyword">(</span>login<span class="Cnonalphakeyword">,</span> password<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
-      launch_session <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span>
+      launch_session <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
 </pre>
 
 
@@ -1607,6 +1698,8 @@ wakeup w "HELLO");
       <p>Here, <code>home</code>,  <code>infos</code>, 
         and <code>tutorial</code> are your three pages (generated for example
         by <code>Eliom.new_service</code>).</p>
+    </div>
+    <div class="twocol2">
       <p>Then <code>mymenu home sp</code> will generate the following
         code:</p>
       <pre>&lt;ul class="menu menuprincipal"&gt;
@@ -1631,8 +1724,13 @@ wakeup w "HELLO");
  [(home :> (('a,'b,Eliom.service_kind,'c,'d,'e) service))]
        </pre>
       </div>
-    </div>
-    <div class="twocol2">
+      <div class="encadre">
+        <h3>How to make a menu entry with GET parameters?</h3>
+          <p>
+          Preapply your service.
+          </p>
+       </pre>
+      </div>
       <h3>Others</h3>
       <em>To be available soon</em>
     </div>
@@ -1808,6 +1906,8 @@ let _ = register main
              $a public_session_without_post_params sp <:xmllist< session >> ()$ <br/> 
          A session based on cookies, implemented with actions: 
              $a action_session sp <:xmllist< actions >> ()$ <br/>
+         The same with wrong user if not "toto": 
+             $a action_session2 sp <:xmllist< actions >> ()$ <br/>
          Auxuiliary services in the session table:
              $a calc sp <:xmllist< calc >> ()$
        <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< shop >> ()$) -->

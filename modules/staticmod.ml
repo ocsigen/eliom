@@ -141,7 +141,6 @@ let gen pages_tree charset ri =
               res_send_page=Predefined_senders.send_file ~content:filename;
               res_create_sender=Predefined_senders.create_file_sender;
               res_code=None;
-              res_path="";
               res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
               res_etag=
               Some (Predefined_senders.File_content.get_etag filename);

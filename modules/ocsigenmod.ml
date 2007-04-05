@@ -532,11 +532,10 @@ let get_page
              {res_cookies=
               (match cook with
                 None -> []
-              | Some c -> [(cookiename, c)]);
+              | Some c -> [(Some path, [(cookiename, c)])]);
               res_send_page=sp;
               res_create_sender=s;
               res_code=None;
-              res_path=path;
               res_lastmodified=lm;
               res_etag=etag;
               res_charset=charset})
@@ -549,7 +548,6 @@ let get_page
                      (Predefined_senders.send_xhtml_page 
                         ~content:(Error_pages.page_error_param_type l));
                      res_create_sender=Predefined_senders.create_xhtml_sender;
-                     res_path="/";
                      res_code=None;
                      res_lastmodified=None;
                      res_etag=None;
@@ -561,7 +559,6 @@ let get_page
                      (Predefined_senders.send_xhtml_page 
                         ~content:(Error_pages.page_bad_param));
                      res_create_sender=Predefined_senders.create_xhtml_sender;
-                     res_path="/";
                      res_code=None;
                      res_lastmodified=None;
                      res_etag=None;
@@ -632,18 +629,18 @@ let gen page_tree charset ri =
 			  {r with 
 			   res_cookies=
 			   (match cookie2, r.res_cookies with
-			   | (Some c), [] -> [(cookiename, c)]
+			   | (Some c), [] -> [(Some path, [(cookiename, c)])]
 			   | _,cl -> cl)})
 	         | _ -> return (Ext_found
 				  {res_cookies=
 				   (match cookie2 with
 				     None -> []
-				   | Some c -> [(cookiename, c)]);
+				   | Some c -> 
+                                       [(Some path, [(cookiename, c)])]);
 				   res_send_page=
 				   (Predefined_senders.send_xhtml_page 
 				      ~content:(Error_pages.error_page "Error: redirection after action is experimental (it works only for ocsigenmod pages for now, and I didn't find any)"));
 				   res_create_sender=Predefined_senders.create_xhtml_sender;
-				   res_path="/";
 				   res_code=None;
 				   res_lastmodified=None;
 				   res_etag=None;
@@ -655,12 +652,11 @@ let gen page_tree charset ri =
                    {res_cookies=
                     (match cookie2 with
                       None -> []
-                    | Some c -> [(cookiename, c)]);
+                    | Some c -> [(Some path, [(cookiename, c)])]);
                     res_send_page=Predefined_senders.send_empty ~content:();
                     res_create_sender=
                     Predefined_senders.create_empty_sender;
                     res_code=Some 204;
-                    res_path=path;
                     res_lastmodified=None;
                     res_etag=None;
                     res_charset=charset})

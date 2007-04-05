@@ -128,6 +128,8 @@ val get_current_path : server_params -> url_path
 val get_current_path_string : server_params -> string
 val get_other_get_params : server_params -> (string * string) list
 val get_suffix : server_params -> url_path
+val get_exn : server_params -> exn list
+
 
 
 (** Type of files *)
@@ -359,8 +361,7 @@ module type REGCREATE =
   sig
     type page
 
-    val create_sender : Predefined_senders.create_sender_type option
-    val send : content:page -> Predefined_senders.send_page_type
+    val send : content:page -> Predefined_senders.result_to_send
 
   end
 
@@ -1046,7 +1047,7 @@ and type input_type_t = string
 
 
 module Actions : ELIOMREGSIG with 
-  type page = unit
+  type page = exn list
 
 module Unit : ELIOMREGSIG with 
   type page = unit

@@ -72,8 +72,7 @@ type request_info =
 
 (** The result of a page generation *)
 type result =
-    {res_cookies: (string * string) list; (** The cookies to set *)
-     res_path: string;                    (** The path for the cookies *)
+    {res_cookies: (string option * (string * string) list) list; (** The cookies to set (with optional paths) *)
      res_lastmodified: float option;      (** Last modified date *)
      res_etag: Http_frame.etag option;    (** ETag for the page *)
      res_code: int option;                (** HTTP code to send, if not 200 *)
@@ -91,7 +90,7 @@ type answer =
     Ext_found of result  (** OK stop! I found the page *)
   | Ext_not_found        (** Page not found. Try next extension. *)
   | Ext_continue_with of request_info * 
-        (string option * ((string * string) list)) option
+        (string option * ((string * string) list)) list
         (** Used to modify the request before giving it to next extension ;
            The extension may want to set cookies ; in that case, put the new
            cookies in the list (and possibly the path in the string option), 
@@ -99,7 +98,7 @@ type answer =
            of request_info if you want them to be seen by the following
            extension. *)
   | Ext_retry_with of request_info * 
-        (string option * ((string * string) list)) option
+        (string option * ((string * string) list)) list
         (** Used to retry all the extensions with a new request_info ;
            May set cookies (idem) *)
 

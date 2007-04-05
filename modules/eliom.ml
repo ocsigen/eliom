@@ -46,6 +46,7 @@ let get_hostname (ri,_,_) = ri.ri_host
 let get_port (ri,_,_) = ri.ri_port
 let get_other_get_params (_,si,_) = si.si_other_get_params
 let get_suffix (_,_,(_,_,s)) = s
+let get_exn (_,si,_) = si.si_exn
 
 let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
@@ -488,7 +489,7 @@ let new_service
     () =
   new_service_aux ~url ~suffix ~get_params
 
-let new_anservice_name () = string_of_int (counter ())
+let new_naservice_name () = string_of_int (counter ())
 
 let new_coservice
     ~fallback
@@ -520,7 +521,7 @@ let new_coservice' ~get_params =
      get_params_type = add_pref_params na_co_param_prefix get_params;
      post_params_type = unit;
      kind = `Nonattached
-       {na_name = (Some (new_anservice_name ()), None);
+       {na_name = (Some (new_naservice_name ()), None);
         na_kind = `Get;
       }
    }
@@ -594,7 +595,7 @@ let new_post_coservice' ~post_params =
      get_params_type = unit;
      post_params_type = post_params;
      kind = `Nonattached
-       {na_name = (None, Some (new_anservice_name ()));
+       {na_name = (None, Some (new_naservice_name ()));
         na_kind = `Post;
       }
    }
@@ -611,7 +612,7 @@ let new_get_post_coservice'
    get_params_type = fallback.na_get_params_type;
    post_params_type = post_params;
    kind = `Nonattached
-     {na_name = (fst fallback.na_name, Some (new_anservice_name ()));
+     {na_name = (fst fallback.na_name, Some (new_naservice_name ()));
       na_kind = `Internal (`NonAttachedCoservice, `Post);
      }
 
@@ -649,8 +650,7 @@ module type REGCREATE =
 
     type page
 
-    val create_sender : Predefined_senders.create_sender_type option
-    val send : content:page -> Predefined_senders.send_page_type
+    val send : content:page -> Predefined_senders.result_to_send
 
   end
 
@@ -1105,11 +1105,11 @@ module MakeRegister = functor
           page_generator =
         match service.kind with
           `Attached attser ->
-            add_service tables 
+            add_service
+              tables 
 	      current_dir
 	      session
 	      attser.url
-              Pages.create_sender
               ({suffix = attser.url_suffix;
                 state = (attser.get_state, attser.post_state)},
                (service.unique_id,
@@ -1135,12 +1135,11 @@ module MakeRegister = functor
                        | e -> fail e)) >>=
                   (fun c -> return (Pages.send ~content:c)))))
         | `Nonattached naser ->
-            add_anservice 
+            add_naservice 
 	      tables
 	      current_dir 
 	      session
 	      naser.na_name
-	      Pages.create_sender
 	      (fun ((ri,_,_) as h) ->
 	        (catch
 	           (fun () ->
@@ -1421,9 +1420,9 @@ module MakeForms = functor
               construct_params_string service.pre_applied_parameters in
             let params_string =
               concat_strings preapplied_params "&" params_string in
-            let anservice_param = 
+            let naservice_param = 
               match fst naser.na_name with
-                Some n -> anservice_prefix^anservice_name^"="^n
+                Some n -> naservice_prefix^naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -1433,7 +1432,7 @@ module MakeForms = functor
                      (concat_strings
                         current_get_params_string
                         "&"
-                        (anservice_param^"&"^params_string))
+                        (naservice_param^"&"^params_string))
                     )
               content
 
@@ -1504,18 +1503,18 @@ module MakeForms = functor
             in Pages.make_get_form ?a ~action:urlname i1 i
         | `Nonattached naser ->
             let urlname = relative_url_path_to_myself (get_current_path sp) in
-            let anservice_param_name = anservice_prefix^anservice_name in
-            let anservice_param = 
+            let naservice_param_name = naservice_prefix^naservice_name in
+            let naservice_param = 
               match fst naser.na_name with
                 Some n -> n
               | _ -> assert false
             in
-            let anservice_line = 
+            let naservice_line = 
               Pages.make_hidden_field
 	        (Pages.make_input
 	           ~typ:Pages.hidden 
-                   ~name:anservice_param_name
-                   ~value:anservice_param ())
+                   ~name:naservice_param_name
+                   ~value:naservice_param ())
             in
             let current_get_params =
               (get_other_get_params sp) @ 
@@ -1552,7 +1551,7 @@ module MakeForms = functor
                 all_lines
                 service.pre_applied_parameters
             in
-            Pages.make_get_form ?a ~action:urlname anservice_line all_lines
+            Pages.make_get_form ?a ~action:urlname naservice_line all_lines
 
 
       let post_form ?a
@@ -1603,22 +1602,22 @@ module MakeForms = functor
               i1 i
         | `Nonattached naser ->
             (* no GET params here for now *)
-            let anservice_param_name = anservice_prefix^anservice_name in
-            let anservice_param = 
+            let naservice_param_name = naservice_prefix^naservice_name in
+            let naservice_param = 
               match snd naser.na_name with
                 Some n -> n
               | _ -> assert false
             in
-            let anservice_line = 
+            let naservice_line = 
 	      Pages.make_input
 	        ~typ:Pages.hidden
-                ~name:anservice_param_name
-                ~value:anservice_param () 
+                ~name:naservice_param_name
+                ~value:naservice_param () 
             in
             let v = get_full_url sp in
             let inside = f (make_params_names service.post_params_type) in
             Pages.make_post_form ?a ~action:v
-              (Pages.make_hidden_field anservice_line)
+              (Pages.make_hidden_field naservice_line)
               inside
 
           
@@ -1673,9 +1672,9 @@ module MakeForms = functor
               construct_params_string service.pre_applied_parameters in
             let params_string =
               concat_strings preapplied_params "&" params_string in
-            let anservice_param = 
+            let naservice_param = 
               match fst naser.na_name with
-                Some n -> anservice_prefix^anservice_name^"="^n
+                Some n -> naservice_prefix^naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -1685,7 +1684,7 @@ module MakeForms = functor
                (concat_strings
                   current_get_params_string
                   "&"
-                  (anservice_param^"&"^params_string))
+                  (naservice_param^"&"^params_string))
               )
 
                   
@@ -1805,8 +1804,9 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
-  let create_sender = Some Predefined_senders.create_xhtml_sender
-  let send = Predefined_senders.send_xhtml_page
+  let send ~content = Predefined_senders.SP 
+      (Predefined_senders.create_xhtml_sender,
+       Predefined_senders.send_xhtml_page ~content)
 
 end
 
@@ -2186,8 +2186,9 @@ module Textreg_ = struct
 
   type page = string
 
-  let create_sender = Some Predefined_senders.create_xhtml_sender
-  let send = Predefined_senders.send_text_page
+  let send ~content = Predefined_senders.SP
+      (Predefined_senders.create_xhtml_sender,
+       Predefined_senders.send_text_page ~content)
 
 end
 
@@ -2335,13 +2336,9 @@ module Actionreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = unit
+  type page = exn list
 
-  let create_sender = None
-  let send ~content waiter ?code ?etag ~keep_alive ?cookies 
-      ?last_modified ?location ?head ?charset s =
-    return ()
-
+  let send ~content = Predefined_senders.EX content
 
 end
 
@@ -2356,8 +2353,9 @@ module Unitreg_ = struct
 
   type page = unit
 
-  let create_sender = Some Predefined_senders.create_empty_sender 
-  let send = Predefined_senders.send_empty
+  let send ~content = Predefined_senders.SP
+      (Predefined_senders.create_empty_sender,
+       Predefined_senders.send_empty ~content)
 
 end
 
@@ -2394,15 +2392,17 @@ module Redirreg_ = struct
 
   type page = string (* ?????????????????????????????????, *)
 
-  let create_sender = Some Predefined_senders.create_empty_sender 
-  let send ~content waiter ?code ?etag ~keep_alive ?cookies 
-      ?last_modified ?location ?head ?charset s =
-    Predefined_senders.send_empty
-      ~content:() waiter ~code:301 (* Moved permanently *) 
-      ?etag ~keep_alive ?cookies 
-      ?last_modified 
-      ~location:content
-      ?head ?charset s (* ?????????????????????????????????, *)
+  let send ~content =
+    Predefined_senders.SP
+      (Predefined_senders.create_empty_sender,
+       fun waiter ?code ?etag ~keep_alive ?cookies 
+           ?last_modified ?location ?head ?charset s ->
+             Predefined_senders.send_empty
+               ~content:() waiter ~code:301 (* Moved permanently *) 
+               ?etag ~keep_alive ?cookies 
+               ?last_modified 
+               ~location:content
+               ?head ?charset s) (* ?????????????????????????????????, *)
 
 end
 

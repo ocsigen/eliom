@@ -89,8 +89,10 @@ module Xhtmlreg_ = struct
 
   type page = html
 
-  let create_sender = Some Predefined_senders.create_xhtml_sender
-  let send = send_ocamlduce_page
+  let send ~content = 
+    Predefined_senders.SP
+      (Predefined_senders.create_xhtml_sender,
+       send_ocamlduce_page ~content)
 
 end
 

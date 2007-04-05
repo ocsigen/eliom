@@ -34,6 +34,10 @@ type send_page_type =
     ?charset:string ->
       Http_com.sender_type -> unit Lwt.t
 
+type result_to_send = 
+    SP of create_sender_type * send_page_type
+  | EX of exn list
+
 (** Sending xhtml *)
 val send_xhtml_page : content: [ `Html ] XHTML.M.elt -> send_page_type
 

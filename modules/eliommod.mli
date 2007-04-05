@@ -21,13 +21,15 @@
 open Extensions
 
 exception Eliom_Wrong_parameter
+exception Eliom_session_expired
+exception Eliom_Typing_Error of (string * exn) list
+
 exception Eliom_duplicate_registering of string
 exception Eliom_register_for_session_outside_session
 exception Eliom_page_erasing of string
 exception Eliom_service_created_outside_site_loading
 exception Eliom_there_are_unregistered_services of string
 exception Eliom_error_while_loading_site of string
-exception Eliom_Typing_Error of (string * exn) list
 
 type internal_state = int
 
@@ -41,7 +43,8 @@ type sess_info =
     {si_other_get_params: (string * string) list;
      si_cookie: string option;
      si_nonatt_info: (string option * string option);
-     si_state_info: (internal_state option * internal_state option)}
+     si_state_info: (internal_state option * internal_state option);
+     si_exn: exn list}
 
 type 'a server_params1 = 
     request_info * sess_info * (current_dir * 'a ref * url_path)
@@ -63,27 +66,25 @@ val add_service :
       url_path ->
         bool ->
           string list ->
-            Predefined_senders.create_sender_type option ->
-              page_table_key *
-                (int * (server_params -> 
-                  Predefined_senders.send_page_type Lwt.t)) ->
-                    unit
+            page_table_key *
+              (int * (server_params -> 
+                Predefined_senders.result_to_send Lwt.t)) ->
+                  unit
 
-val add_anservice :
+val add_naservice :
     tables -> 
       current_dir ->
 	bool -> 
 	  (string option * string option) -> 
-            Predefined_senders.create_sender_type option ->
-	      (server_params -> 
-		Predefined_senders.send_page_type Lwt.t) -> unit
+	    (server_params -> 
+	      Predefined_senders.result_to_send Lwt.t) -> unit
 
 
 val get_state_param_name : string
 val post_state_param_name : string
 val eliom_suffix_name : string
-val anservice_prefix : string
-val anservice_name : string
+val naservice_prefix : string
+val naservice_name : string
 val co_param_prefix : string
 val na_co_param_prefix : string
 

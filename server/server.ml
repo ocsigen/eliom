@@ -513,8 +513,7 @@ let service
                   wait_end_answer
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified
-                  ~cookies:(((Some res.res_path), res.res_cookies)
-                            ::cookieslist)
+                  ~cookies:(res.res_cookies@cookieslist)
                   ?etag:res.res_etag
                   ~code:304 (* Not modified *)
                   ~head:head 
@@ -525,7 +524,7 @@ let service
                   wait_end_answer
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified
-                  ~cookies:(((Some res.res_path), res.res_cookies)::cookieslist)
+                  ~cookies:(res.res_cookies@cookieslist)
                   ?code:res.res_code
                   ?charset:res.res_charset
                   ~head:head
