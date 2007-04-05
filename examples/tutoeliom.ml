@@ -1190,8 +1190,6 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
      It is not possible to register something on e preapplied service,
      but you can use them in links or as fallbacks for coservices.
     </p>
-    </div>
-    <div class="twocol2">
     <h3>Giving informations to fallbacks</h3>
     <p>Fallbacks have access to some informations about what succeeded but
     they were called. Get this information using 
@@ -1199,6 +1197,8 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     That list contains <code>Eliom_session_expired</code> if the coservice
     was not found.
     </p>
+    </div>
+    <div class="twocol2">
     <p>
     It is also possible to tell actions to send informations to the page
     generated after them. Just place exceptions in the list returned by the
@@ -1272,6 +1272,19 @@ let _ = Actions.register
       then (launch_session sp login; return [])
       else return [Bad_user])
 (*html*
+    <h3>Redirections</h3>
+    <p>
+     The <code>Redirections</code> module allows to register HTTP redirections.
+     If a request is done towards such a service, the server asks the browser
+     to retry with another URL. Example:
+    </p>
+*html*)
+let redir = Redirections.register_new_service
+    ~url:["redir"]
+    ~get_params:(int "o")
+   (fun sp o () -> return (make_string_uri coucou_params sp (o,(22,"ee"))))
+(*html*
+      <p>Try $a Tutoeliom.redir sp <:xmllist< <code>it</code> >> 11$.</p>
     </div>
     <h2>Summary of concepts</h2>
     <div class="twocol1 encadre">
@@ -1920,6 +1933,8 @@ let _ = register main
              $a looong sp <:xmllist< looong2 >> ()$<br/>
        Catching errors:
              $a catch sp <:xmllist< catch >> 22$ (change the value in the URL)<br/>
+       Redirection:
+             $a redir sp <:xmllist< redir >> 11$<br/>
        </p>
        </body>
      </html> >>)

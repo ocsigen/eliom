@@ -352,6 +352,11 @@ val preapply :
          [ `WithoutSuffix ], unit param_name, 'f, [ `Unregistrable ]) service
  
 
+val make_string_uri :
+    ('get, unit, [< get_service_kind ],
+     [< suff ], 'gn, unit param_name, 
+     [< registrable ]) service ->
+       server_params -> 'get -> string
 
 
 
@@ -1051,3 +1056,6 @@ module Actions : ELIOMREGSIG with
 
 module Unit : ELIOMREGSIG with 
   type page = unit
+
+module Redirections : ELIOMREGSIG with 
+  type page = string

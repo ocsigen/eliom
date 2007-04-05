@@ -1113,13 +1113,13 @@ module MakeRegister = functor
               ({suffix = attser.url_suffix;
                 state = (attser.get_state, attser.post_state)},
                (service.unique_id,
-                (fun ((ri,_,(_,_,suff)) as h) -> 
+                (fun ((ri,_,(_,_,suff)) as sp) -> 
                   (catch (fun () -> 
                     (force ri.ri_post_params) >>=
                     (fun post_params ->
                       (force ri.ri_files) >>=
                       (fun files ->
-                        (page_generator h 
+                        (page_generator sp
                            (reconstruct_params 
                               service.get_params_type
                               (force ri.ri_get_params)
@@ -1131,7 +1131,7 @@ module MakeRegister = functor
                               files
                               [])))))
                      (function
-                         Eliom_Typing_Error l -> error_handler h l
+                         Eliom_Typing_Error l -> error_handler sp l
                        | e -> fail e)) >>=
                   (fun c -> return (Pages.send ~content:c)))))
         | `Nonattached naser ->
@@ -1140,14 +1140,14 @@ module MakeRegister = functor
 	      current_dir 
 	      session
 	      naser.na_name
-	      (fun ((ri,_,_) as h) ->
+	      (fun ((ri,_,_) as sp) ->
 	        (catch
 	           (fun () ->
 	             (force ri.ri_post_params) >>=
 	             (fun post_params ->
 		       (force ri.ri_files) >>=
 		       (fun files ->
-                         (page_generator h 
+                         (page_generator sp 
                             (reconstruct_params
                                service.get_params_type
                                (force ri.ri_get_params)
@@ -1159,7 +1159,7 @@ module MakeRegister = functor
                                files
                                [])))))
 	           (function
-                       Eliom_Typing_Error l -> error_handler h l
+                       Eliom_Typing_Error l -> error_handler sp l
                      | e -> fail e)) >>=
                 (fun c -> return (Pages.send ~content:c)))
 
@@ -1335,6 +1335,69 @@ module MakeRegister = functor
 
   end : ELIOMREGSIG with 
      type page = Pages.page)
+
+
+
+
+let make_string_uri
+    service
+    ((_,si,_) as sp)
+    getparams : string =
+  match service.kind with
+    `Attached attser ->
+      begin
+        let suff,params_string = 
+          construct_params service.get_params_type getparams in
+        let preapplied_params = 
+          construct_params_string service.pre_applied_parameters in
+        let params_string =
+          concat_strings preapplied_params "&" params_string in
+        let suff = (if attser.url_suffix then Some suff else None) in
+        let uri = 
+          (if attser.att_kind = `External
+          then (reconstruct_absolute_url_path
+                  (get_current_path sp) attser.url suff)
+          else (reconstruct_relative_url_path
+                  (get_current_path sp) attser.url suff))
+        in
+        match attser.get_state with
+          None ->
+            add_to_string uri "?" params_string
+        | Some i -> 
+            add_to_string (uri^"?"^
+                           get_state_param_name^"="^(string_of_int i))
+              "&" params_string
+      end
+  | `Nonattached naser ->
+      let current_get_params =
+        (get_other_get_params sp) @ 
+        (remove_prefixed_param na_co_param_prefix (get_get_params sp))
+      in
+      let current_get_params =
+        match fst si.si_state_info with
+          None -> current_get_params
+        | Some i -> (get_state_param_name, 
+                     (string_of_int i))::current_get_params
+      in
+      let _, params_string = 
+        construct_params service.get_params_type getparams in
+      let preapplied_params = 
+        construct_params_string service.pre_applied_parameters in
+      let params_string =
+        concat_strings preapplied_params "&" params_string in
+      let naservice_param = 
+        match fst naser.na_name with
+          Some n -> naservice_prefix^naservice_name^"="^n
+        | _ -> assert false
+      in
+      let current_get_params_string = 
+        construct_params_string current_get_params in
+      ((relative_url_path_to_myself (get_current_path sp))^"?"^
+       (concat_strings
+          current_get_params_string
+          "&"
+          (naservice_param^"&"^params_string))
+      )
 
 
 module MakeForms = functor
@@ -1624,69 +1687,8 @@ module MakeForms = functor
 
 
 
-      let make_uri 
-          service
-          ((_,si,_) as sp)
-          getparams : Pages.uri =
-        match service.kind with
-          `Attached attser ->
-            begin
-              let suff,params_string = 
-                construct_params service.get_params_type getparams in
-              let preapplied_params = 
-                construct_params_string service.pre_applied_parameters in
-              let params_string =
-                concat_strings preapplied_params "&" params_string in
-              let suff = (if attser.url_suffix then Some suff else None) in
-              let uri = 
-                (if attser.att_kind = `External
-                then (reconstruct_absolute_url_path
-                        (get_current_path sp) attser.url suff)
-                else (reconstruct_relative_url_path
-                        (get_current_path sp) attser.url suff))
-              in
-              match attser.get_state with
-                None ->
-                  Pages.make_uri_from_string
-                    (add_to_string uri "?" params_string)
-              | Some i -> 
-                  Pages.make_uri_from_string 
-                    (add_to_string (uri^"?"^
-                                    get_state_param_name^"="^(string_of_int i))
-                       "&" params_string)
-            end
-        | `Nonattached naser ->
-            let current_get_params =
-              (get_other_get_params sp) @ 
-              (remove_prefixed_param na_co_param_prefix (get_get_params sp))
-            in
-            let current_get_params =
-              match fst si.si_state_info with
-                None -> current_get_params
-              | Some i -> (get_state_param_name, 
-                           (string_of_int i))::current_get_params
-            in
-            let _, params_string = 
-              construct_params service.get_params_type getparams in
-            let preapplied_params = 
-              construct_params_string service.pre_applied_parameters in
-            let params_string =
-              concat_strings preapplied_params "&" params_string in
-            let naservice_param = 
-              match fst naser.na_name with
-                Some n -> naservice_prefix^naservice_name^"="^n
-              | _ -> assert false
-            in
-            let current_get_params_string = 
-              construct_params_string current_get_params in
-            Pages.make_uri_from_string 
-              ((relative_url_path_to_myself (get_current_path sp))^"?"^
-               (concat_strings
-                  current_get_params_string
-                  "&"
-                  (naservice_param^"&"^params_string))
-              )
-
+      let make_uri serv sp gp =
+        Pages.make_uri_from_string (make_string_uri serv sp gp)
                   
           
           
@@ -2369,28 +2371,15 @@ module Unit = MakeRegister(Unitreg_)
    The HTTP/1.1 RFC says:
    If the 301 status code is received in response to a request other than GET or HEAD, the user agent MUST NOT automatically redirect the request unless it can be confirmed by the user, since this might change the conditions under which the request was issued.
 
-   Here redirections are done towards public
+   Here redirections are done towards services without parameters.
+   (possibly preapplied).
 
-
-
-
-
-?????????????????????
-
-
-
-
-
-
-
-
- services without POST parameters
  *)
 module Redirreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = string (* ?????????????????????????????????, *)
+  type page = string
 
   let send ~content =
     Predefined_senders.SP
@@ -2402,7 +2391,8 @@ module Redirreg_ = struct
                ?etag ~keep_alive ?cookies 
                ?last_modified 
                ~location:content
-               ?head ?charset s) (* ?????????????????????????????????, *)
+               ?head ?charset s
+      )
 
 end
 
