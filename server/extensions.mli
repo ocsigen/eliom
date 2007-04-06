@@ -129,6 +129,10 @@ val register_extension :
     (exn -> string) -> unit
 
 
+(** While loading an extension, 
+    get the configuration tree between <dynlink></dynlink>*)
+val get_config : unit -> Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist
+
 (**/**)
 
 val create_virthost : 
@@ -174,3 +178,5 @@ val start_initialisation : unit -> unit
 val end_initialisation : unit -> unit
 
 val get_init_exn_handler : unit -> exn -> string
+
+val set_config : Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist -> unit

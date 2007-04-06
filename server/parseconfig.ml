@@ -96,6 +96,7 @@ let parse_size =
    But it works.
  *)
 
+
 let rec parse_string = function
     PLEmpty -> ""
   | PLCons ((EPpcdata s), l) -> s^(parse_string l)
@@ -241,8 +242,15 @@ let parse_server c =
       | PLCons ((EPanytag ("maxuploadfilesize", PLEmpty, p)), ll) -> 
           set_maxuploadfilesize (parse_size (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("dynlink", PLEmpty,l)), ll) -> 
-          Dynlink.loadfile (parse_string l);
+      | PLCons ((EPanytag ("dynlink", atts,l)), ll) -> 
+	  let modu = match atts with
+          | PLEmpty -> raise (Config_file_error "missing module attribute in <dynlink>")
+          | PLCons ((EPanyattr (EPVstr("module"), EPVstr(s))), PLEmpty) -> s
+          | _ -> raise (Config_file_error "Wrong attribute for <dynlink>") 
+	  in 
+          Extensions.set_config l;
+          Dynlink.loadfile modu;
+          Extensions.set_config PLEmpty;
           parse_server_aux ll
       | PLCons ((EPanytag ("host", atts, l)), ll) ->
 	  let host = match atts with
