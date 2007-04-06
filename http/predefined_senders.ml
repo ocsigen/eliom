@@ -305,7 +305,7 @@ let send_generic
     ("Set-Cookie",
      (name^"="^c^
       (match path with 
-        Some s -> ("; path="^s) 
+        Some s -> ("; path=/"^(Ocsimisc.string_of_url_path s))
       | None -> "")))
   in
   let mkcookl path cl hds =
@@ -349,7 +349,7 @@ type send_page_type =
       ?code:int ->
         ?etag:etag ->
           keep_alive:bool ->
-            ?cookies: (string option * (string * string) list) list ->
+            ?cookies: (string list option * (string * string) list) list ->
               ?last_modified:float ->
                 ?location:string -> 
                   ?head:bool -> 

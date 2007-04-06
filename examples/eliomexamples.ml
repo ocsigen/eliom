@@ -146,3 +146,33 @@ let form2 = register_new_service ["postco"] unit
          (head (title (pcdata "form")) [])
          (body [f])))
 
+(* Many cookies *)
+let cookiename = "c"
+
+let cookies = new_service ["c";""] unit ()
+
+let _ = Cookies.register cookies
+    (fun sp () () ->  return
+      ((html
+        (head (title (pcdata "")) [])
+        (body [p 
+                 (List.fold_left
+                    (fun l (n,v) ->
+                      (pcdata (n^"="^v))::
+                      (br ())::l
+                    )
+                    [a cookies sp [pcdata "send other cookies"] ()]
+                    (get_cookies sp))])),
+       [(None, [((cookiename^"1"),(string_of_int (Random.int 100)));
+               ((cookiename^"2"),(string_of_int (Random.int 100)));
+               ((cookiename^"3"),(string_of_int (Random.int 100)))]);
+        (Some ["c"], [((cookiename^"4"),(string_of_int (Random.int 100)));
+                ((cookiename^"5"),(string_of_int (Random.int 100)))]);
+        (Some [".."], [((cookiename^"6"),(string_of_int (Random.int 100)));
+                ((cookiename^"7"),(string_of_int (Random.int 100)))]);
+        (Some ["plop"], [((cookiename^"8"),(string_of_int (Random.int 100)));
+                ((cookiename^"9"),(string_of_int (Random.int 100)));
+                ((cookiename^"10"),(string_of_int (Random.int 100)));
+                ((cookiename^"11"),(string_of_int (Random.int 100)));
+                ((cookiename^"12"),(string_of_int (Random.int 100)))]);
+      ]))

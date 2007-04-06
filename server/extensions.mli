@@ -41,6 +41,9 @@ type url_path = string list
 type current_url = string list
 type current_dir = string list
 
+(** Type used for cookies to set. The url_path option is for the path. *)
+type cookieslist = (url_path option * (string * string) list) list
+
 (** The files sent in the request *)
 type file_info = {tmp_filename: string; (** Where the file is stored on the server*)
                   filesize: int64; (** Size, in bytes *)
@@ -72,7 +75,7 @@ type request_info =
 
 (** The result of a page generation *)
 type result =
-    {res_cookies: (string option * (string * string) list) list; (** The cookies to set (with optional paths) *)
+    {res_cookies: (string list option * (string * string) list) list; (** The cookies to set (with optional paths) *)
      res_lastmodified: float option;      (** Last modified date *)
      res_etag: Http_frame.etag option;    (** ETag for the page *)
      res_code: int option;                (** HTTP code to send, if not 200 *)
@@ -89,16 +92,15 @@ type charset_tree_type
 type answer =
     Ext_found of result  (** OK stop! I found the page *)
   | Ext_not_found        (** Page not found. Try next extension. *)
-  | Ext_continue_with of request_info * 
-        (string option * ((string * string) list)) list
+  | Ext_continue_with of request_info * cookieslist
         (** Used to modify the request before giving it to next extension ;
            The extension may want to set cookies ; in that case, put the new
-           cookies in the list (and possibly the path in the string option), 
+           cookies in the list (and possibly the path in the string list
+           option of cookieslist), 
            and possibly in the ri_cookies field
            of request_info if you want them to be seen by the following
            extension. *)
-  | Ext_retry_with of request_info * 
-        (string option * ((string * string) list)) list
+  | Ext_retry_with of request_info * cookieslist
         (** Used to retry all the extensions with a new request_info ;
            May set cookies (idem) *)
 
@@ -126,7 +128,6 @@ val register_extension :
     (unit -> unit) *
     (exn -> string) -> unit
 
-type cookieslist = (string option * (string * string) list) list
 
 (**/**)
 

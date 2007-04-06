@@ -526,14 +526,14 @@ let execute generate_page ip cookie (globtable, cookie_table) =
       ((cookie3, 
         result_to_send, 
         cookies_to_set,
-        ("/"^(string_of_url_path working_dir))),
+        working_dir),
        lastmod,
        etag))
 
 exception Eliom_retry_with of 
   (request_info * 
      sess_info * 
-     (string option * ((string * string) list)) list (* cookies to set *)) 
+     cookieslist (* cookies to set *)) 
 
 let get_page
     page_tree
@@ -690,7 +690,7 @@ let gen page_tree charset ri =
             List.map (fun (pathopt,cl) -> 
               ((match pathopt with
                 None -> Some path (* Not possible to set a cookie for another site (?) *)
-              | Some p -> Some (path^p)
+              | Some p -> Some (path@p)
                ),cl)) new_cookies_to_set
           in
           let cookies_to_set = new_cookies_to_set@old_cookies_to_set in

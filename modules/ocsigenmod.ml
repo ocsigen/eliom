@@ -460,7 +460,7 @@ let execute generate_page ip cookie (globtable, cookie_table) =
       ((cookie3, 
         send_page, 
         sender, 
-        ("/"^(string_of_url_path working_dir))),
+        working_dir),
        lastmod,
        etag))
 
@@ -596,8 +596,8 @@ let make_action page_tree action_name action_params
         Messages.debug "- Action executed";
         return (c,wd)))
     (function
-        Ocsigen_Typing_Error _ -> return (None, "/")
-      | Ocsigen_Wrong_parameter -> return (None, "/")
+        Ocsigen_Typing_Error _ -> return (None, [])
+      | Ocsigen_Wrong_parameter -> return (None, [])
       | e -> fail e)
 
 

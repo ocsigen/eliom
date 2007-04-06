@@ -655,6 +655,107 @@ let form4 = register_new_service ["form4"] unit
       </p>
 
     </div>
+    <h2>Summary of concepts</h2>
+    <div class="encadre sanstitre">
+      <p>Here is a summary of the concepts that will be developped in
+         the following of this tutorial.</p>
+      <p>Eliom uses three kinds of services:</p>
+      <dl>
+        <dt>Main services</dt><dd>are the main entry points of your sites.
+        Created by <code>new_service</code> or 
+        <code>new_post_service</code>.</dd>
+        <dt>Coservices</dt><dd>are services often created dynamically for
+        one user (often in the session table) or used to particularize one
+        button but not the page it leads to (like the disconnect button
+        in the example of sessions with actions below).
+        </dd>
+        <dt>Non-attached coservices</dt><dd>are coservices towards the current
+        URL.
+       </dd>
+      </dl>
+      <p>Each of these services has its a version with POST parameters.
+      Remember to use POST parameters when you want a different behaviour
+      between the first click and a reload of the page. Usually sending
+      POST parameters triggers an action on server side, and you don't want 
+      it to succeed several times.</p>
+   
+    </div>
+    <div class="encadre sanstitre">
+      <p>You can register several kinds of pages on these services,
+      using these different modules:</p>
+      <dl>
+        <dt>Eliom.Xhtml</dt><dd>allows to register functions that 
+        generate xhtml pages
+        checked statically using polymorphic variant types. You may use
+        constructor functions from <code>XHTML.M</code> or a syntax
+        extension close to the standard xhtml syntax.</dd>
+        <dt>Eliomduce</dt><dd>allows to register functions that generate
+        xhtml pages 
+        checked statically using <code>Ocamlduce</code>. Typing is more
+        strict, but you need a modified version of the OCaml compiler 
+        (Ocamlduce).</dd>
+        <dt>Eliom.Text</dt><dd>Allows to register functions that
+        generate text pages, without any typechecking of the content.
+        </dd>
+        <dt>Eliom.Actions</dt><dd>allows to register actions, that is
+        functions that do not generate any page. The URL is reloaded after
+        the action.
+        </dd>
+        <dt>Eliom.Unit</dt><dd>is like <code>Eliom.Actions</code> but the
+        URL is not reloaded after the action.</dd>
+        <dt>Eliom.Redirections</dt><dd>allows to register redirections
+        </dd>
+      </dl>
+   
+    </div>
+    <div class="encadre sanstitre">
+      <p>Each of these registrations may be done in the <em>public</em>
+      table, or in a <em>session</em> table, accessible only for one
+      user of the Web site.
+      </p>
+
+      <p>Eliom will try to find the page, in that order:</p>
+      <ul>
+       <li>in the session table,</li>
+       <li>in the public table,</li>
+       <li>the fallback in the session table, if the coservice has expired,</li>
+       <li>the fallback in the public table, if the session has expired.</li>
+      </ul>
+
+      <p>Details on service registration:</p>
+      <ul>
+        <li>All services created during initialisation must be registered
+        in the public table
+        during the initialisation phase of your module.
+        If not, the server will not start (with an error message in the logs).
+        This is to ensure that all the URLs the user can bookmark
+        will always give an answer, even if the session has expired.</li>
+        <li>Main services cannot be registered in the public table
+         after the initialisation phase.
+        </li>
+        <li>Do not register twice the same service in the public table, 
+          and do not replace a service
+          by a directory (or vice versa). If this happens during the 
+          initialisation phase, the server won't start.
+          If this happens after, it will be ignored (with a warning in the 
+          logs).
+        </li>
+        <li>All services (but non-attached ones) must be created in
+        a module loaded inside a <code>&lt;site&gt;</code> tag of the
+        config file (because they will be attached to a directory).
+        </li>
+        <li>GET coservices (whithout POST parameters) can be registered
+        only with a main service without GET/POST parameters as fallback.
+        But it may be a preapplied service.
+        </li>
+        <li>Services with POST parameters (main service or coservice) 
+        can be registered with a (main or co) service without POST
+        parameters as fallback.</li>
+      </ul>
+
+
+
+    </div>
     <h2>Sessions</h2>
     <div class="twocol1">
       <p>
@@ -702,13 +803,13 @@ let _ = register
   accueil
 
 let close = register_new_service
-    ~url:["deconnect"]
+    ~url:["disconnect"]
     ~get_params:unit
     (fun sp () () -> close_session sp; 
       return
         (html
-           (head (title (pcdata "Deconnect")) [])
-           (body [p [pcdata "You have been deconnected. ";
+           (head (title (pcdata "Disconnect")) [])
+           (body [p [pcdata "You have been disconnected. ";
                      a public_session_without_post_params
                        sp [pcdata "Retry"] ()
                    ]])))
@@ -1133,13 +1234,13 @@ let _ = register
     <div class="twocol2">
 *html*)
 let rec launch_session sp login =
-  let deconnect_action = 
+  let disconnect_action = 
    Actions.register_new_post_coservice_for_session'
       sp
       unit 
       (fun sp () () -> close_session sp; return []) in
-  let deconnect_box sp s = 
-    post_form deconnect_action sp 
+  let disconnect_box sp s = 
+    post_form disconnect_action sp 
       (fun _ -> [p [submit_input s]]) ()
   in
   let new_main_page sp () () = return
@@ -1150,7 +1251,7 @@ let rec launch_session sp login =
                 a coucou sp [pcdata "coucou"] (); br ();
                 a hello sp [pcdata "hello"] (); br ();
                 a links sp [pcdata "links"] (); br ()];
-             deconnect_box sp "Close session"]))
+             disconnect_box sp "Close session"]))
   in
   register_for_session 
     sp ~service:action_session new_main_page;
@@ -1235,13 +1336,13 @@ let _ = register
   accueil_action
 
 let rec launch_session sp login =
-  let deconnect_action = 
+  let disconnect_action = 
    Actions.register_new_post_coservice_for_session'
       sp
       unit 
       (fun sp () () -> close_session sp; return []) in
-  let deconnect_box sp s = 
-    post_form deconnect_action sp 
+  let disconnect_box sp s = 
+    post_form disconnect_action sp 
       (fun _ -> [p [submit_input s]]) ()
   in
   let new_main_page sp () () = return
@@ -1250,7 +1351,7 @@ let rec launch_session sp login =
       (body [p [pcdata "Welcome ";
                 pcdata login; br ();
                 a coucou sp [pcdata "coucou"] ()];
-             deconnect_box sp "Close session"]))
+             disconnect_box sp "Close session"]))
   in
   register_for_session 
     sp ~service:action_session2 new_main_page;
@@ -1321,224 +1422,10 @@ let _ = Cookies.register cookies
                             (List.assoc cookiename (get_cookies sp))
                           with _ -> "<cookie not set>");
                   br ();
-                  a cookies sp [pcdata "send cookie"] ()]])),
+                  a cookies sp [pcdata "send other cookie"] ()]])),
        [None, [(cookiename,(string_of_int (Random.int 100)))]]))
 (*html*
       <p>Try $a Tutoeliom.cookies sp <:xmllist< <code>it</code> >> ()$.</p>
-    </div>
-    <h2>Summary of concepts</h2>
-    <div class="twocol1 encadre">
-      <p>Eliom uses three kinds of services:</p>
-      <dl>
-        <dt>Main services</dt><dd>are the main entry points of your sites.
-        <code>new_service</code></dd>
-        <dt>Coservices</dt><dd>are services often created dynamically for
-        one user (often in the session table) or used to particularize one
-        button but not the page it leads to (like the disconnect button
-        in the example of sessions with actions).
-        </dd>
-        <dt>Non-attached coservices</dt><dd>are coservices towards the current
-        URL.
-       </dd>
-      </dl>
-      <p>Each of these services has its a version with POST parameters.
-      Remember to use POST parameters when you want a different behaviour
-      between the first click and a reload of the page. Usually sending
-      POST parameters triggers an action on server side, and you don't want 
-      it to succeed several times.</p>
-   
-      <p>You can register several kinds of pages on these services,
-      using these different modules:</p>
-      <dl>
-        <dt>Eliom.Xhtml</dt><dd>allows to register functions that 
-        generate xhtml pages
-        checked statically using polymorphic variant types. You may use
-        constructor functions from <code>XHTML.M</code> or a syntax
-        extension close to the standard xhtml syntax.</dd>
-        <dt>Eliomduce</dt><dd>allows to register functions that generate
-        xhtml pages 
-        checked statically using <code>Ocamlduce</code>. Typing is more
-        strict, but you need a modified version of the OCaml compiler.</dd>
-        <dt>Eliom.Text</dt><dd>Allows to register functions that
-        generate text pages, without any typechecking of the content.
-        </dd>
-        <dt>Eliom.Actions</dt><dd>allows to register actions, that is
-        functions that do not generate any page. The URL is reloaded after
-        the action.
-        </dd>
-        <dt>Eliom.Unit</dt><dd>is like <code>Eliom.Actions</code> but the
-        URL is not reloaded after the action.</dd>
-        <dt>Eliom.Redirections</dt><dd>allows to register redirections
-        </dd>
-      </dl>
-   
-    </div>
-    <div class="twocol2 encadre">
-      <p>Each of these registrations may be done in the <em>public</em>
-      table, or in a <em>session</em> table, accessible only for one
-      user of the Web site.
-      </p>
-
-      <p>Eliom will try to find the page, in that order:</p>
-      <ul>
-       <li>in the session table,</li>
-       <li>in the public table,</li>
-       <li>the fallback in the session table, if the session has expired,</li>
-       <li>the fallback in the public table, if the session has expired.</li>
-      </ul>
-
-      <p>Details on service registration:</p>
-      <ul>
-        <li>All services created during initialisation must be registered
-        in the public table
-        during the initialisation phase of your module.
-        If not, the server will not start (with an error message in the logs).
-        This is to ensure that all the URLs the user can bookmark
-        will always give an answer, even if the session has expired.</li>
-        <li>Main services cannot be registered in the public table
-         after the initialisation phase.
-        </li>
-        <li>Do not register twice the same service in the public table, 
-          and do not replace a service
-          by a directory (or vice versa). If this happens during the 
-          initialisation phase, the server won't start.
-          If this happens after, it will be ignored (with a warning in the 
-          logs).
-        </li>
-        <li>All services (but non-attached ones) must be created in
-        a module loaded inside a <code>&lt;site&gt;</code> tag of the
-        config file (because they will be attached to a directory).
-        </li>
-        <li>GET coservices (whithout POST parameters) can be registered
-        only with a main service without GET/POST parameters as fallback.
-        But it may be a preapplied service.
-        </li>
-        <li>Services with POST parameters (main service or coservice) 
-        can be registered with a (main or co) service without POST
-        parameters as fallback.</li>
-        <li></li>
-        <li></li>
-      </ul>
-
-
-
-    </div>
-    <h2>Example: write a forum</h2>
-    <div class="twocol1">
-      As an example,
-      we will now write a small forum. Our forum has a main page,
-      summarising all the messages and a page for each message.
-      Suppose you have written a function <code>news_headers_list_box</code>
-      that writes the beginning of messages, and <code>message_box</code>
-      that write a full message.
-*html*)
-(*zap* from ocsexample1 - attention la section Construction of pages a été simplifiée *zap*)
-(*html*
-<pre>
-<span class="Ccomment">(* All the services: *)</span>
-
-<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span>
-    <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
-
-<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span><span class="Cconstructor">StringMessage</span><span class="Cnonalphakeyword">.</span>index <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
-
-<span class="Ccomment">(* Construction of pages *)</span>
-
-<span class="Clet">let</span> accueil sp () () <span class="Cnonalphakeyword">=</span>
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
-     news_headers_list_box 
-       sp anonymoususer news_page<span class="Cnonalphakeyword">]</span>
-
-<span class="Clet">let</span> print_news_page sp i () <span class="Cnonalphakeyword">=</span> 
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Info"</span>]<span class="Cnonalphakeyword">;</span>
-     message_box i anonymoususer<span class="Cnonalphakeyword">]</span>
-
-<span class="Ccomment">(* Services registration *)</span>
-
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
-  <span class="Clabel">~service:</span>main_page
-  accueil
-
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
-  <span class="Clabel">~service:</span>news_page
-  print_news_page
-</pre>
-    </div>
-    <div class="twocol2">
-      <p>Now the same with a login box on each page.
-      We now have two versions of each page: connected and not connected.
-      We need two actions (for connection and disconnection). 
-      Suppose we have the functions <code>login_box</code>,
-      <code>connected_box</code>,
-      and <code>connect</code>.
-      </p>
-*html*)
-(*zap* from ocsexample2 *zap*)
-(*html*
-<pre><span class="Ccomment">(* All the urls: *)</span>
-
-<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span> <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
-
-<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span><span class="Cconstructor">StringMessage</span><span class="Cnonalphakeyword">.</span>index <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
-
-<span class="Clet">let</span> connect_action <span class="Cnonalphakeyword">=</span>
-  new_post_coservice'
-    <span class="Clabel">~post_params:</span><span class="Cnonalphakeyword">(</span>string <span class="Cstring">"login"</span> ** string <span class="Cstring">"password"</span>
-<span class="Cnonalphakeyword">)</span>
-
-<span class="Ccomment">(* Construction of pages *)</span>
-
-<span class="Clet">let</span> accueil sp () () <span class="Cnonalphakeyword">=</span>
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
-     p [pcdata <span class="Cstring">"(user : toto and password : titi)"</span>]<span class="Cnonalphakeyword">;</span>
-     login_box sp connect_action<span class="Cnonalphakeyword">;</span>
-     news_headers_list_box sp anonymoususer news_page<span class="Cnonalphakeyword">]</span>
-
-<span class="Clet">let</span> print_news_page sp i () <span class="Cnonalphakeyword">=</span> 
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Info"</span><span class="Cnonalphakeyword">;</span>
-     login_box sp connect_action<span class="Cnonalphakeyword">;</span>
-     message_box i anonymoususer<span class="Cnonalphakeyword">]</span>
-
-<span class="Clet">let</span> user_main_page user sp () () <span class="Cnonalphakeyword">=</span>
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
-     text_box <span class="Cstring">"Bonjour !"</span><span class="Cnonalphakeyword">;</span>
-     connected_box sp user disconnect_action<span class="Cnonalphakeyword">;</span>
-     news_headers_list_box sp user news_page<span class="Cnonalphakeyword">]</span>
-
-<span class="Clet">let</span> user_news_page user sp i () <span class="Cnonalphakeyword">=</span> 
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Info"</span>]<span class="Cnonalphakeyword">;</span>
-     connected_box sp user disconnect_action<span class="Cnonalphakeyword">;</span>
-     message_box i user<span class="Cnonalphakeyword">]</span>
-
-<span class="Ccomment">(* Services registration *)</span>
-
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
-  <span class="Clabel">~service:</span>main_page
-  accueil
-
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
-  <span class="Clabel">~service:</span>news_page
-  print_news_page
-
-<span class="Clet">let</span> launch_session user <span class="Cnonalphakeyword">=</span>
-  register_for_session <span class="Clabel">~service:</span>main_page <span class="Cnonalphakeyword">(</span>user_main_page user<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
-  register_for_session <span class="Clabel">~service:</span>news_page <span class="Cnonalphakeyword">(</span>user_news_page user<span class="Cnonalphakeyword">)</span>
-
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Actions.register
-  <span class="Clabel">~action:</span>connect_action
-    <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> h <span class="Cnonalphakeyword">(</span>login<span class="Cnonalphakeyword">,</span> password<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
-      launch_session <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
-</pre>
-
-
-
-
     </div>
     <h2>Threads</h2>
     <div class="twocol1">
@@ -1785,6 +1672,123 @@ wakeup w "HELLO");
       </div>
       <h3>Others</h3>
       <em>To be available soon</em>
+    </div>
+    <h2>Example: write a forum</h2>
+    <div class="twocol1">
+      As an example,
+      we will now write a small forum. Our forum has a main page,
+      summarising all the messages and a page for each message.
+      Suppose you have written a function <code>news_headers_list_box</code>
+      that writes the beginning of messages, and <code>message_box</code>
+      that write a full message.
+*html*)
+(*zap* from ocsexample1 - attention la section Construction of pages a été simplifiée *zap*)
+(*html*
+<pre>
+<span class="Ccomment">(* All the services: *)</span>
+
+<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span>
+    <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+
+<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span><span class="Cconstructor">StringMessage</span><span class="Cnonalphakeyword">.</span>index <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+
+<span class="Ccomment">(* Construction of pages *)</span>
+
+<span class="Clet">let</span> accueil sp () () <span class="Cnonalphakeyword">=</span>
+  page sp
+    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
+     news_headers_list_box 
+       sp anonymoususer news_page<span class="Cnonalphakeyword">]</span>
+
+<span class="Clet">let</span> print_news_page sp i () <span class="Cnonalphakeyword">=</span> 
+  page sp
+    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Info"</span>]<span class="Cnonalphakeyword">;</span>
+     message_box i anonymoususer<span class="Cnonalphakeyword">]</span>
+
+<span class="Ccomment">(* Services registration *)</span>
+
+<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
+  <span class="Clabel">~service:</span>main_page
+  accueil
+
+<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
+  <span class="Clabel">~service:</span>news_page
+  print_news_page
+</pre>
+    </div>
+    <div class="twocol2">
+      <p>Now the same with a login box on each page.
+      We now have two versions of each page: connected and not connected.
+      We need two actions (for connection and disconnection). 
+      Suppose we have the functions <code>login_box</code>,
+      <code>connected_box</code>,
+      and <code>connect</code>.
+      </p>
+*html*)
+(*zap* from ocsexample2 *zap*)
+(*html*
+<pre><span class="Ccomment">(* All the urls: *)</span>
+
+<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span> <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+
+<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span><span class="Cconstructor">StringMessage</span><span class="Cnonalphakeyword">.</span>index <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+
+<span class="Clet">let</span> connect_action <span class="Cnonalphakeyword">=</span>
+  new_post_coservice'
+    <span class="Clabel">~post_params:</span><span class="Cnonalphakeyword">(</span>string <span class="Cstring">"login"</span> ** string <span class="Cstring">"password"</span>
+<span class="Cnonalphakeyword">)</span>
+
+<span class="Ccomment">(* Construction of pages *)</span>
+
+<span class="Clet">let</span> accueil sp () () <span class="Cnonalphakeyword">=</span>
+  page sp
+    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
+     p [pcdata <span class="Cstring">"(user : toto and password : titi)"</span>]<span class="Cnonalphakeyword">;</span>
+     login_box sp connect_action<span class="Cnonalphakeyword">;</span>
+     news_headers_list_box sp anonymoususer news_page<span class="Cnonalphakeyword">]</span>
+
+<span class="Clet">let</span> print_news_page sp i () <span class="Cnonalphakeyword">=</span> 
+  page sp
+    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Info"</span><span class="Cnonalphakeyword">;</span>
+     login_box sp connect_action<span class="Cnonalphakeyword">;</span>
+     message_box i anonymoususer<span class="Cnonalphakeyword">]</span>
+
+<span class="Clet">let</span> user_main_page user sp () () <span class="Cnonalphakeyword">=</span>
+  page sp
+    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
+     text_box <span class="Cstring">"Bonjour !"</span><span class="Cnonalphakeyword">;</span>
+     connected_box sp user disconnect_action<span class="Cnonalphakeyword">;</span>
+     news_headers_list_box sp user news_page<span class="Cnonalphakeyword">]</span>
+
+<span class="Clet">let</span> user_news_page user sp i () <span class="Cnonalphakeyword">=</span> 
+  page sp
+    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Info"</span>]<span class="Cnonalphakeyword">;</span>
+     connected_box sp user disconnect_action<span class="Cnonalphakeyword">;</span>
+     message_box i user<span class="Cnonalphakeyword">]</span>
+
+<span class="Ccomment">(* Services registration *)</span>
+
+<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
+  <span class="Clabel">~service:</span>main_page
+  accueil
+
+<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
+  <span class="Clabel">~service:</span>news_page
+  print_news_page
+
+<span class="Clet">let</span> launch_session user <span class="Cnonalphakeyword">=</span>
+  register_for_session <span class="Clabel">~service:</span>main_page <span class="Cnonalphakeyword">(</span>user_main_page user<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
+  register_for_session <span class="Clabel">~service:</span>news_page <span class="Cnonalphakeyword">(</span>user_news_page user<span class="Cnonalphakeyword">)</span>
+
+<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Actions.register
+  <span class="Clabel">~action:</span>connect_action
+    <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> h <span class="Cnonalphakeyword">(</span>login<span class="Cnonalphakeyword">,</span> password<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
+      launch_session <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
+</pre>
+
+
+
+
     </div>
 *html*)
 (*zap* À AJOUTER AU TUTO *)

@@ -27,7 +27,7 @@ type send_page_type =
     ?code:int ->
     ?etag:Http_frame.etag ->
     keep_alive:bool ->
-    ?cookies:(string option * (string * string) list) list ->
+    ?cookies:(string list option * (string * string) list) list ->
     ?last_modified:float ->
     ?location:string -> 
     ?head:bool -> 
@@ -563,7 +563,7 @@ val send_generic :
   ?code:int ->
   ?etag:Http_frame.etag ->
   keep_alive:bool ->
-  ?cookies:(string option * (string * string) list) list ->
+  ?cookies:(string list option * (string * string) list) list ->
   ?last_modified:float ->
   ?contenttype:string ->
   ?charset:string ->
