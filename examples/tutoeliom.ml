@@ -787,6 +787,7 @@ let public_session_with_post_params =
   new_post_service 
     ~fallback:public_session_without_post_params
     ~post_params:(string "login")
+    ()
 
 let accueil sp () () = 
   let f = post_form public_session_with_post_params sp
@@ -929,10 +930,10 @@ let _ = register_for_session
 let coserv = new_service ["co"] unit ()
 
 let coserv2 = 
-  new_post_coservice ~fallback:coserv ~post_params:unit
+  new_post_coservice ~fallback:coserv ~post_params:unit ()
 
 let coserv3 = 
-  new_coservice ~fallback:coserv ~get_params:unit
+  new_coservice ~fallback:coserv ~get_params:unit ()
 
 let _ = 
   let c = ref 0 in
@@ -1041,6 +1042,7 @@ let shop_with_post_params =
   new_post_service
     ~fallback:shop_without_post_params
     ~post_params:(string "article")
+    ()
 
 let write_shop shop url =
   (post_form shop url
@@ -1069,10 +1071,12 @@ let rec page_for_shopping_basket sp shopping_basket =
     new_post_coservice
       ~fallback:shop_without_post_params
       ~post_params:(string "article")
+      ()
   and copay = 
     new_post_coservice
       ~fallback:shop_without_post_params
       ~post_params:unit
+      ()
   in
     register_for_session
       sp
@@ -1214,7 +1218,7 @@ let action_session =
   new_service ~url:["action"] ~get_params:unit ()
 
 let connect_action = 
-  new_post_coservice' ~post_params:(string "login")
+  new_post_coservice' ~post_params:(string "login") ()
     
 let accueil_action sp () () = 
   let f = post_form connect_action sp
@@ -1295,7 +1299,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     <p>Fallbacks have access to some informations about what succeeded but
     they were called. Get this information using 
      <code>Eliom.get_exn sp</code>; That function returns a list of exceptions.
-    That list contains <code>Eliom_session_expired</code> if the coservice
+    That list contains <code>Eliom_link_to_old</code> if the coservice
     was not found.
     </p>
     <p>
@@ -1310,7 +1314,7 @@ let action_session2 =
   new_service ~url:["action2"] ~get_params:unit ()
 
 let connect_action = 
-  new_post_coservice' ~post_params:(string "login")
+  new_post_coservice' ~post_params:(string "login") ()
 (* *zap*)    
 exception Bad_user
 let login_box sp login =
@@ -1371,8 +1375,6 @@ let _ = Actions.register
       then (launch_session sp login; return [])
       else return [Bad_user])
 (*html*
-    </div>
-    <div class="twocol2">
     <h3>Redirections</h3>
     <p>
      The <code>Redirections</code> module allows to register HTTP redirections.
@@ -1386,8 +1388,10 @@ let redir = Redirections.register_new_service
    (fun sp o () -> return (make_string_uri coucou_params sp (o,(22,"ee"))))
 (*html*
       <p>Try $a Tutoeliom.redir sp <:xmllist< <code>it</code> >> 11$.</p>
-    <h3>Cookies</h3>
-    <p>
+    </div>
+    <div class="twocol2">
+     <h3>Cookies</h3>
+     <p>
       You can set cookies on the client, by using functions like
       <code>Cookies.register</code> instead of <code>register</code>.
       The function you register returns a pair containing the page as usual
@@ -1396,18 +1400,18 @@ let redir = Redirections.register_new_service
       <pre>
 type cookieslist = (string option * (string * string) list) list
 </pre>
-    <p>
+     <p>
      The <code>string option</code> is a the path for which you want
      to set the cookie (relative to the main directory of your site, defined
      in the configuration file). <code>None</code> means for all your site.
-    </p>
-    <p>
+     </p>
+     <p>
       You can access the cookies sent by the browser using
       <code>Eliom.get_cookies sp</code>.
-    </p>
-    <p>
+     </p>
+     <p>
       Example:
-    </p>
+     </p>
 *html*)
 let cookiename = "mycookie"
 
@@ -1426,6 +1430,43 @@ let _ = Cookies.register cookies
        [None, [(cookiename,(string_of_int (Random.int 100)))]]))
 (*html*
       <p>Try $a Tutoeliom.cookies sp <:xmllist< <code>it</code> >> ()$.</p>
+     <h3>Disposable coservices</h3>
+      <p>It is possible to set a limit to the number of uses of 
+      (attached or non-attached) coservices. Just give the maximum number
+      of uses with the optional <code>?max_use</code> parameter while
+      creating your coservices. Example
+      </p>
+*html*)
+let disposable = new_service ["disposable"] unit ()
+
+let _ = register disposable
+    (fun sp () () -> 
+      let disp_coservice = 
+        new_coservice ~max_use:2 ~fallback:disposable ~get_params:unit ()
+      in
+      register_for_session sp disp_coservice
+        (fun sp () () -> 
+          return
+            (html
+              (head (title (pcdata "")) [])
+              (body [p [pcdata "I am a disposable coservice";
+                        br ();
+                        a disp_coservice sp [pcdata "Try me once again"] ()]]))
+        );
+      return
+        (html
+          (head (title (pcdata "")) [])
+          (body [p [(if List.mem Eliom.Eliom_link_to_old (get_exn sp)
+                    then pcdata "Your link was outdated. I am the fallback. \
+                            I just created a new disposable coservice. \
+                            You can use it only twice."
+                    else
+                    pcdata "I just created a disposable coservice. \
+                            You can use it only twice.");
+                    br ();
+                    a disp_coservice sp [pcdata "Try it!"] ()]])))
+(*html*      
+      <p>Try $a Tutoeliom.disposable sp <:xmllist< <code>it</code> >> ()$.</p>
     </div>
     <h2>Threads</h2>
     <div class="twocol1">

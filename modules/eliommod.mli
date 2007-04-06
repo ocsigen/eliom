@@ -21,7 +21,7 @@
 open Extensions
 
 exception Eliom_Wrong_parameter
-exception Eliom_session_expired
+exception Eliom_link_to_old
 exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registering of string
@@ -67,18 +67,21 @@ val add_service :
         bool ->
           string list ->
             page_table_key *
-              (int * (server_params -> 
-                (Predefined_senders.result_to_send
-                   * cookieslist)Lwt.t)) ->
-                  unit
+              (int * int ref option *
+                 (server_params -> 
+                   (Predefined_senders.result_to_send
+                      * cookieslist)Lwt.t)) ->
+                        unit
 
 val add_naservice :
     tables -> 
       current_dir ->
 	bool -> 
 	  (string option * string option) -> 
-	    (server_params -> 
-	      (Predefined_senders.result_to_send * cookieslist) Lwt.t) -> unit
+            (int ref option *
+	       (server_params -> 
+	         (Predefined_senders.result_to_send * cookieslist) Lwt.t))
+            -> unit
 
 
 val get_state_param_name : string

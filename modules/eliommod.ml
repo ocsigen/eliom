@@ -49,7 +49,7 @@ type 'a server_params1 =
 (********)
 
 exception Eliom_Wrong_parameter
-exception Eliom_session_expired
+exception Eliom_link_to_old
 exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registering of string
@@ -194,9 +194,10 @@ end)
 
 type page_table = 
     (page_table_key * 
-       ((int * 
-           ((tables server_params1 -> 
-             (Predefined_senders.result_to_send * cookieslist) Lwt.t)
+       ((int (* unique_id *) * 
+           (int ref option (* max_use *) *
+              (tables server_params1 -> 
+                (Predefined_senders.result_to_send * cookieslist) Lwt.t)
 	      * url_path)) list)) list
       (* Here, the url_path is the working directory.
          That is, the directory in which we are when we register
@@ -208,8 +209,9 @@ type page_table =
 and naservice_table = 
     AVide 
   | ATable of 
-      ((tables server_params1 -> 
-        (Predefined_senders.result_to_send * cookieslist) Lwt.t)
+      (int ref option (* max_use *) *
+         (tables server_params1 -> 
+           (Predefined_senders.result_to_send * cookieslist) Lwt.t)
 	 * url_path)
         NAserv_Table.t
 
@@ -304,7 +306,7 @@ let make_server_params dir str ri suffix si =
 
 
 let find_page_table 
-    (t : page_table)
+    (t : page_table ref)
     str 
     ri
     urlsuffix
@@ -314,26 +316,41 @@ let find_page_table
   let (sp0,si,(_,s,u)) = make_server_params [] str ri urlsuffix si in
   let rec aux = function
       [] -> fail Eliom_Wrong_parameter
-    | (_, (funct, working_dir))::l ->
+    | (((_, (max_use, funct, working_dir)) as a)::l) as ll ->
         catch 
           (fun () ->
             Messages.debug "- I'm trying a service";
             funct (sp0, si, (working_dir,s,u)) >>=
             (fun (p, cookies_to_set) -> 
-              Messages.debug "- Page found";
-              Lwt.return (p, working_dir, cookies_to_set)))
+              Messages.debug "- Page found and generated successfully";
+              let newlist =
+                (match max_use with
+                  Some r -> 
+                    if !r = 1
+                    then l
+                    else (r := !r - 1; ll)
+                | _ -> ll)
+              in
+              Lwt.return ((p, working_dir, cookies_to_set), newlist)))
           (function
-              Eliom_Wrong_parameter -> aux l
+              Eliom_Wrong_parameter -> 
+                aux l >>= (fun (r,ll) -> Lwt.return (r, a::ll))
             | e -> fail e)
   in 
   (catch 
-     (fun () -> return (List.assoc k t))
+     (fun () -> return (list_assoc_remove k !t))
      (function Not_found -> fail Ocsigen_404 | e -> fail e)) >>=
-  aux
+  (fun (liste, newt) -> aux liste >>=
+    (fun (r, newlist) -> 
+      (if newlist = []
+      then t := newt
+      else t := (k, newlist)::newt);
+      Lwt.return r))
 
 
 
-let add_page_table session url_act t (key,(id,elt)) = 
+
+let add_page_table session url_act t (key,((id, _) as v)) = 
   (* Duplicate registering forbidden in global table *)
   try
     let l,newt = list_assoc_remove key t in
@@ -342,9 +359,9 @@ let add_page_table session url_act t (key,(id,elt)) =
       let _,oldl = list_assoc_remove id l in
       if not session then
         raise (Eliom_duplicate_registering (string_of_url_path url_act))
-      else (key,((id,elt)::oldl))::newt
-    with Not_found -> (key,((id,elt)::l))::newt
-  with Not_found -> (key,[(id,elt)])::t
+      else (key,(v::oldl))::newt
+    with Not_found -> (key,(v::l))::newt
+  with Not_found -> (key,[v])::t
 
 let add_dircontent dc (key,elt) =
   match dc with
@@ -366,8 +383,15 @@ let find_naservice_table at k =
     AVide -> raise Not_found
   | ATable t -> NAserv_Table.find k t
 
+let remove_naservice_table at k = 
+  try
+    match at with
+      AVide -> AVide
+    | ATable t -> ATable (NAserv_Table.remove k t)
+  with _ -> at
+
 let add_naservice 
-    (_,naservicetableref) current_dir session name naservice =
+    (_,naservicetableref) current_dir session name (max_use, naservice) =
   (if not session
   then
     try
@@ -376,13 +400,16 @@ let add_naservice
     with Not_found -> ());
   naservicetableref :=
     add_naservice_table !naservicetableref
-      (name, (naservice, current_dir))
+      (name, (max_use, naservice, current_dir))
 
 let find_naservice (_,atr) name =
   find_naservice_table !atr name
 
+let remove_naservice (_,atr) name =
+  atr := remove_naservice_table !atr name
+
 let add_service (dircontentref,_) current_dir session url_act
-    (page_table_key, (unique_id, action)) =
+    (page_table_key, (unique_id, max_use, action)) =
 
   let aux search dircontentref a l =
     try 
@@ -432,7 +459,7 @@ let add_service (dircontentref,_) current_dir session url_act
 
   let content = ({suffix = page_table_key.suffix;
                   state = page_table_key.state},
-                 (unique_id, (action, current_dir))) in
+                 (unique_id, (max_use, action, current_dir))) in
   (* let current_dircontentref = 
      search_dircontentref dircontentref current_dir) in *)
   let page_table_ref = 
@@ -449,14 +476,14 @@ let find_service
     let aux a l =
       (match !(find_dircontent dircontent a) with
         Dir dircontentref2 -> search_page_table !dircontentref2 l
-      | File page_table_ref -> !page_table_ref, l)
+      | File page_table_ref -> page_table_ref, l)
     in function
         [] -> raise Ocsigen_Is_a_directory
       | [""] -> aux defaultpagename []
       | ""::l -> search_page_table dircontent l
       | a::l -> aux a l
   in
-  let page_table, suffix = 
+  let page_table_ref, suffix = 
     try search_page_table !dircontentref (change_empty_list ri.ri_path)
     with Not_found -> raise Ocsigen_404
   in
@@ -470,7 +497,7 @@ let find_service
     else suffix, (force ri.ri_get_params) in
   let pref = suffix <> [] in
   find_page_table 
-    page_table
+    page_table_ref
     session_table_ref
     {ri with ri_get_params = lazy get_param_list}
     suffix
@@ -572,7 +599,7 @@ let get_page
                              We remove it, and remove POST parameters.
                            *)
                           Messages.debug 
-                            "-- Session expired. I will try without POST parameters:";
+                            "-- Link to old. I will try without POST parameters:";
                           fail (Eliom_retry_with 
                                   ({ri with 
                                     ri_post_params = lazy (return [])
@@ -580,7 +607,7 @@ let get_page
                                    {si with
                                     si_nonatt_info= (None, None);
                                     si_state_info= (g, None);
-                                    si_exn= Eliom_session_expired::si.si_exn
+                                    si_exn= Eliom_link_to_old::si.si_exn
                                   },
                                    cookies_to_set (* no new cookie *)
                                   ))
@@ -590,7 +617,7 @@ let get_page
                              and remove POST parameters.
                            *)
                           Messages.debug 
-                            "-- Session expired. I will try without GET state parameters and POST parameters:";
+                            "-- Link to old. I will try without GET state parameters and POST parameters:";
                           fail (Eliom_retry_with 
                                   ({ri with 
                                     ri_get_params = 
@@ -601,7 +628,7 @@ let get_page
                                     si_nonatt_info=(None, None);
                                     si_state_info=(None, None);
                                     si_other_get_params=[];
-                                    si_exn= Eliom_session_expired::si.si_exn
+                                    si_exn= Eliom_link_to_old::si.si_exn
                                   },
                                    cookies_to_set (* no new cookie *))))
                   | e -> fail e)
@@ -627,7 +654,7 @@ let make_naservice
           None, None -> assert false
         | Some _ as g, Some _ ->
             Messages.debug 
-              "-- Session expired. I will try with only GET non-attached parameters:";
+              "-- Link to old. I will try with only GET non-attached parameters:";
             fail (Eliom_retry_with
                     ({ri with 
                       ri_post_params = lazy (return [])
@@ -635,12 +662,12 @@ let make_naservice
                      {si with
                       si_nonatt_info=(g, None);
                       si_state_info=(None, None);
-                      si_exn= Eliom_session_expired::si.si_exn
+                      si_exn= Eliom_link_to_old::si.si_exn
                     },
                      cookies_to_set (* no new cookie *)))
         | _ ->
             Messages.debug 
-              "-- Session expired. I will try without non-attached parameters:";
+              "-- Link to old. I will try without non-attached parameters:";
             change_request_info
               {ri with 
                ri_get_params = lazy si.si_other_get_params;
@@ -650,11 +677,11 @@ let make_naservice
               fail (Eliom_retry_with 
                       (ri,
                        {si with
-                        si_exn= Eliom_session_expired::si.si_exn
+                        si_exn= Eliom_link_to_old::si.si_exn
                       },
                        cookies_to_set (* no new cookie *))))
     ) >>=
-    (fun (naservice, working_dir) ->
+    (fun (max_use, naservice, working_dir) ->
       (naservice
          (make_server_params 
             working_dir
@@ -663,6 +690,13 @@ let make_naservice
             []
             si)) >>=
       (fun (r, cookies_to_set) -> 
+        Messages.debug "- Non attached page found and generated successfully";
+        (match max_use with
+          None -> ()
+        | Some r -> 
+            if !r = 1
+            then remove_naservice !session_tables_ref si.si_nonatt_info
+            else r := !r - 1);
         return ((r, working_dir, cookies_to_set), None, None)))
   in (generate_page, ri.ri_inet_addr, si.si_cookie, page_tree)
     

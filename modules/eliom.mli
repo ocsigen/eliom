@@ -31,6 +31,9 @@ open XHTML.M
 open Xhtmltypes
 open Extensions
 
+
+exception Eliom_link_to_old
+
 (** Allows extensions of the configuration file for your modules *)
 val get_config : unit -> 
   Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist
@@ -276,23 +279,27 @@ val new_external_service :
 (** Creates an service for an external web site *)
 		
 val new_coservice :
+    ?max_use:int ->
     fallback: 
     (unit, unit, [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
      [`WithoutSuffix] as 'tipo,
      unit param_name, unit param_name, [< registrable ]) service ->
        get_params: 
          ('get,[`WithoutSuffix],'gn) params_type ->
-           ('get,unit,[> `Attached of 
-             [> `Internal of [> `Coservice] * [> `Get]] a_s ],
-            'tipo, 'gn, unit param_name, 
-            [> `Registrable ]) service
+           unit ->
+             ('get,unit,[> `Attached of 
+               [> `Internal of [> `Coservice] * [> `Get]] a_s ],
+              'tipo, 'gn, unit param_name, 
+              [> `Registrable ]) service
 (** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
 val new_coservice' :
+    ?max_use:int ->
     get_params: 
     ('get,[`WithoutSuffix],'gn) params_type ->
-      ('get, unit, [> `Nonattached of [> `Get] na_s ],
-       [`WithoutSuffix], 'gn, unit param_name, [> `Registrable ]) service
+      unit ->
+        ('get, unit, [> `Nonattached of [> `Get] na_s ],
+         [`WithoutSuffix], 'gn, unit param_name, [> `Registrable ]) service
 (** Creates a non-attached coservice. Links towards such services will not change the URL, just add extra parameters. *)
         
 val new_post_service :
@@ -302,9 +309,10 @@ val new_post_service :
                [< suff] as 'tipo, 'gn, unit param_name, 
                [< `Registrable ]) service ->
                  post_params: ('post,[`WithoutSuffix],'pn) params_type ->
-                   ('get, 'post, [> `Attached of 
-                     [> `Internal of 'kind * [> `Post]] a_s ],
-                    'tipo, 'gn, 'pn, [> `Registrable ]) service
+                   unit ->
+                     ('get, 'post, [> `Attached of 
+                       [> `Internal of 'kind * [> `Post]] a_s ],
+                      'tipo, 'gn, 'pn, [> `Registrable ]) service
 (** Creates an service that takes POST parameters. 
    [fallback] is the same service without POST parameters.
    You can create an service with POST parameters if the same service does not exist
@@ -314,33 +322,39 @@ val new_post_service :
 (* fallback must be registrable! (= not preapplied) *)
 	  
 val new_post_coservice :
+    ?max_use:int ->
     fallback: ('get, unit, [ `Attached of 
       [`Internal of [<`Service | `Coservice] * [`Get]] a_s ],
                [< suff ] as 'tipo,
                'gn, unit param_name, [< `Registrable ]) service ->
                  post_params: ('post,[`WithoutSuffix],'pn) params_type ->
-                  ('get, 'post, 
-                   [> `Attached of 
-                     [> `Internal of [> `Coservice] * [> `Post]] a_s ],
-                   'tipo, 'gn, 'pn, [> `Registrable ]) service
+                   unit ->
+                     ('get, 'post, 
+                      [> `Attached of 
+                        [> `Internal of [> `Coservice] * [> `Post]] a_s ],
+                      'tipo, 'gn, 'pn, [> `Registrable ]) service
 (** Creates a coservice with POST parameters *)
 
 val new_post_coservice' :
+    ?max_use:int ->
     post_params: ('post,[`WithoutSuffix],'pn) params_type ->
-      (unit, 'post, 
-       [> `Nonattached of [> `Post] na_s ],
-       [ `WithoutSuffix ], unit param_name, 'pn, [> `Registrable ]) service
+      unit ->
+        (unit, 'post, 
+         [> `Nonattached of [> `Post] na_s ],
+         [ `WithoutSuffix ], unit param_name, 'pn, [> `Registrable ]) service
 (** Creates a non attached coservice with POST parameters *)
 
 (*
 val new_get_post_coservice' :
-    fallback: ('get, unit, [`Nonattached of [`Get] na_s ],
-               [< suff ] as 'tipo,
-               'gn, unit param_name, [< `Registrable ]) service ->
-                 post_params: ('post,[`WithoutSuffix],'pn) params_type ->
-                   ('get, 'post, 
-                    [> `Nonattached of [> `Post] na_s ],
-                    'tipo,'gn,'pn, [> `Registrable ]) service
+    ?max_use:int ->
+   fallback: ('get, unit, [`Nonattached of [`Get] na_s ],
+   [< suff ] as 'tipo,
+   'gn, unit param_name, [< `Registrable ]) service ->
+   post_params: ('post,[`WithoutSuffix],'pn) params_type ->
+   unit ->
+   ('get, 'post, 
+   [> `Nonattached of [> `Post] na_s ],
+   'tipo,'gn,'pn, [> `Registrable ]) service
 (* * Creates a non-attached coservice with GET and POST parameters. The fallback is a non-attached coservice with GET parameters. *)
 *)
 
@@ -615,6 +629,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_service] followed by [register] *)
                       
     val register_new_coservice :
+      ?max_use:int ->
         fallback:(unit, unit, 
                   [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                    [ `WithoutSuffix ] as 'tipo, 
@@ -634,6 +649,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice] followed by [register] *)
 
     val register_new_coservice' :
+      ?max_use:int ->
         get_params: 
         ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
           ?error_handler:(server_params -> 
@@ -647,6 +663,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice_for_session :
         server_params ->
+        ?max_use:int ->
           fallback:(unit, unit, 
                     [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                     [ `WithoutSuffix ] as 'tipo, 
@@ -667,6 +684,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice_for_session' :
         server_params ->
+        ?max_use:int ->
           get_params: 
             ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
               ?error_handler:(server_params -> (string * exn) list -> 
@@ -696,6 +714,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_service] followed by [register] *)
 
     val register_new_post_coservice :
+      ?max_use:int ->
         fallback:('get, unit , 
                   [ `Attached of 
                     [ `Internal of [< `Service | `Coservice ] * [`Get] ] a_s ],
@@ -714,6 +733,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_coservice] followed by [register] *)
 
     val register_new_post_coservice' :
+      ?max_use:int ->
         post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
           ?error_handler:(server_params -> (string * exn) list -> 
             page Lwt.t) ->
@@ -726,6 +746,7 @@ module type ELIOMREGSIG1 =
 
 (*
     val register_new_get_post_coservice' :
+      ?max_use:int ->
         fallback:('get, unit , 
                   [ `Nonattached of [`Get] na_s ],
                    [< suff ] as 'tipo, 
@@ -743,6 +764,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice_for_session :
         server_params ->
+        ?max_use:int ->
           fallback:('get, unit, 
                     [< `Attached of [< `Internal of
                       [< `Service | `Coservice ] * [`Get] ] a_s ],
@@ -762,6 +784,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice_for_session' :
         server_params ->
+        ?max_use:int ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> 
               (string * exn) list -> page Lwt.t) ->
@@ -775,6 +798,7 @@ module type ELIOMREGSIG1 =
 (*
     val register_new_get_post_coservice_for_session' :
         server_params ->
+        ?max_use:int ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
                     [< suff ] as 'tipo, 
                     'gn, unit param_name, [< `Registrable ])

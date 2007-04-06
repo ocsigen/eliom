@@ -52,7 +52,7 @@ let _ =
                mymenu coucou sp ])))
 
 (* GET Non-attached coservice *)
-let nonatt = new_coservice' ~get_params:(string "e")
+let nonatt = new_coservice' ~get_params:(string "e") ()
 
 (* GET coservice with preapplied fallback *)
 (* + Non-attached coservice on a pre-applied coservice *)
