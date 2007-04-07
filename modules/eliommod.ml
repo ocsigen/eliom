@@ -44,7 +44,11 @@ type sess_info =
      si_exn: exn list}
 
 type 'a server_params1 = 
-    request_info * sess_info * (current_dir * 'a ref * url_path)
+    request_info * sess_info * 
+      (current_dir *
+         'a ref (* sesseion table ref *) * 
+         float option option ref (* user timeout *) *
+         url_path (* suffix *))
       
 (********)
 
@@ -54,9 +58,8 @@ exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registering of string
 exception Eliom_there_are_unregistered_services of string
-exception Eliom_service_created_outside_site_loading
+exception Eliom_function_forbidden_outside_site_loading
 exception Eliom_page_erasing of string
-exception Eliom_register_for_session_outside_session
 exception Eliom_error_while_loading_site of string
 
 (*****************************************************************************)
@@ -225,11 +228,13 @@ and direlt =
 
 and tables = dircontent ref * naservice_table ref
 
-type cookiestable = tables Cookies.t
+type cookiestable = (tables * 
+                       float option(* expiration date *) *
+                       float option option ref (* timeout *)) Cookies.t
 
 type pages_tree = 
     tables (* global tables of continuations/naservices *)
-      * (tables Cookies.t) (* session tables *)
+      * cookiestable (* session tables *)
 
 let empty_page_table () = []
 let empty_naservice_table () = AVide
@@ -288,7 +293,9 @@ let during_eliom_module_loading,
    (fun () -> during_eliom_module_loading := false))
 
 let global_register_allowed () = 
-  (during_initialisation ()) && (during_eliom_module_loading ())
+  if (during_initialisation ()) && (during_eliom_module_loading ())
+  then Some get_current_hostdir
+  else None
 
 
 
@@ -297,30 +304,33 @@ let global_register_allowed () =
 (** We associate to a service a function server_params -> page *)
 
     (** Create server parameters record *)
-let make_server_params dir str ri suffix si =
+let make_server_params dir str user_timeout_optref ri suffix si =
   (ri,
    si,
    (dir,
-   str,
-   suffix))
+    str,
+    user_timeout_optref,
+    suffix))
 
 
 let find_page_table 
     (t : page_table ref)
     str 
+    user_timeout_optref
     ri
     urlsuffix
     k
     si
     = 
-  let (sp0,si,(_,s,u)) = make_server_params [] str ri urlsuffix si in
+  let (sp0, si, (_, s, tim, u)) = 
+    make_server_params [] str user_timeout_optref ri urlsuffix si in
   let rec aux = function
       [] -> fail Eliom_Wrong_parameter
     | (((_, (max_use, funct, working_dir)) as a)::l) as ll ->
         catch 
           (fun () ->
             Messages.debug "- I'm trying a service";
-            funct (sp0, si, (working_dir,s,u)) >>=
+            funct (sp0, si, (working_dir, s, tim, u)) >>=
             (fun (p, cookies_to_set) -> 
               Messages.debug "- Page found and generated successfully";
               let newlist =
@@ -470,6 +480,7 @@ let add_service (dircontentref,_) current_dir session url_act
 let find_service 
     (dircontentref,_)
     (session_table_ref, 
+     user_timeout_optref,
      ri,
      si) =
   let rec search_page_table dircontent =
@@ -499,6 +510,7 @@ let find_service
   find_page_table 
     page_table_ref
     session_table_ref
+    user_timeout_optref
     {ri with ri_get_params = lazy get_param_list}
     suffix
     {suffix = pref;
@@ -520,28 +532,136 @@ let new_session_tables = empty_tables
 
 
 (*****************************************************************************)
+(* Table of timeouts for sessions *)
+let (set_default_timeout, get_default_timeout) =
+  let t = ref (Some 3600.) in (* 1 hour by default *)
+  ((fun timeout -> t := timeout),
+  (fun () -> !t))
+
+type timeout_table =
+    Tt of (float option option * (string * timeout_table) list)
+
+let (find_global_timeout, set_global_timeout) =
+  let table = ref (Tt (None, [])) in
+  let rec find = function
+      (Tt (t, _), []) -> t
+    | (ta, ""::l) -> find (ta, l)
+    | (Tt (t, r), a::l) ->
+        try
+          find ((List.assoc a r), l)
+        with Not_found -> None
+  in
+  let rec add timeout = function
+      (Tt (t, l), []) -> Tt ((Some timeout), l)
+    | (ta, ""::l) -> add timeout (ta, l)
+    | (Tt (t, r), a::l) ->
+        try
+          let (Tt (tt, ll), rr) = list_assoc_remove a r in
+          Tt (t, (a, add timeout (Tt (tt, ll), l))::rr)
+        with Not_found -> Tt (t, (a, (add timeout (Tt (None, []), l)))::r)
+  in
+  ((fun working_dir -> match find (!table, working_dir) with
+    None -> get_default_timeout ()
+  | Some t -> t),
+   (fun working_dir s -> 
+     table := add s (!table, working_dir)))
+
+
+(*****************************************************************************)
+(** Parsing global configuration for Eliommod: *)
+open Simplexmlparser.ExprOrPatt
+
+let sessiongcfrequency = ref (Some 3600.)
+let set_sessiongcfrequency i = sessiongcfrequency := i
+let get_sessiongcfrequency () = !sessiongcfrequency
+
+let rec parse_global_config = function
+      PLEmpty -> ()
+    | PLCons 
+        (EPanytag 
+           ("timeout", 
+            (PLCons
+               ((EPanyattr (EPVstr("value"), EPVstr(s))), 
+                PLEmpty)),
+            PLEmpty), ll) -> 
+              (try
+                set_default_timeout (Some (float_of_string s))
+              with Failure _ -> 
+                if (s = "infinity")
+                then set_default_timeout None
+                else
+                  raise (Error_in_config_file "Eliom: Wrong value for value attribute of <timeout> tag"));
+              parse_global_config ll
+    | PLCons 
+        ((EPanytag ("sessiongcfrequency",             
+                    (PLCons
+                       ((EPanyattr (EPVstr("value"), EPVstr(s))), 
+                        PLEmpty)),
+                    p)), ll) ->
+          (try
+            set_sessiongcfrequency (Some (float_of_string s))
+          with Failure _ -> 
+            if s = "infinity"
+            then set_sessiongcfrequency None
+            else raise (Error_in_config_file
+                          "Eliom: Wrong value for <sessiongcfrequency>"));
+          parse_global_config ll
+    | PLCons ((EPcomment _), l) -> parse_global_config l
+    | PLCons ((EPwhitespace _), l) -> parse_global_config l
+    | PLCons ((EPanytag (tag,_,_)),l) -> 
+        raise (Error_in_config_file ("<"^tag^"> tag unexpected inside eliom config"))
+    | _ -> raise (Error_in_config_file ("Unexpected content inside eliom config"))
+
+
+let _ = parse_global_config (Extensions.get_config ())
+
+(*****************************************************************************)
 (* Generation of the page or naservice                                          *)
 
 let execute generate_page ip cookie (globtable, cookie_table) =
-  let (sessiontablesref, new_session) = 
+  let (sessiontablesref, new_session, user_timeout_optref) = 
     (match cookie with
-      None -> (ref (new_session_tables ()), true)
-    | Some c -> try (ref (Cookies.find cookie_table (ip,c)), false)
-    with Not_found -> (ref (new_session_tables ()), true))
+      None -> ((ref (new_session_tables ())), None, ref None)
+    | Some c -> 
+        try 
+          let ta, exp, timeout_optref = Cookies.find cookie_table (ip,c) in
+          match exp with
+            Some t when t < (Unix.time ()) -> (* session expired *)
+              Cookies.remove cookie_table (ip,c);
+              raise Not_found
+          | _ -> ((ref ta), cookie, timeout_optref)
+        with Not_found -> ((ref (new_session_tables ())), None, ref None))
   in
-  generate_page globtable sessiontablesref >>=
-  (fun ((result_to_send, working_dir, cookies_to_set),lastmod,etag) ->
+  generate_page globtable sessiontablesref user_timeout_optref >>=
+  (fun ((result_to_send, working_dir, cookies_to_set), 
+        lastmod, etag) ->
     let cookie2 = 
       if are_empty_tables !sessiontablesref
-      then ((if not new_session 
-      then match cookie with
-        Some c -> Cookies.remove cookie_table (ip,c)
-      | None -> ());None)
-      else (if new_session 
-      then let c = new_cookie cookie_table ip in
-      (Cookies.add cookie_table (ip,c) !sessiontablesref;
-       Some c)
-      else cookie)
+      then (
+        (match new_session with
+          Some c -> Cookies.remove cookie_table (ip, c)
+        | _ -> ());
+        None)
+      else 
+        let c =
+          (match new_session with
+            None -> new_cookie cookie_table ip
+          | Some c -> c)
+        in
+        let timeout = match !user_timeout_optref with
+          Some t -> t
+        | None -> find_global_timeout working_dir
+        in
+        let exp = match timeout with
+          None -> None
+        | Some t -> Some ((Unix.time ())+. t)
+        in
+        Cookies.replace
+          cookie_table (ip,c) 
+          (!sessiontablesref, exp, user_timeout_optref);
+        (* If the key does not exist, replace just adds it.
+           If it exists, we put a new expiration date *)
+        Some c
     in
     let cookie3 = 
       if cookie2 <> cookie then 
@@ -568,7 +688,8 @@ let get_page
     (ri, si, cookies_to_set) =
   let generate_page
       global_tables
-      session_tables_ref =
+      session_tables_ref
+      user_timeout_optref =
     ((catch
         (fun () -> 
           Messages.debug 
@@ -577,6 +698,7 @@ let get_page
           (find_service
              !session_tables_ref
              (session_tables_ref,
+              user_timeout_optref,
               ri,
               si)))
         (function 
@@ -587,6 +709,7 @@ let get_page
                   (find_service 
                      global_tables
                      (session_tables_ref,
+                      user_timeout_optref,
                       ri,
                       si)))
                 (function
@@ -639,12 +762,13 @@ let get_page
 let make_naservice
     page_tree
     (ri, si, cookies_to_set) =
-  let generate_page global_tables session_tables_ref =
+  let generate_page global_tables session_tables_ref user_timeout_optref =
     (try
       try
         return (find_naservice !session_tables_ref si.si_nonatt_info)
       with
-        Not_found -> return (find_naservice global_tables si.si_nonatt_info)
+        Not_found -> return 
+            (find_naservice global_tables si.si_nonatt_info)
     with
       Not_found ->
         (* It was an non-attached service.
@@ -686,6 +810,7 @@ let make_naservice
          (make_server_params 
             working_dir
             session_tables_ref 
+            user_timeout_optref
             ri
             []
             si)) >>=
@@ -824,12 +949,34 @@ let gen page_tree charset ri =
   change_request_info ri >>= gen_aux
 
 
-
-
+(*****************************************************************************)
+(* garbage collection of timeouted sessions *)
+(* This is a thread that will work every hour *)
+let session_gc (_, cookie_table) =
+  match get_sessiongcfrequency () with
+    None -> () (* No garbage collection *)
+  | Some t ->
+      let rec f () = 
+        Lwt_unix.sleep t >>= 
+        (fun () ->
+          let now = Unix.time () in
+          Messages.debug "GC of sessions";
+          Cookies.fold
+            (fun k (_, exp, _) thr -> 
+              (match exp with
+                Some exp when exp < now -> Cookies.remove cookie_table k
+              | _ -> ());
+              Lwt_unix.yield ()
+            )
+            cookie_table
+            (return ()))
+          >>=
+        f
+      in ignore (f ())
+      
 
 (*****************************************************************************)
 (** Module loading *)
-open Simplexmlparser.ExprOrPatt
 let config = ref PLEmpty
 
 let load_eliom_module pages_tree path cmo content =
@@ -848,8 +995,9 @@ let load_eliom_module pages_tree path cmo content =
   config := PLEmpty
 
 
+
 (*****************************************************************************)
-(** Parsing of config file *)
+(** Parsing of config file for each site: *)
 let parse_config page_tree path = 
   let rec parse_module_attrs file = function
     | PLEmpty -> (match file with
@@ -896,14 +1044,12 @@ let handle_init_exn = function
 | Eliom_there_are_unregistered_services s ->
     ("Fatal - Eliom: Some public url have not been registered. \
               Please correct your modules. (ex: "^s^")")
-| Eliom_service_created_outside_site_loading ->
-    ("Fatal - Eliom: A service is created outside \
-              site loading phase")
+| Eliom_function_forbidden_outside_site_loading ->
+    ("Fatal - Eliom: Use of forbidden function outside site loading. \
+              (creation of public service for example)")
 | Eliom_page_erasing s ->
     ("Fatal - Eliom: You cannot create a page or directory here: "^s^
             ". Please correct your modules.")
-| Eliom_register_for_session_outside_session ->
-    ("Fatal - Eliom: Register session during initialisation forbidden.")
 | Eliom_error_while_loading_site s ->
     ("Fatal - Eliom: Error while loading site: "^s)
 | e -> raise e
@@ -914,6 +1060,7 @@ let handle_init_exn = function
 let _ = register_extension
     ((fun hostpattern -> 
       let page_tree = new_pages_tree () in
+      session_gc page_tree;
       (gen page_tree, 
        parse_config page_tree)),
      start_init,
@@ -924,12 +1071,7 @@ let _ = register_extension
 (*****************************************************************************)
 
 (* à refaire
-let number_of_sessions () = 
-  List.fold_left 
-    (fun d t -> 
-      let (_,_,cookie_table) = get_table t in
-      d + (Cookies.length cookie_table))
-    0 !pages_trees
+let number_of_sessions () = Cookies.length
 *)
 
 

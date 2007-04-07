@@ -25,9 +25,8 @@ exception Eliom_link_to_old
 exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registering of string
-exception Eliom_register_for_session_outside_session
 exception Eliom_page_erasing of string
-exception Eliom_service_created_outside_site_loading
+exception Eliom_function_forbidden_outside_site_loading
 exception Eliom_there_are_unregistered_services of string
 exception Eliom_error_while_loading_site of string
 
@@ -47,7 +46,12 @@ type sess_info =
      si_exn: exn list}
 
 type 'a server_params1 = 
-    request_info * sess_info * (current_dir * 'a ref * url_path)
+    request_info * sess_info * 
+      (current_dir *
+         'a ref (* sesseion table ref *) * 
+         float option option ref (* user timeout *) *
+         url_path (* suffix *))
+
 type server_params = tables server_params1
 
 type page_table_key =
@@ -95,15 +99,22 @@ val na_co_param_prefix : string
 val config : 
     Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ref
 
+
+val set_global_timeout : url_path -> float option -> unit
+val find_global_timeout : url_path -> float option
+val get_default_timeout : unit -> float option
+
+
 (** Profiling *)
 (* val number_of_sessions : unit -> int *)
 
 
 (** internal functions: *)
-val get_current_hostdir : unit -> pages_tree * url_path
 val end_current_hostdir : unit -> unit
 val verify_all_registered : unit -> unit
 val add_unregistered : string list option * int -> unit
 val remove_unregistered : string list option * int -> unit
-val global_register_allowed : unit -> bool
+val global_register_allowed : unit -> 
+  ((unit -> pages_tree * url_path) option)
+
 

@@ -120,20 +120,28 @@ type url_path = string list
 type server_params
 (** Type of server parameters *)
 val get_user_agent : server_params -> string
-val get_hostname : server_params -> string option
 val get_full_url : server_params -> string
-val get_inet_addr : server_params -> Unix.inet_addr
 val get_ip : server_params -> string
-val get_port : server_params -> int
+val get_inet_addr : server_params -> Unix.inet_addr
 val get_get_params : server_params -> (string * string) list
 val get_post_params : server_params -> (string * string) list Lwt.t
-val get_current_path : server_params -> url_path
 val get_current_path_string : server_params -> string
+val get_current_path : server_params -> url_path
+val get_hostname : server_params -> string option
+val get_port : server_params -> int
 val get_other_get_params : server_params -> (string * string) list
 val get_suffix : server_params -> url_path
 val get_exn : server_params -> exn list
 val get_cookies : server_params -> (string * string) list
 
+val set_user_timeout : server_params -> float option -> unit
+val get_user_timeout : server_params -> float option
+
+val set_global_timeout_during_session : server_params -> float option -> unit
+val get_global_timeout_during_session : server_params -> float option
+val set_global_timeout_during_init : float option -> unit
+val get_global_timeout_during_init : unit -> float option
+val get_default_timeout : unit -> float option
 
 
 (** Type of files *)

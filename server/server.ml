@@ -33,6 +33,7 @@ open Lazy
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
 exception Ocsigen_upload_forbidden
+exception Config_file_exn of exn
 
 (* Without the following line, it stops with "Broken Pipe" without raising
    an exception ... *)
@@ -947,7 +948,11 @@ let listen ssl port wait_end_init =
 
 let _ = try
 
-  let config_servers = parse_config () in
+  let config_servers = 
+    try 
+      parse_config ()
+    with e -> raise (Config_file_exn e)
+  in
 
   let number_of_servers = List.length config_servers in
 
@@ -1112,6 +1117,9 @@ with
 | Ssl.Private_key_error ->
     errlog ("Fatal - bad password");
     exit 10
+| Config_file_exn exn ->
+    errlog ("Fatal - Error in configuration file: "^(Printexc.to_string exn));
+    exit 50
 | exn -> 
     try
       errlog (Extensions.get_init_exn_handler () exn);

@@ -730,7 +730,7 @@ let form4 = register_new_service ["form4"] unit
         If not, the server will not start (with an error message in the logs).
         This is to ensure that all the URLs the user can bookmark
         will always give an answer, even if the session has expired.</li>
-        <li>Main services cannot be registered in the public table
+        <li>Services cannot be registered in the public table
          after the initialisation phase.
         </li>
         <li>Do not register twice the same service in the public table, 
@@ -1467,6 +1467,56 @@ let _ = register disposable
                     a disp_coservice sp [pcdata "Try it!"] ()]])))
 (*html*      
       <p>Try $a Tutoeliom.disposable sp <:xmllist< <code>it</code> >> ()$.</p>
+     <h3>Timeout for sessions</h3>
+      <p>The default timeout for sessions in one hour. Sessions will be
+       automatically closed after that amount of time of inactivity
+       from the user.
+       You can change that value for your whole site during initialisation 
+       using:</p>
+<pre>
+set_global_timeout_during_init (Some 7200.)
+</pre>
+      <p>Here 7200 seconds. <code>None</code> means no timeout.</p>
+      <p>
+       You can change that value for your whole site after initialisation 
+       using:</p>
+<pre>
+set_global_timeout_during_session sp (Some 7200.)
+</pre>
+      <p>
+       You can change that value for one user only using:</p>
+<pre>
+set_user_timeout sp (Some 7200.)
+</pre>
+      <p>
+      Note that there is also a possibility to change the default value
+      for Eliom in the configuration file like this:</p>
+<pre>
+    &lt;dynlink module="<em>path_to</em>/eliom.cma"&gt;
+      &lt;timeout value="7200"/&gt;
+    &lt;/dynlink&gt;
+</pre>
+     <p><code>value="infinity"</code> means no timeout.</p>
+     <p>Warning: that default may be overriden by each site using 
+        <code>set_global_timeout_during_...</code>.
+        If you want your user to be able to set the default in the 
+        configuration file for your site, you must parse the configuration
+        (<code>Eliom.get_config ()</code> function).
+     </p>
+     <h3>Giving configuration options to your sites (EXPERIMENTAL)</h3>
+      <p>You can add your own options in the configuration
+       file for your Web site. For example:<p>
+<pre>
+    &lt;eliom module="<em>path_to</em>/yourmodule.cmo"&gt;
+      &lt;youroptions&gt; ...
+    &lt;/eliom&gt;
+</pre>
+      <p>
+       Use <code>Eliom.get_config ()</code> to get the data between
+       <code>&lt;eliom&gt;</code> and <code>&lt;/eliom&gt;</code>.
+       Warning: parsing these data is very basic for now and not really easy.
+       That feature will be improved in the future.
+      </p>
     </div>
     <h2>Threads</h2>
     <div class="twocol1">

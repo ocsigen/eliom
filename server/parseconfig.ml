@@ -154,15 +154,14 @@ let parse_server c =
 	PLEmpty -> ()
       | PLCons ((EPanytag ("site", atts, l)), ll) ->
           let rec parse_site_attrs (enc,dir) = function
-            | PLEmpty -> (match (enc,dir) with
-                _,None -> 
+            | PLEmpty -> (match dir with
+                None -> 
                   raise (Config_file_error
                            ("Missing dir attribute in <site>"))
-              | None, Some s -> (None, s)
-              | _, Some s -> (enc, s))
+              | Some s -> (enc, s))
             | PLCons ((EPanyattr (EPVstr("dir"), EPVstr(s))), suite) ->
                 (match dir with
-                  None -> parse_site_attrs (enc,Some s) suite
+                  None -> parse_site_attrs (enc, Some s) suite
                 | _ -> raise (Config_file_error
                                 ("Duplicate attribute dir in <site>")))
             | PLCons ((EPanyattr (EPVstr("charset"), EPVstr(s))), suite) ->

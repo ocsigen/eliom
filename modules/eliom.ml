@@ -47,13 +47,40 @@ let get_current_path (ri,_,_) = ri.ri_path
 let get_hostname (ri,_,_) = ri.ri_host
 let get_port (ri,_,_) = ri.ri_port
 let get_other_get_params (_,si,_) = si.si_other_get_params
-let get_suffix (_,_,(_,_,s)) = s
+let get_suffix (_,_,(_,_,_,s)) = s
 let get_exn (_,si,_) = si.si_exn
 let get_cookies (ri,_,_) = force ri.ri_cookies
+
+let get_default_timeout = Eliommod.get_default_timeout
+let set_global_timeout_during_session (_, _, (working_dir, _, _, _)) min = 
+  Eliommod.set_global_timeout working_dir min
+let get_global_timeout_during_session (_, _, (working_dir, _, _, _)) = 
+  Eliommod.find_global_timeout working_dir
+
+let set_global_timeout_during_init min = 
+  match global_register_allowed () with
+    Some get_current_hostdir ->
+      Eliommod.set_global_timeout (snd (get_current_hostdir ())) min
+  | _ -> raise Eliom_function_forbidden_outside_site_loading
+
+let get_global_timeout_during_init () = 
+  match global_register_allowed () with
+    Some get_current_hostdir ->
+      Eliommod.find_global_timeout (snd (get_current_hostdir ()))
+  | _ -> raise Eliom_function_forbidden_outside_site_loading
+
+let set_user_timeout (_,_,(_,_,tor,_)) t = tor := Some t
+let get_user_timeout (_,_,(working_dir,_,tor,_)) = 
+  match !tor with
+    None -> Eliommod.find_global_timeout working_dir
+  | Some t -> t
+
 
 let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
 let get_original_filename fi = fi.original_filename
+
+
 
 let sync f sp g p = Lwt.return (f sp g p)
     
@@ -414,7 +441,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
 (*****************************************************************************)
 
 (** Satic directories **)
-let static_dir (_,_,(curdir,_,_)) =
+let static_dir (_,_,(curdir,_,_,_)) =
     {unique_id = counter ();
      pre_applied_parameters = [];
      get_params_type = suffix_only;
@@ -430,7 +457,7 @@ let static_dir (_,_,(curdir,_,_)) =
    }
 
 (** Close a session *)
-let close_session (_,_,(_,sesstab,_)) = sesstab := empty_tables ()
+let close_session (_,_,(_,sesstab,_,_)) = sesstab := empty_tables ()
 
 
 (****************************************************************************)
@@ -462,18 +489,20 @@ let new_service_aux
     ~url
     ~suffix
     ~get_params =
-  if global_register_allowed () then
-    let _,curdir = get_current_hostdir () in
-    let full_path = curdir@(change_empty_list url) in
-    let u = new_service_aux_aux
-        ~url:full_path
-        ~suffix
-        ~kind:(`Internal (`Service, `Get))
-        ~get_params
-        ~post_params:unit
-    in
-    add_unregistered (Some full_path, u.unique_id); u
-  else raise Eliom_service_created_outside_site_loading
+  match global_register_allowed () with
+    Some get_current_hostdir ->
+      let _,curdir = get_current_hostdir () in
+      let full_path = curdir@(change_empty_list url) in
+      let u = new_service_aux_aux
+          ~url:full_path
+          ~suffix
+          ~kind:(`Internal (`Service, `Get))
+          ~get_params
+          ~post_params:unit
+      in
+      add_unregistered (Some full_path, u.unique_id); u
+  | None -> raise Eliom_function_forbidden_outside_site_loading
+
       
 let new_external_service
     ~url
@@ -504,8 +533,9 @@ let new_coservice
     () =
   let c = counter () in
   let `Attached k = fallback.kind in
-  if global_register_allowed () then
-    add_unregistered (Some k.url, c);
+  (match global_register_allowed () with
+    Some _ -> add_unregistered (Some k.url, c);
+  | _ -> ());
   {fallback with
    unique_id = c;
    max_use= max_use;
@@ -523,18 +553,19 @@ let new_coservice
 
 let new_coservice' ?max_use ~get_params () =
   let c = counter () in
-  if global_register_allowed () then
-    add_unregistered (None, c);
-    {unique_id = c;
-     max_use= max_use;
-     pre_applied_parameters = [];
-     get_params_type = add_pref_params na_co_param_prefix get_params;
-     post_params_type = unit;
-     kind = `Nonattached
-       {na_name = (Some (new_naservice_name ()), None);
-        na_kind = `Get;
-      }
-   }
+  (match global_register_allowed () with
+    Some _ -> add_unregistered (None, c);
+  | _ -> ());
+  {unique_id = c;
+   max_use= max_use;
+   pre_applied_parameters = [];
+   get_params_type = add_pref_params na_co_param_prefix get_params;
+   post_params_type = unit;
+   kind = `Nonattached
+     {na_name = (Some (new_naservice_name ()), None);
+      na_kind = `Get;
+    }
+ }
     
     
 (****************************************************************************)
@@ -565,14 +596,14 @@ let new_post_service ~fallback ~post_params () =
   let `Internal (kind, _) = k1.att_kind in
   let url = Some k1.url in
   let u = new_post_service_aux fallback post_params in
-  if global_register_allowed () then begin
-    add_unregistered (url, u.unique_id); 
-    u
-  end
-  else
-    if kind = `Service
-    then raise Eliom_service_created_outside_site_loading
-    else u
+  match global_register_allowed () with
+    Some _ ->
+      add_unregistered (url, u.unique_id); 
+      u
+  | None ->
+      if kind = `Service
+      then raise Eliom_function_forbidden_outside_site_loading
+      else u
 (* Warning: strange if post_params = unit... *)    
 (* if the fallback is a coservice, do we get a coservice or a service? *)    
 
@@ -580,8 +611,9 @@ let new_post_service ~fallback ~post_params () =
 let new_post_coservice ?max_use ~fallback ~post_params () = 
   let c = counter () in
   let `Attached k1 = fallback.kind in
-  if global_register_allowed () then
-    add_unregistered (Some k1.url, c);
+  (match global_register_allowed () with
+    Some _ -> add_unregistered (Some k1.url, c);
+  | _ -> ());
   {fallback with 
    unique_id = c;
    post_params_type = post_params;
@@ -600,18 +632,19 @@ let new_post_coservice ?max_use ~fallback ~post_params () =
 
 let new_post_coservice' ?max_use ~post_params () =
   let c = counter () in
-  if global_register_allowed () then
-    add_unregistered (None, c);
-    {unique_id = c;
-     max_use= max_use;
-     pre_applied_parameters = [];
-     get_params_type = unit;
-     post_params_type = post_params;
-     kind = `Nonattached
-       {na_name = (None, Some (new_naservice_name ()));
-        na_kind = `Post;
-      }
-   }
+  (match global_register_allowed () with
+    Some _ -> add_unregistered (None, c)
+  | _ -> ());
+  {unique_id = c;
+   max_use= max_use;
+   pre_applied_parameters = [];
+   get_params_type = unit;
+   post_params_type = post_params;
+   kind = `Nonattached
+     {na_name = (None, Some (new_naservice_name ()));
+      na_kind = `Post;
+    }
+ }
 
 (*
 let new_get_post_coservice'
@@ -619,18 +652,19 @@ let new_get_post_coservice'
     ~fallback
     ~post_params =
   let c = counter () in
-  if global_register_allowed () then
-    add_unregistered (None, c);
+  (match global_register_allowed () with
+    Some _ ->
+  | _ -> ());
+   add_unregistered (None, c);
    {unique_id = c;
    pre_applied_parameters = fallback.pre_applied_parameters;
    get_params_type = fallback.na_get_params_type;
    post_params_type = post_params;
    max_use= max_use;
    kind = `Nonattached
-     {na_name = (fst fallback.na_name, Some (new_naservice_name ()));
-      na_kind = `Internal (`NonAttachedCoservice, `Post);
-     }
-
+   {na_name = (fst fallback.na_name, Some (new_naservice_name ()));
+   na_kind = `Internal (`NonAttachedCoservice, `Post);
+   }
    }
 (* This is a nonattached coservice with GET and POST parameters!
    When reloading, the fallback (a nonattached coservice with only GET 
@@ -1153,7 +1187,7 @@ module MakeRegister = functor
                   (match service.max_use with
                     None -> None
                   | Some i -> Some (ref i)),
-                  (fun ((ri,_,(_,_,suff)) as sp) -> 
+                  (fun ((ri,_,(_,_,_,suff)) as sp) -> 
                     (catch (fun () -> 
                       (force ri.ri_post_params) >>=
                       (fun post_params ->
@@ -1217,30 +1251,28 @@ module MakeRegister = functor
                 ((let `Internal (k,_) = attser.att_kind in k), Some attser.url)
             | `Nonattached naser -> (`Coservice, None)
           in
-          let doo () =
-            let (globtables,_),curdir = get_current_hostdir () in
-            register_aux 
-              curdir
-              globtables
-              false 
-              ~service ?error_handler page_gen
-          in
-          if global_register_allowed () then begin
-            remove_unregistered (url, service.unique_id);
-            doo ()
-          end
-          else
-            if kind = `Service
-            then 
+          match global_register_allowed () with
+            Some get_current_hostdir ->
+              remove_unregistered (url, service.unique_id);
+              let (globtables,_),curdir = get_current_hostdir () in
+              register_aux 
+                curdir
+                globtables
+                false 
+                ~service ?error_handler page_gen
+          | _ -> raise Eliom_function_forbidden_outside_site_loading
+                (*
               Messages.warning
                 ((match url with
-                  None -> "<Non-attached service>"
-                | Some u -> "URL .../"^(string_of_url_path u))^
-                 " : Public main service registration outside <site></site> \
-                   or after init forbidden! \
+                  None -> "Eliom: <Non-attached service>"
+                | Some u -> "Eliom: URL .../"^(string_of_url_path u))^
+                 " : Public service registration outside <site></site> \
+                   or after initialization forbidden! \
                    Please correct your module! (ignored)")
-            else doo ()
-
+                   *)
+(* Warning: not possible to register coservices in public table after init
+   with that function, because we do not know working_dir!
+ *)
 
 (* WARNING: if we create a new service without registering it,
    we can have a link towards a page that does not exist!!! :-(
@@ -1249,8 +1281,10 @@ module MakeRegister = functor
    like "let rec" for service...
  *)
 
+
+
         let register_for_session
-            (ri,si,(curdir,sesstab,_))
+            (ri,si,(curdir,sesstab,_,_))
             ~service
             ?error_handler
             page =
