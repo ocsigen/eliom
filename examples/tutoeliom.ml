@@ -339,7 +339,7 @@ let coucou_params = register_new_service
 *html*)
 let uasuffix = 
   register_new_service 
-    ~url:["uasuffix"]
+    ~url:["uasuffix";""]
     ~get_params:(suffix (string "s"))
     (fun sp (suff, s) () ->  return
       (html
@@ -359,7 +359,7 @@ let uasuffix =
 *html*)
 let isuffix = 
   register_new_service 
-    ~url:["isuffix"] 
+    ~url:["isuffix";""] 
     ~get_params:(suffix (int "i"))
     (fun sp (suff, i) () -> return
       (html
@@ -442,7 +442,7 @@ let links = register_new_service ["rep";"links"] unit
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
          a
            (new_external_service
-              ~url:["http://fr.wikipedia.org";"wiki"]
+              ~url:["http://fr.wikipedia.org";"wiki";""]
               ~get_params:suffix_only
               ~post_params:unit ()) 
            sp
@@ -2047,7 +2047,7 @@ let coucoutext =
 
 (* Fin À AJOUTER *)
 (* Main page for this example *)
-let main = new_service ["a"] unit ()
+let main = new_service [] unit ()
 
 let _ = register main
   (fun sp () () -> return

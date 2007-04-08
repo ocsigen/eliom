@@ -50,10 +50,20 @@ let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 (** various functions for URLs *)
 let defaultpagename = "index"
     
-let remove_slash = function
+let remove_slash_at_beginning = function
     [] -> []
   | ""::l -> l
   | l -> l
+    
+let rec remove_slash_at_end = function
+    []
+  | [""] -> []
+  | a::l -> a::(remove_slash_at_end l)
+    
+let rec add_end_slash_if_missing = function
+    [] -> [""]
+  | [""] as a -> a
+  | a::l -> a::(add_end_slash_if_missing l)
     
 let change_empty_list = function
     [] -> [""] (* It is not possible to register an empty URL *)
@@ -87,7 +97,7 @@ let rec string_of_url_path = function
 let rec string_of_url_path_suff u = function
     None -> string_of_url_path u
   | Some suff -> let deb = (string_of_url_path u) in
-    if deb = "" then suff else deb^"/"^suff
+    if deb = "" then suff else deb^suff
 
 let reconstruct_absolute_url_path current_url = string_of_url_path_suff
 

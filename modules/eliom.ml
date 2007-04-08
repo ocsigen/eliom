@@ -456,7 +456,7 @@ let static_dir (_,_,(curdir,_,_,_)) =
      post_params_type = unit;
      max_use= None;
      kind = `Attached
-       {url = curdir;
+       {url = curdir@[""];
         get_state = None;
         post_state = None;
         url_suffix = true;
@@ -517,9 +517,10 @@ let new_external_service
     ~get_params
     ~post_params
     () =
+  let suffix = contains_suffix get_params in
   new_service_aux_aux
-    ~url
-    ~suffix:(contains_suffix get_params)
+    ~url:(if suffix then add_end_slash_if_missing url else url)
+    ~suffix:suffix
     ~kind:`External
     ~get_params 
     ~post_params
@@ -528,7 +529,11 @@ let new_service
     ~url
     ~get_params
     () =
-  new_service_aux ~url ~suffix:(contains_suffix get_params) ~get_params
+  let suffix = contains_suffix get_params in
+  new_service_aux 
+    ~url:(if suffix then add_end_slash_if_missing url else url)
+    ~suffix:suffix
+    ~get_params
 
 let new_naservice_name () = string_of_int (counter ())
 

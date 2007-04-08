@@ -203,7 +203,7 @@ let absolute_change_hostdir, get_current_hostdir, end_current_hostdir =
       raise (Ocsigen_Internal_Error "No pages tree available")), []) 
   in
   let f1 = ref (fun (pagetree,dir) -> 
-    current_dir := (fun () -> pagetree), remove_slash dir) in
+    current_dir := (fun () -> pagetree), dir) in
   let f2 = ref (fun () -> let (cd1,cd2) = !current_dir in (cd1 (), cd2)) in
   let exn1 _ = 
     raise (Ocsigen_Internal_Error "absolute_change_hostdir after init") in

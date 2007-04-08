@@ -261,7 +261,7 @@ let absolute_change_hostdir, get_current_hostdir, end_current_hostdir =
       raise (Ocsigen_Internal_Error "No pages tree available")), []) 
   in
   let f1 = ref (fun (pagetree,dir) -> 
-    current_dir := (fun () -> pagetree), remove_slash dir) in
+    current_dir := (fun () -> pagetree), dir) in
   let f2 = ref (fun () -> let (cd1,cd2) = !current_dir in (cd1 (), cd2)) in
   let exn1 _ = 
     raise (Ocsigen_Internal_Error "absolute_change_hostdir after init") in
@@ -411,7 +411,7 @@ let add_naservice
   then
     try
       ignore (find_naservice_table !naservicetableref name);
-      raise (Eliom_duplicate_registering "<non-attached service>")
+      raise (Eliom_duplicate_registering "<non-attached coservice>")
     with Not_found -> ());
   naservicetableref :=
     add_naservice_table !naservicetableref
@@ -431,7 +431,8 @@ let add_service (dircontentref,_) current_dir session url_act
       let direltref = find_dircontent !dircontentref a in
       match !direltref with
         Dir dcr -> search dcr l
-      | File ptr -> raise (Eliom_page_erasing "<non-attached service>")
+      | File ptr -> raise (Eliom_page_erasing 
+                             ((string_of_url_path current_dir)^"/"^a))
             (* Messages.warning ("Eliom page registering: Page "^
                a^" has been replaced by a directory");
                let newdcr = ref (empty_dircontent ()) in
@@ -482,6 +483,8 @@ let add_service (dircontentref,_) current_dir session url_act
   page_table_ref := add_page_table session url_act !page_table_ref content
 
       
+exception Exn1
+
 let find_service 
     (dircontentref,_)
     (session_table_ref, 
@@ -490,9 +493,18 @@ let find_service
      si) =
   let rec search_page_table dircontent =
     let aux a l =
-      (match !(find_dircontent dircontent a) with
-        Dir dircontentref2 -> search_page_table !dircontentref2 l
-      | File page_table_ref -> page_table_ref, l)
+      try
+        let dc = 
+          try !(find_dircontent dircontent a) 
+          with Not_found -> raise Exn1
+        in
+        (match dc with
+          Dir dircontentref2 -> search_page_table !dircontentref2 l
+        | File page_table_ref -> page_table_ref, l)
+      with Exn1 -> 
+        (match !(find_dircontent dircontent defaultpagename) with
+          Dir _ -> raise Not_found
+        | File page_table_ref -> page_table_ref, a::l)
     in function
         [] -> raise Ocsigen_Is_a_directory
       | [""] -> aux defaultpagename []
@@ -1059,8 +1071,8 @@ let handle_init_exn = function
     ("Fatal - Eliom: Use of forbidden function outside site loading. \
               (creation of public service for example)")
 | Eliom_page_erasing s ->
-    ("Fatal - Eliom: You cannot create a page or directory here: "^s^
-            ". Please correct your modules.")
+    ("Fatal - Eliom: You cannot create a page or directory here. "^s^
+            " already exists. Please correct your modules.")
 | Eliom_error_while_loading_site s ->
     ("Fatal - Eliom: Error while loading site: "^s)
 | e -> raise e

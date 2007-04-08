@@ -203,6 +203,7 @@ let sendany =
              [None, [(("arf"),(string_of_int (Random.int 100)))]]))
    )
 
+
 (* Send file *)
 let _ = 
   register_new_service 
@@ -219,5 +220,20 @@ let sendfile2 =
     ~url:["files";""]
     ~get_params:suffix_only
     (fun _ s () -> 
-      print_endline ("-> /var/www/ocsigen/"^(string_of_url_path s));
-      return ("/var/www/ocsigen/"^(string_of_url_path s)))
+      let rec remove_dotdot = function
+          [] -> []
+        | ".."::l -> remove_dotdot l
+        | a::l -> a::(remove_dotdot l)
+      in
+      return ("/var/www/ocsigen/"^(string_of_url_path (remove_dotdot s))))
+
+let _ = 
+  register_new_service 
+    ~url:["files";"exception"]
+    ~get_params:unit
+    (fun _ () () -> 
+      return 
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "With another suffix, that page will send a file"]])))
+

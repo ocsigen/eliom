@@ -398,7 +398,7 @@ let get_request_infos http_frame filenames sockaddr port =
     in
     {ri_url = url;
      ri_path_string = path;
-     ri_path = (Ocsimisc.remove_slash (Neturl.url_path url2));
+     ri_path = (Ocsimisc.remove_slash_at_beginning (Neturl.url_path url2));
      ri_params = params;
      ri_host = host;
      ri_get_params = get_params;

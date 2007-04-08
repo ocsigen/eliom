@@ -177,7 +177,9 @@ let parse_server c =
                   (Config_file_error ("Error in attributes for <site>"))
           in
           let enc,dir = parse_site_attrs (None, None) atts in
-          let path = Ocsimisc.remove_slash (Neturl.split_path dir) in
+          let path = 
+            Ocsimisc.remove_slash_at_end
+              (Ocsimisc.remove_slash_at_beginning (Neturl.split_path dir)) in
           acf enc path;
           parse_site psf path l;
           parse_host psf acf ll
