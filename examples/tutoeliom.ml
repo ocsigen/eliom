@@ -1418,11 +1418,11 @@ let sendany =
   Any.register_new_service 
     ~url:["sendany"]
     ~get_params:(string "type")
-   (fun _ s () -> 
+   (fun sp s () -> 
      if s = "valid"
      then
        return
-         (Xhtml.send
+         (Xhtml.send sp
            (html
              (head (title (pcdata "")) [])
              (body [p [pcdata "This page has been statically typechecked. \
@@ -1430,7 +1430,7 @@ let sendany =
                                will get an unchecked text page"]])))
      else 
        return
-         (Text.send "<html><body><p>It is not a valid page. Put \
+         (Text.send sp "<html><body><p>It is not a valid page. Put \
                      type=\"valid\" in the URL to get a typechecked page.\
                      </p></body></html>")
    )
@@ -1941,11 +1941,11 @@ wakeup w "HELLO");
 
 (* lists *)
 let coucou_list = register_new_service 
-    ~url:["coucoulist"]
-    ~get_params:(list "a" (int "entier"))
+    ~url:["coucou"]
+    ~get_params:(list "a" (string "str"))
   (fun _ l () ->
     let ll = 
-      List.map (fun i -> << <strong>$str:string_of_int i$</strong> >>) l in  return
+      List.map (fun s -> << <strong>$str:s$</strong> >>) l in  return
   << <html>
        <head><title></title></head>
        <body>
@@ -1967,8 +1967,8 @@ let create_listform f =
      The last parameter of f.it is the code that must be appended at the 
      end of the list created
    *)
-  f.it (fun intname v ->
-    <:xmllist< <p>Write the value for $str:v$: $int_input intname$ </p> >>)
+  f.it (fun stringname v ->
+    <:xmllist< <p>Write the value for $str:v$: $string_input stringname$ </p> >>)
     ["one";"two";"three";"four"]
     <:xmllist< <p>$submit_input "Click"$</p> >>
 
@@ -2033,7 +2033,7 @@ let coucoutext =
 
 (* Fin À AJOUTER *)
 (* Main page for this example *)
-let main = new_service [] unit ()
+let main = new_service ["a"] unit ()
 
 let _ = register main
   (fun sp () () -> return

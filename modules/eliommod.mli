@@ -43,7 +43,8 @@ type sess_info =
      si_cookie: string option;
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
-     si_exn: exn list}
+     si_exn: exn list;
+     si_config_file_charset: string option}
 
 type 'a server_params1 = 
     request_info * sess_info * 
@@ -53,6 +54,10 @@ type 'a server_params1 =
          url_path (* suffix *))
 
 type server_params = tables server_params1
+
+type result_to_send = 
+    EliomResult of Extensions.result
+  | EliomExn of (exn list * cookieslist)
 
 type page_table_key =
     {suffix:bool;
@@ -72,9 +77,7 @@ val add_service :
           string list ->
             page_table_key *
               (int * int ref option *
-                 (server_params -> 
-                   (Predefined_senders.result_to_send
-                      * cookieslist)Lwt.t)) ->
+                 (server_params -> result_to_send Lwt.t)) ->
                         unit
 
 val add_naservice :
@@ -83,8 +86,7 @@ val add_naservice :
 	bool -> 
 	  (string option * string option) -> 
             (int ref option *
-	       (server_params -> 
-	         (Predefined_senders.result_to_send * cookieslist) Lwt.t))
+	       (server_params -> result_to_send Lwt.t))
             -> unit
 
 

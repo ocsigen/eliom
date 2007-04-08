@@ -34,6 +34,8 @@ open Extensions
 
 exception Eliom_link_to_old
 
+
+
 (** Allows extensions of the configuration file for your modules *)
 val get_config : unit -> 
   Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist
@@ -134,6 +136,7 @@ val get_port : server_params -> int
 val get_other_get_params : server_params -> (string * string) list
 val get_suffix : server_params -> url_path
 val get_exn : server_params -> exn list
+val get_config_file_charset : server_params -> string option
 val get_cookies : server_params -> (string * string) list
 
 val set_user_timeout : server_params -> float option -> unit
@@ -389,9 +392,8 @@ module type REGCREATE =
   sig
     type page
 
-    val send : 
-        cookies:cookieslist ->
-          page ->  Predefined_senders.result_to_send * cookieslist
+    val send : cookies:cookieslist -> server_params -> page -> 
+      Eliommod.result_to_send
 
   end
 
@@ -587,7 +589,7 @@ module type ELIOMREGSIG1 =
 
     type page
 
-    val send : page ->  Predefined_senders.result_to_send * cookieslist
+    val send : server_params -> page -> Eliommod.result_to_send
 
     val register :
         service:('get, 'post,
@@ -1106,4 +1108,4 @@ module Files : ELIOMREGSIG with
   type page = string
 
 module Any : ELIOMREGSIG with 
-  type page = Predefined_senders.result_to_send * cookieslist
+  type page = Eliommod.result_to_send

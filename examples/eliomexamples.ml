@@ -184,20 +184,40 @@ let sendany =
   Any.register_new_service 
     ~url:["sendany2"]
     ~get_params:(string "type")
-   (fun _ s () -> 
+   (fun sp s () -> 
      if s = "nocookie"
      then
        return
          (Xhtml.send
+            sp
            (html
              (head (title (pcdata "")) [])
              (body [p [pcdata "This page does not set cookies"]])))
      else 
        return
          (Xhtml.Cookies.send
+            sp
             ((html
                 (head (title (pcdata "")) [])
                 (body [p [pcdata "This page does set a cookie"]])),
              [None, [(("arf"),(string_of_int (Random.int 100)))]]))
    )
 
+(* Send file *)
+let _ = 
+  register_new_service 
+    ~url:["files";""]
+    ~get_params:unit
+    (fun _ () () -> 
+      return 
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "With a suffix, that page will send a file"]])))
+
+let sendfile2 = 
+  Files.register_new_service 
+    ~url:["files";""]
+    ~get_params:suffix_only
+    (fun _ s () -> 
+      print_endline ("-> /var/www/ocsigen/"^(string_of_url_path s));
+      return ("/var/www/ocsigen/"^(string_of_url_path s)))

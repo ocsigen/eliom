@@ -63,7 +63,8 @@ type request_info =
      ri_user_agent: string;    (** User_agent of the browser *)
      ri_cookies: (string * string) list Lazy.t; (** Cookie sent by the browser *)
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
-     ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)}
+     ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)
+   }
 
 type result =
     {res_cookies: (string list option (* path *) * (string * string) list) list; (** cookies to set (with optional path) *)

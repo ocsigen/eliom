@@ -412,7 +412,8 @@ let get_request_infos http_frame filenames sockaddr port =
      ri_user_agent = useragent;
      ri_cookies = cookies;
      ri_ifmodifiedsince = ifmodifiedsince;
-     ri_http_frame = http_frame}
+     ri_http_frame = http_frame;
+   }
       
   with e ->
     (Messages.debug ("~~~ Exn during get_request_infos : "^

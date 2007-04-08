@@ -24,6 +24,7 @@ open Lwt
 open Predefined_senders
 open Ocsistream
 open Xhtml1_strict
+open Extensions
 
 let add_css (a : html) : html = 
   let css = 
@@ -89,11 +90,16 @@ module Xhtmlreg_ = struct
 
   type page = html
 
-  let send ~cookies content = 
-    ((Predefined_senders.SP
-        (Predefined_senders.create_xhtml_sender,
-         send_ocamlduce_page ~content:content)),
-     cookies)
+  let send ~cookies sp content = 
+    Eliommod.EliomResult
+      {res_cookies= cookies;
+       res_lastmodified= None;
+       res_etag= None;
+       res_code= None;
+       res_send_page= send_ocamlduce_page ~content:content;
+       res_create_sender= Predefined_senders.create_xhtml_sender;
+       res_charset= Eliom.get_config_file_charset sp
+     }
 
 end
 

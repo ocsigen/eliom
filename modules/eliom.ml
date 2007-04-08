@@ -51,6 +51,7 @@ let get_port (ri,_,_) = ri.ri_port
 let get_other_get_params (_,si,_) = si.si_other_get_params
 let get_suffix (_,_,(_,_,_,s)) = s
 let get_exn (_,si,_) = si.si_exn
+let get_config_file_charset (_,si,_) = si.si_config_file_charset
 let get_cookies (ri,_,_) = force ri.ri_cookies
 
 let get_default_timeout = Eliommod.get_default_timeout
@@ -704,11 +705,7 @@ module type REGCREATE =
 
     type page
 
-    (* send may need other parameters, like sp in the future ... *)
-    val send : 
-        cookies:cookieslist ->
-          page ->
-            Predefined_senders.result_to_send * cookieslist
+    val send :  cookies:cookieslist -> server_params -> page -> result_to_send
 
   end
 
@@ -909,7 +906,7 @@ module type ELIOMREGSIG1 =
 
     type page
 
-    val send : page -> Predefined_senders.result_to_send * cookieslist
+    val send : server_params -> page -> result_to_send
 
     val register :
         service:('get, 'post,
@@ -1173,13 +1170,13 @@ module MakeRegister = functor
 
       type page = Pages.page
 
-      let send c = Pages.send ~cookies:[] c
+      let send sp c = Pages.send ~cookies:[] sp c
 
       module Cookies = struct
         
         type page = Pages.page * cookieslist
               
-        let send (p, cl) = Pages.send ~cookies:cl p
+        let send sp (p, cl) = Pages.send ~cookies:cl sp p
 
 
         let register_aux
@@ -1223,7 +1220,8 @@ module MakeRegister = functor
                            Eliom_Typing_Error l -> error_handler sp l
                          | e -> fail e)) >>=
                     (fun (content, cookies_to_set) -> 
-                      return (Pages.send ~cookies:cookies_to_set content)))))
+                      return (Pages.send 
+                                ~cookies:cookies_to_set sp content)))))
           | `Nonattached naser ->
               add_naservice 
 	        tables
@@ -1255,7 +1253,8 @@ module MakeRegister = functor
                           Eliom_Typing_Error l -> error_handler sp l
                         | e -> fail e)) >>=
                    (fun (content, cookies_to_set) -> 
-                     return (Pages.send ~cookies:cookies_to_set content))))
+                     return (Pages.send 
+                               ~cookies:cookies_to_set sp content))))
 
 
         let register ~service ?error_handler page_gen =
@@ -2093,11 +2092,16 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
-   let send ~cookies content = 
-     ((Predefined_senders.SP 
-         (Predefined_senders.create_xhtml_sender,
-          Predefined_senders.send_xhtml_page ~content:content)),
-      cookies)
+   let send ~cookies sp content = 
+     EliomResult 
+       {res_cookies= cookies;
+        res_lastmodified= None;
+        res_etag= None;
+        res_code= None;
+        res_send_page= Predefined_senders.send_xhtml_page ~content:content;
+        res_create_sender= Predefined_senders.create_xhtml_sender;
+        res_charset= get_config_file_charset sp
+      }
 
 end
 
@@ -2477,11 +2481,16 @@ module Textreg_ = struct
 
   type page = string
 
-  let send ~cookies content = 
-    ((Predefined_senders.SP
-        (Predefined_senders.create_xhtml_sender,
-         Predefined_senders.send_text_page ~content:content)),
-     cookies)
+  let send ~cookies sp content = 
+    EliomResult
+      {res_cookies= cookies;
+       res_lastmodified= None;
+       res_etag= None;
+       res_code= None;
+       res_send_page= Predefined_senders.send_text_page ~content:content;
+       res_create_sender= Predefined_senders.create_xhtml_sender;
+       res_charset= get_config_file_charset sp
+     }
 
 end
 
@@ -2631,8 +2640,8 @@ module Actionreg_ = struct
 
   type page = exn list
 
-  let send ~cookies content =
-    ((Predefined_senders.EX content), cookies)
+  let send ~cookies sp content =
+    EliomExn (content, cookies)
 
 end
 
@@ -2647,11 +2656,16 @@ module Unitreg_ = struct
 
   type page = unit
 
-  let send ~cookies content = 
-    ((Predefined_senders.SP
-        (Predefined_senders.create_empty_sender,
-         Predefined_senders.send_empty ~content:content)),
-     cookies)
+  let send ~cookies sp content = 
+    EliomResult
+      {res_cookies= cookies;
+       res_lastmodified= None;
+       res_etag= None;
+       res_code= None;
+       res_send_page= Predefined_senders.send_empty ~content:content;
+       res_create_sender= Predefined_senders.create_empty_sender;
+       res_charset= None
+     }
 
 end
 
@@ -2675,20 +2689,26 @@ module Redirreg_ = struct
 
   type page = string
 
-  let send ~cookies content =
-    ((Predefined_senders.SP
-        (Predefined_senders.create_empty_sender,
-         (fun ?cookies waiter ?code ?etag ~keep_alive
-             ?last_modified ?location ?head ?charset s ->
-               Predefined_senders.send_empty
-                 ~content:() 
-                 ?cookies
-                 waiter ~code:301 (* Moved permanently *) 
-                 ?etag ~keep_alive
-                 ?last_modified 
-                 ~location:content
-                 ?head ?charset s))),
-       cookies)
+  let send ~cookies sp content =
+    EliomResult
+      {res_cookies= cookies;
+       res_lastmodified= None;
+       res_etag= None;
+       res_code= None;
+       res_send_page= 
+       (fun ?cookies waiter ?code ?etag ~keep_alive
+           ?last_modified ?location ?head ?charset s ->
+             Predefined_senders.send_empty
+               ~content:() 
+               ?cookies
+               waiter ~code:301 (* Moved permanently *) 
+               ?etag ~keep_alive
+               ?last_modified 
+               ~location:content
+               ?head ?charset s);
+       res_create_sender= Predefined_senders.create_empty_sender;
+       res_charset= None
+     }
 
 end
 
@@ -2703,14 +2723,15 @@ module Anyreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = Predefined_senders.result_to_send * cookieslist
+  type page = result_to_send
 
-  let send ~cookies content = 
+  let send ~cookies sp content = 
     match content with
-      ((Predefined_senders.SP (a, f)), c) ->
-        (Predefined_senders.SP (a, f), c@cookies)
-    | ((Predefined_senders.EX e), c) -> 
-        ((Predefined_senders.EX e), c@cookies)
+      EliomResult res ->
+        EliomResult
+          {res with res_cookies=cookies@res.res_cookies}
+    | EliomExn (e, c) -> 
+        EliomExn (e, cookies@c)
 
 end
 
@@ -2724,16 +2745,16 @@ module Filesreg_ = struct
 
   type page = string
 
-  let send ~cookies filename = 
+  let send ~cookies sp filename = 
     let (filename, stat) =
       (try
         (* That piece of code has been pasted from staticmod.ml *)
         let stat = Unix.LargeFile.stat filename in
         let (filename, stat) = 
           Messages.debug ("Eliom.Files - Testing \""^filename^"\".");
+          let path = get_current_path sp in
           if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
           then 
-            (* Do we want this here?
             if (filename.[(String.length filename) - 1]) = '/'
             then
               let fn2 = filename^"index.html" in
@@ -2746,8 +2767,7 @@ module Filesreg_ = struct
                 Messages.debug ("Eliom.Files - Testing \""^fn2^"\".");
                 (fn2,(Unix.LargeFile.stat fn2))
               else (Messages.debug ("Eliom.Files - "^filename^" is a directory");
-                    raise Ocsigen_Is_a_directory)) *)
-            raise Ocsigen_Is_a_directory
+                    raise Ocsigen_Is_a_directory))
           else (filename, stat)
         in
         Messages.debug ("Eliom.Files - Looking for \""^filename^"\".");
@@ -2765,11 +2785,16 @@ module Filesreg_ = struct
       | Ocsigen_malformed_url as e -> raise e
       | e -> raise Ocsigen_404)
     in
-      ((Predefined_senders.SP
-          (Predefined_senders.create_file_sender,
-           (Predefined_senders.send_file 
-              ~content:filename))),
-       cookies)
+    EliomResult
+      {res_cookies= cookies;
+       res_lastmodified= (Some stat.Unix.LargeFile.st_mtime);
+       res_etag= (Some (Predefined_senders.File_content.get_etag filename));
+       res_code= None;
+       res_send_page= Predefined_senders.send_file ~content:filename;
+       res_create_sender= Predefined_senders.create_file_sender;
+       res_charset= get_config_file_charset sp
+     }
+
 
 end
 

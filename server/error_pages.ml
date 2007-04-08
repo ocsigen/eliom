@@ -18,6 +18,8 @@
 
 open XHTML.M
 
+let charset = None
+
 let page_error_param_type l = 
   let s = match l with
     [] -> [pcdata "Wrong type for parameter"]

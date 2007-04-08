@@ -371,10 +371,6 @@ let send_xhtml_page ~content ?cookies waiter ?code ?etag ~keep_alive
     ~content 
     ?head xhtml_sender Xhtml_sender.send
   
-type result_to_send = 
-    SP of create_sender_type * send_page_type
-  | EX of exn list
-
 
 (** fonction that sends an empty answer
  * code is the code of the http answer
