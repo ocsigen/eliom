@@ -699,6 +699,7 @@ module type REGCREATE =
 
     type page
 
+    (* send may need other parameters, like sp in the future ... *)
     val send : 
         cookies:cookieslist ->
           page ->
@@ -2675,12 +2676,13 @@ module Redirreg_ = struct
   let send ~cookies content =
     ((Predefined_senders.SP
         (Predefined_senders.create_empty_sender,
-         (fun ~cookies waiter ?code ?etag ~keep_alive
+         (fun ?cookies waiter ?code ?etag ~keep_alive
              ?last_modified ?location ?head ?charset s ->
                Predefined_senders.send_empty
-                 ~content:() waiter ~code:301 (* Moved permanently *) 
+                 ~content:() 
+                 ?cookies
+                 waiter ~code:301 (* Moved permanently *) 
                  ?etag ~keep_alive
-                 ~cookies
                  ?last_modified 
                  ~location:content
                  ?head ?charset s))),

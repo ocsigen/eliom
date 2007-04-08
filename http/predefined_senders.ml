@@ -275,7 +275,7 @@ let gmtdate d =
 * xhtml_sender is the used sender*)
 let send_generic
     waiter
-    ?code ?etag ~keep_alive ~cookies ?last_modified 
+    ?code ?etag ?(cookies=[]) ~keep_alive ?last_modified 
     ?contenttype
     ?charset
     ?location ?(header=[]) ?head ~content sender 
@@ -345,7 +345,7 @@ type create_sender_type = ?server_name:string ->
     ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
 
 type send_page_type =
-    cookies:(string list option * (string * string) list) list ->
+    ?cookies:(string list option * (string * string) list) list ->
       unit Lwt.t ->
         ?code:int ->
           ?etag:etag ->
@@ -362,10 +362,10 @@ type send_page_type =
  * string value (the path) and list of string pairs (name, value)   
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_xhtml_page ~content ~cookies waiter ?code ?etag ~keep_alive
+let send_xhtml_page ~content ?cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter ?etag
-    ?code ~keep_alive ~cookies ?location ?last_modified
+    ?code ~keep_alive ?cookies ?location ?last_modified
     ~contenttype:"text/html"
     ?charset
     ~content 
@@ -382,24 +382,24 @@ type result_to_send =
  * cookie is a string value that give a value to the session cookie
  * page is the page to send
  * empty_sender is the used sender *)
-let send_empty ~content ~cookies waiter ?code ?etag ~keep_alive
+let send_empty ~content ?cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset empty_sender =
   send_generic waiter ?etag ?last_modified
-    ?code ~keep_alive ~cookies ?location
+    ?code ?cookies ~keep_alive ?location
     (*~contenttype:? ~charset:?*) ~content
     ?head empty_sender Empty_sender.send
 
-let send_text_page ~content ~cookies waiter ?code ?etag ~keep_alive
+let send_text_page ~content ?cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter
-    ?etag ?code ~keep_alive ~cookies ?location ?last_modified
+    ?etag ?code ?cookies ~keep_alive ?location ?last_modified
     (*~contenttype:? ~charset:?*) ~content ?head xhtml_sender Text_sender.send
   
   
 
 (** sends an error page that fit the error number *)
 let send_error ?(http_exception) ?(error_num=500) 
-    ~cookies waiter ?code ?etag ~keep_alive
+    ?cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset xhtml_sender =
   let (error_code,error_msg) =
     (
@@ -430,7 +430,7 @@ let send_error ?(http_exception) ?(error_num=500)
   
   in
   send_xhtml_page
-    ~content:err_page ~cookies waiter ~code:error_code ?etag ~keep_alive
+    ~content:err_page ?cookies waiter ~code:error_code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset xhtml_sender
 
 (** this function creates a sender that send http_frame with file content *)
@@ -495,12 +495,12 @@ let content_type_from_file_name =
       in Hashtbl.find mimeht extens
     with _ -> "unknown" 
 
-let send_file ~content:file ~cookies waiter ?code ?etag ~keep_alive
+let send_file ~content:file ?cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset file_sender =
   Lwt_unix.yield () >>=
   (fun () ->
     send_generic waiter
-      ?etag ?code ~keep_alive ~cookies ?location ?last_modified
+      ?etag ?code ?cookies ~keep_alive ?location ?last_modified
       ~contenttype:(content_type_from_file_name file)
       ?charset
       ~content:file ?head file_sender File_sender.send)

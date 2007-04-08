@@ -23,7 +23,7 @@ type create_sender_type =
     ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
 
 type send_page_type =
-    cookies:(string list option * (string * string) list) list ->
+    ?cookies:(string list option * (string * string) list) list ->
     unit Lwt.t ->
     ?code:int ->
     ?etag:Http_frame.etag ->
@@ -560,8 +560,8 @@ val send_generic :
   unit Lwt.t ->
   ?code:int ->
   ?etag:Http_frame.etag ->
+  ?cookies:(string list option * (string * string) list) list ->
   keep_alive:bool ->
-  cookies:(string list option * (string * string) list) list ->
   ?last_modified:float ->
   ?contenttype:string ->
   ?charset:string ->

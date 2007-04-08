@@ -75,10 +75,10 @@ module Ocamlduce_sender = FHttp_sender(Ocamlduce_content)
  * path is the path associated to the cookie
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_ocamlduce_page ~content ~cookies waiter ?code ?etag ~keep_alive
+let send_ocamlduce_page ~content ?cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter ?etag
-    ?code ~keep_alive ~cookies ?location ?last_modified
+    ?code ?cookies ~keep_alive ?location ?last_modified
     ~contenttype:"text/html"
     ?charset
     ~content ?head xhtml_sender Ocamlduce_sender.send
