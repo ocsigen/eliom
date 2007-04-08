@@ -146,6 +146,7 @@ let form2 = register_new_service ["postco"] unit
          (head (title (pcdata "form")) [])
          (body [f])))
 
+
 (* Many cookies *)
 let cookiename = "c"
 
@@ -176,3 +177,26 @@ let _ = Cookies.register cookies
                 ((cookiename^"11"),(string_of_int (Random.int 100)));
                 ((cookiename^"12"),(string_of_int (Random.int 100)))]);
       ]))
+
+
+(* Cookies or not cookies with Any *)
+let sendany = 
+  Any.register_new_service 
+    ~url:["sendany2"]
+    ~get_params:(string "type")
+   (fun _ s () -> 
+     if s = "nocookie"
+     then
+       return
+         (Xhtml.send
+           (html
+             (head (title (pcdata "")) [])
+             (body [p [pcdata "This page does not set cookies"]])))
+     else 
+       return
+         (Xhtml.Cookies.send
+            ((html
+                (head (title (pcdata "")) [])
+                (body [p [pcdata "This page does set a cookie"]])),
+             [None, [(("arf"),(string_of_int (Random.int 100)))]]))
+   )

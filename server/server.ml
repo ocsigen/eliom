@@ -133,29 +133,29 @@ let handle_light_request_errors
       
       (* Request errors: we answer, then we close *)
       Http_error.Http_exception (_,_) ->
-        send_error now
+        send_error now ~cookies:[]
           ~keep_alive:false ~http_exception:exn xhtml_sender >>=
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_header_too_long ->
         Messages.debug "-> Sending 400";
         (* 414 URI too long. Actually, it is "header too long..." *)
-        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        send_error now ~cookies:[] ~keep_alive:false ~error_num:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Request_too_long ->
         Messages.debug "-> Sending 400";
-        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        send_error now ~cookies:[] ~keep_alive:false ~error_num:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Bad_Request ->
         Messages.debug "-> Sending 400";
-        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        send_error now ~cookies:[] ~keep_alive:false ~error_num:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_upload_forbidden ->
         Messages.debug "-> Sending 403 Forbidden";
-        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        send_error now ~cookies:[] ~keep_alive:false ~error_num:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_unsupported_media ->
         Messages.debug "-> Sending 415";
-        send_error now ~keep_alive:false ~error_num:415 xhtml_sender >>= 
+        send_error now ~cookies:[] ~keep_alive:false ~error_num:415 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
 
     (* Now errors that close the socket: we raise the exception again: *)
@@ -511,10 +511,10 @@ let service
                 Messages.debug "-> Sending 304 Not modified ";
                 send_empty
                   ~content:()
+                  ~cookies:(res.res_cookies@cookieslist)
                   wait_end_answer
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified
-                  ~cookies:(res.res_cookies@cookieslist)
                   ?etag:res.res_etag
                   ~code:304 (* Not modified *)
                   ~head:head 
@@ -522,10 +522,10 @@ let service
                   
             | _ ->
                 res.res_send_page
+                  ~cookies:(res.res_cookies@cookieslist)
                   wait_end_answer
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified
-                  ~cookies:(res.res_cookies@cookieslist)
                   ?code:res.res_code
                   ?charset:res.res_charset
                   ~head:head
@@ -547,12 +547,13 @@ let service
                 Ocsigen_404 -> 
                   Messages.debug "-> Sending 404 Not Found";
                   send_error 
-                    wait_end_answer ~keep_alive:ka ~error_num:404 xhtml_sender
+                    wait_end_answer ~cookies:[] ~keep_alive:ka ~error_num:404 xhtml_sender
               | Ocsigen_sending_error exn -> fail exn
               | Ocsigen_Is_a_directory -> 
                   Messages.debug "-> Sending 301 Moved permanently";
                   send_empty
                     ~content:()
+                    ~cookies:[]
                     wait_end_answer
                     ~keep_alive:ka
                     ~location:(ri.ri_path_string^"/"^ri.ri_params)
@@ -561,15 +562,15 @@ let service
               | Extensions.Ocsigen_malformed_url
               | Neturl.Malformed_URL -> 
                   Messages.debug "-> Sending 400 (Malformed URL)";
-                  send_error wait_end_answer ~keep_alive:ka
+                  send_error wait_end_answer ~cookies:[] ~keep_alive:ka
                     ~error_num:400 xhtml_sender (* Malformed URL *)
               | Unix.Unix_error (Unix.EACCES,_,_) ->
                   Messages.debug "-> Sending 303 Forbidden";
-                  send_error wait_end_answer ~keep_alive:ka
+                  send_error wait_end_answer ~cookies:[] ~keep_alive:ka
                     ~error_num:403 xhtml_sender (* Forbidden *)
               | Stream_already_read ->
                   Messages.errlog "Cannot read the request twice. You probably have two incompatible extensions, or the order of the extensions in the config file is wrong.";
-                  send_error wait_end_answer ~keep_alive:ka
+                  send_error wait_end_answer ~cookies:[] ~keep_alive:ka
                     ~error_num:500 xhtml_sender (* Internal error *)
               | e ->
                   Messages.warning
@@ -582,7 +583,7 @@ let service
                      ^" (sending 500)"); 
                   Messages.debug "-> Sending 500";
                   send_error
-                    wait_end_answer ~keep_alive:ka ~error_num:500 xhtml_sender)
+                    wait_end_answer ~cookies:[] ~keep_alive:ka ~error_num:500 xhtml_sender)
             (fun e -> fail (Ocsigen_sending_error e))
             (* All generation exceptions have been handled here *)
         ) >>=
@@ -604,7 +605,7 @@ let service
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
       (meth <> Some(Http_header.HEAD)))
-  then send_error wait_end_answer ~keep_alive:ka ~error_num:501 xhtml_sender
+  then send_error wait_end_answer ~cookies:[] ~keep_alive:ka ~error_num:501 xhtml_sender
   else 
     catch
 
@@ -647,7 +648,7 @@ let service
              (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
              then consume http_frame.Stream_http_frame.content >>=
              (fun () ->
-             send_error wait_end_answer ~keep_alive:ka ~error_num:501 xhtml_sender)
+             send_error wait_end_answer ~cookies:[] ~keep_alive:ka ~error_num:501 xhtml_sender)
              else serv ()) *)
 
       (function

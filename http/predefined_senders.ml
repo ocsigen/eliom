@@ -275,7 +275,7 @@ let gmtdate d =
 * xhtml_sender is the used sender*)
 let send_generic
     waiter
-    ?code ?etag ~keep_alive ?(cookies = []) ?last_modified 
+    ?code ?etag ~keep_alive ~cookies ?last_modified 
     ?contenttype
     ?charset
     ?location ?(header=[]) ?head ~content sender 
@@ -345,11 +345,11 @@ type create_sender_type = ?server_name:string ->
     ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
 
 type send_page_type =
-    unit Lwt.t ->
-      ?code:int ->
-        ?etag:etag ->
-          keep_alive:bool ->
-            ?cookies: (string list option * (string * string) list) list ->
+    cookies:(string list option * (string * string) list) list ->
+      unit Lwt.t ->
+        ?code:int ->
+          ?etag:etag ->
+            keep_alive:bool ->
               ?last_modified:float ->
                 ?location:string -> 
                   ?head:bool -> 
@@ -362,10 +362,10 @@ type send_page_type =
  * string value (the path) and list of string pairs (name, value)   
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_xhtml_page ~content waiter ?code ?etag ~keep_alive ?cookies
+let send_xhtml_page ~content ~cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter ?etag
-    ?code ~keep_alive ?cookies ?location ?last_modified
+    ?code ~keep_alive ~cookies ?location ?last_modified
     ~contenttype:"text/html"
     ?charset
     ~content 
@@ -382,23 +382,25 @@ type result_to_send =
  * cookie is a string value that give a value to the session cookie
  * page is the page to send
  * empty_sender is the used sender *)
-let send_empty ~content waiter ?code ?etag ~keep_alive ?cookies 
+let send_empty ~content ~cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset empty_sender =
   send_generic waiter ?etag ?last_modified
-    ?code ~keep_alive ?cookies ?location
+    ?code ~keep_alive ~cookies ?location
     (*~contenttype:? ~charset:?*) ~content
     ?head empty_sender Empty_sender.send
 
-let send_text_page ~content waiter ?code ?etag ~keep_alive ?cookies
+let send_text_page ~content ~cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter
-    ?etag ?code ~keep_alive ?cookies ?location ?last_modified
+    ?etag ?code ~keep_alive ~cookies ?location ?last_modified
     (*~contenttype:? ~charset:?*) ~content ?head xhtml_sender Text_sender.send
   
   
 
 (** sends an error page that fit the error number *)
-let send_error waiter ?(http_exception) ?(error_num=500) xhtml_sender =
+let send_error ?(http_exception) ?(error_num=500) 
+    ~cookies waiter ?code ?etag ~keep_alive
+    ?last_modified ?location ?head ?charset xhtml_sender =
   let (error_code,error_msg) =
     (
       match http_exception with
@@ -422,12 +424,14 @@ let send_error waiter ?(http_exception) ?(error_num=500) xhtml_sender =
   let str_code = string_of_int error_code in
   let err_page =
     (html
-       (head (title (pcdata "")) [])
+       (XHTML.M.head (title (pcdata "Error")) [])
        (body [h1 [pcdata str_code];
               p [pcdata error_msg]]))
   
   in
-  send_xhtml_page waiter ~code:error_code ~content:err_page xhtml_sender
+  send_xhtml_page
+    ~content:err_page ~cookies waiter ~code:error_code ?etag ~keep_alive
+    ?last_modified ?location ?head ?charset xhtml_sender
 
 (** this function creates a sender that send http_frame with file content *)
 let create_file_sender ?server_name ?proto fd =
@@ -491,12 +495,12 @@ let content_type_from_file_name =
       in Hashtbl.find mimeht extens
     with _ -> "unknown" 
 
-let send_file ~content:file waiter ?code ?etag ~keep_alive ?cookies
+let send_file ~content:file ~cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset file_sender =
   Lwt_unix.yield () >>=
   (fun () ->
     send_generic waiter
-      ?etag ?code ~keep_alive ?cookies ?location ?last_modified
+      ?etag ?code ~keep_alive ~cookies ?location ?last_modified
       ~contenttype:(content_type_from_file_name file)
       ?charset
       ~content:file ?head file_sender File_sender.send)

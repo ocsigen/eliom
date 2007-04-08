@@ -1389,6 +1389,46 @@ let redir = Redirections.register_new_service
 (*html*
       <p>Try $a Tutoeliom.redir sp <:xmllist< <code>it</code> >> 11$.</p>
     </div>
+     <h3>Sending files</h3>
+      <p>You may want to register a service that will send a file.
+      To do that, use the <code>Files</code> module. Example:
+      </p>
+*html*)
+let sendfile = 
+  Files.register_new_service 
+    ~url:["sendfile"]
+    ~get_params:unit
+    (fun _ () () -> return "/tmp/warnings.log")
+(*html*
+     <h3>Registering services that decide what they want to send</h3>
+      <p>You may want to register a service that will send sometimes
+      an xhtml page, sometimes a file, sometimes something else.
+      To do that, use the <code>Any</code> module, together
+      with the <code>send</code> function of the module you want
+      to use. Example:
+      </p>
+*html*)
+let sendany = 
+  Any.register_new_service 
+    ~url:["sendany"]
+    ~get_params:(string "type")
+   (fun _ s () -> 
+     if s = "valid"
+     then
+       return
+         (Xhtml.send
+           (html
+             (head (title (pcdata "")) [])
+             (body [p [pcdata "This page has been statically typechecked. \
+                               If you change the parameter in the URL you \
+                               will get an unchecked text page"]])))
+     else 
+       return
+         (Text.send "<html><body><p>It is not a valid page. Put \
+                     type=\"valid\" in the URL to get a typechecked page.\
+                     </p></body></html>")
+   )
+(*html*
     <div class="twocol2">
      <h3>Cookies</h3>
      <p>
@@ -2071,6 +2111,12 @@ let _ = register main
              $a redir sp <:xmllist< redir >> 11$<br/>
        Cookies:
              $a cookies sp <:xmllist< cookies >> ()$<br/>
+       Disposable coservices:
+             $a disposable sp <:xmllist< disposable >> ()$<br/>
+       Sending file using Eliom:
+             $a sendfile sp <:xmllist< sendfile >> ()$<br/>
+       The following URL send either a statically checked page, or a text page:
+             $a sendany sp <:xmllist< sendany >> "valid"$<br/>
        </p>
        </body>
      </html> >>)

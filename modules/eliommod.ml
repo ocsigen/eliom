@@ -45,8 +45,8 @@ type sess_info =
 
 type 'a server_params1 = 
     request_info * sess_info * 
-      (current_dir *
-         'a ref (* sesseion table ref *) * 
+      (current_dir (* main directory of the site *) *
+         'a ref (* session table ref *) * 
          float option option ref (* user timeout *) *
          url_path (* suffix *))
       
@@ -331,7 +331,7 @@ let find_page_table
           (fun () ->
             Messages.debug "- I'm trying a service";
             funct (sp0, si, (working_dir, s, tim, u)) >>=
-            (fun (p, cookies_to_set) -> 
+            (fun p -> 
               Messages.debug "- Page found and generated successfully";
               let newlist =
                 (match max_use with
@@ -341,7 +341,7 @@ let find_page_table
                     else (r := !r - 1; ll)
                 | _ -> ll)
               in
-              Lwt.return ((p, working_dir, cookies_to_set), newlist)))
+              Lwt.return ((p, working_dir), newlist)))
           (function
               Eliom_Wrong_parameter -> 
                 aux l >>= (fun (r,ll) -> Lwt.return (r, a::ll))
@@ -633,7 +633,7 @@ let execute generate_page ip cookie (globtable, cookie_table) =
         with Not_found -> ((ref (new_session_tables ())), None, ref None))
   in
   generate_page globtable sessiontablesref user_timeout_optref >>=
-  (fun ((result_to_send, working_dir, cookies_to_set), 
+  (fun ((result, working_dir), 
         lastmod, etag) ->
     let cookie2 = 
       if are_empty_tables !sessiontablesref
@@ -671,8 +671,7 @@ let execute generate_page ip cookie (globtable, cookie_table) =
       else None
     in return 
       ((cookie3, 
-        result_to_send, 
-        cookies_to_set,
+        result, 
         working_dir),
        lastmod,
        etag))
@@ -755,7 +754,7 @@ let get_page
                                   },
                                    cookies_to_set (* no new cookie *))))
                   | e -> fail e)
-          | e -> fail e)) >>= (fun r -> return (r,None,None)))
+          | e -> fail e)) >>= (fun r -> return (r, None, None)))
   in (generate_page, ri.ri_inet_addr, si.si_cookie, page_tree)
 
 
@@ -814,7 +813,7 @@ let make_naservice
             ri
             []
             si)) >>=
-      (fun (r, cookies_to_set) -> 
+      (fun r -> 
         Messages.debug "- Non attached page found and generated successfully";
         (match max_use with
           None -> ()
@@ -822,7 +821,7 @@ let make_naservice
             if !r = 1
             then remove_naservice !session_tables_ref si.si_nonatt_info
             else r := !r - 1);
-        return ((r, working_dir, cookies_to_set), None, None)))
+        return ((r, working_dir), None, None)))
   in (generate_page, ri.ri_inet_addr, si.si_cookie, page_tree)
     
 
@@ -844,15 +843,16 @@ let gen page_tree charset ri =
     catch 
       (fun () ->
         execute gen ia c pt >>=
-	fun ((new_cookie, result_to_send, new_cookies_to_set, path),lm,etag) ->
-          let new_cookies_to_set =
+	fun ((new_cookie, (result_to_send, cookies_set_by_page), 
+              path),lm,etag) ->
+          let cookies_set_by_page =
             List.map (fun (pathopt,cl) -> 
               ((match pathopt with
                 None -> Some path (* Not possible to set a cookie for another site (?) *)
               | Some p -> Some (path@p)
-               ),cl)) new_cookies_to_set
+               ),cl)) cookies_set_by_page
           in
-          let cookies_to_set = new_cookies_to_set@old_cookies_to_set in
+          let cookies_to_set = cookies_set_by_page@old_cookies_to_set in
           let all_new_cookies =
             match new_cookie with
               None -> cookies_to_set
@@ -889,7 +889,7 @@ let gen page_tree charset ri =
                            List.fold_left
                              (fun l (_, cl) -> cl@l)
                              (force ri.ri_cookies)
-                             new_cookies_to_set
+                             cookies_set_by_page
                          in
                          ({ri with
                            ri_post_params = lazy (return []);

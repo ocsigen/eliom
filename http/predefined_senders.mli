@@ -23,11 +23,11 @@ type create_sender_type =
     ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
 
 type send_page_type =
+    cookies:(string list option * (string * string) list) list ->
     unit Lwt.t ->
     ?code:int ->
     ?etag:Http_frame.etag ->
     keep_alive:bool ->
-    ?cookies:(string list option * (string * string) list) list ->
     ?last_modified:float ->
     ?location:string -> 
     ?head:bool -> 
@@ -48,8 +48,7 @@ val send_file : content: string -> send_page_type
 val send_empty : content: unit -> send_page_type
 
 (** Sending a text page *)
-val send_text_page :
-  content:string -> send_page_type
+val send_text_page : content:string -> send_page_type
 
 (** Creating an xhtml (or text) sender *)
 val create_xhtml_sender : create_sender_type
@@ -65,9 +64,8 @@ exception Stream_already_read
 
 (** Sending an error page *)
 val send_error :
-  unit Lwt.t ->
-  ?http_exception:exn ->
-  ?error_num:int -> Http_com.sender_type -> keep_alive:bool -> unit Lwt.t
+    ?http_exception:exn ->
+      ?error_num:int -> send_page_type
 
 module Xhtml_content :
   sig
@@ -563,7 +561,7 @@ val send_generic :
   ?code:int ->
   ?etag:Http_frame.etag ->
   keep_alive:bool ->
-  ?cookies:(string list option * (string * string) list) list ->
+  cookies:(string list option * (string * string) list) list ->
   ?last_modified:float ->
   ?contenttype:string ->
   ?charset:string ->

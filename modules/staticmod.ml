@@ -93,8 +93,9 @@ let find_static_page staticdirref path =
   let find_file = function
       None -> raise Ocsigen_404
     | Some filename ->
+        (* See also module Files in eliom.ml *)
         let stat= Unix.LargeFile.stat filename in
-        let (filename,stat) = 
+        let (filename, stat) = 
           Messages.debug ("- Testing \""^filename^"\".");
           if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
           then 
@@ -119,7 +120,7 @@ let find_static_page staticdirref path =
               = Unix.S_REG)
         then begin
           Unix.access filename [Unix.R_OK];
-          (filename,stat)
+          (filename, stat)
         end
         else raise Ocsigen_404 (* ??? *)
   in
@@ -132,7 +133,7 @@ let gen pages_tree charset ri =
       if ri.ri_params = "" (* static pages do not have parameters *)
       then begin
         Messages.debug ("--- Is it a static file?");
-        let filename,stat =
+        let (filename, stat) =
           find_static_page pages_tree ri.ri_path
         in
         return

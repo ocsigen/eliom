@@ -699,7 +699,10 @@ module type REGCREATE =
 
     type page
 
-    val send : content:page -> Predefined_senders.result_to_send
+    val send : 
+        cookies:cookieslist ->
+          page ->
+            Predefined_senders.result_to_send * cookieslist
 
   end
 
@@ -897,8 +900,9 @@ module type ELIOMREGSIG1 =
 (* pasted from mli *)
   sig
 
-
     type page
+
+    val send : page -> Predefined_senders.result_to_send * cookieslist
 
     val register :
         service:('get, 'post,
@@ -1163,10 +1167,15 @@ module MakeRegister = functor
 
       type page = Pages.page
 
+      let send c = Pages.send ~cookies:[] c
+
       module Cookies = struct
         
         type page = Pages.page * cookieslist
-            
+              
+        let send (p, cl) = Pages.send ~cookies:cl p
+
+
         let register_aux
             current_dir
             tables
@@ -1208,8 +1217,7 @@ module MakeRegister = functor
                            Eliom_Typing_Error l -> error_handler sp l
                          | e -> fail e)) >>=
                     (fun (content, cookies_to_set) -> 
-                      return ((Pages.send ~content:content), 
-                              cookies_to_set)))))
+                      return (Pages.send ~cookies:cookies_to_set content)))))
           | `Nonattached naser ->
               add_naservice 
 	        tables
@@ -1241,7 +1249,7 @@ module MakeRegister = functor
                           Eliom_Typing_Error l -> error_handler sp l
                         | e -> fail e)) >>=
                    (fun (content, cookies_to_set) -> 
-                     return ((Pages.send ~content:content), cookies_to_set))))
+                     return (Pages.send ~cookies:cookies_to_set content))))
 
 
         let register ~service ?error_handler page_gen =
@@ -2082,9 +2090,11 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
-  let send ~content = Predefined_senders.SP 
-      (Predefined_senders.create_xhtml_sender,
-       Predefined_senders.send_xhtml_page ~content)
+   let send ~cookies content = 
+     ((Predefined_senders.SP 
+         (Predefined_senders.create_xhtml_sender,
+          Predefined_senders.send_xhtml_page ~content:content)),
+      cookies)
 
 end
 
@@ -2464,9 +2474,11 @@ module Textreg_ = struct
 
   type page = string
 
-  let send ~content = Predefined_senders.SP
-      (Predefined_senders.create_xhtml_sender,
-       Predefined_senders.send_text_page ~content)
+  let send ~cookies content = 
+    ((Predefined_senders.SP
+        (Predefined_senders.create_xhtml_sender,
+         Predefined_senders.send_text_page ~content:content)),
+     cookies)
 
 end
 
@@ -2616,7 +2628,8 @@ module Actionreg_ = struct
 
   type page = exn list
 
-  let send ~content = Predefined_senders.EX content
+  let send ~cookies content =
+    ((Predefined_senders.EX content), cookies)
 
 end
 
@@ -2631,9 +2644,11 @@ module Unitreg_ = struct
 
   type page = unit
 
-  let send ~content = Predefined_senders.SP
-      (Predefined_senders.create_empty_sender,
-       Predefined_senders.send_empty ~content)
+  let send ~cookies content = 
+    ((Predefined_senders.SP
+        (Predefined_senders.create_empty_sender,
+         Predefined_senders.send_empty ~content:content)),
+     cookies)
 
 end
 
@@ -2657,22 +2672,102 @@ module Redirreg_ = struct
 
   type page = string
 
-  let send ~content =
-    Predefined_senders.SP
-      (Predefined_senders.create_empty_sender,
-       fun waiter ?code ?etag ~keep_alive ?cookies 
-           ?last_modified ?location ?head ?charset s ->
-             Predefined_senders.send_empty
-               ~content:() waiter ~code:301 (* Moved permanently *) 
-               ?etag ~keep_alive ?cookies 
-               ?last_modified 
-               ~location:content
-               ?head ?charset s
-      )
+  let send ~cookies content =
+    ((Predefined_senders.SP
+        (Predefined_senders.create_empty_sender,
+         (fun ~cookies waiter ?code ?etag ~keep_alive
+             ?last_modified ?location ?head ?charset s ->
+               Predefined_senders.send_empty
+                 ~content:() waiter ~code:301 (* Moved permanently *) 
+                 ?etag ~keep_alive
+                 ~cookies
+                 ?last_modified 
+                 ~location:content
+                 ?head ?charset s))),
+       cookies)
 
 end
 
 
 module Redirections = MakeRegister(Redirreg_)
 
+
+(* Any is a module allowing to register service that decide themselves
+   what they want to send.
+ *)
+module Anyreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = Predefined_senders.result_to_send * cookieslist
+
+  let send ~cookies content = 
+    match content with
+      ((Predefined_senders.SP (a, f)), c) ->
+        (Predefined_senders.SP (a, f), c@cookies)
+    | ((Predefined_senders.EX e), c) -> 
+        ((Predefined_senders.EX e), c@cookies)
+
+end
+
+module Any = MakeRegister(Anyreg_)
+
+
+(* Files is a module allowing to register services that send files *)
+module Filesreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = string
+
+  let send ~cookies filename = 
+    let (filename, stat) =
+      (try
+        (* That piece of code has been pasted from staticmod.ml *)
+        let stat = Unix.LargeFile.stat filename in
+        let (filename, stat) = 
+          Messages.debug ("Eliom.Files - Testing \""^filename^"\".");
+          if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
+          then 
+            (* Do we want this here?
+            if (filename.[(String.length filename) - 1]) = '/'
+            then
+              let fn2 = filename^"index.html" in
+              Messages.debug ("Eliom.Files - Testing \""^fn2^"\".");
+              (fn2,(Unix.LargeFile.stat fn2))
+            else
+              (if (path= []) || (path = [""])
+              then 
+                let fn2 = filename^"/index.html" in
+                Messages.debug ("Eliom.Files - Testing \""^fn2^"\".");
+                (fn2,(Unix.LargeFile.stat fn2))
+              else (Messages.debug ("Eliom.Files - "^filename^" is a directory");
+                    raise Ocsigen_Is_a_directory)) *)
+            raise Ocsigen_Is_a_directory
+          else (filename, stat)
+        in
+        Messages.debug ("Eliom.Files - Looking for \""^filename^"\".");
+        
+        if (stat.Unix.LargeFile.st_kind 
+              = Unix.S_REG)
+        then begin
+          Unix.access filename [Unix.R_OK];
+          (filename, stat)
+        end
+        else raise Ocsigen_404 (* ??? *)
+      with
+        (Unix.Unix_error (Unix.EACCES,_,_))
+      | Ocsigen_Is_a_directory
+      | Ocsigen_malformed_url as e -> raise e
+      | e -> raise Ocsigen_404)
+    in
+      ((Predefined_senders.SP
+          (Predefined_senders.create_file_sender,
+           (Predefined_senders.send_file 
+              ~content:filename))),
+       cookies)
+
+end
+
+module Files = MakeRegister(Filesreg_)
 

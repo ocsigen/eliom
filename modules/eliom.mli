@@ -389,7 +389,9 @@ module type REGCREATE =
   sig
     type page
 
-    val send : content:page -> Predefined_senders.result_to_send
+    val send : 
+        cookies:cookieslist ->
+          page ->  Predefined_senders.result_to_send * cookieslist
 
   end
 
@@ -583,6 +585,8 @@ module type ELIOMREGSIG1 =
   sig
 
     type page
+
+    val send : page ->  Predefined_senders.result_to_send * cookieslist
 
     val register :
         service:('get, 'post,
@@ -1097,3 +1101,9 @@ module Unit : ELIOMREGSIG with
 
 module Redirections : ELIOMREGSIG with 
   type page = string
+
+module Files : ELIOMREGSIG with 
+  type page = string
+
+module Any : ELIOMREGSIG with 
+  type page = Predefined_senders.result_to_send * cookieslist
