@@ -231,10 +231,11 @@ val ( ** ) :
         ('a * 'c, [ `WithoutSuffix ], 'b * 'd) params_type
 (** This is a combinator to allow the page to take several parameters (see examples above) Warning: it is a binary operator. Pages cannot take tuples but only pairs. *)
 
-val suffix_only : (string list, [ `WithSuffix ], string list param_name) params_type
+val suffix_only : ?name:string -> unit -> (string list, [ `WithSuffix ], string list param_name) params_type
 (** Tells that the only parameter of the function that will generate the page is the suffix of the URL of the current page. (see {{:#VALregister_new_service}[register_new_service]}) *)
 
 val suffix :
+    ?name:string ->
     ('a, [ `WithoutSuffix ], 'b) params_type ->
       (string list * 'a, [ `WithSuffix ], string list param_name * 'b) params_type
 (** Tells that the function that will generate the page takes a pair whose first element is the suffix of the URL of the current page. (see {{:#VALregister_new_service}[register_new_service]}). e.g. [suffix (int "i" ** string "s")] *)

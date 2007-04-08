@@ -184,8 +184,7 @@ let rec new_cookie table ip =
   with Not_found -> c
 
 type page_table_key =
-    {suffix:bool;
-     state: (internal_state option * internal_state option)}
+    {state: (internal_state option * internal_state option)}
       (* action: tables server_params1 -> page *)
 
       (* module Page_Table = Map.Make(struct type t = page_table_key 
@@ -473,8 +472,7 @@ let add_service (dircontentref,_) current_dir session url_act
              | a::l -> aux search_dircontentref a l *)
   in
 
-  let content = ({suffix = page_table_key.suffix;
-                  state = page_table_key.state},
+  let content = (page_table_key,
                  (unique_id, (max_use, action, current_dir))) in
   (* let current_dircontentref = 
      search_dircontentref dircontentref current_dir) in *)
@@ -515,23 +513,13 @@ let find_service
     try search_page_table !dircontentref (change_empty_list ri.ri_path)
     with Not_found -> raise Ocsigen_404
   in
-  let (suffix, get_param_list) = 
-    if suffix = []
-    then try
-      let s,l = 
-        list_assoc_remove eliom_suffix_name (force ri.ri_get_params) in
-      [s],l
-    with Not_found -> suffix, (force ri.ri_get_params)
-    else suffix, (force ri.ri_get_params) in
-  let pref = suffix <> [] in
   find_page_table 
     page_table_ref
     session_table_ref
     user_timeout_optref
-    {ri with ri_get_params = lazy get_param_list}
+    ri
     suffix
-    {suffix = pref;
-     state = si.si_state_info}
+    {state = si.si_state_info}
     si
 
 
@@ -1066,13 +1054,13 @@ let handle_init_exn = function
      "\". Please correct the module.")
 | Eliom_there_are_unregistered_services s ->
     ("Fatal - Eliom: Some public url have not been registered. \
-              Please correct your modules. (ex: "^s^")")
+       Please correct your modules. (ex: "^s^")")
 | Eliom_function_forbidden_outside_site_loading ->
     ("Fatal - Eliom: Use of forbidden function outside site loading. \
-              (creation of public service for example)")
+       (creation of public service for example)")
 | Eliom_page_erasing s ->
     ("Fatal - Eliom: You cannot create a page or directory here. "^s^
-            " already exists. Please correct your modules.")
+     " already exists. Please correct your modules.")
 | Eliom_error_while_loading_site s ->
     ("Fatal - Eliom: Error while loading site: "^s)
 | e -> raise e

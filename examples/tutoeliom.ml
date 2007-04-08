@@ -443,7 +443,7 @@ let links = register_new_service ["rep";"links"] unit
          a
            (new_external_service
               ~url:["http://fr.wikipedia.org";"wiki";""]
-              ~get_params:suffix_only
+              ~get_params:(suffix_only ())
               ~post_params:unit ()) 
            sp
            [pcdata "ocaml on wikipedia"]
@@ -1403,7 +1403,7 @@ let sendfile =
 let sendfile2 = 
   Files.register_new_service 
     ~url:["files"]
-    ~get_params:suffix_only
+    ~get_params:(suffix_only "suf")
     (fun _ s () -&gt; return ("<em>path</em>"^(string_of_url_path s)))
 </pre>
       <p>The extension <code>Staticmod</code> is another way to

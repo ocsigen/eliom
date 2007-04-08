@@ -51,13 +51,13 @@ NETSYSCMA=
 NETSYSCMXA=
 endif
 
-LIB=$(LIBDIRS)
+# LIB=$(LIBDIRS)
 
+LIB = -package netstring $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB1 = -thread -package netstring,$(NETSYS) $(LIBDIRS)
 PP = 
 PP2 = 
 # -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"

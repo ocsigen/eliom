@@ -60,8 +60,7 @@ type result_to_send =
   | EliomExn of (exn list * cookieslist)
 
 type page_table_key =
-    {suffix:bool;
-     state: (internal_state option * internal_state option)}
+    {state: (internal_state option * internal_state option)}
 
 val gen :
     pages_tree ->

@@ -218,7 +218,7 @@ let _ =
 let sendfile2 = 
   Files.register_new_service 
     ~url:["files";""]
-    ~get_params:suffix_only
+    ~get_params:(suffix_only ~name:"filename" ())
     (fun _ s () -> 
       let rec remove_dotdot = function
           [] -> []

@@ -112,7 +112,7 @@ type ('a,+'tipo,+'names) params_type =
   | TBool of bool param_name (* 'a = bool *)
   | TFile of file_info param_name (* 'a = file_info *)
   | TUserType of ('a param_name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
-  | TSuffix (* 'a = string *)
+  | TSuffix of string (* 'a = string list *)
   | TUnit (* 'a = unit *);;
 
 type 'an listnames = 
@@ -149,15 +149,17 @@ let list (n : string) (t : ('a,[`WithoutSuffix], 'an) params_type)
   Obj.magic (TList (n,t))
 let ( ** ) = prod
 
-let suffix_only : (string list , [`WithSuffix], string list param_name) params_type = 
-  (Obj.magic TSuffix)
-let suffix (t : ('a,[`WithoutSuffix], 'an) params_type) : 
+let suffix_only ?(name=eliom_suffix_name) () : 
+    (string list , [`WithSuffix], string list param_name) params_type = 
+  (Obj.magic (TSuffix name))
+let suffix ?(name=eliom_suffix_name)
+    (t : ('a,[`WithoutSuffix], 'an) params_type) : 
     ((string list * 'a), [`WithSuffix], string list param_name * 'an) params_type = 
-  (Obj.magic (TProd (Obj.magic TSuffix, Obj.magic t)))
+  (Obj.magic (TProd (Obj.magic (TSuffix name), Obj.magic t)))
 
 let contains_suffix = function
-    TProd(TSuffix,_)
-  | TSuffix -> true
+    TProd((TSuffix _),_)
+  | TSuffix _ -> true
   | _ -> false
 
 let make_list_suffix i = "["^(string_of_int i)^"]"
@@ -252,9 +254,9 @@ let reconstruct_params
         (try (Res_ ((Obj.magic (of_string v)),l,files))
         with e -> Errors_ ([(pref^name^suff),e], l, files))
     | TUnit -> Res_ ((Obj.magic ()), params, files)
-    | TSuffix -> raise (Ocsigen_Internal_Error "Bad use of suffix")
+    | TSuffix _ -> raise (Ocsigen_Internal_Error "Bad use of suffix")
   in
-  let aux2 typ =
+  let aux2 typ params =
     match Obj.magic (aux typ params files "" "") with
       Res_ (v,l,files) -> 
         if (l,files) = ([], [])
@@ -267,16 +269,34 @@ let reconstruct_params
   in
   try 
     match typ with
-      TProd(TSuffix,t) -> Obj.magic (urlsuffix, aux2 t)
-    | TSuffix -> Obj.magic urlsuffix
-    | _ -> Obj.magic (aux2 typ)
+      TProd((TSuffix n), t) -> 
+        (try
+print_endline ("----------) "^n);
+          let v,l = list_assoc_remove n params in
+          if urlsuffix = []
+          then Obj.magic ((Neturl.split_path v), aux2 t l)
+          else raise Eliom_Wrong_parameter
+        with Not_found -> 
+(print_endline ("----------W ");
+Obj.magic (urlsuffix, aux2 t params)))
+    | TSuffix n -> 
+        (try
+          let v,l = list_assoc_remove n params in
+          if urlsuffix = [] && l = []
+          then Obj.magic (Neturl.split_path v)
+          else raise Eliom_Wrong_parameter
+        with Not_found -> 
+          if params = []
+          then Obj.magic urlsuffix
+          else raise Eliom_Wrong_parameter)
+    | _ -> Obj.magic (aux2 typ params)
   with Not_found -> raise Eliom_Wrong_parameter
 
 (* The following function takes a 'a params_type and a 'a and
    constructs the list of parameters (GET or POST) 
    (This is a marshalling function towards HTTP parameters format) *)
 let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
-    (params : 'a) : string * (string * string) list =
+    (params : 'a) : string option * (string * string) list =
   let rec aux typ params pref suff l =
     match typ with
       TProd (t1, t2) ->
@@ -308,13 +328,14 @@ let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_t
     | TUserType (name, of_string, string_of) ->
         ((pref^name^suff), (string_of (Obj.magic params)))::l
     | TUnit -> l
-    | TSuffix -> raise (Ocsigen_Internal_Error "Bad use of suffix")
+    | TSuffix _ -> raise (Ocsigen_Internal_Error "Bad use of suffix")
   in
   match typ with
-    TProd(TSuffix,t) ->
-      (string_of_url_path (fst (Obj.magic params))),(aux t (snd (Obj.magic params)) "" "" [])
-  | TSuffix -> (string_of_url_path (Obj.magic params)), []
-  | _ -> "",(aux typ params "" "" [])
+    TProd((TSuffix n), t) ->
+      (Some (string_of_url_path (fst (Obj.magic params)))),
+      (aux t (snd (Obj.magic params)) "" "" [])
+  | TSuffix _ -> (Some (string_of_url_path (Obj.magic params))), []
+  | _ -> None, (aux typ params "" "" [])
 
 
 (* contruct the string of parameters (& separated) for GET and POST *)
@@ -347,7 +368,7 @@ let rec add_pref_params pref = function
   | TUserType (name, of_string, string_of) -> 
       TUserType (pref^name, of_string, string_of)
   | TUnit -> TUnit
-  | TSuffix -> TSuffix
+  | TSuffix n -> TSuffix n
 
 (* Remove all parameters whose name starts with pref *)
 let remove_prefixed_param pref l =
@@ -395,7 +416,6 @@ type registrable = [ `Registrable | `Unregistrable ]
 type +'a a_s =
     {url: url_path; (* name of the service without parameters *)
      (* unique_id is here only for registering on top of this service *)
-     url_suffix: bool;
      att_kind: 'a; (* < attached_service_kind *)
      get_state: internal_state option;
      post_state: internal_state option;
@@ -452,14 +472,13 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
 let static_dir (_,_,(curdir,_,_,_)) =
     {unique_id = counter ();
      pre_applied_parameters = [];
-     get_params_type = suffix_only;
+     get_params_type = suffix_only ();
      post_params_type = unit;
      max_use= None;
      kind = `Attached
        {url = curdir@[""];
         get_state = None;
         post_state = None;
-        url_suffix = true;
         att_kind = `Internal (`Service, `Get);
       }
    }
@@ -475,7 +494,6 @@ let close_session (_,_,(_,sesstab,_,_)) = sesstab := empty_tables ()
 (** Create a service *)
 let new_service_aux_aux
     ~(url : url_path)
-    ~suffix
     ~kind
     ~get_params
     ~post_params =
@@ -487,7 +505,6 @@ let new_service_aux_aux
    max_use= None;
    kind = `Attached
      {url = url;
-      url_suffix = suffix;
       att_kind = kind;
       get_state = None;
       post_state = None}
@@ -495,7 +512,6 @@ let new_service_aux_aux
     
 let new_service_aux
     ~url
-    ~suffix
     ~get_params =
   match global_register_allowed () with
     Some get_current_hostdir ->
@@ -503,7 +519,6 @@ let new_service_aux
       let full_path = curdir@(change_empty_list url) in
       let u = new_service_aux_aux
           ~url:full_path
-          ~suffix
           ~kind:(`Internal (`Service, `Get))
           ~get_params
           ~post_params:unit
@@ -520,7 +535,6 @@ let new_external_service
   let suffix = contains_suffix get_params in
   new_service_aux_aux
     ~url:(if suffix then add_end_slash_if_missing url else url)
-    ~suffix:suffix
     ~kind:`External
     ~get_params 
     ~post_params
@@ -532,7 +546,6 @@ let new_service
   let suffix = contains_suffix get_params in
   new_service_aux 
     ~url:(if suffix then add_end_slash_if_missing url else url)
-    ~suffix:suffix
     ~get_params
 
 let new_naservice_name () = string_of_int (counter ())
@@ -592,7 +605,6 @@ let new_post_service_aux ~fallback ~post_params =
    max_use= None;
    kind = `Attached
      {url = k1.url;
-      url_suffix = k1.url_suffix;
       att_kind = `Internal (k, `Post);
       get_state = k1.get_state;
       post_state = None;
@@ -694,10 +706,9 @@ let preapply service getparams =
    get_params_type = unit;
    kind = match service.kind with
      `Attached k -> `Attached {k with 
-                               url = if k.url_suffix 
-                               then k.url@[suff]
-                               else k.url;
-                               url_suffix = false}
+                               url = match suff with
+                                 Some suff -> k.url@[suff]
+                               | _ -> k.url}
    | k -> k
  }
 
@@ -1204,8 +1215,7 @@ module MakeRegister = functor
 	        current_dir
 	        session
 	        attser.url
-                ({suffix = attser.url_suffix;
-                  state = (attser.get_state, attser.post_state)},
+                ({state = (attser.get_state, attser.post_state)},
                  (service.unique_id,
                   (match service.max_use with
                     None -> None
@@ -1643,13 +1653,12 @@ let make_string_uri
   match service.kind with
     `Attached attser ->
       begin
-        let suff,params_string = 
+        let suff, params_string = 
           construct_params service.get_params_type getparams in
         let preapplied_params = 
           construct_params_string service.pre_applied_parameters in
         let params_string =
           concat_strings preapplied_params "&" params_string in
-        let suff = (if attser.url_suffix then Some suff else None) in
         let uri = 
           (if attser.att_kind = `External
           then (reconstruct_absolute_url_path
@@ -1743,7 +1752,6 @@ module MakeForms = functor
               construct_params_string service.pre_applied_parameters in
             let params_string =
               concat_strings preapplied_params "&" params_string in
-            let suff = (if attser.url_suffix then Some suff else None) in
             let uri = 
               (if attser.att_kind = `External
               then 
@@ -1805,7 +1813,7 @@ module MakeForms = functor
           | TFile name -> Obj.magic (prefix^name^suffix)
           | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
           | TUnit -> Obj.magic ("")
-          | TSuffix -> Obj.magic eliom_suffix_name
+          | TSuffix n -> Obj.magic n
           | TOption t -> Obj.magic (aux prefix suffix t)
           | TBool name -> Obj.magic (prefix^name^suffix)
           | TSum (t1,t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
@@ -1936,7 +1944,6 @@ module MakeForms = functor
                     "&"
                     params_string
             in
-            let suff = (if attser.url_suffix then Some suff else None) in
             let urlname = 
               (if attser.att_kind = `External
               then (reconstruct_absolute_url_path
