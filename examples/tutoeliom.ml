@@ -341,13 +341,12 @@ let uasuffix =
   register_new_service 
     ~url:["uasuffix"]
     ~get_params:(suffix (string "s"))
-    ~suffix:true
     (fun sp (suff, s) () ->  return
       (html
         (head (title (pcdata "")) [])
         (body
            [p [pcdata "The suffix of the url is ";
-               strong [pcdata suff];
+               strong [pcdata (string_of_url_path suff)];
                pcdata ", your user-agent is ";
                strong [pcdata (get_user_agent sp)];
                pcdata ", your IP is ";
@@ -361,14 +360,13 @@ let uasuffix =
 let isuffix = 
   register_new_service 
     ~url:["isuffix"] 
-    ~suffix:true 
     ~get_params:(suffix (int "i"))
     (fun sp (suff, i) () -> return
       (html
         (head (title (pcdata "")) [])
         (body
            [p [pcdata "The suffix of the url is ";
-               strong [pcdata suff];
+               strong [pcdata (string_of_url_path suff)];
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*html*
@@ -439,18 +437,17 @@ let links = register_new_service ["rep";"links"] unit
          a default sp 
            [pcdata "default page of the dir"] (); br ();
          a uasuffix sp 
-           [pcdata "uasuffix"] ("suff","toto"); br ();
+           [pcdata "uasuffix"] (["suff";"ix"],"toto"); br ();
          a coucou_params sp 
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
          a
            (new_external_service
               ~url:["http://fr.wikipedia.org";"wiki"]
-              ~suffix:true
               ~get_params:suffix_only
               ~post_params:unit ()) 
            sp
            [pcdata "ocaml on wikipedia"]
-           "OCaml"]])))
+           ["OCaml"]]])))
 (*zap* 
    Note that to create a link we need to know the current url, because:
    the link from toto/titi to toto/tata is "tata" and not "toto/tata"
@@ -1393,13 +1390,22 @@ let redir = Redirections.register_new_service
       <p>You may want to register a service that will send a file.
       To do that, use the <code>Files</code> module. Example:
       </p>
-*html*)
+<pre>
 let sendfile = 
   Files.register_new_service 
     ~url:["sendfile"]
     ~get_params:unit
-    (fun _ () () -> return "/tmp/warnings.log")
-(*html*
+    (fun _ () () -&gt; return "filename")
+</pre>
+      <p>Other example, with suffix URL:
+      </p>
+<pre>
+let sendfile2 = 
+  Files.register_new_service 
+    ~url:["files"]
+    ~get_params:suffix_only
+    (fun _ s () -&gt; return ("<em>path</em>"^(string_of_url_path s)))
+</pre>
      <h3>Registering services that decide what they want to send</h3>
       <p>You may want to register a service that will send sometimes
       an xhtml page, sometimes a file, sometimes something else.
@@ -1976,7 +1982,8 @@ let listform = register_new_service ["listform"] unit
 
 (* Form for service with suffix: *)
 let create_suffixform (suff,i) =
-    <:xmllist< <p>Write the suffix: $string_input suff$ <br/>
+    <:xmllist< <p>Write the suffix: 
+      $user_type_input string_of_url_path suff$ <br/>
       Write an int: $int_input i$ <br/>
       $submit_input "Click"$</p> >>
 
@@ -2044,7 +2051,7 @@ let _ = register main
        <html> 
        <!-- This is a comment! -->
        <head>
-         $css_link (make_uri (static_dir sp) sp "style.css")$
+         $css_link (make_uri (static_dir sp) sp ["style.css"])$
          <title>Eliom Tutorial</title>
        </head>
        <body>
@@ -2063,9 +2070,9 @@ let _ = register main
          A page with GET parameters: 
            $a coucou_params sp <:xmllist< coucou with params >> (45,(22,"krokodile"))$ (what if the first parameter is not an integer?)<br/> 
          A page with "suffix" URL that knows the IP and user-agent of the client: 
-           $a uasuffix sp <:xmllist< uasuffix >> ("suf", "toto")$ <br/> 
+           $a uasuffix sp <:xmllist< uasuffix >> (["suf"], "toto")$ <br/> 
          A page with "suffix" URL and GET parameters : 
-           $a isuffix sp <:xmllist< isuffix >> ("popo", 333)$ <br/> 
+           $a isuffix sp <:xmllist< isuffix >> (["popo"], 333)$ <br/> 
          A page with a parameter of user-defined type : 
              $a mytype sp <:xmllist< mytype >> A$ </p>
        <h3>Links and Formulars</h3>
@@ -2113,8 +2120,6 @@ let _ = register main
              $a cookies sp <:xmllist< cookies >> ()$<br/>
        Disposable coservices:
              $a disposable sp <:xmllist< disposable >> ()$<br/>
-       Sending file using Eliom:
-             $a sendfile sp <:xmllist< sendfile >> ()$<br/>
        The following URL send either a statically checked page, or a text page:
              $a sendany sp <:xmllist< sendany >> "valid"$<br/>
        </p>

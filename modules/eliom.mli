@@ -105,6 +105,8 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 
 
 type url_path = string list
+
+val string_of_url_path : url_path -> string
 (** This type is used to represent URL paths; For example the path [coucou/ciao] is represented by the list [\["coucou";"ciao"\]] *)
 
 (** {2 Types of pages parameters} *)
@@ -226,12 +228,12 @@ val ( ** ) :
         ('a * 'c, [ `WithoutSuffix ], 'b * 'd) params_type
 (** This is a combinator to allow the page to take several parameters (see examples above) Warning: it is a binary operator. Pages cannot take tuples but only pairs. *)
 
-val suffix_only : (string, [ `WithSuffix ], string param_name) params_type
+val suffix_only : (string list, [ `WithSuffix ], string list param_name) params_type
 (** Tells that the only parameter of the function that will generate the page is the suffix of the URL of the current page. (see {{:#VALregister_new_service}[register_new_service]}) *)
 
 val suffix :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
-      (string * 'a, [ `WithSuffix ], string param_name * 'b) params_type
+      (string list * 'a, [ `WithSuffix ], string list param_name * 'b) params_type
 (** Tells that the function that will generate the page takes a pair whose first element is the suffix of the URL of the current page. (see {{:#VALregister_new_service}[register_new_service]}). e.g. [suffix (int "i" ** string "s")] *)
 
 
@@ -246,10 +248,10 @@ val suffix :
 (** {2 Misc} *)
 val static_dir :
     server_params -> 
-      (string, unit, [> `Attached of 
+      (string list, unit, [> `Attached of 
         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
        [ `WithSuffix ],
-       string param_name, unit param_name, [> `Unregistrable ])
+       string list param_name, unit param_name, [> `Unregistrable ])
         service
 (** The service that correponds to the directory where static pages are.
    This directory is chosen in the config file (ocsigen.conf).
@@ -263,7 +265,6 @@ val close_session : server_params -> unit
 (** {2 Definitions of entry points (services/URLs)} *)
 val new_service :
     url:url_path ->
-      ?suffix:bool ->
         get_params:('get, [< suff ] as 'tipo,'gn)
           params_type ->
             unit ->
@@ -278,7 +279,6 @@ val new_service :
 	      
 val new_external_service :
     url:url_path ->
-      ?suffix:bool ->
         get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             unit -> 
@@ -525,6 +525,7 @@ module type ELIOMFORMSIG =
         ?a:script_attrib_t -> uri -> script_elt
     val css_link : ?a:link_attrib_t -> uri -> link_elt
 
+
     val int_input :
         ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
     val float_input :
@@ -627,7 +628,6 @@ module type ELIOMREGSIG1 =
 
     val register_new_service :
         url:url_path ->
-          ?suffix:bool ->
             get_params:('get, [< suff ] as 'tipo, 'gn)
               params_type ->
                 ?error_handler:(server_params -> (string * exn) list -> 

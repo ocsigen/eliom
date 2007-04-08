@@ -30,7 +30,7 @@ open Lwt
 (* menu with preapplied services *)
 
 let preappl = preapply coucou_params (3,(4,"cinq"))
-let preappl2 = preapply uasuffix ("plop","aaa")
+let preappl2 = preapply uasuffix (["plop";"plip";"plup"],"aaa")
 
 let mymenu current sp =
   Eliomboxes.menu ~classe:["menuprincipal"]
@@ -200,3 +200,4 @@ let sendany =
                 (body [p [pcdata "This page does set a cookie"]])),
              [None, [(("arf"),(string_of_int (Random.int 100)))]]))
    )
+

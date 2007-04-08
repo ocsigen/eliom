@@ -36,6 +36,8 @@ type current_url = Extensions.current_url
 type url_path = Extensions.url_path
 type server_params = Eliommod.server_params
 
+let string_of_url_path = string_of_url_path
+
 let get_user_agent (ri,_,_) = ri.ri_user_agent
 let get_full_url (ri,_,_) = ri.ri_path_string^ri.ri_params
 let get_ip (ri,_,_) = ri.ri_ip
@@ -146,11 +148,16 @@ let list (n : string) (t : ('a,[`WithoutSuffix], 'an) params_type)
   Obj.magic (TList (n,t))
 let ( ** ) = prod
 
-let suffix_only : (string, [`WithSuffix], string param_name) params_type = 
+let suffix_only : (string list , [`WithSuffix], string list param_name) params_type = 
   (Obj.magic TSuffix)
 let suffix (t : ('a,[`WithoutSuffix], 'an) params_type) : 
-    ((string * 'a), [`WithSuffix], string param_name * 'an) params_type = 
+    ((string list * 'a), [`WithSuffix], string list param_name * 'an) params_type = 
   (Obj.magic (TProd (Obj.magic TSuffix, Obj.magic t)))
+
+let contains_suffix = function
+    TProd(TSuffix,_)
+  | TSuffix -> true
+  | _ -> false
 
 let make_list_suffix i = "["^(string_of_int i)^"]"
 
@@ -163,7 +170,7 @@ let concat_strings s1 sep s2 = match s1,s2 with
 | "",_ -> s2
 | _ -> s1^sep^s2
 
-(* The following function reconstruct the value of parameters
+(* The following function reconstructs the value of parameters
    from expected type and GET or POST parameters *)
 type 'a res_reconstr_param = 
     Res_ of ('a * 
@@ -259,8 +266,8 @@ let reconstruct_params
   in
   try 
     match typ with
-      TProd(TSuffix,t) -> Obj.magic ((string_of_url_path urlsuffix), aux2 t)
-    | TSuffix -> Obj.magic (string_of_url_path urlsuffix)
+      TProd(TSuffix,t) -> Obj.magic (urlsuffix, aux2 t)
+    | TSuffix -> Obj.magic urlsuffix
     | _ -> Obj.magic (aux2 typ)
   with Not_found -> raise Eliom_Wrong_parameter
 
@@ -304,8 +311,8 @@ let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_t
   in
   match typ with
     TProd(TSuffix,t) ->
-      (fst (Obj.magic params)),(aux t (snd (Obj.magic params)) "" "" [])
-  | TSuffix -> (Obj.magic params), []
+      (string_of_url_path (fst (Obj.magic params))),(aux t (snd (Obj.magic params)) "" "" [])
+  | TSuffix -> (string_of_url_path (Obj.magic params)), []
   | _ -> "",(aux typ params "" "" [])
 
 
@@ -506,23 +513,21 @@ let new_service_aux
       
 let new_external_service
     ~url
-    ?(suffix=false)
     ~get_params
     ~post_params
     () =
   new_service_aux_aux
     ~url
-    ~suffix
+    ~suffix:(contains_suffix get_params)
     ~kind:`External
     ~get_params 
     ~post_params
     
 let new_service
     ~url
-    ?(suffix=false)
     ~get_params
     () =
-  new_service_aux ~url ~suffix ~get_params
+  new_service_aux ~url ~suffix:(contains_suffix get_params) ~get_params
 
 let new_naservice_name () = string_of_int (counter ())
 
@@ -839,6 +844,7 @@ module type ELIOMFORMSIG =
         ?a:script_attrib_t -> uri -> script_elt
     val css_link : ?a:link_attrib_t -> uri -> link_elt
 
+
     val int_input :
         ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
     val float_input :
@@ -944,17 +950,16 @@ module type ELIOMREGSIG1 =
 
     val register_new_service :
         url:url_path ->
-          ?suffix:bool ->
-            get_params:('get, [< suff ] as 'tipo, 'gn)
-              params_type ->
-                ?error_handler:(server_params -> (string * exn) list -> 
-                  page Lwt.t) ->
-                    (server_params -> 'get -> unit -> page Lwt.t) ->
-                      ('get, unit, 
-                       [> `Attached of 
-                         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
-                       'tipo, 'gn, unit param_name, 
-                       [> `Registrable ]) service
+          get_params:('get, [< suff ] as 'tipo, 'gn)
+            params_type ->
+              ?error_handler:(server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (server_params -> 'get -> unit -> page Lwt.t) ->
+                    ('get, unit, 
+                     [> `Attached of 
+                       [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+                     'tipo, 'gn, unit param_name, 
+                     [> `Registrable ]) service
 (** Same as [new_service] followed by [register] *)
                       
     val register_new_coservice :
@@ -1306,11 +1311,10 @@ module MakeRegister = functor
 
         let register_new_service 
             ~url
-            ?(suffix=false)
             ~get_params
             ?error_handler
             page =
-          let u = new_service ~suffix ~url ~get_params () in
+          let u = new_service ~url ~get_params () in
           register ~service:u ?error_handler page;
           u
             
@@ -1458,13 +1462,11 @@ module MakeRegister = functor
 
       let register_new_service 
           ~url
-          ?suffix
           ~get_params
           ?error_handler
           page =
         Cookies.register_new_service 
           ~url
-          ?suffix
           ~get_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
