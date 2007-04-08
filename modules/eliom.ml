@@ -705,7 +705,10 @@ module type REGCREATE =
 
     type page
 
-    val send :  cookies:cookieslist -> server_params -> page -> result_to_send
+    val send : 
+        ?cookies:cookieslist -> 
+          ?charset:string ->
+            server_params -> page -> result_to_send
 
   end
 
@@ -906,7 +909,10 @@ module type ELIOMREGSIG1 =
 
     type page
 
-    val send : server_params -> page -> result_to_send
+    val send : 
+        ?cookies:cookieslist -> 
+          ?charset:string ->
+            server_params -> page -> result_to_send
 
     val register :
         service:('get, 'post,
@@ -1170,14 +1176,14 @@ module MakeRegister = functor
 
       type page = Pages.page
 
-      let send sp c = Pages.send ~cookies:[] sp c
+      let send = Pages.send
 
       module Cookies = struct
         
         type page = Pages.page * cookieslist
               
-        let send sp (p, cl) = Pages.send ~cookies:cl sp p
-
+        let send ?(cookies=[]) ?charset sp (p, cl) =
+          Pages.send ~cookies:(cookies@cl) ?charset sp p
 
         let register_aux
             current_dir
@@ -2092,7 +2098,7 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
-   let send ~cookies sp content = 
+   let send ?(cookies=[]) ?charset sp content = 
      EliomResult 
        {res_cookies= cookies;
         res_lastmodified= None;
@@ -2100,7 +2106,9 @@ module Xhtmlreg_ = struct
         res_code= None;
         res_send_page= Predefined_senders.send_xhtml_page ~content:content;
         res_create_sender= Predefined_senders.create_xhtml_sender;
-        res_charset= get_config_file_charset sp
+        res_charset= match charset with
+          None -> get_config_file_charset sp
+        | _ -> charset
       }
 
 end
@@ -2481,7 +2489,7 @@ module Textreg_ = struct
 
   type page = string
 
-  let send ~cookies sp content = 
+  let send ?(cookies=[]) ?charset sp content = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -2489,7 +2497,9 @@ module Textreg_ = struct
        res_code= None;
        res_send_page= Predefined_senders.send_text_page ~content:content;
        res_create_sender= Predefined_senders.create_xhtml_sender;
-       res_charset= get_config_file_charset sp
+       res_charset= match charset with
+          None -> get_config_file_charset sp
+        | _ -> charset
      }
 
 end
@@ -2640,7 +2650,7 @@ module Actionreg_ = struct
 
   type page = exn list
 
-  let send ~cookies sp content =
+  let send ?(cookies=[]) ?charset sp content =
     EliomExn (content, cookies)
 
 end
@@ -2656,7 +2666,7 @@ module Unitreg_ = struct
 
   type page = unit
 
-  let send ~cookies sp content = 
+  let send ?(cookies=[]) ?charset sp content = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -2689,7 +2699,7 @@ module Redirreg_ = struct
 
   type page = string
 
-  let send ~cookies sp content =
+  let send ?(cookies=[]) ?charset sp content =
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -2725,11 +2735,16 @@ module Anyreg_ = struct
 
   type page = result_to_send
 
-  let send ~cookies sp content = 
+  let send ?(cookies=[]) ?charset sp content = 
     match content with
       EliomResult res ->
         EliomResult
-          {res with res_cookies=cookies@res.res_cookies}
+          {res with 
+           res_cookies=cookies@res.res_cookies;
+           res_charset= match charset with
+             None -> res.res_charset
+           | _ -> charset
+         }
     | EliomExn (e, c) -> 
         EliomExn (e, cookies@c)
 
@@ -2745,7 +2760,7 @@ module Filesreg_ = struct
 
   type page = string
 
-  let send ~cookies sp filename = 
+  let send ?(cookies=[]) ?charset sp filename = 
     let (filename, stat) =
       (try
         (* That piece of code has been pasted from staticmod.ml *)
@@ -2792,7 +2807,9 @@ module Filesreg_ = struct
        res_code= None;
        res_send_page= Predefined_senders.send_file ~content:filename;
        res_create_sender= Predefined_senders.create_file_sender;
-       res_charset= get_config_file_charset sp
+       res_charset= match charset with
+         None -> get_config_file_charset sp
+       | _ -> charset
      }
 
 

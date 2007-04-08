@@ -392,8 +392,10 @@ module type REGCREATE =
   sig
     type page
 
-    val send : cookies:cookieslist -> server_params -> page -> 
-      Eliommod.result_to_send
+    val send : 
+        ?cookies:cookieslist -> 
+          ?charset:string ->
+            server_params -> page -> Eliommod.result_to_send
 
   end
 
@@ -589,7 +591,10 @@ module type ELIOMREGSIG1 =
 
     type page
 
-    val send : server_params -> page -> Eliommod.result_to_send
+    val send : 
+        ?cookies:cookieslist -> 
+          ?charset:string ->
+            server_params -> page -> Eliommod.result_to_send
 
     val register :
         service:('get, 'post,

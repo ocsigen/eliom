@@ -182,7 +182,7 @@ let coucou1 =
       </p>
       <p>
         $a (new_external_service
-              ["doc/0.6.0/Eliom.html"]
+              ["doc/0.7.0/XHTML.M.html"]
 (*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
               unit unit ())
            sp <:xmllist< More info >> ()$
@@ -702,6 +702,11 @@ let form4 = register_new_service ["form4"] unit
         URL is not reloaded after the action.</dd>
         <dt>Eliom.Redirections</dt><dd>allows to register redirections
         </dd>
+        <dt>Eliom.Files</dt><dd>allows to register services that send files
+        </dd>
+        <dt>Eliom.Any</dt><dd>allows to register services that can choose
+            what they send
+        </dd>
       </dl>
    
     </div>
@@ -1008,6 +1013,20 @@ let _ =
         programming. If you want continuations dedicated to a particular user
         register them in the session table.</p>
       </div>
+      <h3>Non-attached coservices</h3>
+       <p>
+       Non-attached coservices are services that are not attached to an URL.
+       When you do a link or a form towards such a service, the URL do not
+       change. The name of the service is sent as a hidden parameter.
+       </p>
+       <p>As for attached coservices, there is a GET and a POST version.
+       To create them, use <code>Eliom.new_coservice'</code> or
+       <code>Eliom.new_post_coservice'</code>.
+       POST non-attached coservices are really usefull if you want a
+       link or form to be present on every page but you don't want the
+       URL to change. Very often, POST coservices are used with <em>actions</em>
+       (see below).
+       </p>
     </div>
     <h2>Coservices in session tables</h2>
     <div class="twocol1">
@@ -1168,24 +1187,6 @@ let _ =
 	   (body [f])))
 (*html*
       <p>See the $a Tutoeliom.calc sp <:xmllist< result >> ()$.</p>
-    </div>
-    <h2>Non-attached coservices</h2>
-    <div class="twocol1">
-     <p>
-     Non-attached coservices are services that are not attached to an URL.
-     When you do a link or a form towards such a service, the URL do not
-     change. The name of the service is sent as a hidden parameter.
-     </p>
-    </div>
-    <div class="twocol2">
-      <p>As for attached coservices, there is a GET and a POST version.
-      To create them, use <code>Eliom.new_coservice'</code> or
-      <code>Eliom.new_post_coservice'</code>.
-      POST non-attached coservices are really usefull if you want a
-      link or form to be present on every page but you don't want the
-      URL to change. Very often, POST coservices are used with <em>actions</em>
-      (see below).
-      </p>
     </div>
 
 
@@ -1385,7 +1386,6 @@ let redir = Redirections.register_new_service
    (fun sp o () -> return (make_string_uri coucou_params sp (o,(22,"ee"))))
 (*html*
       <p>Try $a Tutoeliom.redir sp <:xmllist< <code>it</code> >> 11$.</p>
-    </div>
      <h3>Sending files</h3>
       <p>You may want to register a service that will send a file.
       To do that, use the <code>Files</code> module. Example:
@@ -1406,6 +1406,10 @@ let sendfile2 =
     ~get_params:suffix_only
     (fun _ s () -&gt; return ("<em>path</em>"^(string_of_url_path s)))
 </pre>
+      <p>The extension <code>Staticmod</code> is another way to
+       handle static files (see the default 
+       configuration file for more informations).
+      </p>
      <h3>Registering services that decide what they want to send</h3>
       <p>You may want to register a service that will send sometimes
       an xhtml page, sometimes a file, sometimes something else.
@@ -1435,6 +1439,13 @@ let sendany =
                      </p></body></html>")
    )
 (*html*
+      <p>You may also use <code>Any</code> to send cookies or to choose a
+         different charset than the default 
+        (default charset is set in configuration file) 
+         for the page you send. To do that use the optional parameters
+          <code>?cookies</code> and <code>?charset</code>.
+      </p>
+    </div>
     <div class="twocol2">
      <h3>Cookies</h3>
      <p>
@@ -1551,7 +1562,7 @@ set_user_timeout sp (Some 7200.)
      </p>
      <h3>Giving configuration options to your sites (EXPERIMENTAL)</h3>
       <p>You can add your own options in the configuration
-       file for your Web site. For example:<p>
+       file for your Web site. For example:</p>
 <pre>
     &lt;eliom module="<em>path_to</em>/yourmodule.cmo"&gt;
       &lt;youroptions&gt; ...
@@ -1717,9 +1728,9 @@ wakeup w "HELLO");
     <h2>Static parts</h2>
     <div class="twocol1">
       <h3>Fully static pages</h3>
-      <p>To each ocsigen module is associated a static directory where
-          you can put all the static (non generated) parts of your web-site
-          (for examples images).
+      <p>With <code>staticmod</code>, you can associate a static directory
+         where you can put all the static (non generated) parts of your 
+         web-site (for examples images).
          See the default config file <code>ocsigen.conf</code> to
          learn how to do that.
          There is a predefined service called 
@@ -1734,6 +1745,9 @@ wakeup w "HELLO");
   "$str:small_logo$"</pre>
           <p>creates this link:
          $a (static_dir sp) sp [pcdata "download image"] small_logo$
+      </p>
+      <p>It is now also possible to handle static pages yourself using
+      <code>Eliom.Files</code>.
       </p>
       <!-- h3>Static parts of a page</h3>
       <em>To be available soon</em -->

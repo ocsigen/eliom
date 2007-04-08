@@ -90,7 +90,7 @@ module Xhtmlreg_ = struct
 
   type page = html
 
-  let send ~cookies sp content = 
+  let send ?(cookies=[]) ?charset sp content = 
     Eliommod.EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -98,7 +98,9 @@ module Xhtmlreg_ = struct
        res_code= None;
        res_send_page= send_ocamlduce_page ~content:content;
        res_create_sender= Predefined_senders.create_xhtml_sender;
-       res_charset= Eliom.get_config_file_charset sp
+       res_charset= match charset with
+         None -> Eliom.get_config_file_charset sp
+       | _ -> charset
      }
 
 end
