@@ -30,7 +30,7 @@ open Lwt
 (* menu with preapplied services *)
 
 let preappl = preapply coucou_params (3,(4,"cinq"))
-let preappl2 = preapply uasuffix (["plop";"plip";"plup"],"aaa")
+let preappl2 = preapply uasuffix "plop"
 
 let mymenu current sp =
   Eliomboxes.menu ~classe:["menuprincipal"]
@@ -218,7 +218,7 @@ let _ =
 let sendfile2 = 
   Files.register_new_service 
     ~url:["files";""]
-    ~get_params:(suffix_only ~name:"filename" ())
+    ~get_params:(suffix (all_suffix "filename"))
     (fun _ s () -> 
       let rec remove_dotdot = function
           [] -> []
@@ -236,4 +236,67 @@ let _ =
         (html
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "With another suffix, that page will send a file"]])))
+
+
+(* Complex suffixes *)
+let suffix2 = 
+  register_new_service 
+    ~url:["suffix2";""]
+    ~get_params:(suffix (string "suff1" ** int "ii" ** all_suffix "ee"))
+    (fun sp (suf1,(ii,ee)) () ->  
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body
+              [p [pcdata "The suffix of the url is ";
+                  strong [pcdata (suf1^", "^(string_of_int ii)^", "^
+                                  (string_of_url_path ee))]]])))
+
+let suffix3 = 
+  register_new_service 
+    ~url:["suffix3";""]
+    ~get_params:(suffix_prod (string "suff1" ** int "ii" ** all_suffix "ee") (string "a" ** int "b"))
+    (fun sp ((suf1, (ii, ee)), (a, b)) () ->  
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body
+              [p [pcdata "The parameters in the url are ";
+                  strong [pcdata (suf1^", "^(string_of_int ii)^", "^
+                                  (string_of_url_path ee)^", "^
+                                  a^", "^(string_of_int b))]]])))
+
+let create_suffixform2 (suf1,(ii,ee)) =
+    <:xmllist< <p>Write a string: 
+      $string_input suf1$ <br/>
+      Write an int: $int_input ii$ <br/>
+      Write an int: $user_type_input string_of_url_path ee$ <br/>
+      $submit_input "Click"$</p> >>
+
+let suffixform2 = register_new_service ["suffixform2"] unit
+  (fun sp () () -> 
+     let f = get_form suffix2 sp create_suffixform2 in
+     return
+       (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Hallo"];
+                 f ])))
+
+let create_suffixform3 ((suf1, (ii, ee)), (a, b)) =
+    <:xmllist< <p>Write a string: 
+      $string_input suf1$ <br/>
+      Write an int: $int_input ii$ <br/>
+      Write an int: $user_type_input string_of_url_path ee$ <br/>
+      Write a string: $string_input a$ <br/>
+      Write an int: $int_input b$ <br/> 
+      $submit_input "Click"$</p> >>
+
+let suffixform3 = register_new_service ["suffixform3"] unit
+  (fun sp () () -> 
+     let f = get_form suffix3 sp create_suffixform3 in
+     return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Hallo"];
+                 f ])))
 

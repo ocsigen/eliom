@@ -101,7 +101,7 @@ let sum (t1 : ('a,[`WithoutSuffix], 'an) params_type)
     : (('a,'b) binsum,[`WithoutSuffix], 'an * 'bn) params_type =
   Obj.magic (TSum (t1, t2))
 let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type) 
-    (t2 : ('b,[`WithoutSuffix], 'bn) params_type)
+    (t2 : ('b,[<`WithoutSuffix], 'bn) params_type)
     : (('a * 'b),[`WithoutSuffix], 'an * 'bn) params_type =
   Obj.magic (TProd ((Obj.magic t1), (Obj.magic t2)))
 let opt (t : ('a,[`WithoutSuffix], 'an) params_type) 
@@ -945,7 +945,7 @@ module MakeForms = functor
           (sp : server_params) content
           (getparams : 'get) =
         let suff,params_string = construct_params service.get_params_type getparams in
-        let suff = (if service.url_prefix then Some suff else None) in
+        let suff = (if service.url_prefix then Some [suff] else None) in
         let uri = 
           (if service.external_service 
           then 
@@ -1047,7 +1047,7 @@ module MakeForms = functor
           (sp : server_params)
           (f : 'pn -> Pages.form_content_elt_list) (getparams : 'get) =
         let suff,params_string = construct_params service.get_params_type getparams in
-        let suff = (if service.url_prefix then Some suff else None) in
+        let suff = (if service.url_prefix then Some [suff] else None) in
         let urlname = 
           (if service.external_service 
           then (reconstruct_absolute_url_path
@@ -1076,7 +1076,7 @@ module MakeForms = functor
           (service : ('get, unit, 'kind, 'tipo,'gn,'pn) service) sp
           (getparams : 'get) : Pages.uri =
         let suff,params_string = construct_params service.get_params_type getparams in
-        let suff = (if service.url_prefix then Some suff else None) in
+        let suff = (if service.url_prefix then Some [suff] else None) in
         let uri = 
           (if service.external_service 
           then (reconstruct_absolute_url_path

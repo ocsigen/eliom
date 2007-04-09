@@ -112,7 +112,8 @@ type ('a,+'tipo,+'names) params_type =
   | TBool of bool param_name (* 'a = bool *)
   | TFile of file_info param_name (* 'a = file_info *)
   | TUserType of ('a param_name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
-  | TSuffix of string (* 'a = string list *)
+  | TESuffix of string (* 'a = string list *)
+  | TSuffix of ('a,'tipo,'names) params_type (* 'a = 'a1 *)
   | TUnit (* 'a = unit *);;
 
 type 'an listnames = 
@@ -138,7 +139,7 @@ let sum (t1 : ('a,[`WithoutSuffix], 'an) params_type)
     : (('a,'b) binsum,[`WithoutSuffix], 'an * 'bn) params_type =
   Obj.magic (TSum (t1, t2))
 let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type) 
-    (t2 : ('b,[`WithoutSuffix], 'bn) params_type)
+    (t2 : ('b,[<`WithoutSuffix|`Endsuffix], 'bn) params_type)
     : (('a * 'b),[`WithoutSuffix], 'an * 'bn) params_type =
   Obj.magic (TProd ((Obj.magic t1), (Obj.magic t2)))
 let opt (t : ('a,[`WithoutSuffix], 'an) params_type) 
@@ -149,19 +150,26 @@ let list (n : string) (t : ('a,[`WithoutSuffix], 'an) params_type)
   Obj.magic (TList (n,t))
 let ( ** ) = prod
 
-let suffix_only ?(name=eliom_suffix_name) () : 
-    (string list , [`WithSuffix], string list param_name) params_type = 
-  (Obj.magic (TSuffix name))
-let suffix ?(name=eliom_suffix_name)
+let all_suffix (n : string) : 
+    (string list , [`Endsuffix], string list param_name) params_type = 
+  (Obj.magic (TESuffix n))
+
+let suffix (s : ('s,[<`WithoutSuffix|`Endsuffix],'sn) params_type) : 
+    ('s , [`WithSuffix], 'sn) params_type = 
+  (Obj.magic (TSuffix s))
+
+let suffix_prod (s : ('s,[<`WithoutSuffix|`Endsuffix],'sn) params_type)
     (t : ('a,[`WithoutSuffix], 'an) params_type) : 
-    ((string list * 'a), [`WithSuffix], string list param_name * 'an) params_type = 
-  (Obj.magic (TProd (Obj.magic (TSuffix name), Obj.magic t)))
+    (('s * 'a), [`WithSuffix], 'sn * 'an) params_type = 
+  (Obj.magic (TProd (Obj.magic (TSuffix s), Obj.magic t)))
 
 let contains_suffix = function
     TProd((TSuffix _),_)
   | TSuffix _ -> true
   | _ -> false
 
+
+(******)
 let make_list_suffix i = "["^(string_of_int i)^"]"
 
 let add_to_string s1 sep = function
@@ -201,7 +209,7 @@ let reconstruct_params
       with Not_found -> Res_ ((Obj.magic []),lp,files)
     in 
     aa 0 params files (pref^name^".") suff
-  and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type)
+  and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)
       params files pref suff : 'a res_reconstr_param =
     match typ with
       TProd (t1, t2) ->
@@ -254,6 +262,10 @@ let reconstruct_params
         (try (Res_ ((Obj.magic (of_string v)),l,files))
         with e -> Errors_ ([(pref^name^suff),e], l, files))
     | TUnit -> Res_ ((Obj.magic ()), params, files)
+    | TESuffix n ->
+        let v,l = list_assoc_remove n params in
+        (* cannot have prefix or suffix *)
+        Res_ ((Obj.magic (Neturl.split_path v)), l, files)
     | TSuffix _ -> raise (Ocsigen_Internal_Error "Bad use of suffix")
   in
   let aux2 typ params =
@@ -267,28 +279,42 @@ let reconstruct_params
         then raise (Eliom_Typing_Error errs)
         else raise Eliom_Wrong_parameter
   in
+  let parse_one typ v =
+    match typ with
+    | TString _ -> Obj.magic v
+    | TInt name -> 
+        (try Obj.magic (int_of_string v)
+        with e -> raise (Eliom_Typing_Error [("<suffix>", e)]))
+    | TFloat name -> 
+        (try Obj.magic (float_of_string v)
+        with e -> raise (Eliom_Typing_Error [("<suffix>", e)]))
+    | TUserType (name, of_string, string_of) ->
+        (try Obj.magic (of_string v)
+        with e -> raise (Eliom_Typing_Error [("<suffix>", e)]))
+    | _ -> raise Eliom_Wrong_parameter
+  in
+  let rec parse_suffix typ suff =
+    match (typ, suff) with
+      (TESuffix _), l -> Obj.magic l
+    | _, [a] -> parse_one typ a
+    | (TProd (t1, t2)), a::l -> 
+        let b = parse_suffix t2 l in (* First we do parse_suffix to detect
+                                        wrong number of parameters *)
+        Obj.magic ((parse_one t1 a), b)
+    | _ -> raise Eliom_Wrong_parameter
+  in
   try 
     match typ with
-      TProd((TSuffix n), t) -> 
-        (try
-print_endline ("----------) "^n);
-          let v,l = list_assoc_remove n params in
-          if urlsuffix = []
-          then Obj.magic ((Neturl.split_path v), aux2 t l)
-          else raise Eliom_Wrong_parameter
-        with Not_found -> 
-(print_endline ("----------W ");
-Obj.magic (urlsuffix, aux2 t params)))
-    | TSuffix n -> 
-        (try
-          let v,l = list_assoc_remove n params in
-          if urlsuffix = [] && l = []
-          then Obj.magic (Neturl.split_path v)
-          else raise Eliom_Wrong_parameter
-        with Not_found -> 
-          if params = []
-          then Obj.magic urlsuffix
-          else raise Eliom_Wrong_parameter)
+      (* Each suffixed URL has a version with parameters to be used with 
+         forms *)
+      TProd((TSuffix s), t) -> 
+        if urlsuffix = [] (* no prefix: switching to version with parameters *)
+        then Obj.magic (aux2 (TProd (s, t)) params)
+        else Obj.magic ((parse_suffix s urlsuffix), (aux2 t params))
+    | TSuffix s ->
+        if urlsuffix = []
+        then Obj.magic (aux2 s params)
+        else Obj.magic (parse_suffix s urlsuffix)
     | _ -> Obj.magic (aux2 typ params)
   with Not_found -> raise Eliom_Wrong_parameter
 
@@ -296,7 +322,7 @@ Obj.magic (urlsuffix, aux2 t params)))
    constructs the list of parameters (GET or POST) 
    (This is a marshalling function towards HTTP parameters format) *)
 let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
-    (params : 'a) : string option * (string * string) list =
+    (params : 'a) : string list option * (string * string) list =
   let rec aux typ params pref suff l =
     match typ with
       TProd (t1, t2) ->
@@ -328,13 +354,26 @@ let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_t
     | TUserType (name, of_string, string_of) ->
         ((pref^name^suff), (string_of (Obj.magic params)))::l
     | TUnit -> l
+    | TESuffix _
     | TSuffix _ -> raise (Ocsigen_Internal_Error "Bad use of suffix")
   in
+  let rec make_suffix typ params =
+    match typ with
+      TProd (t1, t2) ->
+        (make_suffix t1 (fst (Obj.magic params)))@
+        (make_suffix t2 (snd (Obj.magic params)))
+    | TString _ -> [Obj.magic params]
+    | TInt _ -> [string_of_int (Obj.magic params)]
+    | TFloat _ -> [string_of_float (Obj.magic params)]
+    | TUserType (_, of_string, string_of) ->[string_of (Obj.magic params)]
+    | TESuffix _ -> Obj.magic params
+    | _ -> raise (Ocsigen_Internal_Error "Bad parameters")
+  in
   match typ with
-    TProd((TSuffix n), t) ->
-      (Some (string_of_url_path (fst (Obj.magic params)))),
-      (aux t (snd (Obj.magic params)) "" "" [])
-  | TSuffix _ -> (Some (string_of_url_path (Obj.magic params))), []
+    TProd((TSuffix s), t) ->
+   ((Some (make_suffix s (fst (Obj.magic params)))),
+   (aux t (snd (Obj.magic params)) "" "" []))
+  | TSuffix s -> (Some (make_suffix s (Obj.magic params))), []
   | _ -> None, (aux typ params "" "" [])
 
 
@@ -368,7 +407,8 @@ let rec add_pref_params pref = function
   | TUserType (name, of_string, string_of) -> 
       TUserType (pref^name, of_string, string_of)
   | TUnit -> TUnit
-  | TSuffix n -> TSuffix n
+  | TESuffix n -> TESuffix n
+  | TSuffix s -> TSuffix s
 
 (* Remove all parameters whose name starts with pref *)
 let remove_prefixed_param pref l =
@@ -472,7 +512,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
 let static_dir (_,_,(curdir,_,_,_)) =
     {unique_id = counter ();
      pre_applied_parameters = [];
-     get_params_type = suffix_only ();
+     get_params_type = suffix (all_suffix eliom_suffix_name);
      post_params_type = unit;
      max_use= None;
      kind = `Attached
@@ -707,7 +747,7 @@ let preapply service getparams =
    kind = match service.kind with
      `Attached k -> `Attached {k with 
                                url = match suff with
-                                 Some suff -> k.url@[suff]
+                                 Some suff -> k.url@suff
                                | _ -> k.url}
    | k -> k
  }
@@ -1813,7 +1853,8 @@ module MakeForms = functor
           | TFile name -> Obj.magic (prefix^name^suffix)
           | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
           | TUnit -> Obj.magic ("")
-          | TSuffix n -> Obj.magic n
+          | TESuffix n -> Obj.magic n
+          | TSuffix t -> Obj.magic (aux prefix suffix t)
           | TOption t -> Obj.magic (aux prefix suffix t)
           | TBool name -> Obj.magic (prefix^name^suffix)
           | TSum (t1,t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)

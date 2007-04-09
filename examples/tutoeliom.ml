@@ -340,38 +340,48 @@ let coucou_params = register_new_service
 let uasuffix = 
   register_new_service 
     ~url:["uasuffix";""]
-    ~get_params:(suffix (string "s"))
-    (fun sp (suff, s) () ->  return
+    ~get_params:(suffix (string "suff"))
+    (fun sp suff () ->  return
       (html
         (head (title (pcdata "")) [])
         (body
            [p [pcdata "The suffix of the url is ";
-               strong [pcdata (string_of_url_path suff)];
+               strong [pcdata suff];
                pcdata ", your user-agent is ";
                strong [pcdata (get_user_agent sp)];
                pcdata ", your IP is ";
-               strong [pcdata (get_ip sp)];
-               pcdata " and s is ";
-               strong [pcdata s]]])))
+               strong [pcdata (get_ip sp)]]])))
 (*html*
+    <p>Suffix parameters have names, because we can create forms towards
+       these services. <code>uasuffix/foo</code> is equivalent to
+       <code>uasuffix/?suff=foo</code>.
+    </p>
     </div>
     <div class="twocol2">
+    <p>
+       <code>suffix_prod</code> allows to take both a suffix and 
+       other parameters.<br/>
+       <code>all_suffix</code> allows to take the end of the suffix as
+       <code>string list</code>.
+    </p>
 *html*)
 let isuffix = 
   register_new_service 
     ~url:["isuffix";""] 
-    ~get_params:(suffix (int "i"))
-    (fun sp (suff, i) () -> return
+    ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
+    (fun sp ((suff, endsuff), i) () -> return
       (html
         (head (title (pcdata "")) [])
         (body
            [p [pcdata "The suffix of the url is ";
-               strong [pcdata (string_of_url_path suff)];
+               strong [pcdata (string_of_int suff)];
+               pcdata " followed by ";
+               strong [pcdata (string_of_url_path endsuff)];
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*html*
       <p>See $a Tutoeliom.uasuffix sp <:xmllist< uasuffix >> ("suffix", "gni")$,
-         $a Tutoeliom.isuffix sp <:xmllist< isuffix >> ("mm/aa/gg", 22)$.</p>
+         $a Tutoeliom.isuffix sp <:xmllist< isuffix >> ((11, ["a";"b";"c"]) , 22)$.</p>
 
       <p>The following example shows how to use your own types:</p>
 *html*)
@@ -437,13 +447,13 @@ let links = register_new_service ["rep";"links"] unit
          a default sp 
            [pcdata "default page of the dir"] (); br ();
          a uasuffix sp 
-           [pcdata "uasuffix"] (["suff";"ix"],"toto"); br ();
+           [pcdata "uasuffix"] "suffix"; br ();
          a coucou_params sp 
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
          a
            (new_external_service
               ~url:["http://fr.wikipedia.org";"wiki";""]
-              ~get_params:(suffix_only ())
+              ~get_params:(suffix (all_suffix "suff"))
               ~post_params:unit ()) 
            sp
            [pcdata "ocaml on wikipedia"]
@@ -1403,7 +1413,7 @@ let sendfile =
 let sendfile2 = 
   Files.register_new_service 
     ~url:["files"]
-    ~get_params:(suffix_only "suf")
+    ~get_params:(suffix (all_suffix "filename"))
     (fun _ s () -&gt; return ("<em>path</em>"^(string_of_url_path s)))
 </pre>
       <p>The extension <code>Staticmod</code> is another way to
@@ -1995,9 +2005,10 @@ let listform = register_new_service ["listform"] unit
         </html> >>)
 
 (* Form for service with suffix: *)
-let create_suffixform (suff,i) =
+let create_suffixform ((suff, endsuff),i) =
     <:xmllist< <p>Write the suffix: 
-      $user_type_input string_of_url_path suff$ <br/>
+      $int_input suff$ <br/>
+      Write a string: $user_type_input string_of_url_path endsuff$ <br/>
       Write an int: $int_input i$ <br/>
       $submit_input "Click"$</p> >>
 
@@ -2084,9 +2095,9 @@ let _ = register main
          A page with GET parameters: 
            $a coucou_params sp <:xmllist< coucou with params >> (45,(22,"krokodile"))$ (what if the first parameter is not an integer?)<br/> 
          A page with "suffix" URL that knows the IP and user-agent of the client: 
-           $a uasuffix sp <:xmllist< uasuffix >> (["suf"], "toto")$ <br/> 
+           $a uasuffix sp <:xmllist< uasuffix >> "toto"$ <br/> 
          A page with "suffix" URL and GET parameters : 
-           $a isuffix sp <:xmllist< isuffix >> (["popo"], 333)$ <br/> 
+           $a isuffix sp <:xmllist< isuffix >> ((111, ["OO";"II";"OO"]), 333)$ <br/> 
          A page with a parameter of user-defined type : 
              $a mytype sp <:xmllist< mytype >> A$ </p>
        <h3>Links and Formulars</h3>

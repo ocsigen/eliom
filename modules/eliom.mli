@@ -209,7 +209,7 @@ val sum :
         (('a, 'a) binsum, [ `WithoutSuffix ], 'b * 'b) params_type
 val prod :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
-      ('c, [ `WithoutSuffix ], 'd) params_type ->
+      ('c, [ `WithoutSuffix | `Endsuffix ], 'd) params_type ->
         ('a * 'c, [ `WithoutSuffix ], 'b * 'd) params_type
 (** See [**] above *)
 
@@ -227,19 +227,25 @@ val list :
 
 val ( ** ) :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
-      ('c, [ `WithoutSuffix ], 'd) params_type ->
+      ('c, [< `WithoutSuffix | `Endsuffix ], 'd) params_type ->
         ('a * 'c, [ `WithoutSuffix ], 'b * 'd) params_type
 (** This is a combinator to allow the page to take several parameters (see examples above) Warning: it is a binary operator. Pages cannot take tuples but only pairs. *)
 
-val suffix_only : ?name:string -> unit -> (string list, [ `WithSuffix ], string list param_name) params_type
+val suffix : 
+    ('s, [< `WithoutSuffix | `Endsuffix ], 'sn) params_type ->
+      ('s, [ `WithSuffix ], 'sn) params_type
 (** Tells that the only parameter of the function that will generate the page is the suffix of the URL of the current page. (see {{:#VALregister_new_service}[register_new_service]}) *)
 
-val suffix :
-    ?name:string ->
-    ('a, [ `WithoutSuffix ], 'b) params_type ->
-      (string list * 'a, [ `WithSuffix ], string list param_name * 'b) params_type
-(** Tells that the function that will generate the page takes a pair whose first element is the suffix of the URL of the current page. (see {{:#VALregister_new_service}[register_new_service]}). e.g. [suffix (int "i" ** string "s")] *)
+val all_suffix :
+    string ->
+      (string list , [`Endsuffix], string list param_name) params_type
+(** Takes all the suffix, as long as possible, as a string list *)
 
+val suffix_prod :
+    ('s,[<`WithoutSuffix|`Endsuffix],'sn) params_type ->
+      ('a,[`WithoutSuffix], 'an) params_type ->
+        (('s * 'a), [`WithSuffix], 'sn * 'an) params_type 
+(** Tells that the function that will generate the page takes a pair whose first element is the suffix of the URL of the current page. (see {{:#VALregister_new_service}[register_new_service]}). e.g. [suffix (int "i" ** string "s")] *)
 
 
 

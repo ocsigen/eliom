@@ -97,7 +97,7 @@ let rec string_of_url_path = function
 let rec string_of_url_path_suff u = function
     None -> string_of_url_path u
   | Some suff -> let deb = (string_of_url_path u) in
-    if deb = "" then suff else deb^suff
+    if deb = "" then string_of_url_path suff else deb^(string_of_url_path suff)
 
 let reconstruct_absolute_url_path current_url = string_of_url_path_suff
 
