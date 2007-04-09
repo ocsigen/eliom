@@ -1,0 +1,16 @@
+Nurpawiki
+---------
+
+Nurpawiki is a simple wiki written as an example for Ocsigen.
+
+Compiling & running
+-------------------
+
+1. Make sure you have compiled Ocsigen two directories below.
+2. Compile nurpawiki.cma by running "make" in examples/nurpawiki.
+3. Start Ocsigen with Nurpawiki by running
+
+   ./server/ocsigen -c examples/nurpawiki/files/nurpawiki.conf
+
+4. Point your browser to localhost:9999/view?p=WikiStart
+
