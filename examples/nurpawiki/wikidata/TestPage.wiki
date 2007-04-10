@@ -1,8 +1,7 @@
 = Test page =
 
 == Lists ==
-* Test links [http://www.google.fi Google]
-* Foo
+* Test links [http://www.google.fi Google] and [http://www.google.fi]
 ** Nested under Foo
 ** Still nested under Foo
 * Top-level
