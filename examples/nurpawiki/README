@@ -8,13 +8,15 @@ example for Ocsigen module developers.
 Compiling & running
 -------------------
 
-1. Make sure you have compiled Ocsigen two directories below.
-2. Compile nurpawiki.cma by running "make" in examples/nurpawiki.
-3. Start Ocsigen with Nurpawiki by running
+Nurpawiki should be compiled and install with Ocsigen.
 
-   ./server/ocsigen -c examples/nurpawiki/files/nurpawiki.conf
+The default config file usually contains nurpawiki preconfigured.
 
-4. Point your browser to localhost:9999/view?p=WikiStart
+If not, adapt files/nurpawiki.conf and start Ocsigen with Nurpawiki by running
+
+   ocsigen -c examples/nurpawiki/files/nurpawiki.conf
+
+4. Point your browser to localhost:9999/
 
 Implementation
 --------------
@@ -22,7 +24,7 @@ Implementation
 Wiki page storage
 
 Each wiki page is a file in the wiki storage directory
-(examples/nurpawiki/wikidata/ is the default).  A wiki page "Foo"
+(/var/lib/ocsigen/nurpawiki/wikidata/ is the default).  A wiki page "Foo"
 corresponds to a file called "Foo.wiki" in the "wikidata" directory.
 
 Character encoding

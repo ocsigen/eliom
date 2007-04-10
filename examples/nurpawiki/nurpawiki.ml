@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module nurpawiki.ml
- * Copyright (C) 2007 Janne Helsten
+ * Copyright (C) 2007 Janne Hellsten
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-
 open XHTML.M
 open Eliom
 open Eliom.Xhtml
@@ -33,6 +32,7 @@ let wiki_view_page = new_service [] (suffix (string "p")) ()
 let wiki_edit_page = new_service ["edit"] (string "p") ()
 let wiki_start = Redirections.register_new_service [] unit 
     (fun sp _ _ -> return (make_string_uri wiki_view_page sp "WikiStart"))
+
 
 let finally handler f x =
   let r = (
@@ -169,8 +169,8 @@ let parse_lines sp lines =
       let t = if text = "" then url else text in
       a (new_external_service 
            ~url:[url]
-           ~get_params:(suffix (all_suffix "suff"))
-           ~post_params:unit ()) sp [pcdata t; ext_img] [page] in
+           ~get_params:unit
+           ~post_params:unit ()) sp [pcdata t] () in
     
   let rec parse_text acc s =
     let len = String.length s in
