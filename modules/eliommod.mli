@@ -21,7 +21,8 @@
 open Extensions
 
 exception Eliom_Wrong_parameter
-exception Eliom_link_to_old
+exception Eliom_Link_too_old
+exception Eliom_Session_expired
 exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registering of string

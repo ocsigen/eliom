@@ -1232,8 +1232,14 @@ let connect_action =
 let accueil_action sp () () = 
   let f = post_form connect_action sp
       (fun login -> 
-        [p [pcdata "login: "; 
-            string_input login]]) () in 
+        [p 
+           (let l = [pcdata "login: "; 
+                     string_input login]
+           in
+           if List.mem Eliom_Session_expired (get_exn sp)
+           then (pcdata "Session expired")::(br ())::l
+           else l)
+       ]) () in 
   return
     (html
        (head (title (pcdata "")) [])
@@ -1308,8 +1314,9 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     <p>Fallbacks have access to some informations about what succeeded but
     they were called. Get this information using 
      <code>Eliom.get_exn sp</code>; That function returns a list of exceptions.
-    That list contains <code>Eliom_link_to_old</code> if the coservice
-    was not found.
+    That list contains <code>Eliom_Link_too_old</code> if the coservice
+    was not found, and <code>Eliom_Session_expired</code> if the session
+    has expired.
     </p>
     <p>
     It is also possible to tell actions to send informations to the page
@@ -1534,7 +1541,7 @@ let _ = register disposable
       return
         (html
           (head (title (pcdata "")) [])
-          (body [p [(if List.mem Eliom.Eliom_link_to_old (get_exn sp)
+          (body [p [(if List.mem Eliom.Eliom_Link_too_old (get_exn sp)
                     then pcdata "Your link was outdated. I am the fallback. \
                             I just created a new disposable coservice. \
                             You can use it only twice."

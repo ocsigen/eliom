@@ -56,7 +56,8 @@ type 'a server_params1 =
 (********)
 
 exception Eliom_Wrong_parameter
-exception Eliom_link_to_old
+exception Eliom_Link_too_old
+exception Eliom_Session_expired
 exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registering of string
@@ -635,62 +636,66 @@ let _ = parse_global_config (Extensions.get_config ())
 (*****************************************************************************)
 (* Generation of the page or naservice                                          *)
 
-let execute generate_page ip cookie (globtable, cookie_table) =
-  let (sessiontablesref, new_session, user_timeout_optref) = 
-    (match cookie with
-      None -> ((ref (new_session_tables ())), None, ref None)
-    | Some c -> 
-        try 
-          let ta, exp, timeout_optref = Cookies.find cookie_table (ip,c) in
-          match exp with
-            Some t when t < (Unix.time ()) -> (* session expired *)
-              Cookies.remove cookie_table (ip,c);
-              raise Not_found
-          | _ -> ((ref ta), cookie, timeout_optref)
-        with Not_found -> ((ref (new_session_tables ())), None, ref None))
-  in
-  let cookie_exp_date = ref None in
-  generate_page 
-    globtable sessiontablesref (user_timeout_optref, cookie_exp_date) >>=
-  (fun (result, working_dir) ->
-    let cookie2 = 
-      if are_empty_tables !sessiontablesref
-      then (
-        (match new_session with
-          Some c -> Cookies.remove cookie_table (ip, c)
-        | _ -> ());
-        None)
-      else 
-        let c =
-          (match new_session with
-            None -> new_cookie cookie_table ip
-          | Some c -> c)
-        in
-        let timeout = match !user_timeout_optref with
-          Some t -> t
-        | None -> find_global_timeout working_dir
-        in
-        let exp = match timeout with
-          None -> None
-        | Some t -> Some ((Unix.time ())+. t)
-        in
-        Cookies.replace
-          cookie_table (ip,c) 
-          (!sessiontablesref, exp, user_timeout_optref);
-        (* If the key does not exist, replace just adds it.
-           If it exists, we put a new expiration date *)
-        Some c
+let execute generate_page info ip cookie (globtable, cookie_table) =
+  try
+    let (sessiontablesref, new_session, user_timeout_optref) = 
+      (match cookie with
+        None -> ((ref (new_session_tables ())), None, ref None)
+      | Some c -> 
+          try 
+            let ta, exp, timeout_optref = Cookies.find cookie_table (ip,c) in
+            match exp with
+              Some t when t < (Unix.time ()) -> (* session expired *)
+                Cookies.remove cookie_table (ip,c);
+                raise Not_found
+            | _ -> ((ref ta), cookie, timeout_optref)
+(*        with Not_found -> ((ref (new_session_tables ())), None, ref None)) *)
+          with Not_found -> raise Eliom_Session_expired) 
     in
-    let cookie3 = 
-      if cookie2 <> cookie || !cookie_exp_date <> None then 
-        (if cookie2 = None 
-        then ((Some ""), (Some 0.))
-        else (cookie2, !cookie_exp_date))
-      else (None, None)
-    in return 
-      (cookie3, 
-       result, 
-       working_dir))
+    let cookie_exp_date = ref None in
+    generate_page 
+      info globtable sessiontablesref 
+      (user_timeout_optref, cookie_exp_date) >>=
+    (fun (result, working_dir) ->
+      let cookie2 = 
+        if are_empty_tables !sessiontablesref
+        then (
+          (match new_session with
+            Some c -> Cookies.remove cookie_table (ip, c)
+          | _ -> ());
+          None)
+        else 
+          let c =
+            (match new_session with
+              None -> new_cookie cookie_table ip
+            | Some c -> c)
+          in
+          let timeout = match !user_timeout_optref with
+            Some t -> t
+          | None -> find_global_timeout working_dir
+          in
+          let exp = match timeout with
+            None -> None
+          | Some t -> Some ((Unix.time ())+. t)
+          in
+          Cookies.replace
+            cookie_table (ip,c) 
+            (!sessiontablesref, exp, user_timeout_optref);
+          (* If the key does not exist, replace just adds it.
+             If it exists, we put a new expiration date *)
+          Some c
+      in
+      let cookie3 = 
+        if cookie2 <> cookie || !cookie_exp_date <> None then 
+          (if cookie2 = None 
+          then ((Some ""), (Some 0.))
+          else (cookie2, !cookie_exp_date))
+        else (None, None)
+      in return 
+        (cookie3, 
+         result, 
+         working_dir))
+  with e -> fail e
 
 exception Eliom_retry_with of 
   (request_info * 
@@ -698,172 +703,178 @@ exception Eliom_retry_with of
      cookieslist (* cookies to set *)) 
 
 let get_page
-    page_tree
-    (ri, si, cookies_to_set) =
-  let generate_page
-      global_tables
-      session_tables_ref
-      session_exp_info
-      =
-    ((catch
-        (fun () -> 
-          Messages.debug 
-            ("-- I'm looking for "^(string_of_url_path ri.ri_path)^
-             " in the session table:");
-          (find_service
-             !session_tables_ref
-             (global_tables,
-              session_tables_ref,
-              session_exp_info,
-              ri,
-              si)))
-        (function 
-            Ocsigen_404 | Eliom_Wrong_parameter -> 
-              catch (* ensuite dans la table globale *)
-                (fun () -> 
-                  Messages.debug "-- I'm searching in the global table:";
-                  (find_service 
-                     global_tables
-                     (global_tables,
-                      session_tables_ref,
-                      session_exp_info,
-                      ri,
-                      si)))
-                (function
-                    Ocsigen_404 | Eliom_Wrong_parameter as exn -> 
-                      (* si pas trouvé avec, on essaie sans l'état *)
-                      (match si.si_state_info with
-                        (None, None) -> fail exn
-                      | (g, Some _) -> 
-                          (* There was a POST state. 
-                             We remove it, and remove POST parameters.
-                           *)
-                          Messages.debug 
-                            "-- Link to old. I will try without POST parameters:";
-                          fail (Eliom_retry_with 
-                                  ({ri with 
-                                    ri_post_params = lazy (return [])
-                                  }, 
-                                   {si with
-                                    si_nonatt_info= (None, None);
-                                    si_state_info= (g, None);
-                                    si_exn= Eliom_link_to_old::si.si_exn
-                                  },
-                                   cookies_to_set (* no new cookie *)
-                                  ))
-                      | (Some _, None) -> 
-                          (* There was a GET state, but no POST state. 
-                             We remove it with its parameters, 
-                             and remove POST parameters.
-                           *)
-                          Messages.debug 
-                            "-- Link to old. I will try without GET state parameters and POST parameters:";
-                          fail (Eliom_retry_with 
-                                  ({ri with 
-                                    ri_get_params = 
-                                    lazy si.si_other_get_params;
-                                    ri_post_params = lazy (return [])
-                                  },
-                                   {si with
-                                    si_nonatt_info=(None, None);
-                                    si_state_info=(None, None);
-                                    si_other_get_params=[];
-                                    si_exn= Eliom_link_to_old::si.si_exn
-                                  },
-                                   cookies_to_set (* no new cookie *))))
-                  | e -> fail e)
-          | e -> fail e)) >>= (fun r -> return r))
-  in (generate_page, ri.ri_inet_addr, si.si_cookie, page_tree)
+    (ri, si, cookies_to_set)
+    global_tables
+    session_tables_ref
+    session_exp_info
+    =
+  ((catch
+      (fun () -> 
+        Messages.debug 
+          ("-- I'm looking for "^(string_of_url_path ri.ri_path)^
+           " in the session table:");
+        (find_service
+           !session_tables_ref
+           (global_tables,
+            session_tables_ref,
+            session_exp_info,
+            ri,
+            si)))
+      (function 
+          Ocsigen_404 | Eliom_Wrong_parameter -> 
+            catch (* ensuite dans la table globale *)
+              (fun () -> 
+                Messages.debug "-- I'm searching in the global table:";
+                (find_service 
+                   global_tables
+                   (global_tables,
+                    session_tables_ref,
+                    session_exp_info,
+                    ri,
+                    si)))
+              (function
+                  Ocsigen_404 | Eliom_Wrong_parameter as exn -> 
+                    (* si pas trouvé avec, on essaie sans l'état *)
+                    (match si.si_state_info with
+                      (None, None) -> fail exn
+                    | (g, Some _) -> 
+                        (* There was a POST state. 
+                           We remove it, and remove POST parameters.
+                         *)
+                        Messages.debug 
+                          "-- Link to old. I will try without POST parameters:";
+                        fail (Eliom_retry_with 
+                                ({ri with 
+                                  ri_post_params = lazy (return [])
+                                }, 
+                                 {si with
+                                  si_nonatt_info= (None, None);
+                                  si_state_info= (g, None);
+                                  si_exn= Eliom_Link_too_old::si.si_exn
+                                },
+                                 cookies_to_set (* no new cookie *)
+                                ))
+                    | (Some _, None) -> 
+                        (* There was a GET state, but no POST state. 
+                           We remove it with its parameters, 
+                           and remove POST parameters.
+                         *)
+                        Messages.debug 
+                          "-- Link to old. I will try without GET state parameters and POST parameters:";
+                        fail (Eliom_retry_with 
+                                ({ri with 
+                                  ri_get_params = 
+                                  lazy si.si_other_get_params;
+                                  ri_post_params = lazy (return [])
+                                },
+                                 {si with
+                                  si_nonatt_info=(None, None);
+                                  si_state_info=(None, None);
+                                  si_other_get_params=[];
+                                  si_exn= Eliom_Link_too_old::si.si_exn
+                                },
+                                 cookies_to_set (* no new cookie *))))
+                | e -> fail e)
+        | e -> fail e)) >>= (fun r -> return r))
 
 
 let make_naservice
-    page_tree
-    (ri, si, cookies_to_set) =
-  let generate_page
-      global_tables session_tables_ref session_exp_info =
-    (try
-      try
-        return (find_naservice !session_tables_ref si.si_nonatt_info)
-      with
-        Not_found -> return 
-            (find_naservice global_tables si.si_nonatt_info)
+    (ri, si, cookies_to_set)
+    global_tables session_tables_ref session_exp_info =
+  (try
+    try
+      return (find_naservice !session_tables_ref si.si_nonatt_info)
     with
-      Not_found ->
-        (* It was an non-attached service.
-           We call the same URL without non-attached parameters.
-         *)
-        match si.si_nonatt_info with
-          None, None -> assert false
-        | Some _ as g, Some _ ->
-            Messages.debug 
-              "-- Link to old. I will try with only GET non-attached parameters:";
-            fail (Eliom_retry_with
-                    ({ri with 
-                      ri_post_params = lazy (return [])
-                    },
+      Not_found -> return 
+          (find_naservice global_tables si.si_nonatt_info)
+  with
+    Not_found ->
+      (* It was an non-attached service.
+         We call the same URL without non-attached parameters.
+       *)
+      match si.si_nonatt_info with
+        None, None -> assert false
+      | Some _ as g, Some _ ->
+          Messages.debug 
+            "-- Link to old. I will try with only GET non-attached parameters:";
+          fail (Eliom_retry_with
+                  ({ri with 
+                    ri_post_params = lazy (return [])
+                  },
+                   {si with
+                    si_nonatt_info=(g, None);
+                    si_state_info=(None, None);
+                    si_exn= Eliom_Link_too_old::si.si_exn
+                  },
+                   cookies_to_set (* no new cookie *)))
+      | _ ->
+          Messages.debug 
+            "-- Link to old. I will try without non-attached parameters:";
+          change_request_info
+            {ri with 
+             ri_get_params = lazy si.si_other_get_params;
+             ri_post_params = lazy (return [])
+           } 
+            si.si_config_file_charset >>=
+          (fun (ri,si,_) -> 
+            fail (Eliom_retry_with 
+                    (ri,
                      {si with
-                      si_nonatt_info=(g, None);
-                      si_state_info=(None, None);
-                      si_exn= Eliom_link_to_old::si.si_exn
+                      si_exn= Eliom_Link_too_old::si.si_exn
                     },
-                     cookies_to_set (* no new cookie *)))
-        | _ ->
-            Messages.debug 
-              "-- Link to old. I will try without non-attached parameters:";
-            change_request_info
-              {ri with 
-               ri_get_params = lazy si.si_other_get_params;
-               ri_post_params = lazy (return [])
-             } 
-              si.si_config_file_charset >>=
-            (fun (ri,si,_) -> 
-              fail (Eliom_retry_with 
-                      (ri,
-                       {si with
-                        si_exn= Eliom_link_to_old::si.si_exn
-                      },
-                       cookies_to_set (* no new cookie *))))
-    ) >>=
-    (fun (max_use, naservice, working_dir) ->
-      (naservice
-         (make_server_params 
-            working_dir
-            global_tables
-            session_tables_ref 
-            session_exp_info
-            ri
-            []
-            si)) >>=
-      (fun r -> 
-        Messages.debug "- Non attached page found and generated successfully";
-        (match max_use with
-          None -> ()
-        | Some r -> 
-            if !r = 1
-            then remove_naservice !session_tables_ref si.si_nonatt_info
-            else r := !r - 1);
-        return (r, working_dir)))
-  in (generate_page, ri.ri_inet_addr, si.si_cookie, page_tree)
+                     cookies_to_set (* no new cookie *))))
+  ) >>=
+  (fun (max_use, naservice, working_dir) ->
+    (naservice
+       (make_server_params 
+          working_dir
+          global_tables
+          session_tables_ref 
+          session_exp_info
+          ri
+          []
+          si)) >>=
+    (fun r -> 
+      Messages.debug "- Non attached page found and generated successfully";
+      (match max_use with
+        None -> ()
+      | Some r -> 
+          if !r = 1
+          then remove_naservice !session_tables_ref si.si_nonatt_info
+          else r := !r - 1);
+      return (r, working_dir)))
     
 
+let rec cookies_remove c = function
+  | [] -> []
+  | (Set (p, e, l))::ll -> 
+      (match List.remove_assoc c l with
+      | [] -> cookies_remove c ll
+      | l -> (Set (p, e, l))::(cookies_remove c ll))
+  | (Unset (p, l))::ll -> 
+      match list_remove c l with
+      | [] -> cookies_remove c ll
+      | l -> (Unset (p, l))::(cookies_remove c ll)
+
+
 let gen page_tree charset ri =
-  let rec gen_aux ((ri, si, old_cookies_to_set) as info) =
-    let (gen,ia,c,pt) = 
+  let rec gen_aux close_session ((ri, si, old_cookies_to_set) as info) =
+    let gen = 
       match si.si_nonatt_info with
 	None, None ->
           
           (* page generation *)
-          get_page page_tree info
+          get_page
             
       | _ ->
           
           (* anonymous service *)
-          make_naservice page_tree info
+          make_naservice
     in
     
     catch 
       (fun () ->
-        execute gen ia c pt >>=
+        execute gen info ri.ri_inet_addr si.si_cookie page_tree >>=
 	fun ((new_cookie, cookie_exp), result_to_send, path) ->
           
           let compute_cookies cookies_set_by_page =
@@ -886,9 +897,13 @@ let gen page_tree charset ri =
             let cookies_to_set = cookies_set_by_page@old_cookies_to_set in
             let all_new_cookies =
               match new_cookie with
-                None -> cookies_to_set
+              | None -> 
+                  if close_session
+                  then (Unset ((Some path), [cookiename]))::cookies_to_set
+                  else cookies_to_set
               | Some c -> Set (Some path, cookie_exp, 
-                               [(cookiename, c)])::cookies_to_set
+                               [(cookiename, c)])::
+                  (cookies_remove cookiename cookies_to_set)
             in (cookies_set_by_page, all_new_cookies)
           in
 
@@ -1013,11 +1028,19 @@ let gen page_tree charset ri =
                        res_etag=None;
                        res_charset= Error_pages.charset})
 	| Ocsigen_404 -> return Ext_not_found
-        | Eliom_retry_with a -> gen_aux a
+	| Eliom_Session_expired -> 
+            gen_aux 
+              true
+              (ri, 
+               {si with 
+                si_cookie=None; 
+                si_exn= Eliom_Session_expired::si.si_exn}, 
+               old_cookies_to_set)
+        | Eliom_retry_with a -> gen_aux false a
 	| e -> fail e)
 
   in
-  change_request_info ri charset >>= gen_aux
+  change_request_info ri charset >>= gen_aux false
 
 
 (*****************************************************************************)

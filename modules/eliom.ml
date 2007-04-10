@@ -26,7 +26,8 @@ open Extensions
 open Eliommod
 open Lazy
 
-exception Eliom_link_to_old = Eliommod.Eliom_link_to_old
+exception Eliom_Link_too_old = Eliommod.Eliom_Link_too_old
+exception Eliom_Session_expired = Eliommod.Eliom_Session_expired
 
 let _ = Random.self_init ()
 

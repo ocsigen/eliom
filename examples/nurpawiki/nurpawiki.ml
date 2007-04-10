@@ -172,8 +172,8 @@ let parse_lines sp lines =
       let t = if text = "" then url else text in
       a (new_external_service 
            ~url:[url]
-           ~get_params:(suffix (all_suffix "suff"))
-           ~post_params:unit ()) sp [pcdata t; ext_img] [page] in
+           ~get_params:unit
+           ~post_params:unit ()) sp [pcdata t; ext_img] () in
     
   let rec parse_text acc s =
     let len = String.length s in

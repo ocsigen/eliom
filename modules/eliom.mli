@@ -32,7 +32,8 @@ open Xhtmltypes
 open Extensions
 
 
-exception Eliom_link_to_old
+exception Eliom_Link_too_old
+exception Eliom_Session_expired
 
 
 
