@@ -385,6 +385,9 @@ let extract_info c =
   in
   ((user,group),si)
 
-let parse_config () = parser_config Ocsiconfig.config
+let parse_config () = 
+  try
+    parser_config Ocsiconfig.config
+  with Stdpp.Exc_located _ -> raise (Config_file_error "Error in config file (string or comment not closed?)")
 
 (******************************************************************)

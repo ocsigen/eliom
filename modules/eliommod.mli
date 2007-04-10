@@ -93,6 +93,7 @@ val add_naservice :
 val get_state_param_name : string
 val post_state_param_name : string
 val eliom_suffix_name : string
+val eliom_suffix_internal_name : string
 val naservice_prefix : string
 val naservice_name : string
 val co_param_prefix : string

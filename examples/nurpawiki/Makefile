@@ -1,29 +1,18 @@
+include ../../Makefile.config
 
 FILES=$(wildcard *.ml)
 
-CAMLC = ocamlc -g -I ../../baselib -I ../../xmlp4 -I ../../modules -I ../../lwt ocsigenmod.cmo ocsigen.cmo
-
-#ocamlfind ocamlc -g $(LIB)
-CAMLDEP = ocamlfind ocamldep
-
-OCSIGENREP = `ocamlfind query ocsigen`
-
-#OCSIGENREP = ../ocsigen/lib
- # ^ pour l'instant
-LIB = -package str -I $(OCSIGENREP)
-PP = -pp "camlp4o $(OCSIGENREP)/xhtmlsyntax.cma"
+LIB = -package str $(LIBDIRS2)
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
+CAMLDEP = $(OCAMLFIND) ocamldep
 
 OBJS = $(FILES:.ml=.cmo)
+OBJSOPT = $(FILES:.ml=.cmxs)
 
-CMA = nurpawiki.cma
+byte: $(OBJS)
 
-all: $(CMA) install
-
-$(CMA): $(OBJS)
-	$(CAMLC) -a -o $(CMA) $(OBJS)
-
-install:
-	chmod a+r $(CMA)
+opt: $(OBJSOPT)
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -31,13 +20,19 @@ install:
 .PHONY: doc
 
 .ml.cmo:
-	$(CAMLC) $(PP) -c $<
+	$(CAMLC) -c $<
 
 .mli.cmi:
 	$(CAMLC) -c $<
 
+.ml.cmx:
+	$(CAMLOPT) -c $<
+
+.cmx.cmxs:
+	$(CAMLOPT) -shared -linkall -o $@ $<
+
 clean:
-	-rm -f *.cm[ioxa] *~ $(NAME)
+	-rm -f *.cm[ioxa] *.cmxa *.cmxs *.o *~ $(NAME)
 
 depend:
 	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend

@@ -94,9 +94,9 @@ let find_static_page staticdirref path =
       None -> raise Ocsigen_404
     | Some filename ->
         (* See also module Files in eliom.ml *)
+        Messages.debug ("- Testing \""^filename^"\".");
         let stat= Unix.LargeFile.stat filename in
         let (filename, stat) = 
-          Messages.debug ("- Testing \""^filename^"\".");
           if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
           then 
             (if (filename.[(String.length filename) - 1]) = '/'

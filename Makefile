@@ -13,6 +13,15 @@ DUCECMI=
 DUCEEXAMPLES=
 endif
 
+ifeq "$(LOGDIR)" ""
+LOGDIR = "error"
+endif
+ifeq "$(STATICPAGESDIR)" ""
+STATICPAGESDIR = "error"
+endif
+ifeq "$(DATADIR)" ""
+DATADIR = "error"
+endif
 
 
 INSTALL = install
@@ -22,7 +31,7 @@ PLUGINSCMAOTOINSTALL = modules/eliom.cma modules/ocsigenmod.cma modules/staticmo
 PLUGINSCMITOINSTALL = modules/eliom.cmi modules/ocsigen.cmi modules/staticmod.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi $(DUCECMI)
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi baselib/messages.cmi META
-EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo $(DUCEEXAMPLES)
+EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/nurpawiki/nurpawiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
 PP = -pp "camlp4o ./xmlp4/xhtmlsyntax.cma -loc loc"
 
@@ -150,13 +159,18 @@ partialinstall:
 	-rm META
 
 
-fullinstall: partialinstall
+fullinstall: doc partialinstall
 	mkdir -p $(PREFIX)/$(CONFIGDIR)
 	mkdir -p $(PREFIX)/$(STATICPAGESDIR)
+	mkdir -p $(PREFIX)/$(STATICPAGESDIR)/nurpawiki
+	mkdir -p $(PREFIX)/$(STATICPAGESDIR)/tutorial
+	mkdir -p $(PREFIX)/$(DATADIR)
+	mkdir -p $(PREFIX)/$(DATADIR)/nurpawiki
 	-mv $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
 	cat files/ocsigen.conf \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
+	| sed s%_DATADIR_%$(DATADIR)%g \
 	| sed s%_UP_%$(UPLOADDIR)%g \
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
@@ -171,8 +185,6 @@ fullinstall: partialinstall
 	-mv $(PREFIX)/$(CONFIGDIR)/mime.types $(PREFIX)/$(CONFIGDIR)/mime.types.old
 	cp -f files/mime.types $(PREFIX)/$(CONFIGDIR)
 	mkdir -p $(PREFIX)/$(LOGDIR)
-	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
-	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
 	chmod u+rwx $(PREFIX)/$(LOGDIR)
 	chmod a+rx $(PREFIX)/$(CONFIGDIR)
 	chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf
@@ -183,6 +195,12 @@ fullinstall: partialinstall
 	-install -m 644 doc/* $(PREFIX)/$(DOCDIR)
 	install -m 644 doc/lwt/* $(PREFIX)/$(DOCDIR)/lwt
 	install -m 644 doc/oc/* $(PREFIX)/$(DOCDIR)/oc
+	install -m 644 files/style.css $(PREFIX)/$(STATICPAGESDIR)/tutorial
+	install -m 644 examples/nurpawiki/files/style.css $(PREFIX)/$(STATICPAGESDIR)/nurpawiki
+	install -m 644 examples/nurpawiki/wikidata/* $(PREFIX)/$(DATADIR)/nurpawiki
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(DATADIR)
 	chmod a+rx $(PREFIX)/$(DOCDIR)
 	chmod a+r $(PREFIX)/$(DOCDIR)/*
 	[ -d /etc/logrotate.d ] && \

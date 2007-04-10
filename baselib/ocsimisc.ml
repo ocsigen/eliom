@@ -55,10 +55,25 @@ let remove_slash_at_beginning = function
   | ""::l -> l
   | l -> l
     
+let rec recursively_remove_slash_at_beginning = function
+    [] -> []
+  | ""::l -> recursively_remove_slash_at_beginning l
+  | l -> l
+    
 let rec remove_slash_at_end = function
     []
   | [""] -> []
   | a::l -> a::(remove_slash_at_end l)
+    
+let remove_middle_slash u =
+  let rec aux = function
+      [] -> []
+    | [a] -> [a]
+    | ""::l -> aux l
+    | a::l -> a::(aux l)
+  in match u with
+    [] -> []
+  | a::l -> a::(aux l)
     
 let rec add_end_slash_if_missing = function
     [] -> [""]
@@ -94,32 +109,3 @@ let rec string_of_url_path = function
   | [a] -> a
   | a::l -> a^"/"^(string_of_url_path l)
 
-let rec string_of_url_path_suff u = function
-    None -> string_of_url_path u
-  | Some suff -> let deb = (string_of_url_path u) in
-    if deb = "" then string_of_url_path suff else deb^(string_of_url_path suff)
-
-let reconstruct_absolute_url_path current_url = string_of_url_path_suff
-
-let reconstruct_relative_url_path current_url u suff =
-  let rec drop cururl desturl = match cururl, desturl with
-  | a::l, [b] -> l, desturl
-  | [a], m -> [], m
-  | a::l, b::m when a = b -> drop l m
-  | a::l, m -> l, m
-  | [], m -> [], m
-  in let rec makedotdot = function
-    | [] -> ""
-(*    | [a] -> "" *)
-    | _::l -> "../"^(makedotdot l)
-  in 
-  let aremonter, aaller = drop current_url u
-  in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
-(*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
-  if s = "" then defaultpagename else s
-
-let rec relative_url_path_to_myself = function
-    []
-  | [""] -> defaultpagename
-  | [a] -> a
-  | a::l -> relative_url_path_to_myself l

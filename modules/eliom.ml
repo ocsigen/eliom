@@ -311,12 +311,20 @@ let reconstruct_params
       (* Each suffixed URL has a version with parameters to be used with 
          forms *)
       TProd((TSuffix s), t) -> 
-        if urlsuffix = [] (* no prefix: switching to version with parameters *)
-        then Obj.magic (aux2 (TProd (s, t)) params)
+        if urlsuffix = [""]
+          (* no prefix: switching to version with parameters *)
+        then 
+          (try 
+            Obj.magic (aux2 (TProd (s, t)) params)
+          with Eliom_Wrong_parameter -> 
+            Obj.magic ((parse_suffix s urlsuffix), (aux2 t params)))
         else Obj.magic ((parse_suffix s urlsuffix), (aux2 t params))
     | TSuffix s ->
-        if urlsuffix = []
-        then Obj.magic (aux2 s params)
+        if urlsuffix = [""] && params <> [] 
+        then
+          (try Obj.magic (aux2 s params)
+          with Eliom_Wrong_parameter -> 
+            Obj.magic (parse_suffix s urlsuffix))
         else Obj.magic (parse_suffix s urlsuffix)
     | _ -> Obj.magic (aux2 typ params)
   with Not_found -> raise Eliom_Wrong_parameter
@@ -425,8 +433,46 @@ let remove_prefixed_param pref l =
         with _ -> a::(aux l)
   in aux l
 
+(*****************************************************************************)
+(* Building href *)
+let rec string_of_url_path' = function
+    [] -> ""
+  | [a] when a = eliom_suffix_internal_name -> ""
+  | [a] -> a
+  | a::l -> a^"/"^(string_of_url_path' l)
 
+let rec string_of_url_path_suff u = function
+    None -> string_of_url_path' u
+  | Some suff -> let deb = (string_of_url_path' u) in
+    if deb = "" 
+    then string_of_url_path' suff
+    else deb^(string_of_url_path' suff)
 
+let reconstruct_absolute_url_path current_url = string_of_url_path_suff
+
+let reconstruct_relative_url_path current_url u suff =
+  let rec drop cururl desturl = match cururl, desturl with
+  | a::l, [b] -> l, desturl
+  | [a], m -> [], m
+  | a::l, b::m when a = b -> drop l m
+  | a::l, m -> l, m
+  | [], m -> [], m
+  in let rec makedotdot = function
+    | [] -> ""
+(*    | [a] -> "" *)
+    | _::l -> "../"^(makedotdot l)
+  in 
+  let aremonter, aaller = drop current_url u
+  in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
+(*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
+  if s = "" then defaultpagename else s
+
+let rec relative_url_path_to_myself = function
+    []
+  | [""] -> defaultpagename
+  | [a] -> a
+  | a::l -> relative_url_path_to_myself l
+(*****************************************************************************)
 
 
 
@@ -559,7 +605,7 @@ let new_service_aux
   match global_register_allowed () with
     Some get_current_hostdir ->
       let _,curdir = get_current_hostdir () in
-      let full_path = curdir@(change_empty_list url) in
+      let full_path = remove_middle_slash (curdir@(change_empty_list url)) in
       let u = new_service_aux_aux
           ~url:full_path
           ~kind:(`Internal (`Service, `Get))
@@ -577,7 +623,8 @@ let new_external_service
     () =
   let suffix = contains_suffix get_params in
   new_service_aux_aux
-    ~url:(if suffix then add_end_slash_if_missing url else url)
+    ~url:(remove_middle_slash 
+            (if suffix then url@[eliom_suffix_internal_name] else url))
     ~kind:`External
     ~get_params 
     ~post_params
@@ -588,7 +635,7 @@ let new_service
     () =
   let suffix = contains_suffix get_params in
   new_service_aux 
-    ~url:(if suffix then add_end_slash_if_missing url else url)
+    ~url:(if suffix then url@[eliom_suffix_internal_name] else url)
     ~get_params
 
 let new_naservice_name () = string_of_int (counter ())

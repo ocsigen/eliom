@@ -478,6 +478,9 @@ CONFIGDIR = /etc/\$(OCSIGENNAME)
 # Where to put static pages:
 STATICPAGESDIR = /var/www/\$(OCSIGENNAME)
 
+# Where to put dynamic data:
+DATADIR = /var/lib/\$(OCSIGENNAME)
+
 # Default directory for file upload:
 UPLOADDIR = /tmp
 

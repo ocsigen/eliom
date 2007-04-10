@@ -1,3 +1,22 @@
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Module nurpawiki.ml
+ * Copyright (C) 2007 Janne Helsten
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception; 
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
 
 open XHTML.M
 open Eliom
@@ -10,8 +29,10 @@ module P = Printf
 
 let (>>) f g = g f
 
-let wiki_view_page = new_service ["view"] (string "p") ()
+let wiki_view_page = new_service [] (suffix (string "p")) ()
 let wiki_edit_page = new_service ["edit"] (string "p") ()
+let wiki_start = Redirections.register_new_service [] unit 
+    (fun sp _ _ -> return (make_string_uri wiki_view_page sp "WikiStart"))
 
 let finally handler f x =
   let r = (
@@ -61,8 +82,6 @@ let wiki_file_dir =
   find_wikidata c
 
 let wiki_page_filename page =
-  let f = wiki_file_dir in
-  Printf.eprintf "\n%s\n" f;
   wiki_file_dir ^ "/" ^ page ^ ".wiki"
 
 let wiki_page_exists page =

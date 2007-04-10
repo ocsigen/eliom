@@ -66,6 +66,7 @@ exception Eliom_error_while_loading_site of string
 
 (*****************************************************************************)
 let eliom_suffix_name = "__eliom_suffix"
+let eliom_suffix_internal_name = "__eliom_suffix**"
 let naservice_prefix = "__eliom_na__"
 let naservice_name = "name"
 let get_state_param_name = "__eliom__"
@@ -495,23 +496,28 @@ let find_service
      si) =
   let rec search_page_table dircontent =
     let aux a l =
+      let aa = match a with
+        None -> defaultpagename
+      | Some aa -> aa
+      in
       try
         let dc = 
-          try !(find_dircontent dircontent a) 
+          try !(find_dircontent dircontent aa) 
           with Not_found -> raise Exn1
         in
         (match dc with
           Dir dircontentref2 -> search_page_table !dircontentref2 l
         | File page_table_ref -> page_table_ref, l)
       with Exn1 -> 
-        (match !(find_dircontent dircontent defaultpagename) with
+        (match !(find_dircontent dircontent eliom_suffix_internal_name) with
           Dir _ -> raise Not_found
-        | File page_table_ref -> page_table_ref, a::l)
+        | File page_table_ref -> 
+            (page_table_ref, (if a = None then [""] else aa::l)))
     in function
         [] -> raise Ocsigen_Is_a_directory
-      | [""] -> aux defaultpagename []
+      | [""] -> aux None []
       | ""::l -> search_page_table dircontent l
-      | a::l -> aux a l
+      | a::l -> aux (Some a) l
   in
   let page_table_ref, suffix = 
     try search_page_table !dircontentref (change_empty_list ri.ri_path)

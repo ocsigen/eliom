@@ -339,7 +339,7 @@ let coucou_params = register_new_service
 *html*)
 let uasuffix = 
   register_new_service 
-    ~url:["uasuffix";""]
+    ~url:["uasuffix"]
     ~get_params:(suffix (string "suff"))
     (fun sp suff () ->  return
       (html
@@ -367,7 +367,7 @@ let uasuffix =
 *html*)
 let isuffix = 
   register_new_service 
-    ~url:["isuffix";""] 
+    ~url:["isuffix"] 
     ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
     (fun sp ((suff, endsuff), i) () -> return
       (html
