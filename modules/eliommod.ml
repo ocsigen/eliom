@@ -47,6 +47,7 @@ type sess_info =
 type 'a server_params1 = 
     request_info * sess_info * 
       (current_dir (* main directory of the site *) *
+         'a (* global table *) * 
          'a ref (* session table ref *) * 
          float option option ref (* user timeout *) *
          url_path (* suffix *))
@@ -259,9 +260,9 @@ let absolute_change_hostdir, get_current_hostdir, end_current_hostdir =
     ref ((fun () ->
       raise (Ocsigen_Internal_Error "No pages tree available")), []) 
   in
-  let f1 = ref (fun (pagetree,dir) -> 
+  let f1 = ref (fun (pagetree, dir) -> 
     current_dir := (fun () -> pagetree), dir) in
-  let f2 = ref (fun () -> let (cd1,cd2) = !current_dir in (cd1 (), cd2)) in
+  let f2 = ref (fun () -> let (cd1, cd2) = !current_dir in (cd1 (), cd2)) in
   let exn1 _ = 
     raise (Ocsigen_Internal_Error "absolute_change_hostdir after init") in
   let exn2 () = 
@@ -307,10 +308,11 @@ let global_register_allowed () =
 (** We associate to a service a function server_params -> page *)
 
     (** Create server parameters record *)
-let make_server_params dir str user_timeout_optref ri suffix si =
+let make_server_params dir globt str user_timeout_optref ri suffix si =
   (ri,
    si,
    (dir,
+    globt,
     str,
     user_timeout_optref,
     suffix))
@@ -318,6 +320,7 @@ let make_server_params dir str user_timeout_optref ri suffix si =
 
 let find_page_table 
     (t : page_table ref)
+    globt
     str 
     user_timeout_optref
     ri
@@ -325,15 +328,15 @@ let find_page_table
     k
     si
     = 
-  let (sp0, si, (_, s, tim, u)) = 
-    make_server_params [] str user_timeout_optref ri urlsuffix si in
+  let (sp0, si, (_, g, s, tim, u)) = 
+    make_server_params [] globt str user_timeout_optref ri urlsuffix si in
   let rec aux = function
       [] -> fail Eliom_Wrong_parameter
     | (((_, (max_use, funct, working_dir)) as a)::l) as ll ->
         catch 
           (fun () ->
             Messages.debug "- I'm trying a service";
-            funct (sp0, si, (working_dir, s, tim, u)) >>=
+            funct (sp0, si, (working_dir, g, s, tim, u)) >>=
             (fun p -> 
               Messages.debug "- Page found and generated successfully";
               let newlist =
@@ -485,7 +488,8 @@ exception Exn1
 
 let find_service 
     (dircontentref,_)
-    (session_table_ref, 
+    (global_tables,
+     session_table_ref, 
      user_timeout_optref,
      ri,
      si) =
@@ -515,6 +519,7 @@ let find_service
   in
   find_page_table 
     page_table_ref
+    global_tables
     session_table_ref
     user_timeout_optref
     ri
@@ -698,7 +703,8 @@ let get_page
              " in the session table:");
           (find_service
              !session_tables_ref
-             (session_tables_ref,
+             (global_tables,
+              session_tables_ref,
               user_timeout_optref,
               ri,
               si)))
@@ -709,7 +715,8 @@ let get_page
                   Messages.debug "-- I'm searching in the global table:";
                   (find_service 
                      global_tables
-                     (session_tables_ref,
+                     (global_tables,
+                      session_tables_ref,
                       user_timeout_optref,
                       ri,
                       si)))
@@ -812,6 +819,7 @@ let make_naservice
       (naservice
          (make_server_params 
             working_dir
+            global_tables
             session_tables_ref 
             user_timeout_optref
             ri

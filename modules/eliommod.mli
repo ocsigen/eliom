@@ -49,7 +49,8 @@ type sess_info =
 type 'a server_params1 = 
     request_info * sess_info * 
       (current_dir *
-         'a ref (* sesseion table ref *) * 
+         'a (* global table *) * 
+         'a ref (* session table ref *) * 
          float option option ref (* user timeout *) *
          url_path (* suffix *))
 

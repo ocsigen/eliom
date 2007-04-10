@@ -1579,7 +1579,8 @@ set_user_timeout sp (Some 7200.)
     &lt;/eliom&gt;
 </pre>
       <p>
-       Use <code>Eliom.get_config ()</code> to get the data between
+       Use <code>Eliom.get_config ()</code> during the initialization
+       of your module to get the data between
        <code>&lt;eliom&gt;</code> and <code>&lt;/eliom&gt;</code>.
        Warning: parsing these data is very basic for now and not really easy.
        That feature will be improved in the future.
