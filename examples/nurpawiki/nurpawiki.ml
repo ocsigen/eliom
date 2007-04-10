@@ -157,9 +157,6 @@ let translate_list items =
 let parse_lines sp lines =
 
   let wikilink scheme page text = 
-    let ext_img = 
-      img ~alt:"External link" 
-        ~src:(make_uri (static_dir sp) sp ["external_link.png"]) () in
     if scheme = "wiki" || scheme = "" then
       let t = if text = "" then page else text in
       if wiki_page_exists page then
@@ -172,8 +169,8 @@ let parse_lines sp lines =
       let t = if text = "" then url else text in
       a (new_external_service 
            ~url:[url]
-           ~get_params:unit
-           ~post_params:unit ()) sp [pcdata t; ext_img] () in
+           ~get_params:(suffix (all_suffix "suff"))
+           ~post_params:unit ()) sp [pcdata t; ext_img] [page] in
     
   let rec parse_text acc s =
     let len = String.length s in
@@ -212,7 +209,11 @@ let parse_lines sp lines =
         else
           begin
             let s = (String.sub s charpos ((String.length s)-charpos)) in
-            add_html acc (pcdata ("WIKI SYNTAX ERROR on line: '"^s^"'"))
+            add_html acc
+              (span
+                 [span ~a:[a_class ["error"]] 
+                    [pcdata "WIKI SYNTAX ERROR IN INPUT: "];
+                  pcdata s])
           end
     in
     List.rev (loop acc 0) in
@@ -270,7 +271,8 @@ let html_stub sp body_html =
 let wiki_page_menu_html sp page content =
   [div ~a:[a_id "navbar"]
      [div ~a:[a_id "akmenu"]
-        [p [img ~alt:"Logo" ~src:(make_uri (static_dir sp) sp ["buko.jpg"]) ();
+        [p
+           [span ~a:[a_class ["nwikilogo"]] [(pcdata "NurpaWiki")];
             a wiki_view_page 
               ~a:[a_accesskey 'h'; a_class ["ak"]] sp 
               [pcdata "Home"] "WikiStart";

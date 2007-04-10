@@ -4,13 +4,22 @@ body {
 	background-color : #FFFFFF 
 }
 
+a         { color : #2222FF; text-decoration : underline; }
 a:visited { color : #000080; }
-a:link {color : #2222FF;}
-a:hover {color : Red; text-decoration : underline; }
+a:hover   { color : #2222FF; text-decoration : none; }
 
 a.missing_page:visited { color : Red; }
 a.missing_page:link    { color : Red; }
-a.missing_page:hover   { color : Red; text-decoration : underline; }
+a.missing_page:hover   { color : Red; text-decoration : none; }
+
+.nwikilogo {
+  color:#89d;
+  font-weight:bold;
+  font-size:2em;
+  line-height:2em;
+}
+
+.error { color : Red; font-weight:bold; }
 
 #akmenu a
 {
