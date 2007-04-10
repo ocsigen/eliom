@@ -26,7 +26,7 @@ let id x = x
 let comp f g x = f (g x)
 
 let rec list_remove a = function
-    [] -> []
+  |  [] -> []
   | b::l when a = b -> l
   | b::l -> b::(list_remove a l)
 
@@ -35,6 +35,11 @@ let rec list_assoc_remove a = function
   | (b,c)::l when a = b -> c,l
   | b::l -> let v,ll = list_assoc_remove a l in v,b::ll
 
+let rec list_is_prefix l1 l2 = 
+  match (l1,l2) with
+  | [], _ -> true
+  | a::ll1, b::ll2 when a=b -> list_is_prefix ll1 ll2
+  | _ -> false
 
 (* virtual hosts: *)
 type virtual_host_part = Text of string * int | Wildcard
@@ -44,30 +49,27 @@ type virtual_hosts = ((virtual_host_part list) * int option) list
 type static_dir = Static_dir of string option * (string * static_dir) list
 
 
-
-let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
-
 (** various functions for URLs *)
 let defaultpagename = "index"
     
 let remove_slash_at_beginning = function
-    [] -> []
+  | [] -> []
   | ""::l -> l
   | l -> l
     
 let rec recursively_remove_slash_at_beginning = function
-    [] -> []
+  | [] -> []
   | ""::l -> recursively_remove_slash_at_beginning l
   | l -> l
     
 let rec remove_slash_at_end = function
-    []
+  | []
   | [""] -> []
   | a::l -> a::(remove_slash_at_end l)
     
 let remove_middle_slash u =
   let rec aux = function
-      [] -> []
+    | [] -> []
     | [a] -> [a]
     | ""::l -> aux l
     | a::l -> a::(aux l)
@@ -76,12 +78,12 @@ let remove_middle_slash u =
   | a::l -> a::(aux l)
     
 let rec add_end_slash_if_missing = function
-    [] -> [""]
+  | [] -> [""]
   | [""] as a -> a
   | a::l -> a::(add_end_slash_if_missing l)
     
 let change_empty_list = function
-    [] -> [""] (* It is not possible to register an empty URL *)
+  | [] -> [""] (* It is not possible to register an empty URL *)
   | l -> l
 
 
@@ -105,7 +107,7 @@ let change_empty_list = function
 
 
 let rec string_of_url_path = function
-    [] -> ""
+  | [] -> ""
   | [a] -> a
   | a::l -> a^"/"^(string_of_url_path l)
 

@@ -48,10 +48,11 @@ type sess_info =
 
 type 'a server_params1 = 
     request_info * sess_info * 
-      (current_dir *
+      (current_dir (* main directory of the site *) *
          'a (* global table *) * 
          'a ref (* session table ref *) * 
-         float option option ref (* user timeout *) *
+         (float option option ref * float option ref) (* user timeout
+                                 and expiration date for the session *) *
          url_path (* suffix *))
 
 type server_params = tables server_params1

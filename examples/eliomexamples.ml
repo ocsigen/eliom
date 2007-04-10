@@ -164,19 +164,28 @@ let _ = Cookies.register cookies
                     )
                     [a cookies sp [pcdata "send other cookies"] ()]
                     (get_cookies sp))])),
-       [(None, [((cookiename^"1"),(string_of_int (Random.int 100)));
-               ((cookiename^"2"),(string_of_int (Random.int 100)));
-               ((cookiename^"3"),(string_of_int (Random.int 100)))]);
-        (Some ["c"], [((cookiename^"4"),(string_of_int (Random.int 100)));
-                ((cookiename^"5"),(string_of_int (Random.int 100)))]);
-        (Some [".."], [((cookiename^"6"),(string_of_int (Random.int 100)));
-                ((cookiename^"7"),(string_of_int (Random.int 100)))]);
-        (Some ["plop"], [((cookiename^"8"),(string_of_int (Random.int 100)));
-                ((cookiename^"9"),(string_of_int (Random.int 100)));
-                ((cookiename^"10"),(string_of_int (Random.int 100)));
-                ((cookiename^"11"),(string_of_int (Random.int 100)));
-                ((cookiename^"12"),(string_of_int (Random.int 100)))]);
-      ]))
+       let cookies =
+         [Extensions.Set (Some [], Some (Unix.time () +. 30.), 
+                          [((cookiename^"6"),(string_of_int (Random.int 100)));
+                           ((cookiename^"7"),(string_of_int (Random.int 100)))]);
+          Extensions.Set (Some ["plop"], None, 
+                          [((cookiename^"8"),(string_of_int (Random.int 100)));
+                           ((cookiename^"9"),(string_of_int (Random.int 100)));
+                           ((cookiename^"10"),(string_of_int (Random.int 100)));
+                           ((cookiename^"11"),(string_of_int (Random.int 100)));
+                           ((cookiename^"12"),(string_of_int (Random.int 100)))]);
+        ]
+       in if List.mem_assoc (cookiename^"1") (get_cookies sp)
+       then 
+         (Extensions.Unset (None, 
+                            [(cookiename^"1");(cookiename^"2")]))::cookies
+       else 
+         (Extensions.Set (None, None,
+                          [((cookiename^"1"),(string_of_int (Random.int 100)));
+                           ((cookiename^"2"),(string_of_int (Random.int 100)));
+                           ((cookiename^"3"),(string_of_int (Random.int 100)))]))
+         ::cookies
+      ))
 
 
 (* Cookies or not cookies with Any *)
@@ -200,7 +209,8 @@ let sendany =
             ((html
                 (head (title (pcdata "")) [])
                 (body [p [pcdata "This page does set a cookie"]])),
-             [None, [(("arf"),(string_of_int (Random.int 100)))]]))
+             [Extensions.Set (None, None, 
+                              [(("arf"),(string_of_int (Random.int 100)))])]))
    )
 
 

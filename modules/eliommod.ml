@@ -49,7 +49,8 @@ type 'a server_params1 =
       (current_dir (* main directory of the site *) *
          'a (* global table *) * 
          'a ref (* session table ref *) * 
-         float option option ref (* user timeout *) *
+         (float option option ref * float option ref) (* user timeout
+                                 and expiration date for the session *) *
          url_path (* suffix *))
       
 (********)
@@ -234,7 +235,7 @@ and direlt =
 and tables = dircontent ref * naservice_table ref
 
 type cookiestable = (tables * 
-                       float option(* expiration date *) *
+                       float option (* expiration date *) *
                        float option option ref (* timeout *)) Cookies.t
 
 type pages_tree = 
@@ -309,13 +310,13 @@ let global_register_allowed () =
 (** We associate to a service a function server_params -> page *)
 
     (** Create server parameters record *)
-let make_server_params dir globt str user_timeout_optref ri suffix si =
+let make_server_params dir globt str session_exp_info ri suffix si =
   (ri,
    si,
    (dir,
     globt,
     str,
-    user_timeout_optref,
+    session_exp_info,
     suffix))
 
 
@@ -323,14 +324,14 @@ let find_page_table
     (t : page_table ref)
     globt
     str 
-    user_timeout_optref
+    session_exp_info
     ri
     urlsuffix
     k
     si
     = 
   let (sp0, si, (_, g, s, tim, u)) = 
-    make_server_params [] globt str user_timeout_optref ri urlsuffix si in
+    make_server_params [] globt str session_exp_info ri urlsuffix si in
   let rec aux = function
       [] -> fail Eliom_Wrong_parameter
     | (((_, (max_use, funct, working_dir)) as a)::l) as ll ->
@@ -491,7 +492,7 @@ let find_service
     (dircontentref,_)
     (global_tables,
      session_table_ref, 
-     user_timeout_optref,
+     session_exp_info,
      ri,
      si) =
   let rec search_page_table dircontent =
@@ -527,7 +528,7 @@ let find_service
     page_table_ref
     global_tables
     session_table_ref
-    user_timeout_optref
+    session_exp_info
     ri
     suffix
     {state = si.si_state_info}
@@ -648,7 +649,9 @@ let execute generate_page ip cookie (globtable, cookie_table) =
           | _ -> ((ref ta), cookie, timeout_optref)
         with Not_found -> ((ref (new_session_tables ())), None, ref None))
   in
-  generate_page globtable sessiontablesref user_timeout_optref >>=
+  let cookie_exp_date = ref None in
+  generate_page 
+    globtable sessiontablesref (user_timeout_optref, cookie_exp_date) >>=
   (fun (result, working_dir) ->
     let cookie2 = 
       if are_empty_tables !sessiontablesref
@@ -679,11 +682,11 @@ let execute generate_page ip cookie (globtable, cookie_table) =
         Some c
     in
     let cookie3 = 
-      if cookie2 <> cookie then 
+      if cookie2 <> cookie || !cookie_exp_date <> None then 
         (if cookie2 = None 
-        then Some remove_cookie_str
-        else cookie2)
-      else None
+        then ((Some ""), (Some 0.))
+        else (cookie2, !cookie_exp_date))
+      else (None, None)
     in return 
       (cookie3, 
        result, 
@@ -700,7 +703,7 @@ let get_page
   let generate_page
       global_tables
       session_tables_ref
-      user_timeout_optref 
+      session_exp_info
       =
     ((catch
         (fun () -> 
@@ -711,7 +714,7 @@ let get_page
              !session_tables_ref
              (global_tables,
               session_tables_ref,
-              user_timeout_optref,
+              session_exp_info,
               ri,
               si)))
         (function 
@@ -723,7 +726,7 @@ let get_page
                      global_tables
                      (global_tables,
                       session_tables_ref,
-                      user_timeout_optref,
+                      session_exp_info,
                       ri,
                       si)))
                 (function
@@ -777,7 +780,7 @@ let make_naservice
     page_tree
     (ri, si, cookies_to_set) =
   let generate_page
-      global_tables session_tables_ref user_timeout_optref =
+      global_tables session_tables_ref session_exp_info =
     (try
       try
         return (find_naservice !session_tables_ref si.si_nonatt_info)
@@ -827,7 +830,7 @@ let make_naservice
             working_dir
             global_tables
             session_tables_ref 
-            user_timeout_optref
+            session_exp_info
             ri
             []
             si)) >>=
@@ -861,21 +864,31 @@ let gen page_tree charset ri =
     catch 
       (fun () ->
         execute gen ia c pt >>=
-	fun (new_cookie, result_to_send, path) ->
+	fun ((new_cookie, cookie_exp), result_to_send, path) ->
           
           let compute_cookies cookies_set_by_page =
             let cookies_set_by_page =
-              List.map (fun (pathopt,cl) -> 
-                ((match pathopt with
-                  None -> Some path (* Not possible to set a cookie for another site (?) *)
-                | Some p -> Some (path@p)
-                 ),cl)) cookies_set_by_page
+              List.map 
+                (function
+                  | Set (pathopt, expopt, cl) -> 
+                      Set ((match pathopt with
+                        None -> Some path (* Not possible to set a cookie for another site (?) *)
+                      | Some p -> Some (path@p)
+                           ), expopt, cl)
+                  | Unset (pathopt, cl) -> 
+                      Unset ((match pathopt with
+                        None -> Some path (* Not possible to set a cookie for another site (?) *)
+                      | Some p -> Some (path@p)
+                           ), cl)
+                )
+                cookies_set_by_page
             in
             let cookies_to_set = cookies_set_by_page@old_cookies_to_set in
             let all_new_cookies =
               match new_cookie with
                 None -> cookies_to_set
-              | Some c -> (Some path, [(cookiename, c)])::cookies_to_set
+              | Some c -> Set (Some path, cookie_exp, 
+                               [(cookiename, c)])::cookies_to_set
             in (cookies_set_by_page, all_new_cookies)
           in
 
@@ -912,20 +925,53 @@ let gen page_tree charset ri =
                       (Eliom_retry_with 
                          (let cookies_presents =
                            List.fold_left
-                             (fun l (_, cl) -> cl@l)
+                             (fun l c ->
+                               match c with
+                                 Set (p, exp, cl) -> 
+                                   (match exp with
+                                   | Some t when t < Unix.time () -> l
+                                   | _ -> (match p with
+                                     | None -> cl@l
+                                     | Some p 
+                                       when list_is_prefix p ri.ri_path -> 
+                                         cl@l
+                                     | _ -> l
+                                      ))
+                               | Unset (p, cl) ->  
+                                   match p with
+                                     Some p ->
+                                       if list_is_prefix p ri.ri_path
+                                       then 
+                                         List.fold_left
+                                           (fun lll ccc -> 
+                                             List.remove_assoc ccc lll)
+                                           l
+                                           cl
+                                       else l
+                                   | _ -> List.fold_left
+                                         (fun lll ccc -> 
+                                           List.remove_assoc ccc lll)
+                                         l
+                                         cl
+                             )
                              (force ri.ri_cookies)
                              cookies_set_by_page
                          in
+                         let now = Unix.time () in
                          ({ri with
                            ri_post_params = lazy (return []);
                            ri_cookies= lazy
-                             (match new_cookie with
-                               None -> cookies_presents
-                             | Some c -> ((cookiename,c)::cookies_presents))},
+                             (match new_cookie, cookie_exp with
+                             | None, _ -> cookies_presents
+                             | _, Some d when d < now -> 
+                                 List.remove_assoc cookiename cookies_presents
+                             | Some c, _ -> 
+                                 ((cookiename, c)::cookies_presents))},
                           {si_other_get_params= si.si_other_get_params;
-                           si_cookie= (match new_cookie with
-                             Some c -> new_cookie
-                           | None -> si.si_cookie);
+                           si_cookie= (match new_cookie, cookie_exp with
+                           | Some c, Some d when d < now -> None
+                           | Some c, _ -> new_cookie
+                           | None, _ -> si.si_cookie);
                            si_nonatt_info= ((fst si.si_nonatt_info), None);
                            si_state_info= ((fst si.si_state_info), None);
                            si_exn = exnlist@si.si_exn;

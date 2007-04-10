@@ -24,6 +24,11 @@ open Lwt
 open Ocsistream
 open XHTML.M
 
+
+type mycookieslist = 
+  (string list option * float option * (string * string) list) list
+
+
 let id x = x
 
 let add_css (a : 'a) : 'a = 
@@ -301,18 +306,25 @@ let send_generic
       ("Date",date)::
       ("Last-Modified",last_mod)::header
   in
-  let mkcook path (name,c) =
+  let mkcook path exp (name, c) =
     ("Set-Cookie",
      (name^"="^c^
       (match path with 
         Some s -> ("; path=/"^(Ocsimisc.string_of_url_path s))
+      | None -> "")^
+      (match exp with 
+        Some s -> ("; expires="^
+                   (Netdate.format
+                      "%a, %d-%b-%Y %H:%M:%S GMT"
+                      (Netdate.create s)))
       | None -> "")))
   in
-  let mkcookl path cl hds =
-    List.fold_left (fun h c -> (mkcook path c)::h) hds cl
+  let mkcookl (path, exp, cl) hds =
+    List.fold_left (fun h c -> (mkcook path exp c)::h) hds cl
   in
   let hds =
-    List.fold_left (fun h (path,cl) -> (mkcookl path cl h)) hds cookies
+    List.fold_left (fun h c -> 
+      (mkcookl c h)) hds cookies
   in
   let hds =
     if keep_alive
@@ -345,7 +357,7 @@ type create_sender_type = ?server_name:string ->
     ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
 
 type send_page_type =
-    ?cookies:(string list option * (string * string) list) list ->
+    ?cookies:mycookieslist ->
       unit Lwt.t ->
         ?code:int ->
           ?etag:etag ->

@@ -142,6 +142,11 @@ val get_cookies : server_params -> (string * string) list
 val set_user_timeout : server_params -> float option -> unit
 val get_user_timeout : server_params -> float option
 
+(** Setting and getting cookie expiration date for the session. None means the cookie will expire when the browser is closed. *)
+val set_user_expdate : server_params -> float option -> unit
+val get_user_expdate : server_params -> float option
+
+(** Setting and getting timeout for the session (server side). The session will be closed after this amount of time of inactivity from the user. *)
 val set_global_timeout_during_session : server_params -> float option -> unit
 val get_global_timeout_during_session : server_params -> float option
 val set_global_timeout_during_init : float option -> unit
@@ -950,7 +955,7 @@ module type ELIOMREGSIG =
   sig
     include ELIOMREGSIG1
     module Cookies : ELIOMREGSIG1 
-    with type page = page * Extensions.cookieslist
+    with type page = page * cookieslist
   end
 
 module type ELIOMSIG = sig

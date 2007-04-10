@@ -737,13 +737,14 @@ let form4 = register_new_service ["form4"] unit
       <p>Details on service registration:</p>
       <ul>
         <li>All services created during initialisation must be registered
-        in the public table
-        during the initialisation phase of your module.
+        in the public table during the initialisation phase of your module.
         If not, the server will not start (with an error message in the logs).
         This is to ensure that all the URLs the user can bookmark
         will always give an answer, even if the session has expired.</li>
-        <li>Services cannot be registered in the public table
-         after the initialisation phase.
+        <li>Main services cannot be registered in the public table
+         after the initialisation phase. Coservices (attached and non-attached)
+         may be registered in the public table after initialisation with
+         <code>register_public</code>.
         </li>
         <li>Do not register twice the same service in the public table, 
           and do not replace a service
@@ -1465,12 +1466,21 @@ let sendany =
       and a list of cookies, of type
       </p>
       <pre>
-type cookieslist = (string option * (string * string) list) list
+type cookies = 
+    Set of string list option * float option * (string * string) list
+  | Unset of (string list option * string list)
 </pre>
      <p>
      The <code>string option</code> is a the path for which you want
-     to set the cookie (relative to the main directory of your site, defined
+     to set/unset the cookie (relative to the main directory of your site, 
+   defined
      in the configuration file). <code>None</code> means for all your site.
+     </p>
+     <p>
+     The <code>float option</code> is a the expiration date
+     (Unix timestamp, in seconds since the epoch).
+     <code>None</code> means that the cookie will expire when the browser
+     will be closed.
      </p>
      <p>
       You can access the cookies sent by the browser using
@@ -1494,7 +1504,8 @@ let _ = Cookies.register cookies
                           with _ -> "<cookie not set>");
                   br ();
                   a cookies sp [pcdata "send other cookie"] ()]])),
-       [None, [(cookiename,(string_of_int (Random.int 100)))]]))
+       [Extensions.Set (None, None, 
+                        [(cookiename,(string_of_int (Random.int 100)))])]))
 (*html*
       <p>Try $a Tutoeliom.cookies sp <:xmllist< <code>it</code> >> ()$.</p>
      <h3>Disposable coservices</h3>

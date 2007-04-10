@@ -41,8 +41,17 @@ type url_path = string list
 type current_url = string list
 type current_dir = string list
 
-(** Type used for cookies to set. The url_path option is for the path. *)
-type cookieslist = (url_path option * (string * string) list) list
+(** Type used for cookies to set. The url_path option is for the path,
+   The float option is the timestamp for the expiration date. 
+*)
+type cookies = 
+    Set of string list option * float option * (string * string) list
+  | Unset of (string list option * string list)
+
+type cookieslist = cookies list
+
+val change_cookie : cookies -> 
+  string list option * float option * (string * string) list
 
 (** The files sent in the request *)
 type file_info = {tmp_filename: string; (** Where the file is stored on the server*)
@@ -76,7 +85,7 @@ type request_info =
 
 (** The result of a page generation *)
 type result =
-    {res_cookies: (string list option * (string * string) list) list; (** The cookies to set (with optional paths) *)
+    {res_cookies: cookieslist; (** The cookies to set (with optional paths) *)
      res_lastmodified: float option;      (** Last modified date *)
      res_etag: Http_frame.etag option;    (** ETag for the page *)
      res_code: int option;                (** HTTP code to send, if not 200 *)

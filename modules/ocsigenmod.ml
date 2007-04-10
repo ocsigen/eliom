@@ -61,7 +61,7 @@ let action_reload = "reload"
 let state_param_name = "__ocsigen_etat__"
 let cookiename = "ocsigensession"
 
-
+let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 
 (*****************************************************************************)
 (* Finding special ocsigenmod parameters (for actions, state, suffix ...)    *)
@@ -532,7 +532,7 @@ let get_page
              {res_cookies=
               (match cook with
                 None -> []
-              | Some c -> [(Some path, [(cookiename, c)])]);
+              | Some c -> [Set (Some path, None, [(cookiename, c)])]);
               res_send_page=sp;
               res_create_sender=s;
               res_code=None;
@@ -629,14 +629,14 @@ let gen page_tree charset ri =
 			  {r with 
 			   res_cookies=
 			   (match cookie2, r.res_cookies with
-			   | (Some c), [] -> [(Some path, [(cookiename, c)])]
+			   | (Some c), [] -> [Set (Some path, None, [(cookiename, c)])]
 			   | _,cl -> cl)})
 	         | _ -> return (Ext_found
 				  {res_cookies=
 				   (match cookie2 with
 				     None -> []
 				   | Some c -> 
-                                       [(Some path, [(cookiename, c)])]);
+                                       [Set (Some path, None, [(cookiename, c)])]);
 				   res_send_page=
 				   (Predefined_senders.send_xhtml_page 
 				      ~content:(Error_pages.error_page "Error: redirection after action is experimental (it works only for ocsigenmod pages for now, and I didn't find any)"));
@@ -652,7 +652,7 @@ let gen page_tree charset ri =
                    {res_cookies=
                     (match cookie2 with
                       None -> []
-                    | Some c -> [(Some path, [(cookiename, c)])]);
+                    | Some c -> [Set (Some path, None, [(cookiename, c)])]);
                     res_send_page=Predefined_senders.send_empty ~content:();
                     res_create_sender=
                     Predefined_senders.create_empty_sender;

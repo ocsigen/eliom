@@ -46,7 +46,17 @@ type file_info = {tmp_filename: string;
                   filesize: int64;
                   original_filename: string}
 
-type cookieslist = (url_path option * (string * string) list) list
+
+type cookies = 
+    Set of string list option * float option * (string * string) list
+  | Unset of (string list option * string list)
+
+type cookieslist = cookies list
+
+let change_cookie = function
+  | Set (a, b, c) -> (a, b, c)
+  | Unset (a, b) -> (a, (Some 0.), (List.map (fun v -> (v,"")) b))
+
 
 type request_info = 
     {ri_url: string;
@@ -67,7 +77,7 @@ type request_info =
    }
 
 type result =
-    {res_cookies: (string list option (* path *) * (string * string) list) list; (** cookies to set (with optional path) *)
+    {res_cookies: cookieslist; (** cookies to set (with optional path) *)
      res_lastmodified: float option;
      res_etag: Http_frame.etag option;
      res_code: int option; (* HTTP code, if not 200 *)

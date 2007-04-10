@@ -512,7 +512,8 @@ let service
                 Messages.debug "-> Sending 304 Not modified ";
                 send_empty
                   ~content:()
-                  ~cookies:(res.res_cookies@cookieslist)
+                  ~cookies:(List.map change_cookie 
+                              (res.res_cookies@cookieslist))
                   wait_end_answer
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified
@@ -523,7 +524,8 @@ let service
                   
             | _ ->
                 res.res_send_page
-                  ~cookies:(res.res_cookies@cookieslist)
+                  ~cookies:(List.map change_cookie 
+                              (res.res_cookies@cookieslist))
                   wait_end_answer
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified

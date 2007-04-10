@@ -75,12 +75,14 @@ let get_global_timeout_during_init () =
       Eliommod.find_global_timeout (snd (get_current_hostdir ()))
   | _ -> raise Eliom_function_forbidden_outside_site_loading
 
-let set_user_timeout (_,_,(_,_,_,tor,_)) t = tor := Some t
-let get_user_timeout (_,_,(working_dir,_,_,tor,_)) = 
+let set_user_timeout (_,_,(_,_,_,(tor,_),_)) t = tor := Some t
+let get_user_timeout (_,_,(working_dir,_,_,(tor,_),_)) = 
   match !tor with
     None -> Eliommod.find_global_timeout working_dir
   | Some t -> t
 
+let set_user_expdate (_,_,(_,_,_,(_,exp),_)) t = exp := t
+let get_user_expdate (_,_,(working_dir,_,_,(_,exp),_)) = !exp
 
 let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
@@ -1369,7 +1371,7 @@ module type ELIOMREGSIG =
   sig
     include ELIOMREGSIG1
     module Cookies : ELIOMREGSIG1 
-    with type page = page * Extensions.cookieslist
+    with type page = page * cookieslist
   end
 
 
