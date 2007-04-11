@@ -40,7 +40,7 @@ exception Eliom_Session_expired
 (** Allows extensions of the configuration file for your modules *)
 val get_config : unit -> 
   Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist
-(** Put your options between <module ...> and </module> *)
+(** Put your options between <eliom ...> and </eliom> *)
 
 (** This function may be used for services that can not be interrupted
   (no cooperation point for threads). It is defined by
@@ -49,6 +49,7 @@ val get_config : unit ->
 val sync : ('a -> 'b -> 'c -> 'd) -> ('a -> 'b -> 'c -> 'd Lwt.t)
 
 (** {2 Types} *)
+
 type suff = [ `WithSuffix | `WithoutSuffix ]
 
 type servcoserv = [ `Service | `Coservice ]
@@ -112,18 +113,11 @@ type url_path = string list
 val string_of_url_path : url_path -> string
 (** This type is used to represent URL paths; For example the path [coucou/ciao] is represented by the list [\["coucou";"ciao"\]] *)
 
-(** {2 Types of pages parameters} *)
-
-(** Here are some examples of how to specify the types and names of pages parameters:
-   - [unit] for a page without parameter.
-   - [(int "myvalue")] for a page that takes one parameter, of type [int], called [myvalue]. (You must register a function of type [int ->] {{:#TYPEpage}[page]}).
-   - [(int "myvalue" ** string "mystring")] for a page that takes two parameters, one of type [int] called [myvalue], and one of type [string] called [mystring]. (The function you will register has a parameter of type [(int * string)]).
-   - [list "l" (int "myvalue" ** string "mystring")] for a page that takes a list of pairs. (The function you will register has a parameter of type [(int * string) list]).
-
- *)
+(** {2 Server parameters} *)
 
 type server_params
 (** Type of server parameters *)
+
 val get_user_agent : server_params -> string
 val get_full_url : server_params -> string
 val get_ip : server_params -> string
@@ -159,6 +153,16 @@ val get_default_timeout : unit -> float option
 val get_tmp_filename : file_info -> string
 val get_filesize : file_info -> int64
 val get_original_filename : file_info -> string
+
+(** {2 Types of pages parameters} *)
+
+(** Here are some examples of how to specify the types and names of pages parameters:
+   - [unit] for a page without parameter.
+   - [(int "myvalue")] for a page that takes one parameter, of type [int], called [myvalue]. (You must register a function of type [int ->] {{:#TYPEpage}[page]}).
+   - [(int "myvalue" ** string "mystring")] for a page that takes two parameters, one of type [int] called [myvalue], and one of type [string] called [mystring]. (The function you will register has a parameter of type [(int * string)]).
+   - [list "l" (int "myvalue" ** string "mystring")] for a page that takes a list of pairs. (The function you will register has a parameter of type [(int * string) list]).
+
+ *)
 
 type ('a, 'b) binsum = Inj1 of 'a | Inj2 of 'b
 (** Binary sums *)
@@ -262,6 +266,8 @@ val suffix_prod :
 (***** Static dir and actions do not depend on the type of pages ******)
 
 (** {2 Misc} *)
+
+
 val static_dir :
     server_params -> 
       (string list, unit, [> `Attached of 
@@ -279,6 +285,8 @@ val close_session : server_params -> unit
     
 
 (** {2 Definitions of entry points (services/URLs)} *)
+
+
 val new_service :
     url:url_path ->
         get_params:('get, [< suff ] as 'tipo,'gn)
@@ -382,6 +390,9 @@ val new_get_post_coservice' :
 (* * Creates a non-attached coservice with GET and POST parameters. The fallback is a non-attached coservice with GET parameters. *)
 *)
 
+(** Preapplied services are created from a service and its GET parameters.
+   It is not possible to register something on an preapplied service.
+   Preapplied services may be used in links or as fallbacks for coservices *)
 val preapply :
     ('a, 'b, [> `Attached of 'd a_s ] as 'c,
      [< suff ], 'e, 'f, 'g)
@@ -399,7 +410,7 @@ val make_string_uri :
 
 
 
-(** {2 Using other ways (than the module Eliom.Xhtml) to create pages} *)
+(** {2 Creating modules to register services for one type of pages} *)
 
 module type REGCREATE = 
   sig
@@ -995,12 +1006,13 @@ and type link_attrib_t = Pages.link_attrib_t
 and type script_attrib_t = Pages.script_attrib_t
 and type input_type_t = Pages.input_type_t
 
-(** {2 Pages registration (typed xhtml)} *)
+(** {2 Module for registering typed Xhtml pages} *)
+
 module Xhtml : sig
 
   include ELIOMREGSIG with type page = xhtml elt
 
-(** {2 Creating links, forms, etc.} *)
+(** {3 Creating links, forms, etc.} *)
 
   val a :
       ?a:a_attrib attrib list ->
@@ -1187,6 +1199,8 @@ Not all features of "select" are implemented.
 
 
 end
+
+(** {2 Modules to register other types of pages} *)
 
 module Text : ELIOMSIG with 
 type page = string
