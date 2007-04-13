@@ -62,7 +62,7 @@ else
   LIB=$(LIB1) -I +camlp4/Camlp4Parsers
 endif
 
-CMAO = nums.cma dynlink.cma unix.cma str.cma \
+CMAO = nums.cma dynlink.cma unix.cma str.cma dbm.cma \
        ssl.cma pcre.cma $(NETSYSCMA) netstring.cma \
        threads.cma \
        ocsimisc.cmo \

@@ -953,9 +953,9 @@ let listen ssl port wait_end_init =
 let _ = try
 
   let config_servers = 
-    try 
-      parse_config ()
-    with e -> raise (Config_file_exn e)
+
+    parse_config ();
+
   in
 
   let number_of_servers = List.length config_servers in
@@ -1121,6 +1121,10 @@ with
 | Ssl.Private_key_error ->
     errlog ("Fatal - bad password");
     exit 10
+| Stdpp.Exc_located (fl, exn) ->
+    errlog ("Fatal - Error in configuration file at position : "^
+            (print_location fl)^". "^(Printexc.to_string exn));
+    exit 51
 | Config_file_exn exn ->
     errlog ("Fatal - Error in configuration file: "^(Printexc.to_string exn));
     exit 50

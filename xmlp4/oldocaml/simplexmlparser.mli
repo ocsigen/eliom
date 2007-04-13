@@ -42,6 +42,12 @@ module ExprOrPatt :
     val to_patt_attlist : texprpatt tlist -> MLast.patt
   end
 
+type xml =
+  | Element of (string * (string * string) list * xml list)
+  | PCData of string
+
+val xmlparser' : string -> xml list
+
 (**/**)
 val exprpatt_xml : ExprOrPatt.texprpatt Grammar.Entry.e
 val exprpatt_any_tag : ExprOrPatt.texprpatt Grammar.Entry.e

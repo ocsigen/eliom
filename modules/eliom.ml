@@ -57,12 +57,22 @@ let get_suffix (_,_,(_,_,_,_,s)) = s
 let get_exn (_,si,_) = si.si_exn
 let get_config_file_charset (_,si,_) = si.si_config_file_charset
 let get_cookies (ri,_,_) = force ri.ri_cookies
+let get_cookie (_,si,_) = si.si_cookie 
+let get_persistent_cookie (_,si,_) = !(si.si_persistent_cookie)
 
 let get_default_timeout = Eliommod.get_default_timeout
 let set_global_timeout_during_session (_, _, (working_dir, _, _, _, _)) min = 
   Eliommod.set_global_timeout working_dir min
 let get_global_timeout_during_session (_, _, (working_dir, _, _, _, _)) = 
   Eliommod.find_global_timeout working_dir
+
+let get_default_persistent_timeout = Eliommod.get_default_persistent_timeout
+let set_global_persistent_timeout_during_session 
+    (_, _, (working_dir, _, _, _, _)) min = 
+  Eliommod.set_global_persistent_timeout working_dir min
+let get_global_persistent_timeout_during_session
+    (_, _, (working_dir, _, _, _, _)) = 
+  Eliommod.find_global_persistent_timeout working_dir
 
 let set_global_timeout_during_init min = 
   match global_register_allowed () with
@@ -76,14 +86,37 @@ let get_global_timeout_during_init () =
       Eliommod.find_global_timeout (snd (get_current_hostdir ()))
   | _ -> raise Eliom_function_forbidden_outside_site_loading
 
-let set_user_timeout (_,_,(_,_,_,(tor,_),_)) t = tor := Some t
-let get_user_timeout (_,_,(working_dir,_,_,(tor,_),_)) = 
+let set_global_persistent_timeout_during_init min = 
+  match global_register_allowed () with
+    Some get_current_hostdir ->
+      Eliommod.set_global_persistent_timeout (snd (get_current_hostdir ())) min
+  | _ -> raise Eliom_function_forbidden_outside_site_loading
+
+let get_global_persistent_timeout_during_init () = 
+  match global_register_allowed () with
+    Some get_current_hostdir ->
+      Eliommod.find_global_persistent_timeout (snd (get_current_hostdir ()))
+  | _ -> raise Eliom_function_forbidden_outside_site_loading
+
+let set_user_timeout (_,_,(_,_,_,(tor,_,_,_),_)) t = tor := Some t
+let unset_user_timeout (_,_,(_,_,_,(tor,_,_,_),_)) = tor := None
+let get_user_timeout (_,_,(working_dir,_,_,(tor,_,_,_),_)) = 
   match !tor with
     None -> Eliommod.find_global_timeout working_dir
   | Some t -> t
 
-let set_user_expdate (_,_,(_,_,_,(_,exp),_)) t = exp := t
-let get_user_expdate (_,_,(working_dir,_,_,(_,exp),_)) = !exp
+let set_user_expdate (_,_,(_,_,_,(_,exp,_,_),_)) t = exp := t
+let get_user_expdate (_,_,(working_dir,_,_,(_,exp,_,_),_)) = !exp
+
+let set_user_persistent_timeout (_,_,(_,_,_,(_,_,tor,_),_)) t = tor := Some t
+let unset_user_persistent_timeout (_,_,(_,_,_,(_,_,tor,_),_)) = tor := None
+let get_user_persistent_timeout (_,_,(working_dir,_,_,(_,_,tor,_),_)) = 
+  match !tor with
+    None -> Eliommod.find_global_persistent_timeout working_dir
+  | Some t -> t
+
+let set_user_persistent_expdate (_,_,(_,_,_,(_,_,_,exp),_)) t = exp := t
+let get_user_persistent_expdate (_,_,(working_dir,_,_,(_,_,_,exp),_)) = !exp
 
 let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
@@ -575,8 +608,6 @@ let static_dir (_,_,(curdir,_,_,_,_)) =
       }
    }
 
-(** Close a session *)
-let close_session (_,_,(_,_,sesstab,_,_)) = sesstab := empty_tables ()
 
 
 (****************************************************************************)
@@ -1017,6 +1048,7 @@ module type ELIOMREGSIG1 =
   sig
 
 
+
     type page
 
     val send : 
@@ -1059,22 +1091,6 @@ module type ELIOMREGSIG1 =
    but never after,
    - You (obviously) can't register an service in a session table 
    when no session is active
- *)
-
-    val register_public :
-        server_params ->
-        coservice:('get, 'post,
-                 [< `Attached of 
-                   [< `Internal of [< `Coservice ] * getpost ] a_s
-                 | `Nonattached of getpost na_s ],
-                 [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
-        ?error_handler:(server_params ->
-                               (string * exn) list -> page Lwt.t) ->
-        (server_params -> 'get -> 'post -> page Lwt.t) ->
-          unit
-(** Register a coservice in the global table after initialization.
-    [register] can be used only during the initalization of the module.
-    After this phase, use that function, that takes [sp] as parameter.
  *)
 
 
@@ -1159,41 +1175,6 @@ module type ELIOMREGSIG1 =
                      [> `Registrable ])
                       service
 (** Same as [new_coservice'] followed by [register_for_session] *)
-
-    val register_new_public_coservice :
-        server_params ->
-          ?max_use:int ->
-            fallback:(unit, unit, 
-                      [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
-                      [ `WithoutSuffix ] as 'tipo, 
-                      unit param_name, unit param_name, [< registrable ])
-              service ->
-                get_params: 
-                  ('get, [`WithoutSuffix], 'gn) params_type ->
-                    ?error_handler:(server_params -> 
-                      (string * exn) list -> page Lwt.t) ->
-                        (server_params -> 'get -> unit -> page Lwt.t) ->
-                          ('get, unit, 
-                           [> `Attached of 
-                             [> `Internal of [> `Coservice ] * [> `Get]] a_s ], 
-                           'tipo, 'gn, unit param_name, 
-                           [> `Registrable ])
-                            service
-(** Same as [new_coservice] followed by [register_public] *)
-
-    val register_new_public_coservice' :
-        server_params ->
-          ?max_use:int ->
-            get_params: 
-              ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-                ?error_handler:(server_params -> 
-                  (string * exn) list -> page Lwt.t) ->
-                    (server_params -> 'get -> unit -> page Lwt.t) ->
-                      ('get, unit, 
-                       [> `Nonattached of [> `Get] na_s ],
-                       'tipo, 'gn, unit param_name, [> `Registrable ])
-                        service
-(** Same as [new_coservice'] followed by [register_public] *)
 
     val register_new_post_service :
         fallback:('get, unit, 
@@ -1312,6 +1293,69 @@ module type ELIOMREGSIG1 =
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
 
+(**/**)
+    val register_public :
+        server_params ->
+        coservice:('get, 'post,
+                 [< `Attached of 
+                   [< `Internal of [< `Coservice ] * getpost ] a_s
+                 | `Nonattached of getpost na_s ],
+                 [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+        ?error_handler:(server_params ->
+                               (string * exn) list -> page Lwt.t) ->
+        (server_params -> 'get -> 'post -> page Lwt.t) ->
+          unit
+(** Register a coservice in the global table after initialization.
+    [register] can be used only during the initalization of the module.
+    After this phase, use that function, that takes [sp] as parameter.
+    Warning: The use of that function is not encouraged, as such
+    services will be available only until the end of the server process
+    and there is no timeout for such coservices!
+ *)
+
+    val register_new_public_coservice :
+        server_params ->
+          ?max_use:int ->
+            fallback:(unit, unit, 
+                      [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
+                      [ `WithoutSuffix ] as 'tipo, 
+                      unit param_name, unit param_name, [< registrable ])
+              service ->
+                get_params: 
+                  ('get, [`WithoutSuffix], 'gn) params_type ->
+                    ?error_handler:(server_params -> 
+                      (string * exn) list -> page Lwt.t) ->
+                        (server_params -> 'get -> unit -> page Lwt.t) ->
+                          ('get, unit, 
+                           [> `Attached of 
+                             [> `Internal of [> `Coservice ] * [> `Get]] a_s ], 
+                           'tipo, 'gn, unit param_name, 
+                           [> `Registrable ])
+                            service
+(** Same as [new_coservice] followed by [register_public] 
+    Warning: The use of that function is not encouraged, as such
+    services will be available only until the end of the server process
+    and there is no timeout for such coservices!
+*)
+
+    val register_new_public_coservice' :
+        server_params ->
+          ?max_use:int ->
+            get_params: 
+              ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+                ?error_handler:(server_params -> 
+                  (string * exn) list -> page Lwt.t) ->
+                    (server_params -> 'get -> unit -> page Lwt.t) ->
+                      ('get, unit, 
+                       [> `Nonattached of [> `Get] na_s ],
+                       'tipo, 'gn, unit param_name, [> `Registrable ])
+                        service
+(** Same as [new_coservice'] followed by [register_public] 
+    Warning: The use of that function is not encouraged, as such
+    services will be available only until the end of the server process
+    and there is no timeout for such coservices!
+*)
+
     val register_new_post_public_coservice :
         server_params ->
         ?max_use:int ->
@@ -1330,7 +1374,11 @@ module type ELIOMREGSIG1 =
                          [> `Internal of [> `Coservice ] * [> `Post]] a_s ], 
                        'tipo, 'gn, 'pn, [> `Registrable ])
                         service
-(** Same as [new_post_coservice] followed by [register_for_session] *)
+(** Same as [new_post_coservice] followed by [register_for_session] 
+    Warning: The use of that function is not encouraged, as such
+    services will be available only until the end of the server process
+    and there is no timeout for such coservices!
+*)
 
     val register_new_post_public_coservice' :
         server_params ->
@@ -1343,7 +1391,11 @@ module type ELIOMREGSIG1 =
                    [ `WithoutSuffix ], unit param_name, 'pn, 
                    [> `Registrable ])
                     service
-(** Same as [new_post_coservice'] followed by [register_for_session] *)
+(** Same as [new_post_coservice'] followed by [register_for_session]
+    Warning: The use of that function is not encouraged, as such
+    services will be available only until the end of the server process
+    and there is no timeout for such coservices!
+*)
 
 (*
     val register_new_get_post_public_coservice' :
@@ -1360,8 +1412,14 @@ module type ELIOMREGSIG1 =
                       ('get, 'post, [> `NonAttached of [> `Post] na_s ], 
                        'tipo, 'gn, 'pn, [> `Registrable ])
                         service
-(* * Same as [new_get_post_coservice] followed by [register_for_session] *)
+(* * Same as [new_get_post_coservice] followed by [register_for_session] 
+    Warning: The use of that function is not encouraged, as such
+    services will be available only until the end of the server process
+    and there is no timeout for such coservices!
 *)
+*)
+
+
 
 
   end
@@ -3181,3 +3239,48 @@ end
 
 module Files = MakeRegister(Filesreg_)
 
+(*****************************************************************************)
+(** {2 persistent sessions} *)
+
+open Ocsipersist
+
+type 'a persistent_table = (string, (int64 * 'a)) Ocsipersist.table
+
+let create_persistent_table name =
+  open_table [eliom_persistent_directory; name]
+
+let get_persistent_data table sp =
+  match (get_persistent_cookie sp) with
+  | Some (c, k) -> 
+      (try
+        let (k2, v) = find table c in
+        if k2 = k
+        then Some v
+        else begin
+          remove table c; (* It was an old cookie. I don't trust it! *)
+          None
+        end
+      with Not_found -> None)
+  | None -> None
+
+let set_persistent_data table sp value =
+  let c, k = create_persistent_cookie sp in
+  add table c (k, value)
+
+(** Close a session *)
+let close_persistent_session (_,si,_) =
+  (match !(si.si_persistent_cookie) with
+  | Some (c, _) -> 
+      catch
+        (fun () -> Preemptive.detach (fun () -> remove_from_all_tables c) ())
+        (fun _ -> return ())
+  | None -> return ()) >>=
+  (fun () ->
+    si.si_persistent_cookie := None;
+    return ())
+
+let close_volatile_session (_,_,(_,_,sesstab,_,_)) = sesstab := empty_tables ()
+
+let close_session sp =
+  close_volatile_session sp;
+  close_persistent_session sp

@@ -1,6 +1,6 @@
 include ../Makefile.config
 
-FILES= eliommod.ml eliom.ml eliomboxes.ml \
+FILES= ocsipersist.ml eliommod.ml eliom.ml eliomboxes.ml \
        ocsigenmod.ml ocsigen.ml ocsigenboxes.ml staticmod.ml
 
 ifeq "$(DEBUG)" "YES"
@@ -80,8 +80,8 @@ opt: $(OBJSX) eliom.cmxs ocsigenmod.cmxs staticmod.cmxs $(DUCEMODOPT)
 
 .PHONY: doc depend
 
-eliom.cma: eliommod.cmo eliom.cmo eliomboxes.cmo
-	$(CAMLC) -a -o eliom.cma eliommod.cmo eliom.cmo eliomboxes.cmo
+eliom.cma: ocsipersist.cmo eliommod.cmo eliom.cmo eliomboxes.cmo
+	$(CAMLC) -a -o eliom.cma ocsipersist.cmo eliommod.cmo eliom.cmo eliomboxes.cmo
 
 eliom.cmxs: eliommod.cmx eliom.cmx eliomboxes.cmx
 	$(CAMLOPT) -shared -linkall -o eliom.cmxs eliommod.cmx eliom.cmx \

@@ -793,6 +793,10 @@ let form4 = register_new_service ["form4"] unit
       We first define the main page, with a login form:
       </p>
 *html*)
+(*zap* *)
+let _ = set_global_timeout_during_init (Some 300.)
+let _ = set_global_persistent_timeout_during_init (Some 600.)
+(* *zap*)
 let public_session_without_post_params = 
   new_service ~url:["session"] ~get_params:unit ()
 
@@ -819,14 +823,16 @@ let _ = register
 let close = register_new_service
     ~url:["disconnect"]
     ~get_params:unit
-    (fun sp () () -> close_session sp; 
-      return
-        (html
-           (head (title (pcdata "Disconnect")) [])
-           (body [p [pcdata "You have been disconnected. ";
-                     a public_session_without_post_params
-                       sp [pcdata "Retry"] ()
-                   ]])))
+    (fun sp () () -> 
+      close_session sp >>=
+      (fun () ->
+        return
+          (html
+             (head (title (pcdata "Disconnect")) [])
+             (body [p [pcdata "You have been disconnected. ";
+                       a public_session_without_post_params
+                         sp [pcdata "Retry"] ()
+                     ]]))))
 
 
 (*html*
@@ -898,6 +904,65 @@ let _ = register_for_session
        Services registered in the public table
        are called <em>public</em>.
       </p>
+    </div>
+    <h2>Persistance of session</h2>
+    <div class="twocol1">
+    </div>
+    <div class="twocol2">
+*html*)
+type session_info = string
+
+
+let my_session_table : session_info persistent_table = 
+  create_persistent_table "eliom_example_table"
+
+let persist = new_service ["persist"] unit ()
+
+let persist_with_post_params = new_post_service persist (string "login") ()
+
+let close2 = register_new_service
+    ~url:["disconnect2"]
+    ~get_params:unit
+    (fun sp () () -> 
+      close_session sp >>=
+      (fun () ->
+        return
+          (html
+             (head (title (pcdata "Disconnect")) [])
+             (body [p [pcdata "You have been disconnected. ";
+                       a persist sp [pcdata "Retry"] () ]]))))
+
+let _ = register
+    persist
+    (fun sp _ _ ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body 
+              [match get_persistent_data my_session_table sp with
+              | Some name ->
+                  p [pcdata ("Hello "^name); br ();
+                     a close2 sp [pcdata "close session"] ()
+                   ]
+              | None -> 
+                  post_form persist_with_post_params sp
+                    (fun login -> 
+                      [p [pcdata "login: ";
+                          string_input login]]) ()
+             ])))
+
+let _ = register
+    persist_with_post_params
+    (fun sp _ login ->
+      set_persistent_data my_session_table sp login;
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body 
+              [p [pcdata ("Welcome "^login^". You are now connected."); br ();
+                  a persist sp [pcdata "Try again"] ()
+                ]])))
+(*html*
     </div>
     <h2>Coservices</h2>
     <div class="twocol1">
@@ -1257,7 +1322,7 @@ let rec launch_session sp login =
    Actions.register_new_post_coservice_for_session'
       sp
       unit 
-      (fun sp () () -> close_session sp; return []) in
+      (fun sp () () -> close_session sp >>= (fun () -> return [])) in
   let disconnect_box sp s = 
     post_form disconnect_action sp 
       (fun _ -> [p [submit_input s]]) ()
@@ -1360,7 +1425,7 @@ let rec launch_session sp login =
    Actions.register_new_post_coservice_for_session'
       sp
       unit 
-      (fun sp () () -> close_session sp; return []) in
+      (fun sp () () -> close_session sp >>= (fun () -> return [])) in
   let disconnect_box sp s = 
     post_form disconnect_action sp 
       (fun _ -> [p [submit_input s]]) ()
@@ -2146,9 +2211,11 @@ let _ = register main
              $a action_session sp <:xmllist< actions >> ()$ <br/>
          The same with wrong user if not "toto": 
              $a action_session2 sp <:xmllist< actions2 >> ()$ <br/>
-         Auxuiliary services in the session table:
-             $a calc sp <:xmllist< calc >> ()$
+         Coservices in the session table:
+             $a calc sp <:xmllist< calc >> ()$ <br/>
        <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< shop >> ()$) -->
+         Persistent sessions:
+             $a persist sp <:xmllist< persist >> ()$ <br/>
        </p>
        <h3>Other</h3>
        <p>

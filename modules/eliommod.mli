@@ -42,6 +42,7 @@ type pages_tree =
 type sess_info =
     {si_other_get_params: (string * string) list;
      si_cookie: string option;
+     si_persistent_cookie: (string * int64) option ref;
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
      si_exn: exn list;
@@ -52,10 +53,14 @@ type 'a server_params1 =
       (current_dir (* main directory of the site *) *
          'a (* global table *) * 
          'a ref (* session table ref *) * 
-         (float option option ref * float option ref) (* user timeout
-                                 and expiration date for the session *) *
+         (float option option ref * float option ref *
+          float option option ref * float option ref) 
+         (* user timeout for this site (None -> see global config)
+            and expiration date for the cookie (None -> browser) 
+            then the same for persistent session
+          *) *
          url_path (* suffix *))
-
+      
 type server_params = tables server_params1
 
 type result_to_send = 
@@ -100,6 +105,7 @@ val naservice_prefix : string
 val naservice_name : string
 val co_param_prefix : string
 val na_co_param_prefix : string
+val eliom_persistent_directory : string
 
 val config : 
     Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ref
@@ -108,6 +114,11 @@ val config :
 val set_global_timeout : url_path -> float option -> unit
 val find_global_timeout : url_path -> float option
 val get_default_timeout : unit -> float option
+val set_global_persistent_timeout : url_path -> float option -> unit
+val find_global_persistent_timeout : url_path -> float option
+val get_default_persistent_timeout : unit -> float option
+
+val create_persistent_cookie : server_params -> string * int64
 
 
 (** Profiling *)

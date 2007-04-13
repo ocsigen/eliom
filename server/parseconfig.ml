@@ -27,7 +27,6 @@ open Simplexmlparser
 open ExprOrPatt
 open Ocsiconfig
 
-
 (*****************************************************************************)
 let parse_size =
   let kilo = Int64.of_int 1000 in
@@ -209,6 +208,9 @@ let parse_server c =
       | PLCons ((EPanytag ("staticdir", PLEmpty, p)), ll) -> 
           set_default_static_dir (parse_string p);
           parse_server_aux ll
+      | PLCons ((EPanytag ("datadir", PLEmpty, p)), ll) -> 
+          set_datadir (parse_string p);
+          parse_server_aux ll
       | PLCons ((EPanytag ("minthreads", PLEmpty, p)), ll) ->
           set_minthreads (int_of_string (parse_string p));
           parse_server_aux ll
@@ -386,8 +388,7 @@ let extract_info c =
   ((user,group),si)
 
 let parse_config () = 
-  try
-    parser_config Ocsiconfig.config
-  with Stdpp.Exc_located _ -> raise (Config_file_error "Error in config file (string or comment not closed?)")
+    parser_config (Ocsiconfig.config ())
+
 
 (******************************************************************)
