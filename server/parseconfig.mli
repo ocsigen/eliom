@@ -21,21 +21,16 @@
 (** Config file parsing *)
 
 val parse_size : string -> int64 option
-val parse_string :
-  Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ->
-  string
+val parse_string : Simplexmlparser.xml list -> string
 
 (**/**)
-val parser_config :
-  Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ->
-  Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist list
-val parse_server :
-  Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ->
-  unit
+val parser_config : Simplexmlparser.xml list ->
+  Simplexmlparser.xml list list
+val parse_server : Simplexmlparser.xml list -> unit
 val extract_info :
-  Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ->
+  Simplexmlparser.xml list ->
   (string * string) *
   ((string option * string option) option * int list * int list)
 val parse_config :
   unit ->
-  Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist list
+  Simplexmlparser.xml list list

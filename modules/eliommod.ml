@@ -669,7 +669,7 @@ let create_persistent_cookie ((_,si,_) as sp) =
 
 (*****************************************************************************)
 (** Parsing global configuration for Eliommod: *)
-open Simplexmlparser.ExprOrPatt
+open Simplexmlparser
 
 let sessiongcfrequency = ref (Some 3600.)
 let persistentsessiongcfrequency = ref (Some 86400.)
@@ -679,14 +679,8 @@ let set_persistentsessiongcfrequency i = persistentsessiongcfrequency := i
 let get_persistentsessiongcfrequency () = !persistentsessiongcfrequency
 
 let rec parse_global_config = function
-      PLEmpty -> ()
-    | PLCons 
-        (EPanytag 
-           ("timeout", 
-            (PLCons
-               ((EPanyattr (EPVstr("value"), EPVstr(s))), 
-                PLEmpty)),
-            PLEmpty), ll) -> 
+      [] -> ()
+    | (Element ("timeout", [("value", s)], []))::ll -> 
               (try
                 set_default_timeout (Some (float_of_string s))
               with Failure _ -> 
@@ -695,12 +689,7 @@ let rec parse_global_config = function
                 else
                   raise (Error_in_config_file "Eliom: Wrong value for value attribute of <timeout> tag"));
               parse_global_config ll
-    | PLCons 
-        ((EPanytag ("sessiongcfrequency",             
-                    (PLCons
-                       ((EPanyattr (EPVstr("value"), EPVstr(s))), 
-                        PLEmpty)),
-                    p)), ll) ->
+    | (Element ("sessiongcfrequency", [("value", s)], p))::ll ->
           (try
             set_sessiongcfrequency (Some (float_of_string s))
           with Failure _ -> 
@@ -709,12 +698,8 @@ let rec parse_global_config = function
             else raise (Error_in_config_file
                           "Eliom: Wrong value for <sessiongcfrequency>"));
           parse_global_config ll
-    | PLCons 
-        ((EPanytag ("persistentsessiongcfrequency",             
-                    (PLCons
-                       ((EPanyattr (EPVstr("value"), EPVstr(s))), 
-                        PLEmpty)),
-                    p)), ll) ->
+    | (Element ("persistentsessiongcfrequency", 
+                    [("value", s)], p))::ll ->
           (try
             set_persistentsessiongcfrequency (Some (float_of_string s))
           with Failure _ -> 
@@ -723,9 +708,7 @@ let rec parse_global_config = function
             else raise (Error_in_config_file
                           "Eliom: Wrong value for <persistentsessiongcfrequency>"));
           parse_global_config ll
-    | PLCons ((EPcomment _), l) -> parse_global_config l
-    | PLCons ((EPwhitespace _), l) -> parse_global_config l
-    | PLCons ((EPanytag (tag,_,_)),l) -> 
+    | (Element (tag,_,_))::l -> 
         raise (Error_in_config_file ("<"^tag^"> tag unexpected inside eliom config"))
     | _ -> raise (Error_in_config_file ("Unexpected content inside eliom config"))
 
@@ -1293,7 +1276,7 @@ let persistent_session_gc () =
 
 (*****************************************************************************)
 (** Module loading *)
-let config = ref PLEmpty
+let config = ref []
 
 let load_eliom_module pages_tree path cmo content =
   config := content;
@@ -1308,7 +1291,7 @@ let load_eliom_module pages_tree path cmo content =
               (Dynlink.error_message e))));
   (* absolute_change_hostdir save_current_dir; *)
   end_load_eliom_module ();
-  config := PLEmpty
+  config := []
 
 
 
@@ -1316,28 +1299,24 @@ let load_eliom_module pages_tree path cmo content =
 (** Parsing of config file for each site: *)
 let parse_config page_tree path = 
   let rec parse_module_attrs file = function
-    | PLEmpty -> (match file with
+    | [] -> (match file with
         None -> 
           raise (Error_in_config_file
                    ("Missing module attribute in <eliom>"))
       | Some s -> s)
-    | PLCons ((EPanyattr (EPVstr("module"), EPVstr(s))), suite) ->
+    | ("module", s)::suite ->
         (match file with
           None -> parse_module_attrs (Some s) suite
         | _ -> raise (Error_in_config_file
                         ("Duplicate attribute file in <eliom>")))
-    | PLCons ((EPanyattr (EPVstr(s), _)), _) ->
+    | (s, _)::_ ->
         raise
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
-    | _ ->
-        raise
-          (Error_in_config_file ("Error in attributes for <eliom>"))
   in function
-      EPanytag 
-        ("eliom", atts, content) -> 
+      Element ("eliom", atts, content) -> 
           let file = parse_module_attrs None atts in
           load_eliom_module page_tree path file content
-    | EPanytag (t, _, _) -> 
+    | Element (t, _, _) -> 
         raise (Extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")
 

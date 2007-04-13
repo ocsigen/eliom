@@ -21,7 +21,7 @@ open XHTML.M
 open Eliom
 open Eliom.Xhtml
 
-open Simplexmlparser.ExprOrPatt
+open Simplexmlparser
 open Lwt
 
 module P = Printf
@@ -68,16 +68,9 @@ let with_open_in fname f =
 
 let wiki_file_dir = 
   let rec find_wikidata = function
-      PLCons 
-        (EPanytag 
-           ("wikidata", 
-            (PLCons
-               ((EPanyattr (EPVstr "dir", EPVstr s)), PLEmpty)),_),ll) ->
-          s
-    | PLCons ((EPcomment _), l) | PLCons ((EPwhitespace _), l) ->
-        find_wikidata l 
-    | PLEmpty | PLCons _->
-        assert false in
+      [Element ("wikidata", [("dir", s)],_)] -> s
+    | _ -> raise (Extensions.Error_in_config_file ("Unexpected content inside Nurpawiki config"))
+  in
   let c = Eliom.get_config () in
   find_wikidata c
 

@@ -132,7 +132,7 @@ val register_extension :
     (virtual_hosts -> 
       (string option -> request_info -> answer Lwt.t) * 
 	(string list ->
-          Simplexmlparser.ExprOrPatt.texprpatt -> 
+          Simplexmlparser.xml -> 
             unit)) *
     (unit -> unit) * 
     (unit -> unit) *
@@ -141,7 +141,7 @@ val register_extension :
 
 (** While loading an extension, 
     get the configuration tree between <dynlink></dynlink>*)
-val get_config : unit -> Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist
+val get_config : unit -> Simplexmlparser.xml list
 
 (**/**)
 
@@ -150,7 +150,7 @@ val create_virthost :
       ((request_info -> 
         (answer * cookieslist) Lwt.t) * 
 	 (string list ->
-           Simplexmlparser.ExprOrPatt.texprpatt ->
+           Simplexmlparser.xml ->
              unit)) * 
         (string option -> string list -> unit)
 
@@ -189,4 +189,4 @@ val end_initialisation : unit -> unit
 
 val get_init_exn_handler : unit -> exn -> string
 
-val set_config : Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist -> unit
+val set_config : Simplexmlparser.xml list -> unit

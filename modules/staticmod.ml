@@ -159,21 +159,20 @@ let gen pages_tree charset ri =
 
 (*****************************************************************************)
 (** Parsing of config file *)
-open Simplexmlparser.ExprOrPatt
+open Simplexmlparser
 let parse_config page_tree path = function
-    EPanytag
-      ("static", atts, PLEmpty) -> 
+    Element ("static", atts, []) -> 
         let dir = match atts with
-        | PLEmpty -> 
+        | [] -> 
             raise (Error_in_config_file
                      "dir attribute expected for <staticdir>")
-        | PLCons ((EPanyattr (EPVstr("dir"), EPVstr(s))), PLEmpty) -> s
+        | [("dir", s)] -> s
         | _ -> raise (Error_in_config_file "Wrong attribute for <staticdir>")
         in
         set_static_dir page_tree dir path
-  | EPanytag (t, _, _) -> 
+  | Element (t, _, _) -> 
       raise (Bad_config_tag_for_extension t)
-  | _ -> raise (Error_in_config_file "(staticmod extension)")
+  | _ -> raise (Error_in_config_file "(staticmod extension) Bad data")
 
 
 (*****************************************************************************)

@@ -97,34 +97,26 @@ let parse_size =
 
 
 let rec parse_string = function
-    PLEmpty -> ""
-  | PLCons ((EPpcdata s), l) -> s^(parse_string l)
-  | PLCons ((EPwhitespace s), l) -> s^(parse_string l)
-  | PLCons ((EPcomment _), l) -> parse_string l
+  | [] -> ""
+  | (PCData s)::l -> s^(parse_string l)
   | _ -> raise (Config_file_error "string expected")
 
 let rec parser_config = 
   let rec verify_empty = function
-      PLEmpty -> ()
-    | PLCons ((EPcomment _), l) -> verify_empty l
-    | PLCons ((EPwhitespace _), l) -> verify_empty l
-    | _ -> raise (Config_file_error "Don't know what to do with tailing data")
+      [] -> ()
+    | _ -> raise (Config_file_error "Don't know what to do with trailing data")
   in let rec parse_servers n = function
-      PLEmpty -> (match n with
+      [] -> (match n with
         [] -> raise(Config_file_error ("<server> tag expected"))
       | _ -> n)
-    | PLCons ((EPanytag ("server", PLEmpty, nouveau)), ll) ->
+    | (Element ("server", [], nouveau))::ll ->
         parse_servers (n@[nouveau]) ll
         (* nouveau at the end *)
-    | PLCons ((EPcomment _), ll) -> parse_servers n ll
-    | PLCons ((EPwhitespace _), ll) -> parse_servers n ll
     | _ -> raise (Config_file_error ("syntax error inside <ocsigen>"))
   in function 
-      PLCons ((EPanytag ("ocsigen", PLEmpty, l)), ll) -> 
-        verify_empty ll; 
+      (Element ("ocsigen", [], l))::ll -> 
+        verify_empty ll;
         parse_servers [] l
-    | PLCons ((EPcomment _), ll) -> parser_config ll
-    | PLCons ((EPwhitespace _), ll) -> parser_config ll
     | _ -> raise (Config_file_error "<ocsigen> tag expected")
 
 
@@ -134,12 +126,8 @@ let rec parser_config =
 let parse_server c =
   let rec parse_server_aux =
     let rec parse_site parse_site_function path = function
-      | PLCons ((EPcomment _), l) -> 
-          parse_site parse_site_function path l
-      | PLCons ((EPwhitespace _), l) -> 
-          parse_site parse_site_function path l
-      | PLEmpty -> ()
-      | PLCons (xml, l) -> 
+      | [] -> ()
+      | xml::l -> 
           (try
             parse_site_function path xml
           with Extensions.Bad_config_tag_for_extension t -> 
@@ -150,30 +138,27 @@ let parse_server c =
           parse_site parse_site_function path l
     in
     let rec parse_host psf acf = function
-	PLEmpty -> ()
-      | PLCons ((EPanytag ("site", atts, l)), ll) ->
+      | [] -> ()
+      | (Element ("site", atts, l))::ll ->
           let rec parse_site_attrs (enc,dir) = function
-            | PLEmpty -> (match dir with
+            | [] -> (match dir with
                 None -> 
                   raise (Config_file_error
                            ("Missing dir attribute in <site>"))
               | Some s -> (enc, s))
-            | PLCons ((EPanyattr (EPVstr("dir"), EPVstr(s))), suite) ->
+            | ("dir", s)::suite ->
                 (match dir with
                   None -> parse_site_attrs (enc, Some s) suite
                 | _ -> raise (Config_file_error
                                 ("Duplicate attribute dir in <site>")))
-            | PLCons ((EPanyattr (EPVstr("charset"), EPVstr(s))), suite) ->
+            | ("charset", s)::suite ->
                 (match enc with
                   None -> parse_site_attrs ((Some s),dir) suite
                 | _ -> raise (Config_file_error
                                 ("Duplicate attribute charset in <site>")))
-            | PLCons ((EPanyattr (EPVstr(s), _)), _) ->
+            | (s, _)::_ ->
                 raise
                   (Config_file_error ("Wrong attribute for <site>: "^s))
-            | _ ->
-                raise
-                  (Config_file_error ("Error in attributes for <site>"))
           in
           let enc,dir = parse_site_attrs (None, None) atts in
           let path = 
@@ -182,83 +167,80 @@ let parse_server c =
           acf enc path;
           parse_site psf path l;
           parse_host psf acf ll
-      | PLCons ((EPcomment _), l) -> parse_host psf acf l
-      | PLCons ((EPwhitespace _), l) -> parse_host psf acf l
-      | PLCons ((EPanytag (tag,_,_)),l) -> 
+      | (Element (tag,_,_))::_ -> 
           raise (Config_file_error ("<"^tag^"> tag unexpected inside <host>"))
       | _ -> raise (Config_file_error ("Unexpected content inside <host>"))
     in function
-	PLEmpty -> []
-      | PLCons ((EPanytag ("port", atts, p)), ll) ->
+	[] -> []
+      | (Element ("port", atts, p))::ll ->
           parse_server_aux ll
-      | PLCons ((EPanytag ("charset", atts, p)), ll) ->
+      | (Element ("charset", atts, p))::ll ->
           set_default_charset (Some (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) ->
+      | (Element ("logdir", [], p))::ll ->
           parse_server_aux ll
-      | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
+      | (Element ("ssl", [], p))::ll ->
           parse_server_aux ll
-      | PLCons ((EPanytag ("user", PLEmpty, p)), ll) -> 
+      | (Element ("user", [], p))::ll -> 
           parse_server_aux ll
-      | PLCons ((EPanytag ("group", PLEmpty, p)), ll) -> 
+      | (Element ("group", [], p))::ll -> 
           parse_server_aux ll
-      | PLCons ((EPanytag ("uploaddir", PLEmpty, p)), ll) ->
+      | (Element ("uploaddir", [], p))::ll ->
           set_uploaddir (Some (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("staticdir", PLEmpty, p)), ll) -> 
+      | (Element ("staticdir", [], p))::ll -> 
           set_default_static_dir (parse_string p);
           parse_server_aux ll
-      | PLCons ((EPanytag ("datadir", PLEmpty, p)), ll) -> 
+      | (Element ("datadir", [], p))::ll -> 
           set_datadir (parse_string p);
           parse_server_aux ll
-      | PLCons ((EPanytag ("minthreads", PLEmpty, p)), ll) ->
+      | (Element ("minthreads", [], p))::ll ->
           set_minthreads (int_of_string (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("maxthreads", PLEmpty, p)), ll) ->
+      | (Element ("maxthreads", [], p))::ll ->
           set_maxthreads (int_of_string (parse_string p));
           parse_server_aux ll
-      | PLCons 
-          ((EPanytag ("maxdetachedcomputationsqueued", PLEmpty, p)), ll) ->
+      | (Element ("maxdetachedcomputationsqueued", [], p))::ll ->
           set_max_number_of_threads_queued (int_of_string (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("maxconnected", PLEmpty, p)), ll) -> 
+      | (Element ("maxconnected", [], p))::ll -> 
           set_max_number_of_connections (int_of_string (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("mimefile", PLEmpty, p)), ll) ->
+      | (Element ("mimefile", [], p))::ll ->
           Ocsiconfig.set_mimefile (parse_string p);
           parse_server_aux ll
-      | PLCons ((EPanytag ("timeout", PLEmpty, p)), ll) -> 
+      | (Element ("timeout", [], p))::ll -> 
           set_connect_time_max (float_of_string (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("keepalivetimeout", PLEmpty, p)), ll) -> 
+      | (Element ("keepalivetimeout", [], p))::ll -> 
           set_keepalive_timeout (float_of_string (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("netbuffersize", PLEmpty, p)), ll) -> 
+      | (Element ("netbuffersize", [], p))::ll -> 
           set_netbuffersize (int_of_string (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("filebuffersize", PLEmpty, p)), ll) -> 
+      | (Element ("filebuffersize", [], p))::ll -> 
           set_filebuffersize (int_of_string (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("maxrequestbodysize", PLEmpty, p)), ll) -> 
+      | (Element ("maxrequestbodysize", [], p))::ll -> 
           set_maxrequestbodysize (parse_size (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("maxuploadfilesize", PLEmpty, p)), ll) -> 
+      | (Element ("maxuploadfilesize", [], p))::ll -> 
           set_maxuploadfilesize (parse_size (parse_string p));
           parse_server_aux ll
-      | PLCons ((EPanytag ("dynlink", atts,l)), ll) -> 
+      | (Element ("dynlink", atts,l))::ll -> 
 	  let modu = match atts with
-          | PLEmpty -> raise (Config_file_error "missing module attribute in <dynlink>")
-          | PLCons ((EPanyattr (EPVstr("module"), EPVstr(s))), PLEmpty) -> s
+          | [] -> raise (Config_file_error "missing module attribute in <dynlink>")
+          | [("module", s)] -> s
           | _ -> raise (Config_file_error "Wrong attribute for <dynlink>") 
 	  in 
           Extensions.set_config l;
           Dynlink.loadfile modu;
-          Extensions.set_config PLEmpty;
+          Extensions.set_config [];
           parse_server_aux ll
-      | PLCons ((EPanytag ("host", atts, l)), ll) ->
+      | (Element ("host", atts, l))::ll ->
 	  let host = match atts with
-          | PLEmpty -> [[Ocsimisc.Wildcard],None] (* default = "*:*" *)
-          | PLCons ((EPanyattr (EPVstr("name"), EPVstr(s))), PLEmpty) -> 
+          | [] -> [[Ocsimisc.Wildcard],None] (* default = "*:*" *)
+          | [("name", s)] -> 
               List.map
 		(fun ss ->
                   let host, port = 
@@ -290,9 +272,7 @@ let parse_server c =
           in
 	  parse_host parse_site_function add_charset_function l;
 	  (host,gen_page)::(parse_server_aux ll)
-      | PLCons ((EPcomment _), ll) -> parse_server_aux ll
-      | PLCons ((EPwhitespace _), ll) -> parse_server_aux ll
-      | PLCons ((EPanytag (tag, _, _)), _) -> 
+      | (Element (tag, _, _))::_ -> 
           raise (Config_file_error
                    ("tag <"^tag^"> unexpected inside <server>"))
       | _ ->
@@ -302,54 +282,46 @@ let parse_server c =
 (* First parsing of config file *)
 let extract_info c =
   let rec parse_ssl certificate privatekey = function
-      PLEmpty -> Some (certificate,privatekey)
-    | PLCons ((EPanytag ("certificate", PLEmpty, p)), l) ->
+      [] -> Some (certificate,privatekey)
+    | (Element ("certificate", [], p))::l ->
         (match certificate with
           None ->
             parse_ssl (Some (parse_string p)) privatekey l 
         | _ -> raise (Config_file_error 
                         "Two certificates inside <ssl>"))
-    | PLCons ((EPanytag ("privatekey", PLEmpty, p)), l) ->
+    | (Element ("privatekey", [], p))::l ->
         (match privatekey with
           None ->
             parse_ssl certificate (Some (parse_string p)) l 
         | _ -> raise (Config_file_error 
                         "Two private keys inside <ssl>"))
-    | PLCons ((EPcomment _), l) -> parse_ssl certificate privatekey l
-    | PLCons ((EPwhitespace _), l) -> parse_ssl certificate privatekey l
-    | PLCons ((EPanytag (tag,_,_)),l) -> 
+    | (Element (tag,_,_))::l -> 
         raise (Config_file_error ("<"^tag^"> tag unexpected inside <ssl>"))
     | _ -> raise (Config_file_error ("Unexpected content inside <ssl>"))
   in
   let rec aux user group ssl ports sslports = function
-      PLEmpty -> ((user,group),(ssl,ports,sslports))
-    | PLCons ((EPanytag ("logdir", PLEmpty, p)), ll) -> 
+      [] -> ((user,group),(ssl,ports,sslports))
+    | (Element ("logdir", [], p))::ll -> 
         set_logdir (parse_string p);
         aux user group ssl ports sslports ll
-    | PLCons ((EPanytag ("port", atts, p)), ll) ->
+    | (Element ("port", atts, p))::ll ->
         (match atts with
-          PLEmpty
-        | PLCons 
-            ((EPanyattr
-                (EPVstr("protocol"), 
-                 EPVstr "HTTP")), PLEmpty) -> 
-                   let po = try
-                     int_of_string (parse_string p)
-                   with Failure _ -> 
-                     raise (Config_file_error "Wrong value for <port> tag")
-                   in aux user group ssl (po::ports) sslports ll
-        | PLCons
-            ((EPanyattr 
-                (EPVstr("protocol"), 
-                 EPVstr "HTTPS")), PLEmpty) ->
-                   let po = try
-                     int_of_string (parse_string p)
-                   with Failure _ -> 
-                     raise (Config_file_error "Wrong value for <port> tag")
-                   in
-                   aux user group ssl ports (po::sslports) ll
+          []
+        | [("protocol", "HTTP")] -> 
+            let po = try
+              int_of_string (parse_string p)
+            with Failure _ -> 
+              raise (Config_file_error "Wrong value for <port> tag")
+            in aux user group ssl (po::ports) sslports ll
+        | [("protocol", "HTTPS")] -> 
+            let po = try
+              int_of_string (parse_string p)
+            with Failure _ -> 
+              raise (Config_file_error "Wrong value for <port> tag")
+            in
+            aux user group ssl ports (po::sslports) ll
         | _ -> raise (Config_file_error "Wrong attribute for <port>"))
-    | PLCons ((EPanytag ("ssl", PLEmpty, p)), ll) ->
+    | (Element ("ssl", [], p))::ll ->
         (match ssl with
           None ->
             aux user group (parse_ssl None None p) ports sslports ll
@@ -357,21 +329,19 @@ let extract_info c =
             raise 
               (Config_file_error
                  "Only one ssl certificate for each server supported for now"))
-    | PLCons ((EPanytag ("user", PLEmpty, p)), ll) -> 
+    | (Element ("user", [], p))::ll -> 
         (match user with
           None -> 
             aux (Some (parse_string p)) group ssl ports sslports ll
         | _ -> raise (Config_file_error
                         "Only one <user> tag for each server allowed"))
-    | PLCons ((EPanytag ("group", PLEmpty, p)), ll) -> 
+    | (Element ("group", [], p))::ll -> 
         (match group with
           None -> 
             aux user (Some (parse_string p)) ssl ports sslports ll
         | _ -> raise (Config_file_error 
                         "Only one <group> tag for each server allowed"))
-    | PLCons ((EPcomment _), ll) -> aux user group ssl ports sslports ll
-    | PLCons ((EPwhitespace _), ll) -> aux user group ssl ports sslports ll
-    | PLCons ((EPanytag (tag, _, _)), ll) -> 
+    | (Element (tag, _, _))::ll -> 
         aux user group ssl ports sslports ll
     | _ ->
         raise (Config_file_error "Syntax error")
@@ -385,7 +355,7 @@ let extract_info c =
     None -> get_default_group ()
   | Some g -> g
   in
-  ((user,group),si)
+  ((user, group), si)
 
 let parse_config () = 
     parser_config (Ocsiconfig.config ())

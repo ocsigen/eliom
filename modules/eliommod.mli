@@ -107,8 +107,7 @@ val co_param_prefix : string
 val na_co_param_prefix : string
 val eliom_persistent_directory : string
 
-val config : 
-    Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist ref
+val config : Simplexmlparser.xml list ref
 
 
 val set_global_timeout : url_path -> float option -> unit

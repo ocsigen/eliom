@@ -667,8 +667,8 @@ let gen page_tree charset ri =
 
 (*****************************************************************************)
 (** Module loading *)
-open Simplexmlparser.ExprOrPatt
-let config = ref PLEmpty
+open Simplexmlparser
+let config = ref []
 
 let load_ocsigen_module pages_tree path cmo content =
   config := content;
@@ -683,35 +683,34 @@ let load_ocsigen_module pages_tree path cmo content =
               (Dynlink.error_message e))));
   (* absolute_change_hostdir save_current_dir; *)
   end_load_ocsigen_module ();
-  config := PLEmpty
+  config := []
 
 
 (*****************************************************************************)
 (** Parsing of config file *)
 let parse_config page_tree path = 
   let rec parse_module_attrs file = function
-    | PLEmpty -> (match file with
+    | [] -> (match file with
         None -> 
           raise (Error_in_config_file
                    ("Missing file attribute in <module>"))
       | Some s -> s)
-    | PLCons ((EPanyattr (EPVstr("file"), EPVstr(s))), suite) ->
+    | ("file", s)::suite ->
         (match file with
           None -> parse_module_attrs (Some s) suite
         | _ -> raise (Error_in_config_file
                         ("Duplicate attribute file in <module>")))
-    | PLCons ((EPanyattr (EPVstr(s), _)), _) ->
+    | (s, _)::_ ->
         raise
           (Error_in_config_file ("Wrong attribute for <module>: "^s))
     | _ ->
         raise
           (Error_in_config_file ("Error in attributes for <module>"))
   in function
-      EPanytag 
-        ("module", atts, content) -> 
+      Element ("module", atts, content) -> 
           let file = parse_module_attrs None atts in
           load_ocsigen_module page_tree path file content
-    | EPanytag (t, _, _) -> 
+    | Element (t, _, _) -> 
         raise (Extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Ocsigenmod extension)")
 

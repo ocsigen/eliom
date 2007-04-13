@@ -38,8 +38,7 @@ exception Eliom_Session_expired
 
 
 (** Allows extensions of the configuration file for your modules *)
-val get_config : unit -> 
-  Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist
+val get_config : unit -> Simplexmlparser.xml list
 (** Put your options between <eliom ...> and </eliom> *)
 
 (** This function may be used for services that can not be interrupted

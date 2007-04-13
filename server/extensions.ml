@@ -350,6 +350,6 @@ let get_number_of_connected,
 
 (*****************************************************************************)
 (* To give parameters to extensions: *)
-let dynlinkconfig = ref Simplexmlparser.ExprOrPatt.PLEmpty
+let dynlinkconfig = ref []
 let set_config s = dynlinkconfig := s
 let get_config () = !dynlinkconfig

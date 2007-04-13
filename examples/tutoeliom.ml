@@ -806,7 +806,7 @@ let public_session_with_post_params =
     ~post_params:(string "login")
     ()
 
-let accueil sp () () = 
+let home sp () () = 
   let f = post_form public_session_with_post_params sp
     (fun login -> 
          [p [pcdata "login: ";
@@ -818,7 +818,7 @@ let accueil sp () () =
 
 let _ = register
   ~service:public_session_without_post_params
-  accueil
+  home
 
 let close = register_new_service
     ~url:["disconnect"]
@@ -883,7 +883,9 @@ let launch_session sp () login =
 let _ =
   register
     ~service:public_session_with_post_params
-    launch_session
+    (fun sp _ login ->
+      close_session sp >>= 
+      (fun () -> launch_session sp () login))
 (*zap* Registering for session during initialisation is forbidden:
 let _ = register_for_session
     ~url:coucou1 
@@ -954,14 +956,16 @@ let _ = register
 let _ = register
     persist_with_post_params
     (fun sp _ login ->
-      set_persistent_data my_session_table sp login;
-      return
-        (html
-           (head (title (pcdata "")) [])
-           (body 
-              [p [pcdata ("Welcome "^login^". You are now connected."); br ();
-                  a persist sp [pcdata "Try again"] ()
-                ]])))
+      close_session sp >>=
+      (fun () ->
+        set_persistent_data my_session_table sp login;
+        return
+          (html
+             (head (title (pcdata "")) [])
+             (body 
+                [p [pcdata ("Welcome "^login^". You are now connected."); br ();
+                    a persist sp [pcdata "Try again"] ()
+                  ]]))))
 (*html*
     </div>
     <h2>Coservices</h2>
@@ -1294,7 +1298,7 @@ let action_session =
 let connect_action = 
   new_post_coservice' ~post_params:(string "login") ()
     
-let accueil_action sp () () = 
+let home_action sp () () = 
   let f = post_form connect_action sp
       (fun login -> 
         [p 
@@ -1312,7 +1316,7 @@ let accueil_action sp () () =
     
 let _ = register
   ~service:action_session
-  accueil_action
+  home_action
 (*html*
     </div>
     <div class="twocol2">
@@ -1357,8 +1361,9 @@ let rec launch_session sp login =
 let _ = Actions.register
     connect_action
     (fun sp () login -> 
-      launch_session sp login;
-      return [])
+      close_session sp >>=
+      (fun () -> launch_session sp login;
+        return []))
 (*html*
       <p>See these $a Tutoeliom.action_session sp <:xmllist< pages >> ()$.</p>
     </div>
@@ -1405,10 +1410,13 @@ let login_box sp login =
    in
    [p (if List.mem Bad_user (get_exn sp)
        then (pcdata "Wrong user")::(br ())::l
-       else l
-   )]
+       else 
+       if List.mem Eliom_Session_expired (get_exn sp)
+       then (pcdata "Session expired")::(br ())::l
+       else l)
+   ]
 
-let accueil_action sp () () = 
+let home_action sp () () = 
   let f = post_form connect_action sp (login_box sp) () in
   return
     (html
@@ -1418,7 +1426,7 @@ let accueil_action sp () () =
 (*zap* *)    
 let _ = register
   ~service:action_session2
-  accueil_action
+  home_action
 
 let rec launch_session sp login =
   let disconnect_action = 
@@ -1452,9 +1460,11 @@ let rec launch_session sp login =
 let _ = Actions.register
     connect_action
     (fun sp () login -> 
-      if login = "toto" 
-      then (launch_session sp login; return [])
-      else return [Bad_user])
+      close_session sp >>=
+      (fun () ->
+        if login = "toto" 
+        then (launch_session sp login; return [])
+        else return [Bad_user]))
 (*html*
     <h3>Redirections</h3>
     <p>
@@ -1939,7 +1949,7 @@ wakeup w "HELLO");
 
 <span class="Ccomment">(* Construction of pages *)</span>
 
-<span class="Clet">let</span> accueil sp () () <span class="Cnonalphakeyword">=</span>
+<span class="Clet">let</span> home sp () () <span class="Cnonalphakeyword">=</span>
   page sp
     <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
      news_headers_list_box 
@@ -1954,7 +1964,7 @@ wakeup w "HELLO");
 
 <span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
   <span class="Clabel">~service:</span>main_page
-  accueil
+  home
 
 <span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
   <span class="Clabel">~service:</span>news_page
@@ -1985,7 +1995,7 @@ wakeup w "HELLO");
 
 <span class="Ccomment">(* Construction of pages *)</span>
 
-<span class="Clet">let</span> accueil sp () () <span class="Cnonalphakeyword">=</span>
+<span class="Clet">let</span> home sp () () <span class="Cnonalphakeyword">=</span>
   page sp
     <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
      p [pcdata <span class="Cstring">"(user : toto and password : titi)"</span>]<span class="Cnonalphakeyword">;</span>
@@ -2015,7 +2025,7 @@ wakeup w "HELLO");
 
 <span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
   <span class="Clabel">~service:</span>main_page
-  accueil
+  home
 
 <span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> register
   <span class="Clabel">~service:</span>news_page

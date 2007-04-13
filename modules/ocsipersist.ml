@@ -35,24 +35,16 @@ type store = Dbm.t
 (*****************************************************************************)
 (** Internal functions: storage directory *)
 
-open Simplexmlparser.ExprOrPatt
+open Simplexmlparser
 (** getting the directory from config file *)
 let rec parse_global_config d = function
-      PLEmpty -> d
-    | PLCons 
-        (EPanytag 
-           ("store", 
-            (PLCons
-               ((EPanyattr (EPVstr("dir"), EPVstr(s))), 
-                PLEmpty)),
-            PLEmpty), ll) -> 
-              (match d with
-              | None -> parse_global_config (Some s) ll
-              | Some _ -> raise (Extensions.Error_in_config_file 
-                                   ("Ocsipersist: Duplicate <store> tag")))
-    | PLCons ((EPcomment _), l) -> parse_global_config d l
-    | PLCons ((EPwhitespace _), l) -> parse_global_config d l
-    | PLCons ((EPanytag (tag,_,_)),l) -> d
+      [] -> d
+    | (Element ("store", [("dir", s)], []))::ll -> 
+        (match d with
+        | None -> parse_global_config (Some s) ll
+        | Some _ -> raise (Extensions.Error_in_config_file 
+                             ("Ocsipersist: Duplicate <store> tag")))
+    | (Element (tag,_,_))::l -> d
     | _ -> raise (Extensions.Error_in_config_file ("Unexpected content inside Ocsipersist config"))
 
 let create_dirs l = 

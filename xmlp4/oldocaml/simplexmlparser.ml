@@ -236,24 +236,24 @@ let rec to_xml =
     | EPpcdata s -> (PCData s)::(to_xml l)
     | EPanytag (s, atts, tags) -> 
         (Element (s, (to_xml_atts atts), (to_xml tags)))::(to_xml l)
-    | EPanyattr _ -> raise XMLerror
+    | EPanyattr (EPVstr s,_) -> raise XMLerror
   and to_xml_att l = function
     | EPwhitespace _
     | EPcomment _ -> to_xml_atts l
-    | EPanyattr ((EPVstr n), (EPVvar v)) -> (n, v)::(to_xml_atts l)
+    | EPanyattr ((EPVstr n), (EPVstr v)) -> (n, v)::(to_xml_atts l)
     | _ -> raise XMLerror
   and to_xml_atts = function
     | PLEmpty -> []
-    | PLCons (a,l) -> to_xml_att l a
+    | PLCons (a, l) -> to_xml_att l a
   in function
   | PLEmpty -> []
   | PLCons (a, l) -> to_xml_tag l a
 
-let xmlparser s =
+let rawxmlparser s =
   let chan = open_in s in
   let tree = Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_channel chan) in
   close_in chan;
   tree
 
-let xmlparser' s = to_xml (xmlparser s)
+let xmlparser s = to_xml (rawxmlparser s)
 

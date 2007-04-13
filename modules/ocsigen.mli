@@ -30,8 +30,7 @@ open Xhtmltypes
 open Extensions
 
 (** Allows extensions of the configuration file for your modules *)
-val get_config : unit -> 
-  Simplexmlparser.ExprOrPatt.texprpatt Simplexmlparser.ExprOrPatt.tlist
+val get_config : unit -> Simplexmlparser.xml list
 (** Put your options between <module ...> and </module> *)
 
 (** This function may be used for services that can not be interrupted

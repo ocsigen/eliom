@@ -46,8 +46,6 @@ type xml =
   | Element of (string * (string * string) list * xml list)
   | PCData of string
 
-val xmlparser' : string -> xml list
-
 (**/**)
 val exprpatt_xml : ExprOrPatt.texprpatt Grammar.Entry.e
 val exprpatt_any_tag : ExprOrPatt.texprpatt Grammar.Entry.e
@@ -59,4 +57,5 @@ val exprpatt_attr_or_var : ExprOrPatt.tvarval Grammar.Entry.e
 val exprpatt_value_or_var : ExprOrPatt.tvarval Grammar.Entry.e
 val xml_exp : string -> MLast.expr
 val xml_pat : string -> MLast.patt
-val xmlparser : string -> ExprOrPatt.texprpatt ExprOrPatt.tlist
+val rawxmlparser : string -> ExprOrPatt.texprpatt ExprOrPatt.tlist
+val xmlparser : string -> xml list
