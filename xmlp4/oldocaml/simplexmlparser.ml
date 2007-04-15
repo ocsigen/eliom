@@ -236,7 +236,7 @@ let rec to_xml =
     | EPpcdata s -> (PCData s)::(to_xml l)
     | EPanytag (s, atts, tags) -> 
         (Element (s, (to_xml_atts atts), (to_xml tags)))::(to_xml l)
-    | EPanyattr (EPVstr s,_) -> raise XMLerror
+    | _ -> raise XMLerror
   and to_xml_att l = function
     | EPwhitespace _
     | EPcomment _ -> to_xml_atts l

@@ -304,8 +304,8 @@ value next_token_fun find_kwd fname lnum bolpos =
   and value_attribut_in_double_quote bp len =
     parser
     [ [: `'"' :] -> len
-      |        [: `'\\'; `'"'; s :] ->
-          value_attribut_in_double_quote bp (store (store len '\\') '"') s
+(*      |        [: `'\\'; `'"'; s :] ->
+          value_attribut_in_double_quote bp (store (store len '\\') '"') s *)
       |        [: `c; s :] ->
           value_attribut_in_double_quote bp (store len c) s
       |        [: :] ep -> err (mkloc (bp, ep)) "attribut value not terminated" ]

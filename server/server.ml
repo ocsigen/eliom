@@ -225,13 +225,13 @@ let get_request_infos http_frame filenames sockaddr port =
          url)
     in
 
-    let path = 
+(*    let path = 
       (Neturl.string_of_url
          (Neturl.remove_from_url 
             ~param:true
             ~query:true 
             ~fragment:true 
-            url2)) in
+            url2)) in *)
 
     let host =
       try
@@ -396,9 +396,17 @@ let get_request_infos http_frame filenames sockaddr port =
                * List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
                * List.map simplify bdlist *)
     in
+    let path =
+      (Ocsimisc.remove_dotdot 
+         (Ocsimisc.remove_slash_at_beginning (Neturl.url_path url2)))
+        (* here we remove .. form paths, at it is dangerous.
+           But in some very particular cases, we may want them?
+           I prefer forbid that.
+         *)
+    in
     {ri_url = url;
-     ri_path_string = path;
-     ri_path = (Ocsimisc.remove_slash_at_beginning (Neturl.url_path url2));
+     ri_path_string = (string_of_url_path path);
+     ri_path = path;
      ri_params = params;
      ri_host = host;
      ri_get_params = get_params;

@@ -31,68 +31,102 @@ open Extensions
 
 (*****************************************************************************)
 (* The table of static pages for each virtual server                         *)
+type assockind = 
+  | Dir of string
+  | Regexp of Str.regexp * string
+
+(* static pages *)
+type static_dir = 
+    Static_dir of string option *
+        (Str.regexp * string) list * (string * static_dir) list
 
 type pages_tree = 
     static_dir ref (* static pages *)
 
 let new_pages_tree () =
-  (ref (Static_dir (None, [])))
+  (ref (Static_dir (None, [], [])))
 
 
 (*****************************************************************************)
 (* static pages *)
-let set_static_dir staticdirref s path =
+let set_static_dir staticdirref assoc path =
   let rec assoc_and_remove a = function
-      [] -> raise Not_found
+    | [] -> raise Not_found
     | (b,v)::l when a = b -> (v,l)
     | e::l -> let v,ll = assoc_and_remove a l
           in v,(e::ll)
   in
   let rec add_path = function
-      [] -> Static_dir (Some s,[])
-    | a::l -> Static_dir (None, [(a,add_path l)])
+    | [] -> 
+        (match assoc with
+        | Dir s -> Static_dir (Some s, [], [])
+        | Regexp (r, s) -> Static_dir (None, [(r, s)], []))
+    | a::l -> Static_dir (None, [], [(a, add_path l)])
   in
-  let rec aux (Static_dir (s1,l1)) = function
-      [] -> Static_dir (Some s,l1)
+  let rec aux (Static_dir (s1, rl, l1)) = function
+    | [] ->
+        (match assoc with
+        | Dir s -> Static_dir (Some s, rl, l1)
+        | Regexp (r, s) -> Static_dir (s1, rl@[(r, s)], l1)) (* at the end! *)
     | a::l -> 
         try
           let sd1,l2 = assoc_and_remove a l1 in
           let sd = aux sd1 l in
-          Static_dir (s1,(a,sd)::l2)
-        with Not_found -> Static_dir (s1,(a,(add_path l))::l1)
+          Static_dir (s1, rl, (a, sd)::l2)
+        with Not_found -> Static_dir (s1, rl, (a,(add_path l))::l1)
   in
   staticdirref := aux !staticdirref path
 
 
 let find_static_page staticdirref path =
-  let rec aux dir (Static_dir (dir_option, subdir_list)) = function
-      [] -> (match dir_option with
-        None -> dir
-      | s -> s)
-    | [""] -> (match dir, dir_option with
-        None, None -> None
-      | Some dir, None -> Some (dir^"/")
-      | _, Some s -> Some (s^"/"))
-    | ""::l
-    | ".."::l -> raise Ocsigen_malformed_url
-          (* For security reasons, .. is not allowed in paths *)
-    | a::l -> 
-        try 
-          let e = (List.assoc a subdir_list) in
-          match dir with
-            None -> aux None e l
-          | Some dir -> aux (Some (dir^"/"^a)) e l
-        with 
-          Not_found -> 
-            (match dir, dir_option with
-              None, None -> None
-            | (Some d), None -> 
-                Some (d^"/"^(Ocsimisc.string_of_url_path (a::l)))
-            | _, Some s -> 
-                Some (s^"/"^(Ocsimisc.string_of_url_path (a::l))))
+  let rec aux dir (Static_dir (dir_option, regexps, subdir_list)) path = 
+    (* First we try the regexps *)
+    match 
+      (match regexps with
+      | [] -> None
+      | _ -> 
+          let stringpath = Ocsimisc.string_of_url_path path in
+          try 
+            let (_, dest) = 
+              (List.find
+                 (fun (regexp, dest) -> Str.string_match regexp stringpath 0)
+                 regexps)
+            in
+            Some (Str.replace_matched dest stringpath)
+          with Not_found -> None)
+    with
+    | Some s -> Some s (* Matching regexp found! *)
+    | None ->
+        (* Then we continue *)
+        match path with
+        | [] -> (match dir_option with
+          | None -> dir
+          | _ -> dir_option)
+        | [""] -> (match dir, dir_option with
+          | None, None -> None
+          | Some dir, None -> Some (dir^"/")
+          | _, Some s -> Some (s^"/"))
+        | ""::l
+        | ".."::l -> raise Ocsigen_malformed_url
+              (* For security reasons, .. is not allowed in paths *)
+              (* Actually it has already been removed by server.ml *)
+        | a::l -> 
+            try 
+              let e = List.assoc a subdir_list in
+              match dir with
+              | None -> aux None e l
+              | Some dir -> aux (Some (dir^"/"^a)) e l
+            with 
+              Not_found -> 
+                (match dir, dir_option with
+                | None, None -> None
+                | (Some d), None -> 
+                    Some (d^"/"^(Ocsimisc.string_of_url_path (a::l)))
+                | _, Some s -> 
+                    Some (s^"/"^(Ocsimisc.string_of_url_path (a::l))))
   in 
   let find_file = function
-      None -> raise Ocsigen_404
+    | None -> raise Ocsigen_404
     | Some filename ->
         (* See also module Files in eliom.ml *)
         Messages.debug ("- Testing \""^filename^"\".");
@@ -160,13 +194,19 @@ let gen pages_tree charset ri =
 (*****************************************************************************)
 (** Parsing of config file *)
 open Simplexmlparser
+
+let star = Str.regexp "\\*"
+
+let starregexp = "\\([^/]*\\)"
+
 let parse_config page_tree path = function
-    Element ("static", atts, []) -> 
+  | Element ("static", atts, []) -> 
         let dir = match atts with
         | [] -> 
             raise (Error_in_config_file
                      "dir attribute expected for <staticdir>")
-        | [("dir", s)] -> s
+        | [("dir", s)] -> Dir s
+        | [("regexp", s);("dest",t)] -> Regexp ((Str.regexp s), t)
         | _ -> raise (Error_in_config_file "Wrong attribute for <staticdir>")
         in
         set_static_dir page_tree dir path
@@ -183,11 +223,11 @@ let start_init () =
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
   match Ocsiconfig.get_default_static_dir () with
-    None -> ()
+  | None -> ()
   | Some path -> 
       let page_tree = new_pages_tree () in
-      set_static_dir page_tree path [];
-      add_virthost ([([Ocsimisc.Wildcard],None)], 
+      set_static_dir page_tree (Dir path) [];
+      add_virthost ([([Ocsimisc.Wildcard], None)], 
                     fun ri -> 
                       gen page_tree (Ocsiconfig.get_default_charset ()) ri >>=
                       (fun r -> return (r,[])))

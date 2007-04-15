@@ -45,13 +45,22 @@ let rec list_is_prefix l1 l2 =
 type virtual_host_part = Text of string * int | Wildcard
 type virtual_hosts = ((virtual_host_part list) * int option) list
 
-(* static pages *)
-type static_dir = Static_dir of string option * (string * static_dir) list
-
 
 (** various functions for URLs *)
 let defaultpagename = "index"
-    
+
+let remove_dotdot = 
+    let rec aux = function
+      | [] -> []
+      | [""] as l -> l
+      | ""::l -> aux l
+      | ".."::l -> aux l
+      | a::l -> a::(aux l)
+    in function
+      | [] -> []
+      | ""::l -> ""::(aux l)
+      | l -> aux l
+                     
 let remove_slash_at_beginning = function
   | [] -> []
   | ""::l -> l
