@@ -253,6 +253,12 @@ val ( ** ) :
         ('a * 'c, [ `WithoutSuffix ], 'b * 'd) params_type
 (** This is a combinator to allow the page to take several parameters (see examples above) Warning: it is a binary operator. Pages cannot take tuples but only pairs. *)
 
+val regexp :
+    Str.regexp -> string -> string ->
+      (string, [ `WithoutSuffix ], string param_name) params_type
+(** [regexp r d s] tells that the page takes a string that matches [r]
+   as parameter, labeled [s], and that will be rewritten in d *)
+
 val suffix : 
     ('s, [< `WithoutSuffix | `Endsuffix ], 'sn) params_type ->
       ('s, [ `WithSuffix ], 'sn) params_type
@@ -260,8 +266,24 @@ val suffix :
 
 val all_suffix :
     string ->
-      (string list , [`Endsuffix], string list param_name) params_type
+      (string list, [`Endsuffix], string list param_name) params_type
 (** Takes all the suffix, as long as possible, as a string list *)
+
+val all_suffix_string :
+    string param_name -> (string, [`Endsuffix], string param_name) params_type
+(** Takes all the suffix, as long as possible, as a string *)
+
+val all_suffix_user :
+    (string -> 'a) ->
+      ('a -> string) -> string -> 
+        ('a, [ `Endsuffix ], 'a param_name) params_type
+(** Takes all the suffix, as long as possible, 
+   with a type specified by the user *)
+
+val all_suffix_regexp :
+    Str.regexp -> string -> string ->
+      (string, [ `Endsuffix ], string param_name) params_type
+(** Takes all the suffix, as long as possible, matching the regexp *)
 
 val suffix_prod :
     ('s,[<`WithoutSuffix|`Endsuffix],'sn) params_type ->

@@ -230,12 +230,7 @@ let sendfile2 =
     ~url:["files";""]
     ~get_params:(suffix (all_suffix "filename"))
     (fun _ s () -> 
-      let rec remove_dotdot = function
-          [] -> []
-        | ".."::l -> remove_dotdot l
-        | a::l -> a::(remove_dotdot l)
-      in
-      return ("/var/www/ocsigen/"^(string_of_url_path (remove_dotdot s))))
+      return ("/var/www/ocsigen/"^(string_of_url_path s)))
 
 let _ = 
   register_new_service 
@@ -265,7 +260,7 @@ let suffix2 =
 let suffix3 = 
   register_new_service 
     ~url:["suffix3";""]
-    ~get_params:(suffix_prod (string "suff1" ** int "ii" ** all_suffix "ee") (string "a" ** int "b"))
+    ~get_params:(suffix_prod (string "suff1" ** int "ii" ** all_suffix_user int_of_string string_of_int "ee") (string "a" ** int "b"))
     (fun sp ((suf1, (ii, ee)), (a, b)) () ->  
       return
         (html
@@ -273,14 +268,14 @@ let suffix3 =
            (body
               [p [pcdata "The parameters in the url are ";
                   strong [pcdata (suf1^", "^(string_of_int ii)^", "^
-                                  (string_of_url_path ee)^", "^
+                                  (string_of_int ee)^", "^
                                   a^", "^(string_of_int b))]]])))
 
 let create_suffixform2 (suf1,(ii,ee)) =
     <:xmllist< <p>Write a string: 
       $string_input suf1$ <br/>
       Write an int: $int_input ii$ <br/>
-      Write an int: $user_type_input string_of_url_path ee$ <br/>
+      Write a string: $user_type_input string_of_url_path ee$ <br/>
       $submit_input "Click"$</p> >>
 
 let suffixform2 = register_new_service ["suffixform2"] unit
@@ -296,7 +291,7 @@ let create_suffixform3 ((suf1, (ii, ee)), (a, b)) =
     <:xmllist< <p>Write a string: 
       $string_input suf1$ <br/>
       Write an int: $int_input ii$ <br/>
-      Write an int: $user_type_input string_of_url_path ee$ <br/>
+      Write an int: $int_input ee$ <br/>
       Write a string: $string_input a$ <br/>
       Write an int: $int_input b$ <br/> 
       $submit_input "Click"$</p> >>
@@ -304,6 +299,46 @@ let create_suffixform3 ((suf1, (ii, ee)), (a, b)) =
 let suffixform3 = register_new_service ["suffixform3"] unit
   (fun sp () () -> 
      let f = get_form suffix3 sp create_suffixform3 in
+     return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "Hallo"];
+                 f ])))
+
+
+(* Send file with regexp *)
+let _ = 
+  register_new_service 
+    ~url:["files2";""]
+    ~get_params:unit
+    (fun _ () () -> 
+      return 
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata "With a suffix, that page will send a file"]])))
+
+let r = Str.regexp "~\\([^/]*\\)\\(.*\\)"
+
+let sendfile2 = 
+  Files.register_new_service 
+    ~url:["files2";""]
+    ~get_params:(regexp r "/home/\\1/public_html\\2" "filename")
+    (fun _ s () -> return s)
+
+let sendfile2 = 
+  Files.register_new_service 
+    ~url:["files2";""]
+    ~get_params:(suffix (all_suffix_regexp r "/home/\\1/public_html\\2" "filename"))
+    (fun _ s () -> return s)
+
+let create_suffixform4 n =
+    <:xmllist< <p>Write the name of the file: 
+      $string_input n$ 
+      $submit_input "Click"$</p> >>
+
+let suffixform4 = register_new_service ["suffixform4"] unit
+  (fun sp () () -> 
+     let f = get_form sendfile2 sp create_suffixform4 in
      return
         (html
           (head (title (pcdata "")) [])

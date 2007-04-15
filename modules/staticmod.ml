@@ -195,10 +195,6 @@ let gen pages_tree charset ri =
 (** Parsing of config file *)
 open Simplexmlparser
 
-let star = Str.regexp "\\*"
-
-let starregexp = "\\([^/]*\\)"
-
 let parse_config page_tree path = function
   | Element ("static", atts, []) -> 
         let dir = match atts with
