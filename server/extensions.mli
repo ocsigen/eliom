@@ -143,6 +143,12 @@ val register_extension :
     get the configuration tree between <dynlink></dynlink>*)
 val get_config : unit -> Simplexmlparser.xml list
 
+
+
+(** Use this mutex if you need a lock on OCaml's Str module *)
+val strlock : Mutex.t
+
+
 (**/**)
 
 val create_virthost : 

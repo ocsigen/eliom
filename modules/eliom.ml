@@ -194,9 +194,17 @@ let ( ** ) = prod
 let regexp reg dest n = 
   user_type
     (fun s -> 
+      Mutex.lock strlock;
       if Str.string_match reg s 0
-      then Str.replace_matched dest s
-      else raise (Failure "Not matching regexp"))
+      then begin
+        let r = Str.replace_matched dest s in
+        Mutex.unlock strlock;
+        r
+      end
+      else begin
+        Mutex.unlock strlock;
+        raise (Failure "Not matching regexp")
+      end)
     (fun s -> s)
     n
 
@@ -217,9 +225,17 @@ let all_suffix_regexp reg dest (n : string) :
     (string, [`Endsuffix], string param_name) params_type = 
   all_suffix_user
     (fun s -> 
+      Mutex.lock strlock;
       if Str.string_match reg s 0
-      then Str.replace_matched dest s
-      else raise (Failure "Not matching regexp"))
+      then begin
+        let r = Str.replace_matched dest s in
+        Mutex.unlock strlock;
+        r
+      end
+      else begin
+        Mutex.unlock strlock;
+        raise (Failure "Not matching regexp")
+      end)
     (fun s -> s)
     n
 

@@ -53,7 +53,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -package netstring $(LIBDIRS)
+LIB = -thread -package netstring $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)

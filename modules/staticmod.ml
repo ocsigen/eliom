@@ -87,12 +87,15 @@ let find_static_page staticdirref path =
       | _ -> 
           let stringpath = Ocsimisc.string_of_url_path path in
           try 
+            Mutex.lock strlock;
             let (_, dest) = 
               (List.find
                  (fun (regexp, dest) -> Str.string_match regexp stringpath 0)
                  regexps)
             in
-            Some (Str.replace_matched dest stringpath)
+            let r = Some (Str.replace_matched dest stringpath) in
+            Mutex.unlock strlock;
+            r
           with Not_found -> None)
     with
     | Some s -> Some s (* Matching regexp found! *)

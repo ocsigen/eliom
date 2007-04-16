@@ -353,3 +353,8 @@ let get_number_of_connected,
 let dynlinkconfig = ref []
 let set_config s = dynlinkconfig := s
 let get_config () = !dynlinkconfig
+
+
+(*****************************************************************************)
+(* Use this mutex if you need a lock on OCaml's Str module *)
+let strlock = Mutex.create();; (* Str is not reentrant *)
