@@ -35,31 +35,38 @@ type internal_state = int
 
 type tables
 type cookiestable
-type pages_tree =
-    tables (* global tables of services *)
+type pages_tree = 
+    tables (* global tables of continuations/naservices *)
       * cookiestable (* session tables *)
+      * (string -> unit) ref (* remove_session_data *)
 
 type sess_info =
     {si_other_get_params: (string * string) list;
-     si_cookie: string option;
+     si_cookie: string option ref;
      si_persistent_cookie: (string * int64) option ref;
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
      si_exn: exn list;
      si_config_file_charset: string option}
 
+module Cookies : Hashtbl.S with type key = string
+
 type 'a server_params1 = 
     request_info * sess_info * 
       (current_dir (* main directory of the site *) *
-         'a (* global table *) * 
+         ('a (* global table *) * 
+            ('a * float option * float option option ref)
+            Cookies.t (* cookies table *) * 
+            (string -> unit) ref) * (* remove_session_data *)
          'a ref (* session table ref *) * 
          (float option option ref * float option ref *
-          float option option ref * float option ref) 
+            float option option ref * float option ref) 
          (* user timeout for this site (None -> see global config)
             and expiration date for the cookie (None -> browser) 
             then the same for persistent session
           *) *
          url_path (* suffix *))
+      
       
 type server_params = tables server_params1
 
@@ -117,7 +124,10 @@ val find_global_persistent_timeout : url_path -> float option
 val get_default_persistent_timeout : unit -> float option
 
 val create_persistent_cookie : server_params -> (string * int64) Lwt.t
-
+val create_cookie : server_params -> string
+val remove_session_table : server_params -> string option -> unit
+val remove_session_data : server_params -> string option -> unit
+val create_table : unit -> 'a Cookies.t
 
 (** Profiling *)
 (* val number_of_sessions : unit -> int *)

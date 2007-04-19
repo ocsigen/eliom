@@ -30,6 +30,8 @@ let mypipe () =
   if not (Sys.os_type <> "Unix") then begin
      Unix.set_nonblock in_fd
   end;
+  Unix.set_close_on_exec in_fd;
+  Unix.set_close_on_exec out_fd;
   p
 
 let finishedpipe = mypipe ()   

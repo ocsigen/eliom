@@ -907,20 +907,18 @@ let _ = register_for_session
        are called <em>public</em>.
       </p>
     </div>
-    <h2>Persistance of session</h2>
+    <h2>Session data</h2>
     <div class="twocol1">
     </div>
     <div class="twocol2">
 *html*)
 type session_info = string
 
+let my_table = create_table ()
 
-let my_session_table : session_info persistent_table = 
-  create_persistent_table "eliom_example_table"
+let data = new_service ["data"] unit ()
 
-let persist = new_service ["persist"] unit ()
-
-let persist_with_post_params = new_post_service persist (string "login") ()
+let data_with_post_params = new_post_service data (string "login") ()
 
 let close2 = register_new_service
     ~url:["disconnect2"]
@@ -932,44 +930,42 @@ let close2 = register_new_service
           (html
              (head (title (pcdata "Disconnect")) [])
              (body [p [pcdata "You have been disconnected. ";
-                       a persist sp [pcdata "Retry"] () ]]))))
+                       a data sp [pcdata "Retry"] () ]]))))
 
 let _ = register
-    persist
+    data
     (fun sp _ _ ->
-      get_persistent_data my_session_table sp >>=
-      (fun sessdat ->
+      let sessdat = get_session_data my_table sp in
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body 
+              [match sessdat with
+              | Some name ->
+                  p [pcdata ("Hello "^name); br ();
+                     a close2 sp [pcdata "close session"] ()
+                   ]
+              | None -> 
+                  post_form data_with_post_params sp
+                    (fun login -> 
+                      [p [pcdata "login: ";
+                          string_input login]]) ()
+             ])))
+
+let _ = register
+    data_with_post_params
+    (fun sp _ login ->
+      close_session sp >>=
+      (fun () ->
+        set_session_data my_table sp login;
         return
           (html
              (head (title (pcdata "")) [])
              (body 
-                [match sessdat with
-                | Some name ->
-                    p [pcdata ("Hello "^name); br ();
-                       a close2 sp [pcdata "close session"] ()
-                     ]
-                | None -> 
-                    post_form persist_with_post_params sp
-                      (fun login -> 
-                        [p [pcdata "login: ";
-                            string_input login]]) ()
-               ]))))
-
-let _ = register
-    persist_with_post_params
-    (fun sp _ login ->
-      close_session sp >>=
-      (fun () ->
-        set_persistent_data my_session_table sp login >>=
-        (fun () ->
-          return
-            (html
-               (head (title (pcdata "")) [])
-               (body 
-                  [p [pcdata ("Welcome "^login^
-                              ". You are now connected."); br ();
-                      a persist sp [pcdata "Try again"] ()
-                    ]])))))
+                [p [pcdata ("Welcome "^login^
+                            ". You are now connected."); br ();
+                    a data sp [pcdata "Try again"] ()
+                  ]]))))
 (*html*
     </div>
     <h2>Coservices</h2>
@@ -1833,6 +1829,68 @@ in f ();
 wakeup w "HELLO");
       </pre>
     </div>
+    <h2>Persistence of session</h2>
+    <div class="twocol1">
+    </div>
+    <div class="twocol2">
+*html*)
+let my_persistent_table : session_info persistent_table = 
+  create_persistent_table "eliom_example_table"
+
+let persist = new_service ["persist"] unit ()
+
+let persist_with_post_params = new_post_service persist (string "login") ()
+
+let close2 = register_new_service
+    ~url:["disconnect3"]
+    ~get_params:unit
+    (fun sp () () -> 
+      close_session sp >>=
+      (fun () ->
+        return
+          (html
+             (head (title (pcdata "Disconnect")) [])
+             (body [p [pcdata "You have been disconnected. ";
+                       a persist sp [pcdata "Retry"] () ]]))))
+
+let _ = register
+    persist
+    (fun sp _ _ ->
+      get_persistent_data my_persistent_table sp >>=
+      (fun sessdat ->
+        return
+          (html
+             (head (title (pcdata "")) [])
+             (body 
+                [match sessdat with
+                | Some name ->
+                    p [pcdata ("Hello "^name); br ();
+                       a close2 sp [pcdata "close session"] ()
+                     ]
+                | None -> 
+                    post_form persist_with_post_params sp
+                      (fun login -> 
+                        [p [pcdata "login: ";
+                            string_input login]]) ()
+               ]))))
+
+let _ = register
+    persist_with_post_params
+    (fun sp _ login ->
+      close_session sp >>=
+      (fun () ->
+        set_persistent_data my_persistent_table sp login >>=
+        (fun () ->
+          return
+            (html
+               (head (title (pcdata "")) [])
+               (body 
+                  [p [pcdata ("Welcome "^login^
+                              ". You are now connected."); br ();
+                      a persist sp [pcdata "Try again"] ()
+                    ]])))))
+(*html*
+    </div>
     <h2>Static parts</h2>
     <div class="twocol1">
       <h3>Fully static pages</h3>
@@ -2228,6 +2286,8 @@ let _ = register main
          Coservices in the session table:
              $a calc sp <:xmllist< calc >> ()$ <br/>
        <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< shop >> ()$) -->
+         Session data:
+             $a data sp <:xmllist< data >> ()$ <br/>
          Persistent sessions:
              $a persist sp <:xmllist< persist >> ()$ <br/>
        </p>

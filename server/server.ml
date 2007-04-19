@@ -47,7 +47,11 @@ let _ = Unix.set_nonblock Unix.stdout
 let _ = Unix.set_nonblock Unix.stderr *)
 
 
-let new_socket () = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
+let new_socket () = 
+  Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 >>=
+  (fun s -> Unix.set_close_on_exec s; 
+    return s)
+      
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
     
 let _ = Ssl.init ()

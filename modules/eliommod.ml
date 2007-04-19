@@ -38,20 +38,30 @@ type internal_state = int
 
 type sess_info =
     {si_other_get_params: (string * string) list;
-     si_cookie: string option;
+     si_cookie: string option ref;
      si_persistent_cookie: (string * int64) option ref;
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
      si_exn: exn list;
      si_config_file_charset: string option}
 
+(* The table of tables for each session. Keys are cookies *)
+module Cookies = Hashtbl.Make(struct 
+  type t = string
+  let equal = (=)
+  let hash = Hashtbl.hash
+end)
+
 type 'a server_params1 = 
     request_info * sess_info * 
       (current_dir (* main directory of the site *) *
-         'a (* global table *) * 
+         ('a (* global table *) * 
+            ('a * float option * float option option ref)
+            Cookies.t (* cookies table *) * 
+            (string -> unit) ref) * (* remove_session_data *)
          'a ref (* session table ref *) * 
          (float option option ref * float option ref *
-          float option option ref * float option ref) 
+            float option option ref * float option ref) 
          (* user timeout for this site (None -> see global config)
             and expiration date for the cookie (None -> browser) 
             then the same for persistent session
@@ -164,7 +174,7 @@ let change_request_info ri charset =
       ({ri with 
         ri_get_params = lazy get_params; 
         ri_post_params = lazy (return post_params)},
-       {si_cookie= cookie;
+       {si_cookie= ref cookie;
         si_persistent_cookie= ref persistent_cookie;
         si_nonatt_info=naservice_info;
         si_state_info=(get_state, post_state);
@@ -184,22 +194,19 @@ let change_request_info ri charset =
 (* Each node contains either a list of nodes (case directory)
     or a table of "answers" (functions that will generate the page) *)
 
-(* The table of tables for each session. Keys are (hostname,cookie) *)
-module Cookies = Hashtbl.Make(struct 
-  type t = Unix.inet_addr * string
-  let equal = (=)
-  let hash = Hashtbl.hash
-end)
-
 (* table cookie -> session table *)
 let new_cookie_table () = Cookies.create 100
 
-let rec new_cookie table ip = 
+let rec new_cookie table = 
   let c = Int64.to_string (Random.int64 Int64.max_int) in
   try
-    Cookies.find table (ip,c);
-    new_cookie table ip
+    Cookies.find table c;
+    new_cookie table
   with Not_found -> c
+
+let remove_session_table (_,_,(_,(_, cookie_table, _),_,_,_)) = function
+  | None -> ()
+  | Some c -> Cookies.remove cookie_table c
 
 type page_table_key =
     {state: (internal_state option * internal_state option)}
@@ -266,6 +273,7 @@ type cookiestable = (tables *
 type pages_tree = 
     tables (* global tables of continuations/naservices *)
       * cookiestable (* session tables *)
+      * (string -> unit) ref (* remove_session_data *)
 
 let empty_page_table () = []
 let empty_naservice_table () = AVide
@@ -278,7 +286,8 @@ let are_empty_tables (lr,atr) =
 
 let new_pages_tree () =
   ((empty_tables ()),
-   (new_cookie_table ()))
+   (new_cookie_table ()),
+   ref (fun cookie -> ())) (* remove_session_data *)
 
 (*****************************************************************************)
 (* The current registration directory *)
@@ -291,9 +300,9 @@ let absolute_change_hostdir, get_current_hostdir, end_current_hostdir =
     current_dir := (fun () -> pagetree), dir) in
   let f2 = ref (fun () -> let (cd1, cd2) = !current_dir in (cd1 (), cd2)) in
   let exn1 _ = 
-    raise (Ocsigen_Internal_Error "absolute_change_hostdir after init") in
+    raise Eliom_function_forbidden_outside_site_loading in
   let exn2 () = 
-    raise (Ocsigen_Internal_Error "get_current_hostdir after init") in
+    raise Eliom_function_forbidden_outside_site_loading in
   ((fun hostdir -> !f1 hostdir),
    (fun () -> !f2 ()),
    (fun () -> f1 := exn1; f2 := exn2))
@@ -335,11 +344,11 @@ let global_register_allowed () =
 (** We associate to a service a function server_params -> page *)
 
     (** Create server parameters record *)
-let make_server_params dir globt str session_exp_info ri suffix si =
+let make_server_params dir tables str session_exp_info ri suffix si =
   (ri,
    si,
    (dir,
-    globt,
+    tables,
     str,
     session_exp_info,
     suffix))
@@ -347,7 +356,7 @@ let make_server_params dir globt str session_exp_info ri suffix si =
 
 let find_page_table 
     (t : page_table ref)
-    globt
+    tables
     str 
     session_exp_info
     ri
@@ -355,15 +364,15 @@ let find_page_table
     k
     si
     = 
-  let (sp0, si, (_, g, s, tim, u)) = 
-    make_server_params [] globt str session_exp_info ri urlsuffix si in
+  let (sp0, si, (_, tab, s, tim, u)) = 
+    make_server_params [] tables str session_exp_info ri urlsuffix si in
   let rec aux = function
       [] -> fail Eliom_Wrong_parameter
     | (((_, (max_use, funct, working_dir)) as a)::l) as ll ->
         catch 
           (fun () ->
             Messages.debug "- I'm trying a service";
-            funct (sp0, si, (working_dir, g, s, tim, u)) >>=
+            funct (sp0, si, (working_dir, tab, s, tim, u)) >>=
             (fun p -> 
               Messages.debug "- Page found and generated successfully";
               let newlist =
@@ -374,7 +383,10 @@ let find_page_table
                     else (r := !r - 1; ll)
                 | _ -> ll)
               in
-              Lwt.return ((p, working_dir, !(si.si_persistent_cookie)), 
+              Lwt.return ((p, 
+                           working_dir, 
+                           !(si.si_cookie),
+                           !(si.si_persistent_cookie)), 
                           newlist)))
           (function
               Eliom_Wrong_parameter -> 
@@ -516,7 +528,7 @@ exception Exn1
 
 let find_service 
     (dircontentref,_)
-    (global_tables,
+    (tables,
      session_table_ref, 
      session_exp_info,
      ri,
@@ -552,7 +564,7 @@ let find_service
   in
   find_page_table 
     page_table_ref
-    global_tables
+    tables
     session_table_ref
     session_exp_info
     ri
@@ -657,7 +669,7 @@ let rec new_persistent_cookie ((_, _, (working_dir, _, _, _, _)) as sp) =
           end
       | e -> fail e)
 
-let create_persistent_cookie ((_,si,_) as sp) = 
+let create_persistent_cookie ((_, si, _) as sp) = 
   match !(si.si_persistent_cookie) with
   | None -> 
       new_persistent_cookie sp >>=
@@ -665,6 +677,35 @@ let create_persistent_cookie ((_,si,_) as sp) =
         si.si_persistent_cookie := Some c;
         return c)
   | Some c -> return c
+
+let create_cookie (_,si,(_,(_, cookie_table, _), _,_,_)) = 
+  match !(si.si_cookie) with
+  | None -> 
+      let c = new_cookie cookie_table in
+      si.si_cookie := Some c;
+      c
+  | Some c -> c
+
+
+
+(*****************************************************************************)
+(** session data *)
+
+let create_table () =
+  let (_,_, remove_session_data), _ = get_current_hostdir () in
+  let t = Cookies.create 100 in
+  let old_remove_session_data = !remove_session_data in
+  remove_session_data := 
+    (fun cookie ->
+      old_remove_session_data cookie;
+      Cookies.remove t cookie
+    );
+  t
+
+let remove_session_data ((_,_,(_,(_,_, remove_session_data),_,_,_)) as sp) =
+  function
+    | None -> ()
+    | Some cookie -> !remove_session_data cookie
 
 
 
@@ -720,8 +761,8 @@ let _ = parse_global_config (Extensions.get_config ())
 (* Generation of the page or naservice                                          *)
 
 let execute
-    generate_page info ip old_cookie old_persistent_cookie
-    (globtable, cookie_table) =
+    generate_page info old_cookie old_persistent_cookie
+    ((_, cookie_table, remove_session_data) as tables) =
   
   let now = Unix.time () in
   
@@ -735,7 +776,7 @@ let execute
             match persexp with
               Some t when t < now -> 
                 (* session expired by timeout *)
-                Ocsipersist.remove persistent_cookies_table c >>=
+                Ocsipersist.remove_from_all_tables c >>=
                 (fun () -> fail Eliom_Persistent_session_expired)
             | _ -> 
                 old_persistent_cookie := Some (c, persrandomkey);
@@ -755,11 +796,12 @@ let execute
           None -> ((ref (new_session_tables ())), ref None)
         | Some c -> 
             try 
-              let ta, exp, timeout_optref = Cookies.find cookie_table (ip,c) in
+              let ta, exp, timeout_optref = Cookies.find cookie_table c in
               match exp with
                 Some t when t < now -> 
                   (* session expired by timeout *)
-                  Cookies.remove cookie_table (ip,c);
+                  !remove_session_data c;
+                  Cookies.remove cookie_table c;
                   raise Eliom_Session_expired
               | _ -> ((ref ta), timeout_optref)
 (*        with Not_found -> ((ref (new_session_tables ())), None, ref None)) *)
@@ -770,49 +812,52 @@ let execute
       let persistent_cookie_exp_date = ref None in
       let user_persistent_timeout_ref = ref user_persistent_timeout in
       generate_page
-        info globtable sessiontablesref 
+        info tables sessiontablesref 
         (user_timeout_optref, cookie_exp_date, 
          user_persistent_timeout_ref, persistent_cookie_exp_date) >>=
-      (fun (result, working_dir, new_persistent_cookie) ->
+      (fun (result, working_dir, the_new_cookie, new_persistent_cookie) ->
 
         (* Update persistent expiration date (and user timeout) *)
-        (match new_persistent_cookie with
-          None -> return ()
-        | Some (pc, randomkey) ->
-            if (!user_persistent_timeout_ref = user_persistent_timeout) &&
-              ((user_persistent_timeout = Some None) ||
-              ((user_persistent_timeout = None) && 
-               ((find_global_persistent_timeout working_dir) = 
-                (None : float option))))
-            then return () (* Nothing to do *)
-            else begin
-              Ocsipersist.add persistent_cookies_table pc
-                ((match !user_persistent_timeout_ref with
-                | None -> 
-                    (match
-                      find_global_persistent_timeout working_dir with
-                    | None -> None
-                    | Some t -> Some (t +. now))
-                | Some None -> None
-                | Some (Some t) -> Some (t +. now)), 
-                 !user_persistent_timeout_ref,
-                 randomkey)
-            end) >>=
+        (catch
+           (fun () ->
+             (match new_persistent_cookie with
+               None -> return ()
+             | Some (pc, randomkey) ->
+                 if (!user_persistent_timeout_ref = user_persistent_timeout) &&
+                   ((user_persistent_timeout = Some None) ||
+                   ((user_persistent_timeout = None) && 
+                    ((find_global_persistent_timeout working_dir) = 
+                     (None : float option))))
+                 then return () (* Nothing to do *)
+                 else begin
+                   Ocsipersist.add persistent_cookies_table pc
+                     ((match !user_persistent_timeout_ref with
+                     | None -> 
+                         (match
+                           find_global_persistent_timeout working_dir with
+                         | None -> None
+                         | Some t -> Some (t +. now))
+                     | Some None -> None
+                     | Some (Some t) -> Some (t +. now)), 
+                      !user_persistent_timeout_ref,
+                      randomkey)
+                 end))
+           (fun _ -> return ())
+        (* ?? If an error occurs with Ocsipersist, continue *)
+           ) >>=
 
         (fun () ->
           let cookie2 = 
             if are_empty_tables !sessiontablesref
-            then (
-              (match old_cookie with
-                Some c -> Cookies.remove cookie_table (ip, c)
-              | _ -> ());
-              None)
+            then the_new_cookie
             else 
-              let c =
-                (match old_cookie with
-                  None -> new_cookie cookie_table ip
-                | Some c -> c)
-              in
+              (match the_new_cookie with
+              | None -> Some (new_cookie cookie_table)
+              | Some _ -> the_new_cookie)
+          in
+          (match cookie2 with
+          | None -> ()
+          | Some c ->
               let timeout = match !user_timeout_optref with
                 Some t -> t
               | None -> find_global_timeout working_dir
@@ -822,12 +867,10 @@ let execute
               | Some t -> Some (t +. now)
               in
               Cookies.replace
-                cookie_table (ip,c) 
-                (!sessiontablesref, exp, user_timeout_optref);
+                cookie_table c
+                (!sessiontablesref, exp, user_timeout_optref));
               (* If the key does not exist, replace just adds it.
                  If it exists, we put a new expiration date *)
-              Some c
-          in
           let cookie3 = 
             if cookie2 <> old_cookie || !cookie_exp_date <> None then 
               (if cookie2 = None 
@@ -848,7 +891,7 @@ exception Eliom_retry_with of
 
 let get_page
     (ri, si, cookies_to_set)
-    global_tables
+    ((global_tables, _, _) as tables)
     session_tables_ref
     session_exp_info
     =
@@ -859,7 +902,7 @@ let get_page
            " in the session table:");
         (find_service
            !session_tables_ref
-           (global_tables,
+           (tables,
             session_tables_ref,
             session_exp_info,
             ri,
@@ -871,7 +914,7 @@ let get_page
                 Messages.debug "-- I'm searching in the global table:";
                 (find_service 
                    global_tables
-                   (global_tables,
+                   (tables,
                     session_tables_ref,
                     session_exp_info,
                     ri,
@@ -924,7 +967,7 @@ let get_page
 
 let make_naservice
     (ri, si, cookies_to_set)
-    global_tables session_tables_ref session_exp_info =
+    ((global_tables, _, _) as tables) session_tables_ref session_exp_info =
   (try
     try
       return (find_naservice !session_tables_ref si.si_nonatt_info)
@@ -973,7 +1016,7 @@ let make_naservice
     (naservice
        (make_server_params 
           working_dir
-          global_tables
+          tables
           session_tables_ref 
           session_exp_info
           ri
@@ -987,7 +1030,7 @@ let make_naservice
           if !r = 1
           then remove_naservice !session_tables_ref si.si_nonatt_info
           else r := !r - 1);
-      return (r, working_dir, !(si.si_persistent_cookie))))
+      return (r, working_dir, !(si.si_cookie), !(si.si_persistent_cookie))))
     
 
 let rec cookies_remove c = function
@@ -1006,7 +1049,7 @@ let gen page_tree charset ri =
   let rec gen_aux
       close_session close_persistent_session
       ((ri, si, old_cookies_to_set) as info) =
-    let gen = 
+    let genfun = 
       match si.si_nonatt_info with
 	None, None ->
           
@@ -1021,8 +1064,8 @@ let gen page_tree charset ri =
     
     catch 
       (fun () ->
-        execute gen info ri.ri_inet_addr 
-          si.si_cookie si.si_persistent_cookie page_tree >>=
+        execute genfun
+          info !(si.si_cookie) si.si_persistent_cookie page_tree >>=
 	fun ((new_cookie, cookie_exp),
              (new_persistent_cookie, persistent_cookie_exp), 
              result_to_send, path) ->
@@ -1051,7 +1094,9 @@ let gen page_tree charset ri =
                   if close_session
                   then (Unset ((Some path), [cookiename]))::cookies_to_set
                   else cookies_to_set
-              | Some c -> Set (Some path, cookie_exp, 
+              | Some c -> 
+print_endline ("----------"^c);
+Set (Some path, cookie_exp, 
                                [(cookiename, c)])::
                   (cookies_remove cookiename cookies_to_set)
             in
@@ -1157,8 +1202,8 @@ let gen page_tree charset ri =
                          },
                           {si_other_get_params= si.si_other_get_params;
                            si_cookie= (match new_cookie, cookie_exp with
-                           | Some c, Some d when d < now -> None
-                           | Some c, _ -> new_cookie
+                           | Some c, Some d when d < now -> ref None
+                           | Some c, _ -> ref new_cookie
                            | None, _ -> si.si_cookie);
                            si_persistent_cookie= 
                            (match new_persistent_cookie, 
@@ -1213,7 +1258,7 @@ let gen page_tree charset ri =
               false
               (ri, 
                {si with 
-                si_cookie=None; 
+                si_cookie= ref None; 
                 (* si_persistent_cookie inchangé *)
                 si_exn= Eliom_Session_expired::si.si_exn}, 
                old_cookies_to_set)
@@ -1237,7 +1282,7 @@ let gen page_tree charset ri =
 (*****************************************************************************)
 (* garbage collection of timeouted sessions *)
 (* This is a thread that will work every hour *)
-let session_gc (_, cookie_table) =
+let session_gc (_, cookie_table, _) =
   match get_sessiongcfrequency () with
     None -> () (* No garbage collection *)
   | Some t ->

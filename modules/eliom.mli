@@ -1302,6 +1302,21 @@ module Any : ELIOMREGSIG with
   type page = Eliommod.result_to_send
 
 (*****************************************************************************)
+(** {2 Session data in memory} *)
+
+type 'a table
+
+val create_table : unit -> 'a table
+(** Create a table in memory where you can store your session data
+    Possible only during initialization phase *)
+
+val get_session_data : 
+    'a table -> server_params -> 'a option
+
+val set_session_data : 
+    'a table -> server_params -> 'a -> unit
+
+(*****************************************************************************)
 (** {2 Persistent sessions} *)
 
 type 'a persistent_table

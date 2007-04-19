@@ -57,7 +57,7 @@ let get_suffix (_,_,(_,_,_,_,s)) = s
 let get_exn (_,si,_) = si.si_exn
 let get_config_file_charset (_,si,_) = si.si_config_file_charset
 let get_cookies (ri,_,_) = force ri.ri_cookies
-let get_cookie (_,si,_) = si.si_cookie 
+let get_cookie (_,si,_) = !(si.si_cookie)
 let get_persistent_cookie (_,si,_) = !(si.si_persistent_cookie)
 
 let get_default_timeout = Eliommod.get_default_timeout
@@ -1609,7 +1609,7 @@ module MakeRegister = functor
           match global_register_allowed () with
             Some get_current_hostdir ->
               remove_unregistered (url, service.unique_id);
-              let (globtables, _), curdir = get_current_hostdir () in
+              let (globtables, _, _), curdir = get_current_hostdir () in
               register_aux 
                 curdir
                 globtables
@@ -1651,7 +1651,7 @@ module MakeRegister = functor
             ~service page
 
         let register_public
-            (ri, si, (curdir, globtables, _, _, _))
+            (ri, si, (curdir, (globtables, _, _), _, _, _))
             ~coservice
             ?error_handler page_gen =
           register_aux 
@@ -3340,6 +3340,26 @@ let set_persistent_data table sp value =
   create_persistent_cookie sp >>=
   (fun (c, k) -> add table c (k, value))
 
+(*****************************************************************************)
+(** {2 session data in memory} *)
+type 'a table = 'a Cookies.t
+
+let create_table = create_table
+
+let get_session_data table sp =
+  match (get_cookie sp) with
+  | Some c -> 
+      (try
+        Some (Cookies.find table c)
+      with _ -> None)
+  | None -> None
+
+let set_session_data table sp value =
+  let c = create_cookie sp in
+  Cookies.replace table c value
+
+
+(*****************************************************************************)
 (** Close a session *)
 let close_persistent_session (_,si,_) =
   (match !(si.si_persistent_cookie) with
@@ -3352,7 +3372,11 @@ let close_persistent_session (_,si,_) =
     si.si_persistent_cookie := None;
     return ())
 
-let close_volatile_session (_,_,(_,_,sesstab,_,_)) = sesstab := empty_tables ()
+let close_volatile_session ((_, si, (_,_,sesstab,_,_)) as sp) = 
+  remove_session_data sp !(si.si_cookie);
+  remove_session_table sp !(si.si_cookie);
+  sesstab := empty_tables ();
+  si.si_cookie := None
 
 let close_session sp =
   close_volatile_session sp;

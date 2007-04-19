@@ -75,16 +75,23 @@ let try_connect sname socket =
       Lwt_unix.connect (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname)
     )
     (fun _ ->
-      if Unix.fork () = 0 
-      then begin
-        Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
-        Unix.execv ocsidbm 
-          (match Ocsiconfig.get_pidfile () with
-            None -> [|"ocsidbm"; directory|]
-          | Some p -> [|"ocsidbm"; directory; p|]);
+      Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
+      let param = 
+        (match Ocsiconfig.get_pidfile () with
+          None -> [|"ocsidbm"; directory|]
+        | Some p -> [|"ocsidbm"; directory; p|])
+      in
+      let fils () = 
+        Unix.create_process ocsidbm param Unix.stdin Unix.stdout Unix.stderr in
+      let pid = Unix.fork () in
+      if pid = 0 
+      then begin (* double fork *)
+        Unix.handle_unix_error fils ();
         exit 0
       end
-      else Lwt_unix.sleep 0.5 >>= 
+      else 
+        Lwt_unix.waitpid [] pid >>= 
+        (fun _ -> Lwt_unix.sleep 0.5) >>= 
         (fun () -> Lwt_unix.connect
             (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname))
     ) >>=
