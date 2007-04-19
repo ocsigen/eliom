@@ -1308,9 +1308,11 @@ type 'a persistent_table
 
 val create_persistent_table : string -> 'a persistent_table
 
-val get_persistent_data : 'a persistent_table -> server_params -> 'a option
+val get_persistent_data : 
+    'a persistent_table -> server_params -> 'a option Lwt.t
 
-val set_persistent_data : 'a persistent_table -> server_params -> 'a -> unit
+val set_persistent_data : 
+    'a persistent_table -> server_params -> 'a -> unit Lwt.t
 
 (** Close the persistent session (destroying all persistent data) *)
 val close_persistent_session : server_params -> unit Lwt.t

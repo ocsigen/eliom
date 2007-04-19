@@ -105,7 +105,6 @@ val naservice_prefix : string
 val naservice_name : string
 val co_param_prefix : string
 val na_co_param_prefix : string
-val eliom_persistent_directory : string
 
 val config : Simplexmlparser.xml list ref
 
@@ -117,7 +116,7 @@ val set_global_persistent_timeout : url_path -> float option -> unit
 val find_global_persistent_timeout : url_path -> float option
 val get_default_persistent_timeout : unit -> float option
 
-val create_persistent_cookie : server_params -> string * int64
+val create_persistent_cookie : server_params -> (string * int64) Lwt.t
 
 
 (** Profiling *)

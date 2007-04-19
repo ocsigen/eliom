@@ -24,7 +24,6 @@
 (* 2006 12 : Changes for extensions -- Vincent *)
 
 open Simplexmlparser
-open ExprOrPatt
 open Ocsiconfig
 
 (*****************************************************************************)

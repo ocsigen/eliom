@@ -52,10 +52,16 @@ val system : string -> Unix.process_status Lwt.t
 type lwt_in_channel
 type lwt_out_channel
 
+val input_value : lwt_in_channel -> 'a Lwt.t
 val input_char : lwt_in_channel -> char Lwt.t
 val input_line : lwt_in_channel -> string Lwt.t
+val input_binary_int : lwt_in_channel -> int Lwt.t
 val input : lwt_in_channel -> string -> int -> int -> int Lwt.t
 val really_input : lwt_in_channel -> string -> int -> int -> unit Lwt.t
+
+val output_binary_int : lwt_out_channel -> int -> unit Lwt.t
+val output_value : lwt_out_channel -> 'a -> unit Lwt.t
+val flush : lwt_out_channel -> unit Lwt.t
 
 val open_process_in: string -> lwt_in_channel Lwt.t
 val open_process_out: string -> lwt_out_channel Lwt.t
@@ -71,6 +77,9 @@ val close_process_full:
   lwt_in_channel * lwt_out_channel * lwt_in_channel ->
   Unix.process_status Lwt.t
 
+val in_channel_of_descr : descr -> lwt_in_channel
+val out_channel_of_descr : descr -> lwt_out_channel
+ 
 
 (**/**)
 (* monitoring *)

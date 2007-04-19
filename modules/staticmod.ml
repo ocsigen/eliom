@@ -96,7 +96,9 @@ let find_static_page staticdirref path =
             let r = Some (Str.replace_matched dest stringpath) in
             Mutex.unlock strlock;
             r
-          with Not_found -> None)
+          with _ ->             
+            Mutex.unlock strlock;
+            None)
     with
     | Some s -> Some s (* Matching regexp found! *)
     | None ->

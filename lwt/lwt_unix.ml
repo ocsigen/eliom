@@ -336,12 +336,60 @@ type lwt_out_channel = out_channel
 let wait_inchan ic = wait_read (Plain (Unix.descr_of_in_channel ic))
 let wait_outchan oc = wait_write (Plain (Unix.descr_of_out_channel oc))
 
+let rec flush oc =
+  try
+    Lwt.return (Pervasives.flush oc)
+  with
+    Sys_blocked_io ->
+      Lwt.bind (wait_outchan oc) (fun () -> flush oc)
+  | e ->
+      Lwt.fail e
+
+external unsafe_output_partial : out_channel -> string -> int -> int -> int
+                        = "caml_ml_output_partial"
+
+let rec unsafe_output oc buf pos len =
+  if len > 0 then begin
+    Lwt.bind
+      (try
+        Lwt.return (unsafe_output_partial oc buf pos len)
+      with Sys_blocked_io ->
+        Lwt.bind (wait_outchan oc) (fun () -> Lwt.return 0))
+      (fun written -> 
+        unsafe_output oc buf (pos + written) (len - written))
+  end
+  else Lwt.return ()
+
+let output_string oc s =
+  unsafe_output oc s 0 (String.length s)
+
+let rec output_binary_int oc i =
+  try
+    Lwt.return (Pervasives.output_binary_int oc i)
+  with
+    Sys_blocked_io ->
+      Lwt.bind (wait_outchan oc) (fun () -> output_binary_int oc i)
+  | e ->
+      Lwt.fail e
+
+let output_value oc v = 
+  output_string oc (Marshal.to_string v [])
+
 let rec input_char ic =
   try
     Lwt.return (Pervasives.input_char ic)
   with
     Sys_blocked_io ->
       Lwt.bind (wait_inchan ic) (fun () -> input_char ic)
+  | e ->
+      Lwt.fail e
+
+let rec input_binary_int ic =
+  try
+    Lwt.return (Pervasives.input_binary_int ic)
+  with
+    Sys_blocked_io ->
+      Lwt.bind (wait_inchan ic) (fun () -> input_binary_int ic)
   | e ->
       Lwt.fail e
 
@@ -399,6 +447,19 @@ let input_line ic =
        let res = String.create !pos in
        String.blit !buf 0 res 0 !pos;
        Lwt.return res)
+
+let input_value ic =
+  let header = String.create 20 in
+  Lwt.bind
+    (really_input ic header 0 20)
+    (fun () ->
+      let bsize = Marshal.data_size header 0 in
+      let buffer = String.create (20 + bsize) in
+      String.blit header 0 buffer 0 20;
+      Lwt.bind
+        (really_input ic buffer 20 bsize)
+        (fun () -> Lwt.return (Marshal.from_string buffer 0)))
+
 
 (****)
 
@@ -504,6 +565,8 @@ let close_process_full (inchan, outchan, errchan) =
   close_in inchan; close_out outchan; close_in errchan;
   Lwt.bind (waitpid [] pid) (fun (_, status) -> Lwt.return status)
 
+let in_channel_of_descr d = Unix.in_channel_of_descr (fd_of_descr d)
+let out_channel_of_descr d = Unix.out_channel_of_descr (fd_of_descr d)
 
 (**/**)
 (* Monitoring functions *)

@@ -1,6 +1,7 @@
 include ../Makefile.config
 
-FILES= ocsipersist.ml eliommod.ml eliom.ml eliomboxes.ml \
+FILES= ocsidbm.ml ocsipersist.ml \
+       eliommod.ml eliom.ml eliomboxes.ml \
        ocsigenmod.ml ocsigen.ml ocsigenboxes.ml staticmod.ml
 
 ifeq "$(DEBUG)" "YES"
@@ -70,15 +71,21 @@ OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
 
 
-byte: $(OBJS) eliom.cma ocsigenmod.cma staticmod.cmo $(DUCEMODBYTE)
+byte: $(OBJS) ocsidbm eliom.cma ocsigenmod.cma staticmod.cmo $(DUCEMODBYTE)
 
-opt: $(OBJSX) eliom.cmxs ocsigenmod.cmxs staticmod.cmxs $(DUCEMODOPT)
+opt: $(OBJSX) ocsidbm.opt eliom.cmxs ocsigenmod.cmxs staticmod.cmxs $(DUCEMODOPT)
 
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
 .PHONY: doc depend
+
+ocsidbm: ocsidbm.cmo
+	$(CAMLC) -package ssl -o $@ unix.cma ssl.cma dbm.cma lwt.cma $<
+
+ocsidbm.opt: ocsidbm.cmx
+	$(CAMLOPT) -package ssl -o $@ unix.cmxa ssl.cmxa dbm.cmxa lwt.cmxa $<
 
 eliom.cma: ocsipersist.cmo eliommod.cmo eliom.cmo eliomboxes.cmo
 	$(CAMLC) -a -o eliom.cma ocsipersist.cmo eliommod.cmo eliom.cmo eliomboxes.cmo

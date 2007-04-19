@@ -20,12 +20,12 @@
 
 
 (** Module Ocsipersist: persistent data in DBM database *)
-(** When launching the program, if the value exists on hard disk,
-    it is loaded, otherwise it is initialised to the default value *)
 
 
 (*****************************************************************************)
 (** {2 Persistent references} *)
+(** When launching the program, if the value exists on hard disk,
+    it is loaded, otherwise it is initialised to the default value *)
 
 (** Type of persistent data *)
 type 'a t
@@ -35,59 +35,51 @@ type 'a t
 type store
 
 (** Open a store (and create it if it does not exist)  *)
-val open_store : name:string list -> store
+val open_store : string -> store
 
 val make_persistent :
-    store:store -> name:string -> default:'a -> 'a t
+    store:store -> name:string -> default:'a -> 'a t Lwt.t
 (** [make_persistent store name default] creates a persistent value
     named [name] in store [store]
     from database or create it with the default value [default] if it
     does not exist. *)
 
 val make_persistent_lazy : 
-    store:store -> name:string -> default:(unit -> 'a) -> 'a t
+    store:store -> name:string -> default:(unit -> 'a) -> 'a t Lwt.t
 (** Same as make_persistent but the default value is evaluated only
     if needed
 *)
 
-val get : 'a t -> 'a
+val get : 'a t -> 'a Lwt.t
 (** [get pv] gives the value of [pv] *)
 
-val set : 'a t -> 'a -> unit
+val set : 'a t -> 'a -> unit Lwt.t
 (** [set pv value] sets a persistent value [pv] to [value] *)
 
 (*****************************************************************************)
 (** {2 Persistent tables} *)
 
 (** Type of persistent table *)
-type ('key, 'value) table
+type 'value table
 
 (** Open a table (and create it if it does not exist)  *)
-val open_table_ : 
-    name:string list -> key_to_string:('key -> string) -> ('key, 'value) table
+val open_table : string -> 'value table
 
-(** Open a table (and create it if it does not exist)  *)
-val open_table : name:string list -> (string, 'value) table
-
-val find : ('key, 'value) table -> 'key -> 'value
+val find : 'value table -> string -> 'value Lwt.t
 (** [find table key] gives the value associated to [key] *)
 
-val add : ('key, 'value) table -> 'key -> 'value -> unit
+val add : 'value table -> string -> 'value -> unit Lwt.t
 (** [add table key value] associates the value [value] to key [key]. 
    If the database already contains data associated with key, 
    that data is discarded and silently replaced by the new data.
  *)
 
-val remove : ('key, 'value) table -> 'key -> unit
+val remove : 'value table -> string -> unit Lwt.t
 (** [remove table key] removes the entry in the table *)
 
-val remove_from_all_tables : key:string -> unit
+val remove_from_all_tables : string -> unit Lwt.t
 (** removes the entry from all opened tables *)
 
-val iter_table : (string -> 'b -> 'a) -> (string, 'b) table -> unit
-(** removes the entry from all opened tables *)
-
-
-(*
-val list_tables : dir:string list -> string list
-*)
+val iter_table : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
+(** Important warning: this iterator may not iter on all data of the table
+   if several iterator are running simultanously on the same table *)

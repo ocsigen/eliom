@@ -171,6 +171,7 @@ fullinstall: doc partialinstall
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
 	| sed s%_DATADIR_%$(DATADIR)%g \
+	| sed s%_BINDIR_%$(BINDIR)%g \
 	| sed s%_UP_%$(UPLOADDIR)%g \
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \

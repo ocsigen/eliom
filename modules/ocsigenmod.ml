@@ -703,9 +703,6 @@ let parse_config page_tree path =
     | (s, _)::_ ->
         raise
           (Error_in_config_file ("Wrong attribute for <module>: "^s))
-    | _ ->
-        raise
-          (Error_in_config_file ("Error in attributes for <module>"))
   in function
       Element ("module", atts, content) -> 
           let file = parse_module_attrs None atts in
@@ -728,21 +725,21 @@ let end_init () =
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
   Ocsigen_duplicate_registering s -> 
-    ("Fatal - Duplicate registering of url \""^s^
+    ("Fatal - Ocsigenmod: Duplicate registering of url \""^s^
      "\". Please correct the module.")
 | Ocsigen_there_are_unregistered_services s ->
-    ("Fatal - Some public url have not been registered. \
+    ("Fatal - Ocsigenmod: Some public url have not been registered. \
               Please correct your modules. (ex: "^s^")")
 | Ocsigen_service_or_action_created_outside_site_loading ->
-    ("Fatal - An action or a service is created outside \
+    ("Fatal - Ocsigenmod: An action or a service is created outside \
               site loading phase")
 | Ocsigen_page_erasing s ->
-    ("Fatal - You cannot create a page or directory here: "^s^
+    ("Fatal - Ocsigenmod: You cannot create a page or directory here: "^s^
             ". Please correct your modules.")
 | Ocsigen_register_for_session_outside_session ->
-    ("Fatal - Register session during initialisation forbidden.")
+    ("Fatal - Ocsigenmod: Register session during initialisation forbidden.")
 | Ocsigen_error_while_loading_site s ->
-    ("Fatal - Error while loading site: "^s)
+    ("Fatal - Ocsigenmod: Error while loading site: "^s)
 | e -> raise e
 
 

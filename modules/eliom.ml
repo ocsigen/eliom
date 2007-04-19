@@ -3312,35 +3312,40 @@ module Files = MakeRegister(Filesreg_)
 
 open Ocsipersist
 
-type 'a persistent_table = (string, (int64 * 'a)) Ocsipersist.table
+type 'a persistent_table = (int64 * 'a) Ocsipersist.table
 
 let create_persistent_table name =
-  open_table [eliom_persistent_directory; name]
+  open_table name
 
 let get_persistent_data table sp =
   match (get_persistent_cookie sp) with
   | Some (c, k) -> 
-      (try
-        let (k2, v) = find table c in
-        if k2 = k
-        then Some v
-        else begin
-          remove table c; (* It was an old cookie. I don't trust it! *)
-          None
-        end
-      with Not_found -> None)
-  | None -> None
+      (catch
+         (fun () ->
+           find table c >>=
+           (fun (k2, v) ->
+             if k2 = k
+             then return (Some v)
+             else begin
+               remove table c >>= (* It was an old cookie. I don't trust it! *)
+               (fun () -> return None)
+             end))
+         (fun _ -> return None)) (* ?? If an error occurs, assume no data *)
+         (* function 
+           | Not_found -> return None
+           | e -> fail e) *)
+  | None -> return None
 
 let set_persistent_data table sp value =
-  let c, k = create_persistent_cookie sp in
-  add table c (k, value)
+  create_persistent_cookie sp >>=
+  (fun (c, k) -> add table c (k, value))
 
 (** Close a session *)
 let close_persistent_session (_,si,_) =
   (match !(si.si_persistent_cookie) with
   | Some (c, _) -> 
       catch
-        (fun () -> Preemptive.detach (fun () -> remove_from_all_tables c) ())
+        (fun () -> remove_from_all_tables c)
         (fun _ -> return ())
   | None -> return ()) >>=
   (fun () ->

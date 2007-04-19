@@ -937,35 +937,39 @@ let close2 = register_new_service
 let _ = register
     persist
     (fun sp _ _ ->
-      return
-        (html
-           (head (title (pcdata "")) [])
-           (body 
-              [match get_persistent_data my_session_table sp with
-              | Some name ->
-                  p [pcdata ("Hello "^name); br ();
-                     a close2 sp [pcdata "close session"] ()
-                   ]
-              | None -> 
-                  post_form persist_with_post_params sp
-                    (fun login -> 
-                      [p [pcdata "login: ";
-                          string_input login]]) ()
-             ])))
+      get_persistent_data my_session_table sp >>=
+      (fun sessdat ->
+        return
+          (html
+             (head (title (pcdata "")) [])
+             (body 
+                [match sessdat with
+                | Some name ->
+                    p [pcdata ("Hello "^name); br ();
+                       a close2 sp [pcdata "close session"] ()
+                     ]
+                | None -> 
+                    post_form persist_with_post_params sp
+                      (fun login -> 
+                        [p [pcdata "login: ";
+                            string_input login]]) ()
+               ]))))
 
 let _ = register
     persist_with_post_params
     (fun sp _ login ->
       close_session sp >>=
       (fun () ->
-        set_persistent_data my_session_table sp login;
-        return
-          (html
-             (head (title (pcdata "")) [])
-             (body 
-                [p [pcdata ("Welcome "^login^". You are now connected."); br ();
-                    a persist sp [pcdata "Try again"] ()
-                  ]]))))
+        set_persistent_data my_session_table sp login >>=
+        (fun () ->
+          return
+            (html
+               (head (title (pcdata "")) [])
+               (body 
+                  [p [pcdata ("Welcome "^login^
+                              ". You are now connected."); br ();
+                      a persist sp [pcdata "Try again"] ()
+                    ]])))))
 (*html*
     </div>
     <h2>Coservices</h2>
@@ -1916,7 +1920,7 @@ wakeup w "HELLO");
           <p>
    You need to coerce each of them. For example</p>
        <pre>
- [(home :> (('a,'b,Eliom.service_kind,'c,'d,'e) service))]
+ [(home :&gt; (('a,'b,Eliom.service_kind,'c,'d,'e) service))]
        </pre>
       </div>
       <div class="encadre">
