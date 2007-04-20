@@ -691,18 +691,28 @@ let create_cookie (_,si,(_,(_, cookie_table, _), _,_,_)) =
 (*****************************************************************************)
 (** session data *)
 
-let create_table () =
-  let (_,_, remove_session_data), _ = get_current_hostdir () in
-  let t = Cookies.create 100 in
-  let old_remove_session_data = !remove_session_data in
-  remove_session_data := 
-    (fun cookie ->
-      old_remove_session_data cookie;
-      Cookies.remove t cookie
-    );
-  t
+let counttableelements = ref []
+(* Here only for exploration functions *)
 
-let remove_session_data ((_,_,(_,(_,_, remove_session_data),_,_,_)) as sp) =
+let create_table, create_table_during_session =
+  let aux remove_session_data =
+    let t = Cookies.create 100 in
+    let old_remove_session_data = !remove_session_data in
+    remove_session_data := 
+      (fun cookie ->
+        old_remove_session_data cookie;
+        Cookies.remove t cookie
+      );
+    counttableelements := (fun () -> Cookies.length t)::!counttableelements;
+    t
+  in
+  ((fun () ->
+    let (_,_, remove_session_data), _ = get_current_hostdir () in
+    aux remove_session_data),
+   (fun (_,_,(_,(_,_, remove_session_data),_,_,_)) ->
+     aux remove_session_data))
+
+let remove_session_data (_,_,(_,(_,_, remove_session_data),_,_,_)) =
   function
     | None -> ()
     | Some cookie -> !remove_session_data cookie
@@ -1424,9 +1434,18 @@ let _ = persistent_session_gc ()
 
 
 (*****************************************************************************)
+(* Exploration *)
 
-(* à refaire
-let number_of_sessions () = Cookies.length
-*)
+let number_of_sessions (_,_,(_,(_, cookie_table, _),_,_,_)) = 
+  Cookies.length cookie_table
 
+let number_of_tables () =
+print_endline (string_of_int (List.length !counttableelements));
+  List.length !counttableelements
 
+let number_of_table_elements () =
+print_endline (string_of_int (List.length !counttableelements));
+  List.map (fun f -> f ()) !counttableelements
+
+let number_of_persistent_sessions () = 
+  Ocsipersist.length eliom_persistent_cookie_table

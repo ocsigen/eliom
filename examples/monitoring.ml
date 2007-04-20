@@ -19,9 +19,10 @@
 (* A page providing infos about the server (number of sessions, uptime...) *)
 
 open Extensions (* for profiling info *)
-open Ocsigen
-open Ocsigen.Xhtml
+open Eliom
+open Eliom.Xhtml
 open Unix
+open Lwt
 
 let launchtime = Unix.time ()
 
@@ -29,8 +30,7 @@ let _ =
   register_new_service
     ~url:[]
     ~get_params:unit
-    (fun _ () () ->
-(*      let n = string_of_int (number_of_sessions ()) in *)
+    (fun sp () () ->
       let tm = Unix.gmtime ((Unix.time ()) -. launchtime) in
       let year = if tm.tm_year>0 then (string_of_int (tm.tm_year - 70))^" years, "
       else "" in
@@ -63,6 +63,27 @@ let _ =
           Some r
         with _ -> None
       in
+      let nsess = Eliom.number_of_sessions sp in
+      let ntables = Eliom.number_of_tables () in
+      let ntableselts = Eliom.number_of_table_elements () in
+      Eliom.number_of_persistent_sessions () >>=
+        (fun nbperssess ->
+          let nbperstab = Eliom.number_of_persistent_tables () in
+          Eliom.number_of_persistent_table_elements () >>=
+          (fun nbperstabel ->
+            let dot = <:xmllist< . >> in
+            let list1 a l = <:xmllist<  with, respectively
+             $str:List.fold_left
+             (fun deb i -> deb^", "^(string_of_int i)) 
+             (string_of_int a) l $ 
+           elements inside. >>
+           in
+            let list2 (n,a) l = <:xmllist<  with, respectively
+             $str:List.fold_left
+             (fun deb (s, i) -> deb^", "^s^" : "^(string_of_int i)) 
+             (n^" : "^(string_of_int a)) l$ 
+           elements inside. >>
+            in
 Lwt.return
 <<
  <html>
@@ -73,7 +94,6 @@ Lwt.return
       <p>Version of Ocsigen: $str:Ocsiconfig.version_number$</p>
      <p>Uptime: $str:uptime$.</p>
      <p>The number of sessions is not available in this version of ocsigenmod.</p>
-     <!-- p>There are currently $str:n$ sessions.</p -->
      <p>Number of clients connected: 
          $str:(string_of_int (get_number_of_connected ()))$.</p>
      <p>PID : $str:pid$</p>
@@ -109,7 +129,23 @@ Lwt.return
         $str:(string_of_int (Preemptive.nbthreadsqueued ()))$ computations 
            queued (max 
         $str:(string_of_int (Ocsiconfig.get_max_number_of_threads_queued ()))$).</p>
+     <h2>Sessions</h2>
+     <p>There are $str:string_of_int nsess$ Eliom sessions opened.<br/>
+     and $str:string_of_int ntables$ Eliom tables created $list:
+      (match ntableselts with
+      | [] -> dot
+      | a::l -> list1 a l)
+       $
+       </p>
+     <p>There are $str:string_of_int nbperssess$
+        Eliom persistent sessions opened.<br/>
+     and $str:string_of_int nbperstab$ Eliom 
+    persistent tables created $list:
+      (match nbperstabel with
+      | [] -> dot
+      | a::l -> list2 a l)
+       $</p>
    </body>
  </html>
->>)
+>>)))
 

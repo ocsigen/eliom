@@ -47,6 +47,7 @@ let get_full_url (ri,_,_) = ri.ri_path_string^ri.ri_params
 let get_ip (ri,_,_) = ri.ri_ip
 let get_inet_addr (ri,_,_) = ri.ri_inet_addr
 let get_get_params (ri,_,_) = force ri.ri_get_params
+let get_get_params_string (ri,_,_) = ri.ri_params
 let get_post_params (ri,_,_) = force ri.ri_post_params
 let get_current_path_string (ri,_,_) = ri.ri_path_string
 let get_current_path (ri,_,_) = ri.ri_path
@@ -2173,7 +2174,7 @@ let make_string_uri
       in
       let current_get_params_string = 
         construct_params_string current_get_params in
-      ((relative_url_path_to_myself (get_current_path sp))^"?"^
+      (("/"^(get_current_path_string sp))^"?"^
        (concat_strings
           current_get_params_string
           "&"
@@ -2271,7 +2272,7 @@ module MakeForms = functor
             let current_get_params_string = 
               construct_params_string current_get_params in
             Pages.make_a ?a
-              ~href:((relative_url_path_to_myself (get_current_path sp))^"?"^
+              ~href:(("/"^(get_current_path_string sp))^"?"^
                      (concat_strings
                         current_get_params_string
                         "&"
@@ -2348,7 +2349,7 @@ module MakeForms = functor
               | None, i -> Pages.remove_first i
             in Pages.make_get_form ?a ~action:urlname i1 i
         | `Nonattached naser ->
-            let urlname = relative_url_path_to_myself (get_current_path sp) in
+            let urlname = "/"^(get_current_path_string sp) in
             let naservice_param_name = naservice_prefix^naservice_name in
             let naservice_param = 
               match fst naser.na_name with
@@ -2459,7 +2460,7 @@ module MakeForms = functor
                 ~name:naservice_param_name
                 ~value:naservice_param () 
             in
-            let v = get_full_url sp in
+            let v = "/"^(get_full_url sp) in
             let inside = f (make_params_names service.post_params_type) in
             Pages.make_post_form ?a ~action:v
               (Pages.make_hidden_field naservice_line)
@@ -3345,6 +3346,7 @@ let set_persistent_data table sp value =
 type 'a table = 'a Cookies.t
 
 let create_table = create_table
+let create_table_during_session = create_table_during_session
 
 let get_session_data table sp =
   match (get_cookie sp) with
@@ -3381,3 +3383,22 @@ let close_volatile_session ((_, si, (_,_,sesstab,_,_)) as sp) =
 let close_session sp =
   close_volatile_session sp;
   close_persistent_session sp
+
+
+(*****************************************************************************)
+(* Exploration *)
+
+let number_of_sessions = number_of_sessions
+
+let number_of_tables = Eliommod.number_of_tables
+
+let number_of_table_elements = number_of_table_elements
+
+let number_of_persistent_sessions = number_of_persistent_sessions
+
+let number_of_persistent_tables () =
+  (Ocsipersist.number_of_tables ()) - 1
+  (* One table is the main table of sessions *)
+
+let number_of_persistent_table_elements () =
+  Ocsipersist.number_of_persistent_table_elements ()

@@ -128,9 +128,14 @@ val create_cookie : server_params -> string
 val remove_session_table : server_params -> string option -> unit
 val remove_session_data : server_params -> string option -> unit
 val create_table : unit -> 'a Cookies.t
+val create_table_during_session : server_params -> 'a Cookies.t
 
 (** Profiling *)
-(* val number_of_sessions : unit -> int *)
+val number_of_sessions : server_params -> int
+val number_of_tables : unit -> int
+val number_of_table_elements : unit -> int list
+val number_of_persistent_sessions : unit -> int Lwt.t
+
 
 
 (** internal functions: *)

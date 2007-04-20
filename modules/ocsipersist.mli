@@ -83,3 +83,14 @@ val remove_from_all_tables : string -> unit Lwt.t
 val iter_table : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
 (** Important warning: this iterator may not iter on all data of the table
    if several iterator are running simultanously on the same table *)
+
+val number_of_tables : unit -> int
+(** Number of tables opened *)
+
+val length : string -> int Lwt.t
+(** Size of a table.
+   Because of Dbm implementation, the result may be less thann the expected
+   result in some case (with a version of ocsipersist based on Dbm) *)
+
+val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
+(** Whole number of elements in all tables, table by table *)

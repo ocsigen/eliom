@@ -23,6 +23,7 @@
    
 open Dbm
 open Ocsidbmtypes
+open Lwt
 
 let directory = Sys.argv.(1)
 
@@ -40,20 +41,6 @@ let _ =
 
 
 exception Ocsidbm_error
-
-type query =
-  | Get of string * string
-  | Remove of string * string
-  | Replace of string * string * string
-  | Nextkey of string
-  | Firstkey of string
-        
-type answer =
-  | Ok
-  | Dbm_not_found
-  | Value of string
-  | End
-  | Key of string
 
 let socketname = "socket"
 let suffix = ".otbl"
@@ -116,6 +103,21 @@ let db_firstkey t = Dbm.firstkey (Tableoftables.find t !tableoftables)
 
 let db_nextkey t = Dbm.nextkey (Tableoftables.find t !tableoftables)
 
+let db_length t = 
+  let table = Tableoftables.find t !tableoftables in
+  let rec aux f n = 
+    catch
+      (fun () ->
+        ignore (f table);
+        Lwt_unix.yield () >>=
+        (fun () -> aux Dbm.nextkey (n+1)))
+      (function
+        | Not_found -> return n
+        | e -> fail e)
+  in
+  aux Dbm.firstkey 0 
+(* Because of Dbm implementation, the result may be less than the expected
+   result in some case *)
 
 (*****************************************************************************)
 (* signals *)
@@ -136,8 +138,6 @@ let _ =
 (*****************************************************************************)
 (** Communication functions: *)
 
-open Lwt
-
 let send outch v =
   Lwt_unix.output_value outch v >>= 
   (fun () -> Lwt_unix.flush outch)
@@ -146,15 +146,21 @@ let execute outch = function
   | Get (t, k) -> 
       (try 
         send outch (Value (db_get t k))
-      with Not_found -> send outch Dbm_not_found)
+      with _ -> send outch Dbm_not_found)
   | Remove (t, k) -> db_remove t k; send outch Ok
   | Replace (t, k, v) -> db_replace t k v; send outch Ok
   | Firstkey t -> 
       (try send outch (Key (db_firstkey t))
-      with Not_found -> send outch End)
+      with _ -> send outch End)
   | Nextkey t -> 
       (try send outch (Key (db_nextkey t))
-      with Not_found -> send outch End)
+      with _ -> send outch End)
+  | Length t -> 
+      catch
+        (fun () ->
+          db_length t >>=
+          (fun i -> send outch (Value (Marshal.to_string i []))))
+        (fun _ -> send outch Dbm_not_found)
 
 let rec listen_client inch outch =
   Lwt_unix.input_value inch >>=

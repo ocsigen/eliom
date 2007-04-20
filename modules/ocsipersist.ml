@@ -86,7 +86,7 @@ let try_connect sname socket =
       let pid = Unix.fork () in
       if pid = 0 
       then begin (* double fork *)
-        Unix.handle_unix_error fils ();
+        ignore (Unix.handle_unix_error fils ());
         exit 0
       end
       else 
@@ -145,7 +145,25 @@ let db_replace (store, name) value =
     | Ok -> return ()
     | _ -> fail Ocsipersist_error)
 
+let db_firstkey store = 
+  send (Firstkey store) >>=
+  (function 
+    | Key k -> return (Some k)
+    | End -> return None
+    | _ -> fail Ocsipersist_error)
 
+let db_nextkey store = 
+  send (Nextkey store) >>=
+  (function 
+    | Key k -> return (Some k)
+    | End -> return None
+    | _ -> fail Ocsipersist_error)
+
+let db_length store = 
+  send (Length store) >>=
+  (function 
+    | Value v -> return v
+    | _ -> fail Ocsipersist_error)
 
 
 
@@ -216,43 +234,68 @@ let remove_from_all_tables key =
     !tableoftables
 
   
-(* iterator: we must use a separate connexion *)
+let iter_table f table =
+  let rec aux nextkey =
+    nextkey table >>=
+    (function
+      | None -> return ()
+      | Some k -> find table k >>= f k
+    ) >>=
+    (fun () -> aux db_nextkey)
+  in
+  aux db_firstkey
+
+
+(* iterator: with a separate connexion:
 exception Exn1
-let iter_table =
-  fun f table ->
-    let first = Marshal.to_string (Firstkey table) [] in
-    let firstl = String.length first in
-    let next = Marshal.to_string (Nextkey table) [] in
-    let nextl = String.length next in
-    (Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
-     (fun socket ->
-       Lwt_unix.connect 
-         (Lwt_unix.Plain socket)
-         (Unix.ADDR_UNIX (directory^"/"^socketname)) >>=
-       (fun () -> return (Lwt_unix.Plain socket)) >>=
-       (fun indescr ->
-         let inch = Lwt_unix.in_channel_of_descr indescr in
-         let nextkey next nextl =
-           Lwt_unix.write indescr next 0 nextl >>=
-           (fun l2 -> if l2 <> nextl 
-           then fail Ocsipersist_error
-           else (Lwt_unix.input_line inch >>=
-                 fun answ -> return (Marshal.from_string answ 0)))
-         in
-         let rec aux n l =
-           nextkey n l >>=
-           (function
-             | End -> return ()
-             | Key k -> find table k >>= f k
-             | _ -> fail Ocsipersist_error) >>=
-           (fun () -> aux next nextl)
-         in
-         catch
-           (fun () ->
-             aux first firstl >>=
-             (fun () -> Unix.close socket; return ()))
-           (fun e -> Unix.close socket; fail e))))
+let iter_table f table =
+  let first = Marshal.to_string (Firstkey table) [] in
+  let firstl = String.length first in
+  let next = Marshal.to_string (Nextkey table) [] in
+  let nextl = String.length next in
+  (Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
+   (fun socket ->
+     Lwt_unix.connect 
+       (Lwt_unix.Plain socket)
+       (Unix.ADDR_UNIX (directory^"/"^socketname)) >>=
+     (fun () -> return (Lwt_unix.Plain socket)) >>=
+     (fun indescr ->
+       let inch = Lwt_unix.in_channel_of_descr indescr in
+       let nextkey next nextl =
+         Lwt_unix.write indescr next 0 nextl >>=
+         (fun l2 -> if l2 <> nextl 
+         then fail Ocsipersist_error
+         else (Lwt_unix.input_line inch >>=
+               fun answ -> return (Marshal.from_string answ 0)))
+       in
+       let rec aux n l =
+         nextkey n l >>=
+         (function
+           | End -> return ()
+           | Key k -> find table k >>= f k
+           | _ -> fail Ocsipersist_error) >>=
+         (fun () -> aux next nextl)
+       in
+       catch
+         (fun () ->
+           aux first firstl >>=
+           (fun () -> Unix.close socket; return ()))
+         (fun e -> Unix.close socket; fail e))))
 
+*)
 
+let number_of_tables () =
+  List.length !tableoftables
 
+let length table = 
+  db_length table >>=
+  (fun s -> return (Marshal.from_string s 0))
+(* Because of Dbm implementation, the result may be less thann the expected
+   result in some case (with a version of ocsipersist based on Dbm) *)
 
+let number_of_persistent_table_elements () = 
+  List.fold_left 
+    (fun thr t -> 
+      thr >>= 
+      (fun l -> length t >>=
+        (fun e -> return ((t, e)::l)))) (return []) !tableoftables

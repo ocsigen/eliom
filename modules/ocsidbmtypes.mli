@@ -6,6 +6,7 @@ type query =
   | Replace of string * string * string
   | Nextkey of string
   | Firstkey of string
+  | Length of string
         
 type answer =
   | Ok

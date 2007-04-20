@@ -1310,6 +1310,10 @@ val create_table : unit -> 'a table
 (** Create a table in memory where you can store your session data
     Possible only during initialization phase *)
 
+val create_table_during_session : server_params -> 'a table
+(** Create a table in memory where you can store your session data
+    Possible only during session *)
+
 val get_session_data : 
     'a table -> server_params -> 'a option
 
@@ -1337,3 +1341,19 @@ val close_volatile_session : server_params -> unit
 
 (** Close noth sessions *)
 val close_session : server_params -> unit Lwt.t
+
+(**/**)
+(*****************************************************************************)
+val number_of_sessions : server_params -> int
+
+val number_of_tables : unit -> int
+
+val number_of_table_elements : unit -> int list
+
+val number_of_persistent_sessions : unit -> int Lwt.t
+
+val number_of_persistent_tables : unit -> int
+
+val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
+(* Because of Dbm implementation, the result may be less thann the expected
+   result in some case (with a version of ocsipersist based on Dbm) *)
