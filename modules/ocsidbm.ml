@@ -39,7 +39,6 @@ let _ =
     ignore (Unix.write f spid 0 len);
     Unix.close f
 
-
 exception Ocsidbm_error
 
 let socketname = "socket"
@@ -126,14 +125,24 @@ let close_all _ =
   Tableoftables.iter (fun k t -> Dbm.close t) !tableoftables;
   exit 0
 
+let the_end i =
+  close_all ();
+  exit i
+
 open Sys
 let sigs = [sigabrt;sigalrm;sigfpe;sighup;sigill;sigint;
-            sigpipe;sigquit;sigsegv;sigterm;sigusr1;sigusr2;
-            sigchld;sigcont;sigtstp;sigttin;sigttou;sigvtalrm;sigprof]
+            sigquit;sigsegv;sigterm;sigusr1;sigusr2;
+            sigchld;sigttin;sigttou;sigvtalrm;sigprof]
 
 let _ = 
   List.iter (fun s -> 
     Sys.set_signal s (Signal_handle close_all)) sigs
+
+
+let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
+
+
+let _ = Unix.setsid ()
 
 (*****************************************************************************)
 (** Communication functions: *)
@@ -162,28 +171,51 @@ let execute outch = function
           (fun i -> send outch (Value (Marshal.to_string i []))))
         (fun _ -> send outch Dbm_not_found)
 
+let nb_clients = ref 0
+
 let rec listen_client inch outch =
   Lwt_unix.input_value inch >>=
   (fun v -> execute outch v) >>=
   (fun () -> listen_client inch outch)
 
+let finish _ =
+        nb_clients := !nb_clients - 1;
+        if !nb_clients = 0 
+        then the_end 0;
+        return ()
+      
+
 let rec loop socket =
   Lwt_unix.accept socket >>=
   (fun (indescr, _) ->
     ignore (
+    nb_clients := !nb_clients + 1;
     let inch = Lwt_unix.in_channel_of_descr indescr in
     let outch = Lwt_unix.out_channel_of_descr indescr in
-    listen_client inch outch);
+    catch 
+      (fun () -> listen_client inch outch >>= finish)
+      finish);
     loop socket)
+
+
+
 
 let _ = Lwt_unix.run 
     (Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
      (fun socket ->
        (try
          Unix.bind socket (Unix.ADDR_UNIX (directory^"/"^socketname))
-       with _ -> prerr_endline ("Ocsidbm error: please make sure that no other ocsidbm process is running on the same directory. If not, remove the file "^(directory^"/"^socketname)); exit 1);
+       with _ -> prerr_endline ("Ocsidbm error: please make sure that no other ocsidbm process is running on the same directory. If not, remove the file "^(directory^"/"^socketname)); the_end 1);
        Unix.listen socket 20;
+       let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
+       Unix.dup2 devnull Unix.stdout;
+       Unix.dup2 devnull Unix.stderr;
+       Unix.close devnull;
+       Unix.close Unix.stdin;
        loop (Lwt_unix.Plain socket)))
+
+
+
 
 (*****************************************************************************)
 (** Garbage collection of expired data *)

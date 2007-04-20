@@ -69,11 +69,13 @@ let (directory, ocsidbm) =
 (*****************************************************************************)
 (** Communication with the DB server *)
 
-let try_connect sname socket =
+let try_connect sname =
   catch
     (fun () ->
-      Lwt_unix.connect (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname)
-    )
+      Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
+      (fun socket ->
+        Lwt_unix.connect (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname) >>=
+        (fun () -> return (Lwt_unix.Plain socket))))
     (fun _ ->
       Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
       let param = 
@@ -82,26 +84,30 @@ let try_connect sname socket =
         | Some p -> [|"ocsidbm"; directory; p|])
       in
       let fils () = 
-        Unix.create_process ocsidbm param Unix.stdin Unix.stdout Unix.stderr in
+        Unix.execv ocsidbm param in
       let pid = Unix.fork () in
-      if pid = 0 
+      if pid = 0
       then begin (* double fork *)
-        ignore (Unix.handle_unix_error fils ());
-        exit 0
+        if Unix.fork () = 0
+        then begin
+          fils ();
+          exit 0
+        end
+        else exit 0
       end
       else 
         Lwt_unix.waitpid [] pid >>= 
         (fun _ -> Lwt_unix.sleep 0.5) >>= 
-        (fun () -> Lwt_unix.connect
-            (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname))
-    ) >>=
-  (fun () -> return (Lwt_unix.Plain socket))
-
+        (fun () -> 
+          Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
+          (fun socket ->
+            Lwt_unix.connect 
+              (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname) >>=
+            (fun () -> return (Lwt_unix.Plain socket)))))
+    
 let indescr =
   catch
-    (fun () -> 
-      Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
-      try_connect (directory^"/"^socketname))
+    (fun () -> try_connect (directory^"/"^socketname))
     (fun e -> Messages.errlog ("Cannot connect to Ocsidbm. Will continue without Persistent session support. Error message is: "^(Printexc.to_string e));
       fail e)
 
@@ -149,20 +155,19 @@ let db_firstkey store =
   send (Firstkey store) >>=
   (function 
     | Key k -> return (Some k)
-    | End -> return None
-    | _ -> fail Ocsipersist_error)
+    | _ -> return None)
 
 let db_nextkey store = 
   send (Nextkey store) >>=
   (function 
     | Key k -> return (Some k)
-    | End -> return None
-    | _ -> fail Ocsipersist_error)
+    | _ -> return None)
 
 let db_length store = 
   send (Length store) >>=
   (function 
-    | Value v -> return v
+    | Value v -> return (Marshal.from_string v 0)
+    | Dbm_not_found -> return 0
     | _ -> fail Ocsipersist_error)
 
 
@@ -203,18 +208,7 @@ let set pvname v =
 (** Type of persistent tables *)
 type 'value table = string
 
-module Tableoftables = 
-  struct 
-    let empty = []
-    let add v t = v::t
-    let fold = List.fold_left
-  end
-
-let tableoftables = ref Tableoftables.empty
-
-let open_table name = 
-  tableoftables := Tableoftables.add name !tableoftables;
-  name
+let open_table name = name
     
 let find table key =
   db_get (table, key) >>=
@@ -226,22 +220,13 @@ let add table key value =
 
 let remove table key =
   db_remove (table, key)
-
-let remove_from_all_tables key =
-  Tableoftables.fold
-    (fun thr t -> thr >>= (fun () -> db_remove (t, key) >>= Lwt_unix.yield))
-    (return ())
-    !tableoftables
-
   
 let iter_table f table =
   let rec aux nextkey =
     nextkey table >>=
     (function
       | None -> return ()
-      | Some k -> find table k >>= f k
-    ) >>=
-    (fun () -> aux db_nextkey)
+      | Some k -> find table k >>= f k >>= (fun () -> aux db_nextkey))
   in
   aux db_firstkey
 
@@ -284,18 +269,8 @@ let iter_table f table =
 
 *)
 
-let number_of_tables () =
-  List.length !tableoftables
-
 let length table = 
-  db_length table >>=
-  (fun s -> return (Marshal.from_string s 0))
+  db_length table
 (* Because of Dbm implementation, the result may be less thann the expected
    result in some case (with a version of ocsipersist based on Dbm) *)
 
-let number_of_persistent_table_elements () = 
-  List.fold_left 
-    (fun thr t -> 
-      thr >>= 
-      (fun l -> length t >>=
-        (fun e -> return ((t, e)::l)))) (return []) !tableoftables

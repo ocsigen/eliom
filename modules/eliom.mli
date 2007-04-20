@@ -1357,3 +1357,4 @@ val number_of_persistent_tables : unit -> int
 val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 (* Because of Dbm implementation, the result may be less thann the expected
    result in some case (with a version of ocsipersist based on Dbm) *)
+

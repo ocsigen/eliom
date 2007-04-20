@@ -62,23 +62,23 @@ let get_cookie (_,si,_) = !(si.si_cookie)
 let get_persistent_cookie (_,si,_) = !(si.si_persistent_cookie)
 
 let get_default_timeout = Eliommod.get_default_timeout
-let set_global_timeout_during_session (_, _, (working_dir, _, _, _, _)) min = 
-  Eliommod.set_global_timeout working_dir min
+let set_global_timeout_during_session (_, _, (working_dir, _, _, _, _)) s = 
+  Eliommod.set_global_timeout working_dir s
 let get_global_timeout_during_session (_, _, (working_dir, _, _, _, _)) = 
   Eliommod.find_global_timeout working_dir
 
 let get_default_persistent_timeout = Eliommod.get_default_persistent_timeout
 let set_global_persistent_timeout_during_session 
-    (_, _, (working_dir, _, _, _, _)) min = 
-  Eliommod.set_global_persistent_timeout working_dir min
+    (_, _, (working_dir, _, _, _, _)) s = 
+  Eliommod.set_global_persistent_timeout working_dir s
 let get_global_persistent_timeout_during_session
     (_, _, (working_dir, _, _, _, _)) = 
   Eliommod.find_global_persistent_timeout working_dir
 
-let set_global_timeout_during_init min = 
+let set_global_timeout_during_init s = 
   match global_register_allowed () with
     Some get_current_hostdir ->
-      Eliommod.set_global_timeout (snd (get_current_hostdir ())) min
+      Eliommod.set_global_timeout (snd (get_current_hostdir ())) s
   | _ -> raise Eliom_function_forbidden_outside_site_loading
 
 let get_global_timeout_during_init () = 
@@ -87,10 +87,10 @@ let get_global_timeout_during_init () =
       Eliommod.find_global_timeout (snd (get_current_hostdir ()))
   | _ -> raise Eliom_function_forbidden_outside_site_loading
 
-let set_global_persistent_timeout_during_init min = 
+let set_global_persistent_timeout_during_init s = 
   match global_register_allowed () with
     Some get_current_hostdir ->
-      Eliommod.set_global_persistent_timeout (snd (get_current_hostdir ())) min
+      Eliommod.set_global_persistent_timeout (snd (get_current_hostdir ())) s
   | _ -> raise Eliom_function_forbidden_outside_site_loading
 
 let get_global_persistent_timeout_during_init () = 
@@ -3315,8 +3315,7 @@ open Ocsipersist
 
 type 'a persistent_table = (int64 * 'a) Ocsipersist.table
 
-let create_persistent_table name =
-  open_table name
+let create_persistent_table = create_persistent_table
 
 let get_persistent_data table sp =
   match (get_persistent_cookie sp) with
@@ -3346,6 +3345,7 @@ let set_persistent_data table sp value =
 type 'a table = 'a Cookies.t
 
 let create_table = create_table
+
 let create_table_during_session = create_table_during_session
 
 let get_session_data table sp =
@@ -3367,16 +3367,15 @@ let close_persistent_session (_,si,_) =
   (match !(si.si_persistent_cookie) with
   | Some (c, _) -> 
       catch
-        (fun () -> remove_from_all_tables c)
+        (fun () -> remove_from_all_persistent_tables c)
         (fun _ -> return ())
   | None -> return ()) >>=
   (fun () ->
     si.si_persistent_cookie := None;
     return ())
 
-let close_volatile_session ((_, si, (_,_,sesstab,_,_)) as sp) = 
-  remove_session_data sp !(si.si_cookie);
-  remove_session_table sp !(si.si_cookie);
+let close_volatile_session ((_, si, (_,(_,_,_),sesstab,_,_)) as sp) = 
+  remove_session sp;
   sesstab := empty_tables ();
   si.si_cookie := None
 
@@ -3396,9 +3395,8 @@ let number_of_table_elements = number_of_table_elements
 
 let number_of_persistent_sessions = number_of_persistent_sessions
 
-let number_of_persistent_tables () =
-  (Ocsipersist.number_of_tables ()) - 1
+let number_of_persistent_tables = number_of_persistent_tables
   (* One table is the main table of sessions *)
 
 let number_of_persistent_table_elements () =
-  Ocsipersist.number_of_persistent_table_elements ()
+  number_of_persistent_table_elements ()

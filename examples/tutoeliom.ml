@@ -794,8 +794,8 @@ let form4 = register_new_service ["form4"] unit
       </p>
 *html*)
 (*zap* *)
-let _ = set_global_timeout_during_init (Some 300.)
-let _ = set_global_persistent_timeout_during_init (Some 600.)
+let _ = set_global_timeout_during_init (Some 3600.)
+let _ = set_global_persistent_timeout_during_init (Some 86400.)
 (* *zap*)
 let public_session_without_post_params = 
   new_service ~url:["session"] ~get_params:unit ()

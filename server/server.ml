@@ -571,7 +571,7 @@ let service
                     ~cookies:[]
                     wait_end_answer
                     ~keep_alive:ka
-                    ~location:(ri.ri_path_string^"/"^ri.ri_params)
+                    ~location:("/"^ri.ri_path_string^"/"^ri.ri_params)
                     ~code:301 (* Moved permanently *)
                     ~head:head empty_sender
               | Extensions.Ocsigen_malformed_url

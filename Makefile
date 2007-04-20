@@ -135,7 +135,7 @@ server.opt:
 
 doc:
 	$(CAMLDOC) $(PP) -package ssl $(LIBDIRS3) -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
-	$(CAMLDOC) $(PP) -package netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -d doc/oc -html modules/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli modules/eliomboxes.mli
+	$(CAMLDOC) $(PP) -package netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc/oc -html modules/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli modules/eliomboxes.mli
 
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
@@ -155,7 +155,8 @@ partialinstall:
 	$(MAKE) -C server install
 	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(PREFIX)/$(MODULEINSTALLDIR)" $(TOINSTALL)
-	install -m 644 $(EXAMPLES) $(PREFIX)/$(EXAMPLESINSTALLDIR)
+	$(INSTALL) -m 644 $(EXAMPLES) $(PREFIX)/$(EXAMPLESINSTALLDIR)
+	$(INSTALL) -m 755 modules/ocsidbm modules/ocsidbm.opt $(PREFIX)/$(BINDIR)/
 	-rm META
 
 
@@ -191,14 +192,14 @@ fullinstall: doc partialinstall
 	chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf
 	chmod a+r $(PREFIX)/$(CONFIGDIR)/mime.types
 	mkdir -p $(PREFIX)/$(DOCDIR)
-	install -d -m 755 $(PREFIX)/$(DOCDIR)/lwt
-	install -d -m 755 $(PREFIX)/$(DOCDIR)/oc
-	-install -m 644 doc/* $(PREFIX)/$(DOCDIR)
-	install -m 644 doc/lwt/* $(PREFIX)/$(DOCDIR)/lwt
-	install -m 644 doc/oc/* $(PREFIX)/$(DOCDIR)/oc
-	install -m 644 files/style.css $(PREFIX)/$(STATICPAGESDIR)/tutorial
-	install -m 644 examples/nurpawiki/files/style.css $(PREFIX)/$(STATICPAGESDIR)/nurpawiki
-	install -m 644 examples/nurpawiki/wikidata/* $(PREFIX)/$(DATADIR)/nurpawiki
+	$(INSTALL) -d -m 755 $(PREFIX)/$(DOCDIR)/lwt
+	$(INSTALL) -d -m 755 $(PREFIX)/$(DOCDIR)/oc
+	-$(INSTALL) -m 644 doc/* $(PREFIX)/$(DOCDIR)
+	$(INSTALL) -m 644 doc/lwt/* $(PREFIX)/$(DOCDIR)/lwt
+	$(INSTALL) -m 644 doc/oc/* $(PREFIX)/$(DOCDIR)/oc
+	$(INSTALL) -m 644 files/style.css $(PREFIX)/$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 examples/nurpawiki/files/style.css $(PREFIX)/$(STATICPAGESDIR)/nurpawiki
+	$(INSTALL) -m 644 examples/nurpawiki/wikidata/* $(PREFIX)/$(DATADIR)/nurpawiki
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(DATADIR)
@@ -211,8 +212,8 @@ fullinstall: doc partialinstall
 	   | sed s%USER%$(OCSIGENUSER)%g \
 	   | sed s%GROUP%$(OCSIGENGROUP)%g \
 	  > $(PREFIX)/etc/logrotate.d/$(OCSIGENNAME); }
-	install -d -m 755 $(PREFIX)/$(MANDIR)
-	install -m 644 files/ocsigen.1 $(PREFIX)/$(MANDIR)
+	$(INSTALL) -d -m 755 $(PREFIX)/$(MANDIR)
+	$(INSTALL) -m 644 files/ocsigen.1 $(PREFIX)/$(MANDIR)
 
 
 install:

@@ -56,7 +56,7 @@ type 'a server_params1 =
     request_info * sess_info * 
       (current_dir (* main directory of the site *) *
          ('a (* global table *) * 
-            ('a * float option * float option option ref)
+            ('a * string list * float option * float option option ref)
             Cookies.t (* cookies table *) * 
             (string -> unit) ref) * (* remove_session_data *)
          'a ref (* session table ref *) * 
@@ -200,11 +200,11 @@ let new_cookie_table () = Cookies.create 100
 let rec new_cookie table = 
   let c = Int64.to_string (Random.int64 Int64.max_int) in
   try
-    Cookies.find table c;
+    ignore (Cookies.find table c);
     new_cookie table
   with Not_found -> c
 
-let remove_session_table (_,_,(_,(_, cookie_table, _),_,_,_)) = function
+let remove_session_table cookie_table = function
   | None -> ()
   | Some c -> Cookies.remove cookie_table c
 
@@ -259,6 +259,7 @@ and tables = dircontent ref * naservice_table ref
 (* non persistent cookies 
       (persistent cookies are always called persistent_cookies in the code) *)
 type cookiestable = (tables * 
+                       url_path *
                        float option (* expiration date by timeout *) *
                        float option option ref (* timeout *)) Cookies.t
 (* the table contains:
@@ -637,8 +638,21 @@ let (find_global_timeout, find_global_persistent_timeout,
 
 (*****************************************************************************)
 (** Persistent sessions: *)
+module Perstables = 
+  struct 
+    let empty = []
+    let add v t = v::t
+    let fold = List.fold_left
+  end
+
+let perstables = ref Perstables.empty
+
+let create_persistent_table name =
+  perstables := Perstables.add name !perstables;
+  Ocsipersist.open_table name
+
 let persistent_cookies_table = 
-  Ocsipersist.open_table eliom_persistent_cookie_table
+  create_persistent_table eliom_persistent_cookie_table
 (* the table contains:
    - the expiration date (by timeout), changed at each access to the table
      (float option) None -> no expiration
@@ -648,6 +662,23 @@ let persistent_cookies_table =
    has been reused
  *)
 
+(** removes the entry from all opened tables *)
+let remove_from_all_persistent_tables key =
+  Perstables.fold
+    (fun thr t -> thr >>= 
+      (fun () -> Ocsipersist.remove (Ocsipersist.open_table t) key))
+    (return ())
+    !perstables
+
+let number_of_persistent_tables () =
+  List.length !perstables
+
+let number_of_persistent_table_elements () = 
+  List.fold_left 
+    (fun thr t -> 
+      thr >>= 
+      (fun l -> Ocsipersist.length (Ocsipersist.open_table t) >>=
+        (fun e -> return ((t, e)::l)))) (return []) !perstables
 
 let rec new_persistent_cookie ((_, _, (working_dir, _, _, _, _)) as sp) = 
   let c = Int64.to_string (Random.int64 Int64.max_int) in
@@ -664,7 +695,8 @@ let rec new_persistent_cookie ((_, _, (working_dir, _, _, _, _)) as sp) =
               | None -> None
               | Some t -> Some (t +. Unix.time ())),
                None,
-               randomkey) >>=
+               randomkey,
+               working_dir) >>=
             (fun () -> return (c, randomkey))
           end
       | e -> fail e)
@@ -703,7 +735,8 @@ let create_table, create_table_during_session =
         old_remove_session_data cookie;
         Cookies.remove t cookie
       );
-    counttableelements := (fun () -> Cookies.length t)::!counttableelements;
+    counttableelements := 
+      (fun () -> Cookies.length t)::!counttableelements;
     t
   in
   ((fun () ->
@@ -712,10 +745,14 @@ let create_table, create_table_during_session =
    (fun (_,_,(_,(_,_, remove_session_data),_,_,_)) ->
      aux remove_session_data))
 
-let remove_session_data (_,_,(_,(_,_, remove_session_data),_,_,_)) =
+let remove_session_data remove_session_data =
   function
     | None -> ()
     | Some cookie -> !remove_session_data cookie
+
+let remove_session (_, si, (_,(_,cook,rem),_,_,_)) = 
+  remove_session_data rem !(si.si_cookie);
+  remove_session_table cook !(si.si_cookie)
 
 
 
@@ -777,20 +814,20 @@ let execute
   let now = Unix.time () in
   
   (match !old_persistent_cookie with
-    None -> return None (* By default, global persistent timeout *)
+    None -> return (None, []) (* By default, global persistent timeout *)
   | Some (c, _) -> 
       catch
         (fun () ->
           Ocsipersist.find persistent_cookies_table c >>=
-          fun (persexp, perstimeout, persrandomkey) ->
+          fun (persexp, perstimeout, persrandomkey, oldperscookpath) ->
             match persexp with
               Some t when t < now -> 
                 (* session expired by timeout *)
-                Ocsipersist.remove_from_all_tables c >>=
+                remove_from_all_persistent_tables c >>=
                 (fun () -> fail Eliom_Persistent_session_expired)
             | _ -> 
                 old_persistent_cookie := Some (c, persrandomkey);
-                return perstimeout)
+                return (perstimeout, oldperscookpath))
         (fun _ -> fail Eliom_Persistent_session_expired)
         (* ?? If an error occurs with Ocsipersist, assume no data *)
         (* function
@@ -798,22 +835,23 @@ let execute
           | e -> fail e*)
   ) >>=
   
-  fun user_persistent_timeout ->
+  fun (user_persistent_timeout, oldperscookpath) ->
     
     try
-      let (sessiontablesref, user_timeout_optref) = 
+      let (sessiontablesref, user_timeout_optref, oldcookiepath) = 
         (match old_cookie with
-          None -> ((ref (new_session_tables ())), ref None)
+          None -> ((ref (new_session_tables ())), ref None, [])
         | Some c -> 
             try 
-              let ta, exp, timeout_optref = Cookies.find cookie_table c in
+              let ta, cookiepath, exp, timeout_optref = 
+                Cookies.find cookie_table c in
               match exp with
                 Some t when t < now -> 
                   (* session expired by timeout *)
                   !remove_session_data c;
                   Cookies.remove cookie_table c;
                   raise Eliom_Session_expired
-              | _ -> ((ref ta), timeout_optref)
+              | _ -> ((ref ta), timeout_optref, cookiepath)
 (*        with Not_found -> ((ref (new_session_tables ())), None, ref None)) *)
             with Not_found -> raise Eliom_Session_expired) 
       in
@@ -833,6 +871,11 @@ let execute
              (match new_persistent_cookie with
                None -> return ()
              | Some (pc, randomkey) ->
+                 let newcookiepath =
+                   (if new_persistent_cookie = !old_persistent_cookie
+                   then oldperscookpath
+                   else working_dir)
+                 in
                  if (!user_persistent_timeout_ref = user_persistent_timeout) &&
                    ((user_persistent_timeout = Some None) ||
                    ((user_persistent_timeout = None) && 
@@ -844,13 +887,14 @@ let execute
                      ((match !user_persistent_timeout_ref with
                      | None -> 
                          (match
-                           find_global_persistent_timeout working_dir with
+                           find_global_persistent_timeout newcookiepath with
                          | None -> None
                          | Some t -> Some (t +. now))
                      | Some None -> None
                      | Some (Some t) -> Some (t +. now)), 
                       !user_persistent_timeout_ref,
-                      randomkey)
+                      randomkey,
+                      newcookiepath)
                  end))
            (fun _ -> return ())
         (* ?? If an error occurs with Ocsipersist, continue *)
@@ -865,20 +909,25 @@ let execute
               | None -> Some (new_cookie cookie_table)
               | Some _ -> the_new_cookie)
           in
+          let newcookiepath =
+            (if cookie2 = old_cookie 
+            then oldcookiepath
+            else working_dir)
+          in
           (match cookie2 with
           | None -> ()
           | Some c ->
               let timeout = match !user_timeout_optref with
-                Some t -> t
-              | None -> find_global_timeout working_dir
+              | Some t -> t
+              | None -> find_global_timeout newcookiepath
               in
               let exp = match timeout with
-                None -> None
+              | None -> None
               | Some t -> Some (t +. now)
               in
               Cookies.replace
                 cookie_table c
-                (!sessiontablesref, exp, user_timeout_optref));
+                (!sessiontablesref, newcookiepath, exp, user_timeout_optref));
               (* If the key does not exist, replace just adds it.
                  If it exists, we put a new expiration date *)
           let cookie3 = 
@@ -1104,9 +1153,7 @@ let gen page_tree charset ri =
                   if close_session
                   then (Unset ((Some path), [cookiename]))::cookies_to_set
                   else cookies_to_set
-              | Some c -> 
-print_endline ("----------"^c);
-Set (Some path, cookie_exp, 
+              | Some c -> Set (Some path, cookie_exp, 
                                [(cookiename, c)])::
                   (cookies_remove cookiename cookies_to_set)
             in
@@ -1292,7 +1339,7 @@ Set (Some path, cookie_exp,
 (*****************************************************************************)
 (* garbage collection of timeouted sessions *)
 (* This is a thread that will work every hour *)
-let session_gc (_, cookie_table, _) =
+let session_gc (_, cookie_table, rem) =
   match get_sessiongcfrequency () with
     None -> () (* No garbage collection *)
   | Some t ->
@@ -1302,11 +1349,13 @@ let session_gc (_, cookie_table, _) =
           let now = Unix.time () in
           Messages.debug "GC of sessions";
           Cookies.fold
-            (fun k (_, exp, _) thr -> 
+            (fun k (_, _, exp, _) thr -> 
               thr >>=
               (fun () ->
                 (match exp with
-                  Some exp when exp < now -> Cookies.remove cookie_table k
+                | Some exp when exp < now -> 
+                    Cookies.remove cookie_table k;
+                    !rem k
                 | _ -> ());
                 Lwt_unix.yield ()
               )
@@ -1329,10 +1378,10 @@ let persistent_session_gc () =
           let now = Unix.time () in
           Messages.debug "GC of persistent sessions";
           (Ocsipersist.iter_table
-             (fun k (exp, _, _) -> 
+             (fun k (exp, _, _, _) -> 
                (match exp with
                | Some exp when exp < now -> 
-                   Ocsipersist.remove_from_all_tables k
+                   remove_from_all_persistent_tables k
                | _ -> return ())
              )
              persistent_cookies_table))
@@ -1440,12 +1489,10 @@ let number_of_sessions (_,_,(_,(_, cookie_table, _),_,_,_)) =
   Cookies.length cookie_table
 
 let number_of_tables () =
-print_endline (string_of_int (List.length !counttableelements));
   List.length !counttableelements
 
 let number_of_table_elements () =
-print_endline (string_of_int (List.length !counttableelements));
   List.map (fun f -> f ()) !counttableelements
 
 let number_of_persistent_sessions () = 
-  Ocsipersist.length eliom_persistent_cookie_table
+  Ocsipersist.length persistent_cookies_table

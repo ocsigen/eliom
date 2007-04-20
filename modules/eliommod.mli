@@ -55,7 +55,7 @@ type 'a server_params1 =
     request_info * sess_info * 
       (current_dir (* main directory of the site *) *
          ('a (* global table *) * 
-            ('a * float option * float option option ref)
+            ('a * string list * float option * float option option ref)
             Cookies.t (* cookies table *) * 
             (string -> unit) ref) * (* remove_session_data *)
          'a ref (* session table ref *) * 
@@ -125,16 +125,22 @@ val get_default_persistent_timeout : unit -> float option
 
 val create_persistent_cookie : server_params -> (string * int64) Lwt.t
 val create_cookie : server_params -> string
-val remove_session_table : server_params -> string option -> unit
-val remove_session_data : server_params -> string option -> unit
+val remove_session : server_params -> unit
 val create_table : unit -> 'a Cookies.t
 val create_table_during_session : server_params -> 'a Cookies.t
+val create_persistent_table : string -> 'a Ocsipersist.table
+val remove_from_all_persistent_tables : string -> unit Lwt.t
+
 
 (** Profiling *)
 val number_of_sessions : server_params -> int
 val number_of_tables : unit -> int
 val number_of_table_elements : unit -> int list
 val number_of_persistent_sessions : unit -> int Lwt.t
+val number_of_persistent_tables : unit -> int
+(** Number of persistent tables opened *)
+val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
+(** Whole number of elements in all persistent tables, table by table *)
 
 
 
