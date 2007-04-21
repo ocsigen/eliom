@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module ocsigen.ml
- * Copyright (C) 2005 Vincent Balat, Alain Frisch
+ * Module ocsigenduce.ml
+ * Copyright (C) 2007 Vincent Balat, Alain Frisch
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

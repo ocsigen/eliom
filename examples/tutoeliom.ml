@@ -696,8 +696,8 @@ let form4 = register_new_service ["form4"] unit
         checked statically using polymorphic variant types. You may use
         constructor functions from <code>XHTML.M</code> or a syntax
         extension close to the standard xhtml syntax.</dd>
-        <dt>Eliomduce</dt><dd>allows to register functions that generate
-        xhtml pages 
+          <dt>Eliomduce.Xhtml</dt><dd>allows to register functions 
+            that generate xhtml pages 
         checked statically using <code>Ocamlduce</code>. Typing is more
         strict, but you need a modified version of the OCaml compiler 
         (Ocamlduce).</dd>

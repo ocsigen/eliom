@@ -1,16 +1,20 @@
 include Makefile.config
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCECMAO=modules/ocsigenduce.cma
+DUCECMAO=modules/ocsigenduce.cma modules/eliomduce.cma
 # modules/ocsigenrss.cma
-DUCECMI=modules/ocsigenduce.cmi modules/xhtml1_strict.cmi
+DUCECMI=modules/ocsigenduce.cmi modules/eliomduce.cmi modules/xhtml1_strict.cmi
 # modules/rss2.cmi modules/ocsigenrss.cmi
 DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 # examples/ocamlduce/examplerss.cmo
+DUCEDOC=modules/eliomduce.mli modules/xhtml1_strict.ml
+CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 else
 DUCECMAO=
 DUCECMI=
 DUCEEXAMPLES=
+DUCEDOC=
+CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 endif
 
 ifeq "$(LOGDIR)" ""
@@ -26,7 +30,6 @@ endif
 
 INSTALL = install
 TARGETSBYTE = baselib.byte lwt.byte xmlp4.byte http.byte server.byte modules.byte examples.byte
-CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 PLUGINSCMAOTOINSTALL = modules/ocsipersist.cmo modules/eliom.cma modules/ocsigenmod.cma modules/staticmod.cmo $(DUCECMAO)
 PLUGINSCMITOINSTALL = modules/eliom.cmi modules/ocsigen.cmi modules/staticmod.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi $(DUCECMI)
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
@@ -134,8 +137,8 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) $(PP) -package ssl $(LIBDIRS3) -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
-	$(CAMLDOC) $(PP) -package netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc/oc -html modules/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli modules/eliomboxes.mli
+	$(CAMLDOC) -package ssl $(LIBDIRS3) -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
+	$(CAMLDOC) -package netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc/oc -html modules/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli $(DUCEDOC)
 
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done

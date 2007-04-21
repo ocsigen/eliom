@@ -56,7 +56,10 @@ type 'a server_params1 =
     request_info * sess_info * 
       (current_dir (* main directory of the site *) *
          ('a (* global table *) * 
-            ('a * string list * float option * float option option ref)
+            ('a * string list 
+               (* only to put expiration date on the right working dir
+                  To be removed if the management of cookies paths is improved *) * 
+               float option * float option option ref)
             Cookies.t (* cookies table *) * 
             (string -> unit) ref) * (* remove_session_data *)
          'a ref (* session table ref *) * 
@@ -259,7 +262,9 @@ and tables = dircontent ref * naservice_table ref
 (* non persistent cookies 
       (persistent cookies are always called persistent_cookies in the code) *)
 type cookiestable = (tables * 
-                       url_path *
+                       url_path
+        (* only to put expiration date on the right working dir
+           To be removed if the management of cookies paths is improved *) * 
                        float option (* expiration date by timeout *) *
                        float option option ref (* timeout *)) Cookies.t
 (* the table contains:
@@ -696,7 +701,10 @@ let rec new_persistent_cookie ((_, _, (working_dir, _, _, _, _)) as sp) =
               | Some t -> Some (t +. Unix.time ())),
                None,
                randomkey,
-               working_dir) >>=
+               working_dir
+        (* only to put expiration date on the right working dir
+           To be removed if the management of cookies paths is improved *)
+              ) >>=
             (fun () -> return (c, randomkey))
           end
       | e -> fail e)
@@ -836,9 +844,13 @@ let execute
   ) >>=
   
   fun (user_persistent_timeout, oldperscookpath) ->
+    (* oldperscookpath only to put expiration date on the right working dir
+       To be removed if the management of cookies paths is improved *)
     
     try
       let (sessiontablesref, user_timeout_optref, oldcookiepath) = 
+    (* oldcookiepath only to put expiration date on the right working dir
+       To be removed if the management of cookies paths is improved *)
         (match old_cookie with
           None -> ((ref (new_session_tables ())), ref None, [])
         | Some c -> 
@@ -868,15 +880,16 @@ let execute
         (* Update persistent expiration date (and user timeout) *)
         (catch
            (fun () ->
-             (match new_persistent_cookie with
-               None -> return ()
+             match new_persistent_cookie with
+             | None -> return []
              | Some (pc, randomkey) ->
-                 let newcookiepath =
+                 let newperscookiepath =
                    (if new_persistent_cookie = !old_persistent_cookie
                    then oldperscookpath
                    else working_dir)
                  in
-                 if (!user_persistent_timeout_ref = user_persistent_timeout) &&
+                 (if (!user_persistent_timeout_ref = 
+                      user_persistent_timeout) &&
                    ((user_persistent_timeout = Some None) ||
                    ((user_persistent_timeout = None) && 
                     ((find_global_persistent_timeout working_dir) = 
@@ -887,20 +900,21 @@ let execute
                      ((match !user_persistent_timeout_ref with
                      | None -> 
                          (match
-                           find_global_persistent_timeout newcookiepath with
+                           find_global_persistent_timeout newperscookiepath 
+                         with
                          | None -> None
                          | Some t -> Some (t +. now))
                      | Some None -> None
                      | Some (Some t) -> Some (t +. now)), 
                       !user_persistent_timeout_ref,
                       randomkey,
-                      newcookiepath)
-                 end))
-           (fun _ -> return ())
+                      newperscookiepath)
+                 end) >>= (fun () -> return newperscookiepath))
+           (fun _ -> return [])
         (* ?? If an error occurs with Ocsipersist, continue *)
            ) >>=
 
-        (fun () ->
+        (fun newperscookiepath ->
           let cookie2 = 
             if are_empty_tables !sessiontablesref
             then the_new_cookie
@@ -933,13 +947,15 @@ let execute
           let cookie3 = 
             if cookie2 <> old_cookie || !cookie_exp_date <> None then 
               (if cookie2 = None 
-              then ((Some ""), (Some 0.))
-              else (cookie2, !cookie_exp_date))
-            else (None, None)
+              then ((Some ""), (Some 0.), newcookiepath)
+              else (cookie2, !cookie_exp_date, newcookiepath))
+            else (None, None, [])
           in return 
             (cookie3, 
-             (new_persistent_cookie, !persistent_cookie_exp_date),
-             result, 
+             (new_persistent_cookie, 
+              !persistent_cookie_exp_date,
+              newperscookiepath),
+             result,
              working_dir)))
   with e -> fail e
 
@@ -1125,9 +1141,12 @@ let gen page_tree charset ri =
       (fun () ->
         execute genfun
           info !(si.si_cookie) si.si_persistent_cookie page_tree >>=
-	fun ((new_cookie, cookie_exp),
-             (new_persistent_cookie, persistent_cookie_exp), 
-             result_to_send, path) ->
+	fun ((new_cookie, cookie_exp, newcookiepath),
+             (new_persistent_cookie, 
+              persistent_cookie_exp, 
+              newperscookiepath), 
+             result_to_send,
+             working_dir) ->
           
           let compute_cookies cookies_set_by_page =
             let cookies_set_by_page =
@@ -1135,13 +1154,13 @@ let gen page_tree charset ri =
                 (function
                   | Set (pathopt, expopt, cl) -> 
                       Set ((match pathopt with
-                        None -> Some path (* Not possible to set a cookie for another site (?) *)
-                      | Some p -> Some (path@p)
+                        None -> Some working_dir (* Not possible to set a cookie for another site (?) *)
+                      | Some p -> Some (working_dir@p)
                            ), expopt, cl)
                   | Unset (pathopt, cl) -> 
                       Unset ((match pathopt with
-                        None -> Some path (* Not possible to set a cookie for another site (?) *)
-                      | Some p -> Some (path@p)
+                        None -> Some working_dir (* Not possible to set a cookie for another site (?) *)
+                      | Some p -> Some (working_dir@p)
                            ), cl)
                 )
                 cookies_set_by_page
@@ -1151,9 +1170,9 @@ let gen page_tree charset ri =
               match new_cookie with
               | None -> 
                   if close_session
-                  then (Unset ((Some path), [cookiename]))::cookies_to_set
+                  then (Unset ((Some working_dir(*?????*)), [cookiename]))::cookies_to_set
                   else cookies_to_set
-              | Some c -> Set (Some path, cookie_exp, 
+              | Some c -> Set (Some newcookiepath, cookie_exp, 
                                [(cookiename, c)])::
                   (cookies_remove cookiename cookies_to_set)
             in
@@ -1161,10 +1180,12 @@ let gen page_tree charset ri =
               match new_persistent_cookie with
               | None -> 
                   if close_persistent_session
-                  then (Unset ((Some path), [persistentcookiename]))::
+                  then (Unset ((Some working_dir(*??????*)), 
+                               [persistentcookiename]))::
                     all_new_cookies
                   else all_new_cookies
-              | Some (c, _) -> Set (Some path, persistent_cookie_exp, 
+              | Some (c, _) -> Set (Some newperscookiepath, 
+                                    persistent_cookie_exp, 
                                [(persistentcookiename, c)])::
                   (cookies_remove persistentcookiename all_new_cookies)
             in (cookies_set_by_page, all_new_cookies)
