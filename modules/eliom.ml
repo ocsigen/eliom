@@ -648,6 +648,8 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
      get_params_type: ('get, 'tipo, 'getnames) params_type;
      post_params_type: ('post, [`WithoutSuffix], 'postnames) params_type;
      max_use: int option; (* Max number of use of this service *)
+     timeout: float option; (* Timeout for this service (the service will 
+          disappear if it has not been used during this amount of seconds) *)
      kind: 'kind; (* < service_kind *)
    }
 
@@ -667,6 +669,7 @@ let static_dir (_,_,(curdir,_,_,_,_)) =
      get_params_type = suffix (all_suffix eliom_suffix_name);
      post_params_type = unit;
      max_use= None;
+     timeout= None;
      kind = `Attached
        {url = curdir@[""];
         get_state = None;
@@ -681,7 +684,7 @@ let static_dir (_,_,(curdir,_,_,_,_)) =
 (****************************************************************************)
 
 (** Definition of services *)
-(** Create a service *)
+(** Create a main service (not a coservice) internal or external, get only *)
 let new_service_aux_aux
     ~(url : url_path)
     ~kind
@@ -693,6 +696,7 @@ let new_service_aux_aux
    get_params_type = get_params;
    post_params_type = post_params;
    max_use= None;
+   timeout= None;
    kind = `Attached
      {url = url;
       att_kind = kind;
@@ -743,6 +747,7 @@ let new_naservice_name () = string_of_int (counter ())
 
 let new_coservice
     ?max_use
+    ?timeout
     ~fallback
     ~get_params
     () =
@@ -754,6 +759,7 @@ let new_coservice
   {fallback with
    unique_id = c;
    max_use= max_use;
+   timeout= timeout;
    get_params_type = add_pref_params co_param_prefix get_params;
    kind = `Attached
      {k with
@@ -766,13 +772,14 @@ let new_coservice
    if you want fallbacks with GET parameters *)
     
 
-let new_coservice' ?max_use ~get_params () =
+let new_coservice' ?max_use ?timeout ~get_params () =
   let c = counter () in
   (match global_register_allowed () with
     Some _ -> add_unregistered (None, c);
   | _ -> ());
   {unique_id = c;
    max_use= max_use;
+   timeout= timeout;
    pre_applied_parameters = [];
    get_params_type = add_pref_params na_co_param_prefix get_params;
    post_params_type = unit;
@@ -786,6 +793,7 @@ let new_coservice' ?max_use ~get_params () =
 (****************************************************************************)
 (** Register a service with post parameters in the server *)
 let new_post_service_aux ~fallback ~post_params =
+(** Create a main service (not a coservice) internal, post only *)
 (* ici faire une vérification "duplicate parameter" ? *) 
   let `Attached k1 = fallback.kind in
   let `Internal (k, _) = k1.att_kind in
@@ -794,6 +802,7 @@ let new_post_service_aux ~fallback ~post_params =
    get_params_type = fallback.get_params_type;
    post_params_type = post_params;
    max_use= None;
+   timeout= None;
    kind = `Attached
      {url = k1.url;
       att_kind = `Internal (k, `Post);
@@ -822,7 +831,7 @@ let new_post_service ~fallback ~post_params () =
 (* if the fallback is a coservice, do we get a coservice or a service? *)    
 
   
-let new_post_coservice ?max_use ~fallback ~post_params () = 
+let new_post_coservice ?max_use ?timeout ~fallback ~post_params () = 
   let c = counter () in
   let `Attached k1 = fallback.kind in
   (match global_register_allowed () with
@@ -832,6 +841,7 @@ let new_post_coservice ?max_use ~fallback ~post_params () =
    unique_id = c;
    post_params_type = post_params;
    max_use= max_use;
+   timeout= timeout;
    kind = `Attached 
      {k1 with 
       att_kind = `Internal (`Coservice, `Post);
@@ -844,13 +854,14 @@ let new_post_coservice ?max_use ~fallback ~post_params () =
    fallback. Or we must impose 'get = unit ...
  *)
 
-let new_post_coservice' ?max_use ~post_params () =
+let new_post_coservice' ?max_use ?timeout ~post_params () =
   let c = counter () in
   (match global_register_allowed () with
     Some _ -> add_unregistered (None, c)
   | _ -> ());
   {unique_id = c;
    max_use= max_use;
+   timeout= timeout;
    pre_applied_parameters = [];
    get_params_type = unit;
    post_params_type = post_params;
@@ -863,6 +874,7 @@ let new_post_coservice' ?max_use ~post_params () =
 (*
 let new_get_post_coservice'
    ?max_use
+   ?timeout
     ~fallback
     ~post_params =
   let c = counter () in
@@ -875,6 +887,7 @@ let new_get_post_coservice'
    get_params_type = fallback.na_get_params_type;
    post_params_type = post_params;
    max_use= max_use;
+   timeout= timeout;
    kind = `Nonattached
    {na_name = (fst fallback.na_name, Some (new_naservice_name ()));
    na_kind = `Internal (`NonAttachedCoservice, `Post);
@@ -1177,6 +1190,7 @@ module type ELIOMREGSIG1 =
                       
     val register_new_coservice :
       ?max_use:int ->
+        ?timeout:float ->
         fallback:(unit, unit, 
                   [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                    [ `WithoutSuffix ] as 'tipo, 
@@ -1197,6 +1211,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice' :
       ?max_use:int ->
+        ?timeout:float ->
         get_params: 
         ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
           ?error_handler:(server_params -> 
@@ -1211,6 +1226,7 @@ module type ELIOMREGSIG1 =
     val register_new_coservice_for_session :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:(unit, unit, 
                     [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                     [ `WithoutSuffix ] as 'tipo, 
@@ -1232,6 +1248,7 @@ module type ELIOMREGSIG1 =
     val register_new_coservice_for_session' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           get_params: 
             ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
               ?error_handler:(server_params -> (string * exn) list -> 
@@ -1262,6 +1279,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice :
       ?max_use:int ->
+        ?timeout:float ->
         fallback:('get, unit , 
                   [ `Attached of 
                     [ `Internal of [< `Service | `Coservice ] * [`Get] ] a_s ],
@@ -1281,6 +1299,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice' :
       ?max_use:int ->
+        ?timeout:float ->
         post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
           ?error_handler:(server_params -> (string * exn) list -> 
             page Lwt.t) ->
@@ -1294,6 +1313,7 @@ module type ELIOMREGSIG1 =
 (*
     val register_new_get_post_coservice' :
       ?max_use:int ->
+        ?timeout:float ->
         fallback:('get, unit , 
                   [ `Nonattached of [`Get] na_s ],
                    [< suff ] as 'tipo, 
@@ -1312,6 +1332,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_coservice_for_session :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:('get, unit, 
                     [< `Attached of [< `Internal of
                       [< `Service | `Coservice ] * [`Get] ] a_s ],
@@ -1332,6 +1353,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_coservice_for_session' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> 
               (string * exn) list -> page Lwt.t) ->
@@ -1346,6 +1368,7 @@ module type ELIOMREGSIG1 =
     val register_new_get_post_coservice_for_session' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
                     [< suff ] as 'tipo, 
                     'gn, unit param_name, [< `Registrable ])
@@ -1360,7 +1383,7 @@ module type ELIOMREGSIG1 =
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
 
-(**/**)
+
     val register_public :
         server_params ->
         coservice:('get, 'post,
@@ -1375,14 +1398,15 @@ module type ELIOMREGSIG1 =
 (** Register a coservice in the global table after initialization.
     [register] can be used only during the initalization of the module.
     After this phase, use that function, that takes [sp] as parameter.
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
  *)
 
     val register_new_public_coservice :
         server_params ->
           ?max_use:int ->
+          ?timeout:float ->
             fallback:(unit, unit, 
                       [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                       [ `WithoutSuffix ] as 'tipo, 
@@ -1400,15 +1424,16 @@ module type ELIOMREGSIG1 =
                            [> `Registrable ])
                             service
 (** Same as [new_coservice] followed by [register_public] 
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 
     val register_new_public_coservice' :
         server_params ->
           ?max_use:int ->
-            get_params: 
+          ?timeout:float ->
+          get_params: 
               ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
                 ?error_handler:(server_params -> 
                   (string * exn) list -> page Lwt.t) ->
@@ -1418,14 +1443,15 @@ module type ELIOMREGSIG1 =
                        'tipo, 'gn, unit param_name, [> `Registrable ])
                         service
 (** Same as [new_coservice'] followed by [register_public] 
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 
     val register_new_post_public_coservice :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:('get, unit, 
                     [< `Attached of [< `Internal of
                       [< `Service | `Coservice ] * [`Get] ] a_s ],
@@ -1442,14 +1468,15 @@ module type ELIOMREGSIG1 =
                        'tipo, 'gn, 'pn, [> `Registrable ])
                         service
 (** Same as [new_post_coservice] followed by [register_for_session] 
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 
     val register_new_post_public_coservice' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> 
               (string * exn) list -> page Lwt.t) ->
@@ -1459,15 +1486,16 @@ module type ELIOMREGSIG1 =
                    [> `Registrable ])
                     service
 (** Same as [new_post_coservice'] followed by [register_for_session]
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 
 (*
     val register_new_get_post_public_coservice' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
                     [< suff ] as 'tipo, 
                     'gn, unit param_name, [< `Registrable ])
@@ -1480,9 +1508,9 @@ module type ELIOMREGSIG1 =
                        'tipo, 'gn, 'pn, [> `Registrable ])
                         service
 (* * Same as [new_get_post_coservice] followed by [register_for_session] 
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 *)
 
@@ -1527,7 +1555,7 @@ module MakeRegister = functor
         let register_aux
             current_dir
             tables
-            session
+            session (* registering during session *)
             ~service
             ?(error_handler = fun sp l -> raise (Eliom_Typing_Error l))
             page_generator =
@@ -1543,6 +1571,9 @@ module MakeRegister = functor
                   (match service.max_use with
                     None -> None
                   | Some i -> Some (ref i)),
+                  (match service.timeout with
+                    None -> None
+                  | Some t -> Some (t, ref (t +. Unix.time ()))),
                   (fun ((ri,_,(_,_,_,_,suff)) as sp) -> 
                     (catch (fun () -> 
                       (force ri.ri_post_params) >>=
@@ -1575,6 +1606,9 @@ module MakeRegister = functor
                 ((match service.max_use with
                   None -> None
                 | Some i -> Some (ref i)),
+                 (match service.timeout with
+                  None -> None
+                | Some t -> Some (t, ref (t +. Unix.time ()))),
 	         (fun ((ri,_,_) as sp) ->
 	           (catch
 	              (fun () ->
@@ -1675,37 +1709,41 @@ module MakeRegister = functor
             
         let register_new_coservice
             ?max_use
+            ?timeout
             ~fallback
             ~get_params
             ?error_handler
             page =
-          let u = new_coservice ?max_use ~fallback ~get_params () in
+          let u = new_coservice ?max_use ?timeout ~fallback ~get_params () in
           register ~service:u ?error_handler page;
           u
 
         let register_new_coservice'
             ?max_use
+            ?timeout
             ~get_params
             ?error_handler
             page =
-          let u = new_coservice' ?max_use ~get_params () in
+          let u = new_coservice' ?max_use ?timeout ~get_params () in
           register ~service:u ?error_handler page;
           u
 
         let register_new_coservice_for_session
             sp
             ?max_use
+            ?timeout
             ~fallback
             ~get_params
             ?error_handler
             page =
-          let u = new_coservice ?max_use ~fallback ~get_params () in
+          let u = new_coservice ?max_use ?timeout ~fallback ~get_params () in
           register_for_session sp ~service:u ?error_handler page;
           u
 
         let register_new_coservice_for_session'
             sp
             ?max_use
+            ?timeout
             ~get_params
             ?error_handler
             page =
@@ -1716,21 +1754,23 @@ module MakeRegister = functor
         let register_new_public_coservice
             sp
             ?max_use
+            ?timeout
             ~fallback
             ~get_params
             ?error_handler
             page =
-          let u = new_coservice ?max_use ~fallback ~get_params () in
+          let u = new_coservice ?max_use ?timeout ~fallback ~get_params () in
           register_public sp ~coservice:u ?error_handler page;
           u
 
         let register_new_public_coservice'
             sp
             ?max_use
+            ?timeout
             ~get_params
             ?error_handler
             page =
-          let u = new_coservice' ?max_use ~get_params () in
+          let u = new_coservice' ?max_use ?timeout ~get_params () in
           register_public sp ~coservice:u ?error_handler page;
           u
 
@@ -1748,31 +1788,36 @@ module MakeRegister = functor
 
         let register_new_post_coservice
             ?max_use
+            ?timeout
             ~fallback
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice ?max_use ~fallback ~post_params () in
+          let u = 
+            new_post_coservice ?max_use ?timeout ~fallback ~post_params () in
           register ~service:u ?error_handler page_gen;
           u
 
         let register_new_post_coservice'
             ?max_use
+            ?timeout
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice' ?max_use ~post_params () in
+          let u = new_post_coservice' ?max_use ?timeout ~post_params () in
           register ~service:u ?error_handler page_gen;
           u
 
 (*
    let register_new_get_post_coservice'
    ?max_use
+   ?timeout
    ~fallback
    ~post_params
    ?error_handler
    page_gen =
-   let u = new_get_post_coservice' ?max_use ~fallback ~post_params () in
+   let u = new_get_post_coservice'
+   ?max_use ?timeout ~fallback ~post_params () in
    register ~service:u ?error_handler page_gen;
    u
  *)
@@ -1780,21 +1825,24 @@ module MakeRegister = functor
         let register_new_post_coservice_for_session
             sp
             ?max_use
+            ?timeout
             ~fallback
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice ?max_use ~fallback ~post_params () in
+          let u = new_post_coservice 
+              ?max_use ?timeout ~fallback ~post_params () in
           register_for_session sp ~service:u ?error_handler page_gen;
           u
 
         let register_new_post_coservice_for_session'
             sp
             ?max_use
+            ?timeout
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice' ?max_use ~post_params () in
+          let u = new_post_coservice' ?max_use ?timeout ~post_params () in
           register_for_session sp ~service:u ?error_handler page_gen;
           u
 
@@ -1802,11 +1850,13 @@ module MakeRegister = functor
    let register_new_get_post_coservice_for_session'
    sp
    ?max_use
+   ?timeout
    ~fallback
    ~post_params
    ?error_handler
    page_gen =
-   let u = new_get_post_coservice' ?max_use ~fallback ~post_params () in
+   let u = new_get_post_coservice'
+   ?max_use ?timeout ~fallback ~post_params () in
    register_for_session sp ~service:u ?error_handler page_gen;
    u
  *)
@@ -1814,21 +1864,24 @@ module MakeRegister = functor
         let register_new_post_public_coservice
             sp
             ?max_use
+            ?timeout
             ~fallback
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice ?max_use ~fallback ~post_params () in
+          let u = new_post_coservice
+              ?max_use ?timeout ~fallback ~post_params () in
           register_public sp ~coservice:u ?error_handler page_gen;
           u
 
         let register_new_post_public_coservice'
             sp
             ?max_use
+            ?timeout
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice' ?max_use ~post_params () in
+          let u = new_post_coservice' ?max_use ?timeout ~post_params () in
           register_public sp ~coservice:u ?error_handler page_gen;
           u
 
@@ -1836,11 +1889,13 @@ module MakeRegister = functor
    let register_new_get_post_public_coservice'
    sp
    ?max_use
+   ?timeout
    ~fallback
    ~post_params
    ?error_handler
    page_gen =
-   let u = new_get_post_coservice' ?max_use ~fallback ~post_params () in
+   let u = new_get_post_coservice' 
+   ?max_use ?timeout ~fallback ~post_params () in
    register_public sp ~coservice:u ?error_handler page_gen;
    u
  *)
@@ -1895,12 +1950,14 @@ module MakeRegister = functor
           
       let register_new_coservice
           ?max_use
+          ?timeout
           ~fallback
           ~get_params
           ?error_handler
           page =
         Cookies.register_new_coservice
           ?max_use
+          ?timeout
           ~fallback
           ~get_params
           ?error_handler:(make_error_handler ?error_handler ())
@@ -1908,11 +1965,13 @@ module MakeRegister = functor
 
       let register_new_coservice'
           ?max_use
+          ?timeout
           ~get_params
           ?error_handler
           page =
         Cookies.register_new_coservice'
           ?max_use
+          ?timeout
           ~get_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
@@ -1920,6 +1979,7 @@ module MakeRegister = functor
       let register_new_coservice_for_session
           sp
           ?max_use
+          ?timeout
           ~fallback
           ~get_params
           ?error_handler
@@ -1927,6 +1987,7 @@ module MakeRegister = functor
       Cookies.register_new_coservice_for_session
           sp
           ?max_use
+          ?timeout
           ~fallback
           ~get_params
           ?error_handler:(make_error_handler ?error_handler ())
@@ -1935,12 +1996,14 @@ module MakeRegister = functor
       let register_new_coservice_for_session'
           sp
           ?max_use
+          ?timeout
           ~get_params
           ?error_handler
           page =
       Cookies.register_new_coservice_for_session'
           sp
           ?max_use
+          ?timeout
           ~get_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
@@ -1948,6 +2011,7 @@ module MakeRegister = functor
       let register_new_public_coservice
           sp
           ?max_use
+          ?timeout
           ~fallback
           ~get_params
           ?error_handler
@@ -1955,6 +2019,7 @@ module MakeRegister = functor
       Cookies.register_new_public_coservice
           sp
           ?max_use
+          ?timeout
           ~fallback
           ~get_params
           ?error_handler:(make_error_handler ?error_handler ())
@@ -1963,12 +2028,14 @@ module MakeRegister = functor
       let register_new_public_coservice'
           sp
           ?max_use
+          ?timeout
           ~get_params
           ?error_handler
           page =
       Cookies.register_new_public_coservice'
           sp
           ?max_use
+          ?timeout
           ~get_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
@@ -1986,12 +2053,14 @@ module MakeRegister = functor
 
       let register_new_post_coservice
           ?max_use
+          ?timeout
           ~fallback
           ~post_params
           ?error_handler
           page_gen =
         Cookies.register_new_post_coservice
           ?max_use
+          ?timeout
           ~fallback
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
@@ -1999,11 +2068,13 @@ module MakeRegister = functor
 
       let register_new_post_coservice'
           ?max_use
+          ?timeout
           ~post_params
           ?error_handler
           page_gen =
         Cookies.register_new_post_coservice'
           ?max_use
+          ?timeout
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
@@ -2011,12 +2082,14 @@ module MakeRegister = functor
 (*
    let register_new_get_post_coservice'
           ?max_use
+          ?timeout
    ~fallback
    ~post_params
    ?error_handler
    page_gen =
    Cookies.register_new_get_post_coservice'
           ?max_use
+          ?timeout
    ~fallback
    ~post_params
    ?error_handler:(make_error_handler ?error_handler ())
@@ -2027,6 +2100,7 @@ module MakeRegister = functor
       let register_new_post_coservice_for_session
           sp
           ?max_use
+          ?timeout
           ~fallback
           ~post_params
           ?error_handler
@@ -2034,6 +2108,7 @@ module MakeRegister = functor
         Cookies.register_new_post_coservice_for_session
           sp
           ?max_use
+          ?timeout
           ~fallback
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
@@ -2042,12 +2117,14 @@ module MakeRegister = functor
       let register_new_post_coservice_for_session'
           sp
           ?max_use
+          ?timeout
           ~post_params
           ?error_handler
           page_gen =
       Cookies.register_new_post_coservice_for_session'
           sp
           ?max_use
+          ?timeout
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
@@ -2056,6 +2133,7 @@ module MakeRegister = functor
    let register_new_get_post_coservice_for_session'
    sp
           ?max_use
+          ?timeout
    ~fallback
    ~post_params
    ?error_handler
@@ -2063,6 +2141,7 @@ module MakeRegister = functor
    Cookies.register_new_get_post_coservice_for_session'
    sp
           ?max_use
+          ?timeout
    ~fallback
    ~post_params
    ?error_handler:(make_error_handler ?error_handler ())
@@ -2073,6 +2152,7 @@ module MakeRegister = functor
       let register_new_post_public_coservice
           sp
           ?max_use
+          ?timeout
           ~fallback
           ~post_params
           ?error_handler
@@ -2080,6 +2160,7 @@ module MakeRegister = functor
         Cookies.register_new_post_public_coservice
           sp
           ?max_use
+          ?timeout
           ~fallback
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
@@ -2088,12 +2169,14 @@ module MakeRegister = functor
       let register_new_post_public_coservice'
           sp
           ?max_use
+          ?timeout
           ~post_params
           ?error_handler
           page_gen =
       Cookies.register_new_post_public_coservice'
           sp
           ?max_use
+          ?timeout
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
@@ -2102,6 +2185,7 @@ module MakeRegister = functor
    let register_new_get_post_public_coservice'
    sp
           ?max_use
+          ?timeout
    ~fallback
    ~post_params
    ?error_handler
@@ -2109,6 +2193,7 @@ module MakeRegister = functor
    Cookies.register_new_get_post_public_coservice'
    sp
           ?max_use
+          ?timeout
    ~fallback
    ~post_params
    ?error_handler:(make_error_handler ?error_handler ())

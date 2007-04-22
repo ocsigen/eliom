@@ -66,7 +66,8 @@ type 'value table
 val open_table : string -> 'value table
 
 val find : 'value table -> string -> 'value Lwt.t
-(** [find table key] gives the value associated to [key] *)
+(** [find table key] gives the value associated to [key].
+  Raises [Not_found] if not found. *)
 
 val add : 'value table -> string -> 'value -> unit Lwt.t
 (** [add table key value] associates the value [value] to key [key]. 
@@ -75,14 +76,14 @@ val add : 'value table -> string -> 'value -> unit Lwt.t
  *)
 
 val remove : 'value table -> string -> unit Lwt.t
-(** [remove table key] removes the entry in the table *)
+(** [remove table key] removes the entry in the table if it exists *)
 
+(**/**)
 val length : 'value table -> int Lwt.t
 (** Size of a table.
    Because of Dbm implementation, the result may be less thann the expected
    result in some case (with a version of ocsipersist based on Dbm) *)
 
-(**/**)
 val iter_table : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
 (** Important warning: this iterator may not iter on all data of the table
    if several iterator are running simultanously on the same table 

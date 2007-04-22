@@ -98,7 +98,7 @@ let coucou =
             of the log files, etc.
       </p>
       <p>Here is a sample 
-   $a (static_dir sp) sp [pcdata "Makefile"] "Makefile"$ for your modules.</p>
+   $a (static_dir sp) sp [pcdata "Makefile"] ["Makefile"]$ for your modules.</p>
       <h3>Static typing of XHTML</h3>
         <p>
         Typing of xhtml with XHTML.M and Eliom.Xhtml
@@ -238,13 +238,13 @@ let coucou1 =
         Page generation may have side-effects:
       </p>
 *html*)
-let compt = 
+let count = 
   let next =
     let c = ref 0 in
       (fun () -> c := !c + 1; !c)
   in
   register_new_service 
-    ~url:["compt"]
+    ~url:["count"]
     ~get_params:unit
     (fun _ () () ->  return
       (html
@@ -252,7 +252,7 @@ let compt =
        (body [p [pcdata (string_of_int (next ()))]])))
 (*html*
       <p>
-      See this example $a Tutoeliom.compt sp <:xmllist< here >> ()$.
+      See this example $a Tutoeliom.count sp <:xmllist< here >> ()$.
       </p>
       <p>As usual in OCaml, you can forget labels when the application 
           is total:</p>
@@ -380,7 +380,7 @@ let isuffix =
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*html*
-      <p>See $a Tutoeliom.uasuffix sp <:xmllist< uasuffix >> ("suffix", "gni")$,
+      <p>See $a Tutoeliom.uasuffix sp <:xmllist< uasuffix >> "thesuffix"$,
          $a Tutoeliom.isuffix sp <:xmllist< isuffix >> ((11, ["a";"b";"c"]) , 22)$.</p>
 
       <p>The following example shows how to use your own types:</p>
@@ -769,7 +769,78 @@ let form4 = register_new_service ["form4"] unit
 
 
     </div>
-    <h2>Sessions</h2>
+    <h2>Session data</h2>
+    <div class="twocol1">
+      <p>If you want to save session data, you can create tables
+      using <code>create_table</code> and save and get data from
+      these tables using <code>set_session_data</code> and 
+      <code>get_session_data</code>. The following example show
+      a site with authentification:
+      </p>
+*html*)
+type session_info = string
+
+let my_table = create_table ()
+
+let data = new_service ["data"] unit ()
+
+let data_with_post_params = new_post_service data (string "login") ()
+
+let close2 = register_new_service
+    ~url:["disconnect2"]
+    ~get_params:unit
+    (fun sp () () -> 
+      close_session sp >>=
+      (fun () ->
+        return
+          (html
+             (head (title (pcdata "Disconnect")) [])
+             (body [p [pcdata "You have been disconnected. ";
+                       a data sp [pcdata "Retry"] () ]]))))
+(*html*
+    </div>
+    <div class="twocol2">
+*html*)
+let _ = register
+    data
+    (fun sp _ _ ->
+      let sessdat = get_session_data my_table sp in
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body 
+              [match sessdat with
+              | Some name ->
+                  p [pcdata ("Hello "^name); br ();
+                     a close2 sp [pcdata "close session"] ()
+                   ]
+              | None -> 
+                  post_form data_with_post_params sp
+                    (fun login -> 
+                      [p [pcdata "login: ";
+                          string_input login]]) ()
+             ])))
+
+let _ = register
+    data_with_post_params
+    (fun sp _ login ->
+      close_session sp >>=
+      (fun () ->
+        set_session_data my_table sp login;
+        return
+          (html
+             (head (title (pcdata "")) [])
+             (body 
+                [p [pcdata ("Welcome "^login^
+                            ". You are now connected."); br ();
+                    a data sp [pcdata "Try again"] ()
+                  ]]))))
+(*html*
+      <p>
+      See this example $a Tutoeliom.data sp <:xmllist< here >> ()$.
+      </p>
+    </div>
+    <h2>Sessions services</h2>
     <div class="twocol1">
       <p>
       Eliom allows to replace a public service by a service valid only for
@@ -789,7 +860,8 @@ let form4 = register_new_service ["form4"] unit
          and <code>close_session</code> take <code>sp</code> as parameter
          (because sp contains the session table).</p>
       <p>The following is an example of web site that behaves differently
-      when users are connected.
+      when users are connected, without using 
+      <code>set_session_data</code>.
       We first define the main page, with a login form:
       </p>
 *html*)
@@ -907,67 +979,6 @@ let _ = register_for_session
        are called <em>public</em>.
       </p>
     </div>
-    <h2>Session data</h2>
-    <div class="twocol1">
-    </div>
-    <div class="twocol2">
-*html*)
-type session_info = string
-
-let my_table = create_table ()
-
-let data = new_service ["data"] unit ()
-
-let data_with_post_params = new_post_service data (string "login") ()
-
-let close2 = register_new_service
-    ~url:["disconnect2"]
-    ~get_params:unit
-    (fun sp () () -> 
-      close_session sp >>=
-      (fun () ->
-        return
-          (html
-             (head (title (pcdata "Disconnect")) [])
-             (body [p [pcdata "You have been disconnected. ";
-                       a data sp [pcdata "Retry"] () ]]))))
-
-let _ = register
-    data
-    (fun sp _ _ ->
-      let sessdat = get_session_data my_table sp in
-      return
-        (html
-           (head (title (pcdata "")) [])
-           (body 
-              [match sessdat with
-              | Some name ->
-                  p [pcdata ("Hello "^name); br ();
-                     a close2 sp [pcdata "close session"] ()
-                   ]
-              | None -> 
-                  post_form data_with_post_params sp
-                    (fun login -> 
-                      [p [pcdata "login: ";
-                          string_input login]]) ()
-             ])))
-
-let _ = register
-    data_with_post_params
-    (fun sp _ login ->
-      close_session sp >>=
-      (fun () ->
-        set_session_data my_table sp login;
-        return
-          (html
-             (head (title (pcdata "")) [])
-             (body 
-                [p [pcdata ("Welcome "^login^
-                            ". You are now connected."); br ();
-                    a data sp [pcdata "Try again"] ()
-                  ]]))))
-(*html*
-    </div>
     <h2>Coservices</h2>
     <div class="twocol1">
       <p>
@@ -1041,7 +1052,7 @@ let _ =
 (*html*
     </div>
     <div class="twocol2">
-      <p>Try $a Tutoeliom.serv sp <:xmllist< <code>coserv</code> >> ()$.</p>
+      <p>Try $a Tutoeliom.coserv sp <:xmllist< <code>coserv</code> >> ()$.</p>
       <p>Note that if the coservice does not exist (for example it
       has expired), the fallback is called.</p>
       <p>In the last example, coservices do not take any parameters
@@ -1289,7 +1300,7 @@ let _ =
      <code><span class="Cem">Actions.register_new_service</span></code>,
      <code><span class="Cem">Actions.register_for_session</span></code>.<br/>
       </p>
-      <p>Here we rewrite the example <code>session</code> using actions
+      <p>Here we rewrite the example <code>data</code> using actions
       (and a POST coservice for disconnection).</p>
 *html*)
 let action_session = 
@@ -1298,66 +1309,48 @@ let action_session =
 let connect_action = 
   new_post_coservice' ~post_params:(string "login") ()
     
-let home_action sp () () = 
-  let f = post_form connect_action sp
-      (fun login -> 
-        [p 
-           (let l = [pcdata "login: "; 
-                     string_input login]
-           in
-           if List.mem Eliom_Session_expired (get_exn sp)
+let disconnect_action = 
+  Actions.register_new_post_coservice'
+    unit 
+    (fun sp () () -> 
+      close_session sp >>= 
+      (fun () -> return []))
+
+let disconnect_box sp s = 
+  post_form disconnect_action sp 
+    (fun _ -> [p [submit_input s]]) ()
+
+let login_box sp login = 
+  [p 
+     (let l = [pcdata "login: "; 
+               string_input login]
+     in (*zap*           if List.mem Eliom_Session_expired (get_exn sp)
            then (pcdata "Session expired")::(br ())::l
-           else l)
-       ]) () in 
-  return
-    (html
-       (head (title (pcdata "")) [])
-       (body [f]))
-    
-let _ = register
-  ~service:action_session
-  home_action
+           else *zap*) l)
+  ]
 (*html*
     </div>
     <div class="twocol2">
 *html*)
-let rec launch_session sp login =
-  let disconnect_action = 
-   Actions.register_new_post_coservice_for_session'
-      sp
-      unit 
-      (fun sp () () -> close_session sp >>= (fun () -> return [])) in
-  let disconnect_box sp s = 
-    post_form disconnect_action sp 
-      (fun _ -> [p [submit_input s]]) ()
-  in
-  let new_main_page sp () () = return
+let home_action sp () () = 
+  let f = post_form connect_action sp (login_box sp) () in
+  let sessdat = get_session_data my_table sp in
+  return
     (html
-      (head (title (pcdata "")) [])
-      (body [p [pcdata "Welcome ";
-                pcdata login; br ();
-                a coucou sp [pcdata "coucou"] (); br ();
-                a hello sp [pcdata "hello"] (); br ();
-                a links sp [pcdata "links"] (); br ()];
-             disconnect_box sp "Close session"]))
-  in
-  register_for_session 
-    sp ~service:action_session new_main_page;
-  register_for_session sp coucou
-   (fun _ () () -> return
-     (html
        (head (title (pcdata "")) [])
-       (body [p [pcdata "Coucou ";
-                 pcdata login;
-                 pcdata "!"]])));
-  register_for_session sp hello 
-   (fun _ () () -> return
-     (html
-       (head (title (pcdata "")) [])
-       (body [p [pcdata "Ciao ";
-                 pcdata login;
-                 pcdata "!"]])))
+       (body 
+          (match sessdat with
+          | Some name ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box sp "Close session"]
+          | None -> [f]
+          )))
     
+let _ = register ~service:action_session home_action
+
+let rec launch_session sp login =
+  set_session_data my_table sp login
+
 let _ = Actions.register
     connect_action
     (fun sp () login -> 
@@ -1403,6 +1396,7 @@ let connect_action =
   new_post_coservice' ~post_params:(string "login") ()
 (* *zap*)    
 exception Bad_user
+
 let login_box sp login =
    let l =
      [pcdata "login: "; 
@@ -1416,45 +1410,25 @@ let login_box sp login =
        else l)
    ]
 
+(*zap* *)    
 let home_action sp () () = 
   let f = post_form connect_action sp (login_box sp) () in
+  let sessdat = get_session_data my_table sp in
   return
     (html
        (head (title (pcdata "")) [])
-       (body [f]))
+       (body 
+          (match sessdat with
+          | Some name ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box sp "Close session"]
+          | None -> [f]
+          )))
 
-(*zap* *)    
-let _ = register
-  ~service:action_session2
-  home_action
+let _ = register ~service:action_session2 home_action
 
 let rec launch_session sp login =
-  let disconnect_action = 
-   Actions.register_new_post_coservice_for_session'
-      sp
-      unit 
-      (fun sp () () -> close_session sp >>= (fun () -> return [])) in
-  let disconnect_box sp s = 
-    post_form disconnect_action sp 
-      (fun _ -> [p [submit_input s]]) ()
-  in
-  let new_main_page sp () () = return
-    (html
-      (head (title (pcdata "")) [])
-      (body [p [pcdata "Welcome ";
-                pcdata login; br ();
-                a coucou sp [pcdata "coucou"] ()];
-             disconnect_box sp "Close session"]))
-  in
-  register_for_session 
-    sp ~service:action_session2 new_main_page;
-  register_for_session sp coucou
-   (fun _ () () -> return
-     (html
-       (head (title (pcdata "")) [])
-       (body [p [pcdata "Coucou ";
-                 pcdata login;
-                 pcdata "!"]])))
+  set_session_data my_table sp login
     
 (* *zap*)
 let _ = Actions.register
@@ -1466,6 +1440,9 @@ let _ = Actions.register
         then (launch_session sp login; return [])
         else return [Bad_user]))
 (*html*
+      <p>
+      See this example $a Tutoeliom.action_session2 sp <:xmllist< here >> ()$.
+      </p>
     <h3>Redirections</h3>
     <p>
      The <code>Redirections</code> module allows to register HTTP redirections.
@@ -1532,14 +1509,16 @@ let sendany =
                      </p></body></html>")
    )
 (*html*
+      <p>
+      See a $a Tutoeliom.sendany sp <:xmllist< valid >> "valid"$ page,
+      and a $a Tutoeliom.sendany sp <:xmllist< non valid >> "non valid"$ page.
+      </p>
       <p>You may also use <code>Any</code> to send cookies or to choose a
          different charset than the default 
         (default charset is set in configuration file) 
          for the page you send. To do that use the optional parameters
           <code>?cookies</code> and <code>?charset</code>.
       </p>
-    </div>
-    <div class="twocol2">
      <h3>Cookies</h3>
      <p>
       You can set cookies on the client, by using functions like
@@ -1590,6 +1569,8 @@ let _ = Cookies.register cookies
                         [(cookiename,(string_of_int (Random.int 100)))])]))
 (*html*
       <p>Try $a Tutoeliom.cookies sp <:xmllist< <code>it</code> >> ()$.</p>
+    </div>
+    <div class="twocol2">
      <h3>Disposable coservices</h3>
       <p>It is possible to set a limit to the number of uses of 
       (attached or non-attached) coservices. Just give the maximum number
@@ -1663,6 +1644,89 @@ set_user_timeout sp (Some 7200.)
         configuration file for your site, you must parse the configuration
         (<code>Eliom.get_config ()</code> function).
      </p>
+     <h3>Timeout for coservices</h3>
+      <p>It is also possible to put timeouts on coservices using
+      the optional parameter <code>?timeout</code> of functions
+      <code>new_coservice</code>,
+      <code>new_coservice'</code>, etc.
+     Note that coservices cannot survive after the end of the session.
+     Use this if you don't want your coservice to be available during all the
+     session duration. For example if your coservice is here to show the 
+     results of a search, you probably want it to be available only for
+     a short time. The following example shows a coservice with timeout
+     registered in the session table.
+     </p>
+*html*)
+let timeout = new_service ["timeout"] unit ()
+
+let _ = 
+  let page sp () () = 
+    let timeoutpost =
+      register_new_coservice_for_session
+        sp ~fallback:timeout ~get_params:unit ~timeout:5.
+        (fun _ _ _ ->
+           return
+             (html
+               (head (title (pcdata "Coservices with timeouts")) [])
+               (body [p 
+                 [pcdata "I am a coservice with timeout."; br ();
+                  pcdata "I will disappear after 5 seconds of inactivity." ];
+                 ])))
+    in
+    return
+      (html
+        (head (title (pcdata "Coservices with timeouts")) [])
+        (body [p 
+          [pcdata "I just created a coservice with 5 seconds timeout."; br ();
+           a timeoutpost sp [pcdata "Try it"] (); ];
+          ]))
+  in
+  register timeout page
+(*html*
+      <p>
+      See this example $a Tutoeliom.timeout sp <:xmllist< here >> ()$.
+      </p>
+     <h3>registering coservices in public table during session</h3>
+     <p>It is not possible to register coservices in the
+     public table during session using <code>register</code>, as this function
+     is available only during initialisation of your module.
+     But you can do it after initialisation <code>register_public</code>.
+     We recommend to put a timeout on such coservices, otherwise, they
+     will be available until the end of the server process.
+     The following example is a translation of the previous one using
+     the public table:
+     </p>
+*html*)
+let publiccosersession = new_service ["publiccoservsession"] unit ()
+
+let _ = 
+  let page sp () () = 
+    let timeoutpost =
+      register_new_public_coservice
+        sp ~fallback:timeout ~get_params:unit ~timeout:5.
+        (fun _ _ _ ->
+           return
+             (html
+               (head (title (pcdata "Coservices with timeouts")) [])
+               (body [p 
+                 [pcdata "I am a public coservice with timeout."; br ();
+                  pcdata "I will disappear after 5 seconds of inactivity." ];
+                 ])))
+    in
+    return
+      (html
+        (head (title (pcdata "Public coservices with timeouts")) [])
+        (body [p 
+          [pcdata "I just created a public coservice \
+                   with 5 seconds timeout."; br ();
+           a timeoutpost sp [pcdata "Try it"] (); ];
+          ]))
+  in
+  register publiccosersession page
+(*html*
+      <p>
+      See this example $a Tutoeliom.publiccosersession sp <:xmllist< here >> ()$.
+      </p>
      <h3>Giving configuration options to your sites (EXPERIMENTAL)</h3>
       <p>You can add your own options in the configuration
        file for your Web site. For example:</p>
@@ -1831,8 +1895,79 @@ wakeup w "HELLO");
     </div>
     <h2>Persistence of session</h2>
     <div class="twocol1">
+      <p>Tables of sessions (for data or services) are kept in memory,
+        and thus will disappear if you close the server process.
+        Eliom allows to use more persistent data, using the module
+        <code>Ocsipersist</code>. (<code>Ocsipersist</code> is linked in 
+        <code>eliom.cma</code>, thus you don't need to dynlink yourself in the
+        configuration file, but if you want to use it without 
+        <code>Eliom</code>).
+      </p>
+      <p>Note that persistent data are serialized on hard disk using
+        OCaml's <code>Marshal</code> module. 
+      </p>
+      <ul>
+        <li>It is not possible to serialize closures or services</li>
+        <li>Do not modify the type of serialized data, otherwise the
+          server will crash!
+        </li>
+      </ul>
+      <h3>Persistent references</h3>
+      <p><code>Ocsipersist</code> allows to create persistent references.
+       Here is an example of page with a persistent counter:
+      </p>
+*html*)
+let mystore = Ocsipersist.open_store "eliomexamplestore"
+
+let count2 = 
+  let next =
+    let cthr = Ocsipersist.make_persistent mystore "countpage" 0 in
+    (fun () -> 
+      cthr >>=
+      (fun c -> Ocsipersist.get c >>=
+        (fun oldc -> 
+          let newc = oldc + 1 in
+          Ocsipersist.set c newc >>=
+          (fun () -> return newc))))
+  in
+  register_new_service 
+    ~url:["count2"]
+    ~get_params:unit
+    (fun _ () () ->  
+      next () >>=
+      (fun n ->
+        return
+         (html
+          (head (title (pcdata "counter")) [])
+          (body [p [pcdata (string_of_int n)]]))))
+
+(*html*
+      <p>
+      See this example $a Tutoeliom.count2 sp <:xmllist< here >> ()$.
+      </p>
+      <h3>Persistent tables</h3>
+      <p><code>Ocsipersist</code> also allows to create very basic
+       persistent tables. use them if you don't need complex requests
+       on your tables. Otherwise use a database such as <code>PostgreSQL</code>
+       or <code>MySQL</code>. Here are the interface you can use:
+      </p>
+<pre>
+type 'value table
+
+val open_table : string -> 'value table
+
+val find : 'value table -> string -> 'value Lwt.t
+
+val add : 'value table -> string -> 'value -> unit Lwt.t
+
+val remove : 'value table -> string -> unit Lwt.t
+</pre>
     </div>
     <div class="twocol2">
+      <h3>Persistent session data</h3>
+      <p><code>Eliom</code> also implements persistent session tables.
+       You can use them instead of memory tables if you don't want
+       to register closures.</p>
 *html*)
 let my_persistent_table : session_info persistent_table = 
   create_persistent_table "eliom_example_table"
@@ -1890,6 +2025,9 @@ let _ = register
                       a persist sp [pcdata "Try again"] ()
                     ]])))))
 (*html*
+      <p>
+      See this example $a Tutoeliom.close2 sp <:xmllist< here >> ()$.
+      </p>
     </div>
     <h2>Static parts</h2>
     <div class="twocol1">
@@ -1910,7 +2048,7 @@ let _ = register
   [pcdata "download image"] 
   "$str:small_logo$"</pre>
           <p>creates this link:
-         $a (static_dir sp) sp [pcdata "download image"] small_logo$
+         $a (static_dir sp) sp [pcdata "download image"] [small_logo]$
       </p>
       <p>It is now also possible to handle static pages yourself using
       <code>Eliom.Files</code>.
@@ -1972,15 +2110,6 @@ let _ = register
     GET parameters. 
     If you want one of the link to contains GET parameters, pre-apply
     the service.</p>
-      <div class="encadre">
-        <h3>Tip: How to make a menu with different kinds of urls 
-   (external, internal...)?</h3>
-          <p>
-   You need to coerce each of them. For example</p>
-       <pre>
- [(home :&gt; (('a,'b,Eliom.service_kind,'c,'d,'e) service))]
-       </pre>
-      </div>
       <div class="encadre">
         <h3>How to make a menu entry with GET parameters?</h3>
           <p>
@@ -2102,9 +2231,6 @@ let _ = register
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> h <span class="Cnonalphakeyword">(</span>login<span class="Cnonalphakeyword">,</span> password<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
       launch_session <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
 </pre>
-
-
-
 
     </div>
 *html*)
@@ -2241,7 +2367,7 @@ let _ = register main
        <h3>Simple pages</h3>
        <p>
          A simple page: $a coucou sp <:xmllist< coucou >> ()$ <br/>
-         A page with a counter: $a compt sp <:xmllist< compt >> ()$ <br/> 
+         A page with a counter: $a count sp <:xmllist< count >> ()$ <br/> 
          A page in a directory: 
            $a hello sp <:xmllist< dir/hello >> ()$ <br/>
        Default page of a directory:
@@ -2305,8 +2431,14 @@ let _ = register main
              $a cookies sp <:xmllist< cookies >> ()$<br/>
        Disposable coservices:
              $a disposable sp <:xmllist< disposable >> ()$<br/>
+       Coservice with timeout:
+             $a timeout sp <:xmllist< timeout >> ()$<br/>
+       Public coservice created after initialization:
+             $a publiccosersession sp <:xmllist< publiccosersession >> ()$<br/>
        The following URL send either a statically checked page, or a text page:
              $a sendany sp <:xmllist< sendany >> "valid"$<br/>
+       A page with a persistent counter: 
+             $a count2 sp <:xmllist< count2 >> ()$ <br/> 
        </p>
        </body>
      </html> >>)

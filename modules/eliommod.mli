@@ -91,6 +91,7 @@ val add_service :
           string list ->
             page_table_key *
               (int * int ref option *
+                 (float * float ref) option *
                  (server_params -> result_to_send Lwt.t)) ->
                         unit
 
@@ -100,6 +101,7 @@ val add_naservice :
 	bool -> 
 	  (string option * string option) -> 
             (int ref option *
+               (float * float ref) option *
 	       (server_params -> result_to_send Lwt.t))
             -> unit
 

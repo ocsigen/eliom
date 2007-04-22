@@ -159,7 +159,8 @@ partialinstall:
 	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(PREFIX)/$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(EXAMPLES) $(PREFIX)/$(EXAMPLESINSTALLDIR)
-	$(INSTALL) -m 755 modules/ocsidbm modules/ocsidbm.opt $(PREFIX)/$(BINDIR)/
+	-$(INSTALL) -m 755 modules/ocsidbm $(PREFIX)/$(BINDIR)/
+	-$(INSTALL) -m 755 modules/ocsidbm.opt $(PREFIX)/$(BINDIR)/
 	-rm META
 
 

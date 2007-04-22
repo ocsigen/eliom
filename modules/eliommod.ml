@@ -197,9 +197,6 @@ let change_request_info ri charset =
 (* Each node contains either a list of nodes (case directory)
     or a table of "answers" (functions that will generate the page) *)
 
-(* table cookie -> session table *)
-let new_cookie_table () = Cookies.create 100
-
 let rec new_cookie table = 
   let c = Int64.to_string (Random.int64 Int64.max_int) in
   try
@@ -232,6 +229,8 @@ type page_table =
     (page_table_key * 
        ((int (* unique_id *) * 
            (int ref option (* max_use *) *
+              (float * float ref) option
+              (* timeout and expiration date for the service *) *
               (tables server_params1 -> result_to_send Lwt.t)
 	      * url_path)) list)) list
       (* Here, the url_path is the working directory.
@@ -245,6 +244,7 @@ and naservice_table =
     AVide 
   | ATable of 
       (int ref option (* max_use *) *
+         (float * float ref) option (* timeout and expiration date *) *
          (tables server_params1 -> result_to_send Lwt.t)
 	 * url_path)
         NAserv_Table.t
@@ -257,7 +257,10 @@ and direlt =
     Dir of dircontent ref
   | File of page_table ref
 
-and tables = dircontent ref * naservice_table ref
+and tables = dircontent ref * naservice_table ref *
+      (* Information for the GC: *)
+      bool ref (* true if dircontent contains services with timeout *) *
+      bool ref (* true if naservice_table contains services with timeout *)
 
 (* non persistent cookies 
       (persistent cookies are always called persistent_cookies in the code) *)
@@ -274,6 +277,9 @@ type cookiestable = (tables *
    - the timeout for the user (float option option) None -> see global config
      Some None -> no timeout
  *)
+(* table cookie -> session table *)
+let new_cookie_table () : cookiestable = Cookies.create 100
+
 
 
 type pages_tree = 
@@ -285,9 +291,12 @@ let empty_page_table () = []
 let empty_naservice_table () = AVide
 let empty_dircontent () = Vide
 let empty_tables () =
-  (ref (empty_dircontent ()), ref (empty_naservice_table ()))
+  (ref (empty_dircontent ()), 
+   ref (empty_naservice_table ()),
+   ref false,
+   ref false)
     
-let are_empty_tables (lr,atr) = 
+let are_empty_tables (lr,atr,_,_) = 
   (!lr = Vide && !atr = AVide)
 
 let new_pages_tree () =
@@ -360,7 +369,10 @@ let make_server_params dir tables str session_exp_info ri suffix si =
     suffix))
 
 
+type ('a, 'b) leftright = Left of 'a | Right of 'b
+
 let find_page_table 
+    now
     (t : page_table ref)
     tables
     str 
@@ -373,31 +385,41 @@ let find_page_table
   let (sp0, si, (_, tab, s, tim, u)) = 
     make_server_params [] tables str session_exp_info ri urlsuffix si in
   let rec aux = function
-      [] -> fail Eliom_Wrong_parameter
-    | (((_, (max_use, funct, working_dir)) as a)::l) as ll ->
-        catch 
-          (fun () ->
-            Messages.debug "- I'm trying a service";
-            funct (sp0, si, (working_dir, tab, s, tim, u)) >>=
-            (fun p -> 
-              Messages.debug "- Page found and generated successfully";
-              let newlist =
-                (match max_use with
-                  Some r -> 
-                    if !r = 1
-                    then l
-                    else (r := !r - 1; ll)
-                | _ -> ll)
-              in
-              Lwt.return ((p, 
-                           working_dir, 
-                           !(si.si_cookie),
-                           !(si.si_persistent_cookie)), 
-                          newlist)))
-          (function
-              Eliom_Wrong_parameter -> 
-                aux l >>= (fun (r, ll) -> Lwt.return (r, a::ll))
-            | e -> fail e)
+      [] -> Lwt.return ((Right Eliom_Wrong_parameter), [])
+    | (((_, (max_use, expdate, funct, working_dir)) as a)::l) as ll ->
+        match expdate with
+        | Some (_, e) when !e < now ->
+            (* Service expired. Removing it. *)
+            Messages.debug "Service expired. I'm removing it";
+            aux l >>= (fun (r, ll) -> Lwt.return (r, ll (* without a *)))
+        | _ ->
+            catch 
+              (fun () ->
+                Messages.debug "- I'm trying a service";
+                funct (sp0, si, (working_dir, tab, s, tim, u)) >>=
+                (fun p -> 
+                  Messages.debug "- Page found and generated successfully";
+                  (match expdate with
+                  | Some (timeout, e) -> e := timeout +. now
+                  | None -> ());
+                  let newlist =
+                    (match max_use with
+                    | Some r -> 
+                        if !r = 1
+                        then l
+                        else (r := !r - 1; ll)
+                    | _ -> ll)
+                  in
+                  Lwt.return ((Left 
+                                (p, 
+                                 working_dir, 
+                                 !(si.si_cookie),
+                                 !(si.si_persistent_cookie))), 
+                              newlist)))
+              (function
+                  Eliom_Wrong_parameter -> 
+                    aux l >>= (fun (r, ll) -> Lwt.return (r, a::ll))
+                | e -> Lwt.return ((Right e), a::ll))
   in 
   (catch 
      (fun () -> return (list_assoc_remove k !t))
@@ -407,7 +429,9 @@ let find_page_table
       (if newlist = []
       then t := newt
       else t := (k, newlist)::newt);
-      Lwt.return r))
+      match r with
+      | Left r -> Lwt.return r
+      | Right e -> fail e))
 
 
 
@@ -454,25 +478,39 @@ let remove_naservice_table at k =
   with _ -> at
 
 let add_naservice 
-    (_,naservicetableref) current_dir session name (max_use, naservice) =
+    (_,naservicetableref,_,containstimeouts) current_dir session name 
+    (max_use, expdate, naservice) =
   (if not session
   then
     try
       ignore (find_naservice_table !naservicetableref name);
       raise (Eliom_duplicate_registering "<non-attached coservice>")
     with Not_found -> ());
+
+  (match expdate with
+  | Some _ -> containstimeouts := true
+  | _ -> ());
+  
   naservicetableref :=
     add_naservice_table !naservicetableref
-      (name, (max_use, naservice, current_dir))
+      (name, (max_use, expdate, naservice, current_dir))
 
-let find_naservice (_,atr) name =
-  find_naservice_table !atr name
-
-let remove_naservice (_,atr) name =
+let remove_naservice (_,atr,_,_) name =
   atr := remove_naservice_table !atr name
 
-let add_service (dircontentref,_) current_dir session url_act
-    (page_table_key, (unique_id, max_use, action)) =
+let find_naservice now ((_,atr,_,_) as str) name =
+  let ((_, expdate, _, _) as p) = find_naservice_table !atr name in
+  match expdate with
+  | Some (_, e) when !e < now ->
+      (* Service expired. Removing it. *)
+      Messages.debug "Non attached service expired. I'm removing it";
+      remove_naservice str name;
+      raise Not_found
+  | _ -> p
+
+let add_service 
+    (dircontentref,_,containstimeouts,_) current_dir session url_act
+    (page_table_key, (unique_id, max_use, expdate, action)) =
 
   let aux search dircontentref a l =
     try 
@@ -521,8 +559,12 @@ let add_service (dircontentref,_) current_dir session url_act
              | a::l -> aux search_dircontentref a l *)
   in
 
+  (match expdate with
+  | Some _ -> containstimeouts := true
+  | _ -> ());
+
   let content = (page_table_key,
-                 (unique_id, (max_use, action, current_dir))) in
+                 (unique_id, (max_use, expdate, action, current_dir))) in
   (* let current_dircontentref = 
      search_dircontentref dircontentref current_dir) in *)
   let page_table_ref = 
@@ -533,7 +575,8 @@ let add_service (dircontentref,_) current_dir session url_act
 exception Exn1
 
 let find_service 
-    (dircontentref,_)
+    now
+    (dircontentref,_,_,_)
     (tables,
      session_table_ref, 
      session_exp_info,
@@ -569,6 +612,7 @@ let find_service
     with Not_found -> raise Ocsigen_404
   in
   find_page_table 
+    now
     page_table_ref
     tables
     session_table_ref
@@ -872,7 +916,7 @@ let execute
       let persistent_cookie_exp_date = ref None in
       let user_persistent_timeout_ref = ref user_persistent_timeout in
       generate_page
-        info tables sessiontablesref 
+        now info tables sessiontablesref 
         (user_timeout_optref, cookie_exp_date, 
          user_persistent_timeout_ref, persistent_cookie_exp_date) >>=
       (fun (result, working_dir, the_new_cookie, new_persistent_cookie) ->
@@ -965,7 +1009,7 @@ exception Eliom_retry_with of
      cookieslist (* cookies to set *)) 
 
 let get_page
-    (ri, si, cookies_to_set)
+    now (ri, si, cookies_to_set)
     ((global_tables, _, _) as tables)
     session_tables_ref
     session_exp_info
@@ -976,6 +1020,7 @@ let get_page
           ("-- I'm looking for "^(string_of_url_path ri.ri_path)^
            " in the session table:");
         (find_service
+           now
            !session_tables_ref
            (tables,
             session_tables_ref,
@@ -988,6 +1033,7 @@ let get_page
               (fun () -> 
                 Messages.debug "-- I'm searching in the global table:";
                 (find_service 
+                   now
                    global_tables
                    (tables,
                     session_tables_ref,
@@ -1041,14 +1087,14 @@ let get_page
 
 
 let make_naservice
-    (ri, si, cookies_to_set)
+    now (ri, si, cookies_to_set)
     ((global_tables, _, _) as tables) session_tables_ref session_exp_info =
   (try
     try
-      return (find_naservice !session_tables_ref si.si_nonatt_info)
+      return (find_naservice now !session_tables_ref si.si_nonatt_info)
     with
       Not_found -> return 
-          (find_naservice global_tables si.si_nonatt_info)
+          (find_naservice now global_tables si.si_nonatt_info)
   with
     Not_found ->
       (* It was an non-attached service.
@@ -1087,7 +1133,7 @@ let make_naservice
                     },
                      cookies_to_set (* no new cookie *))))
   ) >>=
-  (fun (max_use, naservice, working_dir) ->
+  (fun (max_use, expdate, naservice, working_dir) ->
     (naservice
        (make_server_params 
           working_dir
@@ -1098,15 +1144,20 @@ let make_naservice
           []
           si)) >>=
     (fun r -> 
-      Messages.debug "- Non attached page found and generated successfully";
+      Messages.debug
+        "- Non attached page found and generated successfully";
+      (match expdate with
+      | Some (timeout, e) -> e := timeout +. now
+      | None -> ());
       (match max_use with
         None -> ()
       | Some r -> 
           if !r = 1
           then remove_naservice !session_tables_ref si.si_nonatt_info
           else r := !r - 1);
-      return (r, working_dir, !(si.si_cookie), !(si.si_persistent_cookie))))
-    
+      return (r, working_dir, 
+              !(si.si_cookie), !(si.si_persistent_cookie))))
+
 
 let rec cookies_remove c = function
   | [] -> []
@@ -1359,8 +1410,83 @@ let gen page_tree charset ri =
 
 (*****************************************************************************)
 (* garbage collection of timeouted sessions *)
-(* This is a thread that will work every hour *)
-let session_gc (_, cookie_table, rem) =
+let rec gc_timeouted_services now t = 
+  let rec aux k direltr thr = 
+    thr >>=
+    (fun table ->
+      match !direltr with
+      | Dir r -> gc_timeouted_services now r >>= 
+          (fun () -> match !r with
+          | Vide -> return (String_Table.remove k table)
+          | Table t -> return table)
+      | File ptr ->
+          List.fold_right
+            (fun (ptk, l) foll -> 
+              foll >>=
+              (fun foll ->
+                let newl =
+                  List.fold_right
+                    (fun ((i, (_, expdate, _, _)) as a) foll -> 
+                      match expdate with
+                      | Some (_, e) when !e < now -> foll
+                      | _ -> a::foll
+                    )
+                    l
+                    []
+                in
+                Lwt_unix.yield () >>=
+                (fun () ->
+                  match newl with
+                  | [] -> return foll
+                  | _ -> return ((ptk, newl)::foll))
+              )
+            )
+            !ptr
+            (return []) >>=
+          (function
+            | [] -> return (String_Table.remove k table)
+            | r -> ptr := r; return table)
+    )
+  in
+  match !t with
+  | Vide -> return ()
+  | Table r -> (String_Table.fold aux r (return r)) >>=
+      (fun table -> 
+        if String_Table.is_empty table
+        then begin t := Vide; return () end
+        else begin t := Table table; return () end)
+
+let gc_timeouted_naservices now tr = 
+  match !tr with
+  | AVide -> return ()
+  | ATable t -> 
+      NAserv_Table.fold
+        (fun k (_, expdate,_,_) thr -> 
+          thr >>=
+          (fun table -> 
+            Lwt_unix.yield () >>=
+            (fun () ->
+              match expdate with
+              | Some (_, e) when !e < now -> 
+                  return (NAserv_Table.remove k table)
+              | _ -> return table)
+          ))
+        t
+        (return t) >>=
+      (fun t -> 
+        if NAserv_Table.is_empty t
+        then tr := AVide
+        else tr := ATable t; 
+        return ())
+
+        
+
+(* This is a thread that will work for example every hour *)
+let session_gc ((servicetable,
+                 naservicetable, 
+                 contains_services_with_timeout, 
+                 contains_naservices_with_timeout), 
+                cookie_table, rem) =
   match get_sessiongcfrequency () with
     None -> () (* No garbage collection *)
   | Some t ->
@@ -1369,20 +1495,48 @@ let session_gc (_, cookie_table, rem) =
         (fun () ->
           let now = Unix.time () in
           Messages.debug "GC of sessions";
-          Cookies.fold
-            (fun k (_, _, exp, _) thr -> 
-              thr >>=
-              (fun () ->
-                (match exp with
-                | Some exp when exp < now -> 
-                    Cookies.remove cookie_table k;
-                    !rem k
-                | _ -> ());
-                Lwt_unix.yield ()
+          (if !contains_services_with_timeout
+          then gc_timeouted_services now servicetable
+          else return ()) >>=
+          (fun () -> if !contains_naservices_with_timeout
+          then gc_timeouted_naservices now naservicetable
+          else return ()) >>=
+          (fun () ->
+            Cookies.fold
+              (fun k (((servicetable,
+                       naservicetable, 
+                       contains_services_with_timeout, 
+                       contains_naservices_with_timeout) as tables), 
+                      _, exp, _) thr -> 
+                         thr >>=
+                         (fun () ->
+                           (match exp with
+                           | Some exp when exp < now -> 
+                               Cookies.remove cookie_table k;
+                               !rem k;
+                               return ()
+                           | _ -> 
+                               (if !contains_services_with_timeout
+                               then gc_timeouted_services now servicetable
+                               else return ()) >>=
+                               (fun () -> if !contains_naservices_with_timeout
+                               then gc_timeouted_naservices now naservicetable
+                               else return ()) >>=
+                               (fun () ->
+                                 if are_empty_tables tables
+                                 then begin
+                                   Cookies.remove cookie_table k;
+                                   !rem k;
+                                   return ()
+                                 end
+                                 else return ()
+                               )
+                           ) >>=
+                           Lwt_unix.yield
+                         )
               )
-            )
-            cookie_table
-            (return ()))
+              cookie_table
+              (return ())))
           >>=
         f
       in ignore (f ())

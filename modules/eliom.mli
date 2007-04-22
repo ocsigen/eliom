@@ -344,6 +344,7 @@ val new_external_service :
 		
 val new_coservice :
     ?max_use:int ->
+    ?timeout:float ->
     fallback: 
     (unit, unit, [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
      [`WithoutSuffix] as 'tipo,
@@ -359,6 +360,7 @@ val new_coservice :
 
 val new_coservice' :
     ?max_use:int ->
+    ?timeout:float ->
     get_params: 
     ('get,[`WithoutSuffix],'gn) params_type ->
       unit ->
@@ -387,6 +389,7 @@ val new_post_service :
 	  
 val new_post_coservice :
     ?max_use:int ->
+    ?timeout:float ->
     fallback: ('get, unit, [ `Attached of 
       [`Internal of [<`Service | `Coservice] * [`Get]] a_s ],
                [< suff ] as 'tipo,
@@ -401,6 +404,7 @@ val new_post_coservice :
 
 val new_post_coservice' :
     ?max_use:int ->
+    ?timeout:float ->
     post_params: ('post,[`WithoutSuffix],'pn) params_type ->
       unit ->
         (unit, 'post, 
@@ -411,6 +415,7 @@ val new_post_coservice' :
 (*
 val new_get_post_coservice' :
     ?max_use:int ->
+    ?timeout:float ->
    fallback: ('get, unit, [`Nonattached of [`Get] na_s ],
    [< suff ] as 'tipo,
    'gn, unit param_name, [< `Registrable ]) service ->
@@ -645,6 +650,8 @@ module type ELIOMFORMSIG =
 module type ELIOMREGSIG1 =
   sig
 
+
+
     type page
 
     val send : 
@@ -706,6 +713,7 @@ module type ELIOMREGSIG1 =
                       
     val register_new_coservice :
       ?max_use:int ->
+        ?timeout:float ->
         fallback:(unit, unit, 
                   [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                    [ `WithoutSuffix ] as 'tipo, 
@@ -726,6 +734,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_coservice' :
       ?max_use:int ->
+        ?timeout:float ->
         get_params: 
         ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
           ?error_handler:(server_params -> 
@@ -740,6 +749,7 @@ module type ELIOMREGSIG1 =
     val register_new_coservice_for_session :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:(unit, unit, 
                     [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                     [ `WithoutSuffix ] as 'tipo, 
@@ -761,6 +771,7 @@ module type ELIOMREGSIG1 =
     val register_new_coservice_for_session' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           get_params: 
             ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
               ?error_handler:(server_params -> (string * exn) list -> 
@@ -791,6 +802,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice :
       ?max_use:int ->
+        ?timeout:float ->
         fallback:('get, unit , 
                   [ `Attached of 
                     [ `Internal of [< `Service | `Coservice ] * [`Get] ] a_s ],
@@ -810,6 +822,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_post_coservice' :
       ?max_use:int ->
+        ?timeout:float ->
         post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
           ?error_handler:(server_params -> (string * exn) list -> 
             page Lwt.t) ->
@@ -823,6 +836,7 @@ module type ELIOMREGSIG1 =
 (*
     val register_new_get_post_coservice' :
       ?max_use:int ->
+        ?timeout:float ->
         fallback:('get, unit , 
                   [ `Nonattached of [`Get] na_s ],
                    [< suff ] as 'tipo, 
@@ -841,6 +855,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_coservice_for_session :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:('get, unit, 
                     [< `Attached of [< `Internal of
                       [< `Service | `Coservice ] * [`Get] ] a_s ],
@@ -861,6 +876,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_coservice_for_session' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> 
               (string * exn) list -> page Lwt.t) ->
@@ -875,6 +891,7 @@ module type ELIOMREGSIG1 =
     val register_new_get_post_coservice_for_session' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
                     [< suff ] as 'tipo, 
                     'gn, unit param_name, [< `Registrable ])
@@ -889,7 +906,6 @@ module type ELIOMREGSIG1 =
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
 
-(**/**)
     val register_public :
         server_params ->
         coservice:('get, 'post,
@@ -904,14 +920,15 @@ module type ELIOMREGSIG1 =
 (** Register a coservice in the global table after initialization.
     [register] can be used only during the initalization of the module.
     After this phase, use that function, that takes [sp] as parameter.
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
  *)
 
     val register_new_public_coservice :
         server_params ->
           ?max_use:int ->
+          ?timeout:float ->
             fallback:(unit, unit, 
                       [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                       [ `WithoutSuffix ] as 'tipo, 
@@ -929,15 +946,16 @@ module type ELIOMREGSIG1 =
                            [> `Registrable ])
                             service
 (** Same as [new_coservice] followed by [register_public] 
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 
     val register_new_public_coservice' :
         server_params ->
           ?max_use:int ->
-            get_params: 
+          ?timeout:float ->
+          get_params: 
               ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
                 ?error_handler:(server_params -> 
                   (string * exn) list -> page Lwt.t) ->
@@ -947,14 +965,15 @@ module type ELIOMREGSIG1 =
                        'tipo, 'gn, unit param_name, [> `Registrable ])
                         service
 (** Same as [new_coservice'] followed by [register_public] 
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 
     val register_new_post_public_coservice :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:('get, unit, 
                     [< `Attached of [< `Internal of
                       [< `Service | `Coservice ] * [`Get] ] a_s ],
@@ -971,14 +990,15 @@ module type ELIOMREGSIG1 =
                        'tipo, 'gn, 'pn, [> `Registrable ])
                         service
 (** Same as [new_post_coservice] followed by [register_for_session] 
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 
     val register_new_post_public_coservice' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> 
               (string * exn) list -> page Lwt.t) ->
@@ -988,15 +1008,16 @@ module type ELIOMREGSIG1 =
                    [> `Registrable ])
                     service
 (** Same as [new_post_coservice'] followed by [register_for_session]
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 
 (*
     val register_new_get_post_public_coservice' :
         server_params ->
         ?max_use:int ->
+        ?timeout:float ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
                     [< suff ] as 'tipo, 
                     'gn, unit param_name, [< `Registrable ])
@@ -1009,14 +1030,14 @@ module type ELIOMREGSIG1 =
                        'tipo, 'gn, 'pn, [> `Registrable ])
                         service
 (* * Same as [new_get_post_coservice] followed by [register_for_session] 
-    Warning: The use of that function is not encouraged, as such
-    services will be available only until the end of the server process
-    and there is no timeout for such coservices!
+    Warning: The use of that function is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
 *)
 *)
+
 
   end
-
 
 
 module type ELIOMREGSIG =
