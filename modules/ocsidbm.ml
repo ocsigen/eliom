@@ -27,29 +27,6 @@ open Lwt
 open Messages
 
 let directory = Sys.argv.(1)
-let user = Sys.argv.(2)
-let group = Sys.argv.(3)
-
-let _ =
-  (* I change the user for the process *)
-  (try
-    Unix.setgid (Unix.getgrnam group).Unix.gr_gid;
-    Unix.setuid (Unix.getpwnam user).Unix.pw_uid;
-  with e -> prerr_endline ("Ocsidbm error: Wrong user or group"); raise e)
-
-let _ =  
-  try
-    if (Array.length Sys.argv) > 4
-    then 
-      let spid = (string_of_int (Unix.getpid ()))^"\n" in
-      let len = String.length spid in
-      let f =
-        Unix.openfile
-          Sys.argv.(4)
-          [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640 in
-      ignore (Unix.write f spid 0 len);
-      Unix.close f
-  with e -> prerr_endline ("Ocsidbm error: "^(Printexc.to_string e)); raise e
 
 exception Ocsidbm_error
 

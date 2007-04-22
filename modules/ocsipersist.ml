@@ -78,13 +78,7 @@ let try_connect sname =
         (fun () -> return (Lwt_unix.Plain socket))))
     (fun _ ->
       Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
-      let param = 
-        (match Ocsiconfig.get_pidfile () with
-          None -> [|"ocsidbm"; directory; 
-                    Ocsiconfig.get_user (); Ocsiconfig.get_group ()|]
-        | Some p -> [|"ocsidbm"; directory; 
-                      Ocsiconfig.get_user (); Ocsiconfig.get_group (); p|])
-      in
+      let param = [|"ocsidbm"; directory|] in
       let fils () = 
         Unix.execv ocsidbm param in
       let pid = Unix.fork () in
