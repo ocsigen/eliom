@@ -10,6 +10,7 @@ findlib (ocamlfind)
 ocamlnet >= 1.1.2 (actually only module netstring, netsys, pcre) 
 (ocamlnet needs pcre-ocaml)
 ocamlssl >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)
+the dbm database (for example gdbm)
 
 If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer, 
 you can use GODI to install them automatically.

@@ -80,8 +80,10 @@ let try_connect sname =
       Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
       let param = 
         (match Ocsiconfig.get_pidfile () with
-          None -> [|"ocsidbm"; directory|]
-        | Some p -> [|"ocsidbm"; directory; p|])
+          None -> [|"ocsidbm"; directory; 
+                    Ocsiconfig.get_user (); Ocsiconfig.get_group ()|]
+        | Some p -> [|"ocsidbm"; directory; 
+                      Ocsiconfig.get_user (); Ocsiconfig.get_group (); p|])
       in
       let fils () = 
         Unix.execv ocsidbm param in
@@ -106,12 +108,13 @@ let try_connect sname =
             (fun () -> return (Lwt_unix.Plain socket)))))
     
 let indescr =
-  catch
-    (fun () -> try_connect (directory^"/"^socketname))
-    (fun e -> Messages.errlog ("Cannot connect to Ocsidbm. Will continue without Persistent session support. Error message is: "^(Printexc.to_string e));
-      fail e)
+  (catch
+     (fun () -> try_connect (directory^"/"^socketname))
+     (fun e -> Messages.errlog ("Cannot connect to Ocsidbm. Will continue without Persistent session support. Error message is: "^(Printexc.to_string e));
+       fail e))
 
 let inch = indescr >>= (fun r -> return (Lwt_unix.in_channel_of_descr r))
+
 let outch = indescr >>= (fun r -> return (Lwt_unix.out_channel_of_descr r))
 
 let send =

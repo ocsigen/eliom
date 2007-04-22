@@ -1016,6 +1016,9 @@ let _ = try
         Unix.setgid (Unix.getgrnam group).Unix.gr_gid;
         Unix.setuid (Unix.getpwnam user).Unix.pw_uid;
       with e -> errlog ("Error: Wrong user or group"); raise e);
+
+      set_user user;
+      set_group group;
             
       (* Je suis fou :
          let rec f () = 
@@ -1100,7 +1103,7 @@ let _ = try
   let rec launch = function
       [] -> () 
     | h::t -> 
-        let user_info,sslinfo = extract_info h in
+        let user_info, sslinfo = extract_info h in
         set_passwd_if_needed sslinfo;
         let pid = Unix.fork () in
         if pid = 0

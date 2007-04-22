@@ -52,7 +52,8 @@ let maxuploadfilesize = ref (Some (Int64.of_int 2000000))
 let defaultcharset = ref (None : string option)
 let datadir = ref "_DATADIR_"
 let bindir = ref "_BINDIR_"
-
+let user = ref !default_user
+let group = ref !default_group
 
 let set_uploaddir u = uploaddir := u
 let set_logdir s = logdir := s
@@ -79,6 +80,8 @@ let set_maxrequestbodysize i = maxrequestbodysize := i
 let set_default_charset o = defaultcharset := o
 let set_datadir o = datadir := o
 let set_bindir o = bindir := o
+let set_user o = user := o
+let set_group o = group := o
 
 let get_uploaddir () = !uploaddir
 let get_logdir () = !logdir
@@ -105,6 +108,8 @@ let get_maxrequestbodysize () = !maxrequestbodysize
 let get_default_charset () = !defaultcharset
 let get_datadir () = !datadir
 let get_bindir () = !bindir
+let get_user () = !user
+let get_group () = !group
 
 
 let display_version () =
