@@ -109,7 +109,10 @@ let rec parser_config =
         [] -> raise(Config_file_error ("<server> tag expected"))
       | _ -> n)
     | (Element ("server", [], nouveau))::ll ->
-        parse_servers (n@[nouveau]) ll
+        (match ll with
+        | [] -> ()
+        | _ -> Messages.warning "At most one <server> tag possible in config file. Ignoring trailing data.");
+        parse_servers (n@[nouveau]) [] (* ll *)  (*  Multiple server not supported any more *)
         (* nouveau at the end *)
     | _ -> raise (Config_file_error ("syntax error inside <ocsigen>"))
   in function 
@@ -225,6 +228,9 @@ let parse_server c =
           parse_server_aux ll
       | (Element ("maxuploadfilesize", [], p))::ll -> 
           set_maxuploadfilesize (parse_size (parse_string p));
+          parse_server_aux ll
+      | (Element ("commandpipe", [], p))::ll -> 
+          set_command_pipe (parse_string p);
           parse_server_aux ll
       | (Element ("dynlink", atts,l))::ll -> 
 	  let modu = match atts with

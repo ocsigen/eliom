@@ -172,13 +172,15 @@ let find_charset (Charset_tree charset_tree) path =
    all other exceptions
  *)
 let register_extension, create_virthost, get_beg_init, get_end_init, 
-  get_init_exn_handler =
+  get_init_exn_handler, reinitialization =
+  let defaultparseconfig path xml =
+    raise (Error_in_config_file "No extension loaded")
+  in
   let fun_create_virthost =
     ref (fun hostpattern -> 
       let charset_tree = ref (new_charset_tree ()) in
       ((fun cs ri -> return (Ext_not_found,[])), 
-       (fun path xml -> 
-         raise (Error_in_config_file "No extension loaded")),
+       defaultparseconfig,
        charset_tree))
   in
   let fun_beg = ref (fun () -> ()) in
@@ -219,7 +221,17 @@ let register_extension, create_virthost, get_beg_init, get_end_init,
         charset_tree := add_charset charset path !charset_tree))),
    (fun () -> !fun_beg),
    (fun () -> !fun_end),
-   (fun () -> !fun_exn)
+   (fun () -> !fun_exn),
+   (fun () -> (* reinitialization *)
+     (* If we want to reload dynamically the cmo,
+        we reinit the function for parsing config *)
+     let old = !fun_create_virthost in
+     fun_create_virthost := 
+       (fun hostpattern -> 
+         let (g,p,c) = old hostpattern in
+         (g, 
+          defaultparseconfig,
+          c)))
   )
     
 
@@ -242,6 +254,7 @@ let start_initialisation, during_initialisation, end_initialisation =
   let init = ref true in
    ((fun () -> 
      init := true;
+     reinitialization ();
      get_beg_init () ()
     ),
     (fun () -> !init), 

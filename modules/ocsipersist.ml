@@ -79,8 +79,7 @@ let try_connect sname =
     (fun _ ->
       Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
       let param = [|"ocsidbm"; directory|] in
-      let fils () = 
-        Unix.execv ocsidbm param in
+      let fils () = Unix.execv ocsidbm param in
       let pid = Unix.fork () in
       if pid = 0
       then begin (* double fork *)
@@ -92,8 +91,7 @@ let try_connect sname =
         else exit 0
       end
       else 
-        Lwt_unix.waitpid [] pid >>= 
-        (fun _ -> Lwt_unix.sleep 0.5) >>= 
+      Lwt_unix.sleep 1.1 >>= 
         (fun () -> 
           Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
           (fun socket ->
@@ -104,7 +102,10 @@ let try_connect sname =
 let indescr =
   (catch
      (fun () -> try_connect (directory^"/"^socketname))
-     (fun e -> Messages.errlog ("Cannot connect to Ocsidbm. Will continue without Persistent session support. Error message is: "^(Printexc.to_string e));
+     (fun e -> Messages.errlog ("Cannot connect to Ocsidbm. Will continue without Persistent session support. Error message is: "^
+                                (match e with
+                                | Unix.Unix_error (a,b,c) -> (Unix.error_message a)^" in "^b^"("^c^")"
+                                | _ -> Printexc.to_string e));
        fail e))
 
 let inch = indescr >>= (fun r -> return (Lwt_unix.in_channel_of_descr r))

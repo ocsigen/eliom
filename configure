@@ -52,6 +52,7 @@ set_defaults () {
     libdir=""
     mandir=""
     docdir=""
+    commandpipe="/var/run/ocsigen_command"
     name="ocsigen"
     root="/"
     ocsigen_user="www-data"
@@ -145,6 +146,7 @@ print_options () {
             "") docdir2="<prefix>/share/doc";;
             *) docdir2=$docdir;;
         esac
+
 	echo "    --root $root"
 	echo "    --prefix $prefix"
 	echo "    --ocsigen-user $ocsigen_user"
@@ -154,6 +156,7 @@ print_options () {
 	echo "    --mandir $mandir2"
 	echo "    --docdir $docdir2"
 	echo "    --name $name"
+	echo "    --commandpipe $commandpipe"
 }
 
 
@@ -206,6 +209,9 @@ _EOF_
 
 --ocsigen-group name
 	The name of the ocsigen group
+
+--commandpipe name
+        The name of the named pipe used to command the server
 
 Defaults are:
 
@@ -307,6 +313,11 @@ while [ "$#" -gt 0 ]; do
 			;;
 		--ocsigen-group)
 			ocsigen_group="$2"
+			shift
+			shift
+			;;
+		--commandpipe)
+			commandpipe="$2"
 			shift
 			shift
 			;;
@@ -490,7 +501,8 @@ DOCDIR = $docdir/\$(OCSIGENNAME)
 # Do you want debugging information? (-g -dtypes)
 DEBUG=$enable_debug
 
-
+# The name of the named pipe used to command the server
+COMMANDPIPE=$commandpipe
 
 
 

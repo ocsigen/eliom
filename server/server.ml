@@ -959,18 +959,71 @@ let listen ssl port wait_end_init =
        )
    ))
 
+(* fatal errors messages *)
+let errmsg = function
+  | Dynlink.Error e -> 
+      (("Fatal - Dynamic linking error: "^(Dynlink.error_message e)),
+      6)
+  | Unix.Unix_error (e,s1,s2) ->
+      (("Fatal - "^(Unix.error_message e)^" in: "^s1^" "^s2),
+      9)
+  | Ssl.Private_key_error ->
+      (("Fatal - bad password"),
+      10)
+  | Stdpp.Exc_located (fl, exn) ->
+      (("Fatal - Error in configuration file at position : "^
+              (print_location fl)^". "^(Printexc.to_string exn)),
+      51)
+  | Config_file_exn exn ->
+      (("Fatal - Error in configuration file: "^(Printexc.to_string exn)),
+      50)
+  | exn -> 
+      try
+        ((Extensions.get_init_exn_handler () exn),
+        20)
+      with
+        exn ->
+          (("Fatal - Uncaught exception: "^(Printexc.to_string exn)),
+          100)
+            
+            
+            
 
+(* reloading the cmo *)
+let reload _ =
+
+  (* That function cannot be interrupted *)
+  warning "Reloading config file";
+
+  (try
+    match parse_config () with
+    | [] -> ()
+    | s::_ ->
+        begin
+          Extensions.start_initialisation ();
+          
+          parse_server s;
+          
+          Extensions.end_initialisation ();
+        end
+  with e -> errlog (fst (errmsg e)));
+  
+  warning "Config file reloaded"
+    
 
 
 let _ = try
 
   let config_servers = 
 
-    parse_config ();
+    parse_config ()
 
   in
 
   let number_of_servers = List.length config_servers in
+
+  if number_of_servers > 1
+  then Messages.warning "Multiple servers not supported anymore";
 
   let ask_for_passwd sslports _ =
     print_string "Please enter the password for the HTTPS server listening \
@@ -1062,7 +1115,20 @@ let _ = try
                 (Ocsiconfig.get_maxthreads ()));
       
       Extensions.end_initialisation ();
-      
+
+      (* A pipe to communicate with the server *)
+      let commandpipe = get_command_pipe () in
+      (try
+        ignore (Unix.stat commandpipe)
+      with _ -> Unix.mkfifo commandpipe 0o660);
+      let pipe = Lwt_unix.in_channel_of_descr 
+          (Lwt_unix.Plain (Unix.openfile commandpipe 
+                             [Unix.O_RDWR;Unix.O_NONBLOCK;Unix.O_APPEND] 0o660)) in
+      let rec f () = 
+        Lwt_unix.input_line pipe >>=
+        (fun _ -> reload (); f ())
+      in ignore (f ());
+
       wakeup wait_end_init ();
       
       warning "Ocsigen has been launched (initialisations ok)";
@@ -1102,7 +1168,7 @@ let _ = try
 
   let rec launch = function
       [] -> () 
-    | h::t -> 
+    | [h] -> 
         let user_info, sslinfo = extract_info h in
         set_passwd_if_needed sslinfo;
         let pid = Unix.fork () in
@@ -1111,8 +1177,8 @@ let _ = try
         else begin
           Messages.console ("Process "^(string_of_int pid)^" detached");
           write_pid pid;
-          launch t
         end
+    | _ -> () (* Multiple servers not supported any more *)
 
   in
 
@@ -1126,30 +1192,7 @@ let _ = try
      run user_info sslinfo cf)
   else launch config_servers
 
-with
-| Dynlink.Error e -> 
-    errlog ("Fatal - Dynamic linking error: "^(Dynlink.error_message e));
-    exit 6
-| Unix.Unix_error (e,s1,s2) ->
-    errlog ("Fatal - "^(Unix.error_message e)^" in: "^s1^" "^s2);
-    exit 9
-| Ssl.Private_key_error ->
-    errlog ("Fatal - bad password");
-    exit 10
-| Stdpp.Exc_located (fl, exn) ->
-    errlog ("Fatal - Error in configuration file at position : "^
-            (print_location fl)^". "^(Printexc.to_string exn));
-    exit 51
-| Config_file_exn exn ->
-    errlog ("Fatal - Error in configuration file: "^(Printexc.to_string exn));
-    exit 50
-| exn -> 
-    try
-      errlog (Extensions.get_init_exn_handler () exn);
-      exit 20
-    with
-      exn ->
-        errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn));
-        exit 100
-
-
+with e ->
+  let msg, errno = errmsg e in
+  errlog msg;
+  exit errno

@@ -51,6 +51,7 @@ ocsiconfig.ml: ocsiconfig.ml.IN
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
 	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
+	| sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
 	| sed s°_CONFIGDIR_°$(CONFIGDIR)° \
 	> ocsiconfig.ml
 

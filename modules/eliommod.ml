@@ -306,20 +306,23 @@ let new_pages_tree () =
 
 (*****************************************************************************)
 (* The current registration directory *)
-let absolute_change_hostdir, get_current_hostdir, end_current_hostdir =
+let absolute_change_hostdir, get_current_hostdir, 
+  begin_current_host_dir, end_current_hostdir =
   let current_dir : ((unit -> pages_tree) * url_path) ref = 
     ref ((fun () ->
       raise (Ocsigen_Internal_Error "No pages tree available")), []) 
   in
-  let f1 = ref (fun (pagetree, dir) -> 
-    current_dir := (fun () -> pagetree), dir) in
-  let f2 = ref (fun () -> let (cd1, cd2) = !current_dir in (cd1 (), cd2)) in
+  let f1' (pagetree, dir) = current_dir := ((fun () -> pagetree), dir) in
+  let f2' () = let (cd1, cd2) = !current_dir in (cd1 (), cd2) in
+  let f1 = ref f1' in
+  let f2 = ref f2' in
   let exn1 _ = 
     raise Eliom_function_forbidden_outside_site_loading in
   let exn2 () = 
     raise Eliom_function_forbidden_outside_site_loading in
   ((fun hostdir -> !f1 hostdir),
    (fun () -> !f2 ()),
+   (fun () -> f1 := f1'; f2 := f2'),
    (fun () -> f1 := exn1; f2 := exn2))
 (* Warning: these functions are used only during the initialisation
    phase, which is not threaded ... That's why it works, but ...
@@ -342,12 +345,12 @@ let add_unregistered, remove_unregistered, verify_all_registered =
 let during_eliom_module_loading, 
   begin_load_eliom_module, 
   end_load_eliom_module =
-  let during_eliom_module_loading = ref false in
-  ((fun () -> !during_eliom_module_loading),
-   (fun () -> during_eliom_module_loading := true),
-   (fun () -> during_eliom_module_loading := false))
+  let during_eliom_module_loading_ = ref false in
+  ((fun () -> !during_eliom_module_loading_),
+   (fun () -> during_eliom_module_loading_ := true),
+   (fun () -> during_eliom_module_loading_ := false))
 
-let global_register_allowed () = 
+let global_register_allowed () =
   if (during_initialisation ()) && (during_eliom_module_loading ())
   then Some get_current_hostdir
   else None
@@ -1616,7 +1619,7 @@ let parse_config page_tree path =
 (*****************************************************************************)
 (** Function to be called at the beginning of the initialisation phase *)
 let start_init () =
-  ()
+  begin_current_host_dir ()
 
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =

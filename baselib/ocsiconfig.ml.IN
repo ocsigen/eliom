@@ -54,6 +54,8 @@ let datadir = ref "_DATADIR_"
 let bindir = ref "_BINDIR_"
 let user = ref !default_user
 let group = ref !default_group
+let command_pipe = ref "_COMMANDPIPE_"
+
 
 let set_uploaddir u = uploaddir := u
 let set_logdir s = logdir := s
@@ -82,6 +84,7 @@ let set_datadir o = datadir := o
 let set_bindir o = bindir := o
 let set_user o = user := o
 let set_group o = group := o
+let set_command_pipe s = command_pipe := s
 
 let get_uploaddir () = !uploaddir
 let get_logdir () = !logdir
@@ -110,6 +113,7 @@ let get_datadir () = !datadir
 let get_bindir () = !bindir
 let get_user () = !user
 let get_group () = !group
+let get_command_pipe () = !command_pipe
 
 
 let display_version () =

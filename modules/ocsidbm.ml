@@ -171,12 +171,15 @@ let finish _ =
         if !nb_clients = 0 
         then the_end 0;
         return ()
-      
+
+
+let b = ref false
 
 let rec loop socket =
   Lwt_unix.accept socket >>=
   (fun (indescr, _) ->
     ignore (
+    b := true;
     nb_clients := !nb_clients + 1;
     let inch = Lwt_unix.in_channel_of_descr indescr in
     let outch = Lwt_unix.out_channel_of_descr indescr in
@@ -200,6 +203,10 @@ let _ = Lwt_unix.run
        Unix.dup2 devnull Unix.stderr;
        Unix.close devnull;
        Unix.close Unix.stdin;
+       ignore (Lwt_unix.sleep 4.1 >>=
+         (fun () -> if not !b then close_all 0 (); return ()));
+       (* If nothing happened during 5 seconds, I quit *)
+
        loop (Lwt_unix.Plain socket)))
 
 

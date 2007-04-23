@@ -1893,7 +1893,7 @@ in f ();
 wakeup w "HELLO");
       </pre>
     </div>
-    <h2>Persistence of session</h2>
+    <h2>Persistence of sessions</h2>
     <div class="twocol1">
       <p>Tables of sessions (for data or services) are kept in memory,
         and thus will disappear if you close the server process.
@@ -1976,7 +1976,7 @@ let persist = new_service ["persist"] unit ()
 
 let persist_with_post_params = new_post_service persist (string "login") ()
 
-let close2 = register_new_service
+let close3 = register_new_service
     ~url:["disconnect3"]
     ~get_params:unit
     (fun sp () () -> 
@@ -2000,7 +2000,7 @@ let _ = register
                 [match sessdat with
                 | Some name ->
                     p [pcdata ("Hello "^name); br ();
-                       a close2 sp [pcdata "close session"] ()
+                       a close3 sp [pcdata "close session"] ()
                      ]
                 | None -> 
                     post_form persist_with_post_params sp
@@ -2026,7 +2026,7 @@ let _ = register
                     ]])))))
 (*html*
       <p>
-      See this example $a Tutoeliom.close2 sp <:xmllist< here >> ()$.
+      See this example $a Tutoeliom.persist sp <:xmllist< here >> ()$.
       </p>
     </div>
     <h2>Static parts</h2>

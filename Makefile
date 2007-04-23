@@ -171,6 +171,7 @@ fullinstall: doc partialinstall
 	mkdir -p $(PREFIX)/$(STATICPAGESDIR)/tutorial
 	mkdir -p $(PREFIX)/$(DATADIR)
 	mkdir -p $(PREFIX)/$(DATADIR)/nurpawiki
+	mkfifo $(PREFIX)/$(COMMANDPIPE)
 	-mv $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
 	cat files/ocsigen.conf \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
@@ -181,6 +182,7 @@ fullinstall: doc partialinstall
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
 	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
+	| sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
 	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf
@@ -207,6 +209,7 @@ fullinstall: doc partialinstall
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(DATADIR)
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(COMMANDPIPE)
 	chmod a+rx $(PREFIX)/$(DOCDIR)
 	chmod a+r $(PREFIX)/$(DOCDIR)/*
 	[ -d /etc/logrotate.d ] && \
