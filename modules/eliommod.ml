@@ -71,6 +71,8 @@ type 'a server_params1 =
           *) *
          url_path (* suffix *))
       
+type anon_params_type = int
+
 (********)
 
 exception Eliom_Wrong_parameter
@@ -79,7 +81,7 @@ exception Eliom_Session_expired
 exception Eliom_Persistent_session_expired
 exception Eliom_Typing_Error of (string * exn) list
 
-exception Eliom_duplicate_registering of string
+exception Eliom_duplicate_registration of string
 exception Eliom_there_are_unregistered_services of string
 exception Eliom_function_forbidden_outside_site_loading
 exception Eliom_page_erasing of string
@@ -189,9 +191,6 @@ let change_request_info ri charset =
 
 
 
-
-
-
 (*****************************************************************************)
 (* The table of dynamic pages for each virtual server, and naservices        *)
 (* Each node contains either a list of nodes (case directory)
@@ -227,18 +226,20 @@ end)
 
 type page_table = 
     (page_table_key * 
-       ((int (* unique_id *) * 
-           (int ref option (* max_use *) *
-              (float * float ref) option
-              (* timeout and expiration date for the service *) *
-              (tables server_params1 -> result_to_send Lwt.t)
-	      * url_path)) list)) list
-      (* Here, the url_path is the working directory.
-         That is, the directory in which we are when we register
-         dynamically the pages.
-         Each time we load a page, we change to this directory
-         (in case the page registers new pages).
-       *)
+       (((anon_params_type * anon_params_type) (* unique_id *) * 
+           (int * (* generation (= number of reloads of sites
+                     that after which that service has been created) *)
+              (int ref option (* max_use *) *
+                 (float * float ref) option
+                 (* timeout and expiration date for the service *) *
+                 (tables server_params1 -> result_to_send Lwt.t)
+	         * url_path))) list)) list
+       (* Here, the url_path is the working directory.
+          That is, the directory in which we are when we register
+          dynamically the pages.
+          Each time we load a page, we change to this directory
+          (in case the page registers new pages).
+        *)
 
 and naservice_table = 
     AVide 
@@ -336,7 +337,7 @@ let add_unregistered, remove_unregistered, verify_all_registered =
    (fun a -> l := list_remove a !l),
    (fun () -> 
      match !l with [] -> () 
-     | (a,_)::_ -> 
+     | a::_ -> 
          raise (Eliom_there_are_unregistered_services 
                   (match a with
                     None -> "<Non-attached service>"
@@ -389,7 +390,7 @@ let find_page_table
     make_server_params [] tables str session_exp_info ri urlsuffix si in
   let rec aux = function
       [] -> Lwt.return ((Right Eliom_Wrong_parameter), [])
-    | (((_, (max_use, expdate, funct, working_dir)) as a)::l) as ll ->
+    | (((_, (_, (max_use, expdate, funct, working_dir))) as a)::l) as ll ->
         match expdate with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
@@ -439,18 +440,25 @@ let find_page_table
 
 
 
-let add_page_table session url_act t (key,((id, _) as v)) = 
-  (* Duplicate registering forbidden in global table *)
+let add_page_table duringsession url_act t (key,(id, va)) = 
+  (* Duplicate registration forbidden in global table *)
+  let generation = Extensions.get_numberofreloads () in
+  let v = (id, (generation, va)) in
   try
     let l,newt = list_assoc_remove key t in
     try
+      if key = {state = (None, None)}
+      then begin
 (********* Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
-      let _,oldl = list_assoc_remove id l in
-      if not session then
-        raise (Eliom_duplicate_registering (string_of_url_path url_act))
-      else (key,(oldl@[v]))::newt (* At the end! 
-                                     services are tried in creation order *)
-    with Not_found -> (key,(l@[v]))::newt
+        let (oldgen, n), oldl = list_assoc_remove id l in
+        if not duringsession && (generation = oldgen)
+        then
+          raise (Eliom_duplicate_registration (string_of_url_path url_act))
+        else (key, (v::oldl))::newt (* At the beginning! 
+                                      last created service is tried first *)
+      end
+      else (key,(l@[v]))::newt
+    with Not_found -> (key,(v::l))::newt
   with Not_found -> (key,[v])::t
 
 let add_dircontent dc (key,elt) =
@@ -487,7 +495,7 @@ let add_naservice
   then
     try
       ignore (find_naservice_table !naservicetableref name);
-      raise (Eliom_duplicate_registering "<non-attached coservice>")
+      raise (Eliom_duplicate_registration "<non-attached coservice>")
     with Not_found -> ());
 
   (match expdate with
@@ -512,8 +520,12 @@ let find_naservice now ((_,atr,_,_) as str) name =
   | _ -> p
 
 let add_service 
-    (dircontentref,_,containstimeouts,_) current_dir session url_act
-    (page_table_key, (unique_id, max_use, expdate, action)) =
+    (dircontentref,_,containstimeouts,_)
+    current_dir
+    duringsession
+    url_act
+    (page_table_key, 
+     ((unique_id1, unique_id2), max_use, expdate, action)) =
 
   let aux search dircontentref a l =
     try 
@@ -522,7 +534,7 @@ let add_service
         Dir dcr -> search dcr l
       | File ptr -> raise (Eliom_page_erasing 
                              ((string_of_url_path current_dir)^"/"^a))
-            (* Messages.warning ("Eliom page registering: Page "^
+            (* Messages.warning ("Eliom page registration: Page "^
                a^" has been replaced by a directory");
                let newdcr = ref (empty_dircontent ()) in
                (direltref := Dir newdcr;
@@ -542,7 +554,7 @@ let add_service
           let direltref = find_dircontent !dircontentref a in
           (match !direltref with
             Dir _ -> raise (Eliom_page_erasing a)
-                (* Messages.warning ("Eliom page registering: Directory "^
+                (* Messages.warning ("Eliom page registration: Directory "^
                    a^" has been replaced by a page");
                    let newpagetableref = ref (empty_page_table ()) in
                    (direltref := File newpagetableref;
@@ -567,12 +579,14 @@ let add_service
   | _ -> ());
 
   let content = (page_table_key,
-                 (unique_id, (max_use, expdate, action, current_dir))) in
+                 ((unique_id1, unique_id2), 
+                  (max_use, expdate, action, current_dir))) in
   (* let current_dircontentref = 
      search_dircontentref dircontentref current_dir) in *)
   let page_table_ref = 
     search_page_table_ref (*current_*) dircontentref url_act in
-  page_table_ref := add_page_table session url_act !page_table_ref content
+  page_table_ref := 
+    add_page_table duringsession url_act !page_table_ref content
 
       
 exception Exn1
@@ -1429,7 +1443,7 @@ let rec gc_timeouted_services now t =
               (fun foll ->
                 let newl =
                   List.fold_right
-                    (fun ((i, (_, expdate, _, _)) as a) foll -> 
+                    (fun ((i, (_, (_, expdate, _, _))) as a) foll -> 
                       match expdate with
                       | Some (_, e) when !e < now -> foll
                       | _ -> a::foll
@@ -1628,8 +1642,8 @@ let end_init () =
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
-  Eliom_duplicate_registering s -> 
-    ("Fatal - Eliom: Duplicate registering of url \""^s^
+  Eliom_duplicate_registration s -> 
+    ("Fatal - Eliom: Duplicate registration of url \""^s^
      "\". Please correct the module.")
 | Eliom_there_are_unregistered_services s ->
     ("Fatal - Eliom: Some public url have not been registered. \
@@ -1646,10 +1660,26 @@ let handle_init_exn = function
 
 
 (*****************************************************************************)
+(** table of page trees *)
+
+let page_tree_table = ref []
+
+let find k = List.assoc k !page_tree_table
+
+let add k a = page_tree_table := (k,a)::!page_tree_table
+
+(*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
     ((fun hostpattern -> 
-      let page_tree = new_pages_tree () in
+      let page_tree = 
+        try 
+          find hostpattern
+        with Not_found ->
+          let n = new_pages_tree () in
+          add hostpattern n;
+          n
+      in
       session_gc page_tree;
       (gen page_tree, 
        parse_config page_tree)),

@@ -400,7 +400,7 @@ let mytype = register_new_service
   (fun _ x () -> let v = string_of_mysum x in  return
     (html
        (head (title (pcdata "")) [])
-       (body [p [pcdata v]])))
+       (body [p [pcdata (v^" is valid. Now try with another value.")]])))
 (*html*
       <p>See $a Tutoeliom.mytype sp <:xmllist< mytype >> Tutoeliom.A$.</p>
       <div class="encadre">
@@ -409,6 +409,7 @@ let mytype = register_new_service
         using the optional parameter
         <code>error_handler</code>:</p>
 *html*)
+
 let catch = register_new_service
     ~url:["catch"]
     ~get_params:(int "i")
@@ -2247,7 +2248,7 @@ let _ = register
 
 (* lists *)
 let coucou_list = register_new_service 
-    ~url:["coucou"]
+    ~url:["coucoulist"]
     ~get_params:(list "a" (string "str"))
   (fun _ l () ->
     let ll = 
@@ -2261,6 +2262,16 @@ let coucou_list = register_new_service
        </p>
        </body>
      </html> >>)
+(* Important warning:
+   If a request has no parameter, it will be considered as the empty list.
+   If another service without parameter was created before at the same URL, 
+   it will never be seen, 
+   as services are tried in opposite order of creation. *)
+(* This order is important if we allow to reload dynamically the sites.
+   Actually almost all services will be overwritten by new versions,
+   but not those with user_type parameters for example
+   (because the type description contains functions)
+ *)
 
 (* http://localhost:8080/coucou?a=2&a.entier[0]=6&a.entier[1]=7 *)
 

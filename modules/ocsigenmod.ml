@@ -197,20 +197,23 @@ let new_pages_tree () =
 
 (*****************************************************************************)
 (* The current registration directory *)
-let absolute_change_hostdir, get_current_hostdir, end_current_hostdir =
+let absolute_change_hostdir, get_current_hostdir,
+  begin_current_host_dir, end_current_hostdir =
   let current_dir : ((unit -> pages_tree) * url_path) ref = 
     ref ((fun () ->
       raise (Ocsigen_Internal_Error "No pages tree available")), []) 
   in
-  let f1 = ref (fun (pagetree,dir) -> 
-    current_dir := (fun () -> pagetree), dir) in
-  let f2 = ref (fun () -> let (cd1,cd2) = !current_dir in (cd1 (), cd2)) in
+  let f1' (pagetree, dir) = current_dir := ((fun () -> pagetree), dir) in
+  let f2' () = let (cd1, cd2) = !current_dir in (cd1 (), cd2) in
+  let f1 = ref f1' in
+  let f2 = ref f2' in
   let exn1 _ = 
     raise (Ocsigen_Internal_Error "absolute_change_hostdir after init") in
   let exn2 () = 
     raise (Ocsigen_Internal_Error "get_current_hostdir after init") in
   ((fun hostdir -> !f1 hostdir),
    (fun () -> !f2 ()),
+   (fun () -> f1 := f1'; f2 := f2'),
    (fun () -> f1 := exn1; f2 := exn2))
 (* Warning: these functions are used only during the initialisation
    phase, which is not threaded ... That's why it works, but ...
@@ -715,7 +718,7 @@ let parse_config page_tree path =
 (*****************************************************************************)
 (** Function to be called at the beginning of the initialisation phase *)
 let start_init () =
-  ()
+  begin_current_host_dir ()
 
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
@@ -744,10 +747,26 @@ let handle_init_exn = function
 
 
 (*****************************************************************************)
+(** table of page trees *)
+
+let page_tree_table = ref []
+
+let find k = List.assoc k !page_tree_table
+
+let add k a = page_tree_table := (k, a)::!page_tree_table
+
+(*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
     ((fun hostpattern -> 
-      let page_tree = new_pages_tree () in
+      let page_tree =
+      try 
+        find hostpattern
+      with Not_found ->
+        let n = new_pages_tree () in
+        add hostpattern n;
+        n
+      in
       (gen page_tree, 
        parse_config page_tree)),
      start_init,

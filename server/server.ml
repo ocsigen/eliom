@@ -1002,7 +1002,7 @@ let reload _ =
         begin
           Extensions.start_initialisation ();
           
-          parse_server s;
+          parse_server true s;
           
           Extensions.end_initialisation ();
         end
@@ -1085,7 +1085,7 @@ let _ = try
 
       Extensions.start_initialisation ();
 
-      parse_server s;
+      parse_server false s;
       
       if (get_maxthreads ()) < (get_minthreads ())
       then 

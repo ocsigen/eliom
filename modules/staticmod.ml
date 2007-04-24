@@ -236,10 +236,26 @@ let end_init () =
 
 
 (*****************************************************************************)
+(** table of page trees *)
+
+let page_tree_table = ref []
+
+let find k = List.assoc k !page_tree_table
+
+let add k a = page_tree_table := (k,a)::!page_tree_table
+
+(*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
     ((fun hostpattern -> 
-      let page_tree = new_pages_tree () in
+      let page_tree = 
+        try 
+          find hostpattern
+        with Not_found -> 
+          let n = new_pages_tree () in
+          add hostpattern n;
+          n
+      in
       (gen page_tree, 
        parse_config page_tree)),
      start_init,

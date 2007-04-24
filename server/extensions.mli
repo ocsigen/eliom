@@ -192,6 +192,7 @@ val decr_connected : unit -> unit
 val during_initialisation : unit -> bool
 val start_initialisation : unit -> unit
 val end_initialisation : unit -> unit
+val get_numberofreloads : unit -> int
 
 val get_init_exn_handler : unit -> exn -> string
 

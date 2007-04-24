@@ -139,7 +139,12 @@ type 'a param_name = string
 
 type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
 
+type 'an listnames = 
+    {it:'el 'a. ('an -> 'el -> 'a list) -> 'el list -> 'a list -> 'a list}
+
+(*****************************************************************************)
 (* This is a generalized algebraic datatype *)
+(* Use only with constructors from eliom.ml *)
 type ('a,+'tipo,+'names) params_type =
     (* 'tipo is [`WithSuffix] or [`WithoutSuffix] *)
     TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
@@ -158,8 +163,12 @@ type ('a,+'tipo,+'names) params_type =
   | TSuffix of ('a,'tipo,'names) params_type (* 'a = 'a1 *)
   | TUnit (* 'a = unit *);;
 
-type 'an listnames = 
-    {it:'el 'a. ('an -> 'el -> 'a list) -> 'el list -> 'a list -> 'a list}
+
+type anon_params_type = int
+
+let anonymise_params_type (t : ('a,'b,'c) params_type) : anon_params_type = 
+  Hashtbl.hash_param 1000 1000 t
+
 
 (* As GADT are not implemented in OCaml for the while, we define our own
    constructors for params_type *)
@@ -607,7 +616,6 @@ type registrable = [ `Registrable | `Unregistrable ]
 
 type +'a a_s =
     {url: url_path; (* name of the service without parameters *)
-     (* unique_id is here only for registering on top of this service *)
      att_kind: 'a; (* < attached_service_kind *)
      get_state: internal_state option;
      post_state: internal_state option;
@@ -642,8 +650,6 @@ type nonattached =
 
 type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
     {
-     (* unique_id is here only for registering on top of this service *)
-     unique_id: int;
      pre_applied_parameters: (string * string) list;
      get_params_type: ('get, 'tipo, 'getnames) params_type;
      post_params_type: ('post, [`WithoutSuffix], 'postnames) params_type;
@@ -664,7 +670,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
 
 (** Satic directories **)
 let static_dir (_,_,(curdir,_,_,_,_)) =
-    {unique_id = counter ();
+    {
      pre_applied_parameters = [];
      get_params_type = suffix (all_suffix eliom_suffix_name);
      post_params_type = unit;
@@ -691,7 +697,7 @@ let new_service_aux_aux
     ~get_params
     ~post_params =
 (* ici faire une vérification "duplicate parameter" ? *) 
-  {unique_id = counter ();
+  {
    pre_applied_parameters = [];
    get_params_type = get_params;
    post_params_type = post_params;
@@ -717,7 +723,7 @@ let new_service_aux
           ~get_params
           ~post_params:unit
       in
-      add_unregistered (Some full_path, u.unique_id); u
+      add_unregistered (Some full_path); u
   | None -> raise Eliom_function_forbidden_outside_site_loading
 
       
@@ -751,13 +757,11 @@ let new_coservice
     ~fallback
     ~get_params
     () =
-  let c = counter () in
   let `Attached k = fallback.kind in
   (match global_register_allowed () with
-    Some _ -> add_unregistered (Some k.url, c);
+    Some _ -> add_unregistered (Some k.url);
   | _ -> ());
   {fallback with
-   unique_id = c;
    max_use= max_use;
    timeout= timeout;
    get_params_type = add_pref_params co_param_prefix get_params;
@@ -773,11 +777,10 @@ let new_coservice
     
 
 let new_coservice' ?max_use ?timeout ~get_params () =
-  let c = counter () in
   (match global_register_allowed () with
-    Some _ -> add_unregistered (None, c);
+    Some _ -> add_unregistered None;
   | _ -> ());
-  {unique_id = c;
+  {
    max_use= max_use;
    timeout= timeout;
    pre_applied_parameters = [];
@@ -797,7 +800,7 @@ let new_post_service_aux ~fallback ~post_params =
 (* ici faire une vérification "duplicate parameter" ? *) 
   let `Attached k1 = fallback.kind in
   let `Internal (k, _) = k1.att_kind in
-  {unique_id = counter ();
+  {
    pre_applied_parameters = fallback.pre_applied_parameters;
    get_params_type = fallback.get_params_type;
    post_params_type = post_params;
@@ -821,7 +824,7 @@ let new_post_service ~fallback ~post_params () =
   let u = new_post_service_aux fallback post_params in
   match global_register_allowed () with
     Some _ ->
-      add_unregistered (url, u.unique_id); 
+      add_unregistered url;
       u
   | None ->
       if kind = `Service
@@ -832,13 +835,11 @@ let new_post_service ~fallback ~post_params () =
 
   
 let new_post_coservice ?max_use ?timeout ~fallback ~post_params () = 
-  let c = counter () in
   let `Attached k1 = fallback.kind in
   (match global_register_allowed () with
-    Some _ -> add_unregistered (Some k1.url, c);
+    Some _ -> add_unregistered (Some k1.url);
   | _ -> ());
   {fallback with 
-   unique_id = c;
    post_params_type = post_params;
    max_use= max_use;
    timeout= timeout;
@@ -855,11 +856,10 @@ let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
  *)
 
 let new_post_coservice' ?max_use ?timeout ~post_params () =
-  let c = counter () in
   (match global_register_allowed () with
-    Some _ -> add_unregistered (None, c)
+    Some _ -> add_unregistered None
   | _ -> ());
-  {unique_id = c;
+  {
    max_use= max_use;
    timeout= timeout;
    pre_applied_parameters = [];
@@ -877,12 +877,11 @@ let new_get_post_coservice'
    ?timeout
     ~fallback
     ~post_params =
-  let c = counter () in
   (match global_register_allowed () with
     Some _ ->
   | _ -> ());
-   add_unregistered (None, c);
-   {unique_id = c;
+   add_unregistered None;
+   {
    pre_applied_parameters = fallback.pre_applied_parameters;
    get_params_type = fallback.na_get_params_type;
    post_params_type = post_params;
@@ -1555,7 +1554,7 @@ module MakeRegister = functor
         let register_aux
             current_dir
             tables
-            session (* registering during session *)
+            duringsession (* registering during session? *)
             ~service
             ?(error_handler = fun sp l -> raise (Eliom_Typing_Error l))
             page_generator =
@@ -1564,10 +1563,13 @@ module MakeRegister = functor
               add_service
                 tables 
 	        current_dir
-	        session
+	        duringsession
 	        attser.url
                 ({state = (attser.get_state, attser.post_state)},
-                 (service.unique_id,
+                 ((if attser.get_state = None || attser.post_state = None 
+                 then (anonymise_params_type service.get_params_type, 
+                       anonymise_params_type service.post_params_type)
+                 else (0,0)),
                   (match service.max_use with
                     None -> None
                   | Some i -> Some (ref i)),
@@ -1601,7 +1603,7 @@ module MakeRegister = functor
               add_naservice 
 	        tables
 	        current_dir 
-	        session
+	        duringsession
 	        naser.na_name
                 ((match service.max_use with
                   None -> None
@@ -1643,7 +1645,7 @@ module MakeRegister = functor
           in
           match global_register_allowed () with
             Some get_current_hostdir ->
-              remove_unregistered (url, service.unique_id);
+              remove_unregistered url;
               let (globtables, _, _), curdir = get_current_hostdir () in
               register_aux 
                 curdir

@@ -26,7 +26,7 @@ val parse_string : Simplexmlparser.xml list -> string
 (**/**)
 val parser_config : Simplexmlparser.xml list ->
   Simplexmlparser.xml list list
-val parse_server : Simplexmlparser.xml list -> unit
+val parse_server : bool -> Simplexmlparser.xml list -> unit
 val extract_info :
   Simplexmlparser.xml list ->
   (string * string) *

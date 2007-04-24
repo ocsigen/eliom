@@ -125,7 +125,7 @@ let rec parser_config =
 (* Config file is parsed twice. 
    This is the second parsing (site loading) 
  *)
-let parse_server c =
+let parse_server isreloading c =
   let rec parse_server_aux =
     let rec parse_site parse_site_function path = function
       | [] -> ()
@@ -232,14 +232,32 @@ let parse_server c =
       | (Element ("commandpipe", [], p))::ll -> 
           set_command_pipe (parse_string p);
           parse_server_aux ll
-      | (Element ("dynlink", atts,l))::ll -> 
+      | (Element ("extension", atts,l))::ll -> 
 	  let modu = match atts with
-          | [] -> raise (Config_file_error "missing module attribute in <dynlink>")
+          | [] -> raise (Config_file_error "missing module attribute in <extension>")
           | [("module", s)] -> s
-          | _ -> raise (Config_file_error "Wrong attribute for <dynlink>") 
+          | _ -> raise (Config_file_error "Wrong attribute for <extension>") 
+	  in 
+          if not isreloading
+          then begin
+            Extensions.set_config l;
+            Dynlink.loadfile modu;
+            Extensions.set_config []
+          end; (* We do not reload extensions *)
+          parse_server_aux ll
+      | (Element ("library", atts,l))::ll -> 
+	  let modu = match atts with
+          | [] -> raise (Config_file_error "missing module attribute in <library>")
+          | [("module", s)] -> s
+          | _ -> raise (Config_file_error "Wrong attribute for <library>") 
 	  in 
           Extensions.set_config l;
+          Dynlink.prohibit ["Extensions"];
+          (* As libraries are reloaded each time the file is read, 
+             we do not allow to register extensions in libraries
+           *)
           Dynlink.loadfile modu;
+          Dynlink.default_available_units ();
           Extensions.set_config [];
           parse_server_aux ll
       | (Element ("host", atts, l))::ll ->

@@ -25,13 +25,15 @@ exception Eliom_Link_too_old
 exception Eliom_Session_expired
 exception Eliom_Typing_Error of (string * exn) list
 
-exception Eliom_duplicate_registering of string
+exception Eliom_duplicate_registration of string
 exception Eliom_page_erasing of string
 exception Eliom_function_forbidden_outside_site_loading
 exception Eliom_there_are_unregistered_services of string
 exception Eliom_error_while_loading_site of string
 
 type internal_state = int
+
+type anon_params_type = int
 
 type tables
 type cookiestable
@@ -90,7 +92,8 @@ val add_service :
         bool ->
           string list ->
             page_table_key *
-              (int * int ref option *
+              ((anon_params_type * anon_params_type) * 
+                 int ref option *
                  (float * float ref) option *
                  (server_params -> result_to_send Lwt.t)) ->
                         unit
@@ -149,8 +152,8 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 (** internal functions: *)
 val end_current_hostdir : unit -> unit
 val verify_all_registered : unit -> unit
-val add_unregistered : string list option * int -> unit
-val remove_unregistered : string list option * int -> unit
+val add_unregistered : string list option -> unit
+val remove_unregistered : string list option -> unit
 val global_register_allowed : unit -> 
   ((unit -> pages_tree * url_path) option)
 
