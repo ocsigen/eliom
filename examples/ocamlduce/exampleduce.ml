@@ -59,9 +59,8 @@ let links = register_new_service ["links"] unit
 
 
 let main = new_service ~url:["radio"] ~get_params:unit ()
-let main2 = new_service ~url:["radio2"] ~get_params:unit ()
 let form = 
-  new_post_service ~fallback:main2 ~post_params:(radio_answer "test") ()
+  new_post_service ~fallback:main ~post_params:(radio_answer "test") ()
 
 let gen_form = fun x ->
 	{{ [<p>[
@@ -74,13 +73,6 @@ let gen_form = fun x ->
 
 let _ =
 	register ~service:main
-	(fun sp () () ->
-		return {{ <html>[
-			<head>[<title>"Main"]
-			<body>[{: post_form form sp gen_form () :}]
-		] }}
-	);
-	register ~service:main2
 	(fun sp () () ->
 		return {{ <html>[
 			<head>[<title>"Main"]

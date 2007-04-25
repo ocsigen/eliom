@@ -2255,7 +2255,7 @@ let _ = register
 
 (* lists *)
 let coucou_list = register_new_service 
-    ~url:["coucoulist"]
+    ~url:["coucou"]
     ~get_params:(list "a" (string "str"))
   (fun _ l () ->
     let ll = 
@@ -2271,10 +2271,8 @@ let coucou_list = register_new_service
      </html> >>)
 (* Important warning:
    If a request has no parameter, it will be considered as the empty list.
-   If another service without parameter was created before at the same URL, 
-   it will never be seen, 
-   as services are tried in opposite order of creation. *)
-(* This order is important if we allow to reload dynamically the sites.
+   Services are tried in order of creation. *)
+(* Note:
    Actually almost all services will be overwritten by new versions,
    but not those with user_type parameters for example
    (because the type description contains functions)

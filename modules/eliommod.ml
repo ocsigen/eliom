@@ -439,6 +439,10 @@ let find_page_table
 
 
 
+let rec insert_as_last_of_generation generation x = function
+  | [] -> [x]
+  | ((_, (g, _))::l) as ll when g < generation -> x::ll
+  | a::l -> a::(insert_as_last_of_generation generation x l)
 
 let add_page_table duringsession url_act t (key,(id, va)) = 
   (* Duplicate registration forbidden in global table *)
@@ -454,37 +458,37 @@ let add_page_table duringsession url_act t (key,(id, va)) =
         if not duringsession && (generation = oldgen)
         then
           raise (Eliom_duplicate_registration (string_of_url_path url_act))
-        else (key, (v::oldl))::newt (* At the beginning! 
-                                      last created service is tried first *)
+        else (key, (insert_as_last_of_generation generation v oldl))::newt 
       end
-      else (key,(l@[v]))::newt
-    with Not_found -> (key,(v::l))::newt
+      else (key, (insert_as_last_of_generation generation v l))::newt
+    with Not_found -> 
+      (key, (insert_as_last_of_generation generation v l))::newt
   with Not_found -> (key,[v])::t
 
 let add_dircontent dc (key,elt) =
   match dc with
-    Vide -> Table (String_Table.add key elt String_Table.empty)
+  | Vide -> Table (String_Table.add key elt String_Table.empty)
   | Table t -> Table (String_Table.add key elt t)
 
 let find_dircontent dc k =
   match dc with
-    Vide -> raise Not_found
+  | Vide -> raise Not_found
   | Table t -> String_Table.find k t
 
 let add_naservice_table at (key,elt) = 
   match at with
-    AVide -> ATable (NAserv_Table.add key elt NAserv_Table.empty)
+  | AVide -> ATable (NAserv_Table.add key elt NAserv_Table.empty)
   | ATable t -> ATable (NAserv_Table.add key elt t)
 
 let find_naservice_table at k = 
   match at with
-    AVide -> raise Not_found
+  | AVide -> raise Not_found
   | ATable t -> NAserv_Table.find k t
 
 let remove_naservice_table at k = 
   try
     match at with
-      AVide -> AVide
+    | AVide -> AVide
     | ATable t -> ATable (NAserv_Table.remove k t)
   with _ -> at
 
