@@ -1064,8 +1064,10 @@ let _ = try
         ignore (Unix.stat commandpipe)
       with _ -> 
         (try
+          let umask = Unix.umask 0 in
           Unix.mkfifo commandpipe 0o660;
           Unix.chown commandpipe uid gid;
+          ignore (Unix.umask umask)
         with e -> 
           Messages.errlog 
             ("Cannot create the command pipe: "^(string_of_exn e))));
@@ -1126,7 +1128,9 @@ let _ = try
       (try
         ignore (Unix.stat commandpipe)
       with _ -> 
+          let umask = Unix.umask 0 in
           Unix.mkfifo commandpipe 0o660;
+          ignore (Unix.umask umask);
           Messages.warning "Command pipe created");
 
       let pipe = Lwt_unix.in_channel_of_descr 
