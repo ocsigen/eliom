@@ -69,7 +69,7 @@ let coucou =
       return 
         (html
           (head (title (pcdata "")) [])
-          (body [h1 [pcdata "Hallo"]])))
+          (body [h1 [pcdata "Hallo!"]])))
 (*html*
       <p><code>return</code> is a function from <code>Lwt</code>.
       Use it as this for now, and see later for more advanced use.</p>
@@ -440,7 +440,7 @@ let catch = register_new_service
 let links = register_new_service ["rep";"links"] unit
  (fun sp () () -> return
    (html
-     (head (title (pcdata "")) [])
+     (head (title (pcdata "Links")) [])
      (body 
        [p
         [a coucou sp [pcdata "coucou"] (); br ();
@@ -457,7 +457,7 @@ let links = register_new_service ["rep";"links"] unit
               ~get_params:(suffix (all_suffix "suff"))
               ~post_params:unit ()) 
            sp
-           [pcdata "ocaml on wikipedia"]
+           [pcdata "OCaml on wikipedia"]
            ["OCaml"]]])))
 (*zap* 
    Note that to create a link we need to know the current url, because:
@@ -1898,6 +1898,13 @@ wakeup w "HELLO");
     <div class="twocol1">
       <p>Tables of sessions (for data or services) are kept in memory,
         and thus will disappear if you close the server process.
+      </p>
+      <p>Note that Ocsigen now allows to reload the modules without
+       stoping the server (use <code>/etc/init.d/ocsigen reload</code>
+       for most of the distributions, or manually by 
+       <code>echo reload > /var/run/ocsigen_command</code>.
+      </p>
+      <p>
         Eliom allows to use more persistent data, using the module
         <code>Ocsipersist</code>. (<code>Ocsipersist</code> is linked in 
         <code>eliom.cma</code>, thus you don't need to dynlink yourself in the

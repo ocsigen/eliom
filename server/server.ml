@@ -117,6 +117,11 @@ let now = return ()
 let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 
 
+(* printing exceptions *)
+let string_of_exn = function
+  | Unix.Unix_error (ee,func,param) -> 
+      (Unix.error_message ee)^" in function "^func^" ("^param^")"
+  | e -> Printexc.to_string e
 
 
 (* Errors during requests *)
@@ -136,7 +141,7 @@ let handle_light_request_errors
       (* Find the value of keep-alive in the request *)
       
       (* Request errors: we answer, then we close *)
-      Http_error.Http_exception (_,_) ->
+    | Http_error.Http_exception (_,_) ->
         send_error now ~cookies:[]
           ~keep_alive:false ~http_exception:exn xhtml_sender >>=
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
@@ -590,11 +595,7 @@ let service
               | e ->
                   Messages.warning
                     ("Exn during page generation: "^
-                     (match e with
-                       Unix.Unix_error (ee,func,param) -> 
-                         (Unix.error_message ee)^
-                         " in function "^func^" ("^param^")"
-                     | _ -> Printexc.to_string e)
+                     (string_of_exn e)
                      ^" (sending 500)"); 
                   Messages.debug "-> Sending 500";
                   send_error
@@ -686,10 +687,6 @@ let handle_broken_pipe_exn sockaddr exn =
   match exn with
     Connection_reset_by_peer -> 
       Messages.debug "** Connection closed by client";
-      return ()
-  | Unix.Unix_error (e,func,param) ->
-      warning ("While talking to "^ip^": "^(Unix.error_message e)^
-               " in function "^func^" ("^param^").");
       return ()
   | Ssl.Write_error(Ssl.Error_ssl) -> 
       errlog ("While talking to "^ip^": Ssl broken pipe.");
@@ -915,16 +912,10 @@ let listen ssl port wait_end_init =
             else return ()))
         (fun exn ->
           let t = Ocsiconfig.get_connect_time_max () in
-          (match exn with
-            Unix.Unix_error (e,func,param) ->
-              errlog ("Exception: "^(Unix.error_message e)^
-                      " in function "^func^" ("^param^"). Waiting "^
-                      (string_of_float t)^
-                      " seconds before accepting new connections.");
-          | _ ->
-              errlog ("Exception: "^(Printexc.to_string exn)^
-                      ". Waiting "^(string_of_float t)^
-                      " seconds before accepting new connections."));
+          errlog ("Exception: "^(string_of_exn exn)^
+                  ". Waiting "^
+                  (string_of_float t)^
+                  " seconds before accepting new connections.");
           Lwt_unix.sleep t >>=
           wait_connexion_rec)
 
@@ -964,8 +955,8 @@ let errmsg = function
   | Dynlink.Error e -> 
       (("Fatal - Dynamic linking error: "^(Dynlink.error_message e)),
       6)
-  | Unix.Unix_error (e,s1,s2) ->
-      (("Fatal - "^(Unix.error_message e)^" in: "^s1^" "^s2),
+  | (Unix.Unix_error _) as e ->
+      (("Fatal - "^(string_of_exn e)),
       9)
   | Ssl.Private_key_error ->
       (("Fatal - bad password"),
@@ -1064,10 +1055,25 @@ let _ = try
         (fun i ->
           ignore (listen true i wait_end_init)) sslports;
       
+      let gid = (Unix.getgrnam group).Unix.gr_gid in
+      let uid = (Unix.getpwnam user).Unix.pw_uid in
+
+      (* A pipe to communicate with the server *)
+      let commandpipe = get_command_pipe () in 
+      (try
+        ignore (Unix.stat commandpipe)
+      with _ -> 
+        (try
+          Unix.mkfifo commandpipe 0o660;
+          Unix.chown commandpipe uid gid;
+        with e -> 
+          Messages.errlog 
+            ("Cannot create the command pipe: "^(string_of_exn e))));
+
       (* I change the user for the process *)
       (try
-        Unix.setgid (Unix.getgrnam group).Unix.gr_gid;
-        Unix.setuid (Unix.getpwnam user).Unix.pw_uid;
+        Unix.setgid gid;
+        Unix.setuid uid;
       with e -> errlog ("Error: Wrong user or group"); raise e);
 
       set_user user;
@@ -1116,14 +1122,17 @@ let _ = try
       
       Extensions.end_initialisation ();
 
-      (* A pipe to communicate with the server *)
-      let commandpipe = get_command_pipe () in
+      (* Communication with the server through the pipe *)
       (try
         ignore (Unix.stat commandpipe)
-      with _ -> Unix.mkfifo commandpipe 0o660);
+      with _ -> 
+          Unix.mkfifo commandpipe 0o660;
+          Messages.warning "Command pipe created");
+
       let pipe = Lwt_unix.in_channel_of_descr 
-          (Lwt_unix.Plain (Unix.openfile commandpipe 
-                             [Unix.O_RDWR;Unix.O_NONBLOCK;Unix.O_APPEND] 0o660)) in
+          (Lwt_unix.Plain 
+             (Unix.openfile commandpipe 
+                [Unix.O_RDWR;Unix.O_NONBLOCK;Unix.O_APPEND] 0o660)) in
       let rec f () = 
         Lwt_unix.input_line pipe >>=
         (fun _ -> reload (); f ())

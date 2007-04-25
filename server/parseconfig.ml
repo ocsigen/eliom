@@ -364,6 +364,9 @@ let extract_info c =
             aux user (Some (parse_string p)) ssl ports sslports ll
         | _ -> raise (Config_file_error 
                         "Only one <group> tag for each server allowed"))
+    | (Element ("commandpipe", [], p))::ll -> 
+        set_command_pipe (parse_string p);
+        aux user group ssl ports sslports ll
     | (Element (tag, _, _))::ll -> 
         aux user group ssl ports sslports ll
     | _ ->

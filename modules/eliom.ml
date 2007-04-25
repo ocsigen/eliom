@@ -179,7 +179,7 @@ let string (n : string) : (string,[`WithoutSuffix], string param_name) params_ty
   TString n
 let file (n : string) : (file_info ,[`WithoutSuffix], file_info param_name) params_type = 
   TFile n
-let radio_answer (n : string) : (string option,[`WithoutSuffix], string option param_name) params_type= TString n
+let radio_answer (n : string) : (string option,[`WithoutSuffix], string option param_name) params_type= TOption (TString n)
 let unit : (unit,[`WithoutSuffix], unit param_name) params_type = TUnit
 let user_type
     (of_string : string -> 'a) (from_string : 'a -> string) (n : string)

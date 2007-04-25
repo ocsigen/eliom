@@ -1,5 +1,5 @@
-open Ocsigen
-open Ocsigenduce.Xhtml
+open Eliom
+open Eliomduce.Xhtml
 open Lwt
 open Xhtml1_strict
 
@@ -25,7 +25,7 @@ let create_form =
 
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
-     let f = get_form Tutoocsigenmod.coucou_params sp create_form in 
+     let f = get_form Tutoeliom.coucou_params sp create_form in 
      return
         {{ <html>
              [<head> [<title> ""]
@@ -49,9 +49,47 @@ let links = register_new_service ["links"] unit
            {{ a
              (new_external_service
 		~url:["http://fr.wikipedia.org";"wiki"]
-		~prefix:true
-		~get_params:suffix_only
+		~get_params:(suffix (string "a"))
 		~post_params:unit ())
              sp
              {{ "ocaml on wikipedia" }}
              "OCaml" }}]]] }})
+
+
+
+
+let main = new_service ~url:["radio"] ~get_params:unit ()
+let main2 = new_service ~url:["radio2"] ~get_params:unit ()
+let form = 
+  new_post_service ~fallback:main2 ~post_params:(radio_answer "test") ()
+
+let gen_form = fun x ->
+	{{ [<p>[
+		{: string_radio ~checked:false x "Blerp" :} 
+		'Blerp'
+		{: string_radio ~checked:false x "Gnarf" :}
+		'Gnarf'
+		{: submit_input "OK" :}
+		]] }}
+
+let _ =
+	register ~service:main
+	(fun sp () () ->
+		return {{ <html>[
+			<head>[<title>"Main"]
+			<body>[{: post_form form sp gen_form () :}]
+		] }}
+	);
+	register ~service:main2
+	(fun sp () () ->
+		return {{ <html>[
+			<head>[<title>"Main"]
+			<body>[{: post_form form sp gen_form () :}]
+		] }}
+	);
+	register ~service:form
+	(fun sp () (x) ->
+		return {{ <html>[
+				<head>[<title>"Form"]
+				<body>[<p>{: match x with None -> "Geen" | Some y -> y :}]
+			] }})
