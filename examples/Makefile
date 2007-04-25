@@ -17,10 +17,10 @@ DUCEMODOPT=
 endif
 
 
-CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIBDIRS)
-CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIBDIRS)
+LIB = $(LIBDIRS) -package netstring
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB = $(LIBDIRS)
 PP = -pp "camlp4o ../xmlp4/xhtmlsyntax.cma -loc loc"
 
 OBJS = $(FILES:.ml=.cmo)

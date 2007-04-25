@@ -317,18 +317,19 @@ let _ =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "With a suffix, that page will send a file"]])))
 
-let r = Str.regexp "~\\([^/]*\\)\\(.*\\)"
+let r = Netstring_pcre.regexp "~([^/]*)(.*)"
 
 let sendfile2 = 
   Files.register_new_service 
     ~url:["files2";""]
-    ~get_params:(regexp r "/home/\\1/public_html\\2" "filename")
+(*    ~get_params:(regexp r "/home/$1/public_html$2" "filename") *)
+    ~get_params:(regexp r "$$u($1)$2" "filename")
     (fun _ s () -> return s)
 
 let sendfile2 = 
   Files.register_new_service 
     ~url:["files2";""]
-    ~get_params:(suffix (all_suffix_regexp r "/home/\\1/public_html\\2" "filename"))
+    ~get_params:(suffix (all_suffix_regexp r "/home/$1/public_html$2" "filename"))
     (fun _ s () -> return s)
 
 let create_suffixform4 n =

@@ -254,7 +254,7 @@ val ( ** ) :
 (** This is a combinator to allow the page to take several parameters (see examples above) Warning: it is a binary operator. Pages cannot take tuples but only pairs. *)
 
 val regexp :
-    Str.regexp -> string -> string ->
+    Netstring_pcre.regexp -> string -> string ->
       (string, [ `WithoutSuffix ], string param_name) params_type
 (** [regexp r d s] tells that the page takes a string that matches [r]
    as parameter, labeled [s], and that will be rewritten in d *)
@@ -281,7 +281,7 @@ val all_suffix_user :
    with a type specified by the user *)
 
 val all_suffix_regexp :
-    Str.regexp -> string -> string ->
+    Netstring_pcre.regexp -> string -> string ->
       (string, [ `Endsuffix ], string param_name) params_type
 (** Takes all the suffix, as long as possible, matching the regexp *)
 

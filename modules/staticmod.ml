@@ -33,12 +33,12 @@ open Extensions
 (* The table of static pages for each virtual server                         *)
 type assockind = 
   | Dir of string
-  | Regexp of Str.regexp * string
+  | Regexp of Netstring_pcre.regexp * string
 
 (* static pages *)
 type static_dir = 
     Static_dir of string option *
-        (Str.regexp * string) list * (string * static_dir) list
+        (Netstring_pcre.regexp * string) list * (string * static_dir) list
 
 type pages_tree = 
     static_dir ref (* static pages *)
@@ -78,6 +78,16 @@ let set_static_dir staticdirref assoc path =
   staticdirref := aux !staticdirref path
 
 
+let rec replace_first_match stringpath = function
+  | [] -> None
+  | (regexp, dest)::l -> 
+      (match Netstring_pcre.string_match regexp stringpath 0 with
+      | None -> replace_first_match stringpath l
+      | Some _ -> Some (Netstring_pcre.global_replace regexp dest stringpath)
+      )
+
+let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
+
 let find_static_page staticdirref path =
   let rec aux dir (Static_dir (dir_option, regexps, subdir_list)) path = 
     (* First we try the regexps *)
@@ -86,21 +96,22 @@ let find_static_page staticdirref path =
       | [] -> None
       | _ -> 
           let stringpath = Ocsimisc.string_of_url_path path in
-          try 
-            Mutex.lock strlock;
-            let (_, dest) = 
-              (List.find
-                 (fun (regexp, dest) -> Str.string_match regexp stringpath 0)
-                 regexps)
-            in
-            let r = Some (Str.replace_matched dest stringpath) in
-            Mutex.unlock strlock;
-            r
-          with _ ->             
-            Mutex.unlock strlock;
-            None)
+          replace_first_match stringpath regexps)
     with
-    | Some s -> Some s (* Matching regexp found! *)
+    | Some s -> (* Matching regexp found! *)
+        Some 
+          ((* hack to get user dirs *)
+           match Netstring_pcre.string_match user_dir_regexp s 0 with
+          | None -> s
+          | Some result -> 
+              let user = Netstring_pcre.matched_group result 2 s in
+              try
+                let userdir = (Unix.getpwnam user).Unix.pw_dir in
+                (Netstring_pcre.matched_group result 1 s)^
+                userdir^
+                (Netstring_pcre.matched_group result 3 s)
+              with _ -> raise Not_found
+          )
     | None ->
         (* Then we continue *)
         match path with
@@ -207,7 +218,7 @@ let parse_config page_tree path = function
             raise (Error_in_config_file
                      "dir attribute expected for <staticdir>")
         | [("dir", s)] -> Dir s
-        | [("regexp", s);("dest",t)] -> Regexp ((Str.regexp s), t)
+        | [("regexp", s);("dest",t)] -> Regexp ((Netstring_pcre.regexp s), t)
         | _ -> raise (Error_in_config_file "Wrong attribute for <staticdir>")
         in
         set_static_dir page_tree dir path

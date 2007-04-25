@@ -201,20 +201,27 @@ let list (n : string) (t : ('a,[`WithoutSuffix], 'an) params_type)
   Obj.magic (TList (n,t))
 let ( ** ) = prod
 
+let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
 let regexp reg dest n = 
   user_type
     (fun s -> 
-      Mutex.lock strlock;
-      if Str.string_match reg s 0
-      then begin
-        let r = Str.replace_matched dest s in
-        Mutex.unlock strlock;
-        r
-      end
-      else begin
-        Mutex.unlock strlock;
-        raise (Failure "Not matching regexp")
-      end)
+      match Netstring_pcre.string_match reg s 0 with
+      | Some _ -> 
+          begin
+            (* hack to get user dirs (same as in staticmod) *)
+            let s = Netstring_pcre.global_replace reg dest s in
+            match Netstring_pcre.string_match user_dir_regexp dest 0 with
+            | None -> s
+            | Some result -> 
+                let user = Netstring_pcre.matched_group result 2 s in
+                try
+                  let userdir = (Unix.getpwnam user).Unix.pw_dir in
+                  (Netstring_pcre.matched_group result 1 s)^
+                  userdir^
+                  (Netstring_pcre.matched_group result 3 s)
+                with _ -> raise Not_found
+          end
+      | _ -> raise (Failure "Not matching regexp"))
     (fun s -> s)
     n
 
@@ -235,17 +242,9 @@ let all_suffix_regexp reg dest (n : string) :
     (string, [`Endsuffix], string param_name) params_type = 
   all_suffix_user
     (fun s -> 
-      Mutex.lock strlock;
-      if Str.string_match reg s 0
-      then begin
-        let r = Str.replace_matched dest s in
-        Mutex.unlock strlock;
-        r
-      end
-      else begin
-        Mutex.unlock strlock;
-        raise (Failure "Not matching regexp")
-      end)
+      match Netstring_pcre.string_match reg s 0 with
+      | Some _ -> Netstring_pcre.global_replace reg dest s
+      | _ -> raise (Failure "Not matching regexp"))
     (fun s -> s)
     n
 
