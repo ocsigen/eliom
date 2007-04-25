@@ -61,7 +61,7 @@ CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
 PP = 
 PP2 = 
-# -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
+# -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"
 
 
 # cma and cmo to be linked in the server:

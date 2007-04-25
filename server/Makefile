@@ -47,7 +47,7 @@ CAMLDEP = $(OCAMLFIND) ocamldep
 LIB1 = -thread -package netstring,$(NETSYS)ssl $(LIBDIRS) -I +camlp4
 PP = 
 PP2 = 
-# -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc"
+# -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"
 
 
 # cma and cmo to be linked in the server:
@@ -126,7 +126,7 @@ installbyte:
 installopt:
 	@echo "Installing native server"
 	mkdir -p $(PREFIX)/$(BINDIR)
-	$(INSTALL) -m 755 $(NAME).opt $(PREFIX)/$(BINDIR)/
+	[ -f $(NAME).opt ] && $(INSTALL) -m 755 $(NAME).opt $(PREFIX)/$(BINDIR)/
 
 .PHONY: uninstall
 uninstall:

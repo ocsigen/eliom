@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 
 # $Id: configure 1080 2007-01-07 16:00:50Z gerd $
 # Adapted from the ocamlnet configure script.
@@ -42,6 +42,7 @@ get_path () {
 # defaults:
 
 set_defaults () {
+    name="ocsigen"
     enable_bytecode=1
     enable_nativecode=0
     enable_debug=0
@@ -52,16 +53,19 @@ set_defaults () {
     libdir=""
     mandir=""
     docdir=""
+    sysconfdir="/etc"
+    staticpagesdir="/var/www"
+    uploaddir="/tmp"
+    datadir="/var/lib"
     commandpipe="/var/run/ocsigen_command"
-    name="ocsigen"
-    root="/"
+    root=""
     ocsigen_user="www-data"
     ocsigen_group="www-data"
 }
 
 set_defaults
-
-version=`head -n 1 VERSION`
+my_pwd=`dirname $0`
+version=`head -n 1 $my_pwd/VERSION`
 
 ########################################################################
 ## Option parsing
@@ -155,6 +159,10 @@ print_options () {
 	echo "    --libdir $libdir2"
 	echo "    --mandir $mandir2"
 	echo "    --docdir $docdir2"
+	echo "    --sysconfdir $sysconfdir"
+	echo "    --staticpagesdir $staticpagesdir"
+	echo "    --uploaddir $uploaddir"
+	echo "    --datadir $datadir"
 	echo "    --name $name"
 	echo "    --commandpipe $commandpipe"
 }
@@ -201,8 +209,20 @@ _EOF_
 --docdir dir
 	Install documentation in this directory
 
+--sysconfdir dir
+	Create configuration directory in this directory
+
+--staticpagesdir dir
+	Install default static pages directory in this directory
+
+--uploaddir dir
+	By default, files will be uploaded in this directory
+
+--datadir dir
+	The directory for data written by the server will be in this directory
+
 --name name
-	The name of the server (and directory for the modules)
+	The name of the server (and directories)
 
 --ocsigen-user name
 	The name of the ocsigen user
@@ -301,6 +321,26 @@ while [ "$#" -gt 0 ]; do
 			shift
 			shift
 			;;
+		--staticpagesdir)
+			staticpagesdir="$2"
+			shift
+			shift
+			;;
+		--sysconfdir)
+			sysconfdir="$2"
+			shift
+			shift
+			;;
+		--uploaddir)
+			uploaddir="$2"
+			shift
+			shift
+			;;
+		--datadir)
+			datadir="$2"
+			shift
+			shift
+			;;
 		--name)
 			name="$2"
 			shift
@@ -347,6 +387,8 @@ case "$docdir" in
 esac
 
 
+
+
 ######################################################################
 # Check ocamlfind
 
@@ -377,15 +419,32 @@ fi
 ######################################################################
 # Check whether OCaml version is > 3.9
 version=`ocamlc -version`
-ocamlversion=`n1=${version:0:1}; \
-              n2=${version:2:2}; \
-              n3=${version:5}; \
+ocamlversion=`n1=${version%%.[0-9][0-9].[0-9]}; \
+              tail=${version##[0-9].}; \
+              n2=${tail%%.[0-9]}; \
+              n3=${tail##[0-9][0-9].}; \
               if [ $n1 = "3" ] && [ $n2 -le 9 ]; then \
                 echo "OLD"; \
               else \
                 echo "NEW"; \
               fi`
 
+#ocamlversion=`n1=${version:0:1}; \
+#              n2=${version:2:2}; \
+#              n3=${version:5}; \
+
+######################################################################
+# Check camlp4o
+printf "%s" "Finding out which camlp4o to use... "
+if which camlp4o.byte >/dev/null 2>/dev/null; then
+    echo "camlp4o.byte"
+    camlp4o="camlp4o.byte"
+else
+    echo "camlp4o"
+    camlp4o="camlp4o" 
+fi
+
+######################################################################
 
 ######################################################################
 # Summary
@@ -430,7 +489,7 @@ fi
 # Write Makefile.conf
 
 echo "Writing Makefile.config"
-cat <<_EOF_ >Makefile.config
+cat <<_EOF_ > $my_pwd/Makefile.config
 # Which ocamlfind/camlp4/ ... version to use? 
 # ocamlfind will choose automatically the compiler.
 OCAMLFIND=ocamlfind
@@ -440,6 +499,7 @@ CAMLYACC=ocamlyacc
 CAMLCNAME=ocamlc
 CAMLOPTNAME=ocamlopt
 # CAMLCNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
+CAMLP4O="$camlp4o"
 CHOWN=chown
 
 # The root directory for the package install (usually always /, but for distrib package makers)
@@ -467,7 +527,7 @@ MANDIR = $mandir
 MODULEINSTALLDIR = \`\$(OCAMLFIND) printconf destdir\`
 
 # Where to install examples:
-EXAMPLESINSTALLDIR = $libdir/$name
+EXAMPLESINSTALLDIR = $libdir/\$(OCSIGENNAME)
 
 # User who will run Ocsigen server (not root) (eg, for debian, www-data)
 # (This user must exist on your system)
@@ -484,16 +544,16 @@ OCSIGENNAME=$name
 LOGDIR = /var/log/\$(OCSIGENNAME)
 
 # Config files:
-CONFIGDIR = /etc/\$(OCSIGENNAME)
+CONFIGDIR = $sysconfdir/\$(OCSIGENNAME)
 
 # Where to put static pages:
-STATICPAGESDIR = /var/www/\$(OCSIGENNAME)
+STATICPAGESDIR =$staticpagesdir/\$(OCSIGENNAME)
 
 # Where to put dynamic data:
-DATADIR = /var/lib/\$(OCSIGENNAME)
+DATADIR = $datadir/\$(OCSIGENNAME)
 
 # Default directory for file upload:
-UPLOADDIR = /tmp
+UPLOADDIR = $uploaddir
 
 # Where to put Ocsigen documentation:
 DOCDIR = $docdir/\$(OCSIGENNAME)

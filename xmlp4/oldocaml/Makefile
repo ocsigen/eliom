@@ -13,7 +13,7 @@ CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
 LIB = -I `$(CAMLP4) -where` $(LIBDIRS2)
-PP = -pp "camlp4o pa_extend.cmo q_MLast.cmo -- -loc loc"
+PP = -pp "$(CAMLP4O) pa_extend.cmo q_MLast.cmo -- -loc loc"
 PPLEXER = -pp "camlp4r -- -loc loc"
 
 SRCLIBREP = ../../lib

@@ -36,7 +36,7 @@ CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = modules/ocsipersist.cmi server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi baselib/messages.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/nurpawiki/nurpawiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
-PP = -pp "camlp4o ./xmlp4/xhtmlsyntax.cma -loc loc"
+PP = -pp "$(CAMLP4O) ./xmlp4/xhtmlsyntax.cma -loc loc"
 
 ifeq "$(BYTECODE)" "YES"
 TOINSTALLBYTE=$(CMAOTOINSTALL) $(PLUGINSCMAOTOINSTALL)
@@ -151,7 +151,7 @@ depend: xmlp4.byte
 	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 
 
-.PHONY: partialinstall install fullinstall doc
+.PHONY: partialinstall install doc docinstall installwithoutdoc
 partialinstall:
 	mkdir -p $(PREFIX)/$(MODULEINSTALLDIR)
 	mkdir -p $(PREFIX)/$(EXAMPLESINSTALLDIR)
@@ -163,16 +163,25 @@ partialinstall:
 	-$(INSTALL) -m 755 modules/ocsidbm.opt $(PREFIX)/$(BINDIR)/
 	-rm META
 
+docinstall: doc
+	mkdir -p $(PREFIX)/$(DOCDIR)
+	$(INSTALL) -d -m 755 $(PREFIX)/$(DOCDIR)/lwt
+	$(INSTALL) -d -m 755 $(PREFIX)/$(DOCDIR)/oc
+	-$(INSTALL) -m 644 doc/* $(PREFIX)/$(DOCDIR)
+	$(INSTALL) -m 644 doc/lwt/* $(PREFIX)/$(DOCDIR)/lwt
+	$(INSTALL) -m 644 doc/oc/* $(PREFIX)/$(DOCDIR)/oc
+	chmod a+rx $(PREFIX)/$(DOCDIR)
+	chmod a+r $(PREFIX)/$(DOCDIR)/*
 
-fullinstall: doc partialinstall
+installwithoutdoc: partialinstall
 	mkdir -p $(PREFIX)/$(CONFIGDIR)
 	mkdir -p $(PREFIX)/$(STATICPAGESDIR)
 	mkdir -p $(PREFIX)/$(STATICPAGESDIR)/nurpawiki
 	mkdir -p $(PREFIX)/$(STATICPAGESDIR)/tutorial
 	mkdir -p $(PREFIX)/$(DATADIR)
 	mkdir -p $(PREFIX)/$(DATADIR)/nurpawiki
-	mkfifo $(PREFIX)/$(COMMANDPIPE)
-	-mv $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
+	[ -p $(PREFIX)/$(COMMANDPIPE) ] || mkfifo $(PREFIX)/$(COMMANDPIPE)
+#	-mv $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
 	cat files/ocsigen.conf \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
@@ -185,24 +194,27 @@ fullinstall: doc partialinstall
 	| sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
-	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf
-	cat $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf \
+	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
+	cat $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
 	| sed s%[.]cmo%.cmxs%g \
 	| sed s%[.]cma%.cmxs%g \
-	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt
+	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
 	-mv $(PREFIX)/$(CONFIGDIR)/mime.types $(PREFIX)/$(CONFIGDIR)/mime.types.old
 	cp -f files/mime.types $(PREFIX)/$(CONFIGDIR)
 	mkdir -p $(PREFIX)/$(LOGDIR)
 	chmod u+rwx $(PREFIX)/$(LOGDIR)
 	chmod a+rx $(PREFIX)/$(CONFIGDIR)
-	chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf
+	[ -f $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
+	{ cp $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
+             $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf; \
+	  chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf; }
+	chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
+	[ -f $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
+	{ cp $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample \
+             $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; \
+	  chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; }
+	chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
 	chmod a+r $(PREFIX)/$(CONFIGDIR)/mime.types
-	mkdir -p $(PREFIX)/$(DOCDIR)
-	$(INSTALL) -d -m 755 $(PREFIX)/$(DOCDIR)/lwt
-	$(INSTALL) -d -m 755 $(PREFIX)/$(DOCDIR)/oc
-	-$(INSTALL) -m 644 doc/* $(PREFIX)/$(DOCDIR)
-	$(INSTALL) -m 644 doc/lwt/* $(PREFIX)/$(DOCDIR)/lwt
-	$(INSTALL) -m 644 doc/oc/* $(PREFIX)/$(DOCDIR)/oc
 	$(INSTALL) -m 644 files/style.css $(PREFIX)/$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 examples/nurpawiki/files/style.css $(PREFIX)/$(STATICPAGESDIR)/nurpawiki
 	$(INSTALL) -m 644 examples/nurpawiki/wikidata/* $(PREFIX)/$(DATADIR)/nurpawiki
@@ -210,8 +222,6 @@ fullinstall: doc partialinstall
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(DATADIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(COMMANDPIPE)
-	chmod a+rx $(PREFIX)/$(DOCDIR)
-	chmod a+r $(PREFIX)/$(DOCDIR)/*
 	[ -d /etc/logrotate.d ] && \
 	 { mkdir -p ${PREFIX}/etc/logrotate.d ; \
 	   cat files/logrotate.IN \
@@ -222,9 +232,8 @@ fullinstall: doc partialinstall
 	$(INSTALL) -d -m 755 $(PREFIX)/$(MANDIR)
 	$(INSTALL) -m 644 files/ocsigen.1 $(PREFIX)/$(MANDIR)
 
+install: docinstall installwithoutdoc
 
-install:
-	echo "Please use make fullinstall (or make partialinstall to keep your config files)"
 
 .PHONY: uninstall fulluninstall
 uninstall:
