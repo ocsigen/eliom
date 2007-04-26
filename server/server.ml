@@ -1055,8 +1055,18 @@ let _ = try
         (fun i ->
           ignore (listen true i wait_end_init)) sslports;
       
-      let gid = (Unix.getgrnam group).Unix.gr_gid in
-      let uid = (Unix.getpwnam user).Unix.pw_uid in
+      let gid = match group with
+      | None -> Unix.getgid ()
+      | Some group -> (try
+          (Unix.getgrnam group).Unix.gr_gid
+      with e -> errlog ("Error: Wrong group"); raise e)
+      in
+      let uid = match user with
+      | None -> Unix.getuid ()
+      | Some user -> (try
+        (Unix.getpwnam user).Unix.pw_uid
+      with e -> errlog ("Error: Wrong user"); raise e) 
+      in
 
       (* A pipe to communicate with the server *)
       let commandpipe = get_command_pipe () in 

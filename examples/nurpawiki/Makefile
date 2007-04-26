@@ -11,8 +11,10 @@ OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(FILES:.ml=.cmxs)
 
 byte: $(OBJS)
+	cp $(OBJS) ..
 
 opt: $(OBJSOPT)
+	cp $(OBJSOPT) ..
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx

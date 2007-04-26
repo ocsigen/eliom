@@ -52,8 +52,8 @@ let maxuploadfilesize = ref (Some (Int64.of_int 2000000))
 let defaultcharset = ref (None : string option)
 let datadir = ref "_DATADIR_"
 let bindir = ref "_BINDIR_"
-let user = ref !default_user
-let group = ref !default_group
+let user = ref (Some !default_user)
+let group = ref (Some !default_group)
 let command_pipe = ref "_COMMANDPIPE_"
 
 

@@ -374,12 +374,12 @@ let extract_info c =
   in 
   let (user,group),si = aux None None None [] [] c in
   let user = match user with
-    None -> get_default_user ()
-  | Some u -> u
+    None -> None (* Some (get_default_user ()) *)
+  | Some s -> if s = "" then None else Some s    
   in
   let group = match group with
-    None -> get_default_group ()
-  | Some g -> g
+    None -> None (* Some (get_default_group ()) *)
+  | Some s -> if s = "" then None else Some s
   in
   ((user, group), si)
 

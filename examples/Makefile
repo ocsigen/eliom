@@ -32,9 +32,11 @@ opt: $(OBJSOPT) $(DUCEMODOPT) nurpawiki.opt
 
 exampleduce.cmo:
 	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
+	cp ocamlduce/exampleduce.cmo .
 
 exampleduce.cmx:
 	$(OCAMLDUCEFIND) ocamlopt $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
+	cp ocamlduce/exampleduce.cmx .
 
 nurpawiki.byte:
 	make -C nurpawiki byte

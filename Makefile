@@ -65,7 +65,7 @@ EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
 
-all: $(BYTE) $(OPT)
+all: $(BYTE) $(OPT) $(OCSIGENNAME).conf.local
 
 byte: $(TARGETSBYTE)
 
@@ -140,11 +140,34 @@ doc:
 	$(CAMLDOC) -package ssl $(LIBDIRS3) -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
 	$(CAMLDOC) -package netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc/oc -html modules/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli $(DUCEDOC)
 
+$(OCSIGENNAME).conf.local:
+	cat files/ocsigen.conf \
+	| sed s%\<port\>80\</port\>%\<port\>8080\</port\>%g \
+	| sed s%_LOGDIR_%$(SRC)/var/log%g \
+	| sed s%_STATICPAGESDIR_%$(SRC)/files%g \
+	| sed s%_DATADIR_%$(SRC)/var/lib%g \
+	| sed s%_BINDIR_%$(SRC)/modules%g \
+	| sed s%_UP_%$(SRC)/tmp%g \
+	| sed s%_OCSIGENUSER_%%g \
+	| sed s%_OCSIGENGROUP_%%g \
+	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
+	| sed s%_COMMANDPIPE_%$(SRC)/var/run/ocsigen_command%g \
+	| sed s%_MODULEINSTALLDIR_%$(SRC)/modules%g \
+	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
+	| sed s%\<\!--\ commandpipe%\<commandpipe%g \
+	| sed s%\</commandpipe\ --%\</commandpipe%g \
+	> $(OCSIGENNAME).conf.local
+	cat $(OCSIGENNAME).conf.local \
+	| sed s%[.]cmo%.cmxs%g \
+	| sed s%[.]cma%.cmxs%g \
+	> $(OCSIGENNAME).conf.opt.local
+
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
 	-rm -f lib/* *~
 	-rm -f bin/* *~
+	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 
 depend: xmlp4.byte
 	touch lwt/depend
@@ -180,7 +203,9 @@ installwithoutdoc: partialinstall
 	mkdir -p $(PREFIX)/$(STATICPAGESDIR)/tutorial
 	mkdir -p $(PREFIX)/$(DATADIR)
 	mkdir -p $(PREFIX)/$(DATADIR)/nurpawiki
-	[ -p $(PREFIX)/$(COMMANDPIPE) ] || mkfifo $(PREFIX)/$(COMMANDPIPE)
+	[ -p $(PREFIX)/$(COMMANDPIPE) ] || { mkfifo $(PREFIX)/$(COMMANDPIPE); \
+	  chmod 660 $(PREFIX)/$(COMMANDPIPE); \
+	  $(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(COMMANDPIPE);}
 #	-mv $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
 	cat files/ocsigen.conf \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
@@ -221,7 +246,6 @@ installwithoutdoc: partialinstall
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(DATADIR)
-	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(COMMANDPIPE)
 	[ -d /etc/logrotate.d ] && \
 	 { mkdir -p ${PREFIX}/etc/logrotate.d ; \
 	   cat files/logrotate.IN \

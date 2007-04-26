@@ -29,7 +29,7 @@ val parser_config : Simplexmlparser.xml list ->
 val parse_server : bool -> Simplexmlparser.xml list -> unit
 val extract_info :
   Simplexmlparser.xml list ->
-  (string * string) *
+  (string option * string option) *
   ((string option * string option) option * int list * int list)
 val parse_config :
   unit ->

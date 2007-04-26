@@ -66,6 +66,7 @@ set_defaults () {
 set_defaults
 my_pwd=`dirname $0`
 version=`head -n 1 $my_pwd/VERSION`
+full_pwd=`pwd`
 
 ########################################################################
 ## Option parsing
@@ -563,6 +564,11 @@ DEBUG=$enable_debug
 
 # The name of the named pipe used to command the server
 COMMANDPIPE=$commandpipe
+
+
+
+# The source directory
+SRC=$full_pwd
 
 
 
