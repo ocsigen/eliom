@@ -1085,11 +1085,9 @@ and type input_type_t = Pages.input_type_t
 
 (** {2 Module for registering typed Xhtml pages} *)
 
-module Xhtml : sig
-
-  include ELIOMREGSIG with type page = xhtml elt
-
 (** {3 Creating links, forms, etc.} *)
+
+module type XHTMLFORMSSIG = sig
 
   val a :
       ?a:a_attrib attrib list ->
@@ -1274,12 +1272,34 @@ Not all features of "select" are implemented.
   val file_input : ?a:(input_attrib attrib list ) ->
     ?value:string -> file_info param_name -> [> input ] elt
 
+end
+
+
+module Xhtml : sig
+
+  include ELIOMREGSIG with type page = xhtml elt
+  include XHTMLFORMSSIG
 
 end
 
+module Blocks : sig
+
+  include ELIOMREGSIG with type page = body_content elt list
+  include XHTMLFORMSSIG
+
+end
+
+module SubXhtml : functor (T : sig type content end) ->
+  sig
+    
+    include ELIOMREGSIG with type page = T.content elt list
+    include XHTMLFORMSSIG
+    
+  end
+
 (** {2 Modules to register other types of pages} *)
 
-module Text : ELIOMSIG with 
+module HtmlText : ELIOMSIG with 
 type page = string
 and type form_content_elt = string
 and type form_content_elt_list = string
@@ -1306,6 +1326,11 @@ and type link_attrib_t = string
 and type script_attrib_t = string 
 and type input_type_t = string 
 
+module CssText : ELIOMREGSIG with type page = string
+
+module Text : ELIOMREGSIG with type page = string * string
+(** The first string is the content, the second is the content type,
+ for example "text/html" *)
 
 module Actions : ELIOMREGSIG with 
   type page = exn list

@@ -236,11 +236,8 @@ let create_xhtml_sender ?server_name ?proto fd =
      ("Expires", "0")
    ]@hd
   in
-  match proto with
-  |None ->
-      Xhtml_sender.create ~headers:hd2 fd
-  |Some p -> 
-      Xhtml_sender.create ~headers:hd2 ~proto:p fd
+  Http_com.create_sender ~headers:hd2 ?proto:proto fd
+
 
 (** fonction that creates a sender with empty content
 server_name is the name of the server sent in the HTTP header
@@ -258,11 +255,8 @@ let create_empty_sender ?server_name ?proto fd =
       ("Cache-Control","no-cache")
     ]@hd
   in
-  match proto with
-  |None ->
-      Empty_sender.create ~headers:hd2 fd
-  |Some p -> 
-      Empty_sender.create ~headers:hd2 ~proto:p fd
+  Http_com.create_sender ~headers:hd2 ?proto:proto fd
+
 
 let gmtdate d =  
         let x = Netdate.mk_mail_date ~zone:0 d in try
@@ -397,11 +391,12 @@ let send_empty ~content ?cookies waiter ?code ?etag ~keep_alive
     (*~contenttype:? ~charset:?*) ~content
     ?head empty_sender Empty_sender.send
 
-let send_text_page ~content ?cookies waiter ?code ?etag ~keep_alive
+let send_text_page ?contenttype
+    ~content ?cookies waiter ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?charset xhtml_sender =
   send_generic waiter
     ?etag ?code ?cookies ~keep_alive ?location ?last_modified
-    (*~contenttype:? ~charset:?*) ~content ?head xhtml_sender Text_sender.send
+    ?contenttype ?charset ~content ?head xhtml_sender Text_sender.send
   
   
 
@@ -453,11 +448,8 @@ let create_file_sender ?server_name ?proto fd =
       ("Accept-Ranges","none")
     ]@hd
   in
-  match proto with
-  |None -> 
-      File_sender.create ~headers:hd2 fd
-  |Some p ->
-      File_sender.create ~headers:hd2 ~proto:p fd
+  Http_com.create_sender ~headers:hd2 ?proto:proto fd
+
 
 let mimeht = Hashtbl.create 600
 

@@ -85,7 +85,6 @@ let send_ocamlduce_page ~content ?cookies waiter ?code ?etag ~keep_alive
     ~content ?head xhtml_sender Ocamlduce_sender.send
 
 
-
 module Xhtmlreg_ = struct
 
   type page = html
@@ -250,3 +249,102 @@ module Xhtml = struct
   include Xhtmlreg
   include Xhtmlforms
 end
+
+
+(****************************************************************************)
+(****************************************************************************)
+
+module Xml =
+  (struct
+    module Cont_content =
+      struct
+        type t = Ocamlduce.Load.anyxml
+
+        let get_etag_aux x =
+          Digest.to_hex (Digest.string x)
+
+        let print x =
+          let b = Buffer.create 256 in
+          Ocamlduce.Print.print_xml (Buffer.add_string b) x;
+          Buffer.contents b
+
+        let get_etag c =
+          let x = print c in
+          get_etag_aux x
+
+        let stream_of_content c = 
+          let x = print c in
+          let md5 = get_etag_aux x in
+          Lwt.return (Int64.of_int (String.length x), 
+                      md5, 
+                      (new_stream x 
+                         (fun () -> Lwt.return (empty_stream None))),
+                      Ocsimisc.id
+                     )
+
+            (*il n'y a pas encore de parser pour ce type*)
+        let content_of_stream s = assert false
+
+      end
+        
+    module Cont_sender = FHttp_sender(Cont_content)
+        
+    let send_cont_page
+        ~content ?cookies waiter ?code ?etag ~keep_alive
+        ?last_modified ?location ?head ?charset cont_sender =
+      Predefined_senders.send_generic waiter ?etag
+        ?code ~keep_alive ?cookies ?location ?last_modified
+        ~contenttype:"text/html"
+        ?charset
+        ~content 
+        ?head cont_sender Cont_sender.send
+        
+    module Contreg_ = struct
+      open XHTML.M
+      open Xhtmltypes
+        
+      type page = Ocamlduce.Load.anyxml
+            
+      let send ?(cookies=[]) ?charset sp content = 
+        Eliommod.EliomResult 
+          {res_cookies= cookies;
+           res_lastmodified= None;
+           res_etag= None;
+           res_code= None;
+           res_send_page= send_cont_page ~content:content;
+           res_create_sender= Predefined_senders.create_xhtml_sender;
+           res_charset= match charset with
+             None -> Eliom.get_config_file_charset sp
+           | _ -> charset
+         }
+          
+    end
+        
+    module Contreg = Eliom.MakeRegister(Contreg_)
+
+    include Xhtmlforms
+    include Contreg
+
+  end : sig
+
+  include Eliom.ELIOMREGSIG with type page = Ocamlduce.Load.anyxml
+  include Eliom.ELIOMFORMSIG
+
+end)
+
+module Blocks = Xml 
+
+(*
+: sig
+
+  include Eliom.ELIOMREGSIG with type page = {{ blocks }}
+  include Eliom.ELIOMFORMSIG
+
+end *)
+
+(*
+
++ faire un foncteur SubXhtml
+
+*)
+

@@ -155,3 +155,8 @@ val xh_print :
     ?width:int ->
       ?encode:(string -> string) ->
         ename list -> ename list -> string -> elt -> string
+
+val x_print :
+    ?width:int ->
+      ?encode:(string -> string) ->
+        ename list -> ename list -> string -> elt list -> string

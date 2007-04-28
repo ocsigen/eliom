@@ -88,7 +88,7 @@ let rec amap f = function
 
 let rec add_int_attrib name value = function
   | [] -> [AInt (name, value)]
-  | AInt (name', _) as head :: tail when name' = name ->
+  | AInt (name', _) :: tail when name' = name ->
       AInt (name, value) :: tail
   | head :: tail -> head :: add_int_attrib name value tail
 
@@ -446,203 +446,223 @@ See http://www.ocsigen.org and http://caml.inria.fr for informations -->"
 let id x = x
 
 (* My own pretty_printer, that handles inline tags properly *)
-let xh_print ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags doctype arbre  = 
+let x_print, xh_print = 
 
-  let rec xh_print_attrs encode attrs = match attrs with
-    [] ->  ();
-  | attr::queue -> 
-      pp_print_string xh_string (" "^(attrib_to_string encode attr));
-      xh_print_attrs encode queue
-
-  and xh_print_text texte i is_first = 
-    pp_print_string xh_string texte
-
-  and xh_print_closedtag encode tag attrs i is_first =  pp_open_tbox xh_string ();
-    if (i > 0) || is_first then 
-      pp_force_newline xh_string ();
-    if ((i > 0) || is_first) then
-      pp_print_tbreak xh_string (taille_tab*i) 0;
-    pp_print_string xh_string ("<"^tag);
-    xh_print_attrs encode attrs;
-    pp_print_string xh_string "/>";
-    pp_close_tbox xh_string ();
-
-  and xh_print_inlinetag encode tag attrs taglist i is_first = 
-    pp_print_string xh_string ("<"^tag);
-    xh_print_attrs encode attrs;
-    pp_print_string xh_string ">";
-    xh_print_taglist taglist 0 false false;
-    pp_print_string xh_string ("</"^tag^">")
-      
-  and xh_print_blocktag encode tag attrs taglist i = 
-    if taglist = [] 
-    then xh_print_closedtag encode tag attrs i true
-    else begin
-      pp_open_tbox xh_string ();
-      pp_force_newline xh_string ();
-      if i > 0 then
+  let aux ~width ~encode blocktags semiblocktags doctype arbre =
+    let rec xh_print_attrs encode attrs = match attrs with
+      [] ->  ();
+    | attr::queue -> 
+        pp_print_string xh_string (" "^(attrib_to_string encode attr));
+        xh_print_attrs encode queue
+          
+    and xh_print_text texte i is_first = 
+      pp_print_string xh_string texte
+        
+    and xh_print_closedtag encode tag attrs i is_first =  pp_open_tbox xh_string ();
+      if (i > 0) || is_first then 
+        pp_force_newline xh_string ();
+      if ((i > 0) || is_first) then
         pp_print_tbreak xh_string (taille_tab*i) 0;
       pp_print_string xh_string ("<"^tag);
       xh_print_attrs encode attrs;
-      pp_print_string xh_string ">";
-      
-      xh_print_taglist_removews taglist (i+1) true;
-      
-      pp_force_newline xh_string ();
-      if i > 0 then
-        pp_print_tbreak xh_string (taille_tab*i) 0;
-      pp_print_string xh_string ("</"^tag^">");
-      pp_close_tbox xh_string ()
-    end
-
-  and xh_print_semiblocktag encode tag attrs taglist i = 
-    (* New line before and after but not inside, for ex for <pre> *)
-    if taglist = []
-    then xh_print_closedtag encode tag attrs i true
-    else begin
-      pp_open_tbox xh_string ();
-      pp_force_newline xh_string ();
-      if i > 0 then
-        pp_print_tbreak xh_string (taille_tab*i) 0;
-      pp_print_string xh_string ("<"^tag);
-      xh_print_attrs encode attrs;
-      pp_print_string xh_string ">";
-      
-      xh_print_taglist taglist 0 false false;
-
-      pp_print_string xh_string ("</"^tag^">");
-      pp_close_tbox xh_string ()
-    end
-
-  and xh_print_taglist_removews taglist i is_first = 
-    match taglist with
-      (Whitespace s)::l -> xh_print_taglist_removews l i is_first
-    | l -> xh_print_taglist l i is_first true
-
-
-  and print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws =
-    if xh_taglist = []
-    then begin
-      xh_print_closedtag encode name xh_attrs i is_first;
-      xh_print_taglist queue i false removetailingws
-    end
-    else begin
-      if (List.mem name blocktags)
-      then xh_print_blocktag encode name xh_attrs xh_taglist i
-      else 
-        (if (List.mem name semiblocktags)
-        then xh_print_semiblocktag encode name xh_attrs xh_taglist i
-        else begin
-          xh_print_text (encode ws1) i is_first;
-          xh_print_inlinetag encode name xh_attrs xh_taglist i is_first;
-          xh_print_text (encode ws2) i is_first;
-        end);
-      xh_print_taglist queue i false removetailingws
-    end
-
-  and xh_print_taglist taglist i is_first removetailingws = match taglist with 
-    
-    [] -> pp_open_tbox xh_string ();
+      pp_print_string xh_string "/>";
       pp_close_tbox xh_string ();
+      
+    and xh_print_inlinetag encode tag attrs taglist i is_first = 
+      pp_print_string xh_string ("<"^tag);
+      xh_print_attrs encode attrs;
+      pp_print_string xh_string ">";
+      xh_print_taglist taglist 0 false false;
+      pp_print_string xh_string ("</"^tag^">")
+        
+    and xh_print_blocktag encode tag attrs taglist i = 
+      if taglist = [] 
+      then xh_print_closedtag encode tag attrs i true
+      else begin
+        pp_open_tbox xh_string ();
+        pp_force_newline xh_string ();
+        if i > 0 then
+          pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_string xh_string ("<"^tag);
+        xh_print_attrs encode attrs;
+        pp_print_string xh_string ">";
+        
+        xh_print_taglist_removews taglist (i+1) true;
+        
+        pp_force_newline xh_string ();
+        if i > 0 then
+          pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_string xh_string ("</"^tag^">");
+        pp_close_tbox xh_string ()
+      end
 
-  | (Comment texte)::queue ->
-      xh_print_text ("<!--"^(encode texte)^"-->") i is_first;
-      xh_print_taglist queue i false removetailingws;
+    and xh_print_semiblocktag encode tag attrs taglist i = 
+      (* New line before and after but not inside, for ex for <pre> *)
+      if taglist = []
+      then xh_print_closedtag encode tag attrs i true
+      else begin
+        pp_open_tbox xh_string ();
+        pp_force_newline xh_string ();
+        if i > 0 then
+          pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_string xh_string ("<"^tag);
+        xh_print_attrs encode attrs;
+        pp_print_string xh_string ">";
+        
+        xh_print_taglist taglist 0 false false;
 
-  | (Entity e)::queue ->
-      xh_print_text ("&"^e^";") i is_first; (* no encoding *)
-      xh_print_taglist queue i false removetailingws;
+        pp_print_string xh_string ("</"^tag^">");
+        pp_close_tbox xh_string ()
+      end
 
-  | (PCDATA texte)::queue ->
-      xh_print_text (encode texte) i is_first;
-      xh_print_taglist queue i false removetailingws;
-
-  | (EncodedPCDATA texte)::queue ->
-      xh_print_text texte i is_first;
-      xh_print_taglist queue i false removetailingws;
-
-  | (Whitespace _)::(Element ("hr",xh_attrs,[]))::(Whitespace _)::queue
-  | (Element ("hr",xh_attrs,[]))::(Whitespace _)::queue
-  | (Whitespace _)::(Element ("hr",xh_attrs,[]))::queue
-  | (Element ("hr",xh_attrs,[]))::queue ->
-      xh_print_closedtag id "hr" xh_attrs i is_first;
-      xh_print_taglist queue i false removetailingws;
-
-  | (Element (name, xh_attrs, []))::queue ->
-      xh_print_closedtag id name xh_attrs i is_first;
-      xh_print_taglist queue i false removetailingws;
-
-      (* Balises de presentation, type inline *)
-  | (Element (name, xh_attrs, xh_taglist))::queue ->
-      xh_print_inlinetag id name xh_attrs xh_taglist i is_first;
-      xh_print_taglist queue i false removetailingws;
-
-      (* Balises de type block *)
-  | (Whitespace _)::(BlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-  | (BlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-  | (Whitespace _)::(BlockElement (name,xh_attrs,xh_taglist))::queue
-  | (BlockElement (name,xh_attrs,xh_taglist))::queue ->
-      xh_print_blocktag id name xh_attrs xh_taglist i;
-      xh_print_taglist queue i false removetailingws;
-
-      (* Balises de type "semi block", for ex <pre> *)
-  | (Whitespace _)::(SemiBlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-  | (SemiBlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-  | (Whitespace _)::(SemiBlockElement (name,xh_attrs,xh_taglist))::queue
-  | (SemiBlockElement (name,xh_attrs,xh_taglist))::queue ->
-      xh_print_semiblocktag id name xh_attrs xh_taglist i;
-      xh_print_taglist queue i false removetailingws;
-
-      (* Nodes and Leafs *)
-  | (Whitespace ws1)::(Node (name,xh_attrs,xh_taglist))::(Whitespace ws2)::queue ->
-      print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws
-
-  | (Node (name,xh_attrs,xh_taglist))::(Whitespace ws2)::queue ->
-      print_nodes "" name xh_attrs xh_taglist ws2 queue i is_first removetailingws
-
-  | (Whitespace ws1)::(Node (name,xh_attrs,xh_taglist))::queue ->
-      print_nodes ws1 name xh_attrs xh_taglist "" queue i is_first removetailingws
-
-  | (Node (name,xh_attrs,xh_taglist))::queue ->
-      print_nodes "" name xh_attrs xh_taglist "" queue i is_first removetailingws
-
-  | (Whitespace ws1)::(Leaf (name,xh_attrs))::(Whitespace ws2)::queue ->
-      print_nodes ws1 name xh_attrs [] ws2 queue i is_first removetailingws
-
-  | (Leaf (name,xh_attrs))::(Whitespace ws2)::queue ->
-      print_nodes "" name xh_attrs [] ws2 queue i is_first removetailingws
-
-  | (Whitespace ws1)::(Leaf (name,xh_attrs))::queue ->
-      print_nodes ws1 name xh_attrs [] "" queue i is_first removetailingws
-
-  | (Leaf (name,xh_attrs))::queue ->
-      print_nodes "" name xh_attrs [] "" queue i is_first removetailingws
-
-        (* Whitespaces *)
-  | (Whitespace(texte))::queue ->
-      xh_print_text (encode texte) i is_first;
-      xh_print_taglist queue i false removetailingws
-
-  | Empty::queue ->
-      xh_print_taglist queue i false removetailingws
+    and xh_print_taglist_removews taglist i is_first = 
+      match taglist with
+        (Whitespace s)::l -> xh_print_taglist_removews l i is_first
+      | l -> xh_print_taglist l i is_first true
 
 
+    and print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws =
+      if xh_taglist = []
+      then begin
+        xh_print_closedtag encode name xh_attrs i is_first;
+        xh_print_taglist queue i false removetailingws
+      end
+      else begin
+        if (List.mem name blocktags)
+        then xh_print_blocktag encode name xh_attrs xh_taglist i
+        else 
+          (if (List.mem name semiblocktags)
+          then xh_print_semiblocktag encode name xh_attrs xh_taglist i
+          else begin
+            xh_print_text (encode ws1) i is_first;
+            xh_print_inlinetag encode name xh_attrs xh_taglist i is_first;
+            xh_print_text (encode ws2) i is_first;
+          end);
+        xh_print_taglist queue i false removetailingws
+      end
 
+    and xh_print_taglist taglist i is_first removetailingws = match taglist with 
+      
+      [] -> pp_open_tbox xh_string ();
+        pp_close_tbox xh_string ();
+
+    | (Comment texte)::queue ->
+        xh_print_text ("<!--"^(encode texte)^"-->") i is_first;
+        xh_print_taglist queue i false removetailingws;
+
+    | (Entity e)::queue ->
+        xh_print_text ("&"^e^";") i is_first; (* no encoding *)
+        xh_print_taglist queue i false removetailingws;
+
+    | (PCDATA texte)::queue ->
+        xh_print_text (encode texte) i is_first;
+        xh_print_taglist queue i false removetailingws;
+
+    | (EncodedPCDATA texte)::queue ->
+        xh_print_text texte i is_first;
+        xh_print_taglist queue i false removetailingws;
+
+    | (Whitespace _)::(Element ("hr",xh_attrs,[]))::(Whitespace _)::queue
+    | (Element ("hr",xh_attrs,[]))::(Whitespace _)::queue
+    | (Whitespace _)::(Element ("hr",xh_attrs,[]))::queue
+    | (Element ("hr",xh_attrs,[]))::queue ->
+        xh_print_closedtag id "hr" xh_attrs i is_first;
+        xh_print_taglist queue i false removetailingws;
+
+    | (Element (name, xh_attrs, []))::queue ->
+        xh_print_closedtag id name xh_attrs i is_first;
+        xh_print_taglist queue i false removetailingws;
+
+        (* Balises de presentation, type inline *)
+    | (Element (name, xh_attrs, xh_taglist))::queue ->
+        xh_print_inlinetag id name xh_attrs xh_taglist i is_first;
+        xh_print_taglist queue i false removetailingws;
+
+        (* Balises de type block *)
+    | (Whitespace _)::(BlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
+    | (BlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
+    | (Whitespace _)::(BlockElement (name,xh_attrs,xh_taglist))::queue
+    | (BlockElement (name,xh_attrs,xh_taglist))::queue ->
+        xh_print_blocktag id name xh_attrs xh_taglist i;
+        xh_print_taglist queue i false removetailingws;
+
+        (* Balises de type "semi block", for ex <pre> *)
+    | (Whitespace _)::(SemiBlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
+    | (SemiBlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
+    | (Whitespace _)::(SemiBlockElement (name,xh_attrs,xh_taglist))::queue
+    | (SemiBlockElement (name,xh_attrs,xh_taglist))::queue ->
+        xh_print_semiblocktag id name xh_attrs xh_taglist i;
+        xh_print_taglist queue i false removetailingws;
+
+        (* Nodes and Leafs *)
+    | (Whitespace ws1)::(Node (name,xh_attrs,xh_taglist))::(Whitespace ws2)::queue ->
+        print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws
+
+    | (Node (name,xh_attrs,xh_taglist))::(Whitespace ws2)::queue ->
+        print_nodes "" name xh_attrs xh_taglist ws2 queue i is_first removetailingws
+
+    | (Whitespace ws1)::(Node (name,xh_attrs,xh_taglist))::queue ->
+        print_nodes ws1 name xh_attrs xh_taglist "" queue i is_first removetailingws
+
+    | (Node (name,xh_attrs,xh_taglist))::queue ->
+        print_nodes "" name xh_attrs xh_taglist "" queue i is_first removetailingws
+
+    | (Whitespace ws1)::(Leaf (name,xh_attrs))::(Whitespace ws2)::queue ->
+        print_nodes ws1 name xh_attrs [] ws2 queue i is_first removetailingws
+
+    | (Leaf (name,xh_attrs))::(Whitespace ws2)::queue ->
+        print_nodes "" name xh_attrs [] ws2 queue i is_first removetailingws
+
+    | (Whitespace ws1)::(Leaf (name,xh_attrs))::queue ->
+        print_nodes ws1 name xh_attrs [] "" queue i is_first removetailingws
+
+    | (Leaf (name,xh_attrs))::queue ->
+        print_nodes "" name xh_attrs [] "" queue i is_first removetailingws
+
+          (* Whitespaces *)
+    | (Whitespace(texte))::queue ->
+        xh_print_text (encode texte) i is_first;
+        xh_print_taglist queue i false removetailingws
+
+    | Empty::queue ->
+        xh_print_taglist queue i false removetailingws
+
+
+
+    in
+    xh_print_taglist [arbre] 0 true false
   in
-  pp_set_margin str_formatter width;
-  pp_open_tbox xh_string ();
-(*  pp_print_string xh_string xh_topxml; Does not work with IE ...
-  pp_force_newline xh_string (); *)
-  pp_print_string xh_string doctype;
-  pp_force_newline xh_string ();
+  ((fun ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags
+      doctype foret ->
+        
+        pp_set_margin str_formatter width;
 
-  pp_print_string xh_string ocsigenadv;
-  pp_force_newline xh_string ();
-  
-  xh_print_taglist [arbre] 0 true false;
-  
-  pp_force_newline xh_string ();
-  pp_close_tbox xh_string ();
-  
-  flush_str_formatter ()
+        pp_open_tbox xh_string ();
+        
+        List.iter (aux ?width ?encode blocktags semiblocktags doctype) foret;
+          
+        pp_force_newline xh_string ();
+        pp_close_tbox xh_string ();
+        
+        flush_str_formatter ()),
+
+   (fun ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags
+       doctype arbre ->
+         
+         pp_set_margin str_formatter width;
+         pp_open_tbox xh_string ();
+(*  pp_print_string xh_string xh_topxml; Does not work with IE ...
+   pp_force_newline xh_string (); *)
+         pp_print_string xh_string doctype;
+         pp_force_newline xh_string ();
+         
+         pp_print_string xh_string ocsigenadv;
+         pp_force_newline xh_string ();
+         
+         aux ?width ?encode blocktags semiblocktags doctype arbre;
+           
+         pp_force_newline xh_string ();
+         pp_close_tbox xh_string ();
+         
+         flush_str_formatter ()))
 

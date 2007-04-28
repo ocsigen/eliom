@@ -10,7 +10,7 @@ findlib (ocamlfind)
 pcre-ocaml
 ocamlnet >= 1.1.2 (actually only module netstring, netsys, pcre) 
 ocamlssl >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)
-the dbm database (for example gdbm)
+the dbm database (for example gdbm) with headers (libgdbm-dev package for ex)
 
 If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer, 
 you can use GODI to install them automatically.
@@ -25,6 +25,9 @@ Run
 
 Print the list of possible options using:
 ./configure --help
+
+(For example if you have an old version of ocamlnet (< 2.0) you need
+--disable-newocamlnet)
 
 Verify that Makefile.config is OK 
 (for ex if you use Ocamlnet 1, you'll need to change an option)
@@ -61,6 +64,8 @@ http://localhost
 If you did not do make install, you can run for example
  server/ocsigen -c ocsigen.conf.local
 that launch a server on port 8080 with user rights on local directory
+(ocsigen.conf.local is a sample that may be overwritten by make. 
+Copy it if you want to modify it)
 
 If it does not work, look at the logs or run ocsigen with options -v or -V
 (verbose and debug mode)

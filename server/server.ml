@@ -997,7 +997,9 @@ let reload _ =
           
           Extensions.end_initialisation ();
         end
-  with e -> errlog (fst (errmsg e)));
+  with e -> 
+    Extensions.end_initialisation ();
+    errlog (fst (errmsg e)));
   
   warning "Config file reloaded"
     

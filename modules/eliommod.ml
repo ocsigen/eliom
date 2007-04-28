@@ -1682,9 +1682,9 @@ let _ = register_extension
         with Not_found ->
           let n = new_pages_tree () in
           add hostpattern n;
+          session_gc n;
           n
       in
-      session_gc page_tree;
       (gen page_tree, 
        parse_config page_tree)),
      start_init,

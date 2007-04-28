@@ -47,7 +47,7 @@ val send_file : content: string -> send_page_type
 val send_empty : content: unit -> send_page_type
 
 (** Sending a text page *)
-val send_text_page : content:string -> send_page_type
+val send_text_page : ?contenttype: string -> content:string -> send_page_type
 
 (** Creating an xhtml (or text) sender *)
 val create_xhtml_sender : create_sender_type
@@ -170,10 +170,6 @@ module Empty_sender :
     type t = Http_com.sender_type
     val really_write :
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val create :
-      ?mode:Http_frame.Http_header.http_mode ->
-      ?headers:(string * string) list ->
-      ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
     val change_protocol : string -> Http_com.sender_type -> unit
     val change_headers :
       (string * string) list -> Http_com.sender_type -> unit
@@ -264,10 +260,6 @@ module Xhtml_sender :
     type t = Http_com.sender_type
     val really_write :
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val create :
-      ?mode:Http_frame.Http_header.http_mode ->
-      ?headers:(string * string) list ->
-      ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
     val change_protocol : string -> Http_com.sender_type -> unit
     val change_headers :
       (string * string) list -> Http_com.sender_type -> unit
@@ -368,10 +360,6 @@ module Text_sender :
     type t = Http_com.sender_type
     val really_write :
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val create :
-      ?mode:Http_frame.Http_header.http_mode ->
-      ?headers:(string * string) list ->
-      ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
     val change_protocol : string -> Http_com.sender_type -> unit
     val change_headers :
       (string * string) list -> Http_com.sender_type -> unit
@@ -520,10 +508,6 @@ module File_sender :
     type t = Http_com.sender_type
     val really_write :
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val create :
-      ?mode:Http_frame.Http_header.http_mode ->
-      ?headers:(string * string) list ->
-      ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
     val change_protocol : string -> Http_com.sender_type -> unit
     val change_headers :
       (string * string) list -> Http_com.sender_type -> unit

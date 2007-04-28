@@ -222,9 +222,9 @@ let coucou1 =
               &lt;body&gt; [&lt;h1&gt; <span style="color:#aa4444">"This page has been type checked by OcamlDuce"</span>]] }}) </pre>
       </div>
       <div class="encadre">
-        <h3>Eliom.Text</h3>
+        <h3>Eliom.HtmlText</h3>
         <p>If you want to register untyped (text) pages, use the
-         functions from <code>Eliom.Text</code>, for example
+         functions from <code>Eliom.HtmlText</code>, for example
          <code>Eliom.Text.register_new_service</code>.
         </p>
       </div>
@@ -697,13 +697,23 @@ let form4 = register_new_service ["form4"] unit
         checked statically using polymorphic variant types. You may use
         constructor functions from <code>XHTML.M</code> or a syntax
         extension close to the standard xhtml syntax.</dd>
-          <dt>Eliomduce.Xhtml</dt><dd>allows to register functions 
+        <dt>Eliom.Blocks</dt><dd>allows to register functions that 
+        generate a portion of page (content of body tag) using
+        <code>XHTML.M</code> or the syntax extension.
+        (usefull for <code>XMLHttpRequest</code> requests for example).
+        </dd>
+        <dt>Eliomduce.Xhtml</dt><dd>allows to register functions 
             that generate xhtml pages 
         checked statically using <code>Ocamlduce</code>. Typing is more
         strict, but you need a modified version of the OCaml compiler 
         (Ocamlduce).</dd>
-        <dt>Eliom.Text</dt><dd>Allows to register functions that
-        generate text pages, without any typechecking of the content.
+        <dt>Eliom.HtmlText</dt><dd>Allows to register functions that
+        generate text html pages, without any typechecking of the content.
+        The content type sent by the server is "text/html".
+        </dd>
+        <dt>Eliom.CssText</dt><dd>Allows to register functions that
+        generate CSS pages, without any typechecking of the content.
+        The content type sent by the server is "text/css".
         </dd>
         <dt>Eliom.Actions</dt><dd>allows to register actions, that is
         functions that do not generate any page. The URL is reloaded after
@@ -717,6 +727,11 @@ let form4 = register_new_service ["form4"] unit
         </dd>
         <dt>Eliom.Any</dt><dd>allows to register services that can choose
             what they send
+        </dd>
+        <dt>Eliom.Text</dt><dd>Allows to register functions that
+        generate text pages, without any typechecking of the content.
+        The services return a pair of strings. The first one is the content
+        of the page, the second one is the content type.
         </dd>
       </dl>
    
@@ -1444,6 +1459,33 @@ let _ = Actions.register
       <p>
       See this example $a Tutoeliom.action_session2 sp <:xmllist< here >> ()$.
       </p>
+    <h3>Sending portions of pages</h3>
+    <p>
+     The <code>Blocks</code> module allows to register services that
+     send portions of pages, of any type that may be contained directly in
+     a <code>$lt;body$gt;</code> tag (blocks of xhtml DTD). 
+     It is usefull to create AJAX pages
+     (i.e. pages using the <code>XMLHttpRequest</code> Javascript object).
+     Note that the service returns a list.
+*html*)
+let _ = 
+  Blocks.register_new_service 
+    ~url:["div"]
+    ~get_params:unit
+    (fun sp () () -> 
+      return 
+        [div [h2 [pcdata "Hallo"];
+              p [pcdata "Blablablabla"] ]])
+(*html*
+     The <code>SubXhtml</code> module allows to create other modules for
+     registering portions of pages. For example, <code>Blocks</code>
+     is defined by:</p>
+<pre>
+module Blocks = SubXhtml(struct
+  type content = Xhtmltypes.body_content
+end)
+</pre>
+
     <h3>Redirections</h3>
     <p>
      The <code>Redirections</code> module allows to register HTTP redirections.
@@ -1505,7 +1547,7 @@ let sendany =
                                will get an unchecked text page"]])))
      else 
        return
-         (Text.send sp "<html><body><p>It is not a valid page. Put \
+         (HtmlText.send sp "<html><body><p>It is not a valid page. Put \
                      type=\"valid\" in the URL to get a typechecked page.\
                      </p></body></html>")
    )
@@ -2347,11 +2389,11 @@ let form_bool = register_new_service ["formbool"] unit
 
 (* Other Eliom module: *)
 let coucoutext = 
-  Eliom.Text.register_new_service 
+  Eliom.HtmlText.register_new_service 
     ~url:["coucoutext"]
     ~get_params:unit
     (fun sp () () -> return
-      ("<html>n'importe quoi "^(Eliom.Text.a coucou sp "clic" ())^"</html>"))
+      ("<html>n'importe quoi "^(Eliom.HtmlText.a coucou sp "clic" ())^"</html>"))
 
 
 (* Fin À AJOUTER *)

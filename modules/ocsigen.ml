@@ -1698,7 +1698,7 @@ module Textreg_ = struct
   type page = string
 
   let create_sender = Predefined_senders.create_xhtml_sender
-  let send = Predefined_senders.send_text_page
+  let send = Predefined_senders.send_text_page ~contenttype:"text/html"
 
 end
 

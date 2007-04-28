@@ -443,6 +443,17 @@ type sender_type = {
     mutable headers : (string*string) list
   }
 
+
+(** create a new sender *)
+(* That function was in FHttp_sender but it does not depend on C
+   It is easier to use everywhere if we put it here.
+   May be we shall do the same with FHttp_receiver?
+   -- Vincent 27/04/2007 *)
+let create_sender ?(mode=Http_frame.Http_header.Answer) ?(headers=[])
+    ?(proto="HTTP/1.1") fd = 
+  {fd =fd;mode=mode;headers=headers;proto=proto}
+
+
 module FHttp_sender =
   functor(C:Http_frame.HTTP_CONTENT) ->
   struct
@@ -491,11 +502,6 @@ module FHttp_sender =
               fail Connection_reset_by_peer
           | e -> fail e)
 
-
-    (** create a new sender *)
-    let create ?(mode=Http_frame.Http_header.Answer) ?(headers=[])
-    ?(proto="HTTP/1.1") fd = 
-      {fd =fd;mode=mode;headers=headers;proto=proto}
 
     (** changes the protocol *)
     let change_protocol proto sender =

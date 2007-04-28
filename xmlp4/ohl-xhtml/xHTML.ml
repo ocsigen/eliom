@@ -1066,11 +1066,15 @@ module type T =
 *)
 
     val tot : XML.elt -> 'a elt
+    val totl : XML.elt list -> 'a elt list
     val toelt : 'a elt -> XML.elt
     val toeltl : 'a elt list -> XML.elt list
 
     val ocsigen_print : 
         ?width:int -> ?encode:(string -> string) -> [ `Html ] elt -> string
+
+    val ocsigen_xprint : 
+        ?width:int -> ?encode:(string -> string) -> 'a elt list -> string
 
   end
 
@@ -1829,11 +1833,15 @@ module Version =
     let semiblocktags = [ "pre"; "style"; "title" ]
 
     let tot x = x
+    let totl x = x
     let toelt x = x
     let toeltl x = x
 
     let ocsigen_print version ?width ?encode arbre =
       XML.xh_print ?width ?encode blocktags semiblocktags (doctype version) arbre
+
+    let ocsigen_xprint version ?width ?encode foret =
+      XML.x_print ?width ?encode blocktags semiblocktags (doctype version) foret
         
   end    
 
@@ -1847,6 +1855,7 @@ module M_01_00 : T_01_00 =
     let output = M.output xhtml_version
     let pretty_print = M.pretty_print xhtml_version
     let ocsigen_print = M.ocsigen_print xhtml_version
+    let ocsigen_xprint = M.ocsigen_xprint xhtml_version
     let validator_icon () = M.validator_icon xhtml_version
     let all_anchors elt =
       M.all_anchors elt @ XML.all_string_attribs ~is_elt:((=) "a") "name" elt
@@ -1862,6 +1871,7 @@ module M_01_01 : T_01_01 =
     let output = M.output xhtml_version
     let pretty_print = M.pretty_print xhtml_version
     let ocsigen_print = M.ocsigen_print xhtml_version
+    let ocsigen_xprint = M.ocsigen_xprint xhtml_version
     let validator_icon () = M.validator_icon xhtml_version
   end
 
