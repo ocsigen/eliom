@@ -2422,8 +2422,10 @@ let _ = register main
          <title>Eliom Tutorial</title>
        </head>
        <body>
-       <h1>Eliom</h1>
-       <h2>Examples</h2>
+         
+         <h1>$img ~alt:"Ocsigen" ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"]) ()$</h1>
+
+       <h2>Eliom examples</h2>
        <h3>Simple pages</h3>
        <p>
          A simple page: $a coucou sp <:xmllist< coucou >> ()$ <br/>

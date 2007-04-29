@@ -156,6 +156,7 @@ $(OCSIGENNAME).conf.local:
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
 	| sed s%\<\!--\ commandpipe%\<commandpipe%g \
 	| sed s%\</commandpipe\ --%\</commandpipe%g \
+	| sed s%eliom.cma\"/\>%eliom.cma\"\>\<store\ dir=\"$(SRC)/var/lib/ocsipersist\"/\>\<ocsidbm\ name=\"$(SRC)/modules/ocsidbm\"/\>\</extension\>%g \
 	> $(OCSIGENNAME).conf.local
 	cat $(OCSIGENNAME).conf.local \
 	| sed s%[.]cmo%.cmxs%g \
@@ -241,6 +242,7 @@ installwithoutdoc: partialinstall
 	chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
 	chmod a+r $(PREFIX)/$(CONFIGDIR)/mime.types
 	$(INSTALL) -m 644 files/style.css $(PREFIX)/$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/ocsigen5.png $(PREFIX)/$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 examples/nurpawiki/files/style.css $(PREFIX)/$(STATICPAGESDIR)/nurpawiki
 	$(INSTALL) -m 644 examples/nurpawiki/wikidata/* $(PREFIX)/$(DATADIR)/nurpawiki
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
