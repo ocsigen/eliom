@@ -79,7 +79,17 @@ let try_connect sname =
     (fun _ ->
       Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
       let param = [|"ocsidbm"; directory|] in
-      let fils () = Unix.execv ocsidbm param in
+      let fils () = 
+        Unix.dup2 !(snd Messages.error) Unix.stderr; 
+        Unix.close !(snd Messages.error);
+        Unix.close !(snd Messages.access);
+        Unix.close !(snd Messages.warningfile);
+        let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
+        Unix.dup2 devnull Unix.stdout;
+        Unix.close devnull;
+        Unix.close Unix.stdin;        
+        Unix.execv ocsidbm param 
+      in
       let pid = Unix.fork () in
       if pid = 0
       then begin (* double fork *)
@@ -91,13 +101,14 @@ let try_connect sname =
         else exit 0
       end
       else 
-      Lwt_unix.sleep 1.1 >>= 
-        (fun () -> 
-          Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
-          (fun socket ->
-            Lwt_unix.connect 
-              (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname) >>=
-            (fun () -> return (Lwt_unix.Plain socket)))))
+        Lwt_unix.waitpid [] pid >>=
+        (fun _ -> Lwt_unix.sleep 1.1 >>= 
+          (fun () -> 
+            Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
+            (fun socket ->
+              Lwt_unix.connect 
+                (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname) >>=
+              (fun () -> return (Lwt_unix.Plain socket))))))
     
 let indescr =
   (catch

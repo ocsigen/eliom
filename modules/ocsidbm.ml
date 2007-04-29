@@ -24,7 +24,7 @@
 open Dbm
 open Ocsidbmtypes
 open Lwt
-open Messages
+
 
 let directory = Sys.argv.(1)
 
@@ -33,9 +33,27 @@ exception Ocsidbm_error
 let socketname = "socket"
 let suffix = ".otbl"
 
+(*****************************************************************************)
+(* error messages *)
+let errlog s =
+  let date = 
+    let t = Unix.localtime (Unix.time ()) in
+    Printf.sprintf 
+      "%02d-%02d-%04d %02d:%02d:%02d" 
+      t.Unix.tm_mday 
+      (t.Unix.tm_mon + 1)
+      (1900 + t.Unix.tm_year)
+      t.Unix.tm_hour
+      t.Unix.tm_min
+      t.Unix.tm_sec 
+  in
+  let s = date^" Ocsidbm - "^s^"\n" in
+  prerr_endline s
 
 (*****************************************************************************)
 (** Internal functions: storage in files using DBM *)
+
+let _ = errlog "essai"
 
 module Tableoftables = Map.Make(struct 
   type t = string
@@ -79,9 +97,9 @@ let open_db_if_exists name =
 
 (* open all files and register them in the table of tables *)
 (*
-let _ = List.iter (fun a -> 
-  try ignore (open_db a)
-  with _ -> prerr_endline ("Error while openning database "^a)) 
+   let _ = List.iter (fun a -> 
+   try ignore (open_db a)
+   with _ -> errlog ("Error while openning database "^a)) 
     (list_tables ())
 à remettre ? *)
 
@@ -215,13 +233,14 @@ let _ = Lwt_unix.run
      (fun socket ->
        (try
          Unix.bind socket (Unix.ADDR_UNIX (directory^"/"^socketname))
-       with _ -> prerr_endline ("Ocsidbm error: please make sure that no other ocsidbm process is running on the same directory. If not, remove the file "^(directory^"/"^socketname)); the_end 1);
+       with _ -> errlog ("Ocsidbm error: please make sure that no other ocsidbm process is running on the same directory. If not, remove the file "^(directory^"/"^socketname)); the_end 1);
        Unix.listen socket 20;
-       let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
+(* Done in ocsipersist.ml      
+   let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
        Unix.dup2 devnull Unix.stdout;
        Unix.dup2 devnull Unix.stderr;
        Unix.close devnull;
-       Unix.close Unix.stdin;
+       Unix.close Unix.stdin; *)
        ignore (Lwt_unix.sleep 4.1 >>=
          (fun () -> if not !b then close_all 0 (); return ()));
        (* If nothing happened during 5 seconds, I quit *)

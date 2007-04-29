@@ -19,7 +19,7 @@
 (** Writing messages in the logs*)
 
 let access = "access.log",ref Unix.stdout
-let warning = "warnings.log",ref Unix.stderr
+let warningfile = "warnings.log",ref Unix.stderr
 let error = "errors.log",ref Unix.stderr
 
 (* Several processes will access the same files, but if I am right,
@@ -36,14 +36,17 @@ let open_files =
     if !opened
     then begin
       Unix.close !(snd access);
-      Unix.close !(snd warning);
+      Unix.close !(snd warningfile);
       Unix.close !(snd error)
     end;
     opened := true;
     snd access := openlog (fst access);
-    snd warning := openlog (fst warning);
-    snd error := openlog (fst error)
-
+    snd warningfile := openlog (fst warningfile);
+    snd error := openlog (fst error);
+    Unix.set_close_on_exec !(snd access);
+    Unix.set_close_on_exec !(snd warningfile);
+    Unix.set_close_on_exec !(snd error)
+        
 let log_aux file console_print s =
   let date = 
     let t = Unix.localtime (Unix.time ()) in
@@ -72,7 +75,7 @@ let errlog s =
   log_aux error (not (Ocsiconfig.get_silent ())) s
 
 let warning s =
-  log_aux warning (Ocsiconfig.get_verbose ()) s
+  log_aux warningfile (Ocsiconfig.get_verbose ()) s
 
 (*
 let lwtlog = 
