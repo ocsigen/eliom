@@ -760,7 +760,8 @@ let form4 = register_new_service ["form4"] unit
         <li>Main services cannot be registered in the public table
          after the initialisation phase. Coservices (attached and non-attached)
          may be registered in the public table after initialisation with
-         <code>register_public</code>.
+         <code>register_public</code> (think about putting a timeout
+         for such coservices).
         </li>
         <li>Do not register twice the same service in the public table, 
           and do not replace a service
@@ -1463,10 +1464,10 @@ let _ = Actions.register
     <p>
      The <code>Blocks</code> module allows to register services that
      send portions of pages, of any type that may be contained directly in
-     a <code>$lt;body$gt;</code> tag (blocks of xhtml DTD). 
+     a <code>&lt;body&gt;</code> tag (blocks of xhtml DTD). 
      It is usefull to create AJAX pages
      (i.e. pages using the <code>XMLHttpRequest</code> Javascript object).
-     Note that the service returns a list.
+     Note that the service returns a list.</p>
 *html*)
 let _ = 
   Blocks.register_new_service 
@@ -1477,6 +1478,7 @@ let _ =
         [div [h2 [pcdata "Hallo"];
               p [pcdata "Blablablabla"] ]])
 (*html*
+     <p>
      The <code>SubXhtml</code> module allows to create other modules for
      registering portions of pages. For example, <code>Blocks</code>
      is defined by:</p>

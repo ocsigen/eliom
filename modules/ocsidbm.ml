@@ -51,6 +51,9 @@ let list_tables () =
       let n = Unix.readdir d in
       if Filename.check_suffix n suffix
       then (Filename.chop_extension n)::(aux ())
+      else if Filename.check_suffix n (suffix^".pag") 
+(* depending on the version of dbm, there may be a .pag suffix *)
+      then (Filename.chop_extension (Filename.chop_extension n))::(aux ())
       else aux ()
     with End_of_file -> Unix.closedir d; []
   in aux ()
@@ -60,39 +63,55 @@ let _ =
   try
     Unix.access directory [Unix.R_OK; Unix.W_OK; Unix.X_OK; Unix.F_OK]
   with
-  | Unix.Unix_error (Unix.ENOENT, _, _) -> Unix.mkdir directory 0o700
+  | Unix.Unix_error (Unix.ENOENT, _, _) -> Unix.mkdir directory 0o750
 
 let open_db name =
-  let t = opendbm (directory^"/"^name^suffix) [Dbm_rdwr; Dbm_create] 0o644 in
+  let t = opendbm (directory^"/"^name^suffix) [Dbm_rdwr; Dbm_create] 0o640 in
   tableoftables := Tableoftables.add name t !tableoftables;
   t
 
+let open_db_if_exists name =
+  try
+    let t = opendbm (directory^"/"^name^suffix) [Dbm_rdwr] 0o640 in
+    tableoftables := Tableoftables.add name t !tableoftables;
+    t
+  with _ -> raise Not_found
+
 (* open all files and register them in the table of tables *)
-let _ = List.iter (fun a -> ignore (open_db a)) (list_tables ())
+(*
+let _ = List.iter (fun a -> 
+  try ignore (open_db a)
+  with _ -> prerr_endline ("Error while openning database "^a)) 
+    (list_tables ())
+à remettre ? *)
 
 let find_create_table name =
   try
     Tableoftables.find name !tableoftables
   with Not_found -> open_db name
 
+let find_dont_create_table name =
+  try
+    Tableoftables.find name !tableoftables
+  with Not_found -> open_db_if_exists name
+
 let db_get store name =
-  find (Tableoftables.find store !tableoftables) name
-    (* raises Not_found if the table does not exist *)
+  find (find_dont_create_table store) name
 
 let db_remove store name =
   try
-    remove (Tableoftables.find store !tableoftables) name
+    remove (find_dont_create_table store) name
   with _ -> ()
 
 let db_replace store name value = 
   replace (find_create_table store) name value
 
-let db_firstkey t = Dbm.firstkey (Tableoftables.find t !tableoftables)
+let db_firstkey t = Dbm.firstkey (find_dont_create_table t)
 
-let db_nextkey t = Dbm.nextkey (Tableoftables.find t !tableoftables)
+let db_nextkey t = Dbm.nextkey (find_dont_create_table t)
 
 let db_length t = 
-  let table = Tableoftables.find t !tableoftables in
+  let table = find_dont_create_table t in
   let rec aux f n = 
     catch
       (fun () ->
