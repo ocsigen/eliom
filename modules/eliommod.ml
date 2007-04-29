@@ -102,7 +102,7 @@ let eliom_persistent_cookie_table = "eliom_persist_cookies"
 
 (*****************************************************************************)
 type result_to_send = 
-    EliomResult of Extensions.result
+  | EliomResult of Extensions.result
   | EliomExn of (exn list * cookieslist)
 
 
@@ -152,7 +152,7 @@ let change_request_info ri charset =
         with Not_found -> (None, ([], get_params))
       in
       match get_naservice_name, post_naservice_name with
-        _, Some _
+      | _, Some _
       | Some _, None -> (* non attached coservice *)
           ((get_naservice_name, post_naservice_name),
            (None, None), (na_get_params, other_get_params), na_post_params)
@@ -377,7 +377,7 @@ type ('a, 'b) leftright = Left of 'a | Right of 'b
 
 let find_page_table 
     now
-    (t : page_table ref)
+    (pagetableref : page_table ref)
     tables
     str 
     session_exp_info
@@ -388,55 +388,63 @@ let find_page_table
     = 
   let (sp0, si, (_, tab, s, tim, u)) = 
     make_server_params [] tables str session_exp_info ri urlsuffix si in
-  let rec aux = function
-      [] -> Lwt.return ((Right Eliom_Wrong_parameter), [])
+  let rec aux toremove = function
+    | [] -> Lwt.return ((Right Eliom_Wrong_parameter), [])
     | (((_, (_, (max_use, expdate, funct, working_dir))) as a)::l) as ll ->
         match expdate with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
-            Messages.debug "Service expired. I'm removing it";
-            aux l >>= (fun (r, ll) -> Lwt.return (r, ll (* without a *)))
+            Messages.debug "--Eliom: Service expired. I'm removing it";
+            aux toremove l >>= 
+            (fun (r, toremove) -> Lwt.return (r, a::toremove))
         | _ ->
             catch 
               (fun () ->
-                Messages.debug "- I'm trying a service";
+                Messages.debug "--Eliom: I'm trying a service";
                 funct (sp0, si, (working_dir, tab, s, tim, u)) >>=
+                (* warning: the list ll may change during funct
+                   if funct register something on the same URL!! *)
                 (fun p -> 
-                  Messages.debug "- Page found and generated successfully";
+                  Messages.debug "--Eliom: Page found and generated successfully";
                   (match expdate with
                   | Some (timeout, e) -> e := timeout +. now
                   | None -> ());
-                  let newlist =
+                  let newtoremove =
                     (match max_use with
                     | Some r -> 
                         if !r = 1
-                        then l
-                        else (r := !r - 1; ll)
-                    | _ -> ll)
+                        then a::toremove
+                        else (r := !r - 1; toremove)
+                    | _ -> toremove)
                   in
                   Lwt.return ((Left 
                                 (p, 
                                  working_dir, 
                                  !(si.si_cookie),
                                  !(si.si_persistent_cookie))), 
-                              newlist)))
+                              newtoremove)))
               (function
-                  Eliom_Wrong_parameter -> 
-                    aux l >>= (fun (r, ll) -> Lwt.return (r, a::ll))
-                | e -> Lwt.return ((Right e), a::ll))
+                | Eliom_Wrong_parameter -> 
+                    aux toremove l >>= 
+                    (fun (r, toremove) -> Lwt.return (r, toremove))
+                | e -> Lwt.return ((Right e), toremove))
   in 
   (catch 
-     (fun () -> return (list_assoc_remove k !t))
+     (fun () -> return (List.assoc k !pagetableref))
      (function Not_found -> fail Ocsigen_404 | e -> fail e)) >>=
-  (fun (liste, newt) -> aux liste >>=
-    (fun (r, newlist) -> 
-      (if newlist = []
-      then t := newt
-      else t := (k, newlist)::newt);
-      match r with
-      | Left r -> Lwt.return r
-      | Right e -> fail e))
-
+  aux [] >>=
+  (fun (r, toremove) -> 
+    let list, newptr = list_assoc_remove k !pagetableref in
+    (* We do it once again because it may have changed! *)
+    let newlist = 
+      List.fold_left (fun l a -> list_removeq a l) list toremove 
+    in
+    (if newlist = []
+    then pagetableref := newptr
+    else pagetableref := (k, newlist)::newptr);
+    match r with
+    | Left r -> Lwt.return r
+    | Right e -> fail e)
 
 
 let rec insert_as_last_of_generation generation x = function
@@ -444,12 +452,13 @@ let rec insert_as_last_of_generation generation x = function
   | ((_, (g, _))::l) as ll when g < generation -> x::ll
   | a::l -> a::(insert_as_last_of_generation generation x l)
 
+
 let add_page_table duringsession url_act t (key,(id, va)) = 
   (* Duplicate registration forbidden in global table *)
   let generation = Extensions.get_numberofreloads () in
   let v = (id, (generation, va)) in
   try
-    let l,newt = list_assoc_remove key t in
+    let l, newt = list_assoc_remove key t in
     try
       if key = {state = (None, None)}
       then begin
@@ -518,10 +527,11 @@ let find_naservice now ((_,atr,_,_) as str) name =
   match expdate with
   | Some (_, e) when !e < now ->
       (* Service expired. Removing it. *)
-      Messages.debug "Non attached service expired. I'm removing it";
+      Messages.debug "--Eliom: Non attached service expired. I'm removing it";
       remove_naservice str name;
       raise Not_found
   | _ -> p
+
 
 let add_service 
     (dircontentref,_,containstimeouts,_)
@@ -589,8 +599,9 @@ let add_service
      search_dircontentref dircontentref current_dir) in *)
   let page_table_ref = 
     search_page_table_ref (*current_*) dircontentref url_act in
-  page_table_ref := 
-    add_page_table duringsession url_act !page_table_ref content
+    page_table_ref := 
+      add_page_table duringsession url_act !page_table_ref content
+
 
       
 exception Exn1
@@ -603,6 +614,7 @@ let find_service
      session_exp_info,
      ri,
      si) =
+
   let rec search_page_table dircontent =
     let aux a l =
       let aa = match a with
@@ -841,40 +853,40 @@ let set_persistentsessiongcfrequency i = persistentsessiongcfrequency := i
 let get_persistentsessiongcfrequency () = !persistentsessiongcfrequency
 
 let rec parse_global_config = function
-      [] -> ()
-    | (Element ("timeout", [("value", s)], []))::ll -> 
-              (try
-                set_default_timeout (Some (float_of_string s))
-              with Failure _ -> 
-                if (s = "infinity")
-                then set_default_timeout None
-                else
-                  raise (Error_in_config_file "Eliom: Wrong value for value attribute of <timeout> tag"));
-              parse_global_config ll
-    | (Element ("sessiongcfrequency", [("value", s)], p))::ll ->
-          (try
-            set_sessiongcfrequency (Some (float_of_string s))
-          with Failure _ -> 
-            if s = "infinity"
-            then set_sessiongcfrequency None
-            else raise (Error_in_config_file
-                          "Eliom: Wrong value for <sessiongcfrequency>"));
-          parse_global_config ll
-    | (Element ("persistentsessiongcfrequency", 
-                    [("value", s)], p))::ll ->
-          (try
-            set_persistentsessiongcfrequency (Some (float_of_string s))
-          with Failure _ -> 
-            if s = "infinity"
-            then set_persistentsessiongcfrequency None
-            else raise (Error_in_config_file
-                          "Eliom: Wrong value for <persistentsessiongcfrequency>"));
-          parse_global_config ll
-    | (Element (tag,_,_))::ll -> 
-        parse_global_config ll
-    | _ -> raise (Error_in_config_file ("Unexpected content inside eliom config"))
-
-
+  | [] -> ()
+  | (Element ("timeout", [("value", s)], []))::ll -> 
+      (try
+        set_default_timeout (Some (float_of_string s))
+      with Failure _ -> 
+        if (s = "infinity")
+        then set_default_timeout None
+        else
+          raise (Error_in_config_file "Eliom: Wrong value for value attribute of <timeout> tag"));
+      parse_global_config ll
+  | (Element ("sessiongcfrequency", [("value", s)], p))::ll ->
+      (try
+        set_sessiongcfrequency (Some (float_of_string s))
+      with Failure _ -> 
+        if s = "infinity"
+        then set_sessiongcfrequency None
+        else raise (Error_in_config_file
+                      "Eliom: Wrong value for <sessiongcfrequency>"));
+      parse_global_config ll
+  | (Element ("persistentsessiongcfrequency", 
+              [("value", s)], p))::ll ->
+                (try
+                  set_persistentsessiongcfrequency (Some (float_of_string s))
+                with Failure _ -> 
+                  if s = "infinity"
+                  then set_persistentsessiongcfrequency None
+                  else raise (Error_in_config_file
+                                "Eliom: Wrong value for <persistentsessiongcfrequency>"));
+                parse_global_config ll
+  | (Element (tag,_,_))::ll -> 
+      parse_global_config ll
+  | _ -> raise (Error_in_config_file ("Unexpected content inside eliom config"))
+        
+        
 let _ = parse_global_config (Extensions.get_config ())
 
 (*****************************************************************************)
@@ -887,7 +899,7 @@ let execute
   let now = Unix.time () in
   
   (match !old_persistent_cookie with
-    None -> return (None, []) (* By default, global persistent timeout *)
+  | None -> return (None, []) (* By default, global persistent timeout *)
   | Some (c, _) -> 
       catch
         (fun () ->
@@ -1038,7 +1050,7 @@ let get_page
   ((catch
       (fun () -> 
         Messages.debug 
-          ("-- I'm looking for "^(string_of_url_path ri.ri_path)^
+          ("--Eliom: I'm looking for "^(string_of_url_path ri.ri_path)^
            " in the session table:");
         (find_service
            now
@@ -1052,7 +1064,7 @@ let get_page
           Ocsigen_404 | Eliom_Wrong_parameter -> 
             catch (* ensuite dans la table globale *)
               (fun () -> 
-                Messages.debug "-- I'm searching in the global table:";
+                Messages.debug "--Eliom: I'm searching in the global table:";
                 (find_service 
                    now
                    global_tables
@@ -1065,13 +1077,13 @@ let get_page
                   Ocsigen_404 | Eliom_Wrong_parameter as exn -> 
                     (* si pas trouvé avec, on essaie sans l'état *)
                     (match si.si_state_info with
-                      (None, None) -> fail exn
+                    | (None, None) -> fail exn
                     | (g, Some _) -> 
                         (* There was a POST state. 
                            We remove it, and remove POST parameters.
                          *)
                         Messages.debug 
-                          "-- Link to old. I will try without POST parameters:";
+                          "--Eliom: Link to old. I will try without POST parameters:";
                         fail (Eliom_retry_with 
                                 ({ri with 
                                   ri_post_params = lazy (return [])
@@ -1089,7 +1101,7 @@ let get_page
                            and remove POST parameters.
                          *)
                         Messages.debug 
-                          "-- Link to old. I will try without GET state parameters and POST parameters:";
+                          "--Eliom: Link to old. I will try without GET state parameters and POST parameters:";
                         fail (Eliom_retry_with 
                                 ({ri with 
                                   ri_get_params = 
@@ -1122,10 +1134,10 @@ let make_naservice
          We call the same URL without non-attached parameters.
        *)
       match si.si_nonatt_info with
-        None, None -> assert false
+      | None, None -> assert false
       | Some _ as g, Some _ ->
           Messages.debug 
-            "-- Link to old. I will try with only GET non-attached parameters:";
+            "--Eliom: Link to old. I will try with only GET non-attached parameters:";
           fail (Eliom_retry_with
                   ({ri with 
                     ri_post_params = lazy (return [])
@@ -1138,7 +1150,7 @@ let make_naservice
                    cookies_to_set (* no new cookie *)))
       | _ ->
           Messages.debug 
-            "-- Link to old. I will try without non-attached parameters:";
+            "--Eliom: Link to old. I will try without non-attached parameters:";
           change_request_info
             {ri with 
              ri_get_params = lazy si.si_other_get_params;
@@ -1166,7 +1178,7 @@ let make_naservice
           si)) >>=
     (fun r -> 
       Messages.debug
-        "- Non attached page found and generated successfully";
+        "--Eliom: Non attached page found and generated successfully";
       (match expdate with
       | Some (timeout, e) -> e := timeout +. now
       | None -> ());
@@ -1198,7 +1210,7 @@ let gen page_tree charset ri =
       ((ri, si, old_cookies_to_set) as info) =
     let genfun = 
       match si.si_nonatt_info with
-	None, None ->
+      | None, None ->
           
           (* page generation *)
           get_page
@@ -1277,7 +1289,7 @@ let gen page_tree charset ri =
               force ri.ri_post_params >>=
               (fun ripp ->
                 (match si.si_nonatt_info, si.si_state_info, ripp with
-                  (_, None), (_, None), [] ->
+                | (_, None), (_, None), [] ->
                     return
                       (Ext_found
                          {res_cookies= all_new_cookies;
@@ -1311,7 +1323,7 @@ let gen page_tree charset ri =
                                       ))
                                | Unset (p, cl) ->  
                                    match p with
-                                     Some p ->
+                                   | Some p ->
                                        if list_is_prefix p ri.ri_path
                                        then 
                                          List.fold_left
@@ -1377,7 +1389,7 @@ let gen page_tree charset ri =
                   })
       )
       (function
-          Eliom_Typing_Error l -> 
+        | Eliom_Typing_Error l -> 
             return (Ext_found
                       {res_cookies= old_cookies_to_set;
                        res_send_page=
@@ -1509,13 +1521,13 @@ let session_gc ((servicetable,
                  contains_naservices_with_timeout), 
                 cookie_table, rem) =
   match get_sessiongcfrequency () with
-    None -> () (* No garbage collection *)
+  | None -> () (* No garbage collection *)
   | Some t ->
       let rec f () = 
         Lwt_unix.sleep t >>= 
         (fun () ->
           let now = Unix.time () in
-          Messages.debug "GC of sessions";
+          Messages.debug "--Eliom: GC of sessions";
           (if !contains_services_with_timeout
           then gc_timeouted_services now servicetable
           else return ()) >>=
@@ -1566,13 +1578,13 @@ let session_gc ((servicetable,
 (* This is a thread that will work every hour/day *)
 let persistent_session_gc () =
   match get_persistentsessiongcfrequency () with
-    None -> () (* No garbage collection *)
+  | None -> () (* No garbage collection *)
   | Some t ->
       let rec f () = 
         Lwt_unix.sleep t >>= 
         (fun () ->
           let now = Unix.time () in
-          Messages.debug "GC of persistent sessions";
+          Messages.debug "--Eliom: GC of persistent sessions";
           (Ocsipersist.iter_table
              (fun k (exp, _, _, _) -> 
                (match exp with
@@ -1646,21 +1658,21 @@ let end_init () =
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
-  Eliom_duplicate_registration s -> 
-    ("Fatal - Eliom: Duplicate registration of url \""^s^
-     "\". Please correct the module.")
-| Eliom_there_are_unregistered_services s ->
-    ("Fatal - Eliom: Some public url have not been registered. \
-       Please correct your modules. (ex: "^s^")")
-| Eliom_function_forbidden_outside_site_loading ->
-    ("Fatal - Eliom: Use of forbidden function outside site loading. \
-       (creation of public service for example)")
-| Eliom_page_erasing s ->
-    ("Fatal - Eliom: You cannot create a page or directory here. "^s^
-     " already exists. Please correct your modules.")
-| Eliom_error_while_loading_site s ->
-    ("Fatal - Eliom: Error while loading site: "^s)
-| e -> raise e
+  | Eliom_duplicate_registration s -> 
+      ("Fatal - Eliom: Duplicate registration of url \""^s^
+       "\". Please correct the module.")
+  | Eliom_there_are_unregistered_services s ->
+      ("Fatal - Eliom: Some public url have not been registered. \
+         Please correct your modules. (ex: "^s^")")
+  | Eliom_function_forbidden_outside_site_loading ->
+      ("Fatal - Eliom: Use of forbidden function outside site loading. \
+         (creation of public service for example)")
+  | Eliom_page_erasing s ->
+      ("Fatal - Eliom: You cannot create a page or directory here. "^s^
+       " already exists. Please correct your modules.")
+  | Eliom_error_while_loading_site s ->
+      ("Fatal - Eliom: Error while loading site: "^s)
+  | e -> raise e
 
 
 (*****************************************************************************)
@@ -1708,3 +1720,5 @@ let number_of_table_elements () =
 
 let number_of_persistent_sessions () = 
   Ocsipersist.length persistent_cookies_table
+
+

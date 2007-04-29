@@ -814,10 +814,7 @@ let close2 = register_new_service
              (head (title (pcdata "Disconnect")) [])
              (body [p [pcdata "You have been disconnected. ";
                        a data sp [pcdata "Retry"] () ]]))))
-(*html*
-    </div>
-    <div class="twocol2">
-*html*)
+
 let _ = register
     data
     (fun sp _ _ ->
@@ -837,7 +834,10 @@ let _ = register
                       [p [pcdata "login: ";
                           string_input login]]) ()
              ])))
-
+(*html*
+    </div>
+    <div class="twocol2">
+*html*)
 let _ = register
     data_with_post_params
     (fun sp _ login ->
@@ -855,6 +855,12 @@ let _ = register
 (*html*
       <p>
       See this example $a Tutoeliom.data sp <:xmllist< here >> ()$.
+      </p>
+      <p>
+       Session data will disappear when the session is closed (explicitely
+       or by timeout).
+       Warning: if your session data contains opened file descriptors,
+       they won't be closed by OCaml's garbage collector. Close it yourself!
       </p>
     </div>
     <h2>Sessions services</h2>
@@ -1706,7 +1712,7 @@ let timeout = new_service ["timeout"] unit ()
 
 let _ = 
   let page sp () () = 
-    let timeoutpost =
+    let timeoutcoserv =
       register_new_coservice_for_session
         sp ~fallback:timeout ~get_params:unit ~timeout:5.
         (fun _ _ _ ->
@@ -1723,7 +1729,7 @@ let _ =
         (head (title (pcdata "Coservices with timeouts")) [])
         (body [p 
           [pcdata "I just created a coservice with 5 seconds timeout."; br ();
-           a timeoutpost sp [pcdata "Try it"] (); ];
+           a timeoutcoserv sp [pcdata "Try it"] (); ];
           ]))
   in
   register timeout page
@@ -1742,13 +1748,13 @@ let _ =
      the public table:
      </p>
 *html*)
-let publiccosersession = new_service ["publiccoservsession"] unit ()
+let publiccoservsession = new_service ["publiccoservsession"] unit ()
 
 let _ = 
   let page sp () () = 
-    let timeoutpost =
+    let timeoutcoserv =
       register_new_public_coservice
-        sp ~fallback:timeout ~get_params:unit ~timeout:5.
+        sp ~fallback:publiccoservsession ~get_params:unit ~timeout:5.
         (fun _ _ _ ->
            return
              (html
@@ -1764,13 +1770,13 @@ let _ =
         (body [p 
           [pcdata "I just created a public coservice \
                    with 5 seconds timeout."; br ();
-           a timeoutpost sp [pcdata "Try it"] (); ];
+           a timeoutcoserv sp [pcdata "Try it"] (); ];
           ]))
   in
-  register publiccosersession page
+  register publiccoservsession page
 (*html*
       <p>
-      See this example $a Tutoeliom.publiccosersession sp <:xmllist< here >> ()$.
+      See this example $a Tutoeliom.publiccoservsession sp <:xmllist< here >> ()$.
       </p>
      <h3>Giving configuration options to your sites (EXPERIMENTAL)</h3>
       <p>You can add your own options in the configuration
@@ -2171,14 +2177,17 @@ let _ = register
       <h3>Others</h3>
       <em>To be available soon</em>
     </div>
-    <h2>Example: write a forum</h2>
+    <h2>Examples</h2>
     <div class="twocol1">
+    <h3>Write a forum</h3>
+      <p>
       As an example,
       we will now write a small forum. Our forum has a main page,
       summarising all the messages and a page for each message.
       Suppose you have written a function <code>news_headers_list_box</code>
       that writes the beginning of messages, and <code>message_box</code>
       that write a full message.
+      </p>
 *html*)
 (*zap* from ocsexample1 - attention la section Construction of pages a été simplifiée *zap*)
 (*html*
@@ -2225,7 +2234,7 @@ let _ = register
 *html*)
 (*zap* from ocsexample2 *zap*)
 (*html*
-<pre><span class="Ccomment">(* All the urls: *)</span>
+<pre><span class="Ccomment">(* All the services: *)</span>
 
 <span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span> <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
 
@@ -2238,31 +2247,33 @@ let _ = register
 
 <span class="Ccomment">(* Construction of pages *)</span>
 
-<span class="Clet">let</span> home sp () () <span class="Cnonalphakeyword">=</span>
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
-     p [pcdata <span class="Cstring">"(user : toto and password : titi)"</span>]<span class="Cnonalphakeyword">;</span>
-     login_box sp connect_action<span class="Cnonalphakeyword">;</span>
-     news_headers_list_box sp anonymoususer news_page<span class="Cnonalphakeyword">]</span>
+let home sp () () =
+   match get_session_data my_table sp with
+   | None ->
+     page sp
+       [h1 [pcdata "Mon site"];
+        p [pcdata "(user : toto and password : titi)"];
+        login_box sp connect_action;
+        news_headers_list_box sp anonymoususer news_page]
+   | Some user ->
+      page sp
+        [h1 [pcdata "Mon site"];
+         text_box "Bonjour !";
+         connected_box sp user disconnect_action;
+         news_headers_list_box sp user news_page]
 
-<span class="Clet">let</span> print_news_page sp i () <span class="Cnonalphakeyword">=</span> 
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Info"</span><span class="Cnonalphakeyword">;</span>
-     login_box sp connect_action<span class="Cnonalphakeyword">;</span>
-     message_box i anonymoususer<span class="Cnonalphakeyword">]</span>
-
-<span class="Clet">let</span> user_main_page user sp () () <span class="Cnonalphakeyword">=</span>
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Mon site"</span>]<span class="Cnonalphakeyword">;</span>
-     text_box <span class="Cstring">"Bonjour !"</span><span class="Cnonalphakeyword">;</span>
-     connected_box sp user disconnect_action<span class="Cnonalphakeyword">;</span>
-     news_headers_list_box sp user news_page<span class="Cnonalphakeyword">]</span>
-
-<span class="Clet">let</span> user_news_page user sp i () <span class="Cnonalphakeyword">=</span> 
-  page sp
-    <span class="Cnonalphakeyword">[</span>h1 [pcdata <span class="Cstring">"Info"</span>]<span class="Cnonalphakeyword">;</span>
-     connected_box sp user disconnect_action<span class="Cnonalphakeyword">;</span>
-     message_box i user<span class="Cnonalphakeyword">]</span>
+let print_news_page sp i () = 
+   match get_session_data my_table sp with
+   | None ->
+      page sp
+        [h1 [pcdata "Info";
+         login_box sp connect_action;
+         message_box i anonymoususer]
+   | Some user ->
+      page sp
+        [h1 [pcdata "Info"];
+         connected_box sp user disconnect_action;
+         message_box i user]
 
 <span class="Ccomment">(* Services registration *)</span>
 
@@ -2274,16 +2285,19 @@ let _ = register
   <span class="Clabel">~service:</span>news_page
   print_news_page
 
-<span class="Clet">let</span> launch_session user <span class="Cnonalphakeyword">=</span>
-  register_for_session <span class="Clabel">~service:</span>main_page <span class="Cnonalphakeyword">(</span>user_main_page user<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
-  register_for_session <span class="Clabel">~service:</span>news_page <span class="Cnonalphakeyword">(</span>user_news_page user<span class="Cnonalphakeyword">)</span>
+<span class="Clet">let</span> launch_session sp user <span class="Cnonalphakeyword">=</span>
+  set_session_data my_table sp user
 
 <span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Actions.register
   <span class="Clabel">~action:</span>connect_action
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> h <span class="Cnonalphakeyword">(</span>login<span class="Cnonalphakeyword">,</span> password<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
-      launch_session <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
+      launch_session sp <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
 </pre>
 
+    <h3>Nurpawiki</h3>
+    <p>Ocsigen's source code contains an example of Wiki written with
+     Eliom by Janne Hellsten. It is called <em>Nurpawiki</em>.
+    </p>
     </div>
 *html*)
 (*zap* À AJOUTER AU TUTO *)
@@ -2496,7 +2510,7 @@ let _ = register main
        Coservice with timeout:
              $a timeout sp <:xmllist< timeout >> ()$<br/>
        Public coservice created after initialization:
-             $a publiccosersession sp <:xmllist< publiccosersession >> ()$<br/>
+             $a publiccoservsession sp <:xmllist< publiccoservsession >> ()$<br/>
        The following URL send either a statically checked page, or a text page:
              $a sendany sp <:xmllist< sendany >> "valid"$<br/>
        A page with a persistent counter: 

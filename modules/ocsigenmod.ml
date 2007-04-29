@@ -263,10 +263,10 @@ let find_page_table
       [] -> fail Ocsigen_Wrong_parameter
     | (_,(funct,create_sender,working_dir))::l ->
         catch (fun () ->
-          Messages.debug "- I'm trying a service";
+          Messages.debug "--Ocsigenmod: I'm trying a service";
           funct (urlsuffix, (sp0,working_dir,b)) >>=
           (fun p -> 
-            Messages.debug "- Page found";
+            Messages.debug "--Ocsigenmod: Page found";
             Lwt.return (p,create_sender,working_dir)))
           (function
               Ocsigen_Wrong_parameter -> aux l
@@ -479,7 +479,7 @@ let get_page
     ((catch
         (fun () -> 
           Messages.debug 
-            ("-- I'm looking for "^(string_of_url_path ri.ri_path)^
+            ("--Ocsigenmod: I'm looking for "^(string_of_url_path ri.ri_path)^
              " in the session table:");
           (find_service
              !session_tables_ref
@@ -490,7 +490,7 @@ let get_page
             Ocsigen_404 | Ocsigen_Wrong_parameter -> 
               catch (* ensuite dans la table globale *)
                 (fun () -> 
-                  Messages.debug "-- I'm searching in the global table:";
+                  Messages.debug "--Ocsigenmod: I'm searching in the global table:";
                   (find_service 
                      global_tables
                      (session_tables_ref,
@@ -504,7 +504,7 @@ let get_page
                       | _ -> catch (* d'abord la table de session *)
                             (fun () ->
                               Messages.debug 
-                                "-- I'm searching in the session table, without state parameter:";
+                                "--Ocsigenmod: I'm searching in the session table, without state parameter:";
                               (find_service 
                                  !session_tables_ref
                                  (session_tables_ref,
@@ -513,7 +513,7 @@ let get_page
                             (function
                                 Ocsigen_404 | Ocsigen_Wrong_parameter -> 
                                   (* ensuite dans la table globale *)
-                                  Messages.debug "-- I'm searching in the global table, without state parameter:";
+                                  Messages.debug "--Ocsigenmod: I'm searching in the global table, without state parameter:";
                                   (find_service 
                                      global_tables
                                      (session_tables_ref,
@@ -596,7 +596,7 @@ let make_action page_tree action_name action_params
       execute 
         generate_page ri.ri_inet_addr cookie page_tree >>=
       (fun ((c,(),(),wd),_,_) ->
-        Messages.debug "- Action executed";
+        Messages.debug "--Ocsigenmod: Action executed";
         return (c,wd)))
     (function
         Ocsigen_Typing_Error _ -> return (None, [])

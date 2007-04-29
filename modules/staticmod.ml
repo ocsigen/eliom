@@ -145,7 +145,7 @@ let find_static_page staticdirref path =
     | None -> raise Ocsigen_404
     | Some filename ->
         (* See also module Files in eliom.ml *)
-        Messages.debug ("- Testing \""^filename^"\".");
+        Messages.debug ("--Staticmod: Testing \""^filename^"\".");
         let stat= Unix.LargeFile.stat filename in
         let (filename, stat) = 
           if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
@@ -153,19 +153,19 @@ let find_static_page staticdirref path =
             (if (filename.[(String.length filename) - 1]) = '/'
             then
               let fn2 = filename^"index.html" in
-              Messages.debug ("- Testing \""^fn2^"\".");
+              Messages.debug ("--Staticmod: Testing \""^fn2^"\".");
               (fn2,(Unix.LargeFile.stat fn2))
             else
               (if (path= []) || (path = [""])
               then 
               let fn2 = filename^"/index.html" in
-              Messages.debug ("- Testing \""^fn2^"\".");
+              Messages.debug ("--Staticmod: Testing \""^fn2^"\".");
               (fn2,(Unix.LargeFile.stat fn2))
-              else (Messages.debug ("- "^filename^" is a directory");
+              else (Messages.debug ("--Staticmod: "^filename^" is a directory");
                     raise Ocsigen_Is_a_directory)))
           else (filename, stat)
         in
-        Messages.debug ("- Looking for \""^filename^"\".");
+        Messages.debug ("--Staticmod: Looking for \""^filename^"\".");
 
         if (stat.Unix.LargeFile.st_kind 
               = Unix.S_REG)
@@ -183,7 +183,7 @@ let gen pages_tree charset ri =
     (fun () ->
       if ri.ri_params = "" (* static pages do not have parameters *)
       then begin
-        Messages.debug ("--- Is it a static file?");
+        Messages.debug ("--Staticmod: Is it a static file?");
         let (filename, stat) =
           find_static_page pages_tree ri.ri_path
         in

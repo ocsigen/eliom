@@ -30,6 +30,11 @@ let rec list_remove a = function
   | b::l when a = b -> l
   | b::l -> b::(list_remove a l)
 
+let rec list_removeq a = function
+  |  [] -> []
+  | b::l when a == b -> l
+  | b::l -> b::(list_removeq a l)
+
 let rec list_last = function
   |  [] -> raise Not_found
   | [b] -> b
