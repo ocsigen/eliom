@@ -25,7 +25,6 @@ open Dbm
 open Ocsidbmtypes
 open Lwt
 
-
 let directory = Sys.argv.(1)
 
 exception Ocsidbm_error
@@ -50,10 +49,10 @@ let errlog s =
   let s = date^" Ocsidbm - "^s^"\n" in
   prerr_endline s
 
+
+
 (*****************************************************************************)
 (** Internal functions: storage in files using DBM *)
-
-let _ = errlog "essai"
 
 module Tableoftables = Map.Make(struct 
   type t = string
@@ -101,7 +100,10 @@ let open_db_if_exists name =
    try ignore (open_db a)
    with _ -> errlog ("Error while openning database "^a)) 
     (list_tables ())
-à remettre ? *)
+si je remets ça, ça doit être après la création de la socket
+car si je n'arrive pas à créer la socket,
+c'est peut-être que les tables sont déjà ouvertes
+*)
 
 let find_create_table name =
   try
@@ -152,7 +154,7 @@ let close_all i _ =
   exit i
 
 let the_end i =
-  close_all i ()
+  exit i
 
 open Sys
 let sigs = [sigabrt;sigalrm;sigfpe;sighup;sigill;sigint;
@@ -204,10 +206,10 @@ let rec listen_client inch outch =
   (fun () -> listen_client inch outch)
 
 let finish _ =
-        nb_clients := !nb_clients - 1;
-        if !nb_clients = 0 
-        then the_end 0;
-        return ()
+  nb_clients := !nb_clients - 1;
+  if !nb_clients = 0 
+  then close_all 0 ();
+  return ()
 
 
 let b = ref false
@@ -233,7 +235,7 @@ let _ = Lwt_unix.run
      (fun socket ->
        (try
          Unix.bind socket (Unix.ADDR_UNIX (directory^"/"^socketname))
-       with _ -> errlog ("Ocsidbm error: please make sure that no other ocsidbm process is running on the same directory. If not, remove the file "^(directory^"/"^socketname)); the_end 1);
+       with _ -> errlog ("Please make sure that the directory "^directory^" exists, writable for ocsidbm, and no other ocsidbm process is running on the same directory. If not, remove the file "^(directory^"/"^socketname)); the_end 1);
        Unix.listen socket 20;
 (* Done in ocsipersist.ml      
    let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in

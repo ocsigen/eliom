@@ -69,7 +69,7 @@ let (directory, ocsidbm) =
 (*****************************************************************************)
 (** Communication with the DB server *)
 
-let try_connect sname =
+let rec try_connect sname =
   catch
     (fun () ->
       Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
@@ -87,7 +87,7 @@ let try_connect sname =
         let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
         Unix.dup2 devnull Unix.stdout;
         Unix.close devnull;
-        Unix.close Unix.stdin;        
+        Unix.close Unix.stdin;
         Unix.execv ocsidbm param 
       in
       let pid = Unix.fork () in
@@ -102,22 +102,30 @@ let try_connect sname =
       end
       else 
         Lwt_unix.waitpid [] pid >>=
-        (fun _ -> Lwt_unix.sleep 1.1 >>= 
-          (fun () -> 
+        (fun _ ->  Lwt_unix.sleep 1.1 >>=
+          (fun () ->
             Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
             (fun socket ->
               Lwt_unix.connect 
                 (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname) >>=
               (fun () -> return (Lwt_unix.Plain socket))))))
     
-let indescr =
+let rec get_indescr i =
   (catch
      (fun () -> try_connect (directory^"/"^socketname))
-     (fun e -> Messages.errlog ("Cannot connect to Ocsidbm. Will continue without Persistent session support. Error message is: "^
+     (fun e -> Messages.errlog ("Cannot connect to Ocsidbm. Will retry "^
+                                (string_of_int i)^" times and continue \
+                                without persistent session support. \
+                                Error message is: "^
                                 (match e with
-                                | Unix.Unix_error (a,b,c) -> (Unix.error_message a)^" in "^b^"("^c^")"
+                                | Unix.Unix_error (a,b,c) -> 
+                                    (Unix.error_message a)^" in "^b^"("^c^")"
                                 | _ -> Printexc.to_string e));
-       fail e))
+       if i>0
+       then (Lwt_unix.sleep 2.1) >>= (fun () -> get_indescr (i-1))
+       else fail e))
+
+let indescr = get_indescr 2
 
 let inch = indescr >>= (fun r -> return (Lwt_unix.in_channel_of_descr r))
 

@@ -136,7 +136,7 @@ ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 
 .PHONY: clean
 clean:
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/* $(NAME) $(NAME).opt *.annot
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/* ocsidbm ocsidbm.opt *.annot
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
