@@ -16,19 +16,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-
 (* 
   Syntax extension for xml
 
 *)
-
-open Xhtmlparser ;
-open Camlp4.PreCast ;
-
-module Parser = Xhtmlparser.Make (Syntax) ;
-do{
-  Syntax.Quotation.add "xml" (Quotation.ExAst (Parser.xml_exp, Parser.xml_pat)) ;
-  Syntax.Quotation.add "xmllist" (Quotation.ExAst (Parser.xml_expl, Parser.xml_patl)) ;
-  Syntax.Quotation.default.val := "xml" 
-} ;
+open Xhtmlparser;
+open Camlp4.PreCast;
+module Parser = Xhtmlparser.Make(Syntax);
+do {
+  Syntax.Quotation.add "xml" Syntax.Quotation.DynAst.expr_tag Parser.xml_exp ;
+  Syntax.Quotation.add "xmllist" Syntax.Quotation.DynAst.expr_tag
+        Parser.xml_expl;
+  Syntax.Quotation.default.val := "xml"
+};
 

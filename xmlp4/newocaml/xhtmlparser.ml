@@ -18,7 +18,7 @@
 
 open Camlp4.PreCast ;
 
-open BasicTypes ;
+open Xmllexer.BasicTypes ;
 
 module Make (Syntax:Camlp4.Sig.Camlp4Syntax with module Loc = Loc and module Ast = Ast) = struct
 value blocktags = [ "fieldset"; "form"; "address"; "body"; "head"; "blockquote"; 
@@ -33,22 +33,41 @@ type state = {
 	loc : Loc.t ;
 } ;
 
-type error_msg =
-	[ UnterminatedComment
-	| UnterminatedString
-	| UnterminatedEntity
-	| IdentExpected
-	| CloseExpected
-	| NodeExpected
-	| AttributeNameExpected
-	| AttributeValueExpected
-	| EndOfTagExpected of string
-	| EOFExpected ] ;
 
-exception Internal_error of error_msg ;
-exception NoMoreData ;
+
 exception CamlListExc of string ;
+
+
+(* Error report *)
+module Error = struct
+
+        type t =
+	[ EndOfTagExpected of string
+	| EOFExpected 
+        |NoMoreData ] ;
+        
+        exception E of t ;
+
+        open Format ;
+
+        value print ppf = fun
+        [ NoMoreData  -> fprintf ppf "No more data : empty quotation ?" 
+        | EndOfTagExpected tag -> 
+                        fprintf ppf "Missing end of tag %S" tag
+        | EOFExpected -> fprintf ppf "End of file expected" ];
  
+    value to_string x =
+            let b = Buffer.create 50 in
+            let () = bprintf b "%a" print x in Buffer.contents b ;
+end;
+
+
+value err error loc =
+        do{Format.eprintf "Error: %a: %a@." Loc.print loc Error.print error ;
+        raise(Loc.Exc_located(loc, Error.E error))} ;
+
+open Error ;
+
 (* Stack - the type of s is state *)
 value pop s =
 	try
@@ -70,19 +89,7 @@ value rec expr_of_list loc = fun
     <:expr< $a$ @ $expr_of_list loc l$ >>
   ] ;
 
-  (* une version plus compacte ?
-value list_of_mlast_expr loc el = 
-  List.fold_right 
-    (fun x l -> <:expr< [$x$ :: $l$] >>) el <:expr< [] >> *)
-(* marche pas...
-  value rec list_of_expr loc = fun
-  [ <:expr< [] >> -> []
-  | <:expr< [a::l] >> -> [ ( <:expr< a >> ) :: (list_of_expr loc <:expr< l >> ) ]
-  | _ -> assert false
-  ] ;
-*)
-
-value parse = Xmllexer.mk() ;
+value parse = Xmllexer.from_string ;
 
 (* To parse antiquotations *)
 
@@ -106,6 +113,8 @@ value rec read_node s =
       : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>	  
         | (CamlList s, _) -> raise (CamlListExc s)
         | (CamlExpr s, _) -> get_expr s loc
+        | (Whitespace s, _) ->
+                <:expr< XHTML.M.tot (XML.Whitespace $str:s$) >>
         | (Comment s, _) ->
 	   <:expr< XHTML.M.tot (XML.Comment $str:s$) >>
 	| (Tag (tag, attlist, closed), s) -> 
@@ -134,7 +143,7 @@ value rec read_node s =
          ])
 	| (t,_) ->
 		do {push t s;
-		raise NoMoreData}
+		raise (E NoMoreData)}
 	]
 
 and read_elems ?tag s =
@@ -144,7 +153,7 @@ and read_elems ?tag s =
 		while True do {
 			try
                         match (read_node s, elems.val) with [
-      (* FIXME: concaténer les retours à la ligne et $ des PCData en ajoutant :
+      (* TODO: concaténer les retours à la ligne et $ des PCData en ajoutant :
   		| (PCData c , [(PCData c2) :: q]) ->
   		    elems.val := [PCData (Printf.sprintf "%s\n%s" c2 c) :: q]
   		il faut traduire les PCData du pattern matching et de l'expression en 
@@ -157,16 +166,16 @@ and read_elems ?tag s =
                         ]
                 }
 	with
-		[NoMoreData -> ()]) in
+		[E NoMoreData -> ()]) in
   match pop s with
 	[ (Endtag s,_) when Some s = tag -> 
 	  <:expr< $expr_of_list loc (List.rev elems.val) $ >> 
 	| (Eof,_) when tag = None -> 
 	  <:expr< $expr_of_list loc (List.rev elems.val) $ >>
-	| (t,loc) ->
+	| (t,s) ->
 		match tag with
-		[ None -> raise (Internal_error EOFExpected)
-		| Some s -> raise (Internal_error (EndOfTagExpected s))
+		[ None -> err EOFExpected s.loc
+		| Some t -> err (EndOfTagExpected t) s.loc
 		]
   ] 
 
@@ -188,51 +197,39 @@ and read_attlist s =
   
   ] ;
 
+  (* FIXED ? please report any problem with this function *)
+  (* remove the white spaces at the begining of a stream *)
+ value rec clean_ws s = match Stream.next s.stream with
+        [(Whitespace _,l) -> clean_ws {(s) with loc = l }
+        | (t,l) -> let _ = push t s in {(s) with loc = l } ] ;
+
+
 value  to_expr stream loc = 
  let s = {stream = stream; stack = Stack.create() ; loc = loc } in
- read_node s ;
-
-(*
- value to_expr_taglist stream loc = 
-  let s = {stream = stream; stack = Stack.create() ; loc = loc } in
-  let rec aux acc =
-    let tag = read_node s in
-    match fst(pop s) with 
-    [ Eof -> [tag::acc]
-    | t -> let _ = push t s in aux [tag::acc]
-    ]
-  in <:expr< $convert_list loc (aux [])$ >>;
-*)
+ try
+ read_node (clean_ws s) 
+ with [E NoMoreData -> err NoMoreData loc];
 
 value to_expr_taglist stream loc = 
-  let s = {stream = stream; stack = Stack.create() ; loc = loc } 
-  in <:expr< $read_elems s$  >> ;
+  let s = {stream = stream; stack = Stack.create() ; loc = loc } in 
+  try
+  <:expr< $read_elems (clean_ws s)$  >>
+  with [E NoMoreData -> err NoMoreData loc];
 
+(* remove the white spaces at the end of a string *)
+ value remove_ws s = 
+        let rec end_index i = match s.[i] with
+        ['\n'|'\t'|' '|'\r' -> end_index (i-1)
+        |_ -> i] in
+        let sub i j = String.sub s i ( j - i + 1) in
+        try
+        sub 0 (end_index (String.length s - 1))
+        with [Invalid_argument _ -> ""];
 
 value xml_exp loc (x : option string) s = 
-  try
-  to_expr (parse loc (Stream.of_string s)) loc
-   with 
-   [NoMoreData ->  <:expr< XHTML.M.tot (XML.Comment "C'est vide là ! Revoir la
-   gestion des commentaires !") >> ] ;
+        to_expr (parse loc False (remove_ws s)) loc;
 
-   value xml_expl loc (x : option string) s = 
-  to_expr_taglist (parse loc (Stream.of_string s)) loc ;
-
-(*
-let remove_ws = 
-  let rec remove_end_ws = function
-      PLCons ((EPwhitespace _),PLEmpty _loc,_) -> PLEmpty _loc
-    | PLCons (a,l,_loc) -> PLCons (a,(remove_end_ws l),_loc)
-    | l -> l
-  in function
-      PLCons ((EPwhitespace _),l,_loc) -> remove_end_ws l
-    | l -> remove_end_ws l
-
-let xml_expl s = 
-  (to_expr_taglist 
-     (remove_ws 
-        (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s))))
-*)
+value xml_expl loc (x : option string) s = 
+        to_expr_taglist (parse loc False (remove_ws s)) loc;
 
 end ;

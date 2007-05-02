@@ -76,13 +76,13 @@ doc:
 
 # Clean up
 clean:
-	-rm -f xmllexer.ml *.cm[ioax] *.cmxa *~ *.annot
+	-rm -f xhtmltypes.ml xmllexer.ml *.cm[ioax] *.cmxa *~ *.annot
 	$(MAKE) -C ../ohl-xhtml clean
 
 
 # Dependencies
 depend:
-	rm -f xhtmltypes.ml
+	-rm -f xhtmltypes.ml
 	camlp4 -parser OCaml -printer OCamlr ../oldocaml/xhtmltypes.ml > \
 		xhtmltypes.ml
 	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend

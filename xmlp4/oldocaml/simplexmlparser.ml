@@ -227,7 +227,8 @@ type xml =
   | Element of (string * (string * string) list * xml list)
   | PCData of string
 
-exception XMLerror
+let nocaml_msg =  
+        "Caml code not allowed in configuration file. Use $$ to escape $."
 
 let rec to_xml = 
   let rec to_xml_tag l = function
@@ -236,12 +237,12 @@ let rec to_xml =
     | EPpcdata s -> (PCData s)::(to_xml l)
     | EPanytag (s, atts, tags) -> 
         (Element (s, (to_xml_atts atts), (to_xml tags)))::(to_xml l)
-    | _ -> raise XMLerror
+    | _ -> raise (Xml_parser_error nocaml_msg)
   and to_xml_att l = function
     | EPwhitespace _
     | EPcomment _ -> to_xml_atts l
     | EPanyattr ((EPVstr n), (EPVstr v)) -> (n, v)::(to_xml_atts l)
-    | _ -> raise XMLerror
+    | _ -> raise (Xml_parser_error nocaml_msg)
   and to_xml_atts = function
     | PLEmpty -> []
     | PLCons (a, l) -> to_xml_att l a

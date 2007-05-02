@@ -8,7 +8,7 @@ CAMLOPT = ocamlopt $(LIB)
 CAMLDEP = ocamldep
 CAMLP4 = camlp4
 LIB = -I `$(CAMLP4) -where` -I ..
-PP = -pp "camlp4o ../xmllexer.cmo ../xmlparser.cmo ../xmlsyntax.cmo -- -loc loc"
+PP = -pp "camlp4of ../xmllexer.cmo ../xhtmlparser.cmo ../xhtmlsyntax.cmo -loc loc"
 
 OBJS = $(FILES:.ml=.cmo)
 
@@ -18,17 +18,17 @@ all: $(OBJS) $(NAME) $(NAME2)
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
 $(NAME): $(NAME).ml
-	$(CAMLC) -o $(NAME) $(NAME).cmo
+	$(CAMLC) -o $(NAME) ../../ohl-xhtml/xHTML.cmo  ../xhtmltypes.cmo  $(NAME).cmo
 
 $(NAME2): $(NAME2).ml
-	$(CAMLC) -o $(NAME2) ../xhtmlpp.cmo $(NAME2).cmo
+	$(CAMLC) -o $(NAME2)  ../../ohl-xhtml/xHTML.cmo   ../xhtmltypes.cmo  $(NAME2).cmo
 
 .ml.cmo:
-	$(CAMLC) $(PP) ../xhtmlpp.cmo -c $<
+	$(CAMLC) $(PP)  ../../ohl-xhtml/xHTML.cmo   ../xhtmltypes.cmo  -c $<
 .mli.cmi:
-	$(CAMLC) ../xhtmlpp.cmo -c $<
+	$(CAMLC)   ../../ohl-xhtml/xHTML.cmo   ../xhtmltypes.cmo  -c $<
 .ml.cmx:
-	$(CAMLOPT) $(PP) ../xhtmlpp.cmo -c $<
+	$(CAMLOPT) $(PP)   ../../ohl-xhtml/xHTML.cmo   ../xhtmltypes.cmo  -c $<
 
 clean:
 	-rm -f *.cm[iox] *~ essai essai2

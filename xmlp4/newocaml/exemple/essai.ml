@@ -18,6 +18,7 @@ let l = <:xmllist< <ark $c$=$f$ $list:la$> </ark> <wow> </wow> >> in
 << <youpi> $a$ zzz $list:l$ </youpi> >>
 (* $$ permet d'écrire un $ *)
 
+
 function << <html $list:l1$> $a$ ljl $list:l2$ </html> >> -> 1 | _ -> 2
 function << <html $n$=$v$ a="b" $list:l1$> <body> $list:l2$ </body> </html> >> 
     -> 1 | _ -> 2
@@ -67,26 +68,3 @@ let print_html =  function
       print_attrs la;
       print_string ">";
       List.iter print_pcdata lt;
-      print_string "</body>"
-
-let print = function 
-    << <html $list:la$> $list:lt$ </html> >> -> 
-      print_string "<html";
-      print_attrs la;
-      print_string ">";
-      List.iter print_html lt;
-      print_string "</html>"
-
-let _ = print << <html> <body> kjl </body> </html> >>
-
-let çacloche = << <body> <html> alala </html> </body> >>
-*)
-
-(*
-
-Non :
-let _ = print çacloche
-
-*)
-
-
