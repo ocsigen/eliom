@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/sh
 
 # $Id: configure 1080 2007-01-07 16:00:50Z gerd $
 # Adapted from the ocamlnet configure script.
@@ -58,6 +58,7 @@ set_defaults () {
     uploaddir="/tmp"
     datadir="/var/lib"
     commandpipe="/var/run/ocsigen_command"
+    temproot=""
     root=""
     ocsigen_user="www-data"
     ocsigen_group="www-data"
@@ -153,6 +154,7 @@ print_options () {
         esac
 
 	echo "    --root $root"
+	echo "    --temproot $temproot"
 	echo "    --prefix $prefix"
 	echo "    --ocsigen-user $ocsigen_user"
 	echo "    --ocsigen-group $ocsigen_group"
@@ -182,6 +184,7 @@ _EOF_
 		echo "--enable-$uopt:" >&2
 		echo "--disable-$uopt:" >&2
 		echo "        $help" >&2
+		echo "" >&2
 	done
 	for opt in $woptions; do
 		e="help=\$whelp_$opt"
@@ -190,10 +193,14 @@ _EOF_
 		echo "--with-$uopt:" >&2
 		echo "--without-$uopt:" >&2
 		echo "        $help" >&2
+		echo "" >&2
 	done
 	cat <<_EOF_ >&2
 --root dir
-	Root directory to install the package (usually always / but for package makers)
+	Root directory to install the package (usually /) (Everything will be in this directory)
+
+--temproot dir
+	Temporary root directory to install the package (usually always "" but for package makers)
 
 --prefix dir
 	Subdirectory where to install binaries and libs (usually /usr or /usr/local)
@@ -294,6 +301,11 @@ while [ "$#" -gt 0 ]; do
 			;;
 		--root)
 			root="$2"
+			shift
+			shift
+			;;
+		--temproot)
+			temproot="$2"
 			shift
 			shift
 			;;
@@ -503,8 +515,11 @@ CAMLOPTNAME=ocamlopt
 CAMLP4O="$camlp4o"
 CHOWN=chown
 
-# The root directory for the package install (usually always /, but for distrib package makers)
-PREFIX = $root
+## The root directory for the package install (usually /)
+#ROOT = $root
+
+# Temporary root directory to install the package (usually always "" but for package makers)
+TEMPROOT = $temproot
 
 # Do you want the bytecode version ? YES/NO
 BYTECODE=$enable_bytecode
@@ -519,16 +534,16 @@ OCAMLDUCE=$enable_ocamlduce
 OCAMLDUCEFIND=ocamlducefind
 
 # The directory for ocsigen server (binary):
-BINDIR = $bindir
+BINDIR = $root$bindir
 
 # The directory for ocsigen manpage:
-MANDIR = $mandir
+MANDIR = $root$mandir
 
 # Where to install the directory for ocsigen modules:
-MODULEINSTALLDIR = \`\$(OCAMLFIND) printconf destdir\`
+MODULEINSTALLDIR = $root\`\$(OCAMLFIND) printconf destdir\`
 
 # Where to install examples:
-EXAMPLESINSTALLDIR = $libdir/\$(OCSIGENNAME)
+EXAMPLESINSTALLDIR = $root$libdir/\$(OCSIGENNAME)
 
 # User who will run Ocsigen server (not root) (eg, for debian, www-data)
 # (This user must exist on your system)
@@ -536,34 +551,34 @@ OCSIGENUSER=$ocsigen_user
 
 # group who will run Ocsigen server (not root) (eg, for debian, www-data)
 # (This group must exist)
-OCSIGENGROUP=$ocsigen_user
+OCSIGENGROUP=$ocsigen_group
 
 # The name of the server (and the directory for the modules)
 OCSIGENNAME=$name
 
 # ocsigen's logs:
-LOGDIR = /var/log/\$(OCSIGENNAME)
+LOGDIR = $root/var/log/\$(OCSIGENNAME)
 
 # Config files:
-CONFIGDIR = $sysconfdir/\$(OCSIGENNAME)
+CONFIGDIR = $root$sysconfdir/\$(OCSIGENNAME)
 
 # Where to put static pages:
-STATICPAGESDIR =$staticpagesdir/\$(OCSIGENNAME)
+STATICPAGESDIR =$root$staticpagesdir/\$(OCSIGENNAME)
 
 # Where to put dynamic data:
-DATADIR = $datadir/\$(OCSIGENNAME)
+DATADIR = $root$datadir/\$(OCSIGENNAME)
 
 # Default directory for file upload:
-UPLOADDIR = $uploaddir
+UPLOADDIR = $root$uploaddir
 
 # Where to put Ocsigen documentation:
-DOCDIR = $docdir/\$(OCSIGENNAME)
+DOCDIR = $root$docdir/\$(OCSIGENNAME)
 
 # Do you want debugging information? (-g -dtypes)
 DEBUG=$enable_debug
 
 # The name of the named pipe used to command the server
-COMMANDPIPE=$commandpipe
+COMMANDPIPE=$root$commandpipe
 
 
 
@@ -605,6 +620,9 @@ echo "You can now compile Ocsigen by invoking"
 echo "   make depend"
 echo "   make"
 echo
-echo "Finally, a"
-echo "   make fullinstall"
-echo "will install the package."
+echo "Finally, if you want system-wide install, do"
+echo "   make install"
+echo "to install the package, or"
+echo "   make installwithoutdoc"
+echo "to install the package without generating the documentation."
+

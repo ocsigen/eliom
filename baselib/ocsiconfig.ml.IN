@@ -121,9 +121,6 @@ let display_version () =
   print_newline ();
   exit 0
 
-let print_location loc =
-  Printf.sprintf "%d-%d" (fst loc).Lexing.pos_cnum (snd loc).Lexing.pos_cnum
-
 
 let _ = Arg.parse
     [("-c", Arg.String set_configfile, 
@@ -146,11 +143,6 @@ let _ = Arg.parse
     "usage: _OCSIGENNAME_ [-c configfile]"
 
 let config () = 
-(*  try *)
     Simplexmlparser.xmlparser (get_config_file ())
-(*  with
-    Stdpp.Exc_located (fl,exn) -> 
-      Printf.eprintf "%s" 
-	("Syntax error in config file at location : "^(print_location fl)^". ");
-      raise exn *)
+
 

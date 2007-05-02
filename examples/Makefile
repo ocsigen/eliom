@@ -39,10 +39,10 @@ exampleduce.cmx:
 	cp ocamlduce/exampleduce.cmx .
 
 nurpawiki.byte:
-	make -C nurpawiki byte
+	$(MAKE) -C nurpawiki byte
 
 nurpawiki.opt:
-	make -C nurpawiki opt
+	$(MAKE) -C nurpawiki opt
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
@@ -59,7 +59,7 @@ nurpawiki.opt:
 	$(CAMLOPT) -shared -linkall -o $@ $<
 
 clean:
-	make -C nurpawiki clean
+	$(MAKE) -C nurpawiki clean
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot
 
 depend:

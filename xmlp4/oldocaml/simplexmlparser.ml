@@ -249,11 +249,24 @@ let rec to_xml =
   | PLEmpty -> []
   | PLCons (a, l) -> to_xml_tag l a
 
+
+let print_location loc =
+  Printf.sprintf "%d-%d" (fst loc).Lexing.pos_cnum (snd loc).Lexing.pos_cnum
+
+exception Xml_parser_error of string
+
 let rawxmlparser s =
-  let chan = open_in s in
-  let tree = Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_channel chan) in
-  close_in chan;
-  tree
+  try
+    let chan = open_in s in
+    let tree = Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_channel chan) in
+    close_in chan;
+    tree
+  with
+  | Stdpp.Exc_located (fl, exn) ->
+      raise
+        (Xml_parser_error
+           ("XML error at position: "^
+            (print_location fl)^". "^(Printexc.to_string exn)))
 
 let xmlparser s = to_xml (rawxmlparser s)
 

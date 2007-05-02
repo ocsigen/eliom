@@ -30,7 +30,7 @@ open Lwt
 (* menu with preapplied services *)
 
 let preappl = preapply coucou_params (3,(4,"cinq"))
-let preappl2 = preapply uasuffix "plop"
+let preappl2 = preapply uasuffix (1999,01)
 
 let mymenu current sp =
   Eliomboxes.menu ~classe:["menuprincipal"]

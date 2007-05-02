@@ -961,13 +961,12 @@ let errmsg = function
   | Ssl.Private_key_error ->
       (("Fatal - bad password"),
       10)
-  | Stdpp.Exc_located (fl, exn) ->
-      (("Fatal - Error in configuration file at position : "^
-              (print_location fl)^". "^(Printexc.to_string exn)),
-      51)
   | Config_file_exn exn ->
       (("Fatal - Error in configuration file: "^(Printexc.to_string exn)),
       50)
+  | Simplexmlparser.Xml_parser_error s ->
+      (("Fatal - Error in configuration file: "^s),
+       51)
   | exn -> 
       try
         ((Extensions.get_init_exn_handler () exn),

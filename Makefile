@@ -175,39 +175,40 @@ depend: xmlp4.byte
 	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 
 
-.PHONY: partialinstall install doc docinstall installwithoutdoc
+.PHONY: partialinstall install doc docinstall installwithoutdoc logrotate
 partialinstall:
-	mkdir -p $(PREFIX)/$(MODULEINSTALLDIR)
-	mkdir -p $(PREFIX)/$(EXAMPLESINSTALLDIR)
+	mkdir -p $(TEMPROOT)/$(MODULEINSTALLDIR)
+	mkdir -p $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
 	$(MAKE) -C server install
 	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
-	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(PREFIX)/$(MODULEINSTALLDIR)" $(TOINSTALL)
-	$(INSTALL) -m 644 $(EXAMPLES) $(PREFIX)/$(EXAMPLESINSTALLDIR)
-	-$(INSTALL) -m 755 modules/ocsidbm $(PREFIX)/$(BINDIR)/
-	-$(INSTALL) -m 755 modules/ocsidbm.opt $(PREFIX)/$(BINDIR)/
+	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)" $(TOINSTALL)
+	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
+	-$(INSTALL) -m 755 modules/ocsidbm $(TEMPROOT)/$(BINDIR)/
+	-$(INSTALL) -m 755 modules/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
 	-rm META
 
 docinstall: doc
-	mkdir -p $(PREFIX)/$(DOCDIR)
-	$(INSTALL) -d -m 755 $(PREFIX)/$(DOCDIR)/lwt
-	$(INSTALL) -d -m 755 $(PREFIX)/$(DOCDIR)/oc
-	-$(INSTALL) -m 644 doc/* $(PREFIX)/$(DOCDIR)
-	$(INSTALL) -m 644 doc/lwt/* $(PREFIX)/$(DOCDIR)/lwt
-	$(INSTALL) -m 644 doc/oc/* $(PREFIX)/$(DOCDIR)/oc
-	chmod a+rx $(PREFIX)/$(DOCDIR)
-	chmod a+r $(PREFIX)/$(DOCDIR)/*
+	mkdir -p $(TEMPROOT)/$(DOCDIR)
+	$(INSTALL) -d -m 755 $(TEMPROOT)/$(DOCDIR)/lwt
+	$(INSTALL) -d -m 755 $(TEMPROOT)/$(DOCDIR)/oc
+	-$(INSTALL) -m 644 doc/* $(TEMPROOT)/$(DOCDIR)
+	$(INSTALL) -m 644 doc/lwt/* $(TEMPROOT)/$(DOCDIR)/lwt
+	$(INSTALL) -m 644 doc/oc/* $(TEMPROOT)/$(DOCDIR)/oc
+	chmod a+rx $(TEMPROOT)/$(DOCDIR)
+	chmod a+r $(TEMPROOT)/$(DOCDIR)/*
 
 installwithoutdoc: partialinstall
-	mkdir -p $(PREFIX)/$(CONFIGDIR)
-	mkdir -p $(PREFIX)/$(STATICPAGESDIR)
-	mkdir -p $(PREFIX)/$(STATICPAGESDIR)/nurpawiki
-	mkdir -p $(PREFIX)/$(STATICPAGESDIR)/tutorial
-	mkdir -p $(PREFIX)/$(DATADIR)
-	mkdir -p $(PREFIX)/$(DATADIR)/nurpawiki
-	[ -p $(PREFIX)/$(COMMANDPIPE) ] || { mkfifo $(PREFIX)/$(COMMANDPIPE); \
-	  chmod 660 $(PREFIX)/$(COMMANDPIPE); \
-	  $(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(COMMANDPIPE);}
-#	-mv $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
+	mkdir -p $(TEMPROOT)/$(CONFIGDIR)
+	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)
+	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/nurpawiki
+	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
+	mkdir -p $(TEMPROOT)/$(DATADIR)
+	mkdir -p $(TEMPROOT)/$(DATADIR)/nurpawiki
+	mkdir -p `dirname $(TEMPROOT)/$(COMMANDPIPE)`
+	[ -p $(TEMPROOT)/$(COMMANDPIPE) ] || { mkfifo $(TEMPROOT)/$(COMMANDPIPE); \
+	  chmod 660 $(TEMPROOT)/$(COMMANDPIPE); \
+	  $(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(COMMANDPIPE);}
+#	-mv $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
 	cat files/ocsigen.conf \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
@@ -220,43 +221,45 @@ installwithoutdoc: partialinstall
 	| sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
-	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
-	cat $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
+	> $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
+	cat $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
 	| sed s%[.]cmo%.cmxs%g \
 	| sed s%[.]cma%.cmxs%g \
-	> $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
-	-mv $(PREFIX)/$(CONFIGDIR)/mime.types $(PREFIX)/$(CONFIGDIR)/mime.types.old
-	cp -f files/mime.types $(PREFIX)/$(CONFIGDIR)
-	mkdir -p $(PREFIX)/$(LOGDIR)
-	chmod u+rwx $(PREFIX)/$(LOGDIR)
-	chmod a+rx $(PREFIX)/$(CONFIGDIR)
-	[ -f $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
-	{ cp $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
-             $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf; \
-	  chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf; }
-	chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
-	[ -f $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
-	{ cp $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample \
-             $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; \
-	  chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; }
-	chmod a+r $(PREFIX)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
-	chmod a+r $(PREFIX)/$(CONFIGDIR)/mime.types
-	$(INSTALL) -m 644 files/style.css $(PREFIX)/$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 files/ocsigen5.png $(PREFIX)/$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 examples/nurpawiki/files/style.css $(PREFIX)/$(STATICPAGESDIR)/nurpawiki
-	$(INSTALL) -m 644 examples/nurpawiki/wikidata/* $(PREFIX)/$(DATADIR)/nurpawiki
-	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(LOGDIR)
-	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(STATICPAGESDIR)
-	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(PREFIX)/$(DATADIR)
+	> $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
+	-mv $(TEMPROOT)/$(CONFIGDIR)/mime.types $(TEMPROOT)/$(CONFIGDIR)/mime.types.old
+	cp -f files/mime.types $(TEMPROOT)/$(CONFIGDIR)
+	mkdir -p $(TEMPROOT)/$(LOGDIR)
+	chmod u+rwx $(TEMPROOT)/$(LOGDIR)
+	chmod a+rx $(TEMPROOT)/$(CONFIGDIR)
+	[ -f $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
+	{ cp $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
+             $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf; \
+	  chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf; }
+	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
+	[ -f $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
+	{ cp $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample \
+             $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; \
+	  chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; }
+	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
+	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/mime.types
+	$(INSTALL) -m 644 files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/ocsigen5.png $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 examples/nurpawiki/files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/nurpawiki
+	$(INSTALL) -m 644 examples/nurpawiki/wikidata/* $(TEMPROOT)/$(DATADIR)/nurpawiki
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(LOGDIR)
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(STATICPAGESDIR)
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(DATADIR)
+	$(INSTALL) -d -m 755 $(TEMPROOT)/$(MANDIR)
+	$(INSTALL) -m 644 files/ocsigen.1 $(TEMPROOT)/$(MANDIR)
+
+logrotate:
 	[ -d /etc/logrotate.d ] && \
-	 { mkdir -p ${PREFIX}/etc/logrotate.d ; \
+	 { mkdir -p ${TEMPROOT}/etc/logrotate.d ; \
 	   cat files/logrotate.IN \
 	   | sed s%LOGDIR%$(LOGDIR)%g \
 	   | sed s%USER%$(OCSIGENUSER)%g \
 	   | sed s%GROUP%$(OCSIGENGROUP)%g \
-	  > $(PREFIX)/etc/logrotate.d/$(OCSIGENNAME); }
-	$(INSTALL) -d -m 755 $(PREFIX)/$(MANDIR)
-	$(INSTALL) -m 644 files/ocsigen.1 $(PREFIX)/$(MANDIR)
+	  > $(TEMPROOT)/etc/logrotate.d/$(OCSIGENNAME); }
 
 install: docinstall installwithoutdoc
 
@@ -264,7 +267,7 @@ install: docinstall installwithoutdoc
 .PHONY: uninstall fulluninstall
 uninstall:
 	$(MAKE) -C server uninstall
-	$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(PREFIX)/$(MODULEINSTALLDIR)"
+	$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)"
 
 fulluninstall: uninstall
 # dangerous

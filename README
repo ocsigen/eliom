@@ -29,8 +29,10 @@ Print the list of possible options using:
 (For example if you have an old version of ocamlnet (< 2.0) you need
 --disable-newocamlnet)
 
+(For example if you want to install all files ocsigen in a separate directory:
+./configure --root /mydirectory --prefix "" --ocsigen-user myuser --ocsigen-group mygroup)
+
 Verify that Makefile.config is OK 
-(for ex if you use Ocamlnet 1, you'll need to change an option)
 
 Then, type
   make depend
@@ -38,6 +40,10 @@ Then, type
 
 If you want system-wide installation, become root, and do
   make install
+and possibly
+  make logrotate
+if you want logrotate (rotation of logs) configuration in /etc/logrotate.d
+(highly recommended)
 
 (make installwithoutdoc -> to install without doc
  make uninstall)
@@ -61,6 +67,10 @@ Then you can connect to the server with your browser:
 
 http://localhost
 
+If you are not root, you cannot use port 80. 
+Modify the config file to set for example port 8080 for you server.
+(and use http://localhost:8080)
+
 If you did not do make install, you can run for example
  server/ocsigen -c ocsigen.conf.local
 that launch a server on port 8080 with user rights on local directory
@@ -72,7 +82,7 @@ If it does not work, look at the logs or run ocsigen with options -v or -V
 
 See the file modules/tutorial.ml for a tutorial or http://www.ocsigen.org
 
-If you make fullinstall, it will generate and install the documentation.
+If you make install, it will generate and install the documentation.
 Otherwise, you can generate it in the doc directory by typing:
 make doc
 

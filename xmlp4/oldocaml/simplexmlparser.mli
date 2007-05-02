@@ -23,4 +23,6 @@ type xml =
   | PCData of string
 
 (**/**)
+exception Xml_parser_error of string
+
 val xmlparser : string -> xml list

@@ -340,13 +340,14 @@ let coucou_params = register_new_service
 let uasuffix = 
   register_new_service 
     ~url:["uasuffix"]
-    ~get_params:(suffix (string "suff"))
-    (fun sp suff () ->  return
+    ~get_params:(suffix (int "year" ** int "month"))
+    (fun sp (year, month) () ->  return
       (html
         (head (title (pcdata "")) [])
         (body
            [p [pcdata "The suffix of the url is ";
-               strong [pcdata suff];
+               strong [pcdata ((string_of_int year)^"/"
+                               ^(string_of_int month))];
                pcdata ", your user-agent is ";
                strong [pcdata (get_user_agent sp)];
                pcdata ", your IP is ";
@@ -380,7 +381,7 @@ let isuffix =
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*html*
-      <p>See $a Tutoeliom.uasuffix sp <:xmllist< uasuffix >> "thesuffix"$,
+      <p>See $a Tutoeliom.uasuffix sp <:xmllist< uasuffix >> (2007,07)$,
          $a Tutoeliom.isuffix sp <:xmllist< isuffix >> ((11, ["a";"b";"c"]) , 22)$.</p>
 
       <p>The following example shows how to use your own types:</p>
@@ -448,7 +449,7 @@ let links = register_new_service ["rep";"links"] unit
          a default sp 
            [pcdata "default page of the dir"] (); br ();
          a uasuffix sp 
-           [pcdata "uasuffix"] "suffix"; br ();
+           [pcdata "uasuffix"] (2007,06); br ();
          a coucou_params sp 
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
          a
@@ -662,6 +663,180 @@ let form4 = register_new_service ["form4"] unit
       $a Tutoeliom.form4 sp <:xmllist< form4 >> ()$.
       </p>
 
+    </div>
+    <h2>Threads</h2>
+    <div class="twocol1">
+      <p>
+      Remember that a Web site written with Eliom is an OCaml application.
+      This application must be able to handle several requests at the same 
+      time, if one of the requests takes time. To make this possible, Ocsigen
+      is using <em>cooperative threads</em>, 
+      implemented in monadic style
+      by Jérôme Vouillon (<code>Lwt</code> module), which make them really easy
+      to use.
+      </p>
+      <p>With respect to preemptive threads, cooperative threads are not using
+      a scheduler to distribute processor time between threads. Instead of 
+      this, each thread must tell the others that he wants to let them
+      work. If a thread does not cooperate, 
+        the others will be blocked.
+      </p>
+      <dl>
+        <dt>Advantages</dt><dd><ul>
+          <li>It is much lighter</li>
+          <li>No need of mutex and no risk of deadlock!</li>
+          <li>The use of many (small) threads make implementation very easy (for example, for user interfaces, no need to implement another event loop, make a thread for each widget!)</li>
+         </ul></dd>
+        <dt>Drawbacks</dt><dd><ul>
+          <li>Threads must cooperate&nbsp;... Otherwise the whole program will hang.</li></ul></dd>
+      </dl>
+      <p>As it does not cooperate, the following page will stop the
+      server for 5 seconds. No one will be able to do a request during
+      this delay:</p>
+<pre><span style="color:green">let</span> looong =
+  register_new_service
+    <span style="color:#770000">~url:</span>[<span style="color:#aa4444">"looong"</span>]
+    <span style="color:#770000">~get_params:</span>unit
+    (<span style="color:green">fun</span> sp () () -&gt;
+      <span style="color:#0033cc">Unix</span>.sleep 5;
+      return
+        (html
+          (head (title (pcdata <span style="color:#aa4444">""</span>)) [])
+          (body [h1 [pcdata <span style="color:#aa4444">"Ok now, you can read the page."</span>]])))</pre>
+      <p>To solve this problem, use a cooperative version of 
+         <code>sleep</code>:</p>
+*html*)
+let looong = 
+  register_new_service 
+    ~url:["looong"]
+    ~get_params:unit
+    (fun sp () () -> 
+      Lwt_unix.sleep 5.0 >>= (fun () ->
+        return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata 
+	           "Ok now, you can read the page."]]))))
+(*html*
+      <p class="importantwarning">
+        The binary operator <code>&gt;&gt;=</code>
+        means: <em>"if the left handside takes time, do not block here,
+        continue to the next instruction, but remember to come back here and
+        give the result to the following function once you get it"</em>.
+      </p>
+     <p>In other words, it is used to
+     specify a sequence of computations that depend one from another.
+     It is a kind of <code>let</code> binding.
+     <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>
+     will try to evaluate <code>e1</code>, and once <code>e1</code>
+     is evaluated, it will give the result to the function given as second
+     parameter.
+     If the left handside (<code>e1</code>)
+     takes time (for example because it is waiting for a read on a socket),
+     the whole computation will be saved in a table and the program will
+     continue to the next instruction that does not depend on <code>e1</code>. 
+     The computation will resume at a future
+     cooperation point, if it is ready to continue.
+     Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
+     you can write <code>bind e1 (fun r -&gt; return e2)</code>.
+     </p>
+     <p>See $a Tutoeliom.looong sp <:xmllist< looong >> ()$.</p>
+     <p><code>Lwt.bind</code>, (or <code>&gt;&gt;=</code>) has type<br/>
+        <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
+     <p><code>Lwt.return</code> has type<br/>
+        <code>'a -&gt; 'a Lwt.t</code></p>
+     <p><code>'a Lwt.t</code> is the type of threads returning 
+        a result of type <code>'a</code>. All cooperative functions
+        must return this type.</p>
+     <p>Cooperation points are inserted when you call cooperative functions
+     such as <code>Lwt_unix.read</code> or <code>Lwt_unix.write</code>.
+     You can add other cooperation points by calling
+     <code>Lwt_unix.yield ()</code>. The thread will suspend itself,
+     let other threads run, and resume as soon as possible.
+     </p>
+      <div class="importantwarning">
+      <p>
+   Monadic cooperative threads are not difficult to use. Just remember:
+      </p>
+      <ul>
+      <li>Functions that may take time to complete always return something
+      of type <code>&alpha; Lwt.t</code> (where <code>&alpha;</code> is
+      any type). They are called <em>cooperative functions</em>.</li>
+      <li>The only way to use the result of such a function is
+        to bind it to another cooperative function (what to do after) using 
+        <code>&gt;&gt;=</code>.
+      </li>
+      </ul>
+      </div>
+    </div>
+    <div class="twocol2">
+     <h3>Catching exceptions</h3>
+     <p>You must be careful when catching exception with <code>Lwt</code>.
+     If you use the <code>try ... with</code> construct for an expression
+     of type <code>'a Lwt.t</code>, it may not work (as the computation
+     may happen later).</p>
+     <p>Remember the following: if e has type <code>'a Lwt.t</code> 
+      (where <code>'a</code> is any type), do not write:</p>
+<pre><span style="color:#77aaaa">try</span>
+  e
+<span style="color:#77aaaa">with</span>
+  ...</pre>
+     <p>but write:</p>
+<pre>catch
+  (<span style="color:green">fun</span> () -&gt; e)
+  (<span style="color:green">function</span> ... <span style="color:#77aaaa">|</span> exn -&gt; fail exn)</pre>
+     <h3>What if my function is not implemented in cooperative way?</h3>
+      <h4>If my function is thread-safe (for preemptive threads)</h4>
+      <p>Ocsigen implements a way to make a non cooperative computation be
+      executed automatically by a another preemptive thread (for example
+      a database request using a non-cooperative database library, such as 
+      postgresql-ocaml or pgocaml). To do this,
+      use the <code>detach</code> function. For example:</p>
+*html*)
+let looong2 = 
+  register_new_service 
+    ~url:["looong2"]
+    ~get_params:unit
+    (fun sp () () -> 
+      (Preemptive.detach Unix.sleep 5) >>= (fun () ->
+        return
+        (html
+          (head (title (pcdata "")) [])
+          (body [h1 [pcdata 
+		   "Ok now, you can read the page."]]))))
+(*html*
+      <p>See $a Tutoeliom.looong2 sp <:xmllist< looong2 >> ()$.</p>      
+      <p>A pool of preemptive threads is waiting for such 
+      "detached functions". You can specify the number of threads in the pool
+      in the configuration file.</p>
+      <p>Warning: Detached functions must be thread-safe! Be careful to
+      concurrent access to data. Be sure to use mutexes for your own functions,
+      and use only thread-safe libraries.<!-- For example <code></code>
+      (version ) is NOT thread-safe, <code></code>
+      (version ) is thread-safe. --> The libraries from Ocsigen
+      are NOT thread-safe for now. Let us know if you need them to be
+      thread-safe.</p>
+      <h4>If my function is not thread-safe (for preemptive threads)</h4>
+      <p>If you want to use a function that takes time to execute but
+      it not written in thread-safe way, consider rewriting it in cooperative
+      manner, or delegate the work to another process.</p>
+     <h3>Examples</h3>
+      <h4>A thread that prints "hello" every 10 seconds</h4>
+      <p>Just add the following lines to your program:</p>
+      <pre><span style="color:green">let rec</span> f () = 
+  print_endline "hello";
+  <span style="color:#0033cc">Lwt_unix</span>.sleep 10. &gt;&gt;= f
+in f ();
+      </pre>
+      <h4>More advanced use: Create a thread waiting for an event</h4>
+        <p><code>Lwt.wait ()</code> creates a thread that waits forever.
+          You can wake it up using <code>Lwt.wakeup</code>.
+        </p>
+      <pre><span style="color:green">let</span> w = wait () in
+(w &gt;&gt;= (<span style="color:green">fun</span> v -&gt; return (print_endline v));
+...
+wakeup w "HELLO");
+      </pre>
     </div>
     <h2>Summary of concepts</h2>
     <div class="encadre sanstitre">
@@ -1794,156 +1969,6 @@ let _ =
        That feature will be improved in the future.
       </p>
     </div>
-    <h2>Threads</h2>
-    <div class="twocol1">
-      <p>
-      Remember that a Web site written with Eliom is an OCaml application.
-      This application must be able to handle several requests at the same 
-      time, if one of the requests takes time. To make this possible, Ocsigen
-      is using <em>cooperative threads</em>, 
-      implemented in monadic style
-      by Jérôme Vouillon (<code>Lwt</code> module), which make them really easy
-      to use.
-      </p>
-      <p>With respect to preemptive threads, cooperative threads are not using
-      a scheduler to distribute processor time between threads. Instead of 
-      this, each thread must tell the others that he wants to let them
-      work. If a thread does not cooperate, 
-        the others will be blocked.
-      </p>
-      <dl>
-        <dt>Advantages</dt><dd><ul>
-          <li>It is much lighter</li>
-          <li>No need of mutex and no risk of deadlock!</li>
-          <li>The use of many (small) threads make implementation very easy (for example, for user interfaces, no need to implement another event loop, make a thread for each widget!)</li>
-         </ul></dd>
-        <dt>Drawbacks</dt><dd><ul>
-          <li>Threads must cooperate&nbsp;... Otherwise the whole program will hang.</li></ul></dd>
-      </dl>
-      <p>As it does not cooperate, the following page will stop the
-      server for 5 seconds. No one will be able to do a request during
-      this delay:</p>
-<pre><span style="color:green">let</span> looong =
-  register_new_service
-    <span style="color:#770000">~url:</span>[<span style="color:#aa4444">"looong"</span>]
-    <span style="color:#770000">~get_params:</span>unit
-    (<span style="color:green">fun</span> sp () () -&gt;
-      <span style="color:#0033cc">Unix</span>.sleep 5;
-      return
-        (html
-          (head (title (pcdata <span style="color:#aa4444">""</span>)) [])
-          (body [h1 [pcdata <span style="color:#aa4444">"Ok now, you can read the page."</span>]])))</pre>
-      <p>To solve this problem, use a cooperative version of 
-         <code>sleep</code>:</p>
-*html*)
-let looong = 
-  register_new_service 
-    ~url:["looong"]
-    ~get_params:unit
-    (fun sp () () -> 
-      Lwt_unix.sleep 5.0 >>= (fun () ->
-        return
-        (html
-          (head (title (pcdata "")) [])
-          (body [h1 [pcdata 
-	           "Ok now, you can read the page."]]))))
-(*html*
-     <p>The <code>&gt;&gt;=</code> operator (from <code>Lwt</code>) is used to
-     specify a sequence of computations that depend one from another.
-     It is a kind of <code>let</code> binding.
-     <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>
-     will try to evaluate <code>e1</code>, and once <code>e1</code>
-     is evaluated, it will give the result to the function given as second
-     parameter.
-     If the left handside (<code>e1</code>)
-     takes time (for example because it is waiting for a read on a socket),
-     the whole computation will be saved in a table and the program will
-     continue to the next instruction that does not depend on <code>e1</code>. 
-     The computation will resume at a future
-     cooperation point, if it is ready to continue.
-     Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
-     you can write <code>bind e1 (fun r -&gt; return e2)</code>.
-     </p>
-     <p>See $a Tutoeliom.looong sp <:xmllist< looong >> ()$.</p>
-     <p><code>Lwt.bind</code>, (or <code>&gt;&gt;=</code>) has type<br/>
-        <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
-     <p><code>Lwt.return</code> has type<br/>
-        <code>'a -&gt; 'a Lwt.t</code></p>
-     <p><code>'a Lwt.t</code> is the type of threads returning 
-        a result of type <code>'a</code>.</p>
-     <p>Cooperation points are inserted when you call cooperative functions
-     such as <code>Lwt_unix.read</code> or <code>Lwt_unix.write</code>.
-     You can add other cooperation points by calling
-     <code>Lwt_unix.yield ()</code>. The thread will suspend itself,
-     let other threads run, and resume as soon as possible.
-     </p>
-    </div>
-    <div class="twocol2">
-     <h3>Catching exceptions</h3>
-     <p>You must be careful when catching exception with <code>Lwt</code>.
-     If you use the <code>try ... with</code> construct for an expression
-     of type <code>'a Lwt.t</code>, it may not work (as the computation
-     may happen later).</p>
-     <p>Remember the following: if e has type <code>'a Lwt.t</code> 
-      (where <code>'a</code> is any type), do not write:</p>
-<pre><span style="color:#77aaaa">try</span>
-  e
-<span style="color:#77aaaa">with</span>
-  ...</pre>
-     <p>but write:</p>
-<pre>catch
-  (<span style="color:green">fun</span> () -&gt; e)
-  (<span style="color:green">function</span> ... <span style="color:#77aaaa">|</span> exn -&gt; fail exn)</pre>
-     <h3>What if my function is not implemented in cooperative way?</h3>
-      <h4>If my function is thread-safe (for preemptive threads)</h4>
-      <p>Ocsigen implements a way to make a non cooperative computation be
-      executed automatically by a another preemptive thread (for example
-      a database request using a non-cooperative database library, such as 
-      postgresql-ocaml or pgocaml). To do this,
-      use the <code>detach</code> function. For example:</p>
-*html*)
-let looong2 = 
-  register_new_service 
-    ~url:["looong2"]
-    ~get_params:unit
-    (fun sp () () -> 
-      (Preemptive.detach Unix.sleep 5) >>= (fun () ->
-        return
-        (html
-          (head (title (pcdata "")) [])
-          (body [h1 [pcdata 
-		   "Ok now, you can read the page."]]))))
-(*html*
-      <p>See $a Tutoeliom.looong2 sp <:xmllist< looong2 >> ()$.</p>      
-      <p>A pool of preemptive threads is waiting for such 
-      "detached functions". You can specify the number of threads in the pool
-      in the configuration file.</p>
-      <p>Warning: Detached functions must be thread-safe! Be careful to
-      concurrent access to data. Be sure to use mutexes for your own functions,
-      and use only thread-safe libraries.<!-- For example <code></code>
-      (version ) is NOT thread-safe, <code></code>
-      (version ) is thread-safe. --> The libraries from Ocsigen
-      are NOT thread-safe for now. Let us know if you need them to be
-      thread-safe.</p>
-      <h4>If my function is not thread-safe (for preemptive threads)</h4>
-      <p>If you want to use a function that takes time to execute but
-      it not written in thread-safe way, consider rewriting it in cooperative
-      manner, or delegate the work to another process.</p>
-     <h3>Examples</h3>
-      <h4>A thread that prints "hello" every 10 seconds</h4>
-      <p>Just add the following lines to your program:</p>
-      <pre><span style="color:green">let rec</span> f () = 
-  print_endline "hello";
-  <span style="color:#0033cc">Lwt_unix</span>.sleep 10. &gt;&gt;= f
-in f ();
-      </pre>
-      <h4>Create a thread waiting for an event</h4>
-      <pre><span style="color:green">let</span> w = wait () in
-(w &gt;&gt;= (<span style="color:green">fun</span> v -&gt; return (print_endline v));
-...
-wakeup w "HELLO");
-      </pre>
-    </div>
     <h2>Persistence of sessions</h2>
     <div class="twocol1">
       <p>Tables of sessions (for data or services) are kept in memory,
@@ -2453,7 +2478,7 @@ let _ = register main
          A page with GET parameters: 
            $a coucou_params sp <:xmllist< coucou with params >> (45,(22,"krokodile"))$ (what if the first parameter is not an integer?)<br/> 
          A page with "suffix" URL that knows the IP and user-agent of the client: 
-           $a uasuffix sp <:xmllist< uasuffix >> "toto"$ <br/> 
+           $a uasuffix sp <:xmllist< uasuffix >> (2007,6)$ <br/> 
          A page with "suffix" URL and GET parameters : 
            $a isuffix sp <:xmllist< isuffix >> ((111, ["OO";"II";"OO"]), 333)$ <br/> 
          A page with a parameter of user-defined type : 
