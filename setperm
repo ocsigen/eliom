@@ -1,0 +1,2 @@
+#!/bin/sh
+chmod a+rx configure

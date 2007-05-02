@@ -620,7 +620,7 @@ echo "You can now compile Ocsigen by invoking"
 echo "   make depend"
 echo "   make"
 echo
-echo "Finally, if you want system-wide install, do"
+echo "Finally, if you want system-wide install, (become root if needed and) do"
 echo "   make install"
 echo "to install the package, or"
 echo "   make installwithoutdoc"

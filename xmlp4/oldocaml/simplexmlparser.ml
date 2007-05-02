@@ -40,6 +40,8 @@ et ensuite encore string_of_int au moment de l'affichage
 
 open Pcaml
 
+exception Xml_parser_error of string
+
 
 (* Instead of using Pcaml.gram, we use a new grammar, using xmllexer *)
 let g = Grammar.gcreate (Xmllexer.gmake ())
@@ -253,8 +255,6 @@ let rec to_xml =
 
 let print_location loc =
   Printf.sprintf "%d-%d" (fst loc).Lexing.pos_cnum (snd loc).Lexing.pos_cnum
-
-exception Xml_parser_error of string
 
 let rawxmlparser s =
   try
