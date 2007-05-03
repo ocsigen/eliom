@@ -94,6 +94,8 @@ Written by:
 Vincent Balat (project leader, xml parser, ocsigenmod,
         staticmod, Web server, ocsimore 0.1, extension mechanism...)
 Denis Berthod (http protocol, Web server)
+Gabriel Kerneis (Syntax extension for ocaml 3.10)
+Piero Furiesi (Ocsimore)
 Jérôme Vouillon (lwt library, from unison)
 Thorsten Ohl (functions to generate xhtml (xML and xHTML modules))
 Nataliya Guts (Web server)

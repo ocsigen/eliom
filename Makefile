@@ -154,6 +154,8 @@ $(OCSIGENNAME).conf.local:
 	| sed s%_COMMANDPIPE_%$(SRC)/var/run/ocsigen_command%g \
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/modules%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
+	| sed s%files/nurpawiki%examples/nurpawiki/files%g \
+	| sed s%var/lib/nurpawiki%examples/nurpawiki/wikidata%g \
 	| sed s%\<\!--\ commandpipe%\<commandpipe%g \
 	| sed s%\</commandpipe\ --%\</commandpipe%g \
 	| sed s%eliom.cma\"/\>%eliom.cma\"\>\<store\ dir=\"$(SRC)/var/lib/ocsipersist\"/\>\<ocsidbm\ name=\"$(SRC)/modules/ocsidbm\"/\>\</extension\>%g \
