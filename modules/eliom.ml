@@ -776,9 +776,9 @@ let new_coservice
     
 
 let new_coservice' ?max_use ?timeout ~get_params () =
-  (match global_register_allowed () with
+  (* match global_register_allowed () with
     Some _ -> add_unregistered None;
-  | _ -> ());
+  | _ -> () *) (* Do we accept unregistered non-attached coservices? *)
   {
    max_use= max_use;
    timeout= timeout;
@@ -855,9 +855,9 @@ let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
  *)
 
 let new_post_coservice' ?max_use ?timeout ~post_params () =
-  (match global_register_allowed () with
+  (* match global_register_allowed () with
     Some _ -> add_unregistered None
-  | _ -> ());
+  | _ -> () *)
   {
    max_use= max_use;
    timeout= timeout;
@@ -876,10 +876,10 @@ let new_get_post_coservice'
    ?timeout
     ~fallback
     ~post_params =
-  (match global_register_allowed () with
+  (* match global_register_allowed () with
     Some _ ->
   | _ -> ());
-   add_unregistered None;
+   add_unregistered None; *)
    {
    pre_applied_parameters = fallback.pre_applied_parameters;
    get_params_type = fallback.na_get_params_type;
