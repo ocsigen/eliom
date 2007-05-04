@@ -757,9 +757,9 @@ let new_coservice
     ~get_params
     () =
   let `Attached k = fallback.kind in
-  (match global_register_allowed () with
+  (* (match global_register_allowed () with
     Some _ -> add_unregistered (Some k.url);
-  | _ -> ());
+  | _ -> ()); *)
   {fallback with
    max_use= max_use;
    timeout= timeout;
@@ -832,12 +832,12 @@ let new_post_service ~fallback ~post_params () =
 (* Warning: strange if post_params = unit... *)    
 (* if the fallback is a coservice, do we get a coservice or a service? *)    
 
-  
+
 let new_post_coservice ?max_use ?timeout ~fallback ~post_params () = 
   let `Attached k1 = fallback.kind in
-  (match global_register_allowed () with
+  (* (match global_register_allowed () with
     Some _ -> add_unregistered (Some k1.url);
-  | _ -> ());
+  | _ -> ()); *)
   {fallback with 
    post_params_type = post_params;
    max_use= max_use;
