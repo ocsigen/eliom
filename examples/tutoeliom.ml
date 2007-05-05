@@ -932,11 +932,17 @@ wakeup w "HELLO");
         If not, the server will not start (with an error message in the logs).
         This is to ensure that all the URLs the user can bookmark
         will always give an answer, even if the session has expired.</li>
-        <li>Main services cannot be registered in the public table
-         after the initialisation phase. Coservices (attached and non-attached)
+        <li>Services 
          may be registered in the public table after initialisation with
-         <code>register_public</code> (think about putting a timeout
-         for such coservices).
+         <code>register_public</code>.<br/>
+    If you use that function for main services, 
+    you will create dynamically new URLs!
+    This may be dangerous as they will disappear if you stop the server.
+    Be very careful to re-create these URLs when you relaunch the server,
+    otherwise, some external links or bookmarks will be broken!<br/>
+    The use of that function is not encouraged for coservices
+    without timeout, as such coservices will be available only until the end
+    of the server process!
         </li>
         <li>Do not register twice the same service in the public table, 
           and do not replace a service

@@ -1381,24 +1381,30 @@ module type ELIOMREGSIG1 =
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
 
-
     val register_public :
         server_params ->
-        coservice:('get, 'post,
+        service:('get, 'post,
+                 [< internal_service_kind ],
+                 [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+(*        coservice:('get, 'post,
                  [< `Attached of 
                    [< `Internal of [< `Coservice ] * getpost ] a_s
                  | `Nonattached of getpost na_s ],
-                 [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+                 [< suff ], 'gn, 'pn, [ `Registrable ]) service -> *)
         ?error_handler:(server_params ->
                                (string * exn) list -> page Lwt.t) ->
         (server_params -> 'get -> 'post -> page Lwt.t) ->
           unit
-(** Register a coservice in the global table after initialization.
+(** Register a service in the global table after initialization.
     [register] can be used only during the initalization of the module.
     After this phase, use that function, that takes [sp] as parameter.
     Warning: The use of that function is not encouraged for coservices
     without timeout, as such services will be available only until the end
     of the server process!
+    If you use it for main services, you will create dynamically new URLs!
+    This may be dangerous as they will disappear if you stop the server.
+    Be very careful to re-create these URLs when you relaunch the server,
+    otherwise, some external links or bookmarks will be broken!
  *)
 
     val register_new_public_coservice :
@@ -1511,8 +1517,6 @@ module type ELIOMREGSIG1 =
     of the server process!
 *)
 *)
-
-
 
 
   end
@@ -1688,14 +1692,14 @@ module MakeRegister = functor
 
         let register_public
             (ri, si, (curdir, (globtables, _, _), _, _, _))
-            ~coservice
+            ~service
             ?error_handler page_gen =
           register_aux 
             ?error_handler
             curdir
             globtables
             true
-            ~service:coservice
+            ~service
             page_gen
 
 
@@ -1761,7 +1765,7 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = new_coservice ?max_use ?timeout ~fallback ~get_params () in
-          register_public sp ~coservice:u ?error_handler page;
+          register_public sp ~service:u ?error_handler page;
           u
 
         let register_new_public_coservice'
@@ -1772,7 +1776,7 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = new_coservice' ?max_use ?timeout ~get_params () in
-          register_public sp ~coservice:u ?error_handler page;
+          register_public sp ~service:u ?error_handler page;
           u
 
 
@@ -1872,7 +1876,7 @@ module MakeRegister = functor
             page_gen =
           let u = new_post_coservice
               ?max_use ?timeout ~fallback ~post_params () in
-          register_public sp ~coservice:u ?error_handler page_gen;
+          register_public sp ~service:u ?error_handler page_gen;
           u
 
         let register_new_post_public_coservice'
@@ -1883,7 +1887,7 @@ module MakeRegister = functor
             ?error_handler
             page_gen =
           let u = new_post_coservice' ?max_use ?timeout ~post_params () in
-          register_public sp ~coservice:u ?error_handler page_gen;
+          register_public sp ~service:u ?error_handler page_gen;
           u
 
 (*
@@ -1897,7 +1901,7 @@ module MakeRegister = functor
    page_gen =
    let u = new_get_post_coservice' 
    ?max_use ?timeout ~fallback ~post_params () in
-   register_public sp ~coservice:u ?error_handler page_gen;
+   register_public sp ~service:u ?error_handler page_gen;
    u
  *)
 
@@ -1928,12 +1932,12 @@ module MakeRegister = functor
 
       let register_public
           sp
-          ~coservice
+          ~service
           ?error_handler
           page =
         Cookies.register_public
           sp
-          ~coservice
+          ~service
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
 

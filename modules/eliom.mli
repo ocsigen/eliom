@@ -908,21 +908,28 @@ module type ELIOMREGSIG1 =
 
     val register_public :
         server_params ->
-        coservice:('get, 'post,
+        service:('get, 'post,
+                 [< internal_service_kind ],
+                 [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+(*        coservice:('get, 'post,
                  [< `Attached of 
                    [< `Internal of [< `Coservice ] * getpost ] a_s
                  | `Nonattached of getpost na_s ],
-                 [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+                 [< suff ], 'gn, 'pn, [ `Registrable ]) service -> *)
         ?error_handler:(server_params ->
                                (string * exn) list -> page Lwt.t) ->
         (server_params -> 'get -> 'post -> page Lwt.t) ->
           unit
-(** Register a coservice in the global table after initialization.
+(** Register a service in the global table after initialization.
     [register] can be used only during the initalization of the module.
     After this phase, use that function, that takes [sp] as parameter.
     Warning: The use of that function is not encouraged for coservices
     without timeout, as such services will be available only until the end
     of the server process!
+    If you use it for main services, you will create dynamically new URLs!
+    This may be dangerous as they will disappear if you stop the server.
+    Be very careful to re-create these URLs when you relaunch the server,
+    otherwise, some external links or bookmarks will be broken!
  *)
 
     val register_new_public_coservice :

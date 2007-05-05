@@ -344,7 +344,7 @@ end *)
 
 (*
 
-+ faire un foncteur SubXhtml
++ faire un foncteur SubXhtml (variables de rangée privées et ocamlduce ??)
 
 *)
 
