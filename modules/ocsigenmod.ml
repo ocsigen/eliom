@@ -757,7 +757,7 @@ let add k a = page_tree_table := (k, a)::!page_tree_table
 
 (*****************************************************************************)
 (** extension registration *)
-let _ = register_extension
+let _ = R.register_extension
     ((fun hostpattern -> 
       let page_tree =
       try 

@@ -171,60 +171,67 @@ let find_charset (Charset_tree charset_tree) path =
    that may be raised during the initialisation phase, and raise again
    all other exceptions
  *)
-let register_extension, create_virthost, get_beg_init, get_end_init, 
-  get_init_exn_handler =
-  let defaultparseconfig path xml =
-    raise (Error_in_config_file "No extension loaded")
-  in
-  let fun_create_virthost =
-    ref (fun hostpattern -> 
-      let charset_tree = ref (new_charset_tree ()) in
-      ((fun cs ri -> return (Ext_not_found,[])), 
-       defaultparseconfig,
-       charset_tree))
-  in
-  let fun_beg = ref (fun () -> ()) in
-  let fun_end = ref (fun () -> ()) in
-  let fun_exn = ref (fun exn -> raise exn) in
-  ((fun (fun_virthost, begin_init, end_init, handle_exn) ->
-    let cur_fun = !fun_create_virthost in
-    fun_create_virthost := 
-      (fun hostpattern -> 
-        let (g1,p1,charset_tree) = cur_fun hostpattern in
-        let (g2,p2) = fun_virthost hostpattern in
-        ((fun charset ri ->
-	  g1 charset ri >>=
-          fun (ext_res,cookieslist) ->
-            match ext_res with
-            | Ext_not_found -> g2 charset ri >>= 
-                fun r -> return (r, cookieslist)
-            | Ext_continue_with (ri', cookies_to_set) -> 
-                g2 (find_charset !charset_tree ri'.ri_path) ri' >>= 
-                fun r -> return (r, cookies_to_set@cookieslist)
-            | r -> return (r, cookieslist)
-         ),
-	 (fun path xml -> 
-           try
-             p1 path xml
-           with 
-             Error_in_config_file _
-           | Bad_config_tag_for_extension _ -> p2 path xml),
-         charset_tree));
-    fun_beg := comp begin_init !fun_beg;
-    fun_end := comp end_init !fun_end;
-    let curexnfun = !fun_exn in
-    fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
-   (fun h ->
-     let (f,g,charset_tree) = !fun_create_virthost h in
-     (((fun ri -> f (find_charset !charset_tree ri.ri_path) ri), g),
-      (fun charset path -> 
-        charset_tree := add_charset charset path !charset_tree))),
-   (fun () -> !fun_beg),
-   (fun () -> !fun_end),
-   (fun () -> !fun_exn)
-   )
-    
+module R = struct
 
+  (* in a sub module to make possible Dynlink.prohibit ["Extensions.R"] *)
+  let register_extension, create_virthost, get_beg_init, get_end_init, 
+    get_init_exn_handler =
+    let defaultparseconfig path xml =
+      raise (Error_in_config_file "No extension loaded")
+    in
+    let fun_create_virthost =
+      ref (fun hostpattern -> 
+        let charset_tree = ref (new_charset_tree ()) in
+        ((fun cs ri -> return (Ext_not_found,[])), 
+         defaultparseconfig,
+         charset_tree))
+    in
+    let fun_beg = ref (fun () -> ()) in
+    let fun_end = ref (fun () -> ()) in
+    let fun_exn = ref (fun exn -> raise exn) in
+    ((fun (fun_virthost, begin_init, end_init, handle_exn) ->
+      let cur_fun = !fun_create_virthost in
+      fun_create_virthost := 
+        (fun hostpattern -> 
+          let (g1,p1,charset_tree) = cur_fun hostpattern in
+          let (g2,p2) = fun_virthost hostpattern in
+          ((fun charset ri ->
+	    g1 charset ri >>=
+            fun (ext_res,cookieslist) ->
+              match ext_res with
+              | Ext_not_found -> g2 charset ri >>= 
+                  fun r -> return (r, cookieslist)
+              | Ext_continue_with (ri', cookies_to_set) -> 
+                  g2 (find_charset !charset_tree ri'.ri_path) ri' >>= 
+                  fun r -> return (r, cookies_to_set@cookieslist)
+              | r -> return (r, cookieslist)
+           ),
+	   (fun path xml -> 
+             try
+               p1 path xml
+             with 
+               Error_in_config_file _
+             | Bad_config_tag_for_extension _ -> p2 path xml),
+           charset_tree));
+      fun_beg := comp begin_init !fun_beg;
+      fun_end := comp end_init !fun_end;
+      let curexnfun = !fun_exn in
+      fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
+     (fun h ->
+       let (f,g,charset_tree) = !fun_create_virthost h in
+       (((fun ri -> f (find_charset !charset_tree ri.ri_path) ri), g),
+        (fun charset path -> 
+          charset_tree := add_charset charset path !charset_tree))),
+     (fun () -> !fun_beg),
+     (fun () -> !fun_end),
+     (fun () -> !fun_exn)
+    )
+end    
+
+let create_virthost = R.create_virthost
+let get_beg_init = R.get_beg_init
+let get_end_init = R.get_end_init
+let get_init_exn_handler = R.get_init_exn_handler
 
 (*****************************************************************************)
 (* locks *)

@@ -128,15 +128,17 @@ type answer =
    that may be raised during the initialisation phase, and raise again
    all other exceptions
  *)
-val register_extension :
-    (virtual_hosts -> 
-      (string option -> request_info -> answer Lwt.t) * 
-	(string list ->
-          Simplexmlparser.xml -> 
-            unit)) *
-    (unit -> unit) * 
-    (unit -> unit) *
-    (exn -> string) -> unit
+module R : sig
+  val register_extension :
+      (virtual_hosts -> 
+        (string option -> request_info -> answer Lwt.t) * 
+	  (string list ->
+            Simplexmlparser.xml -> 
+              unit)) *
+      (unit -> unit) * 
+      (unit -> unit) *
+      (exn -> string) -> unit
+end
 
 
 (** While loading an extension, 

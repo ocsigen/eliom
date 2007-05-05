@@ -390,7 +390,7 @@ let find_page_table
     make_server_params [] tables str session_exp_info ri urlsuffix si in
   let rec aux toremove = function
     | [] -> Lwt.return ((Right Eliom_Wrong_parameter), [])
-    | (((_, (_, (max_use, expdate, funct, working_dir))) as a)::l) as ll ->
+    | (((_, (_, (max_use, expdate, funct, working_dir))) as a)::l) ->
         match expdate with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
@@ -1686,7 +1686,7 @@ let add k a = page_tree_table := (k,a)::!page_tree_table
 
 (*****************************************************************************)
 (** extension registration *)
-let _ = register_extension
+let _ = R.register_extension
     ((fun hostpattern -> 
       let page_tree = 
         try 
