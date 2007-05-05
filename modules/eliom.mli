@@ -320,6 +320,7 @@ val static_dir :
 
 
 val new_service :
+    ?sp: server_params ->
     url:url_path ->
         get_params:('get, [< suff ] as 'tipo,'gn)
           params_type ->
@@ -331,7 +332,11 @@ val new_service :
                unit param_name, [> `Registrable ]) service
 (** [new_service ~url:p ~get_params:pa ()] creates an {{:#TYPEservice}[service]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
    
-   If you specify [~suffix:true], your service will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_service ["mysite";"mywiki"] ~suffix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]*)
+   If you specify [~suffix:true], your service will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_service ["mysite";"mywiki"] ~suffix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]
+
+   If you want to create dynamically a new service during session,
+   you must add the [~sp] parameter (current server parameters)
+*)
 	      
 val new_external_service :
     url:url_path ->
@@ -369,6 +374,7 @@ val new_coservice' :
 (** Creates a non-attached coservice. Links towards such services will not change the URL, just add extra parameters. *)
         
 val new_post_service :
+    ?sp: server_params ->
     fallback: ('get, unit, 
                [`Attached of [`Internal of 
                  ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
@@ -660,6 +666,7 @@ module type ELIOMREGSIG1 =
             server_params -> page -> Eliommod.result_to_send
 
     val register :
+        ?sp: server_params ->
         service:('get, 'post,
                  [< internal_service_kind ],
                  [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
@@ -675,6 +682,17 @@ module type ELIOMREGSIG1 =
    and allows to have acces to informations about the request.
    The second and third ones are respectively GET and POST parameters.
    For example if [t] is (int "s"), then ['a] is int.
+
+   If you want to register a service in the global table after initialization,
+   you must add the [~sp] parameter (current server parameters).
+    Warning: registering after initialization is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
+    If you use that for main services, you will dynamically create new URLs!
+    This may be dangerous as they will disappear if you stop the server.
+    Be very careful to re-create these URLs when you relaunch the server,
+    otherwise, some external links or bookmarks will be broken!
+
  *)
 
 
@@ -698,6 +716,7 @@ module type ELIOMREGSIG1 =
 
 
     val register_new_service :
+        ?sp: server_params ->
         url:url_path ->
             get_params:('get, [< suff ] as 'tipo, 'gn)
               params_type ->
@@ -712,7 +731,8 @@ module type ELIOMREGSIG1 =
 (** Same as [new_service] followed by [register] *)
                       
     val register_new_coservice :
-      ?max_use:int ->
+        ?sp: server_params ->
+        ?max_use:int ->
         ?timeout:float ->
         fallback:(unit, unit, 
                   [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
@@ -733,8 +753,9 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice] followed by [register] *)
 
     val register_new_coservice' :
+      ?sp: server_params ->
       ?max_use:int ->
-        ?timeout:float ->
+      ?timeout:float ->
         get_params: 
         ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
           ?error_handler:(server_params -> 
@@ -784,6 +805,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice'] followed by [register_for_session] *)
 
     val register_new_post_service :
+        ?sp: server_params ->
         fallback:('get, unit, 
                   [ `Attached of [ `Internal of 
                     ([ `Service | `Coservice ] as 'kind) * [`Get] ] a_s ],
@@ -801,7 +823,8 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_service] followed by [register] *)
 
     val register_new_post_coservice :
-      ?max_use:int ->
+        ?sp: server_params ->
+        ?max_use:int ->
         ?timeout:float ->
         fallback:('get, unit , 
                   [ `Attached of 
@@ -821,7 +844,8 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_coservice] followed by [register] *)
 
     val register_new_post_coservice' :
-      ?max_use:int ->
+        ?sp: server_params ->
+        ?max_use:int ->
         ?timeout:float ->
         post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
           ?error_handler:(server_params -> (string * exn) list -> 
@@ -835,7 +859,8 @@ module type ELIOMREGSIG1 =
 
 (*
     val register_new_get_post_coservice' :
-      ?max_use:int ->
+        ?sp: server_params ->
+        ?max_use:int ->
         ?timeout:float ->
         fallback:('get, unit , 
                   [ `Nonattached of [`Get] na_s ],
@@ -906,142 +931,7 @@ module type ELIOMREGSIG1 =
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
 
-    val register_public :
-        server_params ->
-        service:('get, 'post,
-                 [< internal_service_kind ],
-                 [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
-(*        coservice:('get, 'post,
-                 [< `Attached of 
-                   [< `Internal of [< `Coservice ] * getpost ] a_s
-                 | `Nonattached of getpost na_s ],
-                 [< suff ], 'gn, 'pn, [ `Registrable ]) service -> *)
-        ?error_handler:(server_params ->
-                               (string * exn) list -> page Lwt.t) ->
-        (server_params -> 'get -> 'post -> page Lwt.t) ->
-          unit
-(** Register a service in the global table after initialization.
-    [register] can be used only during the initalization of the module.
-    After this phase, use that function, that takes [sp] as parameter.
-    Warning: The use of that function is not encouraged for coservices
-    without timeout, as such services will be available only until the end
-    of the server process!
-    If you use it for main services, you will create dynamically new URLs!
-    This may be dangerous as they will disappear if you stop the server.
-    Be very careful to re-create these URLs when you relaunch the server,
-    otherwise, some external links or bookmarks will be broken!
- *)
 
-    val register_new_public_coservice :
-        server_params ->
-          ?max_use:int ->
-          ?timeout:float ->
-            fallback:(unit, unit, 
-                      [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
-                      [ `WithoutSuffix ] as 'tipo, 
-                      unit param_name, unit param_name, [< registrable ])
-              service ->
-                get_params: 
-                  ('get, [`WithoutSuffix], 'gn) params_type ->
-                    ?error_handler:(server_params -> 
-                      (string * exn) list -> page Lwt.t) ->
-                        (server_params -> 'get -> unit -> page Lwt.t) ->
-                          ('get, unit, 
-                           [> `Attached of 
-                             [> `Internal of [> `Coservice ] * [> `Get]] a_s ], 
-                           'tipo, 'gn, unit param_name, 
-                           [> `Registrable ])
-                            service
-(** Same as [new_coservice] followed by [register_public] 
-    Warning: The use of that function is not encouraged for coservices
-    without timeout, as such services will be available only until the end
-    of the server process!
-*)
-
-    val register_new_public_coservice' :
-        server_params ->
-          ?max_use:int ->
-          ?timeout:float ->
-          get_params: 
-              ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-                ?error_handler:(server_params -> 
-                  (string * exn) list -> page Lwt.t) ->
-                    (server_params -> 'get -> unit -> page Lwt.t) ->
-                      ('get, unit, 
-                       [> `Nonattached of [> `Get] na_s ],
-                       'tipo, 'gn, unit param_name, [> `Registrable ])
-                        service
-(** Same as [new_coservice'] followed by [register_public] 
-    Warning: The use of that function is not encouraged for coservices
-    without timeout, as such services will be available only until the end
-    of the server process!
-*)
-
-    val register_new_post_public_coservice :
-        server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-          fallback:('get, unit, 
-                    [< `Attached of [< `Internal of
-                      [< `Service | `Coservice ] * [`Get] ] a_s ],
-                    [< suff ] as 'tipo, 
-                    'gn, unit param_name, [< `Registrable ])
-            service ->
-              post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-                ?error_handler:(server_params -> 
-                  (string * exn) list -> page Lwt.t) ->
-                    (server_params -> 'get -> 'post -> page Lwt.t) ->
-                      ('get, 'post, 
-                       [> `Attached of 
-                         [> `Internal of [> `Coservice ] * [> `Post]] a_s ], 
-                       'tipo, 'gn, 'pn, [> `Registrable ])
-                        service
-(** Same as [new_post_coservice] followed by [register_for_session] 
-    Warning: The use of that function is not encouraged for coservices
-    without timeout, as such services will be available only until the end
-    of the server process!
-*)
-
-    val register_new_post_public_coservice' :
-        server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-            ?error_handler:(server_params -> 
-              (string * exn) list -> page Lwt.t) ->
-                (server_params -> unit -> 'post -> page Lwt.t) ->
-                  (unit, 'post, [> `Nonattached of [> `Post] na_s ], 
-                   [ `WithoutSuffix ], unit param_name, 'pn, 
-                   [> `Registrable ])
-                    service
-(** Same as [new_post_coservice'] followed by [register_for_session]
-    Warning: The use of that function is not encouraged for coservices
-    without timeout, as such services will be available only until the end
-    of the server process!
-*)
-
-(*
-    val register_new_get_post_public_coservice' :
-        server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-          fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
-                    [< suff ] as 'tipo, 
-                    'gn, unit param_name, [< `Registrable ])
-            service ->
-              post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-                ?error_handler:(server_params -> 
-                  (string * exn) list -> page Lwt.t) ->
-                    (server_params -> 'get -> 'post -> page Lwt.t) ->
-                      ('get, 'post, [> `NonAttached of [> `Post] na_s ], 
-                       'tipo, 'gn, 'pn, [> `Registrable ])
-                        service
-(* * Same as [new_get_post_coservice] followed by [register_for_session] 
-    Warning: The use of that function is not encouraged for coservices
-    without timeout, as such services will be available only until the end
-    of the server process!
-*)
-*)
 
 
   end

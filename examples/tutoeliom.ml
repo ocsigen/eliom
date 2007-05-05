@@ -934,13 +934,14 @@ wakeup w "HELLO");
         will always give an answer, even if the session has expired.</li>
         <li>Services 
          may be registered in the public table after initialisation with
-         <code>register_public</code>.<br/>
-    If you use that function for main services, 
-    you will create dynamically new URLs!
+         <code>register</code> only if you add the <code>~sp</code>
+           parameter.<br/>
+    If you use that for main services, 
+    you will dynamically create new URLs!
     This may be dangerous as they will disappear if you stop the server.
     Be very careful to re-create these URLs when you relaunch the server,
     otherwise, some external links or bookmarks will be broken!<br/>
-    The use of that function is not encouraged for coservices
+    The use of that functionality is not encouraged for coservices
     without timeout, as such coservices will be available only until the end
     of the server process!
         </li>
@@ -1922,7 +1923,8 @@ let _ =
      <p>It is not possible to register coservices in the
      public table during session using <code>register</code>, as this function
      is available only during initialisation of your module.
-     But you can do it after initialisation <code>register_public</code>.
+     But you can do it after initialisation <code>register</code>,
+     with <code>~sp</code> parameter.
      We recommend to put a timeout on such coservices, otherwise, they
      will be available until the end of the server process.
      The following example is a translation of the previous one using
@@ -1934,8 +1936,8 @@ let publiccoservsession = new_service ["publiccoservsession"] unit ()
 let _ = 
   let page sp () () = 
     let timeoutcoserv =
-      register_new_public_coservice
-        sp ~fallback:publiccoservsession ~get_params:unit ~timeout:5.
+      register_new_coservice
+        ~sp ~fallback:publiccoservsession ~get_params:unit ~timeout:5.
         (fun _ _ _ ->
            return
              (html

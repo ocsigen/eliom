@@ -1666,7 +1666,7 @@ let handle_init_exn = function
          Please correct your modules. (ex: "^s^")")
   | Eliom_function_forbidden_outside_site_loading ->
       ("Fatal - Eliom: Use of forbidden function outside site loading. \
-         (creation of public service for example)")
+         (creation or registration of public service without ?sp parameter for example)")
   | Eliom_page_erasing s ->
       ("Fatal - Eliom: You cannot create a page or directory here. "^s^
        " already exists. Please correct your modules.")
