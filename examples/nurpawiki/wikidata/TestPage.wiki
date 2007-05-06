@@ -13,6 +13,7 @@
 * Hoax
 * Poax
 
+=== Heading 3 ===
 One item:
 * List
 
@@ -33,7 +34,8 @@ Four items, one nested
 
 <pre>
 foo
-
+Another line of verbatim text
+   foo
 </pre>
 
 == Paragraphs of text ==

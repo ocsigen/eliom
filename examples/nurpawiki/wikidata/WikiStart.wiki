@@ -5,5 +5,5 @@ Nurpawiki is a very simple wiki written as an example for Ocsigen.
 
 == Testing ==
 
-See TestPage
+ See TestPage
 
