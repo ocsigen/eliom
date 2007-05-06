@@ -148,16 +148,17 @@ val get_user_expdate : server_params -> float option
 val set_user_persistent_expdate : server_params -> float option -> unit
 val get_user_persistent_expdate : server_params -> float option
 
-(** Setting and getting timeout for the session (server side). The session will be closed after this amount of time of inactivity from the user. *)
-val set_global_timeout_during_session : server_params -> float option -> unit
-val get_global_timeout_during_session : server_params -> float option
-val set_global_timeout_during_init : float option -> unit
-val get_global_timeout_during_init : unit -> float option
+(** Setting and getting timeout for the session (server side). 
+    The session will be closed after this amount of time of inactivity 
+    from the user. 
+    If you use these function after the initialisation phase,
+    you must give the [~sp] parameter.
+*)
+val set_global_timeout : ?sp:server_params -> float option -> unit
+val get_global_timeout : ?sp:server_params -> unit -> float option
 val get_default_timeout : unit -> float option
-val set_global_persistent_timeout_during_session : server_params -> float option -> unit
-val get_global_persistent_timeout_during_session : server_params -> float option
-val set_global_persistent_timeout_during_init : float option -> unit
-val get_global_persistent_timeout_during_init : unit -> float option
+val set_global_persistent_timeout : ?sp:server_params -> float option -> unit
+val get_global_persistent_timeout : ?sp:server_params -> unit -> float option
 val get_default_persistent_timeout : unit -> float option
 
 
@@ -1249,13 +1250,9 @@ module Any : ELIOMREGSIG with
 
 type 'a table
 
-val create_table : unit -> 'a table
+val create_table : ?sp:server_params -> unit -> 'a table
 (** Create a table in memory where you can store your session data
-    Possible only during initialization phase *)
-
-val create_table_during_session : server_params -> 'a table
-(** Create a table in memory where you can store your session data
-    Possible only during session *)
+    After initialization phase, you must give the [~sp] parameter *)
 
 val get_session_data : 
     'a table -> server_params -> 'a option

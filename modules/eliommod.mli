@@ -27,7 +27,7 @@ exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registration of string
 exception Eliom_page_erasing of string
-exception Eliom_function_forbidden_outside_site_loading
+exception Eliom_function_forbidden_outside_site_loading of string
 exception Eliom_there_are_unregistered_services of string
 exception Eliom_error_while_loading_site of string
 

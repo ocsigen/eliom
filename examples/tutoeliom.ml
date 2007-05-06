@@ -1071,8 +1071,8 @@ let _ = register
       </p>
 *html*)
 (*zap* *)
-let _ = set_global_timeout_during_init (Some 3600.)
-let _ = set_global_persistent_timeout_during_init (Some 86400.)
+let _ = set_global_timeout (Some 3600.)
+let _ = set_global_persistent_timeout (Some 86400.)
 (* *zap*)
 let public_session_without_post_params = 
   new_service ~url:["session"] ~get_params:unit ()
@@ -1848,14 +1848,14 @@ let _ = register disposable
        You can change that value for your whole site during initialisation 
        using:</p>
 <pre>
-set_global_timeout_during_init (Some 7200.)
+set_global_timeout (Some 7200.)
 </pre>
       <p>Here 7200 seconds. <code>None</code> means no timeout.</p>
       <p>
        You can change that value for your whole site after initialisation 
        using:</p>
 <pre>
-set_global_timeout_during_session sp (Some 7200.)
+set_global_timeout ~sp (Some 7200.)
 </pre>
       <p>
        You can change that value for one user only using:</p>
@@ -1872,7 +1872,7 @@ set_user_timeout sp (Some 7200.)
 </pre>
      <p><code>value="infinity"</code> means no timeout.</p>
      <p>Warning: that default may be overriden by each site using 
-        <code>set_global_timeout_during_...</code>.
+        <code>set_global_timeout</code>.
         If you want your user to be able to set the default in the 
         configuration file for your site, you must parse the configuration
         (<code>Eliom.get_config ()</code> function).

@@ -34,7 +34,7 @@ let _ = Random.self_init ()
 let get_config () = 
   match global_register_allowed () with
   | Some _ -> !Eliommod.config
-  | None -> raise Eliom_function_forbidden_outside_site_loading
+  | None -> raise (Eliom_function_forbidden_outside_site_loading "get_config")
 
 type current_url = Extensions.current_url
 type url_path = Extensions.url_path
@@ -62,42 +62,54 @@ let get_cookie (_,si,_) = !(si.si_cookie)
 let get_persistent_cookie (_,si,_) = !(si.si_persistent_cookie)
 
 let get_default_timeout = Eliommod.get_default_timeout
-let set_global_timeout_during_session (_, _, (working_dir, _, _, _, _)) s = 
-  Eliommod.set_global_timeout working_dir s
-let get_global_timeout_during_session (_, _, (working_dir, _, _, _, _)) = 
-  Eliommod.find_global_timeout working_dir
+let set_global_timeout ?sp s = 
+  match sp with
+  | Some (_, _, (working_dir, _, _, _, _)) ->
+      Eliommod.set_global_timeout working_dir s
+  | None ->
+      match global_register_allowed () with
+        Some get_current_hostdir ->
+          Eliommod.set_global_timeout (snd (get_current_hostdir ())) s
+      | _ -> raise (Eliom_function_forbidden_outside_site_loading 
+                      "set_global_timeout")
+
+let get_global_timeout ?sp () = 
+  match sp with
+  | Some (_, _, (working_dir, _, _, _, _)) ->
+      Eliommod.find_global_timeout working_dir
+  | None ->
+      match global_register_allowed () with
+        Some get_current_hostdir ->
+          Eliommod.find_global_timeout (snd (get_current_hostdir ()))
+      | _ -> raise (Eliom_function_forbidden_outside_site_loading
+                      "get_global_timeout")
 
 let get_default_persistent_timeout = Eliommod.get_default_persistent_timeout
-let set_global_persistent_timeout_during_session 
-    (_, _, (working_dir, _, _, _, _)) s = 
-  Eliommod.set_global_persistent_timeout working_dir s
-let get_global_persistent_timeout_during_session
-    (_, _, (working_dir, _, _, _, _)) = 
-  Eliommod.find_global_persistent_timeout working_dir
 
-let set_global_timeout_during_init s = 
-  match global_register_allowed () with
-    Some get_current_hostdir ->
-      Eliommod.set_global_timeout (snd (get_current_hostdir ())) s
-  | _ -> raise Eliom_function_forbidden_outside_site_loading
+let set_global_persistent_timeout ?sp s = 
+  match sp with
+  | Some (_, _, (working_dir, _, _, _, _)) ->
+      Eliommod.set_global_persistent_timeout working_dir s
+  | None ->
+      match global_register_allowed () with
+        Some get_current_hostdir ->
+          Eliommod.set_global_persistent_timeout
+            (snd (get_current_hostdir ())) s
+      | _ -> raise (Eliom_function_forbidden_outside_site_loading
+                      "set_global_persistent_timeout")
 
-let get_global_timeout_during_init () = 
-  match global_register_allowed () with
-    Some get_current_hostdir ->
-      Eliommod.find_global_timeout (snd (get_current_hostdir ()))
-  | _ -> raise Eliom_function_forbidden_outside_site_loading
+let get_global_persistent_timeout ?sp () =
+  match sp with
+  | Some (_, _, (working_dir, _, _, _, _)) ->
+      Eliommod.find_global_persistent_timeout working_dir
+  | None ->
+      match global_register_allowed () with
+        Some get_current_hostdir ->
+          Eliommod.find_global_persistent_timeout
+            (snd (get_current_hostdir ()))
+      | _ -> raise (Eliom_function_forbidden_outside_site_loading
+                      "get_global_persistent_timeout")
 
-let set_global_persistent_timeout_during_init s = 
-  match global_register_allowed () with
-    Some get_current_hostdir ->
-      Eliommod.set_global_persistent_timeout (snd (get_current_hostdir ())) s
-  | _ -> raise Eliom_function_forbidden_outside_site_loading
-
-let get_global_persistent_timeout_during_init () = 
-  match global_register_allowed () with
-    Some get_current_hostdir ->
-      Eliommod.find_global_persistent_timeout (snd (get_current_hostdir ()))
-  | _ -> raise Eliom_function_forbidden_outside_site_loading
 
 let set_user_timeout (_,_,(_,_,_,(tor,_,_,_),_)) t = tor := Some t
 let unset_user_timeout (_,_,(_,_,_,(tor,_,_,_),_)) = tor := None
@@ -727,7 +739,8 @@ let new_service_aux
               ~post_params:unit
           in
           add_unregistered (Some full_path); u
-      | None -> raise Eliom_function_forbidden_outside_site_loading)
+      | None -> raise (Eliom_function_forbidden_outside_site_loading
+                         "new_service"))
   | Some (_, _, (curdir, (_, _, _), _, _, _)) ->
       let full_path = 
         remove_middle_slash (curdir@(change_empty_list url)) in
@@ -843,7 +856,8 @@ let new_post_service ?sp ~fallback ~post_params () =
           u
       | None ->
           if kind = `Service
-          then raise Eliom_function_forbidden_outside_site_loading
+          then raise (Eliom_function_forbidden_outside_site_loading
+                        "new_post_service")
           else u)
   | _ -> u
 (* Warning: strange if post_params = unit... *)    
@@ -1563,7 +1577,8 @@ module MakeRegister = functor
                     globtables
                     false 
                     ~service ?error_handler page_gen
-              | _ -> raise Eliom_function_forbidden_outside_site_loading)
+              | _ -> raise (Eliom_function_forbidden_outside_site_loading
+                              "register"))
           | Some (ri, si, (curdir, (globtables, _, _), _, _, _)) ->
               register_aux 
                 ?error_handler
@@ -3524,9 +3539,15 @@ let set_persistent_data table sp value =
 (** {2 session data in memory} *)
 type 'a table = 'a Cookies.t
 
-let create_table = create_table
+let create_table ?sp () = 
+  match sp with
+  | None -> 
+      (match global_register_allowed () with
+      | Some get_current_hostdir -> create_table ()
+      | None -> raise (Eliom_function_forbidden_outside_site_loading
+                         "create_table"))
+  | Some sp -> create_table_during_session sp
 
-let create_table_during_session = create_table_during_session
 
 let get_session_data table sp =
   match (get_cookie sp) with

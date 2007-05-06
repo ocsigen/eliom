@@ -83,7 +83,7 @@ exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registration of string
 exception Eliom_there_are_unregistered_services of string
-exception Eliom_function_forbidden_outside_site_loading
+exception Eliom_function_forbidden_outside_site_loading of string
 exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
 
@@ -318,9 +318,11 @@ let absolute_change_hostdir, get_current_hostdir,
   let f1 = ref f1' in
   let f2 = ref f2' in
   let exn1 _ = 
-    raise Eliom_function_forbidden_outside_site_loading in
+    raise (Eliom_function_forbidden_outside_site_loading 
+             "absolute_change_hostdir") in
   let exn2 () = 
-    raise Eliom_function_forbidden_outside_site_loading in
+    raise (Eliom_function_forbidden_outside_site_loading
+             "get_current_hostdir") in
   ((fun hostdir -> !f1 hostdir),
    (fun () -> !f2 ()),
    (fun () -> f1 := f1'; f2 := f2'),
@@ -835,7 +837,7 @@ let remove_session_data remove_session_data =
     | None -> ()
     | Some cookie -> !remove_session_data cookie
 
-let remove_session (_, si, (_,(_,cook,rem),_,_,_)) = 
+let remove_session (_, si, (_,(_, cook, rem),_,_,_)) = 
   remove_session_data rem !(si.si_cookie);
   remove_session_table cook !(si.si_cookie)
 
@@ -1664,9 +1666,12 @@ let handle_init_exn = function
   | Eliom_there_are_unregistered_services s ->
       ("Fatal - Eliom: Some public url have not been registered. \
          Please correct your modules. (ex: "^s^")")
-  | Eliom_function_forbidden_outside_site_loading ->
-      ("Fatal - Eliom: Use of forbidden function outside site loading. \
-         (creation or registration of public service without ?sp parameter for example)")
+  | Eliom_function_forbidden_outside_site_loading f ->
+      ("Fatal - Eliom: Bad use of function \""^f^
+         "\" outside site loading. \
+         (for some functions, you must add the ~sp parameter \
+               to use them after initialization. \
+               Creation or registration of public service for example)")
   | Eliom_page_erasing s ->
       ("Fatal - Eliom: You cannot create a page or directory here. "^s^
        " already exists. Please correct your modules.")
