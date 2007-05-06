@@ -91,13 +91,20 @@ let load_wiki_page page =
     (fun chnl ->
        List.rev (fold_read_lines (fun acc line -> line::acc) [] chnl))
 
-let h1_re = Str.regexp "^=\\(.*\\)=\\([ \n\r]*\\)?$"
-let h2_re = Str.regexp "^==\\(.*\\)==\\([ \n\r]*\\)?$"
-let h3_re = Str.regexp "^===\\(.*\\)===\\([ \n\r]*\\)?$"
-let list_re = Str.regexp "^[ ]?\\([*]+\\) \\(.*\\)\\([ \n\r]*\\)?$"
+
+let h1_re = Pcre.regexp "^=(.*)=([ \n\r]*)?$"
+let h2_re = Pcre.regexp "^==(.*)==([ \n\r]*)?$"
+let h3_re = Pcre.regexp "^===(.*)===([ \n\r]*)?$"
+let list_re = Pcre.regexp "^[ ]?([*]+) (.*)([ \n\r]*)?$"
+
+let match_pcre_option rex s =
+  try Some (Pcre.extract ~rex s) with Not_found -> None
 
 let is_list s = 
-  Str.string_match list_re s 0
+  match_pcre_option list_re s
+
+let open_pre_re = Pcre.regexp "^(<pre>|{{{)[ \n\r]+$"
+let close_pre_re = Pcre.regexp "^(</pre>|}}})[ \n\r]+$"
 
 let take_while pred lines =
   let rec loop acc = function 
@@ -110,21 +117,22 @@ let take_while pred lines =
         ([], List.rev acc) in
   loop [] lines
 
-let accepted_chars_ = "a-zA-Z\128-\2550-9_!\"§°#%&/()=?+.,;:{}'@\\$\\^\\*`´<>"
+
+let comp_re = Pcre.regexp ~flags:[`ANCHORED]
+
+let accepted_chars_ = "a-zA-Z\128-\2550-9_!\"§°#%&/\\(\\)=\\?\\+\\.,;:{}'@\\$\\^\\*`´<>"
 let accepted_chars_sans_ws = "["^accepted_chars_^"-]+"
 let accepted_chars = "["^accepted_chars_^" -]+"
-let text_re = Str.regexp ("\\("^accepted_chars_sans_ws^"\\)")
-let wikilink_re = Str.regexp "\\([A-Z][a-z]+\\([A-Z][a-z]+\\)+\\)"
+
+let text_re = comp_re ("("^accepted_chars_sans_ws^")")
+let wikilink_re = comp_re "([A-Z][a-z]+([A-Z][a-z]+)+)"
 
 let wikilinkanum_re = 
-  Str.regexp ("\\(\\[\\(wiki\\|file\\|http\\):\\("^accepted_chars_sans_ws^
-                "\\)[ ]+\\("^accepted_chars^"\\)\\]\\)")
+  comp_re
+    ("(\\[(wiki|file|http):("^accepted_chars_sans_ws^")[ ]+("^accepted_chars^")\\])")
 
 let wikilinkanum_no_text_re = 
-  Str.regexp ("\\(\\[\\(wiki\\|file\\|http\\):\\("^accepted_chars_sans_ws^"\\)\\]\\)")
-
-let open_pre_re = Str.regexp "^\\(<pre>\\|{{{\\)[ \n\r]+$"
-let close_pre_re = Str.regexp "^\\(</pre>\\|}}}\\)[ \n\r]+$"
+  comp_re ("(\\[(wiki|file|http):("^accepted_chars_sans_ws^")\\])")
 
 let translate_list items =
 
@@ -148,7 +156,6 @@ let translate_list items =
   ul (List.hd list_items) (List.tl list_items)
 
 let parse_lines sp lines =
-
   let wikilink scheme page text = 
     if scheme = "wiki" || scheme = "" then
       let t = if text = "" then page else text in
@@ -164,11 +171,47 @@ let parse_lines sp lines =
            ~url:[url]
            ~get_params:unit
            ~post_params:unit ()) sp [pcdata t] () in
-    
+
+  let rec pcre_first_match str pos =
+    let rec loop = function
+        (rex,f)::xs ->
+          (try Some (Pcre.extract ~rex ~pos str, f) with Not_found -> loop xs)
+      | [] -> None in
+    loop in
+  
+  (* Parse a line of text *)
   let rec parse_text acc s =
+
     let len = String.length s in
     let add_html html_acc html =
       html::html_acc in
+
+    let parse_wikilink acc r charpos =
+      (add_html acc (wikilink "" r.(1) r.(1)), charpos+(String.length r.(0))) in
+
+    let parse_wikilinkanum acc r charpos =
+      let scheme = r.(2) in
+      let page = r.(3) in
+      let text = r.(4) in
+      let fm_len = String.length r.(0) in
+      (add_html acc (wikilink scheme page text), charpos+fm_len) in
+
+    let parse_wikilinkanum_no_text acc r charpos =
+      let scheme = r.(2) in
+      let page = r.(3) in
+      let text = "" in
+      let fm_len = String.length r.(0) in
+      (add_html acc (wikilink scheme page text), charpos+fm_len) in
+
+    let parse_text acc r charpos =
+      (add_html acc (pcdata r.(1)), charpos+(String.length r.(0))) in
+    
+    let text_patterns = 
+      [(wikilink_re, parse_wikilink);
+       (wikilinkanum_re, parse_wikilinkanum);
+       (wikilinkanum_no_text_re, parse_wikilinkanum_no_text);
+       (text_re, parse_text)] in
+
     let rec loop acc charpos =
       if charpos >= len then
         acc
@@ -181,68 +224,62 @@ let parse_lines sp lines =
           loop (add_html acc (pcdata m)) (charpos+1)
         else if s.[charpos] = '\r' || s.[charpos] = '\n' then
           acc
-        else if Str.string_match wikilink_re s charpos then
-          let m = Str.matched_group 1 s in
-          loop (add_html acc (wikilink "" m m)) (charpos+(String.length m))
-        else if Str.string_match wikilinkanum_re s charpos then
-          let scheme = Str.matched_group 2 s in
-          let page = Str.matched_group 3 s in
-          let text = Str.matched_group 4 s in
-          let fm_len = String.length (Str.matched_group 1 s) in
-          loop (add_html acc (wikilink scheme page text)) (charpos+fm_len)
-        else if Str.string_match wikilinkanum_no_text_re s charpos then
-          let scheme = Str.matched_group 2 s in
-          let page = Str.matched_group 3 s in
-          let text = "" in
-          let fm_len = String.length (Str.matched_group 1 s) in
-          loop (add_html acc (wikilink scheme page text)) (charpos+fm_len)
-        else if Str.string_match text_re s charpos then
-          let m = Str.matched_group 1 s in
-          loop (add_html acc (pcdata m)) (charpos+(String.length m))
         else
           begin
-            let s = (String.sub s charpos ((String.length s)-charpos)) in
-            add_html acc
-              (span
-                 [span ~a:[a_class ["error"]] 
-                    [pcdata "WIKI SYNTAX ERROR IN INPUT: "];
-                  pcdata s])
+            match pcre_first_match s charpos text_patterns with
+              Some (r,f) ->
+                let (acc',charpos') = f acc r charpos in
+                loop acc' charpos'
+            | None ->
+                let s = (String.sub s charpos ((String.length s)-charpos)) in
+                add_html acc
+                  (span
+                     [span ~a:[a_class ["error"]] 
+                        [pcdata "WIKI SYNTAX ERROR IN INPUT: "];
+                      pcdata s])
           end
     in
     List.rev (loop acc 0) in
   
+  (* Line-by-line wiki parser *)
   let rec loop acc = function
       (x::xs) as lst ->
-        if Str.string_match h3_re x 0 then
-          loop ((h3 [pcdata (Str.matched_group 1 x)])::acc) xs
-        else if Str.string_match h2_re x 0 then
-          loop ((h2 [pcdata (Str.matched_group 1 x)])::acc) xs
-        else if Str.string_match h1_re x 0 then
-          loop ((h1 [pcdata (Str.matched_group 1 x)])::acc) xs
-        else if is_list x then
+        let parse_list r = 
           (* Grab all lines starting with '*': *)
           let (after_bullets,bullets) =
-            take_while is_list lst in
+            take_while (fun e -> is_list e <> None) lst in
           let list_items = 
             List.map
               (fun e ->
-                 if is_list e then
-                   let n_stars = String.length (Str.matched_group 1 e) in
-                   (n_stars, parse_text [] (Str.matched_group 2 e))
-                 else 
-                   assert false) bullets in
-          loop ((translate_list list_items)::acc) after_bullets
-        else if Str.string_partial_match open_pre_re x 0 then
+                 match is_list e with
+                   Some r ->
+                     let n_stars = String.length r.(1) in
+                     (n_stars, parse_text [] r.(2))
+                 | None -> assert false) bullets in
+          loop ((translate_list list_items)::acc) after_bullets in
+
+        let parse_verbatim r =
           (* Handle <pre>..</pre>, {{{..}}} *)
           let (after_pre,contents) =
             take_while 
-              (fun x -> not (Str.string_partial_match close_pre_re x 0))
+              (fun x -> match_pcre_option close_pre_re x = None)
               lst in
           let p = 
             (pre [pcdata (String.concat "\n" (List.tl contents))]) in
-          loop (p::acc) (List.tl after_pre)
-        else 
-          loop ((p (parse_text [] x))::acc) xs
+          loop (p::acc) (List.tl after_pre) in
+          
+        let wiki_pats = 
+          [(h3_re, (fun r -> loop ((h3 [pcdata r.(1)])::acc) xs));
+           (h2_re, (fun r -> loop ((h2 [pcdata r.(1)])::acc) xs));
+           (h1_re, (fun r -> loop ((h1 [pcdata r.(1)])::acc) xs));
+           (list_re, parse_list);
+           (open_pre_re, parse_verbatim)] in
+        begin
+          match pcre_first_match x 0 wiki_pats with 
+            Some (res, action) -> action res
+          | None ->
+              loop ((p (parse_text [] x))::acc) xs
+        end
     | [] -> List.rev acc in
 
   loop [] lines

@@ -2,7 +2,7 @@ include ../../Makefile.config
 
 FILES=$(wildcard *.ml)
 
-LIB = -package str $(LIBDIRS2)
+LIB = -package pcre $(LIBDIRS2)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
