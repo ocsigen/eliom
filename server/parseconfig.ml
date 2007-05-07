@@ -251,13 +251,8 @@ let parse_server isreloading c =
           | [("module", s)] -> s
           | _ -> raise (Config_file_error "Wrong attribute for <library>") 
 	  in 
-          Extensions.set_config l; (* useless for now *)
-          Dynlink.prohibit ["Extensions.R"];
-          (* As libraries are reloaded each time the file is read, 
-             we do not allow to register extensions in libraries
-           *)
+          Extensions.set_config l;
           Dynlink.loadfile modu;
-          Dynlink.default_available_units ();
           Extensions.set_config [];
           parse_server_aux ll
       | (Element ("host", atts, l))::ll ->

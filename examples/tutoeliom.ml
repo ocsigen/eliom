@@ -2156,7 +2156,7 @@ let _ = register
       To include an image, use simply the function <code>XHTML.M.img</code>:
       </p>
       <pre>img <span class="Clabel">~alt:</span>"Ocsigen" 
-    <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> (static_dir sp) sp <span class="Cstring">"ocsigen1024.jpg"</span>)
+    <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> (static_dir sp) sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
     ()</pre>
       <p>The function <code><span class="Cem">make_uri</span></code>
         creates the relative URL string from current URL (in <code>sp</code>)
@@ -2166,8 +2166,8 @@ let _ = register
       <p>To simplify the creation of <code>&lt;link&gt;</code> tags
       for CSS or <code>&lt;script&gt;</code> tags for Javascript,
         use the following functions:</p>
-      <pre><span class="Cem">css_link</span> (make_uri (static_dir sp) sp <span class="Cstring">"style.css"</span>)</pre>
-      <pre><span class="Cem">js_script</span> (make_uri (static_dir sp) sp <span class="Cstring">"funs.js"</span>)</pre>
+      <pre><span class="Cem">css_link</span> (make_uri (static_dir sp) sp [<span class="Cstring">"style.css"</span>])</pre>
+      <pre><span class="Cem">js_script</span> (make_uri (static_dir sp) sp [<span class="Cstring">"funs.js"</span>])</pre>
       <h3>Menus</h3>
       <p>
       To make a menu an your web page, you can use the function 

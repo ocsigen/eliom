@@ -1106,6 +1106,10 @@ let _ = try
 
       parse_server false s;
       
+      Dynlink.prohibit ["Extensions.R"];
+      (* As libraries are reloaded each time the config file is read, 
+         we do not allow to register extensions in libraries *)
+
       if (get_maxthreads ()) < (get_minthreads ())
       then 
         raise
