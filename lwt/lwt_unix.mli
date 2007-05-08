@@ -34,7 +34,7 @@ val run : 'a Lwt.t -> 'a
 
 val read : descr -> string -> int -> int -> int Lwt.t
 val write : descr -> string -> int -> int -> int Lwt.t
-val pipe : unit -> (Unix.file_descr * Unix.file_descr) Lwt.t
+val pipe : unit -> (descr * descr) Lwt.t
 val socket :
   Unix.socket_domain -> Unix.socket_type -> int -> Unix.file_descr Lwt.t
 val socketpair :
@@ -61,6 +61,7 @@ val really_input : lwt_in_channel -> string -> int -> int -> unit Lwt.t
 
 val output_binary_int : lwt_out_channel -> int -> unit Lwt.t
 val output_value : lwt_out_channel -> 'a -> unit Lwt.t
+val output_string : lwt_out_channel -> string -> unit Lwt.t
 val flush : lwt_out_channel -> unit Lwt.t
 
 val open_process_in: string -> lwt_in_channel Lwt.t
@@ -79,7 +80,10 @@ val close_process_full:
 
 val in_channel_of_descr : descr -> lwt_in_channel
 val out_channel_of_descr : descr -> lwt_out_channel
+val in_channel_of_unixdescr : Unix.file_descr -> lwt_in_channel
+val out_channel_of_unixdescr : Unix.file_descr -> lwt_out_channel
  
+val set_close_on_exec : descr -> unit
 
 (**/**)
 (* monitoring *)

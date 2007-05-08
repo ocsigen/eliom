@@ -26,13 +26,13 @@ let minthreads : int ref = ref 0
 let maxthreads : int ref = ref 0
 
 let mypipe () = 
-  let (in_fd, out_fd) as p = Unix.pipe() in
-  if not (Sys.os_type <> "Unix") then begin
-     Unix.set_nonblock in_fd
-  end;
-  Unix.set_close_on_exec in_fd;
-  Unix.set_close_on_exec out_fd;
-  p
+  Lwt_unix.pipe () >>=
+  fun (in_fd, out_fd) ->
+    Lwt_unix.set_close_on_exec in_fd;
+    Lwt_unix.set_close_on_exec out_fd;
+    return
+      (Lwt_unix.in_channel_of_descr in_fd,
+       Lwt_unix.out_channel_of_descr out_fd)
 
 let finishedpipe = mypipe ()   
 
@@ -49,17 +49,18 @@ let setbusy n b =
   !pool.(n).busy <- b;
   Mutex.unlock busylock
 
-let rec worker (n : int) : unit =
+let rec worker (n : int) : unit Lwt.t =
   let g = Event.sync (Event.receive !pool.(n).taskchannel) in
   g ();
   let buf = string_of_int n in
-  ignore (Unix.write (snd finishedpipe) buf 0 (String.length buf));
-  setbusy n false;
-  worker n        
+  finishedpipe >>= fun finishedpipe ->
+    Lwt_unix.output_string (snd finishedpipe) (buf^"\n") >>= fun () ->
+    setbusy n false;
+    worker n
 
 
 exception All_preemptive_threads_are_busy
-let free,nbthreadsqueued =
+let free, nbthreadsqueued =
   let nb_threads_queued = ref 0 in
   let max_thread_waiting_queue = 
     Ocsiconfig.get_max_number_of_threads_queued () in
@@ -83,11 +84,10 @@ let free,nbthreadsqueued =
   in
   let rec aux () =
     try
-      let libre = 
-        Mutex.lock busylock; 
-        let f = free1 0 in
-        Mutex.unlock busylock; f in
-      setbusy libre true;
+      Mutex.lock busylock; 
+      let libre = free1 0 in
+      !pool.(libre).busy <- true;
+      Mutex.unlock busylock;
       launch_threads libre;
       Lwt.return libre
     with
@@ -127,11 +127,11 @@ let dispatch () =
   let rec aux () =
     (catch
        (fun () ->
-         (Lwt_unix.read
-            (Lwt_unix.Plain (fst finishedpipe)) buf 0 sizebuf) >>=
-         (fun n ->
+         finishedpipe >>= fun finishedpipe ->
+         Lwt_unix.input_line (fst finishedpipe) >>=
+         (fun v ->
            return
-             (wakeup !pool.(int_of_string (String.sub buf 0 n)).client ())))
+             (wakeup !pool.(int_of_string v).client ())))
        (fun e -> Messages.errlog ("Internal error in preemptive.ml (read failed on the pipe) "^(Printexc.to_string e)^" - Please report the bug"); return ())
     ) >>= (fun () -> aux ())
   in aux ()
