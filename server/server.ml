@@ -1042,7 +1042,7 @@ let _ = try
       raise exn
   in
 
-  let run (user,group) (_, ports, sslports) s =
+  let run (user,group) (_, ports, sslports) (minthreads, maxthreads) s =
 
     Messages.open_files ();
 
@@ -1098,6 +1098,13 @@ let _ = try
          Lwt_unix.yield () >>= f
          in f(); *)
 
+      if maxthreads < minthreads
+      then 
+        raise
+          (Config_file_error "maxthreads should be greater than minthreads");
+
+      ignore (Preemptive.init minthreads maxthreads);
+      
       (* Now I can load the modules *)
       Dynlink.init ();
       Dynlink.allow_unsafe_modules true;
@@ -1109,11 +1116,6 @@ let _ = try
       Dynlink.prohibit ["Extensions.R"];
       (* As libraries are reloaded each time the config file is read, 
          we do not allow to register extensions in libraries *)
-
-      if (get_maxthreads ()) < (get_minthreads ())
-      then 
-        raise
-          (Config_file_error "maxthreads should be greater than minthreads");
 
             (* Closing stderr, stdout stdin if silent *)
       if (Ocsiconfig.get_silent ())
@@ -1132,10 +1134,6 @@ let _ = try
           
       (* A thread that kills old connections every n seconds *)
       ignore (Http_com.Timeout.start_timeout_killer ());
-      
-      ignore (Preemptive.init 
-                (Ocsiconfig.get_minthreads ()) 
-                (Ocsiconfig.get_maxthreads ()));
       
       Extensions.end_initialisation ();
 
@@ -1197,11 +1195,11 @@ let _ = try
   let rec launch = function
       [] -> () 
     | [h] -> 
-        let user_info, sslinfo = extract_info h in
+        let user_info, sslinfo, threadinfo = extract_info h in
         set_passwd_if_needed sslinfo;
         let pid = Unix.fork () in
         if pid = 0
-        then run user_info sslinfo h
+        then run user_info sslinfo threadinfo h
         else begin
           Messages.console ("Process "^(string_of_int pid)^" detached");
           write_pid pid;
@@ -1214,10 +1212,10 @@ let _ = try
     number_of_servers = 1 
   then
     let cf = List.hd config_servers in
-    let (user_info,sslinfo) = extract_info cf in
+    let (user_info, sslinfo, threadinfo) = extract_info cf in
     (set_passwd_if_needed sslinfo;
      write_pid (Unix.getpid ());
-     run user_info sslinfo cf)
+     run user_info sslinfo threadinfo cf)
   else launch config_servers
 
 with e ->

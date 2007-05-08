@@ -317,11 +317,11 @@ let extract_info c =
         raise (Config_file_error ("<"^tag^"> tag unexpected inside <ssl>"))
     | _ -> raise (Config_file_error ("Unexpected content inside <ssl>"))
   in
-  let rec aux user group ssl ports sslports = function
-      [] -> ((user,group),(ssl,ports,sslports))
+  let rec aux user group ssl ports sslports minthreads maxthreads = function
+      [] -> ((user, group), (ssl, ports,sslports), (minthreads, maxthreads))
     | (Element ("logdir", [], p))::ll -> 
         set_logdir (parse_string p);
-        aux user group ssl ports sslports ll
+        aux user group ssl ports sslports minthreads maxthreads ll
     | (Element ("port", atts, p))::ll ->
         (match atts with
           []
@@ -330,19 +330,26 @@ let extract_info c =
               int_of_string (parse_string p)
             with Failure _ -> 
               raise (Config_file_error "Wrong value for <port> tag")
-            in aux user group ssl (po::ports) sslports ll
+            in aux user group ssl (po::ports) sslports minthreads maxthreads ll
         | [("protocol", "HTTPS")] -> 
             let po = try
               int_of_string (parse_string p)
             with Failure _ -> 
               raise (Config_file_error "Wrong value for <port> tag")
             in
-            aux user group ssl ports (po::sslports) ll
+            aux user group ssl ports (po::sslports) minthreads maxthreads ll
         | _ -> raise (Config_file_error "Wrong attribute for <port>"))
+    | (Element ("minthreads", [], p))::ll ->
+        aux user group ssl ports sslports
+          (Some (int_of_string (parse_string p))) maxthreads ll
+    | (Element ("maxthreads", [], p))::ll ->
+        aux user group ssl ports sslports minthreads
+          (Some (int_of_string (parse_string p))) ll
     | (Element ("ssl", [], p))::ll ->
         (match ssl with
           None ->
-            aux user group (parse_ssl None None p) ports sslports ll
+            aux user group (parse_ssl None None p) ports sslports 
+              minthreads maxthreads ll
         | _ -> 
             raise 
               (Config_file_error
@@ -350,24 +357,26 @@ let extract_info c =
     | (Element ("user", [], p))::ll -> 
         (match user with
           None -> 
-            aux (Some (parse_string p)) group ssl ports sslports ll
+            aux (Some (parse_string p)) group ssl ports sslports 
+              minthreads maxthreads ll
         | _ -> raise (Config_file_error
                         "Only one <user> tag for each server allowed"))
     | (Element ("group", [], p))::ll -> 
         (match group with
           None -> 
-            aux user (Some (parse_string p)) ssl ports sslports ll
+            aux user (Some (parse_string p)) ssl ports sslports 
+              minthreads maxthreads ll
         | _ -> raise (Config_file_error 
                         "Only one <group> tag for each server allowed"))
     | (Element ("commandpipe", [], p))::ll -> 
         set_command_pipe (parse_string p);
-        aux user group ssl ports sslports ll
+        aux user group ssl ports sslports minthreads maxthreads ll
     | (Element (tag, _, _))::ll -> 
-        aux user group ssl ports sslports ll
+        aux user group ssl ports sslports minthreads maxthreads ll
     | _ ->
         raise (Config_file_error "Syntax error")
   in 
-  let (user,group),si = aux None None None [] [] c in
+  let (user, group), si, (mint, maxt) = aux None None None [] [] None None c in
   let user = match user with
     None -> None (* Some (get_default_user ()) *)
   | Some s -> if s = "" then None else Some s    
@@ -376,7 +385,15 @@ let extract_info c =
     None -> None (* Some (get_default_group ()) *)
   | Some s -> if s = "" then None else Some s
   in
-  ((user, group), si)
+  let mint = match mint with
+  | Some t -> t
+  | None -> get_minthreads ()
+  in
+  let maxt = match maxt with
+  | Some t -> t
+  | None -> get_maxthreads ()
+  in
+  ((user, group), si, (mint, maxt))
 
 let parse_config () = 
     parser_config (Ocsiconfig.config ())
