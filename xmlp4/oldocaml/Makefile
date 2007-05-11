@@ -9,12 +9,12 @@ endif
 FILESR = xmllexer.ml 
 FILES = xhtmltypes.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml simplexmlparser.ml xhtmlparser.ml xhtmlpp.ml
 
-CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
-CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
-CAMLDEP = $(OCAMLFIND) ocamldep
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) -package camlp4
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) -package camlp4
+CAMLDEP = $(OCAMLFIND) ocamldep -package camlp4
 LIB = -I `$(CAMLP4) -where` $(LIBDIRS2)
-PP = -pp "$(CAMLP4O) pa_extend.cmo q_MLast.cmo -- -loc loc"
-PPLEXER = -pp "camlp4r -- -loc loc"
+PP = -syntax camlp4o -ppopt "pa_extend.cmo" -ppopt "q_MLast.cmo" -ppopt "-locloc"
+PPLEXER = -syntax camlp4r -ppopt "-locloc"
 
 SRCLIBREP = ../../lib
 

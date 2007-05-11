@@ -36,7 +36,6 @@ CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = modules/ocsipersist.cmi server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi baselib/messages.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/nurpawiki/nurpawiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
-PP = -pp "$(CAMLP4O) ./xmlp4/xhtmlsyntax.cma -loc loc"
 
 ifeq "$(BYTECODE)" "YES"
 TOINSTALLBYTE=$(CMAOTOINSTALL) $(PLUGINSCMAOTOINSTALL)

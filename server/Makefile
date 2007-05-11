@@ -47,7 +47,6 @@ CAMLDEP = $(OCAMLFIND) ocamldep
 LIB1 = -thread -package netstring,$(NETSYS)ssl $(LIBDIRS) -I +camlp4
 PP = 
 PP2 = 
-# -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"
 
 
 # cma and cmo to be linked in the server:

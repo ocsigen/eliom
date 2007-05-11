@@ -448,14 +448,14 @@ ocamlversion=`n1=${version%%.[0-9][0-9].[0-9]}; \
 
 ######################################################################
 # Check camlp4o
-printf "%s" "Finding out which camlp4o to use... "
-if which camlp4o.byte >/dev/null 2>/dev/null; then
-    echo "camlp4o.byte"
-    camlp4o="camlp4o.byte"
-else
-    echo "camlp4o"
-    camlp4o="camlp4o" 
-fi
+#printf "%s" "Finding out which camlp4o to use... "
+#if which camlp4o.byte >/dev/null 2>/dev/null; then
+#    echo "camlp4o.byte"
+#    camlp4o="camlp4o.byte"
+#else
+#    echo "camlp4o"
+#    camlp4o="camlp4o" 
+#fi
 
 ######################################################################
 
@@ -512,7 +512,6 @@ CAMLYACC=ocamlyacc
 CAMLCNAME=ocamlc
 CAMLOPTNAME=ocamlopt
 # CAMLCNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
-CAMLP4O="$camlp4o"
 CHOWN=chown
 
 ## The root directory for the package install (usually /)
