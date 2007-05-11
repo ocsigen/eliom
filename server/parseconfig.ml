@@ -232,6 +232,9 @@ let parse_server isreloading c =
       | (Element ("commandpipe", [], p))::ll -> 
           set_command_pipe (parse_string p);
           parse_server_aux ll
+      | (Element ("debugmode", [], []))::ll -> 
+          set_debugmode true;
+          parse_server_aux ll
       | (Element ("extension", atts,l))::ll -> 
 	  let modu = match atts with
           | [] -> raise (Config_file_error "missing module attribute in <extension>")

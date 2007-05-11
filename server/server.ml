@@ -598,6 +598,19 @@ let service
                      (string_of_exn e)
                      ^" (sending 500)"); 
                   Messages.debug "-> Sending 500";
+                  if get_debugmode ()
+                  then
+                    send_xhtml_page
+                      ~content:(error_page 
+                                  "error 500"
+                                  [XHTML.M.p 
+                                     [XHTML.M.em 
+                                        [XHTML.M.pcdata "(Ocsigen running in debug mode)"];
+                                      XHTML.M.br ();
+                                      XHTML.M.pcdata (string_of_exn e)]])
+                      wait_end_answer ~code:500 
+                      ~keep_alive:ka xhtml_sender
+                  else
                   send_error
                     wait_end_answer ~keep_alive:ka ~error_num:500 xhtml_sender)
             (fun e -> fail (Ocsigen_sending_error e))

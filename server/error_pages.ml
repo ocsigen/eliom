@@ -51,11 +51,10 @@ let page_session_expired  =
        [h1 [pcdata s]]
     )
 
-let error_page s =
+let error_page s c =
   html
     (head (title (pcdata s)) [])
     (body
-       [h1 [pcdata "Error"];
-        p [pcdata s]]
+       ((h1 [pcdata "Error"])::c)
     )
 

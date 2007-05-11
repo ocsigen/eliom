@@ -642,7 +642,14 @@ let gen page_tree charset ri =
                                        [Set (Some path, None, [(cookiename, c)])]);
 				   res_send_page=
 				   (Predefined_senders.send_xhtml_page 
-				      ~content:(Error_pages.error_page "Error: redirection after action is experimental (it works only for ocsigenmod pages for now, and I didn't find any)"));
+				      ~content:(Error_pages.error_page 
+                                                  "error" 
+                                                  [XHTML.M.p 
+                                                     [XHTML.M.pcdata 
+                                                        "Ocsigenmod Error: redirection after action \
+                                                        is experimental in Ocsigenmod (it works only for \
+                                                            ocsigenmod pages for now, and I \
+                                                         didn't find any)"]]));
 				   res_create_sender=Predefined_senders.create_xhtml_sender;
 				   res_code=None;
 				   res_lastmodified=None;
