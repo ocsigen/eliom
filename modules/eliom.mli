@@ -1260,6 +1260,9 @@ val get_session_data :
 val set_session_data : 
     'a table -> server_params -> 'a -> unit
 
+val remove_session_data : 
+    'a table -> server_params -> unit
+
 (*****************************************************************************)
 (** {2 Persistent sessions} *)
 
@@ -1272,6 +1275,9 @@ val get_persistent_data :
 
 val set_persistent_data : 
     'a persistent_table -> server_params -> 'a -> unit Lwt.t
+
+val remove_persistent_data : 
+    'a persistent_table -> server_params -> unit Lwt.t
 
 (** Close the persistent session (destroying all persistent data) *)
 val close_persistent_session : server_params -> unit Lwt.t

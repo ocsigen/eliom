@@ -3535,6 +3535,11 @@ let set_persistent_data table sp value =
   create_persistent_cookie sp >>=
   (fun (c, k) -> add table c (k, value))
 
+let remove_persistent_data table sp =
+  match get_persistent_cookie sp with
+  | Some (c,k) -> remove table c
+  | None -> return ()
+
 (*****************************************************************************)
 (** {2 session data in memory} *)
 type 'a table = 'a Cookies.t
@@ -3561,6 +3566,10 @@ let set_session_data table sp value =
   let c = create_cookie sp in
   Cookies.replace table c value
 
+let remove_session_data table sp =
+  match get_cookie sp with
+  | Some c -> Cookies.remove table c
+  | None -> ()
 
 (*****************************************************************************)
 (** Close a session *)
