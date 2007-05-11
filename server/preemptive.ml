@@ -35,6 +35,7 @@ let mypipe () =
        Lwt_unix.out_channel_of_descr out_fd)
 
 let finishedpipe = mypipe ()   
+let pipelock = Mutex.create () 
 
 let worker_chan n : (unit -> unit) Event.channel= Event.new_channel () 
 type th = {mutable client: unit Lwt.t;
@@ -54,9 +55,11 @@ let rec worker (n : int) : unit Lwt.t =
   g ();
   let buf = string_of_int n in
   finishedpipe >>= fun finishedpipe ->
+    Mutex.lock pipelock;
     Lwt_unix.output_string (snd finishedpipe) (buf^"\n") >>= fun () ->
-    setbusy n false;
-    worker n
+      Lwt_unix.flush (snd finishedpipe) >>= fun () ->
+        Mutex.unlock pipelock;
+        worker n
 
 
 exception All_preemptive_threads_are_busy
@@ -121,8 +124,6 @@ let detach (f : 'a -> 'b) (args : 'a) : 'b Lwt.t =
     | Some r -> Lwt.return r))
 
 
-let sizebuf = 20
-let buf = String.create sizebuf
 let dispatch () = 
   let rec aux () =
     (catch
@@ -130,8 +131,25 @@ let dispatch () =
          finishedpipe >>= fun finishedpipe ->
          Lwt_unix.input_line (fst finishedpipe) >>=
          (fun v ->
-           return
-             (wakeup !pool.(int_of_string v).client ())))
+           let n = int_of_string v in
+           setbusy n false;
+
+           ignore (
+           (* Here we want to do the recursive call as soon as possible
+              (and before the wakeup)
+              because if Lwt_unix.run is called by the waiters of the
+              thread beeing awoken,
+              and if that run wants to use detach, 
+              the pipe won't be available, and the run will never finish ...
+              and block the other run 
+              (remember that an invocation of [run] will not terminate
+              before all subsequent invocations are terminated)
+            *)
+           Lwt_unix.yield () >>= fun () -> 
+             wakeup !pool.(n).client (); 
+             return ());
+           return ()))
+
        (fun e -> Messages.errlog ("Internal error in preemptive.ml (read failed on the pipe) "^(Printexc.to_string e)^" - Please report the bug"); return ())
     ) >>= (fun () -> aux ())
   in aux ()

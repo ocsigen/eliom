@@ -719,7 +719,8 @@ let looong =
 	           "Ok now, you can read the page."]]))))
 (*html*
       <p class="importantwarning">
-        The binary operator <code>&gt;&gt;=</code>
+        The binary operator <code>&gt;&gt;=</code> used to bind the result of
+        a non blocking computation to another. In other words, it
         means: <em>"if the left handside takes time, do not block here,
         continue to the next instruction, but remember to come back here and
         give the result to the following function once you get it"</em>.
