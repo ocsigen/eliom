@@ -78,7 +78,7 @@ let rec try_connect sname =
         (fun () -> return (Lwt_unix.Plain socket))))
     (fun _ ->
       Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
-      let param = [|"ocsidbm"; directory|] in
+      let param = [|ocsidbm; directory|] in
       let fils () = 
         Unix.dup2 !(snd Messages.error) Unix.stderr; 
         Unix.close !(snd Messages.error);
