@@ -375,7 +375,7 @@ let make_server_params dir tables str session_exp_info ri suffix si =
     suffix))
 
 
-type ('a, 'b) leftright = Left of 'a | Right of 'b
+type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 let find_page_table 
     now
@@ -391,7 +391,7 @@ let find_page_table
   let (sp0, si, (_, tab, s, tim, u)) = 
     make_server_params [] tables str session_exp_info ri urlsuffix si in
   let rec aux toremove = function
-    | [] -> Lwt.return ((Right Eliom_Wrong_parameter), [])
+    | [] -> Lwt.return ((Notfound Eliom_Wrong_parameter), [])
     | (((_, (_, (max_use, expdate, funct, working_dir))) as a)::l) ->
         match expdate with
         | Some (_, e) when !e < now ->
@@ -419,7 +419,7 @@ let find_page_table
                         else (r := !r - 1; toremove)
                     | _ -> toremove)
                   in
-                  Lwt.return ((Left 
+                  Lwt.return ((Found 
                                 (p, 
                                  working_dir, 
                                  !(si.si_cookie),
@@ -429,7 +429,7 @@ let find_page_table
                 | Eliom_Wrong_parameter -> 
                     aux toremove l >>= 
                     (fun (r, toremove) -> Lwt.return (r, toremove))
-                | e -> Lwt.return ((Right e), toremove))
+                | e -> Lwt.return ((Notfound e), toremove))
   in 
   (catch 
      (fun () -> return (List.assoc k !pagetableref))
@@ -445,8 +445,8 @@ let find_page_table
     then pagetableref := newptr
     else pagetableref := (k, newlist)::newptr);
     match r with
-    | Left r -> Lwt.return r
-    | Right e -> fail e)
+    | Found r -> Lwt.return r
+    | Notfound e -> fail e)
 
 
 let rec insert_as_last_of_generation generation x = function
@@ -892,7 +892,71 @@ let rec parse_global_config = function
 let _ = parse_global_config (Extensions.get_config ())
 
 (*****************************************************************************)
-(* Generation of the page or naservice                                          *)
+(* Exception handler for the site                                            *)
+type handler_tree =
+    Exntree of
+      ((server_params -> exn -> result_to_send Lwt.t) option * 
+         ((string * handler_tree) list))
+
+let def_handler sp e = fail e
+
+let handle_site_exn, set_site_handler, init_site_handler =
+  let tree = ref (Exntree ((Some def_handler), [])) in
+  ((fun exn (ri, si, old_cookies_to_set) tables str sei ->
+    let rec find_handler h current_dir working_dir tree path = 
+      match tree, path with
+      | (Exntree (Some h, _)), [] -> (h, working_dir)
+      | (Exntree (None, _)), [] -> (h, working_dir)
+      | (Exntree (Some h, hl)), a::l -> 
+          (try
+            let tree2 = List.assoc a hl in
+            find_handler h (current_dir@[a]) current_dir tree2 l
+          with Not_found -> (h, current_dir))
+      | (Exntree (None, hl)), a::l -> 
+          (try
+            let tree2 = List.assoc a hl in
+            find_handler h (current_dir@[a]) working_dir tree2 l
+          with Not_found -> (h, working_dir))
+    in 
+    let h, wd = find_handler def_handler [] [] !tree ri.ri_path in
+    h (make_server_params wd tables str sei ri [] si) exn >>=
+    (fun r ->
+      return (r,
+              wd,
+              !(si.si_cookie),
+              !(si.si_persistent_cookie)))),
+   (fun dir handler ->
+     let rec add = function
+       | [] -> Exntree (Some handler, [])
+       | a::l -> Exntree (None, [(a, add l)])
+     in
+     let rec aux = function
+       | (Exntree (h, hl), []) -> Exntree ((Some handler), hl)
+       | (Exntree (h, hl)), a::l -> 
+           try
+             let ht,ll = list_assoc_remove a hl in
+             Exntree (h, (a, aux (ht, l))::ll)
+           with Not_found -> Exntree (h, (a, add l)::hl)
+     in tree := aux (!tree, dir)
+   ),
+   (fun dir -> 
+     let rec add = function
+       | [] -> Exntree (Some def_handler, [])
+       | a::l -> Exntree (None, [(a, add l)])
+     in
+     let rec aux = function
+       | (Exntree (None, hl), []) -> Exntree ((Some def_handler), hl)
+       | ((Exntree (h, hl)) as i, []) -> i
+       | (Exntree (h, hl)), a::l -> 
+           try
+             let ht,ll = list_assoc_remove a hl in
+             Exntree (h, (a, aux (ht, l))::ll)
+           with Not_found -> Exntree (h, (a, add l)::hl)
+     in tree := aux (!tree, dir)
+   ))
+
+(*****************************************************************************)
+(* Generation of the page or naservice                                       *)
 
 let execute
     generate_page info old_cookie old_persistent_cookie
@@ -950,10 +1014,13 @@ let execute
       let cookie_exp_date = ref None in
       let persistent_cookie_exp_date = ref None in
       let user_persistent_timeout_ref = ref user_persistent_timeout in
-      generate_page
-        now info tables sessiontablesref 
+      let sei =
         (user_timeout_optref, cookie_exp_date, 
-         user_persistent_timeout_ref, persistent_cookie_exp_date) >>=
+         user_persistent_timeout_ref, persistent_cookie_exp_date)
+      in
+      catch
+        (fun () -> generate_page now info tables sessiontablesref sei)
+        (fun e -> handle_site_exn e info tables sessiontablesref sei) >>=
       (fun (result, working_dir, the_new_cookie, new_persistent_cookie) ->
 
         (* Update persistent expiration date (and user timeout) *)
@@ -1609,6 +1676,7 @@ let load_eliom_module pages_tree path cmo content =
   config := content;
   begin_load_eliom_module ();
   absolute_change_hostdir (pages_tree, path);
+  init_site_handler path;
   (try
     Dynlink.loadfile cmo
   with Dynlink.Error e -> 

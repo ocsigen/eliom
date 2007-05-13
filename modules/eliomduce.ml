@@ -89,12 +89,12 @@ module Xhtmlreg_ = struct
 
   type page = html
 
-  let send ?(cookies=[]) ?charset sp content = 
+  let send ?(cookies=[]) ?charset ?code sp content = 
     Eliommod.EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
        res_etag= None;
-       res_code= None;
+       res_code= code;
        res_send_page= send_ocamlduce_page ~content:content;
        res_create_sender= Predefined_senders.create_xhtml_sender;
        res_charset= match charset with
@@ -305,12 +305,12 @@ module Xml =
         
       type page = Ocamlduce.Load.anyxml
             
-      let send ?(cookies=[]) ?charset sp content = 
+      let send ?(cookies=[]) ?charset ?code sp content = 
         Eliommod.EliomResult 
           {res_cookies= cookies;
            res_lastmodified= None;
            res_etag= None;
-           res_code= None;
+           res_code= code;
            res_send_page= send_cont_page ~content:content;
            res_create_sender= Predefined_senders.create_xhtml_sender;
            res_charset= match charset with

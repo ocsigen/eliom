@@ -136,6 +136,8 @@ val create_table_during_session : server_params -> 'a Cookies.t
 val create_persistent_table : string -> 'a Ocsipersist.table
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 
+val set_site_handler : url_path -> 
+  (server_params -> exn -> result_to_send Lwt.t) -> unit
 
 (** Profiling *)
 val number_of_sessions : server_params -> int

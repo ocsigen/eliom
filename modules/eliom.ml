@@ -28,6 +28,8 @@ open Lazy
 
 exception Eliom_Link_too_old = Eliommod.Eliom_Link_too_old
 exception Eliom_Session_expired = Eliommod.Eliom_Session_expired
+exception Eliom_Wrong_parameter = Eliommod.Eliom_Wrong_parameter
+exception Eliom_Typing_Error = Eliommod.Eliom_Typing_Error
 
 let _ = Random.self_init ()
 
@@ -68,7 +70,7 @@ let set_global_timeout ?sp s =
       Eliommod.set_global_timeout working_dir s
   | None ->
       match global_register_allowed () with
-        Some get_current_hostdir ->
+      | Some get_current_hostdir ->
           Eliommod.set_global_timeout (snd (get_current_hostdir ())) s
       | _ -> raise (Eliom_function_forbidden_outside_site_loading 
                       "set_global_timeout")
@@ -79,7 +81,7 @@ let get_global_timeout ?sp () =
       Eliommod.find_global_timeout working_dir
   | None ->
       match global_register_allowed () with
-        Some get_current_hostdir ->
+      | Some get_current_hostdir ->
           Eliommod.find_global_timeout (snd (get_current_hostdir ()))
       | _ -> raise (Eliom_function_forbidden_outside_site_loading
                       "get_global_timeout")
@@ -92,7 +94,7 @@ let set_global_persistent_timeout ?sp s =
       Eliommod.set_global_persistent_timeout working_dir s
   | None ->
       match global_register_allowed () with
-        Some get_current_hostdir ->
+      | Some get_current_hostdir ->
           Eliommod.set_global_persistent_timeout
             (snd (get_current_hostdir ())) s
       | _ -> raise (Eliom_function_forbidden_outside_site_loading
@@ -104,7 +106,7 @@ let get_global_persistent_timeout ?sp () =
       Eliommod.find_global_persistent_timeout working_dir
   | None ->
       match global_register_allowed () with
-        Some get_current_hostdir ->
+      | Some get_current_hostdir ->
           Eliommod.find_global_persistent_timeout
             (snd (get_current_hostdir ()))
       | _ -> raise (Eliom_function_forbidden_outside_site_loading
@@ -115,7 +117,7 @@ let set_user_timeout (_,_,(_,_,_,(tor,_,_,_),_)) t = tor := Some t
 let unset_user_timeout (_,_,(_,_,_,(tor,_,_,_),_)) = tor := None
 let get_user_timeout (_,_,(working_dir,_,_,(tor,_,_,_),_)) = 
   match !tor with
-    None -> Eliommod.find_global_timeout working_dir
+  | None -> Eliommod.find_global_timeout working_dir
   | Some t -> t
 
 let set_user_expdate (_,_,(_,_,_,(_,exp,_,_),_)) t = exp := t
@@ -125,7 +127,7 @@ let set_user_persistent_timeout (_,_,(_,_,_,(_,_,tor,_),_)) t = tor := Some t
 let unset_user_persistent_timeout (_,_,(_,_,_,(_,_,tor,_),_)) = tor := None
 let get_user_persistent_timeout (_,_,(working_dir,_,_,(_,_,tor,_),_)) = 
   match !tor with
-    None -> Eliommod.find_global_persistent_timeout working_dir
+  | None -> Eliommod.find_global_persistent_timeout working_dir
   | Some t -> t
 
 let set_user_persistent_expdate (_,_,(_,_,_,(_,_,_,exp),_)) t = exp := t
@@ -135,6 +137,16 @@ let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
 let get_original_filename fi = fi.original_filename
 
+let set_exn_handler ?sp h = 
+  match sp with
+  | Some (_, _, (working_dir, _, _, _, _)) ->
+      set_site_handler working_dir h
+  | None ->
+      match global_register_allowed () with
+      | Some get_current_hostdir ->
+          set_site_handler (snd (get_current_hostdir ())) h
+      | _ -> raise (Eliom_function_forbidden_outside_site_loading
+                      "set_site_handler")
 
 
 let sync f sp g p = Lwt.return (f sp g p)
@@ -957,7 +969,8 @@ module type REGCREATE =
     val send : 
         ?cookies:cookieslist -> 
           ?charset:string ->
-            server_params -> page -> result_to_send
+            ?code: int ->
+              server_params -> page -> result_to_send
 
   end
 
@@ -1167,7 +1180,8 @@ module type ELIOMREGSIG1 =
     val send : 
         ?cookies:cookieslist -> 
           ?charset:string ->
-            server_params -> page -> Eliommod.result_to_send
+            ?code: int ->
+              server_params -> page -> Eliommod.result_to_send
 
     val register :
         ?sp: server_params ->
@@ -1471,8 +1485,8 @@ module MakeRegister = functor
         
         type page = Pages.page * cookieslist
               
-        let send ?(cookies=[]) ?charset sp (p, cl) =
-          Pages.send ~cookies:(cookies@cl) ?charset sp p
+        let send ?(cookies=[]) ?charset ?code sp (p, cl) =
+          Pages.send ~cookies:(cookies@cl) ?charset ?code sp p
 
         let register_aux
             current_dir
@@ -2453,12 +2467,12 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
-   let send ?(cookies=[]) ?charset sp content = 
+   let send ?(cookies=[]) ?charset ?code sp content = 
      EliomResult 
        {res_cookies= cookies;
         res_lastmodified= None;
         res_etag= None;
-        res_code= None;
+        res_code= code;
         res_send_page= Predefined_senders.send_xhtml_page ~content:content;
         res_create_sender= Predefined_senders.create_xhtml_sender;
         res_charset= match charset with
@@ -3079,12 +3093,12 @@ module SubXhtml = functor(T : sig type content end) ->
         
       type page = T.content XHTML.M.elt list
             
-      let send ?(cookies=[]) ?charset sp content = 
+      let send ?(cookies=[]) ?charset ?code sp content = 
         EliomResult 
           {res_cookies= cookies;
            res_lastmodified= None;
            res_etag= None;
-           res_code= None;
+           res_code= code;
            res_send_page= send_cont_page ~content:content;
            res_create_sender= Predefined_senders.create_xhtml_sender;
            res_charset= match charset with
@@ -3120,12 +3134,12 @@ module Textreg_ = struct
 
   type page = (string * string)
 
-  let send ?(cookies=[]) ?charset sp (content, contenttype) = 
+  let send ?(cookies=[]) ?charset ?code sp (content, contenttype) = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
        res_etag= None;
-       res_code= None;
+       res_code= code;
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:contenttype ~content:content;
        res_create_sender= Predefined_senders.create_xhtml_sender;
@@ -3147,12 +3161,12 @@ module CssTextreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset sp content = 
+  let send ?(cookies=[]) ?charset ?code sp content = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
        res_etag= None;
-       res_code= None;
+       res_code= code;
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:"text/css" ~content:content;
        res_create_sender= Predefined_senders.create_xhtml_sender;
@@ -3175,12 +3189,12 @@ module HtmlTextreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset sp content = 
+  let send ?(cookies=[]) ?charset ?code sp content = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
        res_etag= None;
-       res_code= None;
+       res_code= code;
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:"text/html" ~content:content;
        res_create_sender= Predefined_senders.create_xhtml_sender;
@@ -3336,7 +3350,7 @@ module Actionreg_ = struct
 
   type page = exn list
 
-  let send ?(cookies=[]) ?charset sp content =
+  let send ?(cookies=[]) ?charset ?code sp content =
     EliomExn (content, cookies)
 
 end
@@ -3352,12 +3366,12 @@ module Unitreg_ = struct
 
   type page = unit
 
-  let send ?(cookies=[]) ?charset sp content = 
+  let send ?(cookies=[]) ?charset ?code sp content = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
        res_etag= None;
-       res_code= None;
+       res_code= code;
        res_send_page= Predefined_senders.send_empty ~content:content;
        res_create_sender= Predefined_senders.create_empty_sender;
        res_charset= None
@@ -3385,19 +3399,20 @@ module Redirreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset sp content =
+  let send ?(cookies=[]) ?charset ?(code = 301) sp content =
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
        res_etag= None;
-       res_code= None;
+       res_code= Some code; (* Moved permanently *)
        res_send_page= 
        (fun ?cookies waiter ?code ?etag ~keep_alive
            ?last_modified ?location ?head ?charset s ->
              Predefined_senders.send_empty
                ~content:() 
                ?cookies
-               waiter ~code:301 (* Moved permanently *) 
+               waiter 
+               ?code
                ?etag ~keep_alive
                ?last_modified 
                ~location:content
@@ -3421,7 +3436,7 @@ module Anyreg_ = struct
 
   type page = result_to_send
 
-  let send ?(cookies=[]) ?charset sp content = 
+  let send ?(cookies=[]) ?charset ?code sp content = 
     match content with
       EliomResult res ->
         EliomResult
@@ -3446,7 +3461,7 @@ module Filesreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset sp filename = 
+  let send ?(cookies=[]) ?charset ?code sp filename = 
     let (filename, stat) =
       (try
         (* That piece of code has been pasted from staticmod.ml *)
@@ -3490,7 +3505,7 @@ module Filesreg_ = struct
       {res_cookies= cookies;
        res_lastmodified= (Some stat.Unix.LargeFile.st_mtime);
        res_etag= (Some (Predefined_senders.File_content.get_etag filename));
-       res_code= None;
+       res_code= code;
        res_send_page= Predefined_senders.send_file ~content:filename;
        res_create_sender= Predefined_senders.create_file_sender;
        res_charset= match charset with

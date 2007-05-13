@@ -34,7 +34,8 @@ open Extensions
 
 exception Eliom_Link_too_old
 exception Eliom_Session_expired
-
+exception Eliom_Wrong_parameter
+exception Eliom_Typing_Error of (string * exn) list
 
 
 (** Allows extensions of the configuration file for your modules *)
@@ -161,6 +162,9 @@ val set_global_persistent_timeout : ?sp:server_params -> float option -> unit
 val get_global_persistent_timeout : ?sp:server_params -> unit -> float option
 val get_default_persistent_timeout : unit -> float option
 
+val set_exn_handler : 
+    ?sp:server_params ->
+      (server_params -> exn -> Eliommod.result_to_send Lwt.t) -> unit
 
 (** Type of files *)
 val get_tmp_filename : file_info -> string
@@ -463,7 +467,8 @@ module type REGCREATE =
     val send : 
         ?cookies:cookieslist -> 
           ?charset:string ->
-            server_params -> page -> Eliommod.result_to_send
+            ?code:int ->
+              server_params -> page -> Eliommod.result_to_send
 
   end
 
@@ -664,7 +669,8 @@ module type ELIOMREGSIG1 =
     val send : 
         ?cookies:cookieslist -> 
           ?charset:string ->
-            server_params -> page -> Eliommod.result_to_send
+            ?code:int ->
+              server_params -> page -> Eliommod.result_to_send
 
     val register :
         ?sp: server_params ->

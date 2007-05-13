@@ -1566,89 +1566,8 @@ let _ = Actions.register
 (*html*
       <p>See these $a Tutoeliom.action_session sp <:xmllist< pages >> ()$.</p>
     </div>
-    <h2>Other concepts</h2>
+    <h2>Other kind of pages</h2>
     <div class="twocol1">
-    <h3>Pre-applied services</h3>
-    <p>Services or coservices with GET parameters can be preapplied
-     to obtain a service without parameters. Example:
-    </p>
-    <pre>
-let preappl = preapply coucou_params (3,(4,"cinq"))
-    </pre>
-    <p>
-     It is not possible to register something on e preapplied service,
-     but you can use them in links or as fallbacks for coservices.
-    </p>
-    <h3>Giving informations to fallbacks</h3>
-    <p>Fallbacks have access to some informations about what succeeded but
-    they were called. Get this information using 
-     <code>Eliom.get_exn sp</code>; That function returns a list of exceptions.
-    That list contains <code>Eliom_Link_too_old</code> if the coservice
-    was not found, and <code>Eliom_Session_expired</code> if the session
-    has expired.
-    </p>
-    <p>
-    It is also possible to tell actions to send informations to the page
-    generated after them. Just place exceptions in the list returned by the
-    action. These exceptions will also be accessible with 
-    <code>Eliom.get_exn</code>. Try to replace the lines above by:
-    </p>
-*html*)
-(*zap* *)
-let action_session2 = 
-  new_service ~url:["action2"] ~get_params:unit ()
-
-let connect_action = 
-  new_post_coservice' ~post_params:(string "login") ()
-(* *zap*)    
-exception Bad_user
-
-let login_box sp login =
-   let l =
-     [pcdata "login: "; 
-      string_input login]
-   in
-   [p (if List.mem Bad_user (get_exn sp)
-       then (pcdata "Wrong user")::(br ())::l
-       else 
-       if List.mem Eliom_Session_expired (get_exn sp)
-       then (pcdata "Session expired")::(br ())::l
-       else l)
-   ]
-
-(*zap* *)    
-let home_action sp () () = 
-  let f = post_form connect_action sp (login_box sp) () in
-  let sessdat = get_session_data my_table sp in
-  return
-    (html
-       (head (title (pcdata "")) [])
-       (body 
-          (match sessdat with
-          | Some name ->
-              [p [pcdata ("Hello "^name); br ()];
-              disconnect_box sp "Close session"]
-          | None -> [f]
-          )))
-
-let _ = register ~service:action_session2 home_action
-
-let rec launch_session sp login =
-  set_session_data my_table sp login
-    
-(* *zap*)
-let _ = Actions.register
-    connect_action
-    (fun sp () login -> 
-      close_session sp >>=
-      (fun () ->
-        if login = "toto" 
-        then (launch_session sp login; return [])
-        else return [Bad_user]))
-(*html*
-      <p>
-      See this example $a Tutoeliom.action_session2 sp <:xmllist< here >> ()$.
-      </p>
     <h3>Sending portions of pages</h3>
     <p>
      The <code>Blocks</code> module allows to register services that
@@ -1805,6 +1724,90 @@ let _ = Cookies.register cookies
       <p>Try $a Tutoeliom.cookies sp <:xmllist< <code>it</code> >> ()$.</p>
     </div>
     <div class="twocol2">
+    </div>
+    <h2>Other concepts</h2>
+    <div class="twocol1">
+    <h3>Pre-applied services</h3>
+    <p>Services or coservices with GET parameters can be preapplied
+     to obtain a service without parameters. Example:
+    </p>
+    <pre>
+let preappl = preapply coucou_params (3,(4,"cinq"))
+    </pre>
+    <p>
+     It is not possible to register something on e preapplied service,
+     but you can use them in links or as fallbacks for coservices.
+    </p>
+    <h3>Giving informations to fallbacks</h3>
+    <p>Fallbacks have access to some informations about what succeeded but
+    they were called. Get this information using 
+     <code>Eliom.get_exn sp</code>; That function returns a list of exceptions.
+    That list contains <code>Eliom_Link_too_old</code> if the coservice
+    was not found, and <code>Eliom_Session_expired</code> if the session
+    has expired.
+    </p>
+    <p>
+    It is also possible to tell actions to send informations to the page
+    generated after them. Just place exceptions in the list returned by the
+    action. These exceptions will also be accessible with 
+    <code>Eliom.get_exn</code>. Try to replace the lines above by:
+    </p>
+*html*)
+(*zap* *)
+let action_session2 = 
+  new_service ~url:["action2"] ~get_params:unit ()
+
+let connect_action = 
+  new_post_coservice' ~post_params:(string "login") ()
+(* *zap*)    
+exception Bad_user
+
+let login_box sp login =
+   let l =
+     [pcdata "login: "; 
+      string_input login]
+   in
+   [p (if List.mem Bad_user (get_exn sp)
+       then (pcdata "Wrong user")::(br ())::l
+       else 
+       if List.mem Eliom_Session_expired (get_exn sp)
+       then (pcdata "Session expired")::(br ())::l
+       else l)
+   ]
+
+(*zap* *)    
+let home_action sp () () = 
+  let f = post_form connect_action sp (login_box sp) () in
+  let sessdat = get_session_data my_table sp in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body 
+          (match sessdat with
+          | Some name ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box sp "Close session"]
+          | None -> [f]
+          )))
+
+let _ = register ~service:action_session2 home_action
+
+let rec launch_session sp login =
+  set_session_data my_table sp login
+    
+(* *zap*)
+let _ = Actions.register
+    connect_action
+    (fun sp () login -> 
+      close_session sp >>=
+      (fun () ->
+        if login = "toto" 
+        then (launch_session sp login; return [])
+        else return [Bad_user]))
+(*html*
+      <p>
+      See this example $a Tutoeliom.action_session2 sp <:xmllist< here >> ()$.
+      </p>
      <h3>Disposable coservices</h3>
       <p>It is possible to set a limit to the number of uses of 
       (attached or non-attached) coservices. Just give the maximum number
@@ -1920,6 +1923,8 @@ let _ =
       <p>
       See this example $a Tutoeliom.timeout sp <:xmllist< here >> ()$.
       </p>
+    </div>
+    <div class="twocol2">
      <h3>registering coservices in public table during session</h3>
      <p>It is not possible to register coservices in the
      public table during session using <code>register</code>, as this function
@@ -1962,6 +1967,32 @@ let _ =
       <p>
       See this example $a Tutoeliom.publiccoservsession sp <:xmllist< here >> ()$.
       </p>
+     <h3>Define an exception handler for the whole site</h3>
+     <p>When an exception is raised during the generation of a page,
+     or when the page has not been found or has wrong parameters,
+     an HTTP error 500 or 404 is sent to the client. You may want to
+     catch these exceptions to print your own error page.
+     Do this using <code>set_exn_handler</code>. For example:
+     </p>
+*html*)
+let _ = set_exn_handler 
+   (fun sp e -> match e with
+    | Extensions.Ocsigen_404 -> 
+       return
+         (Xhtml.send ~code:404 sp
+          (html
+            (head (title (pcdata "")) [])
+            (body [h1 [pcdata "Eliom tutorial"]; 
+                   p [pcdata "Page not found"]])))
+    | Eliom_Wrong_parameter ->
+       return
+         (Xhtml.send sp
+          (html
+            (head (title (pcdata "")) [])
+            (body [h1 [pcdata "Eliom tutorial"]; 
+                   p [pcdata "Wrong parameters"]])))
+    | e -> fail e)
+(*html*
      <h3>Giving configuration options to your sites (EXPERIMENTAL)</h3>
       <p>You can add your own options in the configuration
        file for your Web site. For example:</p>
