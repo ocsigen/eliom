@@ -38,6 +38,8 @@ type internal_state = int
 
 type sess_info =
     {si_other_get_params: (string * string) list;
+     si_all_get_params: (string * string) list;
+     si_all_post_params: (string * string) list;
      si_cookie: string option ref;
      si_persistent_cookie: (string * int64) option ref;
      si_nonatt_info: (string option * string option);
@@ -90,8 +92,7 @@ exception Eliom_error_while_loading_site of string
 (*****************************************************************************)
 let eliom_suffix_name = "__eliom_suffix"
 let eliom_suffix_internal_name = "__eliom_suffix**"
-let naservice_prefix = "__eliom_na__"
-let naservice_name = "name"
+let naservice_name = "__eliom_na__name"
 let get_state_param_name = "__eliom__"
 let post_state_param_name = "__eliom_p__"
 let cookiename = "eliomsession"
@@ -126,6 +127,8 @@ let change_request_info ri charset =
   force ri.ri_post_params >>=
   (fun post_params -> 
     let get_params = force ri.ri_get_params in
+    let get_params0 = get_params in
+    let post_params0 = post_params in
     let cookie = getcookie cookiename (force ri.ri_cookies) in
     let persistent_cookie = 
       match getcookie persistentcookiename (force ri.ri_cookies) with
@@ -137,7 +140,7 @@ let change_request_info ri charset =
       let post_naservice_name, na_post_params = 
         try
           let n, pp =
-            list_assoc_remove (naservice_prefix^naservice_name) post_params
+            list_assoc_remove naservice_name post_params
           in (Some n, pp)
         with Not_found -> (None, []) 
         (* Not possible to have POST parameters without naservice_name
@@ -147,7 +150,7 @@ let change_request_info ri charset =
       let get_naservice_name, (na_get_params, other_get_params) = 
         try
           let n, gp =
-            list_assoc_remove (naservice_prefix^naservice_name) get_params
+            list_assoc_remove naservice_name get_params
           in (Some n, (split_prefix_param na_co_param_prefix gp))
         with Not_found -> (None, ([], get_params))
       in
@@ -184,6 +187,8 @@ let change_request_info ri charset =
         si_nonatt_info=naservice_info;
         si_state_info=(get_state, post_state);
         si_other_get_params=other_get_params;
+        si_all_get_params= get_params0;
+        si_all_post_params= post_params0;
         si_exn=[];
         si_config_file_charset=charset},
       [] (* no cookie to set *)))
@@ -1347,18 +1352,23 @@ let gen page_tree charset ri =
 
           match result_to_send with
             EliomExn (exnlist, cookies_set_by_page) -> 
-                     (* Nothing to send, we retry without POST params
-                       (it was an action, we reload the page).
-                       If it was an action without POST parameters, 
-                       we do not reload, otherwise it will loop.
-                     *)
+                     (* It is an action, we reload the page.
+                        We retry without POST params.
+                        If no post poaram at all, we retry
+                        without GET non_att info.
+                        If no GET non_att info, we retry without
+                        GET state.
+                        If no GET state,
+                        we do not reload, otherwise it will loop.
+                      *)
+(* relire ! *)
               let cookies_set_by_page, all_new_cookies =
                 compute_cookies cookies_set_by_page
               in
               force ri.ri_post_params >>=
               (fun ripp ->
                 (match si.si_nonatt_info, si.si_state_info, ripp with
-                | (_, None), (_, None), [] ->
+                | (None, None), (None, None), [] ->
                     return
                       (Ext_found
                          {res_cookies= all_new_cookies;
@@ -1366,87 +1376,168 @@ let gen page_tree charset ri =
                           Predefined_senders.send_empty ~content:();
                           res_create_sender=
                           Predefined_senders.create_empty_sender;
-                          res_code=Some 204;
+                          res_code=Some 204; (* No content *)
                           res_lastmodified=None;
                           res_etag=None;
                           res_charset=None})
                       
                 | _ ->
-                    fail
-                      (* Ext_retry_with or Eliom_retry_with? *)
-                      (Eliom_retry_with 
-                         (let now = Unix.time () in
-                         let cookies_presents =
-                           List.fold_left
-                             (fun l c ->
-                               match c with
-                                 Set (p, exp, cl) -> 
-                                   (match exp with
-                                   | Some t when t < now -> l
-                                   | _ -> (match p with
-                                     | None -> cl@l
-                                     | Some p 
-                                       when list_is_prefix p ri.ri_path -> 
-                                         cl@l
-                                     | _ -> l
-                                      ))
-                               | Unset (p, cl) ->  
-                                   match p with
-                                   | Some p ->
-                                       if list_is_prefix p ri.ri_path
-                                       then 
-                                         List.fold_left
-                                           (fun lll ccc -> 
-                                             List.remove_assoc ccc lll)
-                                           l
-                                           cl
-                                       else l
-                                   | _ -> List.fold_left
-                                         (fun lll ccc -> 
-                                           List.remove_assoc ccc lll)
-                                         l
-                                         cl
-                             )
-                             (force ri.ri_cookies)
-                             cookies_set_by_page
-                         in
-                         ({ri with
+                    (let now = Unix.time () in
+                    let cookies_presents =
+                      List.fold_left
+                        (fun l c ->
+                          match c with
+                            Set (p, exp, cl) -> 
+                              (match exp with
+                              | Some t when t < now -> l
+                              | _ -> (match p with
+                                | None -> cl@l
+                                | Some p 
+                                  when list_is_prefix p ri.ri_path -> 
+                                    cl@l
+                                | _ -> l
+                                     ))
+                          | Unset (p, cl) ->  
+                              match p with
+                              | Some p ->
+                                  if list_is_prefix p ri.ri_path
+                                  then 
+                                    List.fold_left
+                                      (fun lll ccc -> 
+                                        List.remove_assoc ccc lll)
+                                      l
+                                      cl
+                                  else l
+                              | _ -> List.fold_left
+                                    (fun lll ccc -> 
+                                      List.remove_assoc ccc lll)
+                                    l
+                                    cl
+                        )
+                        (force ri.ri_cookies)
+                        cookies_set_by_page
+                    in
+                    let nc = match new_cookie, cookie_exp with
+                    | Some c, Some d when d < now -> ref None
+                    | Some c, _ -> ref new_cookie
+                    | None, _ -> si.si_cookie
+                    in
+                    let npc = match new_persistent_cookie, 
+                      persistent_cookie_exp with
+                    | Some c, Some d when d < now -> ref None
+                    | Some c, _ -> ref new_persistent_cookie
+                    | None, _ -> si.si_persistent_cookie
+                    in
+                    let ric =lazy
+                        (let l =
+                          match new_cookie, cookie_exp with
+                          | None, _ -> cookies_presents
+                          | _, Some d when d < now -> 
+                              List.remove_assoc
+                                cookiename cookies_presents
+                          | Some c, _ -> 
+                              ((cookiename, c)::cookies_presents)
+                        in
+                        match new_persistent_cookie, 
+                          persistent_cookie_exp with
+                        | None, _ -> l
+                        | _, Some d when d < now -> 
+                            List.remove_assoc persistentcookiename l
+                        | Some (c, _), _ -> 
+                            ((persistentcookiename, c)::l)
+                        )
+                    in
+                    (match si.si_nonatt_info, si.si_state_info, ripp with
+                    | (Some _, None), (_, None), [] ->
+                             (* no post params, GET na coservice *)
+                        change_request_info
+                          {ri with
+                           ri_get_params = lazy si.si_other_get_params;
+                           ri_cookies= ric
+                         }
+                          si.si_config_file_charset >>=
+                        (fun (ri, si', _) ->
+                          fail
+                            (* Ext_retry_with or Eliom_retry_with? *)
+                            (Eliom_retry_with 
+                               (ri,
+                                {si_other_get_params= si'.si_other_get_params;
+                                 si_all_get_params= si.si_all_get_params;
+                                 si_all_post_params= si.si_all_post_params;
+                                 si_cookie= nc;
+                                 si_persistent_cookie= npc;
+                                 si_nonatt_info= (None, None);
+                                 si_state_info= si'.si_state_info;
+                                 si_exn = exnlist@si.si_exn;
+                                 si_config_file_charset = 
+                                 si.si_config_file_charset}, (* verifier *)
+                                all_new_cookies)))
+                    | (None, None), (_, None), [] ->
+                        (* no post params, GET attached coservice *)
+                        fail
+                          (* Ext_retry_with or Eliom_retry_with? *)
+                          (Eliom_retry_with 
+                             ({ri with
+                               ri_get_params = lazy si.si_other_get_params;
+                               ri_cookies= ric
+                             },
+                              {si_other_get_params= [];
+                               si_all_get_params= si.si_all_get_params;
+                               si_all_post_params= si.si_all_post_params;
+                               si_cookie= nc;
+                               si_persistent_cookie= npc;
+                               si_nonatt_info= si.si_nonatt_info;
+                               si_state_info= (None, None);
+                               si_exn = exnlist@si.si_exn;
+                               si_config_file_charset = 
+                               si.si_config_file_charset},
+                              all_new_cookies))
+                    | (_, Some _), (_, _), _ ->
+                        (* retry without POST params *)
+                        change_request_info
+                          {ri with
+                           ri_get_params = lazy si.si_other_get_params;
                            ri_post_params = lazy (return []);
-                           ri_cookies= lazy
-                             (let l =
-                               match new_cookie, cookie_exp with
-                               | None, _ -> cookies_presents
-                               | _, Some d when d < now -> 
-                                   List.remove_assoc
-                                     cookiename cookies_presents
-                               | Some c, _ -> 
-                                   ((cookiename, c)::cookies_presents)
-                             in
-                               match new_persistent_cookie, 
-                                 persistent_cookie_exp with
-                               | None, _ -> l
-                               | _, Some d when d < now -> 
-                                   List.remove_assoc persistentcookiename l
-                               | Some (c, _), _ -> 
-                                   ((persistentcookiename, c)::l)
-                             )
-                         },
-                          {si_other_get_params= si.si_other_get_params;
-                           si_cookie= (match new_cookie, cookie_exp with
-                           | Some c, Some d when d < now -> ref None
-                           | Some c, _ -> ref new_cookie
-                           | None, _ -> si.si_cookie);
-                           si_persistent_cookie= 
-                           (match new_persistent_cookie, 
-                             persistent_cookie_exp with
-                           | Some c, Some d when d < now -> ref None
-                           | Some c, _ -> ref new_persistent_cookie
-                           | None, _ -> si.si_persistent_cookie);
-                           si_nonatt_info= ((fst si.si_nonatt_info), None);
-                           si_state_info= ((fst si.si_state_info), None);
-                           si_exn = exnlist@si.si_exn;
-                           si_config_file_charset = si.si_config_file_charset},
-                          all_new_cookies)))))
+                           ri_cookies= ric
+                         }
+                          si.si_config_file_charset >>=
+                        (fun (ri, si', _) ->
+                          fail
+                            (* Ext_retry_with or Eliom_retry_with? *)
+                            (Eliom_retry_with 
+                               (ri,
+                                {si_other_get_params= si'.si_other_get_params;
+                                 si_all_get_params= si.si_all_get_params;
+                                 si_all_post_params= si.si_all_post_params;
+                                 si_cookie= nc;
+                                 si_persistent_cookie= npc;
+                                 si_nonatt_info= si'.si_nonatt_info;
+                                 si_state_info= si'.si_state_info;
+                                 si_exn = exnlist@si.si_exn;
+                                 si_config_file_charset = 
+                                 si.si_config_file_charset}, (* verifier *)
+                                all_new_cookies)))
+                    | _ ->
+                        (* retry without POST params *)
+                        fail
+                          (* Ext_retry_with or Eliom_retry_with? *)
+                          (Eliom_retry_with 
+                             ({ri with
+                               ri_post_params = lazy (return []);
+                               ri_cookies= ric
+                             },
+                              {si_other_get_params= si.si_other_get_params;
+                               si_all_get_params= si.si_all_get_params;
+                               si_all_post_params= si.si_all_post_params;
+                               si_cookie= nc;
+                               si_persistent_cookie= npc;
+                               si_nonatt_info= ((fst si.si_nonatt_info), None);
+                               si_state_info= ((fst si.si_state_info), None);
+                               si_exn = exnlist@si.si_exn;
+                               si_config_file_charset = 
+                               si.si_config_file_charset},
+                              all_new_cookies))))))
+
           | EliomResult res ->
               let cookies_set_by_page, all_new_cookies =
                 compute_cookies res.res_cookies

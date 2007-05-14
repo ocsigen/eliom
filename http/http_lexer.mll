@@ -50,7 +50,6 @@ rule token =
 			 PROTO (Lexing.lexeme lexbuf)}
   |strin                {Messages.debug_noel (Lexing.lexeme lexbuf);
 			 STRING (Lexing.lexeme lexbuf)}
-  |eof                  {raise (Http_error.Http_exception (Some 400,["Unexpected end of
-                                file"]))}
+  |eof                  {raise (Http_error.Http_exception (Some 400,["Unexpected end of file"]))}
   |_                    {raise (Http_error.Http_exception (Some 400,["lexer error"
                         ^(Lexing.lexeme lexbuf)]))}

@@ -122,8 +122,19 @@ val get_user_agent : server_params -> string
 val get_full_url : server_params -> string
 val get_ip : server_params -> string
 val get_inet_addr : server_params -> Unix.inet_addr
+
+(** All GET parameters in the URL *)
+val get_all_get_params : server_params -> (string * string) list
+
+(** Only GET parameters concerning that page *)
 val get_get_params : server_params -> (string * string) list
+
+(** All POST parameters in the request *)
+val get_all_post_params : server_params -> (string * string) list
+
+(** Only POST parameters concerning that page *)
 val get_post_params : server_params -> (string * string) list Lwt.t
+
 val get_current_path_string : server_params -> string
 val get_current_path : server_params -> url_path
 val get_hostname : server_params -> string option

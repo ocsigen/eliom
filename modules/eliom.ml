@@ -49,8 +49,10 @@ let get_full_url (ri,_,_) = ri.ri_path_string^ri.ri_params
 let get_ip (ri,_,_) = ri.ri_ip
 let get_inet_addr (ri,_,_) = ri.ri_inet_addr
 let get_get_params (ri,_,_) = force ri.ri_get_params
+let get_all_get_params (_,si,_) = si.si_all_get_params
 let get_get_params_string (ri,_,_) = ri.ri_params
 let get_post_params (ri,_,_) = force ri.ri_post_params
+let get_all_post_params (_,si,_) = si.si_all_post_params
 let get_current_path_string (ri,_,_) = ri.ri_path_string
 let get_current_path (ri,_,_) = ri.ri_path
 let get_hostname (ri,_,_) = ri.ri_host
@@ -2030,14 +2032,9 @@ let make_string_uri
       end
   | `Nonattached naser ->
       let current_get_params =
-        (get_other_get_params sp) @ 
-        (remove_prefixed_param na_co_param_prefix (get_get_params sp))
-      in
-      let current_get_params =
-        match fst si.si_state_info with
-          None -> current_get_params
-        | Some i -> (get_state_param_name, 
-                     (string_of_int i))::current_get_params
+        List.remove_assoc
+          naservice_name
+          (remove_prefixed_param na_co_param_prefix (get_all_get_params sp))
       in
       let _, params_string = 
         construct_params service.get_params_type getparams in
@@ -2047,7 +2044,7 @@ let make_string_uri
         concat_strings preapplied_params "&" params_string in
       let naservice_param = 
         match fst naser.na_name with
-          Some n -> naservice_prefix^naservice_name^"="^n
+          Some n -> naservice_name^"="^n
         | _ -> assert false
       in
       let current_get_params_string = 
@@ -2127,14 +2124,10 @@ module MakeForms = functor
                   content)
         | `Nonattached naser ->
             let current_get_params =
-              (get_other_get_params sp) @ 
-              (remove_prefixed_param na_co_param_prefix (get_get_params sp))
-            in
-            let current_get_params =
-              match fst si.si_state_info with
-                None -> current_get_params
-              | Some i -> (get_state_param_name, 
-                           (string_of_int i))::current_get_params
+              List.remove_assoc
+                naservice_name
+                (remove_prefixed_param
+                   na_co_param_prefix (get_all_get_params sp))
             in
             let _, params_string = 
               construct_params service.get_params_type getparams in
@@ -2144,7 +2137,7 @@ module MakeForms = functor
               concat_strings preapplied_params "&" params_string in
             let naservice_param = 
               match fst naser.na_name with
-                Some n -> naservice_prefix^naservice_name^"="^n
+                Some n -> naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -2228,7 +2221,7 @@ module MakeForms = functor
             in Pages.make_get_form ?a ~action:urlname i1 i
         | `Nonattached naser ->
             let urlname = "/"^(get_current_path_string sp) in
-            let naservice_param_name = naservice_prefix^naservice_name in
+            let naservice_param_name = naservice_name in
             let naservice_param = 
               match fst naser.na_name with
                 Some n -> n
@@ -2242,14 +2235,10 @@ module MakeForms = functor
                    ~value:naservice_param ())
             in
             let current_get_params =
-              (get_other_get_params sp) @ 
-              (remove_prefixed_param na_co_param_prefix (get_get_params sp))
-            in
-            let current_get_params =
-              match fst si.si_state_info with
-                None -> current_get_params
-              | Some i -> (get_state_param_name, 
-                           (string_of_int i))::current_get_params
+              List.remove_assoc
+                naservice_name
+                (remove_prefixed_param
+                   na_co_param_prefix (get_all_get_params sp))
             in
             let inside = f (make_params_names service.get_params_type) in
             let all_lines = 
@@ -2326,7 +2315,7 @@ module MakeForms = functor
               i1 i
         | `Nonattached naser ->
             (* no GET params here for now *)
-            let naservice_param_name = naservice_prefix^naservice_name in
+            let naservice_param_name = naservice_name in
             let naservice_param = 
               match snd naser.na_name with
                 Some n -> n
@@ -3366,12 +3355,12 @@ module Unitreg_ = struct
 
   type page = unit
 
-  let send ?(cookies=[]) ?charset ?code sp content = 
+  let send ?(cookies=[]) ?charset ?(code = 204) sp content = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
        res_etag= None;
-       res_code= code;
+       res_code= Some code;
        res_send_page= Predefined_senders.send_empty ~content:content;
        res_create_sender= Predefined_senders.create_empty_sender;
        res_charset= None

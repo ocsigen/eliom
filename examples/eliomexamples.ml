@@ -147,6 +147,55 @@ let form2 = register_new_service ["postco"] unit
          (body [f])))
 
 
+(* action on GET attached coservice *)
+let v = ref 0
+
+let getact = 
+  new_service 
+    ~url:["getact"]
+    ~get_params:(int "p")
+    ()
+
+let act = Actions.register_new_coservice
+    ~fallback:(preapply getact 22)
+    ~get_params:(int "bip")
+    (fun _ g p -> v := g; return [])
+
+(* action on GET non-attached coservice on GET coservice page *)
+let naact = Actions.register_new_coservice'
+    ~get_params:(int "bop")
+    (fun _ g p -> v := g; return [])
+
+let naunit = Unit.register_new_coservice'
+    ~get_params:(int "bap")
+    (fun _ g p -> v := g; return ())
+
+let _ =
+  register
+    getact
+    (fun sp aa () -> 
+      return
+        (html
+           (head (title (pcdata "getact")) [])
+           (body [h1 [pcdata ("v = "^(string_of_int !v))];
+                  p [pcdata ("p = "^(string_of_int aa))];
+                  p [a getact sp [pcdata "link to myself"] 0;
+                     br ();
+                     a act sp [pcdata "an attached action to change v"] 
+                       (Random.int 100);
+                     br ();
+                     a naact sp [pcdata "a non attached action to change v"] 
+                       (100 + Random.int 100);
+                     pcdata " (Actually if called after the previous one, v won't change. More precisely, it will change and turn back to the former value because the attached coservice is reloaded after action)";
+                     br ();
+                     a naunit sp [pcdata "a non attached \"Unit\" page to change v"] 
+                       (200 + Random.int 100);
+                     pcdata " (Reload after clicking here)"
+                   ]])))
+
+
+
+
 (* Many cookies *)
 let cookiename = "c"
 

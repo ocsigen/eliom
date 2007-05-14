@@ -44,6 +44,8 @@ type pages_tree =
 
 type sess_info =
     {si_other_get_params: (string * string) list;
+     si_all_get_params: (string * string) list;
+     si_all_post_params: (string * string) list;
      si_cookie: string option ref;
      si_persistent_cookie: (string * int64) option ref;
      si_nonatt_info: (string option * string option);
@@ -113,7 +115,6 @@ val get_state_param_name : string
 val post_state_param_name : string
 val eliom_suffix_name : string
 val eliom_suffix_internal_name : string
-val naservice_prefix : string
 val naservice_name : string
 val co_param_prefix : string
 val na_co_param_prefix : string
