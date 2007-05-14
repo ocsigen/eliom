@@ -1566,7 +1566,7 @@ let _ = Actions.register
 (*html*
       <p>See these $a Tutoeliom.action_session sp <:xmllist< pages >> ()$.</p>
     </div>
-    <h2>Other kind of pages</h2>
+    <h2>Other kinds of pages</h2>
     <div class="twocol1">
     <h3>Sending portions of pages</h3>
     <p>
@@ -1633,6 +1633,8 @@ let sendfile2 =
        handle static files (see the default 
        configuration file for more informations).
       </p>
+    </div>
+    <div class="twocol2">
      <h3>Registering services that decide what they want to send</h3>
       <p>You may want to register a service that will send sometimes
       an xhtml page, sometimes a file, sometimes something else.
@@ -1722,8 +1724,6 @@ let _ = Cookies.register cookies
                         [(cookiename,(string_of_int (Random.int 100)))])]))
 (*html*
       <p>Try $a Tutoeliom.cookies sp <:xmllist< <code>it</code> >> ()$.</p>
-    </div>
-    <div class="twocol2">
     </div>
     <h2>Other concepts</h2>
     <div class="twocol1">
@@ -1881,6 +1881,8 @@ set_user_timeout sp (Some 7200.)
         configuration file for your site, you must parse the configuration
         (<code>Eliom.get_config ()</code> function).
      </p>
+    </div>
+    <div class="twocol2">
      <h3>Timeout for coservices</h3>
       <p>It is also possible to put timeouts on coservices using
       the optional parameter <code>?timeout</code> of functions
@@ -1923,8 +1925,6 @@ let _ =
       <p>
       See this example $a Tutoeliom.timeout sp <:xmllist< here >> ()$.
       </p>
-    </div>
-    <div class="twocol2">
      <h3>registering coservices in public table during session</h3>
      <p>It is not possible to register coservices in the
      public table during session using <code>register</code>, as this function

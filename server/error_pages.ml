@@ -35,12 +35,19 @@ let page_error_param_type l =
        [h1 s]
     )
 
-let page_bad_param = 
+let page_bad_param l = 
   let s = "Wrong parameters" in
   html
     (head (title (pcdata s)) [])
     (body
-       [h1 [pcdata s]]
+       [h1 [pcdata s];
+        if l = [] 
+        then
+          p [pcdata "(no POST parameters)."]
+        else
+          p ((pcdata "(Post parameters are: ")::
+             (List.fold_right (fun n b -> (em [pcdata n])::(pcdata ", ")::b) 
+                l [pcdata ")."]))]
     )
 
 let page_session_expired  = 

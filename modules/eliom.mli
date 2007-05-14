@@ -162,6 +162,7 @@ val set_global_persistent_timeout : ?sp:server_params -> float option -> unit
 val get_global_persistent_timeout : ?sp:server_params -> unit -> float option
 val get_default_persistent_timeout : unit -> float option
 
+(** Use your own error pages (404, or any exception during page generation) *)
 val set_exn_handler : 
     ?sp:server_params ->
       (server_params -> exn -> Eliommod.result_to_send Lwt.t) -> unit

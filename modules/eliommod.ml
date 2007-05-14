@@ -1471,17 +1471,20 @@ let gen page_tree charset ri =
                        res_etag=None;
                        res_charset= Error_pages.charset})
 	| Eliom_Wrong_parameter -> 
-	    return (Ext_found 
-                      {res_cookies= old_cookies_to_set;
-                       res_send_page=
-                       (Predefined_senders.send_xhtml_page 
-                          ~content:(Error_pages.page_bad_param));
-                       res_create_sender=
-                       Predefined_senders.create_xhtml_sender;
-                       res_code=None;
-                       res_lastmodified=None;
-                       res_etag=None;
-                       res_charset= Error_pages.charset})
+            (force ri.ri_post_params) >>=
+            (fun ripp ->
+	      return (Ext_found 
+                        {res_cookies= old_cookies_to_set;
+                         res_send_page=
+                         (Predefined_senders.send_xhtml_page 
+                            ~content:(Error_pages.page_bad_param 
+                                      (List.map fst ripp)));
+                         res_create_sender=
+                         Predefined_senders.create_xhtml_sender;
+                         res_code=None;
+                         res_lastmodified=None;
+                         res_etag=None;
+                         res_charset= Error_pages.charset}))
 	| Ocsigen_404 -> return Ext_not_found
 	| Eliom_Session_expired -> 
             gen_aux 
