@@ -60,10 +60,12 @@ type 'a server_params1 =
          ('a (* global table *) * 
             ('a * string list 
                (* only to put expiration date on the right working dir
-                  To be removed if the management of cookies paths is improved *) * 
+                  To be removed if the management of cookies paths is improved
+                *) * 
                float option * float option option ref)
             Cookies.t (* cookies table *) * 
-            (string -> unit) ref) * (* remove_session_data *)
+            ((string -> unit) ref * (* remove_session_data *)
+             (string -> bool) ref)) * (* are_empty_session_tables *)
          'a ref (* session table ref *) * 
          (float option option ref * float option ref *
             float option option ref * float option ref) 
@@ -291,7 +293,8 @@ let new_cookie_table () : cookiestable = Cookies.create 100
 type pages_tree = 
     tables (* global tables of continuations/naservices *)
       * cookiestable (* session tables *)
-      * (string -> unit) ref (* remove_session_data *)
+      * ((string -> unit) ref (* remove_session_data *) *
+           (string -> bool) ref (* not_bound_in_tables *))
 
 let empty_page_table () = []
 let empty_naservice_table () = AVide
@@ -308,7 +311,8 @@ let are_empty_tables (lr,atr,_,_) =
 let new_pages_tree () =
   ((empty_tables ()),
    (new_cookie_table ()),
-   ref (fun cookie -> ())) (* remove_session_data *)
+   ((ref (fun cookie -> ())), (* remove_session_data *)
+      ref (fun cookie -> true)) (* not_bound_in_tables *))
 
 (*****************************************************************************)
 (* The current registration directory *)
@@ -819,7 +823,7 @@ let counttableelements = ref []
 (* Here only for exploration functions *)
 
 let create_table, create_table_during_session =
-  let aux remove_session_data =
+  let aux remove_session_data not_bound_in_tables =
     let t = Cookies.create 100 in
     let old_remove_session_data = !remove_session_data in
     remove_session_data := 
@@ -827,22 +831,29 @@ let create_table, create_table_during_session =
         old_remove_session_data cookie;
         Cookies.remove t cookie
       );
+    let old_not_bound_in_tables = !not_bound_in_tables in
+    not_bound_in_tables :=
+      (fun cookie ->
+        old_not_bound_in_tables cookie &&
+        not (Cookies.mem t cookie)
+      );
     counttableelements := 
       (fun () -> Cookies.length t)::!counttableelements;
     t
   in
   ((fun () ->
-    let (_,_, remove_session_data), _ = get_current_hostdir () in
-    aux remove_session_data),
-   (fun (_,_,(_,(_,_, remove_session_data),_,_,_)) ->
-     aux remove_session_data))
+    let (_,_, (remove_session_data, empty_session_data)), _ = 
+      get_current_hostdir () in
+    aux remove_session_data empty_session_data),
+   (fun (_,_,(_,(_,_, (remove_session_data, empty_session_data)),_,_,_)) ->
+     aux remove_session_data empty_session_data))
 
 let remove_session_data remove_session_data =
   function
     | None -> ()
     | Some cookie -> !remove_session_data cookie
 
-let remove_session (_, si, (_,(_, cook, rem),_,_,_)) = 
+let remove_session (_, si, (_,(_, cook, (rem,_)),_,_,_)) = 
   remove_session_data rem !(si.si_cookie);
   remove_session_table cook !(si.si_cookie)
 
@@ -869,6 +880,15 @@ let rec parse_global_config = function
         then set_default_timeout None
         else
           raise (Error_in_config_file "Eliom: Wrong value for value attribute of <timeout> tag"));
+      parse_global_config ll
+  | (Element ("persistenttimeout", [("value", s)], []))::ll -> 
+      (try
+        set_default_persistent_timeout (Some (float_of_string s))
+      with Failure _ -> 
+        if (s = "infinity")
+        then set_default_persistent_timeout None
+        else
+          raise (Error_in_config_file "Eliom: Wrong value for value attribute of <persistenttimeout> tag"));
       parse_global_config ll
   | (Element ("sessiongcfrequency", [("value", s)], p))::ll ->
       (try
@@ -965,7 +985,7 @@ let handle_site_exn, set_site_handler, init_site_handler =
 
 let execute
     generate_page info old_cookie old_persistent_cookie
-    ((_, cookie_table, remove_session_data) as tables) =
+    ((_, cookie_table, (remove_session_data, _)) as tables) =
   
   let now = Unix.time () in
   
@@ -996,6 +1016,7 @@ let execute
        To be removed if the management of cookies paths is improved *)
     
     try
+      let old_persistent_cookie0 = !old_persistent_cookie in
       let (sessiontablesref, user_timeout_optref, oldcookiepath) = 
     (* oldcookiepath only to put expiration date on the right working dir
        To be removed if the management of cookies paths is improved *)
@@ -1035,7 +1056,7 @@ let execute
              | None -> return []
              | Some (pc, randomkey) ->
                  let newperscookiepath =
-                   (if new_persistent_cookie = !old_persistent_cookie
+                   (if new_persistent_cookie = old_persistent_cookie0
                    then oldperscookpath
                    else working_dir)
                  in
@@ -1090,6 +1111,8 @@ let execute
               | None -> None
               | Some t -> Some (t +. now)
               in
+              (* We create an entry in the table even if !sessiontablesref is
+                 empty, because there may be session data *)
               Cookies.replace
                 cookie_table c
                 (!sessiontablesref, newcookiepath, exp, user_timeout_optref));
@@ -1101,11 +1124,20 @@ let execute
               then ((Some ""), (Some 0.), newcookiepath)
               else (cookie2, !cookie_exp_date, newcookiepath))
             else (None, None, [])
+          in 
+          let percookie = 
+            if new_persistent_cookie <> old_persistent_cookie0 || 
+            !persistent_cookie_exp_date <> None
+            then 
+              (if new_persistent_cookie = None 
+              then ((Some ("", Int64.zero)), (Some 0.), newperscookiepath)
+              else (new_persistent_cookie, 
+                    !persistent_cookie_exp_date, 
+                    newperscookiepath))
+            else (None, None, [])
           in return 
             (cookie3, 
-             (new_persistent_cookie, 
-              !persistent_cookie_exp_date,
-              newperscookiepath),
+             percookie,
              result,
              working_dir)))
   with e -> fail e
@@ -1328,7 +1360,8 @@ let gen page_tree charset ri =
               match new_cookie with
               | None -> 
                   if close_session
-                  then (Unset ((Some working_dir(*?????*)), [cookiename]))::cookies_to_set
+                  then (Unset ((Some working_dir(*?????*)), 
+                               [cookiename]))::cookies_to_set
                   else cookies_to_set
               | Some c -> Set (Some newcookiepath, cookie_exp, 
                                [(cookiename, c)])::
@@ -1682,7 +1715,7 @@ let session_gc ((servicetable,
                  naservicetable, 
                  contains_services_with_timeout, 
                  contains_naservices_with_timeout), 
-                cookie_table, rem) =
+                cookie_table, (remove_session_data, not_bound_in_tables)) =
   match get_sessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
@@ -1691,12 +1724,14 @@ let session_gc ((servicetable,
         (fun () ->
           let now = Unix.time () in
           Messages.debug "--Eliom: GC of sessions";
+          (* public continuation tables: *)
           (if !contains_services_with_timeout
           then gc_timeouted_services now servicetable
           else return ()) >>=
           (fun () -> if !contains_naservices_with_timeout
           then gc_timeouted_naservices now naservicetable
           else return ()) >>=
+          (* private continuation tables: *)
           (fun () ->
             Cookies.fold
               (fun k (((servicetable,
@@ -1709,7 +1744,7 @@ let session_gc ((servicetable,
                            (match exp with
                            | Some exp when exp < now -> 
                                Cookies.remove cookie_table k;
-                               !rem k;
+                               !remove_session_data k;
                                return ()
                            | _ -> 
                                (if !contains_services_with_timeout
@@ -1719,13 +1754,11 @@ let session_gc ((servicetable,
                                then gc_timeouted_naservices now naservicetable
                                else return ()) >>=
                                (fun () ->
-                                 if are_empty_tables tables
-                                 then begin
+                                 if are_empty_tables tables &&
+                                   !not_bound_in_tables k
+                                 then 
                                    Cookies.remove cookie_table k;
-                                   !rem k;
-                                   return ()
-                                 end
-                                 else return ()
+                                 return ()
                                )
                            ) >>=
                            Lwt_unix.yield

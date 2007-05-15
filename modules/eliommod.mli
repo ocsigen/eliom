@@ -40,7 +40,8 @@ type cookiestable
 type pages_tree = 
     tables (* global tables of continuations/naservices *)
       * cookiestable (* session tables *)
-      * (string -> unit) ref (* remove_session_data *)
+      * ((string -> unit) ref (* remove_session_data *) *
+           (string -> bool) ref (* not_bound_in_tables *))
 
 type sess_info =
     {si_other_get_params: (string * string) list;
@@ -61,7 +62,8 @@ type 'a server_params1 =
          ('a (* global table *) * 
             ('a * string list * float option * float option option ref)
             Cookies.t (* cookies table *) * 
-            (string -> unit) ref) * (* remove_session_data *)
+            ((string -> unit) ref * (* remove_session_data *)
+             (string -> bool) ref)) * (* are_empty_session_tables *)
          'a ref (* session table ref *) * 
          (float option option ref * float option ref *
             float option option ref * float option ref) 

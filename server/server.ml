@@ -604,10 +604,11 @@ let service
                       ~content:(error_page 
                                   "error 500"
                                   [XHTML.M.p 
-                                     [XHTML.M.em 
-                                        [XHTML.M.pcdata "(Ocsigen running in debug mode)"];
+                                     [XHTML.M.pcdata (string_of_exn e);
                                       XHTML.M.br ();
-                                      XHTML.M.pcdata (string_of_exn e)]])
+                                      XHTML.M.em 
+                                        [XHTML.M.pcdata "(Ocsigen running in debug mode)"]
+                                    ]])
                       wait_end_answer ~code:500 
                       ~keep_alive:ka xhtml_sender
                   else
