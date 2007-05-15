@@ -1758,6 +1758,9 @@ let session_gc ((servicetable,
                                    !not_bound_in_tables k
                                  then 
                                    Cookies.remove cookie_table k;
+                                 (* We keep the empty continuation table
+                                    as a witness of the session
+                                  *)
                                  return ()
                                )
                            ) >>=

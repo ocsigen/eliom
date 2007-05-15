@@ -9,12 +9,16 @@ endif
 FILESR = xmllexer.ml 
 FILES = basicTypes.ml xhtmltypes.ml simplexmlparser.ml xhtmlsyntax.ml xhtmlparser.ml 
 
-CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) -package camlp4
-CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) -package camlp4
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) 
+# -package camlp4
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) 
+# -package camlp4
 CAMLDEP = $(OCAMLFIND) ocamldep -package camlp4
 LIB = -I `$(CAMLP4) -where` -I +camlp4/Camlp4Parsers $(LIBDIRS2)
-PP = -syntax camlp4rf -ppopt "-loc loc"
-PPLEXER = -syntax camlp4of -ppopt "-loc loc"
+PP = -pp "camlp4rf -- -loc loc"
+PPLEXER = -pp "camlp4of -- -loc loc"
+# PP = -syntax camlp4rf -ppopt "-loc loc"
+# PPLEXER = -syntax camlp4of -ppopt "-loc loc"
 
 OBJS = $(FILESR:.ml=.cmo) $(FILES:.ml=.cmo)
 OBJSOPT = $(FILESR:.ml=.cmx) $(FILES:.ml=.cmx)
