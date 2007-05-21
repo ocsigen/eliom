@@ -287,7 +287,7 @@ val all_suffix :
 (** Takes all the suffix, as long as possible, as a string list *)
 
 val all_suffix_string :
-    string param_name -> (string, [`Endsuffix], string param_name) params_type
+    string -> (string, [`Endsuffix], string param_name) params_type
 (** Takes all the suffix, as long as possible, as a string *)
 
 val all_suffix_user :
