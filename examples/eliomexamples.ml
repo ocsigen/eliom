@@ -396,4 +396,135 @@ let suffixform4 = register_new_service ["suffixform4"] unit
                  f ])))
 
 
+(* Advanced use of any *)
+let any2 = register_new_service 
+    ~url:["any2"]
+    ~get_params:(int "i" ** any)
+  (fun _ (i,l) () ->
+    let ll = 
+      List.map 
+        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         <span>$list:ll$</span>
+         <br/>
+         i = $str:(string_of_int i)$
+       </p>
+       </body>
+     </html> >>)
 
+(* the following will not work because s is staken in any.
+   Is it normal?
+   Could this be improved?
+ *)
+let any3 = register_new_service 
+    ~url:["any3"]
+    ~get_params:(int "i" ** any ** string "s")
+  (fun _ (i,(l,s)) () ->
+    let ll = 
+      List.map 
+        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         <span>$list:ll$</span>
+         <br/>
+         i = $str:(string_of_int i)$
+         <br/>
+         s = $str:s$
+       </p>
+       </body>
+     </html> >>)
+
+let any4 = register_new_service 
+    ~url:["any4"]
+    ~get_params:(suffix any)
+  (fun _ l () ->
+    let ll = 
+      List.map 
+        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         <span>$list:ll$</span>
+       </p>
+       </body>
+     </html> >>)
+
+let sufli = register_new_service 
+    ~url:["sufli"]
+    ~get_params:(suffix (list "l" (string "s")))
+  (fun _ l () ->
+    let ll = 
+      List.map 
+        (fun s -> << <strong>$str:s$</strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         <span>$list:ll$</span>
+       </p>
+       </body>
+     </html> >>)
+
+(* form to any2 *)
+let anyform = register_new_service 
+    ~url:["anyform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Any Form"];
+                  get_form any2 sp 
+                    (fun (iname,grr) ->
+                      [p [pcdata "Form to any2: ";
+                          int_input iname;
+                          any_input "plop";
+                          any_input "plip";
+                          any_input "plap";
+                          submit_input "Click"]])
+                ])))
+
+
+(* main *)
+let main = new_service ["ex"] unit ()
+
+let _ = register main
+  (fun sp () () -> return
+     << 
+       <html> 
+       <!-- This is a comment! -->
+       <head>
+         $css_link (make_uri (static_dir sp) sp ["style.css"])$
+         <title>Eliom Tutorial</title>
+       </head>
+       <body>
+         
+         <h1>$img ~alt:"Ocsigen" ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"]) ()$</h1>
+
+       <h2>Eliom examples, bis</h2>
+       <p>
+         any2 : $a any2 sp <:xmllist< any2 >> (3,[("Ciao","bel");
+                                                  ("ragazzo","!")])$ <br/> 
+         any3 : $a any3 sp <:xmllist< any3 >> (3,(["a","e"],"z"))$ <br/> 
+<!--         sufli : $a sufli sp <:xmllist< sufli >> ["Ciao";"bel";"ragazzo";"!"]$ <br/> -->
+       </p>
+       </body>
+     </html> >>)

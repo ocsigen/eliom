@@ -237,7 +237,8 @@ val unit : (unit, [ `WithoutSuffix ], unit param_name) params_type
 
 val user_type :
     (string -> 'a) ->
-      ('a -> string) -> string -> ('a, [ `WithoutSuffix ], 'a param_name) params_type
+      ('a -> string) -> string -> 
+        ('a, [ `WithoutSuffix ], 'a param_name) params_type
 (** Allows to use whatever type you want for a parameter of the page.
    [user_type s_to_t t_to_s s] tells that the page take a parameter, labeled [s], and that the server will have to use [s_to_t] and [t_to_s] to make the conversion from and to string.
  *)
@@ -256,6 +257,11 @@ val opt :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
       ('a option, [ `WithoutSuffix ], 'b) params_type
 (** Use this if you want a parameter to be optional *)
+
+val any :
+      ((string * string) list, [ `WithoutSuffix ], 
+       (string * string) list param_name) params_type
+(** Use this if you want to take any parameters *)
 
 val list :
     string ->
@@ -624,6 +630,8 @@ module type ELIOMFORMSIG =
     val user_type_input :
         ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
           'a param_name -> input_elt
+    val any_input :
+        ?a:input_attrib_t -> ?value:string -> string -> input_elt
     val int_password_input :
         ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
     val float_password_input :
@@ -641,6 +649,8 @@ module type ELIOMFORMSIG =
         ?a:input_attrib_t -> string param_name -> string -> input_elt
     val hidden_user_type_input :
         ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
+    val hidden_any_input :
+        ?a:input_attrib_t -> string -> string -> input_elt
     val bool_checkbox :
         ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
     val string_radio :
@@ -655,6 +665,9 @@ module type ELIOMFORMSIG =
     val user_type_radio :
         ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
            'a option param_name -> 'a -> input_elt
+    val any_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          string -> string -> input_elt
     val textarea :
         ?a:textarea_attrib_t ->
           string param_name ->
@@ -1005,6 +1018,9 @@ and type input_type_t = Pages.input_type_t
 
 module type XHTMLFORMSSIG = sig
 
+  open XHTML.M
+  open Xhtmltypes
+
   val a :
       ?a:a_attrib attrib list ->
         ('get, unit, [< get_service_kind ], 
@@ -1092,6 +1108,11 @@ module type XHTMLFORMSSIG = sig
               [> input ] elt
 (** Creates an [<input>] tag for a user type *)
 
+  val any_input : ?a:(input_attrib attrib list ) -> 
+    ?value:string ->
+    string -> [> input ] elt
+(** Creates an [<input>] tag (low level) *)
+
   val int_password_input : ?a:(input_attrib attrib list ) -> 
     ?value:int ->
     int param_name -> [> input ] elt
@@ -1136,6 +1157,11 @@ module type XHTMLFORMSSIG = sig
         'a param_name -> 'a -> [> input ] elt
 (** Creates an hidden [<input>] tag for a user type *)
 
+  val hidden_any_input : 
+      ?a:(input_attrib attrib list ) -> 
+        string -> string -> [> input ] elt
+(** Creates an hidden [<input>] tag for a string (low level) *)
+
   val bool_checkbox :
       ?a:(input_attrib attrib list ) -> ?checked:bool -> 
         bool param_name -> [> input ] elt
@@ -1153,6 +1179,9 @@ module type XHTMLFORMSSIG = sig
   val user_type_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
     ('a -> string) -> 'a option param_name -> 'a -> [> input ] elt
 (** Creates a radio [<input>] tag with user_type content *)
+  val any_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+    string -> string -> [> input ] elt
+(** Creates a radio [<input>] tag with string content (low level) *)
 
   val textarea : ?a:(textarea_attrib attrib list ) -> 
     string param_name -> rows:number -> cols:number -> [ `PCDATA ] XHTML.M.elt ->

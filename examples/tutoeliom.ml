@@ -2375,6 +2375,24 @@ let print_news_page sp i () =
 (* Advanced types *)
 (* You can use your own types *)
 
+let any = register_new_service 
+    ~url:["any"]
+    ~get_params:any
+  (fun _ l () ->
+    let ll = 
+      List.map 
+        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         $list:ll$
+       </p>
+       </body>
+     </html> >>)
 
 (* lists *)
 let coucou_list = register_new_service 
@@ -2580,6 +2598,11 @@ let _ = register main
              $a sendany sp <:xmllist< sendany >> "valid"$<br/>
        A page with a persistent counter: 
              $a count2 sp <:xmllist< count2 >> ()$ <br/> 
+       </p>
+       <h3>Advanced forms</h3>
+       <p>
+       A page that takes any parameter:
+             $a any sp <:xmllist< any >> [("a","hello"); ("b","ciao")]$ <br/> 
        </p>
        </body>
      </html> >>)

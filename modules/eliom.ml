@@ -173,7 +173,7 @@ type 'an listnames =
 (* Use only with constructors from eliom.ml *)
 type ('a,+'tipo,+'names) params_type =
     (* 'tipo is [`WithSuffix] or [`WithoutSuffix] *)
-    TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
+  | TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
   | TOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
   | TList of 'a param_name * (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
   | TSum of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = ('a1, 'a2) binsum *)
@@ -187,8 +187,9 @@ type ('a,+'tipo,+'names) params_type =
   | TESuffixs of string param_name (* 'a = string *)
   | TESuffixu of ('a param_name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
   | TSuffix of ('a,'tipo,'names) params_type (* 'a = 'a1 *)
-  | TUnit (* 'a = unit *);;
-
+  | TUnit (* 'a = unit *)
+  | TAny (* 'a = (string * string) list *)
+;;
 
 type anon_params_type = int
 
@@ -198,14 +199,23 @@ let anonymise_params_type (t : ('a,'b,'c) params_type) : anon_params_type =
 
 (* As GADT are not implemented in OCaml for the while, we define our own
    constructors for params_type *)
-let int (n : string) : (int,[`WithoutSuffix], int param_name) params_type = TInt n
-let float (n : string) : (float,[`WithoutSuffix], float param_name) params_type = TFloat n
-let bool (n : string) : (bool,[`WithoutSuffix], bool param_name) params_type= TBool n
-let string (n : string) : (string,[`WithoutSuffix], string param_name) params_type = 
+let int (n : string) : (int, [`WithoutSuffix], int param_name) params_type = 
+  TInt n
+let float (n : string)
+    : (float, [`WithoutSuffix], float param_name) params_type = 
+  TFloat n
+let bool (n : string)
+    : (bool, [`WithoutSuffix], bool param_name) params_type
+    = TBool n
+let string (n : string)
+    : (string, [`WithoutSuffix], string param_name) params_type = 
   TString n
-let file (n : string) : (file_info ,[`WithoutSuffix], file_info param_name) params_type = 
+let file (n : string)
+    : (file_info ,[`WithoutSuffix], file_info param_name) params_type = 
   TFile n
-let radio_answer (n : string) : (string option,[`WithoutSuffix], string option param_name) params_type= TOption (TString n)
+let radio_answer (n : string)
+    : (string option,[`WithoutSuffix], string option param_name) params_type =
+  TOption (TString n)
 let unit : (unit,[`WithoutSuffix], unit param_name) params_type = TUnit
 let user_type
     (of_string : string -> 'a) (from_string : 'a -> string) (n : string)
@@ -226,6 +236,10 @@ let list (n : string) (t : ('a,[`WithoutSuffix], 'an) params_type)
     : ('a list,[`WithoutSuffix], 'an listnames) params_type = 
   Obj.magic (TList (n,t))
 let ( ** ) = prod
+let any
+    : ((string * string) list, [`WithoutSuffix], 
+       (string * string) list param_name) params_type = 
+  TAny
 
 let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
 let regexp reg dest n = 
@@ -382,6 +396,7 @@ let reconstruct_params
         (try (Res_ ((Obj.magic (of_string v)),l,files))
         with e -> Errors_ ([(pref^name^suff),e], l, files))
     | TUnit -> Res_ ((Obj.magic ()), params, files)
+    | TAny -> Res_ ((Obj.magic params), [], files)
     | TESuffix n ->
         let v,l = list_assoc_remove n params in
         (* cannot have prefix or suffix *)
@@ -496,6 +511,7 @@ let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_t
     | TUserType (name, of_string, string_of) ->
         ((pref^name^suff), (string_of (Obj.magic params)))::l
     | TUnit -> l
+    | TAny -> l@(Obj.magic params)
     | TESuffix _
     | TESuffixs _
     | TESuffixu _
@@ -553,6 +569,7 @@ let rec add_pref_params pref = function
   | TUserType (name, of_string, string_of) -> 
       TUserType (pref^name, of_string, string_of)
   | TUnit -> TUnit
+  | TAny -> TAny
   | TESuffix n -> TESuffix n
   | TESuffixs n -> TESuffixs n
   | TESuffixu a -> TESuffixu a
@@ -1118,6 +1135,8 @@ module type ELIOMFORMSIG =
     val user_type_input :
         ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
           'a param_name -> input_elt
+    val any_input :
+        ?a:input_attrib_t -> ?value:string -> string -> input_elt
     val int_password_input :
         ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
     val float_password_input :
@@ -1135,6 +1154,8 @@ module type ELIOMFORMSIG =
         ?a:input_attrib_t -> string param_name -> string -> input_elt
     val hidden_user_type_input :
         ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
+    val hidden_any_input :
+        ?a:input_attrib_t -> string -> string -> input_elt
     val bool_checkbox :
         ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
     val string_radio :
@@ -1149,6 +1170,9 @@ module type ELIOMFORMSIG =
     val user_type_radio :
         ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
            'a option param_name -> 'a -> input_elt
+    val any_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          string -> string -> input_elt
     val textarea :
         ?a:textarea_attrib_t ->
           string param_name ->
@@ -2160,6 +2184,7 @@ module MakeForms = functor
           | TFile name -> Obj.magic (prefix^name^suffix)
           | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
           | TUnit -> Obj.magic ("")
+          | TAny -> Obj.magic ("")
           | TESuffix n -> Obj.magic n
           | TESuffixs n -> Obj.magic n
           | TESuffixu (n,_,_) -> Obj.magic n
@@ -2365,6 +2390,8 @@ module MakeForms = functor
       let string_input ?a ?value (name : string param_name) =
         gen_input ?a ?value id name
       let user_type_input = gen_input ~pwd:false
+      let any_input ?a ?value (name : string) = 
+        gen_input ?a ?value id name
 
       let int_password_input ?a ?value (name : int param_name) = 
         gen_input ~pwd:true ?a ?value string_of_int name
@@ -2385,6 +2412,8 @@ module MakeForms = functor
       let hidden_string_input ?a (name : string param_name) v =
         hidden_gen_input ?a id name v
       let hidden_user_type_input = hidden_gen_input
+      let hidden_any_input ?a (name : string) v =
+        hidden_gen_input ?a id name v
 
       let bool_checkbox ?a ?checked (name : bool param_name) =
         Pages.make_input ?a ?checked ~typ:Pages.checkbox ~name:name ()
@@ -2404,6 +2433,9 @@ module MakeForms = functor
           (name : 'a option param_name) (value : 'a) =
         Pages.make_input
           ?a ?checked ~typ:Pages.radio ~name:name ~value:(string_of value) ()
+      let any_radio ?a ?checked (name : string) value =
+        Pages.make_input
+          ?a ?checked ~typ:Pages.radio ~name:name ~value:value ()
 
       let textarea ?a (name : string param_name) =
         Pages.make_textarea ?a ~name:name
@@ -2692,6 +2724,11 @@ module type XHTMLFORMSSIG = sig
               [> input ] elt
 (** Creates an [<input>] tag for a user type *)
 
+  val any_input : ?a:(input_attrib attrib list ) -> 
+    ?value:string ->
+    string -> [> input ] elt
+(** Creates an [<input>] tag (low level) *)
+
   val int_password_input : ?a:(input_attrib attrib list ) -> 
     ?value:int ->
     int param_name -> [> input ] elt
@@ -2736,6 +2773,11 @@ module type XHTMLFORMSSIG = sig
         'a param_name -> 'a -> [> input ] elt
 (** Creates an hidden [<input>] tag for a user type *)
 
+  val hidden_any_input : 
+      ?a:(input_attrib attrib list ) -> 
+        string -> string -> [> input ] elt
+(** Creates an hidden [<input>] tag for a string (low level) *)
+
   val bool_checkbox :
       ?a:(input_attrib attrib list ) -> ?checked:bool -> 
         bool param_name -> [> input ] elt
@@ -2753,6 +2795,9 @@ module type XHTMLFORMSSIG = sig
   val user_type_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
     ('a -> string) -> 'a option param_name -> 'a -> [> input ] elt
 (** Creates a radio [<input>] tag with user_type content *)
+  val any_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+    string -> string -> [> input ] elt
+(** Creates a radio [<input>] tag with string content (low level) *)
 
   val textarea : ?a:(textarea_attrib attrib list ) -> 
     string param_name -> rows:number -> cols:number -> [ `PCDATA ] XHTML.M.elt ->
@@ -2787,6 +2832,7 @@ Not all features of "select" are implemented.
 
   val file_input : ?a:(input_attrib attrib list ) ->
     ?value:string -> file_info param_name -> [> input ] elt
+
 
 end
 
@@ -2910,6 +2956,13 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                      ('a -> string) ->
                        'a param_name -> [> input ] elt)
       
+  let any_input = 
+    (string_input 
+       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
+         ?value:string -> string -> input elt
+           :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
+             ?value:string -> string -> [> input ] elt)
+
   let string_password_input = 
     (string_password_input 
        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
@@ -2943,6 +2996,12 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
                  ('a -> string) ->
                    'a param_name -> 'a -> [> input ] elt)
+  let hidden_any_input = 
+    (hidden_any_input
+       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+         string -> string -> input elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               string -> string -> [> input ] elt)
       
 
 
@@ -2989,6 +3048,14 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                    ?checked:bool ->
                      ('a -> string) ->
                        'a option param_name -> 'a -> [> input ] elt)
+  let any_radio = 
+    (any_radio
+       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+         ?checked:bool ->
+            string -> string -> input elt
+             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
+               ?checked:bool ->
+                  string -> string -> [> input ] elt)
 
   let textarea = (textarea
                     : ?a:([< textarea_attrib > `Name ] attrib list ) -> 
