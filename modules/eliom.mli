@@ -263,6 +263,11 @@ val any :
        (string * string) list param_name) params_type
 (** Use this if you want to take any parameters *)
 
+val set :
+    ('a, [ `WithoutSuffix ], 'b) params_type ->
+      ('a list, [ `WithoutSuffix ], 'b) params_type
+(** Use this if you want to take a set of parameters all with the same name *)
+
 val list :
     string ->
       ('a, [ `WithoutSuffix ], 'b) params_type ->

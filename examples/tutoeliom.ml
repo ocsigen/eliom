@@ -2375,6 +2375,45 @@ let print_news_page sp i () =
 (* Advanced types *)
 (* You can use your own types *)
 
+let set = register_new_service 
+    ~url:["set"]
+    ~get_params:(set (string "s"))
+  (fun _ l () ->
+    let ll = 
+      List.map 
+        (fun s -> << <strong>$str:s$ </strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         $list:ll$
+       </p>
+       </body>
+     </html> >>)
+
+(* form to set *)
+let setform = register_new_service 
+    ~url:["setform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Set Form"];
+                  get_form set sp 
+                    (fun n ->
+                      [p [pcdata "Form to set: ";
+                          string_input n;
+                          string_input n;
+                          string_input n;
+                          string_input n;
+                          submit_input "Click"]])
+                ])))
+
+
 let any = register_new_service 
     ~url:["any"]
     ~get_params:any
@@ -2393,6 +2432,25 @@ let any = register_new_service
        </p>
        </body>
      </html> >>)
+
+(* form to any *)
+let anyform = register_new_service 
+    ~url:["anyform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Any Form"];
+                  get_form any sp 
+                    (fun _ ->
+                      [p [pcdata "Form to any: ";
+                          any_input "plop";
+                          any_input "plip";
+                          any_input "plap";
+                          submit_input "Click"]])
+                ])))
+
 
 (* lists *)
 let coucou_list = register_new_service 
@@ -2601,8 +2659,14 @@ let _ = register main
        </p>
        <h3>Advanced forms</h3>
        <p>
+       A page that takes a set of parameters:
+             $a set sp <:xmllist< set >> ["Ciao";"bello";"ciao"]$ <br/> 
+       A form to the previous one:
+             $a setform sp <:xmllist< setform >> ()$ <br/> 
        A page that takes any parameter:
              $a any sp <:xmllist< any >> [("a","hello"); ("b","ciao")]$ <br/> 
+       A form to the previous one:
+             $a anyform sp <:xmllist< anyform >> ()$ <br/> 
        </p>
        </body>
      </html> >>)

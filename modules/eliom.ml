@@ -176,6 +176,7 @@ type ('a,+'tipo,+'names) params_type =
   | TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
   | TOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
   | TList of 'a param_name * (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
+  | TSet of ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
   | TSum of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = ('a1, 'a2) binsum *)
   | TString of string param_name (* 'a = string *)
   | TInt of int param_name (* 'a = int *)
@@ -235,6 +236,9 @@ let opt (t : ('a,[`WithoutSuffix], 'an) params_type)
 let list (n : string) (t : ('a,[`WithoutSuffix], 'an) params_type) 
     : ('a list,[`WithoutSuffix], 'an listnames) params_type = 
   Obj.magic (TList (n,t))
+let set (t : ('a,[`WithoutSuffix], 'an) params_type) 
+    : ('a list,[`WithoutSuffix], 'an) params_type = 
+  Obj.magic (TSet t)
 let ( ** ) = prod
 let any
     : ((string * string) list, [`WithoutSuffix], 
@@ -332,7 +336,7 @@ let reconstruct_params
     let rec aa i lp fl pref suff =
       try 
         match aux t lp fl pref (suff^(make_list_suffix i)) with
-          Res_ (v,lp2,f) ->
+        | Res_ (v,lp2,f) ->
             (match aa (i+1) lp2 f pref suff with
               Res_ (v2,lp3,f2) -> Res_ ((Obj.magic (v::v2)),lp3,f2)
             | err -> err)
@@ -346,9 +350,9 @@ let reconstruct_params
   and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)
       params files pref suff : 'a res_reconstr_param =
     match typ with
-      TProd (t1, t2) ->
+    | TProd (t1, t2) ->
         (match aux t1 params files pref suff with
-          Res_ (v1,l1,f) ->
+        | Res_ (v1,l1,f) ->
             (match aux t2 l1 f pref suff with
               Res_ (v2,l2,f2) -> Res_ ((Obj.magic (v1,v2)),l2,f2)
             | err -> err)
@@ -368,14 +372,29 @@ let reconstruct_params
           Res_ ((Obj.magic true),l,files)
         with Not_found -> Res_ ((Obj.magic false), params, files))
     | TList (n,t) -> Obj.magic (aux_list t params files n pref suff)
+    | TSet t -> 
+        let rec aux_set params files =
+          try
+            match aux t params files pref suff with
+            | Res_ (vv, ll, ff) -> 
+                (match aux_set ll ff with
+                | Res_ (vv2, ll2, ff2) -> 
+                    Res_ (Obj.magic (vv::vv2), ll2, ff2)
+                | err -> err)
+            | Errors_ (errs, ll, ff) ->
+                (match aux_set ll ff with
+                | Res_ (_, ll2, ff2) -> Errors_ (errs, ll2, ff2)
+                | Errors_ (errs2, ll2, ff2) -> Errors_ (errs@errs2, ll2, ff2))
+          with Not_found -> Res_ (Obj.magic [], params, files)
+        in Obj.magic (aux_set params files)
     | TSum (t1, t2) -> 
         (try 
           match aux t1 params files pref suff with
-            Res_ (v,l,files) -> Res_ ((Obj.magic (Inj1 v)),l,files)
+          | Res_ (v,l,files) -> Res_ ((Obj.magic (Inj1 v)),l,files)
           | err -> err
         with Not_found -> 
           (match aux t2 params files pref suff with
-            Res_ (v,l,files) -> Res_ ((Obj.magic (Inj2 v)),l,files)
+          | Res_ (v,l,files) -> Res_ ((Obj.magic (Inj2 v)),l,files)
           | err -> err))
     | TString name -> 
         let v,l = list_assoc_remove (pref^name^suff) params in
@@ -413,7 +432,7 @@ let reconstruct_params
   in
   let aux2 typ params =
     match Obj.magic (aux typ params files "" "") with
-      Res_ (v,l,files) -> 
+    | Res_ (v,l,files) -> 
         if (l,files) = ([], [])
         then v
         else raise Eliom_Wrong_parameter
@@ -455,7 +474,7 @@ let reconstruct_params
     match typ with
       (* Each suffixed URL has a version with parameters to be used with 
          forms *)
-      TProd((TSuffix s), t) -> 
+    | TProd((TSuffix s), t) -> 
         if urlsuffix = [""]
           (* no suffix: switching to version with parameters *)
         then 
@@ -498,8 +517,13 @@ let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_t
              (fun (s,i) p -> 
                ((aux t p pref2 (suff^(make_list_suffix i)) s),(i+1)))
              (l,0) (Obj.magic params))
+    | TSet t ->
+        List.fold_left
+          (fun l v -> aux t v pref suff l)
+          l
+          (Obj.magic params)
     | TSum (t1, t2) -> (match Obj.magic params with
-        Inj1 v -> aux t1 v pref suff l
+      | Inj1 v -> aux t1 v pref suff l
       | Inj2 v -> aux t2 v pref suff l)
     | TString name -> ((pref^name^suff), (Obj.magic params))::l
     | TInt name -> ((pref^name^suff), (string_of_int (Obj.magic params)))::l
@@ -519,7 +543,7 @@ let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_t
   in
   let rec make_suffix typ params =
     match typ with
-      TProd (t1, t2) ->
+    | TProd (t1, t2) ->
         (make_suffix t1 (fst (Obj.magic params)))@
         (make_suffix t2 (snd (Obj.magic params)))
     | TString _ -> [Obj.magic params]
@@ -532,7 +556,7 @@ let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_t
     | _ -> raise (Ocsigen_Internal_Error "Bad parameters")
   in
   match typ with
-    TProd((TSuffix s), t) ->
+  | TProd((TSuffix s), t) ->
    ((Some (make_suffix s (fst (Obj.magic params)))),
    (aux t (snd (Obj.magic params)) "" "" []))
   | TSuffix s -> (Some (make_suffix s (Obj.magic params))), []
@@ -541,7 +565,7 @@ let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_t
 
 (* contruct the string of parameters (& separated) for GET and POST *)
 let construct_params_string = function
-    [] -> ""
+  | [] -> ""
   | (a,b)::l -> 
       List.fold_left
         (fun beg (c,d) -> beg^"&"^c^"="^d)
@@ -555,11 +579,12 @@ let construct_params typ p =
 
 (* Add a prefix to parameters *)
 let rec add_pref_params pref = function
-    TProd (t1, t2) -> TProd ((add_pref_params pref t1),
+  | TProd (t1, t2) -> TProd ((add_pref_params pref t1),
                              (add_pref_params pref t2))
   | TOption t -> TOption (add_pref_params pref t)
   | TBool name -> TBool (pref^name)
   | TList (list_name, t) -> TList (pref^list_name, t)
+  | TSet t -> TSet (add_pref_params pref t)
   | TSum (t1, t2) -> TSum ((add_pref_params pref t1),
                            (add_pref_params pref t2))
   | TString name -> TString (pref^name)
@@ -579,7 +604,7 @@ let rec add_pref_params pref = function
 let remove_prefixed_param pref l =
   let len = String.length pref in
   let rec aux = function
-      [] -> []
+    | [] -> []
     | ((n,v) as a)::l -> 
         try if (String.sub n 0 len) = pref 
         then aux l
@@ -590,13 +615,13 @@ let remove_prefixed_param pref l =
 (*****************************************************************************)
 (* Building href *)
 let rec string_of_url_path' = function
-    [] -> ""
+  | [] -> ""
   | [a] when a = eliom_suffix_internal_name -> ""
   | [a] -> a
   | a::l -> a^"/"^(string_of_url_path' l)
 
 let rec string_of_url_path_suff u = function
-    None -> string_of_url_path' u
+  | None -> string_of_url_path' u
   | Some suff -> let deb = (string_of_url_path' u) in
     if deb = "" 
     then string_of_url_path' suff
@@ -622,7 +647,7 @@ let reconstruct_relative_url_path current_url u suff =
   if s = "" then defaultpagename else s
 
 let rec relative_url_path_to_myself = function
-    []
+  | []
   | [""] -> defaultpagename
   | [a] -> a
   | a::l -> relative_url_path_to_myself l
@@ -2185,6 +2210,7 @@ module MakeForms = functor
           | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
           | TUnit -> Obj.magic ("")
           | TAny -> Obj.magic ("")
+          | TSet t -> Obj.magic (aux prefix suffix t)
           | TESuffix n -> Obj.magic n
           | TESuffixs n -> Obj.magic n
           | TESuffixu (n,_,_) -> Obj.magic n

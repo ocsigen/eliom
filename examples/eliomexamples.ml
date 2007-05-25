@@ -484,8 +484,8 @@ let sufli = register_new_service
      </html> >>)
 
 (* form to any2 *)
-let anyform = register_new_service 
-    ~url:["anyform"]
+let any2form = register_new_service 
+    ~url:["any2form"]
     ~get_params:unit
     (fun sp () () ->
       return
