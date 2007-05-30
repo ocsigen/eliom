@@ -243,6 +243,41 @@ val user_type :
    [user_type s_to_t t_to_s s] tells that the page take a parameter, labeled [s], and that the server will have to use [s_to_t] and [t_to_s] to make the conversion from and to string.
  *)
 
+(** [coordinates] is for the data sent by an [<input type="image" ...>]. *)
+type coordinates =
+    {abscissa: int;
+     ordinate: int}
+
+val coordinates :
+    string ->
+      (coordinates, [`WithoutSuffix], coordinates param_name) params_type
+
+val string_coordinates :
+    string ->
+      (string * coordinates, [`WithoutSuffix], 
+       (string * coordinates) param_name) params_type
+(** It is possible to send a value together with the coordinates
+   ([<input type="image" value="..." ...>]) (Here a string) *)
+
+val int_coordinates :
+    string ->
+      (int * coordinates, [`WithoutSuffix], 
+       (int * coordinates) param_name) params_type
+(** Same for an integer value *)
+        
+val float_coordinates :
+    string ->
+      (float * coordinates, [`WithoutSuffix], 
+       (float * coordinates) param_name) params_type
+(** Same for a float value *)
+        
+val user_type_coordinates :
+    (string -> 'a) -> ('a -> string) -> string ->
+      ('a * coordinates, [`WithoutSuffix], 
+       ('a * coordinates) param_name) params_type
+(** Same for a value of your own type *)
+
+
 val sum :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
       ('a, [ `WithoutSuffix ], 'b) params_type ->
@@ -264,8 +299,10 @@ val any :
 (** Use this if you want to take any parameters *)
 
 val set :
-    ('a, [ `WithoutSuffix ], 'b) params_type ->
-      ('a list, [ `WithoutSuffix ], 'b) params_type
+    (string ->
+      ('a, [ `WithoutSuffix ], 'b) params_type) ->
+        string ->
+          ('a list, [ `WithoutSuffix ], 'b) params_type
 (** Use this if you want to take a set of parameters all with the same name *)
 
 val list :

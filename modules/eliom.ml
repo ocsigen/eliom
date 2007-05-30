@@ -168,6 +168,10 @@ type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
 type 'an listnames = 
     {it:'el 'a. ('an -> 'el -> 'a list) -> 'el list -> 'a list -> 'a list}
 
+type coordinates =
+    {abscissa: int;
+     ordinate: int}
+
 (*****************************************************************************)
 (* This is a generalized algebraic datatype *)
 (* Use only with constructors from eliom.ml *)
@@ -183,7 +187,9 @@ type ('a,+'tipo,+'names) params_type =
   | TFloat of float param_name (* 'a = float *)
   | TBool of bool param_name (* 'a = bool *)
   | TFile of file_info param_name (* 'a = file_info *)
-  | TUserType of ('a param_name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
+  | TUserType of 'a param_name * (string -> 'a) * ('a -> string) (* 'a = 'a *)
+  | TCoord of coordinates param_name (* 'a = 'a1 *)
+  | TCoordv of ('a,'tipo,'names) params_type * coordinates param_name
   | TESuffix of string list param_name (* 'a = string list *)
   | TESuffixs of string param_name (* 'a = string *)
   | TESuffixu of ('a param_name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
@@ -202,44 +208,87 @@ let anonymise_params_type (t : ('a,'b,'c) params_type) : anon_params_type =
    constructors for params_type *)
 let int (n : string) : (int, [`WithoutSuffix], int param_name) params_type = 
   TInt n
+
 let float (n : string)
     : (float, [`WithoutSuffix], float param_name) params_type = 
   TFloat n
+
 let bool (n : string)
     : (bool, [`WithoutSuffix], bool param_name) params_type
     = TBool n
+
 let string (n : string)
     : (string, [`WithoutSuffix], string param_name) params_type = 
   TString n
+
 let file (n : string)
     : (file_info ,[`WithoutSuffix], file_info param_name) params_type = 
   TFile n
+
 let radio_answer (n : string)
     : (string option,[`WithoutSuffix], string option param_name) params_type =
   TOption (TString n)
+
 let unit : (unit,[`WithoutSuffix], unit param_name) params_type = TUnit
+
 let user_type
-    (of_string : string -> 'a) (from_string : 'a -> string) (n : string)
+    (of_string : string -> 'a) (to_string : 'a -> string) (n : string)
     : ('a,[`WithoutSuffix], 'a param_name) params_type =
-  Obj.magic (TUserType (n,of_string,from_string))
+  Obj.magic (TUserType (n, of_string, to_string))
+
 let sum (t1 : ('a,[`WithoutSuffix], 'an) params_type) 
     (t2 : ('b,[`WithoutSuffix], 'bn) params_type) 
     : (('a,'b) binsum,[`WithoutSuffix], 'an * 'bn) params_type =
   Obj.magic (TSum (t1, t2))
+
 let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type) 
     (t2 : ('b,[<`WithoutSuffix|`Endsuffix], 'bn) params_type)
     : (('a * 'b),[`WithoutSuffix], 'an * 'bn) params_type =
   Obj.magic (TProd ((Obj.magic t1), (Obj.magic t2)))
+
+let ( ** ) = prod
+
+let coordinates (n : string)
+    : (coordinates, [`WithoutSuffix], coordinates param_name) params_type = 
+  TCoord n
+
+let string_coordinates (n : string)
+    : (string * coordinates,
+       [`WithoutSuffix], 
+       (string * coordinates) param_name) params_type = 
+  Obj.magic (TCoordv (string n, n))
+
+let int_coordinates (n : string)
+    : (int * coordinates,
+       [`WithoutSuffix], 
+       (int * coordinates) param_name) params_type = 
+  Obj.magic (TCoordv (int n, n))
+
+let float_coordinates (n : string)
+    : (float * coordinates,
+       [`WithoutSuffix], 
+       (float * coordinates) param_name) params_type = 
+  Obj.magic (TCoordv (float n, n))
+
+let user_type_coordinates
+    (of_string : string -> 'a) (to_string : 'a -> string) (n : string)
+    : ('a * coordinates,
+       [`WithoutSuffix], 
+       ('a * coordinates) param_name) params_type = 
+  Obj.magic (TCoordv (user_type of_string to_string n, n))
+
 let opt (t : ('a,[`WithoutSuffix], 'an) params_type) 
     : ('a option,[`WithoutSuffix], 'an) params_type = 
   Obj.magic (TOption t)
+
 let list (n : string) (t : ('a,[`WithoutSuffix], 'an) params_type) 
     : ('a list,[`WithoutSuffix], 'an listnames) params_type = 
   Obj.magic (TList (n,t))
-let set (t : ('a,[`WithoutSuffix], 'an) params_type) 
+
+let set (t : string -> ('a,[`WithoutSuffix], 'an) params_type) (n : string)
     : ('a list,[`WithoutSuffix], 'an) params_type = 
-  Obj.magic (TSet t)
-let ( ** ) = prod
+  Obj.magic (TSet (t n))
+
 let any
     : ((string * string) list, [`WithoutSuffix], 
        (string * string) list param_name) params_type = 
@@ -352,20 +401,20 @@ let reconstruct_params
     match typ with
     | TProd (t1, t2) ->
         (match aux t1 params files pref suff with
-        | Res_ (v1,l1,f) ->
+        | Res_ (v1, l1, f) ->
             (match aux t2 l1 f pref suff with
-              Res_ (v2,l2,f2) -> Res_ ((Obj.magic (v1,v2)),l2,f2)
+              Res_ (v2, l2, f2) -> Res_ ((Obj.magic (v1, v2)), l2, f2)
             | err -> err)
         | Errors_ (errs, l, f) ->
             (match aux t2 l f pref suff with
-              Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
+              Res_ (_, ll, ff) -> Errors_ (errs, ll, ff)
             | Errors_ (errs2, ll, ff) -> Errors_ ((errs2@errs), ll, ff)))
     | TOption t -> 
         (try 
           (match aux t params files pref suff with
-            Res_ (v,l,f) -> Res_ ((Obj.magic (Some v)),l,f)
+            Res_ (v, l, f) -> Res_ ((Obj.magic (Some v)), l, f)
           | err -> err)
-        with Not_found -> Res_ ((Obj.magic None), params,files))
+        with Not_found -> Res_ ((Obj.magic None), params, files))
     | TBool name -> 
         (try 
           let v,l = (list_assoc_remove (pref^name^suff) params) in
@@ -409,7 +458,29 @@ let reconstruct_params
         with e -> Errors_ ([(pref^name^suff),e], l, files))
     | TFile name -> 
         let v,f = list_assoc_remove (pref^name^suff) files in
-        Res_ ((Obj.magic v),params,f)
+        Res_ ((Obj.magic v), params, f)
+    | TCoord name ->
+        let r1 =
+          let v, l = (list_assoc_remove (pref^name^suff^".x") params) in
+          (try (Res_ ((int_of_string v), l, files))
+          with e -> Errors_ ([(pref^name^suff^".x"), e], l, files))
+        in
+        (match r1 with
+        | Res_ (x1, l1, f) ->
+            let v, l = (list_assoc_remove (pref^name^suff^".y") l1) in
+            (try (Res_ (
+                  (Obj.magic
+                     {abscissa= x1;
+                      ordinate= int_of_string v}), l, f))
+            with e -> Errors_ ([(pref^name^suff^".y"), e], l, f))
+        | Errors_ (errs, l1, f) ->
+            let v, l = (list_assoc_remove (pref^name^suff^".y") l1) in
+            (try 
+              ignore (int_of_string v); 
+              Errors_ (errs, l, f)
+            with e -> Errors_ (((pref^name^suff^".y"), e)::errs, l, f)))
+    | TCoordv (t, name) ->
+        aux (TProd (t, TCoord name)) params files pref suff
     | TUserType (name, of_string, string_of) ->
         let v,l = (list_assoc_remove (pref^name^suff) params) in 
         (try (Res_ ((Obj.magic (of_string v)),l,files))
@@ -534,6 +605,12 @@ let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_t
                  "Constructing an URL with file parameters not implemented")
     | TUserType (name, of_string, string_of) ->
         ((pref^name^suff), (string_of (Obj.magic params)))::l
+    | TCoord name ->
+        let coord = Obj.magic params in
+        ((pref^name^suff^".x"), string_of_int coord.abscissa)::
+        ((pref^name^suff^".y"), string_of_int coord.ordinate)::l
+    | TCoordv (t, name) ->
+        aux (TProd (t, TCoord name)) params pref suff l
     | TUnit -> l
     | TAny -> l@(Obj.magic params)
     | TESuffix _
@@ -593,6 +670,8 @@ let rec add_pref_params pref = function
   | TFile name -> TFile (pref^name)
   | TUserType (name, of_string, string_of) -> 
       TUserType (pref^name, of_string, string_of)
+  | TCoord name -> TCoord (pref^name)
+  | TCoordv (t, name) -> TCoordv ((add_pref_params pref t), pref^name)
   | TUnit -> TUnit
   | TAny -> TAny
   | TESuffix n -> TESuffix n
@@ -2208,6 +2287,8 @@ module MakeForms = functor
           | TString name -> Obj.magic (prefix^name^suffix)
           | TFile name -> Obj.magic (prefix^name^suffix)
           | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
+          | TCoord name -> Obj.magic (prefix^name^suffix)
+          | TCoordv (_, name) -> Obj.magic (prefix^name^suffix)
           | TUnit -> Obj.magic ("")
           | TAny -> Obj.magic ("")
           | TSet t -> Obj.magic (aux prefix suffix t)

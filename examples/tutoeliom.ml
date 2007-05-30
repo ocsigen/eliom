@@ -2377,7 +2377,7 @@ let print_news_page sp i () =
 
 let set = register_new_service 
     ~url:["set"]
-    ~get_params:(set (string "s"))
+    ~get_params:(set string "s")
   (fun _ l () ->
     let ll = 
       List.map 
@@ -2449,6 +2449,53 @@ let anyform = register_new_service
                           any_input "plip";
                           any_input "plap";
                           submit_input "Click"]])
+                ])))
+
+let coord = register_new_service 
+    ~url:["coord"]
+    ~get_params:(coordinates "coord")
+  (fun _ c () ->
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You clicked on coordinates: 
+         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+       </p>
+       </body>
+     </html> >>)
+
+(* form to image *)
+let imageform = register_new_service 
+    ~url:["imageform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Image Form"];
+                  get_form coord sp 
+                    (fun n ->
+                      [p [input 
+
+
+
+
+(* refaire avec image_input *)
+
+
+
+
+
+
+
+
+                            ~a:[a_input_type `Image; 
+                                a_src (make_uri 
+                                         (static_dir sp) sp ["ocsigen5.png"]); 
+                                a_name (Obj.magic n)]
+                            ()]])
                 ])))
 
 

@@ -273,7 +273,8 @@ and comment c = parse
                 comment c lexbuf
         }
         | "<!--" {
-                warn WIntricatedComments (Loc.of_lexbuf lexbuf) ;                 
+(*              warn WIntricatedComments (Loc.of_lexbuf lexbuf) ; *)
+
                 let buff = buff_contents c in 
                 let in_comment = comment c lexbuf in
                 store_string c buff ; 
