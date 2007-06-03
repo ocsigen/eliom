@@ -645,7 +645,7 @@ module FHttp_sender =
                           (fun () -> 
                             Lwt.return (empty_stream None)))) >>=
                    (fun _ -> match head with 
-                   | Some true -> Lwt.return ()
+                   | Some true -> Lwt.return (close_fun ())
                    | _ -> Messages.debug "writing body"; 
                        really_write sender.fd close_fun flux)
                  )

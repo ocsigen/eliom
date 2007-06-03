@@ -867,50 +867,77 @@ wakeup w "HELLO");
     <div class="encadre sanstitre">
       <p>You can register several kinds of pages on these services,
       using these different modules:</p>
-      <dl>
-        <dt>Eliom.Xhtml</dt><dd>allows to register functions that 
+        <table>
+<tr><td class="empty"></td>
+  <th class="col">Services</th>
+  <th class="col">Attached coservices</th>
+  <th class="col">Non attached coservices</th></tr>
+<tr><th class="row">Eliom.Xhtml</th>
+          <td colspan="3">allows to register functions that 
         generate xhtml pages
         checked statically using polymorphic variant types. You may use
         constructor functions from <code>XHTML.M</code> or a syntax
-        extension close to the standard xhtml syntax.</dd>
-        <dt>Eliom.Blocks</dt><dd>allows to register functions that 
+        extension close to the standard xhtml syntax.
+          </td></tr>
+<tr><th class="row">Eliom.Blocks</th>
+          <td colspan="3">allows to register functions that 
         generate a portion of page (content of body tag) using
         <code>XHTML.M</code> or the syntax extension.
         (usefull for <code>XMLHttpRequest</code> requests for example).
-        </dd>
-        <dt>Eliomduce.Xhtml</dt><dd>allows to register functions 
+        
+          </td></tr>
+<tr><th class="row">Eliomduce.Xhtml</th>
+          <td colspan="3">allows to register functions 
             that generate xhtml pages 
         checked statically using <code>Ocamlduce</code>. Typing is more
         strict, but you need a modified version of the OCaml compiler 
-        (Ocamlduce).</dd>
-        <dt>Eliom.HtmlText</dt><dd>Allows to register functions that
+        (Ocamlduce).
+          </td></tr>
+<tr><th class="row">Eliom.HtmlText</th>
+          <td colspan="3">Allows to register functions that
         generate text html pages, without any typechecking of the content.
         The content type sent by the server is "text/html".
-        </dd>
-        <dt>Eliom.CssText</dt><dd>Allows to register functions that
+        
+          </td></tr>
+<tr><th class="row">Eliom.CssText</th>
+          <td colspan="3">Allows to register functions that
         generate CSS pages, without any typechecking of the content.
         The content type sent by the server is "text/css".
-        </dd>
-        <dt>Eliom.Actions</dt><dd>allows to register actions, that is
+        
+          </td></tr>
+<tr><th class="row">Eliom.Actions</th>
+          <td colspan="3">allows to register actions, that is
         functions that do not generate any page. The URL is reloaded after
         the action.
-        </dd>
-        <dt>Eliom.Unit</dt><dd>is like <code>Eliom.Actions</code> but the
-        URL is not reloaded after the action.</dd>
-        <dt>Eliom.Redirections</dt><dd>allows to register redirections
-        </dd>
-        <dt>Eliom.Files</dt><dd>allows to register services that send files
-        </dd>
-        <dt>Eliom.Any</dt><dd>allows to register services that can choose
+        
+          </td></tr>
+<tr><th class="row">Eliom.Unit</th>
+          <td colspan="3">is like <code>Eliom.Actions</code> but the
+        URL is not reloaded after the action.
+          </td></tr>
+<tr><th class="row">Eliom.Redirections</th>
+          <td colspan="3">allows to register HTTP redirections.
+            You register the URL of the page you want to redirect to.
+            The browser will get a 301 code in answer and redo the request
+            to the new URL.
+          </td></tr>
+<tr><th class="row">Eliom.Files</th>
+          <td colspan="3">allows to register services that send files
+        
+          </td></tr>
+<tr><th class="row">Eliom.Any</th>
+          <td colspan="3">allows to register services that can choose
             what they send
-        </dd>
-        <dt>Eliom.Text</dt><dd>Allows to register functions that
+        
+          </td></tr>
+<tr><th class="row">Eliom.Text</th>
+          <td colspan="3">Allows to register functions that
         generate text pages, without any typechecking of the content.
         The services return a pair of strings. The first one is the content
         of the page, the second one is the content type.
-        </dd>
-      </dl>
-   
+        
+          </td></tr>
+        </table>   
     </div>
     <div class="encadre sanstitre">
       <p>Each of these registrations may be done in the <em>public</em>
@@ -1044,6 +1071,7 @@ let _ = register
        or by timeout).
        Warning: if your session data contains opened file descriptors,
        they won't be closed by OCaml's garbage collector. Close it yourself!
+       (for example using <code>Gc.finalise</code>).
       </p>
     </div>
     <h2>Sessions services</h2>

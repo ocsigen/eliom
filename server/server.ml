@@ -693,7 +693,6 @@ let service
 
 
 
-
 let handle_broken_pipe_exn sockaddr exn = 
   (* EXCEPTIONS WHILE REQUEST OR SENDING WHEN WE CANNOT ANSWER *)
   let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
@@ -810,15 +809,12 @@ let listen ssl port wait_end_init =
       end
 
       else begin (* No keep-alive => no pipeline *)
-        catch
-          (fun () ->
-            service wait_end_answer http_frame port sockaddr
-              xhtml_sender empty_sender in_ch ())
-          (fun e ->
-            lingering_close in_ch; fail e) >>=
-            (fun () ->
-              (lingering_close in_ch;
-               return ()))
+        (catch
+           (fun () ->
+             service wait_end_answer http_frame port sockaddr
+               xhtml_sender empty_sender in_ch ())
+           (fun e -> lingering_close in_ch; fail e)) >>=
+        (fun () -> lingering_close in_ch; return ())
       end
 
     in (* body of listen_connexion *)
@@ -901,29 +897,38 @@ let listen ssl port wait_end_init =
         (fun () ->
           (do_accept ()) >>= 
           (fun c ->
+
             incr_connected ();
 
-
-            if (get_number_of_connected ()) <
-              (get_max_number_of_connections ()) then
-              ignore_result (wait_connexion_rec ())
-            else
-              warning ("Max simultaneous connections ("^
-                       (string_of_int (get_max_number_of_connections ()))^
-                       ") reached.");
-
+            let relaunch =
+              if (get_number_of_connected ()) <
+                (get_max_number_of_connections ()) then begin
+                  ignore_result (Lwt_unix.sleep 0.0005 >>= fun () -> 
+                    wait_connexion_rec ());
+                  false
+                end
+              else begin
+                warning ("Max simultaneous connections ("^
+                         (string_of_int (get_max_number_of_connections ()))^
+                         ") reached.");
+                true
+              end
+            in
+            
             handle_connection c
               
-          ) >>= 
+              >>= 
           
-          (fun () -> 
-            if (get_number_of_connected ()) = 
-              (get_max_number_of_connections ()) - 1
-            then begin
-              warning "Ok releasing one connection";
-              wait_connexion_rec ()
-            end
-            else return ()))
+            (fun () -> 
+
+              if relaunch
+              then begin
+                debug "Ok releasing one connection";
+                wait_connexion_rec ()
+              end
+              else return ()))
+
+        )
         (fun exn ->
           let t = Ocsiconfig.get_connect_time_max () in
           errlog ("Exception: "^(string_of_exn exn)^
@@ -932,7 +937,7 @@ let listen ssl port wait_end_init =
                   " seconds before accepting new connections.");
           Lwt_unix.sleep t >>=
           wait_connexion_rec)
-
+         
     in wait_connexion_rec ()
 
   in (* body of listen *)

@@ -1135,7 +1135,8 @@ module type FORMCREATE =
     val file : input_type_t
 
     val empty_seq : form_content_elt_list
-    val cons_form : form_content_elt -> form_content_elt_list -> form_content_elt_list 
+    val cons_form : 
+        form_content_elt -> form_content_elt_list -> form_content_elt_list 
 
     val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
     val make_get_form : ?a:form_attrib_t -> 
@@ -1145,7 +1146,8 @@ module type FORMCREATE =
       action:string -> ?id:string -> ?inline:bool -> 
         form_content_elt -> form_content_elt_list -> form_elt
     val make_hidden_field : input_elt -> form_content_elt
-    val remove_first : form_content_elt_list -> form_content_elt * form_content_elt_list
+    val remove_first : 
+        form_content_elt_list -> form_content_elt * form_content_elt_list
     val make_input : ?a:input_attrib_t -> ?checked:bool ->
       typ:input_type_t -> ?name:string -> 
         ?value:string -> unit -> input_elt
@@ -2482,7 +2484,7 @@ module MakeForms = functor
           (string_of : 'a -> string) (name : 'a param_name) =
         let typ = if pwd then Pages.password else Pages.text in
         match value with
-          None ->
+        | None ->
             Pages.make_input ?a ~typ:typ ~name:name ()
         | Some v -> 
             Pages.make_input
