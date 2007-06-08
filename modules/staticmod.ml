@@ -239,7 +239,7 @@ let end_init () =
   | Some path -> 
       let page_tree = new_pages_tree () in
       set_static_dir page_tree (Dir path) [];
-      add_virthost ([([Ocsimisc.Wildcard], None)], 
+      add_virthost ([([Wildcard], None)], 
                     fun ri -> 
                       gen page_tree (Ocsiconfig.get_default_charset ()) ri >>=
                       (fun r -> return (r,[])))

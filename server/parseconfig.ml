@@ -260,7 +260,7 @@ let parse_server isreloading c =
           parse_server_aux ll
       | (Element ("host", atts, l))::ll ->
 	  let host = match atts with
-          | [] -> [[Ocsimisc.Wildcard],None] (* default = "*:*" *)
+          | [] -> [[Extensions.Wildcard],None] (* default = "*:*" *)
           | [("name", s)] -> 
               List.map
 		(fun ss ->
@@ -279,9 +279,9 @@ let parse_server isreloading c =
                   in
                   ((List.map
                       (function
-                          Netstring_str.Delim _ -> Ocsimisc.Wildcard
+                          Netstring_str.Delim _ -> Extensions.Wildcard
 			| Netstring_str.Text t -> 
-                            Ocsimisc.Text (t, String.length t))
+                            Extensions.Text (t, String.length t))
                       (Netstring_str.full_split (Netstring_str.regexp "[*]+") 
 			 host)),
                    port))

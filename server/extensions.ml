@@ -57,7 +57,11 @@ let change_cookie = function
   | Set (a, b, c) -> (a, b, c)
   | Unset (a, b) -> (a, (Some 0.), (List.map (fun v -> (v,"")) b))
 
+(* virtual hosts: *)
+type virtual_host_part = Text of string * int | Wildcard
+type virtual_hosts = ((virtual_host_part list) * int option) list
 
+(* Requests *)
 type request_info = 
     {ri_url: string;
      ri_path_string: string; (** path of the URL *)

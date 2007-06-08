@@ -53,6 +53,10 @@ type cookieslist = cookies list
 val change_cookie : cookies -> 
   string list option * float option * (string * string) list
 
+(* virtual hosts: *)
+type virtual_host_part = Text of string * int | Wildcard
+type virtual_hosts = ((virtual_host_part list) * int option) list
+
 (** The files sent in the request *)
 type file_info = {tmp_filename: string; (** Where the file is stored on the server*)
                   filesize: int64; (** Size, in bytes *)
@@ -150,7 +154,7 @@ val get_config : unit -> Simplexmlparser.xml list
 (**/**)
 
 val create_virthost : 
-    Ocsimisc.virtual_hosts ->
+    virtual_hosts ->
       ((request_info -> 
         (answer * cookieslist) Lwt.t) * 
 	 (string list ->
@@ -158,22 +162,22 @@ val create_virthost :
              unit)) * 
         (string option -> string list -> unit)
 
-val set_virthosts : (Ocsimisc.virtual_hosts * 
+val set_virthosts : (virtual_hosts * 
                        (request_info -> 
                          (answer * cookieslist) Lwt.t)) list -> unit
 
-val get_virthosts : unit -> (Ocsimisc.virtual_hosts * 
+val get_virthosts : unit -> (virtual_hosts * 
                                (request_info -> 
                                  (answer * cookieslist) Lwt.t)) list
 
-val add_virthost : (Ocsimisc.virtual_hosts * 
+val add_virthost : (virtual_hosts * 
                       (request_info -> 
                         (answer * cookieslist) Lwt.t)) -> unit
 
 val do_for_host_matching : 
     string option ->
       int ->
-        ((Ocsimisc.virtual_host_part list * int option) list *
+        ((virtual_host_part list * int option) list *
            (request_info -> 
              (answer * cookieslist) Lwt.t))
           list -> request_info -> (result * cookieslist) Lwt.t

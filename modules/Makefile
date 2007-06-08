@@ -2,7 +2,8 @@ include ../Makefile.config
 
 FILES= ocsidbm.ml ocsipersist.ml \
        eliommod.ml eliom.ml eliomboxes.ml \
-       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml staticmod.ml
+       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml staticmod.ml \
+       extensiontemplate.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g

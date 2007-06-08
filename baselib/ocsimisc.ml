@@ -51,10 +51,6 @@ let rec list_is_prefix l1 l2 =
   | a::ll1, b::ll2 when a=b -> list_is_prefix ll1 ll2
   | _ -> false
 
-(* virtual hosts: *)
-type virtual_host_part = Text of string * int | Wildcard
-type virtual_hosts = ((virtual_host_part list) * int option) list
-
 
 (** various functions for URLs *)
 let defaultpagename = "index"
