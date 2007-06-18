@@ -3228,7 +3228,7 @@ module SubXhtml = functor(T : sig type content end) ->
         let stream_of_content c = 
           let x = (XHTML.M.ocsigen_xprint c) in
           let md5 = get_etag_aux x in
-          Lwt.return (Int64.of_int (String.length x), 
+          Lwt.return (Some (Int64.of_int (String.length x)), 
                       md5,
                       (Ocsistream.new_stream x 
                          (fun () -> Lwt.return (Ocsistream.empty_stream None))),

@@ -71,7 +71,7 @@ module Xhtml_content =
     let stream_of_content c = 
       let x = (XHTML.M.ocsigen_print (add_css c)) in
       let md5 = get_etag_aux x in
-      Lwt.return (Int64.of_int (String.length x), 
+      Lwt.return (Some (Int64.of_int (String.length x)), 
                   md5, 
                   (new_stream x 
                      (fun () -> Lwt.return (empty_stream None))),
@@ -91,7 +91,7 @@ module Text_content =
 
     let stream_of_content c =
       let md5 = get_etag c in
-      Lwt.return (Int64.of_int (String.length c), 
+      Lwt.return (Some (Int64.of_int (String.length c)), 
                   md5, 
                   new_stream c (fun () -> Lwt.return (empty_stream None)),
                   id)
@@ -102,13 +102,16 @@ module Text_content =
 exception Stream_already_read
 
 module Stream_content =
-  (* Use to receive any type of data, before knowing the content-type *)
+  (* Use to receive any type of data, before knowing the content-type,
+     or to send data from a stream (ex: coming from a CGI)
+   *)
   struct
     type t = unit -> stream
 
-    let get_etag c = assert false
+    let get_etag c = ""
 
-    let stream_of_content c = assert false
+    let stream_of_content c = 
+      Lwt.return (None, get_etag c, c (), id)
 
     let content_of_stream s = 
       Lwt.return
@@ -129,7 +132,7 @@ module Empty_content =
     let get_etag c = "empty"
 
     let stream_of_content c = 
-      Lwt.return (Int64.of_int 0, (get_etag ()), empty_stream None, id)
+      Lwt.return (Some (Int64.of_int 0), (get_etag ()), empty_stream None, id)
 
     let content_of_stream s = Lwt.return ()
   end
@@ -176,11 +179,13 @@ module File_content =
       let etag = get_etag_aux st in
       read_file fd >>=
       (fun r ->
-              Lwt.return (st.Unix.LargeFile.st_size, etag, r, 
-                   fun () ->     
-                     Messages.debug ("closing file"); 
-                     Unix.close fd))
-  
+        Lwt.return (
+          Some st.Unix.LargeFile.st_size, 
+          etag, r, 
+          fun () ->     
+            Messages.debug ("closing file"); 
+            Unix.close fd))
+        
     let content_of_stream s = assert false
       
   end
@@ -212,6 +217,9 @@ module Stream_http_frame = FHttp_frame (Stream_content)
 (** this module is a receiver that receives Http_frame with stream content
    (any text stream, when we don't know the type) *)
 module Stream_receiver = FHttp_receiver (Stream_content)
+
+(** creates a sender for any stream *)
+module Stream_sender = FHttp_sender(Stream_content)
 
 (** this module is a Http_frame with file content
 module File_http_frame = FHttp_frame (File_content) *)
@@ -257,6 +265,20 @@ let create_empty_sender ?server_name ?proto fd =
   in
   Http_com.create_sender ~headers:hd2 ?proto:proto fd
 
+(** fonction that creates a sender for stream content *)
+let create_stream_sender ?server_name ?proto fd =
+  let hd =
+    match server_name with
+    |None -> []
+    |Some s -> [("Server",s)]
+  in
+  let hd2 =
+    [
+      ("Accept-Ranges","none");
+      ("Cache-Control","no-cache")
+    ]@hd
+  in
+  Http_com.create_sender ~headers:hd2 ?proto:proto fd
 
 let gmtdate d =  
         let x = Netdate.mk_mail_date ~zone:0 d in try
@@ -397,6 +419,13 @@ let send_text_page ?contenttype
   send_generic waiter
     ?etag ?code ?cookies ~keep_alive ?location ?last_modified
     ?contenttype ?charset ~content ?head xhtml_sender Text_sender.send
+  
+let send_stream_page ?contenttype
+    ~content ?cookies waiter ?code ?etag ~keep_alive
+    ?last_modified ?location ?head ?charset stream_sender =
+  send_generic waiter
+    ?etag ?code ?cookies ~keep_alive ?location ?last_modified
+    ?contenttype ?charset ~content ?head stream_sender Stream_sender.send
   
   
 

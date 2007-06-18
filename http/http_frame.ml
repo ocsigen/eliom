@@ -36,8 +36,14 @@ module type HTTP_CONTENT =
     val content_of_stream : stream -> t Lwt.t
 
     (** convert a content type into a thread returning its size,etag,stream*)
-    val stream_of_content : t -> (int64 * etag * stream * (unit -> unit)) Lwt.t
+    val stream_of_content : t -> 
+      (int64 option * etag * stream * (unit -> unit)) Lwt.t
         (* unit -> unit is the close function for the stream *)
+        (* The int64 option is the content-length. 
+           None means Transfer-encoding: chunked *)
+        (* The last function is the termination function
+           (for ex closing the file), 
+           that will be called after the stream has been fully read. *)
 
     (** compute etag for content *)
     val get_etag : t -> etag

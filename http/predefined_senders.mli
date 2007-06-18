@@ -49,6 +49,10 @@ val send_empty : content: unit -> send_page_type
 (** Sending a text page *)
 val send_text_page : ?contenttype: string -> content:string -> send_page_type
 
+(** Sending a text page *)
+val send_stream_page : ?contenttype: string -> 
+  content:(unit -> Ocsistream.stream) -> send_page_type
+
 (** Creating an xhtml (or text) sender *)
 val create_xhtml_sender : create_sender_type
 
@@ -57,6 +61,9 @@ val create_empty_sender : create_sender_type
 
 (** Creating a sender for a file *)
 val create_file_sender : create_sender_type
+
+(** Creating a sender for a stream *)
+val create_stream_sender : create_sender_type
 
 (**/**)
 exception Stream_already_read
@@ -73,7 +80,7 @@ module Xhtml_content :
     val get_etag : [ `Html ] XHTML.M.elt -> string
     val stream_of_content :
       [ `Html ] XHTML.M.elt ->
-      (int64 * string * Ocsistream.stream * ('a -> 'a)) Lwt.t
+      (int64 option * string * Ocsistream.stream * ('a -> 'a)) Lwt.t
     val content_of_stream : 'a -> 'b
   end
 module Text_content :
@@ -81,14 +88,15 @@ module Text_content :
     type t = string
     val get_etag : string -> string
     val stream_of_content :
-      string -> (int64 * string * Ocsistream.stream * ('a -> 'a)) Lwt.t
+      string -> (int64 option * string * Ocsistream.stream * ('a -> 'a)) Lwt.t
     val content_of_stream : Ocsistream.stream -> t Lwt.t
   end
 module Stream_content :
   sig
     type t = unit -> Ocsistream.stream
-    val get_etag : 'a -> 'b
-    val stream_of_content : 'a -> 'b
+    val get_etag : t -> string
+    val stream_of_content : 
+        t -> (int64 option * string * Ocsistream.stream * ('a -> 'a)) Lwt.t
     val content_of_stream : Ocsistream.stream -> t Lwt.t
   end
 module Empty_content :
@@ -96,7 +104,7 @@ module Empty_content :
     type t = unit
     val get_etag : 'a -> string
     val stream_of_content :
-      'a -> (int64 * string * Ocsistream.stream * ('b -> 'b)) Lwt.t
+      'a -> (int64 option * string * Ocsistream.stream * ('b -> 'b)) Lwt.t
     val content_of_stream : Ocsistream.stream -> unit Lwt.t
   end
 module File_content :
@@ -107,7 +115,8 @@ module File_content :
     val get_etag_aux : Unix.LargeFile.stats -> string
     val get_etag : string -> string
     val stream_of_content :
-      string -> (int64 * string * Ocsistream.stream * (unit -> unit)) Lwt.t
+      string -> (int64 option * string * 
+                   Ocsistream.stream * (unit -> unit)) Lwt.t
     val content_of_stream : 'a -> 'b
   end
 module Empty_sender :
@@ -169,6 +178,7 @@ module Empty_sender :
       end
     type t = Http_com.sender_type
     val really_write :
+        ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
     val change_protocol : string -> Http_com.sender_type -> unit
     val change_headers :
@@ -259,6 +269,7 @@ module Xhtml_sender :
       end
     type t = Http_com.sender_type
     val really_write :
+        ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
     val change_protocol : string -> Http_com.sender_type -> unit
     val change_headers :
@@ -359,6 +370,7 @@ module Text_sender :
       end
     type t = Http_com.sender_type
     val really_write :
+        ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
     val change_protocol : string -> Http_com.sender_type -> unit
     val change_headers :
@@ -507,6 +519,7 @@ module File_sender :
       end
     type t = Http_com.sender_type
     val really_write :
+        ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
     val change_protocol : string -> Http_com.sender_type -> unit
     val change_headers :
@@ -538,6 +551,99 @@ module File_sender :
       ?content:File_content.t ->
       ?head:bool -> Http_com.sender_type -> unit Lwt.t
   end
+module Stream_sender :
+  sig
+    module H :
+      sig
+        type http_mode = Http_frame.Http_header.http_mode = Query | Answer
+        type http_method =
+          Http_frame.Http_header.http_method =
+            GET
+          | POST
+          | HEAD
+          | PUT
+          | DELETE
+          | TRACE
+          | OPTIONS
+          | CONNECT
+          | LINK
+          | UNLINK
+          | PATCH
+        type http_header =
+          Http_frame.Http_header.http_header = {
+          mode : http_mode;
+          meth : http_method option;
+          url : string option;
+          code : int option;
+          proto : string;
+          headers : (string * string) list;
+        }
+        val get_url : http_header -> string
+        val get_headers_value : http_header -> string -> string
+        val get_proto : http_header -> string
+        val get_method : http_header -> http_method option
+        val add_headers : http_header -> string -> string -> http_header
+      end
+    module Http :
+      sig
+        type frame_content = Stream_content.t option
+        type http_frame =
+          Http_frame.FHttp_frame(Stream_content).http_frame = {
+          header : Http_frame.Http_header.http_header;
+          content : frame_content;
+          waiter_thread : unit Lwt.t;
+        }
+      end
+    module PP :
+      sig
+        module Http :
+          sig
+            type frame_content = Stream_content.t option
+            type http_frame =
+              Http_frame.FHttp_frame(Stream_content).http_frame = {
+              header : Http_frame.Http_header.http_header;
+              content : frame_content;
+              waiter_thread : unit Lwt.t;
+            }
+          end
+        val string_of_http_frame : Http.http_frame -> string option -> string
+      end
+    type t = Http_com.sender_type
+    val really_write :
+        ?chunked:bool ->
+      Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
+    val change_protocol : string -> Http_com.sender_type -> unit
+    val change_headers :
+      (string * string) list -> Http_com.sender_type -> unit
+    val change_mode :
+      Http_frame.Http_header.http_mode -> Http_com.sender_type -> unit
+    val non_case_equality : string -> string -> bool
+    val non_case_compare : string -> string -> int
+    val pair_order : string * string -> string * string -> bool
+    val add_header : Http_com.sender_type -> string -> string -> unit
+    val rem_header : Http_com.sender_type -> string -> unit
+    val get_protocol : Http_com.sender_type -> string
+    val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
+    val get_headers : Http_com.sender_type -> (string * string) list
+    val get_header_value : Http_com.sender_type -> string -> string
+    val hds_fusion :
+      int64 option ->
+      (string * string) list ->
+      (string * string) list -> (string * string) list
+    val send :
+      unit Lwt.t ->
+      ?etag:Http_frame.etag ->
+      ?mode:H.http_mode ->
+      ?proto:string ->
+      ?headers:(string * string) list ->
+      ?meth:H.http_method ->
+      ?url:string ->
+      ?code:int ->
+      ?content:Stream_content.t ->
+      ?head:bool -> Http_com.sender_type -> unit Lwt.t
+  end
+
+
 val gmtdate : float -> string
 val send_generic :
   unit Lwt.t ->

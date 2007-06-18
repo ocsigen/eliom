@@ -473,9 +473,14 @@ module FHttp_sender =
       close_out out_chan 
 *)
     (*fonction d'écriture sur le réseau*)
-    let really_write out_ch close_fun stream = 
-      let rec aux = function
+    let really_write ?(chunked=false) out_descr close_fun stream = 
+      let out_ch = Lwt_unix.out_channel_of_descr out_descr in
+      let rec aux beginning_of_chunk = function
           | Finished _ -> 
+              (if chunked
+              then Lwt_unix.output_string out_ch "\r\n0\r\n\r\n" >>= fun () ->
+                Lwt_unix.flush out_ch
+              else return ()) >>= fun () ->
               Messages.debug "write finished (closing stream)"; 
               (try 
                 close_fun () 
@@ -484,17 +489,24 @@ module FHttp_sender =
                   "Error while closing stream (at end of stream)");
               Lwt.return ()
           | Cont (s, l, next) ->
-              Lwt_unix.yield () >>= 
-              (fun () ->         
-                (Lwt_unix.write out_ch s 0 l >>=
-                 (fun len' ->
-                   if l = len'
-                   then next () 
-                   else return 
-                       (new_stream (String.sub s len' (l-len')) next)))) >>=
-              aux
+              if l>0
+              then
+                Lwt_unix.yield () >>= fun () ->
+                  (if chunked && beginning_of_chunk
+                  then
+                    Lwt_unix.output_string out_ch 
+                      (Printf.sprintf "\r\n%x\r\n" l)
+                      >>= fun () -> Lwt_unix.flush out_ch
+                  else return ()) >>= fun () ->
+                    Lwt_unix.write out_descr s 0 l >>= fun len' ->
+                      if l = len'
+                      then next () >>= aux true
+                      else return 
+                          (new_stream (String.sub s len' (l-len')) next) >>=
+                        aux false
+              else next () >>= aux true
       in catch
-        (fun () -> aux stream)
+        (fun () -> aux true stream)
         (function
             Unix.Unix_error (Unix.EPIPE, _, _)
           | Unix.Unix_error (Unix.ECONNRESET, _, _) 
@@ -584,13 +596,14 @@ module FHttp_sender =
           |(hd::tl,[])-> fusion_aux (hd::res) (tl,[])
           |((n1,_)::tl1,(n2,v2)::tl2) when (non_case_equality n1 n2) -> 
               fusion_aux ((n2,v2)::res) (tl1,tl2)
-          |((n1,v1)::tl1,((n2,_)::_ as list2)) when (non_case_compare n1 n2 < 0) ->
+          |((n1,v1)::tl1,((n2,_)::_ as list2)) when
+              (non_case_compare n1 n2 < 0) ->
               fusion_aux ((n1,v1)::res) (tl1,list2)
           |(lst1,hd2::tl2) -> fusion_aux (hd2::res) (lst1,tl2)
       in
       let length_header =
         match content_length with
-        |None -> []
+        |None -> [("Transfer-Encoding", "chunked")]
         |Some n -> [("Content-Length", Int64.to_string n)]
       in
       length_header@
@@ -623,7 +636,7 @@ module FHttp_sender =
              (fun (lon, etag2, flux, close_fun) ->
                catch
                  (fun () ->
-                   Lwt.return (hds_fusion (Some lon)
+                   Lwt.return (hds_fusion lon
                                  (("ETag", ("\""^(match etag with 
                                    None -> etag2
                                  | Some etag -> etag)^"\""))::sender.headers)
@@ -647,7 +660,8 @@ module FHttp_sender =
                    (fun _ -> match head with 
                    | Some true -> Lwt.return (close_fun ())
                    | _ -> Messages.debug "writing body"; 
-                       really_write sender.fd close_fun flux)
+                       really_write 
+                         ~chunked:(lon=None) sender.fd close_fun flux)
                  )
                  (fun e -> 
                    (try 
