@@ -59,10 +59,12 @@ let sslctx = ref (Ssl.create_context Ssl.SSLv23 Ssl.Server_context)
 
 
 let ip_of_sockaddr = function
-    Unix.ADDR_INET (ip,port) -> ip
+    Unix.ADDR_INET (ip, port) -> ip
   | _ -> raise (Ocsigen_Internal_Error "ip of unix socket")
 
-let server_name = ("Ocsigen server ("^Ocsiconfig.version_number^")")
+let port_of_sockaddr = function
+    Unix.ADDR_INET (ip, port) -> port
+  | _ -> raise (Ocsigen_Internal_Error "port of unix socket")
 
 
 (* Closing socket cleanly 
@@ -148,23 +150,23 @@ let handle_light_request_errors
     | Ocsigen_header_too_long ->
         Messages.debug "-> Sending 400";
         (* 414 URI too long. Actually, it is "header too long..." *)
-        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        send_error now ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Request_too_long ->
         Messages.debug "-> Sending 400";
-        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        send_error now ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Bad_Request ->
         Messages.debug "-> Sending 400";
-        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        send_error now ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_upload_forbidden ->
         Messages.debug "-> Sending 403 Forbidden";
-        send_error now ~keep_alive:false ~error_num:400 xhtml_sender >>= 
+        send_error now ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_unsupported_media ->
         Messages.debug "-> Sending 415";
-        send_error now ~keep_alive:false ~error_num:415 xhtml_sender >>= 
+        send_error now ~keep_alive:false ~code:415 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
 
     (* Now errors that close the socket: we raise the exception again: *)
@@ -187,8 +189,23 @@ let handle_light_request_errors
              )
 
 
+let find_keepalive http_header =
+  try
+    let kah = String.lowercase 
+        (Http_header.get_headers_value http_header "Connection") 
+    in
+    if kah = "keep-alive" 
+    then true 
+    else false (* should be "close" *)
+  with _ ->
+    (* if prot.[(String.index prot '/')+3] = '1' *)
+    if (Http_header.get_proto http_header) = "HTTP/1.1"
+    then true
+    else false
 
-let rec getcookies header =
+
+
+let rec getcookies s =
   let rec aux s longueur =
     let rec firstnonspace s i = 
       if s.[i] = ' ' then firstnonspace s (i+1) else i 
@@ -208,9 +225,10 @@ let rec getcookies header =
       else [])
     with _ -> []
   in 
-  try 
-    let s = Http_header.get_headers_value header "Cookie" in
-    aux s (String.length s)
+  try
+    match s with
+    | Some s -> aux s (String.length s)
+    | None -> []
   with _ -> []
 (* On peut améliorer ça *)
 
@@ -220,11 +238,17 @@ let get_request_infos http_frame filenames sockaddr port =
 
   try
     
-    let meth = Http_header.get_method http_frame.Stream_http_frame.header in
+    let meth = 
+      match Http_header.get_method http_frame.Stream_http_frame.header with
+      | Some m -> m
+      | None -> raise (Failure "No HTTP method in query")
+            (* should never happen *)
+    in
 
     let url = 
       fixup_url_string 
-        (Http_header.get_url http_frame.Stream_http_frame.header) in
+        (Http_header.get_url http_frame.Stream_http_frame.header) 
+    in
 
     let url2 = 
       (Neturl.parse_url 
@@ -261,8 +285,14 @@ let get_request_infos http_frame filenames sockaddr port =
       with _ -> "")
     in
     
+    let cookies_string =
+      lazy (try
+        Some (Http_header.get_headers_value
+                (http_frame.Stream_http_frame.header) "Cookie")
+      with _ -> None)
+    in
     let cookies = 
-      lazy (getcookies http_frame.Stream_http_frame.header)
+      lazy (getcookies (Lazy.force cookies_string))
     in
     
     let ifmodifiedsince = 
@@ -276,7 +306,10 @@ let get_request_infos http_frame filenames sockaddr port =
     let inet_addr = ip_of_sockaddr sockaddr in
     
     let params = 
-      (Neturl.string_of_url
+      try
+        Some (Neturl.url_query ~encoded:true url2)
+      with _ -> None
+      (* Neturl.string_of_url
          (Neturl.remove_from_url
             ~user:true
             ~user_param:true
@@ -285,7 +318,7 @@ let get_request_infos http_frame filenames sockaddr port =
             ~port:true
             ~path:true
             ~other:true
-            url2)) 
+            url2) *) 
     in
 
     let get_params = 
@@ -298,21 +331,85 @@ let get_request_infos http_frame filenames sockaddr port =
         Netencoding.Url.dest_url_encoded_parameters params_string)
     in
 
+    let ct =
+      try
+        Some (Http_header.get_headers_value
+                http_frame.Stream_http_frame.header "Content-Type")
+      with _ -> None
+    in
+
+    let cl =
+      try
+        Some 
+          (Int64.of_string 
+             (Http_header.get_headers_value 
+                http_frame.Stream_http_frame.header "Content-Length"))
+      with _ -> None
+    in
+
+    let referer =
+      lazy
+        (try
+          Some 
+            (Http_header.get_headers_value 
+               http_frame.Stream_http_frame.header "Referer")
+        with _ -> None)
+    in
+
+(*
+    let accept =
+      lazy
+        (try
+          ...
+            (Http_header.get_headers_value 
+               http_frame.Stream_http_frame.header "Accept")
+        with _ -> [])
+    in
+
+    let accept_charset =
+      lazy
+        (try
+          ...
+            (Http_header.get_headers_value 
+               http_frame.Stream_http_frame.header "Accept-Charset")
+        with _ -> [])
+    in
+
+    let accept_encoding =
+      lazy
+        (try
+          ...
+            (Http_header.get_headers_value 
+               http_frame.Stream_http_frame.header "Accept-Encoding")
+        with _ -> [])
+    in
+
+    let accept_language =
+      lazy
+        (try
+          ...
+            (Http_header.get_headers_value 
+               http_frame.Stream_http_frame.header "Accept-Language")
+        with _ -> [])
+    in
+*)
+
     let find_post_params = 
       lazy
-        (if meth = Some(Http_header.GET) || meth = Some(Http_header.HEAD) 
+        (if meth = Http_header.GET || meth = Http_header.HEAD 
         then return ([],[]) else 
           match http_frame.Stream_http_frame.content with
             None -> return ([],[])
           | Some body_gen ->
               try
+                let ct = match ct with
+                | None -> raise (Failure "Missing Content-Type")
+                | Some ct -> ct
+                in
                 let body = body_gen () (* Here we get the stream.
                                           If it has already been taken,
                                           it raises an exception *)
                 in
-                let ct =
-                  (Http_header.get_headers_value
-                     http_frame.Stream_http_frame.header "Content-Type") in
                 let ctlow = String.lowercase ct in
                 if ctlow = "application/x-www-form-urlencoded"
                 then 
@@ -413,10 +510,12 @@ let get_request_infos http_frame filenames sockaddr port =
            I prefer forbid that.
          *)
     in
-    {ri_url = url;
+    {ri_url_string = url;
+     ri_url = url2;
+     ri_method = meth;
      ri_path_string = (string_of_url_path path);
      ri_path = path;
-     ri_params = params;
+     ri_get_params_string = params;
      ri_host = host;
      ri_get_params = get_params;
      ri_post_params = lazy ((force find_post_params) >>= 
@@ -425,10 +524,21 @@ let get_request_infos http_frame filenames sockaddr port =
                       (fun (a,b) -> return b));
      ri_inet_addr = inet_addr;
      ri_ip = Unix.string_of_inet_addr inet_addr;
+     ri_remote_port = port_of_sockaddr sockaddr;
      ri_port = port;
      ri_user_agent = useragent;
+     ri_cookies_string = cookies_string;
      ri_cookies = cookies;
      ri_ifmodifiedsince = ifmodifiedsince;
+     ri_content_type = ct;
+     ri_content_length = cl;
+     ri_referer = referer;
+(*
+     ri_accept
+     ri_accept_charset
+     ri_accept_encoding
+     ri_accept_language
+*)
      ri_http_frame = http_frame;
    }
       
@@ -437,20 +547,6 @@ let get_request_infos http_frame filenames sockaddr port =
                      (Printexc.to_string e));
      raise (Ocsigen_Request_interrupted e) (* ? *))
   
-
-let find_keepalive http_header =
-  try
-    let kah = String.lowercase 
-        (Http_header.get_headers_value http_header "Connection") 
-    in
-    if kah = "keep-alive" 
-    then true 
-    else false (* should be "close" *)
-  with _ ->
-    (* if prot.[(String.index prot '/')+3] = '1' *)
-    if (Http_header.get_proto http_header) = "HTTP/1.1"
-    then true
-    else false
 
 
 
@@ -514,7 +610,7 @@ let service
                None -> ""
              | Some h -> (" for "^h))^
              " from "^ri.ri_ip^" ("^ri.ri_user_agent^") : "^
-             ri.ri_path_string^ri.ri_params);
+             ri.ri_url_string);
           (* end log *)
           
           
@@ -549,7 +645,9 @@ let service
                   ?code:res.res_code
                   ?charset:res.res_charset
                   ~head:head
-                  (res.res_create_sender ~server_name:server_name inputchan))
+                  (Http_com.create_sender
+                     ~headers:res.res_headers
+                     ~server_name:server_name inputchan))
             
         )
         
@@ -567,7 +665,7 @@ let service
                 Ocsigen_404 -> 
                   Messages.debug "-> Sending 404 Not Found";
                   send_error 
-                    wait_end_answer ~keep_alive:ka ~error_num:404 xhtml_sender
+                    wait_end_answer ~keep_alive:ka ~code:404 xhtml_sender
               | Ocsigen_sending_error exn -> fail exn
               | Ocsigen_Is_a_directory -> 
                   Messages.debug "-> Sending 301 Moved permanently";
@@ -576,22 +674,25 @@ let service
                     ~cookies:[]
                     wait_end_answer
                     ~keep_alive:ka
-                    ~location:("/"^ri.ri_path_string^"/"^ri.ri_params)
+                    ~location:(Neturl.string_of_url
+                                 (Neturl.undefault_url 
+                                    ~path:("/"::(ri.ri_path@["/"]))
+                                    ri.ri_url))
                     ~code:301 (* Moved permanently *)
                     ~head:head empty_sender
               | Extensions.Ocsigen_malformed_url
               | Neturl.Malformed_URL -> 
                   Messages.debug "-> Sending 400 (Malformed URL)";
                   send_error wait_end_answer ~keep_alive:ka
-                    ~error_num:400 xhtml_sender (* Malformed URL *)
+                    ~code:400 xhtml_sender (* Malformed URL *)
               | Unix.Unix_error (Unix.EACCES,_,_) ->
                   Messages.debug "-> Sending 303 Forbidden";
                   send_error wait_end_answer ~keep_alive:ka
-                    ~error_num:403 xhtml_sender (* Forbidden *)
+                    ~code:403 xhtml_sender (* Forbidden *)
               | Stream_already_read ->
                   Messages.errlog "Cannot read the request twice. You probably have two incompatible extensions, or the order of the extensions in the config file is wrong.";
                   send_error wait_end_answer ~keep_alive:ka
-                    ~error_num:500 xhtml_sender (* Internal error *)
+                    ~code:500 xhtml_sender (* Internal error *)
               | e ->
                   Messages.warning
                     ("Exn during page generation: "^
@@ -613,7 +714,7 @@ let service
                       ~keep_alive:ka xhtml_sender
                   else
                   send_error
-                    wait_end_answer ~keep_alive:ka ~error_num:500 xhtml_sender)
+                    wait_end_answer ~keep_alive:ka ~code:500 xhtml_sender)
             (fun e -> fail (Ocsigen_sending_error e))
             (* All generation exceptions have been handled here *)
         ) >>=
@@ -635,7 +736,7 @@ let service
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
       (meth <> Some(Http_header.HEAD)))
-  then send_error wait_end_answer ~keep_alive:ka ~error_num:501 xhtml_sender
+  then send_error wait_end_answer ~keep_alive:ka ~code:501 xhtml_sender
   else 
     catch
 
@@ -678,7 +779,7 @@ let service
              (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
              then consume http_frame.Stream_http_frame.content >>=
              (fun () ->
-             send_error wait_end_answer ~keep_alive:ka ~error_num:501 xhtml_sender)
+             send_error wait_end_answer ~keep_alive:ka ~code:501 xhtml_sender)
              else serv ()) *)
 
       (function
@@ -850,16 +951,17 @@ let listen ssl port wait_end_init =
       catch
         (fun () -> 
           let xhtml_sender = 
-            Predefined_senders.create_xhtml_sender
-              ~server_name:server_name inputchan in
-          (* let file_sender =
-            create_file_sender ~server_name:server_name inputchan
-          in *)
+            Http_com.create_sender
+              ~headers:Predefined_senders.nocache_headers
+              ~server_name:server_name inputchan 
+          in
           let empty_sender =
-            create_empty_sender ~server_name:server_name inputchan
+            Http_com.create_sender
+              ~headers:[]
+              ~server_name:server_name inputchan
           in
           listen_connexion 
-            (Stream_receiver.create inputchan)
+            (Http_com.create_receiver inputchan)
             inputchan sockaddr xhtml_sender
             empty_sender)
         (handle_broken_pipe_exn sockaddr)

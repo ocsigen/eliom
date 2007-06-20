@@ -342,21 +342,28 @@ struct
         | e -> fail e)
 
 end
+
+
+
+
+
     
+type receiver_type = {r_buffer:Com_buffer.t; r_fd:Lwt_unix.descr}
+
+(** create a new receiver *)
+(* That function was in FHttp_receiver but it does not depend on C
+   It is easier to use everywhere if we put it here.
+   -- Vincent 18/06/2007 *)
+let create_receiver fd =
+  let buffer_size = Ocsiconfig.get_netbuffersize () in
+  let buffer = Com_buffer.create buffer_size in
+  {r_buffer=buffer; r_fd=fd}
 
 module FHttp_receiver =
   functor(C:Http_frame.HTTP_CONTENT) ->
     struct
       
       module Http = Http_frame.FHttp_frame (C)
-          
-      type t = {buffer:Com_buffer.t; fd:Lwt_unix.descr}
-            
-            (** create a new receiver *)
-      let create fd =
-        let buffer_size = Ocsiconfig.get_netbuffersize () in
-        let buffer = Com_buffer.create buffer_size in
-        {buffer=buffer;fd=fd}
           
           (** convert a stream into an header *)
       let http_header_of_stream s =
@@ -384,9 +391,10 @@ module FHttp_receiver =
            answered (waiter awoken)
          *)
         Com_buffer.wait_http_header waiter
-          ~doing_keep_alive receiver.fd receiver.buffer >>=
+          ~doing_keep_alive receiver.r_fd receiver.r_buffer >>=
         (fun len ->
-          Com_buffer.extract receiver.fd receiver.buffer (Int64.of_int len) >>=
+          Com_buffer.extract 
+            receiver.r_fd receiver.r_buffer (Int64.of_int len) >>=
           (fun string_header ->
             try
               (http_header_of_stream string_header) >>=
@@ -418,7 +426,7 @@ module FHttp_receiver =
                     let waiter_end_stream = wait () in
                     Com_buffer.extract
                       ~finish:(Lwt.wakeup waiter_end_stream)
-                      receiver.fd receiver.buffer body_length 
+                      receiver.r_fd receiver.r_buffer body_length 
                       >>= C.content_of_stream >>= 
                     (fun c -> Lwt.return (waiter_end_stream, Some c))) >>=
                 (fun (waiter_end_stream, b) -> 
@@ -434,24 +442,35 @@ module FHttp_receiver =
 
 type sender_type = { 
     (** the file descriptor*)
-    fd : Lwt_unix.descr;
-    (**the mode of the sender Query or Answer*)
-    mutable mode : Http_frame.Http_header.http_mode;
-    (**protocole to be used : HTTP/1.0 HTTP/1.1*)
-    mutable proto : string;
-    (**the options to send with each frame, for exemple : server name , ...*)
-    mutable headers : (string*string) list
+    s_fd: Lwt_unix.descr;
+    (** the mode of the sender Query or Answer *)
+    mutable s_mode: Http_frame.Http_header.http_mode;
+    (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
+    mutable s_proto: string;
+    (** the options to send with each frame, for exemple : server name , ... *)
+    mutable s_headers: (string * string) list
   }
 
 
 (** create a new sender *)
 (* That function was in FHttp_sender but it does not depend on C
    It is easier to use everywhere if we put it here.
-   May be we shall do the same with FHttp_receiver?
    -- Vincent 27/04/2007 *)
-let create_sender ?(mode=Http_frame.Http_header.Answer) ?(headers=[])
+let create_sender
+    ?server_name
+    ?(mode=Http_frame.Http_header.Answer)
+    ?(headers=[])
     ?(proto="HTTP/1.1") fd = 
-  {fd =fd;mode=mode;headers=headers;proto=proto}
+  let headers = ("Accept-Ranges","none")::headers in
+  let headers =
+    match server_name with
+    |None -> headers
+    |Some s -> ("Server", s)::headers
+  in
+  {s_fd =fd; 
+   s_mode=mode;
+   s_headers=headers;
+   s_proto=proto}
 
 
 module FHttp_sender =
@@ -464,7 +483,6 @@ module FHttp_sender =
 
     module PP = Framepp.Fframepp(C)
 
-    type t = sender_type
 
 (*    (*fonction de dump pour le debuggage*)
     let dump str file =
@@ -474,12 +492,14 @@ module FHttp_sender =
 *)
     (*fonction d'écriture sur le réseau*)
     let really_write ?(chunked=false) out_descr close_fun stream = 
+      let cr = "\r\n" in
       let out_ch = Lwt_unix.out_channel_of_descr out_descr in
-      let rec aux beginning_of_chunk = function
+      let rec aux beg beginning_of_chunk = function
           | Finished _ -> 
               (if chunked
-              then Lwt_unix.output_string out_ch "\r\n0\r\n\r\n" >>= fun () ->
-                Lwt_unix.flush out_ch
+              then Lwt_unix.output_string out_ch 
+                  (Printf.sprintf"%s0\r\n\r\n" beg) >>= fun () ->
+                    Lwt_unix.flush out_ch
               else return ()) >>= fun () ->
               Messages.debug "write finished (closing stream)"; 
               (try 
@@ -495,18 +515,18 @@ module FHttp_sender =
                   (if chunked && beginning_of_chunk
                   then
                     Lwt_unix.output_string out_ch 
-                      (Printf.sprintf "\r\n%x\r\n" l)
+                      (Printf.sprintf"%s%x\r\n" beg l)
                       >>= fun () -> Lwt_unix.flush out_ch
                   else return ()) >>= fun () ->
                     Lwt_unix.write out_descr s 0 l >>= fun len' ->
                       if l = len'
-                      then next () >>= aux true
+                      then next () >>= aux cr true
                       else return 
                           (new_stream (String.sub s len' (l-len')) next) >>=
-                        aux false
-              else next () >>= aux true
+                        aux cr false
+              else next () >>= aux cr true
       in catch
-        (fun () -> aux true stream)
+        (fun () -> aux "" true stream)
         (function
             Unix.Unix_error (Unix.EPIPE, _, _)
           | Unix.Unix_error (Unix.ECONNRESET, _, _) 
@@ -517,15 +537,15 @@ module FHttp_sender =
 
     (** changes the protocol *)
     let change_protocol proto sender =
-      sender.proto <- proto
+      sender.s_proto <- proto
 
     (** change the header list *)
     let change_headers headers sender =
-      sender.headers <- headers
+      sender.s_headers <- headers
 
     (** change the mode *)
     let change_mode  mode sender =
-      sender.mode <- mode
+      sender.s_mode <- mode
 
     (* case non sensitive equality *)
     let non_case_equality s1 s2 =
@@ -550,7 +570,7 @@ module FHttp_sender =
           |(n,v)::tl when (non_case_equality n name) -> (name,value)::(res @ tl)
           |(n,v)::tl -> add_header_aux ((n,v)::res) tl
       in
-      sender.headers <- add_header_aux [] sender.headers
+      sender.s_headers <- add_header_aux [] sender.s_headers
 
     (**removes a header option from the headers list if its exits*)
     let rem_header sender name =
@@ -560,19 +580,19 @@ module FHttp_sender =
           |(n,_)::tl when (non_case_equality n name) -> res @ tl
           |(n,v)::tl -> rem_header_aux ((n,v)::res) tl
       in
-      sender.headers <- rem_header_aux [] sender.headers
+      sender.s_headers <- rem_header_aux [] sender.s_headers
 
     (** gets the protocol*)
     let get_protocol sender =
-      sender.proto
+      sender.s_proto
 
     (**gets the mode*)
     let get_mode sender =
-      sender.mode
+      sender.s_mode
 
     (**gets the headers*)
     let get_headers sender =
-      sender.headers
+      sender.s_headers
 
     (**gets the value of an header name, raise Not_found if it doesn't exists*)
     let get_header_value sender name =
@@ -581,7 +601,7 @@ module FHttp_sender =
           |[] -> raise Not_found
           |(n,v)::_ when (non_case_equality n name) -> v
           |_::tl -> get_aux tl
-      in get_aux sender.headers
+      in get_aux sender.s_headers
     
     (* fusion of the two headers list and add the content-length header*)
     let hds_fusion content_length lst1 lst2 =
@@ -611,14 +631,24 @@ module FHttp_sender =
         (Sort.list pair_order lst1,Sort.list pair_order lst2)) 
 
 
-    (** sends the http_frame mode et proto can be overright, the headers are
-    * fusioned with those of the sender, the priority is given to the newly
-    * defined header when there is a conflict
-    * the content-length tag is automaticaly calculated*)
-    let send waiter ?etag
-        ?mode ?proto ?headers ?meth ?url ?code ?content ?head sender =
-      (*creation d'une http_frame*)
-      (*creation du header*)
+    (** sends the http_frame mode and proto can be overright, the headers are
+     * fusioned with those of the sender, the priority is given to the newly
+     * defined header when there is a conflict
+     * the content-length tag is automaticaly calculated *)
+    let send 
+        waiter
+        ?etag
+        ?mode
+        ?proto
+        ?headers
+        ?meth
+        ?url
+        ?code
+        ?content
+        ?head
+        sender =
+      (* creation d'une http_frame *)
+      (* creation du header *)
       (* waiter is here for pipelining: we must wait before sending the page,
          because the previous one may not be sent.
          If we don't want to wait, use waiter = return ()
@@ -626,8 +656,8 @@ module FHttp_sender =
 
       waiter >>=
       (fun () ->
-        let md = match mode with None -> sender.mode | Some m -> m in
-        let prot = match proto with None -> sender.proto | Some p -> p in
+        let md = match mode with None -> sender.s_mode | Some m -> m in
+        let prot = match proto with None -> sender.s_proto | Some p -> p in
         match content with
         | None -> Lwt.return ()
         | Some c -> 
@@ -639,7 +669,7 @@ module FHttp_sender =
                    Lwt.return (hds_fusion lon
                                  (("ETag", ("\""^(match etag with 
                                    None -> etag2
-                                 | Some etag -> etag)^"\""))::sender.headers)
+                                 | Some etag -> etag)^"\""))::sender.s_headers)
                                  (match headers with 
                                    Some h ->h
                                  | None -> []) ) >>=
@@ -653,7 +683,7 @@ module FHttp_sender =
                        H.headers = hds;
                      } in
                      Messages.debug "writing header";
-                     really_write sender.fd (fun () -> ())
+                     really_write sender.s_fd (fun () -> ())
                        (new_stream (Framepp.string_of_header hd)
                           (fun () -> 
                             Lwt.return (empty_stream None)))) >>=
@@ -661,7 +691,7 @@ module FHttp_sender =
                    | Some true -> Lwt.return (close_fun ())
                    | _ -> Messages.debug "writing body"; 
                        really_write 
-                         ~chunked:(lon=None) sender.fd close_fun flux)
+                         ~chunked:(lon=None) sender.s_fd close_fun flux)
                  )
                  (fun e -> 
                    (try 

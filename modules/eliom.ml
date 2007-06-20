@@ -45,12 +45,12 @@ type server_params = Eliommod.server_params
 let string_of_url_path = string_of_url_path
 
 let get_user_agent (ri,_,_) = ri.ri_user_agent
-let get_full_url (ri,_,_) = ri.ri_path_string^ri.ri_params
+let get_full_url (ri,_,_) = ri.ri_url_string
 let get_ip (ri,_,_) = ri.ri_ip
 let get_inet_addr (ri,_,_) = ri.ri_inet_addr
 let get_get_params (ri,_,_) = force ri.ri_get_params
 let get_all_get_params (_,si,_) = si.si_all_get_params
-let get_get_params_string (ri,_,_) = ri.ri_params
+let get_get_params_string (ri,_,_) = ri.ri_get_params_string
 let get_post_params (ri,_,_) = force ri.ri_post_params
 let get_all_post_params (_,si,_) = si.si_all_post_params
 let get_current_path_string (ri,_,_) = ri.ri_path_string
@@ -2461,7 +2461,7 @@ module MakeForms = functor
                 ~name:naservice_param_name
                 ~value:naservice_param () 
             in
-            let v = "/"^(get_full_url sp) in
+            let v = get_full_url sp in
             let inside = f (make_params_names service.post_params_type) in
             Pages.make_post_form ?a ~action:v
               (Pages.make_hidden_field naservice_line)
@@ -2604,7 +2604,7 @@ module Xhtmlreg_ = struct
         res_etag= None;
         res_code= code;
         res_send_page= Predefined_senders.send_xhtml_page ~content:content;
-        res_create_sender= Predefined_senders.create_xhtml_sender;
+        res_headers= Predefined_senders.nocache_headers;
         res_charset= match charset with
           None -> get_config_file_charset sp
         | _ -> charset
@@ -3242,15 +3242,11 @@ module SubXhtml = functor(T : sig type content end) ->
     module Cont_sender = FHttp_sender(Cont_content)
         
             
-    let send_cont_page
-        ~content ?cookies waiter ?code ?etag ~keep_alive
-        ?last_modified ?location ?head ?charset cont_sender =
-      Predefined_senders.send_generic waiter ?etag
-        ?code ~keep_alive ?cookies ?location ?last_modified
+    let send_cont_page =
+      Predefined_senders.send_generic 
+        Cont_sender.send
         ~contenttype:"text/html"
-        ?charset
-        ~content 
-        ?head cont_sender Cont_sender.send
+
         
     module Contreg_ = struct
       open XHTML.M
@@ -3265,7 +3261,7 @@ module SubXhtml = functor(T : sig type content end) ->
            res_etag= None;
            res_code= code;
            res_send_page= send_cont_page ~content:content;
-           res_create_sender= Predefined_senders.create_xhtml_sender;
+           res_headers= Predefined_senders.nocache_headers;
            res_charset= match charset with
              None -> get_config_file_charset sp
            | _ -> charset
@@ -3307,7 +3303,7 @@ module Textreg_ = struct
        res_code= code;
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:contenttype ~content:content;
-       res_create_sender= Predefined_senders.create_xhtml_sender;
+       res_headers= Predefined_senders.nocache_headers;
        res_charset= match charset with
           None -> get_config_file_charset sp
         | _ -> charset
@@ -3334,7 +3330,7 @@ module CssTextreg_ = struct
        res_code= code;
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:"text/css" ~content:content;
-       res_create_sender= Predefined_senders.create_xhtml_sender;
+       res_headers= Predefined_senders.nocache_headers;
        res_charset= match charset with
           None -> get_config_file_charset sp
         | _ -> charset
@@ -3362,7 +3358,7 @@ module HtmlTextreg_ = struct
        res_code= code;
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:"text/html" ~content:content;
-       res_create_sender= Predefined_senders.create_xhtml_sender;
+       res_headers= Predefined_senders.nocache_headers;
        res_charset= match charset with
           None -> get_config_file_charset sp
         | _ -> charset
@@ -3538,7 +3534,7 @@ module Unitreg_ = struct
        res_etag= None;
        res_code= Some code;
        res_send_page= Predefined_senders.send_empty ~content:content;
-       res_create_sender= Predefined_senders.create_empty_sender;
+       res_headers= [];
        res_charset= None
      }
 
@@ -3572,7 +3568,7 @@ module Redirreg_ = struct
        res_code= Some code; (* Moved permanently *)
        res_send_page= 
        (fun ?cookies waiter ?code ?etag ~keep_alive
-           ?last_modified ?location ?head ?charset s ->
+           ?last_modified ?location ?head ?headers ?charset s ->
              Predefined_senders.send_empty
                ~content:() 
                ?cookies
@@ -3581,8 +3577,8 @@ module Redirreg_ = struct
                ?etag ~keep_alive
                ?last_modified 
                ~location:content
-               ?head ?charset s);
-       res_create_sender= Predefined_senders.create_empty_sender;
+               ?head ?headers ?charset s);
+       res_headers= [];
        res_charset= None
      }
 
@@ -3672,7 +3668,7 @@ module Filesreg_ = struct
        res_etag= (Some (Predefined_senders.File_content.get_etag filename));
        res_code= code;
        res_send_page= Predefined_senders.send_file ~content:filename;
-       res_create_sender= Predefined_senders.create_file_sender;
+       res_headers= [];
        res_charset= match charset with
          None -> get_config_file_charset sp
        | _ -> charset

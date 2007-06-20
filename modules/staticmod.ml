@@ -181,7 +181,8 @@ let gen pages_tree charset ri =
   catch
     (* Is it a static page? *)
     (fun () ->
-      if ri.ri_params = "" (* static pages do not have parameters *)
+      if ri.ri_get_params_string = None
+          (* static pages do not have parameters *)
       then begin
         Messages.debug ("--Staticmod: Is it a static file?");
         let (filename, stat) =
@@ -191,7 +192,7 @@ let gen pages_tree charset ri =
           (Ext_found
              {res_cookies=[];
               res_send_page=Predefined_senders.send_file ~content:filename;
-              res_create_sender=Predefined_senders.create_file_sender;
+              res_headers=[];
               res_code=None;
               res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
               res_etag=
@@ -200,7 +201,7 @@ let gen pages_tree charset ri =
       end
       else return Ext_not_found)
     (function
-        (Unix.Unix_error (Unix.EACCES,_,_))
+        Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url as e -> fail e
 (*      | Ocsigen_404 -> return Ext_not_found *)

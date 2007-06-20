@@ -1407,8 +1407,7 @@ let gen page_tree charset ri =
                          {res_cookies= all_new_cookies;
                           res_send_page=
                           Predefined_senders.send_empty ~content:();
-                          res_create_sender=
-                          Predefined_senders.create_empty_sender;
+                          res_headers=[];
                           res_code=Some 204; (* No content *)
                           res_lastmodified=None;
                           res_etag=None;
@@ -1588,8 +1587,8 @@ let gen page_tree charset ri =
                        res_send_page=
                        (Predefined_senders.send_xhtml_page 
                           ~content:(Error_pages.page_error_param_type l));
-                       res_create_sender=
-                       Predefined_senders.create_xhtml_sender;
+                       res_headers=
+                       Predefined_senders.nocache_headers;
                        res_code=None;
                        res_lastmodified=None;
                        res_etag=None;
@@ -1603,8 +1602,8 @@ let gen page_tree charset ri =
                          (Predefined_senders.send_xhtml_page 
                             ~content:(Error_pages.page_bad_param 
                                       (List.map fst ripp)));
-                         res_create_sender=
-                         Predefined_senders.create_xhtml_sender;
+                         res_headers=
+                         Predefined_senders.nocache_headers;
                          res_code=None;
                          res_lastmodified=None;
                          res_etag=None;

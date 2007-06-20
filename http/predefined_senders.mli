@@ -21,10 +21,6 @@
 type mycookieslist = 
   (string list option * float option * (string * string) list) list
 
-type create_sender_type =
-    ?server_name:string ->
-    ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
-
 type send_page_type =
     ?cookies:mycookieslist ->
     unit Lwt.t ->
@@ -34,6 +30,7 @@ type send_page_type =
     ?last_modified:float ->
     ?location:string -> 
     ?head:bool -> 
+    ?headers:(string * string) list ->
     ?charset:string ->
       Http_com.sender_type -> unit Lwt.t
 
@@ -49,21 +46,13 @@ val send_empty : content: unit -> send_page_type
 (** Sending a text page *)
 val send_text_page : ?contenttype: string -> content:string -> send_page_type
 
-(** Sending a text page *)
+(** fonction that uses a stream to send a (text) answer step by step *)
 val send_stream_page : ?contenttype: string -> 
   content:(unit -> Ocsistream.stream) -> send_page_type
 
-(** Creating an xhtml (or text) sender *)
-val create_xhtml_sender : create_sender_type
+(** Headers for a non cachable request *)
+val nocache_headers : (string * string) list
 
-(** Creating a sender for empty content *)
-val create_empty_sender : create_sender_type
-
-(** Creating a sender for a file *)
-val create_file_sender : create_sender_type
-
-(** Creating a sender for a stream *)
-val create_stream_sender : create_sender_type
 
 (**/**)
 exception Stream_already_read
@@ -71,7 +60,7 @@ exception Stream_already_read
 (** Sending an error page *)
 val send_error :
     ?http_exception:exn ->
-      ?error_num:int -> send_page_type
+      send_page_type
 
 module Xhtml_content :
   sig
@@ -176,7 +165,6 @@ module Empty_sender :
           end
         val string_of_http_frame : Http.http_frame -> string option -> string
       end
-    type t = Http_com.sender_type
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
@@ -267,7 +255,6 @@ module Xhtml_sender :
           end
         val string_of_http_frame : Http.http_frame -> string option -> string
       end
-    type t = Http_com.sender_type
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
@@ -368,7 +355,6 @@ module Text_sender :
           end
         val string_of_http_frame : Http.http_frame -> string option -> string
       end
-    type t = Http_com.sender_type
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
@@ -414,17 +400,11 @@ module Text_receiver :
             waiter_thread: unit Lwt.t;
         }
       end
-    type t =
-      Http_com.FHttp_receiver(Text_content).t = {
-      buffer : Http_com.Com_buffer.t;
-      fd : Lwt_unix.descr;
-    }
-    val create : Lwt_unix.descr -> t
     val http_header_of_stream :
       Ocsistream.stream -> Http_frame.Http_header.http_header Lwt.t
     val get_http_frame :
-      unit Lwt.t ->
-      t -> doing_keep_alive:bool -> unit -> Http.http_frame Lwt.t
+      unit Lwt.t -> Http_com.receiver_type -> 
+        doing_keep_alive:bool -> unit -> Http.http_frame Lwt.t
   end
 module Stream_http_frame :
   sig
@@ -448,17 +428,11 @@ module Stream_receiver :
             waiter_thread: unit Lwt.t;
         }
       end
-    type t =
-      Http_com.FHttp_receiver(Stream_content).t = {
-      buffer : Http_com.Com_buffer.t;
-      fd : Lwt_unix.descr;
-    }
-    val create : Lwt_unix.descr -> t
     val http_header_of_stream :
       Ocsistream.stream -> Http_frame.Http_header.http_header Lwt.t
     val get_http_frame :
-      unit Lwt.t ->
-      t -> doing_keep_alive:bool -> unit -> Http.http_frame Lwt.t
+      unit Lwt.t -> Http_com.receiver_type -> 
+        doing_keep_alive:bool -> unit -> Http.http_frame Lwt.t
   end
 module File_sender :
   sig
@@ -517,7 +491,6 @@ module File_sender :
           end
         val string_of_http_frame : Http.http_frame -> string option -> string
       end
-    type t = Http_com.sender_type
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
@@ -608,7 +581,6 @@ module Stream_sender :
           end
         val string_of_http_frame : Http.http_frame -> string option -> string
       end
-    type t = Http_com.sender_type
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
@@ -646,26 +618,31 @@ module Stream_sender :
 
 val gmtdate : float -> string
 val send_generic :
+    (unit Lwt.t ->
+      ?etag:Http_frame.etag ->
+        ?mode:Xhtml_sender.H.http_mode ->
+          ?proto:string ->
+            ?headers:(string * string) list ->
+              ?meth:'c ->
+                ?url:string ->
+                  ?code:int -> 
+                    ?content:'a ->
+                      ?head:bool -> 
+                        Http_com.sender_type -> 
+                          unit Lwt.t) ->
+  ?contenttype:string ->
+  content:'a ->
+  ?cookies:mycookieslist ->
   unit Lwt.t ->
   ?code:int ->
   ?etag:Http_frame.etag ->
-  ?cookies:mycookieslist ->
   keep_alive:bool ->
   ?last_modified:float ->
-  ?contenttype:string ->
-  ?charset:string ->
   ?location:string ->
-  ?header:(string * string) list ->
   ?head:bool ->
-  content:'a ->
-  'b ->
-  (unit Lwt.t ->
-   ?etag:Http_frame.etag ->
-   ?mode:Xhtml_sender.H.http_mode ->
-   ?proto:string ->
-   ?headers:(string * string) list ->
-   ?meth:'c ->
-   ?url:string -> ?code:int -> ?content:'a -> ?head:bool -> 'b -> unit Lwt.t) ->
+  ?headers:(string * string) list ->
+  ?charset:string ->
+  Http_com.sender_type ->
   unit Lwt.t
 
 val mimeht : (string, string) Hashtbl.t

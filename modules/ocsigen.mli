@@ -573,7 +573,7 @@ module type REGCREATE =
   sig
     type page
 
-    val create_sender : Predefined_senders.create_sender_type
+    val headers : (string * string) list
     val send : content:page -> Predefined_senders.send_page_type
 
   end

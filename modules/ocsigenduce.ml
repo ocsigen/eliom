@@ -54,7 +54,7 @@ module Ocamlduce_content =
     let stream_of_content c = 
       let x = print (add_css c) in
       let md5 = get_etag_aux x in
-      Lwt.return (Int64.of_int (String.length x), 
+      Lwt.return (Some (Int64.of_int (String.length x)), 
                   md5, 
                   (new_stream x 
                      (fun () -> Lwt.return (empty_stream None))),
@@ -75,13 +75,10 @@ module Ocamlduce_sender = FHttp_sender(Ocamlduce_content)
  * path is the path associated to the cookie
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_ocamlduce_page ~content ?cookies waiter ?code ?etag ~keep_alive
-    ?last_modified ?location ?head ?charset xhtml_sender =
-  send_generic waiter ?etag
-    ?code ?cookies ~keep_alive ?location ?last_modified
+let send_ocamlduce_page =
+  send_generic Ocamlduce_sender.send
     ~contenttype:"text/html"
-    ?charset
-    ~content ?head xhtml_sender Ocamlduce_sender.send
+
 
 
 
@@ -89,7 +86,7 @@ module Xhtmlreg_ = struct
 
   type page = html
 
-  let create_sender = Predefined_senders.create_xhtml_sender
+  let headers = Predefined_senders.nocache_headers
   let send = send_ocamlduce_page
 
 end

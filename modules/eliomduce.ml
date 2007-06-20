@@ -55,7 +55,7 @@ module Ocamlduce_content =
     let stream_of_content c = 
       let x = print (add_css c) in
       let md5 = get_etag_aux x in
-      Lwt.return (Int64.of_int (String.length x), 
+      Lwt.return (Some (Int64.of_int (String.length x)), 
                   md5, 
                   (new_stream x 
                      (fun () -> Lwt.return (empty_stream None))),
@@ -76,13 +76,10 @@ module Ocamlduce_sender = FHttp_sender(Ocamlduce_content)
  * path is the path associated to the cookie
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_ocamlduce_page ~content ?cookies waiter ?code ?etag ~keep_alive
-    ?last_modified ?location ?head ?charset xhtml_sender =
-  send_generic ?cookies waiter ?etag
-    ?code ~keep_alive ?location ?last_modified
+let send_ocamlduce_page =
+  send_generic Ocamlduce_sender.send
     ~contenttype:"text/html"
-    ?charset
-    ~content ?head xhtml_sender Ocamlduce_sender.send
+
 
 
 module Xhtmlreg_ = struct
@@ -96,7 +93,7 @@ module Xhtmlreg_ = struct
        res_etag= None;
        res_code= code;
        res_send_page= send_ocamlduce_page ~content:content;
-       res_create_sender= Predefined_senders.create_xhtml_sender;
+       res_headers= Predefined_senders.nocache_headers;
        res_charset= match charset with
          None -> Eliom.get_config_file_charset sp
        | _ -> charset
@@ -275,7 +272,7 @@ module Xml =
         let stream_of_content c = 
           let x = print c in
           let md5 = get_etag_aux x in
-          Lwt.return (Int64.of_int (String.length x), 
+          Lwt.return (Some (Int64.of_int (String.length x)), 
                       md5, 
                       (new_stream x 
                          (fun () -> Lwt.return (empty_stream None))),
@@ -289,15 +286,9 @@ module Xml =
         
     module Cont_sender = FHttp_sender(Cont_content)
         
-    let send_cont_page
-        ~content ?cookies waiter ?code ?etag ~keep_alive
-        ?last_modified ?location ?head ?charset cont_sender =
-      Predefined_senders.send_generic waiter ?etag
-        ?code ~keep_alive ?cookies ?location ?last_modified
+    let send_cont_page =
+      Predefined_senders.send_generic Cont_sender.send 
         ~contenttype:"text/html"
-        ?charset
-        ~content 
-        ?head cont_sender Cont_sender.send
         
     module Contreg_ = struct
       open XHTML.M
@@ -312,7 +303,7 @@ module Xml =
            res_etag= None;
            res_code= code;
            res_send_page= send_cont_page ~content:content;
-           res_create_sender= Predefined_senders.create_xhtml_sender;
+           res_headers= Predefined_senders.nocache_headers;
            res_charset= match charset with
              None -> Eliom.get_config_file_charset sp
            | _ -> charset

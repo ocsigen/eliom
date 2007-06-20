@@ -35,7 +35,7 @@ type url_path = Extensions.url_path
 type server_params = Ocsigenmod.server_params
 
 let get_user_agent (ri,_,_) = ri.ri_user_agent
-let get_full_url (ri,_,_) = ri.ri_path_string^ri.ri_params
+let get_full_url (ri,_,_) = ri.ri_url_string
 let get_ip (ri,_,_) = ri.ri_ip
 let get_inet_addr (ri,_,_) = ri.ri_inet_addr
 let get_get_params (ri,_,_) = force ri.ri_get_params
@@ -519,7 +519,7 @@ module type REGCREATE =
 
     type page
 
-    val create_sender : Predefined_senders.create_sender_type
+    val headers : (string * string) list
     val send : content:page -> Predefined_senders.send_page_type
 
   end
@@ -811,7 +811,7 @@ module MakeRegister = functor
           ?(error_handler = fun sp l -> raise (Ocsigen_Typing_Error l))
           (page_generator : server_params -> 'get -> 'post -> page Lwt.t) =
         add_service tables current_dir session service.url 
-          Pages.create_sender
+          Pages.headers
           ({prefix = service.url_prefix;
             state = state},
            (service.unique_id,
@@ -1291,7 +1291,7 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
-  let create_sender = Predefined_senders.create_xhtml_sender
+  let headers = Predefined_senders.nocache_headers
   let send = Predefined_senders.send_xhtml_page
 
 end
@@ -1697,7 +1697,7 @@ module Textreg_ = struct
 
   type page = string
 
-  let create_sender = Predefined_senders.create_xhtml_sender
+  let headers = Predefined_senders.nocache_headers
   let send = Predefined_senders.send_text_page ~contenttype:"text/html"
 
 end

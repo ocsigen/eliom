@@ -153,7 +153,7 @@ type page_table =
     (page_table_key * 
        ((int * 
            ((tables server_params2 -> Predefined_senders.send_page_type Lwt.t)
-              * Predefined_senders.create_sender_type * url_path)) list)) list
+              * (string * string) list (* headers *) * url_path)) list)) list
       (* Here, the url_path is the working directory.
          That is, the directory in which we are when we register
          dynamically the pages.
@@ -261,13 +261,13 @@ let find_page_table
   let (sp0,_,b) = make_server_params [] str ri in
   let rec aux = function
       [] -> fail Ocsigen_Wrong_parameter
-    | (_,(funct,create_sender,working_dir))::l ->
+    | (_,(funct, headers, working_dir))::l ->
         catch (fun () ->
           Messages.debug "--Ocsigenmod: I'm trying a service";
           funct (urlsuffix, (sp0,working_dir,b)) >>=
           (fun p -> 
             Messages.debug "--Ocsigenmod: Page found";
-            Lwt.return (p,create_sender,working_dir)))
+            Lwt.return (p, headers, working_dir)))
           (function
               Ocsigen_Wrong_parameter -> aux l
             | e -> fail e)
@@ -322,7 +322,7 @@ let find_action (_,atr) name =
   find_action_table !atr name
 
 let add_service (dircontentref,_) current_dir session url_act
-    create_sender
+    headers
     (page_table_key, (unique_id, action)) =
   let aux search dircontentref a l =
     try 
@@ -370,7 +370,7 @@ let add_service (dircontentref,_) current_dir session url_act
   in
   let content = ({prefix = page_table_key.prefix;
                   state = page_table_key.state},
-                 (unique_id, (action, create_sender, current_dir))) in
+                 (unique_id, (action, headers, current_dir))) in
   (* let current_dircontentref = 
      search_dircontentref dircontentref current_dir) in *)
   let page_table_ref = 
@@ -440,7 +440,7 @@ let execute generate_page ip cookie (globtable, cookie_table) =
     with Not_found -> (ref (new_session_tables ()), true))
   in
   generate_page globtable sessiontablesref >>=
-  (fun ((send_page,sender,working_dir),lastmod,etag) ->
+  (fun ((send_page, headers, working_dir),lastmod,etag) ->
     let cookie2 = 
       if are_empty_tables !sessiontablesref
       then ((if not new_session 
@@ -462,7 +462,7 @@ let execute generate_page ip cookie (globtable, cookie_table) =
     in return 
       ((cookie3, 
         send_page, 
-        sender, 
+        headers, 
         working_dir),
        lastmod,
        etag))
@@ -529,7 +529,7 @@ let get_page
         ri.ri_inet_addr
         cookie 
         page_tree >>=
-      fun ((cook, sp, s, path),lm,etag) -> 
+      fun ((cook, sp, s, path), lm, etag) -> 
         return 
           (Ext_found 
              {res_cookies=
@@ -537,7 +537,7 @@ let get_page
                 None -> []
               | Some c -> [Set (Some path, None, [(cookiename, c)])]);
               res_send_page=sp;
-              res_create_sender=s;
+              res_headers=s;
               res_code=None;
               res_lastmodified=lm;
               res_etag=etag;
@@ -550,7 +550,7 @@ let get_page
                      res_send_page=
                      (Predefined_senders.send_xhtml_page 
                         ~content:(Error_pages.page_error_param_type l));
-                     res_create_sender=Predefined_senders.create_xhtml_sender;
+                     res_headers=Predefined_senders.nocache_headers;
                      res_code=None;
                      res_lastmodified=None;
                      res_etag=None;
@@ -564,8 +564,7 @@ let get_page
                        (Predefined_senders.send_xhtml_page 
                           ~content:(Error_pages.page_bad_param 
                                       (List.map fst ripp)));
-                       res_create_sender=
-                       Predefined_senders.create_xhtml_sender;
+                       res_headers= Predefined_senders.nocache_headers;
                        res_code=None;
                        res_lastmodified=None;
                        res_etag=None;
@@ -594,7 +593,7 @@ let make_action page_tree action_name action_params
           {ri with
            ri_get_params= lazy []; 
            ri_post_params = lazy (return action_params)})) >>=
-    (fun r -> return ((r,(), working_dir), None, None))
+    (fun r -> return ((r, (), working_dir), None, None))
   in catch
     (fun () ->
       execute 
@@ -654,7 +653,7 @@ let gen page_tree charset ri =
                                                         is experimental in Ocsigenmod (it works only for \
                                                             ocsigenmod pages for now, and I \
                                                          didn't find any)"]]));
-				   res_create_sender=Predefined_senders.create_xhtml_sender;
+				   res_headers=Predefined_senders.nocache_headers;
 				   res_code=None;
 				   res_lastmodified=None;
 				   res_etag=None;
@@ -668,8 +667,7 @@ let gen page_tree charset ri =
                       None -> []
                     | Some c -> [Set (Some path, None, [(cookiename, c)])]);
                     res_send_page=Predefined_senders.send_empty ~content:();
-                    res_create_sender=
-                    Predefined_senders.create_empty_sender;
+                    res_headers= [];
                     res_code=Some 204;
                     res_lastmodified=None;
                     res_etag=None;

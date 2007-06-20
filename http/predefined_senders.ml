@@ -227,58 +227,17 @@ module File_http_frame = FHttp_frame (File_content) *)
 (** this module is a sender that send Http_frame with file content *)
 module File_sender = FHttp_sender(File_content)
 
-(** fonction that creates a sender with xhtml content
-server_name is the name of the server sent in the HTTP header
-proto is the protocol, default is HTTP/1.1
-fd is the Unix file descriptor *)
-let create_xhtml_sender ?server_name ?proto fd =
-  let hd =
-    match server_name with
-    |None -> []
-    |Some s -> [("Server",s)]
-  in
-  let hd2 =
-    [
-     ("Accept-Ranges","none");
-     (* ("Cache-Control","no-cache"); *)
-     ("Expires", "0")
-   ]@hd
-  in
-  Http_com.create_sender ~headers:hd2 ?proto:proto fd
+
+(** Headers for a non cachable request *)
+let nocache_headers =
+  [
+   ("Cache-Control","no-store");
+   (* ("Cache-Control","no-cache"); *)
+   ("Expires", "0") 
+ ]
+ 
 
 
-(** fonction that creates a sender with empty content
-server_name is the name of the server sent in the HTTP header
-proto is the protocol, default is HTTP/1.1
-fd is the Unix file descriptor *)
-let create_empty_sender ?server_name ?proto fd =
-  let hd =
-    match server_name with
-    |None -> []
-    |Some s -> [("Server",s)]
-  in
-  let hd2 =
-    [
-      ("Accept-Ranges","none");
-      ("Cache-Control","no-cache")
-    ]@hd
-  in
-  Http_com.create_sender ~headers:hd2 ?proto:proto fd
-
-(** fonction that creates a sender for stream content *)
-let create_stream_sender ?server_name ?proto fd =
-  let hd =
-    match server_name with
-    |None -> []
-    |Some s -> [("Server",s)]
-  in
-  let hd2 =
-    [
-      ("Accept-Ranges","none");
-      ("Cache-Control","no-cache")
-    ]@hd
-  in
-  Http_com.create_sender ~headers:hd2 ?proto:proto fd
 
 let gmtdate d =  
         let x = Netdate.mk_mail_date ~zone:0 d in try
@@ -288,48 +247,61 @@ let gmtdate d =
         String.set x (ind_plus + 2) 'T';
         String.sub x 0 (ind_plus + 3)
         with _ -> Messages.debug "no +"; x
+
 (** fonction that sends something
-* code is the code of the http answer
-* keep_alive is a boolean value that set the field Connection
-* cookie is a string value that give a value to the session cookie
-* page is the page to send
-* xhtml_sender is the used sender*)
+ * code is the code of the http answer
+ * keep_alive is a boolean value that set the field Connection
+ * cookie is a string value that give a value to the session cookie
+ * page is the page to send
+ * xhtml_sender is the used sender *)
 let send_generic
-    waiter
-    ?code ?etag ?(cookies=[]) ~keep_alive ?last_modified 
-    ?contenttype
-    ?charset
-    ?location ?(header=[]) ?head ~content sender 
     (send : unit Lwt.t ->
       ?etag:etag ->
-      ?mode:Xhtml_sender.H.http_mode ->
-      ?proto:string ->
-      ?headers:(string * string) list ->
-      ?meth:'c ->
-      ?url:string ->
-      ?code:int -> 
-      ?content:'a -> ?head:bool -> 'b -> unit Lwt.t) =
+        ?mode:Xhtml_sender.H.http_mode ->
+          ?proto:string ->
+            ?headers:(string * string) list ->
+              ?meth:'c ->
+                ?url:string ->
+                  ?code:int -> 
+                    ?content:'a ->
+                      ?head:bool -> 
+                        Http_com.sender_type -> 
+                          unit Lwt.t)   
+    ?contenttype
+    ~content
+    ?(cookies=[])
+    waiter
+    ?code
+    ?etag
+    ~keep_alive
+    ?last_modified 
+    ?location
+    ?head
+    ?(headers=[]) 
+    ?charset
+    sender
+    =
 
-  (*ajout des option spécifique à la page*)
+  (* ajout des options spécifiques à la page *)
   let date = gmtdate (Unix.time ()) in
-  (*il faut récupérer la date de dernière modification *)
+  (* il faut récupérer la date de dernière modification *)
   let last_mod =
     match last_modified with
-    |None -> date
-    |Some l  -> gmtdate l
+    | None -> date
+    | Some l  -> gmtdate l
   in
   let hds =
-      ("Date",date)::
-      ("Last-Modified",last_mod)::header
+      ("Date", date)::
+      ("Last-Modified", last_mod)::headers
   in
   let mkcook path exp (name, c) =
     ("Set-Cookie",
      (name^"="^c^
       (match path with 
-        Some s -> ("; path=/"^(Ocsimisc.string_of_url_path s))
+      | Some s -> ("; path=/"^(Ocsimisc.string_of_url_path s))
       | None -> "")^
       (match exp with 
-        Some s -> ("; expires="^
+      | Some s -> ("; expires="^
                    (Netdate.format
                       "%a, %d-%b-%Y %H:%M:%S GMT"
                       (Netdate.create s)))
@@ -369,10 +341,9 @@ let send_generic
     |Some c -> send waiter ?etag ~code:c ~content ~headers:hds ?head sender
 
 
-type create_sender_type = ?server_name:string ->
-    ?proto:string -> Lwt_unix.descr -> Http_com.sender_type
-
 type send_page_type =
+    (* no content
+       no content-type *)
     ?cookies:mycookieslist ->
       unit Lwt.t ->
         ?code:int ->
@@ -381,7 +352,10 @@ type send_page_type =
               ?last_modified:float ->
                 ?location:string -> 
                   ?head:bool -> 
-                    ?charset:string -> Http_com.sender_type -> unit Lwt.t
+                    ?headers:(string * string) list ->
+                      ?charset:string -> 
+                        Http_com.sender_type -> 
+                          unit Lwt.t
   
 (** fonction that sends a xhtml page
  * code is the code of the http answer
@@ -390,94 +364,106 @@ type send_page_type =
  * string value (the path) and list of string pairs (name, value)   
  * page is the page to send
  * xhtml_sender is the sender to be used *)
-let send_xhtml_page ~content ?cookies waiter ?code ?etag ~keep_alive
-    ?last_modified ?location ?head ?charset xhtml_sender =
-  send_generic waiter ?etag
-    ?code ~keep_alive ?cookies ?location ?last_modified
-    ~contenttype:"text/html"
+let send_xhtml_page
+(*    ~content
+    ?cookies
+    waiter
+    ?code
+    ?etag
+    ~keep_alive
+    ?last_modified
+    ?location
+    ?head
+    ?headers
     ?charset
-    ~content 
-    ?head xhtml_sender Xhtml_sender.send
+    sender *)
+    =
+  send_generic
+    Xhtml_sender.send
+    ~contenttype:"text/html"
+(*    ~content 
+    ?cookies
+    waiter
+    ?code
+    ?etag
+    ~keep_alive
+    ?last_modified
+    ?location
+    ?head
+    ?headers
+    ?charset
+    sender *)
   
 
-(** fonction that sends an empty answer
- * code is the code of the http answer
- * keep_alive is a boolean value that set the field Connection
- * cookie is a string value that give a value to the session cookie
- * page is the page to send
- * empty_sender is the used sender *)
-let send_empty ~content ?cookies waiter ?code ?etag ~keep_alive
-    ?last_modified ?location ?head ?charset empty_sender =
-  send_generic waiter ?etag ?last_modified
-    ?code ?cookies ~keep_alive ?location
-    (*~contenttype:? ~charset:?*) ~content
-    ?head empty_sender Empty_sender.send
+(** fonction that sends an empty answer *)
+let send_empty =
+  send_generic Empty_sender.send ?contenttype:None
 
-let send_text_page ?contenttype
-    ~content ?cookies waiter ?code ?etag ~keep_alive
-    ?last_modified ?location ?head ?charset xhtml_sender =
-  send_generic waiter
-    ?etag ?code ?cookies ~keep_alive ?location ?last_modified
-    ?contenttype ?charset ~content ?head xhtml_sender Text_sender.send
+(** fonction that sends a text answer *)
+let send_text_page =
+  send_generic Text_sender.send
   
-let send_stream_page ?contenttype
-    ~content ?cookies waiter ?code ?etag ~keep_alive
-    ?last_modified ?location ?head ?charset stream_sender =
-  send_generic waiter
-    ?etag ?code ?cookies ~keep_alive ?location ?last_modified
-    ?contenttype ?charset ~content ?head stream_sender Stream_sender.send
+(** fonction that uses a stream to send the answer step by step *)
+let send_stream_page =
+  send_generic Stream_sender.send 
   
   
 
 (** sends an error page that fit the error number *)
-let send_error ?(http_exception) ?(error_num=500) 
-    ?cookies waiter ?code ?etag ~keep_alive
-    ?last_modified ?location ?head ?charset xhtml_sender =
+let send_error
+    ?http_exception
+    ?cookies
+    waiter
+    ?(code=500)
+    ?etag
+    ~keep_alive
+    ?last_modified 
+    ?location
+    ?head
+    ?(headers=[]) 
+    ?charset
+    sender
+    =
   let (error_code,error_msg) =
     (
       match http_exception with
-      |Some (Http_error.Http_exception (code,msgs) )->
+      |Some (Http_error.Http_exception (errcode,msgs) )->
           (
             let error_num =
-              match code with
+              match errcode with
               |Some c -> c
               |None -> 500
             in
             let msg =
               Http_error.string_of_http_exception
-              (Http_error.Http_exception(code,msgs))
+              (Http_error.Http_exception(errcode, msgs))
             in (error_num,msg)
           )
           
         |_ ->
-           let error_mes = Http_error.expl_of_code error_num in
-           (error_num,error_mes)
+           let error_mes = Http_error.expl_of_code code in
+           (code, error_mes)
      ) in
   let str_code = string_of_int error_code in
   let err_page =
-    (html
-       (XHTML.M.head (title (pcdata "Error")) [])
-       (body [h1 [pcdata str_code];
-              p [pcdata error_msg]]))
-  
+    html
+      (XHTML.M.head (title (pcdata "Error")) [])
+      (body [h1 [pcdata str_code];
+             p [pcdata error_msg]])
   in
   send_xhtml_page
-    ~content:err_page ?cookies waiter ~code:error_code ?etag ~keep_alive
-    ?last_modified ?location ?head ?charset xhtml_sender
+    ~content:err_page
+    waiter
+    ~code:error_code
+    ~headers:nocache_headers
+    ?etag
+    ~keep_alive
+    ?last_modified 
+    ?location
+    ?head
+    ?charset
+    sender
 
-(** this function creates a sender that send http_frame with file content *)
-let create_file_sender ?server_name ?proto fd =
-  let hd =
-    match server_name with
-    |None -> []
-    |Some s -> [("Server",s)]
-  in
-  let hd2 =
-    [
-      ("Accept-Ranges","none")
-    ]@hd
-  in
-  Http_com.create_sender ~headers:hd2 ?proto:proto fd
 
 
 let mimeht = Hashtbl.create 600
@@ -525,13 +511,13 @@ let content_type_from_file_name =
     with _ -> "unknown" 
 
 let send_file ~content:file ?cookies waiter ?code ?etag ~keep_alive
-    ?last_modified ?location ?head ?charset file_sender =
+    ?last_modified ?location ?head ?headers ?charset file_sender =
   Lwt_unix.yield () >>=
   (fun () ->
-    send_generic waiter
-      ?etag ?code ?cookies ~keep_alive ?location ?last_modified
+    send_generic File_sender.send
       ~contenttype:(content_type_from_file_name file)
-      ?charset
-      ~content:file ?head file_sender File_sender.send)
+      ~content:file
+      ?cookies waiter ?code ?etag ~keep_alive
+      ?last_modified ?location ?head ?headers ?charset file_sender)
 
   

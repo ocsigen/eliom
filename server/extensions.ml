@@ -63,20 +63,33 @@ type virtual_hosts = ((virtual_host_part list) * int option) list
 
 (* Requests *)
 type request_info = 
-    {ri_url: string;
+    {ri_url_string: string;
+     ri_url: Neturl.url;
+     ri_method: Http_frame.Http_header.http_method;
      ri_path_string: string; (** path of the URL *)
      ri_path: string list;   (** path of the URL *)
-     ri_params: string;      (** string containing parameters *)
+     ri_get_params_string: string option; (** string containing GET parameters *)
      ri_host: string option; (** Host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters*)
      ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters*)
      ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
      ri_inet_addr: Unix.inet_addr;        (** IP of the client *)
      ri_ip: string;            (** IP of the client *)
-     ri_port: int;             (** Port of the request *)
+     ri_remote_port: int;      (** Port used by the client *)
+     ri_port: int;             (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
-     ri_cookies: (string * string) list Lazy.t; (** Cookie sent by the browser *)
+     ri_cookies_string: string option Lazy.t; (** Cookies sent by the browser *)
+     ri_cookies: (string * string) list Lazy.t; (** Cookies sent by the browser *)
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
+     ri_content_type: string option; (** Content-Type HTTP header *)
+     ri_content_length: int64 option; (** Content-Length HTTP header *)
+     ri_referer: string option Lazy.t; (** Referer HTTP header *)
+(* Not implemented. See if we can use Ocamlnet?
+     ri_accept: ... list Lazy.t; (** Accept HTTP header *)
+     ri_accept_charset: ... list Lazy.t; (** Accept-Charset HTTP header *)
+     ri_accept_encoding: ... list Lazy.t; (** Accept-Encoding HTTP header *)
+     ri_accept_language: ... list Lazy.t; (** Accept-Language HTTP header *)
+*)
      ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)
    }
 
@@ -86,7 +99,7 @@ type result =
      res_etag: Http_frame.etag option;
      res_code: int option; (* HTTP code, if not 200 *)
      res_send_page: Predefined_senders.send_page_type;
-     res_create_sender: Predefined_senders.create_sender_type;
+     res_headers: (string * string) list;
      res_charset: string option
    }
    
@@ -197,8 +210,8 @@ module R = struct
       let cur_fun = !fun_create_virthost in
       fun_create_virthost := 
         (fun hostpattern -> 
-          let (g1,p1,charset_tree) = cur_fun hostpattern in
-          let (g2,p2) = fun_virthost hostpattern in
+          let (g1, p1, charset_tree) = cur_fun hostpattern in
+          let (g2, p2) = fun_virthost hostpattern in
           ((fun charset ri ->
 	    g1 charset ri >>=
             fun (ext_res,cookieslist) ->
