@@ -25,16 +25,14 @@ open Lwt;;
 let minthreads : int ref = ref 0
 let maxthreads : int ref = ref 0
 
-let mypipe () = 
-  Lwt_unix.pipe () >>=
-  fun (in_fd, out_fd) ->
-    Lwt_unix.set_close_on_exec in_fd;
-    Lwt_unix.set_close_on_exec out_fd;
-    return
-      (Lwt_unix.in_channel_of_descr in_fd,
-       Lwt_unix.out_channel_of_descr out_fd)
+let finishedpipe = 
+  let (in_fd, out_fd) = Unix.pipe () in
+  Unix.set_nonblock in_fd;
+  Unix.set_close_on_exec in_fd;
+  Unix.set_close_on_exec out_fd;
+  (Lwt_unix.in_channel_of_descr (Lwt_unix.Plain in_fd),
+   Unix.out_channel_of_descr out_fd)
 
-let finishedpipe = mypipe ()   
 let pipelock = Mutex.create () 
 
 let worker_chan n : (unit -> unit) Event.channel= Event.new_channel () 
@@ -54,12 +52,11 @@ let rec worker (n : int) : unit Lwt.t =
   let g = Event.sync (Event.receive !pool.(n).taskchannel) in
   g ();
   let buf = string_of_int n in
-  finishedpipe >>= fun finishedpipe ->
-    Mutex.lock pipelock;
-    Lwt_unix.output_string (snd finishedpipe) (buf^"\n") >>= fun () ->
-      Lwt_unix.flush (snd finishedpipe) >>= fun () ->
-        Mutex.unlock pipelock;
-        worker n
+  Mutex.lock pipelock;
+  output_string (snd finishedpipe) (buf^"\n");
+  flush (snd finishedpipe);
+  Mutex.unlock pipelock;
+  worker n
 
 
 exception All_preemptive_threads_are_busy
@@ -128,7 +125,6 @@ let dispatch () =
   let rec aux () =
     (catch
        (fun () ->
-         finishedpipe >>= fun finishedpipe ->
          Lwt_unix.input_line (fst finishedpipe) >>=
          (fun v ->
            let n = int_of_string v in

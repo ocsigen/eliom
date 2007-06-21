@@ -674,10 +674,10 @@ let service
                     ~cookies:[]
                     wait_end_answer
                     ~keep_alive:ka
-                    ~location:(Neturl.string_of_url
-                                 (Neturl.undefault_url 
-                                    ~path:("/"::(ri.ri_path@["/"]))
-                                    ri.ri_url))
+                    ~location:((Neturl.string_of_url
+                                  (Neturl.undefault_url 
+                                     ~path:("/"::(ri.ri_path))
+                                     ri.ri_url))^"/")
                     ~code:301 (* Moved permanently *)
                     ~head:head empty_sender
               | Extensions.Ocsigen_malformed_url
