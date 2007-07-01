@@ -86,7 +86,7 @@ let coucou =
       </p>
       <pre>&lt;host&gt;
  &lt;site dir="examples"&gt;
-  &lt;module file="/<em>path_to</em>/tutoeliom.cmo" /&gt;
+  &lt;eliom module="/<em>path_to</em>/tutoeliom.cmo" /&gt;
  &lt;/site&gt;
 &lt;/host&gt;</pre>
       <p>Then run ocsigen. You should see your page at url

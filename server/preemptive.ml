@@ -35,7 +35,7 @@ let finishedpipe =
 
 let pipelock = Mutex.create () 
 
-let worker_chan n : (unit -> unit) Event.channel= Event.new_channel () 
+let worker_chan n : (unit -> unit) Event.channel = Event.new_channel () 
 type th = {mutable client: unit Lwt.t;
            mutable busy: bool;
            taskchannel: (unit -> unit) Event.channel;
@@ -114,11 +114,17 @@ let detach (f : 'a -> 'b) (args : 'a) : 'b Lwt.t =
     !pool.(whatthread).client <- Lwt.wait ();
     !pool.(whatthread).client >>= 
     (fun () -> match !res with 
-      None -> 
+    | None ->
         (match !exc with
-          None -> assert false (*; fail Task_failed *)
-        | Some e -> fail e)
-    | Some r -> Lwt.return r))
+        | None -> 
+            setbusy whatthread false;
+            assert false (*; fail Task_failed *)
+        | Some e ->         
+            setbusy whatthread false;
+            fail e)
+    | Some r ->
+        setbusy whatthread false;
+        Lwt.return r))
 
 
 let dispatch () = 
@@ -128,7 +134,6 @@ let dispatch () =
          Lwt_unix.input_line (fst finishedpipe) >>=
          (fun v ->
            let n = int_of_string v in
-           setbusy n false;
 
            ignore (
            (* Here we want to do the recursive call as soon as possible
@@ -184,3 +189,4 @@ let nbthreadsbusy () =
     Array.fold_left (fun nb elt -> if elt.busy then nb+1 else nb) 0 !pool in
   Mutex.unlock busylock;
   r
+
