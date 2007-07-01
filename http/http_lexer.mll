@@ -41,9 +41,9 @@ rule token =
   |"LINK"               {METHOD "LINK"}
   |"UNLINK"             {METHOD "UNLINK"}
   |"PATCH"              {METHOD "PATCH"}
-  |"\r\n"               {EOL}
+  |"\r\n"               {Messages.debug ""; EOL}
   |":"                  {Messages.debug_noel ":";COLON}
-  |"\n"                 {EOL}
+  |"\n"                 {Messages.debug ""; EOL}
   |integer              {Messages.debug_noel (Lexing.lexeme lexbuf);
 			 CODE (Lexing.lexeme lexbuf)}
   |proto                {Messages.debug_noel (Lexing.lexeme lexbuf);

@@ -256,21 +256,23 @@ let gmtdate d =
  * xhtml_sender is the used sender *)
 let send_generic
     (send : unit Lwt.t ->
-      ?etag:etag ->
-        ?mode:Xhtml_sender.H.http_mode ->
-          ?proto:string ->
-            ?headers:(string * string) list ->
-              ?meth:'c ->
-                ?url:string ->
-                  ?code:int -> 
-                    ?content:'a ->
-                      ?head:bool -> 
-                        Http_com.sender_type -> 
-                          unit Lwt.t)   
+      clientproto:Http_frame.Http_header.proto ->
+        ?etag:etag ->
+          ?mode:Xhtml_sender.H.http_mode ->
+            ?proto:Http_frame.Http_header.proto ->
+              ?headers:(string * string) list ->
+                ?meth:'c ->
+                  ?url:string ->
+                    ?code:int -> 
+                      ?content:'a ->
+                        ?head:bool -> 
+                          Http_com.sender_type -> 
+                            unit Lwt.t)   
     ?contenttype
     ~content
     ?(cookies=[])
     waiter
+    ~clientproto
     ?code
     ?etag
     ~keep_alive
@@ -321,24 +323,26 @@ let send_generic
   in
   let hds =
     match location with
-    |None ->  hds
-    |Some l -> ("Location",l)::hds
+    | None ->  hds
+    | Some l -> ("Location",l)::hds
   in
   let hds =
     match etag with
-    |None ->  hds
-    |Some l -> ("ETag", "\""^l^"\"")::hds
+    | None ->  hds
+    | Some l -> ("ETag", "\""^l^"\"")::hds
   in
   let hds = match contenttype with
-    None -> hds
+  | None -> hds
   | Some s -> ("Content-Type",
                (match (String.sub s 0 4), charset with 
-                 "text", Some c -> (s^"; charset="^c)
+               | "text", Some c -> (s^"; charset="^c)
                | _ -> s))::hds
   in
   match code with
-    |None -> send waiter ?etag ~code:200 ~content ~headers:hds ?head sender
-    |Some c -> send waiter ?etag ~code:c ~content ~headers:hds ?head sender
+  | None -> send 
+        waiter ~clientproto ?etag ~code:200 ~content ~headers:hds ?head sender
+  | Some c -> send
+        waiter ~clientproto ?etag ~code:c ~content ~headers:hds ?head sender
 
 
 type send_page_type =
@@ -346,6 +350,7 @@ type send_page_type =
        no content-type *)
     ?cookies:mycookieslist ->
       unit Lwt.t ->
+        clientproto:Http_frame.Http_header.proto ->
         ?code:int ->
           ?etag:etag ->
             keep_alive:bool ->
@@ -368,6 +373,7 @@ let send_xhtml_page
 (*    ~content
     ?cookies
     waiter
+    ~clientproto
     ?code
     ?etag
     ~keep_alive
@@ -384,6 +390,7 @@ let send_xhtml_page
 (*    ~content 
     ?cookies
     waiter
+    ~clientproto
     ?code
     ?etag
     ~keep_alive
@@ -414,6 +421,7 @@ let send_error
     ?http_exception
     ?cookies
     waiter
+    ~clientproto
     ?(code=500)
     ?etag
     ~keep_alive
@@ -454,6 +462,7 @@ let send_error
   send_xhtml_page
     ~content:err_page
     waiter
+    ~clientproto
     ~code:error_code
     ~headers:nocache_headers
     ?etag
@@ -510,14 +519,17 @@ let content_type_from_file_name =
       in Hashtbl.find mimeht extens
     with _ -> "unknown" 
 
-let send_file ~content:file ?cookies waiter ?code ?etag ~keep_alive
+let send_file ~content:file ?cookies waiter ~clientproto
+    ?code ?etag ~keep_alive
     ?last_modified ?location ?head ?headers ?charset file_sender =
   Lwt_unix.yield () >>=
   (fun () ->
     send_generic File_sender.send
       ~contenttype:(content_type_from_file_name file)
       ~content:file
-      ?cookies waiter ?code ?etag ~keep_alive
+      ?cookies waiter
+      ~clientproto
+      ?code ?etag ~keep_alive
       ?last_modified ?location ?head ?headers ?charset file_sender)
 
   

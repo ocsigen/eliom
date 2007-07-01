@@ -127,7 +127,7 @@ let string_of_exn = function
 
 
 (* Errors during requests *)
-let handle_light_request_errors 
+let handle_light_request_errors ~clientproto
     xhtml_sender sockaddr waiter exn = 
   (* EXCEPTIONS ABOUT THE REQUEST *)
   (* It can be an error during get_http_frame or during get_request_infos *)
@@ -144,29 +144,29 @@ let handle_light_request_errors
       
       (* Request errors: we answer, then we close *)
     | Http_error.Http_exception (_,_) ->
-        send_error now ~cookies:[]
+        send_error now ~clientproto ~cookies:[]
           ~keep_alive:false ~http_exception:exn xhtml_sender >>=
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_header_too_long ->
         Messages.debug "-> Sending 400";
         (* 414 URI too long. Actually, it is "header too long..." *)
-        send_error now ~keep_alive:false ~code:400 xhtml_sender >>= 
+        send_error now ~clientproto ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Request_too_long ->
         Messages.debug "-> Sending 400";
-        send_error now ~keep_alive:false ~code:400 xhtml_sender >>= 
+        send_error now ~clientproto ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Bad_Request ->
         Messages.debug "-> Sending 400";
-        send_error now ~keep_alive:false ~code:400 xhtml_sender >>= 
+        send_error now ~clientproto ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_upload_forbidden ->
         Messages.debug "-> Sending 403 Forbidden";
-        send_error now ~keep_alive:false ~code:400 xhtml_sender >>= 
+        send_error now ~clientproto ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_unsupported_media ->
         Messages.debug "-> Sending 415";
-        send_error now ~keep_alive:false ~code:415 xhtml_sender >>= 
+        send_error now ~clientproto ~keep_alive:false ~code:415 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
 
     (* Now errors that close the socket: we raise the exception again: *)
@@ -183,6 +183,7 @@ let handle_light_request_errors
         fail Connection_reset_by_peer
     | Ocsigen_Timeout 
     | Http_com.Ocsigen_KeepaliveTimeout
+    | Http_com.MustClose
     | Connection_reset_by_peer
     | Ocsigen_Request_interrupted _ -> fail exn
     | _ -> fail (Ocsigen_Request_interrupted exn)
@@ -198,8 +199,7 @@ let find_keepalive http_header =
     then true 
     else false (* should be "close" *)
   with _ ->
-    (* if prot.[(String.index prot '/')+3] = '1' *)
-    if (Http_header.get_proto http_header) = "HTTP/1.1"
+    if (Http_header.get_proto http_header) = Http_frame.Http_header.HTTP11
     then true
     else false
 
@@ -572,6 +572,8 @@ let service
   Messages.debug ("** Keep-Alive:"^(string_of_bool ka));
   Messages.debug("** HEAD:"^(string_of_bool head));
 
+  let clientproto = Http_header.get_proto http_frame.Stream_http_frame.header in
+
   let remove_files = 
     let rec aux = function
         (* We remove all the files created by the request 
@@ -628,6 +630,7 @@ let service
                   ~cookies:(List.map change_cookie 
                               (res.res_cookies@cookieslist))
                   wait_end_answer
+                  ~clientproto
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified
                   ?etag:res.res_etag
@@ -640,6 +643,7 @@ let service
                   ~cookies:(List.map change_cookie 
                               (res.res_cookies@cookieslist))
                   wait_end_answer
+                  ~clientproto
                   ~keep_alive:ka
                   ?last_modified:res.res_lastmodified
                   ?code:res.res_code
@@ -662,10 +666,12 @@ let service
             (fun () ->
               match e with
                 (* EXCEPTIONS WHILE COMPUTING A PAGE *)
-                Ocsigen_404 -> 
+              | Ocsigen_404 -> 
                   Messages.debug "-> Sending 404 Not Found";
                   send_error 
-                    wait_end_answer ~keep_alive:ka ~code:404 xhtml_sender
+                    wait_end_answer
+                    ~clientproto
+                    ~keep_alive:ka ~code:404 xhtml_sender
               | Ocsigen_sending_error exn -> fail exn
               | Ocsigen_Is_a_directory -> 
                   Messages.debug "-> Sending 301 Moved permanently";
@@ -673,6 +679,7 @@ let service
                     ~content:()
                     ~cookies:[]
                     wait_end_answer
+                    ~clientproto
                     ~keep_alive:ka
                     ~location:((Neturl.string_of_url
                                   (Neturl.undefault_url 
@@ -683,16 +690,23 @@ let service
               | Extensions.Ocsigen_malformed_url
               | Neturl.Malformed_URL -> 
                   Messages.debug "-> Sending 400 (Malformed URL)";
-                  send_error wait_end_answer ~keep_alive:ka
+                  send_error wait_end_answer
+                    ~clientproto
+                    ~keep_alive:ka
                     ~code:400 xhtml_sender (* Malformed URL *)
               | Unix.Unix_error (Unix.EACCES,_,_) ->
                   Messages.debug "-> Sending 303 Forbidden";
-                  send_error wait_end_answer ~keep_alive:ka
+                  send_error wait_end_answer
+                    ~clientproto
+                    ~keep_alive:ka
                     ~code:403 xhtml_sender (* Forbidden *)
               | Stream_already_read ->
                   Messages.errlog "Cannot read the request twice. You probably have two incompatible extensions, or the order of the extensions in the config file is wrong.";
-                  send_error wait_end_answer ~keep_alive:ka
+                  send_error wait_end_answer
+                    ~clientproto
+                    ~keep_alive:ka
                     ~code:500 xhtml_sender (* Internal error *)
+              | Http_com.MustClose as e -> fail e
               | e ->
                   Messages.warning
                     ("Exn during page generation: "^
@@ -710,11 +724,15 @@ let service
                                       XHTML.M.em 
                                         [XHTML.M.pcdata "(Ocsigen running in debug mode)"]
                                     ]])
-                      wait_end_answer ~code:500 
+                      wait_end_answer
+                      ~clientproto
+                      ~code:500 
                       ~keep_alive:ka xhtml_sender
                   else
                   send_error
-                    wait_end_answer ~keep_alive:ka ~code:500 xhtml_sender)
+                      wait_end_answer
+                      ~clientproto
+                      ~keep_alive:ka ~code:500 xhtml_sender)
             (fun e -> fail (Ocsigen_sending_error e))
             (* All generation exceptions have been handled here *)
         ) >>=
@@ -725,7 +743,7 @@ let service
         remove_files !filenames;
         match e with
           Ocsigen_sending_error _ -> fail e
-        | _ -> handle_light_request_errors
+        | _ -> handle_light_request_errors ~clientproto
               xhtml_sender sockaddr wait_end_answer e)
 
   in 
@@ -736,7 +754,9 @@ let service
   if ((meth <> Some (Http_header.GET)) && 
       (meth <> Some (Http_header.POST)) && 
       (meth <> Some(Http_header.HEAD)))
-  then send_error wait_end_answer ~keep_alive:ka ~code:501 xhtml_sender
+  then send_error wait_end_answer
+      ~clientproto
+      ~keep_alive:ka ~code:501 xhtml_sender
   else 
     catch
 
@@ -779,7 +799,9 @@ let service
              (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
              then consume http_frame.Stream_http_frame.content >>=
              (fun () ->
-             send_error wait_end_answer ~keep_alive:ka ~code:501 xhtml_sender)
+             send_error wait_end_answer
+             ~clientproto
+             ~keep_alive:ka ~code:501 xhtml_sender)
              else serv ()) *)
 
       (function
@@ -842,6 +864,12 @@ let listen ssl port wait_end_init =
           return ()
       | Http_com.Ocsigen_KeepaliveTimeout -> 
           return ()
+      | Http_com.MustClose -> 
+          (* not really an error but we cannot do keepalive *)
+          (* usually when there was no content-length in our answer
+             and we don't do chunked encoding (for HTTP/1.0)
+           *)
+          return ()
       | Ocsigen_Request_interrupted e -> 
           (* We decide to interrupt the request 
              (for ex if it is too long) *)
@@ -854,6 +882,7 @@ let listen ssl port wait_end_init =
       catch
         (fun () ->
           handle_light_request_errors 
+            ~clientproto:Http_frame.Http_header.HTTP11 
             xhtml_sender sockaddr wait_end_answer exn)
         (fun e -> handle_severe_errors exn)
     in
@@ -913,9 +942,10 @@ let listen ssl port wait_end_init =
         (catch
            (fun () ->
              service wait_end_answer http_frame port sockaddr
-               xhtml_sender empty_sender in_ch ())
-           (fun e -> lingering_close in_ch; fail e)) >>=
-        (fun () -> lingering_close in_ch; return ())
+               xhtml_sender empty_sender in_ch () >>= fun () -> 
+             lingering_close in_ch; return ())
+           handle_severe_errors)
+        
       end
 
     in (* body of listen_connexion *)
@@ -1005,7 +1035,7 @@ let listen ssl port wait_end_init =
             let relaunch =
               if (get_number_of_connected ()) <
                 (get_max_number_of_connections ()) then begin
-                  ignore_result (Lwt_unix.sleep 0.0005 >>= fun () -> 
+                  ignore_result (Lwt_unix.yield () >>= fun () -> 
                     wait_connexion_rec ());
                   false
                 end

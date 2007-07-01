@@ -32,28 +32,34 @@ let try_option opt err_mesg =
 (** converts the method into a string*)
 let string_of_method =
   function
-    |H.GET -> "GET "
-    |H.POST -> "POST "
-    |H.HEAD -> "HEAD "
-    |H.PUT -> "PUT "
-    |H.DELETE -> "DELETE "
-    |H.TRACE -> "TRACE "
-    |H.OPTIONS -> "OPTIONS "
-    |H.CONNECT -> "CONNECT "
-    |H.LINK -> "LINK "
-    |H.UNLINK -> "UNLINK "
-    |H.PATCH -> "PATCH "
+    | H.GET -> "GET "
+    | H.POST -> "POST "
+    | H.HEAD -> "HEAD "
+    | H.PUT -> "PUT "
+    | H.DELETE -> "DELETE "
+    | H.TRACE -> "TRACE "
+    | H.OPTIONS -> "OPTIONS "
+    | H.CONNECT -> "CONNECT "
+    | H.LINK -> "LINK "
+    | H.UNLINK -> "UNLINK "
+    | H.PATCH -> "PATCH "
+
+(** converts the protocol into a string*)
+let string_of_proto = function
+  | H.HTTP10 -> "HTTP/1.0"
+  | H.HTTP11 -> "HTTP/1.1"
 
 (** create the first line for an http frame in query mode*)
 let string_of_fst_line_query header =
   (string_of_method (try_option header.H.meth "method not defined"))^
-  (try_option header.H.url "url not defined")^" "^header.H.proto^"\r\n"
+  (try_option header.H.url "url not defined")^" "^
+  (string_of_proto header.H.proto)^"\r\n"
 
   
 (** create the first line for an http frame in answer mode*)
 let string_of_fst_line_answer header =
   let code = try_option header.H.code "code not defined" in
-  header.H.proto^" "^(string_of_int code)^" "^
+  (string_of_proto header.H.proto)^" "^(string_of_int code)^" "^
   (Http_error.expl_of_code code)^"\r\n"
 
 (** creates a string from an headers line *)

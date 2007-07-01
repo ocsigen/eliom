@@ -26,6 +26,7 @@ open Ocsimisc
 exception Ocsigen_HTTP_parsing_error of string * string
 exception Ocsigen_KeepaliveTimeout
 exception Ocsigen_Timeout
+exception MustClose
 exception Ocsigen_buffer_is_full
 exception Ocsigen_header_too_long
 exception Connection_reset_by_peer
@@ -446,7 +447,7 @@ type sender_type = {
     (** the mode of the sender Query or Answer *)
     mutable s_mode: Http_frame.Http_header.http_mode;
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
-    mutable s_proto: string;
+    mutable s_proto: Http_frame.Http_header.proto;
     (** the options to send with each frame, for exemple : server name , ... *)
     mutable s_headers: (string * string) list
   }
@@ -460,7 +461,7 @@ let create_sender
     ?server_name
     ?(mode=Http_frame.Http_header.Answer)
     ?(headers=[])
-    ?(proto="HTTP/1.1") fd = 
+    ?(proto=Http_frame.Http_header.HTTP11) fd = 
   let headers = ("Accept-Ranges","none")::headers in
   let headers =
     match server_name with
@@ -586,11 +587,11 @@ module FHttp_sender =
     let get_protocol sender =
       sender.s_proto
 
-    (**gets the mode*)
+    (** gets the mode *)
     let get_mode sender =
       sender.s_mode
 
-    (**gets the headers*)
+    (** gets the headers *)
     let get_headers sender =
       sender.s_headers
 
@@ -603,8 +604,8 @@ module FHttp_sender =
           |_::tl -> get_aux tl
       in get_aux sender.s_headers
     
-    (* fusion of the two headers list and add the content-length header*)
-    let hds_fusion content_length lst1 lst2 =
+    (* fusion of the two headers list and add the content-length header *)
+    let hds_fusion chunked content_length lst1 lst2 =
       let rec fusion_aux res =
         function
           |([],[]) -> res
@@ -621,14 +622,19 @@ module FHttp_sender =
               fusion_aux ((n1,v1)::res) (tl1,list2)
           |(lst1,hd2::tl2) -> fusion_aux (hd2::res) (lst1,tl2)
       in
-      let length_header =
-        match content_length with
-        |None -> [("Transfer-Encoding", "chunked")]
-        |Some n -> [("Content-Length", Int64.to_string n)]
-      in
-      length_header@
+      let h = 
         (fusion_aux [] 
-        (Sort.list pair_order lst1,Sort.list pair_order lst2)) 
+           (Sort.list pair_order lst1, Sort.list pair_order lst2))
+      in
+      let h = 
+        if chunked
+        then ("Transfer-Encoding", "chunked")::h
+        else h
+      in
+      match content_length with
+      | None -> h
+      | Some n -> ("Content-Length", Int64.to_string n)::h
+
 
 
     (** sends the http_frame mode and proto can be overright, the headers are
@@ -637,6 +643,7 @@ module FHttp_sender =
      * the content-length tag is automaticaly calculated *)
     let send 
         waiter
+        ~clientproto
         ?etag
         ?mode
         ?proto
@@ -666,12 +673,22 @@ module FHttp_sender =
              (fun (lon, etag2, flux, close_fun) ->
                catch
                  (fun () ->
-                   Lwt.return (hds_fusion lon
+                   let chunked = (lon=None && 
+                                  clientproto <> 
+                                  Http_frame.Http_header.HTTP10) in
+                   (* if HTTP/1.0 we do not use chunked encoding
+                      even if the client tells that it supports it,
+                      because it may be an HTTP/1.0 proxy that
+                      transmits the header by mistake.
+                      In that case, we close the connection after the
+                      answer.
+                    *)
+                   Lwt.return (hds_fusion chunked lon
                                  (("ETag", ("\""^(match etag with 
                                    None -> etag2
                                  | Some etag -> etag)^"\""))::sender.s_headers)
                                  (match headers with 
-                                   Some h ->h
+                                   Some h -> h
                                  | None -> []) ) >>=
                    (fun hds -> 
                      let hd = {
@@ -690,15 +707,22 @@ module FHttp_sender =
                    (fun _ -> match head with 
                    | Some true -> Lwt.return (close_fun ())
                    | _ -> Messages.debug "writing body"; 
-                       really_write 
-                         ~chunked:(lon=None) sender.s_fd close_fun flux)
+                       really_write ~chunked:chunked sender.s_fd close_fun flux
+                         >>= fun r ->
+                           if (lon=None && 
+                               clientproto = Http_frame.Http_header.HTTP10)
+                           then fail MustClose
+                           else return r
+                   )
                  )
-                 (fun e -> 
-                   (try 
-                     close_fun () 
-                   with e -> 
-                     Messages.debug
-                       ("Error while closing stream (error during stream) : "^
-                        (Printexc.to_string e)));
-                   fail (Ocsigen_sending_error e)))))
+                 (function
+                   | MustClose -> fail MustClose
+                   | e -> 
+                       (try 
+                         close_fun () 
+                       with e -> 
+                         Messages.debug
+                           ("Error while closing stream (error during stream) : "^
+                            (Printexc.to_string e)));
+                       fail (Ocsigen_sending_error e)))))
   end

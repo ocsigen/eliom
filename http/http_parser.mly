@@ -25,29 +25,42 @@
   let meth = ref None
   let url = ref None
   let code = ref None
-  let proto = ref ""
+  let proto = ref HTTP11
   let headers = ref []
 
   let reset_header () = headers:=[]
   
   let make_header() =
-    {mode = !mode; meth= !meth; url = !url; code = !code ;
-    proto= !proto;headers= !headers}
+    {mode = !mode; 
+     meth= !meth; 
+     url = !url; 
+     code = !code ;
+     proto= !proto;
+     headers= !headers}
 
   let meth_of_string =
     function
-      |"GET" -> GET
-      |"POST" -> POST
-      |"HEAD" -> HEAD
-      |"PUT" -> PUT
-      |"DELETE" -> DELETE
-      |"TRACE" -> TRACE
-      |"OPTIONS" -> OPTIONS
-      |"CONNECT" -> CONNECT
-      |"LINK" -> LINK
-      |"UNLINK" -> UNLINK
-      |"PATCH" -> PATCH
-      |s -> raise (Http_error.Http_exception (Some 400,[("Unknown method :"^s)]))
+      | "GET" -> GET
+      | "POST" -> POST
+      | "HEAD" -> HEAD
+      | "PUT" -> PUT
+      | "DELETE" -> DELETE
+      | "TRACE" -> TRACE
+      | "OPTIONS" -> OPTIONS
+      | "CONNECT" -> CONNECT
+      | "LINK" -> LINK
+      | "UNLINK" -> UNLINK
+      | "PATCH" -> PATCH
+      | s -> raise
+            (Http_error.Http_exception (Some 400,[("Unknown method: "^s)]))
+
+  let proto_of_string =
+    function
+      | "HTTP/1.1" -> HTTP11
+      | "HTTP/1.0" -> HTTP10
+      | s -> raise
+            (Http_error.Http_exception (Some 400,
+                                        [("Unsupported protocol: "^s)]))
 
 (*
   let split_string s =
@@ -77,10 +90,10 @@ header :
 firstline :
   |METHOD STRING PROTO EOL      {reset_header ();
       mode := Query;meth:=Some(meth_of_string($1));
-      url:=Some $2;proto:=$3}
+      url:=Some $2;proto:=(proto_of_string $3)}
   |PROTO CODE strings EOL       {reset_header ();
 				 mode := Answer;
-				 proto:=$1;
+				 proto:=(proto_of_string $1);
 				 code:= Some (int_of_string $2)}
 
 lines :

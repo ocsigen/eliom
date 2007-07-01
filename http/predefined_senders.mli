@@ -24,6 +24,7 @@ type mycookieslist =
 type send_page_type =
     ?cookies:mycookieslist ->
     unit Lwt.t ->
+    clientproto:Http_frame.Http_header.proto ->
     ?code:int ->
     ?etag:Http_frame.etag ->
     keep_alive:bool ->
@@ -132,12 +133,12 @@ module Empty_sender :
           meth : http_method option;
           url : string option;
           code : int option;
-          proto : string;
+          proto : Http_frame.Http_header.proto;
           headers : (string * string) list;
         }
         val get_url : http_header -> string
         val get_headers_value : http_header -> string -> string
-        val get_proto : http_header -> string
+        val get_proto : http_header -> Http_frame.Http_header.proto
         val get_method : http_header -> http_method option
         val add_headers : http_header -> string -> string -> http_header
       end
@@ -168,7 +169,7 @@ module Empty_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : string -> Http_com.sender_type -> unit
+    val change_protocol : Http_frame.Http_header.proto -> Http_com.sender_type -> unit
     val change_headers :
       (string * string) list -> Http_com.sender_type -> unit
     val change_mode :
@@ -178,19 +179,21 @@ module Empty_sender :
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
-    val get_protocol : Http_com.sender_type -> string
+    val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
     val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
+      bool ->
       int64 option ->
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
       unit Lwt.t ->
+      clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       ?mode:H.http_mode ->
-      ?proto:string ->
+      ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?meth:H.http_method ->
       ?url:string ->
@@ -222,12 +225,12 @@ module Xhtml_sender :
           meth : http_method option;
           url : string option;
           code : int option;
-          proto : string;
+          proto : Http_frame.Http_header.proto;
           headers : (string * string) list;
         }
         val get_url : http_header -> string
         val get_headers_value : http_header -> string -> string
-        val get_proto : http_header -> string
+        val get_proto : http_header -> Http_frame.Http_header.proto
         val get_method : http_header -> http_method option
         val add_headers : http_header -> string -> string -> http_header
       end
@@ -258,7 +261,8 @@ module Xhtml_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : string -> Http_com.sender_type -> unit
+    val change_protocol : Http_frame.Http_header.proto
+      -> Http_com.sender_type -> unit
     val change_headers :
       (string * string) list -> Http_com.sender_type -> unit
     val change_mode :
@@ -268,19 +272,21 @@ module Xhtml_sender :
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
-    val get_protocol : Http_com.sender_type -> string
+    val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
     val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
+      bool ->
       int64 option ->
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
       unit Lwt.t ->
+      clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       ?mode:H.http_mode ->
-      ?proto:string ->
+      ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?meth:H.http_method ->
       ?url:string ->
@@ -322,12 +328,12 @@ module Text_sender :
           meth : http_method option;
           url : string option;
           code : int option;
-          proto : string;
+          proto : Http_frame.Http_header.proto;
           headers : (string * string) list;
         }
         val get_url : http_header -> string
         val get_headers_value : http_header -> string -> string
-        val get_proto : http_header -> string
+        val get_proto : http_header -> Http_frame.Http_header.proto
         val get_method : http_header -> http_method option
         val add_headers : http_header -> string -> string -> http_header
       end
@@ -358,7 +364,7 @@ module Text_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : string -> Http_com.sender_type -> unit
+    val change_protocol : Http_frame.Http_header.proto -> Http_com.sender_type -> unit
     val change_headers :
       (string * string) list -> Http_com.sender_type -> unit
     val change_mode :
@@ -368,19 +374,21 @@ module Text_sender :
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
-    val get_protocol : Http_com.sender_type -> string
+    val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
     val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
+      bool ->
       int64 option ->
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
       unit Lwt.t ->
+      clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       ?mode:H.http_mode ->
-      ?proto:string ->
+      ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?meth:H.http_method ->
       ?url:string ->
@@ -458,12 +466,12 @@ module File_sender :
           meth : http_method option;
           url : string option;
           code : int option;
-          proto : string;
+          proto : Http_frame.Http_header.proto;
           headers : (string * string) list;
         }
         val get_url : http_header -> string
         val get_headers_value : http_header -> string -> string
-        val get_proto : http_header -> string
+        val get_proto : http_header -> Http_frame.Http_header.proto
         val get_method : http_header -> http_method option
         val add_headers : http_header -> string -> string -> http_header
       end
@@ -494,7 +502,7 @@ module File_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : string -> Http_com.sender_type -> unit
+    val change_protocol : Http_frame.Http_header.proto -> Http_com.sender_type -> unit
     val change_headers :
       (string * string) list -> Http_com.sender_type -> unit
     val change_mode :
@@ -504,19 +512,21 @@ module File_sender :
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
-    val get_protocol : Http_com.sender_type -> string
+    val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
     val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
+      bool ->
       int64 option ->
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
       unit Lwt.t ->
+      clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       ?mode:H.http_mode ->
-      ?proto:string ->
+      ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?meth:H.http_method ->
       ?url:string ->
@@ -548,12 +558,12 @@ module Stream_sender :
           meth : http_method option;
           url : string option;
           code : int option;
-          proto : string;
+          proto : Http_frame.Http_header.proto;
           headers : (string * string) list;
         }
         val get_url : http_header -> string
         val get_headers_value : http_header -> string -> string
-        val get_proto : http_header -> string
+        val get_proto : http_header -> Http_frame.Http_header.proto
         val get_method : http_header -> http_method option
         val add_headers : http_header -> string -> string -> http_header
       end
@@ -584,7 +594,7 @@ module Stream_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : string -> Http_com.sender_type -> unit
+    val change_protocol : Http_frame.Http_header.proto -> Http_com.sender_type -> unit
     val change_headers :
       (string * string) list -> Http_com.sender_type -> unit
     val change_mode :
@@ -594,19 +604,21 @@ module Stream_sender :
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
-    val get_protocol : Http_com.sender_type -> string
+    val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
     val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
+      bool ->
       int64 option ->
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
       unit Lwt.t ->
+      clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       ?mode:H.http_mode ->
-      ?proto:string ->
+      ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?meth:H.http_method ->
       ?url:string ->
@@ -619,9 +631,10 @@ module Stream_sender :
 val gmtdate : float -> string
 val send_generic :
     (unit Lwt.t ->
+      clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
         ?mode:Xhtml_sender.H.http_mode ->
-          ?proto:string ->
+          ?proto:Http_frame.Http_header.proto ->
             ?headers:(string * string) list ->
               ?meth:'c ->
                 ?url:string ->
@@ -634,6 +647,7 @@ val send_generic :
   content:'a ->
   ?cookies:mycookieslist ->
   unit Lwt.t ->
+  clientproto:Http_frame.Http_header.proto ->
   ?code:int ->
   ?etag:Http_frame.etag ->
   keep_alive:bool ->

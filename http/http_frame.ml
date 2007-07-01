@@ -59,17 +59,19 @@ module Http_header =
 
       (**type of the http_method*)
       type http_method =
-        |GET
-        |POST
-        |HEAD
-        |PUT
-        |DELETE
-        |TRACE
-        |OPTIONS
-        |CONNECT
-        |LINK
-        |UNLINK
-        |PATCH
+        | GET
+        | POST
+        | HEAD
+        | PUT
+        | DELETE
+        | TRACE
+        | OPTIONS
+        | CONNECT
+        | LINK
+        | UNLINK
+        | PATCH
+
+      type proto = HTTP10 | HTTP11
   
         (**type of the http headers*)
         type http_header =
@@ -83,7 +85,7 @@ module Http_header =
             (** the control number sent with a server's Answer*)
             code:int option;
             (** protocol used for the Query or the Answer*)
-            proto: string;
+            proto: proto;
             (** list of the headers options *)
             headers: (string*string) list
           }
