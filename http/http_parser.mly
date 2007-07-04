@@ -94,11 +94,9 @@ firstline :
 nofirstline :
   | EOL                          {mode := Nofirstline; 
 				  proto := HTTP11;
-				  reset_header ();
 				  make_header()}
   | lines EOL                    {mode := Nofirstline; 
 				  proto := HTTP11;
-				  reset_header ();
 				  make_header()}
 
 lines :
@@ -128,3 +126,11 @@ strings :
   | CODE                         {$1}
   | CODE strings                 {$1^" "^$2}
   | CODE COLON strings           {$1^":"^$3}
+
+%%
+
+let nofirstline a =
+  reset_header ();
+  nofirstline a
+
+

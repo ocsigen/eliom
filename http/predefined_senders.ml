@@ -144,7 +144,7 @@ module File_content =
 
     let read_file ?buffer_size fd =
       let buffer_size = match buffer_size with
-        None -> Ocsiconfig.get_filebuffersize ()
+      | None -> Ocsiconfig.get_filebuffersize ()
       | Some s -> s
       in
       Messages.debug ("start reading file (file opened)");

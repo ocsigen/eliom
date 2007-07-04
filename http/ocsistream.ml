@@ -24,23 +24,43 @@ exception String_too_large
 
 (* The type must be private! *)
 type stream = 
-    Finished of stream option (* If there is another stream following
+  | Finished of stream option (* If there is another stream following
                                  (usefull for substreams) *)
   | Cont of string * int * (unit -> stream Lwt.t)
         (* current buffer, size, follow *)
 
 let empty_stream follow = Finished follow
 
-let new_stream stri f = Cont (stri, (String.length stri), f)
+let new_stream ?len stri f = 
+  let l =
+    match len with
+    | None -> String.length stri
+    | Some l -> l
+  in
+  Cont (stri, l, f)
 
 let rec is_finished = function
-    Finished None -> true
+  | Finished None -> true
   | Finished (Some s) -> is_finished s
   | _ -> false
 
 let string_of_stream = 
   let rec aux l = function
-      Finished _ -> return ""
+    | Finished _ -> return ""
+    | Cont (s, long, f) -> 
+        let l2 = l+long in
+        if l2 > Ocsiconfig.get_netbuffersize ()
+        then fail String_too_large
+        else 
+          (f () >>= 
+           (fun r -> aux l2 r >>=
+             (fun r -> return (s^r))))
+  in aux 0
+
+let string_of_streams = 
+  let rec aux l = function
+    | Finished None -> return ""
+    | Finished (Some s) -> aux l s
     | Cont (s, long, f) -> 
         let l2 = l+long in
         if l2 > Ocsiconfig.get_netbuffersize ()
@@ -52,7 +72,7 @@ let string_of_stream =
   in aux 0
 
 let enlarge_stream = function 
-    Finished a -> fail Stream_too_small
+  | Finished a -> fail Stream_too_small
   | Cont (s, long, f) ->
       let max = Ocsiconfig.get_netbuffersize () in
       if long >= max
@@ -60,7 +80,7 @@ let enlarge_stream = function
       else
         f () >>= 
         (function
-            Finished _ -> fail Stream_too_small
+          | Finished _ -> fail Stream_too_small
           | Cont (r, long2, ff) -> 
               let long3=long+long2 in
               let new_s = s^r in
@@ -75,7 +95,7 @@ let enlarge_stream = function
 let rec stream_want s len =
  (* returns a stream with at most len bytes read if possible *)
   match s with
-    Finished _ -> return s
+  | Finished _ -> return s
   | Cont (stri, long, f)  -> if long >= len
   then return s
   else catch
@@ -85,11 +105,11 @@ let rec stream_want s len =
           | e -> fail e)
 
 let current_buffer = function
-    Finished _ -> raise Stream_too_small
+  | Finished _ -> raise Stream_too_small
   | Cont (s, l, _) -> s
-
+        
 let rec skip s k = match s with
-  Finished _ -> raise Stream_too_small
+| Finished _ -> raise Stream_too_small
 | Cont (s, len, f) -> 
     if k <= len
     then return (Cont ((String.sub s k (len - k)), (len - k), f))
@@ -103,7 +123,7 @@ let substream delim s =
     let rdelim = Netstring_pcre.regexp_string delim in
     let rec aux =
       function
-          Finished _ -> raise Stream_too_small
+        | Finished _ -> raise Stream_too_small
         | Cont (s, len, f) as stre -> 
             if len < ldelim
             then enlarge_stream stre >>= aux
@@ -136,7 +156,7 @@ let substream delim s =
 
 (** read the stream until the end, without decoding *)
 let rec consume = function
-    Cont (_, _, f) -> Lwt_unix.yield () >>= (fun () -> f () >>= consume)
+  | Cont (_, _, f) -> Lwt_unix.yield () >>= (fun () -> f () >>= consume)
   | Finished (Some ss) -> consume ss
   | _ -> return ()
 

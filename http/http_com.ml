@@ -29,6 +29,7 @@ exception Ocsigen_Timeout
 exception MustClose
 exception Ocsigen_buffer_is_full
 exception Ocsigen_header_too_long
+exception Ocsigen_Bad_chunked_data
 exception Connection_reset_by_peer
 exception Ocsigen_sending_error of exn
 
@@ -287,7 +288,7 @@ struct
     in extract_aux len
 
 (** find the sequence crlfcrlf in the buffer *)
-  let rec find buffer ind nb_read =
+  let rec find_header buffer ind nb_read =
     function
       | rem_len when rem_len < nb_read -> raise Not_found
       | rem_len ->
@@ -299,10 +300,12 @@ struct
                         buffer.buf.[(ind+2) mod buffer.size],
                         buffer.buf.[(ind+3) mod buffer.size]) with
                   |('\r','\n','\r','\n') -> ind + 3
-                  |(_,'\r','\n','\r') -> find buffer (ind + 4) 1 (rem_len -4)
-                  |(_,_,'\r','\n') -> find buffer (ind +4) 2 (rem_len -4)
-                  |(_,_,_,'\r') -> find buffer (ind+4) 3 (rem_len -4)
-                  |(_,_,_,_) -> find buffer (ind+4) 4 (rem_len -4)
+                  |(_,'\r','\n','\r') -> 
+                      find_header buffer (ind + 4) 1 (rem_len -4)
+                  |(_,_,'\r','\n') -> 
+                      find_header buffer (ind +4) 2 (rem_len -4)
+                  |(_,_,_,'\r') -> find_header buffer (ind+4) 3 (rem_len -4)
+                  |(_,_,_,_) -> find_header buffer (ind+4) 4 (rem_len -4)
                 )
             | 3 ->
                 (
@@ -310,25 +313,26 @@ struct
                          buffer.buf.[(ind+1) mod buffer.size],
                          buffer.buf.[(ind +2) mod buffer.size]) with
                     |('\n','\r','\n') -> ind + 2
-                    |(_,'\r','\n') -> find buffer (ind + 3) 2 (rem_len -3)
-                    |(_,_,'\r') -> find buffer (ind +3) 3 (rem_len -3)
-                    |(_,_,_) -> find buffer (ind+3) 4 (rem_len -3)
+                    |(_,'\r','\n') -> 
+                        find_header buffer (ind + 3) 2 (rem_len -3)
+                    |(_,_,'\r') -> find_header buffer (ind +3) 3 (rem_len -3)
+                    |(_,_,_) -> find_header buffer (ind+3) 4 (rem_len -3)
                 )
             | 2 -> 
                 (
                   match (buffer.buf.[ind mod buffer.size],
                          buffer.buf.[(ind+1) mod buffer.size]) with
                     |('\r','\n') -> ind + 1
-                    |(_,'\r') -> find buffer (ind+2) 3 (rem_len -2)
-                    |(_,_) -> find buffer (ind+2) 4 (rem_len -2)
+                    |(_,'\r') -> find_header buffer (ind+2) 3 (rem_len -2)
+                    |(_,_) -> find_header buffer (ind+2) 4 (rem_len -2)
                 )
-            |1 -> 
+            | 1 -> 
                 (
                   match buffer.buf.[ind mod buffer.size] with
                     |'\n' -> ind
-                    |_ -> find buffer (ind+1) 4 (rem_len -1)
+                    |_ -> find_header buffer (ind+1) 4 (rem_len -1)
                 )
-            |_ -> assert false
+            | _ -> assert false
           ) mod buffer.size
             
   (** returns when the seqence \r\n\r\n is found in the buffer
@@ -340,7 +344,7 @@ struct
       | x when x <= 0 -> assert false
       | available ->
           try
-            let end_ind = find buffer cur_ind 4 available in
+            let end_ind = find_header buffer cur_ind 4 available in
             Lwt.return (sizedata (end_ind+1) buffer.read_pos buffer.size)
           with 
             Not_found ->
@@ -369,6 +373,101 @@ struct
       (function
         | Ocsigen_buffer_is_full -> fail Ocsigen_header_too_long
         | e -> fail e)
+
+
+(** find the sequence crlf in the buffer *)
+  let find_line buffer ind av =
+    let rec aux ind nb_read =
+      function
+        | rem_len when rem_len < nb_read -> raise Not_found
+        | rem_len ->
+            (
+             match nb_read with
+             | 2 -> 
+                 (
+                  match (buffer.buf.[ind mod buffer.size],
+                         buffer.buf.[(ind+1) mod buffer.size]) with
+                  |('\r','\n') -> ind + 1
+                  |(_,'\r') -> aux (ind+2) 1 (rem_len -2)
+                  |(_,_) -> aux (ind+2) 2 (rem_len -2)
+                 )
+             | 1 -> 
+                 (
+                  match buffer.buf.[ind mod buffer.size] with
+                  |'\n' -> ind
+                  |_ -> aux (ind+1) 2 (rem_len -1)
+                 )
+             | _ -> assert false
+            ) mod buffer.size
+    in aux ind 2 av
+
+  (** returns when the seqence \r\n is found in the buffer
+     the result is number of char to read *)
+  let wait_line fd buffer =
+    let rec aux cur_ind =
+      (* here the buffer is not empty *)
+      match sizedata buffer.write_pos cur_ind buffer.size with
+      | x when x <= 0 -> assert false
+      | available ->
+          try
+            let end_ind = find_line buffer cur_ind available in
+            Lwt.return (sizedata (end_ind+1) buffer.read_pos buffer.size)
+          with 
+            Not_found ->
+              receive now fd buffer >>= (fun () ->
+                aux ((cur_ind + available - 
+                        (min available 1)) mod buffer.size))
+    in 
+    try
+      (if buffer.datasize = 0
+      then receive now fd buffer
+      else return ()) >>= fun () -> 
+      aux buffer.read_pos
+    with e -> fail e
+
+  (** extract chunked data in destructive way from the buffer.
+     The optional [?finish] parameter is an action that
+     will be executed when the stream is finished.
+    *)
+  let extract_chunked ?(finish = id) fd buffer =
+
+    let extract_crlf fd buffer =
+      extract fd buffer (Size (Int64.of_int 2)) >>= 
+      string_of_stream >>= fun s ->
+      if s = "\r\n"
+      then return ()
+      else fail Ocsigen_Bad_chunked_data
+    in
+
+    let rec aux () =
+print_endline "aux";
+      wait_line fd buffer >>= fun len ->
+        catch
+          (fun () -> extract fd buffer (Size (Int64.of_int len)))
+          (function
+            | Ocsigen_buffer_is_full -> fail Ocsigen_Bad_chunked_data
+            | e -> fail e) >>=
+        string_of_stream >>= fun chunksize ->
+        let chunksize = Scanf.sscanf chunksize "%x" id in
+        if chunksize = 0
+        then begin
+print_endline "zéro";
+          extract_crlf fd buffer >>= fun () ->
+print_endline "finish";
+          finish ();
+          return (empty_stream None)
+        end
+        else 
+          (extract fd buffer (Size (Int64.of_int chunksize)) >>=
+           transform_stream)
+
+    and transform_stream = function
+      | Finished _ -> extract_crlf fd buffer >>= aux
+      | Cont (s, l, f) ->
+          return (new_stream ~len:l s (fun () -> f () >>= transform_stream))
+    in
+
+    aux ()
 
 end
 
@@ -487,7 +586,13 @@ module FHttp_receiver =
                     in
 
                     if chunked
-                    then failwith "receiving chunked encoding not implemented"
+                    then 
+                      let waiter_end_stream = wait () in
+                      Com_buffer.extract_chunked
+                        ~finish:(Lwt.wakeup waiter_end_stream)
+                        receiver.r_fd receiver.r_buffer >>=
+                      C.content_of_stream >>= fun c ->
+                      return (waiter_end_stream, Some c)
                     else
 
 
@@ -534,9 +639,9 @@ module FHttp_receiver =
                               Com_buffer.extract
                                 ~finish:(Lwt.wakeup waiter_end_stream)
                                 receiver.r_fd receiver.r_buffer
-                                (Com_buffer.Size cl)
-                                >>= C.content_of_stream >>= 
-                              (fun c -> return (waiter_end_stream, Some c)))
+                                (Com_buffer.Size cl) >>=
+                              C.content_of_stream >>= fun c -> 
+                              return (waiter_end_stream, Some c))
                       | None ->
 
 (* RFC

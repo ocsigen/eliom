@@ -410,7 +410,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                           ((Netencoding.Url.dest_url_encoded_parameters r),
                            [])))
                     (function
-                        Ocsistream.String_too_large -> fail Input_is_too_large
+                      | Ocsistream.String_too_large -> fail Input_is_too_large
                       | e -> fail e)
                 else 
                   match
@@ -429,7 +429,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                         with _ -> None in
                         let p_name = find_field "name" cd in
                         match st with 
-                          None -> No_File (p_name, Buffer.create 1024)
+                        | None -> No_File (p_name, Buffer.create 1024)
                         | Some store -> 
                             let now = 
                               Printf.sprintf 
@@ -437,7 +437,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                                 store (Unix.gettimeofday ()) (counter ())
                             in
                             match ((Ocsiconfig.get_uploaddir ())) with
-                              Some dname ->
+                            | Some dname ->
                                 let fname = dname^"/"^now in
                                 let fd = Unix.openfile fname 
                                     [Unix.O_CREAT;
@@ -451,7 +451,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                       in
                       let add where s =
                         match where with 
-                          No_File (p_name, to_buf) -> 
+                        | No_File (p_name, to_buf) -> 
                             Buffer.add_string to_buf s;
                             return ()
                         | A_File (_,_,_,wh) -> 
@@ -459,14 +459,14 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                             (fun r -> Lwt_unix.yield ())
                       in
                       let stop size  = function 
-                          No_File (p_name, to_buf) -> 
+                        | No_File (p_name, to_buf) -> 
                             return 
                               (params := !params @
                                 [(p_name, Buffer.contents to_buf)])
                               (* à la fin ? *)
                         | A_File (p_name,fname,oname,wh) -> 
                             (match wh with 
-                              Lwt_unix.Plain fdscr -> 
+                            | Lwt_unix.Plain fdscr -> 
                                 (* Messages.debug "closing file"; *)
                                 files := 
                                   !files@[(p_name, {tmp_filename=fname;

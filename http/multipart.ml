@@ -83,7 +83,7 @@ let read_header ?downcase ?unfold ?strip (s : Ocsistream.stream) =
               (s, (S.match_end (snd (S.search_forward end_of_header_re b 0))))
       )
       (function
-          Not_found -> 
+        | Not_found -> 
             Ocsistream.enlarge_stream s >>= 
             (function
                 Finished _ -> fail Stream_too_small
@@ -112,7 +112,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
       Not_found -> 
         Ocsistream.enlarge_stream s >>=
         (function
-            Finished _ -> fail Stream_too_small
+          | Finished _ -> fail Stream_too_small
           | Cont (stri, long, _) as s -> search_window s re start)
   in
   let search_end_of_line s k =
@@ -121,10 +121,10 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
       (fun () -> (search_window s lf_re k) >>= 
         (fun (s,x) -> return (s, (S.match_end x))))
     (function
-        Not_found ->
-            fail (Multipart_error 
-                    "read_multipart_body: MIME boundary without line end")
-        | e -> fail e)
+      | Not_found ->
+          fail (Multipart_error 
+                  "read_multipart_body: MIME boundary without line end")
+      | e -> fail e)
   in
 
   let search_first_boundary s =
@@ -140,7 +140,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
     let del = "--" ^ boundary in
     let ldel = String.length del in
     Ocsistream.stream_want s ldel >>= (function
-        Finished _ as str2 -> return (str2, false)
+      | Finished _ as str2 -> return (str2, false)
       | Cont (ss, long, f) as str2 -> 
           return (str2, ((long >= ldel) && 
                          (String.sub ss 0 ldel = del))))
@@ -161,7 +161,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
       let l_delimiter = String.length delimiter in
       Ocsistream.stream_want s (l_delimiter+2) >>= (fun s ->
         let last_part = match s with
-          Finished _ -> false
+        | Finished _ -> false
         | Cont (ss, long, f) ->
             (long >= (l_delimiter+2)) &&
             (ss.[l_delimiter] = '-') && 
@@ -198,7 +198,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
           (* Begin with first part: *)
           (fun s -> parse_parts s uses_crlf))))
       (function 
-          Not_found ->
+        | Not_found ->
             (* No boundary at all: The body is empty. *)
             return []
         | e -> fail e)  
@@ -211,7 +211,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
     read_header stream >>= (fun (s, header) ->
       let p = create header in
       let rec while_stream size = function
-          Finished None -> return (size, empty_stream None)
+        | Finished None -> return (size, empty_stream None)
         | Finished (Some ss) -> return (size, ss)
         | Cont (stri, long, f) ->
             let size2 = Int64.add size (Int64.of_int long) in
@@ -249,7 +249,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
       read_multipart_body decode_part boundary s >>=
       (fun _ -> return ()))
     (function
-        Stream_too_small -> fail Ocsimisc.Ocsigen_Bad_Request
+      | Stream_too_small -> fail Ocsimisc.Ocsigen_Bad_Request
       | e -> fail e)
 ;;
 

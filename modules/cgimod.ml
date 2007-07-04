@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module extensiontemplate.ml
- * Copyright (C) 2007 Vincent Balat
+ * Module cgimod.ml
+ * Copyright (C) 2007 Jérôme Velleine
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

@@ -11,14 +11,16 @@ exception String_too_large
    The integer is the size of the current buffer.
  *)
 type stream = private
-    Finished of stream option
+  | Finished of stream option
   | Cont of string * int * (unit -> stream Lwt.t)
 
 (** creates an empty stream *)
 val empty_stream : stream option -> stream
 
-(** creates a new (non empty) stream *)
-val new_stream : string -> (unit -> stream Lwt.t) -> stream
+(** creates a new (non empty) stream. 
+   [?len] is the length of the string, if you know it (not checked).
+ *)
+val new_stream : ?len:int -> string -> (unit -> stream Lwt.t) -> stream
 
 (** true if the stream is finished *)
 val is_finished : stream -> bool
