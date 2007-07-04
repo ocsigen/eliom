@@ -2,7 +2,7 @@ include ../Makefile.config
 
 FILES= ocsidbm.ml ocsipersist.ml \
        eliommod.ml eliom.ml eliomboxes.ml \
-       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml staticmod.ml \
+       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml module_static_cgi.ml staticmod.ml cgimod.ml \
        extensiontemplate.ml
 
 ifeq "$(DEBUG)" "YES"
@@ -72,9 +72,9 @@ OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
 
 
-byte: $(OBJS) ocsidbm eliom.cma ocsigenmod.cma staticmod.cmo $(DUCEMODBYTE)
+byte: $(OBJS) ocsidbm eliom.cma ocsigenmod.cma module_static_cgi.cmo staticmod.cmo cgimod.cmo $(DUCEMODBYTE)
 
-opt: $(OBJSX) ocsidbm.opt eliom.cmxs ocsigenmod.cmxs staticmod.cmxs $(DUCEMODOPT)
+opt: $(OBJSX) ocsidbm.opt eliom.cmxs ocsigenmod.cmxs module_static_cgi.cmxs staticmod.cmxs cgimod.cmxs $(DUCEMODOPT)
 
 
 .SUFFIXES:
@@ -103,8 +103,14 @@ ocsigenmod.cmxs: ocsigenmod.cmx ocsigen.cmx ocsigenboxes.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenmod.cmxs ocsigenmod.cmx \
 	ocsigen.cmx ocsigenboxes.cmx
 
+module_static_cgi.cmxs : module_static_cgi.cmx
+	$(CAMLOPT) -shared -linkall -o module_static_cgi.cmxs module_static_cgi.cmx
+
 staticmod.cmxs: staticmod.cmx
 	$(CAMLOPT) -shared -linkall -o staticmod.cmxs staticmod.cmx
+
+cgimod.cmxs: cgimod.cmx
+	$(CAMLOPT) -shared -linkall -o cgimod.cmxs cgimod.cmx
 
 ocsigenduce.cma: xhtml1_strict.cmo ocsigenduce.cmo
 	$(CAMLC) -a -o ocsigenduce.cma xhtml1_strict.cmo ocsigenduce.cmo 

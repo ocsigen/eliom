@@ -169,7 +169,7 @@ struct
                 (fun () -> fail Ocsigen_Timeout)) *)] >>=
           (fun len ->
             if len = 0 
-            then Lwt.fail Connection_reset_by_peer
+            then fail Connection_reset_by_peer
             else begin
               buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
               buffer.datasize <- buffer.datasize + len;
@@ -177,7 +177,9 @@ struct
             end
           ))
       )
-      fail
+      (function
+	 | Unix.Unix_error (Unix.EBADF,"read",_) -> fail Connection_reset_by_peer
+	 | e -> fail e)
 
   let min64 a b = if (Int64.compare a b) < 0 then a else b
   let min3 int1 int2 int3 = min (min int1 int2) int3
@@ -235,6 +237,7 @@ struct
               min3' rl available (buffer.size - buffer.read_pos)
           | _ -> min available (buffer.size - buffer.read_pos)
         in
+
         let string_extract = 
           String.sub buffer.buf buffer.read_pos nb_extract in
         buffer.read_pos <- (buffer.read_pos + nb_extract) mod buffer.size;
@@ -248,15 +251,17 @@ struct
             let v = Int64.sub rl (Int64.of_int nb_extract) in
             if Int64.compare v Int64.zero >= 0
             then return (Max (Some v))
-            else fail (Ocsimisc.Ocsigen_Request_interrupted
-                         Ocsigen_Request_too_long)
+            else begin
+	      finish (); 
+	      fail (Ocsimisc.Ocsigen_Request_interrupted
+                      Ocsigen_Request_too_long)
+	    end
         | a -> return a) >>= fun v ->
-        Lwt.return 
-          (string_extract, v)
+        return (string_extract, v)
 
       in try
         if rem_len = Size Int64.zero 
-        then return (empty_stream None)
+        then (finish (); return (empty_stream None))
         else 
           let available = content_length buffer in
           match available with
@@ -265,22 +270,20 @@ struct
               (* wait more bytes to read *)
               catch
                 (fun () -> 
-                  receive now fd buffer >>= fun () -> 
+                  receive now fd buffer >>= fun () ->
                   extract_aux rem_len
                 )
                 (function
                   | Connection_reset_by_peer as e ->
                       (match rem_len with
-                      | Max _ -> return (empty_stream None)
-                      | _ -> fail e)
-                  | e -> fail e)
+                      | Max _ -> finish (); return (empty_stream None)
+                      | _ -> finish (); fail e)
+                  | e -> finish (); fail e)
           | _ -> 
               extract_one available rem_len >>= 
-              (fun (s, rem_len) -> 
-                (if rem_len = Size Int64.zero 
-                then finish ());
+              (fun (s, rem_len) ->
                 Lwt.return (new_stream s (fun () -> extract_aux rem_len)))
-      with e -> fail e
+      with e -> finish (); fail e
     in extract_aux len
 
 (** find the sequence crlfcrlf in the buffer *)
@@ -560,8 +563,9 @@ NOT IMPLEMENTED
                           | _ ->
                             let waiter_end_stream = wait () in
                             Com_buffer.extract
-                              ~finish:(Lwt.wakeup waiter_end_stream)
-                              receiver.r_fd receiver.r_buffer 
+                              ~finish:(fun () -> Lwt.wakeup waiter_end_stream ())
+                              receiver.r_fd 
+			      receiver.r_buffer 
                               (Com_buffer.Max (get_maxsize receiver.r_mode))
                               >>= C.content_of_stream >>= 
                             (fun c -> return (waiter_end_stream, Some c))

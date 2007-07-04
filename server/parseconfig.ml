@@ -193,6 +193,9 @@ let parse_server isreloading c =
       | (Element ("staticdir", [], p))::ll -> 
           set_default_static_dir (parse_string p);
           parse_server_aux ll
+      | (Element ("cgidir", [], p))::ll -> 
+          set_default_cgi_dir (parse_string p);
+          parse_server_aux ll
       | (Element ("datadir", [], p))::ll -> 
           set_datadir (parse_string p);
           parse_server_aux ll

@@ -92,8 +92,14 @@ firstline :
 			       }
 
 nofirstline :
-  | EOL                          {make_header()}
-  | lines EOL                    {make_header()}
+  | EOL                          {mode := Nofirstline; 
+				  proto := HTTP11;
+				  reset_header ();
+				  make_header()}
+  | lines EOL                    {mode := Nofirstline; 
+				  proto := HTTP11;
+				  reset_header ();
+				  make_header()}
 
 lines :
   | line                         {headers:=$1::!headers}
