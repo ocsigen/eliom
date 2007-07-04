@@ -218,16 +218,23 @@ struct
       then Lwt.fail (Invalid_argument ("offset out of bound"))
       else read_aux "" (off + buffer.read_pos) len *)
 
+  type size = Size of int64 | Max of int64 option
+
   (** extract a given number bytes in destructive way from the buffer.
      The optional [?finish] parameter is an action that
      will be executed when the stream is finished.
     *)
-  let extract ?(finish = id) fd buffer (len : int64) =
+  let extract ?(finish = id) fd buffer (len : size) =
+    (* (Max None) means up to exception raised *)
     let rec extract_aux rem_len =
 
       let extract_one available rem_len = 
         let nb_extract = 
-          min3' rem_len available (buffer.size - buffer.read_pos) in
+          match rem_len with
+          | Size rl ->
+              min3' rl available (buffer.size - buffer.read_pos)
+          | _ -> min available (buffer.size - buffer.read_pos)
+        in
         let string_extract = 
           String.sub buffer.buf buffer.read_pos nb_extract in
         buffer.read_pos <- (buffer.read_pos + nb_extract) mod buffer.size;
@@ -235,24 +242,42 @@ struct
         if buffer.datasize = 0
         then (buffer.read_pos <- 0; buffer.write_pos <- 0);
         (* je recale le buffer pour avoir des blocs de buffersize exactement *)
+        (match rem_len with
+        | Size rl -> return (Size (Int64.sub rl (Int64.of_int nb_extract)))
+        | Max (Some rl) -> 
+            let v = Int64.sub rl (Int64.of_int nb_extract) in
+            if Int64.compare v Int64.zero >= 0
+            then return (Max (Some v))
+            else fail (Ocsimisc.Ocsigen_Request_interrupted
+                         Ocsigen_Request_too_long)
+        | a -> return a) >>= fun v ->
         Lwt.return 
-          (string_extract,
-           (Int64.sub rem_len (Int64.of_int nb_extract)))
+          (string_extract, v)
 
       in try
-        if rem_len = Int64.zero 
-        then Lwt.return (empty_stream None)
+        if rem_len = Size Int64.zero 
+        then return (empty_stream None)
         else 
           let available = content_length buffer in
           match available with
           | x when x < 0 -> assert false
           | 0 ->
               (* wait more bytes to read *)
-              receive now fd buffer >>= (fun () -> extract_aux rem_len)
+              catch
+                (fun () -> 
+                  receive now fd buffer >>= fun () -> 
+                  extract_aux rem_len
+                )
+                (function
+                  | Connection_reset_by_peer as e ->
+                      (match rem_len with
+                      | Max _ -> return (empty_stream None)
+                      | _ -> fail e)
+                  | e -> fail e)
           | _ -> 
               extract_one available rem_len >>= 
-              (fun (s,rem_len) -> 
-                (if rem_len = Int64.zero 
+              (fun (s, rem_len) -> 
+                (if rem_len = Size Int64.zero 
                 then finish ());
                 Lwt.return (new_stream s (fun () -> extract_aux rem_len)))
       with e -> fail e
@@ -339,7 +364,7 @@ struct
           (fun () -> wait_http_header_aux buffer.read_pos))
       )
       (function
-          Ocsigen_buffer_is_full -> fail Ocsigen_header_too_long
+        | Ocsigen_buffer_is_full -> fail Ocsigen_header_too_long
         | e -> fail e)
 
 end
@@ -347,18 +372,22 @@ end
 
 
 
-
+type s_http_mode = Answer | Query | Nofirstline
     
-type receiver_type = {r_buffer:Com_buffer.t; r_fd:Lwt_unix.descr}
+type receiver_type = {
+    r_buffer: Com_buffer.t; 
+    r_fd: Lwt_unix.descr;
+    r_mode: s_http_mode;
+  }
 
 (** create a new receiver *)
 (* That function was in FHttp_receiver but it does not depend on C
    It is easier to use everywhere if we put it here.
    -- Vincent 18/06/2007 *)
-let create_receiver fd =
+let create_receiver ~mode fd =
   let buffer_size = Ocsiconfig.get_netbuffersize () in
   let buffer = Com_buffer.create buffer_size in
-  {r_buffer=buffer; r_fd=fd}
+  {r_buffer=buffer; r_fd=fd; r_mode=mode}
 
 module FHttp_receiver =
   functor(C:Http_frame.HTTP_CONTENT) ->
@@ -367,7 +396,7 @@ module FHttp_receiver =
       module Http = Http_frame.FHttp_frame (C)
           
           (** convert a stream into an header *)
-      let http_header_of_stream s =
+      let http_header_of_stream ?(withoutfirstline=false) s =
           catch
             (fun () -> 
               (string_of_stream s) >>=
@@ -375,7 +404,12 @@ module FHttp_receiver =
                 let lexbuf = Lexing.from_string s in
                 catch
                   (fun () ->
-                    Lwt.return (Http_parser.header Http_lexer.token lexbuf))
+                    Lwt.return (
+                    if withoutfirstline
+                    then
+                      Http_parser.nofirstline Http_lexer.token lexbuf
+                    else
+                      Http_parser.header Http_lexer.token lexbuf))
                   (function
                       Parsing.Parse_error -> 
                         fail (Ocsigen_HTTP_parsing_error
@@ -384,7 +418,16 @@ module FHttp_receiver =
           (function
             | String_too_large -> fail Ocsigen_header_too_long
             | e -> fail e)
-         
+
+      let get_maxsize = function
+        | Nofirstline
+        | Answer -> None (* Ocsiconfig.get_maxanswerbodysize () 
+                       Do we need a limit? 
+                       If yes, add an exception Ocsigen_Answer_too_long.
+                       (like Ocsigen_Request_too_long)
+                     *)
+        | Query -> Ocsiconfig.get_maxrequestbodysize ()
+
       (** get an http frame *)
       let get_http_frame waiter receiver ~doing_keep_alive () =
         (* waiter is here only for pipelining and timeout:
@@ -395,45 +438,142 @@ module FHttp_receiver =
           ~doing_keep_alive receiver.r_fd receiver.r_buffer >>=
         (fun len ->
           Com_buffer.extract 
-            receiver.r_fd receiver.r_buffer (Int64.of_int len) >>=
+            receiver.r_fd receiver.r_buffer 
+            (Com_buffer.Size (Int64.of_int len)) >>=
           (fun string_header ->
             try
-              (http_header_of_stream string_header) >>=
+              (http_header_of_stream
+                 ~withoutfirstline:(receiver.r_mode = Nofirstline)
+                 string_header) >>=
               (fun header ->
-                let body_length=
-                  try
-                    Int64.of_string
-                      (Http_frame.Http_header.get_headers_value 
-                         header "content-length")
-                  with
-                    _ -> Int64.zero
-                in 
-                let comp = Int64.compare body_length Int64.zero in
-                (if comp < 0 
-                then fail Ocsimisc.Ocsigen_Bad_Request
-                else if comp = 0 
-                then Lwt.return ((Lwt.return ()), None)
-                else 
-                  let max = Ocsiconfig.get_maxrequestbodysize () in
-                  if 
-                    (match max with
-                      None -> false
-                    | Some m ->
-                        (Int64.compare body_length m) > 0)
-                  then
-                    fail (Ocsimisc.Ocsigen_Request_interrupted
-                            Ocsigen_Request_too_long)
-                  else
-                    let waiter_end_stream = wait () in
-                    Com_buffer.extract
-                      ~finish:(Lwt.wakeup waiter_end_stream)
-                      receiver.r_fd receiver.r_buffer body_length 
-                      >>= C.content_of_stream >>= 
-                    (fun c -> Lwt.return (waiter_end_stream, Some c))) >>=
+
+(* RFC 
+
+   1.  Any response message  which "MUST  NOT" include  a message-body
+   (such as the 1xx, 204, and 304 responses and any response to a HEAD
+   request) is  always terminated  by the first  empty line  after the
+   header fields,  regardless of  the entity-header fields  present in
+   the message.
+
+ *)
+                
+                (match header.Http_header.mode with
+                | Http_header.Answer code when 
+                    (code > 99 && code < 200) ||
+                    (code = 204) ||
+                    (code = 205) ||
+                    (code = 304)
+                      (* Others??? *)
+                    -> return ((return ()), None)
+                | _ ->
+
+(*  RFC  
+
+   2. If  a Transfer-Encoding header field (section  14.41) is present
+   and has  any value other than "identity",  then the transfer-length
+   is defined  by use of the "chunked"  transfer-coding (section 3.6),
+   unless the message is terminated by closing the connection.
+
+*)
+
+                    let chunked =
+                      try
+                        (Http_frame.Http_header.get_headers_value 
+                           header "Transfer-Encoding") <> "identity"
+                      with _ -> false
+                    in
+
+                    if chunked
+                    then failwith "receiving chunked encoding not implemented"
+                    else
+
+
+(* RFC
+
+   3. If a Content-Length header field (section 14.13) is present, its
+   decimal value  in OCTETs represents both the  entity-length and the
+   transfer-length. The  Content-Length header field MUST  NOT be sent
+   if these  two lengths are  different (i.e., if  a Transfer-Encoding
+   header  field is present).  If a  message is  received with  both a
+   Transfer-Encoding header  field and a  Content-Length header field,
+   the latter MUST be ignored.
+
+*)
+                      
+                      let content_length =
+                        try
+                          let bl = 
+                            Int64.of_string
+                              (Http_frame.Http_header.get_headers_value 
+                                 header "content-length")
+                          in Some bl
+                        with _ -> None
+                      in
+      
+                      match content_length with
+                      | Some cl ->
+                          let comp = Int64.compare cl Int64.zero in
+                          (if comp < 0 
+                          then fail Ocsimisc.Ocsigen_Bad_Request
+                          else if comp = 0 
+                          then return ((return ()), None)
+                          else 
+                            let max = get_maxsize receiver.r_mode in
+                            if 
+                              (match max with
+                                None -> false
+                              | Some m -> (Int64.compare cl m) > 0)
+                            then
+                              fail (Ocsimisc.Ocsigen_Request_interrupted
+                                      Ocsigen_Request_too_long)
+                            else
+                              let waiter_end_stream = wait () in
+                              Com_buffer.extract
+                                ~finish:(Lwt.wakeup waiter_end_stream)
+                                receiver.r_fd receiver.r_buffer
+                                (Com_buffer.Size cl)
+                                >>= C.content_of_stream >>= 
+                              (fun c -> return (waiter_end_stream, Some c)))
+                      | None ->
+
+(* RFC
+
+   4. If  the message uses the media  type "multipart/byteranges", and
+   the  ransfer-length is  not  otherwise specified,  then this  self-
+   elimiting media  type defines the transfer-length.  This media type
+   UST NOT be used unless the sender knows that the recipient can arse
+   it; the presence in a request  of a Range header with ultiple byte-
+   range specifiers from a 1.1 client implies that the lient can parse
+   multipart/byteranges responses.
+
+NOT IMPLEMENTED
+
+   5. By  the server closing  the connection. (Closing  the connection
+   cannot be  used to indicate the  end of a request  body, since that
+   would leave no possibility for the server to send back a response.)
+
+ *)
+
+                          match header.Http_header.mode with
+                          | Http_header.Query _ ->
+                              return ((return ()), None)
+                          | _ ->
+                            let waiter_end_stream = wait () in
+                            Com_buffer.extract
+                              ~finish:(Lwt.wakeup waiter_end_stream)
+                              receiver.r_fd receiver.r_buffer 
+                              (Com_buffer.Max (get_maxsize receiver.r_mode))
+                              >>= C.content_of_stream >>= 
+                            (fun c -> return (waiter_end_stream, Some c))
+
+
+                ) >>=
                 (fun (waiter_end_stream, b) -> 
                   Lwt.return {Http.header=header; 
                               Http.content=b;
-                              Http.waiter_thread=waiter_end_stream}))
+                              Http.waiter_thread=waiter_end_stream})
+
+              ) 
             with e -> fail e
           )
         )
@@ -445,7 +585,7 @@ type sender_type = {
     (** the file descriptor*)
     s_fd: Lwt_unix.descr;
     (** the mode of the sender Query or Answer *)
-    mutable s_mode: Http_frame.Http_header.http_mode;
+    mutable s_mode: s_http_mode; (* do we need that?? *)
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
     mutable s_proto: Http_frame.Http_header.proto;
     (** the options to send with each frame, for exemple : server name , ... *)
@@ -459,14 +599,14 @@ type sender_type = {
    -- Vincent 27/04/2007 *)
 let create_sender
     ?server_name
-    ?(mode=Http_frame.Http_header.Answer)
+    ~mode
     ?(headers=[])
     ?(proto=Http_frame.Http_header.HTTP11) fd = 
   let headers = ("Accept-Ranges","none")::headers in
   let headers =
     match server_name with
-    |None -> headers
-    |Some s -> ("Server", s)::headers
+    | None -> headers
+    | Some s -> ("Server", s)::headers
   in
   {s_fd =fd; 
    s_mode=mode;
@@ -536,7 +676,7 @@ module FHttp_sender =
           | e -> fail e)
 
 
-    (** changes the protocol *)
+(*    (** changes the protocol *)
     let change_protocol proto sender =
       sender.s_proto <- proto
 
@@ -545,8 +685,8 @@ module FHttp_sender =
       sender.s_headers <- headers
 
     (** change the mode *)
-    let change_mode  mode sender =
-      sender.s_mode <- mode
+    let change_mode mode sender =
+      sender.s_mode <- mode *)
 
     (* case non sensitive equality *)
     let non_case_equality s1 s2 =
@@ -645,12 +785,9 @@ module FHttp_sender =
         waiter
         ~clientproto
         ?etag
-        ?mode
+        ~mode
         ?proto
         ?headers
-        ?meth
-        ?url
-        ?code
         ?content
         ?head
         sender =
@@ -663,7 +800,6 @@ module FHttp_sender =
 
       waiter >>=
       (fun () ->
-        let md = match mode with None -> sender.s_mode | Some m -> m in
         let prot = match proto with None -> sender.s_proto | Some p -> p in
         match content with
         | None -> Lwt.return ()
@@ -692,10 +828,7 @@ module FHttp_sender =
                                  | None -> []) ) >>=
                    (fun hds -> 
                      let hd = {
-                       H.mode = md;
-                       H.meth=meth;
-                       H.url=url;
-                       H.code=code;
+                       H.mode = mode;
                        H.proto = prot;
                        H.headers = hds;
                      } in

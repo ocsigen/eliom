@@ -113,7 +113,7 @@ module Empty_sender :
   sig
     module H :
       sig
-        type http_mode = Http_frame.Http_header.http_mode = Query | Answer
+        type http_mode = Http_frame.Http_header.http_mode
         type http_method =
           Http_frame.Http_header.http_method =
             GET
@@ -128,18 +128,10 @@ module Empty_sender :
           | UNLINK
           | PATCH
         type http_header =
-          Http_frame.Http_header.http_header = {
-          mode : http_mode;
-          meth : http_method option;
-          url : string option;
-          code : int option;
-          proto : Http_frame.Http_header.proto;
-          headers : (string * string) list;
-        }
-        val get_url : http_header -> string
+          Http_frame.Http_header.http_header
         val get_headers_value : http_header -> string -> string
         val get_proto : http_header -> Http_frame.Http_header.proto
-        val get_method : http_header -> http_method option
+        val get_firstline : http_header -> Http_frame.Http_header.http_mode
         val add_headers : http_header -> string -> string -> http_header
       end
     module Http :
@@ -169,18 +161,13 @@ module Empty_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : Http_frame.Http_header.proto -> Http_com.sender_type -> unit
-    val change_headers :
-      (string * string) list -> Http_com.sender_type -> unit
-    val change_mode :
-      Http_frame.Http_header.http_mode -> Http_com.sender_type -> unit
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
     val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
-    val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
+    val get_mode : Http_com.sender_type -> Http_com.s_http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
@@ -192,12 +179,9 @@ module Empty_sender :
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
-      ?mode:H.http_mode ->
+      mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
-      ?meth:H.http_method ->
-      ?url:string ->
-      ?code:int ->
       ?content:Empty_content.t ->
       ?head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -205,7 +189,7 @@ module Xhtml_sender :
   sig
     module H :
       sig
-        type http_mode = Http_frame.Http_header.http_mode = Query | Answer
+        type http_mode = Http_frame.Http_header.http_mode
         type http_method =
           Http_frame.Http_header.http_method =
             GET
@@ -220,18 +204,10 @@ module Xhtml_sender :
           | UNLINK
           | PATCH
         type http_header =
-          Http_frame.Http_header.http_header = {
-          mode : http_mode;
-          meth : http_method option;
-          url : string option;
-          code : int option;
-          proto : Http_frame.Http_header.proto;
-          headers : (string * string) list;
-        }
-        val get_url : http_header -> string
+          Http_frame.Http_header.http_header
         val get_headers_value : http_header -> string -> string
         val get_proto : http_header -> Http_frame.Http_header.proto
-        val get_method : http_header -> http_method option
+        val get_firstline : http_header -> Http_frame.Http_header.http_mode
         val add_headers : http_header -> string -> string -> http_header
       end
     module Http :
@@ -261,19 +237,13 @@ module Xhtml_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : Http_frame.Http_header.proto
-      -> Http_com.sender_type -> unit
-    val change_headers :
-      (string * string) list -> Http_com.sender_type -> unit
-    val change_mode :
-      Http_frame.Http_header.http_mode -> Http_com.sender_type -> unit
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
     val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
-    val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
+    val get_mode : Http_com.sender_type -> Http_com.s_http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
@@ -285,12 +255,9 @@ module Xhtml_sender :
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
-      ?mode:H.http_mode ->
+      mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
-      ?meth:H.http_method ->
-      ?url:string ->
-      ?code:int ->
       ?content:Xhtml_content.t ->
       ?head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -308,7 +275,7 @@ module Text_sender :
   sig
     module H :
       sig
-        type http_mode = Http_frame.Http_header.http_mode = Query | Answer
+        type http_mode = Http_frame.Http_header.http_mode
         type http_method =
           Http_frame.Http_header.http_method =
             GET
@@ -323,18 +290,10 @@ module Text_sender :
           | UNLINK
           | PATCH
         type http_header =
-          Http_frame.Http_header.http_header = {
-          mode : http_mode;
-          meth : http_method option;
-          url : string option;
-          code : int option;
-          proto : Http_frame.Http_header.proto;
-          headers : (string * string) list;
-        }
-        val get_url : http_header -> string
+          Http_frame.Http_header.http_header
         val get_headers_value : http_header -> string -> string
         val get_proto : http_header -> Http_frame.Http_header.proto
-        val get_method : http_header -> http_method option
+        val get_firstline : http_header -> Http_frame.Http_header.http_mode
         val add_headers : http_header -> string -> string -> http_header
       end
     module Http :
@@ -364,18 +323,13 @@ module Text_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : Http_frame.Http_header.proto -> Http_com.sender_type -> unit
-    val change_headers :
-      (string * string) list -> Http_com.sender_type -> unit
-    val change_mode :
-      Http_frame.Http_header.http_mode -> Http_com.sender_type -> unit
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
     val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
-    val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
+    val get_mode : Http_com.sender_type -> Http_com.s_http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
@@ -387,12 +341,9 @@ module Text_sender :
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
-      ?mode:H.http_mode ->
+      mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
-      ?meth:H.http_method ->
-      ?url:string ->
-      ?code:int ->
       ?content:Text_content.t ->
       ?head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -409,6 +360,7 @@ module Text_receiver :
         }
       end
     val http_header_of_stream :
+      ?withoutfirstline:bool ->
       Ocsistream.stream -> Http_frame.Http_header.http_header Lwt.t
     val get_http_frame :
       unit Lwt.t -> Http_com.receiver_type -> 
@@ -437,6 +389,7 @@ module Stream_receiver :
         }
       end
     val http_header_of_stream :
+      ?withoutfirstline:bool ->
       Ocsistream.stream -> Http_frame.Http_header.http_header Lwt.t
     val get_http_frame :
       unit Lwt.t -> Http_com.receiver_type -> 
@@ -446,7 +399,7 @@ module File_sender :
   sig
     module H :
       sig
-        type http_mode = Http_frame.Http_header.http_mode = Query | Answer
+        type http_mode = Http_frame.Http_header.http_mode
         type http_method =
           Http_frame.Http_header.http_method =
             GET
@@ -461,18 +414,10 @@ module File_sender :
           | UNLINK
           | PATCH
         type http_header =
-          Http_frame.Http_header.http_header = {
-          mode : http_mode;
-          meth : http_method option;
-          url : string option;
-          code : int option;
-          proto : Http_frame.Http_header.proto;
-          headers : (string * string) list;
-        }
-        val get_url : http_header -> string
+          Http_frame.Http_header.http_header
         val get_headers_value : http_header -> string -> string
         val get_proto : http_header -> Http_frame.Http_header.proto
-        val get_method : http_header -> http_method option
+        val get_firstline : http_header -> Http_frame.Http_header.http_mode
         val add_headers : http_header -> string -> string -> http_header
       end
     module Http :
@@ -502,18 +447,13 @@ module File_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : Http_frame.Http_header.proto -> Http_com.sender_type -> unit
-    val change_headers :
-      (string * string) list -> Http_com.sender_type -> unit
-    val change_mode :
-      Http_frame.Http_header.http_mode -> Http_com.sender_type -> unit
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
     val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
-    val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
+    val get_mode : Http_com.sender_type -> Http_com.s_http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
@@ -525,12 +465,9 @@ module File_sender :
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
-      ?mode:H.http_mode ->
+      mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
-      ?meth:H.http_method ->
-      ?url:string ->
-      ?code:int ->
       ?content:File_content.t ->
       ?head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -538,7 +475,7 @@ module Stream_sender :
   sig
     module H :
       sig
-        type http_mode = Http_frame.Http_header.http_mode = Query | Answer
+        type http_mode = Http_frame.Http_header.http_mode
         type http_method =
           Http_frame.Http_header.http_method =
             GET
@@ -553,18 +490,10 @@ module Stream_sender :
           | UNLINK
           | PATCH
         type http_header =
-          Http_frame.Http_header.http_header = {
-          mode : http_mode;
-          meth : http_method option;
-          url : string option;
-          code : int option;
-          proto : Http_frame.Http_header.proto;
-          headers : (string * string) list;
-        }
-        val get_url : http_header -> string
+          Http_frame.Http_header.http_header
         val get_headers_value : http_header -> string -> string
         val get_proto : http_header -> Http_frame.Http_header.proto
-        val get_method : http_header -> http_method option
+        val get_firstline : http_header -> Http_frame.Http_header.http_mode
         val add_headers : http_header -> string -> string -> http_header
       end
     module Http :
@@ -594,18 +523,13 @@ module Stream_sender :
     val really_write :
         ?chunked:bool ->
       Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
-    val change_protocol : Http_frame.Http_header.proto -> Http_com.sender_type -> unit
-    val change_headers :
-      (string * string) list -> Http_com.sender_type -> unit
-    val change_mode :
-      Http_frame.Http_header.http_mode -> Http_com.sender_type -> unit
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool
     val add_header : Http_com.sender_type -> string -> string -> unit
     val rem_header : Http_com.sender_type -> string -> unit
     val get_protocol : Http_com.sender_type -> Http_frame.Http_header.proto
-    val get_mode : Http_com.sender_type -> Http_frame.Http_header.http_mode
+    val get_mode : Http_com.sender_type -> Http_com.s_http_mode
     val get_headers : Http_com.sender_type -> (string * string) list
     val get_header_value : Http_com.sender_type -> string -> string
     val hds_fusion :
@@ -617,12 +541,9 @@ module Stream_sender :
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
-      ?mode:H.http_mode ->
+      mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
-      ?meth:H.http_method ->
-      ?url:string ->
-      ?code:int ->
       ?content:Stream_content.t ->
       ?head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -633,16 +554,13 @@ val send_generic :
     (unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
-        ?mode:Xhtml_sender.H.http_mode ->
+        mode:Xhtml_sender.H.http_mode ->
           ?proto:Http_frame.Http_header.proto ->
             ?headers:(string * string) list ->
-              ?meth:'c ->
-                ?url:string ->
-                  ?code:int -> 
-                    ?content:'a ->
-                      ?head:bool -> 
-                        Http_com.sender_type -> 
-                          unit Lwt.t) ->
+              ?content:'a ->
+                ?head:bool -> 
+                  Http_com.sender_type -> 
+                    unit Lwt.t) ->
   ?contenttype:string ->
   content:'a ->
   ?cookies:mycookieslist ->

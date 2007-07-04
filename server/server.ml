@@ -234,21 +234,11 @@ let rec getcookies s =
 
 
 (* reading the request *)
-let get_request_infos http_frame filenames sockaddr port =
+let get_request_infos meth url http_frame filenames sockaddr port =
 
   try
-    
-    let meth = 
-      match Http_header.get_method http_frame.Stream_http_frame.header with
-      | Some m -> m
-      | None -> raise (Failure "No HTTP method in query")
-            (* should never happen *)
-    in
 
-    let url = 
-      fixup_url_string 
-        (Http_header.get_url http_frame.Stream_http_frame.header) 
-    in
+    let url = fixup_url_string url in
 
     let url2 = 
       (Neturl.parse_url 
@@ -399,7 +389,7 @@ let get_request_infos http_frame filenames sockaddr port =
         (if meth = Http_header.GET || meth = Http_header.HEAD 
         then return ([],[]) else 
           match http_frame.Stream_http_frame.content with
-            None -> return ([],[])
+          | None -> return ([], [])
           | Some body_gen ->
               try
                 let ct = match ct with
@@ -566,8 +556,15 @@ let service
   (* wait_end_answer is here for pipelining: 
      we must wait before sending the page,
      because the previous one may not be sent *)
-  let head = ((Http_header.get_method http_frame.Stream_http_frame.header) 
-                    = Some (Http_header.HEAD)) in
+
+  let meth, url =
+    match Http_header.get_firstline http_frame.Stream_http_frame.header with
+    | Http_header.Query a -> a      
+    | _ -> raise (Ocsigen_Request_interrupted Ocsigen_Bad_Request)
+  in
+
+  let head = (meth = (Http_header.HEAD)) in
+
   let ka = find_keepalive http_frame.Stream_http_frame.header in
   Messages.debug ("** Keep-Alive:"^(string_of_bool ka));
   Messages.debug("** HEAD:"^(string_of_bool head));
@@ -599,7 +596,7 @@ let service
       
       (* *** First of all, we read all the request
          (that will possibly create files) *)
-      let ri = get_request_infos http_frame filenames sockaddr port in
+      let ri = get_request_infos meth url http_frame filenames sockaddr port in
       
       (* *** Now we generate the page and send it *)
       catch
@@ -650,6 +647,7 @@ let service
                   ?charset:res.res_charset
                   ~head:head
                   (Http_com.create_sender
+                     ~mode:Answer
                      ~headers:res.res_headers
                      ~server_name:server_name inputchan))
             
@@ -750,10 +748,9 @@ let service
 
 
   (* body of service *)
-  let meth = (Http_header.get_method http_frame.Stream_http_frame.header) in
-  if ((meth <> Some (Http_header.GET)) && 
-      (meth <> Some (Http_header.POST)) && 
-      (meth <> Some(Http_header.HEAD)))
+  if ((meth <> Http_header.GET) && 
+      (meth <> Http_header.POST) && 
+      (meth <> Http_header.HEAD))
   then send_error wait_end_answer
       ~clientproto
       ~keep_alive:ka ~code:501 xhtml_sender
@@ -774,7 +771,7 @@ let service
         >>=
             (fun cl ->
               if (Int64.compare cl Int64.zero) > 0 &&
-                (meth = Some Http_header.GET || meth = Some Http_header.HEAD)
+                (meth = Http_header.GET || meth = Http_header.HEAD)
               then fail (Ocsigen_Request_interrupted Ocsigen_Bad_Request)
               else serv ()))
 
@@ -982,16 +979,20 @@ let listen ssl port wait_end_init =
         (fun () -> 
           let xhtml_sender = 
             Http_com.create_sender
+              ~mode:Answer
               ~headers:Predefined_senders.nocache_headers
               ~server_name:server_name inputchan 
           in
           let empty_sender =
             Http_com.create_sender
+              ~mode:Answer
               ~headers:[]
               ~server_name:server_name inputchan
           in
           listen_connexion 
-            (Http_com.create_receiver inputchan)
+            (Http_com.create_receiver
+               ~mode:Query
+               inputchan)
             inputchan sockaddr xhtml_sender
             empty_sender)
         (handle_broken_pipe_exn sockaddr)
@@ -1300,7 +1301,7 @@ let _ = try
       let pipe = Lwt_unix.in_channel_of_descr 
           (Lwt_unix.Plain 
              (Unix.openfile commandpipe 
-                [Unix.O_RDWR;Unix.O_NONBLOCK;Unix.O_APPEND] 0o660)) in
+                [Unix.O_RDWR; Unix.O_NONBLOCK; Unix.O_APPEND] 0o660)) in
       let rec f () = 
         Lwt_unix.input_line pipe >>=
         (fun _ -> reload (); f ())

@@ -21,10 +21,7 @@
   open Http_frame
   open Http_header
   
-  let mode = ref Query
-  let meth = ref None
-  let url = ref None
-  let code = ref None
+  let mode = ref Nofirstline
   let proto = ref HTTP11
   let headers = ref []
 
@@ -32,9 +29,6 @@
   
   let make_header() =
     {mode = !mode; 
-     meth= !meth; 
-     url = !url; 
-     code = !code ;
      proto= !proto;
      headers= !headers}
 
@@ -79,47 +73,52 @@
 %token <string>STRING
 %token <string>CODE
 
-%start header
+%start header nofirstline
 %type <Http_frame.Http_header.http_header>header
+%type <Http_frame.Http_header.http_header>nofirstline
 
 %%
 header :
-  |firstline EOL                {make_header()}
-  |firstline lines EOL          {make_header()}
+  | firstline EOL                {make_header()}
+  | firstline lines EOL          {make_header()}
 
 firstline :
-  |METHOD STRING PROTO EOL      {reset_header ();
-      mode := Query;meth:=Some(meth_of_string($1));
-      url:=Some $2;proto:=(proto_of_string $3)}
-  |PROTO CODE strings EOL       {reset_header ();
-				 mode := Answer;
-				 proto:=(proto_of_string $1);
-				 code:= Some (int_of_string $2)}
+  | METHOD STRING PROTO EOL      {reset_header ();
+                                 mode := Query (meth_of_string($1), $2);
+                                 proto:=(proto_of_string $3)}
+  | PROTO CODE strings EOL       {reset_header ();
+				 mode := Answer (int_of_string $2);
+				 proto:=(proto_of_string $1)
+			       }
+
+nofirstline :
+  | EOL                          {make_header()}
+  | lines EOL                    {make_header()}
 
 lines :
-  |line                         {headers:=$1::!headers}
-  |line lines                   {headers:=$1::!headers;$2}
-  |strings EOL                  {}
-  |strings EOL lines            {$3}
+  | line                         {headers:=$1::!headers}
+  | line lines                   {headers:=$1::!headers;$2}
+  | strings EOL                  {}
+  | strings EOL lines            {$3}
 
 line :
-  |STRING COLON strings EOL    {(String.lowercase($1),$3)}
-  |CODE COLON strings EOL      {($1,$3)}
-  |STRING COLON EOL            {(String.lowercase($1),"")}
-  |CODE COLON EOL              {($1,"")}
+  | STRING COLON strings EOL    {(String.lowercase($1),$3)}
+  | CODE COLON strings EOL      {($1,$3)}
+  | STRING COLON EOL            {(String.lowercase($1),"")}
+  | CODE COLON EOL              {($1,"")}
   /* EOL                  {split_string $1}*/
 
 strings :
-  |COLON                        {":"}
-  |STRING                       {$1}
-  |STRING COLON strings         {$1^":"^$3}
-  |STRING strings               {$1^" "^$2}
-  |PROTO                        {$1}
-  |PROTO COLON strings          {$1^":"^$3}
-  |PROTO strings                {$1^" "^$2}
-  |METHOD                       {$1}
-  |METHOD COLON strings         {$1^":"^$3}
-  |METHOD strings               {$1^" "^$2}
-  |CODE                         {$1}
-  |CODE strings                 {$1^" "^$2}
-  |CODE COLON strings           {$1^":"^$3}
+  | COLON                        {":"}
+  | STRING                       {$1}
+  | STRING COLON strings         {$1^":"^$3}
+  | STRING strings               {$1^" "^$2}
+  | PROTO                        {$1}
+  | PROTO COLON strings          {$1^":"^$3}
+  | PROTO strings                {$1^" "^$2}
+  | METHOD                       {$1}
+  | METHOD COLON strings         {$1^":"^$3}
+  | METHOD strings               {$1^" "^$2}
+  | CODE                         {$1}
+  | CODE strings                 {$1^" "^$2}
+  | CODE COLON strings           {$1^":"^$3}

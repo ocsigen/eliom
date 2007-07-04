@@ -50,13 +50,10 @@ module type HTTP_CONTENT =
   end
 
 
-(**this module discribes the type of an http header*)
+(** this module describes the type of an http header *)
 module Http_header =
   struct
       
-      (** type of http_frame mode*)
-      type http_mode = Query | Answer
-
       (**type of the http_method*)
       type http_method =
         | GET
@@ -71,48 +68,51 @@ module Http_header =
         | UNLINK
         | PATCH
 
+      (** type of http_frame mode. The int is the HTTP answer code *)
+      type http_mode = 
+        | Query of (http_method * string)
+        | Answer of int
+        | Nofirstline
+
       type proto = HTTP10 | HTTP11
   
-        (**type of the http headers*)
+        (** type of the http headers *)
         type http_header =
           {
-            (** the mode of the header : Query or Answer*)
+            (** the mode of the header : Query or Answer *)
             mode:http_mode;
-            (** the method of the Query. None if Answer*)
-            meth:http_method option;
-            (** the url of the query. None if Answer*)
-            url: string option;
-            (** the control number sent with a server's Answer*)
-            code:int option;
-            (** protocol used for the Query or the Answer*)
+            (** protocol used for the Query or the Answer *)
             proto: proto;
             (** list of the headers options *)
             headers: (string*string) list
           }
 
-          (**gets the url raise Not_found if their is none*)
+(*        (** gets the url raise Not_found if Answer *)
         let get_url header =
-          match header.url with
-          |Some s -> s
-          |None -> raise Not_found
+          match header.mode with
+          | Query (_, s) -> s
+          | _ -> raise Not_found *)
 
-        (** gets the value of a given header's option*)
+        (** gets the firstline of the header *)
+        let get_firstline header = header.mode
+
+        (** gets the value of a given header's option *)
         let get_headers_value header key = 
-          List.assoc (String.lowercase(key)) header.headers
+          List.assoc (String.lowercase key) header.headers
 
-        (* gets the value of the used protocol *)
+        (** gets the value of the protocol used *)
         let get_proto header = header.proto
 
-        (* gets the value of the used http method *)
-        let get_method header = header.meth
+(*        (** gets the value of the http method used *)
+        let get_method header =
+          match header.mode with
+          | Query (meth, _) -> meth
+          | _ -> raise Not_found *)
         
         (** adds an header option in the header option list*)
         let add_headers header key value =
           {
             mode=header.mode;
-            meth=header.meth;
-            url=header.url;
-            code=header.code;
             proto=header.proto;
             headers=(String.lowercase key, value)::header.headers
           }
@@ -187,21 +187,21 @@ module Http_error =
 
         let display_http_exception =
           function
-            |Http_exception (Some n,l) ->
+            | Http_exception (Some n,l) ->
                 Messages.debug (expl_of_code n);
                 display_list l
-            |Http_exception (None,l) ->
+            | Http_exception (None,l) ->
                 display_list l
-            |e -> raise e
+            | e -> raise e
 
         let string_of_http_exception =
           function
-            |Http_exception (Some n, l) ->
+            | Http_exception (Some n, l) ->
                 "error "^(string_of_int n)^" : "^(expl_of_code n)^
                 " : "^(string_of_list l)
-            |Http_exception (None,l) ->
+            | Http_exception (None,l) ->
                 string_of_list l
-            |e -> raise e 
+            | e -> raise e 
       
   end
 

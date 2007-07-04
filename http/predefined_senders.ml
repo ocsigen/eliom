@@ -258,16 +258,13 @@ let send_generic
     (send : unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
         ?etag:etag ->
-          ?mode:Xhtml_sender.H.http_mode ->
+          mode:Xhtml_sender.H.http_mode ->
             ?proto:Http_frame.Http_header.proto ->
               ?headers:(string * string) list ->
-                ?meth:'c ->
-                  ?url:string ->
-                    ?code:int -> 
-                      ?content:'a ->
-                        ?head:bool -> 
-                          Http_com.sender_type -> 
-                            unit Lwt.t)   
+                ?content:'a ->
+                  ?head:bool -> 
+                    Http_com.sender_type -> 
+                      unit Lwt.t)   
     ?contenttype
     ~content
     ?(cookies=[])
@@ -340,9 +337,11 @@ let send_generic
   in
   match code with
   | None -> send 
-        waiter ~clientproto ?etag ~code:200 ~content ~headers:hds ?head sender
+        waiter ~clientproto ?etag
+        ~mode:(Http_header.Answer 200) ~content ~headers:hds ?head sender
   | Some c -> send
-        waiter ~clientproto ?etag ~code:c ~content ~headers:hds ?head sender
+        waiter ~clientproto ?etag
+        ~mode:(Http_header.Answer c) ~content ~headers:hds ?head sender
 
 
 type send_page_type =
