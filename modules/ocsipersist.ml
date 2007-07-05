@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module ocsipersist.ml
- * Copyright (C) 2007 Vincent Balat
+ * Copyright (C) 2007 Vincent Balat - Gabriel Kerneis - CNRS - Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,9 +21,9 @@
 
 (** Module Ocsipersist: persistent data *)
 
-open Ocsidbm
-open Ocsidbmtypes
+open Sqlite3
 open Lwt
+open Printf
 
 (** Data are divided into stores. 
    Create one store for your project, where you will save all your data.
@@ -32,7 +32,6 @@ type store = string
 
 exception Ocsipersist_error
 
-let socketname = "socket"
 
 (*****************************************************************************)
 (** Internal functions: storage directory *)
@@ -41,154 +40,170 @@ open Simplexmlparser
 (** getting the directory from config file *)
 let rec parse_global_config d = function
       [] -> d
-    | (Element ("store", [("dir", s)], []))::ll -> 
+    | (Element ("database", [("file", s)], []))::ll -> 
         (match d with
-        | None, dbm -> parse_global_config ((Some s), dbm) ll
-        | (Some _), _ -> raise (Extensions.Error_in_config_file 
+        | None  -> parse_global_config (Some s) ll
+        | (Some _) -> raise (Extensions.Error_in_config_file 
                                   ("Ocsipersist: Duplicate <store> tag")))
-    | (Element ("ocsidbm", [("name", s)], []))::ll -> 
-        (match d with
-        | a, None -> parse_global_config (a, (Some s)) ll
-        | _, Some _ -> raise (Extensions.Error_in_config_file 
-                             ("Ocsipersist: Duplicate <ocsidbm> tag")))
     | (Element (tag,_,_))::ll -> parse_global_config d ll
     | _ -> raise (Extensions.Error_in_config_file ("Unexpected content inside Ocsipersist config"))
 
-let (directory, ocsidbm) = 
-  let (store, ocsidbm) =
-    parse_global_config (None, None) (Extensions.get_config ()) 
-  in
-  ((match store with
-    None -> (Ocsiconfig.get_datadir ())^"/ocsipersist"
-  | Some d -> d),
-   (match ocsidbm with
-     None -> (Ocsiconfig.get_bindir ())^"/ocsidbm"
-   | Some d -> d))
-
+let db_file = 
+    match parse_global_config None (Extensions.get_config ()) with
+    None -> (Ocsiconfig.get_datadir ())^"/ocsidb"
+  | Some d -> d
 
 (*****************************************************************************)
-(** Communication with the DB server *)
+(** Useful functions on database *)
 
-let rec try_connect sname =
-  catch
-    (fun () ->
-      Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
-      (fun socket ->
-        Lwt_unix.connect (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname) >>=
-        (fun () -> return (Lwt_unix.Plain socket))))
-    (fun _ ->
-      Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
-      let param = [|ocsidbm; directory|] in
-      let fils () = 
-        Unix.dup2 !(snd Messages.error) Unix.stderr; 
-        Unix.close !(snd Messages.error);
-        Unix.close !(snd Messages.access);
-        Unix.close !(snd Messages.warningfile);
-        let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
-        Unix.dup2 devnull Unix.stdout;
-        Unix.close devnull;
-        Unix.close Unix.stdin;
-        Unix.execv ocsidbm param 
-      in
-      let pid = Unix.fork () in
-      if pid = 0
-      then begin (* double fork *)
-        if Unix.fork () = 0
-        then begin
-          fils ();
-          exit 0
-        end
-        else exit 0
-      end
-      else 
-        Lwt_unix.waitpid [] pid >>=
-        (fun _ ->  Lwt_unix.sleep 1.1 >>=
-          (fun () ->
-            Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
-            (fun socket ->
-              Lwt_unix.connect 
-                (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname) >>=
-              (fun () -> return (Lwt_unix.Plain socket))))))
-    
-let rec get_indescr i =
-  (catch
-     (fun () -> try_connect (directory^"/"^socketname))
-     (fun e -> Messages.errlog ("Cannot connect to Ocsidbm. Will retry "^
-                                (string_of_int i)^" times and continue \
-                                without persistent session support. \
-                                Error message is: "^
-                                (match e with
-                                | Unix.Unix_error (a,b,c) -> 
-                                    (Unix.error_message a)^" in "^b^"("^c^")"
-                                | _ -> Printexc.to_string e));
-       if i>0
-       then (Lwt_unix.sleep 2.1) >>= (fun () -> get_indescr (i-1))
-       else fail e))
+let yield () = 
+	Thread.yield ()
 
-let indescr = get_indescr 2
+let rec bind_safely stmt = function
+|[] -> stmt
+|(value,name)::q as l ->
+  match Sqlite3.bind stmt (bind_parameter_index stmt name) value with
+  |Rc.OK -> bind_safely stmt q
+  |Rc.BUSY|Rc.LOCKED -> yield () ; bind_safely stmt l 
+  |rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+	
+let close_safely db = 
+ if not (db_close db) then Messages.errlog "Couldn't close database"
 
-let inch = indescr >>= (fun r -> return (Lwt_unix.in_channel_of_descr r))
+let m = Mutex.create()
 
-let outch = indescr >>= (fun r -> return (Lwt_unix.out_channel_of_descr r))
+let exec_safely f = 
+  let aux () = 
+   let db = (Mutex.lock m ;db_open db_file) in 
+    (try
+	  let r = f db in
+	  close_safely db ;
+	  Mutex.unlock m ;
+	  r
+	with
+		e -> (
+		  close_safely db ;
+		  Mutex.unlock m ;
+		  raise e))
+  in
+	Preemptive.detach aux ()
 
-let send =
-  let previous = ref (return Ok) in
-  fun v ->
-    catch
-      (fun () -> !previous)
-      (fun _ -> return Ok) >>=
-    (fun _ ->
-      inch >>= 
-      (fun inch ->
-        outch >>= 
-        (fun outch ->
-          previous :=
-            (Lwt_unix.output_value outch v >>=
-             (fun () -> 
-               Lwt_unix.flush outch >>=
-               (fun () -> Lwt_unix.input_value inch)));
-          !previous)))
+(* Référence indispensable pour les codes de retours et leur signification :
+ * http://sqlite.org/capi3ref.html 
+ * Langage compris par SQLite : http://www.sqlite.org/lang.html
+ *)
 
-let db_get (store, name) =
-  send (Get (store, name)) >>=
-  (function 
-    | Value v -> return v
-    | Dbm_not_found -> fail Not_found
-    | _ -> fail Ocsipersist_error)
-
-let db_remove (store, name) =
-  send (Remove (store, name)) >>=
-  (function 
-    | Ok -> return ()
-    | _ -> fail Ocsipersist_error)
-
-let db_replace (store, name) value = 
-  send (Replace (store, name, value)) >>=
-  (function 
-    | Ok -> return ()
-    | _ -> fail Ocsipersist_error)
-
-let db_firstkey store = 
-  send (Firstkey store) >>=
-  (function 
-    | Key k -> return (Some k)
-    | _ -> return None)
-
-let db_nextkey store = 
-  send (Nextkey store) >>=
-  (function 
-    | Key k -> return (Some k)
-    | _ -> return None)
-
-let db_length store = 
-  send (Length store) >>=
-  (function 
-    | Value v -> return (Marshal.from_string v 0)
-    | Dbm_not_found -> return 0
-    | _ -> fail Ocsipersist_error)
+let db_create table = 
+  let db = db_open db_file in 
+  let sql = sprintf "CREATE TABLE IF NOT EXISTS %s (key TEXT, value BLOB,  PRIMARY KEY(key) ON CONFLICT REPLACE)" table in
+  let stmt = prepare db sql in
+  let rec aux () = 
+	match step stmt with 
+  	|Rc.DONE -> ignore(finalize stmt)  
+  	|Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
+  	| rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+  in 
+  aux () ;
+  close_safely db ;
+  table
 
 
+let db_get (table, key) =
+ let sql = sprintf "SELECT value FROM %s WHERE key = :key " table in
+ let get db = 
+  	let stmt = bind_safely (prepare db sql) [Data.TEXT key,":key"] in
+  	let rec aux () = 
+	  match step stmt with 
+      |Rc.ROW -> let  value = match column stmt 0 with 
+	  					|Data.BLOB s -> s
+						|_ -> assert false 
+		in
+  	  	  ignore (finalize stmt);  
+ 		  value
+  	  |Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
+	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
+  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+	in aux ()
+  in
+  exec_safely get 
 
+let db_remove (table, key) =
+  let sql =  sprintf "REMOVE FROM %s WHERE key = :key " table in
+  let remove db = 
+  	let stmt =  bind_safely (prepare db sql) [Data.TEXT key,":key"] in
+  	let rec aux () = 
+	  match step stmt with 
+   	  |Rc.DONE -> ignore(finalize stmt)  
+	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
+  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+	in aux ()
+  in
+  exec_safely remove
+
+let db_replace (table, key) value = 
+  let sql =  sprintf "INSERT INTO %s VALUES ( :key , :value )" table in
+  let replace db =
+   	let stmt =  bind_safely (prepare db sql) [Data.TEXT key,":key"; Data.BLOB value, ":value"] in
+	let rec aux () = 
+	  match step stmt with 
+      | Rc.DONE -> ignore(finalize stmt)
+      | Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
+	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+	in aux ()
+  in
+  exec_safely replace
+
+
+let db_iter_step table f rowid =
+ let sql = sprintf "SELECT key , value , ROWID FROM %s WHERE ROWID > :rowid" table in
+ let iter db = 
+  	let stmt = bind_safely (prepare db sql) [Data.INT rowid, ":rowid"] in
+  	let rec aux () = 
+	  match step stmt with 
+      |Rc.ROW -> (match (column stmt 0,column stmt 1, column stmt 2) with 
+	  			|(Data.TEXT k, Data.BLOB v, Data.INT rowid) -> (Some (k,v,rowid))
+				|_ -> assert false )
+  	  |Rc.DONE -> ignore(finalize stmt) ; None
+	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
+  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+	in aux ()
+  in
+  exec_safely iter
+
+let db_iter_block table f =
+ let sql = sprintf "SELECT key , value FROM %s " table in
+ let iter db = 
+  	let stmt = prepare db sql in
+  	let rec aux () = 
+	  match step stmt with 
+      |Rc.ROW -> (match (column stmt 0,column stmt 1) with 
+	  			|(Data.TEXT k, Data.BLOB v) -> f k (Marshal.from_string v 0); aux()
+				|_ -> assert false )
+  	  |Rc.DONE -> ignore(finalize stmt)
+	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
+  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+	in aux ()
+  in
+  exec_safely iter
+
+let db_length table =
+ let sql = sprintf "SELECT count(*) FROM %s " table in
+ let length db = 
+  	let stmt = prepare db sql in
+  	let rec aux () = 
+	  match step stmt with 
+      |Rc.ROW -> let  value = match column stmt 0 with 
+	  					|Data.INT s -> Int64.to_int s
+						|_ -> assert false 
+		in
+  	  	  ignore (finalize stmt);  
+ 		  value
+  	  |Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
+	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
+  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+	in aux ()
+  in
+  exec_safely length
 
 (*****************************************************************************)
 (** Public functions: *)
@@ -196,7 +211,9 @@ let db_length store =
 (** Type of persistent data *)
 type 'a t = store * string
       
-let open_store name : store = name
+let open_store name : store = 
+	let s = "store___"^name in
+	db_create s 
 
 let make_persistent_lazy ~store ~name ~default =
   let pvname = (store, name) in
@@ -220,12 +237,11 @@ let set pvname v =
   let data = Marshal.to_string v [] in
   db_replace pvname data
 
-
-
 (** Type of persistent tables *)
 type 'value table = string
 
-let open_table name = name
+(** name SHOULD NOT begin with "store___" *)
+let open_table name =  db_create name
     
 let find table key =
   db_get (table, key) >>=
@@ -238,56 +254,20 @@ let add table key value =
 let remove table key =
   db_remove (table, key)
   
-let iter_table f table =
-  let rec aux nextkey =
-    nextkey table >>=
+let iter_step f table =
+  let rec aux rowid =
+    db_iter_step table f rowid >>=
     (function
       | None -> return ()
-      | Some k -> find table k >>= f k >>= (fun () -> aux db_nextkey))
+      | Some (k,v,rowid') -> f k (Marshal.from_string v 0) >>= (fun () -> aux rowid'))
   in
-  aux db_firstkey
+  aux Int64.zero
 
+let iter_block f table =
+	db_iter_block table f
 
-(* iterator: with a separate connexion:
-exception Exn1
-let iter_table f table =
-  let first = Marshal.to_string (Firstkey table) [] in
-  let firstl = String.length first in
-  let next = Marshal.to_string (Nextkey table) [] in
-  let nextl = String.length next in
-  (Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
-   (fun socket ->
-     Lwt_unix.connect 
-       (Lwt_unix.Plain socket)
-       (Unix.ADDR_UNIX (directory^"/"^socketname)) >>=
-     (fun () -> return (Lwt_unix.Plain socket)) >>=
-     (fun indescr ->
-       let inch = Lwt_unix.in_channel_of_descr indescr in
-       let nextkey next nextl =
-         Lwt_unix.write indescr next 0 nextl >>=
-         (fun l2 -> if l2 <> nextl 
-         then fail Ocsipersist_error
-         else (Lwt_unix.input_line inch >>=
-               fun answ -> return (Marshal.from_string answ 0)))
-       in
-       let rec aux n l =
-         nextkey n l >>=
-         (function
-           | End -> return ()
-           | Key k -> find table k >>= f k
-           | _ -> fail Ocsipersist_error) >>=
-         (fun () -> aux next nextl)
-       in
-       catch
-         (fun () ->
-           aux first firstl >>=
-           (fun () -> Unix.close socket; return ()))
-         (fun e -> Unix.close socket; fail e))))
-
-*)
+let iter_table = iter_step
 
 let length table = 
   db_length table
-(* Because of Dbm implementation, the result may be less thann the expected
-   result in some case (with a version of ocsipersist based on Dbm) *)
 

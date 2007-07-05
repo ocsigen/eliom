@@ -1,6 +1,6 @@
 include ../Makefile.config
 
-FILES= ocsidbm.ml ocsipersist.ml \
+FILES= ocsipersist.ml \
        eliommod.ml eliom.ml eliomboxes.ml \
        ocsigenmod.ml ocsigen.ml ocsigenboxes.ml \
        staticmod.ml cgimod.ml \
@@ -56,7 +56,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package netstring $(LIBDIRS)
+LIB = -thread -package netstring,sqlite3 $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
@@ -73,21 +73,15 @@ OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
 
 
-byte: $(OBJS) ocsidbm eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo $(DUCEMODBYTE)
+byte: $(OBJS) eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo $(DUCEMODBYTE)
 
-opt: $(OBJSX) ocsidbm.opt eliom.cmxs ocsigenmod.cmxs staticmod.cmxs cgimod.cmxs $(DUCEMODOPT)
+opt: $(OBJSX) eliom.cmxs ocsigenmod.cmxs staticmod.cmxs cgimod.cmxs $(DUCEMODOPT)
 
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
 .PHONY: doc depend
-
-ocsidbm: ocsidbm.cmo
-	$(CAMLC) -package ssl -o $@ unix.cma ssl.cma dbm.cma lwt.cma $<
-
-ocsidbm.opt: ocsidbm.cmx
-	$(CAMLOPT) -package ssl -o $@ unix.cmxa ssl.cmxa dbm.cmxa lwt.cmxa $<
 
 eliom.cma: ocsipersist.cmo eliommod.cmo eliom.cmo eliomboxes.cmo
 	$(CAMLC) -a -o eliom.cma ocsipersist.cmo eliommod.cmo eliom.cmo eliomboxes.cmo
@@ -141,7 +135,7 @@ ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 
 .PHONY: clean
 clean:
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/* ocsidbm ocsidbm.opt *.annot
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend

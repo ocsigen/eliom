@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module ocsipersist.mli
- * Copyright (C) 2007 Vincent Balat
+ * Copyright (C) 2007 Vincent Balat - Gabriel Kerneis - CNRS - Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,15 +78,27 @@ val add : 'value table -> string -> 'value -> unit Lwt.t
 val remove : 'value table -> string -> unit Lwt.t
 (** [remove table key] removes the entry in the table if it exists *)
 
-(**/**)
 val length : 'value table -> int Lwt.t
-(** Size of a table.
-   Because of Dbm implementation, the result may be less thann the expected
-   result in some case (with a version of ocsipersist based on Dbm) *)
+(** Size of a table. *)
+
+val iter_step : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
+(** Important warning: this iterator may not iter on all data of the table
+	if another thread is modifying it in the same time. Nonetheless, it should
+	not miss more than a very few data from time to time, except if the table
+	is very old (at least 9 223 372 036 854 775 807 insertions).
+ *)
 
 val iter_table : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
-(** Important warning: this iterator may not iter on all data of the table
-   if several iterator are running simultanously on the same table 
-   It is ok for garbage collecting Eliom's session data
- *)
+(** Legacy interface for iter_step *)
+
+(**/**)
+val iter_block : (string -> 'a -> unit) -> 'a table -> unit Lwt.t
+(** MAJOR WARNING: Unlike iter_step, this iterator won't miss any 
+	entry and will run in one shot. It is therefore more efficient, BUT:
+	it will lock the WHOLE database during its execution, 
+	thus preventing ANYBODY from accessing it (including the function f 
+	which is iterated).
+	As a consequence : you MUST NOT use any function from ocsipersist in f,
+	otherwise you would lock yourself and everybody else ! Be VERY cautious.
+*)
 
