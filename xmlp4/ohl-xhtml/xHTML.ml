@@ -2,6 +2,7 @@
 (* $Id: xHTML.ml,v 1.31 2005/06/20 17:57:58 ohl Exp $
 
    Copyright (C) 2004 by Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
+   Copyright (C) 2007 by Vincent Balat, Gabriel Kerneis, CNRS, Université Paris Diderot
 
    XHTML is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by 
@@ -1070,6 +1071,8 @@ module type T =
     val toelt : 'a elt -> XML.elt
     val toeltl : 'a elt list -> XML.elt list
 
+    val cdata_to_pcdata : string -> [`PCDATA] elt (* GK *)
+
     val ocsigen_print : 
         ?width:int -> ?encode:(string -> string) -> [ `Html ] elt -> string
 
@@ -1837,7 +1840,11 @@ module Version =
     let toelt x = x
     let toeltl x = x
 
-    let ocsigen_print version ?width ?encode arbre =
+    let cdata_to_pcdata s = (* GK *)
+      let s' = "\n//<![CDATA[\n"^s^"\n//]]>\n" in
+      XML.EncodedPCDATA s'
+    
+	let ocsigen_print version ?width ?encode arbre =
       XML.xh_print ?width ?encode blocktags semiblocktags (doctype version) arbre
 
     let ocsigen_xprint version ?width ?encode foret =
