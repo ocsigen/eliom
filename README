@@ -10,7 +10,9 @@ findlib (ocamlfind)
 pcre-ocaml
 ocamlnet >= 1.1.2 (actually only module netstring, netsys, pcre) 
 ocamlssl >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)
-the dbm database (for example gdbm) with headers (libgdbm-dev package for ex)
+ocamlsqlite3 >= 0.21.0 (needs sqlite)
+(You may also use the dbm database (for example gdbm) instead of sqlite.
+ In that case, you need dbm with headers (libgdbm-dev package for ex))
 
 If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer, 
 you can use GODI to install them automatically.
@@ -45,7 +47,7 @@ and possibly
 if you want logrotate (rotation of logs) configuration in /etc/logrotate.d
 (highly recommended)
 
-(make installwithoutdoc -> to install without doc
+(make installnodoc -> to install without doc
  make uninstall)
 
 Adapt the config file to set the port, the modules you want to load

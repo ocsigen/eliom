@@ -27,13 +27,24 @@ ifeq "$(DATADIR)" ""
 DATADIR = "error"
 endif
 
+ifeq "$(OCSIPERSISTSQLITE)" "YES"
+SQLITEINSTALL= modules/ocsipersist-sqlite.cma
+else
+endif
+
+ifeq "$(OCSIPERSISTDBM)" "YES"
+DBMINSTALL= modules/ocsipersist-dbm/ocsipersist-dbm.cma 
+else
+endif
+
+
 
 INSTALL = install
 TARGETSBYTE = baselib.byte lwt.byte xmlp4.byte http.byte server.byte modules.byte examples.byte
-PLUGINSCMAOTOINSTALL = modules/ocsipersist.cmo modules/eliom.cma modules/ocsigenmod.cma modules/staticmod.cmo modules/cgimod.cmo $(DUCECMAO)
-PLUGINSCMITOINSTALL = modules/eliom.cmi modules/ocsigen.cmi modules/staticmod.cmi modules/cgimod.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi $(DUCECMI)
+PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) modules/eliom.cma modules/ocsigenmod.cma modules/staticmod.cmo modules/cgimod.cmo $(DUCECMAO)
+PLUGINSCMITOINSTALL = modules/ocsipersist.cmi modules/eliom.cmi modules/ocsigen.cmi modules/staticmod.cmi modules/cgimod.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi $(DUCECMI)
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
-CMITOINSTALL = modules/ocsipersist.cmi server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi http/ocsistream.cmi baselib/messages.cmi META
+CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi http/ocsistream.cmi baselib/messages.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/nurpawiki/nurpawiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
 
@@ -145,7 +156,7 @@ $(OCSIGENNAME).conf.local:
 	| sed s%_LOGDIR_%$(SRC)/var/log%g \
 	| sed s%_STATICPAGESDIR_%$(SRC)/files%g \
 	| sed s%_DATADIR_%$(SRC)/var/lib%g \
-	| sed s%_BINDIR_%$(SRC)/modules%g \
+	| sed s%_BINDIR_%$(SRC)/modules/ocsipersist-dbm%g \
 	| sed s%_UP_%$(SRC)/tmp%g \
 	| sed s%_OCSIGENUSER_%%g \
 	| sed s%_OCSIGENGROUP_%%g \
@@ -153,11 +164,13 @@ $(OCSIGENNAME).conf.local:
 	| sed s%_COMMANDPIPE_%$(SRC)/var/run/ocsigen_command%g \
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/modules%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
+	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
 	| sed s%files/nurpawiki%examples/nurpawiki/files%g \
 	| sed s%var/lib/nurpawiki%examples/nurpawiki/wikidata%g \
 	| sed s%\<\!--\ commandpipe%\<commandpipe%g \
 	| sed s%\</commandpipe\ --%\</commandpipe%g \
-	| sed s%eliom.cma\"/\>%eliom.cma\"\>\<store\ dir=\"$(SRC)/var/lib/ocsipersist\"/\>\<ocsidbm\ name=\"$(SRC)/modules/ocsidbm\"/\>\</extension\>%g \
+	| sed s%ocsipersist-dbm.cma%ocsipersist-dbm/ocsipersist-dbm.cma%g \
+	| sed s%store\ dir=\"$(SRC)/var/lib\"%store\ dir=\"$(SRC)/var/lib/ocsipersist\"%g \
 	> $(OCSIGENNAME).conf.local
 	cat $(OCSIGENNAME).conf.local \
 	| sed s%[.]cmo%.cmxs%g \
@@ -176,7 +189,7 @@ depend: xmlp4.byte
 	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 
 
-.PHONY: partialinstall install doc docinstall installwithoutdoc logrotate
+.PHONY: partialinstall install doc docinstall installnodoc logrotate
 partialinstall:
 	mkdir -p $(TEMPROOT)/$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
@@ -184,8 +197,8 @@ partialinstall:
 	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
-	-$(INSTALL) -m 755 modules/ocsidbm $(TEMPROOT)/$(BINDIR)/
-	-$(INSTALL) -m 755 modules/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
+	-$(INSTALL) -m 755 modules/ocsipersist-dbm/ocsidbm $(TEMPROOT)/$(BINDIR)/
+	-$(INSTALL) -m 755 modules/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
 	-rm META
 
 docinstall: doc
@@ -198,7 +211,7 @@ docinstall: doc
 	chmod a+rx $(TEMPROOT)/$(DOCDIR)
 	chmod a+r $(TEMPROOT)/$(DOCDIR)/*
 
-installwithoutdoc: partialinstall
+installnodoc: partialinstall
 	mkdir -p $(TEMPROOT)/$(CONFIGDIR)
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/nurpawiki
@@ -222,6 +235,7 @@ installwithoutdoc: partialinstall
 	| sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
+	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
 	> $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
 	cat $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
 	| sed s%[.]cmo%.cmxs%g \
@@ -262,7 +276,7 @@ logrotate:
 	   | sed s%GROUP%$(OCSIGENGROUP)%g \
 	  > $(TEMPROOT)/etc/logrotate.d/$(OCSIGENNAME); }
 
-install: docinstall installwithoutdoc
+install: docinstall installnodoc
 
 
 .PHONY: uninstall fulluninstall

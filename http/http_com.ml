@@ -440,7 +440,6 @@ struct
     in
 
     let rec aux () =
-print_endline "aux";
       wait_line fd buffer >>= fun len ->
         catch
           (fun () -> extract fd buffer (Size (Int64.of_int len)))
@@ -451,9 +450,7 @@ print_endline "aux";
         let chunksize = Scanf.sscanf chunksize "%x" id in
         if chunksize = 0
         then begin
-print_endline "zéro";
           extract_crlf fd buffer >>= fun () ->
-print_endline "finish";
           finish ();
           return (empty_stream None)
         end

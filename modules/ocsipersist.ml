@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module ocsipersist.ml
- * Copyright (C) 2007 Vincent Balat - Gabriel Kerneis - CNRS - Université Paris Diderot
+ * Copyright (C) 2007 Vincent Balat - Gabriel Kerneis
+ * CNRS - Université Paris Diderot Paris 7
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -39,34 +40,37 @@ exception Ocsipersist_error
 open Simplexmlparser
 (** getting the directory from config file *)
 let rec parse_global_config d = function
-      [] -> d
-    | (Element ("database", [("file", s)], []))::ll -> 
-        (match d with
-        | None  -> parse_global_config (Some s) ll
-        | (Some _) -> raise (Extensions.Error_in_config_file 
-                                  ("Ocsipersist: Duplicate <store> tag")))
-    | (Element (tag,_,_))::ll -> parse_global_config d ll
-    | _ -> raise (Extensions.Error_in_config_file ("Unexpected content inside Ocsipersist config"))
-
+  | [] -> d
+  | (Element ("database", [("file", s)], []))::ll -> 
+      (match d with
+      | None  -> parse_global_config (Some s) ll
+      | (Some _) -> raise (Extensions.Error_in_config_file 
+                             ("Ocsipersist: Duplicate <store> tag")))
+  | (Element (tag,_,_))::ll -> parse_global_config d ll
+  | _ -> raise (Extensions.Error_in_config_file
+                  ("Unexpected content inside Ocsipersist config"))
+        
 let db_file = 
-    match parse_global_config None (Extensions.get_config ()) with
-    None -> (Ocsiconfig.get_datadir ())^"/ocsidb"
+  match parse_global_config None (Extensions.get_config ()) with
+  | None -> (Ocsiconfig.get_datadir ())^"/ocsidb"
   | Some d -> d
+
+
 
 (*****************************************************************************)
 (** Useful functions on database *)
 
 let yield () = 
-	Thread.yield ()
+  Thread.yield ()
 
 let rec bind_safely stmt = function
-|[] -> stmt
-|(value,name)::q as l ->
-  match Sqlite3.bind stmt (bind_parameter_index stmt name) value with
-  |Rc.OK -> bind_safely stmt q
-  |Rc.BUSY|Rc.LOCKED -> yield () ; bind_safely stmt l 
-  |rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
-	
+  | [] -> stmt
+  | (value,name)::q as l ->
+      match Sqlite3.bind stmt (bind_parameter_index stmt name) value with
+      | Rc.OK -> bind_safely stmt q
+      | Rc.BUSY | Rc.LOCKED -> yield () ; bind_safely stmt l 
+      | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+
 let close_safely db = 
  if not (db_close db) then Messages.errlog "Couldn't close database"
 
@@ -76,17 +80,16 @@ let exec_safely f =
   let aux () = 
    let db = (Mutex.lock m ;db_open db_file) in 
     (try
-	  let r = f db in
-	  close_safely db ;
-	  Mutex.unlock m ;
-	  r
-	with
-		e -> (
-		  close_safely db ;
-		  Mutex.unlock m ;
-		  raise e))
+      let r = f db in
+      close_safely db ;
+      Mutex.unlock m ;
+      r
+    with e -> (
+      close_safely db ;
+      Mutex.unlock m ;
+      raise e))
   in
-	Preemptive.detach aux ()
+  Preemptive.detach aux ()
 
 (* Référence indispensable pour les codes de retours et leur signification :
  * http://sqlite.org/capi3ref.html 
@@ -98,10 +101,10 @@ let db_create table =
   let sql = sprintf "CREATE TABLE IF NOT EXISTS %s (key TEXT, value BLOB,  PRIMARY KEY(key) ON CONFLICT REPLACE)" table in
   let stmt = prepare db sql in
   let rec aux () = 
-	match step stmt with 
-  	|Rc.DONE -> ignore(finalize stmt)  
-  	|Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
-  	| rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+    match step stmt with 
+    | Rc.DONE -> ignore(finalize stmt)  
+    | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
+    | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
   in 
   aux () ;
   close_safely db ;
@@ -114,14 +117,15 @@ let db_get (table, key) =
   	let stmt = bind_safely (prepare db sql) [Data.TEXT key,":key"] in
   	let rec aux () = 
 	  match step stmt with 
-      |Rc.ROW -> let  value = match column stmt 0 with 
-	  					|Data.BLOB s -> s
-						|_ -> assert false 
-		in
-  	  	  ignore (finalize stmt);  
- 		  value
-  	  |Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
-	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
+          | Rc.ROW -> 
+              let value = match column stmt 0 with 
+	      | Data.BLOB s -> s
+	      | _ -> assert false 
+	      in
+  	      ignore (finalize stmt);  
+ 	      value
+  	  | Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
+	  | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
   	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
 	in aux ()
   in
@@ -130,81 +134,88 @@ let db_get (table, key) =
 let db_remove (table, key) =
   let sql =  sprintf "REMOVE FROM %s WHERE key = :key " table in
   let remove db = 
-  	let stmt =  bind_safely (prepare db sql) [Data.TEXT key,":key"] in
-  	let rec aux () = 
-	  match step stmt with 
-   	  |Rc.DONE -> ignore(finalize stmt)  
-	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
-  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
-	in aux ()
+    let stmt =  bind_safely (prepare db sql) [Data.TEXT key,":key"] in
+    let rec aux () = 
+      match step stmt with 
+      | Rc.DONE -> ignore(finalize stmt)  
+      | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
+      | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+    in aux ()
   in
   exec_safely remove
 
 let db_replace (table, key) value = 
   let sql =  sprintf "INSERT INTO %s VALUES ( :key , :value )" table in
   let replace db =
-   	let stmt =  bind_safely (prepare db sql) [Data.TEXT key,":key"; Data.BLOB value, ":value"] in
-	let rec aux () = 
-	  match step stmt with 
+    let stmt =  bind_safely (prepare db sql) [Data.TEXT key,":key"; Data.BLOB value, ":value"] in
+    let rec aux () = 
+      match step stmt with 
       | Rc.DONE -> ignore(finalize stmt)
-      | Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
-	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
-	in aux ()
+      | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
+      | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+    in aux ()
   in
   exec_safely replace
 
 
 let db_iter_step table f rowid =
- let sql = sprintf "SELECT key , value , ROWID FROM %s WHERE ROWID > :rowid" table in
- let iter db = 
-  	let stmt = bind_safely (prepare db sql) [Data.INT rowid, ":rowid"] in
-  	let rec aux () = 
-	  match step stmt with 
-      |Rc.ROW -> (match (column stmt 0,column stmt 1, column stmt 2) with 
-	  			|(Data.TEXT k, Data.BLOB v, Data.INT rowid) -> (Some (k,v,rowid))
-				|_ -> assert false )
-  	  |Rc.DONE -> ignore(finalize stmt) ; None
-	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
-  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
-	in aux ()
+  let sql = sprintf "SELECT key , value , ROWID FROM %s WHERE ROWID > :rowid" table in
+  let iter db = 
+    let stmt = bind_safely (prepare db sql) [Data.INT rowid, ":rowid"] in
+    let rec aux () = 
+      match step stmt with 
+      | Rc.ROW ->
+          (match (column stmt 0,column stmt 1, column stmt 2) with 
+	  | (Data.TEXT k, Data.BLOB v, Data.INT rowid) -> (Some (k,v,rowid))
+	  | _ -> assert false )
+      | Rc.DONE -> ignore(finalize stmt) ; None
+      | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
+      | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+    in aux ()
   in
   exec_safely iter
-
+    
 let db_iter_block table f =
- let sql = sprintf "SELECT key , value FROM %s " table in
- let iter db = 
-  	let stmt = prepare db sql in
-  	let rec aux () = 
-	  match step stmt with 
-      |Rc.ROW -> (match (column stmt 0,column stmt 1) with 
-	  			|(Data.TEXT k, Data.BLOB v) -> f k (Marshal.from_string v 0); aux()
-				|_ -> assert false )
-  	  |Rc.DONE -> ignore(finalize stmt)
-	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
-  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
-	in aux ()
+  let sql = sprintf "SELECT key , value FROM %s " table in
+  let iter db = 
+    let stmt = prepare db sql in
+    let rec aux () = 
+      match step stmt with 
+      | Rc.ROW -> 
+          (match (column stmt 0,column stmt 1) with 
+	  | (Data.TEXT k, Data.BLOB v) -> f k (Marshal.from_string v 0); aux()
+	  | _ -> assert false )
+      | Rc.DONE -> ignore(finalize stmt)
+      | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
+      | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+    in aux ()
   in
   exec_safely iter
-
+    
 let db_length table =
- let sql = sprintf "SELECT count(*) FROM %s " table in
- let length db = 
-  	let stmt = prepare db sql in
-  	let rec aux () = 
-	  match step stmt with 
-      |Rc.ROW -> let  value = match column stmt 0 with 
-	  					|Data.INT s -> Int64.to_int s
-						|_ -> assert false 
-		in
-  	  	  ignore (finalize stmt);  
- 		  value
-  	  |Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
-	  |Rc.BUSY|Rc.LOCKED ->  yield () ; aux ()
-  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
-	in aux ()
+  let sql = sprintf "SELECT count(*) FROM %s " table in
+  let length db = 
+    let stmt = prepare db sql in
+    let rec aux () = 
+      match step stmt with 
+      | Rc.ROW -> 
+          let  value = match column stmt 0 with 
+	  | Data.INT s -> Int64.to_int s
+	  | _ -> assert false 
+          in
+  	  ignore (finalize stmt);  
+ 	  value
+      | Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
+      | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
+      | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+    in aux ()
   in
   exec_safely length
 
+
+
+
+    
 (*****************************************************************************)
 (** Public functions: *)
 
@@ -212,8 +223,8 @@ let db_length table =
 type 'a t = store * string
       
 let open_store name : store = 
-	let s = "store___"^name in
-	db_create s 
+  let s = "store___"^name in
+  db_create s 
 
 let make_persistent_lazy ~store ~name ~default =
   let pvname = (store, name) in
@@ -224,8 +235,8 @@ let make_persistent_lazy ~store ~name ~default =
            let def = Marshal.to_string (default ()) []
            in db_replace pvname def
        | e -> fail e)) >>=
-   (fun () -> return pvname)
-      
+  (fun () -> return pvname)
+    
 let make_persistent ~store ~name ~default = 
   make_persistent_lazy ~store ~name ~default:(fun () -> default)
     
@@ -236,16 +247,16 @@ let get (pvname : 'a t) : 'a =
 let set pvname v =
   let data = Marshal.to_string v [] in
   db_replace pvname data
-
+    
 (** Type of persistent tables *)
 type 'value table = string
-
+      
 (** name SHOULD NOT begin with "store___" *)
 let open_table name =  db_create name
     
 let find table key =
-  db_get (table, key) >>=
-  (fun v -> return (Marshal.from_string v 0))
+  db_get (table, key) >>= fun v -> 
+  return (Marshal.from_string v 0))
 
 let add table key value =
   let data = Marshal.to_string value [] in
@@ -259,15 +270,21 @@ let iter_step f table =
     db_iter_step table f rowid >>=
     (function
       | None -> return ()
-      | Some (k,v,rowid') -> f k (Marshal.from_string v 0) >>= (fun () -> aux rowid'))
+      | Some (k,v,rowid') -> 
+          f k (Marshal.from_string v 0) >>= (fun () -> aux rowid'))
   in
   aux Int64.zero
-
+    
 let iter_block f table =
-	db_iter_block table f
+  db_iter_block table f
 
 let iter_table = iter_step
-
+    
 let length table = 
   db_length table
+
+
+
+
+
 

@@ -48,6 +48,8 @@ set_defaults () {
     enable_debug=0
     enable_ocamlduce=0
     enable_newocamlnet=1
+    enable_sqlite=1
+    enable_dbm=0
     prefix="/usr/local"
     bindir=""
     libdir=""
@@ -78,15 +80,17 @@ ehelp_bytecode="Enable/disable bytecode version of Ocsigen"
 ehelp_nativecode="Enable/disable nativecode version of Ocsigen"
 ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce to be installed)"
 ehelp_newocamlnet="Use new/old versions of Ocamlnet (>= 2.0)"
+ehelp_sqlite="Compile ocsipersist with SQLite for persistent storage (default)"
+ehelp_dbm="Compile ocsipersist with DBM for persistent storage"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
-eoptions="debug bytecode nativecode ocamlduce newocamlnet"
+eoptions="debug bytecode nativecode ocamlduce newocamlnet sqlite dbm"
 woptions=""
 
 
 
 # Packages to include anyway:
-requires="netstring ssl"
+requires="netstring ssl sqlite3"
 
 
 
@@ -410,8 +414,8 @@ if ocamlfind query stdlib >/dev/null 2>/dev/null; then
     echo "found"
 else
     echo "not found"
-    echo "Make sure that ocamlfind is in your PATH, or download findlib"
-    echo "from www.ocaml-programming.de"
+    echo "Make sure that ocamlfind is in your PATH, or install findlib"
+    echo "(from www.ocaml-programming.de)"
     exit 1
 fi
 
@@ -428,6 +432,24 @@ else
     echo "Required library ssl not found!"
     exit 1
 fi
+
+
+######################################################################
+# Check SQLITE3
+
+if [ "$enable_sqlite" -gt 0 ]; then
+    printf "%s" "Checking for sqlite3... "
+    if ocamlfind query sqlite3 >/dev/null 2>/dev/null; then
+        echo "found"
+    else
+        echo "not found"
+        echo "Required library sqlite3 not found!"
+        exit 1
+    fi
+
+    ocamlsqlite3dir=`ocamlfind query sqlite3`
+fi
+
 
 ######################################################################
 # Check whether OCaml version is > 3.9
@@ -494,6 +516,16 @@ if [ $enable_newocamlnet -gt 0 ] ; then
 	enable_newocamlnet="YES"
 else
 	enable_newocamlnet="NO"
+fi
+if [ $enable_dbm -gt 0 ] ; then
+	enable_dbm="YES"
+else
+	enable_dbm="NO"
+fi
+if [ $enable_sqlite -gt 0 ] ; then
+	enable_sqlite="YES"
+else
+	enable_sqlite="NO"
 fi
 
 
@@ -579,6 +611,14 @@ DEBUG=$enable_debug
 # The name of the named pipe used to command the server
 COMMANDPIPE=$root$commandpipe
 
+# The directory where ocamlsqlite3 is installed
+OCAMLSQLITE3DIR=$ocamlsqlite3dir
+
+# Do you want ocsipersist with sqlite?
+OCSIPERSISTSQLITE=$enable_sqlite
+
+# Do you want ocsipersist with dbm?
+OCSIPERSISTDBM=$enable_dbm
 
 
 # The source directory

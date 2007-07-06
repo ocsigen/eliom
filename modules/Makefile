@@ -1,10 +1,23 @@
 include ../Makefile.config
 
-FILES= ocsipersist.ml \
-       eliommod.ml eliom.ml eliomboxes.ml \
+FILESA= eliommod.ml eliom.ml eliomboxes.ml \
        ocsigenmod.ml ocsigen.ml ocsigenboxes.ml \
        staticmod.ml cgimod.ml \
        extensiontemplate.ml
+
+ifeq "$(OCSIPERSISTSQLITE)" "YES"
+FILES= ocsipersist.ml $(FILESA)
+OBJSQLITE= ocsipersist-sqlite.cma
+PACKSQLITE=,sqlite3
+else
+FILES= $(FILESA)
+endif
+
+ifeq "$(OCSIPERSISTDBM)" "YES"
+OBJDBMBYTE= dbm-byte
+OBJDBMOPT= dbm-opt
+else
+endif
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -56,7 +69,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package netstring,sqlite3 $(LIBDIRS)
+LIB = -thread -package netstring$(PACKSQLITE) $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
@@ -66,25 +79,31 @@ PP2 =
 # -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"
 
 
-# cma and cmo to be linked in the server:
+OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM) $(OBJSQLITE)
 
-OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
-
-OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
+OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs) $(OBJSQLITE:.cma=.cmxs)
 
 
-byte: $(OBJS) eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo $(DUCEMODBYTE)
+byte: $(OBJS) eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo \
+      $(DUCEMODBYTE) $(OBJDBMBYTE)
 
-opt: $(OBJSX) eliom.cmxs ocsigenmod.cmxs staticmod.cmxs cgimod.cmxs $(DUCEMODOPT)
+opt: $(OBJSX) eliom.cmxs ocsigenmod.cmxs staticmod.cmxs cgimod.cmxs \
+     $(DUCEMODOPT) $(OBJDBMOPT)
 
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-.PHONY: doc depend
+.PHONY: doc depend dbm-byte dbm-opt
 
-eliom.cma: ocsipersist.cmo eliommod.cmo eliom.cmo eliomboxes.cmo
-	$(CAMLC) -a -o eliom.cma ocsipersist.cmo eliommod.cmo eliom.cmo eliomboxes.cmo
+dbm-byte:
+	make -C ocsipersist-dbm byte
+
+dbm-opt:
+	make -C ocsipersist-dbm opt
+
+eliom.cma: eliommod.cmo eliom.cmo eliomboxes.cmo
+	$(CAMLC) -a -o eliom.cma eliommod.cmo eliom.cmo eliomboxes.cmo
 
 eliom.cmxs: eliommod.cmx eliom.cmx eliomboxes.cmx
 	$(CAMLOPT) -shared -linkall -o eliom.cmxs eliommod.cmx eliom.cmx \
@@ -122,6 +141,13 @@ ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
 ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenrss.cmxs $^
 
+ocsipersist-sqlite.cma: ocsipersist.cmo
+	$(CAMLC) -a -o ocsipersist-sqlite.cma ocsipersist.cmo
+
+ocsipersist-sqlite.cmxs: ocsipersist.cmx
+	$(CAMLOPT) -shared -linkall -o ocsipersist-sqlite.cmxs ocsipersist.cmx
+
+
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
 
@@ -136,9 +162,11 @@ ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 .PHONY: clean
 clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
+	make -C ocsipersist-dbm clean
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
+	make -C ocsipersist-dbm depend
 
 
 FORCE:

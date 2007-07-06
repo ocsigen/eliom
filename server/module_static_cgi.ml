@@ -54,7 +54,7 @@ let add k a table = table := (k,a)::!table
 
 let set_dir dirref assoc path =
   let rec assoc_and_remove a = function
-    | [] ->raise Not_found
+    | [] -> raise Not_found
     | (b,v)::l when a = b -> (v,l)
     | e::l -> let v,ll = assoc_and_remove a l
           in v,(e::ll)
