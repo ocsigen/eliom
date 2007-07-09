@@ -97,10 +97,10 @@ opt: $(OBJSX) eliom.cmxs ocsigenmod.cmxs staticmod.cmxs cgimod.cmxs \
 .PHONY: doc depend dbm-byte dbm-opt
 
 dbm-byte:
-	make -C ocsipersist-dbm byte
+	$(MAKE) -C ocsipersist-dbm byte
 
 dbm-opt:
-	make -C ocsipersist-dbm opt
+	$(MAKE) -C ocsipersist-dbm opt
 
 eliom.cma: eliommod.cmo eliom.cmo eliomboxes.cmo
 	$(CAMLC) -a -o eliom.cma eliommod.cmo eliom.cmo eliomboxes.cmo
@@ -162,11 +162,11 @@ ocsipersist-sqlite.cmxs: ocsipersist.cmx
 .PHONY: clean
 clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
-	make -C ocsipersist-dbm clean
+	$(MAKE) -C ocsipersist-dbm clean
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
-	make -C ocsipersist-dbm depend
+	$(MAKE) -C ocsipersist-dbm depend
 
 
 FORCE:

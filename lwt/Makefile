@@ -66,4 +66,4 @@ clean::
 	rm -f *.cmi *.cmo *.cmx *.cma *.cmxa *.a *.o *~ *.bak *.annot
 
 clean::
-	cd example && make clean
+	cd example && $(MAKE) clean
