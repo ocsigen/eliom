@@ -116,8 +116,17 @@ module Xhtmlforms_ = struct
   type form_elt = form
 
   type textarea_elt = textarea
-  type select_elt = select
   type input_elt = input
+
+  type select_elt = select
+  type select_content_elt = select_content
+  type select_content_elt_list = {{ [ select_content* ] }}
+  type option_elt = option
+  type option_elt_list = {{ [ option* ] }}
+
+  type button_elt = button
+  type button_content_elt = button_content
+  type button_content_elt_list = {{ [ button_content* ] }}
 
   type link_elt = link
   type script_elt = script
@@ -141,23 +150,35 @@ module Xhtmlforms_ = struct
   type script_attrib_t = {{ id ++ { defer=?"defer" src=?String charset=?String } }}
 (* {{ script_attrs -. type }} *)
 
+  type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
+  type option_attrib_t = option_attrs
+  type button_attrib_t = button_attrs
+
   type input_type_t = input_type_values
+  type button_type_t = button_type_values
 
   let hidden = {{ "hidden" }}
-  let text = {{ "text" }}
-  let password = {{ "password" }}
   let checkbox = {{ "checkbox" }}
   let radio = {{ "radio" }}
   let submit = {{ "submit" }}
   let file = {{ "file" }}
+  let image = {{ "image" }}
 
-  let make_uri_from_string x = x 
+  let buttonsubmit = {{ "submit" }}
+
+  let uri_of_string x = x 
 
   let empty_seq = {{ [] }}
   let cons_form a l = {{ [ a !l ] }}
+  let map_option f l = {{ {: (List.map f l) :} }}
+  let map_optgroup f a l = ((f a), {{ {: (List.map f l) :} }})
+
+  let select_content_of_option a = (a :> select_content_elt)
+
+  let make_pcdata s = {{ {: s :} }}
 
   let make_a ?(a={{ {} }}) ~href l : a_elt = 
-    {{ <a ({href={: make_uri_from_string href :} } ++ a)> l }} 
+    {{ <a ({href={: uri_of_string href :} } ++ a)> l }} 
 
   let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt = 
     {{ <form ({method="get"
@@ -189,28 +210,11 @@ module Xhtmlforms_ = struct
     let classe = (List.fold_left (fun a b -> a^" "^b) "" classe) in
     {{ <div class={: classe :}> [ c ] }}
 
-  let make_select ?(a={{ {} }}) ~name:name ?(selected=None) fp lp =
-    let build_option selec p =
-      let lsel = if selec then {{ {selected="selected"} }} else {{ {} }}
-      in
-        match p with 
-        | (None, (s : string)) -> {{ <option (lsel)> {: s :} }}
-        | (Some (v : string), s) -> {{ <option ({value={: v :} } ++ lsel)> {: s :} }}
-    in
-      match selected with
-      | None -> {{ <select ({ name={: name :} } ++ a)>
-                   [ {: (build_option false fp) :}
-                     !{: (List.map (build_option false) lp) :} ] }}
-      | Some p -> {{ <select ({ name={: name :} } ++ a)> 
-                       [ {: (build_option true p) :}
-                         {: (build_option false fp) :}
-                         !{: (List.map (build_option false) lp) :} ] }}
-
   let make_empty_form_content () = {{ <p> [] }} (**** à revoir !!!!! *)
 
   let remove_first = function {{ (hd,tl) }} -> (hd,tl) | {{ [] }} -> {{ <p>[] }}, {{ [] }}
 
-  let make_input ?(a={{ {} }}) ?(checked=false) ~typ ?name ?value () = 
+  let make_input ?(a={{ {} }}) ?(checked=false) ~typ ?name ?src ?value () = 
     let a2 = match value with
       None -> {{ {} }}
     | Some (v : string) -> {{ { value={: v :} } }}
@@ -219,15 +223,45 @@ module Xhtmlforms_ = struct
       None -> {{ {} }}
     | Some (v : string) -> {{ { name={: v :} } }}
     in
-    let a4 = if checked then {{ { checked="checked" } }} else {{ {} }} in
-    {{ <input ({type=typ} ++ a ++ a2 ++ a3 ++ a4)> [] }}
+    let a4 = match src with
+      None -> {{ {} }}
+    | Some (v : string) -> {{ { src={: v :} } }}
+    in
+    let a5 = if checked then {{ { checked="checked" } }} else {{ {} }} in
+    {{ <input ({type=typ} ++ a ++ a2 ++ a3 ++ a4 ++ a5)> [] }}
 
-  let make_textarea ?(a={{ {} }}) ~name:name ~rows ~cols c = 
+  let make_button ?(a={{ {} }}) ~button_type ?name ?value c =
+    let a2 = match value with
+    | None -> {{ {} }}
+    | Some (v : string) -> {{ { value={: v :} } }}
+    in
+    let a3 = match name with
+    | None -> {{ {} }}
+    | Some (v : string) -> {{ { name={: v :} } }}
+    in
+    {{ <button ({type=button_type} ++ a ++ a2 ++ a3)> c }}
+
+  let make_textarea ?(a={{ {} }}) ~name ?(value={{ [] }}) ~rows ~cols () = 
     {{ <textarea ({ name={: name :}
 		    rows={: string_of_int rows :}
 		    cols={: string_of_int cols :}
-		  } ++ a)> c }}
+		  } ++ a)> value }}
 
+  let make_select ?(a={{ {} }}) ~multiple ~name elt elts =
+    let a2 = if multiple then {{ { multiple="multiple" } }} else {{ {} }} in
+    {{ <select ({name={: name :}} ++ a2 ++ a)> [ elt !elts ] }}
+
+  let make_option ?(a={{ {} }}) ~selected ?value c =
+    let a2 = match value with
+    | None -> {{ {} }}
+    | Some (v : string) -> {{ { value={: v :} } }}
+    in
+    let a3 = if selected then {{ { selected="selected" } }} else {{ {} }} in
+    {{ <option (a3 ++ a2 ++ a)> c }}
+
+  let make_optgroup ?(a={{ {} }}) ~label elt elts =
+    {{ <optgroup ({label={: label :}} ++ a)> [ elt !elts ] }}
+    
   let make_css_link ?(a={{ {} }}) uri =
     {{ <link ({href={: uri :}
 	    type="text/css"

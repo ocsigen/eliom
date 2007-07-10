@@ -4,16 +4,16 @@ open Eliom
 val menu : ?classe:XHTML.M.nmtoken list ->
   ((unit, unit, [< get_service_kind ],
     [ `WithoutSuffix ],
-    unit param_name, unit param_name, [< registrable ])
+    unit, unit, [< registrable ])
      service * Xhtmltypes.a_content XHTML.M.elt list)
   ->
     ((unit, unit, [< get_service_kind ],
       [ `WithoutSuffix ],
-      unit param_name, unit param_name, [< registrable])
+      unit, unit, [< registrable])
        service * Xhtmltypes.a_content XHTML.M.elt list)
       list ->
         (unit, unit, [< get_service_kind ], [ ` WithoutSuffix ], 
-         unit param_name, unit param_name, 
+         unit, unit, 
          [< registrable ]) service ->
            server_params -> [> `Ul ] XHTML.M.elt
 

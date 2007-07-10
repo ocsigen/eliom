@@ -49,7 +49,7 @@ set_defaults () {
     enable_ocamlduce=0
     enable_newocamlnet=1
     enable_sqlite=1
-    enable_dbm=0
+    enable_dbm=1
     prefix="/usr/local"
     bindir=""
     libdir=""
@@ -662,6 +662,6 @@ echo
 echo "Finally, if you want system-wide install, (become root if needed and) do"
 echo "   make install"
 echo "to install the package, or"
-echo "   make installwithoutdoc"
+echo "   make installnodoc"
 echo "to install the package without generating the documentation."
 

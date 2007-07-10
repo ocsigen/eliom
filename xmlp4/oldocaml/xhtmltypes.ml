@@ -42,6 +42,9 @@ type script = [ `Script ]
 type input = [ `Input ]
 type textarea = [ `Textarea ]
 type select = [ `Select ]
+type selectoption = [ `Option ]
+type optgroup = [ `Optgroup ]
+type button = [ `Button ]
 
 type pcdata = [ `PCDATA ]
 
@@ -215,3 +218,9 @@ type textarea_attrib =
     [ common | `Accesskey | `Name | `Tabindex ]
 type select_attrib =
     [ common | `Multiple | `Name | `Size | `Tabindex | `Disabled ]
+type optgroup_attrib =
+    [ common | `Disabled | `Label ]
+type option_attrib =
+    [ common | `Selected | `Value | `Disabled | `Label ]
+type button_attrib =
+    [ common | `Name | `Value | `Button_Type ]

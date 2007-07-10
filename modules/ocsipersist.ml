@@ -256,7 +256,7 @@ let open_table name =  db_create name
     
 let find table key =
   db_get (table, key) >>= fun v -> 
-  return (Marshal.from_string v 0))
+  return (Marshal.from_string v 0)
 
 let add table key value =
   let data = Marshal.to_string value [] in

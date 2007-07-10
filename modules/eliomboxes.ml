@@ -22,25 +22,25 @@ open Eliom.Xhtml
 
 let menu ?(classe=[])  first l current server_params =
   let rec aux = function
-      [] -> []
-    | [(url,text)] -> 
+    | [] -> []
+    | [(url, text)] -> 
         let classe = ["last"] in
         if url == current 
         then [li ~a:[a_class ("current"::classe)] text]
         else [li ~a:[a_class classe] [a url server_params text ()]]
-    | (url,text)::l -> 
+    | (url, text)::l -> 
         (if url == current 
         then  (li ~a:[a_class ["current"]] text)
         else (li [a url server_params text ()]))::(aux l)
   in match first::l with
-    [] -> assert false
-  | [(url,text)] ->
+  | [] -> assert false
+  | [(url, text)] ->
       ul ~a:[a_class ("menu"::classe)] 
         (let liclasse = ["first";"last"] in
         if url == current 
         then (li ~a:[a_class ("current"::liclasse)] text) 
         else (li ~a:[a_class liclasse] [a url server_params text ()])) []
-  | (url,text)::l -> 
+  | (url, text)::l -> 
       ul ~a:[a_class ("menu"::classe)]
         (let liclasse = ["first"] in
         if url == current 

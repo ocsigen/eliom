@@ -32,7 +32,7 @@ OBJSOPT = $(FILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs)
 
 byte: $(OBJS)
 
-opt: $(OBJSX)
+opt: $(OBJSOPT)
 
 
 .SUFFIXES:

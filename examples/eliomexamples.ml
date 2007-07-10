@@ -65,8 +65,8 @@ let f sp s =
             get_form nonatt sp 
               (fun string_name ->
                 [p [pcdata "Non attached coservice: ";
-                    string_input string_name;
-                    submit_input "Click"]])
+                    string_input ~input_type:`Text ~name:string_name ();
+                    string_input ~input_type:`Submit ~value:"Click" ()]])
           ]))
 
 let getco = register_new_coservice
@@ -88,10 +88,10 @@ let _ =
                  get_form getco sp 
                    (fun (number_name,string_name) ->
                      [p [pcdata "Write an int: ";
-                         int_input number_name;
+                         int_input ~input_type:`Text ~name:number_name ();
                          pcdata "Write a string: ";
-                         string_input string_name;
-                         submit_input "Click"]])
+                         string_input ~input_type:`Text ~name:string_name ();
+                         string_input  ~input_type:`Submit ~value:"Click" ()]])
                ])))
 
 
@@ -140,7 +140,8 @@ let form2 = register_new_service ["postco"] unit
        (post_form my_service_with_post_params sp
           (fun chaine -> 
             [p [pcdata "Write a string: ";
-                string_input chaine]]) (222,"ooo")) in
+                string_input ~input_type:`Text ~name:chaine ()]]) 
+          (222,"ooo")) in
      return
        (html
          (head (title (pcdata "form")) [])
@@ -322,10 +323,11 @@ let suffix3 =
 
 let create_suffixform2 (suf1,(ii,ee)) =
     <:xmllist< <p>Write a string: 
-      $string_input suf1$ <br/>
-      Write an int: $int_input ii$ <br/>
-      Write a string: $user_type_input string_of_url_path ee$ <br/>
-      $submit_input "Click"$</p> >>
+      $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
+      Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
+      Write a string: $user_type_input ~input_type:`Text ~name:ee 
+                         string_of_url_path$ <br/>
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform2 = register_new_service ["suffixform2"] unit
   (fun sp () () -> 
@@ -338,12 +340,12 @@ let suffixform2 = register_new_service ["suffixform2"] unit
 
 let create_suffixform3 ((suf1, (ii, ee)), (a, b)) =
     <:xmllist< <p>Write a string: 
-      $string_input suf1$ <br/>
-      Write an int: $int_input ii$ <br/>
-      Write an int: $int_input ee$ <br/>
-      Write a string: $string_input a$ <br/>
-      Write an int: $int_input b$ <br/> 
-      $submit_input "Click"$</p> >>
+      $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
+      Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
+      Write an int: $int_input ~input_type:`Text ~name:ee ()$ <br/>
+      Write a string: $string_input ~input_type:`Text ~name:a ()$ <br/>
+      Write an int: $int_input ~input_type:`Text ~name:b ()$ <br/> 
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform3 = register_new_service ["suffixform3"] unit
   (fun sp () () -> 
@@ -383,8 +385,8 @@ let sendfile2 =
 
 let create_suffixform4 n =
     <:xmllist< <p>Write the name of the file: 
-      $string_input n$ 
-      $submit_input "Click"$</p> >>
+      $string_input ~input_type:`Text ~name:n ()$ 
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform4 = register_new_service ["suffixform4"] unit
   (fun sp () () -> 
@@ -495,11 +497,11 @@ let any2form = register_new_service
                   get_form any2 sp 
                     (fun (iname,grr) ->
                       [p [pcdata "Form to any2: ";
-                          int_input iname;
-                          any_input "plop";
-                          any_input "plip";
-                          any_input "plap";
-                          submit_input "Click"]])
+                          int_input ~input_type:`Text ~name:iname ();
+                          any_input ~input_type:`Text ~name:"plop" ();
+                          any_input ~input_type:`Text ~name:"plip" ();
+                          any_input ~input_type:`Text ~name:"plap" ();
+                          string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 
 
@@ -528,3 +530,48 @@ let _ = register main
        </p>
        </body>
      </html> >>)
+
+
+
+(* bool list *)
+
+let boollist = register_new_service 
+    ~url:["boollist"]
+    ~get_params:(list "a" (bool "b"))
+  (fun _ l () ->
+    let ll = 
+      List.map (fun b -> 
+        (strong [pcdata (if b then "true" else "false")])) l in  
+    return
+      (html
+         (head (title (pcdata "")) [])
+         (body
+            [p ((pcdata "You sent: ")::ll)]
+         )))
+
+let create_listform f = 
+  (* Here, f.it is an iterator like List.map, 
+     but it must be applied to a function taking 2 arguments 
+     (and not 1 as in map), the first one being the name of the parameter.
+     The last parameter of f.it is the code that must be appended at the 
+     end of the list created
+   *)
+  let l =
+    f.it (fun boolname v ->
+      [tr (td [pcdata ("Write the value for "^v^": ")])
+         [td [bool_checkbox ~name:boolname ()]]])
+      ["one";"two";"three"]
+      []
+  in
+  [table (List.hd l) (List.tl l);
+   p [any_input ~input_type:`Submit ~value:"Click" ()]]
+
+let listform = register_new_service ["boolform"] unit
+  (fun sp () () -> 
+     let f = get_form boollist sp create_listform in return
+        (html
+          (head (title (pcdata "")) [])
+          (body [f])))
+
+
+(********)

@@ -141,13 +141,13 @@ module Xhtmlforms_ = struct
   let submit = {{ "submit" }}
   let file = {{ "file" }}
 
-  let make_uri_from_string x = x 
+  let uri_of_string x = x 
 
   let empty_seq = {{ [] }}
   let cons_form a l = {{ [ a !l ] }}
 
   let make_a ?(a={{ {} }}) ~href l : a_elt = 
-    {{ <a ({href={: make_uri_from_string href :} } ++ a)> l }} 
+    {{ <a ({href={: uri_of_string href :} } ++ a)> l }} 
 
   let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt = 
     {{ <form ({method="get"

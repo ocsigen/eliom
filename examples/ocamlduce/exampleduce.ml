@@ -16,12 +16,12 @@ let s =
 let create_form = 
   (fun (number_name,(number2_name,string_name)) ->
     {{ [ <p> [ 'Write an int: '
-             {{ int_input number_name }}
+             {{ int_input ~input_type:{{ "text" }} ~name:number_name () }}
              'Write another int: '
-             {{ int_input number2_name }}
+             {{ int_input ~input_type:{{ "text" }} ~name:number2_name () }}
              'Write a string: '
-             {{ string_input string_name }}
-             {{ submit_input "Click" }} ] ] }} )
+             {{ string_input ~input_type:{{ "text" }} ~name:string_name () }}
+             {{ string_input ~input_type:{{ "submit" }} ~value:"Click" ()}} ] ] }} )
 
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
@@ -64,11 +64,11 @@ let form =
 
 let gen_form = fun x ->
 	{{ [<p>[
-		{: string_radio ~checked:false x "Blerp" :} 
+		{: string_radio ~checked:false ~name:x ~value:"Blerp" () :} 
 		'Blerp'
-		{: string_radio ~checked:false x "Gnarf" :}
+		{: string_radio ~checked:false ~name:x ~value:"Gnarf" () :}
 		'Gnarf'
-		{: submit_input "OK" :}
+		{: string_input ~input_type:{{ "submit" }} ~value:"OK" () :}
 		]] }}
 
 let _ =

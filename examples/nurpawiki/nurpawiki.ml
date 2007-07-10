@@ -340,8 +340,9 @@ let _ =
        let f =
          post_form service_save_page_post sp
            (fun chain -> 
-              [(p [submit_input "Save"; br ();
-                   textarea chain ~rows:30 ~cols:80 (pcdata wikitext)])])
+              [(p [string_input ~input_type:`Submit ~value:"Save" (); br ();
+                   textarea ~name:chain ~rows:30 ~cols:80 
+                     ~value:(pcdata wikitext) ()])])
            page in
        html_stub sp
          (wiki_page_contents_html sp page ~content:[f] ()))

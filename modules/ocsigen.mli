@@ -640,7 +640,7 @@ module type FORMCREATE =
          -> (string option * string) -> ((string option * string) list) ->
        select_elt
     val make_div : classe:(string list) -> a_elt -> form_content_elt
-    val make_uri_from_string : string -> uri
+    val uri_of_string : string -> uri
 
 
     val make_css_link : ?a:link_attrib_t -> uri -> link_elt

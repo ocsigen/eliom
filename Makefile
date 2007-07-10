@@ -41,8 +41,10 @@ endif
 
 INSTALL = install
 TARGETSBYTE = baselib.byte lwt.byte xmlp4.byte http.byte server.byte modules.byte examples.byte
+
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) modules/eliom.cma modules/ocsigenmod.cma modules/staticmod.cmo modules/cgimod.cmo $(DUCECMAO)
 PLUGINSCMITOINSTALL = modules/ocsipersist.cmi modules/eliom.cmi modules/ocsigen.cmi modules/staticmod.cmi modules/cgimod.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi $(DUCECMI)
+
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi http/ocsistream.cmi baselib/messages.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/nurpawiki/nurpawiki.cmo $(DUCEEXAMPLES)

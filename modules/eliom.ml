@@ -172,6 +172,10 @@ type coordinates =
     {abscissa: int;
      ordinate: int}
 
+type 'a setoneopt = [ `Set of 'a | `One of 'a | `Opt of 'a ]
+type 'a oneopt = [ `One of 'a | `Opt of 'a ]
+type 'a setone = [ `Set of 'a | `One of 'a ]
+
 (*****************************************************************************)
 (* This is a generalized algebraic datatype *)
 (* Use only with constructors from eliom.ml *)
@@ -179,20 +183,20 @@ type ('a,+'tipo,+'names) params_type =
     (* 'tipo is [`WithSuffix] or [`WithoutSuffix] *)
   | TProd of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = 'a1 * 'a2 ; 'names = 'names1 * 'names2 *)
   | TOption of (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 option *)
-  | TList of 'a param_name * (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
+  | TList of string * (* 'a1 *) ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
   | TSet of ('a,'tipo,'names) params_type (* 'a = 'a1 list *)
   | TSum of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = ('a1, 'a2) binsum *)
-  | TString of string param_name (* 'a = string *)
-  | TInt of int param_name (* 'a = int *)
-  | TFloat of float param_name (* 'a = float *)
-  | TBool of bool param_name (* 'a = bool *)
-  | TFile of file_info param_name (* 'a = file_info *)
-  | TUserType of 'a param_name * (string -> 'a) * ('a -> string) (* 'a = 'a *)
-  | TCoord of coordinates param_name (* 'a = 'a1 *)
-  | TCoordv of ('a,'tipo,'names) params_type * coordinates param_name
-  | TESuffix of string list param_name (* 'a = string list *)
-  | TESuffixs of string param_name (* 'a = string *)
-  | TESuffixu of ('a param_name * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
+  | TString of string (* 'a = string *)
+  | TInt of string (* 'a = int *)
+  | TFloat of string (* 'a = float *)
+  | TBool of string (* 'a = bool *)
+  | TFile of string (* 'a = file_info *)
+  | TUserType of string * (string -> 'a) * ('a -> string) (* 'a = 'a *)
+  | TCoord of string (* 'a = 'a1 *)
+  | TCoordv of ('a,'tipo,'names) params_type * string
+  | TESuffix of string (* 'a = string list *)
+  | TESuffixs of string (* 'a = string *)
+  | TESuffixu of (string * (string -> 'a) * ('a -> string)) (* 'a = 'a *)
   | TSuffix of ('a,'tipo,'names) params_type (* 'a = 'a1 *)
   | TUnit (* 'a = unit *)
   | TAny (* 'a = (string * string) list *)
@@ -206,39 +210,39 @@ let anonymise_params_type (t : ('a,'b,'c) params_type) : anon_params_type =
 
 (* As GADT are not implemented in OCaml for the while, we define our own
    constructors for params_type *)
-let int (n : string) : (int, [`WithoutSuffix], int param_name) params_type = 
+let int (n : string) : (int, [`WithoutSuffix], [ `One of int ] param_name) params_type = 
   TInt n
 
 let float (n : string)
-    : (float, [`WithoutSuffix], float param_name) params_type = 
+    : (float, [`WithoutSuffix], [ `One of float ] param_name) params_type = 
   TFloat n
 
 let bool (n : string)
-    : (bool, [`WithoutSuffix], bool param_name) params_type
+    : (bool, [`WithoutSuffix], [ `One of bool ] param_name) params_type
     = TBool n
 
 let string (n : string)
-    : (string, [`WithoutSuffix], string param_name) params_type = 
+    : (string, [`WithoutSuffix], [ `One of string ] param_name) params_type = 
   TString n
 
 let file (n : string)
-    : (file_info ,[`WithoutSuffix], file_info param_name) params_type = 
+    : (file_info , [`WithoutSuffix], [ `One of file_info ] param_name) params_type = 
   TFile n
 
 let radio_answer (n : string)
-    : (string option,[`WithoutSuffix], string option param_name) params_type =
+    : (string option, [`WithoutSuffix], [ `Opt of string ] param_name) params_type =
   TOption (TString n)
 
-let unit : (unit,[`WithoutSuffix], unit param_name) params_type = TUnit
+let unit : (unit, [`WithoutSuffix], unit) params_type = TUnit
 
 let user_type
     (of_string : string -> 'a) (to_string : 'a -> string) (n : string)
-    : ('a,[`WithoutSuffix], 'a param_name) params_type =
+    : ('a,[`WithoutSuffix], [ `One of 'a ] param_name) params_type =
   Obj.magic (TUserType (n, of_string, to_string))
 
 let sum (t1 : ('a,[`WithoutSuffix], 'an) params_type) 
     (t2 : ('b,[`WithoutSuffix], 'bn) params_type) 
-    : (('a,'b) binsum,[`WithoutSuffix], 'an * 'bn) params_type =
+    : (('a,'b) binsum, [`WithoutSuffix], 'an * 'bn ) params_type =
   Obj.magic (TSum (t1, t2))
 
 let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type) 
@@ -249,49 +253,48 @@ let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type)
 let ( ** ) = prod
 
 let coordinates (n : string)
-    : (coordinates, [`WithoutSuffix], coordinates param_name) params_type = 
+    : (coordinates, [`WithoutSuffix], [ `One of coordinates ] param_name) params_type = 
   TCoord n
 
 let string_coordinates (n : string)
     : (string * coordinates,
        [`WithoutSuffix], 
-       (string * coordinates) param_name) params_type = 
+       [ `One of (string * coordinates) ] param_name) params_type = 
   Obj.magic (TCoordv (string n, n))
 
 let int_coordinates (n : string)
     : (int * coordinates,
        [`WithoutSuffix], 
-       (int * coordinates) param_name) params_type = 
+       [ `One of (int * coordinates) ] param_name) params_type = 
   Obj.magic (TCoordv (int n, n))
 
 let float_coordinates (n : string)
     : (float * coordinates,
        [`WithoutSuffix], 
-       (float * coordinates) param_name) params_type = 
+       [ `One of (float * coordinates) ] param_name) params_type = 
   Obj.magic (TCoordv (float n, n))
 
 let user_type_coordinates
     (of_string : string -> 'a) (to_string : 'a -> string) (n : string)
     : ('a * coordinates,
        [`WithoutSuffix], 
-       ('a * coordinates) param_name) params_type = 
+       [ `One of ('a * coordinates) ] param_name) params_type = 
   Obj.magic (TCoordv (user_type of_string to_string n, n))
 
-let opt (t : ('a,[`WithoutSuffix], 'an) params_type) 
-    : ('a option,[`WithoutSuffix], 'an) params_type = 
+let opt (t : ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type) 
+    : ('a option,[`WithoutSuffix], [ `Opt of 'an ] param_name) params_type = 
   Obj.magic (TOption t)
 
-let list (n : string) (t : ('a,[`WithoutSuffix], 'an) params_type) 
+let list (n : string) (t : ('a, [`WithoutSuffix], 'an) params_type) 
     : ('a list,[`WithoutSuffix], 'an listnames) params_type = 
   Obj.magic (TList (n,t))
 
-let set (t : string -> ('a,[`WithoutSuffix], 'an) params_type) (n : string)
-    : ('a list,[`WithoutSuffix], 'an) params_type = 
+let set (t : string -> ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type) (n : string)
+    : ('a list, [`WithoutSuffix], [ `Set of 'an ] param_name) params_type = 
   Obj.magic (TSet (t n))
 
 let any
-    : ((string * string) list, [`WithoutSuffix], 
-       (string * string) list param_name) params_type = 
+    : ((string * string) list, [`WithoutSuffix], unit) params_type = 
   TAny
 
 let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
@@ -319,20 +322,21 @@ let regexp reg dest n =
     n
 
 let all_suffix (n : string) : 
-    (string list , [`Endsuffix], string list param_name) params_type = 
+    (string list , [`Endsuffix], 
+     [ `One of string list ] param_name) params_type = 
   (Obj.magic (TESuffix n))
 
 let all_suffix_string (n : string) : 
-    (string, [`Endsuffix], string param_name) params_type = 
+    (string, [`Endsuffix], [ `One of string ] param_name) params_type = 
   (Obj.magic (TESuffixs n))
 
 let all_suffix_user
     (of_string : string -> 'a) (from_string : 'a -> string) (n : string) :
-    ('a, [`Endsuffix], 'a param_name) params_type = 
+    ('a, [`Endsuffix], [ `One of 'a ] param_name) params_type = 
   (Obj.magic (TESuffixu (n, of_string, from_string)))
 
 let all_suffix_regexp reg dest (n : string) : 
-    (string, [`Endsuffix], string param_name) params_type = 
+    (string, [`Endsuffix], [ `One of string ] param_name) params_type = 
   all_suffix_user
     (fun s -> 
       match Netstring_pcre.string_match reg s 0 with
@@ -341,12 +345,12 @@ let all_suffix_regexp reg dest (n : string) :
     (fun s -> s)
     n
 
-let suffix (s : ('s,[<`WithoutSuffix|`Endsuffix],'sn) params_type) : 
+let suffix (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type) : 
     ('s , [`WithSuffix], 'sn) params_type = 
   (Obj.magic (TSuffix s))
 
-let suffix_prod (s : ('s,[<`WithoutSuffix|`Endsuffix],'sn) params_type)
-    (t : ('a,[`WithoutSuffix], 'an) params_type) : 
+let suffix_prod (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type)
+    (t : ('a, [`WithoutSuffix], 'an) params_type) : 
     (('s * 'a), [`WithSuffix], 'sn * 'an) params_type = 
   (Obj.magic (TProd (Obj.magic (TSuffix s), Obj.magic t)))
 
@@ -393,7 +397,7 @@ let reconstruct_params
             (match aa (i+1) l f pref suff with
               Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
             | Errors_ (errs2, ll, ff) -> Errors_ ((errs@errs2), ll, ff))
-      with Not_found -> Res_ ((Obj.magic []),lp,files)
+      with Not_found -> Res_ ((Obj.magic []), lp, files)
     in 
     aa 0 params files (pref^name^".") suff
   and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)
@@ -568,7 +572,8 @@ let reconstruct_params
 (* The following function takes a 'a params_type and a 'a and
    constructs the list of parameters (GET or POST) 
    (This is a marshalling function towards HTTP parameters format) *)
-let construct_params_list (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
+let construct_params_list 
+    (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
     (params : 'a) : string list option * (string * string) list =
   let rec aux typ params pref suff l =
     match typ with
@@ -1113,9 +1118,16 @@ module type FORMCREATE =
     type link_elt
     type script_elt
     type textarea_elt
-    type select_elt
     type input_elt
     type pcdata_elt
+    type select_elt
+    type select_content_elt
+    type select_content_elt_list
+    type option_elt
+    type option_elt_list
+    type button_elt
+    type button_content_elt
+    type button_content_elt_list
 
     type a_attrib_t
     type form_attrib_t
@@ -1124,20 +1136,38 @@ module type FORMCREATE =
     type select_attrib_t
     type link_attrib_t
     type script_attrib_t
+    type optgroup_attrib_t
+    type option_attrib_t
+    type button_attrib_t
+
+
     type input_type_t
+    type button_type_t
+
+
+        
 
     val hidden : input_type_t
-    val text : input_type_t
-    val password : input_type_t
     val checkbox : input_type_t
     val radio : input_type_t
     val submit : input_type_t
     val file : input_type_t
+    val image : input_type_t
+
+    val buttonsubmit : button_type_t
 
     val empty_seq : form_content_elt_list
     val cons_form : 
         form_content_elt -> form_content_elt_list -> form_content_elt_list 
+    val map_option :
+        ('a -> option_elt) -> 'a list -> 
+          option_elt_list
+    val map_optgroup :
+        ('a -> select_content_elt) -> 'a -> 'a list -> 
+          (select_content_elt * select_content_elt_list)
+    val select_content_of_option : option_elt -> select_content_elt
 
+    val make_pcdata : string -> pcdata_elt
     val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
     val make_get_form : ?a:form_attrib_t -> 
       action:string -> 
@@ -1149,19 +1179,35 @@ module type FORMCREATE =
     val remove_first : 
         form_content_elt_list -> form_content_elt * form_content_elt_list
     val make_input : ?a:input_attrib_t -> ?checked:bool ->
-      typ:input_type_t -> ?name:string -> 
+      typ:input_type_t -> ?name:string -> ?src:uri ->
         ?value:string -> unit -> input_elt
-    val make_textarea : ?a:textarea_attrib_t -> 
-      name:string -> rows:int -> cols:int ->
-        pcdata_elt -> 
-          textarea_elt
-     val make_select : ?a:select_attrib_t ->
-       name:string ->
-       ?selected:((string option * string) option)
-         -> (string option * string) -> ((string option * string) list) ->
-       select_elt
-    val make_div : classe:(string list) -> a_elt -> form_content_elt
-    val make_uri_from_string : string -> uri
+    val make_button : ?a:button_attrib_t -> button_type:button_type_t ->
+      ?name:string -> ?value:string ->
+        button_content_elt_list -> button_elt
+    val make_textarea : 
+        ?a:textarea_attrib_t -> 
+          name:string -> ?value:pcdata_elt -> rows:int -> cols:int ->
+            unit -> textarea_elt
+    val make_select :
+        ?a:select_attrib_t ->
+          multiple:bool ->
+            name:string ->
+              select_content_elt ->
+                select_content_elt_list ->
+                  select_elt
+    val make_option : 
+        ?a:option_attrib_t ->
+          selected:bool ->
+            ?value:string ->
+              pcdata_elt ->
+                option_elt
+    val make_optgroup :
+        ?a:optgroup_attrib_t ->
+          label:string ->
+            option_elt ->
+              option_elt_list ->
+                select_content_elt
+    val uri_of_string : string -> uri
 
 
     val make_css_link : ?a:link_attrib_t -> uri -> link_elt
@@ -1188,9 +1234,14 @@ module type ELIOMFORMSIG =
     type link_elt
     type script_elt
     type textarea_elt
-    type select_elt
     type input_elt
     type pcdata_elt
+    type select_elt
+    type select_content_elt
+    type select_content_elt_list
+    type button_elt
+    type button_content_elt
+    type button_content_elt_list
           
     type a_attrib_t
     type form_attrib_t
@@ -1199,18 +1250,23 @@ module type ELIOMFORMSIG =
     type select_attrib_t
     type link_attrib_t
     type script_attrib_t
+    type optgroup_attrib_t
+    type option_attrib_t
+    type button_attrib_t
+
     type input_type_t
+    type button_type_t
 
     val a :
         ?a:a_attrib_t ->
           ('get, unit, [< get_service_kind ], 
-           [< suff ], 'gn, unit param_name,
+           [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
             server_params -> a_content_elt_list -> 'get -> a_elt
     val get_form :
         ?a:form_attrib_t ->
           ('get, unit, [< get_service_kind ],
-           [<suff ], 'gn, unit param_name, 
+           [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
              server_params ->
               ('gn -> form_content_elt_list) -> form_elt
@@ -1223,7 +1279,7 @@ module type ELIOMFORMSIG =
               ('pn -> form_content_elt_list) -> 'get -> form_elt
     val make_uri :
         ('get, unit, [< get_service_kind ],
-         [< suff ], 'gn, unit param_name, 
+         [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
           server_params -> 'get -> uri
 
@@ -1233,65 +1289,204 @@ module type ELIOMFORMSIG =
 
 
     val int_input :
-        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:[< int setoneopt ] param_name ->
+            ?value:int -> unit -> input_elt
     val float_input :
-        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:[< float setoneopt ] param_name ->
+            ?value:float -> unit -> input_elt
     val string_input :
-        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+           ?name:[< string setoneopt ] param_name -> 
+             ?value:string -> unit -> input_elt
     val user_type_input :
-        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-          'a param_name -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:[< 'a setoneopt ] param_name -> 
+            ?value:'a -> ('a -> string) -> input_elt
     val any_input :
-        ?a:input_attrib_t -> ?value:string -> string -> input_elt
-    val int_password_input :
-        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
-    val float_password_input :
-        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
-    val string_password_input :
-        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
-    val user_type_password_input :
-        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-          'a param_name -> input_elt
-    val hidden_int_input :
-        ?a:input_attrib_t -> int param_name -> int -> input_elt
-    val hidden_float_input :
-        ?a:input_attrib_t -> float param_name -> float -> input_elt
-    val hidden_string_input :
-        ?a:input_attrib_t -> string param_name -> string -> input_elt
-    val hidden_user_type_input :
-        ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
-    val hidden_any_input :
-        ?a:input_attrib_t -> string -> string -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:string -> ?value:string -> unit -> input_elt
+
+    val file_input :
+        ?a:input_attrib_t -> 
+          name:[< file_info setoneopt ] param_name -> 
+            unit -> input_elt
+
+    val image_input :
+        ?a:input_attrib_t -> 
+          name:[< coordinates oneopt ] param_name -> 
+          ?src:uri -> unit -> input_elt
+
+    val int_image_input :
+        ?a:input_attrib_t -> 
+          name:[< (int * coordinates) oneopt ] param_name -> value:int -> 
+            ?src:uri -> unit -> input_elt
+    val float_image_input :
+        ?a:input_attrib_t -> 
+          name:[< (float * coordinates) oneopt ] param_name -> value:float -> 
+            ?src:uri -> unit -> input_elt
+    val string_image_input :
+        ?a:input_attrib_t -> 
+          name:[< (string * coordinates) oneopt ] param_name -> value:string -> 
+            ?src:uri -> unit -> input_elt
+    val user_type_image_input :
+        ?a:input_attrib_t -> 
+          name:[< ('a * coordinates) oneopt ] param_name -> value:'a -> 
+            ?src:uri -> ('a -> string) -> input_elt
+    val any_image_input :
+        ?a:input_attrib_t -> 
+          name:string -> value:string -> ?src:uri -> unit -> input_elt
+
     val bool_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
+        ?a:input_attrib_t -> ?checked:bool -> 
+          name:[ `One of bool ] param_name -> unit -> input_elt
+
     val string_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-          string option param_name -> string -> input_elt
+          name:[ `Opt of string ] param_name -> 
+            value:string -> unit -> input_elt
     val int_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-           int option param_name -> int -> input_elt
+           name:[ `Opt of int ] option param_name -> 
+             value:int -> unit -> input_elt
     val float_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-           float option param_name -> float -> input_elt
+           name:[ `Opt of float ] param_name -> 
+             value:float -> unit -> input_elt
     val user_type_radio :
-        ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
-           'a option param_name -> 'a -> input_elt
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of 'a ] param_name -> 
+             value:'a -> ('a -> string) -> input_elt
     val any_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-          string -> string -> input_elt
+          name:string -> value:string -> unit -> input_elt
+
+
+    val string_button : 
+        ?a:button_attrib_t -> 
+          name:[< string setone ] param_name -> value:string -> 
+            button_content_elt_list -> button_elt
+
+    val int_button : 
+        ?a:button_attrib_t ->
+          name:[< int setone ] param_name -> value:int -> 
+            button_content_elt_list -> button_elt
+
+    val float_button : 
+        ?a:button_attrib_t ->
+          name:[< float setone ] param_name -> value:float -> 
+            button_content_elt_list -> button_elt
+
+    val user_type_button : 
+        ?a:button_attrib_t ->
+          name:[< 'a setone ] param_name -> value:'a -> ('a -> string) ->
+            button_content_elt_list -> button_elt
+
+    val any_button :
+        ?a:button_attrib_t ->
+          button_type:button_type_t ->
+            name:string -> value:string -> 
+              button_content_elt_list -> button_elt
+
+    val button : 
+        ?a:button_attrib_t ->
+          button_type:button_type_t ->
+            button_content_elt_list -> button_elt
+
+
+
+
     val textarea :
         ?a:textarea_attrib_t ->
-          string param_name ->
-            rows:int -> cols:int -> pcdata_elt -> textarea_elt
-    val select :
-      ?a:select_attrib_t ->
-      ?selected:((string option * string) option)
-      -> (string option * string) -> ((string option * string) list) ->
-      string param_name
-      -> select_elt
-    val submit_input : ?a:input_attrib_t -> string -> input_elt
-    val file_input : ?a:input_attrib_t -> ?value:string -> 
-                            file_info param_name-> input_elt
+          name:[< string setoneopt ] param_name -> ?value:pcdata_elt -> 
+            rows:int -> cols:int -> unit -> textarea_elt
+
+    type 'a soption =
+        option_attrib_t
+          * 'a (* Content (or value if the following is present) *)
+          * pcdata_elt option (* if content different from value *)
+          * bool (* selected *)
+
+    type 'a select_opt = 
+      | Optgroup of 
+          optgroup_attrib_t
+            * string (* label *)
+            * 'a soption
+            * 'a soption list
+      | Option of 'a soption
+            
+    val any_select :
+        ?a:select_attrib_t ->
+          name:string ->
+            string select_opt ->
+              string select_opt list ->
+                select_elt
+
+    val int_select :
+        ?a:select_attrib_t ->
+          name:[< `Opt of int ] param_name ->
+            int select_opt ->
+              int select_opt list ->
+                select_elt
+
+    val float_select :
+        ?a:select_attrib_t ->
+          name:[< `Opt of float ] param_name ->
+            float select_opt ->
+              float select_opt list ->
+                select_elt
+
+    val string_select :
+        ?a:select_attrib_t ->
+          name:[< `Opt of string ] param_name ->
+            string select_opt ->
+              string select_opt list ->
+                select_elt
+
+    val user_type_select :
+        ?a:select_attrib_t ->
+          name:[< `Opt of 'a ] param_name ->
+            'a select_opt ->
+              'a select_opt list ->
+                ('a -> string) ->
+                  select_elt
+
+    val any_multiple_select :
+        ?a:select_attrib_t ->
+          name:string ->
+            string select_opt ->
+              string select_opt list ->
+                select_elt
+
+    val int_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of int ] param_name ->
+            int select_opt ->
+              int select_opt list ->
+                select_elt
+
+    val float_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of float ] param_name ->
+            float select_opt ->
+              float select_opt list ->
+                select_elt
+
+    val string_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of string ] param_name ->
+            string select_opt ->
+              string select_opt list ->
+                select_elt
+
+    val user_type_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of 'a ] param_name ->
+            'a select_opt ->
+              'a select_opt list ->
+                ('a -> string) ->
+                  select_elt
 
 
   end
@@ -1300,11 +1495,6 @@ module type ELIOMFORMSIG =
 module type ELIOMREGSIG1 =
 (* pasted from mli *)
   sig
-
-
-
-
-
 
 
     type page
@@ -1376,7 +1566,7 @@ module type ELIOMREGSIG1 =
                       ('get, unit, 
                        [> `Attached of 
                          [> `Internal of [> `Service ] * [> `Get] ] a_s ],
-                       'tipo, 'gn, unit param_name, 
+                       'tipo, 'gn, unit, 
                        [> `Registrable ]) service
 (** Same as [new_service] followed by [register] *)
                       
@@ -1387,7 +1577,7 @@ module type ELIOMREGSIG1 =
         fallback:(unit, unit, 
                   [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                    [ `WithoutSuffix ] as 'tipo, 
-                   unit param_name, unit param_name, [< registrable ])
+                   unit, unit, [< registrable ])
         service ->
           get_params: 
             ('get, [`WithoutSuffix], 'gn) params_type ->
@@ -1397,7 +1587,7 @@ module type ELIOMREGSIG1 =
                     ('get, unit, 
                      [> `Attached of 
                        [> `Internal of [> `Coservice ] * [> `Get]] a_s ], 
-                     'tipo, 'gn, unit param_name, 
+                     'tipo, 'gn, unit, 
                      [> `Registrable ])
                       service
 (** Same as [new_coservice] followed by [register] *)
@@ -1413,7 +1603,7 @@ module type ELIOMREGSIG1 =
               (server_params -> 'get -> unit -> page Lwt.t) ->
                 ('get, unit, 
                  [> `Nonattached of [> `Get] na_s ],
-                 'tipo, 'gn, unit param_name, [> `Registrable ])
+                 'tipo, 'gn, unit, [> `Registrable ])
                   service
 (** Same as [new_coservice'] followed by [register] *)
 
@@ -1424,7 +1614,7 @@ module type ELIOMREGSIG1 =
           fallback:(unit, unit, 
                     [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                     [ `WithoutSuffix ] as 'tipo, 
-                    unit param_name, unit param_name, [< registrable ])
+                    unit, unit, [< registrable ])
             service ->
               get_params: 
                 ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
@@ -1434,7 +1624,7 @@ module type ELIOMREGSIG1 =
                         ('get, unit, 
                          [> `Attached of 
                            [> `Internal of [> `Coservice ] * [> `Get] ] a_s ], 
-                         'tipo, 'gn, unit param_name, 
+                         'tipo, 'gn, unit, 
                          [> `Registrable ])
                           service
 (** Same as [new_coservice] followed by [register_for_session] *)
@@ -1449,7 +1639,7 @@ module type ELIOMREGSIG1 =
                 page Lwt.t) ->
                   (server_params -> 'get -> unit -> page Lwt.t) ->
                     ('get, unit, [> `Nonattached of [> `Get] na_s ], 
-                     'tipo, 'gn, unit param_name, 
+                     'tipo, 'gn, unit, 
                      [> `Registrable ])
                       service
 (** Same as [new_coservice'] followed by [register_for_session] *)
@@ -1460,7 +1650,7 @@ module type ELIOMREGSIG1 =
                   [ `Attached of [ `Internal of 
                     ([ `Service | `Coservice ] as 'kind) * [`Get] ] a_s ],
                   [< suff ] as 'tipo, 'gn,
-                  unit param_name, [< `Registrable ])
+                  unit, [< `Registrable ])
         service ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
@@ -1480,7 +1670,7 @@ module type ELIOMREGSIG1 =
                   [ `Attached of 
                     [ `Internal of [< `Service | `Coservice ] * [`Get] ] a_s ],
                    [< suff ] as 'tipo, 
-                   'gn, unit param_name, [< `Registrable ])
+                   'gn, unit, [< `Registrable ])
         service ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
@@ -1502,7 +1692,7 @@ module type ELIOMREGSIG1 =
             page Lwt.t) ->
               (server_params -> unit -> 'post -> page Lwt.t) ->
                 (unit, 'post, [> `Nonattached of [> `Post] na_s ], 
-                 [ `WithoutSuffix ], unit param_name, 'pn,
+                 [ `WithoutSuffix ], unit, 'pn,
                  [> `Registrable ])
                   service
 (** Same as [new_post_coservice'] followed by [register] *)
@@ -1515,7 +1705,7 @@ module type ELIOMREGSIG1 =
         fallback:('get, unit , 
                   [ `Nonattached of [`Get] na_s ],
                    [< suff ] as 'tipo, 
-                   'gn, unit param_name, [< `Registrable ])
+                   'gn, unit, [< `Registrable ])
         service ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
@@ -1535,7 +1725,7 @@ module type ELIOMREGSIG1 =
                     [< `Attached of [< `Internal of
                       [< `Service | `Coservice ] * [`Get] ] a_s ],
                     [< suff ] as 'tipo, 
-                    'gn, unit param_name, [< `Registrable ])
+                    'gn, unit, [< `Registrable ])
             service ->
               post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
                 ?error_handler:(server_params -> 
@@ -1557,7 +1747,7 @@ module type ELIOMREGSIG1 =
               (string * exn) list -> page Lwt.t) ->
                 (server_params -> unit -> 'post -> page Lwt.t) ->
                   (unit, 'post, [> `Nonattached of [> `Post] na_s ], 
-                   [ `WithoutSuffix ], unit param_name, 'pn, 
+                   [ `WithoutSuffix ], unit, 'pn, 
                    [> `Registrable ])
                     service
 (** Same as [new_post_coservice'] followed by [register_for_session] *)
@@ -1569,7 +1759,7 @@ module type ELIOMREGSIG1 =
         ?timeout:float ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
                     [< suff ] as 'tipo, 
-                    'gn, unit param_name, [< `Registrable ])
+                    'gn, unit, [< `Registrable ])
             service ->
               post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
                 ?error_handler:(server_params -> 
@@ -1603,6 +1793,7 @@ module type ELIOMSIG = sig
   include ELIOMREGSIG
   include ELIOMFORMSIG
 end
+
 
 
 module MakeRegister = functor
@@ -2207,6 +2398,11 @@ module MakeForms = functor
       type select_elt = Pages.select_elt
       type input_elt = Pages.input_elt
       type pcdata_elt = Pages.pcdata_elt
+      type select_content_elt = Pages.select_content_elt
+      type select_content_elt_list = Pages.select_content_elt_list
+      type button_elt = Pages.button_elt
+      type button_content_elt = Pages.button_content_elt
+      type button_content_elt_list = Pages.button_content_elt_list
             
       type a_attrib_t = Pages.a_attrib_t
       type form_attrib_t = Pages.form_attrib_t
@@ -2215,7 +2411,12 @@ module MakeForms = functor
       type select_attrib_t = Pages.select_attrib_t
       type link_attrib_t = Pages.link_attrib_t
       type script_attrib_t = Pages.script_attrib_t
+      type optgroup_attrib_t = Pages.optgroup_attrib_t
+      type option_attrib_t = Pages.option_attrib_t
+      type button_attrib_t = Pages.button_attrib_t
+
       type input_type_t = Pages.input_type_t
+      type button_type_t = Pages.button_type_t
 
 
 (** Functions to construct web pages: *)
@@ -2226,7 +2427,7 @@ module MakeForms = functor
           content
           getparams =
         match service.kind with
-          `Attached attser ->
+        | `Attached attser ->
             (let suff, params_string = 
               construct_params service.get_params_type getparams in
             let preapplied_params = 
@@ -2243,7 +2444,7 @@ module MakeForms = functor
                    (get_current_path sp) attser.url suff))
             in
             match attser.get_state with
-              None ->
+            | None ->
                 Pages.make_a 
                   ?a ~href:(add_to_string uri "?" params_string) content
             | Some i -> 
@@ -2267,7 +2468,7 @@ module MakeForms = functor
               concat_strings preapplied_params "&" params_string in
             let naservice_param = 
               match fst naser.na_name with
-                Some n -> naservice_name^"="^n
+              | Some n -> naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -2283,7 +2484,7 @@ module MakeForms = functor
 
       let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
         let rec aux prefix suffix = function
-            TProd (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
+          | TProd (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
           | TInt name -> Obj.magic (prefix^name^suffix)
           | TFloat name -> Obj.magic (prefix^name^suffix)
           | TString name -> Obj.magic (prefix^name^suffix)
@@ -2291,8 +2492,8 @@ module MakeForms = functor
           | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
           | TCoord name -> Obj.magic (prefix^name^suffix)
           | TCoordv (_, name) -> Obj.magic (prefix^name^suffix)
-          | TUnit -> Obj.magic ("")
-          | TAny -> Obj.magic ("")
+          | TUnit -> Obj.magic ()
+          | TAny -> Obj.magic ()
           | TSet t -> Obj.magic (aux prefix suffix t)
           | TESuffix n -> Obj.magic n
           | TESuffixs n -> Obj.magic n
@@ -2320,7 +2521,7 @@ module MakeForms = functor
           ((_,si,_) as sp)
           f =
         match service.kind with
-          `Attached attser ->
+        | `Attached attser ->
             let urlname =
               (if attser.att_kind = `External
               then (reconstruct_absolute_url_path
@@ -2329,7 +2530,7 @@ module MakeForms = functor
                       (get_current_path sp) attser.url None)) in
             let state_param =
               (match attser.get_state with
-                None -> None
+              | None -> None
               | Some i -> 
                   let i' = string_of_int i in
                   Some (Pages.make_input ~typ:Pages.hidden
@@ -2350,7 +2551,7 @@ module MakeForms = functor
             in
             let i1, i =
               match state_param, inside with
-                Some s, i -> (Pages.make_hidden_field s),i
+              | Some s, i -> (Pages.make_hidden_field s),i
               | None, i -> Pages.remove_first i
             in Pages.make_get_form ?a ~action:urlname i1 i
         | `Nonattached naser ->
@@ -2358,7 +2559,7 @@ module MakeForms = functor
             let naservice_param_name = naservice_name in
             let naservice_param = 
               match fst naser.na_name with
-                Some n -> n
+              | Some n -> n
               | _ -> assert false
             in
             let naservice_line = 
@@ -2408,7 +2609,7 @@ module MakeForms = functor
           f 
           getparams =
         match service.kind with
-          `Attached attser ->
+        | `Attached attser ->
             let suff,params_string = 
               construct_params service.get_params_type getparams in
             let preapplied_params = 
@@ -2433,7 +2634,7 @@ module MakeForms = functor
             in
             let state_param =
               (match  attser.post_state with
-                None -> None
+              | None -> None
               | Some i -> 
                   let i' = string_of_int i in
                   Some (Pages.make_input ~typ:Pages.hidden
@@ -2442,7 +2643,7 @@ module MakeForms = functor
             let inside = f (make_params_names service.post_params_type) in
             let i1, i =
               match state_param, inside with
-                Some s, i -> (Pages.make_hidden_field s),i
+              | Some s, i -> (Pages.make_hidden_field s),i
               | None, i -> Pages.remove_first i
             in Pages.make_post_form ?a
               ~action:(add_to_string urlname "?" params_string)
@@ -2472,7 +2673,7 @@ module MakeForms = functor
 
 
       let make_uri serv sp gp =
-        Pages.make_uri_from_string (make_string_uri serv sp gp)
+        Pages.uri_of_string (make_string_uri serv sp gp)
                   
           
           
@@ -2480,83 +2681,177 @@ module MakeForms = functor
       let css_link = Pages.make_css_link
 
 
-      let gen_input ?a ?value ?(pwd = false)
-          (string_of : 'a -> string) (name : 'a param_name) =
-        let typ = if pwd then Pages.password else Pages.text in
-        match value with
+      let gen_input ?a ~(input_type : input_type_t) 
+          ?value ?src
+          ?name (string_of : 'a -> string) =
+        (match value with
         | None ->
-            Pages.make_input ?a ~typ:typ ~name:name ()
+            Pages.make_input ?a ~typ:input_type ?name ?src ()
         | Some v -> 
             Pages.make_input
               ?a
               ~value:(string_of v)
-              ~typ:typ ~name:name ()
+              ~typ:input_type 
+              ?src
+              ?name
+              ())
+          
+      let int_input ?a ~input_type
+          ?name ?value () = 
+        gen_input ?a ~input_type ?value ?name string_of_int
+      let float_input ?a ~input_type 
+          ?name ?value () =
+        gen_input ?a ~input_type ?value ?name string_of_float
+      let string_input ?a ~input_type 
+          ?name ?value () =
+        gen_input ?a ~input_type ?value ?name id
+      let user_type_input ?a ~input_type
+          ?name ?value string_of = 
+        gen_input ?a ~input_type ?value ?name string_of 
+      let any_input ?a ~input_type 
+          ?name ?value () = 
+        gen_input ?a ~input_type ?value ?name id
 
-      let int_input ?a ?value (name : int param_name) = 
-        gen_input ?a ?value string_of_int name
-      let float_input ?a ?value (name : float param_name) =
-        gen_input ?a ?value string_of_float name
-      let string_input ?a ?value (name : string param_name) =
-        gen_input ?a ?value id name
-      let user_type_input = gen_input ~pwd:false
-      let any_input ?a ?value (name : string) = 
-        gen_input ?a ?value id name
+      let file_input ?a ~name () = 
+        Pages.make_input ?a ~typ:Pages.file ~name ()
+      (* value attribute not supported by browsers for security reasons *)
+      
+      let image_input ?a ~name ?src () = 
+        Pages.make_input ?a ~typ:Pages.image ~name ?src ()
+    (* The behaviour of <input type="image"> without name attribute
+       depends on browsers *)
+    
+      let int_image_input ?a ~name ~value ?src () = 
+        gen_input ?a ~input_type:Pages.image ~name
+          ~value ?src string_of_int
+      let float_image_input ?a ~name ~value ?src () = 
+        gen_input ?a ~input_type:Pages.image ~name
+          ~value ?src string_of_float
+      let string_image_input ?a ~name ~value ?src () = 
+        gen_input ?a ~input_type:Pages.image ~name
+          ~value ?src id
+      let user_type_image_input ?a ~name ~value ?src string_of = 
+        gen_input ?a ~input_type:Pages.image ~name
+          ~value ?src string_of
+      let any_image_input ?a ~(name : string) ~value ?src () = 
+        gen_input ?a ~input_type:Pages.image ~name
+          ~value ?src id
 
-      let int_password_input ?a ?value (name : int param_name) = 
-        gen_input ~pwd:true ?a ?value string_of_int name
-      let float_password_input ?a ?value (name : float param_name) =
-        gen_input ~pwd:true ?a ?value string_of_float name
-      let string_password_input ?a ?value (name : string param_name) =
-        gen_input ~pwd:true ?a ?value id name
-      let user_type_password_input = gen_input ~pwd:true
-
-      let hidden_gen_input ?a string_of (name : 'a param_name) v = 
-        let vv = string_of v in
-        Pages.make_input ?a ~typ:Pages.hidden ~name:name ~value:vv ()
-
-      let hidden_int_input ?a (name : int param_name) v = 
-        hidden_gen_input ?a string_of_int name v
-      let hidden_float_input ?a (name : float param_name) v =
-        hidden_gen_input ?a string_of_float name v
-      let hidden_string_input ?a (name : string param_name) v =
-        hidden_gen_input ?a id name v
-      let hidden_user_type_input = hidden_gen_input
-      let hidden_any_input ?a (name : string) v =
-        hidden_gen_input ?a id name v
-
-      let bool_checkbox ?a ?checked (name : bool param_name) =
+      let bool_checkbox ?a ?checked ~name () =
         Pages.make_input ?a ?checked ~typ:Pages.checkbox ~name:name ()
 
-      let string_radio ?a ?checked (name : string option param_name) value =
+      let string_radio ?a ?checked ~name ~value () =
         Pages.make_input
-          ?a ?checked ~typ:Pages.radio ~name:name ~value:value ()
-      let int_radio ?a ?checked (name : int option param_name) value =
+          ?a ?checked ~typ:Pages.radio ~name ~value ()
+      let int_radio ?a ?checked ~name ~value () =
         Pages.make_input
-          ?a ?checked ~typ:Pages.radio ~name:name 
-          ~value:(string_of_int value) ()
-      let float_radio ?a ?checked (name : float option param_name) value =
+          ?a ?checked ~typ:Pages.radio ~name ~value:(string_of_int value) ()
+      let float_radio ?a ?checked ~name ~value () =
         Pages.make_input
-          ?a ?checked ~typ:Pages.radio ~name:name 
-          ~value:(string_of_float value) ()
-      let user_type_radio ?a ?checked string_of
-          (name : 'a option param_name) (value : 'a) =
+          ?a ?checked ~typ:Pages.radio ~name ~value:(string_of_float value) ()
+      let user_type_radio ?a ?checked ~name ~value string_of =
         Pages.make_input
-          ?a ?checked ~typ:Pages.radio ~name:name ~value:(string_of value) ()
-      let any_radio ?a ?checked (name : string) value =
+          ?a ?checked ~typ:Pages.radio ~name ~value:(string_of value) ()
+      let any_radio ?a ?checked ~(name : string) ~value () =
         Pages.make_input
           ?a ?checked ~typ:Pages.radio ~name:name ~value:value ()
 
-      let textarea ?a (name : string param_name) =
+      let string_button ?a ~name ~value c =
+        Pages.make_button ?a ~button_type:Pages.buttonsubmit ~name ~value c
+
+      let int_button ?a ~name ~value c =
+        Pages.make_button ?a ~button_type:Pages.buttonsubmit ~name ~value:(string_of_int value) c
+
+      let float_button ?a ~name ~value c =
+        Pages.make_button ?a ~button_type:Pages.buttonsubmit ~name ~value:(string_of_float value) c
+
+      let user_type_button ?a ~name ~value string_of c =
+        Pages.make_button ?a ~button_type:Pages.buttonsubmit ~name ~value:(string_of value) c
+
+      let any_button ?a ~button_type ~name ~value c =
+        Pages.make_button ?a ~button_type ~name ~value c
+
+      let button ?a ~button_type c =
+        Pages.make_button ?a ~button_type c
+
+
+      let textarea ?a ~name =
         Pages.make_textarea ?a ~name:name
 
-      let select ?a ?selected fp lp (name : string param_name) =
-        Pages.make_select ?a ~name:name ?selected fp lp
+      type 'a soption =
+          option_attrib_t
+            * 'a (* Content (or value if the following is present) *)
+            * pcdata_elt option (* if content different from value *)
+            * bool (* selected *)
+            
+      type 'a select_opt = 
+        | Optgroup of 
+            optgroup_attrib_t
+              * string (* label *)
+              * 'a soption
+              * 'a soption list
+        | Option of 'a soption
+              
+      let gen_select ?a ?(multiple=false) ~name 
+          (fl : 'a select_opt) (ol : 'a select_opt list) string_of =
+        let make_opt (a, cv, co, sel) =
+          (match co with
+          | None -> Pages.make_option ~a ~selected:sel 
+                (Pages.make_pcdata (string_of cv))
+          | Some c -> Pages.make_option ~a ~selected:sel 
+                ~value:(string_of cv) c)
+        in
+        let rec make_optg = function
+          | Option o -> Pages.select_content_of_option (make_opt o)
+          | Optgroup (a, label, og1, ogl) -> 
+              Pages.make_optgroup 
+                ~a ~label (make_opt og1) (Pages.map_option make_opt ogl)
+        in
+        let fl2,ol2 = Pages.map_optgroup make_optg fl ol in
+        Pages.make_select ?a ~multiple ~name fl2 ol2
 
-      let submit_input ?a s =
-        Pages.make_input ?a ~typ:Pages.submit ~value:s ()
+      let any_select ?a ~(name : string)
+          (fl : string select_opt) (ol : string select_opt list) =
+        gen_select ?a ~multiple:false ~name fl ol id
 
-      let file_input ?a ?value (name : file_info param_name)  = 
-        Pages.make_input ?a ~typ:Pages.file ?value ~name:name ()
+      let int_select ?a ~name 
+          (fl : int select_opt) (ol : int select_opt list) =
+        gen_select ?a ~multiple:false ~name fl ol string_of_int
+
+      let float_select ?a ~name 
+          (fl : float select_opt) (ol : float select_opt list) =
+        gen_select ?a ~multiple:false ~name fl ol string_of_float
+
+      let string_select ?a ~name 
+          (fl : string select_opt) (ol : string select_opt list) =
+        gen_select ?a ~multiple:false ~name fl ol id
+
+      let user_type_select ?a ~name (fl : 'a select_opt) 
+          (ol : 'a select_opt list) string_of =
+        gen_select ?a ~multiple:false ~name fl ol string_of
+
+
+
+      let any_multiple_select ?a ~(name : string)
+          (fl : string select_opt) (ol : string select_opt list) =
+        gen_select ?a ~multiple:true ~name fl ol id
+
+      let int_multiple_select ?a ~name 
+          (fl : int select_opt) (ol : int select_opt list) =
+        gen_select ?a ~multiple:true ~name fl ol string_of_int
+
+      let float_multiple_select ?a ~name 
+          (fl : float select_opt) (ol : float select_opt list) =
+        gen_select ?a ~multiple:true ~name fl ol string_of_float
+
+      let string_multiple_select ?a ~name 
+          (fl : string select_opt) (ol : string select_opt list) =
+        gen_select ?a ~multiple:true ~name fl ol id
+
+      let user_type_multiple_select ?a
+          ~name (fl : 'a select_opt) 
+          (ol : 'a select_opt list) string_of =
+        gen_select ?a ~multiple:true ~name fl ol string_of
 
     end : ELIOMFORMSIG with 
      type form_content_elt = Pages.form_content_elt
@@ -2568,6 +2863,10 @@ module MakeForms = functor
      and type a_elt_list = Pages.a_elt_list
      and type div_content_elt = Pages.div_content_elt
      and type div_content_elt_list = Pages.div_content_elt_list
+     and type button_elt = Pages.button_elt
+     and type button_content_elt = Pages.button_content_elt
+     and type button_content_elt_list = Pages.button_content_elt_list
+
      and type uri = Pages.uri
      and type link_elt = Pages.link_elt
      and type script_elt = Pages.script_elt
@@ -2582,7 +2881,12 @@ module MakeForms = functor
      and type select_attrib_t = Pages.select_attrib_t
      and type link_attrib_t = Pages.link_attrib_t
      and type script_attrib_t = Pages.script_attrib_t
-     and type input_type_t = Pages.input_type_t)
+     and type optgroup_attrib_t = Pages.optgroup_attrib_t
+     and type option_attrib_t = Pages.option_attrib_t
+     and type button_attrib_t = Pages.button_attrib_t
+     and type input_type_t = Pages.input_type_t
+     and type button_type_t = Pages.button_type_t
+    )
 
 
 (*****************************************************************************)
@@ -2619,8 +2923,10 @@ module Xhtmlforms_ = struct
   type form_content_elt = form_content elt
   type form_content_elt_list = form_content elt list
   type uri = XHTML.M.uri
+
   type a_content_elt = a_content elt
   type a_content_elt_list = a_content elt list
+
   type div_content_elt = div_content elt
   type div_content_elt_list = div_content elt list
 
@@ -2629,13 +2935,22 @@ module Xhtmlforms_ = struct
   type form_elt = form elt
 
   type textarea_elt = textarea elt
-  type select_elt = select elt
   type input_elt = input elt
 
   type link_elt = link elt
   type script_elt = script elt
 
   type pcdata_elt = pcdata elt
+
+  type select_elt = select elt
+  type select_content_elt = select_content elt
+  type select_content_elt_list = select_content elt list
+  type option_elt = selectoption elt
+  type option_elt_list = selectoption elt list
+
+  type button_elt = button elt
+  type button_content_elt = button_content elt
+  type button_content_elt_list = button_content elt list
 
   type a_attrib_t = Xhtmltypes.a_attrib XHTML.M.attrib list
   type form_attrib_t = Xhtmltypes.form_attrib XHTML.M.attrib list
@@ -2644,84 +2959,118 @@ module Xhtmlforms_ = struct
   type select_attrib_t = Xhtmltypes.select_attrib XHTML.M.attrib list
   type link_attrib_t = Xhtmltypes.link_attrib XHTML.M.attrib list
   type script_attrib_t = Xhtmltypes.script_attrib XHTML.M.attrib list
+  type optgroup_attrib_t = [ common | `Disabled ] XHTML.M.attrib list
+  type option_attrib_t = Xhtmltypes.option_attrib XHTML.M.attrib list
+  type button_attrib_t = Xhtmltypes.button_attrib XHTML.M.attrib list
 
   type input_type_t = 
-      [`Button | `Checkbox | `File | `Hidden | `Image
-    | `Password | `Radio | `Reset | `Submit | `Text]
+      [ `Button
+    | `Checkbox
+    | `File
+    | `Hidden
+    | `Image
+    | `Password
+    | `Radio
+    | `Reset
+    | `Submit
+    | `Text ]
 
+  type button_type_t =
+      [ `Button | `Reset | `Submit ]
+        
   let hidden = `Hidden
-  let text = `Text
-  let password = `Password
   let checkbox = `Checkbox
   let radio = `Radio
   let submit = `Submit
   let file = `File
+  let image = `Image
 
-  let make_uri_from_string = XHTML.M.make_uri_from_string
+  let buttonsubmit = `Submit
+
+  let uri_of_string = XHTML.M.uri_of_string
 
   let empty_seq = []
   let cons_form a l = a::l
 
+  let map_option = List.map
+  let map_optgroup f a l = ((f a), List.map f l)
+  let select_content_of_option a = (a :> select_content_elt)
+
+  let make_pcdata s = pcdata s
+
   let make_a ?(a=[]) ~href l : a_elt = 
-    XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) l
+    XHTML.M.a ~a:((a_href (uri_of_string href))::a) l
 
   let make_get_form ?(a=[]) ~action elt1 elts : form_elt = 
     form ~a:((a_method `Get)::a) 
-      ~action:(make_uri_from_string action) elt1 elts
+      ~action:(uri_of_string action) elt1 elts
 
   let make_post_form ?(a=[]) ~action ?id ?(inline = false) elt1 elts 
       : form_elt = 
     let aa = (match id with
-      None -> a
+    | None -> a
     | Some i -> (a_id i)::a) 
     in
     form ~a:((XHTML.M.a_enctype "multipart/form-data")::
              (* Always Multipart!!! How to test if there is a file?? *)
              (a_method `Post)::
              (if inline then (a_class ["inline"])::aa else aa))
-      ~action:(make_uri_from_string action) elt1 elts
+      ~action:(uri_of_string action) elt1 elts
 
   let make_hidden_field content = 
-    div ~a:[a_class ["nodisplay"]] [content]
-
-  let make_div ~classe (c : a_elt) =
-    div ~a:[a_class classe] [(c :> div_content_elt)]
+    (div ~a:[a_class ["nodisplay"]] [content] :> form_content_elt)
 
   let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
 
   let remove_first = function
-      a::l -> a,l
+    | a::l -> a,l
     | [] -> (make_empty_form_content ()), []
 
-  let make_input ?(a=[]) ?(checked=false) ~typ ?name ?value () = 
+  let make_input ?(a=[]) ?(checked=false) ~typ ?name ?src ?value () = 
     let a2 = match value with
-      None -> a
+    | None -> a
     | Some v -> (a_value v)::a
     in
-    let a3 = match name with
-      None -> a2
+    let a2 = match name with
+    | None -> a2
     | Some v -> (a_name v)::a2
     in
-    let a4 = if checked then (a_checked `Checked)::a3 else a3 in
-    input ~a:((a_input_type typ)::a4) ()
-
-  let make_textarea ?(a=[]) ~name:name = 
-    let a3 = (a_name name)::a in
-    textarea ~a:a3
-
-  let make_select ?(a=[]) ~name:name ?(selected=None) fp lp =
-    let build_option selec p =
-      let lsel = if selec then [a_selected `Selected] else []
-      in
-        match p with 
-        | (None, s) -> option ~a:lsel (pcdata s)
-        | (Some v, s) -> option ~a:((a_value v)::lsel) (pcdata s)
+    let a2 = match src with
+    | None -> a2
+    | Some v -> (a_src v)::a2
     in
-      match selected with
-      | None -> select ~a:((a_name name)::a) (build_option false fp)
-          (List.map (build_option false) lp)
-      | Some p -> select ~a:((a_name name)::a) (build_option true p)
-          ((build_option false fp)::(List.map (build_option false) lp))
+    let a2 = if checked then (a_checked `Checked)::a2 else a2 in
+    input ~a:((a_input_type typ)::a2) ()
+
+  let make_button ?(a = []) ~button_type ?name ?value c =
+    let a = match value with
+    | None -> a
+    | Some v -> (a_value v)::a
+    in
+    let a = match name with
+    | None -> a
+    | Some v -> (a_name v)::a
+    in
+    button ~a:((a_button_type button_type)::a) c
+
+  let make_textarea ?(a=[]) ~name ?(value=pcdata "") ~rows ~cols () = 
+    let a3 = (a_name name)::a in
+    textarea ~a:a3 ~rows ~cols value
+
+  let make_select ?(a=[]) ~multiple ~name elt elts =
+    let a = if multiple then (a_multiple `Multiple)::a else a in
+    select ~a:((a_name name)::a) elt elts
+
+  let make_option ?(a=[]) ~selected ?value c =
+    let a = match value with
+    | None -> a
+    | Some v -> (a_value v)::a
+    in
+    let a = if selected then (a_selected `Selected)::a else a in
+    option ~a c
+
+  let make_optgroup ?(a=[]) ~label elt elts =
+    optgroup ~label ~a elt elts
     
   let make_css_link ?(a=[]) uri =
     link ~a:((a_href uri)::
@@ -2734,7 +3083,7 @@ end
 
 
 
-(****************************************************************************)
+(*****************************************************************************)
 (*****************************************************************************)
 
 module Xhtmlforms' = MakeForms(Xhtmlforms_)
@@ -2749,7 +3098,7 @@ module type XHTMLFORMSSIG = sig
   val a :
       ?a:a_attrib attrib list ->
         ('get, unit, [< get_service_kind ], 
-         [< suff ], 'gn, unit param_name,
+         [< suff ], 'gn, 'pn,
          [< registrable ]) service ->
            server_params -> a_content elt list -> 'get -> [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link from [current] to [service]. 
@@ -2773,7 +3122,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_uri :
         ('get, unit, [< get_service_kind ],
-         [< suff ], 'gn, unit param_name, 
+         [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
           server_params -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
@@ -2783,7 +3132,7 @@ module type XHTMLFORMSSIG = sig
     val get_form :
         ?a:form_attrib attrib list ->
           ('get, unit, [< get_service_kind ],
-           [<suff ], 'gn, unit param_name, 
+           [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
              server_params ->
               ('gn -> form_content elt list) -> [>form] elt
@@ -2803,144 +3152,261 @@ module type XHTMLFORMSSIG = sig
    to [service]. The last parameter is for GET parameters (as in the function [a]).
  *)
 
-(*
-   val img : ?a:(img_attrib attrib list) ->
-   alt:string ->
-   ('a, form_content elt list, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) service -> server_params -> 'cimg
- *)
+  type basic_input_type =
+      [
+    | `Checkbox
+    | `Hidden
+    | `Password
+    | `Submit
+    | `Text ]
 
-  val int_input : ?a:(input_attrib attrib list ) -> 
-    ?value:int ->
-    int param_name -> [> input ] elt
+  val int_input :
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< int setoneopt ] param_name -> 
+          ?value:int -> unit -> [> input ] elt
 (** Creates an [<input>] tag for an integer *)
 
-  val float_input : ?a:(input_attrib attrib list ) -> 
-    ?value:float ->
-    float param_name -> [> input ] elt
+  val float_input :
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< float setoneopt ] param_name -> 
+          ?value:float -> unit -> [> input ] elt
 (** Creates an [<input>] tag for a float *)
 
   val string_input : 
-      ?a:(input_attrib attrib list ) -> 
-        ?value:string ->
-          string param_name -> [> input ] elt
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< string setoneopt ] param_name -> 
+          ?value:string -> unit -> [> input ] elt
 (** Creates an [<input>] tag for a string *)
 
   val user_type_input : 
-      ?a:(input_attrib attrib list ) -> 
-        ?value:'a ->
-          ('a -> string) ->
-            'a param_name -> 
-              [> input ] elt
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< 'a setoneopt ] param_name -> 
+          ?value:'a -> ('a -> string) -> [> input ] elt
 (** Creates an [<input>] tag for a user type *)
 
-  val any_input : ?a:(input_attrib attrib list ) -> 
-    ?value:string ->
-    string -> [> input ] elt
-(** Creates an [<input>] tag (low level) *)
+  val any_input :
+      ?a:input_attrib attrib list -> 
+        input_type:[< basic_input_type | `Reset | `Button ] ->
+        ?name:string -> ?value:string -> unit -> [> input ] elt
+(** Creates an untyped [<input>] tag (low level) *)
 
-  val int_password_input : ?a:(input_attrib attrib list ) -> 
-    ?value:int ->
-    int param_name -> [> input ] elt
-(** Creates an [<input type="password">] tag for an integer *)
+  val file_input :
+      ?a:input_attrib attrib list -> 
+        name:[< file_info setoneopt ] param_name -> 
+          unit -> [> input ] elt
+(** Creates an [<input>] tag for sending a file *)
 
-  val float_password_input : ?a:(input_attrib attrib list ) -> 
-    ?value:float ->
-    float param_name -> [> input ] elt
-(** Creates an [<input type="password">] tag for a float *)
+  val image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< coordinates oneopt ] param_name -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="...">] tag that sends the coordinates 
+   you clicked on *)
+            
+  val int_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (int * coordinates) oneopt ] param_name -> value:int -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates you clicked on and a value of type int *)
 
-  val string_password_input : 
-      ?a:(input_attrib attrib list ) -> 
-        ?value:string ->
-          string param_name -> [> input ] elt
-(** Creates an [<input type="password">] tag for a string *)
+  val float_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (float * coordinates) oneopt ] param_name -> value:float -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+    the coordinates you clicked on and a value of type float *)
 
-  val user_type_password_input : 
-      ?a:(input_attrib attrib list ) -> 
-        ?value:'a ->
-          ('a -> string) ->
-            'a param_name -> 
-              [> input ] elt
-(** Creates an [<input type="password">] tag for a user type *)
+  val string_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (string * coordinates) oneopt ] param_name -> value:string -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates you clicked on and a value of type string *)
 
-  val hidden_int_input : 
-      ?a:(input_attrib attrib list ) -> 
-        int param_name -> int -> [> input ] elt
-(** Creates an hidden [<input>] tag for an integer *)
+  val user_type_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< ('a * coordinates) oneopt ] param_name -> value:'a -> 
+          ?src:uri -> ('a -> string) -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates you clicked on and a value of user defined type *)
 
-  val hidden_float_input : 
-      ?a:(input_attrib attrib list ) -> 
-        float param_name -> float -> [> input ] elt
-(** Creates an hidden [<input>] tag for a float *)
-
-  val hidden_string_input : 
-      ?a:(input_attrib attrib list ) -> 
-        string param_name -> string -> [> input ] elt
-(** Creates an hidden [<input>] tag for a string *)
-
-  val hidden_user_type_input : 
-      ?a:(input_attrib attrib list ) -> ('a -> string) ->
-        'a param_name -> 'a -> [> input ] elt
-(** Creates an hidden [<input>] tag for a user type *)
-
-  val hidden_any_input : 
-      ?a:(input_attrib attrib list ) -> 
-        string -> string -> [> input ] elt
-(** Creates an hidden [<input>] tag for a string (low level) *)
+  val any_image_input :
+      ?a:input_attrib attrib list -> 
+        name:string -> value:string -> ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates you clicked on and an untyped value *)
 
   val bool_checkbox :
       ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-        bool param_name -> [> input ] elt
-(** Creates a checkbox [<input>] tag *)
-
-  val string_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-    string option param_name -> string -> [> input ] elt
-(** Creates a radio [<input>] tag with string content *)
-  val int_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-     int option param_name -> int -> [> input ] elt
-(** Creates a radio [<input>] tag with int content *)
-  val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-     float option param_name -> float -> [> input ] elt
-(** Creates a radio [<input>] tag with float content *)
-  val user_type_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    ('a -> string) -> 'a option param_name -> 'a -> [> input ] elt
-(** Creates a radio [<input>] tag with user_type content *)
-  val any_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-    string -> string -> [> input ] elt
-(** Creates a radio [<input>] tag with string content (low level) *)
-
-  val textarea : ?a:(textarea_attrib attrib list ) -> 
-    string param_name -> rows:number -> cols:number -> [ `PCDATA ] XHTML.M.elt ->
-      [> textarea ] elt
-(** Creates a [<textarea>] tag *)
-
-  val select : ?a:(select_attrib attrib list ) ->
-    ?selected:((string option * string) option)
-    -> (string option * string) -> ((string option * string) list) ->
-    string param_name
-    -> [> select ] elt
-(** Basic support for the [<select>] tag.
-
-The associated parameter is of type "string". It is used in forms as for 
-example:
-
-[select (None, "inconnue") [(None, "C1"); (None, "C2")] classe]
-
-
-where "classe" is the parameter name. The different choices are of the form
-[(<optional string1>, <string2>)]. "string2" is presented to the user and 
-if selected it is the returned value except when "string1" is present 
-(where it is "string1"). It is modeled after the way "select" is done in 
-HTML.
-
-Not all features of "select" are implemented.
+        name:[ `One of bool ] param_name -> unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have a boolean value.
+   There is another way to create checkboxes, using 
+   [..._input ~input_type:`Checkbox]. Thus you can do several checkboxes
+   with the same name. In that case, the service must declare a parameter
+   of type [set].
  *)
 
-  val submit_input : ?a:(input_attrib attrib list ) -> 
-    string -> [> input ] elt
-(** Creates a submit [<input>] tag *)
 
-  val file_input : ?a:(input_attrib attrib list ) ->
-    ?value:string -> file_info param_name -> [> input ] elt
+  val string_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+    name:[ `Opt of string ] param_name -> value:string -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with string content *)
+  val int_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:[ `Opt of int ] param_name -> value:int -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with int content *)
+  val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:[ `Opt of float ] param_name -> value:float -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with float content *)
+  val user_type_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
+    name:[ `Opt of 'a ] param_name -> value:'a -> ('a -> string) -> [> input ] elt
+(** Creates a radio [<input>] tag with user_type content *)
+  val any_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+    name:string -> value:string -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with untyped string content (low level) *)
+
+
+  type button_type =
+      [ `Button | `Reset | `Submit ]
+
+  val string_button : ?a:(button_attrib attrib list ) -> 
+    name:[< string setone ] param_name -> value:string -> 
+      button_content elt list -> [> button ] elt
+(** Creates a submit [<button>] tag with string content *)
+  val int_button : ?a:(button_attrib attrib list ) ->
+    name:[< int setone ] param_name -> value:int -> 
+      button_content elt list -> [> button ] elt
+(** Creates a submit [<button>] tag with int content *)
+  val float_button : ?a:(button_attrib attrib list ) ->
+    name:[< float setone ] param_name -> value:float -> 
+      button_content elt list -> [> button ] elt
+(** Creates a submit [<button>] tag with float content *)
+  val user_type_button : ?a:(button_attrib attrib list ) ->
+    name:[< 'a setone ] param_name -> value:'a -> ('a -> string) ->
+      button_content elt list -> [> button ] elt
+(** Creates a submit [<button>] tag with user_type content *)
+  val any_button : ?a:(button_attrib attrib list ) ->
+    button_type:[< button_type ] ->
+      name:string -> value:string -> 
+        button_content elt list -> [> button ] elt
+(** Creates a [<button>] tag with untyped string content (low level) *)
+
+  val button : ?a:(button_attrib attrib list ) ->
+    button_type:[< button_type ] ->
+      button_content elt list -> [> button ] elt
+(** Creates a [<button>] tag with no value. No value is sent. *)
+
+
+
+  val textarea : 
+      ?a:textarea_attrib attrib list ->
+        name:[< string setoneopt ] param_name -> 
+          ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
+            rows:int -> cols:int -> 
+              unit -> [> textarea ] elt
+(** Creates a [<textarea>] tag *)
+
+  type 'a soption =
+      Xhtmltypes.option_attrib XHTML.M.attrib list
+        * 'a (* Value to send *)
+        * pcdata elt option (* Text to display (if different from the latter) *)
+        * bool (* selected *)
+        
+  type 'a select_opt = 
+    | Optgroup of 
+        [ common | `Disabled ] XHTML.M.attrib list
+          * string (* label *)
+          * 'a soption
+          * 'a soption list
+    | Option of 'a soption
+          
+  (** The type for [<select>] options and groups of options.
+     The field of type 'a in [soption] is the value that will be sent 
+     by the form. If the [string option] is not present it is also the
+     value displayed.
+   *)
+
+  val int_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Opt of int ] param_name ->
+          int select_opt ->
+            int select_opt list ->
+              select elt
+(** Creates a [<select>] tag for int values. *)
+
+  val float_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Opt of float ] param_name ->
+          float select_opt ->
+            float select_opt list ->
+              select elt
+(** Creates a [<select>] tag for float values. *)
+
+  val string_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Opt of string ] param_name ->
+          string select_opt ->
+            string select_opt list ->
+              select elt
+(** Creates a [<select>] tag for string values. *)
+
+  val user_type_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Opt of 'a ] param_name ->
+          'a select_opt ->
+            'a select_opt list ->
+              ('a -> string) ->
+                select elt
+(** Creates a [<select>] tag for user type values. *)
+
+  val any_select :
+      ?a:select_attrib attrib list ->
+        name:string ->
+          string select_opt ->
+            string select_opt list ->
+              select elt
+(** Creates a [<select>] tag for any (untyped) value. *)
+
+
+  val int_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of int ] param_name ->
+          int select_opt ->
+            int select_opt list ->
+              select elt
+(** Creates a [<select>] tag for int values. *)
+
+  val float_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of float ] param_name ->
+          float select_opt ->
+            float select_opt list ->
+              select elt
+(** Creates a [<select>] tag for float values. *)
+
+  val string_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of string ] param_name ->
+          string select_opt ->
+            string select_opt list ->
+              select elt
+(** Creates a [<select>] tag for string values. *)
+
+  val user_type_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of 'a ] param_name ->
+          'a select_opt ->
+            'a select_opt list ->
+              ('a -> string) ->
+                select elt
+(** Creates a [<select>] tag for user type values. *)
+
+  val any_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:string ->
+          string select_opt ->
+            string select_opt list ->
+              select elt
+(** Creates a [<select>] tag for any (untyped) value. *)
 
 
 end
@@ -2952,257 +3418,375 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
   open Xhtmltypes
   include Xhtmlforms'
 
-(* As we want -> [> a ] elt and not -> [ a ] elt, we define a new module: *)
-  let a = (a : ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.M.attrib list) ->
-    ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c, unit param_name,
-     [< registrable ]) service ->
-        server_params -> 
-          Xhtmltypes.a_content XHTML.M.elt list -> 
-            'get -> Xhtmltypes.a XHTML.M.elt
-                :> ?a:([< Xhtmltypes.a_attrib > `Href ] XHTML.M.attrib list) ->
-                  ('get, unit, 'b, [< `WithSuffix | `WithoutSuffix ], 'c,
-                   unit param_name, [< registrable ]) 
-                    service ->
-                      server_params -> 
-                        Xhtmltypes.a_content XHTML.M.elt list -> 
-                          'get -> [> Xhtmltypes.a] XHTML.M.elt)
+(* As we want -> [> a ] elt and not -> [ a ] elt (etc.), 
+   we define a new module: *)
+  let a = (a :
+      ?a:a_attrib attrib list ->
+        ('get, unit, [< get_service_kind ], 
+         [< suff ], 'gn, 'pn,
+         [< registrable ]) service ->
+           server_params -> a_content elt list -> 'get -> 
+             a XHTML.M.elt :>
+      ?a:a_attrib attrib list ->
+        ('get, unit, [< get_service_kind ], 
+         [< suff ], 'gn, 'pn,
+         [< registrable ]) service ->
+           server_params -> a_content elt list -> 'get -> 
+             [> a] XHTML.M.elt)
 
-  let css_link = 
-    (css_link : ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
-      uri -> link elt
-          :> ?a:([< link_attrib > `Href `Rel `Type ] attrib list) ->
-            uri -> [> link ] elt)
+  let css_link = (css_link :
+                    ?a:(link_attrib attrib list) ->
+                      uri -> link elt :>
+                    ?a:(link_attrib attrib list) ->
+                      uri -> [> link ] elt)
 
-  let js_script = (js_script
-                     : ?a:([< script_attrib > `Src ] attrib list) ->
-                       uri -> script elt
-                           :> ?a:([< script_attrib > `Src ] attrib list) ->
-                             uri -> [> script ] elt)
+  let js_script = (js_script : 
+                     ?a:(script_attrib attrib list) ->
+                       uri -> script elt :>
+                     ?a:(script_attrib attrib list) ->
+                       uri -> [> script ] elt)
 
-  let get_form = 
-    (get_form
-       : ?a:([< form_attrib > `Method ] attrib list) ->
-         ('get, unit, 'c, 'd, 'getnames, unit param_name, 
-          [< registrable ]) service ->
-           server_params -> ('getnames -> form_content elt list) -> form elt
-               :> ?a:([< form_attrib > `Method ] attrib list) ->
-                 ('get, unit, 'c, 'd, 'getnames, unit param_name, [< registrable ]) service ->
-                   server_params -> ('getnames -> form_content_elt_list) -> [>form] elt)
+  let make_uri = (make_uri :
+      ('get, unit, [< get_service_kind ],
+       [< suff ], 'gn, 'pn, 
+       [< registrable ]) service ->
+         server_params -> 'get -> uri)
 
-  let post_form = 
-    (post_form
-       : ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
-         ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames, [< registrable ]) service ->
+  let get_form = (get_form :
+      ?a:form_attrib attrib list ->
+        ('get, unit, [< get_service_kind ],
+         [<suff ], 'gn, 'pn, 
+         [< registrable ]) service ->
            server_params ->
-             ('postnames -> form_content elt list) -> 'get -> form elt
-                 :> ?a:([< form_attrib > `Class `Id `Method ] attrib list) ->
-                   ('get, 'post, 'c, [< `WithSuffix | `WithoutSuffix ], 'getnames, 'postnames, [< registrable ]) service ->
-                     server_params ->
-                       ('postnames -> form_content_elt_list) -> 'get -> [>form] elt)
+             ('gn -> form_content elt list) -> form elt :>
+      ?a:form_attrib attrib list ->
+        ('get, unit, [< get_service_kind ],
+         [<suff ], 'gn, 'pn, 
+         [< registrable ]) service ->
+           server_params ->
+             ('gn -> form_content elt list) -> [> form ] elt)
 
-  let int_input = 
-    (int_input 
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?value:int ->
-           int param_name -> input elt
-               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                 ?value:int ->
-                 int param_name -> [> input ] elt)
+  let post_form = (post_form :
+      ?a:form_attrib attrib list ->
+        ('get, 'post, [< post_service_kind ],
+         [< suff ], 'gn, 'pn, 
+         [< registrable ]) service ->
+          server_params ->
+            ('pn -> form_content elt list) -> 'get -> form elt :>
+      ?a:form_attrib attrib list ->
+        ('get, 'post, [< post_service_kind ],
+         [< suff ], 'gn, 'pn, 
+         [< registrable ]) service ->
+          server_params ->
+            ('pn -> form_content elt list) -> 'get -> [> form ] elt)
+
+  type basic_input_type = 
+      [
+    | `Checkbox
+    | `Hidden
+    | `Password
+    | `Submit
+    | `Text ]
+
+  type full_input_type =
+    [ `Button
+    | `Checkbox
+    | `File
+    | `Hidden
+    | `Image
+    | `Password
+    | `Radio
+    | `Reset
+    | `Submit
+    | `Text ]
+
+  let int_input = (int_input :
+      ?a:input_attrib attrib list -> input_type:full_input_type ->
+        ?name:'a -> ?value:int -> unit -> input elt :>
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+        ?name:'a -> ?value:int -> unit -> [> input ] elt)
+
+  let float_input = (float_input :
+      ?a:input_attrib attrib list -> input_type:full_input_type ->
+        ?name:'a -> ?value:float -> unit -> input elt :>
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+        ?name:'a -> ?value:float -> unit -> [> input ] elt)
+
+  let string_input = (string_input : 
+      ?a:input_attrib attrib list -> input_type:full_input_type ->
+        ?name:'a -> ?value:string -> unit -> input elt :>
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+        ?name:'a -> ?value:string -> unit -> [> input ] elt)
+
+  let user_type_input = (user_type_input : 
+      ?a:input_attrib attrib list -> input_type:full_input_type ->
+        ?name:'b -> ?value:'a -> ('a -> string) -> input elt :>
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+        ?name:'b -> ?value:'a -> ('a -> string) -> [> input ] elt)
+
+  let any_input = (any_input :
+      ?a:input_attrib attrib list -> input_type:full_input_type ->
+        ?name:string -> ?value:string -> unit -> input elt :>
+      ?a:input_attrib attrib list -> 
+        input_type:[< basic_input_type | `Button | `Reset ] ->
+        ?name:string -> ?value:string -> unit -> [> input ] elt)
+
+  let file_input = (file_input :
+      ?a:input_attrib attrib list -> name:'a -> 
+        unit -> input elt :>
+      ?a:input_attrib attrib list -> name:'a -> 
+        unit -> [> input ] elt)
+
+  let image_input = (image_input :
+      ?a:input_attrib attrib list -> name:'a -> 
+        ?src:uri -> unit -> input elt :>
+      ?a:input_attrib attrib list -> name:'a -> 
+        ?src:uri -> unit -> [> input ] elt)
+            
+  let int_image_input = (int_image_input :
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:int -> 
+          ?src:uri -> unit -> input elt :>
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:int -> 
+          ?src:uri -> unit -> [> input ] elt)
+
+  let float_image_input = (float_image_input :
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:float -> 
+          ?src:uri -> unit -> input elt :>
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:float -> 
+          ?src:uri -> unit -> [> input ] elt)
+
+  let string_image_input = (string_image_input :
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:string -> 
+          ?src:uri -> unit -> input elt :>
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:string -> 
+          ?src:uri -> unit -> [> input ] elt)
+
+  let user_type_image_input = (user_type_image_input :
+      ?a:input_attrib attrib list -> 
+        name:'b -> value:'a -> 
+          ?src:uri -> ('a -> string) -> input elt :>
+      ?a:input_attrib attrib list -> 
+        name:'b -> value:'a -> 
+          ?src:uri -> ('a -> string) -> [> input ] elt)
+
+  let any_image_input = (any_image_input :
+      ?a:input_attrib attrib list -> 
+        name:string -> value:string -> ?src:uri -> unit -> input elt :>
+      ?a:input_attrib attrib list -> 
+        name:string -> value:string -> ?src:uri -> unit -> [> input ] elt)
+
+  let bool_checkbox = (bool_checkbox :
+      ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+        name:'a -> unit -> input elt :>
+      ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+        name:'a -> unit -> [> input ] elt)
+
+  let string_radio = (string_radio : 
+    ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+      name:'a -> value:string -> unit -> input elt :>
+    ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+      name:'a -> value:string -> unit -> [> input ] elt)
+
+  let int_radio = (int_radio : 
+                     ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:'a -> value:int -> unit -> input elt :>
+                     ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:'a -> value:int -> unit -> [> input ] elt)
+
+  let float_radio = (float_radio : 
+                       ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:'a -> value:float -> unit -> input elt :>
+                       ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:'a -> value:float -> unit -> [> input ] elt)
+
+  let user_type_radio = (user_type_radio : 
+                           ?a:(input_attrib attrib list ) -> ?checked:bool ->
+    name:'b -> value:'a -> ('a -> string) -> input elt :>
+                           ?a:(input_attrib attrib list ) -> ?checked:bool ->
+    name:'b -> value:'a -> ('a -> string) -> [> input ] elt)
+
+  let any_radio = (any_radio : 
+                     ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+    name:string -> value:string -> unit -> input elt :>
+                     ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+    name:string -> value:string -> unit -> [> input ] elt)
+
+  let textarea = (textarea : 
+        ?a:textarea_attrib attrib list ->
+          name:'a -> ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
+            rows:int -> cols:int -> 
+              unit -> textarea elt :>
+        ?a:textarea_attrib attrib list ->
+          name:'a -> ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
+            rows:int -> cols:int -> 
+              unit -> [> textarea ] elt)
+
+  let any_select = (any_select : 
+        ?a:select_attrib attrib list ->
+          name:string -> 
+            string select_opt -> 
+              string select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:string -> 
+           string select_opt -> 
+             string select_opt list -> [> select ] elt)
+
+  let int_select = (int_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            int select_opt -> 
+              int select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           int select_opt -> 
+             int select_opt list -> [> select ] elt)
+
+  let float_select = (float_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            float select_opt -> 
+              float select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           float select_opt -> 
+             float select_opt list -> [> select ] elt)
+
+  let string_select = (string_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            string select_opt -> 
+              string select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           string select_opt -> 
+             string select_opt list -> [> select ] elt)
+
+  let user_type_select = (user_type_select : 
+        ?a:select_attrib attrib list ->
+          name:'b -> 
+            'a select_opt -> 
+              'a select_opt list -> ('a -> string) -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'b -> 
+           'a select_opt -> 
+             'a select_opt list -> ('a -> string) -> [> select ] elt)
       
-  let float_input = 
-    (float_input 
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?value:float ->
-         float param_name -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               ?value:float ->
-                 float param_name -> [> input ] elt)
 
-  let user_type_input = 
-    (user_type_input
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?value:'a ->
-           ('a -> string) ->
-             'a param_name -> input elt
-                 :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                   ?value:'a ->
-                     ('a -> string) ->
-                       'a param_name -> [> input ] elt)
+  let any_multiple_select = (any_multiple_select : 
+        ?a:select_attrib attrib list ->
+          name:string -> 
+            string select_opt -> 
+              string select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:string -> 
+           string select_opt -> 
+             string select_opt list -> [> select ] elt)
+
+  let int_multiple_select = (int_multiple_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            int select_opt -> 
+              int select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           int select_opt -> 
+             int select_opt list -> [> select ] elt)
+
+  let float_multiple_select = (float_multiple_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            float select_opt -> 
+              float select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           float select_opt -> 
+             float select_opt list -> [> select ] elt)
+
+  let string_multiple_select = (string_multiple_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            string select_opt -> 
+              string select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           string select_opt -> 
+             string select_opt list -> [> select ] elt)
+
+  let user_type_multiple_select = (user_type_multiple_select : 
+        ?a:select_attrib attrib list ->
+          name:'b -> 
+            'a select_opt -> 
+              'a select_opt list -> ('a -> string) -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'b -> 
+           'a select_opt -> 
+             'a select_opt list -> ('a -> string) -> [> select ] elt)
       
-  let string_input = 
-    (string_input 
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-         ?value:string -> string param_name -> input elt
-           :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-             ?value:string -> string param_name -> [> input ] elt)
+  type button_type =
+      [ `Button
+    | `Reset
+    | `Submit
+      ]
 
-  let int_password_input = 
-    (int_password_input 
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?value:int ->
-           int param_name -> input elt
-               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                 ?value:int ->
-                 int param_name -> [> input ] elt)
-      
-  let float_password_input = 
-    (float_password_input 
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?value:float ->
-         float param_name -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               ?value:float ->
-                 float param_name -> [> input ] elt)
+  let string_button = (string_button : 
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:string -> 
+             button_content elt list -> button elt :>
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:string -> 
+             button_content elt list -> [> button ] elt)
 
-  let user_type_password_input = 
-    (user_type_password_input
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?value:'a ->
-           ('a -> string) ->
-             'a param_name -> input elt
-                 :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                   ?value:'a ->
-                     ('a -> string) ->
-                       'a param_name -> [> input ] elt)
-      
-  let any_input = 
-    (string_input 
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-         ?value:string -> string -> input elt
-           :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-             ?value:string -> string -> [> input ] elt)
+  let int_button = (int_button : 
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:int -> 
+             button_content elt list -> button elt :>
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:int -> 
+             button_content elt list -> [> button ] elt)
 
-  let string_password_input = 
-    (string_password_input 
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-         ?value:string -> string param_name -> input elt
-           :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-             ?value:string -> string param_name -> [> input ] elt)
+  let float_button = (float_button : 
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:float -> 
+             button_content elt list -> button elt :>
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:float -> 
+             button_content elt list -> [> button ] elt)
 
-  let hidden_int_input = 
-    (hidden_int_input
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         int param_name -> int -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               int param_name -> int -> [> input ] elt)
-  let hidden_float_input = 
-    (hidden_float_input
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         float param_name -> float -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               float param_name -> float -> [> input ] elt)
-  let hidden_string_input = 
-    (hidden_string_input
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         string param_name -> string -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               string param_name -> string -> [> input ] elt)
-  let hidden_user_type_input = 
-    (hidden_user_type_input
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ('a -> string) ->
-           'a param_name -> 'a -> input elt
-               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                 ('a -> string) ->
-                   'a param_name -> 'a -> [> input ] elt)
-  let hidden_any_input = 
-    (hidden_any_input
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         string -> string -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               string -> string -> [> input ] elt)
-      
+  let user_type_button = (user_type_button : 
+       ?a:button_attrib attrib list -> 
+           name:'b -> value:'a -> 
+             ('a -> string) ->
+               button_content elt list -> button elt :>
+       ?a:button_attrib attrib list -> 
+           name:'b -> value:'a -> 
+             ('a -> string) ->
+               button_content elt list -> [> button ] elt)
 
+  let any_button = (any_button : 
+       ?a:button_attrib attrib list -> 
+         button_type:button_type ->
+           name:string -> value:string -> 
+             button_content elt list -> button elt :>
+       ?a:button_attrib attrib list -> 
+         button_type:[< button_type ] ->
+           name:string -> value:string -> 
+             button_content elt list -> [> button ] elt)
 
-  let bool_checkbox = 
-    (bool_checkbox
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?checked:bool ->
-           bool param_name -> input elt
-               :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                 ?checked:bool ->
-                   bool param_name -> [> input ] elt)
-
-  let string_radio = 
-    (string_radio
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?checked:bool ->
-            string option param_name -> string -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               ?checked:bool ->
-                  string option param_name -> string -> [> input ] elt)
-  let int_radio = 
-    (int_radio
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?checked:bool ->
-            int option param_name -> int -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               ?checked:bool ->
-                  int option param_name -> int -> [> input ] elt)
-  let float_radio = 
-    (float_radio
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?checked:bool ->
-            float option param_name -> float -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               ?checked:bool ->
-                  float option param_name -> float -> [> input ] elt)
-  let user_type_radio = 
-    (user_type_radio
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?checked:bool ->
-           ('a -> string) ->
-             'a option param_name -> 'a -> input elt
-                 :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                   ?checked:bool ->
-                     ('a -> string) ->
-                       'a option param_name -> 'a -> [> input ] elt)
-  let any_radio = 
-    (any_radio
-       : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-         ?checked:bool ->
-            string -> string -> input elt
-             :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-               ?checked:bool ->
-                  string -> string -> [> input ] elt)
-
-  let textarea = (textarea
-                    : ?a:([< textarea_attrib > `Name ] attrib list ) -> 
-                      string param_name -> rows:number -> cols:number -> 
-                        [ `PCDATA ] XHTML.M.elt ->
-                          textarea elt
-                            :> ?a:([< textarea_attrib > `Name ] attrib list ) -> 
-                              string param_name -> rows:number -> cols:number -> 
-                                [ `PCDATA ] XHTML.M.elt ->
-                                  [> textarea ] elt)
-
-  let select = (select
-                   : ?a:([< select_attrib > `Name ] attrib list ) ->
-                 ?selected:((string option * string) option) ->
-                 (string option * string) ->
-                 ((string option * string) list) ->
-                 string param_name ->
-                 select elt
-                   :> ?a:([< select_attrib > `Name ] attrib list ) ->
-                 ?selected:((string option * string) option) ->
-                 (string option * string) ->
-                 ((string option * string) list) ->
-                 string param_name -> 
-                 [> select ] elt)
-
-  let submit_input = (submit_input
-                        : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                          string -> input elt
-                              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) -> 
-                                string -> [> input ] elt)
-                                
-  let file_input = (file_input
-                          : ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-                          ?value:string -> string param_name -> input elt
-                              :> ?a:([< input_attrib > `Input_Type `Name `Value ] attrib list ) ->
-                                ?value:string -> file_info param_name -> [> input ] elt)
-
+  let button = (button : 
+       ?a:button_attrib attrib list -> 
+         button_type:button_type ->
+           button_content elt list -> button elt :>
+       ?a:button_attrib attrib list -> 
+         button_type:[< button_type ] ->
+           button_content elt list -> [> button ] elt)
 end
+
 
 module Xhtml = struct
   include Xhtmlforms
@@ -3275,11 +3859,11 @@ module SubXhtml = functor(T : sig type content end) ->
     include Contreg
 
   end : sig
-
-  include ELIOMREGSIG with type page = T.content XHTML.M.elt list
-  include XHTMLFORMSSIG
-
-end)
+    
+    include ELIOMREGSIG with type page = T.content XHTML.M.elt list
+    include XHTMLFORMSSIG
+        
+  end)
 
 module Blocks = SubXhtml(struct
   type content = Xhtmltypes.body_content
@@ -3383,8 +3967,15 @@ module HtmlTextforms_ = struct
   type form_elt = string
 
   type textarea_elt = string
-  type select_elt = string
   type input_elt = string
+  type select_elt = string
+  type select_content_elt = string
+  type select_content_elt_list = string
+  type option_elt = string
+  type option_elt_list = string
+  type button_elt = string
+  type button_content_elt = string
+  type button_content_elt_list = string
 
   type link_elt = string
   type script_elt = string
@@ -3398,27 +3989,44 @@ module HtmlTextforms_ = struct
   type select_attrib_t = string
   type link_attrib_t = string
   type script_attrib_t = string
+  type optgroup_attrib_t = string
+  type option_attrib_t = string
+  type button_attrib_t = string
 
   type input_type_t = string
+  type button_type_t = string
 
   let hidden = "hidden"
-  let text = "text"
-  let password = "password"
+(*  let text = "text"
+  let password = "password" *)
   let checkbox = "checkbox"
   let radio = "radio"
   let submit = "submit"
   let file = "file"
+  let image = "image"
 
-  let make_uri_from_string x = x
+  let buttonsubmit = "submit"
+
+  let uri_of_string x = x
 
   let empty_seq = ""
   let cons_form a l = a^l
+
+  let map_option f =
+    List.fold_left (fun d a -> d^(f a)) ""
+  
+  let map_optgroup f a l = 
+    ((f a), List.fold_left (fun d a -> d^(f a)) "" l)
+  
+  let select_content_of_option = id
+
+  let make_pcdata = id
 
   let make_a ?(a="") ~href l : a_elt = 
     "<a href=\""^href^"\""^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 
   let make_get_form ?(a="") ~action elt1 elts : form_elt = 
-    "<form method=\"get\" action=\""^(make_uri_from_string action)^"\""^a^">"^
+    "<form method=\"get\" action=\""^(uri_of_string action)^"\""^a^">"^
     elt1^(*List.fold_left (^) "" elts *) elts^"</form>"
 
   let make_post_form ?(a="") ~action ?id ?(inline = false) elt1 elts 
@@ -3429,54 +4037,62 @@ module HtmlTextforms_ = struct
         None -> a
       | Some i -> " id="^i^" "^a)
     in
-    "<form method=\"post\" action=\""^(make_uri_from_string action)^"\""^
+    "<form method=\"post\" action=\""^(uri_of_string action)^"\""^
     (if inline then "style=\"display: inline\"" else "")^aa^">"^
     elt1^(* List.fold_left (^) "" elts*) elts^"</form>"
 
   let make_hidden_field content = 
     "<div style=\"display: none\""^content^"</div>"
 
-  let make_div ~classe c =
-    "<div class=\""^(List.fold_left (fun a b -> a^" "^b) "" classe)^"\""^
-    c^"</div>"
-(*    (List.fold_left (^) "" c)^"</div>" *)
-
   let remove_first l = "",l
 
-  let make_input ?(a="") ?(checked=false) ~typ ?name ?value () = 
+  let make_input ?(a="") ?(checked=false) ~typ ?name ?src ?value () = 
     let a2 = match value with
       None -> a
     | Some v -> " value="^v^" "^a
     in
-    let a3 = match name with
+    let a2 = match name with
       None -> a2
     | Some v -> " name="^v^" "^a2
     in
-    let a4 = if checked then " checked=\"checked\" "^a3 else a3 in
-    "<input type=\""^typ^"\" "^a4^"/>"
-
-  let make_textarea ?(a="") ~name:name ~rows ~cols s = 
-    "<textarea name=\""^name^"\" rows=\""^(string_of_int rows)^
-    "\" cols=\""^(string_of_int cols)^"\" "^a^">"^s^"</textarea>"
-
-  let make_select ?(a="") ~name:name ?(selected=None) fp lp =
-    let build_option selec p =
-      let lsel = if selec then " selected=\"selected\"" else ""
-      in
-        match p with 
-        | (None, s) -> "<option"^lsel^">"^s^"</option>"
-        | (Some v, s) -> "<option value=\""^v^"\""^lsel^">"^s^"</option>"
+    let a2 = match src with
+      None -> a2
+    | Some v -> " src="^v^" "^a2
     in
-      match selected with
-      | None -> ("<select name=\""^name^"\" "^a^">")^
-          (build_option false fp)^
-          (List.fold_left (fun s p -> (build_option false p)^s) "" lp)^
-          "</select>"
-      | Some p -> ("<select name=\""^name^"\" "^a^">")^
-          (build_option true p)^
-          ((build_option false fp)^
-           (List.fold_left (fun s p -> (build_option false p)^s) "" lp))^
-          "</select>"
+    let a2 = if checked then " checked=\"checked\" "^a2 else a2 in
+    "<input type=\""^typ^"\" "^a2^"/>"
+
+  let make_button ?(a="") ~button_type ?name ?value c = 
+    let a2 = match value with
+      None -> a
+    | Some v -> " value="^v^" "^a
+    in
+    let a2 = match name with
+      None -> a2
+    | Some v -> " name="^v^" "^a2
+    in
+    "<button type=\""^button_type^"\" "^a2^">"^c^"</button>"
+
+  let make_textarea ?(a="") ~name:name ?(value="") ~rows ~cols () = 
+    "<textarea name=\""^name^"\" rows=\""^(string_of_int rows)^
+    "\" cols=\""^(string_of_int cols)^"\" "^a^">"^value^"</textarea>"
+
+  let make_select ?(a="") ~multiple ~name elt elts = 
+    "<select "^(if multiple then "multiple=\"multiple\" " else "")^
+    "name=\""^name^"\" "^a^">"^elt^elts^"</select>"
+
+  let make_option ?(a="") ~selected ?value c = 
+    let a = match value with
+      None -> a
+    | Some v -> " value="^v^" "^a
+    in
+    "<option "^(if selected then "selected=\"selected\" " else "")^
+    a^">"^c^"</option>"
+
+  let make_optgroup ?(a="") ~label elt elts = 
+    "<optgroup label=\""^label^"\" "^
+    a^">"^elt^elts^"</optgroup>"
+
 
   let make_css_link ?(a="") uri =
     "<link href=\""^uri^" type=\"text/css\" rel=\"stylesheet\" "^a^"/>"

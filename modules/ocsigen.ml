@@ -527,6 +527,7 @@ module type REGCREATE =
 
 module type FORMCREATE = 
   sig
+
     type form_content_elt
     type form_content_elt_list
     type form_elt
@@ -586,7 +587,7 @@ module type FORMCREATE =
          -> (string option * string) -> ((string option * string) list) ->
        select_elt
     val make_div : classe:(string list) -> a_elt -> form_content_elt
-    val make_uri_from_string : string -> uri
+    val uri_of_string : string -> uri
 
 
     val make_css_link : ?a:link_attrib_t -> uri -> link_elt
@@ -1118,9 +1119,9 @@ module MakeForms = functor
         in
         match service.url_state with
           None ->
-            Pages.make_uri_from_string (add_to_string uri "?" params_string)
+            Pages.uri_of_string (add_to_string uri "?" params_string)
         | Some i -> 
-            Pages.make_uri_from_string 
+            Pages.uri_of_string 
               (add_to_string (uri^"?"^state_param_name^"="^(string_of_int i))
                  "&" params_string)
 
@@ -1341,17 +1342,17 @@ module Xhtmlforms_ = struct
   let submit = `Submit
   let file = `File
 
-  let make_uri_from_string = XHTML.M.make_uri_from_string
+  let uri_of_string = XHTML.M.uri_of_string
 
   let empty_seq = []
   let cons_form a l = a::l
 
   let make_a ?(a=[]) ~href l : a_elt = 
-    XHTML.M.a ~a:((a_href (make_uri_from_string href))::a) l
+    XHTML.M.a ~a:((a_href (uri_of_string href))::a) l
 
   let make_get_form ?(a=[]) ~action elt1 elts : form_elt = 
     form ~a:((a_method `Get)::a) 
-      ~action:(make_uri_from_string action) elt1 elts
+      ~action:(uri_of_string action) elt1 elts
 
   let make_post_form ?(a=[]) ~action ?id ?(inline = false) elt1 elts 
       : form_elt = 
@@ -1363,7 +1364,7 @@ module Xhtmlforms_ = struct
              (* Always Multipart!!! How to test if there is a file?? *)
              (a_method `Post)::
              (if inline then (a_class ["inline"])::aa else aa))
-      ~action:(make_uri_from_string action) elt1 elts
+      ~action:(uri_of_string action) elt1 elts
 
   let make_hidden_field content = 
     div ~a:[a_class ["nodisplay"]] [content]
@@ -1746,7 +1747,7 @@ module Textforms_ = struct
   let submit = "submit"
   let file = "file"
 
-  let make_uri_from_string x = x
+  let uri_of_string x = x
 
   let empty_seq = ""
   let cons_form a l = a^l
@@ -1755,7 +1756,7 @@ module Textforms_ = struct
     "<a href=\""^href^"\""^a^">"^(* List.fold_left (^) "" l *) l^"</a>"
 
   let make_get_form ?(a="") ~action elt1 elts : form_elt = 
-    "<form method=\"get\" action=\""^(make_uri_from_string action)^"\""^a^">"^
+    "<form method=\"get\" action=\""^(uri_of_string action)^"\""^a^">"^
     elt1^(*List.fold_left (^) "" elts *) elts^"</form>"
 
   let make_post_form ?(a="") ~action ?id ?(inline = false) elt1 elts 
@@ -1766,7 +1767,7 @@ module Textforms_ = struct
         None -> a
       | Some i -> " id="^i^" "^a)
     in
-    "<form method=\"post\" action=\""^(make_uri_from_string action)^"\""^
+    "<form method=\"post\" action=\""^(uri_of_string action)^"\""^
     (if inline then "style=\"display: inline\"" else "")^aa^">"^
     elt1^(* List.fold_left (^) "" elts*) elts^"</form>"
 

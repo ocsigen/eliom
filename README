@@ -9,12 +9,12 @@ ocaml (tested with version 3.08.4 and 3.09.1. Does not work with 3.08.1)
 findlib (ocamlfind)
 pcre-ocaml
 ocamlnet >= 1.1.2 (actually only module netstring, netsys, pcre) 
-ocamlssl >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)
+ocamlssl (sometimes called libssl-ocaml) >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)
 ocamlsqlite3 >= 0.21.0 (needs sqlite)
 (You may also use the dbm database (for example gdbm) instead of sqlite.
  In that case, you need dbm with headers (libgdbm-dev package for ex))
 
-If ocaml/ocamlfind/ocamlnet/ocamldbi... are not installed on your computer, 
+If ocaml/ocamlfind/ocamlnet/ocamlssl... are not installed on your computer, 
 you can use GODI to install them automatically.
 See http://godi.ocaml-programming.de
 
@@ -29,7 +29,8 @@ Print the list of possible options using:
 ./configure --help
 
 (For example if you have an old version of ocamlnet (< 2.0) you need
---disable-newocamlnet)
+./configure --disable-newocamlnet
+Use this option if you get a message telling that netsys.cma is missing)
 
 (For example if you want to install all files ocsigen in a separate directory:
 ./configure --root /mydirectory --prefix "" --ocsigen-user myuser --ocsigen-group mygroup)
@@ -48,7 +49,7 @@ if you want logrotate (rotation of logs) configuration in /etc/logrotate.d
 (highly recommended)
 
 (make installnodoc -> to install without doc
- make uninstall)
+ make uninstall -> uninstall (almost) everything)
 
 Adapt the config file to set the port, the modules you want to load
 (by default the config file is /etc/ocsigen/ocsigen.conf,
@@ -61,7 +62,7 @@ verify he has read access to
  - and rwx access to log directory.
 
 
-To run the web server
+To run the web server:
 
   ocsigen
 
@@ -75,7 +76,7 @@ Modify the config file to set for example port 8080 for you server.
 
 If you did not do make install, you can run for example
  server/ocsigen -c ocsigen.conf.local
-that launch a server on port 8080 with user rights on local directory
+that launch a server on port 8080 with user permissions on local directory
 (ocsigen.conf.local is a sample that may be overwritten by make. 
 Copy it if you want to modify it)
 

@@ -206,39 +206,43 @@ type 'an listnames =
     {it:'el 'a. ('an -> 'el -> 'a list) -> 'el list -> 'a list -> 'a list}
 (** Type of the iterator used to construct forms from lists *)
 
-val int : string -> (int, [ `WithoutSuffix ], int param_name) params_type
+type 'a setoneopt = [ `Set of 'a | `One of 'a | `Opt of 'a ]
+type 'a oneopt = [ `One of 'a | `Opt of 'a ]
+type 'a setone = [ `Set of 'a | `One of 'a ]
+
+val int : string -> (int, [ `WithoutSuffix ], [ `One of int ] param_name) params_type
 (** [int s] tells that the page takes an integer as parameter, labeled [s] *)
 
-val float : string -> (float, [ `WithoutSuffix ], float param_name) params_type
+val float : string -> (float, [ `WithoutSuffix ], [ `One of float ] param_name) params_type
 (** [float s] tells that the page takes a floating point number as parameter, labeled [s] *)
 
 val string :
-    string -> (string, [ `WithoutSuffix ], string param_name) params_type
+    string -> (string, [ `WithoutSuffix ], [ `One of string ] param_name) params_type
 (** [string s] tells that the page takes a string as parameter, labeled [s] *)
 
 val bool :
-    string -> (bool, [ `WithoutSuffix ], bool param_name) params_type
+    string -> (bool, [ `WithoutSuffix ], [ `One of bool ] param_name) params_type
 (** [bool s] tells that the page takes a boolean as parameter, labeled [s]
    (to use for example with boolean checkboxes) *)
 
 val file :
     string -> (file_info, [ `WithoutSuffix ], 
-               file_info param_name) params_type
+               [ `One of file_info ] param_name) params_type
 (** [file s] tells that the page takes a file as parameter, labeled [s] *)
 
 val radio_answer :
     string -> (string option, [ `WithoutSuffix ], 
-               string option param_name) params_type
+               [ `Opt of string ] param_name) params_type
 (** [radio_answer s] tells that the page takes the result of a click on
    a radio button as parameter. *)
 
-val unit : (unit, [ `WithoutSuffix ], unit param_name) params_type
+val unit : (unit, [ `WithoutSuffix ], unit) params_type
 (** used for pages that don't have any parameters *)
 
 val user_type :
     (string -> 'a) ->
       ('a -> string) -> string -> 
-        ('a, [ `WithoutSuffix ], 'a param_name) params_type
+        ('a, [ `WithoutSuffix ], [ `One of 'a ] param_name) params_type
 (** Allows to use whatever type you want for a parameter of the page.
    [user_type s_to_t t_to_s s] tells that the page take a parameter, labeled [s], and that the server will have to use [s_to_t] and [t_to_s] to make the conversion from and to string.
  *)
@@ -250,31 +254,32 @@ type coordinates =
 
 val coordinates :
     string ->
-      (coordinates, [`WithoutSuffix], coordinates param_name) params_type
+      (coordinates, [`WithoutSuffix], 
+       [ `One of coordinates ] param_name) params_type
 
 val string_coordinates :
     string ->
       (string * coordinates, [`WithoutSuffix], 
-       (string * coordinates) param_name) params_type
+       [ `One of (string * coordinates) ] param_name) params_type
 (** It is possible to send a value together with the coordinates
    ([<input type="image" value="..." ...>]) (Here a string) *)
 
 val int_coordinates :
     string ->
       (int * coordinates, [`WithoutSuffix], 
-       (int * coordinates) param_name) params_type
+       [ `One of (int * coordinates) ] param_name) params_type
 (** Same for an integer value *)
         
 val float_coordinates :
     string ->
       (float * coordinates, [`WithoutSuffix], 
-       (float * coordinates) param_name) params_type
+       [ `One of (float * coordinates) ] param_name) params_type
 (** Same for a float value *)
         
 val user_type_coordinates :
     (string -> 'a) -> ('a -> string) -> string ->
       ('a * coordinates, [`WithoutSuffix], 
-       ('a * coordinates) param_name) params_type
+       [ `One of ('a * coordinates) ] param_name) params_type
 (** Same for a value of your own type *)
 
 
@@ -289,20 +294,19 @@ val prod :
 (** See [**] above *)
 
 val opt :
-    ('a, [ `WithoutSuffix ], 'b) params_type ->
-      ('a option, [ `WithoutSuffix ], 'b) params_type
+    ('a, [ `WithoutSuffix ], [ `One of 'b ] param_name) params_type ->
+      ('a option, [ `WithoutSuffix ], [ `Opt of 'b ] param_name) params_type
 (** Use this if you want a parameter to be optional *)
 
 val any :
-      ((string * string) list, [ `WithoutSuffix ], 
-       (string * string) list param_name) params_type
+      ((string * string) list, [ `WithoutSuffix ], unit) params_type
 (** Use this if you want to take any parameters *)
 
 val set :
     (string ->
-      ('a, [ `WithoutSuffix ], 'b) params_type) ->
+      ('a, [ `WithoutSuffix ], [ `One of 'b ] param_name) params_type) ->
         string ->
-          ('a list, [ `WithoutSuffix ], 'b) params_type
+          ('a list, [ `WithoutSuffix ], [ `Set of 'b ] param_name) params_type
 (** Use this if you want to take a set of parameters all with the same name *)
 
 val list :
@@ -320,7 +324,8 @@ val ( ** ) :
 
 val regexp :
     Netstring_pcre.regexp -> string -> string ->
-      (string, [ `WithoutSuffix ], string param_name) params_type
+      (string, [ `WithoutSuffix ], 
+       [` One of string ] param_name) params_type
 (** [regexp r d s] tells that the page takes a string that matches [r]
    as parameter, labeled [s], and that will be rewritten in d *)
 
@@ -331,23 +336,23 @@ val suffix :
 
 val all_suffix :
     string ->
-      (string list, [`Endsuffix], string list param_name) params_type
+      (string list, [`Endsuffix], [` One of string list ] param_name) params_type
 (** Takes all the suffix, as long as possible, as a string list *)
 
 val all_suffix_string :
-    string -> (string, [`Endsuffix], string param_name) params_type
+    string -> (string, [`Endsuffix], [` One of string ] param_name) params_type
 (** Takes all the suffix, as long as possible, as a string *)
 
 val all_suffix_user :
     (string -> 'a) ->
       ('a -> string) -> string -> 
-        ('a, [ `Endsuffix ], 'a param_name) params_type
+        ('a, [ `Endsuffix ], [` One of 'a ] param_name) params_type
 (** Takes all the suffix, as long as possible, 
    with a type specified by the user *)
 
 val all_suffix_regexp :
     Netstring_pcre.regexp -> string -> string ->
-      (string, [ `Endsuffix ], string param_name) params_type
+      (string, [ `Endsuffix ], [` One of string ] param_name) params_type
 (** Takes all the suffix, as long as possible, matching the regexp *)
 
 val suffix_prod :
@@ -372,7 +377,7 @@ val static_dir :
       (string list, unit, [> `Attached of 
         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
        [ `WithSuffix ],
-       string list param_name, unit param_name, [> `Unregistrable ])
+       [ `One of string ] param_name, unit, [> `Unregistrable ])
         service
 (** The service that correponds to the directory where static pages are.
    This directory is chosen in the config file (ocsigen.conf).
@@ -394,7 +399,7 @@ val new_service :
                [> `Attached of 
                  [> `Internal of [> `Service ] * [>`Get] ] a_s ],
                'tipo,'gn, 
-               unit param_name, [> `Registrable ]) service
+               unit, [> `Registrable ]) service
 (** [new_service ~url:p ~get_params:pa ()] creates an {{:#TYPEservice}[service]} associated to the {{:#TYPEurl_path}[url_path]} [p] and that takes the parameters [pa]. 
    
    If you specify [~suffix:true], your service will match all requests from client beginning by [path]. You can have access to the suffix of the URL using {{:VALsuffix}[suffix]} or {{:VALsuffix_only}[suffix_only]}. For example [new_service ["mysite";"mywiki"] ~suffix:true suffix_only] will match all the URL of the shape [http://myserver/mysite/mywiki/thesuffix]
@@ -418,13 +423,13 @@ val new_coservice :
     fallback: 
     (unit, unit, [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
      [`WithoutSuffix] as 'tipo,
-     unit param_name, unit param_name, [< registrable ]) service ->
+     unit, unit, [< registrable ]) service ->
        get_params: 
          ('get,[`WithoutSuffix],'gn) params_type ->
            unit ->
              ('get,unit,[> `Attached of 
                [> `Internal of [> `Coservice] * [> `Get]] a_s ],
-              'tipo, 'gn, unit param_name, 
+              'tipo, 'gn, unit, 
               [> `Registrable ]) service
 (** Creates another version of an already existing service, where you can register another treatment. The two versions are automatically distinguished thanks to an extra parameter. It allows to have several links towards the same page, that will behave differently. See the tutorial for more informations.*)
 
@@ -435,7 +440,7 @@ val new_coservice' :
     ('get,[`WithoutSuffix],'gn) params_type ->
       unit ->
         ('get, unit, [> `Nonattached of [> `Get] na_s ],
-         [`WithoutSuffix], 'gn, unit param_name, [> `Registrable ]) service
+         [`WithoutSuffix], 'gn, unit, [> `Registrable ]) service
 (** Creates a non-attached coservice. Links towards such services will not change the URL, just add extra parameters. *)
         
 val new_post_service :
@@ -443,7 +448,7 @@ val new_post_service :
     fallback: ('get, unit, 
                [`Attached of [`Internal of 
                  ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
-               [< suff] as 'tipo, 'gn, unit param_name, 
+               [< suff] as 'tipo, 'gn, unit, 
                [< `Registrable ]) service ->
                  post_params: ('post,[`WithoutSuffix],'pn) params_type ->
                    unit ->
@@ -464,7 +469,7 @@ val new_post_coservice :
     fallback: ('get, unit, [ `Attached of 
       [`Internal of [<`Service | `Coservice] * [`Get]] a_s ],
                [< suff ] as 'tipo,
-               'gn, unit param_name, [< `Registrable ]) service ->
+               'gn, unit, [< `Registrable ]) service ->
                  post_params: ('post,[`WithoutSuffix],'pn) params_type ->
                    unit ->
                      ('get, 'post, 
@@ -480,7 +485,7 @@ val new_post_coservice' :
       unit ->
         (unit, 'post, 
          [> `Nonattached of [> `Post] na_s ],
-         [ `WithoutSuffix ], unit param_name, 'pn, [> `Registrable ]) service
+         [ `WithoutSuffix ], unit, 'pn, [> `Registrable ]) service
 (** Creates a non attached coservice with POST parameters *)
 
 (*
@@ -489,7 +494,7 @@ val new_get_post_coservice' :
     ?timeout:float ->
    fallback: ('get, unit, [`Nonattached of [`Get] na_s ],
    [< suff ] as 'tipo,
-   'gn, unit param_name, [< `Registrable ]) service ->
+   'gn, unit, [< `Registrable ]) service ->
    post_params: ('post,[`WithoutSuffix],'pn) params_type ->
    unit ->
    ('get, 'post, 
@@ -507,12 +512,12 @@ val preapply :
     service ->
       'a -> 
         (unit, 'b, 'c, 
-         [ `WithoutSuffix ], unit param_name, 'f, [ `Unregistrable ]) service
+         [ `WithoutSuffix ], unit, 'f, [ `Unregistrable ]) service
  
 
 val make_string_uri :
     ('get, unit, [< get_service_kind ],
-     [< suff ], 'gn, unit param_name, 
+     [< suff ], 'gn, unit, 
      [< registrable ]) service ->
        server_params -> 'get -> string
 
@@ -548,9 +553,16 @@ module type FORMCREATE =
     type link_elt
     type script_elt
     type textarea_elt
-    type select_elt
     type input_elt
     type pcdata_elt
+    type select_elt
+    type select_content_elt
+    type select_content_elt_list
+    type option_elt
+    type option_elt_list
+    type button_elt
+    type button_content_elt
+    type button_content_elt_list
 
     type a_attrib_t
     type form_attrib_t
@@ -559,19 +571,38 @@ module type FORMCREATE =
     type select_attrib_t
     type link_attrib_t
     type script_attrib_t
+    type optgroup_attrib_t
+    type option_attrib_t
+    type button_attrib_t
+
+
     type input_type_t
+    type button_type_t
+
+
+        
 
     val hidden : input_type_t
-    val text : input_type_t
-    val password : input_type_t
     val checkbox : input_type_t
     val radio : input_type_t
     val submit : input_type_t
     val file : input_type_t
+    val image : input_type_t
+
+    val buttonsubmit : button_type_t
 
     val empty_seq : form_content_elt_list
-    val cons_form : form_content_elt -> form_content_elt_list -> form_content_elt_list 
+    val cons_form : 
+        form_content_elt -> form_content_elt_list -> form_content_elt_list 
+    val map_option :
+        ('a -> option_elt) -> 'a list -> 
+          option_elt_list
+    val map_optgroup :
+        ('a -> select_content_elt) -> 'a -> 'a list -> 
+          (select_content_elt * select_content_elt_list)
+    val select_content_of_option : option_elt -> select_content_elt
 
+    val make_pcdata : string -> pcdata_elt
     val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
     val make_get_form : ?a:form_attrib_t -> 
       action:string -> 
@@ -580,31 +611,52 @@ module type FORMCREATE =
       action:string -> ?id:string -> ?inline:bool -> 
         form_content_elt -> form_content_elt_list -> form_elt
     val make_hidden_field : input_elt -> form_content_elt
-    val remove_first : form_content_elt_list -> form_content_elt * form_content_elt_list
+    val remove_first : 
+        form_content_elt_list -> form_content_elt * form_content_elt_list
     val make_input : ?a:input_attrib_t -> ?checked:bool ->
-      typ:input_type_t -> ?name:string -> 
+      typ:input_type_t -> ?name:string -> ?src:uri ->
         ?value:string -> unit -> input_elt
-    val make_textarea : ?a:textarea_attrib_t -> 
-      name:string -> rows:int -> cols:int ->
-        pcdata_elt -> 
-          textarea_elt
-     val make_select : ?a:select_attrib_t ->
-       name:string ->
-       ?selected:((string option * string) option)
-         -> (string option * string) -> ((string option * string) list) ->
-       select_elt
-    val make_div : classe:(string list) -> a_elt -> form_content_elt
-    val make_uri_from_string : string -> uri
+    val make_button : ?a:button_attrib_t -> button_type:button_type_t ->
+      ?name:string -> ?value:string ->
+        button_content_elt_list -> button_elt
+    val make_textarea : 
+        ?a:textarea_attrib_t -> 
+          name:string -> ?value:pcdata_elt -> rows:int -> cols:int ->
+            unit -> textarea_elt
+    val make_select :
+        ?a:select_attrib_t ->
+          multiple:bool ->
+            name:string ->
+              select_content_elt ->
+                select_content_elt_list ->
+                  select_elt
+    val make_option : 
+        ?a:option_attrib_t ->
+          selected:bool ->
+            ?value:string ->
+              pcdata_elt ->
+                option_elt
+    val make_optgroup :
+        ?a:optgroup_attrib_t ->
+          label:string ->
+            option_elt ->
+              option_elt_list ->
+                select_content_elt
+    val uri_of_string : string -> uri
 
 
     val make_css_link : ?a:link_attrib_t -> uri -> link_elt
 
     val make_js_script : ?a:script_attrib_t -> uri -> script_elt
 
+
   end
 
 module type ELIOMFORMSIG =
   sig
+
+
+
 
     type form_content_elt
     type form_content_elt_list
@@ -619,9 +671,14 @@ module type ELIOMFORMSIG =
     type link_elt
     type script_elt
     type textarea_elt
-    type select_elt
     type input_elt
     type pcdata_elt
+    type select_elt
+    type select_content_elt
+    type select_content_elt_list
+    type button_elt
+    type button_content_elt
+    type button_content_elt_list
           
     type a_attrib_t
     type form_attrib_t
@@ -630,18 +687,23 @@ module type ELIOMFORMSIG =
     type select_attrib_t
     type link_attrib_t
     type script_attrib_t
+    type optgroup_attrib_t
+    type option_attrib_t
+    type button_attrib_t
+
     type input_type_t
+    type button_type_t
 
     val a :
         ?a:a_attrib_t ->
           ('get, unit, [< get_service_kind ], 
-           [< suff ], 'gn, unit param_name,
+           [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
             server_params -> a_content_elt_list -> 'get -> a_elt
     val get_form :
         ?a:form_attrib_t ->
           ('get, unit, [< get_service_kind ],
-           [<suff ], 'gn, unit param_name, 
+           [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
              server_params ->
               ('gn -> form_content_elt_list) -> form_elt
@@ -654,7 +716,7 @@ module type ELIOMFORMSIG =
               ('pn -> form_content_elt_list) -> 'get -> form_elt
     val make_uri :
         ('get, unit, [< get_service_kind ],
-         [< suff ], 'gn, unit param_name, 
+         [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
           server_params -> 'get -> uri
 
@@ -664,65 +726,207 @@ module type ELIOMFORMSIG =
 
 
     val int_input :
-        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:[< int setoneopt ] param_name ->
+            ?value:int -> unit -> input_elt
     val float_input :
-        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:[< float setoneopt ] param_name ->
+            ?value:float -> unit -> input_elt
     val string_input :
-        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+           ?name:[< string setoneopt ] param_name -> 
+             ?value:string -> unit -> input_elt
     val user_type_input :
-        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-          'a param_name -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:[< 'a setoneopt ] param_name -> 
+            ?value:'a -> ('a -> string) -> input_elt
     val any_input :
-        ?a:input_attrib_t -> ?value:string -> string -> input_elt
-    val int_password_input :
-        ?a:input_attrib_t -> ?value:int -> int param_name -> input_elt
-    val float_password_input :
-        ?a:input_attrib_t -> ?value:float -> float param_name -> input_elt
-    val string_password_input :
-        ?a:input_attrib_t -> ?value:string -> string param_name -> input_elt
-    val user_type_password_input :
-        ?a:input_attrib_t -> ?value:'a -> ('a -> string) -> 
-          'a param_name -> input_elt
-    val hidden_int_input :
-        ?a:input_attrib_t -> int param_name -> int -> input_elt
-    val hidden_float_input :
-        ?a:input_attrib_t -> float param_name -> float -> input_elt
-    val hidden_string_input :
-        ?a:input_attrib_t -> string param_name -> string -> input_elt
-    val hidden_user_type_input :
-        ?a:input_attrib_t -> ('a -> string) -> 'a param_name -> 'a -> input_elt
-    val hidden_any_input :
-        ?a:input_attrib_t -> string -> string -> input_elt
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:string -> ?value:string -> unit -> input_elt
+
+    val file_input :
+        ?a:input_attrib_t -> 
+          name:[< file_info setoneopt ] param_name -> 
+            unit -> input_elt
+
+    val image_input :
+        ?a:input_attrib_t -> 
+          name:[< coordinates oneopt ] param_name -> 
+          ?src:uri -> unit -> input_elt
+
+    val int_image_input :
+        ?a:input_attrib_t -> 
+          name:[< (int * coordinates) oneopt ] param_name -> value:int -> 
+            ?src:uri -> unit -> input_elt
+    val float_image_input :
+        ?a:input_attrib_t -> 
+          name:[< (float * coordinates) oneopt ] param_name -> value:float -> 
+            ?src:uri -> unit -> input_elt
+    val string_image_input :
+        ?a:input_attrib_t -> 
+          name:[< (string * coordinates) oneopt ] param_name -> value:string -> 
+            ?src:uri -> unit -> input_elt
+    val user_type_image_input :
+        ?a:input_attrib_t -> 
+          name:[< ('a * coordinates) oneopt ] param_name -> value:'a -> 
+            ?src:uri -> ('a -> string) -> input_elt
+    val any_image_input :
+        ?a:input_attrib_t -> 
+          name:string -> value:string -> ?src:uri -> unit -> input_elt
+
     val bool_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> bool param_name -> input_elt
+        ?a:input_attrib_t -> ?checked:bool -> 
+          name:[ `One of bool ] param_name -> unit -> input_elt
+
     val string_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-          string option param_name -> string -> input_elt
+          name:[ `Opt of string ] param_name -> 
+            value:string -> unit -> input_elt
     val int_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-           int option param_name -> int -> input_elt
+           name:[ `Opt of int ] option param_name -> 
+             value:int -> unit -> input_elt
     val float_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-           float option param_name -> float -> input_elt
+           name:[ `Opt of float ] param_name -> 
+             value:float -> unit -> input_elt
     val user_type_radio :
-        ?a:input_attrib_t -> ?checked:bool -> ('a -> string) ->
-           'a option param_name -> 'a -> input_elt
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of 'a ] param_name -> 
+             value:'a -> ('a -> string) -> input_elt
     val any_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
-          string -> string -> input_elt
+          name:string -> value:string -> unit -> input_elt
+
+
+    val string_button : 
+        ?a:button_attrib_t -> 
+          name:[< string setone ] param_name -> value:string -> 
+            button_content_elt_list -> button_elt
+
+    val int_button : 
+        ?a:button_attrib_t ->
+          name:[< int setone ] param_name -> value:int -> 
+            button_content_elt_list -> button_elt
+
+    val float_button : 
+        ?a:button_attrib_t ->
+          name:[< float setone ] param_name -> value:float -> 
+            button_content_elt_list -> button_elt
+
+    val user_type_button : 
+        ?a:button_attrib_t ->
+          name:[< 'a setone ] param_name -> value:'a -> ('a -> string) ->
+            button_content_elt_list -> button_elt
+
+    val any_button :
+        ?a:button_attrib_t ->
+          button_type:button_type_t ->
+            name:string -> value:string -> 
+              button_content_elt_list -> button_elt
+
+    val button : 
+        ?a:button_attrib_t ->
+          button_type:button_type_t ->
+            button_content_elt_list -> button_elt
+
+
+
+
     val textarea :
         ?a:textarea_attrib_t ->
-          string param_name ->
-            rows:int -> cols:int -> pcdata_elt -> textarea_elt
-    val select :
-      ?a:select_attrib_t ->
-      ?selected:((string option * string) option)
-      -> (string option * string) -> ((string option * string) list) ->
-      string param_name
-      -> select_elt
-    val submit_input : ?a:input_attrib_t -> string -> input_elt
-    val file_input : ?a:input_attrib_t -> ?value:string -> 
-                            file_info param_name-> input_elt
+          name:[< string setoneopt ] param_name -> ?value:pcdata_elt -> 
+            rows:int -> cols:int -> unit -> textarea_elt
+
+    type 'a soption =
+        option_attrib_t
+          * 'a (* Content (or value if the following is present) *)
+          * pcdata_elt option (* if content different from value *)
+          * bool (* selected *)
+
+    type 'a select_opt = 
+      | Optgroup of 
+          optgroup_attrib_t
+            * string (* label *)
+            * 'a soption
+            * 'a soption list
+      | Option of 'a soption
+            
+    val any_select :
+        ?a:select_attrib_t ->
+          name:string ->
+            string select_opt ->
+              string select_opt list ->
+                select_elt
+
+    val int_select :
+        ?a:select_attrib_t ->
+          name:[< `Opt of int ] param_name ->
+            int select_opt ->
+              int select_opt list ->
+                select_elt
+
+    val float_select :
+        ?a:select_attrib_t ->
+          name:[< `Opt of float ] param_name ->
+            float select_opt ->
+              float select_opt list ->
+                select_elt
+
+    val string_select :
+        ?a:select_attrib_t ->
+          name:[< `Opt of string ] param_name ->
+            string select_opt ->
+              string select_opt list ->
+                select_elt
+
+    val user_type_select :
+        ?a:select_attrib_t ->
+          name:[< `Opt of 'a ] param_name ->
+            'a select_opt ->
+              'a select_opt list ->
+                ('a -> string) ->
+                  select_elt
+
+    val any_multiple_select :
+        ?a:select_attrib_t ->
+          name:string ->
+            string select_opt ->
+              string select_opt list ->
+                select_elt
+
+    val int_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of int ] param_name ->
+            int select_opt ->
+              int select_opt list ->
+                select_elt
+
+    val float_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of float ] param_name ->
+            float select_opt ->
+              float select_opt list ->
+                select_elt
+
+    val string_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of string ] param_name ->
+            string select_opt ->
+              string select_opt list ->
+                select_elt
+
+    val user_type_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of 'a ] param_name ->
+            'a select_opt ->
+              'a select_opt list ->
+                ('a -> string) ->
+                  select_elt
+
+
+
 
   end
 
@@ -736,7 +940,7 @@ module type ELIOMREGSIG1 =
     val send : 
         ?cookies:cookieslist -> 
           ?charset:string ->
-            ?code:int ->
+            ?code: int ->
               server_params -> page -> Eliommod.result_to_send
 
     val register :
@@ -800,7 +1004,7 @@ module type ELIOMREGSIG1 =
                       ('get, unit, 
                        [> `Attached of 
                          [> `Internal of [> `Service ] * [> `Get] ] a_s ],
-                       'tipo, 'gn, unit param_name, 
+                       'tipo, 'gn, unit, 
                        [> `Registrable ]) service
 (** Same as [new_service] followed by [register] *)
                       
@@ -811,7 +1015,7 @@ module type ELIOMREGSIG1 =
         fallback:(unit, unit, 
                   [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                    [ `WithoutSuffix ] as 'tipo, 
-                   unit param_name, unit param_name, [< registrable ])
+                   unit, unit, [< registrable ])
         service ->
           get_params: 
             ('get, [`WithoutSuffix], 'gn) params_type ->
@@ -821,7 +1025,7 @@ module type ELIOMREGSIG1 =
                     ('get, unit, 
                      [> `Attached of 
                        [> `Internal of [> `Coservice ] * [> `Get]] a_s ], 
-                     'tipo, 'gn, unit param_name, 
+                     'tipo, 'gn, unit, 
                      [> `Registrable ])
                       service
 (** Same as [new_coservice] followed by [register] *)
@@ -837,7 +1041,7 @@ module type ELIOMREGSIG1 =
               (server_params -> 'get -> unit -> page Lwt.t) ->
                 ('get, unit, 
                  [> `Nonattached of [> `Get] na_s ],
-                 'tipo, 'gn, unit param_name, [> `Registrable ])
+                 'tipo, 'gn, unit, [> `Registrable ])
                   service
 (** Same as [new_coservice'] followed by [register] *)
 
@@ -848,7 +1052,7 @@ module type ELIOMREGSIG1 =
           fallback:(unit, unit, 
                     [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
                     [ `WithoutSuffix ] as 'tipo, 
-                    unit param_name, unit param_name, [< registrable ])
+                    unit, unit, [< registrable ])
             service ->
               get_params: 
                 ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
@@ -858,7 +1062,7 @@ module type ELIOMREGSIG1 =
                         ('get, unit, 
                          [> `Attached of 
                            [> `Internal of [> `Coservice ] * [> `Get] ] a_s ], 
-                         'tipo, 'gn, unit param_name, 
+                         'tipo, 'gn, unit, 
                          [> `Registrable ])
                           service
 (** Same as [new_coservice] followed by [register_for_session] *)
@@ -873,7 +1077,7 @@ module type ELIOMREGSIG1 =
                 page Lwt.t) ->
                   (server_params -> 'get -> unit -> page Lwt.t) ->
                     ('get, unit, [> `Nonattached of [> `Get] na_s ], 
-                     'tipo, 'gn, unit param_name, 
+                     'tipo, 'gn, unit, 
                      [> `Registrable ])
                       service
 (** Same as [new_coservice'] followed by [register_for_session] *)
@@ -884,7 +1088,7 @@ module type ELIOMREGSIG1 =
                   [ `Attached of [ `Internal of 
                     ([ `Service | `Coservice ] as 'kind) * [`Get] ] a_s ],
                   [< suff ] as 'tipo, 'gn,
-                  unit param_name, [< `Registrable ])
+                  unit, [< `Registrable ])
         service ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
@@ -904,7 +1108,7 @@ module type ELIOMREGSIG1 =
                   [ `Attached of 
                     [ `Internal of [< `Service | `Coservice ] * [`Get] ] a_s ],
                    [< suff ] as 'tipo, 
-                   'gn, unit param_name, [< `Registrable ])
+                   'gn, unit, [< `Registrable ])
         service ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
@@ -926,7 +1130,7 @@ module type ELIOMREGSIG1 =
             page Lwt.t) ->
               (server_params -> unit -> 'post -> page Lwt.t) ->
                 (unit, 'post, [> `Nonattached of [> `Post] na_s ], 
-                 [ `WithoutSuffix ], unit param_name, 'pn,
+                 [ `WithoutSuffix ], unit, 'pn,
                  [> `Registrable ])
                   service
 (** Same as [new_post_coservice'] followed by [register] *)
@@ -939,7 +1143,7 @@ module type ELIOMREGSIG1 =
         fallback:('get, unit , 
                   [ `Nonattached of [`Get] na_s ],
                    [< suff ] as 'tipo, 
-                   'gn, unit param_name, [< `Registrable ])
+                   'gn, unit, [< `Registrable ])
         service ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(server_params -> (string * exn) list -> 
@@ -959,7 +1163,7 @@ module type ELIOMREGSIG1 =
                     [< `Attached of [< `Internal of
                       [< `Service | `Coservice ] * [`Get] ] a_s ],
                     [< suff ] as 'tipo, 
-                    'gn, unit param_name, [< `Registrable ])
+                    'gn, unit, [< `Registrable ])
             service ->
               post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
                 ?error_handler:(server_params -> 
@@ -981,7 +1185,7 @@ module type ELIOMREGSIG1 =
               (string * exn) list -> page Lwt.t) ->
                 (server_params -> unit -> 'post -> page Lwt.t) ->
                   (unit, 'post, [> `Nonattached of [> `Post] na_s ], 
-                   [ `WithoutSuffix ], unit param_name, 'pn, 
+                   [ `WithoutSuffix ], unit, 'pn, 
                    [> `Registrable ])
                     service
 (** Same as [new_post_coservice'] followed by [register_for_session] *)
@@ -993,7 +1197,7 @@ module type ELIOMREGSIG1 =
         ?timeout:float ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
                     [< suff ] as 'tipo, 
-                    'gn, unit param_name, [< `Registrable ])
+                    'gn, unit, [< `Registrable ])
             service ->
               post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
                 ?error_handler:(server_params -> 
@@ -1004,6 +1208,9 @@ module type ELIOMREGSIG1 =
                         service
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
+
+
+
 
 
 
@@ -1060,13 +1267,15 @@ and type input_type_t = Pages.input_type_t
 
 module type XHTMLFORMSSIG = sig
 
+
+
   open XHTML.M
   open Xhtmltypes
 
   val a :
       ?a:a_attrib attrib list ->
         ('get, unit, [< get_service_kind ], 
-         [< suff ], 'gn, unit param_name,
+         [< suff ], 'gn, 'pn,
          [< registrable ]) service ->
            server_params -> a_content elt list -> 'get -> [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link from [current] to [service]. 
@@ -1090,7 +1299,7 @@ module type XHTMLFORMSSIG = sig
 
     val make_uri :
         ('get, unit, [< get_service_kind ],
-         [< suff ], 'gn, unit param_name, 
+         [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
           server_params -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
@@ -1100,7 +1309,7 @@ module type XHTMLFORMSSIG = sig
     val get_form :
         ?a:form_attrib attrib list ->
           ('get, unit, [< get_service_kind ],
-           [<suff ], 'gn, unit param_name, 
+           [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
              server_params ->
               ('gn -> form_content elt list) -> [>form] elt
@@ -1120,144 +1329,264 @@ module type XHTMLFORMSSIG = sig
    to [service]. The last parameter is for GET parameters (as in the function [a]).
  *)
 
-(*
-   val img : ?a:(img_attrib attrib list) ->
-   alt:string ->
-   ('a, form_content elt list, 'ca,'cform, 'curi, 'd, 'e, 'f, 'g) service -> server_params -> 'cimg
- *)
+  type basic_input_type =
+      [
+    | `Checkbox
+    | `Hidden
+    | `Password
+    | `Submit
+    | `Text ]
 
-  val int_input : ?a:(input_attrib attrib list ) -> 
-    ?value:int ->
-    int param_name -> [> input ] elt
+  val int_input :
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< int setoneopt ] param_name -> 
+          ?value:int -> unit -> [> input ] elt
 (** Creates an [<input>] tag for an integer *)
 
-  val float_input : ?a:(input_attrib attrib list ) -> 
-    ?value:float ->
-    float param_name -> [> input ] elt
+  val float_input :
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< float setoneopt ] param_name -> 
+          ?value:float -> unit -> [> input ] elt
 (** Creates an [<input>] tag for a float *)
 
   val string_input : 
-      ?a:(input_attrib attrib list ) -> 
-        ?value:string ->
-          string param_name -> [> input ] elt
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< string setoneopt ] param_name -> 
+          ?value:string -> unit -> [> input ] elt
 (** Creates an [<input>] tag for a string *)
 
   val user_type_input : 
-      ?a:(input_attrib attrib list ) -> 
-        ?value:'a ->
-          ('a -> string) ->
-            'a param_name -> 
-              [> input ] elt
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< 'a setoneopt ] param_name -> 
+          ?value:'a -> ('a -> string) -> [> input ] elt
 (** Creates an [<input>] tag for a user type *)
 
-  val any_input : ?a:(input_attrib attrib list ) -> 
-    ?value:string ->
-    string -> [> input ] elt
-(** Creates an [<input>] tag (low level) *)
+  val any_input :
+      ?a:input_attrib attrib list -> 
+        input_type:[< basic_input_type | `Reset | `Button ] ->
+        ?name:string -> ?value:string -> unit -> [> input ] elt
+(** Creates an untyped [<input>] tag (low level) *)
 
-  val int_password_input : ?a:(input_attrib attrib list ) -> 
-    ?value:int ->
-    int param_name -> [> input ] elt
-(** Creates an [<input type="password">] tag for an integer *)
+  val file_input :
+      ?a:input_attrib attrib list -> 
+        name:[< file_info setoneopt ] param_name -> 
+          unit -> [> input ] elt
+(** Creates an [<input>] tag for sending a file *)
 
-  val float_password_input : ?a:(input_attrib attrib list ) -> 
-    ?value:float ->
-    float param_name -> [> input ] elt
-(** Creates an [<input type="password">] tag for a float *)
+  val image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< coordinates oneopt ] param_name -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="...">] tag that sends the coordinates 
+   you clicked on *)
+            
+  val int_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (int * coordinates) oneopt ] param_name -> value:int -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates you clicked on and a value of type int *)
 
-  val string_password_input : 
-      ?a:(input_attrib attrib list ) -> 
-        ?value:string ->
-          string param_name -> [> input ] elt
-(** Creates an [<input type="password">] tag for a string *)
+  val float_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (float * coordinates) oneopt ] param_name -> value:float -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+    the coordinates you clicked on and a value of type float *)
 
-  val user_type_password_input : 
-      ?a:(input_attrib attrib list ) -> 
-        ?value:'a ->
-          ('a -> string) ->
-            'a param_name -> 
-              [> input ] elt
-(** Creates an [<input type="password">] tag for a user type *)
+  val string_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (string * coordinates) oneopt ] param_name -> value:string -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates you clicked on and a value of type string *)
 
-  val hidden_int_input : 
-      ?a:(input_attrib attrib list ) -> 
-        int param_name -> int -> [> input ] elt
-(** Creates an hidden [<input>] tag for an integer *)
+  val user_type_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< ('a * coordinates) oneopt ] param_name -> value:'a -> 
+          ?src:uri -> ('a -> string) -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates you clicked on and a value of user defined type *)
 
-  val hidden_float_input : 
-      ?a:(input_attrib attrib list ) -> 
-        float param_name -> float -> [> input ] elt
-(** Creates an hidden [<input>] tag for a float *)
-
-  val hidden_string_input : 
-      ?a:(input_attrib attrib list ) -> 
-        string param_name -> string -> [> input ] elt
-(** Creates an hidden [<input>] tag for a string *)
-
-  val hidden_user_type_input : 
-      ?a:(input_attrib attrib list ) -> ('a -> string) ->
-        'a param_name -> 'a -> [> input ] elt
-(** Creates an hidden [<input>] tag for a user type *)
-
-  val hidden_any_input : 
-      ?a:(input_attrib attrib list ) -> 
-        string -> string -> [> input ] elt
-(** Creates an hidden [<input>] tag for a string (low level) *)
+  val any_image_input :
+      ?a:input_attrib attrib list -> 
+        name:string -> value:string -> ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates you clicked on and an untyped value *)
 
   val bool_checkbox :
       ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-        bool param_name -> [> input ] elt
-(** Creates a checkbox [<input>] tag *)
-
-  val string_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-    string option param_name -> string -> [> input ] elt
-(** Creates a radio [<input>] tag with string content *)
-  val int_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-     int option param_name -> int -> [> input ] elt
-(** Creates a radio [<input>] tag with int content *)
-  val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-     float option param_name -> float -> [> input ] elt
-(** Creates a radio [<input>] tag with float content *)
-  val user_type_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    ('a -> string) -> 'a option param_name -> 'a -> [> input ] elt
-(** Creates a radio [<input>] tag with user_type content *)
-  val any_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
-    string -> string -> [> input ] elt
-(** Creates a radio [<input>] tag with string content (low level) *)
-
-  val textarea : ?a:(textarea_attrib attrib list ) -> 
-    string param_name -> rows:number -> cols:number -> [ `PCDATA ] XHTML.M.elt ->
-      [> textarea ] elt
-(** Creates a [<textarea>] tag *)
-
-  val select : ?a:(select_attrib attrib list ) ->
-    ?selected:((string option * string) option)
-    -> (string option * string) -> ((string option * string) list) ->
-    string param_name
-    -> [> select ] elt
-(** Basic support for the [<select>] tag.
-
-The associated parameter is of type "string". It is used in forms as for 
-example:
-
-[select (None, "inconnue") [(None, "C1"); (None, "C2")] classe]
-
-
-where "classe" is the parameter name. The different choices are of the form
-[(<optional string1>, <string2>)]. "string2" is presented to the user and 
-if selected it is the returned value except when "string1" is present 
-(where it is "string1"). It is modeled after the way "select" is done in 
-HTML.
-
-Not all features of "select" are implemented.
+        name:[ `One of bool ] param_name -> unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have a boolean value.
+   There is another way to create checkboxes, using 
+   [..._input ~input_type:`Checkbox]. Thus you can do several checkboxes
+   with the same name. In that case, the service must declare a parameter
+   of type [set].
  *)
 
-  val submit_input : ?a:(input_attrib attrib list ) -> 
-    string -> [> input ] elt
-(** Creates a submit [<input>] tag *)
 
-  val file_input : ?a:(input_attrib attrib list ) ->
-    ?value:string -> file_info param_name -> [> input ] elt
+  val string_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+    name:[ `Opt of string ] param_name -> value:string -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with string content *)
+  val int_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:[ `Opt of int ] param_name -> value:int -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with int content *)
+  val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:[ `Opt of float ] param_name -> value:float -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with float content *)
+  val user_type_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
+    name:[ `Opt of 'a ] param_name -> value:'a -> ('a -> string) -> [> input ] elt
+(** Creates a radio [<input>] tag with user_type content *)
+  val any_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+    name:string -> value:string -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with untyped string content (low level) *)
+
+
+  type button_type =
+      [ `Button | `Reset | `Submit ]
+
+  val string_button : ?a:(button_attrib attrib list ) -> 
+    name:[< string setone ] param_name -> value:string -> 
+      button_content elt list -> [> button ] elt
+(** Creates a submit [<button>] tag with string content *)
+  val int_button : ?a:(button_attrib attrib list ) ->
+    name:[< int setone ] param_name -> value:int -> 
+      button_content elt list -> [> button ] elt
+(** Creates a submit [<button>] tag with int content *)
+  val float_button : ?a:(button_attrib attrib list ) ->
+    name:[< float setone ] param_name -> value:float -> 
+      button_content elt list -> [> button ] elt
+(** Creates a submit [<button>] tag with float content *)
+  val user_type_button : ?a:(button_attrib attrib list ) ->
+    name:[< 'a setone ] param_name -> value:'a -> ('a -> string) ->
+      button_content elt list -> [> button ] elt
+(** Creates a submit [<button>] tag with user_type content *)
+  val any_button : ?a:(button_attrib attrib list ) ->
+    button_type:[< button_type ] ->
+      name:string -> value:string -> 
+        button_content elt list -> [> button ] elt
+(** Creates a [<button>] tag with untyped string content (low level) *)
+
+  val button : ?a:(button_attrib attrib list ) ->
+    button_type:[< button_type ] ->
+      button_content elt list -> [> button ] elt
+(** Creates a [<button>] tag with no value. No value is sent. *)
+
+
+
+  val textarea : 
+      ?a:textarea_attrib attrib list ->
+        name:[< string setoneopt ] param_name -> 
+          ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
+            rows:int -> cols:int -> 
+              unit -> [> textarea ] elt
+(** Creates a [<textarea>] tag *)
+
+  type 'a soption =
+      Xhtmltypes.option_attrib XHTML.M.attrib list
+        * 'a (* Value to send *)
+        * pcdata elt option (* Text to display (if different from the latter) *)
+        * bool (* selected *)
+        
+  type 'a select_opt = 
+    | Optgroup of 
+        [ common | `Disabled ] XHTML.M.attrib list
+          * string (* label *)
+          * 'a soption
+          * 'a soption list
+    | Option of 'a soption
+          
+  (** The type for [<select>] options and groups of options.
+     The field of type 'a in [soption] is the value that will be sent 
+     by the form. If the [string option] is not present it is also the
+     value displayed.
+   *)
+
+  val int_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Opt of int ] param_name ->
+          int select_opt ->
+            int select_opt list ->
+              select elt
+(** Creates a [<select>] tag for int values. *)
+
+  val float_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Opt of float ] param_name ->
+          float select_opt ->
+            float select_opt list ->
+              select elt
+(** Creates a [<select>] tag for float values. *)
+
+  val string_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Opt of string ] param_name ->
+          string select_opt ->
+            string select_opt list ->
+              select elt
+(** Creates a [<select>] tag for string values. *)
+
+  val user_type_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Opt of 'a ] param_name ->
+          'a select_opt ->
+            'a select_opt list ->
+              ('a -> string) ->
+                select elt
+(** Creates a [<select>] tag for user type values. *)
+
+  val any_select :
+      ?a:select_attrib attrib list ->
+        name:string ->
+          string select_opt ->
+            string select_opt list ->
+              select elt
+(** Creates a [<select>] tag for any (untyped) value. *)
+
+
+  val int_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of int ] param_name ->
+          int select_opt ->
+            int select_opt list ->
+              select elt
+(** Creates a [<select>] tag for int values. *)
+
+  val float_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of float ] param_name ->
+          float select_opt ->
+            float select_opt list ->
+              select elt
+(** Creates a [<select>] tag for float values. *)
+
+  val string_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of string ] param_name ->
+          string select_opt ->
+            string select_opt list ->
+              select elt
+(** Creates a [<select>] tag for string values. *)
+
+  val user_type_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of 'a ] param_name ->
+          'a select_opt ->
+            'a select_opt list ->
+              ('a -> string) ->
+                select elt
+(** Creates a [<select>] tag for user type values. *)
+
+  val any_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:string ->
+          string select_opt ->
+            string select_opt list ->
+              select elt
+(** Creates a [<select>] tag for any (untyped) value. *)
+
+
+
 
 end
 
@@ -1283,6 +1612,7 @@ module SubXhtml : functor (T : sig type content end) ->
     include XHTMLFORMSSIG
     
   end
+
 
 (** {2 Modules to register other types of pages} *)
 

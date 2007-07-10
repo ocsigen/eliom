@@ -33,7 +33,6 @@ Then load it dynamically from Ocsigen's config file:
 *)
 
 open Lwt
-open Ocsimisc
 open Extensions
 open Simplexmlparser
 

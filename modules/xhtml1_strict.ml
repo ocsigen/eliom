@@ -249,11 +249,18 @@ and select_attrs =
 			     size=?String
                              name=?String} }}
 
-and select = {{ <select (select_attrs)>[ (optgroup|option)+ ]}}
+and select_content = {{ (optgroup|option) }}
 
-and optgroup = {{ <optgroup (attrs ++ { disabled=?"disabled" label=String })>[ option+ ] }}
-and option = {{ <option (attrs ++ { selected=?"selected" disabled=?"disabled" 
-			            label=?String value=?String })>[ PCDATA ] }}
+and select = {{ <select (select_attrs)>[ select_content+ ]}}
+
+and optgroup_attrs = {{ attrs ++ { disabled=?"disabled" label=String } }}
+
+and optgroup = {{ <optgroup (optgroup_attrs)>[ option+ ] }}
+
+and option_attrs = {{ attrs ++ { selected=?"selected" disabled=?"disabled" 
+			            label=?String value=?String } }}
+
+and option = {{ <option (option_attrs)>[ PCDATA ] }}
 
 and textarea_attrs =
     {{ attrs ++ focus ++ 
@@ -270,11 +277,18 @@ and textarea = {{ <textarea (textarea_attrs)>[ PCDATA ] }}
 and fieldset = {{ <fieldset (attrs)>[ (Char|legend|block|form|inline|misc)* ] }}
 and legend = {{ <legend (attrs ++ { accesskey=?String })>inlines }}
 
-and button = {{ <button (attrs ++ focus ++ 
+and button_content = {{ Char | p | heading | _div | lists
+                        | blocktext | table | special 
+			| fontstyle | phrase | misc }}
+
+and button_type_values = {{ "button"|"submit"|"reset" }}
+
+and button_attrs = {{ attrs ++ focus ++ 
 			   { name=?String value=?String 
-			     type=?"button"|"submit"|"reset" disabled=?"disabled" })>[
-			     (Char | p | heading | _div | lists | blocktext | table | special 
-			     | fontstyle | phrase | misc)* ] }}
+			     type=?button_type_values
+                             disabled=?"disabled" } }}
+
+and button = {{ <button (button_attrs)>[ button_content* ] }}
 
 
 (* Tables *)

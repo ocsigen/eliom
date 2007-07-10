@@ -106,8 +106,8 @@ eliom.cma: eliommod.cmo eliom.cmo eliomboxes.cmo
 	$(CAMLC) -a -o eliom.cma eliommod.cmo eliom.cmo eliomboxes.cmo
 
 eliom.cmxs: eliommod.cmx eliom.cmx eliomboxes.cmx
-	$(CAMLOPT) -shared -linkall -o eliom.cmxs eliommod.cmx eliom.cmx \
-	eliomboxes.cmx
+	$(CAMLOPT) -shared -linkall -o eliom.cmxs \
+	eliommod.cmx eliom.cmx eliomboxes.cmx
 
 ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
 	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \
@@ -122,6 +122,9 @@ staticmod.cmxs: staticmod.cmx
 
 cgimod.cmxs: cgimod.cmx
 	$(CAMLOPT) -shared -linkall -o cgimod.cmxs cgimod.cmx
+
+ocsipersist.cmxs: ocsipersist.cmx
+	$(CAMLOPT) -shared -linkall -o ocsipersist.cmxs ocsipersist.cmx
 
 ocsigenduce.cma: xhtml1_strict.cmo ocsigenduce.cmo
 	$(CAMLC) -a -o ocsigenduce.cma xhtml1_strict.cmo ocsigenduce.cmo 

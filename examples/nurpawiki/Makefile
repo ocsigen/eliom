@@ -17,7 +17,7 @@ opt: $(OBJSOPT)
 	cp $(OBJSOPT) ..
 
 .SUFFIXES:
-.SUFFIXES: .ml .mli .cmo .cmi .cmx
+.SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
 
 .PHONY: doc
 

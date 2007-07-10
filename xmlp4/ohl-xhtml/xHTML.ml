@@ -305,7 +305,7 @@ module type T =
 (** Arbitrary textual data, likely meant to be human-readable. *)
 
     type uri (* I abstract this for Ocsigen -- VB *)
-    val make_uri_from_string : string -> uri
+    val uri_of_string : string -> uri
 (** A Uniform Resource Identifier, as per RFC2396.
     @see <http://www.ietf.org/rfc/rfc2396.txt> RFC2396 *)
 
@@ -559,6 +559,8 @@ module type T =
     val a_readonly : [< `Readonly ] -> [>`Readonly] attrib
     val a_button_type : [< `Button | `Submit | `Reset ] ->
       [>`Button_Type] attrib
+
+    val a_label : text -> [> `Label ] attrib
 
 
 (** {2 5.6. Table Modules} *)
@@ -880,7 +882,7 @@ module type T =
 
 (** {3 Forms} *)
     
-(** Generic forms. WARNING: I have done this very quickly! This is not valid! -- VB *) 
+(** Generic forms. WARNING: If you find a bug or if something is missing please send a bug report to the Ocsigen project! -- VB *) 
     val form : action:uri ->
       ([< common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept ],
        [< block_sans_form | `Fieldset ], [>`Form]) plus
@@ -888,8 +890,9 @@ module type T =
   | `Src | `Tabindex | `Input_Type | `Value | `Disabled | `Readonly | `Alt | `Accept | `Usemap ], [>`Input]) nullary
     val label : ([< common | `Accesskey | `For ],
                  [< `PCDATA | inline_sans_label ], [>`Label]) star
-    val optgroup : ([< common | `Disabled | `Label ],
-                  [< `Option ], [>`Optgroup]) plus
+    val optgroup : label:text ->
+      ([< common | `Disabled ],
+       [< `Option ], [>`Optgroup]) plus
     val option : ([< common | `Selected | `Value | `Disabled | `Label ],
                   [< `PCDATA ], [>`Option]) unary
     val select : ([< common | `Multiple | `Name | `Size | `Tabindex | `Disabled ],
@@ -1167,7 +1170,7 @@ module Version =
     type text = string
     type uri = string
     type uris = uri (* space-separated *)
-    let make_uri_from_string s = s
+    let uri_of_string s = s
 
     let color_attrib name value =
       string_attrib name
@@ -1302,6 +1305,8 @@ module Version =
     let a_readonly `Readonly = string_attrib "readonly" "readonly"
     let a_maxlength = int_attrib "maxlength"
     let a_name = string_attrib "name"
+
+
 
 (* XHTML 1.0 allows the name attribute for more elements:*)
     let a_name_01_00 = string_attrib "name"
@@ -1549,6 +1554,7 @@ module Version =
     let a_nohref `Nohref = string_attrib "nohref" "nohref"
     let a_usemap = string_attrib "coords"
     let a_defer `Defer = string_attrib "defer" "defer"
+    let a_label = string_attrib "label"
 
     let area ~alt ?(a = []) () = 
       XML.leaf ~a:(a_alt alt :: a) "area"
@@ -1598,7 +1604,8 @@ module Version =
     let button = star "button"
     let legend = star "legend"
     let fieldset = star "fieldset"
-    let optgroup = plus "optgroup"
+    let optgroup ~label ?(a = []) elt elts =
+      XML.node ~a:(a_label label :: a) "optgroup" (elt :: elts)
 
     module TABLES =
       struct

@@ -77,8 +77,13 @@ let coucou =
       Now you can compile your file (here tutorial.ml) by doing:</p>
       <pre>ocamlc -I /<em>path_to</em>/ocsigen/ -c tutorial.ml</pre>
       <p>
-      (Replace <code>/<em>path_to</em>/ocsigen/</code>
-       by the directory where ocsigen is installed).
+      Replace <code>/<em>path_to</em>/ocsigen/</code>
+       by the directory where Ocsigen libraries are installed (that contains
+       <code>eliom.cma</code>, <code>staticmod.cmo</code>, etc.), 
+       usually something like
+      <code>/usr/lib/ocaml/3.09.3/ocsigen</code> or
+      <code>/usr/local/lib/ocaml/3.09.3/ocsigen</code> or
+      <code>/opt/godi/lib/ocaml/site-lib/ocsigen</code>.
       </p>
       <p>
       Add the following lines to Ocsigen's config file 
@@ -459,7 +464,11 @@ let links = register_new_service ["rep";"links"] unit
               ~post_params:unit ()) 
            sp
            [pcdata "OCaml on wikipedia"]
-           ["OCaml"]]])))
+           ["OCaml"]; br ();
+         XHTML.M.a
+           ~a:[a_href (uri_of_string "http://en.wikipedia.org/wiki/OCaml")]
+           [pcdata "OCaml on wikipedia"]
+       ]])))
 (*zap* 
    Note that to create a link we need to know the current url, because:
    the link from toto/titi to toto/tata is "tata" and not "toto/tata"
@@ -470,7 +479,11 @@ let links = register_new_service ["rep";"links"] unit
       Note that to create a (relative) link we need to know the current URL.
       That's why the page has a <code>sp</code> parameter.<br/>
       The link to Wikipedia shows how to define an external service (here it 
-      uses a suffix URL).</p>
+      uses a suffix URL).
+      For an external service without parameters, you can use the low level
+      function <code>XHTML.M.a</code>, if you don't want to create an
+      external service explicitely.
+      </p>
       <p>
       The last parameter of <code>Eliom.Xhtml.a</code> is for
       GET parameters you want to put in the link.
@@ -517,19 +530,13 @@ let essai =
 let create_form = 
   (fun (number_name,(number2_name,string_name)) ->
     [p [pcdata "Write an int: ";
-        int_input number_name;
+        int_input ~input_type:`Text ~name:number_name ();
         pcdata "Write another int: ";
-        int_input number2_name;
+        int_input ~input_type:`Text ~name:number2_name ();
         pcdata "Write a string: ";
-        string_input string_name;
-        submit_input "Click"]])
-(*zap*        
-    <:xmllist< <p>Write an int: $int_input entier$ <br/>
-    Write a string: $password_input chaine$ <br/>
-    Write a string: $string_input chaine2$ <br/>
-    $submit_input "Click"$</p>
-    >>)
-*zap*)
+        string_input ~input_type:`Text ~name:string_name ();
+        string_input ~input_type:`Submit ~value:"Click" ()]])
+
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
      let f = get_form coucou_params sp create_form in 
@@ -621,7 +628,7 @@ let form2 = register_new_service ["form2"] unit
        (post_form my_service_with_post_params sp
           (fun chaine -> 
             [p [pcdata "Write a string: ";
-                string_input chaine]]) ()) in
+                string_input ~input_type:`Text ~name:chaine ()]]) ()) in
      return
        (html
          (head (title (pcdata "form")) [])
@@ -633,7 +640,7 @@ let form3 = register_new_service ["form3"] unit
        (post_form my_service_with_get_and_post sp
           (fun chaine -> 
             <:xmllist< <p> Write a string: 
-                    $string_input chaine$ </p> >>)
+                    $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
           222) in  return
        << <html>
             <head><title></title></head>
@@ -649,7 +656,7 @@ let form4 = register_new_service ["form4"] unit
              ~post_params:(string "chaine") ()) sp
           (fun chaine -> 
             <:xmllist< <p> Write a string: 
-	             $string_input chaine$ </p> >>)
+	             $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
           222) in return
      (html
         (head (title (pcdata "form")) [])
@@ -1042,7 +1049,7 @@ let _ = register
                   post_form data_with_post_params sp
                     (fun login -> 
                       [p [pcdata "login: ";
-                          string_input login]]) ()
+                          string_input ~input_type:`Text ~name:login ()]]) ()
              ])))
 (*html*
     </div>
@@ -1116,10 +1123,12 @@ let home sp () () =
   let f = post_form public_session_with_post_params sp
     (fun login -> 
          [p [pcdata "login: ";
-             string_input login]]) () in return
-  (html
-     (head (title (pcdata "")) [])
-     (body [f]))
+             string_input ~input_type:`Text ~name:login ()]]) () 
+  in 
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body [f]))
 
 
 let _ = register
@@ -1266,9 +1275,11 @@ let _ =
   let c = ref 0 in
   let page sp () () = 
     let l3 = post_form coserv2 sp 
-        (fun _ -> [p [submit_input "incr i (post)"]]) () in
+        (fun _ -> [p [string_input 
+                        ~input_type:`Submit ~value:"incr i (post)" ()]]) () in
     let l4 = get_form coserv3 sp 
-        (fun _ -> [p [submit_input "incr i (get)"]]) in 
+        (fun _ -> [p [string_input
+                        ~input_type:`Submit ~value:"incr i (get)" ()]]) in 
     return
       (html
        (head (title (pcdata "")) [])
@@ -1388,7 +1399,7 @@ let shop_with_post_params =
 let write_shop shop url =
   (post_form shop url
      (fun article -> 
-        let sb = string_input article in
+        let sb = string_input ~input_type:`Text ~name:article () in
           <:xmllist< <p> What do you want to buy? $sb$ </p> >>) ())
 
 let shop_public_main_page sp () () =
@@ -1438,7 +1449,8 @@ let rec page_for_shopping_basket sp shopping_basket =
              <div>$list:write_shopping_basket shopping_basket$</div>
              $write_shop coshop_with_post_params sp$ 
              $post_form copay sp 
-                    (fun _ -> [p [submit_input "pay"]]) ()$
+                    (fun _ -> [p [string_input
+                                    ~input_type:`Submit ~value:"pay" ()]]) ()$
            </body>
          </html> >>
 
@@ -1463,9 +1475,9 @@ let _ =
   let create_form is = 
     (fun entier ->
        [p [pcdata (is^" + ");
-           int_input entier;
+           int_input ~input_type:`Text ~name:entier ();
            br ();
-           submit_input "Sum"]])
+           string_input ~input_type:`Submit ~value:"Sum" ()]])
   in
   register
     ~service:calc_i
@@ -1498,9 +1510,9 @@ let _ =
   let create_form = 
     (fun entier ->
       [p [pcdata "Write a number: ";
-          int_input entier;
+          int_input ~input_type:`Text ~name:entier ();
           br ();
-          submit_input "Send"]])
+          string_input ~input_type:`Submit ~value:"Send" ()]])
   in
   register
     calc
@@ -1552,12 +1564,12 @@ let disconnect_action =
 
 let disconnect_box sp s = 
   post_form disconnect_action sp 
-    (fun _ -> [p [submit_input s]]) ()
+    (fun _ -> [p [string_input ~input_type:`Submit ~value:s ()]]) ()
 
 let login_box sp login = 
   [p 
      (let l = [pcdata "login: "; 
-               string_input login]
+               string_input ~input_type:`Text ~name:login ()]
      in (*zap*           if List.mem Eliom_Session_expired (get_exn sp)
            then (pcdata "Session expired")::(br ())::l
            else *zap*) l)
@@ -1793,7 +1805,7 @@ exception Bad_user
 let login_box sp login =
    let l =
      [pcdata "login: "; 
-      string_input login]
+      string_input ~input_type:`Text ~name:login ()]
    in
    [p (if List.mem Bad_user (get_exn sp)
        then (pcdata "Wrong user")::(br ())::l
@@ -2157,7 +2169,8 @@ let _ = register
                     post_form persist_with_post_params sp
                       (fun login -> 
                         [p [pcdata "login: ";
-                            string_input login]]) ()
+                            string_input 
+                              ~input_type:`Text ~name:login ()]]) ()
                ]))))
 
 let _ = register
@@ -2434,11 +2447,11 @@ let setform = register_new_service
                   get_form set sp 
                     (fun n ->
                       [p [pcdata "Form to set: ";
-                          string_input n;
-                          string_input n;
-                          string_input n;
-                          string_input n;
-                          submit_input "Click"]])
+                          string_input ~input_type:`Text ~name:n ();
+                          string_input ~input_type:`Text ~name:n ();
+                          string_input ~input_type:`Text ~name:n ();
+                          string_input ~input_type:`Text ~name:n ();
+                          string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 
 
@@ -2473,10 +2486,10 @@ let anyform = register_new_service
                   get_form any sp 
                     (fun _ ->
                       [p [pcdata "Form to any: ";
-                          any_input "plop";
-                          any_input "plip";
-                          any_input "plap";
-                          submit_input "Click"]])
+                          any_input ~input_type:`Text ~name:"plop" ();
+                          any_input ~input_type:`Text ~name:"plip" ();
+                          any_input ~input_type:`Text ~name:"plap" ();
+                          string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 
 let coord = register_new_service 
@@ -2505,24 +2518,42 @@ let imageform = register_new_service
            (body [h1 [pcdata "Image Form"];
                   get_form coord sp 
                     (fun n ->
-                      [p [input 
+                      [p [image_input 
+                            ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"])
+                            ~name:n
+                            ()]])
+                ])))
 
+let coord2 = register_new_service 
+    ~url:["coord2"]
+    ~get_params:(int_coordinates "coord")
+  (fun _ (i, c) () ->
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You clicked on coordinates: 
+         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+       </p>
+       </body>
+     </html> >>)
 
-
-
-(* refaire avec image_input *)
-
-
-
-
-
-
-
-
-                            ~a:[a_input_type `Image; 
-                                a_src (make_uri 
-                                         (static_dir sp) sp ["ocsigen5.png"]); 
-                                a_name (Obj.magic n)]
+(* form to image *)
+let imageform2 = register_new_service 
+    ~url:["imageform2"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Image Form"];
+                  get_form coord2 sp 
+                    (fun n ->
+                      [p [int_image_input 
+                            ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"])
+                            ~name:n
+                            ~value:3
                             ()]])
                 ])))
 
@@ -2564,9 +2595,10 @@ let create_listform f =
      end of the list created
    *)
   f.it (fun stringname v ->
-    <:xmllist< <p>Write the value for $str:v$: $string_input stringname$ </p> >>)
+    <:xmllist< <p>Write the value for $str:v$: 
+      $string_input ~input_type:`Text ~name:stringname ()$ </p> >>)
     ["one";"two";"three";"four"]
-    <:xmllist< <p>$submit_input "Click"$</p> >>
+    <:xmllist< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let listform = register_new_service ["listform"] unit
   (fun sp () () -> 
@@ -2579,10 +2611,11 @@ let listform = register_new_service ["listform"] unit
 (* Form for service with suffix: *)
 let create_suffixform ((suff, endsuff),i) =
     <:xmllist< <p>Write the suffix: 
-      $int_input suff$ <br/>
-      Write a string: $user_type_input string_of_url_path endsuff$ <br/>
-      Write an int: $int_input i$ <br/>
-      $submit_input "Click"$</p> >>
+      $int_input ~input_type:`Text ~name:suff ()$ <br/>
+      Write a string: $user_type_input 
+         ~input_type:`Text ~name:endsuff string_of_url_path$ <br/>
+      Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform = register_new_service ["suffixform"] unit
   (fun sp () () -> 
@@ -2607,8 +2640,8 @@ let bool_params = register_new_service
      </html> >>)
 
 let create_form_bool casename =
-    <:xmllist< <p>check? $bool_checkbox casename$ <br/>
-      $submit_input "Click"$</p> >>
+    <:xmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let form_bool = register_new_service ["formbool"] unit
   (fun sp () () -> 
