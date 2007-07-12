@@ -575,3 +575,40 @@ let listform = register_new_service ["boolform"] unit
 
 
 (********)
+
+
+(* any with POST *)
+let any = register_new_post_service 
+    ~fallback:coucou
+    ~post_params:any
+  (fun _ () l ->
+    let ll = 
+      List.map 
+        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         $list:ll$
+       </p>
+       </body>
+     </html> >>)
+
+(* form to any2 *)
+let anypostform = register_new_service 
+    ~url:["anypostform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Any Form"];
+                  post_form any sp 
+                    (fun () ->
+                      [p [pcdata "Empty form to any: ";
+                          string_input ~input_type:`Submit ~value:"Click" ()]])
+                    ()
+                ])))

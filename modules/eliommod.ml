@@ -215,7 +215,8 @@ let remove_session_table cookie_table = function
   | Some c -> Cookies.remove cookie_table c
 
 type page_table_key =
-    {state: (internal_state option * internal_state option)}
+    {key_state: (internal_state option * internal_state option);
+     key_kind: Http_frame.Http_header.http_method}
       (* action: tables server_params1 -> page *)
 
       (* module Page_Table = Map.Make(struct type t = page_table_key 
@@ -416,7 +417,8 @@ let find_page_table
                 (* warning: the list ll may change during funct
                    if funct register something on the same URL!! *)
                 (fun p -> 
-                  Messages.debug "--Eliom: Page found and generated successfully";
+                  Messages.debug
+                    "--Eliom: Page found and generated successfully";
                   (match expdate with
                   | Some (timeout, e) -> e := timeout +. now
                   | None -> ());
@@ -464,14 +466,15 @@ let rec insert_as_last_of_generation generation x = function
   | a::l -> a::(insert_as_last_of_generation generation x l)
 
 
-let add_page_table duringsession url_act t (key,(id, va)) = 
-  (* Duplicate registration forbidden in global table *)
+
+let add_page_table duringsession url_act t (key, (id, va)) = 
+  (* Duplicate registration forbidden in global table with same generation *)
   let generation = Extensions.get_numberofreloads () in
   let v = (id, (generation, va)) in
   try
     let l, newt = list_assoc_remove key t in
     try
-      if key = {state = (None, None)}
+      if key.key_state = (None, None)
       then begin
 (********* Vérifier ici qu'il n'y a pas qqchose similaire déjà enregistré ?! *)
         let (oldgen, n), oldl = list_assoc_remove id l in
@@ -481,6 +484,7 @@ let add_page_table duringsession url_act t (key,(id, va)) =
         else (key, (insert_as_last_of_generation generation v oldl))::newt 
       end
       else (key, (insert_as_last_of_generation generation v l))::newt
+(********* et ici on ne vérifie pas s'il y a déjà l'unique_id ? à rev 20070712 *)
     with Not_found -> 
       (key, (insert_as_last_of_generation generation v l))::newt
   with Not_found -> (key,[v])::t
@@ -556,7 +560,7 @@ let add_service
     try 
       let direltref = find_dircontent !dircontentref a in
       match !direltref with
-        Dir dcr -> search dcr l
+      | Dir dcr -> search dcr l
       | File ptr -> raise (Eliom_page_erasing 
                              ((string_of_url_path current_dir)^"/"^a))
             (* Messages.warning ("Eliom page registration: Page "^
@@ -565,7 +569,7 @@ let add_service
                (direltref := Dir newdcr;
                search newdcr l) *)
     with
-      Not_found -> 
+    | Not_found -> 
         let newdcr = ref (empty_dircontent ()) in
         (dircontentref := 
           add_dircontent !dircontentref (a, ref (Dir newdcr));
@@ -573,12 +577,12 @@ let add_service
   in 
 
   let rec search_page_table_ref dircontentref = function
-      [] | [""] -> search_page_table_ref dircontentref [defaultpagename]
+    | [] | [""] -> search_page_table_ref dircontentref [defaultpagename]
     | [a] -> 
         (try 
           let direltref = find_dircontent !dircontentref a in
           (match !direltref with
-            Dir _ -> raise (Eliom_page_erasing a)
+          | Dir _ -> raise (Eliom_page_erasing a)
                 (* Messages.warning ("Eliom page registration: Directory "^
                    a^" has been replaced by a page");
                    let newpagetableref = ref (empty_page_table ()) in
@@ -629,7 +633,7 @@ let find_service
   let rec search_page_table dircontent =
     let aux a l =
       let aa = match a with
-        None -> defaultpagename
+      | None -> defaultpagename
       | Some aa -> aa
       in
       try
@@ -638,15 +642,15 @@ let find_service
           with Not_found -> raise Exn1
         in
         (match dc with
-          Dir dircontentref2 -> search_page_table !dircontentref2 l
+        | Dir dircontentref2 -> search_page_table !dircontentref2 l
         | File page_table_ref -> page_table_ref, l)
       with Exn1 -> 
         (match !(find_dircontent dircontent eliom_suffix_internal_name) with
-          Dir _ -> raise Not_found
+        | Dir _ -> raise Not_found
         | File page_table_ref -> 
             (page_table_ref, (if a = None then [""] else aa::l)))
     in function
-        [] -> raise Ocsigen_Is_a_directory
+      | [] -> raise Ocsigen_Is_a_directory
       | [""] -> aux None []
       | ""::l -> search_page_table dircontent l
       | a::l -> aux (Some a) l
@@ -663,7 +667,8 @@ let find_service
     session_exp_info
     ri
     suffix
-    {state = si.si_state_info}
+    {key_state = si.si_state_info;
+     key_kind = ri.ri_method}
     si
 
 
@@ -699,7 +704,7 @@ let (find_global_timeout, find_global_persistent_timeout,
      set_global_timeout, set_global_persistent_timeout) =
   let table = ref (Tt ((None, None), [])) in
   let rec find = function
-      (Tt (t, _), []) -> t
+    | (Tt (t, _), []) -> t
     | (ta, ""::l) -> find (ta, l)
     | (Tt (t, r), a::l) ->
         try
@@ -707,7 +712,7 @@ let (find_global_timeout, find_global_persistent_timeout,
         with Not_found -> (None, None)
   in
   let rec add fstsnd timeout = function
-      (Tt (t, l), []) -> Tt ((fstsnd t (Some timeout)), l)
+    | (Tt (t, l), []) -> Tt ((fstsnd t (Some timeout)), l)
     | (ta, ""::l) -> add fstsnd timeout (ta, l)
     | (Tt (t, r), a::l) ->
         try

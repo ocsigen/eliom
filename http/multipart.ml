@@ -119,7 +119,7 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
     (* Search LF beginning at position k *)
     catch
       (fun () -> (search_window s lf_re k) >>= 
-        (fun (s,x) -> return (s, (S.match_end x))))
+        (fun (s, x) -> return (s, (S.match_end x))))
     (function
       | Not_found ->
           fail (Multipart_error 
@@ -139,11 +139,12 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
   let check_beginning_is_boundary s =
     let del = "--" ^ boundary in
     let ldel = String.length del in
-    Ocsistream.stream_want s ldel >>= (function
-      | Finished _ as str2 -> return (str2, false)
+    Ocsistream.stream_want s (ldel + 2) >>= (function
+      | Finished _ as str2 -> return (str2, false, false)
       | Cont (ss, long, f) as str2 -> 
-          return (str2, ((long >= ldel) && 
-                         (String.sub ss 0 ldel = del))))
+          let isdelim = (long >= ldel) && (String.sub ss 0 ldel = del) in
+          let islast = isdelim && (String.sub ss ldel 2 = "--") in
+          return (str2, isdelim, islast))
   in
 
   let rec parse_parts s uses_crlf =
@@ -152,57 +153,61 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
      *    if only LF is used as EOL sequence.
      *)
     let delimiter = (if uses_crlf then "\r" else "" ) ^ "\n--" ^ boundary in
-    Ocsistream.substream delimiter s >>=
-    decode_part >>= 
-    (fun (y,s) -> 
-      (* Now the position of [s] is at the beginning of the delimiter. 
-       * Check if there is a "--" after the delimiter (==> last part)
-       *)
-      let l_delimiter = String.length delimiter in
-      Ocsistream.stream_want s (l_delimiter+2) >>= (fun s ->
-        let last_part = match s with
-        | Finished _ -> false
-        | Cont (ss, long, f) ->
-            (long >= (l_delimiter+2)) &&
-            (ss.[l_delimiter] = '-') && 
-            (ss.[l_delimiter+1] = '-')
-        in
-        if last_part then return [ y ]
-        else begin
-          search_end_of_line s 2 >>=  (* [k]: Beginning of next part *)
-          (fun (s, k) -> Ocsistream.skip s k >>=
-            (fun s -> parse_parts s uses_crlf >>= 
-              (fun l -> return (y :: l))))
-        end ))
+    Ocsistream.substream delimiter s >>= fun a ->
+    decode_part a >>= fun (y, s) ->
+    (* Now the position of [s] is at the beginning of the delimiter. 
+     * Check if there is a "--" after the delimiter (==> last part)
+     *)
+    let l_delimiter = String.length delimiter in
+    Ocsistream.stream_want s (l_delimiter+2) >>= fun s ->
+    let last_part = match s with
+    | Finished _ -> false
+    | Cont (ss, long, f) ->
+        (long >= (l_delimiter+2)) &&
+        (ss.[l_delimiter] = '-') && 
+        (ss.[l_delimiter+1] = '-')
+    in
+    if last_part then return [ y ]
+    else begin
+      search_end_of_line s 2 >>= fun (s, k) -> 
+      (* [k]: Beginning of next part *) 
+      Ocsistream.skip s k >>= fun s -> 
+      parse_parts s uses_crlf >>= fun l -> 
+      return (y :: l)
+    end
   in
 
   (* Check whether s directly begins with a boundary: *)
-  check_beginning_is_boundary s >>= (fun (s,b) -> if b then begin
+  check_beginning_is_boundary s >>= fun (s, b, islast) -> 
+  if islast then return []
+  else
+  if b then begin
     (* Move to the beginning of the next line: *)
     search_end_of_line s 0 >>= (fun (s, k_eol) ->
       let uses_crlf = (Ocsistream.current_buffer s).[k_eol-2] = '\r' in
-      Ocsistream.skip s k_eol >>=
+      Ocsistream.skip s k_eol >>= fun s ->
       (* Begin with first part: *)
-      (fun s -> parse_parts s uses_crlf))
+      parse_parts s uses_crlf)
   end
   else begin
     (* Search the first boundary: *)
-    catch (fun () -> 
-      search_first_boundary s >>= (fun (s, k_eob) ->   (* or Not_found *)
-      (* Printf.printf "k_eob=%d\n" k_eob; *)
-      (* Move to the beginning of the next line: *)
-        search_end_of_line s k_eob >>= (fun (s, k_eol) ->
+    catch
+      (fun () -> 
+        search_first_boundary s >>= fun (s, k_eob) ->   (* or Not_found *)
+        (* Printf.printf "k_eob=%d\n" k_eob; *)
+        (* Move to the beginning of the next line: *)
+        search_end_of_line s k_eob >>= fun (s, k_eol) ->
           let uses_crlf = (Ocsistream.current_buffer s).[k_eol-2] = '\r' in
           (* Printf.printf "k_eol=%d\n" k_eol; *)
-          Ocsistream.skip s k_eol >>=
+          Ocsistream.skip s k_eol >>= fun s ->
           (* Begin with first part: *)
-          (fun s -> parse_parts s uses_crlf))))
+          parse_parts s uses_crlf)
       (function 
         | Not_found ->
             (* No boundary at all: The body is empty. *)
             return []
-        | e -> fail e)  
-  end)
+        | e -> fail e)
+  end
 ;;
 
 
@@ -239,9 +244,9 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
       in 
       catch 
         (fun () -> while_stream Int64.zero s >>= 
-          (fun (size, s) -> stop size p >>= (fun r -> return (r,s))))
+          (fun (size, s) -> stop size p >>= fun r -> return (r, s)))
         (function
-            error -> stop Int64.zero p >>= (fun _ -> fail error)))
+            error -> stop Int64.zero p >>= fun _ -> fail error))
   in
   catch
     (fun () ->

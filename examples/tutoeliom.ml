@@ -1,4 +1,4 @@
-(*zap* 
+(*zap*
    this is the Eliom Tutorial.
    It is mainly written in html.
    You can find a more readable version of comments on http://www.ocsigen.org
@@ -2484,7 +2484,7 @@ let anyform = register_new_service
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Any Form"];
                   get_form any sp 
-                    (fun _ ->
+                    (fun () ->
                       [p [pcdata "Form to any: ";
                           any_input ~input_type:`Text ~name:"plop" ();
                           any_input ~input_type:`Text ~name:"plip" ();

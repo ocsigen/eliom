@@ -123,7 +123,7 @@ let substream delim s =
     let rdelim = Netstring_pcre.regexp_string delim in
     let rec aux =
       function
-        | Finished _ -> raise Stream_too_small
+        | Finished _ -> fail Stream_too_small
         | Cont (s, len, f) as stre -> 
             if len < ldelim
             then enlarge_stream stre >>= aux

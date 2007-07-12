@@ -81,7 +81,9 @@ type result_to_send =
   | EliomExn of (exn list * cookieslist)
 
 type page_table_key =
-    {state: (internal_state option * internal_state option)}
+    {key_state: (internal_state option * internal_state option);
+     key_kind: Http_frame.Http_header.http_method}
+
 
 val gen :
     pages_tree ->

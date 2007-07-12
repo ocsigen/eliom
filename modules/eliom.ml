@@ -810,7 +810,10 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
      kind: 'kind; (* < service_kind *)
    }
 
-
+let get_or_post = function
+  | `Internal (_, `Get) -> Http_frame.Http_header.GET
+  | _ -> Http_frame.Http_header.POST
+(*  | `External -> POST ? *)
 
 
 (*****************************************************************************)
@@ -981,9 +984,13 @@ let new_post_service_aux ~sp ~fallback ~post_params =
  }
     
 let new_post_service ?sp ~fallback ~post_params () = 
-  (if post_params = TUnit
+  (* (if post_params = TUnit
   then Messages.warning "Probably error in the module: \
-      Creation of a POST service without POST parameters.");
+      Creation of a POST service without POST parameters."); 
+      12/07/07
+      I remove this warning: POST service without POST parameters means
+      that the service will answer to a POST request only.
+    *)
   let `Attached k1 = fallback.kind in
   let `Internal (kind, _) = k1.att_kind in
   let url = Some k1.url in
@@ -1843,22 +1850,24 @@ module MakeRegister = functor
             ?(error_handler = fun sp l -> raise (Eliom_Typing_Error l))
             page_generator =
           match service.kind with
-            `Attached attser ->
+          | `Attached attser ->
+              let key_kind = get_or_post attser.att_kind in
               add_service
                 tables 
 	        current_dir
 	        duringsession
 	        attser.url
-                ({state = (attser.get_state, attser.post_state)},
+                ({key_state = (attser.get_state, attser.post_state);
+                  key_kind = key_kind},
                  ((if attser.get_state = None || attser.post_state = None 
                  then (anonymise_params_type service.get_params_type, 
                        anonymise_params_type service.post_params_type)
-                 else (0,0)),
+                 else (0, 0)),
                   (match service.max_use with
-                    None -> None
+                  | None -> None
                   | Some i -> Some (ref i)),
                   (match service.timeout with
-                    None -> None
+                  | None -> None
                   | Some t -> Some (t, ref (t +. Unix.time ()))),
                   (fun ((ri,_,(_,_,_,_,suff)) as sp) -> 
                     (catch (fun () -> 
@@ -1890,11 +1899,11 @@ module MakeRegister = functor
 	        duringsession
 	        naser.na_name
                 ((match service.max_use with
-                  None -> None
+                | None -> None
                 | Some i -> Some (ref i)),
                  (match service.timeout with
-                  None -> None
-                | Some t -> Some (t, ref (t +. Unix.time ()))),
+                 | None -> None
+                 | Some t -> Some (t, ref (t +. Unix.time ()))),
 	         (fun ((ri,_,_) as sp) ->
 	           (catch
 	              (fun () ->
@@ -1914,7 +1923,7 @@ module MakeRegister = functor
                                   files
                                   [])))))
 	              (function
-                          Eliom_Typing_Error l -> error_handler sp l
+                        | Eliom_Typing_Error l -> error_handler sp l
                         | e -> fail e)) >>=
                    (fun (content, cookies_to_set) -> 
                      return (Pages.send 
@@ -1926,11 +1935,11 @@ module MakeRegister = functor
           | None ->
               let url =
                 match service.kind with
-                  `Attached attser -> Some attser.url
+                | `Attached attser -> Some attser.url
                 | `Nonattached naser -> None
               in
               (match global_register_allowed () with
-                Some get_current_hostdir ->
+              | Some get_current_hostdir ->
                   remove_unregistered url;
                   let (globtables, _, _), curdir = get_current_hostdir () in
                   register_aux 
