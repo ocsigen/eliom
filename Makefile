@@ -177,6 +177,7 @@ $(OCSIGENNAME).conf.local:
 	cat $(OCSIGENNAME).conf.local \
 	| sed s%[.]cmo%.cmxs%g \
 	| sed s%[.]cma%.cmxs%g \
+	| sed s%sqlite3.cmxs\"/\>%sqlite3.cmxs\"/\>\ \<\!--\ Create\ sqlite3.cmxs\ using:\ ocamlopt\ -shared\ -linkall\ -I\ \<path\ to\ ocaml\'s\ sqlite3\ directory\>\ -o\ sqlite3.cmxs\ \<path\ to\>/libsqlite3_stubs.a\ \<path\ to\>/sqlite3.cmxa\ --\>%g \
 	> $(OCSIGENNAME).conf.opt.local
 
 clean:

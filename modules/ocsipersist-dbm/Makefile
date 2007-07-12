@@ -1,7 +1,7 @@
 include ../../Makefile.config
 
 FILES= ocsipersist.ml
-OBJDBM= ocsidbm ocsipersist-dbm.cma
+OBJDBM= ocsipersist-dbm.cma
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -25,14 +25,16 @@ PP2 =
 # -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"
 
 
-OBJS = $(FILES:.ml=.cmo) $(OBJDBM)
+OBJS = $(FILES:.ml=.cmo) ocsidbm $(OBJDBM)
 
-OBJSOPT = $(FILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs)
+OBJSOPT = $(FILES:.ml=.cmx) ocsidbm.opt $(OBJDBM:.cma=.cmxs)
 
 
 byte: $(OBJS)
 
 opt: $(OBJSOPT)
+	[ -f ../ocsipersist.cmx ] || \
+	cp ocsipersist.cmx ..
 
 
 .SUFFIXES:

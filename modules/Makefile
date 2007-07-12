@@ -26,9 +26,9 @@ DBG =
 endif
 
 ifeq "$(PROFILING)" "YES"
-CAMLCNAME= ocamlcp -p a
+CAMLCNAME2= $(CAMLCPNAME)
 else
-CAMLCNAME= ocamlc
+CAMLCNAME2= $(CAMLCNAME)
 endif
 
 ifeq "$(OCAMLDUCE)" "YES"
@@ -70,7 +70,7 @@ endif
 # LIB=$(LIBDIRS)
 
 LIB = -thread -package netstring$(PACKSQLITE) $(LIBDIRS)
-CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
+CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
@@ -84,11 +84,12 @@ OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM) $(OBJSQLITE)
 OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs) $(OBJSQLITE:.cma=.cmxs)
 
 
-byte: $(OBJS) eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo \
-      $(DUCEMODBYTE) $(OBJDBMBYTE)
+byte: $(OBJS) $(OBJDBMBYTE) eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo \
+      $(DUCEMODBYTE)
 
-opt: $(OBJSX) eliom.cmxs ocsigenmod.cmxs staticmod.cmxs cgimod.cmxs \
-     $(DUCEMODOPT) $(OBJDBMOPT)
+opt: $(OBJDBMOPT) $(OBJSOPT) \
+     eliom.cmxs ocsigenmod.cmxs staticmod.cmxs cgimod.cmxs \
+     $(DUCEMODOPT)
 
 
 .SUFFIXES:

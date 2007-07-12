@@ -52,6 +52,7 @@ set_defaults () {
     enable_dbm=1
     prefix="/usr/local"
     bindir=""
+    examplesdir=""
     libdir=""
     mandir=""
     docdir=""
@@ -142,8 +143,13 @@ print_options () {
             *) bindir2=$bindir;;
         esac
         
+        case "$examplesdir" in
+            "") examplesdir2="<prefix>/lib";;
+            *) examplesdir2=$examplesdir;;
+        esac
+        
         case "$libdir" in
-            "") libdir2="<prefix>/lib";;
+            "") libdir2="<prefix>/<ocamlfind install directory>";;
             *) libdir2=$libdir;;
         esac
         
@@ -164,6 +170,7 @@ print_options () {
 	echo "    --ocsigen-group $ocsigen_group"
 	echo "    --bindir $bindir2"
 	echo "    --libdir $libdir2"
+	echo "    --examplesdir $examplesdir2"
 	echo "    --mandir $mandir2"
 	echo "    --docdir $docdir2"
 	echo "    --sysconfdir $sysconfdir"
@@ -213,7 +220,10 @@ _EOF_
         Install binaries into this directory
 
 --libdir dir
-        Install libraries into this directory
+        Install Ocsigen's modules into this directory
+
+--examplesdir dir
+        Install Ocsigen's examples sites into this directory
 
 --mandir dir
 	Install man pages in this directory
@@ -328,6 +338,11 @@ while [ "$#" -gt 0 ]; do
                         shift
                         shift
                         ;;
+                --examplesdir)
+                        examplesdir="$2"
+                        shift
+                        shift
+                        ;;
 		--mandir)
 			mandir="$2"
 			shift 
@@ -391,8 +406,12 @@ case "$bindir" in
   "") bindir="$prefix/bin";;
 esac
 
+case "$examplesdir" in
+  "") examplesdir="$prefix/lib";;
+esac
+
 case "$libdir" in
-  "") libdir="$prefix/lib";;
+  "") libdir="\`\$(OCAMLFIND) printconf destdir\`";;
 esac
 
 case "$mandir" in
@@ -543,7 +562,7 @@ CAMLLEX=ocamllex
 CAMLYACC=ocamlyacc
 CAMLCNAME=ocamlc
 CAMLOPTNAME=ocamlopt
-# CAMLCNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
+CAMLCPNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
 CHOWN=chown
 
 ## The root directory for the package install (usually /)
@@ -571,10 +590,10 @@ BINDIR = $root$bindir
 MANDIR = $root$mandir
 
 # Where to install the directory for ocsigen modules:
-MODULEINSTALLDIR = $root\`\$(OCAMLFIND) printconf destdir\`
+MODULEINSTALLDIR = $root$libdir
 
 # Where to install examples:
-EXAMPLESINSTALLDIR = $root$libdir/\$(OCSIGENNAME)
+EXAMPLESINSTALLDIR = $root$examplesdir/\$(OCSIGENNAME)
 
 # User who will run Ocsigen server (not root) (eg, for debian, www-data)
 # (This user must exist on your system)

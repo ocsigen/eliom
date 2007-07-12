@@ -689,7 +689,7 @@ NOT IMPLEMENTED
                           | _ ->
                             let waiter_end_stream = wait () in
                             Com_buffer.extract
-                              ~finish:(fun () -> Lwt.wakeup waiter_end_stream ())
+                              ~finish:(Lwt.wakeup waiter_end_stream)
                               receiver.r_fd 
 			      receiver.r_buffer 
                               (Com_buffer.Max (get_maxsize receiver.r_mode))

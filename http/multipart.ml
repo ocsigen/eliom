@@ -167,7 +167,8 @@ let read_multipart_body decode_part boundary (s : Ocsistream.stream) =
         (ss.[l_delimiter] = '-') && 
         (ss.[l_delimiter+1] = '-')
     in
-    if last_part then return [ y ]
+    if last_part 
+    then Ocsistream.consume s >>= fun () -> return [ y ]
     else begin
       search_end_of_line s 2 >>= fun (s, k) -> 
       (* [k]: Beginning of next part *) 

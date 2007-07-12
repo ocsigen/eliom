@@ -12,9 +12,9 @@ DBG =
 endif
 
 ifeq "$(PROFILING)" "YES"
-CAMLCNAME= ocamlcp -p a
+CAMLCNAME2= $(CAMLCPNAME)
 else
-CAMLCNAME= ocamlc
+CAMLCNAME2= $(CAMLCNAME)
 endif
 
 ifeq "$(BYTECODE)" "YES"
@@ -41,7 +41,7 @@ NETSYSCMXA=
 endif
 
 INSTALL = install
-CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
+CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep

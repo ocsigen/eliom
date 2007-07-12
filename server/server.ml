@@ -503,15 +503,15 @@ let get_request_infos meth url http_frame filenames sockaddr port =
     {ri_url_string = url;
      ri_url = url2;
      ri_method = meth;
-     ri_path_string = (string_of_url_path path);
+     ri_path_string = string_of_url_path path;
      ri_path = path;
      ri_get_params_string = params;
      ri_host = host;
      ri_get_params = get_params;
-     ri_post_params = lazy ((force find_post_params) >>= 
-                                (fun (a,b) -> return a));
-     ri_files = lazy ((force find_post_params) >>= 
-                      (fun (a,b) -> return b));
+     ri_post_params = lazy (force find_post_params >>= fun (a, b) -> 
+                            return a);
+     ri_files = lazy (force find_post_params >>= fun (a, b) -> 
+                      return b);
      ri_inet_addr = inet_addr;
      ri_ip = Unix.string_of_inet_addr inet_addr;
      ri_remote_port = port_of_sockaddr sockaddr;
