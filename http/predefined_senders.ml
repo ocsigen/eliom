@@ -412,7 +412,7 @@ let send_text_page =
   
 (** fonction that uses a stream to send the answer step by step *)
 let send_stream_page =
-  send_generic Stream_sender.send 
+  send_generic Stream_sender.send  
   
   
 

@@ -28,15 +28,134 @@ open Lwt
 open Ocsimisc
 open Extensions
 
+(*****************************************************************************)
+(* The table of static pages for each virtual server                            *)
+type assockind = 
+  | Dir of string
+  | Regexp of Netstring_pcre.regexp * string
+
+(* cgi or static pages *)
+type page_dir = 
+    Page_dir of string option *
+        (Netstring_pcre.regexp * string) list * (string * page_dir) list
+
+(* cgi or static pages *)
+type pages_tree = 
+    page_dir ref
+
+let new_pages_tree () =
+  (ref (Page_dir (None, [], [])))
+
 
 (*****************************************************************************)
+
 (** table of page trees *)
 
 let page_tree_table = ref []
 
-let find k = Module_static_cgi.find k !page_tree_table
+let find k = List.assoc k !page_tree_table
 
-let add k a = Module_static_cgi.add k a page_tree_table
+let add k a = page_tree_table:= (k,a)::!page_tree_table
+
+(*****************************************************************************)
+
+let set_dir dirref assoc path =
+  let rec assoc_and_remove a = function
+    | [] ->raise Not_found
+    | (b,v)::l when a = b -> (v,l)
+    | e::l -> let v,ll = assoc_and_remove a l
+          in v,(e::ll)
+  in
+  let rec add_path = function
+    | [] -> 
+        (match assoc with
+        | Dir s -> Page_dir (Some s, [], [])
+        | Regexp (r, s) -> Page_dir (None, [(r, s)], []))
+    | a::l -> Page_dir (None, [], [(a, add_path l)])
+  in
+  let rec aux (Page_dir (s1, rl, l1)) = function
+    | [] ->
+        (match assoc with
+        | Dir s -> Page_dir (Some s, rl, l1)
+        | Regexp (r, s) -> Page_dir (s1, rl@[(r, s)], l1)) (* at the end! *)
+    | a::l -> 
+        try
+          let sd1,l2 = assoc_and_remove a l1 in
+          let sd = aux sd1 l in
+          Page_dir (s1, rl, (a, sd)::l2)
+        with Not_found -> Page_dir (s1, rl, (a,(add_path l))::l1)
+  in
+  dirref := aux !dirref path
+
+
+let rec replace_first_match stringpath = function
+  | [] -> None
+  | (regexp, dest)::l ->
+      (match Netstring_pcre.string_match regexp stringpath 0 with
+      | None -> replace_first_match stringpath l
+      | Some _ -> Some (Netstring_pcre.global_replace regexp dest stringpath)
+      )
+
+let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
+
+
+ 
+let rec find_page dir (Page_dir (dir_option, regexps, subdir_list)) path = 
+  (* First we try the regexps *)
+  match 
+    (match regexps with
+       | [] -> None
+       | _ -> 
+           let stringpath = Ocsimisc.string_of_url_path path in
+           replace_first_match stringpath regexps)
+  with
+    | Some s -> (* Matching regexp found! *)
+        Some 
+          ((* hack to get user dirs *)
+            match Netstring_pcre.string_match user_dir_regexp s 0 with
+              | None -> s
+              | Some result -> 
+		  let user = Netstring_pcre.matched_group result 2 s in
+		  try
+                    let userdir = (Unix.getpwnam user).Unix.pw_dir in
+                    (Netstring_pcre.matched_group result 1 s)^
+                      userdir^
+                      (Netstring_pcre.matched_group result 3 s)
+		  with _ -> raise Not_found
+          )
+    | None ->
+        (* Then we continue *)
+        match path with
+          | [] -> (match dir_option with
+		     | None -> dir
+		     | _ -> dir_option)
+          | [""] -> (match dir, dir_option with
+		       | None, None -> None
+		       | Some dir, None -> Some (dir^"/")
+		       | _, Some s -> Some (s^"/"))
+        | ""::l
+        | ".."::l -> raise Ocsigen_malformed_url
+            (* For security reasons, .. is not allowed in paths *)
+            (* Actually it has already been removed by server.ml *)
+        | a::l -> 
+            try 
+              let e = List.assoc a subdir_list in
+              match dir, dir_option with
+		| None, None -> find_page None e l
+		| Some dir, None -> find_page (Some (dir^"/"^a)) e l
+		| _, Some s-> find_page (Some (s^"/"^a)) e l
+            with 
+		Not_found -> 
+                  (match dir, dir_option with
+                     | None, None -> None
+                     | (Some d), None -> 
+			 Some (d^"/"^(Ocsimisc.string_of_url_path (a::l)))
+                     | _, Some s -> 
+			 Some (s^"/"^(Ocsimisc.string_of_url_path (a::l))))
+
+
+
+(*****************************************************************************)
 
 
 let find_static_page staticdirref path =
@@ -74,7 +193,7 @@ let find_static_page staticdirref path =
         end
         else raise Ocsigen_404 (* ??? *)
   in
-  find_file (Module_static_cgi.find_page None !staticdirref path)
+  find_file (find_page None !staticdirref path)
 
 let gen pages_tree charset ri = 
   catch
@@ -117,12 +236,12 @@ let parse_config page_tree path = function
         | [] -> 
             raise (Error_in_config_file
                      "dir attribute expected for <staticdir>")
-        | [("dir", s)] -> Module_static_cgi.Dir s
+        | [("dir", s)] -> Dir s
         | [("regexp", s);("dest",t)] -> 
-	    Module_static_cgi.Regexp ((Netstring_pcre.regexp s), t)
+	    Regexp ((Netstring_pcre.regexp s), t)
         | _ -> raise (Error_in_config_file "Wrong attribute for <staticdir>")
         in
-        Module_static_cgi.set_dir page_tree dir path
+        set_dir page_tree dir path
   | Element (t, _, _) -> 
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(staticmod extension) Bad data")
@@ -138,8 +257,8 @@ let end_init () =
   match Ocsiconfig.get_default_static_dir () with
   | None -> ()
   | Some path -> 
-      let page_tree = Module_static_cgi.new_pages_tree () in
-      Module_static_cgi.set_dir page_tree (Module_static_cgi.Dir path) [];
+      let page_tree = new_pages_tree () in
+      set_dir page_tree (Dir path) [];
       add_virthost ([([Wildcard], None)], 
                     fun ri -> 
                       gen page_tree (Ocsiconfig.get_default_charset ()) ri >>=
@@ -157,7 +276,7 @@ let _ = R.register_extension
         try 
           find hostpattern
         with Not_found -> 
-          let n = Module_static_cgi.new_pages_tree () in
+          let n = new_pages_tree () in
           add hostpattern n;
           n
       in

@@ -157,7 +157,7 @@ struct
           let wait_timeout = Timeout.new_timeout () in
           choose
             [Lwt_unix.yield () >>= 
-             (fun () -> 
+             (fun () ->
                Lwt_unix.read file_descr buffer.buf buffer.write_pos free) >>=
              (fun l -> 
                Timeout.remove_timeout wait_timeout; 
@@ -171,7 +171,7 @@ struct
           (fun len ->
             if len = 0 
             then fail Connection_reset_by_peer
-            else begin
+            else begin 
               buffer.write_pos <- (buffer.write_pos + len) mod buffer.size;
               buffer.datasize <- buffer.datasize + len;
               return ()
@@ -290,7 +290,7 @@ struct
 (** find the sequence crlfcrlf in the buffer *)
   let rec find_header buffer ind nb_read =
     function
-      | rem_len when rem_len < nb_read -> raise Not_found
+      | rem_len when rem_len < nb_read ->raise Not_found
       | rem_len ->
           (
           match nb_read with
@@ -346,10 +346,10 @@ struct
           try
             let end_ind = find_header buffer cur_ind 4 available in
             Lwt.return (sizedata (end_ind+1) buffer.read_pos buffer.size)
-          with 
+         with 
             Not_found ->
               receive now fd buffer >>= (fun () ->
-                wait_http_header_aux 
+		wait_http_header_aux 
                   ((cur_ind + available - 
                       (min available 3)) mod buffer.size))
     in 
@@ -535,7 +535,7 @@ module FHttp_receiver =
          *)
         Com_buffer.wait_http_header waiter
           ~doing_keep_alive receiver.r_fd receiver.r_buffer >>=
-        (fun len ->
+        (fun len -> 
           Com_buffer.extract 
             receiver.r_fd receiver.r_buffer 
             (Com_buffer.Size (Int64.of_int len)) >>=
@@ -640,7 +640,6 @@ module FHttp_receiver =
                               C.content_of_stream >>= fun c -> 
                               return (waiter_end_stream, Some c))
                       | None ->
-
 (* RFC
 
    4. If  the message uses the media  type "multipart/byteranges", and
@@ -660,7 +659,7 @@ NOT IMPLEMENTED
  *)
 
                           match header.Http_header.mode with
-                          | Http_header.Query _ ->
+                          | Http_header.Query (meth, _) -> 
                               return ((return ()), None)
                           | _ ->
                             let waiter_end_stream = wait () in

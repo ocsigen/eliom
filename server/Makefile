@@ -3,7 +3,7 @@ include ../Makefile.config
 NAME=$(OCSIGENNAME)
 
 FILES= error_pages.ml preemptive.ml extensions.ml parseconfig.ml \
-       module_static_cgi.ml server.ml
+       server.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -74,7 +74,6 @@ CMAO = nums.cma dynlink.cma unix.cma \
        ocsistream.cmo multipart.cmo \
        http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtml.cma predefined_senders.cmo error_pages.cmo \
-       module_static_cgi.cmo \
        server.cmo
 
 OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)

@@ -190,12 +190,6 @@ let parse_server isreloading c =
       | (Element ("uploaddir", [], p))::ll ->
           set_uploaddir (Some (parse_string p));
           parse_server_aux ll
-      | (Element ("staticdir", [], p))::ll -> 
-          set_default_static_dir (parse_string p);
-          parse_server_aux ll
-      | (Element ("cgidir", [], p))::ll -> 
-          set_default_cgi_dir (parse_string p);
-          parse_server_aux ll
       | (Element ("datadir", [], p))::ll -> 
           set_datadir (parse_string p);
           parse_server_aux ll
@@ -239,11 +233,18 @@ let parse_server isreloading c =
           set_debugmode true;
           parse_server_aux ll
       | (Element ("extension", atts,l))::ll -> 
-	  let modu = match atts with
+	  let rec static_ext=function
+	    | [] -> ()
+	    | (Element ("static", [("dir",di)], _ ))::l2 -> 
+		set_default_static_dir di;
+		static_ext l2
+	    | _::l2 -> static_ext l2
+	  and modu = match atts with
           | [] -> raise (Config_file_error "missing module attribute in <extension>")
           | [("module", s)] -> s
           | _ -> raise (Config_file_error "Wrong attribute for <extension>") 
 	  in 
+	  static_ext l;
           if not isreloading
           then begin
             Extensions.set_config l;
