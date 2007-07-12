@@ -287,54 +287,74 @@ struct
       with e -> finish (); fail e
     in extract_aux len
 
-(** find the sequence crlfcrlf in the buffer *)
-  let rec find_header buffer ind nb_read =
-    function
-      | rem_len when rem_len < nb_read ->raise Not_found
-      | rem_len ->
+(** find the sequence crlfcrlf or lflf in the buffer *)
+  let rec find_header buffer ind nb_read rem_len =
+    (if rem_len < nb_read 
+    then begin
+      if (rem_len = 2) 
+          && buffer.buf.[ind mod buffer.size] = '\n'
+          && buffer.buf.[(ind+1) mod buffer.size] = '\n'
+      then ind +1
+      else
+      if (rem_len = 3) 
+      then 
+        match (buffer.buf.[ind mod buffer.size],
+               buffer.buf.[(ind+1) mod buffer.size],
+               buffer.buf.[(ind +2) mod buffer.size]) with
+        | ('\n','\n',_) -> ind + 1
+        | (_,'\n','\n') -> ind + 2
+        | _ -> raise Not_found
+      else raise Not_found
+    end
+    else
+      match nb_read with
+      | 4 ->
+          (match (buffer.buf.[ind mod buffer.size ],
+                  buffer.buf.[(ind+1) mod buffer.size ],
+                  buffer.buf.[(ind+2) mod buffer.size],
+                  buffer.buf.[(ind+3) mod buffer.size]) with
+          | ('\r','\n','\r','\n') -> ind + 3
+          | ('\n','\n',_,_) -> ind + 1
+          | (_,'\r','\n','\r') -> 
+              find_header buffer (ind + 4) 1 (rem_len -4)
+          | (_,'\n','\n',_) -> ind + 2
+          | (_,_,'\r','\n') -> 
+              find_header buffer (ind +4) 2 (rem_len -4)
+          | (_,_,'\n','\n') -> ind + 3
+          | (_,_,_,'\n') -> find_header buffer (ind + 4) 1 (rem_len -4)
+          | (_,_,_,'\r') -> find_header buffer (ind+4) 3 (rem_len -4)
+          | (_,_,_,_) -> find_header buffer (ind+4) 4 (rem_len -4)
+          )
+      | 3 ->
           (
-          match nb_read with
-            | 4 ->
-                (match (buffer.buf.[ind mod buffer.size ],
-                        buffer.buf.[(ind+1) mod buffer.size ],
-                        buffer.buf.[(ind+2) mod buffer.size],
-                        buffer.buf.[(ind+3) mod buffer.size]) with
-                  |('\r','\n','\r','\n') -> ind + 3
-                  |(_,'\r','\n','\r') -> 
-                      find_header buffer (ind + 4) 1 (rem_len -4)
-                  |(_,_,'\r','\n') -> 
-                      find_header buffer (ind +4) 2 (rem_len -4)
-                  |(_,_,_,'\r') -> find_header buffer (ind+4) 3 (rem_len -4)
-                  |(_,_,_,_) -> find_header buffer (ind+4) 4 (rem_len -4)
-                )
-            | 3 ->
-                (
-                  match (buffer.buf.[ind mod buffer.size],
-                         buffer.buf.[(ind+1) mod buffer.size],
-                         buffer.buf.[(ind +2) mod buffer.size]) with
-                    |('\n','\r','\n') -> ind + 2
-                    |(_,'\r','\n') -> 
-                        find_header buffer (ind + 3) 2 (rem_len -3)
-                    |(_,_,'\r') -> find_header buffer (ind +3) 3 (rem_len -3)
-                    |(_,_,_) -> find_header buffer (ind+3) 4 (rem_len -3)
-                )
-            | 2 -> 
-                (
-                  match (buffer.buf.[ind mod buffer.size],
-                         buffer.buf.[(ind+1) mod buffer.size]) with
-                    |('\r','\n') -> ind + 1
-                    |(_,'\r') -> find_header buffer (ind+2) 3 (rem_len -2)
-                    |(_,_) -> find_header buffer (ind+2) 4 (rem_len -2)
-                )
-            | 1 -> 
-                (
-                  match buffer.buf.[ind mod buffer.size] with
-                    |'\n' -> ind
-                    |_ -> find_header buffer (ind+1) 4 (rem_len -1)
-                )
-            | _ -> assert false
-          ) mod buffer.size
-            
+           match (buffer.buf.[ind mod buffer.size],
+                  buffer.buf.[(ind+1) mod buffer.size],
+                  buffer.buf.[(ind +2) mod buffer.size]) with
+           | ('\n','\r','\n') -> ind + 2
+           | (_,'\r','\n') -> 
+               find_header buffer (ind + 3) 2 (rem_len -3)
+           | (_,_,'\r') -> find_header buffer (ind +3) 3 (rem_len -3)
+           | (_,_,_) -> find_header buffer (ind+3) 4 (rem_len -3)
+          )
+      | 2 -> 
+          (
+           match (buffer.buf.[ind mod buffer.size],
+                  buffer.buf.[(ind+1) mod buffer.size]) with
+           | ('\r','\n') -> ind + 1
+           | (_,'\r') -> find_header buffer (ind+2) 3 (rem_len -2)
+           | (_,_) -> find_header buffer (ind+2) 4 (rem_len -2)
+          )
+      | 1 -> 
+          (
+           match buffer.buf.[ind mod buffer.size] with
+           | '\n' -> ind
+           | '\r' -> find_header buffer (ind+1) 3 (rem_len -1)
+           | _ -> find_header buffer (ind+1) 4 (rem_len -1)
+          )
+      | _ -> assert false
+      ) mod buffer.size
+
+
   (** returns when the seqence \r\n\r\n is found in the buffer
      the result is number of char to read *)
   let wait_http_header waiter fd buffer ~doing_keep_alive =
@@ -375,33 +395,38 @@ struct
         | e -> fail e)
 
 
-(** find the sequence crlf in the buffer *)
+(** find the sequence crlf or lf in the buffer *)
   let find_line buffer ind av =
-    let rec aux ind nb_read =
-      function
-        | rem_len when rem_len < nb_read -> raise Not_found
-        | rem_len ->
-            (
-             match nb_read with
-             | 2 -> 
-                 (
-                  match (buffer.buf.[ind mod buffer.size],
-                         buffer.buf.[(ind+1) mod buffer.size]) with
-                  |('\r','\n') -> ind + 1
-                  |(_,'\r') -> aux (ind+2) 1 (rem_len -2)
-                  |(_,_) -> aux (ind+2) 2 (rem_len -2)
-                 )
-             | 1 -> 
-                 (
-                  match buffer.buf.[ind mod buffer.size] with
-                  |'\n' -> ind
-                  |_ -> aux (ind+1) 2 (rem_len -1)
-                 )
-             | _ -> assert false
-            ) mod buffer.size
+    let rec aux ind nb_read rem_len =
+      (if rem_len = 1
+          && buffer.buf.[ind mod buffer.size] = '\n'
+      then ind
+      else
+        if rem_len < nb_read
+        then raise Not_found
+        else
+          match nb_read with
+          | 2 -> 
+              (
+               match (buffer.buf.[ind mod buffer.size],
+                      buffer.buf.[(ind+1) mod buffer.size]) with
+               | ('\r','\n') -> ind + 1
+               | ('\n',_) -> ind
+               | (_,'\r') -> aux (ind+2) 1 (rem_len -2)
+               | (_,'\n') -> ind + 1
+               | (_,_) -> aux (ind+2) 2 (rem_len -2)
+              )
+          | 1 -> 
+              (
+               match buffer.buf.[ind mod buffer.size] with
+               | '\n' -> ind
+               | _ -> aux (ind+1) 2 (rem_len -1)
+              )
+          | _ -> assert false
+      ) mod buffer.size
     in aux ind 2 av
 
-  (** returns when the seqence \r\n is found in the buffer
+  (** returns when the sequence \r\n or \n is found in the buffer
      the result is number of char to read *)
   let wait_line fd buffer =
     let rec aux cur_ind =

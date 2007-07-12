@@ -346,7 +346,7 @@ let recupere_cgi pages_tree re filename ri=
     return ());
   ignore (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
     Unix.close cgi_out;
-    return ())
+    return ());
   return http_frame
             
 (** return the header of the frame *)
