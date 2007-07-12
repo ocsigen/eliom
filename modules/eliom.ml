@@ -1338,9 +1338,33 @@ module type ELIOMFORMSIG =
         ?a:input_attrib_t -> 
           name:string -> value:string -> ?src:uri -> unit -> input_elt
 
+
     val bool_checkbox :
         ?a:input_attrib_t -> ?checked:bool -> 
           name:[ `One of bool ] param_name -> unit -> input_elt
+
+    val int_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          name:[ `Set of int ] param_name -> value:int -> unit -> input_elt
+
+    val float_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          name:[ `Set of float ] param_name -> value:float -> unit -> input_elt
+
+    val string_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          name:[ `Set of string ] param_name -> value:string -> 
+            unit -> input_elt
+
+    val user_type_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          name:[ `Set of 'a ] param_name -> value:'a -> 
+            ('a -> string) -> input_elt
+
+    val any_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          name:string -> value:string -> unit -> input_elt
+
 
     val string_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
@@ -2738,7 +2762,28 @@ module MakeForms = functor
           ~value ?src id
 
       let bool_checkbox ?a ?checked ~name () =
-        Pages.make_input ?a ?checked ~typ:Pages.checkbox ~name:name ()
+        Pages.make_input ?a ?checked ~typ:Pages.checkbox ~name ()
+
+      let int_checkbox ?a ?checked ~name ~value () =
+        Pages.make_input ?a ?checked ~typ:Pages.checkbox
+          ~name ~value:(string_of_int value) ()
+
+      let float_checkbox ?a ?checked ~name ~value () =
+        Pages.make_input ?a ?checked ~typ:Pages.checkbox
+          ~name ~value:(string_of_float value) ()
+
+      let string_checkbox ?a ?checked ~name ~value () =
+        Pages.make_input ?a ?checked ~typ:Pages.checkbox
+          ~name ~value ()
+
+      let user_type_checkbox ?a ?checked ~name ~value string_of =
+        Pages.make_input ?a ?checked ~typ:Pages.checkbox
+          ~name ~value:(string_of value) ()
+
+      let any_checkbox ?a ?checked ~name ~value () =
+        Pages.make_input ?a ?checked ~typ:Pages.checkbox
+          ~name ~value ()
+
 
       let string_radio ?a ?checked ~name ~value () =
         Pages.make_input
@@ -3154,7 +3199,6 @@ module type XHTMLFORMSSIG = sig
 
   type basic_input_type =
       [
-    | `Checkbox
     | `Hidden
     | `Password
     | `Submit
@@ -3238,28 +3282,83 @@ module type XHTMLFORMSSIG = sig
    the coordinates you clicked on and an untyped value *)
 
   val bool_checkbox :
-      ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+      ?a:input_attrib attrib list -> ?checked:bool -> 
         name:[ `One of bool ] param_name -> unit -> [> input ] elt
 (** Creates a checkbox [<input>] tag that will have a boolean value.
-   There is another way to create checkboxes, using 
-   [..._input ~input_type:`Checkbox]. Thus you can do several checkboxes
-   with the same name. In that case, the service must declare a parameter
-   of type [set].
+   The service must declare a [bool] parameter.
  *)
+
+    val int_checkbox :
+        ?a:input_attrib attrib list -> ?checked:bool -> 
+          name:[ `Set of int ] param_name -> value:int -> 
+            unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have an int value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+    val float_checkbox :
+        ?a:input_attrib attrib list -> ?checked:bool -> 
+          name:[ `Set of float ] param_name -> value:float -> 
+            unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have a float value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+
+    val string_checkbox :
+        ?a:input_attrib attrib list -> ?checked:bool -> 
+          name:[ `Set of string ] param_name -> value:string -> 
+            unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have a string value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+
+    val user_type_checkbox :
+        ?a:input_attrib attrib list -> ?checked:bool -> 
+          name:[ `Set of 'a ] param_name -> value:'a -> 
+            ('a -> string) -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have a "user type" value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+
+    val any_checkbox :
+        ?a:input_attrib attrib list -> ?checked:bool -> 
+          name:string -> value:string -> unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag with untyped content.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [any].
+ *)
+
+
 
 
   val string_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
     name:[ `Opt of string ] param_name -> value:string -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with string content *)
+
   val int_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
      name:[ `Opt of int ] param_name -> value:int -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with int content *)
+
   val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
      name:[ `Opt of float ] param_name -> value:float -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with float content *)
+
   val user_type_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
     name:[ `Opt of 'a ] param_name -> value:'a -> ('a -> string) -> [> input ] elt
 (** Creates a radio [<input>] tag with user_type content *)
+
   val any_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
     name:string -> value:string -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with untyped string content (low level) *)
@@ -3482,7 +3581,6 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 
   type basic_input_type = 
       [
-    | `Checkbox
     | `Hidden
     | `Password
     | `Submit
@@ -3586,6 +3684,37 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
         name:'a -> unit -> input elt :>
       ?a:(input_attrib attrib list ) -> ?checked:bool -> 
         name:'a -> unit -> [> input ] elt)
+
+  let int_checkbox = (int_checkbox :
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of int ] param_name -> value:int -> unit -> input elt :>
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of int ] param_name -> value:int -> unit -> [> input ] elt)
+
+  let float_checkbox = (float_checkbox :
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of float ] param_name -> value:float -> unit -> input elt :>
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of float ] param_name -> value:float -> unit -> [> input ] elt)
+
+  let string_checkbox = (string_checkbox :
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of string ] param_name -> value:string -> unit -> input elt :>
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of string ] param_name -> value:string -> unit -> [> input ] elt)
+
+  let user_type_checkbox = (user_type_checkbox :
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of 'a ] param_name -> value:'a -> ('a -> string) -> input elt :>
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of 'a ] param_name -> value:'a -> ('a -> string) -> [> input ] elt)
+
+  let any_checkbox = (any_checkbox :
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:string -> value:string -> unit -> input elt :>
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:string -> value:string -> unit -> [> input ] elt)
+
 
   let string_radio = (string_radio : 
     ?a:(input_attrib attrib list ) -> ?checked:bool -> 
