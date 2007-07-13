@@ -132,7 +132,7 @@ let db_get (table, key) =
   exec_safely get 
 
 let db_remove (table, key) =
-  let sql =  sprintf "REMOVE FROM %s WHERE key = :key " table in
+  let sql =  sprintf "DELETE FROM %s WHERE key = :key " table in
   let remove db = 
     let stmt =  bind_safely (prepare db sql) [Data.TEXT key,":key"] in
     let rec aux () = 
@@ -147,7 +147,11 @@ let db_remove (table, key) =
 let db_replace (table, key) value = 
   let sql =  sprintf "INSERT INTO %s VALUES ( :key , :value )" table in
   let replace db =
-    let stmt =  bind_safely (prepare db sql) [Data.TEXT key,":key"; Data.BLOB value, ":value"] in
+    let stmt = 
+      bind_safely
+        (prepare db sql)
+        [Data.TEXT key,":key"; Data.BLOB value, ":value"] 
+    in
     let rec aux () = 
       match step stmt with 
       | Rc.DONE -> ignore(finalize stmt)
@@ -159,14 +163,17 @@ let db_replace (table, key) value =
 
 
 let db_iter_step table f rowid =
-  let sql = sprintf "SELECT key , value , ROWID FROM %s WHERE ROWID > :rowid" table in
+  let sql = 
+    sprintf "SELECT key , value , ROWID FROM %s WHERE ROWID > :rowid" table in
   let iter db = 
     let stmt = bind_safely (prepare db sql) [Data.INT rowid, ":rowid"] in
     let rec aux () = 
       match step stmt with 
       | Rc.ROW ->
           (match (column stmt 0,column stmt 1, column stmt 2) with 
-	  | (Data.TEXT k, Data.BLOB v, Data.INT rowid) -> (Some (k,v,rowid))
+	  | (Data.TEXT k, Data.BLOB v, Data.INT rowid) -> 
+              ignore(finalize stmt) ; 
+              Some (k, v, rowid)
 	  | _ -> assert false )
       | Rc.DONE -> ignore(finalize stmt) ; None
       | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()

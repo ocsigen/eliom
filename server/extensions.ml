@@ -103,7 +103,7 @@ type result =
    }
    
 type answer =
-    Ext_found of result  (** OK stop! I found the page *)
+  | Ext_found of result  (** OK stop! I found the page *)
   | Ext_not_found        (** Page not found. Try next extension. *)
   | Ext_continue_with of request_info * cookieslist
         (** Used to modify the request before giving it to next extension ;
@@ -137,12 +137,12 @@ let new_charset_tree () =
 let add_charset charset path (Charset_tree charset_tree) =
   let add_charset2 charset =
     let rec make_tree = function
-        [] -> (charset, [])
+      | [] -> (charset, [])
       | a::l -> (None, [(a, Charset_tree (make_tree l))])
     in
     let rec aux path charset_tree = 
       match path, charset_tree with
-        [], (enc, l2) -> (charset, l2)
+      | [], (enc, l2) -> (charset, l2)
       | (a::l), (enc, l2) ->
           try
             let (Charset_tree ct2),l3 = Ocsimisc.list_assoc_remove a l2 in
@@ -153,7 +153,7 @@ let add_charset charset path (Charset_tree charset_tree) =
     Charset_tree (aux path charset_tree)
   in
   let charset = match charset with 
-    None -> Ocsiconfig.get_default_charset ()
+  | None -> Ocsiconfig.get_default_charset ()
   | _ -> charset
   in
   add_charset2 charset
@@ -161,11 +161,11 @@ let add_charset charset path (Charset_tree charset_tree) =
 let find_charset (Charset_tree charset_tree) path =
   let rec aux current path tree =
     let get_enc = function
-        None -> current
+      | None -> current
       | enc -> enc
     in
     match path, tree with
-      [], (enc,_) -> get_enc enc
+    | [], (enc,_) -> get_enc enc
     | (a::l), (enc, l2) ->
         try
           let Charset_tree ct2 = List.assoc a l2 in

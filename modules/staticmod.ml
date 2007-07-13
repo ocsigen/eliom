@@ -208,11 +208,11 @@ let gen pages_tree charset ri =
         in
         return
           (Ext_found
-             {res_cookies=[];
-              res_send_page=Predefined_senders.send_file ~content:filename;
-              res_headers=[];
-              res_code=None;
-              res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
+             {res_cookies= [];
+              res_send_page= Predefined_senders.send_file ~content:filename;
+              res_headers= [];
+              res_code= None;
+              res_lastmodified= Some stat.Unix.LargeFile.st_mtime;
               res_etag=
               Some (Predefined_senders.File_content.get_etag filename);
               res_charset=charset})

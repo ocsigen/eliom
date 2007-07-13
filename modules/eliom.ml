@@ -4419,8 +4419,8 @@ module Filesreg_ = struct
     in
     EliomResult
       {res_cookies= cookies;
-       res_lastmodified= (Some stat.Unix.LargeFile.st_mtime);
-       res_etag= (Some (Predefined_senders.File_content.get_etag filename));
+       res_lastmodified= Some stat.Unix.LargeFile.st_mtime;
+       res_etag= Some (Predefined_senders.File_content.get_etag filename);
        res_code= code;
        res_send_page= Predefined_senders.send_file ~content:filename;
        res_headers= [];

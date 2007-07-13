@@ -159,9 +159,8 @@ module File_content =
               Lwt.return (empty_stream None)
             else begin 
               if lu = buffer_size
-              then Lwt.return (new_stream buf (fun () -> read_aux ()))
-              else Lwt.return (new_stream (String.sub buf 0 lu)
-                                 (fun () -> read_aux ()))
+              then Lwt.return (new_stream buf read_aux)
+              else Lwt.return (new_stream (String.sub buf 0 lu) read_aux)
             end))
       in read_aux ()                         
 
