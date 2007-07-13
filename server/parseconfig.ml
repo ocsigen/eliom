@@ -144,18 +144,18 @@ let parse_server isreloading c =
       | (Element ("site", atts, l))::ll ->
           let rec parse_site_attrs (enc,dir) = function
             | [] -> (match dir with
-                None -> 
+              | None -> 
                   raise (Config_file_error
                            ("Missing dir attribute in <site>"))
               | Some s -> (enc, s))
             | ("dir", s)::suite ->
                 (match dir with
-                  None -> parse_site_attrs (enc, Some s) suite
+                | None -> parse_site_attrs (enc, Some s) suite
                 | _ -> raise (Config_file_error
                                 ("Duplicate attribute dir in <site>")))
             | ("charset", s)::suite ->
                 (match enc with
-                  None -> parse_site_attrs ((Some s),dir) suite
+                | None -> parse_site_attrs ((Some s),dir) suite
                 | _ -> raise (Config_file_error
                                 ("Duplicate attribute charset in <site>")))
             | (s, _)::_ ->
@@ -173,7 +173,7 @@ let parse_server isreloading c =
           raise (Config_file_error ("<"^tag^"> tag unexpected inside <host>"))
       | _ -> raise (Config_file_error ("Unexpected content inside <host>"))
     in function
-	[] -> []
+      | [] -> []
       | (Element ("port", atts, p))::ll ->
           parse_server_aux ll
       | (Element ("charset", atts, p))::ll ->

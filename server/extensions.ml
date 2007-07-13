@@ -213,7 +213,7 @@ module R = struct
           let (g2, p2) = fun_virthost hostpattern in
           ((fun charset ri ->
 	    g1 charset ri >>=
-            fun (ext_res,cookieslist) ->
+            fun (ext_res, cookieslist) ->
               match ext_res with
               | Ext_not_found -> g2 charset ri >>= 
                   fun r -> return (r, cookieslist)
@@ -226,7 +226,7 @@ module R = struct
              try
                p1 path xml
              with 
-               Error_in_config_file _
+             | Error_in_config_file _
              | Bad_config_tag_for_extension _ -> p2 path xml),
            charset_tree));
       fun_beg := comp begin_init !fun_beg;
@@ -234,7 +234,7 @@ module R = struct
       let curexnfun = !fun_exn in
       fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
      (fun h ->
-       let (f,g,charset_tree) = !fun_create_virthost h in
+       let (f, g, charset_tree) = !fun_create_virthost h in
        (((fun ri -> f (find_charset !charset_tree ri.ri_path) ri), g),
         (fun charset path -> 
           charset_tree := add_charset charset path !charset_tree))),

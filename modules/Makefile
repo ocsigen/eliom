@@ -1,16 +1,16 @@
 include ../Makefile.config
 
-FILESA= eliommod.ml eliom.ml eliomboxes.ml \
+FILES= eliommod.ml eliom.ml eliomboxes.ml \
        ocsigenmod.ml ocsigen.ml ocsigenboxes.ml \
        staticmod.ml cgimod.ml \
        extensiontemplate.ml
 
 ifeq "$(OCSIPERSISTSQLITE)" "YES"
-FILES= ocsipersist.ml $(FILESA)
+FILESSQLITE= ocsipersist.ml
 OBJSQLITE= ocsipersist-sqlite.cma
 PACKSQLITE=,sqlite3
 else
-FILES= $(FILESA)
+
 endif
 
 ifeq "$(OCSIPERSISTDBM)" "YES"
@@ -79,15 +79,15 @@ PP2 =
 # -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"
 
 
-OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM) $(OBJSQLITE)
+OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 
-OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs) $(OBJSQLITE:.cma=.cmxs)
+OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs)
 
 
-byte: $(OBJS) $(OBJDBMBYTE) eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo \
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJDBMBYTE) $(OBJS) eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo \
       $(DUCEMODBYTE)
 
-opt: $(OBJDBMOPT) $(OBJSOPT) \
+opt: $(FILESSQLITE:.ml=.cmx) $(OBJDBMOPT) $(OBJSOPT) \
      eliom.cmxs ocsigenmod.cmxs staticmod.cmxs cgimod.cmxs \
      $(DUCEMODOPT)
 
@@ -102,6 +102,18 @@ dbm-byte:
 
 dbm-opt:
 	$(MAKE) -C ocsipersist-dbm opt
+
+eliom.cmx: eliom.ml
+	-rm ocsipersist.cmx
+	$(CAMLOPT) $(PP) -c $<
+	-touch ocsipersist.cmx
+# we remove ocsipersist.cmx, otherwise eliom.cmx will will compiled against
+# that precise version of ocsipersist.cmx
+
+eliommod.cmx: eliommod.ml
+	-rm ocsipersist.cmx
+	$(CAMLOPT) $(PP) -c $<
+	-touch ocsipersist.cmx
 
 eliom.cma: eliommod.cmo eliom.cmo eliomboxes.cmo
 	$(CAMLC) -a -o eliom.cma eliommod.cmo eliom.cmo eliomboxes.cmo
@@ -157,6 +169,7 @@ ocsipersist-sqlite.cmxs: ocsipersist.cmx
 
 .mli.cmi:
 	$(CAMLC) -c $<
+
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
 
@@ -169,7 +182,7 @@ clean:
 	$(MAKE) -C ocsipersist-dbm clean
 
 depend:
-	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
+	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
 	$(MAKE) -C ocsipersist-dbm depend
 
 

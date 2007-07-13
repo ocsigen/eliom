@@ -105,6 +105,7 @@ $(NAME).opt: $(OBJSOPT)
 
 .mli.cmi:
 	$(CAMLC) -c $<
+
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
 

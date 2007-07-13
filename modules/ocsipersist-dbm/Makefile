@@ -68,7 +68,7 @@ ocsidbm.opt: ocsidbm.cmx
 
 .PHONY: clean
 clean:
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot ocsidbm
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot ocsidbm ocsidbm.opt
 
 depend:
 	cp -f ../ocsipersist.mli .

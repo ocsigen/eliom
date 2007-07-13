@@ -1842,7 +1842,7 @@ let parse_config page_tree path =
         raise
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in function
-      Element ("eliom", atts, content) -> 
+    | Element ("eliom", atts, content) -> 
           let file = parse_module_attrs None atts in
           load_eliom_module page_tree path file content
     | Element (t, _, _) -> 

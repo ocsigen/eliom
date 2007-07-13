@@ -49,12 +49,18 @@ nurpawiki.opt:
 
 .PHONY: depend
 
+
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
+
 .mli.cmi:
 	$(CAMLC) -c $<
+
 .ml.cmx:
+	-rm ../modules/ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
+	touch ../modules/ocsipersist.cmx
+
 .cmx.cmxs:
 	$(CAMLOPT) -shared -linkall -o $@ $<
 
