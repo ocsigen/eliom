@@ -35,8 +35,6 @@ exception Ocsigen_No_CGI
 (** il n'existe pas d'executable pour ce fichier dans le .conf*)
 exception NoExecCGI 
 
-(** exception retournee par le CGI *)
-exception CGI_except of string
 
 (*****************************************************************************)
 (* The table of cgi pages for each virtual server                            *)
@@ -123,7 +121,7 @@ let set_dir dirref assoc path =
           let sd = aux sd1 l in
           Page_dir (rl, (a, sd)::l2)
         with Not_found -> Page_dir (rl, (a,(add_path l))::l1)
-  in
+  in 
   dirref := aux !dirref path
 
 
@@ -150,7 +148,7 @@ let rec find_page (Page_dir (regexps, subdir_list)) path =
   (* First we try the regexps *)
   match 
     (match regexps with
-       | [] -> None
+       | [] ->None
        | _ -> 
            let stringpath = Ocsimisc.string_of_url_path path in
            replace_first_match stringpath regexps)
@@ -170,7 +168,24 @@ let rec find_page (Page_dir (regexps, subdir_list)) path =
                       (Netstring_pcre.matched_group result 3 s)
 		  with _ -> raise Not_found
           ) ,re)
-    | None -> None
+    | None -> 
+(* Then we continue *)
+        match path with
+          | [] -> None
+          | [""] -> None
+        | ""::l
+        | ".."::l -> raise Ocsigen_malformed_url
+            (* For security reasons, .. is not allowed in paths *)
+            (* Actually it has already been removed by server.ml *)
+        | a::l -> 
+            try 
+              let e = List.assoc a subdir_list in
+              find_page e l
+            with 
+		Not_found -> None
+
+
+
 
 
 
@@ -376,6 +391,14 @@ let rec set_env=function
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
+let string_conform file=
+  match file.[(String.length file) - 1] , file.[0] with
+    | '/' ,'/' ->file
+    | '/' ,_  -> "/"^file
+    | _, '/'-> file^"/"
+    | _, _ -> "/"^file^"/"
+
+
 
 let parse_config page_tree path = function 
   | Element ("cgi", atts, l) -> 
@@ -383,10 +406,10 @@ let parse_config page_tree path = function
           | [] -> 
               raise (Error_in_config_file
                        "dir attribute expected for <cgi>")
-          | [("root",r);("dir", s)] ->
+          | [("root",r);("dir", s)] -> 
 	      {regexp=Netstring_pcre.regexp (r^"/([^/]*)(.*)");
 	       doc_root=s;
-	       dest="/"^r^"/$1";
+	       dest="/$1";
 	       path="$2";
 	       exec=None;
 	       env=set_env l}
@@ -405,7 +428,7 @@ let parse_config page_tree path = function
 	       exec=Some(x);
 	       env=set_env l}
           | _ -> raise (Error_in_config_file "Wrong attribute for <cgi>")
-        in
+        in 
         set_dir page_tree (Regexp dir) path
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> 
@@ -434,7 +457,7 @@ let gen pages_tree charset ri =
          Messages.debug ("--Cgimod: Is it a cgi file?");
         let (filename, re) =
           find_cgi_page pages_tree ri.ri_path
-        in
+        in 
 	recupere_cgi pages_tree re filename ri >>= fun frame ->
 	get_header frame >>= fun header -> 
 	get_content frame >>= fun content -> 

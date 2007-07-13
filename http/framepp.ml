@@ -24,17 +24,17 @@ module H = Http_header
 (** converts the method into a string*)
 let string_of_method =
   function
-    | H.GET -> "GET "
-    | H.POST -> "POST "
-    | H.HEAD -> "HEAD "
-    | H.PUT -> "PUT "
-    | H.DELETE -> "DELETE "
-    | H.TRACE -> "TRACE "
-    | H.OPTIONS -> "OPTIONS "
-    | H.CONNECT -> "CONNECT "
-    | H.LINK -> "LINK "
-    | H.UNLINK -> "UNLINK "
-    | H.PATCH -> "PATCH "
+    | H.GET -> "GET"
+    | H.POST -> "POST"
+    | H.HEAD -> "HEAD"
+    | H.PUT -> "PUT"
+    | H.DELETE -> "DELETE"
+    | H.TRACE -> "TRACE"
+    | H.OPTIONS -> "OPTIONS"
+    | H.CONNECT -> "CONNECT"
+    | H.LINK -> "LINK"
+    | H.UNLINK -> "UNLINK"
+    | H.PATCH -> "PATCH"
 
 (** converts the protocol into a string*)
 let string_of_proto = function
@@ -50,7 +50,7 @@ let string_of_fst_line header =
       (string_of_proto header.H.proto)^" "^(string_of_int code)^" "^
       (Http_error.expl_of_code code)^"\r\n"
   | H.Query (meth, url) -> 
-      (string_of_method meth)^url^" "^
+      (string_of_method meth)^" "^url^" "^
       (string_of_proto header.H.proto)^"\r\n"
   
 

@@ -233,18 +233,11 @@ let parse_server isreloading c =
           set_debugmode true;
           parse_server_aux ll
       | (Element ("extension", atts,l))::ll -> 
-	  let rec static_ext=function
-	    | [] -> ()
-	    | (Element ("static", [("dir",di)], _ ))::l2 -> 
-		set_default_static_dir di;
-		static_ext l2
-	    | _::l2 -> static_ext l2
-	  and modu = match atts with
+	  let  modu = match atts with
           | [] -> raise (Config_file_error "missing module attribute in <extension>")
           | [("module", s)] -> s
           | _ -> raise (Config_file_error "Wrong attribute for <extension>") 
 	  in 
-	  static_ext l;
           if not isreloading
           then begin
             Extensions.set_config l;

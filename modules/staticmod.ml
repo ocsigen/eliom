@@ -230,6 +230,17 @@ let gen pages_tree charset ri =
 (** Parsing of config file *)
 open Simplexmlparser
 
+
+let rec parse_global_config = function
+  | [] -> ()
+  | (Element ("static", [("dir", di)], []))::ll -> Ocsiconfig.set_default_static_dir di
+  | _ -> raise (Error_in_config_file 
+                  ("Unexpected content inside static config"))
+
+let _ = parse_global_config (Extensions.get_config ())
+
+
+
 let parse_config page_tree path = function
   | Element ("static", atts, []) -> 
         let dir = match atts with
@@ -264,7 +275,6 @@ let end_init () =
                       gen page_tree (Ocsiconfig.get_default_charset ()) ri >>=
                       (fun r -> return (r,[])))
   (* for default static dir *)
-
 
 
 
