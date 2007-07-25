@@ -1172,7 +1172,7 @@ let get_page
             ri,
             si)))
       (function 
-          Ocsigen_404 | Eliom_Wrong_parameter -> 
+        | Ocsigen_404 | Eliom_Wrong_parameter -> 
             catch (* ensuite dans la table globale *)
               (fun () -> 
                 Messages.debug "--Eliom: I'm searching in the global table:";
@@ -1197,7 +1197,8 @@ let get_page
                           "--Eliom: Link to old. I will try without POST parameters:";
                         fail (Eliom_retry_with 
                                 ({ri with 
-                                  ri_post_params = lazy (return [])
+                                  ri_post_params = lazy (return []);
+                                  ri_method = Http_frame.Http_header.GET
                                 }, 
                                  {si with
                                   si_nonatt_info= (None, None);
@@ -1217,7 +1218,8 @@ let get_page
                                 ({ri with 
                                   ri_get_params = 
                                   lazy si.si_other_get_params;
-                                  ri_post_params = lazy (return [])
+                                  ri_post_params = lazy (return []);
+                                  ri_method = Http_frame.Http_header.GET
                                 },
                                  {si with
                                   si_nonatt_info=(None, None);
@@ -1237,10 +1239,10 @@ let make_naservice
     try
       return (find_naservice now !session_tables_ref si.si_nonatt_info)
     with
-      Not_found -> return 
+    | Not_found -> return 
           (find_naservice now global_tables si.si_nonatt_info)
   with
-    Not_found ->
+  | Not_found ->
       (* It was an non-attached service.
          We call the same URL without non-attached parameters.
        *)
@@ -1251,7 +1253,8 @@ let make_naservice
             "--Eliom: Link to old. I will try with only GET non-attached parameters:";
           fail (Eliom_retry_with
                   ({ri with 
-                    ri_post_params = lazy (return [])
+                    ri_post_params = lazy (return []);
+                    ri_method = Http_frame.Http_header.GET
                   },
                    {si with
                     si_nonatt_info=(g, None);
@@ -1265,7 +1268,8 @@ let make_naservice
           change_request_info
             {ri with 
              ri_get_params = lazy si.si_other_get_params;
-             ri_post_params = lazy (return [])
+             ri_post_params = lazy (return []);
+             ri_method = Http_frame.Http_header.GET
            } 
             si.si_config_file_charset
             >>=
@@ -1405,8 +1409,8 @@ let gen page_tree charset ri =
               in
               force ri.ri_post_params >>=
               (fun ripp ->
-                (match si.si_nonatt_info, si.si_state_info, ripp with
-                | (None, None), (None, None), [] ->
+                (match si.si_nonatt_info, si.si_state_info, ri.ri_method with
+                | (None, None), (None, None), Http_frame.Http_header.GET ->
                     return
                       (Ext_found
                          {res_cookies= all_new_cookies;
@@ -1484,8 +1488,10 @@ let gen page_tree charset ri =
                             ((persistentcookiename, c)::l)
                         )
                     in
-                    (match si.si_nonatt_info, si.si_state_info, ripp with
-                    | (Some _, None), (_, None), [] ->
+                    (match 
+                      si.si_nonatt_info, si.si_state_info, ri.ri_method 
+                    with
+                    | (Some _, None), (_, None), Http_frame.Http_header.GET ->
                              (* no post params, GET na coservice *)
                         change_request_info
                           {ri with
@@ -1509,7 +1515,7 @@ let gen page_tree charset ri =
                                  si_config_file_charset = 
                                  si.si_config_file_charset}, (* verifier *)
                                 all_new_cookies)))
-                    | (None, None), (_, None), [] ->
+                    | (None, None), (_, None), Http_frame.Http_header.GET ->
                         (* no post params, GET attached coservice *)
                         fail
                           (* Ext_retry_with or Eliom_retry_with? *)
@@ -1535,6 +1541,7 @@ let gen page_tree charset ri =
                           {ri with
                            ri_get_params = lazy si.si_other_get_params;
                            ri_post_params = lazy (return []);
+                           ri_method = Http_frame.Http_header.GET;
                            ri_cookies= ric
                          }
                           si.si_config_file_charset >>=
@@ -1561,6 +1568,7 @@ let gen page_tree charset ri =
                           (Eliom_retry_with 
                              ({ri with
                                ri_post_params = lazy (return []);
+                               ri_method = Http_frame.Http_header.GET;
                                ri_cookies= ric
                              },
                               {si_other_get_params= si.si_other_get_params;
