@@ -31,7 +31,7 @@ let veryverbose = ref false
 let version_number = (**)"0000000000000000"(**)
 let mimefile = ref "_CONFIGDIR_/mime.types"
 let pidfile = ref None
-let server_name = "Ocsigen server ("^version_number^")"
+let server_name = "Ocsigen/"^version_number
 
 (* Server config: *)
 let (uploaddir : string option ref) = ref None

@@ -228,11 +228,10 @@ module File_http_frame = FHttp_frame (File_content) *)
 module File_sender = FHttp_sender(File_content)
 
 
-(** Headers for a non cachable request *)
-let nocache_headers =
+(** Headers for dynamic pages *)
+let dyn_headers =
   [
-   ("Cache-Control","no-store");
-   (* ("Cache-Control","no-cache"); *)
+   ("Cache-Control","no-cache");
    ("Expires", "0") 
  ]
  
@@ -286,13 +285,14 @@ let send_generic
   (* il faut récupérer la date de dernière modification *)
   let last_mod =
     match last_modified with
-    | None -> date
-    | Some l  -> gmtdate l
+    | None -> headers (* We do not put last modified for dynamically generated 
+                         pages, otherwise it is not possible to cache them.
+                         Without Last-Modified, ETag is taken into account 
+                         by proxies/browsers
+                       *)
+    | Some l  -> ("Last-Modified", (gmtdate l))::headers
   in
-  let hds =
-      ("Date", date)::
-      ("Last-Modified", last_mod)::headers
-  in
+  let hds = ("Date", date)::last_mod in
   let mkcook path exp (name, c) =
     ("Set-Cookie",
      (name^"="^c^
@@ -463,7 +463,7 @@ let send_error
     waiter
     ~clientproto
     ~code:error_code
-    ~headers:nocache_headers
+    ~headers:dyn_headers
     ?etag
     ~keep_alive
     ?last_modified 

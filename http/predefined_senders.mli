@@ -52,7 +52,7 @@ val send_stream_page : ?contenttype: string ->
   content:(unit -> Ocsistream.stream) -> send_page_type
 
 (** Headers for a non cachable request *)
-val nocache_headers : (string * string) list
+val dyn_headers : (string * string) list
 
 
 (**/**)

@@ -1418,7 +1418,8 @@ let gen page_tree charset ri =
                           Predefined_senders.send_empty ~content:();
                           res_headers=[];
                           res_code=Some 204; (* No content *)
-                          res_lastmodified=None;
+                          res_lastmodified=None; 
+                          (* No date => proxies use etag *)
                           res_etag=None;
                           res_charset=None})
                       
@@ -1601,7 +1602,7 @@ let gen page_tree charset ri =
                        (Predefined_senders.send_xhtml_page 
                           ~content:(Error_pages.page_error_param_type l));
                        res_headers=
-                       Predefined_senders.nocache_headers;
+                       Predefined_senders.dyn_headers;
                        res_code=None;
                        res_lastmodified=None;
                        res_etag=None;
@@ -1616,7 +1617,7 @@ let gen page_tree charset ri =
                             ~content:(Error_pages.page_bad_param 
                                       (List.map fst ripp)));
                          res_headers=
-                         Predefined_senders.nocache_headers;
+                         Predefined_senders.dyn_headers;
                          res_code=None;
                          res_lastmodified=None;
                          res_etag=None;
