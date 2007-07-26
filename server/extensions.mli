@@ -28,6 +28,7 @@ open Lwt
 open Ocsimisc
 
 exception Ocsigen_404
+exception Ocsigen_403
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
@@ -117,8 +118,12 @@ type charset_tree_type
 
 (** The result given by the extension (filter or page generation) *)
 type answer =
-    Ext_found of result  (** OK stop! I found the page *)
-  | Ext_not_found        (** Page not found. Try next extension. *)
+  | Ext_found of result  (** OK stop! I found the page *)
+  | Ext_not_found of exn (** Page not found. Try next extension.
+                            The exception is usally Ocsigen_404, 
+                            but may be for ex Ocsigen_403 (forbidden)
+                            if you want another extension to try after a 403
+                          *)
   | Ext_continue_with of request_info * cookieslist
         (** Used to modify the request before giving it to next extension ;
            The extension may want to set cookies ; in that case, put the new

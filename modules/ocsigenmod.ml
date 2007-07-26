@@ -569,7 +569,7 @@ let get_page
                        res_lastmodified=None;
                        res_etag=None;
                        res_charset=charset}))
-      | Ocsigen_404 -> return Ext_not_found
+      | Ocsigen_404 -> return (Ext_not_found Ocsigen_404)
       | e -> fail e)
 
 

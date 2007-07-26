@@ -220,6 +220,7 @@ installnodoc: partialinstall
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/nurpawiki
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
+	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/ocsigenstuff
 	mkdir -p $(TEMPROOT)/$(DATADIR)
 	mkdir -p $(TEMPROOT)/$(DATADIR)/nurpawiki
 	mkdir -p `dirname $(TEMPROOT)/$(COMMANDPIPE)`
@@ -263,6 +264,7 @@ installnodoc: partialinstall
 	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/mime.types
 	$(INSTALL) -m 644 files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/ocsigen5.png $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)/$(STATICPAGESDIR)/ocsigenstuff
 	$(INSTALL) -m 644 examples/nurpawiki/files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/nurpawiki
 	$(INSTALL) -m 644 examples/nurpawiki/wikidata/* $(TEMPROOT)/$(DATADIR)/nurpawiki
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(LOGDIR)

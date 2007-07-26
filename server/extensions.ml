@@ -28,6 +28,7 @@ open Lwt
 open Ocsimisc
 
 exception Ocsigen_404
+exception Ocsigen_403
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
@@ -104,7 +105,11 @@ type result =
    
 type answer =
   | Ext_found of result  (** OK stop! I found the page *)
-  | Ext_not_found        (** Page not found. Try next extension. *)
+  | Ext_not_found of exn (** Page not found. Try next extension.
+                            The exception is usally Ocsigen_404, 
+                            but may be for ex Ocsigen_403 (forbidden)
+                            if you want another extension to try after a 403
+                          *)
   | Ext_continue_with of request_info * cookieslist
         (** Used to modify the request before giving it to next extension ;
            The extension may want to set cookies ; in that case, put the new
@@ -124,7 +129,7 @@ let (virthosts :
 
 let set_virthosts v = virthosts := v
 let get_virthosts () = !virthosts
-let add_virthost v = virthosts := v::!virthosts
+let add_virthost v = virthosts := !virthosts@[v]
    
 (*****************************************************************************)
 (** Tree of charsets *)
@@ -198,7 +203,7 @@ module R = struct
     let fun_create_virthost =
       ref (fun hostpattern -> 
         let charset_tree = ref (new_charset_tree ()) in
-        ((fun cs ri -> return (Ext_not_found,[])), 
+        ((fun cs ri -> return ((Ext_not_found Ocsigen_404),[])), 
          defaultparseconfig,
          charset_tree))
     in
@@ -215,7 +220,7 @@ module R = struct
 	    g1 charset ri >>=
             fun (ext_res, cookieslist) ->
               match ext_res with
-              | Ext_not_found -> g2 charset ri >>= 
+              | Ext_not_found _ -> g2 charset ri >>= 
                   fun r -> return (r, cookieslist)
               | Ext_continue_with (ri', cookies_to_set) -> 
                   g2 (find_charset !charset_tree ri'.ri_path) ri' >>= 
@@ -348,7 +353,7 @@ let do_for_host_matching host port virthosts ri =
          fun (res, cookieslist) ->
            match res with
            | Ext_found r -> return (r, cookieslist)
-           | Ext_not_found
+           | Ext_not_found e -> aux ri e l
            | Ext_continue_with _ -> aux ri Ocsigen_404 l
            | Ext_retry_with (ri', cookies_to_set) ->
                aux ri' e ll >>=

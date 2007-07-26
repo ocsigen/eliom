@@ -133,17 +133,18 @@ let rec replace_first_match stringpath = function
   | [] -> None
   | re::l ->
       match Netstring_pcre.string_match re.regexp stringpath 0 with
-	| None -> replace_first_match stringpath l
-	| Some _ -> 
-	    Some (
-	      {
-		root=re.root;
-		regexp=re.regexp;
-		doc_root=re.doc_root;
-		dest=Netstring_pcre.global_replace re.regexp re.dest stringpath;
-		path=Netstring_pcre.global_replace re.regexp re.path stringpath;
-		exec=re.exec;
-		env=re.env;})
+      | None -> replace_first_match stringpath l
+      | Some _ -> 
+	  Some (
+	  {
+	   root=re.root;
+	   regexp=re.regexp;
+	   doc_root=
+           Netstring_pcre.global_replace re.regexp re.doc_root stringpath;
+	   dest=Netstring_pcre.global_replace re.regexp re.dest stringpath;
+	   path=Netstring_pcre.global_replace re.regexp re.path stringpath;
+	   exec=re.exec;
+	   env=re.env;})
 
 
 
@@ -152,42 +153,42 @@ let rec find_page (Page_dir (regexps, subdir_list)) path =
   (* First we try the regexps *)
   match 
     (match regexps with
-       | [] ->None
-       | _ -> 
-           let stringpath = Ocsimisc.string_of_url_path path in
-           replace_first_match stringpath regexps)
+    | [] -> None
+    | _ -> 
+        let stringpath = Ocsimisc.string_of_url_path path in
+        replace_first_match stringpath regexps)
   with
-    | Some re -> (* Matching regexp found! *)
-	let s=re.doc_root^re.dest in
-        Some (
-          ((* hack to get user dirs *)
-            match Netstring_pcre.string_match user_dir_regexp s 0 with
-              | None -> s
-              | Some result -> 
-		  let user = Netstring_pcre.matched_group result 2 s in
-		  try
-                    let userdir = (Unix.getpwnam user).Unix.pw_dir in
-                    (Netstring_pcre.matched_group result 1 s)^
-                      userdir^
-                      (Netstring_pcre.matched_group result 3 s)
-		  with _ -> raise Not_found
-          ) ,re)
-    | None -> 
+  | Some re -> (* Matching regexp found! *)
+      let s = re.doc_root^re.dest in
+      Some (
+      ((* hack to get user dirs *)
+       match Netstring_pcre.string_match user_dir_regexp s 0 with
+       | None -> s
+       | Some result -> 
+	   let user = Netstring_pcre.matched_group result 2 s in
+	   try
+             let userdir = (Unix.getpwnam user).Unix.pw_dir in
+             (Netstring_pcre.matched_group result 1 s)^
+             userdir^
+             (Netstring_pcre.matched_group result 3 s)
+	   with _ -> raise Not_found
+      ), re)
+  | None -> 
 (* Then we continue *)
-        match path with
-          | [] -> None
-          | [""] -> None
-        | ""::l
-        | ".."::l -> raise Ocsigen_malformed_url
+      match path with
+      | [] -> None
+      | [""] -> None
+      | ""::l
+      | ".."::l -> raise Ocsigen_malformed_url
             (* For security reasons, .. is not allowed in paths *)
             (* Actually it has already been removed by server.ml *)
-        | a::l -> 
-            try 
-              let e = List.assoc a subdir_list in
-              find_page e l
-            with 
-		Not_found -> None
-
+      | a::l -> 
+          try 
+            let e = List.assoc a subdir_list in
+            find_page e l
+          with 
+	    Not_found -> None
+                
 
 
 
@@ -254,10 +255,18 @@ let array_environment pages_tree filename re ri=
   in let get_ri_value var info=
     try
       let st=String.lowercase 
-(Http_header.get_headers_value ri.ri_http_frame.Stream_http_frame.header info)
-      in [var^Printf.sprintf "=%s" st]
-    with
-	_->[]
+          (Http_header.get_headers_value
+             ri.ri_http_frame.Stream_http_frame.header info)
+      in 
+      [var^Printf.sprintf "=%s" st]
+    with _ -> []
+  in
+  let endlist =
+   (get_ri_value "HTTP_ACCEPT" "Accept")@
+   (get_ri_value "HTTP_ACCEPT_CHARSET" "Accept-Charset")@
+   (get_ri_value "HTTP_ACCEPT_ENCODING" "Accept-Encoding")@
+   (get_ri_value "HTTP_ACCEPT_LANGUAGE" "Accept-Language")@
+   (get_ri_value "HTTP_CONNECT" "Connection")
   in
 
   [Printf.sprintf "CONTENT_LENGTH=%d" (opt_int ri.ri_content_length);
@@ -279,14 +288,7 @@ let array_environment pages_tree filename re ri=
    Printf.sprintf "SERVER_NAME=%s" Ocsiconfig.server_name;
    Printf.sprintf "SERVER_PORT=%s" (string_of_int ri.ri_port);
    "SERVER_PROTOCOL=HTTP/1.1";
-   Printf.sprintf "SERVER_SOFTWARE=%s" (Ocsiconfig.server_name^
-					  "/"^
-					  Ocsiconfig.version_number)]@
-    (get_ri_value "HTTP_ACCEPT" "Accept")@
-    (get_ri_value "HTTP_ACCEPT_CHARSET" "Accept-Charset")@
-    (get_ri_value "HTTP_ACCEPT_ENCODING" "Accept-Encoding")@
-    (get_ri_value "HTTP_ACCEPT_LANGUAGE" "Accept-Language")@
-    (get_ri_value "HTTP_CONNECT" "Connection")
+   Printf.sprintf "SERVER_SOFTWARE=%s" Ocsiconfig.full_server_name]@endlist
 
 
 (*****************************************************************************)
@@ -395,13 +397,22 @@ let rec set_env=function
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
-let string_conform file=
+let string_conform file =
   try
-    match file.[(String.length file) - 1] , file.[0] with
-      | '/' ,'/' ->String.sub file 1 ((String.length file) - 1)
-      | '/' ,_  -> file
-      | _, '/'-> String.sub file 1 ((String.length file) - 1)^"/"
+    match  file.[0], file.[(String.length file) - 1] with
+      | '/' ,'/' -> String.sub file 1 ((String.length file) - 1)
+      | _, '/' -> file
+      | '/', _ -> (String.sub file 1 ((String.length file) - 1))^"/"
       | _, _ -> file^"/"
+  with _ -> file
+
+let string_conform2 file =
+  try
+    match  file.[0], file.[(String.length file) - 1] with
+      | '/' ,'/' -> file
+      | _, '/' -> "/"^file
+      | '/', _ -> file^"/"
+      | _, _ -> "/"^file^"/"
   with _ -> file
 
 
@@ -412,31 +423,31 @@ let parse_config page_tree path = function
               raise (Error_in_config_file
                        "dir attribute expected for <cgi>")
           | [("root",r);("dir", s)] ->
-	      let conform=(string_conform r) in
+	      let conform= string_conform r in
 	      {
 		root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
-		regexp=Netstring_pcre.regexp (conform^"([^/]*)(.*)");
-		doc_root=s;
+		regexp= Netstring_pcre.regexp (conform^"([^/]*)(.*)");
+		doc_root= string_conform2 s;
 		dest="$1";
 		path="$2";
 		exec=None;
 		env=set_env l}
 	  | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p)] -> 
-	      let conform=(string_conform r) in
+	      let conform = string_conform r in
 	      {
 		root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
 		regexp=Netstring_pcre.regexp (conform^s);
-		doc_root=d;
+		doc_root= string_conform2 d;
 		dest=t;
 		path=p;
 		exec=None;
 		env=set_env l}
 	  | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
-	      let conform=(string_conform r) in
+	      let conform = string_conform r in
 	      {
 		root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
 		regexp=Netstring_pcre.regexp (conform^s);
-		doc_root=d;
+		doc_root= string_conform2 d;
 		dest=t;
 		path=p;
 		exec=Some(x);
@@ -488,15 +499,15 @@ let gen pages_tree charset ri =
 		res_etag= None;
 		res_charset= None})
        end
-       else return Ext_not_found)
+       else return (Ext_not_found Ocsigen_404))
     (function
-        Unix.Unix_error (Unix.EACCES,_,_)
+      | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url 
       | Ocsigen_No_CGI 
       | Connection_reset_by_peer as e ->fail e
-      | Ocsigen_404 ->return Ext_not_found 
-      | Unix.Unix_error (Unix.ENOENT,_,_) -> return Ext_not_found 
+      | Ocsigen_404 ->return (Ext_not_found Ocsigen_404)
+      | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_not_found Ocsigen_404)
       | e -> fail e)
           
 

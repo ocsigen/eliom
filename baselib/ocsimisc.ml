@@ -101,6 +101,14 @@ let change_empty_list = function
   | [] -> [""] (* It is not possible to register an empty URL *)
   | l -> l
 
+let remove_end_slash s =
+  try
+    if s.[(String.length s) - 1] = '/'
+    then String.sub s 0 ((String.length s) - 1)
+    else s
+  with _ -> s
+
+
 
 (* This function is in Neturl (split_path)
    let rec cut_url s = 

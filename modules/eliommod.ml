@@ -1622,7 +1622,7 @@ let gen page_tree charset ri =
                          res_lastmodified=None;
                          res_etag=None;
                          res_charset= Error_pages.charset}))
-	| Ocsigen_404 -> return Ext_not_found
+	| Ocsigen_404 -> return (Ext_not_found Ocsigen_404)
 	| Eliom_Session_expired -> 
             gen_aux 
               true

@@ -497,7 +497,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
     let path =
       (Ocsimisc.remove_dotdot 
          (Ocsimisc.remove_slash_at_beginning (Neturl.url_path url2)))
-        (* here we remove .. form paths, at it is dangerous.
+        (* here we remove .. from paths, at it is dangerous.
            But in some very particular cases, we may want them?
            I prefer forbid that.
          *)
@@ -701,7 +701,7 @@ let service
                     ~keep_alive:ka
                     ~code:400 xhtml_sender (* Malformed URL *)
               | Unix.Unix_error (Unix.EACCES,_,_) ->
-                  Messages.debug "-> Sending 303 Forbidden";
+                  Messages.debug "-> Sending 403 Forbidden";
                   send_error wait_end_answer
                     ~clientproto
                     ~keep_alive:ka
