@@ -30,6 +30,8 @@ open Parseconfig
 open Error_pages
 open Lazy
 
+
+exception Ocsigen_403
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
 exception Ocsigen_upload_forbidden
@@ -670,6 +672,12 @@ let service
                     wait_end_answer
                     ~clientproto
                     ~keep_alive:ka ~code:404 xhtml_sender
+	      | Ocsigen_403 -> 
+                  Messages.debug "-> Sending 404 Not Found";
+                  send_error 
+                    wait_end_answer
+                    ~clientproto
+                    ~keep_alive:ka ~code:403 xhtml_sender
               | Ocsigen_sending_error exn -> fail exn
               | Ocsigen_Is_a_directory -> 
                   Messages.debug "-> Sending 301 Moved permanently";

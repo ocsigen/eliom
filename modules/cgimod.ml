@@ -39,12 +39,14 @@ exception NoExecCGI
 (*****************************************************************************)
 (* The table of cgi pages for each virtual server                            *)
 
-type reg={regexp:Netstring_pcre.regexp;
-	  doc_root:string;
-	  dest: string;
-	  path:string;
-	  exec:string option;
-	  env:(string * string) list}
+type reg={
+  root:string;
+  regexp:Netstring_pcre.regexp;
+  doc_root:string;
+  dest: string;
+  path:string;
+  exec:string option;
+  env:(string * string) list}
 
 type assockind = 
     Regexp of reg
@@ -134,12 +136,14 @@ let rec replace_first_match stringpath = function
 	| None -> replace_first_match stringpath l
 	| Some _ -> 
 	    Some (
-	      {regexp=re.regexp;
-	       doc_root=re.doc_root;
-	       dest=Netstring_pcre.global_replace re.regexp re.dest stringpath;
-	       path=Netstring_pcre.global_replace re.regexp re.path stringpath;
-	       exec=re.exec;
-	       env=re.env;})
+	      {
+		root=re.root;
+		regexp=re.regexp;
+		doc_root=re.doc_root;
+		dest=Netstring_pcre.global_replace re.regexp re.dest stringpath;
+		path=Netstring_pcre.global_replace re.regexp re.path stringpath;
+		exec=re.exec;
+		env=re.env;})
 
 
 
@@ -270,7 +274,7 @@ let array_environment pages_tree filename re ri=
    Printf.sprintf "REMOTE_PORT=%d" ri.ri_remote_port;
    Printf.sprintf "REMOTE_ADDR=%s" ri.ri_ip;
    Printf.sprintf "REQUEST_METHOD=%s" meth;
-   Printf.sprintf "SCRIPT_NAME=%s" re.dest;
+   Printf.sprintf "SCRIPT_NAME=%s" (re.root^re.dest);
    Printf.sprintf "SCRIPT_FILENAME=%s" filename;
    Printf.sprintf "SERVER_NAME=%s" Ocsiconfig.server_name;
    Printf.sprintf "SERVER_PORT=%s" (string_of_int ri.ri_port);
@@ -392,12 +396,13 @@ let rec set_env=function
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
 let string_conform file=
-  match file.[(String.length file) - 1] , file.[0] with
-    | '/' ,'/' ->file
-    | '/' ,_  -> "/"^file
-    | _, '/'-> file^"/"
-    | _, _ -> "/"^file^"/"
-
+  try
+    match file.[(String.length file) - 1] , file.[0] with
+      | '/' ,'/' ->String.sub file 1 ((String.length file) - 1)
+      | '/' ,_  -> file
+      | _, '/'-> String.sub file 1 ((String.length file) - 1)^"/"
+      | _, _ -> file^"/"
+  with _ -> file
 
 
 let parse_config page_tree path = function 
@@ -406,27 +411,36 @@ let parse_config page_tree path = function
           | [] -> 
               raise (Error_in_config_file
                        "dir attribute expected for <cgi>")
-          | [("root",r);("dir", s)] -> 
-	      {regexp=Netstring_pcre.regexp (r^"/([^/]*)(.*)");
-	       doc_root=s;
-	       dest="/$1";
-	       path="$2";
-	       exec=None;
-	       env=set_env l}
-	  | [("regexp", s);("dir",d);("dest",t);("path",p)] -> 
-	      {regexp=Netstring_pcre.regexp s;
-	       doc_root=d;
-	       dest=t;
-	       path=p;
-	       exec=None;
-	       env=set_env l}
-	  | [("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
-	      {regexp=Netstring_pcre.regexp s;
-	       doc_root=d;
-	       dest=t;
-	       path=p;
-	       exec=Some(x);
-	       env=set_env l}
+          | [("root",r);("dir", s)] ->
+	      let conform=(string_conform r) in
+	      {
+		root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
+		regexp=Netstring_pcre.regexp (conform^"([^/]*)(.*)");
+		doc_root=s;
+		dest="$1";
+		path="$2";
+		exec=None;
+		env=set_env l}
+	  | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p)] -> 
+	      let conform=(string_conform r) in
+	      {
+		root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
+		regexp=Netstring_pcre.regexp (conform^s);
+		doc_root=d;
+		dest=t;
+		path=p;
+		exec=None;
+		env=set_env l}
+	  | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
+	      let conform=(string_conform r) in
+	      {
+		root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
+		regexp=Netstring_pcre.regexp (conform^s);
+		doc_root=d;
+		dest=t;
+		path=p;
+		exec=Some(x);
+		env=set_env l}
           | _ -> raise (Error_in_config_file "Wrong attribute for <cgi>")
         in 
         set_dir page_tree (Regexp dir) path
@@ -447,6 +461,7 @@ let exn_handler = raise
 
 
 (*****************************************************************************)
+
 let gen pages_tree charset ri =
   catch
     (* Is it a cgi page? *)

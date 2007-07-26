@@ -36,7 +36,7 @@ let server_name = "Ocsigen/"^version_number
 (* Server config: *)
 let (uploaddir : string option ref) = ref None
 let logdir = ref "_LOGDIR_" 
-let (default_static_dir : string option ref) = ref None
+let (default_static_dir : (string * string) option ref) = ref None
 let default_user = ref "_OCSIGENUSER_" 
 let default_group = ref "_OCSIGENGROUP_"
 let minthreads = ref 10 
@@ -63,8 +63,8 @@ let set_uploaddir u = uploaddir := u
 let set_logdir s = logdir := s
 let set_configfile s = config_file := s
 let set_pidfile s = pidfile := Some s
-let set_default_static_dir s = 
-   default_static_dir := Some s
+let set_default_static_dir s p= 
+   default_static_dir := Some (s, p)
 let set_mimefile s = mimefile := s
 let set_verbose () = verbose := true
 let set_silent () = silent := true
