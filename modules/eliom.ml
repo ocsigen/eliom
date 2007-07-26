@@ -1887,7 +1887,7 @@ module MakeRegister = functor
                                 files
                                 [])))))
                        (function
-                           Eliom_Typing_Error l -> error_handler sp l
+                         | Eliom_Typing_Error l -> error_handler sp l
                          | e -> fail e)) >>=
                     (fun (content, cookies_to_set) -> 
                       return (Pages.send 
@@ -2962,7 +2962,7 @@ module Xhtmlreg_ = struct
         res_etag= None;
         res_code= code;
         res_send_page= Predefined_senders.send_xhtml_page ~content:content;
-        res_headers= Predefined_senders.nocache_headers;
+        res_headers= Predefined_senders.dyn_headers;
         res_charset= match charset with
           None -> get_config_file_charset sp
         | _ -> charset
@@ -3983,7 +3983,7 @@ module SubXhtml = functor(T : sig type content end) ->
            res_etag= None;
            res_code= code;
            res_send_page= send_cont_page ~content:content;
-           res_headers= Predefined_senders.nocache_headers;
+           res_headers= Predefined_senders.dyn_headers;
            res_charset= match charset with
              None -> get_config_file_charset sp
            | _ -> charset
@@ -4025,7 +4025,7 @@ module Textreg_ = struct
        res_code= code;
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:contenttype ~content:content;
-       res_headers= Predefined_senders.nocache_headers;
+       res_headers= Predefined_senders.dyn_headers;
        res_charset= match charset with
           None -> get_config_file_charset sp
         | _ -> charset
@@ -4052,7 +4052,7 @@ module CssTextreg_ = struct
        res_code= code;
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:"text/css" ~content:content;
-       res_headers= Predefined_senders.nocache_headers;
+       res_headers= Predefined_senders.dyn_headers;
        res_charset= match charset with
           None -> get_config_file_charset sp
         | _ -> charset
@@ -4080,7 +4080,7 @@ module HtmlTextreg_ = struct
        res_code= code;
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:"text/html" ~content:content;
-       res_headers= Predefined_senders.nocache_headers;
+       res_headers= Predefined_senders.dyn_headers;
        res_charset= match charset with
           None -> get_config_file_charset sp
         | _ -> charset
@@ -4354,12 +4354,12 @@ module Anyreg_ = struct
 
   let send ?(cookies=[]) ?charset ?code sp content = 
     match content with
-      EliomResult res ->
+    | EliomResult res ->
         EliomResult
           {res with 
            res_cookies=cookies@res.res_cookies;
            res_charset= match charset with
-             None -> res.res_charset
+           | None -> res.res_charset
            | _ -> charset
          }
     | EliomExn (e, c) -> 

@@ -130,7 +130,7 @@ let gen charset ri =
         res_send_page= 
         Predefined_senders.send_text_page 
           ~contenttype:"text/plain" ~content:content;
-        res_headers= Predefined_senders.nocache_headers;
+        res_headers= Predefined_senders.dyn_headers;
         res_code= None; (* 200 by default *)
         res_lastmodified= None;
         res_etag= None;

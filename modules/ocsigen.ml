@@ -1292,7 +1292,7 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
-  let headers = Predefined_senders.nocache_headers
+  let headers = Predefined_senders.dyn_headers
   let send = Predefined_senders.send_xhtml_page
 
 end
@@ -1698,7 +1698,7 @@ module Textreg_ = struct
 
   type page = string
 
-  let headers = Predefined_senders.nocache_headers
+  let headers = Predefined_senders.dyn_headers
   let send = Predefined_senders.send_text_page ~contenttype:"text/html"
 
 end

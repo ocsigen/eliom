@@ -1723,7 +1723,7 @@ let sendany =
       </p>
       <pre>
 type cookies = 
-    Set of string list option * float option * (string * string) list
+  | Set of string list option * float option * (string * string) list
   | Unset of (string list option * string list)
 </pre>
      <p>

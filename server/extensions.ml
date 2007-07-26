@@ -47,7 +47,7 @@ type file_info = {tmp_filename: string;
 
 
 type cookies = 
-    Set of string list option * float option * (string * string) list
+  | Set of string list option * float option * (string * string) list
   | Unset of (string list option * string list)
 
 type cookieslist = cookies list

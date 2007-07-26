@@ -550,7 +550,7 @@ let get_page
                      res_send_page=
                      (Predefined_senders.send_xhtml_page 
                         ~content:(Error_pages.page_error_param_type l));
-                     res_headers=Predefined_senders.nocache_headers;
+                     res_headers=Predefined_senders.dyn_headers;
                      res_code=None;
                      res_lastmodified=None;
                      res_etag=None;
@@ -564,7 +564,7 @@ let get_page
                        (Predefined_senders.send_xhtml_page 
                           ~content:(Error_pages.page_bad_param 
                                       (List.map fst ripp)));
-                       res_headers= Predefined_senders.nocache_headers;
+                       res_headers= Predefined_senders.dyn_headers;
                        res_code=None;
                        res_lastmodified=None;
                        res_etag=None;
@@ -653,7 +653,7 @@ let gen page_tree charset ri =
                                                         is experimental in Ocsigenmod (it works only for \
                                                             ocsigenmod pages for now, and I \
                                                          didn't find any)"]]));
-				   res_headers=Predefined_senders.nocache_headers;
+				   res_headers=Predefined_senders.dyn_headers;
 				   res_code=None;
 				   res_lastmodified=None;
 				   res_etag=None;

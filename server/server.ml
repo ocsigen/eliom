@@ -620,7 +620,7 @@ let service
           (fun (res, cookieslist) ->
             
             match res.res_lastmodified, ri.ri_ifmodifiedsince with
-              Some l, Some i when l<=i -> 
+            | Some l, Some i when l<=i -> 
                 Messages.debug "-> Sending 304 Not modified ";
                 send_empty
                   ~content:()
@@ -980,7 +980,7 @@ let listen ssl port wait_end_init =
           let xhtml_sender = 
             Http_com.create_sender
               ~mode:Answer
-              ~headers:Predefined_senders.nocache_headers
+              ~headers:Predefined_senders.dyn_headers
               ~server_name:server_name inputchan 
           in
           let empty_sender =

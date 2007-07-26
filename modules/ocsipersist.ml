@@ -97,17 +97,18 @@ let exec_safely f =
  *)
 
 let db_create table = 
-  let db = db_open db_file in 
   let sql = sprintf "CREATE TABLE IF NOT EXISTS %s (key TEXT, value BLOB,  PRIMARY KEY(key) ON CONFLICT REPLACE)" table in
-  let stmt = prepare db sql in
-  let rec aux () = 
-    match step stmt with 
-    | Rc.DONE -> ignore(finalize stmt)  
-    | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
-    | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
-  in 
-  aux () ;
-  close_safely db ;
+  let create db = 
+    let stmt = prepare db sql in
+    let rec aux () = 
+      match step stmt with 
+      | Rc.DONE -> ignore(finalize stmt)  
+      | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
+      | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+    in 
+    aux ()
+  in
+  exec_safely create;
   table
 
 
