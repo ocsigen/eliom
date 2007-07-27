@@ -35,6 +35,8 @@ exception Ocsigen_No_CGI
 (** il n'existe pas d'executable pour ce fichier dans le .conf*)
 exception NoExecCGI 
 
+(** L'executable donne n'existe pas*)
+exception Ocsigen_Not_Found_Execute
 
 (*****************************************************************************)
 (* The table of cgi pages for each virtual server                            *)
@@ -151,17 +153,13 @@ let find_cgi_page cgidirref path =
       if (stat.Unix.LargeFile.st_kind 
             = Unix.S_REG)
       then begin
-        try
-	  match re.exec with
+	match re.exec with
 	  | None ->
 	      Unix.access filename [Unix.X_OK];
 	      (filename, re)
 	  | Some exec ->
 	      Unix.access filename [Unix.R_OK];
 	      (filename, re)
-        with 
-        | Unix.Unix_error (Unix.EACCES,"access",filename) -> 
-	    raise Ocsigen_No_CGI
       end
       else raise Ocsigen_No_CGI (* ??? *)
     with
@@ -330,7 +328,7 @@ let rec set_env_list=function
 
 let create_process_cgi pages_tree filename ri post_out cgi_in re=
   let opt=function
-    |None -> failwith "CAS IMPOSSIBLE"
+    |None -> assert false
     |Some a -> a
   and envir=Array.of_list (
     (array_environment pages_tree filename re ri)@(set_env_list re.env)) in
@@ -425,23 +423,19 @@ let rec set_env=function
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
 let string_conform file =
-  try
-    match  file.[0], file.[(String.length file) - 1] with
-      | '/' ,'/' -> String.sub file 1 ((String.length file) - 1)
-      | _, '/' -> file
-      | '/', _ -> (String.sub file 1 ((String.length file) - 1))^"/"
-      | _, _ -> file^"/"
-  with _ -> file
-
-let string_conform2 file =
-  try
-    match  file.[0], file.[(String.length file) - 1] with
-      | '/' ,'/' -> file
-      | _, '/' -> "/"^file
-      | '/', _ -> file^"/"
-      | _, _ -> "/"^file^"/"
-  with _ -> file
-
+  match file with
+  | "" -> "/"
+  | _ ->
+      if (String.length file) = 1 && file.[0]<> '/'
+      then ("/"^file^"/")
+      else
+        try
+          match  file.[0], file.[(String.length file) - 1] with
+          | '/' ,'/' -> file
+          | _, '/' -> "/"^file
+          | '/', _ -> file^"/"
+          | _, _ -> "/"^file^"/"
+        with _ -> file
 
 let parse_config page_tree path = function 
   | Element ("cgi", atts, l) -> 
@@ -452,9 +446,9 @@ let parse_config page_tree path = function
       | [("root",r);("dir", s)] ->
 	  let conform= string_conform r in
 	  {
-	   root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
-	   regexp= Netstring_pcre.regexp (conform^"/([^/]*)(.*)");
-	   doc_root= string_conform2 s;
+	   root="/"^(Ocsimisc.string_of_url_path path)^conform;
+	   regexp= Netstring_pcre.regexp (conform^"([^/]*)(.*)");
+	   doc_root= string_conform s;
 	   dest="$1";
 	   path="$2";
 	   exec=None;
@@ -462,23 +456,30 @@ let parse_config page_tree path = function
       | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p)] -> 
 	  let conform = string_conform r in
 	  {
-	   root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
-	   regexp=Netstring_pcre.regexp (conform^"/"^s);
-	   doc_root= string_conform2 d;
+	   root="/"^(Ocsimisc.string_of_url_path path)^conform;
+	   regexp=Netstring_pcre.regexp (conform^s);
+	   doc_root= string_conform d;
 	   dest=t;
 	   path=p;
 	   exec=None;
 	   env=set_env l}
       | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
-	  let conform = string_conform r in
-	  {
-	   root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
-	   regexp=Netstring_pcre.regexp (conform^"/"^s);
-	   doc_root= string_conform2 d;
-	   dest=t;
-	   path=p;
-	   exec=Some(x);
-	   env=set_env l}
+	  let stat = Unix.LargeFile.stat x in
+	  if (stat.Unix.LargeFile.st_kind 
+            <> Unix.S_REG)
+	  then 
+	    (Messages.errlog ("Not Found file Execute "^x);
+	     raise Ocsigen_Not_Found_Execute)
+	  else
+	    let conform = string_conform r in
+	    {
+	      root="/"^(Ocsimisc.string_of_url_path path)^conform;
+	      regexp=Netstring_pcre.regexp (conform^s);
+	      doc_root= string_conform d;
+	      dest=t;
+	      path=p;
+	      exec=Some(x);
+	      env=set_env l}
       | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
       in 
       set_dir page_tree (Regexp dir) path

@@ -110,10 +110,35 @@ let date fl =
 
 
 let image_found fich =
-  let reg=Netstring_pcre.regexp "([^//.]*)(.*)"
-  in match Netstring_pcre.global_replace reg "$2" fich with
-    | ".png" -> "/ocsigenstuff/image.png"
-    | _ -> "/ocsigenstuff/unknown.png"
+  if fich="README" || fich="README.Debian"
+  then "/ocsigenstuff/readme.png"
+  else
+    let reg=Netstring_pcre.regexp "([^//.]*)(.*)"
+    in match Netstring_pcre.global_replace reg "$2" fich with
+      | ".jpeg" | ".jpg" | ".gif" | ".tif"
+      | ".png" -> "/ocsigenstuff/image.png"
+      | ".ps" -> "/ocsigenstuff/postscript.png"
+      | ".pdf" -> "/ocsigenstuff/pdf.png"
+      | ".html" | ".htm"
+      | ".php" -> "/ocsigenstuff/html.png"
+      | ".mp3"
+      | ".wma" -> "/ocsigenstuff/sound.png"
+      | ".c" -> "/ocsigenstuff/source_c.png"
+      | ".java" -> "/ocsigenstuff/source_java.png"
+      | ".pl" -> "/ocsigenstuff/source_pl.png"
+      | ".py" -> "/ocsigenstuff/source_py.png"
+      | ".iso" | ".mds" | ".mdf" | ".cue" | ".nrg"
+      | ".cdd" -> "/ocsigenstuff/cdimage.png"
+      | ".deb" -> "/ocsigenstuff/deb.png"
+      | ".dvi" -> "/ocsigenstuff/dvi.png"
+      | ".rpm" -> "/ocsigenstuff/rpm.png"
+      | ".tar" | ".rar" -> "/ocsigenstuff/tar.png"
+      | ".gz" | ".tar.gz" | ".tgz" | ".zip"
+      | ".jar"  -> "/ocsigenstuff/tgz.png"
+      | ".tex" -> "/ocsigenstuff/tex.png"
+      | ".avi" | ".mov" -> "/ocsigenstuff/video.png"
+      | ".txt" -> "/ocsigenstuff/txt.png"
+      | _ -> "/ocsigenstuff/unknown.png"
 
 
 
@@ -139,6 +164,10 @@ let directory filename =
               = Unix.S_REG)
 	then
 	  (
+	    if f.[(String.length f) - 1] = '~'
+	    then aux d
+	    else 
+	  (
 	    `Reg, f,
 	    "<tr>\n"^
 	    "<td class=\"img\"><img src=\""^image_found f^"\" alt=\"\" /></td>\n"^
@@ -147,6 +176,7 @@ let directory filename =
 	    "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
 	    "</tr>\n"
 	  )::aux d
+	  )
 	else aux d
     with
 	End_of_file -> Unix.closedir d;[]
@@ -393,7 +423,8 @@ let gen pages_tree charset ri =
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
-      | Ocsigen_malformed_url as e -> fail e
+      | Ocsigen_malformed_url  
+      | Ocsigen_403 as e->  fail e
 (*    | Ocsigen_404 -> return Ext_not_found *)
       | e -> return (Ext_not_found e))
           

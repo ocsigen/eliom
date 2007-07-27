@@ -700,7 +700,8 @@ let service
                     ~clientproto
                     ~keep_alive:ka
                     ~code:400 xhtml_sender (* Malformed URL *)
-              | Unix.Unix_error (Unix.EACCES,_,_) ->
+              | Unix.Unix_error (Unix.EACCES,_,_) 
+	      | Extensions.Ocsigen_403->
                   Messages.debug "-> Sending 403 Forbidden";
                   send_error wait_end_answer
                     ~clientproto
