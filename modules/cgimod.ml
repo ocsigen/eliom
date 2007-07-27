@@ -129,107 +129,134 @@ let set_dir dirref assoc path =
 
 
 
-let rec replace_first_match stringpath = function
-  | [] -> None
-  | re::l ->
-      match Netstring_pcre.string_match re.regexp stringpath 0 with
-      | None -> replace_first_match stringpath l
-      | Some _ -> 
-	  Some (
-	  {
-	   root=re.root;
-	   regexp=re.regexp;
-	   doc_root=
-           Netstring_pcre.global_replace re.regexp re.doc_root stringpath;
-	   dest=Netstring_pcre.global_replace re.regexp re.dest stringpath;
-	   path=Netstring_pcre.global_replace re.regexp re.path stringpath;
-	   exec=re.exec;
-	   env=re.env;})
-
-
-
- 
-let rec find_page (Page_dir (regexps, subdir_list)) path = 
-  (* First we try the regexps *)
-  match 
-    (match regexps with
-    | [] -> None
-    | _ -> 
-        let stringpath = Ocsimisc.string_of_url_path path in
-        replace_first_match stringpath regexps)
-  with
-  | Some re -> (* Matching regexp found! *)
-      let s = re.doc_root^re.dest in
-      Some (
-      ((* hack to get user dirs *)
-       match Netstring_pcre.string_match user_dir_regexp s 0 with
-       | None -> s
-       | Some result -> 
-	   let user = Netstring_pcre.matched_group result 2 s in
-	   try
-             let userdir = (Unix.getpwnam user).Unix.pw_dir in
-             (Netstring_pcre.matched_group result 1 s)^
-             userdir^
-             (Netstring_pcre.matched_group result 3 s)
-	   with _ -> raise Not_found
-      ), re)
-  | None -> 
-(* Then we continue *)
-      match path with
-      | [] -> None
-      | [""] -> None
-      | ""::l
-      | ".."::l -> raise Ocsigen_malformed_url
-            (* For security reasons, .. is not allowed in paths *)
-            (* Actually it has already been removed by server.ml *)
-      | a::l -> 
-          try 
-            let e = List.assoc a subdir_list in
-            find_page e l
-          with 
-	    Not_found -> None
-                
-
-
 
 
 
 
 (**permet de recuperer le fichier correspondant a l url*)
 let find_cgi_page cgidirref path =
-  let find_file = function
-    | None ->raise Ocsigen_404
-    | Some (filename, re) ->
-        (* See also module Files in eliom.ml *)
-        Messages.debug ("--Cgimod: Testing \""^filename^"\".");
-        let stat= Unix.LargeFile.stat filename in
-        let filename = 
-          if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
-          then 
-            raise Ocsigen_Is_a_directory
-          else filename
-        in
-        Messages.debug ("--Cgimod: Looking for \""^filename^"\".");
-
-        if (stat.Unix.LargeFile.st_kind 
-              = Unix.S_REG)
-        then begin
-	  try
-	    match re.exec with
-	      | None ->
-		  Unix.access filename [Unix.X_OK];
-		  (filename, re)
-	      | Some exec ->
-		  Unix.access filename [Unix.R_OK];
-		  (filename, re)
-	  with 
-	    |Unix.Unix_error (Unix.EACCES,"access",filename) -> 
-	       raise Ocsigen_No_CGI
-	    |e->raise e
-        end
-        else raise Ocsigen_404 (* ??? *)
+  let find_file (filename, re) handler =
+    (* See also module Files in eliom.ml *)
+    Messages.debug ("--Cgimod: Testing \""^filename^"\".");
+    try
+      let stat = Unix.LargeFile.stat filename in
+      let filename = 
+        if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
+        then 
+          raise Ocsigen_Is_a_directory
+        else filename
+      in
+      Messages.debug ("--Cgimod: Looking for \""^filename^"\".");
+      
+      if (stat.Unix.LargeFile.st_kind 
+            = Unix.S_REG)
+      then begin
+        try
+	  match re.exec with
+	  | None ->
+	      Unix.access filename [Unix.X_OK];
+	      (filename, re)
+	  | Some exec ->
+	      Unix.access filename [Unix.R_OK];
+	      (filename, re)
+        with 
+        | Unix.Unix_error (Unix.EACCES,"access",filename) -> 
+	    raise Ocsigen_No_CGI
+      end
+      else raise Ocsigen_No_CGI (* ??? *)
+    with
+    | Unix.Unix_error (Unix.ENOENT, _, _) -> handler ()
   in
-  find_file (find_page !cgidirref path)
+
+
+  let rec find_in_dir dirtotry path handler =
+    match dirtotry with
+    | [] -> handler ()
+    | re::l ->
+        match Netstring_pcre.string_match re.regexp path 0 with
+        | None -> find_in_dir l path handler
+        | Some _ -> (* Matching regexp found! *)
+            let re = 
+	    {root=re.root;
+	     regexp=re.regexp;
+	     doc_root=
+             Netstring_pcre.global_replace re.regexp re.doc_root path;
+	     dest=Netstring_pcre.global_replace re.regexp re.dest path;
+	     path=Netstring_pcre.global_replace re.regexp re.path path;
+	     exec=re.exec;
+	     env=re.env;}
+            in
+            let s = re.doc_root^re.dest in
+            (* hack to get user dirs *)
+            match Netstring_pcre.string_match user_dir_regexp s 0 with
+            | None -> 
+                find_file (s, re) (fun () -> find_in_dir l path handler)
+            | Some result ->
+	        let user = Netstring_pcre.matched_group result 2 s in
+                let userdir = (Unix.getpwnam user).Unix.pw_dir in
+                find_file
+                  ((Netstring_pcre.matched_group result 1 s)^
+                   userdir^
+                   (Netstring_pcre.matched_group result 3 s),
+                   re)
+                  (fun () -> find_in_dir l path handler)
+  in                
+
+
+
+
+  let rec find_page 
+      dirtotry pathtotry (Page_dir (regexps, subdir_list)) path handler = 
+    match path with
+    | [] -> 
+        find_in_dir regexps ""
+          (fun () -> 
+            find_in_dir dirtotry 
+              (Ocsimisc.string_of_url_path pathtotry) handler)
+    | [""] ->
+        find_in_dir regexps "/"
+          (fun () -> 
+            find_in_dir dirtotry 
+              (Ocsimisc.string_of_url_path
+                 (pathtotry@[""])) handler)
+    | ""::l
+    | ".."::l -> raise Ocsigen_malformed_url
+          (* For security reasons, .. is not allowed in paths *)
+          (* Actually it has already been removed by server.ml *)
+    | a::l -> 
+        try 
+          let e = List.assoc a subdir_list in
+          match regexps with
+          | [] ->
+              find_page dirtotry (pathtotry@[a]) e l handler
+          | _ ->
+	      find_page regexps [""; a] e l
+                (fun () -> 
+                  find_in_dir dirtotry 
+                    (Ocsimisc.string_of_url_path (pathtotry@[a])) handler)
+        with 
+	| Not_found ->
+            let p2 = Ocsimisc.string_of_url_path path in
+            match regexps with
+            | [] ->
+                find_in_dir dirtotry 
+                  (Ocsimisc.string_of_url_path (pathtotry@[p2]))
+                  handler
+            | _ ->
+                find_in_dir regexps ("/"^p2)
+                  (fun () -> 
+                    find_in_dir dirtotry 
+                      (Ocsimisc.string_of_url_path (pathtotry@[p2])) handler)
+
+
+
+
+
+  in
+  find_page [] [] !cgidirref path (fun () -> raise Ocsigen_404)
+
+
+
 
 
 
@@ -331,9 +358,9 @@ let create_process_cgi pages_tree filename ri post_out cgi_in re=
     of this last*)
 
 let recupere_cgi pages_tree re filename ri=
-  let opt=function
-    |None->failwith "CAS IMPOSSIBLE"
-    |Some(c)->c
+  let opt = function
+    | None -> assert false
+    | Some c -> c
   in let (post_out,post_in) = Unix.pipe () in
   let (cgi_out, cgi_in) = Unix.pipe () in
   let (err_out, err_in) = Unix.pipe () in
@@ -341,21 +368,21 @@ let recupere_cgi pages_tree re filename ri=
   Unix.set_nonblock cgi_out;
   Unix.set_nonblock err_out;
   (if ri.ri_http_frame.Stream_http_frame.content = None
-   then (return ())
+   then return ()
    else 
-     (let content_post=opt ri.ri_http_frame.Stream_http_frame.content ()
-     and fct ()=() in
-     Stream_sender.really_write (Lwt_unix.Plain post_in) fct content_post))
-  >>= function () ->
-  let receiver= Http_com.create_receiver 
-    ~mode:Http_com.Nofirstline (Lwt_unix.Plain cgi_out) in
-  let pid = create_process_cgi 
-    pages_tree 
-    filename 
-    ri
-    post_out 
-    cgi_in 
-    re
+     (let content_post= opt ri.ri_http_frame.Stream_http_frame.content () in
+     Stream_sender.really_write (Lwt_unix.Plain post_in) 
+       Ocsimisc.id content_post))
+  >>= fun () ->
+    let receiver = Http_com.create_receiver 
+        ~mode:Http_com.Nofirstline (Lwt_unix.Plain cgi_out) in
+    let pid = create_process_cgi 
+        pages_tree 
+        filename 
+        ri
+        post_out 
+        cgi_in 
+        re
 
   in Stream_receiver.get_http_frame (return ()) receiver 
     ~doing_keep_alive:false () >>= fun http_frame ->
@@ -418,43 +445,43 @@ let string_conform2 file =
 
 let parse_config page_tree path = function 
   | Element ("cgi", atts, l) -> 
-        let dir = match atts with
-          | [] -> 
-              raise (Error_in_config_file
-                       "dir attribute expected for <cgi>")
-          | [("root",r);("dir", s)] ->
-	      let conform= string_conform r in
-	      {
-		root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
-		regexp= Netstring_pcre.regexp (conform^"([^/]*)(.*)");
-		doc_root= string_conform2 s;
-		dest="$1";
-		path="$2";
-		exec=None;
-		env=set_env l}
-	  | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p)] -> 
-	      let conform = string_conform r in
-	      {
-		root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
-		regexp=Netstring_pcre.regexp (conform^s);
-		doc_root= string_conform2 d;
-		dest=t;
-		path=p;
-		exec=None;
-		env=set_env l}
-	  | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
-	      let conform = string_conform r in
-	      {
-		root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
-		regexp=Netstring_pcre.regexp (conform^s);
-		doc_root= string_conform2 d;
-		dest=t;
-		path=p;
-		exec=Some(x);
-		env=set_env l}
-          | _ -> raise (Error_in_config_file "Wrong attribute for <cgi>")
-        in 
-        set_dir page_tree (Regexp dir) path
+      let dir = match atts with
+      | [] -> 
+          raise (Error_in_config_file
+                   "attributes expected for <cgi>")
+      | [("root",r);("dir", s)] ->
+	  let conform= string_conform r in
+	  {
+	   root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
+	   regexp= Netstring_pcre.regexp (conform^"/([^/]*)(.*)");
+	   doc_root= string_conform2 s;
+	   dest="$1";
+	   path="$2";
+	   exec=None;
+	   env=set_env l}
+      | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p)] -> 
+	  let conform = string_conform r in
+	  {
+	   root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
+	   regexp=Netstring_pcre.regexp (conform^"/"^s);
+	   doc_root= string_conform2 d;
+	   dest=t;
+	   path=p;
+	   exec=None;
+	   env=set_env l}
+      | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
+	  let conform = string_conform r in
+	  {
+	   root="/"^(Ocsimisc.string_of_url_path path)^"/"^conform;
+	   regexp=Netstring_pcre.regexp (conform^"/"^s);
+	   doc_root= string_conform2 d;
+	   dest=t;
+	   path=p;
+	   exec=Some(x);
+	   env=set_env l}
+      | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
+      in 
+      set_dir page_tree (Regexp dir) path
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> 
       raise (Error_in_config_file "Unexpected data in config file")

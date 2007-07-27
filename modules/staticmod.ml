@@ -172,7 +172,7 @@ let directory filename =
 
 let index_of filename stat path=
   let rec back=function
-    | [] -> failwith "CAS IMPOSSIBLE"
+    | [] -> assert false
     | [a] -> "/"
     | [a;""] -> "/"
     | i::j -> "/"^i^(back j)
