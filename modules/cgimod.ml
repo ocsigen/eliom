@@ -29,19 +29,12 @@ open Http_com
 open Predefined_senders
 
 
-(** les droite du fichier ne sont pas compatibles pour le CGI*)
-exception Ocsigen_No_CGI
-
-(** il n'existe pas d'executable pour ce fichier dans le .conf*)
-exception NoExecCGI 
-
-(** L'executable donne n'existe pas*)
-exception Ocsigen_Not_Found_Execute
+exception CGI_Error of exn
 
 (*****************************************************************************)
 (* The table of cgi pages for each virtual server                            *)
 
-type reg={
+type reg = {
   root:string;
   regexp:Netstring_pcre.regexp;
   doc_root:string;
@@ -104,7 +97,7 @@ let environment= ["CONTENT_LENGTH=%d";
 
 let set_dir dirref assoc path =
   let rec assoc_and_remove a = function
-    | [] ->raise Not_found
+    | [] -> raise Not_found
     | (b,v)::l when a = b -> (v,l)
     | e::l -> let v,ll = assoc_and_remove a l
           in v,(e::ll)
@@ -161,7 +154,7 @@ let find_cgi_page cgidirref path =
 	      Unix.access filename [Unix.R_OK];
 	      (filename, re)
       end
-      else raise Ocsigen_No_CGI (* ??? *)
+      else raise Ocsigen_403
     with
     | Unix.Unix_error (Unix.ENOENT, _, _) -> handler ()
   in
@@ -265,21 +258,21 @@ let find_cgi_page cgidirref path =
 
 (** permet de creer le tableau des variables d environnement *)
 let array_environment pages_tree filename re ri=
-  let opt=function
-    |None->""
-    |Some(a)->a
-  and opt_int=function
-    |None->0
-    |Some(a)->Int64.to_int a
+  let opt = function
+    | None -> ""
+    | Some a -> a
+  and opt_int = function
+    | None -> 0
+    | Some a -> Int64.to_int a
   in 
-  let meth= 
+  let meth = 
     match Http_header.get_firstline ri.ri_http_frame.Stream_http_frame.header
     with
-      | Http_header.Query (meth, _) -> Framepp.string_of_method meth
-      | _ -> failwith "Bad request"
+    | Http_header.Query (meth, _) -> Framepp.string_of_method meth
+    | _ -> raise Ocsimisc.Ocsigen_Bad_Request
   in let get_ri_value var info=
     try
-      let st=String.lowercase 
+      let st = String.lowercase 
           (Http_header.get_headers_value
              ri.ri_http_frame.Stream_http_frame.header info)
       in 
@@ -320,85 +313,123 @@ let array_environment pages_tree filename re ri=
 
 
 let rec set_env_list=function
-  |[]->[]
-  |(vr, vl) :: l -> (vr^"="^vl) :: set_env_list l
+  | [] -> []
+  | (vr, vl) :: l -> (vr^"="^vl) :: set_env_list l
 
 
 (** launch the process *)
 
-let create_process_cgi pages_tree filename ri post_out cgi_in re=
-  let opt=function
-    |None -> assert false
-    |Some a -> a
-  and envir=Array.of_list (
+let create_process_cgi pages_tree filename ri post_out cgi_in err_in re =
+  let envir = Array.of_list (
     (array_environment pages_tree filename re ri)@(set_env_list re.env)) in
-  if re.exec = None then
-    Unix.create_process_env 
-      "/bin/sh" 
-      [|"/bin/sh";"-c";filename|]
-      envir
-      post_out 
-      cgi_in 
-      Unix.stderr
-  else 
-    Unix.create_process_env 
-      "/bin/sh" 
-      [|"/bin/sh";"-c";((opt re.exec)^" "^filename)|]
-      envir
-      post_out 
-      cgi_in 
-      Unix.stderr
+  match re.exec with
+  | None ->
+      Unix.create_process_env 
+        "/bin/sh" 
+        [|"/bin/sh"; "-c"; filename|]
+        envir
+        post_out 
+        cgi_in 
+        err_in
+  | Some r ->
+      Unix.create_process_env 
+        "/bin/sh" 
+        [|"/bin/sh"; "-c"; (r^" "^filename)|]
+        envir
+        post_out 
+        cgi_in 
+        err_in
 
 
     
-(** This function makes it possible to launch prog cgi, since a new process 
-    with environment variables appropriated in reading by stream the result 
-    of this last*)
+(** This function makes it possible to launch a cgi script *)
 
-let recupere_cgi pages_tree re filename ri=
-  let opt = function
-    | None -> assert false
-    | Some c -> c
-  in let (post_out,post_in) = Unix.pipe () in
-  let (cgi_out, cgi_in) = Unix.pipe () in
-  let (err_out, err_in) = Unix.pipe () in
-  Unix.set_nonblock post_in;
-  Unix.set_nonblock cgi_out;
-  Unix.set_nonblock err_out;
-  (if ri.ri_http_frame.Stream_http_frame.content = None
-   then return ()
-   else 
-     (let content_post= opt ri.ri_http_frame.Stream_http_frame.content () in
-     Stream_sender.really_write (Lwt_unix.Plain post_in) 
-       Ocsimisc.id content_post))
-  >>= fun () ->
-    let receiver = Http_com.create_receiver 
-        ~mode:Http_com.Nofirstline (Lwt_unix.Plain cgi_out) in
+let recupere_cgi pages_tree re filename ri =
+  try
+    (* Create the three pipes to communicate with the CGI script: *)
+    let (post_out, post_in) = Unix.pipe () in
+    let (cgi_out, cgi_in) = Unix.pipe () in
+    let (err_out, err_in) = Unix.pipe () in
+    Unix.set_nonblock post_in;
+    Unix.set_nonblock cgi_out;
+    Unix.set_nonblock err_out;
+
+    (* Launch the CGI script *)
     let pid = create_process_cgi 
         pages_tree 
         filename 
         ri
         post_out 
         cgi_in 
+        err_in
         re
+    in
 
-  in Stream_receiver.get_http_frame (return ()) receiver 
-    ~doing_keep_alive:false () >>= fun http_frame ->
-  ignore ( 
-    Lwt_unix.waitpid [] pid >>= fun _ ->
-    Unix.close cgi_in;
-    Unix.close post_in;
-    Unix.close post_out;
-    return ());
-  ignore (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
-    Unix.close cgi_out;
-    return ());
-  return http_frame
+    (* A thread giving POST data to the CGI script: *)
+    ignore
+      (match ri.ri_http_frame.Stream_http_frame.content with
+      | None -> return ()
+      | Some content_post -> 
+          Stream_sender.really_write (Lwt_unix.Plain post_in) 
+            Ocsimisc.id (content_post ()));
+
+    (* A thread listening the error output of the CGI script 
+       and writing them in warnings.log *)
+    let err_channel = Lwt_unix.in_channel_of_descr (Lwt_unix.Plain err_out) in
+    let rec get_errors () =
+      Lwt_unix.input_line err_channel >>= fun err ->
+        Messages.warning ("CGI says: "^err);
+        get_errors ()
+    in ignore (get_errors ());
+    (* This threads terminates, as you can see by doing:
+    in ignore (catch get_errors (fun _ -> print_endline "the end"; return ()));
+     *)
+
+    
+    let receiver = Http_com.create_receiver 
+        ~mode:Http_com.Nofirstline (Lwt_unix.Plain cgi_out) 
+    in
+    Lwt.choose
+      [
+        (* A thread waiting the end of the process.
+           if the process terminates with an error, we raise CGI_Error,
+           otherwise, we wait to give time to the other thread to get the answer
+         *)
+        (Lwt_unix.waitpid [] pid >>= fun (_, status) ->
+         Unix.close cgi_in;
+         Unix.close post_in;
+         Unix.close post_out;
+         Unix.close err_in;
+         Unix.close err_out;
+         match status with
+         |  Unix.WEXITED 0 -> 
+             Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= fun () ->
+             fail (CGI_Error (Failure "Timeout for CGI script"))
+         |  Unix.WEXITED i -> 
+             fail (CGI_Error 
+                     (Failure ("CGI exited with code "^(string_of_int i))))
+         |  Unix.WSIGNALED i -> 
+             fail (CGI_Error 
+                     (Failure ("CGI killed by signal "^(string_of_int i))))
+         |  Unix.WSTOPPED i -> 
+             fail (CGI_Error 
+                     (Failure ("CGI stopped by signal "^(string_of_int i))))
+        );
+
+        (* A thread getting the result of the CGI script *)
+        (Stream_receiver.get_http_frame (return ()) receiver 
+          ~doing_keep_alive:false () >>= fun http_frame ->
+         ignore (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
+         Unix.close cgi_out;
+         return ());
+         return http_frame)
+      ]
+  with e -> fail e
             
 (** return the header of the frame *)
 
 let get_header str =
-  let a=str.Stream_http_frame.header 
+  let a = str.Stream_http_frame.header 
   in return a
 
 
@@ -406,8 +437,8 @@ let get_header str =
 
 let get_content str =
   match str.Stream_http_frame.content with
-    |None->return (Ocsistream.empty_stream None)
-    |Some(k)-> let stream = k () in return stream
+    | None -> return (Ocsistream.empty_stream None)
+    | Some k -> let stream = k () in return stream
 
 
 (*****************************************************************************)
@@ -423,19 +454,19 @@ let rec set_env=function
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
 let string_conform file =
-  match file with
-  | "" -> "/"
-  | _ ->
-      if (String.length file) = 1 && file.[0]<> '/'
-      then ("/"^file^"/")
-      else
-        try
-          match  file.[0], file.[(String.length file) - 1] with
-          | '/' ,'/' -> file
-          | _, '/' -> "/"^file
-          | '/', _ -> file^"/"
-          | _, _ -> "/"^file^"/"
-        with _ -> file
+  if file = "" 
+  then "/"
+  else
+    if (String.length file) = 1 && file.[0] <> '/'
+    then ("/"^file^"/")
+    else
+      try
+        match  file.[0], file.[(String.length file) - 1] with
+        | '/' ,'/' -> file
+        | _, '/' -> "/"^file
+        | '/', _ -> file^"/"
+        | _, _ -> "/"^file^"/"
+      with _ -> file
 
 let parse_config page_tree path = function 
   | Element ("cgi", atts, l) -> 
@@ -464,13 +495,13 @@ let parse_config page_tree path = function
 	   exec=None;
 	   env=set_env l}
       | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
-	  let stat = Unix.LargeFile.stat x in
+(*	  let stat = Unix.LargeFile.stat x in
 	  if (stat.Unix.LargeFile.st_kind 
             <> Unix.S_REG)
 	  then 
-	    (Messages.errlog ("Not Found file Execute "^x);
-	     raise Ocsigen_Not_Found_Execute)
+	    raise (Error_in_config_file "<cgi> Exec does not exist")
 	  else
+*)
 	    let conform = string_conform r in
 	    {
 	      root="/"^(Ocsimisc.string_of_url_path path)^conform;
@@ -532,8 +563,7 @@ let gen pages_tree charset ri =
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url 
-      | Ocsigen_No_CGI 
-      | Connection_reset_by_peer as e ->fail e
+      | Connection_reset_by_peer as e -> fail e
       | Ocsigen_404 ->return (Ext_not_found Ocsigen_404)
       | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_not_found Ocsigen_404)
       | e -> fail e)

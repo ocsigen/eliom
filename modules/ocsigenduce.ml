@@ -86,7 +86,7 @@ module Xhtmlreg_ = struct
 
   type page = html
 
-  let headers = Predefined_senders.nocache_headers
+  let headers = Predefined_senders.dyn_headers
   let send = send_ocamlduce_page
 
 end

@@ -93,7 +93,7 @@ module Xhtmlreg_ = struct
        res_etag= None;
        res_code= code;
        res_send_page= send_ocamlduce_page ~content:content;
-       res_headers= Predefined_senders.nocache_headers;
+       res_headers= Predefined_senders.dyn_headers;
        res_charset= match charset with
          None -> Eliom.get_config_file_charset sp
        | _ -> charset
@@ -337,7 +337,7 @@ module Xml =
            res_etag= None;
            res_code= code;
            res_send_page= send_cont_page ~content:content;
-           res_headers= Predefined_senders.nocache_headers;
+           res_headers= Predefined_senders.dyn_headers;
            res_charset= match charset with
              None -> Eliom.get_config_file_charset sp
            | _ -> charset
