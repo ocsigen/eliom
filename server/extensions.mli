@@ -33,8 +33,8 @@ exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
 
-exception Bad_config_tag_for_extension of string
-exception Error_in_config_file of string
+exception Bad_config_tag_for_extension of string (* Try next extension *)
+exception Error_in_config_file of string (* Stop with an error message *)
 
 (*****************************************************************************)
 (** type of URLs, without parameter *)

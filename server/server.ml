@@ -1128,6 +1128,9 @@ let errmsg = function
   | Simplexmlparser.Xml_parser_error s ->
       (("Fatal - Error in configuration file: "^s),
        51)
+  | Parseconfig.Dynlink_error (s, exn) ->
+      (("Fatal - While loading "^s^": "^(Printexc.to_string exn)),
+      52)
   | exn -> 
       try
         ((Extensions.get_init_exn_handler () exn),

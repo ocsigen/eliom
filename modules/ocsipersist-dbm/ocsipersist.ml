@@ -112,17 +112,19 @@ let rec try_connect sname =
 let rec get_indescr i =
   (catch
      (fun () -> try_connect (directory^"/"^socketname))
-     (fun e -> Messages.errlog ("Cannot connect to Ocsidbm. Will retry "^
-                                (string_of_int i)^" times and continue \
-                                without persistent session support. \
-                                Error message is: "^
-                                (match e with
-                                | Unix.Unix_error (a,b,c) -> 
-                                    (Unix.error_message a)^" in "^b^"("^c^")"
-                                | _ -> Printexc.to_string e));
-       if i>0
-       then (Lwt_unix.sleep 2.1) >>= (fun () -> get_indescr (i-1))
-       else fail e))
+     (fun e -> 
+       if i = 0 
+       then begin
+         Messages.errlog ("Cannot connect to Ocsidbm. Will continue \
+                            without persistent session support. \
+                            Error message is: "^
+                            (match e with
+                            | Unix.Unix_error (a,b,c) -> 
+                                (Unix.error_message a)^" in "^b^"("^c^")"
+                            | _ -> Printexc.to_string e));
+         fail e
+       end
+       else (Lwt_unix.sleep 2.1) >>= (fun () -> get_indescr (i-1))))
 
 let indescr = get_indescr 2
 

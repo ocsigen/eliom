@@ -198,7 +198,7 @@ module R = struct
   let register_extension, create_virthost, get_beg_init, get_end_init, 
     get_init_exn_handler =
     let defaultparseconfig path xml =
-      raise (Error_in_config_file "No extension loaded")
+      raise (Bad_config_tag_for_extension "No extension loaded")
     in
     let fun_create_virthost =
       ref (fun hostpattern -> 
@@ -231,7 +231,7 @@ module R = struct
              try
                p1 path xml
              with 
-             | Error_in_config_file _
+             | Error_in_config_file _ as e -> raise e
              | Bad_config_tag_for_extension _ -> p2 path xml),
            charset_tree));
       fun_beg := comp begin_init !fun_beg;

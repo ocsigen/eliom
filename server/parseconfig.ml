@@ -26,6 +26,8 @@
 open Simplexmlparser
 open Ocsiconfig
 
+exception Dynlink_error of string * exn
+
 (*****************************************************************************)
 let parse_size =
   let kilo = Int64.of_int 1000 in
@@ -234,26 +236,35 @@ let parse_server isreloading c =
           parse_server_aux ll
       | (Element ("extension", atts,l))::ll -> 
 	  let  modu = match atts with
-          | [] -> raise (Config_file_error "missing module attribute in <extension>")
+          | [] -> 
+              raise
+                (Config_file_error "missing module attribute in <extension>")
           | [("module", s)] -> s
           | _ -> raise (Config_file_error "Wrong attribute for <extension>") 
 	  in 
           if not isreloading
           then begin
-            Extensions.set_config l;
-            Dynlink.loadfile modu;
-            Extensions.set_config []
+            try
+              Extensions.set_config l;
+              Dynlink.loadfile modu;
+              Extensions.set_config []
+            with
+            | e -> raise (Dynlink_error (modu, e))
           end; (* We do not reload extensions *)
           parse_server_aux ll
       | (Element ("library", atts,l))::ll -> 
 	  let modu = match atts with
-          | [] -> raise (Config_file_error "missing module attribute in <library>")
+          | [] -> 
+              raise (Config_file_error "missing module attribute in <library>")
           | [("module", s)] -> s
           | _ -> raise (Config_file_error "Wrong attribute for <library>") 
 	  in 
-          Extensions.set_config l;
-          Dynlink.loadfile modu;
-          Extensions.set_config [];
+          (try
+            Extensions.set_config l;
+            Dynlink.loadfile modu;
+            Extensions.set_config [];
+          with
+            | e -> raise (Dynlink_error (modu, e)));
           parse_server_aux ll
       | (Element ("host", atts, l))::ll ->
 	  let host = match atts with
