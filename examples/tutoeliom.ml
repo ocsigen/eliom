@@ -9,6 +9,10 @@
 (*html*
     <div class="twocol1">
       <p>This is the tutorial for <em>Eliom</em> (development version).
+        We are currently working a lot on the documentation for version 1.
+        Please send us our comments and suggestions!
+      </p>
+      <p>
         Eliom is the new module for page generation
         for the <em>Ocsigen</em> Web server.
        (Please report any error in this tutorial).</p>
@@ -71,7 +75,20 @@ let coucou =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "Hallo!"]])))
 (*html*
-      <p><code>return</code> is a function from <code>Lwt</code>.
+Or, written with fully qualified values:
+*html*)
+let coucou2 = 
+  Eliom.Xhtml.register_new_service 
+    ~url:["coucou2"]
+    ~get_params:Eliom.unit
+    (fun _ () () -> 
+      Lwt.return 
+        (XHTML.M.html
+          (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata "")) [])
+          (XHTML.M.body [XHTML.M.h1 [XHTML.M.pcdata "Hallo!"]])))
+(*html*
+      <p><code>return</code> is a function from <code>Lwt</code>
+      (lightweight threads).
       Use it as this for now, and see later for more advanced use.</p>
       <p>
       Now you can compile your file (here tutorial.ml) by doing:</p>
@@ -187,7 +204,7 @@ let coucou1 =
       </p>
       <p>
         $a (new_external_service
-              ["doc/0.7.0/XHTML.M.html"]
+              ["doc/0.99.2/XHTML.M.html"]
 (*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
               unit unit ())
            sp <:xmllist< More info >> ()$
@@ -230,8 +247,20 @@ let coucou1 =
         <h3>Eliom.HtmlText</h3>
         <p>If you want to register untyped (text) pages, use the
          functions from <code>Eliom.HtmlText</code>, for example
-         <code>Eliom.Text.register_new_service</code>.
+         <code>Eliom.Text.register_new_service</code>. Example:
         </p>
+*html*)
+let coucoutext = 
+  Eliom.HtmlText.register_new_service 
+    ~url:["coucoutext"]
+    ~get_params:unit
+    (fun sp () () -> return
+      ("<html>n'importe quoi "^
+       (Eliom.HtmlText.a coucou sp "clic" ())^
+       "</html>"))
+(*html*
+      <p>$a Tutoeliom.coucoutext sp <:xmllist< Try it >> ()$.</p>
+
       </div>
     </div>
     <h2>More examples</h2>
@@ -292,6 +321,7 @@ let default = register_new_service ["rep";""] unit
     </div>
     <h2>Parameters</h2>
     <div class="twocol1">
+      <h3>Typed parameters</h3>
       <p>The parameter labelled 
         <code><span class="Clabel">~get_params</span></code>
         indicates the type of GET parameters for the page (that is, parameters
@@ -362,8 +392,6 @@ let uasuffix =
        these services. <code>uasuffix/foo</code> is equivalent to
        <code>uasuffix/?suff=foo</code>.
     </p>
-    </div>
-    <div class="twocol2">
     <p>
        <code>suffix_prod</code> allows to take both a suffix and 
        other parameters.<br/>
@@ -389,6 +417,8 @@ let isuffix =
       <p>See $a Tutoeliom.uasuffix sp <:xmllist< uasuffix >> (2007,07)$,
          $a Tutoeliom.isuffix sp <:xmllist< isuffix >> ((11, ["a";"b";"c"]) , 22)$.</p>
 
+    </div>
+    <div class="twocol2">
       <p>The following example shows how to use your own types:</p>
 *html*)
 type mysum = A | B
@@ -409,6 +439,34 @@ let mytype = register_new_service
        (body [p [pcdata (v^" is valid. Now try with another value.")]])))
 (*html*
       <p>See $a Tutoeliom.mytype sp <:xmllist< mytype >> Tutoeliom.A$.</p>
+
+      <h3>Untyped parameters</h3>
+      <p>If you want a page that takes any parameters, 
+      use the <code>Eliom.any</code> value. The service will get an 
+      association list of strings. Example:
+      </p>
+*html*)
+let any = register_new_service 
+    ~url:["any"]
+    ~get_params:any
+  (fun _ l () ->
+    let ll = 
+      List.map 
+        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         $list:ll$
+       </p>
+       </body>
+     </html> >>)
+(*html*
+      <p>Try $a Tutoeliom.any sp <:xmllist< any >> 
+         [("sun","yellow");("sea","blue")]$.</p>
       <div class="encadre">
         <h3>Catching errors</h3>
         <p>You can catch typing errors of parameters
@@ -457,6 +515,8 @@ let links = register_new_service ["rep";"links"] unit
            [pcdata "uasuffix"] (2007,06); br ();
          a coucou_params sp 
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
+         a any sp 
+           [pcdata "any"] [("sun","yellow");("sea","blue")]; br ();
          a
            (new_external_service
               ~url:["http://fr.wikipedia.org";"wiki";""]
@@ -475,6 +535,8 @@ let links = register_new_service ["rep";"links"] unit
 *zap*)
 (*html*
       <p>See $a Tutoeliom.links sp <:xmllist< links >> ()$.</p>
+    </div>
+    <div class="twocol2">
       <p>
       Note that to create a (relative) link we need to know the current URL.
       That's why the page has a <code>sp</code> parameter.<br/>
@@ -490,8 +552,6 @@ let links = register_new_service ["rep";"links"] unit
       The type of this parameter and the name of GET parameters depend
       on the service you link to.
       </p>
-    </div>
-    <div class="twocol2">
       <p>
         If you want to create (mutually or not) recursive pages,
         first create the service using <code>Eliom.new_service</code>, 
@@ -499,9 +559,9 @@ let links = register_new_service ["rep";"links"] unit
         <code>Eliom.Xhtml.register</code>:
       </p>
 *html*)
-let linkrec = new_service ["linkrec"] unit ()
+let linkrec = Eliom.new_service ["linkrec"] unit ()
 
-let _ = register linkrec 
+let _ = Eliom.Xhtml.register linkrec 
     (fun sp () () ->  return
       (html
         (head (title (pcdata "")) [])
@@ -521,6 +581,7 @@ let essai =
     </div>
     <h2>Forms</h2>
     <div class="twocol1">
+      <h3>Forms towards services</h3>
       <p>The function <code>Eliom.get_form</code> allows to create a form
       that uses the GET method (parameters in the URL).
       It works like <code>Eliom.Xhtml.a</code> but takes as parameter
@@ -528,14 +589,14 @@ let essai =
       </p>
 *html*)
 let create_form = 
-  (fun (number_name,(number2_name,string_name)) ->
+  (fun (number_name, (number2_name, string_name)) ->
     [p [pcdata "Write an int: ";
-        int_input ~input_type:`Text ~name:number_name ();
+        Eliom.Xhtml.int_input ~input_type:`Text ~name:number_name ();
         pcdata "Write another int: ";
-        int_input ~input_type:`Text ~name:number2_name ();
+        Eliom.Xhtml.int_input ~input_type:`Text ~name:number2_name ();
         pcdata "Write a string: ";
-        string_input ~input_type:`Text ~name:string_name ();
-        string_input ~input_type:`Submit ~value:"Click" ()]])
+        Eliom.Xhtml.string_input ~input_type:`Text ~name:string_name ();
+        Eliom.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
 
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
@@ -547,6 +608,43 @@ let form = register_new_service ["form"] unit
 (*html*
       <p>See the function $a Tutoeliom.form sp <:xmllist< form >> ()$ in action.</p>
 
+      <p>Note that if you want to use typed parameters, 
+       you cannot use functions like <code>XHTML.M.input</code> to
+       create your forms. Indeed, parameter names are typed to force them
+       be used properly. In our example, <code>number_name</code> has type
+       <code>int param_name</code> and must be used with 
+       <code>int_input</code> (or other widgets), whereas
+       <code>string_name</code> has type
+       <code>string param_name</code> and must be used with 
+       <code>int_input</code> (or other widgets).
+       All functions for creating form widgets are detailed 
+       $a (static_dir sp) sp [pcdata "here"] 
+         ["doc/0.99.2/Eliom.XHTMLFORMSSIG.html"]$.
+      </p>
+
+      <p>For untyped forms, you may use functions from XHTML.M or
+      functions whose name is prefixed by "<code>any_</code>".
+      Here is a form to our (untyped) <code>any</code> service.</p>
+*html*)
+let anyform = register_new_service 
+    ~url:["anyform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body 
+              [h1 [pcdata "Any Form"];
+               get_form any sp 
+                 (fun () ->
+                   [p [pcdata "Form to any: ";
+                       Eliom.Xhtml.any_input ~input_type:`Text ~name:"plop" ();
+                       Eliom.Xhtml.any_input ~input_type:`Text ~name:"plip" ();
+                       Eliom.Xhtml.any_input ~input_type:`Text ~name:"plap" ();
+                       Eliom.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
+                ])))
+(*html*
+      <p>Try this $a Tutoeliom.anyform sp <:xmllist< form >> ()$.</p>
       <h3>POST parameters</h3>
       <p>
    By default parameters of a web page are in the URL (GET parameters).
@@ -585,6 +683,8 @@ let my_service_with_post_params =
          (head (title (pcdata "")) [])
          (body [h1 [pcdata value]])))
 (*html*
+    </div>
+    <div class="twocol2">
       <p>Services may take both GET and POST parameters:</p>
 *html*)
 let get_no_post_param_service = 
@@ -597,10 +697,7 @@ let get_no_post_param_service =
          (head (title (pcdata "")) [])
          (body [p [pcdata "No POST parameter, i:";
                    em [pcdata (string_of_int i)]]])))
-(*html*
-    </div>
-    <div class="twocol2">
-*html*)
+
 let my_service_with_get_and_post = register_new_post_service 
   ~fallback:get_no_post_param_service
   ~post_params:(string "value")
@@ -849,26 +946,49 @@ wakeup w "HELLO");
     <h2>Summary of concepts</h2>
     <div class="encadre sanstitre">
       <p>Here is a summary of the concepts that will be developped in
-         the following of this tutorial.</p>
+         the following of this tutorial.
+      </p>
+      <p>
+      Before beginning the implementation of your Web site, think about
+      what will be the services you want to provide. 
+      </p>
       <p>Eliom uses three kinds of services:</p>
       <dl>
         <dt>Main services</dt><dd>are the main entry points of your sites.
         Created by <code>new_service</code> or 
-        <code>new_post_service</code>.</dd>
-        <dt>Coservices</dt><dd>are services often created dynamically for
-        one user (often in the session table) or used to particularize one
-        button but not the page it leads to (like the disconnect button
-        in the example of sessions with actions below).
+        <code>new_post_service</code>. 
+        They correspond to the public URLs of your Web site, and will last 
+        forever.
         </dd>
-        <dt>Non-attached coservices</dt><dd>are coservices towards the current
-        URL.
+        <dt>(Attached) coservices</dt><dd>are services that share their
+        location (URL) with a main service (fallback). 
+        They are distinguished from that main service using a special parameter.
+        They are often created dynamically for one user
+        (often in the session table), depending on previous interaction
+        during the session.
+        They often disappear after a timeout letting the fallback answer
+        afterwards.
+        Another use of (POST) coservices is to particularize one
+        button but not the page it leads to (like the disconnect button
+        in the example of sessions with <em>actions</em> below).
+        </dd>
+        <dt>Non-attached coservices</dt><dd>are coservices that are not
+        attached to a particular URL. A link towards a non-attached
+        coservice will go to the current URL (with special parameters
+        allowing to recognize the coservice).
+        It is usefull when you want the same link or form on several pages 
+        (for example a connection box) but you don't want to go to another
+        URL. Non-attached coservice are ofetn used with <em>actions</em>
+        (see below).
        </dd>
       </dl>
       <p>Each of these services has its a version with POST parameters.
-      Remember to use POST parameters when you want a different behaviour
+      Remember that only pages without POST parameters are bookmarkable.
+      Use POST parameters when you want a different behaviour
       between the first click and a reload of the page. Usually sending
-      POST parameters triggers an action on server side, and you don't want 
-      it to succeed several times.</p>
+      POST parameters triggers an action on server side
+      (like adding something in a database), and you don't want 
+      it to succeed several times if the page is reloaded or bookmarked.</p>
    
     </div>
     <div class="encadre sanstitre">
@@ -1171,12 +1291,12 @@ let launch_session sp () login =
                  a close sp [pcdata "close session"] ()]]))
   in
   register_for_session 
-    sp
+    ~sp
     ~service:public_session_without_post_params 
     (* service is any public service already registered *)
     new_main_page;
   register_for_session 
-    sp
+    ~sp
     ~service:coucou
     (fun _ () () -> return
       (html
@@ -1199,7 +1319,7 @@ let _ =
   register
     ~service:public_session_with_post_params
     (fun sp _ login ->
-      close_session sp >>= 
+      close_session ~sp >>= 
       (fun () -> launch_session sp () login))
 (*zap* Registering for session during initialisation is forbidden:
 let _ = register_for_session
@@ -1431,7 +1551,7 @@ let rec page_for_shopping_basket sp shopping_basket =
       ()
   in
     register_for_session
-      sp
+      ~sp
       ~service:coshop_with_post_params
       (fun sp () article -> 
                  page_for_shopping_basket 
@@ -1485,7 +1605,7 @@ let _ =
       let is = string_of_int i in
       let calc_result = 
 	register_new_coservice_for_session
-          sp
+          ~sp
           ~fallback:calc
           ~get_params:(int "j")
           (fun sp j () -> 
@@ -1942,7 +2062,7 @@ let _ =
   let page sp () () = 
     let timeoutcoserv =
       register_new_coservice_for_session
-        sp ~fallback:timeout ~get_params:unit ~timeout:5.
+        ~sp ~fallback:timeout ~get_params:unit ~timeout:5.
         (fun _ _ _ ->
            return
              (html
@@ -2019,14 +2139,14 @@ let _ = set_exn_handler
    (fun sp e -> match e with
     | Extensions.Ocsigen_404 -> 
        return
-         (Xhtml.send ~code:404 sp
+         (Xhtml.send ~code:404 ~sp
           (html
             (head (title (pcdata "")) [])
             (body [h1 [pcdata "Eliom tutorial"]; 
                    p [pcdata "Page not found"]])))
     | Eliom_Wrong_parameter ->
        return
-         (Xhtml.send sp
+         (Xhtml.send ~sp
           (html
             (head (title (pcdata "")) [])
             (body [h1 [pcdata "Eliom tutorial"]; 
@@ -2192,6 +2312,226 @@ let _ = register
       <p>
       See this example $a Tutoeliom.persist sp <:xmllist< here >> ()$.
       </p>
+    </div>
+    <h2>Advanced forms</h2>
+    <div class="twocol1">
+*html*)
+(* Form with checkbox: *)
+let bool_params = register_new_service 
+    ~url:["bool"]
+    ~get_params:(bool "case")
+  (fun _ case () -> return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         $pcdata (if case then "checked" else "not checked")$
+       </p>
+       </body>
+     </html> >>)
+
+let create_form_bool casename =
+    <:xmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+
+let form_bool = register_new_service ["formbool"] unit
+  (fun sp () () -> 
+     let f = get_form bool_params sp create_form_bool in return
+     << <html>
+          <head><title></title></head>
+          <body> $f$ </body>
+        </html> >>)
+
+
+(*html*
+
+*html*)
+
+let set = register_new_service 
+    ~url:["set"]
+    ~get_params:(set string "s")
+  (fun _ l () ->
+    let ll = 
+      List.map 
+        (fun s -> << <strong>$str:s$ </strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         $list:ll$
+       </p>
+       </body>
+     </html> >>)
+
+(* form to set *)
+let setform = register_new_service 
+    ~url:["setform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Set Form"];
+                  get_form set sp 
+                    (fun n ->
+                      [p [pcdata "Form to set: ";
+                          string_input ~input_type:`Text ~name:n ();
+                          string_input ~input_type:`Text ~name:n ();
+                          string_input ~input_type:`Text ~name:n ();
+                          string_input ~input_type:`Text ~name:n ();
+                          string_input ~input_type:`Submit ~value:"Click" ()]])
+                ])))
+(*html*
+
+*html*)
+let coord = register_new_service 
+    ~url:["coord"]
+    ~get_params:(coordinates "coord")
+  (fun _ c () ->
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You clicked on coordinates: 
+         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+       </p>
+       </body>
+     </html> >>)
+
+(* form to image *)
+let imageform = register_new_service 
+    ~url:["imageform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Image Form"];
+                  get_form coord sp 
+                    (fun n ->
+                      [p [image_input 
+                            ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"])
+                            ~name:n
+                            ()]])
+                ])))
+(*html*
+
+    </div>
+    <div class="twocol2">
+
+*html*)
+let coord2 = register_new_service 
+    ~url:["coord2"]
+    ~get_params:(int_coordinates "coord")
+  (fun _ (i, c) () ->
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You clicked on coordinates: 
+         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
+       </p>
+       </body>
+     </html> >>)
+
+(* form to image *)
+let imageform2 = register_new_service 
+    ~url:["imageform2"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Image Form"];
+                  get_form coord2 sp 
+                    (fun n ->
+                      [p [int_image_input 
+                            ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"])
+                            ~name:n
+                            ~value:3
+                            ()]])
+                ])))
+
+(*html*
+
+*html*)
+
+(* lists *)
+let coucou_list = register_new_service 
+    ~url:["coucou"]
+    ~get_params:(list "a" (string "str"))
+  (fun _ l () ->
+    let ll = 
+      List.map (fun s -> << <strong>$str:s$</strong> >>) l in  return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent: 
+         $list:ll$
+       </p>
+       </body>
+     </html> >>)
+(* Important warning:
+   If a request has no parameter, it will be considered as the empty list.
+   Services are tried in order of creation. *)
+(*zap* Note:
+   Actually almost all services will be overwritten by new versions,
+   but not those with user_type parameters for example
+   (because the type description contains functions)
+ *zap*)
+
+(* http://localhost:8080/coucou?a=2&a.entier[0]=6&a.entier[1]=7 *)
+
+(* Form with list: *)
+let create_listform f = 
+  (* Here, f.it is an iterator like List.map, 
+     but it must be applied to a function taking 2 arguments 
+     (and not 1 as in map), the first one being the name of the parameter.
+     The last parameter of f.it is the code that must be appended at the 
+     end of the list created
+   *)
+  f.it (fun stringname v ->
+    <:xmllist< <p>Write the value for $str:v$: 
+      $string_input ~input_type:`Text ~name:stringname ()$ </p> >>)
+    ["one";"two";"three";"four"]
+    <:xmllist< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+
+let listform = register_new_service ["listform"] unit
+  (fun sp () () -> 
+     let f = get_form coucou_list sp create_listform in return
+     << <html>
+          <head><title></title></head>
+          <body> $f$ </body>
+        </html> >>)
+
+(*html*
+
+*html*)
+(* Form for service with suffix: *)
+let create_suffixform ((suff, endsuff),i) =
+    <:xmllist< <p>Write the suffix: 
+      $int_input ~input_type:`Text ~name:suff ()$ <br/>
+      Write a string: $user_type_input 
+         ~input_type:`Text ~name:endsuff string_of_url_path$ <br/>
+      Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
+      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
+
+let suffixform = register_new_service ["suffixform"] unit
+  (fun sp () () -> 
+     let f = get_form isuffix sp create_suffixform in return
+     << <html>
+          <head><title></title></head>
+          <body> $f$ </body>
+        </html> >>)
+
+(*html*
+
     </div>
     <h2>Static parts</h2>
     <div class="twocol1">
@@ -2406,262 +2746,9 @@ let print_news_page sp i () =
     </p>
     </div>
 *html*)
-(*zap* À AJOUTER AU TUTO *)
+(*zap*)
 
 
-
-
-
-(* ------------------------------------------------------------------ *)
-(* Advanced types *)
-(* You can use your own types *)
-
-let set = register_new_service 
-    ~url:["set"]
-    ~get_params:(set string "s")
-  (fun _ l () ->
-    let ll = 
-      List.map 
-        (fun s -> << <strong>$str:s$ </strong> >>) l 
-    in  
-    return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You sent: 
-         $list:ll$
-       </p>
-       </body>
-     </html> >>)
-
-(* form to set *)
-let setform = register_new_service 
-    ~url:["setform"]
-    ~get_params:unit
-    (fun sp () () ->
-      return
-        (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Set Form"];
-                  get_form set sp 
-                    (fun n ->
-                      [p [pcdata "Form to set: ";
-                          string_input ~input_type:`Text ~name:n ();
-                          string_input ~input_type:`Text ~name:n ();
-                          string_input ~input_type:`Text ~name:n ();
-                          string_input ~input_type:`Text ~name:n ();
-                          string_input ~input_type:`Submit ~value:"Click" ()]])
-                ])))
-
-
-let any = register_new_service 
-    ~url:["any"]
-    ~get_params:any
-  (fun _ l () ->
-    let ll = 
-      List.map 
-        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l 
-    in  
-    return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You sent: 
-         $list:ll$
-       </p>
-       </body>
-     </html> >>)
-
-(* form to any *)
-let anyform = register_new_service 
-    ~url:["anyform"]
-    ~get_params:unit
-    (fun sp () () ->
-      return
-        (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Any Form"];
-                  get_form any sp 
-                    (fun () ->
-                      [p [pcdata "Form to any: ";
-                          any_input ~input_type:`Text ~name:"plop" ();
-                          any_input ~input_type:`Text ~name:"plip" ();
-                          any_input ~input_type:`Text ~name:"plap" ();
-                          string_input ~input_type:`Submit ~value:"Click" ()]])
-                ])))
-
-let coord = register_new_service 
-    ~url:["coord"]
-    ~get_params:(coordinates "coord")
-  (fun _ c () ->
-    return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You clicked on coordinates: 
-         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
-       </p>
-       </body>
-     </html> >>)
-
-(* form to image *)
-let imageform = register_new_service 
-    ~url:["imageform"]
-    ~get_params:unit
-    (fun sp () () ->
-      return
-        (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Image Form"];
-                  get_form coord sp 
-                    (fun n ->
-                      [p [image_input 
-                            ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"])
-                            ~name:n
-                            ()]])
-                ])))
-
-let coord2 = register_new_service 
-    ~url:["coord2"]
-    ~get_params:(int_coordinates "coord")
-  (fun _ (i, c) () ->
-    return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You clicked on coordinates: 
-         ($str:(string_of_int c.abscissa)$, $str:(string_of_int c.ordinate)$)
-       </p>
-       </body>
-     </html> >>)
-
-(* form to image *)
-let imageform2 = register_new_service 
-    ~url:["imageform2"]
-    ~get_params:unit
-    (fun sp () () ->
-      return
-        (html
-           (head (title (pcdata "")) [])
-           (body [h1 [pcdata "Image Form"];
-                  get_form coord2 sp 
-                    (fun n ->
-                      [p [int_image_input 
-                            ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"])
-                            ~name:n
-                            ~value:3
-                            ()]])
-                ])))
-
-
-(* lists *)
-let coucou_list = register_new_service 
-    ~url:["coucou"]
-    ~get_params:(list "a" (string "str"))
-  (fun _ l () ->
-    let ll = 
-      List.map (fun s -> << <strong>$str:s$</strong> >>) l in  return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You sent: 
-         $list:ll$
-       </p>
-       </body>
-     </html> >>)
-(* Important warning:
-   If a request has no parameter, it will be considered as the empty list.
-   Services are tried in order of creation. *)
-(* Note:
-   Actually almost all services will be overwritten by new versions,
-   but not those with user_type parameters for example
-   (because the type description contains functions)
- *)
-
-(* http://localhost:8080/coucou?a=2&a.entier[0]=6&a.entier[1]=7 *)
-
-(* Advanced forms *)
-(* Form with list: *)
-let create_listform f = 
-  (* Here, f.it is an iterator like List.map, 
-     but it must be applied to a function taking 2 arguments 
-     (and not 1 as in map), the first one being the name of the parameter.
-     The last parameter of f.it is the code that must be appended at the 
-     end of the list created
-   *)
-  f.it (fun stringname v ->
-    <:xmllist< <p>Write the value for $str:v$: 
-      $string_input ~input_type:`Text ~name:stringname ()$ </p> >>)
-    ["one";"two";"three";"four"]
-    <:xmllist< <p>$string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
-
-let listform = register_new_service ["listform"] unit
-  (fun sp () () -> 
-     let f = get_form coucou_list sp create_listform in return
-     << <html>
-          <head><title></title></head>
-          <body> $f$ </body>
-        </html> >>)
-
-(* Form for service with suffix: *)
-let create_suffixform ((suff, endsuff),i) =
-    <:xmllist< <p>Write the suffix: 
-      $int_input ~input_type:`Text ~name:suff ()$ <br/>
-      Write a string: $user_type_input 
-         ~input_type:`Text ~name:endsuff string_of_url_path$ <br/>
-      Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
-
-let suffixform = register_new_service ["suffixform"] unit
-  (fun sp () () -> 
-     let f = get_form isuffix sp create_suffixform in return
-     << <html>
-          <head><title></title></head>
-          <body> $f$ </body>
-        </html> >>)
-
-(* Form with checkbox: *)
-let bool_params = register_new_service 
-    ~url:["bool"]
-    ~get_params:(bool "case")
-  (fun _ case () -> return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         $pcdata (if case then "checked" else "not checked")$
-       </p>
-       </body>
-     </html> >>)
-
-let create_form_bool casename =
-    <:xmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
-      $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
-
-let form_bool = register_new_service ["formbool"] unit
-  (fun sp () () -> 
-     let f = get_form bool_params sp create_form_bool in return
-     << <html>
-          <head><title></title></head>
-          <body> $f$ </body>
-        </html> >>)
-
-
-(* Other Eliom module: *)
-let coucoutext = 
-  Eliom.HtmlText.register_new_service 
-    ~url:["coucoutext"]
-    ~get_params:unit
-    (fun sp () () -> return
-      ("<html>n'importe quoi "^(Eliom.HtmlText.a coucou sp "clic" ())^"</html>"))
-
-
-(* Fin À AJOUTER *)
 (* Main page for this example *)
 let main = new_service [] unit ()
 

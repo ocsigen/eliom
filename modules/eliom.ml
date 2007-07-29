@@ -44,26 +44,26 @@ type server_params = Eliommod.server_params
 
 let string_of_url_path = string_of_url_path
 
-let get_user_agent (ri,_,_) = ri.ri_user_agent
-let get_full_url (ri,_,_) = ri.ri_url_string
-let get_ip (ri,_,_) = ri.ri_ip
-let get_inet_addr (ri,_,_) = ri.ri_inet_addr
-let get_get_params (ri,_,_) = force ri.ri_get_params
-let get_all_get_params (_,si,_) = si.si_all_get_params
-let get_get_params_string (ri,_,_) = ri.ri_get_params_string
-let get_post_params (ri,_,_) = force ri.ri_post_params
-let get_all_post_params (_,si,_) = si.si_all_post_params
-let get_current_path_string (ri,_,_) = ri.ri_path_string
-let get_current_path (ri,_,_) = ri.ri_path
-let get_hostname (ri,_,_) = ri.ri_host
-let get_port (ri,_,_) = ri.ri_port
-let get_other_get_params (_,si,_) = si.si_other_get_params
-let get_suffix (_,_,(_,_,_,_,s)) = s
-let get_exn (_,si,_) = si.si_exn
-let get_config_file_charset (_,si,_) = si.si_config_file_charset
-let get_cookies (ri,_,_) = force ri.ri_cookies
-let get_cookie (_,si,_) = !(si.si_cookie)
-let get_persistent_cookie (_,si,_) = !(si.si_persistent_cookie)
+let get_user_agent ~sp:(ri,_,_) = ri.ri_user_agent
+let get_full_url ~sp:(ri,_,_) = ri.ri_url_string
+let get_ip ~sp:(ri,_,_) = ri.ri_ip
+let get_inet_addr ~sp:(ri,_,_) = ri.ri_inet_addr
+let get_get_params ~sp:(ri,_,_) = force ri.ri_get_params
+let get_all_get_params ~sp:(_,si,_) = si.si_all_get_params
+let get_get_params_string ~sp:(ri,_,_) = ri.ri_get_params_string
+let get_post_params ~sp:(ri,_,_) = force ri.ri_post_params
+let get_all_post_params ~sp:(_,si,_) = si.si_all_post_params
+let get_current_path_string ~sp:(ri,_,_) = ri.ri_path_string
+let get_current_path ~sp:(ri,_,_) = ri.ri_path
+let get_hostname ~sp:(ri,_,_) = ri.ri_host
+let get_port ~sp:(ri,_,_) = ri.ri_port
+let get_other_get_params ~sp:(_,si,_) = si.si_other_get_params
+let get_suffix ~sp:(_,_,(_,_,_,_,s)) = s
+let get_exn ~sp:(_,si,_) = si.si_exn
+let get_config_file_charset ~sp:(_,si,_) = si.si_config_file_charset
+let get_cookies ~sp:(ri,_,_) = force ri.ri_cookies
+let get_cookie ~sp:(_,si,_) = !(si.si_cookie)
+let get_persistent_cookie ~sp:(_,si,_) = !(si.si_persistent_cookie)
 
 let get_default_timeout = Eliommod.get_default_timeout
 let set_global_timeout ?sp s = 
@@ -115,25 +115,25 @@ let get_global_persistent_timeout ?sp () =
                       "get_global_persistent_timeout")
 
 
-let set_user_timeout (_,_,(_,_,_,(tor,_,_,_),_)) t = tor := Some t
-let unset_user_timeout (_,_,(_,_,_,(tor,_,_,_),_)) = tor := None
-let get_user_timeout (_,_,(working_dir,_,_,(tor,_,_,_),_)) = 
+let set_user_timeout ~sp:(_,_,(_,_,_,(tor,_,_,_),_)) t = tor := Some t
+let unset_user_timeout ~sp:(_,_,(_,_,_,(tor,_,_,_),_)) = tor := None
+let get_user_timeout ~sp:(_,_,(working_dir,_,_,(tor,_,_,_),_)) = 
   match !tor with
   | None -> Eliommod.find_global_timeout working_dir
   | Some t -> t
 
-let set_user_expdate (_,_,(_,_,_,(_,exp,_,_),_)) t = exp := t
-let get_user_expdate (_,_,(working_dir,_,_,(_,exp,_,_),_)) = !exp
+let set_user_expdate ~sp:(_,_,(_,_,_,(_,exp,_,_),_)) t = exp := t
+let get_user_expdate ~sp:(_,_,(working_dir,_,_,(_,exp,_,_),_)) = !exp
 
-let set_user_persistent_timeout (_,_,(_,_,_,(_,_,tor,_),_)) t = tor := Some t
-let unset_user_persistent_timeout (_,_,(_,_,_,(_,_,tor,_),_)) = tor := None
-let get_user_persistent_timeout (_,_,(working_dir,_,_,(_,_,tor,_),_)) = 
+let set_user_persistent_timeout ~sp:(_,_,(_,_,_,(_,_,tor,_),_)) t = tor := Some t
+let unset_user_persistent_timeout ~sp:(_,_,(_,_,_,(_,_,tor,_),_)) = tor := None
+let get_user_persistent_timeout ~sp:(_,_,(working_dir,_,_,(_,_,tor,_),_)) = 
   match !tor with
   | None -> Eliommod.find_global_persistent_timeout working_dir
   | Some t -> t
 
-let set_user_persistent_expdate (_,_,(_,_,_,(_,_,_,exp),_)) t = exp := t
-let get_user_persistent_expdate (_,_,(working_dir,_,_,(_,_,_,exp),_)) = !exp
+let set_user_persistent_expdate ~sp:(_,_,(_,_,_,(_,_,_,exp),_)) t = exp := t
+let get_user_persistent_expdate ~sp:(_,_,(working_dir,_,_,(_,_,_,exp),_)) = !exp
 
 let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
@@ -823,7 +823,7 @@ let get_or_post = function
 (*****************************************************************************)
 
 (** Satic directories **)
-let static_dir (_,_,(curdir,_,_,_,_)) =
+let static_dir ~sp:(_,_,(curdir,_,_,_,_)) =
     {
      pre_applied_parameters = [];
      get_params_type = suffix (all_suffix eliom_suffix_name);
@@ -1079,7 +1079,7 @@ Forms towards that kind of service are not implemented
 *)
 
 
-let preapply service getparams =
+let preapply ~service getparams =
   let suff, params = construct_params_list service.get_params_type getparams in
   {service with
    pre_applied_parameters = params@service.pre_applied_parameters;
@@ -1105,7 +1105,7 @@ module type REGCREATE =
         ?cookies:cookieslist -> 
           ?charset:string ->
             ?code: int ->
-              server_params -> page -> result_to_send
+              sp:server_params -> page -> result_to_send
 
   end
 
@@ -1217,9 +1217,9 @@ module type FORMCREATE =
     val uri_of_string : string -> uri
 
 
-    val make_css_link : ?a:link_attrib_t -> uri -> link_elt
+    val make_css_link : ?a:link_attrib_t -> uri:uri -> link_elt
 
-    val make_js_script : ?a:script_attrib_t -> uri -> script_elt
+    val make_js_script : ?a:script_attrib_t -> uri:uri -> script_elt
 
   end
 
@@ -1266,33 +1266,33 @@ module type ELIOMFORMSIG =
 
     val a :
         ?a:a_attrib_t ->
-          ('get, unit, [< get_service_kind ], 
+          service:('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-            server_params -> a_content_elt_list -> 'get -> a_elt
+            sp:server_params -> a_content_elt_list -> 'get -> a_elt
     val get_form :
         ?a:form_attrib_t ->
-          ('get, unit, [< get_service_kind ],
+          service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             server_params ->
+             sp:server_params ->
               ('gn -> form_content_elt_list) -> form_elt
     val post_form :
         ?a:form_attrib_t ->
-          ('get, 'post, [< post_service_kind ],
+          service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-            server_params ->
+            sp:server_params ->
               ('pn -> form_content_elt_list) -> 'get -> form_elt
     val make_uri :
-        ('get, unit, [< get_service_kind ],
+        service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
-          server_params -> 'get -> uri
+          sp:server_params -> 'get -> uri
 
     val js_script :
-        ?a:script_attrib_t -> uri -> script_elt
-    val css_link : ?a:link_attrib_t -> uri -> link_elt
+        ?a:script_attrib_t -> uri:uri -> script_elt
+    val css_link : ?a:link_attrib_t -> uri:uri -> link_elt
 
 
     val int_input :
@@ -1534,7 +1534,7 @@ module type ELIOMREGSIG1 =
         ?cookies:cookieslist -> 
           ?charset:string ->
             ?code: int ->
-              server_params -> page -> Eliommod.result_to_send
+              sp:server_params -> page -> Eliommod.result_to_send
 
     val register :
         ?sp: server_params ->
@@ -1568,7 +1568,7 @@ module type ELIOMREGSIG1 =
 
 
     val register_for_session :
-        server_params ->
+        sp:server_params ->
           service:('get, 'post, [< internal_service_kind ],
                    [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
               ?error_handler:(server_params -> (string * exn) list -> 
@@ -1639,7 +1639,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice'] followed by [register] *)
 
     val register_new_coservice_for_session :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           fallback:(unit, unit, 
@@ -1661,7 +1661,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice] followed by [register_for_session] *)
 
     val register_new_coservice_for_session' :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           get_params: 
@@ -1749,7 +1749,7 @@ module type ELIOMREGSIG1 =
 *)
 
     val register_new_post_coservice_for_session :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           fallback:('get, unit, 
@@ -1770,7 +1770,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_coservice] followed by [register_for_session] *)
 
     val register_new_post_coservice_for_session' :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
@@ -1785,7 +1785,7 @@ module type ELIOMREGSIG1 =
 
 (*
     val register_new_get_post_coservice_for_session' :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
@@ -1839,8 +1839,8 @@ module MakeRegister = functor
         
         type page = Pages.page * cookieslist
               
-        let send ?(cookies=[]) ?charset ?code sp (p, cl) =
-          Pages.send ~cookies:(cookies@cl) ?charset ?code sp p
+        let send ?(cookies=[]) ?charset ?code ~sp (p, cl) =
+          Pages.send ~cookies:(cookies@cl) ?charset ?code ~sp p
 
         let register_aux
             current_dir
@@ -1891,7 +1891,7 @@ module MakeRegister = functor
                          | e -> fail e)) >>=
                     (fun (content, cookies_to_set) -> 
                       return (Pages.send 
-                                ~cookies:cookies_to_set sp content)))))
+                                ~cookies:cookies_to_set ~sp content)))))
           | `Nonattached naser ->
               add_naservice 
 	        tables
@@ -1927,7 +1927,7 @@ module MakeRegister = functor
                         | e -> fail e)) >>=
                    (fun (content, cookies_to_set) -> 
                      return (Pages.send 
-                               ~cookies:cookies_to_set sp content))))
+                               ~cookies:cookies_to_set ~sp content))))
 
 
         let register ?sp ~service ?error_handler page_gen =
@@ -1969,7 +1969,7 @@ module MakeRegister = functor
 
 
         let register_for_session
-            (ri, si, (curdir, _, sesstab, _, _))
+            ~sp:(ri, si, (curdir, _, sesstab, _, _))
             ~service
             ?error_handler
             page =
@@ -2016,7 +2016,7 @@ module MakeRegister = functor
           u
 
         let register_new_coservice_for_session
-            sp
+            ~sp
             ?max_use
             ?timeout
             ~fallback
@@ -2024,18 +2024,18 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = new_coservice ?max_use ?timeout ~fallback ~get_params () in
-          register_for_session sp ~service:u ?error_handler page;
+          register_for_session ~sp ~service:u ?error_handler page;
           u
 
         let register_new_coservice_for_session'
-            sp
+            ~sp
             ?max_use
             ?timeout
             ~get_params
             ?error_handler
             page =
           let u = new_coservice' ?max_use ~get_params () in
-          register_for_session sp ~service:u ?error_handler page;
+          register_for_session ~sp ~service:u ?error_handler page;
           u
 
 
@@ -2090,7 +2090,7 @@ module MakeRegister = functor
  *)
 
         let register_new_post_coservice_for_session
-            sp
+            ~sp
             ?max_use
             ?timeout
             ~fallback
@@ -2099,23 +2099,23 @@ module MakeRegister = functor
             page_gen =
           let u = new_post_coservice 
               ?max_use ?timeout ~fallback ~post_params () in
-          register_for_session sp ~service:u ?error_handler page_gen;
+          register_for_session ~sp ~service:u ?error_handler page_gen;
           u
 
         let register_new_post_coservice_for_session'
-            sp
+            ~sp
             ?max_use
             ?timeout
             ~post_params
             ?error_handler
             page_gen =
           let u = new_post_coservice' ?max_use ?timeout ~post_params () in
-          register_for_session sp ~service:u ?error_handler page_gen;
+          register_for_session ~sp ~service:u ?error_handler page_gen;
           u
 
 (*
    let register_new_get_post_coservice_for_session'
-   sp
+   ~sp
    ?max_use
    ?timeout
    ~fallback
@@ -2124,7 +2124,7 @@ module MakeRegister = functor
    page_gen =
    let u = new_get_post_coservice'
    ?max_use ?timeout ~fallback ~post_params () in
-   register_for_session sp ~service:u ?error_handler page_gen;
+   register_for_session ~sp ~service:u ?error_handler page_gen;
    u
  *)
 
@@ -2145,12 +2145,12 @@ module MakeRegister = functor
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
 
       let register_for_session
-          sp
+          ~sp
           ~service
           ?error_handler
           page =
         Cookies.register_for_session
-          sp
+          ~sp
           ~service
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
@@ -2201,7 +2201,7 @@ module MakeRegister = functor
           (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
 
       let register_new_coservice_for_session
-          sp
+          ~sp
           ?max_use
           ?timeout
           ~fallback
@@ -2209,7 +2209,7 @@ module MakeRegister = functor
           ?error_handler
           page =
       Cookies.register_new_coservice_for_session
-          sp
+          ~sp
           ?max_use
           ?timeout
           ~fallback
@@ -2218,14 +2218,14 @@ module MakeRegister = functor
           (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
 
       let register_new_coservice_for_session'
-          sp
+          ~sp
           ?max_use
           ?timeout
           ~get_params
           ?error_handler
           page =
       Cookies.register_new_coservice_for_session'
-          sp
+          ~sp
           ?max_use
           ?timeout
           ~get_params
@@ -2298,7 +2298,7 @@ module MakeRegister = functor
  *)
 
       let register_new_post_coservice_for_session
-          sp
+          ~sp
           ?max_use
           ?timeout
           ~fallback
@@ -2306,7 +2306,7 @@ module MakeRegister = functor
           ?error_handler
           page_gen =
         Cookies.register_new_post_coservice_for_session
-          sp
+          ~sp
           ?max_use
           ?timeout
           ~fallback
@@ -2315,14 +2315,14 @@ module MakeRegister = functor
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
 
       let register_new_post_coservice_for_session'
-          sp
+          ~sp
           ?max_use
           ?timeout
           ~post_params
           ?error_handler
           page_gen =
       Cookies.register_new_post_coservice_for_session'
-          sp
+          ~sp
           ?max_use
           ?timeout
           ~post_params
@@ -2339,7 +2339,7 @@ module MakeRegister = functor
    ?error_handler
    page_gen =
    Cookies.register_new_get_post_coservice_for_session'
-   sp
+   ~sp
           ?max_use
           ?timeout
    ~fallback
@@ -2357,8 +2357,8 @@ module MakeRegister = functor
 
 
 let make_string_uri
-    service
-    ((_,si,_) as sp)
+    ~service
+    ~sp:((_,si,_) as sp)
     getparams : string =
   match service.kind with
     `Attached attser ->
@@ -2455,8 +2455,8 @@ module MakeForms = functor
 (** Functions to construct web pages: *)
 
       let a ?a
-          service
-          ((_,si,_) as sp)
+          ~service
+          ~sp:((_,si,_) as sp)
           content
           getparams =
         match service.kind with
@@ -2549,9 +2549,10 @@ module MakeForms = functor
                         (length,endlist)))}
         in aux "" "" params
           
-      let get_form ?a
-          service
-          ((_,si,_) as sp)
+      let get_form 
+          ?a
+          ~service
+          ~sp:((_,si,_) as sp)
           f =
         match service.kind with
         | `Attached attser ->
@@ -2636,9 +2637,10 @@ module MakeForms = functor
             Pages.make_get_form ?a ~action:urlname naservice_line all_lines
 
 
-      let post_form ?a
-          service
-          sp
+      let post_form
+          ?a
+          ~service
+          ~sp
           f 
           getparams =
         match service.kind with
@@ -2705,8 +2707,8 @@ module MakeForms = functor
 
 
 
-      let make_uri serv sp gp =
-        Pages.uri_of_string (make_string_uri serv sp gp)
+      let make_uri ~service ~sp gp =
+        Pages.uri_of_string (make_string_uri service sp gp)
                   
           
           
@@ -2955,7 +2957,7 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
-   let send ?(cookies=[]) ?charset ?code sp content = 
+   let send ?(cookies=[]) ?charset ?code ~sp content = 
      EliomResult 
        {res_cookies= cookies;
         res_lastmodified= None;
@@ -3126,11 +3128,11 @@ module Xhtmlforms_ = struct
   let make_optgroup ?(a=[]) ~label elt elts =
     optgroup ~label ~a elt elts
     
-  let make_css_link ?(a=[]) uri =
+  let make_css_link ?(a=[]) ~uri =
     link ~a:((a_href uri)::
              (a_type "text/css")::(a_rel [`Stylesheet])::a) ()
       
-  let make_js_script ?(a=[]) uri =
+  let make_js_script ?(a=[]) ~uri =
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
 end
@@ -3151,10 +3153,11 @@ module type XHTMLFORMSSIG = sig
 
   val a :
       ?a:a_attrib attrib list ->
-        ('get, unit, [< get_service_kind ], 
-         [< suff ], 'gn, 'pn,
-         [< registrable ]) service ->
-           server_params -> a_content elt list -> 'get -> [> a] XHTML.M.elt
+        service:
+          ('get, unit, [< get_service_kind ], 
+           [< suff ], 'gn, 'pn,
+           [< registrable ]) service ->
+           sp:server_params -> a_content elt list -> 'get -> [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link from [current] to [service]. 
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -3167,28 +3170,28 @@ module type XHTMLFORMSSIG = sig
    (see the module XHTML.M) *)
 
   val css_link : ?a:(link_attrib attrib list) ->
-    uri -> [> link ] elt
+    uri:uri -> [> link ] elt
 (** Creates a [<link>] tag for a Cascading StyleSheet (CSS). *)
 
   val js_script : ?a:(script_attrib attrib list) ->
-    uri -> [> script ] elt
+    uri:uri -> [> script ] elt
 (** Creates a [<script>] tag to add a javascript file *)
 
     val make_uri :
-        ('get, unit, [< get_service_kind ],
+        service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
-          server_params -> 'get -> uri
+          sp:server_params -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
 
     val get_form :
         ?a:form_attrib attrib list ->
-          ('get, unit, [< get_service_kind ],
+          service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             server_params ->
+             sp:server_params ->
               ('gn -> form_content elt list) -> [>form] elt
 (** [get_form service current formgen] creates a GET form from [current] to [service]. 
    The content of
@@ -3197,10 +3200,10 @@ module type XHTMLFORMSSIG = sig
 
     val post_form :
         ?a:form_attrib attrib list ->
-          ('get, 'post, [< post_service_kind ],
+          service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-            server_params ->
+            sp:server_params ->
               ('pn -> form_content elt list) -> 'get -> [>form] elt
 (** [post_form service current formgen] creates a POST form from [current] 
    to [service]. The last parameter is for GET parameters (as in the function [a]).
@@ -3530,62 +3533,62 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
    we define a new module: *)
   let a = (a :
       ?a:a_attrib attrib list ->
-        ('get, unit, [< get_service_kind ], 
+        service:('get, unit, [< get_service_kind ], 
          [< suff ], 'gn, 'pn,
          [< registrable ]) service ->
-           server_params -> a_content elt list -> 'get -> 
+           sp:server_params -> a_content elt list -> 'get -> 
              a XHTML.M.elt :>
       ?a:a_attrib attrib list ->
-        ('get, unit, [< get_service_kind ], 
+        service:('get, unit, [< get_service_kind ], 
          [< suff ], 'gn, 'pn,
          [< registrable ]) service ->
-           server_params -> a_content elt list -> 'get -> 
+           sp:server_params -> a_content elt list -> 'get -> 
              [> a] XHTML.M.elt)
 
   let css_link = (css_link :
                     ?a:(link_attrib attrib list) ->
-                      uri -> link elt :>
+                      uri:uri -> link elt :>
                     ?a:(link_attrib attrib list) ->
-                      uri -> [> link ] elt)
+                      uri:uri -> [> link ] elt)
 
   let js_script = (js_script : 
                      ?a:(script_attrib attrib list) ->
-                       uri -> script elt :>
+                       uri:uri -> script elt :>
                      ?a:(script_attrib attrib list) ->
-                       uri -> [> script ] elt)
+                       uri:uri -> [> script ] elt)
 
   let make_uri = (make_uri :
-      ('get, unit, [< get_service_kind ],
+      service:('get, unit, [< get_service_kind ],
        [< suff ], 'gn, 'pn, 
        [< registrable ]) service ->
-         server_params -> 'get -> uri)
+         sp:server_params -> 'get -> uri)
 
   let get_form = (get_form :
       ?a:form_attrib attrib list ->
-        ('get, unit, [< get_service_kind ],
+        service:('get, unit, [< get_service_kind ],
          [<suff ], 'gn, 'pn, 
          [< registrable ]) service ->
-           server_params ->
+           sp:server_params ->
              ('gn -> form_content elt list) -> form elt :>
       ?a:form_attrib attrib list ->
-        ('get, unit, [< get_service_kind ],
+        service:('get, unit, [< get_service_kind ],
          [<suff ], 'gn, 'pn, 
          [< registrable ]) service ->
-           server_params ->
+           sp:server_params ->
              ('gn -> form_content elt list) -> [> form ] elt)
 
   let post_form = (post_form :
       ?a:form_attrib attrib list ->
-        ('get, 'post, [< post_service_kind ],
+        service:('get, 'post, [< post_service_kind ],
          [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
-          server_params ->
+          sp:server_params ->
             ('pn -> form_content elt list) -> 'get -> form elt :>
       ?a:form_attrib attrib list ->
-        ('get, 'post, [< post_service_kind ],
+        service:('get, 'post, [< post_service_kind ],
          [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
-          server_params ->
+          sp:server_params ->
             ('pn -> form_content elt list) -> 'get -> [> form ] elt)
 
   type basic_input_type = 
@@ -3976,7 +3979,7 @@ module SubXhtml = functor(T : sig type content end) ->
         
       type page = T.content XHTML.M.elt list
             
-      let send ?(cookies=[]) ?charset ?code sp content = 
+      let send ?(cookies=[]) ?charset ?code ~sp content = 
         EliomResult 
           {res_cookies= cookies;
            res_lastmodified= None;
@@ -4017,7 +4020,7 @@ module Textreg_ = struct
 
   type page = (string * string)
 
-  let send ?(cookies=[]) ?charset ?code sp (content, contenttype) = 
+  let send ?(cookies=[]) ?charset ?code ~sp (content, contenttype) = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -4044,7 +4047,7 @@ module CssTextreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset ?code sp content = 
+  let send ?(cookies=[]) ?charset ?code ~sp content = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -4072,7 +4075,7 @@ module HtmlTextreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset ?code sp content = 
+  let send ?(cookies=[]) ?charset ?code ~sp content = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -4232,10 +4235,10 @@ module HtmlTextforms_ = struct
     a^">"^elt^elts^"</optgroup>"
 
 
-  let make_css_link ?(a="") uri =
+  let make_css_link ?(a="") ~uri =
     "<link href=\""^uri^" type=\"text/css\" rel=\"stylesheet\" "^a^"/>"
                                                                       
-  let make_js_script ?(a="") uri =
+  let make_js_script ?(a="") ~uri =
     "<script src=\""^uri^" contenttype=\"text/javascript\" "^a^"></script>"
 
 end
@@ -4265,7 +4268,7 @@ module Actionreg_ = struct
 
   type page = exn list
 
-  let send ?(cookies=[]) ?charset ?code sp content =
+  let send ?(cookies=[]) ?charset ?code ~sp content =
     EliomExn (content, cookies)
 
 end
@@ -4281,7 +4284,7 @@ module Unitreg_ = struct
 
   type page = unit
 
-  let send ?(cookies=[]) ?charset ?(code = 204) sp content = 
+  let send ?(cookies=[]) ?charset ?(code = 204) ~sp content = 
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -4314,7 +4317,7 @@ module Redirreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset ?(code = 301) sp content =
+  let send ?(cookies=[]) ?charset ?(code = 301) ~sp content =
     EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -4352,7 +4355,7 @@ module Anyreg_ = struct
 
   type page = result_to_send
 
-  let send ?(cookies=[]) ?charset ?code sp content = 
+  let send ?(cookies=[]) ?charset ?code ~sp content = 
     match content with
     | EliomResult res ->
         EliomResult
@@ -4377,7 +4380,7 @@ module Filesreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset ?code sp filename = 
+  let send ?(cookies=[]) ?charset ?code ~sp filename = 
     let (filename, stat) =
       (try
         (* That piece of code has been pasted from staticmod.ml *)
@@ -4443,7 +4446,7 @@ type 'a persistent_table = (int64 * 'a) Ocsipersist.table
 
 let create_persistent_table = create_persistent_table
 
-let get_persistent_data table sp =
+let get_persistent_data ~table ~sp =
   match (get_persistent_cookie sp) with
   | Some (c, k) -> 
       (catch
@@ -4462,11 +4465,11 @@ let get_persistent_data table sp =
            | e -> fail e) *)
   | None -> return None
 
-let set_persistent_data table sp value =
+let set_persistent_data ~table ~sp ~value =
   create_persistent_cookie sp >>=
   (fun (c, k) -> add table c (k, value))
 
-let remove_persistent_data table sp =
+let remove_persistent_data ~table ~sp =
   match get_persistent_cookie sp with
   | Some (c,k) -> remove table c
   | None -> return ()
@@ -4485,7 +4488,7 @@ let create_table ?sp () =
   | Some sp -> create_table_during_session sp
 
 
-let get_session_data table sp =
+let get_session_data ~table ~sp =
   match (get_cookie sp) with
   | Some c -> 
       (try
@@ -4493,18 +4496,18 @@ let get_session_data table sp =
       with _ -> None)
   | None -> None
 
-let set_session_data table sp value =
+let set_session_data ~table ~sp ~value =
   let c = create_cookie sp in
   Cookies.replace table c value
 
-let remove_session_data table sp =
+let remove_session_data ~table ~sp =
   match get_cookie sp with
   | Some c -> Cookies.remove table c
   | None -> ()
 
 (*****************************************************************************)
 (** Close a session *)
-let close_persistent_session (_,si,_) =
+let close_persistent_session ~sp:(_,si,_) =
   (match !(si.si_persistent_cookie) with
   | Some (c, _) -> 
       catch
@@ -4515,12 +4518,12 @@ let close_persistent_session (_,si,_) =
     si.si_persistent_cookie := None;
     return ())
 
-let close_volatile_session ((_, si, (_,(_,_,_),sesstab,_,_)) as sp) = 
+let close_volatile_session ~sp:((_, si, (_,(_,_,_),sesstab,_,_)) as sp) = 
   remove_session sp;
   sesstab := empty_tables ();
   si.si_cookie := None
 
-let close_session sp =
+let close_session ~sp =
   close_volatile_session sp;
   close_persistent_session sp
 

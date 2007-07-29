@@ -1925,7 +1925,7 @@ let _ = persistent_session_gc ()
 (*****************************************************************************)
 (* Exploration *)
 
-let number_of_sessions (_,_,(_,(_, cookie_table, _),_,_,_)) = 
+let number_of_sessions ~sp:(_,_,(_,(_, cookie_table, _),_,_,_)) = 
   Cookies.length cookie_table
 
 let number_of_tables () =

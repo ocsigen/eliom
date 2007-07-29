@@ -86,7 +86,7 @@ module Xhtmlreg_ = struct
 
   type page = html
 
-  let send ?(cookies=[]) ?charset ?code sp content = 
+  let send ?(cookies=[]) ?charset ?code ~sp content = 
     Eliommod.EliomResult
       {res_cookies= cookies;
        res_lastmodified= None;
@@ -262,13 +262,13 @@ module Xhtmlforms_ = struct
   let make_optgroup ?(a={{ {} }}) ~label elt elts =
     {{ <optgroup ({label={: label :}} ++ a)> [ elt !elts ] }}
     
-  let make_css_link ?(a={{ {} }}) uri =
+  let make_css_link ?(a={{ {} }}) ~uri =
     {{ <link ({href={: uri :}
 	    type="text/css"
             rel="stylesheet"}
             ++ a)> [] }}
       
-  let make_js_script ?(a={{ {} }}) uri =
+  let make_js_script ?(a={{ {} }}) ~uri =
     {{ <script ({type="text/javascript"
 	         src={: uri :} } ++ a)> [] }}
 
@@ -330,7 +330,7 @@ module Xml =
         
       type page = Ocamlduce.Load.anyxml
             
-      let send ?(cookies=[]) ?charset ?code sp content = 
+      let send ?(cookies=[]) ?charset ?code ~sp content = 
         Eliommod.EliomResult 
           {res_cookies= cookies;
            res_lastmodified= None;

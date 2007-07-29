@@ -118,47 +118,47 @@ val string_of_url_path : url_path -> string
 type server_params
 (** Type of server parameters *)
 
-val get_user_agent : server_params -> string
-val get_full_url : server_params -> string
-val get_ip : server_params -> string
-val get_inet_addr : server_params -> Unix.inet_addr
+val get_user_agent : sp:server_params -> string
+val get_full_url : sp:server_params -> string
+val get_ip : sp:server_params -> string
+val get_inet_addr : sp:server_params -> Unix.inet_addr
 
 (** All GET parameters in the URL *)
-val get_all_get_params : server_params -> (string * string) list
+val get_all_get_params : sp:server_params -> (string * string) list
 
 (** Only GET parameters concerning that page *)
-val get_get_params : server_params -> (string * string) list
+val get_get_params : sp:server_params -> (string * string) list
 
 (** All POST parameters in the request *)
-val get_all_post_params : server_params -> (string * string) list
+val get_all_post_params : sp:server_params -> (string * string) list
 
 (** Only POST parameters concerning that page *)
-val get_post_params : server_params -> (string * string) list Lwt.t
+val get_post_params : sp:server_params -> (string * string) list Lwt.t
 
-val get_current_path_string : server_params -> string
-val get_current_path : server_params -> url_path
-val get_hostname : server_params -> string option
-val get_port : server_params -> int
-val get_other_get_params : server_params -> (string * string) list
-val get_suffix : server_params -> url_path
-val get_exn : server_params -> exn list
-val get_config_file_charset : server_params -> string option
-val get_cookies : server_params -> (string * string) list
+val get_current_path_string : sp:server_params -> string
+val get_current_path : sp:server_params -> url_path
+val get_hostname : sp:server_params -> string option
+val get_port : sp:server_params -> int
+val get_other_get_params : sp:server_params -> (string * string) list
+val get_suffix : sp:server_params -> url_path
+val get_exn : sp:server_params -> exn list
+val get_config_file_charset : sp:server_params -> string option
+val get_cookies : sp:server_params -> (string * string) list
 
-val set_user_timeout : server_params -> float option -> unit
-val unset_user_timeout : server_params -> unit
-val get_user_timeout : server_params -> float option
+val set_user_timeout : sp:server_params -> float option -> unit
+val unset_user_timeout : sp:server_params -> unit
+val get_user_timeout : sp:server_params -> float option
 
-val set_user_persistent_timeout : server_params -> float option -> unit
-val unset_user_persistent_timeout : server_params -> unit
-val get_user_persistent_timeout : server_params -> float option
+val set_user_persistent_timeout : sp:server_params -> float option -> unit
+val unset_user_persistent_timeout : sp:server_params -> unit
+val get_user_persistent_timeout : sp:server_params -> float option
 
 (** Setting and getting cookie expiration date for the session. None means the cookie will expire when the browser is closed. *)
-val set_user_expdate : server_params -> float option -> unit
-val get_user_expdate : server_params -> float option
+val set_user_expdate : sp:server_params -> float option -> unit
+val get_user_expdate : sp:server_params -> float option
 
-val set_user_persistent_expdate : server_params -> float option -> unit
-val get_user_persistent_expdate : server_params -> float option
+val set_user_persistent_expdate : sp:server_params -> float option -> unit
+val get_user_persistent_expdate : sp:server_params -> float option
 
 (** Setting and getting timeout for the session (server side). 
     The session will be closed after this amount of time of inactivity 
@@ -373,7 +373,7 @@ val suffix_prod :
 
 
 val static_dir :
-    server_params -> 
+    sp:server_params -> 
       (string list, unit, [> `Attached of 
         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
        [ `WithSuffix ],
@@ -392,8 +392,7 @@ val static_dir :
 val new_service :
     ?sp: server_params ->
     url:url_path ->
-        get_params:('get, [< suff ] as 'tipo,'gn)
-          params_type ->
+        get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
             unit ->
               ('get,unit,
                [> `Attached of 
@@ -507,7 +506,7 @@ val new_get_post_coservice' :
    It is not possible to register something on an preapplied service.
    Preapplied services may be used in links or as fallbacks for coservices *)
 val preapply :
-    ('a, 'b, [> `Attached of 'd a_s ] as 'c,
+    service:('a, 'b, [> `Attached of 'd a_s ] as 'c,
      [< suff ], 'e, 'f, 'g)
     service ->
       'a -> 
@@ -516,10 +515,10 @@ val preapply :
  
 
 val make_string_uri :
-    ('get, unit, [< get_service_kind ],
+    service:('get, unit, [< get_service_kind ],
      [< suff ], 'gn, unit, 
      [< registrable ]) service ->
-       server_params -> 'get -> string
+       sp:server_params -> 'get -> string
 
 
 
@@ -533,7 +532,7 @@ module type REGCREATE =
         ?cookies:cookieslist -> 
           ?charset:string ->
             ?code:int ->
-              server_params -> page -> Eliommod.result_to_send
+              sp:server_params -> page -> Eliommod.result_to_send
 
   end
 
@@ -645,9 +644,9 @@ module type FORMCREATE =
     val uri_of_string : string -> uri
 
 
-    val make_css_link : ?a:link_attrib_t -> uri -> link_elt
+    val make_css_link : ?a:link_attrib_t -> uri:uri -> link_elt
 
-    val make_js_script : ?a:script_attrib_t -> uri -> script_elt
+    val make_js_script : ?a:script_attrib_t -> uri:uri -> script_elt
 
 
   end
@@ -696,33 +695,33 @@ module type ELIOMFORMSIG =
 
     val a :
         ?a:a_attrib_t ->
-          ('get, unit, [< get_service_kind ], 
+          service:('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-            server_params -> a_content_elt_list -> 'get -> a_elt
+            sp:server_params -> a_content_elt_list -> 'get -> a_elt
     val get_form :
         ?a:form_attrib_t ->
-          ('get, unit, [< get_service_kind ],
+          service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             server_params ->
+             sp:server_params ->
               ('gn -> form_content_elt_list) -> form_elt
     val post_form :
         ?a:form_attrib_t ->
-          ('get, 'post, [< post_service_kind ],
+          service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-            server_params ->
+            sp:server_params ->
               ('pn -> form_content_elt_list) -> 'get -> form_elt
     val make_uri :
-        ('get, unit, [< get_service_kind ],
+        service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
-          server_params -> 'get -> uri
+          sp:server_params -> 'get -> uri
 
     val js_script :
-        ?a:script_attrib_t -> uri -> script_elt
-    val css_link : ?a:link_attrib_t -> uri -> link_elt
+        ?a:script_attrib_t -> uri:uri -> script_elt
+    val css_link : ?a:link_attrib_t -> uri:uri -> link_elt
 
 
     val int_input :
@@ -967,7 +966,7 @@ module type ELIOMREGSIG1 =
         ?cookies:cookieslist -> 
           ?charset:string ->
             ?code: int ->
-              server_params -> page -> Eliommod.result_to_send
+              sp:server_params -> page -> Eliommod.result_to_send
 
     val register :
         ?sp: server_params ->
@@ -1001,7 +1000,7 @@ module type ELIOMREGSIG1 =
 
 
     val register_for_session :
-        server_params ->
+        sp:server_params ->
           service:('get, 'post, [< internal_service_kind ],
                    [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
               ?error_handler:(server_params -> (string * exn) list -> 
@@ -1022,8 +1021,7 @@ module type ELIOMREGSIG1 =
     val register_new_service :
         ?sp: server_params ->
         url:url_path ->
-            get_params:('get, [< suff ] as 'tipo, 'gn)
-              params_type ->
+            get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
                 ?error_handler:(server_params -> (string * exn) list -> 
                   page Lwt.t) ->
                     (server_params -> 'get -> unit -> page Lwt.t) ->
@@ -1072,7 +1070,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice'] followed by [register] *)
 
     val register_new_coservice_for_session :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           fallback:(unit, unit, 
@@ -1094,7 +1092,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice] followed by [register_for_session] *)
 
     val register_new_coservice_for_session' :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           get_params: 
@@ -1182,7 +1180,7 @@ module type ELIOMREGSIG1 =
 *)
 
     val register_new_post_coservice_for_session :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           fallback:('get, unit, 
@@ -1203,7 +1201,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_coservice] followed by [register_for_session] *)
 
     val register_new_post_coservice_for_session' :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
@@ -1218,7 +1216,7 @@ module type ELIOMREGSIG1 =
 
 (*
     val register_new_get_post_coservice_for_session' :
-        server_params ->
+        sp:server_params ->
         ?max_use:int ->
         ?timeout:float ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
@@ -1300,10 +1298,10 @@ module type XHTMLFORMSSIG = sig
 
   val a :
       ?a:a_attrib attrib list ->
-        ('get, unit, [< get_service_kind ], 
+        service:('get, unit, [< get_service_kind ], 
          [< suff ], 'gn, 'pn,
          [< registrable ]) service ->
-           server_params -> a_content elt list -> 'get -> [> a] XHTML.M.elt
+           sp:server_params -> a_content elt list -> 'get -> [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link from [current] to [service]. 
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -1316,28 +1314,28 @@ module type XHTMLFORMSSIG = sig
    (see the module XHTML.M) *)
 
   val css_link : ?a:(link_attrib attrib list) ->
-    uri -> [> link ] elt
+    uri:uri -> [> link ] elt
 (** Creates a [<link>] tag for a Cascading StyleSheet (CSS). *)
 
   val js_script : ?a:(script_attrib attrib list) ->
-    uri -> [> script ] elt
+    uri:uri -> [> script ] elt
 (** Creates a [<script>] tag to add a javascript file *)
 
     val make_uri :
-        ('get, unit, [< get_service_kind ],
+        service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, 'pn, 
          [< registrable ]) service ->
-          server_params -> 'get -> uri
+          sp:server_params -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
 
     val get_form :
         ?a:form_attrib attrib list ->
-          ('get, unit, [< get_service_kind ],
+          service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             server_params ->
+             sp:server_params ->
               ('gn -> form_content elt list) -> [>form] elt
 (** [get_form service current formgen] creates a GET form from [current] to [service]. 
    The content of
@@ -1346,10 +1344,10 @@ module type XHTMLFORMSSIG = sig
 
     val post_form :
         ?a:form_attrib attrib list ->
-          ('get, 'post, [< post_service_kind ],
+          service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-            server_params ->
+            sp:server_params ->
               ('pn -> form_content elt list) -> 'get -> [>form] elt
 (** [post_form service current formgen] creates a POST form from [current] 
    to [service]. The last parameter is for GET parameters (as in the function [a]).
@@ -1758,13 +1756,13 @@ val create_table : ?sp:server_params -> unit -> 'a table
     After initialization phase, you must give the [~sp] parameter *)
 
 val get_session_data : 
-    'a table -> server_params -> 'a option
+    table:'a table -> sp:server_params -> 'a option
 
 val set_session_data : 
-    'a table -> server_params -> 'a -> unit
+    table:'a table -> sp:server_params -> value:'a -> unit
 
 val remove_session_data : 
-    'a table -> server_params -> unit
+    table:'a table -> sp:server_params -> unit
 
 (*****************************************************************************)
 (** {2 Persistent sessions} *)
@@ -1774,26 +1772,26 @@ type 'a persistent_table
 val create_persistent_table : string -> 'a persistent_table
 
 val get_persistent_data : 
-    'a persistent_table -> server_params -> 'a option Lwt.t
+    table:'a persistent_table -> sp:server_params -> 'a option Lwt.t
 
 val set_persistent_data : 
-    'a persistent_table -> server_params -> 'a -> unit Lwt.t
+    table:'a persistent_table -> sp:server_params -> value:'a -> unit Lwt.t
 
 val remove_persistent_data : 
-    'a persistent_table -> server_params -> unit Lwt.t
+    table:'a persistent_table -> sp:server_params -> unit Lwt.t
 
 (** Close the persistent session (destroying all persistent data) *)
-val close_persistent_session : server_params -> unit Lwt.t
+val close_persistent_session : sp:server_params -> unit Lwt.t
 
 (** Close Eliom's volatile session *)
-val close_volatile_session : server_params -> unit
+val close_volatile_session : sp:server_params -> unit
 
 (** Close noth sessions *)
-val close_session : server_params -> unit Lwt.t
+val close_session : sp:server_params -> unit Lwt.t
 
 (**/**)
 (*****************************************************************************)
-val number_of_sessions : server_params -> int
+val number_of_sessions : sp:server_params -> int
 
 val number_of_tables : unit -> int
 

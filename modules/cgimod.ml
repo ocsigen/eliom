@@ -38,7 +38,7 @@ type reg = {
   root:string;
   regexp:Netstring_pcre.regexp;
   doc_root:string;
-  dest: string;
+  dest:string;
   path:string;
   exec:string option;
   env:(string * string) list}

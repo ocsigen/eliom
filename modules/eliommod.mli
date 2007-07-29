@@ -145,7 +145,7 @@ val set_site_handler : url_path ->
   (server_params -> exn -> result_to_send Lwt.t) -> unit
 
 (** Profiling *)
-val number_of_sessions : server_params -> int
+val number_of_sessions : sp:server_params -> int
 val number_of_tables : unit -> int
 val number_of_table_elements : unit -> int list
 val number_of_persistent_sessions : unit -> int Lwt.t

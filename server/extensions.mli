@@ -46,7 +46,7 @@ type current_dir = string list
    The float option is the timestamp for the expiration date. 
 *)
 type cookies = 
-    Set of string list option * float option * (string * string) list
+  | Set of string list option * float option * (string * string) list
   | Unset of (string list option * string list)
 
 type cookieslist = cookies list

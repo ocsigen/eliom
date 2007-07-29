@@ -257,10 +257,10 @@ let find_static_page staticdirref path =
 	    try
 	      (fn2, (Unix.LargeFile.stat fn2))
 	    with
-	      _ -> 
+	    | Unix.Unix_error (Unix.ENOENT,_,_) -> 
 	        if readable=true
 	        then (filename, stat)
-	        else raise Ocsigen_403
+	        else raise Ocsigen_404
           else
             (if (path= []) || (path = [""])
             then 
@@ -269,10 +269,10 @@ let find_static_page staticdirref path =
               try
 	        (fn2,(Unix.LargeFile.stat fn2))
 	      with
-	        _ -> 
+	      | Unix.Unix_error (Unix.ENOENT,_,_) -> 
 		  if readable=true
 		  then (filename^"/", stat)
-		  else raise Ocsigen_403
+		  else raise Ocsigen_404
             else (Messages.debug ("--Staticmod: "^filename^" is a directory");
                   raise Ocsigen_Is_a_directory)))
         else (filename, stat)
@@ -289,7 +289,7 @@ let find_static_page staticdirref path =
         then 
 	  ((index_of filename stat path), stat, true)
         else handler ())
-    with Unix.Unix_error (Unix.ENOENT,_,_) -> handler ()
+    with Ocsigen_404 | Unix.Unix_error (Unix.ENOENT,_,_) -> handler ()
   in
 
 
