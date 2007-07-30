@@ -96,6 +96,9 @@ module Http_header =
         (** gets the firstline of the header *)
         let get_firstline header = header.mode
 
+        (** gets the headers *)
+	let get_headers header = header.headers
+
         (** gets the value of a given header's option *)
         let get_headers_value header key = 
           List.assoc (String.lowercase key) header.headers
