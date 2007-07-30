@@ -204,7 +204,7 @@ let coucou1 =
       </p>
       <p>
         $a (new_external_service
-              ["doc/0.99.2/XHTML.M.html"]
+              ["doc/"^version^"/XHTML.M.html"]
 (*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
               unit unit ())
            sp <:xmllist< More info >> ()$
@@ -619,7 +619,7 @@ let form = register_new_service ["form"] unit
        <code>int_input</code> (or other widgets).
        All functions for creating form widgets are detailed 
        $a (static_dir sp) sp [pcdata "here"] 
-         ["doc/0.99.2/Eliom.XHTMLFORMSSIG.html"]$.
+         ["doc/"^version^"/Eliom.XHTMLFORMSSIG.html"]$.
       </p>
 
       <p>For untyped forms, you may use functions from XHTML.M or
@@ -2315,20 +2315,28 @@ let _ = register
     </div>
     <h2>Advanced forms</h2>
     <div class="twocol1">
+      <p>This section shows more advanced use of page parameters and
+      corresponding forms.</p>
+      <h3>Boolean checkboxes</h3>
+      <p>Page may take parameter of type <code>bool</code>.
+         A possible use of this type is in a form
+         with <em>boolean checkboxes</em>, as in the example below:
+      </p>
 *html*)
-(* Form with checkbox: *)
+(* Form with bool checkbox: *)
 let bool_params = register_new_service 
     ~url:["bool"]
     ~get_params:(bool "case")
-  (fun _ case () -> return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         $pcdata (if case then "checked" else "not checked")$
-       </p>
-       </body>
-     </html> >>)
+  (fun _ case () -> 
+    return
+    << <html>
+         <head><title></title></head>
+         <body>
+         <p>
+           $pcdata (if case then "checked" else "not checked")$
+         </p>
+         </body>
+       </html> >>)
 
 let create_form_bool casename =
     <:xmllist< <p>check? $bool_checkbox ~name:casename ()$ <br/>
@@ -2336,7 +2344,8 @@ let create_form_bool casename =
 
 let form_bool = register_new_service ["formbool"] unit
   (fun sp () () -> 
-     let f = get_form bool_params sp create_form_bool in return
+     let f = get_form bool_params sp create_form_bool in 
+     return
      << <html>
           <head><title></title></head>
           <body> $f$ </body>
@@ -2344,7 +2353,42 @@ let form_bool = register_new_service ["formbool"] unit
 
 
 (*html*
+      <p>$a Tutoeliom.formbool sp <:xmllist< Try it >> ()$.</p>
 
+      <p><em>Important warning:</em> 
+        As you can see, browsers do not send any value
+        for unchecked boxes! An unchecked box is equivalent to no parameter
+        at all! Thus it is not possible to distinguish between a service
+        taking a boolean and a service taking no parameter at all
+        (if they share the same URL).
+        In Eliom <em>services are tried in order of registration!</em>
+        The first matching service will answer.
+      </p>
+
+      <p>Other types similar to bool:</p>
+      <ul>
+       <li>
+        <code>opt</code> (page taking an optional parameter),</li>
+       <li>
+        <code>sum</code> (either a parameter or another).</li>
+      </ul>
+      <p>
+        See the interface 
+        $a (static_dir sp) sp [pcdata "here"] 
+          ["doc/"^version^"/Eliom.html"]$.
+      </p>
+
+      <h3>Type <code>set</code></h3>
+      <p>Page may take several parameters of the same name.
+      It is usefull when you want to create a form with a variable number
+      of fields.
+      To do that with Eliom, use the type <code>set</code>.
+      For example <code>set int "val"</code> means that the page will take
+      zero, one or several parameters of name <code>"val"</code>,
+      all of type <code>int</code>.
+      The function you register will receive the parameters in a list.
+      Example:
+      </p>
 *html*)
 
 let set = register_new_service 
@@ -2356,15 +2400,23 @@ let set = register_new_service
         (fun s -> << <strong>$str:s$ </strong> >>) l 
     in  
     return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You sent: 
-         $list:ll$
-       </p>
-       </body>
-     </html> >>)
+    << <html>
+         <head><title></title></head>
+         <body>
+         <p>
+           You sent: 
+           $list:ll$
+         </p>
+         </body>
+       </html> >>)
+(*html*
+
+   <p>These parameters may come from several kinds of widgets in forms.
+   Here is an example of a form with several checkboxes, all sharing the same
+   name, but with different values:
+   </p>
+
+*html*)
 
 (* form to set *)
 let setform = register_new_service 
@@ -2378,14 +2430,26 @@ let setform = register_new_service
                   get_form set sp 
                     (fun n ->
                       [p [pcdata "Form to set: ";
-                          string_input ~input_type:`Text ~name:n ();
-                          string_input ~input_type:`Text ~name:n ();
-                          string_input ~input_type:`Text ~name:n ();
-                          string_input ~input_type:`Text ~name:n ();
+                          string_checkbox ~name:n ~value:"box1" ();
+                          string_checkbox 
+                            ~name:n ~value:"box2" ~checked:true ();
+                          string_checkbox ~name:n ~value:"box3" ();
+                          string_checkbox ~name:n ~value:"box4" ();
                           string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 (*html*
+      <p>$a Tutoeliom.setform sp <:xmllist< Try it >> ()$.</p>
 
+      <p>Once again, note that there is no difference between an empty
+      set or no parameter at all. If you register a service without parameters
+      and a service with a set of parameters on the same URL, the firstly
+      registered service that matches will answer.
+      </p>
+
+      <h3>Clickable images</h3>
+      <p>Here is an example of clickable image.
+      You receive the coordinates the user clicked on.
+      </p>
 *html*)
 let coord = register_new_service 
     ~url:["coord"]
@@ -2419,10 +2483,12 @@ let imageform = register_new_service
                             ()]])
                 ])))
 (*html*
+      <p>$a Tutoeliom.imageform sp <:xmllist< Try it >> ()$.</p>
 
     </div>
     <div class="twocol2">
 
+     <p>You may also send a value with the coordinates:</p>
 *html*)
 let coord2 = register_new_service 
     ~url:["coord2"]
@@ -2458,7 +2524,15 @@ let imageform2 = register_new_service
                 ])))
 
 (*html*
+      <p>$a Tutoeliom.imageform2 sp <:xmllist< Try it >> ()$.</p>
 
+      <h3>Type <code>list</code></h3>
+        <p>Another way (than <code>set</code>) to do variable length forms
+        is to use indexed lists.
+        The use of that feature is a bit more complex than set
+        and still experimental.
+        Here is an example of service taking an indexed list as parameter:
+        </p>
 *html*)
 
 (* lists *)
@@ -2477,22 +2551,39 @@ let coucou_list = register_new_service
        </p>
        </body>
      </html> >>)
-(* Important warning:
-   If a request has no parameter, it will be considered as the empty list.
-   Services are tried in order of creation. *)
+(*html*
+      <p>
+   Here is an example of link towards this service:
+   $a Tutoeliom.coucou_list sp 
+   <:xmllist< coucou?a.entier[0]=6&a.entier[1]=7 >> [6; 7]$.
+      </p>
+   <p>
+   <em>Warning:</em>
+   As for sets or bools,
+   if a request has no parameter, it will be considered as the empty list.
+   Services are tried in order of registration.
+   </p>
+
+   <p>
+   As you see, the names of each list element is built from the name
+   of the list, the name of the list element, and an index.
+   To spare you creating yourself these names, Eliom provides you an iterator
+   to create them.
+   </p>
+
+*html*)
 (*zap* Note:
    Actually almost all services will be overwritten by new versions,
    but not those with user_type parameters for example
    (because the type description contains functions)
  *zap*)
 
-(* http://localhost:8080/coucou?a=2&a.entier[0]=6&a.entier[1]=7 *)
-
 (* Form with list: *)
 let create_listform f = 
   (* Here, f.it is an iterator like List.map, 
      but it must be applied to a function taking 2 arguments 
-     (and not 1 as in map), the first one being the name of the parameter.
+     (unlike 1 in map), the first one being the name of the parameter,
+     and the second one the element of list.
      The last parameter of f.it is the code that must be appended at the 
      end of the list created
    *)
@@ -2512,6 +2603,24 @@ let listform = register_new_service ["listform"] unit
 
 (*html*
 
+      <p>$a Tutoeliom.listform sp <:xmllist< Try it >> ()$.</p>
+
+      <p>
+      <em>Important warning:</em>
+      As we have seen in the section about boolean (or optional) 
+      parameters, it is not possible to distinguish between a boolean
+      with value "false", and no parameter at all.
+      This causes problems if you create a list of boolean or optional 
+      values, as it is not possible to know the length of the list.
+      In that case, Eliom always takes the shortest possible list.
+      </p>
+
+      <h3>Forms and suffixes</h3>
+
+      <p>Service with "suffix" URLs have an equivalent version with
+      usual parameters, allowing to create forms towards such services.
+      Example:
+      </p>
 *html*)
 (* Form for service with suffix: *)
 let create_suffixform ((suff, endsuff),i) =
@@ -2531,6 +2640,9 @@ let suffixform = register_new_service ["suffixform"] unit
         </html> >>)
 
 (*html*
+
+      <p>$a Tutoeliom.suffixform sp <:xmllist< Try it >> ()$.</p>
+
 
     </div>
     <h2>Static parts</h2>
@@ -2862,6 +2974,8 @@ let _ = register main
              $a any sp <:xmllist< any >> [("a","hello"); ("b","ciao")]$ <br/> 
        A form to the previous one:
              $a anyform sp <:xmllist< anyform >> ()$ <br/> 
+       A form for a list of parameters:
+             $a listform sp <:xmllist< Try it >> ()$.<br/>
        </p>
        </body>
      </html> >>)

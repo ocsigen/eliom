@@ -387,17 +387,27 @@ let reconstruct_params
     params files urlsuffix : 'a = 
   let rec aux_list t params files name pref suff =
     let rec aa i lp fl pref suff =
-      try 
-        match aux t lp fl pref (suff^(make_list_suffix i)) with
-        | Res_ (v,lp2,f) ->
-            (match aa (i+1) lp2 f pref suff with
-              Res_ (v2,lp3,f2) -> Res_ ((Obj.magic (v::v2)),lp3,f2)
-            | err -> err)
-        | Errors_ (errs, l, f) ->
-            (match aa (i+1) l f pref suff with
-              Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
-            | Errors_ (errs2, ll, ff) -> Errors_ ((errs@errs2), ll, ff))
-      with Not_found -> Res_ ((Obj.magic []), lp, files)
+      let rec end_of_list len = function
+        | [] -> true
+        | (a,_)::_ when 
+            (try (String.sub a 0 len) = pref
+            with _ -> false) -> false
+        | _::l -> end_of_list len l
+      in
+      if end_of_list (String.length pref) lp
+      then Res_ ((Obj.magic []), lp, fl)
+      else
+        try 
+          match aux t lp fl pref (suff^(make_list_suffix i)) with
+          | Res_ (v,lp2,f) ->
+              (match aa (i+1) lp2 f pref suff with
+                Res_ (v2,lp3,f2) -> Res_ ((Obj.magic (v::v2)),lp3,f2)
+              | err -> err)
+          | Errors_ (errs, l, f) ->
+              (match aa (i+1) l f pref suff with
+                Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
+              | Errors_ (errs2, ll, ff) -> Errors_ ((errs@errs2), ll, ff))
+        with Not_found -> Res_ ((Obj.magic []), lp, files)
     in 
     aa 0 params files (pref^name^".") suff
   and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)

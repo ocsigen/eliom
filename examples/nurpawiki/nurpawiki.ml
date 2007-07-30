@@ -162,7 +162,7 @@ let parse_lines sp lines =
       if wiki_page_exists page then
         a wiki_view_page sp [pcdata t] page
       else 
-        a ~a:[a_class ["missing_page"]] wiki_view_page sp [pcdata t] 
+        a ~a:[a_class ["missing_page"]] ~service:wiki_view_page ~sp [pcdata t] 
           page
     else (* External link *)
       let url = scheme^":"^page in
@@ -303,10 +303,10 @@ let wiki_page_menu_html sp page content =
      [div ~a:[a_id "akmenu"]
         [p
            [span ~a:[a_class ["nwikilogo"]] [(pcdata "NurpaWiki")];
-            a wiki_view_page 
-              ~a:[a_accesskey 'h'; a_class ["ak"]] sp 
+            a ~service:wiki_view_page 
+              ~a:[a_accesskey 'h'; a_class ["ak"]] ~sp 
               [pcdata "Home"] "WikiStart";
-            a wiki_edit_page ~a:[a_accesskey 'e'; a_class ["ak"]] sp 
+            a ~service:wiki_edit_page ~a:[a_accesskey 'e'; a_class ["ak"]] ~sp 
               [pcdata "Edit page"] page; br ()]]];
    div ~a:[a_id "content"]
      content]
