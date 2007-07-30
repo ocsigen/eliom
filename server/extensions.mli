@@ -168,8 +168,18 @@ end
 val get_config : unit -> Simplexmlparser.xml list
 
 
+(** Parsing URLs. 
+   This allows to modify the URL in the request_info.
+   (to be used for example with Ext_retry_with or Ext_continue_with)
+ *)
+val ri_of_url : string -> request_info -> request_info
+
 
 (**/**)
+
+val parse_url : string ->
+  string * Neturl.url * string list * string option *
+    (string * string) list Lazy.t
 
 val create_virthost : 
     virtual_hosts ->

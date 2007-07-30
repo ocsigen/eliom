@@ -128,64 +128,64 @@ module Http_error =
       the error ans some args*)
       exception Http_exception of int option * string list
 
-        (*this fonction provides the translation mecanisme between a code and
-        * its explanation*)
+        (* this fonction provides the translation mecanisme between a code and
+         * its explanation *)
         let expl_of_code =
           function
-            |100 -> "Continue"
-            |101 -> "Switching Protocol"
-            |200 -> "OK"
-            |201 -> "Created"
-            |202 -> "Accepted"
-            |203 -> "Non-Authoritative information"
-            |204 -> "No Content"
-            |205 -> "Reset Content"
-            |206 -> "Partial Content"
-            |300 -> "Multiple Choices"
-            |301 -> "Moved Permanently"
-            |302 -> "Found"
-            |303 -> "See Other"
-            |304 -> "Not Modified"
-            |305 -> "Use Proxy"
-            |307 -> "Moved Temporarily"
-            |400 -> "Bad Request"
-            |401 -> "Unauthorized"
-            |402 -> "Payment Required"
-            |403 -> "Forbidden"
-            |404 -> "Not Found"
-            |405 -> "Method Not Allowed"
-            |406 -> "Not Acceptable"
-            |407 -> "Proxy Authentication Required"
-            |408 -> "Request Time-out"
-            |409 -> "Conflict"
-            |410 -> "Gone"
-            |411 -> "Length Required"
-            |412 -> "Precondition Failed"
-            |413 -> "Request Entity Too Large"
-            |414 -> "Request URL Too Long"
-            |415 -> "Unsupported Media type"
-            |416 -> "Request Range Not Satisfiable"
-            |417 -> "Expectation Failed"
-            |500 -> "Internal Server Error"
-            |501 -> "Not Implemented"
-            |502 -> "Bad Gateway"
-            |503 -> "Service Unavailable"
-            |504 -> "Gateway Time-out"
-            |505 -> "Version Not Supported"
-            |_ -> raise (Http_exception (Some 500,["Bad Server Code"]))
+            | 100 -> "Continue"
+            | 101 -> "Switching Protocol"
+            | 200 -> "OK"
+            | 201 -> "Created"
+            | 202 -> "Accepted"
+            | 203 -> "Non-Authoritative information"
+            | 204 -> "No Content"
+            | 205 -> "Reset Content"
+            | 206 -> "Partial Content"
+            | 300 -> "Multiple Choices"
+            | 301 -> "Moved Permanently"
+            | 302 -> "Found"
+            | 303 -> "See Other"
+            | 304 -> "Not Modified"
+            | 305 -> "Use Proxy"
+            | 307 -> "Moved Temporarily"
+            | 400 -> "Bad Request"
+            | 401 -> "Unauthorized"
+            | 402 -> "Payment Required"
+            | 403 -> "Forbidden"
+            | 404 -> "Not Found"
+            | 405 -> "Method Not Allowed"
+            | 406 -> "Not Acceptable"
+            | 407 -> "Proxy Authentication Required"
+            | 408 -> "Request Time-out"
+            | 409 -> "Conflict"
+            | 410 -> "Gone"
+            | 411 -> "Length Required"
+            | 412 -> "Precondition Failed"
+            | 413 -> "Request Entity Too Large"
+            | 414 -> "Request URL Too Long"
+            | 415 -> "Unsupported Media type"
+            | 416 -> "Request Range Not Satisfiable"
+            | 417 -> "Expectation Failed"
+            | 500 -> "Internal Server Error"
+            | 501 -> "Not Implemented"
+            | 502 -> "Bad Gateway"
+            | 503 -> "Service Unavailable"
+            | 504 -> "Gateway Time-out"
+            | 505 -> "Version Not Supported"
+            | _ -> raise (Http_exception (Some 500,["Bad Server Code"]))
 
         let rec display_list =
             function
-              |[] -> ()
-              |hd::tl -> 
+              | [] -> ()
+              | hd::tl -> 
                   Messages.debug hd;
                   display_list tl
 
         let string_of_list l =
           let rec string_of_list_aux acc =
           function
-            |[] -> acc
-            |hd :: tl -> string_of_list_aux (acc^hd) tl
+            | [] -> acc
+            | hd :: tl -> string_of_list_aux (acc^hd) tl
           in string_of_list_aux "" l
 
         let display_http_exception =

@@ -367,6 +367,88 @@ let do_for_host_matching host port virthosts ri =
         aux ri e l
   in aux ri Serv_no_host_match virthosts
 
+(*****************************************************************************)
+
+
+(* Ces deux trucs sont dans Neturl version 1.1.2 mais en attendant qu'ils
+ soient dans debian, je les mets ici *)
+let problem_re = Pcre.regexp "[ <>\"{}|\\\\^\\[\\]`]"
+
+let fixup_url_string =
+  Netstring_pcre.global_substitute
+    problem_re
+    (fun m s ->
+       Printf.sprintf "%%%02x" 
+        (Char.code s.[Netstring_pcre.match_beginning m]))
+;;
+
+let parse_url url =
+  
+  let url = fixup_url_string url in
+  
+  let url2 = 
+    (Neturl.parse_url 
+       ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
+       (* ~accept_8bits:true *)
+       (* Neturl.fixup_url_string url *)
+       url)
+  in
+  
+(*    let path = 
+   (Neturl.string_of_url
+   (Neturl.remove_from_url 
+   ~param:true
+   ~query:true 
+   ~fragment:true 
+   url2)) in *)
+  
+  let params = 
+    try
+      Some (Neturl.url_query ~encoded:true url2)
+    with _ -> None
+        (* Neturl.string_of_url
+           (Neturl.remove_from_url
+           ~user:true
+           ~user_param:true
+           ~password:true
+           ~host:true
+           ~port:true
+           ~path:true
+           ~other:true
+           url2) *) 
+  in
+  
+  let get_params = 
+    lazy 
+      (let params_string = 
+        try
+          Neturl.url_query ~encoded:true url2
+        with Not_found -> ""
+      in
+      Netencoding.Url.dest_url_encoded_parameters params_string)
+  in
+  let path =
+    (Ocsimisc.remove_dotdot 
+       (Ocsimisc.remove_slash_at_beginning (Neturl.url_path url2)))
+      (* here we remove .. from paths, at it is dangerous.
+         But in some very particular cases, we may want them?
+         I prefer forbid that.
+       *)
+  in
+  (url, url2, path, params, get_params)
+    
+
+let ri_of_url url ri =
+  let (url, url2, path, params, get_params) = parse_url url in
+  {ri with
+   ri_url_string = url;
+   ri_url = url2;
+   ri_path_string = string_of_url_path path;
+   ri_path = path;
+   ri_get_params_string = params;
+   ri_get_params = get_params;
+ }
+
 
 (*****************************************************************************)
 (* This is used by server.ml. 

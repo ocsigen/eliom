@@ -544,38 +544,77 @@ let gen pages_tree charset ri =
          (* cgi pages have parameters *)
        then begin
          Messages.debug ("--Cgimod: Is it a cgi file?");
-        let (filename, re) =
-          find_cgi_page pages_tree ri.ri_path
-        in 
-	recupere_cgi pages_tree re filename ri >>= fun frame ->
-	get_header frame >>= fun header -> 
-	get_content frame >>= fun content -> 
-        (try 
-          return
-            (Some
-               (int_of_string
-                  (String.sub 
-                     (Http_frame.Http_header.get_headers_value header "Status")
-                     0 3)))
-        with 
-        | Not_found -> return None
-        | _ -> fail (CGI_Error 
-                       (Failure "Bad Status line in header"))
-        ) >>= fun code ->
-        return
-	    (Ext_found
-               {res_cookies= [];
-		res_send_page= 
-		Predefined_senders.send_stream_page 
-		  ?contenttype:None ~content:(fun () -> content);
-		res_headers=
-                List.filter
-                  (fun (h,_) -> (String.lowercase h) != "status")
-                  header.Http_header.headers;
-		res_code= code;
-		res_lastmodified= None;
-		res_etag= None;
-		res_charset= None})
+         let (filename, re) =
+           find_cgi_page pages_tree ri.ri_path
+         in 
+	 recupere_cgi pages_tree re filename ri >>= fun frame ->
+	   get_header frame >>= fun header -> 
+           get_content frame >>= fun content -> 
+           (try 
+             return
+               (Some
+                  (int_of_string
+                     (String.sub 
+                        (Http_frame.Http_header.get_headers_value 
+                           header "Status")
+                        0 3)))
+           with 
+           | Not_found -> return None
+           | _ -> fail (CGI_Error 
+                          (Failure "Bad Status line in header"))
+           ) >>= fun code ->
+             try
+               if code <> None
+               then raise Not_found
+               else 
+                 let loc =
+                   Http_frame.Http_header.get_headers_value header "Location"
+                 in
+                 (try
+                   ignore (Neturl.extract_url_scheme loc);
+                   return
+                     (Ext_found
+                        {res_cookies= [];
+                         res_lastmodified= None;
+                         res_etag= None;
+                         res_code= Some 301; (* Moved permanently *)
+                         res_send_page= 
+                         (fun ?cookies waiter ~clientproto ?code
+                             ?etag ~keep_alive ?last_modified ?location
+                             ?head ?headers ?charset s ->
+                               Predefined_senders.send_empty
+                                 ~content:() 
+                                 ?cookies
+                                 waiter 
+                                 ~clientproto
+                                 ?code
+                                 ?etag ~keep_alive
+                                 ?last_modified 
+                                 ~location:loc
+                                 ?head ?headers ?charset s);
+                         res_headers= [];
+                         res_charset= None
+                       })
+                 with 
+                 | Neturl.Malformed_URL -> 
+                     return (Ext_retry_with ((ri_of_url loc ri), []))
+                 )
+             with
+             | Not_found ->
+                 return
+	           (Ext_found
+                      {res_cookies= [];
+		       res_send_page= 
+		       Predefined_senders.send_stream_page 
+		         ?contenttype:None ~content:(fun () -> content);
+		       res_headers=
+                       List.filter
+                         (fun (h,_) -> (String.lowercase h) <> "status")
+                         header.Http_header.headers;
+		       res_code= code;
+		       res_lastmodified= None;
+		       res_etag= None;
+		       res_charset= None})
        end
        else return (Ext_not_found Ocsigen_404))
     (function
