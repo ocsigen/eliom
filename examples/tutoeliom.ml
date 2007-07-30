@@ -2353,7 +2353,7 @@ let form_bool = register_new_service ["formbool"] unit
 
 
 (*html*
-      <p>$a formbool sp <:xmllist< Try it >> ()$.</p>
+      <p>$a Tutoeliom.form_bool sp <:xmllist< Try it >> ()$.</p>
 
       <p><em>Important warning:</em> 
         As you can see, browsers do not send any value

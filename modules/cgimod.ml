@@ -261,12 +261,17 @@ let array_environment pages_tree filename re ri =
     | Http_header.Query (meth, _) -> Framepp.string_of_method meth
     | _ -> raise Ocsimisc.Ocsigen_Bad_Request
   in 
-   (* Rule : the header lines received from the client, if any, are placed into the 
-    * environment with the prefix HTTP_ followed by the header name. Any - characters 
-    * in the header name are changed to _ characters. The server may exclude any 
-    * headers which it has already processed, such as Authorization, Content-type, and 
-    * Content-length. If necessary, the server may choose to exclude any or all of 
-    * these headers if including them would exceed any system environment limits. *)
+
+   (* Rule  : the header lines  received from the client,  if any, are
+   placed into the * environment with the prefix HTTP_ followed by the
+   header name. Any - characters * in the header name are changed to _
+   characters.  The server  may exclude  any  * headers  which it  has
+   already  processed,  such  as  Authorization, Content-type,  and  *
+   Content-length. If necessary, the  server may choose to exclude any
+   or all of * these headers if including them would exceed any system
+   environment limits. *)
+
+
   let additionnal_headers =
     let headers = 
       List.filter 
@@ -545,14 +550,29 @@ let gen pages_tree charset ri =
 	recupere_cgi pages_tree re filename ri >>= fun frame ->
 	get_header frame >>= fun header -> 
 	get_content frame >>= fun content -> 
-	  return
+        (try 
+          return
+            (Some
+               (int_of_string
+                  (String.sub 
+                     (Http_frame.Http_header.get_headers_value header "Status")
+                     0 3)))
+        with 
+        | Not_found -> return None
+        | _ -> fail (CGI_Error 
+                       (Failure "Bad Status line in header"))
+        ) >>= fun code ->
+        return
 	    (Ext_found
                {res_cookies= [];
 		res_send_page= 
-		   Predefined_senders.send_stream_page 
-		     ?contenttype:None ~content:(fun () -> content);
-		res_headers=header.Http_header.headers;
-		res_code= None; (* 200 by default *)
+		Predefined_senders.send_stream_page 
+		  ?contenttype:None ~content:(fun () -> content);
+		res_headers=
+                List.filter
+                  (fun (h,_) -> (String.lowercase h) != "status")
+                  header.Http_header.headers;
+		res_code= code;
 		res_lastmodified= None;
 		res_etag= None;
 		res_charset= None})
