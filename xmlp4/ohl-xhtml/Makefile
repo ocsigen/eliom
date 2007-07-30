@@ -18,13 +18,23 @@
 #
 ########################################################################
 
+include ../../Makefile.config
+
 SED = sed
 RM = rm
 MV = mv
 DIFF = diff
 
-OCAMLC = ocamlc
-OCAMLOPT = ocamlopt
+ifeq "$(PROFILING)" "YES"
+CAMLCNAME2= $(CAMLCPNAME)
+else
+CAMLCNAME2= $(CAMLCNAME)
+endif
+
+
+LIB = -package netstring
+OCAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
+OCAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 
 DOLLAR = $$
 

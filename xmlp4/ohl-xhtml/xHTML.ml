@@ -1074,7 +1074,7 @@ module type T =
     val toelt : 'a elt -> XML.elt
     val toeltl : 'a elt list -> XML.elt list
 
-    val cdata_to_pcdata : string -> [`PCDATA] elt (* GK *)
+    val cdata_script : string -> [`PCDATA] elt (* GK *)
 
     val ocsigen_print : 
         ?width:int -> ?encode:(string -> string) -> [ `Html ] elt -> string
@@ -1847,11 +1847,14 @@ module Version =
     let toelt x = x
     let toeltl x = x
 
-    let cdata_to_pcdata s = (* GK *)
-      let s' = "\n//<![CDATA[\n"^s^"\n//]]>\n" in
+    let cdata_script s = (* GK *)
+      let s' = "\n//<![CDATA[\n"^
+        (Netstring_pcre.global_replace 
+           (Netstring_pcre.regexp_string "]]>") "" s)
+        ^"\n//]]>\n" in
       XML.EncodedPCDATA s'
     
-	let ocsigen_print version ?width ?encode arbre =
+    let ocsigen_print version ?width ?encode arbre =
       XML.xh_print ?width ?encode blocktags semiblocktags (doctype version) arbre
 
     let ocsigen_xprint version ?width ?encode foret =
