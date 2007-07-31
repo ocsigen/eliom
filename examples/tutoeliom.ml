@@ -1113,11 +1113,20 @@ wakeup w "HELLO");
         </li>
         <li>GET coservices (whithout POST parameters) can be registered
         only with a main service without GET/POST parameters as fallback.
-        But it may be a preapplied service.
+        But it may be a <em>preapplied</em> service (see below).
         </li>
         <li>Services with POST parameters (main service or coservice) 
         can be registered with a (main or co) service without POST
         parameters as fallback.</li>
+        <li>The registration of (main) services must be terminated before 
+          the end of the loading of the module. It not possible to launch 
+          a (Lwt) thread that will register a service later, as
+          registering a service needs access to config file 
+          information (for example the directory of the site).
+          If you use threads in the initialization pahse of your module 
+          (for example if you need informations from a database), 
+          use <code>Lwt_unix.run</code> to wait the end of the thread.
+        </li>
       </ul>
 
 
@@ -1466,7 +1475,8 @@ let _ =
         <p>Coservices allow to create dynamically 
         new continuations that depend on previous interactions with users. 
         Such a behaviour is difficult to simulate with traditional Web
-        programming. If you want continuations dedicated to a particular user
+        programming.</p>
+        <p>If you want continuations dedicated to a particular user
         register them in the session table.</p>
       </div>
       <h3>Non-attached coservices</h3>
@@ -1481,7 +1491,7 @@ let _ =
        POST non-attached coservices are really usefull if you want a
        link or form to be present on every page but you don't want the
        URL to change. Very often, POST coservices are used with <em>actions</em>
-       (see below).
+       (see an example in the section about actions below).
        </p>
     </div>
     <h2>Coservices in session tables</h2>
@@ -1667,7 +1677,9 @@ let _ =
      <code><span class="Cem">Actions.register_for_session</span></code>.<br/>
       </p>
       <p>Here we rewrite the example <code>data</code> using actions
-      (and a POST coservice for disconnection).</p>
+      and non-attached coservices
+      (note the POST coservice for disconnection, much better than the
+      previous solution that was using another URL).</p>
 *html*)
 let action_session = 
   new_service ~url:["action"] ~get_params:unit ()
@@ -1814,14 +1826,16 @@ let sendany =
          (Xhtml.send sp
            (html
              (head (title (pcdata "")) [])
-             (body [p [pcdata "This page has been statically typechecked. \
-                               If you change the parameter in the URL you \
-                               will get an unchecked text page"]])))
+             (body [p [pcdata 
+                         "This page has been statically typechecked. \
+                         If you change the parameter in the URL you \
+                         will get an unchecked text page"]])))
      else 
        return
-         (HtmlText.send sp "<html><body><p>It is not a valid page. Put \
-                     type=\"valid\" in the URL to get a typechecked page.\
-                     </p></body></html>")
+         (HtmlText.send sp 
+            "<html><body><p>It is not a valid page. Put \
+            type=\"valid\" in the URL to get a typechecked page.\
+            </p></body></html>")
    )
 (*html*
       <p>
@@ -1837,7 +1851,8 @@ let sendany =
      <h3>Cookies</h3>
      <p>
       You can set cookies on the client, by using functions like
-      <code>Cookies.register</code> instead of <code>register</code>.
+      <code>Eliom.Xhtml.Cookies.register</code> instead of 
+      <code>Eliom.Xhtml.register</code>.
       The function you register returns a pair containing the page as usual
       and a list of cookies, of type
       </p>
@@ -2030,16 +2045,17 @@ set_user_timeout sp (Some 7200.)
       Note that there is also a possibility to change the default value
       for Eliom in the configuration file like this:</p>
 <pre>
-    &lt;dynlink module="<em>path_to</em>/eliom.cma"&gt;
+    &lt;extension module="<em>path_to</em>/eliom.cma"&gt;
       &lt;timeout value="7200"/&gt;
-    &lt;/dynlink&gt;
+    &lt;/extension&gt;
 </pre>
      <p><code>value="infinity"</code> means no timeout.</p>
      <p>Warning: that default may be overriden by each site using 
         <code>set_global_timeout</code>.
         If you want your user to be able to set the default in the 
-        configuration file for your site, you must parse the configuration
-        (<code>Eliom.get_config ()</code> function).
+        configuration file for your site (between <code>&lt;site&gt;</code>
+        and <code>&lt;/site&gt;</code>), you must parse the configuration
+        (<code>Eliom.get_config ()</code> function, see below).
      </p>
     </div>
     <div class="twocol2">
@@ -2048,7 +2064,7 @@ set_user_timeout sp (Some 7200.)
       the optional parameter <code>?timeout</code> of functions
       <code>new_coservice</code>,
       <code>new_coservice'</code>, etc.
-     Note that coservices cannot survive after the end of the session.
+     Note that session coservices cannot survive after the end of the session.
      Use this if you don't want your coservice to be available during all the
      session duration. For example if your coservice is here to show the 
      results of a search, you probably want it to be available only for
@@ -2085,14 +2101,19 @@ let _ =
       <p>
       See this example $a Tutoeliom.timeout sp <:xmllist< here >> ()$.
       </p>
-     <h3>registering coservices in public table during session</h3>
-     <p>It is not possible to register coservices in the
-     public table during session using <code>register</code>, as this function
-     is available only during initialisation of your module.
-     But you can do it after initialisation <code>register</code>,
-     with <code>~sp</code> parameter.
+     <h3>Registering coservices in public table during session</h3>
+     <p>If you want to register coservices in the
+     public table during session, (that is, after the initialisation 
+     phase of your module), you must add the optional <code>~sp</code> 
+     parameter to the <code>register</code> function.
+     Remember that using <code>register</code> without <code>~sp</code>
+     is possible only during initialisation!
+     </p>
+     <p>
      We recommend to put a timeout on such coservices, otherwise, they
      will be available until the end of the server process.
+     </p>
+     <p>
      The following example is a translation of the previous one using
      the public table:
      </p>
@@ -2132,7 +2153,8 @@ let _ =
      or when the page has not been found or has wrong parameters,
      an HTTP error 500 or 404 is sent to the client. You may want to
      catch these exceptions to print your own error page.
-     Do this using <code>set_exn_handler</code>. For example:
+     Do this using <code>set_exn_handler</code>.
+     Here is the handler used by this tutorial:
      </p>
 *html*)
 let _ = set_exn_handler 
@@ -2177,14 +2199,17 @@ let _ = set_exn_handler
       <p>Note that Ocsigen now allows to reload the modules without
        stoping the server (use <code>/etc/init.d/ocsigen reload</code>
        for most of the distributions, or manually by 
-       <code>echo reload > /var/run/ocsigen_command</code>.
+       <code>echo reload > /var/run/ocsigen_command</code>).
       </p>
       <p>
         Eliom allows to use more persistent data, using the module
-        <code>Ocsipersist</code>. (<code>Ocsipersist</code> is linked in 
-        <code>eliom.cma</code>, thus you don't need to dynlink yourself in the
-        configuration file, but if you want to use it without 
-        <code>Eliom</code>).
+        <code>Ocsipersist</code>. (<code>Ocsipersist</code> is needed in 
+        <code>eliom.cma</code>, thus you need to dynlink it in the
+        configuration file before <code>Eliom</code>).
+        There are currently two implementations of <code>Ocsipersist</code>:
+        <code>ocsipersist-dbm.cma</code> and
+        <code>ocsipersist-sqlite.cma</code> (that depends on 
+        <code>sqlite3.cma</code>).
       </p>
       <p>Note that persistent data are serialized on hard disk using
         OCaml's <code>Marshal</code> module. 
@@ -2230,7 +2255,7 @@ let count2 =
       </p>
       <h3>Persistent tables</h3>
       <p><code>Ocsipersist</code> also allows to create very basic
-       persistent tables. use them if you don't need complex requests
+       persistent tables. Use them if you don't need complex requests
        on your tables. Otherwise use a database such as <code>PostgreSQL</code>
        or <code>MySQL</code>. Here are the interface you can use:
       </p>
@@ -2555,7 +2580,7 @@ let coucou_list = register_new_service
       <p>
    Here is an example of link towards this service:
    $a Tutoeliom.coucou_list sp 
-   <:xmllist< coucou?a.entier[0]=6&a.entier[1]=7 >> [6; 7]$.
+   <:xmllist< coucou?a.str[0]=toto&a.str[1]=titi >> ["toto"; "titi"]$.
       </p>
    <p>
    <em>Warning:</em>
