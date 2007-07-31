@@ -494,6 +494,12 @@ struct
 end
 
 
+let code_with_empty_content code =
+  (code > 99 && code < 200) ||
+  (code = 204) ||
+  (code = 205) ||
+  (code = 304)
+    (* Others??? *)
 
 
 type s_http_mode = Answer | Query | Nofirstline
@@ -582,13 +588,8 @@ module FHttp_receiver =
  *)
                 
                 (match header.Http_header.mode with
-                | Http_header.Answer code when 
-                    (code > 99 && code < 200) ||
-                    (code = 204) ||
-                    (code = 205) ||
-                    (code = 304)
-                      (* Others??? *)
-                    -> return ((return ()), None)
+                | Http_header.Answer code when code_with_empty_content code ->
+                    return ((return ()), None)
                 | _ ->
 
 (*  RFC  
@@ -768,17 +769,18 @@ module FHttp_sender =
       let rec aux beg beginning_of_chunk = function
           | Finished _ -> 
               (if chunked
-              then Lwt_unix.output_string out_ch 
+              then 
+                Lwt_unix.output_string out_ch 
                   (Printf.sprintf"%s0\r\n\r\n" beg) >>= fun () ->
-                    Lwt_unix.flush out_ch
+                Lwt_unix.flush out_ch
               else return ()) >>= fun () ->
-              Messages.debug "write finished (closing stream)"; 
-              (try 
-                close_fun () 
-              with _ -> 
-                Messages.debug
-                  "Error while closing stream (at end of stream)");
-              Lwt.return ()
+                Messages.debug "write finished (closing stream)"; 
+                (try 
+                  close_fun () 
+                with _ -> 
+                  Messages.debug
+                    "Error while closing stream (at end of stream)");
+                Lwt.return ()
           | Cont (s, l, next) ->
               if l>0
               then
@@ -786,13 +788,14 @@ module FHttp_sender =
                   (if chunked && beginning_of_chunk
                   then
                     Lwt_unix.output_string out_ch 
-                      (Printf.sprintf"%s%x\r\n" beg l)
-                      >>= fun () -> Lwt_unix.flush out_ch
+                      (Printf.sprintf"%s%x\r\n" beg l) >>= fun () -> 
+                    Lwt_unix.flush out_ch
                   else return ()) >>= fun () ->
                     Lwt_unix.write out_descr s 0 l >>= fun len' ->
                       if l = len'
                       then next () >>= aux cr true
-                      else return 
+                      else
+                        return 
                           (new_stream (String.sub s len' (l-len')) next) >>=
                         aux cr false
               else next () >>= aux cr true
@@ -934,14 +937,23 @@ module FHttp_sender =
         match content with
         | None -> Lwt.return ()
         | Some c -> 
+            let empty_content =
+              match mode with
+              | H.Nofirstline -> false
+              | H.Answer code -> code_with_empty_content code
+              | H.Query _ -> false
+            in
             (C.stream_of_content c >>=
              (* Here the stream is opened *)
              (fun (lon, etag2, flux, close_fun) ->
                catch
                  (fun () ->
-                   let chunked = (lon=None && 
-                                  clientproto <> 
-                                  Http_frame.Http_header.HTTP10) in
+                   let chunked = 
+                     (lon=None && 
+                      clientproto <> 
+                      Http_frame.Http_header.HTTP10 &&
+                      not empty_content
+                     ) in
                    (* if HTTP/1.0 we do not use chunked encoding
                       even if the client tells that it supports it,
                       because it may be an HTTP/1.0 proxy that
@@ -967,15 +979,19 @@ module FHttp_sender =
                        (new_stream (Framepp.string_of_header hd)
                           (fun () -> 
                             Lwt.return (empty_stream None)))) >>=
-                   (fun _ -> match head with 
-                   | Some true -> Lwt.return (close_fun ())
-                   | _ -> Messages.debug "writing body"; 
-                       really_write ~chunked:chunked sender.s_fd close_fun flux
-                         >>= fun r ->
-                           if (lon=None && 
-                               clientproto = Http_frame.Http_header.HTTP10)
-                           then fail MustClose
-                           else return r
+                   (fun _ -> 
+                     if empty_content || (head = Some true)
+                     then Lwt.return (close_fun ())
+                     else begin
+                       Messages.debug "writing body"; 
+                       really_write
+                         ~chunked:chunked 
+                         sender.s_fd close_fun flux >>= fun r ->
+                       if (lon=None && 
+                           clientproto = Http_frame.Http_header.HTTP10)
+                       then fail MustClose
+                       else return r
+                     end
                    )
                  )
                  (function
