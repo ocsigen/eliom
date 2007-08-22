@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** this module provide a mecanisme to comunicate with some htttp frames*)
+(** this module provide a mecanisme to comunicate with some http frames *)
 open Http_frame
 open Lwt
 open Ocsistream
@@ -756,7 +756,7 @@ module FHttp_sender =
     module PP = Framepp.Fframepp(C)
 
 
-(*    (*fonction de dump pour le debuggage*)
+(*    (* fonction de dump pour le débogage *)
     let dump str file =
       let out_chan = open_out file in
       output_string out_chan str;
@@ -973,6 +973,7 @@ module FHttp_sender =
                      really_write out_ch (fun () -> ())
                        (new_stream (Framepp.string_of_header hd)
                           (fun () -> 
+                            Lwt_unix.flush out_ch >>= fun () ->
                             Lwt.return (empty_stream None)))) >>=
                    (fun _ -> 
                      if empty_content || (head = Some true)

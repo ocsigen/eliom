@@ -182,6 +182,10 @@ let change_request_info ri charset =
     in
     return 
       ({ri with 
+        ri_method = 
+        (if ri.ri_method = Http_frame.Http_header.HEAD
+        then Http_frame.Http_header.GET
+        else ri.ri_method);
         ri_get_params = lazy get_params; 
         ri_post_params = lazy (return post_params)},
        {si_cookie= ref cookie;
@@ -1393,7 +1397,7 @@ let gen page_tree charset ri =
 
 
           match result_to_send with
-            EliomExn (exnlist, cookies_set_by_page) -> 
+          | EliomExn (exnlist, cookies_set_by_page) -> 
                      (* It is an action, we reload the page.
                         We retry without POST params.
                         If no post poaram at all, we retry

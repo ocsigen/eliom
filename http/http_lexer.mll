@@ -29,18 +29,19 @@ let proto =['h' 'H'] ['t' 'T'] ['t' 'T'] ['p' 'P'] '/' integer '.' integer
 
 rule token =
   parse
-  |blank                {Messages.debug_noel " ";token lexbuf}
-  |"GET"                {Messages.debug_noel "GET";METHOD "GET"}
-  |"POST"               {Messages.debug_noel "POST";METHOD "POST"}
-  |"HEAD"               {METHOD "HEAD"}
-  |"PUT"                {METHOD "PUT"}
-  |"DELETE"             {METHOD "DELETE"}
-  |"TRACE"              {METHOD "TRACE"}
-  |"OPTIONS"            {METHOD "OPTIONS"}
-  |"CONNECT"            {METHOD "CONNECT"}
-  |"LINK"               {METHOD "LINK"}
-  |"UNLINK"             {METHOD "UNLINK"}
-  |"PATCH"              {METHOD "PATCH"}
+  |blank                {Messages.debug_noel " "; token lexbuf}
+  |"GET"                
+  |"POST"               
+  |"HEAD"               
+  |"PUT"                
+  |"DELETE"             
+  |"TRACE"              
+  |"OPTIONS"            
+  |"CONNECT"            
+  |"LINK"               
+  |"UNLINK"             
+  |"PATCH"              {Messages.debug_noel (Lexing.lexeme lexbuf); 
+                         METHOD (Lexing.lexeme lexbuf)}
   |"\r\n"               {Messages.debug ""; EOL}
   |":"                  {Messages.debug_noel ":";COLON}
   |"\n"                 {Messages.debug ""; EOL}

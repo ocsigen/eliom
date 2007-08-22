@@ -355,7 +355,7 @@ let suffix_prod (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type)
   (Obj.magic (TProd (Obj.magic (TSuffix s), Obj.magic t)))
 
 let contains_suffix = function
-    TProd((TSuffix _),_)
+  | TProd((TSuffix _),_)
   | TSuffix _ -> true
   | _ -> false
 
@@ -364,18 +364,18 @@ let contains_suffix = function
 let make_list_suffix i = "["^(string_of_int i)^"]"
 
 let add_to_string s1 sep = function
-    "" -> s1
+  | "" -> s1
   | s2 -> s1^sep^s2
 
 let concat_strings s1 sep s2 = match s1,s2 with
-  _,"" -> s1
+| _,"" -> s1
 | "",_ -> s2
 | _ -> s1^sep^s2
 
 (* The following function reconstructs the value of parameters
    from expected type and GET or POST parameters *)
 type 'a res_reconstr_param = 
-    Res_ of ('a * 
+  | Res_ of ('a * 
                (string * string) list * 
                (string * file_info) list)
   | Errors_ of ((string * exn) list *
@@ -401,11 +401,11 @@ let reconstruct_params
           match aux t lp fl pref (suff^(make_list_suffix i)) with
           | Res_ (v,lp2,f) ->
               (match aa (i+1) lp2 f pref suff with
-                Res_ (v2,lp3,f2) -> Res_ ((Obj.magic (v::v2)),lp3,f2)
+              | Res_ (v2,lp3,f2) -> Res_ ((Obj.magic (v::v2)),lp3,f2)
               | err -> err)
           | Errors_ (errs, l, f) ->
               (match aa (i+1) l f pref suff with
-                Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
+              | Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
               | Errors_ (errs2, ll, ff) -> Errors_ ((errs@errs2), ll, ff))
         with Not_found -> Res_ ((Obj.magic []), lp, files)
     in 
