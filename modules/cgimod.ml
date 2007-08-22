@@ -361,6 +361,7 @@ let recupere_cgi pages_tree re filename ri =
     Unix.set_nonblock post_in;
     Unix.set_nonblock cgi_out;
     Unix.set_nonblock err_out;
+    let post_in_ch = Lwt_unix.out_channel_of_descr (Lwt_unix.Plain post_in) in
 
     (* Launch the CGI script *)
     let pid = create_process_cgi 
@@ -378,7 +379,7 @@ let recupere_cgi pages_tree re filename ri =
       (match ri.ri_http_frame.Stream_http_frame.content with
       | None -> return ()
       | Some content_post -> 
-          Stream_sender.really_write (Lwt_unix.Plain post_in) 
+          Stream_sender.really_write post_in_ch
             Ocsimisc.id (content_post ()));
 
     (* A thread listening the error output of the CGI script 

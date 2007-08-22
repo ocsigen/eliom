@@ -160,7 +160,7 @@ module Empty_sender :
       end
     val really_write :
         ?chunked:bool ->
-      Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
+      Lwt_unix.lwt_out_channel -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool
@@ -236,7 +236,7 @@ module Xhtml_sender :
       end
     val really_write :
         ?chunked:bool ->
-      Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
+      Lwt_unix.lwt_out_channel -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool
@@ -322,7 +322,7 @@ module Text_sender :
       end
     val really_write :
         ?chunked:bool ->
-      Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
+      Lwt_unix.lwt_out_channel -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool
@@ -446,7 +446,7 @@ module File_sender :
       end
     val really_write :
         ?chunked:bool ->
-      Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
+      Lwt_unix.lwt_out_channel -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool
@@ -522,7 +522,7 @@ module Stream_sender :
       end
     val really_write :
         ?chunked:bool ->
-      Lwt_unix.descr -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
+      Lwt_unix.lwt_out_channel -> (unit -> unit) -> Ocsistream.stream -> unit Lwt.t
     val non_case_equality : string -> string -> bool
     val non_case_compare : string -> string -> int
     val pair_order : string * string -> string * string -> bool

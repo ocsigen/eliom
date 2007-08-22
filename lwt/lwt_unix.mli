@@ -62,6 +62,7 @@ val really_input : lwt_in_channel -> string -> int -> int -> unit Lwt.t
 val output_binary_int : lwt_out_channel -> int -> unit Lwt.t
 val output_value : lwt_out_channel -> 'a -> unit Lwt.t
 val output_string : lwt_out_channel -> string -> unit Lwt.t
+val output : lwt_out_channel -> string -> int -> int -> unit Lwt.t
 val flush : lwt_out_channel -> unit Lwt.t
 
 val open_process_in: string -> lwt_in_channel Lwt.t

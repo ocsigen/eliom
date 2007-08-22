@@ -363,6 +363,11 @@ let rec unsafe_output oc buf pos len =
 let output_string oc s =
   unsafe_output oc s 0 (String.length s)
 
+let output oc s ofs len =
+  if ofs < 0 || len < 0 || ofs > String.length s - len
+  then invalid_arg "output"
+  else unsafe_output oc s ofs len
+
 let rec output_binary_int oc i =
   try
     Lwt.return (Pervasives.output_binary_int oc i)

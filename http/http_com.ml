@@ -762,17 +762,15 @@ module FHttp_sender =
       output_string out_chan str;
       close_out out_chan 
 *)
-    (*fonction d'écriture sur le réseau*)
-    let really_write ?(chunked=false) out_descr close_fun stream = 
+    (* fonction d'écriture sur le réseau *)
+    let really_write ?(chunked=false) out_ch close_fun stream = 
       let cr = "\r\n" in
-      let out_ch = Lwt_unix.out_channel_of_descr out_descr in
-      let rec aux beg beginning_of_chunk = function
+      let rec aux beg = function
           | Finished _ -> 
               (if chunked
               then 
                 Lwt_unix.output_string out_ch 
-                  (Printf.sprintf"%s0\r\n\r\n" beg) >>= fun () ->
-                Lwt_unix.flush out_ch
+                  (Printf.sprintf"%s0\r\n\r\n" beg)
               else return ()) >>= fun () ->
                 Messages.debug "write finished (closing stream)"; 
                 (try 
@@ -785,22 +783,18 @@ module FHttp_sender =
               if l>0
               then
                 Lwt_unix.yield () >>= fun () ->
-                  (if chunked && beginning_of_chunk
+                  (if chunked
                   then
                     Lwt_unix.output_string out_ch 
                       (Printf.sprintf"%s%x\r\n" beg l) >>= fun () -> 
                     Lwt_unix.flush out_ch
                   else return ()) >>= fun () ->
-                    Lwt_unix.write out_descr s 0 l >>= fun len' ->
-                      if l = len'
-                      then next () >>= aux cr true
-                      else
-                        return 
-                          (new_stream (String.sub s len' (l-len')) next) >>=
-                        aux cr false
-              else next () >>= aux cr true
+                    Lwt_unix.output out_ch s 0 l >>= 
+                    next >>= 
+                    aux cr
+              else next () >>= aux cr
       in catch
-        (fun () -> aux "" true stream)
+        (fun () -> aux "" stream)
         (function
             Unix.Unix_error (Unix.EPIPE, _, _)
           | Unix.Unix_error (Unix.ECONNRESET, _, _) 
@@ -931,6 +925,7 @@ module FHttp_sender =
          If we don't want to wait, use waiter = return ()
        *)
 
+      let out_ch = Lwt_unix.out_channel_of_descr sender.s_fd in
       waiter >>=
       (fun () ->
         let prot = match proto with None -> sender.s_proto | Some p -> p in
@@ -975,7 +970,7 @@ module FHttp_sender =
                        H.headers = hds;
                      } in
                      Messages.debug "writing header";
-                     really_write sender.s_fd (fun () -> ())
+                     really_write out_ch (fun () -> ())
                        (new_stream (Framepp.string_of_header hd)
                           (fun () -> 
                             Lwt.return (empty_stream None)))) >>=
@@ -986,7 +981,8 @@ module FHttp_sender =
                        Messages.debug "writing body"; 
                        really_write
                          ~chunked:chunked 
-                         sender.s_fd close_fun flux >>= fun r ->
+                         out_ch close_fun flux >>= fun r ->
+                       Lwt_unix.flush out_ch >>= fun () ->
                        if (lon=None && 
                            clientproto = Http_frame.Http_header.HTTP10)
                        then fail MustClose
