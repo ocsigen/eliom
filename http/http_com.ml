@@ -773,25 +773,24 @@ module FHttp_sender =
                   (Printf.sprintf"%s0\r\n\r\n" beg)
               else return ()) >>= fun () ->
                 Messages.debug "write finished (closing stream)"; 
-                (try 
-                  close_fun () 
-                with _ -> 
-                  Messages.debug
-                    "Error while closing stream (at end of stream)");
-                Lwt.return ()
+                (catch
+                   close_fun
+                   (fun _ -> 
+                     Messages.debug
+                       "Error while closing stream (at end of stream)";
+                     Lwt.return ()))
           | Cont (s, l, next) ->
               if l>0
               then
                 Lwt_unix.yield () >>= fun () ->
-                  (if chunked
-                  then
-                    Lwt_unix.output_string out_ch 
-                      (Printf.sprintf"%s%x\r\n" beg l) >>= fun () -> 
-                    Lwt_unix.flush out_ch
-                  else return ()) >>= fun () ->
-                    Lwt_unix.output out_ch s 0 l >>= 
-                    next >>= 
-                    aux cr
+                (if chunked
+                then
+                  Lwt_unix.output_string out_ch 
+                    (Printf.sprintf"%s%x\r\n" beg l)
+                else return ()) >>= fun () ->
+                Lwt_unix.output out_ch s 0 l >>= fun () ->
+                next () >>= fun a ->
+                aux cr a
               else next () >>= aux cr
       in catch
         (fun () -> aux "" stream)
@@ -970,20 +969,24 @@ module FHttp_sender =
                        H.headers = hds;
                      } in
                      Messages.debug "writing header";
-                     really_write out_ch (fun () -> ())
+                     really_write out_ch return
                        (new_stream (Framepp.string_of_header hd)
                           (fun () -> 
-                            Lwt_unix.flush out_ch >>= fun () ->
                             Lwt.return (empty_stream None)))) >>=
                    (fun _ -> 
+                     let close_fun2 () =
+                       Lwt_unix.flush out_ch >>= fun () ->
+                         return (close_fun ())
+                     in
                      if empty_content || (head = Some true)
-                     then Lwt.return (close_fun ())
+                     then close_fun2 ()
                      else begin
                        Messages.debug "writing body"; 
                        really_write
                          ~chunked:chunked 
-                         out_ch close_fun flux >>= fun r ->
-                       Lwt_unix.flush out_ch >>= fun () ->
+                         out_ch 
+                         close_fun2
+                         flux >>= fun r ->
                        if (lon=None && 
                            clientproto = Http_frame.Http_header.HTTP10)
                        then fail MustClose

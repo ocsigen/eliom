@@ -95,7 +95,7 @@ let wrap_syscall queue fd cont syscall =
     Some v ->
       queue := List.remove_assoc fd !queue;
       Lwt.wakeup cont v
-  | None ->
+ | None ->
       ()
 
 let rec run thread =
@@ -187,7 +187,7 @@ let rec run thread =
                 wrap_syscall outputs fd res
                   (fun () -> ignore (Unix.getpeername (fd_of_descr fd)))
            | `Wait res ->
-                wrap_syscall inputs fd res (fun () -> ()))
+                wrap_syscall outputs fd res (fun () -> ()))
         writers;
       if !child_exited then begin
         child_exited := false;

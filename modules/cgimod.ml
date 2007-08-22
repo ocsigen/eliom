@@ -380,7 +380,8 @@ let recupere_cgi pages_tree re filename ri =
       | None -> return ()
       | Some content_post -> 
           Stream_sender.really_write post_in_ch
-            Ocsimisc.id (content_post ()));
+            return (content_post ()) >>= fun () ->
+          Lwt_unix.flush post_in_ch);
 
     (* A thread listening the error output of the CGI script 
        and writing them in warnings.log *)
