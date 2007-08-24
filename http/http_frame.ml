@@ -35,10 +35,12 @@ module type HTTP_CONTENT =
     (** convert a string into the content type *)
     val content_of_stream : stream -> t Lwt.t
 
-    (** convert a content type into a thread returning its size,etag,stream*)
+    (** convert a content type into a thread returning its
+       size, etag, stream, closing function *)
     val stream_of_content : t -> 
-      (int64 option * etag * stream * (unit -> unit)) Lwt.t
-        (* unit -> unit is the close function for the stream *)
+      (int64 option * etag * stream * (unit -> unit Lwt.t)) Lwt.t
+        (* unit -> unit is a function that will be called 
+           at the end of the stream (for ex for closing file) *)
         (* The int64 option is the content-length. 
            None means Transfer-encoding: chunked *)
         (* The last function is the termination function
@@ -219,7 +221,10 @@ module FHttp_frame =
         type http_frame = 
             {header: Http_header.http_header;
              content: frame_content;
-             waiter_thread: unit Lwt.t; (** A waiting Lwt thread that will be automatically awoken when the full frame has been read *)}
+             waiter_thread: unit Lwt.t; (** A waiting Lwt thread 
+                                           that will be automatically awoken 
+                                           when the full frame has been read *)
+           }
 
     end
 

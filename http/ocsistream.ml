@@ -153,7 +153,7 @@ let substream delim s =
                          ))))
     in aux s
 
-
+      
 (** read the stream until the end, without decoding *)
 let rec consume = function
   | Cont (_, _, f) -> Lwt_unix.yield () >>= (fun () -> f () >>= consume)

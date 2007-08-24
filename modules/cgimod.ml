@@ -32,6 +32,7 @@ module Regexp = Netstring_pcre
 
 exception CGI_Error of exn
 
+
 (*****************************************************************************)
 (* The table of cgi pages for each virtual server                            *)
 
@@ -98,14 +99,14 @@ let split_regexp r s =
   | None -> None (* the begining of the string doesn't match the regexp *)
   | Some result -> 
     let (split,l) = Regexp.match_end result, String.length s in
-                (* TODO: remove when debug is ok *)
+                (* TODO: remove when debug is ok 
 	        let _ = 
-		assert (split = String.length(Regexp.matched_string result s)) in
+		assert (split = String.length(Regexp.matched_string result s)) in *)
     let s' = Regexp.first_chars s split in
     let s'' = Regexp.last_chars s (l - split) in
-		(* TODO: remove when debug is ok *)
+		(* TODO: remove when debug is ok
 	        let _ = 
-		assert (s = (s'^s'')) in
+		assert (s = (s'^s'')) in *)
     Some (s',s'')
 	
 let set_dir dirref assoc path =
@@ -350,9 +351,16 @@ let create_process_cgi pages_tree filename ri post_out cgi_in err_in re =
         cgi_in 
         err_in
 
+
+let tryclose c =
+  try
+    Unix.close c
+  with _ -> ()
+
+
 (** This function makes it possible to launch a cgi script *)
 
-let recupere_cgi pages_tree re filename ri =
+let recupere_cgi head pages_tree re filename ri =
   try
     (* Create the three pipes to communicate with the CGI script: *)
     let (post_out, post_in) = Unix.pipe () in
@@ -395,6 +403,9 @@ let recupere_cgi pages_tree re filename ri =
     in ignore (catch get_errors (fun _ -> print_endline "the end"; return ()));
      *)
 
+
+
+    (* *)
     let receiver = Http_com.create_receiver 
         ~mode:Http_com.Nofirstline (Lwt_unix.Plain cgi_out) 
     in
@@ -405,34 +416,34 @@ let recupere_cgi pages_tree re filename ri =
            otherwise, we wait to give time to the other thread to get the answer
          *)
         (Lwt_unix.waitpid [] pid >>= fun (_, status) ->
-         Unix.close cgi_in;
-         Unix.close post_in;
-         Unix.close post_out;
-         Unix.close err_in;
-         Unix.close err_out;
+         tryclose cgi_in;
+         tryclose post_in;
+         tryclose post_out;
+         tryclose err_in;
+         tryclose err_out;
          match status with
-         |  Unix.WEXITED 0 -> 
+         | Unix.WEXITED 0 -> 
              Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= fun () ->
              fail (CGI_Error (Failure "Timeout for CGI script"))
-         |  Unix.WEXITED i -> 
+         | Unix.WEXITED i -> 
              fail (CGI_Error 
                      (Failure ("CGI exited with code "^(string_of_int i))))
-         |  Unix.WSIGNALED i -> 
+         | Unix.WSIGNALED i -> 
              fail (CGI_Error 
                      (Failure ("CGI killed by signal "^(string_of_int i))))
-         |  Unix.WSTOPPED i -> 
+         | Unix.WSTOPPED i -> 
              fail (CGI_Error 
                      (Failure ("CGI stopped by signal "^(string_of_int i))))
         );
 
         (* A thread getting the result of the CGI script *)
-        (Stream_receiver.get_http_frame (return ()) receiver 
+       (Stream_receiver.get_http_frame (return ()) receiver ~head 
           ~doing_keep_alive:false () >>= fun http_frame ->
-         ignore 
-              (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
-               Unix.close cgi_out;
-               return ());
-         return http_frame)
+       ignore 
+           (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
+            tryclose cgi_out;
+            return ());
+       return http_frame)
       ]
   with e -> fail e
             
@@ -447,8 +458,8 @@ let get_header str =
 
 let get_content str =
   match str.Stream_http_frame.content with
-    | None -> return (Ocsistream.empty_stream None)
-    | Some k -> let stream = k () in return stream
+  | None -> return (fun () -> Ocsistream.empty_stream None)
+  | Some c -> return c
 
 
 (*****************************************************************************)
@@ -553,7 +564,9 @@ let gen pages_tree charset ri =
          let (filename, re) =
            find_cgi_page pages_tree ri.ri_path
          in 
-	 recupere_cgi pages_tree re filename ri >>= fun frame ->
+	 recupere_cgi 
+           (ri.ri_method = Http_header.HEAD) 
+           pages_tree re filename ri >>= fun frame ->
 	   get_header frame >>= fun header -> 
            get_content frame >>= fun content -> 
            (try 
@@ -612,7 +625,8 @@ let gen pages_tree charset ri =
                       {res_cookies= [];
 		       res_send_page= 
 		       Predefined_senders.send_stream_page 
-		         ?contenttype:None ~content:(fun () -> content);
+		         ?contenttype:None
+                         ~content;
 		       res_headers=
                        List.filter
                          (fun (h,_) -> (String.lowercase h) <> "status")

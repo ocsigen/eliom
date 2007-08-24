@@ -58,7 +58,7 @@ module Ocamlduce_content =
                   md5, 
                   (new_stream x 
                      (fun () -> Lwt.return (empty_stream None))),
-                  Ocsimisc.id
+                  return
                  )
 
     (*il n'y a pas encore de parser pour ce type*)

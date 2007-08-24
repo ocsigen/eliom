@@ -76,7 +76,7 @@ module Xhtml_content =
                   md5, 
                   (new_stream x 
                      (fun () -> Lwt.return (empty_stream None))),
-                  id
+                  return
                  )
 
     (*il n'y a pas encore de parser pour ce type*)
@@ -95,7 +95,7 @@ module Text_content =
       Lwt.return (Some (Int64.of_int (String.length c)), 
                   md5, 
                   new_stream c (fun () -> Lwt.return (empty_stream None)),
-                  id)
+                  return)
 
     let content_of_stream = string_of_stream
   end
@@ -104,7 +104,7 @@ exception Stream_already_read
 
 module Stream_content =
   (* Use to receive any type of data, before knowing the content-type,
-     or to send data from a stream (ex: coming from a CGI)
+     or to send data from a stream
    *)
   struct
     type t = unit -> stream
@@ -112,7 +112,7 @@ module Stream_content =
     let get_etag c = ""
 
     let stream_of_content c = 
-      Lwt.return (None, get_etag c, c (), id)
+      Lwt.return (None, get_etag c, c (), return)
 
     let content_of_stream s = 
       Lwt.return
@@ -126,6 +126,7 @@ module Stream_content =
           end)
   end
 
+
 module Empty_content =
   struct
     type t = unit
@@ -133,7 +134,8 @@ module Empty_content =
     let get_etag c = "empty"
 
     let stream_of_content c = 
-      Lwt.return (Some (Int64.of_int 0), (get_etag ()), empty_stream None, id)
+      Lwt.return (Some (Int64.of_int 0), (get_etag ()), empty_stream None, 
+                  return)
 
     let content_of_stream s = Lwt.return ()
   end
@@ -184,20 +186,24 @@ module File_content =
           etag, r, 
           fun () ->     
             Messages.debug ("closing file"); 
-            Unix.close fd))
+            Unix.close fd;
+            return ()))
         
     let content_of_stream s = assert false
       
   end
 
-(** this module is a Http_frame with empty content
-module Empty_http_frame = FHttp_frame (Empty_content) *)
+(** this module is a Http_frame with empty content *)
+module Empty_http_frame = FHttp_frame (Empty_content)
 
 (** this module is a sender that send Http_frame with empty content *)
 module Empty_sender = FHttp_sender(Empty_content)
 
-(** this module is a Http_frame with Xhtml content
-module Xhtml_http_frame = FHttp_frame (Xhtml_content) *)
+(** this module is a receiver that receives Http_frame with empty content *)
+module Empty_receiver = FHttp_receiver(Empty_content)
+
+(** this module is a Http_frame with Xhtml content *)
+module Xhtml_http_frame = FHttp_frame (Xhtml_content)
 
 (** this module is a sender that send Http_frame with Xhtml content *)
 module Xhtml_sender = FHttp_sender(Xhtml_content)
@@ -211,7 +217,7 @@ module Text_sender = FHttp_sender(Text_content)
 (** this module is a receiver that receives Http_frame with text content *)
 module Text_receiver = FHttp_receiver (Text_content)
 
-(** this module is a Http_frame with text content *)
+(** this module is a Http_frame with stream content *)
 module Stream_http_frame = FHttp_frame (Stream_content)
 
 (** this module is a receiver that receives Http_frame with stream content
@@ -220,6 +226,7 @@ module Stream_receiver = FHttp_receiver (Stream_content)
 
 (** creates a sender for any stream *)
 module Stream_sender = FHttp_sender(Stream_content)
+
 
 (** this module is a Http_frame with file content
 module File_http_frame = FHttp_frame (File_content) *)

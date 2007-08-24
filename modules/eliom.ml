@@ -3967,7 +3967,7 @@ module SubXhtml = functor(T : sig type content end) ->
                       md5,
                       (Ocsistream.new_stream x 
                          (fun () -> Lwt.return (Ocsistream.empty_stream None))),
-                      id
+                      return
                      )
             
             (*il n'y a pas encore de parser pour ce type*)

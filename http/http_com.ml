@@ -559,7 +559,7 @@ module FHttp_receiver =
         | Query -> Ocsiconfig.get_maxrequestbodysize ()
 
       (** get an http frame *)
-      let get_http_frame waiter receiver ~doing_keep_alive () =
+      let get_http_frame waiter receiver ?(head = false) ~doing_keep_alive () =
         (* waiter is here only for pipelining and timeout:
            we trigger the sleep only when the previous request has been
            answered (waiter awoken)
@@ -591,6 +591,9 @@ module FHttp_receiver =
                 | Http_header.Answer code when code_with_empty_content code ->
                     return ((return ()), None)
                 | _ ->
+                    if head
+                    then return ((return ()), None)
+                    else begin
 
 (*  RFC  
 
@@ -697,7 +700,7 @@ NOT IMPLEMENTED
                               >>= C.content_of_stream >>= 
                             (fun c -> return (waiter_end_stream, Some c))
 
-
+                    end
                 ) >>=
                 (fun (waiter_end_stream, b) -> 
                   Lwt.return {Http.header=header; 
@@ -943,7 +946,7 @@ module FHttp_sender =
                catch
                  (fun () ->
                    let chunked = 
-                     (lon=None && 
+                     (lon = None && 
                       clientproto <> 
                       Http_frame.Http_header.HTTP10 &&
                       not empty_content
@@ -976,7 +979,7 @@ module FHttp_sender =
                    (fun _ -> 
                      let close_fun2 () =
                        Lwt_unix.flush out_ch >>= fun () ->
-                         return (close_fun ())
+                       close_fun ()
                      in
                      if empty_content || head
                      then close_fun2 ()
@@ -986,22 +989,23 @@ module FHttp_sender =
                          ~chunked:chunked 
                          out_ch 
                          close_fun2
-                         flux >>= fun r ->
+                         flux >>= fun () ->
                        if (lon=None && 
                            clientproto = Http_frame.Http_header.HTTP10)
                        then fail MustClose
-                       else return r
+                       else return ()
                      end
                    )
                  )
                  (function
                    | MustClose -> fail MustClose
                    | e -> 
-                       (try 
-                         close_fun () 
-                       with e -> 
-                         Messages.debug
-                           ("Error while closing stream (error during stream) : "^
-                            (Printexc.to_string e)));
+                       (catch
+                          close_fun 
+                          (fun e -> 
+                            Messages.debug
+                              ("Error while closing stream (error during stream) : "^
+                               (Printexc.to_string e));
+                            return ())) >>= fun () ->
                        fail (Ocsigen_sending_error e)))))
   end

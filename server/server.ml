@@ -627,7 +627,7 @@ let service
                                      ~path:("/"::(ri.ri_path))
                                      ri.ri_url))^"/")
                     ~code:301 (* Moved permanently *)
-                    ~head:head empty_sender
+                    ~head empty_sender
               | Extensions.Ocsigen_malformed_url
               | Neturl.Malformed_URL -> 
                   Messages.debug "-> Sending 400 (Malformed URL)";

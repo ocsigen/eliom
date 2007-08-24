@@ -70,7 +70,7 @@ module Xhtml_content :
     val get_etag : [ `Html ] XHTML.M.elt -> string
     val stream_of_content :
       [ `Html ] XHTML.M.elt ->
-      (int64 option * string * Ocsistream.stream * ('a -> 'a)) Lwt.t
+      (int64 option * string * Ocsistream.stream * ('a -> 'a Lwt.t)) Lwt.t
     val content_of_stream : 'a -> 'b
   end
 module Text_content :
@@ -78,7 +78,7 @@ module Text_content :
     type t = string
     val get_etag : string -> string
     val stream_of_content :
-      string -> (int64 option * string * Ocsistream.stream * ('a -> 'a)) Lwt.t
+      string -> (int64 option * string * Ocsistream.stream * ('a -> 'a Lwt.t)) Lwt.t
     val content_of_stream : Ocsistream.stream -> t Lwt.t
   end
 module Stream_content :
@@ -86,7 +86,7 @@ module Stream_content :
     type t = unit -> Ocsistream.stream
     val get_etag : t -> string
     val stream_of_content : 
-        t -> (int64 option * string * Ocsistream.stream * ('a -> 'a)) Lwt.t
+        t -> (int64 option * string * Ocsistream.stream * ('a -> 'a Lwt.t)) Lwt.t
     val content_of_stream : Ocsistream.stream -> t Lwt.t
   end
 module Empty_content :
@@ -94,7 +94,7 @@ module Empty_content :
     type t = unit
     val get_etag : 'a -> string
     val stream_of_content :
-      'a -> (int64 option * string * Ocsistream.stream * ('b -> 'b)) Lwt.t
+      'a -> (int64 option * string * Ocsistream.stream * ('b -> 'b Lwt.t)) Lwt.t
     val content_of_stream : Ocsistream.stream -> unit Lwt.t
   end
 module File_content :
@@ -106,8 +106,18 @@ module File_content :
     val get_etag : string -> string
     val stream_of_content :
       string -> (int64 option * string * 
-                   Ocsistream.stream * (unit -> unit)) Lwt.t
+                   Ocsistream.stream * (unit -> unit Lwt.t)) Lwt.t
     val content_of_stream : 'a -> 'b
+  end
+module Empty_http_frame :
+  sig
+    type frame_content = unit option
+    type http_frame =
+      Http_frame.FHttp_frame(Empty_content).http_frame = {
+      header : Http_frame.Http_header.http_header;
+      content : frame_content;
+      waiter_thread : unit Lwt.t;
+    }
   end
 module Empty_sender :
   sig
@@ -184,6 +194,25 @@ module Empty_sender :
       ?headers:(string * string) list ->
       ?content:Empty_content.t ->
       head:bool -> Http_com.sender_type -> unit Lwt.t
+  end
+module Empty_receiver :
+  sig
+    module Http :
+      sig
+        type frame_content = unit option
+        type http_frame =
+            Http_frame.FHttp_frame(Empty_content).http_frame = {
+            header: Http_frame.Http_header.http_header;
+            content: frame_content;
+            waiter_thread: unit Lwt.t;
+        }
+      end
+    val http_header_of_stream :
+      ?withoutfirstline:bool ->
+      Ocsistream.stream -> Http_frame.Http_header.http_header Lwt.t
+    val get_http_frame :
+      unit Lwt.t -> Http_com.receiver_type -> ?head:bool -> 
+        doing_keep_alive:bool -> unit -> Http.http_frame Lwt.t
   end
 module Xhtml_sender :
   sig
@@ -363,7 +392,7 @@ module Text_receiver :
       ?withoutfirstline:bool ->
       Ocsistream.stream -> Http_frame.Http_header.http_header Lwt.t
     val get_http_frame :
-      unit Lwt.t -> Http_com.receiver_type -> 
+      unit Lwt.t -> Http_com.receiver_type -> ?head:bool -> 
         doing_keep_alive:bool -> unit -> Http.http_frame Lwt.t
   end
 module Stream_http_frame :
@@ -392,7 +421,7 @@ module Stream_receiver :
       ?withoutfirstline:bool ->
       Ocsistream.stream -> Http_frame.Http_header.http_header Lwt.t
     val get_http_frame :
-      unit Lwt.t -> Http_com.receiver_type -> 
+      unit Lwt.t -> Http_com.receiver_type -> ?head:bool -> 
         doing_keep_alive:bool -> unit -> Http.http_frame Lwt.t
   end
 module File_sender :
