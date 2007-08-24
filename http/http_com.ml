@@ -915,7 +915,7 @@ module FHttp_sender =
         ?proto
         ?headers
         ?content
-        ?head
+        ~head
         sender =
       (* creation d'une http_frame *)
       (* creation du header *)
@@ -978,7 +978,7 @@ module FHttp_sender =
                        Lwt_unix.flush out_ch >>= fun () ->
                          return (close_fun ())
                      in
-                     if empty_content || (head = Some true)
+                     if empty_content || head
                      then close_fun2 ()
                      else begin
                        Messages.debug "writing body"; 

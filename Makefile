@@ -262,8 +262,8 @@ installnodoc: partialinstall
 	  chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; }
 	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
 	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/mime.types
-	$(INSTALL) -m 644 files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 files/ocsigen5.png $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tutorial/style.css $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tutorial/ocsigen5.png $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)/$(STATICPAGESDIR)/ocsigenstuff
 	$(INSTALL) -m 644 examples/nurpawiki/files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/nurpawiki
 	$(INSTALL) -m 644 examples/nurpawiki/wikidata/* $(TEMPROOT)/$(DATADIR)/nurpawiki

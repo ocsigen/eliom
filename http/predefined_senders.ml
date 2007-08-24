@@ -261,7 +261,7 @@ let send_generic
             ?proto:Http_frame.Http_header.proto ->
               ?headers:(string * string) list ->
                 ?content:'a ->
-                  ?head:bool -> 
+                  head:bool -> 
                     Http_com.sender_type -> 
                       unit Lwt.t)   
     ?contenttype
@@ -274,7 +274,7 @@ let send_generic
     ~keep_alive
     ?last_modified 
     ?location
-    ?head
+    ~head
     ?(headers=[]) 
     ?charset
     sender
@@ -338,10 +338,10 @@ let send_generic
   match code with
   | None -> send 
         waiter ~clientproto ?etag
-        ~mode:(Http_header.Answer 200) ~content ~headers:hds ?head sender
+        ~mode:(Http_header.Answer 200) ~content ~headers:hds ~head sender
   | Some c -> send
         waiter ~clientproto ?etag
-        ~mode:(Http_header.Answer c) ~content ~headers:hds ?head sender
+        ~mode:(Http_header.Answer c) ~content ~headers:hds ~head sender
 
 
 type send_page_type =
@@ -355,7 +355,7 @@ type send_page_type =
             keep_alive:bool ->
               ?last_modified:float ->
                 ?location:string -> 
-                  ?head:bool -> 
+                  head:bool -> 
                     ?headers:(string * string) list ->
                       ?charset:string -> 
                         Http_com.sender_type -> 
@@ -378,7 +378,7 @@ let send_xhtml_page
     ~keep_alive
     ?last_modified
     ?location
-    ?head
+    head
     ?headers
     ?charset
     sender *)
@@ -395,7 +395,7 @@ let send_xhtml_page
     ~keep_alive
     ?last_modified
     ?location
-    ?head
+    head
     ?headers
     ?charset
     sender *)
@@ -426,7 +426,7 @@ let send_error
     ~keep_alive
     ?last_modified 
     ?location
-    ?head
+    ~head
     ?(headers=[]) 
     ?charset
     sender
@@ -468,7 +468,7 @@ let send_error
     ~keep_alive
     ?last_modified 
     ?location
-    ?head
+    ~head
     ?charset
     sender
 
@@ -520,7 +520,7 @@ let content_type_from_file_name =
 
 let send_file ~content:file ?cookies waiter ~clientproto
     ?code ?etag ~keep_alive
-    ?last_modified ?location ?head ?headers ?charset file_sender =
+    ?last_modified ?location ~head ?headers ?charset file_sender =
   Lwt_unix.yield () >>=
   (fun () ->
     send_generic File_sender.send
@@ -529,6 +529,6 @@ let send_file ~content:file ?cookies waiter ~clientproto
       ?cookies waiter
       ~clientproto
       ?code ?etag ~keep_alive
-      ?last_modified ?location ?head ?headers ?charset file_sender)
+      ?last_modified ?location ~head ?headers ?charset file_sender)
 
   

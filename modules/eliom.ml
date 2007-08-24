@@ -4335,7 +4335,7 @@ module Redirreg_ = struct
        res_code= Some code; (* Moved permanently *)
        res_send_page= 
        (fun ?cookies waiter ~clientproto ?code ?etag ~keep_alive
-           ?last_modified ?location ?head ?headers ?charset s ->
+           ?last_modified ?location ~head ?headers ?charset s ->
              Predefined_senders.send_empty
                ~content:() 
                ?cookies
@@ -4345,7 +4345,7 @@ module Redirreg_ = struct
                ?etag ~keep_alive
                ?last_modified 
                ~location:content
-               ?head ?headers ?charset s);
+               ~head ?headers ?charset s);
        res_headers= [];
        res_charset= None
      }

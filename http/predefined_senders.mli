@@ -30,7 +30,7 @@ type send_page_type =
     keep_alive:bool ->
     ?last_modified:float ->
     ?location:string -> 
-    ?head:bool -> 
+    head:bool -> 
     ?headers:(string * string) list ->
     ?charset:string ->
       Http_com.sender_type -> unit Lwt.t
@@ -183,7 +183,7 @@ module Empty_sender :
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?content:Empty_content.t ->
-      ?head:bool -> Http_com.sender_type -> unit Lwt.t
+      head:bool -> Http_com.sender_type -> unit Lwt.t
   end
 module Xhtml_sender :
   sig
@@ -259,7 +259,7 @@ module Xhtml_sender :
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?content:Xhtml_content.t ->
-      ?head:bool -> Http_com.sender_type -> unit Lwt.t
+      head:bool -> Http_com.sender_type -> unit Lwt.t
   end
 module Text_http_frame :
   sig
@@ -345,7 +345,7 @@ module Text_sender :
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?content:Text_content.t ->
-      ?head:bool -> Http_com.sender_type -> unit Lwt.t
+      head:bool -> Http_com.sender_type -> unit Lwt.t
   end
 module Text_receiver :
   sig
@@ -469,7 +469,7 @@ module File_sender :
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?content:File_content.t ->
-      ?head:bool -> Http_com.sender_type -> unit Lwt.t
+      head:bool -> Http_com.sender_type -> unit Lwt.t
   end
 module Stream_sender :
   sig
@@ -545,7 +545,7 @@ module Stream_sender :
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?content:Stream_content.t ->
-      ?head:bool -> Http_com.sender_type -> unit Lwt.t
+      head:bool -> Http_com.sender_type -> unit Lwt.t
   end
 
 
@@ -558,7 +558,7 @@ val send_generic :
           ?proto:Http_frame.Http_header.proto ->
             ?headers:(string * string) list ->
               ?content:'a ->
-                ?head:bool -> 
+                head:bool -> 
                   Http_com.sender_type -> 
                     unit Lwt.t) ->
   ?contenttype:string ->
@@ -571,7 +571,7 @@ val send_generic :
   keep_alive:bool ->
   ?last_modified:float ->
   ?location:string ->
-  ?head:bool ->
+  head:bool ->
   ?headers:(string * string) list ->
   ?charset:string ->
   Http_com.sender_type ->

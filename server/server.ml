@@ -117,7 +117,7 @@ let string_of_exn = function
 
 
 (* Errors during requests *)
-let handle_light_request_errors ~clientproto
+let handle_light_request_errors ~clientproto ~head
     xhtml_sender sockaddr waiter exn = 
   (* EXCEPTIONS ABOUT THE REQUEST *)
   (* It can be an error during get_http_frame or during get_request_infos *)
@@ -134,29 +134,29 @@ let handle_light_request_errors ~clientproto
       
       (* Request errors: we answer, then we close *)
     | Http_error.Http_exception (_,_) ->
-        send_error now ~clientproto ~cookies:[]
+        send_error now ~clientproto ~head ~cookies:[]
           ~keep_alive:false ~http_exception:exn xhtml_sender >>=
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_header_too_long ->
         Messages.debug "-> Sending 400";
         (* 414 URI too long. Actually, it is "header too long..." *)
-        send_error now ~clientproto ~keep_alive:false ~code:400 xhtml_sender >>= 
+        send_error now ~clientproto ~head ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Request_too_long ->
         Messages.debug "-> Sending 400";
-        send_error now ~clientproto ~keep_alive:false ~code:400 xhtml_sender >>= 
+        send_error now ~clientproto ~head ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_Bad_Request ->
         Messages.debug "-> Sending 400";
-        send_error now ~clientproto ~keep_alive:false ~code:400 xhtml_sender >>= 
+        send_error now ~clientproto ~head ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_upload_forbidden ->
         Messages.debug "-> Sending 403 Forbidden";
-        send_error now ~clientproto ~keep_alive:false ~code:400 xhtml_sender >>= 
+        send_error now ~clientproto ~head ~keep_alive:false ~code:400 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
     | Ocsigen_unsupported_media ->
         Messages.debug "-> Sending 415";
-        send_error now ~clientproto ~keep_alive:false ~code:415 xhtml_sender >>= 
+        send_error now ~clientproto ~head ~keep_alive:false ~code:415 xhtml_sender >>= 
         (fun _ -> fail (Ocsigen_Request_interrupted exn))
 
     (* Now errors that close the socket: we raise the exception again: *)
@@ -489,6 +489,9 @@ let get_request_infos meth url http_frame filenames sockaddr port =
 let service 
     wait_end_answer
     http_frame
+    meth
+    url
+    head
     port
     sockaddr 
     xhtml_sender
@@ -499,17 +502,9 @@ let service
      we must wait before sending the page,
      because the previous one may not be sent *)
 
-  let meth, url =
-    match Http_header.get_firstline http_frame.Stream_http_frame.header with
-    | Http_header.Query a -> a      
-    | _ -> raise (Ocsigen_Request_interrupted Ocsigen_Bad_Request)
-  in
-
-  let head = (meth = (Http_header.HEAD)) in
-
   let ka = find_keepalive http_frame.Stream_http_frame.header in
-  Messages.debug ("** Keep-Alive:"^(string_of_bool ka));
-  Messages.debug("** HEAD:"^(string_of_bool head));
+  Messages.debug ("** Keep-Alive: "^(string_of_bool ka));
+  Messages.debug ("** HEAD: "^(string_of_bool head));
 
   let clientproto = Http_header.get_proto http_frame.Stream_http_frame.header in
 
@@ -517,14 +512,14 @@ let service
     let rec aux = function
         (* We remove all the files created by the request 
            (files sent by the client) *)
-        [] -> ()
+      | [] -> ()
       | a::l -> 
           (try Unix.unlink a 
           with e -> Messages.warning ("Error while removing file "^a^
                                       ": "^(Printexc.to_string e))); 
           aux l
     in function
-        [] -> ()
+      | [] -> ()
       | l -> Messages.debug "** Removing files"; 
           aux l
   in
@@ -610,13 +605,13 @@ let service
                   Messages.debug "-> Sending 404 Not Found";
                   send_error 
                     wait_end_answer
-                    ~clientproto
+                    ~clientproto ~head
                     ~keep_alive:ka ~code:404 xhtml_sender
 	      | Ocsigen_403 -> 
                   Messages.debug "-> Sending 404 Not Found";
                   send_error 
                     wait_end_answer
-                    ~clientproto
+                    ~clientproto ~head
                     ~keep_alive:ka ~code:403 xhtml_sender
               | Ocsigen_sending_error exn -> fail exn
               | Ocsigen_Is_a_directory -> 
@@ -637,20 +632,20 @@ let service
               | Neturl.Malformed_URL -> 
                   Messages.debug "-> Sending 400 (Malformed URL)";
                   send_error wait_end_answer
-                    ~clientproto
+                    ~clientproto ~head
                     ~keep_alive:ka
                     ~code:400 xhtml_sender (* Malformed URL *)
               | Unix.Unix_error (Unix.EACCES,_,_) 
 	      | Extensions.Ocsigen_403->
                   Messages.debug "-> Sending 403 Forbidden";
                   send_error wait_end_answer
-                    ~clientproto
+                    ~clientproto ~head
                     ~keep_alive:ka
                     ~code:403 xhtml_sender (* Forbidden *)
               | Stream_already_read ->
                   Messages.errlog "Cannot read the request twice. You probably have two incompatible extensions, or the order of the extensions in the config file is wrong.";
                   send_error wait_end_answer
-                    ~clientproto
+                    ~clientproto ~head
                     ~keep_alive:ka
                     ~code:500 xhtml_sender (* Internal error *)
               | Http_com.MustClose as e -> fail e
@@ -672,13 +667,14 @@ let service
                                         [XHTML.M.pcdata "(Ocsigen running in debug mode)"]
                                     ]])
                       wait_end_answer
-                      ~clientproto
+                      ~clientproto 
+                      ~head
                       ~code:500 
                       ~keep_alive:ka xhtml_sender
                   else
                   send_error
                       wait_end_answer
-                      ~clientproto
+                      ~clientproto ~head
                       ~keep_alive:ka ~code:500 xhtml_sender)
             (fun e -> fail (Ocsigen_sending_error e))
             (* All generation exceptions have been handled here *)
@@ -690,7 +686,7 @@ let service
         remove_files !filenames;
         match e with
           Ocsigen_sending_error _ -> fail e
-        | _ -> handle_light_request_errors ~clientproto
+        | _ -> handle_light_request_errors ~clientproto ~head
               xhtml_sender sockaddr wait_end_answer e)
 
   in 
@@ -701,7 +697,7 @@ let service
       (meth <> Http_header.POST) && 
       (meth <> Http_header.HEAD))
   then send_error wait_end_answer
-      ~clientproto
+      ~clientproto ~head
       ~keep_alive:ka ~code:501 xhtml_sender
   else 
     catch
@@ -746,7 +742,7 @@ let service
              then consume http_frame.Stream_http_frame.content >>=
              (fun () ->
              send_error wait_end_answer
-             ~clientproto
+             ~clientproto ~head
              ~keep_alive:ka ~code:501 xhtml_sender)
              else serv ()) *)
 
@@ -824,75 +820,90 @@ let listen ssl port wait_end_init =
           handle_broken_pipe_exn sockaddr e
     in  
 
-    let handle_request_errors wait_end_answer exn =
+    let handle_request_errors ~head wait_end_answer exn =
       catch
         (fun () ->
           handle_light_request_errors 
-            ~clientproto:Http_frame.Http_header.HTTP11 
+            ~clientproto:Http_frame.Http_header.HTTP11 ~head 
             xhtml_sender sockaddr wait_end_answer exn)
         (fun e -> handle_severe_errors exn)
     in
 
     let rec handle_request wait_end_answer http_frame =
 
+      let meth, url =
+        match 
+          Http_header.get_firstline http_frame.Stream_http_frame.header 
+        with
+        | Http_header.Query a -> a      
+        | _ -> raise (Ocsigen_Request_interrupted Ocsigen_Bad_Request)
+      in
+
+      let head = (meth = (Http_header.HEAD)) in
+
       let keep_alive = find_keepalive http_frame.Stream_http_frame.header in
 
-      if keep_alive 
-      then begin
-        Messages.debug "** KEEP ALIVE (pipelined)";
-        let wait_end_answer2 = wait () in
-        (* The following request must wait the end of this one
-           before being answered *)
-        (* wait_end_answer
-           is awoken when the previous request has been answered *)
-        ignore_result 
-          (catch
-             (fun () ->
-               service 
-                 wait_end_answer http_frame port sockaddr 
-                 xhtml_sender empty_sender in_ch () >>=
-               (fun () ->
-
-                 (* If the request has not been fully read by the extensions,
-                    we force it to be read here, to be able to take
-                    another one on the same connexion: *)
-                 (match http_frame.Stream_http_frame.content with
-                   Some f -> 
-                     (try
-                       Ocsistream.consume (f ())
-                     with _ -> return ())
-                 | _ -> return ()) >>=
-
+      catch
+        (fun () ->
+          if keep_alive 
+          then begin
+            Messages.debug "** KEEP ALIVE (pipelined)";
+            let wait_end_answer2 = wait () in
+            (* The following request must wait the end of this one
+               before being answered *)
+            (* wait_end_answer
+               is awoken when the previous request has been answered *)
+            ignore_result 
+              (catch
                  (fun () ->
-                   wakeup wait_end_answer2 ();
-                   return ())))
-             handle_severe_errors (* will close the connexion *) );
+                   service 
+                     wait_end_answer http_frame meth url head port sockaddr 
+                     xhtml_sender empty_sender in_ch () >>=
+                   (fun () ->
+                     
+                     (* If the request has not been fully read by
+                        the extensions,
+                        we force it to be read here, to be able to take
+                        another one on the same connexion: *)
+                     (match http_frame.Stream_http_frame.content with
+                       Some f -> 
+                         (try
+                           Ocsistream.consume (f ())
+                         with _ -> return ())
+                     | _ -> return ()) >>=
+                     
+                     (fun () ->
+                       wakeup wait_end_answer2 ();
+                       return ())))
+                 handle_severe_errors (* will close the connexion *) );
         
-        catch
-          (fun () ->
-            (* The following request must wait the end of this one.
-               (It may not be finished, 
-               for example if we are downloading files) *)
-            (* waiter_thread is automatically awoken 
-               when the stream is terminated *)
-            http_frame.Stream_http_frame.waiter_thread >>=
-            (fun () ->
-              Messages.debug "** Waiting for new request (pipeline)";
-              Stream_receiver.get_http_frame wait_end_answer2
-                receiver ~doing_keep_alive:true () >>=
-              (handle_request wait_end_answer2)))
-          (handle_request_errors wait_end_answer2)
-      end
+            catch
+              (fun () ->
+                (* The following request must wait the end of this one.
+                   (It may not be finished, 
+                   for example if we are downloading files) *)
+                (* waiter_thread is automatically awoken 
+                   when the stream is terminated *)
+                http_frame.Stream_http_frame.waiter_thread >>=
+                (fun () ->
+                  Messages.debug "** Waiting for new request (pipeline)";
+                  Stream_receiver.get_http_frame wait_end_answer2
+                    receiver ~doing_keep_alive:true () >>=
+                  (handle_request wait_end_answer2)))
+              handle_severe_errors
+          end
 
-      else begin (* No keep-alive => no pipeline *)
-        (catch
-           (fun () ->
-             service wait_end_answer http_frame port sockaddr
-               xhtml_sender empty_sender in_ch () >>= fun () -> 
-             lingering_close in_ch; return ())
-           handle_severe_errors)
-        
-      end
+          else begin (* No keep-alive => no pipeline *)
+            (catch
+               (fun () ->
+                 service wait_end_answer http_frame meth url head port sockaddr
+                   xhtml_sender empty_sender in_ch () >>= fun () -> 
+                     lingering_close in_ch; return ())
+               handle_severe_errors)
+              
+          end
+        )
+        (handle_request_errors ~head wait_end_answer)
 
     in (* body of listen_connexion *)
     catch
@@ -902,7 +913,7 @@ let listen ssl port wait_end_init =
             Stream_receiver.get_http_frame (return ())
               receiver ~doing_keep_alive:false () >>=
             handle_request (return ()))
-          (handle_request_errors now))
+          handle_severe_errors)
       (handle_broken_pipe_exn sockaddr)
 
         (* Without pipeline:

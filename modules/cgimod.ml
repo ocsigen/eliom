@@ -428,9 +428,10 @@ let recupere_cgi pages_tree re filename ri =
         (* A thread getting the result of the CGI script *)
         (Stream_receiver.get_http_frame (return ()) receiver 
           ~doing_keep_alive:false () >>= fun http_frame ->
-         ignore (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
-         Unix.close cgi_out;
-         return ());
+         ignore 
+              (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
+               Unix.close cgi_out;
+               return ());
          return http_frame)
       ]
   with e -> fail e
@@ -484,9 +485,11 @@ let parse_config page_tree path = function
 	   doc_root= string_conform s;
 	   script="$1";
 	   
-	   path="";path_info="";
+	   path=""; 
+           path_info="";
 	   
-	   exec=None; env=set_env l}
+	   exec=None; 
+           env=set_env l}
       | ("regexp", s)::("dir",d)::("script",t)::q -> 
 	  {
 	   regexp=Regexp.regexp ((good_root "")^s);
@@ -494,7 +497,8 @@ let parse_config page_tree path = function
 	   doc_root= string_conform d;
 	   script=t;
 	   
-	   path="";path_info=""; (* unknown for the moment *)
+	   path="";
+           path_info=""; (* unknown for the moment *)
 	   
 	   exec= (match q with 
 	         |[] -> None 
@@ -583,7 +587,7 @@ let gen pages_tree charset ri =
                          res_send_page= 
                          (fun ?cookies waiter ~clientproto ?code
                              ?etag ~keep_alive ?last_modified ?location
-                             ?head ?headers ?charset s ->
+                             ~head ?headers ?charset s ->
                                Predefined_senders.send_empty
                                  ~content:() 
                                  ?cookies
@@ -593,7 +597,7 @@ let gen pages_tree charset ri =
                                  ?etag ~keep_alive
                                  ?last_modified 
                                  ~location:loc
-                                 ?head ?headers ?charset s);
+                                 ~head ?headers ?charset s);
                          res_headers= [];
                          res_charset= None
                        })
