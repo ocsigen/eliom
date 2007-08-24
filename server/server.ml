@@ -49,6 +49,8 @@ let _ = Unix.set_nonblock Unix.stdout
 let _ = Unix.set_nonblock Unix.stderr *)
 
 
+external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
+
 let new_socket () = 
   Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 >>=
   (fun s -> Unix.set_close_on_exec s; 
@@ -963,15 +965,16 @@ let listen ssl port wait_end_init =
       let rec do_accept () = 
         Lwt_unix.accept (Lwt_unix.Plain socket) >>= 
         (fun (s, sa) -> 
+          disable_nagle (Lwt_unix.fd_of_descr s);
           if ssl
           then begin
-                let s_unix = 
+            let s_unix = 
               match s with
                 Lwt_unix.Plain fd -> fd 
-                  | _ -> raise Ssl_Exception (* impossible *) 
+              | _ -> raise Ssl_Exception (* impossible *) 
             in
-                catch 
-                  (fun () -> 
+            catch 
+              (fun () -> 
                 ((Lwt_unix.accept
                     (Lwt_unix.Encrypted 
                        (s_unix, 

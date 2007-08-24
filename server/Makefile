@@ -76,7 +76,7 @@ CMAO = nums.cma dynlink.cma unix.cma \
        xhtml.cma predefined_senders.cmo error_pages.cmo \
        server.cmo
 
-OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
+OBJS = nagle.o $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 
 CMXXATEMP=$(CMAO:.cmo=.cmx)
 CMXXA=$(CMXXATEMP:.cma=.cmxa)
@@ -94,11 +94,11 @@ opt: $(OBJSX) $(NAME).opt
 
 .PHONY: doc depend
 
-$(NAME): $(OBJS)
-	$(CAMLC) -o $(NAME) -linkall $(CMAO)
+$(NAME): nagle.o $(OBJS)
+	$(CAMLC) -o $(NAME) -linkall nagle.o $(CMAO)
 
-$(NAME).opt: $(OBJSOPT)
-	$(CAMLOPT) -o $(NAME).opt -linkall $(CMXXA)
+$(NAME).opt: nagle.o $(OBJSOPT)
+	$(CAMLOPT) -o $(NAME).opt -linkall nagle.o $(CMXXA)
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
@@ -111,6 +111,10 @@ $(NAME).opt: $(OBJSOPT)
 
 #doc:
 #	$(CAMLDOC) -d doc -html eliom.mli ocsigen.mli extensions.mli
+
+
+nagle.o: nagle.c
+	$(CC) -c $<
 
 .PHONY: clean
 clean:

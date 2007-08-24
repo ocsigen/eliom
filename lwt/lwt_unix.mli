@@ -86,6 +86,8 @@ val out_channel_of_unixdescr : Unix.file_descr -> lwt_out_channel
  
 val set_close_on_exec : descr -> unit
 
+val fd_of_descr : descr -> Unix.file_descr
+
 (**/**)
 (* monitoring *)
 val inputs_length : unit -> int

@@ -14,11 +14,14 @@ therefore have the following limitations:
 - [connect] is blocking
 *)
 let windows_hack = Sys.os_type <> "Unix"
+
 type descr = Plain of Unix.file_descr
            | Encrypted of Unix.file_descr * Ssl.socket
+
 let fd_of_descr = function
-          Plain x -> x
-        | Encrypted (fd, s) -> fd
+  | Plain x -> x
+  | Encrypted (fd, s) -> fd
+
 let descr_of_fd ldescr lfd =   
         (List.map (fun x -> List.find (fun y -> x=(fd_of_descr y)) ldescr) lfd)
 
