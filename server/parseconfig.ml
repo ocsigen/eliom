@@ -2,6 +2,7 @@
  * http://www.ocsigen.org
  * Module parseconfig.ml
  * Copyright (C) 2005 Vincent Balat, Nataliya Guts
+ * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by

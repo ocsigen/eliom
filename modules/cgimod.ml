@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module cgimod.ml
- * Copyright (C) 2007 Jerome Velleine - Gabriel Kerneis - CNRS
+ * Copyright (C) 2007 Jérôme Velleine - Gabriel Kerneis
+ * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
