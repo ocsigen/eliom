@@ -612,3 +612,45 @@ let anypostform = register_new_service
                           string_input ~input_type:`Submit ~value:"Click" ()]])
                     ()
                 ])))
+
+(**********)
+(* upload *)
+
+(* ce qui suit ne doit pas fonctionner. Mais il faudrait l'interdire *)
+let get_param_service =
+  register_new_service
+   ~url:["uploadget"]
+   ~get_params:(string "name" ** file "file")
+    (fun _ (name,file) () ->
+         let to_display = 
+           let newname = "/tmp/fichier" in
+           (try
+             Unix.unlink newname;
+           with _ -> ());
+           Unix.link (get_tmp_filename file) newname;
+           let fd_in = open_in newname in
+           try
+             let line = input_line fd_in in close_in fd_in; line (*end*)
+           with End_of_file -> close_in fd_in; "vide"
+         in
+         return
+            (html
+                (head (title (pcdata name)) [])
+                (body [h1 [pcdata to_display]])))
+
+
+let form3 = register_new_service ["uploadget"] unit
+  (fun sp () () ->
+    let f =
+(* ARG        (post_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] fichier2 sp *)
+     (get_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] ~service:get_param_service ~sp
+     (*post_form my_service_with_post_params sp        *)
+        (fun (str, file) ->
+          [p [pcdata "Write a string: ";
+              string_input ~input_type:`Text ~name:str ();
+              br ();
+              file_input ~name:file ()]])) in  return
+         (html
+           (head (title (pcdata "form")) [])
+           (body [f])))
+

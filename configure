@@ -549,6 +549,8 @@ fi
 
 
 
+ocamlinclude=`ocamlfind printconf stdlib`
+
 ######################################################################
 # Write Makefile.conf
 
@@ -564,6 +566,9 @@ CAMLCNAME=ocamlc
 CAMLOPTNAME=ocamlopt
 CAMLCPNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
 CHOWN=chown
+CC=gcc
+
+CAMLINCLUDE=-I $ocamlinclude
 
 ## The root directory for the package install (usually /)
 #ROOT = $root

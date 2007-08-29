@@ -10,12 +10,9 @@
     <div class="twocol1">
       <p>This is the tutorial for <em>Eliom</em> (development version).
         We are currently working a lot on the documentation for version 1.
-        Please send us our comments and suggestions!
+        Please report any error in this tutorial 
+        and send us our comments and suggestions!
       </p>
-      <p>
-        Eliom is the new module for page generation
-        for the <em>Ocsigen</em> Web server.
-       (Please report any error in this tutorial).</p>
       <p>Eliom is an extension for the Web server <em>Ocsigen</em>
          that allows dynamic generation of pages.
          It uses very new concepts making programming very different
@@ -2509,10 +2506,6 @@ let imageform = register_new_service
                 ])))
 (*html*
       <p>$a Tutoeliom.imageform sp <:xmllist< Try it >> ()$.</p>
-
-    </div>
-    <div class="twocol2">
-
      <p>You may also send a value with the coordinates:</p>
 *html*)
 let coord2 = register_new_service 
@@ -2550,6 +2543,10 @@ let imageform2 = register_new_service
 
 (*html*
       <p>$a Tutoeliom.imageform2 sp <:xmllist< Try it >> ()$.</p>
+
+
+    </div>
+    <div class="twocol2">
 
       <h3>Type <code>list</code></h3>
         <p>Another way (than <code>set</code>) to do variable length forms
@@ -2667,6 +2664,80 @@ let suffixform = register_new_service ["suffixform"] unit
 (*html*
 
       <p>$a Tutoeliom.suffixform sp <:xmllist< Try it >> ()$.</p>
+
+      <h3>Uploading files</h3>
+
+      <p>The <code>file</code> parameter type allows to send files in your
+       request. The service gets something of type 
+       <code>Extensions.file_info</code>. You can extract informations
+       from this using:
+      </p>
+<pre>
+val get_tmp_filename : Extensions.file_info -> string
+val get_filesize : Extensions.file_info -> int64
+val get_original_filename : Extensions.file_info -> string
+</pre>
+      <p><code>get_tmp_filename</code> allows to know the actual name
+       of the uploaded file on the hard disk.
+        <code>get_original_filename</code> gives the original filename.</p>
+      <p>To make possible the upload of files, you must configure a
+      directory for uploaded files in Ocsigen's configuration file.
+      For example:
+      </p>
+<pre>
+  &lt;uploaddir&gt;/tmp&lt;/uploaddir&gt;
+</pre>
+      <p>Files are kept in this directory only during the request.
+       Then they are automatically cancelled. 
+       Thus your services must copy them
+       somewhere else themselves if they want to keep them.
+       In the following example, we create a new hard link to the file
+       to keep it (the destination must be on the same partition of the disk).
+      </p>
+*html*)
+let upload = new_service
+    ~url:["upload"]
+    ~get_params:unit
+    ()
+    
+let upload2 = register_new_post_service
+   ~fallback:upload
+   ~post_params:(file "file")
+    (fun _ () file ->
+      let to_display = 
+        let newname = "/tmp/thefile" in
+        (try
+          Unix.unlink newname;
+        with _ -> ());
+        Unix.link (get_tmp_filename file) newname;
+        let fd_in = open_in newname in
+        try
+          let line = input_line fd_in in close_in fd_in; line (*end*)
+        with End_of_file -> close_in fd_in; "vide"
+      in
+      return
+        (html
+           (head (title (pcdata "Upload")) [])
+           (body [h1 [pcdata to_display]])))
+    
+    
+let uploadform = register upload
+    (fun sp () () ->
+      let f =
+        (post_form upload2 sp
+           (fun file ->
+             [p [file_input ~name:file ();
+                 br ();
+                 string_input ~input_type:`Submit ~value:"Send" ()
+               ]]) ()) in  return
+        (html
+           (head (title (pcdata "form")) [])
+           (body [f])))
+                                                                         
+
+(*html*
+      <p>$a Tutoeliom.upload sp <:xmllist< Try it >> ()$
+      (warning: uploading on ocsigen.org is forbidden).</p>
 
 
     </div>

@@ -114,7 +114,7 @@ $(NAME).opt: nagle.o $(OBJSOPT)
 
 
 nagle.o: nagle.c
-	$(CC) -c $<
+	$(CC) $(CAMLINCLUDE) -c $<
 
 .PHONY: clean
 clean:

@@ -353,85 +353,88 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                                           If it has already been taken,
                                           it raises an exception *)
                 in
-                let ctlow = String.lowercase ct in
-                if ctlow = "application/x-www-form-urlencoded"
-                then 
-                  catch
-                    (fun () ->
-                      Ocsistream.string_of_stream body >>=
-                      (fun r -> return
-                          ((Netencoding.Url.dest_url_encoded_parameters r),
-                           [])))
-                    (function
-                      | Ocsistream.String_too_large -> fail Input_is_too_large
-                      | e -> fail e)
-                else 
-                  match
-                    (Netstring_pcre.string_match 
-                       (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
-                  with 
-                  | None -> fail Ocsigen_unsupported_media
-                  | _ ->
-                      let bound = get_boundary ct in
-                      let params = ref [] in
-                      let files = ref [] in
-                      let create hs =
-                        let cd = List.assoc "content-disposition" hs in
-                        let st = try 
-                          Some (find_field "filename" cd) 
-                        with _ -> None in
-                        let p_name = find_field "name" cd in
-                        match st with 
-                        | None -> No_File (p_name, Buffer.create 1024)
-                        | Some store -> 
-                            let now = 
-                              Printf.sprintf 
-                                "%s-%f-%d" 
-                                store (Unix.gettimeofday ()) (counter ())
-                            in
-                            match ((Ocsiconfig.get_uploaddir ())) with
-                            | Some dname ->
-                                let fname = dname^"/"^now in
-                                let fd = Unix.openfile fname 
-                                    [Unix.O_CREAT;
-                                     Unix.O_TRUNC;
-                                     Unix.O_WRONLY;
-                                     Unix.O_NONBLOCK] 0o666 in
-                                (* Messages.debug "file opened"; *)
-                                filenames := fname::!filenames;
-                                A_File (p_name, fname, store, Lwt_unix.Plain fd)
-                            | None -> raise Ocsigen_upload_forbidden
-                      in
-                      let add where s =
-                        match where with 
-                        | No_File (p_name, to_buf) -> 
-                            Buffer.add_string to_buf s;
-                            return ()
-                        | A_File (_,_,_,wh) -> 
-                            Lwt_unix.write wh s 0 (String.length s) >>= 
-                            (fun r -> Lwt_unix.yield ())
-                      in
-                      let stop size  = function 
-                        | No_File (p_name, to_buf) -> 
-                            return 
-                              (params := !params @
-                                [(p_name, Buffer.contents to_buf)])
-                              (* à la fin ? *)
-                        | A_File (p_name,fname,oname,wh) -> 
-                            (match wh with 
-                            | Lwt_unix.Plain fdscr -> 
-                                (* Messages.debug "closing file"; *)
-                                files := 
-                                  !files@[(p_name, {tmp_filename=fname;
-                                                    filesize=size;
-                                                    original_filename=oname})];
-                                Unix.close fdscr
-                            | _ -> ());
-                            return ()
-                      in
-                      Multipart.scan_multipart_body_from_stream 
-                        body bound create add stop >>=
-                      (fun () -> return (!params, !files))
+                catch
+                  (fun () ->
+                    let ctlow = String.lowercase ct in
+                    if ctlow = "application/x-www-form-urlencoded"
+                    then 
+                      catch
+                        (fun () ->
+                          Ocsistream.string_of_stream body >>=
+                          (fun r -> return
+                              ((Netencoding.Url.dest_url_encoded_parameters r),
+                               [])))
+                        (function
+                          | Ocsistream.String_too_large -> fail Input_is_too_large
+                          | e -> fail e)
+                    else 
+                      match
+                        (Netstring_pcre.string_match 
+                           (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
+                      with 
+                      | None -> fail Ocsigen_unsupported_media
+                      | _ ->
+                          let bound = get_boundary ct in
+                          let params = ref [] in
+                          let files = ref [] in
+                          let create hs =
+                            let cd = List.assoc "content-disposition" hs in
+                            let st = try 
+                              Some (find_field "filename" cd) 
+                            with _ -> None in
+                            let p_name = find_field "name" cd in
+                            match st with 
+                            | None -> No_File (p_name, Buffer.create 1024)
+                            | Some store -> 
+                                let now = 
+                                  Printf.sprintf 
+                                    "%s-%f-%d" 
+                                    store (Unix.gettimeofday ()) (counter ())
+                                in
+                                match ((Ocsiconfig.get_uploaddir ())) with
+                                | Some dname ->
+                                    let fname = dname^"/"^now in
+                                    let fd = Unix.openfile fname 
+                                        [Unix.O_CREAT;
+                                         Unix.O_TRUNC;
+                                         Unix.O_WRONLY;
+                                         Unix.O_NONBLOCK] 0o666 in
+                                    (* Messages.debug "file opened"; *)
+                                    filenames := fname::!filenames;
+                                    A_File (p_name, fname, store, Lwt_unix.Plain fd)
+                                | None -> raise Ocsigen_upload_forbidden
+                          in
+                          let add where s =
+                            match where with 
+                            | No_File (p_name, to_buf) -> 
+                                Buffer.add_string to_buf s;
+                                return ()
+                            | A_File (_,_,_,wh) -> 
+                                Lwt_unix.write wh s 0 (String.length s) >>= 
+                                (fun r -> Lwt_unix.yield ())
+                          in
+                          let stop size  = function 
+                            | No_File (p_name, to_buf) -> 
+                                return 
+                                  (params := !params @
+                                    [(p_name, Buffer.contents to_buf)])
+                                  (* à la fin ? *)
+                            | A_File (p_name,fname,oname,wh) -> 
+                                (match wh with 
+                                | Lwt_unix.Plain fdscr -> 
+                                    (* Messages.debug "closing file"; *)
+                                    files := 
+                                      !files@[(p_name, {tmp_filename=fname;
+                                                        filesize=size;
+                                                        original_filename=oname})];
+                                    Unix.close fdscr
+                                | _ -> ());
+                                return ()
+                          in
+                          Multipart.scan_multipart_body_from_stream 
+                            body bound create add stop >>=
+                          (fun () -> return (!params, !files)))
+                  (fun e -> Ocsistream.consume body >>= fun _ -> fail e)
               with e -> fail e)
 
 (* AEFF *)              (*        IN-MEMORY STOCKAGE *)
@@ -652,6 +655,11 @@ let service
                     ~keep_alive:ka
                     ~code:500 xhtml_sender (* Internal error *)
               | Http_com.MustClose as e -> fail e
+              | Ocsigen_upload_forbidden ->
+                  Messages.debug "-> Sending 403 Forbidden";
+                  send_error wait_end_answer
+                    ~clientproto ~head
+                    ~keep_alive:ka ~code:403 xhtml_sender
               | e ->
                   Messages.warning
                     ("Exn during page generation: "^
@@ -869,7 +877,7 @@ let listen ssl port wait_end_init =
                         we force it to be read here, to be able to take
                         another one on the same connexion: *)
                      (match http_frame.Stream_http_frame.content with
-                       Some f -> 
+                     | Some f -> 
                          (try
                            Ocsistream.consume (f ())
                          with _ -> return ())
