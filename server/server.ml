@@ -225,6 +225,34 @@ let rec getcookies s =
   with _ -> []
 (* On peut améliorer ça *)
 
+(* splits a quoted string, for ex "azert", "  sdfmlskdf",    "dfdsfs" *)
+let rec quoted_split char s =
+  let longueur = String.length s in
+  let rec aux deb =
+    let rec nextquote s i = 
+      if i>=longueur
+      then failwith ""
+      else
+        if s.[i] = '"' 
+        then i 
+        else 
+          if s.[i] = '\\' 
+          then nextquote s (i+2)
+          else nextquote s (i+1)
+    in
+    try
+      let first = (nextquote s deb) + 1 in
+      let afterlast = nextquote s first in
+      let value = String.sub s first (afterlast - first) in
+      value::
+      (if (afterlast + 1) < longueur
+      then aux (afterlast + 1)
+      else [])
+    with _ -> []
+  in 
+  aux 0
+
+
 
 (* reading the request *)
 let get_request_infos meth url http_frame filenames sockaddr port =
@@ -269,6 +297,31 @@ let get_request_infos meth url http_frame filenames sockaddr port =
         Some (Netdate.parse_epoch 
                 (Http_header.get_headers_value
                    http_frame.Stream_http_frame.header "if-modified-since"))
+      with _ -> None
+    in
+    
+    let ifunmodifiedsince = 
+      try 
+        Some (Netdate.parse_epoch 
+                (Http_header.get_headers_value
+                   http_frame.Stream_http_frame.header "if-unmodified-since"))
+      with _ -> None
+    in
+    
+    let ifnonematch = 
+      try 
+        quoted_split ','
+          (Http_header.get_headers_value
+             http_frame.Stream_http_frame.header "if-none-match")
+      with _ -> []
+    in
+    
+    let ifmatch = 
+      try 
+        Some 
+          (quoted_split ','
+             (Http_header.get_headers_value
+                http_frame.Stream_http_frame.header "if-match"))
       with _ -> None
     in
     
@@ -468,6 +521,9 @@ let get_request_infos meth url http_frame filenames sockaddr port =
      ri_cookies_string = cookies_string;
      ri_cookies = cookies;
      ri_ifmodifiedsince = ifmodifiedsince;
+     ri_ifunmodifiedsince = ifunmodifiedsince;
+     ri_ifnonematch = ifnonematch;
+     ri_ifmatch = ifmatch;
      ri_content_type = ct;
      ri_content_length = cl;
      ri_referer = referer;
@@ -562,37 +618,107 @@ let service
           
           (fun (res, cookieslist) ->
             
-            match res.res_lastmodified, ri.ri_ifmodifiedsince with
-            | Some l, Some i when l<=i -> 
-                Messages.debug "-> Sending 304 Not modified ";
-                send_empty
-                  ~content:()
-                  ~cookies:(List.map change_cookie 
-                              (res.res_cookies@cookieslist))
-                  wait_end_answer
-                  ~clientproto
-                  ~keep_alive:ka
-                  ?last_modified:res.res_lastmodified
-                  ?etag:res.res_etag
-                  ~code:304 (* Not modified *)
-                  ~head:head 
-                  empty_sender
+
+(* RFC
+
+   An  HTTP/1.1 origin  server, upon  receiving a  conditional request
+   that   includes   both   a   Last-Modified  date   (e.g.,   in   an
+   If-Modified-Since or  If-Unmodified-Since header field)  and one or
+   more entity tags (e.g.,  in an If-Match, If-None-Match, or If-Range
+   header  field) as  cache  validators, MUST  NOT  return a  response
+   status of 304 (Not Modified) unless doing so is consistent with all
+   of the conditional header fields in the request.
+
+   -
+
+   The result  of a request having both  an If-Unmodified-Since header
+   field and  either an  If-None-Match or an  If-Modified-Since header
+   fields is undefined by this specification.
+
+*)
+
+            let not_modified () = 
+              let etagalreadyknown =
+                match res.res_etag with
+                | None -> false
+                | Some e -> List.mem e ri.ri_ifnonematch
+              in
+              match
+                (res.res_lastmodified, 
+                 ri.ri_ifmodifiedsince)
+              with
+              | Some l, Some i when l<=i ->
+                  (ri.ri_ifnonematch = []) || etagalreadyknown
+              | _, None -> etagalreadyknown
+              | _ -> false
+            in
+
+            let precond_failed () = 
+              (match
+                (res.res_lastmodified, 
+                 ri.ri_ifunmodifiedsince)
+              with
+              | Some l, Some i -> i<l
+              | _ -> false) ||
+                (match ri.ri_ifmatch, res.res_etag with
+                | None, _ -> false
+                | Some _, None -> true
+                | Some l, Some e -> not (List.mem e l))
+            in
+
+
+            if not_modified ()
+            then begin
+              
+              Messages.debug "-> Sending 304 Not modified ";
+              send_empty
+                ~content:()
+                ~cookies:(List.map change_cookie 
+                            (res.res_cookies@cookieslist))
+                wait_end_answer
+                ~clientproto
+                ~keep_alive:ka
+                ?last_modified:res.res_lastmodified
+                ?etag:res.res_etag
+                ~code:304 (* Not modified *)
+                ~head:head 
+                empty_sender
+            end
+            
+            else if precond_failed ()
+            then begin
                   
-            | _ ->
-                res.res_send_page
-                  ~cookies:(List.map change_cookie 
-                              (res.res_cookies@cookieslist))
-                  wait_end_answer
-                  ~clientproto
-                  ~keep_alive:ka
-                  ?last_modified:res.res_lastmodified
-                  ?code:res.res_code
-                  ?charset:res.res_charset
-                  ~head:head
-                  (Http_com.create_sender
-                     ~mode:Answer
-                     ~headers:res.res_headers
-                     ~server_name:server_name inputchan))
+              Messages.debug "-> Sending 412 Precondition Failed (if-unmodified-since header)";
+              send_empty
+                ~content:()
+                ~cookies:(List.map change_cookie 
+                            (res.res_cookies@cookieslist))
+                wait_end_answer
+                ~clientproto
+                ~keep_alive:ka
+                ?last_modified:res.res_lastmodified
+(*                ?etag:res.res_etag *)
+                ~code:412 (* Precondition failed *)
+                ~head:head 
+                empty_sender
+            end
+
+            else
+              res.res_send_page
+                ~cookies:(List.map change_cookie 
+                            (res.res_cookies@cookieslist))
+                wait_end_answer
+                ~clientproto
+                ~keep_alive:ka
+                ?last_modified:res.res_lastmodified
+                ?code:res.res_code
+                ?charset:res.res_charset
+                ?etag:res.res_etag
+                ~head:head
+                (Http_com.create_sender
+                   ~mode:Answer
+                   ~headers:res.res_headers
+                   ~server_name:server_name inputchan))
             
         )
         

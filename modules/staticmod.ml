@@ -416,11 +416,12 @@ let gen pages_tree charset ri =
 		res_code=None;
 		res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
 		res_etag=
-		   Some (Predefined_senders.File_content.get_etag filename);
+		Some (Predefined_senders.File_content.get_etag filename);
 		res_charset=charset})
-
+            
       end
       else return (Ext_not_found Ocsigen_404))
+
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
