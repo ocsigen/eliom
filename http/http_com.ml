@@ -912,17 +912,18 @@ module FHttp_sender =
      * defined header when there is a conflict
      * the content-length tag is automaticaly calculated *)
     let send 
+        ?(filter = fun ct a -> return a)
         waiter
         ~clientproto
         ?etag
         ~mode
         ?proto
         ?headers
+        ?contenttype
         ?content
         ~head
         sender =
-      (* creation d'une http_frame *)
-      (* creation du header *)
+
       (* waiter is here for pipelining: we must wait before sending the page,
          because the previous one may not be sent.
          If we don't want to wait, use waiter = return ()
@@ -942,6 +943,7 @@ module FHttp_sender =
               | H.Query _ -> false
             in
             (C.stream_of_content c >>=
+             filter contenttype >>=
              (* Here the stream is opened *)
              (fun (lon, etag2, flux, close_fun) ->
                catch
@@ -961,10 +963,10 @@ module FHttp_sender =
                     *)
                    Lwt.return (hds_fusion chunked lon
                                  (("ETag", ("\""^(match etag with 
-                                   None -> etag2
+                                 | None -> etag2
                                  | Some etag -> etag)^"\""))::sender.s_headers)
                                  (match headers with 
-                                   Some h -> h
+                                 | Some h -> h
                                  | None -> []) ) >>=
                    (fun hds -> 
                      let hd = {

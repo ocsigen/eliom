@@ -406,7 +406,8 @@ let gen pages_tree charset ri =
 		res_code= None; (* 200 by default *)
 		res_lastmodified= None;
 		res_etag= None;
-		res_charset= None}))      
+		res_charset= None;
+                res_filter=None}))      
 	else 
 	  return
             (Ext_found
@@ -417,7 +418,8 @@ let gen pages_tree charset ri =
 		res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
 		res_etag=
 		Some (Predefined_senders.File_content.get_etag filename);
-		res_charset=charset})
+		res_charset=charset;
+                res_filter=None})
             
       end
       else return (Ext_not_found Ocsigen_404))
@@ -487,9 +489,10 @@ let end_init () =
       let page_tree = new_pages_tree () in
       set_dir page_tree (Dir (path, p)) [];
       add_virthost ([([Wildcard], None)], 
-                    fun ri -> 
+                    (fun ri -> 
                       gen page_tree (Ocsiconfig.get_default_charset ()) ri >>=
-                      (fun r -> return (r,[])))
+                      (fun r -> return (r,[]))),
+                    (fun ri res -> return res))
   (* for default static dir *)
 
 

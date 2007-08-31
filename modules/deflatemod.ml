@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module extensiontemplate.ml
+ * Module deflatemod.ml
  * Copyright (C) 2007 Vincent Balat
  * CNRS - Université Paris Diderot Paris 7
  *
@@ -20,25 +20,9 @@
  *)
 (*****************************************************************************)
 (*****************************************************************************)
-(* This is an example of extension for Ocsigen                               *)
-(* Take this as a template for writing your own extensions to the Web server *)
+(* This module allows to compress output sent by the server                  *)
 (*****************************************************************************)
 (*****************************************************************************)
-
-(* If you want to create an extension to filter the output of the server
-   (for ex: compression), have a look at deflatemod.ml as an example.
-   It is very similar to this example, but using 
-   Extensions.register_output_filter
-   instead of Extensions.register_extension.
- *)
-
-(* To compile it:
-ocamlfind ocamlc  -thread -package netstring,ocsigen -c extensiontemplate.ml
-
-Then load it dynamically from Ocsigen's config file:
-   <extension module=".../extensiontemplate.cmo"/>
-
-*)
 
 open Lwt
 open Extensions
@@ -59,9 +43,9 @@ open Simplexmlparser
 
 let rec parse_global_config = function
   | [] -> ()
-  | (Element ("myoption", [("myattr", s)], []))::ll -> ()
+(*  | (Element ("myoption", [("myattr", s)], []))::ll -> () *)
   | _ -> raise (Error_in_config_file 
-                  ("Unexpected content inside extensiontemplate config"))
+                  ("Unexpected content inside deflatemod config"))
 
 let _ = parse_global_config (Extensions.get_config ())
 
@@ -86,7 +70,11 @@ let _ = parse_global_config (Extensions.get_config ())
  *)
 
 let parse_config path = function
-  | Element ("extensiontemplate", atts, []) ->  ()
+(*  | Element ("deflate", atts, []) -> () 
+   Ici il faut créer un arbre de répertoires en se souvenant les options
+   de compression de chaque répertoire.
+   cf staticmod par exemple pour page_tree
+ *)
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> 
       raise (Error_in_config_file "Unexpected data in config file")
@@ -116,50 +104,33 @@ let exn_handler = raise
 
 
 (*****************************************************************************)
-(** The function that will generate the pages from the request. 
-   It has type 
-   string option -> Extensions.request_info -> Extensions.answer Lwt.t, 
-   where the string option is the encoding for characters possibly specified 
-   in the configuration file,
-   request_info is the request
-   answer
+(** The filter function (here deflate) *)
+let stream_filter contenttype (len, etag, stream, finalize) = 
+  (* Ici remplacer les deux lignes par le truc de compression *)
+  Ocsistream.consume stream >>= fun () ->
+  return (Some Int64.zero, "", (Ocsistream.empty_stream None), finalize)
 
-   You must define a sender for the type you want to send (Here text).
-   Some are predefined in module Predefined_senders (for text, xhtml typed
-   with XHTML.M, files, empty content).
-   To define a new sender, see for example eliomduce.ml in 
-   Ocsigen's source code.
- *)
-let gen charset ri =
-  let content = "Extensiontemplate page" in
+let filter ri res =
+  (* Ici il faut regarder dans l'arbre s'il faut compresser ou pas *)
   return
-    (Ext_found
-       {res_cookies= [];
-        res_send_page= 
-        Predefined_senders.send_text_page 
-          ~contenttype:"text/plain" ~content:content;
-        res_headers= Predefined_senders.dyn_headers;
-        res_code= None; (* 200 by default *)
-        res_lastmodified= None;
-        res_etag= None;
-        res_charset= None;
-        res_filter=None})
-
+    {res with
+     res_filter= Some stream_filter
+   }
 
 
 (*****************************************************************************)
 (** A function that will be called for each virtual host,
    generating two functions: 
-    - one that will be called to generate the pages
+    - one that will be called to filter the output
     - one to parse the configuration file. *)
-let virtual_host_creator hostpattern = (gen, parse_config)
+let virtual_host_creator hostpattern = (filter, parse_config)
    (* hostpattern has type Extensions.virtual_hosts
       and represents the name of the virtual host *)
    
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = R.register_extension (* takes a quadruple *)
+let _ = R.register_output_filter (* takes a quadruple *)
     (virtual_host_creator,
      start_init,
      end_init,

@@ -2,7 +2,7 @@ include ../Makefile.config
 
 FILES= eliommod.ml eliom.ml eliomboxes.ml \
        ocsigenmod.ml ocsigen.ml ocsigenboxes.ml \
-       staticmod.ml cgimod.ml \
+       staticmod.ml cgimod.ml deflatemod.ml\
        extensiontemplate.ml
 
 ifeq "$(OCSIPERSISTSQLITE)" "YES"

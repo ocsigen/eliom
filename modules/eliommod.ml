@@ -1426,7 +1426,8 @@ let gen page_tree charset ri =
                           res_lastmodified=None; 
                           (* No date => proxies use etag *)
                           res_etag=None;
-                          res_charset=None})
+                          res_charset=None;
+                          res_filter=None})
                       
                 | _ ->
                     (let now = Unix.time () in
@@ -1611,7 +1612,8 @@ let gen page_tree charset ri =
                        res_code=None;
                        res_lastmodified=None;
                        res_etag=None;
-                       res_charset= Error_pages.charset})
+                       res_charset= Error_pages.charset;
+                       res_filter=None})
 	| Eliom_Wrong_parameter -> 
             (force ri.ri_post_params) >>=
             (fun ripp ->
@@ -1626,7 +1628,8 @@ let gen page_tree charset ri =
                          res_code=None;
                          res_lastmodified=None;
                          res_etag=None;
-                         res_charset= Error_pages.charset}))
+                         res_charset= Error_pages.charset;
+                         res_filter=None}))
 	| Ocsigen_404 -> return (Ext_not_found Ocsigen_404)
 	| Eliom_Session_expired -> 
             gen_aux 

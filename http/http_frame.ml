@@ -40,8 +40,6 @@ module type HTTP_CONTENT =
        size, etag, stream, closing function *)
     val stream_of_content : t -> 
       (int64 option * etag * stream * (unit -> unit Lwt.t)) Lwt.t
-        (* unit -> unit is a function that will be called 
-           at the end of the stream (for ex for closing file) *)
         (* The int64 option is the content-length. 
            None means Transfer-encoding: chunked *)
         (* The last function is the termination function

@@ -29,6 +29,22 @@ open XHTML.M
 
 type mycookieslist = 
   (string list option * float option * (string * string) list) list
+(** The cookies I want to set *)
+
+type full_stream =
+    (int64 option * Http_frame.etag * Ocsistream.stream * (unit -> unit Lwt.t))
+(** The type of streams to be send by the server.
+   The [int64 option] is the content-length. 
+   [None] means Transfer-encoding: chunked
+   The last function is the termination function
+   (for ex closing a file if needed), 
+   that will be called after the stream has been fully read. 
+   Your new termination function should probably call the former one. *)
+
+type stream_filter_type =
+    string option (* content-type *) -> full_stream -> full_stream Lwt.t
+(** A function to transform a stream into another one. *)
+
 
 
 let id x = x
@@ -262,18 +278,22 @@ let gmtdate d =
  * page is the page to send
  * xhtml_sender is the used sender *)
 let send_generic
-    (send : unit Lwt.t ->
-      clientproto:Http_frame.Http_header.proto ->
-        ?etag:etag ->
-          mode:Xhtml_sender.H.http_mode ->
-            ?proto:Http_frame.Http_header.proto ->
-              ?headers:(string * string) list ->
-                ?content:'a ->
-                  head:bool -> 
-                    Http_com.sender_type -> 
-                      unit Lwt.t)   
+    (send : 
+       ?filter:stream_filter_type ->
+         unit Lwt.t ->
+           clientproto:Http_frame.Http_header.proto ->
+             ?etag:etag ->
+               mode:Xhtml_sender.H.http_mode ->
+                 ?proto:Http_frame.Http_header.proto ->
+                   ?headers:(string * string) list ->
+                     ?contenttype: string ->
+                       ?content:'a ->
+                         head:bool -> 
+                           Http_com.sender_type -> 
+                             unit Lwt.t)
     ?contenttype
     ~content
+    ?filter
     ?(cookies=[])
     waiter
     ~clientproto
@@ -343,31 +363,36 @@ let send_generic
                | "text", Some c -> (s^"; charset="^c)
                | _ -> s))::hds
   in
-  match code with
-  | None -> send 
-        waiter ~clientproto ?etag
-        ~mode:(Http_header.Answer 200) ~content ~headers:hds ~head sender
-  | Some c -> send
-        waiter ~clientproto ?etag
-        ~mode:(Http_header.Answer c) ~content ~headers:hds ~head sender
-
+  let mode =
+    Http_header.Answer
+      (match code with
+      | None -> 200
+      | Some c -> c)
+  in
+  send ?filter
+    waiter ~clientproto ?etag
+    ~mode
+    ?contenttype ~content
+    ~headers:hds ~head sender
+    
 
 type send_page_type =
-    (* no content
-       no content-type *)
-    ?cookies:mycookieslist ->
-      unit Lwt.t ->
-        clientproto:Http_frame.Http_header.proto ->
-        ?code:int ->
-          ?etag:etag ->
-            keep_alive:bool ->
-              ?last_modified:float ->
-                ?location:string -> 
-                  head:bool -> 
-                    ?headers:(string * string) list ->
-                      ?charset:string -> 
-                        Http_com.sender_type -> 
-                          unit Lwt.t
+    (* no content *)
+    (* no contenttype *)
+      ?filter:stream_filter_type ->
+        ?cookies:mycookieslist ->
+          unit Lwt.t ->
+            clientproto:Http_frame.Http_header.proto ->
+              ?code:int ->
+                ?etag:Http_frame.etag ->
+                  keep_alive:bool ->
+                    ?last_modified:float ->
+                      ?location:string -> 
+                        head:bool -> 
+                          ?headers:(string * string) list ->
+                            ?charset:string -> 
+                              Http_com.sender_type -> 
+                                unit Lwt.t
   
 (** fonction that sends a xhtml page
  * code is the code of the http answer
@@ -426,6 +451,7 @@ let send_stream_page =
 (** sends an error page that fit the error number *)
 let send_error
     ?http_exception
+    ?filter
     ?cookies
     waiter
     ~clientproto
@@ -468,6 +494,7 @@ let send_error
   in
   send_xhtml_page
     ~content:err_page
+    ?filter
     waiter
     ~clientproto
     ~code:error_code
@@ -526,7 +553,7 @@ let content_type_from_file_name =
       in Hashtbl.find mimeht extens
     with _ -> "unknown" 
 
-let send_file ~content:file ?cookies waiter ~clientproto
+let send_file ~content:file ?filter ?cookies waiter ~clientproto
     ?code ?etag ~keep_alive
     ?last_modified ?location ~head ?headers ?charset file_sender =
   Lwt_unix.yield () >>=
@@ -534,6 +561,7 @@ let send_file ~content:file ?cookies waiter ~clientproto
     send_generic File_sender.send
       ~contenttype:(content_type_from_file_name file)
       ~content:file
+      ?filter
       ?cookies waiter
       ~clientproto
       ?code ?etag ~keep_alive

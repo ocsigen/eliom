@@ -113,6 +113,11 @@ type result =
      res_send_page: Predefined_senders.send_page_type; (** A function to send the content. Some are predefined in {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.send_xhtml_page]. *)
      res_headers: (string * string) list (** The HTTP headers you want to add. For example {!Predefined_senders.nocache_headers} if you don't want the page to be cached (dynamic pages). *);
      res_charset: string option;          (** Charset used by the page *)
+     res_filter: Predefined_senders.stream_filter_type option
+       (** An optional function that will transform the stream before sending
+          it (for example a compression function)
+         *)
+
    }
 
 
@@ -139,7 +144,12 @@ type answer =
         (** Used to retry all the extensions with a new request_info ;
            May set cookies (idem) *)
 
-(** We register for each extension four functions:
+
+
+module R : sig
+
+(** 
+   For each extension generating pages, we register four functions:
    - a function that will be called for each
    virtual server, generating two functions:
      - one that will be called to generate the pages
@@ -153,13 +163,34 @@ type answer =
    that may be raised during the initialisation phase, and raise again
    all other exceptions
  *)
-module R : sig
   val register_extension :
       (virtual_hosts -> 
         (string option -> request_info -> answer Lwt.t) * 
-	  (string list ->
-            Simplexmlparser.xml -> 
-              unit)) *
+	  (string list -> Simplexmlparser.xml -> unit)) *
+      (unit -> unit) * 
+      (unit -> unit) *
+      (exn -> string) -> unit
+
+(** 
+   For each extension filtering the output (for example for compression), 
+   we register four functions:
+   - a function that will be called for each
+   virtual server, generating two functions:
+     - one that will be called to filter the output
+       (from request_info and result)
+     - one to parse the configuration file
+   - a function that will be called at the beginning 
+   of the initialisation phase 
+   - a function that will be called at the end of the initialisation phase 
+   of the server
+   - a function that will create an error message from the exceptions
+   that may be raised during the initialisation phase, and raise again
+   all other exceptions
+ *)
+  val register_output_filter :
+      (virtual_hosts -> 
+        (request_info -> result -> result Lwt.t) *
+	  (string list -> Simplexmlparser.xml -> unit)) *
       (unit -> unit) * 
       (unit -> unit) *
       (exn -> string) -> unit
@@ -184,33 +215,36 @@ val parse_url : string ->
   string * Neturl.url * string list * string option *
     (string * string) list Lazy.t
 
-val create_virthost : 
+val create_virthost :
     virtual_hosts ->
-      ((request_info -> 
-        (answer * cookieslist) Lwt.t) * 
-	 (string list ->
-           Simplexmlparser.xml ->
-             unit)) * 
+      ((request_info -> (answer * cookies list) Lwt.t) *
+         (request_info -> result -> result Lwt.t) *
+         (string list -> Simplexmlparser.xml -> unit)) *
         (string option -> string list -> unit)
 
 val set_virthosts : (virtual_hosts * 
-                       (request_info -> 
-                         (answer * cookieslist) Lwt.t)) list -> unit
-
-val get_virthosts : unit -> (virtual_hosts * 
-                               (request_info -> 
-                                 (answer * cookieslist) Lwt.t)) list
+                       (request_info -> (answer * cookieslist) Lwt.t) *
+                       (request_info -> result -> result Lwt.t)
+                    ) list -> unit
+                        
+val get_virthosts : unit -> 
+  (virtual_hosts * 
+     (request_info -> (answer * cookieslist) Lwt.t) *
+     (request_info -> result -> result Lwt.t)
+  ) list
 
 val add_virthost : (virtual_hosts * 
-                      (request_info -> 
-                        (answer * cookieslist) Lwt.t)) -> unit
+                      (request_info -> (answer * cookieslist) Lwt.t) *
+                      (request_info -> result -> result Lwt.t)
+                   ) -> unit
 
 val do_for_host_matching : 
     string option ->
       int ->
-        ((virtual_host_part list * int option) list *
-           (request_info -> 
-             (answer * cookieslist) Lwt.t))
+        (virtual_hosts *
+           (request_info -> (answer * cookieslist) Lwt.t) *
+           (request_info -> result -> result Lwt.t)
+        )
           list -> request_info -> (result * cookieslist) Lwt.t
 
 (** Profiling *)

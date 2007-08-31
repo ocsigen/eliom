@@ -2976,9 +2976,10 @@ module Xhtmlreg_ = struct
         res_code= code;
         res_send_page= Predefined_senders.send_xhtml_page ~content:content;
         res_headers= Predefined_senders.dyn_headers;
-        res_charset= match charset with
-          None -> get_config_file_charset sp
-        | _ -> charset
+        res_charset= (match charset with
+        | None -> get_config_file_charset sp
+        | _ -> charset);
+        res_filter=None
       }
 
 end
@@ -3998,9 +3999,10 @@ module SubXhtml = functor(T : sig type content end) ->
            res_code= code;
            res_send_page= send_cont_page ~content:content;
            res_headers= Predefined_senders.dyn_headers;
-           res_charset= match charset with
+           res_charset= (match charset with
              None -> get_config_file_charset sp
-           | _ -> charset
+           | _ -> charset);
+           res_filter=None
          }
           
     end
@@ -4040,9 +4042,10 @@ module Textreg_ = struct
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:contenttype ~content:content;
        res_headers= Predefined_senders.dyn_headers;
-       res_charset= match charset with
-          None -> get_config_file_charset sp
-        | _ -> charset
+       res_charset= (match charset with
+       | None -> get_config_file_charset sp
+       | _ -> charset);
+       res_filter=None
      }
 
 end
@@ -4067,9 +4070,10 @@ module CssTextreg_ = struct
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:"text/css" ~content:content;
        res_headers= Predefined_senders.dyn_headers;
-       res_charset= match charset with
-          None -> get_config_file_charset sp
-        | _ -> charset
+       res_charset= (match charset with
+       | None -> get_config_file_charset sp
+       | _ -> charset);
+       res_filter=None
      }
 
 end
@@ -4095,9 +4099,10 @@ module HtmlTextreg_ = struct
        res_send_page= Predefined_senders.send_text_page 
          ~contenttype:"text/html" ~content:content;
        res_headers= Predefined_senders.dyn_headers;
-       res_charset= match charset with
-          None -> get_config_file_charset sp
-        | _ -> charset
+       res_charset= (match charset with
+       | None -> get_config_file_charset sp
+       | _ -> charset);
+       res_filter=None
      }
 
 end
@@ -4303,7 +4308,8 @@ module Unitreg_ = struct
        res_code= Some code;
        res_send_page= Predefined_senders.send_empty ~content:content;
        res_headers= [];
-       res_charset= None
+       res_charset= None;
+       res_filter=None
      }
 
 end
@@ -4335,10 +4341,11 @@ module Redirreg_ = struct
        res_etag= None;
        res_code= Some code; (* Moved permanently *)
        res_send_page= 
-       (fun ?cookies waiter ~clientproto ?code ?etag ~keep_alive
+       (fun ?filter ?cookies waiter ~clientproto ?code ?etag ~keep_alive
            ?last_modified ?location ~head ?headers ?charset s ->
              Predefined_senders.send_empty
-               ~content:() 
+               ~content:()
+               ?filter
                ?cookies
                waiter 
                ~clientproto
@@ -4348,7 +4355,8 @@ module Redirreg_ = struct
                ~location:content
                ~head ?headers ?charset s);
        res_headers= [];
-       res_charset= None
+       res_charset= None;
+       res_filter=None
      }
 
 end
@@ -4438,9 +4446,10 @@ module Filesreg_ = struct
        res_code= code;
        res_send_page= Predefined_senders.send_file ~content:filename;
        res_headers= [];
-       res_charset= match charset with
-         None -> get_config_file_charset sp
-       | _ -> charset
+       res_charset= (match charset with
+       | None -> get_config_file_charset sp
+       | _ -> charset);
+       res_filter=None
      }
 
 

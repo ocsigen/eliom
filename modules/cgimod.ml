@@ -599,11 +599,12 @@ let gen pages_tree charset ri =
                          res_etag= None;
                          res_code= Some 301; (* Moved permanently *)
                          res_send_page= 
-                         (fun ?cookies waiter ~clientproto ?code
+                         (fun ?filter ?cookies waiter ~clientproto ?code
                              ?etag ~keep_alive ?last_modified ?location
                              ~head ?headers ?charset s ->
                                Predefined_senders.send_empty
                                  ~content:() 
+                                 ?filter
                                  ?cookies
                                  waiter 
                                  ~clientproto
@@ -613,7 +614,8 @@ let gen pages_tree charset ri =
                                  ~location:loc
                                  ~head ?headers ?charset s);
                          res_headers= [];
-                         res_charset= None
+                         res_charset= None;
+                         res_filter=None
                        })
                  with 
                  | Neturl.Malformed_URL -> 
@@ -635,7 +637,8 @@ let gen pages_tree charset ri =
 		       res_code= code;
 		       res_lastmodified= None;
 		       res_etag= None;
-		       res_charset= None})
+		       res_charset= None;
+                       res_filter=None})
        end
        else return (Ext_not_found Ocsigen_404))
     (function

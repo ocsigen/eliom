@@ -22,19 +22,40 @@
 type mycookieslist = 
   (string list option * float option * (string * string) list) list
 
+type full_stream =
+    (int64 option * Http_frame.etag * Ocsistream.stream * (unit -> unit Lwt.t))
+(** The type of streams to be send by the server.
+   The [int64 option] is the content-length. 
+   [None] means Transfer-encoding: chunked
+   The last function is the termination function
+   (for ex closing a file if needed), 
+   that will be called after the stream has been fully read. 
+   Your new termination function should probably call the former one. *)
+
+type stream_filter_type =
+    string option (* content-type *) -> full_stream -> full_stream Lwt.t
+(** A function to transform a stream into another one. *)
+
+
+
 type send_page_type =
-    ?cookies:mycookieslist ->
-    unit Lwt.t ->
-    clientproto:Http_frame.Http_header.proto ->
-    ?code:int ->
-    ?etag:Http_frame.etag ->
-    keep_alive:bool ->
-    ?last_modified:float ->
-    ?location:string -> 
-    head:bool -> 
-    ?headers:(string * string) list ->
-    ?charset:string ->
-      Http_com.sender_type -> unit Lwt.t
+    (* no content
+       no content-type *)
+    ?filter:stream_filter_type ->
+        ?cookies:mycookieslist ->
+          unit Lwt.t ->
+            clientproto:Http_frame.Http_header.proto ->
+              ?code:int ->
+                ?etag:Http_frame.etag ->
+                  keep_alive:bool ->
+                    ?last_modified:float ->
+                      ?location:string -> 
+                        head:bool -> 
+                          ?headers:(string * string) list ->
+                            ?charset:string -> 
+                              Http_com.sender_type -> 
+                                unit Lwt.t
+
 
 (** Sending xhtml *)
 val send_xhtml_page : content: [ `Html ] XHTML.M.elt -> send_page_type
@@ -70,8 +91,7 @@ module Xhtml_content :
     val get_etag_aux : string -> string
     val get_etag : [ `Html ] XHTML.M.elt -> string
     val stream_of_content :
-      [ `Html ] XHTML.M.elt ->
-      (int64 option * string * Ocsistream.stream * ('a -> 'a Lwt.t)) Lwt.t
+      [ `Html ] XHTML.M.elt -> full_stream Lwt.t
     val content_of_stream : 'a -> 'b
   end
 module Text_content :
@@ -79,7 +99,7 @@ module Text_content :
     type t = string
     val get_etag : string -> string
     val stream_of_content :
-      string -> (int64 option * string * Ocsistream.stream * ('a -> 'a Lwt.t)) Lwt.t
+      string -> full_stream Lwt.t
     val content_of_stream : Ocsistream.stream -> t Lwt.t
   end
 module Stream_content :
@@ -87,7 +107,7 @@ module Stream_content :
     type t = unit -> Ocsistream.stream
     val get_etag : t -> string
     val stream_of_content : 
-        t -> (int64 option * string * Ocsistream.stream * ('a -> 'a Lwt.t)) Lwt.t
+        t -> full_stream Lwt.t
     val content_of_stream : Ocsistream.stream -> t Lwt.t
   end
 module Empty_content :
@@ -95,7 +115,7 @@ module Empty_content :
     type t = unit
     val get_etag : 'a -> string
     val stream_of_content :
-      'a -> (int64 option * string * Ocsistream.stream * ('b -> 'b Lwt.t)) Lwt.t
+      'a -> full_stream Lwt.t
     val content_of_stream : Ocsistream.stream -> unit Lwt.t
   end
 module File_content :
@@ -106,8 +126,7 @@ module File_content :
     val get_etag_aux : Unix.LargeFile.stats -> string
     val get_etag : string -> string
     val stream_of_content :
-      string -> (int64 option * string * 
-                   Ocsistream.stream * (unit -> unit Lwt.t)) Lwt.t
+      string -> full_stream Lwt.t
     val content_of_stream : 'a -> 'b
   end
 module Empty_http_frame :
@@ -187,12 +206,14 @@ module Empty_sender :
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
+       ?filter:stream_filter_type ->
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
+      ?contenttype:string ->
       ?content:Empty_content.t ->
       head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -282,12 +303,14 @@ module Xhtml_sender :
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
+       ?filter:stream_filter_type ->
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
+      ?contenttype:string ->
       ?content:Xhtml_content.t ->
       head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -368,12 +391,14 @@ module Text_sender :
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
+       ?filter:stream_filter_type ->
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
+      ?contenttype:string ->
       ?content:Text_content.t ->
       head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -492,12 +517,14 @@ module File_sender :
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
+       ?filter:stream_filter_type ->
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
+      ?contenttype:string ->
       ?content:File_content.t ->
       head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -568,12 +595,14 @@ module Stream_sender :
       (string * string) list ->
       (string * string) list -> (string * string) list
     val send :
+       ?filter:stream_filter_type ->
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
       mode:H.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
+      ?contenttype:string ->
       ?content:Stream_content.t ->
       head:bool -> Http_com.sender_type -> unit Lwt.t
   end
@@ -581,18 +610,21 @@ module Stream_sender :
 
 val gmtdate : float -> string
 val send_generic :
-    (unit Lwt.t ->
-      clientproto:Http_frame.Http_header.proto ->
-      ?etag:Http_frame.etag ->
-        mode:Xhtml_sender.H.http_mode ->
-          ?proto:Http_frame.Http_header.proto ->
-            ?headers:(string * string) list ->
-              ?content:'a ->
-                head:bool -> 
-                  Http_com.sender_type -> 
-                    unit Lwt.t) ->
+    (?filter:stream_filter_type ->
+      unit Lwt.t ->
+        clientproto:Http_frame.Http_header.proto ->
+          ?etag:Http_frame.etag ->
+            mode:Xhtml_sender.H.http_mode ->
+              ?proto:Http_frame.Http_header.proto ->
+                ?headers:(string * string) list ->
+                  ?contenttype:string ->
+                    ?content:'a ->
+                      head:bool -> 
+                        Http_com.sender_type -> 
+                          unit Lwt.t) ->
   ?contenttype:string ->
   content:'a ->
+  ?filter:stream_filter_type ->
   ?cookies:mycookieslist ->
   unit Lwt.t ->
   clientproto:Http_frame.Http_header.proto ->

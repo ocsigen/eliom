@@ -104,7 +104,8 @@ type result =
      res_code: int option; (* HTTP code, if not 200 *)
      res_send_page: Predefined_senders.send_page_type;
      res_headers: (string * string) list;
-     res_charset: string option
+     res_charset: string option;
+     res_filter: Predefined_senders.stream_filter_type option
    }
    
 type answer =
@@ -127,8 +128,10 @@ type answer =
            May set cookies (idem) *)
 
 let (virthosts : 
-       (virtual_hosts * (request_info -> 
-         (answer * cookieslist) Lwt.t)) list ref) = 
+       (virtual_hosts * 
+          (request_info -> (answer * cookieslist) Lwt.t) *
+          (request_info -> result -> result Lwt.t)
+       ) list ref) = 
   ref []
 
 let set_virthosts v = virthosts := v
@@ -197,9 +200,14 @@ let find_charset (Charset_tree charset_tree) path =
    all other exceptions
  *)
 module R = struct
-
   (* in a sub module to make possible Dynlink.prohibit ["Extensions.R"] *)
-  let register_extension, create_virthost, get_beg_init, get_end_init, 
+
+
+  let register_extension,
+    register_output_filter,
+    create_virthost, 
+    get_beg_init, 
+    get_end_init, 
     get_init_exn_handler =
     let defaultparseconfig path xml =
       raise (Bad_config_tag_for_extension "No extension loaded")
@@ -207,51 +215,114 @@ module R = struct
     let fun_create_virthost =
       ref (fun hostpattern -> 
         let charset_tree = ref (new_charset_tree ()) in
-        ((fun cs ri -> return ((Ext_not_found Ocsigen_404),[])), 
+        ((fun cs ri -> return ((Ext_not_found Ocsigen_404),[])),
+         (fun ri res -> return res) (* default output filter *),
          defaultparseconfig,
          charset_tree))
     in
     let fun_beg = ref (fun () -> ()) in
     let fun_end = ref (fun () -> ()) in
     let fun_exn = ref (fun exn -> raise exn) in
-    ((fun (fun_virthost, begin_init, end_init, handle_exn) ->
+
+    ((* ********* register_extension ********* *)
+     (fun (fun_virthost, begin_init, end_init, handle_exn) ->
       let cur_fun = !fun_create_virthost in
+      (* The function to create a new virtual host is created from
+         the previous one (cur_fun) and fun_virthost
+       *)
       fun_create_virthost := 
         (fun hostpattern -> 
-          let (g1, p1, charset_tree) = cur_fun hostpattern in
+          (* For each host, we create: *)
+          let (g1, fil1, p1, charset_tree) = cur_fun hostpattern in
           let (g2, p2) = fun_virthost hostpattern in
-          ((fun charset ri ->
-	    g1 charset ri >>=
-            fun (ext_res, cookieslist) ->
-              match ext_res with
-              | Ext_not_found _ -> g2 charset ri >>= 
-                  fun r -> return (r, cookieslist)
-              | Ext_continue_with (ri', cookies_to_set) -> 
-                  g2 (find_charset !charset_tree ri'.ri_path) ri' >>= 
-                  fun r -> return (r, cookies_to_set@cookieslist)
-              | r -> return (r, cookieslist)
+
+          ((* ***** a function that will handle the requests: *)
+           (fun charset ri ->
+	     g1 charset ri >>=
+             fun (ext_res, cookieslist) ->
+               match ext_res with
+               | Ext_not_found _ -> g2 charset ri >>= 
+                   fun r -> return (r, cookieslist)
+               | Ext_continue_with (ri', cookies_to_set) -> 
+                   g2 (find_charset !charset_tree ri'.ri_path) ri' >>= 
+                   fun r -> return (r, cookies_to_set@cookieslist)
+               | r -> return (r, cookieslist)
            ),
+           
+           (* ***** a function that will filter the output stream: *)
+           fil1,
+
+           (* ***** A function to parse the config file for each site: *)
 	   (fun path xml -> 
              try
                p1 path xml
              with 
              | Error_in_config_file _ as e -> raise e
              | Bad_config_tag_for_extension _ -> p2 path xml),
+           
+           (* ***** a tree of charsets to be used for each directory: *)
            charset_tree));
+      
       fun_beg := comp begin_init !fun_beg;
       fun_end := comp end_init !fun_end;
       let curexnfun = !fun_exn in
       fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
+     
+     (* ********* register_output_filter ********* *)
+     (fun (fun_virthost, begin_init, end_init, handle_exn) ->
+      let cur_fun = !fun_create_virthost in
+      (* The function to create a new virtual host is created from
+         the previous one (cur_fun) and fun_virthost
+       *)
+      fun_create_virthost := 
+        (fun hostpattern -> 
+          (* For each host, we create: *)
+          let (g1, fil1, p1, charset_tree) = cur_fun hostpattern in
+          let (fil2, p2) = fun_virthost hostpattern in
+
+          ((* ***** a function that will handle the requests: *)
+           g1,
+
+           (* ***** a function that will filter the output stream: *)
+           (fun ri res -> fil1 ri res >>= fil2 ri),
+
+            (* ***** a function to parse the config file for each site: *)
+	   (fun path xml -> 
+             try
+               p1 path xml
+             with 
+             | Error_in_config_file _ as e -> raise e
+             | Bad_config_tag_for_extension _ -> p2 path xml),
+
+            (* ***** a tree of charsets to be used for each directory: *)
+           charset_tree));
+
+      fun_beg := comp begin_init !fun_beg;
+      fun_end := comp end_init !fun_end;
+      let curexnfun = !fun_exn in
+      fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
+
+     (* ********* create_virthost ********* *)
      (fun h ->
-       let (f, g, charset_tree) = !fun_create_virthost h in
-       (((fun ri -> f (find_charset !charset_tree ri.ri_path) ri), g),
+       let (f, fil, g, charset_tree) = !fun_create_virthost h in
+       (((fun ri -> f (find_charset !charset_tree ri.ri_path) ri), fil, g),
         (fun charset path -> 
           charset_tree := add_charset charset path !charset_tree))),
+
+     (* ********* get_beg_init ********* *)
      (fun () -> !fun_beg),
+
+     (* ********* get_end_init ********* *)
      (fun () -> !fun_end),
+
+     (* ********* get_init_exn_handler ********* *)
      (fun () -> !fun_exn)
     )
+
+
 end    
+
+
 
 let create_virthost = R.create_virthost
 let get_beg_init = R.get_beg_init
@@ -308,7 +379,7 @@ let host_match host port =
         with _ -> false
       in
       function
-          [] -> beg = hostlen
+        | [] -> beg = hostlen
         | [Wildcard] -> true
         | (Wildcard)::(Wildcard)::l -> 
             host_match1 beg ((Wildcard)::l)
@@ -319,10 +390,10 @@ let host_match host port =
             with _ -> false
     in
     function
-        [] -> false
+      | [] -> false
       | (a, p)::l -> ((port_match p) && (host_match1 0 a)) || aux host l
   in match host with
-    None -> List.exists (fun (_, p) -> port_match p)
+  | None -> List.exists (fun (_, p) -> port_match p)
       (* Warning! For HTTP/1.0 we take the first one,
          even if it doesn't match! 
          To be changed! *)
@@ -332,11 +403,11 @@ let host_match host port =
 let string_of_host h = 
   let aux1 (hh, port) = 
     let p = match port with
-      None -> ""
+    | None -> ""
     | Some a -> ":"^(string_of_int a)
     in
     let rec aux2 = function
-        [] -> ""
+      | [] -> ""
       | Wildcard::l -> "*"^(aux2 l)
       | (Text (t,_))::l -> t^(aux2 l)
     in (aux2 hh)^p
@@ -345,27 +416,28 @@ let string_of_host h =
 exception Serv_no_host_match
 let do_for_host_matching host port virthosts ri =
   let string_of_host_option = function
-    None -> "<no host>:"^(string_of_int port)
-  | Some h -> h^":"^(string_of_int port)
+    | None -> "<no host>:"^(string_of_int port)
+    | Some h -> h^":"^(string_of_int port)
   in
   let rec aux ri e = function
-      [] -> fail e
-    | (h, f)::l as ll when host_match host port h ->
+    | [] -> fail e
+    | (h, f, output_filter)::l as ll when host_match host port h ->
         Messages.debug ("---- host found: "^(string_of_host_option host)^
                         " matches "^(string_of_host h));
         (f ri >>=
          fun (res, cookieslist) ->
            match res with
-           | Ext_found r -> return (r, cookieslist)
+           | Ext_found r ->
+               output_filter ri r >>= fun r ->
+               return (r, cookieslist)
            | Ext_not_found e -> aux ri e l
            | Ext_continue_with _ -> aux ri Ocsigen_404 l
            | Ext_retry_with (ri', cookies_to_set) ->
-               aux ri' e ll >>=
-               fun (ext_res, cookieslist) ->
-                 return (ext_res, cookies_to_set@cookieslist)
+               aux ri' e ll >>= fun (ext_res, cookieslist) ->
+               return (ext_res, cookies_to_set@cookieslist)
         )
 
-    | (h,_)::l ->
+    | (h, _, _)::l ->
         Messages.debug ("---- host = "^(string_of_host_option host)^
                         " does not match "^(string_of_host h));
         aux ri e l
@@ -375,7 +447,7 @@ let do_for_host_matching host port virthosts ri =
 
 
 (* Ces deux trucs sont dans Neturl version 1.1.2 mais en attendant qu'ils
- soient dans debian, je les mets ici *)
+   soient dans debian, je les mets ici *)
 let problem_re = Pcre.regexp "[ <>\"{}|\\\\^\\[\\]`]"
 
 let fixup_url_string =

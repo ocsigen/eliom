@@ -297,11 +297,12 @@ let parse_server isreloading c =
 		(Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
           | _ -> raise (Config_file_error "Wrong attribute for <host>") 
 	  in 
-	  let ((gen_page, parse_site_function), add_charset_function) = 
+	  let ((gen_page, output_filter, parse_site_function), 
+               add_charset_function) = 
             Extensions.create_virthost host 
           in
 	  parse_host parse_site_function add_charset_function l;
-	  (host,gen_page)::(parse_server_aux ll)
+	  (host, gen_page, output_filter)::(parse_server_aux ll)
       | (Element (tag, _, _))::_ -> 
           raise (Config_file_error
                    ("tag <"^tag^"> unexpected inside <server>"))

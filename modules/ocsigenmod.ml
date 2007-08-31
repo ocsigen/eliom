@@ -542,7 +542,8 @@ let get_page
               res_code=None;
               res_lastmodified=lm;
               res_etag=etag;
-              res_charset=charset})
+              res_charset=charset;
+              res_filter=None})
     )
     (function
         Ocsigen_Typing_Error l -> 
@@ -555,7 +556,8 @@ let get_page
                      res_code=None;
                      res_lastmodified=None;
                      res_etag=None;
-                     res_charset=charset})
+                     res_charset=charset;
+                     res_filter=None})
       | Ocsigen_Wrong_parameter -> 
           (force ri.ri_post_params) >>=
           (fun ripp ->
@@ -569,7 +571,8 @@ let get_page
                        res_code=None;
                        res_lastmodified=None;
                        res_etag=None;
-                       res_charset=charset}))
+                       res_charset=charset;
+                       res_filter=None}))
       | Ocsigen_404 -> return (Ext_not_found Ocsigen_404)
       | e -> fail e)
 
@@ -658,7 +661,8 @@ let gen page_tree charset ri =
 				   res_code=None;
 				   res_lastmodified=None;
 				   res_etag=None;
-                                   res_charset=charset})))
+                                   res_charset=charset;
+                                   res_filter=None})))
                 
             else
 	      return
@@ -672,7 +676,8 @@ let gen page_tree charset ri =
                     res_code=Some 204;
                     res_lastmodified=None;
                     res_etag=None;
-                    res_charset=charset})
+                    res_charset=charset;
+                    res_filter=None})
             )
               )
   )

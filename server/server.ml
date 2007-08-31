@@ -705,6 +705,7 @@ let service
 
             else
               res.res_send_page
+                ?filter:res.res_filter
                 ~cookies:(List.map change_cookie 
                             (res.res_cookies@cookieslist))
                 wait_end_answer
