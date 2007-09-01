@@ -42,11 +42,11 @@ endif
 INSTALL = install
 TARGETSBYTE = baselib.byte lwt.byte xmlp4.byte http.byte server.byte modules.byte examples.byte
 
-PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) modules/eliom.cma modules/ocsigenmod.cma modules/staticmod.cmo modules/cgimod.cmo $(DUCECMAO)
-PLUGINSCMITOINSTALL = modules/ocsipersist.cmi modules/eliom.cmi modules/ocsigen.cmi modules/staticmod.cmi modules/cgimod.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi $(DUCECMI)
+PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) modules/eliom.cma modules/ocsigenmod.cma modules/staticmod.cmo modules/cgimod.cmo modules/deflatemod.cmo $(DUCECMAO)
+PLUGINSCMITOINSTALL = modules/ocsipersist.cmi modules/eliom.cmi modules/ocsigen.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi $(DUCECMI)
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
-CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsistream.cmi baselib/messages.cmi META
+CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/nurpawiki/nurpawiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
 
@@ -150,7 +150,7 @@ server.opt:
 
 doc:
 	$(CAMLDOC) -package ssl $(LIBDIRS3) -d doc/lwt -html lwt/lwt.mli lwt/lwt_unix.mli
-	$(CAMLDOC) -package netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc/oc -html modules/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli $(DUCEDOC)
+	$(CAMLDOC) -package netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc/oc -html modules/eliom.mli modules/ocsigen.mli server/extensions.mli server/parseconfig.mli xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/ocsiheaders.mli http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli $(DUCEDOC)
 
 $(OCSIGENNAME).conf.local:
 	cat files/ocsigen.conf \

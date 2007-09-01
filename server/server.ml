@@ -24,6 +24,7 @@ open Messages
 open Ocsimisc
 open Extensions
 open Http_frame
+open Ocsiheaders
 open Http_com
 open Predefined_senders
 open Ocsiconfig
@@ -183,76 +184,6 @@ let handle_light_request_errors ~clientproto ~head
              )
 
 
-let find_keepalive http_header =
-  try
-    let kah = String.lowercase 
-        (Http_header.get_headers_value http_header "Connection") 
-    in
-    if kah = "keep-alive" 
-    then true 
-    else false (* should be "close" *)
-  with _ ->
-    if (Http_header.get_proto http_header) = Http_frame.Http_header.HTTP11
-    then true
-    else false
-
-
-
-let rec getcookies s =
-  let rec aux s longueur =
-    let rec firstnonspace s i = 
-      if s.[i] = ' ' then firstnonspace s (i+1) else i 
-    in
-    try
-      let pointvirgule = try 
-        String.index s ';'
-      with Not_found -> String.length s in
-      let egal = String.index s '=' in
-      let first = firstnonspace s 0 in
-      let nom = (String.sub s first (egal-first)) in
-      let value = String.sub s (egal+1) (pointvirgule-egal-1) in
-      let long = (longueur-pointvirgule-1) in
-      (nom, value)::
-      (if long > 0
-      then (aux (String.sub s (pointvirgule+1) long) long)
-      else [])
-    with _ -> []
-  in 
-  try
-    match s with
-    | Some s -> aux s (String.length s)
-    | None -> []
-  with _ -> []
-(* On peut améliorer ça *)
-
-(* splits a quoted string, for ex "azert", "  sdfmlskdf",    "dfdsfs" *)
-let rec quoted_split char s =
-  let longueur = String.length s in
-  let rec aux deb =
-    let rec nextquote s i = 
-      if i>=longueur
-      then failwith ""
-      else
-        if s.[i] = '"' 
-        then i 
-        else 
-          if s.[i] = '\\' 
-          then nextquote s (i+2)
-          else nextquote s (i+1)
-    in
-    try
-      let first = (nextquote s deb) + 1 in
-      let afterlast = nextquote s first in
-      let value = String.sub s first (afterlast - first) in
-      value::
-      (if (afterlast + 1) < longueur
-      then aux (afterlast + 1)
-      else [])
-    with _ -> []
-  in 
-  aux 0
-
-
 
 (* reading the request *)
 let get_request_infos meth url http_frame filenames sockaddr port =
@@ -262,133 +193,53 @@ let get_request_infos meth url http_frame filenames sockaddr port =
     let (url, url2, path, params, get_params) =
       Extensions.parse_url url
     in
-
-    let host =
-      try
-        let hostport = 
-          Http_header.get_headers_value
-            http_frame.Stream_http_frame.header "Host" in
-        try 
-          Some (String.sub hostport 0 (String.index hostport ':'))
-        with _ -> Some hostport
-      with _ -> None
+    
+    let headerhost = 
+      match get_host_port http_frame with
+      | None -> None
+      | Some (h,_) -> Some h
     in
+    (*  Here we don't trust the port information given by the request.
+       We use the port we are listening on. *)
     Messages.debug
-      ("- host="^(match host with None -> "<none>" | Some h -> h));
-
-    let useragent = 
-      (try (Http_header.get_headers_value
-              http_frame.Stream_http_frame.header "user-agent")
-      with _ -> "")
-    in
+      ("- host="^(match headerhost with None -> "<none>" | Some h -> h));
     
-    let cookies_string =
-      lazy (try
-        Some (Http_header.get_headers_value
-                (http_frame.Stream_http_frame.header) "Cookie")
-      with _ -> None)
-    in
+    
+    let useragent = get_user_agent http_frame in
+    
+    let cookies_string = lazy (get_cookie_string http_frame) in
+    
     let cookies = 
-      lazy (getcookies (Lazy.force cookies_string))
+      lazy (match (Lazy.force cookies_string) with
+      | None -> []
+      | Some s -> parse_cookies s) 
     in
+   
+    let ifmodifiedsince = get_if_modified_since http_frame in
     
-    let ifmodifiedsince = 
-      try 
-        Some (Netdate.parse_epoch 
-                (Http_header.get_headers_value
-                   http_frame.Stream_http_frame.header "if-modified-since"))
-      with _ -> None
-    in
+    let ifunmodifiedsince =  get_if_unmodified_since http_frame in
     
-    let ifunmodifiedsince = 
-      try 
-        Some (Netdate.parse_epoch 
-                (Http_header.get_headers_value
-                   http_frame.Stream_http_frame.header "if-unmodified-since"))
-      with _ -> None
-    in
+    let ifnonematch = get_if_none_match http_frame in
     
-    let ifnonematch = 
-      try 
-        quoted_split ','
-          (Http_header.get_headers_value
-             http_frame.Stream_http_frame.header "if-none-match")
-      with _ -> []
-    in
-    
-    let ifmatch = 
-      try 
-        Some 
-          (quoted_split ','
-             (Http_header.get_headers_value
-                http_frame.Stream_http_frame.header "if-match"))
-      with _ -> None
-    in
+    let ifmatch = get_if_match http_frame in
     
     let inet_addr = ip_of_sockaddr sockaddr in
     
-    let ct =
-      try
-        Some (Http_header.get_headers_value
-                http_frame.Stream_http_frame.header "Content-Type")
-      with _ -> None
-    in
+    let ct = get_content_type http_frame in
 
-    let cl =
-      try
-        Some 
-          (Int64.of_string 
-             (Http_header.get_headers_value 
-                http_frame.Stream_http_frame.header "Content-Length"))
-      with _ -> None
-    in
+    let cl = get_content_length http_frame in
 
-    let referer =
-      lazy
-        (try
-          Some 
-            (Http_header.get_headers_value 
-               http_frame.Stream_http_frame.header "Referer")
-        with _ -> None)
-    in
+    let referer = lazy (get_referer http_frame) in
 
-(*
-    let accept =
-      lazy
-        (try
-          ...
-            (Http_header.get_headers_value 
-               http_frame.Stream_http_frame.header "Accept")
-        with _ -> [])
-    in
+    let accept = lazy (get_accept http_frame)   in
 
-    let accept_charset =
-      lazy
-        (try
-          ...
-            (Http_header.get_headers_value 
-               http_frame.Stream_http_frame.header "Accept-Charset")
-        with _ -> [])
-    in
+    let accept_charset = lazy (get_accept_charset http_frame) in
 
-    let accept_encoding =
-      lazy
-        (try
-          ...
-            (Http_header.get_headers_value 
-               http_frame.Stream_http_frame.header "Accept-Encoding")
-        with _ -> [])
-    in
+    let accept_encoding = lazy (get_accept_encoding http_frame) in
 
-    let accept_language =
-      lazy
-        (try
-          ...
-            (Http_header.get_headers_value 
-               http_frame.Stream_http_frame.header "Accept-Language")
-        with _ -> [])
-    in
-*)
+    let accept_language = lazy (get_accept_language http_frame) in
+
+
 
     let find_post_params = 
       lazy
@@ -507,7 +358,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
      ri_path_string = string_of_url_path path;
      ri_path = path;
      ri_get_params_string = params;
-     ri_host = host;
+     ri_host = headerhost;
      ri_get_params = get_params;
      ri_post_params = lazy (force find_post_params >>= fun (a, b) -> 
                             return a);
@@ -527,12 +378,10 @@ let get_request_infos meth url http_frame filenames sockaddr port =
      ri_content_type = ct;
      ri_content_length = cl;
      ri_referer = referer;
-(*
-     ri_accept
-     ri_accept_charset
-     ri_accept_encoding
-     ri_accept_language
-*)
+     ri_accept = accept;
+     ri_accept_charset = accept_charset;
+     ri_accept_encoding = accept_encoding;
+     ri_accept_language = accept_language;
      ri_http_frame = http_frame;
    }
       
@@ -564,7 +413,7 @@ let service
      we must wait before sending the page,
      because the previous one may not be sent *)
 
-  let ka = find_keepalive http_frame.Stream_http_frame.header in
+  let ka = get_keepalive http_frame.Stream_http_frame.header in
   Messages.debug ("** Keep-Alive: "^(string_of_bool ka));
   Messages.debug ("** HEAD: "^(string_of_bool head));
 
@@ -979,7 +828,7 @@ let listen ssl port wait_end_init =
 
       let head = (meth = (Http_header.HEAD)) in
 
-      let keep_alive = find_keepalive http_frame.Stream_http_frame.header in
+      let keep_alive = get_keepalive http_frame.Stream_http_frame.header in
 
       catch
         (fun () ->

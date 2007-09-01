@@ -90,12 +90,13 @@ type request_info =
      ri_content_type: string option; (** Content-Type HTTP header *)
      ri_content_length: int64 option; (** Content-Length HTTP header *)
      ri_referer: string option Lazy.t; (** Referer HTTP header *)
-(* Not implemented. See if we can use Ocamlnet?
-     ri_accept: ... list Lazy.t; (** Accept HTTP header *)
-     ri_accept_charset: ... list Lazy.t; (** Accept-Charset HTTP header *)
-     ri_accept_encoding: ... list Lazy.t; (** Accept-Encoding HTTP header *)
-     ri_accept_language: ... list Lazy.t; (** Accept-Language HTTP header *)
-*)
+
+     ri_accept: ((string option * string option) * float option * (string * string) list) list Lazy.t; (** Accept HTTP header. For example [(Some "text", None)] means ["text/*"]. The float is the "quality" value, if any. The last association list is for other extensions. *)
+     ri_accept_charset: (string option * float option) list Lazy.t; (** Accept-Charset HTTP header. [None] for the first value means "*". The float is the "quality" value, if any. *)
+     ri_accept_encoding: (string option * float option) list Lazy.t; (** Accept-Encoding HTTP header. [None] for the first value means "*". The float is the "quality" value, if any. *)
+     ri_accept_language: (string * float option) list Lazy.t; (** Accept-Language HTTP header. The float is the "quality" value, if any. *)
+
+
      ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)
    }
 
@@ -111,7 +112,7 @@ type result =
      res_etag: Http_frame.etag option;    (** ETag for the page *)
      res_code: int option;                (** HTTP code to send, if not 200 *)
      res_send_page: Predefined_senders.send_page_type; (** A function to send the content. Some are predefined in {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.send_xhtml_page]. *)
-     res_headers: (string * string) list (** The HTTP headers you want to add. For example {!Predefined_senders.nocache_headers} if you don't want the page to be cached (dynamic pages). *);
+     res_headers: (string * string) list (** The HTTP headers you want to add. For example {!Predefined_senders.dyn_headers} if you don't want the page to be cached (dynamic pages). *);
      res_charset: string option;          (** Charset used by the page *)
      res_filter: Predefined_senders.stream_filter_type option
        (** An optional function that will transform the stream before sending

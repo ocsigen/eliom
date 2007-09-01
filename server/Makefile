@@ -72,7 +72,8 @@ CMAO = nums.cma dynlink.cma unix.cma \
        lwt.cma preemptive.cmo \
        extensions.cmo parseconfig.cmo \
        ocsistream.cmo multipart.cmo \
-       http_frame.cmo http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
+       http_frame.cmo ocsiheaders.cmo \
+       http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
        xhtml.cma predefined_senders.cmo error_pages.cmo \
        server.cmo
 

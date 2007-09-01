@@ -55,7 +55,7 @@ module type HTTP_CONTENT =
 module Http_header =
   struct
       
-      (**type of the http_method*)
+      (** type of the http_method *)
       type http_method =
         | GET
         | POST

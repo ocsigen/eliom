@@ -105,15 +105,20 @@ let exn_handler = raise
 
 (*****************************************************************************)
 (** The filter function (here deflate) *)
+(* We implement Content-Encoding, not Transfer-Encoding *)
+
 let stream_filter contenttype (len, etag, stream, finalize) = 
   (* Ici remplacer les deux lignes par le truc de compression *)
+  (* We generate a new etag because ... (ask Juliusz) *)
   Ocsistream.consume stream >>= fun () ->
   return (Some Int64.zero, "", (Ocsistream.empty_stream None), finalize)
 
 let filter ri res =
-  (* Ici il faut regarder dans l'arbre s'il faut compresser ou pas *)
+  (* Ici il faut regarder dans l'arbre de configuration
+     s'il faut compresser ou pas *)
   return
     {res with
+   (* res_headers = ("Content-Encoding",...)::res.res_headers; *)
      res_filter= Some stream_filter
    }
 

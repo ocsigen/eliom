@@ -88,12 +88,12 @@ type request_info =
      ri_content_type: string option; (** Content-Type HTTP header *)
      ri_content_length: int64 option; (** Content-Length HTTP header *)
      ri_referer: string option Lazy.t; (** Referer HTTP header *)
-(* Not implemented. See if we can use Ocamlnet?
-     ri_accept: ... list Lazy.t; (** Accept HTTP header *)
-     ri_accept_charset: ... list Lazy.t; (** Accept-Charset HTTP header *)
-     ri_accept_encoding: ... list Lazy.t; (** Accept-Encoding HTTP header *)
-     ri_accept_language: ... list Lazy.t; (** Accept-Language HTTP header *)
-*)
+
+     ri_accept: ((string option * string option) * float option * (string * string) list) list Lazy.t; (** Accept HTTP header. For example [(Some "text", None)] means ["text/*"]. The float is the "quality" value, if any. The last association list is for other extensions. *)
+     ri_accept_charset: (string option * float option) list Lazy.t; (** Accept-Charset HTTP header. [None] for the first value means "*". The float is the "quality" value, if any. *)
+     ri_accept_encoding: (string option * float option) list Lazy.t; (** Accept-Encoding HTTP header. [None] for the first value means "*". The float is the "quality" value, if any. *)
+     ri_accept_language: (string * float option) list Lazy.t; (** Accept-Language HTTP header. The float is the "quality" value, if any. *)
+
      ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)
    }
 
