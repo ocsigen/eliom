@@ -275,7 +275,7 @@ installnodoc: partialinstall
 
 logrotate:
 	[ -d /etc/logrotate.d ] && \
-	 { mkdir -p ${TEMPROOT}/etc/logrotate.d ; \
+	 { mkdir -p $(TEMPROOT)/etc/logrotate.d ; \
 	   cat files/logrotate.IN \
 	   | sed s%LOGDIR%$(LOGDIR)%g \
 	   | sed s%USER%$(OCSIGENUSER)%g \

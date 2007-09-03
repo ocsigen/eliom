@@ -33,7 +33,9 @@ Print the list of possible options using:
 Use this option if you get a message telling that netsys.cma is missing)
 
 (For example if you want to install all Ocsigen files in a separate directory:
-./configure --root /mydirectory --prefix "" --ocsigen-user myuser --ocsigen-group mygroup)
+./configure --root /mydirectory --prefix "" --libdir /mylibdir --ocsigen-user myuser --ocsigen-group mygroup
+Note that /mylibdir is relative to /mydirectory (--root value)
+Then do not forget to add your libdir in LD_LIBRARY_PATH)
 
 Verify that Makefile.config is OK 
 

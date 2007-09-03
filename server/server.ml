@@ -115,6 +115,8 @@ let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 
 (* printing exceptions *)
 let string_of_exn = function
+  | Dynlink.Error err ->
+      "Dynlink.Error : " ^ (Dynlink.error_message err)
   | Unix.Unix_error (ee,func,param) -> 
       (Unix.error_message ee)^" in function "^func^" ("^param^")"
   | e -> Printexc.to_string e
@@ -1068,7 +1070,7 @@ let errmsg = function
       (("Fatal - Error in configuration file: "^s),
        51)
   | Parseconfig.Dynlink_error (s, exn) ->
-      (("Fatal - While loading "^s^": "^(Printexc.to_string exn)),
+      (("Fatal - While loading "^s^": "^(string_of_exn exn)),
       52)
   | exn -> 
       try
