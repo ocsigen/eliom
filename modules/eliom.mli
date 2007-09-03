@@ -1585,7 +1585,7 @@ module type XHTMLFORMSSIG = sig
         name:[< `Opt of int ] param_name ->
           int select_opt ->
             int select_opt list ->
-              select elt
+              [> select ] elt
 (** Creates a [<select>] tag for int values. *)
 
   val float_select :
@@ -1593,7 +1593,7 @@ module type XHTMLFORMSSIG = sig
         name:[< `Opt of float ] param_name ->
           float select_opt ->
             float select_opt list ->
-              select elt
+              [> select ] elt
 (** Creates a [<select>] tag for float values. *)
 
   val string_select :
@@ -1601,7 +1601,7 @@ module type XHTMLFORMSSIG = sig
         name:[< `Opt of string ] param_name ->
           string select_opt ->
             string select_opt list ->
-              select elt
+              [> select ] elt
 (** Creates a [<select>] tag for string values. *)
 
   val user_type_select :
@@ -1610,7 +1610,7 @@ module type XHTMLFORMSSIG = sig
           'a select_opt ->
             'a select_opt list ->
               ('a -> string) ->
-                select elt
+                [> select ] elt
 (** Creates a [<select>] tag for user type values. *)
 
   val any_select :
@@ -1618,7 +1618,7 @@ module type XHTMLFORMSSIG = sig
         name:string ->
           string select_opt ->
             string select_opt list ->
-              select elt
+              [> select ] elt
 (** Creates a [<select>] tag for any (untyped) value. *)
 
 
@@ -1627,7 +1627,7 @@ module type XHTMLFORMSSIG = sig
         name:[< `Set of int ] param_name ->
           int select_opt ->
             int select_opt list ->
-              select elt
+              [> select ] elt
 (** Creates a [<select>] tag for int values. *)
 
   val float_multiple_select :
@@ -1635,7 +1635,7 @@ module type XHTMLFORMSSIG = sig
         name:[< `Set of float ] param_name ->
           float select_opt ->
             float select_opt list ->
-              select elt
+              [> select ] elt
 (** Creates a [<select>] tag for float values. *)
 
   val string_multiple_select :
@@ -1643,7 +1643,7 @@ module type XHTMLFORMSSIG = sig
         name:[< `Set of string ] param_name ->
           string select_opt ->
             string select_opt list ->
-              select elt
+              [> select ] elt
 (** Creates a [<select>] tag for string values. *)
 
   val user_type_multiple_select :
@@ -1652,7 +1652,7 @@ module type XHTMLFORMSSIG = sig
           'a select_opt ->
             'a select_opt list ->
               ('a -> string) ->
-                select elt
+                [> select ] elt
 (** Creates a [<select>] tag for user type values. *)
 
   val any_multiple_select :
@@ -1660,7 +1660,7 @@ module type XHTMLFORMSSIG = sig
         name:string ->
           string select_opt ->
             string select_opt list ->
-              select elt
+              [> select ] elt
 (** Creates a [<select>] tag for any (untyped) value. *)
 
 

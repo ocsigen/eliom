@@ -248,6 +248,9 @@ let write ch buf pos len =
   | e ->
       Lwt.fail e
 
+(* There should be 3 different versions of pipe (+1 in Unix) 
+   depending on if the output/inout in blocking
+ *)
 let pipe () =
   let (out_fd, in_fd) = Unix.pipe() in
   if not windows_hack then begin
