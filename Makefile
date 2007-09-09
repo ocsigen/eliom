@@ -47,7 +47,7 @@ PLUGINSCMITOINSTALL = modules/ocsipersist.cmi modules/eliom.cmi modules/ocsigen.
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
-EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/nurpawiki/nurpawiki.cmo $(DUCEEXAMPLES)
+EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
 
 ifeq "$(BYTECODE)" "YES"
@@ -167,8 +167,8 @@ $(OCSIGENNAME).conf.local:
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/modules%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
 	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
-	| sed s%files/nurpawiki%examples/nurpawiki/files%g \
-	| sed s%var/lib/nurpawiki%examples/nurpawiki/wikidata%g \
+	| sed s%files/miniwiki%examples/miniwiki/files%g \
+	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
 	| sed s%\<\!--\ commandpipe%\<commandpipe%g \
 	| sed s%\</commandpipe\ --%\</commandpipe%g \
 	| sed s%ocsipersist-dbm.cma%ocsipersist-dbm/ocsipersist-dbm.cma%g \
@@ -202,7 +202,8 @@ partialinstall:
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
 	-$(INSTALL) -m 755 modules/ocsipersist-dbm/ocsidbm $(TEMPROOT)/$(BINDIR)/
-	-$(INSTALL) -m 755 modules/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
+	[[ ! ( -f modules/ocsipersist-dbm/ocsidbm.opt ) ]] || \
+	$(INSTALL) -m 755 modules/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
 	-rm META
 
 docinstall: doc
@@ -218,11 +219,11 @@ docinstall: doc
 installnodoc: partialinstall
 	mkdir -p $(TEMPROOT)/$(CONFIGDIR)
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)
-	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/nurpawiki
+	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/miniwiki
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/ocsigenstuff
 	mkdir -p $(TEMPROOT)/$(DATADIR)
-	mkdir -p $(TEMPROOT)/$(DATADIR)/nurpawiki
+	mkdir -p $(TEMPROOT)/$(DATADIR)/miniwiki
 	mkdir -p `dirname $(TEMPROOT)/$(COMMANDPIPE)`
 	[ -p $(TEMPROOT)/$(COMMANDPIPE) ] || { mkfifo $(TEMPROOT)/$(COMMANDPIPE); \
 	  chmod 660 $(TEMPROOT)/$(COMMANDPIPE); \
@@ -265,8 +266,8 @@ installnodoc: partialinstall
 	$(INSTALL) -m 644 files/tutorial/style.css $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/tutorial/ocsigen5.png $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)/$(STATICPAGESDIR)/ocsigenstuff
-	$(INSTALL) -m 644 examples/nurpawiki/files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/nurpawiki
-	$(INSTALL) -m 644 examples/nurpawiki/wikidata/* $(TEMPROOT)/$(DATADIR)/nurpawiki
+	$(INSTALL) -m 644 examples/miniwiki/files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/miniwiki
+	$(INSTALL) -m 644 examples/miniwiki/wikidata/* $(TEMPROOT)/$(DATADIR)/miniwiki
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(LOGDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(STATICPAGESDIR)
 	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(DATADIR)

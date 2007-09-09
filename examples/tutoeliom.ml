@@ -2948,9 +2948,9 @@ let print_news_page sp i () =
       launch_session sp <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
 </pre>
 
-    <h3>Nurpawiki</h3>
+    <h3>Miniwiki</h3>
     <p>Ocsigen's source code contains an example of Wiki written with
-     Eliom by Janne Hellsten. It is called <em>Nurpawiki</em>.
+     Eliom by Janne Hellsten. It is called <em>Miniwiki</em>.
     </p>
     </div>
 *html*)

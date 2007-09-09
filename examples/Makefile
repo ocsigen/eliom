@@ -26,9 +26,9 @@ PP = -syntax camlp4o -ppopt "../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 OBJS = $(FILES:.ml=.cmo)
 OBJSOPT = $(FILES:.ml=.cmxs)
 
-byte: $(OBJS) $(DUCEMODBYTE) nurpawiki.byte
+byte: $(OBJS) $(DUCEMODBYTE) miniwiki.byte
 
-opt: $(OBJSOPT) $(DUCEMODOPT) nurpawiki.opt
+opt: $(OBJSOPT) $(DUCEMODOPT) miniwiki.opt
 
 exampleduce.cmo:
 	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
@@ -38,11 +38,11 @@ exampleduce.cmx:
 	$(OCAMLDUCEFIND) ocamlopt $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
 	cp ocamlduce/exampleduce.cmx .
 
-nurpawiki.byte:
-	$(MAKE) -C nurpawiki byte
+miniwiki.byte:
+	$(MAKE) -C miniwiki byte
 
-nurpawiki.opt:
-	$(MAKE) -C nurpawiki opt
+miniwiki.opt:
+	$(MAKE) -C miniwiki opt
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
@@ -65,7 +65,7 @@ nurpawiki.opt:
 	$(CAMLOPT) -shared -linkall -o $@ $<
 
 clean:
-	$(MAKE) -C nurpawiki clean
+	$(MAKE) -C miniwiki clean
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *~ $(NAME) *.annot ocamlduce/*.cm[ioax] ocamlduce/*.cmxa ocamlduce/*.cmxs ocamlduce/*~ ocamlduce/*.annot
 
 depend:

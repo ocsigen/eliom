@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module nurpawiki.ml
+ * Module miniwiki.ml
  * Copyright (C) 2007 Janne Hellsten
  *
  * This program is free software; you can redistribute it and/or modify
@@ -69,7 +69,7 @@ let with_open_in fname f =
 let wiki_file_dir = 
   let rec find_wikidata = function
       [Element ("wikidata", [("dir", s)],_)] -> s
-    | _ -> raise (Extensions.Error_in_config_file ("Unexpected content inside Nurpawiki config"))
+    | _ -> raise (Extensions.Error_in_config_file ("Unexpected content inside Miniwiki config"))
   in
   let c = Eliom.get_config () in
   find_wikidata c
@@ -302,7 +302,7 @@ let wiki_page_menu_html sp page content =
   [div ~a:[a_id "navbar"]
      [div ~a:[a_id "akmenu"]
         [p
-           [span ~a:[a_class ["nwikilogo"]] [(pcdata "NurpaWiki")];
+           [span ~a:[a_class ["nwikilogo"]] [(pcdata "MiniWiki")];
             a ~service:wiki_view_page 
               ~a:[a_accesskey 'h'; a_class ["ak"]] ~sp 
               [pcdata "Home"] "WikiStart";
