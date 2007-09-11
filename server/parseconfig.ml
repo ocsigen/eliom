@@ -105,11 +105,11 @@ let rec parse_string = function
 
 let rec parser_config = 
   let rec verify_empty = function
-      [] -> ()
+    | [] -> ()
     | _ -> raise (Config_file_error "Don't know what to do with trailing data")
   in let rec parse_servers n = function
-      [] -> (match n with
-        [] -> raise(Config_file_error ("<server> tag expected"))
+    | [] -> (match n with
+      | [] -> raise(Config_file_error ("<server> tag expected"))
       | _ -> n)
     | (Element ("server", [], nouveau))::ll ->
         (match ll with
@@ -119,7 +119,7 @@ let rec parser_config =
         (* nouveau at the end *)
     | _ -> raise (Config_file_error ("syntax error inside <ocsigen>"))
   in function 
-      (Element ("ocsigen", [], l))::ll -> 
+    | (Element ("ocsigen", [], l))::ll -> 
         verify_empty ll;
         parse_servers [] l
     | _ -> raise (Config_file_error "<ocsigen> tag expected")
@@ -235,7 +235,7 @@ let parse_server isreloading c =
       | (Element ("debugmode", [], []))::ll -> 
           set_debugmode true;
           parse_server_aux ll
-      | (Element ("extension", atts,l))::ll -> 
+      | (Element ("extension", atts, l))::ll -> 
 	  let  modu = match atts with
           | [] -> 
               raise
@@ -253,7 +253,7 @@ let parse_server isreloading c =
             | e -> raise (Dynlink_error (modu, e))
           end; (* We do not reload extensions *)
           parse_server_aux ll
-      | (Element ("library", atts,l))::ll -> 
+      | (Element ("library", atts, l))::ll -> 
 	  let modu = match atts with
           | [] -> 
               raise (Config_file_error "missing module attribute in <library>")

@@ -654,3 +654,23 @@ let form3 = register_new_service ["uploadget"] unit
            (head (title (pcdata "form")) [])
            (body [f])))
 
+
+(*******)
+(* Actions that raises an exception *)
+let exn_act = Actions.register_new_coservice'
+    ~get_params:unit
+    (fun _ g p -> fail Not_found)
+
+let exn_act_main = 
+  register_new_service 
+    ~url:["exnact"]
+    ~get_params:unit
+    (fun sp () () -> 
+      return
+        (html
+           (head (title (pcdata "exnact")) [])
+           (body [h1 [pcdata "Hello"];
+                  p [a exn_act sp [pcdata "Do the action"] ()
+                   ]])))
+
+

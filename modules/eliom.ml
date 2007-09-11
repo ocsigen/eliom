@@ -2418,7 +2418,7 @@ let make_string_uri
        (concat_strings
           current_get_params_string
           "&"
-          (naservice_param^"&"^params_string))
+          (concat_strings naservice_param "&" params_string))
       )
 
 
@@ -2522,7 +2522,7 @@ module MakeForms = functor
                      (concat_strings
                         current_get_params_string
                         "&"
-                        (naservice_param^"&"^params_string))
+                        (concat_strings naservice_param "&" params_string))
                     )
               content
 

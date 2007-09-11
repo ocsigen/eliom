@@ -353,11 +353,12 @@ let add_unregistered, remove_unregistered, verify_all_registered =
   ((fun a -> l := a::!l),
    (fun a -> l := list_remove a !l),
    (fun () -> 
-     match !l with [] -> () 
+     match !l with
+     | [] -> () 
      | a::_ -> 
          raise (Eliom_there_are_unregistered_services 
                   (match a with
-                    None -> "<Non-attached service>"
+                  | None -> "<Non-attached service>"
                   | Some a -> string_of_url_path a))))
 
 let during_eliom_module_loading, 
@@ -1400,8 +1401,8 @@ let gen page_tree charset ri =
           match result_to_send with
           | EliomExn (exnlist, cookies_set_by_page) -> 
                      (* It is an action, we reload the page.
-                        We retry without POST params.
-                        If no post poaram at all, we retry
+                        To do that, we retry without POST params.
+                        If no post param at all, we retry
                         without GET non_att info.
                         If no GET non_att info, we retry without
                         GET state.

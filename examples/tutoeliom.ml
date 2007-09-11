@@ -32,13 +32,17 @@
       <p><em>Warning: This tutorial assumes you know the 
         <em>Objective Caml</em> language.</em></p>
     </div>
-    <h2>Base principles</h2>
+   <h2>1. The basics: main services, parameters, forms, cooperative programming</h2>
+    <h3>Base principles</h3>
     <div class="twocol1">
-      <p>With Eliom, you don't write one file for each URL.
-          You write a caml module (cmo or cma) for your whole website.</p>
+      <p>Unlike many other Web programming techniques (CGI, PHP,&nbsp;...), 
+          with Eliom, you don't write one file for each URL, but
+          a caml module (cmo or cma) for the whole Web site.</p>
       <p>
           The <code>Eliom</code> module allows to create new entry points to 
-          your Web site, called <em>services</em>. On each of these services,
+          your Web site, called <em>services</em>. Services are usually 
+          attached to an URL and usually generate a Web page. 
+          They are represented bu OCaml values, on which 
           you must register a function that will generate a page.
           There are several ways to creates pages for Eliom. This tutorial
           is mainly using <code>Eliom.Xhtml</code>, a module allowing
@@ -47,16 +51,17 @@
           The <code>XHTML.M</code> module defines functions to construct
           xhtml pages using that type system. 
           As the <code>Eliom.Xhtml</code> redefines some functions
-          of <code>XHTML.M</code>, open them in this order:
+          of <code>XHTML.M</code>, open the modules in this order:
       </p>
 *html*)
+open Lwt
 open XHTML.M
 open Eliom
 open Eliom.Xhtml
-open Lwt
 (*html*
-      <p><code>Lwt</code> is the cooperative thread library used by Ocsigen
-      (see later).</p>
+      <p><code>Lwt</code>
+      (lightweight threads) is the cooperative thread library used by Ocsigen
+      (<a href="#lwt">see later</a>).</p>
       <p>Here is an example showing how to create a new service and
          register a page created with XHTML.M. Use the function
          <code>Eliom.Xhtml.register_new_service</code>:
@@ -69,24 +74,36 @@ let coucou =
     (fun _ () () -> 
       return 
         (html
-          (head (title (pcdata "")) [])
-          (body [h1 [pcdata "Hallo!"]])))
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Hallo!"]])))
 (*html*
-Or, written with fully qualified values:
-*html*)
-let coucou2 = 
+The same, written with fully qualified values:
+<pre>
+<span class="Clet">let</span> coucou <span class="Cnonalphakeyword">=</span> 
+  <span class="Cconstructor">Eliom</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
+    <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"coucou"</span><span class="Cnonalphakeyword">]</span>
+    <span class="Clabel">~get_params:</span><span class="Cconstructor">Eliom</span><span class="Cnonalphakeyword">.</span>unit
+    <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span> 
+      <span class="Cconstructor">Lwt</span><span class="Cnonalphakeyword">.</span>return 
+        <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>html
+          <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>head <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>title <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>pcdata <span class="Cstring">""</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span>
+          <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>body <span class="Cnonalphakeyword">[</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>h1 <span class="Cnonalphakeyword">[</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>pcdata <span class="Cstring">"Hallo!"</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span>
+</pre>
+*html*)(*zap*
+let coucou = 
   Eliom.Xhtml.register_new_service 
-    ~url:["coucou2"]
+    ~url:["coucou"]
     ~get_params:Eliom.unit
     (fun _ () () -> 
       Lwt.return 
         (XHTML.M.html
           (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata "")) [])
           (XHTML.M.body [XHTML.M.h1 [XHTML.M.pcdata "Hallo!"]])))
-(*html*
-      <p><code>return</code> is a function from <code>Lwt</code>
-      (lightweight threads).
-      Use it as this for now, and see later for more advanced use.</p>
+*zap*)(*html*
+      <p>As you can see, 
+      <code>return</code> is a function from <code>Lwt</code>.
+      Use it as this for now, and 
+      <a href="#lwt">see later</a> for more advanced use.</p>
       <p>
       Now you can compile your file (here tutorial.ml) by doing:</p>
       <pre>ocamlc -I /<em>path_to</em>/ocsigen/ -c tutorial.ml</pre>
@@ -118,18 +135,17 @@ let coucou2 =
       </p>
       <p>Here is a sample 
    $a (static_dir sp) sp [pcdata "Makefile"] ["Makefile"]$ for your modules.</p>
-      <h3>Static typing of XHTML</h3>
+      <h4>Static typing of XHTML with <code>XHTML.M</code></h4>
         <p>
-        Typing of xhtml with XHTML.M and Eliom.Xhtml
-        is very strict and forces you to respect
+        Typing of xhtml with <code>XHTML.M</code> and <code>Eliom.Xhtml</code>
+        is very strict and compels you to respect
         xhtml 1.1 standard (with some limitations). 
         For example if you write:
         </p>
 <pre><span class="Cnonalphakeyword">(</span>html
    <span class="Cnonalphakeyword">(</span>head <span class="Cnonalphakeyword">(</span>title <span class="Cnonalphakeyword">(</span>pcdata <span class="Cstring">""</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span>
    <span class="Cnonalphakeyword">(</span>body <span class="Cnonalphakeyword">[</span>pcdata <span class="Cstring">"Hallo"</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span></pre>
-    </div>
-    <div class="twocol2">
+
         <p>You have the following error message:</p>
 <pre>This expression has type ([&gt; `PCDATA ] as 'a) XHTML.M.elt
 but is here used with type 
@@ -139,9 +155,11 @@ Type 'a is not compatible with type
   [&lt; `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
    | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins
    | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ]</pre>
-   <p><code>'b</code> is the list of tags allowed in a 
-        block tag (here <code>&lt;body&gt;</code>), but PCDATA
-        (i.e. raw text) is not allowed here.</p>
+   <p><code>'b</code> is the type of block tags (only tags allowed inside
+   <code>&lt;body&gt;</code>), but PCDATA
+        (i.e. raw text) is not a block tag.</p>
+    </div>
+    <div class="twocol2">
    <p>In XHTML, some tags cannot be empty. For example 
    <code>&lt;table&gt;</code> must contains at least one row.
    To enforce this, the <code>table</code> function takes two parameters:
@@ -150,21 +168,33 @@ Type 'a is not compatible with type
    (same thing for <code>&lt;tr&gt;</code> <code>&lt;form&gt;</code>
 <code>&lt;dl&gt;</code> <code>&lt;ol&gt;</code> <code>&lt;ul&gt;</code>
 <code>&lt;dd&gt;</code> <code>&lt;select&gt;</code> ...)
+   This enforces to take care separately the case of empty lists
+   and thus respect the DTD.
+   </p>
+   <p>
+   A more detailed introduction to <code>XHTML.M</code> is available
+        $a (new_external_service
+              ["doc/"^version^"/XHTML.M.html"]
+(*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
+              unit unit ())
+           sp <:xmllist< here >> ()$.
+   Take a quick look at it before continuing this tutorial.
    </p>
       <div class="encadre">
-        <h3>Alternate syntax</h3>
+        <h4>Alternate syntax</h4>
           <p>
           If you prefer using a syntax closer to html, you can write:</p>
 *html*)
 let coucou1 = 
-  register_new_service 
+  Eliom.Xhtml.register_new_service 
     ~url:["coucou1"]
-    ~get_params:unit
-    (fun _ () () -> return
-    << <html>
-         <head><title></title></head>
-         <body><h1>Coucou</h1></body>
-       </html> >>)
+    ~get_params:Eliom.unit
+    (fun _ () () -> 
+      return
+        << <html>
+             <head><title></title></head>
+             <body><h1>Coucou</h1></body>
+           </html> >>)
 (*html*
       <p>To compile this syntax, you need a camlp4 syntax extension:</p>
       <pre>ocamlc -I /<em>path_to</em>/ocsigen/
@@ -177,7 +207,7 @@ let coucou1 =
       </p>
       <p>
          As the syntax extension is using the same typing system as XHTML.M, 
-         You can mix the two syntaxes (see later).
+         You can mix the two syntaxes (<a href="#postforms">see later</a>).
       </p>
       <p>
          <em>Warning:</em> The two syntaxes are not equivalent for typing.
@@ -212,7 +242,7 @@ let coucou1 =
       </p>
       </div>
       <div class="encadre">
-        <h3>Eliom and OCamlDuce</h3>
+        <h4>Eliom and OCamlDuce</h4>
         <p>If OCamlDuce is installed on your system, it is now possible to use
         it instead of XHTML.M and Eliom.Xhtml
         to typecheck your pages. You get a stronger type checking
@@ -226,22 +256,20 @@ let coucou1 =
         <code>Eliom.Xhtml</code> to register your pages.
         </p>
         <p>Here is an example:</p>
-        <pre><span style="color:#cc9900">open</span> <span style="color:#0033cc">Eliom</span>
-<span style="color:#cc9900">open</span> <span style="color:#0033cc">Eliomduce</span>.<span style="color:#0033cc">Xhtml</span>
-<span style="color:#cc9900">open</span> <span style="color:#0033cc">Lwt</span>
+        <pre><span style="color:#cc9900">open</span> <span style="color:#0033cc">Lwt</span>
 
 <span style="color:green">let</span> s =
-  register_new_service
+  <span class="Cconstructor">Eliomduce</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
     <span style="color:#770000">~url:</span>[<span style="color:#aa4444">""</span>]
     <span style="color:#770000">~get_params:</span>unit
     (<span style="color:green">fun</span> sp () () -&gt;
       return
         {{ &lt;html&gt;
              [&lt;head&gt; [&lt;title&gt; <span style="color:#aa4444">""</span>]
-              &lt;body&gt; [&lt;h1&gt; <span style="color:#aa4444">"This page has been type checked by OcamlDuce"</span>]] }}) </pre>
+              &lt;body&gt; [&lt;h1&gt; <span style="color:#aa4444">"This page has been type checked by OCamlDuce"</span>]] }}) </pre>
       </div>
       <div class="encadre">
-        <h3>Eliom.HtmlText</h3>
+        <h4>Eliom.HtmlText</h4>
         <p>If you want to register untyped (text) pages, use the
          functions from <code>Eliom.HtmlText</code>, for example
          <code>Eliom.Text.register_new_service</code>. Example:
@@ -250,17 +278,18 @@ let coucou1 =
 let coucoutext = 
   Eliom.HtmlText.register_new_service 
     ~url:["coucoutext"]
-    ~get_params:unit
-    (fun sp () () -> return
-      ("<html>n'importe quoi "^
-       (Eliom.HtmlText.a coucou sp "clic" ())^
-       "</html>"))
+    ~get_params:Eliom.unit
+    (fun sp () () -> 
+      return
+        ("<html>n'importe quoi "^
+         (Eliom.HtmlText.a coucou sp "clic" ())^
+         "</html>"))
 (*html*
       <p>$a Tutoeliom.coucoutext sp <:xmllist< Try it >> ()$.</p>
 
       </div>
     </div>
-    <h2>More examples</h2>
+    <h3>More examples</h3>
     <div class="twocol1">
       <p>Services registered with <code>register_new_service</code>
          are available for all users. We call them <em>public services</em>.
@@ -277,10 +306,11 @@ let count =
   register_new_service 
     ~url:["count"]
     ~get_params:unit
-    (fun _ () () ->  return
-      (html
-       (head (title (pcdata "counter")) [])
-       (body [p [pcdata (string_of_int (next ()))]])))
+    (fun _ () () -> 
+      return
+        (html
+         (head (title (pcdata "counter")) [])
+         (body [p [pcdata (string_of_int (next ()))]])))
 (*html*
       <p>
       See this example $a Tutoeliom.count sp <:xmllist< here >> ()$.
@@ -292,8 +322,9 @@ let hello =
   register_new_service 
     ["dir";"hello"]  (* the url dir/hello *)
     unit
-    (fun _ () () ->  return
-      (html
+    (fun _ () () ->
+      return
+        (html
          (head (title (pcdata "Hello")) [])
          (body [h1 [pcdata "Hello"]])))
 (*html*
@@ -304,11 +335,13 @@ let hello =
     <div class="twocol2">
       <p>The last example shows how to define the default page for
        a directory. (Note that <code>["rep";""]</code> is equivalent to 
-        <code>["rep";"index"]</code>.)</p>
+        <code>["rep";"index"]</code>, because some browsers do not behave 
+          well with empty links.)</p>
 *html*)
 let default = register_new_service ["rep";""] unit
-  (fun _ () () -> return
-    (html
+  (fun _ () () -> 
+    return
+     (html
       (head (title (pcdata "")) [])
       (body [p [pcdata "default page. rep is redirected to rep/"]])))
 (*html*
@@ -316,9 +349,9 @@ let default = register_new_service ["rep";""] unit
       See $a Tutoeliom.default sp <:xmllist< default >> ()$.
       </p>
     </div>
-    <h2>Parameters</h2>
+    <h3 id="parameters">Parameters</h3>
     <div class="twocol1">
-      <h3>Typed parameters</h3>
+      <h4>Typed parameters</h4>
       <p>The parameter labelled 
         <code><span class="Clabel">~get_params</span></code>
         indicates the type of GET parameters for the page (that is, parameters
@@ -328,13 +361,15 @@ let default = register_new_service ["rep";""] unit
       <p>Functions implementing services take three parameters. The first
        one has type <code>Eliom.server_params</code> and
        corresponds to server informations (user-agent, ip, current-url, etc.
-       - see later), the second one is for GET parameters 
+       - see later in that section for examples of use), 
+        the second one is for GET parameters 
         (that is, parameters in the URL) and the third one
        for POST parameters (parameters in the body of the HTTP request).</p>
       <p>Here is an example of a service with GET parameters:</p>
 *html*)
-let writeparams _ (i1, (i2, s1)) () =  return
-  (html
+let writeparams _ (i1, (i2, s1)) () =  
+  return
+   (html
     (head (title (pcdata "")) [])
     (body [p [pcdata "You sent: ";
               strong [pcdata (string_of_int i1)];
@@ -346,7 +381,7 @@ let writeparams _ (i1, (i2, s1)) () =  return
  *zap*)
 let coucou_params = register_new_service 
     ~url:["coucou"]
-    ~get_params:(int "i" ** (int "ii" ** string "s"))
+    ~get_params:(Eliom.int "i" ** (int "ii" ** string "s"))
     writeparams
 (*zap* If you register twice exactly the same URL, the server won't start 
  *zap*)
@@ -358,8 +393,12 @@ let coucou_params = register_new_service
       will run the first one,<br/>
       $a Tutoeliom.coucou_params sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code> >> (42, (17, "krokodile")) $
       will run the second one.<br/> 
-      If <code>entier</code> is not an integer,
-      the server displays an error-message.<br/>
+      If <code>i</code> is not an integer,
+      the server displays an error-message 
+      (try to change the value in the URL).<br/>
+      Here, <code>int</code>, <code>string</code> and <code>**</code>
+      are functions defined in the <code>Eliom</code> module.
+      <br/>
       <em>Warning:</em>
       The infix function <code>( ** )</code> is to be used to 
       construct <em>pairs</em> (not tuples).
@@ -367,27 +406,31 @@ let coucou_params = register_new_service
       <p>The following examples shows how to create a service with "suffix" 
          service
          (taking the end of the URL as a parameter, as wikis do very often)
-        and how to get values from the http header:</p>
+        and how to get server information:</p>
 *html*)
 let uasuffix = 
   register_new_service 
     ~url:["uasuffix"]
     ~get_params:(suffix (int "year" ** int "month"))
-    (fun sp (year, month) () ->  return
-      (html
+    (fun sp (year, month) () -> 
+      return
+       (html
         (head (title (pcdata "")) [])
         (body
            [p [pcdata "The suffix of the url is ";
                strong [pcdata ((string_of_int year)^"/"
                                ^(string_of_int month))];
                pcdata ", your user-agent is ";
-               strong [pcdata (get_user_agent sp)];
+               strong [pcdata (Eliom.get_user_agent sp)];
                pcdata ", your IP is ";
-               strong [pcdata (get_ip sp)]]])))
+               strong [pcdata (Eliom.get_ip sp)]]])))
 (*html*
+    <p>This service will answer to URLs like 
+    <code>http://.../uasuffix/2000/11</code>.</p>
+    <p>See $a Tutoeliom.uasuffix sp <:xmllist< <code>uasuffix</code> >> (2007,07)$</p>
     <p>Suffix parameters have names, because we can create forms towards
-       these services. <code>uasuffix/foo</code> is equivalent to
-       <code>uasuffix/?suff=foo</code>.
+       these services. <code>uasuffix/2000/11</code> is equivalent to
+       <code>uasuffix/?year=2000&amp;month=11</code>.
     </p>
     <p>
        <code>suffix_prod</code> allows to take both a suffix and 
@@ -400,8 +443,9 @@ let isuffix =
   register_new_service 
     ~url:["isuffix"] 
     ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
-    (fun sp ((suff, endsuff), i) () -> return
-      (html
+    (fun sp ((suff, endsuff), i) () -> 
+      return
+       (html
         (head (title (pcdata "")) [])
         (body
            [p [pcdata "The suffix of the url is ";
@@ -411,8 +455,7 @@ let isuffix =
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*html*
-      <p>See $a Tutoeliom.uasuffix sp <:xmllist< uasuffix >> (2007,07)$,
-         $a Tutoeliom.isuffix sp <:xmllist< isuffix >> ((11, ["a";"b";"c"]) , 22)$.</p>
+      <p>See $a Tutoeliom.isuffix sp <:xmllist< <code>isuffix</code> >> ((11, ["a";"b";"c"]) , 22)$.</p>
 
     </div>
     <div class="twocol2">
@@ -420,101 +463,110 @@ let isuffix =
 *html*)
 type mysum = A | B
 let mysum_of_string = function
-    "A" -> A
+  | "A" -> A
   | "B" -> B
   | _ -> raise (Failure "mysum_of_string")
 let string_of_mysum = function
-    A -> "A"
+  | A -> "A"
   | B -> "B"
 
-let mytype = register_new_service 
-  ["mytype"]
-  (user_type mysum_of_string string_of_mysum "valeur")
-  (fun _ x () -> let v = string_of_mysum x in  return
-    (html
-       (head (title (pcdata "")) [])
-       (body [p [pcdata (v^" is valid. Now try with another value.")]])))
+let mytype = 
+  Eliom.Xhtml.register_new_service 
+    ~url:["mytype"]
+    ~get_params:
+      (Eliom.user_type mysum_of_string string_of_mysum "valeur")
+    (fun _ x () -> 
+      let v = string_of_mysum x in 
+      return
+        (html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata (v^" is valid. Now try with another value.")]])))
 (*html*
-      <p>See $a Tutoeliom.mytype sp <:xmllist< mytype >> Tutoeliom.A$.</p>
+      <p>See $a Tutoeliom.mytype sp <:xmllist< <code>mytype</code> >> Tutoeliom.A$.</p>
 
-      <h3>Untyped parameters</h3>
-      <p>If you want a page that takes any parameters, 
+      <h4>Untyped parameters</h4>
+      <p>If you want a service that answers to request with any parameters, 
       use the <code>Eliom.any</code> value. The service will get an 
       association list of strings. Example:
       </p>
 *html*)
-let any = register_new_service 
+let any_serv = register_new_service 
     ~url:["any"]
-    ~get_params:any
+    ~get_params:Eliom.any
   (fun _ l () ->
     let ll = 
       List.map 
         (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l 
     in  
     return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You sent: 
-         $list:ll$
-       </p>
-       </body>
-     </html> >>)
+     << <html>
+          <head><title></title></head>
+          <body>
+          <p>
+            You sent: 
+            $list:ll$
+          </p>
+          </body>
+        </html> >>)
 (*html*
-      <p>Try $a Tutoeliom.any sp <:xmllist< any >> 
+      <p>Try $a Tutoeliom.any_serv sp <:xmllist< <code>any_serv</code> >> 
          [("sun","yellow");("sea","blue")]$.</p>
       <div class="encadre">
-        <h3>Catching errors</h3>
-        <p>You can catch typing errors of parameters
-        using the optional parameter
-        <code>error_handler</code>:</p>
+        <h4>Catching errors</h4>
+        <p>You can catch typing errors of parameters and write your own
+        error messages using the optional parameter
+        <code>error_handler</code>. Example:</p>
 *html*)
 
 let catch = register_new_service
     ~url:["catch"]
     ~get_params:(int "i")
-    ~error_handler:(fun sp l ->  return
-      (html
+    ~error_handler:(fun sp l -> 
+      return
+        (html
          (head (title (pcdata "")) [])
          (body [p [pcdata ("i is not an integer.")]])))
-    (fun _ i () -> let v = string_of_int i in  return
-    (html
-       (head (title (pcdata "")) [])
-       (body [p [pcdata ("i is an integer: "^v)]])))
+    (fun _ i () -> 
+      let v = string_of_int i in 
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata ("i is an integer: "^v)]])))
 (*html*
       <p><code>error_handler</code> takes as parameters the usual 
          <code>sp</code>, and a list of pairs <code>(n,ex)</code>,
          where <code>n</code> is the name of the wrong parameter, and
          <code>ex</code> is the exception that has been raised while
          parsing its value.</p>
-      <!-- p>See $a Tutoeliom.catch sp <:xmllist< catch >> 22$ (change the value
-   of the parameter).</p -->
+      <p>See $a Tutoeliom.catch sp <:xmllist< <code>catch</code> >> 22$ (change the value
+   of the parameter).</p>
      </div>
     </div>
-    <h2>Links</h2>
+    <h3>Links</h3>
     <div class="twocol1">
-      <p>To create a link (anchor), use the function 
-          <code>Eliom.Xhtml.a</code>
+      <p>To create a link (<code>&lt;a&gt;</code>), use the function 
+          <code>Eliom.Xhtml.a</code> (or Eliomduce.Xhtml.a, etc),
+          as in these examples:
       </p>
 *html*)
 let links = register_new_service ["rep";"links"] unit
- (fun sp () () -> return
-   (html
+ (fun sp () () -> 
+   return
+    (html
      (head (title (pcdata "Links")) [])
      (body 
        [p
-        [a coucou sp [pcdata "coucou"] (); br ();
-         a hello sp [pcdata "hello"] (); br ();
-         a default sp 
+        [Eliom.Xhtml.a coucou sp [pcdata "coucou"] (); br ();
+         Eliom.Xhtml.a hello sp [pcdata "hello"] (); br ();
+         Eliom.Xhtml.a default sp 
            [pcdata "default page of the dir"] (); br ();
-         a uasuffix sp 
+         Eliom.Xhtml.a uasuffix sp 
            [pcdata "uasuffix"] (2007,06); br ();
-         a coucou_params sp 
+         Eliom.Xhtml.a coucou_params sp 
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-         a any sp 
-           [pcdata "any"] [("sun","yellow");("sea","blue")]; br ();
-         a
+         Eliom.Xhtml.a any_serv sp 
+           [pcdata "any_serv"] [("sun","yellow");("sea","blue")]; br ();
+         Eliom.Xhtml.a
            (new_external_service
               ~url:["http://fr.wikipedia.org";"wiki";""]
               ~get_params:(suffix (all_suffix "suff"))
@@ -531,23 +583,33 @@ let links = register_new_service ["rep";"links"] unit
    the link from toto/titi to toto/tata is "tata" and not "toto/tata"
 *zap*)
 (*html*
-      <p>See $a Tutoeliom.links sp <:xmllist< links >> ()$.</p>
+      <p>See $a Tutoeliom.links sp <:xmllist< <code>links</code> >> ()$.</p>
     </div>
     <div class="twocol2">
+      <p>If you open <code>Eliom.Xhtml</code> after <code>XHTML.M</code>,
+        <code>Eliom.Xhtml.a</code> will mask <code>XHTML.M.a</code>.
+        Thus you can avoid to write fully qualified values most of the time.
+      </p>
       <p>
-      Note that to create a (relative) link we need to know the current URL.
-      That's why the page has a <code>sp</code> parameter.<br/>
+        <code>Eliom.Xhtml.a</code> takes as first parameter 
+        the service you want to link to.
+        Note that to create a (relative) link we need to know the current URL.
+        That's why the function <code>a</code> 
+        takes <code>sp</code> as second parameter.
+      </p>
+      <p>
+      The third parameter is the text of the link.
+      The last parameter is for
+      GET parameters you want to put in the link.
+      The type of this parameter and the name of GET parameters depend
+      on the service you link to.
+      </p>
+      <p>
       The link to Wikipedia shows how to define an external service (here it 
       uses a suffix URL).
       For an external service without parameters, you can use the low level
       function <code>XHTML.M.a</code>, if you don't want to create an
       external service explicitely.
-      </p>
-      <p>
-      The last parameter of <code>Eliom.Xhtml.a</code> is for
-      GET parameters you want to put in the link.
-      The type of this parameter and the name of GET parameters depend
-      on the service you link to.
       </p>
       <p>
         If you want to create (mutually or not) recursive pages,
@@ -559,8 +621,9 @@ let links = register_new_service ["rep";"links"] unit
 let linkrec = Eliom.new_service ["linkrec"] unit ()
 
 let _ = Eliom.Xhtml.register linkrec 
-    (fun sp () () ->  return
-      (html
+    (fun sp () () -> 
+      return
+       (html
         (head (title (pcdata "")) [])
         (body [p [a linkrec sp [pcdata "click"] ()]])))
 (*zap* If some url are not registered, the server will not start:
@@ -572,14 +635,14 @@ let essai =
    ()
 *zap*)
 (*html*
-      <p>See $a Tutoeliom.linkrec sp <:xmllist< linkrec >> ()$.</p>
+      <p>$a Tutoeliom.linkrec sp <:xmllist< See <code>linkrec</code> >> ()$.</p>
       <p>The server won't accept to start if there are
          unregistered services.</p>
     </div>
-    <h2>Forms</h2>
+    <h3>Forms</h3>
     <div class="twocol1">
-      <h3>Forms towards services</h3>
-      <p>The function <code>Eliom.get_form</code> allows to create a form
+      <h4>Forms towards services</h4>
+      <p>The function <code>Eliom.Xhtml.get_form</code> allows to create a form
       that uses the GET method (parameters in the URL).
       It works like <code>Eliom.Xhtml.a</code> but takes as parameter
       a <em>function</em> that creates the form from parameters names.
@@ -597,13 +660,13 @@ let create_form =
 
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
-     let f = get_form coucou_params sp create_form in 
+     let f = Eliom.Xhtml.get_form coucou_params sp create_form in 
      return
        (html
          (head (title (pcdata "")) [])
          (body [f])))
 (*html*
-      <p>See the function $a Tutoeliom.form sp <:xmllist< form >> ()$ in action.</p>
+      <p>$a Tutoeliom.form sp <:xmllist< See the function <code>form</code> in action >> ()$.</p>
 
       <p>Note that if you want to use typed parameters, 
        you cannot use functions like <code>XHTML.M.input</code> to
@@ -613,17 +676,19 @@ let form = register_new_service ["form"] unit
        <code>int_input</code> (or other widgets), whereas
        <code>string_name</code> has type
        <code>string param_name</code> and must be used with 
-       <code>int_input</code> (or other widgets).
+       <code>string_input</code> (or other widgets).
        All functions for creating form widgets are detailed 
        $a (static_dir sp) sp [pcdata "here"] 
          ["doc/"^version^"/Eliom.XHTMLFORMSSIG.html"]$.
       </p>
 
-      <p>For untyped forms, you may use functions from XHTML.M or
+      <p>For untyped forms, you may use functions from XHTML.M (or 
+      OCamlDuce's syntax, or whatever syntax you are using) or
       functions whose name is prefixed by "<code>any_</code>".
-      Here is a form to our (untyped) <code>any</code> service.</p>
+      Here is a form linking to our (untyped) service 
+      <code>any_serv</code>.</p>
 *html*)
-let anyform = register_new_service 
+let any_form = register_new_service 
     ~url:["anyform"]
     ~get_params:unit
     (fun sp () () ->
@@ -632,25 +697,26 @@ let anyform = register_new_service
            (head (title (pcdata "")) [])
            (body 
               [h1 [pcdata "Any Form"];
-               get_form any sp 
+               Eliom.Xhtml.get_form any_serv sp 
                  (fun () ->
-                   [p [pcdata "Form to any: ";
+                   [p [pcdata "Form to any_serv: ";
                        Eliom.Xhtml.any_input ~input_type:`Text ~name:"plop" ();
                        Eliom.Xhtml.any_input ~input_type:`Text ~name:"plip" ();
                        Eliom.Xhtml.any_input ~input_type:`Text ~name:"plap" ();
                        Eliom.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 (*html*
-      <p>Try this $a Tutoeliom.anyform sp <:xmllist< form >> ()$.</p>
-      <h3>POST parameters</h3>
+      <p>Try this $a Tutoeliom.any_form sp <:xmllist< form >> ()$.</p>
+      <h4>POST parameters</h4>
       <p>
-   By default parameters of a web page are in the URL (GET parameters).
-   A web page may expect parameters from the http header (POST parameters,
-   that is, parameters which are not in the URL but in the body of the HTTP
+   By default parameters of a Web page are in the URL (GET parameters).
+   A web page may also expect parameters POST parameters
+   (that is, parameters that are not in the URL but in the body of the HTTP
    request).
    Use this if you don't want the user to be able to bookmark
    the URL with parameters, for example if you want to post some
-   data that will change the state of the server (database, paiement, etc).
+   data that will change the state of the server (paiement, 
+   database changes, etc).
    When designing a Web site, think carefully about the choice between
    GET or POST method for each service!
    </p>
@@ -665,8 +731,9 @@ let no_post_param_service =
   register_new_service 
     ~url:["post"]
     ~get_params:unit
-    (fun _ () () -> return
-      (html
+    (fun _ () () -> 
+      return
+        (html
          (head (title (pcdata "")) [])
          (body [h1 [pcdata 
                       "Version of the page without POST parameters"]])))
@@ -675,8 +742,9 @@ let my_service_with_post_params =
   register_new_post_service
     ~fallback:no_post_param_service
     ~post_params:(string "value")
-    (fun _ () value ->  return
-      (html
+    (fun _ () value -> 
+      return
+        (html
          (head (title (pcdata "")) [])
          (body [h1 [pcdata value]])))
 (*html*
@@ -707,8 +775,12 @@ let my_service_with_get_and_post = register_new_post_service
                    pcdata ", i: ";
                    em [pcdata (string_of_int i)]]])))
 (*html*
-       <p> To create a POST form, use the <code>post_form</code> function,
-           possibly applied to GET parameters (if any).
+      <h4 id="postforms">POST forms</h4>
+       <p> To create a POST form, use the 
+           <code>Eliom.Xhtml.post_form</code> function.
+           It is similar to <code>Eliom.Xhtml.get_form</code> 
+           with an additional parameter
+           for the GET parameters you want to put in the URL (if any).
            Here <code>form2</code> is a page containing a form
            to the service <code>post</code> (using XHTML.M's functions) 
            and <code>form3</code> (defined using the syntax extension)
@@ -719,7 +791,7 @@ let my_service_with_get_and_post = register_new_post_service
 let form2 = register_new_service ["form2"] unit
   (fun sp () () -> 
      let f =
-       (post_form my_service_with_post_params sp
+       (Eliom.Xhtml.post_form my_service_with_post_params sp
           (fun chaine -> 
             [p [pcdata "Write a string: ";
                 string_input ~input_type:`Text ~name:chaine ()]]) ()) in
@@ -731,11 +803,12 @@ let form2 = register_new_service ["form2"] unit
 let form3 = register_new_service ["form3"] unit
   (fun sp () () ->
      let f  = 
-       (post_form my_service_with_get_and_post sp
+       (Eliom.Xhtml.post_form my_service_with_get_and_post sp
           (fun chaine -> 
             <:xmllist< <p> Write a string: 
                     $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
-          222) in  return
+          222) in 
+     return
        << <html>
             <head><title></title></head>
             <body>$f$</body></html> >>)
@@ -743,29 +816,30 @@ let form3 = register_new_service ["form3"] unit
 let form4 = register_new_service ["form4"] unit
   (fun sp () () ->
      let f  = 
-       (post_form
+       (Eliom.Xhtml.post_form
           (new_external_service 
              ~url:["http://www.petizomverts.com"]
              ~get_params:(int "i")
              ~post_params:(string "chaine") ()) sp
           (fun chaine -> 
             <:xmllist< <p> Write a string: 
-	             $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
-          222) in return
-     (html
+                     $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
+          222) in 
+     return
+       (html
         (head (title (pcdata "form")) [])
         (body [f])))
 (*html*
-      <p>See the url
+      <p>See the urls:
       $a Tutoeliom.no_post_param_service sp <:xmllist< <code>post</code> without parameter >> ()$,
       $a Tutoeliom.get_no_post_param_service sp <:xmllist< <code>post2</code> without POST parameter >> 123$,
-      $a Tutoeliom.form2 sp <:xmllist< form2 >> ()$,
-      $a Tutoeliom.form3 sp <:xmllist< form3 >> ()$,
-      $a Tutoeliom.form4 sp <:xmllist< form4 >> ()$.
+      $a Tutoeliom.form2 sp <:xmllist< <code>form2</code> >> ()$,
+      $a Tutoeliom.form3 sp <:xmllist< <code>form3</code> >> ()$,
+      $a Tutoeliom.form4 sp <:xmllist< <code>form4</code> >> ()$.
       </p>
 
     </div>
-    <h2>Threads</h2>
+    <h3 id="lwt">Threads</h3>
     <div class="twocol1">
       <p>
       Remember that a Web site written with Eliom is an OCaml application.
@@ -812,12 +886,12 @@ let looong =
     ~url:["looong"]
     ~get_params:unit
     (fun sp () () -> 
-      Lwt_unix.sleep 5.0 >>= (fun () ->
-        return
+      Lwt_unix.sleep 5.0 >>= fun () ->
+      return
         (html
           (head (title (pcdata "")) [])
           (body [h1 [pcdata 
-	           "Ok now, you can read the page."]]))))
+                   "Ok now, you can read the page."]])))
 (*html*
       <p class="importantwarning">
         The binary operator <code>&gt;&gt;=</code> used to bind the result of
@@ -842,7 +916,7 @@ let looong =
      Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
      you can write <code>bind e1 (fun r -&gt; return e2)</code>.
      </p>
-     <p>See $a Tutoeliom.looong sp <:xmllist< looong >> ()$.</p>
+     <p>$a Tutoeliom.looong sp <:xmllist< See <code>looong</code> >> ()$.</p>
      <p><code>Lwt.bind</code>, (or <code>&gt;&gt;=</code>) has type<br/>
         <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
      <p><code>Lwt.return</code> has type<br/>
@@ -854,11 +928,16 @@ let looong =
      such as <code>Lwt_unix.read</code> or <code>Lwt_unix.write</code>.
      You can add other cooperation points by calling
      <code>Lwt_unix.yield ()</code>. The thread will suspend itself,
-     let other threads run, and resume as soon as possible.
+     Lwt will wake up the oldest waiting thread,
+     and this thread will resume as soon as possible.
      </p>
       <div class="importantwarning">
       <p>
-   Monadic cooperative threads are not difficult to use. Just remember:
+      Monadic cooperative threads are not difficult to use once you get used
+      to think the following way: programming is not putting instructions 
+      one after another any more, but defining a dependency relation
+      (<code>&gt;&gt;=</code>) between function calls. 
+      Remember:
       </p>
       <ul>
       <li>Functions that may take time to complete always return something
@@ -872,7 +951,17 @@ let looong =
       </div>
     </div>
     <div class="twocol2">
-     <h3>Catching exceptions</h3>
+     <h4>Exceptions</h4>
+      <div class="importantwarning">
+      <p>
+       Use <code>Lwt.fail</code> and <code>Lwt.catch</code> inside threads
+       instead of <code>raise</code> and <code>try ... with</code>.
+      </p>
+      </div>
+     <p>To raise an exception <code>e</code> inside a Lwt thread, 
+     use <code>fail e</code> and be carefull about functions that may raise
+     exceptions. 
+     </p>
      <p>You must be careful when catching exception with <code>Lwt</code>.
      If you use the <code>try ... with</code> construct for an expression
      of type <code>'a Lwt.t</code>, it may not work (as the computation
@@ -887,8 +976,8 @@ let looong =
 <pre>catch
   (<span style="color:green">fun</span> () -&gt; e)
   (<span style="color:green">function</span> ... <span style="color:#77aaaa">|</span> exn -&gt; fail exn)</pre>
-     <h3>What if my function is not implemented in cooperative way?</h3>
-      <h4>If my function is thread-safe (for preemptive threads)</h4>
+     <h4>What if my function is not implemented in cooperative way?</h4>
+      <h5>If my function is thread-safe (for preemptive threads)</h5>
       <p>Ocsigen implements a way to make a non cooperative computation be
       executed automatically by a another preemptive thread (for example
       a database request using a non-cooperative database library, such as 
@@ -900,14 +989,14 @@ let looong2 =
     ~url:["looong2"]
     ~get_params:unit
     (fun sp () () -> 
-      (Preemptive.detach Unix.sleep 5) >>= (fun () ->
-        return
+      Preemptive.detach Unix.sleep 5 >>= fun () ->
+      return
         (html
           (head (title (pcdata "")) [])
           (body [h1 [pcdata 
-		   "Ok now, you can read the page."]]))))
+                   "Ok now, you can read the page."]])))
 (*html*
-      <p>See $a Tutoeliom.looong2 sp <:xmllist< looong2 >> ()$.</p>      
+      <p>$a Tutoeliom.looong2 sp <:xmllist< See <code>looong2</code> >> ()$.</p>      
       <p>A pool of preemptive threads is waiting for such 
       "detached functions". You can specify the number of threads in the pool
       in the configuration file.</p>
@@ -916,41 +1005,59 @@ let looong2 =
       and use only thread-safe libraries.<!-- For example <code></code>
       (version ) is NOT thread-safe, <code></code>
       (version ) is thread-safe. --> The libraries from Ocsigen
-      are NOT thread-safe for now. Let us know if you need them to be
+      are NOT thread-safe for now. Let us know if you really need them to be
       thread-safe.</p>
-      <h4>If my function is not thread-safe (for preemptive threads)</h4>
+      <h5>If my function is not thread-safe (for preemptive threads)</h5>
       <p>If you want to use a function that takes time to execute but
-      it not written in thread-safe way, consider rewriting it in cooperative
+      it not written in thread-safe way (for example some functions of OCaml's
+      <code>Str</code> module), 
+      consider rewriting it in cooperative
       manner, or delegate the work to another process.</p>
-     <h3>Examples</h3>
-      <h4>A thread that prints "hello" every 10 seconds</h4>
+     <h4>Examples</h4>
+      <h5>A thread that prints "hello" every 10 seconds</h5>
       <p>Just add the following lines to your program:</p>
       <pre><span style="color:green">let rec</span> f () = 
   print_endline "hello";
   <span style="color:#0033cc">Lwt_unix</span>.sleep 10. &gt;&gt;= f
 in f ();
       </pre>
-      <h4>More advanced use: Create a thread waiting for an event</h4>
+      <h5>More advanced use: Create a thread waiting for an event</h5>
         <p><code>Lwt.wait ()</code> creates a thread that waits forever.
           You can wake it up using <code>Lwt.wakeup</code>.
         </p>
-      <pre><span style="color:green">let</span> w = wait () in
-(w &gt;&gt;= (<span style="color:green">fun</span> v -&gt; return (print_endline v));
+      <pre><span class="Ccomment">(* Create the event *)</span>
+<span class="Clet">let</span> w = wait () <span class="Cin">in</span>
+
+<span class="Ccomment">(* Bind a thread on this event *)</span>
+(w &gt;&gt;= (<span class="Cfun">fun</span> v -&gt; return (print_endline v));
 ...
+
+<span class="Ccomment">(* Trigger the event *)</span>
 wakeup w "HELLO");
+<span class="Ccomment">(* All threads waiting for w are awoken, and w's value is "HELLO". *)</span>
       </pre>
     </div>
-    <h2>Summary of concepts</h2>
+    <h3>The big picture</h3>
     <div class="encadre sanstitre">
-      <p>Here is a summary of the concepts that will be developped in
-         the following of this tutorial.
-      </p>
       <p>
-      Before beginning the implementation of your Web site, think about
-      what will be the services you want to provide. 
+         You now have the minimum knowledge to write basic Web sites with
+         Eliom: typing of pages, creation of services, parameters, forms
+         and database acces using <code>Lwt</code> 
+         (and possibly <code>Preemptive.detach</code>).
+         Here is a summary of all other concepts introduced by Eliom.
+         They will enable you to program easily more complex behaviours.
+         They will be developped in the following of this tutorial.
       </p>
-      <p>Eliom uses three kinds of services:</p>
-      <dl>
+
+      <h4>Different kinds of services</h4>
+      <p>
+      Before beginning the implementation, think about the URLs you want to 
+      create as entry points to your Web site, and the services 
+      you want to provide. 
+      </p>
+      <p>Services we used so far are called <em>main services</em>. 
+      Actually, Eliom uses three kinds of services:</p>
+      <dl class="blue">
         <dt>Main services</dt><dd>are the main entry points of your sites.
         Created by <code>new_service</code> or 
         <code>new_post_service</code>. 
@@ -959,7 +1066,8 @@ wakeup w "HELLO");
         </dd>
         <dt>(Attached) coservices</dt><dd>are services that share their
         location (URL) with a main service (fallback). 
-        They are distinguished from that main service using a special parameter.
+        They are distinguished from that main service using a special parameter
+        (added automatically by Eliom).
         They are often created dynamically for one user
         (often in the session table), depending on previous interaction
         during the session.
@@ -979,17 +1087,32 @@ wakeup w "HELLO");
         (see below).
        </dd>
       </dl>
-      <p>Each of these services has its a version with POST parameters.
+      <h4>GET or POST?</h4>
+      <p>Each of these services has both a version with GET parameters and
+      a version with POST parameters.<br/>
+      POST and GET parameters is not equivalent, and you must be very carefull
+      if you want one or the other.<br/>
+      GET parameters are the parameters you see in the URL (for
+      example <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code>). They are created by browser if you tell forms to
+      use the GET method, or written directly in the URL.
+      Parameters are sent by browsers in the body of the HTTP request
+      when the form is using the POST method. That's the only solution
+      if you want to send files with your request.
+      </p>
+      <p>
       Remember that only pages without POST parameters are bookmarkable.
+      Use GET parameters if you want the user be able to come back to the URL
+      later or to write the URL manually.<br/>
       Use POST parameters when you want a different behaviour
       between the first click and a reload of the page. Usually sending
       POST parameters triggers an action on server side
-      (like adding something in a database), and you don't want 
+      (like a paiement, or adding something in a database), and you don't want 
       it to succeed several times if the page is reloaded or bookmarked.</p>
    
     </div>
     <div class="encadre sanstitre">
-      <p>You can register several kinds of pages on these services,
+      <h4>Data returned by services</h4>
+      <p>Services can send several types of data,
       using these different modules:</p>
         <table>
 <tr><td class="empty"></td>
@@ -999,7 +1122,7 @@ wakeup w "HELLO");
 <tr><th class="row">Eliom.Xhtml</th>
           <td colspan="3">allows to register functions that 
         generate xhtml pages
-        checked statically using polymorphic variant types. You may use
+        statically checked using polymorphic variant types. You may use
         constructor functions from <code>XHTML.M</code> or a syntax
         extension close to the standard xhtml syntax.
           </td></tr>
@@ -1013,9 +1136,9 @@ wakeup w "HELLO");
 <tr><th class="row">Eliomduce.Xhtml</th>
           <td colspan="3">allows to register functions 
             that generate xhtml pages 
-        checked statically using <code>Ocamlduce</code>. Typing is more
+        statically checked using <code>OCamlduce</code>. Typing is more
         strict, but you need a modified version of the OCaml compiler 
-        (Ocamlduce).
+        (OCamlduce).
           </td></tr>
 <tr><th class="row">Eliom.HtmlText</th>
           <td colspan="3">Allows to register functions that
@@ -1027,6 +1150,13 @@ wakeup w "HELLO");
           <td colspan="3">Allows to register functions that
         generate CSS pages, without any typechecking of the content.
         The content type sent by the server is "text/css".
+        
+          </td></tr>
+<tr><th class="row">Eliom.Text</th>
+          <td colspan="3">Allows to register functions that
+        generate text pages, without any typechecking of the content.
+        The services return a pair of strings. The first one is the content
+        of the page, the second one is the content type.
         
           </td></tr>
 <tr><th class="row">Eliom.Actions</th>
@@ -1046,122 +1176,264 @@ wakeup w "HELLO");
             to the new URL.
           </td></tr>
 <tr><th class="row">Eliom.Files</th>
-          <td colspan="3">allows to register services that send files
-        
+          <td colspan="3">allows to register services that send files        
           </td></tr>
 <tr><th class="row">Eliom.Any</th>
           <td colspan="3">allows to register services that can choose
-            what they send
-        
-          </td></tr>
-<tr><th class="row">Eliom.Text</th>
-          <td colspan="3">Allows to register functions that
-        generate text pages, without any typechecking of the content.
-        The services return a pair of strings. The first one is the content
-        of the page, the second one is the content type.
-        
+            what they send, for example an xhtml page
+            or a file, depending on some situation (parameter, user logged or
+            not, page present in a cache ...).        
           </td></tr>
         </table>   
+      <p>It is also possible to create your own modules for others types 
+      of pages.</p>
     </div>
     <div class="encadre sanstitre">
+      <h4>Public and session service tables</h4>
       <p>Each of these registrations may be done in the <em>public</em>
-      table, or in a <em>session</em> table, accessible only for one
-      user of the Web site.
+      service table, or in a <em>session</em> service table, 
+      accessible only for one user of the Web site. This allows to create
+      services tailor-made for one user.
       </p>
 
       <p>Eliom will try to find the page, in that order:</p>
       <ul>
-       <li>in the session table,</li>
-       <li>in the public table,</li>
+       <li>in the session service table,</li>
+       <li>in the public service table,</li>
        <li>the fallback in the session table, if the coservice has expired,</li>
        <li>the fallback in the public table, if the session has expired.</li>
       </ul>
 
-      <p>Details on service registration:</p>
-      <ul>
-        <li>All services created during initialisation must be registered
-        in the public table during the initialisation phase of your module.
-        If not, the server will not start (with an error message in the logs).
-        This is to ensure that all the URLs the user can bookmark
-        will always give an answer, even if the session has expired.</li>
-        <li>Services 
-         may be registered in the public table after initialisation with
-         <code>register</code> only if you add the <code>~sp</code>
-           parameter.<br/>
-    If you use that for main services, 
-    you will dynamically create new URLs!
-    This may be dangerous as they will disappear if you stop the server.
-    Be very careful to re-create these URLs when you relaunch the server,
-    otherwise, some external links or bookmarks will be broken!<br/>
-    The use of that functionality is not encouraged for coservices
-    without timeout, as such coservices will be available only until the end
-    of the server process!
-        </li>
-        <li>Do not register twice the same service in the public table, 
-          and do not replace a service
-          by a directory (or vice versa). If this happens during the 
-          initialisation phase, the server won't start.
-          If this happens after, it will be ignored (with a warning in the 
-          logs).
-        </li>
-        <li>All services (but non-attached ones) must be created in
-        a module loaded inside a <code>&lt;site&gt;</code> tag of the
-        config file (because they will be attached to a directory).
-        </li>
-        <li>GET coservices (whithout POST parameters) can be registered
-        only with a main service without GET/POST parameters as fallback.
-        But it may be a <em>preapplied</em> service (see below).
-        </li>
-        <li>Services with POST parameters (main service or coservice) 
-        can be registered with a (main or co) service without POST
-        parameters as fallback.</li>
-        <li>The registration of (main) services must be terminated before 
-          the end of the loading of the module. It not possible to launch 
-          a (Lwt) thread that will register a service later, as
-          registering a service needs access to config file 
-          information (for example the directory of the site).
-          If you use threads in the initialization pahse of your module 
-          (for example if you need informations from a database), 
-          use <code>Lwt_unix.run</code> to wait the end of the thread.
-        </li>
-      </ul>
-
-
+      <h4>Session data tables</h4>
+      <p>It is also possible to create a session data table, where you can
+      save information about the session. Each service can look in that table
+      to see if a session is opened or not and get the data.
+      </p>
 
     </div>
-    <h2>Session data</h2>
+
+
+    <div class="encadre sanstitre">
+      <h4>Example cases</h4>
+      <p>Here is a list of frequent cases and the solution Eliom provides to
+        to solve them. Most of them will be developped in the following.</p>
+      <dl>
+        <dt>Display the result of a search (plane ticket, 
+          search engines&nbsp;...)</dt>
+        <dd>Use a coservice (with timeout) in the session service table</dd>
+        <dt>Keep information about the session (name of the user&nbsp;...)</dt>
+        <dd>Use a session data table</dd>
+        <dt>A connection or disconnection box on each page of your site</dt>
+        <dd>Use an action registered on a non-attached coservice.</dd>
+        <dt>Add something in a shopping basket</dt>
+        <dd>Use an action registered on a non-attached coservice,
+          with the name of the items as parameter. The action saves the shopping
+          basket in a session data table. Thus, the shopping basket will remain
+          even if the user pushes the back button of the browser.
+        </dd>
+        <dt>Book a ticket (in several steps)</dt>
+        <dd>Each step creates new (GET) coservices (with or without
+          parameters, all attached to the service displaying the main 
+          booking page) 
+          according to the data entered by the user. These 
+          coservices are registered in the session table (with a timeout for
+          the whole session or for each of them). Thus the user can go back
+          to a previous situation, or keep several proposals on differents
+          tabs before choosing one.
+        </dd>
+        <dt>...</dt>
+        <dd><em>Help us to complete this list by giving your examples or 
+          asking questions about other cases! Thank you!</em></dd>
+        <dt></dt>
+        <dd></dd>
+      </dl>
+    </div>
+
+
+   <h2>2. Sessions, users and other common situations in Web sites</h2>
+
+    <div class="onecol">
+      <p>When programming dynamic Web sites, you often want to personalise
+       the behaviour and content for one user. To do this, you need to recognise
+       the user and save and restore its data. Eliom implements several 
+       high level features to do that:
+      </p>
+      <ul>
+        <li>Session data tables,</li>
+        <li>Session service tables, where you can save private versions of
+          main services or new coservices,
+        </li>
+        <li>Coservices, that may be created dynamically with respect to
+          previous interaction with the user.
+        </li>
+      </ul>
+      <p>Eliom is using cookies to recognize users. 
+         One cookie is automatically set for each user when needed and
+         detroyed when the session is closed.
+      </p>
+      <p>Coservices, but also <em>actions</em>, are also means to control 
+        precisely the behaviour of the site and to implement easily very
+        common situations that require a lot of programming work with
+        other Web programming tools. We'll have a lot at some examples in that
+        section.
+      </p>
+    </div>
+
+
+    <h3 id="sessdata">Session data</h3>
     <div class="twocol1">
-      <p>If you want to save session data, you can create tables
-      using <code>create_table</code> and save and get data from
-      these tables using <code>set_session_data</code> and 
-      <code>get_session_data</code>. The following example show
-      a site with authentification:
+      <p>
+      Eliom provides a way to save session data on server side and 
+      restore it at each request. This data is available during the whole
+      duration of the session.
+      To save session data, create a table using 
+      <code>Eliom.create_table</code> 
+      and save and get data from
+      this table using <code>Eliom.set_session_data</code> and 
+      <code>Eliom.get_session_data</code>. The following example shows
+      a site with authentification. The name of the user is asked in the login
+      form and saved in a table to be displayed on the page instead of the login
+      form while the user is connected. Note that the session is opened
+      automatically when needed.
       </p>
 *html*)
+(************************************************************)
+(************ Connection of users, version 1 ****************)
+(************************************************************)
+
+
+(* "my_table" will be the structure used to store
+   the session data (namely the login name): *)
+
+let my_table = Eliom.create_table ()
+
+
+(* -------------------------------------------------------- *)
+(* Create services, but do not register them yet:           *)
+
+let session_data_example =
+  Eliom.new_service
+    ~url:["sessdata"]
+    ~get_params:Eliom.unit
+    ()
+
+let session_data_example_with_post_params =
+  Eliom.new_post_service
+    ~fallback:session_data_example
+    ~post_params:(Eliom.string "login")
+    ()
+
+let session_data_example_close =
+  Eliom.new_service
+    ~url:["close"]
+    ~get_params:Eliom.unit
+    ()
+
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "session_data_example" service:          *)
+
+let session_data_example_handler sp _ _  =
+  let sessdat = Eliom.get_session_data my_table sp in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body 
+          [
+           match sessdat with
+           | Some name -> 
+               p [pcdata ("Hello "^name); 
+                  br (); 
+                  Eliom.Xhtml.a 
+                    session_data_example_close
+                    sp [pcdata "close session"] ()]
+           | None -> 
+               Eliom.Xhtml.post_form 
+                 session_data_example_with_post_params
+                 sp
+                 (fun login -> 
+                   [p [pcdata "login: ";
+                       Eliom.Xhtml.string_input
+                         ~input_type:`Text ~name:login ()]]) ()
+         ]))
+
+(*html*
+    </div>
+    <div class="twocol2">
+*html*)
+(* -------------------------------------------------------- *)
+(* Handler for the "session_data_example_with_post_params"  *)
+(* service with POST params:                                *)
+
+let session_data_example_with_post_params_handler sp _ login =
+  Eliom.close_session ~sp >>= fun () ->
+  Eliom.set_session_data my_table sp login;
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body 
+          [p [pcdata ("Welcome " ^ login ^ ". You are now connected."); 
+              br ();
+              Eliom.Xhtml.a session_data_example sp [pcdata "Try again"] ()
+            ]]))
+
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "session_data_example_close" service:    *)
+
+let session_data_example_close_handler sp () () =
+  let sessdat = Eliom.get_session_data my_table sp in
+  Eliom.close_session ~sp >>= fun () -> 
+  return
+    (html
+       (head (title (pcdata "Disconnect")) [])
+       (body [
+        (match sessdat with
+        | None   -> p [pcdata "You were not connected."]
+        | Some _ -> p [pcdata "You have been disconnected."]);
+        p [Eliom.Xhtml.a session_data_example sp [pcdata "Retry"] () ]]))
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom.Xhtml.register 
+    session_data_example_close session_data_example_close_handler;
+  Eliom.Xhtml.register 
+    session_data_example session_data_example_handler;
+  Eliom.Xhtml.register 
+    session_data_example_with_post_params
+    session_data_example_with_post_params_handler
+
+
+(*zap* old version:
 type session_info = string
 
 let my_table = create_table ()
 
-let data = new_service ["data"] unit ()
+let sessdata = new_service ["sessdata"] unit ()
 
-let data_with_post_params = new_post_service data (string "login") ()
+let sessdata_with_post_params = new_post_service sessdata (string "login") ()
 
-let close2 = register_new_service
-    ~url:["disconnect2"]
+let close = register_new_service
+    ~url:["disconnect"]
     ~get_params:unit
     (fun sp () () -> 
-      close_session sp >>=
+      Eliom.close_session ~sp >>=
       (fun () ->
         return
           (html
              (head (title (pcdata "Disconnect")) [])
              (body [p [pcdata "You have been disconnected. ";
-                       a data sp [pcdata "Retry"] () ]]))))
+                       a sessdata sp [pcdata "Retry"] () ]]))))
 
 let _ = register
-    data
+    sessdata
     (fun sp _ _ ->
-      let sessdat = get_session_data my_table sp in
+      let sessdat = Eliom.get_session_data my_table sp in
       return
         (html
            (head (title (pcdata "")) [])
@@ -1169,87 +1441,142 @@ let _ = register
               [match sessdat with
               | Some name ->
                   p [pcdata ("Hello "^name); br ();
-                     a close2 sp [pcdata "close session"] ()
+                     a close sp [pcdata "close session"] ()
                    ]
               | None -> 
-                  post_form data_with_post_params sp
+                  post_form sessdata_with_post_params sp
                     (fun login -> 
                       [p [pcdata "login: ";
                           string_input ~input_type:`Text ~name:login ()]]) ()
              ])))
-(*html*
-    </div>
-    <div class="twocol2">
-*html*)
 let _ = register
-    data_with_post_params
+    sessdata_with_post_params
     (fun sp _ login ->
-      close_session sp >>=
+      close_session ~sp >>=
       (fun () ->
-        set_session_data my_table sp login;
+        Eliom.set_session_data my_table sp login;
         return
           (html
              (head (title (pcdata "")) [])
              (body 
                 [p [pcdata ("Welcome "^login^
                             ". You are now connected."); br ();
-                    a data sp [pcdata "Try again"] ()
+                    a sessdata sp [pcdata "Try again"] ()
                   ]]))))
+*zap*)
 (*html*
       <p>
-      See this example $a Tutoeliom.data sp <:xmllist< here >> ()$.
+      $a Tutoeliom.session_data_example sp <:xmllist< See this example here >> ()$.
       </p>
       <p>
+       To close a session, use the function
+                <span class="Cem"><code>close_session</code></span>.
        Session data will disappear when the session is closed (explicitely
        or by timeout).
        Warning: if your session data contains opened file descriptors,
        they won't be closed by OCaml's garbage collector. Close it yourself!
        (for example using <code>Gc.finalise</code>).
       </p>
+      <p>We will see in the following of this tutorial how to improve 
+      this example to solve the following problems:
+      </p>
+      <ul>
+        <li>
+          The use of a main service for disconnection is not a good idea
+          for ergonomics. You probably want to go to the same page 
+          with the login form. We will do this with a coservice.
+        </li>
+        <li>
+          If you want the same login form on several pages, it is tedious
+          work to create a coservice with POST parameters for each page.
+          We will se how to solve this using actions and non-attached 
+          coservices.
+        </li>
+        <li>
+          Session data are kept in memory and will be lost if you switch off
+          the server, which is bad if you want long duration sessions.
+          You can solve this problem by using persistent tables.
+        </li>
+      </ul>
     </div>
-    <h2>Sessions services</h2>
+    <h3>Sessions services</h3>
     <div class="twocol1">
       <p>
       Eliom allows to replace a public service by a service valid only for
       one user.
+      Use this to personalise main services for one user (or to create new
+      coservices available only to one user, <a href="#calc">see later</a>).
       To create a "session service", register the service in
-      a "session table" (valid only for one client) 
+      a "session service table" (valid only for one client) 
       instead of the public table. To do that,
       use <span class="Cem"><code>register_for_session</code></span>.
       </p><p>
       Users are recognized automatically using a cookie.
       Use this for example if you want two versions of each page,
       one public, one for connected users.
-      <br/>        
+      <br/>
       To close a session, use 
-                <span class="Cem"><code>close_session</code></span>.</p>
+                <span class="Cem"><code>close_session</code></span>.
+      Both the session service table and the session data table for that user
+      will disappear when the sesison is closed.
+      </p>
       <p>Note that <code>register_for_session</code>
          and <code>close_session</code> take <code>sp</code> as parameter
          (because sp contains the session table).</p>
-      <p>The following is an example of web site that behaves differently
-      when users are connected, without using 
-      <code>set_session_data</code>.
+      <p>The following example shows how to reimplement the previous one 
+      (<code>session_data_example</code>), 
+      without using <code>Eliom.set_session_data</code>.
+      Note that this version is less efficient than the other if your site
+      has lots of pages, because it requires to register all the new services
+      each time a user logs in. But in other cases, that feature is really
+      usefull, for example with coservices (see 
+      <a href="#coservicesinsessiontable">later</a>).
+      </p>
+      <p>
       We first define the main page, with a login form:
       </p>
-*html*)
-(*zap* *)
+*html*)(*zap* *)
 let _ = set_global_timeout (Some 3600.)
 let _ = set_global_persistent_timeout (Some 86400.)
 (* *zap*)
-let public_session_without_post_params = 
-  new_service ~url:["session"] ~get_params:unit ()
+(************************************************************)
+(************ Connection of users, version 2 ****************)
+(************************************************************)
 
-let public_session_with_post_params = 
-  new_post_service 
-    ~fallback:public_session_without_post_params
-    ~post_params:(string "login")
+(* -------------------------------------------------------- *)
+(* Create services, but do not register them yet:           *)
+
+let session_services_example = 
+  Eliom.new_service
+    ~url:["sessionservices"] 
+    ~get_params:Eliom.unit 
     ()
 
-let home sp () () = 
-  let f = post_form public_session_with_post_params sp
-    (fun login -> 
-         [p [pcdata "login: ";
-             string_input ~input_type:`Text ~name:login ()]]) () 
+let session_services_example_with_post_params = 
+  Eliom.new_post_service 
+    ~fallback:session_services_example
+    ~post_params:(Eliom.string "login")
+    ()
+
+let session_services_example_close = 
+  Eliom.new_service
+    ~url:["close2"]
+    ~get_params:Eliom.unit
+    ()
+
+
+(* ------------------------------------------------------------- *)
+(* Handler for the "session_services_example" service:           *)
+(* It displays the main page of our site, with a login form.     *)
+
+let session_services_example_handler sp () () = 
+  let f = 
+    Eliom.Xhtml.post_form 
+      session_services_example_with_post_params 
+      sp
+      (fun login -> 
+        [p [pcdata "login: ";
+            string_input ~input_type:`Text ~name:login ()]]) () 
   in 
   return
     (html
@@ -1257,36 +1584,37 @@ let home sp () () =
        (body [f]))
 
 
-let _ = register
-  ~service:public_session_without_post_params
-  home
+(* ------------------------------------------------------------- *)
+(* Handler for the "session_services_example_close" service:     *)
 
-let close = register_new_service
-    ~url:["disconnect"]
-    ~get_params:unit
-    (fun sp () () -> 
-      close_session sp >>=
-      (fun () ->
-        return
-          (html
-             (head (title (pcdata "Disconnect")) [])
-             (body [p [pcdata "You have been disconnected. ";
-                       a public_session_without_post_params
-                         sp [pcdata "Retry"] ()
-                     ]]))))
-
+let session_services_example_close_handler sp () () =
+  Eliom.close_session ~sp >>= fun () ->
+  return
+    (html
+       (head (title (pcdata "Disconnect")) [])
+       (body [p [pcdata "You have been disconnected. ";
+                 a session_services_example
+                   sp [pcdata "Retry"] ()
+               ]]))
 
 (*html*
+    </div>
+    <div class="twocol2">
     <p>When the page is called with login parameters,
        it runs the function <code>launch_session</code>
        that replaces some services already defined by new ones:
     </p>
-    </div>
-    <div class="twocol2">
 *html*)
+(* ------------------------------------------------------------- *)
+(* Handler for the "session_services_example_with_post_params"   *)
+(* service:                                                      *)
+
 let launch_session sp () login =
-  let new_main_page sp () () = return
-    (html
+
+  (* New handler for the main page: *)
+  let new_main_page sp () () = 
+    return
+      (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "Welcome ";
                  pcdata login; 
@@ -1294,39 +1622,59 @@ let launch_session sp () login =
                  a coucou sp [pcdata "coucou"] (); br ();
                  a hello sp [pcdata "hello"] (); br ();
                  a links sp [pcdata "links"] (); br ();
-                 a close sp [pcdata "close session"] ()]]))
+                 a session_services_example_close
+                   sp [pcdata "close session"] ()]]))
   in
-  register_for_session 
+
+  (* If a session was opened, we close it first! *)
+  Eliom.close_session ~sp >>= fun () ->
+
+  (* Now we register new versions of main services in the
+     session service table: *)
+  Eliom.Xhtml.register_for_session 
     ~sp
-    ~service:public_session_without_post_params 
-    (* service is any public service already registered *)
+    ~service:session_services_example
+    (* service is any public service already registered,
+       here the main page of our site *)
     new_main_page;
-  register_for_session 
+  
+  Eliom.Xhtml.register_for_session 
     ~sp
     ~service:coucou
-    (fun _ () () -> return
-      (html
+    (fun _ () () -> 
+      return
+        (html
          (head (title (pcdata "")) [])
          (body [p [pcdata "Coucou ";
                    pcdata login;
                    pcdata "!"]])));
-  register_for_session 
-    sp
-    hello
-    (fun _ () () -> return
-      (html
+
+  Eliom.Xhtml.register_for_session 
+    ~sp
+    ~service:hello
+    (fun _ () () -> 
+      return
+        (html
          (head (title (pcdata "")) [])
          (body [p [pcdata "Ciao ";
                    pcdata login;
                    pcdata "!"]])));
+
   new_main_page sp () ()
     
-let _ =
-  register
-    ~service:public_session_with_post_params
-    (fun sp _ login ->
-      close_session ~sp >>= 
-      (fun () -> launch_session sp () login))
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () = 
+  Eliom.Xhtml.register
+    ~service:session_services_example
+    session_services_example_handler;
+  Eliom.Xhtml.register
+    ~service:session_services_example_close
+    session_services_example_close_handler;
+  Eliom.Xhtml.register
+    ~service:session_services_example_with_post_params
+    launch_session
 (*zap* Registering for session during initialisation is forbidden:
 let _ = register_for_session
     ~url:coucou1 
@@ -1336,10 +1684,11 @@ let _ = register_for_session
        </html> >>
 *zap*)
 (*html*
-      <p>See the
-      $a Tutoeliom.public_session_without_post_params sp <:xmllist< result >> ()$.</p>
-      <p>Warning: to implement such connection form, you probably
-       get more flexibility using <em>actions</em> instead of xhtml services
+      <p>
+      $a Tutoeliom.session_services_example sp <:xmllist< See the result >> ()$.</p>
+      <p>Warning: As in the previous example,
+       to implement such connection and disconnection forms, you
+       get more flexibility by using <em>actions</em> instead of xhtml services
        (see below for the same example with actions).
       </p>
       <p>Services registered in session tables are called 
@@ -1348,12 +1697,12 @@ let _ = register_for_session
        are called <em>public</em>.
       </p>
     </div>
-    <h2>Coservices</h2>
+    <h3 id="coservices">Coservices</h3>
     <div class="twocol1">
       <p>
    A coservice is a service that uses the same URL as 
-   a public service, but generates another page.
-   They are distinguished from public services only by a special
+   a main service, but generates another page.
+   They are distinguished from main services only by a special
    parameter, called <em>state</em> parameter.
    Coservices may use GET or POST parameters.</p>
    <p>Most of the time, GET coservices are created dynamically with
@@ -1361,7 +1710,7 @@ let _ = register_for_session
    in the session table. They allow to give a precise semantics to the
    "back" button of the browser (be sure that you will go back in the
    past) or bookmarks, or duplication of the browser's window.
-   (See the calc example below).
+   (See the <a href="#calc"><code>calc</code></a> example below).
    </p>
    <p>
    Use POST coservices if you want to particularize a link or form, 
@@ -1369,7 +1718,7 @@ let _ = register_for_session
    More precisely, POST coservices are mainly used in two situations:
     </p>
    <ul>
-   <li>For the same purpose (new services
+   <li>For the same purpose as GET coservices (new services
    corresponding to precise points of the interaction with the user)
    but when you don't want this service to be bookmarkable.</li>
    <li>To create a button that leads to a service after having performed
@@ -1389,52 +1738,89 @@ let _ = register_for_session
    <p>The following example shows the difference between GET coservices 
    (bookmarkable) and POST coservices:</p>
 *html*)
-let coserv = new_service ["co"] unit ()
+(************************************************************)
+(************** Coservices. Basic examples ******************)
+(************************************************************)
 
-let coserv2 = 
-  new_post_coservice ~fallback:coserv ~post_params:unit ()
+(* -------------------------------------------------------- *)
+(* We create one main service and two coservices:           *)
 
-let coserv3 = 
-  new_coservice ~fallback:coserv ~get_params:unit ()
+let coservices_example = 
+  Eliom.new_service
+    ~url:["coserv"] 
+    ~get_params:Eliom.unit
+    ()
+
+let coservices_example_post = 
+  Eliom.new_post_coservice 
+    ~fallback:coservices_example 
+    ~post_params:Eliom.unit
+    ()
+
+let coservices_example_get = 
+  Eliom.new_coservice
+    ~fallback:coservices_example
+    ~get_params:Eliom.unit
+    ()
+
+
+(* -------------------------------------------------------- *)
+(* The three of them display the same page,                 *)
+(* but the coservices change the counter.                   *)
 
 let _ = 
   let c = ref 0 in
   let page sp () () = 
-    let l3 = post_form coserv2 sp 
-        (fun _ -> [p [string_input 
-                        ~input_type:`Submit ~value:"incr i (post)" ()]]) () in
-    let l4 = get_form coserv3 sp 
-        (fun _ -> [p [string_input
-                        ~input_type:`Submit ~value:"incr i (get)" ()]]) in 
+    let l3 = Eliom.Xhtml.post_form coservices_example_post sp 
+        (fun _ -> [p [Eliom.Xhtml.string_input 
+                        ~input_type:`Submit
+                        ~value:"incr i (post)" ()]]) () 
+    in
+    let l4 = Eliom.Xhtml.get_form coservices_example_get sp 
+        (fun _ -> [p [Eliom.Xhtml.string_input
+                        ~input_type:`Submit
+                        ~value:"incr i (get)" ()]]) 
+    in 
     return
       (html
        (head (title (pcdata "")) [])
        (body [p [pcdata "i is equal to ";
                  pcdata (string_of_int !c); br ();
-                 a coserv sp [pcdata "reload"] (); br ();
-                 a coserv3 sp [pcdata "incr i"] ()];
+                 a coservices_example sp [pcdata "reload"] (); br ();
+                 a coservices_example_get sp [pcdata "incr i"] ()];
               l3;
               l4]))
   in
-  register coserv page;
+  Eliom.Xhtml.register coservices_example page;
   let f sp () () = c := !c + 1; page sp () () in
-  register coserv2 f;
-  register coserv3 f
+  Eliom.Xhtml.register coservices_example_post f;
+  Eliom.Xhtml.register coservices_example_get f
 (*html*
     </div>
     <div class="twocol2">
-      <p>Try $a Tutoeliom.coserv sp <:xmllist< <code>coserv</code> >> ()$.</p>
+      <p>Try $a Tutoeliom.coservices_example sp <:xmllist< <code>coserv</code> >> ()$.</p>
       <p>Note that if the coservice does not exist (for example it
       has expired), the fallback is called.</p>
-      <p>In the last example, coservices do not take any parameters
+      <p>In this example, coservices do not take any parameters
       (but the state parameter), but you can create coservices with
       parameters. Note that the fallback of a GET coservice cannot take
-      parameters. (Actually as coservices parameters have special
+      parameters. Actually as coservices parameters have special
       names, it is possible to use a "pre-applied" service as fallback
-      (see later).</p>
+      (<a href="#preapplied">see later</a>).</p>
 
+      <p><strong>Exercise:</strong> Rewrite the example of Web site with 
+        connection (<code>session_data_example</code>, with session data) 
+        using a POST
+        coservice without parameter to make the disconnection link go back
+        to the main page of the site instead of a "disconnection" page.
+        It is better for ergonomics, but it would be even better to stay
+        on the same page&nbsp;... How to do that with POST coservices?
+        A much better solution will be seen in the
+        <a href="#actions">section 
+        about actions and non-attached coservices</a>.
+      </p>
       <div class="encadre">
-        <h3>URLs</h3>
+        <h4>URLs</h4>
           <p>While designing a Web site, think carefully about the URLs you
           want to use. URLs are the entry points of your site. Think that
           they may be bookmarked. If you create a link, you want to go to
@@ -1449,7 +1835,7 @@ let _ =
           </p>
       </div>
       <div class="encadre">
-        <h3>Continuations</h3>
+        <h4>Continuations</h4>
         <p>Eliom is using the concept of <em>continuation</em>. 
         A continuation represents the future of a program (what to do after). 
         When a user clicks on a link or a form, he chooses the future of the
@@ -1465,34 +1851,36 @@ let _ =
         Some programming languages (Scheme...) allow to manipulate
         continuations using <em>control operators</em> (like 
         <code>call/cc</code>). The style of programming used by Eliom
-        is called <em>Continuation Passing Style</em> (CPS), and has the 
+        is closer to <em>Continuation Passing Style</em> (CPS), and has the 
         advantage that it does not need control operators, and fits
         very well Web programming.
         </p>
         <p>Coservices allow to create dynamically 
-        new continuations that depend on previous interactions with users. 
+        new continuations that depend on previous interactions with users
+        (<a href="#calc">See the <code>calc</code> example below</a>). 
         Such a behaviour is difficult to simulate with traditional Web
         programming.</p>
         <p>If you want continuations dedicated to a particular user
         register them in the session table.</p>
       </div>
-      <h3>Non-attached coservices</h3>
+      <h4>Non-attached coservices</h4>
        <p>
        Non-attached coservices are services that are not attached to an URL.
        When you do a link or a form towards such a service, the URL do not
-       change. The name of the service is sent as a hidden parameter.
+       change. The name of the service is sent as a special parameter.
        </p>
-       <p>As for attached coservices, there is a GET and a POST version.
+       <p>As for attached coservices, there are GET and POST versions.
        To create them, use <code>Eliom.new_coservice'</code> or
        <code>Eliom.new_post_coservice'</code>.
        POST non-attached coservices are really usefull if you want a
        link or form to be present on every page but you don't want the
        URL to change. Very often, POST coservices are used with <em>actions</em>
-       (see an example in the section about actions below).
+       (<a href="#actions">see more details and an example in the section about 
+          actions below</a>).
        </p>
     </div>
-    <h2>Coservices in session tables</h2>
-    <div class="twocol1">
+    <h3 id="coservicesinsessiontable">Coservices in session tables</h3>
+    <div id="calc" class="twocol1">
     <p>You can register coservices in session tables to create
        dynamically new services dedicated to an user.
        Here is an example of pages that add two integers.
@@ -1502,8 +1890,7 @@ let _ =
        the sum with the first one.
        Try to duplicate the pages and/or to use the back button of your
        navigator to verify that it has the expected behaviour.</p>
-*html*)
-(*zap* ------------------------------------------------------------------ *)
+*html*)(*zap* ------------------------------------------------------------------ *)
 (* You can register coservices in session tables.
    Use this if you want a link or a form which depends precisely on an
    instance of the web page, for example to buy something on an internet shop.
@@ -1530,8 +1917,8 @@ let write_shop shop url =
           <:xmllist< <p> What do you want to buy? $sb$ </p> >>) ())
 
 let shop_public_main_page sp () () =
-  let f = write_shop shop_with_post_params sp in return
-    << <html><body>$f$</body></html> >>
+  let f = write_shop shop_with_post_params sp in 
+  return << <html><body>$f$</body></html> >>
 
 let _ = 
   register shop_without_post_params shop_public_main_page
@@ -1566,7 +1953,8 @@ let rec page_for_shopping_basket sp shopping_basket =
     register_for_session
       sp
       copay
-      (fun sp () () -> return
+      (fun sp () () -> 
+        return
            << <html><body>
                 <p>You are going to pay: 
                   $list:write_shopping_basket shopping_basket$ </p>
@@ -1584,8 +1972,15 @@ let rec page_for_shopping_basket sp shopping_basket =
 let _ = register
   ~service:shop_with_post_params
   (fun sp () article -> page_for_shopping_basket sp [article])
-(* *zap*)
-(*zap* Queinnec example: *zap*)
+(* *zap*)(*zap* Queinnec example: *zap*)
+(************************************************************)
+(*************** calc: sum of two integers ******************)
+(************************************************************)
+
+(* -------------------------------------------------------- *)
+(* We create two main services on the same URL,             *)
+(* one with a GET integer parameter:                        *)
+
 let calc = 
   new_service
     ~url:["calc"]
@@ -1598,7 +1993,37 @@ let calc_i =
     ~get_params:(int "i")
     ()
 
-let _ = 
+
+(* -------------------------------------------------------- *)
+(* The handler for the service without parameter.           *)
+(* It displays a form where you can write an integer value: *)
+
+let calc_handler sp () () =   
+  let create_form intname = 
+    [p [pcdata "Write a number: ";
+        Eliom.Xhtml.int_input ~input_type:`Text ~name:intname ();
+        br ();
+        Eliom.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
+  in
+  let f = Eliom.Xhtml.get_form calc_i sp create_form in
+  return
+    (html 
+       (head (title (pcdata "")) [])
+       (body [f]))
+
+
+(*html*
+    </div>
+    <div class="twocol2">
+*html*)
+(* -------------------------------------------------------- *)
+(* The handler for the service with parameter.              *)
+(* It creates dynamically and registers a new coservice     *)
+(* with one GET integer parameter.                          *)
+(* This new coservice depends on the first value (i)        *)
+(* entered by the user.                                     *)
+
+let calc_i_handler sp i () = 
   let create_form is = 
     (fun entier ->
        [p [pcdata (is^" + ");
@@ -1606,110 +2031,123 @@ let _ =
            br ();
            string_input ~input_type:`Submit ~value:"Sum" ()]])
   in
-  register
-    ~service:calc_i
-    (fun sp i () ->
-      let is = string_of_int i in
-      let calc_result = 
-	register_new_coservice_for_session
-          ~sp
-          ~fallback:calc
-          ~get_params:(int "j")
-          (fun sp j () -> 
-            let js = string_of_int j in
-            let ijs = string_of_int (i+j) in  return
-            (html
-               (head (title (pcdata "")) [])
-               (body
-                  [p [pcdata (is^" + "^js^" = "^ijs)]])))
-      in
-      let f = 
-        get_form calc_result sp (create_form is) in 
-      return
-        (html
-	   (head (title (pcdata "")) [])
-	   (body [f])))
-(*html*
-    </div>
-    <div class="twocol2">
-*html*)    
-let _ =   
-  let create_form = 
-    (fun entier ->
-      [p [pcdata "Write a number: ";
-          int_input ~input_type:`Text ~name:entier ();
-          br ();
-          string_input ~input_type:`Submit ~value:"Send" ()]])
+  let is = string_of_int i in
+  let calc_result = 
+    register_new_coservice_for_session
+      ~sp
+      ~fallback:calc
+      ~get_params:(int "j")
+      (fun sp j () -> 
+        let js = string_of_int j in
+        let ijs = string_of_int (i+j) in 
+        return
+          (html
+             (head (title (pcdata "")) [])
+             (body
+                [p [pcdata (is^" + "^js^" = "^ijs)]])))
   in
-  register
-    calc
-    (fun sp () () ->
-      let f = get_form calc_i sp create_form in
-      return
-        (html 
-	   (head (title (pcdata "")) [])
-	   (body [f])))
+  let f = get_form calc_result sp (create_form is) in 
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body [f]))
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom.Xhtml.register calc   calc_handler;
+  Eliom.Xhtml.register calc_i calc_i_handler
 (*html*
-      <p>See the $a Tutoeliom.calc sp <:xmllist< result >> ()$.</p>
+      <p>$a Tutoeliom.calc sp <:xmllist< See the result >> ()$.</p>
     </div>
 
 
 
 
 
-    <h2>Actions</h2>
+    <h3 id="actions">Actions</h3>
     <div class="twocol1">
-      <p>Actions are like services but they do not generate any page.
+      <p>Actions are services that do not generate any page.
    Use them to perform an effect on the server (connection/disconnection
-   of a user, etc.). The page you link to is redisplayed after the action.
+   of a user, adding something in a shopping basket, delete a message in 
+   a forum, etc.). The page you link to is redisplayed after the action.
    For ex, when you have the same form (or link) on several pages 
    (for ex a connection form),
    instead of making a version with post params of all these pages,
    you can use only one action, registered on a non-attached coservice.
    To register actions, just use the module <code>Actions</code>
-   instead of <code>Eliom.Xhtml</code> or <code>Eliomduce</code>.
+   instead of <code>Eliom.Xhtml</code> (or <code>Eliomduce.Xhtml</code>, etc.).
    For example
      <code><span class="Cem">Actions.register</span></code>,
      <code><span class="Cem">Actions.register_new_service</span></code>,
      <code><span class="Cem">Actions.register_for_session</span></code>.<br/>
       </p>
-      <p>Here we rewrite the example <code>data</code> using actions
+      <p>Here we rewrite the example <code>session_data_example</code> 
+      using actions
       and non-attached coservices
       (note the POST coservice for disconnection, much better than the
       previous solution that was using another URL).</p>
 *html*)
-let action_session = 
-  new_service ~url:["action"] ~get_params:unit ()
+(************************************************************)
+(************ Connection of users, version 3 ****************)
+(************************************************************)
+
+
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let action_example = 
+  Eliom.new_service
+    ~url:["action"] 
+    ~get_params:Eliom.unit
+    ()
 
 let connect_action = 
-  new_post_coservice' ~post_params:(string "login") ()
+  Eliom.new_post_coservice'
+    ~post_params:(Eliom.string "login")
+    ()
     
+(* As the handler is very simple, we register it now: *)
 let disconnect_action = 
   Actions.register_new_post_coservice'
-    unit 
+    ~post_params:Eliom.unit 
     (fun sp () () -> 
-      close_session sp >>= 
-      (fun () -> return []))
+      Eliom.close_session ~sp >>= fun () -> 
+      return [])
+
+
+(* -------------------------------------------------------- *)
+(* login ang logout boxes:                                  *)
 
 let disconnect_box sp s = 
-  post_form disconnect_action sp 
-    (fun _ -> [p [string_input ~input_type:`Submit ~value:s ()]]) ()
+  Eliom.Xhtml.post_form disconnect_action sp 
+    (fun _ -> [p [Eliom.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
 
-let login_box sp login = 
-  [p 
-     (let l = [pcdata "login: "; 
-               string_input ~input_type:`Text ~name:login ()]
-     in (*zap*           if List.mem Eliom_Session_expired (get_exn sp)
-           then (pcdata "Session expired")::(br ())::l
-           else *zap*) l)
-  ]
+let login_box sp = 
+  Eliom.Xhtml.post_form connect_action sp
+    (fun loginname ->
+      [p 
+         (let l = [pcdata "login: "; 
+                   Eliom.Xhtml.string_input
+                     ~input_type:`Text ~name:loginname ()]
+         in (*zap*           if List.mem Eliom_Session_expired (get_exn sp)
+               then (pcdata "Session expired")::(br ())::l
+               else *zap*) l)
+     ])
+    ()
 (*html*
     </div>
     <div class="twocol2">
 *html*)
-let home_action sp () () = 
-  let f = post_form connect_action sp (login_box sp) () in
-  let sessdat = get_session_data my_table sp in
+(* -------------------------------------------------------- *)
+(* Handler for the "action_example" service (main page):    *)
+
+let action_example_handler sp () () = 
+  let sessdat = Eliom.get_session_data my_table sp in
   return
     (html
        (head (title (pcdata "")) [])
@@ -1718,33 +2156,180 @@ let home_action sp () () =
           | Some name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | None -> [f]
+          | None -> [login_box sp]
           )))
     
-let _ = register ~service:action_session home_action
 
-let rec launch_session sp login =
-  set_session_data my_table sp login
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
 
-let _ = Actions.register
-    connect_action
-    (fun sp () login -> 
-      close_session sp >>=
-      (fun () -> launch_session sp login;
-        return []))
+let connect_action_handler sp () login =
+  close_session ~sp >>= fun () -> 
+  Eliom.set_session_data my_table sp login;
+  return []
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliom.Xhtml.register ~service:action_example action_example_handler;
+  Actions.register ~service:connect_action connect_action_handler
 (*html*
-      <p>See these $a Tutoeliom.action_session sp <:xmllist< pages >> ()$.</p>
+      <p>$a Tutoeliom.action_example sp <:xmllist< See these pages >> ()$.</p>
+
+     <p>
+      Note that actions return a list (here empty). 
+      <a href="#infofallbacks">See later for more advanced use</a>.
+     </p>
+
+
+     <p>
+       That version of the site with connection solves the main problems of
+       <a href="#sessdata"><code>sessdata</code></a>:
+     </p>
+     <ul>
+       <li>
+         Connection and disconnection stay on the same page,
+       </li>
+       <li>
+         If you want a connection/disconnection form on each page, no need
+         to create a version with POST parameters of each service.
+       </li>
+     </ul>
+
+     <p>
+       We'll see later 
+       <a href="#infofallbacks">how to display an error message</a>
+       if the connection goes wrong, and
+       <a href="#persistent">how to have persistent
+       sessions</a> (that stay opened even if the server is re-launched).
+     </p>
+   
+
+
     </div>
-    <h2>Other kinds of pages</h2>
+
+    <h3>Details on service registration:</h3>
+    <div class="encadre sanstitre">
+      <ul>
+        <li>All services created during initialisation must be registered
+        in the public table during the initialisation phase of your module.
+        If not, the server will not start (with an error message in the logs).
+        Thus, there will always be a service to answer when somebody clicks on
+        a link or a form.
+        </li>
+        <li>Services 
+         may be registered in the public table after initialisation with
+         <code>register</code> only if you add the <code>~sp</code>
+           parameter.<br/>
+    If you use that for main services, 
+    you will dynamically create new URLs!
+    This may be dangerous as they will disappear if you stop the server.
+    Be very careful to re-create these URLs when you relaunch the server,
+    otherwise, some external links or bookmarks will be broken!<br/>
+    The use of that feature is discouraged for coservices
+    without timeout, as such coservices will be available only until the end
+    of the server process (and it is not possible to re-create them with the
+    same key).
+        </li>
+        <li>Do not register twice the same service in the public table, 
+          and do not replace a service
+          by a directory (or vice versa). If this happens during the 
+          initialisation phase, the server won't start.
+          If this happens after, it will be ignored (with a warning in the 
+          logs).
+        </li>
+        <li>All services (but non-attached ones) must be created in
+        a module loaded inside a <code>&lt;site&gt;</code> tag of the
+        config file (because they will be attached to a directory).
+        Not possible for modules loaded inside <code>&lt;extension&gt;</code>
+        or <code>&lt;library&gt;</code>.
+        </li>
+        <li>GET coservices (whithout POST parameters) can be registered
+        only with a main service without GET/POST parameters as fallback.
+        But it may be a <a href="#preapplied"><em>preapplied</em></a>
+        service (see below).
+        </li>
+        <li>Services with POST parameters (main service or coservice) 
+        can be registered with a (main or co) service without POST
+        parameters as fallback.</li>
+        <li>The registration of (main) services must be completed before 
+          the end of the loading of the module. It not possible to launch 
+          a (Lwt) thread that will register a service later, as
+          registering a service needs access to config file 
+          information (for example the directory of the site).
+          If you do this, the server will raise 
+          <code>Eliom_function_forbidden_outside_site_loading </code> 
+          most of the time,
+          but you may also get unexpected results (if the thread is executed
+          while another site is loaded).
+          If you use threads in the initialization phase of your module 
+          (for example if you need informations from a database), 
+          use <code>Lwt_unix.run</code> to wait the end of the thread.
+        </li>
+      </ul>
+    </div>
+
+
+   <h2>3. More details on services and page generation</h2>
+    <div class="onecol">
+     <p>
+       You now know all Eliom's main concepts. In that part, we'll give
+       more details on some aspects that have been seen before:
+     </p>
+     <ul>
+       <li>The different types of output for services</li>
+       <li>Timeouts and error handling</li>
+       <li>Persistence of sessions</li>
+       <li>Advanced forms</li>
+     </ul>
+    </div>
+
+
+    <h3>Static parts</h3>
     <div class="twocol1">
-    <h3>Sending portions of pages</h3>
+      <h4>Fully static pages</h4>
+      <p>The <code>staticmod</code> extension allows to associate
+         to your site a static directory
+         where you can put all the static (non generated) parts of your 
+         web-site (for examples images ans stylesheets).
+         See the default config file <code>ocsigen.conf</code> to
+         learn how to do that.
+         A predefined service can be used to make links to static files.
+         Get it using
+         <code><span class="Cem">(static_dir ~sp)</span></code>.
+         That service takes as string parameter the name of the file.
+                <br/>
+                For example</p>
+         <pre><span class="Cconstructor">Eliom</span>.a 
+  (static_dir ~sp)
+  sp
+  [pcdata "download image"] 
+  "$str:small_logo$"</pre>
+          <p>creates this link:
+         $a (static_dir ~sp) sp [pcdata "download image"] [small_logo]$
+      </p>
+      <p>It is now also possible to handle static pages with Eliom, using
+      <code>Eliom.Files</code> (<a href="#eliomfiles">see later</a>).
+      </p>
+      <!-- h4>Static parts of a page</h4>
+      <em>To be available soon</em -->
+    </div>
+    <div class="twocol2">
+    </div>
+
+
+    <h3>Other kinds of pages</h3>
+    <div class="twocol1">
+    <h4>Sending portions of pages</h4>
     <p>
      The <code>Blocks</code> module allows to register services that
      send portions of pages, of any type that may be contained directly in
      a <code>&lt;body&gt;</code> tag (blocks of xhtml DTD). 
      It is usefull to create AJAX pages
      (i.e. pages using the <code>XMLHttpRequest</code> Javascript object).
-     Note that the service returns a list.</p>
+     Note that the service returns a list of blocks.</p>
 *html*)
 let _ = 
   Blocks.register_new_service 
@@ -1757,7 +2342,8 @@ let _ =
 (*html*
      <p>
      The <code>SubXhtml</code> module allows to create other modules for
-     registering portions of pages. For example, <code>Blocks</code>
+     registering portions of pages of other types. 
+     For example, <code>Blocks</code>
      is defined by:</p>
 <pre>
 module Blocks = SubXhtml(struct
@@ -1765,7 +2351,7 @@ module Blocks = SubXhtml(struct
 end)
 </pre>
 
-    <h3>Redirections</h3>
+    <h4>Redirections</h4>
     <p>
      The <code>Redirections</code> module allows to register HTTP redirections.
      If a request is done towards such a service, the server asks the browser
@@ -1777,9 +2363,15 @@ let redir = Redirections.register_new_service
     ~get_params:(int "o")
    (fun sp o () -> return (make_string_uri coucou_params sp (o,(22,"ee"))))
 (*html*
-      <p>Try $a Tutoeliom.redir sp <:xmllist< <code>it</code> >> 11$.</p>
-     <h3>Sending files</h3>
-      <p>You may want to register a service that will send a file.
+      <p>$a Tutoeliom.redir sp <:xmllist< Try it >> 11$.</p>
+
+      <p>Note that the cost of a redirection is one more query and 
+      one more answer.
+      </p>
+
+
+     <h4 id="eliomfiles">Sending files</h4>
+      <p>You may want to register a service that will send files.
       To do that, use the <code>Files</code> module. Example:
       </p>
 <pre>
@@ -1804,15 +2396,16 @@ let sendfile2 =
       </p>
     </div>
     <div class="twocol2">
-     <h3>Registering services that decide what they want to send</h3>
-      <p>You may want to register a service that will send sometimes
+     <h4>Registering services that decide what they want to send</h4>
+      <p>You may want to register a service that will send, for instance,
+      sometimes
       an xhtml page, sometimes a file, sometimes something else.
       To do that, use the <code>Any</code> module, together
       with the <code>send</code> function of the module you want
       to use. Example:
       </p>
 *html*)
-let sendany = 
+let send_any = 
   Any.register_new_service 
     ~url:["sendany"]
     ~get_params:(string "type")
@@ -1836,21 +2429,23 @@ let sendany =
    )
 (*html*
       <p>
-      See a $a Tutoeliom.sendany sp <:xmllist< valid >> "valid"$ page,
-      and a $a Tutoeliom.sendany sp <:xmllist< non valid >> "non valid"$ page.
+      See $a Tutoeliom.send_any sp <:xmllist< a valid page >> "valid"$,
+      and $a Tutoeliom.send_any sp <:xmllist< a non valid page >> "non valid"$.
       </p>
       <p>You may also use <code>Any</code> to send cookies or to choose a
          different charset than the default 
         (default charset is set in configuration file) 
          for the page you send. To do that use the optional parameters
-          <code>?cookies</code> and <code>?charset</code>.
+          <code>?cookies</code> and <code>?charset</code> of the
+         <code>send</code> function.
       </p>
-     <h3>Cookies</h3>
+     <h4>Cookies</h4>
      <p>
-      You can set cookies on the client, by using functions like
+      A simplest way to set your own cookies on the client is to use
+      functions like
       <code>Eliom.Xhtml.Cookies.register</code> instead of 
       <code>Eliom.Xhtml.register</code>.
-      The function you register returns a pair containing the page as usual
+      The function you register returns a pair containing the page (as usual)
       and a list of cookies, of type
       </p>
       <pre>
@@ -1883,23 +2478,24 @@ let cookiename = "mycookie"
 let cookies = new_service ["cookies"] unit ()
 
 let _ = Cookies.register cookies
-    (fun sp () () ->  return
-      ((html
-        (head (title (pcdata "")) [])
-        (body [p [pcdata (try
-                            "cookie value: "^
-                            (List.assoc cookiename (get_cookies sp))
-                          with _ -> "<cookie not set>");
-                  br ();
-                  a cookies sp [pcdata "send other cookie"] ()]])),
-       [Extensions.Set (None, None, 
-                        [(cookiename,(string_of_int (Random.int 100)))])]))
+    (fun sp () () -> 
+      return
+       ((html
+         (head (title (pcdata "")) [])
+         (body [p [pcdata (try
+                             "cookie value: "^
+                             (List.assoc cookiename (Eliom.get_cookies sp))
+                           with _ -> "<cookie not set>");
+                   br ();
+                   a cookies sp [pcdata "send other cookie"] ()]])),
+        [Extensions.Set (None, None, 
+                         [(cookiename,(string_of_int (Random.int 100)))])]))
 (*html*
-      <p>Try $a Tutoeliom.cookies sp <:xmllist< <code>it</code> >> ()$.</p>
+      <p>$a Tutoeliom.cookies sp <:xmllist< Try it >> ()$.</p>
     </div>
-    <h2>Other concepts</h2>
+    <h3>Other concepts</h3>
     <div class="twocol1">
-    <h3>Pre-applied services</h3>
+    <h4 id="preapplied">Pre-applied services</h4>
     <p>Services or coservices with GET parameters can be preapplied
      to obtain a service without parameters. Example:
     </p>
@@ -1907,11 +2503,14 @@ let _ = Cookies.register cookies
 let preappl = preapply coucou_params (3,(4,"cinq"))
     </pre>
     <p>
-     It is not possible to register something on e preapplied service,
+     It is not possible to register something on a preapplied service,
      but you can use them in links or as fallbacks for coservices.
     </p>
-    <h3>Giving informations to fallbacks</h3>
-    <p>Fallbacks have access to some informations about what succeeded but
+
+
+    <h4 id="infofallbacks">Giving informations to fallbacks</h4>
+
+    <p>Fallbacks have access to some informations about what succeeded before
     they were called. Get this information using 
      <code>Eliom.get_exn sp</code>; That function returns a list of exceptions.
     That list contains <code>Eliom_Link_too_old</code> if the coservice
@@ -1922,35 +2521,62 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     It is also possible to tell actions to send informations to the page
     generated after them. Just place exceptions in the list returned by the
     action. These exceptions will also be accessible with 
-    <code>Eliom.get_exn</code>. Try to replace the lines above by:
+    <code>Eliom.get_exn</code>. Try to replace the lines 
+    <a href="#actions">above (example of session with actions)</a> by:
     </p>
 *html*)
+(************************************************************)
+(************ Connection of users, version 4 ****************)
+(************************************************************)
 (*zap* *)
-let action_session2 = 
-  new_service ~url:["action2"] ~get_params:unit ()
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let action_example2 = 
+  Eliom.new_service
+    ~url:["action2"] 
+    ~get_params:unit 
+    ()
 
 let connect_action = 
-  new_post_coservice' ~post_params:(string "login") ()
-(* *zap*)    
+  Eliom.new_post_coservice'
+    ~post_params:(string "login") 
+    ()
+
+(* We keep the previously defined disconnection action *)
+(* *zap*)
+  
 exception Bad_user
 
-let login_box sp login =
-   let l =
-     [pcdata "login: "; 
-      string_input ~input_type:`Text ~name:login ()]
-   in
-   [p (if List.mem Bad_user (get_exn sp)
-       then (pcdata "Wrong user")::(br ())::l
-       else 
-       if List.mem Eliom_Session_expired (get_exn sp)
-       then (pcdata "Session expired")::(br ())::l
-       else l)
-   ]
+(* -------------------------------------------------------- *)
+(* new login box:                                           *)
+
+let login_box sp action =
+  Eliom.Xhtml.post_form action sp
+    (fun loginname ->
+      let l =
+        [pcdata "login: "; 
+         string_input ~input_type:`Text ~name:loginname ()]
+      in
+      let exnlist = Eliom.get_exn sp in
+      (* If exnlist is not empty, something went wrong
+         during an action. We write an error message: *)
+      [p (if List.mem Bad_user exnlist
+      then (pcdata "Wrong user")::(br ())::l
+      else 
+        if List.mem Eliom_Session_expired exnlist
+        then (pcdata "Session expired")::(br ())::l
+        else l)
+     ])
+    ()
 
 (*zap* *)    
-let home_action sp () () = 
-  let f = post_form connect_action sp (login_box sp) () in
-  let sessdat = get_session_data my_table sp in
+(* -------------------------------------------------------- *)
+(* Handler for the "action_example2" service (main page):   *)
+
+let action_example2_handler sp () () = 
+  let sessdat = Eliom.get_session_data my_table sp in
   return
     (html
        (head (title (pcdata "")) [])
@@ -1959,28 +2585,47 @@ let home_action sp () () =
           | Some name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | None -> [f]
+          | None -> [login_box sp connect_action;
+                     p [em [pcdata "The only user is 'toto'."]]]
           )))
 
-let _ = register ~service:action_session2 home_action
-
-let rec launch_session sp login =
-  set_session_data my_table sp login
-    
 (* *zap*)
-let _ = Actions.register
-    connect_action
-    (fun sp () login -> 
-      close_session sp >>=
-      (fun () ->
-        if login = "toto" 
-        then (launch_session sp login; return [])
-        else return [Bad_user]))
+(* -------------------------------------------------------- *)
+(* New handler for connect_action (user logs in):           *)
+
+let connect_action_handler sp () login =
+  close_session ~sp >>= fun () -> 
+  if login = "toto" (* Check user and password :-) *)
+  then begin
+    Eliom.set_session_data my_table sp login; 
+    return []
+  end
+  else return [Bad_user]
+
+(*zap* *)
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () = 
+  Eliom.Xhtml.register ~service:action_example2 action_example2_handler;
+  Actions.register ~service:connect_action connect_action_handler
+(* *zap*)
 (*html*
       <p>
-      See this example $a Tutoeliom.action_session2 sp <:xmllist< here >> ()$.
+      $a Tutoeliom.action_example2 sp <:xmllist< See this example here >> ()$.
       </p>
-     <h3>Disposable coservices</h3>
+      <p>
+        If the actions raises an exception (with <code>Lwt.fail</code>),
+        the server will send an error 500 (like for any other service).
+        Think about catching the exceptions and put them in the list 
+        if they correspond to usual cases you want to handle while
+        generating the page after the action.
+      </p>
+
+
+
+     <h4>Disposable coservices</h4>
       <p>It is possible to set a limit to the number of uses of 
       (attached or non-attached) coservices. Just give the maximum number
       of uses with the optional <code>?max_use</code> parameter while
@@ -2006,7 +2651,7 @@ let _ = register disposable
       return
         (html
           (head (title (pcdata "")) [])
-          (body [p [(if List.mem Eliom.Eliom_Link_too_old (get_exn sp)
+          (body [p [(if List.mem Eliom.Eliom_Link_too_old (Eliom.get_exn sp)
                     then pcdata "Your link was outdated. I am the fallback. \
                             I just created a new disposable coservice. \
                             You can use it only twice."
@@ -2016,27 +2661,27 @@ let _ = register disposable
                     br ();
                     a disp_coservice sp [pcdata "Try it!"] ()]])))
 (*html*      
-      <p>Try $a Tutoeliom.disposable sp <:xmllist< <code>it</code> >> ()$.</p>
-     <h3>Timeout for sessions</h3>
+      <p>$a Tutoeliom.disposable sp <:xmllist< Try it >> ()$.</p>
+     <h4>Timeout for sessions</h4>
       <p>The default timeout for sessions in one hour. Sessions will be
        automatically closed after that amount of time of inactivity
        from the user.
        You can change that value for your whole site during initialisation 
        using:</p>
 <pre>
-set_global_timeout (Some 7200.)
+Eliom.set_global_timeout (Some 7200.)
 </pre>
       <p>Here 7200 seconds. <code>None</code> means no timeout.</p>
       <p>
        You can change that value for your whole site after initialisation 
        using:</p>
 <pre>
-set_global_timeout ~sp (Some 7200.)
+Eliom.set_global_timeout ~sp (Some 7200.)
 </pre>
       <p>
        You can change that value for one user only using:</p>
 <pre>
-set_user_timeout sp (Some 7200.)
+Eliom.set_user_timeout ~sp (Some 7200.)
 </pre>
       <p>
       Note that there is also a possibility to change the default value
@@ -2048,7 +2693,7 @@ set_user_timeout sp (Some 7200.)
 </pre>
      <p><code>value="infinity"</code> means no timeout.</p>
      <p>Warning: that default may be overriden by each site using 
-        <code>set_global_timeout</code>.
+        <code>Eliom.set_global_timeout</code>.
         If you want your user to be able to set the default in the 
         configuration file for your site (between <code>&lt;site&gt;</code>
         and <code>&lt;/site&gt;</code>), you must parse the configuration
@@ -2056,7 +2701,7 @@ set_user_timeout sp (Some 7200.)
      </p>
     </div>
     <div class="twocol2">
-     <h3>Timeout for coservices</h3>
+     <h4>Timeout for coservices</h4>
       <p>It is also possible to put timeouts on coservices using
       the optional parameter <code>?timeout</code> of functions
       <code>new_coservice</code>,
@@ -2096,11 +2741,11 @@ let _ =
   register timeout page
 (*html*
       <p>
-      See this example $a Tutoeliom.timeout sp <:xmllist< here >> ()$.
+      $a Tutoeliom.timeout sp <:xmllist< See this example here >> ()$.
       </p>
-     <h3>Registering coservices in public table during session</h3>
+     <h4>Registering coservices in public table during session</h4>
      <p>If you want to register coservices in the
-     public table during session, (that is, after the initialisation 
+     public table during a session, (that is, after the initialisation 
      phase of your module), you must add the optional <code>~sp</code> 
      parameter to the <code>register</code> function.
      Remember that using <code>register</code> without <code>~sp</code>
@@ -2108,7 +2753,8 @@ let _ =
      </p>
      <p>
      We recommend to put a timeout on such coservices, otherwise, they
-     will be available until the end of the server process.
+     will be available until the end of the server process, and it will not be
+     possible to re-create them when the server is relaunched.
      </p>
      <p>
      The following example is a translation of the previous one using
@@ -2143,18 +2789,18 @@ let _ =
   register publiccoservsession page
 (*html*
       <p>
-      See this example $a Tutoeliom.publiccoservsession sp <:xmllist< here >> ()$.
+      $a Tutoeliom.publiccoservsession sp <:xmllist< See this example here >> ()$.
       </p>
-     <h3>Define an exception handler for the whole site</h3>
+     <h4>Define an exception handler for the whole site</h4>
      <p>When an exception is raised during the generation of a page,
      or when the page has not been found or has wrong parameters,
      an HTTP error 500 or 404 is sent to the client. You may want to
      catch these exceptions to print your own error page.
-     Do this using <code>set_exn_handler</code>.
+     Do this using <code>Eliom.set_exn_handler</code>.
      Here is the handler used by this tutorial:
      </p>
 *html*)
-let _ = set_exn_handler 
+let _ = Eliom.set_exn_handler 
    (fun sp e -> match e with
     | Extensions.Ocsigen_404 -> 
        return
@@ -2172,7 +2818,7 @@ let _ = set_exn_handler
                    p [pcdata "Wrong parameters"]])))
     | e -> fail e)
 (*html*
-     <h3>Giving configuration options to your sites (EXPERIMENTAL)</h3>
+     <h4>Giving configuration options to your sites</h4>
       <p>You can add your own options in the configuration
        file for your Web site. For example:</p>
 <pre>
@@ -2184,20 +2830,47 @@ let _ = set_exn_handler
        Use <code>Eliom.get_config ()</code> during the initialization
        of your module to get the data between
        <code>&lt;eliom&gt;</code> and <code>&lt;/eliom&gt;</code>.
-       Warning: parsing these data is very basic for now and not really easy.
+       Warning: parsing these data is very basic for now.
        That feature will be improved in the future.
       </p>
     </div>
-    <h2>Persistence of sessions</h2>
+
+
+    <h3 id="persistent">Persistence of sessions</h3>
     <div class="twocol1">
       <p>Tables of sessions (for data or services) are kept in memory,
         and thus will disappear if you close the server process.
+        To solve this problem, Ocsigen allows to reload the modules of
+        your configuration file without shutting down the server.
+        Another solution provided by Eliom is to save session data on hard disk.
       </p>
-      <p>Note that Ocsigen now allows to reload the modules without
-       stoping the server (use <code>/etc/init.d/ocsigen reload</code>
-       for most of the distributions, or manually by 
-       <code>echo reload > /var/run/ocsigen_command</code>).
+
+      <h4>Updating sites without shutting down the server</h4>
+      <p>To reload the modules of the configuration file without
+       stoping the server, use <code>/etc/init.d/ocsigen reload</code>
+       for most of the distributions, or do it manually using:</p>
+       <pre>echo reload > /var/run/ocsigen_command</pre>.
+      <p>
+       Only modules loaded inside <code>&lt;site&gt;</code> or
+       <code>&lt;library&gt;</code> will be reloaded.
+       Module loaded using <code>&lt;extension&gt;</code> will not.
       </p>
+      <p>
+        Have a look at the logs to see if all went well during the reload.
+        If something went wrong, old services may still be reachable.
+      </p>
+      <p>
+        Note that coservices created with the old modules or
+        URLs that have not been masked by new ones
+        will still reachable after the update.
+      </p>
+      <p>
+        During the reload, some information of the configuration file
+        will not be re-read (for example port numbers, user and group, etc.).
+      </p>
+
+
+      <h4>Persistent data</h4>
       <p>
         Eliom allows to use more persistent data, using the module
         <code>Ocsipersist</code>. (<code>Ocsipersist</code> is needed in 
@@ -2217,7 +2890,7 @@ let _ = set_exn_handler
           server will crash!
         </li>
       </ul>
-      <h3>Persistent references</h3>
+      <h4>Persistent references</h4>
       <p><code>Ocsipersist</code> allows to create persistent references.
        Here is an example of page with a persistent counter:
       </p>
@@ -2248,9 +2921,9 @@ let count2 =
 
 (*html*
       <p>
-      See this example $a Tutoeliom.count2 sp <:xmllist< here >> ()$.
+      $a Tutoeliom.count2 sp <:xmllist< See this example here >> ()$.
       </p>
-      <h3>Persistent tables</h3>
+      <h4>Persistent tables</h4>
       <p><code>Ocsipersist</code> also allows to create very basic
        persistent tables. Use them if you don't need complex requests
        on your tables. Otherwise use a database such as <code>PostgreSQL</code>
@@ -2267,79 +2940,157 @@ val add : 'value table -> string -> 'value -> unit Lwt.t
 
 val remove : 'value table -> string -> unit Lwt.t
 </pre>
+
+    <p>
+      As you can see, all these function are cooperative.
+    </p>
     </div>
     <div class="twocol2">
-      <h3>Persistent session data</h3>
+      <h4>Persistent session data</h4>
       <p><code>Eliom</code> also implements persistent session tables.
-       You can use them instead of memory tables if you don't want
+       You can use them instead of memory tables if you don't need
        to register closures.</p>
+      <p>The following example is a new version of our site
+       with users, with persistent connections. 
+       (<code>login_box</code>, <code>disconnect_box</code>
+       and <code>disconnect_action</code>
+       are the same as <a href="#actions">before</a>).
+
+
 *html*)
-let my_persistent_table : session_info persistent_table = 
+(************************************************************)
+(************ Connection of users, version 5 ****************)
+(**************** (persistent sessions) *********************)
+(************************************************************)
+
+
+let my_persistent_table = 
   create_persistent_table "eliom_example_table"
 
-let persist = new_service ["persist"] unit ()
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
 
-let persist_with_post_params = new_post_service persist (string "login") ()
+let persist_session_example = 
+  Eliom.new_service
+    ~url:["persist"] 
+    ~get_params:unit 
+    ()
 
-let close3 = register_new_service
-    ~url:["disconnect3"]
-    ~get_params:unit
-    (fun sp () () -> 
-      close_session sp >>=
-      (fun () ->
-        return
-          (html
-             (head (title (pcdata "Disconnect")) [])
-             (body [p [pcdata "You have been disconnected. ";
-                       a persist sp [pcdata "Retry"] () ]]))))
+let persist_session_connect_action = 
+  Eliom.new_post_coservice'
+    ~post_params:(string "login") 
+    ()
 
-let _ = register
-    persist
-    (fun sp _ _ ->
-      get_persistent_data my_persistent_table sp >>=
-      (fun sessdat ->
-        return
-          (html
-             (head (title (pcdata "")) [])
-             (body 
-                [match sessdat with
-                | Some name ->
-                    p [pcdata ("Hello "^name); br ();
-                       a close3 sp [pcdata "close session"] ()
-                     ]
-                | None -> 
-                    post_form persist_with_post_params sp
-                      (fun login -> 
-                        [p [pcdata "login: ";
-                            string_input 
-                              ~input_type:`Text ~name:login ()]]) ()
-               ]))))
+(* disconnect_action, login_box and disconnect_box have been
+   defined in the section about actions *)
 
-let _ = register
-    persist_with_post_params
-    (fun sp _ login ->
-      close_session sp >>=
-      (fun () ->
-        set_persistent_data my_persistent_table sp login >>=
-        (fun () ->
-          return
-            (html
-               (head (title (pcdata "")) [])
-               (body 
-                  [p [pcdata ("Welcome "^login^
-                              ". You are now connected."); br ();
-                      a persist sp [pcdata "Try again"] ()
-                    ]])))))
+
+(* ----------------------------------------------------------- *)
+(* Handler for "persist_session_example" service (main page):  *)
+
+let persist_session_example_handler sp () () = 
+  Eliom.get_persistent_data my_persistent_table sp >>= fun sessdat ->
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body 
+          (match sessdat with
+          | Some name ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box sp "Close session"]
+          | None -> [login_box sp persist_session_connect_action;
+                     p [em [pcdata "The only user is 'toto'."]]]
+          )))
+
+
+(* ----------------------------------------------------------- *)
+(* Handler for persist_session_connect_action (user logs in):  *)
+
+let persist_session_connect_action_handler sp () login =
+  close_session ~sp >>= fun () -> 
+  if login = "toto" (* Check user and password :-) *)
+  then begin
+    Eliom.set_persistent_data my_persistent_table sp login >>= fun () ->
+    return []
+  end
+  else return [Bad_user]
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () = 
+  Eliom.Xhtml.register 
+    ~service:persist_session_example
+    persist_session_example_handler;
+  Actions.register 
+    ~service:persist_session_connect_action 
+    persist_session_connect_action_handler
 (*html*
       <p>
-      See this example $a Tutoeliom.persist sp <:xmllist< here >> ()$.
+      $a Tutoeliom.persist_session_example sp <:xmllist< See this example here >> ()$.
       </p>
+   
+      <p>
+        As it is not possible to serialize closures, there is no persistent
+        session service table. Be very carefull if you use both persistent
+        session data tables and service session tables, 
+        as your session may become inconsistent (use the session service
+        table only for volatile services, like coservices with timeouts).
+      </p>
+   
     </div>
-    <h2>Advanced forms</h2>
+
+
+
+
+    <h3>Advanced forms</h3>
+   
     <div class="twocol1">
       <p>This section shows more advanced use of page parameters and
       corresponding forms.</p>
-      <h3>Boolean checkboxes</h3>
+      <h4>Parse parameters using regular expressions</h4>
+      <p>
+        Eliom.regexp allows to parse page parameters using (Perl-compatible)
+        regular expressions. We use the module <code>Netstring_pcre</code>,
+        from <em>OCamlnet</em>. See the documentation about OCamlnet
+        for more informations.
+        The following example shows a service that accepts only parameters
+        values enclosed between <code>[</code> and <code>]</code>:
+      </p>
+<pre>
+<span class="Clet">let</span> r <span class="Cnonalphakeyword">=</span> <span class="Cconstructor">Netstring_pcre</span><span class="Cnonalphakeyword">.</span>regexp <span class="Cstring">"\\\\[(.*)\\\\]"</span>
+
+<span class="Clet">let</span> regexp <span class="Cnonalphakeyword">=</span> 
+  <span class="Cconstructor">Eliom</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
+    <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"regexp"</span><span class="Cnonalphakeyword">]</span>
+    <span class="Clabel">~get_params:</span><span class="Cnonalphakeyword">(</span>regexp r <span class="Cstring">"$$1"</span> <span class="Cstring">"myparam"</span><span class="Cnonalphakeyword">)</span>
+    <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> <span class="Cnonalphakeyword">_</span> g <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span> 
+      return 
+        <span class="Cnonalphakeyword">(</span>html
+           <span class="Cnonalphakeyword">(</span>head <span class="Cnonalphakeyword">(</span>title <span class="Cnonalphakeyword">(</span>pcdata <span class="Cstring">""</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span>
+           <span class="Cnonalphakeyword">(</span>body <span class="Cnonalphakeyword">[</span>p <span class="Cnonalphakeyword">[</span>pcdata g<span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span>
+</pre>
+*html*)
+(*zap* *)
+let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
+
+let regexpserv = 
+  Eliom.Xhtml.register_new_service 
+    ~url:["regexp"]
+    ~get_params:(regexp myregexp "$1" "myparam")
+    (fun _ g () -> 
+      return 
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata g]])))
+(* *zap*)
+(*html*
+
+      <p>$a Tutoeliom.regexpserv sp <:xmllist< Try it >> "[toto]"$.</p>
+
+      <h4>Boolean checkboxes</h4>
       <p>Page may take parameter of type <code>bool</code>.
          A possible use of this type is in a form
          with <em>boolean checkboxes</em>, as in the example below:
@@ -2400,7 +3151,7 @@ let form_bool = register_new_service ["formbool"] unit
           ["doc/"^version^"/Eliom.html"]$.
       </p>
 
-      <h3>Type <code>set</code></h3>
+      <h4>Type <code>set</code></h4>
       <p>Page may take several parameters of the same name.
       It is usefull when you want to create a form with a variable number
       of fields.
@@ -2468,7 +3219,7 @@ let setform = register_new_service
       registered service that matches will answer.
       </p>
 
-      <h3>Clickable images</h3>
+      <h4>Clickable images</h4>
       <p>Here is an example of clickable image.
       You receive the coordinates the user clicked on.
       </p>
@@ -2548,10 +3299,10 @@ let imageform2 = register_new_service
     </div>
     <div class="twocol2">
 
-      <h3>Type <code>list</code></h3>
+      <h4>Type <code>list</code></h4>
         <p>Another way (than <code>set</code>) to do variable length forms
         is to use indexed lists.
-        The use of that feature is a bit more complex than set
+        The use of that feature is a bit more complex than <code>set</code>
         and still experimental.
         Here is an example of service taking an indexed list as parameter:
         </p>
@@ -2563,16 +3314,17 @@ let coucou_list = register_new_service
     ~get_params:(list "a" (string "str"))
   (fun _ l () ->
     let ll = 
-      List.map (fun s -> << <strong>$str:s$</strong> >>) l in  return
-  << <html>
-       <head><title></title></head>
-       <body>
-       <p>
-         You sent: 
-         $list:ll$
-       </p>
-       </body>
-     </html> >>)
+      List.map (fun s -> << <strong>$str:s$</strong> >>) l in 
+    return
+      << <html>
+           <head><title></title></head>
+           <body>
+           <p>
+             You sent: 
+             $list:ll$
+           </p>
+           </body>
+         </html> >>)
 (*html*
       <p>
    Here is an example of link towards this service:
@@ -2617,11 +3369,12 @@ let create_listform f =
 
 let listform = register_new_service ["listform"] unit
   (fun sp () () -> 
-     let f = get_form coucou_list sp create_listform in return
-     << <html>
-          <head><title></title></head>
-          <body> $f$ </body>
-        </html> >>)
+     let f = get_form coucou_list sp create_listform in 
+     return
+      << <html>
+           <head><title></title></head>
+           <body> $f$ </body>
+         </html> >>)
 
 (*html*
 
@@ -2637,7 +3390,7 @@ let listform = register_new_service ["listform"] unit
       In that case, Eliom always takes the shortest possible list.
       </p>
 
-      <h3>Forms and suffixes</h3>
+      <h4>Forms and suffixes</h4>
 
       <p>Service with "suffix" URLs have an equivalent version with
       usual parameters, allowing to create forms towards such services.
@@ -2655,17 +3408,18 @@ let create_suffixform ((suff, endsuff),i) =
 
 let suffixform = register_new_service ["suffixform"] unit
   (fun sp () () -> 
-     let f = get_form isuffix sp create_suffixform in return
-     << <html>
-          <head><title></title></head>
-          <body> $f$ </body>
-        </html> >>)
+     let f = get_form isuffix sp create_suffixform in 
+     return
+      << <html>
+           <head><title></title></head>
+           <body> $f$ </body>
+         </html> >>)
 
 (*html*
 
       <p>$a Tutoeliom.suffixform sp <:xmllist< Try it >> ()$.</p>
 
-      <h3>Uploading files</h3>
+      <h4>Uploading files</h4>
 
       <p>The <code>file</code> parameter type allows to send files in your
        request. The service gets something of type 
@@ -2677,9 +3431,9 @@ val get_tmp_filename : Extensions.file_info -> string
 val get_filesize : Extensions.file_info -> int64
 val get_original_filename : Extensions.file_info -> string
 </pre>
-      <p><code>get_tmp_filename</code> allows to know the actual name
+      <p><code>Eliom.get_tmp_filename</code> allows to know the actual name
        of the uploaded file on the hard disk.
-        <code>get_original_filename</code> gives the original filename.</p>
+        <code>Eliom.get_original_filename</code> gives the original filename.</p>
       <p>To make possible the upload of files, you must configure a
       directory for uploaded files in Ocsigen's configuration file.
       For example:
@@ -2709,7 +3463,7 @@ let upload2 = register_new_post_service
         (try
           Unix.unlink newname;
         with _ -> ());
-        Unix.link (get_tmp_filename file) newname;
+        Unix.link (Eliom.get_tmp_filename file) newname;
         let fd_in = open_in newname in
         try
           let line = input_line fd_in in close_in fd_in; line (*end*)
@@ -2729,7 +3483,8 @@ let uploadform = register upload
              [p [file_input ~name:file ();
                  br ();
                  string_input ~input_type:`Submit ~value:"Send" ()
-               ]]) ()) in  return
+               ]]) ()) in 
+      return
         (html
            (head (title (pcdata "form")) [])
            (body [f])))
@@ -2741,38 +3496,12 @@ let uploadform = register upload
 
 
     </div>
-    <h2>Static parts</h2>
+
+
+
+    <h3>Predefined constructs</h3>
     <div class="twocol1">
-      <h3>Fully static pages</h3>
-      <p>With <code>staticmod</code>, you can associate a static directory
-         where you can put all the static (non generated) parts of your 
-         web-site (for examples images).
-         See the default config file <code>ocsigen.conf</code> to
-         learn how to do that.
-         There is a predefined service called 
-         <code><span class="Cem">static_dir</span></code> to make links to
-            static files. It takes as string parameter the name of the file.
-                <br/>
-                For example</p>
-         <pre><span class="Cconstructor">Eliom</span>.a 
-  (static_dir sp)
-  sp
-  [pcdata "download image"] 
-  "$str:small_logo$"</pre>
-          <p>creates this link:
-         $a (static_dir sp) sp [pcdata "download image"] [small_logo]$
-      </p>
-      <p>It is now also possible to handle static pages yourself using
-      <code>Eliom.Files</code>.
-      </p>
-      <!-- h3>Static parts of a page</h3>
-      <em>To be available soon</em -->
-    </div>
-    <div class="twocol2">
-    </div>
-    <h2>Predefined constructs</h2>
-    <div class="twocol1">
-      <h3>Images, CSS, Javascript</h3>
+      <h4>Images, CSS, Javascript</h4>
       <p>
       To include an image, use simply the function <code>XHTML.M.img</code>:
       </p>
@@ -2789,9 +3518,9 @@ let uploadform = register upload
         use the following functions:</p>
       <pre><span class="Cem">css_link</span> (make_uri (static_dir sp) sp [<span class="Cstring">"style.css"</span>])</pre>
       <pre><span class="Cem">js_script</span> (make_uri (static_dir sp) sp [<span class="Cstring">"funs.js"</span>])</pre>
-      <h3>Menus</h3>
+      <h4>Menus</h4>
       <p>
-      To make a menu an your web page, you can use the function 
+      To make a menu on your web page, you can use the function 
           <code><span class="Cem">Eliomboxes.menu</span></code>.
       First, define your menu like this:
       </p>
@@ -2823,35 +3552,37 @@ let uploadform = register upload
     If you want one of the link to contains GET parameters, pre-apply
     the service.</p>
       <div class="encadre">
-        <h3>How to make a menu entry with GET parameters?</h3>
+        <h4>How to make a menu entry with GET parameters?</h4>
           <p>
           Preapply your service.
           </p>
       </div>
-      <h3>Others</h3>
-      <em>To be available soon</em>
+
     </div>
-    <h2>Examples</h2>
+
+
+
+    <h3>Examples</h3>
     <div class="twocol1">
-    <h3>Write a forum</h3>
+    <h4>Write a forum</h4>
       <p>
       As an example,
       we will now write a small forum. Our forum has a main page,
       summarising all the messages and a page for each message.
+      All the functions to access the database and print the result are
+      left to the reader. We only want to show the structure of the site.
       Suppose you have written a function <code>news_headers_list_box</code>
       that writes the beginning of messages, and <code>message_box</code>
       that write a full message.
       </p>
-*html*)
-(*zap* from ocsexample1 - attention la section Construction of pages a été simplifiée *zap*)
-(*html*
+*html*)(*zap* from ocsexample1 - attention la section Construction of pages a été simplifiée *zap*)(*html*
 <pre>
 <span class="Ccomment">(* All the services: *)</span>
 
 <span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span>
     <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
 
-<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span><span class="Cconstructor">StringMessage</span><span class="Cnonalphakeyword">.</span>index <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span>int <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
 
 <span class="Ccomment">(* Construction of pages *)</span>
 
@@ -2878,26 +3609,23 @@ let uploadform = register upload
 </pre>
     </div>
     <div class="twocol2">
-      <p>Now the same with a login box on each page.
+      <p>Now the same example with a login box on each page.
       We now have two versions of each page: connected and not connected.
       We need two actions (for connection and disconnection). 
       Suppose we have the functions <code>login_box</code>,
       <code>connected_box</code>,
       and <code>connect</code>.
       </p>
-*html*)
-(*zap* from ocsexample2 *zap*)
-(*html*
+*html*)(*zap* from ocsexample2 *zap*)(*html*
 <pre><span class="Ccomment">(* All the services: *)</span>
 
 <span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span> <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
 
-<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span><span class="Cconstructor">StringMessage</span><span class="Cnonalphakeyword">.</span>index <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+<span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span>int <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
 
 <span class="Clet">let</span> connect_action <span class="Cnonalphakeyword">=</span>
   new_post_coservice'
-    <span class="Clabel">~post_params:</span><span class="Cnonalphakeyword">(</span>string <span class="Cstring">"login"</span> ** string <span class="Cstring">"password"</span>
-<span class="Cnonalphakeyword">)</span>
+    <span class="Clabel">~post_params:</span><span class="Cnonalphakeyword">(</span>string <span class="Cstring">"login"</span> ** string <span class="Cstring">"password"</span><span class="Cnonalphakeyword">)</span>
 
 <span class="Ccomment">(* Construction of pages *)</span>
 
@@ -2920,7 +3648,7 @@ let print_news_page sp i () =
    match get_session_data my_table sp with
    | None ->
       page sp
-        [h1 [pcdata "Info";
+        [h1 [pcdata "Info"];
          login_box sp connect_action;
          message_box i anonymoususer]
    | Some user ->
@@ -2948,20 +3676,20 @@ let print_news_page sp i () =
       launch_session sp <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
 </pre>
 
-    <h3>Miniwiki</h3>
+    <h4>Miniwiki</h4>
     <p>Ocsigen's source code contains an example of Wiki written with
      Eliom by Janne Hellsten. It is called <em>Miniwiki</em>.
     </p>
     </div>
 *html*)
-(*zap*)
+(*zap* *)
 
 
 (* Main page for this example *)
 let main = new_service [] unit ()
 
 let _ = register main
-  (fun sp () () -> return
+  (fun sp () () -> 
     (* Do not register a page after initialisation.
        This will cause an error:
        let coucou6 = 
@@ -2972,6 +3700,7 @@ let _ = register main
         ()
        in *)
     (* This will be ignored: register coucou1 << <html></html> >>; *)
+    return
      << 
        <html> 
        <!-- This is a comment! -->
@@ -2983,93 +3712,95 @@ let _ = register main
          
          <h1>$img ~alt:"Ocsigen" ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"]) ()$</h1>
 
-       <h2>Eliom examples</h2>
-       <h3>Simple pages</h3>
+       <h3>Eliom examples</h3>
+       <h4>Simple pages</h4>
        <p>
-         A simple page: $a coucou sp <:xmllist< coucou >> ()$ <br/>
-         A page with a counter: $a count sp <:xmllist< count >> ()$ <br/> 
+         A simple page: $a coucou sp <:xmllist< <code>coucou</code> >> ()$ <br/>
+         A page with a counter: $a count sp <:xmllist< <code>count</code> >> ()$ <br/> 
          A page in a directory: 
-           $a hello sp <:xmllist< dir/hello >> ()$ <br/>
+           $a hello sp <:xmllist< <code>dir/hello</code> >> ()$ <br/>
        Default page of a directory:
-           $a default sp <:xmllist< rep/ >> ()$</p>
-       <h3>Parameters</h3>
+           $a default sp <:xmllist< <code>rep/</code> >> ()$</p>
+       <h4>Parameters</h4>
        <p>
          A page with GET parameters: 
-           $a coucou_params sp <:xmllist< coucou with params >> (45,(22,"krokodile"))$ (what if the first parameter is not an integer?)<br/> 
+           $a coucou_params sp <:xmllist< <code>coucou</code> with params >> (45,(22,"krokodile"))$ (what if the first parameter is not an integer?)<br/> 
          A page with "suffix" URL that knows the IP and user-agent of the client: 
-           $a uasuffix sp <:xmllist< uasuffix >> (2007,6)$ <br/> 
+           $a uasuffix sp <:xmllist< <code>uasuffix</code> >> (2007,6)$ <br/> 
          A page with "suffix" URL and GET parameters : 
-           $a isuffix sp <:xmllist< isuffix >> ((111, ["OO";"II";"OO"]), 333)$ <br/> 
+           $a isuffix sp <:xmllist< <code>isuffix</code> >> ((111, ["OO";"II";"OO"]), 333)$ <br/> 
          A page with a parameter of user-defined type : 
-             $a mytype sp <:xmllist< mytype >> A$ </p>
-       <h3>Links and Formulars</h3>
+             $a mytype sp <:xmllist< <code>mytype</code> >> A$ </p>
+       <h4>Links and Formulars</h4>
        <p>
-         A page with links: $a links sp <:xmllist< links >>  ()$ <br/> 
+         A page with links: $a links sp <:xmllist< <code>links</code> >>  ()$ <br/> 
          A page with a link towards itself: 
-             $a linkrec sp <:xmllist< linkrec >> ()$ <br/>
+             $a linkrec sp <:xmllist< <code>linkrec</code> >> ()$ <br/>
          The $a main sp <:xmllist< default page >> ()$ 
              of this directory (myself) <br/>
          A page with a GET form that leads to the "coucou" page with parameters: 
-             $a form sp <:xmllist< form >> ()$ <br/> 
+             $a form sp <:xmllist< <code>form</code> >> ()$ <br/> 
          A POST form towards the "post" page: 
-             $a form2 sp <:xmllist< form2 >> ()$ <br/> 
+             $a form2 sp <:xmllist< <code>form2</code> >> ()$ <br/> 
          The "post" page, when it does not receive parameters: 
-             $a no_post_param_service sp <:xmllist< post wihtout post_params >> ()$ <br/> 
+             $a no_post_param_service sp <:xmllist< <code>post</code> without post_params >> ()$ <br/> 
          A POST form towards a service with GET parameters: 
-             $a form3 sp <:xmllist< form3 >> ()$ <br/> 
+             $a form3 sp <:xmllist< <code>form3</code> >> ()$ <br/> 
          A POST form towards an external page: 
-             $a form4 sp <:xmllist< form4 >> ()$ </p> 
-       <h3>Sessions</h3>
+             $a form4 sp <:xmllist< <code>form4</code> >> ()$ </p> 
+       <h4>Sessions</h4>
        <p>
          Coservices: 
-             $a coserv sp <:xmllist< coservice >> ()$ <br/> 
+             $a coservices_example sp <:xmllist< <code>coservice</code> >> ()$ <br/> 
          A session based on cookies: 
-             $a public_session_without_post_params sp <:xmllist< session >> ()$ <br/> 
+             $a session_services_example sp <:xmllist< <code>sessionservices</code> >> ()$ <br/> 
          A session based on cookies, implemented with actions: 
-             $a action_session sp <:xmllist< actions >> ()$ <br/>
+             $a action_example sp <:xmllist< <code>actions</code> >> ()$ <br/>
          The same with wrong user if not "toto": 
-             $a action_session2 sp <:xmllist< actions2 >> ()$ <br/>
+             $a action_example2 sp <:xmllist< <code>actions2</code> >> ()$ <br/>
          Coservices in the session table:
-             $a calc sp <:xmllist< calc >> ()$ <br/>
-       <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< shop >> ()$) -->
+             $a calc sp <:xmllist< <code>calc</code> >> ()$ <br/>
+       <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< <code>shop</code> >> ()$) -->
          Session data:
-             $a data sp <:xmllist< data >> ()$ <br/>
+             $a session_data_example sp <:xmllist< <code>sessdata</code> >> ()$ <br/>
          Persistent sessions:
-             $a persist sp <:xmllist< persist >> ()$ <br/>
+             $a persist_session_example sp <:xmllist< <code>persist</code> >> ()$ <br/>
        </p>
-       <h3>Other</h3>
+       <h4>Other</h4>
        <p>
        A page that is very slow, implemented in cooperative way: 
-             $a looong sp <:xmllist< looong >> ()$<br/>
+             $a looong sp <:xmllist< <code>looong</code> >> ()$<br/>
        A page that is very slow, using preemptive threads: 
-             $a looong sp <:xmllist< looong2 >> ()$<br/>
+             $a looong sp <:xmllist< <code>looong2</code> >> ()$<br/>
        Catching errors:
-             $a catch sp <:xmllist< catch >> 22$ (change the value in the URL)<br/>
+             $a catch sp <:xmllist< <code>catch</code> >> 22$ (change the value in the URL)<br/>
        Redirection:
-             $a redir sp <:xmllist< redir >> 11$<br/>
+             $a redir sp <:xmllist< <code>redir</code> >> 11$<br/>
        Cookies:
-             $a cookies sp <:xmllist< cookies >> ()$<br/>
+             $a cookies sp <:xmllist< <code>cookies</code> >> ()$<br/>
        Disposable coservices:
-             $a disposable sp <:xmllist< disposable >> ()$<br/>
+             $a disposable sp <:xmllist< <code>disposable</code> >> ()$<br/>
        Coservice with timeout:
-             $a timeout sp <:xmllist< timeout >> ()$<br/>
+             $a timeout sp <:xmllist< <code>timeout</code> >> ()$<br/>
        Public coservice created after initialization:
-             $a publiccoservsession sp <:xmllist< publiccoservsession >> ()$<br/>
+             $a publiccoservsession sp <:xmllist< <code>publiccoservsession</code> >> ()$<br/>
        The following URL send either a statically checked page, or a text page:
-             $a sendany sp <:xmllist< sendany >> "valid"$<br/>
+             $a send_any sp <:xmllist< <code>send_any</code> >> "valid"$<br/>
        A page with a persistent counter: 
-             $a count2 sp <:xmllist< count2 >> ()$ <br/> 
+             $a count2 sp <:xmllist< <code>count2</code> >> ()$ <br/> 
        </p>
-       <h3>Advanced forms</h3>
+       <h4>Advanced forms</h4>
        <p>
+       A page that parses a parameter using a regular expression:
+          $a regexpserv sp <:xmllist< <code>regexpserv</code> >> "[toto]"$.<br/>
        A page that takes a set of parameters:
-             $a set sp <:xmllist< set >> ["Ciao";"bello";"ciao"]$ <br/> 
+             $a set sp <:xmllist< <code>set</code> >> ["Ciao";"bello";"ciao"]$ <br/> 
        A form to the previous one:
-             $a setform sp <:xmllist< setform >> ()$ <br/> 
+             $a setform sp <:xmllist< <code>setform</code> >> ()$ <br/> 
        A page that takes any parameter:
-             $a any sp <:xmllist< any >> [("a","hello"); ("b","ciao")]$ <br/> 
+             $a any_serv sp <:xmllist< <code>any_serv</code> >> [("a","hello"); ("b","ciao")]$ <br/> 
        A form to the previous one:
-             $a anyform sp <:xmllist< anyform >> ()$ <br/> 
+             $a any_form sp <:xmllist< <code>any_form</code> >> ()$ <br/> 
        A form for a list of parameters:
              $a listform sp <:xmllist< Try it >> ()$.<br/>
        </p>

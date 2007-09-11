@@ -1221,8 +1221,10 @@ let _ = try
       Dynlink.prohibit ["Extensions.R"];
       (* As libraries are reloaded each time the config file is read, 
          we do not allow to register extensions in libraries *)
+      (* seems it does not work :-( *)
 
-            (* Closing stderr, stdout stdin if silent *)
+
+      (* Closing stderr, stdout stdin if silent *)
       if (Ocsiconfig.get_silent ())
       then begin
         (* redirect stdout and stderr to /dev/null *)
