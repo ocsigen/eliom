@@ -1,4 +1,4 @@
-(** This interface corresponds to the XHTML 1.0 Strict DTD. *)
+(** This interface corresponds to the XHTML 1.0 Strict DTD, for Ocamlduce. *)
 
 type events = {{  {   onkeyup=?String 
 		      onkeydown=?String 

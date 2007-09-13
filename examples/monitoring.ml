@@ -19,8 +19,11 @@
 (* A page providing infos about the server (number of sessions, uptime...) *)
 
 open Extensions (* for profiling info *)
-open Eliom
-open Eliom.Xhtml
+open Eliompredefmod.Xhtml
+open Eliompredefmod
+open Eliomservices
+open Eliomparameters
+open Eliomsessions
 open Unix
 open Lwt
 
@@ -63,13 +66,13 @@ let _ =
           Some r
         with _ -> None
       in
-      let nsess = Eliom.number_of_sessions sp in
-      let ntables = Eliom.number_of_tables () in
-      let ntableselts = Eliom.number_of_table_elements () in
-      Eliom.number_of_persistent_sessions () >>=
+      let nsess = Eliomsessions.number_of_sessions sp in
+      let ntables = Eliomsessions.number_of_tables () in
+      let ntableselts = Eliomsessions.number_of_table_elements () in
+      Eliomsessions.number_of_persistent_sessions () >>=
         (fun nbperssess ->
-          let nbperstab = Eliom.number_of_persistent_tables () in
-          Eliom.number_of_persistent_table_elements () >>=
+          let nbperstab = Eliomsessions.number_of_persistent_tables () in
+          Eliomsessions.number_of_persistent_table_elements () >>=
           (fun nbperstabel ->
             let dot = <:xmllist< . >> in
             let list1 a l = <:xmllist<  with, respectively

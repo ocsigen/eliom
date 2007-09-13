@@ -19,7 +19,7 @@
 
 
 open XHTML.M
-open Eliom.Xhtml
+open Eliompredefmod.Xhtml
 
 let menu ?(classe=[])  first l current server_params =
   let rec aux = function

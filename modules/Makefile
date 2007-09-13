@@ -1,6 +1,9 @@
 include ../Makefile.config
 
-FILES= eliommod.ml eliom.ml eliomboxes.ml \
+FILES= eliommod.ml eliomsessions.ml \
+       eliomparameters.ml eliomservices.ml \
+       eliommkforms.ml eliommkreg.ml eliompredefmod.ml \
+       eliomboxes.ml \
        ocsigenmod.ml ocsigen.ml ocsigenboxes.ml \
        staticmod.ml cgimod.ml deflatemod.ml\
        extensiontemplate.ml
@@ -84,7 +87,8 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJDBMBYTE) $(OBJS) eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo \
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJDBMBYTE) $(OBJS) \
+      eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo \
       $(DUCEMODBYTE)
 
 opt: $(FILESSQLITE:.ml=.cmx) $(OBJDBMOPT) $(OBJSOPT) \
@@ -103,24 +107,36 @@ dbm-byte:
 dbm-opt:
 	$(MAKE) -C ocsipersist-dbm opt
 
-eliom.cmx: eliom.ml
+eliomsessiondata.cmx: eliomsessiondata.ml
 	-rm ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
 	-touch ocsipersist.cmx
-# we remove ocsipersist.cmx, otherwise eliom.cmx will will compiled against
+# we remove ocsipersist.cmx, otherwise eliomsessiondata.cmx will will compiled against
 # that precise version of ocsipersist.cmx
 
 eliommod.cmx: eliommod.ml
 	-rm ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
 	-touch ocsipersist.cmx
+# idem
 
-eliom.cma: eliommod.cmo eliom.cmo eliomboxes.cmo
-	$(CAMLC) -a -o eliom.cma eliommod.cmo eliom.cmo eliomboxes.cmo
+eliom.cma: eliommod.cmo eliomsessions.cmo \
+	eliomparameters.cmo eliomservices.cmo \
+	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
+	eliomboxes.cmo
+	$(CAMLC) -a -o eliom.cma \
+	eliommod.cmo eliomsessions.cmo eliomparameters.cmo eliomservices.cmo \
+	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
+	eliomboxes.cmo
 
-eliom.cmxs: eliommod.cmx eliom.cmx eliomboxes.cmx
+eliom.cmxs: eliommod.cmx eliomsessions.cmx \
+	eliomparameters.cmx eliomservices.cmx \
+	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
+	eliomboxes.cmx
 	$(CAMLOPT) -shared -linkall -o eliom.cmxs \
-	eliommod.cmx eliom.cmx eliomboxes.cmx
+	eliommod.cmx eliomsessions.cmx eliomparameters.cmx eliomservices.cmx \
+	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
+	eliomboxes.cmx
 
 ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
 	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \

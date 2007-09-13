@@ -18,24 +18,36 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(** This module contains low level functions for Eliom (undocumented) and
+   not available for the user. It also defines some exceptions you may
+   want to catch.
+ *)
+
 open Extensions
 
-exception Eliom_Wrong_parameter
-exception Eliom_Link_too_old
-exception Eliom_Session_expired
-exception Eliom_Typing_Error of (string * exn) list
 
-exception Eliom_duplicate_registration of string
-exception Eliom_page_erasing of string
-exception Eliom_function_forbidden_outside_site_loading of string
-exception Eliom_there_are_unregistered_services of string
+exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
+exception Eliom_Link_too_old (** The coservice does not exist any more *)
+exception Eliom_Session_expired (** The cookie does not exist any more *)
+exception Eliom_Typing_Error of (string * exn) list
+    (** The service (GET or POST) parameters do not match expected type *)
+
+
+exception Eliom_function_forbidden_outside_site_loading of string (** That function cannot be used like that outside the initialisation phase. For some functions, you must add the [~sp] parameter during a session. *)
+
+(**/**)
+exception Eliom_duplicate_registration of string (** The service has been registered twice*)
+exception Eliom_page_erasing of string (** The location where you want to register something already exists *)
+exception Eliom_there_are_unregistered_services of string (** Some services have not been registered *)
 exception Eliom_error_while_loading_site of string
+
 
 type internal_state = int
 
 type anon_params_type = int
 
 type tables
+
 type cookiestable
 type pages_tree = 
     tables (* global tables of continuations/naservices *)
@@ -72,13 +84,24 @@ type 'a server_params1 =
             then the same for persistent session
           *) *
          url_path (* suffix *))
-      
-      
-type server_params = tables server_params1
 
+
+      
+(**/**)
+(** The type to send if you want to create your own modules for generating
+   pages
+ *)
 type result_to_send = 
-    EliomResult of Extensions.result
+  | EliomResult of Extensions.result
   | EliomExn of (exn list * cookieslist)
+
+(** Type of server parameters. This is the type of the first parameter of
+   service handlers. It is abstract but you can get a lot of information 
+   about the session or the request by using the functions defined in
+   this module.
+ *)
+type server_params = tables server_params1
+(**/**)
 
 type page_table_key =
     {key_state: (internal_state option * internal_state option);

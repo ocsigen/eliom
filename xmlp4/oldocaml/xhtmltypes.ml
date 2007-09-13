@@ -17,6 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+
+(** XHTML types with variants. (See also {!XHTML.M}) *)
+
 (* I use these types to constraint typing with the syntax extension *)
 
 (*
@@ -53,7 +56,8 @@ type notag
 
 type html_content = [ `Body | `Head | `Frameset ]
 
-type body_content = [ block ]
+type body_content = block
+
 (* [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
 | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol
 | `P | `Pre | `Script | `Table | `Ul ] *)
@@ -211,7 +215,7 @@ type script_attrib = [ `XMLns | `Charset | `Src | `Defer | `XML_space ]
 type form_attrib = [ common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept ]
 type img_attrib = 
     [ common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap ]
-type div_attrib = [ common ]
+type div_attrib = common
 type input_attrib =
     [ common | `Accesskey | `Checked | `Maxlength | `Name | `Size
   | `Src | `Tabindex | `Input_Type | `Value | `Usemap ]

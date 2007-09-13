@@ -80,9 +80,9 @@ type anon_params_type = int
 
 (********)
 
-exception Eliom_Wrong_parameter
-exception Eliom_Link_too_old
-exception Eliom_Session_expired
+exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
+exception Eliom_Link_too_old (** The coservice does not exist any more *)
+exception Eliom_Session_expired (** The cookie does not exist any more *)
 exception Eliom_Persistent_session_expired
 exception Eliom_Typing_Error of (string * exn) list
 
@@ -338,10 +338,10 @@ let absolute_change_hostdir, get_current_hostdir,
   let exn2 () = 
     raise (Eliom_function_forbidden_outside_site_loading
              "get_current_hostdir") in
-  ((fun hostdir -> !f1 hostdir),
-   (fun () -> !f2 ()),
-   (fun () -> f1 := f1'; f2 := f2'),
-   (fun () -> f1 := exn1; f2 := exn2))
+  ((fun hostdir -> !f1 hostdir) (* absolute_change_hostdir *),
+   (fun () -> !f2 ()) (* get_current_hostdir *),
+   (fun () -> f1 := f1'; f2 := f2') (* begin_current_host_dir *),
+   (fun () -> f1 := exn1; f2 := exn2) (* end_current_hostdir *))
 (* Warning: these functions are used only during the initialisation
    phase, which is not threaded ... That's why it works, but ...
    it is not really clean ... public registration relies on this

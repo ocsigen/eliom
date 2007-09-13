@@ -1,5 +1,7 @@
 (** Predefined boxes for Eliommod *)
-open Eliom
+open Eliomservices
+open Eliomparameters
+open Eliomsessions
 
 val menu : ?classe:XHTML.M.nmtoken list ->
   ((unit, unit, [< get_service_kind ],
@@ -15,7 +17,7 @@ val menu : ?classe:XHTML.M.nmtoken list ->
         (unit, unit, [< get_service_kind ], [ ` WithoutSuffix ], 
          unit, unit, 
          [< registrable ]) service ->
-           server_params -> [> `Ul ] XHTML.M.elt
+           Eliommod.server_params -> [> `Ul ] XHTML.M.elt
 
 (** Creates a menu 
 
@@ -26,10 +28,5 @@ val menu : ?classe:XHTML.M.nmtoken list ->
      (home, <:xmllist< Home >>);
      (infos, <:xmllist< More infos >>)
    ] current sp]
-
-   Tip: How to make a menu with different kinds of services (external, internal...)?
-
-   You need to coerce each of them. For example
-   [(home :> (('a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, service_kind) service))]
 
 *)

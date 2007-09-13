@@ -39,6 +39,10 @@ exception Ssl_Exception
 exception Ocsigen_upload_forbidden
 exception Config_file_exn of exn
 
+
+let () = Random.self_init ()
+
+
 (* Without the following line, it stops with "Broken Pipe" without raising
    an exception ... *)
 let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore

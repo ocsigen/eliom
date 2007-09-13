@@ -100,14 +100,8 @@ let split_regexp r s =
   | None -> None (* the begining of the string doesn't match the regexp *)
   | Some result -> 
     let (split,l) = Regexp.match_end result, String.length s in
-                (* TODO: remove when debug is ok 
-	        let _ = 
-		assert (split = String.length(Regexp.matched_string result s)) in *)
     let s' = Regexp.first_chars s split in
     let s'' = Regexp.last_chars s (l - split) in
-		(* TODO: remove when debug is ok
-	        let _ = 
-		assert (s = (s'^s'')) in *)
     Some (s',s'')
 	
 let set_dir dirref assoc path =

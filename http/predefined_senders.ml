@@ -468,23 +468,23 @@ let send_error
   let (error_code,error_msg) =
     (
       match http_exception with
-      |Some (Http_error.Http_exception (errcode,msgs) )->
+      | Some (Http_error.Http_exception (errcode,msgs) )->
           (
-            let error_num =
-              match errcode with
-              |Some c -> c
-              |None -> 500
-            in
-            let msg =
-              Http_error.string_of_http_exception
-              (Http_error.Http_exception(errcode, msgs))
-            in (error_num,msg)
+           let error_num =
+             match errcode with
+             | Some c -> c
+             | None -> 500
+           in
+           let msg =
+             Http_error.string_of_http_exception
+               (Http_error.Http_exception(errcode, msgs))
+           in (error_num,msg)
           )
-          
-        |_ ->
-           let error_mes = Http_error.expl_of_code code in
-           (code, error_mes)
-     ) in
+            
+      | _ ->
+          let error_mes = Http_error.expl_of_code code in
+          (code, error_mes)
+    ) in
   let str_code = string_of_int error_code in
   let err_page =
     html

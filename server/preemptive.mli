@@ -1,6 +1,7 @@
 (* Ocsigen
- * Module simplexmlparser.mli
- * Copyright (C) 2005 Vincent Balat
+ * http://www.ocsigen.org
+ * Module preemptive.ml
+ * Copyright (C) 2005 Nataliya Guts, Vincent Balat, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,13 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Basic camlp4 parser for xml *)
+(** This module allows to mis preemptive threads with {!Lwt}
+   cooperative threads. It maintains an extensible pool of preemptive
+   threads to with you can detach computations.
+ *)
 
-type xml =
-  | Element of (string * (string * string) list * xml list)
-  | PCData of string
+(** detaches a computation to a preemptive thread. *)
+val detach : ('a -> 'b) -> 'a -> 'b Lwt.t
 
 (**/**)
-exception Xml_parser_error of string
+val init : int -> int -> 'a Lwt.t
+val nbthreads : unit -> int
+val nbthreadsbusy : unit -> int
+val nbthreadsqueued : unit -> int
 
-val xmlparser : string -> xml list
+

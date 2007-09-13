@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module eliomduce.ml
+ * Module Eliomduce
  * Copyright (C) 2007 Vincent Balat, Alain Frisch
  * CNRS - Université Paris Diderot Paris 7
  *
@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+
 open Http_frame
 open Http_com
 open Lwt
@@ -26,6 +27,8 @@ open Predefined_senders
 open Ocsistream
 open Xhtml1_strict
 open Extensions
+open Eliommkforms
+open Eliommkreg
 
 let add_css (a : html) : html = 
   let css = 
@@ -96,7 +99,7 @@ module Xhtmlreg_ = struct
        res_send_page= send_ocamlduce_page ~content:content;
        res_headers= Predefined_senders.dyn_headers;
        res_charset= (match charset with
-       | None -> Eliom.get_config_file_charset sp
+       | None -> Eliomsessions.get_config_file_charset sp
        | _ -> charset);
        res_filter=None
      }
@@ -191,7 +194,7 @@ module Xhtmlforms_ = struct
   let make_post_form ?(a={{ {} }}) ~(action : uri) ?id ?(inline = false) elt1 elts 
       : form_elt = 
     let id_attr = (match id with
-      None -> {{ {} }}
+    | None -> {{ {} }}
     | Some (i : string) -> {{ { id={: i :} } }}) 
     in
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
@@ -218,15 +221,15 @@ module Xhtmlforms_ = struct
 
   let make_input ?(a={{ {} }}) ?(checked=false) ~typ ?name ?src ?value () = 
     let a2 = match value with
-      None -> {{ {} }}
+    | None -> {{ {} }}
     | Some (v : string) -> {{ { value={: v :} } }}
     in
     let a3 = match name with
-      None -> {{ {} }}
+    | None -> {{ {} }}
     | Some (v : string) -> {{ { name={: v :} } }}
     in
     let a4 = match src with
-      None -> {{ {} }}
+    | None -> {{ {} }}
     | Some (v : string) -> {{ { src={: v :} } }}
     in
     let a5 = if checked then {{ { checked="checked" } }} else {{ {} }} in
@@ -276,8 +279,8 @@ module Xhtmlforms_ = struct
 
 end
 
-module Xhtmlreg = Eliom.MakeRegister(Xhtmlreg_)
-module Xhtmlforms = Eliom.MakeForms(Xhtmlforms_)
+module Xhtmlreg = Eliommkreg.MakeRegister(Xhtmlreg_)
+module Xhtmlforms = Eliommkforms.MakeForms(Xhtmlforms_)
 module Xhtml = struct
   include Xhtmlreg
   include Xhtmlforms
@@ -341,22 +344,22 @@ module Xml =
            res_send_page= send_cont_page ~content:content;
            res_headers= Predefined_senders.dyn_headers;
            res_charset= (match charset with
-           | None -> Eliom.get_config_file_charset sp
+           | None -> Eliomsessions.get_config_file_charset sp
            | _ -> charset);
            res_filter=None
          }
           
     end
         
-    module Contreg = Eliom.MakeRegister(Contreg_)
+    module Contreg = Eliommkreg.MakeRegister(Contreg_)
 
     include Xhtmlforms
     include Contreg
 
   end : sig
 
-  include Eliom.ELIOMREGSIG with type page = Ocamlduce.Load.anyxml
-  include Eliom.ELIOMFORMSIG
+  include Eliommkreg.ELIOMREGSIG with type page = Ocamlduce.Load.anyxml
+  include Eliommkforms.ELIOMFORMSIG
 
 end)
 
@@ -365,8 +368,8 @@ module Blocks = Xml
 (*
 : sig
 
-  include Eliom.ELIOMREGSIG with type page = {{ blocks }}
-  include Eliom.ELIOMFORMSIG
+  include Eliommkreg.ELIOMREGSIG with type page = {{ blocks }}
+  include Eliommkforms.ELIOMFORMSIG
 
 end *)
 

@@ -23,8 +23,11 @@
 
 open Tutoeliom
 open XHTML.M
-open Eliom.Xhtml
-open Eliom
+open Eliompredefmod.Xhtml
+open Eliompredefmod
+open Eliomservices
+open Eliomparameters
+open Eliomsessions
 open Lwt
 
 (* menu with preapplied services *)
@@ -280,7 +283,7 @@ let sendfile2 =
     ~url:["files";""]
     ~get_params:(suffix (all_suffix "filename"))
     (fun _ s () -> 
-      return ("/var/www/ocsigen/"^(string_of_url_path s)))
+      return ("/var/www/ocsigen/"^(Extensions.string_of_url_path s)))
 
 let _ = 
   register_new_service 
@@ -305,7 +308,7 @@ let suffix2 =
            (body
               [p [pcdata "The suffix of the url is ";
                   strong [pcdata (suf1^", "^(string_of_int ii)^", "^
-                                  (string_of_url_path ee))]]])))
+                                  (Extensions.string_of_url_path ee))]]])))
 
 let suffix3 = 
   register_new_service 
@@ -326,7 +329,7 @@ let create_suffixform2 (suf1,(ii,ee)) =
       $string_input ~input_type:`Text ~name:suf1 ()$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:ii ()$ <br/>
       Write a string: $user_type_input ~input_type:`Text ~name:ee 
-                         string_of_url_path$ <br/>
+                         Extensions.string_of_url_path$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
 let suffixform2 = register_new_service ["suffixform2"] unit

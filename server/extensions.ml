@@ -43,6 +43,9 @@ type url_path = string list
 type current_url = string list
 type current_dir = string list
 
+let string_of_url_path = Ocsimisc.string_of_url_path
+
+
 type file_info = {tmp_filename: string;
                   filesize: int64;
                   original_filename: string}

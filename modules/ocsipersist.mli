@@ -19,7 +19,11 @@
  *)
 
 
-(** Module Ocsipersist: persistent data in DBM database *)
+(** Module Ocsipersist: persistent data on hard disk. 
+   There are currently two implementations of this module, 
+   one using a DBM database, and the other using SQLITE.
+   Link the one your want with your program.
+ *)
 
 
 (*****************************************************************************)

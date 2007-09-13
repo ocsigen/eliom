@@ -18,8 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 open XHTML.M
-open Eliom
-open Eliom.Xhtml
+open Eliompredefmod.Xhtml
+open Eliompredefmod
+open Eliomservices
+open Eliomparameters
+open Eliomsessions
 
 open Simplexmlparser
 open Lwt
@@ -71,7 +74,7 @@ let wiki_file_dir =
       [Element ("wikidata", [("dir", s)],_)] -> s
     | _ -> raise (Extensions.Error_in_config_file ("Unexpected content inside Miniwiki config"))
   in
-  let c = Eliom.get_config () in
+  let c = get_config () in
   find_wikidata c
 
 let wiki_page_filename page =

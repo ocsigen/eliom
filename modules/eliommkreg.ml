@@ -1,0 +1,890 @@
+(* Ocsigen
+ * http://www.ocsigen.org
+ * Module Eliommkreg
+ * Copyright (C) 2007 Vincent Balat
+ * Laboratoire PPS - CNRS Université Paris Diderot
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception; 
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
+
+
+
+
+open Lwt
+open Extensions
+open Eliommod
+open Eliomsessions
+open Eliomservices
+open Eliomparameters
+open Lazy
+
+
+(****************************************************************************)
+
+let get_or_post = function
+  | `Internal (_, `Get) -> Http_frame.Http_header.GET
+  | _ -> Http_frame.Http_header.POST
+(*  | `External -> POST ? *)
+
+
+module type REGCREATE = 
+  sig
+
+    type page
+
+    val send : 
+        ?cookies:cookieslist -> 
+          ?charset:string ->
+            ?code: int ->
+              sp:server_params -> page -> result_to_send
+
+  end
+
+
+module type ELIOMREGSIG1 =
+(* pasted from mli *)
+  sig
+
+
+
+    type page
+
+    val send : 
+        ?cookies:cookieslist -> 
+          ?charset:string ->
+            ?code: int ->
+              sp:Eliommod.server_params -> page -> Eliommod.result_to_send
+
+    val register :
+        ?sp: Eliommod.server_params ->
+        service:('get, 'post,
+                 [< internal_service_kind ],
+                 [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+        ?error_handler:(Eliommod.server_params ->
+                               (string * exn) list -> page Lwt.t) ->
+        (Eliommod.server_params -> 'get -> 'post -> page Lwt.t) ->
+          unit
+(** registers an service in the public service table
+   with the associated handler function.
+   [register service t f] will associate the service [service] 
+   to the function [f].
+   [f] is the function that creates a page, called {e service handler}. 
+   That function takes three parameters. 
+    - The first one has type [Eliommod.server_params]
+   and allows to have acces to informations about the request and the session.
+    - The second and third ones are respectively GET and POST parameters.
+
+   For example if [t] is [Eliomparameters.int "s"], then [ 'get] is [int].
+
+    {e Warning: If you want to register a service in the global table
+    after the initialisation phase,
+    you must give the [~sp] parameter, otherwise it will raise the
+    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}   
+
+    Warning: registering after initialization is not encouraged for coservices
+    without timeout, as such services will be available only until the end
+    of the server process!
+    If you use that for main services, you will dynamically create new URLs!
+    This may be dangerous as they will disappear if you stop the server.
+    Be very careful to re-create these URLs when you relaunch the server,
+    otherwise, some external links or bookmarks may be broken!
+
+ *)
+
+
+    val register_for_session :
+        sp:Eliommod.server_params ->
+          service:('get, 'post, [< internal_service_kind ],
+                   [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+              ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (Eliommod.server_params -> 'get -> 'post -> page Lwt.t) -> unit
+(** registers a handler for a service in the session table.
+   If the same client does a request to this service, this function will be
+   used instead of the one from the public table.
+
+   Warning:
+   - All main services created during initialization must be
+   registered in the public table during initialisation,
+   but never after,
+   - You can't register a service in a session table 
+   when no session is active (i.e. outside a service handler)
+ *)
+
+
+    val register_new_service :
+        ?sp: Eliommod.server_params ->
+        url:url_path ->
+            get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+                ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
+                  page Lwt.t) ->
+                    (Eliommod.server_params -> 'get -> unit -> page Lwt.t) ->
+                      ('get, unit, 
+                       [> `Attached of 
+                         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+                       'tipo, 'gn, unit, 
+                       [> `Registrable ]) service
+(** Same as [new_service] followed by [register] *)
+                      
+    val register_new_coservice :
+        ?sp: Eliommod.server_params ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:(unit, unit, 
+                  [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
+                   [ `WithoutSuffix ] as 'tipo, 
+                   unit, unit, [< registrable ])
+        service ->
+          get_params: 
+            ('get, [`WithoutSuffix], 'gn) params_type ->
+              ?error_handler:(Eliommod.server_params -> 
+                (string * exn) list -> page Lwt.t) ->
+                  (Eliommod.server_params -> 'get -> unit -> page Lwt.t) ->
+                    ('get, unit, 
+                     [> `Attached of 
+                       [> `Internal of [> `Coservice ] * [> `Get]] a_s ], 
+                     'tipo, 'gn, unit, 
+                     [> `Registrable ])
+                      service
+(** Same as [new_coservice] followed by [register] *)
+
+    val register_new_coservice' :
+      ?sp: Eliommod.server_params ->
+      ?max_use:int ->
+      ?timeout:float ->
+        get_params: 
+        ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+          ?error_handler:(Eliommod.server_params -> 
+            (string * exn) list -> page Lwt.t) ->
+              (Eliommod.server_params -> 'get -> unit -> page Lwt.t) ->
+                ('get, unit, 
+                 [> `Nonattached of [> `Get] na_s ],
+                 'tipo, 'gn, unit, [> `Registrable ])
+                  service
+(** Same as [new_coservice'] followed by [register] *)
+
+    val register_new_coservice_for_session :
+        sp:Eliommod.server_params ->
+        ?max_use:int ->
+        ?timeout:float ->
+          fallback:(unit, unit, 
+                    [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
+                    [ `WithoutSuffix ] as 'tipo, 
+                    unit, unit, [< registrable ])
+            service ->
+              get_params: 
+                ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+                  ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
+                    page Lwt.t) ->
+                      (Eliommod.server_params -> 'get -> unit -> page Lwt.t) ->
+                        ('get, unit, 
+                         [> `Attached of 
+                           [> `Internal of [> `Coservice ] * [> `Get] ] a_s ], 
+                         'tipo, 'gn, unit, 
+                         [> `Registrable ])
+                          service
+(** Same as [new_coservice] followed by [register_for_session] *)
+
+    val register_new_coservice_for_session' :
+        sp:Eliommod.server_params ->
+        ?max_use:int ->
+        ?timeout:float ->
+          get_params: 
+            ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+              ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (Eliommod.server_params -> 'get -> unit -> page Lwt.t) ->
+                    ('get, unit, [> `Nonattached of [> `Get] na_s ], 
+                     'tipo, 'gn, unit, 
+                     [> `Registrable ])
+                      service
+(** Same as [new_coservice'] followed by [register_for_session] *)
+
+    val register_new_post_service :
+        ?sp: Eliommod.server_params ->
+        fallback:('get, unit, 
+                  [ `Attached of [ `Internal of 
+                    ([ `Service | `Coservice ] as 'kind) * [`Get] ] a_s ],
+                  [< suff ] as 'tipo, 'gn,
+                  unit, [< `Registrable ])
+        service ->
+          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+            ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
+              page Lwt.t) ->
+                (Eliommod.server_params -> 'get -> 'post -> page Lwt.t) ->
+                  ('get, 'post, [> `Attached of
+                    [> `Internal of 'kind * [> `Post] ] a_s ], 
+                   'tipo, 'gn, 'pn, [> `Registrable ])
+                    service
+(** Same as [new_post_service] followed by [register] *)
+
+    val register_new_post_coservice :
+        ?sp: Eliommod.server_params ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('get, unit , 
+                  [ `Attached of 
+                    [ `Internal of [< `Service | `Coservice ] * [`Get] ] a_s ],
+                   [< suff ] as 'tipo, 
+                   'gn, unit, [< `Registrable ])
+        service ->
+          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+            ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
+              page Lwt.t) ->
+                (Eliommod.server_params -> 'get -> 'post -> page Lwt.t) ->
+                  ('get, 'post, 
+                   [> `Attached of 
+                     [> `Internal of [> `Coservice ] * [> `Post] ] a_s ], 
+                     'tipo, 'gn, 'pn, [> `Registrable ])
+                    service
+(** Same as [new_post_coservice] followed by [register] *)
+
+    val register_new_post_coservice' :
+        ?sp: Eliommod.server_params ->
+        ?max_use:int ->
+        ?timeout:float ->
+        post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+          ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
+            page Lwt.t) ->
+              (Eliommod.server_params -> unit -> 'post -> page Lwt.t) ->
+                (unit, 'post, [> `Nonattached of [> `Post] na_s ], 
+                 [ `WithoutSuffix ], unit, 'pn,
+                 [> `Registrable ])
+                  service
+(** Same as [new_post_coservice'] followed by [register] *)
+
+(*
+    val register_new_get_post_coservice' :
+        ?sp: Eliommod.server_params ->
+        ?max_use:int ->
+        ?timeout:float ->
+        fallback:('get, unit , 
+                  [ `Nonattached of [`Get] na_s ],
+                   [< suff ] as 'tipo, 
+                   'gn, unit, [< `Registrable ])
+        service ->
+          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+            ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
+              page Lwt.t) ->
+                (Eliommod.server_params -> 'get -> 'post -> page Lwt.t) ->
+                  ('get, 'post, [> `Nonattached of [> `Post] na_s ], 
+                   [> 'tipo], 'gn, 'pn, [> `Registrable ])
+                    service
+(* * Same as [new_get_post_coservice'] followed by [register] *)
+*)
+
+    val register_new_post_coservice_for_session :
+        sp:Eliommod.server_params ->
+        ?max_use:int ->
+        ?timeout:float ->
+          fallback:('get, unit, 
+                    [ `Attached of [ `Internal of
+                      [< `Service | `Coservice ] * [`Get] ] a_s ],
+                    [< suff ] as 'tipo, 
+                    'gn, unit, [ `Registrable ])
+            service ->
+              post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+                ?error_handler:(Eliommod.server_params -> 
+                  (string * exn) list -> page Lwt.t) ->
+                    (Eliommod.server_params -> 'get -> 'post -> page Lwt.t) ->
+                      ('get, 'post, 
+                       [> `Attached of 
+                         [> `Internal of [> `Coservice ] * [> `Post]] a_s ], 
+                       'tipo, 'gn, 'pn, [> `Registrable ])
+                        service
+(** Same as [new_post_coservice] followed by [register_for_session] *)
+
+    val register_new_post_coservice_for_session' :
+        sp:Eliommod.server_params ->
+        ?max_use:int ->
+        ?timeout:float ->
+          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+            ?error_handler:(Eliommod.server_params -> 
+              (string * exn) list -> page Lwt.t) ->
+                (Eliommod.server_params -> unit -> 'post -> page Lwt.t) ->
+                  (unit, 'post, [> `Nonattached of [> `Post] na_s ], 
+                   [ `WithoutSuffix ], unit, 'pn, 
+                   [> `Registrable ])
+                    service
+(** Same as [new_post_coservice'] followed by [register_for_session] *)
+
+(*
+    val register_new_get_post_coservice_for_session' :
+        sp:Eliommod.server_params ->
+        ?max_use:int ->
+        ?timeout:float ->
+          fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
+                    [< suff ] as 'tipo, 
+                    'gn, unit, [< `Registrable ])
+            service ->
+              post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+                ?error_handler:(Eliommod.server_params -> 
+                  (string * exn) list -> page Lwt.t) ->
+                    (Eliommod.server_params -> 'get -> 'post -> page Lwt.t) ->
+                      ('get, 'post, [> `NonAttached of [> `Post] na_s ], 
+                       'tipo, 'gn, 'pn, [> `Registrable ])
+                        service
+(* * Same as [new_get_post_coservice] followed by [register_for_session] *)
+*)
+
+
+  end
+
+
+
+module type ELIOMREGSIG =
+  sig
+    include ELIOMREGSIG1
+    module Cookies : ELIOMREGSIG1 
+    with type page = page * cookieslist
+  end
+
+
+
+
+
+module MakeRegister = functor
+  (Pages : REGCREATE) ->
+    (struct
+
+      type page = Pages.page
+
+      let send = Pages.send
+
+      module Cookies = struct
+        
+        type page = Pages.page * cookieslist
+              
+        let send ?(cookies=[]) ?charset ?code ~sp (p, cl) =
+          Pages.send ~cookies:(cookies@cl) ?charset ?code ~sp p
+
+        let register_aux
+            current_dir
+            tables
+            duringsession (* registering during session? *)
+            ~service
+            ?(error_handler = fun sp l -> raise (Eliom_Typing_Error l))
+            page_generator =
+          match get_kind_ service with
+          | `Attached attser ->
+              let key_kind = get_or_post (get_att_kind_ attser) in
+              let attserget = get_get_state_ attser in
+              let attserpost = get_post_state_ attser in
+              let sgpt = get_get_params_type_ service in
+              let sppt = get_post_params_type_ service in
+              add_service
+                tables 
+	        current_dir
+	        duringsession
+	        (get_url_ attser)
+                ({key_state = (attserget, attserpost);
+                  key_kind = key_kind},
+                 ((if attserget = None || attserpost = None 
+                 then (anonymise_params_type sgpt,
+                       anonymise_params_type sppt)
+                 else (0, 0)),
+                  (match get_max_use_ service with
+                  | None -> None
+                  | Some i -> Some (ref i)),
+                  (match get_timeout_ service with
+                  | None -> None
+                  | Some t -> Some (t, ref (t +. Unix.time ()))),
+                  (fun sp -> 
+                    let ri = get_ri ~sp in
+                    let suff = get_suffix ~sp in
+                    (catch (fun () -> 
+                      (force ri.ri_post_params) >>=
+                      (fun post_params ->
+                        (force ri.ri_files) >>=
+                        (fun files ->
+                          (page_generator sp
+                             (reconstruct_params 
+                                sgpt
+                                (force ri.ri_get_params)
+                                []
+                                suff)
+                             (reconstruct_params
+                                sppt
+                                post_params
+                                files
+                                [])))))
+                       (function
+                         | Eliom_Typing_Error l -> error_handler sp l
+                         | e -> fail e)) >>=
+                    (fun (content, cookies_to_set) -> 
+                      return (Pages.send 
+                                ~cookies:cookies_to_set ~sp content)))))
+          | `Nonattached naser ->
+              add_naservice 
+	        tables
+	        current_dir 
+	        duringsession
+	        (get_na_name_ naser)
+                ((match get_max_use_ service with
+                | None -> None
+                | Some i -> Some (ref i)),
+                 (match get_timeout_ service with
+                 | None -> None
+                 | Some t -> Some (t, ref (t +. Unix.time ()))),
+	         (fun sp ->
+                   let ri = get_ri sp in
+	           (catch
+	              (fun () ->
+	                (get_post_params sp) >>=
+	                (fun post_params ->
+		          (force ri.ri_files) >>=
+		          (fun files ->
+                            (page_generator sp 
+                               (reconstruct_params
+                                  (get_get_params_type_ service)
+                                  (force ri.ri_get_params)
+                                  []
+                                  [])
+                               (reconstruct_params
+                                  (get_post_params_type_ service)
+                                  post_params
+                                  files
+                                  [])))))
+	              (function
+                        | Eliom_Typing_Error l -> error_handler sp l
+                        | e -> fail e)) >>=
+                   (fun (content, cookies_to_set) -> 
+                     return (Pages.send 
+                               ~cookies:cookies_to_set ~sp content))))
+
+
+        let register ?sp ~service ?error_handler page_gen =
+          match sp with
+          | None ->
+              let url =
+                match get_kind_ service with
+                | `Attached attser -> Some (get_url_ attser)
+                | `Nonattached naser -> None
+              in
+              (match global_register_allowed () with
+              | Some get_current_hostdir ->
+                  remove_unregistered url;
+                  let (globtables, _, _), curdir = get_current_hostdir () in
+                  register_aux 
+                    curdir
+                    globtables
+                    false 
+                    ~service ?error_handler page_gen
+              | _ -> raise (Eliom_function_forbidden_outside_site_loading
+                              "register"))
+          | Some sp ->
+              register_aux 
+                ?error_handler
+                (get_working_dir sp)
+                (get_global_tables sp)
+                true
+                ~service
+                page_gen
+
+
+(* WARNING: if we create a new service without registering it,
+   we can have a link towards a page that does not exist!!! :-(
+   That's why I impose to register all service during init.
+   The only other way I see to avoid this is to impose a syntax extension
+   like "let rec" for service...
+ *)
+
+
+
+        let register_for_session
+            ~sp
+            ~service
+            ?error_handler
+            page =
+          register_aux
+            ?error_handler
+            (get_working_dir sp)
+            !(get_session_tables sp)
+            true 
+            ~service page
+
+
+
+        let register_new_service 
+            ?sp
+            ~url
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_service ?sp ~url ~get_params () in
+          register ?sp ~service:u ?error_handler page;
+          u
+            
+        let register_new_coservice
+            ?sp
+            ?max_use
+            ?timeout
+            ~fallback
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_coservice ?max_use ?timeout ~fallback ~get_params () in
+          register ?sp ~service:u ?error_handler page;
+          u
+
+        let register_new_coservice'
+            ?sp
+            ?max_use
+            ?timeout
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_coservice' ?max_use ?timeout ~get_params () in
+          register ?sp ~service:u ?error_handler page;
+          u
+
+        let register_new_coservice_for_session
+            ~sp
+            ?max_use
+            ?timeout
+            ~fallback
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_coservice ?max_use ?timeout ~fallback ~get_params () in
+          register_for_session ~sp ~service:u ?error_handler page;
+          u
+
+        let register_new_coservice_for_session'
+            ~sp
+            ?max_use
+            ?timeout
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_coservice' ?max_use ~get_params () in
+          register_for_session ~sp ~service:u ?error_handler page;
+          u
+
+
+        let register_new_post_service 
+            ?sp
+            ~fallback
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_service ?sp
+              ~fallback:fallback ~post_params:post_params () in
+          register ?sp ~service:u ?error_handler page_gen;
+          u
+
+        let register_new_post_coservice
+            ?sp
+            ?max_use
+            ?timeout
+            ~fallback
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = 
+            new_post_coservice ?max_use ?timeout ~fallback ~post_params () in
+          register ?sp ~service:u ?error_handler page_gen;
+          u
+
+        let register_new_post_coservice'
+            ?sp
+            ?max_use
+            ?timeout
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_coservice' ?max_use ?timeout ~post_params () in
+          register ?sp ~service:u ?error_handler page_gen;
+          u
+
+(*
+   let register_new_get_post_coservice'
+   ?sp
+   ?max_use
+   ?timeout
+   ~fallback
+   ~post_params
+   ?error_handler
+   page_gen =
+   let u = new_get_post_coservice'
+   ?max_use ?timeout ~fallback ~post_params () in
+   register ?sp ~service:u ?error_handler page_gen;
+   u
+ *)
+
+        let register_new_post_coservice_for_session
+            ~sp
+            ?max_use
+            ?timeout
+            ~fallback
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_coservice 
+              ?max_use ?timeout ~fallback ~post_params () in
+          register_for_session ~sp ~service:u ?error_handler page_gen;
+          u
+
+        let register_new_post_coservice_for_session'
+            ~sp
+            ?max_use
+            ?timeout
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_coservice' ?max_use ?timeout ~post_params () in
+          register_for_session ~sp ~service:u ?error_handler page_gen;
+          u
+
+(*
+   let register_new_get_post_coservice_for_session'
+   ~sp
+   ?max_use
+   ?timeout
+   ~fallback
+   ~post_params
+   ?error_handler
+   page_gen =
+   let u = new_get_post_coservice'
+   ?max_use ?timeout ~fallback ~post_params () in
+   register_for_session ~sp ~service:u ?error_handler page_gen;
+   u
+ *)
+
+
+      end
+
+
+      let make_error_handler ?error_handler () = 
+        match error_handler with
+          None -> None
+        | Some eh -> Some (fun sp l -> eh sp l >>= (fun r -> return (r,[])))
+
+      let register ?sp ~service ?error_handler page_gen =
+        Cookies.register
+          ?sp
+          ~service
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+      let register_for_session
+          ~sp
+          ~service
+          ?error_handler
+          page =
+        Cookies.register_for_session
+          ~sp
+          ~service
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
+
+      let register_new_service 
+          ?sp
+          ~url
+          ~get_params
+          ?error_handler
+          page =
+        Cookies.register_new_service 
+          ?sp
+          ~url
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
+          
+      let register_new_coservice
+          ?sp
+          ?max_use
+          ?timeout
+          ~fallback
+          ~get_params
+          ?error_handler
+          page =
+        Cookies.register_new_coservice
+          ?sp
+          ?max_use
+          ?timeout
+          ~fallback
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
+
+      let register_new_coservice'
+          ?sp
+          ?max_use
+          ?timeout
+          ~get_params
+          ?error_handler
+          page =
+        Cookies.register_new_coservice'
+          ?sp
+          ?max_use
+          ?timeout
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
+
+      let register_new_coservice_for_session
+          ~sp
+          ?max_use
+          ?timeout
+          ~fallback
+          ~get_params
+          ?error_handler
+          page =
+      Cookies.register_new_coservice_for_session
+          ~sp
+          ?max_use
+          ?timeout
+          ~fallback
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
+
+      let register_new_coservice_for_session'
+          ~sp
+          ?max_use
+          ?timeout
+          ~get_params
+          ?error_handler
+          page =
+      Cookies.register_new_coservice_for_session'
+          ~sp
+          ?max_use
+          ?timeout
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))
+
+      let register_new_post_service 
+          ?sp
+          ~fallback
+          ~post_params
+          ?error_handler
+          page_gen =
+      Cookies.register_new_post_service 
+          ?sp
+          ~fallback
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+      let register_new_post_coservice
+          ?sp
+          ?max_use
+          ?timeout
+          ~fallback
+          ~post_params
+          ?error_handler
+          page_gen =
+        Cookies.register_new_post_coservice
+          ?sp
+          ?max_use
+          ?timeout
+          ~fallback
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+      let register_new_post_coservice'
+          ?sp
+          ?max_use
+          ?timeout
+          ~post_params
+          ?error_handler
+          page_gen =
+        Cookies.register_new_post_coservice'
+          ?sp
+          ?max_use
+          ?timeout
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+(*
+   let register_new_get_post_coservice'
+   ?sp
+          ?max_use
+          ?timeout
+   ~fallback
+   ~post_params
+   ?error_handler
+   page_gen =
+   Cookies.register_new_get_post_coservice'
+   ?sp
+          ?max_use
+          ?timeout
+   ~fallback
+   ~post_params
+   ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+ *)
+
+      let register_new_post_coservice_for_session
+          ~sp
+          ?max_use
+          ?timeout
+          ~fallback
+          ~post_params
+          ?error_handler
+          page_gen =
+        Cookies.register_new_post_coservice_for_session
+          ~sp
+          ?max_use
+          ?timeout
+          ~fallback
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+      let register_new_post_coservice_for_session'
+          ~sp
+          ?max_use
+          ?timeout
+          ~post_params
+          ?error_handler
+          page_gen =
+      Cookies.register_new_post_coservice_for_session'
+          ~sp
+          ?max_use
+          ?timeout
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+(*
+   let register_new_get_post_coservice_for_session'
+   sp
+          ?max_use
+          ?timeout
+   ~fallback
+   ~post_params
+   ?error_handler
+   page_gen =
+   Cookies.register_new_get_post_coservice_for_session'
+   ~sp
+          ?max_use
+          ?timeout
+   ~fallback
+   ~post_params
+   ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r,[])))
+
+ *)
+
+
+    end : ELIOMREGSIG with 
+                 type page = Pages.page)
+

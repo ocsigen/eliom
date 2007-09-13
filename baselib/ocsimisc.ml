@@ -137,6 +137,15 @@ let rec string_of_url_path = function
 
 (*****************************************************************************)
 
+let add_to_string s1 sep = function
+  | "" -> s1
+  | s2 -> s1^sep^s2
+
+let concat_strings s1 sep s2 = match s1,s2 with
+| _,"" -> s1
+| "",_ -> s2
+| _ -> s1^sep^s2
+
 (* Cut a string to the next separator *)
 let basic_sep char s =
   try 

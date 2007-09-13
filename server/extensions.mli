@@ -37,8 +37,11 @@ exception Bad_config_tag_for_extension of string (* Try next extension *)
 exception Error_in_config_file of string (* Stop with an error message *)
 
 (*****************************************************************************)
-(** type of URLs, without parameter *)
+(** The type of URL paths. [["plop";"plip"]] corresponds to [plop/plip]. *)
 type url_path = string list
+
+val string_of_url_path : url_path -> string
+
 type current_url = string list
 type current_dir = string list
 
@@ -153,11 +156,13 @@ module R : sig
    For each extension generating pages, we register four functions:
    - a function that will be called for each
    virtual server, generating two functions:
-     - one that will be called to generate the pages
-       (from charset (string option) and request_info)
-     - one to parse the configuration file
+   {ul
+     {- one that will be called to generate the pages
+       (from charset (string option) and request_info)}
+     {- one to parse the configuration file}}
    - a function that will be called at the beginning 
-   of the initialisation phase 
+   of the initialisation phase (each time the config file is reloaded)
+   (Note that the extensions are not reloaded)
    - a function that will be called at the end of the initialisation phase 
    of the server
    - a function that will create an error message from the exceptions
@@ -177,9 +182,10 @@ module R : sig
    we register four functions:
    - a function that will be called for each
    virtual server, generating two functions:
-     - one that will be called to filter the output
-       (from request_info and result)
-     - one to parse the configuration file
+   {ul
+     {- one that will be called to filter the output
+       (from request_info and result)}
+     {- one to parse the configuration file}}
    - a function that will be called at the beginning 
    of the initialisation phase 
    - a function that will be called at the end of the initialisation phase 
