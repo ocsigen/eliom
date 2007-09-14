@@ -641,10 +641,10 @@ module MakeForms = functor
             | None ->
                 Pages.make_a 
                   ?a ~href:(add_to_string uri "?" params_string) content
-            | Some i -> 
+            | Some s -> 
                 Pages.make_a ?a
                   ~href:(add_to_string 
-                           (uri^"?"^get_state_param_name^"="^(string_of_int i))
+                           (uri^"?"^get_state_param_name^"="^s)
                            "&" params_string)
                   content)
         | `Nonattached naser ->
@@ -692,11 +692,10 @@ module MakeForms = functor
             let state_param =
               (match get_get_state_ attser with
               | None -> None
-              | Some i -> 
-                  let i' = string_of_int i in
+              | Some s -> 
                   Some (Pages.make_input ~typ:Pages.hidden
                           ~name:get_state_param_name
-                          ~value:i' ()))
+                          ~value:s ()))
             in
             let inside = f (make_params_names (get_get_params_type_ service)) in
             let inside =
@@ -785,10 +784,10 @@ module MakeForms = functor
               concat_strings preapplied_params "&" params_string in
             let params_string =
               match get_get_state_ attser with
-                None -> params_string
-              | Some i -> 
+              | None -> params_string
+              | Some s -> 
                   add_to_string
-                    (get_state_param_name^"="^(string_of_int i))
+                    (get_state_param_name^"="^s)
                     "&"
                     params_string
             in
@@ -802,11 +801,10 @@ module MakeForms = functor
             let state_param =
               (match get_post_state_ attser with
               | None -> None
-              | Some i -> 
-                  let i' = string_of_int i in
+              | Some s -> 
                   Some (Pages.make_input ~typ:Pages.hidden
                           ~name:post_state_param_name
-                          ~value:i' ()))
+                          ~value:s ()))
             in
             let inside = f (make_params_names (get_post_params_type_ service)) in
             let i1, i =

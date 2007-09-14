@@ -42,7 +42,7 @@ exception Eliom_there_are_unregistered_services of string (** Some services have
 exception Eliom_error_while_loading_site of string
 
 
-type internal_state = int
+type internal_state = string
 
 type anon_params_type = int
 

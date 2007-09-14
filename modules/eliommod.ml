@@ -35,7 +35,7 @@ open Lazy
    several instances of the same URL.
    (for internal use)
  *)
-type internal_state = int
+type internal_state = string
 
 type sess_info =
     {si_other_get_params: (string * string) list;
@@ -167,7 +167,7 @@ let change_request_info ri charset =
             try 
               let s, pp =
                 list_assoc_remove post_state_param_name post_params
-              in (Some (int_of_string s), pp)
+              in (Some s, pp)
             with 
               Not_found -> (None, post_params)
           in
@@ -175,7 +175,7 @@ let change_request_info ri charset =
             try 
               let s, gp =
                 list_assoc_remove get_state_param_name get_params
-              in ((Some (int_of_string s)), 
+              in ((Some s), 
                   (split_prefix_param co_param_prefix gp))
             with Not_found -> (None, (get_params, []))
           in ((None, None), (get_state, post_state), 
@@ -208,8 +208,19 @@ let change_request_info ri charset =
 (* Each node contains either a list of nodes (case directory)
     or a table of "answers" (functions that will generate the page) *)
 
+let make_new_cookie () =
+  let c1 = Int64.to_string (Random.int64 Int64.max_int) in
+  let c2 = Int64.to_string (Int64.add
+                              (Random.int64 Int64.max_int) 
+                              (Int64.of_float
+                                 ((Unix.times ()).Unix.tms_utime *. 10000.))) 
+  in
+  (Digest.to_hex (Digest.string (c1^c2)))^
+  (Printf.sprintf "%Lx"  (Int64.bits_of_float (Unix.gettimeofday ())))
+  
+
 let rec new_cookie table = 
-  let c = Int64.to_string (Random.int64 Int64.max_int) in
+  let c = make_new_cookie () in
   try
     ignore (Cookies.find table c);
     new_cookie table
@@ -785,7 +796,7 @@ let number_of_persistent_table_elements () =
         (fun e -> return ((t, e)::l)))) (return []) !perstables
 
 let rec new_persistent_cookie ((_, _, (working_dir, _, _, _, _)) as sp) = 
-  let c = Int64.to_string (Random.int64 Int64.max_int) in
+  let c = make_new_cookie () in
   catch
     (fun () ->
       Ocsipersist.find persistent_cookies_table c >>=

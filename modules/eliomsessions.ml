@@ -228,7 +228,7 @@ let close_persistent_session ~sp:(_,si,_) =
     si.si_persistent_cookie := None;
     return ())
 
-let close_volatile_session ~sp:((_, si, (_,(_,_,_),sesstab,_,_)) as sp) = 
+let close_volatile_session ~sp:((_, si, (_, (_, _, _), sesstab, _, _)) as sp) = 
   remove_session sp;
   sesstab := empty_tables ();
   si.si_cookie := None

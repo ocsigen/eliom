@@ -120,11 +120,14 @@ let get_na_name_ s = s.na_name
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 
-let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
-
 let new_state =
-  let c : internal_state ref = ref (Random.int 1000000) in
-  fun () -> c := !c + 1 ; Some !c
+  (* This does not need to be cryptographickly robust.
+     We just want to avoid the same values when the server is relaunched.
+   *)
+  let c = ref (Int64.bits_of_float (Unix.gettimeofday ())) in
+  fun () -> 
+    c := Int64.add !c Int64.one ; 
+    (Printf.sprintf "%x" (Random.int 0xFFFF))^(Printf.sprintf "%Lx" !c)
 
 
 
@@ -230,7 +233,7 @@ let new_service
     ~url:(if suffix then url@[eliom_suffix_internal_name] else url)
     ~get_params
 
-let new_naservice_name () = string_of_int (counter ())
+let new_naservice_name () = new_state ()
 
 let new_coservice
     ?max_use
@@ -248,7 +251,7 @@ let new_coservice
    get_params_type = add_pref_params co_param_prefix get_params;
    kind = `Attached
      {k with
-      get_state = new_state ();
+      get_state = Some (new_state ());
       att_kind = `Internal (`Coservice, `Get);
     }
  }
@@ -335,7 +338,7 @@ let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
    kind = `Attached 
      {k1 with 
       att_kind = `Internal (`Coservice, `Post);
-      post_state = new_state ();
+      post_state = Some (new_state ());
     }
  }
 (* It is not possible to make a new_post_coservice function 
@@ -471,9 +474,8 @@ let make_string_uri
         match get_get_state_ attser with
           None ->
             add_to_string uri "?" params_string
-        | Some i -> 
-            add_to_string (uri^"?"^
-                           get_state_param_name^"="^(string_of_int i))
+        | Some s -> 
+            add_to_string (uri^"?"^get_state_param_name^"="^s)
               "&" params_string
       end
   | `Nonattached naser ->
