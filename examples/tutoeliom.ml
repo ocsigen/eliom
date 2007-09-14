@@ -66,7 +66,7 @@ open Eliompredefmod.Xhtml
       (<a href="#lwt">see later</a>).</p>
       <p>Here is an example showing how to create a new service and
          register a page created with XHTML.M. Use the function
-         $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.register_new_service" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALregister_new_service"]$:
+         $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.register_new_service" ]] ["doc/"^version^"/Eliommkreg.ELIOMREGSIG1.html#VALregister_new_service"]$:
       </p>
 *html*)
 let coucou = 
@@ -551,8 +551,7 @@ let catch = register_new_service
     <h3>Links</h3>
     <div class="twocol1">
       <p>To create a link (<code>&lt;a&gt;</code>), use the function 
-          $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALa"]$ (or
-          $a (static_dir sp) sp [code [pcdata "Eliomduce.Xhtml.a" ]] ["doc/"^version^"/Eliomduce.Xhtml.html#VALa"]$, etc),
+          $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALa"]$ (or <code>Eliomduce.Xhtml.a</code>, etc),
           as in these examples:
       </p>
 *html*)
@@ -594,11 +593,11 @@ let links = register_new_service ["rep";"links"] unit
     </div>
     <div class="twocol2">
       <p>If you open $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html"]$ after $a (static_dir sp) sp [code [pcdata "XHTML.M" ]] ["doc/"^version^"/XHTML.M.html"]$,
-        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALa"]$ will mask $a (static_dir sp) sp [code [pcdata "XHTML.M.a" ]] ["doc/"^version^"/XHTML.M.html#VALa"]$.
+        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALa"]$ will mask $a (static_dir sp) sp [code [pcdata "XHTML.M.a" ]] ["doc/"^version^"/XHTML.M.html#VALa"]$.
         Thus you can avoid to write fully qualified values most of the time.
       </p>
       <p>
-        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALa"]$ takes as first parameter 
+        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALa"]$ takes as first parameter 
         the service you want to link to.
         Note that to create a (relative) link we need to know the current URL.
         That's why the function <code>a</code> 
@@ -622,7 +621,7 @@ let links = register_new_service ["rep";"links"] unit
         If you want to create (mutually or not) recursive pages,
         first create the service using $a (static_dir sp) sp [code [pcdata "Eliomservices.new_service" ]] ["doc/"^version^"/Eliomservices.html#VALnew_service"]$, 
         then register it in the table using (for example)
-        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.register" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALregister"]$:
+        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.register" ]] ["doc/"^version^"/Eliommkreg.ELIOMREGSIG1.html#VALregister"]$:
       </p>
 *html*)
 let linkrec = Eliomservices.new_service ["linkrec"] unit ()
@@ -649,9 +648,9 @@ let essai =
     <h3>Forms</h3>
     <div class="twocol1">
       <h4>Forms towards services</h4>
-      <p>The function $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALget_form"]$ allows to create a form
+      <p>The function $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALget_form"]$ allows to create a form
       that uses the GET method (parameters in the URL).
-      It works like $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALa"]$ but takes as parameter
+      It works like $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALa"]$ but takes as parameter
       a <em>function</em> that creates the form from parameters names.
       </p>
 *html*)
@@ -785,8 +784,8 @@ let my_service_with_get_and_post = register_new_post_service
 (*html*
       <h4 id="postforms">POST forms</h4>
        <p> To create a POST form, use the 
-           $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.post_form" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALpost_form"]$ function.
-           It is similar to $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALget_form"]$ 
+           $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.post_form" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALpost_form"]$ function.
+           It is similar to $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALget_form"]$ 
            with an additional parameter
            for the GET parameters you want to put in the URL (if any).
            Here <code>form2</code> is a page containing a form
@@ -1246,6 +1245,20 @@ let rec map_serial f l =
 
     <div class="encadre sanstitre">
       <h4>Example cases</h4>
+      <p>The most commonly used services are:</p>
+      <ul>
+        <li>Main services (GET or POST) in public service table for public 
+          pages,
+        </li>
+        <li>GET attached coservices in session service table to make the
+          browser's "back" button turn back in the past, and to allow several
+          tabs on different versions of the same page,
+        </li>
+        <li>Actions registered on POST non-attached coservices to make an effect
+          on the server, from any page, and without changing the URL
+          (connection/disconnection for example).
+        </li>
+      </ul>
       <p>Here is a list of frequent cases and the solution Eliom provides to
         to solve them. Most of them will be developped in the following.</p>
       <dl>
@@ -2476,8 +2489,8 @@ let send_any =
      <p>
       A simplest way to set your own cookies on the client is to use
       functions like
-      $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.Cookies.register" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.Cookies.html#VALregister"]$ instead of 
-      $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.register" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALregister"]$.
+      <code>Eliompredefmod.Xhtml.Cookies.register</code> instead of 
+      <code>Eliompredefmod.Xhtml.register</code>.
       The function you register returns a pair containing the page (as usual)
       and a list of cookies, of type
       </p>
@@ -3078,7 +3091,7 @@ let () =
 
 
 
-    <h3>Advanced forms</h3>
+    <h3>Advanced forms and parameters</h3>
    
     <div class="twocol1">
       <p>This section shows more advanced use of page parameters and
@@ -3251,6 +3264,56 @@ let setform = register_new_service
       and a service with a set of parameters on the same URL, the firstly
       registered service that matches will answer.
       </p>
+      <h4>Select</h4>
+      <p>Here is an example of a select box.</p>
+*html*)
+let select_example = register_new_service 
+    ~url:["select"]
+    ~get_params:(string "s")
+    (fun sp g () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [pcdata "You selected: ";
+                     strong [pcdata g]]])))
+
+let create_select_form = 
+  (fun select_name ->
+    [p [pcdata "Select something: ";
+        Eliompredefmod.Xhtml.string_select ~name:select_name 
+          (Eliompredefmod.Xhtml.Option ([] (* attributes *), 
+                                        "Bob" (* value *), 
+                                        None (* Content, if different from value *), 
+                                        false (* not selected *))) (* first line *)
+          [Eliompredefmod.Xhtml.Option ([], "Marc", None, false);
+          (Eliompredefmod.Xhtml.Optgroup
+          ([],
+           "Girls",
+           ([], "Karin", None, false),
+           [([a_disabled `Disabled], "Juliette", None, false);
+            ([], "Alice", None, true);
+            ([], "Germaine", Some (pcdata "Bob's mother"), false)]))]
+          ;
+        Eliompredefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]])
+
+let _ = register_new_service ["select"] unit
+  (fun sp () () -> 
+     let f = 
+       Eliompredefmod.Xhtml.get_form
+         select_example sp create_select_form 
+     in 
+     return
+       (html
+         (head (title (pcdata "")) [])
+         (body [f])))
+(*html*
+     <p>To do "multiple" select boxes, use functions like
+   $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.string_multiple_select" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALstring_multiple_select"]$. 
+   As you can see in the type, the service must be declared with parameters
+   of type $a (static_dir sp) sp [code [pcdata "set" ]] ["doc/"^version^"/Eliomparameters.html#VALset"]$.
+     </p>
+    </div>
+    <div class="twocol2">
 
       <h4>Clickable images</h4>
       <p>Here is an example of clickable image.
@@ -3328,9 +3391,6 @@ let imageform2 = register_new_service
 (*html*
       <p>$a Tutoeliom.imageform2 sp <:xmllist< Try it >> ()$.</p>
 
-
-    </div>
-    <div class="twocol2">
 
       <h4>Type <code>list</code></h4>
         <p>Another way (than $a (static_dir sp) sp [code [pcdata "Eliomparameters.set" ]] ["doc/"^version^"/Eliomparameters.html#VALset"]$) to do variable length forms
@@ -3541,7 +3601,7 @@ let uploadform = register upload
       <pre>img <span class="Clabel">~alt:</span>"Ocsigen" 
     <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> (static_dir sp) sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
     ()</pre>
-      <p>The function <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.make_uri" ]] ["doc/"^version^"/Eliompredefmod.Xhtml.html#VALmake_uri"]$</span>
+      <p>The function <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.make_uri" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALmake_uri"]$</span>
         creates the relative URL string from current URL (in <code>sp</code>)
         (see above) to the URL of the image in the static directory
         configured in the configuration file.

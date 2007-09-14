@@ -494,7 +494,7 @@ module type ELIOMFORMSIG =
 
     val int_select :
         ?a:select_attrib_t ->
-          name:[< `Opt of int ] param_name ->
+          name:[< `One of int ] param_name ->
             int select_opt ->
               int select_opt list ->
                 select_elt
@@ -502,7 +502,7 @@ module type ELIOMFORMSIG =
 
     val float_select :
         ?a:select_attrib_t ->
-          name:[< `Opt of float ] param_name ->
+          name:[< `One of float ] param_name ->
             float select_opt ->
               float select_opt list ->
                 select_elt
@@ -510,7 +510,7 @@ module type ELIOMFORMSIG =
 
     val string_select :
         ?a:select_attrib_t ->
-          name:[< `Opt of string ] param_name ->
+          name:[< `One of string ] param_name ->
             string select_opt ->
               string select_opt list ->
                 select_elt
@@ -518,7 +518,7 @@ module type ELIOMFORMSIG =
 
     val user_type_select :
         ?a:select_attrib_t ->
-          name:[< `Opt of 'a ] param_name ->
+          name:[< `One of 'a ] param_name ->
             'a select_opt ->
               'a select_opt list ->
                 ('a -> string) ->
@@ -1012,6 +1012,61 @@ module MakeForms = functor
               
       let gen_select ?a ?(multiple=false) ~name 
           (fl : 'a select_opt) (ol : 'a select_opt list) string_of =
+
+
+        let normalize_selected l =
+          (* We change the list of option to have exactly one selected item.
+             We do this because the behaviour of browsers differs.
+             We select the first one if nothing is selected.
+             We select the first selected if several are selected.
+             Thus all browsers will behave the same way.
+           *)
+          let aux1 trouve ((a, b, c, selected) as line) =
+            if trouve
+            then ((a, b, c, false), true)
+            else if selected
+            then (line, true)
+            else (line, false)
+          in
+          let rec aux2 trouve = function
+            | line::l -> 
+                let (line, trouve) = aux1 trouve line in
+                let (l, trouve) = aux2 trouve l in
+                (line::l, trouve)
+            | [] -> ([], trouve)
+          in
+          let rec aux trouve = function
+            | (Option line)::l -> 
+                let (line, trouve) = aux1 trouve line in
+                let (l, trouve) = aux trouve l in
+                ((Option line)::l, trouve)
+            | (Optgroup (a, b, fl, ol))::l ->
+                let (fl, trouve) = aux1 trouve fl in
+                let (ol, trouve) = aux2 trouve ol in 
+                let (l, trouve) = aux trouve l in
+                ((Optgroup (a, b, fl, ol))::l, trouve)
+            | [] -> ([], trouve)
+          in
+          let select_first = function
+            | Option (a, b, c, _) -> Option (a, b, c, true)
+            | Optgroup (a, b, (c, d, e, _), ol) ->
+                Optgroup (a, b, (c, d, e, true), ol)
+          in
+            let (newl, trouve) = aux false l in
+            if trouve
+            then ((List.hd newl), (List.tl newl))
+            else
+              let first = List.hd newl in
+              (* We select the first one by default *)
+              ((select_first first), (List.tl newl))
+        in
+
+
+        let (fl, ol) =
+          if multiple
+          then (fl, ol)
+          else normalize_selected (fl::ol)
+        in
         let make_opt (a, cv, co, sel) =
           (match co with
           | None -> Pages.make_option ~a ~selected:sel 

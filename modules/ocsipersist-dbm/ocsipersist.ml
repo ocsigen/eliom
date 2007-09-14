@@ -121,7 +121,9 @@ let rec get_indescr i =
                             (match e with
                             | Unix.Unix_error (a,b,c) -> 
                                 (Unix.error_message a)^" in "^b^"("^c^")"
-                            | _ -> Printexc.to_string e));
+                            | _ -> Printexc.to_string e)^
+                            ". Have a look at the logs to see if there is an \
+                            error message from the Ocsidbm process.");
          fail e
        end
        else (Lwt_unix.sleep 2.1) >>= (fun () -> get_indescr (i-1))))

@@ -545,7 +545,7 @@ module type XHTMLFORMSSIG = sig
 
   val int_select :
       ?a:select_attrib attrib list ->
-        name:[< `Opt of int ] param_name ->
+        name:[< `One of int ] param_name ->
           int select_opt ->
             int select_opt list ->
               [> select ] elt
@@ -553,7 +553,7 @@ module type XHTMLFORMSSIG = sig
 
   val float_select :
       ?a:select_attrib attrib list ->
-        name:[< `Opt of float ] param_name ->
+        name:[< `One of float ] param_name ->
           float select_opt ->
             float select_opt list ->
               [> select ] elt
@@ -561,7 +561,7 @@ module type XHTMLFORMSSIG = sig
 
   val string_select :
       ?a:select_attrib attrib list ->
-        name:[< `Opt of string ] param_name ->
+        name:[< `One of string ] param_name ->
           string select_opt ->
             string select_opt list ->
               [> select ] elt
@@ -569,7 +569,7 @@ module type XHTMLFORMSSIG = sig
 
   val user_type_select :
       ?a:select_attrib attrib list ->
-        name:[< `Opt of 'a ] param_name ->
+        name:[< `One of 'a ] param_name ->
           'a select_opt ->
             'a select_opt list ->
               ('a -> string) ->
