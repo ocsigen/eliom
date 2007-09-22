@@ -1,11 +1,12 @@
 include ../Makefile.config
 
-FILES= eliommod.ml eliomsessions.ml \
+# /!\ Simple expanded variable, because of camlzip below
+FILES:= eliommod.ml eliomsessions.ml \
        eliomparameters.ml eliomservices.ml \
        eliommkforms.ml eliommkreg.ml eliompredefmod.ml \
        eliomboxes.ml \
        ocsigenmod.ml ocsigen.ml ocsigenboxes.ml \
-       staticmod.ml cgimod.ml deflatemod.ml\
+       staticmod.ml cgimod.ml \
        extensiontemplate.ml
 
 ifeq "$(OCSIPERSISTSQLITE)" "YES"
@@ -14,6 +15,13 @@ OBJSQLITE= ocsipersist-sqlite.cma
 PACKSQLITE=,sqlite3
 else
 
+endif
+
+
+ifeq "$(CAMLZIP)" "YES"
+FILES:= $(FILES) deflatemod.ml
+PACKCAMLZIP=,camlzip
+else
 endif
 
 ifeq "$(OCSIPERSISTDBM)" "YES"
@@ -72,7 +80,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package netstring$(PACKSQLITE) $(LIBDIRS)
+LIB = -thread -package netstring$(PACKCAMLZIP)$(PACKSQLITE) $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)

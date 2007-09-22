@@ -24,6 +24,7 @@
 
 val get_keepalive : Http_frame.Http_header.http_header -> bool
 val parse_cookies : string  -> (string * string) list
+val parse_mime_type : string -> string option * string option
 val get_host_port :
   Predefined_senders.Stream_http_frame.http_frame ->
   (string * int option) option
