@@ -1,5 +1,7 @@
 (* Ocsigen
+ * Module simplexmlparser.mli
  * Copyright (C) 2005 Vincent Balat
+ * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,14 +17,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-
 (** Basic camlp4 parser for xml *)
-
 type xml =
-  | Element of (string * (string * string) list * xml list)
-  | PCData of string
-
+  [ Element of (string * (list (string * string)) * (list xml))
+  | PCData of string ];
 (**/**)
-exception Xml_parser_error of string
+exception Xml_parser_error of string;
+value xmlparser : string -> list xml;
 
-val xmlparser : string -> xml list

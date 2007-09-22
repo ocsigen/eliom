@@ -67,7 +67,7 @@ xmllexer.ml: xmllexer.mll
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
 .mli.cmi:
-	$(CAMLC) -c $<
+	$(CAMLC) $(PP) -c $<
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
 
