@@ -185,6 +185,12 @@ let execute outch = function
       with _ -> send outch Dbm_not_found)
   | Remove (t, k) -> db_remove t k; send outch Ok
   | Replace (t, k, v) -> db_replace t k v; send outch Ok
+  | Replace_if_exists (t, k, v) -> 
+      (try 
+        ignore (db_get t k);
+        db_replace t k v; 
+        send outch Ok
+      with _ -> send outch Dbm_not_found)
   | Firstkey t -> 
       (try send outch (Key (db_firstkey t))
       with _ -> send outch End)

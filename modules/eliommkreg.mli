@@ -98,6 +98,7 @@ module type ELIOMREGSIG1 =
 
 
     val register_for_session :
+        ?session_name:string ->
         sp:Eliommod.server_params ->
           service:('get, 'post, [< internal_service_kind ],
                    [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
@@ -169,6 +170,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice'] followed by [register] *)
 
     val register_new_coservice_for_session :
+        ?session_name:string ->
         sp:Eliommod.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -191,6 +193,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice] followed by [register_for_session] *)
 
     val register_new_coservice_for_session' :
+        ?session_name:string ->
         sp:Eliommod.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -279,6 +282,7 @@ module type ELIOMREGSIG1 =
 *)
 
     val register_new_post_coservice_for_session :
+        ?session_name:string ->
         sp:Eliommod.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -300,6 +304,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_coservice] followed by [register_for_session] *)
 
     val register_new_post_coservice_for_session' :
+        ?session_name:string ->
         sp:Eliommod.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -315,6 +320,7 @@ module type ELIOMREGSIG1 =
 
 (*
     val register_new_get_post_coservice_for_session' :
+        ?session_name:string ->
         sp:Eliommod.server_params ->
         ?max_use:int ->
         ?timeout:float ->

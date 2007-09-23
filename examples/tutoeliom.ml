@@ -363,8 +363,8 @@ let default = register_new_service ["rep";""] unit
       <p>Functions implementing services are called <em>service handlers</em>. 
        They take three parameters. The first
        one has type 
-       $a (static_dir sp) sp [code [pcdata "Eliomsessions.server_params" ]]
-   ["doc/"^version^"/Eliomsessions.html#TYPEserver_params"]$
+       $a (static_dir sp) sp [code [pcdata "Eliommod.server_params" ]]
+   ["doc/"^version^"/Eliommod.html#TYPEserver_params"]$
         and
        corresponds to server informations (user-agent, ip, current-url, etc.
        - see later in that section for examples of use), 
@@ -1347,6 +1347,9 @@ let rec map_serial f l =
 (************ Connection of users, version 1 ****************)
 (************************************************************)
 
+(*zap* *)
+let session_name = "session_data"
+(* *zap*)
 
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
@@ -1381,7 +1384,7 @@ let session_data_example_close =
 (* Handler for the "session_data_example" service:          *)
 
 let session_data_example_handler sp _ _  =
-  let sessdat = Eliomsessions.get_session_data my_table sp in
+  let sessdat = Eliomsessions.get_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -1413,8 +1416,8 @@ let session_data_example_handler sp _ _  =
 (* service with POST params:                                *)
 
 let session_data_example_with_post_params_handler sp _ login =
-  Eliomsessions.close_session ~sp >>= fun () ->
-  Eliomsessions.set_session_data my_table sp login;
+  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliomsessions.set_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
   return
     (html
        (head (title (pcdata "")) [])
@@ -1430,8 +1433,8 @@ let session_data_example_with_post_params_handler sp _ login =
 (* Handler for the "session_data_example_close" service:    *)
 
 let session_data_example_close_handler sp () () =
-  let sessdat = Eliomsessions.get_session_data my_table sp in
-  Eliomsessions.close_session ~sp >>= fun () -> 
+  let sessdat = Eliomsessions.get_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -1468,7 +1471,7 @@ let close = register_new_service
     ~url:["disconnect"]
     ~get_params:unit
     (fun sp () () -> 
-      Eliomsessions.close_session ~sp >>=
+      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
       (fun () ->
         return
           (html
@@ -1479,7 +1482,7 @@ let close = register_new_service
 let _ = register
     sessdata
     (fun sp _ _ ->
-      let sessdat = Eliomsessions.get_session_data my_table sp in
+      let sessdat = Eliomsessions.get_session_data table:my_table ~sp () in
       return
         (html
            (head (title (pcdata "")) [])
@@ -1498,7 +1501,7 @@ let _ = register
 let _ = register
     sessdata_with_post_params
     (fun sp _ login ->
-      Eliomsessions.close_session ~sp >>=
+      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
       (fun () ->
         Eliomsessions.set_session_data my_table sp login;
         return
@@ -1582,13 +1585,16 @@ let _ = register
       We first define the main page, with a login form:
       </p>
 *html*)(*zap* *)
-let _ = set_global_timeout (Some 3600.)
-let _ = set_global_persistent_timeout (Some 86400.)
+let _ = set_default_timeout (Some 3600.)
+let _ = set_default_persistent_timeout (Some 86400.)
 (* *zap*)
 (************************************************************)
 (************ Connection of users, version 2 ****************)
 (************************************************************)
 
+(*zap* *)
+let session_name = "session_services"
+(* *zap*)
 (* -------------------------------------------------------- *)
 (* Create services, but do not register them yet:           *)
 
@@ -1634,7 +1640,7 @@ let session_services_example_handler sp () () =
 (* Handler for the "session_services_example_close" service:     *)
 
 let session_services_example_close_handler sp () () =
-  Eliomsessions.close_session ~sp >>= fun () ->
+  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -1673,18 +1679,18 @@ let launch_session sp () login =
   in
 
   (* If a session was opened, we close it first! *)
-  Eliomsessions.close_session ~sp >>= fun () ->
+  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliompredefmod.Xhtml.register_for_session 
+  Eliompredefmod.Xhtml.register_for_session (*zap* *) ~session_name (* *zap*) 
     ~sp
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
   
-  Eliompredefmod.Xhtml.register_for_session 
+  Eliompredefmod.Xhtml.register_for_session (*zap* *) ~session_name (* *zap*) 
     ~sp
     ~service:coucou
     (fun _ () () -> 
@@ -1695,7 +1701,7 @@ let launch_session sp () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliompredefmod.Xhtml.register_for_session 
+  Eliompredefmod.Xhtml.register_for_session (*zap* *) ~session_name (* *zap*) 
     ~sp
     ~service:hello
     (fun _ () () -> 
@@ -1944,6 +1950,9 @@ let _ =
    is the same shoping basket for all pages. 
    SEE calc example instead.
 *)
+(* zap* *)
+let session_name = "shop_example"
+(* *zap *)
 let shop_without_post_params =
   new_service
    ~url:["shop"]
@@ -1990,15 +1999,15 @@ let rec page_for_shopping_basket sp shopping_basket =
       ~post_params:unit
       ()
   in
-    register_for_session
+    register_for_session (*zap* *) ~session_name (* *zap*)
       ~sp
       ~service:coshop_with_post_params
       (fun sp () article -> 
                  page_for_shopping_basket 
                    sp (article::shopping_basket));
-    register_for_session
-      sp
-      copay
+    register_for_session (*zap* *) ~session_name (* *zap*)
+      ~sp
+      ~service:copay
       (fun sp () () -> 
         return
            << <html><body>
@@ -2023,6 +2032,9 @@ let _ = register
 (*************** calc: sum of two integers ******************)
 (************************************************************)
 
+(*zap* *)
+let session_name = "calc_example"
+(* *zap*)
 (* -------------------------------------------------------- *)
 (* We create two main services on the same URL,             *)
 (* one with a GET integer parameter:                        *)
@@ -2140,7 +2152,9 @@ let () =
 (************ Connection of users, version 3 ****************)
 (************************************************************)
 
-
+(*zap* *)
+let session_name = "action_example"
+(* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -2161,7 +2175,7 @@ let disconnect_action =
   Eliompredefmod.Actions.register_new_post_coservice'
     ~post_params:Eliomparameters.unit 
     (fun sp () () -> 
-      Eliomsessions.close_session ~sp >>= fun () -> 
+      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
       return [])
 
 
@@ -2193,7 +2207,7 @@ let login_box sp =
 (* Handler for the "action_example" service (main page):    *)
 
 let action_example_handler sp () () = 
-  let sessdat = Eliomsessions.get_session_data my_table sp in
+  let sessdat = Eliomsessions.get_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -2210,8 +2224,8 @@ let action_example_handler sp () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler sp () login =
-  Eliomsessions.close_session ~sp >>= fun () -> 
-  Eliomsessions.set_session_data my_table sp login;
+  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+  Eliomsessions.set_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
   return []
 
 
@@ -2575,6 +2589,9 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 (************ Connection of users, version 4 ****************)
 (************************************************************)
 (*zap* *)
+let session_name = "action_example2"
+(* *zap*)
+(*zap* *)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -2592,6 +2609,25 @@ let connect_action =
 
 (* We keep the previously defined disconnection action *)
 (* *zap*)
+
+(* -------------------------------------------------------- *)
+(* Actually, no. It's a lie because we don't use the 
+   same session name :-) *)
+(* new disconnect action and box:                           *)
+
+let disconnect_action = 
+  Eliompredefmod.Actions.register_new_post_coservice'
+    ~post_params:Eliomparameters.unit 
+    (fun sp () () -> 
+print_endline session_name;
+      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+      return [])
+
+let disconnect_box sp s = 
+  Eliompredefmod.Xhtml.post_form disconnect_action sp 
+    (fun _ -> [p [Eliompredefmod.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
   
 exception Bad_user
 
@@ -2611,7 +2647,11 @@ let login_box sp action =
       [p (if List.mem Bad_user exnlist
       then (pcdata "Wrong user")::(br ())::l
       else 
-        if List.mem Eliommod.Eliom_Session_expired exnlist
+        if List.exists
+            (function 
+              | Eliommod.Eliom_Session_expired _ -> true
+              | _ -> false)
+            exnlist
         then (pcdata "Session expired")::(br ())::l
         else l)
      ])
@@ -2622,7 +2662,7 @@ let login_box sp action =
 (* Handler for the "action_example2" service (main page):   *)
 
 let action_example2_handler sp () () = 
-  let sessdat = Eliomsessions.get_session_data my_table sp in
+  let sessdat = Eliomsessions.get_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -2640,10 +2680,10 @@ let action_example2_handler sp () () =
 (* New handler for connect_action (user logs in):           *)
 
 let connect_action_handler sp () login =
-  Eliomsessions.close_session ~sp >>= fun () -> 
+  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliomsessions.set_session_data my_table sp login; 
+    Eliomsessions.set_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login; 
     return []
   end
   else return [Bad_user]
@@ -2773,6 +2813,7 @@ let _ =
                (head (title (pcdata "Coservices with timeouts")) [])
                (body [p 
                  [pcdata "I am a coservice with timeout."; br ();
+                  pcdata "Try to reload the page!"; br ();
                   pcdata "I will disappear after 5 seconds of inactivity." ];
                  ])))
     in
@@ -3009,7 +3050,9 @@ val remove : 'value table -> string -> unit Lwt.t
 (**************** (persistent sessions) *********************)
 (************************************************************)
 
-
+(*zap* *)
+let session_name = "persistent_sessions"
+(* *zap*)
 let my_persistent_table = 
   create_persistent_table "eliom_example_table"
 
@@ -3029,14 +3072,62 @@ let persist_session_connect_action =
     ()
 
 (* disconnect_action, login_box and disconnect_box have been
-   defined in the section about actions *)
+   defined in the section about actions *)(* *zap*)
 
+(* -------------------------------------------------------- *)
+(* Actually, no. It's a lie because we don't use the 
+   same session name :-) *)
+(* new disconnect action and box:                           *)
+
+let disconnect_action = 
+  Eliompredefmod.Actions.register_new_post_coservice'
+    ~post_params:Eliomparameters.unit 
+    (fun sp () () -> 
+      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+      return [])
+
+let disconnect_box sp s = 
+  Eliompredefmod.Xhtml.post_form disconnect_action sp 
+    (fun _ -> [p [Eliompredefmod.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+  
+exception Bad_user
+
+(* -------------------------------------------------------- *)
+(* new login box:                                           *)
+
+let login_box sp action =
+  Eliompredefmod.Xhtml.post_form action sp
+    (fun loginname ->
+      let l =
+        [pcdata "login: "; 
+         string_input ~input_type:`Text ~name:loginname ()]
+      in
+      let exnlist = Eliomsessions.get_exn sp in
+      (* If exnlist is not empty, something went wrong
+         during an action. We write an error message: *)
+      [p (if List.mem Bad_user exnlist
+      then (pcdata "Wrong user")::(br ())::l
+      else 
+        if List.exists
+            (function 
+              | Eliommod.Eliom_Session_expired _ -> true
+              | _ -> false)
+            exnlist
+        then (pcdata "Session expired")::(br ())::l
+        else l)
+     ])
+    ()
+
+(*zap* *)    
 
 (* ----------------------------------------------------------- *)
 (* Handler for "persist_session_example" service (main page):  *)
 
 let persist_session_example_handler sp () () = 
-  Eliomsessions.get_persistent_data my_persistent_table sp >>= fun sessdat ->
+  Eliomsessions.get_persistent_data (*zap* *) ~session_name (* *zap*) 
+    ~table:my_persistent_table ~sp () >>= fun sessdat ->
   return
     (html
        (head (title (pcdata "")) [])
@@ -3054,10 +3145,10 @@ let persist_session_example_handler sp () () =
 (* Handler for persist_session_connect_action (user logs in):  *)
 
 let persist_session_connect_action_handler sp () login =
-  Eliomsessions.close_session ~sp >>= fun () -> 
+  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliomsessions.set_persistent_data my_persistent_table sp login >>= fun () ->
+    Eliomsessions.set_persistent_data (*zap* *) ~session_name (* *zap*) ~table:my_persistent_table ~sp login >>= fun () ->
     return []
   end
   else return [Bad_user]
@@ -3307,6 +3398,7 @@ let _ = register_new_service ["select"] unit
          (head (title (pcdata "")) [])
          (body [f])))
 (*html*
+      <p>$a Tutoeliom.select_example sp <:xmllist< Try it >> ()$.</p>
      <p>To do "multiple" select boxes, use functions like
    $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.string_multiple_select" ]] ["doc/"^version^"/Eliompredefmod.XHTMLFORMSSIG.html#VALstring_multiple_select"]$. 
    As you can see in the type, the service must be declared with parameters
@@ -3723,11 +3815,10 @@ let uploadform = register upload
 <span class="Ccomment">(* Construction of pages *)</span>
 
 let home sp () () =
-   match get_session_data my_table sp with
+   match get_session_data ~table:my_table ~sp () with
    | None ->
      page sp
-       [h1 [pcdata "Mon site"];
-        p [pcdata "(user : toto and password : titi)"];
+       [h1 [pcdata "My site"];
         login_box sp connect_action;
         news_headers_list_box sp anonymoususer news_page]
    | Some user ->
@@ -3738,7 +3829,7 @@ let home sp () () =
          news_headers_list_box sp user news_page]
 
 let print_news_page sp i () = 
-   match get_session_data my_table sp with
+   match get_session_data ~table:my_table ~sp () with
    | None ->
       page sp
         [h1 [pcdata "Info"];
@@ -3798,7 +3889,7 @@ let _ = register main
        <html> 
        <!-- This is a comment! -->
        <head>
-         $css_link (make_uri (static_dir sp) sp ["style.css"])$
+         $css_link (make_uri (static_dir sp) sp ["style.css"]) ()$
          <title>Eliom Tutorial</title>
        </head>
        <body>

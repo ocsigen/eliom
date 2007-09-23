@@ -168,6 +168,13 @@ let db_replace (store, name) value =
     | Ok -> return ()
     | _ -> fail Ocsipersist_error)
 
+let db_replace_if_exists (store, name) value = 
+  send (Replace_if_exists (store, name, value)) >>=
+  (function 
+    | Ok -> return ()
+    | Dbm_not_found -> fail Not_found
+    | _ -> fail Ocsipersist_error)
+
 let db_firstkey store = 
   send (Firstkey store) >>=
   (function 
@@ -234,6 +241,10 @@ let find table key =
 let add table key value =
   let data = Marshal.to_string value [] in
   db_replace (table, key) data
+
+let replace_if_exists table key value =
+  let data = Marshal.to_string value [] in
+  db_replace_if_exists (table, key) data
 
 let remove table key =
   db_remove (table, key)

@@ -108,29 +108,8 @@ let db_create table =
     in 
     aux ()
   in
-  exec_safely create;
+  ignore (exec_safely create);
   table
-
-
-let db_get (table, key) =
- let sql = sprintf "SELECT value FROM %s WHERE key = :key " table in
- let get db = 
-  	let stmt = bind_safely (prepare db sql) [Data.TEXT key,":key"] in
-  	let rec aux () = 
-	  match step stmt with 
-          | Rc.ROW -> 
-              let value = match column stmt 0 with 
-	      | Data.BLOB s -> s
-	      | _ -> assert false 
-	      in
-  	      ignore (finalize stmt);  
- 	      value
-  	  | Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
-	  | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
-  	  | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
-	in aux ()
-  in
-  exec_safely get 
 
 let db_remove (table, key) =
   let sql =  sprintf "DELETE FROM %s WHERE key = :key " table in
@@ -145,12 +124,29 @@ let db_remove (table, key) =
   in
   exec_safely remove
 
-let db_replace (table, key) value = 
-  let sql =  sprintf "INSERT INTO %s VALUES ( :key , :value )" table in
-  let replace db =
+let (db_get, db_replace, db_replace_if_exists) =
+  let get (table, key) db =
+    let sqlget = sprintf "SELECT value FROM %s WHERE key = :key " table in
+    let stmt = bind_safely (prepare db sqlget) [Data.TEXT key,":key"] in
+    let rec aux () = 
+      match step stmt with 
+      | Rc.ROW -> 
+          let value = match column stmt 0 with 
+	  | Data.BLOB s -> s
+	  | _ -> assert false 
+	  in
+  	  ignore (finalize stmt);  
+ 	  value
+      | Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
+      | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
+      | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
+    in aux ()
+  in
+  let replace (table, key) value db =
+    let sqlreplace = sprintf "INSERT INTO %s VALUES ( :key , :value )" table in
     let stmt = 
       bind_safely
-        (prepare db sql)
+        (prepare db sqlreplace)
         [Data.TEXT key,":key"; Data.BLOB value, ":value"] 
     in
     let rec aux () = 
@@ -160,7 +156,10 @@ let db_replace (table, key) value =
       | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
     in aux ()
   in
-  exec_safely replace
+  ((fun tablekey -> exec_safely (get tablekey)),
+   (fun tablekey value -> exec_safely (replace tablekey value)),
+   (fun tablekey value -> exec_safely 
+       (fun db -> ignore (get tablekey db); replace tablekey value db)))
 
 
 let db_iter_step table f rowid =
@@ -269,6 +268,10 @@ let find table key =
 let add table key value =
   let data = Marshal.to_string value [] in
   db_replace (table, key) data
+
+let replace_if_exists table key value =
+  let data = Marshal.to_string value [] in
+  db_replace_if_exists (table, key) data
 
 let remove table key =
   db_remove (table, key)

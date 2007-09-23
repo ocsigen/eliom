@@ -167,7 +167,7 @@ module Xhtmlforms_ = struct
       ~action:(uri_of_string action) elt1 elts
 
   let make_hidden_field content = 
-    (div ~a:[a_class ["nodisplay"]] [content] :> form_content_elt)
+    (div ~a:[a_class ["eliom_nodisplay"]] [content] :> form_content_elt)
 
   let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
 
@@ -221,11 +221,11 @@ module Xhtmlforms_ = struct
   let make_optgroup ?(a=[]) ~label elt elts =
     optgroup ~label ~a elt elts
     
-  let make_css_link ?(a=[]) ~uri =
+  let make_css_link ?(a=[]) ~uri () =
     link ~a:((a_href uri)::
              (a_type "text/css")::(a_rel [`Stylesheet])::a) ()
       
-  let make_js_script ?(a=[]) ~uri =
+  let make_js_script ?(a=[]) ~uri () =
     script ~a:((a_src uri)::a) ~contenttype:"text/javascript" (pcdata "")
 
 end
@@ -265,11 +265,11 @@ module type XHTMLFORMSSIG = sig
    (see the module XHTML.M) *)
 
   val css_link : ?a:(link_attrib attrib list) ->
-    uri:uri -> [> link ] elt
+    uri:uri -> unit -> [> link ] elt
 (** Creates a [<link>] tag for a Cascading StyleSheet (CSS). *)
 
   val js_script : ?a:(script_attrib attrib list) ->
-    uri:uri -> [> script ] elt
+    uri:uri -> unit -> [> script ] elt
 (** Creates a [<script>] tag to add a javascript file *)
 
     val make_uri :
@@ -654,15 +654,15 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
 
   let css_link = (css_link :
                     ?a:(link_attrib attrib list) ->
-                      uri:uri -> link elt :>
+                      uri:uri -> unit -> link elt :>
                     ?a:(link_attrib attrib list) ->
-                      uri:uri -> [> link ] elt)
+                      uri:uri -> unit -> [> link ] elt)
 
   let js_script = (js_script : 
                      ?a:(script_attrib attrib list) ->
-                       uri:uri -> script elt :>
+                       uri:uri -> unit -> script elt :>
                      ?a:(script_attrib attrib list) ->
-                       uri:uri -> [> script ] elt)
+                       uri:uri -> unit -> [> script ] elt)
 
   let make_uri = (make_uri :
       service:('get, unit, [< get_service_kind ],
@@ -1346,10 +1346,10 @@ module HtmlTextforms_ = struct
     a^">"^elt^elts^"</optgroup>"
 
 
-  let make_css_link ?(a="") ~uri =
+  let make_css_link ?(a="") ~uri () =
     "<link href=\""^uri^" type=\"text/css\" rel=\"stylesheet\" "^a^"/>"
                                                                       
-  let make_js_script ?(a="") ~uri =
+  let make_js_script ?(a="") ~uri () =
     "<script src=\""^uri^" contenttype=\"text/javascript\" "^a^"></script>"
 
 end

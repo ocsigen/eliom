@@ -43,9 +43,9 @@ val open_store : string -> store
 
 val make_persistent :
     store:store -> name:string -> default:'a -> 'a t Lwt.t
-(** [make_persistent store name default] creates a persistent value
+(** [make_persistent store name default] find a persistent value
     named [name] in store [store]
-    from database or create it with the default value [default] if it
+    from database, or create it with the default value [default] if it
     does not exist. *)
 
 val make_persistent_lazy : 
@@ -74,9 +74,16 @@ val find : 'value table -> string -> 'value Lwt.t
   Raises [Not_found] if not found. *)
 
 val add : 'value table -> string -> 'value -> unit Lwt.t
-(** [add table key value] associates the value [value] to key [key]. 
-   If the database already contains data associated with key, 
+(** [add table key value] associates [value] to [key]. 
+   If the database already contains data associated with [key], 
    that data is discarded and silently replaced by the new data.
+ *)
+
+val replace_if_exists : 'value table -> string -> 'value -> unit Lwt.t
+(** [replace_if_exists table key value] 
+   associates [value] to [key] only if [key] is already bound. 
+   If the database does not contain any data associated with [key], 
+   raises [Not_found].
  *)
 
 val remove : 'value table -> string -> unit Lwt.t
@@ -87,9 +94,9 @@ val length : 'value table -> int Lwt.t
 
 val iter_step : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
 (** Important warning: this iterator may not iter on all data of the table
-	if another thread is modifying it in the same time. Nonetheless, it should
-	not miss more than a very few data from time to time, except if the table
-	is very old (at least 9 223 372 036 854 775 807 insertions).
+    if another thread is modifying it in the same time. Nonetheless, it should
+    not miss more than a very few data from time to time, except if the table
+    is very old (at least 9 223 372 036 854 775 807 insertions).
  *)
 
 val iter_table : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
@@ -98,11 +105,10 @@ val iter_table : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
 (**/**)
 val iter_block : (string -> 'a -> unit) -> 'a table -> unit Lwt.t
 (** MAJOR WARNING: Unlike iter_step, this iterator won't miss any 
-	entry and will run in one shot. It is therefore more efficient, BUT:
-	it will lock the WHOLE database during its execution, 
-	thus preventing ANYBODY from accessing it (including the function f 
-	which is iterated).
-	As a consequence : you MUST NOT use any function from ocsipersist in f,
-	otherwise you would lock yourself and everybody else ! Be VERY cautious.
+    entry and will run in one shot. It is therefore more efficient, BUT:
+    it will lock the WHOLE database during its execution, 
+    thus preventing ANYBODY from accessing it (including the function f 
+    which is iterated).
+    As a consequence : you MUST NOT use any function from ocsipersist in f,
+    otherwise you would lock yourself and everybody else ! Be VERY cautious.
 *)
-

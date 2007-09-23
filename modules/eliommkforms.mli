@@ -141,9 +141,9 @@ module type FORMCREATE =
     val uri_of_string : string -> uri
 
 
-    val make_css_link : ?a:link_attrib_t -> uri:uri -> link_elt
+    val make_css_link : ?a:link_attrib_t -> uri:uri -> unit -> link_elt
 
-    val make_js_script : ?a:script_attrib_t -> uri:uri -> script_elt
+    val make_js_script : ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 
 
   end
@@ -208,11 +208,11 @@ module type ELIOMFORMSIG =
    The [~a] optional parameter is used for extra attributes 
    (see the module XHTML.M) *)
 
-    val css_link : ?a:link_attrib_t -> uri:uri -> link_elt
+    val css_link : ?a:link_attrib_t -> uri:uri -> unit -> link_elt
 (** Creates a [<link>] tag for a Cascading StyleSheet (CSS). *)
 
     val js_script :
-        ?a:script_attrib_t -> uri:uri -> script_elt
+        ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 (** Creates a [<script>] tag to add a javascript file *)
 
     val make_uri :

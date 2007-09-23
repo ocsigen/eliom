@@ -70,91 +70,157 @@ val get_cookies : sp:Eliommod.server_params -> (string * string) list
 
 
 (*****************************************************************************)
-(** {2  Getting and setting information about the session} *)
+(** {2  Getting and setting information about the current session} *)
 
-(** {3 Session timeouts} *)
+(** {3 Global configuration of session timeouts} *)
 
-(** sets the timeout for volatile session (server side) for one user, 
-   in seconds. *)
-val set_user_timeout : sp:Eliommod.server_params -> float option -> unit
-
-(** remove the (volatile) session timeout for one user
-   (and turn back to the default). *)
-val unset_user_timeout : sp:Eliommod.server_params -> unit
-
-(** returns the timeout for (volatile) session for one user. *)
-val get_user_timeout : sp:Eliommod.server_params -> float option
-
-
-(** sets the timeout for persistent session (server side) for one user,
-   in seconds. *)
-val set_user_persistent_timeout : sp:Eliommod.server_params -> float option -> unit
-
-(** remove the persistent session timeout for one user
-   (and turn back to the default). *)
-val unset_user_persistent_timeout : sp:Eliommod.server_params -> unit
-
-(** returns the persistent session timeout for one user. *)
-val get_user_persistent_timeout : sp:Eliommod.server_params -> float option
-
-
-(** sets the timeout for sessions (server side). 
+(** sets the timeout for volatile (= "in memory") sessions (server side). 
     The sessions will be closed after this amount of time of inactivity 
-    from the user. 
+    from the user. [None] = no timeout.
+
+    The optional parameter [?recompute_expdates] is [false] by default.
+    If you set it to [true], the expiration dates for all sessions in the table
+    will be recomputed with the new timeout.
+    That is, the difference between the new timeout and the old one will
+    be added to their expiration dates.
+    Sessions whose timeout has been set individually
+    with {!set_session_timeout} won't be affected.
+
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
 *)
-val set_global_timeout : ?sp:Eliommod.server_params -> float option -> unit
+val set_global_timeout : ?session_name:string -> ?sp:Eliommod.server_params -> 
+  ?recompute_expdates:bool -> float option -> unit Lwt.t
 
-(** returns the timeout for sessions (server side).
+(** returns the timeout for sessions (server side). [None] = no timeout.
+
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}   
  *)
-val get_global_timeout : ?sp:Eliommod.server_params -> unit -> float option
+val get_global_timeout : ?session_name:string -> ?sp:Eliommod.server_params -> 
+  unit -> float option
 
-(** returns the default timeout for sessions (server side). *)
+(** returns the default timeout for sessions (server side). 
+    The default timeout is common for all sessions for which no other value
+    has been set. At the beginning of the server, it is taken from the 
+    configuration file, (or set to default value).
+    [None] = no timeout. 
+    *)
 val get_default_timeout : unit -> float option
 
-(** sets the timeout for persistent sessions (server side). 
+(** sets the default timeout for sessions (server side).
+    [None] = no timeout. 
+    *)
+val set_default_timeout : float option -> unit
+
+(** sets the timeout for persistent sessions (server side).
     The sessions will be closed after this amount of time of inactivity 
-    from the user. 
+    from the user. [None] = no timeout.
+
+    The optional parameter [?recompute_expdates] is [false] by default.
+    If you set it to [true], the expiration dates for all sessions in the table
+    will be recomputed with the new timeout.
+    That is, the difference between the new timeout and the old one will
+    be added to their expiration dates.
+    Sessions whose timeout has been set individually
+    with {!set_session_timeout} won't be affected.
+
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
 *)
-val set_global_persistent_timeout : ?sp:Eliommod.server_params -> float option -> unit
+val set_global_persistent_timeout : ?session_name:string ->
+  ?sp:Eliommod.server_params -> ?recompute_expdates:bool -> 
+    float option -> unit Lwt.t
 
 (** returns the timeout for persistent sessions (server side). 
+    [None] = no timeout.
+
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val get_global_persistent_timeout : ?sp:Eliommod.server_params -> unit -> float option
+val get_global_persistent_timeout : ?session_name:string ->
+  ?sp:Eliommod.server_params -> unit -> float option
 
-(** returns the default timeout for persistent sessions (server side). *)
+(** returns the default timeout for sessions (server side). 
+    The default timeout is common for all sessions for which no other value
+    has been set. At the beginning of the server, it is taken from the 
+    configuration file, (or set to default value).
+    [None] = no timeout. 
+    *)
 val get_default_persistent_timeout : unit -> float option
+
+(** sets the default timeout for sessions (server side).
+    [None] = no timeout. 
+    *)
+val set_default_persistent_timeout : float option -> unit
+
+
+
+
+(** {3 Personalizing session timeouts} *)
+
+(** sets the timeout for "in memory" session (server side) for one user, 
+   in seconds. [None] = no timeout *)
+val set_session_timeout : ?session_name:string -> sp:Eliommod.server_params -> float option -> unit
+
+(** remove the (volatile) session timeout for one user
+   (and turn back to the default). *)
+val unset_session_timeout : 
+    ?session_name:string -> sp:Eliommod.server_params -> unit -> unit
+
+(** returns the timeout for (volatile) session for one user. 
+    [None] = no timeout
+ *)
+val get_session_timeout : ?session_name:string -> sp:Eliommod.server_params
+  -> unit -> float option
+
+
+(** sets the timeout for persistent session (server side) for one user,
+   in seconds. [None] = no timeout *)
+val set_persistent_session_timeout : ?session_name:string -> 
+  sp:Eliommod.server_params -> float option -> unit Lwt.t
+
+(** remove the persistent session timeout for one user
+   (and turn back to the default). *)
+val unset_persistent_session_timeout : ?session_name:string -> 
+  sp:Eliommod.server_params -> unit -> unit
+
+(** returns the persistent session timeout for one user. [None] = no timeout *)
+val get_persistent_session_timeout : ?session_name:string -> 
+  sp:Eliommod.server_params -> unit -> float option
+
+
 
 
 (** {3 Cookies expiration} *)
 
-(** sets the cookie expiration date for the session. 
+(** sets the cookie expiration date for the session, in seconds, since the
+    1st of january 1970. 
+
    [None] means the cookie will expire when the browser is closed. 
+    No means to set cookies for an infinite time on browsers.
  *)
-val set_user_expdate : sp:Eliommod.server_params -> float option -> unit
-
-(** returns the cookie expiration date for the session. *)
-val get_user_expdate : sp:Eliommod.server_params -> float option
+val set_cookie_exp_date : ?session_name:string -> 
+  sp:Eliommod.server_params -> float option -> unit
 
 
-(** sets the cookie expiration date for the persistent session. 
+(** sets the cookie expiration date for the persistent session, 
+    in seconds, since the 1st of january 1970. 
+
    [None] means the cookie will expire when the browser is closed. 
+    No means to set cookies for an infinite time on browsers.
  *)
-val set_user_persistent_expdate : sp:Eliommod.server_params -> float option -> unit
+val set_persistent_cookie_exp_date : ?session_name:string -> 
+  sp:Eliommod.server_params -> float option -> unit Lwt.t
 
-(** returns the cookie expiration date for the persistent session. *)
-val get_user_persistent_expdate : sp:Eliommod.server_params -> float option
+
+
+
+
 
 
 
@@ -184,6 +250,7 @@ val get_original_filename : file_info -> string
 
 (** allows to use your own error pages
    (404, or any exception during page generation).
+
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
@@ -206,6 +273,7 @@ val get_exn : sp:Eliommod.server_params -> exn list
 
 (** returns the information of the configuration file concerning that site
    (between [<site>] and [</site>]).
+
    {e Warning: You must call that function during the initialisation of
    your module (not during a Lwt thread or a service).
    If you use that function after, 
@@ -215,7 +283,7 @@ val get_exn : sp:Eliommod.server_params -> exn list
 val get_config : unit -> Simplexmlparser.xml list
 
 (** returns the root of the site. *)
-val get_working_dir : sp:Eliommod.server_params -> url_path
+val get_site_dir : sp:Eliommod.server_params -> url_path
 
 (** returns the charset for this site (from the configuration file) *)
 val get_config_file_charset : sp:Eliommod.server_params -> string option
@@ -232,6 +300,7 @@ type 'a table
 
 (** creates a table in memory where you can store the session data for 
    all users. 
+
    {e Warning: If you use that function after the initialization phase, 
    you must give the [~sp] parameter, otherwise it will raise the exception
    {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
@@ -239,17 +308,17 @@ type 'a table
 val create_table : ?sp:Eliommod.server_params -> unit -> 'a table
 
 (** gets session data for the current session (if any). *)
-val get_session_data : 
-    table:'a table -> sp:Eliommod.server_params -> 'a option
+val get_session_data : ?session_name:string -> 
+    table:'a table -> sp:Eliommod.server_params -> unit -> 'a option
 
 (** sets session data for the current session. *)
-val set_session_data : 
-    table:'a table -> sp:Eliommod.server_params -> value:'a -> unit
+val set_session_data : ?session_name:string -> 
+    table:'a table -> sp:Eliommod.server_params -> 'a -> unit
 
 (** removes session data for the current session 
    (but does not close the session). *)
-val remove_session_data : 
-    table:'a table -> sp:Eliommod.server_params -> unit
+val remove_session_data : ?session_name:string -> 
+    table:'a table -> sp:Eliommod.server_params -> unit -> unit
 
 
 (** {3 Persistent sessions} *)
@@ -262,31 +331,83 @@ type 'a persistent_table
 val create_persistent_table : string -> 'a persistent_table
 
 (** gets persistent session data for the current persistent session (if any) *)
-val get_persistent_data : 
-    table:'a persistent_table -> sp:Eliommod.server_params -> 'a option Lwt.t
+val get_persistent_data : ?session_name:string -> 
+    table:'a persistent_table -> sp:Eliommod.server_params -> 
+      unit -> 'a option Lwt.t
 
 (** sets persistent session data for the current persistent session *)
-val set_persistent_data : 
-    table:'a persistent_table -> sp:Eliommod.server_params -> value:'a -> unit Lwt.t
+val set_persistent_data : ?session_name:string -> 
+    table:'a persistent_table -> sp:Eliommod.server_params -> 'a -> unit Lwt.t
 
 (** removes session data for the current persistent session 
    (but does not close the session). *)
-val remove_persistent_data : 
-    table:'a persistent_table -> sp:Eliommod.server_params -> unit Lwt.t
+val remove_persistent_data : ?session_name:string -> 
+    table:'a persistent_table -> sp:Eliommod.server_params -> unit -> unit Lwt.t
 
 
-(** {3 Closing sessions} *)
+(*****************************************************************************)
+(** {2 Closing sessions} *)
 
 (** Close both volatile and persistent sessions *)
-val close_session : sp:Eliommod.server_params -> unit Lwt.t
+val close_session : ?session_name:string -> sp:Eliommod.server_params -> 
+  unit -> unit Lwt.t
 
-(** Close the persistent session
+(** Close the current persistent session
    (destroying all persistent data for that user) *)
-val close_persistent_session : sp:Eliommod.server_params -> unit Lwt.t
+val close_persistent_session : ?session_name:string -> 
+  sp:Eliommod.server_params -> unit -> unit Lwt.t
 
-(** Close Eliom's volatile session
+(** Close Eliom's current volatile session
    (destroying all session data for that user) *)
-val close_volatile_session : sp:Eliommod.server_params -> unit
+val close_volatile_session : ?session_name:string -> 
+  sp:Eliommod.server_params -> unit -> unit
+
+
+
+(*****************************************************************************)
+(** {2 Administrating sessions} *)
+
+(** Close all volatile sessions for one session name.
+    If the optional parameter [?session_name] (session name) is not present,
+    the session with default name is closed.
+
+    {e Warning: If you use this function after the initialisation phase,
+    you must give the [~sp] parameter, otherwise it will raise the
+    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+ *)
+val close_all_volatile_sessions : ?session_name:string -> 
+  ?sp:Eliommod.server_params -> unit -> unit Lwt.t
+  
+(** Close all persistent sessions for one session name.
+    If the optional parameter [?session_name] (session name) is not present,
+    the session with default name is closed.
+
+    {e Warning: If you use this function after the initialisation phase,
+    you must give the [~sp] parameter, otherwise it will raise the
+    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+ *)
+val close_all_persistent_sessions : ?session_name:string -> 
+  ?sp:Eliommod.server_params -> unit -> unit Lwt.t
+
+(** Close all persistent and volatile sessions for one session name.
+    If the optional parameter [?session_name] (session name) is not present,
+    the session with default name is closed.
+
+    {e Warning: If you use this function after the initialisation phase,
+    you must give the [~sp] parameter, otherwise it will raise the
+    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+ *)
+val close_all_sessions : ?session_name:string -> 
+  ?sp:Eliommod.server_params -> unit -> unit Lwt.t
+
+(*  
+(** Iterator on volatile sessions *)
+val iter_sessions f :
+  
+(** Iterator on persistent sessions *)
+val iter_persistent_sessions f :
+*)
+
 
 
 (*****************************************************************************)
@@ -330,11 +451,22 @@ val get_all_post_params : sp:Eliommod.server_params -> (string * string) list
 (** returns all the information about the request. *)
 val get_ri : sp:Eliommod.server_params -> request_info
 
-(** returns the value of the cookie for persistent session. *)
-val get_persistent_cookie : sp:Eliommod.server_params -> (string * int64) option
+(** returns the name of the sessions to which belongs the running service
+    ([None] if it is not a session service)
+ *)
+val get_session : sp:Eliommod.server_params -> string option
 
-(** returns the value of the cookie for non persistent session. *)
-val get_cookie : sp:Eliommod.server_params -> string option
+(** returns the value of the Eliom's cookies for one persistent session. 
+   Returns [None] is no session is active.
+ *)
+val get_eliom_persistent_cookie : ?session_name:string -> 
+  sp:Eliommod.server_params -> unit -> string option
+
+(** returns the value of Eliom's cookies for one non persistent session.
+   Returns [None] is no session is active.
+*)
+val get_eliom_cookie : ?session_name:string ->  sp:Eliommod.server_params -> 
+  unit -> string option
 
 
 
@@ -357,5 +489,33 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
    result in some case (with a version of ocsipersist based on Dbm) *)
 
 
-val get_global_tables : sp:Eliommod.server_params -> Eliommod.tables
-val get_session_tables : sp:Eliommod.server_params -> Eliommod.tables ref
+val get_global_table : sp:Eliommod.server_params -> Eliommod.tables
+val get_session_table : 
+    ?session_name:string -> sp:Eliommod.server_params -> unit -> Eliommod.tables ref
+
+(*
+(** returns the cookie expiration date for the session, 
+   in seconds, since the 1st of january 1970.
+   must have been set just before (not saved server side).
+ *)
+val get_cookie_exp_date : ?session_name:string -> sp:Eliommod.server_params -> 
+  unit -> float option
+
+(** returns the cookie expiration date for the persistent session, 
+    in seconds, since the 1st of january 1970. 
+   must have been set just before (not saved server side).
+ *)
+val get_persistent_cookie_exp_date : ?session_name:string -> 
+  sp:Eliommod.server_params -> unit -> float option
+
+*)
+
+(** returns the values of the Eliom's cookies for persistent sessions
+   sent by the browser. *)
+val get_eliom_persistent_cookies :
+  sp:Eliommod.server_params -> (string * string) list
+
+(** returns the values of Eliom's cookies for non persistent sessions
+   sent by the browser. *)
+val get_eliom_cookies : sp:Eliommod.server_params -> (string * string) list
+

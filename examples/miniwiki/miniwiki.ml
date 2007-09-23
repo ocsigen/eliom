@@ -298,7 +298,7 @@ let html_stub sp body_html =
   return 
     (html 
        (head (title (pcdata "")) 
-          [css_link (make_uri (static_dir sp) sp ["style.css"])])
+          [css_link (make_uri (static_dir sp) sp ["style.css"]) ()])
        (body body_html))
 
 let wiki_page_menu_html sp page content =

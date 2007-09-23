@@ -203,10 +203,10 @@ let _ =
 (* Many cookies *)
 let cookiename = "c"
 
-let cookies = new_service ["c";""] unit ()
+let cookies = new_service ["c";""] (suffix (all_suffix_string "s")) ()
 
 let _ = Cookies.register cookies
-    (fun sp () () ->  return
+    (fun sp s () ->  return
       ((html
         (head (title (pcdata "")) [])
         (body [p 
@@ -215,13 +215,14 @@ let _ = Cookies.register cookies
                       (pcdata (n^"="^v))::
                       (br ())::l
                     )
-                    [a cookies sp [pcdata "send other cookies"] ()]
+                    [a cookies sp [pcdata "send other cookies"] ""; br ();
+                     a cookies sp [pcdata "send other cookies and see the url /c/plop"] "plop"]
                     (get_cookies sp))])),
        let cookies =
          [Extensions.Set (Some [], Some (Unix.time () +. 30.), 
                           [((cookiename^"6"),(string_of_int (Random.int 100)));
                            ((cookiename^"7"),(string_of_int (Random.int 100)))]);
-          Extensions.Set (Some ["plop"], None, 
+          Extensions.Set (Some ["c";"plop"], None, 
                           [((cookiename^"8"),(string_of_int (Random.int 100)));
                            ((cookiename^"9"),(string_of_int (Random.int 100)));
                            ((cookiename^"10"),(string_of_int (Random.int 100)));
@@ -517,7 +518,7 @@ let _ = register main
        <html> 
        <!-- This is a comment! -->
        <head>
-         $css_link (make_uri (static_dir sp) sp ["style.css"])$
+         $css_link (make_uri (static_dir sp) sp ["style.css"]) ()$
          <title>Eliom Tutorial</title>
        </head>
        <body>
@@ -677,3 +678,59 @@ let exn_act_main =
                    ]])))
 
 
+(* close sessions from outside *)
+let _ = 
+  register_new_service 
+    ~url:["close_from_outside"]
+    ~get_params:unit
+    (fun sp () () -> 
+      close_all_sessions ~session_name:"persistent_sessions" ~sp () >>= fun () ->
+      close_all_sessions ~session_name:"action_example2" ~sp () >>= fun () ->
+      return 
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "all sessions called \"persistent_sessions\" and \"action_example2\" closed"];
+                  p [a persist_session_example sp [pcdata "try"] ()]])))
+
+
+
+(* setting timeouts *)
+let set_timeout = 
+register_new_service 
+    ~url:["set_timeout"]
+    ~get_params:(int "t" ** bool "recompute")
+    (fun sp (t, recompute) () -> 
+      set_global_persistent_timeout ~session_name:"persistent_sessions"
+        ~recompute_expdates:recompute ~sp (Some (float_of_int t)) >>= fun () ->
+      set_global_timeout ~session_name:"action_example2"
+        ~recompute_expdates:recompute ~sp (Some (float_of_int t)) >>= fun () ->
+      return 
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Setting timeout"];
+                  p [
+                  if recompute
+                  then pcdata ("The timeout for sessions called \"persistent_sessions\" and \"action_example2\" has been set to "^(string_of_int t)^" seconds (all expiration dates updated).")
+                  else pcdata ("From now, the timeout for sessions called \"persistent_sessions\" and \"action_example2\" will be "^(string_of_int t)^" seconds (expiration dates not updated)."); br ();
+                  a persist_session_example sp [pcdata "Try"] ()]])))
+    
+
+let create_form = 
+  (fun (number_name, boolname) ->
+    [p [pcdata "New timeout: ";
+        Eliompredefmod.Xhtml.int_input ~input_type:`Text ~name:number_name ();
+        br ();
+        pcdata "Check the box if you want to recompute all timeouts: ";
+        Eliompredefmod.Xhtml.bool_checkbox ~name:boolname ();
+        Eliompredefmod.Xhtml.string_input ~input_type:`Submit ~value:"Submit" ()]])
+
+let set_timeout_form = 
+  register_new_service
+    ["set_timeout"] 
+    unit
+    (fun sp () () -> 
+      let f = Eliompredefmod.Xhtml.get_form set_timeout sp create_form in 
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [f])))

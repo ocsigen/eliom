@@ -38,7 +38,7 @@ type pages_tree =
       * cookiestable (* session tables *)
 
 type 'a server_params1 = 
-    request_info * current_dir * 'a ref
+    request_info * url_path * 'a ref
 type 'a server_params2 = url_path * 'a server_params1
 type server_params = tables server_params1
 
@@ -65,7 +65,7 @@ val add_service :
                     unit
 
 val add_action :
-    tables -> current_dir
+    tables -> url_path
       -> string -> (tables server_params1 -> unit Lwt.t) -> unit
 
 val state_param_name : string

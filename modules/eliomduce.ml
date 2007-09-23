@@ -32,7 +32,7 @@ open Eliommkreg
 
 let add_css (a : html) : html = 
   let css = 
-    {{ <style type="text/css"> "\n.inline {display: inline}\n.nodisplay {display: none}\n" }}
+    {{ <style type="text/css"> "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n" }}
   in
   {{ match a with <html (al)>el ->
    <html (al)>
@@ -209,7 +209,7 @@ module Xhtmlforms_ = struct
      }}
 
   let make_hidden_field content = 
-    {{ <div class="nodisplay"> [ content ] }}
+    {{ <div class="eliom_nodisplay"> [ content ] }}
 
   let make_div ~classe c =
     let classe = (List.fold_left (fun a b -> a^" "^b) "" classe) in
@@ -267,13 +267,13 @@ module Xhtmlforms_ = struct
   let make_optgroup ?(a={{ {} }}) ~label elt elts =
     {{ <optgroup ({label={: label :}} ++ a)> [ elt !elts ] }}
     
-  let make_css_link ?(a={{ {} }}) ~uri =
+  let make_css_link ?(a={{ {} }}) ~uri () =
     {{ <link ({href={: uri :}
 	    type="text/css"
             rel="stylesheet"}
             ++ a)> [] }}
       
-  let make_js_script ?(a={{ {} }}) ~uri =
+  let make_js_script ?(a={{ {} }}) ~uri () =
     {{ <script ({type="text/javascript"
 	         src={: uri :} } ++ a)> [] }}
 

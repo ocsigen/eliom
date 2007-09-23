@@ -42,15 +42,15 @@ type url_path = string list
 
 val string_of_url_path : url_path -> string
 
-type current_url = string list
-type current_dir = string list
-
 (** Type used for cookies to set. The url_path option is for the path,
    The float option is the timestamp for the expiration date. 
 *)
 type cookies = 
-  | Set of string list option * float option * (string * string) list
-  | Unset of (string list option * string list)
+  | Set of string list option (* path *) *
+        float option (* expires *) * 
+        (string * string) list (* (name, value) list *)
+  | Unset of (string list option (* path *) * 
+                string list (* names *))
 
 type cookieslist = cookies list
 

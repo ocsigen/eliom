@@ -117,14 +117,6 @@ let now = return ()
 let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 
 
-(* printing exceptions *)
-let string_of_exn = function
-  | Dynlink.Error err ->
-      "Dynlink.Error : " ^ (Dynlink.error_message err)
-  | Unix.Unix_error (ee,func,param) -> 
-      (Unix.error_message ee)^" in function "^func^" ("^param^")"
-  | e -> Printexc.to_string e
-
 
 (* Errors during requests *)
 let handle_light_request_errors ~clientproto ~head

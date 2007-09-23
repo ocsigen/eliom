@@ -26,15 +26,47 @@ let id x = x
 
 let comp f g x = f (g x)
 
-let rec list_remove a = function
+let rec list_remove_first_if_any a = function
   |  [] -> []
   | b::l when a = b -> l
-  | b::l -> b::(list_remove a l)
+  | b::l -> b::(list_remove_first_if_any a l)
 
-let rec list_removeq a = function
+let rec list_remove_first_if_any_q a = function
   |  [] -> []
   | b::l when a == b -> l
-  | b::l -> b::(list_removeq a l)
+  | b::l -> b::(list_remove_first_if_any_q a l)
+
+let rec list_remove_first a = function
+  |  [] -> raise Not_found
+  | b::l when a = b -> l
+  | b::l -> b::(list_remove_first a l)
+
+let rec list_remove_first_q a = function
+  | [] -> raise Not_found
+  | b::l when a == b -> l
+  | b::l -> b::(list_remove_first_q a l)
+
+let rec list_remove_all a = function
+  | [] -> []
+  | b::l when a = b -> list_remove_all a l
+  | b::l -> b::(list_remove_all a l)
+
+let rec list_remove_all_q a = function
+  | [] -> []
+  | b::l when a == b -> list_remove_all_q a l
+  | b::l -> b::(list_remove_all_q a l)
+
+let rec list_remove_all_assoc a = function
+  | [] -> []
+  | (b,_)::l when a = b -> list_remove_all_assoc a l
+  | b::l -> b::(list_remove_all_assoc a l)
+
+let rec list_remove_all_assoc_q a = function
+  | [] -> []
+  | (b,_)::l when a == b -> list_remove_all_assoc_q a l
+  | b::l -> b::(list_remove_all_assoc_q a l)
+
+
 
 let rec list_last = function
   |  [] -> raise Not_found
@@ -135,6 +167,21 @@ let rec string_of_url_path = function
   | [a] -> a
   | a::l -> a^"/"^(string_of_url_path l)
 
+let rec string_first_diff s1 s2 n last =
+(* returns the index of the first difference between s1 and s2, 
+   starting from n and ending at last.
+   returns (last + 1) if no difference is found.
+ *)
+  try
+    if s1.[n] = s2.[n]
+    then begin 
+      if n = last
+      then last+1
+      else string_first_diff s1 s2 (n+1) last
+    end
+    else n
+  with Invalid_argument _ -> n
+
 (*****************************************************************************)
 
 let add_to_string s1 sep = function
@@ -199,4 +246,12 @@ let rec split char s =
       with _ -> [remove_spaces s deb (longueur-1)]
   in 
   aux 0
+
+(* printing exceptions *)
+let string_of_exn = function
+  | Dynlink.Error err ->
+      "Dynlink.Error : " ^ (Dynlink.error_message err)
+  | Unix.Unix_error (ee,func,param) -> 
+      (Unix.error_message ee)^" in function "^func^" ("^param^")"
+  | e -> Printexc.to_string e
 

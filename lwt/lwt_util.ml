@@ -9,6 +9,12 @@ let rec iter f l =
       let rt = iter f r in
       t >>= (fun () -> rt)
 
+let rec iter_serial f l =
+  match l with
+    []     -> return ()
+  | a :: r ->
+      f a >>= fun () -> iter f r
+
 let rec map f l =
   match l with
     [] ->
@@ -87,3 +93,7 @@ let run_in_region reg sz thr =
     reg.count <- reg.count + sz;
     run_in_region_1 reg sz thr
   end
+
+let rec fold_left f a = function
+  | [] -> return a
+  | b::l -> f a b >>= fun v -> fold_left f v l

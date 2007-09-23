@@ -53,7 +53,7 @@ let add_css (a : 'a) : 'a =
     let css = 
       XHTML.M.toelt 
         (XHTML.M.style ~contenttype:"text/css"
-           [XHTML.M.pcdata "\n.inline {display: inline}\n.nodisplay {display: none}\n"])
+           [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"])
     in
     let rec aux = function
     | (XML.Element ("head",al,el))::l -> (XML.Element ("head",al,css::el))::l
@@ -337,6 +337,7 @@ let send_generic
   let mkcookl (path, exp, cl) hds =
     List.fold_left (fun h c -> (mkcook path exp c)::h) hds cl
   in
+(List.iter (fun (a,b) -> print_string a; print_string ": "; print_endline b) (List.fold_left (fun h c -> (mkcookl c h)) [] cookies));
   let hds =
     List.fold_left (fun h c -> 
       (mkcookl c h)) hds cookies

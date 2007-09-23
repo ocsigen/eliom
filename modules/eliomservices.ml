@@ -146,7 +146,7 @@ let static_dir ~sp =
      max_use= None;
      timeout= None;
      kind = `Attached
-       {url = (get_working_dir ~sp)@[""];
+       {url = (get_site_dir ~sp)@[""];
         get_state = None;
         post_state = None;
         att_kind = `Internal (`Service, `Get);
@@ -199,9 +199,9 @@ let new_service_aux
           add_unregistered (Some full_path); u
       | None -> raise (Eliom_function_forbidden_outside_site_loading
                          "new_service"))
-  | Some (_, _, (curdir, (_, _, _), _, _, _)) ->
+  | Some sp ->
       let full_path = 
-        remove_middle_slash (curdir@(change_empty_list url)) in
+        remove_middle_slash ((get_site_dir sp)@(change_empty_list url)) in
       new_service_aux_aux
         ~url:full_path
         ~kind:(`Internal (`Service, `Get))
@@ -453,7 +453,7 @@ let rec relative_url_path_to_myself = function
 
 let make_string_uri
     ~service
-    ~sp:((_,si,_) as sp)
+    ~sp
     getparams : string =
   match get_kind_ service with
   | `Attached attser ->

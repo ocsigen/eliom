@@ -28,7 +28,12 @@ open Extensions
 
 exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
 exception Eliom_Link_too_old (** The coservice does not exist any more *)
-exception Eliom_Session_expired (** The cookie does not exist any more *)
+exception Eliom_Session_expired of (string list * string list)
+    (** The cookie does not exist any more.
+       The string lists are the list of names of expired sessions
+       (persistent sessions for the first one,
+       in memory sessions for the second list).
+     *)
 exception Eliom_Typing_Error of (string * exn) list
     (** The service (GET or POST) parameters do not match expected type *)
 
@@ -38,7 +43,7 @@ exception Eliom_function_forbidden_outside_site_loading of string (** That funct
 (**/**)
 exception Eliom_duplicate_registration of string (** The service has been registered twice*)
 exception Eliom_page_erasing of string (** The location where you want to register something already exists *)
-exception Eliom_there_are_unregistered_services of string (** Some services have not been registered *)
+exception Eliom_there_are_unregistered_services of string list (** Some services have not been registered *)
 exception Eliom_error_while_loading_site of string
 
 
@@ -48,10 +53,10 @@ type anon_params_type = int
 
 type tables
 
-type cookiestable
+type 'a cookiestable
 type pages_tree = 
     tables (* global tables of continuations/naservices *)
-      * cookiestable (* session tables *)
+      * tables cookiestable (* session tables *)
       * ((string -> unit) ref (* remove_session_data *) *
            (string -> bool) ref (* not_bound_in_tables *))
 
@@ -59,31 +64,122 @@ type sess_info =
     {si_other_get_params: (string * string) list;
      si_all_get_params: (string * string) list;
      si_all_post_params: (string * string) list;
-     si_cookie: string option ref;
-     si_persistent_cookie: (string * int64) option ref;
+
+     si_session_cookies: (string (* cookie name (or site dir) *) * 
+                    string (* value *)) list;
+     (* the session cookies sent by the request *)
+
+     si_persistent_session_cookies: (string (* cookie name (or site dir) *) *
+                               string (* value *)) list;
+     (* the persistent session cookies sent by the request *)
+
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
      si_exn: exn list;
      si_config_file_charset: string option}
 
+
 module Cookies : Hashtbl.S with type key = string
 
+
+
+type 'a one_cookie_info =
+    (* in memory sessions: *)
+    (string                   (* current value *) *
+     'a ref                   (* service session table
+                                 ref towards cookie table
+                               *) * 
+     float option option ref  (* user timeout - 
+                                 None = see global config
+                                 Some None = no timeout
+                                 ref towards cookie table
+                               *) * 
+     float option ref         (* expiration date ref (server side) - 
+                                 None = never
+                                 ref towards cookie table
+                               *) * 
+     float option option ref  (* cookie expiration date to set
+                                 None = nothing to set
+                                 Some None = set expiration = browser close
+                                 Some Some = send expiration date
+                               *)
+    )
+
+type one_persistent_cookie_info =
+     (string                   (* current value *) *
+      int64                    (* key (here to ensure concistancy of tables
+                                  and privacy of data (reuse of old cookie).
+                                  Actually not needed 
+                                  with the cookie we use). *) *
+      float option option ref  (* user timeout - 
+                                  None = see global config
+                                  Some None = no timeout
+                                *) * 
+      float option option ref  (* cookie expiration date to set
+                                  None = nothing to set
+                                  Some None = set expiration = browser close
+                                  Some Some = send expiration date
+                                *)
+
+     )
+
+
+type 'a cookie_info =
+    (* in memory sessions: *)
+    (string                    (* cookie name *) 
+       * 
+
+     (string option            (* value sent by the browser *)
+                               (* None = new cookie 
+                                   (not sent by the browser) *)
+        *
+
+      'a one_cookie_info option ref)
+       (* None = the cookie has been removed in the table.
+          Ask the browser to remove the cookie *)
+    )
+      list ref *
+      
+      (* persistent sessions: *)
+    (string                    (* cookie name *) 
+       *
+
+     ((string                  (* value sent by the browser *) *
+       float option option     (* timeout at the beginning of the request *) *
+       float option            (* (server side) expdate 
+                                  at the beginning of the request
+                                  None = no exp *))
+        option
+                               (* None = new cookie 
+                                   (not sent by the browser) *)
+       *
+
+       one_persistent_cookie_info option ref)
+       (* None = the cookie has been removed in the table.
+          Ask the browser to remove the cookie *)
+       
+    )
+      list ref
+
+
+
+
+
 type 'a server_params1 = 
-    request_info * sess_info * 
-      (current_dir (* main directory of the site *) *
-         ('a (* global table *) * 
-            ('a * string list * float option * float option option ref)
-            Cookies.t (* cookies table *) * 
-            ((string -> unit) ref * (* remove_session_data *)
-             (string -> bool) ref)) * (* are_empty_session_tables *)
-         'a ref (* session table ref *) * 
-         (float option option ref * float option ref *
-            float option option ref * float option ref) 
-         (* user timeout for this site (None -> see global config)
-            and expiration date for the cookie (None -> browser) 
-            then the same for persistent session
-          *) *
-         url_path (* suffix *))
+    {sp_ri:request_info;
+     sp_si:sess_info;
+     sp_site_dir:url_path (* main directory of the site *);
+     sp_site_dir_string:string (* the same, but string *);
+     sp_global_table:'a (* global table *);
+     sp_cookie_table: 'a cookiestable (* cookies table for volatile sessions *);
+     sp_remove_sess_data:(string -> unit) ref (* remove_session_data *);
+     sp_are_empty_tables:(string -> bool) ref (* are_empty_session_tables *);
+     sp_cookie_info:'a cookie_info;
+     sp_suffix:url_path (* suffix *);
+     sp_fullsessname:string option (* the name of the session to which belong the service that answered (if it is a session service) *)}
+
+      
+
 
 
       
@@ -129,7 +225,7 @@ val add_service :
 
 val add_naservice :
     tables -> 
-      current_dir ->
+      url_path ->
 	bool -> 
 	  (string option * string option) -> 
             (int ref option *
@@ -149,16 +245,33 @@ val na_co_param_prefix : string
 val config : Simplexmlparser.xml list ref
 
 
-val set_global_timeout : url_path -> float option -> unit
-val find_global_timeout : url_path -> float option
+val set_global_timeout :
+    session_name:string option ->
+    recompute_expdates:bool ->
+    Extensions.url_path ->
+    (Cookies.key -> unit) ->
+    tables cookiestable ->
+    float option -> unit Lwt.t
+
+val get_global_timeout : session_name:string option -> url_path -> float option
+
+val set_global_persistent_timeout :
+    session_name:string option ->
+    recompute_expdates:bool ->
+    Extensions.url_path -> float option -> unit Lwt.t
+
+val get_global_persistent_timeout : session_name:string option ->
+  url_path -> float option
+
 val get_default_timeout : unit -> float option
-val set_global_persistent_timeout : url_path -> float option -> unit
-val find_global_persistent_timeout : url_path -> float option
+
+val set_default_timeout : float option -> unit
+
 val get_default_persistent_timeout : unit -> float option
 
-val create_persistent_cookie : server_params -> (string * int64) Lwt.t
-val create_cookie : server_params -> string
-val remove_session : server_params -> unit
+val set_default_persistent_timeout : float option -> unit
+
+
 val create_table : unit -> 'a Cookies.t
 val create_table_during_session : server_params -> 'a Cookies.t
 val create_persistent_table : string -> 'a Ocsipersist.table
@@ -166,6 +279,38 @@ val remove_from_all_persistent_tables : string -> unit Lwt.t
 
 val set_site_handler : url_path -> 
   (server_params -> exn -> result_to_send Lwt.t) -> unit
+
+val find_or_create_cookie : 
+    ?session_name:string -> sp:server_params -> unit -> tables one_cookie_info
+
+val find_cookie_only : 
+    ?session_name:string -> sp:server_params -> unit -> tables one_cookie_info
+
+val find_or_create_persistent_cookie : 
+    ?session_name:string -> sp:server_params -> unit 
+      -> one_persistent_cookie_info Lwt.t
+
+val find_persistent_cookie_only : 
+    ?session_name:string -> sp:server_params -> unit -> one_persistent_cookie_info
+
+
+
+val close_persistent_session :
+    ?session_name:string -> sp:server_params -> unit -> unit Lwt.t
+
+val close_volatile_session :
+    ?session_name:string -> sp:server_params -> unit -> unit
+
+val close_all_persistent_sessions :
+    ?session_name:string -> url_path -> unit Lwt.t
+
+val close_all_volatile_sessions :
+    ?session_name:string ->
+      (string -> unit) ->
+        tables cookiestable ->
+          url_path -> unit Lwt.t
+
+
 
 (** Profiling *)
 val number_of_sessions : sp:server_params -> int

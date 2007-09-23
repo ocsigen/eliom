@@ -40,8 +40,6 @@ exception Error_in_config_file of string
 (*****************************************************************************)
 (** type of URL, without parameter *)
 type url_path = string list
-type current_url = string list
-type current_dir = string list
 
 let string_of_url_path = Ocsimisc.string_of_url_path
 

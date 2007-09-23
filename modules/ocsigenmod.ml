@@ -43,7 +43,7 @@ exception Ocsigen_error_while_loading_site of string
 
 (*****************************************************************************)
 type 'a server_params1 = 
-    request_info * current_dir * 'a ref
+    request_info * url_path * 'a ref
       
 type 'a server_params2 = url_path * 'a server_params1
       
@@ -225,7 +225,7 @@ let absolute_change_hostdir, get_current_hostdir,
 let add_unregistered, remove_unregistered, verify_all_registered =
   let l = ref [] in
   ((fun a -> l := a::!l),
-   (fun a -> l := list_remove a !l),
+   (fun a -> l := list_remove_first_if_any a !l),
    (fun () -> 
      match !l with [] -> () 
      | (a,_)::_ -> raise (Ocsigen_there_are_unregistered_services (string_of_url_path a))))

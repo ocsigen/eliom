@@ -73,11 +73,11 @@ module type XHTMLFORMSSIG = sig
    (see the module XHTML.M) *)
 
   val css_link : ?a:(link_attrib attrib list) ->
-    uri:uri -> [> link ] elt
+    uri:uri -> unit ->[> link ] elt
 (** Creates a [<link>] tag for a Cascading StyleSheet (CSS). *)
 
   val js_script : ?a:(script_attrib attrib list) ->
-    uri:uri -> [> script ] elt
+    uri:uri -> unit -> [> script ] elt
 (** Creates a [<script>] tag to add a javascript file *)
 
     val make_uri :
