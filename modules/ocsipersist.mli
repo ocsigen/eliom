@@ -102,6 +102,18 @@ val iter_step : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
 val iter_table : (string -> 'a -> unit Lwt.t) -> 'a table -> unit Lwt.t
 (** Legacy interface for iter_step *)
 
+val fold_step : (string -> 'a -> 'b -> 'b Lwt.t) -> 
+  'a table -> 'b -> 'b Lwt.t
+(** Important warning: this iterator may not iter on all data of the table
+    if another thread is modifying it in the same time. Nonetheless, it should
+    not miss more than a very few data from time to time, except if the table
+    is very old (at least 9 223 372 036 854 775 807 insertions).
+ *)
+
+val fold_table : (string -> 'a -> 'b -> 'b Lwt.t) -> 
+  'a table -> 'b -> 'b Lwt.t
+(** Legacy interface for iter_step *)
+
 (**/**)
 val iter_block : (string -> 'a -> unit) -> 'a table -> unit Lwt.t
 (** MAJOR WARNING: Unlike iter_step, this iterator won't miss any 

@@ -482,7 +482,7 @@ module MakeRegister = functor
               (match global_register_allowed () with
               | Some get_current_hostdir ->
                   remove_unregistered url;
-                  let (globtable, _, _), curdir = get_current_hostdir () in
+                  let (globtable, _, _, _), curdir = get_current_hostdir () in
                   register_aux 
                     curdir
                     globtable
@@ -518,7 +518,7 @@ module MakeRegister = functor
           register_aux
             ?error_handler
             (get_site_dir sp)
-            !(get_session_table ?session_name ~sp ())
+            !(get_session_service_table ?session_name ~sp ())
             true 
             ~service page
 

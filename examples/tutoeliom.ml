@@ -1391,13 +1391,14 @@ let session_data_example_handler sp _ _  =
        (body 
           [
            match sessdat with
-           | Some name -> 
+           | Eliomsessions.Data name -> 
                p [pcdata ("Hello "^name); 
                   br (); 
                   Eliompredefmod.Xhtml.a 
                     session_data_example_close
                     sp [pcdata "close session"] ()]
-           | None -> 
+           | Eliomsessions.Data_session_expired 
+           | Eliomsessions.No_data -> 
                Eliompredefmod.Xhtml.post_form 
                  session_data_example_with_post_params
                  sp
@@ -1440,8 +1441,9 @@ let session_data_example_close_handler sp () () =
        (head (title (pcdata "Disconnect")) [])
        (body [
         (match sessdat with
-        | None   -> p [pcdata "You were not connected."]
-        | Some _ -> p [pcdata "You have been disconnected."]);
+        | Data_session_expired -> p [pcdata "Your session has expired."]
+        | No_data -> p [pcdata "You were not connected."]
+        | Data _ -> p [pcdata "You have been disconnected."]);
         p [Eliompredefmod.Xhtml.a session_data_example sp [pcdata "Retry"] () ]]))
 
 
@@ -1488,11 +1490,12 @@ let _ = register
            (head (title (pcdata "")) [])
            (body 
               [match sessdat with
-              | Some name ->
+              | Data name ->
                   p [pcdata ("Hello "^name); br ();
                      a close sp [pcdata "close session"] ()
                    ]
-              | None -> 
+              | Data_session_expired
+              | No_data -> 
                   post_form sessdata_with_post_params sp
                     (fun login -> 
                       [p [pcdata "login: ";
@@ -1585,7 +1588,7 @@ let _ = register
       We first define the main page, with a login form:
       </p>
 *html*)(*zap* *)
-let _ = set_default_timeout (Some 3600.)
+let _ = set_default_volatile_timeout (Some 3600.)
 let _ = set_default_persistent_timeout (Some 86400.)
 (* *zap*)
 (************************************************************)
@@ -2194,9 +2197,7 @@ let login_box sp =
          (let l = [pcdata "login: "; 
                    Eliompredefmod.Xhtml.string_input
                      ~input_type:`Text ~name:loginname ()]
-         in (*zap*           if List.mem Eliom_Session_expired (get_exn sp)
-               then (pcdata "Session expired")::(br ())::l
-               else *zap*) l)
+         in l)
      ])
     ()
 (*html*
@@ -2213,10 +2214,11 @@ let action_example_handler sp () () =
        (head (title (pcdata "")) [])
        (body 
           (match sessdat with
-          | Some name ->
+          | Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | None -> [login_box sp]
+          | Data_session_expired
+          | No_data -> [login_box sp]
           )))
     
 
@@ -2574,8 +2576,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     they were called. Get this information using 
      $a (static_dir sp) sp [code [pcdata "Eliomsessions.get_exn sp" ]] ["doc/"^version^"/Eliomsessions.html#VALget_exn"]$; That function returns a list of exceptions.
     That list contains $a (static_dir sp) sp [code [pcdata "Eliommod.Eliom_Link_too_old" ]] ["doc/"^version^"/Eliommod.html#EXCEPTIONEliom_Link_too_old"]$ if the coservice
-    was not found, and $a (static_dir sp) sp [code [pcdata "Eliommod.Eliom_Session_expired" ]] ["doc/"^version^"/Eliommod.html#EXCEPTIONEliom_Session_expired"]$ if the session
-    has expired.
+    was not found, and $a (static_dir sp) sp [code [pcdata "Eliommod.Eliom_Service_session_expired" ]] ["doc/"^version^"/Eliommod.html#EXCEPTIONEliom_Service_session_expired"]$ if the "service session" has expired.
     </p>
     <p>
     It is also possible to tell actions to send informations to the page
@@ -2634,7 +2635,7 @@ exception Bad_user
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
 
-let login_box sp action =
+let login_box sp session_expired action =
   Eliompredefmod.Xhtml.post_form action sp
     (fun loginname ->
       let l =
@@ -2647,11 +2648,7 @@ let login_box sp action =
       [p (if List.mem Bad_user exnlist
       then (pcdata "Wrong user")::(br ())::l
       else 
-        if List.exists
-            (function 
-              | Eliommod.Eliom_Session_expired _ -> true
-              | _ -> false)
-            exnlist
+        if session_expired
         then (pcdata "Session expired")::(br ())::l
         else l)
      ])
@@ -2668,10 +2665,13 @@ let action_example2_handler sp () () =
        (head (title (pcdata "")) [])
        (body 
           (match sessdat with
-          | Some name ->
+          | Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | None -> [login_box sp connect_action;
+          | Data_session_expired -> 
+              [login_box sp true connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          | No_data -> [login_box sp false connect_action;
                      p [em [pcdata "The only user is 'toto'."]]]
           )))
 
@@ -2737,7 +2737,9 @@ let _ = register disposable
       return
         (html
           (head (title (pcdata "")) [])
-          (body [p [(if List.mem Eliommod.Eliom_Link_too_old (Eliomsessions.get_exn sp)
+          (body [p [(if List.mem
+                          Eliommod.Eliom_Link_too_old
+                          (Eliomsessions.get_exn sp)
                     then pcdata "Your link was outdated. I am the fallback. \
                             I just created a new disposable coservice. \
                             You can use it only twice."
@@ -2755,19 +2757,19 @@ let _ = register disposable
        You can change that value for your whole site during initialisation 
        using:</p>
 <pre>
-Eliomsessions.set_global_timeout (Some 7200.)
+Eliomsessions.set_global_volatile_timeout (Some 7200.)
 </pre>
       <p>Here 7200 seconds. <code>None</code> means no timeout.</p>
       <p>
        You can change that value for your whole site after initialisation 
        using:</p>
 <pre>
-Eliomsessions.set_global_timeout ~sp (Some 7200.)
+Eliomsessions.set_global_volatile_timeout ~sp (Some 7200.)
 </pre>
       <p>
        You can change that value for one user only using:</p>
 <pre>
-Eliomsessions.set_user_timeout ~sp (Some 7200.)
+Eliomsessions.set_volatile_session_timeout ~sp (Some 7200.)
 </pre>
       <p>
       Note that there is also a possibility to change the default value
@@ -2779,7 +2781,8 @@ Eliomsessions.set_user_timeout ~sp (Some 7200.)
 </pre>
      <p><code>value="infinity"</code> means no timeout.</p>
      <p>Warning: that default may be overriden by each site using 
-        $a (static_dir sp) sp [code [pcdata "Eliomsessions.set_global_timeout" ]] ["doc/"^version^"/Eliomsessions.html#VALset_global_timeout"]$.
+        $a (static_dir sp) sp [code [pcdata "Eliomsessions.set_global_volatile_timeout" ]] ["doc/"^version^"/Eliomsessions.html#VALset_global_volatile_timeout"]$ or
+        $a (static_dir sp) sp [code [pcdata "Eliomsessions.set_default_volatile_timeout" ]] ["doc/"^version^"/Eliomsessions.html#VALset_default_volatile_timeout"]$.
         If you want your user to be able to set the default in the 
         configuration file for your site (between <code>&lt;site&gt;</code>
         and <code>&lt;/site&gt;</code>), you must parse the configuration
@@ -3097,7 +3100,7 @@ exception Bad_user
 (* -------------------------------------------------------- *)
 (* new login box:                                           *)
 
-let login_box sp action =
+let login_box sp session_expired action =
   Eliompredefmod.Xhtml.post_form action sp
     (fun loginname ->
       let l =
@@ -3110,11 +3113,7 @@ let login_box sp action =
       [p (if List.mem Bad_user exnlist
       then (pcdata "Wrong user")::(br ())::l
       else 
-        if List.exists
-            (function 
-              | Eliommod.Eliom_Session_expired _ -> true
-              | _ -> false)
-            exnlist
+        if session_expired
         then (pcdata "Session expired")::(br ())::l
         else l)
      ])
@@ -3133,11 +3132,14 @@ let persist_session_example_handler sp () () =
        (head (title (pcdata "")) [])
        (body 
           (match sessdat with
-          | Some name ->
+          | Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | None -> [login_box sp persist_session_connect_action;
-                     p [em [pcdata "The only user is 'toto'."]]]
+          | Data_session_expired -> 
+              [login_box sp true persist_session_connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          | No_data -> [login_box sp false persist_session_connect_action;
+                        p [em [pcdata "The only user is 'toto'."]]]
           )))
 
 
@@ -3816,12 +3818,13 @@ let uploadform = register upload
 
 let home sp () () =
    match get_session_data ~table:my_table ~sp () with
-   | None ->
+   | Data_session_expired
+   | No_data ->
      page sp
        [h1 [pcdata "My site"];
         login_box sp connect_action;
         news_headers_list_box sp anonymoususer news_page]
-   | Some user ->
+   | Data user ->
       page sp
         [h1 [pcdata "Mon site"];
          text_box "Bonjour !";
@@ -3830,12 +3833,13 @@ let home sp () () =
 
 let print_news_page sp i () = 
    match get_session_data ~table:my_table ~sp () with
-   | None ->
+   | Data_session_expired
+   | No_data ->
       page sp
         [h1 [pcdata "Info"];
          login_box sp connect_action;
          message_box i anonymoususer]
-   | Some user ->
+   | Data user ->
       page sp
         [h1 [pcdata "Info"];
          connected_box sp user disconnect_action;
@@ -3936,17 +3940,17 @@ let _ = register main
        <p>
          Coservices: 
              $a coservices_example sp <:xmllist< <code>coservice</code> >> ()$ <br/> 
-         A session based on cookies: 
-             $a session_services_example sp <:xmllist< <code>sessionservices</code> >> ()$ <br/> 
+         A session based on cookies, implemented with session data:
+             $a session_data_example sp <:xmllist< <code>sessdata</code> >> ()$ <br/>
          A session based on cookies, implemented with actions: 
              $a action_example sp <:xmllist< <code>actions</code> >> ()$ <br/>
+         A session based on cookies, with session services: 
+             $a session_services_example sp <:xmllist< <code>sessionservices</code> >> ()$ <br/> 
          The same with wrong user if not "toto": 
              $a action_example2 sp <:xmllist< <code>actions2</code> >> ()$ <br/>
          Coservices in the session table:
              $a calc sp <:xmllist< <code>calc</code> >> ()$ <br/>
        <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< <code>shop</code> >> ()$) -->
-         Session data:
-             $a session_data_example sp <:xmllist< <code>sessdata</code> >> ()$ <br/>
          Persistent sessions:
              $a persist_session_example sp <:xmllist< <code>persist</code> >> ()$ <br/>
        </p>

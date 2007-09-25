@@ -162,7 +162,7 @@ let (db_get, db_replace, db_replace_if_exists) =
        (fun db -> ignore (get tablekey db); replace tablekey value db)))
 
 
-let db_iter_step table f rowid =
+let db_iter_step table rowid =
   let sql = 
     sprintf "SELECT key , value , ROWID FROM %s WHERE ROWID > :rowid" table in
   let iter db = 
@@ -176,7 +176,7 @@ let db_iter_step table f rowid =
               Some (k, v, rowid)
 	  | _ -> assert false )
       | Rc.DONE -> ignore(finalize stmt) ; None
-      | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
+      | Rc.BUSY | Rc.LOCKED -> yield () ; aux ()
       | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
     in aux ()
   in
@@ -278,7 +278,7 @@ let remove table key =
   
 let iter_step f table =
   let rec aux rowid =
-    db_iter_step table f rowid >>=
+    db_iter_step table rowid >>=
     (function
       | None -> return ()
       | Some (k,v,rowid') -> 
@@ -286,10 +286,22 @@ let iter_step f table =
   in
   aux Int64.zero
     
+let fold_step f table beg =
+  let rec aux rowid beg =
+    db_iter_step table rowid >>=
+    (function
+      | None -> return beg
+      | Some (k, v, rowid') -> 
+          f k (Marshal.from_string v 0) beg >>= (fun res -> aux rowid' res))
+  in
+  aux Int64.zero beg
+    
 let iter_block f table =
   db_iter_block table f
 
 let iter_table = iter_step
+
+let fold_table = fold_step
     
 let length table = 
   db_length table

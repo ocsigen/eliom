@@ -258,8 +258,19 @@ let iter_table f table =
   in
   aux db_firstkey
 
-
 let iter_step = iter_table
+  
+let fold_table f table beg =
+  let rec aux nextkey beg =
+    nextkey table >>=
+    (function
+      | None -> return beg
+      | Some k -> find table k >>= fun r ->
+          f k r beg >>= (fun res -> aux db_nextkey res))
+  in
+  aux db_firstkey beg
+
+let fold_step = fold_table
 
 let iter_block a b = failwith "iter_block not implemented for DBM. Please use Ocsipersist with sqlite"
 

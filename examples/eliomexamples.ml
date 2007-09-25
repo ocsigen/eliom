@@ -702,7 +702,7 @@ register_new_service
     (fun sp (t, recompute) () -> 
       set_global_persistent_timeout ~session_name:"persistent_sessions"
         ~recompute_expdates:recompute ~sp (Some (float_of_int t)) >>= fun () ->
-      set_global_timeout ~session_name:"action_example2"
+      set_global_volatile_timeout ~session_name:"action_example2"
         ~recompute_expdates:recompute ~sp (Some (float_of_int t)) >>= fun () ->
       return 
         (html

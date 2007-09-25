@@ -66,7 +66,8 @@ let _ =
           Some r
         with _ -> None
       in
-      let nsess = Eliomsessions.number_of_sessions sp in
+      let nssess = Eliomsessions.number_of_service_sessions sp in
+      let ndsess = Eliomsessions.number_of_data_sessions sp in
       let ntables = Eliomsessions.number_of_tables () in
       let ntableselts = Eliomsessions.number_of_table_elements () in
       Eliomsessions.number_of_persistent_sessions () >>=
@@ -133,8 +134,9 @@ Lwt.return
            queued (max 
         $str:(string_of_int (Ocsiconfig.get_max_number_of_threads_queued ()))$).</p>
      <h2>Sessions</h2>
-     <p>There are $str:string_of_int nsess$ Eliom sessions opened.<br/>
-     and $str:string_of_int ntables$ Eliom tables created $list:
+     <p>There are $str:string_of_int nssess$ Eliom service sessions opened,
+        $str:string_of_int ndsess$ Eliom in memory data sessions opened.<br/>
+     There are $str:string_of_int ntables$ Eliom in memory tables created $list:
       (match ntableselts with
       | [] -> dot
       | a::l -> list1 a l)
