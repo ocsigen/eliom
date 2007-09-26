@@ -32,6 +32,11 @@ SQLITEINSTALL= modules/ocsipersist-sqlite.cma
 else
 endif
 
+ifeq "$(CAMLZIP)" "YES"
+DEFLATEMODINSTALL= modules/deflatemod.cmo
+else
+endif
+
 ifeq "$(OCSIPERSISTDBM)" "YES"
 DBMINSTALL= modules/ocsipersist-dbm/ocsipersist-dbm.cma 
 else
@@ -44,7 +49,7 @@ TARGETSBYTE = baselib.byte lwt.byte xmlp4.byte http.byte server.byte modules.byt
 
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	modules/eliom.cma modules/ocsigenmod.cma \
-	modules/staticmod.cmo modules/cgimod.cmo modules/deflatemod.cmo \
+	modules/staticmod.cmo modules/cgimod.cmo $(DEFLATEMODINSTALL) \
 	$(DUCECMAO)
 PLUGINSCMITOINSTALL = modules/ocsipersist.cmi \
        modules/eliommkforms.cmi modules/eliommkreg.cmi \
@@ -159,7 +164,7 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc -html lwt/lwt.mli lwt/lwt_unix.mli lwt/lwt_util.mli modules/eliommkforms.mli modules/eliommkreg.mli modules/eliompredefmod.mli modules/eliommod.mli modules/eliomparameters.mli modules/eliomservices.mli modules/eliomsessions.mli server/extensions.mli server/preemptive.mli server/parseconfig.mli xmlp4/oldocaml/xhtmltypes.ml xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/ocsiheaders.mli http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli xmlp4/newocaml/simplexmlparser.mli $(DUCEDOC)
+	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc -html lwt/lwt.mli lwt/lwt_unix.mli lwt/lwt_util.mli modules/eliommkforms.mli modules/eliommkreg.mli modules/eliompredefmod.mli modules/eliommod.mli modules/eliomparameters.mli modules/eliomservices.mli modules/eliomsessions.mli server/extensions.mli server/preemptive.mli server/parseconfig.mli xmlp4/oldocaml/xhtmltypes.ml xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/ocsiheaders.mli http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 
 $(OCSIGENNAME).conf.local:
 	cat files/ocsigen.conf \
