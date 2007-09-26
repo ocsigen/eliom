@@ -49,8 +49,8 @@ set_defaults () {
     enable_ocamlduce=0
     enable_newocamlnet=1
     enable_sqlite=1
-    enable_camlzip=0
-	enable_dbm=1
+    enable_camlzip=1
+    enable_dbm=1
     prefix="/usr/local"
     bindir=""
     examplesdir=""
@@ -84,7 +84,7 @@ ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce t
 ehelp_newocamlnet="Use new/old versions of Ocamlnet (>= 2.0)"
 ehelp_sqlite="Compile ocsipersist with SQLite for persistent storage (default)"
 ehelp_dbm="Compile ocsipersist with DBM for persistent storage"
-ehelp_camlzip="Compile deflatemod module (requires camlzip); not loaded by default"
+ehelp_camlzip="Compile deflatemod module (requires camlzip); default is yes"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
 eoptions="debug bytecode nativecode ocamlduce newocamlnet sqlite dbm camlzip"
@@ -481,7 +481,7 @@ if [ "$enable_camlzip" -gt 0 ]; then
         echo "found"
     else
         echo "not found"
-        echo "Required library sqlite3 not found!"
+        echo "Required library camlzip not found!"
         exit 1
     fi
 

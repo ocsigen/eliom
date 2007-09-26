@@ -462,6 +462,12 @@ module type ELIOMFORMSIG =
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag *)
 
+    val any_textarea :
+        ?a:textarea_attrib_t ->
+          name:string -> ?value:pcdata_elt -> 
+            rows:int -> cols:int -> unit -> textarea_elt
+(** Creates a [<textarea>] tag for untyped form *)
+
     type 'a soption =
         option_attrib_t
           * 'a (* Content (or value if the following is present) *)
@@ -993,6 +999,11 @@ module MakeForms = functor
 
       let textarea ?a ~name =
         Pages.make_textarea ?a ~name:(string_of_param_name name)
+
+      let any_textarea ?a ~name =
+        Pages.make_textarea ?a ~name
+
+
 
       type 'a soption =
           option_attrib_t

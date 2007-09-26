@@ -521,6 +521,14 @@ module type XHTMLFORMSSIG = sig
               unit -> [> textarea ] elt
 (** Creates a [<textarea>] tag *)
 
+  val any_textarea : 
+      ?a:textarea_attrib attrib list ->
+        name:string -> 
+          ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
+            rows:int -> cols:int -> 
+              unit -> [> textarea ] elt
+(** Creates a [<textarea>] tag for untyped form *)
+
   type 'a soption =
       Xhtmltypes.option_attrib XHTML.M.attrib list
         * 'a (* Value to send *)
@@ -872,6 +880,16 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
               unit -> textarea elt :>
         ?a:textarea_attrib attrib list ->
           name:'a -> ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
+            rows:int -> cols:int -> 
+              unit -> [> textarea ] elt)
+
+  let any_textarea = (any_textarea : 
+        ?a:textarea_attrib attrib list ->
+          name:string -> ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
+            rows:int -> cols:int -> 
+              unit -> textarea elt :>
+        ?a:textarea_attrib attrib list ->
+          name:string -> ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
             rows:int -> cols:int -> 
               unit -> [> textarea ] elt)
 

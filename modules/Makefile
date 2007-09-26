@@ -119,7 +119,8 @@ eliomsessiondata.cmx: eliomsessiondata.ml
 	-rm ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
 	-touch ocsipersist.cmx
-# we remove ocsipersist.cmx, otherwise eliomsessiondata.cmx will will compiled against
+# we remove ocsipersist.cmx, 
+# otherwise eliomsessiondata.cmx will will compiled against
 # that precise version of ocsipersist.cmx
 
 eliommod.cmx: eliommod.ml
@@ -159,6 +160,9 @@ staticmod.cmxs: staticmod.cmx
 
 cgimod.cmxs: cgimod.cmx
 	$(CAMLOPT) -shared -linkall -o cgimod.cmxs cgimod.cmx
+
+deflatemod.cmxs: deflatemod.cmx
+	$(CAMLOPT) -shared -linkall -o deflatemod.cmxs deflatemod.cmx
 
 ocsipersist.cmxs: ocsipersist.cmx
 	$(CAMLOPT) -shared -linkall -o ocsipersist.cmxs ocsipersist.cmx

@@ -461,6 +461,12 @@ module type ELIOMFORMSIG =
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag *)
 
+    val any_textarea :
+        ?a:textarea_attrib_t ->
+          name:string -> ?value:pcdata_elt -> 
+            rows:int -> cols:int -> unit -> textarea_elt
+(** Creates a [<textarea>] tag for untyped form *)
+
     type 'a soption =
         option_attrib_t
           * 'a (* Content (or value if the following is present) *)
