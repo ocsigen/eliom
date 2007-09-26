@@ -33,12 +33,13 @@ open Ocsiheaders
 type compress_choice = No_compress of (string option * string option) list |
                        Compress_only of (string option * string option) list 
 
-let should_compress (Some t, Some t') choice_list = 
+let should_compress (t, t') choice_list = 
  let check = function
  |None, None -> true
  |None, Some x' -> x' = t' 
  |Some x, None -> x = t 
- |Some x, Some x' -> x = t && x' = t' in
+ |Some x, Some x' -> x = t && x' = t' 
+ in
  match choice_list with
  |Compress_only l -> List.exists check l
  |No_compress l -> List.for_all (fun c -> not (check c)) l
@@ -320,16 +321,21 @@ let select_encoding accept_header =
 
 exception No_compress
 
-let stream_filter deflate choice (Some contenttype) (len, etag, stream, finalize) = 
+let stream_filter deflate choice contenttype (len, etag, stream, finalize) = 
  try (
- match Ocsiheaders.parse_mime_type contenttype with
- |None,_|_,None -> raise No_compress
- |c when should_compress c choice ->
-  return (None, (if deflate then "Ddeflatemod" else "Gdeflatemod")^etag, 
-          compress deflate stream, finalize)
- |_ -> raise No_compress)
+   match contenttype with
+   | None -> raise No_compress (* il faudrait défaut ? *)
+   | Some contenttype ->
+       match Ocsiheaders.parse_mime_type contenttype with
+       | None, _ | _, None -> raise No_compress (* should never occure? *)
+       | (Some a, Some b) when should_compress (a, b) choice ->
+           return (None, 
+                   (if deflate then "Ddeflatemod" else "Gdeflatemod")^etag, 
+                   compress deflate stream, 
+                   finalize)
+       | _ -> raise No_compress)
  with Not_found | No_compress -> 
-  return (None, etag, stream, finalize)
+   return (None, etag, stream, finalize)
 
 let filter ri res =
   (* TODO: Ici il faut regarder dans l'arbre de configuration
