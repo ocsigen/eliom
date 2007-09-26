@@ -98,7 +98,7 @@ val get_cookies : sp:Eliommod.server_params -> (string * string) list
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
-    with {!set_session_timeout} won't be affected.
+    with {!set_volatile_session_timeout} won't be affected.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
@@ -118,7 +118,7 @@ val set_global_volatile_timeout :
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
-    with {!set_session_timeout} won't be affected.
+    with {!set_service_session_timeout} won't be affected.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
@@ -138,7 +138,7 @@ val set_global_service_timeout :
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
-    with {!set_session_timeout} won't be affected.
+    with {!set_data_session_timeout} won't be affected.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
@@ -216,7 +216,7 @@ val set_default_data_timeout : float option -> unit
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
-    with {!set_session_timeout} won't be affected.
+    with {!set_persistent_session_timeout} won't be affected.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
@@ -271,6 +271,8 @@ val unset_service_session_timeout :
  *)
 val get_service_session_timeout :
     ?session_name:string -> sp:Eliommod.server_params -> unit -> float option
+
+
 
 
 (** sets the timeout for in memory data session (server side) for one user, 
@@ -508,8 +510,8 @@ val remove_persistent_data : ?session_name:string ->
 (*****************************************************************************)
 (** {2 Closing sessions} *)
 
-(** Close Eliom's current service session, 
-   in memory data session and persistent session *)
+(** Close Eliom's current sessions (service session, 
+   in memory data session and persistent session) *)
 val close_session : ?session_name:string -> sp:Eliommod.server_params -> 
   unit -> unit Lwt.t
 

@@ -1561,7 +1561,9 @@ let _ = register
       To create a "session service", register the service in
       a "session service table" (valid only for one client) 
       instead of the public table. To do that,
-      use <span class="Cem"><code>register_for_session</code></span>.
+      use <span class="Cem"><code>register_for_session</code></span>
+      (for example
+     <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.register_for_session" ]] ["doc/"^version^"/Eliommkreg.ELIOMREGSIG1.html#VALregister_for_session"]$</span>).<br/>
       </p><p>
       Users are recognized automatically using a cookie.
       Use this for example if you want two versions of each page,
@@ -2143,7 +2145,7 @@ let () =
    For example
      <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions.register" ]] ["doc/"^version^"/Eliompredefmod.Actions.html#VALregister"]$</span>,
      <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions.register_new_service" ]] ["doc/"^version^"/Eliompredefmod.Actions.html#VALregister_new_service"]$</span>,
-     <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions.register_for_session" ]] ["doc/"^version^"/Eliompredefmod.Actions.html#VALregister_for_session"]$</span>.<br/>
+     <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions.register_for_session" ]] ["doc/"^version^"/Eliommkreg.ELIOMREGSIG1.html#VALregister_for_session"]$</span>.<br/>
       </p>
       <p>Here we rewrite the example <code>session_data_example</code> 
       using actions
@@ -2923,6 +2925,35 @@ let _ = Eliomsessions.set_exn_handler
        Warning: parsing these data is very basic for now.
        That feature will be improved in the future.
       </p>
+     <h4>More about sessions</h4>
+      <p>By default, Eliom is using three cookies :</p>
+      <ul>
+        <li>One for session services,</li>
+        <li>one for in memory session data,</li>
+        <li>one for persistent session data.</li>
+      </ul>
+      <p>This corresponds to three sessions opened if needed.
+   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_session" ]] ["doc/"^version^"/Eliomsessions.html#VALclose_session"]$</span>
+       closes all three sessions, but you may want to desynchronize
+       the three sessions by using
+   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_persistent_session" ]] ["doc/"^version^"/Eliomsessions.html#VALclose_persistent_session"]$</span> (persistent session),
+   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_service_session" ]] ["doc/"^version^"/Eliomsessions.html#VALclose_service_session"]$</span> (session services), or
+   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_data_session" ]] ["doc/"^version^"/Eliomsessions.html#VALclose_data_session"]$</span> (in memory data session).
+     There is also
+   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_volatile_session" ]] ["doc/"^version^"/Eliomsessions.html#VALclose_volatile_session"]$</span> for both in memory data session and session services.
+       The module $a (static_dir sp) sp [code [pcdata "Eliomsessions" ]] ["doc/"^version^"/Eliomsessions.html"]$ also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
+      </p>
+      <p>If you need more sessions (for example several different data sessions)
+         for the same site, you can give a name to your sessions by giving
+         the optional parameter <code>?session_name</code> to functions like
+     <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_data_session" ]] ["doc/"^version^"/Eliomsessions.html#VALclose_data_session"]$</span>,
+     <span class="Cem">$a (static_dir sp) sp [code [pcdata "register_for_session" ]] ["doc/"^version^"/Eliommkreg.ELIOMREGSIG1.html#VALregister_for_session"]$</span>, or
+      $a (static_dir sp) sp [code [pcdata "Eliomsessions.get_session_data" ]] ["doc/"^version^"/Eliomsessions.html#VALget_session_data"]$.
+       Note that this tutorial has been implemented using this feature,
+       even if it has been hidden for the sake of simplicity.
+       That's how the different examples of sessions in this tutorial are
+       independant.
+      </p>
     </div>
 
 
@@ -3360,7 +3391,7 @@ let setform = register_new_service
       <h4>Select</h4>
       <p>Here is an example of a select box.</p>
 *html*)
-let select_example = register_new_service 
+let select_example_result = register_new_service 
     ~url:["select"]
     ~get_params:(string "s")
     (fun sp g () ->
@@ -3389,11 +3420,11 @@ let create_select_form =
           ;
         Eliompredefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]])
 
-let _ = register_new_service ["select"] unit
+let select_example = register_new_service ["select"] unit
   (fun sp () () -> 
      let f = 
        Eliompredefmod.Xhtml.get_form
-         select_example sp create_select_form 
+         select_example_result sp create_select_form 
      in 
      return
        (html
