@@ -104,6 +104,7 @@ type sess_info =
 
 
 
+type 'a session_cookie
 
 
 type 'a one_service_cookie_info =
@@ -170,12 +171,14 @@ type 'a cookie_info =
 
      (string option            (* value sent by the browser *)
                                (* None = new cookie 
-                                   (not sent by the browser) *)
+                                  (not sent by the browser) *)
         *
 
-      'a one_service_cookie_info option ref
-       (* None = the cookie has been removed in the table.
-          Ask the browser to remove the cookie *)
+      'a one_service_cookie_info session_cookie ref
+       (* SCNo_data = the session has been closed
+          SCData_session_expired = the cookie has not been found in the table.
+          For both of them, ask the browser to remove the cookie.
+        *)
      )
        (* This one is not lazy because we must check all service sessions
           at each request to find the services *)
@@ -191,9 +194,11 @@ type 'a cookie_info =
                                    (not sent by the browser) *)
         *
 
-      one_data_cookie_info option ref
-       (* None = the cookie has been removed in the table.
-          Ask the browser to remove the cookie *)
+      one_data_cookie_info session_cookie ref
+       (* SCNo_data = the session has been closed
+          SCData_session_expired = the cookie has not been found in the table.
+          For both of them, ask the browser to remove the cookie.
+        *)
      ) Lazy.t
        (* Lazy because we do not want to ask the browser to unset the cookie 
           if the cookie has not been used, otherwise it is impossible to 
@@ -215,9 +220,11 @@ type 'a cookie_info =
                                    (not sent by the browser) *)
        *
 
-       one_persistent_cookie_info option ref
-       (* None = the cookie has been removed in the table.
-          Ask the browser to remove the cookie *)
+       one_persistent_cookie_info session_cookie ref
+       (* SCNo_data = the session has been closed
+          SCData_session_expired = the cookie has not been found in the table.
+          For both of them, ask the browser to remove the cookie.
+        *)
        ) Lwt.t Lazy.t
     )
       list ref

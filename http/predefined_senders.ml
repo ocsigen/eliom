@@ -337,7 +337,6 @@ let send_generic
   let mkcookl (path, exp, cl) hds =
     List.fold_left (fun h c -> (mkcook path exp c)::h) hds cl
   in
-(List.iter (fun (a,b) -> print_string a; print_string ": "; print_endline b) (List.fold_left (fun h c -> (mkcookl c h)) [] cookies));
   let hds =
     List.fold_left (fun h c -> 
       (mkcookl c h)) hds cookies

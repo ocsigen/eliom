@@ -2557,6 +2557,265 @@ let _ = Cookies.register cookies
 (*html*
       <p>$a Tutoeliom.cookies sp <:xmllist< Try it >> ()$.</p>
     </div>
+
+
+    <h3 id="persistent">Persistence of sessions</h3>
+    <div class="twocol1">
+      <p>Tables of sessions (for data or services) are kept in memory,
+        and thus will disappear if you close the server process.
+        To solve this problem, Ocsigen allows to reload the modules of
+        your configuration file without shutting down the server.
+        Another solution provided by Eliom is to save session data on hard disk.
+      </p>
+
+      <h4>Updating sites without shutting down the server</h4>
+      <p>To reload the modules of the configuration file without
+       stoping the server, use <code>/etc/init.d/ocsigen reload</code>
+       for most of the distributions, or do it manually using:</p>
+       <pre>echo reload > /var/run/ocsigen_command</pre>.
+      <p>
+       Only modules loaded inside <code>&lt;site&gt;</code> or
+       <code>&lt;library&gt;</code> will be reloaded.
+       Module loaded using <code>&lt;extension&gt;</code> will not.
+      </p>
+      <p>
+        Have a look at the logs to see if all went well during the reload.
+        If something went wrong, old services may still be reachable.
+      </p>
+      <p>
+        Note that coservices created with the old modules or
+        URLs that have not been masked by new ones
+        will still reachable after the update.
+      </p>
+      <p>
+        During the reload, some information of the configuration file
+        will not be re-read (for example port numbers, user and group, etc.).
+      </p>
+
+
+      <h4>Persistent data</h4>
+      <p>
+        Eliom allows to use more persistent data, using the module
+        $a (static_dir sp) sp [code [pcdata "Ocsipersist" ]] ["doc/"^version^"/Ocsipersist.html"]$. (<code>Ocsipersist</code> is needed in 
+        <code>eliom.cma</code>, thus you need to dynlink it in the
+        configuration file before <code>Eliom</code>).
+        There are currently two implementations of <code>Ocsipersist</code>:
+        <code>ocsipersist-dbm.cma</code> and
+        <code>ocsipersist-sqlite.cma</code> (that depends on 
+        <code>sqlite3.cma</code>).
+      </p>
+      <p>Note that persistent data are serialized on hard disk using
+        OCaml's <code>Marshal</code> module. 
+      </p>
+      <ul>
+        <li>It is not possible to serialize closures or services</li>
+        <li>Do not modify the type of serialized data, otherwise the
+          server will crash!
+        </li>
+      </ul>
+      <h4>Persistent references</h4>
+      <p><code>Ocsipersist</code> allows to create persistent references.
+       Here is an example of page with a persistent counter:
+      </p>
+*html*)
+let mystore = Ocsipersist.open_store "eliomexamplestore"
+
+let count2 = 
+  let next =
+    let cthr = Ocsipersist.make_persistent mystore "countpage" 0 in
+    (fun () -> 
+      cthr >>=
+      (fun c -> Ocsipersist.get c >>=
+        (fun oldc -> 
+          let newc = oldc + 1 in
+          Ocsipersist.set c newc >>=
+          (fun () -> return newc))))
+  in
+  register_new_service 
+    ~url:["count2"]
+    ~get_params:unit
+    (fun _ () () ->  
+      next () >>=
+      (fun n ->
+        return
+         (html
+          (head (title (pcdata "counter")) [])
+          (body [p [pcdata (string_of_int n)]]))))
+
+(*html*
+      <p>
+      $a Tutoeliom.count2 sp <:xmllist< See this example here >> ()$.
+      </p>
+      <h4>Persistent tables</h4>
+      <p><code>Ocsipersist</code> also allows to create very basic
+       persistent tables. Use them if you don't need complex requests
+       on your tables. Otherwise use a database such as <code>PostgreSQL</code>
+       or <code>MySQL</code>. Here are the interface you can use:
+      </p>
+<pre>
+type 'value table
+
+val open_table : string -> 'value table
+
+val find : 'value table -> string -> 'value Lwt.t
+
+val add : 'value table -> string -> 'value -> unit Lwt.t
+
+val remove : 'value table -> string -> unit Lwt.t
+</pre>
+
+    <p>
+      As you can see, all these function are cooperative.
+    </p>
+    </div>
+    <div class="twocol2">
+      <h4>Persistent session data</h4>
+      <p><code>Eliom</code> also implements persistent session tables.
+       You can use them instead of memory tables if you don't need
+       to register closures.</p>
+      <p>The following example is a new version of our site
+       with users, with persistent connections. 
+       (<code>login_box</code>, <code>disconnect_box</code>
+       and <code>disconnect_action</code>
+       are the same as <a href="#actions">before</a>).
+      </p>
+
+*html*)
+(************************************************************)
+(************ Connection of users, version 5 ****************)
+(**************** (persistent sessions) *********************)
+(************************************************************)
+
+(*zap* *)
+let session_name = "persistent_sessions"
+(* *zap*)
+let my_persistent_table = 
+  create_persistent_table "eliom_example_table"
+
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let persist_session_example = 
+  Eliomservices.new_service
+    ~url:["persist"] 
+    ~get_params:unit 
+    ()
+
+let persist_session_connect_action = 
+  Eliomservices.new_post_coservice'
+    ~post_params:(string "login") 
+    ()
+
+(* disconnect_action, login_box and disconnect_box have been
+   defined in the section about actions *)(* *zap*)
+
+(* -------------------------------------------------------- *)
+(* Actually, no. It's a lie because we don't use the 
+   same session name :-) *)
+(* new disconnect action and box:                           *)
+
+let disconnect_action = 
+  Eliompredefmod.Actions.register_new_post_coservice'
+    ~post_params:Eliomparameters.unit 
+    (fun sp () () -> 
+      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+      return [])
+
+let disconnect_box sp s = 
+  Eliompredefmod.Xhtml.post_form disconnect_action sp 
+    (fun _ -> [p [Eliompredefmod.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+  
+exception Bad_user
+
+(* -------------------------------------------------------- *)
+(* new login box:                                           *)
+
+let login_box sp session_expired action =
+  Eliompredefmod.Xhtml.post_form action sp
+    (fun loginname ->
+      let l =
+        [pcdata "login: "; 
+         string_input ~input_type:`Text ~name:loginname ()]
+      in
+      let exnlist = Eliomsessions.get_exn sp in
+      (* If exnlist is not empty, something went wrong
+         during an action. We write an error message: *)
+      [p (if List.mem Bad_user exnlist
+      then (pcdata "Wrong user")::(br ())::l
+      else 
+        if session_expired
+        then (pcdata "Session expired")::(br ())::l
+        else l)
+     ])
+    ()
+
+(*zap* *)    
+
+(* ----------------------------------------------------------- *)
+(* Handler for "persist_session_example" service (main page):  *)
+
+let persist_session_example_handler sp () () = 
+  Eliomsessions.get_persistent_data (*zap* *) ~session_name (* *zap*) 
+    ~table:my_persistent_table ~sp () >>= fun sessdat ->
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body 
+          (match sessdat with
+          | Data name ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box sp "Close session"]
+          | Data_session_expired -> 
+              [login_box sp true persist_session_connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
+          | No_data -> [login_box sp false persist_session_connect_action;
+                        p [em [pcdata "The only user is 'toto'."]]]
+          )))
+
+
+(* ----------------------------------------------------------- *)
+(* Handler for persist_session_connect_action (user logs in):  *)
+
+let persist_session_connect_action_handler sp () login =
+  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+  if login = "toto" (* Check user and password :-) *)
+  then begin
+    Eliomsessions.set_persistent_data (*zap* *) ~session_name (* *zap*) ~table:my_persistent_table ~sp login >>= fun () ->
+    return []
+  end
+  else return [Bad_user]
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () = 
+  Eliompredefmod.Xhtml.register 
+    ~service:persist_session_example
+    persist_session_example_handler;
+  Eliompredefmod.Actions.register 
+    ~service:persist_session_connect_action 
+    persist_session_connect_action_handler
+(*html*
+      <p>
+      $a Tutoeliom.persist_session_example sp <:xmllist< See this example here >> ()$.
+      </p>
+   
+      <p>
+        As it is not possible to serialize closures, there is no persistent
+        session service table. Be very carefull if you use both persistent
+        session data tables and service session tables, 
+        as your session may become inconsistent (use the session service
+        table only for volatile services, like coservices with timeouts).
+      </p>
+   
+    </div>
+
+
+
     <h3>Other concepts</h3>
     <div class="twocol1">
     <h4 id="preapplied">Pre-applied services</h4>
@@ -2932,7 +3191,7 @@ let _ = Eliomsessions.set_exn_handler
         <li>one for in memory session data,</li>
         <li>one for persistent session data.</li>
       </ul>
-      <p>This corresponds to three sessions opened if needed.
+      <p>They correspond to three different sessions (opened only if needed).
    <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_session" ]] ["doc/"^version^"/Eliomsessions.html#VALclose_session"]$</span>
        closes all three sessions, but you may want to desynchronize
        the three sessions by using
@@ -2956,261 +3215,6 @@ let _ = Eliomsessions.set_exn_handler
       </p>
     </div>
 
-
-    <h3 id="persistent">Persistence of sessions</h3>
-    <div class="twocol1">
-      <p>Tables of sessions (for data or services) are kept in memory,
-        and thus will disappear if you close the server process.
-        To solve this problem, Ocsigen allows to reload the modules of
-        your configuration file without shutting down the server.
-        Another solution provided by Eliom is to save session data on hard disk.
-      </p>
-
-      <h4>Updating sites without shutting down the server</h4>
-      <p>To reload the modules of the configuration file without
-       stoping the server, use <code>/etc/init.d/ocsigen reload</code>
-       for most of the distributions, or do it manually using:</p>
-       <pre>echo reload > /var/run/ocsigen_command</pre>.
-      <p>
-       Only modules loaded inside <code>&lt;site&gt;</code> or
-       <code>&lt;library&gt;</code> will be reloaded.
-       Module loaded using <code>&lt;extension&gt;</code> will not.
-      </p>
-      <p>
-        Have a look at the logs to see if all went well during the reload.
-        If something went wrong, old services may still be reachable.
-      </p>
-      <p>
-        Note that coservices created with the old modules or
-        URLs that have not been masked by new ones
-        will still reachable after the update.
-      </p>
-      <p>
-        During the reload, some information of the configuration file
-        will not be re-read (for example port numbers, user and group, etc.).
-      </p>
-
-
-      <h4>Persistent data</h4>
-      <p>
-        Eliom allows to use more persistent data, using the module
-        $a (static_dir sp) sp [code [pcdata "Ocsipersist" ]] ["doc/"^version^"/Ocsipersist.html"]$. (<code>Ocsipersist</code> is needed in 
-        <code>eliom.cma</code>, thus you need to dynlink it in the
-        configuration file before <code>Eliom</code>).
-        There are currently two implementations of <code>Ocsipersist</code>:
-        <code>ocsipersist-dbm.cma</code> and
-        <code>ocsipersist-sqlite.cma</code> (that depends on 
-        <code>sqlite3.cma</code>).
-      </p>
-      <p>Note that persistent data are serialized on hard disk using
-        OCaml's <code>Marshal</code> module. 
-      </p>
-      <ul>
-        <li>It is not possible to serialize closures or services</li>
-        <li>Do not modify the type of serialized data, otherwise the
-          server will crash!
-        </li>
-      </ul>
-      <h4>Persistent references</h4>
-      <p><code>Ocsipersist</code> allows to create persistent references.
-       Here is an example of page with a persistent counter:
-      </p>
-*html*)
-let mystore = Ocsipersist.open_store "eliomexamplestore"
-
-let count2 = 
-  let next =
-    let cthr = Ocsipersist.make_persistent mystore "countpage" 0 in
-    (fun () -> 
-      cthr >>=
-      (fun c -> Ocsipersist.get c >>=
-        (fun oldc -> 
-          let newc = oldc + 1 in
-          Ocsipersist.set c newc >>=
-          (fun () -> return newc))))
-  in
-  register_new_service 
-    ~url:["count2"]
-    ~get_params:unit
-    (fun _ () () ->  
-      next () >>=
-      (fun n ->
-        return
-         (html
-          (head (title (pcdata "counter")) [])
-          (body [p [pcdata (string_of_int n)]]))))
-
-(*html*
-      <p>
-      $a Tutoeliom.count2 sp <:xmllist< See this example here >> ()$.
-      </p>
-      <h4>Persistent tables</h4>
-      <p><code>Ocsipersist</code> also allows to create very basic
-       persistent tables. Use them if you don't need complex requests
-       on your tables. Otherwise use a database such as <code>PostgreSQL</code>
-       or <code>MySQL</code>. Here are the interface you can use:
-      </p>
-<pre>
-type 'value table
-
-val open_table : string -> 'value table
-
-val find : 'value table -> string -> 'value Lwt.t
-
-val add : 'value table -> string -> 'value -> unit Lwt.t
-
-val remove : 'value table -> string -> unit Lwt.t
-</pre>
-
-    <p>
-      As you can see, all these function are cooperative.
-    </p>
-    </div>
-    <div class="twocol2">
-      <h4>Persistent session data</h4>
-      <p><code>Eliom</code> also implements persistent session tables.
-       You can use them instead of memory tables if you don't need
-       to register closures.</p>
-      <p>The following example is a new version of our site
-       with users, with persistent connections. 
-       (<code>login_box</code>, <code>disconnect_box</code>
-       and <code>disconnect_action</code>
-       are the same as <a href="#actions">before</a>).
-      </p>
-
-*html*)
-(************************************************************)
-(************ Connection of users, version 5 ****************)
-(**************** (persistent sessions) *********************)
-(************************************************************)
-
-(*zap* *)
-let session_name = "persistent_sessions"
-(* *zap*)
-let my_persistent_table = 
-  create_persistent_table "eliom_example_table"
-
-(* -------------------------------------------------------- *)
-(* We create one main service and two (POST) actions        *)
-(* (for connection and disconnection)                       *)
-
-let persist_session_example = 
-  Eliomservices.new_service
-    ~url:["persist"] 
-    ~get_params:unit 
-    ()
-
-let persist_session_connect_action = 
-  Eliomservices.new_post_coservice'
-    ~post_params:(string "login") 
-    ()
-
-(* disconnect_action, login_box and disconnect_box have been
-   defined in the section about actions *)(* *zap*)
-
-(* -------------------------------------------------------- *)
-(* Actually, no. It's a lie because we don't use the 
-   same session name :-) *)
-(* new disconnect action and box:                           *)
-
-let disconnect_action = 
-  Eliompredefmod.Actions.register_new_post_coservice'
-    ~post_params:Eliomparameters.unit 
-    (fun sp () () -> 
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
-      return [])
-
-let disconnect_box sp s = 
-  Eliompredefmod.Xhtml.post_form disconnect_action sp 
-    (fun _ -> [p [Eliompredefmod.Xhtml.string_input
-                    ~input_type:`Submit ~value:s ()]]) ()
-
-  
-exception Bad_user
-
-(* -------------------------------------------------------- *)
-(* new login box:                                           *)
-
-let login_box sp session_expired action =
-  Eliompredefmod.Xhtml.post_form action sp
-    (fun loginname ->
-      let l =
-        [pcdata "login: "; 
-         string_input ~input_type:`Text ~name:loginname ()]
-      in
-      let exnlist = Eliomsessions.get_exn sp in
-      (* If exnlist is not empty, something went wrong
-         during an action. We write an error message: *)
-      [p (if List.mem Bad_user exnlist
-      then (pcdata "Wrong user")::(br ())::l
-      else 
-        if session_expired
-        then (pcdata "Session expired")::(br ())::l
-        else l)
-     ])
-    ()
-
-(*zap* *)    
-
-(* ----------------------------------------------------------- *)
-(* Handler for "persist_session_example" service (main page):  *)
-
-let persist_session_example_handler sp () () = 
-  Eliomsessions.get_persistent_data (*zap* *) ~session_name (* *zap*) 
-    ~table:my_persistent_table ~sp () >>= fun sessdat ->
-  return
-    (html
-       (head (title (pcdata "")) [])
-       (body 
-          (match sessdat with
-          | Data name ->
-              [p [pcdata ("Hello "^name); br ()];
-              disconnect_box sp "Close session"]
-          | Data_session_expired -> 
-              [login_box sp true persist_session_connect_action;
-               p [em [pcdata "The only user is 'toto'."]]]
-          | No_data -> [login_box sp false persist_session_connect_action;
-                        p [em [pcdata "The only user is 'toto'."]]]
-          )))
-
-
-(* ----------------------------------------------------------- *)
-(* Handler for persist_session_connect_action (user logs in):  *)
-
-let persist_session_connect_action_handler sp () login =
-  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
-  if login = "toto" (* Check user and password :-) *)
-  then begin
-    Eliomsessions.set_persistent_data (*zap* *) ~session_name (* *zap*) ~table:my_persistent_table ~sp login >>= fun () ->
-    return []
-  end
-  else return [Bad_user]
-
-
-(* -------------------------------------------------------- *)
-(* Registration of main services:                           *)
-
-let () = 
-  Eliompredefmod.Xhtml.register 
-    ~service:persist_session_example
-    persist_session_example_handler;
-  Eliompredefmod.Actions.register 
-    ~service:persist_session_connect_action 
-    persist_session_connect_action_handler
-(*html*
-      <p>
-      $a Tutoeliom.persist_session_example sp <:xmllist< See this example here >> ()$.
-      </p>
-   
-      <p>
-        As it is not possible to serialize closures, there is no persistent
-        session service table. Be very carefull if you use both persistent
-        session data tables and service session tables, 
-        as your session may become inconsistent (use the session service
-        table only for volatile services, like coservices with timeouts).
-      </p>
-   
-    </div>
 
 
 

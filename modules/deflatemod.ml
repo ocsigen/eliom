@@ -205,9 +205,9 @@ let rec parse_global_config = function
                   "Can't parse mime-type content")) in
      (match b with
      |"only" -> choice_list := Compress_only l
-     |"never" -> choice_list := No_compress l
+     |"allbut" -> choice_list := No_compress l
      | _ ->  raise (Error_in_config_file 
-       "Attribute \"compress\" should be \"never\" or \"only\""))
+       "Attribute \"compress\" should be \"allbut\" or \"only\""))
   | _ -> raise (Error_in_config_file 
                   "Unexpected content inside deflatemod config")
 
