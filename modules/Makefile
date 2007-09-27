@@ -20,7 +20,7 @@ endif
 
 ifeq "$(CAMLZIP)" "YES"
 FILES:= $(FILES) deflatemod.ml
-PACKCAMLZIP=,camlzip
+PACKCAMLZIP=,$(CAMLZIPNAME)
 else
 endif
 

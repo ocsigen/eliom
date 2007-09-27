@@ -431,7 +431,7 @@ let close_all_sessions ?session_name ?sp () =
 (*****************************************************************************)
 (* Administration *)
 
-module Admin = struct
+module Session_admin = struct
 
   type service_session = 
       string (* cookie value *)

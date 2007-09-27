@@ -478,14 +478,22 @@ fi
 if [ "$enable_camlzip" -gt 0 ]; then
     printf "%s" "Checking for camlzip... "
     if ocamlfind query camlzip >/dev/null 2>/dev/null; then
-        echo "found"
+        echo "found camlzip"
+        camlzipdir=`ocamlfind query camlzip`
+        camlzipname=camlzip
     else
-        echo "not found"
-        echo "Required library camlzip not found!"
-        exit 1
+      if ocamlfind query zip >/dev/null 2>/dev/null; then
+          echo "found zip"
+          camlzipdir=`ocamlfind query zip`
+          camlzipname=zip
+      else
+          echo "not found"
+          echo "Required library camlzip (or libzip-ocaml) not found!"
+          exit 1
+      fi
+
     fi
 
-    camlzipdir=`ocamlfind query camlzip`
 fi
 
 
@@ -665,6 +673,9 @@ OCAMLSQLITE3DIR=$ocamlsqlite3dir
 
 # The directory where camlzip is installed
 CAMLZIPDIR=$camlzipdir
+
+# The name of camlzip package:
+CAMLZIPNAME=$camlzipname
 
 # Do you want deflatemod? (requires camlzip)
 CAMLZIP=$enable_camlzip

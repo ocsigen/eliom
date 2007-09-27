@@ -597,7 +597,7 @@ val close_all_data_sessions : ?session_name:string ->
   ?sp:Eliommod.server_params -> unit -> unit Lwt.t
   
 
-module Admin : sig  
+module Session_admin : sig  
 
   type service_session
   type data_session
