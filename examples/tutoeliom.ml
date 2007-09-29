@@ -496,7 +496,7 @@ let mytype =
       association list of strings. Example:
       </p>
 *html*)
-let any_serv = register_new_service 
+let raw_serv = register_new_service 
     ~url:["any"]
     ~get_params:Eliomparameters.any
   (fun _ l () ->
@@ -515,7 +515,7 @@ let any_serv = register_new_service
           </body>
         </html> >>)
 (*html*
-      <p>Try $a Tutoeliom.any_serv sp <:xmllist< <code>any_serv</code> >> 
+      <p>Try $a Tutoeliom.raw_serv sp <:xmllist< <code>raw_serv</code> >> 
          [("sun","yellow");("sea","blue")]$.</p>
       <div class="encadre">
         <h4>Catching errors</h4>
@@ -570,8 +570,8 @@ let links = register_new_service ["rep";"links"] unit
            [pcdata "uasuffix"] (2007,06); br ();
          Eliompredefmod.Xhtml.a coucou_params sp 
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-         Eliompredefmod.Xhtml.a any_serv sp 
-           [pcdata "any_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
+         Eliompredefmod.Xhtml.a raw_serv sp 
+           [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
          Eliompredefmod.Xhtml.a
            (new_external_service
               ~url:["http://fr.wikipedia.org";"wiki";""]
@@ -691,11 +691,11 @@ let form = register_new_service ["form"] unit
 
       <p>For untyped forms, you may use functions from XHTML.M (or 
       OCamlDuce's syntax, or whatever syntax you are using) or
-      functions whose name is prefixed by "<code>any_</code>".
+      functions whose name is prefixed by "<code>raw_</code>".
       Here is a form linking to our (untyped) service 
-      <code>any_serv</code>.</p>
+      <code>raw_serv</code>.</p>
 *html*)
-let any_form = register_new_service 
+let raw_form = register_new_service 
     ~url:["anyform"]
     ~get_params:unit
     (fun sp () () ->
@@ -704,16 +704,16 @@ let any_form = register_new_service
            (head (title (pcdata "")) [])
            (body 
               [h1 [pcdata "Any Form"];
-               Eliompredefmod.Xhtml.get_form any_serv sp 
+               Eliompredefmod.Xhtml.get_form raw_serv sp 
                  (fun () ->
-                   [p [pcdata "Form to any_serv: ";
-                       Eliompredefmod.Xhtml.any_input ~input_type:`Text ~name:"plop" ();
-                       Eliompredefmod.Xhtml.any_input ~input_type:`Text ~name:"plip" ();
-                       Eliompredefmod.Xhtml.any_input ~input_type:`Text ~name:"plap" ();
+                   [p [pcdata "Form to raw_serv: ";
+                       Eliompredefmod.Xhtml.raw_input ~input_type:`Text ~name:"plop" ();
+                       Eliompredefmod.Xhtml.raw_input ~input_type:`Text ~name:"plip" ();
+                       Eliompredefmod.Xhtml.raw_input ~input_type:`Text ~name:"plap" ();
                        Eliompredefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 (*html*
-      <p>Try this $a Tutoeliom.any_form sp <:xmllist< form >> ()$.</p>
+      <p>Try this $a Tutoeliom.raw_form sp <:xmllist< form >> ()$.</p>
       <h4>POST parameters</h4>
       <p>
    By default parameters of a Web page are in the URL (GET parameters).
@@ -4021,9 +4021,9 @@ let _ = register main
        A form to the previous one:
              $a setform sp <:xmllist< <code>setform</code> >> ()$ <br/> 
        A page that takes any parameter:
-             $a any_serv sp <:xmllist< <code>any_serv</code> >> [("a","hello"); ("b","ciao")]$ <br/> 
+             $a raw_serv sp <:xmllist< <code>raw_serv</code> >> [("a","hello"); ("b","ciao")]$ <br/> 
        A form to the previous one:
-             $a any_form sp <:xmllist< <code>any_form</code> >> ()$ <br/> 
+             $a raw_form sp <:xmllist< <code>raw_form</code> >> ()$ <br/> 
        A form for a list of parameters:
              $a listform sp <:xmllist< Try it >> ()$.<br/>
        </p>

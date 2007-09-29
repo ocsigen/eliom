@@ -502,9 +502,9 @@ let any2form = register_new_service
                     (fun (iname,grr) ->
                       [p [pcdata "Form to any2: ";
                           int_input ~input_type:`Text ~name:iname ();
-                          any_input ~input_type:`Text ~name:"plop" ();
-                          any_input ~input_type:`Text ~name:"plip" ();
-                          any_input ~input_type:`Text ~name:"plap" ();
+                          raw_input ~input_type:`Text ~name:"plop" ();
+                          raw_input ~input_type:`Text ~name:"plip" ();
+                          raw_input ~input_type:`Text ~name:"plap" ();
                           string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 
@@ -568,7 +568,7 @@ let create_listform f =
       []
   in
   [table (List.hd l) (List.tl l);
-   p [any_input ~input_type:`Submit ~value:"Click" ()]]
+   p [raw_input ~input_type:`Submit ~value:"Click" ()]]
 
 let listform = register_new_service ["boolform"] unit
   (fun sp () () -> 

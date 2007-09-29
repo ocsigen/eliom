@@ -338,7 +338,7 @@ module type XHTMLFORMSSIG = sig
           ?value:'a -> ('a -> string) -> [> input ] elt
 (** Creates an [<input>] tag for a user type *)
 
-  val any_input :
+  val raw_input :
       ?a:input_attrib attrib list -> 
         input_type:[< basic_input_type | `Reset | `Button ] ->
         ?name:string -> ?value:string -> unit -> [> input ] elt
@@ -387,7 +387,7 @@ module type XHTMLFORMSSIG = sig
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of user defined type *)
 
-  val any_image_input :
+  val raw_image_input :
       ?a:input_attrib attrib list -> 
         name:string -> value:string -> ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
@@ -444,7 +444,7 @@ module type XHTMLFORMSSIG = sig
  *)
 
 
-    val any_checkbox :
+    val raw_checkbox :
         ?a:input_attrib attrib list -> ?checked:bool -> 
           name:string -> value:string -> unit -> [> input ] elt
 (** Creates a checkbox [<input>] tag with untyped content.
@@ -472,7 +472,7 @@ module type XHTMLFORMSSIG = sig
     name:[ `Opt of 'a ] param_name -> value:'a -> ('a -> string) -> [> input ] elt
 (** Creates a radio [<input>] tag with user_type content *)
 
-  val any_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+  val raw_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
     name:string -> value:string -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with untyped string content (low level) *)
 
@@ -500,7 +500,7 @@ module type XHTMLFORMSSIG = sig
       button_content elt list -> [> button ] elt
 (** Creates a [<button>] tag with user_type content *)
 
-  val any_button : ?a:button_attrib attrib list ->
+  val raw_button : ?a:button_attrib attrib list ->
     button_type:[< button_type ] ->
       name:string -> value:string -> 
         button_content elt list -> [> button ] elt
@@ -521,7 +521,7 @@ module type XHTMLFORMSSIG = sig
               unit -> [> textarea ] elt
 (** Creates a [<textarea>] tag *)
 
-  val any_textarea : 
+  val raw_textarea : 
       ?a:textarea_attrib attrib list ->
         name:string -> 
           ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
@@ -584,7 +584,7 @@ module type XHTMLFORMSSIG = sig
                 [> select ] elt
 (** Creates a [<select>] tag for user type values. *)
 
-  val any_select :
+  val raw_select :
       ?a:select_attrib attrib list ->
         name:string ->
           string select_opt ->
@@ -626,7 +626,7 @@ module type XHTMLFORMSSIG = sig
                 [> select ] elt
 (** Creates a [<select>] tag for user type values. *)
 
-  val any_multiple_select :
+  val raw_multiple_select :
       ?a:select_attrib attrib list ->
         name:string ->
           string select_opt ->
@@ -749,7 +749,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
       ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
         ?name:'b -> ?value:'a -> ('a -> string) -> [> input ] elt)
 
-  let any_input = (any_input :
+  let raw_input = (raw_input :
       ?a:input_attrib attrib list -> input_type:full_input_type ->
         ?name:string -> ?value:string -> unit -> input elt :>
       ?a:input_attrib attrib list -> 
@@ -800,7 +800,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
         name:'b -> value:'a -> 
           ?src:uri -> ('a -> string) -> [> input ] elt)
 
-  let any_image_input = (any_image_input :
+  let raw_image_input = (raw_image_input :
       ?a:input_attrib attrib list -> 
         name:string -> value:string -> ?src:uri -> unit -> input elt :>
       ?a:input_attrib attrib list -> 
@@ -836,7 +836,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
       ?a:input_attrib attrib list -> ?checked:bool -> 
         name:[ `Set of 'a ] param_name -> value:'a -> ('a -> string) -> [> input ] elt)
 
-  let any_checkbox = (any_checkbox :
+  let raw_checkbox = (raw_checkbox :
       ?a:input_attrib attrib list -> ?checked:bool -> 
         name:string -> value:string -> unit -> input elt :>
       ?a:input_attrib attrib list -> ?checked:bool -> 
@@ -867,7 +867,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
                            ?a:(input_attrib attrib list ) -> ?checked:bool ->
     name:'b -> value:'a -> ('a -> string) -> [> input ] elt)
 
-  let any_radio = (any_radio : 
+  let raw_radio = (raw_radio : 
                      ?a:(input_attrib attrib list ) -> ?checked:bool -> 
     name:string -> value:string -> unit -> input elt :>
                      ?a:(input_attrib attrib list ) -> ?checked:bool -> 
@@ -883,7 +883,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
             rows:int -> cols:int -> 
               unit -> [> textarea ] elt)
 
-  let any_textarea = (any_textarea : 
+  let raw_textarea = (raw_textarea : 
         ?a:textarea_attrib attrib list ->
           name:string -> ?value:Xhtmltypes.pcdata XHTML.M.elt -> 
             rows:int -> cols:int -> 
@@ -893,7 +893,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
             rows:int -> cols:int -> 
               unit -> [> textarea ] elt)
 
-  let any_select = (any_select : 
+  let raw_select = (raw_select : 
         ?a:select_attrib attrib list ->
           name:string -> 
             string select_opt -> 
@@ -944,7 +944,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
              'a select_opt list -> ('a -> string) -> [> select ] elt)
       
 
-  let any_multiple_select = (any_multiple_select : 
+  let raw_multiple_select = (raw_multiple_select : 
         ?a:select_attrib attrib list ->
           name:string -> 
             string select_opt -> 
@@ -1034,7 +1034,7 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
              ('a -> string) ->
                button_content elt list -> [> button ] elt)
 
-  let any_button = (any_button : 
+  let raw_button = (raw_button : 
        ?a:button_attrib attrib list -> 
          button_type:button_type ->
            name:string -> value:string -> 

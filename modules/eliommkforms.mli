@@ -274,7 +274,7 @@ module type ELIOMFORMSIG =
             ?value:'a -> ('a -> string) -> input_elt
 (** Creates an [<input>] tag for a user type *)
 
-    val any_input :
+    val raw_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
           ?name:string -> ?value:string -> unit -> input_elt
 (** Creates an untyped [<input>] tag. You may use the name you want
@@ -322,7 +322,7 @@ module type ELIOMFORMSIG =
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of user defined type *)
 
-    val any_image_input :
+    val raw_image_input :
         ?a:input_attrib_t -> 
           name:string -> value:string -> ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
@@ -375,7 +375,7 @@ module type ELIOMFORMSIG =
    The service must declare a parameter of type [set].
  *)
 
-    val any_checkbox :
+    val raw_checkbox :
         ?a:input_attrib_t -> ?checked:bool -> 
           name:string -> value:string -> unit -> input_elt
 (** Creates a checkbox [<input>] tag with untyped content.
@@ -409,7 +409,7 @@ module type ELIOMFORMSIG =
              value:'a -> ('a -> string) -> input_elt
 (** Creates a radio [<input>] tag with user_type content *)
 
-    val any_radio :
+    val raw_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
           name:string -> value:string -> unit -> input_elt
 (** Creates a radio [<input>] tag with untyped string content (low level) *)
@@ -439,7 +439,7 @@ module type ELIOMFORMSIG =
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with user_type content *)
 
-    val any_button :
+    val raw_button :
         ?a:button_attrib_t ->
           button_type:button_type_t ->
             name:string -> value:string -> 
@@ -461,7 +461,7 @@ module type ELIOMFORMSIG =
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag *)
 
-    val any_textarea :
+    val raw_textarea :
         ?a:textarea_attrib_t ->
           name:string -> ?value:pcdata_elt -> 
             rows:int -> cols:int -> unit -> textarea_elt
@@ -489,7 +489,7 @@ module type ELIOMFORMSIG =
      - The string in [select_opt] is the label
    *)
             
-    val any_select :
+    val raw_select :
         ?a:select_attrib_t ->
           name:string ->
             string select_opt ->
@@ -530,7 +530,7 @@ module type ELIOMFORMSIG =
                   select_elt
 (** Creates a [<select>] tag for user type values. *)
 
-    val any_multiple_select :
+    val raw_multiple_select :
         ?a:select_attrib_t ->
           name:string ->
             string select_opt ->

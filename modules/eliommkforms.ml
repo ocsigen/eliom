@@ -275,7 +275,7 @@ module type ELIOMFORMSIG =
             ?value:'a -> ('a -> string) -> input_elt
 (** Creates an [<input>] tag for a user type *)
 
-    val any_input :
+    val raw_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
           ?name:string -> ?value:string -> unit -> input_elt
 (** Creates an untyped [<input>] tag. You may use the name you want
@@ -323,7 +323,7 @@ module type ELIOMFORMSIG =
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of user defined type *)
 
-    val any_image_input :
+    val raw_image_input :
         ?a:input_attrib_t -> 
           name:string -> value:string -> ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
@@ -376,7 +376,7 @@ module type ELIOMFORMSIG =
    The service must declare a parameter of type [set].
  *)
 
-    val any_checkbox :
+    val raw_checkbox :
         ?a:input_attrib_t -> ?checked:bool -> 
           name:string -> value:string -> unit -> input_elt
 (** Creates a checkbox [<input>] tag with untyped content.
@@ -410,7 +410,7 @@ module type ELIOMFORMSIG =
              value:'a -> ('a -> string) -> input_elt
 (** Creates a radio [<input>] tag with user_type content *)
 
-    val any_radio :
+    val raw_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
           name:string -> value:string -> unit -> input_elt
 (** Creates a radio [<input>] tag with untyped string content (low level) *)
@@ -440,7 +440,7 @@ module type ELIOMFORMSIG =
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with user_type content *)
 
-    val any_button :
+    val raw_button :
         ?a:button_attrib_t ->
           button_type:button_type_t ->
             name:string -> value:string -> 
@@ -462,7 +462,7 @@ module type ELIOMFORMSIG =
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag *)
 
-    val any_textarea :
+    val raw_textarea :
         ?a:textarea_attrib_t ->
           name:string -> ?value:pcdata_elt -> 
             rows:int -> cols:int -> unit -> textarea_elt
@@ -490,7 +490,7 @@ module type ELIOMFORMSIG =
      - The string in [select_opt] is the label
    *)
             
-    val any_select :
+    val raw_select :
         ?a:select_attrib_t ->
           name:string ->
             string select_opt ->
@@ -531,7 +531,7 @@ module type ELIOMFORMSIG =
                   select_elt
 (** Creates a [<select>] tag for user type values. *)
 
-    val any_multiple_select :
+    val raw_multiple_select :
         ?a:select_attrib_t ->
           name:string ->
             string select_opt ->
@@ -884,7 +884,7 @@ module MakeForms = functor
       let user_type_input ?a ~input_type
           ?name ?value string_of = 
         gen_input ?a ~input_type ?value ?name string_of 
-      let any_input ?a ~input_type ?name ?value () = 
+      let raw_input ?a ~input_type ?name ?value () = 
         (match value with
         | None ->
             Pages.make_input ?a ~typ:input_type ?name ()
@@ -919,7 +919,7 @@ module MakeForms = functor
       let user_type_image_input ?a ~name ~value ?src string_of = 
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src string_of
-      let any_image_input ?a ~(name : string) ~value ?src () = 
+      let raw_image_input ?a ~(name : string) ~value ?src () = 
         Pages.make_input
           ?a
           ~value
@@ -948,7 +948,7 @@ module MakeForms = functor
         Pages.make_input ?a ?checked ~typ:Pages.checkbox
           ~name:(string_of_param_name name) ~value:(string_of value) ()
 
-      let any_checkbox ?a ?checked ~name ~value () =
+      let raw_checkbox ?a ?checked ~name ~value () =
         Pages.make_input ?a ?checked ~typ:Pages.checkbox
           ~name:name ~value ()
 
@@ -969,7 +969,7 @@ module MakeForms = functor
         Pages.make_input
           ?a ?checked ~typ:Pages.radio 
           ~name:(string_of_param_name name) ~value:(string_of value) ()
-      let any_radio ?a ?checked ~(name : string) ~value () =
+      let raw_radio ?a ?checked ~(name : string) ~value () =
         Pages.make_input
           ?a ?checked ~typ:Pages.radio 
           ~name:name ~value:value ()
@@ -990,7 +990,7 @@ module MakeForms = functor
         Pages.make_button ?a ~button_type:Pages.buttonsubmit
           ~name:(string_of_param_name name) ~value:(string_of value) c
 
-      let any_button ?a ~button_type ~name ~value c =
+      let raw_button ?a ~button_type ~name ~value c =
         Pages.make_button ?a ~button_type ~name ~value c
 
       let button ?a ~button_type c =
@@ -1000,7 +1000,7 @@ module MakeForms = functor
       let textarea ?a ~name =
         Pages.make_textarea ?a ~name:(string_of_param_name name)
 
-      let any_textarea ?a ~name =
+      let raw_textarea ?a ~name =
         Pages.make_textarea ?a ~name
 
 
@@ -1092,7 +1092,7 @@ module MakeForms = functor
         let fl2,ol2 = Pages.map_optgroup make_optg fl ol in
         Pages.make_select ?a ~multiple ~name fl2 ol2
 
-      let any_select ?a ~(name : string)
+      let raw_select ?a ~(name : string)
           (fl : string select_opt) (ol : string select_opt list) =
         gen_select ?a ~multiple:false ~name fl ol id
 
@@ -1118,7 +1118,7 @@ module MakeForms = functor
 
 
 
-      let any_multiple_select ?a ~(name : string)
+      let raw_multiple_select ?a ~(name : string)
           (fl : string select_opt) (ol : string select_opt list) =
         gen_select ?a ~multiple:true ~name fl ol id
 
