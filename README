@@ -13,6 +13,8 @@ ocamlssl (sometimes called libssl-ocaml) >= 0.4.0 (ocamlssl needs openssl) (>= 0
 ocamlsqlite3 >= 0.21.0 (needs sqlite)
 (You may also use the dbm database (for example gdbm) instead of sqlite.
  In that case, you need dbm with headers (libgdbm-dev package for ex))
+camlzip (libzip-ocaml)
+cryptokit
 
 If ocaml/ocamlfind/ocamlnet/ocamlssl... are not installed on your computer, 
 you can use GODI to install them automatically.

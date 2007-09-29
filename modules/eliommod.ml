@@ -464,6 +464,31 @@ let make_fullsessname2 site_dir_string = function
 
 
 let make_new_cookie_value () =
+
+  (* Solution by Dario Teixeira: *)
+  let random_part =
+    let rng = Cryptokit.Random.device_rng "/dev/urandom/" in
+    Cryptokit.Random.string rng 20
+  and sequential_part = 
+    Printf.sprintf "%Lx"  (Int64.bits_of_float (Unix.gettimeofday ()))
+  in
+  (Cryptokit.hash_string (Cryptokit.Hash.sha1 ()) random_part) ^ 
+  sequential_part
+
+(* 
+1) The Digest module in the stdlib uses the MD5 algorithm, which is pretty much considered "broken" both in theory and in practice. Consider using at least SHA1 or RIPEMD160 (yes, I know of some theoretical attacks against these, but for the time being they are considered fairly secure). 
+ 2) Using Unix.times to shuffle the generation of the second 64-bit pseudo-random number is an interesting solution, but it still feels too much like a hack. Besides, you're still relying too much on OCaml's random number generator, which to my knowledge is not crypto-safe. 
+ All and all, have you considered using Xavier Leroy's Cryptokit? It provides implementations for a number of digest algorithms, and also has a crypto-safe RNG (which uses /dev/random in Linux systems). It is easier, safer and perhaps even faster to use it. (The disadvantage is of course another external dependency). 
+ The code above would be enough to generate a 224 bit session ID (224 bits because SHA1 produces a 160-bit hash, which is then added to the 64 bits from the system time). If you had complete trust in the random number generator, you could even ommit the SHA1 digest, though I would keep it just in case.
+
+Using Cryptokit.Random.secure_rng -- while perhaps the best RNG available -- has the "small" problem that one might exhaust the entropy sources of the system:
+Using Cryptokit.Random.device_rng with /dev/urandom or even Cryptokit.Random.pseudo_rng might be a better choice, since they don't suffer from this problem.
+
+Dario Teixeira
+*)
+
+
+  (* Old solution:
   let c1 = Int64.to_string (Random.int64 Int64.max_int) in
   let c2 = Int64.to_string (Int64.add
                               (Random.int64 Int64.max_int) 
@@ -472,7 +497,8 @@ let make_new_cookie_value () =
   in
   (Digest.to_hex (Digest.string (c1^c2)))^
   (Printf.sprintf "%Lx"  (Int64.bits_of_float (Unix.gettimeofday ())))
-  
+  *)
+
 
 let rec new_data_cookie fullsessname table = 
   let c = make_new_cookie_value () in

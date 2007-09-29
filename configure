@@ -496,6 +496,21 @@ if [ "$enable_camlzip" -gt 0 ]; then
 
 fi
 
+######################################################################
+# Check Cryptokit
+
+printf "%s" "Checking for Cryptokit... "
+if ocamlfind query cryptokit >/dev/null 2>/dev/null; then
+    echo "found"
+else
+    echo "not found"
+    echo "Required library cryptokit not found!"
+    exit 1
+fi
+
+cryptokitdir=`ocamlfind query cryptokit`
+
+
 
 ######################################################################
 # Check whether OCaml version is > 3.9
@@ -673,6 +688,9 @@ OCAMLSQLITE3DIR=$ocamlsqlite3dir
 
 # The directory where camlzip is installed
 CAMLZIPDIR=$camlzipdir
+
+# The directory where cryptokit is installed
+CRYPTOKITINSTALLDIR=$cryptokitdir
 
 # The name of camlzip package:
 CAMLZIPNAME=$camlzipname

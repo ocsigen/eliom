@@ -181,6 +181,7 @@ $(OCSIGENNAME).conf.local:
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/modules%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
 	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
+	| sed s%_CRYPTOKITINSTALLDIR_%$(CRYPTOKITINSTALLDIR)%g \
 	| sed s%_CAMLZIPDIR_%$(CAMLZIPDIR)%g \
 	| sed s%files/miniwiki%examples/miniwiki/files%g \
 	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
