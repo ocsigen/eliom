@@ -126,60 +126,70 @@ let handle_light_request_errors ~clientproto ~head
 
   Messages.debug ("~~~~ Exception request: "^(Printexc.to_string exn));
   let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
-  waiter >>= (fun () ->
-    match exn with
+  waiter >>= fun () ->
+  match exn with
       
-      (* First light errors: we answer, then we wait the following request *)
-      (* For now: none *)
-      (* If the request has not been fully read, it must have been consumed *)
-      (* Find the value of keep-alive in the request *)
-      
-      (* Request errors: we answer, then we close *)
-    | Http_error.Http_exception (_,_) ->
-        send_error now ~clientproto ~head ~cookies:[]
-          ~keep_alive:false ~http_exception:exn xhtml_sender >>=
-        (fun _ -> fail (Ocsigen_Request_interrupted exn))
-    | Ocsigen_header_too_long ->
-        Messages.debug "-> Sending 400";
-        (* 414 URI too long. Actually, it is "header too long..." *)
-        send_error now ~clientproto ~head ~keep_alive:false ~code:400 xhtml_sender >>= 
-        (fun _ -> fail (Ocsigen_Request_interrupted exn))
-    | Ocsigen_Request_too_long ->
-        Messages.debug "-> Sending 400";
-        send_error now ~clientproto ~head ~keep_alive:false ~code:400 xhtml_sender >>= 
-        (fun _ -> fail (Ocsigen_Request_interrupted exn))
-    | Ocsigen_Bad_Request ->
-        Messages.debug "-> Sending 400";
-        send_error now ~clientproto ~head ~keep_alive:false ~code:400 xhtml_sender >>= 
-        (fun _ -> fail (Ocsigen_Request_interrupted exn))
-    | Ocsigen_upload_forbidden ->
-        Messages.debug "-> Sending 403 Forbidden";
-        send_error now ~clientproto ~head ~keep_alive:false ~code:400 xhtml_sender >>= 
-        (fun _ -> fail (Ocsigen_Request_interrupted exn))
-    | Ocsigen_unsupported_media ->
-        Messages.debug "-> Sending 415";
-        send_error now ~clientproto ~head ~keep_alive:false ~code:415 xhtml_sender >>= 
-        (fun _ -> fail (Ocsigen_Request_interrupted exn))
+    (* First light errors: we answer, then we wait the following request *)
+    (* For now: none *)
+    (* If the request has not been fully read, it must have been consumed *)
+    (* Find the value of keep-alive in the request *)
+    
+    (* Request errors: we answer, then we close *)
+  | Http_error.Http_exception (_,_) ->
+      send_error now ~clientproto ~head ~cookies:[] ~keep_alive:false
+        ~http_exception:exn xhtml_sender >>= fun _ -> 
+      fail (Ocsigen_Request_interrupted exn)
+  | Ocsigen_header_too_long ->
+      Messages.debug "-> Sending 400";
+      (* 414 URI too long. Actually, it is "header too long..." *)
+      send_error now ~clientproto ~head ~keep_alive:false
+        ~code:400 xhtml_sender >>= fun _ -> 
+      fail (Ocsigen_Request_interrupted exn)
+  | Ocsigen_Request_too_long ->
+      Messages.debug "-> Sending 400";
+      send_error now ~clientproto ~head ~keep_alive:false
+        ~code:400 xhtml_sender >>= fun _ -> 
+      fail (Ocsigen_Request_interrupted exn)
+  | Ocsigen_Bad_Request ->
+      Messages.debug "-> Sending 400";
+      send_error now ~clientproto ~head ~keep_alive:false
+        ~code:400 xhtml_sender >>= fun _ -> 
+      fail (Ocsigen_Request_interrupted exn)
+  | Ocsigen_upload_forbidden ->
+      Messages.debug "-> Sending 403 Forbidden";
+      send_error now ~clientproto ~head ~keep_alive:false
+        ~code:400 xhtml_sender >>= fun _ -> 
+      fail (Ocsigen_Request_interrupted exn)
+  | Ocsigen_unsupported_media ->
+      Messages.debug "-> Sending 415";
+      send_error now ~clientproto ~head ~keep_alive:false
+        ~code:415 xhtml_sender >>= fun _ -> 
+      fail (Ocsigen_Request_interrupted exn)
+  | Neturl.Malformed_URL -> 
+      Messages.debug "-> Sending 400 (Malformed URL)";
+      send_error now ~clientproto ~head ~keep_alive:false
+        ~code:400 xhtml_sender (* Malformed URL *) >>= fun _ -> 
+      fail (Ocsigen_Request_interrupted exn)
 
     (* Now errors that close the socket: we raise the exception again: *)
-    | Ocsigen_HTTP_parsing_error (s1,s2) as e ->
-        warning ("While talking to "^ip^": HTTP parsing error near ("^s1^
-                ") in:\n"^
-                (if (String.length s2)>2000 
-                then ((String.sub s2 0 1999)^"...<truncated>")
-                else s2)^"\n---");
-        fail (Ocsigen_Request_interrupted e)
-    | Unix.Unix_error(Unix.ECONNRESET,_,_)
-    | Ssl.Read_error Ssl.Error_zero_return
-    | Ssl.Read_error Ssl.Error_syscall ->
-        fail Connection_reset_by_peer
-    | Ocsigen_Timeout 
-    | Http_com.Ocsigen_KeepaliveTimeout
-    | Http_com.MustClose
-    | Connection_reset_by_peer
-    | Ocsigen_Request_interrupted _ -> fail exn
-    | _ -> fail (Ocsigen_Request_interrupted exn)
-             )
+  | Ocsigen_HTTP_parsing_error (s1,s2) as e ->
+      warning ("While talking to "^ip^": HTTP parsing error near ("^s1^
+               ") in:\n"^
+               (if (String.length s2)>2000 
+               then ((String.sub s2 0 1999)^"...<truncated>")
+               else s2)^"\n---");
+      fail (Ocsigen_Request_interrupted e)
+  | Unix.Unix_error(Unix.ECONNRESET,_,_)
+  | Ssl.Read_error Ssl.Error_zero_return
+  | Ssl.Read_error Ssl.Error_syscall ->
+      fail Connection_reset_by_peer
+  | Ocsigen_Timeout 
+  | Http_com.Ocsigen_KeepaliveTimeout
+  | Http_com.MustClose
+  | Connection_reset_by_peer
+  | Ocsigen_Request_interrupted _ -> fail exn
+  | _ -> fail (Ocsigen_Request_interrupted exn)
+
 
 
 
@@ -384,9 +394,9 @@ let get_request_infos meth url http_frame filenames sockaddr port =
    }
       
   with e ->
-    (Messages.debug ("~~~ Exn during get_request_infos : "^
-                     (Printexc.to_string e));
-     raise (Ocsigen_Request_interrupted e) (* ? *))
+    Messages.debug ("~~~ Exn during get_request_infos : "^
+                    (Printexc.to_string e));
+    raise e (*  (Ocsigen_Request_interrupted e) ? *)
   
 
 
@@ -528,7 +538,7 @@ let service
                 ?last_modified:res.res_lastmodified
                 ?etag:res.res_etag
                 ~code:304 (* Not modified *)
-                ~head:head 
+                ~head
                 empty_sender
             end
             
@@ -546,7 +556,7 @@ let service
                 ?last_modified:res.res_lastmodified
 (*                ?etag:res.res_etag *)
                 ~code:412 (* Precondition failed *)
-                ~head:head 
+                ~head
                 empty_sender
             end
 
@@ -609,12 +619,6 @@ let service
                     ~code:301 (* Moved permanently *)
                     ~head empty_sender
               | Extensions.Ocsigen_malformed_url
-              | Neturl.Malformed_URL -> 
-                  Messages.debug "-> Sending 400 (Malformed URL)";
-                  send_error wait_end_answer
-                    ~clientproto ~head
-                    ~keep_alive:ka
-                    ~code:400 xhtml_sender (* Malformed URL *)
               | Unix.Unix_error (Unix.EACCES,_,_) 
 	      | Extensions.Ocsigen_403->
                   Messages.debug "-> Sending 403 Forbidden";
@@ -670,7 +674,7 @@ let service
       (fun e -> 
         remove_files !filenames;
         match e with
-          Ocsigen_sending_error _ -> fail e
+        | Ocsigen_sending_error _ -> fail e
         | _ -> handle_light_request_errors ~clientproto ~head
               xhtml_sender sockaddr wait_end_answer e)
 
@@ -696,7 +700,7 @@ let service
                   http_frame.Stream_http_frame.header 
                   "content-length"))
         with
-          Not_found -> return Int64.zero
+        | Not_found -> return Int64.zero
         | _ -> fail (Ocsigen_Request_interrupted Ocsigen_Bad_Request))
         >>=
             (fun cl ->
@@ -732,7 +736,11 @@ let service
              else serv ()) *)
 
       (function
-        | Ocsigen_Request_interrupted _ as e -> fail e
+        | Ocsigen_Request_interrupted e -> 
+            handle_light_request_errors
+              ~clientproto:Http_frame.Http_header.HTTP11
+              ~head:(meth = (Http_header.HEAD))
+              xhtml_sender sockaddr wait_end_answer e
         | Ocsigen_sending_error e ->
             Messages.debug ("~~~ Exn while sending: "^
                             (Printexc.to_string e)); 
@@ -748,7 +756,7 @@ let handle_broken_pipe_exn sockaddr exn =
   let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
   (* We don't close here because it is already done *)
   match exn with
-    Connection_reset_by_peer -> 
+  | Connection_reset_by_peer -> 
       Messages.debug "** Connection closed by client";
       return ()
   | Ssl.Write_error(Ssl.Error_ssl) -> 
@@ -758,7 +766,7 @@ let handle_broken_pipe_exn sockaddr exn =
       warning ("Request from "^ip^" is too long for the server configuration.");
       return ()
   | exn -> 
-      warning ("While talking to "^ip^": Uncaught exception - "
+      warning ("While talking to "^ip^": "
               ^(Printexc.to_string exn)^".");
       return ()
 
@@ -803,7 +811,7 @@ let listen ssl port wait_end_init =
           handle_broken_pipe_exn sockaddr e
       | e ->
           handle_broken_pipe_exn sockaddr e
-    in  
+    in
 
     let handle_request_errors ~head wait_end_answer exn =
       catch
@@ -815,19 +823,20 @@ let listen ssl port wait_end_init =
     in
 
     let rec handle_request wait_end_answer http_frame =
-
+          
       let meth, url =
         match 
           Http_header.get_firstline http_frame.Stream_http_frame.header 
         with
         | Http_header.Query a -> a      
         | _ -> raise (Ocsigen_Request_interrupted Ocsigen_Bad_Request)
+              (* We do not answer in that case *)
       in
 
       let head = (meth = (Http_header.HEAD)) in
-
+      
       let keep_alive = get_keepalive http_frame.Stream_http_frame.header in
-
+      
       catch
         (fun () ->
           if keep_alive 
