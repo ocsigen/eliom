@@ -44,6 +44,11 @@
    taking a list of pairs. 
    (The handler takes a parameter of type [(int * string) list]).
 
+Note: We could make even more static checking in parameter's types (for example
+to forbid [any] in suffixes), but it would make the types of parameters and
+services more complicated. We believe that these errors should be easy 
+to find during implementation.
+
  *)
 
 open Extensions
@@ -102,18 +107,22 @@ type 'an listnames =
 
 (** {2 Basic types of pages parameters} *)
 
-val int : string -> (int, [ `WithoutSuffix ], [ `One of int ] param_name) params_type
+val int : string -> 
+  (int, [ `WithoutSuffix ], [ `One of int ] param_name) params_type
 (** [int s] tells that the service takes an integer as parameter, labeled [s]. *)
 
-val float : string -> (float, [ `WithoutSuffix ], [ `One of float ] param_name) params_type
+val float : string -> 
+  (float, [ `WithoutSuffix ], [ `One of float ] param_name) params_type
 (** [float s] tells that the service takes a floating point number as parameter, labeled [s]. *)
 
 val string :
-    string -> (string, [ `WithoutSuffix ], [ `One of string ] param_name) params_type
+    string -> 
+      (string, [ `WithoutSuffix ], [ `One of string ] param_name) params_type
 (** [string s] tells that the service takes a string as parameter, labeled [s]. *)
 
 val bool :
-    string -> (bool, [ `WithoutSuffix ], [ `One of bool ] param_name) params_type
+    string -> 
+      (bool, [ `WithoutSuffix ], [ `One of bool ] param_name) params_type
 (** [bool s] tells that the service takes a boolean as parameter, labeled [s].
    (to use for example with boolean checkboxes) *)
 
@@ -174,8 +183,8 @@ val user_type_coordinates :
 
 val ( ** ) :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
-      ('c, [< `WithoutSuffix | `Endsuffix ], 'd) params_type ->
-        ('a * 'c, [ `WithoutSuffix ], 'b * 'd) params_type
+      ('c, [< `WithoutSuffix | `Endsuffix ] as 'e, 'd) params_type ->
+        ('a * 'c, 'e, 'b * 'd) params_type
 (** This is a combinator to allow the service to take several parameters
    (see examples above) 
    {e Warning: it is a binary operator. 
@@ -184,8 +193,8 @@ val ( ** ) :
 
 val prod :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
-      ('c, [ `WithoutSuffix | `Endsuffix ], 'd) params_type ->
-        ('a * 'c, [ `WithoutSuffix ], 'b * 'd) params_type
+      ('c, [ `WithoutSuffix | `Endsuffix ] as 'e, 'd) params_type ->
+        ('a * 'c, 'e, 'b * 'd) params_type
 (** Same as [**] above *)
 
 val sum :

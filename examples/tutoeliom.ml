@@ -574,7 +574,7 @@ let links = register_new_service ["rep";"links"] unit
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
          Eliompredefmod.Xhtml.a
            (new_external_service
-              ~url:["http://fr.wikipedia.org";"wiki";""]
+              ~url:["fr.wikipedia.org";"wiki";""]
               ~get_params:(suffix (all_suffix "suff"))
               ~post_params:unit ()) 
            sp
@@ -611,7 +611,7 @@ let links = register_new_service ["rep";"links"] unit
       on the service you link to.
       </p>
       <p>
-      The link to Wikipedia shows how to define an external service (here it 
+      The links to Wikipedia shows how to define an external service (here it 
       uses a suffix URL).
       For an external service without parameters, you can use the low level
       function $a (static_dir sp) sp [code [pcdata "XHTML.M.a" ]] ["doc/"^version^"/XHTML.M.html#VALa"]$, if you don't want to create an
@@ -825,7 +825,7 @@ let form4 = register_new_service ["form4"] unit
      let f  = 
        (Eliompredefmod.Xhtml.post_form
           (new_external_service 
-             ~url:["http://www.petizomverts.com"]
+             ~url:["www.petizomverts.com"]
              ~get_params:(int "i")
              ~post_params:(string "chaine") ()) sp
           (fun chaine -> 

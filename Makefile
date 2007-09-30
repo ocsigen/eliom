@@ -254,6 +254,8 @@ installnodoc: partialinstall
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
 	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
+	| sed s%_CRYPTOKITINSTALLDIR_%$(CRYPTOKITINSTALLDIR)%g \
+	| sed s%_CAMLZIPDIR_%$(CAMLZIPDIR)%g \
 	> $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
 	cat $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
 	| sed s%[.]cmo%.cmxs%g \
@@ -276,6 +278,7 @@ installnodoc: partialinstall
 	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
 	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/mime.types
 	$(INSTALL) -m 644 files/tutorial/style.css $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tutorial/bulles-bleues.png $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/tutorial/ocsigen5.png $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
 	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)/$(STATICPAGESDIR)/ocsigenstuff
 	$(INSTALL) -m 644 examples/miniwiki/files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/miniwiki

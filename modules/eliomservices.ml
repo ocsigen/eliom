@@ -415,8 +415,8 @@ let preapply ~service getparams =
 let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = eliom_suffix_internal_name -> ""
-  | [a] -> a
-  | a::l -> a^"/"^(string_of_url_path' l)
+  | [a] -> Netencoding.Url.encode a
+  | a::l -> (Netencoding.Url.encode a)^"/"^(string_of_url_path' l)
 
 let rec string_of_url_path_suff u = function
   | None -> string_of_url_path' u
@@ -466,8 +466,8 @@ let make_string_uri
           concat_strings preapplied_params "&" params_string in
         let uri = 
           (if (get_att_kind_ attser) = `External
-          then (reconstruct_absolute_url_path
-                  (get_current_path sp) (get_url_ attser) suff)
+          then "http://"^(reconstruct_absolute_url_path
+                            (get_current_path sp) (get_url_ attser) suff)
           else (reconstruct_relative_url_path
                   (get_current_path sp) (get_url_ attser) suff))
         in

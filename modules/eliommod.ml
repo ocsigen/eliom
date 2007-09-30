@@ -463,17 +463,21 @@ let make_fullsessname2 site_dir_string = function
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
 
-let make_new_cookie_value () =
+let make_new_cookie_value =
+    let to_hex = Cryptokit.Hexa.encode () in
+    fun () ->
 
   (* Solution by Dario Teixeira: *)
-  let random_part =
-    let rng = Cryptokit.Random.device_rng "/dev/urandom/" in
-    Cryptokit.Random.string rng 20
-  and sequential_part = 
-    Printf.sprintf "%Lx"  (Int64.bits_of_float (Unix.gettimeofday ()))
-  in
-  (Cryptokit.hash_string (Cryptokit.Hash.sha1 ()) random_part) ^ 
-  sequential_part
+      let random_part =
+        let rng = Cryptokit.Random.device_rng "/dev/urandom" in
+        Cryptokit.Random.string rng 20
+      and sequential_part = 
+        Printf.sprintf "%Lx"  (Int64.bits_of_float (Unix.gettimeofday ()))
+      in
+      (Cryptokit.transform_string
+         to_hex
+         (Cryptokit.hash_string (Cryptokit.Hash.sha1 ()) random_part))^ 
+      sequential_part
 
 (* 
 1) The Digest module in the stdlib uses the MD5 algorithm, which is pretty much considered "broken" both in theory and in practice. Consider using at least SHA1 or RIPEMD160 (yes, I know of some theoretical attacks against these, but for the time being they are considered fairly secure). 

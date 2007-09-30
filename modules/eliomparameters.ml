@@ -106,8 +106,8 @@ let sum (t1 : ('a,[`WithoutSuffix], 'an) params_type)
   Obj.magic (TSum (t1, t2))
 
 let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type) 
-    (t2 : ('b,[<`WithoutSuffix|`Endsuffix], 'bn) params_type)
-    : (('a * 'b),[`WithoutSuffix], 'an * 'bn) params_type =
+    (t2 : ('b,[<`WithoutSuffix|`Endsuffix] as 'e, 'bn) params_type)
+    : (('a * 'b),'e, 'an * 'bn) params_type =
   Obj.magic (TProd ((Obj.magic t1), (Obj.magic t2)))
 
 let ( ** ) = prod
@@ -448,11 +448,13 @@ let construct_params_list
     (params : 'a) : string list option * (string * string) list =
   let rec aux typ params pref suff l =
     match typ with
-      TProd (t1, t2) ->
+    | TProd (t1, t2) ->
         let l1 = aux t1 (fst (Obj.magic params)) pref suff l in
         aux t2 (snd (Obj.magic params)) pref suff l1
-    | TOption t -> (match ((Obj.magic params) : 'zozo option) with None -> l
-      | Some v -> aux t v pref suff l)
+    | TOption t -> 
+        (match ((Obj.magic params) : 'zozo option) with 
+        | None -> l
+        | Some v -> aux t v pref suff l)
     | TBool name -> 
         (if ((Obj.magic params) : bool)
         then ((pref^name^suff), "on")::l
@@ -521,13 +523,17 @@ let construct_params_list
 
 
 (* contruct the string of parameters (& separated) for GET and POST *)
-let construct_params_string = function
+let construct_params_string = 
+  Netencoding.Url.mk_url_encoded_parameters
+  (* No: we must URL-encode
+  function
   | [] -> ""
   | (a,b)::l -> 
       List.fold_left
         (fun beg (c,d) -> beg^"&"^c^"="^d)
         (a^"="^b)
         l
+   *)
 
 let construct_params typ p = 
   let suff, pl = construct_params_list typ p in

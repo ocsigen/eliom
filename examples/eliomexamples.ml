@@ -30,6 +30,29 @@ open Eliomparameters
 open Eliomsessions
 open Lwt
 
+(* URL with ? or / in data or paths *)
+
+let url_encoding = 
+  register_new_service 
+    ~url:["urlencod?ing"]
+    ~get_params:(suffix_prod (all_suffix "s") any)
+    (fun sp (suf, l) () -> 
+      let ll = 
+        List.map 
+          (fun (a,s) -> << <strong>($str:a$, $str:s$) </strong> >>) l
+      in  
+      let sl = 
+        List.map 
+          (fun s -> << <strong>$str:s$ </strong> >>) suf
+      in  
+      return 
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Hallo"];
+                  p sl;
+                  p ll
+                ])))
+
 (* menu with preapplied services *)
 
 let preappl = preapply coucou_params (3,(4,"cinq"))
@@ -43,7 +66,7 @@ let mymenu current sp =
      (preappl2, <:xmllist< params and suffix >>);
    ] current sp
 
-let _ = 
+let preappmenu = 
   register_new_service 
     ~url:["menu"]
     ~get_params:unit
@@ -53,6 +76,8 @@ let _ =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "Hallo"];
                mymenu coucou sp ])))
+
+
 
 (* GET Non-attached coservice *)
 let nonatt = new_coservice' ~get_params:(string "e") ()
@@ -79,7 +104,7 @@ let getco = register_new_coservice
 
 let _ = register nonatt (fun sp s () -> return (f sp s))
 
-let _ = 
+let getcoex = 
   register_new_service 
     ~url:["getco"]
     ~get_params:unit
@@ -137,7 +162,7 @@ let my_service_with_post_params =
          (head (title (pcdata "")) [])
          (body [h1 [pcdata (s^" "^value)]])))
 
-let form2 = register_new_service ["postco"] unit
+let postcoex = register_new_service ["postco"] unit
   (fun sp () () -> 
      let f =
        (post_form my_service_with_post_params sp
@@ -269,7 +294,7 @@ let sendany =
 
 
 (* Send file *)
-let _ = 
+let sendfileex = 
   register_new_service 
     ~url:["files";""]
     ~get_params:unit
@@ -286,7 +311,7 @@ let sendfile2 =
     (fun _ s () -> 
       return ("/var/www/ocsigen/"^(Extensions.string_of_url_path s)))
 
-let _ = 
+let sendfileexception = 
   register_new_service 
     ~url:["files";"exception"]
     ~get_params:unit
@@ -362,7 +387,7 @@ let suffixform3 = register_new_service ["suffixform3"] unit
 
 
 (* Send file with regexp *)
-let _ = 
+let sendfileregexp = 
   register_new_service 
     ~url:["files2";""]
     ~get_params:unit
@@ -385,6 +410,7 @@ let sendfile2 =
   Files.register_new_service 
     ~url:["files2";""]
     ~get_params:(suffix (all_suffix_regexp r "/home/$1/public_html$2" "filename"))
+(*    ~get_params:(suffix (all_suffix_regexp r "$$u($1)$2" "filename")) *)
     (fun _ s () -> return s)
 
 let create_suffixform4 n =
@@ -424,10 +450,7 @@ let any2 = register_new_service
        </body>
      </html> >>)
 
-(* the following will not work because s is staken in any.
-   Is it normal?
-   Could this be improved?
- *)
+(* the following will not work because s is taken in any. (not checked) *)
 let any3 = register_new_service 
     ~url:["any3"]
     ~get_params:(int "i" ** any ** string "s")
@@ -451,6 +474,8 @@ let any3 = register_new_service
        </body>
      </html> >>)
 
+
+(* any cannot be in suffix: (not checked) *)
 let any4 = register_new_service 
     ~url:["any4"]
     ~get_params:(suffix any)
@@ -470,6 +495,27 @@ let any4 = register_new_service
        </body>
      </html> >>)
 
+
+let any5 = register_new_service 
+    ~url:["any5"]
+    ~get_params:(suffix_prod (string "s") any)
+  (fun _ (s, l) () ->
+    let ll = 
+      List.map 
+        (fun (a,s) -> << <strong>($str:a$, $str:s$)</strong> >>) l 
+    in  
+    return
+  << <html>
+       <head><title></title></head>
+       <body>
+       <p>
+         You sent <strong>$str:s$</strong> and : 
+         <span>$list:ll$</span>
+       </p>
+       </body>
+     </html> >>)
+
+(* list cannot be in suffix: (not checked) *)
 let sufli = register_new_service 
     ~url:["sufli"]
     ~get_params:(suffix (list "l" (string "s")))
@@ -489,6 +535,7 @@ let sufli = register_new_service
        </body>
      </html> >>)
 
+
 (* form to any2 *)
 let any2form = register_new_service 
     ~url:["any2form"]
@@ -507,34 +554,6 @@ let any2form = register_new_service
                           raw_input ~input_type:`Text ~name:"plap" ();
                           string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
-
-
-(* main *)
-let main = new_service ["ex"] unit ()
-
-let _ = register main
-  (fun sp () () -> return
-     << 
-       <html> 
-       <!-- This is a comment! -->
-       <head>
-         $css_link (make_uri (static_dir sp) sp ["style.css"]) ()$
-         <title>Eliom Tutorial</title>
-       </head>
-       <body>
-         
-         <h1>$img ~alt:"Ocsigen" ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"]) ()$</h1>
-
-       <h2>Eliom examples, bis</h2>
-       <p>
-         any2 : $a any2 sp <:xmllist< any2 >> (3,[("Ciao","bel");
-                                                  ("ragazzo","!")])$ <br/> 
-         any3 : $a any3 sp <:xmllist< any3 >> (3,(["a","e"],"z"))$ <br/> 
-<!--         sufli : $a sufli sp <:xmllist< sufli >> ["Ciao";"bel";"ragazzo";"!"]$ <br/> -->
-       </p>
-       </body>
-     </html> >>)
-
 
 
 (* bool list *)
@@ -570,7 +589,7 @@ let create_listform f =
   [table (List.hd l) (List.tl l);
    p [raw_input ~input_type:`Submit ~value:"Click" ()]]
 
-let listform = register_new_service ["boolform"] unit
+let boollistform = register_new_service ["boolform"] unit
   (fun sp () () -> 
      let f = get_form boollist sp create_listform in return
         (html
@@ -601,7 +620,7 @@ let any = register_new_post_service
        </body>
      </html> >>)
 
-(* form to any2 *)
+(* form to any *)
 let anypostform = register_new_service 
     ~url:["anypostform"]
     ~get_params:unit
@@ -643,7 +662,7 @@ let get_param_service =
                 (body [h1 [pcdata to_display]])))
 
 
-let form3 = register_new_service ["uploadget"] unit
+let uploadgetform = register_new_service ["uploadget"] unit
   (fun sp () () ->
     let f =
 (* ARG        (post_form ~a:[(XHTML.M.a_enctype "multipart/form-data")] fichier2 sp *)
@@ -679,7 +698,7 @@ let exn_act_main =
 
 
 (* close sessions from outside *)
-let _ = 
+let close_from_outside = 
   register_new_service 
     ~url:["close_from_outside"]
     ~get_params:unit
@@ -737,3 +756,49 @@ let set_timeout_form =
 
 
 
+(******************************************************************)
+let mainpage = register_new_service ["tests"] unit
+ (fun sp () () -> 
+   return
+    (html
+     (head (title (pcdata "Test")) 
+        [css_link (make_uri (static_dir sp) sp ["style.css"]) ()])
+     (body 
+       [h1 [img ~alt:"Ocsigen" ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"]) ()];
+        h3 [pcdata "Eliom tests"];
+        p
+        [
+         a coucou sp [pcdata "coucou"] (); br ();
+         a getcoex sp [pcdata "GET coservice with preapplied fallback, etc"] (); br ();
+         a postcoex sp [pcdata "POST service with coservice fallback"] (); br ();
+         a getact sp [pcdata "action on GET attached coservice, etc"] 127; br ();
+         a cookies sp [pcdata "Many cookies"] "le suffixe de l'URL"; br ();
+         a sendany sp [pcdata "Cookie or not with Any"] "change this suffix to \"nocookie\""; br ();
+         a sendfileex sp [pcdata "Send file"] (); br ();
+         a sendfile2 sp [pcdata "Send file 2"] "style.css"; br ();
+         a sendfileexception sp [pcdata "Do not send file"] (); br ();
+         a sendfileregexp sp [pcdata "Send file with regexp"] (); br ();
+         a suffixform2 sp [pcdata "Suffix 2"] (); br ();
+         a suffixform3 sp [pcdata "Suffix 3"] (); br ();
+         a suffixform4 sp [pcdata "Suffix 4"] (); br ();
+         a anypostform sp [pcdata "POST form to any parameters"] (); br ();
+         a any2 sp [pcdata "int + any parameters"] 
+           (3, [("Ciao","bel"); ("ragazzo","!")]); br ();
+         a any3 sp [pcdata "any parameters broken (s after any)"] 
+           (4, ([("Thierry","Richard");("Sébastien","Stéphane")], "s")); br ();
+(* broken        a any4 sp [pcdata "Any in suffix"] [("bo","ba");("bi","bu")]; br (); *)
+         a any5 sp [pcdata "Suufix + any parameters"] 
+           ("ee", [("bo","ba");("bi","bu")]); br ();
+         a uploadgetform sp [pcdata "Upload with GET"] (); br (); 
+(* broken        a sufli sp [pcdata "List in suffix"] ["bo";"ba";"bi";"bu"]; br ();*)
+         a boollistform sp [pcdata "Bool list"] (); br ();
+         a preappmenu sp [pcdata "Menu with pre-applied services"] (); br ();
+         a exn_act_main sp [pcdata "Actions that raises an exception"] (); br ();
+         a close_from_outside sp [pcdata "Closing sessions from outside"] (); br ();
+         a set_timeout_form sp [pcdata "Setting timeouts from outside sessions"] (); br ();
+         a url_encoding sp [pcdata "Urls with strange characters inside"] 
+           (["l/l%l&l=l)l@";"m\\m\"m";"nèn~n"],
+            [("po?po&po~po/po", "lo\"lo#lo'lo lo=lo&lo/lo"); 
+            ("bo=mo@co:ro", "zo^zo%zo$zo:zo")]); br ();
+
+       ]])))

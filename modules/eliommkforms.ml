@@ -637,8 +637,8 @@ module MakeForms = functor
             let uri = 
               (if (get_att_kind_ attser) = `External
               then 
-                (reconstruct_absolute_url_path
-                   (get_current_path sp) (get_url_ attser) suff)
+                "http://"^(reconstruct_absolute_url_path
+                             (get_current_path sp) (get_url_ attser) suff)
               else 
                 (reconstruct_relative_url_path
                    (get_current_path sp) (get_url_ attser) suff))
@@ -691,8 +691,8 @@ module MakeForms = functor
         | `Attached attser ->
             let urlname =
               (if (get_att_kind_ attser) = `External
-              then (reconstruct_absolute_url_path
-                      (get_current_path sp) (get_url_ attser) None)
+              then "http://"^(reconstruct_absolute_url_path
+                                (get_current_path sp) (get_url_ attser) None)
               else (reconstruct_relative_url_path
                       (get_current_path sp) (get_url_ attser) None)) in
             let state_param =
@@ -799,8 +799,8 @@ module MakeForms = functor
             in
             let urlname = 
               (if (get_att_kind_ attser) = `External
-              then (reconstruct_absolute_url_path
-                      (get_current_path sp) (get_url_ attser) suff)
+              then "http://"^(reconstruct_absolute_url_path
+                                (get_current_path sp) (get_url_ attser) suff)
               else (reconstruct_relative_url_path
                       (get_current_path sp) (get_url_ attser) suff))
             in
