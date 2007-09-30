@@ -35,7 +35,7 @@ open Lwt
 let url_encoding = 
   register_new_service 
     ~url:["urlencod?ing"]
-    ~get_params:(suffix_prod (all_suffix "s") any)
+    ~get_params:(suffix_prod (all_suffix "s//\\à") any)
     (fun sp (suf, l) () -> 
       let ll = 
         List.map 
@@ -43,7 +43,9 @@ let url_encoding =
       in  
       let sl = 
         List.map 
-          (fun s -> << <strong>$str:s$ </strong> >>) suf
+          (fun s -> 
+print_endline s;
+<< <strong>$str:s$ </strong> >>) suf
       in  
       return 
         (html
@@ -797,8 +799,8 @@ let mainpage = register_new_service ["tests"] unit
          a close_from_outside sp [pcdata "Closing sessions from outside"] (); br ();
          a set_timeout_form sp [pcdata "Setting timeouts from outside sessions"] (); br ();
          a url_encoding sp [pcdata "Urls with strange characters inside"] 
-           (["l/l%l&l=l)l@";"m\\m\"m";"nèn~n"],
-            [("po?po&po~po/po", "lo\"lo#lo'lo lo=lo&lo/lo"); 
+           (["l/l%l      &l=l)l@";"m\\m\"m";"nèn~n"],
+            [("po?po&po~po/po", "lo\"l     o#lo'lo lo=lo&l      o/lo"); 
             ("bo=mo@co:ro", "zo^zo%zo$zo:zo")]); br ();
 
        ]])))

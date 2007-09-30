@@ -415,8 +415,8 @@ let preapply ~service getparams =
 let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = eliom_suffix_internal_name -> ""
-  | [a] -> Netencoding.Url.encode a
-  | a::l -> (Netencoding.Url.encode a)^"/"^(string_of_url_path' l)
+  | [a] -> Netencoding.Url.encode ~plus:false a
+  | a::l -> (Netencoding.Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
 
 let rec string_of_url_path_suff u = function
   | None -> string_of_url_path' u

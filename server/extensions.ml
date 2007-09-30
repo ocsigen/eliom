@@ -506,7 +506,8 @@ let parse_url url =
   in
   let path =
     (Ocsimisc.remove_dotdot 
-       (Ocsimisc.remove_slash_at_beginning (Neturl.url_path url2)))
+       (Ocsimisc.remove_slash_at_beginning 
+          (Neturl.url_path url2)))
       (* here we remove .. from paths, at it is dangerous.
          But in some very particular cases, we may want them?
          I prefer forbid that.
