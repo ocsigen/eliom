@@ -43,9 +43,7 @@ let url_encoding =
       in  
       let sl = 
         List.map 
-          (fun s -> 
-print_endline s;
-<< <strong>$str:s$ </strong> >>) suf
+          (fun s -> << <strong>$str:s$ </strong> >>) suf
       in  
       return 
         (html

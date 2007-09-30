@@ -33,6 +33,8 @@ module Regexp = Netstring_pcre
 
 exception CGI_Error of exn
 
+let cgitimeout = ref 30.
+
 
 (*****************************************************************************)
 (* The table of cgi pages for each virtual server                            *)
@@ -418,7 +420,7 @@ let recupere_cgi head pages_tree re filename ri =
          tryclose err_out;
          match status with
          | Unix.WEXITED 0 -> 
-             Lwt_unix.sleep (Ocsiconfig.get_connect_time_max ()) >>= fun () ->
+             Lwt_unix.sleep !cgitimeout >>= fun () ->
              fail (CGI_Error (Failure "Timeout for CGI script"))
          | Unix.WEXITED i -> 
              fail (CGI_Error 
@@ -438,7 +440,17 @@ let recupere_cgi head pages_tree re filename ri =
            (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
             tryclose cgi_out;
             return ());
-       return http_frame)
+       return http_frame);
+
+        (* A thread implementing the timeout for CGI scripts *)
+       (Lwt_unix.sleep !cgitimeout >>= fun () ->
+        (try
+          Unix.kill Sys.sigterm pid;
+          Unix.kill Sys.sigkill pid 
+        with _ -> ());
+        fail (CGI_Error (Failure ("CGI Timeout reached: \
+                                    CGI script killed by server")))
+       )
       ]
   with e -> fail e
             
@@ -456,6 +468,16 @@ let get_content str =
   | None -> return (fun () -> Ocsistream.empty_stream None)
   | Some c -> return c
 
+
+(*****************************************************************************)
+let rec parse_global_config = function
+  | [] -> ()
+  | (Element ("cgitimeout", [("value", s)], []))::ll ->
+      cgitimeout := float_of_string s
+  | _ -> raise (Error_in_config_file 
+                  ("Unexpected content inside cgimod config"))
+
+let _ = parse_global_config (Extensions.get_config ())
 
 (*****************************************************************************)
 (** Parsing of config file *)
