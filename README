@@ -8,7 +8,7 @@ Requirements:
 ocaml (tested with version 3.08.4 and 3.09.1. Does not work with 3.08.1)
 findlib (ocamlfind)
 pcre-ocaml
-ocamlnet >= 1.1.2 (actually only module netstring, netsys, pcre) 
+ocamlnet >= 2.2.0 (actually only module netstring, netsys, pcre) 
 ocamlssl (sometimes called libssl-ocaml) >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)
 ocamlsqlite3 >= 0.21.0 (needs sqlite)
 (You may also use the dbm database (for example gdbm) instead of sqlite.
@@ -44,6 +44,9 @@ Then, type
   make depend
   make 
 
+If you want the documentation to be generated:
+  make doc
+
 If you want system-wide installation, become root, and do
   make install
 and possibly
@@ -51,7 +54,7 @@ and possibly
 if you want logrotate (rotation of logs) configuration in /etc/logrotate.d
 (highly recommended)
 
-(make installnodoc -> to install without doc
+(make installnodoc -> to install without the documentation
  make uninstall -> uninstall (almost) everything)
 
 Adapt the config file to set the port, the modules you want to load

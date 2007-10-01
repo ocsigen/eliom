@@ -200,8 +200,9 @@ $(OCSIGENNAME).conf.local:
 clean:
 	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
-	-rm -f lib/* *~
-	-rm -f bin/* *~
+	-rm -f lib/* lib/*~
+	-rm -f bin/* bin/*~
+	-rm -f doc/* doc/*~
 	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 
 depend: xmlp4.byte
@@ -222,7 +223,7 @@ partialinstall:
 	$(INSTALL) -m 755 modules/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
 	-rm META
 
-docinstall: doc
+docinstall: doc/index.html
 	mkdir -p $(TEMPROOT)/$(DOCDIR)
 	$(INSTALL) -m 644 doc/* $(TEMPROOT)/$(DOCDIR)
 	chmod a+rx $(TEMPROOT)/$(DOCDIR)
