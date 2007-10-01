@@ -363,9 +363,17 @@ let recupere_cgi head pages_tree re filename ri =
     let (post_out, post_in) = Unix.pipe () in
     let (cgi_out, cgi_in) = Unix.pipe () in
     let (err_out, err_in) = Unix.pipe () in
+
+    (* My file descriptors are non blocking: *)
     Unix.set_nonblock post_in;
     Unix.set_nonblock cgi_out;
     Unix.set_nonblock err_out;
+
+    (* I don't want to give them to the script: *)
+    Unix.set_close_on_exec cgi_out;
+    Unix.set_close_on_exec post_in;
+    Unix.set_close_on_exec err_out;
+
     let post_in_ch = Lwt_unix.out_channel_of_descr (Lwt_unix.Plain post_in) in
 
     (* Launch the CGI script *)
@@ -378,15 +386,24 @@ let recupere_cgi head pages_tree re filename ri =
         err_in
         re
     in
+    
+    (try
+      Unix.close cgi_in;
+      Unix.close post_out;
+      Unix.close err_in;
+    with _ -> Messages.warning "Error while closing CGI pipes");
 
     (* A thread giving POST data to the CGI script: *)
     ignore
-      (match ri.ri_http_frame.Stream_http_frame.content with
-      | None -> return ()
-      | Some content_post -> 
-          Stream_sender.really_write post_in_ch
-            return (content_post ()) >>= fun () ->
-          Lwt_unix.flush post_in_ch);
+        (catch
+           (fun () ->
+             (match ri.ri_http_frame.Stream_http_frame.content with
+             | None -> return ()
+             | Some content_post -> 
+                 Stream_sender.really_write post_in_ch
+                   return (content_post ()) >>= fun () ->
+                     Lwt_unix.flush post_in_ch))
+           (fun _ -> tryclose post_in; return ()));
 
     (* A thread listening the error output of the CGI script 
        and writing them in warnings.log *)
@@ -395,9 +412,10 @@ let recupere_cgi head pages_tree re filename ri =
       Lwt_unix.input_line err_channel >>= fun err ->
         Messages.warning ("CGI says: "^err);
         get_errors ()
-    in ignore (get_errors ());
+    in ignore (catch get_errors (fun _ -> tryclose err_out; return ()));
     (* This threads terminates, as you can see by doing:
-    in ignore (catch get_errors (fun _ -> print_endline "the end"; return ()));
+    in ignore (catch get_errors (fun _ -> print_endline "the end"; 
+                                          tryclose err_out; return ()));
      *)
 
 
@@ -413,11 +431,6 @@ let recupere_cgi head pages_tree re filename ri =
            otherwise, we wait to give time to the other thread to get the answer
          *)
         (Lwt_unix.waitpid [] pid >>= fun (_, status) ->
-         tryclose cgi_in;
-         tryclose post_in;
-         tryclose post_out;
-         tryclose err_in;
-         tryclose err_out;
          match status with
          | Unix.WEXITED 0 -> 
              Lwt_unix.sleep !cgitimeout >>= fun () ->
@@ -434,13 +447,16 @@ let recupere_cgi head pages_tree re filename ri =
         );
 
         (* A thread getting the result of the CGI script *)
-       (Stream_receiver.get_http_frame (return ()) receiver ~head 
-          ~doing_keep_alive:false () >>= fun http_frame ->
-       ignore 
-           (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
-            tryclose cgi_out;
-            return ());
-       return http_frame);
+       (catch 
+	  (fun () ->
+	    Stream_receiver.get_http_frame (return ()) receiver ~head 
+              ~doing_keep_alive:false () >>= fun http_frame ->
+            ignore 
+	      (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
+		return ());
+	    return http_frame)
+	  (fun e -> tryclose cgi_out; fail e))
+	 ;
 
         (* A thread implementing the timeout for CGI scripts *)
        (Lwt_unix.sleep !cgitimeout >>= fun () ->
@@ -449,7 +465,7 @@ let recupere_cgi head pages_tree re filename ri =
           Unix.kill Sys.sigkill pid 
         with _ -> ());
         fail (CGI_Error (Failure ("CGI Timeout reached: \
-                                    CGI script killed by server")))
+                                   CGI script killed by server")))
        )
       ]
   with e -> fail e

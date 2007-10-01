@@ -53,7 +53,7 @@ end = struct
 
   let get_thread l = 
     match l.timeout_thread with
-      None -> assert false (* Should not happen because last_timeout is
+    | None -> assert false (* Should not happen because last_timeout is
                               not visible outside the module *)
     | Some t -> t
 
@@ -92,7 +92,7 @@ end = struct
     let t = Ocsiconfig.get_connect_time_max () in
     let rec killall l =
       match l.timeout_thread with
-        None -> ()
+      | None -> ()
       | Some t -> (Lwt.wakeup_exn t Ocsigen_Timeout;
                    killall l.timeout_succ)
     in
@@ -180,7 +180,8 @@ struct
           ))
       )
       (function
-	 | Unix.Unix_error (Unix.EBADF,"read",_) -> fail Connection_reset_by_peer
+	 | Unix.Unix_error (Unix.EBADF,"read",_) -> 
+             fail Connection_reset_by_peer
 	 | e -> fail e)
 
   let min64 a b = if (Int64.compare a b) < 0 then a else b

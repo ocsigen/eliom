@@ -92,7 +92,7 @@ let lingering_close ch =
             Lwt.return
               (try
                 (match ch with 
-                  Lwt_unix.Plain fd -> Messages.debug "** CLOSE"; Unix.close fd
+                | Lwt_unix.Plain fd -> Messages.debug "** CLOSE"; Unix.close fd
                 | Lwt_unix.Encrypted (fd,sock) -> 
                     Messages.debug "** CLOSE (SSL)"; Unix.close fd)
               with e -> Messages.debug "** close failed"; ())))
@@ -767,7 +767,7 @@ let handle_broken_pipe_exn sockaddr exn =
       return ()
   | exn -> 
       warning ("While talking to "^ip^": "
-              ^(Printexc.to_string exn)^".");
+              ^(string_of_exn exn)^".");
       return ()
 
 
