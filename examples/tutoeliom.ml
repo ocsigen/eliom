@@ -71,7 +71,7 @@ open Eliompredefmod.Xhtml
 *html*)
 let coucou = 
   register_new_service 
-    ~url:["coucou"]
+    ~path:["coucou"]
     ~get_params:unit
     (fun _ () () -> 
       return 
@@ -83,7 +83,7 @@ The same, written with fully qualified values:
 <pre>
 <span class="Clet">let</span> coucou <span class="Cnonalphakeyword">=</span> 
   <span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
-    <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"coucou"</span><span class="Cnonalphakeyword">]</span>
+    <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"coucou"</span><span class="Cnonalphakeyword">]</span>
     <span class="Clabel">~get_params:</span><span class="Cconstructor">Eliomparameters</span><span class="Cnonalphakeyword">.</span>unit
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span> 
       <span class="Cconstructor">Lwt</span><span class="Cnonalphakeyword">.</span>return 
@@ -94,7 +94,7 @@ The same, written with fully qualified values:
 *html*)(*zap*
 let coucou = 
   Eliompredefmod.Xhtml.register_new_service 
-    ~url:["coucou"]
+    ~path:["coucou"]
     ~get_params:Eliomparameters.unit
     (fun _ () () -> 
       Lwt.return 
@@ -176,6 +176,7 @@ Type 'a is not compatible with type
    <p>
    A more detailed introduction to <code>XHTML.M</code> is available
         $a (new_external_service
+              ""
               ["doc/"^version^"/XHTML.M.html"]
 (*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
               unit unit ())
@@ -189,7 +190,7 @@ Type 'a is not compatible with type
 *html*)
 let coucou1 = 
   Eliompredefmod.Xhtml.register_new_service 
-    ~url:["coucou1"]
+    ~path:["coucou1"]
     ~get_params:Eliomparameters.unit
     (fun _ () () -> 
       return
@@ -228,11 +229,12 @@ let coucou1 =
         always get valid xhtml.
         Use the syntax extension for example to enclose already created pieces
         of html, and verify the validity of your pages with the
-        $a (new_external_service ["http://validator.w3.org"] unit unit ()) 
+        $a (new_external_service "http://validator.w3.org" [] unit unit ()) 
            sp <:xmllist< W3C validator >> ()$.
       </p>
       <p>
         $a (new_external_service
+              ""
               ["doc/"^version^"/XHTML.M.html"]
 (*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
               unit unit ())
@@ -262,7 +264,7 @@ let coucou1 =
 
 <span style="color:green">let</span> s =
   <span class="Cconstructor">Eliomduce</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
-    <span style="color:#770000">~url:</span>[<span style="color:#aa4444">""</span>]
+    <span style="color:#770000">~path:</span>[<span style="color:#aa4444">""</span>]
     <span style="color:#770000">~get_params:</span>unit
     (<span style="color:green">fun</span> sp () () -&gt;
       return
@@ -279,7 +281,7 @@ let coucou1 =
 *html*)
 let coucoutext = 
   Eliompredefmod.HtmlText.register_new_service 
-    ~url:["coucoutext"]
+    ~path:["coucoutext"]
     ~get_params:Eliomparameters.unit
     (fun sp () () -> 
       return
@@ -306,7 +308,7 @@ let count =
       (fun () -> c := !c + 1; !c)
   in
   register_new_service 
-    ~url:["count"]
+    ~path:["count"]
     ~get_params:unit
     (fun _ () () -> 
       return
@@ -386,7 +388,7 @@ let writeparams _ (i1, (i2, s1)) () =
 (*zap* you can register twice the same service, with different parameters names 
  *zap*)
 let coucou_params = register_new_service 
-    ~url:["coucou"]
+    ~path:["coucou"]
     ~get_params:(int "i" ** (int "ii" ** string "s"))
     writeparams
 (*zap* If you register twice exactly the same URL, the server won't start 
@@ -416,7 +418,7 @@ let coucou_params = register_new_service
 *html*)
 let uasuffix = 
   register_new_service 
-    ~url:["uasuffix"]
+    ~path:["uasuffix"]
     ~get_params:(suffix (int "year" ** int "month"))
     (fun sp (year, month) () -> 
       return
@@ -447,7 +449,7 @@ let uasuffix =
 *html*)
 let isuffix = 
   register_new_service 
-    ~url:["isuffix"] 
+    ~path:["isuffix"] 
     ~get_params:(suffix_prod (int "suff" ** all_suffix "endsuff") (int "i"))
     (fun sp ((suff, endsuff), i) () -> 
       return
@@ -478,7 +480,7 @@ let string_of_mysum = function
 
 let mytype = 
   Eliompredefmod.Xhtml.register_new_service 
-    ~url:["mytype"]
+    ~path:["mytype"]
     ~get_params:
       (Eliomparameters.user_type mysum_of_string string_of_mysum "valeur")
     (fun _ x () -> 
@@ -497,7 +499,7 @@ let mytype =
       </p>
 *html*)
 let raw_serv = register_new_service 
-    ~url:["any"]
+    ~path:["any"]
     ~get_params:Eliomparameters.any
   (fun _ l () ->
     let ll = 
@@ -525,7 +527,7 @@ let raw_serv = register_new_service
 *html*)
 
 let catch = register_new_service
-    ~url:["catch"]
+    ~path:["catch"]
     ~get_params:(int "i")
     ~error_handler:(fun sp l -> 
       return
@@ -574,7 +576,8 @@ let links = register_new_service ["rep";"links"] unit
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
          Eliompredefmod.Xhtml.a
            (new_external_service
-              ~url:["fr.wikipedia.org";"wiki";""]
+              ~server:"http://fr.wikipedia.org"
+              ~path:["wiki";""]
               ~get_params:(suffix (all_suffix "suff"))
               ~post_params:unit ()) 
            sp
@@ -696,7 +699,7 @@ let form = register_new_service ["form"] unit
       <code>raw_serv</code>.</p>
 *html*)
 let raw_form = register_new_service 
-    ~url:["anyform"]
+    ~path:["anyform"]
     ~get_params:unit
     (fun sp () () ->
       return
@@ -736,7 +739,7 @@ let raw_form = register_new_service
 *html*)
 let no_post_param_service = 
   register_new_service 
-    ~url:["post"]
+    ~path:["post"]
     ~get_params:unit
     (fun _ () () -> 
       return
@@ -761,7 +764,7 @@ let my_service_with_post_params =
 *html*)
 let get_no_post_param_service = 
   register_new_service 
-    ~url:["post2"]
+    ~path:["post2"]
     ~get_params:(int "i")
     (fun _ i () -> 
       return
@@ -825,7 +828,8 @@ let form4 = register_new_service ["form4"] unit
      let f  = 
        (Eliompredefmod.Xhtml.post_form
           (new_external_service 
-             ~url:["www.petizomverts.com"]
+             ~server:"http://www.petizomverts.com"
+             ~path:["zebulon"]
              ~get_params:(int "i")
              ~post_params:(string "chaine") ()) sp
           (fun chaine -> 
@@ -877,7 +881,7 @@ let form4 = register_new_service ["form4"] unit
       this delay:</p>
 <pre><span style="color:green">let</span> looong =
   register_new_service
-    <span style="color:#770000">~url:</span>[<span style="color:#aa4444">"looong"</span>]
+    <span style="color:#770000">~path:</span>[<span style="color:#aa4444">"looong"</span>]
     <span style="color:#770000">~get_params:</span>unit
     (<span style="color:green">fun</span> sp () () -&gt;
       <span style="color:#0033cc">Unix</span>.sleep 5;
@@ -890,7 +894,7 @@ let form4 = register_new_service ["form4"] unit
 *html*)
 let looong = 
   register_new_service 
-    ~url:["looong"]
+    ~path:["looong"]
     ~get_params:unit
     (fun sp () () -> 
       Lwt_unix.sleep 5.0 >>= fun () ->
@@ -993,7 +997,7 @@ let looong =
 *html*)
 let looong2 = 
   register_new_service 
-    ~url:["looong2"]
+    ~path:["looong2"]
     ~get_params:unit
     (fun sp () () -> 
       Preemptive.detach Unix.sleep 5 >>= fun () ->
@@ -1362,7 +1366,7 @@ let my_table = Eliomsessions.create_table ()
 
 let session_data_example =
   Eliomservices.new_service
-    ~url:["sessdata"]
+    ~path:["sessdata"]
     ~get_params:Eliomparameters.unit
     ()
 
@@ -1374,7 +1378,7 @@ let session_data_example_with_post_params =
 
 let session_data_example_close =
   Eliomservices.new_service
-    ~url:["close"]
+    ~path:["close"]
     ~get_params:Eliomparameters.unit
     ()
 
@@ -1470,7 +1474,7 @@ let sessdata = new_service ["sessdata"] unit ()
 let sessdata_with_post_params = new_post_service sessdata (string "login") ()
 
 let close = register_new_service
-    ~url:["disconnect"]
+    ~path:["disconnect"]
     ~get_params:unit
     (fun sp () () -> 
       Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
@@ -1605,7 +1609,7 @@ let session_name = "session_services"
 
 let session_services_example = 
   Eliomservices.new_service
-    ~url:["sessionservices"] 
+    ~path:["sessionservices"] 
     ~get_params:Eliomparameters.unit 
     ()
 
@@ -1617,7 +1621,7 @@ let session_services_example_with_post_params =
 
 let session_services_example_close = 
   Eliomservices.new_service
-    ~url:["close2"]
+    ~path:["close2"]
     ~get_params:Eliomparameters.unit
     ()
 
@@ -1734,7 +1738,7 @@ let () =
     launch_session
 (*zap* Registering for session during initialisation is forbidden:
 let _ = register_for_session
-    ~url:coucou1 
+    ~path:coucou1 
     << <html>
          <head><title></title></head>
          <body><h1>humhum</h1></body>
@@ -1804,7 +1808,7 @@ let _ = register_for_session
 
 let coservices_example = 
   Eliomservices.new_service
-    ~url:["coserv"] 
+    ~path:["coserv"] 
     ~get_params:Eliomparameters.unit
     ()
 
@@ -1900,6 +1904,7 @@ let _ =
         to go back to an old continuation. Continuations for Web programming
         have been introduced by 
         $a (new_external_service
+             ""
              ["http://www-spi.lip6.fr/~queinnec/PDF/www.pdf"]
              unit unit ()) sp <:xmllist< Christian Queinnec >> ()$,
         and are a big step in
@@ -1960,7 +1965,7 @@ let session_name = "shop_example"
 (* *zap *)
 let shop_without_post_params =
   new_service
-   ~url:["shop"]
+   ~path:["shop"]
    ~get_params:unit
     ()
 
@@ -2046,13 +2051,13 @@ let session_name = "calc_example"
 
 let calc = 
   new_service
-    ~url:["calc"]
+    ~path:["calc"]
     ~get_params:unit
     ()
 
 let calc_i = 
   new_service 
-    ~url:["calc"]
+    ~path:["calc"]
     ~get_params:(int "i")
     ()
 
@@ -2166,7 +2171,7 @@ let session_name = "action_example"
 
 let action_example = 
   Eliomservices.new_service
-    ~url:["action"] 
+    ~path:["action"] 
     ~get_params:Eliomparameters.unit
     ()
 
@@ -2397,7 +2402,7 @@ let () =
 *html*)
 let _ = 
   Eliompredefmod.Blocks.register_new_service 
-    ~url:["div"]
+    ~path:["div"]
     ~get_params:unit
     (fun sp () () -> 
       return 
@@ -2423,7 +2428,7 @@ end)
     </p>
 *html*)
 let redir = Eliompredefmod.Redirections.register_new_service
-    ~url:["redir"]
+    ~path:["redir"]
     ~get_params:(int "o")
    (fun sp o () -> return (make_string_uri coucou_params sp (o,(22,"ee"))))
 (*html*
@@ -2441,7 +2446,7 @@ let redir = Eliompredefmod.Redirections.register_new_service
 <pre>
 let sendfile = 
   Files.register_new_service 
-    ~url:["sendfile"]
+    ~path:["sendfile"]
     ~get_params:unit
     (fun _ () () -&gt; return "filename")
 </pre>
@@ -2450,7 +2455,7 @@ let sendfile =
 <pre>
 let sendfile2 = 
   Files.register_new_service 
-    ~url:["files"]
+    ~path:["files"]
     ~get_params:(suffix (all_suffix "filename"))
     (fun _ s () -&gt; return ("<em>path</em>"^(Extensions.string_of_url_path s)))
 </pre>
@@ -2471,7 +2476,7 @@ let sendfile2 =
 *html*)
 let send_any = 
   Eliompredefmod.Any.register_new_service 
-    ~url:["sendany"]
+    ~path:["sendany"]
     ~get_params:(string "type")
    (fun sp s () -> 
      if s = "valid"
@@ -2632,7 +2637,7 @@ let count2 =
           (fun () -> return newc))))
   in
   register_new_service 
-    ~url:["count2"]
+    ~path:["count2"]
     ~get_params:unit
     (fun _ () () ->  
       next () >>=
@@ -2698,7 +2703,7 @@ let my_persistent_table =
 
 let persist_session_example = 
   Eliomservices.new_service
-    ~url:["persist"] 
+    ~path:["persist"] 
     ~get_params:unit 
     ()
 
@@ -2860,7 +2865,7 @@ let session_name = "action_example2"
 
 let action_example2 = 
   Eliomservices.new_service
-    ~url:["action2"] 
+    ~path:["action2"] 
     ~get_params:unit 
     ()
 
@@ -3238,7 +3243,7 @@ let _ = Eliomsessions.set_exn_handler
 
 <span class="Clet">let</span> regexp <span class="Cnonalphakeyword">=</span> 
   <span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
-    <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"regexp"</span><span class="Cnonalphakeyword">]</span>
+    <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"regexp"</span><span class="Cnonalphakeyword">]</span>
     <span class="Clabel">~get_params:</span><span class="Cnonalphakeyword">(</span>regexp r <span class="Cstring">"$$1"</span> <span class="Cstring">"myparam"</span><span class="Cnonalphakeyword">)</span>
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> <span class="Cnonalphakeyword">_</span> g <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span> 
       return 
@@ -3252,7 +3257,7 @@ let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 
 let regexpserv = 
   Eliompredefmod.Xhtml.register_new_service 
-    ~url:["regexp"]
+    ~path:["regexp"]
     ~get_params:(regexp myregexp "$1" "myparam")
     (fun _ g () -> 
       return 
@@ -3272,7 +3277,7 @@ let regexpserv =
 *html*)
 (* Form with bool checkbox: *)
 let bool_params = register_new_service 
-    ~url:["bool"]
+    ~path:["bool"]
     ~get_params:(bool "case")
   (fun _ case () -> 
     return
@@ -3339,7 +3344,7 @@ let form_bool = register_new_service ["formbool"] unit
 *html*)
 
 let set = register_new_service 
-    ~url:["set"]
+    ~path:["set"]
     ~get_params:(set string "s")
   (fun _ l () ->
     let ll = 
@@ -3367,7 +3372,7 @@ let set = register_new_service
 
 (* form to set *)
 let setform = register_new_service 
-    ~url:["setform"]
+    ~path:["setform"]
     ~get_params:unit
     (fun sp () () ->
       return
@@ -3396,7 +3401,7 @@ let setform = register_new_service
       <p>Here is an example of a select box.</p>
 *html*)
 let select_example_result = register_new_service 
-    ~url:["select"]
+    ~path:["select"]
     ~get_params:(string "s")
     (fun sp g () ->
       return
@@ -3450,7 +3455,7 @@ let select_example = register_new_service ["select"] unit
       </p>
 *html*)
 let coord = register_new_service 
-    ~url:["coord"]
+    ~path:["coord"]
     ~get_params:(coordinates "coord")
   (fun _ c () ->
     return
@@ -3466,7 +3471,7 @@ let coord = register_new_service
 
 (* form to image *)
 let imageform = register_new_service 
-    ~url:["imageform"]
+    ~path:["imageform"]
     ~get_params:unit
     (fun sp () () ->
       return
@@ -3485,7 +3490,7 @@ let imageform = register_new_service
      <p>You may also send a value with the coordinates:</p>
 *html*)
 let coord2 = register_new_service 
-    ~url:["coord2"]
+    ~path:["coord2"]
     ~get_params:(int_coordinates "coord")
   (fun _ (i, c) () ->
     return
@@ -3501,7 +3506,7 @@ let coord2 = register_new_service
 
 (* form to image *)
 let imageform2 = register_new_service 
-    ~url:["imageform2"]
+    ~path:["imageform2"]
     ~get_params:unit
     (fun sp () () ->
       return
@@ -3532,7 +3537,7 @@ let imageform2 = register_new_service
 
 (* lists *)
 let coucou_list = register_new_service 
-    ~url:["coucou"]
+    ~path:["coucou"]
     ~get_params:(list "a" (string "str"))
   (fun _ l () ->
     let ll = 
@@ -3672,7 +3677,7 @@ val get_original_filename : Extensions.file_info -> string
       </p>
 *html*)
 let upload = new_service
-    ~url:["upload"]
+    ~path:["upload"]
     ~get_params:unit
     ()
     
@@ -3801,7 +3806,7 @@ let uploadform = register upload
 <pre>
 <span class="Ccomment">(* All the services: *)</span>
 
-<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span>
+<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span>
     <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
 
 <span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span>int <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
@@ -3841,7 +3846,7 @@ let uploadform = register upload
 *html*)(*zap* from ocsexample2 *zap*)(*html*
 <pre><span class="Ccomment">(* All the services: *)</span>
 
-<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~url:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span> <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
+<span class="Clet">let</span> main_page <span class="Cnonalphakeyword">=</span> new_service <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">""</span><span class="Cnonalphakeyword">]</span> <span class="Clabel">~get_params:</span>unit <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
 
 <span class="Clet">let</span> news_page <span class="Cnonalphakeyword">=</span> new_service <span class="Cnonalphakeyword">[</span><span class="Cstring">"msg"</span><span class="Cnonalphakeyword">]</span> <span class="Cnonalphakeyword">(</span>int <span class="Cstring">"num"</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span>
 
@@ -3917,7 +3922,7 @@ let _ = register main
        This will cause an error:
        let coucou6 = 
        new_service 
-        ~url:["coucou6"]
+        ~path:["coucou6"]
         ~server_params:no_server_param
         ~get_params:no_get_param 
         ()

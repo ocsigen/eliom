@@ -95,6 +95,10 @@ If you make install, it will generate and install the documentation.
 Otherwise, you can generate it in the doc directory by typing:
 make doc
 
+By default, the tutorial is configured at URL /
+and Miniwiki at URL /miniwiki
+
+
 ------------------------------------------------------------------
 Ocsigen
 ------------------------------------------------------------------

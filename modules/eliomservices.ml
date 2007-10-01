@@ -64,7 +64,9 @@ type internal =
 type registrable = [ `Registrable | `Unregistrable ]
 
 type +'a a_s =
-    {url: url_path; (* name of the service without parameters *)
+    {server: string; (* name of the server and protocol, 
+                        for external links. Ex: http://ocsigen.org *)
+     path: url_path; (* name of the service without parameters *)
      att_kind: 'a; (* < attached_service_kind *)
      get_state: internal_state option;
      post_state: internal_state option;
@@ -113,7 +115,8 @@ let get_att_kind_ s = s.att_kind
 let get_pre_applied_parameters_ s = s.pre_applied_parameters
 let get_get_params_type_ s = s.get_params_type
 let get_post_params_type_ s = s.post_params_type
-let get_url_ s = s.url
+let get_server_ s = s.server
+let get_path_ s = s.path
 let get_get_state_ s = s.get_state
 let get_post_state_ s = s.post_state
 let get_na_name_ s = s.na_name
@@ -146,7 +149,8 @@ let static_dir ~sp =
      max_use= None;
      timeout= None;
      kind = `Attached
-       {url = (get_site_dir ~sp)@[""];
+       {server = "";
+        path = (get_site_dir ~sp)@[""];
         get_state = None;
         post_state = None;
         att_kind = `Internal (`Service, `Get);
@@ -161,7 +165,8 @@ let static_dir ~sp =
 (** Definition of services *)
 (** Create a main service (not a coservice) internal or external, get only *)
 let new_service_aux_aux
-    ~(url : url_path)
+    ~server
+    ~(path : url_path)
     ~kind
     ~get_params
     ~post_params =
@@ -173,7 +178,8 @@ let new_service_aux_aux
    max_use= None;
    timeout= None;
    kind = `Attached
-     {url = url;
+     {server = server;
+      path = path;
       att_kind = kind;
       get_state = None;
       post_state = None}
@@ -181,7 +187,7 @@ let new_service_aux_aux
     
 let new_service_aux
     ?sp
-    ~url
+    ~path
     ~get_params =
   match sp with
   | None ->
@@ -189,9 +195,10 @@ let new_service_aux
         Some get_current_hostdir ->
           let _,curdir = get_current_hostdir () in
           let full_path = 
-            remove_middle_slash (curdir@(change_empty_list url)) in
+            remove_middle_slash (curdir@(change_empty_list path)) in
           let u = new_service_aux_aux
-              ~url:full_path
+              ~server:""
+              ~path:full_path
               ~kind:(`Internal (`Service, `Get))
               ~get_params
               ~post_params:unit
@@ -201,36 +208,39 @@ let new_service_aux
                          "new_service"))
   | Some sp ->
       let full_path = 
-        remove_middle_slash ((get_site_dir sp)@(change_empty_list url)) in
+        remove_middle_slash ((get_site_dir sp)@(change_empty_list path)) in
       new_service_aux_aux
-        ~url:full_path
+        ~server:""
+        ~path:full_path
         ~kind:(`Internal (`Service, `Get))
         ~get_params
         ~post_params:unit
 
       
 let new_external_service
-    ~url
+    ~server
+    ~path
     ~get_params
     ~post_params
     () =
   let suffix = contains_suffix get_params in
   new_service_aux_aux
-    ~url:(remove_middle_slash 
-            (if suffix then url@[eliom_suffix_internal_name] else url))
+    ~server
+    ~path:(remove_middle_slash 
+            (if suffix then path@[eliom_suffix_internal_name] else path))
     ~kind:`External
     ~get_params 
     ~post_params
     
 let new_service
     ?sp
-    ~url
+    ~path
     ~get_params
     () =
   let suffix = contains_suffix get_params in
   new_service_aux 
     ?sp
-    ~url:(if suffix then url@[eliom_suffix_internal_name] else url)
+    ~path:(if suffix then path@[eliom_suffix_internal_name] else path)
     ~get_params
 
 let new_naservice_name () = new_state ()
@@ -243,7 +253,7 @@ let new_coservice
     () =
   let `Attached k = fallback.kind in
   (* (match global_register_allowed () with
-    Some _ -> add_unregistered (Some k.url);
+    Some _ -> add_unregistered (Some k.path);
   | _ -> ()); *)
   {fallback with
    max_use= max_use;
@@ -291,7 +301,8 @@ let new_post_service_aux ~sp ~fallback ~post_params =
    max_use= None;
    timeout= None;
    kind = `Attached
-     {url = k1.url;
+     {server = k1.server;
+      path = k1.path;
       att_kind = `Internal (k, `Post);
       get_state = k1.get_state;
       post_state = None;
@@ -308,13 +319,13 @@ let new_post_service ?sp ~fallback ~post_params () =
     *)
   let `Attached k1 = fallback.kind in
   let `Internal (kind, _) = k1.att_kind in
-  let url = Some k1.url in
+  let path = Some k1.path in
   let u = new_post_service_aux ~sp ~fallback ~post_params in
   match sp with
   | None ->
       (match global_register_allowed () with
         Some _ ->
-          add_unregistered url;
+          add_unregistered path;
           u
       | None ->
           if kind = `Service
@@ -329,7 +340,7 @@ let new_post_service ?sp ~fallback ~post_params () =
 let new_post_coservice ?max_use ?timeout ~fallback ~post_params () = 
   let `Attached k1 = fallback.kind in
   (* (match global_register_allowed () with
-    Some _ -> add_unregistered (Some k1.url);
+    Some _ -> add_unregistered (Some k1.path);
   | _ -> ()); *)
   {fallback with 
    post_params_type = post_params;
@@ -400,10 +411,10 @@ let preapply ~service getparams =
    pre_applied_parameters = params@service.pre_applied_parameters;
    get_params_type = unit;
    kind = match service.kind with
-     `Attached k -> `Attached {k with 
-                               url = match suff with
-                                 Some suff -> k.url@suff
-                               | _ -> k.url}
+   | `Attached k -> `Attached {k with 
+                               path = match suff with
+                               | Some suff -> k.path@suff
+                               | _ -> k.path}
    | k -> k
  }
 
@@ -466,10 +477,11 @@ let make_string_uri
           concat_strings preapplied_params "&" params_string in
         let uri = 
           (if (get_att_kind_ attser) = `External
-          then "http://"^(reconstruct_absolute_url_path
-                            (get_current_path sp) (get_url_ attser) suff)
+          then (get_server_ attser)^(reconstruct_absolute_url_path
+                                       (get_current_path sp) 
+                                       (get_path_ attser) suff)
           else (reconstruct_relative_url_path
-                  (get_current_path sp) (get_url_ attser) suff))
+                  (get_current_path sp) (get_path_ attser) suff))
         in
         match get_get_state_ attser with
           None ->

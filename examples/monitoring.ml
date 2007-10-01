@@ -31,7 +31,7 @@ let launchtime = Unix.time ()
 
 let _ = 
   register_new_service
-    ~url:[]
+    ~path:[]
     ~get_params:unit
     (fun sp () () ->
       let tm = Unix.gmtime ((Unix.time ()) -. launchtime) in

@@ -36,7 +36,7 @@ open Lwt
 
 let url_encoding = 
   register_new_service 
-    ~url:["urlencod?ing"]
+    ~path:["urlencod?ing"]
     ~get_params:(suffix_prod (all_suffix "s//\\à") any)
     (fun sp (suf, l) () -> 
       let ll = 
@@ -70,7 +70,7 @@ let mymenu current sp =
 
 let preappmenu = 
   register_new_service 
-    ~url:["menu"]
+    ~path:["menu"]
     ~get_params:unit
     (fun sp () () -> 
       return 
@@ -108,7 +108,7 @@ let _ = register nonatt (fun sp s () -> return (f sp s))
 
 let getcoex = 
   register_new_service 
-    ~url:["getco"]
+    ~path:["getco"]
     ~get_params:unit
     (fun sp () () -> 
       return 
@@ -183,7 +183,7 @@ let v = ref 0
 
 let getact = 
   new_service 
-    ~url:["getact"]
+    ~path:["getact"]
     ~get_params:(int "p")
     ()
 
@@ -272,7 +272,7 @@ let _ = Cookies.register cookies
 (* Cookies or not cookies with Any *)
 let sendany = 
   Any.register_new_service 
-    ~url:["sendany2"]
+    ~path:["sendany2"]
     ~get_params:(string "type")
    (fun sp s () -> 
      if s = "nocookie"
@@ -298,7 +298,7 @@ let sendany =
 (* Send file *)
 let sendfileex = 
   register_new_service 
-    ~url:["files";""]
+    ~path:["files";""]
     ~get_params:unit
     (fun _ () () -> 
       return 
@@ -308,14 +308,14 @@ let sendfileex =
 
 let sendfile2 = 
   Files.register_new_service 
-    ~url:["files";""]
+    ~path:["files";""]
     ~get_params:(suffix (all_suffix "filename"))
     (fun _ s () -> 
       return ("/var/www/ocsigen/"^(Extensions.string_of_url_path s)))
 
 let sendfileexception = 
   register_new_service 
-    ~url:["files";"exception"]
+    ~path:["files";"exception"]
     ~get_params:unit
     (fun _ () () -> 
       return 
@@ -327,7 +327,7 @@ let sendfileexception =
 (* Complex suffixes *)
 let suffix2 = 
   register_new_service 
-    ~url:["suffix2";""]
+    ~path:["suffix2";""]
     ~get_params:(suffix (string "suff1" ** int "ii" ** all_suffix "ee"))
     (fun sp (suf1,(ii,ee)) () ->  
       return
@@ -340,7 +340,7 @@ let suffix2 =
 
 let suffix3 = 
   register_new_service 
-    ~url:["suffix3";""]
+    ~path:["suffix3";""]
     ~get_params:(suffix_prod (string "suff1" ** int "ii" ** all_suffix_user int_of_string string_of_int "ee") (string "a" ** int "b"))
     (fun sp ((suf1, (ii, ee)), (a, b)) () ->  
       return
@@ -391,7 +391,7 @@ let suffixform3 = register_new_service ["suffixform3"] unit
 (* Send file with regexp *)
 let sendfileregexp = 
   register_new_service 
-    ~url:["files2";""]
+    ~path:["files2";""]
     ~get_params:unit
     (fun _ () () -> 
       return 
@@ -403,14 +403,14 @@ let r = Netstring_pcre.regexp "~([^/]*)(.*)"
 
 let sendfile2 = 
   Files.register_new_service 
-    ~url:["files2";""]
+    ~path:["files2";""]
 (*    ~get_params:(regexp r "/home/$1/public_html$2" "filename") *)
     ~get_params:(regexp r "$$u($1)$2" "filename")
     (fun _ s () -> return s)
 
 let sendfile2 = 
   Files.register_new_service 
-    ~url:["files2";""]
+    ~path:["files2";""]
     ~get_params:(suffix (all_suffix_regexp r "/home/$1/public_html$2" "filename"))
 (*    ~get_params:(suffix (all_suffix_regexp r "$$u($1)$2" "filename")) *)
     (fun _ s () -> return s)
@@ -432,7 +432,7 @@ let suffixform4 = register_new_service ["suffixform4"] unit
 
 (* Advanced use of any *)
 let any2 = register_new_service 
-    ~url:["any2"]
+    ~path:["any2"]
     ~get_params:(int "i" ** any)
   (fun _ (i,l) () ->
     let ll = 
@@ -454,7 +454,7 @@ let any2 = register_new_service
 
 (* the following will not work because s is taken in any. (not checked) *)
 let any3 = register_new_service 
-    ~url:["any3"]
+    ~path:["any3"]
     ~get_params:(int "i" ** any ** string "s")
   (fun _ (i,(l,s)) () ->
     let ll = 
@@ -479,7 +479,7 @@ let any3 = register_new_service
 
 (* any cannot be in suffix: (not checked) *)
 let any4 = register_new_service 
-    ~url:["any4"]
+    ~path:["any4"]
     ~get_params:(suffix any)
   (fun _ l () ->
     let ll = 
@@ -499,7 +499,7 @@ let any4 = register_new_service
 
 
 let any5 = register_new_service 
-    ~url:["any5"]
+    ~path:["any5"]
     ~get_params:(suffix_prod (string "s") any)
   (fun _ (s, l) () ->
     let ll = 
@@ -519,7 +519,7 @@ let any5 = register_new_service
 
 (* list cannot be in suffix: (not checked) *)
 let sufli = register_new_service 
-    ~url:["sufli"]
+    ~path:["sufli"]
     ~get_params:(suffix (list "l" (string "s")))
   (fun _ l () ->
     let ll = 
@@ -540,7 +540,7 @@ let sufli = register_new_service
 
 (* form to any2 *)
 let any2form = register_new_service 
-    ~url:["any2form"]
+    ~path:["any2form"]
     ~get_params:unit
     (fun sp () () ->
       return
@@ -561,7 +561,7 @@ let any2form = register_new_service
 (* bool list *)
 
 let boollist = register_new_service 
-    ~url:["boollist"]
+    ~path:["boollist"]
     ~get_params:(list "a" (bool "b"))
   (fun _ l () ->
     let ll = 
@@ -624,7 +624,7 @@ let any = register_new_post_service
 
 (* form to any *)
 let anypostform = register_new_service 
-    ~url:["anypostform"]
+    ~path:["anypostform"]
     ~get_params:unit
     (fun sp () () ->
       return
@@ -644,7 +644,7 @@ let anypostform = register_new_service
 (* ce qui suit ne doit pas fonctionner. Mais il faudrait l'interdire *)
 let get_param_service =
   register_new_service
-   ~url:["uploadget"]
+   ~path:["uploadget"]
    ~get_params:(string "name" ** file "file")
     (fun _ (name,file) () ->
          let to_display = 
@@ -688,7 +688,7 @@ let exn_act = Actions.register_new_coservice'
 
 let exn_act_main = 
   register_new_service 
-    ~url:["exnact"]
+    ~path:["exnact"]
     ~get_params:unit
     (fun sp () () -> 
       return
@@ -702,7 +702,7 @@ let exn_act_main =
 (* close sessions from outside *)
 let close_from_outside = 
   register_new_service 
-    ~url:["close_from_outside"]
+    ~path:["close_from_outside"]
     ~get_params:unit
     (fun sp () () -> 
       close_all_sessions ~session_name:"persistent_sessions" ~sp () >>= fun () ->
@@ -718,7 +718,7 @@ let close_from_outside =
 (* setting timeouts *)
 let set_timeout = 
 register_new_service 
-    ~url:["set_timeout"]
+    ~path:["set_timeout"]
     ~get_params:(int "t" ** bool "recompute")
     (fun sp (t, recompute) () -> 
       set_global_persistent_timeout ~session_name:"persistent_sessions"

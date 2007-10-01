@@ -119,7 +119,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 
 val new_service :
     ?sp: Eliommod.server_params ->
-    url:url_path ->
+    path:url_path ->
         get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
             unit ->
               ('get,unit,
@@ -127,7 +127,7 @@ val new_service :
                  [> `Internal of [> `Service ] * [>`Get] ] a_s ],
                'tipo,'gn, 
                unit, [> `Registrable ]) service
-(** [new_service ~url:p ~get_params:pa ()] creates an {!Eliomservices.service} associated
+(** [new_service ~path:p ~get_params:pa ()] creates an {!Eliomservices.service} associated
    to the path [p], taking the GET parameters [pa]. 
    
    {e Warning: If you use this function after the initialisation phase,
@@ -136,12 +136,13 @@ val new_service :
 *)
 	      
 val new_external_service :
-    url:url_path ->
-      get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-        post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-          unit -> 
-            ('get, 'post, [> `Attached of [> `External ] a_s ], 'tipo, 
-             'gn, 'pn, [> `Unregistrable ]) service
+    server: string ->
+      path:url_path ->
+        get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+            unit -> 
+              ('get, 'post, [> `Attached of [> `External ] a_s ], 'tipo, 
+               'gn, 'pn, [> `Unregistrable ]) service
 (** Creates an service for an external web site.
    Allows to creates links or forms towards other Web sites using
    Eliom's syntax.
@@ -302,7 +303,8 @@ val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
 val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('b, [ `WithoutSuffix ], 'f) Eliomparameters.params_type
 val get_att_kind_ : 'a a_s -> 'a
-val get_url_ : 'a a_s -> url_path
+val get_path_ : 'a a_s -> url_path
+val get_server_ : 'a a_s -> string
 val get_get_state_ : 'a a_s -> Eliommod.internal_state option
 val get_post_state_ : 'a a_s -> Eliommod.internal_state option
 val get_na_name_ : 'a na_s -> string option * string option

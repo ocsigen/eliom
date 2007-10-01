@@ -127,7 +127,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_service :
         ?sp: Eliommod.server_params ->
-        url:url_path ->
+        path:url_path ->
             get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
                 ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
                   page Lwt.t) ->
@@ -394,7 +394,7 @@ module MakeRegister = functor
                 table 
 	        current_dir
 	        duringsession
-	        (get_url_ attser)
+	        (get_path_ attser)
                 ({key_state = (attserget, attserpost);
                   key_kind = key_kind},
                  ((if attserget = None || attserpost = None 
@@ -476,7 +476,7 @@ module MakeRegister = functor
           | None ->
               let url =
                 match get_kind_ service with
-                | `Attached attser -> Some (get_url_ attser)
+                | `Attached attser -> Some (get_path_ attser)
                 | `Nonattached naser -> None
               in
               (match global_register_allowed () with
@@ -526,11 +526,11 @@ module MakeRegister = functor
 
         let register_new_service 
             ?sp
-            ~url
+            ~path
             ~get_params
             ?error_handler
             page =
-          let u = new_service ?sp ~url ~get_params () in
+          let u = new_service ?sp ~path ~get_params () in
           register ?sp ~service:u ?error_handler page;
           u
             
@@ -706,13 +706,13 @@ module MakeRegister = functor
 
       let register_new_service 
           ?sp
-          ~url
+          ~path
           ~get_params
           ?error_handler
           page =
         Cookies.register_new_service 
           ?sp
-          ~url
+          ~path
           ~get_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page sp g p >>= (fun r -> return (r,[])))

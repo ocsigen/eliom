@@ -120,7 +120,7 @@ module type ELIOMREGSIG1 =
 
     val register_new_service :
         ?sp: Eliommod.server_params ->
-        url:url_path ->
+        path:url_path ->
             get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
                 ?error_handler:(Eliommod.server_params -> (string * exn) list -> 
                   page Lwt.t) ->

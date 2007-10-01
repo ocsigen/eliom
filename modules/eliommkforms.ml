@@ -637,11 +637,12 @@ module MakeForms = functor
             let uri = 
               (if (get_att_kind_ attser) = `External
               then 
-                "http://"^(reconstruct_absolute_url_path
-                             (get_current_path sp) (get_url_ attser) suff)
+                (get_server_ attser)^(reconstruct_absolute_url_path
+                                        (get_current_path sp) 
+                                        (get_path_ attser) suff)
               else 
                 (reconstruct_relative_url_path
-                   (get_current_path sp) (get_url_ attser) suff))
+                   (get_current_path sp) (get_path_ attser) suff))
             in
             match get_get_state_ attser with
             | None ->
@@ -691,10 +692,11 @@ module MakeForms = functor
         | `Attached attser ->
             let urlname =
               (if (get_att_kind_ attser) = `External
-              then "http://"^(reconstruct_absolute_url_path
-                                (get_current_path sp) (get_url_ attser) None)
+              then (get_server_ attser)^(reconstruct_absolute_url_path
+                                           (get_current_path sp)
+                                           (get_path_ attser) None)
               else (reconstruct_relative_url_path
-                      (get_current_path sp) (get_url_ attser) None)) in
+                      (get_current_path sp) (get_path_ attser) None)) in
             let state_param =
               (match get_get_state_ attser with
               | None -> None
@@ -799,10 +801,11 @@ module MakeForms = functor
             in
             let urlname = 
               (if (get_att_kind_ attser) = `External
-              then "http://"^(reconstruct_absolute_url_path
-                                (get_current_path sp) (get_url_ attser) suff)
+              then (get_server_ attser)^(reconstruct_absolute_url_path
+                                           (get_current_path sp)
+                                           (get_path_ attser) suff)
               else (reconstruct_relative_url_path
-                      (get_current_path sp) (get_url_ attser) suff))
+                      (get_current_path sp) (get_path_ attser) suff))
             in
             let state_param =
               (match get_post_state_ attser with
