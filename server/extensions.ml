@@ -470,6 +470,8 @@ let parse_url url =
        (* Neturl.fixup_url_string url *)
        url)
   in
+
+  (* Note that the fragment (string after #) is not sent by browsers *)
   
 (*    let path = 
    (Neturl.string_of_url
@@ -504,6 +506,7 @@ let parse_url url =
       in
       Netencoding.Url.dest_url_encoded_parameters params_string)
   in
+
   let path =
     (Ocsimisc.remove_dotdot 
        (Ocsimisc.remove_slash_at_beginning 
@@ -513,6 +516,7 @@ let parse_url url =
          I prefer forbid that.
        *)
   in
+
   (url, url2, path, params, get_params)
     
 

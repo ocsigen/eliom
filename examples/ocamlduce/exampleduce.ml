@@ -70,7 +70,7 @@ let links = register_new_service ["links"] unit
 	   <br> [] *)
            {{ a
              (new_external_service
-		~server:"http://fr.wikipedia.org"
+		~prefix:"http://fr.wikipedia.org"
                 ~path:["wiki"]
 		~get_params:(suffix (string "a"))
 		~post_params:unit ())

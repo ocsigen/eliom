@@ -36,7 +36,7 @@ open Lwt
 
 let url_encoding = 
   register_new_service 
-    ~path:["urlencod?ing"]
+    ~path:["urlencoding"]
     ~get_params:(suffix_prod (all_suffix "s//\\à") any)
     (fun sp (suf, l) () -> 
       let ll = 
@@ -54,6 +54,7 @@ let url_encoding =
                   p sl;
                   p ll
                 ])))
+
 
 (* menu with preapplied services *)
 
@@ -798,9 +799,12 @@ let mainpage = register_new_service ["tests"] unit
          a exn_act_main sp [pcdata "Actions that raises an exception"] (); br ();
          a close_from_outside sp [pcdata "Closing sessions from outside"] (); br ();
          a set_timeout_form sp [pcdata "Setting timeouts from outside sessions"] (); br ();
-         a url_encoding sp [pcdata "Urls with strange characters inside"] 
-           (["l/l%l      &l=l)l@";"m\\m\"m";"nèn~n"],
-            [("po?po&po~po/po", "lo\"l     o#lo'lo lo=lo&l      o/lo"); 
+         a
+           ~fragment:"a--   ---++&é/@"
+           ~service:url_encoding ~sp 
+           [pcdata "Urls with strange characters inside"] 
+           (["l/l%l      &l=l+l)l@";"m\\m\"m";"nèn~n"],
+            [("po?po&po~po/po+po", "lo\"l     o#lo'lo lo=lo&l      o/lo+lo"); 
             ("bo=mo@co:ro", "zo^zo%zo$zo:zo")]); br ();
 
        ]])))

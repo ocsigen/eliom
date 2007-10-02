@@ -465,6 +465,7 @@ let rec relative_url_path_to_myself = function
 let make_string_uri
     ~service
     ~sp
+    ?(fragment = "")
     getparams : string =
   match get_kind_ service with
   | `Attached attser ->
@@ -489,10 +490,16 @@ let make_string_uri
         in
         match get_get_state_ attser with
         | None ->
-            add_to_string uri "?" params_string
+            add_to_string
+              (add_to_string uri "?" params_string)
+              "#"
+              (Netencoding.Url.encode fragment)
         | Some s -> 
-            add_to_string (uri^"?"^get_state_param_name^"="^s)
-              "&" params_string
+            add_to_string
+              (add_to_string (uri^"?"^get_state_param_name^"="^s)
+                 "&" params_string)
+              "#"
+              (Netencoding.Url.encode fragment)
       end
   | `Nonattached naser ->
       let current_get_params =

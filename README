@@ -5,7 +5,9 @@ Instructions:
 
 ---
 Requirements: 
-ocaml (tested with version 3.08.4 and 3.09.1. Does not work with 3.08.1)
+ocaml (tested with versions 3.08.4, 3.09.1 and following, 3.10.x. 
+      Does not work with 3.08.1)
+ocamlduce recommanded (otherwise you won't have all the features)
 findlib (ocamlfind)
 pcre-ocaml
 ocamlnet >= 2.2.0 (actually only module netstring, netsys, pcre) 
@@ -16,7 +18,8 @@ ocamlsqlite3 >= 0.21.0 (needs sqlite)
 camlzip (libzip-ocaml)
 cryptokit
 
-If ocaml/ocamlfind/ocamlnet/ocamlssl... are not installed on your computer, 
+If ocaml/ocamlduce/ocamlfind/ocamlnet/ocamlssl... 
+are not installed on your computer, 
 you can use GODI to install them automatically.
 See http://godi.ocaml-programming.de
 
@@ -29,6 +32,10 @@ Run
 
 Print the list of possible options using:
 ./configure --help
+
+Warning: Ocamlduce is now enabled by default.
+If you do not have ocamlduce installed, do
+  sh configure --disable-ocamlduce
 
 (For example if you have an old version of ocamlnet (< 2.0) you need
 ./configure --disable-newocamlnet
@@ -52,7 +59,7 @@ If you want system-wide installation, become root, and do
 and possibly
   make logrotate
 if you want logrotate (rotation of logs) configuration in /etc/logrotate.d
-(highly recommended)
+(highly recommanded)
 
 (make installnodoc -> to install without the documentation
  make uninstall -> uninstall (almost) everything)

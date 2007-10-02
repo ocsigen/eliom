@@ -196,7 +196,8 @@ module type ELIOMFORMSIG =
           service:('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-            sp:server_params -> a_content_elt_list -> 'get -> a_elt
+            sp:server_params -> ?fragment:string ->
+              a_content_elt_list -> 'get -> a_elt
 (** [a service sp cont ()] creates a link to [service]. 
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -205,8 +206,11 @@ module type ELIOMFORMSIG =
    The last  parameter is for GET parameters.
    For example [a service sp cont (42,"hello")]
 
-   The [~a] optional parameter is used for extra attributes 
-   (see the module XHTML.M) *)
+   The [~a] optional parameter is used for extra attributes.
+
+   The [~fragment] optional parameter is used for the "fragment" part
+   of the URL, that is, the part after character "#".
+*)
 
     val css_link : ?a:link_attrib_t -> uri:uri -> unit -> link_elt
 (** Creates a [<link>] tag for a Cascading StyleSheet (CSS). *)
@@ -219,7 +223,7 @@ module type ELIOMFORMSIG =
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
-          sp:server_params -> 'get -> uri
+          sp:server_params -> ?fragment:string -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
@@ -229,7 +233,7 @@ module type ELIOMFORMSIG =
           service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             sp:server_params ->
+             sp:server_params -> ?fragment:string ->
               ('gn -> form_content_elt_list) -> form_elt
 (** [get_form service sp formgen] creates a GET form to [service]. 
    The content of
@@ -242,7 +246,7 @@ module type ELIOMFORMSIG =
           service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-            sp:server_params ->
+            sp:server_params -> ?fragment:string ->
               ('pn -> form_content_elt_list) -> 'get -> form_elt
 (** [post_form service sp formgen] creates a POST form to [service]. 
    The last parameter is for GET parameters (as in the function [a]).
@@ -624,6 +628,7 @@ module MakeForms = functor
       let a ?a
           ~service
           ~sp
+          ?(fragment = "")
           content
           getparams =
         match get_kind_ service with
@@ -650,12 +655,21 @@ module MakeForms = functor
             match get_get_state_ attser with
             | None ->
                 Pages.make_a 
-                  ?a ~href:(add_to_string uri "?" params_string) content
+                  ?a
+                  ~href:(add_to_string
+                           (add_to_string uri "?" params_string)
+                           "#"
+                           (Netencoding.Url.encode fragment)
+                        ) content
             | Some s -> 
                 Pages.make_a ?a
-                  ~href:(add_to_string 
-                           (uri^"?"^get_state_param_name^"="^s)
-                           "&" params_string)
+                  ~href:
+                  (add_to_string
+                     (add_to_string 
+                        (uri^"?"^get_state_param_name^"="^s)
+                        "&" params_string)
+                     "#"
+                     (Netencoding.Url.encode fragment))
                   content)
         | `Nonattached naser ->
             let current_get_params =
@@ -690,6 +704,7 @@ module MakeForms = functor
           ?a
           ~service
           ~sp
+          ?(fragment = "")
           f =
         match get_kind_ service with
         | `Attached attser ->
@@ -704,6 +719,9 @@ module MakeForms = functor
                      (get_path_ attser) None)
               else (reconstruct_relative_url_path
                       (get_current_path sp) (get_path_ attser) None)) in
+            let urlname =
+              add_to_string urlname "#" (Netencoding.Url.encode fragment)
+            in
             let state_param =
               (match get_get_state_ attser with
               | None -> None
@@ -787,6 +805,7 @@ module MakeForms = functor
           ?a
           ~service
           ~sp
+          ?(fragment = "")
           f 
           getparams =
         match get_kind_ service with
@@ -817,6 +836,9 @@ module MakeForms = functor
                      (get_path_ attser) suff)
               else (reconstruct_relative_url_path
                       (get_current_path sp) (get_path_ attser) suff))
+            in
+            let urlname =
+              add_to_string urlname "#" (Netencoding.Url.encode fragment)
             in
             let state_param =
               (match get_post_state_ attser with
@@ -858,8 +880,8 @@ module MakeForms = functor
 
 
 
-      let make_uri ~service ~sp gp =
-        Pages.uri_of_string (make_string_uri service sp gp)
+      let make_uri ~service ~sp ?fragment gp =
+        Pages.uri_of_string (make_string_uri ?fragment ~service ~sp gp)
                   
           
           

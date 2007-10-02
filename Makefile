@@ -166,6 +166,8 @@ server.opt:
 doc:
 	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc -html lwt/lwt.mli lwt/lwt_unix.mli lwt/lwt_util.mli modules/eliommkforms.mli modules/eliommkreg.mli modules/eliompredefmod.mli modules/eliommod.mli modules/eliomparameters.mli modules/eliomservices.mli modules/eliomsessions.mli server/extensions.mli server/preemptive.mli server/parseconfig.mli xmlp4/oldocaml/xhtmltypes.ml xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/ocsiheaders.mli http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 
+doc/index.html: doc
+
 $(OCSIGENNAME).conf.local:
 	cat files/ocsigen.conf \
 	| sed s%\<port\>80\</port\>%\<port\>8080\</port\>%g \

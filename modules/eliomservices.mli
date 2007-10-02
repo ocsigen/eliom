@@ -296,7 +296,9 @@ val make_string_uri :
     service:('get, unit, [< get_service_kind ],
      [< suff ], 'gn, unit, 
      [< registrable ]) service ->
-       sp:Eliommod.server_params -> 'get -> string
+       sp:Eliommod.server_params -> 
+         ?fragment:string ->
+           'get -> string
 (** Creates the string corresponding to the URL of a service applyed to
    its GET parameters.
  *)

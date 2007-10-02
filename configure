@@ -46,7 +46,7 @@ set_defaults () {
     enable_bytecode=1
     enable_nativecode=0
     enable_debug=0
-    enable_ocamlduce=0
+    enable_ocamlduce=1
     enable_newocamlnet=1
     enable_sqlite=1
     enable_camlzip=1

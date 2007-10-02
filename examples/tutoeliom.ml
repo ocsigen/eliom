@@ -39,19 +39,19 @@
           with Eliom, you don't write one file for each URL, but
           a caml module (cmo or cma) for the whole Web site.</p>
       <p>
-          The $a (static_dir sp) sp [code [pcdata "Eliomservices" ]] ["doc";version;"Eliomservices.html"]$ module allows to create new entry points to 
+          The $a ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices" ]] ["doc";version;"Eliomservices.html"]$ module allows to create new entry points to 
           your Web site, called <em>services</em>. Services are usually 
           attached to an URL and usually generate a Web page. 
           They are represented bu OCaml values, on which 
           you must register a function that will generate a page.
           There are several ways to creates pages for Eliom. This tutorial
-          is mainly using $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$, a module allowing
+          is mainly using $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$, a module allowing
           to register xhtml pages statically typed using OCaml's
           polymorphic variants. 
-          The $a (static_dir sp) sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$ module defines functions to construct
+          The $a ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$ module defines functions to construct
           xhtml pages using that type system. 
-          As the $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$ redefines some functions
-          of $a (static_dir sp) sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$, open the modules in this order:
+          As the $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$ redefines some functions
+          of $a ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$, open the modules in this order:
       </p>
 *html*)
 open Lwt
@@ -61,12 +61,12 @@ open Eliomparameters
 open Eliomsessions
 open Eliompredefmod.Xhtml
 (*html*
-      <p>$a (static_dir sp) sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$
+      <p>$a ~service:(static_dir sp) ~sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$
       (lightweight threads) is the cooperative thread library used by Ocsigen
       (<a href="#lwt">see later</a>).</p>
       <p>Here is an example showing how to create a new service and
          register a page created with XHTML.M. Use the function
-         $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.register_new_service" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html#VALregister_new_service"]$:
+         $a ~fragment:"VALregister_new_service" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.register_new_service" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html"]$:
       </p>
 *html*)
 let coucou = 
@@ -103,7 +103,7 @@ let coucou =
           (XHTML.M.body [XHTML.M.h1 [XHTML.M.pcdata "Hallo!"]])))
 *zap*)(*html*
       <p>As you can see, 
-      $a (static_dir sp) sp [code [pcdata "return" ]] ["doc";version;"Lwt.html#VALreturn"]$ is a function from $a (static_dir sp) sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$.
+      $a ~fragment:"VALreturn" ~service:(static_dir sp) ~sp [code [pcdata "return" ]] ["doc";version;"Lwt.html"]$ is a function from $a ~service:(static_dir sp) ~sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$.
       Use it as this for now, and 
       <a href="#lwt">see later</a> for more advanced use.</p>
       <p>
@@ -136,10 +136,10 @@ let coucou =
             of the log files, etc.
       </p>
       <p>Here is a sample 
-   $a (static_dir sp) sp [pcdata "Makefile"] ["Makefile"]$ for your modules.</p>
+   $a ~service:(static_dir sp) ~sp [pcdata "Makefile"] ["Makefile"]$ for your modules.</p>
       <h4>Static typing of XHTML with XHTML.M</h4>
         <p>
-        Typing of xhtml with $a (static_dir sp) sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$ and $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$
+        Typing of xhtml with $a ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$ and $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$
         is very strict and compels you to respect
         xhtml 1.1 standard (with some limitations). 
         For example if you write:
@@ -164,7 +164,7 @@ Type 'a is not compatible with type
     <div class="twocol2">
    <p>In XHTML, some tags cannot be empty. For example 
    <code>&lt;table&gt;</code> must contains at least one row.
-   To enforce this, the $a (static_dir sp) sp [code [pcdata "XHTML.M.table" ]] ["doc";version;"XHTML.M.html#VALtable"]$ function takes two parameters:
+   To enforce this, the $a ~fragment:"VALtable" ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M.table" ]] ["doc";version;"XHTML.M.html"]$ function takes two parameters:
    the first one is the first row, the second one is a list
    containig all the other rows.
    (same thing for <code>&lt;tr&gt;</code> <code>&lt;form&gt;</code>
@@ -225,7 +225,7 @@ let coucou1 =
    &lt;/html<span class="Cnonalphakeyword">&gt;</span> &gt;&gt;</pre>
       <p>
         We recommand to use preferably 
-        the functions from $a (static_dir sp) sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$, as you will (almost)
+        the functions from $a ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$, as you will (almost)
         always get valid xhtml.
         Use the syntax extension for example to enclose already created pieces
         of html, and verify the validity of your pages with the
@@ -256,8 +256,8 @@ let coucou1 =
          support. Then dynlink <code>ocamlduce.cma</code> and 
           <code>eliomduce.cma</code> from the configuration file
         (after <code>eliom.cma</code>).
-        Then use $a (static_dir sp) sp [code [pcdata "Eliomduce.Xhtml" ]] ["doc";version;"Eliomduce.Xhtml.html"]$ instead of 
-        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$ to register your pages.
+        Then use $a ~service:(static_dir sp) ~sp [code [pcdata "Eliomduce.Xhtml" ]] ["doc";version;"Eliomduce.Xhtml.html"]$ instead of 
+        $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$ to register your pages.
         </p>
         <p>Here is an example:</p>
         <pre><span style="color:#cc9900">open</span> <span style="color:#0033cc">Lwt</span>
@@ -275,8 +275,8 @@ let coucou1 =
       <div class="encadre">
         <h4>Eliompredefmod.HtmlText</h4>
         <p>If you want to register untyped (text) pages, use the
-         functions from $a (static_dir sp) sp [code [pcdata "Eliompredefmod.HtmlText" ]] ["doc";version;"Eliompredefmod.HtmlText.html"]$, for example
-         $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Text.register_new_service" ]] ["doc";version;"Eliompredefmod.Text.html#VALregister_new_service"]$. Example:
+         functions from $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.HtmlText" ]] ["doc";version;"Eliompredefmod.HtmlText.html"]$, for example
+         $a ~fragment:"VALregister_new_service" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Text.register_new_service" ]] ["doc";version;"Eliompredefmod.Text.html"]$. Example:
         </p>
 *html*)
 let coucoutext = 
@@ -366,13 +366,13 @@ let default = register_new_service ["rep";""] unit
         <code><span class="Clabel">~get_params</span></code>
         indicates the type of GET parameters for the page (that is, parameters
         present in the URL).
-        $a (static_dir sp) sp [code [pcdata "unit" ]] ["doc";version;"Eliomparameters.html#VALunit"]$ means that the page does not take any GET parameter.
+        $a ~fragment:"VALunit" ~service:(static_dir sp) ~sp [code [pcdata "unit" ]] ["doc";version;"Eliomparameters.html"]$ means that the page does not take any GET parameter.
       </p>
       <p>Functions implementing services are called <em>service handlers</em>. 
        They take three parameters. The first
        one has type 
-       $a (static_dir sp) sp [code [pcdata "Eliommod.server_params" ]]
-   ["doc";version;"Eliommod.html#TYPEserver_params"]$
+       $a ~fragment:"TYPEserver_params" ~service:(static_dir sp) ~sp [code [pcdata "Eliommod.server_params" ]]
+   ["doc";version;"Eliommod.html"]$
         and
        corresponds to server informations (user-agent, ip, current-url, etc.
        - see later in that section for examples of use), 
@@ -411,7 +411,7 @@ let coucou_params = register_new_service
       the server displays an error-message 
       (try to change the value in the URL).<br/>
       Here, <code>int</code>, <code>string</code> and <code>**</code>
-      are functions defined in the $a (static_dir sp) sp [code [pcdata "Eliomparameters" ]] ["doc";version;"Eliomparameters.html"]$ module.
+      are functions defined in the $a ~service:(static_dir sp) ~sp [code [pcdata "Eliomparameters" ]] ["doc";version;"Eliomparameters.html"]$ module.
       <br/>
       <em>Warning:</em>
       The infix function <code>( ** )</code> is to be used to 
@@ -500,7 +500,7 @@ let mytype =
 
       <h4 id="any">Untyped parameters</h4>
       <p>If you want a service that answers to request with any parameters, 
-      use the $a (static_dir sp) sp [code [pcdata "Eliomparameters.any" ]] ["doc";version;"Eliomparameters.html#VALany"]$ value. The service will get an 
+      use the $a ~fragment:"VALany" ~service:(static_dir sp) ~sp [code [pcdata "Eliomparameters.any" ]] ["doc";version;"Eliomparameters.html"]$ value. The service will get an 
       association list of strings. Example:
       </p>
 *html*)
@@ -559,7 +559,7 @@ let catch = register_new_service
     <h3>Links</h3>
     <div class="twocol1">
       <p>To create a link (<code>&lt;a&gt;</code>), use the function 
-          $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html#VALa"]$ (or <code>Eliomduce.Xhtml.a</code>, etc),
+          $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ (or <code>Eliomduce.Xhtml.a</code>, etc),
           as in these examples:
       </p>
 *html*)
@@ -601,12 +601,13 @@ let links = register_new_service ["rep";"links"] unit
       <p>See $a Tutoeliom.links sp <:xmllist< <code>links</code> >> ()$.</p>
     </div>
     <div class="twocol2">
-      <p>If you open $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$ after $a (static_dir sp) sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$,
-        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html#VALa"]$ will mask $a (static_dir sp) sp [code [pcdata "XHTML.M.a" ]] ["doc";version;"XHTML.M.html#VALa"]$.
+      <p>If you open $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$ after $a ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$,
+        $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$
+   will mask $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M.a" ]] ["doc";version;"XHTML.M.html"]$.
         Thus you can avoid to write fully qualified values most of the time.
       </p>
       <p>
-        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html#VALa"]$ takes as first parameter 
+        $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ takes as first parameter 
         the service you want to link to.
         Note that to create a (relative) link we need to know the current URL.
         That's why the function <code>a</code> 
@@ -623,7 +624,7 @@ let links = register_new_service ["rep";"links"] unit
       The links to Wikipedia shows how to define an external service (here it 
       uses a suffix URL).
       For an external service without parameters, you can use the low level
-      function $a (static_dir sp) sp [code [pcdata "XHTML.M.a" ]] ["doc";version;"XHTML.M.html#VALa"]$, if you don't want to create an
+      function $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M.a" ]] ["doc";version;"XHTML.M.html"]$, if you don't want to create an
       external service explicitely.
       Note that the path must be a list of strings.
       Do not write <code>["foo/bar"]</code>,
@@ -632,9 +633,9 @@ let links = register_new_service ["rep";"links"] unit
       </p>
       <p>
         If you want to create (mutually or not) recursive pages,
-        first create the service using $a (static_dir sp) sp [code [pcdata "Eliomservices.new_service" ]] ["doc";version;"Eliomservices.html#VALnew_service"]$, 
+        first create the service using $a ~fragment:"VALnew_service" ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices.new_service" ]] ["doc";version;"Eliomservices.html"]$, 
         then register it in the table using (for example)
-        $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.register" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html#VALregister"]$:
+        $a ~fragment:"VALregister" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.register" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html"]$:
       </p>
 *html*)
 let linkrec = Eliomservices.new_service ["linkrec"] unit ()
@@ -661,9 +662,9 @@ let essai =
     <h3>Forms</h3>
     <div class="twocol1">
       <h4>Forms towards services</h4>
-      <p>The function $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html#VALget_form"]$ allows to create a form
+      <p>The function $a ~fragment:"VALget_form" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ allows to create a form
       that uses the GET method (parameters in the URL).
-      It works like $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html#VALa"]$ but takes as parameter
+      It works like $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ but takes as parameter
       a <em>function</em> that creates the form from parameters names.
       </p>
 *html*)
@@ -688,9 +689,9 @@ let form = register_new_service ["form"] unit
       <p>$a Tutoeliom.form sp <:xmllist< See the function <code>form</code> in action >> ()$.</p>
 
       <p>Note that if you want to use typed parameters, 
-       you cannot use functions like $a (static_dir sp) sp [code [pcdata "XHTML.M.input" ]] ["doc";version;"XHTML.M.html#VALinput"]$ to
+       you cannot use functions like $a ~fragment:"VALinput" ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M.input" ]] ["doc";version;"XHTML.M.html"]$ to
        create your forms (but for parameters defined with
-       $a (static_dir sp) sp [code [pcdata "Eliomparameters.any" ]] ["doc";version;"Eliomparameters.html#VALany"]$, <a href="#any">see later</a>). Indeed, parameter names are typed to force them
+       $a ~fragment:"VALany" ~service:(static_dir sp) ~sp [code [pcdata "Eliomparameters.any" ]] ["doc";version;"Eliomparameters.html"]$, <a href="#any">see later</a>). Indeed, parameter names are typed to force them
        be used properly. In our example, <code>number_name</code> has type
        <code>int param_name</code> and must be used with 
        <code>int_input</code> (or other widgets), whereas
@@ -698,7 +699,7 @@ let form = register_new_service ["form"] unit
        <code>string param_name</code> and must be used with 
        <code>string_input</code> (or other widgets).
        All functions for creating form widgets are detailed 
-       $a (static_dir sp) sp [pcdata "here"] 
+       $a ~service:(static_dir sp) ~sp [pcdata "here"] 
          ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$.
       </p>
 
@@ -797,8 +798,8 @@ let my_service_with_get_and_post = register_new_post_service
 (*html*
       <h4 id="postforms">POST forms</h4>
        <p> To create a POST form, use the 
-           $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.post_form" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html#VALpost_form"]$ function.
-           It is similar to $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html#VALget_form"]$ 
+           $a ~fragment:"VALpost_form" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.post_form" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ function.
+           It is similar to $a ~fragment:"VALget_form" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ 
            with an additional parameter
            for the GET parameters you want to put in the URL (if any).
            Here <code>form2</code> is a page containing a form
@@ -868,7 +869,7 @@ let form4 = register_new_service ["form4"] unit
       time, if one of the requests takes time. To make this possible, Ocsigen
       is using <em>cooperative threads</em>, 
       implemented in monadic style
-      by Jérôme Vouillon ($a (static_dir sp) sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$ module), which make them really easy
+      by Jérôme Vouillon ($a ~service:(static_dir sp) ~sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$ module), which make them really easy
       to use.
       </p>
       <p>With respect to preemptive threads, cooperative threads are not using
@@ -900,7 +901,7 @@ let form4 = register_new_service ["form4"] unit
           (head (title (pcdata <span style="color:#aa4444">""</span>)) [])
           (body [h1 [pcdata <span style="color:#aa4444">"Ok now, you can read the page."</span>]])))</pre>
       <p>To solve this problem, use a cooperative version of 
-         $a (static_dir sp) sp [code [pcdata "sleep" ]] ["doc";version;"Lwt_unix.html#VALsleep"]$:</p>
+         $a ~fragment:"VALsleep" ~service:(static_dir sp) ~sp [code [pcdata "sleep" ]] ["doc";version;"Lwt_unix.html"]$:</p>
 *html*)
 let looong = 
   register_new_service 
@@ -938,17 +939,18 @@ let looong =
      you can write <code>bind e1 (fun r -&gt; return e2)</code>.
      </p>
      <p>$a Tutoeliom.looong sp <:xmllist< See <code>looong</code> >> ()$.</p>
-     <p>$a (static_dir sp) sp [code [pcdata "Lwt.bind" ]] ["doc";version;"Lwt.html#VALbind"]$, (or <code>&gt;&gt;=</code>) has type<br/>
+     <p>$a ~fragment:"VALbind" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.bind" ]] ["doc";version;"Lwt.html"]$, (or <code>&gt;&gt;=</code>) has type<br/>
         <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
-     <p>$a (static_dir sp) sp [code [pcdata "Lwt.return" ]] ["doc";version;"Lwt.html#VALreturn"]$ has type<br/>
+     <p>$a ~fragment:"VALreturn" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.return" ]] ["doc";version;"Lwt.html"]$ has type<br/>
         <code>'a -&gt; 'a Lwt.t</code></p>
-     <p>$a (static_dir sp) sp [code [pcdata "'a Lwt.t" ]] ["doc";version;"Lwt.html#TYPEt"]$ is the type of threads returning 
+     <p>$a ~fragment:"TYPEt" ~service:(static_dir sp) ~sp [code [pcdata "'a Lwt.t" ]] ["doc";version;"Lwt.html"]$ is the type of threads returning 
         a result of type <code>'a</code>. All cooperative functions
         must return this type.</p>
      <p>Cooperation points are inserted when you call cooperative functions
-     such as $a (static_dir sp) sp [code [pcdata "Lwt_unix.read" ]] ["doc";version;"Lwt_unix.html#VALread"]$ or $a (static_dir sp) sp [code [pcdata "Lwt_unix.write" ]] ["doc";version;"Lwt_unix.html#VALwrite"]$.
+     such as $a ~fragment:"VALread" ~service:(static_dir sp) ~sp [code [pcdata "Lwt_unix.read" ]] ["doc";version;"Lwt_unix.html"]$ or
+     $a ~fragment:"VALwrite" ~service:(static_dir sp) ~sp [code [pcdata "Lwt_unix.write" ]] ["doc";version;"Lwt_unix.html"]$.
      You can add other cooperation points by calling
-     $a (static_dir sp) sp [code [pcdata "Lwt_unix.yield ()" ]] ["doc";version;"Lwt_unix.html#VALyield"]$. The thread will suspend itself,
+     $a ~fragment:"VALyield" ~service:(static_dir sp) ~sp [code [pcdata "Lwt_unix.yield ()" ]] ["doc";version;"Lwt_unix.html"]$. The thread will suspend itself,
      Lwt will wake up the oldest waiting thread,
      and this thread will resume as soon as possible.
      </p>
@@ -975,7 +977,8 @@ let looong =
      <h4>Exceptions</h4>
       <div class="importantwarning">
       <p>
-       Use $a (static_dir sp) sp [code [pcdata "Lwt.fail" ]] ["doc";version;"Lwt.html#VALfail"]$ and $a (static_dir sp) sp [code [pcdata "Lwt.catch" ]] ["doc";version;"Lwt.html#VALcatch"]$ inside threads
+       Use $a ~fragment:"VALfail" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.fail" ]] ["doc";version;"Lwt.html"]$ and 
+       $a ~fragment:"VALcatch" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.catch" ]] ["doc";version;"Lwt.html"]$ inside threads
        instead of <code>raise</code> and <code>try ... with</code>.
       </p>
       </div>
@@ -1003,7 +1006,7 @@ let looong =
       executed automatically by a another preemptive thread (for example
       a database request using a non-cooperative database library, such as 
       postgresql-ocaml or pgocaml). To do this,
-      use the $a (static_dir sp) sp [code [pcdata "detach" ]] ["doc";version;"Preemptive.html#VALdetach"]$ function. For example:</p>
+      use the $a ~fragment:"VALdetach" ~service:(static_dir sp) ~sp [code [pcdata "detach" ]] ["doc";version;"Preemptive.html"]$ function. For example:</p>
 *html*)
 let looong2 = 
   register_new_service 
@@ -1043,8 +1046,8 @@ let looong2 =
 in f ();
       </pre>
       <h5>More advanced use: Create a thread waiting for an event</h5>
-        <p>$a (static_dir sp) sp [code [pcdata "Lwt.wait ()" ]] ["doc";version;"Lwt.html#VALwait"]$ creates a thread that waits forever.
-          You can wake it up using $a (static_dir sp) sp [code [pcdata "Lwt.wakeup" ]] ["doc";version;"Lwt.html#VALwakeup"]$.
+        <p>$a ~fragment:"VALwait" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.wait ()" ]] ["doc";version;"Lwt.html"]$ creates a thread that waits forever.
+          You can wake it up using $a ~fragment:"VALwakeup" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.wakeup" ]] ["doc";version;"Lwt.html"]$.
         </p>
       <pre><span class="Ccomment">(* Create the event *)</span>
 <span class="Clet">let</span> w = wait () <span class="Cin">in</span>
@@ -1058,7 +1061,7 @@ wakeup w "HELLO");
 <span class="Ccomment">(* All threads waiting for w are awoken, and w's value is "HELLO". *)</span>
       </pre>
       <h5>Cooperative <code>List.map</code></h5>
-      <p>Here is an example taken from $a (static_dir sp) sp [code [pcdata "Lwt_util" ]] ["doc";version;"Lwt_util.html"]$. It defines two functions <code>map</code> on lists. A thread is launched for each value of the list. In the first version, all threads are launched at the same moment. In the second one, they are sequentialized.</p>
+      <p>Here is an example taken from $a ~service:(static_dir sp) ~sp [code [pcdata "Lwt_util" ]] ["doc";version;"Lwt_util.html"]$. It defines two functions <code>map</code> on lists. A thread is launched for each value of the list. In the first version, all threads are launched at the same moment. In the second one, they are sequentialized.</p>
 *html*)
 let rec map f l =
   match l with
@@ -1085,8 +1088,8 @@ let rec map_serial f l =
       <p>
          You now have the minimum knowledge to write basic Web sites with
          Eliom: typing of pages, creation of services, parameters, forms
-         and database acces using $a (static_dir sp) sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$ 
-         (and possibly $a (static_dir sp) sp [code [pcdata "Preemptive.detach" ]] ["doc";version;"Preemptive.html#VALdetach"]$).
+         and database acces using $a ~service:(static_dir sp) ~sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$ 
+         (and possibly $a ~fragment:"VALdetach" ~service:(static_dir sp) ~sp [code [pcdata "Preemptive.detach" ]] ["doc";version;"Preemptive.html"]$).
          Here is a summary of all other concepts introduced by Eliom.
          They will enable you to program easily more complex behaviours.
          They will be developped in the following of this tutorial.
@@ -1163,66 +1166,66 @@ let rec map_serial f l =
   <th class="col">Services</th>
   <th class="col">Attached coservices</th>
   <th class="col">Non attached coservices</th></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$</th>
           <td colspan="3">allows to register functions that 
         generate xhtml pages
         statically checked using polymorphic variant types. You may use
-        constructor functions from $a (static_dir sp) sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$ or a syntax
+        constructor functions from $a ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$ or a syntax
         extension close to the standard xhtml syntax.
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Blocks" ]] ["doc";version;"Eliompredefmod.Blocks.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Blocks" ]] ["doc";version;"Eliompredefmod.Blocks.html"]$</th>
           <td colspan="3">allows to register functions that 
         generate a portion of page (content of body tag) using
-        $a (static_dir sp) sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$ or the syntax extension.
+        $a ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$ or the syntax extension.
         (usefull for <code>XMLHttpRequest</code> requests for example).
         
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliomduce.Xhtml" ]] ["doc";version;"Eliomduce.Xhtml.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliomduce.Xhtml" ]] ["doc";version;"Eliomduce.Xhtml.html"]$</th>
           <td colspan="3">allows to register functions 
             that generate xhtml pages 
         statically checked using <code>OCamlduce</code>. Typing is more
         strict, but you need a modified version of the OCaml compiler 
         (OCamlduce).
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.HtmlText" ]] ["doc";version;"Eliompredefmod.HtmlText.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.HtmlText" ]] ["doc";version;"Eliompredefmod.HtmlText.html"]$</th>
           <td colspan="3">Allows to register functions that
         generate text html pages, without any typechecking of the content.
         The content type sent by the server is "text/html".
         
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.CssText" ]] ["doc";version;"Eliompredefmod.CssText.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.CssText" ]] ["doc";version;"Eliompredefmod.CssText.html"]$</th>
           <td colspan="3">Allows to register functions that
         generate CSS pages, without any typechecking of the content.
         The content type sent by the server is "text/css".
         
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Text" ]] ["doc";version;"Eliompredefmod.Text.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Text" ]] ["doc";version;"Eliompredefmod.Text.html"]$</th>
           <td colspan="3">Allows to register functions that
         generate text pages, without any typechecking of the content.
         The services return a pair of strings. The first one is the content
         of the page, the second one is the content type.
         
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions" ]] ["doc";version;"Eliompredefmod.Actions.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Actions" ]] ["doc";version;"Eliompredefmod.Actions.html"]$</th>
           <td colspan="3">allows to register actions, that is
         functions that do not generate any page. The URL is reloaded after
         the action.
         
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Unit" ]] ["doc";version;"Eliompredefmod.Unit.html"]$</th>
-          <td colspan="3">is like $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions" ]] ["doc";version;"Eliompredefmod.Actions.html"]$ but the
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Unit" ]] ["doc";version;"Eliompredefmod.Unit.html"]$</th>
+          <td colspan="3">is like $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Actions" ]] ["doc";version;"Eliompredefmod.Actions.html"]$ but the
         URL is not reloaded after the action.
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Redirections" ]] ["doc";version;"Eliompredefmod.Redirections.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Redirections" ]] ["doc";version;"Eliompredefmod.Redirections.html"]$</th>
           <td colspan="3">allows to register HTTP redirections.
             You register the URL of the page you want to redirect to.
             The browser will get a 301 code in answer and redo the request
             to the new URL.
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Files" ]] ["doc";version;"Eliompredefmod.Files.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Files" ]] ["doc";version;"Eliompredefmod.Files.html"]$</th>
           <td colspan="3">allows to register services that send files        
           </td></tr>
-<tr><th class="row">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Any" ]] ["doc";version;"Eliompredefmod.Any.html"]$</th>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Any" ]] ["doc";version;"Eliompredefmod.Any.html"]$</th>
           <td colspan="3">allows to register services that can choose
             what they send, for example an xhtml page
             or a file, depending on some situation (parameter, user logged or
@@ -1347,10 +1350,10 @@ let rec map_serial f l =
       restore it at each request. This data is available during the whole
       duration of the session.
       To save session data, create a table using 
-      $a (static_dir sp) sp [code [pcdata "Eliomsessions.create_table" ]] ["doc";version;"Eliomsessions.html#VALcreate_table"]$ 
+      $a ~fragment:"VALcreate_table" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.create_table" ]] ["doc";version;"Eliomsessions.html"]$ 
       and save and get data from
-      this table using $a (static_dir sp) sp [code [pcdata "Eliomsessions.set_session_data" ]] ["doc";version;"Eliomsessions.html#VALset_session_data"]$ and 
-      $a (static_dir sp) sp [code [pcdata "Eliomsessions.get_session_data" ]] ["doc";version;"Eliomsessions.html#VALget_session_data"]$. The following example shows
+      this table using $a ~fragment:"VALset_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.set_session_data" ]] ["doc";version;"Eliomsessions.html"]$ and 
+      $a ~fragment:"VALget_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_session_data" ]] ["doc";version;"Eliomsessions.html"]$. The following example shows
       a site with authentification. The name of the user is asked in the login
       form and saved in a table to be displayed on the page instead of the login
       form while the user is connected. Note that the session is opened
@@ -1536,7 +1539,7 @@ let _ = register
       </p>
       <p>
        To close a session, use the function
-                <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_session" ]] ["doc";version;"Eliomsessions.html#VALclose_session"]$</span>.
+                <span class="Cem">$a ~fragment:"VALclose_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_session" ]] ["doc";version;"Eliomsessions.html"]$</span>.
        Session data will disappear when the session is closed (explicitely
        or by timeout).
        Warning: if your session data contains opened file descriptors,
@@ -1577,14 +1580,14 @@ let _ = register
       instead of the public table. To do that,
       use <span class="Cem"><code>register_for_session</code></span>
       (for example
-     <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.register_for_session" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html#VALregister_for_session"]$</span>).<br/>
+     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.register_for_session" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html"]$</span>).<br/>
       </p><p>
       Users are recognized automatically using a cookie.
       Use this for example if you want two versions of each page,
       one public, one for connected users.
       <br/>
       To close a session, use 
-                <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_session" ]] ["doc";version;"Eliomsessions.html#VALclose_session"]$</span>.
+                <span class="Cem">$a ~fragment:"VALclose_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_session" ]] ["doc";version;"Eliomsessions.html"]$</span>.
       Both the session service table and the session data table for that user
       will disappear when the sesison is closed.
       </p>
@@ -1593,7 +1596,7 @@ let _ = register
          (because sp contains the session table).</p>
       <p>The following example shows how to reimplement the previous one 
       (<code>session_data_example</code>), 
-      without using $a (static_dir sp) sp [code [pcdata "Eliomsessions.set_session_data" ]] ["doc";version;"Eliomsessions.html#VALset_session_data"]$.
+      without using $a ~fragment:"VALset_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.set_session_data" ]] ["doc";version;"Eliomsessions.html"]$.
       Note that this version is less efficient than the other if your site
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
@@ -1798,9 +1801,9 @@ let _ = register_for_session
    </ul>
    <p>
    To create a coservice, use 
-   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomservices.new_coservice" ]] ["doc";version;"Eliomservices.html#VALnew_coservice"]$</span> and 
-   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomservices.new_post_coservice" ]] ["doc";version;"Eliomservices.html#VALnew_post_coservice"]$</span>.
-   Like $a (static_dir sp) sp [code [pcdata "Eliomservices.new_post_service" ]] ["doc";version;"Eliomservices.html#VALnew_post_service"]$,
+   <span class="Cem">$a ~fragment:"VALnew_coservice" ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices.new_coservice" ]] ["doc";version;"Eliomservices.html"]$</span> and 
+   <span class="Cem">$a ~fragment:"VALnew_post_coservice" ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices.new_post_coservice" ]] ["doc";version;"Eliomservices.html"]$</span>.
+   Like $a ~fragment:"VALnew_post_service" ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices.new_post_service" ]] ["doc";version;"Eliomservices.html"]$,
    they take a public service as parameter 
    (labelled <code><span class="Clabel">fallback</span></code>)
    to be used as fallback when the user comes back without the state
@@ -1942,8 +1945,8 @@ let _ =
        change. The name of the service is sent as a special parameter.
        </p>
        <p>As for attached coservices, there are GET and POST versions.
-       To create them, use $a (static_dir sp) sp [code [pcdata "Eliomservices.new_coservice'" ]] ["doc";version;"Eliomservices.html#VALnew_coservice'"]$ or
-       $a (static_dir sp) sp [code [pcdata "Eliomservices.new_post_coservice'" ]] ["doc";version;"Eliomservices.html#VALnew_post_coservice'"]$.
+       To create them, use $a ~fragment:"VALnew_coservice'" ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices.new_coservice'" ]] ["doc";version;"Eliomservices.html"]$ or
+       $a ~fragment:"VALnew_post_coservice'" ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices.new_post_coservice'" ]] ["doc";version;"Eliomservices.html"]$.
        POST non-attached coservices are really usefull if you want a
        link or form to be present on every page but you don't want the
        URL to change. Very often, POST coservices are used with <em>actions</em>
@@ -2155,12 +2158,12 @@ let () =
    (for ex a connection form),
    instead of making a version with post params of all these pages,
    you can use only one action, registered on a non-attached coservice.
-   To register actions, just use the module $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions" ]] ["doc";version;"Eliompredefmod.Actions.html"]$
-   instead of $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$ (or $a (static_dir sp) sp [code [pcdata "Eliomduce.Xhtml" ]] ["doc";version;"Eliomduce.Xhtml.html"]$, etc.).
+   To register actions, just use the module $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Actions" ]] ["doc";version;"Eliompredefmod.Actions.html"]$
+   instead of $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$ (or $a ~service:(static_dir sp) ~sp [code [pcdata "Eliomduce.Xhtml" ]] ["doc";version;"Eliomduce.Xhtml.html"]$, etc.).
    For example
-     <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions.register" ]] ["doc";version;"Eliompredefmod.Actions.html#VALregister"]$</span>,
-     <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions.register_new_service" ]] ["doc";version;"Eliompredefmod.Actions.html#VALregister_new_service"]$</span>,
-     <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Actions.register_for_session" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html#VALregister_for_session"]$</span>.<br/>
+     <span class="Cem">$a ~fragment:"VALregister" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Actions.register" ]] ["doc";version;"Eliompredefmod.Actions.html"]$</span>,
+     <span class="Cem">$a ~fragment:"VALregister_new_service" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Actions.register_new_service" ]] ["doc";version;"Eliompredefmod.Actions.html"]$</span>,
+     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Actions.register_for_session" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html"]$</span>.<br/>
       </p>
       <p>Here we rewrite the example <code>session_data_example</code> 
       using actions
@@ -2339,13 +2342,13 @@ let () =
           registering a service needs access to config file 
           information (for example the directory of the site).
           If you do this, the server will raise 
-          $a (static_dir sp) sp [code [pcdata "Eliommod.Eliom_function_forbidden_outside_site_loading " ]] ["doc";version;"Eliommod.html#EXCEPTIONEliom_function_forbidden_outside_site_loading"]$ 
+          $a ~fragment:"EXCEPTIONEliom_function_forbidden_outside_site_loading" ~service:(static_dir sp) ~sp [code [pcdata "Eliommod.Eliom_function_forbidden_outside_site_loading " ]] ["doc";version;"Eliommod.html"]$ 
           most of the time,
           but you may also get unexpected results (if the thread is executed
           while another site is loaded).
           If you use threads in the initialization phase of your module 
           (for example if you need informations from a database), 
-          use $a (static_dir sp) sp [code [pcdata "Lwt_unix.run" ]] ["doc";version;"Lwt_unix.html#VALrun"]$ to wait the end of the thread.
+          use $a ~fragment:"VALrun" ~service:(static_dir sp) ~sp [code [pcdata "Lwt_unix.run" ]] ["doc";version;"Lwt_unix.html"]$ to wait the end of the thread.
         </li>
       </ul>
     </div>
@@ -2403,7 +2406,7 @@ let () =
     <div class="twocol1">
     <h4>Sending portions of pages</h4>
     <p>
-     The $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Blocks" ]] ["doc";version;"Eliompredefmod.Blocks.html"]$ module allows to register services that
+     The $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Blocks" ]] ["doc";version;"Eliompredefmod.Blocks.html"]$ module allows to register services that
      send portions of pages, of any type that may be contained directly in
      a <code>&lt;body&gt;</code> tag (blocks of xhtml DTD). 
      It is usefull to create AJAX pages
@@ -2420,9 +2423,9 @@ let _ =
               p [pcdata "Blablablabla"] ]])
 (*html*
      <p>
-     The $a (static_dir sp) sp [code [pcdata "Eliompredefmod.SubXhtml" ]] ["doc";version;"Eliompredefmod.SubXhtml.html"]$ module allows to create other modules for
+     The $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.SubXhtml" ]] ["doc";version;"Eliompredefmod.SubXhtml.html"]$ module allows to create other modules for
      registering portions of pages of other types. 
-     For example, $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Blocks" ]] ["doc";version;"Eliompredefmod.Blocks.html"]$
+     For example, $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Blocks" ]] ["doc";version;"Eliompredefmod.Blocks.html"]$
      is defined by:</p>
 <pre>
 module Blocks = SubXhtml(struct
@@ -2432,7 +2435,7 @@ end)
 
     <h4>Redirections</h4>
     <p>
-     The $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Redirections" ]] ["doc";version;"Eliompredefmod.Redirections.html"]$ module allows to register HTTP redirections.
+     The $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Redirections" ]] ["doc";version;"Eliompredefmod.Redirections.html"]$ module allows to register HTTP redirections.
      If a request is done towards such a service, the server asks the browser
      to retry with another URL. Example:
     </p>
@@ -2451,7 +2454,7 @@ let redir = Eliompredefmod.Redirections.register_new_service
 
      <h4 id="eliomfiles">Sending files</h4>
       <p>You may want to register a service that will send files.
-      To do that, use the $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Files" ]] ["doc";version;"Eliompredefmod.Files.html"]$ module. Example:
+      To do that, use the $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Files" ]] ["doc";version;"Eliompredefmod.Files.html"]$ module. Example:
       </p>
 <pre>
 let sendfile = 
@@ -2479,7 +2482,7 @@ let sendfile2 =
       <p>You may want to register a service that will send, for instance,
       sometimes
       an xhtml page, sometimes a file, sometimes something else.
-      To do that, use the $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Any" ]] ["doc";version;"Eliompredefmod.Any.html"]$ module, together
+      To do that, use the $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Any" ]] ["doc";version;"Eliompredefmod.Any.html"]$ module, together
       with the <code>send</code> function of the module you want
       to use. Example:
       </p>
@@ -2511,7 +2514,7 @@ let send_any =
       See $a Tutoeliom.send_any sp <:xmllist< a valid page >> "valid"$,
       and $a Tutoeliom.send_any sp <:xmllist< a non valid page >> "non valid"$.
       </p>
-      <p>You may also use $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Any" ]] ["doc";version;"Eliompredefmod.Any.html"]$ to send cookies or to choose a
+      <p>You may also use $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Any" ]] ["doc";version;"Eliompredefmod.Any.html"]$ to send cookies or to choose a
          different charset than the default 
         (default charset is set in configuration file) 
          for the page you send. To do that use the optional parameters
@@ -2546,7 +2549,7 @@ type cookies =
      </p>
      <p>
       You can access the cookies sent by the browser using
-      $a (static_dir sp) sp [code [pcdata "Eliomsessions.get_cookies sp" ]] ["doc";version;"Eliomsessions.html#VALget_cookies"]$.
+      $a ~fragment:"VALget_cookies" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_cookies sp" ]] ["doc";version;"Eliomsessions.html"]$.
      </p>
      <p>
       Example:
@@ -2611,7 +2614,7 @@ let _ = Cookies.register cookies
       <h4>Persistent data</h4>
       <p>
         Eliom allows to use more persistent data, using the module
-        $a (static_dir sp) sp [code [pcdata "Ocsipersist" ]] ["doc";version;"Ocsipersist.html"]$. (<code>Ocsipersist</code> is needed in 
+        $a ~service:(static_dir sp) ~sp [code [pcdata "Ocsipersist" ]] ["doc";version;"Ocsipersist.html"]$. (<code>Ocsipersist</code> is needed in 
         <code>eliom.cma</code>, thus you need to dynlink it in the
         configuration file before <code>Eliom</code>).
         There are currently two implementations of <code>Ocsipersist</code>:
@@ -2850,15 +2853,15 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 
     <p>Fallbacks have access to some informations about what succeeded before
     they were called. Get this information using 
-     $a (static_dir sp) sp [code [pcdata "Eliomsessions.get_exn sp" ]] ["doc";version;"Eliomsessions.html#VALget_exn"]$; That function returns a list of exceptions.
-    That list contains $a (static_dir sp) sp [code [pcdata "Eliommod.Eliom_Link_too_old" ]] ["doc";version;"Eliommod.html#EXCEPTIONEliom_Link_too_old"]$ if the coservice
-    was not found, and $a (static_dir sp) sp [code [pcdata "Eliommod.Eliom_Service_session_expired" ]] ["doc";version;"Eliommod.html#EXCEPTIONEliom_Service_session_expired"]$ if the "service session" has expired.
+     $a ~fragment:"VALget_exn" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_exn sp" ]] ["doc";version;"Eliomsessions.html"]$; That function returns a list of exceptions.
+    That list contains $a ~fragment:"EXCEPTIONEliom_Link_too_old" ~service:(static_dir sp) ~sp [code [pcdata "Eliommod.Eliom_Link_too_old" ]] ["doc";version;"Eliommod.html"]$ if the coservice
+    was not found, and $a ~fragment:"EXCEPTIONEliom_Service_session_expired" ~service:(static_dir sp) ~sp [code [pcdata "Eliommod.Eliom_Service_session_expired" ]] ["doc";version;"Eliommod.html"]$ if the "service session" has expired.
     </p>
     <p>
     It is also possible to tell actions to send informations to the page
     generated after them. Just place exceptions in the list returned by the
     action. These exceptions will also be accessible with 
-    $a (static_dir sp) sp [code [pcdata "Eliomsessions.get_exn" ]] ["doc";version;"Eliomsessions.html#VALget_exn"]$. Try to replace the lines 
+    $a ~fragment:"VALget_exn" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_exn" ]] ["doc";version;"Eliomsessions.html"]$. Try to replace the lines 
     <a href="#actions">above (example of session with actions)</a> by:
     </p>
 *html*)
@@ -2978,7 +2981,7 @@ let () =
       $a Tutoeliom.action_example2 sp <:xmllist< See this example here >> ()$.
       </p>
       <p>
-        If the actions raises an exception (with $a (static_dir sp) sp [code [pcdata "Lwt.fail" ]] ["doc";version;"Lwt.html#VALfail"]$),
+        If the actions raises an exception (with $a ~fragment:"VALfail" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.fail" ]] ["doc";version;"Lwt.html"]$),
         the server will send an error 500 (like for any other service).
         Think about catching the exceptions and put them in the list 
         if they correspond to usual cases you want to handle while
@@ -3057,12 +3060,12 @@ Eliomsessions.set_volatile_session_timeout ~sp (Some 7200.)
 </pre>
      <p><code>value="infinity"</code> means no timeout.</p>
      <p>Warning: that default may be overriden by each site using 
-        $a (static_dir sp) sp [code [pcdata "Eliomsessions.set_global_volatile_timeout" ]] ["doc";version;"Eliomsessions.html#VALset_global_volatile_timeout"]$ or
-        $a (static_dir sp) sp [code [pcdata "Eliomsessions.set_default_volatile_timeout" ]] ["doc";version;"Eliomsessions.html#VALset_default_volatile_timeout"]$.
+        $a ~fragment:"VALset_global_volatile_timeout" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.set_global_volatile_timeout" ]] ["doc";version;"Eliomsessions.html"]$ or
+        $a ~fragment:"VALset_default_volatile_timeout" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.set_default_volatile_timeout" ]] ["doc";version;"Eliomsessions.html"]$.
         If you want your user to be able to set the default in the 
         configuration file for your site (between <code>&lt;site&gt;</code>
         and <code>&lt;/site&gt;</code>), you must parse the configuration
-        ($a (static_dir sp) sp [code [pcdata "Eliomsessions.get_config ()" ]] ["doc";version;"Eliomsessions.html#VALget_config"]$ function, see below).
+        ($a ~fragment:"VALget_config" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_config ()" ]] ["doc";version;"Eliomsessions.html"]$ function, see below).
      </p>
     </div>
     <div class="twocol2">
@@ -3162,7 +3165,7 @@ let _ =
      or when the page has not been found or has wrong parameters,
      an HTTP error 500 or 404 is sent to the client. You may want to
      catch these exceptions to print your own error page.
-     Do this using $a (static_dir sp) sp [code [pcdata "Eliomservices.set_exn_handler" ]] ["doc";version;"Eliomservices.html#VALset_exn_handler"]$.
+     Do this using $a ~fragment:"VALset_exn_handler" ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices.set_exn_handler" ]] ["doc";version;"Eliomservices.html"]$.
      Here is the handler used by this tutorial:
      </p>
 *html*)
@@ -3193,7 +3196,7 @@ let _ = Eliomsessions.set_exn_handler
     &lt;/eliom&gt;
 </pre>
       <p>
-       Use $a (static_dir sp) sp [code [pcdata "Eliomsessions.get_config ()" ]] ["doc";version;"Eliomsessions.html#VALget_config"]$ during the initialization
+       Use $a ~fragment:"VALget_config" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_config ()" ]] ["doc";version;"Eliomsessions.html"]$ during the initialization
        of your module to get the data between
        <code>&lt;eliom&gt;</code> and <code>&lt;/eliom&gt;</code>.
        Warning: parsing these data is very basic for now.
@@ -3207,22 +3210,22 @@ let _ = Eliomsessions.set_exn_handler
         <li>one for persistent session data.</li>
       </ul>
       <p>They correspond to three different sessions (opened only if needed).
-   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_session" ]] ["doc";version;"Eliomsessions.html#VALclose_session"]$</span>
+   <span class="Cem">$a ~fragment:"VALclose_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_session" ]] ["doc";version;"Eliomsessions.html"]$</span>
        closes all three sessions, but you may want to desynchronize
        the three sessions by using
-   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_persistent_session" ]] ["doc";version;"Eliomsessions.html#VALclose_persistent_session"]$</span> (persistent session),
-   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_service_session" ]] ["doc";version;"Eliomsessions.html#VALclose_service_session"]$</span> (session services), or
-   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_data_session" ]] ["doc";version;"Eliomsessions.html#VALclose_data_session"]$</span> (in memory data session).
+   <span class="Cem">$a ~fragment:"VALclose_persistent_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_persistent_session" ]] ["doc";version;"Eliomsessions.html"]$</span> (persistent session),
+   <span class="Cem">$a ~fragment:"VALclose_service_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_service_session" ]] ["doc";version;"Eliomsessions.html"]$</span> (session services), or
+   <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_data_session" ]] ["doc";version;"Eliomsessions.html"]$</span> (in memory data session).
      There is also
-   <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_volatile_session" ]] ["doc";version;"Eliomsessions.html#VALclose_volatile_session"]$</span> for both in memory data session and session services.
-       The module $a (static_dir sp) sp [code [pcdata "Eliomsessions" ]] ["doc";version;"Eliomsessions.html"]$ also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
+   <span class="Cem">$a ~fragment:"VALclose_volatile_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_volatile_session" ]] ["doc";version;"Eliomsessions.html"]$</span> for both in memory data session and session services.
+       The module $a ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions" ]] ["doc";version;"Eliomsessions.html"]$ also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
       </p>
       <p>If you need more sessions (for example several different data sessions)
          for the same site, you can give a name to your sessions by giving
          the optional parameter <code>?session_name</code> to functions like
-     <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomsessions.close_data_session" ]] ["doc";version;"Eliomsessions.html#VALclose_data_session"]$</span>,
-     <span class="Cem">$a (static_dir sp) sp [code [pcdata "register_for_session" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html#VALregister_for_session"]$</span>, or
-      $a (static_dir sp) sp [code [pcdata "Eliomsessions.get_session_data" ]] ["doc";version;"Eliomsessions.html#VALget_session_data"]$.
+     <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_data_session" ]] ["doc";version;"Eliomsessions.html"]$</span>,
+     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:(static_dir sp) ~sp [code [pcdata "register_for_session" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html"]$</span>, or
+      $a ~fragment:"VALget_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_session_data" ]] ["doc";version;"Eliomsessions.html"]$.
        Note that this tutorial has been implemented using this feature,
        even if it has been hidden for the sake of simplicity.
        That's how the different examples of sessions in this tutorial are
@@ -3330,13 +3333,13 @@ let form_bool = register_new_service ["formbool"] unit
       <p>Other types similar to bool:</p>
       <ul>
        <li>
-        $a (static_dir sp) sp [code [pcdata "Eliomparameters.opt" ]] ["doc";version;"Eliomparameters.html#VALopt"]$ (page taking an optional parameter),</li>
+        $a ~fragment:"VALopt" ~service:(static_dir sp) ~sp [code [pcdata "Eliomparameters.opt" ]] ["doc";version;"Eliomparameters.html"]$ (page taking an optional parameter),</li>
        <li>
-        $a (static_dir sp) sp [code [pcdata "Eliomparameters.sum" ]] ["doc";version;"Eliomparameters.html#VALsum"]$ (either a parameter or another).</li>
+        $a ~fragment:"VALsum" ~service:(static_dir sp) ~sp [code [pcdata "Eliomparameters.sum" ]] ["doc";version;"Eliomparameters.html"]$ (either a parameter or another).</li>
       </ul>
       <p>
         See the interface 
-        $a (static_dir sp) sp [pcdata "here"] 
+        $a ~service:(static_dir sp) ~sp [pcdata "here"] 
           ["doc";version;"Eliomparameters.html"]$.
       </p>
 
@@ -3344,7 +3347,7 @@ let form_bool = register_new_service ["formbool"] unit
       <p>Page may take several parameters of the same name.
       It is usefull when you want to create a form with a variable number
       of fields.
-      To do that with Eliom, use the type $a (static_dir sp) sp [code [pcdata "Eliomparameters.set" ]] ["doc";version;"Eliomparameters.html#VALset"]$.
+      To do that with Eliom, use the type $a ~fragment:"VALset" ~service:(static_dir sp) ~sp [code [pcdata "Eliomparameters.set" ]] ["doc";version;"Eliomparameters.html"]$.
       For example <code>set int "val"</code> means that the page will take
       zero, one or several parameters of name <code>"val"</code>,
       all of type <code>int</code>.
@@ -3452,9 +3455,9 @@ let select_example = register_new_service ["select"] unit
 (*html*
       <p>$a Tutoeliom.select_example sp <:xmllist< Try it >> ()$.</p>
      <p>To do "multiple" select boxes, use functions like
-   $a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.string_multiple_select" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html#VALstring_multiple_select"]$. 
+   $a ~fragment:"VALstring_multiple_select" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.string_multiple_select" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$. 
    As you can see in the type, the service must be declared with parameters
-   of type $a (static_dir sp) sp [code [pcdata "set" ]] ["doc";version;"Eliomparameters.html#VALset"]$.
+   of type $a ~fragment:"VALset" ~service:(static_dir sp) ~sp [code [pcdata "set" ]] ["doc";version;"Eliomparameters.html"]$.
      </p>
     </div>
     <div class="twocol2">
@@ -3491,7 +3494,7 @@ let imageform = register_new_service
                   get_form coord sp 
                     (fun n ->
                       [p [image_input 
-                            ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"])
+                            ~src:(make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"])
                             ~name:n
                             ()]])
                 ])))
@@ -3526,7 +3529,7 @@ let imageform2 = register_new_service
                   get_form coord2 sp 
                     (fun n ->
                       [p [int_image_input 
-                            ~src:(make_uri (static_dir sp) sp ["ocsigen5.png"])
+                            ~src:(make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"])
                             ~name:n
                             ~value:3
                             ()]])
@@ -3537,8 +3540,8 @@ let imageform2 = register_new_service
 
 
       <h4>Type <code>list</code></h4>
-        <p>Another way (than $a (static_dir sp) sp [code [pcdata "Eliomparameters.set" ]] ["doc";version;"Eliomparameters.html#VALset"]$) to do variable length forms
-        is to use indexed lists (using $a (static_dir sp) sp [code [pcdata "Eliomparameters.list" ]] ["doc";version;"Eliomparameters.html#VALlist"]$).
+        <p>Another way (than $a ~fragment:"VALset" ~service:(static_dir sp) ~sp [code [pcdata "Eliomparameters.set" ]] ["doc";version;"Eliomparameters.html"]$) to do variable length forms
+        is to use indexed lists (using $a ~fragment:"VALlist" ~service:(static_dir sp) ~sp [code [pcdata "Eliomparameters.list" ]] ["doc";version;"Eliomparameters.html"]$).
         The use of that feature is a bit more complex than <code>set</code>
         and still experimental.
         Here is an example of service taking an indexed list as parameter:
@@ -3658,19 +3661,19 @@ let suffixform = register_new_service ["suffixform"] unit
 
       <h4>Uploading files</h4>
 
-      <p>The $a (static_dir sp) sp [code [pcdata "Eliomparameters.file" ]] ["doc";version;"Eliomparameters.html#VALfile"]$ parameter type allows to send files in your
+      <p>The $a ~fragment:"VALfile" ~service:(static_dir sp) ~sp [code [pcdata "Eliomparameters.file" ]] ["doc";version;"Eliomparameters.html"]$ parameter type allows to send files in your
        request. The service gets something of type 
-       $a (static_dir sp) sp [code [pcdata "Extensions.file_info" ]] ["doc";version;"Extensions.html#TYPEfile_info"]$. You can extract informations
-       using this using these functions (from $a (static_dir sp) sp [code [pcdata "Eliomsessions" ]] ["doc";version;"Eliomsessions.html"]$):
+       $a ~fragment:"TYPEfile_info" ~service:(static_dir sp) ~sp [code [pcdata "Extensions.file_info" ]] ["doc";version;"Extensions.html"]$. You can extract informations
+       using this using these functions (from $a ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions" ]] ["doc";version;"Eliomsessions.html"]$):
       </p>
 <pre>
 val get_tmp_filename : Extensions.file_info -> string
 val get_filesize : Extensions.file_info -> int64
 val get_original_filename : Extensions.file_info -> string
 </pre>
-      <p>$a (static_dir sp) sp [code [pcdata "Eliomsessions.get_tmp_filename" ]] ["doc";version;"Eliomsessions.html#VALget_tmp_filename"]$ allows to know the actual name
+      <p>$a ~fragment:"VALget_tmp_filename" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_tmp_filename" ]] ["doc";version;"Eliomsessions.html"]$ allows to know the actual name
        of the uploaded file on the hard disk.
-        $a (static_dir sp) sp [code [pcdata "Eliomsessions.get_original_filename" ]] ["doc";version;"Eliomsessions.html#VALget_original_filename"]$ gives the original filename.</p>
+        $a ~fragment:"VALget_original_filename" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_original_filename" ]] ["doc";version;"Eliomsessions.html"]$ gives the original filename.</p>
       <p>To make possible the upload of files, you must configure a
       directory for uploaded files in Ocsigen's configuration file.
       For example:
@@ -3740,12 +3743,12 @@ let uploadform = register upload
     <div class="twocol1">
       <h4>Images, CSS, Javascript</h4>
       <p>
-      To include an image, simply use the function $a (static_dir sp) sp [code [pcdata "XHTML.M.img" ]] ["doc";version;"XHTML.M.html#VALimg"]$:
+      To include an image, simply use the function $a ~fragment:"VALimg" ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M.img" ]] ["doc";version;"XHTML.M.html"]$:
       </p>
       <pre>img <span class="Clabel">~alt:</span>"Ocsigen" 
-    <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> (static_dir sp) sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
+    <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> ~service:(static_dir sp) ~sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
     ()</pre>
-      <p>The function <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliompredefmod.Xhtml.make_uri" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html#VALmake_uri"]$</span>
+      <p>The function <span class="Cem">$a ~fragment:"VALmake_uri" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.make_uri" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$</span>
         creates the relative URL string from current URL (in <code>sp</code>)
         (see above) to the URL of the image in the static directory
         configured in the configuration file.
@@ -3753,12 +3756,12 @@ let uploadform = register upload
       <p>To simplify the creation of <code>&lt;link&gt;</code> tags
       for CSS or <code>&lt;script&gt;</code> tags for Javascript,
         use the following functions:</p>
-      <pre><span class="Cem">css_link</span> (make_uri (static_dir sp) sp [<span class="Cstring">"style.css"</span>])</pre>
-      <pre><span class="Cem">js_script</span> (make_uri (static_dir sp) sp [<span class="Cstring">"funs.js"</span>])</pre>
+      <pre><span class="Cem">css_link</span> (make_uri ~service:(static_dir sp) ~sp [<span class="Cstring">"style.css"</span>])</pre>
+      <pre><span class="Cem">js_script</span> (make_uri ~service:(static_dir sp) ~sp [<span class="Cstring">"funs.js"</span>])</pre>
       <h4>Menus</h4>
       <p>
       To make a menu on your web page, you can use the function 
-          <span class="Cem">$a (static_dir sp) sp [code [pcdata "Eliomboxes.menu" ]] ["doc";version;"Eliomboxes.html#VALmenu"]$</span>.
+          <span class="Cem">$a ~fragment:"VALmenu" ~service:(static_dir sp) ~sp [code [pcdata "Eliomboxes.menu" ]] ["doc";version;"Eliomboxes.html"]$</span>.
       First, define your menu like this:
       </p>
 <pre><span class="Clet">let</span> mymenu current sp <span class="Cnonalphakeyword">=</span>
@@ -3770,7 +3773,7 @@ let uploadform = register upload
    <span class="Cnonalphakeyword">]</span> current sp</pre>
       <p>Here, <code>home</code>,  <code>infos</code>, 
         and <code>tutorial</code> are your three pages (generated for example
-        by $a (static_dir sp) sp [code [pcdata "Eliomservices.new_service" ]] ["doc";version;"Eliomservices.html#VALnew_service"]$).</p>
+        by $a ~fragment:"VALnew_service" ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices.new_service" ]] ["doc";version;"Eliomservices.html"]$).</p>
     </div>
     <div class="twocol2">
       <p>Then <code>mymenu home sp</code> will generate the following
@@ -3784,7 +3787,7 @@ let uploadform = register upload
   &lt;/li&gt;
 &lt;/ul&gt;</pre>
     <p>Personalise it in your CSS style-sheet.</p>
-    <p>$a (static_dir sp) sp [code [pcdata "Eliomboxes.menu" ]] ["doc";version;"Eliomboxes.html#VALmenu"]$ takes a list of services without
+    <p>$a ~fragment:"VALmenu" ~service:(static_dir sp) ~sp [code [pcdata "Eliomboxes.menu" ]] ["doc";version;"Eliomboxes.html"]$ takes a list of services without
     GET parameters. 
     If you want one of the link to contains GET parameters, pre-apply
     the service.</p>
@@ -3943,12 +3946,12 @@ let _ = register main
        <html> 
        <!-- This is a comment! -->
        <head>
-         $css_link (make_uri (static_dir sp) sp ["style.css"]) ()$
+         $css_link (make_uri ~service:(static_dir sp) ~sp ["style.css"]) ()$
          <title>Eliom Tutorial</title>
        </head>
        <body>
          
-         <h1>$img ~alt:"Ocsigen" ~src:(Eliompredefmod.Xhtml.make_uri (static_dir sp) sp ["ocsigen5.png"]) ()$</h1>
+         <h1>$img ~alt:"Ocsigen" ~src:(Eliompredefmod.Xhtml.make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"]) ()$</h1>
 
        <h3>Eliom examples</h3>
        <h4>Simple pages</h4>

@@ -60,7 +60,8 @@ module type XHTMLFORMSSIG = sig
           ('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-           sp:Eliommod.server_params -> a_content elt list -> 'get -> [> a] XHTML.M.elt
+           sp:Eliommod.server_params -> ?fragment:string -> 
+             a_content elt list -> 'get -> [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link to [service]. 
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -70,7 +71,11 @@ module type XHTMLFORMSSIG = sig
    For example [a service sp cont (42,"hello")]
 
    The [~a] optional parameter is used for extra attributes 
-   (see the module XHTML.M) *)
+   (see the module XHTML.M).
+
+   The [~fragment] optional parameter is used for the "fragment" part
+   of the URL, that is, the part after character "#".
+ *)
 
   val css_link : ?a:(link_attrib attrib list) ->
     uri:uri -> unit ->[> link ] elt
@@ -84,7 +89,7 @@ module type XHTMLFORMSSIG = sig
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
-          sp:Eliommod.server_params -> 'get -> uri
+          sp:Eliommod.server_params -> ?fragment:string -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
@@ -94,7 +99,7 @@ module type XHTMLFORMSSIG = sig
           service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             sp:Eliommod.server_params ->
+             sp:Eliommod.server_params -> ?fragment:string ->
               ('gn -> form_content elt list) -> [>form] elt
 (** [get_form service sp formgen] creates a GET form to [service]. 
    The content of
@@ -106,7 +111,7 @@ module type XHTMLFORMSSIG = sig
           service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-            sp:Eliommod.server_params ->
+            sp:Eliommod.server_params -> ?fragment:string ->
               ('pn -> form_content elt list) -> 'get -> [>form] elt
 (** [post_form service sp formgen] creates a POST form to [service]. 
    The last parameter is for GET parameters (as in the function [a]).
