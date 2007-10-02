@@ -136,7 +136,7 @@ val new_service :
 *)
 	      
 val new_external_service :
-    server: string ->
+    prefix: string ->
       path:url_path ->
         get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
@@ -146,6 +146,16 @@ val new_external_service :
 (** Creates an service for an external web site.
    Allows to creates links or forms towards other Web sites using
    Eliom's syntax.
+
+   The parameter labelled [~path] is the URL path, and each element of
+   the list will be URL-encoded.
+
+   The parameter labelled [~prefix] contains all what you want to put before
+   the path. It usually starts with "http://" plus
+   the name of the server. The whole URL is constructed from the prefix,
+   the path and parameters. The prefix is not encoded. 
+   An empty prefix can be used to make a link to another site of the same 
+   server.
  *)
 
 val new_post_service :
@@ -304,7 +314,7 @@ val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('b, [ `WithoutSuffix ], 'f) Eliomparameters.params_type
 val get_att_kind_ : 'a a_s -> 'a
 val get_path_ : 'a a_s -> url_path
-val get_server_ : 'a a_s -> string
+val get_prefix_ : 'a a_s -> string
 val get_get_state_ : 'a a_s -> Eliommod.internal_state option
 val get_post_state_ : 'a a_s -> Eliommod.internal_state option
 val get_na_name_ : 'a na_s -> string option * string option

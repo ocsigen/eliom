@@ -637,9 +637,12 @@ module MakeForms = functor
             let uri = 
               (if (get_att_kind_ attser) = `External
               then 
-                (get_server_ attser)^(reconstruct_absolute_url_path
-                                        (get_current_path sp) 
-                                        (get_path_ attser) suff)
+                concat_strings
+                  (get_prefix_ attser)
+                  "/"
+                  (reconstruct_absolute_url_path
+                     (get_current_path sp) 
+                     (get_path_ attser) suff)
               else 
                 (reconstruct_relative_url_path
                    (get_current_path sp) (get_path_ attser) suff))
@@ -692,9 +695,13 @@ module MakeForms = functor
         | `Attached attser ->
             let urlname =
               (if (get_att_kind_ attser) = `External
-              then (get_server_ attser)^(reconstruct_absolute_url_path
-                                           (get_current_path sp)
-                                           (get_path_ attser) None)
+              then 
+                concat_strings
+                  (get_prefix_ attser)
+                  "/"
+                  (reconstruct_absolute_url_path
+                     (get_current_path sp)
+                     (get_path_ attser) None)
               else (reconstruct_relative_url_path
                       (get_current_path sp) (get_path_ attser) None)) in
             let state_param =
@@ -801,9 +808,13 @@ module MakeForms = functor
             in
             let urlname = 
               (if (get_att_kind_ attser) = `External
-              then (get_server_ attser)^(reconstruct_absolute_url_path
-                                           (get_current_path sp)
-                                           (get_path_ attser) suff)
+              then 
+                concat_strings
+                  (get_prefix_ attser)
+                  "/"
+                  (reconstruct_absolute_url_path
+                     (get_current_path sp)
+                     (get_path_ attser) suff)
               else (reconstruct_relative_url_path
                       (get_current_path sp) (get_path_ attser) suff))
             in

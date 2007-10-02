@@ -171,7 +171,7 @@ let parse_lines sp lines =
       let url = scheme^":"^page in
       let t = if text = "" then url else text in
       a (new_external_service 
-           ~server:url
+           ~prefix:url
            ~path:[]
            ~get_params:unit
            ~post_params:unit ()) sp [pcdata t] () in

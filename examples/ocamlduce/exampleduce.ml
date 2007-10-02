@@ -27,7 +27,7 @@ open Xhtml1_strict
 
 let s =
   register_new_service 
-    ~url:[""]
+    ~path:[""]
     ~get_params:unit
     (fun sp () () -> 
       return
@@ -70,7 +70,8 @@ let links = register_new_service ["links"] unit
 	   <br> [] *)
            {{ a
              (new_external_service
-		~url:["http://fr.wikipedia.org";"wiki"]
+		~server:"http://fr.wikipedia.org"
+                ~path:["wiki"]
 		~get_params:(suffix (string "a"))
 		~post_params:unit ())
              sp
@@ -80,7 +81,7 @@ let links = register_new_service ["links"] unit
 
 
 
-let main = new_service ~url:["radio"] ~get_params:unit ()
+let main = new_service ~path:["radio"] ~get_params:unit ()
 let form = 
   new_post_service ~fallback:main ~post_params:(opt (string "test")) ()
 
@@ -112,7 +113,7 @@ let _ =
 (*
 let blocks =
   Eliomduce.Blocks.register_new_service 
-    ~url:["blocks"]
+    ~path:["blocks"]
     ~get_params:unit
     (fun sp () () -> 
       return

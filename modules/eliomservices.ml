@@ -64,7 +64,7 @@ type internal =
 type registrable = [ `Registrable | `Unregistrable ]
 
 type +'a a_s =
-    {server: string; (* name of the server and protocol, 
+    {prefix: string; (* name of the server and protocol, 
                         for external links. Ex: http://ocsigen.org *)
      path: url_path; (* name of the service without parameters *)
      att_kind: 'a; (* < attached_service_kind *)
@@ -115,7 +115,7 @@ let get_att_kind_ s = s.att_kind
 let get_pre_applied_parameters_ s = s.pre_applied_parameters
 let get_get_params_type_ s = s.get_params_type
 let get_post_params_type_ s = s.post_params_type
-let get_server_ s = s.server
+let get_prefix_ s = s.prefix
 let get_path_ s = s.path
 let get_get_state_ s = s.get_state
 let get_post_state_ s = s.post_state
@@ -149,7 +149,7 @@ let static_dir ~sp =
      max_use= None;
      timeout= None;
      kind = `Attached
-       {server = "";
+       {prefix = "";
         path = (get_site_dir ~sp)@[""];
         get_state = None;
         post_state = None;
@@ -165,7 +165,7 @@ let static_dir ~sp =
 (** Definition of services *)
 (** Create a main service (not a coservice) internal or external, get only *)
 let new_service_aux_aux
-    ~server
+    ~prefix
     ~(path : url_path)
     ~kind
     ~get_params
@@ -178,7 +178,7 @@ let new_service_aux_aux
    max_use= None;
    timeout= None;
    kind = `Attached
-     {server = server;
+     {prefix = prefix;
       path = path;
       att_kind = kind;
       get_state = None;
@@ -197,7 +197,7 @@ let new_service_aux
           let full_path = 
             remove_middle_slash (curdir@(change_empty_list path)) in
           let u = new_service_aux_aux
-              ~server:""
+              ~prefix:""
               ~path:full_path
               ~kind:(`Internal (`Service, `Get))
               ~get_params
@@ -210,7 +210,7 @@ let new_service_aux
       let full_path = 
         remove_middle_slash ((get_site_dir sp)@(change_empty_list path)) in
       new_service_aux_aux
-        ~server:""
+        ~prefix:""
         ~path:full_path
         ~kind:(`Internal (`Service, `Get))
         ~get_params
@@ -218,14 +218,14 @@ let new_service_aux
 
       
 let new_external_service
-    ~server
+    ~prefix
     ~path
     ~get_params
     ~post_params
     () =
   let suffix = contains_suffix get_params in
   new_service_aux_aux
-    ~server
+    ~prefix
     ~path:(remove_middle_slash 
             (if suffix then path@[eliom_suffix_internal_name] else path))
     ~kind:`External
@@ -301,7 +301,7 @@ let new_post_service_aux ~sp ~fallback ~post_params =
    max_use= None;
    timeout= None;
    kind = `Attached
-     {server = k1.server;
+     {prefix = k1.prefix;
       path = k1.path;
       att_kind = `Internal (k, `Post);
       get_state = k1.get_state;
@@ -477,14 +477,18 @@ let make_string_uri
           concat_strings preapplied_params "&" params_string in
         let uri = 
           (if (get_att_kind_ attser) = `External
-          then (get_server_ attser)^(reconstruct_absolute_url_path
-                                       (get_current_path sp) 
-                                       (get_path_ attser) suff)
+          then
+            concat_strings
+              (get_prefix_ attser)
+              "/"
+              (reconstruct_absolute_url_path
+                 (get_current_path sp) 
+                 (get_path_ attser) suff)
           else (reconstruct_relative_url_path
                   (get_current_path sp) (get_path_ attser) suff))
         in
         match get_get_state_ attser with
-          None ->
+        | None ->
             add_to_string uri "?" params_string
         | Some s -> 
             add_to_string (uri^"?"^get_state_param_name^"="^s)
@@ -504,7 +508,7 @@ let make_string_uri
         concat_strings preapplied_params "&" params_string in
       let naservice_param = 
         match fst (get_na_name_ naser) with
-          Some n -> naservice_name^"="^n
+        | Some n -> naservice_name^"="^n
         | _ -> assert false
       in
       let current_get_params_string = 
