@@ -74,6 +74,7 @@ module type ELIOMREGSIG1 =
    [register service t f] will associate the service [service] 
    to the function [f].
    [f] is the function that creates a page, called {e service handler}. 
+
    That function takes three parameters. 
     - The first one has type [Eliommod.server_params]
    and allows to have acces to informations about the request and the session.
@@ -86,7 +87,10 @@ module type ELIOMREGSIG1 =
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}   
 
-    Warning: registering after initialization is not encouraged for coservices
+   Registering services and coservices is always done in memory as there is
+   no means of marshalling closures.
+
+    Registering after initialization is not encouraged for coservices
     without timeout, as such services will be available only until the end
     of the server process!
     If you use that for main services, you will dynamically create new URLs!

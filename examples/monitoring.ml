@@ -67,10 +67,10 @@ let _ =
         with _ -> None
       in
       let nssess = Eliomsessions.number_of_service_sessions sp in
-      let ndsess = Eliomsessions.number_of_data_sessions sp in
+      let ndsess = Eliomsessions.number_of_in_memory_data_sessions sp in
       let ntables = Eliomsessions.number_of_tables () in
       let ntableselts = Eliomsessions.number_of_table_elements () in
-      Eliomsessions.number_of_persistent_sessions () >>=
+      Eliomsessions.number_of_persistent_data_sessions () >>=
         (fun nbperssess ->
           let nbperstab = Eliomsessions.number_of_persistent_tables () in
           Eliomsessions.number_of_persistent_table_elements () >>=
