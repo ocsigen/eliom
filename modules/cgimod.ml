@@ -398,11 +398,12 @@ let recupere_cgi head pages_tree re filename ri =
         (catch
            (fun () ->
              (match ri.ri_http_frame.Stream_http_frame.content with
-             | None -> return ()
+             | None -> Unix.close post_in; return ()
              | Some content_post -> 
                  Stream_sender.really_write post_in_ch
-                   return (content_post ()) >>= fun () ->
-                     Lwt_unix.flush post_in_ch))
+                   (fun () -> Unix.close post_in; return ())
+                   (content_post ()) >>= fun () ->
+                 Lwt_unix.flush post_in_ch))
            (fun _ -> tryclose post_in; return ()));
 
     (* A thread listening the error output of the CGI script 
@@ -410,8 +411,8 @@ let recupere_cgi head pages_tree re filename ri =
     let err_channel = Lwt_unix.in_channel_of_descr (Lwt_unix.Plain err_out) in
     let rec get_errors () =
       Lwt_unix.input_line err_channel >>= fun err ->
-        Messages.warning ("CGI says: "^err);
-        get_errors ()
+      Messages.warning ("CGI says: "^err);
+      get_errors ()
     in ignore (catch get_errors (fun _ -> tryclose err_out; return ()));
     (* This threads terminates, as you can see by doing:
     in ignore (catch get_errors (fun _ -> print_endline "the end"; 
@@ -453,7 +454,8 @@ let recupere_cgi head pages_tree re filename ri =
               ~doing_keep_alive:false () >>= fun http_frame ->
             ignore 
 	      (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
-		return ());
+               Unix.close cgi_out;
+	       return ());
 	    return http_frame)
 	  (fun e -> tryclose cgi_out; fail e))
 	 ;
