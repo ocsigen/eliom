@@ -39,3 +39,4 @@ clean:
 depend:
 	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
 
+-include .depend
