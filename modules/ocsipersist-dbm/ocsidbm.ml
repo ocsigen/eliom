@@ -175,8 +175,8 @@ let _ = Unix.setsid ()
 (** Communication functions: *)
 
 let send outch v =
-  Lwt_unix.output_value outch v >>= 
-  (fun () -> Lwt_unix.flush outch)
+  Lwt_chan.output_value outch v >>= 
+  (fun () -> Lwt_chan.flush outch)
 
 let execute outch = function
   | Get (t, k) -> 
@@ -207,7 +207,7 @@ let execute outch = function
 let nb_clients = ref 0
 
 let rec listen_client inch outch =
-  Lwt_unix.input_value inch >>=
+  Lwt_chan.input_value inch >>=
   (fun v -> execute outch v) >>=
   (fun () -> listen_client inch outch)
 
@@ -240,9 +240,9 @@ let _ = Lwt_unix.run
     (Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
      (fun socket ->
        (try
-         Unix.bind socket (Unix.ADDR_UNIX (directory^"/"^socketname))
+         Lwt_unix.bind socket (Unix.ADDR_UNIX (directory^"/"^socketname))
        with _ -> errlog ("Please make sure that the directory "^directory^" exists, writable for ocsidbm, and no other ocsidbm process is running on the same directory. If not, remove the file "^(directory^"/"^socketname)); the_end 1);
-       Unix.listen socket 20;
+       Lwt_unix.listen socket 20;
 (* Done in ocsipersist.ml      
    let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
        Unix.dup2 devnull Unix.stdout;
@@ -253,7 +253,7 @@ let _ = Lwt_unix.run
          (fun () -> if not !b then close_all 0 (); return ()));
        (* If nothing happened during 5 seconds, I quit *)
 
-       loop (Lwt_unix.Plain socket)))
+       loop socket))
 
 
 

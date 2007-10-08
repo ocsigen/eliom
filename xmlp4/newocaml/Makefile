@@ -26,13 +26,13 @@ OBJSOPT = $(FILESR:.ml=.cmx) $(FILES:.ml=.cmx)
 CMA = xhtmlsyntax.cma
 CMXA = xhtmlsyntax.cmxa
 
-byte: ohl-xhtml-byte $(CMA) $(OBJS)
+byte: depend ohl-xhtml-byte $(CMA) $(OBJS)
 	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmo newocaml/basicTypes.cmi newocaml/basicTypes.cmo newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmo newocaml/xmllexer.cmi newocaml/xmllexer.cmo newocaml/xhtmlsyntax.cma ..
 
 opt: ohl-xhtml-opt $(CMXA) $(OBJSOPT)
 	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmx newocaml/xhtmltypes.o newocaml/basicTypes.cmi newocaml/basicTypes.cmx newocaml/basicTypes.o newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmx newocaml/simplexmlparser.o newocaml/xmllexer.cmi newocaml/xmllexer.cmx newocaml/xmllexer.o newocaml/xhtmlsyntax.cmxa newocaml/xhtmlsyntax.a ..
 
-.PHONY: depend
+#.PHONY: depend
 .PHONY: ohl-xhtml-byte ohl-xhtml-opt
 
 ohl-xhtml-byte:
@@ -60,6 +60,9 @@ xmllexer.cmx: xmllexer.ml
 xmllexer.ml: xmllexer.mll
 	$(CAMLLEX) $<
 
+xhtmltypes.ml:
+	camlp4 -parser OCaml -printer OCamlr ../oldocaml/xhtmltypes.ml > \
+		xhtmltypes.ml
 
 # Common rules
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
@@ -85,13 +88,13 @@ clean:
 
 
 # Dependencies
-depend:
-	-rm -f xhtmltypes.ml
-	camlp4 -parser OCaml -printer OCamlr ../oldocaml/xhtmltypes.ml > \
-		xhtmltypes.ml
-	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
+depend: *.mli *.ml
+#	-rm -f xhtmltypes.ml
+#	camlp4 -parser OCaml -printer OCamlr ../oldocaml/xhtmltypes.ml > \
+#		xhtmltypes.ml
+	$(CAMLDEP) $(PP) $(LIB) *.mli *.ml > depend
 
 FORCE:
 
-include .depend
+include depend
 

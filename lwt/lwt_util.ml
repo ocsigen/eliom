@@ -9,12 +9,6 @@ let rec iter f l =
       let rt = iter f r in
       t >>= (fun () -> rt)
 
-let rec iter_serial f l =
-  match l with
-    []     -> return ()
-  | a :: r ->
-      f a >>= fun () -> iter f r
-
 let rec map f l =
   match l with
     [] ->
@@ -27,22 +21,22 @@ let rec map f l =
       return (v' :: l')))
 
 let map_with_waiting_action f wa l =
-  let rec loop l = 
+  let rec loop l =
     match l with
       [] ->
-        return []
+	return []
     | v :: r ->
-        let t = f v in
-        let rt = loop r in
-        t >>= (fun v' -> 
-          (* Perform the specified "waiting action" for the next    *)
-          (* item in the list.                                      *)
-          if r <> [] then
-            wa (List.hd r)
-          else
-            ();
-          rt >>= (fun l' ->
-            return (v' :: l')))
+	let t = f v in
+	let rt = loop r in
+	t >>= (fun v' ->
+	  (* Perform the specified "waiting action" for the next    *)
+	  (* item in the list.                                      *)
+	  if r <> [] then
+	    wa (List.hd r)
+	  else
+	    ();
+	  rt >>= (fun l' ->
+	    return (v' :: l')))
   in
   if l <> [] then
     wa (List.hd l)
@@ -58,6 +52,10 @@ let rec map_serial f l =
       f v >>= (fun v' ->
       map f r >>= (fun l' ->
       return (v' :: l')))
+
+let rec fold_left f a = function
+  | [] -> return a
+  | b::l -> f a b >>= fun v -> fold_left f v l
 
 let join l = iter (fun x -> x) l
 
@@ -93,7 +91,3 @@ let run_in_region reg sz thr =
     reg.count <- reg.count + sz;
     run_in_region_1 reg sz thr
   end
-
-let rec fold_left f a = function
-  | [] -> return a
-  | b::l -> f a b >>= fun v -> fold_left f v l

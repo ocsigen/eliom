@@ -159,7 +159,7 @@ struct
           choose
             [Lwt_unix.yield () >>= 
              (fun () ->
-               Lwt_unix.read file_descr buffer.buf buffer.write_pos free) >>=
+               Lwt_ssl.read file_descr buffer.buf buffer.write_pos free) >>=
              (fun l -> 
                Timeout.remove_timeout wait_timeout; 
                return l);
@@ -508,7 +508,7 @@ type s_http_mode = Answer | Query | Nofirstline
     
 type receiver_type = {
     r_buffer: Com_buffer.t; 
-    r_fd: Lwt_unix.descr;
+    r_fd: Lwt_ssl.socket;
     r_mode: s_http_mode;
   }
 
@@ -719,7 +719,7 @@ NOT IMPLEMENTED
 
 type sender_type = { 
     (** the file descriptor*)
-    s_fd: Lwt_unix.descr;
+    s_fd: Lwt_ssl.socket;
     (** the mode of the sender Query or Answer *)
     mutable s_mode: s_http_mode; (* do we need that?? *)
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
@@ -774,7 +774,7 @@ module FHttp_sender =
           | Finished _ -> 
               (if chunked
               then 
-                Lwt_unix.output_string out_ch 
+                Lwt_chan.output_string out_ch 
                   (Printf.sprintf"%s0\r\n\r\n" beg)
               else return ()) >>= fun () ->
                 Messages.debug "write finished (closing stream)"; 
@@ -790,10 +790,10 @@ module FHttp_sender =
                 Lwt_unix.yield () >>= fun () ->
                 (if chunked
                 then
-                  Lwt_unix.output_string out_ch 
+                  Lwt_chan.output_string out_ch 
                     (Printf.sprintf"%s%x\r\n" beg l)
                 else return ()) >>= fun () ->
-                Lwt_unix.output out_ch s 0 l >>= fun () ->
+                Lwt_chan.output out_ch s 0 l >>= fun () ->
                 next () >>= fun a ->
                 aux cr a
               else next () >>= aux cr
@@ -930,7 +930,7 @@ module FHttp_sender =
          If we don't want to wait, use waiter = return ()
        *)
 
-      let out_ch = Lwt_unix.out_channel_of_descr sender.s_fd in
+      let out_ch = Lwt_ssl.out_channel_of_descr sender.s_fd in
       waiter >>=
       (fun () ->
         let prot = match proto with None -> sender.s_proto | Some p -> p in
@@ -982,7 +982,7 @@ module FHttp_sender =
                             Lwt.return (empty_stream None)))) >>=
                    (fun _ -> 
                      let close_fun2 () =
-                       Lwt_unix.flush out_ch >>= fun () ->
+                       Lwt_chan.flush out_ch >>= fun () ->
                        close_fun ()
                      in
                      if empty_content || head

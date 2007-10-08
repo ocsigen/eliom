@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module cgimod.ml
- * Copyright (C) 2007 Jérôme Velleine - Gabriel Kerneis
+ * Copyright (C) 2007 J‚r“me Velleine - Gabriel Kerneis
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -351,7 +351,7 @@ let create_process_cgi pages_tree filename ri post_out cgi_in err_in re =
 
 let tryclose c =
   try
-    Unix.close c
+    Lwt_unix.close c
   with _ -> ()
 
 
@@ -360,21 +360,16 @@ let tryclose c =
 let recupere_cgi head pages_tree re filename ri =
   try
     (* Create the three pipes to communicate with the CGI script: *)
-    let (post_out, post_in) = Unix.pipe () in
-    let (cgi_out, cgi_in) = Unix.pipe () in
-    let (err_out, err_in) = Unix.pipe () in
-
-    (* My file descriptors are non blocking: *)
-    Unix.set_nonblock post_in;
-    Unix.set_nonblock cgi_out;
-    Unix.set_nonblock err_out;
+    let (post_out, post_in) = Lwt_unix.pipe_out () in
+    let (cgi_out, cgi_in) = Lwt_unix.pipe_in () in
+    let (err_out, err_in) = Lwt_unix.pipe_in () in
 
     (* I don't want to give them to the script: *)
-    Unix.set_close_on_exec cgi_out;
-    Unix.set_close_on_exec post_in;
-    Unix.set_close_on_exec err_out;
+    Lwt_unix.set_close_on_exec cgi_out;
+    Lwt_unix.set_close_on_exec post_in;
+    Lwt_unix.set_close_on_exec err_out;
 
-    let post_in_ch = Lwt_unix.out_channel_of_descr (Lwt_unix.Plain post_in) in
+    let post_in_ch = Lwt_unix.out_channel_of_descr post_in in
 
     (* Launch the CGI script *)
     let pid = create_process_cgi 
@@ -401,16 +396,15 @@ let recupere_cgi head pages_tree re filename ri =
              | None -> Unix.close post_in; return ()
              | Some content_post -> 
                  Stream_sender.really_write post_in_ch
-                   (fun () -> Unix.close post_in; return ())
-                   (content_post ()) >>= fun () ->
-                 Lwt_unix.flush post_in_ch))
+                   return (content_post ()) >>= fun () ->
+                     Lwt_unix.flush post_in_ch))
            (fun _ -> tryclose post_in; return ()));
 
     (* A thread listening the error output of the CGI script 
        and writing them in warnings.log *)
-    let err_channel = Lwt_unix.in_channel_of_descr (Lwt_unix.Plain err_out) in
+    let err_channel = Lwt_unix.in_channel_of_descr err_out in
     let rec get_errors () =
-      Lwt_unix.input_line err_channel >>= fun err ->
+      Lwt_chan.input_line err_channel >>= fun err ->
       Messages.warning ("CGI says: "^err);
       get_errors ()
     in ignore (catch get_errors (fun _ -> tryclose err_out; return ()));
@@ -423,7 +417,7 @@ let recupere_cgi head pages_tree re filename ri =
 
     (* *)
     let receiver = Http_com.create_receiver 
-        ~mode:Http_com.Nofirstline (Lwt_unix.Plain cgi_out) 
+        ~mode:Http_com.Nofirstline (Lwt_ssl.plain cgi_out)
     in
     Lwt.choose
       [

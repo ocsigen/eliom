@@ -15,16 +15,6 @@ therefore have the following limitations:
 *)
 let windows_hack = Sys.os_type <> "Unix"
 
-type descr = Plain of Unix.file_descr
-           | Encrypted of Unix.file_descr * Ssl.socket
-
-let fd_of_descr = function
-  | Plain x -> x
-  | Encrypted (fd, s) -> fd
-
-let descr_of_fd ldescr lfd =   
-        (List.map (fun x -> List.find (fun y -> x=(fd_of_descr y)) ldescr) lfd)
-
 module SleepQueue =
   Pqueue.Make (struct
     type t = float * unit Lwt.t
@@ -59,47 +49,96 @@ let rec restart_threads now =
   | _ ->
       ()
 
-let inputs = ref []
-let outputs = ref []
+(****)
+
+module FdMap =
+  Map.Make (struct type t = Unix.file_descr let compare = compare end)
+
+type watchers = (unit -> unit) list ref FdMap.t ref
+
+let inputs = ref FdMap.empty
+let outputs = ref FdMap.empty
+
+exception Retry
+exception Retry_write
+exception Retry_read
+
+let find_actions set fd =
+  try
+    FdMap.find fd !set
+  with Not_found ->
+    let res = ref [] in
+    set := FdMap.add fd res !set;
+    res
+
+type 'a outcome =
+    Success of 'a
+  | Exn of exn
+  | Requeued
+
+let rec wrap_syscall set fd cont action =
+  let res =
+    try
+      Success (action ())
+    with
+      Retry
+    | Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK | Unix.EINTR), _, _)
+    | Sys_blocked_io ->
+        (* EINTR because we are catching SIG_CHLD hence the system call
+           might be interrupted to handle the signal; this lets us restart
+           the system call eventually. *)
+        add_action set fd cont action;
+        Requeued
+    | Retry_read ->
+        add_action inputs fd cont action;
+        Requeued
+    | Retry_write ->
+        add_action outputs fd cont action;
+        Requeued
+    | e ->
+        Exn e
+  in
+  match res with
+    Success v ->
+      Lwt.wakeup cont v
+  | Exn e ->
+      Lwt.wakeup_exn cont e
+  | Requeued ->
+      ()
+
+and add_action set fd cont action =
+  let actions = find_actions set fd in
+  actions := (fun () -> wrap_syscall set fd cont action) :: !actions
+
+let register_action set fd action =
+  let cont = Lwt.wait () in
+  add_action set fd cont action;
+  cont
+
+let perform_actions set fd =
+  let actions = find_actions set fd in
+  set := FdMap.remove fd !set;
+  List.iter (fun f -> f ()) !actions
+
+let active_descriptors set = FdMap.fold (fun key _ l -> key :: l) !set []
+
+let blocked_thread_count set =
+  FdMap.fold (fun key l c -> List.length !l + c) !set 0
+
+(****)
+
 let wait_children = ref []
 
 let child_exited = ref false
 let _ =
   if not windows_hack then
-    ignore(Sys.signal Sys.sigchld (Sys.Signal_handle (fun _ -> child_exited := true)))
+    ignore (Sys.signal Sys.sigchld
+              (Sys.Signal_handle (fun _ -> child_exited := true)))
 
 let bad_fd fd =
   try ignore (Unix.LargeFile.fstat fd); false with
     Unix.Unix_error (_, _, _) ->
       true
-
-let wrap_syscall queue fd cont syscall =
-  let res =
-    try
-      Some (syscall ())
-    with
-      Exit
-    | Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK | Unix.EINTR), _, _) ->
-        (* EINTR because we are catching SIG_CHLD hence the system call
-           might be interrupted to handle the signal; this lets us restart
-           the system call eventually. *)
-        None
-    | Ssl.Accept_error (Ssl.Error_want_read | Ssl.Error_want_write | Ssl.Error_want_accept)
-    | Ssl.Connection_error (Ssl.Error_want_read | Ssl.Error_want_write | Ssl.Error_want_connect)
-    | Ssl.Read_error (Ssl.Error_want_read | Ssl.Error_want_write)
-    | Ssl.Write_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
-            None
-    | e ->
-        queue := List.remove_assoc fd !queue;
-        Lwt.wakeup_exn cont e;
-        None
-  in
-  match res with
-    Some v ->
-      queue := List.remove_assoc fd !queue;
-      Lwt.wakeup cont v
- | None ->
-      ()
 
 let rec run thread =
   match Lwt.poll thread with
@@ -123,8 +162,8 @@ let rec run thread =
         | Some 0.   -> 0.
         | Some time -> max 0. (time -. get_time now)
       in
-      let infds = List.map fst !inputs in
-      let outfds = List.map fst !outputs in
+      let infds = active_descriptors inputs in
+      let outfds = active_descriptors outputs in
       let (readers, writers, _) =
         if windows_hack then
           let writers = outfds in
@@ -134,141 +173,95 @@ let rec run thread =
         else if infds = [] && outfds = [] && delay = 0. then
           ([], [], [])
         else
-        let ins = List.map fd_of_descr infds in
-        let outs = List.map fd_of_descr outfds in
           try
             let (readers, writers, _) as res =
-              let (rds, wrs, err) = Unix.select ins outs [] delay in
-                 (descr_of_fd infds rds, descr_of_fd outfds wrs, err) in
-            if readers = [] && writers = [] && delay > 0. && !now <> -1. then
+              Unix.select infds outfds [] delay in
+            if delay > 0. && !now <> -1. && readers = [] && writers = [] then
               now := !now +. delay;
             res
           with
             Unix.Unix_error (Unix.EINTR, _, _) ->
               ([], [], [])
           | Unix.Unix_error (Unix.EBADF, _, _) ->
-              (descr_of_fd infds (List.filter bad_fd ins), 
-              descr_of_fd outfds (List.filter bad_fd outs), [])
+              (List.filter bad_fd infds, List.filter bad_fd outfds, [])
       in
       restart_threads now;
-      List.iter
-        (fun fd ->
-           match List.assoc fd !inputs with
-             `Read (buf, pos, len, res) ->
-             let f = (match fd with
-                      Plain fdesc -> 
-                        (fun () -> Unix.set_nonblock fdesc; Unix.read fdesc buf pos len)
-                     | Encrypted (fdesc, sock) ->
-                        (fun () -> Ssl.read sock buf pos len)) in
-                wrap_syscall inputs fd res f 
-           | `Accept res ->
-                let f = match fd with
-                 Plain fdesc ->
-                  (fun () ->
-                     let (s, a) = Unix.accept fdesc in
-                     if not windows_hack then Unix.set_nonblock s;
-                      (Plain (s),a))
-                | Encrypted (fdesc, sock) ->
-                   (fun () -> Ssl.accept sock; 
-                   (fd,Unix.ADDR_INET(Unix.inet_addr_any, 80))) in
-                wrap_syscall inputs fd res f
-                      
-           | `Wait res ->
-                wrap_syscall inputs fd res (fun () -> ()))
-        readers;
-      List.iter
-        (fun fd ->
-           match List.assoc fd !outputs with
-             `Write (buf, pos, len, res) ->
-                let f = match fd with
-                  Plain fdesc -> 
-                   (fun () -> Unix.write fdesc buf pos len)
-                | Encrypted (fdesc, sock) ->
-                   (fun () -> Ssl.write sock buf pos len) in
-               wrap_syscall outputs fd res f
-           | `CheckSocket res ->
-                wrap_syscall outputs fd res
-                  (fun () -> ignore (Unix.getpeername (fd_of_descr fd)))
-           | `Wait res ->
-                wrap_syscall outputs fd res (fun () -> ()))
-        writers;
+      List.iter (fun fd -> perform_actions inputs fd) readers;
+      List.iter (fun fd -> perform_actions outputs fd) writers;
       if !child_exited then begin
         child_exited := false;
+        let l = !wait_children in
+        wait_children := [];
         List.iter
-          (fun (id, (res, flags, pid)) ->
-             wrap_syscall wait_children id res
-               (fun () ->
-                  let (pid', _) as v = Unix.waitpid flags pid in
-                  if pid' = 0 then raise Exit;
-                  v))
-          !wait_children
+          (fun ((cont, flags, pid) as e) ->
+             try
+               let (pid', _) as v = Unix.waitpid flags pid in
+               if pid' = 0 then
+                 wait_children := e :: !wait_children
+               else
+                 Lwt.wakeup cont v
+             with e ->
+               Lwt.wakeup_exn cont e)
+          l
       end;
       run thread
 
 (****)
 
-let wait_read ch =
-  let res = Lwt.wait () in
-  inputs := (ch, `Wait res) :: !inputs;
-  res
+type file_descr = Unix.file_descr
 
-let wait_write ch =
-  let res = Lwt.wait () in
-  outputs := (ch, `Wait res) :: !outputs;
-  res
+let unix_file_descr fd = fd
+let of_unix_file_descr fd =
+  if not windows_hack then Unix.set_nonblock fd;
+  fd
+
+let wait_read ch = register_action inputs ch (fun () -> ())
+
+let wait_write ch = register_action outputs ch (fun () -> ())
 
 let read ch buf pos len =
   try
-    if len = 0 then Lwt.return 0 else begin
     if windows_hack then raise (Unix.Unix_error (Unix.EAGAIN, "", ""));
-      Lwt.return (match ch with
-        Plain fdesc -> Unix.read fdesc buf pos len
-      | Encrypted (fdesc,sock) -> Ssl.read sock buf pos len)
-    end
+    Lwt.return (Unix.read ch buf pos len)
   with
-    Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) 
-    | Ssl.Read_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
-      let res = Lwt.wait () in
-      inputs := (ch, `Read (buf, pos, len, res)) :: !inputs;
-      res
+    Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) ->
+      register_action inputs ch (fun () -> Unix.read ch buf pos len)
   | e ->
       Lwt.fail e
 
 let write ch buf pos len =
   try
-    if len = 0 then Lwt.return 0 else 
-    Lwt.return (match ch with Plain fdesc -> Unix.write fdesc buf pos len
-                            | Encrypted (fdesc, sock) -> Ssl.write sock buf pos len)
+    Lwt.return (Unix.write ch buf pos len)
   with
-    Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) 
-    | Ssl.Write_error (Ssl.Error_want_read | Ssl.Error_want_write) ->
-      let res = Lwt.wait () in
-      outputs := (ch, `Write (buf, pos, len, res)) :: !outputs;
-      res
+    Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) ->
+      register_action outputs ch (fun () -> Unix.write ch buf pos len)
   | e ->
       Lwt.fail e
 
-(* There should be 3 different versions of pipe (+1 in Unix) 
-   depending on if the output/inout in blocking
- *)
 let pipe () =
-  let (out_fd, in_fd) = Unix.pipe() in
+  let (out_fd, in_fd) as fd_pair = Unix.pipe() in
   if not windows_hack then begin
     Unix.set_nonblock in_fd;
     Unix.set_nonblock out_fd
   end;
-  Lwt.return (Plain out_fd, Plain in_fd)
+  fd_pair
+
+let pipe_in () =
+  let (out_fd, in_fd) as fd_pair = Unix.pipe() in
+  if not windows_hack then Unix.set_nonblock out_fd;
+  fd_pair
+
+let pipe_out () =
+  let (out_fd, in_fd) as fd_pair = Unix.pipe() in
+  if not windows_hack then Unix.set_nonblock in_fd;
+  fd_pair
 
 let socket dom typ proto =
   let s = Unix.socket dom typ proto in
   if not windows_hack then Unix.set_nonblock s;
   Lwt.return s
 
-let shutdown ch shutdown_command = 
-  match ch with
-    Plain fdesc -> Unix.shutdown fdesc shutdown_command
-  | Encrypted (fdesc, sock) -> Ssl.shutdown sock;
-      Unix.shutdown fdesc shutdown_command
+let shutdown ch shutdown_command = Unix.shutdown ch shutdown_command
 
 let socketpair dom typ proto =
   let (s1, s2) as spair = Unix.socketpair dom typ proto in
@@ -278,30 +271,30 @@ let socketpair dom typ proto =
   Lwt.return spair
 
 let accept ch =
-  let res = Lwt.wait () in
-  inputs := (ch, `Accept res) :: !inputs;
-  res
+  register_action inputs ch
+    (fun () ->
+       let (s, _) as v = Unix.accept ch in
+       if not windows_hack then Unix.set_nonblock s;
+       v)
 
 let check_socket ch =
-  let res = Lwt.wait () in
-  outputs := (ch, `CheckSocket res) :: !outputs;
-  res
+  register_action outputs ch
+    (fun () ->
+       try ignore (Unix.getpeername ch) with
+         Unix.Unix_error (Unix.ENOTCONN, _, _) ->
+           (* Get the socket error *)
+           ignore (Unix.read ch " " 0 1))
 
 let connect s addr =
   try
-    (match s with Plain fdesc -> Unix.connect fdesc addr
-    | _ -> ());
+    Unix.connect s addr;
     Lwt.return ()
   with
     Unix.Unix_error
-      ((Unix.EINPROGRESS | Unix.EWOULDBLOCK | Unix.EAGAIN), _, _)
-    | Ssl.Connection_error (Ssl.Error_want_read | Ssl.Error_want_write | Ssl.Error_want_connect) ->
+      ((Unix.EINPROGRESS | Unix.EWOULDBLOCK | Unix.EAGAIN), _, _) ->
         check_socket s
   | e ->
       Lwt.fail e
-
-let ids = ref 0
-let new_id () = incr ids; !ids
 
 let _waitpid flags pid =
   try
@@ -319,7 +312,7 @@ let waitpid flags pid =
       Lwt.return res
     else
       let res = Lwt.wait () in
-      wait_children := (new_id (), (res, flags, pid)) :: !wait_children;
+      wait_children := (res, flags, pid) :: !wait_children;
       res)
 
 let wait () = waitpid [] (-1)
@@ -327,153 +320,26 @@ let wait () = waitpid [] (-1)
 let system cmd =
   match Unix.fork () with
      0 -> begin try
-            Unix.execv "/bin/sh" [| "/bin/sh"; "-c"; cmd |];
-            assert false
+            Unix.execv "/bin/sh" [| "/bin/sh"; "-c"; cmd |]
           with _ ->
             exit 127
           end
   | id -> Lwt.bind (waitpid [] id) (fun (pid, status) -> Lwt.return status)
 
-(****)
-
-type lwt_in_channel = in_channel
-type lwt_out_channel = out_channel
-
-let wait_inchan ic = wait_read (Plain (Unix.descr_of_in_channel ic))
-let wait_outchan oc = wait_write (Plain (Unix.descr_of_out_channel oc))
-
-let rec flush oc =
-  try
-    Lwt.return (Pervasives.flush oc)
-  with
-    Sys_blocked_io ->
-      Lwt.bind (wait_outchan oc) (fun () -> flush oc)
-  | e ->
-      Lwt.fail e
-
-external unsafe_output_partial : out_channel -> string -> int -> int -> int
-                        = "caml_ml_output_partial"
-
-let rec unsafe_output oc buf pos len =
-  if len > 0 then begin
-    Lwt.bind
-      (try
-        Lwt.return (unsafe_output_partial oc buf pos len)
-      with Sys_blocked_io ->
-        Lwt.bind (wait_outchan oc) (fun () -> Lwt.return 0))
-      (fun written -> 
-        unsafe_output oc buf (pos + written) (len - written))
-  end
-  else Lwt.return ()
-
-let output_string oc s =
-  unsafe_output oc s 0 (String.length s)
-
-let output oc s ofs len =
-  if ofs < 0 || len < 0 || ofs > String.length s - len
-  then invalid_arg "output"
-  else unsafe_output oc s ofs len
-
-let rec output_binary_int oc i =
-  try
-    Lwt.return (Pervasives.output_binary_int oc i)
-  with
-    Sys_blocked_io ->
-      Lwt.bind (wait_outchan oc) (fun () -> output_binary_int oc i)
-  | e ->
-      Lwt.fail e
-
-let output_value oc v = 
-  output_string oc (Marshal.to_string v [])
-
-let rec input_char ic =
-  try
-    Lwt.return (Pervasives.input_char ic)
-  with
-    Sys_blocked_io ->
-      Lwt.bind (wait_inchan ic) (fun () -> input_char ic)
-  | e ->
-      Lwt.fail e
-
-let rec input_binary_int ic =
-  try
-    Lwt.return (Pervasives.input_binary_int ic)
-  with
-    Sys_blocked_io ->
-      Lwt.bind (wait_inchan ic) (fun () -> input_binary_int ic)
-  | e ->
-      Lwt.fail e
-
-let rec input ic s ofs len =
-  try
-    Lwt.return (Pervasives.input ic s ofs len)
-  with
-    Sys_blocked_io ->
-      Lwt.bind (wait_inchan ic) (fun () -> input ic s ofs len)
-  | e ->
-      Lwt.fail e
-
-let rec unsafe_really_input ic s ofs len =
-  if len <= 0 then
-    Lwt.return ()
-  else begin
-    Lwt.bind (input ic s ofs len) (fun r ->
-    if r = 0
-    then Lwt.fail End_of_file
-    else unsafe_really_input ic s (ofs+r) (len-r))
-  end
-
-let really_input ic s ofs len =
-  if ofs < 0 || len < 0 || ofs > String.length s - len
-  then Lwt.fail (Invalid_argument "really_input")
-  else unsafe_really_input ic s ofs len
-
-let input_line ic =
-  let buf = ref (String.create 128) in
-  let pos = ref 0 in
-  let rec loop () =
-    if !pos = String.length !buf then begin
-      let newbuf = String.create (2 * !pos) in
-      String.blit !buf 0 newbuf 0 !pos;
-      buf := newbuf
-    end;
-    Lwt.bind (input_char ic) (fun c ->
-    if c = '\n' then
-      Lwt.return ()
-    else begin
-      !buf.[!pos] <- c;
-      incr pos;
-      loop ()
-    end)
-  in
-  Lwt.bind
-    (Lwt.catch loop
-       (fun e ->
-          match e with
-            End_of_file when !pos <> 0 ->
-              Lwt.return ()
-          | _ ->
-              Lwt.fail e))
-    (fun () ->
-       let res = String.create !pos in
-       String.blit !buf 0 res 0 !pos;
-       Lwt.return res)
-
-let input_value ic =
-  let header = String.create 20 in
-  Lwt.bind
-    (really_input ic header 0 20)
-    (fun () ->
-      let bsize = Marshal.data_size header 0 in
-      let buffer = String.create (20 + bsize) in
-      String.blit header 0 buffer 0 20;
-      Lwt.bind
-        (really_input ic buffer 20 bsize)
-        (fun () -> Lwt.return (Marshal.from_string buffer 0)))
-
+let close = Unix.close
+let setsockopt = Unix.setsockopt
+let bind = Unix.bind
+let listen = Unix.listen
+let set_close_on_exec = Unix.set_close_on_exec
 
 (****)
 
+let out_channel_of_descr fd =
+  Lwt_chan.make_out_channel (fun buf pos len -> write fd buf pos len)
+let in_channel_of_descr fd =
+  Lwt_chan.make_in_channel (fun buf pos len -> read fd buf pos len)
+
+(*
 type popen_process =
     Process of in_channel * out_channel
   | Process_in of in_channel
@@ -493,42 +359,33 @@ let open_proc cmd proc input output toclose =
             Unix.close output
           end;
           List.iter Unix.close toclose;
-          Unix.execv "/bin/sh" [| "/bin/sh"; "-c"; cmd |];
-          exit 127
+          Unix.execv "/bin/sh" [| "/bin/sh"; "-c"; cmd |]
   | id -> Hashtbl.add popen_processes proc id
 
 let open_process_in cmd =
-  Lwt.bind (pipe ()) (fun (in_read, in_write) ->
-    let in_read = fd_of_descr in_read in
-    let in_write = fd_of_descr in_write in
-    let inchan = Unix.in_channel_of_descr in_read in
-    open_proc cmd (Process_in inchan) Unix.stdin in_write [in_read];
-    Unix.close in_write;
-    Lwt.return inchan)
+  let (in_read, in_write) = pipe_in () in
+  let inchan = in_channel_of_descr in_read in
+  open_proc cmd (Process_in inchan) Unix.stdin in_write [in_read];
+  Unix.close in_write;
+  Lwt.return inchan
 
 let open_process_out cmd =
-  Lwt.bind (pipe ()) (fun (out_read, out_write) ->
-    let out_read = fd_of_descr out_read in
-    let out_write = fd_of_descr out_write in
-    let outchan = Unix.out_channel_of_descr out_write in
-    open_proc cmd (Process_out outchan) out_read Unix.stdout [out_write];
-    Unix.close out_read;
-    Lwt.return outchan)
+  let (out_read, out_write) = pipe_out () in
+  let outchan = out_channel_of_descr out_write in
+  open_proc cmd (Process_out outchan) out_read Unix.stdout [out_write];
+  Unix.close out_read;
+  Lwt.return outchan
 
 let open_process cmd =
-  Lwt.bind (pipe ()) (fun (in_read, in_write) ->
-  Lwt.bind (pipe ()) (fun (out_read, out_write) ->
-    let in_read = fd_of_descr in_read in
-    let in_write = fd_of_descr in_write in
-    let out_read = fd_of_descr out_read in
-    let out_write = fd_of_descr out_write in
-    let inchan = Unix.in_channel_of_descr in_read in
-    let outchan = Unix.out_channel_of_descr out_write in
-    open_proc cmd (Process(inchan, outchan)) out_read in_write
-      [in_read; out_write];
-    Unix.close out_read;
-    Unix.close in_write;
-    Lwt.return (inchan, outchan)))
+  let (in_read, in_write) = pipe_in () in
+  let (out_read, out_write) = pipe_out () in
+  let inchan = in_channel_of_descr in_read in
+  let outchan = out_channel_of_descr out_write in
+  open_proc cmd (Process(inchan, outchan)) out_read in_write
+                                           [in_read; out_write];
+  Unix.close out_read;
+  Unix.close in_write;
+  Lwt.return (inchan, outchan)
 
 let open_proc_full cmd env proc input output error toclose =
   match Unix.fork () with
@@ -536,29 +393,22 @@ let open_proc_full cmd env proc input output error toclose =
           Unix.dup2 output Unix.stdout; Unix.close output;
           Unix.dup2 error Unix.stderr; Unix.close error;
           List.iter Unix.close toclose;
-          Unix.execve "/bin/sh" [| "/bin/sh"; "-c"; cmd |] env;
-          exit 127
+          Unix.execve "/bin/sh" [| "/bin/sh"; "-c"; cmd |] env
   | id -> Hashtbl.add popen_processes proc id
 
 let open_process_full cmd env =
-  Lwt.bind (pipe ()) (fun (in_read, in_write) ->
-  Lwt.bind (pipe ()) (fun (out_read, out_write) ->
-  Lwt.bind (pipe ()) (fun (err_read, err_write) ->
-    let out_read = fd_of_descr out_read in
-    let out_write = fd_of_descr out_write in
-    let in_read = fd_of_descr in_read in
-    let in_write = fd_of_descr in_write in
-    let err_read = fd_of_descr err_read in
-    let err_write = fd_of_descr err_write in
-    let inchan = Unix.in_channel_of_descr in_read in
-    let outchan = Unix.out_channel_of_descr out_write in
-    let errchan = Unix.in_channel_of_descr err_read in
-    open_proc_full cmd env (Process_full(inchan, outchan, errchan))
-      out_read in_write err_write [in_read; out_write; err_read];
-    Unix.close out_read;
-    Unix.close in_write;
-    Unix.close err_write;
-    Lwt.return (inchan, outchan, errchan))))
+  let (in_read, in_write) = pipe_in () in
+  let (out_read, out_write) = pipe_out () in
+  let (err_read, err_write) = pipe_in () in
+  let inchan = in_channel_of_descr in_read in
+  let outchan = out_channel_of_descr out_write in
+  let errchan = in_channel_of_descr err_read in
+  open_proc_full cmd env (Process_full(inchan, outchan, errchan))
+                 out_read in_write err_write [in_read; out_write; err_read];
+  Unix.close out_read;
+  Unix.close in_write;
+  Unix.close err_write;
+  Lwt.return (inchan, outchan, errchan)
 
 let find_proc_id fun_name proc =
   try
@@ -589,18 +439,13 @@ let close_process_full (inchan, outchan, errchan) =
                  (Process_full(inchan, outchan, errchan)) in
   close_in inchan; close_out outchan; close_in errchan;
   Lwt.bind (waitpid [] pid) (fun (_, status) -> Lwt.return status)
+*)
 
-let in_channel_of_descr d = Unix.in_channel_of_descr (fd_of_descr d)
-let out_channel_of_descr d = Unix.out_channel_of_descr (fd_of_descr d)
-let in_channel_of_unixdescr d = Unix.in_channel_of_descr d
-let out_channel_of_unixdescr d = Unix.out_channel_of_descr d
+(****)
 
-let set_close_on_exec d = Unix.set_close_on_exec (fd_of_descr d)
-
-(**/**)
 (* Monitoring functions *)
-let inputs_length () = List.length !inputs
-let outputs_length () = List.length !outputs
+let inputs_length () = blocked_thread_count inputs
+let outputs_length () = blocked_thread_count outputs
 let wait_children_length () = List.length !wait_children
 let get_new_sleeps () = List.length !new_sleeps
 let sleep_queue_size () = SleepQueue.size !sleep_queue

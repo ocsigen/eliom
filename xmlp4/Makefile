@@ -15,15 +15,15 @@ else
 endif
 
 clean:
-	touch oldocaml/.depend
-	touch newocaml/.depend
+#	touch oldocaml/.depend
+#	touch newocaml/.depend
 	-rm -f *.cm[ioax] *.cmxa *.cmxs *.o *.a *~ *.annot
 	-$(MAKE) -C oldocaml clean
 	-$(MAKE) -C newocaml clean
 
 depend:
-	touch oldocaml/.depend
-	touch newocaml/.depend
+#	touch oldocaml/.depend
+#	touch newocaml/.depend
 ifeq "$(OCAMLVERSION)" "OLD"
 	$(MAKE) -C oldocaml depend
 else 

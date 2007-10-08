@@ -59,7 +59,7 @@ external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
 
 let new_socket () = 
   Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 >>=
-  (fun s -> Unix.set_close_on_exec s; 
+  (fun s -> Lwt_unix.set_close_on_exec s; 
     return s)
       
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
@@ -84,19 +84,25 @@ let port_of_sockaddr = function
  *)
 let lingering_close ch =
   Messages.debug "** SHUTDOWN";
-  (try Lwt_unix.shutdown ch Unix.SHUTDOWN_SEND 
-  with e -> Messages.debug "** shutdown failed"; ());
-  ignore (Lwt_unix.sleep 2.0 >>=
-          (fun () -> 
-            decr_connected ();
-            Lwt.return
-              (try
-                (match ch with 
-                | Lwt_unix.Plain fd -> Messages.debug "** CLOSE"; Unix.close fd
-                | Lwt_unix.Encrypted (fd,sock) -> 
-                    Messages.debug "** CLOSE (SSL)"; Unix.close fd)
-              with e -> Messages.debug "** close failed"; ())))
-
+  ignore
+    (Lwt.catch
+       (fun () ->
+          Lwt_ssl.ssl_shutdown ch >>= (fun () ->
+          Lwt_ssl.shutdown ch Unix.SHUTDOWN_SEND;
+          Lwt.return ()))
+       (fun e ->
+          Messages.debug "** shutdown failed";
+          Lwt.return ()) >>= (fun () ->
+     Lwt_unix.sleep 2.0 >>= (fun () ->
+     decr_connected ();
+     Lwt.catch
+       (fun () ->
+          Messages.debug "** CLOSE";
+          Lwt_ssl.close ch;
+          Lwt.return ())
+       (fun e ->
+          Messages.debug "** close failed";
+          Lwt.return ()))))
 
 let get_boundary cont_enc =
   let (_,res) = Netstring_pcre.search_forward
@@ -110,7 +116,7 @@ let find_field field content_disp =
 
 type to_write = 
     No_File of string * Buffer.t 
-  | A_File of (string * string * string * Lwt_unix.descr)
+  | A_File of (string * string * string * Unix.file_descr)
 
 let now = return ()
 
@@ -313,17 +319,22 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                                          Unix.O_NONBLOCK] 0o666 in
                                     (* Messages.debug "file opened"; *)
                                     filenames := fname::!filenames;
-                                    A_File (p_name, fname, store, Lwt_unix.Plain fd)
+                                    A_File (p_name, fname, store, fd)
                                 | None -> raise Ocsigen_upload_forbidden
                           in
-                          let add where s =
+                          let rec add where s =
                             match where with 
                             | No_File (p_name, to_buf) -> 
                                 Buffer.add_string to_buf s;
                                 return ()
-                            | A_File (_,_,_,wh) -> 
-                                Lwt_unix.write wh s 0 (String.length s) >>= 
-                                (fun r -> Lwt_unix.yield ())
+                            | A_File (_,_,_,wh) ->
+                                let len = String.length s in
+                                let r = Unix.write wh s 0 len in
+                                if r < len then
+(*XXXX Inefficient if s is long *)
+                                  add where (String.sub s r (len - r))
+                                else
+                                  Lwt_unix.yield ()
                           in
                           let stop size  = function 
                             | No_File (p_name, to_buf) -> 
@@ -332,15 +343,12 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                                     [(p_name, Buffer.contents to_buf)])
                                   (* à la fin ? *)
                             | A_File (p_name,fname,oname,wh) -> 
-                                (match wh with 
-                                | Lwt_unix.Plain fdscr -> 
-                                    (* Messages.debug "closing file"; *)
-                                    files := 
-                                      !files@[(p_name, {tmp_filename=fname;
-                                                        filesize=size;
-                                                        original_filename=oname})];
-                                    Unix.close fdscr
-                                | _ -> ());
+                                (* Messages.debug "closing file"; *)
+                                files := 
+                                  !files@[(p_name, {tmp_filename=fname;
+                                                    filesize=size;
+                                                    original_filename=oname})];
+                                 Unix.close wh;
                                 return ()
                           in
                           Multipart.scan_multipart_body_from_stream 
@@ -776,7 +784,7 @@ let handle_broken_pipe_exn sockaddr exn =
 (** Thread waiting for events on a the listening port *)
 let listen ssl port wait_end_init =
   
-  let listen_connexion receiver in_ch sockaddr 
+  let listen_connexion receiver (in_ch : Lwt_ssl.socket) sockaddr 
       xhtml_sender empty_sender =
     
     (* (With pipeline) *)
@@ -955,30 +963,22 @@ let listen ssl port wait_end_init =
     let rec wait_connexion_rec () =
 
       let rec do_accept () = 
-        Lwt_unix.accept (Lwt_unix.Plain socket) >>= 
+        Lwt_unix.accept socket >>= 
         (fun (s, sa) -> 
-          disable_nagle (Lwt_unix.fd_of_descr s);
+          disable_nagle (Lwt_unix.unix_file_descr s);
           if ssl
           then begin
-            let s_unix = 
-              match s with
-                Lwt_unix.Plain fd -> fd 
-              | _ -> raise Ssl_Exception (* impossible *) 
-            in
             catch 
-              (fun () -> 
-                ((Lwt_unix.accept
-                    (Lwt_unix.Encrypted 
-                       (s_unix, 
-                        Ssl.embed_socket s_unix !sslctx))) >>=
-                 (fun (ss, ssa) -> Lwt.return (ss, sa))))
+              (fun () ->
+                 Lwt_ssl.ssl_accept s !sslctx >>= (fun socket ->
+                 Lwt.return (socket, sa)))
                   (function
                       Ssl.Accept_error e -> 
                         Messages.debug "~~~ Accept_error"; do_accept ()
                     | e -> warning ("Exn in do_accept : "^
                                     (Printexc.to_string e)); do_accept ())
           end 
-          else Lwt.return (s, sa))
+          else Lwt.return (Lwt_ssl.plain s, sa))
       in
 
       catch
@@ -1034,9 +1034,9 @@ let listen ssl port wait_end_init =
      catch
 
        (fun () ->
-         Unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
-         Unix.bind listening_socket (local_addr port);
-         Unix.listen listening_socket 1;
+         Lwt_unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
+         Lwt_unix.bind listening_socket (local_addr port);
+         Lwt_unix.listen listening_socket 1;
          
          wait_end_init >>=
          (fun () -> wait_connexion port listening_socket))
@@ -1259,11 +1259,11 @@ let _ = try
           Messages.warning "Command pipe created");
 
       let pipe = Lwt_unix.in_channel_of_descr 
-          (Lwt_unix.Plain 
+          (Lwt_unix.of_unix_file_descr
              (Unix.openfile commandpipe 
                 [Unix.O_RDWR; Unix.O_NONBLOCK; Unix.O_APPEND] 0o660)) in
       let rec f () = 
-        Lwt_unix.input_line pipe >>=
+        Lwt_chan.input_line pipe >>=
         (fun _ -> reload (); f ())
       in ignore (f ());
 

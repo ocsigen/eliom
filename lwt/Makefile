@@ -12,7 +12,7 @@ OCAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG)
 OCAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG)
 OCAMLDEP = $(OCAMLFIND) ocamldep
 
-OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_unix.cmo
+OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_chan.cmo lwt_unix.cmo lwt_ssl.cmo
 XOBJECTS = $(OBJECTS:cmo=cmx)
 
 ARCHIVE  = $(NAME).cma
@@ -27,8 +27,6 @@ byte: $(ARCHIVE)
 #	-cp -f $(NAME).cma *.cmi $(SRCLIBREP)
 opt: $(XARCHIVE)
 #	-cp -f $(NAME).cmxa $(NAME).a *.cmi $(SRCLIBREP)
-
-.PHONY: depend
 
 $(ARCHIVE): $(OBJECTS)
 	$(OCAMLC) -a -o $(ARCHIVE) -package "$(REQUIRES)" \

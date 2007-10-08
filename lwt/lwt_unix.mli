@@ -1,17 +1,15 @@
-(** Module [Lwt_unix]: thread-compatible system calls *)
-type descr = Plain of Unix.file_descr
-           | Encrypted of Unix.file_descr * Ssl.socket
-   
+(* Module [Lwt_unix]: thread-compatible system calls *)
+
 val sleep : float -> unit Lwt.t
-      (** [sleep d] is a threads which remain suspended for [d] seconds
+      (* [sleep d] is a threads which remain suspended for [d] seconds
          (letting other threads run) and then terminates. *)
 val yield : unit -> unit Lwt.t
-      (** [yield ()] is a threads which suspends itself (letting other
+      (* [yield ()] is a threads which suspends itself (letting other
          thread run) and then resumes as soon as possible and
          terminates. *)
 
 val run : 'a Lwt.t -> 'a
-      (** [run t] lets the thread [t] run until it terminates.  It
+      (* [run t] lets the thread [t] run until it terminates.  It
          evaluates to the return value of [t], or raise the exception
          associated to [t] if [t] fails.
 
@@ -24,7 +22,7 @@ val run : 'a Lwt.t -> 'a
 
 (****)
 
-(** These functions behave as their [Unix] counterparts, but let other
+(* These functions behaves as their [Unix] counterparts, but let other
    threads run while waiting for the completion of the system call.
 
    PITFALL
@@ -32,66 +30,75 @@ val run : 'a Lwt.t -> 'a
    this library, you must first turn them into non-blocking mode
    using [Unix.set_nonblock]. *)
 
-val read : descr -> string -> int -> int -> int Lwt.t
-val write : descr -> string -> int -> int -> int Lwt.t
-val pipe : unit -> (descr * descr) Lwt.t
+type file_descr
+
+val read : file_descr -> string -> int -> int -> int Lwt.t
+val write : file_descr -> string -> int -> int -> int Lwt.t
+val pipe : unit -> file_descr * file_descr
+val pipe_in : unit -> file_descr * Unix.file_descr
+val pipe_out : unit -> Unix.file_descr * file_descr
 val socket :
-  Unix.socket_domain -> Unix.socket_type -> int -> Unix.file_descr Lwt.t
+  Unix.socket_domain -> Unix.socket_type -> int -> file_descr Lwt.t
 val socketpair :
   Unix.socket_domain -> Unix.socket_type -> int ->
-  (Unix.file_descr * Unix.file_descr) Lwt.t
-val shutdown : descr -> Unix.shutdown_command -> unit
-val accept : descr -> (descr * Unix.sockaddr) Lwt.t
-val connect : descr -> Unix.sockaddr -> unit Lwt.t
+  (file_descr * file_descr) Lwt.t
+val bind : file_descr -> Unix.sockaddr -> unit
+val listen : file_descr -> int -> unit
+val accept : file_descr -> (file_descr * Unix.sockaddr) Lwt.t
+val connect : file_descr -> Unix.sockaddr -> unit Lwt.t
+val shutdown : file_descr -> Unix.shutdown_command -> unit
+val close : file_descr -> unit
+
+val setsockopt : file_descr -> Unix.socket_bool_option -> bool -> unit
+val set_close_on_exec : file_descr -> unit
 
 val wait : unit -> (int * Unix.process_status) Lwt.t
 val waitpid : Unix.wait_flag list -> int -> (int * Unix.process_status) Lwt.t
 
 val system : string -> Unix.process_status Lwt.t
 
-type lwt_in_channel
-type lwt_out_channel
+(****)
 
-val input_value : lwt_in_channel -> 'a Lwt.t
-val input_char : lwt_in_channel -> char Lwt.t
-val input_line : lwt_in_channel -> string Lwt.t
-val input_binary_int : lwt_in_channel -> int Lwt.t
-val input : lwt_in_channel -> string -> int -> int -> int Lwt.t
-val really_input : lwt_in_channel -> string -> int -> int -> unit Lwt.t
+val unix_file_descr : file_descr -> Unix.file_descr
+val of_unix_file_descr : Unix.file_descr -> file_descr
+val out_channel_of_descr : file_descr -> Lwt_chan.out_channel
+val in_channel_of_descr : file_descr -> Lwt_chan.in_channel
 
-val output_binary_int : lwt_out_channel -> int -> unit Lwt.t
-val output_value : lwt_out_channel -> 'a -> unit Lwt.t
-val output_string : lwt_out_channel -> string -> unit Lwt.t
-val output : lwt_out_channel -> string -> int -> int -> unit Lwt.t
-val flush : lwt_out_channel -> unit Lwt.t
+(****)
 
-val open_process_in: string -> lwt_in_channel Lwt.t
-val open_process_out: string -> lwt_out_channel Lwt.t
-val open_process: string -> (lwt_in_channel * lwt_out_channel) Lwt.t
-val open_process_full:
-  string -> string array ->
-  (lwt_in_channel * lwt_out_channel * lwt_in_channel) Lwt.t
-val close_process_in: lwt_in_channel -> Unix.process_status Lwt.t
-val close_process_out: lwt_out_channel -> Unix.process_status Lwt.t
-val close_process:
-  lwt_in_channel * lwt_out_channel -> Unix.process_status Lwt.t
-val close_process_full:
-  lwt_in_channel * lwt_out_channel * lwt_in_channel ->
-  Unix.process_status Lwt.t
+type watchers
 
-val in_channel_of_descr : descr -> lwt_in_channel
-val out_channel_of_descr : descr -> lwt_out_channel
-val in_channel_of_unixdescr : Unix.file_descr -> lwt_in_channel
-val out_channel_of_unixdescr : Unix.file_descr -> lwt_out_channel
- 
-val set_close_on_exec : descr -> unit
+exception Retry
+exception Retry_read
+exception Retry_write
 
-val fd_of_descr : descr -> Unix.file_descr
+val inputs : watchers
+val outputs : watchers
+val register_action : watchers -> file_descr -> (unit -> 'a) -> 'a Lwt.t
 
-(**/**)
-(* monitoring *)
+(****)
+
+(* Monitoring *)
+
 val inputs_length : unit -> int
 val outputs_length : unit -> int
 val wait_children_length : unit -> int
 val get_new_sleeps : unit -> int
 val sleep_queue_size : unit -> int
+
+(*XXX*)
+(*
+val open_process_in: string -> Lwt_chan.in_channel Lwt.t
+val open_process_out: string -> out_channel Lwt.t
+val open_process: string -> (in_channel * out_channel) Lwt.t
+val open_process_full:
+  string -> string array ->
+  (in_channel * out_channel * in_channel) Lwt.t
+val close_process_in: in_channel -> Unix.process_status Lwt.t
+val close_process_out: out_channel -> Unix.process_status Lwt.t
+val close_process:
+  in_channel * out_channel -> Unix.process_status Lwt.t
+val close_process_full:
+  in_channel * out_channel * in_channel ->
+  Unix.process_status Lwt.t
+*)

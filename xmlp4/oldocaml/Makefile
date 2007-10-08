@@ -24,25 +24,26 @@ OBJSOPT = $(FILESR:.ml=.cmx) $(FILES:.ml=.cmx)
 CMA = xhtmlsyntax.cma
 CMXA = xhtmlsyntax.cmxa
 
-byte: ohl-xhtml-byte $(CMA) $(OBJS) essai
+byte: depend ohl-xhtml-byte $(CMA) $(OBJS) essai
 	ln -sf oldocaml/xhtmltypes.cmi oldocaml/xhtmltypes.cmo oldocaml/xmlparser.cmi oldocaml/simplexmlparser.cmi oldocaml/simplexmlparser.cmo oldocaml/xmlparser.cmo oldocaml/xmlsyntax.cmo oldocaml/xmllexer.cmo oldocaml/xhtmlpp.cmo oldocaml/xhtmlpp.cmi oldocaml/xhtmlsyntax.cma ..
+#	cp -p xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlsyntax.cma ..
 
 opt: ohl-xhtml-opt $(CMXA) $(OBJSOPT)
 	ln -sf oldocaml/xhtmltypes.cmi oldocaml/xhtmltypes.cmx oldocaml/xhtmltypes.o oldocaml/xmlparser.cmi oldocaml/simplexmlparser.cmi oldocaml/simplexmlparser.cmx oldocaml/simplexmlparser.o oldocaml/xmlparser.cmx oldocaml/xmlparser.o oldocaml/xmlsyntax.cmx oldocaml/xmlsyntax.o oldocaml/xmllexer.cmx oldocaml/xmllexer.o oldocaml/xhtmlpp.cmx oldocaml/xhtmlpp.o oldocaml/xhtmlpp.cmi oldocaml/xhtmlsyntax.cmxa oldocaml/xhtmlsyntax.a ..
 
 
-.PHONY: depend
+#.PHONY: depend
 .PHONY: ohl-xhtml
 
 ohl-xhtml-byte:
 	-rm -f ../xhtmltypes.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
 	$(MAKE) -C ../ohl-xhtml byte
-	cp ../ohl-xhtml/xhtml.cma ../ohl-xhtml/xHTML.cmi ../ohl-xhtml/xML.cmi ..
+	ln -sf ohl-xhtml/xhtml.cma ohl-xhtml/xHTML.cmi ohl-xhtml/xML.cmi ..
 
 ohl-xhtml-opt:
 	-rm -f ../xhtmltypes.cmi ../basicTypes.cmi ../simplexmlparser.cmi ../xmllexer.cmi
 	$(MAKE) -C ../ohl-xhtml opt
-	cp ../ohl-xhtml/xhtml.cmxa ../ohl-xhtml/xhtml.a ../ohl-xhtml/xHTML.cmi ../ohl-xhtml/xML.cmi ..
+	ln -sf ohl-xhtml/xhtml.cmxa ohl-xhtml/xhtml.a ohl-xhtml/xHTML.cmi ohl-xhtml/xML.cmi ..
 
 essai: $(OBJS)
 	$(MAKE) -C exemple
@@ -85,10 +86,10 @@ clean:
 
 
 # Dependencies
-depend:
-	$(CAMLDEP) $(PP) $(LIB) $(FILES:.ml=.mli) $(FILES) > .depend
+depend: *.mli $(FILES)
+	$(CAMLDEP) $(PP) $(LIB) *.mli $(FILES) > depend
 
 FORCE:
 
-include .depend
+include depend
 

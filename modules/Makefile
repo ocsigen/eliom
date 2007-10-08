@@ -84,7 +84,7 @@ LIB = -thread -package netstring,cryptokit$(PACKCAMLZIP)$(PACKSQLITE) $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
-CAMLDEP = $(OCAMLFIND) ocamldep
+CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
 PP = 
 PP2 = 
 # -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"

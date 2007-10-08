@@ -27,12 +27,10 @@ let minthreads : int ref = ref 0
 let maxthreads : int ref = ref 0
 
 let finishedpipe = 
-  let (in_fd, out_fd) = Unix.pipe () in
-  Unix.set_nonblock in_fd;
-  Unix.set_close_on_exec in_fd;
+  let (in_fd, out_fd) = Lwt_unix.pipe_in () in
+  Lwt_unix.set_close_on_exec in_fd;
   Unix.set_close_on_exec out_fd;
-  (Lwt_unix.in_channel_of_descr (Lwt_unix.Plain in_fd),
-   Unix.out_channel_of_descr out_fd)
+  (Lwt_unix.in_channel_of_descr in_fd, Unix.out_channel_of_descr out_fd)
 
 let pipelock = Mutex.create () 
 
@@ -132,7 +130,7 @@ let dispatch () =
   let rec aux () =
     (catch
        (fun () ->
-         Lwt_unix.input_line (fst finishedpipe) >>=
+         Lwt_chan.input_line (fst finishedpipe) >>=
          (fun v ->
            let n = int_of_string v in
 
@@ -152,7 +150,12 @@ let dispatch () =
              return ());
            return ()))
 
-       (fun e -> Messages.errlog ("Internal error in preemptive.ml (read failed on the pipe) "^(Printexc.to_string e)^" - Please report the bug"); return ())
+       (fun e ->
+let s = match e with Unix.Unix_error(err,fnname,param) -> 
+Unix.error_message err^ " [" ^ fnname ^ "(" ^ param ^ ")]"
+| _ -> Printexc.to_string e
+in
+ Messages.errlog ("Internal error in preemptive.ml (read failed on the pipe) "^ s ^" - Please report the bug"); return ())
     ) >>= (fun () -> aux ())
   in aux ()
 

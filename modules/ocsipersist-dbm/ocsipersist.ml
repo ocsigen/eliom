@@ -73,12 +73,12 @@ let rec try_connect sname =
     (fun () ->
       Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
       (fun socket ->
-        Lwt_unix.connect (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname) >>=
-        (fun () -> return (Lwt_unix.Plain socket))))
+        Lwt_unix.connect socket (Unix.ADDR_UNIX sname) >>=
+        (fun () -> return socket)))
     (fun _ ->
       Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
       let param = [|ocsidbm; directory|] in
-      let fils () = 
+      let child () = 
         Unix.dup2 !(snd Messages.error) Unix.stderr; 
         Unix.close !(snd Messages.error);
         Unix.close !(snd Messages.access);
@@ -94,8 +94,7 @@ let rec try_connect sname =
       then begin (* double fork *)
         if Unix.fork () = 0
         then begin
-          fils ();
-          exit 0
+          child ()
         end
         else exit 0
       end
@@ -105,9 +104,8 @@ let rec try_connect sname =
           (fun () ->
             Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
             (fun socket ->
-              Lwt_unix.connect 
-                (Lwt_unix.Plain socket) (Unix.ADDR_UNIX sname) >>=
-              (fun () -> return (Lwt_unix.Plain socket))))))
+              Lwt_unix.connect socket (Unix.ADDR_UNIX sname) >>=
+              (fun () -> return socket)))))
     
 let rec get_indescr i =
   (catch
@@ -144,9 +142,9 @@ let send =
       inch >>= fun inch ->
       outch >>= fun outch ->
       previous :=
-        (Lwt_unix.output_value outch v >>= fun () -> 
-         Lwt_unix.flush outch >>= fun () -> 
-         Lwt_unix.input_value inch);
+        (Lwt_chan.output_value outch v >>= fun () -> 
+         Lwt_chan.flush outch >>= fun () -> 
+         Lwt_chan.input_value inch);
       !previous)
 
 let db_get (store, name) =

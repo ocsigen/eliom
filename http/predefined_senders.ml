@@ -172,8 +172,7 @@ module File_content =
       let rec read_aux () =
         Lwt_unix.yield () >>=
         (fun () ->
-          Lwt_unix.read (Lwt_unix.Plain fd) buf 0 buffer_size >>=
-          (fun lu ->
+          let lu = Unix.read fd buf 0 buffer_size in (
             if lu = 0 then  
               Lwt.return (empty_stream None)
             else begin 

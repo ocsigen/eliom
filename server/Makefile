@@ -44,38 +44,32 @@ INSTALL = install
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
-CAMLDEP = $(OCAMLFIND) ocamldep
-LIB1 = -thread -package netstring,$(NETSYS)ssl $(LIBDIRS) -I +camlp4
+CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
+LIB = -thread -package netstring,$(NETSYS)ssl,pcre,unix,dynlink,threads,camlp4.gramlib,num $(LIBDIRS)
 PP = 
 PP2 = 
 
-
 # cma and cmo to be linked in the server:
 
-ifeq ($(OCAMLVERSION),OLD)
-  CMAOCAMLP4= gramlib.cma
-  CMXXACAMLP4= gramlib.cmxa
-  LIB=$(LIB1)
-else
-  CMAOCAMLP4= camlp4lib.cma Camlp4OCamlRevisedParser.cmo Camlp4OCamlParser.cmo
-  CMXXACAMLP4= camlp4lib.cmxa Camlp4OCamlRevisedParser.cmx Camlp4OCamlParser.cmx
-  LIB=$(LIB1) -I +camlp4/Camlp4Parsers
-endif
+#ifeq ($(OCAMLVERSION),OLD)
+#  CMAOCAMLP4= gramlib.cma
+#  CMXXACAMLP4= gramlib.cmxa
+#  LIB=$(LIB1)
+#else
+#  CMAOCAMLP4= camlp4lib.cma Camlp4OCamlRevisedParser.cmo Camlp4OCamlParser.cmo
+#  CMXXACAMLP4= camlp4lib.cmxa Camlp4OCamlRevisedParser.cmx Camlp4OCamlParser.cmx
+#  LIB=$(LIB1) -I +camlp4/Camlp4Parsers
+#endif
 
-CMAO = nums.cma dynlink.cma unix.cma \
-       ssl.cma pcre.cma $(NETSYSCMA) netstring.cma \
-       threads.cma \
-       ocsimisc.cmo \
-       $(CMAOCAMLP4) \
-       xmllexer.cmo simplexmlparser.cmo \
-       ocsiconfig.cmo messages.cmo \
-       lwt.cma preemptive.cmo \
-       extensions.cmo parseconfig.cmo \
-       ocsistream.cmo multipart.cmo \
-       http_frame.cmo ocsiheaders.cmo \
-       http_lexer.cmo http_parser.cmo framepp.cmo http_com.cmo \
-       xhtml.cma predefined_senders.cmo error_pages.cmo \
-       server.cmo
+CMAO = ../baselib/ocsimisc.cmo \
+       ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
+       ../baselib/ocsiconfig.cmo ../baselib/messages.cmo \
+       ../lwt/lwt.cma \
+       ../http/ocsistream.cmo ../http/multipart.cmo \
+       ../http/http_frame.cmo ../http/ocsiheaders.cmo \
+       ../http/http_lexer.cmo ../http/http_parser.cmo \
+       ../http/framepp.cmo ../http/http_com.cmo \
+       ../xmlp4/xhtml.cma ../http/predefined_senders.cmo
 
 OBJS = nagle.o $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 
@@ -95,11 +89,11 @@ opt: $(OBJSX) $(NAME).opt
 
 .PHONY: doc depend
 
-$(NAME): nagle.o $(OBJS)
-	$(CAMLC) -o $(NAME) -linkall nagle.o $(CMAO)
+$(NAME): $(CMAO) $(OBJS)
+	$(CAMLC) -o $(NAME) -linkpkg -linkall $(CMAO) $(OBJS)
 
-$(NAME).opt: nagle.o $(OBJSOPT)
-	$(CAMLOPT) -o $(NAME).opt -linkall nagle.o $(CMXXA)
+$(NAME).opt: $(CMXXA) $(OBJSOPT)
+	$(CAMLOPT) -o $(NAME).opt -linkpkg -linkall $(CMXXA) $(OBJSOPT)
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<

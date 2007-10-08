@@ -1,17 +1,17 @@
-(** Module [Lwt]: cooperative light-weight threads. *)
+(* Module [Lwt]: cooperative light-weight threads. *)
 
 type 'a t
-      (** The type of threads returning a result of type ['a]. *)
+      (* The type of threads returning a result of type ['a]. *)
 
 val return : 'a -> 'a t
-      (** [return e] is a thread whose return value is the value of
+      (* [return e] is a thread whose return value is the value of
          the expression [e]. *)
 
 val fail : exn -> 'a t
-      (** [fail e] is a thread that fails with the exception [e]. *)
+      (* [fail e] is a thread that fails with the exception [e]. *)
 
 val bind : 'a t -> ('a -> 'b t) -> 'b t
-      (** [bind t f] is a thread which first waits for the thread [t]
+      (* [bind t f] is a thread which first waits for the thread [t]
          to terminate and then, if the thread succeeds, behaves as the
          application of function [f] to the return value of [t].  If
          the thread [t] fails, [bind t f] also fails, with the same
@@ -26,26 +26,26 @@ val bind : 'a t -> ('a -> 'b t) -> 'b t
          The result of a thread can be bound several time. *)
 
 val (>>=) : 'a t -> ('a -> 'b t) -> 'b t
-      (** [t >>= f] is an alternative notation for [bind t f]. *)
+      (* [t >>= f] is an alternative notation for [bind t f]. *)
 
 val catch : (unit -> 'a t) -> (exn -> 'a t) -> 'a t
-      (** [catch t f] is a thread that behaves as the thread [t ()] if
+      (* [catch t f] is a thread that behaves as the thread [t ()] if
          this thread succeeds.  If the thread [t ()] fails with some
          exception, [catch t f] behaves as the application of [f] to
          this exception. *)
 
 val try_bind : (unit -> 'a t) -> ('a -> 'b t) -> (exn -> 'b t) -> 'b t
-     (** [try_bind t f g] behaves as [bind (t ()) f] if [t] does not fail.
+     (* [try_bind t f g] behaves as [bind (t ()) f] if [t] does not fail.
         Otherwise, it behaves as the application of [g] to the
         exception associated to [t ()]. *)
 
 val choose : 'a t list -> 'a t
-      (** [choose l] behaves as the first thread in [l] to terminate.
+      (* [choose l] behaves as the first thread in [l] to terminate.
          If several threads are already terminated, one is choosen
          at random. *)
 
 val ignore_result : 'a t -> unit
-      (** [ignore_result t] start the thread [t] and ignores its result
+      (* [ignore_result t] start the thread [t] and ignores its result
          value if the thread terminates sucessfully.  However, if the
          thread [t] fails, the exception is raised instead of being
          ignored.
@@ -56,13 +56,13 @@ val ignore_result : 'a t -> unit
          exception will not be raised at this point in the program. *)
 
 val wait : unit -> 'a t
-      (** [wait ()] is a thread which sleeps forever (unless it is
+      (* [wait ()] is a thread which sleeps forever (unless it is
          resumed by one of the functions [wakeup], [wakeup_exn] below).
          This thread does not block the execution of the remainder of
          the program (except of course, if another thread tries to
          wait for its termination). *)
 
-(** Execution order
+(* Execution order
      A thread executes as much as possible.  Switching to another
      thread is always explicit.
 
@@ -73,7 +73,7 @@ val wait : unit -> 'a t
        exception associated to the thread [t] if this thread fails.
        You should use [catch] instead. *)
 
-(**/**)
+(****)
 
 (* The functions below are probably not useful for the casual user.
    They provide the basic primitives on which can be built multi-

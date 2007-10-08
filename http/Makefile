@@ -14,9 +14,9 @@ endif
 
 CAMLC    = $(OCAMLFIND) $(CAMLCNAME2) $(DBG)
 CAMLDOC  = $(OCAMLFIND) ocamldoc
-FLAGS    = -g
+FLAGS    =
 CAMLCOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG)
-CAMLDEP  = $(OCAMLFIND) ocamldep
+CAMLDEP  = $(OCAMLFIND) ocamldep $(LIBDIRS)
 NAME 	 = test_pp
 LIB= -package netstring,ssl $(LIBDIRS) -I +camlp4
 PP =

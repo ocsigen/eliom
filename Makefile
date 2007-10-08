@@ -45,7 +45,7 @@ endif
 
 
 INSTALL = install
-TARGETSBYTE = baselib.byte lwt.byte xmlp4.byte http.byte server.byte modules.byte examples.byte
+TARGETSBYTE = xmlp4.byte baselib.byte lwt.byte http.byte server.byte modules.byte examples.byte
 
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	modules/eliom.cma modules/ocsigenmod.cma \
@@ -122,13 +122,13 @@ lwt.opt:
 xmlp4: xmlp4.byte
 
 xmlp4.byte:
-	touch xmlp4/.depend
-	$(MAKE) -C xmlp4 depend
+#	touch xmlp4/.depend
+#	$(MAKE) -C xmlp4 depend
 	$(MAKE) -C xmlp4 byte
 
 xmlp4.opt:
-	touch xmlp4/.depend
-	$(MAKE) -C xmlp4 depend
+#	touch xmlp4/.depend
+#	$(MAKE) -C xmlp4 depend
 	$(MAKE) -C xmlp4 opt
 
 http: http.byte
@@ -208,8 +208,9 @@ clean:
 	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 
 depend: xmlp4.byte
-	touch lwt/depend
-	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
+#	touch lwt/depend
+#	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
+	@for i in $(REPS) ; do $(MAKE) -C $$i depend ; done
 
 
 .PHONY: partialinstall install doc docinstall installnodoc logrotate
