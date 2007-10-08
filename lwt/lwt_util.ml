@@ -9,6 +9,11 @@ let rec iter f l =
       let rt = iter f r in
       t >>= (fun () -> rt)
 
+let rec iter_serial f l =
+  match l with
+    []     -> return ()
+  | a :: r -> f a >>= (fun () -> iter f r)
+
 let rec map f l =
   match l with
     [] ->
