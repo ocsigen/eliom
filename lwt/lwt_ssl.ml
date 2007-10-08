@@ -21,12 +21,15 @@ let wrap_call f () =
 
 let repeat_call fd f =
   try
+    Lwt_unix.check_descriptor fd;
     Lwt.return (wrap_call f ())
   with
     Lwt_unix.Retry_read ->
       Lwt_unix.register_action Lwt_unix.inputs fd (wrap_call f)
   | Lwt_unix.Retry_write ->
       Lwt_unix.register_action Lwt_unix.outputs fd (wrap_call f)
+  | e ->
+      Lwt.fail e
 
 (****)
 
@@ -72,3 +75,5 @@ let ssl_shutdown (fd, s) =
 let shutdown (fd, _) cmd = Lwt_unix.shutdown fd cmd
 
 let close (fd, _) = Lwt_unix.close fd
+
+let abort (fd, _) = Lwt_unix.abort fd

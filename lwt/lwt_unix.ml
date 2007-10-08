@@ -51,10 +51,29 @@ let rec restart_threads now =
 
 (****)
 
+type state = Open | Closed | Aborted of exn
+
+type file_descr = { fd : Unix.file_descr; mutable state: state }
+
+let mk_ch fd =
+  if not windows_hack then Unix.set_nonblock fd;
+  { fd = fd; state = Open }
+
+let check_descriptor ch =
+  match ch.state with
+    Open ->
+      ()
+  | Aborted e ->
+      raise e
+  | Closed ->
+      raise (Unix.Unix_error (Unix.EBADF, "check_descriptor", ""))
+
+(****)
+
 module FdMap =
   Map.Make (struct type t = Unix.file_descr let compare = compare end)
 
-type watchers = (unit -> unit) list ref FdMap.t ref
+type watchers = (file_descr * (unit -> unit) list ref) FdMap.t ref
 
 let inputs = ref FdMap.empty
 let outputs = ref FdMap.empty
@@ -63,12 +82,12 @@ exception Retry
 exception Retry_write
 exception Retry_read
 
-let find_actions set fd =
+let find_actions set ch =
   try
-    FdMap.find fd !set
+    FdMap.find ch.fd !set
   with Not_found ->
-    let res = ref [] in
-    set := FdMap.add fd res !set;
+    let res = (ch, ref []) in
+    set := FdMap.add ch.fd res !set;
     res
 
 type 'a outcome =
@@ -76,9 +95,10 @@ type 'a outcome =
   | Exn of exn
   | Requeued
 
-let rec wrap_syscall set fd cont action =
+let rec wrap_syscall set ch cont action =
   let res =
     try
+      check_descriptor ch;
       Success (action ())
     with
       Retry
@@ -87,13 +107,13 @@ let rec wrap_syscall set fd cont action =
         (* EINTR because we are catching SIG_CHLD hence the system call
            might be interrupted to handle the signal; this lets us restart
            the system call eventually. *)
-        add_action set fd cont action;
+        add_action set ch cont action;
         Requeued
     | Retry_read ->
-        add_action inputs fd cont action;
+        add_action inputs ch cont action;
         Requeued
     | Retry_write ->
-        add_action outputs fd cont action;
+        add_action outputs ch cont action;
         Requeued
     | e ->
         Exn e
@@ -106,24 +126,28 @@ let rec wrap_syscall set fd cont action =
   | Requeued ->
       ()
 
-and add_action set fd cont action =
-  let actions = find_actions set fd in
-  actions := (fun () -> wrap_syscall set fd cont action) :: !actions
+and add_action set ch cont action =
+  assert (ch.state = Open);
+  let (_, actions) = find_actions set ch in
+  actions := (fun () -> wrap_syscall set ch cont action) :: !actions
 
-let register_action set fd action =
+let register_action set ch action =
   let cont = Lwt.wait () in
-  add_action set fd cont action;
+  add_action set ch cont action;
   cont
 
 let perform_actions set fd =
-  let actions = find_actions set fd in
-  set := FdMap.remove fd !set;
-  List.iter (fun f -> f ()) !actions
+  try
+    let (ch, actions) = FdMap.find fd !set in
+    set := FdMap.remove fd !set;
+    List.iter (fun f -> f ()) !actions
+  with Not_found ->
+    ()
 
 let active_descriptors set = FdMap.fold (fun key _ l -> key :: l) !set []
 
 let blocked_thread_count set =
-  FdMap.fold (fun key l c -> List.length !l + c) !set 0
+  FdMap.fold (fun key (_, l) c -> List.length !l + c) !set 0
 
 (****)
 
@@ -208,91 +232,91 @@ let rec run thread =
 
 (****)
 
-type file_descr = Unix.file_descr
+let set_state ch st =
+  ch.state <- st;
+  perform_actions inputs ch.fd;
+  perform_actions outputs ch.fd
 
-let unix_file_descr fd = fd
-let of_unix_file_descr fd =
-  if not windows_hack then Unix.set_nonblock fd;
-  fd
+let abort ch e =
+  if ch.state = Closed then check_descriptor ch; (* Bad file descriptor *)
+  set_state ch (Aborted e)
 
-let wait_read ch = register_action inputs ch (fun () -> ())
+let unix_file_descr ch = ch.fd
 
-let wait_write ch = register_action outputs ch (fun () -> ())
+let of_unix_file_descr fd = mk_ch fd
 
 let read ch buf pos len =
   try
+    check_descriptor ch;
     if windows_hack then raise (Unix.Unix_error (Unix.EAGAIN, "", ""));
-    Lwt.return (Unix.read ch buf pos len)
+    Lwt.return (Unix.read ch.fd buf pos len)
   with
     Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) ->
-      register_action inputs ch (fun () -> Unix.read ch buf pos len)
+      register_action inputs ch (fun () -> Unix.read ch.fd buf pos len)
   | e ->
       Lwt.fail e
 
 let write ch buf pos len =
   try
-    Lwt.return (Unix.write ch buf pos len)
+    check_descriptor ch;
+    Lwt.return (Unix.write ch.fd buf pos len)
   with
     Unix.Unix_error ((Unix.EAGAIN | Unix.EWOULDBLOCK), _, _) ->
-      register_action outputs ch (fun () -> Unix.write ch buf pos len)
+      register_action outputs ch (fun () -> Unix.write ch.fd buf pos len)
   | e ->
       Lwt.fail e
 
 let pipe () =
-  let (out_fd, in_fd) as fd_pair = Unix.pipe() in
-  if not windows_hack then begin
-    Unix.set_nonblock in_fd;
-    Unix.set_nonblock out_fd
-  end;
-  fd_pair
+  let (out_fd, in_fd) = Unix.pipe() in
+  (mk_ch out_fd, mk_ch in_fd)
 
 let pipe_in () =
-  let (out_fd, in_fd) as fd_pair = Unix.pipe() in
-  if not windows_hack then Unix.set_nonblock out_fd;
-  fd_pair
+  let (out_fd, in_fd) = Unix.pipe() in
+  (mk_ch out_fd, in_fd)
 
 let pipe_out () =
-  let (out_fd, in_fd) as fd_pair = Unix.pipe() in
-  if not windows_hack then Unix.set_nonblock in_fd;
-  fd_pair
+  let (out_fd, in_fd) = Unix.pipe() in
+  (out_fd, mk_ch in_fd)
 
 let socket dom typ proto =
   let s = Unix.socket dom typ proto in
-  if not windows_hack then Unix.set_nonblock s;
-  Lwt.return s
+  Lwt.return (mk_ch s)
 
-let shutdown ch shutdown_command = Unix.shutdown ch shutdown_command
+let shutdown ch shutdown_command =
+  check_descriptor ch;
+  Unix.shutdown ch.fd shutdown_command
 
 let socketpair dom typ proto =
-  let (s1, s2) as spair = Unix.socketpair dom typ proto in
-  if not windows_hack then begin
-    Unix.set_nonblock s1; Unix.set_nonblock s2
-  end;
-  Lwt.return spair
+  let (s1, s2) = Unix.socketpair dom typ proto in
+  Lwt.return (mk_ch s1, mk_ch s2)
 
 let accept ch =
-  register_action inputs ch
-    (fun () ->
-       let (s, _) as v = Unix.accept ch in
-       if not windows_hack then Unix.set_nonblock s;
-       v)
+  try
+    check_descriptor ch;
+    register_action inputs ch
+      (fun () ->
+         let (s, addr) = Unix.accept ch.fd in
+         (mk_ch s, addr))
+  with e ->
+    Lwt.fail e
 
 let check_socket ch =
   register_action outputs ch
     (fun () ->
-       try ignore (Unix.getpeername ch) with
+       try ignore (Unix.getpeername ch.fd) with
          Unix.Unix_error (Unix.ENOTCONN, _, _) ->
            (* Get the socket error *)
-           ignore (Unix.read ch " " 0 1))
+           ignore (Unix.read ch.fd " " 0 1))
 
-let connect s addr =
+let connect ch addr =
   try
-    Unix.connect s addr;
+    check_descriptor ch;
+    Unix.connect ch.fd addr;
     Lwt.return ()
   with
     Unix.Unix_error
       ((Unix.EINPROGRESS | Unix.EWOULDBLOCK | Unix.EAGAIN), _, _) ->
-        check_socket s
+        check_socket ch
   | e ->
       Lwt.fail e
 
@@ -326,18 +350,33 @@ let system cmd =
           end
   | id -> Lwt.bind (waitpid [] id) (fun (pid, status) -> Lwt.return status)
 
-let close = Unix.close
-let setsockopt = Unix.setsockopt
-let bind = Unix.bind
-let listen = Unix.listen
-let set_close_on_exec = Unix.set_close_on_exec
+let close ch =
+  check_descriptor ch;
+  set_state ch Closed;
+  Unix.close ch.fd
+
+let setsockopt ch opt v =
+  check_descriptor ch;
+  Unix.setsockopt ch.fd opt v
+
+let bind ch addr =
+  check_descriptor ch;
+  Unix.bind ch.fd addr
+
+let listen ch cnt =
+  check_descriptor ch;
+  Unix.listen ch.fd cnt
+
+let set_close_on_exec ch =
+  check_descriptor ch;
+  Unix.set_close_on_exec ch.fd
 
 (****)
 
-let out_channel_of_descr fd =
-  Lwt_chan.make_out_channel (fun buf pos len -> write fd buf pos len)
-let in_channel_of_descr fd =
-  Lwt_chan.make_in_channel (fun buf pos len -> read fd buf pos len)
+let out_channel_of_descr ch =
+  Lwt_chan.make_out_channel (fun buf pos len -> write ch buf pos len)
+let in_channel_of_descr ch =
+  Lwt_chan.make_in_channel (fun buf pos len -> read ch buf pos len)
 
 (*
 type popen_process =

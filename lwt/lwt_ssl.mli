@@ -15,3 +15,5 @@ val out_channel_of_descr : socket -> Lwt_chan.out_channel
 val in_channel_of_descr : socket -> Lwt_chan.in_channel
 
 val ssl_shutdown : socket -> unit Lwt.t
+
+val abort : socket -> exn -> unit

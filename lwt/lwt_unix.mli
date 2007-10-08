@@ -54,6 +54,14 @@ val system : string -> Unix.process_status Lwt.t
 
 (****)
 
+(** Aborting a connection *)
+
+val abort : file_descr -> exn -> unit
+      (** Makes all current and further uses of the file descriptor
+          fail with the given exception *)
+
+(****)
+
 (** File descriptor wrappings/unwrappings *)
 
 (* [of_unix_file_descr] has the side-effect of putting the file
@@ -75,6 +83,9 @@ exception Retry_write
 val inputs : watchers
 val outputs : watchers
 val register_action : watchers -> file_descr -> (unit -> 'a) -> 'a Lwt.t
+val check_descriptor : file_descr -> unit
+(* [check_descriptor] must be call before any system call involving
+   the file descriptor and before calling [register_action]. *)
 
 (****)
 
