@@ -351,7 +351,7 @@ let system cmd =
   | id -> Lwt.bind (waitpid [] id) (fun (pid, status) -> Lwt.return status)
 
 let close ch =
-  check_descriptor ch;
+  if ch.state = Closed then check_descriptor ch;
   set_state ch Closed;
   Unix.close ch.fd
 
