@@ -1352,8 +1352,8 @@ let rec map_serial f l =
       To save session data, create a table using 
       $a ~fragment:"VALcreate_table" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.create_table" ]] ["doc";version;"Eliomsessions.html"]$ 
       and save and get data from
-      this table using $a ~fragment:"VALset_in_memory_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.set_in_memory_session_data" ]] ["doc";version;"Eliomsessions.html"]$ and 
-      $a ~fragment:"VALget_in_memory_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_in_memory_session_data" ]] ["doc";version;"Eliomsessions.html"]$. The following example shows
+      this table using $a ~fragment:"VALset_volatile_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.set_volatile_session_data" ]] ["doc";version;"Eliomsessions.html"]$ and 
+      $a ~fragment:"VALget_volatile_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_volatile_session_data" ]] ["doc";version;"Eliomsessions.html"]$. The following example shows
       a site with authentification. The name of the user is asked in the login
       form and saved in a table to be displayed on the page instead of the login
       form while the user is connected. Note that the session is opened
@@ -1401,7 +1401,7 @@ let session_data_example_close =
 (* Handler for the "session_data_example" service:          *)
 
 let session_data_example_handler sp _ _  =
-  let sessdat = Eliomsessions.get_in_memory_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -1435,7 +1435,7 @@ let session_data_example_handler sp _ _  =
 
 let session_data_example_with_post_params_handler sp _ login =
   Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliomsessions.set_in_memory_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
+  Eliomsessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
   return
     (html
        (head (title (pcdata "")) [])
@@ -1451,7 +1451,7 @@ let session_data_example_with_post_params_handler sp _ login =
 (* Handler for the "session_data_example_close" service:    *)
 
 let session_data_example_close_handler sp () () =
-  let sessdat = Eliomsessions.get_in_memory_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
   return
     (html
@@ -1501,7 +1501,7 @@ let close = register_new_service
 let _ = register
     sessdata
     (fun sp _ _ ->
-      let sessdat = Eliomsessions.get_in_memory_session_data table:my_table ~sp () in
+      let sessdat = Eliomsessions.get_volatile_session_data table:my_table ~sp () in
       return
         (html
            (head (title (pcdata "")) [])
@@ -1523,7 +1523,7 @@ let _ = register
     (fun sp _ login ->
       Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
       (fun () ->
-        Eliomsessions.set_in_memory_session_data my_table sp login;
+        Eliomsessions.set_volatile_session_data my_table sp login;
         return
           (html
              (head (title (pcdata "")) [])
@@ -1596,7 +1596,7 @@ let _ = register
          (because sp contains the session table).</p>
       <p>The following example shows how to reimplement the previous one 
       (<code>session_data_example</code>), 
-      without using $a ~fragment:"VALset_in_memory_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.set_in_memory_session_data" ]] ["doc";version;"Eliomsessions.html"]$.
+      without using $a ~fragment:"VALset_volatile_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.set_volatile_session_data" ]] ["doc";version;"Eliomsessions.html"]$.
       Note that this version is less efficient than the other if your site
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
@@ -2228,7 +2228,7 @@ let login_box sp =
 (* Handler for the "action_example" service (main page):    *)
 
 let action_example_handler sp () () = 
-  let sessdat = Eliomsessions.get_in_memory_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -2247,7 +2247,7 @@ let action_example_handler sp () () =
 
 let connect_action_handler sp () login =
   Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
-  Eliomsessions.set_in_memory_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
+  Eliomsessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
   return []
 
 
@@ -2938,7 +2938,7 @@ let login_box sp session_expired action =
 (* Handler for the "action_example2" service (main page):   *)
 
 let action_example2_handler sp () () = 
-  let sessdat = Eliomsessions.get_in_memory_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
@@ -2962,7 +2962,7 @@ let connect_action_handler sp () login =
   Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliomsessions.set_in_memory_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login; 
+    Eliomsessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login; 
     return []
   end
   else return [Bad_user]
@@ -3206,7 +3206,7 @@ let _ = Eliomsessions.set_exn_handler
       <p>By default, Eliom is using three cookies :</p>
       <ul>
         <li>One for session services,</li>
-        <li>one for in memory session data,</li>
+        <li>one for volatile session data,</li>
         <li>one for persistent session data.</li>
       </ul>
       <p>They correspond to three different sessions (opened only if needed).
@@ -3215,9 +3215,9 @@ let _ = Eliomsessions.set_exn_handler
        the three sessions by using
    <span class="Cem">$a ~fragment:"VALclose_persistent_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_persistent_session" ]] ["doc";version;"Eliomsessions.html"]$</span> (persistent session),
    <span class="Cem">$a ~fragment:"VALclose_service_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_service_session" ]] ["doc";version;"Eliomsessions.html"]$</span> (session services), or
-   <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_data_session" ]] ["doc";version;"Eliomsessions.html"]$</span> (in memory data session).
+   <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_data_session" ]] ["doc";version;"Eliomsessions.html"]$</span> (volatile data session).
      There is also
-   <span class="Cem">$a ~fragment:"VALclose_volatile_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_volatile_session" ]] ["doc";version;"Eliomsessions.html"]$</span> for both in memory data session and session services.
+   <span class="Cem">$a ~fragment:"VALclose_volatile_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_volatile_session" ]] ["doc";version;"Eliomsessions.html"]$</span> for both volatile data session and session services.
        The module $a ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions" ]] ["doc";version;"Eliomsessions.html"]$ also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
       </p>
       <p>If you need more sessions (for example several different data sessions)
@@ -3225,7 +3225,7 @@ let _ = Eliomsessions.set_exn_handler
          the optional parameter <code>?session_name</code> to functions like
      <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.close_data_session" ]] ["doc";version;"Eliomsessions.html"]$</span>,
      <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:(static_dir sp) ~sp [code [pcdata "register_for_session" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html"]$</span>, or
-      $a ~fragment:"VALget_in_memory_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_in_memory_session_data" ]] ["doc";version;"Eliomsessions.html"]$.
+      $a ~fragment:"VALget_volatile_session_data" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_volatile_session_data" ]] ["doc";version;"Eliomsessions.html"]$.
        Note that this tutorial has been implemented using this feature,
        even if it has been hidden for the sake of simplicity.
        That's how the different examples of sessions in this tutorial are
@@ -3870,7 +3870,7 @@ let uploadform = register upload
 <span class="Ccomment">(* Construction of pages *)</span>
 
 let home sp () () =
-   match get_in_memory_session_data ~table:my_table ~sp () with
+   match get_volatile_session_data ~table:my_table ~sp () with
    | Data_session_expired
    | No_data ->
      page sp
@@ -3885,7 +3885,7 @@ let home sp () () =
          news_headers_list_box sp user news_page]
 
 let print_news_page sp i () = 
-   match get_in_memory_session_data ~table:my_table ~sp () with
+   match get_volatile_session_data ~table:my_table ~sp () with
    | Data_session_expired
    | No_data ->
       page sp
@@ -3909,7 +3909,7 @@ let print_news_page sp i () =
   print_news_page
 
 <span class="Clet">let</span> launch_session sp user <span class="Cnonalphakeyword">=</span>
-  set_in_memory_session_data my_table sp user
+  set_volatile_session_data my_table sp user
 
 <span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Eliompredefmod.Actions.register
   <span class="Clabel">~action:</span>connect_action

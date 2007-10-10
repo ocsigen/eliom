@@ -67,7 +67,7 @@ let _ =
         with _ -> None
       in
       let nssess = Eliomsessions.number_of_service_sessions sp in
-      let ndsess = Eliomsessions.number_of_in_memory_data_sessions sp in
+      let ndsess = Eliomsessions.number_of_volatile_data_sessions sp in
       let ntables = Eliomsessions.number_of_tables () in
       let ntableselts = Eliomsessions.number_of_table_elements () in
       Eliomsessions.number_of_persistent_data_sessions () >>=

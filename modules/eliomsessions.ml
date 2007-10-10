@@ -78,7 +78,7 @@ let get_service_session_cookie ?session_name ~sp () =
     Some v
   with Not_found -> None
 
-let get_in_memory_data_session_cookie ?session_name ~sp () = 
+let get_volatile_data_session_cookie ?session_name ~sp () = 
   try
     let (v, _, _, _) = find_data_cookie_only ?session_name ~sp () in
     Some v
@@ -95,9 +95,9 @@ let get_persistent_data_session_cookie ?session_name ~sp () =
 let get_default_service_session_timeout = Eliommod.get_default_service_timeout
 let set_default_service_session_timeout = Eliommod.set_default_service_timeout
 
-let get_default_in_memory_data_session_timeout = 
+let get_default_volatile_data_session_timeout = 
   Eliommod.get_default_data_timeout
-let set_default_in_memory_data_session_timeout = 
+let set_default_volatile_data_session_timeout = 
   Eliommod.set_default_data_timeout
 
 let set_default_volatile_session_timeout = 
@@ -111,7 +111,7 @@ let set_global_service_session_timeout
   Eliommod.set_global_service_timeout
     ~session_name ~recompute_expdates site_dir service_cookie_table timeout
   
-let set_global_in_memory_data_session_timeout 
+let set_global_volatile_data_session_timeout 
     ?session_name ?sp ?(recompute_expdates = false) timeout = 
   let ((_, _, data_cookie_table, (remove_session_data, _)), site_dir) = 
     find_hostdir "set_global_data_timeout" sp 
@@ -140,7 +140,7 @@ let get_global_service_session_timeout ?session_name ?sp () =
   let site_dir = find_site_dir "get_global_timeout" sp in
   Eliommod.get_global_service_timeout ?session_name site_dir
 
-let get_global_in_memory_data_session_timeout ?session_name ?sp () = 
+let get_global_volatile_data_session_timeout ?session_name ?sp () = 
   let site_dir = find_site_dir "get_global_timeout" sp in
   Eliommod.get_global_data_timeout ?session_name site_dir
 
@@ -164,7 +164,7 @@ let set_service_session_timeout ?session_name ~sp t =
   let (_, _, tor, _, _) = find_or_create_service_cookie ?session_name ~sp () in
   tor := Some t
 
-let set_in_memory_data_session_timeout ?session_name ~sp t = 
+let set_volatile_data_session_timeout ?session_name ~sp t = 
   let (_, tor, _, _) = find_or_create_data_cookie ?session_name ~sp () in
   tor := Some t
 
@@ -175,7 +175,7 @@ let unset_service_session_timeout ?session_name ~sp () =
     tor := None
   with Not_found -> ()
 
-let unset_in_memory_data_session_timeout ?session_name ~sp () = 
+let unset_volatile_data_session_timeout ?session_name ~sp () = 
   try
     let (_, tor, _, _) = find_data_cookie_only ?session_name ~sp () in
     tor := None
@@ -191,7 +191,7 @@ let get_service_session_timeout ?session_name ~sp () =
   with Not_found -> 
     Eliommod.get_global_service_timeout ?session_name sp.sp_site_dir
 
-let get_in_memory_data_session_timeout ?session_name ~sp () = 
+let get_volatile_data_session_timeout ?session_name ~sp () = 
   try
     let (_, tor, _, _) = find_data_cookie_only ?session_name ~sp () in
     match !tor with
@@ -203,11 +203,11 @@ let get_in_memory_data_session_timeout ?session_name ~sp () =
 
 let set_volatile_session_timeout ?session_name ~sp t = 
   set_service_session_timeout ?session_name ~sp t;
-  set_in_memory_data_session_timeout ?session_name ~sp t
+  set_volatile_data_session_timeout ?session_name ~sp t
 
 let unset_volatile_session_timeout ?session_name ~sp () = 
   unset_service_session_timeout ?session_name ~sp ();
-  unset_in_memory_data_session_timeout ?session_name ~sp ()
+  unset_volatile_data_session_timeout ?session_name ~sp ()
 
 
 
@@ -266,11 +266,11 @@ let get_service_session_cookie_exp_date ?session_name ~sp () =
     | Some t -> t
   with Not_found -> None
 
-let set_in_memory_data_session_cookie_exp_date ?session_name ~sp t = 
+let set_volatile_data_session_cookie_exp_date ?session_name ~sp t = 
   let (_, _, _, exp) = find_or_create_data_cookie ?session_name ~sp () in
   exp := Some t
 
-let get_in_memory_data_session_cookie_exp_date ?session_name ~sp () = 
+let get_volatile_data_session_cookie_exp_date ?session_name ~sp () = 
   try
     let (_, _, _, exp) = find_data_cookie_only ?session_name ~sp () in
     match !exp with
@@ -280,7 +280,7 @@ let get_in_memory_data_session_cookie_exp_date ?session_name ~sp () =
 
 let set_volatile_session_cookies_exp_date ?session_name ~sp t = 
   set_service_session_cookie_exp_date ?session_name ~sp t;
-  set_in_memory_data_session_cookie_exp_date ?session_name ~sp t
+  set_volatile_data_session_cookie_exp_date ?session_name ~sp t
 
 
 let set_persistent_data_session_cookie_exp_date ?session_name ~sp t = 
@@ -373,7 +373,7 @@ let create_table ?sp () =
                          "create_table"))
   | Some sp -> create_table_during_session sp
 
-let get_in_memory_session_data ?session_name ~table ~sp () =
+let get_volatile_session_data ?session_name ~table ~sp () =
   try 
     let (c, _, _, _) = find_data_cookie_only ?session_name ~sp () in
     Data (Cookies.find table c)
@@ -381,11 +381,11 @@ let get_in_memory_session_data ?session_name ~table ~sp () =
   | Not_found -> No_data
   | Eliom_Session_expired -> Data_session_expired
 
-let set_in_memory_session_data ?session_name ~table ~sp value =
+let set_volatile_session_data ?session_name ~table ~sp value =
   let (c, _, _, _) = find_or_create_data_cookie ?session_name ~sp () in
   Cookies.replace table c value
 
-let remove_in_memory_session_data ?session_name ~table ~sp () =
+let remove_volatile_session_data ?session_name ~table ~sp () =
   try 
     let (c, _, _, _) = find_data_cookie_only ?session_name ~sp () in
     Cookies.remove table c
@@ -399,13 +399,13 @@ let close_persistent_data_session = Eliommod.close_persistent_session
 
 let close_volatile_session = Eliommod.close_volatile_session
 let close_service_session = Eliommod.close_service_session
-let close_in_memory_data_session = Eliommod.close_data_session
+let close_volatile_data_session = Eliommod.close_data_session
 
 let close_session ?session_name ~sp () =
   close_volatile_session ?session_name ~sp ();
   close_persistent_data_session ?session_name ~sp ()
 
-let close_all_in_memory_data_sessions ?session_name ?sp () =
+let close_all_volatile_data_sessions ?session_name ?sp () =
   let ((_, _, cookie_table, (remove_session_data, _)), site_dir) = 
     find_hostdir "close_all_data_sessions" sp 
   in
@@ -419,7 +419,7 @@ let close_all_service_sessions ?session_name ?sp () =
   Eliommod.close_all_service_sessions ?session_name cookie_table site_dir
 
 let close_all_volatile_sessions ?session_name ?sp () =
-  close_all_in_memory_data_sessions ?session_name ?sp () >>=
+  close_all_volatile_data_sessions ?session_name ?sp () >>=
   close_all_service_sessions ?session_name ?sp
 
 
@@ -471,20 +471,20 @@ module Session_admin = struct
     let ((_, cookie_table, _, (_, _)), site_dir) = hostdir in
     Eliommod.close_service_session2 cookie_table cookie
 
-  let close_in_memory_data_session ~session:(cookie, _, hostdir) =
+  let close_volatile_data_session ~session:(cookie, _, hostdir) =
     let ((_, _, cookie_table, (remove_session_data, _)), site_dir) = hostdir in
     Eliommod.close_data_session2 !remove_session_data cookie_table cookie
 
   let close_persistent_data_session ~session:(cookie, _) =
     Eliommod.close_persistent_session2 cookie
 
-  let get_in_memory_session_data ~session:(cookie, _, _) ~table =
+  let get_volatile_session_data ~session:(cookie, _, _) ~table =
     Cookies.find table cookie
 
   let get_persistent_session_data ~session:(cookie, _) ~table =
     Ocsipersist.find table cookie >>= fun (_, a) -> return a
 
-  let remove_in_memory_session_data ~session:(cookie, _, _) ~table =
+  let remove_volatile_session_data ~session:(cookie, _, _) ~table =
     Cookies.remove table cookie
 
   let remove_persistent_session_data ~session:(cookie, _) ~table =
@@ -495,7 +495,7 @@ module Session_admin = struct
       Some (snd (Ocsimisc.sep '|' s))
     with _ -> None
     
-  let get_in_memory_data_session_name ~session:(_, (s, _, _), _) =
+  let get_volatile_data_session_name ~session:(_, (s, _, _), _) =
     try
       Some (snd (Ocsimisc.sep '|' s))
     with _ -> None
@@ -508,7 +508,7 @@ module Session_admin = struct
   let set_service_session_timeout ~session:(_, (_, _, _, r), _) t = 
     r := Some t
 
-  let set_in_memory_data_session_timeout ~session:(_, (_, _, r), _) t = 
+  let set_volatile_data_session_timeout ~session:(_, (_, _, r), _) t = 
     r := Some t
 
   let set_persistent_data_session_timeout
@@ -521,7 +521,7 @@ module Session_admin = struct
   let get_service_session_timeout ~session:(_, (_, _, _, r), _) = 
     !r
 
-  let get_in_memory_data_session_timeout ~session:(_, (_, _, r), _) = 
+  let get_volatile_data_session_timeout ~session:(_, (_, _, r), _) = 
     !r
 
   let get_persistent_data_session_timeout ~session:(_, (_, _, r, _)) = 
@@ -531,7 +531,7 @@ module Session_admin = struct
   let unset_service_session_timeout ~session:(_, (_, _, _, r), _) = 
     r := None
 
-  let unset_in_memory_data_session_timeout ~session:(cookie, (_, _, r), _) =
+  let unset_volatile_data_session_timeout ~session:(cookie, (_, _, r), _) =
     r := None
 
   let unset_persistent_data_session_timeout 
@@ -550,7 +550,7 @@ module Session_admin = struct
     iter_service_sessions cookie_table hostdir f
   
   (** Iterator on data sessions *)
-  let iter_in_memory_data_sessions ?sp f = 
+  let iter_volatile_data_sessions ?sp f = 
     let (((_, _, cookie_table, (_, _)), _) as hostdir) = 
       find_hostdir "Admin.iter_data_sessions" sp 
     in
@@ -567,7 +567,7 @@ module Session_admin = struct
   fold_service_sessions cookie_table hostdir f beg
 
   (** Iterator on data sessions *)
-  let fold_in_memory_data_sessions ?sp f beg = 
+  let fold_volatile_data_sessions ?sp f beg = 
     let (((_, _, cookie_table, (_, _)), _) as hostdir) = 
       find_hostdir "Admin.fold_data_sessions" sp 
     in
@@ -585,7 +585,7 @@ end
 
 let number_of_service_sessions = number_of_service_sessions
 
-let number_of_in_memory_data_sessions = number_of_data_sessions
+let number_of_volatile_data_sessions = number_of_data_sessions
 
 let number_of_tables = Eliommod.number_of_tables
 
