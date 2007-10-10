@@ -209,23 +209,14 @@ module File_content =
       
   end
 
-(** this module is a Http_frame with empty content *)
-module Empty_http_frame = FHttp_frame (Empty_content)
-
 (** this module is a sender that send Http_frame with empty content *)
 module Empty_sender = FHttp_sender(Empty_content)
 
 (** this module is a receiver that receives Http_frame with empty content *)
 module Empty_receiver = FHttp_receiver(Empty_content)
 
-(** this module is a Http_frame with Xhtml content *)
-module Xhtml_http_frame = FHttp_frame (Xhtml_content)
-
 (** this module is a sender that send Http_frame with Xhtml content *)
 module Xhtml_sender = FHttp_sender(Xhtml_content)
-
-(** this module is a Http_frame with text content *)
-module Text_http_frame = FHttp_frame (Text_content)
 
 (** this module is a sender that send Http_frame with text content *)
 module Text_sender = FHttp_sender(Text_content)
@@ -234,7 +225,7 @@ module Text_sender = FHttp_sender(Text_content)
 module Text_receiver = FHttp_receiver (Text_content)
 
 (** this module is a Http_frame with stream content *)
-module Stream_http_frame = FHttp_frame (Stream_content)
+module Stream_http_frame = FHttp_frame
 
 (** this module is a receiver that receives Http_frame with stream content
    (any text stream, when we don't know the type) *)
@@ -242,10 +233,6 @@ module Stream_receiver = FHttp_receiver (Stream_content)
 
 (** creates a sender for any stream *)
 module Stream_sender = FHttp_sender(Stream_content)
-
-
-(** this module is a Http_frame with file content
-module File_http_frame = FHttp_frame (File_content) *)
 
 (** this module is a sender that send Http_frame with file content *)
 module File_sender = FHttp_sender(File_content)
@@ -282,7 +269,7 @@ let send_generic
          unit Lwt.t ->
            clientproto:Http_frame.Http_header.proto ->
              ?etag:etag ->
-               mode:Xhtml_sender.H.http_mode ->
+               mode:Http_frame.Http_header.http_mode ->
                  ?proto:Http_frame.Http_header.proto ->
                    ?headers:(string * string) list ->
                      ?contenttype: string ->

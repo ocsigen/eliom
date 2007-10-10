@@ -521,11 +521,22 @@ let create_receiver ~mode fd =
   let buffer = Com_buffer.create buffer_size in
   {r_buffer=buffer; r_fd=fd; r_mode=mode}
 
+module type RECEIVER =
+  sig
+    type t
+    val get_http_frame :
+      unit Lwt.t ->
+      receiver_type ->
+      ?head:bool -> doing_keep_alive:bool -> unit ->
+      t Http_frame.FHttp_frame.http_frame Lwt.t
+  end
+
 module FHttp_receiver =
   functor(C:Http_frame.HTTP_CONTENT) ->
     struct
+      type t = C.t
       
-      module Http = Http_frame.FHttp_frame (C)
+      module Http = Http_frame.FHttp_frame
           
           (** convert a stream into an header *)
       let http_header_of_stream ?(withoutfirstline=false) s =
@@ -749,14 +760,38 @@ let create_sender
    s_headers=headers;
    s_proto=proto}
 
+module type SENDER =
+    sig
+      type t
+      val really_write :
+        ?chunked:bool ->
+        Lwt_chan.out_channel ->
+        (unit -> unit Lwt.t) -> Ocsistream.stream -> unit Lwt.t
+      val send :
+        ?filter:('a option ->
+                 int64 option * Http_frame.etag * Ocsistream.stream *
+                 (unit -> unit Lwt.t) ->
+                 (int64 option * Http_frame.etag * Ocsistream.stream *
+                  (unit -> unit Lwt.t))
+                 Lwt.t) ->
+        unit Lwt.t ->
+        clientproto:Http_frame.Http_header.proto ->
+        ?etag:Http_frame.etag ->
+        mode:Http_frame.Http_header.http_mode ->
+        ?proto:Http_frame.Http_header.proto ->
+        ?headers:(string * string) list ->
+        ?contenttype:'a ->
+        ?content:t -> head:bool -> sender_type -> unit Lwt.t
+    end
 
 module FHttp_sender =
   functor(C:Http_frame.HTTP_CONTENT) ->
   struct
+    type t = C.t
 
     module H = Http_frame.Http_header
     
-    module Http = Http_frame.FHttp_frame (C)
+    module Http = Http_frame.FHttp_frame
 
     module PP = Framepp.Fframepp(C)
 

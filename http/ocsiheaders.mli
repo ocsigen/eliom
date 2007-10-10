@@ -26,38 +26,38 @@ val get_keepalive : Http_frame.Http_header.http_header -> bool
 val parse_cookies : string  -> (string * string) list
 val parse_mime_type : string -> string option * string option
 val get_host_port :
-  Predefined_senders.Stream_http_frame.http_frame ->
+  'a Predefined_senders.Stream_http_frame.http_frame ->
   (string * int option) option
 val get_user_agent :
-  Predefined_senders.Stream_http_frame.http_frame -> string
+  'a Predefined_senders.Stream_http_frame.http_frame -> string
 val get_cookie_string :
-  Predefined_senders.Stream_http_frame.http_frame -> string option
+  'a Predefined_senders.Stream_http_frame.http_frame -> string option
 val get_if_modified_since :
-  Predefined_senders.Stream_http_frame.http_frame -> float option
+  'a Predefined_senders.Stream_http_frame.http_frame -> float option
 val get_if_unmodified_since :
-  Predefined_senders.Stream_http_frame.http_frame -> float option
+  'a Predefined_senders.Stream_http_frame.http_frame -> float option
 val get_if_none_match :
-  Predefined_senders.Stream_http_frame.http_frame -> string list
+  'a Predefined_senders.Stream_http_frame.http_frame -> string list
 val get_if_match :
-  Predefined_senders.Stream_http_frame.http_frame -> string list option
+  'a Predefined_senders.Stream_http_frame.http_frame -> string list option
 val get_content_type :
-  Predefined_senders.Stream_http_frame.http_frame -> string option
+  'a Predefined_senders.Stream_http_frame.http_frame -> string option
 val get_content_length :
-  Predefined_senders.Stream_http_frame.http_frame -> int64 option
+  'a Predefined_senders.Stream_http_frame.http_frame -> int64 option
 val get_referer :
-  Predefined_senders.Stream_http_frame.http_frame -> string option
+  'a Predefined_senders.Stream_http_frame.http_frame -> string option
 val get_referrer :
-  Predefined_senders.Stream_http_frame.http_frame -> string option
+  'a Predefined_senders.Stream_http_frame.http_frame -> string option
 val get_accept :
-  Predefined_senders.Stream_http_frame.http_frame ->
+  'a Predefined_senders.Stream_http_frame.http_frame ->
     ((string option * string option) * float option * (string * string) list)
       list
 val get_accept_charset :
-  Predefined_senders.Stream_http_frame.http_frame ->
+  'a Predefined_senders.Stream_http_frame.http_frame ->
   (string option * float option) list
 val get_accept_encoding :
-  Predefined_senders.Stream_http_frame.http_frame ->
+  'a Predefined_senders.Stream_http_frame.http_frame ->
   (string option * float option) list
 val get_accept_language :
-  Predefined_senders.Stream_http_frame.http_frame ->
+  'a Predefined_senders.Stream_http_frame.http_frame ->
   (string * float option) list

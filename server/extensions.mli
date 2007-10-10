@@ -100,7 +100,7 @@ type request_info =
      ri_accept_language: (string * float option) list Lazy.t; (** Accept-Language HTTP header. The float is the "quality" value, if any. *)
 
 
-     ri_http_frame: Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)
+     ri_http_frame: (unit -> Ocsistream.stream) Predefined_senders.Stream_http_frame.http_frame; (** The full http_frame *)
    }
 
 (** If you force [ri_files] or [ri_post_params], the request is fully read,
