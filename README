@@ -17,6 +17,7 @@ ocamlsqlite3 >= 0.21.0 (needs sqlite)
  In that case, you need dbm with headers (libgdbm-dev package for ex))
 camlzip (libzip-ocaml)
 cryptokit
+A C compiler
 
 If ocaml/ocamlduce/ocamlfind/ocamlnet/ocamlssl... 
 are not installed on your computer, 

@@ -133,7 +133,12 @@ Lwt.return
         $str:(string_of_int (Preemptive.nbthreadsqueued ()))$ computations 
            queued (max 
         $str:(string_of_int (Ocsiconfig.get_max_number_of_threads_queued ()))$).</p>
-     <h2>Sessions</h2>
+     <h2>HTTP connexions</h2>
+     <p>Number of
+        $str:"" (* string_of_int
+                     (Http_com.Timeout.nb_threads_waiting_timeout ()) *)$
+     connexions waiting for timeout: not implemented in that version</p>
+     <h2>Eliom sessions</h2>
      <p>There are $str:string_of_int nssess$ Eliom service sessions opened,
         $str:string_of_int ndsess$ Eliom in memory data sessions opened.<br/>
      There are $str:string_of_int ntables$ Eliom in memory tables created $list:

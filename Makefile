@@ -61,7 +61,7 @@ PLUGINSCMITOINSTALL = modules/ocsipersist.cmi \
 #       modules/eliom.cmi
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
-CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi lwt/lwt_util.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
+CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi lwt/lwt_chan.cmi lwt/lwt_ssl.cmi lwt/lwt_timeout.cmi lwt/lwt_util.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
 
@@ -164,7 +164,7 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc -html lwt/lwt.mli lwt/lwt_unix.mli lwt/lwt_util.mli modules/eliommkforms.mli modules/eliommkreg.mli modules/eliompredefmod.mli modules/eliommod.mli modules/eliomparameters.mli modules/eliomservices.mli modules/eliomsessions.mli server/extensions.mli server/preemptive.mli server/parseconfig.mli xmlp4/oldocaml/xhtmltypes.ml xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/ocsiheaders.mli http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc -html lwt/lwt.mli lwt/lwt_unix.mli lwt/lwt_util.mli lwt/lwt_chan.mli lwt/lwt_ssl.mli lwt/lwt_timeout.mli modules/eliommkforms.mli modules/eliommkreg.mli modules/eliompredefmod.mli modules/eliommod.mli modules/eliomparameters.mli modules/eliomservices.mli modules/eliomsessions.mli server/extensions.mli server/preemptive.mli server/parseconfig.mli xmlp4/oldocaml/xhtmltypes.ml xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/ocsiheaders.mli http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 
 doc/index.html: doc
 
