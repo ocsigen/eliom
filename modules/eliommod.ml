@@ -463,13 +463,14 @@ let make_fullsessname2 site_dir_string = function
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
 
+let rng = Cryptokit.Random.device_rng "/dev/urandom"
+
 let make_new_cookie_value =
     let to_hex = Cryptokit.Hexa.encode () in
     fun () ->
 
   (* Solution by Dario Teixeira: *)
       let random_part =
-        let rng = Cryptokit.Random.device_rng "/dev/urandom" in
         Cryptokit.Random.string rng 20
       and sequential_part = 
         Printf.sprintf "%Lx"  (Int64.bits_of_float (Unix.gettimeofday ()))
