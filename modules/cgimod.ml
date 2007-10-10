@@ -31,9 +31,10 @@ open Predefined_senders
 
 module Regexp = Netstring_pcre
 
+exception CGI_Timeout
 exception CGI_Error of exn
 
-let cgitimeout = ref 30.
+let cgitimeout = ref 30
 
 
 (*****************************************************************************)
@@ -349,11 +350,6 @@ let create_process_cgi pages_tree filename ri post_out cgi_in err_in re =
         err_in
 
 
-let tryclose c =
-  try
-    Lwt_unix.close c
-  with _ -> ()
-
 
 (** This function makes it possible to launch a cgi script *)
 
@@ -369,8 +365,6 @@ let recupere_cgi head pages_tree re filename ri =
     Lwt_unix.set_close_on_exec post_in;
     Lwt_unix.set_close_on_exec err_out;
 
-    let post_in_ch = Lwt_unix.out_channel_of_descr post_in in
-
     (* Launch the CGI script *)
     let pid = create_process_cgi 
         pages_tree 
@@ -382,24 +376,46 @@ let recupere_cgi head pages_tree re filename ri =
         re
     in
     
-    (try
-      Unix.close cgi_in;
-      Unix.close post_out;
-      Unix.close err_in;
-    with _ -> Messages.warning "Error while closing CGI pipes");
+    Unix.close cgi_in;
+    Unix.close post_out;
+    Unix.close err_in;
+
+    (* A timeout for CGI scripts *)
+    (* For now a timeout for the whole process.
+       We may want to reset the timeout each time the CGI writes something.
+     *)
+    let timeout =
+      Lwt_timeout.create
+        !cgitimeout
+        (fun () ->
+          (try
+            Lwt_unix.abort cgi_out CGI_Timeout;
+            Lwt_unix.abort post_in CGI_Timeout;
+            Lwt_unix.abort err_out CGI_Timeout;
+            Unix.kill Sys.sigterm pid;
+          with _ -> 
+            Messages.warning "Error while killing timeouted CGI";
+            ignore
+              (Lwt_unix.sleep 1. >>= fun () ->   (* ??? essai *)
+               Unix.kill Sys.sigkill pid;
+               return ())
+          ))
+    in
 
     (* A thread giving POST data to the CGI script: *)
+    let post_in_ch = Lwt_unix.out_channel_of_descr post_in in
     ignore
-        (catch
-           (fun () ->
-             (match ri.ri_http_frame.Stream_http_frame.content with
-             | None -> Unix.close post_in; return ()
-             | Some content_post -> 
-                 Stream_sender.really_write post_in_ch
-                   return (content_post ()) >>= fun () ->
-                     Lwt_unix.flush post_in_ch))
-           (fun _ -> tryclose post_in; return ()));
-
+      (catch
+         (fun () ->
+           (match ri.ri_http_frame.Stream_http_frame.content with
+           | None -> Lwt_unix.close post_in; return ()
+           | Some content_post -> 
+               Stream_sender.really_write post_in_ch
+                 (fun () -> (* Lwt_unix.close post_in; *) return ())
+                 (content_post ()) >>= fun () ->
+                 Lwt_chan.flush post_in_ch))
+         (fun _ -> Lwt_unix.close post_in; return ()));
+    
     (* A thread listening the error output of the CGI script 
        and writing them in warnings.log *)
     let err_channel = Lwt_unix.in_channel_of_descr err_out in
@@ -407,10 +423,10 @@ let recupere_cgi head pages_tree re filename ri =
       Lwt_chan.input_line err_channel >>= fun err ->
       Messages.warning ("CGI says: "^err);
       get_errors ()
-    in ignore (catch get_errors (fun _ -> tryclose err_out; return ()));
+    in ignore (catch get_errors (fun _ -> Lwt_unix.close err_out; return ()));
     (* This threads terminates, as you can see by doing:
     in ignore (catch get_errors (fun _ -> print_endline "the end"; 
-                                          tryclose err_out; return ()));
+                                          Lwt_unix.close err_out; return ()));
      *)
 
 
@@ -419,51 +435,55 @@ let recupere_cgi head pages_tree re filename ri =
     let receiver = Http_com.create_receiver 
         ~mode:Http_com.Nofirstline (Lwt_ssl.plain cgi_out)
     in
-    Lwt.choose
-      [
-        (* A thread waiting the end of the process.
-           if the process terminates with an error, we raise CGI_Error,
-           otherwise, we wait to give time to the other thread to get the answer
-         *)
-        (Lwt_unix.waitpid [] pid >>= fun (_, status) ->
-         match status with
-         | Unix.WEXITED 0 -> 
-             Lwt_unix.sleep !cgitimeout >>= fun () ->
-             fail (CGI_Error (Failure "Timeout for CGI script"))
-         | Unix.WEXITED i -> 
-             fail (CGI_Error 
-                     (Failure ("CGI exited with code "^(string_of_int i))))
-         | Unix.WSIGNALED i -> 
-             fail (CGI_Error 
-                     (Failure ("CGI killed by signal "^(string_of_int i))))
-         | Unix.WSTOPPED i -> 
-             fail (CGI_Error 
-                     (Failure ("CGI stopped by signal "^(string_of_int i))))
-        );
 
-        (* A thread getting the result of the CGI script *)
-       (catch 
-	  (fun () ->
-	    Stream_receiver.get_http_frame (return ()) receiver ~head 
-              ~doing_keep_alive:false () >>= fun http_frame ->
-            ignore 
-	      (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
-               Unix.close cgi_out;
-	       return ());
-	    return http_frame)
-	  (fun e -> tryclose cgi_out; fail e))
-	 ;
 
-        (* A thread implementing the timeout for CGI scripts *)
-       (Lwt_unix.sleep !cgitimeout >>= fun () ->
-        (try
-          Unix.kill Sys.sigterm pid;
-          Unix.kill Sys.sigkill pid 
-        with _ -> ());
-        fail (CGI_Error (Failure ("CGI Timeout reached: \
-                                   CGI script killed by server")))
-       )
-      ]
+    (* A thread waiting the end of the process.
+       if the process terminates with an error, we raise CGI_Error
+     *)
+    ignore
+      (Lwt_unix.waitpid [] pid >>= fun (_, status) ->
+      Lwt_timeout.remove timeout; 
+      (match status with
+      | Unix.WEXITED 0 -> ()
+      | Unix.WEXITED i -> 
+          let exn =
+            CGI_Error 
+              (Failure ("CGI exited with code "^(string_of_int i)))
+          in
+          Lwt_unix.abort cgi_out exn;
+          Lwt_unix.abort post_in exn;
+          Lwt_unix.abort err_out exn;
+      | Unix.WSIGNALED i -> 
+          let exn =
+            CGI_Error 
+              (Failure ("CGI killed by signal "^(string_of_int i)))
+          in
+          Lwt_unix.abort cgi_out exn;
+          Lwt_unix.abort post_in exn;
+          Lwt_unix.abort err_out exn;
+      | Unix.WSTOPPED i -> 
+          let exn =
+            CGI_Error 
+              (Failure ("CGI stopped by signal "^(string_of_int i)))
+          in
+          Lwt_unix.abort cgi_out exn;
+          Lwt_unix.abort post_in exn;
+          Lwt_unix.abort err_out exn;
+      );
+      return ());
+
+    (* A thread getting the result of the CGI script *)
+    catch 
+      (fun () ->
+	Stream_receiver.get_http_frame ((* now *) return ()) receiver ~head 
+          ~doing_keep_alive:false () >>= fun http_frame ->
+        ignore 
+	  (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
+          Lwt_unix.close cgi_out;
+	  return ());
+	return http_frame)
+      (fun e -> Lwt_unix.close cgi_out; fail e);
+
   with e -> fail e
             
 (** return the header of the frame *)
@@ -485,7 +505,7 @@ let get_content str =
 let rec parse_global_config = function
   | [] -> ()
   | (Element ("cgitimeout", [("value", s)], []))::ll ->
-      cgitimeout := float_of_string s
+      cgitimeout := int_of_string s
   | _ -> raise (Error_in_config_file 
                   ("Unexpected content inside cgimod config"))
 
@@ -596,77 +616,77 @@ let gen pages_tree charset ri =
 	 recupere_cgi 
            (ri.ri_method = Http_header.HEAD) 
            pages_tree re filename ri >>= fun frame ->
-	   get_header frame >>= fun header -> 
-           get_content frame >>= fun content -> 
-           (try 
+         get_header frame >>= fun header -> 
+         get_content frame >>= fun content -> 
+         (try 
+           return
+             (Some
+                (int_of_string
+                   (String.sub 
+                      (Http_frame.Http_header.get_headers_value 
+                         header "Status")
+                      0 3)))
+         with 
+         | Not_found -> return None
+         | _ -> fail (CGI_Error 
+                        (Failure "Bad Status line in header"))
+         ) >>= fun code ->
+         try
+           if code <> None
+           then raise Not_found
+           else 
+             let loc =
+               Http_frame.Http_header.get_headers_value header "Location"
+             in
+             (try
+               ignore (Neturl.extract_url_scheme loc);
+               return
+                 (Ext_found
+                    {res_cookies= [];
+                     res_lastmodified= None;
+                     res_etag= None;
+                     res_code= Some 301; (* Moved permanently *)
+                     res_send_page= 
+                     (fun ?filter ?cookies waiter ~clientproto ?code
+                         ?etag ~keep_alive ?last_modified ?location
+                         ~head ?headers ?charset s ->
+                           Predefined_senders.send_empty
+                             ~content:() 
+                             ?filter
+                             ?cookies
+                             waiter 
+                             ~clientproto
+                             ?code
+                             ?etag ~keep_alive
+                             ?last_modified 
+                             ~location:loc
+                             ~head ?headers ?charset s);
+                     res_headers= [];
+                     res_charset= None;
+                     res_filter=None
+                   })
+             with 
+             | Neturl.Malformed_URL -> 
+                 return (Ext_retry_with ((ri_of_url loc ri), []))
+             )
+         with
+         | Not_found ->
              return
-               (Some
-                  (int_of_string
-                     (String.sub 
-                        (Http_frame.Http_header.get_headers_value 
-                           header "Status")
-                        0 3)))
-           with 
-           | Not_found -> return None
-           | _ -> fail (CGI_Error 
-                          (Failure "Bad Status line in header"))
-           ) >>= fun code ->
-             try
-               if code <> None
-               then raise Not_found
-               else 
-                 let loc =
-                   Http_frame.Http_header.get_headers_value header "Location"
-                 in
-                 (try
-                   ignore (Neturl.extract_url_scheme loc);
-                   return
-                     (Ext_found
-                        {res_cookies= [];
-                         res_lastmodified= None;
-                         res_etag= None;
-                         res_code= Some 301; (* Moved permanently *)
-                         res_send_page= 
-                         (fun ?filter ?cookies waiter ~clientproto ?code
-                             ?etag ~keep_alive ?last_modified ?location
-                             ~head ?headers ?charset s ->
-                               Predefined_senders.send_empty
-                                 ~content:() 
-                                 ?filter
-                                 ?cookies
-                                 waiter 
-                                 ~clientproto
-                                 ?code
-                                 ?etag ~keep_alive
-                                 ?last_modified 
-                                 ~location:loc
-                                 ~head ?headers ?charset s);
-                         res_headers= [];
-                         res_charset= None;
-                         res_filter=None
-                       })
-                 with 
-                 | Neturl.Malformed_URL -> 
-                     return (Ext_retry_with ((ri_of_url loc ri), []))
-                 )
-             with
-             | Not_found ->
-                 return
-	           (Ext_found
-                      {res_cookies= [];
-		       res_send_page= 
-		       Predefined_senders.send_stream_page 
-		         ?contenttype:None
-                         ~content;
-		       res_headers=
-                       List.filter
-                         (fun (h,_) -> (String.lowercase h) <> "status")
-                         header.Http_header.headers;
-		       res_code= code;
-		       res_lastmodified= None;
-		       res_etag= None;
-		       res_charset= None;
-                       res_filter=None})
+	       (Ext_found
+                  {res_cookies= [];
+		   res_send_page= 
+		   Predefined_senders.send_stream_page 
+		     ?contenttype:None
+                     ~content;
+		   res_headers=
+                   List.filter
+                     (fun (h,_) -> (String.lowercase h) <> "status")
+                     header.Http_header.headers;
+		   res_code= code;
+		   res_lastmodified= None;
+		   res_etag= None;
+		   res_charset= None;
+                   res_filter=None})
        end
        else return (Ext_not_found Ocsigen_404))
     (function
