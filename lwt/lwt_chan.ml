@@ -49,7 +49,7 @@ let unsafe_input ic s ofs len =
     end else begin
       Lwt.bind (ic.perform_io ic.buf 0 (String.length ic.buf)) (fun n ->
       let len = min len n in
-      String.blit ic.buf ic.curr s ofs len;
+      String.blit ic.buf 0 s ofs len;
       ic.curr <- len;
       ic.max <- n;
       Lwt.return len)
