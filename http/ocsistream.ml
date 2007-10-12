@@ -22,6 +22,7 @@ open Lwt
 exception Stream_too_small
 exception Stream_error of string
 exception String_too_large
+exception Interrupted_stream
 
 (* The type must be private! *)
 type stream = 

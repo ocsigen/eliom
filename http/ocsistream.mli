@@ -1,6 +1,7 @@
 exception Stream_too_small
 exception Stream_error of string
 exception String_too_large
+exception Interrupted_stream
 
 (** Streams are a means to read data block by block *)
 

@@ -186,13 +186,13 @@ let handle_light_request_errors ~clientproto ~head
                else s2)^"\n---");
       fail (Ocsigen_Request_interrupted e)
   | Unix.Unix_error(Unix.ECONNRESET,_,_)
-  | Ssl.Read_error Ssl.Error_zero_return
-  | Ssl.Read_error Ssl.Error_syscall ->
+  | Ssl.Read_error (Ssl.Error_syscall | Ssl.Error_ssl) ->
       fail Connection_reset_by_peer
   | Ocsigen_Timeout 
   | Http_com.Ocsigen_KeepaliveTimeout
   | Http_com.MustClose
   | Connection_reset_by_peer
+  | End_of_file
   | Ocsigen_Request_interrupted _ -> fail exn
   | _ -> fail (Ocsigen_Request_interrupted exn)
 
@@ -1245,9 +1245,6 @@ let _ = try
       if (Ocsiconfig.get_daemon ())
       then ignore (Unix.setsid ());
           
-      (* A thread that kills old connections every n seconds *)
-      ignore (Http_com.Timeout.start_timeout_killer ());
-      
       Extensions.end_initialisation ();
 
       (* Communication with the server through the pipe *)
