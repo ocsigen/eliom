@@ -22,8 +22,8 @@
 
 (** Module Ocsipersist: persistent data *)
 
-open Sqlite3
 open Lwt
+open Sqlite3
 open Printf
 
 (** Data are divided into stores. 

@@ -2,8 +2,7 @@ exception Ocsigen_HTTP_parsing_error of string * string
 exception Ocsigen_header_too_long
 exception Ocsigen_Timeout
 exception Ocsigen_KeepaliveTimeout
-exception Connection_reset_by_peer
-exception MustClose
+exception Lost_connection
 exception Ocsigen_sending_error of exn
 
 type s_http_mode = Answer | Query | Nofirstline
@@ -26,6 +25,7 @@ val create_sender :
   mode:s_http_mode ->
   ?headers:(string * string) list ->
   ?proto:Http_frame.Http_header.proto -> Lwt_ssl.socket -> sender_type
+type res = Must_close | Can_continue
 module type SENDER =
   sig
     type t
@@ -35,11 +35,7 @@ module type SENDER =
       (unit -> unit Lwt.t) -> Ocsistream.stream -> unit Lwt.t
     val send :
       ?filter:('a option ->
-               int64 option * Http_frame.etag * Ocsistream.stream *
-               (unit -> unit Lwt.t) ->
-               (int64 option * Http_frame.etag * Ocsistream.stream *
-                (unit -> unit Lwt.t))
-               Lwt.t) ->
+               Http_frame.full_stream -> Http_frame.full_stream Lwt.t) ->
       unit Lwt.t ->
       clientproto:Http_frame.Http_header.proto ->
       ?etag:Http_frame.etag ->
@@ -47,7 +43,7 @@ module type SENDER =
       ?proto:Http_frame.Http_header.proto ->
       ?headers:(string * string) list ->
       ?contenttype:'a ->
-      ?content:t -> head:bool -> sender_type -> unit Lwt.t
+      ?content:t -> head:bool -> sender_type -> res Lwt.t
   end
 module FHttp_sender :
   functor (C : Http_frame.HTTP_CONTENT) -> SENDER with type t = C.t

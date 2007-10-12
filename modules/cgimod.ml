@@ -693,7 +693,7 @@ let gen pages_tree charset ri =
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url 
-      | Connection_reset_by_peer as e -> fail e
+      | Lost_connection as e -> fail e
       | Ocsigen_404 ->return (Ext_not_found Ocsigen_404)
       | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_not_found Ocsigen_404)
       | e -> fail e)

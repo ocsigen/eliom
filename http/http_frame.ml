@@ -28,6 +28,16 @@ open Ocsistream
 
 type etag = string
 
+type full_stream =
+  int64 option * etag * Ocsistream.stream * (unit -> unit Lwt.t)
+(** The type of streams to be send by the server.
+   The [int64 option] is the content-length.
+   [None] means Transfer-encoding: chunked
+   The last function is the termination function
+   (for ex closing a file if needed),
+   that must be called when the stream is not needed any more.
+   Your new termination function should probably call the former one. *)
+
 module type HTTP_CONTENT =
   sig
     (** abstract type of the content*)
@@ -38,13 +48,7 @@ module type HTTP_CONTENT =
 
     (** convert a content type into a thread returning its
        size, etag, stream, closing function *)
-    val stream_of_content : t -> 
-      (int64 option * etag * stream * (unit -> unit Lwt.t)) Lwt.t
-        (* The int64 option is the content-length. 
-           None means Transfer-encoding: chunked *)
-        (* The last function is the termination function
-           (for ex closing the file), 
-           that will be called after the stream has been fully read. *)
+    val stream_of_content : t -> full_stream Lwt.t
 
     (** compute etag for content *)
     val get_etag : t -> etag

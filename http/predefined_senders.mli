@@ -22,40 +22,28 @@
 type mycookieslist = 
   (string list option * float option * (string * string) list) list
 
-type full_stream =
-    (int64 option * Http_frame.etag * Ocsistream.stream * (unit -> unit Lwt.t))
-(** The type of streams to be send by the server.
-   The [int64 option] is the content-length. 
-   [None] means Transfer-encoding: chunked
-   The last function is the termination function
-   (for ex closing a file if needed), 
-   that will be called after the stream has been fully read. 
-   Your new termination function should probably call the former one. *)
-
 type stream_filter_type =
-    string option (* content-type *) -> full_stream -> full_stream Lwt.t
+    string option (* content-type *) ->
+    Http_frame.full_stream -> Http_frame.full_stream Lwt.t
 (** A function to transform a stream into another one. *)
-
-
 
 type send_page_type =
     (* no content
        no content-type *)
     ?filter:stream_filter_type ->
-        ?cookies:mycookieslist ->
-          unit Lwt.t ->
-            clientproto:Http_frame.Http_header.proto ->
-              ?code:int ->
-                ?etag:Http_frame.etag ->
-                  keep_alive:bool ->
-                    ?last_modified:float ->
-                      ?location:string -> 
-                        head:bool -> 
-                          ?headers:(string * string) list ->
-                            ?charset:string -> 
-                              Http_com.sender_type -> 
-                                unit Lwt.t
-
+    ?cookies:mycookieslist ->
+    unit Lwt.t ->
+    clientproto:Http_frame.Http_header.proto ->
+    ?code:int ->
+    ?etag:Http_frame.etag ->
+    keep_alive:bool ->
+    ?last_modified:float ->
+    ?location:string ->
+    head:bool ->
+    ?headers:(string * string) list ->
+    ?charset:string ->
+    Http_com.sender_type ->
+    Http_com.res Lwt.t
 
 (** Sending xhtml *)
 val send_xhtml_page : content: [ `Html ] XHTML.M.elt -> send_page_type
@@ -126,7 +114,7 @@ val send_generic :
                     ?content:'a ->
                       head:bool -> 
                         Http_com.sender_type -> 
-                          unit Lwt.t) ->
+                          Http_com.res Lwt.t) ->
   ?contenttype:string ->
   content:'a ->
   ?filter:stream_filter_type ->
@@ -142,7 +130,7 @@ val send_generic :
   ?headers:(string * string) list ->
   ?charset:string ->
   Http_com.sender_type ->
-  unit Lwt.t
+  Http_com.res Lwt.t
 
 val mimeht : (string, string) Hashtbl.t
 val parse_mime_types : string -> unit

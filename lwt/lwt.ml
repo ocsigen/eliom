@@ -213,3 +213,8 @@ let choose l =
     (* XXX We may leak memory here, if we repeatedly select the same event *)
     List.iter (fun x -> try_connect res x) l;
     res
+
+let finalize f g =
+  try_bind f
+    (fun x -> g () >>= fun () -> return x)
+    (fun e -> g () >>= fun () -> fail e)

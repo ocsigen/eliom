@@ -185,15 +185,18 @@ let handle_light_request_errors ~clientproto ~head
                then ((String.sub s2 0 1999)^"...<truncated>")
                else s2)^"\n---");
       fail (Ocsigen_Request_interrupted e)
+  (* Receiver socket errors *)
   | Unix.Unix_error(Unix.ECONNRESET,_,_)
-  | Ssl.Read_error (Ssl.Error_syscall | Ssl.Error_ssl) ->
-      fail Connection_reset_by_peer
-  | Ocsigen_Timeout 
-  | Http_com.Ocsigen_KeepaliveTimeout
-  | Http_com.MustClose
-  | Connection_reset_by_peer
-  | End_of_file
-  | Ocsigen_Request_interrupted _ -> fail exn
+  | Ssl.Read_error (Ssl.Error_syscall | Ssl.Error_ssl)
+  | End_of_file ->
+      fail Lost_connection
+  | Ocsigen_Request_interrupted _
+  (* Sender socket errors *)
+  | Lost_connection
+  (* Timeouts *)
+  | Ocsigen_Timeout
+  | Http_com.Ocsigen_KeepaliveTimeout ->
+      fail exn
   | _ -> fail (Ocsigen_Request_interrupted exn)
 
 
@@ -641,7 +644,6 @@ let service
                     ~clientproto ~head
                     ~keep_alive:ka
                     ~code:500 xhtml_sender (* Internal error *)
-              | Http_com.MustClose as e -> fail e
               | Ocsigen_upload_forbidden ->
                   Messages.debug "-> Sending 403 Forbidden";
                   send_error wait_end_answer
@@ -678,7 +680,9 @@ let service
             (* All generation exceptions have been handled here *)
         ) >>=
       
-      (fun () -> return (remove_files !filenames)))
+      (fun res ->
+         remove_files !filenames;
+         Lwt.return res))
       
       (fun e -> 
         remove_files !filenames;
@@ -765,7 +769,7 @@ let handle_broken_pipe_exn sockaddr exn =
   let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
   (* We don't close here because it is already done *)
   match exn with
-  | Connection_reset_by_peer -> 
+  | Lost_connection -> 
       Messages.debug "** Connection closed by client";
       return ()
   | Ssl.Write_error(Ssl.Error_ssl) -> 
@@ -807,12 +811,6 @@ let listen ssl port wait_end_init =
           warning ("While talking to "^ip^": Timeout");
           return ()
       | Http_com.Ocsigen_KeepaliveTimeout -> 
-          return ()
-      | Http_com.MustClose -> 
-          (* not really an error but we cannot do keepalive *)
-          (* usually when there was no content-length in our answer
-             and we don't do chunked encoding (for HTTP/1.0)
-           *)
           return ()
       | Ocsigen_Request_interrupted e -> 
           (* We decide to interrupt the request 
@@ -861,23 +859,28 @@ let listen ssl port wait_end_init =
                  (fun () ->
                    service 
                      wait_end_answer http_frame meth url head port sockaddr 
-                     xhtml_sender empty_sender in_ch () >>=
-                   (fun () ->
-                     
-                     (* If the request has not been fully read by
-                        the extensions,
-                        we force it to be read here, to be able to take
-                        another one on the same connexion: *)
-                     (match http_frame.Stream_http_frame.content with
-                     | Some f -> 
-                         (try
-                           Ocsistream.consume (f ())
-                         with _ -> return ())
-                     | _ -> return ()) >>=
-                     
-                     (fun () ->
-                       wakeup wait_end_answer2 ();
-                       return ())))
+                     xhtml_sender empty_sender in_ch () >>= fun res ->
+                     match res with
+                       Http_com.Must_close ->
+                         lingering_close in_ch;
+                         Lwt.return ()
+                     | Http_com.Can_continue ->
+                         (* If the request has not been fully read by
+                            the extensions,
+                            we force it to be read here, to be able to take
+                            another one on the same connexion: *)
+                         (* XXX This is kind of broken at the moment... *)
+                         begin match http_frame.Stream_http_frame.content with
+                         | Some f ->
+                             (try
+                               Ocsistream.consume (f ())
+                             with _ -> return ())
+                         | _ -> return ()
+                         end >>=
+
+                         (fun () ->
+                           wakeup wait_end_answer2 ();
+                           return ()))
                  handle_severe_errors (* will close the connexion *) );
         
             catch
@@ -900,7 +903,7 @@ let listen ssl port wait_end_init =
             (catch
                (fun () ->
                  service wait_end_answer http_frame meth url head port sockaddr
-                   xhtml_sender empty_sender in_ch () >>= fun () -> 
+                   xhtml_sender empty_sender in_ch () >>= fun res ->
                      lingering_close in_ch; return ())
                handle_severe_errors)
               

@@ -20,11 +20,13 @@
 
 (*
 TODO
-- timeouts
+- headers
+- server.ml
+- put back timeouts
 - check the code against the HTTP spec
 - improved streams
 - what if a stream is not consumed after a request has been handled
-  (currently, we consume it again, which looks wrong)
+  (currently, we consume it again, which does not always work)
 - how are failures dealt with at a higher level (server.ml)?
 - defunctorize ?
 - when can we start processing the next request?
@@ -46,8 +48,7 @@ exception Ocsigen_Bad_chunked_data
 exception Ocsigen_KeepaliveTimeout
 exception Ocsigen_Timeout
 
-exception MustClose
-exception Connection_reset_by_peer
+exception Lost_connection
 exception Ocsigen_sending_error of exn
 
 
@@ -161,7 +162,6 @@ struct
   let rec wait_pattern find_pattern receiver cur_pos =
     let read_pos = receiver.read_pos in
     let avail = receiver.write_pos - (cur_pos + read_pos) in
-Format.eprintf "<%s>@." (String.sub receiver.buf cur_pos avail);
     match find_pattern receiver.buf (cur_pos + read_pos) avail with
       Found end_pos ->
         Lwt.return (end_pos - read_pos)
@@ -450,6 +450,8 @@ let create_sender
    s_headers=headers;
    s_proto=proto}
 
+type res = Must_close | Can_continue
+
 module type SENDER =
     sig
       type t
@@ -471,8 +473,55 @@ module type SENDER =
         ?proto:Http_frame.Http_header.proto ->
         ?headers:(string * string) list ->
         ?contenttype:'a ->
-        ?content:t -> head:bool -> sender_type -> unit Lwt.t
+        ?content:t -> head:bool -> sender_type -> res Lwt.t
     end
+
+let catch_write_errors f =
+  Lwt.catch f
+(*XXX Is it the right place to handle sender errors? Receiver errors
+  are handled in server.ml *)
+    (fun e ->
+       match e with
+         Unix.Unix_error (Unix.EPIPE, _, _)
+       | Unix.Unix_error (Unix.ECONNRESET, _, _)
+       | Ssl.Write_error
+         (Ssl.Error_zero_return | Ssl.Error_syscall | Ssl.Error_ssl)  ->
+           Lwt.fail Lost_connection
+       | _ ->
+           Lwt.fail e)
+
+(* XXX Maybe we should merge small strings *)
+let rec write_stream_chunked out_ch stream =
+  match stream with
+    Finished _ ->
+      Lwt_chan.output_string out_ch "0\r\n\r\n"
+  | Cont (s, _, next) ->
+      let l = String.length s in
+      begin if l = 0 then
+        (* It is incorrect to send an empty chunk *)
+        Lwt.return ()
+      else begin
+        Lwt_chan.output_string out_ch (Format.sprintf "%x\r\n" l) >>= fun () ->
+        Lwt_chan.output_string out_ch s >>= fun () ->
+        Lwt_chan.output_string out_ch "\r\n"
+      end end >>= fun () ->
+      Lwt.catch next Lwt.fail >>= fun s ->
+      write_stream_chunked out_ch s
+
+let rec write_stream_raw out_ch stream =
+  match stream with
+    Finished _ ->
+      Lwt.return ()
+  | Cont (s, _, next) ->
+      Lwt_chan.output_string out_ch s >>= fun () ->
+      Lwt.catch next Lwt.fail >>= fun s ->
+      write_stream_raw out_ch s
+
+let write_stream ?(chunked=false) out_ch stream =
+  if chunked then
+    write_stream_chunked out_ch stream
+  else
+    write_stream_raw out_ch stream
 
 module FHttp_sender =
   functor(C:Http_frame.HTTP_CONTENT) ->
@@ -480,69 +529,17 @@ module FHttp_sender =
     type t = C.t
 
     module H = Http_frame.Http_header
-    
+
     module Http = Http_frame.FHttp_frame
 
     module PP = Framepp.Fframepp(C)
 
-
-(*    (* fonction de dump pour le débogage *)
-    let dump str file =
-      let out_chan = open_out file in
-      output_string out_chan str;
-      close_out out_chan 
-*)
     (* fonction d'écriture sur le réseau *)
-    let really_write ?(chunked=false) out_ch close_fun stream = 
-      let cr = "\r\n" in
-      let rec aux beg = function
-          | Finished _ -> 
-              (if chunked
-              then 
-                Lwt_chan.output_string out_ch 
-                  (Printf.sprintf"%s0\r\n\r\n" beg)
-              else Lwt.return ()) >>= fun () ->
-                Messages.debug "write finished (closing stream)"; 
-                (Lwt.catch
-                   close_fun
-                   (fun _ -> 
-                     Messages.debug
-                       "Error while closing stream (at end of stream)";
-                     Lwt.return ()))
-          | Cont (s, l, next) ->
-              if l>0
-              then
-                Lwt_unix.yield () >>= fun () ->
-                (if chunked
-                then
-                  Lwt_chan.output_string out_ch 
-                    (Printf.sprintf"%s%x\r\n" beg l)
-                else Lwt.return ()) >>= fun () ->
-                Lwt_chan.output out_ch s 0 l >>= fun () ->
-                next () >>= fun a ->
-                aux cr a
-              else next () >>= aux cr
-      in Lwt.catch
-        (fun () -> aux "" stream)
-        (function
-            Unix.Unix_error (Unix.EPIPE, _, _)
-          | Unix.Unix_error (Unix.ECONNRESET, _, _) 
-          | Ssl.Write_error _  ->
-              Lwt.fail Connection_reset_by_peer
-          | e -> Lwt.fail e)
-
-
-(*    (** changes the protocol *)
-    let change_protocol proto sender =
-      sender.s_proto <- proto
-
-    (** change the header list *)
-    let change_headers headers sender =
-      sender.s_headers <- headers
-
-    (** change the mode *)
-    let change_mode mode sender =
-      sender.s_mode <- mode *)
+    (* XXX KILL *)
+    let really_write ?(chunked=false) out_ch close_fun stream =
+      catch_write_errors (fun () ->
+        write_stream ~chunked out_ch stream >>= fun () ->
+        close_fun ())
 
     (* case non sensitive equality *)
     let non_case_equality s1 s2 =
@@ -578,18 +575,6 @@ module FHttp_sender =
           |(n,v)::tl -> rem_header_aux ((n,v)::res) tl
       in
       sender.s_headers <- rem_header_aux [] sender.s_headers
-
-    (** gets the protocol*)
-    let get_protocol sender =
-      sender.s_proto
-
-    (** gets the mode *)
-    let get_mode sender =
-      sender.s_mode
-
-    (** gets the headers *)
-    let get_headers sender =
-      sender.s_headers
 
     (**gets the value of an header name, raise Not_found if it doesn't exists*)
     let get_header_value sender name =
@@ -633,11 +618,11 @@ module FHttp_sender =
 
 
 
-    (** sends the http_frame mode and proto can be overright, the headers are
-     * fusioned with those of the sender, the priority is given to the newly
-     * defined header when there is a conflict
-     * the content-length tag is automaticaly calculated *)
-    let send 
+    (** Sends the HTTP frame.  The mode and proto can be overwritten.
+        The headers are merged with those of the sender, the priority
+        being given to the newly defined header in case of conflict.
+        The content-length tag is automaticaly calculated *)
+    let send
         ?(filter = fun ct a -> Lwt.return a)
         waiter
         ~clientproto
@@ -654,87 +639,65 @@ module FHttp_sender =
          because the previous one may not be sent.
          If we don't want to wait, use waiter = return ()
        *)
-
+(*XXX Do we need the [waiter] here? *)
+      waiter >>= fun () ->
       let out_ch = Lwt_ssl.out_channel_of_descr sender.s_fd in
-      waiter >>=
-      (fun () ->
-        let prot = match proto with None -> sender.s_proto | Some p -> p in
-        match content with
-        | None -> Lwt.return ()
-        | Some c -> 
-            let empty_content =
-              match mode with
-              | H.Nofirstline -> false
-              | H.Answer code -> code_with_empty_content code
-              | H.Query _ -> false
-            in
-            (C.stream_of_content c >>=
-             filter contenttype >>=
-             (* Here the stream is opened *)
-             (fun (lon, etag2, flux, close_fun) ->
-               Lwt.catch
-                 (fun () ->
-                   let chunked = 
-                     (lon = None && 
-                      clientproto <> 
-                      Http_frame.Http_header.HTTP10 &&
-                      not empty_content
-                     ) in
-                   (* if HTTP/1.0 we do not use chunked encoding
-                      even if the client tells that it supports it,
-                      because it may be an HTTP/1.0 proxy that
-                      transmits the header by mistake.
-                      In that case, we close the connection after the
-                      answer.
-                    *)
-                   Lwt.return (hds_fusion chunked lon
-                                 (("ETag", ("\""^(match etag with 
-                                 | None -> etag2
-                                 | Some etag -> etag)^"\""))::sender.s_headers)
-                                 (match headers with 
-                                 | Some h -> h
-                                 | None -> []) ) >>=
-                   (fun hds -> 
-                     let hd = {
-                       H.mode = mode;
-                       H.proto = prot;
-                       H.headers = hds;
-                     } in
-                     Messages.debug "writing header";
-                     really_write out_ch Lwt.return
-                       (new_stream (Framepp.string_of_header hd)
-                          (fun () -> 
-                            Lwt.return (empty_stream None)))) >>=
-                   (fun _ -> 
-                     let close_fun2 () =
-                       Lwt_chan.flush out_ch >>= fun () ->
-                       close_fun ()
-                     in
-                     if empty_content || head
-                     then close_fun2 ()
-                     else begin
-                       Messages.debug "writing body"; 
-                       really_write
-                         ~chunked:chunked 
-                         out_ch 
-                         close_fun2
-                         flux >>= fun () ->
-                       if (lon=None && 
-                           clientproto = Http_frame.Http_header.HTTP10)
-                       then Lwt.fail MustClose
-                       else Lwt.return ()
-                     end
-                   )
-                 )
-                 (function
-                   | MustClose -> Lwt.fail MustClose
-                   | e -> 
-                       (Lwt.catch
-                          close_fun 
-                          (fun e -> 
-                            Messages.debug
-                              ("Error while closing stream (error during stream) : "^
-                               (Printexc.to_string e));
-                            Lwt.return ())) >>= fun () ->
-                       Lwt.fail (Ocsigen_sending_error e)))))
+      match content with
+        None ->
+          Lwt.return Can_continue
+      | Some c ->
+          let empty_content =
+            match mode with
+              H.Nofirstline -> false
+            | H.Answer code -> code_with_empty_content code
+            | H.Query _     -> false
+          in
+          C.stream_of_content c >>=
+          (* XXX We assume that filter finalize c if it fails *)
+          filter contenttype >>= fun (slen, etag2, flux, finalizer) ->
+          Lwt.finalize
+            (fun () ->
+               let chunked =
+                 slen = None && clientproto <> Http_frame.Http_header.HTTP10 &&
+                 not empty_content
+               in
+               (* if HTTP/1.0 we do not use chunked encoding
+                  even if the client tells that it supports it,
+                  because it may be an HTTP/1.0 proxy that
+                  transmits the header by mistake.
+                  In that case, we close the connection after the
+                  answer.
+               *)
+               let with_default v default =
+                 match v with None -> default | Some v -> v
+               in
+               let hds =
+                 hds_fusion chunked slen
+                   (("ETag",
+                     Format.sprintf "\"%s\"" (with_default etag etag2))
+                     :: sender.s_headers)
+                   (with_default headers [])
+               in
+               let hd =
+                 { H.mode = mode;
+                   H.proto = with_default proto sender.s_proto;
+                   H.headers = hds }
+               in
+               Messages.debug "writing header";
+               catch_write_errors (fun () ->
+                 Lwt_chan.output_string out_ch (Framepp.string_of_header hd)
+                     >>= fun () ->
+                 if empty_content || head then begin
+                   Lwt_chan.flush out_ch >>= fun () ->
+                   Lwt.return Can_continue
+                 end else begin
+                   Messages.debug "writing body";
+                   write_stream ~chunked out_ch flux >>= fun () ->
+                   Lwt_chan.flush out_ch >>= fun () ->
+                   if slen = None && not chunked then
+                     Lwt.return Must_close
+                   else
+                     Lwt.return Can_continue
+                 end))
+            finalizer
   end

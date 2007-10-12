@@ -97,3 +97,5 @@ val apply : ('a -> 'b t) -> 'a -> 'b t
          an exception is raised during this application, it is caught
          and the resulting thread fails with this exception. *)
 (* Q: Could be called 'glue' or 'trap' or something? *)
+
+val finalize : (unit -> 'a t) -> (unit -> unit t) -> 'a t

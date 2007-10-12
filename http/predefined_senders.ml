@@ -276,7 +276,7 @@ let send_generic
                        ?content:'a ->
                          head:bool -> 
                            Http_com.sender_type -> 
-                             unit Lwt.t)
+                             res Lwt.t)
     ?contenttype
     ~content
     ?filter
@@ -363,23 +363,23 @@ let send_generic
     
 
 type send_page_type =
-    (* no content *)
-    (* no contenttype *)
-      ?filter:stream_filter_type ->
-        ?cookies:mycookieslist ->
-          unit Lwt.t ->
-            clientproto:Http_frame.Http_header.proto ->
-              ?code:int ->
-                ?etag:Http_frame.etag ->
-                  keep_alive:bool ->
-                    ?last_modified:float ->
-                      ?location:string -> 
-                        head:bool -> 
-                          ?headers:(string * string) list ->
-                            ?charset:string -> 
-                              Http_com.sender_type -> 
-                                unit Lwt.t
-  
+    (* no content
+       no content-type *)
+    ?filter:stream_filter_type ->
+    ?cookies:mycookieslist ->
+    unit Lwt.t ->
+    clientproto:Http_frame.Http_header.proto ->
+    ?code:int ->
+    ?etag:Http_frame.etag ->
+    keep_alive:bool ->
+    ?last_modified:float ->
+    ?location:string ->
+    head:bool ->
+    ?headers:(string * string) list ->
+    ?charset:string ->
+    Http_com.sender_type ->
+    Http_com.res Lwt.t
+
 (** fonction that sends a xhtml page
  * code is the code of the http answer
  * keep_alive is a boolean value that set the field Connection

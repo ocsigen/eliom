@@ -1,11 +1,21 @@
 type etag = string
+
+type full_stream =
+  int64 option * etag * Ocsistream.stream * (unit -> unit Lwt.t)
+(** The type of streams to be send by the server.
+   The [int64 option] is the content-length.
+   [None] means Transfer-encoding: chunked
+   The last function is the termination function
+   (for ex closing a file if needed),
+   that must be called when the stream is not needed any more.
+   Your new termination function should probably call the former one. *)
+
 module type HTTP_CONTENT =
   sig
     type t
     val content_of_stream : Ocsistream.stream -> t Lwt.t
     val stream_of_content :
-      t ->
-      (int64 option * etag * Ocsistream.stream * (unit -> unit Lwt.t)) Lwt.t
+      t -> full_stream Lwt.t
     val get_etag : t -> etag
   end
 module Http_header :
