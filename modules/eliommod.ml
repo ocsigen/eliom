@@ -2550,7 +2550,7 @@ let gen page_tree charset ri =
                          {res_cookies= all_new_cookies;
                           res_send_page=
                           Predefined_senders.send_empty ~content:();
-                          res_headers=[];
+                          res_headers=Http_headers.empty;
                           res_code=Some 204; (* No content *)
                           res_lastmodified=None; 
                           (* No date => proxies use etag *)

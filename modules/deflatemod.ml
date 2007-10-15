@@ -343,12 +343,14 @@ let filter ri res =
  match select_encoding (Lazy.force(ri.ri_accept_encoding)) with
   |Deflate ->   return
     {res with
-     res_headers = ("Content-Encoding","deflate")::res.res_headers;
+     res_headers = Http_headers.replace
+                     Http_headers.content_encoding "deflate" res.res_headers;
      res_filter= Some (stream_filter true !choice_list)
    }
   |Gzip ->   return
     {res with
-     res_headers = ("Content-Encoding","gzip")::res.res_headers;
+     res_headers = Http_headers.replace
+                     Http_headers.content_encoding "gzip" res.res_headers;
      res_filter= Some (stream_filter false !choice_list)
    } 
   |Id|Star -> return res

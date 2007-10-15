@@ -402,7 +402,7 @@ let gen pages_tree charset ri =
 		res_send_page= 
 		   Predefined_senders.send_stream_page 
 		     ~contenttype:"text/html" ~content:(fun () -> content);
-		res_headers=[];
+		res_headers=Http_headers.empty;
 		res_code= None; (* 200 by default *)
 		res_lastmodified= None;
 		res_etag= None;
@@ -413,7 +413,7 @@ let gen pages_tree charset ri =
             (Ext_found
                {res_cookies=[];
 		res_send_page=Predefined_senders.send_file ~content:filename;
-		res_headers=[];
+		res_headers=Http_headers.empty;
 		res_code=None;
 		res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
 		res_etag=

@@ -115,7 +115,7 @@ type result =
      res_etag: Http_frame.etag option;    (** ETag for the page *)
      res_code: int option;                (** HTTP code to send, if not 200 *)
      res_send_page: Predefined_senders.send_page_type; (** A function to send the content. Some are predefined in {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.send_xhtml_page]. *)
-     res_headers: (string * string) list (** The HTTP headers you want to add. For example {!Predefined_senders.dyn_headers} if you don't want the page to be cached (dynamic pages). *);
+     res_headers: Http_headers.t (** The HTTP headers you want to add. For example {!Predefined_senders.dyn_headers} if you don't want the page to be cached (dynamic pages). *);
      res_charset: string option;          (** Charset used by the page *)
      res_filter: Predefined_senders.stream_filter_type option
        (** An optional function that will transform the stream before sending

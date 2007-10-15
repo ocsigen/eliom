@@ -89,7 +89,7 @@ module Http_header =
             (** protocol used for the Query or the Answer *)
             proto: proto;
             (** list of the headers options *)
-            headers: (string*string) list
+            headers: Http_headers.t;
           }
 
 (*        (** gets the url raise Not_found if Answer *)
@@ -105,8 +105,12 @@ module Http_header =
 	let get_headers header = header.headers
 
         (** gets the value of a given header's option *)
-        let get_headers_value header key = 
-          List.assoc (String.lowercase key) header.headers
+        let get_headers_value header key =
+          Http_headers.find key header.headers
+
+        (** gets all the values of a given header's option *)
+        let get_headers_values header key =
+          Http_headers.find_all key header.headers
 
         (** gets the value of the protocol used *)
         let get_proto header = header.proto
@@ -119,11 +123,8 @@ module Http_header =
         
         (** adds an header option in the header option list*)
         let add_headers header key value =
-          {
-            mode=header.mode;
-            proto=header.proto;
-            headers=(String.lowercase key, value)::header.headers
-          }
+          { header with
+            headers = Http_headers.add key value header.headers }
   end
   
 module Http_error =

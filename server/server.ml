@@ -711,7 +711,7 @@ let service
             (Int64.of_string 
                (Http_header.get_headers_value 
                   http_frame.Stream_http_frame.header 
-                  "content-length"))
+                  Http_headers.content_length))
         with
         | Not_found -> return Int64.zero
         | _ -> fail (Ocsigen_Request_interrupted Ocsigen_Bad_Request))
@@ -952,7 +952,7 @@ let listen ssl port wait_end_init =
           let empty_sender =
             Http_com.create_sender
               ~mode:Answer
-              ~headers:[]
+              ~headers:Http_headers.empty
               ~server_name:server_name inputchan
           in
           listen_connexion 

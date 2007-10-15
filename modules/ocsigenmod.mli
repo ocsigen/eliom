@@ -58,7 +58,7 @@ val add_service :
       url_path ->
         bool ->
           string list ->
-            (string * string) list (* headers *) ->
+            Http_headers.t ->
               page_table_key *
                 (int * (tables server_params2 -> 
                   Predefined_senders.send_page_type Lwt.t)) ->

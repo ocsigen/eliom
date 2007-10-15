@@ -23,7 +23,7 @@ type sender_type
 val create_sender :
   ?server_name:string ->
   mode:s_http_mode ->
-  ?headers:(string * string) list ->
+  ?headers:Http_headers.t ->
   ?proto:Http_frame.Http_header.proto -> Lwt_ssl.socket -> sender_type
 type res = Must_close | Can_continue
 module type SENDER =
@@ -41,7 +41,7 @@ module type SENDER =
       ?etag:Http_frame.etag ->
       mode:Http_frame.Http_header.http_mode ->
       ?proto:Http_frame.Http_header.proto ->
-      ?headers:(string * string) list ->
+      ?headers:Http_headers.t ->
       ?contenttype:'a ->
       ?content:t -> head:bool -> sender_type -> res Lwt.t
   end

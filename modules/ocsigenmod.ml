@@ -154,7 +154,7 @@ type page_table =
     (page_table_key * 
        ((int * 
            ((tables server_params2 -> Predefined_senders.send_page_type Lwt.t)
-              * (string * string) list (* headers *) * url_path)) list)) list
+              * Http_headers.t * url_path)) list)) list
       (* Here, the url_path is the working directory.
          That is, the directory in which we are when we register
          dynamically the pages.
@@ -672,7 +672,7 @@ let gen page_tree charset ri =
                       None -> []
                     | Some c -> [Set (Some path, None, [(cookiename, c)])]);
                     res_send_page=Predefined_senders.send_empty ~content:();
-                    res_headers= [];
+                    res_headers= Http_headers.empty;
                     res_code=Some 204;
                     res_lastmodified=None;
                     res_etag=None;

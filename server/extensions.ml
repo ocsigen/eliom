@@ -104,7 +104,7 @@ type result =
      res_etag: Http_frame.etag option;
      res_code: int option; (* HTTP code, if not 200 *)
      res_send_page: Predefined_senders.send_page_type;
-     res_headers: (string * string) list;
+     res_headers: Http_headers.t;
      res_charset: string option;
      res_filter: Predefined_senders.stream_filter_type option
    }

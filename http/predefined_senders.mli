@@ -40,7 +40,7 @@ type send_page_type =
     ?last_modified:float ->
     ?location:string ->
     head:bool ->
-    ?headers:(string * string) list ->
+    ?headers:Http_headers.t ->
     ?charset:string ->
     Http_com.sender_type ->
     Http_com.res Lwt.t
@@ -62,7 +62,7 @@ val send_stream_page : ?contenttype: string ->
   content:(unit -> Ocsistream.stream) -> send_page_type
 
 (** Headers for a non cachable request *)
-val dyn_headers : (string * string) list
+val dyn_headers : Http_headers.t
 
 
 (**/**)
@@ -109,7 +109,7 @@ val send_generic :
           ?etag:Http_frame.etag ->
             mode:Http_frame.Http_header.http_mode ->
               ?proto:Http_frame.Http_header.proto ->
-                ?headers:(string * string) list ->
+                ?headers:Http_headers.t ->
                   ?contenttype:string ->
                     ?content:'a ->
                       head:bool -> 
@@ -127,7 +127,7 @@ val send_generic :
   ?last_modified:float ->
   ?location:string ->
   head:bool ->
-  ?headers:(string * string) list ->
+  ?headers:Http_headers.t ->
   ?charset:string ->
   Http_com.sender_type ->
   Http_com.res Lwt.t

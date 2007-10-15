@@ -239,11 +239,17 @@ let find_cgi_page cgidirref path =
 (*****************************************************************************)
 (** permet de creer le tableau des variables d environnement *)
 
+(*XXX Is this documented anywhere?*)
+let suitable_header = Regexp.regexp "[a-zA-Z-]+"
+let hyphen = Regexp.regexp_string "-"
+
 (* Headers processed separately when setting CGI's variable *)
-let exclude_headers = Hashtbl.create 10 
-let _ = 
-  List.iter (fun x -> Hashtbl.add exclude_headers (String.lowercase x) ())
-    ["Content-type"; "Authorization"; "Content-length"; 
+let exclude_headers = Http_headers.NameHtbl.create 10
+let _ =
+  List.iter
+    (fun x ->
+       Http_headers.NameHtbl.add exclude_headers (Http_headers.name x) ())
+    ["Content-type"; "Authorization"; "Content-length";
      (*"Referer"; "Host"; "Cookie"*) ]
 
 let array_environment pages_tree filename re ri =
@@ -270,14 +276,18 @@ let array_environment pages_tree filename re ri =
    or all of * these headers if including them would exceed any system
    environment limits. *)
 
-
   let additionnal_headers =
     let headers = 
       List.filter 
-      (fun (h,_) -> not (Hashtbl.mem exclude_headers h)) 
-      (Http_header.get_headers header) in
+        (fun (h,_) ->
+           Regexp.string_match
+             suitable_header (Http_headers.name_to_string h) 0 <> None &&
+           not (Http_headers.NameHtbl.mem exclude_headers h))
+        (Http_headers.fold (fun n vl rem -> (n, String.concat "," vl) :: rem)
+           (Http_header.get_headers header) []) in
     let transform (h,v) = 
-      let h' = Regexp.global_replace (Regexp.regexp "-") "_" h in 
+      let h' =
+        Regexp.global_replace hyphen "_" (Http_headers.name_to_string h) in
       Printf.sprintf "HTTP_%s=%s" (String.uppercase h') v  in
     List.map transform headers
  in
@@ -624,7 +634,7 @@ let gen pages_tree charset ri =
                 (int_of_string
                    (String.sub 
                       (Http_frame.Http_header.get_headers_value 
-                         header "Status")
+                         header Http_headers.status)
                       0 3)))
          with 
          | Not_found -> return None
@@ -636,7 +646,8 @@ let gen pages_tree charset ri =
            then raise Not_found
            else 
              let loc =
-               Http_frame.Http_header.get_headers_value header "Location"
+               Http_frame.Http_header.get_headers_value
+                 header Http_headers.location
              in
              (try
                ignore (Neturl.extract_url_scheme loc);
@@ -661,7 +672,7 @@ let gen pages_tree charset ri =
                              ?last_modified 
                              ~location:loc
                              ~head ?headers ?charset s);
-                     res_headers= [];
+                     res_headers= Http_headers.empty;
                      res_charset= None;
                      res_filter=None
                    })
@@ -679,9 +690,8 @@ let gen pages_tree charset ri =
 		     ?contenttype:None
                      ~content;
 		   res_headers=
-                   List.filter
-                     (fun (h,_) -> (String.lowercase h) <> "status")
-                     header.Http_header.headers;
+                     Http_headers.replace_opt
+                       Http_headers.status None header.Http_header.headers;
 		   res_code= code;
 		   res_lastmodified= None;
 		   res_etag= None;

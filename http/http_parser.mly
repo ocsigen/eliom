@@ -24,10 +24,12 @@
   
   let mode = ref Nofirstline
   let proto = ref HTTP11
-  let headers = ref []
+  let headers = ref Http_headers.empty
 
-  let reset_header () = headers:=[]
-  
+  let reset_header () = headers := Http_headers.empty
+
+  let add_header (n, v) = headers := Http_headers.add n v !headers
+
   let make_header() =
     {mode = !mode; 
      proto= !proto;
@@ -101,16 +103,16 @@ nofirstline :
 				  make_header()}
 
 lines :
-  | line                         {headers:=$1::!headers}
-  | line lines                   {headers:=$1::!headers;$2}
+  | line                         {add_header $1}
+  | line lines                   {add_header $1;$2}
   | strings EOL                  {}
   | strings EOL lines            {$3}
 
 line :
-  | STRING COLON strings EOL    {(String.lowercase($1),$3)}
-  | CODE COLON strings EOL      {($1,$3)}
-  | STRING COLON EOL            {(String.lowercase($1),"")}
-  | CODE COLON EOL              {($1,"")}
+  | STRING COLON strings EOL    {(Http_headers.name $1,$3)}
+  | CODE COLON strings EOL      {(Http_headers.name $1,$3)  (*XXX Check*)}
+  | STRING COLON EOL            {(Http_headers.name $1,"")}
+  | CODE COLON EOL              {(Http_headers.name $1,"")  (*XXX Check*)}
   /* EOL                  {split_string $1}*/
 
 strings :

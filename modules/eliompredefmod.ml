@@ -1428,7 +1428,7 @@ module Unitreg_ = struct
        res_etag= None;
        res_code= Some code;
        res_send_page= Predefined_senders.send_empty ~content:content;
-       res_headers= [];
+       res_headers= Http_headers.empty;
        res_charset= None;
        res_filter=None
      }
@@ -1475,7 +1475,7 @@ module Redirreg_ = struct
                ?last_modified 
                ~location:content
                ~head ?headers ?charset s);
-       res_headers= [];
+       res_headers= Http_headers.empty;
        res_charset= None;
        res_filter=None
      }
@@ -1566,7 +1566,7 @@ module Filesreg_ = struct
        res_etag= Some (Predefined_senders.File_content.get_etag filename);
        res_code= code;
        res_send_page= Predefined_senders.send_file ~content:filename;
-       res_headers= [];
+       res_headers= Http_headers.empty;
        res_charset= (match charset with
        | None -> get_config_file_charset sp
        | _ -> charset);

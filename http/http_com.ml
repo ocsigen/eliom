@@ -20,9 +20,9 @@
 
 (*
 TODO
-- headers
 - server.ml
 - put back timeouts
+  (timeouts on reads and writes; shorter timeouts for keep-alive)
 - check the code against the HTTP spec
 - improved streams
 - what if a stream is not consumed after a request has been handled
@@ -30,6 +30,7 @@ TODO
 - how are failures dealt with at a higher level (server.ml)?
 - defunctorize ?
 - when can we start processing the next request?
+- shift/reduce conflicts in http_parser.mly
 *)
 
 (** this module provide a mecanisme to comunicate with some http frames *)
@@ -333,7 +334,7 @@ module FHttp_receiver =
               (*XXX Is that right?*)
               try
                 Http_frame.Http_header.get_headers_value
-                   header "Transfer-Encoding" <> "identity"
+                   header Http_headers.transfer_encoding <> "identity"
               with Not_found ->
                 false
             in
@@ -358,7 +359,7 @@ module FHttp_receiver =
                   Some
                     (Int64.of_string
                        (Http_frame.Http_header.get_headers_value
-                          header "content-length"))
+                          header Http_headers.content_length))
                 with Not_found ->
                   None
               in
@@ -426,9 +427,8 @@ type sender_type = {
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
     mutable s_proto: Http_frame.Http_header.proto;
     (** the options to send with each frame, for exemple : server name , ... *)
-    mutable s_headers: (string * string) list
+    mutable s_headers: Http_headers.t
   }
-
 
 (** create a new sender *)
 (* That function was in FHttp_sender but it does not depend on C
@@ -437,19 +437,17 @@ type sender_type = {
 let create_sender
     ?server_name
     ~mode
-    ?(headers=[])
-    ?(proto=Http_frame.Http_header.HTTP11) fd = 
-  let headers = ("Accept-Ranges","none")::headers in
+    ?(headers=Http_headers.empty)
+    ?(proto=Http_frame.Http_header.HTTP11)
+    fd =
   let headers =
-    match server_name with
-    | None -> headers
-    | Some s -> ("Server", s)::headers
-  in
-  {s_fd =fd; 
-   s_mode=mode;
-   s_headers=headers;
-   s_proto=proto}
+    Http_headers.replace Http_headers.accept_ranges "none" headers in
+  let headers =
+    Http_headers.replace_opt Http_headers.server server_name headers in
+  { s_fd = fd; s_mode = mode; s_headers = headers; s_proto = proto }
 
+(* XXX Is there a way to know this result beforehand?
+   (so that we start handling another request before this one is over) *)
 type res = Must_close | Can_continue
 
 module type SENDER =
@@ -471,7 +469,7 @@ module type SENDER =
         ?etag:Http_frame.etag ->
         mode:Http_frame.Http_header.http_mode ->
         ?proto:Http_frame.Http_header.proto ->
-        ?headers:(string * string) list ->
+        ?headers:Http_headers.t ->
         ?contenttype:'a ->
         ?content:t -> head:bool -> sender_type -> res Lwt.t
     end
@@ -491,6 +489,8 @@ let catch_write_errors f =
            Lwt.fail e)
 
 (* XXX Maybe we should merge small strings *)
+(* XXX We should probably make sure that any exception raised by
+   the stream is properly caught *)
 let rec write_stream_chunked out_ch stream =
   match stream with
     Finished _ ->
@@ -517,6 +517,11 @@ let rec write_stream_raw out_ch stream =
       Lwt.catch next Lwt.fail >>= fun s ->
       write_stream_raw out_ch s
 
+(*XXX We should check the length of the stream:
+  - do not send more than expected
+  - abort the connection before the right length is emitted so that
+    the client can know something wrong happened
+*)
 let write_stream ?(chunked=false) out_ch stream =
   if chunked then
     write_stream_chunked out_ch stream
@@ -530,93 +535,12 @@ module FHttp_sender =
 
     module H = Http_frame.Http_header
 
-    module Http = Http_frame.FHttp_frame
-
-    module PP = Framepp.Fframepp(C)
-
     (* fonction d'écriture sur le réseau *)
     (* XXX KILL *)
     let really_write ?(chunked=false) out_ch close_fun stream =
       catch_write_errors (fun () ->
         write_stream ~chunked out_ch stream >>= fun () ->
         close_fun ())
-
-    (* case non sensitive equality *)
-    let non_case_equality s1 s2 =
-      (String.lowercase s1) = (String.lowercase s2)
-
-    (* case non sensitive comparison*)
-    let non_case_compare s1 s2 =
-      String.compare (String.lowercase s1) (String.lowercase s2)
-
-    (* pair order*)
-    let pair_order (s11,s12) (s21,s22) =
-      if (non_case_compare s11 s21 <= 0)
-      then true
-      else (non_case_compare s12 s22 <= 0)
-
-    (**adds a header option in the headers list or change the value if the name
-    * already exists *)
-    let add_header sender name value =
-      let rec add_header_aux res =
-        function
-          |[] -> (name,value)::res
-          |(n,v)::tl when (non_case_equality n name) -> (name,value)::(res @ tl)
-          |(n,v)::tl -> add_header_aux ((n,v)::res) tl
-      in
-      sender.s_headers <- add_header_aux [] sender.s_headers
-
-    (**removes a header option from the headers list if its exits*)
-    let rem_header sender name =
-      let rec rem_header_aux res =
-        function
-          |[] -> res
-          |(n,_)::tl when (non_case_equality n name) -> res @ tl
-          |(n,v)::tl -> rem_header_aux ((n,v)::res) tl
-      in
-      sender.s_headers <- rem_header_aux [] sender.s_headers
-
-    (**gets the value of an header name, raise Not_found if it doesn't exists*)
-    let get_header_value sender name =
-      let rec get_aux = 
-        function
-          |[] -> raise Not_found
-          |(n,v)::_ when (non_case_equality n name) -> v
-          |_::tl -> get_aux tl
-      in get_aux sender.s_headers
-    
-    (* fusion of the two headers list and add the content-length header *)
-    let hds_fusion chunked content_length lst1 lst2 =
-      let rec fusion_aux res =
-        function
-          |([],[]) -> res
-          |((n,_)::tl,lst2) when (non_case_equality n "content-length") ->
-              fusion_aux res (tl,lst2)
-          |(lst1,(n,_)::tl) when (non_case_equality n "content-length") ->
-              fusion_aux res (lst1,tl)
-          |([],hd::tl) -> fusion_aux (hd::res) ([],tl)
-          |(hd::tl,[])-> fusion_aux (hd::res) (tl,[])
-          |((n1,_)::tl1,(n2,v2)::tl2) when (non_case_equality n1 n2) -> 
-              fusion_aux ((n2,v2)::res) (tl1,tl2)
-          |((n1,v1)::tl1,((n2,_)::_ as list2)) when
-              (non_case_compare n1 n2 < 0) ->
-              fusion_aux ((n1,v1)::res) (tl1,list2)
-          |(lst1,hd2::tl2) -> fusion_aux (hd2::res) (lst1,tl2)
-      in
-      let h = 
-        (fusion_aux [] 
-           (Sort.list pair_order lst1, Sort.list pair_order lst2))
-      in
-      let h = 
-        if chunked
-        then ("Transfer-Encoding", "chunked")::h
-        else h
-      in
-      match content_length with
-      | None -> h
-      | Some n -> ("Content-Length", Int64.to_string n)::h
-
-
 
     (** Sends the HTTP frame.  The mode and proto can be overwritten.
         The headers are merged with those of the sender, the priority
@@ -629,7 +553,7 @@ module FHttp_sender =
         ?etag
         ~mode
         ?proto
-        ?headers
+        ?(headers = Http_headers.empty)
         ?contenttype
         ?content
         ~head
@@ -653,7 +577,7 @@ module FHttp_sender =
             | H.Query _     -> false
           in
           C.stream_of_content c >>=
-          (* XXX We assume that filter finalize c if it fails *)
+          (* XXX We assume that [filter] finalizes c if it fails *)
           filter contenttype >>= fun (slen, etag2, flux, finalizer) ->
           Lwt.finalize
             (fun () ->
@@ -672,11 +596,22 @@ module FHttp_sender =
                  match v with None -> default | Some v -> v
                in
                let hds =
-                 hds_fusion chunked slen
-                   (("ETag",
-                     Format.sprintf "\"%s\"" (with_default etag etag2))
-                     :: sender.s_headers)
-                   (with_default headers [])
+                 Http_headers.with_defaults headers
+                   (Http_headers.replace Http_headers.etag
+                      (Format.sprintf "\"%s\"" (with_default etag etag2))
+                      sender.s_headers)
+               in
+(*XXX Make sure that there is no way to put wrong headers*)
+               let hds =
+                 Http_headers.replace_opt Http_headers.transfer_encoding
+                   (if chunked then Some "chunked" else None) hds
+               in
+               let hds =
+                 Http_headers.replace_opt Http_headers.content_length
+                   (match slen with
+                      None   -> None
+                    | Some l -> Some (Int64.to_string l))
+                   hds
                in
                let hd =
                  { H.mode = mode;

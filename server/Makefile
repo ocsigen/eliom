@@ -66,6 +66,7 @@ CMAO = ../baselib/ocsimisc.cmo \
        ../baselib/ocsiconfig.cmo ../baselib/messages.cmo \
        ../lwt/lwt.cma \
        ../http/ocsistream.cmo ../http/multipart.cmo \
+       ../http/http_headers.cmo \
        ../http/http_frame.cmo ../http/ocsiheaders.cmo \
        ../http/http_lexer.cmo ../http/http_parser.cmo \
        ../http/framepp.cmo ../http/http_com.cmo \

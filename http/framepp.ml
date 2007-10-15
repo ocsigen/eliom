@@ -42,49 +42,30 @@ let string_of_proto = function
   | H.HTTP10 -> "HTTP/1.0"
   | H.HTTP11 -> "HTTP/1.1"
 
-  
-(** create the first line for an http frame *)
-let string_of_fst_line header =
+(** Write the first line of an HTTP frame to a string buffer *)
+let fst_line buf header =
   match header.H.mode with
-  | H.Nofirstline -> ""
+  | H.Nofirstline -> ()
   | H.Answer code ->
-      (string_of_proto header.H.proto)^" "^(string_of_int code)^" "^
-      (Http_error.expl_of_code code)^"\r\n"
-  | H.Query (meth, url) -> 
-      (string_of_method meth)^" "^url^" "^
-      (string_of_proto header.H.proto)^"\r\n"
-  
+      Format.fprintf buf "%s %i %s\r\n" (string_of_proto header.H.proto)
+        code (Http_error.expl_of_code code)
+  | H.Query (meth, url) ->
+      Format.fprintf buf "%s %s %s\r\n"
+        (string_of_method meth) url (string_of_proto header.H.proto)
 
-(** creates a string from an headers line *)
-let string_of_headers_line =
-  fun (name , value) ->
-    name^": "^value^"\r\n"
-  
-(** creates the lines from the headers*)
-let string_of_headers header =
-  let rec string_of_headers_aux result =
-    function
-      | [] -> result
-      | hd::tl -> string_of_headers_aux (result^(string_of_headers_line hd)) tl
-  in string_of_headers_aux "" header.H.headers
-  
+(** Write the header lines to a string buffer *)
+let headers buf header =
+  Http_headers.iter
+    (fun name value ->
+       Format.fprintf buf "%s: %s\r\n"
+         (Http_headers.name_to_string name) value)
+    header.H.headers
 
-(**convert the header into a string *)
-let string_of_header header =
-  (string_of_fst_line header)^(string_of_headers header)^"\r\n"
-
-
-module Fframepp =
-  functor (C:HTTP_CONTENT) ->
-    struct
-
-      let string_of_http_frame http_frame content =
-        let h = string_of_header (http_frame.FHttp_frame.header) in
-        Messages.debug h;
-        let body =
-          match content with
-          | None -> ""
-          | Some c -> c
-        in h^body 
-        
-    end
+(** Convert a HTTP header into a string *)
+let string_of_header hds =
+  let buf = Buffer.create 200 in
+  let f = Format.formatter_of_buffer buf in
+  fst_line f hds;
+  headers f hds;
+  Format.fprintf f "\r\n@?";
+  Buffer.contents buf

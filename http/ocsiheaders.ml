@@ -27,6 +27,11 @@ open Http_frame
 open Predefined_senders
 open Ocsimisc
 
+(*
+XXX Get rid of all "try ... with _ -> ..."
+*)
+let list_flat_map f l = List.flatten (List.map f l)
+
 (* splits a quoted string, for ex "azert", "  sdfmlskdf",    "dfdsfs" *)
 (* We are too kind ... We accept even if the separator is not ok :-( ? *)
 let rec quoted_split char (* char is not used in that version *) s =
@@ -81,11 +86,11 @@ let parse_extensions parse_name s =
   with _ -> ((parse_name s), [])
 
 let parse_list_with_quality parse_name s =
-  let splitted = split ',' s in
+  let splitted = list_flat_map (split ',') s in
   List.map (parse_quality parse_name) splitted
 
 let parse_list_with_extensions parse_name s =
-  let splitted = split ',' s in
+  let splitted = list_flat_map (split ',') s in
   List.map (parse_extensions parse_name) splitted
 
 
@@ -96,27 +101,27 @@ let rec parse_cookies s =
     List.map (sep '=') splitted
   with _ -> []
     (* Actually the real syntax of cookies is more complex! *)
+(*
+Mozilla spec + RFC2109
+http://ws.bokeland.com/blog/376/1043/2006/10/27/76832
+*)
 
 
 let get_keepalive http_header =
   try
     let kah = String.lowercase 
-        (Http_header.get_headers_value http_header "Connection") 
+        (Http_header.get_headers_value http_header Http_headers.connection)
     in
-    if kah = "keep-alive" 
-    then true 
-    else false (* should be "close" *)
-  with _ ->
-    if (Http_header.get_proto http_header) = Http_frame.Http_header.HTTP11
-    then true
-    else false
-
+    kah = "keep-alive"
+    (* [kah] should be "close" otherwise *)
+  with Not_found ->
+    Http_header.get_proto http_header = Http_frame.Http_header.HTTP11
 
 let get_host_port http_frame =
   try
     let hostport = 
       Http_header.get_headers_value
-        http_frame.Stream_http_frame.header "Host" 
+        http_frame.Stream_http_frame.header Http_headers.host
     in
     try
       let h,p = sep ':' hostport in
@@ -127,25 +132,24 @@ let get_host_port http_frame =
     | Not_found -> Some (hostport, None)
   with _ -> None
 
-
 let get_user_agent http_frame =
   try (Http_header.get_headers_value
-         http_frame.Stream_http_frame.header "user-agent")
-  with _ -> ""
-
+         http_frame.Stream_http_frame.header Http_headers.user_agent)
+  with Not_found -> ""
 
 let get_cookie_string http_frame =
   try
     Some (Http_header.get_headers_value
-            (http_frame.Stream_http_frame.header) "Cookie")
-  with _ -> None
-
+            http_frame.Stream_http_frame.header Http_headers.cookie)
+  with Not_found ->
+    None
 
 let get_if_modified_since http_frame =
   try 
     Some (Netdate.parse_epoch 
             (Http_header.get_headers_value
-               http_frame.Stream_http_frame.header "if-modified-since"))
+               http_frame.Stream_http_frame.header
+               Http_headers.if_modified_since))
   with _ -> None
 
 
@@ -153,31 +157,34 @@ let get_if_unmodified_since http_frame =
   try 
     Some (Netdate.parse_epoch 
             (Http_header.get_headers_value
-               http_frame.Stream_http_frame.header "if-unmodified-since"))
+               http_frame.Stream_http_frame.header
+               Http_headers.if_unmodified_since))
   with _ -> None
 
 
 let get_if_none_match http_frame =
   try 
-    quoted_split ','
-      (Http_header.get_headers_value
-         http_frame.Stream_http_frame.header "if-none-match")
+    list_flat_map
+      (quoted_split ',')
+      (Http_header.get_headers_values
+         http_frame.Stream_http_frame.header Http_headers.if_none_match)
   with _ -> []
 
 
 let get_if_match http_frame =
   try 
-    Some 
-      (quoted_split ','
-         (Http_header.get_headers_value
-            http_frame.Stream_http_frame.header "if-match"))
+    Some
+      (list_flat_map
+         (quoted_split ',')
+         (Http_header.get_headers_values
+            http_frame.Stream_http_frame.header Http_headers.if_match))
   with _ -> None
 
 
 let get_content_type http_frame =
   try
     Some (Http_header.get_headers_value
-            http_frame.Stream_http_frame.header "Content-Type")
+            http_frame.Stream_http_frame.header Http_headers.content_type)
   with _ -> None
 
 
@@ -186,7 +193,7 @@ let get_content_length http_frame =
     Some 
       (Int64.of_string 
          (Http_header.get_headers_value 
-            http_frame.Stream_http_frame.header "Content-Length"))
+            http_frame.Stream_http_frame.header Http_headers.content_length))
   with _ -> None
 
 
@@ -194,7 +201,7 @@ let get_referer http_frame =
   try
     Some 
       (Http_header.get_headers_value 
-         http_frame.Stream_http_frame.header "Referer")
+         http_frame.Stream_http_frame.header Http_headers.referer)
   with _ -> None
 
 
@@ -206,8 +213,8 @@ let get_accept http_frame =
     let l =
       parse_list_with_extensions
         parse_mime_type
-        (Http_header.get_headers_value 
-           http_frame.Stream_http_frame.header "Accept")
+        (Http_header.get_headers_values
+           http_frame.Stream_http_frame.header Http_headers.accept)
     in
     let change_quality (a, l) =
       try
@@ -223,8 +230,8 @@ let get_accept_charset http_frame =
   try
     parse_list_with_quality
       parse_star
-      (Http_header.get_headers_value 
-         http_frame.Stream_http_frame.header "Accept-Charset")
+      (Http_header.get_headers_values
+         http_frame.Stream_http_frame.header Http_headers.accept_charset)
   with _ -> []
 
 
@@ -232,8 +239,8 @@ let get_accept_encoding http_frame =
   try
     parse_list_with_quality
       parse_star
-      (Http_header.get_headers_value 
-         http_frame.Stream_http_frame.header "Accept-Encoding")
+      (Http_header.get_headers_values
+         http_frame.Stream_http_frame.header Http_headers.accept_encoding)
   with _ -> []
 
 
@@ -241,8 +248,8 @@ let get_accept_language http_frame =
   try
     parse_list_with_quality
       Ocsimisc.id
-      (Http_header.get_headers_value 
-         http_frame.Stream_http_frame.header "Accept-Language")
+      (Http_header.get_headers_values
+         http_frame.Stream_http_frame.header Http_headers.accept_language)
   with _ -> []
 
 

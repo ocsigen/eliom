@@ -238,18 +238,18 @@ module Stream_sender = FHttp_sender(Stream_content)
 module File_sender = FHttp_sender(File_content)
 
 
+let (<<) h (n, v) = Http_headers.replace n v h
+let (<<?) h (n, v) = Http_headers.replace_opt n v h
+
 (** Headers for dynamic pages *)
 let dyn_headers =
-  [
-   ("Cache-Control","no-cache");
-   ("Expires", "0") 
- ]
- 
-
-
+  Http_headers.empty
+  << (Http_headers.cache_control,"no-cache")
+  << (Http_headers.expires, "0")
 
 let gmtdate d =  
         let x = Netdate.mk_mail_date ~zone:0 d in try
+(*XXX !!!*)
         let ind_plus =  String.index x '+' in  
         String.set x ind_plus 'G';
         String.set x (ind_plus + 1) 'M';
@@ -271,7 +271,7 @@ let send_generic
              ?etag:etag ->
                mode:Http_frame.Http_header.http_mode ->
                  ?proto:Http_frame.Http_header.proto ->
-                   ?headers:(string * string) list ->
+                   ?headers:Http_headers.t ->
                      ?contenttype: string ->
                        ?content:'a ->
                          head:bool -> 
@@ -289,65 +289,66 @@ let send_generic
     ?last_modified 
     ?location
     ~head
-    ?(headers=[]) 
+    ?(headers = Http_headers.empty)
     ?charset
     sender
     =
 
+(*XXX Maybe we can compute this only at most once a second*)
   (* ajout des options spécifiques à la page *)
   let date = gmtdate (Unix.time ()) in
-  (* il faut récupérer la date de dernière modification *)
-  let last_mod =
-    match last_modified with
-    | None -> headers (* We do not put last modified for dynamically generated 
-                         pages, otherwise it is not possible to cache them.
-                         Without Last-Modified, ETag is taken into account 
-                         by proxies/browsers
-                       *)
-    | Some l  -> ("Last-Modified", (gmtdate l))::headers
+
+  let headers =
+    headers
+    <<?
+    (* il faut récupérer la date de dernière modification *)
+    (Http_headers.last_modified,
+     match last_modified with
+       None    -> None (* We do not put last modified for dynamically
+                          generated pages, otherwise it is not possible
+                          to cache them.  Without Last-Modified, ETag is
+                          taken into account by proxies/browsers *)
+     | Some l  -> Some (gmtdate l))
+    <<
+    (Http_headers.date, date)
   in
-  let hds = ("Date", date)::last_mod in
   let mkcook path exp (name, c) =
-    ("Set-Cookie",
-     (name^"="^c^
-      (match path with 
-      | Some s -> ("; path=/"^(Ocsimisc.string_of_url_path s))
-      | None -> "")^
-      (match exp with 
-      | Some s -> ("; expires="^
-                   (Netdate.format
+    (Http_headers.set_cookie,
+     Format.sprintf "%s=%s%s%s" name c
+       (match path with
+        | Some s -> "; path=/" ^ Ocsimisc.string_of_url_path s
+        | None   -> "")
+       (match exp with
+        | Some s -> "; expires=" ^
+                    Netdate.format
                       "%a, %d-%b-%Y %H:%M:%S GMT"
-                      (Netdate.create s)))
-      | None -> "")))
+                      (Netdate.create s)
+        | None   -> ""))
   in
-  let mkcookl (path, exp, cl) hds =
-    List.fold_left (fun h c -> (mkcook path exp c)::h) hds cl
+  let mkcookl hds (path, exp, cl) =
+    List.fold_left (fun h c -> h << mkcook path exp c) hds cl
   in
-  let hds =
-    List.fold_left (fun h c -> 
-      (mkcookl c h)) hds cookies
-  in
-  let hds =
-    if keep_alive
-    then ("Connection","keep-alive")::hds (* obsolete? *)
-    else ("Connection","close")::hds
-  in
-  let hds =
-    match location with
-    | None ->  hds
-    | Some l -> ("Location",l)::hds
-  in
-  let hds =
-    match etag with
-    | None ->  hds
-    | Some l -> ("ETag", "\""^l^"\"")::hds
-  in
-  let hds = match contenttype with
-  | None -> hds
-  | Some s -> ("Content-Type",
-               (match (String.sub s 0 4), charset with 
-               | "text", Some c -> (s^"; charset="^c)
-               | _ -> s))::hds
+  let headers =
+    List.fold_left mkcookl headers cookies
+    <<
+    (Http_headers.connection,
+     if keep_alive then "keep-alive" (* obsolete? *) else "close")
+    <<?
+    (Http_headers.location, location)
+    <<?
+    (Http_headers.etag,
+     match etag with
+    | None   ->  None
+    | Some l ->  Some (Format.sprintf "\"%s\"" l))
+                 (*XXX Is it the right place to perform quoting?*)
+    <<?
+    (Http_headers.content_type,
+     match contenttype with
+     | None   -> None
+     | Some s ->
+         match String.sub s 0 4, charset with
+         | "text", Some c -> Some (Format.sprintf "%s; charset=%s" s c)
+         | _              -> contenttype)
   in
   let mode =
     Http_header.Answer
@@ -355,11 +356,12 @@ let send_generic
       | None -> 200
       | Some c -> c)
   in
+(*XXX Shouldn't this function now about the keep_alive parameter? *)
   send ?filter
     waiter ~clientproto ?etag
     ~mode
     ?contenttype ~content
-    ~headers:hds ~head sender
+    ~headers ~head sender
     
 
 type send_page_type =
@@ -375,7 +377,7 @@ type send_page_type =
     ?last_modified:float ->
     ?location:string ->
     head:bool ->
-    ?headers:(string * string) list ->
+    ?headers:Http_headers.t ->
     ?charset:string ->
     Http_com.sender_type ->
     Http_com.res Lwt.t
@@ -447,7 +449,7 @@ let send_error
     ?last_modified 
     ?location
     ~head
-    ?(headers=[]) 
+    ?(headers = Http_headers.empty)
     ?charset
     sender
     =

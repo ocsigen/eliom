@@ -31,13 +31,14 @@ module Http_header :
     type http_header = {
       mode : http_mode;
       proto : proto;
-      headers : (string * string) list;
+      headers : Http_headers.t;
     }
     val get_firstline : http_header -> http_mode
-    val get_headers : http_header -> (string * string) list
-    val get_headers_value : http_header -> string -> string
+    val get_headers : http_header -> Http_headers.t
+    val get_headers_value : http_header -> Http_headers.name -> string
+    val get_headers_values : http_header -> Http_headers.name -> string list
     val get_proto : http_header -> proto
-    val add_headers : http_header -> string -> string -> http_header
+    val add_headers : http_header -> Http_headers.name -> string -> http_header
   end
 module Http_error :
   sig
