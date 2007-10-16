@@ -174,7 +174,7 @@ struct
   (** Find the first sequence crlfcrlf or lflf in the buffer *)
   let rec find_header buf pos rem =
     if rem < 2 then
-      Retry pos
+      Retry (max 0 (pos - 3))
     else if buf.[pos + 1] <> '\n' then
       find_header buf (pos + 1) (rem - 1)
     else if buf.[pos] = '\n' then
