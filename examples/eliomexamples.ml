@@ -32,6 +32,41 @@ open Lwt
 
 
 
+
+(* Preapplied service with suffix parameters *)
+
+let presu_service =
+  register_new_service 
+    ~path: ["preappliedsuffix2"]
+    ~get_params: (suffix (int "i"))
+    (fun _ i () ->
+      Lwt.return
+        (html
+           (head (title (pcdata "")) [])
+           (body [p [ pcdata ("You sent: " ^ (string_of_int i))]])))
+
+
+let creator_handler sp () () =
+  let create_form () =
+    [fieldset [string_input ~input_type:`Submit ~value:"Click" ()]] in
+  let myservice = preapply presu_service 10 in
+  let myform = get_form myservice sp create_form in
+  Lwt.return
+    (html
+       (head (title (pcdata "")) [])
+       (body   [
+        p [pcdata "Form with preapplied parameter:"];
+        myform;
+        p [a myservice sp [pcdata "Link with preapplied parameter"] ()]
+      ]))
+
+let preappliedsuffix =
+  register_new_service
+    ~path: ["preappliedsuffix"]
+    ~get_params: unit
+    creator_handler
+    
+
 (* URL with ? or / in data or paths *)
 
 let url_encoding = 
@@ -774,6 +809,7 @@ let mainpage = register_new_service ["tests"] unit
          a coucou sp [pcdata "coucou"] (); br ();
          a getcoex sp [pcdata "GET coservice with preapplied fallback, etc"] (); br ();
          a postcoex sp [pcdata "POST service with coservice fallback"] (); br ();
+         a preappliedsuffix sp [pcdata "Preapplied suffix"] (); br ();
          a getact sp [pcdata "action on GET attached coservice, etc"] 127; br ();
          a cookies sp [pcdata "Many cookies"] "le suffixe de l'URL"; br ();
          a sendany sp [pcdata "Cookie or not with Any"] "change this suffix to \"nocookie\""; br ();

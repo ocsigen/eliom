@@ -115,7 +115,7 @@ let rec remove_slash_at_end = function
   | [""] -> []
   | a::l -> a::(remove_slash_at_end l)
     
-let remove_middle_slash u =
+let remove_internal_slash u =
   let rec aux = function
     | [] -> []
     | [a] -> [a]
@@ -251,7 +251,7 @@ let rec split char s =
 let string_of_exn = function
   | Dynlink.Error err ->
       "Dynlink.Error : " ^ (Dynlink.error_message err)
-  | Unix.Unix_error (ee,func,param) -> 
+  | Unix.Unix_error (ee, func, param) -> 
       (Unix.error_message ee)^" in function "^func^" ("^param^")"
   | e -> Printexc.to_string e
 

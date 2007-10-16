@@ -195,7 +195,7 @@ let new_service_aux
         Some get_current_hostdir ->
           let _,curdir = get_current_hostdir () in
           let full_path = 
-            remove_middle_slash (curdir@(change_empty_list path)) in
+            remove_internal_slash (curdir@(change_empty_list path)) in
           let u = new_service_aux_aux
               ~prefix:""
               ~path:full_path
@@ -208,7 +208,7 @@ let new_service_aux
                          "new_service"))
   | Some sp ->
       let full_path = 
-        remove_middle_slash ((get_site_dir sp)@(change_empty_list path)) in
+        remove_internal_slash ((get_site_dir sp)@(change_empty_list path)) in
       new_service_aux_aux
         ~prefix:""
         ~path:full_path
@@ -226,7 +226,7 @@ let new_external_service
   let suffix = contains_suffix get_params in
   new_service_aux_aux
     ~prefix
-    ~path:(remove_middle_slash 
+    ~path:(remove_internal_slash 
             (if suffix then path@[eliom_suffix_internal_name] else path))
     ~kind:`External
     ~get_params 
@@ -427,6 +427,7 @@ let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = eliom_suffix_internal_name -> ""
   | [a] -> Netencoding.Url.encode ~plus:false a
+  | a::l when a = eliom_suffix_internal_name -> string_of_url_path' l
   | a::l -> (Netencoding.Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
 
 let rec string_of_url_path_suff u = function
