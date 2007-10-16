@@ -105,3 +105,6 @@ let console s =
   if (not (Ocsiconfig.get_silent ()))
   then print_endline s
       
+
+let unexpected_exception e s =
+  warning ("Unexpected exception in "^s^": "^Ocsimisc.string_of_exn e)

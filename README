@@ -113,13 +113,13 @@ Ocsigen
 Written by:
 
 Vincent Balat
- (project coordinator, Ocsigen server, Ocsigenmod, Eliom, Staticmod, xhtml syntax extension, documentation, Ocsimore, extension mechanism, Ocsidbm, Ocsipersist with DBM ...) 
+ (project coordinator, Web server, Ocsigenmod, Eliom, Staticmod, xhtml syntax extension, documentation, Ocsimore, extension mechanism, Ocsidbm, Ocsipersist with DBM ...) 
+Jérôme Vouillon
+ (lwt library, Web server) 
 Gabriel Kerneis
  (Xhtml syntax extension for OCaml 3.10, Ocsipersist with SQLite, CGI module, forms in Eliom, deflatemod ...) 
 Denis Berthod
- (http protocol, Ocsigen server) 
-Jérôme Vouillon
- (lwt library, from the Unison file synchronizer) 
+ (http protocol, Web server) 
 Piero Furiesi
  (Ocsimore) 
 Jaap Boender
@@ -127,7 +127,7 @@ Jaap Boender
 Thorsten Ohl
  (most of the functions generating xhtml (xML and xHTML modules)) 
 Nataliya Guts
- (Ocsigen server, HTTPS) 
+ (Web server, HTTPS) 
 Jérôme Velleine
  (CGI module)
 
