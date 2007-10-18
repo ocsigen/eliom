@@ -390,6 +390,8 @@ let recupere_cgi head pages_tree re filename ri =
     Unix.close post_out;
     Unix.close err_in;
 
+    let is_running = ref true in
+
     (* A timeout for CGI scripts *)
     (* For now a timeout for the whole process.
        We may want to reset the timeout each time the CGI writes something.
@@ -398,18 +400,19 @@ let recupere_cgi head pages_tree re filename ri =
       Lwt_timeout.create
         !cgitimeout
         (fun () ->
-          (try
-            Lwt_unix.abort cgi_out CGI_Timeout;
-            Lwt_unix.abort post_in CGI_Timeout;
-            Lwt_unix.abort err_out CGI_Timeout;
+          Lwt_unix.abort cgi_out CGI_Timeout;
+          Lwt_unix.abort post_in CGI_Timeout;
+          Lwt_unix.abort err_out CGI_Timeout;
+          if !is_running
+          then begin
             Unix.kill Sys.sigterm pid;
-          with _ -> 
-            Messages.warning "Error while killing timeouted CGI";
             ignore
-              (Lwt_unix.sleep 1. >>= fun () ->   (* ??? essai *)
-               Unix.kill Sys.sigkill pid;
-               return ())
-          ))
+              (Lwt_unix.sleep 1. >>= fun () ->
+                if !is_running
+                then Unix.kill Sys.sigkill pid;
+                return ())
+          end
+          )
     in
 
     (* A thread giving POST data to the CGI script: *)
@@ -421,10 +424,20 @@ let recupere_cgi head pages_tree re filename ri =
            | None -> Lwt_unix.close post_in; return ()
            | Some content_post -> 
                Stream_sender.really_write post_in_ch
-                 (fun () -> (* Lwt_unix.close post_in; *) return ())
+                 (fun () -> return ())
                  (content_post ()) >>= fun () ->
-                 Lwt_chan.flush post_in_ch))
-         (fun _ -> Lwt_unix.close post_in; return ()));
+                 Lwt_chan.flush post_in_ch >>= fun () ->
+                 Lwt_unix.close post_in;
+                 return ()
+           ))
+         (function
+           | Unix.Unix_error (Unix.EPIPE, _, _) -> 
+               Lwt_unix.close post_in; 
+               return ()
+           | e -> Messages.unexpected_exception e "Cgimod.recupere_cgi (1)";
+               Lwt_unix.close post_in; 
+               return ()
+         ));
     
     (* A thread listening the error output of the CGI script 
        and writing them in warnings.log *)
@@ -433,18 +446,18 @@ let recupere_cgi head pages_tree re filename ri =
       Lwt_chan.input_line err_channel >>= fun err ->
       Messages.warning ("CGI says: "^err);
       get_errors ()
-    in ignore (catch get_errors (fun _ -> Lwt_unix.close err_out; return ()));
+    in ignore 
+      (catch
+         get_errors 
+         (function 
+           | End_of_file -> Lwt_unix.close err_out; return ()
+           | e -> Messages.unexpected_exception e "Cgimod.recupere_cgi (2)";
+               Lwt_unix.close err_out; 
+               return ()));
     (* This threads terminates, as you can see by doing:
     in ignore (catch get_errors (fun _ -> print_endline "the end"; 
                                           Lwt_unix.close err_out; return ()));
      *)
-
-
-
-    (* *)
-    let receiver = Http_com.create_receiver 
-        ~mode:Http_com.Nofirstline (Lwt_ssl.plain cgi_out)
-    in
 
 
     (* A thread waiting the end of the process.
@@ -452,37 +465,25 @@ let recupere_cgi head pages_tree re filename ri =
      *)
     ignore
       (Lwt_unix.waitpid [] pid >>= fun (_, status) ->
+      is_running := false;
       Lwt_timeout.remove timeout; 
+      (* All "read" will return 0, and "write" will raise "Broken Pipe" *)
       (match status with
       | Unix.WEXITED 0 -> ()
       | Unix.WEXITED i -> 
-          let exn =
-            CGI_Error 
-              (Failure ("CGI exited with code "^(string_of_int i)))
-          in
-          Lwt_unix.abort cgi_out exn;
-          Lwt_unix.abort post_in exn;
-          Lwt_unix.abort err_out exn;
+          Messages.warning ("CGI exited with code "^(string_of_int i))
       | Unix.WSIGNALED i -> 
-          let exn =
-            CGI_Error 
-              (Failure ("CGI killed by signal "^(string_of_int i)))
-          in
-          Lwt_unix.abort cgi_out exn;
-          Lwt_unix.abort post_in exn;
-          Lwt_unix.abort err_out exn;
+          Messages.warning ("CGI killed by signal "^(string_of_int i))
       | Unix.WSTOPPED i -> 
-          let exn =
-            CGI_Error 
-              (Failure ("CGI stopped by signal "^(string_of_int i)))
-          in
-          Lwt_unix.abort cgi_out exn;
-          Lwt_unix.abort post_in exn;
-          Lwt_unix.abort err_out exn;
+          (* Cannot occur without Unix.WUNTRACED wait_flag *)
+          assert false
       );
       return ());
 
     (* A thread getting the result of the CGI script *)
+    let receiver = Http_com.create_receiver 
+        ~mode:Http_com.Nofirstline (Lwt_ssl.plain cgi_out)
+    in
     catch 
       (fun () ->
 	Stream_receiver.get_http_frame ((* now *) return ()) receiver ~head 
