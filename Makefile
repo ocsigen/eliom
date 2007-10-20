@@ -1,13 +1,13 @@
 include Makefile.config
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCECMAO=modules/ocsigenduce.cma modules/eliomduce.cma
-# modules/ocsigenrss.cma
-DUCECMI=modules/ocsigenduce.cmi modules/eliomduce.cmi modules/xhtml1_strict.cmi
-# modules/rss2.cmi modules/ocsigenrss.cmi
+DUCECMAO=eliom/ocsigenduce.cma eliom/eliomduce.cma
+# eliom/ocsigenrss.cma
+DUCECMI=eliom/ocsigenduce.cmi eliom/eliomduce.cmi eliom/xhtml1_strict.cmi
+# eliom/rss2.cmi eliom/ocsigenrss.cmi
 DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 # examples/ocamlduce/examplerss.cmo
-DUCEDOC=modules/eliomduce.mli modules/xhtml1_strict.ml
+DUCEDOC=eliom/eliomduce.mli eliom/xhtml1_strict.ml
 CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 else
 DUCECMAO=
@@ -28,37 +28,37 @@ DATADIR = "error"
 endif
 
 ifeq "$(OCSIPERSISTSQLITE)" "YES"
-SQLITEINSTALL= modules/ocsipersist-sqlite.cma
+SQLITEINSTALL= extensions/ocsipersist-sqlite.cma
 else
 endif
 
 ifeq "$(CAMLZIP)" "YES"
-DEFLATEMODINSTALL= modules/deflatemod.cmo
+DEFLATEMODINSTALL= extensions/deflatemod.cmo
 else
 endif
 
 ifeq "$(OCSIPERSISTDBM)" "YES"
-DBMINSTALL= modules/ocsipersist-dbm/ocsipersist-dbm.cma 
+DBMINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma 
 else
 endif
 
 
 
 INSTALL = install
-TARGETSBYTE = xmlp4.byte baselib.byte lwt.byte http.byte server.byte modules.byte examples.byte
+TARGETSBYTE = xmlp4.byte baselib.byte lwt.byte http.byte server.byte extensions.byte eliom.byte examples.byte
 
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
-	modules/eliom.cma modules/ocsigenmod.cma \
-	modules/staticmod.cmo modules/cgimod.cmo $(DEFLATEMODINSTALL) \
+	eliom/eliom.cma eliom/ocsigenmod.cma \
+	extensions/staticmod.cmo extensions/cgimod.cmo $(DEFLATEMODINSTALL) \
 	$(DUCECMAO)
-PLUGINSCMITOINSTALL = modules/ocsipersist.cmi \
-       modules/eliommkforms.cmi modules/eliommkreg.cmi \
-       modules/eliomtools.cmi \
-       modules/ocsigen.cmi modules/ocsigenboxes.cmi modules/eliomtools.cmi \
+PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
+       eliom/eliommkforms.cmi eliom/eliommkreg.cmi \
+       eliom/eliomtools.cmi \
+       eliom/ocsigen.cmi eliom/ocsigenboxes.cmi eliom/eliomtools.cmi \
        $(DUCECMI) \
-       modules/eliomsessions.cmi modules/eliomparameters.cmi \
-       modules/eliomservices.cmi modules/eliompredefmod.cmi
-#       modules/eliom.cmi
+       eliom/eliomsessions.cmi eliom/eliomparameters.cmi \
+       eliom/eliomservices.cmi eliom/eliompredefmod.cmi
+#       eliom/eliom.cmi
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi lwt/lwt_chan.cmi lwt/lwt_ssl.cmi lwt/lwt_timeout.cmi lwt/lwt_util.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
@@ -139,13 +139,21 @@ http.byte:
 http.opt:
 	$(MAKE) -C http opt
 
-modules: modules.byte
+extensions: extensions.byte
 
-modules.byte:
-	$(MAKE) -C modules byte
+extensions.byte:
+	$(MAKE) -C extensions byte
 
-modules.opt:
-	$(MAKE) -C modules opt
+extensions.opt:
+	$(MAKE) -C extensions opt
+
+eliom: eliom.byte
+
+eliom.byte:
+	$(MAKE) -C eliom byte
+
+eliom.opt:
+	$(MAKE) -C eliom opt
 
 examples: examples.byte
 
@@ -164,7 +172,7 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc -html lwt/lwt.mli lwt/lwt_unix.mli lwt/lwt_util.mli lwt/lwt_chan.mli lwt/lwt_ssl.mli lwt/lwt_timeout.mli modules/eliommkforms.mli modules/eliommkreg.mli modules/eliompredefmod.mli modules/eliommod.mli modules/eliomparameters.mli modules/eliomservices.mli modules/eliomsessions.mli server/extensions.mli server/preemptive.mli server/parseconfig.mli xmlp4/oldocaml/xhtmltypes.ml xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.mli http/ocsiheaders.mli http/predefined_senders.mli modules/eliomtools.mli modules/ocsipersist.mli xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc -html lwt/lwt.mli lwt/lwt_unix.mli lwt/lwt_util.mli lwt/lwt_chan.mli lwt/lwt_ssl.mli lwt/lwt_timeout.mli eliom/eliommkforms.mli eliom/eliommkreg.mli eliom/eliompredefmod.mli eliom/eliommod.mli eliom/eliomparameters.mli eliom/eliomservices.mli eliom/eliomsessions.mli server/extensions.mli server/preemptive.mli server/parseconfig.mli xmlp4/oldocaml/xhtmltypes.ml xmlp4/ohl-xhtml/xHTML.mli eliom/ocsigenboxes.mli baselib/messages.mli http/ocsiheaders.mli http/predefined_senders.mli eliom/eliomtools.mli extensions/ocsipersist.mli xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 
 doc/index.html: doc
 
@@ -174,13 +182,14 @@ $(OCSIGENNAME).conf.local:
 	| sed s%_LOGDIR_%$(SRC)/var/log%g \
 	| sed s%_STATICPAGESDIR_%$(SRC)/files%g \
 	| sed s%_DATADIR_%$(SRC)/var/lib%g \
-	| sed s%_BINDIR_%$(SRC)/modules/ocsipersist-dbm%g \
+	| sed s%_BINDIR_%$(SRC)/extensions/ocsipersist-dbm%g \
 	| sed s%_UP_%$(SRC)/tmp%g \
 	| sed s%_OCSIGENUSER_%%g \
 	| sed s%_OCSIGENGROUP_%%g \
 	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
 	| sed s%_COMMANDPIPE_%$(SRC)/var/run/ocsigen_command%g \
-	| sed s%_MODULEINSTALLDIR_%$(SRC)/modules%g \
+	| sed s%_MODULEINSTALLDIR_%$(SRC)/extensions%g \
+	| sed s%_ELIOMINSTALLDIR_%$(SRC)/eliom%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
 	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
 	| sed s%_CRYPTOKITINSTALLDIR_%$(CRYPTOKITINSTALLDIR)%g \
@@ -221,9 +230,9 @@ partialinstall:
 	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
-	-$(INSTALL) -m 755 modules/ocsipersist-dbm/ocsidbm $(TEMPROOT)/$(BINDIR)/
-	[[ ! ( -f modules/ocsipersist-dbm/ocsidbm.opt ) ]] || \
-	$(INSTALL) -m 755 modules/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
+	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)/$(BINDIR)/
+	[[ ! ( -f extensions/ocsipersist-dbm/ocsidbm.opt ) ]] || \
+	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
 	-rm META
 
 docinstall: doc/index.html
@@ -256,6 +265,7 @@ installnodoc: partialinstall
 	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
 	| sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
+	| sed s%_ELIOMINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
 	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
 	| sed s%_CRYPTOKITINSTALLDIR_%$(CRYPTOKITINSTALLDIR)%g \

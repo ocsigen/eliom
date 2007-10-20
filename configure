@@ -84,7 +84,7 @@ ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce t
 ehelp_newocamlnet="Use new/old versions of Ocamlnet (>= 2.0)"
 ehelp_sqlite="Compile ocsipersist with SQLite for persistent storage (default)"
 ehelp_dbm="Compile ocsipersist with DBM for persistent storage"
-ehelp_camlzip="Compile deflatemod module (requires camlzip); default is yes"
+ehelp_camlzip="Compile deflatemod extension (requires camlzip); default is yes"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
 eoptions="debug bytecode nativecode ocamlduce newocamlnet sqlite dbm camlzip"
@@ -222,7 +222,7 @@ _EOF_
         Install binaries into this directory
 
 --libdir dir
-        Install Ocsigen's modules into this directory
+        Install Ocsigen's extensions into this directory
 
 --examplesdir dir
         Install Ocsigen's examples sites into this directory
@@ -642,7 +642,7 @@ BINDIR = $root$bindir
 # The directory for ocsigen manpage:
 MANDIR = $root$mandir
 
-# Where to install the directory for ocsigen modules:
+# Where to install the directory for ocsigen extensions:
 MODULEINSTALLDIR = $root$libdir
 
 # Where to install examples:
@@ -656,7 +656,7 @@ OCSIGENUSER=$ocsigen_user
 # (This group must exist)
 OCSIGENGROUP=$ocsigen_group
 
-# The name of the server (and the directory for the modules)
+# The name of the server (and the directory for the extensions)
 OCSIGENNAME=$name
 
 # ocsigen's logs:
@@ -720,9 +720,9 @@ PROFILING=NO
 OCAMLVERSION=$ocamlversion
 
 # Do not modify this
-LIBDIRS= -I ../lwt -I ../baselib -I ../http -I ../xmlp4 -I ../server -I ../modules
-LIBDIRS2= -I ../../lwt -I ../../baselib -I ../../http -I ../../xmlp4 -I ../../server -I ../../modules
-LIBDIRS3= -I lwt -I baselib -I http -I xmlp4 -I server -I modules
+LIBDIRS= -I ../lwt -I ../baselib -I ../http -I ../xmlp4 -I ../server -I ../extensions -I ../eliom
+LIBDIRS2= -I ../../lwt -I ../../baselib -I ../../http -I ../../xmlp4 -I ../../server -I ../../extensions -I ../../eliom
+LIBDIRS3= -I lwt -I baselib -I http -I xmlp4 -I server -I extensions -I eliom
 
 _EOF_
 

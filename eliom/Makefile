@@ -6,30 +6,8 @@ FILES:= eliommod.ml eliomsessions.ml \
        eliomparameters.ml eliomservices.ml \
        eliommkforms.ml eliommkreg.ml eliompredefmod.ml \
        eliomtools.ml \
-       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml \
-       staticmod.ml cgimod.ml \
-       extensiontemplate.ml
+       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
-ifeq "$(OCSIPERSISTSQLITE)" "YES"
-FILESSQLITE= ocsipersist.ml
-OBJSQLITE= ocsipersist-sqlite.cma
-PACKSQLITE=,sqlite3
-else
-
-endif
-
-
-ifeq "$(CAMLZIP)" "YES"
-FILES:= $(FILES) deflatemod.ml
-PACKCAMLZIP=,$(CAMLZIPNAME)
-else
-endif
-
-ifeq "$(OCSIPERSISTDBM)" "YES"
-OBJDBMBYTE= dbm-byte
-OBJDBMOPT= dbm-opt
-else
-endif
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -81,7 +59,7 @@ endif
 
 # LIB=$(LIBDIRS)
 
-LIB = -thread -package netstring,cryptokit$(PACKCAMLZIP)$(PACKSQLITE) $(LIBDIRS)
+LIB = -thread -package netstring,cryptokit $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
@@ -96,38 +74,30 @@ OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJDBMBYTE) $(OBJS) \
-      eliom.cma ocsigenmod.cma staticmod.cmo cgimod.cmo \
-      $(DUCEMODBYTE)
+byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) \
+      eliom.cma ocsigenmod.cma $(DUCEMODBYTE)
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJDBMOPT) $(OBJSOPT) \
-     eliom.cmxs ocsigenmod.cmxs staticmod.cmxs cgimod.cmxs \
-     $(DUCEMODOPT)
+opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) \
+     eliom.cmxs ocsigenmod.cmxs $(DUCEMODOPT)
 
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-.PHONY: doc depend dbm-byte dbm-opt
-
-dbm-byte:
-	$(MAKE) -C ocsipersist-dbm byte
-
-dbm-opt:
-	$(MAKE) -C ocsipersist-dbm opt
+.PHONY: doc depend
 
 eliomsessiondata.cmx: eliomsessiondata.ml
-	-rm ocsipersist.cmx
+	-rm ../extensions/ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
-	-touch ocsipersist.cmx
+	-touch ../extensions/ocsipersist.cmx
 # we remove ocsipersist.cmx, 
 # otherwise eliomsessiondata.cmx will will compiled against
 # that precise version of ocsipersist.cmx
 
 eliommod.cmx: eliommod.ml
-	-rm ocsipersist.cmx
+	-rm ../extensions/ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
-	-touch ocsipersist.cmx
+	-touch ../extensions/ocsipersist.cmx
 # idem
 
 eliom.cma: eliommod.cmo eliomsessions.cmo \
@@ -156,18 +126,6 @@ ocsigenmod.cmxs: ocsigenmod.cmx ocsigen.cmx ocsigenboxes.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenmod.cmxs ocsigenmod.cmx \
 	ocsigen.cmx ocsigenboxes.cmx
 
-staticmod.cmxs: staticmod.cmx
-	$(CAMLOPT) -shared -linkall -o staticmod.cmxs staticmod.cmx
-
-cgimod.cmxs: cgimod.cmx
-	$(CAMLOPT) -shared -linkall -o cgimod.cmxs cgimod.cmx
-
-deflatemod.cmxs: deflatemod.cmx
-	$(CAMLOPT) -shared -linkall -o deflatemod.cmxs deflatemod.cmx
-
-ocsipersist.cmxs: ocsipersist.cmx
-	$(CAMLOPT) -shared -linkall -o ocsipersist.cmxs ocsipersist.cmx
-
 ocsigenduce.cma: xhtml1_strict.cmo ocsigenduce.cmo
 	$(CAMLC) -a -o ocsigenduce.cma xhtml1_strict.cmo ocsigenduce.cmo 
 
@@ -186,12 +144,6 @@ ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
 ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenrss.cmxs $^
 
-ocsipersist-sqlite.cma: ocsipersist.cmo
-	$(CAMLC) -a -o ocsipersist-sqlite.cma ocsipersist.cmo
-
-ocsipersist-sqlite.cmxs: ocsipersist.cmx
-	$(CAMLOPT) -shared -linkall -o ocsipersist-sqlite.cmxs ocsipersist.cmx
-
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
@@ -208,15 +160,13 @@ ocsipersist-sqlite.cmxs: ocsipersist.cmx
 .PHONY: clean
 clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
-	$(MAKE) -C ocsipersist-dbm clean
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
-	$(MAKE) -C ocsipersist-dbm depend
 
 
 FORCE:
 
-include .depend
+-include .depend
 
 

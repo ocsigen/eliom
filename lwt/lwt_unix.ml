@@ -238,8 +238,8 @@ let set_state ch st =
   perform_actions outputs ch.fd
 
 let abort ch e =
-  if ch.state = Closed then check_descriptor ch; (* Bad file descriptor *)
-  set_state ch (Aborted e)
+  if ch.state <> Closed then
+    set_state ch (Aborted e)
 
 let unix_file_descr ch = ch.fd
 
