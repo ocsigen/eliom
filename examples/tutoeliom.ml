@@ -2618,19 +2618,45 @@ let _ = Cookies.register cookies
         <code>eliom.cma</code>, thus you need to dynlink it in the
         configuration file before <code>Eliom</code>).
         There are currently two implementations of <code>Ocsipersist</code>:
-        <code>ocsipersist-dbm.cma</code> and
-        <code>ocsipersist-sqlite.cma</code> (that depends on 
-        <code>sqlite3.cma</code>).
+        <code>ocsipersist-dbm.cma</code> (uses the DBM database) and
+        <code>ocsipersist-sqlite.cma</code> (uses the SQLite database,
+        and depends on <code>sqlite3.cma</code>).
       </p>
-      <p>Note that persistent data are serialized on hard disk using
-        OCaml's <code>Marshal</code> module. 
+      <p>These modules allow to:
       </p>
       <ul>
-        <li>It is not possible to serialize closures or services</li>
-        <li>Do not modify the type of serialized data, otherwise the
-          server will crash!
+        <li>Create persistent references 
+          (still present after restarting the server),</li>
+        <li>Create persistent association tables,</li>
+        <li>Set persistent session data (using 
+        <code>set_persistent_data</code>, see below).</li>
+      </ul>
+      <p>Note that persistent data are serialized on hard disk using
+        OCaml's <code>Marshal</code> module:
+      </p>
+   <div class="importantwarning">
+      <ul>
+        <li>It is not possible to serialize closures or services
+         (as we are using dynamic linking).</li>
+        <li>
+ If you ever change the type of serialised data, don't
+ forget to delete the database file!  
+ Or if you really want to keep it, and
+ you know what you are doing, you can use the sqlite client to manually
+ update the table or a program to create a new sqlite or dbm table 
+ for the new type.
         </li>
       </ul>
+   </div>
+   <p>
+   Suppose for example that you use <code>get/set_persistent_data</code>
+   (see below) to store a (int, string)
+ tuple with the user's login credentials.  At this point you stop the
+ server, and change the code such that get/set_persistent_data now to store
+ a (int, string, string).  Now recompile and restart the server.  If by any
+ chance a client with an old cookie reconnects, you get a segfault on the
+ server, because of the type change in the data stored in the DB backend ...
+   </p>
       <h4>Persistent references</h4>
       <p><code>Ocsipersist</code> allows to create persistent references.
        Here is an example of page with a persistent counter:
@@ -3758,14 +3784,14 @@ let uploadform = register upload
         use the following functions:</p>
       <pre><span class="Cem">css_link</span> (make_uri ~service:(static_dir sp) ~sp [<span class="Cstring">"style.css"</span>])</pre>
       <pre><span class="Cem">js_script</span> (make_uri ~service:(static_dir sp) ~sp [<span class="Cstring">"funs.js"</span>])</pre>
-      <h4>Menus</h4>
+      <h4>Basic menus</h4>
       <p>
       To make a menu on your web page, you can use the function 
-          <span class="Cem">$a ~fragment:"VALmenu" ~service:(static_dir sp) ~sp [code [pcdata "Eliomboxes.menu" ]] ["doc";version;"Eliomboxes.html"]$</span>.
+          <span class="Cem">$a ~fragment:"VALmenu" ~service:(static_dir sp) ~sp [code [pcdata "Eliomtools.menu" ]] ["doc";version;"Eliomtools.html"]$</span>.
       First, define your menu like this:
       </p>
 <pre><span class="Clet">let</span> mymenu current sp <span class="Cnonalphakeyword">=</span>
-  <span class="Cconstructor">Eliomboxes</span>.menu <span class="Clabel">~classe:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"menuprincipal"</span><span class="Cnonalphakeyword">]</span>
+  <span class="Cconstructor">Eliomtools</span>.menu <span class="Clabel">~classe:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"menuprincipal"</span><span class="Cnonalphakeyword">]</span>
     <span class="Cnonalphakeyword">(</span>home<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> Home &gt;&gt;<span class="Cnonalphakeyword">)</span>
     <span class="Cnonalphakeyword">[</span>
      <span class="Cnonalphakeyword">(</span>infos<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> More infos &gt;&gt;<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
@@ -3787,7 +3813,7 @@ let uploadform = register upload
   &lt;/li&gt;
 &lt;/ul&gt;</pre>
     <p>Personalise it in your CSS style-sheet.</p>
-    <p>$a ~fragment:"VALmenu" ~service:(static_dir sp) ~sp [code [pcdata "Eliomboxes.menu" ]] ["doc";version;"Eliomboxes.html"]$ takes a list of services without
+    <p>$a ~fragment:"VALmenu" ~service:(static_dir sp) ~sp [code [pcdata "Eliomtools.menu" ]] ["doc";version;"Eliomtools.html"]$ takes a list of services without
     GET parameters. 
     If you want one of the link to contains GET parameters, pre-apply
     the service.</p>
@@ -3797,7 +3823,106 @@ let uploadform = register upload
           Preapply your service.
           </p>
       </div>
+      <h4>Hierarchical menus</h4>
+      <p>
 
+      </p>
+*html*)
+(* Hierarchical menu *)
+open Eliomtools
+
+let hier1 = new_service ~path:["hier1"] ~get_params:unit ()
+let hier2 = new_service ~path:["hier2"] ~get_params:unit ()
+let hier3 = new_service ~path:["hier3"] ~get_params:unit ()
+let hier4 = new_service ~path:["hier4"] ~get_params:unit ()
+let hier5 = new_service ~path:["hier5"] ~get_params:unit ()
+let hier6 = new_service ~path:["hier6"] ~get_params:unit ()
+let hier7 = new_service ~path:["hier7"] ~get_params:unit ()
+let hier8 = new_service ~path:["hier8"] ~get_params:unit ()
+let hier9 = new_service ~path:["hier9"] ~get_params:unit ()
+let hier10 = new_service ~path:["hier10"] ~get_params:unit ()
+
+let mymenu =
+  (
+   (Main_page hier1),
+   
+   [([pcdata "page 1"], Site_tree (Main_page hier1, []));
+
+    ([pcdata "page 2"], Site_tree (Main_page hier2, []));
+
+    ([pcdata "submenu 4"],
+     Site_tree
+       (Default_page hier4,
+         [([pcdata "submenu 3"],
+          Site_tree
+             (Not_clickable,
+              [([pcdata "page 3"], Site_tree (Main_page hier3, []));
+               ([pcdata "page 4"], Site_tree (Main_page hier4, []));
+               ([pcdata "page 5"], Site_tree (Main_page hier5, []))]
+             )
+          ); 
+            
+          ([pcdata "page 6"], Site_tree (Main_page hier6, []))]
+       )
+    );
+    
+    ([pcdata "page 7"], 
+     Site_tree (Main_page hier7, []));
+
+    ([pcdata "disabled"], Disabled);
+    
+    ([pcdata "submenu 8"],
+     Site_tree
+       (Main_page hier8, 
+        [([pcdata "page 9"], Site_tree (Main_page hier9, []));
+         ([pcdata "page 10"], Site_tree (Main_page hier10, []))]
+       )
+    )
+  ]
+  )
+
+let f i s sp () () =
+  return 
+    (html
+       (head (title (pcdata "")) 
+          ((style ~contenttype:"text/css" 
+             [cdata_style
+ "a {color: red;}\n\
+  li.eliomtools_current > a {color: blue;}\n\
+  .breadthmenu li {\n\
+    display: inline;\n\
+    padding: 0px 1em;\n\
+    margin: 0px;\n\
+    border-right: solid 1px black;}\n\
+  .breadthmenu li.eliomtools_last {border: none;}\n\
+                "])::
+                structure_links mymenu s sp)
+             )
+       (body [h1 [pcdata ("Page "^string_of_int i)];
+              h2 [pcdata "Depth first, whole tree:"];
+              div
+                (hierarchical_menu_depth_first
+                   ~whole_tree:true mymenu ~service:s ~sp);
+              h2 [pcdata "Depth first, only current submenu:"];
+              div (hierarchical_menu_depth_first mymenu ~service:s ~sp);
+              h2 [pcdata "Breadth first:"];
+              div
+                (hierarchical_menu_breadth_first 
+                   ~classe:["breadthmenu"] mymenu ~service:s ~sp )]))
+
+
+let _ =
+  register hier1 (f 1 hier1);
+  register hier2 (f 2 hier2);
+  register hier3 (f 3 hier3);
+  register hier4 (f 4 hier4);
+  register hier5 (f 5 hier5);
+  register hier6 (f 6 hier6);
+  register hier7 (f 7 hier7);
+  register hier8 (f 8 hier8);
+  register hier9 (f 9 hier9);
+  register hier10 (f 10 hier10)
+(*html*
     </div>
 
 
@@ -4029,6 +4154,7 @@ let _ = register main
              $a send_any sp <:xmllist< <code>send_any</code> >> "valid"$<br/>
        A page with a persistent counter: 
              $a count2 sp <:xmllist< <code>count2</code> >> ()$ <br/> 
+       $a hier1 sp [pcdata "Hierarchical menu"] ()$ <br/> 
        </p>
        <h4>Advanced forms</h4>
        <p>

@@ -135,11 +135,11 @@ uninstall:
 	rm -f $(TEMPROOT)/$(BINDIR)/$(NAME).opt
 
 depend:
-	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
+	$(CAMLDEP) $(LIBDIRS) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
 
 
 FORCE:
 
-include .depend
+-include .depend
 
 

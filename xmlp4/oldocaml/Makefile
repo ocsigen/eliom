@@ -87,7 +87,7 @@ clean:
 
 # Dependencies
 depend: *.mli $(FILES)
-	$(CAMLDEP) $(PP) $(LIB) *.mli $(FILES) > depend
+	$(CAMLDEP) $(PP) $(LIBDIRS2) *.mli $(FILES) > depend
 
 FORCE:
 

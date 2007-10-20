@@ -784,6 +784,11 @@ module type T =
     val pcdata : string -> [>`PCDATA] elt
     val entity : string -> [>`PCDATA] elt
     val space : unit -> [>`PCDATA] elt
+    val cdata : string -> [`PCDATA] elt (* GK *)
+    val cdata_script : string -> [`PCDATA] elt (* GK *)
+    val cdata_style : string -> [`PCDATA] elt (* GK *)
+
+
     
 (** {2 Text} *)
     
@@ -1073,8 +1078,6 @@ module type T =
     val totl : XML.elt list -> 'a elt list
     val toelt : 'a elt -> XML.elt
     val toeltl : 'a elt list -> XML.elt list
-
-    val cdata_script : string -> [`PCDATA] elt (* GK *)
 
     val ocsigen_print : 
         ?width:int -> ?encode:(string -> string) -> [ `Html ] elt -> string
@@ -1457,6 +1460,37 @@ module Version =
 
     let space () = entity "nbsp"
     
+    let cdata s = (* GK *)
+      (* For security reasons, we do not allow "]]>" inside CDATA
+         (as this string is to be considered as the end of the cdata)
+       *)
+      let s' = "\n<![CDATA[\n"^
+        (Netstring_pcre.global_replace 
+           (Netstring_pcre.regexp_string "]]>") "" s)
+        ^"\n]]>\n" in
+      XML.EncodedPCDATA s'
+    
+    let cdata_script s = (* GK *)
+      (* For security reasons, we do not allow "]]>" inside CDATA
+         (as this string is to be considered as the end of the cdata)
+       *)
+      let s' = "\n//<![CDATA[\n"^
+        (Netstring_pcre.global_replace 
+           (Netstring_pcre.regexp_string "]]>") "" s)
+        ^"\n//]]>\n" in
+      XML.EncodedPCDATA s'
+    
+    let cdata_style s = (* GK *)
+      (* For security reasons, we do not allow "]]>" inside CDATA
+         (as this string is to be considered as the end of the cdata)
+       *)
+      let s' = "\n/* <![CDATA[ */\n"^
+        (Netstring_pcre.global_replace 
+           (Netstring_pcre.regexp_string "]]>") "" s)
+        ^"\n/* ]]> */\n" in
+      XML.EncodedPCDATA s'
+    
+
     module TEXT =
       struct
         type heading = [ `H1 | `H2 | `H3 | `H4 | `H5 | `H6 ]
@@ -1847,13 +1881,6 @@ module Version =
     let toelt x = x
     let toeltl x = x
 
-    let cdata_script s = (* GK *)
-      let s' = "\n//<![CDATA[\n"^
-        (Netstring_pcre.global_replace 
-           (Netstring_pcre.regexp_string "]]>") "" s)
-        ^"\n//]]>\n" in
-      XML.EncodedPCDATA s'
-    
     let ocsigen_print version ?width ?encode arbre =
       XML.xh_print ?width ?encode blocktags semiblocktags (doctype version) arbre
 

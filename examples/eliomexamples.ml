@@ -97,12 +97,12 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 let preappl2 = preapply uasuffix (1999,01)
 
 let mymenu current sp =
-  Eliomboxes.menu ~classe:["menuprincipal"]
+  Eliomtools.menu ~classe:["menuprincipal"]
     (coucou, <:xmllist< coucou >>)
     [
      (preappl, <:xmllist< params >>);
      (preappl2, <:xmllist< params and suffix >>);
-   ] current sp
+   ] ~service:current ~sp
 
 let preappmenu = 
   register_new_service 
@@ -114,6 +114,7 @@ let preappmenu =
           (head (title (pcdata "")) [])
           (body [h1 [pcdata "Hallo"];
                mymenu coucou sp ])))
+
 
 
 
@@ -826,7 +827,7 @@ let mainpage = register_new_service ["tests"] unit
          a any3 sp [pcdata "any parameters broken (s after any)"] 
            (4, ([("Thierry","Richard");("Sébastien","Stéphane")], "s")); br ();
 (* broken        a any4 sp [pcdata "Any in suffix"] [("bo","ba");("bi","bu")]; br (); *)
-         a any5 sp [pcdata "Suufix + any parameters"] 
+         a any5 sp [pcdata "Suffix + any parameters"] 
            ("ee", [("bo","ba");("bi","bu")]); br ();
          a uploadgetform sp [pcdata "Upload with GET"] (); br (); 
 (* broken        a sufli sp [pcdata "List in suffix"] ["bo";"ba";"bi";"bu"]; br ();*)

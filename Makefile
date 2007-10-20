@@ -53,8 +53,8 @@ PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	$(DUCECMAO)
 PLUGINSCMITOINSTALL = modules/ocsipersist.cmi \
        modules/eliommkforms.cmi modules/eliommkreg.cmi \
-       modules/eliomboxes.cmi \
-       modules/ocsigen.cmi modules/ocsigenboxes.cmi modules/eliomboxes.cmi \
+       modules/eliomtools.cmi \
+       modules/ocsigen.cmi modules/ocsigenboxes.cmi modules/eliomtools.cmi \
        $(DUCECMI) \
        modules/eliomsessions.cmi modules/eliomparameters.cmi \
        modules/eliomservices.cmi modules/eliompredefmod.cmi
@@ -164,7 +164,7 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc -html lwt/lwt.mli lwt/lwt_unix.mli lwt/lwt_util.mli lwt/lwt_chan.mli lwt/lwt_ssl.mli lwt/lwt_timeout.mli modules/eliommkforms.mli modules/eliommkreg.mli modules/eliompredefmod.mli modules/eliommod.mli modules/eliomparameters.mli modules/eliomservices.mli modules/eliomsessions.mli server/extensions.mli server/preemptive.mli server/parseconfig.mli xmlp4/oldocaml/xhtmltypes.ml xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.ml http/ocsiheaders.mli http/predefined_senders.mli modules/eliomboxes.mli modules/ocsipersist.mli xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -d doc -html lwt/lwt.mli lwt/lwt_unix.mli lwt/lwt_util.mli lwt/lwt_chan.mli lwt/lwt_ssl.mli lwt/lwt_timeout.mli modules/eliommkforms.mli modules/eliommkreg.mli modules/eliompredefmod.mli modules/eliommod.mli modules/eliomparameters.mli modules/eliomservices.mli modules/eliomsessions.mli server/extensions.mli server/preemptive.mli server/parseconfig.mli xmlp4/oldocaml/xhtmltypes.ml xmlp4/ohl-xhtml/xHTML.mli modules/ocsigenboxes.mli baselib/messages.mli http/ocsiheaders.mli http/predefined_senders.mli modules/eliomtools.mli modules/ocsipersist.mli xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 
 doc/index.html: doc
 
@@ -200,7 +200,7 @@ $(OCSIGENNAME).conf.local:
 	> $(OCSIGENNAME).conf.opt.local
 
 clean:
-	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
+#	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
 	-rm -f lib/* lib/*~
 	-rm -f bin/* bin/*~

@@ -1,10 +1,11 @@
+
 include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= eliommod.ml eliomsessions.ml \
        eliomparameters.ml eliomservices.ml \
        eliommkforms.ml eliommkreg.ml eliompredefmod.ml \
-       eliomboxes.ml \
+       eliomtools.ml \
        ocsigenmod.ml ocsigen.ml ocsigenboxes.ml \
        staticmod.ml cgimod.ml \
        extensiontemplate.ml
@@ -132,20 +133,20 @@ eliommod.cmx: eliommod.ml
 eliom.cma: eliommod.cmo eliomsessions.cmo \
 	eliomparameters.cmo eliomservices.cmo \
 	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
-	eliomboxes.cmo
+	eliomtools.cmo
 	$(CAMLC) -a -o eliom.cma \
 	eliommod.cmo eliomsessions.cmo eliomparameters.cmo eliomservices.cmo \
 	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
-	eliomboxes.cmo
+	eliomtools.cmo
 
 eliom.cmxs: eliommod.cmx eliomsessions.cmx \
 	eliomparameters.cmx eliomservices.cmx \
 	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
-	eliomboxes.cmx
+	eliomtools.cmx
 	$(CAMLOPT) -shared -linkall -o eliom.cmxs \
 	eliommod.cmx eliomsessions.cmx eliomparameters.cmx eliomservices.cmx \
 	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
-	eliomboxes.cmx
+	eliomtools.cmx
 
 ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
 	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \

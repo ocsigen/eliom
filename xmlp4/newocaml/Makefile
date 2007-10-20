@@ -92,7 +92,7 @@ depend: *.mli *.ml
 #	-rm -f xhtmltypes.ml
 #	camlp4 -parser OCaml -printer OCamlr ../oldocaml/xhtmltypes.ml > \
 #		xhtmltypes.ml
-	$(CAMLDEP) $(PP) $(LIB) *.mli *.ml > depend
+	$(CAMLDEP) $(PP) $(LIBDIRS2) *.mli *.ml > depend
 
 FORCE:
 
