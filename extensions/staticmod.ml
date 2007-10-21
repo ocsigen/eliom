@@ -33,7 +33,7 @@ open Extensions
 
 
 (*****************************************************************************)
-(* The table of static pages for each virtual server                            *)
+(* The table of static pages for each virtual server                         *)
 type assockind = 
   | Dir of string * bool
   | Regexp of Netstring_pcre.regexp * string * bool
@@ -59,7 +59,6 @@ let find k = List.assoc k !page_tree_table
 let add k a = page_tree_table:= (k,a)::!page_tree_table
 
 (*****************************************************************************)
-
 let set_dir dirref assoc path =
   let rec assoc_and_remove a = function
     | [] -> raise Not_found
@@ -92,7 +91,7 @@ let set_dir dirref assoc path =
 
 
 (*****************************************************************************)
-
+(* directory listing - by Gabriel Kerneis *)
 
 let rec space=function
   | 0 -> ""
@@ -237,10 +236,10 @@ let index_of filename stat path=
 
 
 
+(*****************************************************************************)
+(* Finding files *)
 
 let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
-
-
 
 let find_static_page staticdirref path =
   let find_file (filename, readable) handler =
@@ -390,8 +389,9 @@ let gen pages_tree charset ri =
           (* static pages do not have parameters *)
       then begin
         Messages.debug ("--Staticmod: Is it a static file?");
+        let path = if ri.ri_path = [] then ""::ri.ri_path else ri.ri_path in
         let (filename, stat, index) =
-          find_static_page pages_tree ri.ri_path
+          find_static_page pages_tree path
         in
 	stream_of_string filename >>= fun content ->
 	if index
@@ -461,14 +461,14 @@ let parse_config page_tree path = function
         let dir = match atts with
         | [] -> 
             raise (Error_in_config_file
-                     "dir attribute expected for <staticdir>")
+                     "dir or regexp attributes expected for <static>")
         | [("dir", s)] -> Dir (remove_end_slash s, false)
         | [("dir", s);("readable","readable")] -> Dir (remove_end_slash s, true)
         | [("regexp", s);("dest",t)] -> 
 	    Regexp ((Netstring_pcre.regexp ("/"^s)), t, false)
         | [("regexp", s);("dest",t);("readable","readable")] -> 
 	    Regexp ((Netstring_pcre.regexp ("/"^s)), t, true)
-        | _ -> raise (Error_in_config_file "Wrong attribute for <staticdir>")
+        | _ -> raise (Error_in_config_file "Wrong attribute for <static>")
         in
         set_dir page_tree dir path
   | Element (t, _, _) -> 

@@ -1485,6 +1485,42 @@ end
 
 module Redirections = MakeRegister(Redirreg_)
 
+module TempRedirreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = string
+
+  let send ?(cookies=[]) ?charset ?(code = 302) ~sp content =
+    EliomResult
+      {res_cookies= cookies;
+       res_lastmodified= None;
+       res_etag= None;
+       res_code= Some code; (* Temporary move *)
+       res_send_page= 
+       (fun ?filter ?cookies waiter ~clientproto ?code ?etag ~keep_alive
+           ?last_modified ?location ~head ?headers ?charset s ->
+             Predefined_senders.send_empty
+               ~content:()
+               ?filter
+               ?cookies
+               waiter 
+               ~clientproto
+               ?code
+               ?etag ~keep_alive
+               ?last_modified 
+               ~location:content
+               ~head ?headers ?charset s);
+       res_headers= Http_headers.empty;
+       res_charset= None;
+       res_filter=None
+     }
+
+end
+
+
+module TempRedirections = MakeRegister(TempRedirreg_)
+
 
 (* Any is a module allowing to register service that decide themselves
    what they want to send.

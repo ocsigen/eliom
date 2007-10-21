@@ -545,6 +545,13 @@ module Unit : Eliommkreg.ELIOMREGSIG with
 module Redirections : Eliommkreg.ELIOMREGSIG with 
   type page = string
 
+(** Allows to create temporary redirections towards other URLs.
+   A 302 code is sent to the browser to ask it to redo the request to
+   another URL.
+ *)
+module TempRedirections : Eliommkreg.ELIOMREGSIG with 
+  type page = string
+
 (** Allows to send files. The content is the name of the file to send. *)
 module Files : Eliommkreg.ELIOMREGSIG with 
   type page = string

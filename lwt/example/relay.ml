@@ -3,7 +3,7 @@
 
 (* This program waits for a connection on <listening_port>. It then
    connect to <dest_port> and relay everything it receives in either
-   side to the other side.  It exists when either side closes the
+   side to the other side.  It exits when either side closes the
    connection. *)
 
 let listening_port = int_of_string Sys.argv.(1)
