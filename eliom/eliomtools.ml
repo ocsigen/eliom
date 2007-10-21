@@ -79,12 +79,15 @@ and ('a, 'b, 'c) hierarchical_site =
 let find_in_hierarchy service (main, pages) =
   let rec aux i = function
     | [] -> raise Not_found
-    | (_, Site_tree (Main_page s, _))::_ when s = service -> [i]
+    | (_, Site_tree (Main_page s, hsl))::_ when s = service -> 
+        (try
+          i::aux 0 hsl
+        with Not_found -> [i])
     | (_, Disabled)::l -> aux (i+1) l
     | (_, Site_tree (_, hsl))::l ->
-        try
+        (try
           i::aux 0 hsl
-        with Not_found -> aux (i+1) l
+        with Not_found -> aux (i+1) l)
   in 
   try
     aux 0 pages

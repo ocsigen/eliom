@@ -7,6 +7,10 @@
 ~/bin/caml2html -css -hc2 -oc tutoeliom.ml
 *zap*)
 (*html*
+
+let part0 sp = 
+<:xmllist<
+
     <div class="twocol1">
       <p>This is the tutorial for <em>Eliom</em> (development version).
         We are currently working a lot on the documentation for version 1.
@@ -32,8 +36,17 @@
       <p><em>Warning: This tutorial assumes you know the 
         <em>Objective Caml</em> language.</em></p>
     </div>
+
+>>
+
+
+
+let part1 sp = 
+<:xmllist<
+
+
    <h2>1. The basics: main services, parameters, forms, cooperative programming</h2>
-    <h3>Base principles</h3>
+    <h3 id="p1baseprinciples">Base principles</h3>
     <div class="twocol1">
       <p>Unlike many other Web programming techniques (CGI, PHP,&nbsp;...), 
           with Eliom, you don't write one file for each URL, but
@@ -63,7 +76,7 @@ open Eliompredefmod.Xhtml
 (*html*
       <p>$a ~service:(static_dir sp) ~sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$
       (lightweight threads) is the cooperative thread library used by Ocsigen
-      (<a href="#lwt">see later</a>).</p>
+      (<a href="#p1threads">see later</a>).</p>
       <p>Here is an example showing how to create a new service and
          register a page created with XHTML.M. Use the function
          $a ~fragment:"VALregister_new_service" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.register_new_service" ]] ["doc";version;"Eliommkreg.ELIOMREGSIG1.html"]$:
@@ -105,7 +118,7 @@ let coucou =
       <p>As you can see, 
       $a ~fragment:"VALreturn" ~service:(static_dir sp) ~sp [code [pcdata "return" ]] ["doc";version;"Lwt.html"]$ is a function from $a ~service:(static_dir sp) ~sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$.
       Use it as this for now, and 
-      <a href="#lwt">see later</a> for more advanced use.</p>
+      <a href="#p1threads">see later</a> for more advanced use.</p>
       <p>
       Now you can compile your file (here tutorial.ml) by doing:</p>
       <pre>ocamlc -I /<em>path_to</em>/ocsigen/ -c tutorial.ml</pre>
@@ -293,7 +306,7 @@ let coucoutext =
 
       </div>
     </div>
-    <h3>More examples</h3>
+    <h3 id="p1moreexamples">More examples</h3>
     <div class="twocol1">
       <p>Services registered with <code>register_new_service</code>
          are available for all users. We call them <em>public services</em>.
@@ -359,7 +372,7 @@ let default = register_new_service ["rep";""] unit
       See $a Tutoeliom.default sp <:xmllist< default >> ()$.
       </p>
     </div>
-    <h3 id="parameters">Parameters</h3>
+    <h3 id="p1parameters">Parameters</h3>
     <div class="twocol1">
       <h4>Typed parameters</h4>
       <p>The parameter labelled 
@@ -556,7 +569,7 @@ let catch = register_new_service
    of the parameter).</p>
      </div>
     </div>
-    <h3>Links</h3>
+    <h3 id="p1links">Links</h3>
     <div class="twocol1">
       <p>To create a link (<code>&lt;a&gt;</code>), use the function 
           $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ (or <code>Eliomduce.Xhtml.a</code>, etc),
@@ -659,7 +672,7 @@ let essai =
       <p>The server won't accept to start if there are
          unregistered services.</p>
     </div>
-    <h3>Forms</h3>
+    <h3 id="p1forms">Forms</h3>
     <div class="twocol1">
       <h4>Forms towards services</h4>
       <p>The function $a ~fragment:"VALget_form" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ allows to create a form
@@ -861,7 +874,7 @@ let form4 = register_new_service ["form4"] unit
       </p>
 
     </div>
-    <h3 id="lwt">Threads</h3>
+    <h3 id="p1threads">Threads</h3>
     <div class="twocol1">
       <p>
       Remember that a Web site written with Eliom is an OCaml application.
@@ -872,21 +885,10 @@ let form4 = register_new_service ["form4"] unit
       by Jérôme Vouillon ($a ~service:(static_dir sp) ~sp [code [pcdata "Lwt" ]] ["doc";version;"Lwt.html"]$ module), which make them really easy
       to use.
       </p>
-      <p>With respect to preemptive threads, cooperative threads are not using
-      a scheduler to distribute processor time between threads. Instead of 
-      this, each thread must tell the others that he wants to let them
-      work. If a thread does not cooperate, 
-        the others will be blocked.
+      <p>Take time to read the 
+        $a lwt sp [pcdata "documentation about "; code [pcdata "Lwt"]] ()$
+        right now if you want to understand the foloowing of this tutorial.
       </p>
-      <dl>
-        <dt>Advantages</dt><dd><ul>
-          <li>It is much lighter</li>
-          <li>No need of mutex and no risk of deadlock!</li>
-          <li>The use of many (small) threads make implementation very easy (for example, for user interfaces, no need to implement another event loop, make a thread for each widget!)</li>
-         </ul></dd>
-        <dt>Drawbacks</dt><dd><ul>
-          <li>Threads must cooperate&nbsp;... Otherwise the whole program will hang.</li></ul></dd>
-      </dl>
       <p>As it does not cooperate, the following page will stop the
       server for 5 seconds. No one will be able to do a request during
       this delay:</p>
@@ -915,98 +917,14 @@ let looong =
           (body [h1 [pcdata 
                    "Ok now, you can read the page."]])))
 (*html*
-      <p class="importantwarning">
-        The binary operator <code>&gt;&gt;=</code> used to bind the result of
-        a non blocking computation to another. In other words, it
-        means: <em>"if the left handside takes time, do not block here,
-        continue to the next instruction, but remember to come back here and
-        give the result to the following function once you get it"</em>.
-      </p>
-     <p>In other words, it is used to
-     specify a sequence of computations that depend one from another.
-     It is a kind of <code>let</code> binding.
-     <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>
-     will try to evaluate <code>e1</code>, and once <code>e1</code>
-     is evaluated, it will give the result to the function given as second
-     parameter.
-     If the left handside (<code>e1</code>)
-     takes time (for example because it is waiting for a read on a socket),
-     the whole computation will be saved in a table and the program will
-     continue to the next instruction that does not depend on <code>e1</code>. 
-     The computation will resume at a future
-     cooperation point, if it is ready to continue.
-     Instead of <code>e1 &gt;&gt;= (fun r -&gt; return e2)</code>,
-     you can write <code>bind e1 (fun r -&gt; return e2)</code>.
-     </p>
-     <p>$a Tutoeliom.looong sp <:xmllist< See <code>looong</code> >> ()$.</p>
-     <p>$a ~fragment:"VALbind" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.bind" ]] ["doc";version;"Lwt.html"]$, (or <code>&gt;&gt;=</code>) has type<br/>
-        <code>'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t</code></p>
-     <p>$a ~fragment:"VALreturn" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.return" ]] ["doc";version;"Lwt.html"]$ has type<br/>
-        <code>'a -&gt; 'a Lwt.t</code></p>
-     <p>$a ~fragment:"TYPEt" ~service:(static_dir sp) ~sp [code [pcdata "'a Lwt.t" ]] ["doc";version;"Lwt.html"]$ is the type of threads returning 
-        a result of type <code>'a</code>. All cooperative functions
-        must return this type.</p>
-     <p>Cooperation points are inserted when you call cooperative functions
-     such as $a ~fragment:"VALread" ~service:(static_dir sp) ~sp [code [pcdata "Lwt_unix.read" ]] ["doc";version;"Lwt_unix.html"]$ or
-     $a ~fragment:"VALwrite" ~service:(static_dir sp) ~sp [code [pcdata "Lwt_unix.write" ]] ["doc";version;"Lwt_unix.html"]$.
-     You can add other cooperation points by calling
-     $a ~fragment:"VALyield" ~service:(static_dir sp) ~sp [code [pcdata "Lwt_unix.yield ()" ]] ["doc";version;"Lwt_unix.html"]$. The thread will suspend itself,
-     Lwt will wake up the oldest waiting thread,
-     and this thread will resume as soon as possible.
-     </p>
-      <div class="importantwarning">
-      <p>
-      Monadic cooperative threads are not difficult to use once you get used
-      to think the following way: programming is not putting instructions 
-      one after another any more, but defining a dependency relation
-      (<code>&gt;&gt;=</code>) between function calls. 
-      Remember:
-      </p>
-      <ul>
-      <li>Functions that may take time to complete always return something
-      of type <code>&alpha; Lwt.t</code> (where <code>&alpha;</code> is
-      any type). They are called <em>cooperative functions</em>.</li>
-      <li>The only way to use the result of such a function is
-        to bind it to another cooperative function (what to do after) using 
-        <code>&gt;&gt;=</code>.
-      </li>
-      </ul>
-      </div>
     </div>
     <div class="twocol2">
-     <h4>Exceptions</h4>
-      <div class="importantwarning">
-      <p>
-       Use $a ~fragment:"VALfail" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.fail" ]] ["doc";version;"Lwt.html"]$ and 
-       $a ~fragment:"VALcatch" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.catch" ]] ["doc";version;"Lwt.html"]$ inside threads
-       instead of <code>raise</code> and <code>try ... with</code>.
+      <p>If you want to use, say, a database library that is not written
+       in cooperative way, but is thread safe for preemptive threads,
+       use the <code>Preemptive</code> module to
+       detach the computation. In the followinf example,
+       we simulate the request by a call to <code>Unix.sleep</code>:
       </p>
-      </div>
-     <p>To raise an exception <code>e</code> inside a Lwt thread, 
-     use <code>fail e</code> and be carefull about functions that may raise
-     exceptions. 
-     </p>
-     <p>You must be careful when catching exception with <code>Lwt</code>.
-     If you use the <code>try ... with</code> construct for an expression
-     of type <code>'a Lwt.t</code>, it may not work (as the computation
-     may happen later).</p>
-     <p>Remember the following: if e has type <code>'a Lwt.t</code> 
-      (where <code>'a</code> is any type), do not write:</p>
-<pre><span style="color:#77aaaa">try</span>
-  e
-<span style="color:#77aaaa">with</span>
-  ...</pre>
-     <p>but write:</p>
-<pre>catch
-  (<span style="color:green">fun</span> () -&gt; e)
-  (<span style="color:green">function</span> ... <span style="color:#77aaaa">|</span> exn -&gt; fail exn)</pre>
-     <h4>What if my function is not implemented in cooperative way?</h4>
-      <h5>If my function is thread-safe (for preemptive threads)</h5>
-      <p>Ocsigen implements a way to make a non cooperative computation be
-      executed automatically by a another preemptive thread (for example
-      a database request using a non-cooperative database library, such as 
-      postgresql-ocaml or pgocaml). To do this,
-      use the $a ~fragment:"VALdetach" ~service:(static_dir sp) ~sp [code [pcdata "detach" ]] ["doc";version;"Preemptive.html"]$ function. For example:</p>
 *html*)
 let looong2 = 
   register_new_service 
@@ -1021,69 +939,9 @@ let looong2 =
                    "Ok now, you can read the page."]])))
 (*html*
       <p>$a Tutoeliom.looong2 sp <:xmllist< See <code>looong2</code> >> ()$.</p>      
-      <p>A pool of preemptive threads is waiting for such 
-      "detached functions". You can specify the number of threads in the pool
-      in the configuration file.</p>
-      <p>Warning: Detached functions must be thread-safe! Be careful to
-      concurrent access to data. Be sure to use mutexes for your own functions,
-      and use only thread-safe libraries.<!-- For example <code></code>
-      (version ) is NOT thread-safe, <code></code>
-      (version ) is thread-safe. --> The libraries from Ocsigen
-      are NOT thread-safe for now. Let us know if you really need them to be
-      thread-safe.</p>
-      <h5>If my function is not thread-safe (for preemptive threads)</h5>
-      <p>If you want to use a function that takes time to execute but
-      it not written in thread-safe way (for example some functions of OCaml's
-      <code>Str</code> module), 
-      consider rewriting it in cooperative
-      manner, or delegate the work to another process.</p>
-     <h4>Examples</h4>
-      <h5>A thread that prints "hello" every 10 seconds</h5>
-      <p>Just add the following lines to your program:</p>
-      <pre><span style="color:green">let rec</span> f () = 
-  print_endline "hello";
-  <span style="color:#0033cc">Lwt_unix</span>.sleep 10. &gt;&gt;= f
-in f ();
-      </pre>
-      <h5>More advanced use: Create a thread waiting for an event</h5>
-        <p>$a ~fragment:"VALwait" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.wait ()" ]] ["doc";version;"Lwt.html"]$ creates a thread that waits forever.
-          You can wake it up using $a ~fragment:"VALwakeup" ~service:(static_dir sp) ~sp [code [pcdata "Lwt.wakeup" ]] ["doc";version;"Lwt.html"]$.
-        </p>
-      <pre><span class="Ccomment">(* Create the event *)</span>
-<span class="Clet">let</span> w = wait () <span class="Cin">in</span>
-
-<span class="Ccomment">(* Bind a thread on this event *)</span>
-(w &gt;&gt;= (<span class="Cfun">fun</span> v -&gt; return (print_endline v));
-...
-
-<span class="Ccomment">(* Trigger the event *)</span>
-wakeup w "HELLO");
-<span class="Ccomment">(* All threads waiting for w are awoken, and w's value is "HELLO". *)</span>
-      </pre>
-      <h5>Cooperative <code>List.map</code></h5>
-      <p>Here is an example taken from $a ~service:(static_dir sp) ~sp [code [pcdata "Lwt_util" ]] ["doc";version;"Lwt_util.html"]$. It defines two functions <code>map</code> on lists. A thread is launched for each value of the list. In the first version, all threads are launched at the same moment. In the second one, they are sequentialized.</p>
-*html*)
-let rec map f l =
-  match l with
-  | [] -> return []
-  | v :: r ->
-      let t = f v in
-      let rt = map f r in
-      t >>= fun v' ->
-      rt >>= fun l' ->
-      return (v' :: l')
-    
-let rec map_serial f l =
-  match l with
-  | [] -> return []
-  | v :: r ->
-      f v >>= fun v' ->
-      map f r >>= fun l' ->
-      return (v' :: l')
-(*html*
     </div>
 
-    <h3>The big picture</h3>
+    <h3 id="p1thebigpicture">The big picture</h3>
     <div class="encadre sanstitre">
       <p>
          You now have the minimum knowledge to write basic Web sites with
@@ -1217,9 +1075,15 @@ let rec map_serial f l =
         URL is not reloaded after the action.
           </td></tr>
 <tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Redirections" ]] ["doc";version;"Eliompredefmod.Redirections.html"]$</th>
-          <td colspan="3">allows to register HTTP redirections.
+          <td colspan="3">allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
             The browser will get a 301 code in answer and redo the request
+            to the new URL.
+          </td></tr>
+<tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.TempRedirections" ]] ["doc";version;"Eliompredefmod.TempRedirections.html"]$</th>
+          <td colspan="3">allows to register HTTP temporary redirections.
+            You register the URL of the page you want to redirect to.
+            The browser will get a 302 code in answer and redo the request
             to the new URL.
           </td></tr>
 <tr><th class="row">$a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Files" ]] ["doc";version;"Eliompredefmod.Files.html"]$</th>
@@ -1312,6 +1176,12 @@ let rec map_serial f l =
       </dl>
     </div>
 
+>>
+
+
+let part2 sp = 
+<:xmllist<
+
 
    <h2>2. Sessions, users and other common situations in Web sites</h2>
 
@@ -1343,7 +1213,7 @@ let rec map_serial f l =
     </div>
 
 
-    <h3 id="sessdata">Session data</h3>
+    <h3 id="p2sessiondata">Session data</h3>
     <div class="twocol1">
       <p>
       Eliom provides a way to save session data on server side and 
@@ -1568,7 +1438,7 @@ let _ = register
         </li>
       </ul>
     </div>
-    <h3>Sessions services</h3>
+    <h3 id="p2sessionservices">Session services</h3>
     <div class="twocol1">
       <p>
       Eliom allows to replace a public service by a service valid only for
@@ -1601,7 +1471,7 @@ let _ = register
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
       usefull, for example with coservices (see 
-      <a href="#coservicesinsessiontable">later</a>).
+      <a href="#p2coservicesinsessiontable">later</a>).
       </p>
       <p>
       We first define the main page, with a login form:
@@ -1771,7 +1641,7 @@ let _ = register_for_session
        are called <em>public</em>.
       </p>
     </div>
-    <h3 id="coservices">Coservices</h3>
+    <h3 id="p2coservices">Coservices</h3>
     <div class="twocol1">
       <p>
    A coservice is a service that uses the same URL as 
@@ -1890,7 +1760,7 @@ let _ =
         It is better for ergonomics, but it would be even better to stay
         on the same page&nbsp;... How to do that with POST coservices?
         A much better solution will be seen in the
-        <a href="#actions">section 
+        <a href="#p2actions">section 
         about actions and non-attached coservices</a>.
       </p>
       <div class="encadre">
@@ -1950,11 +1820,11 @@ let _ =
        POST non-attached coservices are really usefull if you want a
        link or form to be present on every page but you don't want the
        URL to change. Very often, POST coservices are used with <em>actions</em>
-       (<a href="#actions">see more details and an example in the section about 
+       (<a href="#p2actions">see more details and an example in the section about 
           actions below</a>).
        </p>
     </div>
-    <h3 id="coservicesinsessiontable">Coservices in session tables</h3>
+    <h3 id="p2coservicesinsessiontable">Coservices in session tables</h3>
     <div id="calc" class="twocol1">
     <p>You can register coservices in session tables to create
        dynamically new services dedicated to an user.
@@ -2148,7 +2018,7 @@ let () =
 
 
 
-    <h3 id="actions">Actions</h3>
+    <h3 id="p2actions">Actions</h3>
     <div class="twocol1">
       <p>Actions are services that do not generate any page.
    Use them to perform an effect on the server (connection/disconnection
@@ -2268,7 +2138,7 @@ let () =
 
      <p>
        That version of the site with connection solves the main problems of
-       <a href="#sessdata"><code>sessdata</code></a>:
+       <a href="#p2sessiondata"><code>sessdata</code></a>:
      </p>
      <ul>
        <li>
@@ -2284,7 +2154,7 @@ let () =
        We'll see later 
        <a href="#infofallbacks">how to display an error message</a>
        if the connection goes wrong, and
-       <a href="#persistent">how to have persistent
+       <a href="#p3persistenceofsessions">how to have persistent
        sessions</a> (that stay opened even if the server is re-launched).
      </p>
    
@@ -2292,7 +2162,7 @@ let () =
 
     </div>
 
-    <h3>Details on service registration:</h3>
+    <h3 id="p2detailsonserviceregistration">Details on service registration</h3>
     <div class="encadre sanstitre">
       <ul>
         <li>All services created during initialisation must be registered
@@ -2354,6 +2224,13 @@ let () =
     </div>
 
 
+>>
+
+
+let part3 sp = 
+<:xmllist<
+
+
    <h2>3. More details on services and page generation</h2>
     <div class="onecol">
      <p>
@@ -2369,7 +2246,7 @@ let () =
     </div>
 
 
-    <h3>Static parts</h3>
+    <h3 id="p3staticparts">Static parts</h3>
     <div class="twocol1">
       <h4>Fully static pages</h4>
       <p>The <code>staticmod</code> extension allows to associate
@@ -2402,7 +2279,7 @@ let () =
     </div>
 
 
-    <h3>Other kinds of pages</h3>
+    <h3 id="p3otherkindsofpages">Other kinds of pages</h3>
     <div class="twocol1">
     <h4>Sending portions of pages</h4>
     <p>
@@ -2577,7 +2454,7 @@ let _ = Cookies.register cookies
     </div>
 
 
-    <h3 id="persistent">Persistence of sessions</h3>
+    <h3 id="p3persistenceofsessions">Persistence of sessions</h3>
     <div class="twocol1">
       <p>Tables of sessions (for data or services) are kept in memory,
         and thus will disappear if you close the server process.
@@ -2721,7 +2598,7 @@ val remove : 'value table -> string -> unit Lwt.t
        with users, with persistent connections. 
        (<code>login_box</code>, <code>disconnect_box</code>
        and <code>disconnect_action</code>
-       are the same as <a href="#actions">before</a>).
+       are the same as <a href="#p2actions">before</a>).
       </p>
 
 *html*)
@@ -2860,7 +2737,7 @@ let () =
 
 
 
-    <h3>Other concepts</h3>
+    <h3 id="p3otherconcepts">Other concepts</h3>
     <div class="twocol1">
     <h4 id="preapplied">Pre-applied services</h4>
     <p>Services or coservices with GET parameters can be preapplied
@@ -2888,7 +2765,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     generated after them. Just place exceptions in the list returned by the
     action. These exceptions will also be accessible with 
     $a ~fragment:"VALget_exn" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_exn" ]] ["doc";version;"Eliomsessions.html"]$. Try to replace the lines 
-    <a href="#actions">above (example of session with actions)</a> by:
+    <a href="#p2actions">above (example of session with actions)</a> by:
     </p>
 *html*)
 (************************************************************)
@@ -3186,7 +3063,7 @@ let _ =
       <p>
       $a Tutoeliom.publiccoservsession sp <:xmllist< See this example here >> ()$.
       </p>
-     <h4>Define an exception handler for the whole site</h4>
+     <h4>Defining an exception handler for the whole site</h4>
      <p>When an exception is raised during the generation of a page,
      or when the page has not been found or has wrong parameters,
      an HTTP error 500 or 404 is sent to the client. You may want to
@@ -3263,12 +3140,12 @@ let _ = Eliomsessions.set_exn_handler
 
 
 
-    <h3>Advanced forms and parameters</h3>
+    <h3 id="p3advancedformsandparameters">Advanced forms and parameters</h3>
    
     <div class="twocol1">
       <p>This section shows more advanced use of page parameters and
       corresponding forms.</p>
-      <h4>Parse parameters using regular expressions</h4>
+      <h4>Parsing parameters using regular expressions</h4>
       <p>
         Eliomparameters.regexp allows to parse page parameters using (Perl-compatible)
         regular expressions. We use the module <code>Netstring_pcre</code>,
@@ -3765,7 +3642,7 @@ let uploadform = register upload
 
 
 
-    <h3>Predefined constructs</h3>
+    <h3 id="p3predefinedconstructs">Predefined constructs</h3>
     <div class="twocol1">
       <h4>Images, CSS, Javascript</h4>
       <p>
@@ -3927,9 +3804,9 @@ let _ =
 
 
 
-    <h3>Examples</h3>
+    <h3 id="p3examples">Examples</h3>
     <div class="twocol1">
-    <h4>Write a forum</h4>
+    <h4>Writing a forum</h4>
       <p>
       As an example,
       we will now write a small forum. Our forum has a main page,
@@ -4047,6 +3924,9 @@ let print_news_page sp i () =
      Eliom by Janne Hellsten. It is called <em>Miniwiki</em>.
     </p>
     </div>
+
+>>
+
 *html*)
 (*zap* *)
 
