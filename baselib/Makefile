@@ -66,6 +66,6 @@ depend: ocsiconfig.ml
 
 FORCE:
 
-include .depend
+-include .depend
 
 

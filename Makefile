@@ -57,8 +57,8 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/ocsigen.cmi eliom/ocsigenboxes.cmi eliom/eliomtools.cmi \
        $(DUCECMI) \
        eliom/eliomsessions.cmi eliom/eliomparameters.cmi \
-       eliom/eliomservices.cmi eliom/eliompredefmod.cmi
-#       eliom/eliom.cmi
+       eliom/eliomservices.cmi eliom/eliompredefmod.cmi \
+       eliom/eliommod.cmi
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi lwt/lwt_chan.cmi lwt/lwt_ssl.cmi lwt/lwt_timeout.cmi lwt/lwt_util.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
@@ -196,8 +196,8 @@ $(OCSIGENNAME).conf.local:
 	| sed s%_CAMLZIPDIR_%$(CAMLZIPDIR)%g \
 	| sed s%files/miniwiki%examples/miniwiki/files%g \
 	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
-	| sed s%\<\!--\ commandpipe%\<commandpipe%g \
-	| sed s%\</commandpipe\ --%\</commandpipe%g \
+	| sed s%\<\!--\ \<commandpipe%\<commandpipe%g \
+	| sed s%\</commandpipe\>%\</commandpipe\>\ \<\!--%g \
 	| sed s%ocsipersist-dbm.cma%ocsipersist-dbm/ocsipersist-dbm.cma%g \
 	| sed s%store\ dir=\"$(SRC)/var/lib\"%store\ dir=\"$(SRC)/var/lib/ocsipersist\"%g \
 	> $(OCSIGENNAME).conf.local

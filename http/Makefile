@@ -96,4 +96,4 @@ http_parser.ml: http_parser.mly
 .ml.cmx:
 	$(CAMLCOPT) $(PP) -c $(PROFILE) $(FLAGS) $(LIB) $<
 
-include .depend
+-include .depend

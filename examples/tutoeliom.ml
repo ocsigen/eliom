@@ -11,7 +11,7 @@
 let part0 sp = 
 <:xmllist<
 
-    <div class="twocol1">
+    <div class="onecol">
       <p>This is the tutorial for <em>Eliom</em> (development version).
         We are currently working a lot on the documentation for version 1.
         Please report any error in this tutorial 
@@ -22,16 +22,6 @@ let part0 sp =
          It uses very new concepts making programming very different
          from all other Web programming tools.
          It allows to write a complex Web site in very few lines of code.
-      </p>
-    </div>
-    <div class="twocol2">
-      <p>
-        The old <em>Ocsigenmod</em> used in version 0.6.0 is now deprecated
-        but you can still use it.
-        <em>Eliom</em> is very close to <em>Ocsigenmod</em>. Switching
-        to <em>Eliom</em> should be easy.
-        Have a look a $a toeliom sp [pcdata "that page"] ()$ 
-        to learn quickly how to adapt your sites.
       </p>
       <p><em>Warning: This tutorial assumes you know the 
         <em>Objective Caml</em> language.</em></p>
@@ -47,7 +37,7 @@ let part1 sp =
 
    <h2>1. The basics: main services, parameters, forms, cooperative programming</h2>
     <h3 id="p1baseprinciples">Base principles</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <p>Unlike many other Web programming techniques (CGI, PHP,&nbsp;...), 
           with Eliom, you don't write one file for each URL, but
           a caml module (cmo or cma) for the whole Web site.</p>
@@ -173,8 +163,9 @@ Type 'a is not compatible with type
    <p><code>'b</code> is the type of block tags (only tags allowed inside
    <code>&lt;body&gt;</code>), but PCDATA
         (i.e. raw text) is not a block tag.</p>
-    </div>
-    <div class="twocol2">
+
+
+
    <p>In XHTML, some tags cannot be empty. For example 
    <code>&lt;table&gt;</code> must contains at least one row.
    To enforce this, the $a ~fragment:"VALtable" ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M.table" ]] ["doc";version;"XHTML.M.html"]$ function takes two parameters:
@@ -307,7 +298,7 @@ let coucoutext =
       </div>
     </div>
     <h3 id="p1moreexamples">More examples</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <p>Services registered with <code>register_new_service</code>
          are available for all users. We call them <em>public services</em>.
       </p>
@@ -348,8 +339,9 @@ let hello =
       <p>
       See this example $a Tutoeliom.hello sp <:xmllist< here >> ()$.
       </p>
-    </div>
-    <div class="twocol2">
+
+
+
       <p>
         <em>Warning about pathes:</em> 
         <code>["foo";"bar"]</code> is not equivalent to
@@ -373,7 +365,7 @@ let default = register_new_service ["rep";""] unit
       </p>
     </div>
     <h3 id="p1parameters">Parameters</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <h4>Typed parameters</h4>
       <p>The parameter labelled 
         <code><span class="Clabel">~get_params</span></code>
@@ -484,8 +476,9 @@ let isuffix =
 (*html*
       <p>See $a Tutoeliom.isuffix sp <:xmllist< <code>isuffix</code> >> ((11, ["a";"b";"c"]) , 22)$.</p>
 
-    </div>
-    <div class="twocol2">
+
+
+
       <p>The following example shows how to use your own types:</p>
 *html*)
 type mysum = A | B
@@ -570,7 +563,7 @@ let catch = register_new_service
      </div>
     </div>
     <h3 id="p1links">Links</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <p>To create a link (<code>&lt;a&gt;</code>), use the function 
           $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ (or <code>Eliomduce.Xhtml.a</code>, etc),
           as in these examples:
@@ -612,8 +605,9 @@ let links = register_new_service ["rep";"links"] unit
 *zap*)
 (*html*
       <p>See $a Tutoeliom.links sp <:xmllist< <code>links</code> >> ()$.</p>
-    </div>
-    <div class="twocol2">
+
+
+
       <p>If you open $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] ["doc";version;"Eliompredefmod.Xhtml.html"]$ after $a ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M" ]] ["doc";version;"XHTML.M.html"]$,
         $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$
    will mask $a ~fragment:"VALa" ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M.a" ]] ["doc";version;"XHTML.M.html"]$.
@@ -673,7 +667,7 @@ let essai =
          unregistered services.</p>
     </div>
     <h3 id="p1forms">Forms</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <h4>Forms towards services</h4>
       <p>The function $a ~fragment:"VALget_form" ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] ["doc";version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ allows to create a form
       that uses the GET method (parameters in the URL).
@@ -782,8 +776,8 @@ let my_service_with_post_params =
          (head (title (pcdata "")) [])
          (body [h1 [pcdata value]])))
 (*html*
-    </div>
-    <div class="twocol2">
+
+
       <p>Services may take both GET and POST parameters:</p>
 *html*)
 let get_no_post_param_service = 
@@ -875,7 +869,7 @@ let form4 = register_new_service ["form4"] unit
 
     </div>
     <h3 id="p1threads">Threads</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <p>
       Remember that a Web site written with Eliom is an OCaml application.
       This application must be able to handle several requests at the same 
@@ -917,8 +911,9 @@ let looong =
           (body [h1 [pcdata 
                    "Ok now, you can read the page."]])))
 (*html*
-    </div>
-    <div class="twocol2">
+
+
+
       <p>If you want to use, say, a database library that is not written
        in cooperative way, but is thread safe for preemptive threads,
        use the <code>Preemptive</code> module to
@@ -1214,7 +1209,7 @@ let part2 sp =
 
 
     <h3 id="p2sessiondata">Session data</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <p>
       Eliom provides a way to save session data on server side and 
       restore it at each request. This data is available during the whole
@@ -1295,10 +1290,6 @@ let session_data_example_handler sp _ _  =
                          ~input_type:`Text ~name:login ()]]) ()
          ]))
 
-(*html*
-    </div>
-    <div class="twocol2">
-*html*)
 (* -------------------------------------------------------- *)
 (* Handler for the "session_data_example_with_post_params"  *)
 (* service with POST params:                                *)
@@ -1439,7 +1430,7 @@ let _ = register
       </ul>
     </div>
     <h3 id="p2sessionservices">Session services</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <p>
       Eliom allows to replace a public service by a service valid only for
       one user.
@@ -1542,8 +1533,8 @@ let session_services_example_close_handler sp () () =
                ]]))
 
 (*html*
-    </div>
-    <div class="twocol2">
+
+
     <p>When the page is called with login parameters,
        it runs the function <code>launch_session</code>
        that replaces some services already defined by new ones:
@@ -1642,7 +1633,7 @@ let _ = register_for_session
       </p>
     </div>
     <h3 id="p2coservices">Coservices</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <p>
    A coservice is a service that uses the same URL as 
    a main service, but generates another page.
@@ -1740,8 +1731,7 @@ let _ =
   Eliompredefmod.Xhtml.register coservices_example_post f;
   Eliompredefmod.Xhtml.register coservices_example_get f
 (*html*
-    </div>
-    <div class="twocol2">
+
       <p>Try $a Tutoeliom.coservices_example sp <:xmllist< <code>coserv</code> >> ()$.</p>
       <p>Note that if the coservice does not exist (for example it
       has expired), the fallback is called.</p>
@@ -1825,7 +1815,7 @@ let _ =
        </p>
     </div>
     <h3 id="p2coservicesinsessiontable">Coservices in session tables</h3>
-    <div id="calc" class="twocol1">
+    <div id="calc" class="onecol">
     <p>You can register coservices in session tables to create
        dynamically new services dedicated to an user.
        Here is an example of pages that add two integers.
@@ -1963,10 +1953,6 @@ let calc_handler sp () () =
        (body [f]))
 
 
-(*html*
-    </div>
-    <div class="twocol2">
-*html*)
 (* -------------------------------------------------------- *)
 (* The handler for the service with parameter.              *)
 (* It creates dynamically and registers a new coservice     *)
@@ -2019,7 +2005,7 @@ let () =
 
 
     <h3 id="p2actions">Actions</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <p>Actions are services that do not generate any page.
    Use them to perform an effect on the server (connection/disconnection
    of a user, adding something in a shopping basket, delete a message in 
@@ -2090,10 +2076,8 @@ let login_box sp =
          in l)
      ])
     ()
-(*html*
-    </div>
-    <div class="twocol2">
-*html*)
+
+
 (* -------------------------------------------------------- *)
 (* Handler for the "action_example" service (main page):    *)
 
@@ -2247,7 +2231,7 @@ let part3 sp =
 
 
     <h3 id="p3staticparts">Static parts</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <h4>Fully static pages</h4>
       <p>The <code>staticmod</code> extension allows to associate
          to your site a static directory
@@ -2275,12 +2259,11 @@ let part3 sp =
       <!-- h4>Static parts of a page</h4>
       <em>To be available soon</em -->
     </div>
-    <div class="twocol2">
-    </div>
+
 
 
     <h3 id="p3otherkindsofpages">Other kinds of pages</h3>
-    <div class="twocol1">
+    <div class="onecol">
     <h4>Sending portions of pages</h4>
     <p>
      The $a ~service:(static_dir sp) ~sp [code [pcdata "Eliompredefmod.Blocks" ]] ["doc";version;"Eliompredefmod.Blocks.html"]$ module allows to register services that
@@ -2353,8 +2336,7 @@ let sendfile2 =
        handle static files (see the default 
        configuration file for more informations).
       </p>
-    </div>
-    <div class="twocol2">
+
      <h4>Registering services that decide what they want to send</h4>
       <p>You may want to register a service that will send, for instance,
       sometimes
@@ -2455,7 +2437,7 @@ let _ = Cookies.register cookies
 
 
     <h3 id="p3persistenceofsessions">Persistence of sessions</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <p>Tables of sessions (for data or services) are kept in memory,
         and thus will disappear if you close the server process.
         To solve this problem, Ocsigen allows to reload the modules of
@@ -2588,8 +2570,7 @@ val remove : 'value table -> string -> unit Lwt.t
     <p>
       As you can see, all these function are cooperative.
     </p>
-    </div>
-    <div class="twocol2">
+
       <h4>Persistent session data</h4>
       <p><code>Eliom</code> also implements persistent session tables.
        You can use them instead of memory tables if you don't need
@@ -2738,7 +2719,7 @@ let () =
 
 
     <h3 id="p3otherconcepts">Other concepts</h3>
-    <div class="twocol1">
+    <div class="onecol">
     <h4 id="preapplied">Pre-applied services</h4>
     <p>Services or coservices with GET parameters can be preapplied
      to obtain a service without parameters. Example:
@@ -2970,8 +2951,9 @@ Eliomsessions.set_volatile_session_timeout ~sp (Some 7200.)
         and <code>&lt;/site&gt;</code>), you must parse the configuration
         ($a ~fragment:"VALget_config" ~service:(static_dir sp) ~sp [code [pcdata "Eliomsessions.get_config ()" ]] ["doc";version;"Eliomsessions.html"]$ function, see below).
      </p>
-    </div>
-    <div class="twocol2">
+
+
+
      <h4>Timeout for coservices</h4>
       <p>It is also possible to put timeouts on coservices using
       the optional parameter <code>?timeout</code> of functions
@@ -3142,7 +3124,7 @@ let _ = Eliomsessions.set_exn_handler
 
     <h3 id="p3advancedformsandparameters">Advanced forms and parameters</h3>
    
-    <div class="twocol1">
+    <div class="onecol">
       <p>This section shows more advanced use of page parameters and
       corresponding forms.</p>
       <h4>Parsing parameters using regular expressions</h4>
@@ -3362,8 +3344,9 @@ let select_example = register_new_service ["select"] unit
    As you can see in the type, the service must be declared with parameters
    of type $a ~fragment:"VALset" ~service:(static_dir sp) ~sp [code [pcdata "set" ]] ["doc";version;"Eliomparameters.html"]$.
      </p>
-    </div>
-    <div class="twocol2">
+
+
+
 
       <h4>Clickable images</h4>
       <p>Here is an example of clickable image.
@@ -3643,7 +3626,7 @@ let uploadform = register upload
 
 
     <h3 id="p3predefinedconstructs">Predefined constructs</h3>
-    <div class="twocol1">
+    <div class="onecol">
       <h4>Images, CSS, Javascript</h4>
       <p>
       To include an image, simply use the function $a ~fragment:"VALimg" ~service:(static_dir sp) ~sp [code [pcdata "XHTML.M.img" ]] ["doc";version;"XHTML.M.html"]$:
@@ -3677,8 +3660,9 @@ let uploadform = register upload
       <p>Here, <code>home</code>,  <code>infos</code>, 
         and <code>tutorial</code> are your three pages (generated for example
         by $a ~fragment:"VALnew_service" ~service:(static_dir sp) ~sp [code [pcdata "Eliomservices.new_service" ]] ["doc";version;"Eliomservices.html"]$).</p>
-    </div>
-    <div class="twocol2">
+
+
+
       <p>Then <code>mymenu home sp</code> will generate the following
         code:</p>
       <pre>&lt;ul class="menu menuprincipal"&gt;
@@ -3805,7 +3789,7 @@ let _ =
 
 
     <h3 id="p3examples">Examples</h3>
-    <div class="twocol1">
+    <div class="onecol">
     <h4>Writing a forum</h4>
       <p>
       As an example,
@@ -3849,8 +3833,9 @@ let _ =
   <span class="Clabel">~service:</span>news_page
   print_news_page
 </pre>
-    </div>
-    <div class="twocol2">
+
+
+
       <p>Now the same example with a login box on each page.
       We now have two versions of each page: connected and not connected.
       We need two actions (for connection and disconnection). 

@@ -74,6 +74,6 @@ depend:
 
 FORCE:
 
-include .depend
+-include .depend
 
 
