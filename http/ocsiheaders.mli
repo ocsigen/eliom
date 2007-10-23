@@ -25,39 +25,21 @@
 val get_keepalive : Http_frame.Http_header.http_header -> bool
 val parse_cookies : string  -> (string * string) list
 val parse_mime_type : string -> string option * string option
-val get_host_port :
-  'a Predefined_senders.Stream_http_frame.http_frame ->
-  (string * int option) option
-val get_user_agent :
-  'a Predefined_senders.Stream_http_frame.http_frame -> string
-val get_cookie_string :
-  'a Predefined_senders.Stream_http_frame.http_frame -> string option
-val get_if_modified_since :
-  'a Predefined_senders.Stream_http_frame.http_frame -> float option
-val get_if_unmodified_since :
-  'a Predefined_senders.Stream_http_frame.http_frame -> float option
-val get_if_none_match :
-  'a Predefined_senders.Stream_http_frame.http_frame -> string list
-val get_if_match :
-  'a Predefined_senders.Stream_http_frame.http_frame -> string list option
-val get_content_type :
-  'a Predefined_senders.Stream_http_frame.http_frame -> string option
-val get_content_length :
-  'a Predefined_senders.Stream_http_frame.http_frame -> int64 option
-val get_referer :
-  'a Predefined_senders.Stream_http_frame.http_frame -> string option
-val get_referrer :
-  'a Predefined_senders.Stream_http_frame.http_frame -> string option
+val get_host_and_port : Http_frame.t -> (string * int) option
+val get_user_agent : Http_frame.t -> string
+val get_cookie_string : Http_frame.t -> string option
+val get_if_modified_since : Http_frame.t -> float option
+val get_if_unmodified_since : Http_frame.t -> float option
+val get_if_none_match : Http_frame.t -> string list
+val get_if_match : Http_frame.t -> string list option
+val get_content_type : Http_frame.t -> string option
+val get_content_length : Http_frame.t -> int64 option
+val get_referer : Http_frame.t -> string option
+val get_referrer : Http_frame.t -> string option
 val get_accept :
-  'a Predefined_senders.Stream_http_frame.http_frame ->
-    ((string option * string option) * float option * (string * string) list)
-      list
-val get_accept_charset :
-  'a Predefined_senders.Stream_http_frame.http_frame ->
-  (string option * float option) list
-val get_accept_encoding :
-  'a Predefined_senders.Stream_http_frame.http_frame ->
-  (string option * float option) list
-val get_accept_language :
-  'a Predefined_senders.Stream_http_frame.http_frame ->
-  (string * float option) list
+  Http_frame.t ->
+  ((string option * string option) * float option * (string * string) list)
+    list
+val get_accept_charset : Http_frame.t -> (string option * float option) list
+val get_accept_encoding : Http_frame.t -> (string option * float option) list
+val get_accept_language : Http_frame.t -> (string * float option) list

@@ -31,16 +31,6 @@ type mycookieslist =
   (string list option * float option * (string * string) list) list
 (** The cookies I want to set *)
 
-type full_stream =
-    (int64 option * Http_frame.etag * Ocsistream.stream * (unit -> unit Lwt.t))
-(** The type of streams to be send by the server.
-   The [int64 option] is the content-length. 
-   [None] means Transfer-encoding: chunked
-   The last function is the termination function
-   (for ex closing a file if needed), 
-   that will be called after the stream has been fully read. 
-   Your new termination function should probably call the former one. *)
-
 type stream_filter_type =
     string option (* content-type *) -> full_stream -> full_stream Lwt.t
 (** A function to transform a stream into another one. *)
@@ -91,8 +81,8 @@ module Xhtml_content =
       let md5 = get_etag_aux x in
       Lwt.return (Some (Int64.of_int (String.length x)), 
                   md5, 
-                  (new_stream x 
-                     (fun () -> Lwt.return (empty_stream None))),
+                  Ocsistream.make (fun () -> Ocsistream.cont x
+                     (fun () -> Ocsistream.empty None)),
                   return
                  )
 
@@ -111,36 +101,25 @@ module Text_content =
       let md5 = get_etag c in
       Lwt.return (Some (Int64.of_int (String.length c)), 
                   md5, 
-                  new_stream c (fun () -> Lwt.return (empty_stream None)),
+                  Ocsistream.make (fun () -> Ocsistream.cont c (fun () -> Ocsistream.empty None)),
                   return)
 
-    let content_of_stream = string_of_stream
+    let content_of_stream st = Ocsistream.string_of_stream (Ocsistream.get st)
   end
-
-exception Stream_already_read
 
 module Stream_content =
   (* Use to receive any type of data, before knowing the content-type,
      or to send data from a stream
    *)
   struct
-    type t = unit -> stream
+    type t = string Ocsistream.t
 
     let get_etag c = ""
 
-    let stream_of_content c = 
-      Lwt.return (None, get_etag c, c (), return)
+    let stream_of_content c =
+      Lwt.return (None, get_etag c, c, return)
 
-    let content_of_stream s = 
-      Lwt.return
-        (let already_read = ref false in
-        fun () -> 
-          if !already_read
-          then raise Stream_already_read
-          else begin
-            already_read := true;
-            s
-          end)
+    let content_of_stream s = Lwt.return s
   end
 
 
@@ -151,7 +130,8 @@ module Empty_content =
     let get_etag c = "empty"
 
     let stream_of_content c = 
-      Lwt.return (Some (Int64.of_int 0), (get_etag ()), empty_stream None, 
+      Lwt.return (Some (Int64.of_int 0), (get_etag ()),
+                  Ocsistream.make (fun () -> Ocsistream.empty None),
                   return)
 
     let content_of_stream s = Lwt.return ()
@@ -174,11 +154,11 @@ module File_content =
         (fun () ->
           let lu = Unix.read fd buf 0 buffer_size in (
             if lu = 0 then  
-              Lwt.return (empty_stream None)
+              Ocsistream.empty None
             else begin 
               if lu = buffer_size
-              then Lwt.return (new_stream buf read_aux)
-              else Lwt.return (new_stream (String.sub buf 0 lu) read_aux)
+              then Ocsistream.cont buf read_aux
+              else Ocsistream.cont (String.sub buf 0 lu) read_aux
             end))
       in read_aux ()                         
 
@@ -199,7 +179,7 @@ module File_content =
       (fun r ->
         Lwt.return (
           Some st.Unix.LargeFile.st_size, 
-          etag, r, 
+          etag, Ocsistream.make (fun () -> Lwt.return r), 
           fun () ->     
             Messages.debug ("closing file"); 
             Unix.close fd;
@@ -212,24 +192,11 @@ module File_content =
 (** this module is a sender that send Http_frame with empty content *)
 module Empty_sender = FHttp_sender(Empty_content)
 
-(** this module is a receiver that receives Http_frame with empty content *)
-module Empty_receiver = FHttp_receiver(Empty_content)
-
 (** this module is a sender that send Http_frame with Xhtml content *)
 module Xhtml_sender = FHttp_sender(Xhtml_content)
 
 (** this module is a sender that send Http_frame with text content *)
 module Text_sender = FHttp_sender(Text_content)
-
-(** this module is a receiver that receives Http_frame with text content *)
-module Text_receiver = FHttp_receiver (Text_content)
-
-(** this module is a Http_frame with stream content *)
-module Stream_http_frame = FHttp_frame
-
-(** this module is a receiver that receives Http_frame with stream content
-   (any text stream, when we don't know the type) *)
-module Stream_receiver = FHttp_receiver (Stream_content)
 
 (** creates a sender for any stream *)
 module Stream_sender = FHttp_sender(Stream_content)
@@ -264,19 +231,19 @@ let gmtdate d =
  * page is the page to send
  * xhtml_sender is the used sender *)
 let send_generic
-    (send : 
+    (send :
        ?filter:stream_filter_type ->
-         unit Lwt.t ->
-           clientproto:Http_frame.Http_header.proto ->
-             ?etag:etag ->
-               mode:Http_frame.Http_header.http_mode ->
-                 ?proto:Http_frame.Http_header.proto ->
-                   ?headers:Http_headers.t ->
-                     ?contenttype: string ->
-                       ?content:'a ->
-                         head:bool -> 
-                           Http_com.sender_type -> 
-                             res Lwt.t)
+       Http_com.slot ->
+       clientproto:Http_frame.Http_header.proto ->
+       ?etag:Http_frame.etag ->
+       mode:Http_frame.Http_header.http_mode ->
+       ?proto:Http_frame.Http_header.proto ->
+       ?headers:Http_headers.t ->
+       ?contenttype:string ->
+       content:'a ->
+       head:bool ->
+       Http_com.sender_type ->
+       unit Lwt.t)
     ?contenttype
     ~content
     ?filter
@@ -330,9 +297,10 @@ let send_generic
   in
   let headers =
     List.fold_left mkcookl headers cookies
-    <<
+    <<?
+(*XXX Check: HTTP/1.0 *)
     (Http_headers.connection,
-     if keep_alive then "keep-alive" (* obsolete? *) else "close")
+     if keep_alive then None else Some "close")
     <<?
     (Http_headers.location, location)
     <<?
@@ -356,7 +324,7 @@ let send_generic
       | None -> 200
       | Some c -> c)
   in
-(*XXX Shouldn't this function now about the keep_alive parameter? *)
+(*XXX Shouldn't this function know about the keep_alive parameter? *)
   send ?filter
     waiter ~clientproto ?etag
     ~mode
@@ -369,7 +337,7 @@ type send_page_type =
        no content-type *)
     ?filter:stream_filter_type ->
     ?cookies:mycookieslist ->
-    unit Lwt.t ->
+    Http_com.slot ->
     clientproto:Http_frame.Http_header.proto ->
     ?code:int ->
     ?etag:Http_frame.etag ->
@@ -380,7 +348,7 @@ type send_page_type =
     ?headers:Http_headers.t ->
     ?charset:string ->
     Http_com.sender_type ->
-    Http_com.res Lwt.t
+    unit Lwt.t
 
 (** fonction that sends a xhtml page
  * code is the code of the http answer
@@ -458,15 +426,10 @@ let send_error
       match http_exception with
       | Some (Http_error.Http_exception (errcode,msgs) )->
           (
-           let error_num =
-             match errcode with
-             | Some c -> c
-             | None -> 500
-           in
            let msg =
              Http_error.string_of_http_exception
                (Http_error.Http_exception(errcode, msgs))
-           in (error_num,msg)
+           in (errcode,msg)
           )
             
       | _ ->

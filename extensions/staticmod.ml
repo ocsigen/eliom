@@ -377,8 +377,8 @@ let find_static_page staticdirref path =
 let stream_of_string st=
   let rec aux bo=
     if bo
-    then return (Ocsistream.new_stream st (fun () -> aux false))
-    else return (Ocsistream.empty_stream None)
+    then Ocsistream.cont st (fun () -> aux false)
+    else Ocsistream.empty None
   in aux true
 
 let gen pages_tree charset ri = 
@@ -401,7 +401,8 @@ let gen pages_tree charset ri =
                {res_cookies= [];
 		res_send_page= 
 		   Predefined_senders.send_stream_page 
-		     ~contenttype:"text/html" ~content:(fun () -> content);
+		     ~contenttype:"text/html"
+                     ~content:(Ocsistream.make (fun () -> Lwt.return content));
 		res_headers=Http_headers.empty;
 		res_code= None; (* 200 by default *)
 		res_lastmodified= None;

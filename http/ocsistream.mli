@@ -1,7 +1,7 @@
-exception Stream_too_small
-exception Stream_error of string
-exception String_too_large
-exception Interrupted_stream
+exception Interrupted of exn
+exception Cancelled
+exception Already_failed
+exception Already_read
 
 (** Streams are a means to read data block by block *)
 
@@ -11,39 +11,51 @@ exception Interrupted_stream
    or a finished stream with possibly another stream following.
    The integer is the size of the current buffer.
  *)
-type stream = private
-  | Finished of stream option
-  | Cont of string * int * (unit -> stream Lwt.t)
+type 'a stream
+
+type 'a step =
+  | Finished of 'a stream option
+  | Cont of 'a * 'a stream
+
+type 'a t
+
+val make : (unit -> 'a step Lwt.t) -> 'a t
+
+val get : 'a t -> 'a stream
+
+val next : 'a stream -> 'a step Lwt.t
+
 
 (** creates an empty stream *)
-val empty_stream : stream option -> stream
+val empty : (unit -> 'a step Lwt.t) option -> 'a step Lwt.t
 
-(** creates a new (non empty) stream. 
-   [?len] is the length of the string, if you know it (not checked).
- *)
-val new_stream : ?len:int -> string -> (unit -> stream Lwt.t) -> stream
+(** creates a non empty stream. *)
+val cont : 'a -> (unit -> 'a step Lwt.t) -> 'a step Lwt.t
 
-(** true if the stream is finished *)
-val is_finished : stream -> bool
+
+(** read the stream until the end, without decoding *)
+val consume : 'a t -> unit Lwt.t
+
+
+exception Stream_too_small
+exception Stream_error of string
+exception String_too_large
 
 (** Creates a string from a stream *)
-val string_of_stream : stream -> string Lwt.t
+val string_of_stream : string stream -> string Lwt.t
 
 (** Read more data in the buffer *)
-val enlarge_stream : stream -> stream Lwt.t
+val enlarge_stream : string step -> string step Lwt.t
 
 (** [stream_want s len =] Returns a stream with at most len
    bytes in the buffer if possible *)
-val stream_want : stream -> int -> stream Lwt.t
+val stream_want : string step -> int -> string step Lwt.t
 
 (** Returns the value of the current buffer *)
-val current_buffer : stream -> string
+val current_buffer : string step -> string
 
 (** Skips data *)
-val skip : stream -> int -> stream Lwt.t
+val skip : string step -> int -> string step Lwt.t
 
 (** Cut the stream at the position given by a string delimiter *)
-val substream : string -> stream -> stream Lwt.t
-
-(** read the stream until the end, without decoding *)
-val consume : stream -> unit Lwt.t
+val substream : string -> string step -> string step Lwt.t

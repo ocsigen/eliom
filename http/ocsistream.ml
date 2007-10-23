@@ -17,88 +17,134 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+let (>>=) = Lwt.bind
+
+exception Interrupted of exn
+exception Cancelled
+exception Already_failed
+exception Already_read
+
+type 'a stream = 'a step Lwt.t Lazy.t
+
+and 'a step =
+  | Finished of 'a stream option (* If there is another stream following
+                                    (usefull for substreams) *)
+  | Cont of 'a * 'a stream       (* Current buffer, what follows *)
+
+type 'a t =
+  { mutable stream : 'a stream;
+    mutable in_use : bool }
+
+let empty follow =
+  match follow with
+    None    -> Lwt.return (Finished None)
+  | Some st -> Lwt.return (Finished (Some (Lazy.lazy_from_fun st)))
+
+let cont stri f =
+  Lwt.return (Cont (stri, Lazy.lazy_from_fun f))
+
+let make f = { stream = Lazy.lazy_from_fun f; in_use = false }
+
+let next = Lazy.force
+
+let rec get_aux st =
+  lazy
+    (Lwt.try_bind
+       (fun () -> Lazy.force st.stream)
+       (fun e ->
+          Lwt.return
+            (match e with
+               Cont (s, rem) -> st.stream <- rem; Cont (s, get_aux st)
+             | _             -> e))
+       (fun e ->
+          st.stream <- lazy (Lwt.fail Already_failed);
+          Lwt.fail (Interrupted e)))
+
+let get st =
+  if st.in_use then raise Already_read;
+  st.in_use <- true;
+  get_aux st
+
+(** read the stream until the end, without decoding *)
+let rec consume_aux st =
+  next st >>= fun e ->
+  match e with
+  | Cont (_, f)        -> consume_aux f
+  | Finished (Some ss) -> consume_aux ss
+  | Finished None      -> Lwt.return ()
+
+let consume st =
+  let st' = st.stream in
+  st.stream <- lazy (Lwt.fail Cancelled);
+  consume_aux st'
+
+(****)
+
+(** String streams *)
+
 open Lwt
 
 exception Stream_too_small
 exception Stream_error of string
 exception String_too_large
-exception Interrupted_stream
 
-(* The type must be private! *)
-type stream = 
-  | Finished of stream option (* If there is another stream following
-                                 (usefull for substreams) *)
-  | Cont of string * int * (unit -> stream Lwt.t)
-        (* current buffer, size, follow *)
-
-let empty_stream follow = Finished follow
-
-let new_stream ?len stri f = 
-  let l =
-    match len with
-    | None -> String.length stri
-    | Some l -> l
-  in
-  Cont (stri, l, f)
-
-let rec is_finished = function
-  | Finished None -> true
-  | Finished (Some s) -> is_finished s
-  | _ -> false
-
+(*XXX Quadratic!!! *)
 let string_of_stream = 
-  let rec aux l = function
+  let rec aux l s =
+    next s >>= fun e ->
+    match e with
     | Finished _ -> return ""
-    | Cont (s, long, f) -> 
-        let l2 = l+long in
+    | Cont (s, f) -> 
+        let l2 = l+String.length s in
         if l2 > Ocsiconfig.get_netbuffersize ()
         then fail String_too_large
         else 
-          (f () >>= 
-           (fun r -> aux l2 r >>=
-             (fun r -> return (s^r))))
+          aux l2 f >>=
+             (fun r -> return (s^r))
   in aux 0
 
+(*XXX Quadratic!!! *)
 let string_of_streams = 
   let rec aux l = function
     | Finished None -> return ""
-    | Finished (Some s) -> aux l s
-    | Cont (s, long, f) -> 
-        let l2 = l+long in
+    | Finished (Some s) -> next s >>= fun r -> aux l r
+    | Cont (s, f) -> 
+        let l2 = l+String.length s in
         if l2 > Ocsiconfig.get_netbuffersize ()
         then fail String_too_large
         else 
-          (f () >>= 
-           (fun r -> aux l2 r >>=
-             (fun r -> return (s^r))))
+          next f >>= fun r ->
+          aux l2 r >>= fun r ->
+          return (s^r)
   in aux 0
 
 let enlarge_stream = function 
   | Finished a -> fail Stream_too_small
-  | Cont (s, long, f) ->
+  | Cont (s, f) ->
+      let long = String.length s in
       let max = Ocsiconfig.get_netbuffersize () in
       if long >= max
       then fail Ocsimisc.Input_is_too_large
       else
-        f () >>= 
-        (function
-          | Finished _ -> fail Stream_too_small
-          | Cont (r, long2, ff) -> 
-              let long3=long+long2 in
-              let new_s = s^r in
-              if long3 <= max
-              then return (Cont (new_s, long+long2, ff))
-              else let long4 = long3 - max in
-              return
-                (Cont ((String.sub new_s 0 max), max,
-                       (fun () -> return 
-                           (Cont ((String.sub new_s max long4), long4, ff))))))
+        next f >>= fun e ->
+        match e with
+        | Finished _ -> fail Stream_too_small
+        | Cont (r, ff) -> 
+            let long2 = String.length r in
+            let long3=long+long2 in
+            let new_s = s^r in
+            if long3 <= max
+            then return (Cont (new_s, ff))
+            else let long4 = long3 - max in
+            cont (String.sub new_s 0 max)
+                 (fun () ->
+                    Lwt.return (Cont (String.sub new_s max long4, ff)))
 
 let rec stream_want s len =
  (* returns a stream with at most len bytes read if possible *)
   match s with
   | Finished _ -> return s
-  | Cont (stri, long, f)  -> if long >= len
+  | Cont (stri, f)  -> if String.length stri >= len
   then return s
   else catch
         (fun () -> enlarge_stream s >>= (fun r -> stream_want s len))
@@ -107,15 +153,16 @@ let rec stream_want s len =
           | e -> fail e)
 
 let current_buffer = function
-  | Finished _ -> raise Stream_too_small
-  | Cont (s, l, _) -> s
+  | Finished _  -> raise Stream_too_small
+  | Cont (s, _) -> s
         
 let rec skip s k = match s with
 | Finished _ -> raise Stream_too_small
-| Cont (s, len, f) -> 
+| Cont (s, f) ->
+    let len = String.length s in
     if k <= len
-    then return (Cont ((String.sub s k (len - k)), (len - k), f))
-    else (enlarge_stream (Cont ("", 0, f)) >>= 
+    then return (Cont (String.sub s k (len - k), f))
+    else (enlarge_stream (Cont ("", f)) >>= 
           (fun s -> skip s (k - len)))
 
 let substream delim s = 
@@ -126,39 +173,26 @@ let substream delim s =
     let rec aux =
       function
         | Finished _ -> fail Stream_too_small
-        | Cont (s, len, f) as stre -> 
+        | Cont (s, f) as stre ->
+            let len = String.length s in
             if len < ldelim
             then enlarge_stream stre >>= aux
             else try 
               let p,_ = Netstring_pcre.search_forward rdelim s 0 in
-              return 
-                (Cont ((String.sub s 0 p), 
-                       p,
-                       (fun () -> return 
-                           (Finished
-                              (Some (Cont ((String.sub s p (len - p)), 
-                                           (len -p), 
-                                           f)))))))
+              cont (String.sub s 0 p)
+                   (fun () ->
+                      empty
+                           (Some (fun () -> Lwt.return (Cont (String.sub s p (len - p),
+                                               f)))))
             with Not_found ->
               let pos = (len + 1 - ldelim) in
-              return
-                (Cont ((String.sub s 0 pos),
-                       pos,
-                       (fun () -> f () >>=
+              cont (String.sub s 0 pos)
+                       (fun () -> next f >>=
                          (function
                              Finished _ -> fail Stream_too_small
-                           | Cont (s', long, f') -> 
+                           | Cont (s', f') ->
                                aux 
-                                 (Cont ((String.sub s pos (len - pos))^s', 
-                                        (long+len-pos),
+                                 (Cont (String.sub s pos (len - pos) ^ s',
                                         f'))
-                         ))))
+                         ))
     in aux s
-
-      
-(** read the stream until the end, without decoding *)
-let rec consume = function
-  | Cont (_, _, f) -> Lwt_unix.yield () >>= (fun () -> f () >>= consume)
-  | Finished (Some ss) -> consume ss
-  | _ -> return ()
-

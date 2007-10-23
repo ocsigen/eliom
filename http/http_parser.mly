@@ -48,16 +48,13 @@
       | "LINK" -> LINK
       | "UNLINK" -> UNLINK
       | "PATCH" -> PATCH
-      | s -> raise
-            (Http_error.Http_exception (Some 400,[("Unknown method: "^s)]))
+      | s -> assert false
 
   let proto_of_string =
     function
       | "HTTP/1.1" -> HTTP11
       | "HTTP/1.0" -> HTTP10
-      | s -> raise
-            (Http_error.Http_exception (Some 400,
-                                        [("Unsupported protocol: "^s)]))
+      | s -> raise (Http_error.Http_exception (505, None))
 
 (*
   let split_string s =

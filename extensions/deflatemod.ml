@@ -103,7 +103,7 @@ let rec output oz f buf pos len  =
   then output oz f buf (pos + used_in) (len - used_in)
   (* otherwise, go to the next part of the stream *)
   else 
-    f () >>= (next_cont oz)
+    next_cont oz f
   ))
 
 (* Flush oz, ie. produces a new_stream with the content of oz, cleans it
@@ -114,12 +114,11 @@ and flush oz cont =
         Messages.debug "--Deflatemod: Flushing!";
         oz.pos <- 0 ; 
         oz.avail <- String.length oz.buf ;
-        if len > 0 then
-        return (Ocsistream.new_stream ~len:len s cont)
-        else cont ()
+        if len > 0 then Ocsistream.cont s cont else cont ()
 
-and next_cont oz stream = 
-  match stream with
+and next_cont oz stream =
+  Ocsistream.next stream >>= fun e ->
+  match e with
   | Ocsistream.Finished None -> 
       Messages.debug "--Deflatemod: End of stream: big cleaning for zlib" ; 
       
@@ -140,13 +139,13 @@ and next_cont oz stream =
         else
             (Zlib.deflate_end oz.stream ; 
             Messages.debug "--Deflatemod: Zlib stream closed, last flush" ;
-            flush oz (fun () -> return (Ocsistream.empty_stream None)))) in
+            flush oz (fun () -> Ocsistream.empty None))) in
       
       flush oz after_flushing
   | Ocsistream.Finished (Some s) -> next_cont oz s
-  | Ocsistream.Cont(s,l,f) ->  
+  | Ocsistream.Cont(s,f) ->  
       Messages.debug "--Deflatemod: Next part of stream" ; 
-      output oz f s 0 l 
+      output oz f s 0 (String.length s)
  
 (* deflate param : true = deflate ; false = gzip (no header in this case) *)
 let compress deflate stream = 
@@ -158,11 +157,11 @@ let compress deflate stream =
     } in
   if deflate then
   (Messages.debug "--Deflatemod: Preparing to compress with deflate...";
-  Ocsistream.new_stream ~len:0 "" (fun () -> next_cont oz stream))
+  Ocsistream.make (fun () -> next_cont oz stream))
   else
   (Messages.debug "--Deflatemod: Preparing to compress with gzip...";
-  Ocsistream.new_stream ~len:gzip_header_length gzip_header 
-    (fun () -> next_cont oz stream))
+  Ocsistream.make (fun () -> Ocsistream.cont gzip_header
+    (fun () -> next_cont oz stream)))
 
 
 
@@ -331,7 +330,7 @@ let stream_filter deflate choice contenttype (len, etag, stream, finalize) =
        | (Some a, Some b) when should_compress (a, b) choice ->
            return (None, 
                    (if deflate then "Ddeflatemod" else "Gdeflatemod")^etag, 
-                   compress deflate stream, 
+                   compress deflate (Ocsistream.get stream), 
                    finalize)
        | _ -> raise No_compress)
  with Not_found | No_compress -> 

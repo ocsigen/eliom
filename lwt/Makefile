@@ -12,7 +12,7 @@ OCAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG)
 OCAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG)
 OCAMLDEP = $(OCAMLFIND) ocamldep
 
-OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_chan.cmo lwt_unix.cmo lwt_ssl.cmo lwt_timeout.cmo
+OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_chan.cmo lwt_unix.cmo lwt_ssl.cmo lwt_timeout.cmo lwt_mutex.cmo
 XOBJECTS = $(OBJECTS:cmo=cmx)
 
 ARCHIVE  = $(NAME).cma

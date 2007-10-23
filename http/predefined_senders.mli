@@ -32,7 +32,7 @@ type send_page_type =
        no content-type *)
     ?filter:stream_filter_type ->
     ?cookies:mycookieslist ->
-    unit Lwt.t ->
+    Http_com.slot ->
     clientproto:Http_frame.Http_header.proto ->
     ?code:int ->
     ?etag:Http_frame.etag ->
@@ -43,7 +43,7 @@ type send_page_type =
     ?headers:Http_headers.t ->
     ?charset:string ->
     Http_com.sender_type ->
-    Http_com.res Lwt.t
+    unit Lwt.t
 
 (** Sending xhtml *)
 val send_xhtml_page : content: [ `Html ] XHTML.M.elt -> send_page_type
@@ -59,67 +59,38 @@ val send_text_page : ?contenttype: string -> content:string -> send_page_type
 
 (** fonction that uses a stream to send a (text) answer step by step *)
 val send_stream_page : ?contenttype: string -> 
-  content:(unit -> Ocsistream.stream) -> send_page_type
+  content: string Ocsistream.t -> send_page_type
 
 (** Headers for a non cachable request *)
 val dyn_headers : Http_headers.t
 
 
 (**/**)
-exception Stream_already_read
 
 (** Sending an error page *)
-val send_error :
-    ?http_exception:exn ->
-      send_page_type
+val send_error : ?http_exception:exn -> send_page_type
 
-module Stream_http_frame :
-  sig
-    type 'a http_frame = 'a Http_frame.FHttp_frame.http_frame = {
-      header : Http_frame.Http_header.http_header;
-      content : 'a option;
-      waiter_thread : unit Lwt.t;
-    }
-  end
-module Xhtml_content :
-  Http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
-module Text_content :
-  Http_frame.HTTP_CONTENT with type t = string
-module Stream_content :
-  Http_frame.HTTP_CONTENT with type t = unit -> Ocsistream.stream
-module Empty_content :
-  Http_frame.HTTP_CONTENT with type t = unit
 module File_content :
   Http_frame.HTTP_CONTENT with type t = string
-module Empty_sender : Http_com.SENDER with type t = unit
-module Empty_receiver : Http_com.RECEIVER with type t = unit
-module Xhtml_sender : Http_com.SENDER with type t = [ `Html ] XHTML.M.elt
-module Text_sender : Http_com.SENDER with type t = string
-module Text_receiver : Http_com.RECEIVER with type t = string
-module Stream_sender : Http_com.SENDER with type t = unit -> Ocsistream.stream
-module Stream_receiver :
-  Http_com.RECEIVER with type t = unit -> Ocsistream.stream
-module File_sender : Http_com.SENDER with type t = string
 
-val gmtdate : float -> string
 val send_generic :
     (?filter:stream_filter_type ->
-      unit Lwt.t ->
-        clientproto:Http_frame.Http_header.proto ->
-          ?etag:Http_frame.etag ->
-            mode:Http_frame.Http_header.http_mode ->
-              ?proto:Http_frame.Http_header.proto ->
-                ?headers:Http_headers.t ->
-                  ?contenttype:string ->
-                    ?content:'a ->
-                      head:bool -> 
-                        Http_com.sender_type -> 
-                          Http_com.res Lwt.t) ->
+     Http_com.slot ->
+     clientproto:Http_frame.Http_header.proto ->
+     ?etag:Http_frame.etag ->
+     mode:Http_frame.Http_header.http_mode ->
+     ?proto:Http_frame.Http_header.proto ->
+     ?headers:Http_headers.t ->
+     ?contenttype:string ->
+     content:'a ->
+     head:bool ->
+     Http_com.sender_type ->
+     unit Lwt.t) ->
   ?contenttype:string ->
   content:'a ->
   ?filter:stream_filter_type ->
   ?cookies:mycookieslist ->
-  unit Lwt.t ->
+  Http_com.slot ->
   clientproto:Http_frame.Http_header.proto ->
   ?code:int ->
   ?etag:Http_frame.etag ->
@@ -130,10 +101,4 @@ val send_generic :
   ?headers:Http_headers.t ->
   ?charset:string ->
   Http_com.sender_type ->
-  Http_com.res Lwt.t
-
-val mimeht : (string, string) Hashtbl.t
-val parse_mime_types : string -> unit
-val affiche_mime : unit -> unit
-val content_type_from_file_name : string -> string
-
+  unit Lwt.t

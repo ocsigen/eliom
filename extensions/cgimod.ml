@@ -253,7 +253,7 @@ let _ =
      (*"Referer"; "Host"; "Cookie"*) ]
 
 let array_environment pages_tree filename re ri =
-  let header = ri.ri_http_frame.Stream_http_frame.header in
+  let header = ri.ri_http_frame.Http_frame.header in
   let opt = function
     | None -> ""
     | Some a -> a
@@ -420,16 +420,15 @@ let recupere_cgi head pages_tree re filename ri =
     ignore
       (catch
          (fun () ->
-           (match ri.ri_http_frame.Stream_http_frame.content with
+           (match ri.ri_http_frame.Http_frame.content with
            | None -> Lwt_unix.close post_in; return ()
            | Some content_post -> 
-               Stream_sender.really_write post_in_ch
-                 (fun () -> return ())
-                 (content_post ()) >>= fun () ->
-                 Lwt_chan.flush post_in_ch >>= fun () ->
-                 Lwt_unix.close post_in;
-                 return ()
+               Http_com.write_stream post_in_ch content_post >>= fun () ->
+               Lwt_chan.flush post_in_ch >>= fun () ->
+               Lwt_unix.close post_in;
+               return ()
            ))
+(*XXX Check possible errors! *)
          (function
            | Unix.Unix_error (Unix.EPIPE, _, _) -> 
                Lwt_unix.close post_in; 
@@ -481,15 +480,15 @@ let recupere_cgi head pages_tree re filename ri =
       return ());
 
     (* A thread getting the result of the CGI script *)
-    let receiver = Http_com.create_receiver 
-        ~mode:Http_com.Nofirstline (Lwt_ssl.plain cgi_out)
-    in
+    let receiver =
+      Http_com.create_receiver Http_com.Nofirstline (Lwt_ssl.plain cgi_out) in
     catch 
       (fun () ->
-	Stream_receiver.get_http_frame ((* now *) return ()) receiver ~head 
-          ~doing_keep_alive:false () >>= fun http_frame ->
+	Http_com.get_http_frame ~head receiver >>= fun http_frame ->
+
         ignore 
-	  (http_frame.Stream_http_frame.waiter_thread >>= fun () ->
+	  (Http_com.lock_receiver receiver >>= fun () ->
+(*XXX FIX: we will never reach here if [get_http_frame] fails *)
           Lwt_unix.close cgi_out;
 	  return ());
 	return http_frame)
@@ -500,15 +499,15 @@ let recupere_cgi head pages_tree re filename ri =
 (** return the header of the frame *)
 
 let get_header str =
-  let a = str.Stream_http_frame.header 
+  let a = str.Http_frame.header 
   in return a
 
 
 (** return the content of the frame *)
 
 let get_content str =
-  match str.Stream_http_frame.content with
-  | None -> return (fun () -> Ocsistream.empty_stream None)
+  match str.Http_frame.content with
+  | None -> return (Ocsistream.make (fun () -> Ocsistream.empty None))
   | Some c -> return c
 
 
@@ -704,7 +703,7 @@ let gen pages_tree charset ri =
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url 
-      | Lost_connection as e -> fail e
+      | Lost_connection _ as e -> fail e
       | Ocsigen_404 ->return (Ext_not_found Ocsigen_404)
       | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_not_found Ocsigen_404)
       | e -> fail e)

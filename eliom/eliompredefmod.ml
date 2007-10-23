@@ -1088,8 +1088,8 @@ module SubXhtml = functor(T : sig type content end) ->
           let md5 = get_etag_aux x in
           Lwt.return (Some (Int64.of_int (String.length x)), 
                       md5,
-                      (Ocsistream.new_stream x 
-                         (fun () -> Lwt.return (Ocsistream.empty_stream None))),
+                      Ocsistream.make (fun () -> Ocsistream.cont x 
+                         (fun () -> Ocsistream.empty None)),
                       return
                      )
             

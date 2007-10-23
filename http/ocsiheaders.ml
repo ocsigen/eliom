@@ -106,41 +106,45 @@ Mozilla spec + RFC2109
 http://ws.bokeland.com/blog/376/1043/2006/10/27/76832
 *)
 
-
 let get_keepalive http_header =
+  Http_header.get_proto http_header = Http_frame.Http_header.HTTP11
+    &&
   try
-    let kah = String.lowercase 
-        (Http_header.get_headers_value http_header Http_headers.connection)
-    in
-    kah = "keep-alive"
-    (* [kah] should be "close" otherwise *)
+    String.lowercase
+      (Http_header.get_headers_value http_header Http_headers.connection)
+      <> "close"
   with Not_found ->
-    Http_header.get_proto http_header = Http_frame.Http_header.HTTP11
+    true
 
-let get_host_port http_frame =
+(* RFC 2616, sect. 14.23 *)
+(* XXX Not so simple: the host name may contain a colon! (RFC 3986) *)
+let get_host_and_port http_frame =
   try
-    let hostport = 
+    let hostport =
       Http_header.get_headers_value
-        http_frame.Stream_http_frame.header Http_headers.host
+        http_frame.Http_frame.header Http_headers.host
     in
     try
       let h,p = sep ':' hostport in
       try
-        Some (h, Some (int_of_string p))
-      with _ -> Some (h, None)
-    with 
-    | Not_found -> Some (hostport, None)
-  with _ -> None
+        Some (h, int_of_string p)
+      with Failure _ ->
+        None
+    with Not_found ->
+      Some (hostport, 80)
+      (* port 80 is the default for HTTP *)
+  with Not_found ->
+    None
 
 let get_user_agent http_frame =
   try (Http_header.get_headers_value
-         http_frame.Stream_http_frame.header Http_headers.user_agent)
+         http_frame.Http_frame.header Http_headers.user_agent)
   with Not_found -> ""
 
 let get_cookie_string http_frame =
   try
     Some (Http_header.get_headers_value
-            http_frame.Stream_http_frame.header Http_headers.cookie)
+            http_frame.Http_frame.header Http_headers.cookie)
   with Not_found ->
     None
 
@@ -148,7 +152,7 @@ let get_if_modified_since http_frame =
   try 
     Some (Netdate.parse_epoch 
             (Http_header.get_headers_value
-               http_frame.Stream_http_frame.header
+               http_frame.Http_frame.header
                Http_headers.if_modified_since))
   with _ -> None
 
@@ -157,7 +161,7 @@ let get_if_unmodified_since http_frame =
   try 
     Some (Netdate.parse_epoch 
             (Http_header.get_headers_value
-               http_frame.Stream_http_frame.header
+               http_frame.Http_frame.header
                Http_headers.if_unmodified_since))
   with _ -> None
 
@@ -167,7 +171,7 @@ let get_if_none_match http_frame =
     list_flat_map
       (quoted_split ',')
       (Http_header.get_headers_values
-         http_frame.Stream_http_frame.header Http_headers.if_none_match)
+         http_frame.Http_frame.header Http_headers.if_none_match)
   with _ -> []
 
 
@@ -177,14 +181,14 @@ let get_if_match http_frame =
       (list_flat_map
          (quoted_split ',')
          (Http_header.get_headers_values
-            http_frame.Stream_http_frame.header Http_headers.if_match))
+            http_frame.Http_frame.header Http_headers.if_match))
   with _ -> None
 
 
 let get_content_type http_frame =
   try
     Some (Http_header.get_headers_value
-            http_frame.Stream_http_frame.header Http_headers.content_type)
+            http_frame.Http_frame.header Http_headers.content_type)
   with _ -> None
 
 
@@ -193,7 +197,7 @@ let get_content_length http_frame =
     Some 
       (Int64.of_string 
          (Http_header.get_headers_value 
-            http_frame.Stream_http_frame.header Http_headers.content_length))
+            http_frame.Http_frame.header Http_headers.content_length))
   with _ -> None
 
 
@@ -201,7 +205,7 @@ let get_referer http_frame =
   try
     Some 
       (Http_header.get_headers_value 
-         http_frame.Stream_http_frame.header Http_headers.referer)
+         http_frame.Http_frame.header Http_headers.referer)
   with _ -> None
 
 
@@ -214,7 +218,7 @@ let get_accept http_frame =
       parse_list_with_extensions
         parse_mime_type
         (Http_header.get_headers_values
-           http_frame.Stream_http_frame.header Http_headers.accept)
+           http_frame.Http_frame.header Http_headers.accept)
     in
     let change_quality (a, l) =
       try
@@ -231,7 +235,7 @@ let get_accept_charset http_frame =
     parse_list_with_quality
       parse_star
       (Http_header.get_headers_values
-         http_frame.Stream_http_frame.header Http_headers.accept_charset)
+         http_frame.Http_frame.header Http_headers.accept_charset)
   with _ -> []
 
 
@@ -240,7 +244,7 @@ let get_accept_encoding http_frame =
     parse_list_with_quality
       parse_star
       (Http_header.get_headers_values
-         http_frame.Stream_http_frame.header Http_headers.accept_encoding)
+         http_frame.Http_frame.header Http_headers.accept_encoding)
   with _ -> []
 
 
@@ -249,7 +253,7 @@ let get_accept_language http_frame =
     parse_list_with_quality
       Ocsimisc.id
       (Http_header.get_headers_values
-         http_frame.Stream_http_frame.header Http_headers.accept_language)
+         http_frame.Http_frame.header Http_headers.accept_language)
   with _ -> []
 
 

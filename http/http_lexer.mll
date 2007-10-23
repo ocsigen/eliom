@@ -25,8 +25,34 @@ open Http_frame
 
 let blank = [' ' '\t']
 let strin=[^ ':' ' ' '\n' '\r' '\t']*
-let integer = ['0'-'9']*
+let integer = ['0'-'9']+
 let proto =['h' 'H'] ['t' 'T'] ['t' 'T'] ['p' 'P'] '/' integer '.' integer
+
+(* RFC 2616, sect. 2.2 *)
+let octet = _
+let char = ['\000'-'\127']
+let upalpha = ['A'-'Z']
+let loalpha = ['a'-'z']
+let alpha = upalpha | loalpha
+let digit = ['0'-'9']
+let ctl = ['\000'-'\031' '\127']
+
+let crlf = "\r?\n"
+let lws = crlf? [' ' '\t'] +
+let text = _ # ctl
+  (* RFC:
+     A CRLF is allowed in the definition of TEXT only as part of a
+     header field continuation. It is expected that the folding LWS
+     will be replaced with a single SP before interpretation of the
+     TEXT value. *)
+let hex = ['A'-'F' 'a'-'f'] | digit
+let separators =
+  ['(' ')' '<' '>' '@' ',' ';' ':' '\\' '\"'
+   '/' '[' ']' '?' '=' '{' '}' ' ' '\t']
+let token = (char # ctl) # separators
+let quoted_pair = "\\" char
+let qdtext = text # '\"'
+let quoted_string = '\"' (qdtext | quoted_pair)* '\"'
 
 rule token =
   parse
@@ -52,6 +78,6 @@ rule token =
 			 PROTO (Lexing.lexeme lexbuf)}
   |strin                {Messages.debug_noel (Lexing.lexeme lexbuf);
 			 STRING (Lexing.lexeme lexbuf)}
-  |eof                  {raise (Http_error.Http_exception (Some 400,["Unexpected end of file"]))}
-  |_                    {raise (Http_error.Http_exception (Some 400,["lexer error"
-                        ^(Lexing.lexeme lexbuf)]))}
+  |eof                  {raise (Http_error.Http_exception (400, Some "unexpected end of file"))}
+  |_                    {raise (Http_error.Http_exception (400, Some ("unexpected character "
+                        ^ Lexing.lexeme lexbuf)))}

@@ -1,7 +1,7 @@
 type etag = string
 
 type full_stream =
-  int64 option * etag * Ocsistream.stream * (unit -> unit Lwt.t)
+  int64 option * etag * string Ocsistream.t * (unit -> unit Lwt.t)
 (** The type of streams to be send by the server.
    The [int64 option] is the content-length.
    [None] means Transfer-encoding: chunked
@@ -13,7 +13,7 @@ type full_stream =
 module type HTTP_CONTENT =
   sig
     type t
-    val content_of_stream : Ocsistream.stream -> t Lwt.t
+    val content_of_stream : string Ocsistream.t -> t Lwt.t
     val stream_of_content :
       t -> full_stream Lwt.t
     val get_etag : t -> etag
@@ -42,19 +42,11 @@ module Http_header :
   end
 module Http_error :
   sig
-    exception Http_exception of int option * string list
+    exception Http_exception of int * string option
     val expl_of_code : int -> string
-    val display_list : string list -> unit
-    val string_of_list : string list -> string
     val display_http_exception : exn -> unit
     val string_of_http_exception : exn -> string
   end
-module FHttp_frame :
-  sig
-    type 'a frame_content = 'a option
-    type 'a http_frame = {
-      header : Http_header.http_header;
-      content : 'a frame_content;
-      waiter_thread : unit Lwt.t;
-    }
-  end
+type t =
+  { header : Http_header.http_header;
+    content : string Ocsistream.t option }

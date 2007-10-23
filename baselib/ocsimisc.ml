@@ -248,10 +248,12 @@ let rec split char s =
   aux 0
 
 (* printing exceptions *)
-let string_of_exn = function
+let rec string_of_exn = function
   | Dynlink.Error err ->
       "Dynlink.Error : " ^ (Dynlink.error_message err)
   | Unix.Unix_error (ee, func, param) -> 
       (Unix.error_message ee)^" in function "^func^" ("^param^")"
+  | Ocsigen_Request_interrupted e ->
+      "Request interrupted (" ^ string_of_exn e ^ ")"
   | e -> Printexc.to_string e
 

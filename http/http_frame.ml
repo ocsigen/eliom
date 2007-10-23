@@ -29,7 +29,7 @@ open Ocsistream
 type etag = string
 
 type full_stream =
-  int64 option * etag * Ocsistream.stream * (unit -> unit Lwt.t)
+  int64 option * etag * string Ocsistream.t * (unit -> unit Lwt.t)
 (** The type of streams to be send by the server.
    The [int64 option] is the content-length.
    [None] means Transfer-encoding: chunked
@@ -42,9 +42,9 @@ module type HTTP_CONTENT =
   sig
     (** abstract type of the content*)
     type t
-    
+
     (** convert a string into the content type *)
-    val content_of_stream : stream -> t Lwt.t
+    val content_of_stream : string Ocsistream.t -> t Lwt.t
 
     (** convert a content type into a thread returning its
        size, etag, stream, closing function *)
@@ -132,7 +132,7 @@ module Http_error =
 
       (** exception raised on an http error . It's possible to pass the code of
       the error ans some args*)
-      exception Http_exception of int option * string list
+      exception Http_exception of int * string option
 
         (* this fonction provides the translation mecanisme between a code and
          * its explanation *)
@@ -178,57 +178,29 @@ module Http_error =
             | 503 -> "Service Unavailable"
             | 504 -> "Gateway Time-out"
             | 505 -> "Version Not Supported"
-            | _ -> raise (Http_exception (Some 500,["Bad Server Code"]))
+            | _   -> "Unknown Error" (*!!!*)
 
-        let rec display_list =
-            function
-              | [] -> ()
-              | hd::tl -> 
-                  Messages.debug hd;
-                  display_list tl
+        let display_http_exception e =
+          match e with
+            Http_exception (n, Some s) ->
+              Messages.debug (Format.sprintf "%s: %s" (expl_of_code n) s)
+          | Http_exception (n, None) ->
+              Messages.debug (Format.sprintf "%s" (expl_of_code n))
+          | _ ->
+              raise e
 
-        let string_of_list l =
-          let rec string_of_list_aux acc =
-          function
-            | [] -> acc
-            | hd :: tl -> string_of_list_aux (acc^hd) tl
-          in string_of_list_aux "" l
+        let string_of_http_exception e =
+          match e with
+            Http_exception (n, Some s) ->
+              Format.sprintf "error %d, %s: %s" n (expl_of_code n) s
+          | Http_exception (n, None) ->
+              Format.sprintf "error %d, %s" n (expl_of_code n)
+          | _ ->
+              raise e
 
-        let display_http_exception =
-          function
-            | Http_exception (Some n,l) ->
-                Messages.debug (expl_of_code n);
-                display_list l
-            | Http_exception (None,l) ->
-                display_list l
-            | e -> raise e
-
-        let string_of_http_exception =
-          function
-            | Http_exception (Some n, l) ->
-                "error "^(string_of_int n)^" : "^(expl_of_code n)^
-                " : "^(string_of_list l)
-            | Http_exception (None,l) ->
-                string_of_list l
-            | e -> raise e 
-      
   end
 
-(** this module describes an http frame *)
-module FHttp_frame = 
-    struct
-
-        (** type of the http frames*)
-        type 'a frame_content = 'a option
-
-        type 'a http_frame = 
-            {header: Http_header.http_header;
-             content: 'a frame_content;
-             waiter_thread: unit Lwt.t; (** A waiting Lwt thread 
-                                           that will be automatically awoken 
-                                           when the full frame has been read *)
-           }
-
-    end
-
-
+(** HTTP messages *)
+type t =
+  { header : Http_header.http_header;
+    content : string Ocsistream.t option }
