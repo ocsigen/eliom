@@ -23,7 +23,6 @@ open Http_frame
 open Http_com
 open Lwt
 open Predefined_senders
-open Ocsistream
 open Xhtml1_strict
 
 let add_css (a : html) : html = 
@@ -57,8 +56,8 @@ module Ocamlduce_content =
       let md5 = get_etag_aux x in
       Lwt.return (Some (Int64.of_int (String.length x)), 
                   md5, 
-                  (new_stream x 
-                     (fun () -> Lwt.return (empty_stream None))),
+                  Ocsistream.make (fun () -> Ocsistream.cont x 
+                      (fun () -> Ocsistream.empty None)),
                   return
                  )
 

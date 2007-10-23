@@ -61,8 +61,8 @@ module Ocamlduce_content =
       let md5 = get_etag_aux x in
       Lwt.return (Some (Int64.of_int (String.length x)), 
                   md5, 
-                  (new_stream x 
-                     (fun () -> Lwt.return (empty_stream None))),
+                  Ocsistream.make (fun () -> Ocsistream.cont x 
+                      (fun () -> Ocsistream.empty None)),
                   return
                  )
 
@@ -313,8 +313,8 @@ module Xml =
           let md5 = get_etag_aux x in
           Lwt.return (Some (Int64.of_int (String.length x)), 
                       md5, 
-                      (new_stream x 
-                         (fun () -> Lwt.return (empty_stream None))),
+                      Ocsistream.make (fun () -> Ocsistream.cont x 
+                          (fun () -> Ocsistream.empty None)),
                       return
                      )
 

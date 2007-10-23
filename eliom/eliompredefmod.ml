@@ -1093,7 +1093,7 @@ module SubXhtml = functor(T : sig type content end) ->
                       return
                      )
             
-            (*il n'y a pas encore de parser pour ce type*)
+            (* there is currently no parser for this type *)
         let content_of_stream s = assert false
       end
         
