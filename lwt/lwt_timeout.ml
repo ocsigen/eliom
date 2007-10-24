@@ -64,7 +64,7 @@ let rec loop () =
   curr := (!curr + 1) mod (Array.length !buckets);
   if !count > 0 then loop () else begin stopped := true; Lwt.return () end)
 
-let reset x =
+let start x =
   let in_list = lst_in_list x in
   let slot = (!curr + x.delay) mod (Array.length !buckets) in
   lst_remove x;
@@ -75,20 +75,19 @@ let reset x =
   end
 
 let create delay action =
-  if delay < 1 then invalid_arg "Lwt_timeout.start";
+  if delay < 1 then invalid_arg "Lwt_timeout.create";
   let x = make delay action in
   size delay;
-  reset x;
   x
 
-let remove x =
+let stop x =
   if lst_in_list x then begin
     lst_remove x;
     decr count
   end
 
 let change x delay =
-  if delay < 1 then invalid_arg "Lwt_timeout.set";
+  if delay < 1 then invalid_arg "Lwt_timeout.change";
   x.delay <- delay;
   size delay;
-  if lst_in_list x then reset x
+  if lst_in_list x then start x

@@ -414,6 +414,7 @@ let recupere_cgi head pages_tree re filename ri =
           end
           )
     in
+    Lwt_timeout.start timeout;
 
     (* A thread giving POST data to the CGI script: *)
     let post_in_ch = Lwt_unix.out_channel_of_descr post_in in
@@ -465,7 +466,7 @@ let recupere_cgi head pages_tree re filename ri =
     ignore
       (Lwt_unix.waitpid [] pid >>= fun (_, status) ->
       is_running := false;
-      Lwt_timeout.remove timeout; 
+      Lwt_timeout.stop timeout; 
       (* All "read" will return 0, and "write" will raise "Broken Pipe" *)
       (match status with
       | Unix.WEXITED 0 -> ()

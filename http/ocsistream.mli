@@ -1,6 +1,5 @@
 exception Interrupted of exn
 exception Cancelled
-exception Already_failed
 exception Already_read
 
 (** Streams are a means to read data block by block *)

@@ -127,16 +127,6 @@ let handle_light_request_errors slot ~clientproto ~head
         ~code:400 xhtml_sender (* Malformed URL *) >>= fun _ -> 
       fail (Ocsigen_Request_interrupted exn)
 
-    (* Now errors that close the socket: we raise the exception again: *)
-  (* Receiver socket errors *)
-  | End_of_file ->
-      fail (Lost_connection exn)
-  | Ocsigen_Request_interrupted _
-  (* Sender socket errors *)
-  | Lost_connection _
-  (* Timeouts *)
-  | Http_com.Timeout ->
-      fail exn
   | _ -> fail (Ocsigen_Request_interrupted exn)
 
 
@@ -358,7 +348,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
 let service 
     receiver
     sender_slot
-    http_frame
+    request
     meth
     url
     head
@@ -378,16 +368,21 @@ let service
   in
 
   let finish_request () =
-    match http_frame.Http_frame.content with
+    (* We asynchronously finish to read the request contents if this
+       is not done yet so that:
+       - we can handle the next request
+       - there is no dead-lock with the client writing the request and
+         the server writing the response.
+       We need to do this once the request has been handled before sending
+       any reply to the client. *)
+    match request.Http_frame.content with
       Some f ->
         ignore
           (Lwt.catch
              (fun () -> Ocsistream.consume f)
              (fun e ->
                 begin match e with
-                  Ocsistream.Already_failed ->
-                    ()
-                | Http_com.Lost_connection _ ->
+                  Http_com.Lost_connection _ ->
                     warn "connection abrutedly closed by peer \
                           while reading contents"
                 | Http_com.Timeout ->
@@ -401,6 +396,11 @@ let service
                       e "Server.handle_read_errors"
                 end;
                 Http_com.abort receiver;
+                (* We unlock the receiver in order to resume the
+                   reading loop.  As the connection has been aborted,
+                   the next read will fail and the connection will be
+                   closed properly. *)
+                Http_com.unlock_receiver receiver;
                 Lwt.return ()))
     | None ->
         ()
@@ -408,7 +408,7 @@ let service
 
   Messages.debug ("** HEAD: "^(string_of_bool head));
 
-  let clientproto = Http_header.get_proto http_frame.Http_frame.header in
+  let clientproto = Http_header.get_proto request.Http_frame.header in
 
   let remove_files = 
     let rec aux = function
@@ -435,7 +435,7 @@ let service
       
       (* *** First of all, we read all the request
          (that will possibly create files) *)
-      let ri = get_request_infos meth url http_frame filenames sockaddr port in
+      let ri = get_request_infos meth url request filenames sockaddr port in
       
       (* *** Now we generate the page and send it *)
       Lwt.try_bind
@@ -684,7 +684,7 @@ let service
           return 
             (Int64.of_string 
                (Http_header.get_headers_value 
-                  http_frame.Http_frame.header 
+                  request.Http_frame.header 
                   Http_headers.content_length))
         with
         | Not_found -> return Int64.zero
@@ -751,13 +751,14 @@ let listen ssl port wait_end_init =
            let abort_fun () = Lwt_ssl.abort in_ch Exit in
            let long_timeout = Lwt_timeout.create 30 abort_fun in
            let short_timeout = Lwt_timeout.create 2 abort_fun in
+           Lwt_timeout.start long_timeout;
            let s = String.create 1024 in
 
            let rec linger_aux () =
              Lwt_unix.yield () >>= fun () ->
              Lwt.try_bind
                (fun () ->
-                  Lwt_timeout.reset short_timeout;
+                  Lwt_timeout.start short_timeout;
                   Lwt_ssl.read in_ch s 0 1024)
                (fun len ->
                   if len > 0 then linger_aux () else Lwt.return ())
@@ -779,8 +780,8 @@ let listen ssl port wait_end_init =
            Lwt_ssl.ssl_shutdown in_ch >>= fun () ->
            Lwt_ssl.shutdown in_ch Unix.SHUTDOWN_SEND;
            linger_thread >>= fun () ->
-           Lwt_timeout.remove long_timeout;
-           Lwt_timeout.remove short_timeout;
+           Lwt_timeout.stop long_timeout;
+           Lwt_timeout.stop short_timeout;
            Lwt.return ())
         (fun e ->
            Messages.unexpected_exception e "Server.linger";

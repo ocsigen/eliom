@@ -23,6 +23,7 @@ type mode = Answer | Query | Nofirstline
 type connection
 val create_receiver : mode -> Lwt_ssl.socket -> connection
 val lock_receiver : connection -> unit Lwt.t
+val unlock_receiver : connection -> unit
 val get_http_frame : ?head:bool -> connection -> Http_frame.t Lwt.t
 
 (****)

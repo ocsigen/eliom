@@ -3,8 +3,8 @@ type t
 
 val create : int -> (unit -> unit) -> t
 
-val reset : t -> unit
+val start : t -> unit
 
-val remove : t -> unit
+val stop : t -> unit
 
 val change : t -> int -> unit

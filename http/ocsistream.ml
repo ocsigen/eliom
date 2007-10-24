@@ -21,7 +21,6 @@ let (>>=) = Lwt.bind
 
 exception Interrupted of exn
 exception Cancelled
-exception Already_failed
 exception Already_read
 
 type 'a stream = 'a step Lwt.t Lazy.t
@@ -57,7 +56,7 @@ let rec get_aux st =
                Cont (s, rem) -> st.stream <- rem; Cont (s, get_aux st)
              | _             -> e))
        (fun e ->
-          st.stream <- lazy (Lwt.fail Already_failed);
+          st.stream <- lazy (Lwt.fail e);
           Lwt.fail (Interrupted e)))
 
 let get st =

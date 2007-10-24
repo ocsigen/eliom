@@ -21,12 +21,10 @@
 (*
 TODO
 - server.ml
-- put back timeouts
-  (timeouts on reads and writes; shorter timeouts for keep-alive)
+- shorter timeouts for keep-alive (?)
 - check the code against the HTTP spec
-- improved streams
 - how are failures dealt with at a higher level (server.ml)?
-- defunctorize ?
+- defunctorize sender code
 - rewrite HTTP parser
 - check HTTP version (at the moment, we always respond with HTTP/1.1!!!)
 
@@ -73,26 +71,42 @@ let create_waiter block =
 type connection =
   { fd : Lwt_ssl.socket;
     chan : Lwt_chan.out_channel;
+    timeout : Lwt_timeout.t;
     r_mode : mode;
     mutable buf : string;
     mutable read_pos : int;
     mutable write_pos : int;
     mutable read_mutex : Lwt_mutex.t;
-    mutable senders : waiter }
+    mutable senders : waiter;
+    mutable sender_count : int }
 
 let create_receiver mode fd =
   let buffer_size = Ocsiconfig.get_netbuffersize () in
+  let timeout =
+    Lwt_timeout.create
+      (int_of_float (ceil (Ocsiconfig.get_connect_time_max ())))
+      (fun () -> Lwt_ssl.abort fd Timeout)
+  in
   { fd = fd;
-    chan = Lwt_ssl.out_channel_of_descr fd;
+    chan =
+      Lwt_chan.make_out_channel
+        (fun buf pos len ->
+           Lwt_timeout.start timeout;
+           Lwt.finalize (fun () -> Lwt_ssl.write fd buf pos len)
+            (fun () -> Lwt_timeout.stop timeout; Lwt.return ()));
+    timeout = timeout;
     r_mode = mode;
     buf=String.create buffer_size;
     read_pos = 0;
     write_pos = 0;
     read_mutex = Lwt_mutex.create ();
-    senders = create_waiter false }
+    senders = create_waiter false;
+    sender_count = 0 }
 
 (*XXX Do we really need to export this function? *)
 let lock_receiver receiver = Lwt_mutex.lock receiver.read_mutex
+
+let unlock_receiver receiver = Lwt_mutex.unlock receiver.read_mutex
 
 let abort conn = Lwt_ssl.abort conn.fd Aborted
 
@@ -121,8 +135,10 @@ let receive receiver =
       receiver.write_pos <- used;
       receiver.read_pos <- 0
     end;
+    if receiver.sender_count = 0 then Lwt_timeout.start receiver.timeout;
     Lwt_ssl.read receiver.fd receiver.buf receiver.write_pos free
       >>= fun len ->
+    Lwt_timeout.stop receiver.timeout;
     receiver.write_pos <- used + len;
     if len = 0 then
       Lwt.fail End_of_file
@@ -234,7 +250,7 @@ let wait_http_header receiver =
                 (413, Some "header too long")
           | End_of_file when buf_used receiver = 0 ->
               Connection_closed
-          | Timeout when buf_used receiver = 0 ->
+          | Timeout when buf_used receiver = 0 && receiver.sender_count = 0 ->
               Keepalive_timeout
           | _ ->
               convert_io_error e))
@@ -396,7 +412,7 @@ let get_http_frame ?(head = false) receiver =
             else
               let max = get_maxsize receiver.r_mode in
               begin match max with
-                Some m when cl > m ->
+                Some m when false(*XXXXXXXXXXXXXXXXXXXXXXXXXXXcl > m*) ->
                   Lwt.fail (request_too_large m)
               | _ ->
                   Lwt.return (Some (extract receiver (Exact cl)))
@@ -446,20 +462,28 @@ let start_processing conn f =
   let slot = create_slot conn in
   let next_waiter = create_waiter true in
   conn.senders <- next_waiter;
+  conn.sender_count <- conn.sender_count + 1;
+  Lwt_timeout.stop conn.timeout;
   ignore (* We can ignore the thread as all the exceptions are caught *)
     (Lwt.try_bind
        (fun () ->
+          Lwt.finalize
+            (fun () ->
 (* If we want to serialize query processing, we can call
    [wait_previous_senders slot] here.  But then, we should
    also flush the channel sooner. *)
-          f slot >>= (fun () ->
+               f slot >>= (fun () ->
 (*XXX Check that we waited: slot.sl_did_wait = true *)
 (*XXX It would be clearer to put this code at the end of the sender function,
       but we don't have access to [next_slot] there *)
-          if not next_waiter.w_did_wait then
-            Lwt_chan.flush conn.chan
-          else
-            Lwt.return ()))
+               if not next_waiter.w_did_wait then
+                 Lwt_chan.flush conn.chan
+               else
+                 Lwt.return ()))
+            (fun () ->
+               conn.sender_count <- conn.sender_count - 1;
+               if conn.sender_count = 0 then Lwt_timeout.start conn.timeout;
+               Lwt.return ()))
        (fun () ->
           Lwt.wakeup next_waiter.w_wait ();
           Lwt.return ())
