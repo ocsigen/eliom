@@ -8,6 +8,10 @@ val plain : Lwt_unix.file_descr -> socket
 val read : socket -> string -> int -> int -> int Lwt.t
 val write : socket -> string -> int -> int -> int Lwt.t
 
+(* Really wait on a plain socket, just yield over SSL *)
+val wait_read : socket -> unit Lwt.t
+val wait_write : socket -> unit Lwt.t
+
 val shutdown : socket -> Unix.shutdown_command -> unit
 val close : socket -> unit
 

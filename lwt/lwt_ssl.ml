@@ -47,12 +47,6 @@ let ssl_connect fd ctx =
     (repeat_call fd (fun () -> Ssl.connect socket)) (fun () ->
   Lwt.return (fd, SSL socket))
 
-let write (fd, s) buf pos len =
-  match s with
-    Plain -> Lwt_unix.write fd buf pos len
-  | SSL s -> if len = 0 then Lwt.return 0 else
-             repeat_call fd (fun () -> Ssl.write s buf pos len)
-
 let read (fd, s) buf pos len =
   match s with
     Plain -> Lwt_unix.read fd buf pos len
@@ -60,6 +54,22 @@ let read (fd, s) buf pos len =
              repeat_call fd (fun () ->
              try Ssl.read s buf pos len
              with Ssl.Read_error Ssl.Error_zero_return -> 0)
+
+let write (fd, s) buf pos len =
+  match s with
+    Plain -> Lwt_unix.write fd buf pos len
+  | SSL s -> if len = 0 then Lwt.return 0 else
+             repeat_call fd (fun () -> Ssl.write s buf pos len)
+
+let wait_read (fd, s) =
+  match s with
+    Plain -> Lwt_unix.wait_read fd
+  | SSL _ -> Lwt_unix.yield ()
+
+let wait_write (fd, s) =
+  match s with
+    Plain -> Lwt_unix.wait_write fd
+  | SSL _ -> Lwt_unix.yield ()
 
 let out_channel_of_descr s =
   Lwt_chan.make_out_channel (fun buf pos len -> write s buf pos len)

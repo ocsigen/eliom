@@ -49,11 +49,6 @@ let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
 
 external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
 
-let new_socket () =
-  Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 >>= (fun s ->
-  Lwt_unix.set_close_on_exec s;
-  return s)
-
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
 
 let _ = Ssl.init ()
@@ -84,52 +79,6 @@ type to_write =
   | A_File of (string * string * string * Unix.file_descr)
 
 let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
-
-
-
-(* Errors during requests *)
-let handle_light_request_errors slot ~clientproto ~head
-    xhtml_sender sockaddr exn = 
-  (* EXCEPTIONS ABOUT THE REQUEST *)
-  (* It can be an error during get_http_frame or during get_request_infos *)
-
-  Messages.debug ("~~~~ Exception request: "^(Printexc.to_string exn));
-  match exn with
-      
-    (* First light errors: we answer, then we wait the following request *)
-    (* For now: none *)
-    (* If the request has not been fully read, it must have been consumed *)
-    (* Find the value of keep-alive in the request *)
-    
-    (* Request errors: we answer, then we close *)
-  | Http_error.Http_exception (_,_) ->
-      send_error slot ~clientproto ~head ~cookies:[] ~keep_alive:false
-        ~http_exception:exn xhtml_sender >>= fun _ -> 
-      fail (Ocsigen_Request_interrupted exn)
-  | Ocsigen_Bad_Request ->
-      Messages.debug "-> Sending 400";
-      send_error slot ~clientproto ~head ~keep_alive:false
-        ~code:400 xhtml_sender >>= fun _ -> 
-      fail (Ocsigen_Request_interrupted exn)
-  | Ocsigen_upload_forbidden ->
-      Messages.debug "-> Sending 403 Forbidden";
-      send_error slot ~clientproto ~head ~keep_alive:false
-        ~code:400 xhtml_sender >>= fun _ -> 
-      fail (Ocsigen_Request_interrupted exn)
-  | Ocsigen_unsupported_media ->
-      Messages.debug "-> Sending 415";
-      send_error slot ~clientproto ~head ~keep_alive:false
-        ~code:415 xhtml_sender >>= fun _ -> 
-      fail (Ocsigen_Request_interrupted exn)
-  | Neturl.Malformed_URL -> 
-      Messages.debug "-> Sending 400 (Malformed URL)";
-      send_error slot ~clientproto ~head ~keep_alive:false
-        ~code:400 xhtml_sender (* Malformed URL *) >>= fun _ -> 
-      fail (Ocsigen_Request_interrupted exn)
-
-  | _ -> fail (Ocsigen_Request_interrupted exn)
-
-
 
 
 (* reading the request *)
@@ -335,38 +284,95 @@ let get_request_infos meth url http_frame filenames sockaddr port =
       
   with e ->
     Messages.debug ("~~~ Exn during get_request_infos : "^
-                    (Printexc.to_string e));
-    raise e (*  (Ocsigen_Request_interrupted e) ? *)
-  
+                    string_of_exn e);
+    raise e
 
 
 
-
-
-
-
-let service 
+let service
     receiver
     sender_slot
     request
     meth
     url
-    head
     port
-    sockaddr 
+    sockaddr
     xhtml_sender
     empty_sender
     inputchan =
-  (* sender_slot is here for pipelining: 
+  (* sender_slot is here for pipelining:
      we must wait before sending the page,
      because the previous one may not be sent *)
 
-  (*XXX duplicated!*)
-  let warn s =
-    let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
-    Messages.warning ("While talking to " ^ ip ^ ": " ^ s)
-  in
+  let head = meth = Http_header.HEAD in
+  let clientproto = Http_header.get_proto request.Http_frame.header in
 
+  let handle_service_errors e =
+    (* Exceptions during page generation *)
+    Messages.debug
+      ("~~~ Exception during generation/sending: " ^ string_of_exn e);
+    match e with
+      (* EXCEPTIONS WHILE COMPUTING A PAGE *)
+    | Ocsigen_404 ->
+        Messages.debug "-> Sending 404 Not Found";
+        send_error sender_slot ~clientproto ~head ~keep_alive:true
+          ~code:404 xhtml_sender
+    | Ocsigen_403 ->
+        Messages.debug "-> Sending 403 Forbidden";
+        send_error sender_slot ~clientproto ~head ~keep_alive:true
+          ~code:403 xhtml_sender
+    | Extensions.Ocsigen_malformed_url
+    | Unix.Unix_error (Unix.EACCES,_,_)
+    | Extensions.Ocsigen_403 ->
+        Messages.debug "-> Sending 403 Forbidden";
+        send_error sender_slot ~clientproto ~head ~keep_alive:true
+          ~code:403 xhtml_sender (* Forbidden *)
+    | Ocsistream.Interrupted Ocsistream.Already_read ->
+        Messages.errlog
+          "Cannot read the request twice. You probably have \
+           two incompatible extensions, or the order of the \
+           extensions in the config file is wrong.";
+        send_error sender_slot ~clientproto ~head ~keep_alive:true
+          ~code:500 xhtml_sender (* Internal error *)
+    | Ocsigen_upload_forbidden ->
+        Messages.debug "-> Sending 403 Forbidden";
+        send_error sender_slot ~clientproto ~head ~keep_alive:true
+          ~code:403 xhtml_sender
+    | Http_error.Http_exception (_,_) ->
+        send_error sender_slot ~clientproto ~head ~cookies:[] ~keep_alive:false
+          ~http_exception:e xhtml_sender
+    | Ocsigen_Bad_Request ->
+        Messages.debug "-> Sending 400";
+        send_error sender_slot ~clientproto ~head ~keep_alive:false
+          ~code:400 xhtml_sender
+    | Ocsigen_unsupported_media ->
+        Messages.debug "-> Sending 415";
+        send_error sender_slot ~clientproto ~head ~keep_alive:false
+          ~code:415 xhtml_sender
+    | Neturl.Malformed_URL ->
+        Messages.debug "-> Sending 400 (Malformed URL)";
+        send_error sender_slot ~clientproto ~head ~keep_alive:false
+          ~code:400 xhtml_sender (* Malformed URL *)
+    | e ->
+        Messages.warning
+          ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
+        Messages.debug "-> Sending 500";
+        if get_debugmode () then
+          send_xhtml_page
+            ~content:(error_page
+                        "error 500"
+                        [XHTML.M.p
+                           [XHTML.M.pcdata (string_of_exn e);
+                            XHTML.M.br ();
+                            XHTML.M.em
+                             [XHTML.M.pcdata "(Ocsigen running in debug mode)"]
+                          ]])
+            sender_slot ~clientproto ~head ~keep_alive:true
+            ~code:500 xhtml_sender
+        else
+          send_error sender_slot ~clientproto ~head ~keep_alive:true
+            ~code:500 xhtml_sender
+  in
   let finish_request () =
     (* We asynchronously finish to read the request contents if this
        is not done yet so that:
@@ -381,6 +387,13 @@ let service
           (Lwt.catch
              (fun () -> Ocsistream.consume f)
              (fun e ->
+
+                (*XXX duplicated!*)
+                let warn s =
+                  let ip =
+                    Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
+                  Messages.warning ("While talking to " ^ ip ^ ": " ^ s)
+                in
                 begin match e with
                   Http_com.Lost_connection _ ->
                     warn "connection abrutedly closed by peer \
@@ -393,7 +406,7 @@ let service
                     warn (Http_error.string_of_http_exception e)
                 | _ ->
                     Messages.unexpected_exception
-                      e "Server.handle_read_errors"
+                      e "Server.finish_request"
                 end;
                 Http_com.abort receiver;
                 (* We unlock the receiver in order to resume the
@@ -406,61 +419,43 @@ let service
         ()
   in
 
-  Messages.debug ("** HEAD: "^(string_of_bool head));
-
-  let clientproto = Http_header.get_proto request.Http_frame.header in
-
-  let remove_files = 
-    let rec aux = function
-        (* We remove all the files created by the request 
-           (files sent by the client) *)
-      | [] -> ()
-      | a::l -> 
-          (try Unix.unlink a 
-          with e -> Messages.warning ("Error while removing file "^a^
-                                      ": "^(Printexc.to_string e))); 
-          aux l
-    in function
-      | [] -> ()
-      | l -> Messages.debug "** Removing files"; 
-          aux l
-  in
-
-
-  let serv () =  
-
+  (* body of service *)
+  if meth <> Http_header.GET &&
+     meth <> Http_header.POST &&
+     meth <> Http_header.HEAD
+  then begin
+    finish_request ();
+    (* RFC 2616, sect 5.1.1 *)
+    send_error
+      sender_slot ~clientproto ~head ~keep_alive:true ~code:501 xhtml_sender
+  end else begin
     let filenames = ref [] (* All the files sent by the request *) in
 
-    catch (fun () ->
-      
+    Lwt.finalize (fun () ->
       (* *** First of all, we read all the request
          (that will possibly create files) *)
-      let ri = get_request_infos meth url request filenames sockaddr port in
-      
-      (* *** Now we generate the page and send it *)
       Lwt.try_bind
         (fun () ->
-          
-          (* log *)
-          accesslog 
-            ("connection"^
-             (match ri.ri_host with 
-               None -> ""
-             | Some h -> (" for "^h))^
-             " from "^ri.ri_ip^" ("^ri.ri_user_agent^") : "^
-             ri.ri_url_string);
-          (* end log *)
-          
-          
-          (* Generation of pages is delegated to extensions: *)
-          Extensions.do_for_host_matching 
-	    ri.ri_host ri.ri_port (Extensions.get_virthosts ()) ri)
-          
-          (fun (res, cookieslist) ->
-             finish_request ();
+           Lwt.return
+             (get_request_infos meth url request filenames sockaddr port))
+        (fun ri ->
+           (* *** Now we generate the page and send it *)
+           (* Log *)
+           accesslog
+             (Format.sprintf "connection%s from %s (%s) : %s"
+                (match ri.ri_host with
+                   None   -> ""
+                 | Some h -> " for " ^ h)
+                ri.ri_ip ri.ri_user_agent ri.ri_url_string);
 
+           (* Generation of pages is delegated to extensions: *)
+           Lwt.try_bind
+             (fun () ->
+                Extensions.do_for_host_matching
+                  ri.ri_host ri.ri_port (Extensions.get_virthosts ()) ri)
+             (fun (res, cookieslist) ->
+                finish_request ();
 (* RFC
-
    An  HTTP/1.1 origin  server, upon  receiving a  conditional request
    that   includes   both   a   Last-Modified  date   (e.g.,   in   an
    If-Modified-Since or  If-Unmodified-Since header field)  and one or
@@ -468,546 +463,325 @@ let service
    header  field) as  cache  validators, MUST  NOT  return a  response
    status of 304 (Not Modified) unless doing so is consistent with all
    of the conditional header fields in the request.
-
    -
-
    The result  of a request having both  an If-Unmodified-Since header
    field and  either an  If-None-Match or an  If-Modified-Since header
    fields is undefined by this specification.
-
 *)
-
-            let not_modified () = 
-              let etagalreadyknown =
-                match res.res_etag with
-                | None -> false
-                | Some e -> List.mem e ri.ri_ifnonematch
-              in
-              match
-                (res.res_lastmodified, 
-                 ri.ri_ifmodifiedsince)
-              with
-              | Some l, Some i when l<=i ->
-                  (ri.ri_ifnonematch = []) || etagalreadyknown
-              | _, None -> etagalreadyknown
-              | _ -> false
-            in
-
-            let precond_failed () = 
-              (match
-                (res.res_lastmodified, 
-                 ri.ri_ifunmodifiedsince)
-              with
-              | Some l, Some i -> i<l
-              | _ -> false) ||
-                (match ri.ri_ifmatch, res.res_etag with
-                | None, _ -> false
-                | Some _, None -> true
-                | Some l, Some e -> not (List.mem e l))
-            in
-
-
-            if not_modified ()
-            then begin
-              
-              Messages.debug "-> Sending 304 Not modified ";
-              send_empty
-                ~content:()
-                ~cookies:(List.map change_cookie 
-                            (res.res_cookies@cookieslist))
-                sender_slot
-                ~clientproto
-                ~keep_alive:true
-                ?last_modified:res.res_lastmodified
-                ?etag:res.res_etag
-                ~code:304 (* Not modified *)
-                ~head
-                empty_sender
-            end
-            
-            else if precond_failed ()
-            then begin
-                  
-              Messages.debug "-> Sending 412 Precondition Failed (if-unmodified-since header)";
-              send_empty
-                ~content:()
-                ~cookies:(List.map change_cookie 
-                            (res.res_cookies@cookieslist))
-                sender_slot
-                ~clientproto
-                ~keep_alive:true
-                ?last_modified:res.res_lastmodified
-(*                ?etag:res.res_etag *)
-                ~code:412 (* Precondition failed *)
-                ~head
-                empty_sender
-            end
-
-            else
-              res.res_send_page
-                ?filter:res.res_filter
-                ~cookies:(List.map change_cookie 
-                            (res.res_cookies@cookieslist))
-                sender_slot
-                ~clientproto
-                ~keep_alive:true
-                ?last_modified:res.res_lastmodified
-                ?code:res.res_code
-                ?charset:res.res_charset
-                ?etag:res.res_etag
-                ~head:head
-                (Http_com.create_sender
-                   ~headers:res.res_headers
-                   ~server_name:server_name ()))
-            
-        
-        
-        
-        (fun e -> 
-           finish_request ();
-
-          (* Exceptions during page generation *)
-          Messages.debug 
-            ("~~~ Exception during generation/sending: "^
-             (Printexc.to_string e));
-          catch
-            (fun () ->
-              match e with
-                (* EXCEPTIONS WHILE COMPUTING A PAGE *)
-              | Ocsigen_404 -> 
-                  Messages.debug "-> Sending 404 Not Found";
-                  send_error 
-                    sender_slot
-                    ~clientproto ~head
-                    ~keep_alive:true ~code:404 xhtml_sender
-	      | Ocsigen_403 -> 
-                  Messages.debug "-> Sending 403 Forbidden";
-                  send_error 
-                    sender_slot
-                    ~clientproto ~head
-                    ~keep_alive:true ~code:403 xhtml_sender
-              | Ocsigen_Is_a_directory -> 
-                  Messages.debug "-> Sending 301 Moved permanently";
+                let not_modified =
+                  let etagalreadyknown =
+                    match res.res_etag with
+                    | None   -> false
+                    | Some e -> List.mem e ri.ri_ifnonematch
+                  in
+                  match res.res_lastmodified, ri.ri_ifmodifiedsince with
+                  | Some l, Some i when l <= i ->
+                      ri.ri_ifnonematch = [] || etagalreadyknown
+                  | _, None ->
+                      etagalreadyknown
+                  | _ ->
+                       false
+                in
+                let precond_failed =
+                  begin match
+                    res.res_lastmodified, ri.ri_ifunmodifiedsince
+                  with
+                  | Some l, Some i -> i < l
+                  | _              -> false
+                  end
+                    ||
+                  begin match ri.ri_ifmatch, res.res_etag with
+                  | None,   _      -> false
+                  | Some _, None   -> true
+                  | Some l, Some e -> not (List.mem e l)
+                  end
+                in
+                if not_modified then begin
+                  Messages.debug "-> Sending 304 Not modified ";
                   send_empty
-                    ~content:()
-                    ~cookies:[]
-                    sender_slot
-                    ~clientproto
-                    ~keep_alive:true
-                    ~location:((Neturl.string_of_url
-                                  (Neturl.undefault_url 
-                                     ~path:("/"::(ri.ri_path))
-                                     ri.ri_url))^"/")
-                    ~code:301 (* Moved permanently *)
-                    ~head empty_sender
-              | Extensions.Ocsigen_malformed_url
-              | Unix.Unix_error (Unix.EACCES,_,_) 
-	      | Extensions.Ocsigen_403->
-                  Messages.debug "-> Sending 403 Forbidden";
-                  send_error sender_slot
-                    ~clientproto ~head
-                    ~keep_alive:true
-                    ~code:403 xhtml_sender (* Forbidden *)
-              | Ocsistream.Interrupted Ocsistream.Already_read ->
-                  Messages.errlog "Cannot read the request twice. You probably have two incompatible extensions, or the order of the extensions in the config file is wrong.";
-                  send_error sender_slot
-                    ~clientproto ~head
-                    ~keep_alive:true
-                    ~code:500 xhtml_sender (* Internal error *)
-              | Ocsigen_upload_forbidden ->
-                  Messages.debug "-> Sending 403 Forbidden";
-                  send_error sender_slot
-                    ~clientproto ~head
-                    ~keep_alive:true ~code:403 xhtml_sender
-              | e ->
-                  Messages.warning
-                    ("Exn during page generation: "^
-                     (string_of_exn e)
-                     ^" (sending 500)"); 
-                  Messages.debug "-> Sending 500";
-                  if get_debugmode ()
-                  then
-                    send_xhtml_page
-                      ~content:(error_page 
-                                  "error 500"
-                                  [XHTML.M.p 
-                                     [XHTML.M.pcdata (string_of_exn e);
-                                      XHTML.M.br ();
-                                      XHTML.M.em 
-                                        [XHTML.M.pcdata "(Ocsigen running in debug mode)"]
-                                    ]])
+                    ~content:() sender_slot ~clientproto ~keep_alive:true ~head
+                    ~cookies:(List.map change_cookie
+                                (res.res_cookies@cookieslist))
+                    ?last_modified:res.res_lastmodified
+                    ?etag:res.res_etag
+                    ~code:304 (* Not modified *)
+                    empty_sender
+                end else if precond_failed then begin
+                  Messages.debug
+                    "-> Sending 412 Precondition Failed \
+                     (if-unmodified-since header)";
+                  send_empty
+                    ~content:() sender_slot ~clientproto ~keep_alive:true ~head
+                    ~cookies:(List.map change_cookie
+                                (res.res_cookies@cookieslist))
+                    ?last_modified:res.res_lastmodified
+                    ~code:412 (* Precondition failed *)
+                    empty_sender
+                end else
+                  res.res_send_page
+                    ?filter:res.res_filter
+                    ~cookies:(List.map change_cookie
+                                (res.res_cookies@cookieslist))
+                    sender_slot ~clientproto ~keep_alive:true ~head:head
+                    ?last_modified:res.res_lastmodified
+                    ?code:res.res_code
+                    ?charset:res.res_charset ?etag:res.res_etag
+                    (Http_com.create_sender
+                       ~headers:res.res_headers ~server_name:server_name ()))
+             (fun e ->
+                finish_request ();
+                match e with
+                  Ocsigen_Is_a_directory ->
+                    Messages.debug "-> Sending 301 Moved permanently";
+                    send_empty
+                      ~content:()
+                      ~cookies:[]
                       sender_slot
-                      ~clientproto 
-                      ~head
-                      ~code:500 
-                      ~keep_alive:true xhtml_sender
-                  else
-                  send_error
-                      sender_slot
-                      ~clientproto ~head
-                      ~keep_alive:true ~code:500 xhtml_sender)
-            (fun e -> fail e (*XXX fail (Ocsigen_sending_error e)*))
-            (* All generation exceptions have been handled here *)
-        ) >>=
-      
-      (fun res ->
-         remove_files !filenames;
-         Lwt.return res))
-      
-      (fun e -> 
-        remove_files !filenames;
-        Lwt.fail e
-(*
-        match e with
-(*XXX        | Ocsigen_sending_error _ -> fail e*)
-        | _ -> handle_light_request_errors sender_slot ~clientproto ~head
-                 xhtml_sender sockaddr e
-*)
-)
-
-  in 
-
-
-  (* body of service *)
-  if ((meth <> Http_header.GET) && 
-      (meth <> Http_header.POST) && 
-      (meth <> Http_header.HEAD))
-  then send_error sender_slot
-      ~clientproto ~head
-      ~keep_alive:true ~code:501 xhtml_sender
-  else 
-    catch
-
-      (* new version: in case of error, we close the request *)
+                      ~clientproto
+                      ~keep_alive:true
+                      ~location:((Neturl.string_of_url
+                                    (Neturl.undefault_url
+                                       ~path:("/"::(ri.ri_path))
+                                       ri.ri_url))^"/")
+                      ~code:301 (* Moved permanently *)
+                      ~head empty_sender
+                | _ ->
+                    handle_service_errors e))
+        (fun e ->
+            finish_request ();
+            handle_service_errors e))
       (fun () ->
-        (try
-          return 
-            (Int64.of_string 
-               (Http_header.get_headers_value 
-                  request.Http_frame.header 
-                  Http_headers.content_length))
-        with
-        | Not_found -> return Int64.zero
-        | _ -> fail (Ocsigen_Request_interrupted Ocsigen_Bad_Request))
-        >>=
-            (fun cl ->
-              if (Int64.compare cl Int64.zero) > 0 &&
-                (meth = Http_header.GET || meth = Http_header.HEAD)
-              then fail (Ocsigen_Request_interrupted Ocsigen_Bad_Request)
-              else serv ()))
+         (* We remove all the files created by the request
+            (files sent by the client) *)
+         if !filenames <> [] then
+           Messages.debug "** Removing files";
+         List.iter
+           (fun a ->
+              try
+                Unix.unlink a
+              with Unix.Unix_error _ as e ->
+                Messages.warning
+                  (Format.sprintf "Error while removing file %s: %s"
+                                   a (string_of_exn e)))
+           !filenames;
+         Lwt.return ())
+  end
 
+let linger in_ch receiver =
+  Lwt.catch
+    (fun () ->
+       (* We wait for 30 seconds at most and close the connection
+          after 2 seconds without receiving data from the client *)
+       let abort_fun () = Lwt_ssl.abort in_ch Exit in
+       let long_timeout = Lwt_timeout.create 30 abort_fun in
+       let short_timeout = Lwt_timeout.create 2 abort_fun in
+       Lwt_timeout.start long_timeout;
+       let s = String.create 1024 in
 
-      (function
-        | Ocsigen_Request_interrupted e -> 
-            handle_light_request_errors sender_slot
-              ~clientproto:Http_frame.Http_header.HTTP11
-              ~head:(meth = (Http_header.HEAD))
-              xhtml_sender sockaddr e
-        | e -> Messages.debug ("~~~ Exn during service: "^
-                               (Printexc.to_string e)); 
-            fail e)
-
-
-
-let handle_broken_pipe_exn sockaddr exn = 
-  (* EXCEPTIONS WHILE REQUEST OR SENDING WHEN WE CANNOT ANSWER *)
-  let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
-  (* We don't close here because it is already done *)
-  match exn with
-  | Lost_connection _ -> 
-      Messages.debug "** Connection closed by client";
-      return ()
-  | Ssl.Write_error(Ssl.Error_ssl) -> 
-      errlog ("While talking to "^ip^": Ssl broken pipe.");
-      return ()
-  | Ocsimisc.Ocsigen_Request_too_long ->
-      warning ("Request from "^ip^" is too long for the server configuration.");
-      return ()
-  | exn -> 
-      warning ("While talking to "^ip^": "
-              ^(string_of_exn exn)^".");
-      return ()
-
+       let rec linger_aux () =
+         Lwt_ssl.wait_read in_ch >>= fun () ->
+         Lwt.try_bind
+           (fun () ->
+              Lwt_timeout.start short_timeout;
+              Lwt_ssl.read in_ch s 0 1024)
+           (fun len ->
+              if len > 0 then linger_aux () else Lwt.return ())
+           (fun e ->
+              begin match e with
+                Unix.Unix_error(Unix.ECONNRESET,_,_)
+              | Ssl.Read_error (Ssl.Error_syscall | Ssl.Error_ssl)
+              | Exit ->
+                  Lwt.return ()
+              | _ ->
+                  Lwt.fail e
+              end)
+       in
+       (* We start the lingering reads before waiting for the
+          senders to terminate in order to avoid a deadlock *)
+       let linger_thread = linger_aux () in
+       Http_com.wait_all_senders receiver >>= fun () ->
+       Messages.debug "** SHUTDOWN";
+       Lwt_ssl.ssl_shutdown in_ch >>= fun () ->
+       Lwt_ssl.shutdown in_ch Unix.SHUTDOWN_SEND;
+       linger_thread >>= fun () ->
+       Lwt_timeout.stop long_timeout;
+       Lwt_timeout.stop short_timeout;
+       Lwt.return ())
+    (fun e ->
+       Messages.unexpected_exception e "Server.linger";
+       Lwt.return ())
 
 let try_bind' f g h = Lwt.try_bind f h g
 
-(** Thread waiting for events on a the listening port *)
-let listen ssl port wait_end_init =
+let handle_connection port in_ch sockaddr =
+  let receiver = Http_com.create_receiver Query in_ch in
+  let xhtml_sender =
+    Http_com.create_sender
+      ~headers:Predefined_senders.dyn_headers ~server_name:server_name () in
+  let empty_sender =
+    Http_com.create_sender
+      ~headers:Http_headers.empty ~server_name:server_name () in
 
-  let listen_connexion receiver in_ch sockaddr xhtml_sender empty_sender =
-    
-    (* (With pipeline) *)
+  let warn s =
+    let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
+    Messages.warning ("While talking to " ^ ip ^ ": " ^ s)
+  in
 
-    let warn s =
-      let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
-      Messages.warning ("While talking to " ^ ip ^ ": " ^ s)
-    in
+  let handle_write_errors e =
+    begin match e with
+      Lost_connection e' ->
+        warn ("connection abrutedly closed by peer (" ^ string_of_exn e' ^ ")")
+    | Http_com.Timeout ->
+        warn "timeout"
+    | Http_com.Aborted ->
+        warn "writing thread aborted"
+    | Ocsistream.Interrupted e' ->
+        warn ("interrupted content stream (" ^ string_of_exn e' ^ ")")
+    | _ ->
+        Messages.unexpected_exception e "Server.handle_write_errors"
+    end;
+    Http_com.abort receiver;
+    Lwt.fail Http_com.Aborted
+  in
 
-    let linger () =
-      Lwt.catch
-        (fun () ->
-           (* We wait for 30 seconds at most and close the connection
-              after 2 seconds without receiving data from the client *)
-           let abort_fun () = Lwt_ssl.abort in_ch Exit in
-           let long_timeout = Lwt_timeout.create 30 abort_fun in
-           let short_timeout = Lwt_timeout.create 2 abort_fun in
-           Lwt_timeout.start long_timeout;
-           let s = String.create 1024 in
+  let handle_read_errors e =
+    begin match e with
+      Http_com.Connection_closed ->
+        (* This is the clean way to terminate the connection *)
+        warn "connection closed by peer";
+        Http_com.abort receiver;
+        Http_com.wait_all_senders receiver
+    | Http_com.Keepalive_timeout ->
+        warn "keepalive timeout";
+        Http_com.abort receiver;
+        Http_com.wait_all_senders receiver
+    | Http_com.Lost_connection _ ->
+        warn "connection abrutedly closed by peer";
+        Http_com.abort receiver;
+        Http_com.wait_all_senders receiver
+    | Http_com.Timeout ->
+        warn "timeout";
+        Http_com.abort receiver;
+        Http_com.wait_all_senders receiver
+    | Http_com.Aborted ->
+        warn "reading thread aborted";
+        Http_com.wait_all_senders receiver
+    | Http_error.Http_exception (code, mesg) ->
+        warn (Http_error.string_of_http_exception e);
+        Http_com.start_processing receiver (fun slot ->
+          (*XXX We should use the right information for clientproto
+            and head... *)
+          send_error slot
+               ~clientproto:Http_frame.Http_header.HTTP10 ~head:false
+               ~cookies:[] ~keep_alive:false
+               ~http_exception:e xhtml_sender);
+        linger in_ch receiver
+    | _ ->
+        Messages.unexpected_exception e "Server.handle_read_errors";
+        Http_com.abort receiver;
+        Http_com.wait_all_senders receiver
+    end
+  in
 
-           let rec linger_aux () =
-             Lwt_unix.yield () >>= fun () ->
-             Lwt.try_bind
-               (fun () ->
-                  Lwt_timeout.start short_timeout;
-                  Lwt_ssl.read in_ch s 0 1024)
-               (fun len ->
-                  if len > 0 then linger_aux () else Lwt.return ())
-               (fun e ->
-                  begin match e with
-                    Unix.Unix_error(Unix.ECONNRESET,_,_)
-                  | Ssl.Read_error (Ssl.Error_syscall | Ssl.Error_ssl)
-                  | Exit ->
-                      Lwt.return ()
-                  | _ ->
-                      Lwt.fail e
-                  end)
-           in
-           (* We start the lingering reads before waiting for the
-              senders to terminate in order to avoid a deadlock *)
-           let linger_thread = linger_aux () in
-           Http_com.wait_all_senders receiver >>= fun () ->
-           Messages.debug "** SHUTDOWN";
-           Lwt_ssl.ssl_shutdown in_ch >>= fun () ->
-           Lwt_ssl.shutdown in_ch Unix.SHUTDOWN_SEND;
-           linger_thread >>= fun () ->
-           Lwt_timeout.stop long_timeout;
-           Lwt_timeout.stop short_timeout;
-           Lwt.return ())
-        (fun e ->
-           Messages.unexpected_exception e "Server.linger";
-           Lwt.return ())
-    in
-
-    let handle_write_errors e =
-      begin match e with
-        Lost_connection _ ->
-          warn "connection abrutedly closed by peer";
-          Http_com.abort receiver
-      | Http_com.Timeout ->
-          warn "timeout";
-          Http_com.abort receiver
-      | Http_com.Aborted ->
-          warn "writing thread aborted"
-(*XXX Stream errors?*)
-      | _ ->
-          Messages.unexpected_exception e "Server.handle_write_errors";
-          Http_com.abort receiver
-      end;
-      Lwt.fail Http_com.Aborted
-    in
-
-    let handle_read_errors e =
-      begin match e with
-        Http_com.Connection_closed ->
-          (* This is the clean way to terminate the connection *)
-          warn "connection closed by peer";
-          Http_com.abort receiver;
-          Http_com.wait_all_senders receiver
-      | Http_com.Keepalive_timeout ->
-          warn "keepalive timeout";
-          Http_com.abort receiver;
-          Http_com.wait_all_senders receiver
-      | Http_com.Lost_connection _ ->
-          warn "connection abrutedly closed by peer";
-          Http_com.abort receiver;
-          Http_com.wait_all_senders receiver
-      | Http_com.Timeout ->
-          warn "timeout";
-          Http_com.abort receiver;
-          Http_com.wait_all_senders receiver
-      | Http_com.Aborted ->
-          warn "reading thread aborted";
-          Http_com.wait_all_senders receiver
-      | Http_error.Http_exception (code, mesg) ->
-          warn (Http_error.string_of_http_exception e);
-          Http_com.start_processing receiver (fun slot ->
-            (*XXX We should use the right information for clientproto
-              and head... *)
-            send_error slot
-                 ~clientproto:Http_frame.Http_header.HTTP10 ~head:false
-                 ~cookies:[] ~keep_alive:false
-                 ~http_exception:e xhtml_sender);
-          linger ()
-      | _ ->
-          Messages.unexpected_exception e "Server.handle_read_errors";
-          Http_com.abort receiver;
-          Http_com.wait_all_senders receiver
-      end
-    in
-
-    let rec handle_request () =
-      try_bind'
-        (fun () ->
-           Messages.debug "** Receiving HTTP message";
-           Http_com.get_http_frame receiver)
-        handle_read_errors
-        (fun request ->
-           let meth, url =
-             match
-               Http_header.get_firstline request.Http_frame.header
-             with
-             | Http_header.Query a -> a
-             | _                   -> assert false
-               (*XXX Should be checked in [get_http_frame] *)
-           in
-           let head = meth = Http_header.HEAD in
-           let keep_alive = get_keepalive request.Http_frame.header in
-
-           Http_com.start_processing receiver (fun slot ->
-             (catch
-                (fun () ->
-                  service
-                    receiver slot request meth url head port sockaddr
-                    xhtml_sender empty_sender in_ch)
-                handle_write_errors));
-
-           if keep_alive then
-             handle_request ()
-           else (* No keep-alive => no pipeline *)
-             Http_com.wait_all_senders receiver)
-
-    in (* body of listen_connexion *)
-(*XXX Add a catch here ?*)
-    handle_request () >>= fun () ->
-    decr_connected ();
-    Lwt.catch
+  let rec handle_request () =
+    try_bind'
       (fun () ->
-         Messages.debug "** CLOSE";
-         Lwt_ssl.close in_ch;
-         Lwt.return ())
-      (fun e ->
-         Messages.debug "** close failed";
-         Lwt.return ())
-  in 
-  let wait_connexion port socket =
-    let handle_connection (inputchan, sockaddr) =
-      debug "\n__________________NEW CONNECTION__________________________";
-      catch
-        (fun () -> 
-          let xhtml_sender = 
-            Http_com.create_sender
-              ~headers:Predefined_senders.dyn_headers
-              ~server_name:server_name ()
-          in
-          let empty_sender =
-            Http_com.create_sender
-              ~headers:Http_headers.empty
-              ~server_name:server_name ()
-          in
-          listen_connexion 
-            (Http_com.create_receiver Query inputchan)
-            inputchan sockaddr xhtml_sender
-            empty_sender)
-        (handle_broken_pipe_exn sockaddr)
-    in
+         Messages.debug "** Receiving HTTP message";
+         Http_com.get_http_frame receiver)
+      handle_read_errors
+      (fun request ->
+         let meth, url =
+           match Http_header.get_firstline request.Http_frame.header with
+           | Http_header.Query a -> a
+           | _                   -> assert false
+           (*XXX Should be checked in [get_http_frame] *)
+         in
+         Http_com.start_processing receiver (fun slot ->
+           Lwt.catch
+             (fun () ->
+(*XXX Why do we need the port but not the host name?*)
+                service
+                  receiver slot request meth url port sockaddr
+                  xhtml_sender empty_sender in_ch)
+             handle_write_errors);
+         if get_keepalive request.Http_frame.header then
+           handle_request ()
+         else (* No keep-alive => no pipeline *)
+            (* We wait for the query to be entirely read and for
+               the reply to be sent *)
+            Http_com.lock_receiver receiver >>= fun () ->
+            Http_com.wait_all_senders receiver)
 
-    let rec wait_connexion_rec () =
+  in (* body of handle_connection *)
+  handle_request ()
 
-      let rec do_accept () = 
-        Lwt_unix.accept socket >>= 
-        (fun (s, sa) -> 
-          Lwt_unix.set_close_on_exec s;
-          disable_nagle (Lwt_unix.unix_file_descr s);
-          if ssl
-          then begin
-            catch 
-              (fun () ->
-                 Lwt_ssl.ssl_accept s !sslctx >>= (fun socket ->
-                 Lwt.return (socket, sa)))
-                  (function
-                      Ssl.Accept_error e -> 
-                        Messages.debug "~~~ Accept_error"; do_accept ()
-                    | e -> warning ("Exn in do_accept : "^
-                                    (Printexc.to_string e)); do_accept ())
-          end 
-          else Lwt.return (Lwt_ssl.plain s, sa))
-      in
+let rec wait_connection use_ssl port socket =
+  try_bind'
+    (fun () -> Lwt_unix.accept socket)
+    (fun e ->
+       Messages.debug (Format.sprintf "Accept failed: %s" (string_of_exn e));
+       wait_connection use_ssl port socket)
+    (fun (s, sockaddr) ->
+       debug "\n__________________NEW CONNECTION__________________________";
+       incr_connected ();
+       let relaunch_at_once =
+         get_number_of_connected () < get_max_number_of_connections () in
+       if relaunch_at_once then
+         ignore (wait_connection use_ssl port socket)
+       else
+         warning (Format.sprintf "Max simultaneous connections (%d) reached."
+                    (get_max_number_of_connections ()));
+       Lwt.catch
+         (fun () ->
+            Lwt_unix.set_close_on_exec s;
+            disable_nagle (Lwt_unix.unix_file_descr s);
+            begin if use_ssl then
+              Lwt_ssl.ssl_accept s !sslctx
+            else
+              Lwt.return (Lwt_ssl.plain s)
+            end >>= fun in_ch ->
+            handle_connection port in_ch sockaddr)
+         (fun e ->
+            Messages.unexpected_exception e
+              "Server.wait_connection (handle connection)";
+            Lwt.return ()) >>= fun () ->
+       Messages.debug "** CLOSE";
+       begin try
+         Lwt_unix.close s
+       with Unix.Unix_error _ as e ->
+         Messages.unexpected_exception e "Server.wait_connection (close)"
+       end;
+       decr_connected ();
+       if not relaunch_at_once then begin
+         debug "Ok releasing one connection";
+         ignore (wait_connection use_ssl port socket)
+       end;
+       Lwt.return ())
 
-      catch
-        (fun () ->
-          (do_accept ()) >>= 
-          (fun c ->
-
-            incr_connected ();
-
-            let relaunch =
-              if (get_number_of_connected ()) <
-                (get_max_number_of_connections ()) then begin
-                  ignore_result (Lwt_unix.yield () >>= fun () -> 
-                    wait_connexion_rec ());
-                  false
-                end
-              else begin
-                warning ("Max simultaneous connections ("^
-                         (string_of_int (get_max_number_of_connections ()))^
-                         ") reached.");
-                true
-              end
-            in
-            
-            handle_connection c
-              
-              >>= 
-          
-            (fun () -> 
-
-              if relaunch
-              then begin
-                debug "Ok releasing one connection";
-                wait_connexion_rec ()
-              end
-              else return ()))
-
-        )
-        (fun exn ->
-          let t = Ocsiconfig.get_connect_time_max () in
-          errlog ("Exception: "^(string_of_exn exn)^
-                  ". Waiting "^
-                  (string_of_float t)^
-                  " seconds before accepting new connections.");
-          Lwt_unix.sleep t >>=
-          wait_connexion_rec)
-         
-    in wait_connexion_rec ()
-
-  in (* body of listen *)
-  (new_socket () >>= 
-   (fun listening_socket ->
-     catch
-
-       (fun () ->
-         Lwt_unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
-         Lwt_unix.bind listening_socket (local_addr port);
-         Lwt_unix.listen listening_socket 1;
-         
-         wait_end_init >>=
-         (fun () -> wait_connexion port listening_socket))
-
-       (function
-         | Unix.Unix_error (Unix.EACCES,"bind",s2) ->
-             errlog ("Fatal - You are not allowed to use port "^
-                     (string_of_int (port))^".");
-             exit 7
-         | Unix.Unix_error (Unix.EADDRINUSE,"bind",s2) ->
-             errlog ("Fatal - The port "^
-                     (string_of_int port)^
-                     " is already in use.");
-             exit 8
-         | exn ->
-             errlog ("Fatal - Uncaught exception: "^(Printexc.to_string exn));
-             exit 100
-       )
-   ))
+(** Thread waiting for events on a the listening port *)
+let listen use_ssl port wait_end_init =
+  let listening_socket =
+    try
+      let socket = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
+      Lwt_unix.set_close_on_exec socket;
+      Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
+      Lwt_unix.bind socket (local_addr port);
+      Lwt_unix.listen socket 1;
+      socket
+    with
+    | Unix.Unix_error (Unix.EACCES, _, _) ->
+        errlog (Format.sprintf
+                  "Fatal - You are not allowed to use port %d." port);
+        exit 7
+    | Unix.Unix_error (Unix.EADDRINUSE, _, _) ->
+        errlog (Format.sprintf "Fatal - The port %d is already in use." port);
+        exit 8
+    | exn ->
+        errlog ("Fatal - Uncaught exception: " ^ string_of_exn exn);
+        exit 100
+  in
+  wait_end_init >>= fun () ->
+  wait_connection use_ssl port listening_socket
 
 (* fatal errors messages *)
 let errmsg = function
@@ -1021,7 +795,7 @@ let errmsg = function
       (("Fatal - bad password"),
       10)
   | Config_file_exn exn ->
-      (("Fatal - Error in configuration file: "^(Printexc.to_string exn)),
+      (("Fatal - Error in configuration file: "^ string_of_exn exn),
       50)
   | Simplexmlparser.Xml_parser_error s ->
       (("Fatal - Error in configuration file: "^s),
@@ -1035,14 +809,14 @@ let errmsg = function
         20)
       with
         exn ->
-          (("Fatal - Uncaught exception: "^(Printexc.to_string exn)),
+          (("Fatal - Uncaught exception: "^string_of_exn exn),
           100)
             
             
             
 
 (* reloading the cmo *)
-let reload _ =
+let reload () =
 
   (* That function cannot be interrupted *)
   warning "Reloading config file";

@@ -18,7 +18,6 @@
  *)
 
 exception Input_is_too_large
-exception Ocsigen_Request_interrupted of exn
 exception Ocsigen_Bad_Request
 exception Ocsigen_Request_too_long
 
@@ -253,7 +252,5 @@ let rec string_of_exn = function
       "Dynlink.Error : " ^ (Dynlink.error_message err)
   | Unix.Unix_error (ee, func, param) -> 
       (Unix.error_message ee)^" in function "^func^" ("^param^")"
-  | Ocsigen_Request_interrupted e ->
-      "Request interrupted (" ^ string_of_exn e ^ ")"
   | e -> Printexc.to_string e
 

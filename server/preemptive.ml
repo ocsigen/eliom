@@ -151,11 +151,7 @@ let dispatch () =
            return ()))
 
        (fun e ->
-let s = match e with Unix.Unix_error(err,fnname,param) -> 
-Unix.error_message err^ " [" ^ fnname ^ "(" ^ param ^ ")]"
-| _ -> Printexc.to_string e
-in
- Messages.errlog ("Internal error in preemptive.ml (read failed on the pipe) "^ s ^" - Please report the bug"); return ())
+ Messages.errlog ("Internal error in preemptive.ml (read failed on the pipe) "^ Ocsimisc.string_of_exn e ^" - Please report the bug"); return ())
     ) >>= (fun () -> aux ())
   in aux ()
 

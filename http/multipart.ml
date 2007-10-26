@@ -234,8 +234,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
               | Some m ->
                   (Int64.compare size2 m) > 0)
             then 
-              fail (Ocsimisc.Ocsigen_Request_interrupted
-                      Ocsimisc.Ocsigen_Request_too_long)
+              fail (Ocsimisc.Ocsigen_Request_too_long)
             else
               if stri = ""
               then Ocsistream.next f >>= while_stream size

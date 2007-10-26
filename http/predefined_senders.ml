@@ -150,8 +150,6 @@ module File_content =
       Messages.debug ("start reading file (file opened)");
       let buf = String.create buffer_size in
       let rec read_aux () =
-        Lwt_unix.yield () >>=
-        (fun () ->
           let lu = Unix.read fd buf 0 buffer_size in (
             if lu = 0 then  
               Ocsistream.empty None
@@ -159,7 +157,7 @@ module File_content =
               if lu = buffer_size
               then Ocsistream.cont buf read_aux
               else Ocsistream.cont (String.sub buf 0 lu) read_aux
-            end))
+            end)
       in read_aux ()                         
 
     let get_etag_aux st =
@@ -507,8 +505,6 @@ let content_type_from_file_name =
 let send_file ~content:file ?filter ?cookies waiter ~clientproto
     ?code ?etag ~keep_alive
     ?last_modified ?location ~head ?headers ?charset file_sender =
-  Lwt_unix.yield () >>=
-  (fun () ->
     send_generic File_sender.send
       ~contenttype:(content_type_from_file_name file)
       ~content:file
@@ -516,6 +512,6 @@ let send_file ~content:file ?filter ?cookies waiter ~clientproto
       ?cookies waiter
       ~clientproto
       ?code ?etag ~keep_alive
-      ?last_modified ?location ~head ?headers ?charset file_sender)
+      ?last_modified ?location ~head ?headers ?charset file_sender
 
   

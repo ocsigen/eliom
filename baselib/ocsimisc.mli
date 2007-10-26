@@ -1,5 +1,4 @@
 exception Input_is_too_large
-exception Ocsigen_Request_interrupted of exn
 exception Ocsigen_Bad_Request
 exception Ocsigen_Request_too_long
 val id : 'a -> 'a

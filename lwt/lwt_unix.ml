@@ -266,6 +266,9 @@ let write ch buf pos len =
   | e ->
       Lwt.fail e
 
+let wait_read ch = register_action inputs ch (fun () -> ())
+let wait_write ch = register_action outputs ch (fun () -> ())
+
 let pipe () =
   let (out_fd, in_fd) = Unix.pipe() in
   (mk_ch out_fd, mk_ch in_fd)
@@ -280,7 +283,7 @@ let pipe_out () =
 
 let socket dom typ proto =
   let s = Unix.socket dom typ proto in
-  Lwt.return (mk_ch s)
+  mk_ch s
 
 let shutdown ch shutdown_command =
   check_descriptor ch;
@@ -288,7 +291,7 @@ let shutdown ch shutdown_command =
 
 let socketpair dom typ proto =
   let (s1, s2) = Unix.socketpair dom typ proto in
-  Lwt.return (mk_ch s1, mk_ch s2)
+  (mk_ch s1, mk_ch s2)
 
 let accept ch =
   try

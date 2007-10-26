@@ -27,6 +27,10 @@ TODO
 - defunctorize sender code
 - rewrite HTTP parser
 - check HTTP version (at the moment, we always respond with HTTP/1.1!!!)
+- for possibly large reads/writes on the network (streaming of more
+  than a few kilobytes), we should use Lwt_unix.wait_read and
+  Lwt_unix.wait_write: this gives some time for other requests to be
+  handled, and the read/write is resumed only when necessary
 
 PERSISTENT CONNECTIONS
 ======================
@@ -123,7 +127,6 @@ let buf_get_string buffer len =
   String.sub buffer.buf pos len
 
 (** Receive some more data. *)
-(*XXXX Put back a timeout *)
 let receive receiver =
   let used = buf_used receiver in
   let free = buf_size receiver - used in
@@ -312,12 +315,9 @@ let extract_chunked receiver =
   in
   Ocsistream.make aux
 
-let code_with_empty_content code =
-  (code >= 100 && code < 200) ||
-  (code = 204) ||
-  (code = 205) ||
-  (code = 304)
-    (* Others??? *)
+(* RFC2616, sect 4.3 *)
+let code_without_message_body code =
+  (code >= 100 && code < 200) || code = 204 || code = 304
 
 let parse_http_header mode s =
 (*XXX Should check that the message corresponds to the mode *)
@@ -350,7 +350,7 @@ let get_http_frame ?(head = false) receiver =
   wait_http_header receiver >>= fun len ->
   let string_header = buf_get_string receiver len in
   parse_http_header receiver.r_mode string_header >>= fun header ->
-(* RFC
+(* RFC2616, sect 4.4
    1.  Any response message  which "MUST  NOT" include  a message-body
    (such as the 1xx, 204, and 304 responses and any response to a HEAD
    request) is  always terminated  by the first  empty line  after the
@@ -358,7 +358,7 @@ let get_http_frame ?(head = false) receiver =
    the message.
  *)
   begin match header.Http_frame.Http_header.mode with
-    Http_frame.Http_header.Answer code when code_with_empty_content code ->
+    Http_frame.Http_header.Answer code when code_without_message_body code ->
       return_with_empty_body receiver
   | _ ->
       if head then begin
@@ -371,7 +371,6 @@ let get_http_frame ?(head = false) receiver =
    unless the message is terminated by closing the connection.
 *)
       let chunked =
-        (*XXX Is that right?*)
         try
           Http_frame.Http_header.get_headers_value
              header Http_headers.transfer_encoding <> "identity"
@@ -412,7 +411,7 @@ let get_http_frame ?(head = false) receiver =
             else
               let max = get_maxsize receiver.r_mode in
               begin match max with
-                Some m when false(*XXXXXXXXXXXXXXXXXXXXXXXXXXXcl > m*) ->
+                Some m when cl > m ->
                   Lwt.fail (request_too_large m)
               | _ ->
                   Lwt.return (Some (extract receiver (Exact cl)))
@@ -426,12 +425,11 @@ let get_http_frame ?(head = false) receiver =
    it; the presence in a request  of a Range header with multiple byte-
    range specifiers from a 1.1 client implies that the client can parse
    multipart/byteranges responses.
-
 NOT IMPLEMENTED
+
    5. By  the server closing  the connection. (Closing  the connection
    cannot be  used to indicate the  end of a request  body, since that
    would leave no possibility for the server to send back a response.)
-
  *)
             match header.Http_frame.Http_header.mode with
               Http_frame.Http_header.Query _ ->
@@ -496,9 +494,14 @@ let wait_previous_senders slot =
   slot.sl_waiter.w_wait
 
 let wait_all_senders conn =
-  Lwt.catch
-    (fun () -> conn.senders.w_wait >>= fun () -> Lwt_chan.flush conn.chan)
-    (fun e -> match e with Aborted -> Lwt.return () | _ -> Lwt.fail e)
+  Lwt.finalize
+    (fun () ->
+       Lwt.catch
+         (fun () -> conn.senders.w_wait >>= fun () -> Lwt_chan.flush conn.chan)
+         (fun e -> match e with Aborted -> Lwt.return () | _ -> Lwt.fail e))
+    (fun () ->
+       Lwt_timeout.stop conn.timeout;
+       Lwt.return ())
 
 type sender_type = {
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
@@ -611,26 +614,11 @@ module FHttp_sender =
            (* [slot] is here for pipelining: we must wait before
               sending the page, because the previous one may not be sent. *)
            wait_previous_senders slot >>= fun () ->
-           (* If the request has not been fully read by the
-              extensions, we force it to be read here, in order to
-              avoid any deadlock and to be able to take another
-              request on the same connexion. *)
-(*XXXXXXXXXXXXXXXXXXXXXXXXXXX
-           begin match slot.sl_req.Http_frame.content with
-             Some f ->
-(*XXX I'm not sure we can avoid memory leaks using old style streams...
-  The safe way is to iterate on the imperative stream. *)
-(*XXX Change consume to return the right error *)
-               Ocsistream.consume (Ocsistream.old_get (Ocsistream.steal f))
-           | None ->
-               Lwt.return ()
-           end >>= fun () ->
-*)
            let out_ch = slot.sl_chan in
            let empty_content =
              match mode with
                H.Nofirstline -> false
-             | H.Answer code -> code_with_empty_content code
+             | H.Answer code -> code_without_message_body code
              | H.Query _     -> false
            in
            let chunked =
