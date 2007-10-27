@@ -17,9 +17,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** This module is for getting informations from HTTP header. *)
-(** It uses the lowel level module Http_frame.Http_header.    *)
-(** It is very basic and must be completed for exhaustiveness. *)
+(** Getting informations from HTTP header. *)
+(** This module uses the lowel level module Http_frame.Http_header. 
+     It is very basic and must be completed for exhaustiveness. *)
 
 
 val get_keepalive : Http_frame.Http_header.http_header -> bool

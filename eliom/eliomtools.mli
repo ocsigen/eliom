@@ -24,7 +24,7 @@ open Eliomservices
 open Eliomparameters
 open Eliomsessions
 
-(** {2. Menus } *)
+(** {2 Menus } *)
 
 type ('a, 'b) one_page =
     (unit, unit, 
@@ -53,7 +53,7 @@ val menu : ?classe:XHTML.M.nmtoken list ->
 
 *)
 
-(** {2. Hierchical sites } *)
+(** {2 Hierchical sites } *)
 
 
 type ('a, 'b, 'c) hierarchical_site_item =
@@ -75,7 +75,9 @@ and ('a, 'b, 'c) hierarchical_site =
     - [Main_page] is when you want to create a main page for your
     subsite. All the subpages are subsections of that page.
 
-    - [Default_page] is when there is no main page, but you want 
+    - [Default_page] is like [Main_page] but is not taken into account
+    for computing which is the current page in the menu.
+    Use it for example when there is no main page, but you want 
     one of the subpages to be the default page for your subsite. 
     The service you use as default page
     must appear another time in the subtree!

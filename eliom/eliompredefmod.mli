@@ -451,6 +451,7 @@ end
 
 (** {3 Forms and registration functions} *)
 
+      (** Eliom forms and service registration functions for XHTML *)
 module Xhtml : sig
 
   include Eliommkreg.ELIOMREGSIG with type page = xhtml elt
@@ -563,3 +564,20 @@ module Files : Eliommkreg.ELIOMREGSIG with
  *)
 module Any : Eliommkreg.ELIOMREGSIG with 
   type page = Eliommod.result_to_send
+
+(** Allows to send raw data using Ocsigen's streams.
+    The content is a pair conatining:
+
+    - a list of functions returning a stream and the
+    function to close it,
+    - the  content type string to send. 
+
+    Streams are opened by calling the functions in the list, and closed
+    automatically by a call to the closing function.
+    If something goes wrong, the current stream is closed,
+    and the following are not opened.
+ *)
+module Streamlist : Eliommkreg.ELIOMREGSIG with 
+  type page = (((unit -> (string Ocsistream.t * (unit -> unit)) Lwt.t) list) * 
+                 string)
+

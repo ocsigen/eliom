@@ -285,7 +285,7 @@ val preapply :
     service ->
       'a -> 
         (unit, 'b, 'c, 
-         [ `WithoutSuffix ], unit, 'f, [ `Unregistrable ]) service
+         [ `WithoutSuffix ], unit, 'f, [> `Unregistrable ]) service
 (** creates a new service by preapplying a service to GET parameters. 
    It is not possible to register a handler on an preapplied service.
    Preapplied services may be used in links or as fallbacks for coservices

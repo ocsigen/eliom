@@ -71,10 +71,9 @@ let (directory, ocsidbm) =
 let rec try_connect sname =
   catch
     (fun () ->
-      Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
-      (fun socket ->
-        Lwt_unix.connect socket (Unix.ADDR_UNIX sname) >>=
-        (fun () -> return socket)))
+      let socket = Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 in
+      Lwt_unix.connect socket (Unix.ADDR_UNIX sname) >>= fun () ->
+      return socket)
     (fun _ ->
       Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^" on directory "^directory^".");
       let param = [|ocsidbm; directory|] in
@@ -102,10 +101,9 @@ let rec try_connect sname =
         Lwt_unix.waitpid [] pid >>=
         (fun _ ->  Lwt_unix.sleep 1.1 >>=
           (fun () ->
-            Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
-            (fun socket ->
-              Lwt_unix.connect socket (Unix.ADDR_UNIX sname) >>=
-              (fun () -> return socket)))))
+            let socket = Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 in
+            Lwt_unix.connect socket (Unix.ADDR_UNIX sname) >>= fun () ->
+            return socket)))
     
 let rec get_indescr i =
   (catch

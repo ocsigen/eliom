@@ -20,7 +20,7 @@
  *)
 
 
-(** This module defines the functor you may use to creates modules
+(** This module defines the functor to use to creates modules
    generating functions to register services for your own types of pages.
    It is used for example in {!Eliompredefmod}.
  *)

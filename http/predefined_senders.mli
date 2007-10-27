@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-(** this module provides functions to create senders *)
+(** Functions to create senders for various kinds of documents *)
 
 type mycookieslist = 
   (string list option * float option * (string * string) list) list
@@ -34,6 +34,7 @@ type send_page_type =
     ?cookies:mycookieslist ->
     Http_com.slot ->
     clientproto:Http_frame.Http_header.proto ->
+    ?mode:Http_frame.Http_header.http_mode ->
     ?code:int ->
     ?etag:Http_frame.etag ->
     keep_alive:bool ->
@@ -60,6 +61,14 @@ val send_text_page : ?contenttype: string -> content:string -> send_page_type
 (** fonction that uses a stream to send a (text) answer step by step *)
 val send_stream_page : ?contenttype: string -> 
   content: string Ocsistream.t -> send_page_type
+
+(** fonction that uses a stream list to send a (text) answer step by step.
+    Calling the function opens the stream and returns
+    the stream and the function to call to close it.
+ *)
+val send_stream_list_page : ?contenttype: string -> 
+  content: (unit -> (string Ocsistream.t * (unit -> unit)) Lwt.t) list -> 
+    send_page_type
 
 (** Headers for a non cachable request *)
 val dyn_headers : Http_headers.t
@@ -92,6 +101,7 @@ val send_generic :
   ?cookies:mycookieslist ->
   Http_com.slot ->
   clientproto:Http_frame.Http_header.proto ->
+  ?mode:Http_frame.Http_header.http_mode ->
   ?code:int ->
   ?etag:Http_frame.etag ->
   keep_alive:bool ->

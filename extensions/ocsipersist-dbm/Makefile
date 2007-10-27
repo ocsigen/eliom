@@ -19,7 +19,7 @@ LIB = -thread -package netstring $(LIBDIRS2)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
-CAMLDEP = $(OCAMLFIND) ocamldep
+CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS2)
 PP = 
 PP2 = 
 # -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"

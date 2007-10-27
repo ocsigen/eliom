@@ -659,7 +659,7 @@ let gen pages_tree charset ri =
                      res_etag= None;
                      res_code= Some 301; (* Moved permanently *)
                      res_send_page= 
-                     (fun ?filter ?cookies waiter ~clientproto ?code
+                     (fun ?filter ?cookies waiter ~clientproto ?mode ?code
                          ?etag ~keep_alive ?last_modified ?location
                          ~head ?headers ?charset s ->
                            Predefined_senders.send_empty
@@ -668,6 +668,7 @@ let gen pages_tree charset ri =
                              ?cookies
                              waiter 
                              ~clientproto
+                             ?mode
                              ?code
                              ?etag ~keep_alive
                              ?last_modified 

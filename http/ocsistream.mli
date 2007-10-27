@@ -4,31 +4,36 @@ exception Already_read
 
 (** Streams are a means to read data block by block *)
 
+type 'a stream
+
 (** A stream may be composed by several substreams.
    Thus a stream is either something that contains the current buffer and
    a function to retrieve the following data, 
    or a finished stream with possibly another stream following.
-   The integer is the size of the current buffer.
  *)
-type 'a stream
-
 type 'a step =
   | Finished of 'a stream option
   | Cont of 'a * 'a stream
 
 type 'a t
 
+(** creates a new stream *)
 val make : (unit -> 'a step Lwt.t) -> 'a t
 
+(** call this function if you decide to start reading a stream.
+    @raise [Already_read] if the stream has already been read. *)
 val get : 'a t -> 'a stream
 
+(** get the next step of a stream.
+    Fails with [Interrupted e] if reading the thread failed with exception [e],
+    and with [Cancelled] if the thread has been consumed. *)
 val next : 'a stream -> 'a step Lwt.t
 
 
-(** creates an empty stream *)
+(** creates an empty step *)
 val empty : (unit -> 'a step Lwt.t) option -> 'a step Lwt.t
 
-(** creates a non empty stream. *)
+(** creates a non empty step. *)
 val cont : 'a -> (unit -> 'a step Lwt.t) -> 'a step Lwt.t
 
 
@@ -58,3 +63,15 @@ val skip : string step -> int -> string step Lwt.t
 
 (** Cut the stream at the position given by a string delimiter *)
 val substream : string -> string step -> string step Lwt.t
+
+
+
+(*VVV à revoir : *)
+
+(** returns a stream reading from a file,
+    and the function to close the stream. *)
+val of_file : string -> (string t * (unit -> unit))
+
+(** returns a stream containing a string,
+    and the function to close the stream. *)
+val of_string : string -> (string t * (unit -> unit))

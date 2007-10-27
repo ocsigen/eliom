@@ -228,7 +228,8 @@ let gen pages_tree charset ri =
         (Ext_found
            {res_cookies=[];
 	    res_send_page=
-            (fun ?filter ?cookies waiter ~clientproto ?code ?etag ~keep_alive
+            (fun ?filter ?cookies waiter ~clientproto ?mode 
+                ?code ?etag ~keep_alive
                 ?last_modified ?location ~head ?headers ?charset s ->
                   Predefined_senders.send_empty
                     ~content:()
@@ -236,6 +237,7 @@ let gen pages_tree charset ri =
                     ?cookies
                     waiter 
                     ~clientproto
+                    ?mode
                     ?code
                     ?etag ~keep_alive
                     ?last_modified 

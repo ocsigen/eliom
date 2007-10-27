@@ -122,6 +122,45 @@ module Stream_content =
     let content_of_stream s = Lwt.return s
   end
 
+module Streamlist_content =
+  (* Used to send data from streams *)
+  struct
+    type t = (unit -> (string Ocsistream.t * (unit -> unit)) Lwt.t) list
+
+    let get_etag c = ""
+
+    let stream_of_content c =
+      let close_fun = ref Ocsimisc.id in
+      Lwt.return (None, get_etag c, 
+                  Ocsistream.make 
+                    (fun () -> 
+                      let rec get_next stream close l =
+                        Ocsistream.next stream >>= function
+                        | Ocsistream.Finished None -> 
+                            close ();
+                            aux l
+                        | Ocsistream.Finished (Some stream) -> 
+                            get_next stream close l
+                        | Ocsistream.Cont (v, stream) -> 
+                            Ocsistream.cont v 
+                              (fun () -> get_next stream close l)
+                      and aux = function
+                        | [] -> 
+                            close_fun := Ocsimisc.id;
+                            Ocsistream.empty None
+                        | f::l -> 
+                            f () >>= fun (stream, close) ->
+                            close_fun := close;
+                            get_next (Ocsistream.get stream) close l
+                      in aux c
+                    ),
+                  (fun () -> Lwt.return (!close_fun ()))
+                 )
+
+    let content_of_stream s = 
+      Lwt.return [fun () -> Lwt.return (s,  Ocsimisc.id)]
+  end
+
 
 module Empty_content =
   struct
@@ -199,6 +238,9 @@ module Text_sender = FHttp_sender(Text_content)
 (** creates a sender for any stream *)
 module Stream_sender = FHttp_sender(Stream_content)
 
+(** creates a sender for any stream list *)
+module Streamlist_sender = FHttp_sender(Streamlist_content)
+
 (** this module is a sender that send Http_frame with file content *)
 module File_sender = FHttp_sender(File_content)
 
@@ -248,6 +290,7 @@ let send_generic
     ?(cookies=[])
     waiter
     ~clientproto
+    ?mode
     ?code
     ?etag
     ~keep_alive
@@ -317,10 +360,13 @@ let send_generic
          | _              -> contenttype)
   in
   let mode =
-    Http_header.Answer
-      (match code with
-      | None -> 200
-      | Some c -> c)
+    match mode with
+    | None -> 
+        Http_header.Answer
+          (match code with
+          | None -> 200
+          | Some c -> c)
+    | Some m -> m
   in
 (*XXX Shouldn't this function know about the keep_alive parameter? *)
   send ?filter
@@ -337,6 +383,7 @@ type send_page_type =
     ?cookies:mycookieslist ->
     Http_com.slot ->
     clientproto:Http_frame.Http_header.proto ->
+    ?mode:Http_frame.Http_header.http_mode ->
     ?code:int ->
     ?etag:Http_frame.etag ->
     keep_alive:bool ->
@@ -400,6 +447,10 @@ let send_text_page =
 let send_stream_page =
   send_generic Stream_sender.send  
   
+(** fonction that uses a stream list to send the answer step by step *)
+let send_stream_list_page =
+  send_generic Streamlist_sender.send  
+  
   
 
 (** sends an error page that fit the error number *)
@@ -409,6 +460,7 @@ let send_error
     ?cookies
     waiter
     ~clientproto
+    ?mode
     ?(code=500)
     ?etag
     ~keep_alive
@@ -446,6 +498,7 @@ let send_error
     ?filter
     waiter
     ~clientproto
+    ?mode
     ~code:error_code
     ~headers:dyn_headers
     ?etag
@@ -503,7 +556,7 @@ let content_type_from_file_name =
     with _ -> "unknown" 
 
 let send_file ~content:file ?filter ?cookies waiter ~clientproto
-    ?code ?etag ~keep_alive
+    ?mode ?code ?etag ~keep_alive
     ?last_modified ?location ~head ?headers ?charset file_sender =
     send_generic File_sender.send
       ~contenttype:(content_type_from_file_name file)
@@ -511,7 +564,7 @@ let send_file ~content:file ?filter ?cookies waiter ~clientproto
       ?filter
       ?cookies waiter
       ~clientproto
-      ?code ?etag ~keep_alive
+      ?mode ?code ?etag ~keep_alive
       ?last_modified ?location ~head ?headers ?charset file_sender
 
   

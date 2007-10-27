@@ -44,6 +44,11 @@ let xml_expl s =
         (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s))))
 let xml_patl s = failwith "Syntax extension not implemented for patterns"
 
+let xml_of_stream s = 
+  (to_expr_taglist 
+     (remove_ws 
+        (Grammar.Entry.parse exprpatt_any_tag_list s)))
+
 let _ = Quotation.add "xmllist" (Quotation.ExAst (xml_expl, xml_patl))
 
 let _ = Quotation.default := "xml"

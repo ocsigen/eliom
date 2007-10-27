@@ -1462,7 +1462,7 @@ module Redirreg_ = struct
        res_etag= None;
        res_code= Some code; (* Moved permanently *)
        res_send_page= 
-       (fun ?filter ?cookies waiter ~clientproto ?code ?etag ~keep_alive
+       (fun ?filter ?cookies waiter ~clientproto ?mode ?code ?etag ~keep_alive
            ?last_modified ?location ~head ?headers ?charset s ->
              Predefined_senders.send_empty
                ~content:()
@@ -1470,6 +1470,7 @@ module Redirreg_ = struct
                ?cookies
                waiter 
                ~clientproto
+               ?mode
                ?code
                ?etag ~keep_alive
                ?last_modified 
@@ -1498,7 +1499,7 @@ module TempRedirreg_ = struct
        res_etag= None;
        res_code= Some code; (* Temporary move *)
        res_send_page= 
-       (fun ?filter ?cookies waiter ~clientproto ?code ?etag ~keep_alive
+       (fun ?filter ?cookies waiter ~clientproto ?mode ?code ?etag ~keep_alive
            ?last_modified ?location ~head ?headers ?charset s ->
              Predefined_senders.send_empty
                ~content:()
@@ -1506,6 +1507,7 @@ module TempRedirreg_ = struct
                ?cookies
                waiter 
                ~clientproto
+               ?mode
                ?code
                ?etag ~keep_alive
                ?last_modified 
@@ -1613,4 +1615,33 @@ module Filesreg_ = struct
 end
 
 module Files = MakeRegister(Filesreg_)
+
+(****************************************************************************)
+(****************************************************************************)
+
+module Streamlistreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = (((unit -> (string Ocsistream.t * (unit -> unit)) Lwt.t) list) * 
+                 string)
+
+  let send ?(cookies=[]) ?charset ?code ~sp (content, contenttype) = 
+    EliomResult
+      {res_cookies= cookies;
+       res_lastmodified= None;
+       res_etag= None;
+       res_code= code;
+       res_send_page= Predefined_senders.send_stream_list_page 
+         ~contenttype:contenttype ~content:content;
+       res_headers= Predefined_senders.dyn_headers;
+       res_charset= (match charset with
+       | None -> get_config_file_charset sp
+       | _ -> charset);
+       res_filter=None
+     }
+
+end
+
+module Streamlist = MakeRegister(Streamlistreg_)
 

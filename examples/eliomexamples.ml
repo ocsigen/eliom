@@ -424,6 +424,33 @@ let suffixform3 = register_new_service ["suffixform3"] unit
           (body [h1 [pcdata "Hallo"];
                  f ])))
 
+let suffix5 = 
+  register_new_service 
+    ~path:["suffix5";""]
+    ~get_params:(suffix (all_suffix "s"))
+    (fun sp s () ->  
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body
+              [p [pcdata "This is a page with suffix "; 
+                  strong [pcdata (Ocsimisc.string_of_url_path s)]]])))
+
+let nosuffix = 
+  register_new_service 
+    ~path:["suffix5";"notasuffix";""]
+    ~get_params:unit
+    (fun sp () () ->  
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body
+              [p [pcdata "This is a page without suffix. Replace ";
+                  code [pcdata "notasuffix"];
+                  pcdata " in the URL by something else."
+                ]])))
+
+
 
 (* Send file with regexp *)
 let sendfileregexp = 
@@ -821,6 +848,7 @@ let mainpage = register_new_service ["tests"] unit
          a suffixform2 sp [pcdata "Suffix 2"] (); br ();
          a suffixform3 sp [pcdata "Suffix 3"] (); br ();
          a suffixform4 sp [pcdata "Suffix 4"] (); br ();
+         a nosuffix sp [pcdata "Page without suffix on the same URL of a page with suffix"] (); br ();
          a anypostform sp [pcdata "POST form to any parameters"] (); br ();
          a any2 sp [pcdata "int + any parameters"] 
            (3, [("Ciao","bel"); ("ragazzo","!")]); br ();

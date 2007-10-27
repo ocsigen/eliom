@@ -636,6 +636,8 @@ let handle_connection port in_ch sockaddr =
     | Http_com.Aborted ->
         warn "writing thread aborted"
     | Ocsistream.Interrupted e' ->
+(*VVV Jérôme> Do we send an error 500 
+              when the stream we are reading from fails? -- Vincent *)
         warn ("interrupted content stream (" ^ string_of_exn e' ^ ")")
     | _ ->
         Messages.unexpected_exception e "Server.handle_write_errors"

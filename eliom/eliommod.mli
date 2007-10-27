@@ -18,10 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** This module contains low level functions for Eliom (undocumented) and
-   not available for the user. It also defines some exceptions you may
-   want to catch.
- *)
+(** Low level functions for Eliom, exceptions and types. *)
 
 open Extensions
 

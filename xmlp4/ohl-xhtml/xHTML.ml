@@ -787,6 +787,9 @@ module type T =
     val cdata : string -> [`PCDATA] elt (* GK *)
     val cdata_script : string -> [`PCDATA] elt (* GK *)
     val cdata_style : string -> [`PCDATA] elt (* GK *)
+(**/**)
+    val unsafe_data : string -> [`PCDATA] elt
+(**/**)
 
 
     
@@ -1079,9 +1082,11 @@ module type T =
     val toelt : 'a elt -> XML.elt
     val toeltl : 'a elt list -> XML.elt list
 
+    (** Ocsigen's pretty printer for xhtml *)
     val ocsigen_print : 
         ?width:int -> ?encode:(string -> string) -> [ `Html ] elt -> string
 
+    (** Ocsigen's pretty printer for xhtml portions *)
     val ocsigen_xprint : 
         ?width:int -> ?encode:(string -> string) -> 'a elt list -> string
 
@@ -1489,6 +1494,8 @@ module Version =
            (Netstring_pcre.regexp_string "]]>") "" s)
         ^"\n/* ]]> */\n" in
       XML.EncodedPCDATA s'
+    
+    let unsafe_data s = XML.EncodedPCDATA s
     
 
     module TEXT =
