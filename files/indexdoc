@@ -1,9 +1,9 @@
 
-{1 Ocsigen - Reference manual}
+{2 Ocsigen - Reference manual}
 
-{2 Ocsigen}
+{3 Ocsigen}
 
-{3 Persistent data, writing in the logs, configuration file extension}
+{4 Persistent data, writing in the logs, configuration file extension}
 {!modules: 
 Ocsipersist 
 Messages 
@@ -11,14 +11,14 @@ Parseconfig
 Simplexmlparser
 }
 
-{3 Extending Ocsigen}
+{4 Extending Ocsigen}
 {!modules: 
 Extensions 
 Ocsiheaders 
 Predefined_senders 
 }
 
-{2 Lwt}
+{3 Lwt}
 
 {!modules: 
 Lwt 
@@ -30,9 +30,9 @@ Lwt_timeout
 Preemptive
 }
 
-{2 Eliom}
+{3 Eliom}
 
-{3 Main modules}
+{4 Main modules}
 {!modules: 
 Eliomservices 
 Eliomparameters 
@@ -40,13 +40,13 @@ Eliomsessions
 Eliommod 
 }
 
-{3 Generating pages with OcamlDuce}
+{4 Generating pages with OcamlDuce}
 {!modules: 
 Eliomduce 
 Xhtml1_strict 
 }
 
-{3 Generating pages typed with polymorphic variants}
+{4 Generating pages typed with polymorphic variants}
 {!modules: 
 Eliompredefmod.Xhtml 
 XHTML
@@ -54,12 +54,12 @@ Xhtmltypes
 Eliomtools
 }
 
-{3 Other kinds of pages}
+{4 Other kinds of pages}
 {!modules: 
 Eliompredefmod 
 }
 
-{3 Creating your own kinds of pages}
+{4 Creating your own kinds of pages}
 {!modules: 
 Eliommkforms 
 Eliommkreg

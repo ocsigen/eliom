@@ -135,23 +135,42 @@ module Streamlist_content =
                   Ocsistream.make 
                     (fun () -> 
                       let rec get_next stream close l =
-                        Ocsistream.next stream >>= function
-                        | Ocsistream.Finished None -> 
-                            close ();
-                            aux l
-                        | Ocsistream.Finished (Some stream) -> 
-                            get_next stream close l
-                        | Ocsistream.Cont (v, stream) -> 
-                            Ocsistream.cont v 
-                              (fun () -> get_next stream close l)
+                        catch
+                          (fun () ->
+                            Ocsistream.next stream >>= function
+                              | Ocsistream.Finished None -> 
+                                  close ();
+                                  aux l
+                              | Ocsistream.Finished (Some stream) -> 
+                                  get_next stream close l
+                              | Ocsistream.Cont (v, stream) -> 
+                                  Ocsistream.cont v 
+                                    (fun () -> get_next stream close l))
+                          (function 
+                            | Cancelled
+                            | Already_read as e
+                            | Interrupted e -> 
+                                exnhandler e close l)
                       and aux = function
                         | [] -> 
                             close_fun := Ocsimisc.id;
                             Ocsistream.empty None
                         | f::l -> 
-                            f () >>= fun (stream, close) ->
-                            close_fun := close;
-                            get_next (Ocsistream.get stream) close l
+                            catch
+                              (fun () ->
+                                f () >>= fun (stream, close) ->
+                                  close_fun := close;
+                                  get_next (Ocsistream.get stream) close l)
+                              (function
+                                | Unix.Unix_error _ as e -> 
+                                    exnhandler e Ocsimisc.id l)
+                      and exnhandler e close l = 
+                        Messages.warning 
+                          ("Error while reading stream list: "^
+                           Ocsimisc.string_of_exn e);
+                        close ();
+                        aux l
+                              
                       in aux c
                     ),
                   (fun () -> Lwt.return (!close_fun ()))
