@@ -688,7 +688,7 @@ let gen pages_tree charset ri =
 	       (Ext_found
                   {res_cookies= [];
 		   res_send_page= 
-		   Predefined_senders.send_stream_page 
+		   Predefined_senders.send_stream 
 		     ?contenttype:None
                      ~content;
 		   res_headers=

@@ -400,7 +400,7 @@ let gen pages_tree charset ri =
 	    (Ext_found
                {res_cookies= [];
 		res_send_page= 
-		   Predefined_senders.send_stream_page 
+		   Predefined_senders.send_stream 
 		     ~contenttype:"text/html"
                      ~content:(Ocsistream.make (fun () -> Lwt.return content));
 		res_headers=Http_headers.empty;

@@ -51,8 +51,7 @@ external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
 
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
 
-let _ = Ssl.init ()
-let sslctx = ref (Ssl.create_context Ssl.SSLv23 Ssl.Server_context)
+let sslctx = Http_client.sslcontext
 
 
 let ip_of_sockaddr = function

@@ -463,7 +463,7 @@ let send_text_page =
   send_generic Text_sender.send
   
 (** fonction that uses a stream to send the answer step by step *)
-let send_stream_page =
+let send_stream =
   send_generic Stream_sender.send  
   
 (** fonction that uses a stream list to send the answer step by step *)

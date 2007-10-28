@@ -59,7 +59,7 @@ val send_empty : content: unit -> send_page_type
 val send_text_page : ?contenttype: string -> content:string -> send_page_type
 
 (** fonction that uses a stream to send a (text) answer step by step *)
-val send_stream_page : ?contenttype: string -> 
+val send_stream : ?contenttype: string -> 
   content: string Ocsistream.t -> send_page_type
 
 (** fonction that uses a stream list to send a (text) answer step by step.

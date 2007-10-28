@@ -16,6 +16,9 @@ Simplexmlparser
 Extensions 
 Ocsiheaders 
 Predefined_senders 
+Http_frame
+Http_client
+Http_com
 }
 
 {3 Lwt}

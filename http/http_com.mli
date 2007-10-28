@@ -7,17 +7,17 @@ S: sender
 *)
 
 (** The other side has cleanly closed the connection after a message *)
-exception Connection_closed (* R *)
+exception Connection_closed (** R *)
 
 (** The connection has been unexpectedly broken *)
-exception Lost_connection of exn (* RrS *)
+exception Lost_connection of exn (** RrS *)
 
 (** No activity on the other side *)
-exception Timeout (* RrS *)
-exception Keepalive_timeout (* R *)
+exception Timeout (** RrS *)
+exception Keepalive_timeout (** R *)
 
 (** Connection killed *)
-exception Aborted (* RrS *)
+exception Aborted (** RrS *)
 
 type mode = Answer | Query | Nofirstline
 type connection
@@ -35,7 +35,7 @@ val wait_all_senders : connection -> unit Lwt.t
 
 (****)
 
-(*
+(**
 This function may return any I/O error from the channel, or a
 interrupted stream exception.
 *)
@@ -53,7 +53,8 @@ val create_sender :
 module type SENDER =
   sig
     type t
-(* [send] may also fail with Interrupted_stream exception *)
+
+(** [send] may also fail with Interrupted_stream exception *)
     val send :
       ?filter:('a option ->
                Http_frame.full_stream -> Http_frame.full_stream Lwt.t) ->
@@ -66,6 +67,7 @@ module type SENDER =
       ?contenttype:'a ->
       content:t -> head:bool -> sender_type -> unit Lwt.t
   end
+
 module FHttp_sender :
   functor (C : Http_frame.HTTP_CONTENT) -> SENDER with type t = C.t
 
