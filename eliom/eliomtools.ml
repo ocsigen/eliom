@@ -53,7 +53,7 @@ let menu ?(classe=[]) first l ~service:current ~sp =
   | [] -> assert false
   | [(url, text)] ->
       ul ~a:[a_class (menu_class::classe)] 
-        (let liclasse = [first_class;last_class] in
+        (let liclasse = [first_class; last_class] in
         if url == current 
         then (li ~a:[a_class (current_class::liclasse)] text) 
         else (li ~a:[a_class liclasse] [a url sp text ()])) []
@@ -119,17 +119,22 @@ let hierarchical_menu_depth_first
           first_class::classe
         else classe
       in
+      let attclass = 
+        if classe = [] then
+          []
+        else [a_class classe]
+      in
       match s with
       | (text, Site_tree (Default_page page, []))
       | (text, Site_tree (Main_page page, [])) -> 
-          li ~a:[a_class classe] [a page sp text ()]
+          li ~a:attclass [a page sp text ()]
       | (text, Site_tree (Not_clickable, [])) -> 
-          li ~a:[a_class classe] text
+          li ~a:attclass text
       | (text, Disabled) -> 
           li ~a:[a_class (disabled_class::classe)] text
       | (text, Site_tree (Default_page page, hsl))
       | (text, Site_tree (Main_page page, hsl)) -> 
-          li ~a:[a_class classe] 
+          li ~a:attclass
             ((a page sp text ())::
              if deplier || whole_tree then
                (depth_first_fun hsl (level+1) pos2
@@ -137,7 +142,7 @@ let hierarchical_menu_depth_first
                   :> [< Xhtmltypes.li_content > `Ul ] XHTML.M.elt list)
              else [])
       | (text, Site_tree (Not_clickable, hsl)) -> 
-          li ~a:[a_class classe] 
+          li ~a:attclass
             ((text : Xhtmltypes.a_content XHTML.M.elt list
                 :> Xhtmltypes.li_content XHTML.M.elt list)@
              if deplier || whole_tree then
@@ -186,12 +191,17 @@ let hierarchical_menu_breadth_first
           first_class::classe
         else classe
       in
+      let attclass = 
+        if classe = [] then
+          []
+        else [a_class classe]
+      in
       match s with
       | (text, Site_tree (Default_page page, _))
       | (text, Site_tree (Main_page page, _)) -> 
-          li ~a:[a_class classe] [a page sp text ()]
+          li ~a:attclass [a page sp text ()]
       | (text, Site_tree (Not_clickable, _)) -> 
-          li ~a:[a_class classe] text
+          li ~a:attclass text
       | (text, Disabled) -> 
           li ~a:[a_class (disabled_class::classe)] text
     and one_menu first i = function
