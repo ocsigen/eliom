@@ -23,7 +23,6 @@ TODO
 - server.ml
 - shorter timeouts for keep-alive (?)
 - check the code against the HTTP spec
-- how are failures dealt with at a higher level (server.ml)?
 - defunctorize sender code
 - rewrite HTTP parser
 - check HTTP version (at the moment, we always respond with HTTP/1.1!!!)
@@ -497,6 +496,7 @@ let wait_all_senders conn =
   Lwt.finalize
     (fun () ->
        Lwt.catch
+(*XXX Do we need a flush here?  Are we properly flushing in case of an error? *)
          (fun () -> conn.senders.w_wait >>= fun () -> Lwt_chan.flush conn.chan)
          (fun e -> match e with Aborted -> Lwt.return () | _ -> Lwt.fail e))
     (fun () ->
@@ -608,7 +608,7 @@ module FHttp_sender =
 (*XXX Move conversion + filter out of this function *)
       C.stream_of_content content >>=
       (* XXX We assume that [filter] finalizes c if it fails *)
-      filter contenttype >>= fun (slen, etag2, flux, finalizer) ->
+      filter contenttype >>= fun (slen, etag2, flux) ->
       Lwt.finalize
         (fun () ->
            (* [slot] is here for pipelining: we must wait before
@@ -668,5 +668,5 @@ module FHttp_sender =
                Messages.debug "writing body";
                write_stream ~chunked out_ch flux
              end))
-        finalizer
+        (fun () -> Ocsistream.finalize flux)
   end

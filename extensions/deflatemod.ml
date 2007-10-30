@@ -155,13 +155,16 @@ let compress deflate stream =
       pos = 0;
       avail = !buffer_size
     } in
-  if deflate then
-  (Messages.debug "--Deflatemod: Preparing to compress with deflate...";
-  Ocsistream.make (fun () -> next_cont oz stream))
-  else
-  (Messages.debug "--Deflatemod: Preparing to compress with gzip...";
-  Ocsistream.make (fun () -> Ocsistream.cont gzip_header
-    (fun () -> next_cont oz stream)))
+  let finalize () = Ocsistream.finalize stream in
+  let new_stream () = next_cont oz (Ocsistream.get stream) in
+  if deflate then begin
+    Messages.debug "--Deflatemod: Preparing to compress with deflate...";
+    Ocsistream.make ~finalize new_stream
+  end else begin
+    Messages.debug "--Deflatemod: Preparing to compress with gzip...";
+    Ocsistream.make
+      ~finalize (fun () -> Ocsistream.cont gzip_header new_stream)
+  end
 
 
 
@@ -320,7 +323,7 @@ let select_encoding accept_header =
 
 exception No_compress
 
-let stream_filter deflate choice contenttype (len, etag, stream, finalize) = 
+let stream_filter deflate choice contenttype (len, etag, stream) = 
  try (
    match contenttype with
    | None -> raise No_compress (* il faudrait défaut ? *)
@@ -330,11 +333,10 @@ let stream_filter deflate choice contenttype (len, etag, stream, finalize) =
        | (Some a, Some b) when should_compress (a, b) choice ->
            return (None, 
                    (if deflate then "Ddeflatemod" else "Gdeflatemod")^etag, 
-                   compress deflate (Ocsistream.get stream), 
-                   finalize)
+                   compress deflate stream)
        | _ -> raise No_compress)
  with Not_found | No_compress -> 
-   return (None, etag, stream, finalize)
+   return (None, etag, stream)
 
 let filter ri res =
   (* TODO: Ici il faut regarder dans l'arbre de configuration

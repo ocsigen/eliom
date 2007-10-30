@@ -22,6 +22,7 @@ let (>>=) = Lwt.bind
 exception Interrupted of exn
 exception Cancelled
 exception Already_read
+exception Finalized
 
 type 'a stream = 'a step Lwt.t Lazy.t
 
@@ -32,7 +33,8 @@ and 'a step =
 
 type 'a t =
   { mutable stream : 'a stream;
-    mutable in_use : bool }
+    mutable in_use : bool;
+    mutable finalizer : unit -> unit Lwt.t }
 
 let empty follow =
   match follow with
@@ -42,7 +44,8 @@ let empty follow =
 let cont stri f =
   Lwt.return (Cont (stri, Lazy.lazy_from_fun f))
 
-let make f = { stream = Lazy.lazy_from_fun f; in_use = false }
+let make ?finalize:(g = fun () -> Lwt.return ()) f =
+  { stream = Lazy.lazy_from_fun f; in_use = false; finalizer = g }
 
 let next = Lazy.force
 
@@ -76,6 +79,16 @@ let consume st =
   let st' = st.stream in
   st.stream <- lazy (Lwt.fail Cancelled);
   consume_aux st'
+
+let finalize st =
+  st.stream <- lazy (Lwt.fail Finalized);
+  let f = st.finalizer in
+  st.finalizer <- (fun () -> Lwt.return ());
+  f ()
+
+let add_finalizer st g =
+  let f = st.finalizer in
+  st.finalizer <- fun () -> f () >>= fun () -> g ()
 
 (****)
 

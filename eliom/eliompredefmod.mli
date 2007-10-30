@@ -578,6 +578,6 @@ module Any : Eliommkreg.ELIOMREGSIG with
     and the following are not opened.
  *)
 module Streamlist : Eliommkreg.ELIOMREGSIG with 
-  type page = (((unit -> (string Ocsistream.t * (unit -> unit)) Lwt.t) list) * 
+  type page = (((unit -> string Ocsistream.t Lwt.t) list) * 
                  string)
 

@@ -67,7 +67,7 @@ val send_stream : ?contenttype: string ->
     the stream and the function to call to close it.
  *)
 val send_stream_list_page : ?contenttype: string -> 
-  content: (unit -> (string Ocsistream.t * (unit -> unit)) Lwt.t) list -> 
+  content: (unit -> string Ocsistream.t Lwt.t) list -> 
     send_page_type
 
 (** Headers for a non cachable request *)

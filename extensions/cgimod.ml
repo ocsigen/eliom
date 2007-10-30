@@ -486,30 +486,17 @@ let recupere_cgi head pages_tree re filename ri =
     catch 
       (fun () ->
 	Http_com.get_http_frame ~head receiver >>= fun http_frame ->
-
-        ignore 
-	  (Http_com.lock_receiver receiver >>= fun () ->
-(*XXX FIX: we will never reach here if [get_http_frame] fails *)
-          Lwt_unix.close cgi_out;
-	  return ());
-	return http_frame)
+	return (http_frame, fun () -> Lwt_unix.close cgi_out; Lwt.return ()))
       (fun e -> Lwt_unix.close cgi_out; fail e);
 
   with e -> fail e
             
-(** return the header of the frame *)
-
-let get_header str =
-  let a = str.Http_frame.header 
-  in return a
-
-
 (** return the content of the frame *)
 
 let get_content str =
   match str.Http_frame.content with
-  | None -> return (Ocsistream.make (fun () -> Ocsistream.empty None))
-  | Some c -> return c
+  | None   -> Ocsistream.make (fun () -> Ocsistream.empty None)
+  | Some c -> c
 
 
 (*****************************************************************************)
@@ -613,6 +600,16 @@ let exn_handler = raise
 
 (*****************************************************************************)
 
+let default_res =
+  {res_cookies= [];
+   res_lastmodified= None;
+   res_etag= None;
+   res_code= None;
+   res_send_page= Predefined_senders.send_empty ~content:();
+   res_headers= Http_headers.empty;
+   res_charset= None;
+   res_filter=None }
+
 let gen pages_tree charset ri =
   catch
     (* Is it a cgi page? *)
@@ -626,81 +623,71 @@ let gen pages_tree charset ri =
          in 
 	 recupere_cgi 
            (ri.ri_method = Http_header.HEAD) 
-           pages_tree re filename ri >>= fun frame ->
-         get_header frame >>= fun header -> 
-         get_content frame >>= fun content -> 
-         (try 
-           return
-             (Some
-                (int_of_string
-                   (String.sub 
-                      (Http_frame.Http_header.get_headers_value 
-                         header Http_headers.status)
-                      0 3)))
-         with 
-         | Not_found -> return None
-         | _ -> fail (CGI_Error 
-                        (Failure "Bad Status line in header"))
-         ) >>= fun code ->
-         try
-           if code <> None
-           then raise Not_found
-           else 
-             let loc =
-               Http_frame.Http_header.get_headers_value
-                 header Http_headers.location
-             in
-             (try
-               ignore (Neturl.extract_url_scheme loc);
-               return
-                 (Ext_found
-                    {res_cookies= [];
-                     res_lastmodified= None;
-                     res_etag= None;
-                     res_code= Some 301; (* Moved permanently *)
-                     res_send_page= 
-                     (fun ?filter ?cookies waiter ~clientproto ?mode ?code
-                         ?etag ~keep_alive ?last_modified ?location
-                         ~head ?headers ?charset s ->
-                           Predefined_senders.send_empty
-                             ~content:() 
-                             ?filter
-                             ?cookies
-                             waiter 
-                             ~clientproto
-                             ?mode
-                             ?code
-                             ?etag ~keep_alive
-                             ?last_modified 
-                             ~location:loc
-                             ~head ?headers ?charset s);
-                     res_headers= Http_headers.empty;
-                     res_charset= None;
-                     res_filter=None
-                   })
-             with 
-             | Neturl.Malformed_URL -> 
-                 return (Ext_retry_with ((ri_of_url loc ri), []))
-             )
-         with
-         | Not_found ->
-             return
-	       (Ext_found
-                  {res_cookies= [];
-		   res_send_page= 
-		   Predefined_senders.send_stream 
-		     ?contenttype:None
-                     ~content;
-		   res_headers=
-                     Http_headers.replace_opt
-                       Http_headers.status None header.Http_header.headers;
-		   res_code= code;
-		   res_lastmodified= None;
-		   res_etag= None;
-		   res_charset= None;
-                   res_filter=None})
-       end
-       else return (Ext_not_found Ocsigen_404))
+           pages_tree re filename ri >>= fun (frame, finalizer) ->
+         let header = frame.Http_frame.header in
+         let content = get_content frame in
+         Ocsistream.add_finalizer content finalizer;
+         Lwt.catch
+           (fun () ->
+              let code =
+                try
+                  let status =
+                    Http_frame.Http_header.get_headers_value
+                      header Http_headers.status in
+                  if String.length status < 3 then raise (Failure "too short");
+                  Some (int_of_string (String.sub status 0 3))
+                with
+                | Not_found ->
+                    None
+                | Failure _ ->
+                    raise (CGI_Error (Failure "Bad Status line in header"))
+              in
+              let loc =
+                try
+                  Some (Http_frame.Http_header.get_headers_value
+                          header Http_headers.location)
+                with Not_found ->
+                  None
+              in
+              match code, loc with
+                None, Some loc ->
+                  Ocsistream.finalize content >>= fun () ->
+                  if loc <> "" && loc.[0] = '/' then
+                    Lwt.return (Ext_retry_with ((ri_of_url loc ri), []))
+                  else
+                    Lwt.return
+                      (Ext_found
+                         { default_res with
+                           res_code= Some 301; (* Moved permanently *)
+                           res_send_page=
+                           fun ?filter ?cookies waiter ~clientproto ?mode ?code
+                               ?etag ~keep_alive ?last_modified ?location ->
+                             Predefined_senders.send_empty
+                               ~content:()
+                               ?filter
+                               ?cookies
+                               waiter
+                               ~clientproto
+                               ?mode
+                               ?code
+                               ?etag ~keep_alive
+                               ?last_modified
+                               ~location:loc })
+              | _, _ ->
+                  return
+                    (Ext_found
+                       { default_res with
+                         res_send_page =
+                           Predefined_senders.send_stream
+                             ?contenttype:None ~content;
+                         res_headers =
+                           Http_headers.replace_opt
+                             Http_headers.status None
+                             header.Http_header.headers;
+                         res_code = code}))
+           (fun e -> Ocsistream.finalize content >>= fun () -> Lwt.fail e)
+       end else
+         Lwt.return (Ext_not_found Ocsigen_404))
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory

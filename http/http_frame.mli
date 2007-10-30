@@ -1,7 +1,7 @@
 type etag = string
 
 type full_stream =
-  int64 option * etag * string Ocsistream.t * (unit -> unit Lwt.t)
+  int64 option * etag * string Ocsistream.t
 (** The type of streams to be send by the server.
    The [int64 option] is the content-length.
    [None] means Transfer-encoding: chunked

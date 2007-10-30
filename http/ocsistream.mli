@@ -1,6 +1,7 @@
 exception Interrupted of exn
 exception Cancelled
 exception Already_read
+exception Finalized
 
 (** Streams are a means to read data block by block *)
 
@@ -18,7 +19,7 @@ type 'a step =
 type 'a t
 
 (** creates a new stream *)
-val make : (unit -> 'a step Lwt.t) -> 'a t
+val make : ?finalize:(unit -> unit Lwt.t) -> (unit -> 'a step Lwt.t) -> 'a t
 
 (** call this function if you decide to start reading a stream.
     @raise [Already_read] if the stream has already been read. *)
@@ -36,6 +37,12 @@ val empty : (unit -> 'a step Lwt.t) option -> 'a step Lwt.t
 (** creates a non empty step. *)
 val cont : 'a -> (unit -> 'a step Lwt.t) -> 'a step Lwt.t
 
+
+(** Add a finalizer function *)
+val add_finalizer : 'a t -> (unit -> unit Lwt.t) -> unit
+
+(** Finalize the stream *)
+val finalize : 'a t -> unit Lwt.t
 
 (** read the stream until the end, without decoding *)
 val consume : 'a t -> unit Lwt.t

@@ -1089,8 +1089,7 @@ module SubXhtml = functor(T : sig type content end) ->
           Lwt.return (Some (Int64.of_int (String.length x)), 
                       md5,
                       Ocsistream.make (fun () -> Ocsistream.cont x 
-                         (fun () -> Ocsistream.empty None)),
-                      return
+                         (fun () -> Ocsistream.empty None))
                      )
             
             (* there is currently no parser for this type *)
@@ -1623,7 +1622,7 @@ module Streamlistreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = (((unit -> (string Ocsistream.t * (unit -> unit)) Lwt.t) list) * 
+  type page = (((unit -> (string Ocsistream.t) Lwt.t) list) * 
                  string)
 
   let send ?(cookies=[]) ?charset ?code ~sp (content, contenttype) = 

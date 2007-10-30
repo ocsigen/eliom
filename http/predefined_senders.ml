@@ -82,9 +82,7 @@ module Xhtml_content =
       Lwt.return (Some (Int64.of_int (String.length x)), 
                   md5, 
                   Ocsistream.make (fun () -> Ocsistream.cont x
-                     (fun () -> Ocsistream.empty None)),
-                  return
-                 )
+                     (fun () -> Ocsistream.empty None)))
 
     (*il n'y a pas encore de parser pour ce type*)
     let content_of_stream s = assert false
@@ -101,8 +99,7 @@ module Text_content =
       let md5 = get_etag c in
       Lwt.return (Some (Int64.of_int (String.length c)), 
                   md5, 
-                  Ocsistream.make (fun () -> Ocsistream.cont c (fun () -> Ocsistream.empty None)),
-                  return)
+                  Ocsistream.make (fun () -> Ocsistream.cont c (fun () -> Ocsistream.empty None)))
 
     let content_of_stream st = Ocsistream.string_of_stream (Ocsistream.get st)
   end
@@ -117,7 +114,7 @@ module Stream_content =
     let get_etag c = ""
 
     let stream_of_content c =
-      Lwt.return (None, get_etag c, c, return)
+      Lwt.return (None, get_etag c, c)
 
     let content_of_stream s = Lwt.return s
   end
@@ -125,59 +122,51 @@ module Stream_content =
 module Streamlist_content =
   (* Used to send data from streams *)
   struct
-    type t = (unit -> (string Ocsistream.t * (unit -> unit)) Lwt.t) list
+    type t = (unit -> string Ocsistream.t Lwt.t) list
 
     let get_etag c = ""
 
     let stream_of_content c =
-      let close_fun = ref Ocsimisc.id in
-      Lwt.return (None, get_etag c, 
-                  Ocsistream.make 
-                    (fun () -> 
-                      let rec get_next stream close l =
-                        catch
-                          (fun () ->
-                            Ocsistream.next stream >>= function
-                              | Ocsistream.Finished None -> 
-                                  close ();
-                                  aux l
-                              | Ocsistream.Finished (Some stream) -> 
-                                  get_next stream close l
-                              | Ocsistream.Cont (v, stream) -> 
-                                  Ocsistream.cont v 
-                                    (fun () -> get_next stream close l))
-                          (function 
-                            | Cancelled
-                            | Already_read as e
-                            | Interrupted e -> 
-                                exnhandler e close l)
-                      and aux = function
-                        | [] -> 
-                            close_fun := Ocsimisc.id;
-                            Ocsistream.empty None
-                        | f::l -> 
-                            catch
-                              (fun () ->
-                                f () >>= fun (stream, close) ->
-                                  close_fun := close;
-                                  get_next (Ocsistream.get stream) close l)
-                              (function
-                                | Unix.Unix_error _ as e -> 
-                                    exnhandler e Ocsimisc.id l)
-                      and exnhandler e close l = 
-                        Messages.warning 
-                          ("Error while reading stream list: "^
-                           Ocsimisc.string_of_exn e);
-                        close ();
-                        aux l
-                              
-                      in aux c
-                    ),
-                  (fun () -> Lwt.return (!close_fun ()))
-                 )
+      let finalizer = ref (fun () -> Lwt.return ()) in
+      let finalize () =
+        let f = !finalizer in
+        finalizer := (fun () -> Lwt.return ());
+        f ()
+      in
+      let rec next stream l =
+        Lwt.try_bind (fun () -> Ocsistream.next stream)
+          (fun s ->
+             match s with
+               Ocsistream.Finished None ->
+                 finalize () >>= fun () ->
+                 next_stream l
+             | Ocsistream.Finished (Some stream) ->
+                 next stream l
+             | Ocsistream.Cont (v, stream) ->
+                 Ocsistream.cont v (fun () -> next stream l))
+          (function Interrupted e | e ->
+(*XXX string_of_exn should know how to print "Interrupted _" exceptions*)
+             exnhandler e l)
+      and next_stream l =
+        match l with
+          [] ->
+            Ocsistream.empty None
+        | f :: l ->
+            Lwt.try_bind f
+              (fun stream ->
+                 finalizer := (fun () -> Ocsistream.finalize stream);
+                 next (Ocsistream.get stream) l)
+              (fun e -> exnhandler e l)
+      and exnhandler e l =
+        Messages.warning
+          ("Error while reading stream list: " ^ Ocsimisc.string_of_exn e);
+        finalize () >>= fun () ->
+        next_stream l
+      in
+      Lwt.return (None, get_etag c,
+                  Ocsistream.make ~finalize (fun () -> next_stream c))
 
-    let content_of_stream s = 
-      Lwt.return [fun () -> Lwt.return (s,  Ocsimisc.id)]
+    let content_of_stream s = Lwt.return [fun () -> Lwt.return s]
   end
 
 
@@ -189,8 +178,7 @@ module Empty_content =
 
     let stream_of_content c = 
       Lwt.return (Some (Int64.of_int 0), (get_etag ()),
-                  Ocsistream.make (fun () -> Ocsistream.empty None),
-                  return)
+                  Ocsistream.make (fun () -> Ocsistream.empty None))
 
     let content_of_stream s = Lwt.return ()
   end
@@ -216,7 +204,7 @@ module File_content =
               then Ocsistream.cont buf read_aux
               else Ocsistream.cont (String.sub buf 0 lu) read_aux
             end)
-      in read_aux ()                         
+      in read_aux
 
     let get_etag_aux st =
       Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
@@ -231,16 +219,18 @@ module File_content =
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
       let st = Unix.LargeFile.stat c in 
       let etag = get_etag_aux st in
-      read_file fd >>=
-      (fun r ->
-        Lwt.return (
-          Some st.Unix.LargeFile.st_size, 
-          etag, Ocsistream.make (fun () -> Lwt.return r), 
-          fun () ->     
-            Messages.debug ("closing file"); 
-            Unix.close fd;
-            return ()))
-        
+      let stream = read_file fd in
+      Lwt.return
+        (Some st.Unix.LargeFile.st_size,
+         etag,
+         Ocsistream.make
+           ~finalize:
+              (fun () ->
+                 Messages.debug ("closing file");
+                 Unix.close fd;
+                 return ())
+           stream)
+
     let content_of_stream s = assert false
       
   end
