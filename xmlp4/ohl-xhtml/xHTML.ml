@@ -1084,11 +1084,15 @@ module type T =
 
     (** Ocsigen's pretty printer for xhtml *)
     val ocsigen_print : 
-        ?width:int -> ?encode:(string -> string) -> [ `Html ] elt -> string
+        ?width:int -> ?encode:(string -> string) ->
+          ?html_compat:bool ->
+            [ `Html ] elt -> string
 
     (** Ocsigen's pretty printer for xhtml portions *)
     val ocsigen_xprint : 
-        ?width:int -> ?encode:(string -> string) -> 'a elt list -> string
+        ?width:int -> ?encode:(string -> string) -> 
+          ?html_compat:bool ->
+            'a elt list -> string
 
   end
 
@@ -1888,11 +1892,13 @@ module Version =
     let toelt x = x
     let toeltl x = x
 
-    let ocsigen_print version ?width ?encode arbre =
-      XML.xh_print ?width ?encode blocktags semiblocktags (doctype version) arbre
+    let ocsigen_print version ?width ?encode ?html_compat arbre =
+      XML.xh_print ?width ?encode ?html_compat
+        blocktags semiblocktags (doctype version) arbre
 
-    let ocsigen_xprint version ?width ?encode foret =
-      XML.x_print ?width ?encode blocktags semiblocktags (doctype version) foret
+    let ocsigen_xprint version ?width ?encode ?html_compat foret =
+      XML.x_print ?width ?encode ?html_compat
+        blocktags semiblocktags (doctype version) foret
         
   end    
 

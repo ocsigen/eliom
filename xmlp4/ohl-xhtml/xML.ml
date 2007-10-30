@@ -448,7 +448,9 @@ let id x = x
 (* My own pretty_printer, that handles inline tags properly *)
 let x_print, xh_print = 
 
-  let aux ~width ~encode blocktags semiblocktags doctype arbre =
+  let aux ~width ~encode ?(html_compat = false)
+      blocktags semiblocktags doctype arbre =
+    let endemptytag = if html_compat then ">" else "/>" in
     let rec xh_print_attrs encode attrs = match attrs with
       [] ->  ();
     | attr::queue -> 
@@ -465,7 +467,7 @@ let x_print, xh_print =
         pp_print_tbreak xh_string (taille_tab*i) 0;
       pp_print_string xh_string ("<"^tag);
       xh_print_attrs encode attrs;
-      pp_print_string xh_string "/>";
+      pp_print_string xh_string endemptytag;
       pp_close_tbox xh_string ();
       
     and xh_print_inlinetag encode tag attrs taglist i is_first = 
@@ -632,21 +634,24 @@ let x_print, xh_print =
     in
     xh_print_taglist [arbre] 0 true false
   in
-  ((fun ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags
+  ((fun ?(width = 132) ?(encode = encode_unsafe)
+      ?html_compat blocktags semiblocktags
       doctype foret ->
         
         pp_set_margin str_formatter width;
 
         pp_open_tbox xh_string ();
         
-        List.iter (aux ?width ?encode blocktags semiblocktags doctype) foret;
+        List.iter (aux ?width ?encode ?html_compat
+                     blocktags semiblocktags doctype) foret;
           
         pp_force_newline xh_string ();
         pp_close_tbox xh_string ();
         
         flush_str_formatter ()),
 
-   (fun ?(width = 132) ?(encode = encode_unsafe) blocktags semiblocktags
+   (fun ?(width = 132) ?(encode = encode_unsafe)
+       ?html_compat blocktags semiblocktags
        doctype arbre ->
          
          pp_set_margin str_formatter width;
@@ -659,7 +664,7 @@ let x_print, xh_print =
          pp_print_string xh_string ocsigenadv;
          pp_force_newline xh_string ();
          
-         aux ?width ?encode blocktags semiblocktags doctype arbre;
+         aux ?width ?encode ?html_compat blocktags semiblocktags doctype arbre;
            
          pp_force_newline xh_string ();
          pp_close_tbox xh_string ();

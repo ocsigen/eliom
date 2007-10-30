@@ -154,9 +154,11 @@ val translate :
 val xh_print :
     ?width:int ->
       ?encode:(string -> string) ->
-        ename list -> ename list -> string -> elt -> string
+        ?html_compat:bool ->
+          ename list -> ename list -> string -> elt -> string
 
 val x_print :
     ?width:int ->
       ?encode:(string -> string) ->
-        ename list -> ename list -> string -> elt list -> string
+        ?html_compat:bool ->
+          ename list -> ename list -> string -> elt list -> string
