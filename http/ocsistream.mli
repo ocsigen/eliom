@@ -75,10 +75,10 @@ val substream : string -> string step -> string step Lwt.t
 
 (*VVV à revoir : *)
 
-(** returns a stream reading from a file,
-    and the function to close the stream. *)
-val of_file : string -> (string t * (unit -> unit))
+(** returns a stream reading from a file.
+   Do not forget to finalize the stream to close the file.
+ *)
+val of_file : string -> string t
 
-(** returns a stream containing a string,
-    and the function to close the stream. *)
-val of_string : string -> (string t * (unit -> unit))
+(** returns a stream containing a string. *)
+val of_string : string -> string t

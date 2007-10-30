@@ -247,7 +247,7 @@ let rec split char s =
 (* printing exceptions *)
 let rec string_of_exn = function
   | Dynlink.Error err ->
-      "Dynlink.Error : " ^ (Dynlink.error_message err)
+      "Dynlink.Error: " ^ (Dynlink.error_message err)
   | Unix.Unix_error (ee, func, param) -> 
       (Unix.error_message ee)^" in function "^func^" ("^param^")"
   | e -> Printexc.to_string e

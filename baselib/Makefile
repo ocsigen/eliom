@@ -62,7 +62,7 @@ clean:
 	-rm -f *.cm[ioax] *.cmxa *~ *.annot ocsiconfig.ml
 
 depend: ocsiconfig.ml
-	$(CAMLDEP) $(PP) $(FILES:.ml=.mli) $(FILES) > .depend
+	$(CAMLDEP) $(PP) $(LIBDIRS) $(FILES:.ml=.mli) $(FILES) > .depend
 
 FORCE:
 

@@ -211,6 +211,8 @@ let substream delim s =
 
 (*****************************************************************************)
 
+(*VVV Is it the good place for this? *)
+
 let of_file filename =
   let fd = Lwt_unix.of_unix_file_descr 
       (Unix.openfile filename [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
@@ -222,8 +224,7 @@ let of_file filename =
         Lwt_chan.input_line ch >>= fun s ->
         (cont s aux))
       (function End_of_file -> empty None | e -> fail e)
-  in (make aux, fun () -> Lwt_unix.close fd)
+  in make ~finalize:(fun () -> Lwt.return (Lwt_unix.close fd)) aux
 
 let of_string s =
-  (make (fun () -> cont s (fun () -> empty None)),
-   Ocsimisc.id)
+  make (fun () -> cont s (fun () -> empty None))

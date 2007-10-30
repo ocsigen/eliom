@@ -149,8 +149,7 @@ module Streamlist_content =
              exnhandler e l)
       and next_stream l =
         match l with
-          [] ->
-            Ocsistream.empty None
+          [] -> Ocsistream.empty None
         | f :: l ->
             Lwt.try_bind f
               (fun stream ->
