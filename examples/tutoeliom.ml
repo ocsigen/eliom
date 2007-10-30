@@ -9,7 +9,7 @@
 (*html*
 
 let part0 sp = 
-<:xmllist<
+°:xmllist°
 
     <div class="onecol">
       <p>This is the tutorial for <em>Eliom</em> (development version).
@@ -27,12 +27,12 @@ let part0 sp =
         <em>Objective Caml</em> language.</em></p>
     </div>
 
->>
+°°
 
 
 
 let part1 sp = 
-<:xmllist<
+°:xmllist°
 
 
    <h2>1. The basics: main services, parameters, forms, cooperative programming</h2>
@@ -1168,11 +1168,11 @@ let looong2 =
       </dl>
     </div>
 
->>
+°°
 
 
 let part2 sp = 
-<:xmllist<
+°:xmllist°
 
 
    <h2>2. Sessions, users and other common situations in Web sites</h2>
@@ -2205,11 +2205,11 @@ let () =
     </div>
 
 
->>
+°°
 
 
 let part3 sp = 
-<:xmllist<
+°:xmllist°
 
 
    <h2>3. More details on services and page generation</h2>
@@ -3907,7 +3907,7 @@ let print_news_page sp i () =
     </p>
     </div>
 
->>
+°°
 
 *html*)
 (*zap* *)
