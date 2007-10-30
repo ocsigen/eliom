@@ -57,8 +57,7 @@ module Ocamlduce_content =
       Lwt.return (Some (Int64.of_int (String.length x)), 
                   md5, 
                   Ocsistream.make (fun () -> Ocsistream.cont x 
-                      (fun () -> Ocsistream.empty None)),
-                  return
+                      (fun () -> Ocsistream.empty None))
                  )
 
     (*il n'y a pas encore de parser pour ce type*)

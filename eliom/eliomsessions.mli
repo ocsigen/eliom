@@ -41,6 +41,7 @@ open Extensions
   *)
 
 
+
 (*****************************************************************************)
 (** {2 Getting information about the request} *)
 
@@ -652,32 +653,14 @@ module Session_admin : sig
   val set_persistent_data_session_timeout : 
       session:persistent_session -> float option -> unit Lwt.t
 
-  (** [None] means: see global setting. 
-
-      [Some None] means: no timeout.
-
-     Timeout value in seconds.
- *)
   val get_service_session_timeout : 
-      session:service_session -> float option option
+      session:service_session -> Eliommod.timeout
 
-  (** [None] means: see global setting. 
-
-      [Some None] means: no timeout.
-
-     Timeout value in seconds.
- *)
   val get_volatile_data_session_timeout : 
-      session:data_session -> float option option
+      session:data_session -> Eliommod.timeout
 
-  (** [None] means: see global setting. 
-
-      [Some None] means: no timeout.
-
-     Timeout value in seconds.
- *)
   val get_persistent_data_session_timeout : 
-      session:persistent_session -> float option option
+      session:persistent_session -> Eliommod.timeout
 
   val unset_service_session_timeout : 
       session:service_session -> unit

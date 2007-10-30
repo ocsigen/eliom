@@ -24,7 +24,6 @@ open Eliommod
 open Extensions
 open Lazy
 
-
 let get_config () = 
   match global_register_allowed () with
   | Some _ -> !Eliommod.config
@@ -162,23 +161,27 @@ let get_global_persistent_data_session_timeout ?session_name ?sp () =
 
 let set_service_session_timeout ?session_name ~sp t = 
   let (_, _, tor, _, _) = find_or_create_service_cookie ?session_name ~sp () in
-  tor := Some t
+  match t with
+  | None -> tor := TNone
+  | Some t -> tor := TSome t
 
 let set_volatile_data_session_timeout ?session_name ~sp t = 
   let (_, tor, _, _) = find_or_create_data_cookie ?session_name ~sp () in
-  tor := Some t
+  match t with
+  | None -> tor := TNone
+  | Some t -> tor := TSome t
 
 
 let unset_service_session_timeout ?session_name ~sp () = 
   try
     let (_, _, tor, _, _) = find_service_cookie_only ?session_name ~sp () in
-    tor := None
+    tor := TGlobal
   with Not_found -> ()
 
 let unset_volatile_data_session_timeout ?session_name ~sp () = 
   try
     let (_, tor, _, _) = find_data_cookie_only ?session_name ~sp () in
-    tor := None
+    tor := TGlobal
   with Not_found -> ()
 
 
@@ -186,8 +189,10 @@ let get_service_session_timeout ?session_name ~sp () =
   try
     let (_, _, tor, _, _) = find_service_cookie_only ?session_name ~sp () in
     match !tor with
-    | None -> Eliommod.get_global_service_timeout ?session_name sp.sp_site_dir
-    | Some t -> t
+    | TGlobal -> 
+        Eliommod.get_global_service_timeout ?session_name sp.sp_site_dir
+    | TNone -> None
+    | TSome t -> Some t
   with Not_found -> 
     Eliommod.get_global_service_timeout ?session_name sp.sp_site_dir
 
@@ -195,8 +200,9 @@ let get_volatile_data_session_timeout ?session_name ~sp () =
   try
     let (_, tor, _, _) = find_data_cookie_only ?session_name ~sp () in
     match !tor with
-    | None -> Eliommod.get_global_data_timeout ?session_name sp.sp_site_dir
-    | Some t -> t
+    | TGlobal -> Eliommod.get_global_data_timeout ?session_name sp.sp_site_dir
+    | TNone -> None
+    | TSome t -> Some t
   with Not_found -> 
     Eliommod.get_global_data_timeout ?session_name sp.sp_site_dir
 
@@ -216,13 +222,16 @@ let unset_volatile_session_timeout ?session_name ~sp () =
 
 let set_persistent_data_session_timeout ?session_name ~sp t =
   find_or_create_persistent_cookie ?session_name ~sp () >>= fun (_, tor, _) ->
-  return (tor := Some t)
+  return
+      (match t with
+      | None -> tor := TNone
+      | Some t -> tor := TSome t)
 
 let unset_persistent_data_session_timeout ?session_name ~sp () = 
   catch
     (fun () ->
       find_persistent_cookie_only ?session_name ~sp () >>= fun (_, tor, _) ->
-      tor := None;
+      tor := TGlobal;
       return ()
     )
     (function Not_found -> return () | e -> fail e)
@@ -233,9 +242,10 @@ let get_persistent_data_session_timeout ?session_name ~sp () =
       find_persistent_cookie_only ?session_name ~sp () >>= fun (_, tor, _) ->
       return
         (match !tor with
-        | None -> Eliommod.get_global_persistent_timeout
+        | TGlobal -> Eliommod.get_global_persistent_timeout
               ~session_name sp.sp_site_dir
-        | Some t -> t)
+        | TNone -> None
+        | TSome t -> Some t)
     )
     (function
       | Not_found -> 
@@ -256,27 +266,31 @@ let get_persistent_data_session_timeout ?session_name ~sp () =
 
 let set_service_session_cookie_exp_date ?session_name ~sp t = 
   let (_, _, _, _, exp) = find_or_create_service_cookie ?session_name ~sp () in
-  exp := Some t
+  match t with
+  | None -> exp := CEBrowser
+  | Some t -> exp := CESome t
 
+(*
 let get_service_session_cookie_exp_date ?session_name ~sp () = 
   try
     let (_, _, _, _, exp) = find_service_cookie_only ?session_name ~sp () in
-    match !exp with
-    | None -> None
-    | Some t -> t
-  with Not_found -> None
+    !exp
+  with Not_found -> CEBrowser
+*)
 
 let set_volatile_data_session_cookie_exp_date ?session_name ~sp t = 
   let (_, _, _, exp) = find_or_create_data_cookie ?session_name ~sp () in
-  exp := Some t
+  match t with
+  | None -> exp := CEBrowser
+  | Some t -> exp := CESome t
 
+(*
 let get_volatile_data_session_cookie_exp_date ?session_name ~sp () = 
   try
     let (_, _, _, exp) = find_data_cookie_only ?session_name ~sp () in
-    match !exp with
-    | None -> None
-    | Some t -> t
-  with Not_found -> None
+    !exp
+  with Not_found -> CEBrowser
+*)
 
 let set_volatile_session_cookies_exp_date ?session_name ~sp t = 
   set_service_session_cookie_exp_date ?session_name ~sp t;
@@ -286,17 +300,17 @@ let set_volatile_session_cookies_exp_date ?session_name ~sp t =
 let set_persistent_data_session_cookie_exp_date ?session_name ~sp t = 
   find_or_create_persistent_cookie ?session_name ~sp () >>= 
   fun (_, _, exp) ->
-  return (exp := Some t)
+  return
+      (match t with
+      | None -> exp := CEBrowser
+      | Some t -> exp := CESome t)
 
 let get_persistent_data_session_cookie_exp_date ?session_name ~sp () = 
   catch
     (fun () ->
       find_persistent_cookie_only ?session_name ~sp () >>= fun (_, _, exp) ->
-      return
-          (match !exp with
-          | None -> None
-          | Some t -> t))
-    (function Not_found -> return None | e -> fail e)
+      return !exp)
+    (function Not_found -> return CEBrowser | e -> fail e)
 
 
 
@@ -357,7 +371,7 @@ let remove_persistent_session_data ?session_name ~table ~sp () =
     (fun () ->
       find_persistent_cookie_only ?session_name ~sp () >>= fun (c, _, _) ->
       Ocsipersist.remove table c)
-    (fun _ -> return ())
+    (function Not_found | Eliom_Session_expired -> return () | e -> fail e)
 
 
 (*****************************************************************************)
@@ -389,7 +403,7 @@ let remove_volatile_session_data ?session_name ~table ~sp () =
   try 
     let (c, _, _, _) = find_data_cookie_only ?session_name ~sp () in
     Cookies.remove table c
-  with _ -> ()
+  with Not_found | Eliom_Session_expired -> ()
 
 
 
@@ -445,7 +459,7 @@ module Session_admin = struct
        Eliommod.tables         (* session table *) * 
        float option ref        (* expiration date by timeout 
                                   (server side) *) *
-       float option option ref (* user timeout *)) *
+       Eliommod.timeout ref    (* user timeout *)) *
        (Eliommod.pages_tree * Extensions.url_path)
 
   type data_session =
@@ -454,7 +468,7 @@ module Session_admin = struct
       (string                  (* session fullsessname *) *
        float option ref        (* expiration date by timeout 
                                   (server side) *) *
-       float option option ref (* user timeout *)) *
+       Eliommod.timeout ref   (* user timeout *)) *
        (Eliommod.pages_tree * Extensions.url_path)
 
   type persistent_session =
@@ -463,7 +477,7 @@ module Session_admin = struct
       (string                  (* session fullsessname *) *
        float option            (* expiration date by timeout 
                                   (server side) *) *
-       float option option     (* user timeout *) *
+       Eliommod.timeout        (* user timeout *) *
        int64                   (* deprecated *))
 
 
@@ -493,30 +507,38 @@ module Session_admin = struct
   let get_service_session_name ~session:(_, (s, _, _, _), _) =
     try
       Some (snd (Ocsimisc.sep '|' s))
-    with _ -> None
+    with Not_found -> None
     
   let get_volatile_data_session_name ~session:(_, (s, _, _), _) =
     try
       Some (snd (Ocsimisc.sep '|' s))
-    with _ -> None
+    with Not_found -> None
 
   let get_persistent_data_session_name ~session:(_, (s, _, _, _)) =
     try
       Some (snd (Ocsimisc.sep '|' s))
-    with _ -> None
+    with Not_found -> None
 
   let set_service_session_timeout ~session:(_, (_, _, _, r), _) t = 
-    r := Some t
+    match t with
+    | None -> r := TNone
+    | Some t -> r := TSome t
 
   let set_volatile_data_session_timeout ~session:(_, (_, _, r), _) t = 
-    r := Some t
+    match t with
+    | None -> r := TNone
+    | Some t -> r := TSome t
 
   let set_persistent_data_session_timeout
       ~session:(cookie, (fullsessname, exp, _, _)) t = 
+    let ti = match t with
+    | None -> TNone
+    | Some t -> TSome t
+    in
     Ocsipersist.add
       persistent_cookies_table 
       cookie
-      (fullsessname, exp, Some t, Int64.zero)
+      (fullsessname, exp, ti, Int64.zero)
 
   let get_service_session_timeout ~session:(_, (_, _, _, r), _) = 
     !r
@@ -529,17 +551,17 @@ module Session_admin = struct
 
 
   let unset_service_session_timeout ~session:(_, (_, _, _, r), _) = 
-    r := None
+    r := TGlobal
 
   let unset_volatile_data_session_timeout ~session:(cookie, (_, _, r), _) =
-    r := None
+    r := TGlobal
 
   let unset_persistent_data_session_timeout 
       ~session:(cookie, (fullsessname, exp, _, _)) = 
     Ocsipersist.add
       persistent_cookies_table 
       cookie
-      (fullsessname, exp, None, Int64.zero)
+      (fullsessname, exp, TGlobal, Int64.zero)
 
 
   (** Iterator on service sessions *)

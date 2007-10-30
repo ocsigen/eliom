@@ -175,7 +175,7 @@ let regexp reg dest n =
                   (Netstring_pcre.matched_group result 1 s)^
                   userdir^
                   (Netstring_pcre.matched_group result 3 s)
-                with _ -> raise Not_found
+                with Not_found -> raise (Failure "User does not exist")
           end
       | _ -> raise (Failure "Not matching regexp"))
     (fun s -> s)
@@ -252,7 +252,7 @@ let reconstruct_params
         | [] -> true
         | (a,_)::_ when 
             (try (String.sub a 0 len) = pref
-            with _ -> false) -> false
+            with Invalid_argument _ -> false) -> false
         | _::l -> end_of_list len l
       in
       if end_of_list (String.length pref) lp
@@ -576,10 +576,11 @@ let remove_prefixed_param pref l =
   let rec aux = function
     | [] -> []
     | ((n,v) as a)::l -> 
-        try if (String.sub n 0 len) = pref 
-        then aux l
-        else a::(aux l)
-        with _ -> a::(aux l)
+        try 
+          if (String.sub n 0 len) = pref then
+            aux l
+          else a::(aux l)
+        with Invalid_argument _ -> a::(aux l)
   in aux l
 
 let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =

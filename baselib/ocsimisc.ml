@@ -224,11 +224,9 @@ let remove_spaces s beg endd =
 (* Cut a string to the next separator, removing spaces *)
 let sep char s =
   let len = String.length s in
-  try 
-    let seppos = String.index s char in
-    ((remove_spaces s 0 (seppos-1)),
-     (remove_spaces s (seppos+1) (len-1)))
-  with _ -> raise Not_found
+  let seppos = String.index s char in
+  ((remove_spaces s 0 (seppos-1)),
+   (remove_spaces s (seppos+1) (len-1)))
 
 
 (** splits a string, for ex azert,   sdfmlskdf,    dfdsfs *)
@@ -242,7 +240,7 @@ let rec split char s =
         let firstsep = String.index_from s deb char in
         (remove_spaces s deb (firstsep-1))::
         (aux (firstsep+1))
-      with _ -> [remove_spaces s deb (longueur-1)]
+      with Not_found -> [remove_spaces s deb (longueur-1)]
   in 
   aux 0
 

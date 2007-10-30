@@ -36,7 +36,20 @@ exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_function_forbidden_outside_site_loading of string (** That function cannot be used like that outside the initialisation phase. For some functions, you must add the [~sp] parameter during a session. *)
 
+
+(** Type used to describe session timeouts *)
+type timeout = 
+  | TGlobal (** see global setting *)
+  | TNone   (** set explicitely no timeout *)
+  | TSome of float (** timeout duration in seconds *)
+
+
 (**/**)
+type cookie_exp =
+  | CENothing   (** nothing to set *)
+  | CEBrowser   (** expires at browser close *)
+  | CESome of float (** expiration date *)
+
 exception Eliom_duplicate_registration of string (** The service has been registered twice*)
 exception Eliom_page_erasing of string (** The location where you want to register something already exists *)
 exception Eliom_there_are_unregistered_services of string list (** Some services have not been registered *)
@@ -56,7 +69,7 @@ type 'a servicecookiestablecontent =
      'a                      (* session table *) * 
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
-     float option option ref (* user timeout *)) 
+     timeout ref             (* user timeout *)) 
 
 
 type 'a servicecookiestable = 'a servicecookiestablecontent Cookies.t
@@ -65,7 +78,7 @@ type datacookiestablecontent =
     (string                  (* session fullsessname *) *
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
-     float option option ref (* user timeout *))
+     timeout ref             (* user timeout *))
 
 type datacookiestable = datacookiestablecontent Cookies.t
 
@@ -110,53 +123,34 @@ type 'a one_service_cookie_info =
      'a ref                   (* service session table
                                  ref towards cookie table
                                *) *
-     float option option ref  (* user timeout - 
-                                 None = see global config
-                                 Some None = no timeout
+     timeout ref              (* user timeout - 
                                  ref towards cookie table
                                *) * 
      float option ref         (* expiration date ref (server side) - 
                                  None = never
                                  ref towards cookie table
                                *) * 
-     float option option ref  (* cookie expiration date to set
-                                 None = nothing to set
-                                 Some None = set expiration = browser close
-                                 Some Some = send expiration date
-                               *)
+     cookie_exp ref           (* cookie expiration date to set *)
     )
 
 
 type one_data_cookie_info =
     (* in memory data sessions: *)
     (string                   (* current value *) *
-     float option option ref  (* user timeout - 
-                                 None = see global config
-                                 Some None = no timeout
+     timeout ref              (* user timeout - 
                                  ref towards cookie table
                                *) * 
      float option ref         (* expiration date ref (server side) - 
                                  None = never
                                  ref towards cookie table
                                *) * 
-     float option option ref  (* cookie expiration date to set
-                                 None = nothing to set
-                                 Some None = set expiration = browser close
-                                 Some Some = send expiration date
-                               *)
+     cookie_exp ref           (* cookie expiration date to set *)
     )
 
 type one_persistent_cookie_info =
      (string                   (* current value *) *
-      float option option ref  (* user timeout - 
-                                  None = see global config
-                                  Some None = no timeout
-                                *) * 
-      float option option ref  (* cookie expiration date to set
-                                  None = nothing to set
-                                  Some None = set expiration = browser close
-                                  Some Some = send expiration date
-                                *)
+      timeout ref              (* user timeout *) * 
+      cookie_exp ref           (* cookie expiration date to set *)
 
      )
 
@@ -208,7 +202,7 @@ type 'a cookie_info =
        *
 
      ((string                  (* value sent by the browser *) *
-       float option option     (* timeout at the beginning of the request *) *
+       timeout                 (* timeout at the beginning of the request *) *
        float option            (* (server side) expdate 
                                   at the beginning of the request
                                   None = no exp *))
@@ -269,7 +263,7 @@ type server_params = tables server_params1
 (**/**)
 
 val persistent_cookies_table :
-    (string * float option * float option option * int64) Ocsipersist.table
+    (string * float option * timeout * int64) Ocsipersist.table
 
 
 type page_table_key =
@@ -436,7 +430,7 @@ val iter_data_sessions :
     datacookiestable -> 'b -> (Cookies.key * datacookiestablecontent * 'b -> unit Lwt.t) -> unit Lwt.t
 
 val iter_persistent_sessions :
-    (string * (string * float option * float option option * Int64.t) -> 
+    (string * (string * float option * timeout * Int64.t) -> 
       unit Lwt.t) -> unit Lwt.t
 
 val fold_service_sessions :
@@ -448,7 +442,7 @@ val fold_data_sessions :
       'c -> 'c Lwt.t
 
 val fold_persistent_sessions :
-    (string * (string * float option * float option option * Int64.t) -> 
+    (string * (string * float option * timeout * Int64.t) -> 
       'c -> 'c Lwt.t) -> 'c -> 'c Lwt.t
 
 

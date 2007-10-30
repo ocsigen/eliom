@@ -475,7 +475,8 @@ let sendfile2 =
 let sendfile2 = 
   Files.register_new_service 
     ~path:["files2";""]
-    ~get_params:(suffix (all_suffix_regexp r "/home/$1/public_html$2" "filename"))
+    ~get_params:(suffix 
+                   (all_suffix_regexp r "/home/$1/public_html$2" "filename"))
 (*    ~get_params:(suffix (all_suffix_regexp r "$$u($1)$2" "filename")) *)
     (fun _ s () -> return s)
 

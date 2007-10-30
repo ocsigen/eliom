@@ -75,59 +75,50 @@ type 'a session_cookie =
   | SCData_session_expired
   | SC of 'a
 
+type cookie_exp =
+  | CENothing   (** nothing to set *)
+  | CEBrowser   (** expires at browser close *)
+  | CESome of float (** expiration date *)
+
+type timeout = 
+  | TGlobal (** see global setting *)
+  | TNone   (** set explicitely no timeout *)
+  | TSome of float (** timeout duration in seconds *)
+
 type 'a one_service_cookie_info =
     (* service sessions: *)
     (string                   (* current value *) *
      'a ref                   (* service session table
                                  ref towards cookie table
                                *) *
-     float option option ref  (* user timeout - 
-                                 None = see global config
-                                 Some None = no timeout
+     timeout ref              (* user timeout - 
                                  ref towards cookie table
                                *) * 
      float option ref         (* expiration date ref (server side) - 
                                  None = never
                                  ref towards cookie table
                                *) * 
-     float option option ref  (* cookie expiration date to set
-                                 None = nothing to set
-                                 Some None = set expiration = browser close
-                                 Some Some = send expiration date
-                               *)
+     cookie_exp ref           (* cookie expiration date to set *)
     )
 
 
 type one_data_cookie_info =
     (* in memory data sessions: *)
     (string                   (* current value *) *
-     float option option ref  (* user timeout - 
-                                 None = see global config
-                                 Some None = no timeout
+     timeout ref              (* user timeout - 
                                  ref towards cookie table
                                *) * 
      float option ref         (* expiration date ref (server side) - 
                                  None = never
                                  ref towards cookie table
                                *) * 
-     float option option ref  (* cookie expiration date to set
-                                 None = nothing to set
-                                 Some None = set expiration = browser close
-                                 Some Some = send expiration date
-                               *)
+     cookie_exp ref           (* cookie expiration date to set *)
     )
 
 type one_persistent_cookie_info =
      (string                   (* current value *) *
-      float option option ref  (* user timeout - 
-                                  None = see global config
-                                  Some None = no timeout
-                                *) * 
-      float option option ref  (* cookie expiration date to set
-                                  None = nothing to set
-                                  Some None = set expiration = browser close
-                                  Some Some = send expiration date
-                                *)
+      timeout ref              (* user timeout *) * 
+      cookie_exp ref           (* cookie expiration date to set *)
 
      )
 
@@ -179,7 +170,7 @@ type 'a cookie_info =
        *
 
      ((string                  (* value sent by the browser *) *
-       float option option     (* timeout at the beginning of the request *) *
+       timeout                 (* timeout at the beginning of the request *) *
        float option            (* (server side) expdate 
                                   at the beginning of the request
                                   None = no exp *))
@@ -204,7 +195,7 @@ type 'a servicecookiestablecontent =
      'a                      (* session table *) * 
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
-     float option option ref (* user timeout *))
+     timeout ref             (* user timeout *))
 
 type 'a servicecookiestable = 'a servicecookiestablecontent Cookies.t
 (* the table contains:
@@ -220,7 +211,7 @@ type datacookiestablecontent =
     (string                  (* session fullsessname *) *
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
-     float option option ref (* user timeout *))
+     timeout ref             (* user timeout *))
 
 type datacookiestable = datacookiestablecontent Cookies.t
 
@@ -512,7 +503,7 @@ let rec new_data_cookie fullsessname table =
                                       for the cookies we use *)
     new_data_cookie fullsessname table
   with Not_found ->
-    let usertimeout = ref None (* None = See global table *) in
+    let usertimeout = ref TGlobal (* See global table *) in
     let serverexp = ref (Some 0.) (* None = never. We'll change it later. *) in
     Cookies.replace (* actually it will add the cookie *)
       table 
@@ -520,8 +511,8 @@ let rec new_data_cookie fullsessname table =
       (fullsessname,
        serverexp (* exp on server *),
        usertimeout);
-    (c, usertimeout, serverexp, ref None (* exp on client - 
-                                            None = nothing to set *))
+    (c, usertimeout, serverexp, ref CENothing (* exp on client - 
+                                                 nothing to set *))
 
 let rec new_service_cookie fullsessname table = 
   let c = make_new_cookie_value () in
@@ -531,7 +522,7 @@ let rec new_service_cookie fullsessname table =
     new_service_cookie fullsessname table
   with Not_found ->
     let str = ref (new_service_session_tables ()) in
-    let usertimeout = ref None (* None = See global table *) in
+    let usertimeout = ref TGlobal (* See global table *) in
     let serverexp = ref (Some 0.) (* None = never. We'll change it later. *) in
     Cookies.replace (* actually it will add the cookie *)
       table 
@@ -540,8 +531,8 @@ let rec new_service_cookie fullsessname table =
        !str, 
        serverexp (* exp on server *),
        usertimeout);
-    (c, str, usertimeout, serverexp, ref None (* exp on client - 
-                                                 None = nothing to set *))
+    (c, str, usertimeout, serverexp, ref CENothing (* exp on client - 
+                                                      nothing to set *))
 
 
 let find_or_create_data_cookie ?session_name ~sp () = 
@@ -728,14 +719,14 @@ let rec new_persistent_cookie fullsessname =
           begin
             let deprecated = Int64.zero in (* for compatibility with
                                               old versions *)
-            let usertimeout = ref None (* None = See global table *) in
+            let usertimeout = ref TGlobal (* See global table *) in
             Ocsipersist.add persistent_cookies_table c 
               (fullsessname,
                Some 0. (* exp on server - We'll change it later *),
-               None (* timeout - None = see global config *),
+               TGlobal (* timeout - see global config *),
                deprecated)
               >>= fun () -> 
-            return (c, usertimeout, ref None (* exp on client *))
+            return (c, usertimeout, ref CENothing (* exp on client *))
           end
       | e -> fail e)
 
@@ -820,7 +811,7 @@ let split_prefix_param pref l =
   List.partition (fun (n,_) -> 
     try 
       (String.sub n 0 len) = pref 
-    with _ -> false) l
+    with Invalid_argument _ -> false) l
 
 
 (*****************************************************************************)
@@ -872,8 +863,8 @@ let get_cookie_info now
                           ref ta      (* the table of session services *), 
                           timeout_ref (* user timeout ref *),
                           expref      (* expiration date (server side) *),
-                          ref None    (* cookie expiration date to send
-                                         to the browser *)))))::
+                          ref CENothing (* cookie expiration date to send
+                                           to the browser *)))))::
                   oklist,
                   failedlist)
         with Not_found ->
@@ -913,8 +904,8 @@ let get_cookie_info now
                        (value       (* value *),
                         timeout_ref (* user timeout ref *),
                         expref      (* expiration date (server side) *),
-                        ref None    (* cookie expiration date to send
-                                       to the browser *))))
+                        ref CENothing (* cookie expiration date to send
+                                         to the browser *))))
            with Not_found ->
              (Some value                  (* value sent by the browser *),
               ref SCData_session_expired  (* ask the browser 
@@ -965,7 +956,7 @@ let get_cookie_info now
                                (value           (* value *),
                                 ref perstimeout (* user persistent timeout 
                                                    ref *),
-                                ref None        (* persistent cookie expiration
+                                ref CENothing   (* persistent cookie expiration
                                                    date ref to send to the
                                                    browser *)
                                ))))
@@ -975,7 +966,7 @@ let get_cookie_info now
                     return
                       (Some (value         (* value at the beginning
                                               of the request *),
-                             None          (* user persistent timeout
+                             TGlobal       (* user persistent timeout
                                               at the beginning 
                                               of the request *),
                              Some 0.       (* expiration date (server)
@@ -1219,11 +1210,9 @@ let find_naservice_table at k =
   | ATable t -> NAserv_Table.find k t
 
 let remove_naservice_table at k = 
-  try
-    match at with
-    | AVide -> AVide
-    | ATable t -> ATable (NAserv_Table.remove k t)
-  with _ -> at
+  match at with
+  | AVide -> AVide
+  | ATable t -> ATable (NAserv_Table.remove k t)
 
 let add_naservice 
     (_, naservicetableref, _, containstimeouts) current_dir duringsession name 
@@ -1426,7 +1415,7 @@ let close_all_service_sessions2 fullsessname cookie_table =
   Cookies.fold
     (fun k (fullsessname2, table, expref, timeoutref) thr -> 
       thr >>= fun () ->
-      if fullsessname = fullsessname2 && !timeoutref = None
+      if fullsessname = fullsessname2 && !timeoutref = TGlobal
       then close_service_session2 cookie_table k;
       Lwt_unix.yield ()
     )
@@ -1445,7 +1434,7 @@ let close_all_data_sessions2 fullsessname remove_session_data cookie_table =
   Cookies.fold
     (fun k (fullsessname2, expref, timeoutref) thr -> 
       thr >>= fun () ->
-      if fullsessname = fullsessname2 && !timeoutref = None
+      if fullsessname = fullsessname2 && !timeoutref = TGlobal
       then close_data_session2 remove_session_data cookie_table k;
       Lwt_unix.yield ()
     )
@@ -1465,7 +1454,7 @@ let close_all_data_sessions ?session_name
 let close_all_persistent_sessions2 fullsessname =
   Ocsipersist.iter_table
     (fun k (fullsessname2, old_exp, old_t, rk) -> 
-      if fullsessname = fullsessname2 && old_t = None
+      if fullsessname = fullsessname2 && old_t = TGlobal
       then close_persistent_session2 k >>= Lwt_unix.yield
       else return ()
     )
@@ -1495,7 +1484,7 @@ let update_serv_exp fullsessname cookie_table
     Cookies.fold
       (fun k (fullsessname2, table, expref, timeoutref) thr ->
         thr >>= fun () ->
-        (if fullsessname = fullsessname2 && !timeoutref = None
+        (if fullsessname = fullsessname2 && !timeoutref = TGlobal
         then
           let newexp = match !expref, old_glob_timeout, new_glob_timeout with
           | _, _, None -> None
@@ -1528,7 +1517,7 @@ let update_data_exp
     Cookies.fold
       (fun k (fullsessname2, expref, timeoutref) thr ->
         thr >>= fun () ->
-        (if fullsessname = fullsessname2 && !timeoutref = None
+        (if fullsessname = fullsessname2 && !timeoutref = TGlobal
         then
           let newexp = match !expref, old_glob_timeout, new_glob_timeout with
           | _, _, None -> None
@@ -1559,7 +1548,7 @@ let update_pers_exp fullsessname old_glob_timeout new_glob_timeout =
     let now = Unix.time () in
     Ocsipersist.iter_table
       (fun k (fullsessname2, old_exp, old_t, rk) -> 
-        if fullsessname = fullsessname2 && old_t = None
+        if fullsessname = fullsessname2 && old_t = TGlobal
         then
           let newexp = match old_exp, old_glob_timeout, new_glob_timeout with
           | _, _, None -> None
@@ -1574,7 +1563,7 @@ let update_pers_exp fullsessname old_glob_timeout new_glob_timeout =
               Ocsipersist.add
                 persistent_cookies_table 
                 k
-                (fullsessname2, newexp, None, rk) >>= Lwt_unix.yield
+                (fullsessname2, newexp, TGlobal, rk) >>= Lwt_unix.yield
         else return ()
       )
       persistent_cookies_table
@@ -1626,13 +1615,15 @@ let (find_global_service_timeout,
   let rec find fullsessname = function
     | (Tt (l, _), []) -> 
         (try
-          Some (List.assoc fullsessname l)
-        with Not_found -> None)
+          match List.assoc fullsessname l with
+          | None -> TNone
+          | Some t -> TSome t
+        with Not_found -> TGlobal)
     | (ta, ""::l) -> find fullsessname (ta, l)
     | (Tt (_, r), a::l) ->
         (try
           find fullsessname ((List.assoc a r), l)
-        with Not_found -> None)
+        with Not_found -> TGlobal)
   in
   let rec add fullsessname timeout = function
     | (Tt (tl, l), []) -> 
@@ -1653,20 +1644,23 @@ let (find_global_service_timeout,
    (* find_global_service_timeout *)
    (fun fullsessname wd -> 
      match find fullsessname (!servtable, wd) with
-     | None -> get_default_service_timeout ()
-     | Some t -> t),
+     | TGlobal -> get_default_service_timeout ()
+     | TNone -> None
+     | TSome t -> Some t),
 
    (* find_global_data_timeout *)
    (fun fullsessname wd -> 
      match find fullsessname (!datatable, wd) with
-     | None -> get_default_data_timeout ()
-     | Some t -> t),
+     | TGlobal -> get_default_data_timeout ()
+     | TNone -> None
+     | TSome t -> Some t),
 
    (* find_global_persistent_timeout *)
    (fun fullsessname wd -> 
      match find fullsessname (!perstable, wd) with
-     | None -> get_default_persistent_timeout ()
-     | Some t -> t),
+     | TGlobal -> get_default_persistent_timeout ()
+     | TNone -> None
+     | TSome t -> Some t),
 
    (* set_global_service_timeout2 *)
    (fun fullsessname ~recompute_expdates site_dir cookie_table t -> 
@@ -1674,8 +1668,9 @@ let (find_global_service_timeout,
      then
        let oldt = 
          match find fullsessname (!servtable, site_dir) with
-         | None -> get_default_service_timeout ()
-         | Some oldt -> oldt
+         | TGlobal -> get_default_service_timeout ()
+         | TNone -> None
+         | TSome oldt -> Some oldt
        in
        servtable := add fullsessname t (!servtable, site_dir);
        update_serv_exp fullsessname cookie_table oldt t
@@ -1691,8 +1686,9 @@ let (find_global_service_timeout,
      then
        let oldt = 
          match find fullsessname (!datatable, site_dir) with
-         | None -> get_default_data_timeout ()
-         | Some oldt -> oldt
+         | TGlobal -> get_default_data_timeout ()
+         | TNone -> None
+         | TSome oldt -> Some oldt
        in
        datatable := add fullsessname t (!datatable, site_dir);
        update_data_exp fullsessname remove_session_data cookie_table oldt t
@@ -1707,8 +1703,9 @@ let (find_global_service_timeout,
      then
        let oldt = 
          match find fullsessname (!perstable, site_dir) with
-         | None -> get_default_persistent_timeout ()
-         | Some t -> t
+         | TGlobal -> get_default_persistent_timeout ()
+         | TNone -> None
+         | TSome t -> Some t
        in
        perstable := add fullsessname t (!perstable, site_dir);
        update_pers_exp fullsessname oldt t
@@ -1974,8 +1971,8 @@ let compute_session_cookies_to_send
     else fail Not_found
   in
   let ch_exp = function
-    | None | Some None -> None
-    | Some a -> a
+    | CENothing | CEBrowser -> None
+    | CESome a -> Some a
   in
   let aux f cookiename l endlist =
     endlist >>= fun endlist ->
@@ -1996,7 +1993,7 @@ let compute_session_cookies_to_send
                   (Set (Some site_dir, (ch_exp exp), 
                         [make_full_cookie_name cookiename name, v]))::beg
               | Some oldv, Some (newv, exp) -> 
-                  if exp = None && oldv = newv
+                  if exp = CENothing && oldv = newv
                   then beg
                   else (Set (Some site_dir, (ch_exp exp),
                              [make_full_cookie_name cookiename name, newv]))
@@ -2181,15 +2178,15 @@ let execute
         | SC (newvalue, newsesstable, newtimeout, newexp, newcookieexp) ->
             newexp :=
               match !newtimeout with
-              | None -> 
+              | TGlobal -> 
                   let globaltimeout = 
                     find_global_service_timeout name site_dir 
                   in
                   (match globaltimeout with
                   | None -> None
                   | Some t -> Some (t +. now))
-              | Some None -> None
-              | Some (Some t) -> Some (t +. now)
+              | TNone -> None
+              | TSome t -> Some (t +. now)
       )
       
       !service_cookies_info;
@@ -2208,15 +2205,15 @@ let execute
           | SC (newvalue, newtimeout, newexp, newcookieexp) ->
               newexp :=
                 match !newtimeout with
-                | None -> 
+                | TGlobal -> 
                     let globaltimeout = 
                       find_global_data_timeout name site_dir 
                     in
                     (match globaltimeout with
                     | None -> None
                     | Some t -> Some (t +. now))
-                | Some None -> None
-                | Some (Some t) -> Some (t +. now)
+                | TNone -> None
+                | TSome t -> Some (t +. now)
       )
       
       !data_cookies_info;
@@ -2236,15 +2233,15 @@ let execute
           | SC (newvalue, newtimeout, newcookieexp) ->
               let newexp =
                 match !newtimeout with
-                | None -> 
+                | TGlobal -> 
                     let globaltimeout = 
                       find_global_persistent_timeout name site_dir 
                     in
                     (match globaltimeout with
                     | None -> None
                     | Some t -> Some (t +. now))
-                | Some None -> None
-                | Some (Some t) -> Some (t +. now)
+                | TNone -> None
+                | TSome t -> Some (t +. now)
               in
               match oldvalue with
               | Some (oldv, oldti, oldexp) when
