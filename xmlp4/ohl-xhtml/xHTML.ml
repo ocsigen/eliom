@@ -1082,13 +1082,17 @@ module type T =
     val toelt : 'a elt -> XML.elt
     val toeltl : 'a elt list -> XML.elt list
 
-    (** Ocsigen's pretty printer for xhtml *)
+    (** Ocsigen's pretty printer for xhtml. [html_compat] is an option to set
+        if you want to print with a syntax closer to html (not xml).
+        *)
     val ocsigen_print : 
         ?width:int -> ?encode:(string -> string) ->
           ?html_compat:bool ->
             [ `Html ] elt -> string
 
-    (** Ocsigen's pretty printer for xhtml portions *)
+    (** Ocsigen's pretty printer for xhtml portions. 
+       [html_compat] is an option to set
+        if you want to print with a syntax closer to html (not xml). *)
     val ocsigen_xprint : 
         ?width:int -> ?encode:(string -> string) -> 
           ?html_compat:bool ->

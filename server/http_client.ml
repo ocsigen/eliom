@@ -27,6 +27,7 @@ let sslcontext = ref (Ssl.create_context Ssl.SSLv23 Ssl.Both_context)
 
 (*VVV TODO: add pipelining *)
 
+
 let raw_request 
     ?headers ?(https=false) ?port ?content
     ~http_method ~host ~inet_addr ~uri () =
@@ -96,11 +97,11 @@ let raw_request
   Lwt.catch 
     (fun () ->
       Http_com.get_http_frame ~head:false conn >>= fun http_frame ->
-(*XXX FIX: we will never reach here if [get_http_frame] fails *)
-        ignore 
-	  (Http_com.lock_receiver conn >>= fun () ->
-            Lwt_unix.close fd;
-            Lwt.return ());
+      (match http_frame.Http_frame.content with
+      | None   -> Lwt_unix.close fd
+      | Some c -> 
+          Ocsistream.add_finalizer c
+            (fun () -> Lwt_unix.close fd; Lwt.return ()));
         Lwt.return http_frame)
     (fun e -> Lwt_unix.close fd; Lwt.fail e)
 
