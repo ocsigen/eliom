@@ -232,7 +232,7 @@ partialinstall:
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
 	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)/$(BINDIR)/
-	[[ ! ( -f extensions/ocsipersist-dbm/ocsidbm.opt ) ]] || \
+	[ ! -f extensions/ocsipersist-dbm/ocsidbm.opt ] || \
 	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
 	-rm META
 

@@ -24,7 +24,7 @@
    BUT: This hack is not very clean because I don't think I follow
    Thorsten Ohl's conventions.
    I verified lots of types but not all and I am not sure that it
-   corresponds exactly to the dtd. (Actually, I am almost sur that it doesn't).
+   corresponds exactly to the dtd. (Actually, I am almost sure that it doesn't).
    This module would deserve a complete verification and to be cleaned 
    following Ohl's conventions.
    Vincent Balat
