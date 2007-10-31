@@ -62,7 +62,8 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliommod.cmi
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
-CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi lwt/lwt.cmi lwt/lwt_unix.cmi lwt/lwt_chan.cmi lwt/lwt_ssl.cmi lwt/lwt_timeout.cmi lwt/lwt_util.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi http/http_headers.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
+CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi http/http_headers.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
+#LWTCMITOINSTALL = lwt/lwt.cmi lwt/lwt_unix.cmi lwt/lwt_chan.cmi lwt/lwt_ssl.cmi lwt/lwt_timeout.cmi lwt/lwt_util.cmi lwt/META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
 
@@ -225,6 +226,7 @@ depend: xmlp4.byte
 
 .PHONY: partialinstall install doc docinstall installnodoc logrotate
 partialinstall:
+	make -C lwt install
 	mkdir -p $(TEMPROOT)/$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
 	$(MAKE) -C server install

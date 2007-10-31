@@ -53,7 +53,7 @@ depend: *.ml *.mli
 	$(OCAMLDEP)  $(SRCLIBREP) *.ml *.mli > depend
 include depend
 
-install: all
+install:
 	{ test ! -f $(XARCHIVE) || extra="$(XARCHIVE) "`basename $(XARCHIVE) .cmxa`.a; }; \
 	$(OCAMLFIND) install $(NAME) *.mli *.cmi $(ARCHIVE) META $$extra
 
