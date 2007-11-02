@@ -26,6 +26,7 @@ open Eliomsessions
 
 open Simplexmlparser
 open Lwt
+open Lwt_chan
 
 module P = Printf
 
@@ -38,36 +39,45 @@ let wiki_start = Redirections.register_new_service [] unit
 
 
 let finally handler f x =
-  let r = (
-    try
-      f x
-    with
-      e -> handler(); raise e
-  ) in
-  handler();
-  r
+  catch
+    (fun () -> f x)
+    (fun e -> handler() >>= fun () -> fail e)
+  >>= fun r ->
+  handler () >>= fun () ->
+  return r
 
 let fold_read_lines f accum inchnl = 
   let line () = 
-    try Some (input_line inchnl)
-    with End_of_file -> None in
+    catch
+      (fun () -> Lwt_chan.input_line inchnl >>= fun line -> return (Some line))
+      (function End_of_file -> return None | e -> fail e)
+  in
   let rec loop accum =
-    match line () with
+    line () >>= fun l ->
+    match l with
     | Some e -> loop (f accum e)
-    | None -> accum in
+    | None -> return accum 
+  in
   loop accum 
 
 let with_open_out fname f = 
-  let inchnl = open_out fname in
+  let fd = Lwt_unix.of_unix_file_descr 
+      (Unix.openfile fname [Unix.O_WRONLY;Unix.O_CREAT;
+                            Unix.O_TRUNC;Unix.O_NONBLOCK] 0o644) 
+  in
+  let inchnl = Lwt_unix.out_channel_of_descr fd in
   finally 
-    (fun () -> close_out inchnl)
-    (fun chnl -> f chnl) inchnl
+    (fun () -> Lwt_chan.flush inchnl >>= fun () -> Lwt_unix.close fd; return ())
+    f inchnl
 
 let with_open_in fname f = 
-  let inchnl = open_in fname in
+  let fd = Lwt_unix.of_unix_file_descr 
+      (Unix.openfile fname [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o644) 
+  in
+  let inchnl = Lwt_unix.in_channel_of_descr fd in
   finally 
-    (fun () -> close_in inchnl)
-    (fun chnl -> f chnl) inchnl
+    (fun () -> Lwt_unix.close fd; return ())
+    f inchnl
 
 let wiki_file_dir = 
   let rec find_wikidata = function
@@ -92,7 +102,8 @@ let load_wiki_page page =
   with_open_in 
     (wiki_page_filename page)
     (fun chnl ->
-       List.rev (fold_read_lines (fun acc line -> line::acc) [] chnl))
+      fold_read_lines (fun acc line -> line::acc) [] chnl >>= fun l ->
+      return (List.rev l))
 
 
 let h1_re = Pcre.regexp "^=(.*)=([ \n\r]*)?$"
@@ -286,13 +297,13 @@ let parse_lines sp lines =
         end
     | [] -> List.rev acc in
 
-  loop [] lines
+  return (loop [] lines)
 
 let wikiml_to_html sp page =
   if wiki_page_exists page then
-    load_wiki_page page >> parse_lines sp
+    load_wiki_page page >>= parse_lines sp
   else
-    []
+    return []
 
 (* Use this as the basis for all pages.  Includes CSS etc. *)
 let html_stub sp body_html =
@@ -316,11 +327,12 @@ let wiki_page_menu_html sp page content =
      content]
 
 let wiki_page_contents_html sp page ?(content=[]) () =
-  wiki_page_menu_html sp page (content @ wikiml_to_html sp page)
+  wikiml_to_html sp page >>= fun p ->
+  return (wiki_page_menu_html sp page (content @ p))
 
 let view_page sp page =
-  html_stub sp
-    (wiki_page_contents_html sp page ())
+  wiki_page_contents_html sp page () >>= fun p ->
+  html_stub sp p
 
 (* Save page as a result of /edit?p=Page *)
 let service_save_page_post =
@@ -329,27 +341,28 @@ let service_save_page_post =
     ~post_params:(string "value")
     (fun sp page value -> 
        (* Save wiki page from POST value: *)
-       save_wiki_page page value;
+       save_wiki_page page value >>= fun () ->
        view_page sp page)
     
 (* /edit?p=Page *)
 let _ =
   register wiki_edit_page
     (fun sp page () -> 
-       let wikitext = 
-         if wiki_page_exists page then
-           String.concat "\n" (load_wiki_page page)
-         else 
-           "" in
-       let f =
-         post_form service_save_page_post sp
-           (fun chain -> 
-              [(p [string_input ~input_type:`Submit ~value:"Save" (); br ();
-                   textarea ~name:chain ~rows:30 ~cols:80 
-                     ~value:(pcdata wikitext) ()])])
-           page in
-       html_stub sp
-         (wiki_page_contents_html sp page ~content:[f] ()))
+      (if wiki_page_exists page then
+        load_wiki_page page >>= fun s -> return (String.concat "\n" s)
+      else 
+        return "")
+      >>= fun wikitext -> 
+      let f =
+        post_form service_save_page_post sp
+          (fun chain -> 
+            [(p [string_input ~input_type:`Submit ~value:"Save" (); br ();
+                 textarea ~name:chain ~rows:30 ~cols:80 
+                   ~value:(pcdata wikitext) ()])])
+          page 
+      in
+      wiki_page_contents_html sp page ~content:[f] () >>= fun c ->
+      html_stub sp c)
 
 (* /view?p=Page *)
 let _ = 
