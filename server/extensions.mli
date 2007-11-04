@@ -75,7 +75,8 @@ type request_info =
      ri_url: Neturl.url;
      ri_method: Http_frame.Http_header.http_method; (** GET, POST, HEAD... *)
      ri_path_string: string; (** path of the URL *)
-     ri_path: string list;   (** path of the URL *)
+     ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
+     ri_full_path: string list;   (** full path of the URL *)
      ri_get_params_string: string option; (** string containing GET parameters *)
      ri_host: string option; (** Host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters*)
@@ -127,41 +128,52 @@ type result =
    }
 
 
-(** Charset for each directory *)
-type charset_tree_type
-
 (** The result given by the extension (filter or page generation) *)
 type answer =
-  | Ext_found of result  (** OK stop! I found the page *)
+  | Ext_found of result  (** OK stop! I found the page. *)
   | Ext_not_found of exn (** Page not found. Try next extension.
                             The exception is usally Ocsigen_404, 
                             but may be for ex Ocsigen_403 (forbidden)
                             if you want another extension to try after a 403
                           *)
-  | Ext_continue_with of request_info * cookieslist
-        (** Used to modify the request before giving it to next extension ;
-           The extension may want to set cookies ; in that case, put the new
-           cookies in the list (and possibly the path in the string list
-           option of cookieslist), 
-           and possibly in the ri_cookies field
-           of request_info if you want them to be seen by the following
-           extension. *)
-  | Ext_retry_with of request_info * cookieslist
-        (** Used to retry all the extensions with a new request_info ;
-           May set cookies (idem) *)
+  | Ext_stop of exn      (** Page forbidden. Do not try next extension, but
+                            try next site. If you do not want to try next site
+                            send an Ext_found with an error code.
+                            The exception is usally Ocsigen_403.
+                          *)
+  | Ext_continue_with of request_info
+        (** Used to modify the request before giving it to next extension *)
+  | Ext_retry_with of request_info
+        (** Used to retry all the extensions with a new request_info *)
 
 
+type extension =
+  | Page_gen of (string -> request_info -> answer Lwt.t)
+  | Filter of (string -> request_info -> result -> answer Lwt.t)
+(** For each <site> tag in the configuration file, 
+    you can set the extensions you want. They take a charset (type [string]),
+    a [request_info]. If it is a filter, it takes the result of the previous
+    extension. And they all return an [answer].
+ *)
 
-module R : sig
 
 (** 
    For each extension generating pages, we register four functions:
-   - a function that will be called for each
-   virtual server, generating two functions:
+   - a function taking 
    {ul
-     {- one that will be called to generate the pages
-       (from charset (string option) and request_info)}
-     {- one to parse the configuration file}}
+     {- the name of the virtual <host>}}
+     that will be called for each <host>, 
+     and that will generate a function taking:
+   {ul
+     {- the path attribute of a <site> tag
+     that will be called for each <site>, 
+     and that will generate a function taking:}}
+   {ul
+     {- an item of the config file
+     that will be called on each tag inside <site> and:}
+   {ul
+     {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
+     {- return something of type [extension] (filter or page generator)}
    - a function that will be called at the beginning 
    of the initialisation phase (each time the config file is reloaded)
    (Note that the extensions are not reloaded)
@@ -171,40 +183,11 @@ module R : sig
    that may be raised during the initialisation phase, and raise again
    all other exceptions
  *)
-  val register_extension :
-      (virtual_hosts -> 
-        (string option -> request_info -> answer Lwt.t) * 
-	  (string list -> Simplexmlparser.xml -> unit)) *
-      (unit -> unit) * 
-      (unit -> unit) *
-      (exn -> string) -> unit
-
-(** 
-   For each extension filtering the output (for example for compression), 
-   we register four functions:
-   - a function that will be called for each
-   virtual server, generating two functions:
-   {ul
-     {- one that will be called to filter the output
-       (from request_info and result)}
-     {- one to parse the configuration file}}
-   - a function that will be called at the beginning 
-   of the initialisation phase 
-   - a function that will be called at the end of the initialisation phase 
-   of the server
-   - a function that will create an error message from the exceptions
-   that may be raised during the initialisation phase, and raise again
-   all other exceptions
- *)
-  val register_output_filter :
-      (virtual_hosts -> 
-        (request_info -> result -> result Lwt.t) *
-	  (string list -> Simplexmlparser.xml -> unit)) *
-      (unit -> unit) * 
-      (unit -> unit) *
-      (exn -> string) -> unit
-end
-
+val register_extension :
+    (virtual_hosts -> url_path -> string option -> 
+      Simplexmlparser.xml -> extension) *
+    (unit -> unit) * (unit -> unit) * (exn -> string) -> unit
+        
 
 (** While loading an extension, 
     get the configuration tree between <dynlink></dynlink>*)
@@ -224,37 +207,21 @@ val parse_url : string ->
   string * Neturl.url * string list * string option *
     (string * string) list Lazy.t
 
-val create_virthost :
-    virtual_hosts ->
-      ((request_info -> (answer * cookies list) Lwt.t) *
-         (request_info -> result -> result Lwt.t) *
-         (string list -> Simplexmlparser.xml -> unit)) *
-        (string option -> string list -> unit)
+val parse_site : virtual_hosts -> 
+  url_path -> string option -> Simplexmlparser.xml list -> extension list
 
-val set_virthosts : (virtual_hosts * 
-                       (request_info -> (answer * cookieslist) Lwt.t) *
-                       (request_info -> result -> result Lwt.t)
-                    ) list -> unit
+val set_sites : (virtual_hosts * url_path * string option * extension list) list
+  -> unit
                         
-val get_virthosts : unit -> 
-  (virtual_hosts * 
-     (request_info -> (answer * cookieslist) Lwt.t) *
-     (request_info -> result -> result Lwt.t)
-  ) list
+val get_sites : unit -> 
+  (virtual_hosts * url_path * string option * extension list) list
 
-val add_virthost : (virtual_hosts * 
-                      (request_info -> (answer * cookieslist) Lwt.t) *
-                      (request_info -> result -> result Lwt.t)
-                   ) -> unit
+val add_site : (virtual_hosts * url_path * string option * extension list) -> unit
 
-val do_for_host_matching : 
+val do_for_site_matching :
     string option ->
-      int ->
-        (virtual_hosts *
-           (request_info -> (answer * cookieslist) Lwt.t) *
-           (request_info -> result -> result Lwt.t)
-        )
-          list -> request_info -> (result * cookieslist) Lwt.t
+    int ->
+    request_info -> result Lwt.t
 
 (** Profiling *)
 val get_number_of_connected : unit -> int

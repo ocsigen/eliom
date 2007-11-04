@@ -130,20 +130,8 @@ let rec parser_config =
  *)
 let parse_server isreloading c =
   let rec parse_server_aux =
-    let rec parse_site parse_site_function path = function
-      | [] -> ()
-      | xml::l -> 
-          (try
-            parse_site_function path xml
-          with Extensions.Bad_config_tag_for_extension t -> 
-            raise (Config_file_error ("Unexpected tag <"^t
-                                      ^"> inside <site dir=\""^
-				      (Ocsimisc.string_of_url_path path)
-				      ^"\">")));
-          parse_site parse_site_function path l
-    in
-    let rec parse_host psf acf = function
-      | [] -> ()
+    let rec parse_host host parse_site = function
+      | [] -> []
       | (Element ("site", atts, l))::ll ->
           let rec parse_site_attrs (enc,dir) = function
             | [] -> (match dir with
@@ -151,6 +139,7 @@ let parse_server isreloading c =
                   raise (Config_file_error
                            ("Missing dir attribute in <site>"))
               | Some s -> (enc, s))
+            | ("path", s)::suite
             | ("dir", s)::suite ->
                 (match dir with
                 | None -> parse_site_attrs (enc, Some s) suite
@@ -165,13 +154,12 @@ let parse_server isreloading c =
                 raise
                   (Config_file_error ("Wrong attribute for <site>: "^s))
           in
-          let enc,dir = parse_site_attrs (None, None) atts in
+          let charset,dir = parse_site_attrs (None, None) atts in
           let path = 
             Ocsimisc.remove_slash_at_end
               (Ocsimisc.remove_slash_at_beginning (Neturl.split_path dir)) in
-          acf enc path;
-          parse_site psf path l;
-          parse_host psf acf ll
+          (host, path, charset, parse_site path charset l)::
+          parse_host host parse_site ll
       | (Element (tag,_,_))::_ -> 
           raise (Config_file_error ("<"^tag^"> tag unexpected inside <host>"))
       | _ -> raise (Config_file_error ("Unexpected content inside <host>"))
@@ -297,18 +285,13 @@ let parse_server isreloading c =
 		(Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
           | _ -> raise (Config_file_error "Wrong attribute for <host>") 
 	  in 
-	  let ((gen_page, output_filter, parse_site_function), 
-               add_charset_function) = 
-            Extensions.create_virthost host 
-          in
-	  parse_host parse_site_function add_charset_function l;
-	  (host, gen_page, output_filter)::(parse_server_aux ll)
+          (parse_host host (Extensions.parse_site host) l)@(parse_server_aux ll)
       | (Element (tag, _, _))::_ -> 
           raise (Config_file_error
                    ("tag <"^tag^"> unexpected inside <server>"))
       | _ ->
           raise (Config_file_error "Syntax error")
-  in Extensions.set_virthosts (parse_server_aux c)
+  in Extensions.set_sites (parse_server_aux c)
 
 (* First parsing of config file *)
 let extract_info c =

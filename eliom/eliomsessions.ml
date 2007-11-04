@@ -29,23 +29,12 @@ let get_config () =
   | Some _ -> !Eliommod.config
   | None -> raise (Eliom_function_forbidden_outside_site_loading "get_config")
 
-let find_site_dir fun_name = function
-  | Some sp -> sp.sp_site_dir
-  | None ->
-      match global_register_allowed () with
-      | Some get_current_hostdir -> snd (get_current_hostdir ())
-      | _ -> raise (Eliom_function_forbidden_outside_site_loading fun_name)
 
-let find_hostdir fun_name = function
-  | Some sp -> ((sp.sp_global_table, 
-                 sp.sp_cookie_service_table, 
-                 sp.sp_cookie_data_table, 
-                 (sp.sp_remove_sess_data,
-                  sp.sp_data_tables_are_empty)), sp.sp_site_dir)
+let find_sitedata fun_name = function
+  | Some sp -> sp.sp_sitedata
   | None ->
       match global_register_allowed () with
-      | Some get_current_hostdir -> 
-          get_current_hostdir ()
+      | Some get_current_sitedata -> get_current_sitedata ()
       | _ -> raise (Eliom_function_forbidden_outside_site_loading fun_name)
 
 
@@ -59,7 +48,8 @@ let get_get_params_string ~sp = sp.sp_ri.ri_get_params_string
 let get_post_params ~sp = force sp.sp_ri.ri_post_params
 let get_all_post_params ~sp = sp.sp_si.si_all_post_params
 let get_current_path_string ~sp = sp.sp_ri.ri_path_string
-let get_current_path ~sp = sp.sp_ri.ri_path
+let get_current_sub_path ~sp = sp.sp_ri.ri_sub_path
+let get_current_full_path ~sp = sp.sp_ri.ri_full_path
 let get_hostname ~sp = sp.sp_ri.ri_host
 let get_port ~sp = sp.sp_ri.ri_port
 let get_other_get_params ~sp = sp.sp_si.si_other_get_params
@@ -104,44 +94,32 @@ let set_default_volatile_session_timeout =
     
 let set_global_service_session_timeout 
     ?session_name ?sp ?(recompute_expdates = false) timeout = 
-  let ((_, service_cookie_table, _, (_, _)), site_dir) = 
-    find_hostdir "set_global_service_timeout" sp 
-  in
+  let sitedata = find_sitedata "set_global_service_timeout" sp in
   Eliommod.set_global_service_timeout
-    ~session_name ~recompute_expdates site_dir service_cookie_table timeout
+    ~session_name ~recompute_expdates sitedata timeout
   
 let set_global_volatile_data_session_timeout 
     ?session_name ?sp ?(recompute_expdates = false) timeout = 
-  let ((_, _, data_cookie_table, (remove_session_data, _)), site_dir) = 
-    find_hostdir "set_global_data_timeout" sp 
-  in
+  let sitedata = find_sitedata "set_global_data_timeout" sp in
   Eliommod.set_global_data_timeout 
-    ~session_name ~recompute_expdates 
-    site_dir !remove_session_data data_cookie_table timeout
+    ~session_name ~recompute_expdates sitedata timeout
   
 let set_global_volatile_session_timeout
     ?session_name ?sp ?(recompute_expdates = false) timeout = 
-  let ((_, 
-        service_cookie_table, 
-        data_cookie_table, 
-        (remove_session_data, _)), 
-       site_dir) = 
-    find_hostdir "set_global_volatile_timeouts" sp 
-  in
+  let sitedata = find_sitedata "set_global_volatile_timeouts" sp in
   Eliommod.set_global_service_timeout
-    ~session_name ~recompute_expdates site_dir service_cookie_table timeout >>=
+    ~session_name ~recompute_expdates sitedata timeout >>=
   fun () ->
     Eliommod.set_global_data_timeout 
-      ~session_name ~recompute_expdates 
-      site_dir !remove_session_data data_cookie_table timeout
+      ~session_name ~recompute_expdates sitedata timeout
 
 let get_global_service_session_timeout ?session_name ?sp () = 
-  let site_dir = find_site_dir "get_global_timeout" sp in
-  Eliommod.get_global_service_timeout ?session_name site_dir
+  let sitedata = find_sitedata "get_global_timeout" sp in
+  Eliommod.get_global_service_timeout ?session_name sitedata
 
 let get_global_volatile_data_session_timeout ?session_name ?sp () = 
-  let site_dir = find_site_dir "get_global_timeout" sp in
-  Eliommod.get_global_data_timeout ?session_name site_dir
+  let sitedata = find_sitedata "get_global_timeout" sp in
+  Eliommod.get_global_data_timeout ?session_name sitedata
 
 let get_default_persistent_data_session_timeout = 
   Eliommod.get_default_persistent_timeout
@@ -150,13 +128,13 @@ let set_default_persistent_data_session_timeout =
 
 let set_global_persistent_data_session_timeout 
     ?session_name ?sp ?(recompute_expdates = false) timeout = 
-  let site_dir = find_site_dir "set_global_persistent_timeout" sp in
+  let sitedata = find_sitedata "set_global_persistent_timeout" sp in
   Eliommod.set_global_persistent_timeout
-    ~session_name ~recompute_expdates site_dir timeout
+    ~session_name ~recompute_expdates sitedata timeout
 
 let get_global_persistent_data_session_timeout ?session_name ?sp () =
-  let site_dir = find_site_dir "get_global_persistent_timeout" sp in
-  Eliommod.get_global_persistent_timeout ?session_name site_dir
+  let sitedata = find_sitedata "get_global_persistent_timeout" sp in
+  Eliommod.get_global_persistent_timeout ?session_name sitedata
 
 
 let set_service_session_timeout ?session_name ~sp t = 
@@ -190,21 +168,21 @@ let get_service_session_timeout ?session_name ~sp () =
     let (_, _, tor, _, _) = find_service_cookie_only ?session_name ~sp () in
     match !tor with
     | TGlobal -> 
-        Eliommod.get_global_service_timeout ?session_name sp.sp_site_dir
+        Eliommod.get_global_service_timeout ?session_name sp.sp_sitedata
     | TNone -> None
     | TSome t -> Some t
   with Not_found -> 
-    Eliommod.get_global_service_timeout ?session_name sp.sp_site_dir
+    Eliommod.get_global_service_timeout ?session_name sp.sp_sitedata
 
 let get_volatile_data_session_timeout ?session_name ~sp () = 
   try
     let (_, tor, _, _) = find_data_cookie_only ?session_name ~sp () in
     match !tor with
-    | TGlobal -> Eliommod.get_global_data_timeout ?session_name sp.sp_site_dir
+    | TGlobal -> Eliommod.get_global_data_timeout ?session_name sp.sp_sitedata
     | TNone -> None
     | TSome t -> Some t
   with Not_found -> 
-    Eliommod.get_global_data_timeout ?session_name sp.sp_site_dir
+    Eliommod.get_global_data_timeout ?session_name sp.sp_sitedata
 
 
 let set_volatile_session_timeout ?session_name ~sp t = 
@@ -243,7 +221,7 @@ let get_persistent_data_session_timeout ?session_name ~sp () =
       return
         (match !tor with
         | TGlobal -> Eliommod.get_global_persistent_timeout
-              ~session_name sp.sp_site_dir
+              ~session_name sp.sp_sitedata
         | TNone -> None
         | TSome t -> Some t)
     )
@@ -251,7 +229,7 @@ let get_persistent_data_session_timeout ?session_name ~sp () =
       | Not_found -> 
           return 
             (Eliommod.get_global_persistent_timeout 
-               ~session_name sp.sp_site_dir)
+               ~session_name sp.sp_sitedata)
       | e -> fail e)
 
 
@@ -316,8 +294,8 @@ let get_persistent_data_session_cookie_exp_date ?session_name ~sp () =
 
 (* *)
 
-let get_site_dir ~sp = sp.sp_site_dir
-let get_site_dir_string ~sp = sp.sp_site_dir_string
+let get_site_dir ~sp = sp.sp_sitedata.site_dir
+let get_site_dir_string ~sp = sp.sp_sitedata.site_dir_string
 let get_ri ~sp = sp.sp_ri
 
 let get_tmp_filename fi = fi.tmp_filename
@@ -325,10 +303,10 @@ let get_filesize fi = fi.filesize
 let get_original_filename fi = fi.original_filename
 
 let set_exn_handler ?sp h = 
-  let site_dir = find_site_dir "set_exn_handler" sp in
-  set_site_handler site_dir h
+  let sitedata = find_sitedata "set_exn_handler" sp in
+  set_site_handler sitedata h
 
-let get_global_table ~sp = sp.sp_global_table
+let get_global_table ~sp = sp.sp_sitedata.global_services
 
 (** If the session does not exist, we create it 
    (new cookie, new session service table) *)
@@ -382,7 +360,7 @@ let create_table ?sp () =
   match sp with
   | None -> 
       (match global_register_allowed () with
-      | Some get_current_hostdir -> create_table ()
+      | Some get_current_sitedata -> create_table ()
       | None -> raise (Eliom_function_forbidden_outside_site_loading
                          "create_table"))
   | Some sp -> create_table_during_session sp
@@ -420,17 +398,12 @@ let close_session ?session_name ~sp () =
   close_persistent_data_session ?session_name ~sp ()
 
 let close_all_volatile_data_sessions ?session_name ?sp () =
-  let ((_, _, cookie_table, (remove_session_data, _)), site_dir) = 
-    find_hostdir "close_all_data_sessions" sp 
-  in
-  Eliommod.close_all_data_sessions ?session_name
-    !remove_session_data cookie_table site_dir
+  let sitedata = find_sitedata "close_all_data_sessions" sp in
+  Eliommod.close_all_data_sessions ?session_name sitedata
 
 let close_all_service_sessions ?session_name ?sp () =
-  let ((_, cookie_table, _, (_, _)), site_dir) = 
-    find_hostdir "close_all_service_sessions" sp 
-  in
-  Eliommod.close_all_service_sessions ?session_name cookie_table site_dir
+  let sitedata = find_sitedata "close_all_service_sessions" sp in
+  Eliommod.close_all_service_sessions ?session_name sitedata
 
 let close_all_volatile_sessions ?session_name ?sp () =
   close_all_volatile_data_sessions ?session_name ?sp () >>=
@@ -439,8 +412,8 @@ let close_all_volatile_sessions ?session_name ?sp () =
 
 
 let close_all_persistent_data_sessions ?session_name ?sp () =
-  let site_dir = find_site_dir "close_all_persistent_sessions" sp in
-  Eliommod.close_all_persistent_sessions ?session_name site_dir
+  let sitedata = find_sitedata "close_all_persistent_sessions" sp in
+  Eliommod.close_all_persistent_sessions ?session_name sitedata
 
 let close_all_sessions ?session_name ?sp () =
  close_all_volatile_sessions ?session_name ?sp () >>=
@@ -460,7 +433,7 @@ module Session_admin = struct
        float option ref        (* expiration date by timeout 
                                   (server side) *) *
        Eliommod.timeout ref    (* user timeout *)) *
-       (Eliommod.pages_tree * Extensions.url_path)
+       Eliommod.sitedata
 
   type data_session =
       string (* cookie value *)
@@ -469,7 +442,7 @@ module Session_admin = struct
        float option ref        (* expiration date by timeout 
                                   (server side) *) *
        Eliommod.timeout ref   (* user timeout *)) *
-       (Eliommod.pages_tree * Extensions.url_path)
+       Eliommod.sitedata
 
   type persistent_session =
       string (* cookie value *)
@@ -481,13 +454,11 @@ module Session_admin = struct
        int64                   (* deprecated *))
 
 
-  let close_service_session ~session:(cookie, _, hostdir) =
-    let ((_, cookie_table, _, (_, _)), site_dir) = hostdir in
-    Eliommod.close_service_session2 cookie_table cookie
+  let close_service_session ~session:(cookie, _, sitedata) =
+    Eliommod.close_service_session2 sitedata cookie
 
-  let close_volatile_data_session ~session:(cookie, _, hostdir) =
-    let ((_, _, cookie_table, (remove_session_data, _)), site_dir) = hostdir in
-    Eliommod.close_data_session2 !remove_session_data cookie_table cookie
+  let close_volatile_data_session ~session:(cookie, _, sitedata) =
+    Eliommod.close_data_session2 sitedata cookie
 
   let close_persistent_data_session ~session:(cookie, _) =
     Eliommod.close_persistent_session2 cookie
@@ -566,34 +537,26 @@ module Session_admin = struct
 
   (** Iterator on service sessions *)
   let iter_service_sessions ?sp f = 
-    let (((_, cookie_table, _, _), _) as hostdir) = 
-      find_hostdir "Admin.iter_service_sessions" sp 
-    in
-    iter_service_sessions cookie_table hostdir f
+    let sitedata = find_sitedata "Admin.iter_service_sessions" sp in
+    iter_service_sessions sitedata f
   
   (** Iterator on data sessions *)
   let iter_volatile_data_sessions ?sp f = 
-    let (((_, _, cookie_table, (_, _)), _) as hostdir) = 
-      find_hostdir "Admin.iter_data_sessions" sp 
-    in
-    iter_data_sessions cookie_table hostdir f
+    let sitedata = find_sitedata "Admin.iter_volatile_data_sessions" sp in
+    iter_data_sessions sitedata f
   
   (** Iterator on persistent sessions *)
   let iter_persistent_data_sessions = iter_persistent_sessions
 
   (** Iterator on service sessions *)
   let fold_service_sessions ?sp f beg = 
-  let (((_, cookie_table, _, (_, _)), _) as hostdir) = 
-      find_hostdir "Admin.fold_service_sessions" sp 
-  in
-  fold_service_sessions cookie_table hostdir f beg
+  let sitedata = find_sitedata "Admin.fold_service_sessions" sp in
+  fold_service_sessions sitedata f beg
 
   (** Iterator on data sessions *)
   let fold_volatile_data_sessions ?sp f beg = 
-    let (((_, _, cookie_table, (_, _)), _) as hostdir) = 
-      find_hostdir "Admin.fold_data_sessions" sp 
-    in
-    fold_data_sessions cookie_table hostdir f beg
+    let sitedata = find_sitedata "Admin.fold_volatile_data_sessions" sp in
+    fold_data_sessions sitedata f beg
 
   (** Iterator on persistent sessions *)
   let fold_persistent_data_sessions = fold_persistent_sessions

@@ -38,56 +38,6 @@ type assockind =
   | Dir of string * bool
   | Regexp of Netstring_pcre.regexp * string * bool
 
-type page_dir = 
-    Page_dir of assockind list * (string * page_dir) list
-
-type pages_tree = 
-    page_dir ref
-
-let new_pages_tree () =
-  (ref (Page_dir ([], [])))
-
-
-(*****************************************************************************)
-
-(** table of page trees *)
-
-let page_tree_table = ref []
-
-let find k = List.assoc k !page_tree_table
-
-let add k a = page_tree_table:= (k,a)::!page_tree_table
-
-(*****************************************************************************)
-let set_dir dirref assoc path =
-  let rec assoc_and_remove a = function
-    | [] -> raise Not_found
-    | (b,v)::l when a = b -> (v,l)
-    | e::l -> 
-        let v,ll = assoc_and_remove a l in
-        v,(e::ll)
-  in
-  let rec add_path = function
-    | [] -> Page_dir ([assoc], [])
-    | a::l -> Page_dir ([], [(a, add_path l)])
-  in
-  let rec aux (Page_dir (dl, l1)) = function
-    | [] -> Page_dir (dl@[assoc], l1) (* at the end! *)
-    | a::l -> 
-        try
-          let sd1,l2 = assoc_and_remove a l1 in
-          let sd = aux sd1 l in
-          Page_dir (dl, (a, sd)::l2)
-        with Not_found -> Page_dir (dl, (a, (add_path l))::l1)
-  in
-  dirref := aux !dirref path
-
-
-
-
-
-
-
 
 
 (*****************************************************************************)
@@ -241,8 +191,8 @@ let index_of filename stat path=
 
 let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
 
-let find_static_page staticdirref path =
-  let find_file (filename, readable) handler =
+let find_static_page dir path =
+  let find_file (filename, readable) =
     (* See also module Files in eliom.ml *)
     try
       Messages.debug ("--Staticmod: Testing \""^filename^"\".");
@@ -288,87 +238,34 @@ let find_static_page staticdirref path =
         if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
         then 
 	  ((index_of filename stat path), stat, true)
-        else handler ())
-    with Ocsigen_404 | Unix.Unix_error (Unix.ENOENT,_,_) -> handler ()
+        else raise Ocsigen_404)
+    with Unix.Unix_error (Unix.ENOENT,_,_) -> raise Ocsigen_404
   in
 
+  let path = Ocsimisc.string_of_url_path path in
+
+  match dir with
+  | Dir (d, readable) -> find_file ((d^path), 
+                                    readable)
+  | Regexp (regexp, dest, readable) ->
+      (match Netstring_pcre.string_match regexp path 0 with
+      | None -> raise Ocsigen_404
+      | Some _ -> (* Matching regexp found! *)
+          let s = Netstring_pcre.global_replace regexp dest path in
+          (* hack to get user dirs *)
+          match Netstring_pcre.string_match user_dir_regexp s 0 with
+          | None -> find_file (s, readable)
+          | Some result -> 
+	      let user = Netstring_pcre.matched_group result 2 s in
+              let userdir = (Unix.getpwnam user).Unix.pw_dir in
+              find_file
+                ((Netstring_pcre.matched_group result 1 s)^
+                 userdir^
+                 (Netstring_pcre.matched_group result 3 s),
+                 readable)
+      )
 
 
-
-  let rec find_in_dir dirtotry path handler =
-    match dirtotry with
-    | [] -> handler ()
-    | (Dir (d, readable))::l -> 
-        find_file ((d^path), readable)
-          (fun () -> find_in_dir l path handler)
-    | (Regexp (regexp, dest, readable))::l ->
-        (match Netstring_pcre.string_match regexp path 0 with
-        | None -> find_in_dir l path handler
-        | Some _ -> (* Matching regexp found! *)
-            let s = Netstring_pcre.global_replace regexp dest path in
-            (* hack to get user dirs *)
-            match Netstring_pcre.string_match user_dir_regexp s 0 with
-            | None -> find_file (s, readable)
-                  (fun () -> find_in_dir l path handler)
-            | Some result -> 
-	        let user = Netstring_pcre.matched_group result 2 s in
-                let userdir = (Unix.getpwnam user).Unix.pw_dir in
-                find_file
-                  ((Netstring_pcre.matched_group result 1 s)^
-                   userdir^
-                   (Netstring_pcre.matched_group result 3 s),
-                   readable)
-                  (fun () -> find_in_dir l path handler)
-        )
-  in
-
-
-
-  let rec find_page 
-      dirtotry pathtotry (Page_dir (dir_list, subdir_list)) path handler = 
-    match path with
-    | [] -> 
-        find_in_dir dir_list ""
-          (fun () -> 
-            find_in_dir dirtotry 
-              (Ocsimisc.string_of_url_path pathtotry) handler)
-    | [""] -> 
-        find_in_dir dir_list "/"
-          (fun () -> 
-            find_in_dir dirtotry 
-              (Ocsimisc.string_of_url_path
-                 (pathtotry@[""])) handler)
-    | ""::l
-    | ".."::l -> raise Ocsigen_malformed_url
-          (* For security reasons, .. is not allowed in paths *)
-          (* Actually it has already been removed by server.ml *)
-    | a::l -> 
-        try 
-          let e = List.assoc a subdir_list in
-          match dir_list with
-          | [] ->
-              find_page dirtotry (pathtotry@[a]) e l handler
-          | _ ->
-	      find_page dir_list [""; a] e l
-                (fun () -> 
-                  find_in_dir dirtotry 
-                    (Ocsimisc.string_of_url_path (pathtotry@[a])) handler)
-        with 
-	| Not_found -> 
-            let p2 = Ocsimisc.string_of_url_path path in
-            match dir_list with
-            | [] ->
-                find_in_dir dirtotry 
-                  (Ocsimisc.string_of_url_path (pathtotry@[p2]))
-                  handler
-            | _ ->
-                find_in_dir dir_list ("/"^p2)
-                  (fun () -> 
-                    find_in_dir dirtotry 
-                      (Ocsimisc.string_of_url_path (pathtotry@[p2])) handler)
-
-  in
-  find_page [] [] !staticdirref path (fun () -> raise Ocsigen_404)
 
 
 
@@ -376,7 +273,7 @@ let stream_of_string st =
   Ocsistream.make
     (fun () -> Ocsistream.cont st (fun () -> Ocsistream.empty None))
 
-let gen pages_tree charset ri = 
+let gen dir charset ri = 
   catch
     (* Is it a static page? *)
     (fun () ->
@@ -384,10 +281,7 @@ let gen pages_tree charset ri =
           (* static pages do not have parameters *)
       then begin
         Messages.debug ("--Staticmod: Is it a static file?");
-        let path = if ri.ri_path = [] then ""::ri.ri_path else ri.ri_path in
-        let (filename, stat, index) =
-          find_static_page pages_tree path
-        in
+        let (filename, stat, index) = find_static_page dir ri.ri_sub_path in
 	let content = stream_of_string filename in
 	if index
 	then(
@@ -414,7 +308,7 @@ let gen pages_tree charset ri =
 		res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
 		res_etag=
 		Some (Predefined_senders.File_content.get_etag filename);
-		res_charset=charset;
+		res_charset=Some charset;
                 res_filter=None})
             
       end
@@ -435,7 +329,7 @@ open Simplexmlparser
 
 let (default_static_dir : (string * bool) option ref) = ref None
 
-let set_default_static_dir s p= default_static_dir := Some (s, p)
+let set_default_static_dir s p = default_static_dir := Some (s, p)
 
 let get_default_static_dir () = !default_static_dir
 
@@ -452,7 +346,7 @@ let _ = parse_global_config (Extensions.get_config ())
 
 
 
-let parse_config page_tree path = function
+let parse_config path = function
   | Element ("static", atts, []) -> 
         let dir = match atts with
         | [] -> 
@@ -466,7 +360,7 @@ let parse_config page_tree path = function
 	    Regexp ((Netstring_pcre.regexp ("/"^s)), t, true)
         | _ -> raise (Error_in_config_file "Wrong attribute for <static>")
         in
-        set_dir page_tree dir path
+        Page_gen (gen dir)
   | Element (t, _, _) -> 
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(staticmod extension) Bad data")
@@ -481,32 +375,27 @@ let start_init () =
 let end_init () =
   match get_default_static_dir () with
   | None -> ()
-  | Some (path, p) -> 
-      let page_tree = new_pages_tree () in
-      set_dir page_tree (Dir (path, p)) [];
-      add_virthost ([([Wildcard], None)], 
-                    (fun ri -> 
-                      gen page_tree (Ocsiconfig.get_default_charset ()) ri >>=
-                      (fun r -> return (r,[]))),
-                    (fun ri res -> return res))
+  | Some (path, r) -> 
+      add_site ([([Wildcard], None)],
+                [],
+                None,
+                [Extensions.Page_gen
+                  (fun charset ri -> 
+                    gen 
+                      (Dir (remove_end_slash path, r)) 
+                      (match Ocsiconfig.get_default_charset () with 
+                      | None -> "utf-8"
+                      | Some charset -> charset)
+                      ri
+                  )])
   (* for default static dir *)
 
 
 
 (*****************************************************************************)
 (** extension registration *)
-let _ = R.register_extension
-    ((fun hostpattern -> 
-      let page_tree = 
-        try 
-          find hostpattern
-        with Not_found -> 
-          let n = new_pages_tree () in
-          add hostpattern n;
-          n
-      in
-      (gen page_tree, 
-       parse_config page_tree)),
+let _ = register_extension
+    ((fun hostpattern path charset -> parse_config path),
      start_init,
      end_init,
      raise)

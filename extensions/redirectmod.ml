@@ -44,53 +44,6 @@ open Simplexmlparser
 type assockind = 
   | Regexp of Netstring_pcre.regexp * string * bool (* temporary *)
 
-type page_dir = 
-    Page_dir of assockind list * (string * page_dir) list
-
-type pages_tree = 
-    page_dir ref
-
-let new_pages_tree () =
-  (ref (Page_dir ([], [])))
-
-
-(*****************************************************************************)
-(** table of page trees *)
-
-let page_tree_table = ref []
-
-let find k = List.assoc k !page_tree_table
-
-let add k a = page_tree_table:= (k,a)::!page_tree_table
-
-
-(*****************************************************************************)
-let set_dir dirref assoc path =
-  let rec assoc_and_remove a = function
-    | [] -> raise Not_found
-    | (b,v)::l when a = b -> (v,l)
-    | e::l -> 
-        let v,ll = assoc_and_remove a l in
-        v,(e::ll)
-  in
-  let rec add_path = function
-    | [] -> Page_dir ([assoc], [])
-    | a::l -> Page_dir ([], [(a, add_path l)])
-  in
-  let rec aux (Page_dir (dl, l1)) = function
-    | [] -> Page_dir (dl@[assoc], l1) (* at the end! *)
-    | a::l -> 
-        try
-          let sd1,l2 = assoc_and_remove a l1 in
-          let sd = aux sd1 l in
-          Page_dir (dl, (a, sd)::l2)
-        with Not_found -> Page_dir (dl, (a, (add_path l))::l1)
-  in
-  dirref := aux !dirref path
-
-
-
-
 
 
 
@@ -104,98 +57,20 @@ let _ = parse_global_config (Extensions.get_config ())
 
 
 
-(*****************************************************************************)
-(** Configuration for each site.
-    These tags are inside <site ...>...</site> in the config file.
-        
-   For example:
-   <site dir="">
-     <redirect regexp="" dest="" />
-   </extension>
-
- *)
-
-let parse_config page_tree path = function
-  | Element ("redirect", atts, []) -> 
-        let dir = match atts with
-        | [] -> 
-            raise (Error_in_config_file
-                     "regexp attribute expected for <redirect>")
-        | [("regexp", s);("dest",t)] -> 
-            Regexp ((Netstring_pcre.regexp ("/"^s)), t, false)
-        | [("temporary", "temporary");("regexp", s);("dest",t)] -> 
-            Regexp ((Netstring_pcre.regexp ("/"^s)), t, true)
-        | _ -> raise (Error_in_config_file "Wrong attribute for <redirect>")
-        in
-        set_dir page_tree dir path
-  | Element (t, _, _) -> 
-      raise (Bad_config_tag_for_extension t)
-  | _ -> raise (Error_in_config_file "(redirectmod extension) Bad data")
-
 
 
 (*****************************************************************************)
 (* Finding redirections *)
 
-let find_redirection dirref path =
-
-  let rec find_in_dir dirtotry path handler =
-    match dirtotry with
-    | [] -> handler ()
-    | (Regexp (regexp, dest, temp))::l ->
-        (match Netstring_pcre.string_match regexp path 0 with
-        | None -> find_in_dir l path handler
-        | Some _ -> (* Matching regexp found! *)
-            (Netstring_pcre.global_replace regexp dest path, temp)
-        )
-  in
+let find_redirection (Regexp (regexp, dest, temp)) path =
+  let path = Ocsimisc.string_of_url_path path in
+  match Netstring_pcre.string_match regexp path 0 with
+  | None -> raise Ocsigen_404
+  | Some _ -> (* Matching regexp found! *)
+      (Netstring_pcre.global_replace regexp dest path, temp)
+  
 
 
-  let rec find_page 
-      dirtotry pathtotry (Page_dir (dir_list, subdir_list)) path handler = 
-    match path with
-    | [] -> 
-        find_in_dir dir_list ""
-          (fun () -> 
-            find_in_dir dirtotry 
-              (Ocsimisc.string_of_url_path pathtotry) handler)
-    | [""] -> 
-        find_in_dir dir_list "/"
-          (fun () -> 
-            find_in_dir dirtotry 
-              (Ocsimisc.string_of_url_path
-                 (pathtotry@[""])) handler)
-    | ""::l
-    | ".."::l -> raise Ocsigen_malformed_url
-          (* For security reasons, .. is not allowed in paths *)
-          (* Actually it has already been removed by server.ml *)
-    | a::l -> 
-        try 
-          let e = List.assoc a subdir_list in
-          match dir_list with
-          | [] ->
-              find_page dirtotry (pathtotry@[a]) e l handler
-          | _ ->
-	      find_page dir_list [""; a] e l
-                (fun () -> 
-                  find_in_dir dirtotry 
-                    (Ocsimisc.string_of_url_path (pathtotry@[a])) handler)
-        with 
-	| Not_found -> 
-            let p2 = Ocsimisc.string_of_url_path path in
-            match dir_list with
-            | [] ->
-                find_in_dir dirtotry 
-                  (Ocsimisc.string_of_url_path (pathtotry@[p2]))
-                  handler
-            | _ ->
-                find_in_dir dir_list ("/"^p2)
-                  (fun () -> 
-                    find_in_dir dirtotry 
-                      (Ocsimisc.string_of_url_path (pathtotry@[p2])) handler)
-
-  in
-  find_page [] [] !dirref path (fun () -> raise Ocsigen_404)
 
 
 
@@ -214,13 +89,12 @@ let end_init () =
 
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
-let gen pages_tree charset ri =
+let gen dir charset ri =
   catch
     (* Is it a redirection? *)
     (fun () ->
       Messages.debug ("--Redirectmod: Is it a redirection?");
-      let path = if ri.ri_path = [] then ""::ri.ri_path else ri.ri_path in
-      let (redir, temp) = find_redirection pages_tree path in
+      let (redir, temp) = find_redirection dir ri.ri_sub_path in
       Messages.debug ("--Redirectmod: YES! "^
                       (if temp then "Temporary " else "Permanent ")^
                       "redirection to: "^redir);      
@@ -257,6 +131,34 @@ let gen pages_tree charset ri =
 
 
 
+(*****************************************************************************)
+(** Configuration for each site.
+    These tags are inside <site ...>...</site> in the config file.
+        
+   For example:
+   <site dir="">
+     <redirect regexp="" dest="" />
+   </extension>
+
+ *)
+
+let parse_config path = function
+  | Element ("redirect", atts, []) -> 
+        let dir = match atts with
+        | [] -> 
+            raise (Error_in_config_file
+                     "regexp attribute expected for <redirect>")
+        | [("regexp", s);("dest",t)] -> 
+            Regexp ((Netstring_pcre.regexp ("/"^s)), t, false)
+        | [("temporary", "temporary");("regexp", s);("dest",t)] -> 
+            Regexp ((Netstring_pcre.regexp ("/"^s)), t, true)
+        | _ -> raise (Error_in_config_file "Wrong attribute for <redirect>")
+        in
+        Page_gen (gen dir)
+  | Element (t, _, _) -> 
+      raise (Bad_config_tag_for_extension t)
+  | _ -> raise (Error_in_config_file "(redirectmod extension) Bad data")
+
 
 
 
@@ -273,18 +175,8 @@ let virtual_host_creator hostpattern = (gen, parse_config)
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = R.register_extension (* takes a quadruple *)
-    ((fun hostpattern -> 
-      let page_tree = 
-        try 
-          find hostpattern
-        with Not_found -> 
-          let n = new_pages_tree () in
-          add hostpattern n;
-          n
-      in
-      (gen page_tree, 
-       parse_config page_tree)),
+let _ = register_extension (* takes a quadruple *)
+    ((fun hostpattern path charset -> parse_config path),
      start_init,
      end_init,
      raise)

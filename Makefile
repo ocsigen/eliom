@@ -55,11 +55,11 @@ PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliommkforms.cmi eliom/eliommkreg.cmi \
        eliom/eliomtools.cmi \
-       eliom/ocsigen.cmi eliom/ocsigenboxes.cmi eliom/eliomtools.cmi \
        $(DUCECMI) \
        eliom/eliomsessions.cmi eliom/eliomparameters.cmi \
        eliom/eliomservices.cmi eliom/eliompredefmod.cmi \
        eliom/eliommod.cmi
+#       eliom/ocsigen.cmi eliom/ocsigenboxes.cmi  \
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi http/http_headers.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META

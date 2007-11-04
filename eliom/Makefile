@@ -5,8 +5,8 @@ include ../Makefile.config
 FILES:= eliommod.ml eliomsessions.ml \
        eliomparameters.ml eliomservices.ml \
        eliommkforms.ml eliommkreg.ml eliompredefmod.ml \
-       eliomtools.ml \
-       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
+       eliomtools.ml
+#       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
 
 ifeq "$(DEBUG)" "YES"
@@ -75,10 +75,10 @@ OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(OBJD
 
 
 byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) \
-      eliom.cma ocsigenmod.cma $(DUCEMODBYTE)
+      eliom.cma $(DUCEMODBYTE)
 
 opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) \
-     eliom.cmxs ocsigenmod.cmxs $(DUCEMODOPT)
+     eliom.cmxs $(DUCEMODOPT)
 
 
 .SUFFIXES:

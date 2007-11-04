@@ -377,7 +377,6 @@ module MakeRegister = functor
           Pages.send ~cookies:(cookies@cl) ?charset ?code ~sp p
 
         let register_aux
-            current_dir
             table
             duringsession (* registering during session? *)
             ~service
@@ -392,9 +391,8 @@ module MakeRegister = functor
               let sppt = get_post_params_type_ service in
               add_service
                 table 
-	        current_dir
 	        duringsession
-	        (get_path_ attser)
+	        (get_sub_path_ attser)
                 ({key_state = (attserget, attserpost);
                   key_kind = key_kind},
                  ((if attserget = None || attserpost = None 
@@ -435,7 +433,6 @@ module MakeRegister = functor
           | `Nonattached naser ->
               add_naservice 
 	        table
-	        current_dir 
 	        duringsession
 	        (get_na_name_ naser)
                 ((match get_max_use_ service with
@@ -476,24 +473,22 @@ module MakeRegister = functor
           | None ->
               let url =
                 match get_kind_ service with
-                | `Attached attser -> Some (get_path_ attser)
+                | `Attached attser -> Some (get_sub_path_ attser)
                 | `Nonattached naser -> None
               in
               (match global_register_allowed () with
-              | Some get_current_hostdir ->
-                  remove_unregistered url;
-                  let (globtable, _, _, _), curdir = get_current_hostdir () in
+              | Some get_current_sitedata ->
+                  let sitedata = get_current_sitedata () in
+                  remove_unregistered sitedata url;
                   register_aux 
-                    curdir
-                    globtable
+                    sitedata.global_services
                     false 
                     ~service ?error_handler page_gen
               | _ -> raise (Eliom_function_forbidden_outside_site_loading
                               "register"))
           | Some sp ->
-              register_aux 
+              register_aux
                 ?error_handler
-                (get_site_dir sp)
                 (get_global_table sp)
                 true
                 ~service
@@ -517,7 +512,6 @@ module MakeRegister = functor
             page =
           register_aux
             ?error_handler
-            (get_site_dir sp)
             !(get_session_service_table ?session_name ~sp ())
             true 
             ~service page

@@ -62,8 +62,14 @@ val get_inet_addr : sp:Eliommod.server_params -> Unix.inet_addr
 (** returns the path of the URL as a string *)
 val get_current_path_string : sp:Eliommod.server_params -> string
 
-(** returns the path of the URL using the type {!Extensions.url_path} *)
-val get_current_path : sp:Eliommod.server_params -> url_path
+(** returns the full path of the URL using the type {!Extensions.url_path} *)
+val get_current_full_path : sp:Eliommod.server_params -> url_path
+
+(** returns the sub path of the URL using the type {!Extensions.url_path}.
+    The sub-path is the full path without the path of the site (set in the 
+    configuration file).
+ *)
+val get_current_sub_path : sp:Eliommod.server_params -> url_path
 
 (** returns the hostname that has been sent by the user agent, if any.
    This is usefull if your server has several hostnames, but that
@@ -441,7 +447,7 @@ val get_config : unit -> Simplexmlparser.xml list
 val get_site_dir : sp:Eliommod.server_params -> url_path
 
 (** returns the charset for this site (from the configuration file) *)
-val get_config_file_charset : sp:Eliommod.server_params -> string option
+val get_config_file_charset : sp:Eliommod.server_params -> string
 
 
 

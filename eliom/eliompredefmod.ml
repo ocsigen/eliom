@@ -58,7 +58,7 @@ module Xhtmlreg_ = struct
         res_send_page= Predefined_senders.send_xhtml_page ~content:content;
         res_headers= Predefined_senders.dyn_headers;
         res_charset= (match charset with
-        | None -> get_config_file_charset sp
+        | None -> Some (get_config_file_charset sp)
         | _ -> charset);
         res_filter=None
       }
@@ -245,6 +245,17 @@ module type XHTMLFORMSSIG = sig
   open Xhtmltypes
 
 (** {2 Links and forms} *)
+
+  val make_string_uri :
+      service:('get, unit, [< get_service_kind ],
+               [< suff ], 'gn, unit, 
+               [< registrable ]) service ->
+                 sp:Eliommod.server_params -> 
+                   ?fragment:string ->
+                     'get -> string
+(** Creates the string corresponding to the URL of a service applyed to
+    its GET parameters.
+ *)
 
   val a :
       ?a:a_attrib attrib list ->
@@ -1120,7 +1131,7 @@ module SubXhtml = functor(T : sig type content end) ->
            res_send_page= send_cont_page ~content:content;
            res_headers= Predefined_senders.dyn_headers;
            res_charset= (match charset with
-             None -> get_config_file_charset sp
+           | None -> Some (get_config_file_charset sp)
            | _ -> charset);
            res_filter=None
          }
@@ -1163,7 +1174,7 @@ module Textreg_ = struct
          ~contenttype:contenttype ~content:content;
        res_headers= Predefined_senders.dyn_headers;
        res_charset= (match charset with
-       | None -> get_config_file_charset sp
+       | None -> Some (get_config_file_charset sp)
        | _ -> charset);
        res_filter=None
      }
@@ -1191,7 +1202,7 @@ module CssTextreg_ = struct
          ~contenttype:"text/css" ~content:content;
        res_headers= Predefined_senders.dyn_headers;
        res_charset= (match charset with
-       | None -> get_config_file_charset sp
+       | None -> Some (get_config_file_charset sp)
        | _ -> charset);
        res_filter=None
      }
@@ -1220,7 +1231,7 @@ module HtmlTextreg_ = struct
          ~contenttype:"text/html" ~content:content;
        res_headers= Predefined_senders.dyn_headers;
        res_charset= (match charset with
-       | None -> get_config_file_charset sp
+       | None -> Some (get_config_file_charset sp)
        | _ -> charset);
        res_filter=None
      }
@@ -1564,7 +1575,7 @@ module Filesreg_ = struct
         let stat = Unix.LargeFile.stat filename in
         let (filename, stat) = 
           Messages.debug ("Eliom.Files - Testing \""^filename^"\".");
-          let path = get_current_path sp in
+          let path = get_current_sub_path sp in
           if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
           then 
             if (filename.[(String.length filename) - 1]) = '/'
@@ -1605,7 +1616,7 @@ module Filesreg_ = struct
        res_send_page= Predefined_senders.send_file ~content:filename;
        res_headers= Http_headers.empty;
        res_charset= (match charset with
-       | None -> get_config_file_charset sp
+       | None -> Some (get_config_file_charset sp)
        | _ -> charset);
        res_filter=None
      }
@@ -1635,7 +1646,7 @@ module Streamlistreg_ = struct
          ~contenttype:contenttype ~content:content;
        res_headers= Predefined_senders.dyn_headers;
        res_charset= (match charset with
-       | None -> get_config_file_charset sp
+       | None -> Some (get_config_file_charset sp)
        | _ -> charset);
        res_filter=None
      }

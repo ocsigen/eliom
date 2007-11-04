@@ -98,7 +98,7 @@ module Xhtmlreg_ = struct
        res_send_page= send_ocamlduce_page ~content:content;
        res_headers= Predefined_senders.dyn_headers;
        res_charset= (match charset with
-       | None -> Eliomsessions.get_config_file_charset sp
+       | None -> Some (Eliomsessions.get_config_file_charset sp)
        | _ -> charset);
        res_filter=None
      }
@@ -342,7 +342,7 @@ module Xml =
            res_send_page= send_cont_page ~content:content;
            res_headers= Predefined_senders.dyn_headers;
            res_charset= (match charset with
-           | None -> Eliomsessions.get_config_file_charset sp
+           | None -> Some (Eliomsessions.get_config_file_charset sp)
            | _ -> charset);
            res_filter=None
          }

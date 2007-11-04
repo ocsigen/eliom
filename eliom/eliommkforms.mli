@@ -191,6 +191,27 @@ module type ELIOMFORMSIG =
 
 (** {2 Links and forms} *)
 
+    val make_string_uri :
+        service:('get, unit, [< get_service_kind ],
+                 [< suff ], 'gn, unit, 
+                 [< registrable ]) service ->
+                   sp:Eliommod.server_params -> 
+                     ?fragment:string ->
+                       'get -> string
+(** Creates the string corresponding to the URL of a service applyed to
+   its GET parameters.
+ *)
+
+    val make_uri :
+        service:('get, unit, [< get_service_kind ],
+         [< suff ], 'gn, unit, 
+         [< registrable ]) service ->
+          sp:server_params -> ?fragment:string -> 'get -> uri
+(** Create the text of the service. Like the [a] function, it may take
+   extra parameters. *)
+
+
+
     val a :
         ?a:a_attrib_t ->
           service:('get, unit, [< get_service_kind ], 
@@ -219,14 +240,6 @@ module type ELIOMFORMSIG =
     val js_script :
         ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 (** Creates a [<script>] tag to add a javascript file *)
-
-    val make_uri :
-        service:('get, unit, [< get_service_kind ],
-         [< suff ], 'gn, unit, 
-         [< registrable ]) service ->
-          sp:server_params -> ?fragment:string -> 'get -> uri
-(** Create the text of the service. Like the [a] function, it may take
-   extra parameters. *)
 
 
     val get_form :

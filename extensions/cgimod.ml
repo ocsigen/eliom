@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module cgimod.ml
- * Copyright (C) 2007 J‚r“me Velleine - Gabriel Kerneis
+ * Copyright (C) 2007 Jérôme Velleine - Gabriel Kerneis
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -52,25 +52,7 @@ type reg = {
   exec:string option; (** binary to execute the script with (optionnal) *)
   env:(string * string) list (** environment variables *) }
 
-(* cgi or static pages *)
-type page_dir = 
-    Page_dir of reg list * (string * page_dir) list
-
-(* cgi or static pages *)
-type pages_tree = 
-    page_dir ref
-
-let new_pages_tree () =
-  (ref (Page_dir ([],[])))
-
 (*****************************************************************************)
-(** table of cgi dir*)
-
-let cgi_dir_table = ref []
-
-let find k = List.assoc k !cgi_dir_table
-
-let add k a = cgi_dir_table:= (k,a)::!cgi_dir_table
 
 let user_dir_regexp = Regexp.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
 
@@ -107,31 +89,10 @@ let split_regexp r s =
     let s'' = Regexp.last_chars s (l - split) in
     Some (s',s'')
 	
-let set_dir dirref assoc path =
-  let rec assoc_and_remove a = function
-    | [] -> raise Not_found
-    | (b,v)::l when a = b -> (v,l)
-    | e::l -> let v,ll = assoc_and_remove a l
-          in v,(e::ll)
-  in
-  let rec add_path = function
-    | [] -> Page_dir ([assoc],[])
-    | a::l -> Page_dir ([], [(a, add_path l)])
-  in
-  let rec aux (Page_dir (rl, l1)) = function
-    | [] -> Page_dir (rl@[assoc], l1)
-    | a::l -> 
-        try
-          let sd1,l2 = assoc_and_remove a l1 in
-          let sd = aux sd1 l in
-          Page_dir (rl, (a, sd)::l2)
-        with Not_found -> Page_dir (rl, (a,(add_path l))::l1)
-  in 
-  dirref := aux !dirref path
 
 (**permet de recuperer le fichier correspondant a l url*)
-let find_cgi_page cgidirref path =
-  let find_file (filename, re) handler =
+let find_cgi_page reg path =
+  let find_file (filename, re) =
     (* See also module Files in eliom.ml *)
     Messages.debug ("--Cgimod: Testing \""^filename^"\".");
     try
@@ -157,84 +118,34 @@ let find_cgi_page cgidirref path =
       end
       else raise Ocsigen_403
     with
-    | Unix.Unix_error (Unix.ENOENT, _, _) -> handler ()
+    | Unix.Unix_error (Unix.ENOENT, _, _) -> raise Ocsigen_404
   in
 
-  let rec find_in_dir dirtotry path handler =
-    match dirtotry with
-    | [] -> handler ()
-    | re::l ->
-        match split_regexp re.regexp path with
-        | None -> find_in_dir l path handler
-        | Some (path',path_info) -> 
-	    let re = 
-	    {re with
-	     doc_root=Regexp.global_replace re.regexp re.doc_root path';
-	     script=Regexp.global_replace re.regexp re.script path';
-	     path = path';
-	     path_info=path_info}
-            in
-            let s = re.doc_root^re.script in
-            (* hack to get user dirs *)
-            match Regexp.string_match user_dir_regexp s 0 with
-            | None -> 
-                find_file (s, re) (fun () -> find_in_dir l path handler)
-            | Some result ->
-	        let user = Regexp.matched_group result 2 s in
-                let userdir = (Unix.getpwnam user).Unix.pw_dir in
-                find_file
-                  ((Regexp.matched_group result 1 s)^
-                   userdir^
-                   (Regexp.matched_group result 3 s),
-                   re)
-                  (fun () -> find_in_dir l path handler)
-  in                
+  let path = Ocsimisc.string_of_url_path path in
 
-  let rec find_page 
-      dirtotry pathtotry (Page_dir (regexps, subdir_list)) path handler = 
-    match path with
-    | [] -> 
-        find_in_dir regexps ""
-          (fun () -> 
-            find_in_dir dirtotry 
-              (Ocsimisc.string_of_url_path pathtotry) handler)
-    | [""] ->
-        find_in_dir regexps "/"
-          (fun () -> 
-            find_in_dir dirtotry 
-              (Ocsimisc.string_of_url_path
-                 (pathtotry@[""])) handler)
-    | ""::l
-    | ".."::l -> raise Ocsigen_malformed_url
-          (* For security reasons, .. is not allowed in paths *)
-          (* Actually it has already been removed by server.ml *)
-    | a::l -> 
-        try 
-          let e = List.assoc a subdir_list in
-          match regexps with
-          | [] ->
-              find_page dirtotry (pathtotry@[a]) e l handler
-          | _ ->
-	      find_page regexps [""; a] e l
-                (fun () -> 
-                  find_in_dir dirtotry 
-                    (Ocsimisc.string_of_url_path (pathtotry@[a])) handler)
-        with 
-	| Not_found ->
-            let p2 = Ocsimisc.string_of_url_path path in
-            match regexps with
-            | [] ->
-                find_in_dir dirtotry 
-                  (Ocsimisc.string_of_url_path (pathtotry@[p2]))
-                  handler
-            | _ ->
-                find_in_dir regexps ("/"^p2)
-                  (fun () -> 
-                    find_in_dir dirtotry 
-                      (Ocsimisc.string_of_url_path (pathtotry@[p2])) handler)
+  match split_regexp reg.regexp path with
+  | None -> raise Ocsigen_404
+  | Some (path', path_info) -> 
+      let reg = 
+	{reg with
+	 doc_root=Regexp.global_replace reg.regexp reg.doc_root path';
+	 script=Regexp.global_replace reg.regexp reg.script path';
+	 path = path';
+	 path_info=path_info}
+      in
+      let s = reg.doc_root^reg.script in
+      (* hack to get user dirs *)
+      match Regexp.string_match user_dir_regexp s 0 with
+      | None -> find_file (s, reg)
+      | Some result ->
+	  let user = Regexp.matched_group result 2 s in
+          let userdir = (Unix.getpwnam user).Unix.pw_dir in
+          find_file
+            ((Regexp.matched_group result 1 s)^
+             userdir^
+             (Regexp.matched_group result 3 s),
+             reg)
 
-  in
-  find_page [] [] !cgidirref path (fun () -> raise Ocsigen_404)
 
 (*****************************************************************************)
 (** permet de creer le tableau des variables d environnement *)
@@ -252,7 +163,7 @@ let _ =
     ["Content-type"; "Authorization"; "Content-length";
      (*"Referer"; "Host"; "Cookie"*) ]
 
-let array_environment pages_tree filename re ri =
+let array_environment filename re ri =
   let header = ri.ri_http_frame.Http_frame.header in
   let opt = function
     | None -> ""
@@ -338,9 +249,9 @@ let rec set_env_list=function
 
 (** launch the process *)
 
-let create_process_cgi pages_tree filename ri post_out cgi_in err_in re =
+let create_process_cgi filename ri post_out cgi_in err_in re =
   let envir = Array.of_list (
-    (array_environment pages_tree filename re ri)@(set_env_list re.env)) in
+    (array_environment filename re ri)@(set_env_list re.env)) in
   match re.exec with
   | None ->
       Unix.create_process_env 
@@ -363,7 +274,7 @@ let create_process_cgi pages_tree filename ri post_out cgi_in err_in re =
 
 (** This function makes it possible to launch a cgi script *)
 
-let recupere_cgi head pages_tree re filename ri =
+let recupere_cgi head re filename ri =
   try
     (* Create the three pipes to communicate with the CGI script: *)
     let (post_out, post_in) = Lwt_unix.pipe_out () in
@@ -377,7 +288,6 @@ let recupere_cgi head pages_tree re filename ri =
 
     (* Launch the CGI script *)
     let pid = create_process_cgi 
-        pages_tree 
         filename 
         ri
         post_out 
@@ -509,85 +419,6 @@ let rec parse_global_config = function
 
 let _ = parse_global_config (Extensions.get_config ())
 
-(*****************************************************************************)
-(** Parsing of config file *)
-
-let rec set_env=function
-  | [] -> []
-  | (Element("setenv", [("var",vr);("val",vl)], []))::l ->
-     if List.mem vr environment
-     then (Messages.debug ("--Cgimod: no set variable "^vr); set_env l)
-     else (vr,vl)::set_env l
-  | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
-
-let string_conform s = match String.length s with
-  |0 -> "/"
-  |n -> match  s.[0], s.[n - 1] with
-        | '/' ,'/' -> s
-        | _, '/' -> "/"^s
-        | '/', _ -> s^"/"
-        | _, _ -> "/"^s^"/"
-
-let parse_config page_tree path = function 
-  | Element ("cgi", atts, l) -> 
-      let good_root r = Regexp.quote (string_conform
-      (Ocsimisc.string_of_url_path (path@(Regexp.split (Regexp.regexp "/") r)))) in
-      let dir = match atts with
-      | [] -> 
-          raise (Error_in_config_file
-                   "attributes expected for <cgi>")
-      | [("root",r);("dir", s)] ->
-      {
-	   regexp= Regexp.regexp ((good_root r)^"([^/]*)");
-	   
-	   doc_root= string_conform s;
-	   script="$1";
-	   
-	   path=""; 
-           path_info="";
-	   
-	   exec=None; 
-           env=set_env l}
-      | ("regexp", s)::("dir",d)::("script",t)::q -> 
-	  {
-	   regexp=Regexp.regexp ((good_root "")^s);
-	   
-	   doc_root= string_conform d;
-	   script=t;
-	   
-	   path="";
-           path_info=""; (* unknown for the moment *)
-	   
-	   exec= (match q with 
-	         |[] -> None 
-		 |[("exec",x)] -> Some(x)
-		 |_ ->  raise (Error_in_config_file "Wrong attributes for <cgi>")) ;
-	   env=set_env l}
-(*      | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
-	  let stat = Unix.LargeFile.stat x in
-	  if (stat.Unix.LargeFile.st_kind 
-            <> Unix.S_REG)
-	  then 
-	    raise (Error_in_config_file "<cgi> Exec does not exist")
-	  else
-
-	    let conform = string_conform r in
-	    {
-	      root=string_conform((Ocsimisc.string_of_url_path path)^conform);
-	      regexp=Regexp.regexp (conform^s);
-	      doc_root= string_conform d;
-	      dest=t;
-	      path=p;
-	      exec=Some(x);
-	      env=set_env l}
-*)
-      | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
-      in 
-      set_dir page_tree dir path
-  | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
-  | _ -> 
-      raise (Error_in_config_file "Unexpected data in config file")
-	
 
 
 
@@ -610,20 +441,17 @@ let default_res =
    res_charset= None;
    res_filter=None }
 
-let gen pages_tree charset ri =
+let gen reg charset ri =
   catch
     (* Is it a cgi page? *)
     (fun () ->
-       if ri.ri_path_string <> ""
-         (* cgi pages have parameters *)
+       if ri.ri_sub_path <> [""]
        then begin
          Messages.debug ("--Cgimod: Is it a cgi file?");
-         let (filename, re) =
-           find_cgi_page pages_tree ri.ri_path
-         in 
+         let (filename, re) = find_cgi_page reg ri.ri_sub_path in 
 	 recupere_cgi 
            (ri.ri_method = Http_header.HEAD) 
-           pages_tree re filename ri >>= fun (frame, finalizer) ->
+           re filename ri >>= fun (frame, finalizer) ->
          let header = frame.Http_frame.header in
          let content = get_content frame in
          Ocsistream.add_finalizer content finalizer;
@@ -653,7 +481,7 @@ let gen pages_tree charset ri =
                 None, Some loc ->
                   Ocsistream.finalize content >>= fun () ->
                   if loc <> "" && loc.[0] = '/' then
-                    Lwt.return (Ext_retry_with ((ri_of_url loc ri), []))
+                    Lwt.return (Ext_retry_with (ri_of_url loc ri))
                   else
                     Lwt.return
                       (Ext_found
@@ -697,6 +525,94 @@ let gen pages_tree charset ri =
       | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_not_found Ocsigen_404)
       | e -> fail e)
 
+
+
+
+(*****************************************************************************)
+(** Parsing of config file *)
+
+let rec set_env=function
+  | [] -> []
+  | (Element("setenv", [("var",vr);("val",vl)], []))::l ->
+     if List.mem vr environment
+     then (Messages.debug ("--Cgimod: no set variable "^vr); set_env l)
+     else (vr,vl)::set_env l
+  | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
+
+let string_conform s = match String.length s with
+  |0 -> "/"
+  |n -> match  s.[0], s.[n - 1] with
+        | '/' ,'/' -> s
+        | _, '/' -> "/"^s
+        | '/', _ -> s^"/"
+        | _, _ -> "/"^s^"/"
+
+let parse_config path = function 
+  | Element ("cgi", atts, l) -> 
+      let good_root r = 
+        Regexp.quote (string_conform
+                        (Ocsimisc.string_of_url_path
+                           (path@(Regexp.split (Regexp.regexp "/") r)))) 
+      in
+      let dir = match atts with
+      | [] -> 
+          raise (Error_in_config_file
+                   "attributes expected for <cgi>")
+      | [("root",r);("dir", s)] ->
+      {
+	   regexp= Regexp.regexp ((good_root r)^"([^/]*)");
+	   
+	   doc_root= string_conform s;
+	   script="$1";
+	   
+	   path=""; 
+           path_info="";
+	   
+	   exec=None; 
+           env=set_env l}
+      | ("regexp", s)::("dir",d)::("script",t)::q -> 
+	  {
+	   regexp=Regexp.regexp ((good_root "")^s);
+	   
+	   doc_root= string_conform d;
+	   script=t;
+	   
+	   path="";
+           path_info=""; (* unknown for the moment *)
+	   
+	   exec= (match q with 
+	         |[] -> None 
+		 |[("exec",x)] -> Some(x)
+		 |_ -> raise (Error_in_config_file
+                                "Wrong attributes for <cgi>")) ;
+	   env=set_env l}
+(*      | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
+	  let stat = Unix.LargeFile.stat x in
+	  if (stat.Unix.LargeFile.st_kind 
+            <> Unix.S_REG)
+	  then 
+	    raise (Error_in_config_file "<cgi> Exec does not exist")
+	  else
+
+	    let conform = string_conform r in
+	    {
+	      root=string_conform((Ocsimisc.string_of_url_path path)^conform);
+	      regexp=Regexp.regexp (conform^s);
+	      doc_root= string_conform d;
+	      dest=t;
+	      path=p;
+	      exec=Some(x);
+	      env=set_env l}
+*)
+      | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
+      in 
+      Page_gen (gen dir)
+  | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
+  | _ -> 
+      raise (Error_in_config_file "Unexpected data in config file")
+	
+
+
 (*****************************************************************************)
 (** Function to be called at the beginning of the initialisation phase 
     of the server  *)
@@ -709,18 +625,8 @@ let end_init () = ()
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = R.register_extension (* takes a quadruple *)
-  ((fun hostpattern -> 
-      let page_tree = 
-        try 
-          find hostpattern
-        with Not_found -> 
-          let n = new_pages_tree () in
-          add hostpattern n;
-          n
-      in
-      (gen page_tree, 
-       parse_config page_tree)),
+let _ = register_extension (* takes a quadruple *)
+  ((fun hostpattern path charset -> parse_config path),
    start_init,
    end_init,
    exn_handler)

@@ -67,53 +67,6 @@ let _ = parse_global_config (Extensions.get_config ())
 
 
 
-(*****************************************************************************)
-(** Extensions may define new tags for configuring each site.
-    These tags are inside <site ...>...</site> in the config file.
-        
-   For example:
-   <site dir="">
-     <extensiontemplate module=".../mymodule.cmo" />
-   </extension>
-
-   Each extension will set its own configuration options, for example:
-   <site dir="">
-     <extensiontemplate module=".../mymodule.cmo" />
-     <eliom module=".../myeliommodule.cmo" />
-     <static dir="/var/www/plop" />
-   </extension>
-
- *)
-
-let parse_config path = function
-  | Element ("extensiontemplate", atts, []) ->  ()
-  | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
-  | _ -> 
-      raise (Error_in_config_file "Unexpected data in config file")
-
-
-
-
-(*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase 
-    of the server (actually each time the config file is reloaded) *)
-let start_init () =
-  ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () =
-  ()
-
-
-
-(*****************************************************************************)
-(** A function that will create an error message from the exceptions
-    that may be raised during the initialisation phase, and raise again 
-    all other exceptions. That function has type exn -> string. Use the 
-   raise function if you don't need any. *)
-let exn_handler = raise
-
-
 
 (*****************************************************************************)
 (** The function that will generate the pages from the request. 
@@ -147,20 +100,84 @@ let gen charset ri =
 
 
 
+
 (*****************************************************************************)
-(** A function that will be called for each virtual host,
-   generating two functions: 
-    - one that will be called to generate the pages
-    - one to parse the configuration file. *)
-let virtual_host_creator hostpattern = (gen, parse_config)
+(** Extensions may define new tags for configuring each site.
+    These tags are inside <site ...>...</site> in the config file.
+        
+   For example:
+   <site dir="">
+     <extensiontemplate module=".../mymodule.cmo" />
+   </extension>
+
+   Each extension will set its own configuration options, for example:
+   <site dir="">
+     <extensiontemplate module=".../mymodule.cmo" />
+     <eliom module=".../myeliommodule.cmo" />
+     <static dir="/var/www/plop" />
+   </extension>
+
+ *)
+
+let parse_config path = function
+  | Element ("extensiontemplate", atts, []) ->  Page_gen gen
+  | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
+  | _ -> 
+      raise (Error_in_config_file "Unexpected data in config file")
+
+
+
+
+(*****************************************************************************)
+(** Function to be called at the beginning of the initialisation phase 
+    of the server (actually each time the config file is reloaded) *)
+let start_init () =
+  ()
+
+(** Function to be called at the end of the initialisation phase *)
+let end_init () =
+  ()
+
+
+
+(*****************************************************************************)
+(** A function that will create an error message from the exceptions
+    that may be raised during the initialisation phase, and raise again 
+    all other exceptions. That function has type exn -> string. Use the 
+   raise function if you don't need any. *)
+let exn_handler = raise
+
+
+
+
+(*****************************************************************************)
+(* a function taking 
+   {ul
+     {- the name of the virtual <host>}}
+     that will be called for each <host>, 
+     and that will generate a function taking:
+   {ul
+     {- the path attribute of a <site> tag
+     that will be called for each <site>, 
+     and that will generate a function taking:}}
+   {ul
+     {- an item of the config file
+     that will be called on each tag inside <site> and:}
+   {ul
+     {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
+     {- return something of type [extension] (filter or page generator)}}
+*)
+let site_creator hostpattern path charset = parse_config path
    (* hostpattern has type Extensions.virtual_hosts
-      and represents the name of the virtual host *)
+      and represents the name of the virtual host.
+      The path and the charset are declared in <site path... charset=.../>
+    *)
    
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = R.register_extension (* takes a quadruple *)
-    (virtual_host_creator,
+let _ = register_extension (* takes a quadruple *)
+    (site_creator,
      start_init,
      end_init,
      exn_handler)

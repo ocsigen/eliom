@@ -1,7 +1,8 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module server.ml
- * Copyright (C) 2005 Vincent Balat, Denis Berthod, Nataliya Guts
+ * Copyright (C) 2005 
+ * Vincent Balat, Denis Berthod, Nataliya Guts, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -252,7 +253,8 @@ let get_request_infos meth url http_frame filenames sockaddr port =
      ri_url = parsed_url;
      ri_method = meth;
      ri_path_string = string_of_url_path path;
-     ri_path = path;
+     ri_full_path = path;
+     ri_sub_path = path;
      ri_get_params_string = params;
      ri_host = headerhost;
      ri_get_params = get_params;
@@ -450,9 +452,8 @@ let service
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind
              (fun () ->
-                Extensions.do_for_host_matching
-                  ri.ri_host ri.ri_port (Extensions.get_virthosts ()) ri)
-             (fun (res, cookieslist) ->
+                Extensions.do_for_site_matching ri.ri_host ri.ri_port ri)
+             (fun res ->
                 finish_request ();
 (* RFC
    An  HTTP/1.1 origin  server, upon  receiving a  conditional request
@@ -499,8 +500,7 @@ let service
                   Messages.debug "-> Sending 304 Not modified ";
                   send_empty
                     ~content:() sender_slot ~clientproto ~keep_alive:true ~head
-                    ~cookies:(List.map change_cookie
-                                (res.res_cookies@cookieslist))
+                    ~cookies:(List.map change_cookie res.res_cookies)
                     ?last_modified:res.res_lastmodified
                     ?etag:res.res_etag
                     ~code:304 (* Not modified *)
@@ -511,16 +511,14 @@ let service
                      (if-unmodified-since header)";
                   send_empty
                     ~content:() sender_slot ~clientproto ~keep_alive:true ~head
-                    ~cookies:(List.map change_cookie
-                                (res.res_cookies@cookieslist))
+                    ~cookies:(List.map change_cookie res.res_cookies)
                     ?last_modified:res.res_lastmodified
                     ~code:412 (* Precondition failed *)
                     empty_sender
                 end else
                   res.res_send_page
                     ?filter:res.res_filter
-                    ~cookies:(List.map change_cookie
-                                (res.res_cookies@cookieslist))
+                    ~cookies:(List.map change_cookie res.res_cookies)
                     sender_slot ~clientproto ~keep_alive:true ~head:head
                     ?last_modified:res.res_lastmodified
                     ?code:res.res_code
@@ -540,7 +538,7 @@ let service
                       ~keep_alive:true
                       ~location:((Neturl.string_of_url
                                     (Neturl.undefault_url
-                                       ~path:("/"::(ri.ri_path))
+                                       ~path:("/"::(ri.ri_full_path))
                                        ri.ri_url))^"/")
                       ~code:301 (* Moved permanently *)
                       ~head empty_sender
@@ -635,8 +633,6 @@ let handle_connection port in_ch sockaddr =
     | Http_com.Aborted ->
         warn "writing thread aborted"
     | Ocsistream.Interrupted e' ->
-(*VVV Jérôme> Do we send an error 500 
-              when the stream we are reading from fails? -- Vincent *)
         warn ("interrupted content stream (" ^ string_of_exn e' ^ ")")
     | _ ->
         Messages.unexpected_exception e "Server.handle_write_errors"

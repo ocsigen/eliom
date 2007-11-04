@@ -191,6 +191,25 @@ module type ELIOMFORMSIG =
 
 (** {2 Links and forms} *)
 
+    val make_string_uri :
+        service:('get, unit, [< get_service_kind ],
+                 [< suff ], 'gn, unit, 
+                 [< registrable ]) service ->
+                   sp:Eliommod.server_params -> 
+                     ?fragment:string ->
+                       'get -> string
+(** Creates the string corresponding to the URL of a service applyed to
+   its GET parameters.
+ *)
+
+    val make_uri :
+        service:('get, unit, [< get_service_kind ],
+         [< suff ], 'gn, unit, 
+         [< registrable ]) service ->
+          sp:server_params -> ?fragment:string -> 'get -> uri
+(** Create the text of the service. Like the [a] function, it may take
+   extra parameters. *)
+
     val a :
         ?a:a_attrib_t ->
           service:('get, unit, [< get_service_kind ], 
@@ -218,14 +237,6 @@ module type ELIOMFORMSIG =
     val js_script :
         ?a:script_attrib_t -> uri:uri -> unit -> script_elt
 (** Creates a [<script>] tag to add a javascript file *)
-
-    val make_uri :
-        service:('get, unit, [< get_service_kind ],
-         [< suff ], 'gn, unit, 
-         [< registrable ]) service ->
-          sp:server_params -> ?fragment:string -> 'get -> uri
-(** Create the text of the service. Like the [a] function, it may take
-   extra parameters. *)
 
 
     val get_form :
@@ -625,6 +636,73 @@ module MakeForms = functor
 
 (** Functions to construct web pages: *)
 
+      let make_string_uri
+          ~service
+          ~sp
+          ?(fragment = "")
+          getparams : string =
+        match get_kind_ service with
+        | `Attached attser ->
+            begin
+              let suff, params_string = 
+                construct_params (get_get_params_type_ service) getparams in
+              let preapplied_params = 
+                construct_params_string (get_pre_applied_parameters_ service) in
+              let params_string =
+                concat_strings preapplied_params "&" params_string in
+              let uri = 
+                (if (get_att_kind_ attser) = `External
+                then
+                  concat_strings
+                    (get_prefix_ attser)
+                    "/"
+                    (reconstruct_absolute_url_path
+                       (get_current_full_path sp) 
+                       (get_full_path_ attser) suff)
+                else (reconstruct_relative_url_path
+                        (get_current_full_path sp) (get_full_path_ attser) suff))
+              in
+              match get_get_state_ attser with
+              | None ->
+                  add_to_string
+                    (add_to_string uri "?" params_string)
+                    "#"
+                    (Netencoding.Url.encode fragment)
+              | Some s -> 
+                  add_to_string
+                    (add_to_string (uri^"?"^get_state_param_name^"="^s)
+                       "&" params_string)
+                    "#"
+                    (Netencoding.Url.encode fragment)
+            end
+        | `Nonattached naser ->
+            let current_get_params =
+              List.remove_assoc
+                naservice_name
+                (remove_prefixed_param na_co_param_prefix (get_all_get_params sp))
+            in
+            let _, params_string = 
+              construct_params (get_get_params_type_ service) getparams in
+            let preapplied_params = 
+              construct_params_string (get_pre_applied_parameters_ service) in
+            let params_string =
+              concat_strings preapplied_params "&" params_string in
+            let naservice_param = 
+              match fst (get_na_name_ naser) with
+              | Some n -> naservice_name^"="^n
+              | _ -> assert false
+            in
+            let current_get_params_string = 
+              construct_params_string current_get_params 
+            in
+            (("/"^(get_current_path_string sp))^"?"^
+             (concat_strings
+                current_get_params_string
+                "&"
+                (concat_strings naservice_param "&" params_string))
+            )
+
+
       let a ?a
           ~service
           ~sp
@@ -646,11 +724,11 @@ module MakeForms = functor
                   (get_prefix_ attser)
                   "/"
                   (reconstruct_absolute_url_path
-                     (get_current_path sp) 
-                     (get_path_ attser) suff)
+                     (get_current_full_path sp) 
+                     (get_full_path_ attser) suff)
               else 
                 (reconstruct_relative_url_path
-                   (get_current_path sp) (get_path_ attser) suff))
+                   (get_current_full_path sp) (get_full_path_ attser) suff))
             in
             match get_get_state_ attser with
             | None ->
@@ -715,10 +793,10 @@ module MakeForms = functor
                   (get_prefix_ attser)
                   "/"
                   (reconstruct_absolute_url_path
-                     (get_current_path sp)
-                     (get_path_ attser) None)
+                     (get_current_full_path sp)
+                     (get_full_path_ attser) None)
               else (reconstruct_relative_url_path
-                      (get_current_path sp) (get_path_ attser) None)) in
+                      (get_current_full_path sp) (get_full_path_ attser) None)) in
             let urlname =
               add_to_string urlname "#" (Netencoding.Url.encode fragment)
             in
@@ -832,10 +910,10 @@ module MakeForms = functor
                   (get_prefix_ attser)
                   "/"
                   (reconstruct_absolute_url_path
-                     (get_current_path sp)
-                     (get_path_ attser) suff)
+                     (get_current_full_path sp)
+                     (get_full_path_ attser) suff)
               else (reconstruct_relative_url_path
-                      (get_current_path sp) (get_path_ attser) suff))
+                      (get_current_full_path sp) (get_full_path_ attser) suff))
             in
             let urlname =
               add_to_string urlname "#" (Netencoding.Url.encode fragment)

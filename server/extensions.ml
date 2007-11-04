@@ -69,8 +69,9 @@ type request_info =
     {ri_url_string: string;
      ri_url: Neturl.url;
      ri_method: Http_frame.Http_header.http_method;
-     ri_path_string: string; (** path of the URL *)
-     ri_path: string list;   (** path of the URL *)
+     ri_path_string: string; (** full path of the URL *)
+     ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
+     ri_full_path: string list;   (** full path of the URL *)
      ri_get_params_string: string option; (** string containing GET parameters *)
      ri_host: string option; (** Host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters*)
@@ -111,237 +112,104 @@ type result =
    }
    
 type answer =
-  | Ext_found of result  (** OK stop! I found the page *)
+  | Ext_found of result  (** OK stop! I found the page. *)
   | Ext_not_found of exn (** Page not found. Try next extension.
                             The exception is usally Ocsigen_404, 
                             but may be for ex Ocsigen_403 (forbidden)
                             if you want another extension to try after a 403
                           *)
-  | Ext_continue_with of request_info * cookieslist
-        (** Used to modify the request before giving it to next extension ;
-           The extension may want to set cookies ; in that case, put the new
-           cookies in the list (and possibly the path in the string list 
-           option of cookieslist), 
-           and possibly in the ri_cookies field
-           of request_info if you want them to be seen by the following
-           extensions. *)
-  | Ext_retry_with of request_info * cookieslist
-        (** Used to retry all the extensions with a new request_info ;
-           May set cookies (idem) *)
+  | Ext_stop of exn      (** Page forbidden. Do not try next extension, but
+                            try next site. If you do not want to try next site
+                            send an Ext_found with an error code.
+                            The exception is usally Ocsigen_403.
+                          *)
+  | Ext_continue_with of request_info
+        (** Used to modify the request before giving it to next extension *)
+  | Ext_retry_with of request_info
+        (** Used to retry all the extensions with a new request_info *)
 
-let (virthosts : 
-       (virtual_hosts * 
-          (request_info -> (answer * cookieslist) Lwt.t) *
-          (request_info -> result -> result Lwt.t)
-       ) list ref) = 
+
+type extension =
+  | Page_gen of (string -> request_info -> answer Lwt.t)
+  | Filter of (string -> request_info -> result -> answer Lwt.t)
+
+let (sites : (virtual_hosts * url_path * string option (* charset *) * extension list) list ref) = 
   ref []
 
-let set_virthosts v = virthosts := v
-let get_virthosts () = !virthosts
-let add_virthost v = virthosts := !virthosts@[v]
+let set_sites v = sites := v
+let get_sites () = !sites
+let add_site v = sites := !sites@[v] (* at the end *)
    
 (*****************************************************************************)
-(** Tree of charsets *)
-type charset_tree_type = 
-    Charset_tree of (string option * (string * charset_tree_type) list)
-        
-let new_charset_tree () = 
-  Charset_tree ((Ocsiconfig.get_default_charset ()), [])
+let register_extension,
+  parse_site_item, 
+  get_beg_init, 
+  get_end_init, 
+  get_init_exn_handler =
+  let fun_site = ref 
+      (fun host path charset xmltag -> 
+        raise (Bad_config_tag_for_extension "<no extension loaded>"))
+  in
+  let fun_beg = ref (fun () -> ()) in
+  let fun_end = ref (fun () -> ()) in
+  let fun_exn = ref (fun exn -> raise exn) in
 
-let add_charset charset path (Charset_tree charset_tree) =
-  let add_charset2 charset =
-    let rec make_tree = function
-      | [] -> (charset, [])
-      | a::l -> (None, [(a, Charset_tree (make_tree l))])
-    in
-    let rec aux path charset_tree = 
-      match path, charset_tree with
-      | [], (enc, l2) -> (charset, l2)
-      | (a::l), (enc, l2) ->
+  ((* ********* register_extension ********* *)
+     (fun (new_fun_site, begin_init, end_init, handle_exn) ->
+       
+       let old_fun_site = !fun_site in
+       fun_site := 
+         (fun host ->
+           let oldf = old_fun_site host in
+           let newf = new_fun_site host in
+           fun path charset ->
+             let oldf = oldf path charset in
+             let newf = newf path charset in
+             fun config_tag ->
+               try
+                 oldf config_tag
+               with Bad_config_tag_for_extension _ -> 
+                 newf config_tag);
+       
+       fun_beg := comp begin_init !fun_beg;
+       fun_end := comp end_init !fun_end;
+       let curexnfun = !fun_exn in
+       fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
+   
+
+   (* ********* parse_site_item ********* *)
+   (fun host -> !fun_site host),
+
+   (* ********* get_beg_init ********* *)
+   (fun () -> !fun_beg),
+
+   (* ********* get_end_init ********* *)
+   (fun () -> !fun_end),
+
+   (* ********* get_init_exn_handler ********* *)
+   (fun () -> !fun_exn)
+  )
+
+
+let parse_site host =
+  let f = parse_site_item host in (* creates all host data, if any *)
+  fun path charset -> 
+    let f = f path charset in (* creates all site data, if any *)
+    let rec aux = function
+      | [] -> []
+      | xmltag::ll -> 
           try
-            let (Charset_tree ct2),l3 = Ocsimisc.list_assoc_remove a l2 in
-            (enc, (a, Charset_tree (aux l ct2))::l3)
-          with Not_found -> 
-            (enc, (a, Charset_tree (make_tree l))::l2)
-    in
-    Charset_tree (aux path charset_tree)
-  in
-  let charset = match charset with 
-  | None -> Ocsiconfig.get_default_charset ()
-  | _ -> charset
-  in
-  add_charset2 charset
-        
-let find_charset (Charset_tree charset_tree) path =
-  let rec aux current path tree =
-    let get_enc = function
-      | None -> current
-      | enc -> enc
-    in
-    match path, tree with
-    | [], (enc,_) -> get_enc enc
-    | (a::l), (enc, l2) ->
-        try
-          let Charset_tree ct2 = List.assoc a l2 in
-          aux (get_enc enc) l ct2
-        with Not_found -> get_enc enc
-  in aux None path charset_tree
+            (f xmltag)::aux ll
+          with
+          | Bad_config_tag_for_extension t -> 
+              (* raise Config_file_error *)
+              Messages.warning
+                ("Unexpected tag <"^t^"> inside <site dir=\""^
+	         (Ocsimisc.string_of_url_path path)^"\"> (ignored)");
+              aux ll
+    in aux
+    
 
-(*****************************************************************************)
-(** We register for each extension four functions:
-   - a function that will be called for each
-   virtual server, generating two functions:
-     - one that will be called to generate the pages
-     - one to parse the configuration file
-   - a function that will be called at the beginning 
-   of the initialisation phase 
-   - a function that will be called at the end of the initialisation phase 
-   of the server
-   - a function that will create an error message from the exceptions
-   that may be raised during the initialisation phase, and raise again
-   all other exceptions
- *)
-module R = struct
-  (* in a sub module to make possible Dynlink.prohibit ["Extensions.R"] *)
-
-
-  let register_extension,
-    register_output_filter,
-    create_virthost, 
-    get_beg_init, 
-    get_end_init, 
-    get_init_exn_handler =
-    let defaultparseconfig path xml =
-      raise (Bad_config_tag_for_extension "No extension loaded")
-    in
-    let fun_create_virthost =
-      ref (fun hostpattern -> 
-        let charset_tree = ref (new_charset_tree ()) in
-        ((fun cs ri -> return ((Ext_not_found Ocsigen_404),[])),
-         (fun ri res -> return res) (* default output filter *),
-         defaultparseconfig,
-         charset_tree))
-    in
-    let fun_beg = ref (fun () -> ()) in
-    let fun_end = ref (fun () -> ()) in
-    let fun_exn = ref (fun exn -> raise exn) in
-
-    ((* ********* register_extension ********* *)
-     (fun (fun_virthost, begin_init, end_init, handle_exn) ->
-      let cur_fun = !fun_create_virthost in
-      (* The function to create a new virtual host is created from
-         the previous one (cur_fun) and fun_virthost
-       *)
-      fun_create_virthost := 
-        (fun hostpattern -> 
-          (* For each host, we create: *)
-          let (g1, fil1, p1, charset_tree) = cur_fun hostpattern in
-          let (g2, p2) = fun_virthost hostpattern in
-
-          ((* ***** a function that will handle the requests: *)
-           (fun charset ri ->
-	     g1 charset ri >>=
-             fun (ext_res, cookieslist) ->
-               match ext_res with
-               | Ext_not_found _ -> g2 charset ri >>= 
-                   fun r -> return (r, cookieslist)
-               | Ext_continue_with (ri', cookies_to_set) -> 
-                   g2 (find_charset !charset_tree ri'.ri_path) ri' >>= 
-                   fun r -> return (r, cookies_to_set@cookieslist)
-               | r -> return (r, cookieslist)
-           ),
-           
-           (* ***** a function that will filter the output stream: *)
-           fil1,
-
-           (* ***** A function to parse the config file for each site: *)
-	   (fun path xml -> 
-             try
-               p1 path xml
-             with 
-             | Error_in_config_file _ as e -> raise e
-             | Bad_config_tag_for_extension _ -> p2 path xml),
-           
-           (* ***** a tree of charsets to be used for each directory: *)
-           charset_tree));
-      
-      fun_beg := comp begin_init !fun_beg;
-      fun_end := comp end_init !fun_end;
-      let curexnfun = !fun_exn in
-      fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
-     
-     (* ********* register_output_filter ********* *)
-     (fun (fun_virthost, begin_init, end_init, handle_exn) ->
-      let cur_fun = !fun_create_virthost in
-      (* The function to create a new virtual host is created from
-         the previous one (cur_fun) and fun_virthost
-       *)
-      fun_create_virthost := 
-        (fun hostpattern -> 
-          (* For each host, we create: *)
-          let (g1, fil1, p1, charset_tree) = cur_fun hostpattern in
-          let (fil2, p2) = fun_virthost hostpattern in
-
-          ((* ***** a function that will handle the requests: *)
-           g1,
-
-           (* ***** a function that will filter the output stream: *)
-           (fun ri res -> fil1 ri res >>= fil2 ri),
-
-            (* ***** a function to parse the config file for each site: *)
-	   (fun path xml -> 
-             try
-               p1 path xml
-             with 
-             | Error_in_config_file _ as e -> raise e
-             | Bad_config_tag_for_extension _ -> p2 path xml),
-
-            (* ***** a tree of charsets to be used for each directory: *)
-           charset_tree));
-
-      fun_beg := comp begin_init !fun_beg;
-      fun_end := comp end_init !fun_end;
-      let curexnfun = !fun_exn in
-      fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
-
-     (* ********* create_virthost ********* *)
-     (fun h ->
-       let (f, fil, g, charset_tree) = !fun_create_virthost h in
-       (((fun ri -> f (find_charset !charset_tree ri.ri_path) ri), fil, g),
-        (fun charset path -> 
-          charset_tree := add_charset charset path !charset_tree))),
-
-     (* ********* get_beg_init ********* *)
-     (fun () -> !fun_beg),
-
-     (* ********* get_end_init ********* *)
-     (fun () -> !fun_end),
-
-     (* ********* get_init_exn_handler ********* *)
-     (fun () -> !fun_exn)
-    )
-
-
-end    
-
-
-
-let create_virthost = R.create_virthost
-let get_beg_init = R.get_beg_init
-let get_end_init = R.get_end_init
-let get_init_exn_handler = R.get_init_exn_handler
-
-(*****************************************************************************)
-(* locks *)
-(*
-let synchronize =
-  let lock = Mutex.create () in
-  fun f ->
-    Mutex.lock lock;
-    let r = f () in
-    Mutex.unlock lock;
-    r
-*)
 
 
 (*****************************************************************************)
@@ -415,36 +283,82 @@ let string_of_host h =
     in (aux2 hh)^p
   in List.fold_left (fun d hh -> d^(aux1 hh)^" ") "" h
 
-exception Serv_no_host_match
-let do_for_host_matching host port virthosts ri =
-  let string_of_host_option = function
-    | None -> "<no host>:"^(string_of_int port)
-    | Some h -> h^":"^(string_of_int port)
-  in
-  let rec aux ri e = function
-    | [] -> fail e
-    | (h, f, output_filter)::l as ll when host_match host port h ->
-        Messages.debug ("---- host found: "^(string_of_host_option host)^
-                        " matches "^(string_of_host h));
-        (f ri >>=
-         fun (res, cookieslist) ->
-           match res with
-           | Ext_found r ->
-               output_filter ri r >>= fun r ->
-               return (r, cookieslist)
-           | Ext_not_found e -> aux ri e l
-           | Ext_continue_with _ -> aux ri Ocsigen_404 l
-           | Ext_retry_with (ri', cookies_to_set) ->
-               aux ri' e ll >>= fun (ext_res, cookieslist) ->
-               return (ext_res, cookies_to_set@cookieslist)
-        )
 
-    | (h, _, _)::l ->
-        Messages.debug ("---- host = "^(string_of_host_option host)^
-                        " does not match "^(string_of_host h));
-        aux ri e l
-  in aux ri Serv_no_host_match virthosts
+let rec site_match site_path url = 
+  match site_path, url with
+  | [], [] -> Some [""]
+  | [], p -> Some p
+  | [""], (_::_ as p) -> Some p
+  | a::l, aa::ll when a = aa -> site_match l ll 
+  | _ -> None
 
+exception Serv_no_site_match
+let do_for_site_matching host port ri =
+  let rec do2 sites ri =
+    let string_of_host_option = function
+      | None -> "<no host>:"^(string_of_int port)
+      | Some h -> h^":"^(string_of_int port)
+    in
+    let rec aux ri e = function
+      | [] -> fail e
+      | (h, path, charset, extlist)::l when host_match host port h ->
+          (match site_match path ri.ri_full_path with
+          | None ->
+              Messages.debug ("---- host = "^
+                              (string_of_host_option host)^" site = "^
+                              (Ocsimisc.string_of_url_path path)^
+                              " does not match \""^(string_of_host h)^"/"^
+                              (Ocsimisc.string_of_url_path ri.ri_full_path)^
+                              "\".");
+              aux ri e l
+          | Some sub_path ->
+              Messages.debug ("---- site found: "^(string_of_host_option host)^
+                              " matches \""^(string_of_host h)^"\" and "^
+                              (Ocsimisc.string_of_url_path ri.ri_full_path)^
+                              " matches \""^
+                              (Ocsimisc.string_of_url_path path)^"\".");
+              let ri = {ri with ri_sub_path = ""::sub_path} in
+              let charset = match charset with 
+              | None -> Ocsiconfig.get_default_charset ()
+              | _ -> charset
+              in
+              let charset = match charset with 
+              | None -> "utf-8"
+              | Some charset -> charset
+              in
+              List.fold_left
+                (fun res ext -> 
+                  res >>= fun res ->
+                    match (res, ext) with
+                    | (Ext_found r, Page_gen _) -> return res
+                    | (Ext_found r, Filter f) -> f charset ri r
+                    | (Ext_not_found e, Page_gen f) -> f charset ri 
+                    | (Ext_not_found e, Filter _) -> return res
+                    | (Ext_continue_with ri, Page_gen f) -> f charset ri
+                    | (Ext_continue_with _, Filter _) -> return res
+                    | (Ext_stop _, _) -> return res
+                    | (Ext_retry_with _, _) -> return res
+                )
+                (return (Ext_not_found Ocsigen_404))
+                extlist
+                >>= fun res ->
+                  (match res with
+                  | Ext_found r -> return r
+                  | Ext_not_found e
+                  | Ext_stop e -> aux ri e l (* try next site *)
+                  | Ext_continue_with _ -> aux ri Ocsigen_404 l
+                  | Ext_retry_with ri -> do2 (get_sites ()) ri
+                        (* retry all *)
+                        
+                  )
+          )
+          | (h, p, _, _)::l ->
+          Messages.debug ("---- host = "^
+                          (string_of_host_option host)^
+                          " does not match "^(string_of_host h));
+          aux ri e l
+    in aux ri Ocsigen_404 sites
+  in do2 (get_sites ()) ri
 (*****************************************************************************)
 
 
@@ -527,7 +441,8 @@ let ri_of_url url ri =
    ri_url_string = url;
    ri_url = url2;
    ri_path_string = string_of_url_path path;
-   ri_path = path;
+   ri_full_path = path;
+   ri_sub_path = path;
    ri_get_params_string = params;
    ri_get_params = get_params;
  }

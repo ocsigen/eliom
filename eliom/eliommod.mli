@@ -52,7 +52,12 @@ type cookie_exp =
 
 exception Eliom_duplicate_registration of string (** The service has been registered twice*)
 exception Eliom_page_erasing of string (** The location where you want to register something already exists *)
-exception Eliom_there_are_unregistered_services of string list (** Some services have not been registered *)
+exception Eliom_there_are_unregistered_services of (string list * 
+                                                      string list option list)
+(** Some services have not been registered. The first string list is the path
+ of the site, the string list option list is the list of unregistered services.
+    [None] means non-attached.
+ *)
 exception Eliom_error_while_loading_site of string
 
 
@@ -82,14 +87,6 @@ type datacookiestablecontent =
 
 type datacookiestable = datacookiestablecontent Cookies.t
 
-type pages_tree = 
-    tables (* global table of continuations/naservices *)
-      * tables servicecookiestable (* service session tables *)
-      * datacookiestable (* session data tables *)
-      * ((string -> unit) ref (* remove_session_data *) *
-           (string -> bool) ref (* not_bound_in_data_tables *))
-
-
 type sess_info =
     {si_other_get_params: (string * string) list;
      si_all_get_params: (string * string) list;
@@ -110,7 +107,8 @@ type sess_info =
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
      si_exn: exn list;
-     si_config_file_charset: string option}
+     si_config_file_charset: string}
+
 
 
 
@@ -221,31 +219,6 @@ type 'a cookie_info =
       list ref
 
 
-
-
-
-
-
-type 'a server_params1 = 
-    {sp_ri:request_info;
-     sp_si:sess_info;
-     sp_site_dir:url_path (* main directory of the site *);
-     sp_site_dir_string:string (* the same, but string *);
-     sp_global_table:'a (* global table *);
-     sp_cookie_service_table: 'a servicecookiestable (* cookies table for volatile service sessions *);
-     sp_cookie_data_table:datacookiestable (* cookies table for volatile data sessions *);
-     sp_remove_sess_data:(string -> unit) ref (* remove_session_data *);
-     sp_data_tables_are_empty:(string -> bool) ref (* are_empty_session_tables *);
-     sp_cookie_info:'a cookie_info;
-     sp_suffix:url_path (* suffix *);
-     sp_fullsessname:string option (* the name of the session to which belong the service that answered (if it is a session service) *)}
-      
-
-      
-
-
-
-      
 (**/**)
 (** The type to send if you want to create your own modules for generating
    pages
@@ -254,13 +227,44 @@ type result_to_send =
   | EliomResult of Extensions.result
   | EliomExn of (exn list * cookieslist)
 
-(** Type of server parameters. This is the type of the first parameter of
-   service handlers. It is abstract but you can get a lot of information 
-   about the session or the request by using the functions defined in
-   this module.
- *)
-type server_params = tables server_params1
 (**/**)
+
+
+(** Type of server parameters. 
+    This is the type of the first parameter of service handlers (sp).
+ *)
+type server_params = 
+    {sp_ri:request_info;
+     sp_si:sess_info;
+     sp_sitedata:sitedata (* data for the whole site *);
+     sp_cookie_info:tables cookie_info;
+     sp_suffix:url_path (* suffix *);
+     sp_fullsessname:string option (* the name of the session
+                                      to which belong the service
+                                      that answered
+                                      (if it is a session service) *)}
+
+
+(** Common data for the whole site *)
+and sitedata =
+   {site_dir: url_path;
+   site_dir_string: string;
+   mutable servtimeout: (string * float option) list;
+   mutable datatimeout: (string * float option) list;
+   mutable perstimeout: (string * float option) list;
+   global_services: tables; (* global service table *)
+   session_services: tables servicecookiestable; (* cookie table for services *)
+   session_data: datacookiestable; (* cookie table for in memory session data *)
+   mutable remove_session_data: string -> unit;
+   mutable not_bound_in_data_tables: string -> bool;
+   mutable exn_handler: server_params -> exn -> result_to_send Lwt.t;
+   mutable unregistered_services: url_path option list;
+ }
+
+
+
+
+      
 
 val persistent_cookies_table :
     (string * float option * timeout * int64) Ocsipersist.table
@@ -271,34 +275,29 @@ type page_table_key =
      key_kind: Http_frame.Http_header.http_method}
 
 
-val gen :
-    pages_tree ->
-      string option -> 
-        request_info -> answer Lwt.t
+val gen : sitedata -> string -> request_info -> answer Lwt.t
 
 val empty_tables : unit -> tables
 
 val add_service :
     tables ->
-      url_path ->
-        bool ->
-          string list ->
-            page_table_key *
-              ((anon_params_type * anon_params_type) * 
-                 int ref option *
-                 (float * float ref) option *
-                 (server_params -> result_to_send Lwt.t)) ->
-                        unit
+      bool ->
+        string list ->
+          page_table_key *
+            ((anon_params_type * anon_params_type) * 
+               int ref option *
+               (float * float ref) option *
+               (server_params -> result_to_send Lwt.t)) ->
+                 unit
 
 val add_naservice :
     tables -> 
-      url_path ->
-	bool -> 
-	  (string option * string option) -> 
-            (int ref option *
-               (float * float ref) option *
-	       (server_params -> result_to_send Lwt.t))
-            -> unit
+      bool -> 
+	(string option * string option) -> 
+          (int ref option *
+             (float * float ref) option *
+	     (server_params -> result_to_send Lwt.t))
+          -> unit
 
 
 val get_state_param_name : string
@@ -315,31 +314,28 @@ val config : Simplexmlparser.xml list ref
 val set_global_service_timeout :
     session_name:string option ->
     recompute_expdates:bool ->
-    Extensions.url_path ->
-    tables servicecookiestable ->
+    sitedata ->
     float option -> unit Lwt.t
 
 val get_global_service_timeout : 
-    session_name:string option -> url_path -> float option
+    session_name:string option -> sitedata -> float option
 
 val set_global_data_timeout :
     session_name:string option ->
     recompute_expdates:bool ->
-    Extensions.url_path ->
-    (Cookies.key -> unit) ->
-    datacookiestable ->
+    sitedata ->
     float option -> unit Lwt.t
 
 val get_global_data_timeout : 
-    session_name:string option -> url_path -> float option
+    session_name:string option -> sitedata -> float option
 
 val set_global_persistent_timeout :
     session_name:string option ->
     recompute_expdates:bool ->
-    Extensions.url_path -> float option -> unit Lwt.t
+    sitedata -> float option -> unit Lwt.t
 
 val get_global_persistent_timeout : session_name:string option ->
-  url_path -> float option
+  sitedata -> float option
 
 val get_default_service_timeout : unit -> float option
 
@@ -361,7 +357,7 @@ val create_table_during_session : server_params -> 'a Cookies.t
 val create_persistent_table : string -> 'a Ocsipersist.table
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 
-val set_site_handler : url_path -> 
+val set_site_handler : sitedata ->
   (server_params -> exn -> result_to_send Lwt.t) -> unit
 
 val find_or_create_service_cookie : 
@@ -389,12 +385,12 @@ val find_persistent_cookie_only :
 
 
 val close_service_session2 :
-    tables servicecookiestable -> string -> unit
+    sitedata -> string -> unit
 
 val close_service_session :
     ?session_name:string -> sp:server_params -> unit -> unit
 
-val close_data_session2 : (string -> unit) -> datacookiestable -> string -> unit
+val close_data_session2 : sitedata -> string -> unit
 
 val close_data_session :
     ?session_name:string -> sp:server_params -> unit -> unit
@@ -408,38 +404,37 @@ val close_persistent_session :
     ?session_name:string -> sp:server_params -> unit -> unit Lwt.t
 
 
-val close_all_service_sessions :
-    ?session_name:string ->
-      tables servicecookiestable ->
-        url_path -> unit Lwt.t
+val close_all_service_sessions : ?session_name:string -> sitedata -> unit Lwt.t
 
 val close_all_data_sessions :
-    ?session_name:string ->
-      (string -> unit) ->
-        datacookiestable ->
-          url_path -> unit Lwt.t
+    ?session_name:string -> sitedata -> unit Lwt.t
 
 val close_all_persistent_sessions :
-    ?session_name:string -> url_path -> unit Lwt.t
+    ?session_name:string -> sitedata -> unit Lwt.t
 
 
 val iter_service_sessions :
-    tables servicecookiestable -> 'b -> (Cookies.key * tables servicecookiestablecontent * 'b -> unit Lwt.t) -> unit Lwt.t
+    sitedata -> 
+      (Cookies.key * tables servicecookiestablecontent * sitedata -> unit Lwt.t)
+      -> unit Lwt.t
 
 val iter_data_sessions :
-    datacookiestable -> 'b -> (Cookies.key * datacookiestablecontent * 'b -> unit Lwt.t) -> unit Lwt.t
+    sitedata -> 
+      (Cookies.key * datacookiestablecontent * sitedata -> unit Lwt.t) -> unit Lwt.t
 
 val iter_persistent_sessions :
     (string * (string * float option * timeout * Int64.t) -> 
       unit Lwt.t) -> unit Lwt.t
 
 val fold_service_sessions :
-    tables servicecookiestable -> 'b -> (Cookies.key * tables servicecookiestablecontent * 'b -> 'c -> 'c Lwt.t) -> 
-      'c -> 'c Lwt.t
+    sitedata -> 
+      (Cookies.key * tables servicecookiestablecontent * sitedata -> 'c -> 'c Lwt.t)
+      -> 'c -> 'c Lwt.t
 
 val fold_data_sessions :
-    datacookiestable -> 'b -> (Cookies.key * datacookiestablecontent * 'b -> 'c -> 'c Lwt.t) -> 
-      'c -> 'c Lwt.t
+    sitedata -> 
+      (Cookies.key * datacookiestablecontent * sitedata -> 'c -> 'c Lwt.t) -> 
+        'c -> 'c Lwt.t
 
 val fold_persistent_sessions :
     (string * (string * float option * timeout * Int64.t) -> 
@@ -461,11 +456,8 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 
 
 (** internal functions: *)
-val end_current_hostdir : unit -> unit
-val verify_all_registered : unit -> unit
-val add_unregistered : string list option -> unit
-val remove_unregistered : string list option -> unit
-val global_register_allowed : unit -> 
-  ((unit -> pages_tree * url_path) option)
+val add_unregistered : sitedata -> string list option -> unit
+val remove_unregistered : sitedata -> string list option -> unit
+val global_register_allowed : unit -> (unit -> sitedata) option
 
 

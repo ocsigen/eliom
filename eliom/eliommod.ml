@@ -61,7 +61,7 @@ type sess_info =
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
      si_exn: exn list;
-     si_config_file_charset: string option}
+     si_config_file_charset: string}
 
 (* The table of tables for each session. Keys are cookies *)
 module Cookies = Hashtbl.Make(struct 
@@ -215,20 +215,6 @@ type datacookiestablecontent =
 
 type datacookiestable = datacookiestablecontent Cookies.t
 
-
-type 'a server_params1 = 
-    {sp_ri:request_info;
-     sp_si:sess_info;
-     sp_site_dir:url_path (* main directory of the site *);
-     sp_site_dir_string:string (* the same, but string *);
-     sp_global_table:'a (* global table *);
-     sp_cookie_service_table: 'a servicecookiestable (* cookies table for volatile service sessions *);
-     sp_cookie_data_table:datacookiestable (* cookies table for volatile data sessions *);
-     sp_remove_sess_data:(string -> unit) ref (* remove_session_data *);
-     sp_data_tables_are_empty:(string -> bool) ref (* are_empty_session_tables *);
-     sp_cookie_info:'a cookie_info;
-     sp_suffix:url_path (* suffix *);
-     sp_fullsessname:string option (* the name of the session to which belong the service that answered (if it is a session service) *)}
       
 type anon_params_type = int
 
@@ -244,7 +230,8 @@ exception Eliom_Service_session_expired of (string list)
 exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registration of string
-exception Eliom_there_are_unregistered_services of string list
+exception Eliom_there_are_unregistered_services of (string list * 
+                                                      string list option list)
 exception Eliom_function_forbidden_outside_site_loading of string
 exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
@@ -269,7 +256,7 @@ type result_to_send =
 type page_table_key =
     {key_state: (internal_state option * internal_state option);
      key_kind: Http_frame.Http_header.http_method}
-      (* action: tables server_params1 -> page *)
+      (* action: server_params -> page *)
 
       (* module Page_Table = Map.Make(struct type t = page_table_key 
          let compare = compare end) *)
@@ -284,7 +271,18 @@ module NAserv_Table = Map.Make(struct
   let compare = compare 
 end)
 
-type page_table = 
+type server_params = 
+    {sp_ri:request_info;
+     sp_si:sess_info;
+     sp_sitedata:sitedata (* data for the whole site *);
+     sp_cookie_info:tables cookie_info;
+     sp_suffix:url_path (* suffix *);
+     sp_fullsessname:string option (* the name of the session
+                                      to which belong the service
+                                      that answered
+                                      (if it is a session service) *)}
+
+and page_table = 
     (page_table_key * 
        (((anon_params_type * anon_params_type) (* unique_id *) * 
            (int * (* generation (= number of reloads of sites
@@ -292,8 +290,8 @@ type page_table =
               (int ref option (* max_use *) *
                  (float * float ref) option
                  (* timeout and expiration date for the service *) *
-                 (tables server_params1 -> result_to_send Lwt.t)
-	         * url_path))) list)) list
+                 (server_params -> result_to_send Lwt.t)
+	      ))) list)) list
        (* Here, the url_path is the site directory.
           That is, the directory in which we are when we register
           dynamically the pages.
@@ -306,8 +304,8 @@ and naservice_table =
   | ATable of 
       (int ref option (* max_use *) *
          (float * float ref) option (* timeout and expiration date *) *
-         (tables server_params1 -> result_to_send Lwt.t)
-	 * url_path)
+         (server_params -> result_to_send Lwt.t)
+      )
         NAserv_Table.t
 
 and dircontent = 
@@ -325,21 +323,28 @@ and tables =
     bool ref (* true if dircontent contains services with timeout *) *
     bool ref (* true if naservice_table contains services with timeout *)
 
+and sitedata =
+  {site_dir: url_path;
+   site_dir_string: string;
+   mutable servtimeout: (string * float option) list;
+   mutable datatimeout: (string * float option) list;
+   mutable perstimeout: (string * float option) list;
+   global_services: tables; (* global service table *)
+   session_services: tables servicecookiestable; (* cookie table for services *)
+   session_data: datacookiestable; (* cookie table for in memory session data *)
+   mutable remove_session_data: string -> unit;
+   mutable not_bound_in_data_tables: string -> bool;
+   mutable exn_handler: server_params -> exn -> result_to_send Lwt.t;
+   mutable unregistered_services: url_path option list;
+ }
+
+
 (* table cookie -> session table *)
 let new_service_cookie_table () : tables servicecookiestable = 
   Cookies.create 100
 
 let new_data_cookie_table () : datacookiestable = 
   Cookies.create 100
-
-
-
-type pages_tree = 
-    tables (* global table of continuations/naservices *)
-      * tables servicecookiestable (* service session tables *)
-      * datacookiestable (* session data tables *)
-      * ((string -> unit) ref (* remove_session_data *) *
-           (string -> bool) ref (* not_bound_in_data_tables *))
 
 let empty_page_table () = []
 let empty_naservice_table () = AVide
@@ -353,77 +358,20 @@ let empty_tables () =
 let service_tables_are_empty (lr,atr,_,_) = 
   (!lr = Vide && !atr = AVide)
 
-let new_pages_tree () =
-  ((empty_tables ()),             (* global service table *)
-   (new_service_cookie_table ()), (* cookie table for services *)
-   (new_data_cookie_table ()),    (* cookie table for in memory session data *)
-   ((ref (fun cookie -> ())),     (* remove_session_data *)
-      ref (fun cookie -> true))   (* not_bound_in_data_tables *))
-
-(****************************************************************************)
-
-type service_session_table = tables
-
-(** Type of http parameters *)
-type server_params = service_session_table server_params1
-
 let new_service_session_tables = empty_tables
 
+
 (*****************************************************************************)
-(* The current registration directory *)
-let absolute_change_hostdir, get_current_hostdir, 
-  begin_current_host_dir, end_current_hostdir =
-  let current_dir : ((unit -> pages_tree) * url_path) ref = 
-    ref ((fun () ->
-      raise (Ocsigen_Internal_Error "No pages tree available")), []) 
-  in
-  let f1' (pagetree, dir) = current_dir := ((fun () -> pagetree), dir) in
-  let f2' () = let (cd1, cd2) = !current_dir in (cd1 (), cd2) in
-  let f1 = ref f1' in
-  let f2 = ref f2' in
-  let exn1 _ = 
-    raise (Eliom_function_forbidden_outside_site_loading 
-             "absolute_change_hostdir") in
-  let exn2 () = 
-    raise (Eliom_function_forbidden_outside_site_loading
-             "get_current_hostdir") in
-  ((fun hostdir -> !f1 hostdir) (* absolute_change_hostdir *),
-   (fun () -> !f2 ()) (* get_current_hostdir *),
-   (fun () -> f1 := f1'; f2 := f2') (* begin_current_host_dir *),
-   (fun () -> f1 := exn1; f2 := exn2) (* end_current_hostdir *))
-(* Warning: these functions are used only during the initialisation
-   phase, which is not threaded ... That's why it works, but ...
-   it is not really clean ... public registration relies on this
-   directory (defined for each site in the config file) 
- *)
+    (** Create server parameters record *)
+let make_server_params sitedata all_cookie_info ri suffix si fullsessname
+    : server_params =
+  {sp_ri=ri;
+   sp_si=si;
+   sp_sitedata=sitedata;
+   sp_cookie_info=all_cookie_info;
+   sp_suffix=suffix;
+   sp_fullsessname= fullsessname}
 
-let add_unregistered, remove_unregistered, verify_all_registered =
-  let l = ref [] in
-  ((fun a -> l := a::!l),
-   (fun a -> l := list_remove_first_if_any a !l),
-   (fun () -> 
-     match !l with
-     | [] -> () 
-     | l -> 
-         raise (Eliom_there_are_unregistered_services 
-                  (List.map
-                     (function
-                       | None -> "<Non-attached service>"
-                       | Some a -> string_of_url_path a)
-                     l))))
-
-let during_eliom_module_loading, 
-  begin_load_eliom_module, 
-  end_load_eliom_module =
-  let during_eliom_module_loading_ = ref false in
-  ((fun () -> !during_eliom_module_loading_),
-   (fun () -> during_eliom_module_loading_ := true),
-   (fun () -> during_eliom_module_loading_ := false))
-
-let global_register_allowed () =
-  if (during_initialisation ()) && (during_eliom_module_loading ())
-  then Some get_current_hostdir
-  else None
 
 
 (*****************************************************************************)
@@ -440,12 +388,13 @@ let co_param_prefix = "__co_eliom_"
 let na_co_param_prefix = "__na_eliom_"
 let eliom_persistent_cookie_table = "eliom_persist_cookies"
 
+
 (******************************************************************)
 let make_full_cookie_name a b = a^b
 
 let make_fullsessname ~sp = function
-  | None -> sp.sp_site_dir_string
-  | Some s -> sp.sp_site_dir_string^"|"^s
+  | None -> sp.sp_sitedata.site_dir_string
+  | Some s -> sp.sp_sitedata.site_dir_string^"|"^s
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
 let make_fullsessname2 site_dir_string = function
@@ -545,12 +494,12 @@ let find_or_create_data_cookie ?session_name ~sp () =
     match !ior with
     | SCData_session_expired 
     | SCNo_data -> 
-        let v = new_data_cookie fullsessname sp.sp_cookie_data_table in
+        let v = new_data_cookie fullsessname sp.sp_sitedata.session_data in
         ior := SC v;
         v
     | SC v -> v;
   with Not_found -> 
-    let v = new_data_cookie fullsessname sp.sp_cookie_data_table in
+    let v = new_data_cookie fullsessname sp.sp_sitedata.session_data in
     cookie_info := 
       (fullsessname, 
        Lazy.lazy_from_val (None, ref (SC v)))::
@@ -578,12 +527,14 @@ let find_or_create_service_cookie ?session_name ~sp () =
     match !ior with
     | SCData_session_expired 
     | SCNo_data -> 
-        let v = new_service_cookie fullsessname sp.sp_cookie_service_table in
+        let v = new_service_cookie 
+            fullsessname sp.sp_sitedata.session_services 
+        in
         ior := SC v;
         v
     | SC v -> v
   with Not_found -> 
-    let v = new_service_cookie fullsessname sp.sp_cookie_service_table in
+    let v = new_service_cookie fullsessname sp.sp_sitedata.session_services in
     cookie_info :=
       (fullsessname,
        (None, ref (SC v)))::
@@ -603,61 +554,6 @@ let find_service_cookie_only ?session_name ~sp () =
   | SC v -> v
 
 
-(*****************************************************************************)
-(** session data *)
-
-let counttableelements = ref []
-(* Here only for exploration functions *)
-
-let create_table, create_table_during_session =
-  let aux remove_session_data not_bound_in_data_tables =
-    let t = Cookies.create 100 in
-    let old_remove_session_data = !remove_session_data in
-    remove_session_data := 
-      (fun cookie ->
-        old_remove_session_data cookie;
-        Cookies.remove t cookie
-      );
-    let old_not_bound_in_data_tables = !not_bound_in_data_tables in
-    not_bound_in_data_tables :=
-      (fun cookie ->
-        old_not_bound_in_data_tables cookie &&
-        not (Cookies.mem t cookie)
-      );
-    counttableelements := 
-      (fun () -> Cookies.length t)::!counttableelements;
-    t
-  in
-  ((fun () ->
-    let (_, _, _, (remove_session_data, not_bound_in_data_tables)), _ = 
-      get_current_hostdir () 
-    in
-    aux remove_session_data not_bound_in_data_tables),
-   (fun sp -> aux sp.sp_remove_sess_data sp.sp_data_tables_are_empty))
-
-
-
-(* to be called from outside requests *)
-let close_data_session2 remove_session_data cookie_table cookie = 
-  try
-    Cookies.remove cookie_table cookie;
-    remove_session_data cookie;
-  with Not_found -> ()
-
-(* to be called during a request *)
-let close_data_session ?session_name ~sp () = 
-  try
-    let fullsessname = make_fullsessname ~sp session_name in
-    let (_, cookie_info, _) = sp.sp_cookie_info in
-    let (_, ior) = Lazy.force (List.assoc fullsessname !cookie_info) in
-    match !ior with
-    | SC (c, _, _, _) ->
-        close_data_session2 
-          !(sp.sp_remove_sess_data)
-          sp.sp_cookie_data_table c;
-        ior := SCNo_data
-    | _ -> ()
-  with Not_found -> ()
 
 
 
@@ -803,6 +699,358 @@ let close_persistent_session ?session_name ~sp () =
 
 
 
+
+
+(*****************************************************************************)
+let servicesessiongcfrequency = ref (Some 3600.)
+let datasessiongcfrequency = ref (Some 3600.)
+let persistentsessiongcfrequency = ref (Some 86400.)
+let set_servicesessiongcfrequency i = servicesessiongcfrequency := i
+let set_datasessiongcfrequency i = datasessiongcfrequency := i
+let get_servicesessiongcfrequency () = !servicesessiongcfrequency
+let get_datasessiongcfrequency () = !datasessiongcfrequency
+let set_persistentsessiongcfrequency i = persistentsessiongcfrequency := i
+let get_persistentsessiongcfrequency () = !persistentsessiongcfrequency
+
+
+(* garbage collection of timeouted sessions *)
+let rec gc_timeouted_services now t = 
+  let rec aux k direltr thr = 
+    thr >>=
+    (fun table ->
+      match !direltr with
+      | Dir r -> gc_timeouted_services now r >>= 
+          (fun () -> match !r with
+          | Vide -> return (String_Table.remove k table)
+          | Table t -> return table)
+      | File ptr ->
+          List.fold_right
+            (fun (ptk, l) foll -> 
+              foll >>=
+              (fun foll ->
+                let newl =
+                  List.fold_right
+                    (fun ((i, (_, (_, expdate, _))) as a) foll -> 
+                      match expdate with
+                      | Some (_, e) when !e < now -> foll
+                      | _ -> a::foll
+                    )
+                    l
+                    []
+                in
+                Lwt_unix.yield () >>=
+                (fun () ->
+                  match newl with
+                  | [] -> return foll
+                  | _ -> return ((ptk, newl)::foll))
+              )
+            )
+            !ptr
+            (return []) >>=
+          (function
+            | [] -> return (String_Table.remove k table)
+            | r -> ptr := r; return table)
+    )
+  in
+  match !t with
+  | Vide -> return ()
+  | Table r -> (String_Table.fold aux r (return r)) >>=
+      (fun table -> 
+        if String_Table.is_empty table
+        then begin t := Vide; return () end
+        else begin t := Table table; return () end)
+
+let gc_timeouted_naservices now tr = 
+  match !tr with
+  | AVide -> return ()
+  | ATable t -> 
+      NAserv_Table.fold
+        (fun k (_, expdate, _) thr -> 
+          thr >>=
+          (fun table -> 
+            Lwt_unix.yield () >>=
+            (fun () ->
+              match expdate with
+              | Some (_, e) when !e < now -> 
+                  return (NAserv_Table.remove k table)
+              | _ -> return table)
+          ))
+        t
+        (return t) >>=
+      (fun t -> 
+        if NAserv_Table.is_empty t
+        then tr := AVide
+        else tr := ATable t; 
+        return ())
+
+        
+
+(* This is a thread that will work for example every hour. *)
+let service_session_gc sitedata =
+  let (servicetable,
+       naservicetable, 
+       contains_services_with_timeout, 
+       contains_naservices_with_timeout) = sitedata.global_services
+  in
+  let service_cookie_table = sitedata.session_services in
+  match get_servicesessiongcfrequency () with
+  | None -> () (* No garbage collection *)
+  | Some t ->
+      let rec f () = 
+        Lwt_unix.sleep t >>= 
+        (fun () ->
+          let now = Unix.time () in
+          Messages.debug "--Eliom: GC of service sessions";
+          (* public continuation tables: *)
+          (if !contains_services_with_timeout
+          then gc_timeouted_services now servicetable
+          else return ()) >>=
+          (fun () -> if !contains_naservices_with_timeout
+          then gc_timeouted_naservices now naservicetable
+          else return ()) >>=
+          (* private continuation tables: *)
+          (fun () ->
+            (* private continuation tables: *)
+            Cookies.fold
+              (fun k (sessname,
+                      ((servicetable,
+                        naservicetable, 
+                        contains_services_with_timeout, 
+                        contains_naservices_with_timeout) as tables), 
+                      exp, _) thr -> 
+                        thr >>= fun () ->
+                          (match !exp with
+                          | Some exp when exp < now -> 
+                              Cookies.remove service_cookie_table k;
+                              return ()
+                          | _ -> 
+                              (if !contains_services_with_timeout
+                              then gc_timeouted_services now servicetable
+                              else return ()) >>=
+                              (fun () -> if !contains_naservices_with_timeout
+                              then gc_timeouted_naservices now naservicetable
+                              else return ()) >>=
+                              (fun () ->
+                                if service_tables_are_empty tables
+                                then 
+                                  Cookies.remove service_cookie_table k;
+                                return ()
+                              )
+                          )
+                            >>= Lwt_unix.yield
+              )
+              service_cookie_table
+              (return ()))
+        )
+          >>=
+        f
+      in ignore (f ())
+      
+(* This is a thread that will work for example every hour. *)
+let data_session_gc sitedata =
+  let data_cookie_table = sitedata.session_data in
+  let remove_session_data = sitedata.remove_session_data in
+  let not_bound_in_data_tables = sitedata.not_bound_in_data_tables in
+  match get_datasessiongcfrequency () with
+  | None -> () (* No garbage collection *)
+  | Some t ->
+      let rec f () = 
+        Lwt_unix.sleep t >>= fun () ->
+        let now = Unix.time () in
+        Messages.debug "--Eliom: GC of session data";
+        (* private continuation tables: *)
+        Cookies.fold
+          (fun k (sessname, exp, _) thr -> 
+            thr >>= fun () ->
+              (match !exp with
+              | Some exp when exp < now -> 
+                  Cookies.remove data_cookie_table k;
+                  remove_session_data k;
+                  return ()
+              | _ -> 
+                  if not_bound_in_data_tables k
+                  then 
+                    Cookies.remove data_cookie_table k;
+                  return ()
+              )
+                >>= Lwt_unix.yield
+          )
+          data_cookie_table
+          (return ())
+          >>=
+        f
+      in ignore (f ())
+      
+(* garbage collection of timeouted persistent sessions *)
+(* This is a thread that will work every hour/day *)
+let persistent_session_gc () =
+  match get_persistentsessiongcfrequency () with
+  | None -> () (* No garbage collection *)
+  | Some t ->
+      let rec f () = 
+        Lwt_unix.sleep t >>= 
+        (fun () ->
+          let now = Unix.time () in
+          Messages.debug "--Eliom: GC of persistent sessions";
+          (Ocsipersist.iter_table
+             (fun k (_, exp, _, _) -> 
+               (match exp with
+               | Some exp when exp < now -> 
+                   remove_from_all_persistent_tables k
+               | _ -> return ())
+             )
+             persistent_cookies_table))
+          >>=
+        f
+      in ignore (f ())
+      
+
+(*****************************************************************************)
+(* Exception handler for the site                                            *)
+
+let def_handler sp e = fail e
+
+let handle_site_exn exn (ri, si, _, aci) sitedata =
+  sitedata.exn_handler (make_server_params sitedata aci ri [] si None) exn >>=
+  (fun r -> return r)
+
+let set_site_handler sitedata handler =
+  sitedata.exn_handler <- handler
+
+
+
+(****************************************************************************)
+let new_sitedata site_dir =
+  let sitedata =
+    {servtimeout = [];
+     datatimeout = [];
+     perstimeout = [];
+     site_dir = site_dir;
+     site_dir_string = Ocsimisc.string_of_url_path site_dir;
+     global_services = empty_tables ();
+     session_services = new_service_cookie_table ();
+     session_data = new_data_cookie_table ();
+     remove_session_data = (fun cookie -> ());
+     not_bound_in_data_tables = (fun cookie -> true);
+     exn_handler = def_handler;
+     unregistered_services = [];
+   }
+  in
+  service_session_gc sitedata;
+  data_session_gc sitedata;
+  sitedata
+
+(*****************************************************************************)
+(* The current registration directory *)
+let absolute_change_sitedata, get_current_sitedata, 
+  begin_current_sitedata, end_current_sitedata =
+  let current_sitedata : (unit -> sitedata) ref = 
+    ref (fun () -> raise (Ocsigen_Internal_Error "No pages tree available")) 
+  in
+  let f1' sitedata = current_sitedata := (fun () -> sitedata) in
+  let f2' () = !current_sitedata () in
+  let f1 = ref f1' in
+  let f2 = ref f2' in
+  let exn1 _ = 
+    raise (Eliom_function_forbidden_outside_site_loading 
+             "absolute_change_sitedata") in
+  let exn2 () = 
+    raise (Eliom_function_forbidden_outside_site_loading
+             "get_current_sitedata") in
+  ((fun sitedata -> !f1 sitedata) (* absolute_change_sitedata *),
+   (fun () -> !f2 ()) (* get_current_sitedata *),
+   (fun () -> f1 := f1'; f2 := f2') (* begin_current_sitedata *),
+   (fun () -> f1 := exn1; f2 := exn2) (* end_current_sitedata *))
+(* Warning: these functions are used only during the initialisation
+   phase, which is not threaded ... That's why it works, but ...
+   it is not really clean ... public registration relies on this
+   directory (defined for each site in the config file) 
+ *)
+
+let add_unregistered sitedata a = 
+  sitedata.unregistered_services <- a::sitedata.unregistered_services
+
+let remove_unregistered sitedata a = 
+  sitedata.unregistered_services <- 
+    list_remove_first_if_any a sitedata.unregistered_services
+
+let verify_all_registered sitedata =
+  match sitedata.unregistered_services with
+  | [] -> () 
+  | l -> 
+      raise (Eliom_there_are_unregistered_services (sitedata.site_dir, l))
+
+
+let during_eliom_module_loading, 
+  begin_load_eliom_module, 
+  end_load_eliom_module =
+  let during_eliom_module_loading_ = ref false in
+  ((fun () -> !during_eliom_module_loading_),
+   (fun () -> during_eliom_module_loading_ := true),
+   (fun () -> during_eliom_module_loading_ := false))
+
+let global_register_allowed () =
+  if (during_initialisation ()) && (during_eliom_module_loading ())
+  then Some get_current_sitedata
+  else None
+
+
+
+(*****************************************************************************)
+(** session data *)
+
+let counttableelements = ref []
+(* Here only for exploration functions *)
+
+let create_table, create_table_during_session =
+  let aux sitedata =
+    let t = Cookies.create 100 in
+    let old_remove_session_data = sitedata.remove_session_data in
+    sitedata.remove_session_data <-
+      (fun cookie ->
+        old_remove_session_data cookie;
+        Cookies.remove t cookie
+      );
+    let old_not_bound_in_data_tables = sitedata.not_bound_in_data_tables in
+    sitedata.not_bound_in_data_tables <-
+      (fun cookie ->
+        old_not_bound_in_data_tables cookie &&
+        not (Cookies.mem t cookie)
+      );
+    counttableelements := 
+      (fun () -> Cookies.length t)::!counttableelements;
+    t
+  in
+  ((fun () ->
+    let sitedata = get_current_sitedata () in
+    aux sitedata),
+   (fun sp -> aux sp.sp_sitedata))
+
+
+
+(* to be called from outside requests *)
+let close_data_session2 sitedata cookie = 
+  try
+    Cookies.remove sitedata.session_data cookie;
+    sitedata.remove_session_data cookie;
+  with Not_found -> ()
+
+(* to be called during a request *)
+let close_data_session ?session_name ~sp () = 
+  try
+    let fullsessname = make_fullsessname ~sp session_name in
+    let (_, cookie_info, _) = sp.sp_cookie_info in
+    let (_, ior) = Lazy.force (List.assoc fullsessname !cookie_info) in
+    match !ior with
+    | SC (c, _, _, _) ->
+        close_data_session2 sp.sp_sitedata c;
+        ior := SCNo_data
+    | _ -> ()
+  with Not_found -> ()
+
+
+
+
     
 (*****************************************************************************)
 (* Split parameter list, removing those whose name starts with pref *)
@@ -832,8 +1080,7 @@ let getcookies cookiename cookies =
 
 (** look in table to find if the session cookies sent by the browser
    correspond to existing (and not closed) sessions *)
-let get_cookie_info now
-    (_, service_cookie_table, data_cookie_table, (remove_session_data, _))
+let get_cookie_info now sitedata
     service_cookies data_cookies persistent_cookies
     : 'a cookie_info * 'b list =
   
@@ -843,12 +1090,12 @@ let get_cookie_info now
       (fun (oklist, failedlist) (name, value) ->
         try 
           let fullsessname, ta, expref, timeout_ref = 
-            Cookies.find service_cookie_table value
+            Cookies.find sitedata.session_services value
           in
           match !expref with
           | Some t when t < now -> 
               (* session expired by timeout *)
-              Cookies.remove service_cookie_table value;
+              Cookies.remove sitedata.session_services value;
               ((name, 
                 (Some value          (* value sent by the browser *),
                  ref SCData_session_expired (* ask the browser 
@@ -887,13 +1134,13 @@ let get_cookie_info now
          lazy
            (try
              let fullsessname, expref, timeout_ref = 
-               Cookies.find data_cookie_table value
+               Cookies.find sitedata.session_data value
              in
              match !expref with
              | Some t when t < now -> 
                  (* session expired by timeout *)
-                 !remove_session_data value;
-                 Cookies.remove data_cookie_table value;
+                 sitedata.remove_session_data value;
+                 Cookies.remove sitedata.session_data value;
                  (Some value                 (* value sent by the browser *),
                   ref SCData_session_expired (* ask the browser 
                                                 to remove the cookie *))
@@ -1065,31 +1312,13 @@ let change_request_info ri charset =
 (* Session service table *)
 (** We associate to each service a function server_params -> page *)
 
-    (** Create server parameters record *)
-let make_server_params 
-    dir (gt, cst, cdt, (f1, f2)) all_cookie_info ri suffix si fullsessname
-    : 'a server_params1 =
-  {sp_ri=ri;
-   sp_si=si;
-   sp_site_dir=dir;
-   sp_site_dir_string=string_of_url_path dir;
-   sp_global_table=gt;
-   sp_cookie_service_table=cst;
-   sp_cookie_data_table=cdt;
-   sp_remove_sess_data=f1;
-   sp_data_tables_are_empty=f2;
-   sp_cookie_info=all_cookie_info;
-   sp_suffix=suffix;
-   sp_fullsessname= fullsessname}
-
-
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 
 let find_page_table 
     now
     (pagetableref : page_table ref)
     fullsessname
-    tables
+    sitedata
     all_cookie_info
     ri
     urlsuffix
@@ -1097,11 +1326,11 @@ let find_page_table
     si
     = 
   let sp = 
-    make_server_params [] tables all_cookie_info ri urlsuffix si fullsessname 
+    make_server_params sitedata all_cookie_info ri urlsuffix si fullsessname 
   in
   let rec aux toremove = function
     | [] -> Lwt.return ((Notfound Eliom_Wrong_parameter), [])
-    | (((_, (_, (max_use, expdate, funct, site_dir))) as a)::l) ->
+    | (((_, (_, (max_use, expdate, funct))) as a)::l) ->
         match expdate with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
@@ -1112,9 +1341,7 @@ let find_page_table
             catch 
               (fun () ->
                 Messages.debug "--Eliom: I'm trying a service";
-                funct {sp with
-                       sp_site_dir=site_dir;
-                       sp_site_dir_string=string_of_url_path site_dir}
+                funct sp
                   >>=
                 (* warning: the list ll may change during funct
                    if funct register something on the same URL!! *)
@@ -1134,7 +1361,7 @@ let find_page_table
                         else (r := !r - 1; toremove)
                     | _ -> toremove)
                   in
-                  Lwt.return (Found (p, site_dir),
+                  Lwt.return (Found p,
                                newtoremove)))
               (function
                 | Eliom_Wrong_parameter -> 
@@ -1187,9 +1414,9 @@ let add_page_table duringsession url_act t (key, (id, va)) =
 (********* et ici on ne vérifie pas s'il y a déjà l'unique_id ? à rev 20070712 *)
     with Not_found -> 
       (key, (insert_as_last_of_generation generation v l))::newt
-  with Not_found -> (key,[v])::t
+  with Not_found -> (key, [v])::t
 
-let add_dircontent dc (key,elt) =
+let add_dircontent dc (key, elt) =
   match dc with
   | Vide -> Table (String_Table.add key elt String_Table.empty)
   | Table t -> Table (String_Table.add key elt t)
@@ -1215,7 +1442,7 @@ let remove_naservice_table at k =
   | ATable t -> ATable (NAserv_Table.remove k t)
 
 let add_naservice 
-    (_, naservicetableref, _, containstimeouts) current_dir duringsession name 
+    (_, naservicetableref, _, containstimeouts) duringsession name 
     (max_use, expdate, naservice) =
   (if not duringsession
   then
@@ -1230,13 +1457,13 @@ let add_naservice
   
   naservicetableref :=
     add_naservice_table !naservicetableref
-      (name, (max_use, expdate, naservice, current_dir))
+      (name, (max_use, expdate, naservice))
 
 let remove_naservice (_,atr,_,_) name =
   atr := remove_naservice_table !atr name
 
 let find_naservice now ((_,atr,_,_) as str) name =
-  let ((_, expdate, _, _) as p) = find_naservice_table !atr name in
+  let ((_, expdate, _) as p) = find_naservice_table !atr name in
   match expdate with
   | Some (_, e) when !e < now ->
       (* Service expired. Removing it. *)
@@ -1247,8 +1474,7 @@ let find_naservice now ((_,atr,_,_) as str) name =
 
 
 let add_service 
-    (dircontentref,_,containstimeouts,_)
-    current_dir
+    (dircontentref, _, containstimeouts, _)
     duringsession
     url_act
     (page_table_key, 
@@ -1259,8 +1485,7 @@ let add_service
       let direltref = find_dircontent !dircontentref a in
       match !direltref with
       | Dir dcr -> search dcr l
-      | File ptr -> raise (Eliom_page_erasing 
-                             ((string_of_url_path current_dir)^"/"^a))
+      | File ptr -> raise (Eliom_page_erasing a)
             (* Messages.warning ("Eliom page registration: Page "^
                a^" has been replaced by a directory");
                let newdcr = ref (empty_dircontent ()) in
@@ -1307,9 +1532,8 @@ let add_service
 
   let content = (page_table_key,
                  ((unique_id1, unique_id2), 
-                  (max_use, expdate, action, current_dir))) in
-  (* let current_dircontentref = 
-     search_dircontentref dircontentref current_dir) in *)
+                  (max_use, expdate, action))) in
+
   let page_table_ref = 
     search_page_table_ref (*current_*) dircontentref url_act in
     page_table_ref := 
@@ -1323,7 +1547,7 @@ let find_service
     now
     (dircontentref, _, _, _)
     fullsessname
-    (tables,
+    (sitedata,
      all_cookie_info,
      ri,
      si) =
@@ -1354,14 +1578,14 @@ let find_service
       | a::l -> aux (Some a) l
   in
   let page_table_ref, suffix = 
-    try search_page_table !dircontentref (change_empty_list ri.ri_path)
+    try search_page_table !dircontentref (change_empty_list ri.ri_sub_path)
     with Not_found -> raise Ocsigen_404
   in
   find_page_table 
     now
     page_table_ref
     fullsessname
-    tables
+    sitedata
     all_cookie_info
     ri
     suffix
@@ -1373,8 +1597,8 @@ let find_service
 
 
 
-let close_service_session2 cookie_table cookie = 
-  Cookies.remove cookie_table cookie
+let close_service_session2 sitedata cookie = 
+  Cookies.remove sitedata.session_services cookie
 
 let close_service_session ?session_name ~sp () = 
   try
@@ -1383,7 +1607,7 @@ let close_service_session ?session_name ~sp () =
     let (_, ior) = List.assoc fullsessname !cookie_info in
     match !ior with
     | SC (c, _, _, _, _) ->
-        close_service_session2 sp.sp_cookie_service_table c;
+        close_service_session2 sp.sp_sitedata c;
         ior := SCNo_data
     | _ -> ()
   with Not_found -> ()
@@ -1411,44 +1635,43 @@ let iter_persistent_sessions f =
 
 *)
 
-let close_all_service_sessions2 fullsessname cookie_table =
+let close_all_service_sessions2 fullsessname sitedata =
   Cookies.fold
     (fun k (fullsessname2, table, expref, timeoutref) thr -> 
       thr >>= fun () ->
       if fullsessname = fullsessname2 && !timeoutref = TGlobal
-      then close_service_session2 cookie_table k;
+      then close_service_session2 sitedata k;
       Lwt_unix.yield ()
     )
-    cookie_table
+    sitedata.session_services
     (return ())
   
 (** Close all service sessions for one session name.
     If the optional parameter [?session_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_service_sessions ?session_name cookie_table wd =
-  let fullsessname = make_fullsessname2 (string_of_url_path wd) session_name in
-  close_all_service_sessions2 fullsessname cookie_table
+let close_all_service_sessions ?session_name sitedata =
+  let fullsessname = make_fullsessname2 sitedata.site_dir_string session_name in
+  close_all_service_sessions2 fullsessname sitedata
   
-let close_all_data_sessions2 fullsessname remove_session_data cookie_table =
+let close_all_data_sessions2 fullsessname sitedata =
   Cookies.fold
     (fun k (fullsessname2, expref, timeoutref) thr -> 
       thr >>= fun () ->
       if fullsessname = fullsessname2 && !timeoutref = TGlobal
-      then close_data_session2 remove_session_data cookie_table k;
+      then close_data_session2 sitedata k;
       Lwt_unix.yield ()
     )
-    cookie_table
+    sitedata.session_data
     (return ())
   
 (** Close all in memory data sessions for one session name.
     If the optional parameter [?session_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_data_sessions ?session_name 
-    remove_session_data cookie_table wd =
-  let fullsessname = make_fullsessname2 (string_of_url_path wd) session_name in
-  close_all_data_sessions2 fullsessname remove_session_data cookie_table
+let close_all_data_sessions ?session_name sitedata =
+  let fullsessname = make_fullsessname2 sitedata.site_dir_string session_name in
+  close_all_data_sessions2 fullsessname sitedata
   
 
 let close_all_persistent_sessions2 fullsessname =
@@ -1464,21 +1687,20 @@ let close_all_persistent_sessions2 fullsessname =
     If the optional parameter [?session_name] (session name) is not present,
     only the session with default name is closed.
  *)
-let close_all_persistent_sessions ?session_name wd =
-  let fullsessname = make_fullsessname2 (string_of_url_path wd) session_name in
+let close_all_persistent_sessions ?session_name sitedata =
+  let fullsessname = make_fullsessname2 sitedata.site_dir_string session_name in
   close_all_persistent_sessions2 fullsessname
   
 
 
 (* Update the expiration date for all service sessions                      *)
-let update_serv_exp fullsessname cookie_table 
-    old_glob_timeout new_glob_timeout =
+let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
   Messages.debug 
     "--Eliom: Updating expiration date for all service sessions";
   match new_glob_timeout with
   | Some t when t <= 0.->
       (* We close all sessions but those with user defined timeout *)
-      close_all_service_sessions2 fullsessname cookie_table
+      close_all_service_sessions2 fullsessname sitedata
   | _ ->
     let now = Unix.time () in
     Cookies.fold
@@ -1493,25 +1715,22 @@ let update_serv_exp fullsessname cookie_table
           | Some oldexp, Some oldt, Some t -> Some (oldexp -. oldt +. t)
           in
           match newexp with
-          | Some t when t <= now ->
-              close_service_session2 cookie_table k
+          | Some t when t <= now -> close_service_session2 sitedata k
           | _ -> expref := newexp
         );
         Lwt_unix.yield ()
       )
-      cookie_table
+      sitedata.session_services
       (return ())
 
 (* Update the expiration date for all in memory data sessions                *)
-let update_data_exp
-    fullsessname remove_session_data cookie_table 
-    old_glob_timeout new_glob_timeout =
+let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
   Messages.debug 
     "--Eliom: Updating expiration date for all data sessions";
   match new_glob_timeout with
   | Some t when t <= 0.->
       (* We close all sessions but those with user defined timeout *)
-      close_all_data_sessions2 fullsessname remove_session_data cookie_table
+      close_all_data_sessions2 fullsessname sitedata
   | _ ->
     let now = Unix.time () in
     Cookies.fold
@@ -1526,13 +1745,12 @@ let update_data_exp
           | Some oldexp, Some oldt, Some t -> Some (oldexp -. oldt +. t)
           in
           match newexp with
-          | Some t when t <= now ->
-              close_data_session2 remove_session_data cookie_table k
+          | Some t when t <= now -> close_data_session2 sitedata k
           | _ -> expref := newexp
         );
         Lwt_unix.yield ()
       )
-      cookie_table
+      sitedata.session_data
       (return ())
 
 
@@ -1557,8 +1775,7 @@ let update_pers_exp fullsessname old_glob_timeout new_glob_timeout =
           | Some oldexp, Some oldt, Some t -> Some (oldexp -. oldt +. t)
           in
           match newexp with
-          | Some t when t <= now ->
-              close_persistent_session2 k
+          | Some t when t <= now -> close_persistent_session2 k
           | _ ->
               Ocsipersist.add
                 persistent_cookies_table 
@@ -1596,9 +1813,7 @@ let set_default_volatile_timeout t =
   set_default_data_timeout t;
   set_default_service_timeout t
 
-type timeout_table =
-    Tt of ((string * float option) list (* session name -> timeout *) *
-             (string * timeout_table) list)
+let add k v l = (k, v)::List.remove_assoc k l
 
 (* global timeout = timeout for the whole site (may be changed dynamically) *)
 let (find_global_service_timeout, 
@@ -1608,168 +1823,114 @@ let (find_global_service_timeout,
      set_global_data_timeout2, 
      set_global_persistent_timeout2) =
 
-  let servtable = ref (Tt ([], [])) in
-  let datatable = ref (Tt ([], [])) in
-  let perstable = ref (Tt ([], [])) in
-
-  let rec find fullsessname = function
-    | (Tt (l, _), []) -> 
-        (try
-          match List.assoc fullsessname l with
-          | None -> TNone
-          | Some t -> TSome t
-        with Not_found -> TGlobal)
-    | (ta, ""::l) -> find fullsessname (ta, l)
-    | (Tt (_, r), a::l) ->
-        (try
-          find fullsessname ((List.assoc a r), l)
-        with Not_found -> TGlobal)
-  in
-  let rec add fullsessname timeout = function
-    | (Tt (tl, l), []) -> 
-        (try
-          let ol = List.remove_assoc fullsessname tl in
-          Tt ((fullsessname, timeout)::ol, l)
-        with Not_found ->
-          Tt ((fullsessname, timeout)::tl, l))
-    | (ta, ""::l) -> add fullsessname timeout (ta, l)
-    | (Tt (tl, r), a::l) ->
-        (try
-          let (Tt (tt, ll), rr) = list_assoc_remove a r in
-          Tt (tl, (a, add fullsessname timeout (Tt (tt, ll), l))::rr)
-        with Not_found -> 
-          Tt (tl, (a, (add fullsessname timeout (Tt ([], []), l)))::r))
-  in
   (
    (* find_global_service_timeout *)
-   (fun fullsessname wd -> 
-     match find fullsessname (!servtable, wd) with
-     | TGlobal -> get_default_service_timeout ()
-     | TNone -> None
-     | TSome t -> Some t),
+   (fun fullsessname sitedata -> 
+     try
+       List.assoc fullsessname sitedata.servtimeout
+     with Not_found -> get_default_service_timeout ()),
 
    (* find_global_data_timeout *)
-   (fun fullsessname wd -> 
-     match find fullsessname (!datatable, wd) with
-     | TGlobal -> get_default_data_timeout ()
-     | TNone -> None
-     | TSome t -> Some t),
+   (fun fullsessname sitedata -> 
+     try
+       List.assoc fullsessname sitedata.datatimeout
+     with Not_found -> get_default_data_timeout ()),
 
    (* find_global_persistent_timeout *)
-   (fun fullsessname wd -> 
-     match find fullsessname (!perstable, wd) with
-     | TGlobal -> get_default_persistent_timeout ()
-     | TNone -> None
-     | TSome t -> Some t),
+   (fun fullsessname sitedata -> 
+     try
+       List.assoc fullsessname sitedata.perstimeout
+     with Not_found -> get_default_persistent_timeout ()),
 
    (* set_global_service_timeout2 *)
-   (fun fullsessname ~recompute_expdates site_dir cookie_table t -> 
+   (fun fullsessname ~recompute_expdates sitedata t -> 
      if recompute_expdates
      then
        let oldt = 
-         match find fullsessname (!servtable, site_dir) with
-         | TGlobal -> get_default_service_timeout ()
-         | TNone -> None
-         | TSome oldt -> Some oldt
+         try
+           List.assoc fullsessname sitedata.servtimeout
+         with Not_found -> get_default_service_timeout ()
        in
-       servtable := add fullsessname t (!servtable, site_dir);
-       update_serv_exp fullsessname cookie_table oldt t
+       sitedata.servtimeout <- add fullsessname t sitedata.servtimeout;
+       update_serv_exp fullsessname sitedata oldt t
      else begin
-       servtable := add fullsessname t (!servtable, site_dir);
+       sitedata.servtimeout <- add fullsessname t sitedata.servtimeout;
        return ()
      end),
 
    (* set_global_data_timeout2 *)
-   (fun fullsessname ~recompute_expdates 
-       site_dir remove_session_data cookie_table t -> 
+   (fun fullsessname ~recompute_expdates sitedata t -> 
      if recompute_expdates
      then
        let oldt = 
-         match find fullsessname (!datatable, site_dir) with
-         | TGlobal -> get_default_data_timeout ()
-         | TNone -> None
-         | TSome oldt -> Some oldt
+         try
+           List.assoc fullsessname sitedata.datatimeout
+         with Not_found -> get_default_data_timeout ()
        in
-       datatable := add fullsessname t (!datatable, site_dir);
-       update_data_exp fullsessname remove_session_data cookie_table oldt t
+       sitedata.datatimeout <- add fullsessname t sitedata.datatimeout;
+       update_data_exp fullsessname sitedata oldt t
      else begin
-       datatable := add fullsessname t (!datatable, site_dir);
+       sitedata.datatimeout <- add fullsessname t sitedata.datatimeout;
        return ()
      end),
 
    (* set_global_persistent_timeout *)
-   (fun fullsessname ~recompute_expdates site_dir t -> 
+   (fun fullsessname ~recompute_expdates sitedata t -> 
      if recompute_expdates
      then
        let oldt = 
-         match find fullsessname (!perstable, site_dir) with
-         | TGlobal -> get_default_persistent_timeout ()
-         | TNone -> None
-         | TSome t -> Some t
+         try
+           List.assoc fullsessname sitedata.perstimeout
+         with Not_found -> get_default_persistent_timeout ()
        in
-       perstable := add fullsessname t (!perstable, site_dir);
+       sitedata.perstimeout <- add fullsessname t sitedata.perstimeout;
        update_pers_exp fullsessname oldt t
      else begin
-       perstable := add fullsessname t (!perstable, site_dir);
+       sitedata.perstimeout <- add fullsessname t sitedata.perstimeout;
        return ()
      end)
   )
 
-let get_global_service_timeout ~session_name site_dir = 
+let get_global_service_timeout ~session_name sitedata = 
   let fullsessname = 
-    make_fullsessname2 (string_of_url_path site_dir) session_name 
+    make_fullsessname2 sitedata.site_dir_string session_name 
   in
-  find_global_service_timeout fullsessname site_dir
+  find_global_service_timeout fullsessname sitedata
 
-let get_global_data_timeout ~session_name site_dir = 
+let get_global_data_timeout ~session_name sitedata = 
   let fullsessname = 
-    make_fullsessname2 (string_of_url_path site_dir) session_name 
+    make_fullsessname2 sitedata.site_dir_string session_name 
   in
-  find_global_data_timeout fullsessname site_dir
+  find_global_data_timeout fullsessname sitedata
 
-let set_global_service_timeout ~session_name ~recompute_expdates site_dir
-    cookie_table timeout = 
-  let site_dir_string = string_of_url_path site_dir in
-  let fullsessname = make_fullsessname2 site_dir_string session_name in
+let set_global_service_timeout ~session_name ~recompute_expdates sitedata
+    timeout = 
+  let fullsessname = make_fullsessname2 sitedata.site_dir_string session_name in
   set_global_service_timeout2
-    fullsessname ~recompute_expdates site_dir cookie_table timeout
+    fullsessname ~recompute_expdates sitedata timeout
 
-let set_global_data_timeout ~session_name ~recompute_expdates site_dir
-    remove_session_data cookie_table timeout = 
-  let site_dir_string = string_of_url_path site_dir in
-  let fullsessname = make_fullsessname2 site_dir_string session_name in
-  set_global_data_timeout2
-    fullsessname ~recompute_expdates 
-    site_dir remove_session_data cookie_table timeout
+let set_global_data_timeout ~session_name ~recompute_expdates sitedata
+    timeout = 
+  let fullsessname = make_fullsessname2 sitedata.site_dir_string session_name in
+  set_global_data_timeout2 fullsessname ~recompute_expdates sitedata timeout
 
-let get_global_persistent_timeout ~session_name site_dir =
+let get_global_persistent_timeout ~session_name sitedata =
   let fullsessname = 
-    make_fullsessname2 (string_of_url_path site_dir) session_name 
+    make_fullsessname2 sitedata.site_dir_string session_name 
   in
-  find_global_persistent_timeout fullsessname site_dir
+  find_global_persistent_timeout fullsessname sitedata
 
 let set_global_persistent_timeout
-    ~session_name ~recompute_expdates site_dir timeout = 
-  let site_dir_string = string_of_url_path site_dir in
-  let fullsessname = make_fullsessname2 site_dir_string session_name in
+    ~session_name ~recompute_expdates sitedata timeout = 
+  let fullsessname = make_fullsessname2 sitedata.site_dir_string session_name in
   set_global_persistent_timeout2
-    fullsessname ~recompute_expdates site_dir timeout
+    fullsessname ~recompute_expdates sitedata timeout
 
 
 
 (*****************************************************************************)
 (** Parsing global configuration for Eliommod: *)
 open Simplexmlparser
-
-let servicesessiongcfrequency = ref (Some 3600.)
-let datasessiongcfrequency = ref (Some 3600.)
-let persistentsessiongcfrequency = ref (Some 86400.)
-let set_servicesessiongcfrequency i = servicesessiongcfrequency := i
-let set_datasessiongcfrequency i = datasessiongcfrequency := i
-let get_servicesessiongcfrequency () = !servicesessiongcfrequency
-let get_datasessiongcfrequency () = !datasessiongcfrequency
-let set_persistentsessiongcfrequency i = persistentsessiongcfrequency := i
-let get_persistentsessiongcfrequency () = !persistentsessiongcfrequency
 
 let rec parse_global_config = function
   | [] -> ()
@@ -1859,67 +2020,6 @@ let rec parse_global_config = function
         
 let _ = parse_global_config (Extensions.get_config ())
 
-(*****************************************************************************)
-(* Exception handler for the site                                            *)
-type handler_tree =
-    Exntree of
-      ((server_params -> exn -> result_to_send Lwt.t) option * 
-         ((string * handler_tree) list))
-
-let def_handler sp e = fail e
-
-let handle_site_exn, set_site_handler, init_site_handler =
-  let tree = ref (Exntree ((Some def_handler), [])) in
-  ((fun exn (ri, si, _, aci) tables ->
-    let rec find_handler h current_dir site_dir tree path = 
-      match tree, path with
-      | (Exntree (Some h, _)), [] -> (h, site_dir)
-      | (Exntree (None, _)), [] -> (h, site_dir)
-      | (Exntree (Some h, hl)), a::l -> 
-          (try
-            let tree2 = List.assoc a hl in
-            find_handler h (current_dir@[a]) current_dir tree2 l
-          with Not_found -> (h, current_dir))
-      | (Exntree (None, hl)), a::l -> 
-          (try
-            let tree2 = List.assoc a hl in
-            find_handler h (current_dir@[a]) site_dir tree2 l
-          with Not_found -> (h, site_dir))
-    in 
-    let h, wd = find_handler def_handler [] [] !tree ri.ri_path in
-    h (make_server_params wd tables aci ri [] si None) exn >>=
-    (fun r ->
-      return (r,
-              wd))),
-   (fun dir handler ->
-     let rec add = function
-       | [] -> Exntree (Some handler, [])
-       | a::l -> Exntree (None, [(a, add l)])
-     in
-     let rec aux = function
-       | (Exntree (h, hl), []) -> Exntree ((Some handler), hl)
-       | (Exntree (h, hl)), a::l -> 
-           try
-             let ht,ll = list_assoc_remove a hl in
-             Exntree (h, (a, aux (ht, l))::ll)
-           with Not_found -> Exntree (h, (a, add l)::hl)
-     in tree := aux (!tree, dir)
-   ),
-   (fun dir -> 
-     let rec add = function
-       | [] -> Exntree (Some def_handler, [])
-       | a::l -> Exntree (None, [(a, add l)])
-     in
-     let rec aux = function
-       | (Exntree (None, hl), []) -> Exntree ((Some def_handler), hl)
-       | ((Exntree (h, hl)) as i, []) -> i
-       | (Exntree (h, hl)), a::l -> 
-           try
-             let ht,ll = list_assoc_remove a hl in
-             Exntree (h, (a, aux (ht, l))::ll)
-           with Not_found -> Exntree (h, (a, add l)::hl)
-     in tree := aux (!tree, dir)
-   ))
 
 
 (*****************************************************************************)
@@ -1929,7 +2029,7 @@ let handle_site_exn, set_site_handler, init_site_handler =
 let compute_session_cookies_to_send
     (service_cookie_info, 
      data_cookie_info, 
-     pers_cookies_info) site_dir endlist =
+     pers_cookies_info) sitedata endlist =
   let getservvexp (name, (old, newi)) =
     return 
       (let newinfo =
@@ -1985,17 +2085,17 @@ let compute_session_cookies_to_send
               (match old, newc with
               | None, None -> beg
               | Some _, None ->
-                  (Unset (Some site_dir, 
+                  (Unset (Some sitedata.site_dir, 
                           [make_full_cookie_name cookiename name]))::beg
                   (* the path is always site_dir because the cookie cannot 
                      have been unset by a service outside this site directory *)
               | None, Some (v, exp) -> 
-                  (Set (Some site_dir, (ch_exp exp), 
+                  (Set (Some sitedata.site_dir, (ch_exp exp), 
                         [make_full_cookie_name cookiename name, v]))::beg
               | Some oldv, Some (newv, exp) -> 
                   if exp = CENothing && oldv = newv
                   then beg
-                  else (Set (Some site_dir, (ch_exp exp),
+                  else (Set (Some sitedata.site_dir, (ch_exp exp),
                              [make_full_cookie_name cookiename name, newv]))
                     ::beg
               )
@@ -2014,14 +2114,14 @@ let compute_session_cookies_to_send
   
 
 
-let compute_cookies_to_send site_dir all_cookie_info cookies_set_by_page =
+let compute_cookies_to_send sitedata all_cookie_info cookies_set_by_page =
 
   (* We change the cookies set by user: *)
   let cookies_set_by_page =
     let change_pathopt = function
-      | None -> Some site_dir 
+      | None -> Some sitedata.site_dir 
             (* Not possible to set a cookie for another site (?) *)
-      | Some p -> Some (site_dir@p)
+      | Some p -> Some (sitedata.site_dir@p)
     in
     List.map 
       (function
@@ -2033,7 +2133,7 @@ let compute_cookies_to_send site_dir all_cookie_info cookies_set_by_page =
       cookies_set_by_page
   in
 
-  compute_session_cookies_to_send all_cookie_info site_dir cookies_set_by_page
+  compute_session_cookies_to_send all_cookie_info sitedata cookies_set_by_page
   
 
 (** Compute new ri.ri_cookies value
@@ -2160,12 +2260,12 @@ let execute
       si, 
       old_cookies_to_set,
       (service_cookies_info, data_cookies_info, pers_cookies_info)) as info)
-    tables =
+    sitedata =
   
   catch
-    (fun () -> generate_page now info tables)
-    (fun e -> handle_site_exn e info tables) >>=
-  (fun ((result, site_dir) as res) ->
+    (fun () -> generate_page now info sitedata)
+    (fun e -> handle_site_exn e info sitedata) >>=
+  (fun result ->
     
     (* Update service expiration date and value *)
     List.iter
@@ -2180,7 +2280,7 @@ let execute
               match !newtimeout with
               | TGlobal -> 
                   let globaltimeout = 
-                    find_global_service_timeout name site_dir 
+                    find_global_service_timeout name sitedata 
                   in
                   (match globaltimeout with
                   | None -> None
@@ -2207,7 +2307,7 @@ let execute
                 match !newtimeout with
                 | TGlobal -> 
                     let globaltimeout = 
-                      find_global_data_timeout name site_dir 
+                      find_global_data_timeout name sitedata 
                     in
                     (match globaltimeout with
                     | None -> None
@@ -2235,7 +2335,7 @@ let execute
                 match !newtimeout with
                 | TGlobal -> 
                     let globaltimeout = 
-                      find_global_persistent_timeout name site_dir 
+                      find_global_persistent_timeout name sitedata 
                     in
                     (match globaltimeout with
                     | None -> None
@@ -2273,7 +2373,7 @@ let execute
       
       >>= fun () ->
         
-        return res)
+        return result)
     
 
 
@@ -2293,7 +2393,7 @@ let get_page
      si,
      cookies_to_set,
      ((service_cookies_info, _, _) as all_cookie_info))
-    ((global_tables, _, _, _) as tables)
+    sitedata
     =
   let rec find_aux e = function
     | [] -> fail e
@@ -2308,7 +2408,7 @@ let get_page
                   now
                   !service_session_tables_ref
                   (Some fullsessname)
-                  (tables,
+                  (sitedata,
                    all_cookie_info,
                    ri,
                    si))
@@ -2320,7 +2420,7 @@ let get_page
   (catch
      (fun () -> 
         Messages.debug 
-          ("--Eliom: I'm looking for "^(string_of_url_path ri.ri_path)^
+          ("--Eliom: I'm looking for "^(string_of_url_path ri.ri_sub_path)^
            " in the session table:");
         find_aux Ocsigen_404 !service_cookies_info
       )
@@ -2331,9 +2431,9 @@ let get_page
                 Messages.debug "--Eliom: I'm searching in the global table:";
                 find_service 
                   now
-                  global_tables
+                  sitedata.global_services
                   None
-                  (tables,
+                  (sitedata,
                    all_cookie_info,
                    ri,
                    si))
@@ -2396,12 +2496,12 @@ let make_naservice
      si,
      cookies_to_set,
      ((service_cookies_info, _, _) as all_cookie_info))
-    ((global_tables, _, _, _) as tables) 
+    sitedata
     =
   
   let rec find_aux = function
-    | [] -> (find_naservice now global_tables si.si_nonatt_info,
-             global_tables,
+    | [] -> (find_naservice now sitedata.global_services si.si_nonatt_info,
+             sitedata.global_services,
              None)
     | (fullsessname, (_, r))::l -> 
         match !r with
@@ -2461,13 +2561,12 @@ let make_naservice
                      cookies_to_set,
                      all_cookie_info)))
   ) >>=
-  (fun ((max_use, expdate, naservice, site_dir), 
+  (fun ((max_use, expdate, naservice), 
         tablewhereithasbeenfound,
         fullsessname) ->
     (naservice
        (make_server_params 
-          site_dir
-          tables
+          sitedata
           all_cookie_info
           ri
           []
@@ -2485,13 +2584,13 @@ let make_naservice
           if !r = 1
           then remove_naservice tablewhereithasbeenfound si.si_nonatt_info
           else r := !r - 1);
-      return (r, site_dir)))
+      return r))
 
 
 
 
 
-let gen page_tree charset ri =
+let gen sitedata charset ri =
   let now = Unix.time () in
   let rec gen_aux ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
     let genfun = 
@@ -2513,7 +2612,7 @@ let gen page_tree charset ri =
           now
           genfun
           info
-          page_tree >>= fun (result_to_send, site_dir) ->
+          sitedata >>= fun result_to_send ->
           
           match result_to_send with
           | EliomExn (exnlist, cookies_set_by_page) -> 
@@ -2538,7 +2637,7 @@ let gen page_tree charset ri =
                 (match si.si_nonatt_info, si.si_state_info, ri.ri_method with
                 | (None, None), (None, None), Http_frame.Http_header.GET ->
                     compute_cookies_to_send 
-                      site_dir
+                      sitedata
                       all_cookie_info
                       all_user_cookies
                     >>= fun all_new_cookies ->
@@ -2679,7 +2778,7 @@ let gen page_tree charset ri =
           | EliomResult res ->
 
               compute_cookies_to_send 
-                site_dir 
+                sitedata 
                 all_cookie_info
                 (res.res_cookies@
                  (cookie_remove_list res.res_cookies old_cookies_to_set))
@@ -2728,7 +2827,7 @@ let gen page_tree charset ri =
   change_request_info ri charset >>= fun (ri, si) ->
   let (all_cookie_info, closedsessions) =
     get_cookie_info now
-      page_tree 
+      sitedata 
       si.si_service_session_cookies
       si.si_data_session_cookies
       si.si_persistent_session_cookies 
@@ -2737,210 +2836,15 @@ let gen page_tree charset ri =
   gen_aux (ri, {si with si_exn=exn}, [], all_cookie_info)
 
 
-(*****************************************************************************)
-(* garbage collection of timeouted sessions *)
-let rec gc_timeouted_services now t = 
-  let rec aux k direltr thr = 
-    thr >>=
-    (fun table ->
-      match !direltr with
-      | Dir r -> gc_timeouted_services now r >>= 
-          (fun () -> match !r with
-          | Vide -> return (String_Table.remove k table)
-          | Table t -> return table)
-      | File ptr ->
-          List.fold_right
-            (fun (ptk, l) foll -> 
-              foll >>=
-              (fun foll ->
-                let newl =
-                  List.fold_right
-                    (fun ((i, (_, (_, expdate, _, _))) as a) foll -> 
-                      match expdate with
-                      | Some (_, e) when !e < now -> foll
-                      | _ -> a::foll
-                    )
-                    l
-                    []
-                in
-                Lwt_unix.yield () >>=
-                (fun () ->
-                  match newl with
-                  | [] -> return foll
-                  | _ -> return ((ptk, newl)::foll))
-              )
-            )
-            !ptr
-            (return []) >>=
-          (function
-            | [] -> return (String_Table.remove k table)
-            | r -> ptr := r; return table)
-    )
-  in
-  match !t with
-  | Vide -> return ()
-  | Table r -> (String_Table.fold aux r (return r)) >>=
-      (fun table -> 
-        if String_Table.is_empty table
-        then begin t := Vide; return () end
-        else begin t := Table table; return () end)
-
-let gc_timeouted_naservices now tr = 
-  match !tr with
-  | AVide -> return ()
-  | ATable t -> 
-      NAserv_Table.fold
-        (fun k (_, expdate,_,_) thr -> 
-          thr >>=
-          (fun table -> 
-            Lwt_unix.yield () >>=
-            (fun () ->
-              match expdate with
-              | Some (_, e) when !e < now -> 
-                  return (NAserv_Table.remove k table)
-              | _ -> return table)
-          ))
-        t
-        (return t) >>=
-      (fun t -> 
-        if NAserv_Table.is_empty t
-        then tr := AVide
-        else tr := ATable t; 
-        return ())
-
-        
-
-(* This is a thread that will work for example every hour. *)
-let service_session_gc ((servicetable,
-                         naservicetable, 
-                         contains_services_with_timeout, 
-                         contains_naservices_with_timeout), 
-                        service_cookie_table,
-                        _,
-                        _) =
-  match get_servicesessiongcfrequency () with
-  | None -> () (* No garbage collection *)
-  | Some t ->
-      let rec f () = 
-        Lwt_unix.sleep t >>= 
-        (fun () ->
-          let now = Unix.time () in
-          Messages.debug "--Eliom: GC of service sessions";
-          (* public continuation tables: *)
-          (if !contains_services_with_timeout
-          then gc_timeouted_services now servicetable
-          else return ()) >>=
-          (fun () -> if !contains_naservices_with_timeout
-          then gc_timeouted_naservices now naservicetable
-          else return ()) >>=
-          (* private continuation tables: *)
-          (fun () ->
-            (* private continuation tables: *)
-            Cookies.fold
-              (fun k (sessname,
-                      ((servicetable,
-                        naservicetable, 
-                        contains_services_with_timeout, 
-                        contains_naservices_with_timeout) as tables), 
-                      exp, _) thr -> 
-                        thr >>= fun () ->
-                          (match !exp with
-                          | Some exp when exp < now -> 
-                              Cookies.remove service_cookie_table k;
-                              return ()
-                          | _ -> 
-                              (if !contains_services_with_timeout
-                              then gc_timeouted_services now servicetable
-                              else return ()) >>=
-                              (fun () -> if !contains_naservices_with_timeout
-                              then gc_timeouted_naservices now naservicetable
-                              else return ()) >>=
-                              (fun () ->
-                                if service_tables_are_empty tables
-                                then 
-                                  Cookies.remove service_cookie_table k;
-                                return ()
-                              )
-                          )
-                            >>= Lwt_unix.yield
-              )
-              service_cookie_table
-              (return ()))
-        )
-          >>=
-        f
-      in ignore (f ())
-      
-(* This is a thread that will work for example every hour. *)
-let data_session_gc (_,
-                     _,
-                     data_cookie_table,
-                     (remove_session_data,
-                      not_bound_in_data_tables)) =
-  match get_datasessiongcfrequency () with
-  | None -> () (* No garbage collection *)
-  | Some t ->
-      let rec f () = 
-        Lwt_unix.sleep t >>= fun () ->
-        let now = Unix.time () in
-        Messages.debug "--Eliom: GC of session data";
-        (* private continuation tables: *)
-        Cookies.fold
-          (fun k (sessname, exp, _) thr -> 
-            thr >>= fun () ->
-              (match !exp with
-              | Some exp when exp < now -> 
-                  Cookies.remove data_cookie_table k;
-                  !remove_session_data k;
-                  return ()
-              | _ -> 
-                  if !not_bound_in_data_tables k
-                  then 
-                    Cookies.remove data_cookie_table k;
-                  return ()
-              )
-                >>= Lwt_unix.yield
-          )
-          data_cookie_table
-          (return ())
-          >>=
-        f
-      in ignore (f ())
-      
-(* garbage collection of timeouted persistent sessions *)
-(* This is a thread that will work every hour/day *)
-let persistent_session_gc () =
-  match get_persistentsessiongcfrequency () with
-  | None -> () (* No garbage collection *)
-  | Some t ->
-      let rec f () = 
-        Lwt_unix.sleep t >>= 
-        (fun () ->
-          let now = Unix.time () in
-          Messages.debug "--Eliom: GC of persistent sessions";
-          (Ocsipersist.iter_table
-             (fun k (_, exp, _, _) -> 
-               (match exp with
-               | Some exp when exp < now -> 
-                   remove_from_all_persistent_tables k
-               | _ -> return ())
-             )
-             persistent_cookies_table))
-          >>=
-        f
-      in ignore (f ())
-      
-
 
 (*****************************************************************************)
 (** Module loading *)
 let config = ref []
 
-let load_eliom_module pages_tree path cmo content =
+let load_eliom_module sitedata cmo content =
   config := content;
   begin_load_eliom_module ();
-  absolute_change_hostdir (pages_tree, path);
-  init_site_handler path;
+  absolute_change_sitedata sitedata;
   (try
     Dynlink.loadfile cmo
   with Dynlink.Error e -> 
@@ -2948,7 +2852,7 @@ let load_eliom_module pages_tree path cmo content =
     raise (Eliom_error_while_loading_site
              ("(eliommod extension) "^cmo^": "^
               (Dynlink.error_message e))));
-  (* absolute_change_hostdir save_current_dir; *)
+  (* absolute_change_sitedata save_current_dir; *)
   end_load_eliom_module ();
   config := []
 
@@ -2956,7 +2860,7 @@ let load_eliom_module pages_tree path cmo content =
 
 (*****************************************************************************)
 (** Parsing of config file for each site: *)
-let parse_config page_tree path = 
+let parse_config site_dir = 
   let rec parse_module_attrs file = function
     | [] -> (match file with
         None -> 
@@ -2973,8 +2877,10 @@ let parse_config page_tree path =
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in function
     | Element ("eliom", atts, content) -> 
-          let file = parse_module_attrs None atts in
-          load_eliom_module page_tree path file content
+        let file = parse_module_attrs None atts in
+        let sitedata = new_sitedata site_dir in
+        load_eliom_module sitedata file content;
+        Page_gen (gen sitedata)
     | Element (t, _, _) -> 
         raise (Extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")
@@ -2983,29 +2889,36 @@ let parse_config page_tree path =
 (*****************************************************************************)
 (** Function to be called at the beginning of the initialisation phase *)
 let start_init () =
-  begin_current_host_dir ()
+  begin_current_sitedata ()
 
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
-  end_current_hostdir ();
-  verify_all_registered ()                                
+  verify_all_registered (get_current_sitedata ());
+  end_current_sitedata ()
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
   | Eliom_duplicate_registration s -> 
       ("Fatal - Eliom: Duplicate registration of url \""^s^
        "\". Please correct the module.")
-  | Eliom_there_are_unregistered_services l ->
-      ("Fatal - Eliom: "^
+  | Eliom_there_are_unregistered_services (s, l) ->
+      ("Fatal - Eliom: in site "^
+       (Ocsimisc.string_of_url_path s)^" - "^
        (match l with
        | [] -> "<none(??)>"
-       | [a] -> "One service or coservice has not been registered on URL \""
-           ^a^"\"."
-       | a::ll -> "Some services or coservices have not been registered \
+       | [None] -> "One non-attached coservice has not been registered."
+       | [Some a] -> "One service or coservice has not been registered on URL \""
+           ^(Ocsimisc.string_of_url_path a)^"\"."
+       | a::ll -> 
+           let string_of = function
+             | None -> "<non-attached>"
+             | Some u -> Ocsimisc.string_of_url_path u
+           in
+           "Some services or coservices have not been registered \
              on URLs: "^
              (List.fold_left
-                (fun beg v -> beg^", "^v)
-                a
+                (fun beg v -> beg^", "^(string_of v))
+                (string_of a)
                 ll
              )^".")^
          "\nPlease correct your modules.")
@@ -3024,30 +2937,10 @@ let handle_init_exn = function
 
 
 (*****************************************************************************)
-(** table of page trees *)
-
-let page_tree_table = ref []
-
-let find k = List.assoc k !page_tree_table
-
-let add k a = page_tree_table := (k,a)::!page_tree_table
-
-(*****************************************************************************)
 (** extension registration *)
-let _ = R.register_extension
-    ((fun hostpattern -> 
-      let page_tree = 
-        try 
-          find hostpattern
-        with Not_found ->
-          let n = new_pages_tree () in
-          add hostpattern n;
-          service_session_gc n;
-          data_session_gc n;
-          n
-      in
-      (gen page_tree, 
-       parse_config page_tree)),
+let _ = register_extension
+    ((fun hostpattern path charset config -> 
+      parse_config path config),
      start_init,
      end_init,
      handle_init_exn)
@@ -3060,82 +2953,82 @@ let _ = persistent_session_gc ()
 (* Iterators or sessions *)
 
   (** Iterator on service sessions *)
-  let iter_service_sessions cookie_table hostdir f =
-    Cookies.fold
-      (fun k v thr -> 
-        thr >>= fun () ->
-        f (k, v, hostdir) >>=
+let iter_service_sessions sitedata f =
+  Cookies.fold
+    (fun k v thr -> 
+      thr >>= fun () ->
+        f (k, v, sitedata) >>=
         Lwt_unix.yield
-      )
-      cookie_table
-      (return ())
+    )
+    sitedata.session_services
+    (return ())
       
   
-  (** Iterator on data sessions *)
-  let iter_data_sessions cookie_table hostdir f =
-    Cookies.fold
-      (fun k v thr -> 
-        thr >>= fun () ->
-          f (k, v, hostdir) >>=
-          Lwt_unix.yield
-      )
-      cookie_table
-      (return ())
-  
-  (** Iterator on persistent sessions *)
-  let iter_persistent_sessions f =
-    Ocsipersist.iter_table
-      (fun k v -> 
-        f (k, v) >>=
+    (** Iterator on data sessions *)
+let iter_data_sessions sitedata f =
+  Cookies.fold
+    (fun k v thr -> 
+      thr >>= fun () ->
+        f (k, v, sitedata) >>=
         Lwt_unix.yield
-      )
-      persistent_cookies_table
-
-
-  (** Iterator on service sessions *)
-  let fold_service_sessions cookie_table hostdir f beg =
-    Cookies.fold
-      (fun k v thr -> 
-        thr >>= fun res1 ->
-        f (k, v, hostdir) res1 >>= fun res ->
+    )
+    sitedata.session_data
+    (return ())
+    
+    (** Iterator on persistent sessions *)
+let iter_persistent_sessions f =
+  Ocsipersist.iter_table
+    (fun k v -> 
+      f (k, v) >>=
+      Lwt_unix.yield
+    )
+    persistent_cookies_table
+    
+    
+    (** Iterator on service sessions *)
+let fold_service_sessions sitedata f beg =
+  Cookies.fold
+    (fun k v thr -> 
+      thr >>= fun res1 ->
+        f (k, v, sitedata) res1 >>= fun res ->
+          Lwt_unix.yield () >>= fun () ->
+            return res
+    )
+    sitedata.session_services
+    (return beg)
+    
+    
+    (** Iterator on data sessions *)
+let fold_data_sessions sitedata f beg =
+  Cookies.fold
+    (fun k v thr -> 
+      thr >>= fun res1 ->
+        f (k, v, sitedata) res1 >>= fun res ->
+          Lwt_unix.yield () >>= fun () ->
+            return res
+    )
+    sitedata.session_data
+    (return beg)
+    
+    (** Iterator on persistent sessions *)
+let fold_persistent_sessions f beg =
+  Ocsipersist.fold_table
+    (fun k v beg -> 
+      f (k, v) beg >>= fun res ->
         Lwt_unix.yield () >>= fun () ->
-        return res
-      )
-      cookie_table
-      (return beg)
-      
-  
-  (** Iterator on data sessions *)
-  let fold_data_sessions cookie_table hostdir f beg =
-    Cookies.fold
-      (fun k v thr -> 
-        thr >>= fun res1 ->
-        f (k, v, hostdir) res1 >>= fun res ->
-        Lwt_unix.yield () >>= fun () ->
-        return res
-      )
-      cookie_table
-      (return beg)
-  
-  (** Iterator on persistent sessions *)
-  let fold_persistent_sessions f beg =
-    Ocsipersist.fold_table
-      (fun k v beg -> 
-        f (k, v) beg >>= fun res ->
-        Lwt_unix.yield () >>= fun () ->
-        return res
-      )
-      persistent_cookies_table
-      beg
+          return res
+    )
+    persistent_cookies_table
+    beg
 
 (*****************************************************************************)
 (* Exploration *)
 
 let number_of_service_sessions ~sp = 
-  Cookies.length sp.sp_cookie_service_table
+  Cookies.length sp.sp_sitedata.session_services
 
 let number_of_data_sessions ~sp = 
-  Cookies.length sp.sp_cookie_data_table
+  Cookies.length sp.sp_sitedata.session_data
 
 let number_of_tables () =
   List.length !counttableelements

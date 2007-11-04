@@ -292,17 +292,6 @@ val preapply :
  *)
  
 
-val make_string_uri :
-    service:('get, unit, [< get_service_kind ],
-     [< suff ], 'gn, unit, 
-     [< registrable ]) service ->
-       sp:Eliommod.server_params -> 
-         ?fragment:string ->
-           'get -> string
-(** Creates the string corresponding to the URL of a service applyed to
-   its GET parameters.
- *)
-
 
 
 
@@ -315,7 +304,8 @@ val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
 val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('b, [ `WithoutSuffix ], 'f) Eliomparameters.params_type
 val get_att_kind_ : 'a a_s -> 'a
-val get_path_ : 'a a_s -> url_path
+val get_sub_path_ : 'a a_s -> url_path
+val get_full_path_ : 'a a_s -> url_path
 val get_prefix_ : 'a a_s -> string
 val get_get_state_ : 'a a_s -> Eliommod.internal_state option
 val get_post_state_ : 'a a_s -> Eliommod.internal_state option
