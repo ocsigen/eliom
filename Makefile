@@ -320,8 +320,9 @@ install: docinstall installnodoc
 
 .PHONY: uninstall fulluninstall
 uninstall:
-	$(MAKE) -C server uninstall
-	$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)"
+	-$(MAKE) -C server uninstall
+	-$(MAKE) -C lwt uninstall
+	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)"
 
 fulluninstall: uninstall
 # dangerous

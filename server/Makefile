@@ -40,31 +40,35 @@ NETSYSCMA=
 NETSYSCMXA=
 endif
 
+ifeq ($(OCAMLVERSION),OLD)
+#  CMAOCAMLP4= gramlib.cma
+#  CMXXACAMLP4= gramlib.cmxa
+  CMAOCAMLP4=
+  CMXXACAMLP4=
+#  LIB=$(LIB1)
+  CAMLP4PACKAGES=,camlp4.gramlib
+else
+  CAMLP4PACKAGES= 
+  CMAOCAMLP4= camlp4lib.cma Camlp4OCamlRevisedParser.cmo Camlp4OCamlParser.cmo
+  CMXXACAMLP4= camlp4lib.cmxa Camlp4OCamlRevisedParser.cmx Camlp4OCamlParser.cmx
+  LIBDIRS := $(LIBDIRS) -I +camlp4 -I +camlp4/Camlp4Parsers
+endif
+
 INSTALL = install
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
-LIB = -thread -package netstring,$(NETSYS)ssl,pcre,unix,dynlink,threads,camlp4.gramlib,num $(LIBDIRS)
+LIB = -thread -package netstring,$(NETSYS)ssl,pcre,unix,dynlink,threads$(CAMLP4PACKAGES),num $(LIBDIRS)
 PP = 
 PP2 = 
 
 # cma and cmo to be linked in the server:
 
-#ifeq ($(OCAMLVERSION),OLD)
-#  CMAOCAMLP4= gramlib.cma
-#  CMXXACAMLP4= gramlib.cmxa
-#  LIB=$(LIB1)
-#else
-#  CMAOCAMLP4= camlp4lib.cma Camlp4OCamlRevisedParser.cmo Camlp4OCamlParser.cmo
-#  CMXXACAMLP4= camlp4lib.cmxa Camlp4OCamlRevisedParser.cmx Camlp4OCamlParser.cmx
-#  LIB=$(LIB1) -I +camlp4/Camlp4Parsers
-#endif
-
-CMAO = ../baselib/ocsimisc.cmo \
+CMAO = ../lwt/lwt.cma \
+       ../baselib/ocsimisc.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
        ../baselib/ocsiconfig.cmo ../baselib/messages.cmo \
-       ../lwt/lwt.cma \
        ../http/ocsistream.cmo ../http/multipart.cmo \
        ../http/http_headers.cmo \
        ../http/http_frame.cmo ../http/ocsiheaders.cmo \
@@ -91,10 +95,10 @@ opt: $(OBJSX) $(NAME).opt
 .PHONY: doc depend
 
 $(NAME): $(CMAO) $(OBJS)
-	$(CAMLC) -o $(NAME) -linkpkg -linkall $(CMAO) $(OBJS)
+	$(CAMLC) -o $(NAME) -linkpkg -linkall $(CMAOCAMLP4) $(CMAO) $(OBJS)
 
 $(NAME).opt: $(CMXXA) $(OBJSOPT)
-	$(CAMLOPT) -o $(NAME).opt -linkpkg -linkall $(CMXXA) $(OBJSOPT)
+	$(CAMLOPT) -o $(NAME).opt -linkpkg -linkall $(CMXXACAMLP4) $(CMXXA) $(OBJSOPT)
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
