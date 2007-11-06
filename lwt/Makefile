@@ -55,10 +55,10 @@ include depend
 
 install:
 	{ test ! -f $(XARCHIVE) || extra="$(XARCHIVE) "`basename $(XARCHIVE) .cmxa`.a; }; \
-	$(OCAMLFIND) install $(NAME) *.mli *.cmi $(ARCHIVE) META $$extra
+	$(OCAMLFIND) install $(NAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)" *.mli *.cmi $(ARCHIVE) META $$extra
 
 uninstall:
-	$(OCAMLFIND) remove $(NAME)
+	$(OCAMLFIND) remove $(NAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)"
 
 clean::
 	rm -f *.cmi *.cmo *.cmx *.cma *.cmxa *.a *.o *~ *.bak *.annot
