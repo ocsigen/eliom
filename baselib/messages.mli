@@ -30,13 +30,22 @@ val errlog : string -> unit
 val warning : string -> unit
 
 (** Write a message only in debugging mode (-V option) *)
-val debug : string -> unit
+val debug : (unit -> string) -> unit
+
+(** Write a message only in debugging mode (-V option) *)
+val debug2 : string -> unit
 
 (** Same as [debug] without new line at the end *)
-val debug_noel : string -> unit
+val debug_noel : (unit -> string) -> unit
+
+(** Same as [debug] without new line at the end *)
+val debug_noel2 : string -> unit
 
 (** Write a message in the console (if not called in silent mode) *)
-val console : string -> unit
+val console : (unit -> string) -> unit
+
+(** Write a message in the console (if not called in silent mode) *)
+val console2 : string -> unit
 
 (** Use that function for all impossible cases in exception handlers
    ([try ... with ... | e -> unexpected_exception ...] or [Lwt.catch ...]).
@@ -54,5 +63,4 @@ val warningfile : string * Unix.file_descr ref
 val error : string * Unix.file_descr ref
 
 val open_files : unit -> unit
-val lwtbip : int -> unit
 val bip : int -> unit

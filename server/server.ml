@@ -98,7 +98,8 @@ let get_request_infos meth url http_frame filenames sockaddr port =
     (*  Here we don't trust the port information given by the request.
        We use the port we are listening on. *)
     Messages.debug
-      ("- host="^(match headerhost with None -> "<none>" | Some h -> h));
+      (fun () ->
+        "- host="^(match headerhost with None -> "<none>" | Some h -> h));
 (*XXX Servers MUST report a 400 (Bad Request) error if an HTTP/1.1
       request does not include a Host request-header. *)
 
@@ -241,12 +242,12 @@ let get_request_infos meth url http_frame filenames sockaddr port =
 (* AEFF *)              (*        IN-MEMORY STOCKAGE *)
               (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0 
                * (String.length s) bound in
-               * Messages.debug (string_of_int (List.length bdlist));
+               * Messages.debug (fun () -> string_of_int (List.length bdlist));
                * let simplify (hs,b) = 
                * ((find_field "name" 
                * (List.assoc "content-disposition" hs)),b) in
                * List.iter (fun (hs,b) -> 
-               * List.iter (fun (h,v) -> Messages.debug (h^"=="^v)) hs) bdlist;
+               * List.iter (fun (h,v) -> Messages.debug (fun () -> h^"=="^v)) hs) bdlist;
                * List.map simplify bdlist *)
     in
     {ri_url_string = url;
@@ -284,8 +285,8 @@ let get_request_infos meth url http_frame filenames sockaddr port =
    }
       
   with e ->
-    Messages.debug ("~~~ Exn during get_request_infos : "^
-                    string_of_exn e);
+    Messages.debug (fun () -> "~~~ Exn during get_request_infos : "^
+      string_of_exn e);
     raise e
 
 
@@ -309,21 +310,21 @@ let service
   let handle_service_errors e =
     (* Exceptions during page generation *)
     Messages.debug
-      ("~~~ Exception during generation/sending: " ^ string_of_exn e);
+      (fun () -> "~~~ Exception during generation/sending: " ^ string_of_exn e);
     match e with
       (* EXCEPTIONS WHILE COMPUTING A PAGE *)
     | Ocsigen_404 ->
-        Messages.debug "-> Sending 404 Not Found";
+        Messages.debug2 "-> Sending 404 Not Found";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:404 ~sender:Http_com.default_sender ()
     | Ocsigen_403 ->
-        Messages.debug "-> Sending 403 Forbidden";
+        Messages.debug2 "-> Sending 403 Forbidden";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:403 ~sender:Http_com.default_sender ()
     | Extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
     | Extensions.Ocsigen_403 ->
-        Messages.debug "-> Sending 403 Forbidden";
+        Messages.debug2 "-> Sending 403 Forbidden";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:403 ~sender:Http_com.default_sender () (* Forbidden *)
     | Ocsistream.Interrupted Ocsistream.Already_read ->
@@ -334,28 +335,28 @@ let service
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:500 ~sender:Http_com.default_sender () (* Internal error *)
     | Ocsigen_upload_forbidden ->
-        Messages.debug "-> Sending 403 Forbidden";
+        Messages.debug2 "-> Sending 403 Forbidden";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:403 ~sender:Http_com.default_sender ()
     | Http_error.Http_exception (_,_) ->
         send_error sender_slot ~clientproto ~head ~keep_alive:false
           ~exn:e ~sender:Http_com.default_sender ()
     | Ocsigen_Bad_Request ->
-        Messages.debug "-> Sending 400";
+        Messages.debug2 "-> Sending 400";
         send_error sender_slot ~clientproto ~head ~keep_alive:false
           ~code:400 ~sender:Http_com.default_sender ()
     | Ocsigen_unsupported_media ->
-        Messages.debug "-> Sending 415";
+        Messages.debug2 "-> Sending 415";
         send_error sender_slot ~clientproto ~head ~keep_alive:false
           ~code:415 ~sender:Http_com.default_sender ()
     | Neturl.Malformed_URL ->
-        Messages.debug "-> Sending 400 (Malformed URL)";
+        Messages.debug2 "-> Sending 400 (Malformed URL)";
         send_error sender_slot ~clientproto ~head ~keep_alive:false
           ~code:400 ~sender:Http_com.default_sender () (* Malformed URL *)
     | e ->
         Messages.warning
           ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
-        Messages.debug "-> Sending 500";
+        Messages.debug2 "-> Sending 500";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:500 ~sender:Http_com.default_sender ()
   in
@@ -483,7 +484,7 @@ let service
                   end
                 in
                 if not_modified then begin
-                  Messages.debug "-> Sending 304 Not modified ";
+                  Messages.debug2 "-> Sending 304 Not modified ";
                   send
                     sender_slot
                     ~clientproto
@@ -492,7 +493,7 @@ let service
                     ~sender:Http_com.default_sender
                     {empty_result with res_code = 304  (* Not modified *)}
                 end else if precond_failed then begin
-                  Messages.debug
+                  Messages.debug2
                     "-> Sending 412 Precondition Failed \
                      (if-unmodified-since header)";
                   send
@@ -515,7 +516,7 @@ let service
                 finish_request ();
                 match e with
                   Ocsigen_Is_a_directory ->
-                    Messages.debug "-> Sending 301 Moved permanently";
+                    Messages.debug2 "-> Sending 301 Moved permanently";
                     send
                       sender_slot
                       ~clientproto
@@ -538,7 +539,7 @@ let service
          (* We remove all the files created by the request
             (files sent by the client) *)
          if !filenames <> [] then
-           Messages.debug "** Removing files";
+           Messages.debug2 "** Removing files";
          List.iter
            (fun a ->
               try
@@ -584,7 +585,7 @@ let linger in_ch receiver =
           senders to terminate in order to avoid a deadlock *)
        let linger_thread = linger_aux () in
        Http_com.wait_all_senders receiver >>= fun () ->
-       Messages.debug "** SHUTDOWN";
+       Messages.debug2 "** SHUTDOWN";
        Lwt_ssl.ssl_shutdown in_ch >>= fun () ->
        Lwt_ssl.shutdown in_ch Unix.SHUTDOWN_SEND;
        linger_thread >>= fun () ->
@@ -665,7 +666,7 @@ let handle_connection port in_ch sockaddr =
   let rec handle_request () =
     try_bind'
       (fun () ->
-         Messages.debug "** Receiving HTTP message";
+         Messages.debug2 "** Receiving HTTP message";
          Http_com.get_http_frame receiver)
       handle_read_errors
       (fun request ->
@@ -697,10 +698,10 @@ let rec wait_connection use_ssl port socket =
   try_bind'
     (fun () -> Lwt_unix.accept socket)
     (fun e ->
-       Messages.debug (Format.sprintf "Accept failed: %s" (string_of_exn e));
+       Messages.debug (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
        wait_connection use_ssl port socket)
     (fun (s, sockaddr) ->
-       debug "\n__________________NEW CONNECTION__________________________";
+       Messages.debug2 "\n__________________NEW CONNECTION__________________________";
        incr_connected ();
        let relaunch_at_once =
          get_number_of_connected () < get_max_number_of_connections () in
@@ -723,7 +724,7 @@ let rec wait_connection use_ssl port socket =
             Messages.unexpected_exception e
               "Server.wait_connection (handle connection)";
             Lwt.return ()) >>= fun () ->
-       Messages.debug "** CLOSE";
+       Messages.debug2 "** CLOSE";
        begin try
          Lwt_unix.close s
        with Unix.Unix_error _ as e ->
@@ -731,7 +732,7 @@ let rec wait_connection use_ssl port socket =
        end;
        decr_connected ();
        if not relaunch_at_once then begin
-         debug "Ok releasing one connection";
+         debug2 "Ok releasing one connection";
          ignore (wait_connection use_ssl port socket)
        end;
        Lwt.return ())
@@ -1014,7 +1015,8 @@ let _ = try
         if pid = 0
         then run user_info sslinfo threadinfo h
         else begin
-          Messages.console ("Process "^(string_of_int pid)^" detached");
+          Messages.console
+            (fun () -> "Process "^(string_of_int pid)^" detached");
           write_pid pid;
         end
     | _ -> () (* Multiple servers not supported any more *)

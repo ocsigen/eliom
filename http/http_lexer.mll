@@ -56,7 +56,7 @@ let quoted_string = '\"' (qdtext | quoted_pair)* '\"'
 
 rule token =
   parse
-  |blank                {Messages.debug_noel " "; token lexbuf}
+  |blank                {Messages.debug_noel2 " "; token lexbuf}
   |"GET"                
   |"POST"               
   |"HEAD"               
@@ -67,17 +67,23 @@ rule token =
   |"CONNECT"            
   |"LINK"               
   |"UNLINK"             
-  |"PATCH"              {Messages.debug_noel (Lexing.lexeme lexbuf); 
-                         METHOD (Lexing.lexeme lexbuf)}
-  |"\r\n"               {Messages.debug ""; EOL}
-  |":"                  {Messages.debug_noel ":";COLON}
-  |"\n"                 {Messages.debug ""; EOL}
-  |integer              {Messages.debug_noel (Lexing.lexeme lexbuf);
-			 CODE (Lexing.lexeme lexbuf)}
-  |proto                {Messages.debug_noel (Lexing.lexeme lexbuf);
-			 PROTO (Lexing.lexeme lexbuf)}
-  |strin                {Messages.debug_noel (Lexing.lexeme lexbuf);
-			 STRING (Lexing.lexeme lexbuf)}
-  |eof                  {raise (Http_error.Http_exception (400, Some "unexpected end of file"))}
-  |_                    {raise (Http_error.Http_exception (400, Some ("unexpected character "
+  |"PATCH"              {let s = Lexing.lexeme lexbuf in
+                         Messages.debug_noel2 s; 
+                         METHOD s}
+  |"\r\n"               {Messages.debug2 ""; EOL}
+  |":"                  {Messages.debug_noel2 ":";COLON}
+  |"\n"                 {Messages.debug2 ""; EOL}
+  |integer              {let s = Lexing.lexeme lexbuf in
+                         Messages.debug_noel2 s;
+			 CODE s}
+  |proto                {let s = Lexing.lexeme lexbuf in
+                         Messages.debug_noel2 s;
+			 PROTO s}
+  |strin                {let s = Lexing.lexeme lexbuf in
+                         Messages.debug_noel2 s;
+			 STRING s}
+  |eof                  {raise (Http_error.Http_exception 
+                                  (400, Some "unexpected end of file"))}
+  |_                    {raise (Http_error.Http_exception
+                                  (400, Some ("unexpected character "
                         ^ Lexing.lexeme lexbuf)))}

@@ -93,11 +93,12 @@ let gen dir charset ri =
   catch
     (* Is it a redirection? *)
     (fun () ->
-      Messages.debug ("--Redirectmod: Is it a redirection?");
+      Messages.debug2 "--Redirectmod: Is it a redirection?";
       let (redir, temp) = find_redirection dir ri.ri_sub_path in
-      Messages.debug ("--Redirectmod: YES! "^
-                      (if temp then "Temporary " else "Permanent ")^
-                      "redirection to: "^redir);      
+      Messages.debug (fun () ->
+        "--Redirectmod: YES! "^
+        (if temp then "Temporary " else "Permanent ")^
+        "redirection to: "^redir);      
       return
         (Ext_found 
            {Http_frame.empty_result with

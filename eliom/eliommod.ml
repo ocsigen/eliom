@@ -801,7 +801,7 @@ let service_session_gc sitedata =
         Lwt_unix.sleep t >>= 
         (fun () ->
           let now = Unix.time () in
-          Messages.debug "--Eliom: GC of service sessions";
+          Messages.debug2 "--Eliom: GC of service sessions";
           (* public continuation tables: *)
           (if !contains_services_with_timeout
           then gc_timeouted_services now servicetable
@@ -858,7 +858,7 @@ let data_session_gc sitedata =
       let rec f () = 
         Lwt_unix.sleep t >>= fun () ->
         let now = Unix.time () in
-        Messages.debug "--Eliom: GC of session data";
+        Messages.debug2 "--Eliom: GC of session data";
         (* private continuation tables: *)
         Cookies.fold
           (fun k (sessname, exp, _) thr -> 
@@ -892,7 +892,7 @@ let persistent_session_gc () =
         Lwt_unix.sleep t >>= 
         (fun () ->
           let now = Unix.time () in
-          Messages.debug "--Eliom: GC of persistent sessions";
+          Messages.debug2 "--Eliom: GC of persistent sessions";
           (Ocsipersist.iter_table
              (fun k (_, exp, _, _) -> 
                (match exp with
@@ -1335,19 +1335,19 @@ let find_page_table
         match expdate with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
-            Messages.debug "--Eliom: Service expired. I'm removing it";
+            Messages.debug2 "--Eliom: Service expired. I'm removing it";
             aux toremove l >>= 
             (fun (r, toremove) -> Lwt.return (r, a::toremove))
         | _ ->
             catch 
               (fun () ->
-                Messages.debug "--Eliom: I'm trying a service";
+                Messages.debug2 "--Eliom: I'm trying a service";
                 funct sp
                   >>=
                 (* warning: the list ll may change during funct
                    if funct register something on the same URL!! *)
                 (fun p -> 
-                  Messages.debug
+                  Messages.debug2
                     "--Eliom: Page found and generated successfully";
 
                   (* We update the expiration date *)
@@ -1468,7 +1468,7 @@ let find_naservice now ((_,atr,_,_) as str) name =
   match expdate with
   | Some (_, e) when !e < now ->
       (* Service expired. Removing it. *)
-      Messages.debug "--Eliom: Non attached service expired. I'm removing it";
+      Messages.debug2 "--Eliom: Non attached service expired. I'm removing it";
       remove_naservice str name;
       raise Not_found
   | _ -> p
@@ -1696,7 +1696,7 @@ let close_all_persistent_sessions ?session_name sitedata =
 
 (* Update the expiration date for all service sessions                      *)
 let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
-  Messages.debug 
+  Messages.debug2 
     "--Eliom: Updating expiration date for all service sessions";
   match new_glob_timeout with
   | Some t when t <= 0.->
@@ -1726,7 +1726,7 @@ let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all in memory data sessions                *)
 let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
-  Messages.debug 
+  Messages.debug2 
     "--Eliom: Updating expiration date for all data sessions";
   match new_glob_timeout with
   | Some t when t <= 0.->
@@ -1757,7 +1757,7 @@ let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all sessions                               *)
 let update_pers_exp fullsessname old_glob_timeout new_glob_timeout =
-  Messages.debug 
+  Messages.debug2 
     "--Eliom: Updating expiration date for all persistent sessions";
   match new_glob_timeout with
   | Some t when t <= 0.->
@@ -2421,15 +2421,16 @@ let get_page
   (catch
      (fun () -> 
         Messages.debug 
-          ("--Eliom: I'm looking for "^(string_of_url_path ri.ri_sub_path)^
-           " in the session table:");
+          (fun () ->
+            "--Eliom: I'm looking for "^(string_of_url_path ri.ri_sub_path)^
+            " in the session table:");
         find_aux Ocsigen_404 !service_cookies_info
       )
       (function 
         | Ocsigen_404 | Eliom_Wrong_parameter -> 
             catch (* ensuite dans la table globale *)
               (fun () -> 
-                Messages.debug "--Eliom: I'm searching in the global table:";
+                Messages.debug2 "--Eliom: I'm searching in the global table:";
                 find_service 
                   now
                   sitedata.global_services
@@ -2447,7 +2448,7 @@ let get_page
                         (* There was a POST state. 
                            We remove it, and remove POST parameters.
                          *)
-                        Messages.debug 
+                        Messages.debug2 
                           "--Eliom: Link to old. I will try without POST parameters:";
                         fail (Eliom_retry_with 
                                 ({ri with 
@@ -2467,7 +2468,7 @@ let get_page
                            We remove it with its parameters, 
                            and remove POST parameters.
                          *)
-                        Messages.debug 
+                        Messages.debug2 
                           "--Eliom: Link to old. I will try without GET state parameters and POST parameters:";
                         fail (Eliom_retry_with 
                                 ({ri with 
@@ -2528,7 +2529,7 @@ let make_naservice
       match si.si_nonatt_info with
       | None, None -> assert false
       | Some _ as g, Some _ -> (* (Some, Some) or (_, Some) ? *)
-          Messages.debug 
+          Messages.debug2 
             "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
           fail (Eliom_retry_with
                   ({ri with 
@@ -2543,7 +2544,7 @@ let make_naservice
                    cookies_to_set,
                    all_cookie_info))
       | _ ->
-          Messages.debug 
+          Messages.debug2 
             "--Eliom: Link too old. I will try without non-attached parameters:";
           change_request_info
             {ri with 
@@ -2574,7 +2575,7 @@ let make_naservice
           si
           fullsessname)) >>=
     (fun r -> 
-      Messages.debug
+      Messages.debug2
         "--Eliom: Non attached page found and generated successfully";
       (match expdate with
       | Some (timeout, e) -> e := timeout +. now

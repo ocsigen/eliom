@@ -521,7 +521,7 @@ let gmtdate d =
         String.set x (ind_plus + 1) 'M';
         String.set x (ind_plus + 2) 'T';
         String.sub x 0 (ind_plus + 3)
-        with _ -> Messages.debug "no +"; x
+        with _ -> Messages.debug2 "no +"; x
 
 type sender_type = {
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
@@ -662,14 +662,14 @@ let send
               H.proto = with_default proto sender.s_proto;
               H.headers = hds }
           in
-          Messages.debug "writing header";
+          Messages.debug2 "writing header";
           catch_io_errors (fun () ->
             Lwt_chan.output_string out_ch (Framepp.string_of_header hd)
               >>= fun () ->
                 if empty_content || head then begin
                   Lwt.return ()
                 end else begin
-                  Messages.debug "writing body";
+                  Messages.debug2 "writing body";
                   write_stream ~chunked out_ch res.res_stream
                 end))
       (fun () -> Ocsistream.finalize res.res_stream)

@@ -94,12 +94,13 @@ let gen dir charset ri =
   catch
     (* Is it a redirection? *)
     (fun () ->
-      Messages.debug ("--Revproxy: Is it a redirection?");
+      Messages.debug2 "--Revproxy: Is it a redirection?";
       let (https, host, port, uri) = find_redirection dir ri.ri_sub_path in
       let uri = "/"^uri in
-      Messages.debug ("--Revproxy: YES! Redirection to "^
-                      (if https then "https://" else "http://")^host^":"^
-                      (string_of_int port)^uri);
+      Messages.debug (fun () ->
+        "--Revproxy: YES! Redirection to "^
+        (if https then "https://" else "http://")^host^":"^
+        (string_of_int port)^uri);
       Preemptive.detach Unix.gethostbyname host >>= fun host_entry ->
       Http_client.raw_request 
         ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers

@@ -229,9 +229,11 @@ module Http_error =
         let display_http_exception e =
           match e with
             Http_exception (n, Some s) ->
-              Messages.debug (Format.sprintf "%s: %s" (expl_of_code n) s)
+              Messages.debug 
+                (fun () -> Format.sprintf "%s: %s" (expl_of_code n) s)
           | Http_exception (n, None) ->
-              Messages.debug (Format.sprintf "%s" (expl_of_code n))
+              Messages.debug 
+                (fun () -> Format.sprintf "%s" (expl_of_code n))
           | _ ->
               raise e
 

@@ -94,7 +94,7 @@ let split_regexp r s =
 let find_cgi_page reg path =
   let find_file (filename, re) =
     (* See also module Files in eliom.ml *)
-    Messages.debug ("--Cgimod: Testing \""^filename^"\".");
+    Messages.debug (fun () -> "--Cgimod: Testing \""^filename^"\".");
     try
       let stat = Unix.LargeFile.stat filename in
       let filename = 
@@ -103,7 +103,7 @@ let find_cgi_page reg path =
           raise Ocsigen_Is_a_directory
         else filename
       in
-      Messages.debug ("--Cgimod: Looking for \""^filename^"\".");
+      Messages.debug (fun () -> "--Cgimod: Looking for \""^filename^"\".");
       
       if (stat.Unix.LargeFile.st_kind 
             = Unix.S_REG)
@@ -437,7 +437,7 @@ let gen reg charset ri =
     (fun () ->
        if ri.ri_sub_path <> [""]
        then begin
-         Messages.debug ("--Cgimod: Is it a cgi file?");
+         Messages.debug2 "--Cgimod: Is it a cgi file?";
          let (filename, re) = find_cgi_page reg ri.ri_sub_path in 
 	 recupere_cgi 
            (ri.ri_method = Http_header.HEAD) 
@@ -515,7 +515,8 @@ let rec set_env=function
   | [] -> []
   | (Element("setenv", [("var",vr);("val",vl)], []))::l ->
      if List.mem vr environment
-     then (Messages.debug ("--Cgimod: no set variable "^vr); set_env l)
+     then (Messages.debug (fun () -> "--Cgimod: no set variable "^vr); 
+           set_env l)
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 

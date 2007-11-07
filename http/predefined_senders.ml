@@ -220,7 +220,7 @@ let parse_mime_types filename =
 
 
 let rec affiche_mime () =
-  Hashtbl.iter (fun f s -> Messages.debug (f^" "^s)) mimeht
+  Hashtbl.iter (fun f s -> Messages.debug (fun () -> f^" "^s)) mimeht
     
 (* send a file in an HTTP frame*)
 let content_type_from_file_name =
@@ -248,7 +248,7 @@ module File_content =
       | None -> Ocsiconfig.get_filebuffersize ()
       | Some s -> s
       in
-      Messages.debug ("start reading file (file opened)");
+      Messages.debug2 "start reading file (file opened)";
       let buf = String.create buffer_size in
       let rec read_aux () =
           let lu = Unix.read fd buf 0 buffer_size in (
@@ -285,7 +285,7 @@ module File_content =
          Ocsistream.make
            ~finalize:
            (fun () ->
-             Messages.debug ("closing file");
+             Messages.debug2 "closing file";
              Unix.close fd;
              return ())
            stream

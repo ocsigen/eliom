@@ -75,18 +75,18 @@ type output_buffer =
 (* puts in oz the content of buf, from pos to pos + len ;
  * f is the continuation of the current stream *)
 let rec output oz f buf pos len  =
-   Messages.debug "--Deflatemod: Entering output to deflate";
+   Messages.debug2 "--Deflatemod: Entering output to deflate";
    if pos < 0 || len < 0 || pos + len > String.length buf then
            assert false ;
 
   if oz.avail = 0 then
     (let cont () = output oz f buf pos len in
-    Messages.debug "--Deflatemod: Flushing because output buffer is full";
+    Messages.debug2 "--Deflatemod: Flushing because output buffer is full";
     flush oz cont)
   else (
   (catch
       (fun () -> 
-        (Messages.debug "--Deflatemod: Actually deflating...";
+        (Messages.debug2 "--Deflatemod: Actually deflating...";
         try return(Zlib.deflate oz.stream buf pos len
                                  oz.buf oz.pos oz.avail
                                  Zlib.Z_SYNC_FLUSH)
@@ -111,7 +111,7 @@ let rec output oz f buf pos len  =
 and flush oz cont =
         let len = oz.pos in
         let s = String.sub oz.buf 0 len in
-        Messages.debug "--Deflatemod: Flushing!";
+        Messages.debug2 "--Deflatemod: Flushing!";
         oz.pos <- 0 ; 
         oz.avail <- String.length oz.buf ;
         if len > 0 then Ocsistream.cont s cont else cont ()
@@ -120,7 +120,7 @@ and next_cont oz stream =
   Ocsistream.next stream >>= fun e ->
   match e with
   | Ocsistream.Finished None -> 
-      Messages.debug "--Deflatemod: End of stream: big cleaning for zlib" ; 
+      Messages.debug2 "--Deflatemod: End of stream: big cleaning for zlib" ; 
       
       (* loop until there is nothing left to compress and flush *)
       let rec after_flushing () = 
@@ -138,13 +138,13 @@ and next_cont oz stream =
             after_flushing ()
         else
             (Zlib.deflate_end oz.stream ; 
-            Messages.debug "--Deflatemod: Zlib stream closed, last flush" ;
+            Messages.debug2 "--Deflatemod: Zlib stream closed, last flush" ;
             flush oz (fun () -> Ocsistream.empty None))) in
       
       flush oz after_flushing
   | Ocsistream.Finished (Some s) -> next_cont oz s
   | Ocsistream.Cont(s,f) ->  
-      Messages.debug "--Deflatemod: Next part of stream" ; 
+      Messages.debug2 "--Deflatemod: Next part of stream" ; 
       output oz f s 0 (String.length s)
  
 (* deflate param : true = deflate ; false = gzip (no header in this case) *)
@@ -158,10 +158,10 @@ let compress deflate stream =
   let finalize () = Ocsistream.finalize stream in
   let new_stream () = next_cont oz (Ocsistream.get stream) in
   if deflate then begin
-    Messages.debug "--Deflatemod: Preparing to compress with deflate...";
+    Messages.debug2 "--Deflatemod: Preparing to compress with deflate...";
     Ocsistream.make ~finalize new_stream
   end else begin
-    Messages.debug "--Deflatemod: Preparing to compress with gzip...";
+    Messages.debug2 "--Deflatemod: Preparing to compress with gzip...";
     Ocsistream.make
       ~finalize (fun () -> Ocsistream.cont gzip_header new_stream)
   end

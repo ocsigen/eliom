@@ -284,19 +284,21 @@ let do_for_site_matching host port ri =
       | (h, path, charset, extlist)::l when host_match host port h ->
           (match site_match path ri.ri_full_path with
           | None ->
-              Messages.debug ("---- host = "^
-                              (string_of_host_option host)^" site = "^
-                              (Ocsimisc.string_of_url_path path)^
-                              " does not match \""^(string_of_host h)^"/"^
-                              (Ocsimisc.string_of_url_path ri.ri_full_path)^
-                              "\".");
+              Messages.debug (fun () ->
+                "---- host = "^
+                (string_of_host_option host)^" site = "^
+                (Ocsimisc.string_of_url_path path)^
+                " does not match \""^(string_of_host h)^"/"^
+                (Ocsimisc.string_of_url_path ri.ri_full_path)^
+                "\".");
               aux ri e l
           | Some sub_path ->
-              Messages.debug ("---- site found: "^(string_of_host_option host)^
-                              " matches \""^(string_of_host h)^"\" and "^
-                              (Ocsimisc.string_of_url_path ri.ri_full_path)^
-                              " matches \""^
-                              (Ocsimisc.string_of_url_path path)^"\".");
+              Messages.debug (fun () -> 
+                "---- site found: "^(string_of_host_option host)^
+                " matches \""^(string_of_host h)^"\" and "^
+                (Ocsimisc.string_of_url_path ri.ri_full_path)^
+                " matches \""^
+                (Ocsimisc.string_of_url_path path)^"\".");
               let ri = {ri with ri_sub_path = ""::sub_path} in
               let charset = match charset with 
               | None -> Ocsiconfig.get_default_charset ()
@@ -333,9 +335,10 @@ let do_for_site_matching host port ri =
                   )
           )
           | (h, p, _, _)::l ->
-          Messages.debug ("---- host = "^
-                          (string_of_host_option host)^
-                          " does not match "^(string_of_host h));
+          Messages.debug (fun () ->
+            "---- host = "^
+            (string_of_host_option host)^
+            " does not match "^(string_of_host h));
           aux ri e l
     in aux ri Ocsigen_404 sites
   in do2 (get_sites ()) ri

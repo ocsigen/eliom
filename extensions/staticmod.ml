@@ -53,7 +53,7 @@ let find_static_page dir path =
   let find_file (filename, readable) =
     (* See also module Files in eliom.ml *)
     try
-      Messages.debug ("--Staticmod: Testing \""^filename^"\".");
+      Messages.debug (fun () -> "--Staticmod: Testing \""^filename^"\".");
       let stat = Unix.LargeFile.stat filename in
       let (filename, stat) = 
         if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
@@ -61,7 +61,7 @@ let find_static_page dir path =
           (if (filename.[(String.length filename) - 1]) = '/'
           then
             let fn2 = filename^"index.html" in
-            Messages.debug ("--Staticmod: Testing \""^fn2^"\".");
+            Messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
 	    try
 	      (fn2, (Unix.LargeFile.stat fn2))
 	    with
@@ -73,7 +73,7 @@ let find_static_page dir path =
             (if (path= []) || (path = [""])
             then 
               let fn2 = filename^"/index.html" in
-              Messages.debug ("--Staticmod: Testing \""^fn2^"\".");
+              Messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
               try
 	        (fn2, (Unix.LargeFile.stat fn2))
 	      with
@@ -81,11 +81,12 @@ let find_static_page dir path =
 		  if readable
 		  then (filename^"/", stat)
 		  else raise Ocsigen_403
-            else (Messages.debug ("--Staticmod: "^filename^" is a directory");
+            else (Messages.debug
+                    (fun () -> "--Staticmod: "^filename^" is a directory");
                   raise Ocsigen_Is_a_directory)))
         else (filename, stat)
       in
-      Messages.debug ("--Staticmod: Looking for \""^filename^"\".");
+      Messages.debug (fun () -> "--Staticmod: Looking for \""^filename^"\".");
       if (stat.Unix.LargeFile.st_kind = Unix.S_REG)
       then begin 
         Unix.access filename [Unix.R_OK];
@@ -132,7 +133,7 @@ let gen dir charset ri =
       if ri.ri_get_params_string = None
           (* static pages do not have parameters *)
       then begin
-        Messages.debug ("--Staticmod: Is it a static file?");
+        Messages.debug2 "--Staticmod: Is it a static file?";
         match find_static_page dir ri.ri_sub_path with
         | RDir dirname ->
             Predefined_senders.Directory_content.result_of_content 

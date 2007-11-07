@@ -77,7 +77,8 @@ let free, nbthreadsqueued =
       None -> 
         let last = (min (first + (max !minthreads 10)) !maxthreads) - 1 in
         Messages.debug 
-          ("Creating "^(string_of_int (last - first + 1))^" threads.");
+          (fun () -> 
+            "Creating "^(string_of_int (last - first + 1))^" threads.");
         aux last first
     | _ -> ()
   in
