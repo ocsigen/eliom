@@ -32,6 +32,7 @@
 
 
 open Lwt
+open Http_frame
 open Ocsimisc
 open Extensions
 open Lazy
@@ -239,8 +240,8 @@ exception Eliom_error_while_loading_site of string
 
 (*****************************************************************************)
 type result_to_send = 
-  | EliomResult of Extensions.result
-  | EliomExn of (exn list * cookieslist)
+  | EliomResult of Http_frame.result
+  | EliomExn of (exn list * Http_frame.cookieslist)
 
 
 
@@ -2643,16 +2644,8 @@ let gen sitedata charset ri =
                     >>= fun all_new_cookies ->
                     return
                       (Ext_found
-                         {res_cookies= all_new_cookies;
-                          res_send_page=
-                          Predefined_senders.send_empty ~content:();
-                          res_headers=Http_headers.empty;
-                          res_code=Some 204; (* No content *)
-                          res_lastmodified=None; 
-                          (* No date => proxies use etag *)
-                          res_etag=None;
-                          res_charset=None;
-                          res_filter=None})
+                         {empty_result with
+                          res_cookies= all_new_cookies})
                       
                 | _ ->
 
@@ -2791,34 +2784,22 @@ let gen sitedata charset ri =
       )
       (function
         | Eliom_Typing_Error l -> 
+            Predefined_senders.Xhtml_content.result_of_content
+              (Error_pages.page_error_param_type l) >>= fun r ->
             return (Ext_found
-                      {res_cookies= old_cookies_to_set;
-                       res_send_page=
-                       (Predefined_senders.send_xhtml_page 
-                          ~content:(Error_pages.page_error_param_type l));
-                       res_headers=
-                       Predefined_senders.dyn_headers;
-                       res_code=None;
-                       res_lastmodified=None;
-                       res_etag=None;
-                       res_charset= Error_pages.charset;
-                       res_filter=None})
+                      {r with
+                       res_cookies = old_cookies_to_set;
+                       res_code= 500;
+                     })
 	| Eliom_Wrong_parameter -> 
-            (force ri.ri_post_params) >>=
-            (fun ripp ->
-	      return (Ext_found 
-                        {res_cookies= old_cookies_to_set;
-                         res_send_page=
-                         (Predefined_senders.send_xhtml_page 
-                            ~content:(Error_pages.page_bad_param 
-                                      (List.map fst ripp)));
-                         res_headers=
-                         Predefined_senders.dyn_headers;
-                         res_code=None;
-                         res_lastmodified=None;
-                         res_etag=None;
-                         res_charset= Error_pages.charset;
-                         res_filter=None}))
+            force ri.ri_post_params >>= fun ripp ->
+            Predefined_senders.Xhtml_content.result_of_content
+                (Error_pages.page_bad_param (List.map fst ripp)) >>= fun r ->
+            return (Ext_found 
+                      {r with
+                       res_cookies= old_cookies_to_set;
+                       res_code= 500;
+                     })
 	| Ocsigen_404 -> return (Ext_not_found Ocsigen_404)
         | Eliom_retry_with a -> gen_aux a
 	| e -> fail e)

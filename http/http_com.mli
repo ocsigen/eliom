@@ -50,25 +50,26 @@ val create_sender :
   ?server_name:string -> ?headers:Http_headers.t ->
   ?proto:Http_frame.Http_header.proto -> unit -> sender_type
 
-module type SENDER =
-  sig
-    type t
+(** Sender with only the server name, and HTTP/1.1 *)
+val default_sender : sender_type
 
-(** [send] may also fail with Interrupted_stream exception *)
-    val send :
-      ?filter:('a option ->
-               Http_frame.full_stream -> Http_frame.full_stream Lwt.t) ->
-      slot ->
-      clientproto:Http_frame.Http_header.proto ->
-      ?etag:Http_frame.etag ->
-      mode:Http_frame.Http_header.http_mode ->
-      ?proto:Http_frame.Http_header.proto ->
-      ?headers:Http_headers.t ->
-      ?contenttype:'a ->
-      content:t -> head:bool -> sender_type -> unit Lwt.t
-  end
 
-module FHttp_sender :
-  functor (C : Http_frame.HTTP_CONTENT) -> SENDER with type t = C.t
+
+(** send an HTTP message. 
+    [send] may also fail with [Interrupted_stream] exception if the input
+    stream is interrupted.
+ *)
+val send :
+    slot ->
+    clientproto:Http_frame.Http_header.proto ->
+    ?mode:Http_frame.Http_header.http_mode ->
+    ?proto:Http_frame.Http_header.proto ->
+    keep_alive:bool ->
+    head:bool ->
+    sender:sender_type ->
+    Http_frame.result -> 
+    unit Lwt.t
 
 val abort : connection -> unit
+
+

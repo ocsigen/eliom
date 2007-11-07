@@ -28,6 +28,9 @@ let sslcontext = ref (Ssl.create_context Ssl.SSLv23 Ssl.Both_context)
 (*VVV TODO: add pipelining *)
 
 
+let request_sender =
+  Http_com.create_sender ~proto:Http_frame.Http_header.HTTP11 ()
+
 let raw_request 
     ?headers ?(https=false) ?port ?content
     ~http_method ~host ~inet_addr ~uri () =
@@ -64,31 +67,30 @@ let raw_request
   let f slot =
     
     match content with
-    | None -> 
-        Predefined_senders.send_empty
-          ~mode:query
+    | None ->
+        Http_com.send
           slot
+          ~mode:query
           ~clientproto:Http_frame.Http_header.HTTP11
-          ~content:()
-          ~headers
           ~head:false
           ~keep_alive:false
-          (Http_com.create_sender 
-             ~proto:Http_frame.Http_header.HTTP11 ())
+          ~sender:request_sender
+          {Http_frame.empty_result with
+           Http_frame.res_headers = headers}
 
     | Some stream -> 
-        
-        Predefined_senders.send_stream
-          ~mode:query
+        Predefined_senders.Stream_content.result_of_content stream >>= fun r ->
+        Http_com.send
           slot
+          ~mode:query
           ~clientproto:Http_frame.Http_header.HTTP11
-          ~content:stream
-          ~headers
           ~head:false
           ~keep_alive:false
-          (Http_com.create_sender 
-             ~proto:Http_frame.Http_header.HTTP11 ())
-
+          ~sender:request_sender
+          {r with
+           Http_frame.res_headers= headers;
+          }
+ 
   in
   Http_com.start_processing conn f; (* starting the request *)
 

@@ -27,18 +27,8 @@ open Ocsistream
 open XHTML.M
 
 
-type mycookieslist = 
-  (string list option * float option * (string * string) list) list
-(** The cookies I want to set *)
-
-type stream_filter_type =
-    string option (* content-type *) -> full_stream -> full_stream Lwt.t
-(** A function to transform a stream into another one. *)
-
-
-
-let id x = x
-
+(*****************************************************************************)
+(** this module instantiate the HTTP_CONTENT signature for an Xhtml content*)
 let add_css (a : 'a) : 'a = 
     let css = 
       XHTML.M.toelt 
@@ -64,69 +54,87 @@ let add_css (a : 'a) : 'a =
       | XML.Node ("html",al,el) -> XML.Node ("html",al,aux el)
       | e -> e)
 
-(** this module instantiate the HTTP_CONTENT signature for an Xhtml content*)
+
 module Xhtml_content =
   struct
     type t = [ `Html ] XHTML.M.elt
 
     let get_etag_aux x =
-      Digest.to_hex (Digest.string x)
+      Some (Digest.to_hex (Digest.string x))
 
     let get_etag c =
-      let x = (XHTML.M.ocsigen_print (add_css c)) in
+      let x = XHTML.M.ocsigen_print (add_css c) in
       get_etag_aux x
 
-    let stream_of_content c = 
-      let x = (XHTML.M.ocsigen_print (add_css c)) in
+    let result_of_content c = 
+      let x = XHTML.M.ocsigen_print (add_css c) in
       let md5 = get_etag_aux x in
-      Lwt.return (Some (Int64.of_int (String.length x)), 
-                  md5, 
-                  Ocsistream.make (fun () -> Ocsistream.cont x
-                     (fun () -> Ocsistream.empty None)))
-
-    (*il n'y a pas encore de parser pour ce type*)
-    let content_of_stream s = assert false
+      Lwt.return 
+        {default_result with
+         res_content_length = Some (Int64.of_int (String.length x));
+         res_content_type = Some "text/html";
+         res_etag = md5;
+         res_headers= Http_headers.dyn_headers;
+         res_stream = 
+         Ocsistream.make 
+           (fun () -> Ocsistream.cont x
+               (fun () -> Ocsistream.empty None))
+       }
+           
   end
 
+(*****************************************************************************)
 module Text_content =
   struct
-    type t = string
+    type t = string (* content *) * string (* content-type *)
 
-    let get_etag x =
-      Digest.to_hex (Digest.string x)
+    let get_etag (x, _) =
+      Some (Digest.to_hex (Digest.string x))
 
-    let stream_of_content c =
-      let md5 = get_etag c in
-      Lwt.return (Some (Int64.of_int (String.length c)), 
-                  md5, 
-                  Ocsistream.make (fun () -> Ocsistream.cont c (fun () -> Ocsistream.empty None)))
+    let result_of_content ((c, ct) as content) =
+      let md5 = get_etag content in
+      Lwt.return
+        {default_result with
+         res_content_length = Some (Int64.of_int (String.length c));
+         res_etag = md5;
+         res_content_type = Some ct;
+         res_headers= Http_headers.dyn_headers;
+         res_stream = 
+         Ocsistream.make
+           (fun () -> Ocsistream.cont c (fun () -> Ocsistream.empty None))
 
-    let content_of_stream st = Ocsistream.string_of_stream (Ocsistream.get st)
+       }
+
   end
 
+(*****************************************************************************)
 module Stream_content =
-  (* Use to receive any type of data, before knowing the content-type,
-     or to send data from a stream
+  (* Used to send data from a stream
    *)
   struct
     type t = string Ocsistream.t
 
-    let get_etag c = ""
+    let get_etag c = None
 
-    let stream_of_content c =
-      Lwt.return (None, get_etag c, c)
+    let result_of_content c =
+      Lwt.return
+        {default_result with
+         res_content_length = None;
+         res_headers= Http_headers.dyn_headers;
+         res_stream = c}
 
-    let content_of_stream s = Lwt.return s
   end
 
+(*****************************************************************************)
 module Streamlist_content =
   (* Used to send data from streams *)
   struct
     type t = (unit -> string Ocsistream.t Lwt.t) list
+          * string (* content-type *)
 
-    let get_etag c = ""
+    let get_etag c = None
 
-    let stream_of_content c =
+    let result_of_content (c, ct) =
       let finalizer = ref (fun () -> Lwt.return ()) in
       let finalize () =
         let f = !finalizer in
@@ -162,27 +170,75 @@ module Streamlist_content =
         finalize () >>= fun () ->
         next_stream l
       in
-      Lwt.return (None, get_etag c,
-                  Ocsistream.make ~finalize (fun () -> next_stream c))
+      Lwt.return
+        {default_result with
+         res_content_length = None;
+         res_etag = get_etag c;
+         res_stream = Ocsistream.make ~finalize (fun () -> next_stream c);
+         res_headers= Http_headers.dyn_headers;
+         res_content_type = Some ct}
 
-    let content_of_stream s = Lwt.return [fun () -> Lwt.return s]
   end
 
 
+(*****************************************************************************)
 module Empty_content =
   struct
     type t = unit
 
-    let get_etag c = "empty"
+    let get_etag c = None
 
-    let stream_of_content c = 
-      Lwt.return (Some (Int64.of_int 0), (get_etag ()),
-                  Ocsistream.make (fun () -> Ocsistream.empty None))
+    let result_of_content c = Lwt.return empty_result
 
-    let content_of_stream s = Lwt.return ()
   end
 
-(** this module instanciate the HTTP_CONTENT signature for the files*)
+(*****************************************************************************)
+(* Files *)
+let mimeht = Hashtbl.create 600
+
+let parse_mime_types filename =
+  let rec read_and_split in_ch = try
+    let line = input_line in_ch in
+    let line_upto = try 
+            let upto = String.index line '#' in 
+        String.sub line 0 upto 
+    with Not_found -> line in
+    let strlist = 
+      Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto in
+    match  List.length strlist with
+    | 0 | 1 -> read_and_split in_ch
+    | _ -> let make_pair = (fun h -> Hashtbl.add mimeht h (List.hd strlist)) in
+               List.iter make_pair (List.tl strlist);
+               read_and_split in_ch
+    with End_of_file -> ()
+  in
+  try
+    let in_ch =  open_in filename in
+    read_and_split in_ch;
+    close_in in_ch
+  with _ -> ()
+
+
+let rec affiche_mime () =
+  Hashtbl.iter (fun f s -> Messages.debug (f^" "^s)) mimeht
+    
+(* send a file in an HTTP frame*)
+let content_type_from_file_name =
+  let parsed = ref false in
+  fun filename ->
+    if not !parsed
+    then (parse_mime_types (Ocsiconfig.get_mimefile ());
+          parsed := true);
+    try 
+      let pos = (String.rindex filename '.') in 
+      let extens = 
+        String.sub filename 
+          (pos+1)
+          ((String.length filename) - pos - 1)
+      in Hashtbl.find mimeht extens
+    with _ -> "unknown" 
+
+(** this module instanciate the HTTP_CONTENT signature for files *)
 module File_content =
   struct
     type t = string (* nom du fichier *)
@@ -206,373 +262,288 @@ module File_content =
       in read_aux
 
     let get_etag_aux st =
-      Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
-        st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime
+      Some (Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
+              st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime)
         
     let get_etag f =
       let st = Unix.LargeFile.stat f in 
       get_etag_aux st
 
-    let stream_of_content c  =
+    let result_of_content c  =
       (* open the file *)
       let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
       let st = Unix.LargeFile.stat c in 
       let etag = get_etag_aux st in
       let stream = read_file fd in
       Lwt.return
-        (Some st.Unix.LargeFile.st_size,
-         etag,
+        {default_result with
+         res_content_length = Some st.Unix.LargeFile.st_size;
+         res_content_type = Some (content_type_from_file_name c);
+         res_lastmodified = Some st.Unix.LargeFile.st_mtime;
+         res_etag = etag;
+         res_stream = 
          Ocsistream.make
            ~finalize:
-              (fun () ->
-                 Messages.debug ("closing file");
-                 Unix.close fd;
-                 return ())
-           stream)
+           (fun () ->
+             Messages.debug ("closing file");
+             Unix.close fd;
+             return ())
+           stream
+       }
+        
 
-    let content_of_stream s = assert false
-      
   end
 
-(** this module is a sender that send Http_frame with empty content *)
-module Empty_sender = FHttp_sender(Empty_content)
+(*****************************************************************************)
+(* directory listing - by Gabriel Kerneis *)
 
-(** this module is a sender that send Http_frame with Xhtml content *)
-module Xhtml_sender = FHttp_sender(Xhtml_content)
+(** this module instanciate the HTTP_CONTENT signature for directories *)
+module Directory_content =
+  struct
+    type t = string (* dir name *) * string list (* corresponding URL path *)
 
-(** this module is a sender that send Http_frame with text content *)
-module Text_sender = FHttp_sender(Text_content)
+    let get_etag_aux st =
+      Some (Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
+              st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime)
+        
+    let get_etag (f, _) =
+      let st = Unix.LargeFile.stat f in 
+      get_etag_aux st
 
-(** creates a sender for any stream *)
-module Stream_sender = FHttp_sender(Stream_content)
+    let date fl = 
+      let t = Unix.gmtime fl in
+      Printf.sprintf 
+        "%02d-%02d-%04d %02d:%02d:%02d" 
+        t.Unix.tm_mday 
+        (t.Unix.tm_mon + 1)
+        (1900 + t.Unix.tm_year)
+        t.Unix.tm_hour
+        t.Unix.tm_min
+        t.Unix.tm_sec 
 
-(** creates a sender for any stream list *)
-module Streamlist_sender = FHttp_sender(Streamlist_content)
 
-(** this module is a sender that send Http_frame with file content *)
-module File_sender = FHttp_sender(File_content)
+    let image_found fich =
+      if fich="README" || fich="README.Debian"
+      then "/ocsigenstuff/readme.png"
+      else
+        let reg=Netstring_pcre.regexp "([^//.]*)(.*)"
+        in match Netstring_pcre.global_replace reg "$2" fich with
+        | ".jpeg" | ".jpg" | ".gif" | ".tif"
+        | ".png" -> "/ocsigenstuff/image.png"
+        | ".ps" -> "/ocsigenstuff/postscript.png"
+        | ".pdf" -> "/ocsigenstuff/pdf.png"
+        | ".html" | ".htm"
+        | ".php" -> "/ocsigenstuff/html.png"
+        | ".mp3"
+        | ".wma" -> "/ocsigenstuff/sound.png"
+        | ".c" -> "/ocsigenstuff/source_c.png"
+        | ".java" -> "/ocsigenstuff/source_java.png"
+        | ".pl" -> "/ocsigenstuff/source_pl.png"
+        | ".py" -> "/ocsigenstuff/source_py.png"
+        | ".iso" | ".mds" | ".mdf" | ".cue" | ".nrg"
+        | ".cdd" -> "/ocsigenstuff/cdimage.png"
+        | ".deb" -> "/ocsigenstuff/deb.png"
+        | ".dvi" -> "/ocsigenstuff/dvi.png"
+        | ".rpm" -> "/ocsigenstuff/rpm.png"
+        | ".tar" | ".rar" -> "/ocsigenstuff/tar.png"
+        | ".gz" | ".tar.gz" | ".tgz" | ".zip"
+        | ".jar"  -> "/ocsigenstuff/tgz.png"
+        | ".tex" -> "/ocsigenstuff/tex.png"
+        | ".avi" | ".mov" -> "/ocsigenstuff/video.png"
+        | ".txt" -> "/ocsigenstuff/txt.png"
+        | _ -> "/ocsigenstuff/unknown.png"
 
 
-let (<<) h (n, v) = Http_headers.replace n v h
-let (<<?) h (n, v) = Http_headers.replace_opt n v h
 
-(** Headers for dynamic pages *)
-let dyn_headers =
-  Http_headers.empty
-  << (Http_headers.cache_control,"no-cache")
-  << (Http_headers.expires, "0")
+    let directory filename =
+      let dir = Unix.opendir filename in
+      let rec aux d =
+        try
+          let f = Unix.readdir dir in
+          let stat = Unix.LargeFile.stat (filename^f) in
+          if (stat.Unix.LargeFile.st_kind = Unix.S_DIR && f <> "." && f <> "..")
+          then 
+	    (
+	     `Dir, f, (
+	     "<tr>\n"^
+	     "<td class=\"img\"><img src=\"/ocsigenstuff/folder_open.png\" alt=\"\" /></td>\n"^
+	     "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
+	     "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
+	     "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
+	     "</tr>\n")
+            )::aux d
+          else
+	    if (stat.Unix.LargeFile.st_kind 
+                  = Unix.S_REG)
+	    then
+	      (
+	       if f.[(String.length f) - 1] = '~'
+	       then aux d
+	       else 
+	         (
+	          `Reg, f,
+	          "<tr>\n"^
+	          "<td class=\"img\"><img src=\""^image_found f^"\" alt=\"\" /></td>\n"^
+	          "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
+	          "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
+	          "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
+	          "</tr>\n"
+	         )::aux d
+	      )
+	    else aux d
+        with
+	  End_of_file -> Unix.closedir d;[]
 
-let gmtdate d =  
-        let x = Netdate.mk_mail_date ~zone:0 d in try
-(*XXX !!!*)
-        let ind_plus =  String.index x '+' in  
-        String.set x ind_plus 'G';
-        String.set x (ind_plus + 1) 'M';
-        String.set x (ind_plus + 2) 'T';
-        String.sub x 0 (ind_plus + 3)
-        with _ -> Messages.debug "no +"; x
+      in 
+      let trie li =
+        List.sort (fun (a1, b1, _) (a2, b2, _) -> match a1, a2 with
+	| `Dir, `Dir -> 
+	    if b1<b2
+	    then 0
+	    else 1
+	| `Dir, _ -> 0
+	| _, `Dir -> 1
+	| _, _->
+	    if b1<b2
+	    then 0
+	    else 1) li
 
-(** fonction that sends something
- * code is the code of the http answer
- * keep_alive is a boolean value that set the field Connection
- * cookie is a string value that give a value to the session cookie
- * page is the page to send
- * xhtml_sender is the used sender *)
-let send_generic
-    (send :
-       ?filter:stream_filter_type ->
-       Http_com.slot ->
-       clientproto:Http_frame.Http_header.proto ->
-       ?etag:Http_frame.etag ->
-       mode:Http_frame.Http_header.http_mode ->
-       ?proto:Http_frame.Http_header.proto ->
-       ?headers:Http_headers.t ->
-       ?contenttype:string ->
-       content:'a ->
-       head:bool ->
-       Http_com.sender_type ->
-       unit Lwt.t)
-    ?contenttype
-    ~content
-    ?filter
-    ?(cookies=[])
-    waiter
-    ~clientproto
-    ?mode
-    ?code
-    ?etag
-    ~keep_alive
-    ?last_modified 
-    ?location
-    ~head
-    ?(headers = Http_headers.empty)
-    ?charset
-    sender
-    =
+      in let rec aux2 = function 
+        | [] -> ""
+        | (_, _, i)::l -> i^(aux2 l)
+      in aux2 (trie (aux dir))
 
-(*XXX Maybe we can compute this only at most once a second*)
-  (* ajout des options spécifiques à la page *)
-  let date = gmtdate (Unix.time ()) in
 
-  let headers =
-    headers
-    <<?
-    (* il faut récupérer la date de dernière modification *)
-    (Http_headers.last_modified,
-     match last_modified with
-       None    -> None (* We do not put last modified for dynamically
-                          generated pages, otherwise it is not possible
-                          to cache them.  Without Last-Modified, ETag is
-                          taken into account by proxies/browsers *)
-     | Some l  -> Some (gmtdate l))
-    <<
-    (Http_headers.date, date)
-  in
-  let mkcook path exp (name, c) =
-    (Http_headers.set_cookie,
-     Format.sprintf "%s=%s%s%s" name c
-       (match path with
-        | Some s -> "; path=/" ^ Ocsimisc.string_of_url_path s
-        | None   -> "")
-       (match exp with
-        | Some s -> "; expires=" ^
-                    Netdate.format
-                      "%a, %d-%b-%Y %H:%M:%S GMT"
-                      (Netdate.create s)
-        | None   -> ""))
-  in
-  let mkcookl hds (path, exp, cl) =
-    List.fold_left (fun h c -> h << mkcook path exp c) hds cl
-  in
-  let headers =
-    List.fold_left mkcookl headers cookies
-    <<?
-(*XXX Check: HTTP/1.0 *)
-    (Http_headers.connection,
-     if keep_alive then None else Some "close")
-    <<?
-    (Http_headers.location, location)
-    <<?
-    (Http_headers.etag,
-     match etag with
-    | None   ->  None
-    | Some l ->  Some (Format.sprintf "\"%s\"" l))
-                 (*XXX Is it the right place to perform quoting?*)
-    <<?
-    (Http_headers.content_type,
-     match contenttype with
-     | None   -> None
-     | Some s ->
-         match String.sub s 0 4, charset with
-         | "text", Some c -> Some (Format.sprintf "%s; charset=%s" s c)
-         | _              -> contenttype)
-  in
-  let mode =
-    match mode with
-    | None -> 
-        Http_header.Answer
-          (match code with
-          | None -> 200
-          | Some c -> c)
-    | Some m -> m
-  in
-(*XXX Shouldn't this function know about the keep_alive parameter? *)
-  send ?filter
-    waiter ~clientproto ?etag
-    ~mode
-    ?contenttype ~content
-    ~headers ~head sender
-    
 
-type send_page_type =
-    (* no content
-       no content-type *)
-    ?filter:stream_filter_type ->
-    ?cookies:mycookieslist ->
-    Http_com.slot ->
-    clientproto:Http_frame.Http_header.proto ->
-    ?mode:Http_frame.Http_header.http_mode ->
-    ?code:int ->
-    ?etag:Http_frame.etag ->
-    keep_alive:bool ->
-    ?last_modified:float ->
-    ?location:string ->
-    head:bool ->
-    ?headers:Http_headers.t ->
-    ?charset:string ->
-    Http_com.sender_type ->
-    unit Lwt.t
+    let result_of_content (filename, path) =
+      let stat = Unix.LargeFile.stat filename in 
+      let rec back = function
+        | [] -> assert false
+        | [a] -> "/"
+        | [a;""] -> "/"
+        | i::j -> "/"^i^(back j)
+      in 
+      let parent =
+        if (path= []) || (path = [""])
+        then "/"
+        else back path
+      in
+      let before =
+        let st = (Ocsimisc.string_of_url_path path) in
+        "<html>\n\
+         <head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n\
+         <link rel=\"stylesheet\" type=\"text/css\" href=\"/ocsigenstuff/style.css\" media=\"screen\" />\n\
+         <title>Listing Directory: "^st^"</title>\n</head>\n\
+         <body><h1>"^st^"</h1>\n\
+         <table summary=\"Contenu du dossier "^st^"\">\n\
+         <tr id=\"headers\"><th></th><th>Name</th><th>Size</th>\
+         <th>Last modified</th></tr>\
+         <tr>\n\
+         <td class=\"img\"><img src=\"/ocsigenstuff/back.png\" alt=\"\" /></td>\n\
+         <td><a href=\""^parent^"\">Parent Directory</a></td>\n\
+         <td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n\
+         <td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n\
+         </tr>\n"
+          
+      and after=
+        "</table>\
+         <p id=\"footer\">Ocsigen Webserver</p>\
+         </body></html>"
+      in
+      let c = before^(directory filename)^after in
+      let etag = get_etag_aux stat in
+      Text_content.result_of_content (c, "text/html") >>= fun r ->
+      Lwt.return
+        {r with
+         res_lastmodified = Some stat.Unix.LargeFile.st_mtime;
+         res_etag = etag;
+         res_charset= Some "utf-8"
+       }
+        
 
-(** fonction that sends a xhtml page
- * code is the code of the http answer
- * keep_alive is a boolean value that set the field Connection
- * cookies is a list of pairs: 
- * string value (the path) and list of string pairs (name, value)   
- * page is the page to send
- * xhtml_sender is the sender to be used *)
-let send_xhtml_page
-(*    ~content
-    ?cookies
-    waiter
-    ~clientproto
-    ?code
-    ?etag
-    ~keep_alive
-    ?last_modified
-    ?location
-    head
-    ?headers
-    ?charset
-    sender *)
-    =
-  send_generic
-    Xhtml_sender.send
-    ~contenttype:"text/html"
-(*    ~content 
-    ?cookies
-    waiter
-    ~clientproto
-    ?code
-    ?etag
-    ~keep_alive
-    ?last_modified
-    ?location
-    head
-    ?headers
-    ?charset
-    sender *)
-  
+  end
 
-(** fonction that sends an empty answer *)
-let send_empty =
-  send_generic Empty_sender.send ?contenttype:None
 
-(** fonction that sends a text answer *)
-let send_text_page =
-  send_generic Text_sender.send
-  
-(** fonction that uses a stream to send the answer step by step *)
-let send_stream =
-  send_generic Stream_sender.send  
-  
-(** fonction that uses a stream list to send the answer step by step *)
-let send_stream_list_page =
-  send_generic Streamlist_sender.send  
-  
-  
 
+(*****************************************************************************)
+module Error_content =
 (** sends an error page that fit the error number *)
-let send_error
-    ?http_exception
-    ?filter
-    ?cookies
-    waiter
+  struct
+    type t = int option * exn option
+
+    let get_etag c = None
+
+    let error_page s c =
+      XHTML.M.html
+        (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata s)) [])
+        (XHTML.M.body
+           ((XHTML.M.h1 [XHTML.M.pcdata "Error"])::c)
+        )
+
+    let result_of_content (code, exn) =
+      let code = match code with
+      | None -> 500
+      | Some c -> c
+      in
+      let (error_code, error_msg) =
+        match exn with
+        | Some (Http_error.Http_exception (errcode, msgs) )->
+            let msg =
+              Http_error.string_of_http_exception
+                (Http_error.Http_exception(errcode, msgs))
+            in (errcode, msg)
+        | _ ->
+            let error_mes = Http_error.expl_of_code code in
+            (code, error_mes)
+      in
+      let str_code = string_of_int error_code in
+      let err_page = 
+        match exn with
+        | Some exn when Ocsiconfig.get_debugmode () ->
+            error_page
+              ("error "^str_code)
+              [XHTML.M.p
+                 [XHTML.M.pcdata (Ocsimisc.string_of_exn exn);
+                  XHTML.M.br ();
+                  XHTML.M.em
+                    [XHTML.M.pcdata "(Ocsigen running in debug mode)"]
+                ]]
+        | _ ->
+          error_page
+            ("error "^str_code)
+            []
+      in
+      Xhtml_content.result_of_content err_page >>= fun r ->
+      Lwt.return
+          {r with
+           res_code = error_code;
+           res_charset= Some "utf-8";
+           res_headers= Http_headers.dyn_headers;
+         }
+
+
+  end
+
+
+let send_error 
+    ?code
+    ?exn
+    slot
     ~clientproto
     ?mode
-    ?(code=500)
-    ?etag
+    ?proto
     ~keep_alive
-    ?last_modified 
-    ?location
     ~head
-    ?(headers = Http_headers.empty)
-    ?charset
-    sender
-    =
-  let (error_code,error_msg) =
-    (
-      match http_exception with
-      | Some (Http_error.Http_exception (errcode,msgs) )->
-          (
-           let msg =
-             Http_error.string_of_http_exception
-               (Http_error.Http_exception(errcode, msgs))
-           in (errcode,msg)
-          )
-            
-      | _ ->
-          let error_mes = Http_error.expl_of_code code in
-          (code, error_mes)
-    ) in
-  let str_code = string_of_int error_code in
-  let err_page =
-    html
-      (XHTML.M.head (title (pcdata "Error")) [])
-      (body [h1 [pcdata str_code];
-             p [pcdata error_msg]])
-  in
-  send_xhtml_page
-    ~content:err_page
-    ?filter
-    waiter
+    ~sender
+    ()
+    = 
+  Error_content.result_of_content (code, exn) >>= fun r ->
+  send 
+    slot
     ~clientproto
     ?mode
-    ~code:error_code
-    ~headers:dyn_headers
-    ?etag
+    ?proto
     ~keep_alive
-    ?last_modified 
-    ?location
     ~head
-    ?charset
-    sender
-
-
-
-let mimeht = Hashtbl.create 600
-
-let parse_mime_types filename =
-  let rec read_and_split in_ch = try
-    let line = input_line in_ch in
-    let line_upto = try 
-            let upto = String.index line '#' in 
-        String.sub line 0 upto 
-    with Not_found -> line in
-    let strlist = 
-      Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto in
-    match  List.length strlist with
-    0 | 1 -> read_and_split in_ch
-    | _ -> let make_pair = (fun h -> Hashtbl.add mimeht h (List.hd strlist)) in
-               List.iter make_pair (List.tl strlist);
-               read_and_split in_ch
-    with End_of_file -> ()
-  in
-  try
-    let in_ch =  open_in filename in
-    read_and_split in_ch;
-    close_in in_ch
-  with _ -> ()
-
-
-let rec affiche_mime () =
-    Hashtbl.iter (fun f s -> Messages.debug (f^" "^s)) mimeht
-    
-(* send a file in an HTTP frame*)
-let content_type_from_file_name =
-  let parsed = ref false in
-  fun filename ->
-    if not !parsed
-    then (parse_mime_types (Ocsiconfig.get_mimefile ());
-          parsed := true);
-    try 
-      let pos = (String.rindex filename '.') in 
-      let extens = 
-        String.sub filename 
-          (pos+1)
-          ((String.length filename) - pos - 1)
-      in Hashtbl.find mimeht extens
-    with _ -> "unknown" 
-
-let send_file ~content:file ?filter ?cookies waiter ~clientproto
-    ?mode ?code ?etag ~keep_alive
-    ?last_modified ?location ~head ?headers ?charset file_sender =
-    send_generic File_sender.send
-      ~contenttype:(content_type_from_file_name file)
-      ~content:file
-      ?filter
-      ?cookies waiter
-      ~clientproto
-      ?mode ?code ?etag ~keep_alive
-      ?last_modified ?location ~head ?headers ?charset file_sender
-
-  
+    ~sender
+    r

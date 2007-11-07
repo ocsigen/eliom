@@ -117,44 +117,17 @@ let gen dir charset ri =
         | Http_frame.Http_header.Answer code -> code
         | _ -> raise Bad_answer_from_http_server
       in
-      return
-        (Ext_found
-           {res_cookies=[];
-	    res_send_page=
-            (fun ?filter ?cookies waiter ~clientproto ?mode 
-                ?code ?etag ~keep_alive
-                ?last_modified ?location ~head ?headers ?charset s ->
-                  match http_frame.Http_frame.content with
-                  | None ->
-                      Predefined_senders.send_empty
-                        ~content:()
-                        ?filter
-                        ?cookies
-                        waiter 
-                        ~clientproto
-                        ?mode
-                        ?code
-                        ?etag ~keep_alive
-                        ?last_modified 
-                        ~head ?headers ?charset s
-                  | Some stream ->
-                      Predefined_senders.send_stream
-                        ~content:stream
-                        ?filter
-                        ?cookies
-                        waiter 
-                        ~clientproto
-                        ?mode
-                        ?code
-                        ?etag ~keep_alive
-                        ?last_modified 
-                        ~head ?headers ?charset s);
-	    res_headers=headers;
-	    res_code= Some code;
-	    res_lastmodified= None;
-	    res_etag= None;
-	    res_charset= None;
-            res_filter=None})
+      match http_frame.Http_frame.content with
+      | None -> return (Ext_found Http_frame.empty_result)
+      | Some stream ->
+          return
+            (Ext_found
+               {Http_frame.default_result with
+                Http_frame.res_content_length = None;
+                Http_frame.res_stream = stream;
+	        Http_frame.res_headers= headers;
+	        Http_frame.res_code= code;
+              })
     )
     (function 
       | Extensions.Ocsigen_404 -> return (Ext_not_found Ocsigen_404)

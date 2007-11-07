@@ -68,3 +68,7 @@ val with_defaults : t -> t -> t
 (** [with_defaults h1 h2] adds headers from [h1] to [h2].
    If some headers were present, the are replaced by those from [h1].
  *)
+
+
+(** Headers for dynamic pages (non cachable) *)
+val dyn_headers : t

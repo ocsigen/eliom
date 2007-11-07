@@ -81,3 +81,14 @@ let fold f h acc =
     h acc
 
 let with_defaults h h' = Map.fold Map.add h h'
+
+
+
+(****)
+let (<<) h (n, v) = replace n v h
+
+let dyn_headers =
+  empty
+  << (cache_control, "no-cache")
+  << (expires, "0")
+

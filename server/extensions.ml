@@ -50,16 +50,6 @@ type file_info = {tmp_filename: string;
                   original_filename: string}
 
 
-type cookies = 
-  | Set of string list option * float option * (string * string) list
-  | Unset of (string list option * string list)
-
-type cookieslist = cookies list
-
-let change_cookie = function
-  | Set (a, b, c) -> (a, b, c)
-  | Unset (a, b) -> (a, (Some 0.), (List.map (fun v -> (v,"")) b))
-
 (* virtual hosts: *)
 type virtual_host_part = Text of string * int | Wildcard
 type virtual_hosts = ((virtual_host_part list) * int option) list
@@ -100,19 +90,9 @@ type request_info =
      ri_http_frame: Http_frame.t; (** The full http_frame *)
    }
 
-type result =
-    {res_cookies: cookieslist; (** cookies to set (with optional path) *)
-     res_lastmodified: float option;
-     res_etag: Http_frame.etag option;
-     res_code: int option; (* HTTP code, if not 200 *)
-     res_send_page: Predefined_senders.send_page_type;
-     res_headers: Http_headers.t;
-     res_charset: string option;
-     res_filter: Predefined_senders.stream_filter_type option
-   }
    
 type answer =
-  | Ext_found of result  (** OK stop! I found the page. *)
+  | Ext_found of Http_frame.result  (** OK stop! I found the page. *)
   | Ext_not_found of exn (** Page not found. Try next extension.
                             The exception is usally Ocsigen_404, 
                             but may be for ex Ocsigen_403 (forbidden)
@@ -131,7 +111,7 @@ type answer =
 
 type extension =
   | Page_gen of (string -> request_info -> answer Lwt.t)
-  | Filter of (string -> request_info -> result -> answer Lwt.t)
+  | Filter of (string -> request_info -> Http_frame.result -> answer Lwt.t)
 
 let (sites : (virtual_hosts * url_path * string option (* charset *) * extension list) list ref) = 
   ref []

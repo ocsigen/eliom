@@ -20,13 +20,10 @@ OBJS = $(FILES:.ml=.cmo)
 
 CMA = site.cma
 
-all: $(CMA) install
+all: $(CMA)
 
 $(CMA): $(OBJS)
 	$(CAMLC) -a -o $(CMA) $(OBJS)
-
-install:
-	chmod a+r $(CMA)
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx

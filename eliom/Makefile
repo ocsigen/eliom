@@ -2,7 +2,7 @@
 include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
-FILES:= eliommod.ml eliomsessions.ml \
+FILES:= error_pages.ml eliommod.ml eliomsessions.ml \
        eliomparameters.ml eliomservices.ml \
        eliommkforms.ml eliommkreg.ml eliompredefmod.ml \
        eliomtools.ml
@@ -22,18 +22,21 @@ CAMLCNAME2= $(CAMLCNAME)
 endif
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCEFILES= xhtml1_strict.ml ocsigenduce.ml eliomduce.ml
+DUCEFILES= xhtml1_strict.ml eliomduce.ml
+#DUCEFILES= xhtml1_strict.ml ocsigenduce.ml eliomduce.ml
 # rss2.ml ocsigenrss.ml
 
   ifeq "$(BYTECODE)" "YES"
-  DUCEMODBYTE=ocsigenduce.cma eliomduce.cma
+  DUCEMODBYTE= eliomduce.cma
+#  DUCEMODBYTE=ocsigenduce.cma eliomduce.cma
 # ocsigenrss.cma
   else
   DUCEMODBYTE=
   endif
 
   ifeq "$(NATIVECODE)" "YES"
-  DUCEMODOPT=ocsigenduce.cmxs eliomduce.cmxs
+  DUCEMODOPT= eliomduce.cmxs
+#  DUCEMODOPT=ocsigenduce.cmxs eliomduce.cmxs
 # ocsigenrss.cmxs
   else
   DUCEMODOPT=
@@ -100,21 +103,23 @@ eliommod.cmx: eliommod.ml
 	-touch ../extensions/ocsipersist.cmx
 # idem
 
-eliom.cma: eliommod.cmo eliomsessions.cmo \
+eliom.cma: error_pages.cmo eliommod.cmo eliomsessions.cmo \
 	eliomparameters.cmo eliomservices.cmo \
 	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
 	eliomtools.cmo
 	$(CAMLC) -a -o eliom.cma \
-	eliommod.cmo eliomsessions.cmo eliomparameters.cmo eliomservices.cmo \
+	error_pages.cmo \
+        eliommod.cmo eliomsessions.cmo eliomparameters.cmo eliomservices.cmo \
 	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
 	eliomtools.cmo
 
-eliom.cmxs: eliommod.cmx eliomsessions.cmx \
+eliom.cmxs: error_pages.cmx eliommod.cmx eliomsessions.cmx \
 	eliomparameters.cmx eliomservices.cmx \
 	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
 	eliomtools.cmx
 	$(CAMLOPT) -shared -linkall -o eliom.cmxs \
-	eliommod.cmx eliomsessions.cmx eliomparameters.cmx eliomservices.cmx \
+	error_pages.cmx \
+        eliommod.cmx eliomsessions.cmx eliomparameters.cmx eliomservices.cmx \
 	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
 	eliomtools.cmx
 

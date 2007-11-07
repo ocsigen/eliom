@@ -41,155 +41,13 @@ type assockind =
 
 
 (*****************************************************************************)
-(* directory listing - by Gabriel Kerneis *)
-
-let rec space=function
-  | 0 -> ""
-  | i -> " "^space (i-1)
-
-let date fl = 
-  let t = Unix.gmtime fl in
-  Printf.sprintf 
-    "%02d-%02d-%04d %02d:%02d:%02d" 
-    t.Unix.tm_mday 
-    (t.Unix.tm_mon + 1)
-    (1900 + t.Unix.tm_year)
-    t.Unix.tm_hour
-    t.Unix.tm_min
-    t.Unix.tm_sec 
-
-
-let image_found fich =
-  if fich="README" || fich="README.Debian"
-  then "/ocsigenstuff/readme.png"
-  else
-    let reg=Netstring_pcre.regexp "([^//.]*)(.*)"
-    in match Netstring_pcre.global_replace reg "$2" fich with
-      | ".jpeg" | ".jpg" | ".gif" | ".tif"
-      | ".png" -> "/ocsigenstuff/image.png"
-      | ".ps" -> "/ocsigenstuff/postscript.png"
-      | ".pdf" -> "/ocsigenstuff/pdf.png"
-      | ".html" | ".htm"
-      | ".php" -> "/ocsigenstuff/html.png"
-      | ".mp3"
-      | ".wma" -> "/ocsigenstuff/sound.png"
-      | ".c" -> "/ocsigenstuff/source_c.png"
-      | ".java" -> "/ocsigenstuff/source_java.png"
-      | ".pl" -> "/ocsigenstuff/source_pl.png"
-      | ".py" -> "/ocsigenstuff/source_py.png"
-      | ".iso" | ".mds" | ".mdf" | ".cue" | ".nrg"
-      | ".cdd" -> "/ocsigenstuff/cdimage.png"
-      | ".deb" -> "/ocsigenstuff/deb.png"
-      | ".dvi" -> "/ocsigenstuff/dvi.png"
-      | ".rpm" -> "/ocsigenstuff/rpm.png"
-      | ".tar" | ".rar" -> "/ocsigenstuff/tar.png"
-      | ".gz" | ".tar.gz" | ".tgz" | ".zip"
-      | ".jar"  -> "/ocsigenstuff/tgz.png"
-      | ".tex" -> "/ocsigenstuff/tex.png"
-      | ".avi" | ".mov" -> "/ocsigenstuff/video.png"
-      | ".txt" -> "/ocsigenstuff/txt.png"
-      | _ -> "/ocsigenstuff/unknown.png"
-
-
-
-let directory filename =
-  let dir = Unix.opendir filename in
-  let rec aux d =
-    try
-      let f = Unix.readdir dir in
-      let stat = Unix.LargeFile.stat (filename^f) in
-      if (stat.Unix.LargeFile.st_kind = Unix.S_DIR && f <> "." && f <> "..")
-      then 
-	(
-	  `Dir, f, (
-	  "<tr>\n"^
-	  "<td class=\"img\"><img src=\"/ocsigenstuff/folder_open.png\" alt=\"\" /></td>\n"^
-	  "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
-	  "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
-	  "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
-	  "</tr>\n")
-      )::aux d
-      else
-	if (stat.Unix.LargeFile.st_kind 
-              = Unix.S_REG)
-	then
-	  (
-	    if f.[(String.length f) - 1] = '~'
-	    then aux d
-	    else 
-	  (
-	    `Reg, f,
-	    "<tr>\n"^
-	    "<td class=\"img\"><img src=\""^image_found f^"\" alt=\"\" /></td>\n"^
-	    "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
-	    "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
-	    "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
-	    "</tr>\n"
-	  )::aux d
-	  )
-	else aux d
-    with
-	End_of_file -> Unix.closedir d;[]
-
-  in 
-  let trie li =
-    List.sort (fun (a1, b1, _) (a2, b2, _) -> match a1, a2 with
-		 | `Dir, `Dir -> 
-		     if b1<b2
-		     then 0
-		     else 1
-		 | `Dir, _ -> 0
-		 | _, `Dir -> 1
-		 | _, _->
-		     if b1<b2
-		     then 0
-		     else 1) li
-
-  in let rec aux2 = function 
-    | [] -> ""
-    | (_, _, i)::l -> i^(aux2 l)
-  in aux2 (trie (aux dir))
-
-let index_of filename stat path=
-  let rec back=function
-    | [] -> assert false
-    | [a] -> "/"
-    | [a;""] -> "/"
-    | i::j -> "/"^i^(back j)
-  in let parent=
-    if (path= []) || (path = [""])
-    then "/"
-    else back path
-  in let before =
-    let st = (Ocsimisc.string_of_url_path path) in
-    "<html>\n"^
-    "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />"^
-    "<link rel=\"stylesheet\" type=\"text/css\" href=\"/ocsigenstuff/style.css\" media=\"screen\" />"^
-    "<title>Listing Directory: "^st^"</title>\n</head>\n"^
-    "<body><h1>"^st^"</h1>\n"^
-    "<table summary=\"Contenu du dossier "^st^"\">\n"^
-    "<tr id=\"headers\"><th></th><th>Name</th><th>Size</th>"^
-    "<th>Last modified</th></tr>"^
-    "<tr>\n"^
-    "<td class=\"img\"><img src=\"/ocsigenstuff/back.png\" alt=\"\" /></td>\n"^
-    "<td><a href=\""^parent^"\">Parent Directory</a></td>\n"^
-    "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
-    "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
-    "</tr>\n"
-
-  and after=
-      "</table>"^
-      "<p id=\"footer\">Ocsigen Webserver</p>"^
-      "</body></html>"
-  in before^(directory filename)^after
-
-
-
-
-(*****************************************************************************)
 (* Finding files *)
 
 let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
+
+type res = 
+  | RFile of string
+  | RDir of string
 
 let find_static_page dir path =
   let find_file (filename, readable) =
@@ -208,36 +66,35 @@ let find_static_page dir path =
 	      (fn2, (Unix.LargeFile.stat fn2))
 	    with
 	    | Unix.Unix_error (Unix.ENOENT,_,_) -> 
-	        if readable=true
+	        if readable
 	        then (filename, stat)
-	        else raise Ocsigen_404
+	        else raise Ocsigen_403
           else
             (if (path= []) || (path = [""])
             then 
               let fn2 = filename^"/index.html" in
               Messages.debug ("--Staticmod: Testing \""^fn2^"\".");
               try
-	        (fn2,(Unix.LargeFile.stat fn2))
+	        (fn2, (Unix.LargeFile.stat fn2))
 	      with
-	      | Unix.Unix_error (Unix.ENOENT,_,_) -> 
-		  if readable=true
+	      | Unix.Unix_error (Unix.ENOENT, _, _) -> 
+		  if readable
 		  then (filename^"/", stat)
-		  else raise Ocsigen_404
+		  else raise Ocsigen_403
             else (Messages.debug ("--Staticmod: "^filename^" is a directory");
                   raise Ocsigen_Is_a_directory)))
         else (filename, stat)
       in
       Messages.debug ("--Staticmod: Looking for \""^filename^"\".");
-      if (stat.Unix.LargeFile.st_kind 
-            = Unix.S_REG)
+      if (stat.Unix.LargeFile.st_kind = Unix.S_REG)
       then begin 
         Unix.access filename [Unix.R_OK];
-        (filename, stat, false)
+        RFile filename
       end
       else (
         if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
-        then 
-	  ((index_of filename stat path), stat, true)
+        then
+	  RDir filename
         else raise Ocsigen_404)
     with Unix.Unix_error (Unix.ENOENT,_,_) -> raise Ocsigen_404
   in
@@ -245,8 +102,7 @@ let find_static_page dir path =
   let path = Ocsimisc.string_of_url_path path in
 
   match dir with
-  | Dir (d, readable) -> find_file ((d^path), 
-                                    readable)
+  | Dir (d, readable) -> find_file ((d^path), readable)
   | Regexp (regexp, dest, readable) ->
       (match Netstring_pcre.string_match regexp path 0 with
       | None -> raise Ocsigen_404
@@ -269,10 +125,6 @@ let find_static_page dir path =
 
 
 
-let stream_of_string st =
-  Ocsistream.make
-    (fun () -> Ocsistream.cont st (fun () -> Ocsistream.empty None))
-
 let gen dir charset ri = 
   catch
     (* Is it a static page? *)
@@ -281,44 +133,28 @@ let gen dir charset ri =
           (* static pages do not have parameters *)
       then begin
         Messages.debug ("--Staticmod: Is it a static file?");
-        let (filename, stat, index) = find_static_page dir ri.ri_sub_path in
-	let content = stream_of_string filename in
-	if index
-	then(
-	  return
-	    (Ext_found
-               {res_cookies= [];
-		res_send_page= 
-		   Predefined_senders.send_stream 
-		     ~contenttype:"text/html"
-                     ~content;
-		res_headers=Http_headers.empty;
-		res_code= None; (* 200 by default *)
-		res_lastmodified= None;
-		res_etag= None;
-		res_charset= None;
-                res_filter=None}))      
-	else 
-	  return
-            (Ext_found
-               {res_cookies=[];
-		res_send_page=Predefined_senders.send_file ~content:filename;
-		res_headers=Http_headers.empty;
-		res_code=None;
-		res_lastmodified=Some stat.Unix.LargeFile.st_mtime;
-		res_etag=
-		Some (Predefined_senders.File_content.get_etag filename);
-		res_charset=Some charset;
-                res_filter=None})
-            
+        match find_static_page dir ri.ri_sub_path with
+        | RDir dirname ->
+            Predefined_senders.Directory_content.result_of_content 
+              (dirname, ri.ri_sub_path) >>= fun r ->
+	    return (Ext_found r)
+        | RFile filename ->
+            Predefined_senders.File_content.result_of_content filename 
+            >>= fun r ->	    
+            return
+              (Ext_found
+                 {r with
+		  Http_frame.res_charset= Some charset;
+                })
+              
       end
       else return (Ext_not_found Ocsigen_404))
 
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
-      | Ocsigen_malformed_url  
-      | Ocsigen_403 as e->  fail e
+      | Ocsigen_malformed_url as e -> fail e
+(*    | Ocsigen_403 as e ->  fail e *)
 (*    | Ocsigen_404 -> return Ext_not_found *)
       | e -> return (Ext_not_found e))
           

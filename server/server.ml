@@ -65,12 +65,12 @@ let port_of_sockaddr = function
 
 
 let get_boundary cont_enc =
-  let (_,res) = Netstring_pcre.search_forward
+  let (_, res) = Netstring_pcre.search_forward
       (Netstring_pcre.regexp "boundary=([^;]*);?") cont_enc 0 in
   Netstring_pcre.matched_group res 1 cont_enc
 
 let find_field field content_disp = 
-  let (_,res) = Netstring_pcre.search_forward
+  let (_, res) = Netstring_pcre.search_forward
       (Netstring_pcre.regexp (field^"=.([^\"]*).;?")) content_disp 0 in
   Netstring_pcre.matched_group res 1 content_disp
 
@@ -298,8 +298,6 @@ let service
     url
     port
     sockaddr
-    xhtml_sender
-    empty_sender
     inputchan =
   (* sender_slot is here for pipelining:
      we must wait before sending the page,
@@ -317,62 +315,49 @@ let service
     | Ocsigen_404 ->
         Messages.debug "-> Sending 404 Not Found";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
-          ~code:404 xhtml_sender
+          ~code:404 ~sender:Http_com.default_sender ()
     | Ocsigen_403 ->
         Messages.debug "-> Sending 403 Forbidden";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
-          ~code:403 xhtml_sender
+          ~code:403 ~sender:Http_com.default_sender ()
     | Extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
     | Extensions.Ocsigen_403 ->
         Messages.debug "-> Sending 403 Forbidden";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
-          ~code:403 xhtml_sender (* Forbidden *)
+          ~code:403 ~sender:Http_com.default_sender () (* Forbidden *)
     | Ocsistream.Interrupted Ocsistream.Already_read ->
         Messages.errlog
           "Cannot read the request twice. You probably have \
            two incompatible extensions, or the order of the \
            extensions in the config file is wrong.";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
-          ~code:500 xhtml_sender (* Internal error *)
+          ~code:500 ~sender:Http_com.default_sender () (* Internal error *)
     | Ocsigen_upload_forbidden ->
         Messages.debug "-> Sending 403 Forbidden";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
-          ~code:403 xhtml_sender
+          ~code:403 ~sender:Http_com.default_sender ()
     | Http_error.Http_exception (_,_) ->
-        send_error sender_slot ~clientproto ~head ~cookies:[] ~keep_alive:false
-          ~http_exception:e xhtml_sender
+        send_error sender_slot ~clientproto ~head ~keep_alive:false
+          ~exn:e ~sender:Http_com.default_sender ()
     | Ocsigen_Bad_Request ->
         Messages.debug "-> Sending 400";
         send_error sender_slot ~clientproto ~head ~keep_alive:false
-          ~code:400 xhtml_sender
+          ~code:400 ~sender:Http_com.default_sender ()
     | Ocsigen_unsupported_media ->
         Messages.debug "-> Sending 415";
         send_error sender_slot ~clientproto ~head ~keep_alive:false
-          ~code:415 xhtml_sender
+          ~code:415 ~sender:Http_com.default_sender ()
     | Neturl.Malformed_URL ->
         Messages.debug "-> Sending 400 (Malformed URL)";
         send_error sender_slot ~clientproto ~head ~keep_alive:false
-          ~code:400 xhtml_sender (* Malformed URL *)
+          ~code:400 ~sender:Http_com.default_sender () (* Malformed URL *)
     | e ->
         Messages.warning
           ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
         Messages.debug "-> Sending 500";
-        if get_debugmode () then
-          send_xhtml_page
-            ~content:(error_page
-                        "error 500"
-                        [XHTML.M.p
-                           [XHTML.M.pcdata (string_of_exn e);
-                            XHTML.M.br ();
-                            XHTML.M.em
-                             [XHTML.M.pcdata "(Ocsigen running in debug mode)"]
-                          ]])
-            sender_slot ~clientproto ~head ~keep_alive:true
-            ~code:500 xhtml_sender
-        else
-          send_error sender_slot ~clientproto ~head ~keep_alive:true
-            ~code:500 xhtml_sender
+        send_error sender_slot ~clientproto ~head ~keep_alive:true
+          ~code:500 ~sender:Http_com.default_sender ()
   in
   let finish_request () =
     (* We asynchronously finish to read the request contents if this
@@ -428,7 +413,8 @@ let service
     finish_request ();
     (* RFC 2616, sect 5.1.1 *)
     send_error
-      sender_slot ~clientproto ~head ~keep_alive:true ~code:501 xhtml_sender
+      sender_slot ~clientproto ~head ~keep_alive:true ~code:501 
+      ~sender:Http_com.default_sender ()
   end else begin
     let filenames = ref [] (* All the files sent by the request *) in
 
@@ -498,50 +484,51 @@ let service
                 in
                 if not_modified then begin
                   Messages.debug "-> Sending 304 Not modified ";
-                  send_empty
-                    ~content:() sender_slot ~clientproto ~keep_alive:true ~head
-                    ~cookies:(List.map change_cookie res.res_cookies)
-                    ?last_modified:res.res_lastmodified
-                    ?etag:res.res_etag
-                    ~code:304 (* Not modified *)
-                    empty_sender
+                  send
+                    sender_slot
+                    ~clientproto
+                    ~keep_alive:true
+                    ~head
+                    ~sender:Http_com.default_sender
+                    {empty_result with res_code = 304  (* Not modified *)}
                 end else if precond_failed then begin
                   Messages.debug
                     "-> Sending 412 Precondition Failed \
                      (if-unmodified-since header)";
-                  send_empty
-                    ~content:() sender_slot ~clientproto ~keep_alive:true ~head
-                    ~cookies:(List.map change_cookie res.res_cookies)
-                    ?last_modified:res.res_lastmodified
-                    ~code:412 (* Precondition failed *)
-                    empty_sender
+                  send
+                    sender_slot
+                    ~clientproto
+                    ~keep_alive:true
+                    ~head
+                    ~sender:Http_com.default_sender
+                    {empty_result 
+                    with res_code = 412 (* Precondition failed *)}
                 end else
-                  res.res_send_page
-                    ?filter:res.res_filter
-                    ~cookies:(List.map change_cookie res.res_cookies)
-                    sender_slot ~clientproto ~keep_alive:true ~head:head
-                    ?last_modified:res.res_lastmodified
-                    ?code:res.res_code
-                    ?charset:res.res_charset ?etag:res.res_etag
-                    (Http_com.create_sender
-                       ~headers:res.res_headers ~server_name:server_name ()))
+                  send
+                    sender_slot
+                    ~clientproto
+                    ~keep_alive:true
+                    ~head
+                    ~sender:Http_com.default_sender
+                    res)
              (fun e ->
                 finish_request ();
                 match e with
                   Ocsigen_Is_a_directory ->
                     Messages.debug "-> Sending 301 Moved permanently";
-                    send_empty
-                      ~content:()
-                      ~cookies:[]
+                    send
                       sender_slot
                       ~clientproto
                       ~keep_alive:true
-                      ~location:((Neturl.string_of_url
-                                    (Neturl.undefault_url
-                                       ~path:("/"::(ri.ri_full_path))
-                                       ri.ri_url))^"/")
-                      ~code:301 (* Moved permanently *)
-                      ~head empty_sender
+                      ~head
+                      ~sender:Http_com.default_sender
+                    {empty_result with
+                     res_code = 301 (* Moved permanently *);
+                     res_location = Some ((Neturl.string_of_url
+                                             (Neturl.undefault_url
+                                                ~path:("/"::(ri.ri_full_path))
+                                                ri.ri_url))^"/")
+                   }
                 | _ ->
                     handle_service_errors e))
         (fun e ->
@@ -612,13 +599,6 @@ let try_bind' f g h = Lwt.try_bind f h g
 
 let handle_connection port in_ch sockaddr =
   let receiver = Http_com.create_receiver Query in_ch in
-  let xhtml_sender =
-    Http_com.create_sender
-      ~headers:Predefined_senders.dyn_headers ~server_name:server_name () in
-  let empty_sender =
-    Http_com.create_sender
-      ~headers:Http_headers.empty ~server_name:server_name () in
-
   let warn s =
     let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
     Messages.warning ("While talking to " ^ ip ^ ": " ^ s)
@@ -669,9 +649,11 @@ let handle_connection port in_ch sockaddr =
           (*XXX We should use the right information for clientproto
             and head... *)
           send_error slot
-               ~clientproto:Http_frame.Http_header.HTTP10 ~head:false
-               ~cookies:[] ~keep_alive:false
-               ~http_exception:e xhtml_sender);
+            ~clientproto:Http_frame.Http_header.HTTP10 
+            ~head:false
+            ~keep_alive:false
+            ~exn:e 
+            ~sender:Http_com.default_sender ());
         linger in_ch receiver
     | _ ->
         Messages.unexpected_exception e "Server.handle_read_errors";
@@ -698,8 +680,7 @@ let handle_connection port in_ch sockaddr =
              (fun () ->
 (*XXX Why do we need the port but not the host name?*)
                 service
-                  receiver slot request meth url port sockaddr
-                  xhtml_sender empty_sender in_ch)
+                  receiver slot request meth url port sockaddr in_ch)
              handle_write_errors);
          if get_keepalive request.Http_frame.header then
            handle_request ()

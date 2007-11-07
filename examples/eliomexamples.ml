@@ -283,10 +283,10 @@ let _ = Cookies.register cookies
                      a cookies sp [pcdata "send other cookies and see the url /c/plop"] "plop"]
                     (get_cookies sp))])),
        let cookies =
-         [Extensions.Set (Some [], Some (Unix.time () +. 30.), 
+         [Http_frame.Set (Some [], Some (Unix.time () +. 30.), 
                           [((cookiename^"6"),(string_of_int (Random.int 100)));
                            ((cookiename^"7"),(string_of_int (Random.int 100)))]);
-          Extensions.Set (Some ["c";"plop"], None, 
+          Http_frame.Set (Some ["c";"plop"], None, 
                           [((cookiename^"8"),(string_of_int (Random.int 100)));
                            ((cookiename^"9"),(string_of_int (Random.int 100)));
                            ((cookiename^"10"),(string_of_int (Random.int 100)));
@@ -295,10 +295,10 @@ let _ = Cookies.register cookies
         ]
        in if List.mem_assoc (cookiename^"1") (get_cookies sp)
        then 
-         (Extensions.Unset (None, 
+         (Http_frame.Unset (None, 
                             [(cookiename^"1");(cookiename^"2")]))::cookies
        else 
-         (Extensions.Set (None, None,
+         (Http_frame.Set (None, None,
                           [((cookiename^"1"),(string_of_int (Random.int 100)));
                            ((cookiename^"2"),(string_of_int (Random.int 100)));
                            ((cookiename^"3"),(string_of_int (Random.int 100)))]))
@@ -314,21 +314,19 @@ let sendany =
    (fun sp s () -> 
      if s = "nocookie"
      then
-       return
-         (Xhtml.send
-            sp
-           (html
-             (head (title (pcdata "")) [])
-             (body [p [pcdata "This page does not set cookies"]])))
+       Xhtml.send
+         sp
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata "This page does not set cookies"]]))
      else 
-       return
-         (Xhtml.Cookies.send
-            sp
-            ((html
-                (head (title (pcdata "")) [])
-                (body [p [pcdata "This page does set a cookie"]])),
-             [Extensions.Set (None, None, 
-                              [(("arf"),(string_of_int (Random.int 100)))])]))
+       Xhtml.Cookies.send
+         sp
+         ((html
+             (head (title (pcdata "")) [])
+             (body [p [pcdata "This page does set a cookie"]])),
+          [Http_frame.Set (None, None, 
+                           [(("arf"),(string_of_int (Random.int 100)))])])
    )
 
 

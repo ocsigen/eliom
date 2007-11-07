@@ -431,16 +431,6 @@ let exn_handler = raise
 
 (*****************************************************************************)
 
-let default_res =
-  {res_cookies= [];
-   res_lastmodified= None;
-   res_etag= None;
-   res_code= None;
-   res_send_page= Predefined_senders.send_empty ~content:();
-   res_headers= Http_headers.empty;
-   res_charset= None;
-   res_filter=None }
-
 let gen reg charset ri =
   catch
     (* Is it a cgi page? *)
@@ -462,11 +452,11 @@ let gen reg charset ri =
                   let status =
                     Http_frame.Http_header.get_headers_value
                       header Http_headers.status in
-                  if String.length status < 3 then raise (Failure "too short");
+                  if String.length status < 3 then 
+                    raise (Failure "Cgimod.gen");
                   Some (int_of_string (String.sub status 0 3))
                 with
-                | Not_found ->
-                    None
+                | Not_found -> None
                 | Failure _ ->
                     raise (CGI_Error (Failure "Bad Status line in header"))
               in
@@ -478,41 +468,31 @@ let gen reg charset ri =
                   None
               in
               match code, loc with
-                None, Some loc ->
+              | None, Some loc ->
                   Ocsistream.finalize content >>= fun () ->
                   if loc <> "" && loc.[0] = '/' then
                     Lwt.return (Ext_retry_with (ri_of_url loc ri))
                   else
                     Lwt.return
                       (Ext_found
-                         { default_res with
-                           res_code= Some 301; (* Moved permanently *)
-                           res_send_page=
-                           fun ?filter ?cookies waiter ~clientproto ?mode ?code
-                               ?etag ~keep_alive ?last_modified ?location ->
-                             Predefined_senders.send_empty
-                               ~content:()
-                               ?filter
-                               ?cookies
-                               waiter
-                               ~clientproto
-                               ?mode
-                               ?code
-                               ?etag ~keep_alive
-                               ?last_modified
-                               ~location:loc })
+                         { default_result with
+                           res_code= 301; (* Moved permanently *)
+                           res_location= Some loc})
               | _, _ ->
+                  let code = match code with
+                  | None -> 200
+                  | Some c -> c
+                  in
                   return
                     (Ext_found
-                       { default_res with
-                         res_send_page =
-                           Predefined_senders.send_stream
-                             ?contenttype:None ~content;
-                         res_headers =
-                           Http_headers.replace_opt
-                             Http_headers.status None
-                             header.Http_header.headers;
-                         res_code = code}))
+                       {default_result with
+                        res_content_length = None;
+                        res_stream = content;
+                        res_headers =
+                        Http_headers.replace_opt
+                          Http_headers.status None
+                          header.Http_header.headers;
+                        res_code = code}))
            (fun e -> Ocsistream.finalize content >>= fun () -> Lwt.fail e)
        end else
          Lwt.return (Ext_not_found Ocsigen_404))

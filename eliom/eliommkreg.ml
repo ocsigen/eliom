@@ -45,10 +45,10 @@ module type REGCREATE =
     type page
 
     val send : 
-        ?cookies:cookieslist -> 
+        ?cookies:Http_frame.cookieslist -> 
           ?charset:string ->
             ?code: int ->
-              sp:server_params -> page -> result_to_send
+              sp:server_params -> page -> result_to_send Lwt.t
 
   end
 
@@ -62,10 +62,11 @@ module type ELIOMREGSIG1 =
     type page
 
     val send : 
-        ?cookies:cookieslist -> 
+        ?cookies:Http_frame.cookieslist -> 
           ?charset:string ->
             ?code: int ->
-              sp:Eliommod.server_params -> page -> Eliommod.result_to_send
+              sp:Eliommod.server_params -> 
+                page -> Eliommod.result_to_send Lwt.t
 
     val register :
         ?sp: Eliommod.server_params ->
@@ -354,7 +355,7 @@ module type ELIOMREGSIG =
   sig
     include ELIOMREGSIG1
     module Cookies : ELIOMREGSIG1 
-    with type page = page * cookieslist
+    with type page = page * Http_frame.cookieslist
   end
 
 
@@ -371,7 +372,7 @@ module MakeRegister = functor
 
       module Cookies = struct
         
-        type page = Pages.page * cookieslist
+        type page = Pages.page * Http_frame.cookieslist
               
         let send ?(cookies=[]) ?charset ?code ~sp (p, cl) =
           Pages.send ~cookies:(cookies@cl) ?charset ?code ~sp p
@@ -428,8 +429,7 @@ module MakeRegister = functor
                          | Eliom_Typing_Error l -> error_handler sp l
                          | e -> fail e)) >>=
                     (fun (content, cookies_to_set) -> 
-                      return (Pages.send 
-                                ~cookies:cookies_to_set ~sp content)))))
+                      Pages.send ~cookies:cookies_to_set ~sp content))))
           | `Nonattached naser ->
               add_naservice 
 	        table
@@ -464,8 +464,7 @@ module MakeRegister = functor
                         | Eliom_Typing_Error l -> error_handler sp l
                         | e -> fail e)) >>=
                    (fun (content, cookies_to_set) -> 
-                     return (Pages.send 
-                               ~cookies:cookies_to_set ~sp content))))
+                     Pages.send ~cookies:cookies_to_set ~sp content)))
 
 
         let register ?sp ~service ?error_handler page_gen =

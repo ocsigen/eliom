@@ -37,6 +37,9 @@ PERSISTENT CONNECTIONS
 http://www.tools.ietf.org/html/draft-ietf-http-connection-00
 *)
 
+
+open Http_frame
+
 (** this module provide a mecanisme to comunicate with some http frames *)
 
 let (>>=) = Lwt.(>>=)
@@ -53,7 +56,7 @@ exception Timeout
 exception Keepalive_timeout
 exception Aborted
 
-(*XXX Provide the max size?*)
+(*XXX Provide the max size? *)
 let request_too_large max =
   Http_frame.Http_error.Http_exception
     (413, Some "request contents too large")
@@ -504,6 +507,22 @@ let wait_all_senders conn =
        Lwt_timeout.stop conn.timeout;
        Lwt.return ())
 
+
+
+let (<<) h (n, v) = Http_headers.replace n v h
+let (<<?) h (n, v) = Http_headers.replace_opt n v h
+
+
+let gmtdate d =  
+        let x = Netdate.mk_mail_date ~zone:0 d in try
+(*XXX !!!*)
+        let ind_plus =  String.index x '+' in  
+        String.set x ind_plus 'G';
+        String.set x (ind_plus + 1) 'M';
+        String.set x (ind_plus + 2) 'T';
+        String.sub x 0 (ind_plus + 3)
+        with _ -> Messages.debug "no +"; x
+
 type sender_type = {
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
     mutable s_proto: Http_frame.Http_header.proto;
@@ -512,9 +531,6 @@ type sender_type = {
   }
 
 (** create a new sender *)
-(* That function was in FHttp_sender but it does not depend on C
-   It is easier to use everywhere if we put it here.
-   -- Vincent 27/04/2007 *)
 let create_sender
     ?server_name
     ?(headers=Http_headers.empty)
@@ -526,21 +542,9 @@ let create_sender
     Http_headers.replace_opt Http_headers.server server_name headers in
   { s_headers = headers; s_proto = proto }
 
-module type SENDER =
-    sig
-      type t
-      val send :
-        ?filter:('a option ->
-                 Http_frame.full_stream -> Http_frame.full_stream Lwt.t) ->
-        slot ->
-        clientproto:Http_frame.Http_header.proto ->
-        ?etag:Http_frame.etag ->
-        mode:Http_frame.Http_header.http_mode ->
-        ?proto:Http_frame.Http_header.proto ->
-        ?headers:Http_headers.t ->
-        ?contenttype:'a ->
-        content:t -> head:bool -> sender_type -> unit Lwt.t
-    end
+
+let default_sender = create_sender ~server_name:Ocsiconfig.server_name ()
+
 
 (* XXX Maybe we should merge small strings *)
 (* XXX We should probably make sure that any exception raised by
@@ -583,91 +587,157 @@ let write_stream ?(chunked=false) out_ch stream =
   else
     write_stream_raw out_ch stream
 
-module FHttp_sender =
-  functor(C:Http_frame.HTTP_CONTENT) ->
-  struct
-    type t = C.t
 
-    module H = Http_frame.Http_header
 
-    (** Sends the HTTP frame.  The mode and proto can be overwritten.
-        The headers are merged with those of the sender, the priority
-        being given to the newly defined header in case of conflict.
-        The content-length tag is automaticaly calculated *)
-    let send
-        ?(filter = fun ct a -> Lwt.return a)
-        slot
-        ~clientproto
-        ?etag
-        ~mode
-        ?proto
-        ?(headers = Http_headers.empty)
-        ?contenttype
-        ~content
-        ~head
-        sender =
-(*XXX Move conversion + filter out of this function *)
-      C.stream_of_content content >>=
-      (* XXX We assume that [filter] finalizes c if it fails *)
-      filter contenttype >>= fun (slen, etag2, flux) ->
-      Lwt.finalize
-        (fun () ->
-           (* [slot] is here for pipelining: we must wait before
-              sending the page, because the previous one may not be sent. *)
-           wait_previous_senders slot >>= fun () ->
-           let out_ch = slot.sl_chan in
-           let empty_content =
-             match mode with
-               H.Nofirstline -> false
-             | H.Answer code -> code_without_message_body code
-             | H.Query _     -> false
-           in
-           let chunked =
-             slen = None && clientproto <> Http_frame.Http_header.HTTP10 &&
-             not empty_content
-           in
-           (* if HTTP/1.0 we do not use chunked encoding
-              even if the client tells that it supports it,
-              because it may be an HTTP/1.0 proxy that
-              transmits the header by mistake.
-              In that case, we close the connection after the
-              answer.
+
+module H = Http_frame.Http_header
+
+
+
+  
+
+(** Sends the HTTP frame.
+ * The headers are merged with those of the sender, the priority
+ * being given to the newly defined header in case of conflict.
+ * code is the code of the http answer
+ * keep_alive is a boolean value that set the field Connection
+ *)
+let send
+    slot
+    ~clientproto
+    ?mode
+    ?proto
+    ~keep_alive
+    ~head
+    ~sender
+    res
+    =
+
+  let send_aux ~mode hds =
+    Lwt.finalize
+      (fun () ->
+        (* [slot] is here for pipelining: we must wait before
+           sending the page, because the previous one may not be sent. *)
+        wait_previous_senders slot >>= fun () ->
+          let out_ch = slot.sl_chan in
+          let empty_content =
+            match mode with
+            | H.Nofirstline -> false
+            | H.Answer code -> code_without_message_body code
+            | H.Query _     -> false
+          in
+          let chunked =
+            res.res_content_length = None && 
+            clientproto <> Http_frame.Http_header.HTTP10 &&
+            not empty_content
+          in
+          (* if HTTP/1.0 we do not use chunked encoding
+             even if the client tells that it supports it,
+             because it may be an HTTP/1.0 proxy that
+             transmits the header by mistake.
+             In that case, we close the connection after the
+             answer.
            *)
-           let with_default v default =
-             match v with None -> default | Some v -> v
-           in
-           let hds =
-             Http_headers.with_defaults headers
-               (Http_headers.replace Http_headers.etag
-                  (Format.sprintf "\"%s\"" (with_default etag etag2))
-                  sender.s_headers)
-           in
-(*XXX Make sure that there is no way to put wrong headers*)
-           let hds =
-             Http_headers.replace_opt Http_headers.transfer_encoding
-               (if chunked then Some "chunked" else None) hds
-           in
-           let hds =
-             Http_headers.replace_opt Http_headers.content_length
-               (match slen with
-                  None   -> None
-                | Some l -> Some (Int64.to_string l))
-               hds
-           in
-           let hd =
-             { H.mode = mode;
-               H.proto = with_default proto sender.s_proto;
-               H.headers = hds }
-           in
-           Messages.debug "writing header";
-           catch_io_errors (fun () ->
-             Lwt_chan.output_string out_ch (Framepp.string_of_header hd)
-                 >>= fun () ->
-             if empty_content || head then begin
-               Lwt.return ()
-             end else begin
-               Messages.debug "writing body";
-               write_stream ~chunked out_ch flux
-             end))
-        (fun () -> Ocsistream.finalize flux)
-  end
+          let with_default v default =
+            match v with None -> default | Some v -> v
+          in
+(*XXX Make sure that there is no way to put wrong headers *)
+(*VVV and that all required headers are here ... *)
+          let hds =
+            Http_headers.with_defaults hds sender.s_headers
+          in
+          let hds =
+            Http_headers.replace_opt Http_headers.transfer_encoding
+              (if chunked then Some "chunked" else None) hds
+          in
+          let hds =
+            Http_headers.replace_opt Http_headers.content_length
+              (match res.res_content_length with
+              | None   -> None
+              | Some l -> Some (Int64.to_string l))
+              hds
+          in
+          let hd =
+            { H.mode = mode;
+              H.proto = with_default proto sender.s_proto;
+              H.headers = hds }
+          in
+          Messages.debug "writing header";
+          catch_io_errors (fun () ->
+            Lwt_chan.output_string out_ch (Framepp.string_of_header hd)
+              >>= fun () ->
+                if empty_content || head then begin
+                  Lwt.return ()
+                end else begin
+                  Messages.debug "writing body";
+                  write_stream ~chunked out_ch res.res_stream
+                end))
+      (fun () -> Ocsistream.finalize res.res_stream)
+
+  in
+
+(*XXX Maybe we can compute this only at most once a second*)
+  (* ajout des options spécifiques à la page *)
+  let date = gmtdate (Unix.time ()) in
+
+  let headers =
+    res.res_headers
+    <<?
+    (* il faut récupérer la date de dernière modification *)
+    (Http_headers.last_modified,
+     match res.res_lastmodified with
+       None    -> None (* We do not put last modified for dynamically
+                          generated pages, otherwise it is not possible
+                          to cache them.  Without Last-Modified, ETag is
+                          taken into account by proxies/browsers *)
+     | Some l  -> Some (gmtdate l))
+    <<
+    (Http_headers.date, date)
+  in
+  let mkcook path exp (name, c) =
+    (Http_headers.set_cookie,
+     Format.sprintf "%s=%s%s%s" name c
+       (match path with
+        | Some s -> "; path=/" ^ Ocsimisc.string_of_url_path s
+        | None   -> "")
+       (match exp with
+        | Some s -> "; expires=" ^
+                    Netdate.format
+                      "%a, %d-%b-%Y %H:%M:%S GMT"
+                      (Netdate.create s)
+        | None   -> ""))
+  in
+  let mkcookl hds (path, exp, cl) =
+    List.fold_left (fun h c -> h << mkcook path exp c) hds cl
+  in
+  let headers =
+    List.fold_left mkcookl headers (List.map change_cookie res.res_cookies)
+    <<?
+(*XXX Check: HTTP/1.0 *)
+    (Http_headers.connection,
+     if keep_alive then None else Some "close")
+    <<?
+    (Http_headers.location, res.res_location)
+    <<?
+    (Http_headers.etag,
+     match res.res_etag with
+    | None   ->  None
+    | Some l ->  Some (Format.sprintf "\"%s\"" l))
+                 (*XXX Is it the right place to perform quoting?*)
+    <<?
+    (Http_headers.content_type,
+     match res.res_content_type with
+     | None   -> None
+     | Some s ->
+         match String.sub s 0 4, res.res_charset with
+         | "text", Some c -> Some (Format.sprintf "%s; charset=%s" s c)
+         | _              -> res.res_content_type)
+  in
+  let mode =
+    match mode with
+    | None -> Http_header.Answer res.res_code
+    | Some m -> m
+  in
+  send_aux ~mode headers
+
+    

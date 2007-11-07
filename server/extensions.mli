@@ -44,20 +44,6 @@ type url_path = string list
 
 val string_of_url_path : url_path -> string
 
-(** Type used for cookies to set. The url_path option is for the path,
-   The float option is the timestamp for the expiration date. 
-*)
-type cookies = 
-  | Set of string list option (* path *) *
-        float option (* expires *) * 
-        (string * string) list (* (name, value) list *)
-  | Unset of (string list option (* path *) * 
-                string list (* names *))
-
-type cookieslist = cookies list
-
-val change_cookie : cookies -> 
-  string list option * float option * (string * string) list
 
 (* virtual hosts: *)
 type virtual_host_part = Text of string * int | Wildcard
@@ -111,26 +97,11 @@ type request_info =
    (and vice versa).
  *)
 
-(** The result of a page generation *)
-type result =
-    {res_cookies: cookieslist; (** The cookies to set (with optional paths) *)
-     res_lastmodified: float option;      (** Last modified date *)
-     res_etag: Http_frame.etag option;    (** ETag for the page *)
-     res_code: int option;                (** HTTP code to send, if not 200 *)
-     res_send_page: Predefined_senders.send_page_type; (** A function to send the content. Some are predefined in {{:Predefined_senders.html}[Predefined_senders]}, for example [Predefined_senders.send_xhtml_page]. *)
-     res_headers: Http_headers.t (** The HTTP headers you want to add. For example {!Predefined_senders.dyn_headers} if you don't want the page to be cached (dynamic pages). *);
-     res_charset: string option;          (** Charset used by the page *)
-     res_filter: Predefined_senders.stream_filter_type option
-       (** An optional function that will transform the stream before sending
-          it (for example a compression function)
-         *)
-
-   }
 
 
 (** The result given by the extension (filter or page generation) *)
 type answer =
-  | Ext_found of result  (** OK stop! I found the page. *)
+  | Ext_found of Http_frame.result  (** OK stop! I found the page. *)
   | Ext_not_found of exn (** Page not found. Try next extension.
                             The exception is usally Ocsigen_404, 
                             but may be for ex Ocsigen_403 (forbidden)
@@ -149,7 +120,7 @@ type answer =
 
 type extension =
   | Page_gen of (string -> request_info -> answer Lwt.t)
-  | Filter of (string -> request_info -> result -> answer Lwt.t)
+  | Filter of (string -> request_info -> Http_frame.result -> answer Lwt.t)
 (** For each <site> tag in the configuration file, 
     you can set the extensions you want. They take a charset (type [string]),
     a [request_info]. If it is a filter, it takes the result of the previous
@@ -221,7 +192,7 @@ val add_site : (virtual_hosts * url_path * string option * extension list) -> un
 val do_for_site_matching :
     string option ->
     int ->
-    request_info -> result Lwt.t
+    request_info -> Http_frame.result Lwt.t
 
 (** Profiling *)
 val get_number_of_connected : unit -> int

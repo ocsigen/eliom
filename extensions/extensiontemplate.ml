@@ -85,19 +85,9 @@ let _ = parse_global_config (Extensions.get_config ())
  *)
 let gen charset ri =
   let content = "Extensiontemplate page" in
-  return
-    (Ext_found
-       {res_cookies= [];
-        res_send_page= 
-        Predefined_senders.send_text_page 
-          ~contenttype:"text/plain" ~content:content;
-        res_headers= Predefined_senders.dyn_headers;
-        res_code= None; (* 200 by default *)
-        res_lastmodified= None;
-        res_etag= None;
-        res_charset= None;
-        res_filter=None})
-
+  Predefined_senders.Text_content.result_of_content
+    (content, "text/plain") >>= fun r ->
+  return (Ext_found r)
 
 
 

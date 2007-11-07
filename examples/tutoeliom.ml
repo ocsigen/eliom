@@ -2350,20 +2350,18 @@ let send_any =
    (fun sp s () -> 
      if s = "valid"
      then
-       return
-         (Eliompredefmod.Xhtml.send sp
-           (html
-             (head (title (pcdata "")) [])
-             (body [p [pcdata 
-                         "This page has been statically typechecked. \
-                         If you change the parameter in the URL you \
-                         will get an unchecked text page"]])))
+       Eliompredefmod.Xhtml.send sp
+         (html
+            (head (title (pcdata "")) [])
+            (body [p [pcdata 
+                        "This page has been statically typechecked. \
+                        If you change the parameter in the URL you \
+                        will get an unchecked text page"]]))
      else 
-       return
-         (Eliompredefmod.HtmlText.send sp 
-            "<html><body><p>It is not a valid page. Put \
-            type=\"valid\" in the URL to get a typechecked page.\
-            </p></body></html>")
+       Eliompredefmod.HtmlText.send sp 
+         "<html><body><p>It is not a valid page. Put \
+          type=\"valid\" in the URL to get a typechecked page.\
+          </p></body></html>"
    )
 (*html*
       <p>
@@ -2384,7 +2382,8 @@ let send_any =
       <code>Eliompredefmod.Xhtml.Cookies.register</code> instead of 
       <code>Eliompredefmod.Xhtml.register</code>.
       The function you register returns a pair containing the page (as usual)
-      and a list of cookies, of type
+      and a list of cookies, of type <code>Http_frame.cookies</code> 
+      defined by:
       </p>
       <pre>
 type cookies = 
@@ -2426,7 +2425,7 @@ let _ = Cookies.register cookies
                            with _ -> "<cookie not set>");
                    br ();
                    a cookies sp [pcdata "send other cookie"] ()]])),
-        [Extensions.Set (None, None, 
+        [Http_frame.Set (None, None, 
                          [(cookiename,(string_of_int (Random.int 100)))])]))
 (*html*
       <p>$a Tutoeliom.cookies sp <:xmllist< Try it >> ()$.</p>
@@ -3054,19 +3053,17 @@ let _ =
 let _ = Eliomsessions.set_exn_handler 
    (fun sp e -> match e with
     | Extensions.Ocsigen_404 -> 
-       return
-         (Eliompredefmod.Xhtml.send ~code:404 ~sp
+        Eliompredefmod.Xhtml.send ~code:404 ~sp
           (html
-            (head (title (pcdata "")) [])
-            (body [h1 [pcdata "Eliom tutorial"]; 
-                   p [pcdata "Page not found"]])))
+             (head (title (pcdata "")) [])
+             (body [h1 [pcdata "Eliom tutorial"]; 
+                    p [pcdata "Page not found"]]))
     | Eliommod.Eliom_Wrong_parameter ->
-       return
-         (Eliompredefmod.Xhtml.send ~sp
+        Eliompredefmod.Xhtml.send ~sp
           (html
-            (head (title (pcdata "")) [])
-            (body [h1 [pcdata "Eliom tutorial"]; 
-                   p [pcdata "Wrong parameters"]])))
+             (head (title (pcdata "")) [])
+             (body [h1 [pcdata "Eliom tutorial"]; 
+                    p [pcdata "Wrong parameters"]]))
     | e -> fail e)
 (*html*
      <h4>Giving configuration options to your sites</h4>

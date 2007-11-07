@@ -19,8 +19,6 @@
 
 open XHTML.M
 
-let charset = None
-
 let page_error_param_type l = 
   let s = match l with
     [] -> [pcdata "Wrong type for parameter"]
@@ -57,12 +55,5 @@ let page_session_expired  =
     (head (title (pcdata s)) [])
     (body
        [h1 [pcdata s]]
-    )
-
-let error_page s c =
-  html
-    (head (title (pcdata s)) [])
-    (body
-       ((h1 [pcdata "Error"])::c)
     )
 

@@ -219,15 +219,13 @@ type 'a cookie_info =
       list ref
 
 
-(**/**)
 (** The type to send if you want to create your own modules for generating
    pages
  *)
 type result_to_send = 
-  | EliomResult of Extensions.result
-  | EliomExn of (exn list * cookieslist)
+  | EliomResult of Http_frame.result
+  | EliomExn of (exn list * Http_frame.cookieslist)
 
-(**/**)
 
 
 (** Type of server parameters. 

@@ -43,6 +43,10 @@ module type ELIOMSIG = sig
   include Eliommkforms.ELIOMFORMSIG
 end
 
+let code_of_code_option = function
+  | None -> 200
+  | Some c -> c
+
 module Xhtmlreg_ = struct
   open XHTML.M
   open Xhtmltypes
@@ -50,18 +54,16 @@ module Xhtmlreg_ = struct
   type page = xhtml elt
 
    let send ?(cookies=[]) ?charset ?code ~sp content = 
-     EliomResult 
-       {res_cookies= cookies;
-        res_lastmodified= None;
-        res_etag= None;
-        res_code= code;
-        res_send_page= Predefined_senders.send_xhtml_page ~content:content;
-        res_headers= Predefined_senders.dyn_headers;
-        res_charset= (match charset with
-        | None -> Some (get_config_file_charset sp)
-        | _ -> charset);
-        res_filter=None
-      }
+     Predefined_senders.Xhtml_content.result_of_content content >>= fun r ->
+     Lwt.return
+         (EliomResult 
+            {r with
+             res_cookies= cookies;
+             res_code= code_of_code_option code;
+             res_charset= (match charset with
+             | None -> Some (get_config_file_charset sp)
+             | _ -> charset)
+           })
 
 end
 
@@ -1088,33 +1090,28 @@ module SubXhtml = functor(T : sig type content end) ->
         type t = T.content XHTML.M.elt list
               
         let get_etag_aux x =
-          Digest.to_hex (Digest.string x)
+          Some (Digest.to_hex (Digest.string x))
             
         let get_etag c =
           let x = (XHTML.M.ocsigen_xprint c) in
           get_etag_aux x
             
-        let stream_of_content c = 
-          let x = (XHTML.M.ocsigen_xprint c) in
+        let result_of_content c = 
+          let x = XHTML.M.ocsigen_xprint c in
           let md5 = get_etag_aux x in
-          Lwt.return (Some (Int64.of_int (String.length x)), 
-                      md5,
-                      Ocsistream.make (fun () -> Ocsistream.cont x 
-                         (fun () -> Ocsistream.empty None))
-                     )
-            
-            (* there is currently no parser for this type *)
-        let content_of_stream s = assert false
-      end
-        
-    module Cont_sender = FHttp_sender(Cont_content)
-        
-            
-    let send_cont_page =
-      Predefined_senders.send_generic 
-        Cont_sender.send
-        ~contenttype:"text/html"
+          Lwt.return 
+            {default_result with
+             res_content_length = Some (Int64.of_int (String.length x));
+             res_content_type = Some "text/html";
+             res_etag = md5;
+             res_headers= Http_headers.dyn_headers;
+             res_stream = 
+             Ocsistream.make 
+               (fun () -> Ocsistream.cont x
+                   (fun () -> Ocsistream.empty None))
+           }
 
+      end
         
     module Contreg_ = struct
       open XHTML.M
@@ -1123,18 +1120,16 @@ module SubXhtml = functor(T : sig type content end) ->
       type page = T.content XHTML.M.elt list
             
       let send ?(cookies=[]) ?charset ?code ~sp content = 
-        EliomResult 
-          {res_cookies= cookies;
-           res_lastmodified= None;
-           res_etag= None;
-           res_code= code;
-           res_send_page= send_cont_page ~content:content;
-           res_headers= Predefined_senders.dyn_headers;
-           res_charset= (match charset with
-           | None -> Some (get_config_file_charset sp)
-           | _ -> charset);
-           res_filter=None
-         }
+        Cont_content.result_of_content content >>= fun r ->
+        Lwt.return
+            (EliomResult 
+               {r with
+                res_cookies= cookies;
+                res_code= code_of_code_option code;
+                res_charset= (match charset with
+                | None -> Some (get_config_file_charset sp)
+                | _ -> charset);
+              })
           
     end
         
@@ -1164,20 +1159,17 @@ module Textreg_ = struct
 
   type page = (string * string)
 
-  let send ?(cookies=[]) ?charset ?code ~sp (content, contenttype) = 
-    EliomResult
-      {res_cookies= cookies;
-       res_lastmodified= None;
-       res_etag= None;
-       res_code= code;
-       res_send_page= Predefined_senders.send_text_page 
-         ~contenttype:contenttype ~content:content;
-       res_headers= Predefined_senders.dyn_headers;
-       res_charset= (match charset with
-       | None -> Some (get_config_file_charset sp)
-       | _ -> charset);
-       res_filter=None
-     }
+  let send ?(cookies=[]) ?charset ?code ~sp content = 
+    Predefined_senders.Text_content.result_of_content content >>= fun r ->
+    Lwt.return
+        (EliomResult
+           {r with
+            res_cookies= cookies;
+            res_code= code_of_code_option code;
+            res_charset= (match charset with
+            | None -> Some (get_config_file_charset sp)
+            | _ -> charset);
+          })
 
 end
 
@@ -1193,19 +1185,16 @@ module CssTextreg_ = struct
   type page = string
 
   let send ?(cookies=[]) ?charset ?code ~sp content = 
-    EliomResult
-      {res_cookies= cookies;
-       res_lastmodified= None;
-       res_etag= None;
-       res_code= code;
-       res_send_page= Predefined_senders.send_text_page 
-         ~contenttype:"text/css" ~content:content;
-       res_headers= Predefined_senders.dyn_headers;
-       res_charset= (match charset with
-       | None -> Some (get_config_file_charset sp)
-       | _ -> charset);
-       res_filter=None
-     }
+    Predefined_senders.Text_content.result_of_content (content, "text/css") >>= fun r ->
+    Lwt.return
+        (EliomResult
+           {r with
+            res_cookies= cookies;
+            res_code= code_of_code_option code;
+            res_charset= (match charset with
+            | None -> Some (get_config_file_charset sp)
+            | _ -> charset);
+          })
 
 end
 
@@ -1222,19 +1211,16 @@ module HtmlTextreg_ = struct
   type page = string
 
   let send ?(cookies=[]) ?charset ?code ~sp content = 
-    EliomResult
-      {res_cookies= cookies;
-       res_lastmodified= None;
-       res_etag= None;
-       res_code= code;
-       res_send_page= Predefined_senders.send_text_page 
-         ~contenttype:"text/html" ~content:content;
-       res_headers= Predefined_senders.dyn_headers;
-       res_charset= (match charset with
-       | None -> Some (get_config_file_charset sp)
-       | _ -> charset);
-       res_filter=None
-     }
+    Predefined_senders.Text_content.result_of_content (content, "text/html") >>= fun r ->
+    Lwt.return
+        (EliomResult
+           {r with
+            res_cookies= cookies;
+            res_code= code_of_code_option code;
+            res_charset= (match charset with
+            | None -> Some (get_config_file_charset sp)
+            | _ -> charset);
+          })
 
 end
 
@@ -1416,7 +1402,7 @@ module Actionreg_ = struct
   type page = exn list
 
   let send ?(cookies=[]) ?charset ?code ~sp content =
-    EliomExn (content, cookies)
+    Lwt.return (EliomExn (content, cookies))
 
 end
 
@@ -1432,16 +1418,12 @@ module Unitreg_ = struct
   type page = unit
 
   let send ?(cookies=[]) ?charset ?(code = 204) ~sp content = 
-    EliomResult
-      {res_cookies= cookies;
-       res_lastmodified= None;
-       res_etag= None;
-       res_code= Some code;
-       res_send_page= Predefined_senders.send_empty ~content:content;
-       res_headers= Http_headers.empty;
-       res_charset= None;
-       res_filter=None
-     }
+    Lwt.return
+      (EliomResult
+         {empty_result with
+          res_cookies= cookies;
+          res_code= code;
+        })
 
 end
 
@@ -1466,30 +1448,13 @@ module Redirreg_ = struct
   type page = string
 
   let send ?(cookies=[]) ?charset ?(code = 301) ~sp content =
-    EliomResult
-      {res_cookies= cookies;
-       res_lastmodified= None;
-       res_etag= None;
-       res_code= Some code; (* Moved permanently *)
-       res_send_page= 
-       (fun ?filter ?cookies waiter ~clientproto ?mode ?code ?etag ~keep_alive
-           ?last_modified ?location ~head ?headers ?charset s ->
-             Predefined_senders.send_empty
-               ~content:()
-               ?filter
-               ?cookies
-               waiter 
-               ~clientproto
-               ?mode
-               ?code
-               ?etag ~keep_alive
-               ?last_modified 
-               ~location:content
-               ~head ?headers ?charset s);
-       res_headers= Http_headers.empty;
-       res_charset= None;
-       res_filter=None
-     }
+    Lwt.return
+      (EliomResult
+         {empty_result with
+          res_cookies= cookies;
+          res_code= code; (* Moved permanently *)
+          res_location = Some content;
+        })
 
 end
 
@@ -1503,30 +1468,13 @@ module TempRedirreg_ = struct
   type page = string
 
   let send ?(cookies=[]) ?charset ?(code = 302) ~sp content =
-    EliomResult
-      {res_cookies= cookies;
-       res_lastmodified= None;
-       res_etag= None;
-       res_code= Some code; (* Temporary move *)
-       res_send_page= 
-       (fun ?filter ?cookies waiter ~clientproto ?mode ?code ?etag ~keep_alive
-           ?last_modified ?location ~head ?headers ?charset s ->
-             Predefined_senders.send_empty
-               ~content:()
-               ?filter
-               ?cookies
-               waiter 
-               ~clientproto
-               ?mode
-               ?code
-               ?etag ~keep_alive
-               ?last_modified 
-               ~location:content
-               ~head ?headers ?charset s);
-       res_headers= Http_headers.empty;
-       res_charset= None;
-       res_filter=None
-     }
+    Lwt.return
+      (EliomResult
+         {empty_result with
+          res_cookies= cookies;
+          res_code= code; (* Temporary move *)
+          res_location = Some content;
+        })
 
 end
 
@@ -1534,7 +1482,7 @@ end
 module TempRedirections = MakeRegister(TempRedirreg_)
 
 
-(* Any is a module allowing to register service that decide themselves
+(* Any is a module allowing to register services that decide themselves
    what they want to send.
  *)
 module Anyreg_ = struct
@@ -1544,18 +1492,19 @@ module Anyreg_ = struct
   type page = result_to_send
 
   let send ?(cookies=[]) ?charset ?code ~sp content = 
-    match content with
-    | EliomResult res ->
-        EliomResult
-          {res with 
-           res_cookies=cookies@res.res_cookies;
-           res_charset= match charset with
-           | None -> res.res_charset
-           | _ -> charset
-         }
-    | EliomExn (e, c) -> 
-        EliomExn (e, cookies@c)
-
+    Lwt.return
+      (match content with
+      | EliomResult res ->
+          EliomResult
+            {res with 
+             res_cookies=cookies@res.res_cookies;
+             res_charset= match charset with
+             | None -> res.res_charset
+             | _ -> charset
+           }
+      | EliomExn (e, c) -> 
+          EliomExn (e, cookies@c))
+            
 end
 
 module Any = MakeRegister(Anyreg_)
@@ -1608,18 +1557,16 @@ module Filesreg_ = struct
       | Ocsigen_malformed_url as e -> raise e
       | e -> raise Ocsigen_404)
     in
-    EliomResult
-      {res_cookies= cookies;
-       res_lastmodified= Some stat.Unix.LargeFile.st_mtime;
-       res_etag= Some (Predefined_senders.File_content.get_etag filename);
-       res_code= code;
-       res_send_page= Predefined_senders.send_file ~content:filename;
-       res_headers= Http_headers.empty;
-       res_charset= (match charset with
-       | None -> Some (get_config_file_charset sp)
-       | _ -> charset);
-       res_filter=None
-     }
+    Predefined_senders.File_content.result_of_content filename >>= fun r ->
+    Lwt.return
+        (EliomResult
+           {r with
+            res_cookies= cookies;
+            res_code= code_of_code_option code;
+            res_charset= (match charset with
+            | None -> Some (get_config_file_charset sp)
+            | _ -> charset);
+          })
 
 
 end
@@ -1636,20 +1583,17 @@ module Streamlistreg_ = struct
   type page = (((unit -> (string Ocsistream.t) Lwt.t) list) * 
                  string)
 
-  let send ?(cookies=[]) ?charset ?code ~sp (content, contenttype) = 
-    EliomResult
-      {res_cookies= cookies;
-       res_lastmodified= None;
-       res_etag= None;
-       res_code= code;
-       res_send_page= Predefined_senders.send_stream_list_page 
-         ~contenttype:contenttype ~content:content;
-       res_headers= Predefined_senders.dyn_headers;
-       res_charset= (match charset with
-       | None -> Some (get_config_file_charset sp)
-       | _ -> charset);
-       res_filter=None
-     }
+  let send ?(cookies=[]) ?charset ?code ~sp content = 
+    Predefined_senders.Streamlist_content.result_of_content content >>= fun r ->
+    Lwt.return
+        (EliomResult
+           {r with
+            res_cookies= cookies;
+            res_code= code_of_code_option code;
+            res_charset= (match charset with
+            | None -> Some (get_config_file_charset sp)
+            | _ -> charset);
+          })
 
 end
 

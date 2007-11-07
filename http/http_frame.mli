@@ -1,22 +1,49 @@
 type etag = string
 
-type full_stream =
-  int64 option * etag * string Ocsistream.t
-(** The type of streams to be send by the server.
-   The [int64 option] is the content-length.
-   [None] means Transfer-encoding: chunked
-   The last function is the termination function
-   (for ex closing a file if needed),
-   that must be called when the stream is not needed any more.
-   Your new termination function should probably call the former one. *)
+(** Type used for cookies to set. The url_path option is for the path,
+   The float option is the timestamp for the expiration date. 
+*)
+type cookies = 
+  | Set of string list option (* path *) *
+        float option (* expires *) * 
+        (string * string) list (* (name, value) list *)
+  | Unset of (string list option (* path *) * 
+                string list (* names *))
+
+type cookieslist = cookies list
+
+val change_cookie : cookies -> 
+  string list option * float option * (string * string) list
+
+
+(** The type of answers to send *)
+(** The type of answers to send *)
+type result =
+    {res_cookies: cookieslist; (** cookies to set (with optional path) *)
+     res_lastmodified: float option; (** Default: [None] *)
+     res_etag: etag option;
+     res_code: int; (** HTTP code, if not 200 *)
+     res_stream: string Ocsistream.t; (** Default: empty stream *)
+     res_content_length: int64 option; (** [None] means Transfer-encoding: chunked *)
+     res_content_type: string option;
+     res_headers: Http_headers.t; (** The headers you want to add *)
+     res_charset: string option; (** Default: None *)
+     res_location: string option; (** Default: None *)
+   }
+
+
+(** Default [result] to use as a base for constructing others. *)
+val default_result : result
+
+(** [result] for an empty page. *)
+val empty_result : result
+
 
 module type HTTP_CONTENT =
   sig
     type t
-    val content_of_stream : string Ocsistream.t -> t Lwt.t
-    val stream_of_content :
-      t -> full_stream Lwt.t
-    val get_etag : t -> etag
+    val result_of_content : t -> result Lwt.t
+    val get_etag : t -> etag option
   end
 module Http_header :
   sig

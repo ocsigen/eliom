@@ -29,30 +29,75 @@ open Ocsistream
 
 type etag = string
 
-type full_stream =
-  int64 option * etag * string Ocsistream.t
-(** The type of streams to be send by the server.
-   The [int64 option] is the content-length.
-   [None] means Transfer-encoding: chunked
-   The last function is the termination function
-   (for ex closing a file if needed),
-   that must be called when the stream is not needed any more.
-   Your new termination function should probably call the former one. *)
+type cookies = 
+  | Set of string list option * float option * (string * string) list
+  | Unset of (string list option * string list)
+
+type cookieslist = cookies list
+
+let change_cookie = function
+  | Set (a, b, c) -> (a, b, c)
+  | Unset (a, b) -> (a, (Some 0.), (List.map (fun v -> (v,"")) b))
+
+
+
+
+(** The type of answers to send *)
+type result =
+    {res_cookies: cookieslist; (** cookies to set (with optional path) *)
+     res_lastmodified: float option; (** Default: [None] *)
+     res_etag: string option;
+     res_code: int; (** HTTP code, if not 200 *)
+     res_stream: string Ocsistream.t; (** Default: empty stream *)
+     res_content_length: int64 option; (** [None] means Transfer-encoding: chunked *)
+     res_content_type: string option;
+     res_headers: Http_headers.t; (** The headers you want to add *)
+     res_charset: string option; (** Default: None *)
+     res_location: string option; (** Default: None *)
+   }
+
+(** Default [result] to use as a base for constructing others. *)
+let default_result =
+  {
+   res_cookies = [];
+   res_lastmodified = None;
+   (* No date => proxies use etag *)
+   res_etag = None;
+   res_code = 200;
+   res_stream = Ocsistream.make (fun () -> Ocsistream.empty None);
+   res_content_length = Some 0L;
+   res_content_type = None;
+   res_headers= Http_headers.empty;
+   res_charset= None;
+   res_location= None;
+ }
+
+(** [result] for an empty page. *)
+let empty_result = 
+  {
+   res_cookies = [];
+   res_lastmodified = None;
+   res_etag = None;
+   res_code = 204; (* No content *)
+   res_stream = Ocsistream.make (fun () -> Ocsistream.empty None);
+   res_content_length = Some 0L;
+   res_content_type = None;
+   res_headers= Http_headers.empty;
+   res_charset= None;
+   res_location= None;
+ }
 
 module type HTTP_CONTENT =
   sig
-    (** abstract type of the content*)
+    (** abstract type of the content *)
     type t
 
-    (** convert a string into the content type *)
-    val content_of_stream : string Ocsistream.t -> t Lwt.t
-
-    (** convert a content type into a thread returning its
-       size, etag, stream, closing function *)
-    val stream_of_content : t -> full_stream Lwt.t
+    (** convert a content into a thread returning the default
+        [result] for this content *)
+    val result_of_content : t -> result Lwt.t
 
     (** compute etag for content *)
-    val get_etag : t -> etag
+    val get_etag : t -> etag option
   end
 
 

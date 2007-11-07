@@ -323,60 +323,56 @@ let select_encoding accept_header =
 
 exception No_compress
 
-let stream_filter deflate choice contenttype (len, etag, stream) = 
+let stream_filter contentencoding deflate choice res = 
  try (
-   match contenttype with
+   match res.Http_frame.res_content_type with
    | None -> raise No_compress (* il faudrait défaut ? *)
    | Some contenttype ->
        match Ocsiheaders.parse_mime_type contenttype with
        | None, _ | _, None -> raise No_compress (* should never occure? *)
        | (Some a, Some b) when should_compress (a, b) choice ->
-           return (None, 
-                   (if deflate then "Ddeflatemod" else "Gdeflatemod")^etag, 
-                   compress deflate stream)
+           return 
+             { res with
+               Http_frame.res_content_length = None;
+               Http_frame.res_etag = 
+               (match res.Http_frame.res_etag with
+               | Some e ->
+                   Some ((if deflate then "Ddeflatemod" else "Gdeflatemod")^e)
+               | None -> None);
+               Http_frame.res_stream = 
+               compress deflate res.Http_frame.res_stream;
+               Http_frame.res_headers = 
+               Http_headers.replace
+                 Http_headers.content_encoding 
+                 contentencoding res.Http_frame.res_headers;
+             }
        | _ -> raise No_compress)
- with Not_found | No_compress -> 
-   return (None, etag, stream)
+ with Not_found | No_compress -> return res
 
 let filter ri res =
   (* TODO: Ici il faut regarder dans l'arbre de configuration
      s'il faut compresser ou pas (et changer choice_list en conséquence) *)
  match select_encoding (Lazy.force(ri.ri_accept_encoding)) with
-  |Deflate ->   return
-    {res with
-     res_headers = Http_headers.replace
-                     Http_headers.content_encoding "deflate" res.res_headers;
-     res_filter= Some (stream_filter true !choice_list)
-   }
-  |Gzip ->   return
-    {res with
-     res_headers = Http_headers.replace
-                     Http_headers.content_encoding "gzip" res.res_headers;
-     res_filter= Some (stream_filter false !choice_list)
-   } 
-  |Id|Star -> return res
-  |Not_acceptable -> return 
-    {res with 
-     res_code = Some 406;
-     res_send_page= 
-       Predefined_senders.send_error ?http_exception:None
-   }
+ | Deflate -> 
+     stream_filter "deflate" true !choice_list res
+ | Gzip -> 
+     stream_filter "gzip" false !choice_list res
+ | Id | Star -> return res
+ | Not_acceptable -> 
+     Predefined_senders.Error_content.result_of_content (Some 406, None)
+
 
 
 (*****************************************************************************)
-(** A function that will be called for each virtual host,
-   generating two functions: 
-    - one that will be called to filter the output
-    - one to parse the configuration file. *)
-let virtual_host_creator hostpattern = (filter, parse_config)
+let site_creator hostpattern path charset = parse_config path
    (* hostpattern has type Extensions.virtual_hosts
       and represents the name of the virtual host *)
    
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = R.register_output_filter (* takes a quadruple *)
-    (virtual_host_creator,
+let _ = Extensions.register_extension (* takes a quadruple *)
+    (site_creator,
      start_init,
      end_init,
      exn_handler)

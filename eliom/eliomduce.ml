@@ -40,12 +40,16 @@ let add_css (a : html) : html =
    }}
 
 
+let code_of_code_option = function
+  | None -> 200
+  | Some c -> c
+
 module Ocamlduce_content =
   struct
     type t = {{ html }}
 
     let get_etag_aux x =
-      Digest.to_hex (Digest.string x)
+      Some (Digest.to_hex (Digest.string x))
 
     let print x =
       let b = Buffer.create 256 in
@@ -56,33 +60,22 @@ module Ocamlduce_content =
       let x = print (add_css c) in
       get_etag_aux x
 
-    let stream_of_content c = 
+    let result_of_content c = 
       let x = print (add_css c) in
       let md5 = get_etag_aux x in
-      Lwt.return (Some (Int64.of_int (String.length x)), 
-                  md5, 
-                  Ocsistream.make (fun () -> Ocsistream.cont x 
-                      (fun () -> Ocsistream.empty None))
-                 )
+      Lwt.return 
+        {default_result with
+         res_content_length = Some (Int64.of_int (String.length x));
+         res_content_type = Some "text/html";
+         res_etag = md5;
+         res_headers= Http_headers.dyn_headers;
+         res_stream = 
+         Ocsistream.make 
+           (fun () -> Ocsistream.cont x
+               (fun () -> Ocsistream.empty None))
+       }
 
-    (*il n'y a pas encore de parser pour ce type*)
-    let content_of_stream s = assert false
   end
-
-module Ocamlduce_sender = FHttp_sender(Ocamlduce_content)
-
-
-(** fonction that sends a xhtml page
- * code is the code of the http answer
- * keep_alive is a boolean value that set the field Connection
- * cookie is a string value that give a value to the session cookie
- * path is the path associated to the cookie
- * page is the page to send
- * xhtml_sender is the sender to be used *)
-let send_ocamlduce_page =
-  send_generic Ocamlduce_sender.send
-    ~contenttype:"text/html"
-
 
 
 module Xhtmlreg_ = struct
@@ -90,18 +83,16 @@ module Xhtmlreg_ = struct
   type page = html
 
   let send ?(cookies=[]) ?charset ?code ~sp content = 
-    Eliommod.EliomResult
-      {res_cookies= cookies;
-       res_lastmodified= None;
-       res_etag= None;
-       res_code= code;
-       res_send_page= send_ocamlduce_page ~content:content;
-       res_headers= Predefined_senders.dyn_headers;
-       res_charset= (match charset with
-       | None -> Some (Eliomsessions.get_config_file_charset sp)
-       | _ -> charset);
-       res_filter=None
-     }
+    Ocamlduce_content.result_of_content content >>= fun r ->
+    Lwt.return 
+        (Eliommod.EliomResult
+           {r with
+            res_cookies= cookies;
+            res_code= code_of_code_option code;
+            res_charset= (match charset with
+            | None -> Some (Eliomsessions.get_config_file_charset sp)
+            | _ -> charset)
+          })
 
 end
 
@@ -296,7 +287,7 @@ module Xml =
         type t = Ocamlduce.Load.anyxml
 
         let get_etag_aux x =
-          Digest.to_hex (Digest.string x)
+          Some (Digest.to_hex (Digest.string x))
 
         let print x =
           let b = Buffer.create 256 in
@@ -307,26 +298,24 @@ module Xml =
           let x = print c in
           get_etag_aux x
 
-        let stream_of_content c = 
+        let result_of_content c = 
           let x = print c in
           let md5 = get_etag_aux x in
-          Lwt.return (Some (Int64.of_int (String.length x)), 
-                      md5, 
-                      Ocsistream.make (fun () -> Ocsistream.cont x 
-                          (fun () -> Ocsistream.empty None))
-                     )
-
-            (*il n'y a pas encore de parser pour ce type*)
-        let content_of_stream s = assert false
+          Lwt.return
+            {default_result with
+             res_content_length = Some (Int64.of_int (String.length x));
+             res_content_type = Some "text/html";
+             res_etag = md5;
+             res_headers= Http_headers.dyn_headers;
+             res_stream = 
+             Ocsistream.make 
+               (fun () -> Ocsistream.cont x
+                   (fun () -> Ocsistream.empty None))
+           }
 
       end
         
-    module Cont_sender = FHttp_sender(Cont_content)
-        
-    let send_cont_page =
-      Predefined_senders.send_generic Cont_sender.send 
-        ~contenttype:"text/html"
-        
+
     module Contreg_ = struct
       open XHTML.M
       open Xhtmltypes
@@ -334,18 +323,16 @@ module Xml =
       type page = Ocamlduce.Load.anyxml
             
       let send ?(cookies=[]) ?charset ?code ~sp content = 
-        Eliommod.EliomResult 
-          {res_cookies= cookies;
-           res_lastmodified= None;
-           res_etag= None;
-           res_code= code;
-           res_send_page= send_cont_page ~content:content;
-           res_headers= Predefined_senders.dyn_headers;
-           res_charset= (match charset with
-           | None -> Some (Eliomsessions.get_config_file_charset sp)
-           | _ -> charset);
-           res_filter=None
-         }
+        Cont_content.result_of_content content >>= fun r ->
+        Lwt.return
+            (Eliommod.EliomResult 
+               {r with
+                res_cookies= cookies;
+                res_code= code_of_code_option code;
+                res_charset= (match charset with
+                | None -> Some (Eliomsessions.get_config_file_charset sp)
+                | _ -> charset);
+              })
           
     end
         

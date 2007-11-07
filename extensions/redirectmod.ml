@@ -99,30 +99,10 @@ let gen dir charset ri =
                       (if temp then "Temporary " else "Permanent ")^
                       "redirection to: "^redir);      
       return
-        (Ext_found
-           {res_cookies=[];
-	    res_send_page=
-            (fun ?filter ?cookies waiter ~clientproto ?mode 
-                ?code ?etag ~keep_alive
-                ?last_modified ?location ~head ?headers ?charset s ->
-                  Predefined_senders.send_empty
-                    ~content:()
-                    ?filter
-                    ?cookies
-                    waiter 
-                    ~clientproto
-                    ?mode
-                    ?code
-                    ?etag ~keep_alive
-                    ?last_modified 
-                    ~location:redir
-                    ~head ?headers ?charset s);
-	    res_headers=Http_headers.empty;
-	    res_code= Some (if temp then 302 else 301);
-	    res_lastmodified= None;
-	    res_etag= None;
-	    res_charset= None;
-            res_filter=None})
+        (Ext_found 
+           {Http_frame.empty_result with
+            Http_frame.res_location = Some redir;
+	    Http_frame.res_code= if temp then 302 else 301})
     )
     (function 
       | Extensions.Ocsigen_404 -> return (Ext_not_found Ocsigen_404)
