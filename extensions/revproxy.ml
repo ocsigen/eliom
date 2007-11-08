@@ -150,7 +150,7 @@ let gen dir charset ri =
 
  *)
 
-let parse_config path = function
+let parse_config path charset = function
   | Element ("revproxy", atts, []) -> 
       let rec parse_attrs ((r, s, prot, port, u) as res) = function
         | [] -> res
@@ -219,7 +219,7 @@ let parse_config path = function
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension (* takes a quadruple *)
-    ((fun hostpattern path charset -> parse_config path),
+    ((fun hostpattern -> parse_config),
      start_init,
      end_init,
      raise)

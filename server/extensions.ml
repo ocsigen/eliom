@@ -179,7 +179,8 @@ let parse_site host =
       | [] -> []
       | xmltag::ll -> 
           try
-            (f xmltag)::aux ll
+            let a = f xmltag in
+            a::aux ll
           with
           | Bad_config_tag_for_extension t -> 
               (* raise Config_file_error *)

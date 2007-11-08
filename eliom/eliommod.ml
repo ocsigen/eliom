@@ -2843,7 +2843,10 @@ let load_eliom_module sitedata cmo content =
 
 (*****************************************************************************)
 (** Parsing of config file for each site: *)
-let parse_config site_dir = 
+let parse_config site_dir charset = 
+(*VVV if we put the following line here: *)
+  let sitedata = new_sitedata site_dir in
+(*VVV then there is one service tree for each <site> *)
   let rec parse_module_attrs file = function
     | [] -> (match file with
         None -> 
@@ -2860,8 +2863,11 @@ let parse_config site_dir =
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in function
     | Element ("eliom", atts, content) -> 
+(*VVV if we put the line "new_sitedata" here, then there is 
+  one service table for each <eliom> tag ...
+  Which one is the best? 
+ *)
         let file = parse_module_attrs None atts in
-        let sitedata = new_sitedata site_dir in
         load_eliom_module sitedata file content;
         Page_gen (gen sitedata)
     | Element (t, _, _) -> 
@@ -2922,8 +2928,7 @@ let handle_init_exn = function
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
-    ((fun hostpattern path charset config -> 
-      parse_config path config),
+    ((fun hostpattern -> parse_config),
      start_init,
      end_init,
      handle_init_exn)

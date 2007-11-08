@@ -183,7 +183,7 @@ let _ = parse_global_config (Extensions.get_config ())
 
 
 
-let parse_config path = function
+let parse_config path charset = function
   | Element ("static", atts, []) -> 
         let dir = match atts with
         | [] -> 
@@ -232,7 +232,7 @@ let end_init () =
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
-    ((fun hostpattern path charset -> parse_config path),
+    ((fun hostpattern -> parse_config),
      start_init,
      end_init,
      raise)

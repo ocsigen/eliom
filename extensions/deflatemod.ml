@@ -236,7 +236,7 @@ let _ = parse_global_config (Extensions.get_config ())
 
  *)
 
-let parse_config path = function
+let parse_config path charset = function
 (*  | Element ("deflate", atts, []) -> () 
    Ici il faut créer un arbre de répertoires en se souvenant les options
    de compression de chaque répertoire.
@@ -364,7 +364,7 @@ let filter ri res =
 
 
 (*****************************************************************************)
-let site_creator hostpattern path charset = parse_config path
+let site_creator hostpattern = parse_config
    (* hostpattern has type Extensions.virtual_hosts
       and represents the name of the virtual host *)
    

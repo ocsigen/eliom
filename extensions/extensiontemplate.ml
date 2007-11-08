@@ -109,7 +109,7 @@ let gen charset ri =
 
  *)
 
-let parse_config path = function
+let parse_config path charset = function
   | Element ("extensiontemplate", atts, []) ->  Page_gen gen
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> 
@@ -157,7 +157,7 @@ let exn_handler = raise
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
      {- return something of type [extension] (filter or page generator)}}
 *)
-let site_creator hostpattern path charset = parse_config path
+let site_creator hostpattern = parse_config
    (* hostpattern has type Extensions.virtual_hosts
       and represents the name of the virtual host.
       The path and the charset are declared in <site path... charset=.../>

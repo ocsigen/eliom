@@ -530,7 +530,7 @@ let string_conform s = match String.length s with
         | '/', _ -> s^"/"
         | _, _ -> "/"^s^"/"
 
-let parse_config path = function 
+let parse_config path charset = function 
   | Element ("cgi", atts, l) -> 
       let good_root r = 
         Regexp.quote (string_conform
@@ -609,7 +609,7 @@ let end_init () = ()
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension (* takes a quadruple *)
-  ((fun hostpattern path charset -> parse_config path),
+  ((fun hostpattern -> parse_config),
    start_init,
    end_init,
    exn_handler)

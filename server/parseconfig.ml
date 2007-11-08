@@ -158,8 +158,8 @@ let parse_server isreloading c =
           let path = 
             Ocsimisc.remove_slash_at_end
               (Ocsimisc.remove_slash_at_beginning (Neturl.split_path dir)) in
-          (host, path, charset, parse_site path charset l)::
-          parse_host host parse_site ll
+          let s = (host, path, charset, parse_site path charset l) in
+          s::parse_host host parse_site ll
       | (Element (tag,_,_))::_ -> 
           raise (Config_file_error ("<"^tag^"> tag unexpected inside <host>"))
       | _ -> raise (Config_file_error ("Unexpected content inside <host>"))

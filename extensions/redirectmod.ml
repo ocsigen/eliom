@@ -124,7 +124,7 @@ let gen dir charset ri =
 
  *)
 
-let parse_config path = function
+let parse_config path charset = function
   | Element ("redirect", atts, []) -> 
         let dir = match atts with
         | [] -> 
@@ -158,7 +158,7 @@ let virtual_host_creator hostpattern = (gen, parse_config)
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension (* takes a quadruple *)
-    ((fun hostpattern path charset -> parse_config path),
+    ((fun hostpattern -> parse_config),
      start_init,
      end_init,
      raise)
