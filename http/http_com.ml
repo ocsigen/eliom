@@ -691,24 +691,32 @@ let send
     <<
     (Http_headers.date, date)
   in
-  let mkcook path exp (name, c) =
-    (Http_headers.set_cookie,
-     Format.sprintf "%s=%s%s%s" name c
-       (match path with
-        | Some s -> "; path=/" ^ Ocsimisc.string_of_url_path s
-        | None   -> "")
-       (match exp with
-        | Some s -> "; expires=" ^
-                    Netdate.format
-                      "%a, %d-%b-%Y %H:%M:%S GMT"
-                      (Netdate.create s)
-        | None   -> ""))
+  let mkcook path exp name c =
+    Format.sprintf "%s=%s%s%s" name c
+      (match path with
+      | [] | [""] -> ""
+      | s -> "; path=/" ^ Ocsimisc.string_of_url_path s
+      )
+      (match exp with
+      | Some s -> "; expires=" ^
+          Netdate.format
+            "%a, %d-%b-%Y %H:%M:%S GMT"
+            (Netdate.create s)
+      | None   -> "")
   in
-  let mkcookl hds (path, exp, cl) =
-    List.fold_left (fun h c -> h << mkcook path exp c) hds cl
+  let mkcookl path t hds =
+    Cookievalues.fold
+      (fun name c h -> 
+        let exp, v = match c with
+        | Http_frame.OUnset -> (Some 0., "")
+        | Http_frame.OSet (t, v) -> (t, v)
+        in
+        Http_headers.add Http_headers.set_cookie (mkcook path exp name v) h)
+      t
+      hds 
   in
   let headers =
-    List.fold_left mkcookl headers (List.map change_cookie res.res_cookies)
+    Cookies.fold mkcookl res.res_cookies headers
     <<?
 (*XXX Check: HTTP/1.0 *)
     (Http_headers.connection,

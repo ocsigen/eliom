@@ -1,25 +1,37 @@
 type etag = string
 type url_path = string list
 
-(** Type used for cookies to set. The url_path option is for the path,
-   The float option is the timestamp for the expiration date. 
-*)
-type cookies = 
-  | Set of string list option (* path *) *
-        float option (* expires *) * 
-        (string * string) list (* (name, value) list *)
-  | Unset of (string list option (* path *) * 
-                string list (* names *))
 
-type cookieslist = cookies list
+(** This table is to store cookie values for each path. 
+    The key has type url_path option: 
+    it is for the path (default: root of the site),
+ *)
+module Cookies : Map.S
+  with type key = url_path
 
-val change_cookie : cookies -> 
-  string list option * float option * (string * string) list
+(** This table is to store one cookie value for each cookie name. *)
+module Cookievalues : Map.S
+  with type key = string
+
+(** Type used for cookies to set. 
+    The float option is the timestamp for the expiration date.
+    The string is the value.
+ *)
+type cookie = 
+  | OSet of float option * string
+  | OUnset
+
+type cookieset = cookie Cookievalues.t Cookies.t
+
+val add_cookie : 
+    url_path -> string -> cookie -> cookieset -> cookieset
+
+
 
 
 (** The type of answers to send *)
 type result =
-    {res_cookies: cookieslist; (** cookies to set (with optional path) *)
+    {res_cookies: cookieset; (** cookies to set *)
      res_lastmodified: float option; (** Default: [None] *)
      res_etag: etag option;
      res_code: int; (** HTTP code, if not 200 *)

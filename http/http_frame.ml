@@ -30,22 +30,31 @@ open Ocsistream
 type etag = string
 type url_path = string list
 
-type cookies = 
-  | Set of string list option * float option * (string * string) list
-  | Unset of (string list option * string list)
+module Cookies = 
+  Map.Make(struct type t = url_path let compare = compare end)
 
-type cookieslist = cookies list
+module Cookievalues = 
+  Map.Make(struct type t = string let compare = compare end)
 
-let change_cookie = function
-  | Set (a, b, c) -> (a, b, c)
-  | Unset (a, b) -> (a, (Some 0.), (List.map (fun v -> (v,"")) b))
+type cookie = 
+  | OSet of float option * string
+  | OUnset
 
+type cookieset = cookie Cookievalues.t Cookies.t
+
+let add_cookie path n v t =
+  let ct =
+    try Cookies.find path t
+    with Not_found -> Cookievalues.empty
+  in 
+  (* We replace the old value if it exists *)
+  Cookies.add path (Cookievalues.add n v ct) t
 
 
 
 (** The type of answers to send *)
 type result =
-    {res_cookies: cookieslist; (** cookies to set (with optional path) *)
+    {res_cookies: cookieset; (** cookies to set (with optional path) *)
      res_lastmodified: float option; (** Default: [None] *)
      res_etag: string option;
      res_code: int; (** HTTP code, if not 200 *)
@@ -60,7 +69,7 @@ type result =
 (** Default [result] to use as a base for constructing others. *)
 let default_result () =
   {
-   res_cookies = [];
+   res_cookies = Cookies.empty;
    res_lastmodified = None;
    (* No date => proxies use etag *)
    res_etag = None;
@@ -76,7 +85,7 @@ let default_result () =
 (** [result] for an empty page. *)
 let empty_result () = 
   {
-   res_cookies = [];
+   res_cookies = Cookies.empty;
    res_lastmodified = None;
    res_etag = None;
    res_code = 204; (* No content *)

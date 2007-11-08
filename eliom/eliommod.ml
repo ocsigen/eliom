@@ -42,22 +42,32 @@ open Lazy
  *)
 type internal_state = string
 
+(** Type used for cookies to set. 
+    The float option is the timestamp for the expiration date.
+    The strings are names and values.
+ *)
+type cookie = 
+  | Set of url_path option * float option * string * string
+  | Unset of url_path option * string
+
+
+
 type sess_info =
     {si_other_get_params: (string * string) list;
      si_all_get_params: (string * string) list;
      si_all_post_params: (string * string) list;
 
-     si_service_session_cookies: (string (* cookie name (or site dir) *) * 
-                                    string (* value *)) list;
+     si_service_session_cookies: string Http_frame.Cookievalues.t;
      (* the session service cookies sent by the request *)
+     (* the key is the cookie name (or site dir) *)
 
-     si_data_session_cookies: (string (* cookie name (or site dir) *) * 
-                                 string (* value *)) list;
+     si_data_session_cookies: string Http_frame.Cookievalues.t;
      (* the session data cookies sent by the request *)
+     (* the key is the cookie name (or site dir) *)
 
-     si_persistent_session_cookies: (string (* cookie name (or site dir) *) *
-                                       string (* value *)) list;
+     si_persistent_session_cookies: string Http_frame.Cookievalues.t;
      (* the persistent session cookies sent by the request *)
+     (* the key is the cookie name (or site dir) *)
 
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
@@ -65,7 +75,7 @@ type sess_info =
      si_config_file_charset: string}
 
 (* The table of tables for each session. Keys are cookies *)
-module Cookies = Hashtbl.Make(struct 
+module SessionCookies = Hashtbl.Make(struct 
   type t = string
   let equal = (=)
   let hash = Hashtbl.hash
@@ -120,74 +130,62 @@ type one_persistent_cookie_info =
      (string                   (* current value *) *
       timeout ref              (* user timeout *) * 
       cookie_exp ref           (* cookie expiration date to set *)
-
      )
 
 
+(*VVV heavy *)
 type 'a cookie_info =
     (* service sessions: *)
-    (string                    (* cookie fullsessname *) 
-       * 
-
-     (string option            (* value sent by the browser *)
-                               (* None = new cookie 
-                                  (not sent by the browser) *)
-        *
-
-      'a one_service_cookie_info session_cookie ref
+    (string option            (* value sent by the browser *)
+                              (* None = new cookie 
+                                 (not sent by the browser) *)
+       *
+       
+       'a one_service_cookie_info session_cookie ref
        (* SCNo_data = the session has been closed
           SCData_session_expired = the cookie has not been found in the table.
           For both of them, ask the browser to remove the cookie.
         *)
-     )
-       (* This one is not lazy because we must check all service sessions
-          at each request to find the services *)
     )
-      list ref *
+      (* This one is not lazy because we must check all service sessions
+         at each request to find the services *)
+      Http_frame.Cookievalues.t ref (* The key is the full session name *) *
       
     (* in memory data sessions: *)
-    (string                    (* cookie fullsessname *) 
-       * 
-
-     (string option            (* value sent by the browser *)
-                               (* None = new cookie 
+      (string option            (* value sent by the browser *)
+                                (* None = new cookie 
                                    (not sent by the browser) *)
-        *
-
-      one_data_cookie_info session_cookie ref
-       (* SCNo_data = the session has been closed
-          SCData_session_expired = the cookie has not been found in the table.
-          For both of them, ask the browser to remove the cookie.
-        *)
-     ) Lazy.t
-       (* Lazy because we do not want to ask the browser to unset the cookie 
-          if the cookie has not been used, otherwise it is impossible to 
-          write a message "Your session has expired" *)
-    )
-      list ref *
+         *
+         
+         one_data_cookie_info session_cookie ref
+         (* SCNo_data = the session has been closed
+            SCData_session_expired = the cookie has not been found in the table.
+            For both of them, ask the browser to remove the cookie.
+          *)
+      ) Lazy.t
+      (* Lazy because we do not want to ask the browser to unset the cookie 
+         if the cookie has not been used, otherwise it is impossible to 
+         write a message "Your session has expired" *)
+      Http_frame.Cookievalues.t ref (* The key is the full session name *) *
       
       (* persistent sessions: *)
-    (string                    (* cookie fullsessname *) 
-       *
-
-     ((string                  (* value sent by the browser *) *
-       timeout                 (* timeout at the beginning of the request *) *
-       float option            (* (server side) expdate 
-                                  at the beginning of the request
-                                  None = no exp *))
-        option
-                               (* None = new cookie 
+      ((string                  (* value sent by the browser *) *
+        timeout                 (* timeout at the beginning of the request *) *
+        float option            (* (server side) expdate 
+                                   at the beginning of the request
+                                   None = no exp *))
+         option
+                                (* None = new cookie 
                                    (not sent by the browser) *)
-       *
-
-       one_persistent_cookie_info session_cookie ref
-       (* SCNo_data = the session has been closed
-          SCData_session_expired = the cookie has not been found in the table.
-          For both of them, ask the browser to remove the cookie.
-        *)
-       ) Lwt.t Lazy.t
-    )
-      list ref
+         *
+         
+         one_persistent_cookie_info session_cookie ref
+         (* SCNo_data = the session has been closed
+            SCData_session_expired = the cookie has not been found in the table.
+            For both of them, ask the browser to remove the cookie.
+          *)
+      ) Lwt.t Lazy.t
+      Http_frame.Cookievalues.t ref
 
 
 (* non persistent cookies for services *)
@@ -198,7 +196,7 @@ type 'a servicecookiestablecontent =
                                 (server side) *) *
      timeout ref             (* user timeout *))
 
-type 'a servicecookiestable = 'a servicecookiestablecontent Cookies.t
+type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
 (* the table contains:
    - the table of services
    - the expiration date (by timeout), changed at each access to the table
@@ -214,7 +212,7 @@ type datacookiestablecontent =
                                 (server side) *) *
      timeout ref             (* user timeout *))
 
-type datacookiestable = datacookiestablecontent Cookies.t
+type datacookiestable = datacookiestablecontent SessionCookies.t
 
       
 type anon_params_type = int
@@ -241,7 +239,7 @@ exception Eliom_error_while_loading_site of string
 (*****************************************************************************)
 type result_to_send = 
   | EliomResult of Http_frame.result
-  | EliomExn of (exn list * Http_frame.cookieslist)
+  | EliomExn of (exn list * cookie list)
 
 
 
@@ -342,10 +340,10 @@ and sitedata =
 
 (* table cookie -> session table *)
 let new_service_cookie_table () : tables servicecookiestable = 
-  Cookies.create 100
+  SessionCookies.create 100
 
 let new_data_cookie_table () : datacookiestable = 
-  Cookies.create 100
+  SessionCookies.create 100
 
 let empty_page_table () = []
 let empty_naservice_table () = AVide
@@ -449,13 +447,13 @@ Dario Teixeira
 let rec new_data_cookie fullsessname table = 
   let c = make_new_cookie_value () in
   try
-    ignore (Cookies.find table c); (* Actually not needed 
+    ignore (SessionCookies.find table c); (* Actually not needed 
                                       for the cookies we use *)
     new_data_cookie fullsessname table
   with Not_found ->
     let usertimeout = ref TGlobal (* See global table *) in
     let serverexp = ref (Some 0.) (* None = never. We'll change it later. *) in
-    Cookies.replace (* actually it will add the cookie *)
+    SessionCookies.replace (* actually it will add the cookie *)
       table 
       c
       (fullsessname,
@@ -467,14 +465,14 @@ let rec new_data_cookie fullsessname table =
 let rec new_service_cookie fullsessname table = 
   let c = make_new_cookie_value () in
   try
-    ignore (Cookies.find table c); (* Actually not needed 
+    ignore (SessionCookies.find table c); (* Actually not needed 
                                       for the cookies we use *)
     new_service_cookie fullsessname table
   with Not_found ->
     let str = ref (new_service_session_tables ()) in
     let usertimeout = ref TGlobal (* See global table *) in
     let serverexp = ref (Some 0.) (* None = never. We'll change it later. *) in
-    Cookies.replace (* actually it will add the cookie *)
+    SessionCookies.replace (* actually it will add the cookie *)
       table 
       c
       (fullsessname,
@@ -491,7 +489,9 @@ let find_or_create_data_cookie ?session_name ~sp () =
   let fullsessname = make_fullsessname ~sp session_name in
   let (_, cookie_info, _) = sp.sp_cookie_info in
   try
-    let (old, ior) = Lazy.force (List.assoc fullsessname !cookie_info) in
+    let (old, ior) = 
+      Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info) 
+    in
     match !ior with
     | SCData_session_expired 
     | SCNo_data -> 
@@ -502,9 +502,10 @@ let find_or_create_data_cookie ?session_name ~sp () =
   with Not_found -> 
     let v = new_data_cookie fullsessname sp.sp_sitedata.session_data in
     cookie_info := 
-      (fullsessname, 
-       Lazy.lazy_from_val (None, ref (SC v)))::
-      !cookie_info;
+      Http_frame.Cookievalues.add
+        fullsessname
+        (Lazy.lazy_from_val (None, ref (SC v)))
+        !cookie_info;
     v
         
 let find_data_cookie_only ?session_name ~sp () = 
@@ -512,7 +513,9 @@ let find_data_cookie_only ?session_name ~sp () =
      Returns the cookie info for the cookie *)
   let fullsessname = make_fullsessname ~sp session_name in
   let (_, cookie_info, _) = sp.sp_cookie_info in
-  let (_, ior) = Lazy.force (List.assoc fullsessname !cookie_info) in
+  let (_, ior) = 
+    Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info) 
+  in
   match !ior with
   | SCNo_data -> raise Not_found
   | SCData_session_expired -> raise Eliom_Session_expired
@@ -524,7 +527,7 @@ let find_or_create_service_cookie ?session_name ~sp () =
   let fullsessname = make_fullsessname ~sp session_name in
   let (cookie_info, _, _) = sp.sp_cookie_info in
   try
-    let (old, ior) = List.assoc fullsessname !cookie_info in
+    let (old, ior) = Http_frame.Cookievalues.find fullsessname !cookie_info in
     match !ior with
     | SCData_session_expired 
     | SCNo_data -> 
@@ -537,9 +540,10 @@ let find_or_create_service_cookie ?session_name ~sp () =
   with Not_found -> 
     let v = new_service_cookie fullsessname sp.sp_sitedata.session_services in
     cookie_info :=
-      (fullsessname,
-       (None, ref (SC v)))::
-      !cookie_info;
+      Http_frame.Cookievalues.add
+        fullsessname
+        (None, ref (SC v))
+        !cookie_info;
     v
 
 
@@ -548,7 +552,7 @@ let find_service_cookie_only ?session_name ~sp () =
      Returns the cookie info for the cookie *)
   let fullsessname = make_fullsessname ~sp session_name in
   let (cookie_info, _, _) = sp.sp_cookie_info in
-  let (_, ior) = List.assoc fullsessname !cookie_info in
+  let (_, ior) = Http_frame.Cookievalues.find fullsessname !cookie_info in
   match !ior with
   | SCNo_data -> raise Not_found
   | SCData_session_expired -> raise Eliom_Session_expired
@@ -634,7 +638,8 @@ let find_or_create_persistent_cookie ?session_name ~sp () =
   let (_, _, cookie_info) = sp.sp_cookie_info in
   catch
     (fun () ->
-      Lazy.force (List.assoc fullsessname !cookie_info) >>= fun (old, ior) ->
+      Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info)
+      >>= fun (old, ior) ->
       match !ior with
       | SCData_session_expired 
       | SCNo_data -> 
@@ -646,9 +651,10 @@ let find_or_create_persistent_cookie ?session_name ~sp () =
       | Not_found -> 
           new_persistent_cookie fullsessname >>= fun v ->
           cookie_info := 
-            (fullsessname, 
-             Lazy.lazy_from_val (return (None, ref (SC v))))::
-            !cookie_info;
+            Http_frame.Cookievalues.add
+              fullsessname
+              (Lazy.lazy_from_val (return (None, ref (SC v))))
+              !cookie_info;
           return v
       | e -> fail e)
 
@@ -659,7 +665,8 @@ let find_persistent_cookie_only ?session_name ~sp () =
      Returns the cookie info for the cookie *)
   let fullsessname = make_fullsessname ~sp session_name in
   let (_, _, cookie_info) = sp.sp_cookie_info in
-  Lazy.force (List.assoc fullsessname !cookie_info) >>= fun (_, ior) ->
+  Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info)
+  >>= fun (_, ior) ->
   match !ior with
   | SCNo_data -> raise Not_found
   | SCData_session_expired -> raise Eliom_Session_expired
@@ -686,7 +693,8 @@ let close_persistent_session ?session_name ~sp () =
     (fun () ->
       let fullsessname = make_fullsessname ~sp session_name in
       let (_, _, cookie_info) = sp.sp_cookie_info in
-      Lazy.force (List.assoc fullsessname !cookie_info) >>= fun (_, ior) ->
+      Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info)
+      >>= fun (_, ior) ->
       match !ior with
       | SC (c, _, _) ->
           close_persistent_session2 c >>= fun () ->
@@ -812,7 +820,7 @@ let service_session_gc sitedata =
           (* private continuation tables: *)
           (fun () ->
             (* private continuation tables: *)
-            Cookies.fold
+            SessionCookies.fold
               (fun k (sessname,
                       ((servicetable,
                         naservicetable, 
@@ -822,7 +830,7 @@ let service_session_gc sitedata =
                         thr >>= fun () ->
                           (match !exp with
                           | Some exp when exp < now -> 
-                              Cookies.remove service_cookie_table k;
+                              SessionCookies.remove service_cookie_table k;
                               return ()
                           | _ -> 
                               (if !contains_services_with_timeout
@@ -834,7 +842,7 @@ let service_session_gc sitedata =
                               (fun () ->
                                 if service_tables_are_empty tables
                                 then 
-                                  Cookies.remove service_cookie_table k;
+                                  SessionCookies.remove service_cookie_table k;
                                 return ()
                               )
                           )
@@ -860,18 +868,18 @@ let data_session_gc sitedata =
         let now = Unix.time () in
         Messages.debug2 "--Eliom: GC of session data";
         (* private continuation tables: *)
-        Cookies.fold
+        SessionCookies.fold
           (fun k (sessname, exp, _) thr -> 
             thr >>= fun () ->
               (match !exp with
               | Some exp when exp < now -> 
-                  Cookies.remove data_cookie_table k;
+                  SessionCookies.remove data_cookie_table k;
                   remove_session_data k;
                   return ()
               | _ -> 
                   if not_bound_in_data_tables k
                   then 
-                    Cookies.remove data_cookie_table k;
+                    SessionCookies.remove data_cookie_table k;
                   return ()
               )
                 >>= Lwt_unix.yield
@@ -1005,21 +1013,21 @@ let counttableelements = ref []
 
 let create_table, create_table_during_session =
   let aux sitedata =
-    let t = Cookies.create 100 in
+    let t = SessionCookies.create 100 in
     let old_remove_session_data = sitedata.remove_session_data in
     sitedata.remove_session_data <-
       (fun cookie ->
         old_remove_session_data cookie;
-        Cookies.remove t cookie
+        SessionCookies.remove t cookie
       );
     let old_not_bound_in_data_tables = sitedata.not_bound_in_data_tables in
     sitedata.not_bound_in_data_tables <-
       (fun cookie ->
         old_not_bound_in_data_tables cookie &&
-        not (Cookies.mem t cookie)
+        not (SessionCookies.mem t cookie)
       );
     counttableelements := 
-      (fun () -> Cookies.length t)::!counttableelements;
+      (fun () -> SessionCookies.length t)::!counttableelements;
     t
   in
   ((fun () ->
@@ -1032,7 +1040,7 @@ let create_table, create_table_during_session =
 (* to be called from outside requests *)
 let close_data_session2 sitedata cookie = 
   try
-    Cookies.remove sitedata.session_data cookie;
+    SessionCookies.remove sitedata.session_data cookie;
     sitedata.remove_session_data cookie;
   with Not_found -> ()
 
@@ -1041,7 +1049,9 @@ let close_data_session ?session_name ~sp () =
   try
     let fullsessname = make_fullsessname ~sp session_name in
     let (_, cookie_info, _) = sp.sp_cookie_info in
-    let (_, ior) = Lazy.force (List.assoc fullsessname !cookie_info) in
+    let (_, ior) = 
+      Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info) 
+    in
     match !ior with
     | SC (c, _, _, _) ->
         close_data_session2 sp.sp_sitedata c;
@@ -1068,168 +1078,172 @@ let split_prefix_param pref l =
 let getcookies cookiename cookies = 
   let length = String.length cookiename in
   let last = length - 1 in
-  List.fold_left
-    (fun beg (name, value) -> 
+  Http_frame.Cookievalues.fold
+    (fun name value beg -> 
       if string_first_diff cookiename name 0 last = length
-      then (String.sub name length ((String.length name) - length), 
-            value)::beg
+      then
+        Http_frame.Cookievalues.add
+          (String.sub name length ((String.length name) - length))
+          value
+          beg
       else beg
     )
-    []
+    Http_frame.Cookievalues.empty
     cookies
 
 
 (** look in table to find if the session cookies sent by the browser
    correspond to existing (and not closed) sessions *)
 let get_cookie_info now sitedata
-    service_cookies data_cookies persistent_cookies
+    service_cookies
+    data_cookies
+    persistent_cookies
     : 'a cookie_info * 'b list =
   
   (* get info about "in memory" data session cookies: *)
-  let (servoklist, servfailedlist) =
-    List.fold_left
-      (fun (oklist, failedlist) (name, value) ->
+  let (servoktable, servfailedlist) =
+    Http_frame.Cookievalues.fold
+      (fun name value (oktable, failedlist) ->
         try 
           let fullsessname, ta, expref, timeout_ref = 
-            Cookies.find sitedata.session_services value
+            SessionCookies.find sitedata.session_services value
           in
           match !expref with
           | Some t when t < now -> 
               (* session expired by timeout *)
-              Cookies.remove sitedata.session_services value;
-              ((name, 
-                (Some value          (* value sent by the browser *),
-                 ref SCData_session_expired (* ask the browser 
-                                               to remove the cookie *)))::
-               oklist, 
+              SessionCookies.remove sitedata.session_services value;
+              ((Http_frame.Cookievalues.add
+                  name
+                  (Some value          (* value sent by the browser *),
+                   ref SCData_session_expired (* ask the browser 
+                                                 to remove the cookie *))
+                  oktable),
                name::failedlist)
-          | _ -> ((name, 
-                   (Some value        (* value sent by the browser *),
-                    ref 
-                      (SC
-                         (value       (* value *),
-                          ref ta      (* the table of session services *), 
-                          timeout_ref (* user timeout ref *),
-                          expref      (* expiration date (server side) *),
-                          ref CENothing (* cookie expiration date to send
-                                           to the browser *)))))::
-                  oklist,
+          | _ -> ((Http_frame.Cookievalues.add 
+                     name
+                     (Some value        (* value sent by the browser *),
+                      ref 
+                        (SC
+                           (value       (* value *),
+                            ref ta      (* the table of session services *), 
+                            timeout_ref (* user timeout ref *),
+                            expref      (* expiration date (server side) *),
+                            ref CENothing (* cookie expiration date to send
+                                             to the browser *))))
+                     oktable),
                   failedlist)
         with Not_found ->
-          ((name, 
-            (Some value                 (* value sent by the browser *),
-             ref SCData_session_expired (* ask the browser 
-                                           to remove the cookie *)))::
-           oklist, 
+          ((Http_frame.Cookievalues.add
+              name
+              (Some value                 (* value sent by the browser *),
+               ref SCData_session_expired (* ask the browser 
+                                             to remove the cookie *))
+              oktable), 
            name::failedlist)
       )
-      ([], [])
       service_cookies
+      (Http_frame.Cookievalues.empty, [])
   in
 
   (* get info about "in memory" data session cookies: *)
-  let dataoklist =
-    List.map
-      (fun (name, value) ->
-        (name,
-         lazy
-           (try
-             let fullsessname, expref, timeout_ref = 
-               Cookies.find sitedata.session_data value
-             in
-             match !expref with
-             | Some t when t < now -> 
-                 (* session expired by timeout *)
-                 sitedata.remove_session_data value;
-                 Cookies.remove sitedata.session_data value;
-                 (Some value                 (* value sent by the browser *),
-                  ref SCData_session_expired (* ask the browser 
-                                                to remove the cookie *))
-             | _ ->
-                 (Some value        (* value sent by the browser *),
-                  ref 
-                    (SC
-                       (value       (* value *),
-                        timeout_ref (* user timeout ref *),
-                        expref      (* expiration date (server side) *),
-                        ref CENothing (* cookie expiration date to send
-                                         to the browser *))))
-           with Not_found ->
-             (Some value                  (* value sent by the browser *),
-              ref SCData_session_expired  (* ask the browser 
-                                             to remove the cookie *))))
-      )
+  let dataoktable =
+    Http_frame.Cookievalues.map
+      (fun value ->
+        lazy
+          (try
+            let fullsessname, expref, timeout_ref = 
+              SessionCookies.find sitedata.session_data value
+            in
+            match !expref with
+            | Some t when t < now -> 
+                (* session expired by timeout *)
+                sitedata.remove_session_data value;
+                SessionCookies.remove sitedata.session_data value;
+                (Some value                 (* value sent by the browser *),
+                 ref SCData_session_expired (* ask the browser 
+                                               to remove the cookie *))
+            | _ ->
+                (Some value        (* value sent by the browser *),
+                 ref 
+                   (SC
+                      (value       (* value *),
+                       timeout_ref (* user timeout ref *),
+                       expref      (* expiration date (server side) *),
+                       ref CENothing (* cookie expiration date to send
+                                        to the browser *))))
+          with Not_found ->
+            (Some value                  (* value sent by the browser *),
+             ref SCData_session_expired  (* ask the browser 
+                                            to remove the cookie *))))
       data_cookies
   in
   
   
   (* *** get info about persistent session cookies: *)
-  let persoklist =
-    List.map
-      (fun (name, value) ->
-        (name, 
-         lazy
-           (catch
-              (fun () ->
-                Ocsipersist.find persistent_cookies_table value >>=
-                fun (fullsessname, persexp, perstimeout, _) ->
-                  
-                  match persexp with
-                  | Some t when t < now -> 
-                      (* session expired by timeout *)
-                      remove_from_all_persistent_tables value >>= fun () -> 
-                        return 
-                          (Some (value         (* value at the beginning
-                                                  of the request *),
-                                 perstimeout   (* user persistent timeout
-                                                  at the beginning 
-                                                  of the request *),
-                                 persexp       (* expiration date (server)
-                                                  at the beginning 
-                                                  of the request *)),
-                           ref SCData_session_expired (* ask the browser to
-                                                         remove the cookie *))
-                  | _ -> 
-                      return
-                        (Some (value        (* value at the beginning
-                                               of the request *),
-                               perstimeout  (* user persistent timeout
-                                               at the beginning 
-                                               of the request *),
-                               persexp      (* expiration date (server)
-                                               at the beginning 
-                                               of the request *)),
-                         (ref 
-                            (SC
-                               (value           (* value *),
-                                ref perstimeout (* user persistent timeout 
-                                                   ref *),
-                                ref CENothing   (* persistent cookie expiration
-                                                   date ref to send to the
-                                                   browser *)
-                               ))))
-              )
-              (function
-                | Not_found -> 
-                    return
-                      (Some (value         (* value at the beginning
+  let persoktable =
+    Http_frame.Cookievalues.map
+      (fun value ->
+        lazy
+          (catch
+             (fun () ->
+               Ocsipersist.find persistent_cookies_table value >>=
+               fun (fullsessname, persexp, perstimeout, _) ->
+                 
+                 match persexp with
+                 | Some t when t < now -> 
+                     (* session expired by timeout *)
+                     remove_from_all_persistent_tables value >>= fun () -> 
+                       return 
+                         (Some (value         (* value at the beginning
+                                                 of the request *),
+                                perstimeout   (* user persistent timeout
+                                                 at the beginning 
+                                                 of the request *),
+                                persexp       (* expiration date (server)
+                                                 at the beginning 
+                                                 of the request *)),
+                          ref SCData_session_expired (* ask the browser to
+                                                        remove the cookie *))
+                 | _ -> 
+                     return
+                       (Some (value        (* value at the beginning
                                               of the request *),
-                             TGlobal       (* user persistent timeout
+                              perstimeout  (* user persistent timeout
                                               at the beginning 
                                               of the request *),
-                             Some 0.       (* expiration date (server)
+                              persexp      (* expiration date (server)
                                               at the beginning 
                                               of the request *)),
-                       ref SCData_session_expired   (* ask the browser 
-                                                       to remove the cookie *))
-                | e -> fail e)
-           )
-        )
+                        (ref 
+                           (SC
+                              (value           (* value *),
+                               ref perstimeout (* user persistent timeout 
+                                                  ref *),
+                               ref CENothing   (* persistent cookie expiration
+                                                  date ref to send to the
+                                                  browser *)
+                              ))))
+             )
+             (function
+               | Not_found -> 
+                   return
+                     (Some (value         (* value at the beginning
+                                             of the request *),
+                            TGlobal       (* user persistent timeout
+                                             at the beginning 
+                                             of the request *),
+                            Some 0.       (* expiration date (server)
+                                             at the beginning 
+                                             of the request *)),
+                      ref SCData_session_expired   (* ask the browser 
+                                                      to remove the cookie *))
+               | e -> fail e)
+          )
       )
       persistent_cookies (* the persistent cookies sent by the request *)
       
   in
-  ((ref servoklist, ref dataoklist, ref persoklist), 
+  ((ref servoktable, ref dataoktable, ref persoktable), 
    servfailedlist)
       
 (*****************************************************************************)
@@ -1599,13 +1613,13 @@ let find_service
 
 
 let close_service_session2 sitedata cookie = 
-  Cookies.remove sitedata.session_services cookie
+  SessionCookies.remove sitedata.session_services cookie
 
 let close_service_session ?session_name ~sp () = 
   try
     let fullsessname = make_fullsessname ~sp session_name in
     let (cookie_info, _, _) = sp.sp_cookie_info in
-    let (_, ior) = List.assoc fullsessname !cookie_info in
+    let (_, ior) = Http_frame.Cookievalues.find fullsessname !cookie_info in
     match !ior with
     | SC (c, _, _, _, _) ->
         close_service_session2 sp.sp_sitedata c;
@@ -1637,7 +1651,7 @@ let iter_persistent_sessions f =
 *)
 
 let close_all_service_sessions2 fullsessname sitedata =
-  Cookies.fold
+  SessionCookies.fold
     (fun k (fullsessname2, table, expref, timeoutref) thr -> 
       thr >>= fun () ->
       if fullsessname = fullsessname2 && !timeoutref = TGlobal
@@ -1656,7 +1670,7 @@ let close_all_service_sessions ?session_name sitedata =
   close_all_service_sessions2 fullsessname sitedata
   
 let close_all_data_sessions2 fullsessname sitedata =
-  Cookies.fold
+  SessionCookies.fold
     (fun k (fullsessname2, expref, timeoutref) thr -> 
       thr >>= fun () ->
       if fullsessname = fullsessname2 && !timeoutref = TGlobal
@@ -1704,7 +1718,7 @@ let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
       close_all_service_sessions2 fullsessname sitedata
   | _ ->
     let now = Unix.time () in
-    Cookies.fold
+    SessionCookies.fold
       (fun k (fullsessname2, table, expref, timeoutref) thr ->
         thr >>= fun () ->
         (if fullsessname = fullsessname2 && !timeoutref = TGlobal
@@ -1734,7 +1748,7 @@ let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
       close_all_data_sessions2 fullsessname sitedata
   | _ ->
     let now = Unix.time () in
-    Cookies.fold
+    SessionCookies.fold
       (fun k (fullsessname2, expref, timeoutref) thr ->
         thr >>= fun () ->
         (if fullsessname = fullsessname2 && !timeoutref = TGlobal
@@ -2024,14 +2038,15 @@ let _ = parse_global_config (Extensions.get_config ())
 
 
 (*****************************************************************************)
-(* Create the list of cookies to send to the browser or to unset             *)
+(* Create the table of cookies to send to the browser or to unset            *)
 (* (from cookie_info)                                                        *)
 
 let compute_session_cookies_to_send
+    sitedata
     (service_cookie_info, 
      data_cookie_info, 
-     pers_cookies_info) sitedata endlist =
-  let getservvexp (name, (old, newi)) =
+     pers_cookies_info) endlist =
+  let getservvexp name (old, newi) =
     return 
       (let newinfo =
         match !newi with
@@ -2040,7 +2055,7 @@ let compute_session_cookies_to_send
         | SC (v, _, _, _, exp) -> Some (v, !exp)
       in (name, old, newinfo))
   in
-  let getdatavexp (name, v) =
+  let getdatavexp name v =
     if Lazy.lazy_is_val v
     then 
       return
@@ -2053,7 +2068,7 @@ let compute_session_cookies_to_send
         in (name, old, newinfo))
     else fail Not_found
   in
-  let getpersvexp (name, v) =
+  let getpersvexp name v =
     if Lazy.lazy_is_val v
     then 
       Lazy.force v >>= fun (old, newi) ->
@@ -2075,38 +2090,48 @@ let compute_session_cookies_to_send
     | CENothing | CEBrowser -> None
     | CESome a -> Some a
   in
-  let aux f cookiename l endlist =
-    endlist >>= fun endlist ->
-    Lwt_util.fold_left
-      (fun beg v ->
+  let aux f cookiename tab2 cooktab =
+    cooktab >>= fun cooktab ->
+    Http_frame.Cookievalues.fold
+      (fun name value beg ->
+        beg >>= fun beg ->
         catch
           (fun () ->
-            f v >>= fun (name, old, newc) ->
+            f name value >>= fun (name, old, newc) ->
             return
               (match old, newc with
               | None, None -> beg
               | Some _, None ->
-                  (Unset (Some sitedata.site_dir, 
-                          [make_full_cookie_name cookiename name]))::beg
+                  Http_frame.add_cookie
+                    sitedata.site_dir
+                    (make_full_cookie_name cookiename name)
+                    Http_frame.OUnset
+                    beg
                   (* the path is always site_dir because the cookie cannot 
-                     have been unset by a service outside this site directory *)
+                     have been unset by a service outside
+                     this site directory *)
               | None, Some (v, exp) -> 
-                  (Set (Some sitedata.site_dir, (ch_exp exp), 
-                        [make_full_cookie_name cookiename name, v]))::beg
+                  Http_frame.add_cookie
+                    sitedata.site_dir
+                    (make_full_cookie_name cookiename name)
+                    (OSet (ch_exp exp, v))
+                    beg
               | Some oldv, Some (newv, exp) -> 
                   if exp = CENothing && oldv = newv
                   then beg
-                  else (Set (Some sitedata.site_dir, (ch_exp exp),
-                             [make_full_cookie_name cookiename name, newv]))
-                    ::beg
+                  else Http_frame.add_cookie
+                      sitedata.site_dir
+                      (make_full_cookie_name cookiename name)
+                      (OSet (ch_exp exp, newv))
+                      beg
               )
           )
           (function 
             | Not_found -> return beg
             | e -> fail e)
       )
-      endlist
-      l
+      tab2
+      (return cooktab)
   in
   aux getpersvexp persistentcookiename !pers_cookies_info
     (aux getdatavexp datacookiename !data_cookie_info 
@@ -2114,27 +2139,49 @@ let compute_session_cookies_to_send
           (return endlist)))
   
 
+let compute_cookies_to_send = compute_session_cookies_to_send
 
-let compute_cookies_to_send sitedata all_cookie_info cookies_set_by_page =
 
-  (* We change the cookies set by user: *)
-  let cookies_set_by_page =
-    let change_pathopt = function
-      | None -> Some sitedata.site_dir 
-            (* Not possible to set a cookie for another site (?) *)
-      | Some p -> Some (sitedata.site_dir@p)
-    in
-    List.map 
-      (function
-        | Set (pathopt, expopt, cl) -> 
-            Set (change_pathopt pathopt, expopt, cl)
-        | Unset (pathopt, cl) -> 
-            Unset (change_pathopt pathopt, cl)
-      )
-      cookies_set_by_page
+(* add a list of Eliom's cookies to an Http_frame cookie table *)
+let add_cookie_list_to_send sitedata l t =
+  let change_pathopt = function
+    | None -> sitedata.site_dir 
+          (* Not possible to set a cookie for another site (?) *)
+    | Some p -> sitedata.site_dir@p
   in
+  List.fold_left
+    (fun t v -> 
+      match v with
+      | Set (upo, expo, n, v) ->
+          Http_frame.add_cookie (change_pathopt upo) n (OSet (expo, v)) t
+      | Unset (upo, n) ->
+          Http_frame.add_cookie (change_pathopt upo) n OUnset t
+    )
+    t
+    l
 
-  compute_session_cookies_to_send all_cookie_info sitedata cookies_set_by_page
+let cookie_table_of_eliom_cookies
+    ?(oldtable= Http_frame.Cookies.empty) ~sp cl =
+  add_cookie_list_to_send sp.sp_sitedata cl oldtable
+
+(* add a list of Eliom's cookies to an Http_frame cookie table *)
+let add_cookies_to_send newcookies oldcookies =
+  Http_frame.Cookies.fold
+    (fun path ct t -> 
+      Http_frame.Cookievalues.fold
+        (fun n v beg ->        
+          match v with
+          | OSet (expo, v) ->
+              Http_frame.add_cookie path n (OSet (expo, v)) beg
+          | OUnset ->
+              Http_frame.add_cookie path n OUnset beg
+        )
+        ct
+        t
+    )
+    newcookies
+    oldcookies
+
   
 
 (** Compute new ri.ri_cookies value
@@ -2142,103 +2189,76 @@ let compute_cookies_to_send sitedata all_cookie_info cookies_set_by_page =
     as if it had been sent by the browser *)
 let compute_new_cookies
     now
+    ripath
     ricookies
     (service_cookie_info, data_cookie_info, pers_cookie_info)
-    endlist =
-  let rec remove_list f l from =
-    match l with
-    | [] -> from
-    | a::l -> remove_list f l (List.remove_assoc (f a) from)
+    cookies_set_by_page =
+
+  let prefix upo p = match upo with
+    | None -> true
+    | Some path -> 
+        Ocsimisc.list_is_prefix 
+          (Ocsimisc.remove_slash_at_beginning path)
+          (Ocsimisc.remove_slash_at_beginning p)
   in
-  let endlist =
+  let ric =
     List.fold_left
-      (fun beg v ->
+      (fun tab v -> 
         match v with
-        | Set (_, None, l)  ->
-            l@(remove_list fst l beg)
-        | Set (_, Some t, l) when t>now ->
-            l@(remove_list fst l beg)
-        | Unset (_, l) -> remove_list id l beg
-        | Set (_, _, l) -> remove_list fst l beg
+        | Set (upo, Some t, n, v)  when t>now && prefix upo ripath ->
+              Http_frame.Cookievalues.add n v tab
+        | Set (upo, None, n, v) when prefix upo ripath ->
+              Http_frame.Cookievalues.add n v tab
+        | Set (upo, _, n, _)
+        | Unset (upo, n) when prefix upo ripath ->
+            Http_frame.Cookievalues.remove n tab
+        | _ -> tab
       )
       ricookies
-      endlist
+      cookies_set_by_page
   in
   let ric = 
-    List.fold_left
-      (fun beg (n, (_, v)) -> match !v with
+    Http_frame.Cookievalues.fold
+      (fun n (_, v) beg -> match !v with
       | SCData_session_expired
-      | SCNo_data -> List.remove_assoc n beg
-      | SC (v, _, _, _, _) -> (n, v)::(List.remove_assoc n beg)
+      | SCNo_data -> Http_frame.Cookievalues.remove n beg
+      | SC (v, _, _, _, _) -> Http_frame.Cookievalues.add n v beg
       )
-      endlist
       !service_cookie_info
+      ric
   in
   let ric = 
-    List.fold_left
-      (fun beg (n, v) -> 
+    Http_frame.Cookievalues.fold
+      (fun n v beg -> 
         if Lazy.lazy_is_val v
         then 
           let (_, v) = Lazy.force v in
           match !v with
           | SCData_session_expired
-          | SCNo_data -> List.remove_assoc n beg
-          | SC (v, _, _, _) -> (n, v)::(List.remove_assoc n beg)
+          | SCNo_data -> Http_frame.Cookievalues.remove n beg
+          | SC (v, _, _, _) -> Http_frame.Cookievalues.add n v beg
         else beg
       )
-      ric
       !data_cookie_info
+      ric
   in
   let ric = 
-    List.fold_left
-      (fun beg (n, v) -> 
+    Http_frame.Cookievalues.fold
+      (fun n v beg -> 
         beg >>= fun beg ->
         if Lazy.lazy_is_val v
         then 
           Lazy.force v >>= fun (_, v) ->
           match !v with
           | SCData_session_expired
-          | SCNo_data -> return (List.remove_assoc n beg)
-          | SC (v, _, _) -> return ((n, v)::(List.remove_assoc n beg))
+          | SCNo_data -> return (Http_frame.Cookievalues.remove n beg)
+          | SC (v, _, _) -> return (Http_frame.Cookievalues.add n v beg)
         else return beg
       )
-      (return ric)
       !pers_cookie_info
+      (return ric)
   in
   ric
-
-
-(* removes one cookielist form another *)
-let cookie_remove_list l from =
-
-  let rec find_names cont = function
-    | [] -> cont
-    | Set (_, _, l)::ll -> find_names (List.map fst l) ll
-    | Unset (_, l)::ll -> find_names cont ll
-  in
-
-  let rec cookie_remove_name from name =
-    List.fold_left
-      (fun beg v ->
-        match v with
-        | Set (a, b, l) ->
-            let newl = list_remove_all_assoc name l in
-            if newl = []
-            then beg
-            else (Set (a, b, newl))::beg
-        | Unset (a, l) ->
-            let newl = list_remove_all name l in
-            if newl = []
-            then beg
-            else Unset (a, newl)::beg
-      )
-      []
-      from
-  in
-
-  let names = find_names [] l in
-  List.fold_left cookie_remove_name from names
-
 
 
 
@@ -2269,9 +2289,9 @@ let execute
   (fun result ->
     
     (* Update service expiration date and value *)
-    List.iter
+    Http_frame.Cookievalues.iter
       
-      (fun (name, (oldvalue, newr)) ->
+      (fun name (oldvalue, newr) ->
         (* catch fun () -> *)
         match !newr with
         | SCData_session_expired
@@ -2293,9 +2313,9 @@ let execute
       !service_cookies_info;
     
     (* Update "in memory data" expiration date and value *)
-    List.iter
+    Http_frame.Cookievalues.iter
       
-      (fun (name, v) ->
+      (fun name v ->
         if Lazy.lazy_is_val v (* Only sessions that have been used *)
         then 
           let (oldvalue, newr) = Lazy.force v
@@ -2321,55 +2341,60 @@ let execute
     
     
     (* Update persistent expiration date, user timeout and value *)
-    Lwt_util.iter
+    (* Lwt_util.iter *)
+    Http_frame.Cookievalues.fold
 
-      (fun (name, v) ->
-        if Lazy.lazy_is_val v
-        then begin
-          Lazy.force v >>= fun (oldvalue, newr) ->
-          match !newr with
-          | SCData_session_expired
-          | SCNo_data -> (* The cookie has been removed *)
-              return ()
-          | SC (newvalue, newtimeout, newcookieexp) ->
-              let newexp =
-                match !newtimeout with
-                | TGlobal -> 
-                    let globaltimeout = 
-                      find_global_persistent_timeout name sitedata 
-                    in
-                    (match globaltimeout with
-                    | None -> None
-                    | Some t -> Some (t +. now))
-                | TNone -> None
-                | TSome t -> Some (t +. now)
-              in
-              match oldvalue with
-              | Some (oldv, oldti, oldexp) when
-                  (oldexp = newexp && 
-                   oldti = !newtimeout &&
-                   oldv = newvalue) -> return () (* nothing to do *)
-              | Some (oldv, oldti, oldexp) when oldv = newvalue ->
-                  catch
-                    (fun () ->
-                      Ocsipersist.replace_if_exists
+      (fun name v thr ->
+        let thr2 =
+          if Lazy.lazy_is_val v
+          then begin
+            Lazy.force v >>= fun (oldvalue, newr) ->
+              match !newr with
+              | SCData_session_expired
+              | SCNo_data -> (* The cookie has been removed *)
+                  return ()
+              | SC (newvalue, newtimeout, newcookieexp) ->
+                  let newexp =
+                    match !newtimeout with
+                    | TGlobal -> 
+                        let globaltimeout = 
+                          find_global_persistent_timeout name sitedata 
+                        in
+                        (match globaltimeout with
+                        | None -> None
+                        | Some t -> Some (t +. now))
+                    | TNone -> None
+                    | TSome t -> Some (t +. now)
+                  in
+                  match oldvalue with
+                  | Some (oldv, oldti, oldexp) when
+                      (oldexp = newexp && 
+                       oldti = !newtimeout &&
+                       oldv = newvalue) -> return () (* nothing to do *)
+                  | Some (oldv, oldti, oldexp) when oldv = newvalue ->
+                      catch
+                        (fun () ->
+                          Ocsipersist.replace_if_exists
+                            persistent_cookies_table 
+                            newvalue
+                            (name, newexp, !newtimeout, Int64.zero))
+                        (function
+                          | Not_found -> return ()
+                                (* someone else closed the session *)
+                          | e -> fail e)
+                  | _ ->
+                      Ocsipersist.add
                         persistent_cookies_table 
                         newvalue
-                        (name, newexp, !newtimeout, Int64.zero))
-                    (function
-                      | Not_found -> return ()
-                            (* someone else closed the session *)
-                      | e -> fail e)
-              | _ ->
-                  Ocsipersist.add
-                    persistent_cookies_table 
-                    newvalue
-                    (name, newexp, !newtimeout, Int64.zero)
-        end
-        else return ()
+                        (name, newexp, !newtimeout, Int64.zero)
+          end
+          else return ()
+        in thr >>= fun () -> thr2
       )
       
       !pers_cookies_info
+
+      (return ())
       
       
       >>= fun () ->
@@ -2382,7 +2407,7 @@ let execute
 exception Eliom_retry_with of 
   (request_info * 
      sess_info * 
-     cookieslist (* user cookies set by previous pages *) *
+     cookieset (* user cookies set by previous pages *) *
      tables cookie_info (* current cookie info *)
   ) 
 
@@ -2396,26 +2421,30 @@ let get_page
      ((service_cookies_info, _, _) as all_cookie_info))
     sitedata
     =
-  let rec find_aux e = function
-    | [] -> fail e
-    | (fullsessname, (_, r))::l -> 
-        match !r with
-        | SCData_session_expired
-        | SCNo_data (* cookie removed *) -> find_aux e l
-        | SC (_, service_session_tables_ref, _, _, _) ->
-            catch
-              (fun () ->
-                find_service
-                  now
-                  !service_session_tables_ref
-                  (Some fullsessname)
-                  (sitedata,
-                   all_cookie_info,
-                   ri,
-                   si))
-              (function
-                | Ocsigen_404 | Eliom_Wrong_parameter as e -> find_aux e l
-                | e -> fail e)
+
+  let find_aux e sci =
+    Http_frame.Cookievalues.fold
+      (fun fullsessname (_, r) beg -> 
+        catch
+          (fun () -> beg)
+          (function
+            | Ocsigen_404 | Eliom_Wrong_parameter ->
+                (match !r with
+                | SCData_session_expired
+                | SCNo_data (* cookie removed *) -> beg
+                | SC (_, service_session_tables_ref, _, _, _) ->
+                    find_service
+                      now
+                      !service_session_tables_ref
+                      (Some fullsessname)
+                      (sitedata,
+                       all_cookie_info,
+                       ri,
+                       si))
+            | e -> fail e)
+      )
+      sci
+      (fail Ocsigen_404)
   in
 
   (catch
@@ -2501,21 +2530,33 @@ let make_naservice
     sitedata
     =
   
-  let rec find_aux = function
-    | [] -> (find_naservice now sitedata.global_services si.si_nonatt_info,
-             sitedata.global_services,
-             None)
-    | (fullsessname, (_, r))::l -> 
-        match !r with
-        | SCNo_data
-        | SCData_session_expired -> find_aux l
-        | SC (_, service_session_tables_ref, _, _, _) ->
-            try
-              ((find_naservice
-                  now !service_session_tables_ref si.si_nonatt_info),
-               !service_session_tables_ref, 
-               Some fullsessname)
-            with Not_found -> find_aux l
+  let rec find_aux sci =
+    match
+      Http_frame.Cookievalues.fold
+        (fun fullsessname (_, r) beg ->
+          match beg with
+          | Found _ -> beg
+          | Notfound _ ->
+              match !r with
+              | SCNo_data
+              | SCData_session_expired -> beg
+              | SC (_, service_session_tables_ref, _, _, _) ->
+                  try
+                    Found
+                      ((find_naservice
+                          now !service_session_tables_ref si.si_nonatt_info),
+                       !service_session_tables_ref, 
+                       Some fullsessname)
+                  with Not_found -> beg
+        )
+        sci
+        (Notfound ())
+    with
+    | Found v -> v
+    | Notfound _ ->
+        (find_naservice now sitedata.global_services si.si_nonatt_info,
+         sitedata.global_services,
+         None)
   in
   (try
     (* look in the session service tables corresponding to cookies sent
@@ -2629,9 +2670,10 @@ let gen sitedata charset ri =
                       *)
 (* be very carefull while re-reading this *)
               let all_user_cookies =
-                cookies_set_by_page@
-                (cookie_remove_list 
-                   cookies_set_by_page old_cookies_to_set)
+                add_cookie_list_to_send
+                  sitedata
+                  cookies_set_by_page
+                  old_cookies_to_set
               in
 
               force ri.ri_post_params >>=
@@ -2653,8 +2695,11 @@ let gen sitedata charset ri =
 
                     compute_new_cookies 
                       now 
+                      ri.ri_sub_path
                       (Lazy.force ri.ri_cookies)
-                      all_cookie_info all_user_cookies
+                      all_cookie_info
+                      cookies_set_by_page
+(*VVV old_cookies_to_set already are in ri_cookies, right? *)
                     >>= fun ric ->
                     
                     (match 
@@ -2772,11 +2817,17 @@ let gen sitedata charset ri =
 
           | EliomResult res ->
 
+              let all_user_cookies =
+                add_cookies_to_send
+                  res.res_cookies
+                  old_cookies_to_set
+              in
+
               compute_cookies_to_send 
                 sitedata 
                 all_cookie_info
-                (res.res_cookies@
-                 (cookie_remove_list res.res_cookies old_cookies_to_set))
+                all_user_cookies
+
               >>= fun all_new_cookies ->
 
               return 
@@ -2816,7 +2867,7 @@ let gen sitedata charset ri =
       si.si_persistent_session_cookies 
   in
   let exn = compute_exn closedsessions in
-  gen_aux (ri, {si with si_exn=exn}, [], all_cookie_info)
+  gen_aux (ri, {si with si_exn=exn}, Http_frame.Cookies.empty, all_cookie_info)
 
 
 
@@ -2942,7 +2993,7 @@ let _ = persistent_session_gc ()
 
   (** Iterator on service sessions *)
 let iter_service_sessions sitedata f =
-  Cookies.fold
+  SessionCookies.fold
     (fun k v thr -> 
       thr >>= fun () ->
         f (k, v, sitedata) >>=
@@ -2954,7 +3005,7 @@ let iter_service_sessions sitedata f =
   
     (** Iterator on data sessions *)
 let iter_data_sessions sitedata f =
-  Cookies.fold
+  SessionCookies.fold
     (fun k v thr -> 
       thr >>= fun () ->
         f (k, v, sitedata) >>=
@@ -2975,7 +3026,7 @@ let iter_persistent_sessions f =
     
     (** Iterator on service sessions *)
 let fold_service_sessions sitedata f beg =
-  Cookies.fold
+  SessionCookies.fold
     (fun k v thr -> 
       thr >>= fun res1 ->
         f (k, v, sitedata) res1 >>= fun res ->
@@ -2988,7 +3039,7 @@ let fold_service_sessions sitedata f beg =
     
     (** Iterator on data sessions *)
 let fold_data_sessions sitedata f beg =
-  Cookies.fold
+  SessionCookies.fold
     (fun k v thr -> 
       thr >>= fun res1 ->
         f (k, v, sitedata) res1 >>= fun res ->
@@ -3013,10 +3064,10 @@ let fold_persistent_sessions f beg =
 (* Exploration *)
 
 let number_of_service_sessions ~sp = 
-  Cookies.length sp.sp_sitedata.session_services
+  SessionCookies.length sp.sp_sitedata.session_services
 
 let number_of_data_sessions ~sp = 
-  Cookies.length sp.sp_sitedata.session_data
+  SessionCookies.length sp.sp_sitedata.session_data
 
 let number_of_tables () =
   List.length !counttableelements

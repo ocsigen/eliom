@@ -74,7 +74,7 @@ type request_info =
      ri_port: int;             (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
      ri_cookies_string: string option Lazy.t; (** Cookies sent by the browser *)
-     ri_cookies: (string * string) list Lazy.t; (** Cookies sent by the browser *)
+     ri_cookies: string Http_frame.Cookievalues.t Lazy.t;  (** Cookies sent by the browser *)
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
      ri_ifunmodifiedsince: float option;   (** if-unmodified-since field *)
      ri_ifnonematch: string list;   (** if-none-match field ( * and weak entity tags not implemented) *)

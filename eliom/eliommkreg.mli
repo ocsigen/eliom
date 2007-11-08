@@ -39,7 +39,7 @@ module type REGCREATE =
     type page
 
     val send : 
-        ?cookies:Http_frame.cookieslist -> 
+        ?cookies:Eliommod.cookie list -> 
           ?charset:string ->
             ?code:int ->
               sp:Eliommod.server_params -> 
@@ -56,7 +56,7 @@ module type ELIOMREGSIG1 =
     type page
 
     val send : 
-        ?cookies:Http_frame.cookieslist -> 
+        ?cookies:Eliommod.cookie list -> 
           ?charset:string ->
             ?code: int ->
               sp:Eliommod.server_params -> 
@@ -354,7 +354,7 @@ module type ELIOMREGSIG =
   sig
     include ELIOMREGSIG1
     module Cookies : ELIOMREGSIG1 
-    with type page = page * Http_frame.cookieslist
+    with type page = page * Eliommod.cookie list
   end
 
 

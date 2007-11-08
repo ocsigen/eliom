@@ -45,7 +45,7 @@ module type REGCREATE =
     type page
 
     val send : 
-        ?cookies:Http_frame.cookieslist -> 
+        ?cookies:Eliommod.cookie list -> 
           ?charset:string ->
             ?code: int ->
               sp:server_params -> page -> result_to_send Lwt.t
@@ -62,7 +62,7 @@ module type ELIOMREGSIG1 =
     type page
 
     val send : 
-        ?cookies:Http_frame.cookieslist -> 
+        ?cookies:Eliommod.cookie list -> 
           ?charset:string ->
             ?code: int ->
               sp:Eliommod.server_params -> 
@@ -355,7 +355,7 @@ module type ELIOMREGSIG =
   sig
     include ELIOMREGSIG1
     module Cookies : ELIOMREGSIG1 
-    with type page = page * Http_frame.cookieslist
+    with type page = page * Eliommod.cookie list
   end
 
 
@@ -372,7 +372,7 @@ module MakeRegister = functor
 
       module Cookies = struct
         
-        type page = Pages.page * Http_frame.cookieslist
+        type page = Pages.page * Eliommod.cookie list
               
         let send ?(cookies=[]) ?charset ?code ~sp (p, cl) =
           Pages.send ~cookies:(cookies@cl) ?charset ?code ~sp p

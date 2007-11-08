@@ -44,30 +44,59 @@ type timeout =
   | TSome of float (** timeout duration in seconds *)
 
 
+
+(** Type used for cookies to set. 
+    The float option is the timestamp for the expiration date.
+    The strings are names and values.
+ *)
+type cookie = 
+  | Set of url_path option * float option * string * string
+  | Unset of url_path option * string
+
+
+(** The type to send if you want to create your own modules for generating
+   pages
+ *)
+type result_to_send = 
+  | EliomResult of Http_frame.result
+  | EliomExn of (exn list * cookie list)
+
+
 (**/**)
 type cookie_exp =
   | CENothing   (** nothing to set *)
   | CEBrowser   (** expires at browser close *)
   | CESome of float (** expiration date *)
 
-exception Eliom_duplicate_registration of string (** The service has been registered twice*)
-exception Eliom_page_erasing of string (** The location where you want to register something already exists *)
-exception Eliom_there_are_unregistered_services of (string list * 
-                                                      string list option list)
-(** Some services have not been registered. The first string list is the path
- of the site, the string list option list is the list of unregistered services.
-    [None] means non-attached.
- *)
-exception Eliom_error_while_loading_site of string
-
-
 type internal_state = string
 
-type anon_params_type = int
+type sess_info =
+    {si_other_get_params: (string * string) list;
+     si_all_get_params: (string * string) list;
+     si_all_post_params: (string * string) list;
+
+     si_service_session_cookies: string Http_frame.Cookievalues.t;
+     (* the session service cookies sent by the request *)
+     (* the key is the cookie name (or site dir) *)
+
+     si_data_session_cookies: string Http_frame.Cookievalues.t;
+     (* the session data cookies sent by the request *)
+     (* the key is the cookie name (or site dir) *)
+
+     si_persistent_session_cookies: string Http_frame.Cookievalues.t;
+     (* the persistent session cookies sent by the request *)
+     (* the key is the cookie name (or site dir) *)
+
+     si_nonatt_info: (string option * string option);
+     si_state_info: (internal_state option * internal_state option);
+     si_exn: exn list;
+     si_config_file_charset: string}
+
+
+
+module SessionCookies : Hashtbl.S with type key = string
 
 type tables
-
-module Cookies : Hashtbl.S with type key = string
 
 type 'a servicecookiestablecontent =
     (string                  (* session fullsessname *) *
@@ -77,7 +106,7 @@ type 'a servicecookiestablecontent =
      timeout ref             (* user timeout *)) 
 
 
-type 'a servicecookiestable = 'a servicecookiestablecontent Cookies.t
+type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
 
 type datacookiestablecontent = 
     (string                  (* session fullsessname *) *
@@ -85,32 +114,7 @@ type datacookiestablecontent =
                                 (server side) *) *
      timeout ref             (* user timeout *))
 
-type datacookiestable = datacookiestablecontent Cookies.t
-
-type sess_info =
-    {si_other_get_params: (string * string) list;
-     si_all_get_params: (string * string) list;
-     si_all_post_params: (string * string) list;
-
-     si_service_session_cookies: (string (* cookie name (or site dir) *) * 
-                                    string (* value *)) list;
-     (* the session service cookies sent by the request *)
-
-     si_data_session_cookies: (string (* cookie name (or site dir) *) * 
-                                 string (* value *)) list;
-     (* the session data cookies sent by the request *)
-
-     si_persistent_session_cookies: (string (* cookie name (or site dir) *) *
-                                       string (* value *)) list;
-     (* the persistent session cookies sent by the request *)
-
-     si_nonatt_info: (string option * string option);
-     si_state_info: (internal_state option * internal_state option);
-     si_exn: exn list;
-     si_config_file_charset: string}
-
-
-
+type datacookiestable = datacookiestablecontent SessionCookies.t
 
 type 'a session_cookie
 
@@ -155,96 +159,60 @@ type one_persistent_cookie_info =
 
 type 'a cookie_info =
     (* service sessions: *)
-    (string                    (* cookie fullsessname *) 
-       * 
-
-     (string option            (* value sent by the browser *)
-                               (* None = new cookie 
-                                  (not sent by the browser) *)
-        *
-
-      'a one_service_cookie_info session_cookie ref
+    (string option            (* value sent by the browser *)
+                              (* None = new cookie 
+                                 (not sent by the browser) *)
+       *
+       
+       'a one_service_cookie_info session_cookie ref
        (* SCNo_data = the session has been closed
           SCData_session_expired = the cookie has not been found in the table.
           For both of them, ask the browser to remove the cookie.
         *)
-     )
-       (* This one is not lazy because we must check all service sessions
-          at each request to find the services *)
     )
-      list ref *
+      (* This one is not lazy because we must check all service sessions
+         at each request to find the services *)
+      Http_frame.Cookievalues.t ref (* The key is the full session name *) *
       
     (* in memory data sessions: *)
-    (string                    (* cookie fullsessname *) 
-       * 
-
-     (string option            (* value sent by the browser *)
-                               (* None = new cookie 
+      (string option            (* value sent by the browser *)
+                                (* None = new cookie 
                                    (not sent by the browser) *)
-        *
-
-      one_data_cookie_info session_cookie ref
-       (* SCNo_data = the session has been closed
-          SCData_session_expired = the cookie has not been found in the table.
-          For both of them, ask the browser to remove the cookie.
-        *)
-     ) Lazy.t
-       (* Lazy because we do not want to ask the browser to unset the cookie 
-          if the cookie has not been used, otherwise it is impossible to 
-          write a message "Your session has expired" *)
-    )
-      list ref *
+         *
+         
+         one_data_cookie_info session_cookie ref
+         (* SCNo_data = the session has been closed
+            SCData_session_expired = the cookie has not been found in the table.
+            For both of them, ask the browser to remove the cookie.
+          *)
+      ) Lazy.t
+      (* Lazy because we do not want to ask the browser to unset the cookie 
+         if the cookie has not been used, otherwise it is impossible to 
+         write a message "Your session has expired" *)
+      Http_frame.Cookievalues.t ref (* The key is the full session name *) *
       
       (* persistent sessions: *)
-    (string                    (* cookie fullsessname *) 
-       *
-
-     ((string                  (* value sent by the browser *) *
-       timeout                 (* timeout at the beginning of the request *) *
-       float option            (* (server side) expdate 
-                                  at the beginning of the request
-                                  None = no exp *))
-        option
-                               (* None = new cookie 
+      ((string                  (* value sent by the browser *) *
+        timeout                 (* timeout at the beginning of the request *) *
+        float option            (* (server side) expdate 
+                                   at the beginning of the request
+                                   None = no exp *))
+         option
+                                (* None = new cookie 
                                    (not sent by the browser) *)
-       *
-
-       one_persistent_cookie_info session_cookie ref
-       (* SCNo_data = the session has been closed
-          SCData_session_expired = the cookie has not been found in the table.
-          For both of them, ask the browser to remove the cookie.
-        *)
-       ) Lwt.t Lazy.t
-    )
-      list ref
-
-
-(** The type to send if you want to create your own modules for generating
-   pages
- *)
-type result_to_send = 
-  | EliomResult of Http_frame.result
-  | EliomExn of (exn list * Http_frame.cookieslist)
-
-
-
-(** Type of server parameters. 
-    This is the type of the first parameter of service handlers (sp).
- *)
-type server_params = 
-    {sp_ri:request_info;
-     sp_si:sess_info;
-     sp_sitedata:sitedata (* data for the whole site *);
-     sp_cookie_info:tables cookie_info;
-     sp_suffix:url_path (* suffix *);
-     sp_fullsessname:string option (* the name of the session
-                                      to which belong the service
-                                      that answered
-                                      (if it is a session service) *)}
+         *
+         
+         one_persistent_cookie_info session_cookie ref
+         (* SCNo_data = the session has been closed
+            SCData_session_expired = the cookie has not been found in the table.
+            For both of them, ask the browser to remove the cookie.
+          *)
+      ) Lwt.t Lazy.t
+      Http_frame.Cookievalues.t ref
 
 
 (** Common data for the whole site *)
-and sitedata =
+type sitedata =
    {site_dir: url_path;
    site_dir_string: string;
    mutable servtimeout: (string * float option) list;
@@ -258,6 +226,47 @@ and sitedata =
    mutable exn_handler: server_params -> exn -> result_to_send Lwt.t;
    mutable unregistered_services: url_path option list;
  }
+
+
+(** Type of server parameters. 
+    This is the type of the first parameter of service handlers (sp).
+ *)
+and server_params = 
+    {sp_ri:request_info;
+     sp_si:sess_info;
+     sp_sitedata:sitedata (* data for the whole site *);
+     sp_cookie_info:tables cookie_info;
+     sp_suffix:url_path (* suffix *);
+     sp_fullsessname:string option (* the name of the session
+                                      to which belong the service
+                                      that answered
+                                      (if it is a session service) *)}
+
+
+(**/**)
+
+(** Conversion fonction from Eliom cookies to server cookies.
+    If [?oldtable] is present, cookies are added to this table
+ *)
+val cookie_table_of_eliom_cookies :
+    ?oldtable:Http_frame.cookieset ->
+      sp:server_params -> cookie list -> Http_frame.cookieset
+
+(**/**)
+exception Eliom_duplicate_registration of string (** The service has been registered twice*)
+exception Eliom_page_erasing of string (** The location where you want to register something already exists *)
+exception Eliom_there_are_unregistered_services of (string list * 
+                                                      string list option list)
+(** Some services have not been registered. The first string list is the path
+ of the site, the string list option list is the list of unregistered services.
+    [None] means non-attached.
+ *)
+exception Eliom_error_while_loading_site of string
+
+
+type anon_params_type = int
+
+
 
 
 
@@ -350,8 +359,8 @@ val get_default_persistent_timeout : unit -> float option
 val set_default_persistent_timeout : float option -> unit
 
 
-val create_table : unit -> 'a Cookies.t
-val create_table_during_session : server_params -> 'a Cookies.t
+val create_table : unit -> 'a SessionCookies.t
+val create_table_during_session : server_params -> 'a SessionCookies.t
 val create_persistent_table : string -> 'a Ocsipersist.table
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 
@@ -413,12 +422,12 @@ val close_all_persistent_sessions :
 
 val iter_service_sessions :
     sitedata -> 
-      (Cookies.key * tables servicecookiestablecontent * sitedata -> unit Lwt.t)
+      (SessionCookies.key * tables servicecookiestablecontent * sitedata -> unit Lwt.t)
       -> unit Lwt.t
 
 val iter_data_sessions :
     sitedata -> 
-      (Cookies.key * datacookiestablecontent * sitedata -> unit Lwt.t) -> unit Lwt.t
+      (SessionCookies.key * datacookiestablecontent * sitedata -> unit Lwt.t) -> unit Lwt.t
 
 val iter_persistent_sessions :
     (string * (string * float option * timeout * Int64.t) -> 
@@ -426,12 +435,12 @@ val iter_persistent_sessions :
 
 val fold_service_sessions :
     sitedata -> 
-      (Cookies.key * tables servicecookiestablecontent * sitedata -> 'c -> 'c Lwt.t)
+      (SessionCookies.key * tables servicecookiestablecontent * sitedata -> 'c -> 'c Lwt.t)
       -> 'c -> 'c Lwt.t
 
 val fold_data_sessions :
     sitedata -> 
-      (Cookies.key * datacookiestablecontent * sitedata -> 'c -> 'c Lwt.t) -> 
+      (SessionCookies.key * datacookiestablecontent * sitedata -> 'c -> 'c Lwt.t) -> 
         'c -> 'c Lwt.t
 
 val fold_persistent_sessions :

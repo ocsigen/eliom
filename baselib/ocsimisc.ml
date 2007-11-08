@@ -78,7 +78,7 @@ let rec list_assoc_remove a = function
   | b::l -> let v,ll = list_assoc_remove a l in v,b::ll
 
 let rec list_is_prefix l1 l2 = 
-  match (l1,l2) with
+  match (l1, l2) with
   | [], _ -> true
   | a::ll1, b::ll2 when a=b -> list_is_prefix ll1 ll2
   | _ -> false

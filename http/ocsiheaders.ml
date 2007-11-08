@@ -98,8 +98,13 @@ let parse_list_with_extensions parse_name s =
 let rec parse_cookies s =
   let splitted = split ';' s in
   try
-    List.map (sep '=') splitted
-  with _ -> []
+    List.fold_left 
+      (fun beg a -> 
+        let (n, v) = sep '=' a in
+        Http_frame.Cookievalues.add n v beg)
+      Http_frame.Cookievalues.empty 
+      splitted
+  with _ -> Http_frame.Cookievalues.empty
     (* Actually the real syntax of cookies is more complex! *)
 (*
 Mozilla spec + RFC2109

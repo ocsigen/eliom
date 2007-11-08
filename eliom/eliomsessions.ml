@@ -354,7 +354,7 @@ let remove_persistent_session_data ?session_name ~table ~sp () =
 
 (*****************************************************************************)
 (** {2 session data in memory} *)
-type 'a table = 'a Cookies.t
+type 'a table = 'a SessionCookies.t
 
 let create_table ?sp () = 
   match sp with
@@ -368,19 +368,19 @@ let create_table ?sp () =
 let get_volatile_session_data ?session_name ~table ~sp () =
   try 
     let (c, _, _, _) = find_data_cookie_only ?session_name ~sp () in
-    Data (Cookies.find table c)
+    Data (SessionCookies.find table c)
   with 
   | Not_found -> No_data
   | Eliom_Session_expired -> Data_session_expired
 
 let set_volatile_session_data ?session_name ~table ~sp value =
   let (c, _, _, _) = find_or_create_data_cookie ?session_name ~sp () in
-  Cookies.replace table c value
+  SessionCookies.replace table c value
 
 let remove_volatile_session_data ?session_name ~table ~sp () =
   try 
     let (c, _, _, _) = find_data_cookie_only ?session_name ~sp () in
-    Cookies.remove table c
+    SessionCookies.remove table c
   with Not_found | Eliom_Session_expired -> ()
 
 
@@ -464,13 +464,13 @@ module Session_admin = struct
     Eliommod.close_persistent_session2 cookie
 
   let get_volatile_session_data ~session:(cookie, _, _) ~table =
-    Cookies.find table cookie
+    SessionCookies.find table cookie
 
   let get_persistent_session_data ~session:(cookie, _) ~table =
     Ocsipersist.find table cookie >>= fun (_, a) -> return a
 
   let remove_volatile_session_data ~session:(cookie, _, _) ~table =
-    Cookies.remove table cookie
+    SessionCookies.remove table cookie
 
   let remove_persistent_session_data ~session:(cookie, _) ~table =
     Ocsipersist.remove table cookie

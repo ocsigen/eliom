@@ -109,7 +109,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
     
     let cookies = 
       lazy (match (Lazy.force cookies_string) with
-      | None -> []
+      | None -> Http_frame.Cookievalues.empty
       | Some s -> parse_cookies s) 
     in
    

@@ -2382,13 +2382,13 @@ let send_any =
       <code>Eliompredefmod.Xhtml.Cookies.register</code> instead of 
       <code>Eliompredefmod.Xhtml.register</code>.
       The function you register returns a pair containing the page (as usual)
-      and a list of cookies, of type <code>Http_frame.cookies</code> 
+      and a list of cookies, of type <code>Eliommod.cookie</code> 
       defined by:
       </p>
       <pre>
-type cookies = 
-  | Set of string list option * float option * (string * string) list
-  | Unset of (string list option * string list)
+type cookie = 
+  | Set of url_path option * float option * string * string
+  | Unset of url_path option * string
 </pre>
      <p>
      The <code>string option</code> is a the path for which you want
@@ -2421,12 +2421,14 @@ let _ = Cookies.register cookies
          (head (title (pcdata "")) [])
          (body [p [pcdata (try
                              "cookie value: "^
-                             (List.assoc cookiename (Eliomsessions.get_cookies sp))
+                             (Http_frame.Cookievalues.find
+                                cookiename (Eliomsessions.get_cookies sp))
                            with _ -> "<cookie not set>");
                    br ();
                    a cookies sp [pcdata "send other cookie"] ()]])),
-        [Http_frame.Set (None, None, 
-                         [(cookiename,(string_of_int (Random.int 100)))])]))
+        [Eliommod.Set (None, None, 
+                       cookiename, 
+                       string_of_int (Random.int 100))]))
 (*html*
       <p>$a Tutoeliom.cookies sp <:xmllist< Try it >> ()$.</p>
     </div>
