@@ -99,9 +99,10 @@ let gen dir charset ri =
         "--Redirectmod: YES! "^
         (if temp then "Temporary " else "Permanent ")^
         "redirection to: "^redir);      
+      let empty_result = Http_frame.empty_result () in
       return
         (Ext_found 
-           {Http_frame.empty_result with
+           {empty_result with
             Http_frame.res_location = Some redir;
 	    Http_frame.res_code= if temp then 302 else 301})
     )

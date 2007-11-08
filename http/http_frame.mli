@@ -1,4 +1,5 @@
 type etag = string
+type url_path = string list
 
 (** Type used for cookies to set. The url_path option is for the path,
    The float option is the timestamp for the expiration date. 
@@ -17,7 +18,6 @@ val change_cookie : cookies ->
 
 
 (** The type of answers to send *)
-(** The type of answers to send *)
 type result =
     {res_cookies: cookieslist; (** cookies to set (with optional path) *)
      res_lastmodified: float option; (** Default: [None] *)
@@ -33,10 +33,10 @@ type result =
 
 
 (** Default [result] to use as a base for constructing others. *)
-val default_result : result
+val default_result : unit -> result
 
 (** [result] for an empty page. *)
-val empty_result : result
+val empty_result : unit -> result
 
 
 module type HTTP_CONTENT =

@@ -1,9 +1,9 @@
 include Makefile.config
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCECMAO=eliom/ocsigenduce.cma eliom/eliomduce.cma
+DUCECMAO=eliom/eliomduce.cma
 # eliom/ocsigenrss.cma
-DUCECMI=eliom/ocsigenduce.cmi eliom/eliomduce.cmi eliom/xhtml1_strict.cmi
+DUCECMI=eliom/eliomduce.cmi eliom/xhtml1_strict.cmi
 # eliom/rss2.cmi eliom/ocsigenrss.cmi
 DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 # examples/ocamlduce/examplerss.cmo

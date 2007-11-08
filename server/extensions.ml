@@ -285,19 +285,19 @@ let do_for_site_matching host port ri =
           (match site_match path ri.ri_full_path with
           | None ->
               Messages.debug (fun () ->
-                "---- host = "^
-                (string_of_host_option host)^" site = "^
+                "---- host=\""^
+                (string_of_host_option host)^"\" site=\""^
                 (Ocsimisc.string_of_url_path path)^
-                " does not match \""^(string_of_host h)^"/"^
+                "\" does not match host=\""^(string_of_host h)^"\" site=\"/"^
                 (Ocsimisc.string_of_url_path ri.ri_full_path)^
                 "\".");
               aux ri e l
           | Some sub_path ->
               Messages.debug (fun () -> 
-                "---- site found: "^(string_of_host_option host)^
-                " matches \""^(string_of_host h)^"\" and "^
+                "---- site found: \""^(string_of_host_option host)^
+                "\" matches \""^(string_of_host h)^"\" and \"/"^
                 (Ocsimisc.string_of_url_path ri.ri_full_path)^
-                " matches \""^
+                "\" matches \"/"^
                 (Ocsimisc.string_of_url_path path)^"\".");
               let ri = {ri with ri_sub_path = ""::sub_path} in
               let charset = match charset with 

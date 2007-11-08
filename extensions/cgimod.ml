@@ -473,6 +473,7 @@ let gen reg charset ri =
                   if loc <> "" && loc.[0] = '/' then
                     Lwt.return (Ext_retry_with (ri_of_url loc ri))
                   else
+                    let default_result = Http_frame.default_result () in
                     Lwt.return
                       (Ext_found
                          { default_result with
@@ -483,6 +484,7 @@ let gen reg charset ri =
                   | None -> 200
                   | Some c -> c
                   in
+                  let default_result = Http_frame.default_result () in
                   return
                     (Ext_found
                        {default_result with

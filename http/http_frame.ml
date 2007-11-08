@@ -28,6 +28,7 @@ the operation on this protocol*)
 open Ocsistream
 
 type etag = string
+type url_path = string list
 
 type cookies = 
   | Set of string list option * float option * (string * string) list
@@ -57,7 +58,7 @@ type result =
    }
 
 (** Default [result] to use as a base for constructing others. *)
-let default_result =
+let default_result () =
   {
    res_cookies = [];
    res_lastmodified = None;
@@ -73,7 +74,7 @@ let default_result =
  }
 
 (** [result] for an empty page. *)
-let empty_result = 
+let empty_result () = 
   {
    res_cookies = [];
    res_lastmodified = None;

@@ -119,11 +119,12 @@ let gen dir charset ri =
         | _ -> raise Bad_answer_from_http_server
       in
       match http_frame.Http_frame.content with
-      | None -> return (Ext_found Http_frame.empty_result)
+      | None -> return (Ext_found (Http_frame.empty_result ()))
       | Some stream ->
+          let default_result = Http_frame.default_result () in
           return
             (Ext_found
-               {Http_frame.default_result with
+               {default_result with
                 Http_frame.res_content_length = None;
                 Http_frame.res_stream = stream;
 	        Http_frame.res_headers= headers;

@@ -68,6 +68,7 @@ let raw_request
     
     match content with
     | None ->
+        let empty_result = Http_frame.empty_result () in
         Http_com.send
           slot
           ~mode:query
@@ -75,7 +76,7 @@ let raw_request
           ~head:false
           ~keep_alive:false
           ~sender:request_sender
-          {Http_frame.empty_result with
+          {empty_result with
            Http_frame.res_headers = headers}
 
     | Some stream -> 

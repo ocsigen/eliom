@@ -593,9 +593,6 @@ let write_stream ?(chunked=false) out_ch stream =
 module H = Http_frame.Http_header
 
 
-
-  
-
 (** Sends the HTTP frame.
  * The headers are merged with those of the sender, the priority
  * being given to the newly defined header in case of conflict.

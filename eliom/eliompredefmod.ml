@@ -1099,6 +1099,7 @@ module SubXhtml = functor(T : sig type content end) ->
         let result_of_content c = 
           let x = XHTML.M.ocsigen_xprint c in
           let md5 = get_etag_aux x in
+          let default_result = default_result () in
           Lwt.return 
             {default_result with
              res_content_length = Some (Int64.of_int (String.length x));
@@ -1418,6 +1419,7 @@ module Unitreg_ = struct
   type page = unit
 
   let send ?(cookies=[]) ?charset ?(code = 204) ~sp content = 
+    let empty_result = Http_frame.empty_result () in
     Lwt.return
       (EliomResult
          {empty_result with
@@ -1448,6 +1450,7 @@ module Redirreg_ = struct
   type page = string
 
   let send ?(cookies=[]) ?charset ?(code = 301) ~sp content =
+    let empty_result = Http_frame.empty_result () in
     Lwt.return
       (EliomResult
          {empty_result with
@@ -1468,6 +1471,7 @@ module TempRedirreg_ = struct
   type page = string
 
   let send ?(cookies=[]) ?charset ?(code = 302) ~sp content =
+    let empty_result = Http_frame.empty_result () in
     Lwt.return
       (EliomResult
          {empty_result with

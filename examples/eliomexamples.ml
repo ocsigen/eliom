@@ -310,7 +310,7 @@ let _ = Cookies.register cookies
 let sendany = 
   Any.register_new_service 
     ~path:["sendany2"]
-    ~get_params:(string "type")
+    ~get_params:(suffix (all_suffix_string "type"))
    (fun sp s () -> 
      if s = "nocookie"
      then

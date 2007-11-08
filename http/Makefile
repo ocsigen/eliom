@@ -49,7 +49,7 @@ viclean: clean
 	-rm *~
 
 depend:
-	$(CAMLDEP) $(PP) $(LIBDIRS) *.ml *.mli > .depend
+	$(CAMLDEP) $(PP) $(LIBDIRS) *.ml *.mli *.mll *.mly > .depend
 
 http_parser.cmo:http_parser.ml http_parser.mli http_parser.cmi
 http_parser.cmx:http_parser.ml http_parser.mli http_parser.cmi

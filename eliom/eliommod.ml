@@ -2643,6 +2643,7 @@ let gen sitedata charset ri =
                       all_cookie_info
                       all_user_cookies
                     >>= fun all_new_cookies ->
+                    let empty_result = Http_frame.empty_result () in
                     return
                       (Ext_found
                          {empty_result with

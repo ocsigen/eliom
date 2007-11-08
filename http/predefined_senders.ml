@@ -69,6 +69,7 @@ module Xhtml_content =
     let result_of_content c = 
       let x = XHTML.M.ocsigen_print (add_css c) in
       let md5 = get_etag_aux x in
+      let default_result = default_result () in
       Lwt.return 
         {default_result with
          res_content_length = Some (Int64.of_int (String.length x));
@@ -93,6 +94,7 @@ module Text_content =
 
     let result_of_content ((c, ct) as content) =
       let md5 = get_etag content in
+      let default_result = default_result () in
       Lwt.return
         {default_result with
          res_content_length = Some (Int64.of_int (String.length c));
@@ -117,6 +119,7 @@ module Stream_content =
     let get_etag c = None
 
     let result_of_content c =
+      let default_result = default_result () in
       Lwt.return
         {default_result with
          res_content_length = None;
@@ -170,6 +173,7 @@ module Streamlist_content =
         finalize () >>= fun () ->
         next_stream l
       in
+      let default_result = default_result () in
       Lwt.return
         {default_result with
          res_content_length = None;
@@ -188,7 +192,7 @@ module Empty_content =
 
     let get_etag c = None
 
-    let result_of_content c = Lwt.return empty_result
+    let result_of_content c = Lwt.return (empty_result ())
 
   end
 
@@ -275,6 +279,7 @@ module File_content =
       let st = Unix.LargeFile.stat c in 
       let etag = get_etag_aux st in
       let stream = read_file fd in
+      let default_result = default_result () in
       Lwt.return
         {default_result with
          res_content_length = Some st.Unix.LargeFile.st_size;
@@ -473,11 +478,13 @@ module Error_content =
 
     let get_etag c = None
 
-    let error_page s c =
+    let error_page s msg c =
       XHTML.M.html
         (XHTML.M.head (XHTML.M.title (XHTML.M.pcdata s)) [])
         (XHTML.M.body
-           ((XHTML.M.h1 [XHTML.M.pcdata "Error"])::c)
+           (XHTML.M.h1 [XHTML.M.pcdata msg]::
+            p [pcdata s]::
+            c)
         )
 
     let result_of_content (code, exn) =
@@ -501,7 +508,8 @@ module Error_content =
         match exn with
         | Some exn when Ocsiconfig.get_debugmode () ->
             error_page
-              ("error "^str_code)
+              ("Error "^str_code)
+              error_msg
               [XHTML.M.p
                  [XHTML.M.pcdata (Ocsimisc.string_of_exn exn);
                   XHTML.M.br ();
@@ -510,8 +518,9 @@ module Error_content =
                 ]]
         | _ ->
           error_page
-            ("error "^str_code)
-            []
+              ("Error "^str_code)
+              error_msg
+              []
       in
       Xhtml_content.result_of_content err_page >>= fun r ->
       Lwt.return

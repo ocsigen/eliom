@@ -485,6 +485,7 @@ let service
                 in
                 if not_modified then begin
                   Messages.debug2 "-> Sending 304 Not modified ";
+                  let empty_result = Http_frame.empty_result () in
                   send
                     sender_slot
                     ~clientproto
@@ -496,6 +497,7 @@ let service
                   Messages.debug2
                     "-> Sending 412 Precondition Failed \
                      (if-unmodified-since header)";
+                  let empty_result = Http_frame.empty_result () in
                   send
                     sender_slot
                     ~clientproto
@@ -517,6 +519,7 @@ let service
                 match e with
                   Ocsigen_Is_a_directory ->
                     Messages.debug2 "-> Sending 301 Moved permanently";
+                    let empty_result = Http_frame.empty_result () in
                     send
                       sender_slot
                       ~clientproto

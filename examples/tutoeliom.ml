@@ -2445,7 +2445,7 @@ let _ = Cookies.register cookies
       <p>To reload the modules of the configuration file without
        stoping the server, use <code>/etc/init.d/ocsigen reload</code>
        for most of the distributions, or do it manually using:</p>
-       <pre>echo reload > /var/run/ocsigen_command</pre>.
+       <pre>echo reload &gt; /var/run/ocsigen_command</pre>.
       <p>
        Only modules loaded inside <code>&lt;site&gt;</code> or
        <code>&lt;library&gt;</code> will be reloaded.
@@ -2554,13 +2554,13 @@ let count2 =
 <pre>
 type 'value table
 
-val open_table : string -> 'value table
+val open_table : string -&gt; 'value table
 
-val find : 'value table -> string -> 'value Lwt.t
+val find : 'value table -&gt; string -&gt; 'value Lwt.t
 
-val add : 'value table -> string -> 'value -> unit Lwt.t
+val add : 'value table -&gt; string -&gt; 'value -&gt; unit Lwt.t
 
-val remove : 'value table -> string -> unit Lwt.t
+val remove : 'value table -&gt; string -&gt; unit Lwt.t
 </pre>
 
     <p>
@@ -3449,7 +3449,7 @@ let coucou_list = register_new_service
       <p>
    Here is an example of link towards this service:
    $a Tutoeliom.coucou_list sp 
-   <:xmllist< coucou?a.str[0]=toto&a.str[1]=titi >> ["toto"; "titi"]$.
+     [pcdata "coucou?a.str[0]=toto&a.str[1]=titi"] ["toto"; "titi"]$.
       </p>
    <p>
    <em>Warning:</em>
@@ -3547,9 +3547,9 @@ let suffixform = register_new_service ["suffixform"] unit
        using this using these functions (from $a ~service:senddoc ~sp [code [pcdata "Eliomsessions" ]] [version;"Eliomsessions.html"]$):
       </p>
 <pre>
-val get_tmp_filename : Extensions.file_info -> string
-val get_filesize : Extensions.file_info -> int64
-val get_original_filename : Extensions.file_info -> string
+val get_tmp_filename : Extensions.file_info -&gt; string
+val get_filesize : Extensions.file_info -&gt; int64
+val get_original_filename : Extensions.file_info -&gt; string
 </pre>
       <p>$a ~fragment:"VALget_tmp_filename" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_tmp_filename" ]] [version;"Eliomsessions.html"]$ allows to know the actual name
        of the uploaded file on the hard disk.
@@ -3853,12 +3853,12 @@ let _ =
 let home sp () () =
    match get_volatile_session_data ~table:my_table ~sp () with
    | Data_session_expired
-   | No_data ->
+   | No_data -&gt;
      page sp
        [h1 [pcdata "My site"];
         login_box sp connect_action;
         news_headers_list_box sp anonymoususer news_page]
-   | Data user ->
+   | Data user -&gt;
       page sp
         [h1 [pcdata "Mon site"];
          text_box "Bonjour !";
@@ -3868,12 +3868,12 @@ let home sp () () =
 let print_news_page sp i () = 
    match get_volatile_session_data ~table:my_table ~sp () with
    | Data_session_expired
-   | No_data ->
+   | No_data -&gt;
       page sp
         [h1 [pcdata "Info"];
          login_box sp connect_action;
          message_box i anonymoususer]
-   | Data user ->
+   | Data user -&gt;
       page sp
         [h1 [pcdata "Info"];
          connected_box sp user disconnect_action;
