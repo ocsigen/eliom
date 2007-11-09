@@ -1,4 +1,4 @@
 description = "Libraries for Ocsigen"
 version = "_VERSION_"
-requires = "netstring"
+requires = "netstring,lwt"
 
