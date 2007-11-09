@@ -472,7 +472,7 @@ type 'a table
    you must give the [~sp] parameter, otherwise it will raise the exception
    {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val create_table : ?sp:Eliommod.server_params -> unit -> 'a table
+val create_volatile_table : ?sp:Eliommod.server_params -> unit -> 'a table
 
 (** gets session data for the current session (if any). *)
 val get_volatile_session_data : ?session_name:string -> 

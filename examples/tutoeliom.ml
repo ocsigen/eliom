@@ -1212,7 +1212,7 @@ let part2 sp =
       restore it at each request. This data is available during the whole
       duration of the session.
       To save session data, create a table using 
-      $a ~fragment:"VALcreate_table" ~service:senddoc ~sp [code [pcdata "Eliomsessions.create_table" ]] [version;"Eliomsessions.html"]$ 
+      $a ~fragment:"VALcreate_volatile_table" ~service:senddoc ~sp [code [pcdata "Eliomsessions.create_volatile_table" ]] [version;"Eliomsessions.html"]$ 
       and save and get data from
       this table using $a ~fragment:"VALset_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliomsessions.set_volatile_session_data" ]] [version;"Eliomsessions.html"]$ and 
       $a ~fragment:"VALget_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_volatile_session_data" ]] [version;"Eliomsessions.html"]$. The following example shows
@@ -1233,7 +1233,7 @@ let session_name = "session_data"
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
-let my_table = Eliomsessions.create_table ()
+let my_table = Eliomsessions.create_volatile_table ()
 
 
 (* -------------------------------------------------------- *)
@@ -1338,7 +1338,7 @@ let () =
 (*zap* old version:
 type session_info = string
 
-let my_table = create_table ()
+let my_table = create_volatile_table ()
 
 let sessdata = new_service ["sessdata"] unit ()
 

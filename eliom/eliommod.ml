@@ -1011,7 +1011,7 @@ let global_register_allowed () =
 let counttableelements = ref []
 (* Here only for exploration functions *)
 
-let create_table, create_table_during_session =
+let create_volatile_table, create_volatile_table_during_session =
   let aux sitedata =
     let t = SessionCookies.create 100 in
     let old_remove_session_data = sitedata.remove_session_data in

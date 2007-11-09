@@ -359,8 +359,8 @@ val get_default_persistent_timeout : unit -> float option
 val set_default_persistent_timeout : float option -> unit
 
 
-val create_table : unit -> 'a SessionCookies.t
-val create_table_during_session : server_params -> 'a SessionCookies.t
+val create_volatile_table : unit -> 'a SessionCookies.t
+val create_volatile_table_during_session : server_params -> 'a SessionCookies.t
 val create_persistent_table : string -> 'a Ocsipersist.table
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 
