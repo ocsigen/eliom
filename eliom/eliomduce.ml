@@ -63,6 +63,7 @@ module Ocamlduce_content =
     let result_of_content c = 
       let x = print (add_css c) in
       let md5 = get_etag_aux x in
+      let default_result = default_result () in
       Lwt.return 
         {default_result with
          res_content_length = Some (Int64.of_int (String.length x));
@@ -87,7 +88,7 @@ module Xhtmlreg_ = struct
     Lwt.return 
         (Eliommod.EliomResult
            {r with
-            res_cookies= cookies;
+            res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (Eliomsessions.get_config_file_charset sp)
@@ -301,6 +302,7 @@ module Xml =
         let result_of_content c = 
           let x = print c in
           let md5 = get_etag_aux x in
+          let default_result = default_result () in
           Lwt.return
             {default_result with
              res_content_length = Some (Int64.of_int (String.length x));
@@ -327,7 +329,7 @@ module Xml =
         Lwt.return
             (Eliommod.EliomResult 
                {r with
-                res_cookies= cookies;
+                res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
                 res_code= code_of_code_option code;
                 res_charset= (match charset with
                 | None -> Some (Eliomsessions.get_config_file_charset sp)
