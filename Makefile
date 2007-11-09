@@ -42,20 +42,20 @@ DBMINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma
 else
 endif
 
-DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lwt/lwt_ssl.mli ./lwt/lwt_timeout.mli ./eliom/eliommkforms.mli ./eliom/eliommkreg.mli ./eliom/eliompredefmod.mli ./eliom/eliommod.mli ./eliom/eliomparameters.mli ./eliom/eliomservices.mli ./eliom/eliomsessions.mli ./server/extensions.mli ./server/preemptive.mli ./server/parseconfig.mli ./xmlp4/oldocaml/xhtmltypes.ml ./xmlp4/ohl-xhtml/xHTML.mli ./eliom/ocsigenboxes.mli ./baselib/messages.mli ./http/ocsiheaders.mli ./server/http_client.mli ./http/http_frame.mli ./http/http_com.mli ./http/predefined_senders.mli ./eliom/eliomtools.mli ./extensions/ocsipersist.mli ./xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lwt/lwt_ssl.mli ./lwt/lwt_timeout.mli ./eliom/eliommkforms.mli ./eliom/eliommkreg.mli ./eliom/eliompredefmod.mli ./eliom/eliommod.mli ./eliom/eliomparameters.mli ./eliom/eliomservices.mli ./eliom/eliomsessions.mli ./server/extensions.mli ./server/preemptive.mli ./server/parseconfig.mli ./xmlp4/oldocaml/xhtmltypes.ml ./xmlp4/ohl-xhtml/xHTML.mli ./baselib/messages.mli ./http/ocsiheaders.mli ./server/http_client.mli ./http/http_frame.mli ./http/http_com.mli ./http/predefined_senders.mli ./eliom/eliomtools.mli ./extensions/ocsipersist.mli ./xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 
 
 INSTALL = install
 TARGETSBYTE = xmlp4.byte baselib.byte lwt.byte http.byte server.byte extensions.byte eliom.byte examples.byte
 
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
-	eliom/eliom.cma eliom/ocsigenmod.cma \
+	eliom/eliom.cma \
 	extensions/staticmod.cmo extensions/cgimod.cmo $(DEFLATEMODINSTALL) \
 	$(DUCECMAO)
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliommkforms.cmi eliom/eliommkreg.cmi \
        eliom/eliomtools.cmi \
-       eliom/ocsigen.cmi eliom/ocsigenboxes.cmi eliom/eliomtools.cmi \
+       eliom/eliomtools.cmi \
        $(DUCECMI) \
        eliom/eliomsessions.cmi eliom/eliomparameters.cmi \
        eliom/eliomservices.cmi eliom/eliompredefmod.cmi \
@@ -64,8 +64,8 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
 CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi http/http_headers.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
 #LWTCMITOINSTALL = lwt/lwt.cmi lwt/lwt_unix.cmi lwt/lwt_chan.cmi lwt/lwt_ssl.cmi lwt/lwt_timeout.cmi lwt/lwt_util.cmi lwt/META
-EXAMPLESCMO = examples/tutoeliom.cmo examples/tutoocsigenmod.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
-EXAMPLESCMI = examples/tutoeliom.cmi examples/tutoocsigenmod.cmi
+EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
+EXAMPLESCMI = examples/tutoeliom.cmi
 
 ifeq "$(BYTECODE)" "YES"
 TOINSTALLBYTE=$(CMAOTOINSTALL) $(PLUGINSCMAOTOINSTALL)
