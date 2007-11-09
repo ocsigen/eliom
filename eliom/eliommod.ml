@@ -1088,8 +1088,8 @@ let getcookies cookiename cookies =
           beg
       else beg
     )
-    Http_frame.Cookievalues.empty
     cookies
+    Http_frame.Cookievalues.empty
 
 
 (** look in table to find if the session cookies sent by the browser

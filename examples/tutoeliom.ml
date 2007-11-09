@@ -3013,13 +3013,13 @@ let _ =
      the public table:
      </p>
 *html*)
-let publiccoservsession = new_service ["publiccoservsession"] unit ()
+let publiccoduringsess = new_service ["publiccoduringsess"] unit ()
 
 let _ = 
   let page sp () () = 
     let timeoutcoserv =
       register_new_coservice
-        ~sp ~fallback:publiccoservsession ~get_params:unit ~timeout:5.
+        ~sp ~fallback:publiccoduringsess ~get_params:unit ~timeout:5.
         (fun _ _ _ ->
            return
              (html
@@ -3038,10 +3038,10 @@ let _ =
            a timeoutcoserv sp [pcdata "Try it"] (); ];
           ]))
   in
-  register publiccoservsession page
+  register publiccoduringsess page
 (*html*
       <p>
-      $a Tutoeliom.publiccoservsession sp <:xmllist< See this example here >> ()$.
+      $a Tutoeliom.publiccoduringsess sp <:xmllist< See this example here >> ()$.
       </p>
      <h4>Defining an exception handler for the whole site</h4>
      <p>When an exception is raised during the generation of a page,
@@ -4009,8 +4009,8 @@ let _ = register main
              $a disposable sp <:xmllist< <code>disposable</code> >> ()$<br/>
        Coservice with timeout:
              $a timeout sp <:xmllist< <code>timeout</code> >> ()$<br/>
-       Public coservice created after initialization:
-             $a publiccoservsession sp <:xmllist< <code>publiccoservsession</code> >> ()$<br/>
+       Public coservice created after initialization (with timeout):
+             $a publiccoduringsess sp <:xmllist< <code>publiccoduringsess</code> >> ()$<br/>
        The following URL send either a statically checked page, or a text page:
              $a send_any sp <:xmllist< <code>send_any</code> >> "valid"$<br/>
        A page with a persistent counter: 
