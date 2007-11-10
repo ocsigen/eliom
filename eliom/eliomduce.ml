@@ -86,9 +86,10 @@ module Xhtmlreg_ = struct
   let send ?(cookies=[]) ?charset ?code ~sp content = 
     Ocamlduce_content.result_of_content content >>= fun r ->
     Lwt.return 
-        (Eliommod.EliomResult
+        (Eliomservices.EliomResult
            {r with
-            res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= 
+            Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (Eliomsessions.get_config_file_charset sp)
@@ -327,9 +328,10 @@ module Xml =
       let send ?(cookies=[]) ?charset ?code ~sp content = 
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
-            (Eliommod.EliomResult 
+            (Eliomservices.EliomResult 
                {r with
-                res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+                res_cookies= 
+                Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
                 res_code= code_of_code_option code;
                 res_charset= (match charset with
                 | None -> Some (Eliomsessions.get_config_file_charset sp)

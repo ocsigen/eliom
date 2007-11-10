@@ -40,12 +40,13 @@ exception Eliom_function_forbidden_outside_site_loading of string
        For some functions, you must add the [~sp] parameter during a session. 
      *)
 
-
+(**/**)
 (** Type used to describe session timeouts *)
 type timeout = 
   | TGlobal (** see global setting *)
   | TNone   (** explicitely set no timeout *)
   | TSome of float (** timeout duration in seconds *)
+(* redefined in eliomsessions.ml *)
 
 
 
@@ -56,6 +57,7 @@ type timeout =
 type cookie = 
   | Set of url_path option * float option * string * string
   | Unset of url_path option * string
+(* redefined in eliomsessions.ml *)
 
 
 (** The type to send if you want to create your own modules for generating
@@ -64,9 +66,9 @@ type cookie =
 type result_to_send = 
   | EliomResult of Http_frame.result
   | EliomExn of (exn list * cookie list)
+(* redefined in eliomservices.ml *)
 
 
-(**/**)
 type cookie_exp =
   | CENothing   (** nothing to set *)
   | CEBrowser   (** expires at browser close *)
@@ -247,16 +249,6 @@ and server_params =
                                       (if it is a session service) *)}
 
 
-(**/**)
-
-(** Conversion fonction from Eliom cookies to server cookies.
-    If [?oldtable] is present, cookies are added to this table
- *)
-val cookie_table_of_eliom_cookies :
-    ?oldtable:Http_frame.cookieset ->
-      sp:server_params -> cookie list -> Http_frame.cookieset
-
-(**/**)
 exception Eliom_duplicate_registration of string (** The service has been registered twice*)
 exception Eliom_page_erasing of string (** The location where you want to register something already exists *)
 exception Eliom_there_are_unregistered_services of (string list * 
@@ -368,9 +360,6 @@ val create_volatile_table_during_session : server_params -> 'a SessionCookies.t
 val create_persistent_table : string -> 'a Ocsipersist.table
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 
-val set_site_handler : sitedata ->
-  (server_params -> exn -> result_to_send Lwt.t) -> unit
-
 val find_or_create_service_cookie : 
     ?session_name:string -> sp:server_params -> unit -> 
       tables one_service_cookie_info
@@ -471,4 +460,7 @@ val add_unregistered : sitedata -> string list option -> unit
 val remove_unregistered : sitedata -> string list option -> unit
 val global_register_allowed : unit -> (unit -> sitedata) option
 
+
+val add_cookie_list_to_send :
+    sitedata -> cookie list -> Http_frame.cookieset -> Http_frame.cookieset
 

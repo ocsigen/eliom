@@ -24,6 +24,13 @@ open Eliommod
 open Extensions
 open Lazy
 
+
+(*****************************************************************************)
+(* Making accessible some types from Eliommod: *)
+
+type server_params = Eliommod.server_params
+
+
 let get_config () = 
   match global_register_allowed () with
   | Some _ -> !Eliommod.config
@@ -292,6 +299,8 @@ let get_persistent_data_session_cookie_exp_date ?session_name ~sp () =
 
 
 
+
+
 (* *)
 
 let get_site_dir ~sp = sp.sp_sitedata.site_dir
@@ -302,17 +311,21 @@ let get_tmp_filename fi = fi.tmp_filename
 let get_filesize fi = fi.filesize
 let get_original_filename fi = fi.original_filename
 
-let set_exn_handler ?sp h = 
-  let sitedata = find_sitedata "set_exn_handler" sp in
-  set_site_handler sitedata h
-
 let get_global_table ~sp = sp.sp_sitedata.global_services
+let get_sitedata ~sp = sp.sp_sitedata
 
 (** If the session does not exist, we create it 
    (new cookie, new session service table) *)
 let get_session_service_table ?session_name ~sp () = 
   let (_, t, _, _, _) = find_or_create_service_cookie ?session_name ~sp () in
   t
+
+
+let set_site_handler sitedata handler =
+  sitedata.exn_handler <- handler
+
+
+
 
 (*****************************************************************************)
 (** {2 persistent sessions} *)
@@ -424,6 +437,13 @@ let close_all_sessions ?session_name ?sp () =
 (* Administration *)
 
 module Session_admin = struct
+
+  (** Type used to describe session timeouts *)
+
+  type timeout = Eliommod.timeout =
+    | TGlobal (** see global setting *)
+    | TNone   (** explicitely set no timeout *)
+    | TSome of float (** timeout duration in seconds *)
 
   type service_session = 
       string (* cookie value *)
@@ -583,3 +603,7 @@ let number_of_persistent_tables = number_of_persistent_tables
 
 let number_of_persistent_table_elements () =
   number_of_persistent_table_elements ()
+
+(*****************************************************************************)
+let sp_of_esp = Ocsimisc.id
+let esp_of_sp = Ocsimisc.id

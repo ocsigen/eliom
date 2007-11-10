@@ -285,31 +285,31 @@ let _ = Cookies.register cookies
                     )])),
        let now = Unix.time () in
        let cookies =
-         [Eliommod.Set (Some [], Some (now +. 10.), 
+         [Eliomservices.Set (Some [], Some (now +. 10.), 
                           (cookiename^"6"), (string_of_int (Random.int 100)));
-          Eliommod.Set (Some [], Some (now +. 10.), 
+          Eliomservices.Set (Some [], Some (now +. 10.), 
                           (cookiename^"7"), (string_of_int (Random.int 100)));
-          Eliommod.Set (Some ["c";"plop"], None, 
+          Eliomservices.Set (Some ["c";"plop"], None, 
                           (cookiename^"8"), (string_of_int (Random.int 100)));
-          Eliommod.Set (Some ["c";"plop"], None, 
+          Eliomservices.Set (Some ["c";"plop"], None, 
                           (cookiename^"9"), (string_of_int (Random.int 100)));
-          Eliommod.Set (Some ["c";"plop"], None, 
+          Eliomservices.Set (Some ["c";"plop"], None, 
                           (cookiename^"10"), (string_of_int (Random.int 100)));
-          Eliommod.Set (Some ["c";"plop"], None, 
+          Eliomservices.Set (Some ["c";"plop"], None, 
                           (cookiename^"11"), (string_of_int (Random.int 100)));
-          Eliommod.Set (Some ["c";"plop"], None, 
+          Eliomservices.Set (Some ["c";"plop"], None, 
                           (cookiename^"12"), (string_of_int (Random.int 100)));
         ]
        in if Http_frame.Cookievalues.mem (cookiename^"1") (get_cookies sp)
        then 
-         (Eliommod.Unset (None, (cookiename^"1")))::
-         (Eliommod.Unset (None, (cookiename^"2")))::cookies
+         (Eliomservices.Unset (None, (cookiename^"1")))::
+         (Eliomservices.Unset (None, (cookiename^"2")))::cookies
        else 
-         (Eliommod.Set (None, None, (cookiename^"1"),
+         (Eliomservices.Set (None, None, (cookiename^"1"),
                         (string_of_int (Random.int 100))))::
-          (Eliommod.Set (None, None, (cookiename^"2"),
+          (Eliomservices.Set (None, None, (cookiename^"2"),
                          (string_of_int (Random.int 100))))::
-          (Eliommod.Set (None, None, (cookiename^"3"),
+          (Eliomservices.Set (None, None, (cookiename^"3"),
                          (string_of_int (Random.int 100))))
           ::cookies
       ))
@@ -334,7 +334,7 @@ let sendany =
          ((html
              (head (title (pcdata "")) [])
              (body [p [pcdata "This page does set a cookie"]])),
-          [Eliommod.Set (None, None, "arf", (string_of_int (Random.int 100)))])
+          [Eliomservices.Set (None, None, "arf", (string_of_int (Random.int 100)))])
    )
 
 

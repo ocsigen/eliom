@@ -928,9 +928,6 @@ let handle_site_exn exn (ri, si, _, aci) sitedata =
   sitedata.exn_handler (make_server_params sitedata aci ri [] si None) exn >>=
   (fun r -> return r)
 
-let set_site_handler sitedata handler =
-  sitedata.exn_handler <- handler
-
 
 
 (****************************************************************************)
@@ -2164,10 +2161,6 @@ let add_cookie_list_to_send sitedata l t =
     )
     t
     l
-
-let cookie_table_of_eliom_cookies
-    ?(oldtable= Http_frame.Cookies.empty) ~sp cl =
-  add_cookie_list_to_send sp.sp_sitedata cl oldtable
 
 (* add a list of Eliom's cookies to an Http_frame cookie table *)
 let add_cookies_to_send newcookies oldcookies =

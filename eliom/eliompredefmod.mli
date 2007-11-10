@@ -58,7 +58,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit, 
                [< registrable ]) service ->
-                 sp:Eliommod.server_params -> 
+                 sp:Eliomsessions.server_params -> 
                    ?fragment:string ->
                      'get -> string
 (** Creates the string corresponding to the URL of a service applyed to
@@ -71,7 +71,7 @@ module type XHTMLFORMSSIG = sig
           ('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-           sp:Eliommod.server_params -> ?fragment:string -> 
+           sp:Eliomsessions.server_params -> ?fragment:string -> 
              a_content elt list -> 'get -> [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link to [service]. 
    The text of
@@ -100,7 +100,7 @@ module type XHTMLFORMSSIG = sig
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
-          sp:Eliommod.server_params -> ?fragment:string -> 'get -> uri
+          sp:Eliomsessions.server_params -> ?fragment:string -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
@@ -110,7 +110,7 @@ module type XHTMLFORMSSIG = sig
           service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             sp:Eliommod.server_params -> ?fragment:string ->
+             sp:Eliomsessions.server_params -> ?fragment:string ->
               ('gn -> form_content elt list) -> [>form] elt
 (** [get_form service sp formgen] creates a GET form to [service]. 
    The content of
@@ -122,7 +122,7 @@ module type XHTMLFORMSSIG = sig
           service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-            sp:Eliommod.server_params -> ?fragment:string ->
+            sp:Eliomsessions.server_params -> ?fragment:string ->
               ('pn -> form_content elt list) -> 'get -> [>form] elt
 (** [post_form service sp formgen] creates a POST form to [service]. 
    The last parameter is for GET parameters (as in the function [a]).
@@ -574,7 +574,7 @@ module Files : Eliommkreg.ELIOMREGSIG with
    .
  *)
 module Any : Eliommkreg.ELIOMREGSIG with 
-  type page = Eliommod.result_to_send
+  type page = Eliomservices.result_to_send
 
 (** Allows to send raw data using Ocsigen's streams.
     The content is a pair conatining:

@@ -18,7 +18,7 @@
  *)
 
 
-(** Predefined boxes for Eliommod *)
+(** Predefined boxes for Eliom *)
 
 open Eliomservices
 open Eliomparameters
@@ -40,7 +40,7 @@ val menu : ?classe:XHTML.M.nmtoken list ->
     (([< get_service_kind ], [< registrable ]) one_page * 
        Xhtmltypes.a_content XHTML.M.elt list)
       list -> service:([< get_service_kind ], [< registrable ]) one_page ->
-        sp:Eliommod.server_params -> [> `Ul ] XHTML.M.elt
+        sp:Eliomsessions.server_params -> [> `Ul ] XHTML.M.elt
 (** Creates a menu 
 
    Example:
@@ -113,7 +113,7 @@ val hierarchical_menu_depth_first :
    Xhtmltypes.a_content)
       hierarchical_site -> 
   service:('a, 'b) one_page -> 
-  sp:Eliommod.server_params -> 
+  sp:Eliomsessions.server_params -> 
     [> `Ul ] XHTML.M.elt list
 
 
@@ -136,7 +136,7 @@ val hierarchical_menu_breadth_first :
    Xhtmltypes.a_content)
       hierarchical_site -> 
   service:('a, 'b) one_page -> 
-  sp:Eliommod.server_params -> 
+  sp:Eliomsessions.server_params -> 
     [> `Ul ] XHTML.M.elt list
 
 
@@ -149,5 +149,5 @@ val structure_links :
      Xhtmltypes.a_content)
     hierarchical_site -> 
       service:('a, 'b) one_page -> 
-        sp:Eliommod.server_params -> 
+        sp:Eliomsessions.server_params -> 
           [> `Link ] XHTML.M.elt list

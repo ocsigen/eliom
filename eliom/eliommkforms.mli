@@ -28,7 +28,6 @@
 
 open Lwt
 open Extensions
-open Eliommod
 open Eliomparameters
 open Eliomservices
 
@@ -195,7 +194,7 @@ module type ELIOMFORMSIG =
         service:('get, unit, [< get_service_kind ],
                  [< suff ], 'gn, unit, 
                  [< registrable ]) service ->
-                   sp:Eliommod.server_params -> 
+                   sp:Eliomsessions.server_params -> 
                      ?fragment:string ->
                        'get -> string
 (** Creates the string corresponding to the URL of a service applyed to
@@ -206,7 +205,7 @@ module type ELIOMFORMSIG =
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
-          sp:server_params -> ?fragment:string -> 'get -> uri
+          sp:Eliomsessions.server_params -> ?fragment:string -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
@@ -217,7 +216,7 @@ module type ELIOMFORMSIG =
           service:('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-            sp:server_params -> 
+            sp:Eliomsessions.server_params -> 
               ?fragment:string ->
                 a_content_elt_list -> 'get -> a_elt
 (** [a service sp cont ()] creates a link to [service]. 
@@ -247,7 +246,7 @@ module type ELIOMFORMSIG =
           service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             sp:server_params ->
+             sp:Eliomsessions.server_params ->
                ?fragment:string ->
                ('gn -> form_content_elt_list) -> form_elt
 (** [get_form service sp formgen] creates a GET form to [service]. 
@@ -261,7 +260,7 @@ module type ELIOMFORMSIG =
           service:('get, 'post, [< post_service_kind ],
            [< suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-            sp:server_params ->
+            sp:Eliomsessions.server_params ->
                ?fragment:string ->
                  ('pn -> form_content_elt_list) -> 'get -> form_elt
 (** [post_form service sp formgen] creates a POST form to [service]. 

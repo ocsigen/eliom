@@ -25,7 +25,6 @@
 open Lwt
 open Ocsimisc
 open Extensions
-open Eliommod
 open Eliomparameters
 open Eliomservices
 open Eliomsessions
@@ -195,7 +194,7 @@ module type ELIOMFORMSIG =
         service:('get, unit, [< get_service_kind ],
                  [< suff ], 'gn, unit, 
                  [< registrable ]) service ->
-                   sp:Eliommod.server_params -> 
+                   sp:Eliomsessions.server_params -> 
                      ?fragment:string ->
                        'get -> string
 (** Creates the string corresponding to the URL of a service applyed to
@@ -670,7 +669,7 @@ module MakeForms = functor
                     (Netencoding.Url.encode fragment)
               | Some s -> 
                   add_to_string
-                    (add_to_string (uri^"?"^get_state_param_name^"="^s)
+                    (add_to_string (uri^"?"^Eliommod.get_state_param_name^"="^s)
                        "&" params_string)
                     "#"
                     (Netencoding.Url.encode fragment)
@@ -678,8 +677,10 @@ module MakeForms = functor
         | `Nonattached naser ->
             let current_get_params =
               List.remove_assoc
-                naservice_name
-                (remove_prefixed_param na_co_param_prefix (get_all_get_params sp))
+                Eliommod.naservice_name
+                (remove_prefixed_param 
+                   Eliommod.na_co_param_prefix
+                   (get_all_get_params sp))
             in
             let _, params_string = 
               construct_params (get_get_params_type_ service) getparams in
@@ -689,7 +690,7 @@ module MakeForms = functor
               concat_strings preapplied_params "&" params_string in
             let naservice_param = 
               match fst (get_na_name_ naser) with
-              | Some n -> naservice_name^"="^n
+              | Some n -> Eliommod.naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -744,7 +745,7 @@ module MakeForms = functor
                   ~href:
                   (add_to_string
                      (add_to_string 
-                        (uri^"?"^get_state_param_name^"="^s)
+                        (uri^"?"^Eliommod.get_state_param_name^"="^s)
                         "&" params_string)
                      "#"
                      (Netencoding.Url.encode fragment))
@@ -752,9 +753,9 @@ module MakeForms = functor
         | `Nonattached naser ->
             let current_get_params =
               List.remove_assoc
-                naservice_name
+                Eliommod.naservice_name
                 (remove_prefixed_param
-                   na_co_param_prefix (get_all_get_params sp))
+                   Eliommod.na_co_param_prefix (get_all_get_params sp))
             in
             let _, params_string = 
               construct_params (get_get_params_type_ service) getparams in
@@ -764,7 +765,7 @@ module MakeForms = functor
               concat_strings preapplied_params "&" params_string in
             let naservice_param = 
               match fst (get_na_name_ naser) with
-              | Some n -> naservice_name^"="^n
+              | Some n -> Eliommod.naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -805,7 +806,7 @@ module MakeForms = functor
               | None -> None
               | Some s -> 
                   Some (Pages.make_input ~typ:Pages.hidden
-                          ~name:get_state_param_name
+                          ~name:Eliommod.get_state_param_name
                           ~value:s ()))
             in
             let inside = f (make_params_names (get_get_params_type_ service)) in
@@ -829,7 +830,7 @@ module MakeForms = functor
             in Pages.make_get_form ?a ~action:urlname i1 i
         | `Nonattached naser ->
             let urlname = "/"^(get_current_path_string sp) in
-            let naservice_param_name = naservice_name in
+            let naservice_param_name = Eliommod.naservice_name in
             let naservice_param = 
               match fst (get_na_name_ naser) with
               | Some n -> n
@@ -844,9 +845,9 @@ module MakeForms = functor
             in
             let current_get_params =
               List.remove_assoc
-                naservice_name
+                Eliommod.naservice_name
                 (remove_prefixed_param
-                   na_co_param_prefix (get_all_get_params sp))
+                   Eliommod.na_co_param_prefix (get_all_get_params sp))
             in
             let inside = f (make_params_names (get_get_params_type_ service)) in
             let all_lines = 
@@ -899,7 +900,7 @@ module MakeForms = functor
               | None -> params_string
               | Some s -> 
                   add_to_string
-                    (get_state_param_name^"="^s)
+                    (Eliommod.get_state_param_name^"="^s)
                     "&"
                     params_string
             in
@@ -923,7 +924,7 @@ module MakeForms = functor
               | None -> None
               | Some s -> 
                   Some (Pages.make_input ~typ:Pages.hidden
-                          ~name:post_state_param_name
+                          ~name:Eliommod.post_state_param_name
                           ~value:s ()))
             in
             let inside = f (make_params_names (get_post_params_type_ service)) in
@@ -936,7 +937,7 @@ module MakeForms = functor
               i1 i
         | `Nonattached naser ->
             (* no GET params here for now *)
-            let naservice_param_name = naservice_name in
+            let naservice_param_name = Eliommod.naservice_name in
             let naservice_param = 
               match snd (get_na_name_ naser) with
                 Some n -> n

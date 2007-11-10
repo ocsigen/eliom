@@ -23,11 +23,37 @@
 
 open Lwt
 open Ocsimisc
-open Extensions
 open Eliommod
+open Extensions
 open Eliomsessions
 open Eliomparameters
 open Lazy
+
+
+(** Type used for cookies to set. 
+    The float option is the timestamp for the expiration date.
+    The strings are names and values.
+ *)
+type cookie = Eliommod.cookie =
+  | Set of url_path option * float option * string * string
+  | Unset of url_path option * string
+
+let cookie_table_of_eliom_cookies
+    ?(oldtable= Http_frame.Cookies.empty) ~sp cl =
+  Eliommod.add_cookie_list_to_send 
+    (Eliomsessions.get_sitedata sp)
+    cl oldtable
+
+
+
+
+(** The type to send if you want to create your own modules for generating
+   pages
+ *)
+type result_to_send = Eliommod.result_to_send =
+  | EliomResult of Http_frame.result
+  | EliomExn of (exn list * cookie list)
+
 
 
 (** This function may be used for services that cannot be interrupted
@@ -153,7 +179,7 @@ let static_dir ~sp =
      kind = `Attached
        {prefix = "";
         subpath = [""];
-        fullpath = sp.sp_sitedata.site_dir @ [""];
+        fullpath = (Eliomsessions.get_site_dir sp) @ [""];
         get_state = None;
         post_state = None;
         att_kind = `Internal (`Service, `Get);
@@ -217,7 +243,7 @@ let new_service_aux
       new_service_aux_aux
         ~prefix:""
         ~path:path
-        ~site_dir:sp.sp_sitedata.site_dir
+        ~site_dir:(Eliomsessions.get_site_dir sp)
         ~kind:(`Internal (`Service, `Get))
         ~get_params
         ~post_params:unit
@@ -475,3 +501,11 @@ let rec relative_url_path_to_myself = function
   | a::l -> relative_url_path_to_myself l
 (*****************************************************************************)
 
+let set_exn_handler ?sp h = 
+  let sitedata = Eliomsessions.find_sitedata "set_exn_handler" sp in
+  Eliomsessions.set_site_handler sitedata h
+
+let add_service = Eliommod.add_service
+let add_naservice = Eliommod.add_naservice
+
+let erts_of_rst = Ocsimisc.id

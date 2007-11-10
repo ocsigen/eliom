@@ -24,7 +24,6 @@
 
 
 open Extensions
-open Eliomsessions
 open Eliomparameters
 
 
@@ -34,6 +33,32 @@ open Eliomparameters
   [let sync f sp g p = Lwt.return (f sp g p)]
  *)
 val sync : ('a -> 'b -> 'c -> 'd) -> 'a -> 'b -> 'c -> 'd Lwt.t
+
+
+(** Type used for other cookies to set or unset. 
+    The float option is the timestamp for the expiration date.
+    The strings are names and values.
+ *)
+type cookie = 
+  | Set of url_path option * float option * string * string
+  | Unset of url_path option * string
+
+(** Conversion fonction from Eliom cookies to server cookies.
+    If [?oldtable] is present, cookies are added to this table
+ *)
+val cookie_table_of_eliom_cookies :
+    ?oldtable:Http_frame.cookieset ->
+      sp:Eliomsessions.server_params -> cookie list -> Http_frame.cookieset
+
+
+(** The type to send if you want to create your own modules for generating
+   pages
+ *)
+type result_to_send =
+  | EliomResult of Http_frame.result
+  | EliomExn of (exn list * cookie list)
+
+
 
 
 
@@ -118,7 +143,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 (** {3 Main services} *)
 
 val new_service :
-    ?sp: Eliommod.server_params ->
+    ?sp: Eliomsessions.server_params ->
     path:url_path ->
         get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
             unit ->
@@ -159,7 +184,7 @@ val new_external_service :
  *)
 
 val new_post_service :
-    ?sp: Eliommod.server_params ->
+    ?sp: Eliomsessions.server_params ->
     fallback: ('get, unit, 
                [`Attached of [`Internal of 
                  ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
@@ -265,7 +290,7 @@ val new_get_post_coservice' :
 (** {2 Misc} *)
 
 val static_dir :
-    sp:Eliommod.server_params -> 
+    sp:Eliomsessions.server_params -> 
       (string list, unit, [> `Attached of 
         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
        [ `WithSuffix ],
@@ -292,6 +317,22 @@ val preapply :
  *)
  
 
+(** {2 Using your own error pages} *)
+
+
+(** allows to use your own error pages
+   (404, or any exception during page generation).
+
+    {e Warning: If you use this function after the initialisation phase,
+    you must give the [~sp] parameter, otherwise it will raise the
+    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+ *)
+val set_exn_handler : 
+    ?sp:Eliomsessions.server_params ->
+      (Eliomsessions.server_params -> exn -> result_to_send Lwt.t) -> unit
+
+
+
 
 
 
@@ -314,3 +355,5 @@ val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> float option
 val reconstruct_absolute_url_path : url_path -> url_path -> url_path option -> string
 val reconstruct_relative_url_path : url_path -> url_path -> url_path option -> string
+
+val erts_of_rst : result_to_send -> Eliommod.result_to_send

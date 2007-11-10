@@ -2426,7 +2426,7 @@ let _ = Cookies.register cookies
                            with _ -> "<cookie not set>");
                    br ();
                    a cookies sp [pcdata "send other cookie"] ()]])),
-        [Eliommod.Set (None, None, 
+        [Eliomservices.Set (None, None, 
                        cookiename, 
                        string_of_int (Random.int 100))]))
 (*html*
@@ -3052,7 +3052,7 @@ let _ =
      Here is the handler used by this tutorial:
      </p>
 *html*)
-let _ = Eliomsessions.set_exn_handler 
+let _ = Eliomservices.set_exn_handler 
    (fun sp e -> match e with
     | Extensions.Ocsigen_404 -> 
         Eliompredefmod.Xhtml.send ~code:404 ~sp

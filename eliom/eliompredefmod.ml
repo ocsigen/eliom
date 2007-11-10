@@ -32,7 +32,6 @@ open Eliomservices
 open Eliomparameters
 open Eliommkforms
 open Eliommkreg
-open Eliommod
 
 open Http_frame
 open Http_com
@@ -53,17 +52,18 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
-   let send ?(cookies=[]) ?charset ?code ~sp content = 
-     Predefined_senders.Xhtml_content.result_of_content content >>= fun r ->
-     Lwt.return
-         (EliomResult 
-            {r with
-             res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
-             res_code= code_of_code_option code;
-             res_charset= (match charset with
-             | None -> Some (get_config_file_charset sp)
-             | _ -> charset)
-           })
+  let send ?(cookies=[]) ?charset ?code ~sp content = 
+    Predefined_senders.Xhtml_content.result_of_content content >>= fun r ->
+      Lwt.return
+        (EliomResult 
+           {r with
+            res_cookies= 
+            Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+            res_code= code_of_code_option code;
+            res_charset= (match charset with
+            | None -> Some (get_config_file_charset sp)
+            | _ -> charset)
+          })
 
 end
 
@@ -252,7 +252,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit, 
                [< registrable ]) service ->
-                 sp:Eliommod.server_params -> 
+                 sp:Eliomsessions.server_params -> 
                    ?fragment:string ->
                      'get -> string
 (** Creates the string corresponding to the URL of a service applyed to
@@ -1125,7 +1125,7 @@ module SubXhtml = functor(T : sig type content end) ->
         Lwt.return
             (EliomResult 
                {r with
-                res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+                res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
                 res_code= code_of_code_option code;
                 res_charset= (match charset with
                 | None -> Some (get_config_file_charset sp)
@@ -1165,7 +1165,7 @@ module Textreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
@@ -1190,7 +1190,7 @@ module CssTextreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
@@ -1216,7 +1216,7 @@ module HtmlTextreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
@@ -1423,7 +1423,7 @@ module Unitreg_ = struct
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+          res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
           res_code= code;
         })
 
@@ -1454,7 +1454,7 @@ module Redirreg_ = struct
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+          res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
           res_code= code; (* Moved permanently *)
           res_location = Some content;
         })
@@ -1475,7 +1475,7 @@ module TempRedirreg_ = struct
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+          res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
           res_code= code; (* Temporary move *)
           res_location = Some content;
         })
@@ -1493,7 +1493,7 @@ module Anyreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = Eliommod.result_to_send
+  type page = Eliomservices.result_to_send
 
   let send ?(cookies=[]) ?charset ?code ~sp content = 
     Lwt.return
@@ -1502,7 +1502,7 @@ module Anyreg_ = struct
           EliomResult
             {res with 
              res_cookies= 
-             Eliommod.cookie_table_of_eliom_cookies
+             Eliomservices.cookie_table_of_eliom_cookies
                ~oldtable:res.res_cookies
                ~sp 
                cookies;
@@ -1572,7 +1572,7 @@ module Filesreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
@@ -1599,7 +1599,7 @@ module Streamlistreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliommod.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
