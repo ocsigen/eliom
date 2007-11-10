@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module pagegen.ml
- * Copyright (C) 2005 Vincent Balat
+ * Module extensions.ml
+ * Copyright (C) 2005 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify

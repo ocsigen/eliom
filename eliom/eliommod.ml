@@ -93,7 +93,7 @@ type cookie_exp =
 
 type timeout = 
   | TGlobal (** see global setting *)
-  | TNone   (** set explicitely no timeout *)
+  | TNone   (** explicitely set no timeout *)
   | TSome of float (** timeout duration in seconds *)
 
 type 'a one_service_cookie_info =
@@ -385,7 +385,12 @@ let servicecookiename = "eliomservicesession|"
 let persistentcookiename = "eliompersistentsession|"
 let co_param_prefix = "__co_eliom_"
 let na_co_param_prefix = "__na_eliom_"
-let eliom_persistent_cookie_table = "eliom_persist_cookies"
+
+(*VVV Do not forget to change th version number 
+  when the internal format change!!! *)
+let persistent_cookie_table_version = "" (* "_v1" *)
+let eliom_persistent_cookie_table = 
+  "eliom_persist_cookies"^persistent_cookie_table_version
 
 
 (******************************************************************)
@@ -2387,6 +2392,10 @@ let execute
                         persistent_cookies_table 
                         newvalue
                         (name, newexp, !newtimeout, Int64.zero)
+(*VVV Do not forget to change persistent_cookie_table_version
+   if you change the type of persistent table data, 
+   otherwise the server will crash!!!
+ *)
           end
           else return ()
         in thr >>= fun () -> thr2

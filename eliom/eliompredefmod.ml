@@ -1493,7 +1493,7 @@ module Anyreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = result_to_send
+  type page = Eliommod.result_to_send
 
   let send ?(cookies=[]) ?charset ?code ~sp content = 
     Lwt.return

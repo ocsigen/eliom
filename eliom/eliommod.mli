@@ -34,13 +34,17 @@ exception Eliom_Typing_Error of (string * exn) list
     (** The service (GET or POST) parameters do not match expected type *)
 
 
-exception Eliom_function_forbidden_outside_site_loading of string (** That function cannot be used like that outside the initialisation phase. For some functions, you must add the [~sp] parameter during a session. *)
+exception Eliom_function_forbidden_outside_site_loading of string
+    (** That function cannot be used like that outside the
+       initialisation phase. 
+       For some functions, you must add the [~sp] parameter during a session. 
+     *)
 
 
 (** Type used to describe session timeouts *)
 type timeout = 
   | TGlobal (** see global setting *)
-  | TNone   (** set explicitely no timeout *)
+  | TNone   (** explicitely set no timeout *)
   | TSome of float (** timeout duration in seconds *)
 
 
