@@ -471,7 +471,9 @@ let gen reg charset ri =
               | None, Some loc ->
                   Ocsistream.finalize content >>= fun () ->
                   if loc <> "" && loc.[0] = '/' then
-                    Lwt.return (Ext_retry_with (ri_of_url loc ri))
+                    Lwt.return 
+                      (Ext_retry_with (ri_of_url loc ri,
+                                       Http_frame.Cookies.empty))
                   else
                     let default_result = Http_frame.default_result () in
                     Lwt.return

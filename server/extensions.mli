@@ -90,6 +90,10 @@ type request_info =
 
 
      ri_http_frame: Http_frame.t; (** The full http_frame *)
+     ri_extension_info: exn list; (** Use this to put anything you want, 
+                                      for example, information for subsequent
+                                      extensions 
+                                   *)
    }
 
 (** If you force [ri_files] or [ri_post_params], the request is fully read,
@@ -99,7 +103,6 @@ type request_info =
 
 
 
-(** The result given by the extension (filter or page generation) *)
 type answer =
   | Ext_found of Http_frame.result  (** OK stop! I found the page. *)
   | Ext_not_found of exn (** Page not found. Try next extension.
@@ -107,15 +110,31 @@ type answer =
                             but may be for ex Ocsigen_403 (forbidden)
                             if you want another extension to try after a 403
                           *)
+(*VVV give the possibility to set cookies here??? *)
   | Ext_stop of exn      (** Page forbidden. Do not try next extension, but
                             try next site. If you do not want to try next site
                             send an Ext_found with an error code.
                             The exception is usally Ocsigen_403.
                           *)
-  | Ext_continue_with of request_info
-        (** Used to modify the request before giving it to next extension *)
-  | Ext_retry_with of request_info
-        (** Used to retry all the extensions with a new request_info *)
+(*VVV give the possibility to set cookies here??? *)
+  | Ext_continue_with of request_info * Http_frame.cookieset
+        (** Used to modify the request before giving it to next extension.
+            The extension returns the request_info (possibly modified)
+            and a set of cookies if it wants to set or cookies
+            ([Http_frame.Cookies.empty] for no cookies).
+            You must add these cookies yourself in request_info if you
+            want them to be seen by subsequent extensions,
+            for example using [Http_frame.compute_new_ri_cookies].
+         *)
+  | Ext_retry_with of request_info * Http_frame.cookieset
+        (** Used to retry all the extensions with a new request_info.
+            The extension returns the request_info (possibly modified)
+            and a set of cookies if it wants to set or cookies
+            ([Http_frame.Cookies.empty] for no cookies).
+            You must add these cookies yourself in request_info if you
+            want them to be seen by subsequent extensions,
+            for example using [Http_frame.compute_new_ri_cookies].
+         *)
 
 
 type extension =

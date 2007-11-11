@@ -282,6 +282,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
      ri_accept_encoding = accept_encoding;
      ri_accept_language = accept_language;
      ri_http_frame = http_frame;
+     ri_extension_info = [];
    }
       
   with e ->

@@ -23,9 +23,30 @@ type cookie =
 
 type cookieset = cookie Cookievalues.t Cookies.t
 
+(* [add_cookie c cookie_table] adds the cookie [c] to the table [cookie_table].
+   If the cookie is already bound, the previous binding disappear. *)
 val add_cookie : 
     url_path -> string -> cookie -> cookieset -> cookieset
 
+(* [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
+   to [oldcookies]. If cookies are already bound in oldcookies, 
+   the previous binding disappear. *)
+val add_cookies :
+    cookie Cookievalues.t Cookies.t ->
+      cookie Cookievalues.t Cookies.t -> 
+        cookie Cookievalues.t Cookies.t
+
+(* [compute_new_ri_cookies now path ri_cookies cookies_to_set] 
+   adds the cookies from [cookies_to_set]
+   to [ri_cookies], as if the cookies 
+   add been send to the browser and the browser
+   was doing a new request to the url [path]. 
+   Only the cookies that match [path] (current path) are added. *)
+val compute_new_ri_cookies :
+    float ->
+      string list ->
+        string Cookievalues.t ->
+          cookie Cookievalues.t Cookies.t -> string Cookievalues.t
 
 
 

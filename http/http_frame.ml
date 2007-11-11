@@ -50,6 +50,63 @@ let add_cookie path n v t =
   (* We replace the old value if it exists *)
   Cookies.add path (Cookievalues.add n v ct) t
 
+(* [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
+   to [oldcookies]. If cookies are already bound in oldcookies, 
+   the previous binding disappear. *)
+let add_cookies newcookies oldcookies =
+  Cookies.fold
+    (fun path ct t -> 
+      Cookievalues.fold
+        (fun n v beg ->        
+          match v with
+          | OSet (expo, v) ->
+              add_cookie path n (OSet (expo, v)) beg
+          | OUnset ->
+              add_cookie path n OUnset beg
+        )
+        ct
+        t
+    )
+    newcookies
+    oldcookies
+
+
+(* [compute_new_ri_cookies now path ri_cookies cookies_to_set] 
+   adds the cookies from [cookies_to_set]
+   to [ri_cookies], as if the cookies 
+   add been send to the browser and the browser
+   was doing a new request to the url [path]. 
+   Only the cookies that match [path] (current path) are added. *)
+let compute_new_ri_cookies
+    now
+    ripath
+    ricookies
+    cookies_set_by_page =
+
+  let prefix path p = 
+    Ocsimisc.list_is_prefix 
+      (Ocsimisc.remove_slash_at_beginning path)
+      (Ocsimisc.remove_slash_at_beginning p)
+  in
+  Cookies.fold
+    (fun path ct t -> 
+      if prefix path ripath then
+        Cookievalues.fold
+          (fun n v beg ->        
+            match v with
+            | OSet (Some ti, v) when ti>now ->
+                Cookievalues.add n v t
+            | OSet (None, v) -> Cookievalues.add n v t
+            | OSet (_, _)
+            | OUnset -> Cookievalues.remove n t
+          )
+          ct
+          t
+      else t
+    )
+    cookies_set_by_page
+    ricookies
+        
 
 
 (** The type of answers to send *)

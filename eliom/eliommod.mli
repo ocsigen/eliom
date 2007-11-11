@@ -95,7 +95,6 @@ type sess_info =
 
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
-     si_exn: exn list;
      si_config_file_charset: string}
 
 

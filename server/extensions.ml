@@ -34,6 +34,7 @@ exception Ocsigen_403
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
+exception Ocsigen_Looping_request
 
 exception Bad_config_tag_for_extension of string
 exception Error_in_config_file of string
@@ -88,6 +89,10 @@ type request_info =
      ri_accept_language: (string * float option) list Lazy.t; (** Accept-Language HTTP header. The float is the "quality" value, if any. *)
 
      ri_http_frame: Http_frame.t; (** The full http_frame *)
+     ri_extension_info: exn list; (** Use this to put anything you want, 
+                                      for example, information for subsequent
+                                      extensions 
+                                   *)
    }
 
    
@@ -98,15 +103,21 @@ type answer =
                             but may be for ex Ocsigen_403 (forbidden)
                             if you want another extension to try after a 403
                           *)
+(*VVV give the possibility to set cookies here??? *)
   | Ext_stop of exn      (** Page forbidden. Do not try next extension, but
                             try next site. If you do not want to try next site
                             send an Ext_found with an error code.
                             The exception is usally Ocsigen_403.
                           *)
-  | Ext_continue_with of request_info
-        (** Used to modify the request before giving it to next extension *)
-  | Ext_retry_with of request_info
-        (** Used to retry all the extensions with a new request_info *)
+(*VVV give the possibility to set cookies here??? *)
+  | Ext_continue_with of request_info * Http_frame.cookieset
+        (** Used to modify the request before giving it to next extension.
+            The extension returns the request_info (possibly modified)
+            and a set of cookies if it wants to set or cookies. *)
+  | Ext_retry_with of request_info * Http_frame.cookieset
+        (** Used to retry all the extensions with a new request_info.
+            The extension returns the request_info (possibly modified)
+            and a set of cookies if it wants to set or cookies. *)
 
 
 type extension =
@@ -273,14 +284,23 @@ let rec site_match site_path url =
   | a::l, aa::ll when a = aa -> site_match l ll 
   | _ -> None
 
-exception Serv_no_site_match
+
+let add_to_res_cookies cookies_to_set res =
+  if cookies_to_set = Http_frame.Cookies.empty then
+    res
+  else 
+    {res with 
+     Http_frame.res_cookies = 
+     Http_frame.add_cookies cookies_to_set res.Http_frame.res_cookies}
+
+
 let do_for_site_matching host port ri =
-  let rec do2 sites ri =
+  let rec do2 sites cookies_to_set ri =
     let string_of_host_option = function
       | None -> "<no host>:"^(string_of_int port)
       | Some h -> h^":"^(string_of_int port)
     in
-    let rec aux ri e = function
+    let rec aux ri e cookies_to_set = function
       | [] -> fail e
       | (h, path, charset, extlist)::l when host_match host port h ->
           (match site_match path ri.ri_full_path with
@@ -292,7 +312,7 @@ let do_for_site_matching host port ri =
                 "\" does not match host=\""^(string_of_host h)^"\" site=\"/"^
                 (Ocsimisc.string_of_url_path ri.ri_full_path)^
                 "\".");
-              aux ri e l
+              aux ri e cookies_to_set l
           | Some sub_path ->
               Messages.debug (fun () -> 
                 "---- site found: \""^(string_of_host_option host)^
@@ -311,38 +331,53 @@ let do_for_site_matching host port ri =
               in
               List.fold_left
                 (fun res ext -> 
-                  res >>= fun res ->
-                    match (res, ext) with
+                  res >>= fun ((res_ext, cookies_to_set) as res) ->
+                    match (res_ext, ext) with
                     | (Ext_found r, Page_gen _) -> return res
-                    | (Ext_found r, Filter f) -> f charset ri r
-                    | (Ext_not_found e, Page_gen f) -> f charset ri 
+                    | (Ext_found r, Filter f) -> 
+                        f charset ri (add_to_res_cookies cookies_to_set r)
+                        >>= fun r -> return (r, Http_frame.Cookies.empty)
+                    | (Ext_not_found e, Page_gen f) -> 
+                        f charset ri >>= fun r -> return (r, cookies_to_set)
                     | (Ext_not_found e, Filter _) -> return res
-                    | (Ext_continue_with ri, Page_gen f) -> f charset ri
+                    | (Ext_continue_with (ri, cook), Page_gen f) -> 
+                        f charset ri >>= fun r ->
+                        return (r, Http_frame.add_cookies cook cookies_to_set)
                     | (Ext_continue_with _, Filter _) -> return res
                     | (Ext_stop _, _) -> return res
                     | (Ext_retry_with _, _) -> return res
                 )
-                (return (Ext_not_found Ocsigen_404))
+                (return (Ext_not_found Ocsigen_404, cookies_to_set))
                 extlist
-                >>= fun res ->
-                  (match res with
-                  | Ext_found r -> return r
+                >>= fun (res_ext, cookies_to_set) ->
+                  (match res_ext with
+                  | Ext_found r -> 
+                      return (add_to_res_cookies cookies_to_set r)
                   | Ext_not_found e
-                  | Ext_stop e -> aux ri e l (* try next site *)
-                  | Ext_continue_with _ -> aux ri Ocsigen_404 l
-                  | Ext_retry_with ri -> do2 (get_sites ()) ri
+                  | Ext_stop e -> aux ri e cookies_to_set l (* try next site *)
+                  | Ext_continue_with (_, cook) -> 
+                      aux ri Ocsigen_404
+                        (Http_frame.add_cookies cook cookies_to_set) l
+                  | Ext_retry_with (ri2, cook) -> 
+                      (*VVV not enough to detect loops *)
+                      if ri != ri2 then
+                        do2 
+                          (get_sites ())
+                          (Http_frame.add_cookies cook cookies_to_set)
+                          ri2
                         (* retry all *)
-                        
+                      else
+                        fail Ocsigen_Looping_request
                   )
           )
-          | (h, p, _, _)::l ->
+      | (h, p, _, _)::l ->
           Messages.debug (fun () ->
             "---- host = "^
             (string_of_host_option host)^
             " does not match "^(string_of_host h));
-          aux ri e l
-    in aux ri Ocsigen_404 sites
-  in do2 (get_sites ()) ri
+          aux ri e cookies_to_set l
+    in aux ri Ocsigen_404 cookies_to_set sites
+  in do2 (get_sites ()) Http_frame.Cookies.empty ri
 (*****************************************************************************)
 
 
