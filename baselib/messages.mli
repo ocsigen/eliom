@@ -21,31 +21,31 @@
 
 
 (** Write a message in access.log *)
-val accesslog : string -> unit
+val accesslog : string -> unit Lwt.t
 
 (** Write a message in errors.log *)
-val errlog : string -> unit
+val errlog : string -> unit Lwt.t
 
 (** Write a message in warnings.log *)
-val warning : string -> unit
+val warning : string -> unit Lwt.t
 
-(** Write a message only in debugging mode (-V option) *)
+(** Write a message only in debugging mode (-V option) - Non cooperative *)
 val debug : (unit -> string) -> unit
 
-(** Write a message only in debugging mode (-V option) *)
+(** Write a message only in debugging mode (-V option) - Non cooperative *)
 val debug2 : string -> unit
 
-(** Same as [debug] without new line at the end *)
+(** Same as [debug] without new line at the end - Non cooperative *)
 val debug_noel : (unit -> string) -> unit
 
-(** Same as [debug] without new line at the end *)
+(** Same as [debug] without new line at the end - Non cooperative *)
 val debug_noel2 : string -> unit
 
 (** Write a message in the console (if not called in silent mode) *)
-val console : (unit -> string) -> unit
+val console : (unit -> string) -> unit Lwt.t
 
 (** Write a message in the console (if not called in silent mode) *)
-val console2 : string -> unit
+val console2 : string -> unit Lwt.t
 
 (** Use that function for all impossible cases in exception handlers
    ([try ... with ... | e -> unexpected_exception ...] or [Lwt.catch ...]).
@@ -53,14 +53,14 @@ val console2 : string -> unit
    Put something in the string to help locating the problem (usually the name
    of the function where is has been called).
  *)
-val unexpected_exception : exn -> string -> unit
+val unexpected_exception : exn -> string -> unit Lwt.t
 
 
 (**/**)
 
-val access : string * Unix.file_descr ref
-val warningfile : string * Unix.file_descr ref
-val error : string * Unix.file_descr ref
+val access : string * Lwt_chan.out_channel ref * Lwt_unix.file_descr ref
+val warningfile : string * Lwt_chan.out_channel ref * Lwt_unix.file_descr ref
+val error : string * Lwt_chan.out_channel ref * Lwt_unix.file_descr ref
 
 val open_files : unit -> unit
 val bip : int -> unit

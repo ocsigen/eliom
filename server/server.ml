@@ -80,6 +80,10 @@ type to_write =
 
 let counter = let c = ref (Random.int 1000000) in fun () -> c := !c + 1 ; !c
 
+let warn sockaddr s =
+  let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
+  Messages.warning ("While talking to " ^ ip ^ ": " ^ s)
+
 
 (* reading the request *)
 let get_request_infos meth url http_frame filenames sockaddr port =
@@ -332,7 +336,7 @@ let service
         Messages.errlog
           "Cannot read the request twice. You probably have \
            two incompatible extensions, or the order of the \
-           extensions in the config file is wrong.";
+           extensions in the config file is wrong." >>= fun () ->
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:500 ~sender:Http_com.default_sender () (* Internal error *)
     | Ocsigen_upload_forbidden ->
@@ -356,7 +360,8 @@ let service
           ~code:400 ~sender:Http_com.default_sender () (* Malformed URL *)
     | e ->
         Messages.warning
-          ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
+          ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)")
+        >>= fun () ->
         Messages.debug2 "-> Sending 500";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:500 ~sender:Http_com.default_sender ()
@@ -376,26 +381,20 @@ let service
              (fun () -> Ocsistream.consume f)
              (fun e ->
 
-                (*XXX duplicated!*)
-                let warn s =
-                  let ip =
-                    Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
-                  Messages.warning ("While talking to " ^ ip ^ ": " ^ s)
-                in
-                begin match e with
+                (match e with
                   Http_com.Lost_connection _ ->
-                    warn "connection abrutedly closed by peer \
-                          while reading contents"
+                    warn sockaddr "connection abrutedly closed by peer \
+                                   while reading contents"
                 | Http_com.Timeout ->
-                    warn "timeout while reading contents"
+                    warn sockaddr "timeout while reading contents"
                 | Http_com.Aborted ->
-                    warn "reading thread aborted"
+                    warn sockaddr "reading thread aborted"
                 | Http_error.Http_exception (code, mesg) ->
-                    warn (Http_error.string_of_http_exception e)
+                    warn sockaddr (Http_error.string_of_http_exception e)
                 | _ ->
                     Messages.unexpected_exception
                       e "Server.finish_request"
-                end;
+                ) >>= fun () ->
                 Http_com.abort receiver;
                 (* We unlock the receiver in order to resume the
                    reading loop.  As the connection has been aborted,
@@ -430,12 +429,13 @@ let service
         (fun ri ->
            (* *** Now we generate the page and send it *)
            (* Log *)
-           accesslog
-             (Format.sprintf "connection%s from %s (%s) : %s"
-                (match ri.ri_host with
-                   None   -> ""
-                 | Some h -> " for " ^ h)
-                ri.ri_ip ri.ri_user_agent ri.ri_url_string);
+           ignore 
+            (accesslog
+               (Format.sprintf "connection%s from %s (%s) : %s"
+                  (match ri.ri_host with
+                    None   -> ""
+                  | Some h -> " for " ^ h)
+                  ri.ri_ip ri.ri_user_agent ri.ri_url_string));
 
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind
@@ -542,18 +542,19 @@ let service
       (fun () ->
          (* We remove all the files created by the request
             (files sent by the client) *)
-         if !filenames <> [] then
-           Messages.debug2 "** Removing files";
-         List.iter
-           (fun a ->
-              try
-                Unix.unlink a
-              with Unix.Unix_error _ as e ->
-                Messages.warning
-                  (Format.sprintf "Error while removing file %s: %s"
-                                   a (string_of_exn e)))
-           !filenames;
-         Lwt.return ())
+        if !filenames <> [] then
+          Messages.debug2 "** Removing files";
+        List.fold_left
+          (fun thr a ->
+            thr >>= fun () ->
+            try
+              Unix.unlink a; return ()
+            with Unix.Unix_error _ as e ->
+              Messages.warning
+                (Format.sprintf "Error while removing file %s: %s"
+                   a (string_of_exn e)))
+          (return ())
+          !filenames)
   end
 
 let linger in_ch receiver =
@@ -597,31 +598,26 @@ let linger in_ch receiver =
        Lwt_timeout.stop short_timeout;
        Lwt.return ())
     (fun e ->
-       Messages.unexpected_exception e "Server.linger";
-       Lwt.return ())
+       Messages.unexpected_exception e "Server.linger")
 
 let try_bind' f g h = Lwt.try_bind f h g
 
 let handle_connection port in_ch sockaddr =
   let receiver = Http_com.create_receiver Query in_ch in
-  let warn s =
-    let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
-    Messages.warning ("While talking to " ^ ip ^ ": " ^ s)
-  in
 
   let handle_write_errors e =
     begin match e with
       Lost_connection e' ->
-        warn ("connection abrutedly closed by peer (" ^ string_of_exn e' ^ ")")
+        warn sockaddr ("connection abrutedly closed by peer (" ^ string_of_exn e' ^ ")")
     | Http_com.Timeout ->
-        warn "timeout"
+        warn sockaddr "timeout"
     | Http_com.Aborted ->
-        warn "writing thread aborted"
+        warn sockaddr "writing thread aborted"
     | Ocsistream.Interrupted e' ->
-        warn ("interrupted content stream (" ^ string_of_exn e' ^ ")")
+        warn sockaddr ("interrupted content stream (" ^ string_of_exn e' ^ ")")
     | _ ->
         Messages.unexpected_exception e "Server.handle_write_errors"
-    end;
+    end >>= fun () ->
     Http_com.abort receiver;
     Lwt.fail Http_com.Aborted
   in
@@ -630,26 +626,26 @@ let handle_connection port in_ch sockaddr =
     begin match e with
       Http_com.Connection_closed ->
         (* This is the clean way to terminate the connection *)
-        warn "connection closed by peer";
+        warn sockaddr "connection closed by peer" >>= fun () ->
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Keepalive_timeout ->
-        warn "keepalive timeout";
+        warn sockaddr "keepalive timeout" >>= fun () ->
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Lost_connection _ ->
-        warn "connection abrutedly closed by peer";
+        warn sockaddr "connection abrutedly closed by peer" >>= fun () ->
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Timeout ->
-        warn "timeout";
+        warn sockaddr "timeout" >>= fun () ->
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Aborted ->
-        warn "reading thread aborted";
+        warn sockaddr "reading thread aborted" >>= fun () ->
         Http_com.wait_all_senders receiver
     | Http_error.Http_exception (code, mesg) ->
-        warn (Http_error.string_of_http_exception e);
+        warn sockaddr (Http_error.string_of_http_exception e) >>= fun () ->
         Http_com.start_processing receiver (fun slot ->
           (*XXX We should use the right information for clientproto
             and head... *)
@@ -661,7 +657,7 @@ let handle_connection port in_ch sockaddr =
             ~sender:Http_com.default_sender ());
         linger in_ch receiver
     | _ ->
-        Messages.unexpected_exception e "Server.handle_read_errors";
+        Messages.unexpected_exception e "Server.handle_read_errors" >>= fun () ->
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     end
@@ -702,7 +698,8 @@ let rec wait_connection use_ssl port socket =
   try_bind'
     (fun () -> Lwt_unix.accept socket)
     (fun e ->
-       Messages.debug (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
+       Messages.debug 
+        (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
        wait_connection use_ssl port socket)
     (fun (s, sockaddr) ->
        Messages.debug2 "\n__________________NEW CONNECTION__________________________";
@@ -712,8 +709,10 @@ let rec wait_connection use_ssl port socket =
        if relaunch_at_once then
          ignore (wait_connection use_ssl port socket)
        else
-         warning (Format.sprintf "Max simultaneous connections (%d) reached."
-                    (get_max_number_of_connections ()));
+         ignore 
+           (Messages.warning
+              (Format.sprintf "Max simultaneous connections (%d) reached."
+                 (get_max_number_of_connections ())));
        Lwt.catch
          (fun () ->
             Lwt_unix.set_close_on_exec s;
@@ -726,20 +725,26 @@ let rec wait_connection use_ssl port socket =
             handle_connection port in_ch sockaddr)
          (fun e ->
             Messages.unexpected_exception e
-              "Server.wait_connection (handle connection)";
-            Lwt.return ()) >>= fun () ->
+              "Server.wait_connection (handle connection)") >>= fun () ->
        Messages.debug2 "** CLOSE";
        begin try
-         Lwt_unix.close s
+         Lwt_unix.close s;
+         Lwt.return ()
        with Unix.Unix_error _ as e ->
          Messages.unexpected_exception e "Server.wait_connection (close)"
-       end;
+       end >>= fun () ->
        decr_connected ();
-       if not relaunch_at_once then begin
-         debug2 "Ok releasing one connection";
-         ignore (wait_connection use_ssl port socket)
-       end;
+       if not relaunch_at_once then
+         ignore begin
+           debug2 "Ok releasing one connection";
+           wait_connection use_ssl port socket
+         end;
        Lwt.return ())
+
+
+
+let stop m n =
+  Lwt_unix.run (errlog m >>= fun () -> exit 7)
 
 (** Thread waiting for events on a the listening port *)
 let listen use_ssl port wait_end_init =
@@ -753,15 +758,13 @@ let listen use_ssl port wait_end_init =
       socket
     with
     | Unix.Unix_error (Unix.EACCES, _, _) ->
-        errlog (Format.sprintf
-                  "Fatal - You are not allowed to use port %d." port);
-        exit 7
+        stop
+          (Format.sprintf "Fatal - You are not allowed to use port %d." port)
+          7
     | Unix.Unix_error (Unix.EADDRINUSE, _, _) ->
-        errlog (Format.sprintf "Fatal - The port %d is already in use." port);
-        exit 8
+        stop (Format.sprintf "Fatal - The port %d is already in use." port) 8
     | exn ->
-        errlog ("Fatal - Uncaught exception: " ^ string_of_exn exn);
-        exit 100
+        stop ("Fatal - Uncaught exception: " ^ string_of_exn exn) 100
   in
   wait_end_init >>= fun () ->
   wait_connection use_ssl port listening_socket
@@ -801,12 +804,12 @@ let errmsg = function
 (* reloading the cmo *)
 let reload () =
 
-  (* That function cannot be interrupted *)
-  warning "Reloading config file";
+  (* That function cannot be interrupted??? *)
+  warning "Reloading config file" >>= fun () ->
 
   (try
     match parse_config () with
-    | [] -> ()
+    | [] -> Lwt.return ()
     | s::_ ->
         begin
           Extensions.start_initialisation ();
@@ -814,10 +817,12 @@ let reload () =
           parse_server true s;
           
           Extensions.end_initialisation ();
+
+          Lwt.return () 
         end
   with e -> 
     Extensions.end_initialisation ();
-    errlog (fst (errmsg e)));
+    errlog (fst (errmsg e))) >>= fun () ->
   
   warning "Config file reloaded"
     
@@ -834,7 +839,7 @@ let _ = try
   let number_of_servers = List.length config_servers in
 
   if number_of_servers > 1
-  then Messages.warning "Multiple servers not supported anymore";
+  then ignore (Messages.warning "Multiple servers not supported anymore");
 
   let ask_for_passwd sslports _ =
     print_string "Please enter the password for the HTTPS server listening \
@@ -861,7 +866,7 @@ let _ = try
       raise exn
   in
 
-  let run (user,group) (_, ports, sslports) (minthreads, maxthreads) s =
+  let run (user, group) (_, ports, sslports) (minthreads, maxthreads) s =
 
     Messages.open_files ();
 
@@ -875,41 +880,47 @@ let _ = try
         (fun i ->
           ignore (listen true i wait_end_init)) sslports;
       
-      let gid = match group with
-      | None -> Unix.getgid ()
+      (match group with
+      | None -> return (Unix.getgid ())
       | Some group -> (try
-          (Unix.getgrnam group).Unix.gr_gid
-      with e -> errlog ("Error: Wrong group"); raise e)
-      in
-      let uid = match user with
-      | None -> Unix.getuid ()
+          return ((Unix.getgrnam group).Unix.gr_gid)
+      with e -> errlog ("Error: Wrong group") >>= fun () -> fail e))
+      >>= fun gid ->
+
+      (match user with
+      | None -> return (Unix.getuid ())
       | Some user -> (try
-        (Unix.getpwnam user).Unix.pw_uid
-      with e -> errlog ("Error: Wrong user"); raise e) 
-      in
+        return ((Unix.getpwnam user).Unix.pw_uid)
+      with e -> (errlog ("Error: Wrong user") >>= fun () -> fail e))) 
+      >>= fun uid ->
 
       (* A pipe to communicate with the server *)
       let commandpipe = get_command_pipe () in 
       (try
-        ignore (Unix.stat commandpipe)
+        ignore (Unix.stat commandpipe);
+        return ()
       with _ -> 
         (try
           let umask = Unix.umask 0 in
           Unix.mkfifo commandpipe 0o660;
           Unix.chown commandpipe uid gid;
-          ignore (Unix.umask umask)
+          ignore (Unix.umask umask);
+          return ()
         with e -> 
           Messages.errlog 
-            ("Cannot create the command pipe: "^(string_of_exn e))));
+            ("Cannot create the command pipe: "^(string_of_exn e))))
+      >>= fun () ->
 
       (* I change the user for the process *)
       (try
         Unix.setgid gid;
         Unix.setuid uid;
-      with e -> errlog ("Error: Wrong user or group"); raise e);
+        return ()
+      with e -> errlog ("Error: Wrong user or group") >>= fun () -> fail e)
+      >>= fun () ->
 
-      set_user user;
-      set_group group;
+      Ocsiconfig.set_user user;
+      Ocsiconfig.set_group group;
             
       (* Je suis fou :
          let rec f () = 
@@ -962,20 +973,21 @@ let _ = try
           let umask = Unix.umask 0 in
           Unix.mkfifo commandpipe 0o660;
           ignore (Unix.umask umask);
-          Messages.warning "Command pipe created");
+          ignore (Messages.warning "Command pipe created"));
 
       let pipe = Lwt_unix.in_channel_of_descr 
           (Lwt_unix.of_unix_file_descr
              (Unix.openfile commandpipe 
                 [Unix.O_RDWR; Unix.O_NONBLOCK; Unix.O_APPEND] 0o660)) in
+
       let rec f () = 
         Lwt_chan.input_line pipe >>=
-        (fun _ -> reload (); f ())
+        (fun _ -> reload () >>= f)
       in ignore (f ());
 
       wakeup wait_end_init ();
       
-      warning "Ocsigen has been launched (initialisations ok)";
+      warning "Ocsigen has been launched (initialisations ok)" >>= fun () ->
       
       wait ()
       )
@@ -1019,8 +1031,9 @@ let _ = try
         if pid = 0
         then run user_info sslinfo threadinfo h
         else begin
-          Messages.console
-            (fun () -> "Process "^(string_of_int pid)^" detached");
+          ignore 
+            (Messages.console
+               (fun () -> "Process "^(string_of_int pid)^" detached"));
           write_pid pid;
         end
     | _ -> () (* Multiple servers not supported any more *)
@@ -1039,5 +1052,4 @@ let _ = try
 
 with e ->
   let msg, errno = errmsg e in
-  errlog msg;
-  exit errno
+  stop msg errno

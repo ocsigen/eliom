@@ -308,3 +308,10 @@ let parse_ip_netmask s =
       in
       (parse_ip s1, mask)
   with Not_found -> (parse_ip s, 32)
+
+
+(* *)
+let fst3 (a, _, _) = a
+let snd3 (_, a, _) = a
+let thd3 (_, _, a) = a
+

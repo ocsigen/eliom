@@ -114,8 +114,12 @@ let rec parser_config =
     | (Element ("server", [], nouveau))::ll ->
         (match ll with
         | [] -> ()
-        | _ -> Messages.warning "At most one <server> tag possible in config file. Ignoring trailing data.");
-        parse_servers (n@[nouveau]) [] (* ll *)  (*  Multiple server not supported any more *)
+        | _ -> 
+            ignore (Messages.warning
+                      "At most one <server> tag possible in config file. \
+                      Ignoring trailing data."));
+        parse_servers (n@[nouveau]) [] (* ll *)  
+        (*  Multiple server not supported any more *)
         (* nouveau at the end *)
     | _ -> raise (Config_file_error ("syntax error inside <ocsigen>"))
   in function 

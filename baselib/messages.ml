@@ -17,11 +17,34 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+
 (** Writing messages in the logs*)
 
-let access = "access.log", ref Unix.stdout
-let warningfile = "warnings.log", ref Unix.stderr
-let error = "errors.log", ref Unix.stderr
+let (>>=) = Lwt.(>>=)
+
+let lwtstderr = Lwt_unix.of_unix_file_descr Unix.stderr
+
+let lwtstderrchan = Lwt_unix.out_channel_of_descr lwtstderr
+
+let lwtstdout = Lwt_unix.of_unix_file_descr Unix.stdout
+
+let lwtstdoutchan = Lwt_unix.out_channel_of_descr lwtstdout
+
+let access = "access.log", ref lwtstdoutchan, ref lwtstdout
+let warningfile = "warnings.log", ref lwtstderrchan, ref lwtstderr
+let error = "errors.log", ref lwtstderrchan, ref lwtstderr
+
+let prerr_endline s = 
+  Lwt_chan.output_string lwtstderrchan s >>= fun () ->
+  Lwt_chan.output_string lwtstderrchan "\n"
+
+let prerr_string = Lwt_chan.output_string lwtstderrchan
+
+let print_endline s = 
+  Lwt_chan.output_string lwtstdoutchan s >>= fun () ->
+  Lwt_chan.output_string lwtstdoutchan "\n"
+
+let print_string = Lwt_chan.output_string lwtstdoutchan
 
 (* Several processes will access the same files, but if I am right,
    it is not a problem when opening with O_APPEND
@@ -36,17 +59,23 @@ let open_files =
   fun () ->
     if !opened
     then begin
-      Unix.close !(snd access);
-      Unix.close !(snd warningfile);
-      Unix.close !(snd error)
+      Lwt_unix.close !(Ocsimisc.thd3 access);
+      Lwt_unix.close !(Ocsimisc.thd3 warningfile);
+      Lwt_unix.close !(Ocsimisc.thd3 error)
     end;
     opened := true;
-    snd access := openlog (fst access);
-    snd warningfile := openlog (fst warningfile);
-    snd error := openlog (fst error);
-    Unix.set_close_on_exec !(snd access);
-    Unix.set_close_on_exec !(snd warningfile);
-    Unix.set_close_on_exec !(snd error)
+    let acc = Lwt_unix.of_unix_file_descr (openlog (Ocsimisc.fst3 access)) in
+    let war = Lwt_unix.of_unix_file_descr (openlog (Ocsimisc.fst3 warningfile)) in
+    let err = Lwt_unix.of_unix_file_descr (openlog (Ocsimisc.fst3 error)) in
+    Ocsimisc.snd3 access := Lwt_unix.out_channel_of_descr acc;
+    Ocsimisc.snd3 warningfile := Lwt_unix.out_channel_of_descr war;
+    Ocsimisc.snd3 error := Lwt_unix.out_channel_of_descr err;
+    Ocsimisc.thd3 access := acc;
+    Ocsimisc.thd3 warningfile := war;
+    Ocsimisc.thd3 error := err;
+    Lwt_unix.set_close_on_exec acc;
+    Lwt_unix.set_close_on_exec war;
+    Lwt_unix.set_close_on_exec err
         
 let log_aux file console_print s =
   let date = 
@@ -61,8 +90,11 @@ let log_aux file console_print s =
       t.Unix.tm_sec 
   in
   let s = date^" - "^s^"\n" in
-  if console_print then prerr_endline ("["^(fst file)^"] "^s);
-  ignore (Unix.write !(snd file) s 0 (String.length s))
+  (if console_print then 
+    prerr_endline ("["^(Ocsimisc.fst3 file)^"] "^s)
+  else Lwt.return ()) >>= fun () ->
+  Lwt_chan.output_string !(Ocsimisc.snd3 file) s >>= fun _ -> 
+  Lwt_chan.output_string !(Ocsimisc.snd3 file) "\n"
       
 let accesslog s =
   log_aux access (Ocsiconfig.get_verbose ()) s
@@ -86,31 +118,31 @@ let lwtlog =
 
 let debug_noel =
   if Ocsiconfig.get_veryverbose () then
-    (fun s -> prerr_string (s ()))
+    (fun s -> Pervasives.prerr_string (s ()))
   else
     (fun s -> ())
 
 let debug_noel2 =
   if Ocsiconfig.get_veryverbose () then
-    prerr_string
+    Pervasives.prerr_string
   else
     (fun s -> ())
 
 let debug =
   if Ocsiconfig.get_veryverbose () then
-    (fun s -> prerr_endline (s ()))
+    (fun s -> Pervasives.prerr_endline (s ()))
   else 
     (fun s -> ())
 
 let debug2 =
   if Ocsiconfig.get_veryverbose () then
-    prerr_endline
+    Pervasives.prerr_endline
   else 
     (fun s -> ())
 
 let bip = 
   if Ocsiconfig.get_veryverbose () then
-    (fun i -> prerr_endline ("bip"^(string_of_int i)))
+    (fun i -> Pervasives.prerr_endline ("bip"^(string_of_int i)))
   else
     (fun i -> ())
 
@@ -118,13 +150,13 @@ let console =
   if (not (Ocsiconfig.get_silent ())) then
     (fun s -> print_endline (s ()))
   else 
-    (fun s -> ())
+    (fun s -> Lwt.return ())
 
 let console2 =
   if (not (Ocsiconfig.get_silent ())) then
     print_endline
   else 
-    (fun s -> ())
+    (fun s -> Lwt.return ())
 
 let unexpected_exception e s =
   warning ("Unexpected exception in "^s^": "^Ocsimisc.string_of_exn e)

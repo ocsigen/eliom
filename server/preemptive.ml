@@ -76,9 +76,10 @@ let free, nbthreadsqueued =
     match !pool.(first).worker with
       None -> 
         let last = (min (first + (max !minthreads 10)) !maxthreads) - 1 in
-        Messages.debug 
-          (fun () -> 
-            "Creating "^(string_of_int (last - first + 1))^" threads.");
+        ignore
+          (Messages.debug 
+             (fun () -> 
+               "Creating "^(string_of_int (last - first + 1))^" threads."));
         aux last first
     | _ -> ()
   in
@@ -152,7 +153,9 @@ let dispatch () =
            return ()))
 
        (fun e ->
- Messages.errlog ("Internal error in preemptive.ml (read failed on the pipe) "^ Ocsimisc.string_of_exn e ^" - Please report the bug"); return ())
+         Messages.errlog
+           ("Internal error in preemptive.ml (read failed on the pipe) "^ 
+            Ocsimisc.string_of_exn e ^" - Please report the bug"))
     ) >>= (fun () -> aux ())
   in aux ()
 

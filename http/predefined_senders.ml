@@ -169,7 +169,8 @@ module Streamlist_content =
               (fun e -> exnhandler e l)
       and exnhandler e l =
         Messages.warning
-          ("Error while reading stream list: " ^ Ocsimisc.string_of_exn e);
+          ("Error while reading stream list: " ^ Ocsimisc.string_of_exn e)
+        >>= fun () ->
         finalize () >>= fun () ->
         next_stream l
       in
@@ -225,6 +226,7 @@ let parse_mime_types filename =
 
 let rec affiche_mime () =
   Hashtbl.iter (fun f s -> Messages.debug (fun () -> f^" "^s)) mimeht
+
     
 (* send a file in an HTTP frame*)
 let content_type_from_file_name =
@@ -255,14 +257,14 @@ module File_content =
       Messages.debug2 "start reading file (file opened)";
       let buf = String.create buffer_size in
       let rec read_aux () =
-          let lu = Unix.read fd buf 0 buffer_size in (
-            if lu = 0 then  
-              Ocsistream.empty None
-            else begin 
-              if lu = buffer_size
-              then Ocsistream.cont buf read_aux
-              else Ocsistream.cont (String.sub buf 0 lu) read_aux
-            end)
+          Lwt_unix.read fd buf 0 buffer_size >>= fun lu ->
+          if lu = 0 then  
+            Ocsistream.empty None
+          else begin 
+            if lu = buffer_size
+            then Ocsistream.cont buf read_aux
+            else Ocsistream.cont (String.sub buf 0 lu) read_aux
+          end
       in read_aux
 
     let get_etag_aux st =
@@ -275,7 +277,10 @@ module File_content =
 
     let result_of_content c  =
       (* open the file *)
-      let fd = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
+      let fd = 
+        Lwt_unix.of_unix_file_descr 
+          (Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
+      in
       let st = Unix.LargeFile.stat c in 
       let etag = get_etag_aux st in
       let stream = read_file fd in
@@ -291,7 +296,7 @@ module File_content =
            ~finalize:
            (fun () ->
              Messages.debug2 "closing file";
-             Unix.close fd;
+             Lwt_unix.close fd;
              return ())
            stream
        }

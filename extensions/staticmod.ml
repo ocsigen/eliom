@@ -86,7 +86,8 @@ let find_static_page dir path =
                   raise Ocsigen_Is_a_directory)))
         else (filename, stat)
       in
-      Messages.debug (fun () -> "--Staticmod: Looking for \""^filename^"\".");
+      Messages.debug
+        (fun () -> "--Staticmod: Looking for \""^filename^"\".");
       if (stat.Unix.LargeFile.st_kind = Unix.S_REG)
       then begin 
         Unix.access filename [Unix.R_OK];

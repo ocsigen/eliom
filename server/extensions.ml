@@ -195,9 +195,10 @@ let parse_site host =
           with
           | Bad_config_tag_for_extension t -> 
               (* raise Config_file_error *)
-              Messages.warning
-                ("Unexpected tag <"^t^"> inside <site dir=\""^
-	         (Ocsimisc.string_of_url_path path)^"\"> (ignored)");
+              ignore
+                (Messages.warning
+                   ("Unexpected tag <"^t^"> inside <site dir=\""^
+	            (Ocsimisc.string_of_url_path path)^"\"> (ignored)"));
               aux ll
     in aux
     

@@ -46,7 +46,7 @@ DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lw
 
 
 INSTALL = install
-TARGETSBYTE = xmlp4.byte baselib.byte lwt.byte http.byte server.byte extensions.byte eliom.byte examples.byte
+TARGETSBYTE = lwt.byte xmlp4.byte baselib.byte http.byte server.byte extensions.byte eliom.byte examples.byte
 
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	eliom/eliom.cma \
@@ -178,7 +178,7 @@ doc:
 
 doc/index.html: doc
 
-$(OCSIGENNAME).conf.local:
+$(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 	cat files/ocsigen.conf \
 	| sed s%\<port\>80\</port\>%\<port\>8080\</port\>%g \
 	| sed s%_LOGDIR_%$(SRC)/var/log%g \

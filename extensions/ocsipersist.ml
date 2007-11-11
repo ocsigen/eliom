@@ -72,16 +72,17 @@ let rec bind_safely stmt = function
       | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
 
 let close_safely db = 
- if not (db_close db) then Messages.errlog "Couldn't close database"
+ if not (db_close db) then 
+   ignore (Messages.errlog "Couldn't close database")
 
-let m = Mutex.create()
+let m = Mutex.create ()
 
 let exec_safely f = 
   let aux () = 
    let db = (Mutex.lock m ;db_open db_file) in 
     (try
       let r = f db in
-      close_safely db ;
+      close_safely db;
       Mutex.unlock m ;
       r
     with e -> (

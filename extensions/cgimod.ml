@@ -344,7 +344,9 @@ let recupere_cgi head re filename ri =
            | Unix.Unix_error (Unix.EPIPE, _, _) -> 
                Lwt_unix.close post_in; 
                return ()
-           | e -> Messages.unexpected_exception e "Cgimod.recupere_cgi (1)";
+           | e -> 
+               Messages.unexpected_exception e "Cgimod.recupere_cgi (1)"
+               >>= fun () ->
                Lwt_unix.close post_in; 
                return ()
          ));
@@ -354,14 +356,15 @@ let recupere_cgi head re filename ri =
     let err_channel = Lwt_unix.in_channel_of_descr err_out in
     let rec get_errors () =
       Lwt_chan.input_line err_channel >>= fun err ->
-      Messages.warning ("CGI says: "^err);
+      Messages.warning ("CGI says: "^err) >>= fun () ->
       get_errors ()
     in ignore 
       (catch
          get_errors 
          (function 
            | End_of_file -> Lwt_unix.close err_out; return ()
-           | e -> Messages.unexpected_exception e "Cgimod.recupere_cgi (2)";
+           | e -> Messages.unexpected_exception e "Cgimod.recupere_cgi (2)"
+               >>= fun () ->
                Lwt_unix.close err_out; 
                return ()));
     (* This threads terminates, as you can see by doing:
@@ -379,7 +382,7 @@ let recupere_cgi head re filename ri =
       Lwt_timeout.stop timeout; 
       (* All "read" will return 0, and "write" will raise "Broken Pipe" *)
       (match status with
-      | Unix.WEXITED 0 -> ()
+      | Unix.WEXITED 0 -> return ()
       | Unix.WEXITED i -> 
           Messages.warning ("CGI exited with code "^(string_of_int i))
       | Unix.WSIGNALED i -> 
@@ -387,8 +390,7 @@ let recupere_cgi head re filename ri =
       | Unix.WSTOPPED i -> 
           (* Cannot occur without Unix.WUNTRACED wait_flag *)
           assert false
-      );
-      return ());
+      ));
 
     (* A thread getting the result of the CGI script *)
     let receiver =
@@ -519,7 +521,7 @@ let rec set_env=function
   | [] -> []
   | (Element("setenv", [("var",vr);("val",vl)], []))::l ->
      if List.mem vr environment
-     then (Messages.debug (fun () -> "--Cgimod: no set variable "^vr); 
+     then (Messages.debug (fun () -> "--Cgimod: variable no set "^vr);
            set_env l)
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
