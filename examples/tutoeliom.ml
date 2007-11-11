@@ -1348,7 +1348,7 @@ let close = register_new_service
     ~path:["disconnect"]
     ~get_params:unit
     (fun sp () () -> 
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
+      Eliomsessions.close_session (* zap * *) ~session_name (* * zap *) ~sp () >>=
       (fun () ->
         return
           (html
@@ -1379,7 +1379,7 @@ let _ = register
 let _ = register
     sessdata_with_post_params
     (fun sp _ login ->
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
+      Eliomsessions.close_session (* zap * *) ~session_name (* * zap *) ~sp () >>=
       (fun () ->
         Eliomsessions.set_volatile_session_data my_table sp login;
         return
@@ -1879,13 +1879,13 @@ let rec page_for_shopping_basket sp shopping_basket =
       ~post_params:unit
       ()
   in
-    register_for_session (*zap* *) ~session_name (* *zap*)
+    register_for_session (* zap * *) ~session_name (* * zap *)
       ~sp
       ~service:coshop_with_post_params
       (fun sp () article -> 
                  page_for_shopping_basket 
                    sp (article::shopping_basket));
-    register_for_session (*zap* *) ~session_name (* *zap*)
+    register_for_session (* zap * *) ~session_name (* * zap *)
       ~sp
       ~service:copay
       (fun sp () () -> 
@@ -2608,7 +2608,7 @@ let persist_session_connect_action =
     ()
 
 (* disconnect_action, login_box and disconnect_box have been
-   defined in the section about actions *)(* *zap*)
+   defined in the section about actions *)(*zap* *)
 
 (* -------------------------------------------------------- *)
 (* Actually, no. It's a lie because we don't use the 
@@ -2619,7 +2619,7 @@ let disconnect_action =
   Eliompredefmod.Actions.register_new_post_coservice'
     ~post_params:Eliomparameters.unit 
     (fun sp () () -> 
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+      Eliomsessions.close_session (* zap * *) ~session_name (* * zap *) ~sp () >>= fun () -> 
       return [])
 
 let disconnect_box sp s = 
@@ -2652,7 +2652,7 @@ let login_box sp session_expired action =
      ])
     ()
 
-(*zap* *)    
+(* *zap*)
 
 (* ----------------------------------------------------------- *)
 (* Handler for "persist_session_example" service (main page):  *)
@@ -2820,7 +2820,7 @@ let login_box sp session_expired action =
 (* Handler for the "action_example2" service (main page):   *)
 
 let action_example2_handler sp () () = 
-  let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  let sessdat = Eliomsessions.get_volatile_session_data (* zap * *) ~session_name (* * zap *) ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
