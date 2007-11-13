@@ -98,7 +98,7 @@ let gen charset ri =
    For example:
    <site dir="">
      <extensiontemplate module=".../mymodule.cmo" />
-   </extension>
+   </site>
 
    Each extension will set its own configuration options, for example:
    <site dir="">

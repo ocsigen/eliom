@@ -169,8 +169,7 @@ module Streamlist_content =
               (fun e -> exnhandler e l)
       and exnhandler e l =
         Messages.warning
-          ("Error while reading stream list: " ^ Ocsimisc.string_of_exn e)
-        >>= fun () ->
+          ("Error while reading stream list: " ^ Ocsimisc.string_of_exn e);
         finalize () >>= fun () ->
         next_stream l
       in

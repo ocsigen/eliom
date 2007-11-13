@@ -345,8 +345,7 @@ let recupere_cgi head re filename ri =
                Lwt_unix.close post_in; 
                return ()
            | e -> 
-               Messages.unexpected_exception e "Cgimod.recupere_cgi (1)"
-               >>= fun () ->
+               Messages.unexpected_exception e "Cgimod.recupere_cgi (1)";
                Lwt_unix.close post_in; 
                return ()
          ));
@@ -356,15 +355,14 @@ let recupere_cgi head re filename ri =
     let err_channel = Lwt_unix.in_channel_of_descr err_out in
     let rec get_errors () =
       Lwt_chan.input_line err_channel >>= fun err ->
-      Messages.warning ("CGI says: "^err) >>= fun () ->
+      Messages.warning ("CGI says: "^err);
       get_errors ()
     in ignore 
       (catch
          get_errors 
          (function 
            | End_of_file -> Lwt_unix.close err_out; return ()
-           | e -> Messages.unexpected_exception e "Cgimod.recupere_cgi (2)"
-               >>= fun () ->
+           | e -> Messages.unexpected_exception e "Cgimod.recupere_cgi (2)";
                Lwt_unix.close err_out; 
                return ()));
     (* This threads terminates, as you can see by doing:
@@ -382,7 +380,7 @@ let recupere_cgi head re filename ri =
       Lwt_timeout.stop timeout; 
       (* All "read" will return 0, and "write" will raise "Broken Pipe" *)
       (match status with
-      | Unix.WEXITED 0 -> return ()
+      | Unix.WEXITED 0 -> ()
       | Unix.WEXITED i -> 
           Messages.warning ("CGI exited with code "^(string_of_int i))
       | Unix.WSIGNALED i -> 
@@ -390,7 +388,8 @@ let recupere_cgi head re filename ri =
       | Unix.WSTOPPED i -> 
           (* Cannot occur without Unix.WUNTRACED wait_flag *)
           assert false
-      ));
+      );
+      Lwt.return ());
 
     (* A thread getting the result of the CGI script *)
     let receiver =

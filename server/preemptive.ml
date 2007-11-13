@@ -155,7 +155,8 @@ let dispatch () =
        (fun e ->
          Messages.errlog
            ("Internal error in preemptive.ml (read failed on the pipe) "^ 
-            Ocsimisc.string_of_exn e ^" - Please report the bug"))
+            Ocsimisc.string_of_exn e ^" - Please report the bug");
+         return ())
     ) >>= (fun () -> aux ())
   in aux ()
 

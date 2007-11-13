@@ -76,14 +76,14 @@ let rec try_connect sname =
       return socket)
     (fun _ ->
       Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^
-                        " on directory "^directory^".") >>= fun () ->
+                        " on directory "^directory^".");
       let param = [|ocsidbm; directory|] in
       let child () = 
-        let err = Lwt_unix.unix_file_descr !(Ocsimisc.thd3 Messages.error) in
+        let err = !(Ocsimisc.thd3 Messages.error) in
         Unix.dup2 err Unix.stderr; 
-        Lwt_unix.close !(Ocsimisc.thd3 Messages.error);
-        Lwt_unix.close !(Ocsimisc.thd3 Messages.access);
-        Lwt_unix.close !(Ocsimisc.thd3 Messages.warningfile);
+        Unix.close !(Ocsimisc.thd3 Messages.error);
+        Unix.close !(Ocsimisc.thd3 Messages.access);
+        Unix.close !(Ocsimisc.thd3 Messages.warningfile);
         let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
         Unix.dup2 devnull Unix.stdout;
         Unix.close devnull;
@@ -121,8 +121,7 @@ let rec get_indescr i =
                                 (Unix.error_message a)^" in "^b^"("^c^")"
                             | _ -> Printexc.to_string e)^
                             ". Have a look at the logs to see if there is an \
-                            error message from the Ocsidbm process.") 
-         >>= fun () ->
+                            error message from the Ocsidbm process.");
          fail e
        end
        else (Lwt_unix.sleep 2.1) >>= (fun () -> get_indescr (i-1))))

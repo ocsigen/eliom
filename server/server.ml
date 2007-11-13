@@ -336,7 +336,7 @@ let service
         Messages.errlog
           "Cannot read the request twice. You probably have \
            two incompatible extensions, or the order of the \
-           extensions in the config file is wrong." >>= fun () ->
+           extensions in the config file is wrong.";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:500 ~sender:Http_com.default_sender () (* Internal error *)
     | Ocsigen_upload_forbidden ->
@@ -360,8 +360,7 @@ let service
           ~code:400 ~sender:Http_com.default_sender () (* Malformed URL *)
     | e ->
         Messages.warning
-          ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)")
-        >>= fun () ->
+          ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
         Messages.debug2 "-> Sending 500";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:500 ~sender:Http_com.default_sender ()
@@ -394,7 +393,7 @@ let service
                 | _ ->
                     Messages.unexpected_exception
                       e "Server.finish_request"
-                ) >>= fun () ->
+                );
                 Http_com.abort receiver;
                 (* We unlock the receiver in order to resume the
                    reading loop.  As the connection has been aborted,
@@ -429,13 +428,12 @@ let service
         (fun ri ->
            (* *** Now we generate the page and send it *)
            (* Log *)
-           ignore 
-            (accesslog
-               (Format.sprintf "connection%s from %s (%s) : %s"
-                  (match ri.ri_host with
-                    None   -> ""
-                  | Some h -> " for " ^ h)
-                  ri.ri_ip ri.ri_user_agent ri.ri_url_string));
+          accesslog
+            (Format.sprintf "connection%s from %s (%s) : %s"
+               (match ri.ri_host with
+                 None   -> ""
+               | Some h -> " for " ^ h)
+               ri.ri_ip ri.ri_user_agent ri.ri_url_string);
 
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind
@@ -544,17 +542,16 @@ let service
             (files sent by the client) *)
         if !filenames <> [] then
           Messages.debug2 "** Removing files";
-        List.fold_left
-          (fun thr a ->
-            thr >>= fun () ->
+        List.iter
+          (fun a ->
             try
-              Unix.unlink a; return ()
+              Unix.unlink a
             with Unix.Unix_error _ as e ->
               Messages.warning
                 (Format.sprintf "Error while removing file %s: %s"
                    a (string_of_exn e)))
-          (return ())
-          !filenames)
+          !filenames;
+        return ())
   end
 
 let linger in_ch receiver =
@@ -598,7 +595,7 @@ let linger in_ch receiver =
        Lwt_timeout.stop short_timeout;
        Lwt.return ())
     (fun e ->
-       Messages.unexpected_exception e "Server.linger")
+       Messages.unexpected_exception e "Server.linger"; Lwt.return ())
 
 let try_bind' f g h = Lwt.try_bind f h g
 
@@ -617,7 +614,7 @@ let handle_connection port in_ch sockaddr =
         warn sockaddr ("interrupted content stream (" ^ string_of_exn e' ^ ")")
     | _ ->
         Messages.unexpected_exception e "Server.handle_write_errors"
-    end >>= fun () ->
+    end;
     Http_com.abort receiver;
     Lwt.fail Http_com.Aborted
   in
@@ -626,26 +623,26 @@ let handle_connection port in_ch sockaddr =
     begin match e with
       Http_com.Connection_closed ->
         (* This is the clean way to terminate the connection *)
-        warn sockaddr "connection closed by peer" >>= fun () ->
+        warn sockaddr "connection closed by peer";
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Keepalive_timeout ->
-        warn sockaddr "keepalive timeout" >>= fun () ->
+        warn sockaddr "keepalive timeout";
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Lost_connection _ ->
-        warn sockaddr "connection abrutedly closed by peer" >>= fun () ->
+        warn sockaddr "connection abrutedly closed by peer";
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Timeout ->
-        warn sockaddr "timeout" >>= fun () ->
+        warn sockaddr "timeout";
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Aborted ->
-        warn sockaddr "reading thread aborted" >>= fun () ->
+        warn sockaddr "reading thread aborted";
         Http_com.wait_all_senders receiver
     | Http_error.Http_exception (code, mesg) ->
-        warn sockaddr (Http_error.string_of_http_exception e) >>= fun () ->
+        warn sockaddr (Http_error.string_of_http_exception e);
         Http_com.start_processing receiver (fun slot ->
           (*XXX We should use the right information for clientproto
             and head... *)
@@ -657,7 +654,7 @@ let handle_connection port in_ch sockaddr =
             ~sender:Http_com.default_sender ());
         linger in_ch receiver
     | _ ->
-        Messages.unexpected_exception e "Server.handle_read_errors" >>= fun () ->
+        Messages.unexpected_exception e "Server.handle_read_errors";
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     end
@@ -725,26 +722,26 @@ let rec wait_connection use_ssl port socket =
             handle_connection port in_ch sockaddr)
          (fun e ->
             Messages.unexpected_exception e
-              "Server.wait_connection (handle connection)") >>= fun () ->
+              "Server.wait_connection (handle connection)";
+           return ()) >>= fun () ->
        Messages.debug2 "** CLOSE";
        begin try
-         Lwt_unix.close s;
-         Lwt.return ()
+         Lwt_unix.close s
        with Unix.Unix_error _ as e ->
          Messages.unexpected_exception e "Server.wait_connection (close)"
-       end >>= fun () ->
+       end;
        decr_connected ();
        if not relaunch_at_once then
-         ignore begin
+         begin
            debug2 "Ok releasing one connection";
-           wait_connection use_ssl port socket
+           ignore (wait_connection use_ssl port socket)
          end;
        Lwt.return ())
 
 
 
 let stop m n =
-  Lwt_unix.run (errlog m >>= fun () -> exit 7)
+  errlog m; exit n
 
 (** Thread waiting for events on a the listening port *)
 let listen use_ssl port wait_end_init =
@@ -805,11 +802,11 @@ let errmsg = function
 let reload () =
 
   (* That function cannot be interrupted??? *)
-  warning "Reloading config file" >>= fun () ->
+  Messages.warning "Reloading config file" ;
 
   (try
     match parse_config () with
-    | [] -> Lwt.return ()
+    | [] -> ()
     | s::_ ->
         begin
           Extensions.start_initialisation ();
@@ -818,13 +815,12 @@ let reload () =
           
           Extensions.end_initialisation ();
 
-          Lwt.return () 
         end
   with e -> 
     Extensions.end_initialisation ();
-    errlog (fst (errmsg e))) >>= fun () ->
+    errlog (fst (errmsg e)));
   
-  warning "Config file reloaded"
+  Messages.warning "Config file reloaded"
     
 
 
@@ -880,45 +876,41 @@ let _ = try
         (fun i ->
           ignore (listen true i wait_end_init)) sslports;
       
-      (match group with
-      | None -> return (Unix.getgid ())
+      let gid = match group with
+      | None -> Unix.getgid ()
       | Some group -> (try
-          return ((Unix.getgrnam group).Unix.gr_gid)
-      with e -> errlog ("Error: Wrong group") >>= fun () -> fail e))
-      >>= fun gid ->
-
-      (match user with
-      | None -> return (Unix.getuid ())
+          (Unix.getgrnam group).Unix.gr_gid
+      with e -> errlog ("Error: Wrong group"); raise e)
+      in
+      
+      let uid = match user with
+      | None -> Unix.getuid ()
       | Some user -> (try
-        return ((Unix.getpwnam user).Unix.pw_uid)
-      with e -> (errlog ("Error: Wrong user") >>= fun () -> fail e))) 
-      >>= fun uid ->
-
+          (Unix.getpwnam user).Unix.pw_uid
+      with e -> (errlog ("Error: Wrong user"); raise e))
+      in
+      
       (* A pipe to communicate with the server *)
       let commandpipe = get_command_pipe () in 
       (try
         ignore (Unix.stat commandpipe);
-        return ()
       with _ -> 
         (try
           let umask = Unix.umask 0 in
           Unix.mkfifo commandpipe 0o660;
           Unix.chown commandpipe uid gid;
           ignore (Unix.umask umask);
-          return ()
         with e -> 
           Messages.errlog 
-            ("Cannot create the command pipe: "^(string_of_exn e))))
-      >>= fun () ->
+            ("Cannot create the command pipe: "^(string_of_exn e))));
 
       (* I change the user for the process *)
       (try
         Unix.setgid gid;
         Unix.setuid uid;
-        return ()
-      with e -> errlog ("Error: Wrong user or group") >>= fun () -> fail e)
-      >>= fun () ->
-
+      with e -> 
+        Messages.errlog ("Error: Wrong user or group"); raise e);
+      
       Ocsiconfig.set_user user;
       Ocsiconfig.set_group group;
             
@@ -982,12 +974,12 @@ let _ = try
 
       let rec f () = 
         Lwt_chan.input_line pipe >>=
-        (fun _ -> reload () >>= f)
+        (fun _ -> reload (); f ())
       in ignore (f ());
 
       wakeup wait_end_init ();
       
-      warning "Ocsigen has been launched (initialisations ok)" >>= fun () ->
+      warning "Ocsigen has been launched (initialisations ok)";
       
       wait ()
       )

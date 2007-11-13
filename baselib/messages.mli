@@ -21,13 +21,13 @@
 
 
 (** Write a message in access.log *)
-val accesslog : string -> unit Lwt.t
+val accesslog : string -> unit
 
 (** Write a message in errors.log *)
-val errlog : string -> unit Lwt.t
+val errlog : string -> unit
 
 (** Write a message in warnings.log *)
-val warning : string -> unit Lwt.t
+val warning : string -> unit
 
 (** Write a message only in debugging mode (-V option) - Non cooperative *)
 val debug : (unit -> string) -> unit
@@ -42,10 +42,10 @@ val debug_noel : (unit -> string) -> unit
 val debug_noel2 : string -> unit
 
 (** Write a message in the console (if not called in silent mode) *)
-val console : (unit -> string) -> unit Lwt.t
+val console : (unit -> string) -> unit
 
 (** Write a message in the console (if not called in silent mode) *)
-val console2 : string -> unit Lwt.t
+val console2 : string -> unit
 
 (** Use that function for all impossible cases in exception handlers
    ([try ... with ... | e -> unexpected_exception ...] or [Lwt.catch ...]).
@@ -53,14 +53,14 @@ val console2 : string -> unit Lwt.t
    Put something in the string to help locating the problem (usually the name
    of the function where is has been called).
  *)
-val unexpected_exception : exn -> string -> unit Lwt.t
+val unexpected_exception : exn -> string -> unit
 
 
 (**/**)
 
-val access : string * Lwt_chan.out_channel ref * Lwt_unix.file_descr ref
-val warningfile : string * Lwt_chan.out_channel ref * Lwt_unix.file_descr ref
-val error : string * Lwt_chan.out_channel ref * Lwt_unix.file_descr ref
+val access : string * out_channel ref * Unix.file_descr ref
+val warningfile : string * out_channel ref * Unix.file_descr ref
+val error : string * out_channel ref * Unix.file_descr ref
 
 val open_files : unit -> unit
 val bip : int -> unit
