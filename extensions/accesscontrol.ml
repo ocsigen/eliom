@@ -160,7 +160,7 @@ let parse_config path charset =
           Filter_Ip (Ocsimisc.parse_ip_netmask s)
         with Failure _ -> 
           raise (Error_in_config_file "Bad ip/netmask value in <ip/>"))
-    | Element ("header", [("name", s); ("value", r)], []) -> 
+    | Element ("header", [("name", s); ("regexp", r)], []) -> 
         (try
           Filter_Header (s, Netstring_pcre.regexp r)
         with Failure _ -> 
@@ -177,7 +177,7 @@ let parse_config path charset =
         with Failure _ -> 
           raise (Error_in_config_file
                    "Bad regular expression in <path/>"))
-    | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
+    | Element (t, _, _) -> raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
     | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
   in
   function
@@ -196,7 +196,8 @@ let parse_config path charset =
   | Element ("allow", _, _)
   | Element ("deny", _, _) -> 
       raise 
-        (Error_in_config_file "(accesscontrol extension) Please specify type=\"or\" or type=\"and\" for <allow> and <deny>")
+        (Error_in_config_file
+           "(accesscontrol extension) Please specify type=\"or\" or type=\"and\" for <allow> and <deny>")
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
 

@@ -34,8 +34,8 @@ exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
 
-exception Bad_config_tag_for_extension of string (* Try next extension *)
-exception Error_in_config_file of string (* Stop with an error message *)
+exception Bad_config_tag_for_extension of string (** Try next extension *)
+exception Error_in_config_file of string (** Stop with an error message *)
 
 (*****************************************************************************)
 (** The type of URL paths. [["plop";"plip"]] corresponds to [plop/plip]. *)

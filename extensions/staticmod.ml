@@ -38,7 +38,7 @@ exception Not_concerned
 (*****************************************************************************)
 (* The table of static pages for each virtual server                         *)
 type assockind = 
-  | Dir of string * bool * Netstring_pcre.regexp option
+  | Dir of string * bool
   | Regexp of Netstring_pcre.regexp * string * bool * 
         Netstring_pcre.regexp option
 
@@ -114,10 +114,8 @@ let find_static_page dir err path =
   let path = Ocsimisc.string_of_url_path path in
 
   match dir with
-  | Dir (d, readable, code) -> 
-      if code_match code err then
-        (code, find_file ((d^path), readable))
-      else raise Not_concerned
+  | Dir (d, readable) -> 
+      (None, find_file ((d^path), readable))
   | Regexp (regexp, dest, readable, code) ->
       if code_match code err then
         (code,
@@ -189,7 +187,8 @@ let gen dir err charset ri =
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url as e -> fail e
       | Failed_403 -> return (Ext_not_found 403)
-      | Failed_404 -> return (Ext_not_found 404)
+      | Failed_404 -> return (Ext_not_found err) 
+          (*VVV I send err, not 404 ... (?) *)
       | Not_concerned -> return (Ext_not_found err)
       | e -> fail e
     )
@@ -261,8 +260,8 @@ let parse_config path charset =
           | (None, None, _, None, _) -> 
               raise (Error_in_config_file 
                        "Missing attribute dir, regexp, or code for <static>")
-          | (Some d, None, _, code, None) -> 
-              Dir (remove_end_slash d, readable, code)
+          | (Some d, None, _, None, None) -> 
+              Dir (remove_end_slash d, readable)
           | (None, Some r, _, code, Some t) -> 
               Regexp (r, t, readable, code)
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
@@ -288,7 +287,7 @@ let end_init () =
                 [Extensions.Page_gen
                   (fun err charset ri -> 
                     gen 
-                      (Dir (remove_end_slash path, r, None))
+                      (Dir (remove_end_slash path, r))
                       err
                       (match Ocsiconfig.get_default_charset () with 
                       | None -> "utf-8"

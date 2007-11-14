@@ -175,7 +175,7 @@ let register_extension,
                try
                  oldf config_tag
                with
-               | Bad_config_tag_for_extension _ -> newf config_tag
+               | Bad_config_tag_for_extension c -> newf config_tag
          );
        
        fun_beg := comp begin_init !fun_beg;
@@ -330,8 +330,8 @@ let do_for_site_matching host port ri =
       | None -> "<no host>:"^(string_of_int port)
       | Some h -> h^":"^(string_of_int port)
     in
-    let rec aux ri e cookies_to_set = function
-      | [] -> fail (Ocsigen_http_error e)
+    let rec aux ri prev_err cookies_to_set = function
+      | [] -> fail (Ocsigen_http_error prev_err)
       | (h, path, charset, extlist)::l when host_match host port h ->
           (match site_match path ri.ri_full_path with
           | None ->
@@ -342,7 +342,7 @@ let do_for_site_matching host port ri =
                 "\" does not match host=\""^(string_of_host h)^"\" site=\"/"^
                 (Ocsimisc.string_of_url_path ri.ri_full_path)^
                 "\".");
-              aux ri e cookies_to_set l
+              aux ri prev_err cookies_to_set l
           | Some sub_path ->
               Messages.debug (fun () -> 
                 "-------- site found: \""^(string_of_host_option host)^
@@ -381,7 +381,7 @@ let do_for_site_matching host port ri =
                     | (Ext_stop _, _) -> return res
                     | (Ext_retry_with _, _) -> return res
                 )
-                (return (Ext_not_found 404, cookies_to_set))
+                (return (Ext_not_found prev_err, cookies_to_set))
                 extlist
                 >>= fun (res_ext, cookies_to_set) ->
                   (match res_ext with
@@ -409,7 +409,7 @@ let do_for_site_matching host port ri =
             "-------- host = "^
             (string_of_host_option host)^
             " does not match "^(string_of_host h));
-          aux ri e cookies_to_set l
+          aux ri prev_err cookies_to_set l
     in aux ri 404 cookies_to_set sites
   in do2 (get_sites ()) Http_frame.Cookies.empty ri
 (*****************************************************************************)
