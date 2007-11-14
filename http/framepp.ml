@@ -37,10 +37,32 @@ let string_of_method =
     | H.UNLINK -> "UNLINK"
     | H.PATCH -> "PATCH"
 
-(** converts the protocol into a string*)
+(** converts a string to a method *)
+let method_of_string =
+  function
+    | "GET" -> H.GET
+    | "POST" -> H.POST
+    | "HEAD" -> H.HEAD
+    | "PUT" -> H.PUT
+    | "DELETE" -> H.DELETE
+    | "TRACE" -> H.TRACE
+    | "OPTIONS" -> H.OPTIONS
+    | "CONNECT" -> H.CONNECT
+    | "LINK" -> H.LINK
+    | "UNLINK" -> H.UNLINK
+    | "PATCH" -> H.PATCH
+    | _ -> failwith "method_of_string"
+
+(** converts the protocol into a string *)
 let string_of_proto = function
   | H.HTTP10 -> "HTTP/1.0"
   | H.HTTP11 -> "HTTP/1.1"
+
+(** converts a string to a protocol *)
+let proto_of_string = function
+  | "HTTP/1.0" -> H.HTTP10
+  | "HTTP/1.1" -> H.HTTP11
+  | _ -> failwith "proto_of_string"
 
 (** Write the first line of an HTTP frame to a string buffer *)
 let fst_line buf header =

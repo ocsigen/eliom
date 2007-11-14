@@ -29,8 +29,12 @@ open Http_frame
 open Http_com
 open Predefined_senders
 
+
 module Regexp = Netstring_pcre
 
+exception Failed_403
+exception Failed_404
+exception Not_concerned
 exception CGI_Timeout
 exception CGI_Error of exn
 
@@ -105,8 +109,7 @@ let find_cgi_page reg path =
       in
       Messages.debug (fun () -> "--Cgimod: Looking for \""^filename^"\".");
       
-      if (stat.Unix.LargeFile.st_kind 
-            = Unix.S_REG)
+      if (stat.Unix.LargeFile.st_kind = Unix.S_REG)
       then begin
 	match re.exec with
 	  | None ->
@@ -116,15 +119,15 @@ let find_cgi_page reg path =
 	      Unix.access filename [Unix.R_OK];
 	      (filename, re)
       end
-      else raise Ocsigen_403
+      else raise Failed_403
     with
-    | Unix.Unix_error (Unix.ENOENT, _, _) -> raise Ocsigen_404
+    | Unix.Unix_error (Unix.ENOENT, _, _) -> raise Failed_404
   in
 
   let path = Ocsimisc.string_of_url_path path in
 
   match split_regexp reg.regexp path with
-  | None -> raise Ocsigen_404
+  | None -> raise Failed_404
   | Some (path', path_info) -> 
       let reg = 
 	{reg with
@@ -432,7 +435,7 @@ let exn_handler = raise
 
 (*****************************************************************************)
 
-let gen reg charset ri =
+let gen reg err charset ri =
   catch
     (* Is it a cgi page? *)
     (fun () ->
@@ -500,14 +503,16 @@ let gen reg charset ri =
                         res_code = code}))
            (fun e -> Ocsistream.finalize content >>= fun () -> Lwt.fail e)
        end else
-         Lwt.return (Ext_not_found Ocsigen_404))
+         Lwt.return (Ext_not_found 404))
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url 
       | Lost_connection _ as e -> fail e
-      | Ocsigen_404 ->return (Ext_not_found Ocsigen_404)
-      | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_not_found Ocsigen_404)
+      | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_not_found 404)
+      | Failed_403 -> return (Ext_not_found 403)
+      | Failed_404 -> return (Ext_not_found 404)
+      | Not_concerned -> return (Ext_not_found err)
       | e -> fail e)
 
 

@@ -29,8 +29,7 @@
 open Lwt
 open Ocsimisc
 
-exception Ocsigen_404
-exception Ocsigen_403
+exception Ocsigen_http_error of int
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
@@ -61,8 +60,9 @@ type request_info =
      ri_url: Neturl.url;
      ri_method: Http_frame.Http_header.http_method;
      ri_path_string: string; (** full path of the URL *)
-     ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_full_path: string list;   (** full path of the URL *)
+     ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
+     ri_sub_path_string: string Lazy.t;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
      ri_host: string option; (** Host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters*)
@@ -70,6 +70,7 @@ type request_info =
      ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
      ri_inet_addr: Unix.inet_addr;        (** IP of the client *)
      ri_ip: string;            (** IP of the client *)
+     ri_ip32: int32 Lazy.t;    (** IP of the client, as a 32 bits integer *)
      ri_remote_port: int;      (** Port used by the client *)
      ri_port: int;             (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
@@ -98,33 +99,47 @@ type request_info =
    
 type answer =
   | Ext_found of Http_frame.result  (** OK stop! I found the page. *)
-  | Ext_not_found of exn (** Page not found. Try next extension.
-                            The exception is usally Ocsigen_404, 
-                            but may be for ex Ocsigen_403 (forbidden)
+  | Ext_not_found of int (** Page not found. Try next extension.
+                            The integer is the HTTP error code.
+                            It is usally 404, but may be for ex 403 (forbidden)
                             if you want another extension to try after a 403
                           *)
 (*VVV give the possibility to set cookies here??? *)
-  | Ext_stop of exn      (** Page forbidden. Do not try next extension, but
+  | Ext_stop of int      (** Error. Do not try next extension, but
                             try next site. If you do not want to try next site
                             send an Ext_found with an error code.
-                            The exception is usally Ocsigen_403.
+                            The integer is the HTTP error code, usally 403.
                           *)
 (*VVV give the possibility to set cookies here??? *)
-  | Ext_continue_with of request_info * Http_frame.cookieset
+  | Ext_continue_with of request_info * Http_frame.cookieset * int
         (** Used to modify the request before giving it to next extension.
             The extension returns the request_info (possibly modified)
-            and a set of cookies if it wants to set or cookies. *)
+            and a set of cookies if it wants to set or cookies
+            ({!Http_frame.Cookies.empty} for no cookies).
+            You must add these cookies yourself in request_info if you
+            want them to be seen by subsequent extensions,
+            for example using {!Http_frame.compute_new_ri_cookies}.
+            The integer is usually equal to the error code received 
+            from preceding extension (but you may want to modify it).
+         *)
   | Ext_retry_with of request_info * Http_frame.cookieset
         (** Used to retry all the extensions with a new request_info.
             The extension returns the request_info (possibly modified)
-            and a set of cookies if it wants to set or cookies. *)
+            and a set of cookies if it wants to set or cookies
+            ({!Http_frame.Cookies.empty} for no cookies).
+            You must add these cookies yourself in request_info if you
+            want them to be seen by subsequent extensions,
+            for example using {!Http_frame.compute_new_ri_cookies}.
+         *)
+
 
 
 type extension =
-  | Page_gen of (string -> request_info -> answer Lwt.t)
+  | Page_gen of (int -> string -> request_info -> answer Lwt.t)
   | Filter of (string -> request_info -> Http_frame.result -> answer Lwt.t)
 
-let (sites : (virtual_hosts * url_path * string option (* charset *) * extension list) list ref) = 
+let (sites : (virtual_hosts * url_path * string option (* charset *) * 
+                extension list) list ref) = 
   ref []
 
 let set_sites v = sites := v
@@ -159,8 +174,9 @@ let register_extension,
              fun config_tag ->
                try
                  oldf config_tag
-               with Bad_config_tag_for_extension _ -> 
-                 newf config_tag);
+               with
+               | Bad_config_tag_for_extension _ -> newf config_tag
+         );
        
        fun_beg := comp begin_init !fun_beg;
        fun_end := comp end_init !fun_end;
@@ -194,11 +210,24 @@ let parse_site host =
             a::aux ll
           with
           | Bad_config_tag_for_extension t -> 
-              (* raise Config_file_error *)
               ignore
                 (Messages.warning
                    ("Unexpected tag <"^t^"> inside <site dir=\""^
 	            (Ocsimisc.string_of_url_path path)^"\"> (ignored)"));
+              aux ll
+          | Ocsiconfig.Config_file_error t
+          | Error_in_config_file t -> 
+              ignore
+                (Messages.warning
+                   ("Error while parsing configuration file: "^
+                    t^" (ignored)"));
+              aux ll
+          | e -> 
+              ignore
+                (Messages.warning
+                   ("Error while parsing configuration file: "^
+                    (Ocsimisc.string_of_exn e)^
+	            " (ignored)"));
               aux ll
     in aux
     
@@ -302,12 +331,12 @@ let do_for_site_matching host port ri =
       | Some h -> h^":"^(string_of_int port)
     in
     let rec aux ri e cookies_to_set = function
-      | [] -> fail e
+      | [] -> fail (Ocsigen_http_error e)
       | (h, path, charset, extlist)::l when host_match host port h ->
           (match site_match path ri.ri_full_path with
           | None ->
               Messages.debug (fun () ->
-                "---- host=\""^
+                "-------- host=\""^
                 (string_of_host_option host)^"\" site=\""^
                 (Ocsimisc.string_of_url_path path)^
                 "\" does not match host=\""^(string_of_host h)^"\" site=\"/"^
@@ -316,12 +345,16 @@ let do_for_site_matching host port ri =
               aux ri e cookies_to_set l
           | Some sub_path ->
               Messages.debug (fun () -> 
-                "---- site found: \""^(string_of_host_option host)^
+                "-------- site found: \""^(string_of_host_option host)^
                 "\" matches \""^(string_of_host h)^"\" and \"/"^
                 (Ocsimisc.string_of_url_path ri.ri_full_path)^
                 "\" matches \"/"^
                 (Ocsimisc.string_of_url_path path)^"\".");
-              let ri = {ri with ri_sub_path = ""::sub_path} in
+              let ri = {ri with
+                        ri_sub_path = ""::sub_path; 
+                        ri_sub_path_string = 
+                        lazy ("/"^Ocsimisc.string_of_url_path sub_path)}
+              in
               let charset = match charset with 
               | None -> Ocsiconfig.get_default_charset ()
               | _ -> charset
@@ -338,17 +371,17 @@ let do_for_site_matching host port ri =
                     | (Ext_found r, Filter f) -> 
                         f charset ri (add_to_res_cookies cookies_to_set r)
                         >>= fun r -> return (r, Http_frame.Cookies.empty)
-                    | (Ext_not_found e, Page_gen f) -> 
-                        f charset ri >>= fun r -> return (r, cookies_to_set)
+                    | (Ext_not_found e, Page_gen f) ->
+                        f e charset ri >>= fun r -> return (r, cookies_to_set)
                     | (Ext_not_found e, Filter _) -> return res
-                    | (Ext_continue_with (ri, cook), Page_gen f) -> 
-                        f charset ri >>= fun r ->
+                    | (Ext_continue_with (ri, cook, e), Page_gen f) -> 
+                        f e charset ri >>= fun r ->
                         return (r, Http_frame.add_cookies cook cookies_to_set)
                     | (Ext_continue_with _, Filter _) -> return res
                     | (Ext_stop _, _) -> return res
                     | (Ext_retry_with _, _) -> return res
                 )
-                (return (Ext_not_found Ocsigen_404, cookies_to_set))
+                (return (Ext_not_found 404, cookies_to_set))
                 extlist
                 >>= fun (res_ext, cookies_to_set) ->
                   (match res_ext with
@@ -356,8 +389,8 @@ let do_for_site_matching host port ri =
                       return (add_to_res_cookies cookies_to_set r)
                   | Ext_not_found e
                   | Ext_stop e -> aux ri e cookies_to_set l (* try next site *)
-                  | Ext_continue_with (_, cook) -> 
-                      aux ri Ocsigen_404
+                  | Ext_continue_with (_, cook, e) -> 
+                      aux ri e
                         (Http_frame.add_cookies cook cookies_to_set) l
                   | Ext_retry_with (ri2, cook) -> 
                       (*VVV not enough to detect loops *)
@@ -373,11 +406,11 @@ let do_for_site_matching host port ri =
           )
       | (h, p, _, _)::l ->
           Messages.debug (fun () ->
-            "---- host = "^
+            "-------- host = "^
             (string_of_host_option host)^
             " does not match "^(string_of_host h));
           aux ri e cookies_to_set l
-    in aux ri Ocsigen_404 cookies_to_set sites
+    in aux ri 404 cookies_to_set sites
   in do2 (get_sites ()) Http_frame.Cookies.empty ri
 (*****************************************************************************)
 

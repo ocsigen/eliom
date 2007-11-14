@@ -67,6 +67,8 @@ let get_config_file_charset ~sp = sp.sp_si.si_config_file_charset
 let get_cookies ~sp = force sp.sp_ri.ri_cookies
 let get_data_cookies ~sp = sp.sp_si.si_data_session_cookies
 let get_persistent_cookies ~sp = sp.sp_si.si_persistent_session_cookies
+let get_previous_extension_error_code ~sp = 
+  sp.sp_si.si_previous_extension_error
 
 let get_service_session_cookie ?session_name ~sp () = 
   try

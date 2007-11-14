@@ -226,7 +226,7 @@ depend: xmlp4.byte
 
 .PHONY: partialinstall install doc docinstall installnodoc logrotate
 partialinstall:
-	make -C lwt install
+	$(MAKE) -C lwt install
 	mkdir -p $(TEMPROOT)/$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
 	$(MAKE) -C server install

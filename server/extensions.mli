@@ -29,8 +29,7 @@
 open Lwt
 open Ocsimisc
 
-exception Ocsigen_404
-exception Ocsigen_403
+exception Ocsigen_http_error of int
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
@@ -61,8 +60,9 @@ type request_info =
      ri_url: Neturl.url;
      ri_method: Http_frame.Http_header.http_method; (** GET, POST, HEAD... *)
      ri_path_string: string; (** path of the URL *)
-     ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_full_path: string list;   (** full path of the URL *)
+     ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
+     ri_sub_path_string: string Lazy.t;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
      ri_host: string option; (** Host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters*)
@@ -70,6 +70,7 @@ type request_info =
      ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
      ri_inet_addr: Unix.inet_addr;        (** IP of the client *)
      ri_ip: string;            (** IP of the client *)
+     ri_ip32: int32 Lazy.t;    (** IP of the client, as a 32 bits integer *)
      ri_remote_port: int;      (** Port used by the client *)
      ri_port: int;             (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
@@ -105,43 +106,48 @@ type request_info =
 
 type answer =
   | Ext_found of Http_frame.result  (** OK stop! I found the page. *)
-  | Ext_not_found of exn (** Page not found. Try next extension.
-                            The exception is usally Ocsigen_404, 
-                            but may be for ex Ocsigen_403 (forbidden)
+  | Ext_not_found of int (** Page not found. Try next extension.
+                            The integer is the HTTP error code.
+                            It is usally 404, but may be for ex 403 (forbidden)
                             if you want another extension to try after a 403
                           *)
 (*VVV give the possibility to set cookies here??? *)
-  | Ext_stop of exn      (** Page forbidden. Do not try next extension, but
+  | Ext_stop of int      (** Error. Do not try next extension, but
                             try next site. If you do not want to try next site
                             send an Ext_found with an error code.
-                            The exception is usally Ocsigen_403.
+                            The integer is the HTTP error code, usally 403.
                           *)
 (*VVV give the possibility to set cookies here??? *)
-  | Ext_continue_with of request_info * Http_frame.cookieset
+  | Ext_continue_with of request_info * Http_frame.cookieset * int
         (** Used to modify the request before giving it to next extension.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
-            ([Http_frame.Cookies.empty] for no cookies).
+            ({!Http_frame.Cookies.empty} for no cookies).
             You must add these cookies yourself in request_info if you
             want them to be seen by subsequent extensions,
-            for example using [Http_frame.compute_new_ri_cookies].
+            for example using {!Http_frame.compute_new_ri_cookies}.
+            The integer is usually equal to the error code received 
+            from preceding extension (but you may want to modify it).
          *)
   | Ext_retry_with of request_info * Http_frame.cookieset
         (** Used to retry all the extensions with a new request_info.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
-            ([Http_frame.Cookies.empty] for no cookies).
+            ({!Http_frame.Cookies.empty} for no cookies).
             You must add these cookies yourself in request_info if you
             want them to be seen by subsequent extensions,
-            for example using [Http_frame.compute_new_ri_cookies].
+            for example using {!Http_frame.compute_new_ri_cookies}.
          *)
 
 
 type extension =
-  | Page_gen of (string -> request_info -> answer Lwt.t)
+  | Page_gen of (int -> string -> request_info -> answer Lwt.t)
   | Filter of (string -> request_info -> Http_frame.result -> answer Lwt.t)
 (** For each <site> tag in the configuration file, 
-    you can set the extensions you want. They take a charset (type [string]),
+    you can set the extensions you want. 
+    They take the error code received from preceding extensions (default 
+    {!Ocsigen_404}),
+    the charset (type [string]),
     a [request_info]. If it is a filter, it takes the result of the previous
     extension. And they all return an [answer].
  *)

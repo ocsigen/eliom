@@ -23,6 +23,7 @@
 open Extensions
 
 
+exception Eliom_404 (** Page not found *)
 exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)
 exception Eliom_Link_too_old (** The coservice does not exist any more *)
 exception Eliom_Session_expired
@@ -95,8 +96,10 @@ type sess_info =
 
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
-     si_config_file_charset: string}
-
+     si_config_file_charset: string;
+     si_previous_extension_error: int;
+     (* HTTP error code sent by previous extension (default: 404) *)
+   }
 
 
 module SessionCookies : Hashtbl.S with type key = string
@@ -276,8 +279,6 @@ type page_table_key =
     {key_state: (internal_state option * internal_state option);
      key_kind: Http_frame.Http_header.http_method}
 
-
-val gen : sitedata -> string -> request_info -> answer Lwt.t
 
 val empty_tables : unit -> tables
 

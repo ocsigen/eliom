@@ -71,19 +71,17 @@ let _ = parse_global_config (Extensions.get_config ())
 (*****************************************************************************)
 (** The function that will generate the pages from the request. 
    It has type 
-   string option -> Extensions.request_info -> Extensions.answer Lwt.t, 
-   where the string option is the encoding for characters possibly specified 
+   [int -> string option -> Extensions.request_info -> Extensions.answer Lwt.t], 
+   where:
+    - the integer is the HTTP error code sent by the previous extension
+   (404 by default). If you are not concerned by the request send
+   Ext_not_found with the same error code.
+    - the string option is the encoding for characters possibly specified 
    in the configuration file,
-   request_info is the request
-   answer
+    - request_info is the request
 
-   You must define a sender for the type you want to send (Here text).
-   Some are predefined in module Predefined_senders (for text, xhtml typed
-   with XHTML.M, files, empty content).
-   To define a new sender, see for example eliomduce.ml in 
-   Ocsigen's source code.
  *)
-let gen charset ri =
+let gen err charset ri =
   let content = "Extensiontemplate page" in
   Predefined_senders.Text_content.result_of_content
     (content, "text/plain") >>= fun r ->

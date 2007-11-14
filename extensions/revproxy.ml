@@ -33,6 +33,8 @@ open Lwt
 open Extensions
 open Simplexmlparser
 
+exception Not_concerned
+
 
 
 (*****************************************************************************)
@@ -63,7 +65,7 @@ let _ = parse_global_config (Extensions.get_config ())
 let find_redirection r path =
   let path = Ocsimisc.string_of_url_path path in
   match Netstring_pcre.string_match r.regexp path 0 with
-  | None -> raise Ocsigen_404
+  | None -> raise Not_concerned
   | Some _ -> (* Matching regexp found! *)
       (r.https,
        Netstring_pcre.global_replace r.regexp r.server path,
@@ -90,7 +92,7 @@ let end_init () =
 (** The function that will generate the pages from the request. *)
 exception Bad_answer_from_http_server
 
-let gen dir charset ri =
+let gen dir err charset ri =
   catch
     (* Is it a redirection? *)
     (fun () ->
@@ -132,7 +134,7 @@ let gen dir charset ri =
               })
     )
     (function 
-      | Extensions.Ocsigen_404 -> return (Ext_not_found Ocsigen_404)
+      | Not_concerned -> return (Ext_not_found err)
       | e -> fail e)
 
 

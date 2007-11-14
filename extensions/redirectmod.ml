@@ -38,6 +38,8 @@ open Extensions
 open Simplexmlparser
 
 
+exception Not_concerned
+
 
 (*****************************************************************************)
 (* The table of redirections for each virtual server                         *)
@@ -65,7 +67,7 @@ let _ = parse_global_config (Extensions.get_config ())
 let find_redirection (Regexp (regexp, dest, temp)) path =
   let path = Ocsimisc.string_of_url_path path in
   match Netstring_pcre.string_match regexp path 0 with
-  | None -> raise Ocsigen_404
+  | None -> raise Not_concerned
   | Some _ -> (* Matching regexp found! *)
       (Netstring_pcre.global_replace regexp dest path, temp)
   
@@ -89,7 +91,7 @@ let end_init () =
 
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
-let gen dir charset ri =
+let gen dir err charset ri =
   catch
     (* Is it a redirection? *)
     (fun () ->
@@ -101,13 +103,13 @@ let gen dir charset ri =
         "redirection to: "^redir);      
       let empty_result = Http_frame.empty_result () in
       return
-        (Ext_found 
+        (Ext_found
            {empty_result with
             Http_frame.res_location = Some redir;
 	    Http_frame.res_code= if temp then 302 else 301})
     )
     (function 
-      | Extensions.Ocsigen_404 -> return (Ext_not_found Ocsigen_404)
+      | Not_concerned -> return (Ext_not_found err)
       | e -> fail e)
 
 
@@ -126,17 +128,17 @@ let gen dir charset ri =
 
 let parse_config path charset = function
   | Element ("redirect", atts, []) -> 
-        let dir = match atts with
-        | [] -> 
-            raise (Error_in_config_file
-                     "regexp attribute expected for <redirect>")
-        | [("regexp", s);("dest",t)] -> 
-            Regexp ((Netstring_pcre.regexp ("/"^s)), t, false)
-        | [("temporary", "temporary");("regexp", s);("dest",t)] -> 
-            Regexp ((Netstring_pcre.regexp ("/"^s)), t, true)
-        | _ -> raise (Error_in_config_file "Wrong attribute for <redirect>")
-        in
-        Page_gen (gen dir)
+      let dir = match atts with
+      | [] -> 
+          raise (Error_in_config_file
+                   "regexp attribute expected for <redirect>")
+      | [("regexp", s);("dest",t)] -> 
+          Regexp ((Netstring_pcre.regexp ("/"^s)), t, false)
+      | [("temporary", "temporary");("regexp", s);("dest",t)] -> 
+          Regexp ((Netstring_pcre.regexp ("/"^s)), t, true)
+      | _ -> raise (Error_in_config_file "Wrong attribute for <redirect>")
+      in
+      Page_gen (gen dir)
   | Element (t, _, _) -> 
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(redirectmod extension) Bad data")

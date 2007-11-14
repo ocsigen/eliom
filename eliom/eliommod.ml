@@ -71,7 +71,10 @@ type sess_info =
 
      si_nonatt_info: (string option * string option);
      si_state_info: (internal_state option * internal_state option);
-     si_config_file_charset: string}
+     si_config_file_charset: string;
+     si_previous_extension_error: int;
+     (* HTTP error code sent by previous extension (default: 404) *)
+   }
 
 (* The table of tables for each session. Keys are cookies *)
 module SessionCookies = Hashtbl.Make(struct 
@@ -234,6 +237,7 @@ exception Eliom_function_forbidden_outside_site_loading of string
 exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
 
+exception Eliom_404
 
 (*****************************************************************************)
 type result_to_send = 
@@ -1248,7 +1252,7 @@ let get_cookie_info now sitedata
    servfailedlist)
       
 (*****************************************************************************)
-let change_request_info ri charset =
+let change_request_info ri charset previous_extension_err =
   force ri.ri_post_params >>=
   (fun post_params -> 
     let get_params = force ri.ri_get_params in
@@ -1326,7 +1330,8 @@ let change_request_info ri charset =
         si_other_get_params= other_get_params;
         si_all_get_params= get_params0;
         si_all_post_params= post_params0;
-        si_config_file_charset= charset}))
+        si_config_file_charset= charset;
+        si_previous_extension_error= previous_extension_err}))
 
 
 
@@ -1393,7 +1398,7 @@ let find_page_table
   in 
   (catch 
      (fun () -> return (List.assoc k !pagetableref))
-     (function Not_found -> fail Ocsigen_404 | e -> fail e)) >>=
+     (function Not_found -> fail Eliom_404 | e -> fail e)) >>=
   aux [] >>=
   (fun (r, toremove) -> 
     let list, newptr = list_assoc_remove k !pagetableref in
@@ -1601,7 +1606,7 @@ let find_service
   in
   let page_table_ref, suffix = 
     try search_page_table !dircontentref (change_empty_list ri.ri_sub_path)
-    with Not_found -> raise Ocsigen_404
+    with Not_found -> raise Eliom_404
   in
   find_page_table 
     now
@@ -2429,7 +2434,7 @@ let get_page
         catch
           (fun () -> beg)
           (function
-            | Ocsigen_404 | Eliom_Wrong_parameter ->
+            | Eliom_404 | Eliom_Wrong_parameter ->
                 (match !r with
                 | SCData_session_expired
                 | SCNo_data (* cookie removed *) -> beg
@@ -2445,7 +2450,7 @@ let get_page
             | e -> fail e)
       )
       sci
-      (fail Ocsigen_404)
+      (fail Eliom_404)
   in
 
   (catch
@@ -2454,10 +2459,10 @@ let get_page
           (fun () ->
             "--Eliom: I'm looking for "^(string_of_url_path ri.ri_sub_path)^
             " in the session table:");
-        find_aux Ocsigen_404 !service_cookies_info
+        find_aux Eliom_404 !service_cookies_info
       )
       (function 
-        | Ocsigen_404 | Eliom_Wrong_parameter -> 
+        | Eliom_404 | Eliom_Wrong_parameter -> 
             catch (* ensuite dans la table globale *)
               (fun () -> 
                 Messages.debug2 "--Eliom: I'm searching in the global table:";
@@ -2470,7 +2475,7 @@ let get_page
                    ri,
                    si))
               (function
-                | Ocsigen_404 | Eliom_Wrong_parameter as exn -> 
+                | Eliom_404 | Eliom_Wrong_parameter as exn -> 
                     (* si pas trouvé avec, on essaie sans l'état *)
                     (match si.si_state_info with
                     | (None, None) -> fail exn
@@ -2599,6 +2604,7 @@ let make_naservice
              ri_extension_info= Eliom_Link_too_old::ri.ri_extension_info
            } 
             si.si_config_file_charset
+            si.si_previous_extension_error
             >>=
           (fun (ri', si') -> 
             fail (Eliom_retry_with (ri', si',
@@ -2634,7 +2640,7 @@ let make_naservice
 
 
 
-let gen sitedata charset ri =
+let gen sitedata previous_extension_err charset ri =
   let now = Unix.time () in
   let rec gen_aux ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
     let genfun = 
@@ -2821,12 +2827,12 @@ let gen sitedata charset ri =
                        res_cookies= old_cookies_to_set;
                        res_code= 500;
                      })
-	| Ocsigen_404 -> return (Ext_not_found Ocsigen_404)
+	| Eliom_404 -> return (Ext_not_found previous_extension_err)
         | Eliom_retry_with a -> gen_aux a
 	| e -> fail e)
 
   in
-  change_request_info ri charset >>= fun (ri, si) ->
+  change_request_info ri charset previous_extension_err >>= fun (ri, si) ->
   let (all_cookie_info, closedsessions) =
     get_cookie_info now
       sitedata 

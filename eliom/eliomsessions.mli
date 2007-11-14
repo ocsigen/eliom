@@ -393,6 +393,11 @@ val set_persistent_data_session_cookie_exp_date : ?session_name:string ->
  *)
 val get_exn : sp:server_params -> exn list
 
+(** returns the HTTP error code sent by the Ocsigen extension 
+   that tried to answer to the request before Eliom.
+   It is 404 by default.
+ *)
+val get_previous_extension_error_code : sp:server_params -> int
 
 
 

@@ -34,7 +34,6 @@ open Error_pages
 open Lazy
 
 
-exception Ocsigen_403
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
 exception Ocsigen_upload_forbidden
@@ -254,12 +253,14 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                * List.iter (fun (h,v) -> Messages.debug (fun () -> h^"=="^v)) hs) bdlist;
                * List.map simplify bdlist *)
     in
+    let ipstring = Unix.string_of_inet_addr inet_addr in
     {ri_url_string = url;
      ri_url = parsed_url;
      ri_method = meth;
      ri_path_string = string_of_url_path path;
      ri_full_path = path;
      ri_sub_path = path;
+     ri_sub_path_string = lazy (string_of_url_path path);
      ri_get_params_string = params;
      ri_host = headerhost;
      ri_get_params = get_params;
@@ -268,7 +269,8 @@ let get_request_infos meth url http_frame filenames sockaddr port =
      ri_files = lazy (force find_post_params >>= fun (a, b) -> 
                       return b);
      ri_inet_addr = inet_addr;
-     ri_ip = Unix.string_of_inet_addr inet_addr;
+     ri_ip = ipstring;
+     ri_ip32 = lazy (Ocsimisc.parse_ip ipstring);
      ri_remote_port = port_of_sockaddr sockaddr;
      ri_port = port;
      ri_user_agent = useragent;
@@ -318,20 +320,14 @@ let service
       (fun () -> "~~~ Exception during generation/sending: " ^ string_of_exn e);
     match e with
       (* EXCEPTIONS WHILE COMPUTING A PAGE *)
-    | Ocsigen_404 ->
-        Messages.debug2 "-> Sending 404 Not Found";
+    | Ocsigen_http_error i ->
+        Messages.debug
+          (fun () -> "-> Sending HTTP error "^(string_of_int i)^" "^
+            Http_frame.Http_error.expl_of_code i);
         send_error sender_slot ~clientproto ~head ~keep_alive:true
-          ~code:404 ~sender:Http_com.default_sender ()
-    | Ocsigen_403 ->
-        Messages.debug2 "-> Sending 403 Forbidden";
-        send_error sender_slot ~clientproto ~head ~keep_alive:true
-          ~code:403 ~sender:Http_com.default_sender ()
+          ~code:i ~sender:Http_com.default_sender ()
     | Extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
-    | Extensions.Ocsigen_403 ->
-        Messages.debug2 "-> Sending 403 Forbidden";
-        send_error sender_slot ~clientproto ~head ~keep_alive:true
-          ~code:403 ~sender:Http_com.default_sender () (* Forbidden *)
     | Ocsistream.Interrupted Ocsistream.Already_read ->
         Messages.errlog
           "Cannot read the request twice. You probably have \

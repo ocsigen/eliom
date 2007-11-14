@@ -3054,7 +3054,7 @@ let _ =
 *html*)
 let _ = Eliomservices.set_exn_handler 
    (fun sp e -> match e with
-    | Extensions.Ocsigen_404 -> 
+    | Eliommod.Eliom_404 -> 
         Eliompredefmod.Xhtml.send ~code:404 ~sp
           (html
              (head (title (pcdata "")) [])
