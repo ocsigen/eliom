@@ -38,9 +38,10 @@ open Simplexmlparser
 
 type filter =
   | Filter_Ip of (int32 * int32)
-  | Filter_path of Netstring_pcre.regexp
-  | Filter_method of Http_frame.Http_header.http_method
+  | Filter_Path of Netstring_pcre.regexp
+  | Filter_Method of Http_frame.Http_header.http_method
   | Filter_Header of string * Netstring_pcre.regexp
+  | Filter_Protocol of Http_frame.Http_header.proto
 
 type filters =
   | Allow_or of filter list
@@ -75,7 +76,7 @@ let find_access access_pattern ri =
         else
           Messages.debug2 "--Access control: IP does not match mask";
         r
-    | Filter_path regexp ->
+    | Filter_Path regexp ->
         let r =
           Netstring_pcre.string_match 
             regexp (Lazy.force ri.ri_sub_path_string) 0 <> None
@@ -89,12 +90,19 @@ let find_access access_pattern ri =
             (fun () -> "--Access control: Path "^
               (Lazy.force ri.ri_sub_path_string)^" does not match regexp");
         r
-    | Filter_method meth -> 
+    | Filter_Method meth -> 
         let r = meth = ri.ri_method in
         if r then 
           Messages.debug2 "--Access control: Method matches"
         else
           Messages.debug2 "--Access control: Method does not match";
+        r
+    | Filter_Protocol pr -> 
+        let r = pr = ri.ri_protocol in
+        if r then 
+          Messages.debug2 "--Access control: Protocol matches"
+        else
+          Messages.debug2 "--Access control: Protocol does not match";
         r
     | Filter_Header (name, regexp) -> 
         let r =
@@ -168,12 +176,17 @@ let parse_config path charset =
                    "Bad regular expression in <header/>"))
     | Element ("method", [("value", s)], []) -> 
         (try
-          Filter_method (Framepp.method_of_string s)
+          Filter_Method (Framepp.method_of_string s)
         with Failure _ -> 
           raise (Error_in_config_file "Bad method value in <method/>"))
+    | Element ("protocol", [("value", s)], []) -> 
+        (try
+          Filter_Protocol (Framepp.proto_of_string s)
+        with Failure _ -> 
+          raise (Error_in_config_file "Bad protocol value in <protocol/>"))
     | Element ("path", [("regexp", s)], []) -> 
         (try
-          Filter_path (Netstring_pcre.regexp s)
+          Filter_Path (Netstring_pcre.regexp s)
         with Failure _ -> 
           raise (Error_in_config_file
                    "Bad regular expression in <path/>"))

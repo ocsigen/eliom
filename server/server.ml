@@ -257,6 +257,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
     {ri_url_string = url;
      ri_url = parsed_url;
      ri_method = meth;
+     ri_protocol = http_frame.Http_frame.header.Http_frame.Http_header.proto;
      ri_path_string = string_of_url_path path;
      ri_full_path = path;
      ri_sub_path = path;
