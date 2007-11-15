@@ -253,17 +253,19 @@ let parse_config path charset =
             parse_attrs (None, None, None, None, None) atts 
           in
           let readable = match readable with
-          | Some r -> r 
-          | None -> false 
+          | Some r -> r
+          | None -> false
           in
           match r with
-          | (None, None, _, None, _) -> 
+          | (None, None, _, None, _) ->
               raise (Error_in_config_file 
                        "Missing attribute dir, regexp, or code for <static>")
-          | (Some d, None, _, None, None) -> 
+          | (Some d, None, _, None, None) ->
               Dir (remove_end_slash d, readable)
           | (None, Some r, _, code, Some t) -> 
               Regexp (r, t, readable, code)
+          | (None, None, _, (Some _ as code), Some t) ->
+              Regexp (Netstring_pcre.regexp "/.*", t, readable, code)
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
         in
         Page_gen (gen info)
