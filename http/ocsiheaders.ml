@@ -105,11 +105,12 @@ let rec parse_cookies s =
       Http_frame.Cookievalues.empty 
       splitted
   with _ -> Http_frame.Cookievalues.empty
-    (* Actually the real syntax of cookies is more complex! *)
+(*VVV Actually the real syntax of cookies is more complex! *)
 (*
 Mozilla spec + RFC2109
 http://ws.bokeland.com/blog/376/1043/2006/10/27/76832
 *)
+
 
 let get_keepalive http_header =
   Http_header.get_proto http_header = Http_frame.Http_header.HTTP11

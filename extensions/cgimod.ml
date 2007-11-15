@@ -496,7 +496,8 @@ let gen reg err charset ri =
                        {default_result with
                         res_content_length = None;
                         res_stream = content;
-                        res_headers =
+                        res_location= loc;
+                        res_headers = 
                         Http_headers.replace_opt
                           Http_headers.status None
                           header.Http_header.headers;
