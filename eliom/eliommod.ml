@@ -2919,8 +2919,8 @@ let handle_init_exn = function
       ("Fatal - Eliom: Duplicate registration of url \""^s^
        "\". Please correct the module.")
   | Eliom_there_are_unregistered_services (s, l) ->
-      ("Fatal - Eliom: in site "^
-       (Ocsimisc.string_of_url_path s)^" - "^
+      ("Fatal - Eliom: in site \""^
+       (Ocsimisc.string_of_url_path s)^"\" - "^
        (match l with
        | [] -> "<none(??)>"
        | [None] -> "One non-attached coservice has not been registered."

@@ -373,8 +373,8 @@ let default = register_new_service ["rep";""] unit
       <p>Functions implementing services are called <em>service handlers</em>. 
        They take three parameters. The first
        one has type 
-       $a ~fragment:"TYPEserver_params" ~service:senddoc ~sp [code [pcdata "Eliommod.server_params" ]]
-   [version;"Eliommod.html"]$
+       $a ~fragment:"TYPEserver_params" ~service:senddoc ~sp [code [pcdata "Eliomsessions.server_params" ]]
+   [version;"Eliomsessions.html"]$
         and
        corresponds to server informations (user-agent, ip, current-url, etc.
        - see later in that section for examples of use), 
@@ -2382,7 +2382,7 @@ let send_any =
       <code>Eliompredefmod.Xhtml.Cookies.register</code> instead of 
       <code>Eliompredefmod.Xhtml.register</code>.
       The function you register returns a pair containing the page (as usual)
-      and a list of cookies, of type <code>Eliommod.cookie</code> 
+      and a list of cookies, of type <code>Eliomservices.cookie</code> 
       defined by:
       </p>
       <pre>

@@ -122,7 +122,7 @@ type answer =
         (** Used to modify the request before giving it to next extension.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
-            ({!Http_frame.Cookies.empty} for no cookies).
+            ([!Http_frame.Cookies.empty] for no cookies).
             You must add these cookies yourself in request_info if you
             want them to be seen by subsequent extensions,
             for example using {!Http_frame.compute_new_ri_cookies}.
@@ -133,7 +133,7 @@ type answer =
         (** Used to retry all the extensions with a new request_info.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
-            ({!Http_frame.Cookies.empty} for no cookies).
+            ([!Http_frame.Cookies.empty] for no cookies).
             You must add these cookies yourself in request_info if you
             want them to be seen by subsequent extensions,
             for example using {!Http_frame.compute_new_ri_cookies}.
@@ -145,11 +145,11 @@ type extension =
   | Filter of (string -> request_info -> Http_frame.result -> answer Lwt.t)
 (** For each <site> tag in the configuration file, 
     you can set the extensions you want. 
-    They take the error code received from preceding extensions (default 
-    {!Ocsigen_404}),
+    They take the error code received from preceding extensions 
+    (not for filters, the default is 404),
     the charset (type [string]),
     a [request_info]. If it is a filter, it takes the result of the previous
-    extension. And they all return an [answer].
+    extension. And they both return an [answer].
  *)
 
 
@@ -161,15 +161,15 @@ type extension =
      that will be called for each <host>, 
      and that will generate a function taking:
    {ul
-     {- the path attribute of a <site> tag
+     {- the path attribute of a <site> tag}}
      that will be called for each <site>, 
-     and that will generate a function taking:}}
+     and that will generate a function taking:
    {ul
-     {- an item of the config file
-     that will be called on each tag inside <site> and:}
+     {- an item of the config file}}
+     that will be called on each tag inside <site> and:
    {ul
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
-     {- return something of type [extension] (filter or page generator)}
+     {- return something of type [extension] (filter or page generator)}}
    - a function that will be called at the beginning 
    of the initialisation phase (each time the config file is reloaded)
    (Note that the extensions are not reloaded)
