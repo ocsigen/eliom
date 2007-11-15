@@ -51,6 +51,7 @@ TARGETSBYTE = lwt.byte xmlp4.byte baselib.byte http.byte server.byte extensions.
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	eliom/eliom.cma \
 	extensions/staticmod.cmo extensions/cgimod.cmo $(DEFLATEMODINSTALL) \
+        extensions/revproxy.cmo extensions/redirectmod.cmo extensions/accesscontrol.cmo \
 	$(DUCECMAO)
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliommkforms.cmi eliom/eliommkreg.cmi \
