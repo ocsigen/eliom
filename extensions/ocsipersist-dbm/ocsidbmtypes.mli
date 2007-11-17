@@ -15,4 +15,5 @@ type answer =
   | Value of string
   | End
   | Key of string
+  | Error of exn
 

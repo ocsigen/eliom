@@ -822,7 +822,7 @@ val number_of_persistent_data_sessions : unit -> int Lwt.t
 val number_of_persistent_tables : unit -> int
 
 val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
-(* Because of Dbm implementation, the result may be less thann the expected
+(* Because of Dbm implementation, the result may be less than the expected
    result in some case (with a version of ocsipersist based on Dbm) *)
 
 

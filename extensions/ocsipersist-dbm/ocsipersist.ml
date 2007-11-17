@@ -152,18 +152,21 @@ let db_get (store, name) =
   (function 
     | Value v -> return v
     | Dbm_not_found -> fail Not_found
+    | Error e -> fail e
     | _ -> fail Ocsipersist_error)
 
 let db_remove (store, name) =
   send (Remove (store, name)) >>=
   (function 
     | Ok -> return ()
+    | Error e -> fail e
     | _ -> fail Ocsipersist_error)
 
 let db_replace (store, name) value = 
   send (Replace (store, name, value)) >>=
   (function 
     | Ok -> return ()
+    | Error e -> fail e
     | _ -> fail Ocsipersist_error)
 
 let db_replace_if_exists (store, name) value = 
@@ -171,18 +174,21 @@ let db_replace_if_exists (store, name) value =
   (function 
     | Ok -> return ()
     | Dbm_not_found -> fail Not_found
+    | Error e -> fail e
     | _ -> fail Ocsipersist_error)
 
 let db_firstkey store = 
   send (Firstkey store) >>=
   (function 
     | Key k -> return (Some k)
+    | Error e -> fail e
     | _ -> return None)
 
 let db_nextkey store = 
   send (Nextkey store) >>=
   (function 
     | Key k -> return (Some k)
+    | Error e -> fail e
     | _ -> return None)
 
 let db_length store = 
@@ -190,6 +196,7 @@ let db_length store =
   (function 
     | Value v -> return (Marshal.from_string v 0)
     | Dbm_not_found -> return 0
+    | Error e -> fail e
     | _ -> fail Ocsipersist_error)
 
 
@@ -231,6 +238,8 @@ let set pvname v =
 type 'value table = string
 
 let open_table name = name
+
+let table_name n = Lwt.return n
     
 let find table key =
   db_get (table, key) >>=
@@ -299,6 +308,7 @@ let iter_table f table =
          (function
            | End -> return ()
            | Key k -> find table k >>= f k
+           | Error e -> fail e
            | _ -> fail Ocsipersist_error) >>=
          (fun () -> aux next nextl)
        in

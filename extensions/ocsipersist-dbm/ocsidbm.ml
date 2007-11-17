@@ -92,13 +92,13 @@ let open_db_if_exists name =
     let t = opendbm (directory^"/"^name^suffix) [Dbm_rdwr] 0o640 in
     tableoftables := Tableoftables.add name t !tableoftables;
     t
-  with _ -> raise Not_found
+  with Unix.Unix_error (Unix.ENOENT, _, _) -> raise Not_found
 
 (* open all files and register them in the table of tables *)
 (*
    let _ = List.iter (fun a -> 
    try ignore (open_db a)
-   with _ -> errlog ("Error while openning database "^a)) 
+   with ... -> errlog ("Error while openning database "^a)) 
     (list_tables ())
 si je remets ça, ça doit être après la création de la socket
 car si je n'arrive pas à créer la socket,
@@ -121,7 +121,7 @@ let db_get store name =
 let db_remove store name =
   try
     remove (find_dont_create_table store) name
-  with _ -> ()
+  with Not_found -> ()
 
 let db_replace store name value = 
   replace (find_create_table store) name value
@@ -178,31 +178,42 @@ let send outch v =
   Lwt_chan.output_value outch v >>= 
   (fun () -> Lwt_chan.flush outch)
 
-let execute outch = function
+let execute outch = 
+  let handle_errors f = try f () with e -> send outch (Error e) in
+  function
   | Get (t, k) -> 
-      (try 
-        send outch (Value (db_get t k))
-      with _ -> send outch Dbm_not_found)
-  | Remove (t, k) -> db_remove t k; send outch Ok
-  | Replace (t, k, v) -> db_replace t k v; send outch Ok
+      handle_errors
+      (fun () ->
+        try 
+          send outch (Value (db_get t k))
+        with 
+        | Not_found -> send outch Dbm_not_found)
+  | Remove (t, k) -> handle_errors (fun () -> db_remove t k; send outch Ok)
+  | Replace (t, k, v) -> 
+      handle_errors (fun () -> db_replace t k v; send outch Ok)
   | Replace_if_exists (t, k, v) -> 
-      (try 
-        ignore (db_get t k);
-        db_replace t k v; 
-        send outch Ok
-      with _ -> send outch Dbm_not_found)
+      handle_errors (fun () -> 
+        try 
+          ignore (db_get t k);
+          db_replace t k v; 
+          send outch Ok
+        with Not_found -> send outch Dbm_not_found)
   | Firstkey t -> 
-      (try send outch (Key (db_firstkey t))
-      with _ -> send outch End)
+      handle_errors (fun () -> 
+        try send outch (Key (db_firstkey t))
+        with Not_found -> send outch End)
   | Nextkey t -> 
-      (try send outch (Key (db_nextkey t))
-      with _ -> send outch End)
+      handle_errors (fun () -> 
+        try send outch (Key (db_nextkey t))
+        with Not_found -> send outch End)
   | Length t -> 
-      catch
-        (fun () ->
-          db_length t >>=
-          (fun i -> send outch (Value (Marshal.to_string i []))))
-        (fun _ -> send outch Dbm_not_found)
+      handle_errors (fun () ->
+        catch
+          (fun () ->
+            db_length t >>=
+            (fun i -> send outch (Value (Marshal.to_string i []))))
+          (function Not_found -> send outch Dbm_not_found
+            | e -> send outch (Error e)))
 
 let nb_clients = ref 0
 

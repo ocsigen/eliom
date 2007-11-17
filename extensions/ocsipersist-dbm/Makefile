@@ -40,7 +40,7 @@ opt: $(OBJSOPT)
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-.PHONY: doc depend
+.PHONY: doc depend ocsipersist.mli
 
 ocsipersist-dbm.cma: ocsipersist.cmo
 	$(CAMLC) -a -o ocsipersist-dbm.cma ocsipersist.cmo
@@ -54,6 +54,8 @@ ocsidbm: ocsidbm.cmo
 ocsidbm.opt: ocsidbm.cmx
 	$(CAMLOPT) -package ssl -o $@ unix.cmxa ssl.cmxa dbm.cmxa lwt.cmxa $<
 
+ocsipersist.mli:
+	cp -f ../ocsipersist.mli .
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
@@ -68,10 +70,9 @@ ocsidbm.opt: ocsidbm.cmx
 
 .PHONY: clean
 clean:
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot ocsidbm ocsidbm.opt
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot ocsidbm ocsidbm.opt ocsipersist.mli
 
 depend:
-	cp -f ../ocsipersist.mli .
 	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) > .depend
 
 

@@ -21,7 +21,7 @@
 
 open Lwt;;
 
-(* exception Task_failed *)
+exception Task_failed
 
 let minthreads : int ref = ref 0
 let maxthreads : int ref = ref 0
@@ -119,7 +119,7 @@ let detach (f : 'a -> 'b) (args : 'a) : 'b Lwt.t =
         (match !exc with
         | None -> 
             setbusy whatthread false;
-            assert false (*; fail Task_failed *)
+            fail Task_failed
         | Some e ->         
             setbusy whatthread false;
             fail e)

@@ -29,7 +29,7 @@ open Printf
 (** Data are divided into stores. 
    Create one store for your project, where you will save all your data.
  *)
-type store = string
+type store = string Lwt.t
 
 exception Ocsipersist_error
 
@@ -65,7 +65,7 @@ let yield () =
 
 let rec bind_safely stmt = function
   | [] -> stmt
-  | (value,name)::q as l ->
+  | (value, name)::q as l ->
       match Sqlite3.bind stmt (bind_parameter_index stmt name) value with
       | Rc.OK -> bind_safely stmt q
       | Rc.BUSY | Rc.LOCKED -> yield () ; bind_safely stmt l 
@@ -79,10 +79,13 @@ let m = Mutex.create ()
 
 let exec_safely f = 
   let aux () = 
-   let db = (Mutex.lock m ;db_open db_file) in 
+   let db = 
+     Mutex.lock m ; 
+     try db_open db_file with e -> Mutex.unlock m; raise e
+   in 
     (try
       let r = f db in
-      close_safely db;
+      close_safely db ;
       Mutex.unlock m ;
       r
     with e -> (
@@ -109,8 +112,8 @@ let db_create table =
     in 
     aux ()
   in
-  ignore (exec_safely create);
-  table
+  exec_safely create >>= fun () ->
+  return table
 
 let db_remove (table, key) =
   let sql =  sprintf "DELETE FROM %s WHERE key = :key " table in
@@ -228,13 +231,14 @@ let db_length table =
 (** Public functions: *)
 
 (** Type of persistent data *)
-type 'a t = store * string
+type 'a t = string * string
       
 let open_store name : store = 
   let s = "store___"^name in
   db_create s 
 
 let make_persistent_lazy ~store ~name ~default =
+  store >>= fun store ->
   let pvname = (store, name) in
   (catch
      (fun () -> db_get pvname >>= (fun _ -> return ()))
@@ -257,27 +261,34 @@ let set pvname v =
   db_replace pvname data
     
 (** Type of persistent tables *)
-type 'value table = string
+type 'value table = string Lwt.t
       
 (** name SHOULD NOT begin with "store___" *)
-let open_table name =  db_create name
+let open_table name = db_create name
     
+let table_name table = table
+
 let find table key =
+  table >>= fun table ->
   db_get (table, key) >>= fun v -> 
   return (Marshal.from_string v 0)
 
 let add table key value =
+  table >>= fun table ->
   let data = Marshal.to_string value [] in
   db_replace (table, key) data
 
 let replace_if_exists table key value =
+  table >>= fun table ->
   let data = Marshal.to_string value [] in
   db_replace_if_exists (table, key) data
 
 let remove table key =
+  table >>= fun table ->
   db_remove (table, key)
   
 let iter_step f table =
+  table >>= fun table ->
   let rec aux rowid =
     db_iter_step table rowid >>=
     (function
@@ -288,6 +299,7 @@ let iter_step f table =
   aux Int64.zero
     
 let fold_step f table beg =
+  table >>= fun table ->
   let rec aux rowid beg =
     db_iter_step table rowid >>=
     (function
@@ -298,6 +310,7 @@ let fold_step f table beg =
   aux Int64.zero beg
     
 let iter_block f table =
+  table >>= fun table ->
   db_iter_block table f
 
 let iter_table = iter_step
@@ -305,6 +318,7 @@ let iter_table = iter_step
 let fold_table = fold_step
     
 let length table = 
+  table >>= fun table ->
   db_length table
 
 

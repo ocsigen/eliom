@@ -68,6 +68,9 @@ val set : 'a t -> 'a -> unit Lwt.t
 (** Type of persistent table *)
 type 'value table
 
+(** returns the name of the table  *)
+val table_name : 'value table -> string Lwt.t
+
 (** Open a table (and create it if it does not exist)  *)
 val open_table : string -> 'value table
 
