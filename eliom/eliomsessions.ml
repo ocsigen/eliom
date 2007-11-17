@@ -369,7 +369,7 @@ let remove_persistent_session_data ?session_name ~table ~sp () =
 
 (*****************************************************************************)
 (** {2 session data in memory} *)
-type 'a table = 'a SessionCookies.t
+type 'a volatile_table = 'a SessionCookies.t
 
 let create_volatile_table ?sp () = 
   match sp with
@@ -377,7 +377,7 @@ let create_volatile_table ?sp () =
       (match global_register_allowed () with
       | Some get_current_sitedata -> create_volatile_table ()
       | None -> raise (Eliom_function_forbidden_outside_site_loading
-                         "create_table"))
+                         "create_volatile_table"))
   | Some sp -> create_volatile_table_during_session sp
 
 let get_volatile_session_data ?session_name ~table ~sp () =

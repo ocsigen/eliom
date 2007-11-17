@@ -460,7 +460,7 @@ type 'a session_data =
 (** {3 Session data in memory} *)
 
 (** The type of (volatile) session data tables. *)
-type 'a table
+type 'a volatile_table
 
 (** creates a table in memory where you can store the session data for 
    all users. 
@@ -469,22 +469,22 @@ type 'a table
    you must give the [~sp] parameter, otherwise it will raise the exception
    {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val create_volatile_table : ?sp:server_params -> unit -> 'a table
+val create_volatile_table : ?sp:server_params -> unit -> 'a volatile_table
 
 (** gets session data for the current session (if any). *)
 val get_volatile_session_data : ?session_name:string -> 
-  table:'a table -> sp:server_params -> unit -> 'a session_data
+  table:'a volatile_table -> sp:server_params -> unit -> 'a session_data
 
 (** sets session data for the current session. *)
 val set_volatile_session_data : ?session_name:string -> 
-  table:'a table -> sp:server_params -> 'a -> unit
+  table:'a volatile_table -> sp:server_params -> 'a -> unit
 
 (** removes session data for the current session 
    (but does not close the session). 
    If the session does not exist, do nothing.
  *)
 val remove_volatile_session_data : ?session_name:string -> 
-  table:'a table -> sp:server_params -> unit -> unit
+  table:'a volatile_table -> sp:server_params -> unit -> unit
 
 
 (** {3 Persistent sessions} *)
@@ -633,7 +633,7 @@ module Session_admin : sig
 
   (** Raises [Not_found] if no data in the table for the session. *)
   val get_volatile_session_data :
-      session:data_session -> table:'a table -> 'a
+      session:data_session -> table:'a volatile_table -> 'a
 
   (** Fails with lwt exception [Not_found] 
      if no data in the table for the session. *)
@@ -642,7 +642,7 @@ module Session_admin : sig
         'a Lwt.t
 
   val remove_volatile_session_data :
-      session:data_session -> table:'a table -> unit
+      session:data_session -> table:'a volatile_table -> unit
   val remove_persistent_session_data : 
       session:persistent_session -> table:'a persistent_table -> unit Lwt.t
 
