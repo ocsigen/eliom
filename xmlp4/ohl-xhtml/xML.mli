@@ -25,6 +25,8 @@ val string_attrib : aname -> string -> attrib
 val space_sep_attrib : aname -> string list -> attrib
 val comma_sep_attrib : aname -> string list -> attrib
 
+val attrib_to_string : (string -> string) -> attrib -> string
+
 val get_int_attrib : aname -> attrib list -> int
 val get_string_attrib : aname -> attrib list -> string
 val get_attrib_list : aname -> attrib list -> string list
@@ -148,17 +150,3 @@ val translate :
 
 
 
-(******************************************************************)
-(* In the following, my own stuffs for Ocsigen -- Vincent: *)
-
-val xh_print :
-    ?width:int ->
-      ?encode:(string -> string) ->
-        ?html_compat:bool ->
-          ename list -> ename list -> string -> elt -> string
-
-val x_print :
-    ?width:int ->
-      ?encode:(string -> string) ->
-        ?html_compat:bool ->
-          ename list -> ename list -> string -> elt list -> string

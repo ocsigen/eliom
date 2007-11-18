@@ -1029,6 +1029,10 @@ module type T =
 (** [~encoding] is the official name of the external character set encoding that
     is used by [outs : string -> unit]. *)
 
+    val doctype :
+        [< `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 ]
+      -> string
+ 
     val output : ?encode:(string -> string) -> ?encoding:string -> 
       (string -> unit) -> html -> unit
 
@@ -1081,22 +1085,6 @@ module type T =
     val totl : XML.elt list -> 'a elt list
     val toelt : 'a elt -> XML.elt
     val toeltl : 'a elt list -> XML.elt list
-
-    (** Ocsigen's pretty printer for xhtml. [html_compat] is an option to set
-        if you want to print with a syntax closer to html (not xml).
-        *)
-    val ocsigen_print : 
-        ?width:int -> ?encode:(string -> string) ->
-          ?html_compat:bool ->
-            [ `Html ] elt -> string
-
-    (** Ocsigen's pretty printer for xhtml portions. 
-       [html_compat] is an option to set
-        if you want to print with a syntax closer to html (not xml). *)
-    val ocsigen_xprint : 
-        ?width:int -> ?encode:(string -> string) -> 
-          ?html_compat:bool ->
-            'a elt list -> string
 
   end
 
@@ -1887,22 +1875,10 @@ module Version =
     (******************************************************************)
     (* In the following, my own stuffs for Ocsigen -- Vincent: *)
 
-    let blocktags = [ "fieldset"; "form"; "address"; "body"; "head"; "blockquote"; "div"; "html"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "p"; "dd"; "dl"; "li"; "ol"; "ul"; "colgroup"; "table"; "tbody"; "tfoot"; "thead"; "td"; "th"; "tr" ]
-
-    let semiblocktags = [ "pre"; "style"; "title" ]
-
     let tot x = x
     let totl x = x
     let toelt x = x
     let toeltl x = x
-
-    let ocsigen_print version ?width ?encode ?html_compat arbre =
-      XML.xh_print ?width ?encode ?html_compat
-        blocktags semiblocktags (doctype version) arbre
-
-    let ocsigen_xprint version ?width ?encode ?html_compat foret =
-      XML.x_print ?width ?encode ?html_compat
-        blocktags semiblocktags (doctype version) foret
         
   end    
 
@@ -1915,8 +1891,6 @@ module M_01_00 : T_01_00 =
     let standard = M.standard xhtml_version
     let output = M.output xhtml_version
     let pretty_print = M.pretty_print xhtml_version
-    let ocsigen_print = M.ocsigen_print xhtml_version
-    let ocsigen_xprint = M.ocsigen_xprint xhtml_version
     let validator_icon () = M.validator_icon xhtml_version
     let all_anchors elt =
       M.all_anchors elt @ XML.all_string_attribs ~is_elt:((=) "a") "name" elt
@@ -1931,8 +1905,6 @@ module M_01_01 : T_01_01 =
     let standard = M.standard xhtml_version
     let output = M.output xhtml_version
     let pretty_print = M.pretty_print xhtml_version
-    let ocsigen_print = M.ocsigen_print xhtml_version
-    let ocsigen_xprint = M.ocsigen_xprint xhtml_version
     let validator_icon () = M.validator_icon xhtml_version
   end
 

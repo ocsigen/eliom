@@ -30,9 +30,9 @@ OBJS = $(FILES:.ml=.cmo) ocsidbm $(OBJDBM)
 OBJSOPT = $(FILES:.ml=.cmx) ocsidbm.opt $(OBJDBM:.cma=.cmxs)
 
 
-byte: $(OBJS)
+byte: ocsipersist.mli $(OBJS)
 
-opt: $(OBJSOPT)
+opt: ocsipersist.mli $(OBJSOPT)
 	[ -f ../ocsipersist.cmx ] || \
 	cp ocsipersist.cmx ..
 
@@ -40,7 +40,7 @@ opt: $(OBJSOPT)
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
-.PHONY: doc depend ocsipersist.mli
+.PHONY: doc depend
 
 ocsipersist-dbm.cma: ocsipersist.cmo
 	$(CAMLC) -a -o ocsipersist-dbm.cma ocsipersist.cmo
@@ -72,7 +72,7 @@ ocsipersist.mli:
 clean:
 	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot ocsidbm ocsidbm.opt ocsipersist.mli
 
-depend:
+depend: ocsipersist.mli
 	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) > .depend
 
 

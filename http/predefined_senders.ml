@@ -55,7 +55,7 @@ let add_css (a : 'a) : 'a =
       | e -> e)
 
 
-module Xhtml_content =
+module Old_Xhtml_content =
   struct
     type t = [ `Html ] XHTML.M.elt
 
@@ -63,11 +63,11 @@ module Xhtml_content =
       Some (Digest.to_hex (Digest.string x))
 
     let get_etag c =
-      let x = XHTML.M.ocsigen_print (add_css c) in
+      let x = Xhtmlpretty.xhtml_print (add_css c) in
       get_etag_aux x
 
     let result_of_content c = 
-      let x = XHTML.M.ocsigen_print (add_css c) in
+      let x = Xhtmlpretty.xhtml_print (add_css c) in
       let md5 = get_etag_aux x in
       let default_result = default_result () in
       Lwt.return 
@@ -80,6 +80,28 @@ module Xhtml_content =
          Ocsistream.make 
            (fun () -> Ocsistream.cont x
                (fun () -> Ocsistream.empty None))
+       }
+           
+  end
+
+module Xhtml_content =
+  struct
+    type t = [ `Html ] XHTML.M.elt
+
+    let get_etag_aux x = None
+
+    let get_etag c = None
+
+    let result_of_content c = 
+      let x = Xhtmlpretty.xhtml_stream (add_css c) in
+      let default_result = default_result () in
+      Lwt.return 
+        {default_result with
+         res_content_length = None;
+         res_content_type = Some "text/html";
+         res_etag = get_etag c;
+         res_headers= Http_headers.dyn_headers;
+         res_stream = x
        }
            
   end

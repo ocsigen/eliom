@@ -1084,7 +1084,7 @@ end
 (****************************************************************************)
 module SubXhtml = functor(T : sig type content end) ->
   (struct
-    module Cont_content =
+(*    module Old_Cont_content =
       (* Pasted from predefined_senders.ml and modified *)
       struct
         type t = T.content XHTML.M.elt list
@@ -1093,11 +1093,11 @@ module SubXhtml = functor(T : sig type content end) ->
           Some (Digest.to_hex (Digest.string x))
             
         let get_etag c =
-          let x = (XHTML.M.ocsigen_xprint c) in
+          let x = (Xhtmlpretty.ocsigen_xprint c) in
           get_etag_aux x
             
         let result_of_content c = 
-          let x = XHTML.M.ocsigen_xprint c in
+          let x = Xhtmlpretty.ocsigen_xprint c in
           let md5 = get_etag_aux x in
           let default_result = default_result () in
           Lwt.return 
@@ -1110,6 +1110,29 @@ module SubXhtml = functor(T : sig type content end) ->
              Ocsistream.make 
                (fun () -> Ocsistream.cont x
                    (fun () -> Ocsistream.empty None))
+           }
+
+      end *)
+
+    module Cont_content =
+      (* Pasted from predefined_senders.ml and modified *)
+      struct
+        type t = T.content XHTML.M.elt list
+              
+        let get_etag_aux x = None
+            
+        let get_etag c = None
+            
+        let result_of_content c = 
+          let x = Xhtmlpretty.xhtml_list_stream c in
+          let default_result = default_result () in
+          Lwt.return 
+            {default_result with
+             res_content_length = None;
+             res_content_type = Some "text/html";
+             res_etag = get_etag c;
+             res_headers= Http_headers.dyn_headers;
+             res_stream = x
            }
 
       end

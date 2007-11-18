@@ -1,18 +1,56 @@
 include ../Makefile.config
 
-byte:
+ifeq "$(DEBUG)" "YES"
+DBG = -dtypes -g
+else
+DBG =
+endif
+
+FILES = xhtmlpretty.ml
+
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) 
+# -package camlp4
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) 
+# -package camlp4
+CAMLDEP = $(OCAMLFIND) ocamldep $(LIB) 
+LIB = $(LIBDIRS)
+# PP = -syntax camlp4rf -ppopt "-loc loc"
+# PPLEXER = -syntax camlp4of -ppopt "-loc loc"
+
+OBJS = $(FILES:.ml=.cmo)
+OBJSOPT = $(FILES:.ml=.cmx)
+
+
+byte: bytedep $(OBJS)
+p4: bytedep
+opt: optdep $(OBJSOPT)
+
+bytedep:
 ifeq "$(OCAMLVERSION)" "OLD"
 	$(MAKE) -C oldocaml byte
 else 
 	$(MAKE) -C newocaml byte
 endif
 
-opt:
+optdep:
 ifeq "$(OCAMLVERSION)" "OLD"
 	$(MAKE) -C oldocaml opt
 else 
 	$(MAKE) -C newocaml opt
 endif
+
+
+# Common rules
+.SUFFIXES: .ml .mli .cmo .cmi .cmx
+
+.ml.cmo:
+	$(CAMLC) $(PP) -c $<
+.mli.cmi:
+	$(CAMLC) $(PP) -c $<
+.ml.cmx:
+	$(CAMLOPT) $(PP) -c $<
+
+
 
 clean:
 #	touch oldocaml/.depend
@@ -24,8 +62,12 @@ clean:
 depend:
 #	touch oldocaml/.depend
 #	touch newocaml/.depend
+	$(CAMLDEP) -I ohl-xhtml -I newocaml $(FILES) > .depend
 ifeq "$(OCAMLVERSION)" "OLD"
 	$(MAKE) -C oldocaml depend
 else 
 	$(MAKE) -C newocaml depend
 endif
+
+
+-include .depend

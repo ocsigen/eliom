@@ -46,7 +46,7 @@ DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lw
 
 
 INSTALL = install
-TARGETSBYTE = lwt.byte xmlp4.byte baselib.byte http.byte server.byte extensions.byte eliom.byte examples.byte
+TARGETSBYTE = lwt.byte xmlp4.p4 baselib.byte xmlp4.byte http.byte server.byte extensions.byte eliom.byte examples.byte
 
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	eliom/eliom.cma \
@@ -63,7 +63,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliommod.cmi
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma
-CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi http/http_headers.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
+CMITOINSTALL = server/extensions.cmi server/parseconfig.cmi xmlp4/xhtmlpretty.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi server/preemptive.cmi http/predefined_senders.cmi http/framepp.cmi http/http_com.cmi http/http_headers.cmi baselib/ocsimisc.cmi baselib/ocsiconfig.cmi http/http_frame.cmi http/ocsiheaders.cmi http/ocsistream.cmi baselib/messages.cmi META
 #LWTCMITOINSTALL = lwt/lwt.cmi lwt/lwt_unix.cmi lwt/lwt_chan.cmi lwt/lwt_ssl.cmi lwt/lwt_timeout.cmi lwt/lwt_util.cmi lwt/META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi
@@ -128,6 +128,11 @@ xmlp4.byte:
 #	touch xmlp4/.depend
 #	$(MAKE) -C xmlp4 depend
 	$(MAKE) -C xmlp4 byte
+
+xmlp4.p4:
+#	touch xmlp4/.depend
+#	$(MAKE) -C xmlp4 depend
+	$(MAKE) -C xmlp4 p4
 
 xmlp4.opt:
 #	touch xmlp4/.depend
@@ -219,7 +224,7 @@ clean:
 	-rm -f doc/* doc/*~
 	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 
-depend: xmlp4.byte
+depend: xmlp4.p4
 #	touch lwt/depend
 #	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 	@for i in $(REPS) ; do $(MAKE) -C $$i depend ; done

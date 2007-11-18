@@ -330,10 +330,10 @@ let service
     | Extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
     | Ocsistream.Interrupted Ocsistream.Already_read ->
-        Messages.errlog
+        Messages.warning
           "Cannot read the request twice. You probably have \
-           two incompatible extensions, or the order of the \
-           extensions in the config file is wrong.";
+           two incompatible options in <site> configuration, \
+           or the order of the options in the config file is wrong.";
         send_error sender_slot ~clientproto ~head ~keep_alive:true
           ~code:500 ~sender:Http_com.default_sender () (* Internal error *)
     | Ocsigen_upload_forbidden ->
