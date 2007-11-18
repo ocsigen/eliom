@@ -150,7 +150,7 @@ module type T =
     type linktypes =
         [ `Alternate | `Appendix | `Bookmark | `Chapter | `Contents
         | `Copyright | `Glossary | `Help | `Index | `Next | `Prev
-        | `Section | `Start | `Stylesheet | `Subsection] list
+        | `Section | `Start | `Stylesheet | `Subsection | `Other of string] list
 (** Authors may use the following recognized link types, listed here with
     their conventional interpretations. A LinkTypes value refers to a
     space-separated list of link types. White space characters are not
@@ -207,7 +207,10 @@ module type T =
          Refers to a bookmark. A bookmark is a link to a key entry point within
          an extended document. The title attribute may be used, for example, to
          label the bookmark. Note that several bookmarks may be defined in each
-         document.}} *)
+         document.}
+      {- [`Other]:
+         refers to any other type (for example [icon] or [shortcut]).
+         }} *)
 
     type mediadesc =
         [ `All | `Aural | `Braille | `Handheld | `Print
@@ -1161,7 +1164,7 @@ module Version =
     type linktypes =
         [`Alternate | `Appendix | `Bookmark | `Chapter | `Contents
         | `Copyright | `Glossary | `Help | `Index | `Next | `Prev
-        | `Section | `Start | `Stylesheet | `Subsection] list
+        | `Section | `Start | `Stylesheet | `Subsection | `Other of string] list
     type mediadesc =
         [ `All | `Aural | `Braille | `Handheld | `Print
         | `Projection | `Screen | `TTY | `TV ] list
@@ -1233,6 +1236,7 @@ module Version =
       | `Start -> "start"
       | `Stylesheet -> "stylesheet"
       | `Subsection -> "subsection"
+      | `Other t -> t
 
     let linktypes_attrib name linktypes =
       string_attrib name
