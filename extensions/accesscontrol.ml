@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module accesscontrol.ml
- * Copyright (C) 2007 Vincent Balat
+ * Copyright (C) 2007 Vincent Balat, Stéphane Glondu
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -42,14 +42,10 @@ type filter =
   | Filter_Method of Http_frame.Http_header.http_method
   | Filter_Header of string * Netstring_pcre.regexp
   | Filter_Protocol of Http_frame.Http_header.proto
+  | Filter_Disj of filter list
+  | Filter_Conj of filter list
+  | Filter_Neg of filter
 
-type filters =
-  | Allow_or of filter list
-  | Deny_and of filter list
-  | Allow_and of filter list
-  | Deny_or of filter list
-  | Forbidden
-  | Notfound
 
 
 (*****************************************************************************)
@@ -67,8 +63,8 @@ let _ = parse_global_config (Extensions.get_config ())
 (*****************************************************************************)
 (* Finding access pattern *)
 
-let find_access access_pattern ri = 
-  let one_access = function
+let find_access ri =
+  let rec one_access = function
     | Filter_Ip (ip32, mask) -> 
         let r = Int32.logand (Lazy.force ri.ri_ip32) mask = ip32 in
         if r then 
@@ -117,34 +113,32 @@ let find_access access_pattern ri =
         else
           Messages.debug2 "--Access control: Header does not match regexp";
         r
+    | Filter_Conj filters -> List.for_all one_access filters
+    | Filter_Disj filters -> List.exists one_access filters
+    | Filter_Neg f -> not (one_access f)
   in
-  match access_pattern with
-  | Allow_or l -> List.fold_left (fun beg a -> beg || one_access a) false l
-  | Allow_and l -> List.fold_left (fun beg a -> beg && one_access a) true l
-  | Deny_or l -> 
-      not (List.fold_left (fun beg a -> beg || one_access a) false l)
-  | Deny_and l -> 
-      not (List.fold_left (fun beg a -> beg && one_access a) true l)
-  | Forbidden -> raise (Ocsigen_http_error 403)
-  | Notfound -> raise (Ocsigen_http_error 404)
+  one_access
 
 
 
-let gen test err charset ri = 
+let gen test = Page_gen (fun err charset ri ->
   try
-    if find_access test ri then begin
-      Messages.debug2 "--Access control: => Access granted!";
-      Lwt.return (Ext_not_found err)
-    end
-    else begin
-      Messages.debug2 "--Access control: => Access denied!";
-      Lwt.return (Ext_stop 403)
-    end
+    match test with
+      | `Filter test ->
+          if find_access ri test then begin
+            Messages.debug2 "--Access control: => Access granted!";
+            Lwt.return (Ext_not_found err)
+          end
+          else begin
+            Messages.debug2 "--Access control: => Access denied!";
+            Lwt.return (Ext_stop 403)
+          end
+    | `Error e -> raise e
   with 
   | e -> 
       Messages.debug2 "--Access control: taking in charge an error";
       fail e (* for example Ocsigen_http_error 404 or 403 *)
-        (* server.ml has a default handler for HTTP errors *)
+        (* server.ml has a default handler for HTTP errors *))
 
 
 
@@ -190,29 +184,24 @@ let parse_config path charset =
         with Failure _ -> 
           raise (Error_in_config_file
                    "Bad regular expression in <path/>"))
+    | Element ("not", [], [e]) ->
+        Filter_Neg (parse_sub e)
+    | Element ("and", [], sub) ->
+        Filter_Conj (List.map parse_sub sub)
+    | Element ("or", [], sub) ->
+        Filter_Disj (List.map parse_sub sub)
     | Element (t, _, _) -> raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
     | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
   in
   function
-  | Element ("allow", [("type","or")], sub) -> 
-      Page_gen (gen (Allow_or (List.map parse_sub sub)))
-  | Element ("deny", [("type","or")], sub) -> 
-      Page_gen (gen (Deny_or (List.map parse_sub sub)))
-  | Element ("allow", [("type","and")], sub) -> 
-      Page_gen (gen (Allow_and (List.map parse_sub sub)))
-  | Element ("deny", [("type","and")], sub) -> 
-      Page_gen (gen (Deny_and (List.map parse_sub sub)))
-  | Element ("forbidden", [], sub) -> 
-      Page_gen (gen Forbidden)
-  | Element ("notfound", [], sub) -> 
-      Page_gen (gen Notfound)
-  | Element ("allow", _, _)
-  | Element ("deny", _, _) -> 
-      raise 
-        (Error_in_config_file
-           "(accesscontrol extension) Please specify type=\"or\" or type=\"and\" for <allow> and <deny>")
+  | Element ("allow", [], [e]) -> gen (`Filter (parse_sub e))
+  | Element ("deny", [], [e]) -> gen (`Filter (Filter_Neg (parse_sub e)))
+  | Element ("forbidden", [], []) -> gen (`Error (Ocsigen_http_error 403))
+  | Element ("notfound", [], []) -> gen (`Error (Ocsigen_http_error 404))
+  | Element (("allow"|"deny"|"forbidden"|"notfound") as t, _, _) ->
+      raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
-  | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
+  | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad toplevel data")
 
 
 
