@@ -269,7 +269,7 @@ let host_match host port =
             Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
           let beg2 = p + len in
           (host_match1 beg2 l) || (aux1 t len l (p+1))
-        with _ -> false
+        with Not_found -> false
       in
       function
         | [] -> beg = hostlen
@@ -280,7 +280,7 @@ let host_match host port =
         | (Text (t,len))::l -> 
             try
               (t = String.sub host beg len) && (host_match1 (beg+len) l)
-            with _ -> false
+            with Invalid_argument _ -> false
     in
     function
       | [] -> false
@@ -453,7 +453,7 @@ let parse_url url =
   let params = 
     try
       Some (Neturl.url_query ~encoded:true url2)
-    with _ -> None
+    with Not_found -> None
         (* Neturl.string_of_url
            (Neturl.remove_from_url
            ~user:true

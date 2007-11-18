@@ -184,7 +184,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
                             let cd = List.assoc "content-disposition" hs in
                             let st = try 
                               Some (find_field "filename" cd) 
-                            with _ -> None in
+                            with Not_found -> None in
                             let p_name = find_field "name" cd in
                             match st with 
                             | None -> No_File (p_name, Buffer.create 1024)
@@ -379,7 +379,7 @@ let service
 
                 (match e with
                   Http_com.Lost_connection _ ->
-                    warn sockaddr "connection abrutedly closed by peer \
+                    warn sockaddr "connection abruptly closed by peer \
                                    while reading contents"
                 | Http_com.Timeout ->
                     warn sockaddr "timeout while reading contents"
@@ -602,7 +602,8 @@ let handle_connection port in_ch sockaddr =
   let handle_write_errors e =
     begin match e with
       Lost_connection e' ->
-        warn sockaddr ("connection abrutedly closed by peer (" ^ string_of_exn e' ^ ")")
+        warn sockaddr ("connection abruptly closed by peer (" 
+                       ^ string_of_exn e' ^ ")")
     | Http_com.Timeout ->
         warn sockaddr "timeout"
     | Http_com.Aborted ->
@@ -628,7 +629,7 @@ let handle_connection port in_ch sockaddr =
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Lost_connection _ ->
-        warn sockaddr "connection abrutedly closed by peer";
+        warn sockaddr "connection abruptly closed by peer";
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Timeout ->
@@ -891,7 +892,7 @@ let _ = try
       let commandpipe = get_command_pipe () in 
       (try
         ignore (Unix.stat commandpipe);
-      with _ -> 
+      with Unix.Unix_error _ -> 
         (try
           let umask = Unix.umask 0 in
           Unix.mkfifo commandpipe 0o660;
@@ -958,7 +959,7 @@ let _ = try
       (* Communication with the server through the pipe *)
       (try
         ignore (Unix.stat commandpipe)
-      with _ -> 
+      with Unix.Unix_error _ -> 
           let umask = Unix.umask 0 in
           Unix.mkfifo commandpipe 0o660;
           ignore (Unix.umask umask);

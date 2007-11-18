@@ -138,7 +138,7 @@ let remove_end_slash s =
     if s.[(String.length s) - 1] = '/'
     then String.sub s 0 ((String.length s) - 1)
     else s
-  with _ -> s
+  with Invalid_argument _ -> s
 
 
 
@@ -157,7 +157,7 @@ let remove_end_slash s =
       then *)
    prefix::(cut_url (String.sub s (pos_slash+1) (length - pos_slash - 1)))
    (* else [prefix] *)
-   with _ -> [s]
+   with ? -> [s]
  *)
 
 
@@ -199,7 +199,7 @@ let basic_sep char s =
     ((String.sub s 0 seppos),
      (String.sub s (seppos+1) 
         (1 + (String.length s) - seppos)))
-  with _ -> raise Not_found
+  with Invalid_argument _ -> raise Not_found
 
 
 (* Returns a copy of the string from beg to endd,
@@ -221,7 +221,9 @@ let remove_spaces s beg endd =
   else ""
 
 
-(* Cut a string to the next separator, removing spaces *)
+(* Cut a string to the next separator, removing spaces.
+   Raises Not_found if the separator connaot be found.
+ *)
 let sep char s =
   let len = String.length s in
   let seppos = String.index s char in

@@ -56,7 +56,7 @@ let rec quoted_split char (* char is not used in that version *) s =
       (if (afterlast + 1) < longueur
       then aux (afterlast + 1)
       else [])
-    with _ -> []
+    with Failure _ | Invalid_argument _ -> []
   in 
   aux 0
 

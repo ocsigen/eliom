@@ -514,14 +514,14 @@ let (<<?) h (n, v) = Http_headers.replace_opt n v h
 
 
 let gmtdate d =  
-        let x = Netdate.mk_mail_date ~zone:0 d in try
+  let x = Netdate.mk_mail_date ~zone:0 d in try
 (*XXX !!!*)
-        let ind_plus =  String.index x '+' in  
-        String.set x ind_plus 'G';
-        String.set x (ind_plus + 1) 'M';
-        String.set x (ind_plus + 2) 'T';
-        String.sub x 0 (ind_plus + 3)
-        with _ -> Messages.debug2 "no +"; x
+    let ind_plus =  String.index x '+' in  
+    String.set x ind_plus 'G';
+    String.set x (ind_plus + 1) 'M';
+    String.set x (ind_plus + 2) 'T';
+    String.sub x 0 (ind_plus + 3)
+  with Invalid_argument _ | Not_found -> Messages.debug2 "no +"; x
 
 type sender_type = {
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)

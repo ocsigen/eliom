@@ -226,23 +226,23 @@ let parse_mime_types filename =
   let rec read_and_split in_ch = try
     let line = input_line in_ch in
     let line_upto = try 
-            let upto = String.index line '#' in 
-        String.sub line 0 upto 
+      let upto = String.index line '#' in 
+      String.sub line 0 upto 
     with Not_found -> line in
     let strlist = 
       Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto in
     match  List.length strlist with
     | 0 | 1 -> read_and_split in_ch
     | _ -> let make_pair = (fun h -> Hashtbl.add mimeht h (List.hd strlist)) in
-               List.iter make_pair (List.tl strlist);
-               read_and_split in_ch
-    with End_of_file -> ()
+      List.iter make_pair (List.tl strlist);
+      read_and_split in_ch
+  with End_of_file -> ()
   in
   try
     let in_ch =  open_in filename in
     read_and_split in_ch;
     close_in in_ch
-  with _ -> ()
+  with Sys_error _ | Not_found -> ()
 
 
 let rec affiche_mime () =
@@ -254,8 +254,10 @@ let content_type_from_file_name =
   let parsed = ref false in
   fun filename ->
     if not !parsed
-    then (parse_mime_types (Ocsiconfig.get_mimefile ());
-          parsed := true);
+    then begin
+      parsed := true;
+      parse_mime_types (Ocsiconfig.get_mimefile ());
+    end;
     try 
       let pos = (String.rindex filename '.') in 
       let extens = 
@@ -263,7 +265,7 @@ let content_type_from_file_name =
           (pos+1)
           ((String.length filename) - pos - 1)
       in Hashtbl.find mimeht extens
-    with _ -> "unknown" 
+    with Not_found | Invalid_argument _ -> "unknown" 
 
 (** this module instanciate the HTTP_CONTENT signature for files *)
 module File_content =
@@ -298,29 +300,31 @@ module File_content =
 
     let result_of_content c  =
       (* open the file *)
-      let fd = 
-        Lwt_unix.of_unix_file_descr 
-          (Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
-      in
-      let st = Unix.LargeFile.stat c in 
-      let etag = get_etag_aux st in
-      let stream = read_file fd in
-      let default_result = default_result () in
-      Lwt.return
-        {default_result with
-         res_content_length = Some st.Unix.LargeFile.st_size;
-         res_content_type = Some (content_type_from_file_name c);
-         res_lastmodified = Some st.Unix.LargeFile.st_mtime;
-         res_etag = etag;
-         res_stream = 
-         Ocsistream.make
-           ~finalize:
-           (fun () ->
-             Messages.debug2 "closing file";
-             Lwt_unix.close fd;
-             return ())
-           stream
-       }
+      try
+        let fd = 
+          Lwt_unix.of_unix_file_descr 
+            (Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
+        in
+        let st = Unix.LargeFile.stat c in 
+        let etag = get_etag_aux st in
+        let stream = read_file fd in
+        let default_result = default_result () in
+        Lwt.return
+          {default_result with
+           res_content_length = Some st.Unix.LargeFile.st_size;
+           res_content_type = Some (content_type_from_file_name c);
+           res_lastmodified = Some st.Unix.LargeFile.st_mtime;
+           res_etag = etag;
+           res_stream = 
+           Ocsistream.make
+             ~finalize:
+             (fun () ->
+               Messages.debug2 "closing file";
+               Lwt_unix.close fd;
+               return ())
+             stream
+         }
+      with e -> fail e
         
 
   end
