@@ -156,52 +156,61 @@ let gen test = Page_gen (fun err charset ri ->
 
 
 let parse_config path charset = 
-  let rec parse_sub = function
-    | Element ("ip", [("value", s)], []) -> 
+  let parse_filter = function
+    | ("ip", [("value", s)]) ->
         (try
           Filter_Ip (Ocsimisc.parse_ip_netmask s)
         with Failure _ -> 
-          raise (Error_in_config_file "Bad ip/netmask value in <ip/>"))
-    | Element ("header", [("name", s); ("regexp", r)], []) -> 
+          raise (Error_in_config_file "Bad ip/netmask value in ip filter"))
+    | ("header", [("name", s); ("regexp", r)]) ->
         (try
           Filter_Header (s, Netstring_pcre.regexp r)
         with Failure _ -> 
           raise (Error_in_config_file
-                   "Bad regular expression in <header/>"))
-    | Element ("method", [("value", s)], []) -> 
+                   "Bad regular expression in header filter"))
+    | ("method", [("value", s)]) ->
         (try
           Filter_Method (Framepp.method_of_string s)
         with Failure _ -> 
-          raise (Error_in_config_file "Bad method value in <method/>"))
-    | Element ("protocol", [("value", s)], []) -> 
+          raise (Error_in_config_file "Bad method value in method filter"))
+    | ("protocol", [("value", s)]) ->
         (try
           Filter_Protocol (Framepp.proto_of_string s)
         with Failure _ -> 
-          raise (Error_in_config_file "Bad protocol value in <protocol/>"))
-    | Element ("path", [("regexp", s)], []) -> 
+          raise (Error_in_config_file "Bad protocol value in protocol filter"))
+    | ("path", [("regexp", s)]) ->
         (try
           Filter_Path (Netstring_pcre.regexp s)
         with Failure _ -> 
           raise (Error_in_config_file
                    "Bad regular expression in <path/>"))
-    | Element ("not", [], [e]) ->
-        Filter_Neg (parse_sub e)
-    | Element ("and", [], sub) ->
-        Filter_Conj (List.map parse_sub sub)
-    | Element ("or", [], sub) ->
-        Filter_Disj (List.map parse_sub sub)
-    | Element (t, _, _) -> raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
+    | (t, _) -> raise (Error_in_config_file ("(accesscontrol extension) Problem with "^t^" filter in configuration file."))
+  in
+  let rec parse_sub = function
+    | Element ("filter", ("type", t)::attrs, []) -> parse_filter (t, attrs)
+    | Element ("not", ["type", ("and"|"or" as t)], sub) -> Filter_Neg (parse_sub (Element (t, [], sub)))
+    | Element ("not", ("type", t)::attrs, []) -> Filter_Neg (parse_filter (t, attrs))
+    | Element ("and", [], sub) -> Filter_Conj (List.map parse_sub sub)
+    | Element ("or", [], sub) -> Filter_Disj (List.map parse_sub sub)
+    | Element (t, _, _) ->
+        raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
     | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
   in
   function
-  | Element ("allow", [], [e]) -> gen (`Filter (parse_sub e))
-  | Element ("deny", [], [e]) -> gen (`Filter (Filter_Neg (parse_sub e)))
+  | Element ("allow", ["type", ("and"|"or" as t)], sub) ->
+      gen (`Filter (parse_sub (Element (t, [], sub))))
+  | Element ("allow", ("type", t)::attrs, []) ->
+      gen (`Filter (parse_filter (t, attrs)))
+  | Element ("deny", ["type", ("and"|"or" as t)], sub) ->
+      gen (`Filter (Filter_Neg (parse_sub (Element (t, [], sub)))))
+  | Element ("deny", ("type", t)::attrs, []) ->
+      gen (`Filter (Filter_Neg (parse_filter (t, attrs))))
   | Element ("forbidden", [], []) -> gen (`Error (Ocsigen_http_error 403))
   | Element ("notfound", [], []) -> gen (`Error (Ocsigen_http_error 404))
   | Element (("allow"|"deny"|"forbidden"|"notfound") as t, _, _) ->
       raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
-  | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad toplevel data")
+  | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad (toplevel) data")
 
 
 
