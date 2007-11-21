@@ -30,7 +30,6 @@ open Http_com
 open Predefined_senders
 open Ocsiconfig
 open Parseconfig
-open Error_pages
 open Lazy
 
 

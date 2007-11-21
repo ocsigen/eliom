@@ -3,7 +3,7 @@ include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= staticmod.ml cgimod.ml redirectmod.ml revproxy.ml extensiontemplate.ml \
-	accesscontrol.ml
+	accesscontrol.ml staticmod.ml cgimod.ml
 
 ifeq "$(OCSIPERSISTSQLITE)" "YES"
 FILESSQLITE= ocsipersist.ml
@@ -60,22 +60,18 @@ PP2 =
 # -pp "$(CAMLP4O) ../lib/xhtmlsyntax.cma -- -loc loc"
 
 
-OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
+OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 
-OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs)
+OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(FILES:.ml=.cmxs) $(DUCEFILES:.ml=.cmxs)
 
 
-byte: $(FILESSQLITE:.ml=.cmo) $(OBJDBMBYTE) $(OBJS) \
-      staticmod.cmo cgimod.cmo \
-      $(DUCEMODBYTE)
+byte: $(OBJDBMBYTE) $(OBJS)
 
-opt: $(FILESSQLITE:.ml=.cmx) $(OBJDBMOPT) $(OBJSOPT) \
-     staticmod.cmxs cgimod.cmxs \
-     $(DUCEMODOPT)
+opt: $(OBJDBMOPT) $(OBJSOPT)
 
 
 .SUFFIXES:
-.SUFFIXES: .ml .mli .cmo .cmi .cmx
+.SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
 
 .PHONY: doc depend dbm-byte dbm-opt
 
@@ -85,23 +81,11 @@ dbm-byte:
 dbm-opt:
 	$(MAKE) -C ocsipersist-dbm opt
 
-staticmod.cmxs: staticmod.cmx
-	$(CAMLOPT) -shared -linkall -o staticmod.cmxs staticmod.cmx
-
-cgimod.cmxs: cgimod.cmx
-	$(CAMLOPT) -shared -linkall -o cgimod.cmxs cgimod.cmx
-
-deflatemod.cmxs: deflatemod.cmx
-	$(CAMLOPT) -shared -linkall -o deflatemod.cmxs deflatemod.cmx
-
-ocsipersist.cmxs: ocsipersist.cmx
-	$(CAMLOPT) -shared -linkall -o ocsipersist.cmxs ocsipersist.cmx
-
 ocsipersist-sqlite.cma: ocsipersist.cmo
 	$(CAMLC) -a -o ocsipersist-sqlite.cma ocsipersist.cmo
 
 ocsipersist-sqlite.cmxs: ocsipersist.cmx
-	$(CAMLOPT) -shared -linkall -o ocsipersist-sqlite.cmxs ocsipersist.cmx
+	$(CAMLOPT) -dlcode -shared -linkall -o ocsipersist-sqlite.cmxs ocsipersist.cmx
 
 
 .ml.cmo:
@@ -111,14 +95,20 @@ ocsipersist-sqlite.cmxs: ocsipersist.cmx
 	$(CAMLC) -c $<
 
 .ml.cmx:
-	$(CAMLOPT) $(PP) -c $<
+	$(CAMLOPT) $(PP) -dlcode -c $<
+
+.cmx.cmxs:
+	$(CAMLOPT) -dlcode -shared -linkall -o $@ $<
 
 #doc:
 #	$(CAMLDOC) -d doc -html ocsigen.mli extensions.mli
 
+$(FILES:.ml=.cmxs): $(FILES:.ml=.cmx)
+$(DUCEFILES:.ml=.cmxs): $(DUCEFILES:.ml=.cmx)
+
 .PHONY: clean
 clean:
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.cmx *.a *~ doc/*  *.annot
 	$(MAKE) -C ocsipersist-dbm clean
 
 depend:

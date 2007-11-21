@@ -64,7 +64,7 @@ endif
 
 LIB = -thread -package netstring,cryptokit $(LIBDIRS)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
-CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) -dlcode $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
 PP = 
@@ -89,18 +89,18 @@ opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) \
 
 .PHONY: doc depend
 
-eliomsessiondata.cmx: eliomsessiondata.ml
-	-rm ../extensions/ocsipersist.cmx
+eliomsessions.cmx: eliomsessions.ml
+#	-rm ../extensions/ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
-	-touch ../extensions/ocsipersist.cmx
+#	-touch ../extensions/ocsipersist.cmx
 # we remove ocsipersist.cmx, 
 # otherwise eliomsessiondata.cmx will will compiled against
 # that precise version of ocsipersist.cmx
 
 eliommod.cmx: eliommod.ml
-	-rm ../extensions/ocsipersist.cmx
+#	-rm ../extensions/ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
-	-touch ../extensions/ocsipersist.cmx
+#	-touch ../extensions/ocsipersist.cmx
 # idem
 
 eliom.cma: error_pages.cmo eliommod.cmo eliomsessions.cmo \
@@ -168,7 +168,7 @@ clean:
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
-
+	sed -i s%../extensions/ocsipersist.cmx%% .depend
 
 FORCE:
 

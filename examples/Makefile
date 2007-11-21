@@ -19,7 +19,7 @@ endif
 
 LIB = $(LIBDIRS) -package netstring,camlp4
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
-CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) -dlcode $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIB)
 PP = -syntax camlp4o -ppopt "../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 
@@ -35,8 +35,10 @@ exampleduce.cmo:
 	cp ocamlduce/exampleduce.cmo .
 
 exampleduce.cmx:
+#	-rm -f ../extensions/ocsipersist.cmx
 	$(OCAMLDUCEFIND) ocamlopt $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
 	cp ocamlduce/exampleduce.cmx .
+#	touch ../extensions/ocsipersist.cmx
 
 miniwiki.byte:
 	$(MAKE) -C miniwiki byte
@@ -57,9 +59,9 @@ miniwiki.opt:
 	$(CAMLC) -c $<
 
 .ml.cmx:
-	-rm ../modules/ocsipersist.cmx
+#	-rm ../extensions/ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
-	touch ../modules/ocsipersist.cmx
+#	touch ../extensions/ocsipersist.cmx
 
 .cmx.cmxs:
 	$(CAMLOPT) -shared -linkall -o $@ $<

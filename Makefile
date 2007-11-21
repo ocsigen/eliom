@@ -46,7 +46,7 @@ DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lw
 
 
 INSTALL = install
-TARGETSBYTE = lwt.byte xmlp4.p4 baselib.byte xmlp4.byte http.byte server.byte extensions.byte eliom.byte examples.byte
+TARGETSBYTE = lwt.byte baselib.byte http.byte xmlp4.byte server.byte extensions.byte eliom.byte examples.byte
 
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	eliom/eliom.cma \
@@ -84,6 +84,7 @@ TOINSTALLXTEMP=$(CMAOTOINSTALL:.cmo=.cmx)
 TOINSTALLX=$(TOINSTALLXTEMP:.cma=.cmxa) $(TOINSTALLXTEMP1:.cma=.cmxs)
 EXAMPLESOPT=$(EXAMPLESCMO:.cmo=.cmxs)
 OPT=opt
+DEPOPT=xmlp4pre.opt
 else
 TOINSTALLX=
 EXAMPLESOPT=
@@ -97,9 +98,9 @@ REPS=$(TARGETSBYTE:.byte=)
 
 all: $(BYTE) $(OPT) $(OCSIGENNAME).conf.local
 
-byte: $(TARGETSBYTE)
+byte: xmlp4pre.byte $(TARGETSBYTE)
 
-opt: $(TARGETSBYTE:.byte=.opt)
+opt: xmlp4pre.opt $(TARGETSBYTE:.byte=.opt)
 
 .PHONY: $(REPS) clean
 
@@ -129,10 +130,11 @@ xmlp4.byte:
 #	$(MAKE) -C xmlp4 depend
 	$(MAKE) -C xmlp4 byte
 
-xmlp4.p4:
-#	touch xmlp4/.depend
-#	$(MAKE) -C xmlp4 depend
-	$(MAKE) -C xmlp4 p4
+xmlp4pre.byte:
+	$(MAKE) -C xmlp4 xmlp4pre.byte
+
+xmlp4pre.opt:
+	$(MAKE) -C xmlp4 xmlp4pre.opt
 
 xmlp4.opt:
 #	touch xmlp4/.depend
@@ -224,7 +226,7 @@ clean:
 	-rm -f doc/* doc/*~
 	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 
-depend: xmlp4.p4
+depend: xmlp4pre.byte $(DEPOPT)
 #	touch lwt/depend
 #	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 	@for i in $(REPS) ; do $(MAKE) -C $$i depend ; done

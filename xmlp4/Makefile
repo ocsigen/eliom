@@ -22,7 +22,8 @@ OBJSOPT = $(FILES:.ml=.cmx)
 
 
 byte: bytedep $(OBJS)
-p4: bytedep
+xmlp4pre.byte: bytedep
+xmlp4pre.opt: optdep
 opt: optdep $(OBJSOPT)
 
 bytedep:
@@ -62,7 +63,7 @@ clean:
 depend:
 #	touch oldocaml/.depend
 #	touch newocaml/.depend
-	$(CAMLDEP) -I ohl-xhtml -I newocaml $(FILES) > .depend
+	$(CAMLDEP) -I ohl-xhtml $(FILES) > .depend
 ifeq "$(OCAMLVERSION)" "OLD"
 	$(MAKE) -C oldocaml depend
 else 

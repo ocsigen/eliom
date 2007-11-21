@@ -70,7 +70,7 @@ ocsipersist.mli:
 
 .PHONY: clean
 clean:
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/*  *.annot ocsidbm ocsidbm.opt ocsipersist.mli
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.cmx *.o *.a *~ doc/*  *.annot ocsidbm ocsidbm.opt ocsipersist.mli
 
 depend: ocsipersist.mli
 	$(CAMLDEP) $(PP2) $(FILES:.ml=.mli) $(FILES) > .depend

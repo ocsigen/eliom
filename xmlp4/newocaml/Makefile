@@ -26,7 +26,7 @@ OBJSOPT = $(FILESR:.ml=.cmx) $(FILES:.ml=.cmx)
 CMA = xhtmlsyntax.cma
 CMXA = xhtmlsyntax.cmxa
 
-byte: depend ohl-xhtml-byte $(CMA) $(OBJS)
+byte: ohl-xhtml-byte $(CMA) $(OBJS)
 	ln -sf newocaml/xhtmltypes.cmi newocaml/xhtmltypes.cmo newocaml/basicTypes.cmi newocaml/basicTypes.cmo newocaml/simplexmlparser.cmi newocaml/simplexmlparser.cmo newocaml/xmllexer.cmi newocaml/xmllexer.cmo newocaml/xhtmlsyntax.cma ..
 
 opt: ohl-xhtml-opt $(CMXA) $(OBJSOPT)
@@ -92,6 +92,7 @@ depend: *.mli *.ml
 #	-rm -f xhtmltypes.ml
 #	camlp4 -parser OCaml -printer OCamlr ../oldocaml/xhtmltypes.ml > \
 #		xhtmltypes.ml
+	-rm -f xmllexer.ml
 	$(CAMLDEP) $(PP) $(LIBDIRS2) *.mli *.ml > depend
 
 FORCE:

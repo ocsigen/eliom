@@ -82,7 +82,7 @@ OBJS = nagle.o $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 CMXXATEMP=$(CMAO:.cmo=.cmx)
 CMXXA=$(CMXXATEMP:.cma=.cmxa)
 
-OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
+OBJSOPT = nagle.o $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
 
 
 byte: $(OBJS) $(NAME)
