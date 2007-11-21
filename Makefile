@@ -42,7 +42,7 @@ DBMINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma
 else
 endif
 
-DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lwt/lwt_ssl.mli ./lwt/lwt_timeout.mli ./eliom/eliommkforms.mli ./eliom/eliommkreg.mli ./eliom/eliompredefmod.mli ./eliom/eliommod.mli ./eliom/eliomparameters.mli ./eliom/eliomservices.mli ./eliom/eliomsessions.mli ./server/extensions.mli ./server/preemptive.mli ./server/parseconfig.mli ./xmlp4/oldocaml/xhtmltypes.ml ./xmlp4/ohl-xhtml/xHTML.mli ./baselib/messages.mli ./http/ocsiheaders.mli ./server/http_client.mli ./http/http_frame.mli ./http/http_com.mli ./http/predefined_senders.mli ./eliom/eliomtools.mli ./extensions/ocsipersist.mli ./xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lwt/lwt_ssl.mli ./lwt/lwt_timeout.mli ./eliom/eliommkforms.mli ./eliom/eliommkreg.mli ./eliom/eliompredefmod.mli ./eliom/eliommod.mli ./eliom/eliomparameters.mli ./eliom/eliomservices.mli ./eliom/eliomsessions.mli ./server/extensions.mli ./server/preemptive.mli ./server/parseconfig.mli ./xmlp4/xhtmlpretty.mli ./xmlp4/oldocaml/xhtmltypes.ml ./xmlp4/ohl-xhtml/xHTML.mli ./baselib/messages.mli ./http/ocsiheaders.mli ./server/http_client.mli ./http/http_frame.mli ./http/http_com.mli ./http/predefined_senders.mli ./eliom/eliomtools.mli ./extensions/ocsipersist.mli ./xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 
 
 INSTALL = install

@@ -7,6 +7,7 @@ Instructions:
 Requirements: 
 ocaml (tested with versions 3.08.4, 3.09.1 and following, 3.10.x. 
       Does not work with 3.08.1)
+camlp4 (and camlp4rf etc.)
 ocamlduce recommanded (otherwise you won't have all the features)
 findlib (ocamlfind)
 pcre-ocaml

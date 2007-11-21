@@ -934,25 +934,40 @@ let handle_site_exn exn (ri, si, _, aci) sitedata =
 
 
 (****************************************************************************)
-let new_sitedata site_dir =
-  let sitedata =
-    {servtimeout = [];
-     datatimeout = [];
-     perstimeout = [];
-     site_dir = site_dir;
-     site_dir_string = Ocsimisc.string_of_url_path site_dir;
-     global_services = empty_tables ();
-     session_services = new_service_cookie_table ();
-     session_data = new_data_cookie_table ();
-     remove_session_data = (fun cookie -> ());
-     not_bound_in_data_tables = (fun cookie -> true);
-     exn_handler = def_handler;
-     unregistered_services = [];
-   }
+let new_sitedata =
+  (* We want to keep the old site data even if we reload the server *)
+  (* To do that, we keep the site data in a table *)
+  let module S = Hashtbl.Make(struct 
+                                type t = url_path
+                                let equal = (=)
+                                let hash = Hashtbl.hash
+                              end)
   in
-  service_session_gc sitedata;
-  data_session_gc sitedata;
-  sitedata
+  let t = S.create 5 in
+  fun site_dir ->
+    try
+      S.find t site_dir
+    with 
+      | Not_found ->
+          let sitedata =
+            {servtimeout = [];
+             datatimeout = [];
+             perstimeout = [];
+             site_dir = site_dir;
+             site_dir_string = Ocsimisc.string_of_url_path site_dir;
+             global_services = empty_tables ();
+             session_services = new_service_cookie_table ();
+             session_data = new_data_cookie_table ();
+             remove_session_data = (fun cookie -> ());
+             not_bound_in_data_tables = (fun cookie -> true);
+             exn_handler = def_handler;
+             unregistered_services = [];
+            }
+          in
+          service_session_gc sitedata;
+          data_session_gc sitedata;
+          S.add t site_dir sitedata;
+          sitedata
 
 (*****************************************************************************)
 (* The current registration directory *)
@@ -2872,9 +2887,9 @@ let load_eliom_module sitedata cmo content =
 (*****************************************************************************)
 (** Parsing of config file for each site: *)
 let parse_config site_dir charset = 
-(*VVV if we put the following line here: *)
+(*--- if we put the following line here: *)
   let sitedata = new_sitedata site_dir in
-(*VVV then there is one service tree for each <site> *)
+(*--- then there is one service tree for each <site> *)
   let rec parse_module_attrs file = function
     | [] -> (match file with
         None -> 
@@ -2891,7 +2906,7 @@ let parse_config site_dir charset =
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in function
     | Element ("eliom", atts, content) -> 
-(*VVV if we put the line "new_sitedata" here, then there is 
+(*--- if we put the line "new_sitedata" here, then there is 
   one service table for each <eliom> tag ...
   Which one is the best? 
  *)

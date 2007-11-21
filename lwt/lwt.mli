@@ -73,6 +73,15 @@ val wait : unit -> 'a t
        exception associated to the thread [t] if this thread fails.
        You should use [catch] instead. *)
 
+val wakeup : 'a t -> 'a -> unit
+      (* [wakeup t e] makes the sleeping thread [t] terminate and
+         return the value of the expression [e]. *)
+val wakeup_exn : 'a t -> exn -> unit
+      (* [wakeup_exn t e] makes the sleeping thread [t] fail with the
+         exception [e]. *)
+
+val finalize : (unit -> 'a t) -> (unit -> unit t) -> 'a t
+
 (**/**)
 
 (* The functions below are probably not useful for the casual user.
@@ -85,17 +94,9 @@ val poll : 'a t -> 'a option
          exception, this exception is raised.  If the thread is still
          running, [poll e] returns [None] without blocking. *)
 
-val wakeup : 'a t -> 'a -> unit
-      (* [wakeup t e] makes the sleeping thread [t] terminate and
-         return the value of the expression [e]. *)
-val wakeup_exn : 'a t -> exn -> unit
-      (* [wakeup_exn t e] makes the sleeping thread [t] fail with the
-         exception [e]. *)
-
 val apply : ('a -> 'b t) -> 'a -> 'b t
       (* [apply f e] apply the function [f] to the expression [e].  If
          an exception is raised during this application, it is caught
          and the resulting thread fails with this exception. *)
 (* Q: Could be called 'glue' or 'trap' or something? *)
 
-val finalize : (unit -> 'a t) -> (unit -> unit t) -> 'a t

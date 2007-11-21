@@ -234,12 +234,7 @@ let coucou1 =
            sp <:xmllist< W3C validator >> ()$.
       </p>
       <p>
-        $a (new_external_service
-              ""
-              [version;"XHTML.M.html"]
-(*              ["http://theorie.physik.uni-wuerzburg.de/~ohl/xhtml/"] *)
-              unit unit ())
-           sp <:xmllist< More info >> ()$
+        $a ~service:senddoc ~sp [code [pcdata "More info" ]] [version;"XHTML.M.html"] ()$
         on <code>XHTML.M</code>.
       </p>
       <p>
@@ -3655,7 +3650,7 @@ let uploadform = register upload
   <span class="Cconstructor">Eliomtools</span>.menu <span class="Clabel">~classe:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"menuprincipal"</span><span class="Cnonalphakeyword">]</span>
     <span class="Cnonalphakeyword">(</span>home<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> Home &gt;&gt;<span class="Cnonalphakeyword">)</span>
     <span class="Cnonalphakeyword">[</span>
-     <span class="Cnonalphakeyword">(</span>infos<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> More infos &gt;&gt;<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
+     <span class="Cnonalphakeyword">(</span>infos<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> More info &gt;&gt;<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
      <span class="Cnonalphakeyword">(</span>tutorial<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> Documentation &gt;&gt;<span class="Cnonalphakeyword">)</span>
    <span class="Cnonalphakeyword">]</span> current sp</pre>
       <p>Here, <code>home</code>,  <code>infos</code>, 
@@ -3669,7 +3664,7 @@ let uploadform = register upload
       <pre>&lt;ul class="menu menuprincipal"&gt;
   &lt;li class="current first"&gt;Home
   &lt;/li&gt;
-  &lt;li&gt;&lt;a href="infos"&gt;More infos&lt;/a&gt;
+  &lt;li&gt;&lt;a href="infos"&gt;More info&lt;/a&gt;
   &lt;/li&gt;
   &lt;li class="last"&gt;&lt;a href="tutorial"&gt;Documentation&lt;/a&gt;
   &lt;/li&gt;
