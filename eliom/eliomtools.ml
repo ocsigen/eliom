@@ -42,11 +42,11 @@ let menu ?(classe=[]) first l ~service:current ~sp =
     | [] -> []
     | [(url, text)] -> 
         let classe = [last_class] in
-        if url == current 
+        if url = (* problem with preapplied services with == *) current 
         then [li ~a:[a_class (current_class::classe)] text]
         else [li ~a:[a_class classe] [a url sp text ()]]
     | (url, text)::l -> 
-        (if url == current 
+        (if url = (* problem with preapplied services with == *) current 
         then  (li ~a:[a_class [current_class]] text)
         else (li [a url sp text ()]))::(aux l)
   in match first::l with
@@ -54,13 +54,13 @@ let menu ?(classe=[]) first l ~service:current ~sp =
   | [(url, text)] ->
       ul ~a:[a_class (menu_class::classe)] 
         (let liclasse = [first_class; last_class] in
-        if url == current 
+        if url = (* problem with preapplied services with == *) current 
         then (li ~a:[a_class (current_class::liclasse)] text) 
         else (li ~a:[a_class liclasse] [a url sp text ()])) []
   | (url, text)::l -> 
       ul ~a:[a_class (menu_class::classe)]
         (let liclasse = [first_class] in
-        if url == current 
+        if url = (* problem with preapplied services with == *) current 
         then (li ~a:[a_class (current_class::liclasse)] text)
         else (li ~a:[a_class liclasse] [a url sp text ()])) (aux l)
 
