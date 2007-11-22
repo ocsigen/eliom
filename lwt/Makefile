@@ -54,7 +54,8 @@ depend: *.ml *.mli
 include depend
 
 install:
-	{ test ! -f $(XARCHIVE) || extra="$(XARCHIVE) "`basename $(XARCHIVE) .cmxa`.a; }; \
+	{ test ! -f $(XARCHIVE) || extra="$(XARCHIVE) "`basename $(XARCHIVE) .cmxa`.a; }
+	mkdir -p "$(TEMPROOT)/$(MODULEINSTALLDIR)"
 	$(OCAMLFIND) install $(NAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)" *.mli *.cmi $(ARCHIVE) META $$extra
 
 uninstall:
