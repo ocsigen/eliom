@@ -51,6 +51,15 @@ let size l =
 
 (****)
 
+let handle_exn = 
+  ref 
+    (fun e -> 
+       prerr_string "Lwt_timeout - Uncaught exception after timeout: ";
+       prerr_endline (Printexc.to_string e); 
+       exit 1)
+
+let set_exn_handler f = handle_exn := f
+
 let rec loop () =
   stopped := false;
   Lwt.bind (Lwt_unix.sleep 1.) (fun () ->
@@ -59,7 +68,9 @@ let rec loop () =
     let x = lst_peek s in
     decr count;
 (*XXX Should probably report any exception *)
-    x.action ()
+    try
+      x.action ()
+    with e -> !handle_exn e
   done;
   curr := (!curr + 1) mod (Array.length !buckets);
   if !count > 0 then loop () else begin stopped := true; Lwt.return () end)

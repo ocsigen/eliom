@@ -45,6 +45,11 @@ let () = Random.self_init ()
    an exception ... *)
 let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
 
+(* Initialize exception handler for Lwt timeouts: *)
+let _ =
+  Lwt_timeout.set_exn_handler
+    (fun e -> Messages.errlog ("Uncaught Exception after lwt timeout: "^
+                                 Ocsimisc.string_of_exn e))
 
 external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
 

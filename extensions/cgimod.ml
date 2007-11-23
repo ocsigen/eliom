@@ -330,18 +330,20 @@ let recupere_cgi head re filename ri =
       Lwt_timeout.create
         !cgitimeout
         (fun () ->
-          Lwt_unix.abort cgi_out CGI_Timeout;
-          Lwt_unix.abort post_in CGI_Timeout;
-          Lwt_unix.abort err_out CGI_Timeout;
-          if !is_running
-          then begin
-            Unix.kill Sys.sigterm pid;
-            ignore
-              (Lwt_unix.sleep 1. >>= fun () ->
-                if !is_running
-                then Unix.kill Sys.sigkill pid;
-                return ())
-          end
+           try
+             Lwt_unix.abort cgi_out CGI_Timeout;
+             Lwt_unix.abort post_in CGI_Timeout;
+             Lwt_unix.abort err_out CGI_Timeout;
+             if !is_running
+             then begin
+               Unix.kill Sys.sigterm pid;
+               ignore
+                 (Lwt_unix.sleep 1. >>= fun () ->
+                    if !is_running
+                    then Unix.kill Sys.sigkill pid;
+                    return ())
+             end
+           with Unix.Unix_error (Unix.ESRCH, _, _) -> ()
           )
     in
     Lwt_timeout.start timeout;
@@ -382,7 +384,8 @@ let recupere_cgi head re filename ri =
          get_errors 
          (function 
            | End_of_file -> Lwt_unix.close err_out; return ()
-           | e -> Messages.unexpected_exception e "Cgimod.recupere_cgi (2)";
+           | e -> 
+               Messages.unexpected_exception e "Cgimod.recupere_cgi (2)";
                Lwt_unix.close err_out; 
                return ()));
     (* This threads terminates, as you can see by doing:
