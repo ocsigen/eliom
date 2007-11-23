@@ -83,6 +83,22 @@ let environment= ["CONTENT_LENGTH=%d";
 
 (*****************************************************************************)
 
+let string_conform s = match String.length s with
+  | 0 -> "/"
+  | n -> match  s.[0], s.[n - 1] with
+        | '/' ,'/' -> s
+        | _, '/' -> "/"^s
+        | '/', _ -> s^"/"
+        | _, _ -> "/"^s^"/"
+
+let string_conform0 s =
+  try
+    match  s.[0] with
+      | '/' -> s
+      | _ -> "/"^s
+  with Invalid_argument _ -> "/"
+
+
 (* split a string in two parts, according to a regexp *)
 let split_regexp r s = 
   match Regexp.string_match r s 0 with
@@ -94,8 +110,8 @@ let split_regexp r s =
     Some (s',s'')
 	
 
-(**permet de recuperer le fichier correspondant a l url*)
-let find_cgi_page reg path =
+(** permet de recuperer le fichier correspondant a l url *)
+let find_cgi_page reg sub_path =
   let find_file (filename, re) =
     (* See also module Files in eliom.ml *)
     Messages.debug (fun () -> "--Cgimod: Testing \""^filename^"\".");
@@ -124,17 +140,18 @@ let find_cgi_page reg path =
     | Unix.Unix_error (Unix.ENOENT, _, _) -> raise Failed_404
   in
 
-  let path = Ocsimisc.string_of_url_path path in
+  let sub_path = Ocsimisc.string_of_url_path sub_path in
 
-  match split_regexp reg.regexp path with
+  match split_regexp reg.regexp sub_path with
   | None -> raise Failed_404
   | Some (path', path_info) -> 
+      let path'' = reg.path^path' in
       let reg = 
 	{reg with
-	 doc_root=Regexp.global_replace reg.regexp reg.doc_root path';
-	 script=Regexp.global_replace reg.regexp reg.script path';
-	 path = path';
-	 path_info=path_info}
+	 doc_root = Regexp.global_replace reg.regexp reg.doc_root path';
+	 script = Regexp.global_replace reg.regexp reg.script path';
+	 path = path'';
+	 path_info= string_conform0 path_info}
       in
       let s = reg.doc_root^reg.script in
       (* hack to get user dirs *)
@@ -531,21 +548,9 @@ let rec set_env=function
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
-let string_conform s = match String.length s with
-  |0 -> "/"
-  |n -> match  s.[0], s.[n - 1] with
-        | '/' ,'/' -> s
-        | _, '/' -> "/"^s
-        | '/', _ -> s^"/"
-        | _, _ -> "/"^s^"/"
-
 let parse_config path charset = function 
   | Element ("cgi", atts, l) -> 
-      let good_root r = 
-        Regexp.quote (string_conform
-                        (Ocsimisc.string_of_url_path
-                           (path@(Regexp.split (Regexp.regexp "/") r)))) 
-      in
+      let good_root r = Regexp.quote (string_conform r) in
       let dir = match atts with
       | [] -> 
           raise (Error_in_config_file
@@ -557,9 +562,9 @@ let parse_config path charset = function
 	   doc_root= string_conform s;
 	   script="$1";
 	   
-	   path=""; 
+	   path= "/"^Ocsimisc.string_of_url_path path; 
            path_info="";
-	   
+
 	   exec=None; 
            env=set_env l}
       | ("regexp", s)::("dir",d)::("script",t)::q -> 
@@ -569,7 +574,7 @@ let parse_config path charset = function
 	   doc_root= string_conform d;
 	   script=t;
 	   
-	   path="";
+	   path= "/"^Ocsimisc.string_of_url_path path;
            path_info=""; (* unknown for the moment *)
 	   
 	   exec= (match q with 
@@ -588,7 +593,7 @@ let parse_config path charset = function
 
 	    let conform = string_conform r in
 	    {
-	      root=string_conform((Ocsimisc.string_of_url_path path)^conform);
+	      root= conform;
 	      regexp=Regexp.regexp (conform^s);
 	      doc_root= string_conform d;
 	      dest=t;
