@@ -82,6 +82,11 @@ let warn sockaddr s =
   let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
   Messages.warning ("While talking to " ^ ip ^ ": " ^ s)
 
+let dbg sockaddr s =
+  Messages.debug 
+    (fun () ->   
+       let ip = Unix.string_of_inet_addr (ip_of_sockaddr sockaddr) in
+       "While talking to " ^ ip ^ ": " ^ s)
 
 (* reading the request *)
 let get_request_infos meth url http_frame filenames sockaddr port =
@@ -620,11 +625,11 @@ let handle_connection port in_ch sockaddr =
     begin match e with
       Http_com.Connection_closed ->
         (* This is the clean way to terminate the connection *)
-        warn sockaddr "connection closed by peer";
+        dbg sockaddr "connection closed by peer";
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Keepalive_timeout ->
-        warn sockaddr "keepalive timeout";
+        dbg sockaddr "keepalive timeout";
         Http_com.abort receiver;
         Http_com.wait_all_senders receiver
     | Http_com.Lost_connection _ ->

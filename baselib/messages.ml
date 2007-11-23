@@ -68,8 +68,10 @@ let log_aux file console_print s =
       t.Unix.tm_min
       t.Unix.tm_sec 
   in
-  let s = date^" - "^s^"\n" in
-  if console_print then prerr_endline ("["^(Ocsimisc.fst3 file)^"] "^s);
+  if console_print then 
+    prerr_endline ("["^(Ocsimisc.fst3 file)^"] "^date^" - "^s);
+  output_string !(Ocsimisc.snd3 file) date;
+  output_string !(Ocsimisc.snd3 file) " - ";
   output_string !(Ocsimisc.snd3 file) s;
   output_string !(Ocsimisc.snd3 file) "\n";
   flush !(Ocsimisc.snd3 file)
