@@ -285,7 +285,7 @@ let xhtml_list_print ?(version=`XHTML_01_01)
 let x_stream, xh_stream = 
 
   let aux ~width ~encode ?(html_compat = false)
-      blocktags semiblocktags doctype arbre cont =
+      blocktags semiblocktags arbre cont =
     let endemptytag = if html_compat then ">" else "/>" in
     let rec xh_print_attrs encode attrs cont = match attrs with
     | [] -> cont ();
@@ -475,7 +475,7 @@ let x_stream, xh_stream =
          (List.fold_right
              (fun arbre cont () ->
                aux ?width ?encode ?html_compat
-                 blocktags semiblocktags doctype arbre cont)
+                 blocktags semiblocktags arbre cont)
              foret
              
          (fun () -> Ocsistream.empty None))),
@@ -490,7 +490,7 @@ let x_stream, xh_stream =
         (fun () -> 
 
           aux ?width ?encode ?html_compat 
-           blocktags semiblocktags doctype arbre
+           blocktags semiblocktags arbre
            
            (fun () -> Ocsistream.empty None)))))
 

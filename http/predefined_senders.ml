@@ -29,31 +29,6 @@ open XHTML.M
 
 (*****************************************************************************)
 (** this module instantiate the HTTP_CONTENT signature for an Xhtml content*)
-let add_css (a : 'a) : 'a = 
-    let css = 
-      XHTML.M.toelt 
-        (XHTML.M.style ~contenttype:"text/css"
-           [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"])
-    in
-    let rec aux = function
-    | (XML.Element ("head",al,el))::l -> (XML.Element ("head",al,css::el))::l
-    | (XML.BlockElement ("head",al,el))::l -> 
-        (XML.BlockElement ("head",al,css::el))::l
-    | (XML.SemiBlockElement ("head",al,el))::l -> 
-        (XML.SemiBlockElement ("head",al,css::el))::l
-    | (XML.Node ("head",al,el))::l -> (XML.Node ("head",al,css::el))::l
-    | e::l -> e::(aux l)
-    | [] -> []
-    in
-    XHTML.M.tot
-      (match XHTML.M.toelt a with
-      | XML.Element ("html",al,el) -> XML.Element ("html",al,aux el) 
-      | XML.BlockElement ("html",al,el) -> XML.BlockElement ("html",al,aux el) 
-      | XML.SemiBlockElement ("html",al,el) -> 
-          XML.SemiBlockElement ("html",al,aux el)
-      | XML.Node ("html",al,el) -> XML.Node ("html",al,aux el)
-      | e -> e)
-
 
 module Old_Xhtml_content =
   struct
@@ -63,11 +38,11 @@ module Old_Xhtml_content =
       Some (Digest.to_hex (Digest.string x))
 
     let get_etag c =
-      let x = Xhtmlpretty.xhtml_print (add_css c) in
+      let x = Xhtmlpretty.xhtml_print c in
       get_etag_aux x
 
     let result_of_content c = 
-      let x = Xhtmlpretty.xhtml_print (add_css c) in
+      let x = Xhtmlpretty.xhtml_print c in
       let md5 = get_etag_aux x in
       let default_result = default_result () in
       Lwt.return 
@@ -93,7 +68,7 @@ module Xhtml_content =
     let get_etag c = None
 
     let result_of_content c = 
-      let x = Xhtmlpretty.xhtml_stream (add_css c) in
+      let x = Xhtmlpretty.xhtml_stream c in
       let default_result = default_result () in
       Lwt.return 
         {default_result with

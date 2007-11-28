@@ -478,6 +478,7 @@ module Blocks : sig
   include XHTMLFORMSSIG
 
 end
+  (** Use this module for example for XMLHttpRequests for block tags (e.g. <div>) *)
 
 
 (** {3 Functor to create modules to register subpages for other subtypes of XHTML} *)

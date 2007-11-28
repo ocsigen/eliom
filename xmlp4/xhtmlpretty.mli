@@ -19,6 +19,8 @@
 
 (** XHTML pretty printing *)
 
+(** A text included in each page *)
+val ocsigenadv : string
 
 (** Ocsigen's pretty printer for xhtml. [html_compat] is an option to set
    if you want to print with a syntax closer to html (not xml).

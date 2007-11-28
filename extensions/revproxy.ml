@@ -21,6 +21,15 @@
 
 (** Reverse proxy for Ocsigen *)
 
+(* TODO
+   - add the ability to rewrite some headers from the config file
+   (for ex after a redirection, the new URL is wrong)
+   probably in another (filter) extension
+   - pipelining
+   - ...
+*)
+
+
 (* To compile it:
 ocamlfind ocamlc  -thread -package netstring,ocsigen -c revproxy.ml
 

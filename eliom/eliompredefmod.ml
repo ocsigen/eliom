@@ -52,8 +52,43 @@ module Xhtmlreg_ = struct
 
   type page = xhtml elt
 
+  module Xhtml_content = struct
+
+    include Predefined_senders.Xhtml_content
+    
+    let add_css (a : 'a) : 'a = 
+      let css = 
+        XHTML.M.toelt 
+          (XHTML.M.style ~contenttype:"text/css"
+             [XHTML.M.pcdata "\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"])
+      in
+      let rec aux = function
+        | (XML.Element ("head",al,el))::l -> (XML.Element ("head",al,css::el))::l
+        | (XML.BlockElement ("head",al,el))::l -> 
+            (XML.BlockElement ("head",al,css::el))::l
+        | (XML.SemiBlockElement ("head",al,el))::l -> 
+            (XML.SemiBlockElement ("head",al,css::el))::l
+        | (XML.Node ("head",al,el))::l -> (XML.Node ("head",al,css::el))::l
+        | e::l -> e::(aux l)
+        | [] -> []
+      in
+      XHTML.M.tot
+        (match XHTML.M.toelt a with
+           | XML.Element ("html",al,el) -> XML.Element ("html",al,aux el) 
+           | XML.BlockElement ("html",al,el) -> XML.BlockElement ("html",al,aux el) 
+           | XML.SemiBlockElement ("html",al,el) -> 
+               XML.SemiBlockElement ("html",al,aux el)
+           | XML.Node ("html",al,el) -> XML.Node ("html",al,aux el)
+           | e -> e)
+
+    let get_etag c = get_etag (add_css c)
+
+    let result_of_content c = result_of_content (add_css c)
+
+  end
+
   let send ?(cookies=[]) ?charset ?code ~sp content = 
-    Predefined_senders.Xhtml_content.result_of_content content >>= fun r ->
+    Xhtml_content.result_of_content content >>= fun r ->
       Lwt.return
         (EliomResult 
            {r with

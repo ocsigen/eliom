@@ -2265,7 +2265,7 @@ let part3 sp =
      (i.e. pages using the <code>XMLHttpRequest</code> Javascript object).
      Note that the service returns a list of blocks.</p>
 *html*)
-let _ = 
+let divpage = 
   Eliompredefmod.Blocks.register_new_service 
     ~path:["div"]
     ~get_params:unit
@@ -4016,6 +4016,7 @@ let _ = register main
        A page with a persistent counter: 
              $a count2 sp <:xmllist< <code>count2</code> >> ()$ <br/> 
        $a hier1 sp [pcdata "Hierarchical menu"] ()$ <br/> 
+       $a divpage sp <:xmllist< <code>a link sending a &lt;div&gt; page</code> >> ()$ <br/> 
        </p>
        <h4>Advanced forms</h4>
        <p>
