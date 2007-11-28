@@ -490,6 +490,7 @@ let service
                 in
                 if not_modified then begin
                   Messages.debug2 "-> Sending 304 Not modified ";
+                  Ocsistream.finalize res.res_stream >>= fun () ->
                   let empty_result = Http_frame.empty_result () in
                   send
                     sender_slot
@@ -502,6 +503,7 @@ let service
                   Messages.debug2
                     "-> Sending 412 Precondition Failed \
                      (if-unmodified-since header)";
+                  Ocsistream.finalize res.res_stream >>= fun () ->
                   let empty_result = Http_frame.empty_result () in
                   send
                     sender_slot

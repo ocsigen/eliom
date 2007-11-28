@@ -272,39 +272,23 @@ module File_content =
   struct
     type t = string (* nom du fichier *)
 
-    let read_file ?buffer_size name =
-      let finalizer = ref (fun () -> Lwt.return ()) in
-      let stream = 
-        Ocsistream.make
-          ~finalize:(fun () -> !finalizer ())
-          (fun () ->
-             let fd = 
-               Lwt_unix.of_unix_file_descr 
-                 (Unix.openfile name [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
-             in
-             finalizer :=
-               (fun () ->
-                  Messages.debug2 "closing file";
-                  Lwt_unix.close fd;
-                  return ());
-
-             let buffer_size = match buffer_size with
-               | None -> Ocsiconfig.get_filebuffersize ()
-               | Some s -> s
-             in
-             Messages.debug2 "start reading file (file opened)";
-             let buf = String.create buffer_size in
-             let rec read_aux () =
-               Lwt_unix.read fd buf 0 buffer_size >>= fun lu ->
-                 if lu = 0 then  
-                   Ocsistream.empty None
-                 else begin 
-                   if lu = buffer_size
-                   then Ocsistream.cont buf read_aux
-                   else Ocsistream.cont (String.sub buf 0 lu) read_aux
-                 end
-             in read_aux ())
-      in stream
+    let read_file ?buffer_size fd =
+      let buffer_size = match buffer_size with
+      | None -> Ocsiconfig.get_filebuffersize ()
+      | Some s -> s
+      in
+      Messages.debug2 "start reading file (file opened)";
+      let buf = String.create buffer_size in
+      let rec read_aux () =
+          Lwt_unix.read fd buf 0 buffer_size >>= fun lu ->
+          if lu = 0 then  
+            Ocsistream.empty None
+          else begin 
+            if lu = buffer_size
+            then Ocsistream.cont buf read_aux
+            else Ocsistream.cont (String.sub buf 0 lu) read_aux
+          end
+      in read_aux
 
     let get_etag_aux st =
       Some (Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
@@ -317,9 +301,13 @@ module File_content =
     let result_of_content c =
       (* open the file *)
       try
+        let fd = 
+          Lwt_unix.of_unix_file_descr 
+            (Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
+        in
         let st = Unix.LargeFile.stat c in 
         let etag = get_etag_aux st in
-        let stream = read_file c in
+        let stream = read_file fd in
         let default_result = default_result () in
         Lwt.return
           {default_result with
@@ -327,11 +315,17 @@ module File_content =
            res_content_type = Some (content_type_from_file_name c);
            res_lastmodified = Some st.Unix.LargeFile.st_mtime;
            res_etag = etag;
-           res_stream = stream
+           res_stream = 
+           Ocsistream.make
+             ~finalize:
+             (fun () ->
+               Messages.debug2 "closing file";
+               Lwt_unix.close fd;
+               return ())
+             stream
          }
       with e -> fail e
-        
-
+    
   end
 
 (*****************************************************************************)
