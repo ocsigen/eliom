@@ -1,4 +1,15 @@
 (** Module [Lwt]: cooperative light-weight threads. *)
+(** Execution order
+     A thread executes as much as possible.  Switching to another
+     thread is always explicit.
+
+   Exception handling
+     - You must use "fail e" instead of "raise e" if you want the
+       exception to be wrapped into the thread.
+     - The construction [try t with ...] will not catch the
+       exception associated to the thread [t] if this thread fails.
+       You should use [catch] instead. *)
+
 
 type 'a t
       (** The type of threads returning a result of type ['a]. *)
@@ -62,25 +73,16 @@ val wait : unit -> 'a t
           the program (except of course, if another thread tries to
           wait for its termination). *)
 
-(** Execution order
-     A thread executes as much as possible.  Switching to another
-     thread is always explicit.
-
-   Exception handling
-     - You must use "fail e" instead of "raise e" if you want the
-       exception to be wrapped into the thread.
-     - The construction [try t with ...] will not caught the
-       exception associated to the thread [t] if this thread fails.
-       You should use [catch] instead. *)
-
 val wakeup : 'a t -> 'a -> unit
-      (* [wakeup t e] makes the sleeping thread [t] terminate and
+      (** [wakeup t e] makes the sleeping thread [t] terminate and
          return the value of the expression [e]. *)
 val wakeup_exn : 'a t -> exn -> unit
-      (* [wakeup_exn t e] makes the sleeping thread [t] fail with the
+      (** [wakeup_exn t e] makes the sleeping thread [t] fail with the
          exception [e]. *)
 
 val finalize : (unit -> 'a t) -> (unit -> unit t) -> 'a t
+     (** [finalize f g] returns the same result as [f ()] whether it fails 
+         or not. In both cases, [g ()] is executed after [f]. *)
 
 (**/**)
 

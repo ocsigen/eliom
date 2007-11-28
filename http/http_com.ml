@@ -545,7 +545,7 @@ let create_sender
 
 let default_sender = create_sender ~server_name:Ocsiconfig.server_name ()
 
-
+(* Old version
 (* XXX Maybe we should merge small strings *)
 (* XXX We should probably make sure that any exception raised by
    the stream is properly caught *)
@@ -565,7 +565,56 @@ let rec write_stream_chunked out_ch stream =
         Lwt_chan.output_string out_ch "\r\n"
       end end >>= fun () ->
       write_stream_chunked out_ch next
+*)
 
+(* XXX We should probably make sure that any exception raised by
+   the stream is properly caught *)
+(* 20071128 Current xhtml pretty printer is making lots of very small strings. 
+   We bufferise them before creating a thunk.
+   Benchmarks cannot prove that it is better, but at least the network stream
+   is readable ...
+   It is then buffered again by Lwt_chan.
+   Is there a way to have only one buffer?
+*)
+let write_stream_chunked out_ch stream =
+  let buf_size = 4096 in
+  let buffer = String.create buf_size in
+  let rec aux stream len =
+    Ocsistream.next stream >>= fun e ->
+    match e with
+    | Ocsistream.Finished _ ->
+        (if len > 0 then begin
+          (* It is incorrect to send an empty chunk *)
+          Lwt_chan.output_string 
+            out_ch (Format.sprintf "%x\r\n" len) >>= fun () ->
+          Lwt_chan.output out_ch buffer 0 len >>= fun () ->
+          Lwt_chan.output_string out_ch "\r\n"
+        end else
+          Lwt.return ()) >>= fun () ->
+        Lwt_chan.output_string out_ch "0\r\n\r\n"
+    | Ocsistream.Cont (s, next) ->
+        let l = String.length s in
+        if l = 0 then
+          aux next len
+        else
+          let available = buf_size - len in
+          if l > available then begin
+            Lwt_chan.output_string 
+              out_ch (Format.sprintf "%x\r\n" buf_size) >>= fun () ->
+            Lwt_chan.output out_ch buffer 0 len >>= fun () ->
+            Lwt_chan.output out_ch s 0 available >>= fun () ->
+            Lwt_chan.output_string out_ch "\r\n" >>= fun () ->
+            let newlen = l - available in
+            String.blit s available buffer 0 newlen;
+            aux next newlen
+          end
+          else begin
+            String.blit s 0 buffer len l;
+            aux next (len + l)
+          end
+  in
+  aux stream 0
+                
 let rec write_stream_raw out_ch stream =
   Ocsistream.next stream >>= fun e ->
   match e with
