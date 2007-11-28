@@ -110,13 +110,13 @@ let _ =
 			] }})
 
 
-(*
+
 let blocks =
   Eliomduce.Blocks.register_new_service 
     ~path:["blocks"]
     ~get_params:unit
     (fun sp () () -> 
       return
-        ({{ [<h1> "This page has been type checked by OcamlDuce"] }} ))
+        ({: [ <h1> "This page has been type checked by OcamlDuce"] :} ))
 
-*)
+

@@ -30,11 +30,11 @@ byte: $(OBJS) $(DUCEMODBYTE) miniwiki.byte
 
 opt: $(OBJSOPT) $(DUCEMODOPT) miniwiki.opt
 
-exampleduce.cmo:
+exampleduce.cmo: ocamlduce/exampleduce.ml
 	$(OCAMLDUCEFIND) ocamlc $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
 	cp ocamlduce/exampleduce.cmo .
 
-exampleduce.cmx:
+exampleduce.cmx: ocamlduce/exampleduce.ml
 #	-rm -f ../extensions/ocsipersist.cmx
 	$(OCAMLDUCEFIND) ocamlopt $(DBG) $(LIB) -c ocamlduce/exampleduce.ml
 	cp ocamlduce/exampleduce.cmx .
