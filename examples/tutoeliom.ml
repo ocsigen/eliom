@@ -234,7 +234,7 @@ let coucou1 =
            sp <:xmllist< W3C validator >> ()$.
       </p>
       <p>
-        $a ~service:senddoc ~sp [code [pcdata "More info" ]] [version;"XHTML.M.html"] ()$
+        $a ~service:senddoc ~sp [code [pcdata "More info" ]] [version;"XHTML.M.html"]$
         on <code>XHTML.M</code>.
       </p>
       <p>
@@ -2013,6 +2013,28 @@ let () =
      <span class="Cem">$a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions.register_new_service" ]] [version;"Eliompredefmod.Actions.html"]$</span>,
      <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions.register_for_session" ]] [version;"Eliommkreg.ELIOMREGSIG1.html"]$</span>.<br/>
       </p>
+      <p>Here is one simple example. Suppose you wrote a function
+        <code>remove</code> to remove one piece of data from a database
+        (taking an identifier of the data).
+        If you want to put a link on your page to call this function
+        and redisplay the page, just create an action like this:
+      </p>
+<pre>
+<span class="Clet">let</span> remove_action <span class="Cnonalphakeyword">=</span>
+  <span class="Cconstructor">Eliomservices</span><span class="Cnonalphakeyword">.</span>register_new_post_coservice'
+    <span class="Clabel">~post_params:</span><span class="Cnonalphakeyword">(</span><span class="Cconstructor">Eliomparameters</span><span class="Cnonalphakeyword">.</span>int <span class="Cstring">"id"</span><span class="Cnonalphakeyword">)</span>
+    <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> sp <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> id <span class="Cnonalphakeyword">-&gt;</span> remove id &gt;&gt;= <span class="Cfun">fun</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span> <span class="Cconstructor">Lwt</span><span class="Cnonalphakeyword">.</span>return <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span></pre>
+      <p>Then wherever you want to add a button to do that action 
+         (on data <code>id</code>), 
+      create a form like:</p>
+<pre>
+<span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>post_form remove_action sp
+  <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> id_name <span class="Cnonalphakeyword">-&gt;</span>
+     <span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>int_input
+       <span class="Clabel">~input_type:</span><span class="Cconstructor">`Hidden</span> <span class="Clabel">~name:</span>id_name <span class="Clabel">~value:</span>id <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
+     <span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>string_input
+       <span class="Clabel">~input_type:</span><span class="Cconstructor">`Submit</span> <span class="Clabel">~value:</span><span class="Cnonalphakeyword">(</span><span class="Cstring">"remove "</span>^string_of_int id<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span>
+</pre>
       <p>Here we rewrite the example <code>session_data_example</code> 
       using actions
       and non-attached coservices
@@ -2024,13 +2046,13 @@ let () =
 (************************************************************)
 
 (*zap* *)
-let session_name = "action_example"
+let session_name = "connect_example3"
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
 
-let action_example = 
+let connect_example3 = 
   Eliomservices.new_service
     ~path:["action"] 
     ~get_params:Eliomparameters.unit
@@ -2047,7 +2069,7 @@ let disconnect_action =
     ~post_params:Eliomparameters.unit 
     (fun sp () () -> 
       Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
-      return [])
+      Lwt.return [])
 
 
 (* -------------------------------------------------------- *)
@@ -2071,9 +2093,9 @@ let login_box sp =
 
 
 (* -------------------------------------------------------- *)
-(* Handler for the "action_example" service (main page):    *)
+(* Handler for the "connect_example3" service (main page):    *)
 
-let action_example_handler sp () () = 
+let connect_example3_handler sp () () = 
   let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
@@ -2101,10 +2123,10 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliompredefmod.Xhtml.register ~service:action_example action_example_handler;
+  Eliompredefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
   Eliompredefmod.Actions.register ~service:connect_action connect_action_handler
 (*html*
-      <p>$a Tutoeliom.action_example sp <:xmllist< See these pages >> ()$.</p>
+      <p>$a Tutoeliom.connect_example3 sp <:xmllist< See these pages >> ()$.</p>
 
      <p>
       Note that actions return a list (here empty). 
@@ -2349,14 +2371,10 @@ let send_any =
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata 
-                        "This page has been statically typechecked. \
-                        If you change the parameter in the URL you \
-                        will get an unchecked text page"]]))
+                        "This page has been statically typechecked. If you change the parameter in the URL you will get an unchecked text page"]]))
      else 
        Eliompredefmod.HtmlText.send sp 
-         "<html><body><p>It is not a valid page. Put \
-          type=\"valid\" in the URL to get a typechecked page.\
-          </p></body></html>"
+         "<html><body><p>It is not a valid page. Put type=\"valid\" in the URL to get a typechecked page.</p></body></html>"
    )
 (*html*
       <p>
@@ -2751,14 +2769,14 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 (************ Connection of users, version 4 ****************)
 (************************************************************)
 (*zap* *)
-let session_name = "action_example2"
+let session_name = "connect_example4"
 (* *zap*)
 (*zap* *)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
 
-let action_example2 = 
+let connect_example4 = 
   Eliomservices.new_service
     ~path:["action2"] 
     ~get_params:unit 
@@ -2817,9 +2835,9 @@ let login_box sp session_expired action =
 
 (*zap* *)    
 (* -------------------------------------------------------- *)
-(* Handler for the "action_example2" service (main page):   *)
+(* Handler for the "connect_example4" service (main page):   *)
 
-let action_example2_handler sp () () = 
+let connect_example4_handler sp () () = 
   let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
@@ -2855,12 +2873,12 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () = 
-  Eliompredefmod.Xhtml.register ~service:action_example2 action_example2_handler;
+  Eliompredefmod.Xhtml.register ~service:connect_example4 connect_example4_handler;
   Eliompredefmod.Actions.register ~service:connect_action connect_action_handler
 (* *zap*)
 (*html*
       <p>
-      $a Tutoeliom.action_example2 sp <:xmllist< See this example here >> ()$.
+      $a Tutoeliom.connect_example4 sp <:xmllist< See this example here >> ()$.
       </p>
       <p>
         If the actions raises an exception (with $a ~fragment:"VALfail" ~service:senddoc ~sp [code [pcdata "Lwt.fail" ]] [version;"Lwt.html"]$),
@@ -2901,12 +2919,9 @@ let _ = register disposable
           (body [p [(if List.mem
                           Eliommod.Eliom_Link_too_old
                           (Eliomsessions.get_exn sp)
-                    then pcdata "Your link was outdated. I am the fallback. \
-                            I just created a new disposable coservice. \
-                            You can use it only twice."
+                    then pcdata "Your link was outdated. I am the fallback. I just created a new disposable coservice. You can use it only twice."
                     else
-                    pcdata "I just created a disposable coservice. \
-                            You can use it only twice.");
+                    pcdata "I just created a disposable coservice. You can use it only twice.");
                     br ();
                     a disp_coservice sp [pcdata "Try it!"] ()]])))
 (*html*      
@@ -3033,8 +3048,7 @@ let _ =
       (html
         (head (title (pcdata "Public coservices with timeouts")) [])
         (body [p 
-          [pcdata "I just created a public coservice \
-                   with 5 seconds timeout."; br ();
+          [pcdata "I just created a public coservice with 5 seconds timeout."; br ();
            a timeoutcoserv sp [pcdata "Try it"] (); ];
           ]))
   in
@@ -3744,14 +3758,14 @@ let f i s sp () () =
        (head (title (pcdata "")) 
           ((style ~contenttype:"text/css" 
              [cdata_style
- "a {color: red;}\n\
-  li.eliomtools_current > a {color: blue;}\n\
-  .breadthmenu li {\n\
-    display: inline;\n\
-    padding: 0px 1em;\n\
-    margin: 0px;\n\
-    border-right: solid 1px black;}\n\
-  .breadthmenu li.eliomtools_last {border: none;}\n\
+ "a {color: red;}\n
+  li.eliomtools_current > a {color: blue;}\n
+  .breadthmenu li {\n
+    display: inline;\n
+    padding: 0px 1em;\n
+    margin: 0px;\n
+    border-right: solid 1px black;}\n
+  .breadthmenu li.eliomtools_last {border: none;}\n
                 "])::
                 structure_links mymenu s sp)
              )
@@ -3982,11 +3996,11 @@ let _ = register main
          A session based on cookies, implemented with session data:
              $a session_data_example sp <:xmllist< <code>sessdata</code> >> ()$ <br/>
          A session based on cookies, implemented with actions: 
-             $a action_example sp <:xmllist< <code>actions</code> >> ()$ <br/>
+             $a connect_example3 sp <:xmllist< <code>actions</code> >> ()$ <br/>
          A session based on cookies, with session services: 
              $a session_services_example sp <:xmllist< <code>sessionservices</code> >> ()$ <br/> 
          The same with wrong user if not "toto": 
-             $a action_example2 sp <:xmllist< <code>actions2</code> >> ()$ <br/>
+             $a connect_example4 sp <:xmllist< <code>actions2</code> >> ()$ <br/>
          Coservices in the session table:
              $a calc sp <:xmllist< <code>calc</code> >> ()$ <br/>
        <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< <code>shop</code> >> ()$) -->
