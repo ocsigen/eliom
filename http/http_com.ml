@@ -578,6 +578,7 @@ let rec write_stream_chunked out_ch stream =
 *)
 let write_stream_chunked out_ch stream =
   let buf_size = 4096 in
+  let size_for_not_buffering = 900 in
   let buffer = String.create buf_size in
   let rec aux stream len =
     Ocsistream.next stream >>= fun e ->
@@ -597,21 +598,34 @@ let write_stream_chunked out_ch stream =
         if l = 0 then
           aux next len
         else
-          let available = buf_size - len in
-          if l > available then begin
-            Lwt_chan.output_string 
-              out_ch (Format.sprintf "%x\r\n" buf_size) >>= fun () ->
-            Lwt_chan.output out_ch buffer 0 len >>= fun () ->
-            Lwt_chan.output out_ch s 0 available >>= fun () ->
+          if l >= size_for_not_buffering then begin
+            (if len > 0 then begin
+              Lwt_chan.output_string
+                out_ch (Format.sprintf "%x\r\n" len) >>= fun () ->
+              Lwt_chan.output out_ch buffer 0 len >>= fun () ->
+              Lwt_chan.output_string out_ch "\r\n"
+            end else Lwt.return ()) >>= fun () ->
+            Lwt_chan.output_string
+              out_ch (Format.sprintf "%x\r\n" l) >>= fun () ->
+            Lwt_chan.output out_ch s 0 l >>= fun () ->
             Lwt_chan.output_string out_ch "\r\n" >>= fun () ->
-            let newlen = l - available in
-            String.blit s available buffer 0 newlen;
-            aux next newlen
-          end
-          else begin
-            String.blit s 0 buffer len l;
-            aux next (len + l)
-          end
+            aux next 0
+          end else (* Will not work if l is very large: *)
+            let available = buf_size - len in
+            if l > available then begin
+              Lwt_chan.output_string 
+                out_ch (Format.sprintf "%x\r\n" buf_size) >>= fun () ->
+              Lwt_chan.output out_ch buffer 0 len >>= fun () ->
+              Lwt_chan.output out_ch s 0 available >>= fun () ->
+              Lwt_chan.output_string out_ch "\r\n" >>= fun () ->
+              let newlen = l - available in
+              String.blit s available buffer 0 newlen;
+              aux next newlen
+            end
+            else begin
+              String.blit s 0 buffer len l;
+              aux next (len + l)
+            end
   in
   aux stream 0
                 
