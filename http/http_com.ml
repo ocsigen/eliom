@@ -510,8 +510,14 @@ let wait_all_senders conn =
 
 
 let (<<) h (n, v) = Http_headers.replace n v h
-let (<<?) h (n, v) = Http_headers.replace_opt n v h
 
+let (<<?!) h (n, v) = Http_headers.replace_opt n v h
+  (* None means: remove from headers *)
+
+let (<<?) h (n, v) = 
+  match v with
+    | None -> h (* None means: do not change the value *)
+    | Some v -> Http_headers.replace n v h
 
 let gmtdate d =  
   let x = Netdate.mk_mail_date ~zone:0 d in try
@@ -780,7 +786,7 @@ let send
   in
   let headers =
     Cookies.fold mkcookl res.res_cookies headers
-    <<?
+    <<?! (* We override the value *)
 (*XXX Check: HTTP/1.0 *)
     (Http_headers.connection,
      if keep_alive then None else Some "close")

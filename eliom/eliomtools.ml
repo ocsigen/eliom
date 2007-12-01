@@ -18,6 +18,12 @@
  *)
 
 
+(* TODO
+
+   - Ocamlduce version (with a functor)
+
+*)
+
 open XHTML.M
 open Eliompredefmod.Xhtml
 open Eliomservices
