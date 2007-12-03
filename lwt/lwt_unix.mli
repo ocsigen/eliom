@@ -29,8 +29,15 @@ type file_descr
 
 val read : file_descr -> string -> int -> int -> int Lwt.t
 val write : file_descr -> string -> int -> int -> int Lwt.t
+
 val wait_read : file_descr -> unit Lwt.t
+(** waits (without blocking other threads)
+    until there is something to read on the file descriptor *)
+
 val wait_write : file_descr -> unit Lwt.t
+(** waits (without blocking other threads)
+    until it is possible to write on the file descriptor *)
+
 val pipe : unit -> file_descr * file_descr
 val pipe_in : unit -> file_descr * Unix.file_descr
 val pipe_out : unit -> Unix.file_descr * file_descr
@@ -85,8 +92,8 @@ val inputs : watchers
 val outputs : watchers
 val register_action : watchers -> file_descr -> (unit -> 'a) -> 'a Lwt.t
 val check_descriptor : file_descr -> unit
-(* [check_descriptor] must be call before any system call involving
-   the file descriptor and before calling [register_action]. *)
+(** [check_descriptor] must be called before any system call involving
+    the file descriptor and before calling [register_action]. *)
 
 (****)
 

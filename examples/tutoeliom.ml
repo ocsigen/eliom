@@ -45,7 +45,7 @@ let part1 sp =
           The $a ~service:senddoc ~sp [code [pcdata "Eliomservices" ]] [version;"Eliomservices.html"]$ module allows to create new entry points to 
           your Web site, called <em>services</em>. Services are usually 
           attached to an URL and usually generate a Web page. 
-          They are represented bu OCaml values, on which 
+          They are represented by OCaml values, on which 
           you must register a function that will generate a page.
           There are several ways to creates pages for Eliom. This tutorial
           is mainly using $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$, a module allowing
@@ -170,13 +170,13 @@ Type 'a is not compatible with type
    <code>&lt;table&gt;</code> must contains at least one row.
    To enforce this, the $a ~fragment:"VALtable" ~service:senddoc ~sp [code [pcdata "XHTML.M.table" ]] [version;"XHTML.M.html"]$ function takes two parameters:
    the first one is the first row, the second one is a list
-   containig all the other rows.
+   containing all the other rows.
    (same thing for <code>&lt;tr&gt;</code> <code>&lt;form&gt;</code>
 <code>&lt;dl&gt;</code> <code>&lt;ol&gt;</code> <code>&lt;ul&gt;</code>
 <code>&lt;dd&gt;</code> <code>&lt;select&gt;</code> ...)
-   This enforces to take care separately the case of empty lists
-   and thus respect the DTD.
-   </p>
+ This forces the user to handle the empty list case specially and thus make
+ the output conform to the DTD.
+  </p>
    <p>
    A more detailed introduction to <code>XHTML.M</code> is available
          $a ~service:senddoc ~sp [code [pcdata "here" ]] [version;"XHTML.M.html"]
@@ -359,7 +359,7 @@ let default = register_new_service ["rep";""] unit
     <h3 id="p1parameters">Parameters</h3>
     <div class="onecol">
       <h4>Typed parameters</h4>
-      <p>The parameter labelled 
+      <p>The parameter labeled 
         <code><span class="Clabel">~get_params</span></code>
         indicates the type of GET parameters for the page (that is, parameters
         present in the URL).
@@ -371,7 +371,7 @@ let default = register_new_service ["rep";""] unit
        $a ~fragment:"TYPEserver_params" ~service:senddoc ~sp [code [pcdata "Eliomsessions.server_params" ]]
    [version;"Eliomsessions.html"]$
         and
-       corresponds to server informations (user-agent, ip, current-url, etc.
+       corresponds to server parameters (user-agent, ip, current-url, etc.
        - see later in that section for examples of use), 
         the second one is for GET parameters 
         (that is, parameters in the URL) and the third one
@@ -655,8 +655,8 @@ let essai =
 *zap*)
 (*html*
       <p>$a Tutoeliom.linkrec sp <:xmllist< See <code>linkrec</code> >> ()$.</p>
-      <p>The server won't accept to start if there are
-         unregistered services.</p>
+      <p> The server will fail on start up if there are any unregistered
+      services.</p>
     </div>
     <h3 id="p1forms">Forms</h3>
     <div class="onecol">
@@ -729,13 +729,13 @@ let raw_form = register_new_service
       <p>Try this $a Tutoeliom.raw_form sp <:xmllist< form >> ()$.</p>
       <h4>POST parameters</h4>
       <p>
-   By default parameters of a Web page are in the URL (GET parameters).
-   A web page may also expect parameters POST parameters
+   By default Web page parameters are passed in the URL (GET parameters).
+   A web page may also expect POST parameters
    (that is, parameters that are not in the URL but in the body of the HTTP
    request).
    Use this if you don't want the user to be able to bookmark
    the URL with parameters, for example if you want to post some
-   data that will change the state of the server (paiement, 
+   data that will change the state of the server (payment, 
    database changes, etc).
    When designing a Web site, think carefully about the choice between
    GET or POST method for each service!
@@ -1189,7 +1189,7 @@ let part2 sp =
       </ul>
       <p>Eliom is using cookies to recognize users. 
          One cookie is automatically set for each user when needed and
-         detroyed when the session is closed.
+         destroyed when the session is closed.
       </p>
       <p>Coservices, but also <em>actions</em>, are also means to control 
         precisely the behaviour of the site and to implement easily very
@@ -1405,7 +1405,7 @@ let _ = register
       <ul>
         <li>
           The use of a main service for disconnection is not a good idea
-          for ergonomics. You probably want to go to the same page 
+          for usability. You probably want to go to the same page 
           with the login form. We will do this with a coservice.
         </li>
         <li>
@@ -1442,7 +1442,7 @@ let _ = register
       To close a session, use 
                 <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliomsessions.close_session" ]] [version;"Eliomsessions.html"]$</span>.
       Both the session service table and the session data table for that user
-      will disappear when the sesison is closed.
+      will disappear when the session is closed.
       </p>
       <p>Note that <code>register_for_session</code>
          and <code>close_session</code> take <code>sp</code> as parameter
@@ -1658,7 +1658,7 @@ let _ = register_for_session
    <span class="Cem">$a ~fragment:"VALnew_post_coservice" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_coservice" ]] [version;"Eliomservices.html"]$</span>.
    Like $a ~fragment:"VALnew_post_service" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_service" ]] [version;"Eliomservices.html"]$,
    they take a public service as parameter 
-   (labelled <code><span class="Clabel">fallback</span></code>)
+   (labeled <code><span class="Clabel">fallback</span></code>)
    to be used as fallback when the user comes back without the state
    parameter (for example if it was a POST coservice and/or the coservice
    has expired).</p>
@@ -2215,7 +2215,7 @@ let () =
           but you may also get unexpected results (if the thread is executed
           while another site is loaded).
           If you use threads in the initialization phase of your module 
-          (for example if you need informations from a database), 
+          (for example if you need information from a database), 
           use $a ~fragment:"VALrun" ~service:senddoc ~sp [code [pcdata "Lwt_unix.run" ]] [version;"Lwt_unix.html"]$ to wait the end of the thread.
         </li>
       </ul>
@@ -2348,7 +2348,7 @@ let sendfile2 =
 </pre>
       <p>The extension <code>Staticmod</code> is another way to
        handle static files (see the default 
-       configuration file for more informations).
+       configuration file for more information).
       </p>
 
      <h4>Registering services that decide what they want to send</h4>
@@ -2749,16 +2749,16 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     </p>
 
 
-    <h4 id="infofallbacks">Giving informations to fallbacks</h4>
+    <h4 id="infofallbacks">Giving information to fallbacks</h4>
 
-    <p>Fallbacks have access to some informations about what succeeded before
+    <p>Fallbacks have access to some information about what succeeded before
     they were called. Get this information using 
      $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_exn sp" ]] [version;"Eliomsessions.html"]$; That function returns a list of exceptions.
     That list contains $a ~fragment:"EXCEPTIONEliom_Link_too_old" ~service:senddoc ~sp [code [pcdata "Eliommod.Eliom_Link_too_old" ]] [version;"Eliommod.html"]$ if the coservice
     was not found, and $a ~fragment:"EXCEPTIONEliom_Service_session_expired" ~service:senddoc ~sp [code [pcdata "Eliommod.Eliom_Service_session_expired" ]] [version;"Eliommod.html"]$ if the "service session" has expired.
     </p>
     <p>
-    It is also possible to tell actions to send informations to the page
+    It is also possible to tell actions to send information to the page
     generated after them. Just place exceptions in the list returned by the
     action. These exceptions will also be accessible with 
     $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_exn" ]] [version;"Eliomsessions.html"]$. Try to replace the lines 
@@ -3142,7 +3142,7 @@ let _ = Eliomservices.set_exn_handler
         Eliomparameters.regexp allows to parse page parameters using (Perl-compatible)
         regular expressions. We use the module <code>Netstring_pcre</code>,
         from <em>OCamlnet</em>. See the documentation about OCamlnet
-        for more informations.
+        for more information.
         The following example shows a service that accepts only parameters
         values enclosed between <code>[</code> and <code>]</code>:
       </p>
@@ -3559,7 +3559,7 @@ let suffixform = register_new_service ["suffixform"] unit
 
       <p>The $a ~fragment:"VALfile" ~service:senddoc ~sp [code [pcdata "Eliomparameters.file" ]] [version;"Eliomparameters.html"]$ parameter type allows to send files in your
        request. The service gets something of type 
-       $a ~fragment:"TYPEfile_info" ~service:senddoc ~sp [code [pcdata "Extensions.file_info" ]] [version;"Extensions.html"]$. You can extract informations
+       $a ~fragment:"TYPEfile_info" ~service:senddoc ~sp [code [pcdata "Extensions.file_info" ]] [version;"Extensions.html"]$. You can extract information
        using this using these functions (from $a ~service:senddoc ~sp [code [pcdata "Eliomsessions" ]] [version;"Eliomsessions.html"]$):
       </p>
 <pre>

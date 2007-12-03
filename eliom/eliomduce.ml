@@ -519,7 +519,7 @@ module SubXhtml =
 
         let print x =
           let b = Buffer.create 256 in
-          Ocamlduce.Print.print_xml (Buffer.add_string b) x;
+          Ocamlduce.Print.print_xml (Buffer.add_string b) (x :> Ocamlduce.Load.anyxml);
           Buffer.contents b
 
         let get_etag c =
@@ -579,6 +579,8 @@ module SubXhtml =
 
    end)
 *)
+
+
 
 module Blocks =
   (struct
