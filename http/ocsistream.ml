@@ -75,10 +75,13 @@ let rec consume_aux st =
   | Finished (Some ss) -> consume_aux ss
   | Finished None      -> Lwt.return ()
 
-let consume st =
+let cancel st =
   let st' = st.stream in
   st.stream <- lazy (Lwt.fail Cancelled);
   consume_aux st'
+
+let consume st =
+  consume_aux st.stream
 
 let finalize st =
   st.stream <- lazy (Lwt.fail Finalized);

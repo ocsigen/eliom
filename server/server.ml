@@ -94,7 +94,8 @@ let dbg sockaddr s =
        "While talking to " ^ ip ^ ": " ^ s)
 
 (* reading the request *)
-let get_request_infos meth url http_frame filenames sockaddr port =
+let get_request_infos 
+    meth url http_frame filenames sockaddr port receiver =
 
   try
 
@@ -153,101 +154,110 @@ let get_request_infos meth url http_frame filenames sockaddr port =
 
     let find_post_params = 
       lazy
-        (if meth = Http_header.GET || meth = Http_header.HEAD 
-        then return ([],[]) else 
-          match http_frame.Http_frame.content with
+        (if meth = Http_header.GET || meth = Http_header.HEAD then
+           return ([],[]) 
+         else 
+           match http_frame.Http_frame.content with
           | None -> return ([], [])
           | Some body_gen ->
               try
                 let ct = match ct with
-                | None -> raise (Failure "Missing Content-Type")
-                | Some ct -> ct
+                  | None -> "application/octet-stream"
+                  | Some ct -> ct
                 in
                 let body = Ocsistream.get body_gen in
                 catch
                   (fun () ->
-                    let ctlow = String.lowercase ct in
-                    if ctlow = "application/x-www-form-urlencoded"
-                    then 
-                      catch
-                        (fun () ->
-                          Ocsistream.string_of_stream body >>=
-                          (fun r -> return
+                     let ctlow = String.lowercase ct in
+                     if ctlow = "application/x-www-form-urlencoded"
+                     then 
+                       catch
+                         (fun () ->
+                            Ocsistream.string_of_stream body >>= fun r -> 
+                            Lwt.return
                               ((Netencoding.Url.dest_url_encoded_parameters r),
-                               [])))
-                        (function
-                          | Ocsistream.String_too_large -> 
-                              fail Input_is_too_large
-                          | e -> fail e)
-                    else 
-                      match
-                        (Netstring_pcre.string_match 
-                           (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
-                      with 
-                      | None -> fail Ocsigen_unsupported_media
-                      | _ ->
-                          let bound = get_boundary ct in
-                          let params = ref [] in
-                          let files = ref [] in
-                          let create hs =
-                            let cd = List.assoc "content-disposition" hs in
-                            let st = try 
-                              Some (find_field "filename" cd) 
-                            with Not_found -> None in
-                            let p_name = find_field "name" cd in
-                            match st with 
-                            | None -> No_File (p_name, Buffer.create 1024)
-                            | Some store -> 
-                                let now = 
-                                  Printf.sprintf 
-                                    "%s-%f-%d" 
-                                    store (Unix.gettimeofday ()) (counter ())
-                                in
-                                match ((Ocsiconfig.get_uploaddir ())) with
-                                | Some dname ->
-                                    let fname = dname^"/"^now in
-                                    let fd = Unix.openfile fname 
-                                        [Unix.O_CREAT;
-                                         Unix.O_TRUNC;
-                                         Unix.O_WRONLY;
-                                         Unix.O_NONBLOCK] 0o666 in
-                                    (* Messages.debug "file opened"; *)
-                                    filenames := fname::!filenames;
-                                    A_File (p_name, fname, store, fd)
-                                | None -> raise Ocsigen_upload_forbidden
-                          in
-                          let rec add where s =
-                            match where with 
-                            | No_File (p_name, to_buf) -> 
-                                Buffer.add_string to_buf s;
-                                return ()
-                            | A_File (_,_,_,wh) ->
-                                let len = String.length s in
-                                let r = Unix.write wh s 0 len in
-                                if r < len then
+                               []))
+                         (function
+                            | Ocsistream.String_too_large -> 
+                                fail Input_is_too_large
+                            | e -> fail e)
+                     else 
+                       match
+                         (Netstring_pcre.string_match 
+                            (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
+                       with 
+                         | None -> fail Ocsigen_unsupported_media
+                         | _ ->
+                             let bound = get_boundary ct in
+                             let params = ref [] in
+                             let files = ref [] in
+                             let create hs =
+                               let cd = List.assoc "content-disposition" hs in
+                               let st = try 
+                                 Some (find_field "filename" cd) 
+                               with Not_found -> None in
+                               let p_name = find_field "name" cd in
+                               match st with 
+                                 | None -> No_File (p_name, Buffer.create 1024)
+                                 | Some store -> 
+                                     let now = 
+                                       Printf.sprintf 
+                                         "%s-%f-%d" 
+                                         store (Unix.gettimeofday ()) (counter ())
+                                     in
+                                     match ((Ocsiconfig.get_uploaddir ())) with
+                                       | Some dname ->
+                                           let fname = dname^"/"^now in
+                                           let fd = Unix.openfile fname 
+                                             [Unix.O_CREAT;
+                                              Unix.O_TRUNC;
+                                              Unix.O_WRONLY;
+                                              Unix.O_NONBLOCK] 0o666 in
+                                           (* Messages.debug "file opened"; *)
+                                           filenames := fname::!filenames;
+                                           A_File (p_name, fname, store, fd)
+                                       | None -> raise Ocsigen_upload_forbidden
+                             in
+                             let rec add where s =
+                               match where with 
+                                 | No_File (p_name, to_buf) -> 
+                                     Buffer.add_string to_buf s;
+                                     return ()
+                                 | A_File (_,_,_,wh) ->
+                                     let len = String.length s in
+                                     let r = Unix.write wh s 0 len in
+                                     if r < len then
 (*XXXX Inefficient if s is long *)
-                                  add where (String.sub s r (len - r))
-                                else
-                                  Lwt_unix.yield ()
-                          in
-                          let stop size  = function 
-                            | No_File (p_name, to_buf) -> 
-                                return 
-                                  (params := !params @
-                                    [(p_name, Buffer.contents to_buf)])
-                                  (* à la fin ? *)
-                            | A_File (p_name,fname,oname,wh) -> 
-                                (* Messages.debug "closing file"; *)
-                                files := 
-                                  !files@[(p_name, {tmp_filename=fname;
-                                                    filesize=size;
-                                                    original_filename=oname})];
-                                 Unix.close wh;
-                                return ()
-                          in
-                          Multipart.scan_multipart_body_from_stream 
-                            body bound create add stop >>=
-                          (fun () -> return (!params, !files)))
+                                       add where (String.sub s r (len - r))
+                                     else
+                                       Lwt_unix.yield ()
+                             in
+                             let stop size  = function 
+                               | No_File (p_name, to_buf) -> 
+                                   return 
+                                     (params := !params @
+                                        [(p_name, Buffer.contents to_buf)])
+                                     (* à la fin ? *)
+                               | A_File (p_name,fname,oname,wh) -> 
+                                   (* Messages.debug "closing file"; *)
+                                   files := 
+                                     !files@[(p_name, {tmp_filename=fname;
+                                                       filesize=size;
+                                                       original_filename=oname})];
+                                   Unix.close wh;
+                                   return ()
+                             in
+                             Multipart.scan_multipart_body_from_stream 
+                               body bound create add stop >>= fun () ->
+(*VVV
+  Does scan_multipart_body_from_stream read
+  until the end or only what it needs? 
+  If we do not consume here, 
+  the following request will be read only when
+  this one is finished ...
+ *)
+                              Ocsistream.consume body_gen >>= fun () ->
+                              Lwt.return (!params, !files))
                   (fun e -> (*XXX??? Ocsistream.consume body >>= fun _ ->*) fail e)
               with e -> fail e)
 
@@ -299,6 +309,7 @@ let get_request_infos meth url http_frame filenames sockaddr port =
      ri_accept_language = accept_language;
      ri_http_frame = http_frame;
      ri_extension_info = [];
+     ri_client = Extensions.client_of_connection receiver;
    }
       
   with e ->
@@ -380,34 +391,35 @@ let service
        We need to do this once the request has been handled before sending
        any reply to the client. *)
     match request.Http_frame.content with
-      Some f ->
-        ignore
-          (Lwt.catch
-             (fun () -> Ocsistream.consume f)
-             (fun e ->
-
-                (match e with
-                  Http_com.Lost_connection _ ->
-                    warn sockaddr "connection abruptly closed by peer \
-                                   while reading contents"
-                | Http_com.Timeout ->
-                    warn sockaddr "timeout while reading contents"
-                | Http_com.Aborted ->
-                    warn sockaddr "reading thread aborted"
-                | Http_error.Http_exception (code, mesg) ->
-                    warn sockaddr (Http_error.string_of_http_exception e)
-                | _ ->
-                    Messages.unexpected_exception
-                      e "Server.finish_request"
-                );
-                Http_com.abort receiver;
-                (* We unlock the receiver in order to resume the
-                   reading loop.  As the connection has been aborted,
-                   the next read will fail and the connection will be
-                   closed properly. *)
-                Http_com.unlock_receiver receiver;
-                Lwt.return ()))
-    | None ->
+        Some f ->    
+          ignore
+            (Lwt.catch
+               (fun () -> Ocsistream.cancel f)
+               (function
+                 | Ocsistream.Finalized -> Lwt.return ()
+                 | e ->
+                  
+                     (match e with
+                       Http_com.Lost_connection _ ->
+                         warn sockaddr "connection abruptly closed by peer \
+                           while reading contents"
+                     | Http_com.Timeout ->
+                         warn sockaddr "timeout while reading contents"
+                     | Http_com.Aborted ->
+                         warn sockaddr "reading thread aborted"
+                     | Http_error.Http_exception (code, mesg) ->
+                         warn sockaddr (Http_error.string_of_http_exception e)
+                     | _ ->
+                         Messages.unexpected_exception e "Server.finish_request"
+                            );
+                     Http_com.abort receiver;
+                     (* We unlock the receiver in order to resume the
+                        reading loop.  As the connection has been aborted,
+                        the next read will fail and the connection will be
+                        closed properly. *)
+                     Http_com.unlock_receiver receiver;
+                     Lwt.return ()))
+    | None -> 
         ()
   in
 
@@ -430,7 +442,8 @@ let service
       Lwt.try_bind
         (fun () ->
            Lwt.return
-             (get_request_infos meth url request filenames sockaddr port))
+             (get_request_infos
+                meth url request filenames sockaddr port receiver))
         (fun ri ->
            (* *** Now we generate the page and send it *)
            (* Log *)
@@ -594,7 +607,7 @@ let linger in_ch receiver =
        (* We start the lingering reads before waiting for the
           senders to terminate in order to avoid a deadlock *)
        let linger_thread = linger_aux () in
-       Http_com.wait_all_senders receiver >>= fun () ->
+       Http_com.wait_all_senders receiver;
        Messages.debug2 "** SHUTDOWN";
        Lwt_ssl.ssl_shutdown in_ch >>= fun () ->
        Lwt_ssl.shutdown in_ch Unix.SHUTDOWN_SEND;
@@ -686,8 +699,7 @@ let handle_connection port in_ch sockaddr =
            Lwt.catch
              (fun () ->
 (*XXX Why do we need the port but not the host name?*)
-                service
-                  receiver slot request meth url port sockaddr in_ch)
+                service receiver slot request meth url port sockaddr in_ch)
              handle_write_errors);
          if get_keepalive request.Http_frame.header then
            handle_request ()

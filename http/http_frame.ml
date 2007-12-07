@@ -318,4 +318,4 @@ module Http_error =
 (** HTTP messages *)
 type t =
   { header : Http_header.http_header;
-    content : string Ocsistream.t option }
+    content : string Ocsistream.t option}

@@ -36,6 +36,8 @@ val get :
 
 
 val raw_request :
+    ?client: Extensions.client ->
+    ?keep_alive: bool ->
     ?headers: Http_headers.t ->
     ?https: bool ->
     ?port:int ->
@@ -48,15 +50,48 @@ val raw_request :
     Http_frame.t Lwt.t
 (** EXPERIMENTAL -- Will evolve in the future. 
    Do an HTTP request (low level). 
+
    If the optional argument [headers] is present, no headers will be 
    added by Ocsigen, but those in this argument and host, and 
-   [connection: close].
-   No way to do [Keep-alive] for now.
+   [connection: close] or [connection: keep-alive].
    Be carefull to respect HTTP/1.1 in this case!
+
    The default port is 80 for HTTP, 443 for HTTPS.
+
    The default protocol is http ([https=false]).
+
+   The optional parameter [~keep_alive] asks to keep the connection opened
+   after the request for a short amount of time 
+   to allow other requests to the same server to use the same connection.
+   It is true by default.
+
+   If you do this request to serve it later to a client or to generate a page
+   for a client, add the optional parameter [~client]. 
+   Thus, the request you do will be pipelined
+   with other requests coming from the same connection. 
+   A request will never be pipelined after a request from another client. 
+   It is recommended to specify this optional parameter for all requests
+   (with the value found in field
+   [ri_client] of type {!Extensions.request_info})
+   otherwise the order of requests may be different.
  *)
 (*VVV Dangerous!! *)
+
+
+val basic_raw_request :
+    ?headers: Http_headers.t ->
+    ?https: bool ->
+    ?port:int ->
+    ?content: string Ocsistream.t ->
+    http_method: Http_frame.Http_header.http_method ->
+    host:string ->
+    inet_addr:Unix.inet_addr ->
+    uri:string ->
+    unit ->
+    Http_frame.t Lwt.t
+(** Same as {!Http_client.raw_request}, but does not try to reuse connections.
+    Opens a new connections for each request. Much less efficient.
+*)
 
 
 (**/**)

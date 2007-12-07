@@ -54,6 +54,9 @@ type file_info = {tmp_filename: string; (** Where the file is stored on the serv
                   original_filename: string (** Original file name *) }
 (** Note that the files are cancelled once the request has been fulfilled *)
 
+type client
+(** A value of this type represents the client who did the request. *)
+
 (** The request *)
 type request_info = 
     {ri_url_string: string; (** full URL *)
@@ -96,6 +99,7 @@ type request_info =
                                       for example, information for subsequent
                                       extensions 
                                    *)
+     ri_client: client; (** The request connection *)
    }
 
 (** If you force [ri_files] or [ri_post_params], the request is fully read,
@@ -237,3 +241,6 @@ val get_numberofreloads : unit -> int
 val get_init_exn_handler : unit -> exn -> string
 
 val set_config : Simplexmlparser.xml list -> unit
+
+val client_of_connection : Http_com.connection -> client
+(** Coercion between Http_com.connection and client *)

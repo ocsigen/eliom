@@ -27,7 +27,7 @@ val get : 'a t -> 'a stream
 
 (** get the next step of a stream.
     Fails with [Interrupted e] if reading the thread failed with exception [e],
-    and with [Cancelled] if the thread has been consumed. *)
+    and with [Cancelled] if the thread has been cancelled. *)
 val next : 'a stream -> 'a step Lwt.t
 
 
@@ -44,7 +44,14 @@ val add_finalizer : 'a t -> (unit -> unit Lwt.t) -> unit
 (** Finalize the stream *)
 val finalize : 'a t -> unit Lwt.t
 
-(** read the stream until the end, without decoding *)
+(** Cancel the stream, i.e. read the stream until the end, without decoding.
+    Further tries to read on the stream will fail with exception
+    {!Ocsistream.Cancelled}
+ *)
+val cancel : 'a t -> unit Lwt.t
+
+(** Consume without cancelling.
+    Read the stream until the end, without decoding. *)
 val consume : 'a t -> unit Lwt.t
 
 

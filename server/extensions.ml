@@ -54,6 +54,9 @@ type file_info = {tmp_filename: string;
 type virtual_host_part = Text of string * int | Wildcard
 type virtual_hosts = ((virtual_host_part list) * int option) list
 
+type client = int
+let client_of_connection x = Http_com.connection_id x
+
 (* Requests *)
 type request_info = 
     {ri_url_string: string;
@@ -95,6 +98,7 @@ type request_info =
                                       for example, information for subsequent
                                       extensions 
                                    *)
+     ri_client: client; (** The request connection *)
    }
 
    
@@ -212,20 +216,20 @@ let parse_site host =
           with
           | Bad_config_tag_for_extension t -> 
               ignore
-                (Messages.warning
+                (Messages.errlog
                    ("Unexpected tag <"^t^"> inside <site dir=\""^
 	            (Ocsimisc.string_of_url_path path)^"\"> (ignored)"));
               aux ll
           | Ocsiconfig.Config_file_error t
           | Error_in_config_file t -> 
               ignore
-                (Messages.warning
+                (Messages.errlog
                    ("Error while parsing configuration file: "^
                     t^" (ignored)"));
               aux ll
           | e -> 
               ignore
-                (Messages.warning
+                (Messages.errlog
                    ("Error while parsing configuration file: "^
                     (Ocsimisc.string_of_exn e)^
 	            " (ignored)"));

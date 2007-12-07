@@ -76,7 +76,8 @@ let create_waiter block =
 (** buffer de comunication permettant la reception et la recupération
     des messages *)
 type connection =
-  { fd : Lwt_ssl.socket;
+  { id : int;
+    fd : Lwt_ssl.socket; 
     chan : Lwt_chan.out_channel;
     timeout : Lwt_timeout.t;
     r_mode : mode;
@@ -87,6 +88,12 @@ type connection =
     mutable senders : waiter;
     mutable sender_count : int }
 
+let connection_id x = x.id
+
+let new_id =
+  let c = ref 0 in
+  fun () -> incr c; !c
+
 let create_receiver mode fd =
   let buffer_size = Ocsiconfig.get_netbuffersize () in
   let timeout =
@@ -94,13 +101,15 @@ let create_receiver mode fd =
       (int_of_float (ceil (Ocsiconfig.get_connect_time_max ())))
       (fun () -> Lwt_ssl.abort fd Timeout)
   in
-  { fd = fd;
+  { id = new_id ();
+    fd = fd;
     chan =
       Lwt_chan.make_out_channel
         (fun buf pos len ->
            Lwt_timeout.start timeout;
-           Lwt.finalize (fun () -> Lwt_ssl.write fd buf pos len)
-            (fun () -> Lwt_timeout.stop timeout; Lwt.return ()));
+           Lwt.finalize
+             (fun () -> Lwt_ssl.write fd buf pos len)
+             (fun () -> Lwt_timeout.stop timeout; Lwt.return ()));
     timeout = timeout;
     r_mode = mode;
     buf=String.create buffer_size;
@@ -142,8 +151,7 @@ let receive receiver =
       receiver.read_pos <- 0
     end;
     if receiver.sender_count = 0 then Lwt_timeout.start receiver.timeout;
-    Lwt_ssl.read receiver.fd receiver.buf receiver.write_pos free
-      >>= fun len ->
+    Lwt_ssl.read receiver.fd receiver.buf receiver.write_pos free >>= fun len ->
     Lwt_timeout.stop receiver.timeout;
     receiver.write_pos <- used + len;
     if len = 0 then
@@ -343,9 +351,23 @@ let get_maxsize = function
                *)
   | Query -> Ocsiconfig.get_maxrequestbodysize ()
 
+
 let return_with_empty_body receiver =
+  (* We return a stream even if it is empty.
+     Thus, we are sure that we begin reading a request (unlock)
+     only when the previous one has been handled by one of the extensions.
+  *)
+  Lwt.return
+    (Some (Ocsistream.make (fun () -> 
+                              Lwt_mutex.unlock receiver.read_mutex;
+                              Ocsistream.empty None)))
+  (* We keep the option type in http_frame, only for sending *)
+
+
+let return_with_no_body receiver =
   Lwt_mutex.unlock receiver.read_mutex;
   Lwt.return None
+
 
 (** get an http frame *)
 let get_http_frame ?(head = false) receiver =
@@ -435,7 +457,7 @@ NOT IMPLEMENTED
    would leave no possibility for the server to send back a response.)
  *)
             match header.Http_frame.Http_header.mode with
-              Http_frame.Http_header.Query _ ->
+              Http_frame.Http_header.Query (_, s) ->
                 return_with_empty_body receiver
             | _ ->
                 let st =

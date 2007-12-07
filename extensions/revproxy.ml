@@ -115,7 +115,10 @@ let gen dir err charset ri =
       Preemptive.detach Unix.gethostbyname host >>= fun host_entry ->
       Http_client.raw_request 
         ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
-        ~https ~port 
+        ~https
+        ~port 
+        ~client:ri.ri_client
+        ~keep_alive:true
         ?content:ri.ri_http_frame.Http_frame.content
         ~http_method:ri.ri_method
         ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)

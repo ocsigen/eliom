@@ -70,5 +70,5 @@ val with_defaults : t -> t -> t
  *)
 
 
-(** Headers for dynamic pages (non cachable) *)
 val dyn_headers : t
+(** Headers for dynamic pages (non cachable) *)

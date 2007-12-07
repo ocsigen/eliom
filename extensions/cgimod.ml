@@ -419,7 +419,8 @@ let recupere_cgi head re filename ri =
 
     (* A thread getting the result of the CGI script *)
     let receiver =
-      Http_com.create_receiver Http_com.Nofirstline (Lwt_ssl.plain cgi_out) in
+      Http_com.create_receiver Http_com.Nofirstline (Lwt_ssl.plain cgi_out) 
+    in
     catch 
       (fun () ->
 	Http_com.get_http_frame ~head receiver >>= fun http_frame ->

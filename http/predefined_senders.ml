@@ -108,8 +108,7 @@ module Text_content =
 
 (*****************************************************************************)
 module Stream_content =
-  (* Used to send data from a stream
-   *)
+  (* Used to send data from a stream *)
   struct
     type t = string Ocsistream.t
 

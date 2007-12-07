@@ -109,4 +109,4 @@ module Http_error :
   end
 type t =
   { header : Http_header.http_header;
-    content : string Ocsistream.t option }
+    content : string Ocsistream.t option}
