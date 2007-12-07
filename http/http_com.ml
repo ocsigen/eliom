@@ -762,10 +762,7 @@ let send
   in
   let mkcook path exp name c =
     Format.sprintf "%s=%s%s%s" name c
-      (match path with
-      | [] | [""] -> ""
-      | s -> "; path=/" ^ Ocsimisc.string_of_url_path s
-      )
+      ("; path=/" ^ Ocsimisc.string_of_url_path path)
       (match exp with
       | Some s -> "; expires=" ^
           Netdate.format
