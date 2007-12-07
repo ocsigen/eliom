@@ -295,219 +295,14 @@ end
 (****************************************************************************)
 (****************************************************************************)
 
-module Xml =
-  (struct
-    module Cont_content =
-      struct
-        type t = Ocamlduce.Load.anyxml
-
-        let get_etag_aux x =
-          Some (Digest.to_hex (Digest.string x))
-
-        let print x =
-          let b = Buffer.create 256 in
-          Ocamlduce.Print.print_xml (Buffer.add_string b) x;
-          Buffer.contents b
-
-        let get_etag c =
-          let x = print c in
-          get_etag_aux x
-
-        let result_of_content c = 
-          let x = print c in
-          let md5 = get_etag_aux x in
-          let default_result = default_result () in
-          Lwt.return
-            {default_result with
-             res_content_length = Some (Int64.of_int (String.length x));
-             res_content_type = Some "text/html";
-             res_etag = md5;
-             res_headers= Http_headers.dyn_headers;
-             res_stream = 
-                Ocsistream.make 
-                  (fun () -> Ocsistream.cont x
-                     (fun () -> Ocsistream.empty None))
-            }
-
-      end
-        
-
-    module Contreg_ = struct
-      open XHTML.M
-      open Xhtmltypes
-        
-      type page = Ocamlduce.Load.anyxml
-            
-      let send ?(cookies=[]) ?charset ?code ~sp content = 
-        Cont_content.result_of_content content >>= fun r ->
-        Lwt.return
-            (Eliomservices.EliomResult 
-               {r with
-                res_cookies= 
-                Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
-                res_code= code_of_code_option code;
-                res_charset= (match charset with
-                | None -> Some (Eliomsessions.get_config_file_charset sp)
-                | _ -> charset);
-              })
-          
-    end
-        
-    module Contreg = Eliommkreg.MakeRegister(Contreg_)
-
-    include Xhtmlforms
-    include Contreg
-
-   end : sig
-
-  include Eliommkreg.ELIOMREGSIG with type page = Ocamlduce.Load.anyxml
-  include Eliommkforms.ELIOMFORMSIG with 
-      type form_content_elt = form_content
-  and type form_content_elt_list = {{ [ form_content* ] }}
-  and type uri = string
-  and type a_content_elt = a_content
-  and type a_content_elt_list = {{ [ a_content* ] }}
-  and type div_content_elt = flows
-  and type div_content_elt_list = {{ [ flows* ] }}
-  and type a_elt = a
-  and type a_elt_list = {{ [ a* ] }}
-  and type form_elt = form
-  and type textarea_elt = textarea
-  and type select_elt = select
-  and type input_elt = input
-  and type link_elt = link
-  and type script_elt = script
-  and type pcdata_elt = {{ [ PCDATA ] }}
-  and type a_attrib_t = a_attrs
-  and type form_attrib_t = 
-      {{ attrs ++ { accept-charset=?String accept=?String 
-  	          onreset=?String onsubmit=?String enctype=?String } }}
-  and type input_attrib_t = input_attrs
-  and type textarea_attrib_t = {{ attrs ++ focus ++ 
-  	{ onchange=?String
-              onselect=?String 
-  	    readonly=?"readonly" 
-              disabled=?"disabled" 
-  	    name=?String } }}
-  and type select_attrib_t = select_attrs
-  and type link_attrib_t = link_attrs
-  and type script_attrib_t = 
-      {{ id ++ { defer=?"defer" src=?String charset=?String } }}
-  and type input_type_t = input_type_values
-
-
-end)
-
-module Xmllist =
-  (struct
-    module Cont_content =
-      struct
-        type t = Ocamlduce.Load.anyxml list
-
-        let get_etag_aux x =
-          Some (Digest.to_hex (Digest.string x))
-
-        let print x =
-          let b = Buffer.create 256 in
-          List.iter
-            (Ocamlduce.Print.print_xml (Buffer.add_string b))
-            x;
-          Buffer.contents b
-
-        let get_etag c =
-          let x = print c in
-          get_etag_aux x
-
-        let result_of_content c = 
-          let x = print c in
-          let md5 = get_etag_aux x in
-          let default_result = default_result () in
-          Lwt.return
-            {default_result with
-             res_content_length = Some (Int64.of_int (String.length x));
-             res_content_type = Some "text/html";
-             res_etag = md5;
-             res_headers= Http_headers.dyn_headers;
-             res_stream = 
-                Ocsistream.make 
-                  (fun () -> Ocsistream.cont x
-                     (fun () -> Ocsistream.empty None))
-            }
-
-      end
-        
-
-    module Contreg_ = struct
-      open XHTML.M
-      open Xhtmltypes
-        
-      type page = Ocamlduce.Load.anyxml list
-            
-      let send ?(cookies=[]) ?charset ?code ~sp content = 
-        Cont_content.result_of_content content >>= fun r ->
-        Lwt.return
-            (Eliomservices.EliomResult 
-               {r with
-                res_cookies= 
-                Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
-                res_code= code_of_code_option code;
-                res_charset= (match charset with
-                | None -> Some (Eliomsessions.get_config_file_charset sp)
-                | _ -> charset);
-              })
-          
-    end
-        
-    module Contreg = Eliommkreg.MakeRegister(Contreg_)
-
-    include Xhtmlforms
-    include Contreg
-
-   end : sig
-
-  include Eliommkreg.ELIOMREGSIG with type page = Ocamlduce.Load.anyxml list
-  include Eliommkforms.ELIOMFORMSIG with 
-      type form_content_elt = form_content
-  and type form_content_elt_list = {{ [ form_content* ] }}
-  and type uri = string
-  and type a_content_elt = a_content
-  and type a_content_elt_list = {{ [ a_content* ] }}
-  and type div_content_elt = flows
-  and type div_content_elt_list = {{ [ flows* ] }}
-  and type a_elt = a
-  and type a_elt_list = {{ [ a* ] }}
-  and type form_elt = form
-  and type textarea_elt = textarea
-  and type select_elt = select
-  and type input_elt = input
-  and type link_elt = link
-  and type script_elt = script
-  and type pcdata_elt = {{ [ PCDATA ] }}
-  and type a_attrib_t = a_attrs
-  and type form_attrib_t = 
-      {{ attrs ++ { accept-charset=?String accept=?String 
-  	          onreset=?String onsubmit=?String enctype=?String } }}
-  and type input_attrib_t = input_attrs
-  and type textarea_attrib_t = {{ attrs ++ focus ++ 
-  	{ onchange=?String
-              onselect=?String 
-  	    readonly=?"readonly" 
-              disabled=?"disabled" 
-  	    name=?String } }}
-  and type select_attrib_t = select_attrs
-  and type link_attrib_t = link_attrs
-  and type script_attrib_t = 
-      {{ id ++ { defer=?"defer" src=?String charset=?String } }}
-  and type input_type_t = input_type_values
-
-
-end)
 
 
 
-(*
 module SubXhtml = 
-  functor(T : sig type content end) ->
+  functor(T : sig 
+            type content
+            val print : (string -> unit ) -> content -> unit 
+          end) ->
   (struct
 
     module Cont_content =
@@ -519,7 +314,7 @@ module SubXhtml =
 
         let print x =
           let b = Buffer.create 256 in
-          Ocamlduce.Print.print_xml (Buffer.add_string b) (x :> Ocamlduce.Load.anyxml);
+          T.print (Buffer.add_string b) x;
           Buffer.contents b
 
         let get_etag c =
@@ -575,82 +370,7 @@ module SubXhtml =
    end : sig
 
      include Eliommkreg.ELIOMREGSIG with type page = T.content
-     include Eliommkforms.ELIOMFORMSIG
-
-   end)
-*)
-
-
-
-module Blocks =
-  (struct
-    module Cont_content =
-      struct
-        type t = blocks
-
-        let get_etag_aux x =
-          Some (Digest.to_hex (Digest.string x))
-
-        let print (x : blocks) =
-          let b = Buffer.create 256 in
-          List.iter
-            (Ocamlduce.Print.print_xml (Buffer.add_string b))
-            {: x :};
-          Buffer.contents b
-
-        let get_etag c =
-          let x = print c in
-          get_etag_aux x
-
-        let result_of_content c = 
-          let x = print c in
-          let md5 = get_etag_aux x in
-          let default_result = default_result () in
-          Lwt.return
-            {default_result with
-             res_content_length = Some (Int64.of_int (String.length x));
-             res_content_type = Some "text/html";
-             res_etag = md5;
-             res_headers= Http_headers.dyn_headers;
-             res_stream = 
-                Ocsistream.make 
-                  (fun () -> Ocsistream.cont x
-                     (fun () -> Ocsistream.empty None))
-            }
-
-      end
-        
-
-    module Contreg_ = struct
-      open XHTML.M
-      open Xhtmltypes
-        
-      type page = blocks
-            
-      let send ?(cookies=[]) ?charset ?code ~sp content = 
-        Cont_content.result_of_content content >>= fun r ->
-        Lwt.return
-            (Eliomservices.EliomResult 
-               {r with
-                res_cookies= 
-                Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
-                res_code= code_of_code_option code;
-                res_charset= (match charset with
-                | None -> Some (Eliomsessions.get_config_file_charset sp)
-                | _ -> charset);
-              })
-          
-    end
-        
-    module Contreg = Eliommkreg.MakeRegister(Contreg_)
-
-    include Xhtmlforms
-    include Contreg
-
-   end : sig
-
-  include Eliommkreg.ELIOMREGSIG with type page = blocks
-  include Eliommkforms.ELIOMFORMSIG with 
+     include Eliommkforms.ELIOMFORMSIG with 
       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
   and type uri = string
@@ -685,22 +405,27 @@ module Blocks =
   and type input_type_t = input_type_values
 
 
-end)
+
+   end)
 
 
+module Blocks = SubXhtml(struct 
+                           type content = {{ blocks }} 
+                           let print f (x : content) = 
+                             List.iter
+                               (Ocamlduce.Print.print_xml f )
+                               {: x :}                               
+                          end)
 
-(*
-module Blocks = (SubXhtml(struct type content = {{ blocks }} end)
-: sig
+module Xml = SubXhtml(struct 
+                        type content = Ocamlduce.Load.anyxml
+                        let print f x = Ocamlduce.Print.print_xml f x
+                      end)
 
-  include Eliommkreg.ELIOMREGSIG with type page = {{ blocks }}
-  include Eliommkforms.ELIOMFORMSIG
-
-end)
-*)
-(*
-
-+ faire un foncteur SubXhtml (variables de rangée privées et ocamlduce ??)
-
-*)
-
+module Xmllist = SubXhtml(struct 
+                            type content = Ocamlduce.Load.anyxml list
+                            let print f (x : content) = 
+                              List.iter
+                                (Ocamlduce.Print.print_xml f )
+                                x
+                          end)
