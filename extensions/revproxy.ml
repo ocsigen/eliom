@@ -112,7 +112,7 @@ let gen dir err charset ri =
         "--Revproxy: YES! Redirection to "^
         (if https then "https://" else "http://")^host^":"^
         (string_of_int port)^uri);
-      Preemptive.detach Unix.gethostbyname host >>= fun host_entry ->
+      Lwt_lib.gethostbyname host >>= fun host_entry ->
       Http_client.raw_request 
         ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
         ~https

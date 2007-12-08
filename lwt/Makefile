@@ -8,11 +8,12 @@ endif
 
 NAME = lwt
 
+
 OCAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG)
 OCAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG)
 OCAMLDEP = $(OCAMLFIND) ocamldep
 
-OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_chan.cmo lwt_unix.cmo lwt_ssl.cmo lwt_timeout.cmo lwt_mutex.cmo preemptive.cmo
+OBJECTS  = pqueue.cmo lwt.cmo lwt_util.cmo lwt_chan.cmo lwt_unix.cmo lwt_ssl.cmo lwt_timeout.cmo lwt_mutex.cmo preemptive.cmo lwt_lib.cmo
 XOBJECTS = $(OBJECTS:cmo=cmx)
 
 ARCHIVE  = $(NAME).cma
@@ -46,7 +47,7 @@ $(XARCHIVE): $(XOBJECTS)
 	$(OCAMLC) -thread -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
 	           $(SRCLIBREP) -c $<
 .ml.cmx:
-	$(OCAMLOPT) -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
+	$(OCAMLOPT) -thread -package "$(REQUIRES)" -predicates "$(PREDICATES)" \
 	            $(SRCLIBREP) -c $<
 
 depend: *.ml *.mli

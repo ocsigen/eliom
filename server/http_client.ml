@@ -367,7 +367,7 @@ Messages.debug2 uri;
 
 
 let get ?https ?port ~host ~uri () =
-  Preemptive.detach Unix.gethostbyname host >>= fun host_entry ->
+  Lwt_lib.gethostbyname host >>= fun host_entry ->
   raw_request 
       ?https ?port ~http_method:Http_frame.Http_header.GET
       ~host ~inet_addr:host_entry.Unix.h_addr_list.(0) ~uri ()
