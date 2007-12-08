@@ -26,6 +26,11 @@ exception Task_failed
 let minthreads : int ref = ref 0
 let maxthreads : int ref = ref 0
 
+let maxthreadqueued = ref 100
+
+let get_max_number_of_threads_queued () = !maxthreadqueued
+let set_max_number_of_threads_queued n = maxthreadqueued := n
+
 let finishedpipe = 
   let (in_fd, out_fd) = Lwt_unix.pipe_in () in
   Lwt_unix.set_close_on_exec in_fd;
@@ -62,7 +67,7 @@ exception All_preemptive_threads_are_busy
 let free, nbthreadsqueued =
   let nb_threads_queued = ref 0 in
   let max_thread_waiting_queue = 
-    Ocsiconfig.get_max_number_of_threads_queued () in
+    get_max_number_of_threads_queued () in
   let rec free1 i : int = 
     if i >= !maxthreads
     then raise All_preemptive_threads_are_busy 
@@ -76,10 +81,6 @@ let free, nbthreadsqueued =
     match !pool.(first).worker with
       None -> 
         let last = (min (first + (max !minthreads 10)) !maxthreads) - 1 in
-        ignore
-          (Messages.debug 
-             (fun () -> 
-               "Creating "^(string_of_int (last - first + 1))^" threads."));
         aux last first
     | _ -> ()
   in
@@ -128,7 +129,7 @@ let detach (f : 'a -> 'b) (args : 'a) : 'b Lwt.t =
         Lwt.return r))
 
 
-let dispatch () = 
+let dispatch errlog = 
   let rec aux () =
     (catch
        (fun () ->
@@ -153,9 +154,9 @@ let dispatch () =
            return ()))
 
        (fun e ->
-         Messages.errlog
-           ("Internal error in preemptive.ml (read failed on the pipe) "^ 
-            Ocsimisc.string_of_exn e ^" - Please report the bug");
+          errlog
+            ("Internal error in preemptive.ml (read failed on the pipe) "^ 
+               Printexc.to_string e ^" - Please report the bug");
          return ())
     ) >>= (fun () -> aux ())
   in aux ()
@@ -176,12 +177,12 @@ let rec start_initial_threads min n =
     start_initial_threads min (n+1);
   end
 
-let init min max =
+let init min max errlog =
   pool := Array.init max initthread;
   minthreads := min;
   maxthreads := max;
   start_initial_threads min 0;
-  dispatch ()
+  dispatch errlog
 
 
 let nbthreads () = 

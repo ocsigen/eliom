@@ -27,8 +27,20 @@
 (** detaches a computation to a preemptive thread. *)
 val detach : ('a -> 'b) -> 'a -> 'b Lwt.t
 
+
+val init : int -> int -> (string -> unit) -> 'a Lwt.t
+(** Should be called only once at the begining of the process.
+    Arguments are: minimum number of threads, maximum number of threads
+    and the function to log errors.
+*)
+
+val set_max_number_of_threads_queued : int -> unit
+(** Sets the size of the waiting queue, if no more threads are available *)
+
+val get_max_number_of_threads_queued : unit -> int
+(** Returns the size of the waiting queue, if no more threads are available *)
+
 (**/**)
-val init : int -> int -> 'a Lwt.t
 val nbthreads : unit -> int
 val nbthreadsbusy : unit -> int
 val nbthreadsqueued : unit -> int

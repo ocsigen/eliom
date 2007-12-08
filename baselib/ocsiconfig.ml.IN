@@ -42,7 +42,6 @@ let default_user = ref "_OCSIGENUSER_"
 let default_group = ref "_OCSIGENGROUP_"
 let minthreads = ref 10 
 let maxthreads = ref 1500 
-let max_number_of_threads_queued = ref 100
 let max_number_of_connections = ref 500
 let mimefile = ref "_CONFIGDIR_/mime.types" 
 let connect_time_max = ref 10.
@@ -71,8 +70,8 @@ let set_daemon () = set_silent (); daemon := true
 let set_veryverbose () = verbose := true; veryverbose := true
 let set_minthreads i = minthreads := i
 let set_maxthreads i = maxthreads := i
-let set_max_number_of_threads_queued i = 
-  max_number_of_threads_queued := i
+let set_max_number_of_threads_queued = 
+  Preemptive.set_max_number_of_threads_queued
 let set_max_number_of_connections i = max_number_of_connections := i
 let set_connect_time_max i = connect_time_max := i
 let set_keepalive_timeout i = keepalive_timeout := i
@@ -101,7 +100,8 @@ let get_default_user () = !default_user
 let get_default_group () = !default_group
 let get_minthreads () = !minthreads
 let get_maxthreads () = !maxthreads
-let get_max_number_of_threads_queued () = !max_number_of_threads_queued
+let get_max_number_of_threads_queued = 
+  Preemptive.get_max_number_of_threads_queued
 let get_max_number_of_connections () = !max_number_of_connections
 let get_connect_time_max () = !connect_time_max
 let get_keepalive_timeout () = !keepalive_timeout

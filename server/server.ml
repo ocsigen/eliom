@@ -946,7 +946,7 @@ let _ = try
         raise
           (Config_file_error "maxthreads should be greater than minthreads");
 
-      ignore (Preemptive.init minthreads maxthreads);
+      ignore (Preemptive.init minthreads maxthreads Messages.errlog);
       
       (* Now I can load the modules *)
       Dynlink.init ();
