@@ -119,7 +119,7 @@ let gen dir err charset ri =
         ~port 
         ~client:ri.ri_client
         ~keep_alive:true
-        ?content:ri.ri_http_frame.Http_frame.content
+        ?content:(Lazy.force ri.ri_http_frame.Http_frame.content)
         ~http_method:ri.ri_method
         ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
         ~uri ()
@@ -132,7 +132,7 @@ let gen dir err charset ri =
         | Http_frame.Http_header.Answer code -> code
         | _ -> raise Bad_answer_from_http_server
       in
-      match http_frame.Http_frame.content with
+      match Lazy.force http_frame.Http_frame.content with
       | None -> return (Ext_found (Http_frame.empty_result ()))
       | Some stream ->
           let default_result = Http_frame.default_result () in

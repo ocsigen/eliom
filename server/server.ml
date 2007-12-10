@@ -157,7 +157,7 @@ let get_request_infos
         (if meth = Http_header.GET || meth = Http_header.HEAD then
            return ([],[]) 
          else 
-           match http_frame.Http_frame.content with
+           match Lazy.force http_frame.Http_frame.content with
           | None -> return ([], [])
           | Some body_gen ->
               try
@@ -345,7 +345,7 @@ let service
         Messages.debug
           (fun () -> "-> Sending HTTP error "^(string_of_int i)^" "^
             Http_frame.Http_error.expl_of_code i);
-        send_error sender_slot ~clientproto ~head ~keep_alive:true
+        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:true
           ~code:i ~sender:Http_com.default_sender ()
     | Extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
@@ -354,32 +354,32 @@ let service
           "Cannot read the request twice. You probably have \
            two incompatible options in <site> configuration, \
            or the order of the options in the config file is wrong.";
-        send_error sender_slot ~clientproto ~head ~keep_alive:true
+        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:true
           ~code:500 ~sender:Http_com.default_sender () (* Internal error *)
     | Ocsigen_upload_forbidden ->
         Messages.debug2 "-> Sending 403 Forbidden";
-        send_error sender_slot ~clientproto ~head ~keep_alive:true
+        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:true
           ~code:403 ~sender:Http_com.default_sender ()
     | Http_error.Http_exception (_,_) ->
         send_error sender_slot ~clientproto ~head ~keep_alive:false
           ~exn:e ~sender:Http_com.default_sender ()
     | Ocsigen_Bad_Request ->
         Messages.debug2 "-> Sending 400";
-        send_error sender_slot ~clientproto ~head ~keep_alive:false
+        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:false
           ~code:400 ~sender:Http_com.default_sender ()
     | Ocsigen_unsupported_media ->
         Messages.debug2 "-> Sending 415";
-        send_error sender_slot ~clientproto ~head ~keep_alive:false
+        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:false
           ~code:415 ~sender:Http_com.default_sender ()
     | Neturl.Malformed_URL ->
         Messages.debug2 "-> Sending 400 (Malformed URL)";
-        send_error sender_slot ~clientproto ~head ~keep_alive:false
+        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:false
           ~code:400 ~sender:Http_com.default_sender () (* Malformed URL *)
     | e ->
         Messages.warning
           ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
         Messages.debug2 "-> Sending 500";
-        send_error sender_slot ~clientproto ~head ~keep_alive:true
+        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:true
           ~code:500 ~sender:Http_com.default_sender ()
   in
   let finish_request () =
@@ -390,13 +390,12 @@ let service
          the server writing the response.
        We need to do this once the request has been handled before sending
        any reply to the client. *)
-    match request.Http_frame.content with
+    match Lazy.force request.Http_frame.content with
         Some f ->    
           ignore
             (Lwt.catch
-               (fun () -> Ocsistream.cancel f)
+               (fun () -> Ocsistream.finalize f)
                (function
-                 | Ocsistream.Finalized -> Lwt.return ()
                  | e ->
                   
                      (match e with
@@ -607,7 +606,7 @@ let linger in_ch receiver =
        (* We start the lingering reads before waiting for the
           senders to terminate in order to avoid a deadlock *)
        let linger_thread = linger_aux () in
-       Http_com.wait_all_senders receiver;
+       Http_com.wait_all_senders receiver >>= fun () ->
        Messages.debug2 "** SHUTDOWN";
        Lwt_ssl.ssl_shutdown in_ch >>= fun () ->
        Lwt_ssl.shutdown in_ch Unix.SHUTDOWN_SEND;

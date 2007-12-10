@@ -84,10 +84,11 @@ let consume st =
   consume_aux st.stream
 
 let finalize st =
-  st.stream <- lazy (Lwt.fail Finalized);
   let f = st.finalizer in
   st.finalizer <- (fun () -> Lwt.return ());
-  f ()
+  f () >>= fun () ->
+  st.stream <- lazy (Lwt.fail Finalized);
+  Lwt.return ()
 
 let add_finalizer st g =
   let f = st.finalizer in

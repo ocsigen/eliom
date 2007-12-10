@@ -20,7 +20,10 @@
 
 (* TODO
    - The keepalive timeout should be different from timeout for clients
-   (or no timeout at all)
+   (or no timeout at all?)
+   - re-ouvrir la connexion quand l'écriture échoue
+   - que se passe-t-il si le serveur dit keep-alive: close -> 
+   ne pas faire de pipeline
 *)
 
 (* constants. Should be configurable *)
@@ -72,8 +75,8 @@ module FT = struct
       let first, new_l, size = add_last v l in
       let new_l =
         if size > max_free_open_connections then begin
-          Messages.debug2 "*************Http_client: Too much free connections. Removing the oldest one.";
-          Lwt_unix.close (fst first);
+          Messages.debug2 "--Http_client: Too much free connections. Removing the oldest one.";
+          Lwt_unix.shutdown (fst first) Unix.SHUTDOWN_ALL;
           new_l
         end
         else first::new_l
@@ -94,7 +97,7 @@ module FT = struct
           T.replace free_connection_table k l;
           a
 
-  let remove_close k (fd, (conn, gf)) =
+  let remove k (fd, (conn, gf)) =
     let rec aux = function
       | [] -> false, []
       | ((_, (conn2, _)) as a)::l -> 
@@ -104,38 +107,23 @@ module FT = struct
             let (b, ll) = aux l in
             b, a::ll
     in
-    Messages.debug2 "*************Http_client: closing one free connection!";
-    (try
-      Lwt_unix.close fd;
-    with e -> 
-      Messages.debug_noel2 "*************Http_client: exception while closing: ";
-      Messages.debug2 (Ocsimisc.string_of_exn e));
     try
       match T.find free_connection_table k with
         | [] -> 
             T.remove free_connection_table k;
-            Messages.debug2 "*************Http_client: strange1 - free connection not found";
         | [(_, (conn2, _))] -> 
             if conn == conn2 then begin
               T.remove free_connection_table k;
-              Messages.debug2 "*************Http_client: ok1 - free connection removed from table";
             end
-            else
-              Messages.debug2 "*************Http_client: strange2 - free connection not found";
         | l ->
             let b, ll = aux l in
             if b then begin
               T.replace free_connection_table k ll;
-              Messages.debug2 "*************Http_client: ok2 - free connection removed from table";
             end
-            else
-              Messages.debug2 "*************Http_client: strange3 - free connection not found";
     with Not_found ->
-      Messages.debug2 "*************Http_client: strange4 - free connection removed from table";
       ()
       | e -> 
-          Messages.debug_noel2 "*************Http_client: exception while removing: ";
-          Messages.debug2 (Ocsimisc.string_of_exn e);    
+          Messages.debug_noel2 ("--Http_client: exception while removing from connection table: "^Ocsimisc.string_of_exn e)
           
 end
 
@@ -147,9 +135,9 @@ end
 let raw_request 
     ?client ?(keep_alive = true) ?headers ?(https=false) ?port ?content
     ~http_method ~host ~inet_addr ~uri () =
-(*VVV What do we do with Host: or other headers? *)
+(*VVV What do we do with User-agent: or other headers? *)
 
-  Messages.debug_noel2 "*************Http_client: *************** new request to ";
+  Messages.debug_noel2 "--Http_client: *************** new request to ";
   Messages.debug2 uri;
   
   let port = match port with
@@ -157,16 +145,37 @@ let raw_request
   | Some p -> p
   in
 
+  let close_on_error fd gf =
+    (* No need for lingering close, if I am not wrong *)
+    ignore 
+      (Lwt.catch
+         (fun () -> gf >>= fun _ -> Lwt.return ())
+         (function
+            | Http_com.Connection_closed -> 
+                Messages.debug_noel2 "--Http_client: connection closed by server (closing)";
+                Lwt_unix.close fd;
+                Lwt.return ()
+            | Http_com.Keepalive_timeout -> 
+                Messages.debug_noel2 "--Http_client: connection closed by keepalive timeout";
+                Lwt_unix.close fd;
+                Lwt.return ()
+            | e -> 
+                Messages.warning ("Http_client: exception caught while receiving frame: "^Ocsimisc.string_of_exn e^" - closing connection to the server.");
+                Lwt_unix.close fd;
+                Lwt.return ()
+         ))
+  in
+
   let new_conn () =
     (* If there is already a free connection for the same server, we reuse it *)
     try
       let c = FT.find_remove (inet_addr, port) in
       Messages.debug2
-        "*************Http_client: Free connection found";
+        "--Http_client: Free connection found";
       c
     with Not_found ->
       Messages.debug2
-        "*************Http_client: Free connection not found - creating new one";
+        "--Http_client: Free connection not found - creating new one";
       let fd = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
 
       let conn =
@@ -181,99 +190,83 @@ let raw_request
         Lwt.return (Http_com.create_receiver Http_com.Answer socket)
       in
       let gf = conn >>= fun conn -> Http_com.get_http_frame ~head:false conn in
-
+      close_on_error fd gf;
       (fd, (conn, gf))
   in
 
-  let remove_on_close key fd gf =
+  let remove_on_error key gf =
     ignore 
       (Lwt.catch
          (fun () -> gf >>= fun _ -> Lwt.return ())
-         (function
-            | Http_com.Connection_closed 
-            | Http_com.Keepalive_timeout as e -> 
-                Messages.debug_noel2 "*************Http_client: exception while receiving frame from server: ";
-                Messages.debug_noel2 (Ocsimisc.string_of_exn e);
-                Messages.debug2 " (closing connection)";
-                Lwt_unix.close fd;
-                T.remove connection_table key;
-                Lwt.return ()
-            | e -> 
-                Messages.warning ("Http_client: exception caught while receiving frame: "^Ocsimisc.string_of_exn e^" - closing connection to the server.");
-                Lwt_unix.close fd;
-                T.remove connection_table key;
-                Lwt.return ()
-         ))
+         (fun e ->
+            T.remove connection_table key;
+            Lwt.return ()
+         )
+      )
   in
 
-  let remove_on_close_from_free_conn key ((_, (_, gf)) as v) =
+  let remove_on_error_from_free_conn key ((_, (_, gf)) as v) =
     ignore 
       (Lwt.catch
          (fun () -> gf >>= fun _ -> Lwt.return ())
-         (function
-            | Http_com.Connection_closed 
-            | Http_com.Keepalive_timeout as e -> 
-                Messages.debug_noel2 "*************Http_client: exception while receiving frame from server (free connection): ";
-                Messages.debug2 (Ocsimisc.string_of_exn e);
-                FT.remove_close key v;
-                Lwt.return ()
-            | e -> 
-                Messages.warning ("Http_client: exception caught while receiving frame: "^Ocsimisc.string_of_exn e^" - closing pipeline.");
-                FT.remove_close key v;
-                Lwt.return ()
-
-         ))
+         (fun _ -> 
+            FT.remove key v;
+            Lwt.return ()
+         )
+      )
   in
 
   let (key_new_waiter, fd, thr_conn, get_frame) =
     match client with
       | None -> 
-          Messages.debug2 "*************Http_client: No client specified";
+          Messages.debug2 "--Http_client: No client specified";
           let (fd, (conn, gf)) = new_conn () in
           (None, fd, conn, gf)
       | Some client -> 
-          Messages.debug2 ("*************Http_client: Trying to find an opened connection for same client");
+          Messages.debug2 ("--Http_client: Trying to find an opened connection for same client");
           let new_waiter = Lwt.wait () in
           let key = (client, (inet_addr, port)) in
           (* Is there already a connection for the same client? *)
           let (fd, conn, get_frame, nb_users) =
             try
               let r = T.find connection_table key in
-              Messages.debug2 ("*************Http_client: Connection FOUND for this client");
+              Messages.debug2 ("--Http_client: Connection FOUND for this client! PIPELINING!");
               r
             with Not_found ->
               Messages.debug2
-                "*************Http_client: Connection not found for this client";
+                "--Http_client: Connection not found for this client";
               let (fd, (conn, gf)) = new_conn () in
               (fd, conn, gf, 0)
           in
           let new_get_frame = 
             new_waiter >>= fun () ->
             conn >>= fun conn ->
-            Http_com.get_http_frame ~head:false conn
+            let gf = Http_com.get_http_frame ~head:false conn in
+            close_on_error fd gf;
+            gf
           in
           Messages.debug2
-            "*************Http_client: Putting connection in connection_table";
+            "--Http_client: Putting connection in connection_table";
           T.replace connection_table key (fd, conn, new_get_frame, nb_users + 1);
-          remove_on_close key fd get_frame;
+          remove_on_error key get_frame;
           (Some (key, new_waiter), fd, conn, get_frame)
   in
 
 
+  let query = Http_frame.Http_header.Query (http_method, uri) in
+  
+  let headers = 
+    Http_headers.replace 
+      (Http_headers.name "host")
+      (host^":"^string_of_int port)
+      (match headers with
+         | None -> Http_headers.empty
+         | Some h -> h)
+  in
+    
   let f slot =
 
-    let query = Http_frame.Http_header.Query (http_method, uri) in
-  
-    let headers = 
-      Http_headers.add 
-        (Http_headers.name "host")
-        host
-        (match headers with
-           | None -> Http_headers.empty
-           | Some h -> h)
-    in
-    
-    Messages.debug2 "*************Http_client: Will send request when slot opened";
+    Messages.debug2 "--Http_client: Will send request when slot opened";
     (match content with
     | None ->
         let empty_result = Http_frame.empty_result () in
@@ -300,12 +293,11 @@ let raw_request
            Http_frame.res_headers= headers;
           }) >>= fun () ->
 
-    Messages.debug2 "*************Http_client: request sent";
+    Messages.debug2 "--Http_client: request sent";
     Lwt.return ()
 
   in
-  Messages.debug2 "*************Http_client: Doing the request";
-Messages.debug2 uri;
+  Messages.debug2 "--Http_client: Doing the request";
   thr_conn >>= fun conn ->
   Http_com.start_processing conn f; (* starting the request *)
 
@@ -313,56 +305,61 @@ Messages.debug2 uri;
 
 
   (* getting and sending back the result: *)
-  Lwt.catch 
-    (fun () ->
-       get_frame >>= fun http_frame ->
+  get_frame >>= fun http_frame ->
 
-       Messages.debug2 "*************Http_client: frame received";
-       let finalize () = 
-         let put_in_free_conn ?gf () =
-           Messages.debug2 "*************Http_client: Putting in free connections";
-           let gf = match gf with
-             | None -> Http_com.get_http_frame ~head:false conn
-             | Some gf -> gf
-           in
-           try
-             ignore (Lwt.poll gf);
-             FT.add (inet_addr, port) (fd, (thr_conn, gf));
-             Messages.debug2 "*************Http_client: Added in free connections";
-             remove_on_close_from_free_conn (inet_addr, port) (fd, (thr_conn, gf)) ;
-           with e ->
-             Messages.debug_noel2 "*************Http_client: exception while trying to keep free connection: ";
-             Messages.debug2 (Ocsimisc.string_of_exn e);
-             Lwt_unix.close fd
-         in
-         match key_new_waiter with
-           | None -> (* no ~client supplied *) put_in_free_conn ()
-           | Some (key, new_waiter) ->
-               (try
-                 let (fd, conn, gf, nb_users) = 
-                   T.find connection_table key 
-                 in
-                 if nb_users = 1 then begin
-                   Messages.debug2 "*************Http_client: The connection is not used any more by the client";
-                   T.remove connection_table key;
-                   put_in_free_conn ~gf ()
-                 end
-                 else
-                   T.replace connection_table key (fd, thr_conn, gf, nb_users - 1)
-               with Not_found -> 
-                 Messages.warning
-                   "Http_client - Strange: connection disappeared from \
+(*  if not (Ocsiheaders.get_keepalive http_frame.Http_frame.header) then
+    ???
+*)
+  (match key_new_waiter with
+    | None -> ()
+    | Some (_, new_waiter) -> Lwt.wakeup new_waiter ());
+
+  Messages.debug2 "--Http_client: frame received";
+  let finalize () = 
+    let put_in_free_conn ?gf () =
+      Messages.debug2 "--Http_client: Putting in free connections";
+      let gf = match gf with
+        | None -> 
+            let gf = Http_com.get_http_frame ~head:false conn in
+            close_on_error fd gf;
+            gf
+        | Some gf -> gf
+      in
+      try
+        ignore (Lwt.poll gf);
+        FT.add (inet_addr, port) (fd, (thr_conn, gf));
+        Messages.debug2 "--Http_client: Added in free connections";
+        remove_on_error_from_free_conn (inet_addr, port) (fd, (thr_conn, gf)) ;
+      with e ->
+        Messages.debug_noel2 "--Http_client: exception while trying to keep free connection: ";
+        Messages.debug2 (Ocsimisc.string_of_exn e);
+        Lwt_unix.close fd
+    in
+    match key_new_waiter with
+      | None -> (* no ~client supplied *) put_in_free_conn ()
+      | Some (key, _) ->
+          (try
+             let (fd, conn, gf, nb_users) = T.find connection_table key in
+             if nb_users = 1 then begin
+               Messages.debug2 "--Http_client: The connection is not used any more by the client";
+               T.remove connection_table key;
+               put_in_free_conn ~gf ()
+             end
+             else
+               T.replace connection_table key (fd, thr_conn, gf, nb_users - 1)
+           with Not_found -> 
+             Messages.warning
+               "Http_client - Strange: connection disappeared from \
                    connection_table");
-               Lwt.wakeup new_waiter ();
-       in
-       (match http_frame.Http_frame.content with
-          | None   -> finalize ()
-          | Some c -> 
-              Ocsistream.add_finalizer c
-                (fun () -> finalize (); Lwt.return ()));
-       
-       Lwt.return http_frame)
-    (fun e -> Lwt_unix.close fd; Lwt.fail e)
+  in
+  (match Lazy.force http_frame.Http_frame.content with
+     | None   -> finalize ()
+     | Some c -> 
+         Ocsistream.add_finalizer c
+           (fun () -> finalize (); Lwt.return ()));
+  
+  Lwt.return http_frame
+
 
 
 
@@ -438,7 +435,7 @@ let basic_raw_request
   Lwt.catch 
     (fun () ->
       Http_com.get_http_frame ~head:false conn >>= fun http_frame ->
-      (match http_frame.Http_frame.content with
+      (match Lazy.force http_frame.Http_frame.content with
       | None   -> Lwt_unix.close fd
       | Some c -> 
           Ocsistream.add_finalizer c

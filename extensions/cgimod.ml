@@ -356,7 +356,7 @@ let recupere_cgi head re filename ri =
     ignore
       (catch
          (fun () ->
-           (match ri.ri_http_frame.Http_frame.content with
+           (match Lazy.force ri.ri_http_frame.Http_frame.content with
            | None -> Lwt_unix.close post_in; return ()
            | Some content_post -> 
                Http_com.write_stream post_in_ch content_post >>= fun () ->
@@ -432,7 +432,7 @@ let recupere_cgi head re filename ri =
 (** return the content of the frame *)
 
 let get_content str =
-  match str.Http_frame.content with
+  match Lazy.force str.Http_frame.content with
   | None   -> Ocsistream.make (fun () -> Ocsistream.empty None)
   | Some c -> c
 

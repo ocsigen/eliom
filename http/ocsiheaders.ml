@@ -113,14 +113,13 @@ http://ws.bokeland.com/blog/376/1043/2006/10/27/76832
 
 
 let get_keepalive http_header =
-  Http_header.get_proto http_header = Http_frame.Http_header.HTTP11
-    &&
   try
     String.lowercase
       (Http_header.get_headers_value http_header Http_headers.connection)
-      <> "close"
+      = "keep-alive"
   with Not_found ->
-    true
+    Http_header.get_proto http_header = Http_frame.Http_header.HTTP11
+
 
 (* RFC 2616, sect. 14.23 *)
 (* XXX Not so simple: the host name may contain a colon! (RFC 3986) *)

@@ -352,21 +352,7 @@ let get_maxsize = function
   | Query -> Ocsiconfig.get_maxrequestbodysize ()
 
 
-let return_with_empty_body receiver =
-  (* We return a stream even if it is empty.
-     Thus, we are sure that we begin reading a request (unlock)
-     only when the previous one has been handled by one of the extensions.
-  *)
-  Lwt.return
-    (Some (Ocsistream.make (fun () -> 
-                              Lwt_mutex.unlock receiver.read_mutex;
-                              Ocsistream.empty None)))
-  (* We keep the option type in http_frame, only for sending *)
-
-
-let return_with_no_body receiver =
-  Lwt_mutex.unlock receiver.read_mutex;
-  Lwt.return None
+let return_with_no_body receiver = Lwt.return None
 
 
 (** get an http frame *)
@@ -384,10 +370,10 @@ let get_http_frame ?(head = false) receiver =
  *)
   begin match header.Http_frame.Http_header.mode with
     Http_frame.Http_header.Answer code when code_without_message_body code ->
-      return_with_empty_body receiver
+      return_with_no_body receiver
   | _ ->
       if head then begin
-        return_with_empty_body receiver
+        return_with_no_body receiver
       end else begin
 (* RFC
    2. If  a Transfer-Encoding header field (section  14.41) is present
@@ -432,7 +418,7 @@ let get_http_frame ?(head = false) receiver =
                 (Http_frame.Http_error.Http_exception
                    (400, Some "ill-formed content-length header"))
             else if cl = 0L then
-              return_with_empty_body receiver
+              return_with_no_body receiver
             else
               let max = get_maxsize receiver.r_mode in
               begin match max with
@@ -458,7 +444,7 @@ NOT IMPLEMENTED
  *)
             match header.Http_frame.Http_header.mode with
               Http_frame.Http_header.Query (_, s) ->
-                return_with_empty_body receiver
+                return_with_no_body receiver
             | _ ->
                 let st =
                   extract receiver (Bounded (get_maxsize receiver.r_mode)) in
@@ -466,8 +452,16 @@ NOT IMPLEMENTED
       end
     end
   end >>= fun b ->
-  Lwt.return {Http_frame.header=header;
-              Http_frame.content=b}
+  let la =
+    (match b with
+       | None -> lazy (Lwt_mutex.unlock receiver.read_mutex; None)
+       | Some s -> 
+           Ocsistream.add_finalizer s (fun () -> Ocsistream.consume s);
+           lazy (Some s)
+    )
+  in
+  Lwt.return {Http_frame.header = header;
+              Http_frame.content = la}
 
 (****)
 
