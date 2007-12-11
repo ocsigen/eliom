@@ -156,7 +156,7 @@ let dispatch errlog =
        (fun e ->
           errlog
             ("Internal error in preemptive.ml (read failed on the pipe) "^ 
-               Printexc.to_string e ^" - Please report the bug");
+               Printexc.to_string e ^" - Please check if Preemptive is initialized and that preemptive.cmo is linked only once. Otherwise, please report the bug");
          return ())
     ) >>= (fun () -> aux ())
   in aux ()

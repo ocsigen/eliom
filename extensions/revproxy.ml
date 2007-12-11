@@ -21,11 +21,15 @@
 
 (** Reverse proxy for Ocsigen *)
 
-(* TODO
+(* 
+   The reverse proxy is still experimental because it relies on the 
+   experimental Http_client module.
+
+   TODO
    - add the ability to rewrite some headers from the config file
    (for ex after a redirection, the new URL is wrong)
    probably in another (filter) extension
-   - pipelining
+   - enhance pipelining
    - ...
 *)
 
@@ -53,7 +57,8 @@ type redir =
       https: bool;
       server:string;
       port: string;
-      uri: string}
+      uri: string;
+      pipeline: bool}
 
 
 
@@ -101,53 +106,87 @@ let end_init () =
 (** The function that will generate the pages from the request. *)
 exception Bad_answer_from_http_server
 
+let waiter = ref (Lwt.return ())
+(* We want the requests to be handled in right order!
+   Each request will wait for the previous one waiter.
+*)
+
 let gen dir err charset ri =
   catch
     (* Is it a redirection? *)
     (fun () ->
-      Messages.debug2 "--Revproxy: Is it a redirection?";
-      let (https, host, port, uri) = find_redirection dir ri.ri_sub_path in
-      let uri = "/"^uri in
-      Messages.debug (fun () ->
-        "--Revproxy: YES! Redirection to "^
-        (if https then "https://" else "http://")^host^":"^
-        (string_of_int port)^uri);
-      Lwt_lib.gethostbyname host >>= fun host_entry ->
-      Http_client.raw_request 
-        ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
-        ~https
-        ~port 
-        ~client:ri.ri_client
-        ~keep_alive:true
-        ?content:(Lazy.force ri.ri_http_frame.Http_frame.content)
-        ~http_method:ri.ri_method
-        ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
-        ~uri ()
-        >>= fun http_frame ->
-      let headers = 
-        http_frame.Http_frame.header.Http_frame.Http_header.headers 
-      in
-      let code = 
-        match http_frame.Http_frame.header.Http_frame.Http_header.mode with
-        | Http_frame.Http_header.Answer code -> code
-        | _ -> raise Bad_answer_from_http_server
-      in
-      match Lazy.force http_frame.Http_frame.content with
-      | None -> return (Ext_found (Http_frame.empty_result ()))
-      | Some stream ->
-          let default_result = Http_frame.default_result () in
-          return
-            (Ext_found
-               {default_result with
-                Http_frame.res_content_length = None;
-                Http_frame.res_stream = stream;
-	        Http_frame.res_headers= headers;
-	        Http_frame.res_code= code;
-              })
+       Messages.debug2 "--Revproxy: Is it a redirection?";
+       let (https, host, port, uri) = 
+         find_redirection dir ri.ri_sub_path 
+       in
+       let uri = "/"^uri in
+       Messages.debug (fun () ->
+                         "--Revproxy: YES! Redirection to "^
+                           (if https then "https://" else "http://")^host^":"^
+                                (string_of_int port)^uri);
+       let old_waiter = !waiter in
+       let new_waiter = Lwt.wait () in
+       waiter := new_waiter;
+       Lwt.finalize
+         (fun () -> 
+            Lwt_lib.gethostbyname host >>= fun r ->
+            old_waiter >>= fun () -> (* wait for the previous to be taken *)
+            Lwt.return r)
+         (fun () -> Lwt.wakeup new_waiter (); Lwt.return ())
+       >>= fun host_entry ->
+       (if dir.pipeline then
+         Http_client.raw_request 
+           ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
+           ~https
+           ~port 
+           ~client:ri.ri_client
+           ~keep_alive:true
+           ~content:ri.ri_http_frame.Http_frame.content
+           ~http_method:ri.ri_method
+           ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
+           ~uri ()
+       else
+         Http_client.basic_raw_request 
+           ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
+           ~https
+           ~port 
+           ~content:ri.ri_http_frame.Http_frame.content
+           ~http_method:ri.ri_method
+           ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
+           ~uri ())
+         >>= fun http_frame ->
+       let headers = 
+         http_frame.Http_frame.header.Http_frame.Http_header.headers 
+       in
+       let code = 
+         match http_frame.Http_frame.header.Http_frame.Http_header.mode with
+           | Http_frame.Http_header.Answer code -> code
+           | _ -> raise Bad_answer_from_http_server
+       in
+       match Lazy.force http_frame.Http_frame.content with
+         | None ->
+             let empty_result = Http_frame.empty_result () in
+             return
+               (Ext_found
+                  {empty_result with
+                     Http_frame.res_content_length = None;
+	             Http_frame.res_headers= headers;
+	             Http_frame.res_code= code;
+                  })
+         | Some stream ->
+             let default_result = Http_frame.default_result () in
+             return
+               (Ext_found
+                  {default_result with
+                     Http_frame.res_content_length = None;
+                     Http_frame.res_stream = stream;
+	             Http_frame.res_headers= headers;
+	             Http_frame.res_code= code;
+                  })
     )
     (function 
-      | Not_concerned -> return (Ext_not_found err)
-      | e -> fail e)
+       | Not_concerned -> return (Ext_not_found err)
+       | e -> fail e)
 
 
 
@@ -166,42 +205,46 @@ let gen dir err charset ri =
 
 let parse_config path charset = function
   | Element ("revproxy", atts, []) -> 
-      let rec parse_attrs ((r, s, prot, port, u) as res) = function
+      let rec parse_attrs ((r, s, prot, port, u, pipeline) as res) = function
         | [] -> res
         | ("regexp", regexp)::l when r = None ->
             parse_attrs
-              (Some (Netstring_pcre.regexp ("/"^regexp)), s, prot, port, u)
+              (Some (Netstring_pcre.regexp ("/"^regexp)), s, prot, port, u, pipeline)
               l
         | ("protocol", protocol)::l 
           when prot = None && String.lowercase protocol = "http" -> 
             parse_attrs
-              (r, s, Some false, port, u)
+              (r, s, Some false, port, u, pipeline)
               l
         | ("protocol", protocol)::l 
           when prot = None && String.lowercase protocol = "https" -> 
             parse_attrs
-              (r, s, Some true, port, u)
+              (r, s, Some true, port, u, pipeline)
               l
         | ("server", server)::l when s = None ->
             parse_attrs
-              (r, Some server, prot, port, u)
+              (r, Some server, prot, port, u, pipeline)
               l
         | ("uri", uri)::l when u = None ->
             parse_attrs
-              (r, s, prot, port, Some uri)
+              (r, s, prot, port, Some uri, pipeline)
               l
         | ("port", p)::l when port = None ->
             parse_attrs
-              (r, s, prot, Some p, u)
+              (r, s, prot, Some p, u, pipeline)
+              l
+        | ("nopipeline", "nopipeline")::l ->
+            parse_attrs
+              (r, s, prot, port, u, false)
               l
         | _ -> raise (Error_in_config_file "Wrong attribute for <revproxy>")
         in
         let dir =
-          match parse_attrs (None, None, None, None, None) atts with
-          | (None, _, _, _, _) -> raise (Error_in_config_file "Missing attribute regexp for <revproxy>")
-          | (_, None, _, _, _) -> raise (Error_in_config_file "Missing attribute server for <revproxy>")
-          | (_, _, _, _, None) -> raise (Error_in_config_file "Missing attribute uri for <revproxy>")
-          | (Some r, Some s, None, port, Some u) -> 
+          match parse_attrs (None, None, None, None, None, true) atts with
+          | (None, _, _, _, _, _) -> raise (Error_in_config_file "Missing attribute regexp for <revproxy>")
+          | (_, None, _, _, _, _) -> raise (Error_in_config_file "Missing attribute server for <revproxy>")
+          | (_, _, _, _, None, _) -> raise (Error_in_config_file "Missing attribute uri for <revproxy>")
+          | (Some r, Some s, None, port, Some u, pipeline) -> 
               {
                regexp=r;
                server=s;
@@ -210,8 +253,9 @@ let parse_config path charset = function
                | Some p -> p
                | None -> "80");
                uri=u;
+               pipeline=pipeline;
              }
-          | (Some r, Some s, Some prot, port, Some u) -> 
+          | (Some r, Some s, Some prot, port, Some u, pipeline) -> 
               {
                regexp=r;
                server=s;
@@ -220,6 +264,7 @@ let parse_config path charset = function
                | Some p -> p
                | None -> if prot then "443" else "80");
                uri=u;
+               pipeline=pipeline;
              }
         in
         Page_gen (gen dir)

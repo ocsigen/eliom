@@ -89,6 +89,7 @@ type connection =
     mutable sender_count : int }
 
 let connection_id x = x.id
+let connection_fd x = x.fd
 
 let new_id =
   let c = ref 0 in
@@ -118,6 +119,7 @@ let create_receiver mode fd =
     read_mutex = Lwt_mutex.create ();
     senders = create_waiter false;
     sender_count = 0 }
+
 
 (*XXX Do we really need to export this function? *)
 let lock_receiver receiver = Lwt_mutex.lock receiver.read_mutex
@@ -151,7 +153,8 @@ let receive receiver =
       receiver.read_pos <- 0
     end;
     if receiver.sender_count = 0 then Lwt_timeout.start receiver.timeout;
-    Lwt_ssl.read receiver.fd receiver.buf receiver.write_pos free >>= fun len ->
+    Lwt_ssl.read receiver.fd receiver.buf receiver.write_pos free
+    >>= fun len ->
     Lwt_timeout.stop receiver.timeout;
     receiver.write_pos <- used + len;
     if len = 0 then
@@ -369,28 +372,29 @@ let get_http_frame ?(head = false) receiver =
    the message.
  *)
   begin match header.Http_frame.Http_header.mode with
-    Http_frame.Http_header.Answer code when code_without_message_body code ->
-      return_with_no_body receiver
-  | _ ->
-      if head then begin
-        return_with_no_body receiver
-      end else begin
+      Http_frame.Http_header.Answer code
+        when code_without_message_body code ->
+          return_with_no_body receiver
+    | _ ->
+        if head then begin
+          return_with_no_body receiver
+        end else begin
 (* RFC
    2. If  a Transfer-Encoding header field (section  14.41) is present
    and has  any value other than "identity",  then the transfer-length
    is defined  by use of the "chunked"  transfer-coding (section 3.6),
    unless the message is terminated by closing the connection.
 *)
-      let chunked =
-        try
-          Http_frame.Http_header.get_headers_value
-             header Http_headers.transfer_encoding <> "identity"
-        with Not_found ->
-          false
-      in
-      if chunked then
-        Lwt.return (Some (extract_chunked receiver))
-      else begin
+          let chunked =
+            try
+              Http_frame.Http_header.get_headers_value
+                header Http_headers.transfer_encoding <> "identity"
+            with Not_found ->
+              false
+          in
+          if chunked then
+            Lwt.return (Some (extract_chunked receiver))
+          else begin
 (* RFC
    3. If a Content-Length header field (section 14.13) is present, its
    decimal value  in OCTETs represents both the  entity-length and the
@@ -400,34 +404,34 @@ let get_http_frame ?(head = false) receiver =
    Transfer-Encoding header  field and a  Content-Length header field,
    the latter MUST be ignored.
 *)
-        let content_length =
-          try
-            (*XXX Check for overflow/malformed field... *)
-            Some
-              (Int64.of_string
-                 (Http_frame.Http_header.get_headers_value
-                    header Http_headers.content_length))
-          with Not_found ->
-            None
-        in
-        match content_length with
-          Some cl ->
-            if cl < 0L then
-              (*XXX Malformed field!!!*)
-              Lwt.fail
-                (Http_frame.Http_error.Http_exception
-                   (400, Some "ill-formed content-length header"))
-            else if cl = 0L then
-              return_with_no_body receiver
-            else
-              let max = get_maxsize receiver.r_mode in
-              begin match max with
-                Some m when cl > m ->
-                  Lwt.fail (request_too_large m)
-              | _ ->
-                  Lwt.return (Some (extract receiver (Exact cl)))
-              end
-        | None ->
+            let content_length =
+              try
+                (*XXX Check for overflow/malformed field... *)
+                Some
+                  (Int64.of_string
+                     (Http_frame.Http_header.get_headers_value
+                        header Http_headers.content_length))
+              with Not_found ->
+                None
+            in
+            match content_length with
+                Some cl ->
+                  if cl < 0L then
+                    (*XXX Malformed field!!!*)
+                    Lwt.fail
+                      (Http_frame.Http_error.Http_exception
+                         (400, Some "ill-formed content-length header"))
+                  else if cl = 0L then
+                    return_with_no_body receiver
+                  else
+                    let max = get_maxsize receiver.r_mode in
+                    begin match max with
+                        Some m when cl > m ->
+                          Lwt.fail (request_too_large m)
+                      | _ ->
+                          Lwt.return (Some (extract receiver (Exact cl)))
+                    end
+              | None ->
 (* RFC
    4. If  the message uses the media  type "multipart/byteranges", and
    the transfer-length is  not  otherwise specified,  then this  self-
@@ -442,26 +446,27 @@ NOT IMPLEMENTED
    cannot be  used to indicate the  end of a request  body, since that
    would leave no possibility for the server to send back a response.)
  *)
-            match header.Http_frame.Http_header.mode with
-              Http_frame.Http_header.Query (_, s) ->
-                return_with_no_body receiver
-            | _ ->
-                let st =
-                  extract receiver (Bounded (get_maxsize receiver.r_mode)) in
-                Lwt.return (Some st)
-      end
-    end
+                  match header.Http_frame.Http_header.mode with
+                      Http_frame.Http_header.Query (_, s) ->
+                        return_with_no_body receiver
+                    | _ ->
+                        let st =
+                          extract receiver 
+                            (Bounded (get_maxsize receiver.r_mode)) in
+                        Lwt.return (Some st)
+          end
+        end
   end >>= fun b ->
-  let la =
-    (match b with
-       | None -> lazy (Lwt_mutex.unlock receiver.read_mutex; None)
-       | Some s -> 
-           Ocsistream.add_finalizer s (fun () -> Ocsistream.consume s);
-           lazy (Some s)
-    )
-  in
-  Lwt.return {Http_frame.header = header;
-              Http_frame.content = la}
+    let la =
+      (match b with
+         | None -> lazy (Lwt_mutex.unlock receiver.read_mutex; None)
+         | Some s -> 
+             Ocsistream.add_finalizer s (fun () -> Ocsistream.consume s);
+             lazy (Some s)
+      )
+    in
+    Lwt.return {Http_frame.header = header;
+                Http_frame.content = la}
 
 (****)
 
@@ -471,7 +476,7 @@ type slot =
 
 let create_slot conn =
   { sl_waiter = conn.senders;
-    sl_chan = conn.chan }
+    sl_chan   = conn.chan }
 
 (****)
 
@@ -517,7 +522,9 @@ let wait_all_senders conn =
     (fun () ->
        Lwt.catch
 (*XXX Do we need a flush here?  Are we properly flushing in case of an error? *)
-         (fun () -> conn.senders.w_wait >>= fun () -> Lwt_chan.flush conn.chan)
+         (fun () -> 
+            conn.senders.w_wait >>= fun () -> 
+            Lwt_chan.flush conn.chan)
          (fun e -> match e with Aborted -> Lwt.return () | _ -> Lwt.fail e))
     (fun () ->
        Lwt_timeout.stop conn.timeout;
@@ -685,6 +692,11 @@ module H = Http_frame.Http_header
  * keep_alive is a boolean value that set the field Connection
  *)
 let send
+    ?reopen 
+    (* reopen used only for request if we are taking an old connection 
+       We'll retry with a new one create by ~reopen.
+       See Http_client.raw_request.
+    *)
     slot
     ~clientproto
     ?mode
@@ -700,60 +712,97 @@ let send
       (fun () ->
         (* [slot] is here for pipelining: we must wait before
            sending the page, because the previous one may not be sent. *)
-        wait_previous_senders slot >>= fun () ->
-          let out_ch = slot.sl_chan in
-          let empty_content =
-            match mode with
-            | H.Nofirstline -> false
-            | H.Answer code -> code_without_message_body code
-            | H.Query _     -> false
-          in
-          let chunked =
-            res.res_content_length = None && 
-            clientproto <> Http_frame.Http_header.HTTP10 &&
-            not empty_content
-          in
-          (* if HTTP/1.0 we do not use chunked encoding
-             even if the client tells that it supports it,
-             because it may be an HTTP/1.0 proxy that
-             transmits the header by mistake.
-             In that case, we close the connection after the
-             answer.
-           *)
-          let with_default v default =
-            match v with None -> default | Some v -> v
-          in
-(*XXX Make sure that there is no way to put wrong headers *)
-(*VVV and that all required headers are here ... *)
-          let hds =
-            Http_headers.with_defaults hds sender.s_headers
-          in
-          let hds =
-            Http_headers.replace_opt Http_headers.transfer_encoding
-              (if chunked then Some "chunked" else None) hds
-          in
-          let hds =
-            Http_headers.replace_opt Http_headers.content_length
-              (match res.res_content_length with
-              | None   -> None
-              | Some l -> Some (Int64.to_string l))
-              hds
-          in
-          let hd =
-            { H.mode = mode;
-              H.proto = with_default proto sender.s_proto;
-              H.headers = hds }
-          in
-          Messages.debug2 "writing header";
-          catch_io_errors (fun () ->
-            Lwt_chan.output_string out_ch (Framepp.string_of_header hd)
-              >>= fun () ->
-                if empty_content || head then begin
-                  Lwt.return ()
-                end else begin
-                  Messages.debug2 "writing body";
-                  write_stream ~chunked out_ch res.res_stream
-                end))
+         wait_previous_senders slot >>= fun () ->
+         let out_ch = slot.sl_chan in
+         let empty_content =
+           match mode with
+             | H.Nofirstline -> false
+             | H.Answer code -> code_without_message_body code
+             | H.Query _     -> false
+         in
+         let chunked =
+           res.res_content_length = None && 
+           clientproto <> Http_frame.Http_header.HTTP10 &&
+           not empty_content
+         in
+         (* if HTTP/1.0 we do not use chunked encoding
+            even if the client tells that it supports it,
+            because it may be an HTTP/1.0 proxy that
+            transmits the header by mistake.
+            In that case, we close the connection after the
+            answer.
+         *)
+         let with_default v default =
+           match v with None -> default | Some v -> v
+         in
+         (*XXX Make sure that there is no way to put wrong headers *)
+         (*VVV and that all required headers are here ... *)
+         let hds =
+           Http_headers.with_defaults hds sender.s_headers
+         in
+         let hds =
+           Http_headers.replace_opt Http_headers.transfer_encoding
+             (if chunked then Some "chunked" else None) hds
+         in
+         let hds =
+           Http_headers.replace_opt Http_headers.content_length
+             (match res.res_content_length with
+                | None   -> None
+                | Some l -> Some (Int64.to_string l))
+             hds
+         in
+         let hd =
+           { H.mode = mode;
+             H.proto = with_default proto sender.s_proto;
+             H.headers = hds }
+         in
+
+
+         catch_io_errors
+           (fun () ->
+              Lwt.catch
+                (fun () ->
+                   Messages.debug2 "writing header";
+                   Lwt_chan.output_string out_ch (Framepp.string_of_header hd)
+                   >>= fun () ->
+                   (if reopen <> None then
+                     (* If we want to give a possibility to reopen if
+                        it fails, we must detect the failure before
+                        beginning to read the stream
+                     *)
+                     Lwt_chan.flush out_ch
+                   else Lwt.return ())
+                )
+                (fun e -> (* *** If we are doing a request, 
+                             we may want to retry once (in the case when
+                             we reuse an old connection) *** *)
+                   match reopen with
+                     | None -> Lwt.fail e
+                     | Some reopen -> 
+                         match convert_io_error e with
+                           | Keepalive_timeout
+                           | Connection_closed
+                           | Unix.Unix_error (Unix.EBADF,_ ,_)
+                           | Lost_connection _ ->
+                               reopen () >>= fun () ->
+                               Lwt.fail e
+                           | _ -> 
+                               Messages.warning
+                                 ("Http_com: not reopenning after exception "^
+                                    (Ocsimisc.string_of_exn e)^
+                                    " (Is that right?)");
+                               Lwt.fail e
+                )
+           )
+         >>= fun () ->
+         if empty_content || head then begin
+           Lwt.return ()
+         end else begin
+           Messages.debug2 "writing body";
+           write_stream ~chunked out_ch res.res_stream
+         end (* >>= fun () ->
+         Lwt_chan.flush out_ch *)
+      )
       (fun () -> Ocsistream.finalize res.res_stream)
 
   in
@@ -802,7 +851,7 @@ let send
     <<?! (* We override the value *)
 (*XXX Check: HTTP/1.0 *)
     (Http_headers.connection,
-     if keep_alive then None else Some "close")
+     if keep_alive then Some "keep-alive" else Some "close")
     <<?
     (Http_headers.location, res.res_location)
     <<?

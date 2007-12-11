@@ -107,6 +107,20 @@ module Http_error :
     val display_http_exception : exn -> unit
     val string_of_http_exception : exn -> string
   end
+
+
+(* The type of HTTP frames. 
+   The content may be void (no body) or a stream.
+   While sending, a stream will be sent with chunked encoding if no 
+   content-length is supplied.
+   It is lazy because we want to delay the computation (in case of incoming
+   frame). The next read will begin
+   - when the stream is finished (case stream)
+   - or when the content is forced for the first time (case empty body).
+   This is to be sure that the previous request is taken by an extension before
+   handling the next one, otherwise, the order of requests may be changed
+   (which is a problem, for example, for a reverse proxy).
+*)
 type t =
   { header : Http_header.http_header;
     content : string Ocsistream.t option Lazy.t}

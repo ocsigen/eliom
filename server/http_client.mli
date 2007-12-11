@@ -41,14 +41,15 @@ val raw_request :
     ?headers: Http_headers.t ->
     ?https: bool ->
     ?port:int ->
-    ?content: string Ocsistream.t ->
+    content: string Ocsistream.t option Lazy.t ->
+    ?head: bool ->
     http_method: Http_frame.Http_header.http_method ->
     host:string ->
     inet_addr:Unix.inet_addr ->
     uri:string ->
     unit ->
     Http_frame.t Lwt.t
-(** EXPERIMENTAL -- Will evolve in the future. 
+(** 
    Do an HTTP request (low level). 
 
    If the optional argument [headers] is present, no headers will be 
@@ -64,16 +65,23 @@ val raw_request :
    after the request for a short amount of time 
    to allow other requests to the same server to use the same connection.
    It is true by default.
+   If there is one opened free connection, we will use it instead of opening
+   a new one.
 
    If you do this request to serve it later to a client or to generate a page
    for a client, add the optional parameter [~client]. 
    Thus, the request you do will be pipelined
    with other requests coming from the same connection. 
-   A request will never be pipelined after a request from another client. 
+   A request will never be pipelined after a request from another client
+   connection.
+   Pipelining will be used only for requests to server we know supporting it
+   (according to previous requests).
    It is recommended to specify this optional parameter for all requests
    (with the value found in field
-   [ri_client] of type {!Extensions.request_info})
-   otherwise the order of requests may be different.
+   [ri_client] of type {!Extensions.request_info}).
+
+   The optional parameter [?head] asks to do a [HEAD] HTTP request.
+   It is [false] by default.
  *)
 (*VVV Dangerous!! *)
 
@@ -82,7 +90,8 @@ val basic_raw_request :
     ?headers: Http_headers.t ->
     ?https: bool ->
     ?port:int ->
-    ?content: string Ocsistream.t ->
+    content: string Ocsistream.t option Lazy.t ->
+    ?head: bool ->
     http_method: Http_frame.Http_header.http_method ->
     host:string ->
     inet_addr:Unix.inet_addr ->

@@ -26,6 +26,7 @@ val lock_receiver : connection -> unit Lwt.t
 val unlock_receiver : connection -> unit
 val get_http_frame : ?head:bool -> connection -> Http_frame.t Lwt.t
 val connection_id : connection -> int
+val connection_fd : connection -> Lwt_ssl.socket
 
 (****)
 
@@ -61,6 +62,7 @@ val default_sender : sender_type
     stream is interrupted.
  *)
 val send :
+    ?reopen:(unit -> unit Lwt.t) ->
     slot ->
     clientproto:Http_frame.Http_header.proto ->
     ?mode:Http_frame.Http_header.http_mode ->
