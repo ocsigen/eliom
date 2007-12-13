@@ -26,7 +26,7 @@ let switch_time = 30.
 
 module WeakHashtbl = Make(  
   struct    
-    type t = string*Unix.host_entry*float
+    type t = string*(Unix.host_entry Lwt.t)*float
     let equal = (fun (a,b,c) -> fun (a',b',c') -> a=a')  
     let hash = fun (a,b,c) -> Hashtbl.hash a  
   end
@@ -34,8 +34,10 @@ module WeakHashtbl = Make(
 
 open WeakHashtbl
 
-let keeper : (((string*Unix.host_entry*float) list) * 
-                ((string*Unix.host_entry*float) list)) ref = ref ([],[])
+let keeper : (((string * (Unix.host_entry Lwt.t) * float) list) * 
+                ((string * (Unix.host_entry Lwt.t) * float) list)) ref = 
+  ref ([],[])
+
 let cache = create 0
 let dummy_addr : Unix.host_entry = 
   {h_name="dummy"; 
@@ -43,7 +45,7 @@ let dummy_addr : Unix.host_entry =
    h_addrtype=Unix.PF_INET; 
    h_addr_list = [||]}
 
-let cache_find d = match (find cache (d,dummy_addr,0.)) with (_,h,t) -> (h,t)
+let cache_find d = match (find cache (d,return dummy_addr,0.)) with (_,h,t) -> (h,t)
 
 let switch_thread : unit Lwt.t= 
   let rec switch_worker () = 
@@ -62,17 +64,14 @@ let gethostbyname d =
 	 | true -> 
              (remove cache) (d,h,t);
 	     Lwt.fail Not_found
-	 | false -> Lwt.return h)
+	 | false -> h)
     (function 
        | Not_found -> 
-           (Preemptive.detach Unix.gethostbyname d >>= fun h -> 
-             let t = Unix.time () in
-             let entry = (d,h,t) in
-             add cache entry;
-             (match !keeper with (a,b) -> keeper:= (entry::a,b)); 
-             Lwt.return h)
-       | e -> fail e
-    )
-
-
+	   let h = Preemptive.detach Unix.gethostbyname d and
+	       t = Unix.time() in
+           let entry =  (d,h,t) in
+	     add cache entry;
+	     (match !keeper with (a,b) -> keeper:= (entry::a,b));
+	     h
+       | e -> fail e)
 
