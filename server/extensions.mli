@@ -57,6 +57,12 @@ type file_info = {tmp_filename: string; (** Where the file is stored on the serv
 type client
 (** A value of this type represents the client who did the request. *)
 
+val client_id : client -> int
+(** Returns the id number of the connection *)
+
+val client_connection : client -> Http_com.connection
+(** Returns the connection *)
+
 (** The request *)
 type request_info = 
     {ri_url_string: string; (** full URL *)
@@ -110,7 +116,18 @@ type request_info =
 
 
 type answer =
-  | Ext_found of Http_frame.result  (** OK stop! I found the page. *)
+  | Ext_found of (unit -> Http_frame.result Lwt.t)
+      (** "OK stop! I will take the page.
+          You can start the following request of the same pipelined connection.
+          Here is the function to generate the page". 
+          The extension must return Ext_found as soon as possible
+          when it is sure it is safe to start next request.
+          Usually as soon as you know tha the result will be Ext_found. 
+          But in some case, for example proxies, you don't want the request of
+          one connection to be handled in different order.
+          In that case, wait to be sure that the new request will not
+          overtake this one.
+      *)
   | Ext_not_found of int (** Page not found. Try next extension.
                             The integer is the HTTP error code.
                             It is usally 404, but may be for ex 403 (forbidden)
@@ -183,8 +200,16 @@ type extension =
    - a function that will create an error message from the exceptions
    that may be raised during the initialisation phase, and raise again
    all other exceptions
+
+   If the optional parameter [?respect_pipeline] is [true], the extension
+   will ask the server to respect the order of the pipeline. That means that
+   it will wait to be sure that the previous request from the same connection
+   has been taken by an extension before giving a request to an extension.
+   Use this to write proxies extensions, when you want to be able to pipeline
+   the requests you to another server. It is false by default.
  *)
 val register_extension :
+    ?respect_pipeline: bool ->
     (virtual_hosts -> url_path -> string option -> 
       Simplexmlparser.xml -> extension) *
     (unit -> unit) * (unit -> unit) * (exn -> string) -> unit
@@ -200,6 +225,7 @@ val get_config : unit -> Simplexmlparser.xml list
    (to be used for example with Ext_retry_with or Ext_continue_with)
  *)
 val ri_of_url : string -> request_info -> request_info
+
 
 
 (**/**)
@@ -243,4 +269,4 @@ val get_init_exn_handler : unit -> exn -> string
 val set_config : Simplexmlparser.xml list -> unit
 
 val client_of_connection : Http_com.connection -> client
-(** Coercion between Http_com.connection and client *)
+

@@ -154,13 +154,15 @@ let gen dir err charset ri =
             Predefined_senders.Directory_content.result_of_content 
               (dirname, ri.ri_sub_path) >>= fun r ->
             (match code with
-            | None -> return (Ext_found r)
+            | None -> return (Ext_found (fun () -> Lwt.return r))
             | Some _ -> (* It is an error handler *)
                 return
                   (Ext_found
-                     {r with
-		      Http_frame.res_code= err;
-                    }))
+                     (fun () ->
+                        Lwt.return 
+                          {r with
+		             Http_frame.res_code= err;
+                          })))
         | code, RFile filename ->
             Predefined_senders.File_content.result_of_content filename 
             >>= fun r ->	    
@@ -168,16 +170,20 @@ let gen dir err charset ri =
             | None ->
                 return
                   (Ext_found
-                     {r with
-		      Http_frame.res_charset= Some charset;
-                    })
+                     (fun () ->
+                        Lwt.return 
+                          {r with
+		             Http_frame.res_charset= Some charset;
+                          }))
             | Some _ -> (* It is an error handler *)
                 return
                   (Ext_found
-                     {r with
-		      Http_frame.res_charset= Some charset;
-		      Http_frame.res_code= err;
-                    }))
+                     (fun () ->
+                        Lwt.return 
+                          {r with
+		             Http_frame.res_charset= Some charset;
+		             Http_frame.res_code= err;
+                          })))
               
       end
       else return (Ext_not_found 400))

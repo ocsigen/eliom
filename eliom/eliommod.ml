@@ -2708,8 +2708,10 @@ let gen sitedata previous_extension_err charset ri =
                   let empty_result = Http_frame.empty_result () in
                   return
                     (Ext_found
-                       {empty_result with
-                        res_cookies= all_new_cookies})
+                       (fun () ->
+                         Lwt.return
+                           {empty_result with
+                            res_cookies= all_new_cookies}))
                     
               | _ ->
                   
@@ -2821,27 +2823,33 @@ let gen sitedata previous_extension_err charset ri =
 
               return 
                 (Ext_found 
-                   {res with
-                    res_cookies= all_new_cookies})
+                   (fun () ->
+                     Lwt.return
+                       {res with
+                        res_cookies= all_new_cookies}))
       )
       (function
         | Eliom_Typing_Error l -> 
             Predefined_senders.Xhtml_content.result_of_content
               (Error_pages.page_error_param_type l) >>= fun r ->
             return (Ext_found
-                      {r with
-                       res_cookies = old_cookies_to_set;
-                       res_code= 500;
-                     })
+                      (fun () ->
+                        Lwt.return
+                          {r with
+                           res_cookies = old_cookies_to_set;
+                           res_code= 500;
+                         }))
 	| Eliom_Wrong_parameter -> 
             force ri.ri_post_params >>= fun ripp ->
             Predefined_senders.Xhtml_content.result_of_content
                 (Error_pages.page_bad_param (List.map fst ripp)) >>= fun r ->
             return (Ext_found 
-                      {r with
-                       res_cookies= old_cookies_to_set;
-                       res_code= 500;
-                     })
+                      (fun () ->
+                        Lwt.return
+                          {r with
+                           res_cookies= old_cookies_to_set;
+                           res_code= 500;
+                         }))
 	| Eliom_404 -> return (Ext_not_found previous_extension_err)
         | Eliom_retry_with a -> gen_aux a
 	| e -> fail e)

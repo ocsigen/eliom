@@ -54,8 +54,11 @@ type file_info = {tmp_filename: string;
 type virtual_host_part = Text of string * int | Wildcard
 type virtual_hosts = ((virtual_host_part list) * int option) list
 
-type client = int
-let client_of_connection x = Http_com.connection_id x
+type client = Http_com.connection
+
+let client_id = Http_com.connection_id
+let client_connection x = x
+let client_of_connection x = x
 
 (* Requests *)
 type request_info = 
@@ -103,7 +106,16 @@ type request_info =
 
    
 type answer =
-  | Ext_found of Http_frame.result  (** OK stop! I found the page. *)
+  | Ext_found of (unit -> Http_frame.result Lwt.t)
+      (** "OK stop! I will take the page.
+          You can start the following request of the same pipelined connection.
+          Here is the function to generate the page". 
+          The extension must return Ext_found as soon as possible
+          when it is sure it is safe to start next request.
+          Usually immediately. But in some case, for example proxies, 
+          you don't want the request of one connection to be handled in
+          different order.
+      *)
   | Ext_not_found of int (** Page not found. Try next extension.
                             The integer is the HTTP error code.
                             It is usally 404, but may be for ex 403 (forbidden)
@@ -166,8 +178,11 @@ let register_extension,
   let fun_exn = ref (fun exn -> raise exn) in
 
   ((* ********* register_extension ********* *)
-     (fun (new_fun_site, begin_init, end_init, handle_exn) ->
+     (fun ?(respect_pipeline=false)
+         (new_fun_site, begin_init, end_init, handle_exn) ->
        
+       if respect_pipeline then Ocsiconfig.set_respect_pipeline ();
+
        let old_fun_site = !fun_site in
        fun_site := 
          (fun host ->
@@ -330,6 +345,18 @@ let add_to_res_cookies cookies_to_set res =
 
 
 let do_for_site_matching host port ri =
+
+  let conn = client_connection ri.ri_client in
+  let awake =
+    let towakeup = ref true in
+    (* must be awoken once and only once *)
+    fun () ->
+      if !towakeup then begin
+        towakeup := false;
+        Http_com.awake_next_request conn
+      end
+  in
+
   let rec do2 sites cookies_to_set ri =
     let string_of_host_option = function
       | None -> "<no host>:"^(string_of_int port)
@@ -372,12 +399,20 @@ let do_for_site_matching host port ri =
                 (fun res ext -> 
                   res >>= fun ((res_ext, cookies_to_set) as res) ->
                     match (res_ext, ext) with
-                    | (Ext_found r, Page_gen _) -> return res
+                    | (Ext_found r, Page_gen _) -> 
+                        awake ();
+                        r () >>= fun r' -> 
+                        return (Ext_found (fun () -> Lwt.return r'), 
+                                cookies_to_set)
                     | (Ext_found r, Filter f) -> 
-                        f charset ri (add_to_res_cookies cookies_to_set r)
-                        >>= fun r -> return (r, Http_frame.Cookies.empty)
+                        awake ();
+                        r () >>= fun r' -> 
+                        f charset ri (add_to_res_cookies cookies_to_set r')
+                        >>= fun r -> 
+                        Lwt.return (r, Http_frame.Cookies.empty)
                     | (Ext_not_found e, Page_gen f) ->
-                        f e charset ri >>= fun r -> return (r, cookies_to_set)
+                        f e charset ri >>= fun r -> 
+                        return (r, cookies_to_set)
                     | (Ext_not_found e, Filter _) -> return res
                     | (Ext_continue_with (ri, cook, e), Page_gen f) -> 
                         f e charset ri >>= fun r ->
@@ -391,7 +426,9 @@ let do_for_site_matching host port ri =
                 >>= fun (res_ext, cookies_to_set) ->
                   (match res_ext with
                   | Ext_found r -> 
-                      return (add_to_res_cookies cookies_to_set r)
+                      awake ();
+                      r () >>= fun r' -> 
+                      return (add_to_res_cookies cookies_to_set r')
                   | Ext_not_found e
                   | Ext_stop e -> aux ri e cookies_to_set l (* try next site *)
                   | Ext_continue_with (_, cook, e) -> 
@@ -400,7 +437,7 @@ let do_for_site_matching host port ri =
                   | Ext_retry_with (ri2, cook) -> 
                       (*VVV not enough to detect loops *)
                       if ri != ri2 then
-                        do2 
+                        do2
                           (get_sites ())
                           (Http_frame.add_cookies cook cookies_to_set)
                           ri2
@@ -416,7 +453,17 @@ let do_for_site_matching host port ri =
             " does not match "^(string_of_host h));
           aux ri prev_err cookies_to_set l
     in aux ri 404 cookies_to_set sites
-  in do2 (get_sites ()) Http_frame.Cookies.empty ri
+  in 
+  Lwt.finalize
+    (fun () ->
+       do2 (get_sites ()) Http_frame.Cookies.empty ri
+    )
+    (fun () ->
+       awake ();
+       Lwt.return ()
+    )
+
+    
 (*****************************************************************************)
 
 
@@ -525,5 +572,6 @@ let get_number_of_connected,
 let dynlinkconfig = ref []
 let set_config s = dynlinkconfig := s
 let get_config () = !dynlinkconfig
+
 
 

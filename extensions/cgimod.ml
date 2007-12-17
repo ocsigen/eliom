@@ -356,7 +356,7 @@ let recupere_cgi head re filename ri =
     ignore
       (catch
          (fun () ->
-           (match Lazy.force ri.ri_http_frame.Http_frame.content with
+           (match ri.ri_http_frame.Http_frame.content with
            | None -> Lwt_unix.close post_in; return ()
            | Some content_post -> 
                Http_com.write_stream post_in_ch content_post >>= fun () ->
@@ -419,7 +419,9 @@ let recupere_cgi head re filename ri =
 
     (* A thread getting the result of the CGI script *)
     let receiver =
-      Http_com.create_receiver Http_com.Nofirstline (Lwt_ssl.plain cgi_out) 
+      Http_com.create_receiver
+        (Ocsiconfig.get_server_timeout ())
+        Http_com.Nofirstline (Lwt_ssl.plain cgi_out) 
     in
     catch 
       (fun () ->
@@ -432,7 +434,7 @@ let recupere_cgi head re filename ri =
 (** return the content of the frame *)
 
 let get_content str =
-  match Lazy.force str.Http_frame.content with
+  match str.Http_frame.content with
   | None   -> Ocsistream.make (fun () -> Ocsistream.empty None)
   | Some c -> c
 
@@ -506,26 +508,34 @@ let gen reg err charset ri =
                     let default_result = Http_frame.default_result () in
                     Lwt.return
                       (Ext_found
-                         { default_result with
-                           res_code= 301; (* Moved permanently *)
-                           res_location= Some loc})
+                         (fun () ->
+                            Lwt.return 
+                              { default_result with
+                                  res_code= 301; (* Moved permanently *)
+                                  res_location= Some loc}))
               | _, _ ->
                   let code = match code with
                   | None -> 200
                   | Some c -> c
                   in
                   let default_result = Http_frame.default_result () in
+(*VVV Warning: this is really late to make the return Ext_found ... *)
+(*VVV But the extension may also answer Ext_retry_with ... *)
+(*VVV and the other extensions may receive requests in wrong order ... *)
+
                   return
                     (Ext_found
-                       {default_result with
-                        res_content_length = None;
-                        res_stream = content;
-                        res_location= loc;
-                        res_headers = 
-                        Http_headers.replace_opt
-                          Http_headers.status None
-                          header.Http_header.headers;
-                        res_code = code}))
+                       (fun () ->
+                          Lwt.return 
+                            {default_result with
+                               res_content_length = None;
+                               res_stream = content;
+                               res_location= loc;
+                               res_headers = 
+                                Http_headers.replace_opt
+                                  Http_headers.status None
+                                  header.Http_header.headers;
+                               res_code = code})))
            (fun e -> Ocsistream.finalize content >>= fun () -> Lwt.fail e)
        end else
          Lwt.return (Ext_not_found 404))

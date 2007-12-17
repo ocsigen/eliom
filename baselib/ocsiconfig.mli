@@ -17,8 +17,10 @@ val set_minthreads : int -> unit
 val set_maxthreads : int -> unit
 val set_max_number_of_threads_queued : int -> unit
 val set_max_number_of_connections : int -> unit
-val set_connect_time_max : float -> unit
-val set_keepalive_timeout : float -> unit
+val set_client_timeout : int -> unit
+val set_server_timeout : int -> unit
+(* val set_keepalive_timeout : int -> unit
+val set_keepopen_timeout : int -> unit *)
 val set_netbuffersize : int -> unit
 val set_filebuffersize : int -> unit
 val set_maxuploadfilesize : int64 option -> unit
@@ -30,6 +32,7 @@ val set_user : string option -> unit
 val set_group : string option -> unit
 val set_command_pipe : string -> unit
 val set_debugmode : bool -> unit
+val set_respect_pipeline : unit -> unit
 val get_uploaddir : unit -> string option
 val get_logdir : unit -> string
 val get_config_file : unit -> string
@@ -45,8 +48,10 @@ val get_minthreads : unit -> int
 val get_maxthreads : unit -> int
 val get_max_number_of_threads_queued : unit -> int
 val get_max_number_of_connections : unit -> int
-val get_connect_time_max : unit -> float
-val get_keepalive_timeout : unit -> float
+val get_client_timeout : unit -> int
+val get_server_timeout : unit -> int
+(*val get_keepalive_timeout : unit -> int
+val get_keepopen_timeout : unit -> int*)
 val get_netbuffersize : unit -> int
 val get_filebuffersize : unit -> int
 val get_maxuploadfilesize : unit -> int64 option
@@ -58,5 +63,6 @@ val get_user : unit -> string option
 val get_group : unit -> string option
 val get_command_pipe : unit -> string
 val get_debugmode : unit -> bool
+val get_respect_pipeline : unit -> bool
 val display_version : unit -> 'a
 val config : unit -> Simplexmlparser.xml list

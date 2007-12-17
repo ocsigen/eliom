@@ -104,9 +104,11 @@ let gen dir err charset ri =
       let empty_result = Http_frame.empty_result () in
       return
         (Ext_found
-           {empty_result with
-            Http_frame.res_location = Some redir;
-	    Http_frame.res_code= if temp then 302 else 301})
+           (fun () ->
+              Lwt.return 
+                {empty_result with
+                   Http_frame.res_location = Some redir;
+	           Http_frame.res_code= if temp then 302 else 301}))
     )
     (function 
       | Not_concerned -> return (Ext_not_found err)

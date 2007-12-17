@@ -45,7 +45,7 @@ let _ =
      new_socket () >>= (fun listening_socket ->
      Unix.setsockopt listening_socket Unix.SO_REUSEADDR true;
      Unix.bind listening_socket (local_addr listening_port);
-     Unix.listen listening_socket 1;
+     Unix.listen listening_socket 1024;
      (* Wait for a connection *)
      Lwt_unix.accept listening_socket >>= (fun (inp, _) ->
      (* Connect to the destination port *)

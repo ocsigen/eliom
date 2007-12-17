@@ -41,12 +41,12 @@ val raw_request :
     ?headers: Http_headers.t ->
     ?https: bool ->
     ?port:int ->
-    content: string Ocsistream.t option Lazy.t ->
-    ?head: bool ->
+    content: string Ocsistream.t option ->
     http_method: Http_frame.Http_header.http_method ->
     host:string ->
     inet_addr:Unix.inet_addr ->
     uri:string ->
+    unit ->
     unit ->
     Http_frame.t Lwt.t
 (** 
@@ -82,6 +82,10 @@ val raw_request :
 
    The optional parameter [?head] asks to do a [HEAD] HTTP request.
    It is [false] by default.
+
+    When called without the last parameter, the function will pipeline 
+    the request (if needed), then return the function to get the page.
+    This allows to keep pipeline order when writing an extension.
  *)
 (*VVV Dangerous!! *)
 
@@ -90,8 +94,7 @@ val basic_raw_request :
     ?headers: Http_headers.t ->
     ?https: bool ->
     ?port:int ->
-    content: string Ocsistream.t option Lazy.t ->
-    ?head: bool ->
+    content: string Ocsistream.t option ->
     http_method: Http_frame.Http_header.http_method ->
     host:string ->
     inet_addr:Unix.inet_addr ->

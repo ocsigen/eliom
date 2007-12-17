@@ -22,7 +22,7 @@
 (*
 TODO
 - server.ml
-- shorter timeouts for keep-alive (?)
+- shorter timeouts for keep-alive
 - check the code against the HTTP spec
 - defunctorize sender code
 - rewrite HTTP parser
@@ -85,6 +85,7 @@ type connection =
     mutable read_pos : int;
     mutable write_pos : int;
     mutable read_mutex : Lwt_mutex.t;
+    mutable extension_mutex : Lwt_mutex.t; (* to keep requests in right order *)
     mutable senders : waiter;
     mutable sender_count : int }
 
@@ -95,11 +96,11 @@ let new_id =
   let c = ref 0 in
   fun () -> incr c; !c
 
-let create_receiver mode fd =
+let create_receiver timeout mode fd =
   let buffer_size = Ocsiconfig.get_netbuffersize () in
   let timeout =
     Lwt_timeout.create
-      (int_of_float (ceil (Ocsiconfig.get_connect_time_max ())))
+      timeout
       (fun () -> Lwt_ssl.abort fd Timeout)
   in
   { id = new_id ();
@@ -117,6 +118,7 @@ let create_receiver mode fd =
     read_pos = 0;
     write_pos = 0;
     read_mutex = Lwt_mutex.create ();
+    extension_mutex = Lwt_mutex.create ();
     senders = create_waiter false;
     sender_count = 0 }
 
@@ -127,6 +129,10 @@ let lock_receiver receiver = Lwt_mutex.lock receiver.read_mutex
 let unlock_receiver receiver = Lwt_mutex.unlock receiver.read_mutex
 
 let abort conn = Lwt_ssl.abort conn.fd Aborted
+
+let awake_next_request conn = Lwt_mutex.unlock conn.extension_mutex
+
+let block_next_request conn = Lwt_mutex.lock conn.extension_mutex
 
 (****)
 
@@ -360,6 +366,7 @@ let return_with_no_body receiver = Lwt.return None
 
 (** get an http frame *)
 let get_http_frame ?(head = false) receiver =
+
   Lwt_mutex.lock receiver.read_mutex >>= fun () ->
   wait_http_header receiver >>= fun len ->
   let string_header = buf_get_string receiver len in
@@ -457,16 +464,16 @@ NOT IMPLEMENTED
           end
         end
   end >>= fun b ->
-    let la =
-      (match b with
-         | None -> lazy (Lwt_mutex.unlock receiver.read_mutex; None)
-         | Some s -> 
-             Ocsistream.add_finalizer s (fun () -> Ocsistream.consume s);
-             lazy (Some s)
-      )
-    in
-    Lwt.return {Http_frame.header = header;
-                Http_frame.content = la}
+  let la =
+    (match b with
+       | None -> Lwt_mutex.unlock receiver.read_mutex; None
+       | Some s -> 
+           Ocsistream.add_finalizer s (fun () -> Ocsistream.consume s);
+           Some s
+    )
+  in
+  Lwt.return {Http_frame.header = header;
+              Http_frame.content = la}
 
 (****)
 
@@ -702,7 +709,7 @@ let send
     ?mode
     ?proto
     ~keep_alive
-    ~head
+    ~head (* send only the header *)
     ~sender
     res
     =
@@ -781,6 +788,7 @@ let send
                      | Some reopen -> 
                          match convert_io_error e with
                            | Keepalive_timeout
+                           | Timeout
                            | Connection_closed
                            | Unix.Unix_error (Unix.EBADF,_ ,_)
                            | Lost_connection _ ->
@@ -788,20 +796,21 @@ let send
                                Lwt.fail e
                            | _ -> 
                                Messages.warning
-                                 ("Http_com: not reopenning after exception "^
+                                 ("Http_com: reopenning after exception "^
                                     (Ocsimisc.string_of_exn e)^
-                                    " (Is that right?)");
+                                    " (Is that right?) Please report this error.");
+                               reopen () >>= fun () ->
                                Lwt.fail e
                 )
            )
          >>= fun () ->
-         if empty_content || head then begin
+         (if empty_content || head then begin
            Lwt.return ()
          end else begin
            Messages.debug2 "writing body";
            write_stream ~chunked out_ch res.res_stream
-         end (* >>= fun () ->
-         Lwt_chan.flush out_ch *)
+         end) >>= fun () ->
+         Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers are not flush by the reverse proxy *)
       )
       (fun () -> Ocsistream.finalize res.res_stream)
 

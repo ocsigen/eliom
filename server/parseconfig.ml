@@ -203,12 +203,23 @@ let parse_server isreloading c =
       | (Element ("mimefile", [], p))::ll ->
           Ocsiconfig.set_mimefile (parse_string p);
           parse_server_aux ll
-      | (Element ("timeout", [], p))::ll -> 
-          set_connect_time_max (float_of_string (parse_string p));
+      | (Element ("timeout", [], p))::ll
+(*VVV timeout: backward compatibility with <= 0.99.4 *)
+      | (Element ("clienttimeout", [], p))::ll -> 
+          set_client_timeout (int_of_string (parse_string p));
           parse_server_aux ll
+      | (Element ("servertimeout", [], p))::ll -> 
+          set_server_timeout (int_of_string (parse_string p));
+          parse_server_aux ll
+(*VVV For now we use silentservertimeout and silentclienttimeout also
+  for keep alive :-(
       | (Element ("keepalivetimeout", [], p))::ll -> 
-          set_keepalive_timeout (float_of_string (parse_string p));
+          set_keepalive_timeout (int_of_string (parse_string p));
           parse_server_aux ll
+      | (Element ("keepopentimeout", [], p))::ll -> 
+          set_keepopen_timeout (int_of_string (parse_string p));
+          parse_server_aux ll 
+*)
       | (Element ("netbuffersize", [], p))::ll -> 
           set_netbuffersize (int_of_string (parse_string p));
           parse_server_aux ll
@@ -226,6 +237,9 @@ let parse_server isreloading c =
           parse_server_aux ll
       | (Element ("debugmode", [], []))::ll -> 
           set_debugmode true;
+          parse_server_aux ll
+      | (Element ("respectpipeline", [], []))::ll -> 
+          set_respect_pipeline ();
           parse_server_aux ll
       | (Element ("extension", atts, l))::ll -> 
 	  let  modu = match atts with

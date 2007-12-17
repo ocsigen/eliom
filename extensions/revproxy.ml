@@ -106,11 +106,6 @@ let end_init () =
 (** The function that will generate the pages from the request. *)
 exception Bad_answer_from_http_server
 
-let waiter = ref (Lwt.return ())
-(* We want the requests to be handled in right order!
-   Each request will wait for the previous one waiter.
-*)
-
 let gen dir err charset ri =
   catch
     (* Is it a redirection? *)
@@ -124,71 +119,75 @@ let gen dir err charset ri =
                          "--Revproxy: YES! Redirection to "^
                            (if https then "https://" else "http://")^host^":"^
                                 (string_of_int port)^uri);
-       let old_waiter = !waiter in
-       let new_waiter = Lwt.wait () in
-       waiter := new_waiter;
-       Lwt.finalize
-         (fun () -> 
-            Lwt_lib.gethostbyname host >>= fun r ->
-            old_waiter >>= fun () -> (* wait for the previous to be taken *)
-            Lwt.return r)
-         (fun () -> Lwt.wakeup new_waiter (); Lwt.return ())
-       >>= fun host_entry ->
-       (if dir.pipeline then
-         Http_client.raw_request 
-           ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
-           ~https
-           ~port 
-           ~client:ri.ri_client
-           ~keep_alive:true
-           ~content:ri.ri_http_frame.Http_frame.content
-           ~http_method:ri.ri_method
-           ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
-           ~uri ()
-       else
-         Http_client.basic_raw_request 
-           ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
-           ~https
-           ~port 
-           ~content:ri.ri_http_frame.Http_frame.content
-           ~http_method:ri.ri_method
-           ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
-           ~uri ())
-         >>= fun http_frame ->
-       let headers = 
-         http_frame.Http_frame.header.Http_frame.Http_header.headers 
+       Lwt_lib.gethostbyname host >>= fun host_entry ->
+
+       (* It is now safe to start next request.
+          We are sure that the request won't be taken in disorder.
+          => We return.
+       *)
+
+       let do_request = 
+         if dir.pipeline then
+           Http_client.raw_request 
+             ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
+             ~https
+             ~port 
+             ~client:ri.ri_client
+             ~keep_alive:true
+             ~content:ri.ri_http_frame.Http_frame.content
+             ~http_method:ri.ri_method
+             ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
+             ~uri ()
+           else
+             fun () ->
+               Http_client.basic_raw_request 
+                 ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
+                 ~https
+                 ~port 
+                 ~content:ri.ri_http_frame.Http_frame.content
+                 ~http_method:ri.ri_method
+                 ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
+                 ~uri ()
        in
-       let code = 
-         match http_frame.Http_frame.header.Http_frame.Http_header.mode with
-           | Http_frame.Http_header.Answer code -> code
-           | _ -> raise Bad_answer_from_http_server
-       in
-       match Lazy.force http_frame.Http_frame.content with
-         | None ->
-             let empty_result = Http_frame.empty_result () in
-             return
-               (Ext_found
-                  {empty_result with
-                     Http_frame.res_content_length = None;
-	             Http_frame.res_headers= headers;
-	             Http_frame.res_code= code;
-                  })
-         | Some stream ->
-             let default_result = Http_frame.default_result () in
-             return
-               (Ext_found
-                  {default_result with
-                     Http_frame.res_content_length = None;
-                     Http_frame.res_stream = stream;
-	             Http_frame.res_headers= headers;
-	             Http_frame.res_code= code;
-                  })
+       Lwt.return
+         (Ext_found
+            (fun () -> 
+               do_request ()
+
+               >>= fun http_frame ->
+               let headers = 
+                 http_frame.Http_frame.header.Http_frame.Http_header.headers 
+               in
+               let code = 
+                 match http_frame.Http_frame.header.Http_frame.Http_header.mode with
+                   | Http_frame.Http_header.Answer code -> code
+                   | _ -> raise Bad_answer_from_http_server
+               in
+               match http_frame.Http_frame.content with
+                 | None ->
+                     let empty_result = Http_frame.empty_result () in
+                     Lwt.return
+                       {empty_result with
+                          Http_frame.res_content_length = None;
+	                  Http_frame.res_headers= headers;
+	                  Http_frame.res_code= code;
+                       }
+                 | Some stream ->
+                     let default_result = Http_frame.default_result () in
+                     Lwt.return
+                       {default_result with
+                          Http_frame.res_content_length = None;
+                          Http_frame.res_stream = stream;
+	                  Http_frame.res_headers= headers;
+	                  Http_frame.res_code= code;
+                       }
+            )
+         )
     )
     (function 
        | Not_concerned -> return (Ext_not_found err)
        | e -> fail e)
-
-
+         
 
 
 
@@ -277,7 +276,9 @@ let parse_config path charset = function
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = register_extension (* takes a quadruple *)
+let _ = register_extension
+    ~respect_pipeline:true (* We ask ocsigen to respect pipeline order
+                              when sending to extensions! *)
     ((fun hostpattern -> parse_config),
      start_init,
      end_init,

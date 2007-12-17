@@ -82,10 +82,11 @@ let _ = parse_global_config (Extensions.get_config ())
 
  *)
 let gen err charset ri =
-  let content = "Extensiontemplate page" in
-  Predefined_senders.Text_content.result_of_content
-    (content, "text/plain") >>= fun r ->
-  return (Ext_found r)
+  return (Ext_found 
+            (fun () ->
+               let content = "Extensiontemplate page" in
+               Predefined_senders.Text_content.result_of_content
+                 (content, "text/plain")))
 
 
 

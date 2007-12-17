@@ -157,7 +157,7 @@ let get_request_infos
         (if meth = Http_header.GET || meth = Http_header.HEAD then
            return ([],[]) 
          else 
-           match Lazy.force http_frame.Http_frame.content with
+           match http_frame.Http_frame.content with
           | None -> return ([], [])
           | Some body_gen ->
               try
@@ -390,11 +390,15 @@ let service
          the server writing the response.
        We need to do this once the request has been handled before sending
        any reply to the client. *)
-    match Lazy.force request.Http_frame.content with
+    match request.Http_frame.content with
         Some f ->    
           ignore
             (Lwt.catch
-               (fun () -> Ocsistream.finalize f)
+               (fun () -> 
+                  Ocsistream.finalize f (* will consume the stream and
+                                           unlock the mutex 
+                                           if not already done *)
+               )
                (function
                  | e ->
                   
@@ -620,7 +624,9 @@ let linger in_ch receiver =
 let try_bind' f g h = Lwt.try_bind f h g
 
 let handle_connection port in_ch sockaddr =
-  let receiver = Http_com.create_receiver Query in_ch in
+  let receiver = 
+    Http_com.create_receiver (Ocsiconfig.get_client_timeout ()) Query in_ch 
+  in
 
   let handle_write_errors e =
     begin match e with
@@ -685,6 +691,16 @@ let handle_connection port in_ch sockaddr =
     try_bind'
       (fun () ->
          Messages.debug2 "** Receiving HTTP message";
+         (if Ocsiconfig.get_respect_pipeline () then
+         (* if we lock this mutex, requests from a same connection will be sent
+            to extensions in the same order they are received on pipeline. 
+            It is locked only in server. Http_client has its own mutex.
+(*VVV use the same? *)
+         *)
+            Http_com.block_next_request receiver
+          else
+            Lwt.return ())
+         >>= fun () ->
          Http_com.get_http_frame receiver)
       handle_read_errors
       (fun request ->
@@ -771,7 +787,7 @@ let listen use_ssl port wait_end_init =
       Lwt_unix.set_close_on_exec socket;
       Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
       Lwt_unix.bind socket (local_addr port);
-      Lwt_unix.listen socket 1;
+      Lwt_unix.listen socket 1024;
       socket
     with
     | Unix.Unix_error (Unix.EACCES, _, _) ->
