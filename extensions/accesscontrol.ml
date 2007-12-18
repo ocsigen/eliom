@@ -186,41 +186,40 @@ let gen test = Page_gen (fun err charset ri ->
 
 let parse_config path charset = 
   let parse_filter = function
-    | ("ip", [("value", s)]) ->
+    | ("ip", ["value", s], []) ->
         (try
           Filter_Ip (Ocsimisc.parse_ip_netmask s)
         with Failure _ ->
           raise (Error_in_config_file "Bad ip/netmask value in ip filter"))
-    | ("header", [("name", s); ("regexp", r)]) ->
+    | ("header", ["name", s; "regexp", r], []) ->
         (try
           Filter_Header (s, Netstring_pcre.regexp r)
         with Failure _ ->
           raise (Error_in_config_file
                    "Bad regular expression in header filter"))
-    | ("method", [("value", s)]) ->
+    | ("method", ["value", s], []) ->
         (try
           Filter_Method (Framepp.method_of_string s)
         with Failure _ ->
           raise (Error_in_config_file "Bad method value in method filter"))
-    | ("protocol", [("value", s)]) ->
+    | ("protocol", ["value", s], []) ->
         (try
           Filter_Protocol (Framepp.proto_of_string s)
         with Failure _ ->
           raise (Error_in_config_file "Bad protocol value in protocol filter"))
-    | ("path", [("regexp", s)]) ->
+    | ("path", ["regexp", s], []) ->
         (try
           Filter_Path (Netstring_pcre.regexp s)
         with Failure _ ->
           raise (Error_in_config_file
                    "Bad regular expression in <path/>"))
-    | (t, _) -> raise (Error_in_config_file ("(accesscontrol extension) Problem with "^t^" filter in configuration file."))
+    | (t, _, _) -> raise (Error_in_config_file ("(accesscontrol extension) Problem with "^t^" filter in configuration file."))
   in
   let rec parse_sub = function
-    | Element ("filter", ("type", t)::attrs, []) -> parse_filter (t, attrs)
-    | Element ("not", ["type", ("and"|"or" as t)], sub) -> Filter_Neg (parse_sub (Element (t, [], sub)))
-    | Element ("not", ("type", t)::attrs, []) -> Filter_Neg (parse_filter (t, attrs))
-    | Element ("and", [], sub) -> Filter_Conj (List.map parse_sub sub)
-    | Element ("or", [], sub) -> Filter_Disj (List.map parse_sub sub)
+    | Element ("allow", ["type", "and"], sub) -> Filter_Conj (List.map parse_sub sub)
+    | Element ("allow", ["type", "or"], sub) -> Filter_Disj (List.map parse_sub sub)
+    | Element ("allow", ("type", t)::attrs, sub) -> parse_filter (t, attrs, sub)
+    | Element ("deny", attrs, sub) -> Filter_Neg (parse_sub (Element ("allow", attrs, sub)))
     | Element (t, _, _) ->
         raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
     | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
@@ -238,32 +237,6 @@ let parse_config path charset =
   | Element ("notfound", [], []) -> gen (`Error (Ocsigen_http_error 404))
   | Element (("allow"|"deny"|"forbidden"|"notfound") as t, _, _) ->
       raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
-  | Element ("iffound", [], sub) ->
-      let ext = parse_fun sub in
-(*VVV DANGER: parse_fun MUST be called BEFORE the function! *)
-      (fun charset -> function
-        | Extensions.Req_found (_, _) ->
-            Lwt.return (Ext_sub_result ext)
-        | Extensions.Req_not_found (err, ri) -> 
-            Lwt.return (Extensions.Ext_next err))
-  | Element ("ifnotfound", [], sub) ->
-      let ext = parse_fun sub in
-      (fun charset -> function
-        | Extensions.Req_found (_, r) -> 
-            Lwt.return (Extensions.Ext_found r)
-        | Extensions.Req_not_found (err, ri) -> 
-            Lwt.return (Ext_sub_result ext))
-  | Element ("ifnotfound", [("code", s)], sub) ->
-      let ext = parse_fun sub in
-      let r = Netstring_pcre.regexp s in
-      (fun charset -> function
-        | Extensions.Req_found (_, r) -> 
-            Lwt.return (Extensions.Ext_found r)
-        | Extensions.Req_not_found (err, ri) ->
-            if Netstring_pcre.string_match r (string_of_int err) 0 <> None then
-              Lwt.return (Ext_sub_result ext)
-            else 
-            Lwt.return (Extensions.Ext_next err))
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad (toplevel) data")
 
