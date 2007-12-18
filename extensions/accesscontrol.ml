@@ -36,12 +36,15 @@ open Simplexmlparser
 
 (*****************************************************************************)
 
+type password = [ `Plain of string ]
+
 type filter =
   | Filter_Ip of (int32 * int32)
   | Filter_Path of Netstring_pcre.regexp
   | Filter_Method of Http_frame.Http_header.http_method
   | Filter_Header of string * Netstring_pcre.regexp
   | Filter_Protocol of Http_frame.Http_header.proto
+  | Filter_Auth of (string -> password -> bool)
   | Filter_Disj of filter list
   | Filter_Conj of filter list
   | Filter_Neg of filter
@@ -57,6 +60,30 @@ let rec parse_global_config = function
 let _ = parse_global_config (Extensions.get_config ())
 
 
+
+(*****************************************************************************)
+(* Management of authentication methods *)
+
+let register_authentication_method,
+  get_authentication_method =
+  let fun_auth = ref
+    (fun config ->
+       raise (Bad_config_tag_for_extension "<unknown authentication method>"))
+  in
+
+  (********* register_authentication_method *********)
+  (fun new_fun_auth ->
+     let old_fun_auth = !fun_auth in
+     fun_auth :=
+       (fun config ->
+          try
+            old_fun_auth config
+          with
+            | Bad_config_tag_for_extension c -> new_fun_auth config)),
+
+  (********* get_authentication_method *********)
+  (fun config ->
+     !fun_auth config)
 
 
 
@@ -100,6 +127,8 @@ let find_access ri =
         else
           Messages.debug2 "--Access control: Protocol does not match";
         r
+    | Filter_Auth auth ->
+        assert false
     | Filter_Header (name, regexp) ->
         let r =
           List.exists
