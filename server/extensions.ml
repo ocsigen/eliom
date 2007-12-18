@@ -328,7 +328,7 @@ let string_of_host h =
 
 let rec site_match site_path url = 
   match site_path, url with
-  | [], [] -> Some [""]
+  | [], [] -> raise Ocsigen_Is_a_directory (* Some [""] *)
   | [], p -> Some p
   | [""], (_::_ as p) -> Some p
   | a::l, aa::ll when a = aa -> site_match l ll 
