@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -21,7 +21,7 @@
 
 (** Filtering requests in the configuration file *)
 
-(* 
+(*
 
 Then load it dynamically from Ocsigen's config file:
    <extension module=".../accesscontrol.cmo"/>
@@ -51,7 +51,7 @@ type filter =
 (*****************************************************************************)
 let rec parse_global_config = function
   | [] -> ()
-  | _ -> raise (Error_in_config_file 
+  | _ -> raise (Error_in_config_file
                   ("Unexpected content inside accesscontrol config"))
 
 let _ = parse_global_config (Extensions.get_config ())
@@ -65,20 +65,20 @@ let _ = parse_global_config (Extensions.get_config ())
 
 let find_access ri =
   let rec one_access = function
-    | Filter_Ip (ip32, mask) -> 
+    | Filter_Ip (ip32, mask) ->
         let r = Int32.logand (Lazy.force ri.ri_ip32) mask = ip32 in
-        if r then 
+        if r then
           Messages.debug2 "--Access control: IP matches mask"
         else
           Messages.debug2 "--Access control: IP does not match mask";
         r
     | Filter_Path regexp ->
         let r =
-          Netstring_pcre.string_match 
+          Netstring_pcre.string_match
             regexp (Lazy.force ri.ri_sub_path_string) 0 <> None
         in
-        if r then 
-          Messages.debug 
+        if r then
+          Messages.debug
             (fun () -> "--Access control: Path "^
               (Lazy.force ri.ri_sub_path_string)^" matches regexp")
         else
@@ -86,29 +86,29 @@ let find_access ri =
             (fun () -> "--Access control: Path "^
               (Lazy.force ri.ri_sub_path_string)^" does not match regexp");
         r
-    | Filter_Method meth -> 
+    | Filter_Method meth ->
         let r = meth = ri.ri_method in
-        if r then 
+        if r then
           Messages.debug2 "--Access control: Method matches"
         else
           Messages.debug2 "--Access control: Method does not match";
         r
-    | Filter_Protocol pr -> 
+    | Filter_Protocol pr ->
         let r = pr = ri.ri_protocol in
-        if r then 
+        if r then
           Messages.debug2 "--Access control: Protocol matches"
         else
           Messages.debug2 "--Access control: Protocol does not match";
         r
-    | Filter_Header (name, regexp) -> 
+    | Filter_Header (name, regexp) ->
         let r =
           List.exists
             (fun a -> Netstring_pcre.string_match regexp a 0 <> None)
-            (Http_headers.find_all 
-               (Http_headers.name name) 
+            (Http_headers.find_all
+               (Http_headers.name name)
                ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers)
         in
-        if r then 
+        if r then
           Messages.debug2 "--Access control: Header matches regexp"
         else
           Messages.debug2 "--Access control: Header does not match regexp";
@@ -121,27 +121,24 @@ let find_access ri =
 
 
 
-
-let gen test charset = function
-  | Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
-  | Extensions.Req_not_found (err, ri) ->
-      try
-        match test with
-          | `Filter test ->
-              if find_access ri test then begin
-                Messages.debug2 "--Access control: => Access granted!";
-                Lwt.return (Ext_next err)
-              end
-              else begin
-                Messages.debug2 "--Access control: => Access denied!";
-                Lwt.return (Ext_stop_site 403)
-              end
-          | `Error e -> raise e
-      with 
-        | e -> 
-            Messages.debug2 "--Access control: taking in charge an error";
-            fail e (* for example Ocsigen_http_error 404 or 403 *)
-              (* server.ml has a default handler for HTTP errors *)
+let gen test = Page_gen (fun err charset ri ->
+  try
+    match test with
+      | `Filter test ->
+          if find_access ri test then begin
+            Messages.debug2 "--Access control: => Access granted!";
+            Lwt.return (Ext_not_found err)
+          end
+          else begin
+            Messages.debug2 "--Access control: => Access denied!";
+            Lwt.return (Ext_stop 403)
+          end
+    | `Error e -> raise e
+  with 
+  | e -> 
+      Messages.debug2 "--Access control: taking in charge an error";
+      fail e (* for example Ocsigen_http_error 404 or 403 *)
+        (* server.ml has a default handler for HTTP errors *))
 
 
 
@@ -149,7 +146,7 @@ let gen test charset = function
 (*****************************************************************************)
 (** Configuration for each site.
     These tags are inside <site ...>...</site> in the config file.
-        
+
    For example:
    <site dir="">
      <accesscontrol regexp="" dest="" />
@@ -158,33 +155,33 @@ let gen test charset = function
  *)
 
 
-let parse_config path charset parse_fun =
+let parse_config path charset = 
   let parse_filter = function
     | ("ip", [("value", s)]) ->
         (try
           Filter_Ip (Ocsimisc.parse_ip_netmask s)
-        with Failure _ -> 
+        with Failure _ ->
           raise (Error_in_config_file "Bad ip/netmask value in ip filter"))
     | ("header", [("name", s); ("regexp", r)]) ->
         (try
           Filter_Header (s, Netstring_pcre.regexp r)
-        with Failure _ -> 
+        with Failure _ ->
           raise (Error_in_config_file
                    "Bad regular expression in header filter"))
     | ("method", [("value", s)]) ->
         (try
           Filter_Method (Framepp.method_of_string s)
-        with Failure _ -> 
+        with Failure _ ->
           raise (Error_in_config_file "Bad method value in method filter"))
     | ("protocol", [("value", s)]) ->
         (try
           Filter_Protocol (Framepp.proto_of_string s)
-        with Failure _ -> 
+        with Failure _ ->
           raise (Error_in_config_file "Bad protocol value in protocol filter"))
     | ("path", [("regexp", s)]) ->
         (try
           Filter_Path (Netstring_pcre.regexp s)
-        with Failure _ -> 
+        with Failure _ ->
           raise (Error_in_config_file
                    "Bad regular expression in <path/>"))
     | (t, _) -> raise (Error_in_config_file ("(accesscontrol extension) Problem with "^t^" filter in configuration file."))
@@ -244,7 +241,7 @@ let parse_config path charset parse_fun =
 
 
 (*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase 
+(** Function to be called at the beginning of the initialisation phase
     of the server (actually each time the config file is reloaded) *)
 let start_init () =
   ()
