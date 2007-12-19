@@ -158,10 +158,11 @@ let parse_server isreloading c =
                 raise
                   (Config_file_error ("Wrong attribute for <site>: "^s))
           in
-          let charset,dir = parse_site_attrs (None, None) atts in
+          let charset, dir = parse_site_attrs (None, None) atts in
           let path = 
             Ocsimisc.remove_slash_at_end
-              (Ocsimisc.remove_slash_at_beginning (Neturl.split_path dir)) in
+              (Ocsimisc.remove_slash_at_beginning 
+                 (Ocsimisc.remove_dotdot (Neturl.split_path dir))) in
           let s = (host, path, charset, parse_site path charset l) in
           s::parse_host host parse_site ll
       | (Element (tag,_,_))::_ -> 

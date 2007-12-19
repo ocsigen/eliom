@@ -54,6 +54,7 @@ let _ =
 external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
 
 let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
+let local_addr6 num = Unix.ADDR_INET (Unix.inet6_addr_any, num)
 
 let sslctx = Http_client.sslcontext
 
@@ -786,7 +787,9 @@ let listen use_ssl port wait_end_init =
       let socket = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
       Lwt_unix.set_close_on_exec socket;
       Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
-      Lwt_unix.bind socket (local_addr port);
+(*      try*)
+        Lwt_unix.bind socket (local_addr6 port);
+(*      with _ -> Lwt_unix.bind socket (local_addr port);*)
       Lwt_unix.listen socket 1024;
       socket
     with

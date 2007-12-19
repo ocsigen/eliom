@@ -329,13 +329,21 @@ let string_of_host h =
   in List.fold_left (fun d hh -> d^(aux1 hh)^" ") "" h
 
 
-let rec site_match site_path url = 
+let site_match site_path url = 
+  (* We are sure that there is no / at the end or beginning of site_path *)
+  (* and no / at the beginning of url *)
+  (* and no // or ../ inside both of them *)
+  (* We return the subpath without / at beginning *)
+  let rec aux site_path url = 
+    match site_path, url with
+      | [], [] -> raise Ocsigen_Is_a_directory
+      | [], p -> Some p
+      | a::l, aa::ll when a = aa -> aux l ll 
+      | _ -> None
+  in
   match site_path, url with
-  | [], [] -> raise Ocsigen_Is_a_directory (* Some [""] *)
-  | [], p -> Some p
-  | [""], (_::_ as p) -> Some p
-  | a::l, aa::ll when a = aa -> site_match l ll 
-  | _ -> None
+    | [], [] -> Some []
+    | _ -> aux site_path url
 
 
 let add_to_res_cookies cookies_to_set res =
@@ -531,7 +539,7 @@ let parse_url url =
   in
 
   let path =
-    (Ocsimisc.remove_dotdot 
+    (Ocsimisc.remove_dotdot (* and remove "//" *)
        (Ocsimisc.remove_slash_at_beginning 
           (Neturl.url_path url2)))
       (* here we remove .. from paths, at it is dangerous.

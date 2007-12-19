@@ -91,16 +91,17 @@ let defaultpagename = "./"
    "index" works but one page may have two different URLs *)
 
 let remove_dotdot = 
-    let rec aux = function
-      | [] -> []
-      | [""] as l -> l
-      | ""::l -> aux l
-      | ".."::l -> aux l
-      | a::l -> a::(aux l)
-    in function
-      | [] -> []
-      | ""::l -> ""::(aux l)
-      | l -> aux l
+  (* removes "../" and "//" *)
+  let rec aux = function
+    | [] -> []
+    | [""] as l -> l
+    | ""::l -> aux l
+    | ".."::l -> aux l
+    | a::l -> a::(aux l)
+  in function
+    | [] -> []
+    | ""::l -> ""::(aux l)
+    | l -> aux l
                      
 let remove_slash_at_beginning = function
   | [] -> []
