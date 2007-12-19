@@ -135,9 +135,9 @@ let parse_config path charset = function
           raise (Error_in_config_file
                    "regexp attribute expected for <redirect>")
       | [("regexp", s);("dest",t)] -> 
-          Regexp ((Netstring_pcre.regexp ("/"^s)), t, false)
+          Regexp ((Netstring_pcre.regexp s), t, false)
       | [("temporary", "temporary");("regexp", s);("dest",t)] -> 
-          Regexp ((Netstring_pcre.regexp ("/"^s)), t, true)
+          Regexp ((Netstring_pcre.regexp s), t, true)
       | _ -> raise (Error_in_config_file "Wrong attribute for <redirect>")
       in
       Page_gen (gen dir)

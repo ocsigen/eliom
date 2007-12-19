@@ -245,7 +245,7 @@ let parse_site host =
                (Some (Netstring_pcre.regexp regexp),
                 aux sub))::aux ll
           with
-            | Failure _ as e ->
+            | e ->
                 ignore
                   (Messages.errlog
                      ("Error while parsing configuration file (<ifnotfound>): "^
@@ -425,9 +425,9 @@ let do_for_site_matching host port ri =
                 "\" matches \"/"^
                 (Ocsimisc.string_of_url_path path)^"\".");
               let ri = {ri with
-                        ri_sub_path = ""::sub_path; 
+                        ri_sub_path = sub_path; 
                         ri_sub_path_string = 
-                        lazy ("/"^Ocsimisc.string_of_url_path sub_path)}
+                        lazy (Ocsimisc.string_of_url_path sub_path)}
               in
               let charset = match charset with 
               | None -> Ocsiconfig.get_default_charset ()

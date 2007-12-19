@@ -77,7 +77,6 @@ let _ = parse_global_config (Extensions.get_config ())
 (* Finding redirections *)
 
 let find_redirection r path =
-  let path = Ocsimisc.string_of_url_path path in
   match Netstring_pcre.string_match r.regexp path 0 with
   | None -> raise Not_concerned
   | Some _ -> (* Matching regexp found! *)
@@ -112,7 +111,7 @@ let gen dir err charset ri =
     (fun () ->
        Messages.debug2 "--Revproxy: Is it a redirection?";
        let (https, host, port, uri) = 
-         find_redirection dir ri.ri_sub_path 
+         find_redirection dir ri.ri_sub_path_string
        in
        let uri = "/"^uri in
        Messages.debug (fun () ->
@@ -211,7 +210,7 @@ let parse_config path charset = function
         | [] -> res
         | ("regexp", regexp)::l when r = None ->
             parse_attrs
-              (Some (Netstring_pcre.regexp ("/"^regexp)), s, prot, port, u, pipeline)
+              (Some (Netstring_pcre.regexp regexp), s, prot, port, u, pipeline)
               l
         | ("protocol", protocol)::l 
           when prot = None && String.lowercase protocol = "http" -> 

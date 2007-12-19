@@ -59,7 +59,7 @@ let code_match regexp code =
   | Some regexp ->
       Netstring_pcre.string_match regexp (string_of_int code) 0 <> None
 
-let find_static_page dir err path =
+let find_static_page dir err path pathstring =
   let find_file (filename, readable) =
     (* See also module Files in eliom.ml *)
     try
@@ -111,18 +111,17 @@ let find_static_page dir err path =
     with Unix.Unix_error (Unix.ENOENT,_,_) -> raise Failed_404
   in
 
-  let path = Ocsimisc.string_of_url_path path in
-
   match dir with
   | Dir (d, readable) -> 
-      (None, find_file ((d^path), readable))
+      (None, find_file ((d^"/"^pathstring), readable))
   | Regexp (regexp, dest, readable, code) ->
       if code_match code err then
         (code,
-         match Netstring_pcre.string_match regexp path 0 with
+(print_endline pathstring;
+         match Netstring_pcre.string_match regexp pathstring 0 with
          | None -> raise Not_concerned
          | Some _ -> (* Matching regexp found! *)
-             let s = Netstring_pcre.global_replace regexp dest path in
+             let s = Netstring_pcre.global_replace regexp dest pathstring in
              (* hack to get user dirs *)
              match Netstring_pcre.string_match user_dir_regexp s 0 with
              | None -> find_file (s, readable)
@@ -134,6 +133,7 @@ let find_static_page dir err path =
                     userdir^
                     (Netstring_pcre.matched_group result 3 s),
                     readable))
+        )
       else raise Not_concerned
 
 
@@ -149,7 +149,10 @@ let gen dir err charset ri =
           (* static pages do not have parameters *)
       then begin
         Messages.debug2 "--Staticmod: Is it a static file?";
-        match find_static_page dir err ri.ri_sub_path with
+        match 
+          find_static_page
+            dir err ri.ri_sub_path (Lazy.force ri.ri_sub_path_string)
+        with
         | code, RDir dirname ->
             Predefined_senders.Directory_content.result_of_content 
               (dirname, ri.ri_sub_path) >>= fun r ->
@@ -242,7 +245,7 @@ let parse_config path charset =
     | ("regexp", s)::l when regexp = None ->
         (try
           parse_attrs
-            (dir, Some (Netstring_pcre.regexp ("/"^s)), readable, code, dest)
+            (dir, Some (Netstring_pcre.regexp s), readable, code, dest)
             l
         with Failure _ ->
           raise (Error_in_config_file "Bad regexp in <static regexp=\"...\" />"))
