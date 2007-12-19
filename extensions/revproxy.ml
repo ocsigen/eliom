@@ -81,9 +81,8 @@ let find_redirection r path =
   | None -> raise Not_concerned
   | Some _ -> (* Matching regexp found! *)
       (r.https,
-       Netstring_pcre.global_replace r.regexp r.server path,
-       int_of_string 
-         (Netstring_pcre.global_replace r.regexp r.port path),
+       r.server,
+       int_of_string r.port,
        Netstring_pcre.global_replace r.regexp r.uri path)
 
 
@@ -111,7 +110,7 @@ let gen dir err charset ri =
     (fun () ->
        Messages.debug2 "--Revproxy: Is it a redirection?";
        let (https, host, port, uri) = 
-         find_redirection dir ri.ri_sub_path_string
+         find_redirection dir (Lazy.force ri.ri_sub_path_string)
        in
        let uri = "/"^uri in
        Messages.debug (fun () ->
@@ -199,7 +198,7 @@ let gen dir err charset ri =
         
    For example:
    <site dir="">
-     <revproxy regexp="" dest="" />
+     <revproxy regexp="" ... />
    </extension>
 
  *)

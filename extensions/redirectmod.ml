@@ -65,7 +65,6 @@ let _ = parse_global_config (Extensions.get_config ())
 (* Finding redirections *)
 
 let find_redirection (Regexp (regexp, dest, temp)) path =
-  let path = Ocsimisc.string_of_url_path path in
   match Netstring_pcre.string_match regexp path 0 with
   | None -> raise Not_concerned
   | Some _ -> (* Matching regexp found! *)
@@ -96,7 +95,9 @@ let gen dir err charset ri =
     (* Is it a redirection? *)
     (fun () ->
       Messages.debug2 "--Redirectmod: Is it a redirection?";
-      let (redir, temp) = find_redirection dir ri.ri_sub_path in
+      let (redir, temp) = 
+        find_redirection dir (Lazy.force ri.ri_sub_path_string) 
+      in
       Messages.debug (fun () ->
         "--Redirectmod: YES! "^
         (if temp then "Temporary " else "Permanent ")^
