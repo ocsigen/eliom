@@ -292,16 +292,19 @@ let end_init () =
       add_site ([([Wildcard], None)],
                 [],
                 None,
-                [Extensions.Page_gen
-                  (fun err charset ri -> 
-                    gen 
-                      (Dir (remove_end_slash path, r))
-                      err
-                      (match Ocsiconfig.get_default_charset () with 
-                      | None -> "utf-8"
-                      | Some charset -> charset)
-                      ri
-                  )])
+                [Extensions.Ext
+                   (Extensions.Page_gen
+                      (fun err charset ri -> 
+                         gen 
+                           (Dir (remove_end_slash path, r))
+                           err
+                           (match Ocsiconfig.get_default_charset () with 
+                              | None -> "utf-8"
+                              | Some charset -> charset)
+                           ri
+                      )
+                   )
+                ])
   (* for default static dir *)
 
 

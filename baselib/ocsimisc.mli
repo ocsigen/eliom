@@ -30,7 +30,7 @@ val concat_strings : string -> string -> string -> string
 val basic_sep : char -> string -> string * string
 val remove_spaces : string -> int -> int -> string
 val sep : char -> string -> string * string
-val split : char -> string -> string list
+val split : ?multisep:bool -> char -> string -> string list
 val string_of_exn : exn -> string
 val parse_ip : string -> int32
 val parse_ip_netmask : string -> int32 * int32

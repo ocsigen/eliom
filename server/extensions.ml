@@ -155,8 +155,14 @@ type extension =
   | Page_gen of (int -> string -> request_info -> answer Lwt.t)
   | Filter of (string -> request_info -> Http_frame.result -> answer Lwt.t)
 
+type ext_tree =
+  | Ext of extension
+  | If_found of ext_tree list
+  | If_not_found of Netstring_pcre.regexp option * ext_tree list
+
+
 let (sites : (virtual_hosts * url_path * string option (* charset *) * 
-                extension list) list ref) = 
+                ext_tree list) list ref) = 
   ref []
 
 let set_sites v = sites := v
@@ -171,7 +177,8 @@ let register_extension,
   get_init_exn_handler =
   let fun_site = ref 
       (fun host path charset xmltag -> 
-        raise (Bad_config_tag_for_extension "<no extension loaded>"))
+        (raise (Bad_config_tag_for_extension "<no extension loaded>")
+           : extension))
   in
   let fun_beg = ref (fun () -> ()) in
   let fun_end = ref (fun () -> ()) in
@@ -227,10 +234,28 @@ let parse_site host =
     let f = f path charset in (* creates all site data, if any *)
     let rec aux = function
       | [] -> []
+      | (Simplexmlparser.Element ("iffound", [], sub))::ll ->
+          (If_found (aux sub))::aux ll
+      | (Simplexmlparser.Element ("ifnotfound", [], sub))::ll ->
+          (If_not_found (None, aux sub))::aux ll
+      | (Simplexmlparser.Element
+           ("ifnotfound", [("code", regexp)], sub))::ll ->
+          (try
+            (If_not_found
+               (Some (Netstring_pcre.regexp regexp),
+                aux sub))::aux ll
+          with
+            | Failure _ as e ->
+                ignore
+                  (Messages.errlog
+                     ("Error while parsing configuration file (<ifnotfound>): "^
+                        (Ocsimisc.string_of_exn e)^
+	                " (ignored)"));
+                aux ll)
       | xmltag::ll -> 
           try
             let a = f xmltag in
-            a::aux ll
+            (Ext a)::aux ll
           with
           | Bad_config_tag_for_extension t -> 
               ignore
@@ -355,15 +380,21 @@ let add_to_res_cookies cookies_to_set res =
      Http_frame.add_cookies cookies_to_set res.Http_frame.res_cookies}
 
 
+let code_match regexp code =
+  match regexp with
+  | None -> true
+  | Some regexp ->
+      Netstring_pcre.string_match regexp (string_of_int code) 0 <> None
+
 let do_for_site_matching host port ri =
 
   let conn = client_connection ri.ri_client in
   let awake =
-    let towakeup = ref true in
+    let tobeawoken = ref true in
     (* must be awoken once and only once *)
     fun () ->
-      if !towakeup then begin
-        towakeup := false;
+      if !tobeawoken then begin
+        tobeawoken := false;
         Http_com.awake_next_request conn
       end
   in
@@ -406,32 +437,46 @@ let do_for_site_matching host port ri =
               | None -> "utf-8"
               | Some charset -> charset
               in
+              let rec make_ext res_thr ext =
+                res_thr >>= fun ((res_ext, cookies_to_set) as res) ->
+                match (res_ext, ext) with
+                  | (Ext_found r, Ext (Page_gen _)) -> 
+                      awake ();
+                      r () >>= fun r' -> 
+                      return (Ext_found (fun () -> Lwt.return r'), 
+                              cookies_to_set)
+                  | (Ext_found r, Ext (Filter f)) -> 
+                      awake ();
+                      r () >>= fun r' -> 
+                      f charset ri (add_to_res_cookies cookies_to_set r')
+                      >>= fun r -> 
+                      Lwt.return (r, Http_frame.Cookies.empty)
+                  | (Ext_not_found e, Ext (Page_gen f)) ->
+                      f e charset ri >>= fun r -> 
+                      return (r, cookies_to_set)
+                  | (Ext_continue_with (ri, cook, e), Ext (Page_gen f)) -> 
+                      f e charset ri >>= fun r ->
+                      return (r, Http_frame.add_cookies cook cookies_to_set)
+                  | (Ext_found _, If_found l) ->
+                      List.fold_left make_ext res_thr l
+                  | (Ext_continue_with (_, _, err), If_not_found (el, l)) 
+                      when code_match el err ->
+                      List.fold_left make_ext res_thr l
+                  | (Ext_not_found err, If_not_found (el, l))
+                      when code_match el err ->
+                      List.fold_left make_ext res_thr l
+                  | (Ext_found _, If_not_found _)
+                  | (Ext_not_found _, If_found _)
+                  | (Ext_not_found _, If_not_found _)
+                  | (Ext_not_found _, Ext (Filter _))
+                  | (Ext_continue_with _, If_found _)
+                  | (Ext_continue_with _, If_not_found _)
+                  | (Ext_continue_with _, Ext (Filter _)) -> return res
+                  | (Ext_stop _, _) -> return res
+                  | (Ext_retry_with _, _) -> return res
+              in
               List.fold_left
-                (fun res ext -> 
-                  res >>= fun ((res_ext, cookies_to_set) as res) ->
-                    match (res_ext, ext) with
-                    | (Ext_found r, Page_gen _) -> 
-                        awake ();
-                        r () >>= fun r' -> 
-                        return (Ext_found (fun () -> Lwt.return r'), 
-                                cookies_to_set)
-                    | (Ext_found r, Filter f) -> 
-                        awake ();
-                        r () >>= fun r' -> 
-                        f charset ri (add_to_res_cookies cookies_to_set r')
-                        >>= fun r -> 
-                        Lwt.return (r, Http_frame.Cookies.empty)
-                    | (Ext_not_found e, Page_gen f) ->
-                        f e charset ri >>= fun r -> 
-                        return (r, cookies_to_set)
-                    | (Ext_not_found e, Filter _) -> return res
-                    | (Ext_continue_with (ri, cook, e), Page_gen f) -> 
-                        f e charset ri >>= fun r ->
-                        return (r, Http_frame.add_cookies cook cookies_to_set)
-                    | (Ext_continue_with _, Filter _) -> return res
-                    | (Ext_stop _, _) -> return res
-                    | (Ext_retry_with _, _) -> return res
-                )
+                make_ext
                 (return (Ext_not_found prev_err, cookies_to_set))
                 extlist
                 >>= fun (res_ext, cookies_to_set) ->

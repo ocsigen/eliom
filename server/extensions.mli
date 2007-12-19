@@ -131,7 +131,9 @@ type answer =
   | Ext_not_found of int (** Page not found. Try next extension.
                             The integer is the HTTP error code.
                             It is usally 404, but may be for ex 403 (forbidden)
-                            if you want another extension to try after a 403
+                            if you want another extension to try after a 403.
+                            Same as Ext_continue_with but does not change
+                            the request.
                           *)
 (*VVV give the possibility to set cookies here??? *)
   | Ext_stop of int      (** Error. Do not try next extension, but
@@ -174,6 +176,13 @@ type extension =
     extension. And they both return an [answer].
  *)
 
+(**/**)
+type ext_tree =
+  | Ext of extension
+  | If_found of ext_tree list
+  | If_not_found of Netstring_pcre.regexp option * ext_tree list
+(**/**)
+
 
 (** 
    For each extension generating pages, we register four functions:
@@ -209,13 +218,17 @@ type extension =
    the requests you to another server. It is false by default.
  *)
 val register_extension :
-    ?respect_pipeline: bool ->
-    (virtual_hosts -> url_path -> string option -> 
-      Simplexmlparser.xml -> extension) ->
-        (unit -> unit) -> 
-      (unit -> unit) -> 
-        (exn -> string) -> unit
-        
+  ?respect_pipeline: bool -> 
+  (virtual_hosts -> 
+     url_path -> 
+       string option -> 
+         Simplexmlparser.xml -> 
+           extension) ->
+  (unit -> unit) -> 
+  (unit -> unit) -> 
+  (exn -> string) -> 
+  unit
+  
 
 (** While loading an extension, 
     get the configuration tree between <dynlink></dynlink>*)
@@ -237,15 +250,15 @@ val parse_url : string ->
     (string * string) list Lazy.t
 
 val parse_site : virtual_hosts -> 
-  url_path -> string option -> Simplexmlparser.xml list -> extension list
+  url_path -> string option -> Simplexmlparser.xml list -> ext_tree list
 
-val set_sites : (virtual_hosts * url_path * string option * extension list) list
+val set_sites : (virtual_hosts * url_path * string option * ext_tree list) list
   -> unit
                         
 val get_sites : unit -> 
-  (virtual_hosts * url_path * string option * extension list) list
+  (virtual_hosts * url_path * string option * ext_tree list) list
 
-val add_site : (virtual_hosts * url_path * string option * extension list) -> unit
+val add_site : (virtual_hosts * url_path * string option * ext_tree list) -> unit
 
 val do_for_site_matching :
     string option ->

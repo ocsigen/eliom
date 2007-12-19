@@ -155,7 +155,7 @@ let gen test = Page_gen (fun err charset ri ->
  *)
 
 
-let parse_config path charset = 
+let parse_config path charset =
   let parse_filter = function
     | ("ip", [("value", s)]) ->
         (try

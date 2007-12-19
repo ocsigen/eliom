@@ -236,7 +236,7 @@ let sep char s =
 
 
 (** splits a string, for ex azert,   sdfmlskdf,    dfdsfs *)
-let rec split char s =
+let rec split ?(multisep=false) char s =
   let longueur = String.length s in
   let rec aux deb =
     if deb >= longueur
@@ -244,6 +244,9 @@ let rec split char s =
     else
       try
         let firstsep = String.index_from s deb char in
+        if multisep && firstsep = deb then
+          aux (deb + 1)
+        else
         (remove_spaces s deb (firstsep-1))::
         (aux (firstsep+1))
       with Not_found -> [remove_spaces s deb (longueur-1)]
