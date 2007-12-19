@@ -81,8 +81,9 @@ let find_redirection r path =
   | None -> raise Not_concerned
   | Some _ -> (* Matching regexp found! *)
       (r.https,
-       r.server,
-       int_of_string r.port,
+       Netstring_pcre.replace_first r.regexp r.server path,
+       int_of_string 
+         (Netstring_pcre.global_replace r.regexp r.port path),
        Netstring_pcre.global_replace r.regexp r.uri path)
 
 
@@ -209,7 +210,7 @@ let parse_config path charset = function
         | [] -> res
         | ("regexp", regexp)::l when r = None ->
             parse_attrs
-              (Some (Netstring_pcre.regexp regexp), s, prot, port, u, pipeline)
+              (Some (Netstring_pcre.regexp ("^"^regexp^"$")), s, prot, port, u, pipeline)
               l
         | ("protocol", protocol)::l 
           when prot = None && String.lowercase protocol = "http" -> 
