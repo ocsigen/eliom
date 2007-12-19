@@ -179,7 +179,10 @@ let register_extension,
 
   ((* ********* register_extension ********* *)
      (fun ?(respect_pipeline=false)
-         (new_fun_site, begin_init, end_init, handle_exn) ->
+         new_fun_site
+         begin_init
+         end_init
+         handle_exn ->
        
        if respect_pipeline then Ocsiconfig.set_respect_pipeline ();
 

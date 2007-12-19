@@ -165,9 +165,9 @@ let site_creator hostpattern = parse_config
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = register_extension (* takes a quadruple *)
-    (site_creator,
-     start_init,
-     end_init,
-     exn_handler)
+let _ = register_extension
+  site_creator
+  start_init
+  end_init
+  exn_handler
 

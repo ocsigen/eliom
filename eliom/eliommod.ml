@@ -2979,10 +2979,10 @@ let handle_init_exn = function
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
-    ((fun hostpattern -> parse_config),
-     start_init,
-     end_init,
-     handle_init_exn)
+  (fun hostpattern -> parse_config)
+  start_init
+  end_init
+  handle_init_exn
 
 let _ = persistent_session_gc ()
 

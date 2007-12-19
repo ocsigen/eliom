@@ -329,3 +329,12 @@ let fst3 (a, _, _) = a
 let snd3 (_, a, _) = a
 let thd3 (_, _, a) = a
 
+let get_inet_addr host =
+  let rec aux = function
+    | [] -> Lwt.fail Not_found
+    | {Unix.ai_addr=Unix.ADDR_INET (inet_addr, _)}::_ -> Lwt.return inet_addr
+    | _::l -> aux l
+  in
+  Lwt.bind
+    (Lwt_lib.getaddrinfo host "" [])
+    aux

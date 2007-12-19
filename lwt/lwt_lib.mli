@@ -18,5 +18,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+val getaddrinfo :
+    string ->
+    string -> Unix.getaddrinfo_option list -> Unix.addr_info list Lwt.t
+(** Cooperative getaddrinfo with cache (using Preemptive.detach) *)
+
 val gethostbyname : string -> Unix.host_entry Lwt.t
 (** Cooperative gethostbyname with cache (using Preemptive.detach) *)

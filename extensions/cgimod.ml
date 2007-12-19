@@ -639,8 +639,8 @@ let end_init () = ()
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = register_extension (* takes a quadruple *)
-  ((fun hostpattern -> parse_config),
-   start_init,
-   end_init,
-   exn_handler)
+let _ = register_extension
+  (fun hostpattern -> parse_config)
+  start_init
+  end_init
+  exn_handler

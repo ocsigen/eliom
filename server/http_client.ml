@@ -648,13 +648,18 @@ let raw_request
 
 
 (*****************************************************************************)
-(*VVV* Put a waiter like in revproxy.ml to keep the order of request? *)
 let get ?https ?port ~host ~uri () =
-  Lwt_lib.gethostbyname host >>= fun host_entry ->
-  raw_request 
-      ?https ?port ~http_method:Http_frame.Http_header.GET
+  Ocsimisc.get_inet_addr host >>= fun inet_addr ->
+    raw_request 
+      ?https
+      ?port
+      ~http_method:Http_frame.Http_header.GET
       ~content:None
-      ~host ~inet_addr:host_entry.Unix.h_addr_list.(0) ~uri () ()
+      ~host
+      ~inet_addr
+      ~uri
+      ()
+      ()
 
 
 (*VVV missing: post *)

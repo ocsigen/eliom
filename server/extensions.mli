@@ -211,8 +211,10 @@ type extension =
 val register_extension :
     ?respect_pipeline: bool ->
     (virtual_hosts -> url_path -> string option -> 
-      Simplexmlparser.xml -> extension) *
-    (unit -> unit) * (unit -> unit) * (exn -> string) -> unit
+      Simplexmlparser.xml -> extension) ->
+        (unit -> unit) -> 
+      (unit -> unit) -> 
+        (exn -> string) -> unit
         
 
 (** While loading an extension, 

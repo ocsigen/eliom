@@ -119,7 +119,8 @@ let gen dir err charset ri =
                          "--Revproxy: YES! Redirection to "^
                            (if https then "https://" else "http://")^host^":"^
                                 (string_of_int port)^uri);
-       Lwt_lib.gethostbyname host >>= fun host_entry ->
+
+       Ocsimisc.get_inet_addr host >>= fun inet_addr ->
 
        (* It is now safe to start next request.
           We are sure that the request won't be taken in disorder.
@@ -136,7 +137,8 @@ let gen dir err charset ri =
              ~keep_alive:true
              ~content:ri.ri_http_frame.Http_frame.content
              ~http_method:ri.ri_method
-             ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
+             ~host
+             ~inet_addr
              ~uri ()
            else
              fun () ->
@@ -146,7 +148,8 @@ let gen dir err charset ri =
                  ~port 
                  ~content:ri.ri_http_frame.Http_frame.content
                  ~http_method:ri.ri_method
-                 ~host ~inet_addr:host_entry.Unix.h_addr_list.(0)
+                 ~host
+                 ~inet_addr
                  ~uri ()
        in
        Lwt.return
@@ -279,8 +282,8 @@ let parse_config path charset = function
 let _ = register_extension
     ~respect_pipeline:true (* We ask ocsigen to respect pipeline order
                               when sending to extensions! *)
-    ((fun hostpattern -> parse_config),
-     start_init,
-     end_init,
-     raise)
+    (fun hostpattern -> parse_config)
+    start_init
+    end_init
+    raise
 

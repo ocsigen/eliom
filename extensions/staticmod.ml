@@ -309,8 +309,8 @@ let end_init () =
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
-    ((fun hostpattern -> parse_config),
-     start_init,
-     end_init,
-     raise)
+  (fun hostpattern -> parse_config)
+  start_init
+  end_init
+  raise
 

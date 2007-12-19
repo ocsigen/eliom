@@ -162,8 +162,8 @@ let virtual_host_creator hostpattern = (gen, parse_config)
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension (* takes a quadruple *)
-    ((fun hostpattern -> parse_config),
-     start_init,
-     end_init,
-     raise)
+    (fun hostpattern -> parse_config)
+    start_init
+    end_init
+    raise
 
