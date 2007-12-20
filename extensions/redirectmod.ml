@@ -90,7 +90,9 @@ let end_init () =
 
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
-let gen dir err charset ri =
+let gen dir charset = function
+| Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
+| Extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a redirection? *)
     (fun () ->
@@ -129,7 +131,7 @@ let gen dir err charset ri =
 
  *)
 
-let parse_config path charset = function
+let parse_config path charset parse_site = function
   | Element ("redirect", atts, []) -> 
       let dir = match atts with
       | [] -> 
@@ -141,7 +143,7 @@ let parse_config path charset = function
           Regexp ((Netstring_pcre.regexp s), t, true)
       | _ -> raise (Error_in_config_file "Wrong attribute for <redirect>")
       in
-      Page_gen (gen dir)
+      gen dir
   | Element (t, _, _) -> 
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(redirectmod extension) Bad data")

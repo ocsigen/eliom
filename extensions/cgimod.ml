@@ -461,7 +461,9 @@ let exn_handler = raise
 
 (*****************************************************************************)
 
-let gen reg err charset ri =
+let gen reg charset = function
+| Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
+| Extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a cgi page? *)
     (fun () ->
@@ -565,7 +567,7 @@ let rec set_env=function
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
-let parse_config path charset = function 
+let parse_config path charset parse_site = function 
   | Element ("cgi", atts, l) -> 
       let good_root r = Regexp.quote (string_conform r) in
       let dir = match atts with
@@ -620,7 +622,7 @@ let parse_config path charset = function
 *)
       | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
       in 
-      Page_gen (gen dir)
+      gen dir
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> 
       raise (Error_in_config_file "Unexpected data in config file")

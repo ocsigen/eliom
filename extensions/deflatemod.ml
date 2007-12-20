@@ -236,7 +236,7 @@ let _ = parse_global_config (Extensions.get_config ())
 
  *)
 
-let parse_config path charset = function
+let parse_config path charset parse_site = function
 (*  | Element ("deflate", atts, []) -> () 
    Ici il faut créer un arbre de répertoires en se souvenant les options
    de compression de chaque répertoire.

@@ -148,21 +148,29 @@ type answer =
             want them to be seen by subsequent extensions,
             for example using {!Http_frame.compute_new_ri_cookies}.
          *)
+  | Ext_sub_result of extension2
 
 
+and request_state =
+  | Req_not_found of (int * request_info)
+  | Req_found of (request_info * (unit -> Http_frame.result Lwt.t))
 
-type extension =
-  | Page_gen of (int -> string -> request_info -> answer Lwt.t)
-  | Filter of (string -> request_info -> Http_frame.result -> answer Lwt.t)
+and extension2 =
+    (unit -> unit) ->
+      Http_frame.cookie Http_frame.Cookievalues.t Http_frame.Cookies.t ->
+      string ->
+      request_state ->
+      (answer * 
+         Http_frame.cookie Http_frame.Cookievalues.t Http_frame.Cookies.t)
+        Lwt.t
 
-type ext_tree =
-  | Ext of extension
-  | If_found of ext_tree list
-  | If_not_found of Netstring_pcre.regexp option * ext_tree list
+type extension = string -> request_state -> answer Lwt.t
 
+
+type parse_fun = Simplexmlparser.xml list -> extension2
 
 let (sites : (virtual_hosts * url_path * string option (* charset *) * 
-                ext_tree list) list ref) = 
+                extension2) list ref) = 
   ref []
 
 let set_sites v = sites := v
@@ -176,7 +184,7 @@ let register_extension,
   get_end_init, 
   get_init_exn_handler =
   let fun_site = ref 
-      (fun host path charset xmltag -> 
+      (fun host path charset (parse_site : parse_fun) (xml : Simplexmlparser.xml) -> 
         (raise (Bad_config_tag_for_extension "<no extension loaded>")
            : extension))
   in
@@ -201,11 +209,11 @@ let register_extension,
            fun path charset ->
              let oldf = oldf path charset in
              let newf = newf path charset in
-             fun config_tag ->
+             fun parse_site config_tag ->
                try
-                 oldf config_tag
+                 oldf parse_site config_tag
                with
-               | Bad_config_tag_for_extension c -> newf config_tag
+               | Bad_config_tag_for_extension c -> newf parse_site config_tag
          );
        
        fun_beg := comp begin_init !fun_beg;
@@ -228,34 +236,76 @@ let register_extension,
   )
 
 
+
+
+let add_to_res_cookies res cookies_to_set =
+  if cookies_to_set = Http_frame.Cookies.empty then
+    res
+  else 
+    {res with 
+     Http_frame.res_cookies = 
+     Http_frame.add_cookies res.Http_frame.res_cookies cookies_to_set}
+
+let rec make_ext awake cookies_to_set charset req_state genfun f =
+  let rec aux cookies_to_set = function
+    | Ext_found r -> 
+        awake ();
+        r () >>= fun r' ->
+        let ri = match req_state with
+          | Req_found (ri, _) -> ri
+          | Req_not_found (_, ri) -> ri
+        in
+        f 
+          awake
+          Http_frame.Cookies.empty
+          charset
+          (Req_found (ri, 
+                      fun () -> 
+                        Lwt.return (add_to_res_cookies r' cookies_to_set)))
+    | Ext_not_found e ->
+        let ri = match req_state with
+          | Req_found (ri, _) -> ri
+          | Req_not_found (_, ri) -> ri
+        in
+        f awake cookies_to_set charset (Req_not_found (e, ri))
+    | Ext_continue_with (ri, cook, e) -> 
+        f 
+          awake
+          (Http_frame.add_cookies cook cookies_to_set)
+          charset
+          (Req_not_found (e, ri))
+    | Ext_stop _
+    | Ext_retry_with _ as res -> Lwt.return (res, cookies_to_set)
+    | Ext_sub_result sr ->
+        sr awake cookies_to_set charset req_state 
+        >>= fun (res, cookies_to_set) ->
+        aux cookies_to_set res
+  in
+  genfun charset req_state >>= aux cookies_to_set
+
+
 let parse_site host =
   let f = parse_site_item host in (* creates all host data, if any *)
   fun path charset -> 
     let f = f path charset in (* creates all site data, if any *)
     let rec aux = function
-      | [] -> []
-      | (Simplexmlparser.Element ("iffound", [], sub))::ll ->
-          (If_found (aux sub))::aux ll
-      | (Simplexmlparser.Element ("ifnotfound", [], sub))::ll ->
-          (If_not_found (None, aux sub))::aux ll
-      | (Simplexmlparser.Element
-           ("ifnotfound", [("code", regexp)], sub))::ll ->
-          (try
-            (If_not_found
-               (Some (Netstring_pcre.regexp regexp),
-                aux sub))::aux ll
-          with
-            | e ->
-                ignore
-                  (Messages.errlog
-                     ("Error while parsing configuration file (<ifnotfound>): "^
-                        (Ocsimisc.string_of_exn e)^
-	                " (ignored)"));
-                aux ll)
+      | [] ->
+          (fun (awake : unit -> unit) cookies_to_set charset -> function
+            | Req_found (ri, res) -> 
+                Lwt.return (Ext_found res,
+                            cookies_to_set)
+            | Req_not_found (e, ri) -> 
+                Lwt.return (Ext_not_found e, cookies_to_set))
       | xmltag::ll -> 
           try
-            let a = f xmltag in
-            (Ext a)::aux ll
+            let genfun = 
+              f 
+                aux
+                xmltag 
+            in
+            let genfun2 = aux ll in
+            fun awake cookies_to_set charset req_state -> 
+              make_ext awake cookies_to_set charset req_state genfun genfun2
           with
           | Bad_config_tag_for_extension t -> 
               ignore
@@ -371,20 +421,6 @@ let site_match site_path url =
     | _ -> aux site_path url
 
 
-let add_to_res_cookies cookies_to_set res =
-  if cookies_to_set = Http_frame.Cookies.empty then
-    res
-  else 
-    {res with 
-     Http_frame.res_cookies = 
-     Http_frame.add_cookies cookies_to_set res.Http_frame.res_cookies}
-
-
-let code_match regexp code =
-  match regexp with
-  | None -> true
-  | Some regexp ->
-      Netstring_pcre.string_match regexp (string_of_int code) 0 <> None
 
 let do_for_site_matching host port ri =
 
@@ -406,7 +442,7 @@ let do_for_site_matching host port ri =
     in
     let rec aux ri prev_err cookies_to_set = function
       | [] -> fail (Ocsigen_http_error prev_err)
-      | (h, path, charset, extlist)::l when host_match host port h ->
+      | (h, path, charset, genfun)::l when host_match host port h ->
           (match site_match path ri.ri_full_path with
           | None ->
               Messages.debug (fun () ->
@@ -437,70 +473,35 @@ let do_for_site_matching host port ri =
               | None -> "utf-8"
               | Some charset -> charset
               in
-              let rec make_ext res_thr ext =
-                res_thr >>= fun ((res_ext, cookies_to_set) as res) ->
-                match (res_ext, ext) with
-                  | (Ext_found r, Ext (Page_gen _)) -> 
-                      awake ();
-                      r () >>= fun r' -> 
-                      return (Ext_found (fun () -> Lwt.return r'), 
-                              cookies_to_set)
-                  | (Ext_found r, Ext (Filter f)) -> 
-                      awake ();
-                      r () >>= fun r' -> 
-                      f charset ri (add_to_res_cookies cookies_to_set r')
-                      >>= fun r -> 
-                      Lwt.return (r, Http_frame.Cookies.empty)
-                  | (Ext_not_found e, Ext (Page_gen f)) ->
-                      f e charset ri >>= fun r -> 
-                      return (r, cookies_to_set)
-                  | (Ext_continue_with (ri, cook, e), Ext (Page_gen f)) -> 
-                      f e charset ri >>= fun r ->
-                      return (r, Http_frame.add_cookies cook cookies_to_set)
-                  | (Ext_found _, If_found l) ->
-                      List.fold_left make_ext res_thr l
-                  | (Ext_continue_with (_, _, err), If_not_found (el, l)) 
-                      when code_match el err ->
-                      List.fold_left make_ext res_thr l
-                  | (Ext_not_found err, If_not_found (el, l))
-                      when code_match el err ->
-                      List.fold_left make_ext res_thr l
-                  | (Ext_found _, If_not_found _)
-                  | (Ext_not_found _, If_found _)
-                  | (Ext_not_found _, If_not_found _)
-                  | (Ext_not_found _, Ext (Filter _))
-                  | (Ext_continue_with _, If_found _)
-                  | (Ext_continue_with _, If_not_found _)
-                  | (Ext_continue_with _, Ext (Filter _)) -> return res
-                  | (Ext_stop _, _) -> return res
-                  | (Ext_retry_with _, _) -> return res
-              in
-              List.fold_left
-                make_ext
-                (return (Ext_not_found prev_err, cookies_to_set))
-                extlist
-                >>= fun (res_ext, cookies_to_set) ->
-                  (match res_ext with
-                  | Ext_found r -> 
-                      awake ();
-                      r () >>= fun r' -> 
-                      return (add_to_res_cookies cookies_to_set r')
-                  | Ext_not_found e
-                  | Ext_stop e -> aux ri e cookies_to_set l (* try next site *)
-                  | Ext_continue_with (_, cook, e) -> 
-                      aux ri e
-                        (Http_frame.add_cookies cook cookies_to_set) l
-                  | Ext_retry_with (ri2, cook) -> 
-                      (*VVV not enough to detect loops *)
-                      if ri != ri2 then
-                        do2
-                          (get_sites ())
-                          (Http_frame.add_cookies cook cookies_to_set)
-                          ri2
-                        (* retry all *)
-                      else
-                        fail Ocsigen_Looping_request
-                  )
+              genfun
+                awake
+                cookies_to_set
+                charset
+                (Req_not_found (prev_err, ri))
+              >>= fun (res_ext, cookies_to_set) ->
+              (match res_ext with
+                 | Ext_found r -> 
+                     awake ();
+                     r () >>= fun r' -> 
+                     return (add_to_res_cookies r' cookies_to_set)
+                 | Ext_not_found e
+                 | Ext_stop e -> aux ri e cookies_to_set l (* try next site *)
+                 | Ext_continue_with (_, cook, e) -> 
+                     aux ri e
+                       (Http_frame.add_cookies cook cookies_to_set) l
+                 | Ext_retry_with (ri2, cook) -> 
+                     (*VVV not enough to detect loops *)
+                     if ri != ri2 then
+                       do2
+                         (get_sites ())
+                         (Http_frame.add_cookies cook cookies_to_set)
+                         ri2
+                         (* retry all *)
+                     else
+                       fail Ocsigen_Looping_request
+                 | Ext_sub_result sr -> 
+                     assert false
+              )
           )
       | (h, p, _, _)::l ->
           Messages.debug (fun () ->

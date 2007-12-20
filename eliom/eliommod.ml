@@ -2655,7 +2655,9 @@ let make_naservice
 
 
 
-let gen sitedata previous_extension_err charset ri =
+let gen sitedata charset = function
+| Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
+| Extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in
   let rec gen_aux ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
     let genfun = 
@@ -2894,7 +2896,7 @@ let load_eliom_module sitedata cmo content =
 
 (*****************************************************************************)
 (** Parsing of config file for each site: *)
-let parse_config site_dir charset = 
+let parse_config site_dir charset parse_site = 
 (*--- if we put the following line here: *)
   let sitedata = new_sitedata site_dir in
 (*--- then there is one service tree for each <site> *)
@@ -2920,7 +2922,7 @@ let parse_config site_dir charset =
  *)
         let file = parse_module_attrs None atts in
         load_eliom_module sitedata file content;
-        Page_gen (gen sitedata)
+        gen sitedata
     | Element (t, _, _) -> 
         raise (Extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")

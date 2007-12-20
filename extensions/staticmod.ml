@@ -117,7 +117,6 @@ let find_static_page dir err path pathstring =
   | Regexp (regexp, dest, readable, code) ->
       if code_match code err then
         (code,
-(print_endline pathstring;
          match Netstring_pcre.string_match regexp pathstring 0 with
          | None -> raise Not_concerned
          | Some _ -> (* Matching regexp found! *)
@@ -133,7 +132,6 @@ let find_static_page dir err path pathstring =
                     userdir^
                     (Netstring_pcre.matched_group result 3 s),
                     readable))
-        )
       else raise Not_concerned
 
 
@@ -141,72 +139,75 @@ let find_static_page dir err path pathstring =
 
 
 
-let gen dir err charset ri = 
-  catch
-    (* Is it a static page? *)
-    (fun () ->
-      if ri.ri_get_params_string = None
-          (* static pages do not have parameters *)
-      then begin
-        Messages.debug2 "--Staticmod: Is it a static file?";
-        match 
-          find_static_page
-            dir err ri.ri_sub_path (Lazy.force ri.ri_sub_path_string)
-        with
-        | code, RDir dirname ->
-            Predefined_senders.Directory_content.result_of_content 
-              (dirname, ri.ri_sub_path) >>= fun r ->
-            (match code with
-            | None -> return (Ext_found (fun () -> Lwt.return r))
-            | Some _ -> (* It is an error handler *)
-                return
-                  (Ext_found
-                     (fun () ->
-                        Lwt.return 
-                          {r with
-		             Http_frame.res_code= err;
-                          })))
-        | code, RFile filename ->
-            Predefined_senders.File_content.result_of_content filename 
-            >>= fun r ->	    
-            (match code with
-            | None ->
-                return
-                  (Ext_found
-                     (fun () ->
-                        Lwt.return 
-                          {r with
-		             Http_frame.res_charset= Some charset;
-                          }))
-            | Some _ -> (* It is an error handler *)
-                return
-                  (Ext_found
-                     (fun () ->
-                        Lwt.return 
-                          {r with
-		             Http_frame.res_charset= Some charset;
-		             Http_frame.res_code= err;
-                          })))
-              
-      end
-      else return (Ext_not_found 400))
-
-    (function
-      | Unix.Unix_error (Unix.EACCES,_,_)
-      | Ocsigen_Is_a_directory
-      | Ocsigen_malformed_url as e -> fail e
-      | Failed_403 -> return (Ext_not_found 403)
-      | Failed_404 -> return (Ext_not_found err) 
-          (*VVV I send err, not 404 ... (?) *)
-      | Not_concerned -> return (Ext_not_found err)
-      | e -> fail e
-    )
-          
+let gen dir charset = function
+  | Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
+  | Extensions.Req_not_found (err, ri) ->
+      catch
+        (* Is it a static page? *)
+        (fun () ->
+           if ri.ri_get_params_string = None
+             (* static pages do not have parameters *)
+           then begin
+             Messages.debug2 "--Staticmod: Is it a static file?";
+             match 
+               find_static_page
+                 dir err ri.ri_sub_path (Lazy.force ri.ri_sub_path_string)
+             with
+               | code, RDir dirname ->
+                   Predefined_senders.Directory_content.result_of_content 
+                     (dirname, ri.ri_sub_path) >>= fun r ->
+                   (match code with
+                      | None -> return (Ext_found (fun () -> Lwt.return r))
+                      | Some _ -> (* It is an error handler *)
+                          return
+                            (Ext_found
+                               (fun () ->
+                                  Lwt.return 
+                                    {r with
+		                       Http_frame.res_code= err;
+                                    })))
+                     | code, RFile filename ->
+                         Predefined_senders.File_content.result_of_content filename 
+                         >>= fun r ->	    
+                         (match code with
+                            | None ->
+                                return
+                                  (Ext_found
+                                     (fun () ->
+                                        Lwt.return 
+                                          {r with
+		                             Http_frame.res_charset= Some charset;
+                                          }))
+                            | Some _ -> (* It is an error handler *)
+                                return
+                                  (Ext_found
+                                     (fun () ->
+                                        Lwt.return 
+                                          {r with
+		                             Http_frame.res_charset= Some charset;
+		                             Http_frame.res_code= err;
+                                          })))
+                           
+           end
+           else return (Ext_not_found 400))
+        
+        (function
+           | Unix.Unix_error (Unix.EACCES,_,_)
+           | Ocsigen_Is_a_directory
+           | Ocsigen_malformed_url as e -> fail e
+           | Failed_403 -> return (Ext_not_found 403)
+           | Failed_404 -> return (Ext_not_found err) 
+               (*VVV I send err, not 404 ... (?) *)
+           | Not_concerned -> return (Ext_not_found err)
+           | e -> fail e
+        )
+        
 
 (*****************************************************************************)
 (** Parsing of config file *)
 open Simplexmlparser
 
+(*VVV disabled
 let (default_static_dir : (string * bool) option ref) = ref None
 
 let set_default_static_dir s p = default_static_dir := Some (s, p)
@@ -223,10 +224,10 @@ let rec parse_global_config = function
                   ("Unexpected content inside static config"))
 
 let _ = parse_global_config (Extensions.get_config ())
+*)
 
 
-
-let parse_config path charset = 
+let parse_config path charset parse_site = 
   let rec parse_attrs ((dir, regexp, readable, code, dest) as res) = function
     | [] -> res
     | ("dir", d)::l when dir = None ->
@@ -277,7 +278,7 @@ let parse_config path charset =
               Regexp (Netstring_pcre.regexp "/.*", t, readable, code)
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
         in
-        Page_gen (gen info)
+        gen info
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(staticmod extension) Bad data")
 
@@ -289,14 +290,15 @@ let start_init () =
 
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
+  ()
+(*VVV Disabled
   match get_default_static_dir () with
   | None -> ()
   | Some (path, r) -> 
       add_site ([([Wildcard], None)],
                 [],
                 None,
-                [Extensions.Ext
-                   (Extensions.Page_gen
+                [...
                       (fun err charset ri -> 
                          gen 
                            (Dir (remove_end_slash path, r))
@@ -306,10 +308,10 @@ let end_init () =
                               | Some charset -> charset)
                            ri
                       )
-                   )
+
                 ])
   (* for default static dir *)
-
+*)
 
 
 (*****************************************************************************)

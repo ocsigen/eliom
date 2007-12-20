@@ -121,24 +121,27 @@ let find_access ri =
 
 
 
-let gen test = Page_gen (fun err charset ri ->
-  try
-    match test with
-      | `Filter test ->
-          if find_access ri test then begin
-            Messages.debug2 "--Access control: => Access granted!";
-            Lwt.return (Ext_not_found err)
-          end
-          else begin
-            Messages.debug2 "--Access control: => Access denied!";
-            Lwt.return (Ext_stop 403)
-          end
-    | `Error e -> raise e
-  with 
-  | e -> 
-      Messages.debug2 "--Access control: taking in charge an error";
-      fail e (* for example Ocsigen_http_error 404 or 403 *)
-        (* server.ml has a default handler for HTTP errors *))
+
+let gen test charset = function
+  | Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
+  | Extensions.Req_not_found (err, ri) ->
+      try
+        match test with
+          | `Filter test ->
+              if find_access ri test then begin
+                Messages.debug2 "--Access control: => Access granted!";
+                Lwt.return (Ext_not_found err)
+              end
+              else begin
+                Messages.debug2 "--Access control: => Access denied!";
+                Lwt.return (Ext_stop 403)
+              end
+          | `Error e -> raise e
+      with 
+        | e -> 
+            Messages.debug2 "--Access control: taking in charge an error";
+            fail e (* for example Ocsigen_http_error 404 or 403 *)
+              (* server.ml has a default handler for HTTP errors *)
 
 
 
@@ -155,7 +158,7 @@ let gen test = Page_gen (fun err charset ri ->
  *)
 
 
-let parse_config path charset =
+let parse_config path charset parse_fun =
   let parse_filter = function
     | ("ip", [("value", s)]) ->
         (try
@@ -209,6 +212,32 @@ let parse_config path charset =
   | Element ("notfound", [], []) -> gen (`Error (Ocsigen_http_error 404))
   | Element (("allow"|"deny"|"forbidden"|"notfound") as t, _, _) ->
       raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
+  | Element ("iffound", [], sub) ->
+      let ext = parse_fun sub in
+(*VVV DANGER: parse_fun MUST be called BEFORE the function! *)
+      (fun charset -> function
+        | Extensions.Req_found (_, _) ->
+            Lwt.return (Ext_sub_result ext)
+        | Extensions.Req_not_found (err, ri) -> 
+            Lwt.return (Extensions.Ext_not_found err))
+  | Element ("ifnotfound", [], sub) ->
+      let ext = parse_fun sub in
+      (fun charset -> function
+        | Extensions.Req_found (_, r) -> 
+            Lwt.return (Extensions.Ext_found r)
+        | Extensions.Req_not_found (err, ri) -> 
+            Lwt.return (Ext_sub_result ext))
+  | Element ("ifnotfound", [("code", s)], sub) ->
+      let ext = parse_fun sub in
+      let r = Netstring_pcre.regexp s in
+      (fun charset -> function
+        | Extensions.Req_found (_, r) -> 
+            Lwt.return (Extensions.Ext_found r)
+        | Extensions.Req_not_found (err, ri) ->
+            if Netstring_pcre.string_match r (string_of_int err) 0 <> None then
+              Lwt.return (Ext_sub_result ext)
+            else 
+            Lwt.return (Extensions.Ext_not_found err))
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad (toplevel) data")
 
