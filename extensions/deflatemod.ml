@@ -30,21 +30,25 @@ open Ocsiheaders
 
 
 (* Content-type *)
-type compress_choice = No_compress of (string option * string option) list |
-                       Compress_only of (string option * string option) list 
+type filter = Type of string option * string option | Extension of string
+type compress_choice = All_but of filter list |
+                       Compress_only of filter list 
 
-let should_compress (t, t') choice_list = 
+let should_compress (t, t') ext choice_list = 
  let check = function
- |None, None -> true
- |None, Some x' -> x' = t' 
- |Some x, None -> x = t 
- |Some x, Some x' -> x = t && x' = t' 
+ |Type (None, None) -> true
+ |Type (None, Some x') -> x' = t' 
+ |Type (Some x, None) -> x = t 
+ |Type (Some x, Some x') -> x = t && x' = t' 
+ |Extension e -> e = ext
  in
  match choice_list with
  |Compress_only l -> List.exists check l
- |No_compress l -> List.for_all (fun c -> not (check c)) l
+ |All_but l -> List.for_all (fun c -> not (check c)) l
 
-let choice_list = ref (No_compress [])
+(* Pas de filtre global pour l'instant
+let choice_list = ref (All_but [])
+*)
 
 (** Compression *)
 
@@ -236,7 +240,7 @@ let _ = parse_global_config (Extensions.get_config ())
 
  *)
 
-let parse_config path charset _ parse_site = function
+let parse_config path charset = function
 (*  | Element ("deflate", atts, []) -> () 
    Ici il faut créer un arbre de répertoires en se souvenant les options
    de compression de chaque répertoire.
@@ -323,16 +327,19 @@ let select_encoding accept_header =
 
 exception No_compress
 
+(* deflate = true -> mode deflate
+ * deflate = false -> mode gzip *)
 let stream_filter contentencoding deflate choice res = 
+ return (Ext_found (fun () ->
  try (
    match res.Http_frame.res_content_type with
    | None -> raise No_compress (* il faudrait défaut ? *)
    | Some contenttype ->
        match Ocsiheaders.parse_mime_type contenttype with
-       | None, _ | _, None -> raise No_compress (* should never occure? *)
-       | (Some a, Some b) when should_compress (a, b) choice ->
-           return 
-             { res with
+       | None, _ | _, None -> raise No_compress (* should never happen? *)
+       | (Some a, Some b) when should_compress (a, b) "jpg" choice -> 
+                       (* FIXME: replace jpg by the real extension *)
+          return { res with
                Http_frame.res_content_length = None;
                Http_frame.res_etag = 
                (match res.Http_frame.res_etag with
@@ -345,22 +352,20 @@ let stream_filter contentencoding deflate choice res =
                Http_headers.replace
                  Http_headers.content_encoding 
                  contentencoding res.Http_frame.res_headers;
-             }
+             } 
        | _ -> raise No_compress)
- with Not_found | No_compress -> return res
+ with Not_found | No_compress -> return res))
+                              (* FIXME: ou Ext_not_found dans ce cas ? *)
 
-let filter ri res =
-  (* TODO: Ici il faut regarder dans l'arbre de configuration
-     s'il faut compresser ou pas (et changer choice_list en conséquence) *)
+let filter choice_list charset ri res =
  match select_encoding (Lazy.force(ri.ri_accept_encoding)) with
  | Deflate -> 
-     stream_filter "deflate" true !choice_list res
+     stream_filter "deflate" true choice_list res
  | Gzip -> 
-     stream_filter "gzip" false !choice_list res
- | Id | Star -> return res
+     stream_filter "gzip" false choice_list res
+ | Id | Star -> return (Ext_found (fun () -> return res)) (* FIXME: ou Ext_not_found ? *)
  | Not_acceptable -> 
-     Predefined_senders.Error_content.result_of_content 
-       (Some 406, None, Http_frame.Cookies.empty)
+     Predefined_senders.Error_content.result_of_content (Some 406, None)
 
 
 
