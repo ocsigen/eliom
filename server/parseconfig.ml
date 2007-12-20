@@ -109,7 +109,7 @@ let rec parser_config =
     | _ -> raise (Config_file_error "Don't know what to do with trailing data")
   in let rec parse_servers n = function
     | [] -> (match n with
-      | [] -> raise(Config_file_error ("<server> tag expected"))
+      | [] -> raise (Config_file_error ("<server> tag expected"))
       | _ -> n)
     | (Element ("server", [], nouveau))::ll ->
         (match ll with
@@ -119,7 +119,7 @@ let rec parser_config =
                       "At most one <server> tag possible in config file. \
                       Ignoring trailing data."));
         parse_servers (n@[nouveau]) [] (* ll *)  
-        (*  Multiple server not supported any more *)
+        (* Multiple server not supported any more *)
         (* nouveau at the end *)
     | _ -> raise (Config_file_error ("syntax error inside <ocsigen>"))
   in function 
@@ -128,6 +128,9 @@ let rec parser_config =
         parse_servers [] l
     | _ -> raise (Config_file_error "<ocsigen> tag expected")
 
+
+let parse_ext file =
+  parser_config (Simplexmlparser.xmlparser file)
 
 (* Config file is parsed twice. 
    This is the second parsing (site loading) 
@@ -305,6 +308,37 @@ let parse_server isreloading c =
           | _ -> raise (Config_file_error "Wrong attribute for <host>") 
 	  in 
           (parse_host host (Extensions.parse_site host) l)@(parse_server_aux ll)
+      | (Element ("extconf", [("dir", dir)], []))::ll ->
+          (try
+            let files = Sys.readdir dir in
+            Array.fold_left
+              (fun l s ->
+                 if s.[String.length s - 1] <> '~' then
+                   let filename = dir^"/"^s in
+                   let filecont =
+                     try
+                       parse_ext filename
+                     with e -> 
+                       Messages.errlog 
+                         ("Error while loading configuration file "^filename^
+                            ": "^(Ocsimisc.string_of_exn e)^" (ignored)");
+                       []
+                   in
+                   (match filecont with
+                      | [] -> l
+                      | s::_ -> l@(parse_server_aux s)
+                   )
+                 else l
+              )
+              []
+              files
+           with
+             | Sys_error _ as e ->
+                 Messages.errlog 
+                   ("Error while loading configuration file: "^
+                      ": "^(Ocsimisc.string_of_exn e)^" (ignored)");
+                 [])
+          @(parse_server_aux ll)
       | (Element (tag, _, _))::_ -> 
           raise (Config_file_error
                    ("tag <"^tag^"> unexpected inside <server>"))
@@ -412,6 +446,5 @@ let extract_info c =
 
 let parse_config () = 
     parser_config (Ocsiconfig.config ())
-
 
 (******************************************************************)

@@ -191,6 +191,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 	| sed s%\<port\>80\</port\>%\<port\>8080\</port\>%g \
 	| sed s%_LOGDIR_%$(SRC)/var/log%g \
 	| sed s%_STATICPAGESDIR_%$(SRC)/files%g \
+	| sed s%_CONFIGDIR_%$(SRC)/etc/ocsigen%g \
 	| sed s%_DATADIR_%$(SRC)/var/lib%g \
 	| sed s%_BINDIR_%$(SRC)/extensions/ocsipersist-dbm%g \
 	| sed s%_UP_%$(SRC)/tmp%g \
@@ -269,6 +270,7 @@ installnodoc: partialinstall
 	cat files/ocsigen.conf \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
+	| sed s%_CONFIGDIR_%$(CONFIGDIR)%g \
 	| sed s%_DATADIR_%$(DATADIR)%g \
 	| sed s%_BINDIR_%$(BINDIR)%g \
 	| sed s%_UP_%$(UPLOADDIR)%g \
