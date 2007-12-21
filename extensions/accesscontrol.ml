@@ -31,7 +31,7 @@ Then load it dynamically from Ocsigen's config file:
 open Lwt
 open Extensions
 open Simplexmlparser
-
+open Http_frame
 
 
 (*****************************************************************************)
@@ -48,7 +48,7 @@ type filter =
   | Filter_Disj of filter list
   | Filter_Conj of filter list
   | Filter_Neg of filter
-
+  | Filter_Error of exn
 
 
 (*****************************************************************************)
@@ -86,6 +86,11 @@ let register_authentication_method,
      !fun_auth config)
 
 
+(** for tests **)
+let _ = register_authentication_method
+  (function
+     | Element ("htpasswd", _, _) -> (fun login passwd -> assert false)
+     | _ -> raise (Bad_config_tag_for_extension "not for htpasswd"))
 
 (*****************************************************************************)
 (* Finding access pattern *)
@@ -128,7 +133,8 @@ let find_access ri =
           Messages.debug2 "--Access control: Protocol does not match";
         r
     | Filter_Auth auth ->
-        assert false
+        Messages.debug2 "--Access control: Authentication failed";
+        raise (Http_error.Http_exception (401, None, None))
     | Filter_Header (name, regexp) ->
         let r =
           List.exists
@@ -145,6 +151,7 @@ let find_access ri =
     | Filter_Conj filters -> List.for_all one_access filters
     | Filter_Disj filters -> List.exists one_access filters
     | Filter_Neg f -> not (one_access f)
+    | Filter_Error e -> raise e
   in
   one_access
 
@@ -184,7 +191,7 @@ let gen test = Page_gen (fun err charset ri ->
  *)
 
 
-let parse_config path charset = 
+let parse_config path charset parse_fun =
   let parse_filter = function
     | ("ip", ["value", s], []) ->
         (try
@@ -213,6 +220,11 @@ let parse_config path charset =
         with Failure _ ->
           raise (Error_in_config_file
                    "Bad regular expression in <path/>"))
+    | ("auth", ["authtype", "basic"; "realm", r], [sub]) ->
+        (try
+           Filter_Auth (get_authentication_method sub)
+         with Bad_config_tag_for_extension _ ->
+           raise (Error_in_config_file "Unable to find proper authentication method"))
     | (t, _, _) -> raise (Error_in_config_file ("(accesscontrol extension) Problem with "^t^" filter in configuration file."))
   in
   let rec parse_sub = function
