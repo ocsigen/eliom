@@ -59,7 +59,7 @@ exception Aborted
 (*XXX Provide the max size? *)
 let request_too_large max =
   Http_frame.Http_error.Http_exception
-    (413, Some "request contents too large")
+    (413, Some "request contents too large", None)
 
 (****)
 
@@ -270,7 +270,7 @@ let wait_http_header receiver =
          (match e with
             Buffer_full ->
               Http_frame.Http_error.Http_exception
-                (413, Some "header too long")
+                (413, Some "header too long", None)
           | End_of_file when buf_used receiver = 0 ->
               Connection_closed
           | Timeout when buf_used receiver = 0 && receiver.sender_count = 0 ->
@@ -296,7 +296,7 @@ let extract_chunked receiver =
   let ec_fail e =
     let e =
       if e = Buffer_full then
-        Http_frame.Http_error.Http_exception (400, Some "bad chunked data")
+        Http_frame.Http_error.Http_exception (400, Some "bad chunked data", None)
       else
         convert_io_error e
     in
@@ -315,7 +315,7 @@ let extract_chunked receiver =
          end else
            Lwt.fail
              (Http_frame.Http_error.Http_exception
-                (400, Some "bad chunked data")))
+                (400, Some "bad chunked data", None)))
       ec_fail
   in
   let rec aux () =
@@ -349,7 +349,7 @@ let parse_http_header mode s =
        else
          Http_parser.header Http_lexer.token lexbuf)
   with Parsing.Parse_error ->
-    Lwt.fail (Http_frame.Http_error.Http_exception (400, Some "parse error"))
+    Lwt.fail (Http_frame.Http_error.Http_exception (400, Some "parse error", None))
 
 let get_maxsize = function
   | Nofirstline
@@ -427,7 +427,7 @@ let get_http_frame ?(head = false) receiver =
                     (*XXX Malformed field!!!*)
                     Lwt.fail
                       (Http_frame.Http_error.Http_exception
-                         (400, Some "ill-formed content-length header"))
+                         (400, Some "ill-formed content-length header", None))
                   else if cl = 0L then
                     return_with_no_body receiver
                   else

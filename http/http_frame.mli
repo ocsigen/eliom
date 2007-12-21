@@ -102,7 +102,7 @@ module Http_header :
   end
 module Http_error :
   sig
-    exception Http_exception of int * string option
+    exception Http_exception of int * string option * Http_headers.t option
     val expl_of_code : int -> string
     val display_http_exception : exn -> unit
     val string_of_http_exception : exn -> string

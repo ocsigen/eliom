@@ -243,9 +243,9 @@ module Http_header =
 module Http_error =
   struct
 
-      (** exception raised on an http error . It's possible to pass the code of
-      the error ans some args*)
-      exception Http_exception of int * string option
+      (** Exception raised on an http error. It is possible to pass the code of
+          the error, some comment, and some headers. *)
+      exception Http_exception of int * string option * Http_headers.t option
 
         (* this fonction provides the translation mecanisme between a code and
          * its explanation *)
@@ -295,10 +295,13 @@ module Http_error =
 
         let display_http_exception e =
           match e with
-            Http_exception (n, Some s) ->
+          | Http_exception (n, Some s, Some _) ->
+              Messages.debug 
+                (fun () -> Format.sprintf "%s: %s (with headers)" (expl_of_code n) s)
+          | Http_exception (n, Some s, None) ->
               Messages.debug 
                 (fun () -> Format.sprintf "%s: %s" (expl_of_code n) s)
-          | Http_exception (n, None) ->
+          | Http_exception (n, None, _) ->
               Messages.debug 
                 (fun () -> Format.sprintf "%s" (expl_of_code n))
           | _ ->
@@ -306,9 +309,11 @@ module Http_error =
 
         let string_of_http_exception e =
           match e with
-            Http_exception (n, Some s) ->
+          | Http_exception (n, Some s, Some _) ->
+              Format.sprintf "error %d, %s: %s (with headers)" n (expl_of_code n) s
+          | Http_exception (n, Some s, None) ->
               Format.sprintf "error %d, %s: %s" n (expl_of_code n) s
-          | Http_exception (n, None) ->
+          | Http_exception (n, None, _) ->
               Format.sprintf "error %d, %s" n (expl_of_code n)
           | _ ->
               raise e

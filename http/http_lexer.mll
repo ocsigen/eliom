@@ -83,7 +83,7 @@ rule token =
                          Messages.debug_noel2 s;
 			 STRING s}
   |eof                  {raise (Http_error.Http_exception 
-                                  (400, Some "unexpected end of file"))}
+                                  (400, Some "unexpected end of file", None))}
   |_                    {raise (Http_error.Http_exception
                                   (400, Some ("unexpected character "
-                        ^ Lexing.lexeme lexbuf)))}
+                        ^ Lexing.lexeme lexbuf), None))}

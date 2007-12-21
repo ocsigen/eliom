@@ -361,7 +361,7 @@ let service
         Messages.debug2 "-> Sending 403 Forbidden";
         send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:true
           ~code:403 ~sender:Http_com.default_sender ()
-    | Http_error.Http_exception (_,_) ->
+    | Http_error.Http_exception (_,_,_) ->
         send_error sender_slot ~clientproto ~head ~keep_alive:false
           ~exn:e ~sender:Http_com.default_sender ()
     | Ocsigen_Bad_Request ->
@@ -411,7 +411,7 @@ let service
                          warn sockaddr "timeout while reading contents"
                      | Http_com.Aborted ->
                          warn sockaddr "reading thread aborted"
-                     | Http_error.Http_exception (code, mesg) ->
+                     | Http_error.Http_exception (code, mesg, _) ->
                          warn sockaddr (Http_error.string_of_http_exception e)
                      | _ ->
                          Messages.unexpected_exception e "Server.finish_request"
@@ -669,7 +669,7 @@ let handle_connection port in_ch sockaddr =
     | Http_com.Aborted ->
         warn sockaddr "reading thread aborted";
         Http_com.wait_all_senders receiver
-    | Http_error.Http_exception (code, mesg) ->
+    | Http_error.Http_exception (code, mes, _) ->
         warn sockaddr (Http_error.string_of_http_exception e);
         Http_com.start_processing receiver (fun slot ->
           (*XXX We should use the right information for clientproto

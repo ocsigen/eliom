@@ -495,19 +495,20 @@ module Error_content =
       | None -> 500
       | Some c -> c
       in
-      let (error_code, error_msg) =
+      let (error_code, error_msg, headers) =
         match exn with
-        | Some (Http_error.Http_exception (errcode, msgs) )->
-            let msg =
-              Http_error.string_of_http_exception
-                (Http_error.Http_exception(errcode, msgs))
-            in (errcode, msg)
+        | Some (Http_error.Http_exception (errcode, msgs, h) as e) ->
+            let msg = Http_error.string_of_http_exception e in
+            let headers = match h with
+              | Some h -> h
+              | None -> Http_headers.dyn_headers
+            in (errcode, msg, headers)
         | _ ->
             let error_mes = Http_error.expl_of_code code in
-            (code, error_mes)
+            (code, error_mes, Http_headers.dyn_headers)
       in
       let str_code = string_of_int error_code in
-      let err_page = 
+      let err_page =
         match exn with
         | Some exn when Ocsiconfig.get_debugmode () ->
             error_page
@@ -529,8 +530,8 @@ module Error_content =
       Lwt.return
           {r with
            res_code = error_code;
-           res_charset= Some "utf-8";
-           res_headers= Http_headers.dyn_headers;
+           res_charset = Some "utf-8";
+           res_headers = headers;
          }
 
 

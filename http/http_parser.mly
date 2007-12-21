@@ -54,7 +54,7 @@
     function
       | "HTTP/1.1" -> HTTP11
       | "HTTP/1.0" -> HTTP10
-      | s -> raise (Http_error.Http_exception (505, None))
+      | s -> raise (Http_error.Http_exception (505, None, None))
 
 (*
   let split_string s =
