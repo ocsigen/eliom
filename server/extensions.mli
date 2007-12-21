@@ -142,7 +142,7 @@ type answer =
                             try next site. 
                             The integer is the HTTP error code, usally 403.
                           *)
-  | Ext_stop_all of int      (** Error. Do not try next extension, do not
+  | Ext_stop_all of int     (** Error. Do not try next extension, do not
                             try next site. It is equivalent to
                             send an Ext_found with an error code
                             but you can not personnalize the page.

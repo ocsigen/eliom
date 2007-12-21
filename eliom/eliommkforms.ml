@@ -949,6 +949,7 @@ module MakeForms = functor
                 ~name:naservice_param_name
                 ~value:naservice_param () 
             in
+(*VVV BUG: the URL is absolute! It does not work behind a revproxy! *)
             let v = get_full_url sp in
             let inside = f (make_params_names (get_post_params_type_ service)) in
             Pages.make_post_form ?a ~action:v
