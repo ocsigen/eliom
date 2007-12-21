@@ -310,11 +310,11 @@ module Http_error =
         let string_of_http_exception e =
           match e with
           | Http_exception (n, Some s, Some _) ->
-              Format.sprintf "error %d, %s: %s (with headers)" n (expl_of_code n) s
+              Format.sprintf "Error %d, %s: %s (with headers)" n (expl_of_code n) s
           | Http_exception (n, Some s, None) ->
-              Format.sprintf "error %d, %s: %s" n (expl_of_code n) s
+              Format.sprintf "Error %d, %s: %s" n (expl_of_code n) s
           | Http_exception (n, None, _) ->
-              Format.sprintf "error %d, %s" n (expl_of_code n)
+              Format.sprintf "Error %d, %s" n (expl_of_code n)
           | _ ->
               raise e
 
