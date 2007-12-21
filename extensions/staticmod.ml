@@ -189,16 +189,16 @@ let gen dir charset = function
                                           })))
                            
            end
-           else return (Ext_not_found 400))
+           else return (Ext_next 400))
         
         (function
            | Unix.Unix_error (Unix.EACCES,_,_)
            | Ocsigen_Is_a_directory
            | Ocsigen_malformed_url as e -> fail e
-           | Failed_403 -> return (Ext_not_found 403)
-           | Failed_404 -> return (Ext_not_found err) 
+           | Failed_403 -> return (Ext_next 403)
+           | Failed_404 -> return (Ext_next err) 
                (*VVV I send err, not 404 ... (?) *)
-           | Not_concerned -> return (Ext_not_found err)
+           | Not_concerned -> return (Ext_next err)
            | e -> fail e
         )
         

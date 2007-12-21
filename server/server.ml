@@ -784,12 +784,28 @@ let stop m n =
 let listen use_ssl port wait_end_init =
   let listening_socket =
     try
-      let socket = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
-      Lwt_unix.set_close_on_exec socket;
-      Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
-(*      try*)
-        Lwt_unix.bind socket (local_addr6 port);
-(*      with _ -> Lwt_unix.bind socket (local_addr port);*)
+      let socket = 
+        try
+          let socket = Lwt_unix.socket Unix.PF_INET6 Unix.SOCK_STREAM 0 in
+          Lwt_unix.set_close_on_exec socket;
+          Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
+          Lwt_unix.bind socket (local_addr6 port);
+          socket
+        with e -> 
+(*VVV CATCH only the IPv6 exception.
+Is it:
+| ENOPROTOOPT  (*  Protocol not available  *) ?
+| EPROTONOSUPPORT  (*  Protocol not supported  *)???
+| ...
+*)
+          Messages.warning 
+            ("Exception while creating IPv6 socket: "^Ocsimisc.string_of_exn e);
+          let socket = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
+          Lwt_unix.set_close_on_exec socket;
+          Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
+          Lwt_unix.bind socket (local_addr port);
+          socket
+      in
       Lwt_unix.listen socket 1024;
       socket
     with

@@ -114,7 +114,7 @@ let gen dir charset = function
 	           Http_frame.res_code= if temp then 302 else 301}))
     )
     (function 
-      | Not_concerned -> return (Ext_not_found err)
+      | Not_concerned -> return (Ext_next err)
       | e -> fail e)
 
 

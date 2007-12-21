@@ -130,11 +130,11 @@ let gen test charset = function
           | `Filter test ->
               if find_access ri test then begin
                 Messages.debug2 "--Access control: => Access granted!";
-                Lwt.return (Ext_not_found err)
+                Lwt.return (Ext_next err)
               end
               else begin
                 Messages.debug2 "--Access control: => Access denied!";
-                Lwt.return (Ext_stop 403)
+                Lwt.return (Ext_stop_site 403)
               end
           | `Error e -> raise e
       with 
@@ -219,7 +219,7 @@ let parse_config path charset parse_fun =
         | Extensions.Req_found (_, _) ->
             Lwt.return (Ext_sub_result ext)
         | Extensions.Req_not_found (err, ri) -> 
-            Lwt.return (Extensions.Ext_not_found err))
+            Lwt.return (Extensions.Ext_next err))
   | Element ("ifnotfound", [], sub) ->
       let ext = parse_fun sub in
       (fun charset -> function
@@ -237,7 +237,7 @@ let parse_config path charset parse_fun =
             if Netstring_pcre.string_match r (string_of_int err) 0 <> None then
               Lwt.return (Ext_sub_result ext)
             else 
-            Lwt.return (Extensions.Ext_not_found err))
+            Lwt.return (Extensions.Ext_next err))
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad (toplevel) data")
 

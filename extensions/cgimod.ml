@@ -540,16 +540,16 @@ let gen reg charset = function
                                res_code = code})))
            (fun e -> Ocsistream.finalize content >>= fun () -> Lwt.fail e)
        end else
-         Lwt.return (Ext_not_found 404))
+         Lwt.return (Ext_next 404))
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url 
       | Lost_connection _ as e -> fail e
-      | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_not_found 404)
-      | Failed_403 -> return (Ext_not_found 403)
-      | Failed_404 -> return (Ext_not_found 404)
-      | Not_concerned -> return (Ext_not_found err)
+      | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_next 404)
+      | Failed_403 -> return (Ext_next 403)
+      | Failed_404 -> return (Ext_next 404)
+      | Not_concerned -> return (Ext_next err)
       | e -> fail e)
 
 

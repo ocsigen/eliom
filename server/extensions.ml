@@ -116,18 +116,23 @@ type answer =
           you don't want the request of one connection to be handled in
           different order.
       *)
-  | Ext_not_found of int (** Page not found. Try next extension.
-                            The integer is the HTTP error code.
-                            It is usally 404, but may be for ex 403 (forbidden)
-                            if you want another extension to try after a 403
-                          *)
-(*VVV give the possibility to set cookies here??? *)
-  | Ext_stop of int      (** Error. Do not try next extension, but
-                            try next site. If you do not want to try next site
-                            send an Ext_found with an error code.
+  | Ext_next of int (** Page not found. Try next extension.
+                        The integer is the HTTP error code.
+                        It is usally 404, but may be for ex 403 (forbidden)
+                        if you want another extension to try after a 403.
+                        Same as Ext_continue_with but does not change
+                        the request.
+                    *)
+  | Ext_stop_site of int   (** Error. Do not try next extension, but
+                            try next site. 
                             The integer is the HTTP error code, usally 403.
                           *)
-(*VVV give the possibility to set cookies here??? *)
+  | Ext_stop_all of int      (** Error. Do not try next extension, do not
+                            try next site. It is equivalent to
+                            send an Ext_found with an error code
+                            but you can not personnalize the page.
+                            The integer is the HTTP error code, usally 403.
+                          *)
   | Ext_continue_with of request_info * Http_frame.cookieset * int
         (** Used to modify the request before giving it to next extension.
             The extension returns the request_info (possibly modified)
@@ -262,7 +267,7 @@ let rec make_ext awake cookies_to_set charset req_state genfun f =
           (Req_found (ri, 
                       fun () -> 
                         Lwt.return (add_to_res_cookies r' cookies_to_set)))
-    | Ext_not_found e ->
+    | Ext_next e ->
         let ri = match req_state with
           | Req_found (ri, _) -> ri
           | Req_not_found (_, ri) -> ri
@@ -274,7 +279,8 @@ let rec make_ext awake cookies_to_set charset req_state genfun f =
           (Http_frame.add_cookies cook cookies_to_set)
           charset
           (Req_not_found (e, ri))
-    | Ext_stop _
+    | Ext_stop_site _
+    | Ext_stop_all _
     | Ext_retry_with _ as res -> Lwt.return (res, cookies_to_set)
     | Ext_sub_result sr ->
         sr awake cookies_to_set charset req_state 
@@ -295,7 +301,7 @@ let parse_site host =
                 Lwt.return (Ext_found res,
                             cookies_to_set)
             | Req_not_found (e, ri) -> 
-                Lwt.return (Ext_not_found e, cookies_to_set))
+                Lwt.return (Ext_next e, cookies_to_set))
       | xmltag::ll -> 
           try
             let genfun = 
@@ -484,8 +490,11 @@ let do_for_site_matching host port ri =
                      awake ();
                      r () >>= fun r' -> 
                      return (add_to_res_cookies r' cookies_to_set)
-                 | Ext_not_found e
-                 | Ext_stop e -> aux ri e cookies_to_set l (* try next site *)
+                 | Ext_next e
+                 | Ext_stop_site e -> 
+                     aux ri e cookies_to_set l (* try next site *)
+                 | Ext_stop_all e -> 
+                     fail (Ocsigen_http_error e)
                  | Ext_continue_with (_, cook, e) -> 
                      aux ri e
                        (Http_frame.add_cookies cook cookies_to_set) l

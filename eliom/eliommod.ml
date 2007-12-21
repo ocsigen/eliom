@@ -2852,7 +2852,7 @@ let gen sitedata charset = function
                            res_cookies= old_cookies_to_set;
                            res_code= 500;
                          }))
-	| Eliom_404 -> return (Ext_not_found previous_extension_err)
+	| Eliom_404 -> return (Ext_next previous_extension_err)
         | Eliom_retry_with a -> gen_aux a
 	| e -> fail e)
 

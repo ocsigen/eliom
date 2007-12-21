@@ -189,7 +189,7 @@ let gen dir charset = function
          )
     )
     (function 
-       | Not_concerned -> return (Ext_not_found err)
+       | Not_concerned -> return (Ext_next err)
        | e -> fail e)
          
 

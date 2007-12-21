@@ -130,17 +130,22 @@ type answer =
           In that case, wait to be sure that the new request will not
           overtake this one.
       *)
-  | Ext_not_found of int (** Page not found. Try next extension.
-                            The integer is the HTTP error code.
-                            It is usally 404, but may be for ex 403 (forbidden)
-                            if you want another extension to try after a 403.
-                            Same as Ext_continue_with but does not change
-                            the request.
-                          *)
+  | Ext_next of int (** Page not found. Try next extension.
+                        The integer is the HTTP error code.
+                        It is usally 404, but may be for ex 403 (forbidden)
+                        if you want another extension to try after a 403.
+                        Same as Ext_continue_with but does not change
+                        the request.
+                    *)
 (*VVV give the possibility to set cookies here??? *)
-  | Ext_stop of int      (** Error. Do not try next extension, but
-                            try next site. If you do not want to try next site
-                            send an Ext_found with an error code.
+  | Ext_stop_site of int   (** Error. Do not try next extension, but
+                            try next site. 
+                            The integer is the HTTP error code, usally 403.
+                          *)
+  | Ext_stop_all of int      (** Error. Do not try next extension, do not
+                            try next site. It is equivalent to
+                            send an Ext_found with an error code
+                            but you can not personnalize the page.
                             The integer is the HTTP error code, usally 403.
                           *)
 (*VVV give the possibility to set cookies here??? *)
