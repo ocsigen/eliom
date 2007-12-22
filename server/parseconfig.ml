@@ -132,54 +132,12 @@ let rec parser_config =
 let parse_ext file =
   parser_config (Simplexmlparser.xmlparser file)
 
+
 (* Config file is parsed twice. 
    This is the second parsing (site loading) 
  *)
 let parse_server isreloading c =
-  let rec parse_server_aux =
-    let rec parse_host host parse_site = function
-      | [] -> []
-      | (Element ("site", atts, l))::ll ->
-          let rec parse_site_attrs (enc,dir) = function
-            | [] -> (match dir with
-              | None -> 
-                  raise (Config_file_error
-                           ("Missing dir attribute in <site>"))
-              | Some s -> (enc, s))
-            | ("path", s)::suite
-            | ("dir", s)::suite ->
-                (match dir with
-                | None -> parse_site_attrs (enc, Some s) suite
-                | _ -> raise (Config_file_error
-                                ("Duplicate attribute dir in <site>")))
-            | ("charset", s)::suite ->
-                (match enc with
-                | None -> parse_site_attrs ((Some s),dir) suite
-                | _ -> raise (Config_file_error
-                                ("Duplicate attribute charset in <site>")))
-            | (s, _)::_ ->
-                raise
-                  (Config_file_error ("Wrong attribute for <site>: "^s))
-          in
-          let charset, dir = parse_site_attrs (None, None) atts in
-          let charset = match charset with
-            | None -> Ocsiconfig.get_default_charset ()
-            | _ -> charset
-          in
-          let charset = match charset with
-            | None -> "utf-8"
-            | Some charset -> charset
-          in
-          let path = 
-            Ocsimisc.remove_slash_at_end
-              (Ocsimisc.remove_slash_at_beginning 
-                 (Ocsimisc.remove_dotdot (Neturl.split_path dir))) in
-          let s = (host, path, parse_site path charset l) in
-          s::parse_host host parse_site ll
-      | (Element (tag,_,_))::_ -> 
-          raise (Config_file_error ("<"^tag^"> tag unexpected inside <host>"))
-      | _ -> raise (Config_file_error ("Unexpected content inside <host>"))
-    in function
+  let rec parse_server_aux = function
       | [] -> []
       | (Element ("port", atts, p))::ll ->
           parse_server_aux ll
@@ -286,9 +244,26 @@ let parse_server isreloading c =
             | e -> raise (Dynlink_error (modu, e)));
           parse_server_aux ll
       | (Element ("host", atts, l))::ll ->
-	  let host = match atts with
-          | [] -> [[Extensions.Wildcard],None] (* default = "*:*" *)
-          | [("name", s)] -> 
+          let rec parse_attrs (name, charset) = function
+            | [] -> (name, charset)
+            | ("name", s)::suite -> 
+                (match name with
+                | None -> parse_attrs ((Some s), charset) suite
+                | _ -> raise (Ocsiconfig.Config_file_error
+                                ("Duplicate attribute name in <host>")))
+            | ("charset", s)::suite ->
+                (match charset with
+                | None -> parse_attrs (name, Some s) suite
+                | _ -> raise (Ocsiconfig.Config_file_error
+                                ("Duplicate attribute charset in <host>")))
+            | (s, _)::_ ->
+                raise (Ocsiconfig.Config_file_error 
+                         ("Wrong attribute for <host>: "^s))
+          in
+          let host, charset = parse_attrs (None, None) atts in
+	  let host = match host with
+          | None -> [[Extensions.Wildcard],None] (* default = "*:*" *)
+          | Some s -> 
               List.map
 		(fun ss ->
                   let host, port = 
@@ -313,15 +288,25 @@ let parse_server isreloading c =
 			 host)),
                    port))
 		(Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
-          | _ -> raise (Config_file_error "Wrong attribute for <host>") 
-	  in 
-          (parse_host host (Extensions.parse_site host) l)@(parse_server_aux ll)
+	  in
+          let charset = match charset with
+          | None -> Ocsiconfig.get_default_charset ()
+          | Some charset -> Some charset
+          in
+          let charset = match charset with
+          | None -> "utf-8"
+          | Some charset -> charset
+          in
+          let parse_host = Extensions.parse_site_item host in
+          let parse_site = Extensions.make_parse_site [] charset parse_host in
+          (* default site for host *)
+          (host, parse_site l)::(parse_server_aux ll)
       | (Element ("extconf", [("dir", dir)], []))::ll ->
           (try
             let files = Sys.readdir dir in
             Array.fold_left
               (fun l s ->
-                 if s.[String.length s - 1] <> '~' then
+                 if Filename.check_suffix s "conf" then
                    let filename = dir^"/"^s in
                    let filecont =
                      try
@@ -352,7 +337,7 @@ let parse_server isreloading c =
                    ("tag <"^tag^"> unexpected inside <server>"))
       | _ ->
           raise (Config_file_error "Syntax error")
-  in Extensions.set_sites (parse_server_aux c)
+  in Extensions.set_hosts (parse_server_aux c)
 
 (* First parsing of config file *)
 let extract_info c =

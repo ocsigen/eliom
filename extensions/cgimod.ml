@@ -567,7 +567,7 @@ let rec set_env=function
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
-let parse_config path charset parse_site = function 
+let parse_config path charset _ parse_site = function 
   | Element ("cgi", atts, l) -> 
       let good_root r = Regexp.quote (string_conform r) in
       let dir = match atts with

@@ -477,7 +477,7 @@ module Directory_content =
 module Error_content =
 (** sends an error page that fit the error number *)
   struct
-    type t = int option * exn option
+    type t = int option * exn option * Http_frame.cookieset
 
     let get_etag c = None
 
@@ -490,7 +490,7 @@ module Error_content =
             c)
         )
 
-    let result_of_content (code, exn) =
+    let result_of_content (code, exn, cookies_to_set) =
       let code = match code with
       | None -> 500
       | Some c -> c
@@ -529,6 +529,7 @@ module Error_content =
       Xhtml_content.result_of_content err_page >>= fun r ->
       Lwt.return
           {r with
+           res_cookies = cookies_to_set;
            res_code = error_code;
            res_charset = Some "utf-8";
            res_headers = headers;
@@ -545,12 +546,13 @@ let send_error
     ~clientproto
     ?mode
     ?proto
+    ?(cookies = Http_frame.Cookies.empty)
     ~keep_alive
     ~head
     ~sender
     ()
     = 
-  Error_content.result_of_content (code, exn) >>= fun r ->
+  Error_content.result_of_content (code, exn, cookies) >>= fun r ->
   send 
     slot
     ~clientproto

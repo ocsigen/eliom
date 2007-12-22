@@ -129,7 +129,7 @@ let gen charset = function
 ]}
  *)
 
-let parse_config path charset parse_site = function
+let parse_config path charset _ parse_site = function
   | Element ("extensiontemplate", atts, []) -> gen charset
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> 

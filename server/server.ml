@@ -342,12 +342,20 @@ let service
       (fun () -> "~~~ Exception during generation/sending: " ^ string_of_exn e);
     match e with
       (* EXCEPTIONS WHILE COMPUTING A PAGE *)
-    | Ocsigen_http_error i ->
+    | Ocsigen_http_error (cookies_to_set, i) ->
         Messages.debug
           (fun () -> "-> Sending HTTP error "^(string_of_int i)^" "^
             Http_frame.Http_error.expl_of_code i);
-        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:true
-          ~code:i ~sender:Http_com.default_sender ()
+        send_error 
+          ~exn:e
+          sender_slot
+          ~clientproto
+          ~cookies:cookies_to_set
+          ~head 
+          ~keep_alive:true
+          ~code:i 
+          ~sender:Http_com.default_sender
+          ()
     | Extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
     | Ocsistream.Interrupted Ocsistream.Already_read ->

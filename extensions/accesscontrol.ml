@@ -168,7 +168,7 @@ let gen test charset = function
         end
         else begin
           Messages.debug2 "--Access control: => Access denied!";
-          Lwt.return (Ext_stop_site 403)
+          Lwt.return (Ext_stop_site (ri, Http_frame.Cookies.empty, 403))
         end
       with
         | e ->
@@ -191,7 +191,7 @@ let gen test charset = function
  *)
 
 
-let parse_config path charset parse_fun =
+let parse_config path charset _ parse_fun =
   let parse_filter = function
     | ("ip", ["value", s], []) ->
         (try
@@ -238,8 +238,12 @@ let parse_config path charset parse_fun =
   in
   function
     | Element (("allow" | "deny"), attrs, sub) as e -> gen (parse_sub e) charset
-    | Element ("forbidden", [], []) -> gen (Filter_Error (Ocsigen_http_error 403)) charset
-    | Element ("notfound", [], []) -> gen (Filter_Error (Ocsigen_http_error 404)) charset
+    | Element ("forbidden", [], []) -> 
+        gen (Filter_Error
+               (Ocsigen_http_error (Http_frame.Cookies.empty, 403))) charset
+    | Element ("notfound", [], []) -> 
+        gen (Filter_Error 
+               (Ocsigen_http_error (Http_frame.Cookies.empty, 404))) charset
     | Element ("iffound", [], sub) ->
         let ext = parse_fun sub in
         (*VVV DANGER: parse_fun MUST be called BEFORE the function! *)

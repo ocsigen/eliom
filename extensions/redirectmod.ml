@@ -131,7 +131,7 @@ let gen dir charset = function
 
  *)
 
-let parse_config path charset parse_site = function
+let parse_config path charset _ parse_site = function
   | Element ("redirect", atts, []) -> 
       let dir = match atts with
       | [] -> 

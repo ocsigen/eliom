@@ -29,7 +29,7 @@
 open Lwt
 open Ocsimisc
 
-exception Ocsigen_http_error of int
+exception Ocsigen_http_error of (Http_frame.cookieset * int)
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
@@ -137,19 +137,27 @@ type answer =
                         Same as Ext_continue_with but does not change
                         the request.
                     *)
-(*VVV give the possibility to set cookies here??? *)
-  | Ext_stop_site of int   (** Error. Do not try next extension, but
-                            try next site. 
-                            The integer is the HTTP error code, usally 403.
-                          *)
-  | Ext_stop_all of int     (** Error. Do not try next extension, do not
-                            try next site. It is equivalent to
-                            send an Ext_found with an error code
-                            but you can not personnalize the page.
-                            The integer is the HTTP error code, usally 403.
-                          *)
-(*VVV give the possibility to set cookies here??? *)
-  | Ext_continue_with of request_info * Http_frame.cookieset * int
+  | Ext_stop_site of (request_info * Http_frame.cookieset * int) 
+                    (** Error. Do not try next extension, but
+                        try next site. 
+                        The integer is the HTTP error code, usally 403.
+                     *)
+  | Ext_stop_host of (request_info * Http_frame.cookieset * int)
+                    (** Error. Do not try next extension, 
+                        do not try next site,
+                        but try next host. 
+                        The integer is the HTTP error code, usally 403.
+                     *)
+  | Ext_stop_all of (Http_frame.cookieset * int)
+                    (** Error. Do not try next extension, 
+                        do not try next site,
+                        do not try next host. 
+                        It is equivalent to
+                        send an Ext_found with an error code
+                        but you can not personnalize the page.
+                        The integer is the HTTP error code, usally 403.
+                     *)
+  | Ext_continue_with of (request_info * Http_frame.cookieset * int)
         (** Used to modify the request before giving it to next extension.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
@@ -197,6 +205,7 @@ type extension = request_state -> answer Lwt.t
 
 type parse_fun = Simplexmlparser.xml list -> extension2
 
+type parse_host
 
 (** 
    For each extension generating pages, we register four functions:
@@ -236,9 +245,10 @@ val register_extension :
   (virtual_hosts -> 
      url_path -> 
        string ->
-         parse_fun ->
-           Simplexmlparser.xml -> 
-             extension) ->
+         parse_host ->
+           parse_fun ->
+             Simplexmlparser.xml -> 
+               extension) ->
   (unit -> unit) -> 
   (unit -> unit) -> 
   (exn -> string) -> 
@@ -260,20 +270,29 @@ val ri_of_url : string -> request_info -> request_info
 
 (**/**)
 
+
 val parse_url : string ->
   string * Neturl.url * string list * string option *
     (string * string) list Lazy.t
 
-val parse_site : virtual_hosts -> 
-  url_path -> string -> Simplexmlparser.xml list -> extension2
+val make_parse_site :
+  url_path -> 
+    string -> 
+      (url_path ->
+        string -> 
+          parse_host -> parse_fun -> Simplexmlparser.xml -> extension) ->
+            parse_fun
 
-val set_sites : (virtual_hosts * url_path * extension2) list
-  -> unit
+val parse_site_item :
+    virtual_hosts ->
+      url_path ->
+        string ->
+          parse_host ->
+            parse_fun -> Simplexmlparser.xml -> extension
+
+val set_hosts : (virtual_hosts * extension2) list -> unit
                         
-val get_sites : unit -> 
-  (virtual_hosts * url_path * extension2) list
-
-val add_site : (virtual_hosts * url_path * extension2) -> unit
+val get_hosts : unit -> (virtual_hosts * extension2) list
 
 val do_for_site_matching :
     string option ->

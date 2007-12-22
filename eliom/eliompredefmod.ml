@@ -1619,12 +1619,13 @@ module Filesreg_ = struct
           Unix.access filename [Unix.R_OK];
           (filename, stat)
         end
-        else raise (Ocsigen_http_error 404) (* ??? *)
+        else 
+          raise (Ocsigen_http_error (Http_frame.Cookies.empty, 404))(* ??? *)
       with
         (Unix.Unix_error (Unix.EACCES,_,_))
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url as e -> raise e
-      | e -> raise (Ocsigen_http_error 404))
+      | e -> raise (Ocsigen_http_error (Http_frame.Cookies.empty, 404)))
     in
     Predefined_senders.File_content.result_of_content filename >>= fun r ->
     Lwt.return

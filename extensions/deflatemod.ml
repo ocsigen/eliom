@@ -236,7 +236,7 @@ let _ = parse_global_config (Extensions.get_config ())
 
  *)
 
-let parse_config path charset parse_site = function
+let parse_config path charset _ parse_site = function
 (*  | Element ("deflate", atts, []) -> () 
    Ici il faut créer un arbre de répertoires en se souvenant les options
    de compression de chaque répertoire.
@@ -359,7 +359,8 @@ let filter ri res =
      stream_filter "gzip" false !choice_list res
  | Id | Star -> return res
  | Not_acceptable -> 
-     Predefined_senders.Error_content.result_of_content (Some 406, None)
+     Predefined_senders.Error_content.result_of_content 
+       (Some 406, None, Http_frame.Cookies.empty)
 
 
 

@@ -48,7 +48,8 @@ module Directory_content :
 
 (** error code and/or exception *)
 module Error_content :
-  Http_frame.HTTP_CONTENT with type t = int option * exn option
+  Http_frame.HTTP_CONTENT 
+with type t = int option * exn option * Http_frame.cookieset
 
 
 
@@ -60,6 +61,7 @@ val send_error :
     clientproto:Http_frame.Http_header.proto ->
     ?mode:Http_frame.Http_header.http_mode ->
     ?proto:Http_frame.Http_header.proto ->
+    ?cookies:Http_frame.cookieset ->
     keep_alive:bool ->
     head:bool -> 
     sender:Http_com.sender_type -> 

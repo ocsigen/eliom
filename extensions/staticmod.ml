@@ -227,7 +227,7 @@ let _ = parse_global_config (Extensions.get_config ())
 *)
 
 
-let parse_config path charset parse_site = 
+let parse_config path charset _ parse_site = 
   let rec parse_attrs ((dir, regexp, readable, code, dest) as res) = function
     | [] -> res
     | ("dir", d)::l when dir = None ->
@@ -291,27 +291,6 @@ let start_init () =
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
   ()
-(*VVV Disabled
-  match get_default_static_dir () with
-  | None -> ()
-  | Some (path, r) -> 
-      add_site ([([Wildcard], None)],
-                [],
-                None,
-                [...
-                      (fun err charset ri -> 
-                         gen 
-                           (Dir (remove_end_slash path, r))
-                           err
-                           (match Ocsiconfig.get_default_charset () with 
-                              | None -> "utf-8"
-                              | Some charset -> charset)
-                           ri
-                      )
-
-                ])
-  (* for default static dir *)
-*)
 
 
 (*****************************************************************************)

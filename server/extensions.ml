@@ -29,7 +29,7 @@
 open Lwt
 open Ocsimisc
 
-exception Ocsigen_http_error of int
+exception Ocsigen_http_error of (Http_frame.cookieset * int)
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
@@ -122,18 +122,28 @@ type answer =
                         if you want another extension to try after a 403.
                         Same as Ext_continue_with but does not change
                         the request.
-                    *)
-  | Ext_stop_site of int   (** Error. Do not try next extension, but
-                            try next site. 
-                            The integer is the HTTP error code, usally 403.
-                          *)
-  | Ext_stop_all of int      (** Error. Do not try next extension, do not
-                            try next site. It is equivalent to
-                            send an Ext_found with an error code
-                            but you can not personnalize the page.
-                            The integer is the HTTP error code, usally 403.
-                          *)
-  | Ext_continue_with of request_info * Http_frame.cookieset * int
+                     *)
+  | Ext_stop_site of (request_info * Http_frame.cookieset * int) 
+                    (** Error. Do not try next extension, but
+                        try next site. 
+                        The integer is the HTTP error code, usally 403.
+                     *)
+  | Ext_stop_host of (request_info * Http_frame.cookieset * int)
+                    (** Error. Do not try next extension, 
+                        do not try next site,
+                        but try next host. 
+                        The integer is the HTTP error code, usally 403.
+                     *)
+  | Ext_stop_all of (Http_frame.cookieset * int)
+                    (** Error. Do not try next extension, 
+                        do not try next site,
+                        do not try next host. 
+                        It is equivalent to
+                        send an Ext_found with an error code
+                        but you can not personnalize the page.
+                        The integer is the HTTP error code, usally 403.
+                     *)
+  | Ext_continue_with of (request_info * Http_frame.cookieset * int)
         (** Used to modify the request before giving it to next extension.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
@@ -162,81 +172,47 @@ and request_state =
 
 and extension2 =
     (unit -> unit) ->
-      Http_frame.cookie Http_frame.Cookievalues.t Http_frame.Cookies.t ->
+      Http_frame.cookieset ->
       request_state ->
-      (answer * 
-         Http_frame.cookie Http_frame.Cookievalues.t Http_frame.Cookies.t)
-        Lwt.t
+      (answer * Http_frame.cookieset) Lwt.t
 
 type extension = request_state -> answer Lwt.t
 
 
 type parse_fun = Simplexmlparser.xml list -> extension2
 
-let (sites : (virtual_hosts * url_path * extension2) list ref) =
+type parse_host = 
+    Parse_host of
+      (url_path -> 
+        string -> 
+          parse_host -> parse_fun -> Simplexmlparser.xml -> extension)
+
+let (hosts : (virtual_hosts * extension2) list ref) = 
   ref []
 
-let set_sites v = sites := v
-let get_sites () = !sites
-let add_site v = sites := !sites@[v] (* at the end *)
+
+
+let set_hosts v = hosts := v
+let get_hosts () = !hosts
+
    
+
 (*****************************************************************************)
-let register_extension,
-  parse_site_item, 
-  get_beg_init, 
-  get_end_init, 
-  get_init_exn_handler =
-  let fun_site = ref 
-      (fun host path charset (parse_site : parse_fun) (xml : Simplexmlparser.xml) -> 
-        (raise (Bad_config_tag_for_extension "<no extension loaded>")
-           : extension))
+let site_match site_path url = 
+  (* We are sure that there is no / at the end or beginning of site_path *)
+  (* and no / at the beginning of url *)
+  (* and no // or ../ inside both of them *)
+  (* We return the subpath without / at beginning *)
+  let rec aux site_path url = 
+    match site_path, url with
+      | [], [] -> raise Ocsigen_Is_a_directory
+      | [], p -> Some p
+      | a::l, aa::ll when a = aa -> aux l ll 
+      | _ -> None
   in
-  let fun_beg = ref (fun () -> ()) in
-  let fun_end = ref (fun () -> ()) in
-  let fun_exn = ref (fun exn -> raise exn) in
-
-  ((* ********* register_extension ********* *)
-     (fun ?(respect_pipeline=false)
-         new_fun_site
-         begin_init
-         end_init
-         handle_exn ->
-       
-       if respect_pipeline then Ocsiconfig.set_respect_pipeline ();
-
-       let old_fun_site = !fun_site in
-       fun_site := 
-         (fun host ->
-           let oldf = old_fun_site host in
-           let newf = new_fun_site host in
-           fun path charset ->
-             let oldf = oldf path charset in
-             let newf = newf path charset in
-             fun parse_site config_tag ->
-               try
-                 oldf parse_site config_tag
-               with
-               | Bad_config_tag_for_extension c -> newf parse_site config_tag
-         );
-       
-       fun_beg := comp begin_init !fun_beg;
-       fun_end := comp end_init !fun_end;
-       let curexnfun = !fun_exn in
-       fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
-   
-
-   (* ********* parse_site_item ********* *)
-   (fun host -> !fun_site host),
-
-   (* ********* get_beg_init ********* *)
-   (fun () -> !fun_beg),
-
-   (* ********* get_end_init ********* *)
-   (fun () -> !fun_end),
-
-   (* ********* get_init_exn_handler ********* *)
-   (fun () -> !fun_exn)
-  )
+  match site_path, url with
+    | [], [] -> Some []
+    | _ -> aux site_path url
 
 
 
@@ -276,6 +252,7 @@ let rec make_ext awake cookies_to_set req_state genfun f =
           (Http_frame.add_cookies cook cookies_to_set)
           (Req_not_found (e, ri))
     | Ext_stop_site _
+    | Ext_stop_host _
     | Ext_stop_all _
     | Ext_retry_with _ as res -> Lwt.return (res, cookies_to_set)
     | Ext_sub_result sr ->
@@ -286,53 +263,186 @@ let rec make_ext awake cookies_to_set req_state genfun f =
   genfun req_state >>= aux cookies_to_set
 
 
-let parse_site host =
-  let f = parse_site_item host in (* creates all host data, if any *)
-  fun path ->
-    let f = f path in (* creates all site data, if any *)
-    fun charset ->
-      let rec aux = function
-        | [] ->
-            (fun (awake : unit -> unit) cookies_to_set -> function
-               | Req_found (ri, res) ->
-                   Lwt.return (Ext_found res,
-                               cookies_to_set)
-               | Req_not_found (e, ri) ->
-                   Lwt.return (Ext_next e, cookies_to_set))
-        | xmltag::ll ->
-            try
-              let genfun =
-                f
-                  charset
-                  aux
-                  xmltag
-              in
-              let genfun2 = aux ll in
-              fun awake cookies_to_set req_state ->
-                make_ext awake cookies_to_set req_state genfun genfun2
-            with
-              | Bad_config_tag_for_extension t ->
-                  ignore
-                    (Messages.errlog
-                       ("Unexpected tag <"^t^"> inside <site dir=\""^
-	                  (Ocsimisc.string_of_url_path path)^"\"> (ignored)"));
-                  aux ll
-          | Ocsiconfig.Config_file_error t
-          | Error_in_config_file t -> 
-              ignore
-                (Messages.errlog
-                   ("Error while parsing configuration file: "^
-                    t^" (ignored)"));
-              aux ll
-          | e -> 
-              ignore
-                (Messages.errlog
-                   ("Error while parsing configuration file: "^
-                    (Ocsimisc.string_of_exn e)^
-	            " (ignored)"));
-              aux ll
-    in aux
-    
+let rec default_parse_config 
+    (host : virtual_hosts)
+    prevpath
+    defcharset 
+    (Parse_host parse_host)
+    (parse_fun : parse_fun) = function
+  | Simplexmlparser.Element ("site", atts, l) ->
+      let rec parse_site_attrs (enc,dir) = function
+        | [] -> (match dir with
+          | None -> 
+              raise (Ocsiconfig.Config_file_error
+                       ("Missing dir attribute in <site>"))
+          | Some s -> (enc, s))
+        | ("path", s)::suite
+        | ("dir", s)::suite ->
+            (match dir with
+            | None -> parse_site_attrs (enc, Some s) suite
+            | _ -> raise (Ocsiconfig.Config_file_error
+                            ("Duplicate attribute dir in <site>")))
+        | ("charset", s)::suite ->
+            (match enc with
+            | None -> parse_site_attrs ((Some s), dir) suite
+            | _ -> raise (Ocsiconfig.Config_file_error
+                            ("Duplicate attribute charset in <site>")))
+        | (s, _)::_ ->
+            raise
+              (Ocsiconfig.Config_file_error ("Wrong attribute for <site>: "^s))
+      in
+      let charset, dir = parse_site_attrs (None, None) atts in
+      let charset = match charset with
+      | None -> defcharset
+      | Some charset -> charset
+      in
+      let path = 
+        prevpath@
+        Ocsimisc.remove_slash_at_end
+          (Ocsimisc.remove_slash_at_beginning 
+             (Ocsimisc.remove_dotdot (Neturl.split_path dir))) 
+      in
+      let parse_site = make_parse_site path charset parse_host l in
+      let ext awake cookies_to_set = 
+        function
+          | Req_found (ri, res) ->
+              Lwt.return (Ext_found res, cookies_to_set)
+          | Req_not_found (e, ri) ->
+              match site_match path ri.ri_full_path with
+              | None ->
+                  Messages.debug (fun () ->
+                    "site \""^
+                    (Ocsimisc.string_of_url_path path)^
+                    "\" does not match path=\"/"^
+                    (Ocsimisc.string_of_url_path ri.ri_full_path)^
+                    "\".");
+                  Lwt.return (Ext_next e, cookies_to_set)
+              | Some sub_path ->
+                  Messages.debug (fun () -> 
+                    "-------- site found: \""^
+                    (Ocsimisc.string_of_url_path ri.ri_full_path)^
+                    "\" matches \"/"^
+                    (Ocsimisc.string_of_url_path path)^"\".");
+                  let ri = {ri with
+                            ri_sub_path = sub_path; 
+                            ri_sub_path_string = 
+                            lazy (Ocsimisc.string_of_url_path sub_path)}
+                  in
+                  parse_site awake cookies_to_set (Req_not_found (e, ri)) >>= function
+                    | (Ext_stop_site r, cookies_to_set) -> 
+                        Lwt.return 
+                          (Ext_continue_with r, cookies_to_set)
+                    | r -> Lwt.return r
+      in
+      (function
+        | Req_found (_, r) ->
+            Lwt.return (Ext_found r)
+        | Req_not_found (err, ri) ->
+            Lwt.return (Ext_sub_result ext))
+  | Simplexmlparser.Element (tag,_,_) -> 
+      raise (Bad_config_tag_for_extension tag)
+  | _ -> raise (Ocsiconfig.Config_file_error
+                  ("Unexpected content inside <host>"))
+
+and make_parse_site path charset parse_host =
+  let f = parse_host path charset in (* creates all site data, if any *)
+  let rec parse_site = function
+    | [] ->
+        (fun (awake : unit -> unit) cookies_to_set -> function
+          | Req_found (ri, res) ->
+              Lwt.return (Ext_found res, cookies_to_set)
+          | Req_not_found (e, ri) ->
+              Lwt.return (Ext_next e, cookies_to_set))
+    | xmltag::ll ->
+        try
+          let genfun =
+            f
+              (Parse_host parse_host)
+              parse_site
+              xmltag
+          in
+          let genfun2 = parse_site ll in
+          fun awake cookies_to_set req_state ->
+            make_ext awake cookies_to_set req_state genfun genfun2
+        with
+        | Bad_config_tag_for_extension t ->
+            ignore
+              (Messages.errlog
+                 ("Unexpected tag <"^t^"> inside <site dir=\""^
+                  (Ocsimisc.string_of_url_path path)^"\"> (ignored)"));
+            parse_site ll
+        | Ocsiconfig.Config_file_error t
+        | Error_in_config_file t -> 
+            ignore
+              (Messages.errlog
+                 ("Error while parsing configuration file: "^
+                  t^" (ignored)"));
+            parse_site ll
+        | e -> 
+            ignore
+              (Messages.errlog
+                 ("Error while parsing configuration file: "^
+                  (Ocsimisc.string_of_exn e)^
+	          " (ignored)"));
+            parse_site ll
+  in 
+  parse_site
+
+
+let register_extension,
+  parse_site_item,
+  get_beg_init, 
+  get_end_init, 
+  get_init_exn_handler =
+  let fun_site = ref default_parse_config in
+  let fun_beg = ref (fun () -> ()) in
+  let fun_end = ref (fun () -> ()) in
+  let fun_exn = ref (fun exn -> (raise exn : string)) in
+
+  ((* ********* register_extension ********* *)
+     (fun ?(respect_pipeline=false)
+         new_fun_site
+         begin_init
+         end_init
+         handle_exn ->
+       
+       if respect_pipeline then Ocsiconfig.set_respect_pipeline ();
+
+       let old_fun_site = !fun_site in
+       fun_site := 
+         (fun host ->
+           let oldf = old_fun_site host in
+           let newf = new_fun_site host in
+           fun path charset parse_host ->
+             let oldf = oldf path charset parse_host in
+             let newf = newf path charset parse_host in
+             fun parse_site config_tag ->
+               try
+                 oldf parse_site config_tag
+               with
+               | Bad_config_tag_for_extension c -> newf parse_site config_tag
+         );
+       
+       fun_beg := comp begin_init !fun_beg;
+       fun_end := comp end_init !fun_end;
+       let curexnfun = !fun_exn in
+       fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
+   
+
+   (* ********* parse_site_item ********* *)
+   (fun host -> !fun_site host),
+
+   (* ********* get_beg_init ********* *)
+   (fun () -> !fun_beg),
+
+   (* ********* get_end_init ********* *)
+   (fun () -> !fun_end),
+
+   (* ********* get_init_exn_handler ********* *)
+   (fun () -> !fun_exn)
+  )
+
+
 
 
 
@@ -408,23 +518,6 @@ let string_of_host h =
   in List.fold_left (fun d hh -> d^(aux1 hh)^" ") "" h
 
 
-let site_match site_path url = 
-  (* We are sure that there is no / at the end or beginning of site_path *)
-  (* and no / at the beginning of url *)
-  (* and no // or ../ inside both of them *)
-  (* We return the subpath without / at beginning *)
-  let rec aux site_path url = 
-    match site_path, url with
-      | [], [] -> raise Ocsigen_Is_a_directory
-      | [], p -> Some p
-      | a::l, aa::ll when a = aa -> aux l ll 
-      | _ -> None
-  in
-  match site_path, url with
-    | [], [] -> Some []
-    | _ -> aux site_path url
-
-
 
 let do_for_site_matching host port ri =
 
@@ -444,74 +537,57 @@ let do_for_site_matching host port ri =
       | None -> "<no host>:"^(string_of_int port)
       | Some h -> h^":"^(string_of_int port)
     in
-    let rec aux ri prev_err cookies_to_set = function
-      | [] -> fail (Ocsigen_http_error prev_err)
-      | (h, path, genfun)::l when host_match host port h ->
-          (match site_match path ri.ri_full_path with
-          | None ->
-              Messages.debug (fun () ->
-                "-------- host=\""^
-                (string_of_host_option host)^"\" site=\""^
-                (Ocsimisc.string_of_url_path path)^
-                "\" does not match host=\""^(string_of_host h)^"\" site=\"/"^
-                (Ocsimisc.string_of_url_path ri.ri_full_path)^
-                "\".");
-              aux ri prev_err cookies_to_set l
-          | Some sub_path ->
-              Messages.debug (fun () -> 
-                "-------- site found: \""^(string_of_host_option host)^
-                "\" matches \""^(string_of_host h)^"\" and \"/"^
-                (Ocsimisc.string_of_url_path ri.ri_full_path)^
-                "\" matches \"/"^
-                (Ocsimisc.string_of_url_path path)^"\".");
-              let ri = {ri with
-                        ri_sub_path = sub_path; 
-                        ri_sub_path_string = 
-                        lazy (Ocsimisc.string_of_url_path sub_path)}
-              in
-              genfun
-                awake
-                cookies_to_set
-                (Req_not_found (prev_err, ri))
-              >>= fun (res_ext, cookies_to_set) ->
-              (match res_ext with
-                 | Ext_found r -> 
-                     awake ();
-                     r () >>= fun r' -> 
-                     return (add_to_res_cookies r' cookies_to_set)
-                 | Ext_next e
-                 | Ext_stop_site e -> 
-                     aux ri e cookies_to_set l (* try next site *)
-                 | Ext_stop_all e -> 
-                     fail (Ocsigen_http_error e)
-                 | Ext_continue_with (_, cook, e) -> 
-                     aux ri e
-                       (Http_frame.add_cookies cook cookies_to_set) l
-                 | Ext_retry_with (ri2, cook) -> 
-                     (*VVV not enough to detect loops *)
-                     if ri != ri2 then
-                       do2
-                         (get_sites ())
-                         (Http_frame.add_cookies cook cookies_to_set)
-                         ri2
-                         (* retry all *)
-                     else
-                       fail Ocsigen_Looping_request
-                 | Ext_sub_result sr -> 
-                     assert false
-              )
+    let rec aux_host ri prev_err cookies_to_set = function
+      | [] -> fail (Ocsigen_http_error (cookies_to_set, prev_err))
+      | (h, host_function)::l when host_match host port h ->
+          Messages.debug (fun () ->
+            "-------- host found! "^
+            (string_of_host_option host)^
+            " matches "^(string_of_host h));
+          host_function 
+            awake
+            cookies_to_set
+            (Req_not_found (prev_err, ri))
+          >>= fun (res_ext, cookies_to_set) ->
+          (match res_ext with
+          | Ext_found r -> 
+              awake ();
+              r () >>= fun r' -> 
+              return (add_to_res_cookies r' cookies_to_set)
+          | Ext_next e ->
+              aux_host ri e cookies_to_set l (* try next site *)
+          | Ext_stop_host (ri, cookies_to_set, e)
+          | Ext_stop_site (ri, cookies_to_set, e) -> 
+              aux_host ri e cookies_to_set l (* try next site *)
+          | Ext_stop_all (cookies_to_set, e) -> 
+              fail (Ocsigen_http_error (cookies_to_set, e))
+          | Ext_continue_with (_, cook, e) -> 
+              aux_host ri e
+                (Http_frame.add_cookies cook cookies_to_set) l
+          | Ext_retry_with (ri2, cook) -> 
+              (*VVV not enough to detect loops *)
+              if ri != ri2 then
+                do2
+                  (get_hosts ())
+                  (Http_frame.add_cookies cook cookies_to_set)
+                  ri2
+                  (* retry all *)
+              else
+                fail Ocsigen_Looping_request
+          | Ext_sub_result sr -> 
+              assert false
           )
-      | (h, p, _)::l ->
+      | (h, _)::l ->
           Messages.debug (fun () ->
             "-------- host = "^
             (string_of_host_option host)^
             " does not match "^(string_of_host h));
-          aux ri prev_err cookies_to_set l
-    in aux ri 404 cookies_to_set sites
+          aux_host ri prev_err cookies_to_set l
+    in aux_host ri 404 cookies_to_set sites
   in 
   Lwt.finalize
     (fun () ->
-       do2 (get_sites ()) Http_frame.Cookies.empty ri
+      do2 (get_hosts ()) Http_frame.Cookies.empty ri
     )
     (fun () ->
        awake ();
@@ -624,7 +700,7 @@ let get_number_of_connected,
 
 (*****************************************************************************)
 (* To give parameters to extensions: *)
-let dynlinkconfig = ref []
+let dynlinkconfig = ref ([] : Simplexmlparser.xml list)
 let set_config s = dynlinkconfig := s
 let get_config () = !dynlinkconfig
 

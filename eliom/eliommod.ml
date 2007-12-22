@@ -2896,7 +2896,7 @@ let load_eliom_module sitedata cmo content =
 
 (*****************************************************************************)
 (** Parsing of config file for each site: *)
-let parse_config site_dir charset parse_site = 
+let parse_config site_dir charset = 
 (*--- if we put the following line here: *)
   let sitedata = new_sitedata site_dir in
 (*--- then there is one service tree for each <site> *)
@@ -2914,7 +2914,7 @@ let parse_config site_dir charset parse_site =
     | (s, _)::_ ->
         raise
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
-  in function
+  in fun _ parse_site -> function
     | Element ("eliom", atts, content) -> 
 (*--- if we put the line "new_sitedata" here, then there is 
   one service table for each <eliom> tag ...

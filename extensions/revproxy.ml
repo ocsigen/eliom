@@ -206,7 +206,7 @@ let gen dir charset = function
 
  *)
 
-let parse_config path charset parse_site = function
+let parse_config path charset _ parse_site = function
   | Element ("revproxy", atts, []) -> 
       let rec parse_attrs ((r, s, prot, port, u, pipeline) as res) = function
         | [] -> res
