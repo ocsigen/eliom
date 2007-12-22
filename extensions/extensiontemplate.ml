@@ -188,6 +188,14 @@ let site_creator hostpattern = parse_config
 (** Registration of the extension *)
 let _ = register_extension
   site_creator
+  Extensions.void_extension (* If I don't want to allow users to use
+                               that extension in their configuration files
+                               (that are reloaded at every request).
+                               If my extension is safe for users and if
+                               I want to allow exactly the same options
+                               as for gloab configuration, use the same
+                               [site_creator] function.
+                             *)
   start_init
   end_init
   exn_handler

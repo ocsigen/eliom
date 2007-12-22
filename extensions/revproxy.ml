@@ -113,7 +113,7 @@ let gen dir charset = function
     (fun () ->
        Messages.debug2 "--Revproxy: Is it a redirection?";
        let (https, host, port, uri) = 
-         find_redirection dir (Lazy.force ri.ri_sub_path_string)
+         find_redirection dir ri.ri_sub_path_string
        in
        let uri = "/"^uri in
        Messages.debug (fun () ->
@@ -283,6 +283,7 @@ let parse_config path charset _ parse_site = function
 let _ = register_extension
     ~respect_pipeline:true (* We ask ocsigen to respect pipeline order
                               when sending to extensions! *)
+    (fun hostpattern -> parse_config)
     (fun hostpattern -> parse_config)
     start_init
     end_init

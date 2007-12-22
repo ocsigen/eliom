@@ -281,7 +281,7 @@ let get_request_infos
      ri_path_string = string_of_url_path path;
      ri_full_path = path;
      ri_sub_path = path;
-     ri_sub_path_string = lazy (string_of_url_path path);
+     ri_sub_path_string = string_of_url_path path;
      ri_get_params_string = params;
      ri_host = headerhost;
      ri_get_params = get_params;

@@ -107,16 +107,16 @@ let find_access ri =
     | Filter_Path regexp ->
         let r =
           Netstring_pcre.string_match
-            regexp (Lazy.force ri.ri_sub_path_string) 0 <> None
+            regexp ri.ri_sub_path_string 0 <> None
         in
         if r then
           Messages.debug
             (fun () -> "--Access control: Path "^
-              (Lazy.force ri.ri_sub_path_string)^" matches regexp")
+              ri.ri_sub_path_string^" matches regexp")
         else
           Messages.debug
             (fun () -> "--Access control: Path "^
-              (Lazy.force ri.ri_sub_path_string)^" does not match regexp");
+              ri.ri_sub_path_string^" does not match regexp");
         r
     | Filter_Method meth ->
         let r = meth = ri.ri_method in
@@ -168,7 +168,7 @@ let gen test charset = function
         end
         else begin
           Messages.debug2 "--Access control: => Access denied!";
-          Lwt.return (Ext_stop_site (ri, Http_frame.Cookies.empty, 403))
+          Lwt.return (Ext_stop_site (Http_frame.Cookies.empty, 403))
         end
       with
         | e ->
@@ -293,6 +293,7 @@ let end_init () =
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension
+  (fun hostpattern -> parse_config)
   (fun hostpattern -> parse_config)
   start_init
   end_init

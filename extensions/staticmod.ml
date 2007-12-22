@@ -151,7 +151,7 @@ let gen dir charset = function
              Messages.debug2 "--Staticmod: Is it a static file?";
              match 
                find_static_page
-                 dir err ri.ri_sub_path (Lazy.force ri.ri_sub_path_string)
+                 dir err ri.ri_sub_path ri.ri_sub_path_string
              with
                | code, RDir dirname ->
                    Predefined_senders.Directory_content.result_of_content 
@@ -207,7 +207,7 @@ let gen dir charset = function
 (** Parsing of config file *)
 open Simplexmlparser
 
-(*VVV disabled
+(*VVV disabled because <site> is not mandatry any more
 let (default_static_dir : (string * bool) option ref) = ref None
 
 let set_default_static_dir s p = default_static_dir := Some (s, p)
@@ -296,6 +296,7 @@ let end_init () =
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
+  (fun hostpattern -> parse_config)
   (fun hostpattern -> parse_config)
   start_init
   end_init

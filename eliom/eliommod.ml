@@ -2982,6 +2982,7 @@ let handle_init_exn = function
 (** extension registration *)
 let _ = register_extension
   (fun hostpattern -> parse_config)
+  Extensions.void_extension
   start_init
   end_init
   handle_init_exn

@@ -374,6 +374,7 @@ let site_creator hostpattern = parse_config
 (** Registration of the extension *)
 let _ = Extensions.register_extension
   site_creator
+  Extensions.void_extension
   start_init
   end_init
   exn_handler

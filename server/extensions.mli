@@ -72,7 +72,7 @@ type request_info =
      ri_path_string: string; (** path of the URL *)
      ri_full_path: string list;   (** full path of the URL *)
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
-     ri_sub_path_string: string Lazy.t;   (** path of the URL (only part concerning the site) *)
+     ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
      ri_host: string option; (** Host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters*)
@@ -113,10 +113,6 @@ type request_info =
    (and vice versa).
  *)
 
-
-
-type extension2
-
 type answer =
   | Ext_found of (unit -> Http_frame.result Lwt.t)
       (** "OK stop! I will take the page.
@@ -137,24 +133,22 @@ type answer =
                         Same as Ext_continue_with but does not change
                         the request.
                     *)
-  | Ext_stop_site of (request_info * Http_frame.cookieset * int) 
+  | Ext_stop_site of (Http_frame.cookieset * int) 
                     (** Error. Do not try next extension, but
                         try next site. 
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_stop_host of (request_info * Http_frame.cookieset * int)
+  | Ext_stop_host of (Http_frame.cookieset * int)
                     (** Error. Do not try next extension, 
                         do not try next site,
                         but try next host. 
                         The integer is the HTTP error code, usally 403.
                      *)
   | Ext_stop_all of (Http_frame.cookieset * int)
-                    (** Error. Do not try next extension, 
+                    (** Error. Do not try next extension (even filters), 
                         do not try next site,
-                        do not try next host. 
-                        It is equivalent to
-                        send an Ext_found with an error code
-                        but you can not personnalize the page.
+                        do not try next host,
+                        do not . 
                         The integer is the HTTP error code, usally 403.
                      *)
   | Ext_continue_with of (request_info * Http_frame.cookieset * int)
@@ -185,9 +179,15 @@ type answer =
             that will return something of type [extension2].
         *)
 
-type request_state =
+and request_state =
   | Req_not_found of (int * request_info)
   | Req_found of (request_info * (unit -> Http_frame.result Lwt.t))
+
+and extension2 =
+    (unit -> unit) ->
+      Http_frame.cookieset ->
+        request_state ->
+          (answer * Http_frame.cookieset) Lwt.t
 
 type extension = request_state -> answer Lwt.t
 (** For each <site> tag in the configuration file, 
@@ -224,6 +224,14 @@ type parse_host
    {ul
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
      {- return something of type [extension] (filter or page generator)}}
+   - a function of same type, that will be called every time user configuration
+    files are parsed. It must define only safe options, for example it is not
+    safe to allow such options to load a cmo specified by a user, or to
+    execute a program, as this program will be executed by ocsigen's user.
+    Note that function will be called for every request, whereas the first one
+    is called only when starting or reloading the server.
+    If you do not want to allow users to use your extension,
+    use the predefined function [void_extension] (defines no option).
    - a function that will be called at the beginning 
    of the initialisation phase (each time the config file is reloaded)
    (Note that the extensions are not reloaded)
@@ -249,11 +257,31 @@ val register_extension :
            parse_fun ->
              Simplexmlparser.xml -> 
                extension) ->
+  (virtual_hosts -> 
+     url_path -> 
+       string ->
+         parse_host ->
+           parse_fun ->
+             Simplexmlparser.xml -> 
+               extension) ->
   (unit -> unit) -> 
   (unit -> unit) -> 
   (exn -> string) -> 
   unit
   
+
+(** A predefined function to be passed to {!Extensions.register_extension}
+    that defines no option. 
+ *)
+val void_extension :
+    virtual_hosts -> 
+      url_path -> 
+        string ->
+          parse_host ->
+            parse_fun ->
+              Simplexmlparser.xml -> 
+                extension
+
 
 (** While loading an extension, 
     get the configuration tree between <dynlink></dynlink>*)
@@ -270,7 +298,6 @@ val ri_of_url : string -> request_info -> request_info
 
 (**/**)
 
-
 val parse_url : string ->
   string * Neturl.url * string list * string option *
     (string * string) list Lazy.t
@@ -284,6 +311,13 @@ val make_parse_site :
             parse_fun
 
 val parse_site_item :
+    virtual_hosts ->
+      url_path ->
+        string ->
+          parse_host ->
+            parse_fun -> Simplexmlparser.xml -> extension
+
+val parse_user_site_item :
     virtual_hosts ->
       url_path ->
         string ->

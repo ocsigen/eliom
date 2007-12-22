@@ -69,7 +69,7 @@ type request_info =
      ri_path_string: string; (** full path of the URL *)
      ri_full_path: string list;   (** full path of the URL *)
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
-     ri_sub_path_string: string Lazy.t;   (** path of the URL (only part concerning the site) *)
+     ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
      ri_host: string option; (** Host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters*)
@@ -123,12 +123,12 @@ type answer =
                         Same as Ext_continue_with but does not change
                         the request.
                      *)
-  | Ext_stop_site of (request_info * Http_frame.cookieset * int) 
+  | Ext_stop_site of (Http_frame.cookieset * int) 
                     (** Error. Do not try next extension, but
                         try next site. 
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_stop_host of (request_info * Http_frame.cookieset * int)
+  | Ext_stop_host of (Http_frame.cookieset * int)
                     (** Error. Do not try next extension, 
                         do not try next site,
                         but try next host. 
@@ -138,9 +138,6 @@ type answer =
                     (** Error. Do not try next extension, 
                         do not try next site,
                         do not try next host. 
-                        It is equivalent to
-                        send an Ext_found with an error code
-                        but you can not personnalize the page.
                         The integer is the HTTP error code, usally 403.
                      *)
   | Ext_continue_with of (request_info * Http_frame.cookieset * int)
@@ -307,31 +304,36 @@ let rec default_parse_config
         function
           | Req_found (ri, res) ->
               Lwt.return (Ext_found res, cookies_to_set)
-          | Req_not_found (e, ri) ->
-              match site_match path ri.ri_full_path with
+          | Req_not_found (e, oldri) ->
+              match site_match path oldri.ri_full_path with
               | None ->
                   Messages.debug (fun () ->
                     "site \""^
                     (Ocsimisc.string_of_url_path path)^
-                    "\" does not match path=\"/"^
-                    (Ocsimisc.string_of_url_path ri.ri_full_path)^
+                    "\" does not match url \""^
+                    (Ocsimisc.string_of_url_path oldri.ri_full_path)^
                     "\".");
                   Lwt.return (Ext_next e, cookies_to_set)
               | Some sub_path ->
                   Messages.debug (fun () -> 
-                    "-------- site found: \""^
-                    (Ocsimisc.string_of_url_path ri.ri_full_path)^
-                    "\" matches \"/"^
+                    "-------- site found: url \""^
+                    (Ocsimisc.string_of_url_path oldri.ri_full_path)^
+                    "\" matches \""^
                     (Ocsimisc.string_of_url_path path)^"\".");
-                  let ri = {ri with
+                  let ri = {oldri with
                             ri_sub_path = sub_path; 
                             ri_sub_path_string = 
-                            lazy (Ocsimisc.string_of_url_path sub_path)}
+                            Ocsimisc.string_of_url_path sub_path}
                   in
-                  parse_site awake cookies_to_set (Req_not_found (e, ri)) >>= function
-                    | (Ext_stop_site r, cookies_to_set) -> 
+                  parse_site awake cookies_to_set (Req_not_found (e, ri)) 
+                  >>= function
+                      (* After a site, we turn back to old ri *)
+                    | (Ext_stop_site (cs, err), cookies_to_set) -> 
                         Lwt.return 
-                          (Ext_continue_with r, cookies_to_set)
+                          (Ext_continue_with (oldri, cs, err), cookies_to_set)
+                    | (Ext_continue_with (_, cs, err), cookies_to_set) -> 
+                        Lwt.return 
+                          (Ext_continue_with (oldri, cs, err), cookies_to_set)
                     | r -> Lwt.return r
       in
       (function
@@ -391,10 +393,12 @@ and make_parse_site path charset parse_host =
 
 let register_extension,
   parse_site_item,
+  parse_user_site_item,
   get_beg_init, 
   get_end_init, 
   get_init_exn_handler =
   let fun_site = ref default_parse_config in
+  let user_fun_site = ref default_parse_config in
   let fun_beg = ref (fun () -> ()) in
   let fun_end = ref (fun () -> ()) in
   let fun_exn = ref (fun exn -> (raise exn : string)) in
@@ -402,6 +406,7 @@ let register_extension,
   ((* ********* register_extension ********* *)
      (fun ?(respect_pipeline=false)
          new_fun_site
+         new_user_fun_site
          begin_init
          end_init
          handle_exn ->
@@ -423,6 +428,21 @@ let register_extension,
                | Bad_config_tag_for_extension c -> newf parse_site config_tag
          );
        
+       let old_fun_site = !user_fun_site in
+       user_fun_site := 
+         (fun host ->
+           let oldf = old_fun_site host in
+           let newf = new_user_fun_site host in
+           fun path charset parse_host ->
+             let oldf = oldf path charset parse_host in
+             let newf = newf path charset parse_host in
+             fun parse_site config_tag ->
+               try
+                 oldf parse_site config_tag
+               with
+               | Bad_config_tag_for_extension c -> newf parse_site config_tag
+         );
+       
        fun_beg := comp begin_init !fun_beg;
        fun_end := comp end_init !fun_end;
        let curexnfun = !fun_exn in
@@ -431,6 +451,9 @@ let register_extension,
 
    (* ********* parse_site_item ********* *)
    (fun host -> !fun_site host),
+
+   (* ********* parse_user_site_item ********* *)
+   (fun host -> !user_fun_site host),
 
    (* ********* get_beg_init ********* *)
    (fun () -> !fun_beg),
@@ -443,7 +466,9 @@ let register_extension,
   )
 
 
-
+let void_extension _ _ _ _ _ = function
+  | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
+  | _ -> raise (Error_in_config_file "Unexpected data in config file")
 
 
 (*****************************************************************************)
@@ -555,11 +580,13 @@ let do_for_site_matching host port ri =
               r () >>= fun r' -> 
               return (add_to_res_cookies r' cookies_to_set)
           | Ext_next e ->
-              aux_host ri e cookies_to_set l (* try next site *)
-          | Ext_stop_host (ri, cookies_to_set, e)
-          | Ext_stop_site (ri, cookies_to_set, e) -> 
-              aux_host ri e cookies_to_set l (* try next site *)
-          | Ext_stop_all (cookies_to_set, e) -> 
+              aux_host ri e cookies_to_set l
+                (* try next site *)
+          | Ext_stop_host (cook, e)
+          | Ext_stop_site (cook, e) -> 
+              aux_host ri e (Http_frame.add_cookies cook cookies_to_set) l
+                (* try next site *)
+          | Ext_stop_all (cook, e) -> 
               fail (Ocsigen_http_error (cookies_to_set, e))
           | Ext_continue_with (_, cook, e) -> 
               aux_host ri e

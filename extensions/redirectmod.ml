@@ -98,7 +98,7 @@ let gen dir charset = function
     (fun () ->
       Messages.debug2 "--Redirectmod: Is it a redirection?";
       let (redir, temp) = 
-        find_redirection dir (Lazy.force ri.ri_sub_path_string) 
+        find_redirection dir ri.ri_sub_path_string 
       in
       Messages.debug (fun () ->
         "--Redirectmod: YES! "^
@@ -165,6 +165,7 @@ let virtual_host_creator hostpattern = (gen, parse_config)
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension (* takes a quadruple *)
+    (fun hostpattern -> parse_config)
     (fun hostpattern -> parse_config)
     start_init
     end_init
