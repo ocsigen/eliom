@@ -85,88 +85,7 @@ let _ = register_authentication_method
 
 (*****************************************************************************)
 
-let find_access ri =
-  let rec one_access = function
-    | Filter_Ip (ip32, mask) ->
-        let r = Int32.logand (Lazy.force ri.ri_ip32) mask = ip32 in
-        if r then
-          Messages.debug2 "--Access control: IP matches mask"
-        else
-          Messages.debug2 "--Access control: IP does not match mask";
-        r
-    | Filter_Path regexp ->
-        let r =
-          Netstring_pcre.string_match
-            regexp (Lazy.force ri.ri_sub_path_string) 0 <> None
-        in
-        if r then
-          Messages.debug
-            (fun () -> "--Access control: Path "^
-              (Lazy.force ri.ri_sub_path_string)^" matches regexp")
-        else
-          Messages.debug
-            (fun () -> "--Access control: Path "^
-              (Lazy.force ri.ri_sub_path_string)^" does not match regexp");
-        r
-    | Filter_Method meth ->
-        let r = meth = ri.ri_method in
-        if r then
-          Messages.debug2 "--Access control: Method matches"
-        else
-          Messages.debug2 "--Access control: Method does not match";
-        r
-    | Filter_Protocol pr ->
-        let r = pr = ri.ri_protocol in
-        if r then
-          Messages.debug2 "--Access control: Protocol matches"
-        else
-          Messages.debug2 "--Access control: Protocol does not match";
-        r
-    | Filter_Auth auth ->
-        Messages.debug2 "--Access control: Authentication failed";
-        raise (Http_error.Http_exception (401, None, None))
-    | Filter_Header (name, regexp) ->
-        let r =
-          List.exists
-            (fun a -> Netstring_pcre.string_match regexp a 0 <> None)
-            (Http_headers.find_all
-               (Http_headers.name name)
-               ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers)
-        in
-        if r then
-          Messages.debug2 "--Access control: Header matches regexp"
-        else
-          Messages.debug2 "--Access control: Header does not match regexp";
-        r
-    | Filter_Conj filters -> List.for_all one_access filters
-    | Filter_Disj filters -> List.exists one_access filters
-    | Filter_Neg f -> not (one_access f)
-    | Filter_Error e -> raise e
-  in
-  one_access
-
-
-
-let gen test charset = function
-  | Extensions.Req_found (_, r) ->
-      Lwt.return (Extensions.Ext_found r)
-  | Extensions.Req_not_found (err, ri) ->
-      try
-        if find_access ri test then begin
-          Messages.debug2 "--Access control: => Access granted!";
-          Lwt.return (Ext_next err)
-        end
-        else begin
-          Messages.debug2 "--Access control: => Access denied!";
-          Lwt.return (Ext_stop_site (ri, Http_frame.Cookies.empty, 403))
-        end
-      with
-        | e ->
-            Messages.debug2 "--Access control: taking in charge an error";
-            fail e (* for example Ocsigen_http_error 404 or 403 *)
-              (* server.ml has a default handler for HTTP errors *)
-
-
+exception Bad_config_tag_for_filter
 
 let rec parse_filter = function
 
@@ -242,22 +161,19 @@ let rec parse_filter = function
           try
             Netstring_pcre.regexp s
           with Failure _ ->
-            raise (Error_in_config_file
-                     "Bad regular expression in <path/>")
+            raise (Error_in_config_file "Bad regular expression in <path/>")
         in
         (fun ri ->
            let r =
              Netstring_pcre.string_match
-               regexp (Lazy.force ri.ri_sub_path_string) 0 <> None
+               regexp ri.ri_sub_path_string 0 <> None
            in
            if r then
              Messages.debug
-               (fun () -> "--Access control: Path "^
-                  (Lazy.force ri.ri_sub_path_string)^" matches regexp")
+               (fun () -> "--Access control: Path "^ri.ri_sub_path_string^" matches regexp")
            else
              Messages.debug
-               (fun () -> "--Access control: Path "^
-                  (Lazy.force ri.ri_sub_path_string)^" does not match regexp");
+               (fun () -> "--Access control: Path "^ri.ri_sub_path_string^" does not match regexp");
            r)
 
     | Element (("nand"|"and") as t, [], sub) ->
@@ -374,7 +290,7 @@ let parse_config path charset _ parse_fun = function
                end
                else begin
                  Messages.debug2 "--Access control: => Access denied!";
-                 Extensions.Ext_stop_site (ri, Http_frame.Cookies.empty, 403)
+                 Extensions.Ext_stop_site (Http_frame.Cookies.empty, 403)
                end)
       end
 
