@@ -168,37 +168,24 @@ let gen test charset = function
 
 
 
+let rec parse_filter = function
 
-(*****************************************************************************)
-(** Configuration for each site.
-    These tags are inside <site ...>...</site> in the config file.
-
-   For example:
-   <site dir="">
-     <accesscontrol regexp="" dest="" />
-   </site>
-
- *)
-
-let parse_config path charset _ parse_fun = function
-
-    | Element ("ip", ["value", s], sub) ->
+    | Element ("ip", ["value", s], []) ->
         let (ip32, mask) =
           try
             Ocsimisc.parse_ip_netmask s
           with Failure _ ->
             raise (Error_in_config_file "Bad ip/netmask value in ip filter")
         in
-        gen (parse_fun sub)
-          (fun ri ->
-             let r = Int32.logand (Lazy.force ri.ri_ip32) mask = ip32 in
-             if r then
-               Messages.debug2 "--Access control: IP matches mask"
-             else
-               Messages.debug2 "--Access control: IP does not match mask";
-             r)
+        (fun ri ->
+           let r = Int32.logand (Lazy.force ri.ri_ip32) mask = ip32 in
+           if r then
+             Messages.debug2 "--Access control: IP matches mask"
+           else
+             Messages.debug2 "--Access control: IP does not match mask";
+           r)
 
-    | Element ("header", ["name", name; "regexp", r], sub) ->
+    | Element ("header", ["name", name; "regexp", r], []) ->
         let regexp =
           try
             Netstring_pcre.regexp r
@@ -206,54 +193,51 @@ let parse_config path charset _ parse_fun = function
             raise (Error_in_config_file
                      "Bad regular expression in header filter")
         in
-        gen (parse_fun sub)
-          (fun ri ->
-             let r =
-               List.exists
-                 (fun a -> Netstring_pcre.string_match regexp a 0 <> None)
-                 (Http_headers.find_all
-                    (Http_headers.name name)
-                    ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers)
-             in
-             if r then
-               Messages.debug2 "--Access control: Header matches regexp"
-             else
-               Messages.debug2 "--Access control: Header does not match regexp";
-             r)
+        (fun ri ->
+           let r =
+             List.exists
+               (fun a -> Netstring_pcre.string_match regexp a 0 <> None)
+               (Http_headers.find_all
+                  (Http_headers.name name)
+                  ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers)
+           in
+           if r then
+             Messages.debug2 "--Access control: Header matches regexp"
+           else
+             Messages.debug2 "--Access control: Header does not match regexp";
+           r)
 
-    | Element ("method", ["value", s], sub) ->
+    | Element ("method", ["value", s], []) ->
         let meth =
           try
             Framepp.method_of_string s
           with Failure _ ->
             raise (Error_in_config_file "Bad method value in method filter")
         in
-        gen (parse_fun sub)
-          (fun ri ->
-             let r = meth = ri.ri_method in
-             if r then
-               Messages.debug2 "--Access control: Method matches"
-             else
-               Messages.debug2 "--Access control: Method does not match";
-             r)
+        (fun ri ->
+           let r = meth = ri.ri_method in
+           if r then
+             Messages.debug2 "--Access control: Method matches"
+           else
+             Messages.debug2 "--Access control: Method does not match";
+           r)
 
-    | Element ("protocol", ["value", s], sub) ->
+    | Element ("protocol", ["value", s], []) ->
         let pr =
           try
             Framepp.proto_of_string s
           with Failure _ ->
             raise (Error_in_config_file "Bad protocol value in protocol filter")
         in
-        gen (parse_fun sub)
-          (fun ri ->
-             let r = pr = ri.ri_protocol in
-             if r then
-               Messages.debug2 "--Access control: Protocol matches"
-             else
-               Messages.debug2 "--Access control: Protocol does not match";
-             r)
+        (fun ri ->
+           let r = pr = ri.ri_protocol in
+           if r then
+             Messages.debug2 "--Access control: Protocol matches"
+           else
+             Messages.debug2 "--Access control: Protocol does not match";
+           r)
 
-    | Element ("path", ["regexp", s], sub) ->
+    | Element ("path", ["regexp", s], []) ->
         let regexp =
           try
             Netstring_pcre.regexp s
@@ -261,21 +245,138 @@ let parse_config path charset _ parse_fun = function
             raise (Error_in_config_file
                      "Bad regular expression in <path/>")
         in
-        gen (parse_fun sub)
-          (fun ri ->
-             let r =
-               Netstring_pcre.string_match
-                 regexp (Lazy.force ri.ri_sub_path_string) 0 <> None
-             in
-             if r then
-               Messages.debug
-                 (fun () -> "--Access control: Path "^
-                    (Lazy.force ri.ri_sub_path_string)^" matches regexp")
-             else
-               Messages.debug
-                 (fun () -> "--Access control: Path "^
-                    (Lazy.force ri.ri_sub_path_string)^" does not match regexp");
-             r)
+        (fun ri ->
+           let r =
+             Netstring_pcre.string_match
+               regexp (Lazy.force ri.ri_sub_path_string) 0 <> None
+           in
+           if r then
+             Messages.debug
+               (fun () -> "--Access control: Path "^
+                  (Lazy.force ri.ri_sub_path_string)^" matches regexp")
+           else
+             Messages.debug
+               (fun () -> "--Access control: Path "^
+                  (Lazy.force ri.ri_sub_path_string)^" does not match regexp");
+           r)
+
+    | Element (("nand"|"and") as t, [], sub) ->
+        begin try
+          let rec aux = function
+            | [] -> (fun ri -> true)
+            | f::sub ->
+                let f = parse_filter f and sub = aux sub in
+                fun ri -> f ri && sub ri
+          in
+          let sub = aux sub in
+          if t = "and" then sub else (fun ri -> not (sub ri))
+        with
+          | Bad_config_tag_for_filter ->
+              raise (Error_in_config_file ("Cannot parse children of <"^t^"> as conditions"))
+        end
+
+    | Element (("nor"|"or") as t, [], sub) ->
+        begin try
+          let rec aux = function
+            | [] -> (fun ri -> false)
+            | f::sub ->
+                let f = parse_filter f and sub = aux sub in
+                fun ri -> f ri || sub ri
+          in
+          let sub = aux sub in
+          if t = "or" then sub else (fun ri -> not (sub ri))
+        with
+          | Bad_config_tag_for_filter ->
+              raise (Error_in_config_file ("Cannot parse children of <"^t^"> as conditions"))
+        end
+
+    | _ -> raise Bad_config_tag_for_filter
+
+
+let parse_config path charset _ parse_fun = function
+
+  | Element ("filter", attrs, sub) ->
+      let (typ, if_then_else) =
+        (* determine the type of filter *)
+        let rec aux (typ, els) = function
+          | [] -> (typ, els)
+          | ("type", (("and"|"or"|"nand"|"nor") as t))::attrs when typ = None ->
+              aux (Some t, els) attrs
+          | ("else", "present")::attrs -> aux (typ, true) attrs
+          | (t, _)::_ ->
+              raise (Error_in_config_file ("Do not know what to do with attribute "^t^" in <filter>"))
+        in aux (None, false) attrs
+      in
+      let typ = match typ with
+        | None -> raise (Error_in_config_file "Attribute type missing in <filter>")
+        | Some t -> t
+      in
+      let (conditions, actions) =
+        (* split sub into conditions and actions *)
+        let rec aux = function
+          | [] -> ([], [])
+          | f::sub as x ->
+              try
+                let f = parse_filter f in
+                let (c, a) = aux sub in
+                (f::c, a)
+              with
+                | Bad_config_tag_for_filter -> ([], x)
+        in aux sub
+      in
+      let test =
+        (* computing the resulting test function *)
+        match typ with
+          | "and" -> (fun ri -> List.for_all (fun f -> f ri) conditions)
+          | "nand" -> (fun ri -> not (List.for_all (fun f -> f ri) conditions))
+          | "or" -> (fun ri -> List.exists (fun f -> f ri) conditions)
+          | "nor" -> (fun ri -> not (List.exists (fun f -> f ri) conditions))
+          | _ -> assert false (* should not happen *)
+      in
+      if if_then_else then begin (* if-then-else *)
+        match actions with
+          | [Element (ta, _, _) as a; Element (tb, _, _) as b] ->
+              let fa = parse_fun [a] and fb = parse_fun [b] in
+              begin function
+                | Extensions.Req_found (ri, _)
+                | Extensions.Req_not_found (_, ri) ->
+                    Lwt.return
+                      (if test ri then begin
+                         Messages.debug2 ("--Access control: => Going into "^ta);
+                         Extensions.Ext_sub_result fa
+                       end
+                       else begin
+                         Messages.debug2 ("--Access control: => Going into"^tb);
+                         Extensions.Ext_sub_result fb
+                       end)
+              end
+          | _ ->
+              raise (Error_in_config_file "A filter with else=\"present\" must have exactly two children")
+      end
+      else begin
+        let ext = parse_fun actions in
+        function
+          | Extensions.Req_found (ri, r) ->
+            Lwt.return
+              (if test ri then begin
+                 Messages.debug2 "--Access control: => Passthrough granted!";
+                 Extensions.Ext_sub_result ext
+               end
+               else begin
+                 Messages.debug2 "--Access control: => Passthrough denied!";
+                 Extensions.Ext_found r
+               end)
+        | Extensions.Req_not_found (_, ri) ->
+            Lwt.return
+              (if test ri then begin
+                 Messages.debug2 "--Access control: => Access granted!";
+                 Extensions.Ext_sub_result ext
+               end
+               else begin
+                 Messages.debug2 "--Access control: => Access denied!";
+                 Extensions.Ext_stop_site (ri, Http_frame.Cookies.empty, 403)
+               end)
+      end
 
     | Element ("auth", ["authtype", "basic"; "realm", r], auth::sub) ->
         let _ =
@@ -284,14 +385,22 @@ let parse_config path charset _ parse_fun = function
           with Bad_config_tag_for_extension _ ->
             raise (Error_in_config_file "Unable to find proper authentication method")
         in
-        gen (parse_fun sub)
-          (fun ri ->
-             Messages.debug2 "--Access control: Authentication failed";
-             raise (Http_error.Http_exception (401, None, None)))
+        (fun rs ->
+           Messages.debug2 "--Access control: Authentication to be implemented";
+           fail (Http_error.Http_exception (401, None, None)))
+
+    | Element ("notfound", [], []) ->
+        (fun rs ->
+           Messages.debug2 "--Access control: taking in charge 404";
+           fail (Ocsigen_http_error (Http_frame.Cookies.empty, 404)))
+
+    | Element ("forbidden", [], []) ->
+        (fun rs ->
+           Messages.debug2 "--Access control: taking in charge 403";
+           fail (Ocsigen_http_error (Http_frame.Cookies.empty, 403)))
 
     | Element ("iffound", [], sub) ->
         let ext = parse_fun sub in
-        (*VVV DANGER: parse_fun MUST be called BEFORE the function! *)
         (function
            | Extensions.Req_found (_, _) ->
                Lwt.return (Ext_sub_result ext)
