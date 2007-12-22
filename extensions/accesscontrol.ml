@@ -64,11 +64,14 @@ let _ = parse_global_config (Extensions.get_config ())
 (*****************************************************************************)
 (* Management of authentication methods *)
 
+exception Bad_config_tag_for_auth of string
+
 let register_authentication_method,
   get_authentication_method =
+
   let fun_auth = ref
     (fun config ->
-       raise (Bad_config_tag_for_extension "<unknown authentication method>"))
+       raise (Bad_config_tag_for_auth "<unknown authentication method>"))
   in
 
   (********* register_authentication_method *********)
@@ -79,7 +82,7 @@ let register_authentication_method,
           try
             old_fun_auth config
           with
-            | Bad_config_tag_for_extension c -> new_fun_auth config)),
+            | Bad_config_tag_for_auth c -> new_fun_auth config)),
 
   (********* get_authentication_method *********)
   (fun config ->

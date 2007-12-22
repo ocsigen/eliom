@@ -22,7 +22,7 @@
 type password = [ `Plain of string ]
 
 val register_authentication_method :
-  (Simplexmlparser.xml -> string -> password -> bool) -> unit
+  (Simplexmlparser.xml -> string -> password -> bool Lwt.t) -> unit
 
 val get_authentication_method :
-  Simplexmlparser.xml -> string -> password -> bool
+  Simplexmlparser.xml -> string -> password -> bool Lwt.t
