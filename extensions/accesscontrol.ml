@@ -237,20 +237,39 @@ let parse_config path charset parse_fun =
     | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
   in
   function
-  | Element ("allow", ["type", ("and"|"or" as t)], sub) ->
-      gen (`Filter (parse_sub (Element (t, [], sub))))
-  | Element ("allow", ("type", t)::attrs, []) ->
-      gen (`Filter (parse_filter (t, attrs)))
-  | Element ("deny", ["type", ("and"|"or" as t)], sub) ->
-      gen (`Filter (Filter_Neg (parse_sub (Element (t, [], sub)))))
-  | Element ("deny", ("type", t)::attrs, []) ->
-      gen (`Filter (Filter_Neg (parse_filter (t, attrs))))
-  | Element ("forbidden", [], []) -> gen (`Error (Ocsigen_http_error 403))
-  | Element ("notfound", [], []) -> gen (`Error (Ocsigen_http_error 404))
-  | Element (("allow"|"deny"|"forbidden"|"notfound") as t, _, _) ->
-      raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
-  | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
-  | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad (toplevel) data")
+    | Element (("allow" | "deny"), attrs, sub) as e -> gen (parse_sub e) charset
+    | Element ("forbidden", [], []) -> gen (Filter_Error (Ocsigen_http_error 403)) charset
+    | Element ("notfound", [], []) -> gen (Filter_Error (Ocsigen_http_error 404)) charset
+    | Element ("iffound", [], sub) ->
+        let ext = parse_fun sub in
+        (*VVV DANGER: parse_fun MUST be called BEFORE the function! *)
+        (function
+           | Extensions.Req_found (_, _) ->
+               Lwt.return (Ext_sub_result ext)
+           | Extensions.Req_not_found (err, ri) ->
+               Lwt.return (Extensions.Ext_next err))
+    | Element ("ifnotfound", [], sub) ->
+        let ext = parse_fun sub in
+        (function
+           | Extensions.Req_found (_, r) ->
+               Lwt.return (Extensions.Ext_found r)
+           | Extensions.Req_not_found (err, ri) ->
+               Lwt.return (Ext_sub_result ext))
+    | Element ("ifnotfound", [("code", s)], sub) ->
+        let ext = parse_fun sub in
+        let r = Netstring_pcre.regexp s in
+        (function
+           | Extensions.Req_found (_, r) ->
+               Lwt.return (Extensions.Ext_found r)
+           | Extensions.Req_not_found (err, ri) ->
+               if Netstring_pcre.string_match r (string_of_int err) 0 <> None then
+                 Lwt.return (Ext_sub_result ext)
+               else
+                 Lwt.return (Extensions.Ext_next err))
+    | Element (("forbidden"|"notfound"|"iffound"|"ifnotfound") as t, _, _) ->
+        raise (Error_in_config_file ("(accesscontrol extension) Problem with tag <"^t^"> in configuration file."))
+    | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
+    | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad (toplevel) data")
 
 
 

@@ -288,33 +288,35 @@ let rec make_ext awake cookies_to_set req_state genfun f =
 
 let parse_site host =
   let f = parse_site_item host in (* creates all host data, if any *)
-  fun path charset -> 
-    let f = f path charset in (* creates all site data, if any *)
-    let rec aux = function
-      | [] ->
-          (fun (awake : unit -> unit) cookies_to_set charset -> function
-            | Req_found (ri, res) -> 
-                Lwt.return (Ext_found res,
-                            cookies_to_set)
-            | Req_not_found (e, ri) -> 
-                Lwt.return (Ext_not_found e, cookies_to_set))
-      | xmltag::ll -> 
-          try
-            let genfun = 
-              f 
-                aux
-                xmltag 
-            in
-            let genfun2 = aux ll in
-            fun awake cookies_to_set charset req_state -> 
-              make_ext awake cookies_to_set charset req_state genfun genfun2
-          with
-          | Bad_config_tag_for_extension t -> 
-              ignore
-                (Messages.errlog
-                   ("Unexpected tag <"^t^"> inside <site dir=\""^
-	            (Ocsimisc.string_of_url_path path)^"\"> (ignored)"));
-              aux ll
+  fun path ->
+    let f = f path in (* creates all site data, if any *)
+    fun charset ->
+      let rec aux = function
+        | [] ->
+            (fun (awake : unit -> unit) cookies_to_set -> function
+               | Req_found (ri, res) ->
+                   Lwt.return (Ext_found res,
+                               cookies_to_set)
+               | Req_not_found (e, ri) ->
+                   Lwt.return (Ext_next e, cookies_to_set))
+        | xmltag::ll ->
+            try
+              let genfun =
+                f
+                  charset
+                  aux
+                  xmltag
+              in
+              let genfun2 = aux ll in
+              fun awake cookies_to_set req_state ->
+                make_ext awake cookies_to_set req_state genfun genfun2
+            with
+              | Bad_config_tag_for_extension t ->
+                  ignore
+                    (Messages.errlog
+                       ("Unexpected tag <"^t^"> inside <site dir=\""^
+	                  (Ocsimisc.string_of_url_path path)^"\"> (ignored)"));
+                  aux ll
           | Ocsiconfig.Config_file_error t
           | Error_in_config_file t -> 
               ignore
