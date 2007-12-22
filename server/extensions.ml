@@ -163,19 +163,17 @@ and request_state =
 and extension2 =
     (unit -> unit) ->
       Http_frame.cookie Http_frame.Cookievalues.t Http_frame.Cookies.t ->
-      string ->
       request_state ->
       (answer * 
          Http_frame.cookie Http_frame.Cookievalues.t Http_frame.Cookies.t)
         Lwt.t
 
-type extension = string -> request_state -> answer Lwt.t
+type extension = request_state -> answer Lwt.t
 
 
 type parse_fun = Simplexmlparser.xml list -> extension2
 
-let (sites : (virtual_hosts * url_path * string option (* charset *) * 
-                extension2) list ref) = 
+let (sites : (virtual_hosts * url_path * extension2) list ref) =
   ref []
 
 let set_sites v = sites := v
@@ -251,7 +249,7 @@ let add_to_res_cookies res cookies_to_set =
      Http_frame.res_cookies = 
      Http_frame.add_cookies res.Http_frame.res_cookies cookies_to_set}
 
-let rec make_ext awake cookies_to_set charset req_state genfun f =
+let rec make_ext awake cookies_to_set req_state genfun f =
   let rec aux cookies_to_set = function
     | Ext_found r -> 
         awake ();
@@ -263,7 +261,6 @@ let rec make_ext awake cookies_to_set charset req_state genfun f =
         f 
           awake
           Http_frame.Cookies.empty
-          charset
           (Req_found (ri, 
                       fun () -> 
                         Lwt.return (add_to_res_cookies r' cookies_to_set)))
@@ -272,22 +269,21 @@ let rec make_ext awake cookies_to_set charset req_state genfun f =
           | Req_found (ri, _) -> ri
           | Req_not_found (_, ri) -> ri
         in
-        f awake cookies_to_set charset (Req_not_found (e, ri))
+        f awake cookies_to_set (Req_not_found (e, ri))
     | Ext_continue_with (ri, cook, e) -> 
         f 
           awake
           (Http_frame.add_cookies cook cookies_to_set)
-          charset
           (Req_not_found (e, ri))
     | Ext_stop_site _
     | Ext_stop_all _
     | Ext_retry_with _ as res -> Lwt.return (res, cookies_to_set)
     | Ext_sub_result sr ->
-        sr awake cookies_to_set charset req_state 
+        sr awake cookies_to_set req_state
         >>= fun (res, cookies_to_set) ->
         aux cookies_to_set res
   in
-  genfun charset req_state >>= aux cookies_to_set
+  genfun req_state >>= aux cookies_to_set
 
 
 let parse_site host =
@@ -301,7 +297,7 @@ let parse_site host =
                 Lwt.return (Ext_found res,
                             cookies_to_set)
             | Req_not_found (e, ri) -> 
-                Lwt.return (Ext_next e, cookies_to_set))
+                Lwt.return (Ext_not_found e, cookies_to_set))
       | xmltag::ll -> 
           try
             let genfun = 
@@ -448,7 +444,7 @@ let do_for_site_matching host port ri =
     in
     let rec aux ri prev_err cookies_to_set = function
       | [] -> fail (Ocsigen_http_error prev_err)
-      | (h, path, charset, genfun)::l when host_match host port h ->
+      | (h, path, genfun)::l when host_match host port h ->
           (match site_match path ri.ri_full_path with
           | None ->
               Messages.debug (fun () ->
@@ -471,18 +467,9 @@ let do_for_site_matching host port ri =
                         ri_sub_path_string = 
                         lazy (Ocsimisc.string_of_url_path sub_path)}
               in
-              let charset = match charset with 
-              | None -> Ocsiconfig.get_default_charset ()
-              | _ -> charset
-              in
-              let charset = match charset with 
-              | None -> "utf-8"
-              | Some charset -> charset
-              in
               genfun
                 awake
                 cookies_to_set
-                charset
                 (Req_not_found (prev_err, ri))
               >>= fun (res_ext, cookies_to_set) ->
               (match res_ext with
@@ -512,7 +499,7 @@ let do_for_site_matching host port ri =
                      assert false
               )
           )
-      | (h, p, _, _)::l ->
+      | (h, p, _)::l ->
           Messages.debug (fun () ->
             "-------- host = "^
             (string_of_host_option host)^

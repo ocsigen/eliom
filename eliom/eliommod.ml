@@ -2922,7 +2922,7 @@ let parse_config site_dir charset parse_site =
  *)
         let file = parse_module_attrs None atts in
         load_eliom_module sitedata file content;
-        gen sitedata
+        gen sitedata charset
     | Element (t, _, _) -> 
         raise (Extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")

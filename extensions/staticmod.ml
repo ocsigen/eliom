@@ -278,7 +278,7 @@ let parse_config path charset parse_site =
               Regexp (Netstring_pcre.regexp "/.*", t, readable, code)
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
         in
-        gen info
+        gen info charset
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(staticmod extension) Bad data")
 

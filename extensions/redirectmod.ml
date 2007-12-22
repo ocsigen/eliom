@@ -143,7 +143,7 @@ let parse_config path charset parse_site = function
           Regexp ((Netstring_pcre.regexp s), t, true)
       | _ -> raise (Error_in_config_file "Wrong attribute for <redirect>")
       in
-      gen dir
+      gen dir charset
   | Element (t, _, _) -> 
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(redirectmod extension) Bad data")

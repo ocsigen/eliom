@@ -162,11 +162,19 @@ let parse_server isreloading c =
                   (Config_file_error ("Wrong attribute for <site>: "^s))
           in
           let charset, dir = parse_site_attrs (None, None) atts in
+          let charset = match charset with
+            | None -> Ocsiconfig.get_default_charset ()
+            | _ -> charset
+          in
+          let charset = match charset with
+            | None -> "utf-8"
+            | Some charset -> charset
+          in
           let path = 
             Ocsimisc.remove_slash_at_end
               (Ocsimisc.remove_slash_at_beginning 
                  (Ocsimisc.remove_dotdot (Neturl.split_path dir))) in
-          let s = (host, path, charset, parse_site path charset l) in
+          let s = (host, path, parse_site path charset l) in
           s::parse_host host parse_site ll
       | (Element (tag,_,_))::_ -> 
           raise (Config_file_error ("<"^tag^"> tag unexpected inside <host>"))

@@ -622,7 +622,7 @@ let parse_config path charset parse_site = function
 *)
       | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
       in 
-      gen dir
+      gen dir charset
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> 
       raise (Error_in_config_file "Unexpected data in config file")

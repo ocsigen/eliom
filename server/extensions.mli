@@ -181,7 +181,7 @@ type request_state =
   | Req_not_found of (int * request_info)
   | Req_found of (request_info * (unit -> Http_frame.result Lwt.t))
 
-type extension = string -> request_state -> answer Lwt.t
+type extension = request_state -> answer Lwt.t
 (** For each <site> tag in the configuration file, 
     you can set the extensions you want. 
     Each extension is implemented as a function, taking
@@ -235,7 +235,7 @@ val register_extension :
   ?respect_pipeline: bool -> 
   (virtual_hosts -> 
      url_path -> 
-       string option -> 
+       string ->
          parse_fun ->
            Simplexmlparser.xml -> 
              extension) ->
@@ -265,15 +265,15 @@ val parse_url : string ->
     (string * string) list Lazy.t
 
 val parse_site : virtual_hosts -> 
-  url_path -> string option -> Simplexmlparser.xml list -> extension2
+  url_path -> string -> Simplexmlparser.xml list -> extension2
 
-val set_sites : (virtual_hosts * url_path * string option * extension2) list
+val set_sites : (virtual_hosts * url_path * extension2) list
   -> unit
                         
 val get_sites : unit -> 
-  (virtual_hosts * url_path * string option * extension2) list
+  (virtual_hosts * url_path * extension2) list
 
-val add_site : (virtual_hosts * url_path * string option * extension2) -> unit
+val add_site : (virtual_hosts * url_path * extension2) -> unit
 
 val do_for_site_matching :
     string option ->

@@ -130,7 +130,7 @@ let gen charset = function
  *)
 
 let parse_config path charset parse_site = function
-  | Element ("extensiontemplate", atts, []) ->  gen
+  | Element ("extensiontemplate", atts, []) -> gen charset
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> 
       raise (Error_in_config_file "Unexpected data in config file")

@@ -270,7 +270,7 @@ let parse_config path charset parse_site = function
                pipeline=pipeline;
              }
         in
-        gen dir
+        gen dir charset
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(revproxy extension) Bad data")
 
