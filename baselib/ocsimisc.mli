@@ -32,11 +32,17 @@ val remove_spaces : string -> int -> int -> string
 val sep : char -> string -> string * string
 val split : ?multisep:bool -> char -> string -> string list
 val string_of_exn : exn -> string
-val parse_ip : string -> int32
-val parse_ip_netmask : string -> int32 * int32
 val fst3 : 'a * 'b * 'c -> 'a
 val snd3 : 'a * 'b * 'c -> 'b
 val thd3 : 'a * 'b * 'c -> 'c
 
 val get_inet_addr : string -> Unix.inet_addr Lwt.t
 (** returns the first inet address for one host *)
+
+(** IP address parsing *)
+type ip_address =
+  | IPv4 of int32
+  | IPv6 of int64 * int64
+exception Invalid_ip_address of string
+val parse_ip : string -> ip_address * (ip_address option)
+val match_ip : ip_address * (ip_address option) -> ip_address -> bool

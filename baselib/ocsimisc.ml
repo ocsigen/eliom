@@ -1,5 +1,5 @@
 (* Ocsigen
- * Copyright (C) 2005 Vincent Balat
+ * Copyright (C) 2005 Vincent Balat, Stéphane Glondu
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -263,70 +263,146 @@ let rec string_of_exn = function
 
 
 (* Unix.inet_addr is abstract and nothing to convert it :-( *)
+
+type ip_address =
+  | IPv4 of int32
+  | IPv6 of int64 * int64
+
+exception Invalid_ip_address of string
+
 let parse_ip s =
-  Scanf.sscanf s "%d.%d.%ld.%ld" 
-    (fun a b c d -> 
-      if a>255 || b>255 || c>255l || d>255l || a<0 || b<0 || c<0l || d<0l then
-        failwith "parse_ip"
+  let s = String.lowercase s in
+  let n = String.length s in
+  let is6 = String.contains s ':' in
+  let failwith s = raise (Invalid_ip_address s) in
+
+  let rec parse_hex i accu =
+    match (if i < n then s.[i] else ':') with
+      | '0'..'9' as c -> parse_hex (i+1) (16*accu+(int_of_char c)-48)
+      | 'a'..'f' as c -> parse_hex (i+1) (16*accu+(int_of_char c)-87)
+      | _ -> (i, accu)
+  in
+  let rec parse_dec i accu =
+    match (if i < n then s.[i] else '.') with
+      | '0'..'9' as c -> parse_dec (i+1) (10*accu+(int_of_char c)-48)
+      | _ -> (i, accu)
+  in
+  let rec next_is_dec i =
+    if i < n then
+      match s.[i] with
+        | ':' -> false
+        | '.' -> true
+        | _ -> next_is_dec (i+1)
+    else false
+  in
+  let rec parse_component i accu nb =
+    if i < n then
+      if next_is_dec i then
+        let (i1, a) = parse_dec i 0 in
+        if i1 = i || (i1 < n && s.[i1] <> '.') then failwith "invalid dot notation";
+        let (i2, b) = parse_dec (i1+1) 0 in
+        if i2 = i1 then failwith "invalid dot notation";
+        let component =
+          if a < 0 || a > 255 || b < 0 || b > 255 then
+            failwith "invalid dot notation"
+          else (a lsl 8) lor b
+        in
+        if i2 < n-1 && (s.[i2] = ':' || s.[i1] = '.') then
+          parse_component (i2+1) (component::accu) (nb+1)
+        else
+          (i2, component::accu, nb+1)
+      else if s.[i] = ':' then
+        parse_component (i+1) ((-1)::accu) nb
       else
-        Int32.add
-          (Int32.mul (Int32.add (Int32.of_int ((a*256+b)*256)) c) 256l) d)
+        let (i1, a) = parse_hex i 0 in
+        if i1 = i || a < 0 || a > 0xffff then failwith "invalid colon notation";
+        if i1 < n-1 && s.[i1] = ':' then
+          parse_component (i1+1) (a::accu) (nb+1)
+        else
+          (i1, a::accu, nb+1)
+    else
+      (i, accu, nb)
+  in
 
-let parse_ip_netmask s =
-  try
-    let (s1, s2) = sep '/' s in
-    let mask =
-      try
-        let n = int_of_string s2 in
-        if n < 0 || n > 32 then failwith "parse_ip_netmask";
-        Int32.shift_left 
-          0b11111111111111111111111111111111l
-          (32 - n)
-      with Failure _ -> 
-        let mask = parse_ip s2 in
-        match mask with
-        | 0b11111111111111110000000000000000l
-        | 0b11111111111111111111111100000000l
-        | 0b11111111111111111111111110000000l
-        | 0b11111111111111111111111111000000l
-        | 0b11111111111111111111111111100000l
-        | 0b11111111111111111111111111110000l
-        | 0b11111111111111111111111111111000l
-        | 0b11111111111111111111111111111100l
-        | 0b11111111111111111111111111111110l
-        | 0b11111111111111111111111111111111l
-        | 0b11111111111111111111111000000000l
-        | 0b11111111111111111111110000000000l
-        | 0b11111111111111111111100000000000l
-        | 0b11111111111111111111000000000000l
-        | 0b11111111111111111110000000000000l
-        | 0b11111111111111111100000000000000l
-        | 0b11111111111111111000000000000000l
-        | 0b11111111111111100000000000000000l
-        | 0b11111111111111000000000000000000l
-        | 0b11111111111110000000000000000000l
-        | 0b11111111111100000000000000000000l
-        | 0b11111111111000000000000000000000l
-        | 0b11111111110000000000000000000000l
-        | 0b11111111100000000000000000000000l
-        | 0b11111111000000000000000000000000l
-        | 0b11111110000000000000000000000000l
-        | 0b11111100000000000000000000000000l
-        | 0b11111000000000000000000000000000l
-        | 0b11110000000000000000000000000000l
-        | 0b11100000000000000000000000000000l
-        | 0b11000000000000000000000000000000l
-        | 0b10000000000000000000000000000000l
-        | 0b00000000000000000000000000000000l -> mask
-        | _ -> failwith "parse_ip_netmask"
+  let (i, addr_list, size_list) =
+    if 1 < n && s.[0] = ':' && s.[1] = ':' then
+      parse_component 2 [-1] 0
+    else
+      parse_component 0 [] 0
+  in
+
+  if size_list > 8 then failwith "too many components";
+
+  let maybe_mask =
+    if i < n && s.[i] = '/' then
+      let (i1, m) = parse_dec (i+1) 0 in
+      if i1 = i+1 || i1 < n || m < 0 || m > (if is6 then 128 else 32) then
+        failwith ("invalid /n suffix in "^s)
+      else
+        Some m
+    else if i < n then
+      failwith (Printf.sprintf "invalid suffix in %s (from index %i)" s i)
+    else
+      None
+  in
+
+  if is6 then
+    let (++) a b = Int64.logor (Int64.shift_left a 16) (Int64.of_int b) in
+    let normalized =
+      let rec aux_add n accu =
+        if n = 0 then accu else aux_add (n-1) (0::accu)
+      in
+      let rec aux_rev accu = function
+        | [] -> accu
+        | (-1)::q -> aux_rev (aux_add (8-size_list) accu) q
+        | a::q -> aux_rev (a::accu) q
+      in
+      aux_rev [] addr_list
     in
-      (Int32.logand (parse_ip s1) mask, mask)
-  with Not_found -> 
-    let mask = 0b11111111111111111111111111111111l in
-    (parse_ip s, mask)
+    let maybe_mask = match maybe_mask with
+      | Some n when n > 64 ->
+          Some (IPv6 (Int64.minus_one, Int64.shift_left Int64.minus_one (128-n)))
+      | Some n ->
+          Some (IPv6 (Int64.shift_left Int64.minus_one (64-n), Int64.zero))
+      | None -> None
+    in
+    match normalized with
+      | [a; b; c; d; e; f; g; h] ->
+          IPv6 (Int64.zero ++ a ++ b ++ c ++ d,
+                Int64.zero ++ e ++ f ++ g ++ h), maybe_mask
+      | _ -> failwith (Printf.sprintf "invalid IPv6 address: %s (%d components)" s (List.length normalized))
+  else
+    let (++) a b = Int32.logor (Int32.shift_left a 16) (Int32.of_int b) in
+    let maybe_mask = match maybe_mask with
+      | Some n ->
+          Some (IPv4 (Int32.shift_left Int32.minus_one (32-n)))
+      | None -> None
+    in
+    match addr_list with
+      | [b; a] ->
+          IPv4 (Int32.zero ++ a ++ b), maybe_mask
+      | _ -> failwith ("invalid IPv4 address: "^s)
 
 
-
+let match_ip (base, mask) ip =
+  match ip,  base, mask with
+    | IPv4 a, IPv4 b, Some (IPv4 m) -> Int32.logand a m = Int32.logand b m
+    | IPv4 a, IPv4 b, None -> a = b
+    | IPv6 (a1,a2), IPv6 (b1,b2), Some (IPv6 (m1,m2)) ->
+        Int64.logand a1 m1 = Int64.logand b1 m1 &&
+        Int64.logand a2 m2 = Int64.logand b2 m2
+    | IPv6 (a1,a2), IPv6 (b1,b2), None -> a1 = b1 && a2 = b2
+    | IPv6 (a1,a2), IPv4 b, c
+        when a1 = 0L && Int64.logand a2 0xffffffff00000000L = 0xffff00000000L ->
+        (* might be insecure, cf
+           http://tools.ietf.org/internet-drafts/draft-itojun-v6ops-v4mapped-harmful-02.txt *)
+        let a = Int64.to_int32 a2 in
+        begin match c with
+          | Some (IPv4 m) -> Int32.logand a m = Int32.logand b m
+          | Some (IPv6 _) -> invalid_arg "match_ip"
+          | None -> a = b
+        end
+    | _ -> false
 
 (* *)
 let fst3 (a, _, _) = a

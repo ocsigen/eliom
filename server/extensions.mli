@@ -80,7 +80,7 @@ type request_info =
      ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
      ri_inet_addr: Unix.inet_addr;        (** IP of the client *)
      ri_ip: string;            (** IP of the client *)
-     ri_ip32: int32 Lazy.t;    (** IP of the client, as a 32 bits integer *)
+     ri_ip_parsed: ip_address Lazy.t;    (** parsed IP of the client *)
      ri_remote_port: int;      (** Port used by the client *)
      ri_port: int;             (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)

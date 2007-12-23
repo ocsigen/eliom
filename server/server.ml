@@ -291,7 +291,7 @@ let get_request_infos
                       return b);
      ri_inet_addr = inet_addr;
      ri_ip = ipstring;
-     ri_ip32 = lazy (Ocsimisc.parse_ip ipstring);
+     ri_ip_parsed = lazy (fst (Ocsimisc.parse_ip ipstring));
      ri_remote_port = port_of_sockaddr sockaddr;
      ri_port = port;
      ri_user_agent = useragent;

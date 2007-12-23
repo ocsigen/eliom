@@ -28,6 +28,7 @@ Then load it dynamically from Ocsigen's config file:
 
 *)
 
+open Printf
 open Lwt
 open Extensions
 open Simplexmlparser
@@ -90,18 +91,18 @@ exception Bad_config_tag_for_filter
 let rec parse_filter = function
 
     | Element ("ip", ["value", s], []) ->
-        let (ip32, mask) =
+        let ip_with_mask =
           try
-            Ocsimisc.parse_ip_netmask s
+            Ocsimisc.parse_ip s
           with Failure _ ->
-            raise (Error_in_config_file "Bad ip/netmask value in ip filter")
+            raise (Error_in_config_file (sprintf "Bad ip/netmask value [%s] in ip filter" s))
         in
         (fun ri ->
-           let r = Int32.logand (Lazy.force ri.ri_ip32) mask = ip32 in
+           let r = Ocsimisc.match_ip ip_with_mask (Lazy.force ri.ri_ip_parsed) in
            if r then
-             Messages.debug2 "--Access control: IP matches mask"
+             Messages.debug2 (sprintf "--Access control (ip): %s matches %s" ri.ri_ip s)
            else
-             Messages.debug2 "--Access control: IP does not match mask";
+             Messages.debug2 (sprintf "--Access control (ip): %s does not match %s" ri.ri_ip s);
            r)
 
     | Element ("header", ["name", name; "regexp", r], []) ->
