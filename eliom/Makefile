@@ -22,7 +22,7 @@ CAMLCNAME2= $(CAMLCNAME)
 endif
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCEFILES= xhtml1_strict.ml eliomduce.ml
+DUCEFILES= xhtml1_strict.ml eliomduce.ml eliomducetools.ml
 #DUCEFILES= xhtml1_strict.ml ocsigenduce.ml eliomduce.ml
 # rss2.ml ocsigenrss.ml
 
@@ -138,10 +138,10 @@ ocsigenduce.cmxs: xhtml1_strict.cmx ocsigenduce.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenduce.cmxs xhtml1_strict.cmx ocsigenduce.cmx 
 
 eliomduce.cma: xhtml1_strict.cmo eliomduce.cmo
-	$(CAMLC) -a -o eliomduce.cma xhtml1_strict.cmo eliomduce.cmo 
+	$(CAMLC) -a -o eliomduce.cma xhtml1_strict.cmo eliomduce.cmo eliomducetools.cmo
 
 eliomduce.cmxs: xhtml1_strict.cmx eliomduce.cmx
-	$(CAMLOPT) -shared -linkall -o eliomduce.cmxs xhtml1_strict.cmx eliomduce.cmx 
+	$(CAMLOPT) -shared -linkall -o eliomduce.cmxs xhtml1_strict.cmx eliomduce.cmx eliomducetools.cmx
 
 ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
 	$(CAMLC) -a -o ocsigenrss.cma $^

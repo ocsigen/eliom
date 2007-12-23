@@ -3,11 +3,11 @@ include Makefile.config
 ifeq "$(OCAMLDUCE)" "YES"
 DUCECMAO=eliom/eliomduce.cma
 # eliom/ocsigenrss.cma
-DUCECMI=eliom/eliomduce.cmi eliom/xhtml1_strict.cmi
+DUCECMI=eliom/eliomduce.cmi eliom/xhtml1_strict.cmi eliom/eliomducetools.cmi
 # eliom/rss2.cmi eliom/ocsigenrss.cmi
 DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 # examples/ocamlduce/examplerss.cmo
-DUCEDOC=./eliom/eliomduce.mli ./eliom/xhtml1_strict.ml
+DUCEDOC=./eliom/eliomduce.mli ./eliom/xhtml1_strict.ml ./eliom/eliomducetools.ml
 CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 else
 DUCECMAO=
