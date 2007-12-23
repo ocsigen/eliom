@@ -95,7 +95,7 @@ let rec parse_filter = function
           try
             Ocsimisc.parse_ip s
           with Failure _ ->
-            raise (Error_in_config_file (sprintf "Bad ip/netmask value [%s] in ip filter" s))
+            raise (Error_in_config_file (sprintf "Bad ip/netmask [%s] in <ip> condition" s))
         in
         (fun ri ->
            let r = Ocsimisc.match_ip ip_with_mask (Lazy.force ri.ri_ip_parsed) in
@@ -105,26 +105,25 @@ let rec parse_filter = function
              Messages.debug2 (sprintf "--Access control (ip): %s does not match %s" ri.ri_ip s);
            r)
 
-    | Element ("header", ["name", name; "regexp", r], []) ->
+    | Element ("header", ["name", name; "regexp", reg], []) ->
         let regexp =
           try
-            Netstring_pcre.regexp r
+            Netstring_pcre.regexp reg
           with Failure _ ->
-            raise (Error_in_config_file
-                     "Bad regular expression in header filter")
+            raise (Error_in_config_file (sprintf "Bad regular expression [%s] in <header> condition" reg))
         in
         (fun ri ->
            let r =
              List.exists
-               (fun a -> Netstring_pcre.string_match regexp a 0 <> None)
+               (fun a ->
+                  let r = Netstring_pcre.string_match regexp a 0 <> None in
+                  if r then Messages.debug2 (sprintf "--Access control (header): header %s matches [%s]" name reg);
+                  r)
                (Http_headers.find_all
                   (Http_headers.name name)
                   ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers)
            in
-           if r then
-             Messages.debug2 "--Access control: Header matches regexp"
-           else
-             Messages.debug2 "--Access control: Header does not match regexp";
+           if not r then Messages.debug2 (sprintf "--Access control (header): header %s does not match [%s]" name reg);
            r)
 
     | Element ("method", ["value", s], []) ->
@@ -132,14 +131,14 @@ let rec parse_filter = function
           try
             Framepp.method_of_string s
           with Failure _ ->
-            raise (Error_in_config_file "Bad method value in method filter")
+            raise (Error_in_config_file (sprintf "Bad method [%s] in <method> condition" s))
         in
         (fun ri ->
            let r = meth = ri.ri_method in
-           if r then
-             Messages.debug2 "--Access control: Method matches"
-           else
-             Messages.debug2 "--Access control: Method does not match";
+           if r then Messages.debug
+             (fun () -> sprintf "--Access control (method): %s matches %s" (Framepp.string_of_method ri.ri_method) s)
+           else Messages.debug
+             (fun () -> sprintf "--Access control (method): %s does not %s" (Framepp.string_of_method ri.ri_method) s);
            r)
 
     | Element ("protocol", ["value", s], []) ->
@@ -147,14 +146,14 @@ let rec parse_filter = function
           try
             Framepp.proto_of_string s
           with Failure _ ->
-            raise (Error_in_config_file "Bad protocol value in protocol filter")
+            raise (Error_in_config_file (sprintf "Bad protocol [%s] in <protocol> condition" s))
         in
         (fun ri ->
            let r = pr = ri.ri_protocol in
-           if r then
-             Messages.debug2 "--Access control: Protocol matches"
-           else
-             Messages.debug2 "--Access control: Protocol does not match";
+           if r then Messages.debug
+             (fun () -> sprintf "--Access control (protocol): %s matches %s" (Framepp.string_of_proto ri.ri_protocol) s)
+           else Messages.debug
+             (fun () -> sprintf "--Access control (protocol): %s does not match %s" (Framepp.string_of_proto ri.ri_protocol) s);
            r)
 
     | Element ("path", ["regexp", s], []) ->
@@ -162,19 +161,17 @@ let rec parse_filter = function
           try
             Netstring_pcre.regexp s
           with Failure _ ->
-            raise (Error_in_config_file "Bad regular expression in <path/>")
+            raise (Error_in_config_file (sprintf "Bad regular expression [%s] in <path> condition" s))
         in
         (fun ri ->
            let r =
              Netstring_pcre.string_match
                regexp ri.ri_sub_path_string 0 <> None
            in
-           if r then
-             Messages.debug
-               (fun () -> "--Access control: Path "^ri.ri_sub_path_string^" matches regexp")
-           else
-             Messages.debug
-               (fun () -> "--Access control: Path "^ri.ri_sub_path_string^" does not match regexp");
+           if r then Messages.debug
+             (fun () -> sprintf "--Access control (path): %s matches [%s]" ri.ri_sub_path_string s)
+           else Messages.debug
+               (fun () -> sprintf "--Access control (path): %s does not match [%s]" ri.ri_sub_path_string s);
            r)
 
     | Element (("nand"|"and") as t, [], sub) ->
@@ -189,7 +186,7 @@ let rec parse_filter = function
           if t = "and" then sub else (fun ri -> not (sub ri))
         with
           | Bad_config_tag_for_filter ->
-              raise (Error_in_config_file ("Cannot parse children of <"^t^"> as conditions"))
+              raise (Error_in_config_file (sprintf "Error in <%s> condition" t))
         end
 
     | Element (("nor"|"or") as t, [], sub) ->
@@ -204,7 +201,7 @@ let rec parse_filter = function
           if t = "or" then sub else (fun ri -> not (sub ri))
         with
           | Bad_config_tag_for_filter ->
-              raise (Error_in_config_file ("Cannot parse children of <"^t^"> as conditions"))
+              raise (Error_in_config_file (sprintf "Error in <%s> condition" t))
         end
 
     | _ -> raise Bad_config_tag_for_filter

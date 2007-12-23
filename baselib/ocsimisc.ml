@@ -270,6 +270,8 @@ type ip_address =
 
 exception Invalid_ip_address of string
 
+open Printf
+
 let parse_ip s =
   let s = String.lowercase s in
   let n = String.length s in
@@ -299,12 +301,12 @@ let parse_ip s =
     if i < n then
       if next_is_dec i then
         let (i1, a) = parse_dec i 0 in
-        if i1 = i || (i1 < n && s.[i1] <> '.') then failwith "invalid dot notation";
+        if i1 = i || (i1 < n && s.[i1] <> '.') then failwith (sprintf "invalid dot notation in %s (1)" s);
         let (i2, b) = parse_dec (i1+1) 0 in
-        if i2 = i1 then failwith "invalid dot notation";
+        if i2 = i1 then failwith (sprintf "invalid dot notation in %s (2)" s);
         let component =
           if a < 0 || a > 255 || b < 0 || b > 255 then
-            failwith "invalid dot notation"
+            failwith (sprintf "invalid dot notation in %s (3)" s)
           else (a lsl 8) lor b
         in
         if i2 < n-1 && (s.[i2] = ':' || s.[i1] = '.') then
@@ -315,7 +317,7 @@ let parse_ip s =
         parse_component (i+1) ((-1)::accu) nb
       else
         let (i1, a) = parse_hex i 0 in
-        if i1 = i || a < 0 || a > 0xffff then failwith "invalid colon notation";
+        if i1 = i || a < 0 || a > 0xffff then failwith (sprintf "invalid colon notation in %s" s);
         if i1 < n-1 && s.[i1] = ':' then
           parse_component (i1+1) (a::accu) (nb+1)
         else
@@ -331,13 +333,13 @@ let parse_ip s =
       parse_component 0 [] 0
   in
 
-  if size_list > 8 then failwith "too many components";
+  if size_list > 8 then failwith (sprintf "too many components in %s" s);
 
   let maybe_mask =
     if i < n && s.[i] = '/' then
       let (i1, m) = parse_dec (i+1) 0 in
       if i1 = i+1 || i1 < n || m < 0 || m > (if is6 then 128 else 32) then
-        failwith ("invalid /n suffix in "^s)
+        failwith (sprintf "invalid /n suffix in %s" s)
       else
         Some m
     else if i < n then
