@@ -317,8 +317,10 @@ let parse_ip s =
         parse_component (i+1) ((-1)::accu) nb
       else
         let (i1, a) = parse_hex i 0 in
-        if i1 = i || a < 0 || a > 0xffff then failwith (sprintf "invalid colon notation in %s" s);
-        if i1 < n-1 && s.[i1] = ':' then
+        if a < 0 || a > 0xffff then failwith (sprintf "invalid colon notation in %s" s);
+        if i1 = i then
+          (i, accu, nb)
+        else if i1 < n-1 && s.[i1] = ':' then
           parse_component (i1+1) (a::accu) (nb+1)
         else
           (i1, a::accu, nb+1)
