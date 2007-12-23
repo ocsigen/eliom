@@ -117,13 +117,13 @@ let rec parse_filter = function
              List.exists
                (fun a ->
                   let r = Netstring_pcre.string_match regexp a 0 <> None in
-                  if r then Messages.debug2 (sprintf "--Access control (header): header %s matches [%s]" name reg);
+                  if r then Messages.debug2 (sprintf "--Access control (header): header %s matches \"%s\"" name reg);
                   r)
                (Http_headers.find_all
                   (Http_headers.name name)
                   ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers)
            in
-           if not r then Messages.debug2 (sprintf "--Access control (header): header %s does not match [%s]" name reg);
+           if not r then Messages.debug2 (sprintf "--Access control (header): header %s does not match \"%s\"" name reg);
            r)
 
     | Element ("method", ["value", s], []) ->
@@ -138,7 +138,7 @@ let rec parse_filter = function
            if r then Messages.debug
              (fun () -> sprintf "--Access control (method): %s matches %s" (Framepp.string_of_method ri.ri_method) s)
            else Messages.debug
-             (fun () -> sprintf "--Access control (method): %s does not %s" (Framepp.string_of_method ri.ri_method) s);
+             (fun () -> sprintf "--Access control (method): %s does not match %s" (Framepp.string_of_method ri.ri_method) s);
            r)
 
     | Element ("protocol", ["value", s], []) ->
@@ -169,9 +169,9 @@ let rec parse_filter = function
                regexp ri.ri_sub_path_string 0 <> None
            in
            if r then Messages.debug
-             (fun () -> sprintf "--Access control (path): %s matches [%s]" ri.ri_sub_path_string s)
+             (fun () -> sprintf "--Access control (path): \"%s\" matches \"%s\"" ri.ri_sub_path_string s)
            else Messages.debug
-               (fun () -> sprintf "--Access control (path): %s does not match [%s]" ri.ri_sub_path_string s);
+               (fun () -> sprintf "--Access control (path): \"%s\" does not match \"%s\"" ri.ri_sub_path_string s);
            r)
 
     | Element (("nand"|"and") as t, [], sub) ->
