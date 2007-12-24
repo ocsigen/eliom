@@ -125,18 +125,18 @@ install: $(INSTALLBYTE) $(INSTALLOPT)
 
 installbyte:
 	@echo "Installing bytecode server"
-	mkdir -p $(TEMPROOT)/$(BINDIR)
-	$(INSTALL) -m 755 $(NAME) $(TEMPROOT)/$(BINDIR)/
+	mkdir -p $(TEMPROOT)$(BINDIR)
+	$(INSTALL) -m 755 $(NAME) $(TEMPROOT)$(BINDIR)/
 
 installopt:
 	@echo "Installing native server"
-	mkdir -p $(TEMPROOT)/$(BINDIR)
-	[ -f $(NAME).opt ] && $(INSTALL) -m 755 $(NAME).opt $(TEMPROOT)/$(BINDIR)/
+	mkdir -p $(TEMPROOT)$(BINDIR)
+	[ -f $(NAME).opt ] && $(INSTALL) -m 755 $(NAME).opt $(TEMPROOT)$(BINDIR)/
 
 .PHONY: uninstall
 uninstall:
-	rm -f $(TEMPROOT)/$(BINDIR)/$(NAME)
-	rm -f $(TEMPROOT)/$(BINDIR)/$(NAME).opt
+	rm -f $(TEMPROOT)$(BINDIR)/$(NAME)
+	rm -f $(TEMPROOT)$(BINDIR)/$(NAME).opt
 
 depend:
 	$(CAMLDEP) $(LIBDIRS) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend

@@ -9,4 +9,4 @@ start_editor : editor.ml
 	$(OCAMLC) -o start_editor -linkpkg -package lwt editor.ml -cclib -s
 
 clean:
-	rm -f *.cmi *.cmo *~ relay start_editor
+	-rm -f *.cmi *.cmo *~ relay start_editor

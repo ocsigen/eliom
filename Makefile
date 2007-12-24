@@ -236,23 +236,23 @@ depend: xmlp4pre.byte $(DEPOPT)
 .PHONY: partialinstall install doc docinstall installnodoc logrotate
 partialinstall:
 	$(MAKE) -C lwt install
-	mkdir -p $(TEMPROOT)/$(MODULEINSTALLDIR)
-	mkdir -p $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
+	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
+	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 	$(MAKE) -C server install
 	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
-	mkdir -p "$(TEMPROOT)/$(MODULEINSTALLDIR)"
-	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)" $(TOINSTALL)
-	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)/$(EXAMPLESINSTALLDIR)
-	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)/$(BINDIR)/
+	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
+	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
+	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
+	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(BINDIR)/
 	[ ! -f extensions/ocsipersist-dbm/ocsidbm.opt ] || \
-	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)/$(BINDIR)/
+	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(BINDIR)/
 	-rm META
 
 docinstall: doc/index.html
-	mkdir -p $(TEMPROOT)/$(DOCDIR)
-	$(INSTALL) -m 644 doc/* $(TEMPROOT)/$(DOCDIR)
-	chmod a+rx $(TEMPROOT)/$(DOCDIR)
-	chmod a+r $(TEMPROOT)/$(DOCDIR)/*
+	mkdir -p $(TEMPROOT)$(DOCDIR)
+	$(INSTALL) -m 644 doc/* $(TEMPROOT)$(DOCDIR)
+	chmod a+rx $(TEMPROOT)$(DOCDIR)
+	chmod a+r $(TEMPROOT)$(DOCDIR)/*
 
 installnodoc: partialinstall
 	mkdir -p $(TEMPROOT)/$(CONFIGDIR)
@@ -285,8 +285,8 @@ installnodoc: partialinstall
 	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
 	| sed s%_CRYPTOKITINSTALLDIR_%$(CRYPTOKITINSTALLDIR)%g \
 	| sed s%_CAMLZIPDIR_%$(CAMLZIPDIR)%g \
-	> $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
-	cat $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
+	> $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
+	cat $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
 	| sed s%[.]cmo%.cmxs%g \
 	| sed s%[.]cma%.cmxs%g \
 	> $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
@@ -335,7 +335,7 @@ install: docinstall installnodoc
 uninstall:
 	-$(MAKE) -C server uninstall
 	-$(MAKE) -C lwt uninstall
-	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)/$(MODULEINSTALLDIR)"
+	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"
 
 fulluninstall: uninstall
 # dangerous
