@@ -76,7 +76,7 @@ val open_table : string -> 'value table
 
 val find : 'value table -> string -> 'value Lwt.t
 (** [find table key] gives the value associated to [key].
-  Raises [Not_found] if not found. *)
+  Fails with [Not_found] if not found. *)
 
 val add : 'value table -> string -> 'value -> unit Lwt.t
 (** [add table key value] associates [value] to [key]. 
@@ -88,7 +88,7 @@ val replace_if_exists : 'value table -> string -> 'value -> unit Lwt.t
 (** [replace_if_exists table key value] 
    associates [value] to [key] only if [key] is already bound. 
    If the database does not contain any data associated with [key], 
-   raises [Not_found].
+   fails with [Not_found].
  *)
 
 val remove : 'value table -> string -> unit Lwt.t

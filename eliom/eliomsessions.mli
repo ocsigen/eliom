@@ -523,8 +523,12 @@ val remove_persistent_session_data : ?session_name:string ->
     {!Eliomsessions.close_service_session} and
     {!Eliomsessions.close_persistent_data_session}.
 *)
-val close_session : ?session_name:string -> sp:server_params -> 
-  unit -> unit Lwt.t
+val close_session : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sp:server_params -> 
+  unit -> 
+  unit Lwt.t
 
 (** Close Eliom's current volatile session if opened
    (both service session and volatile data session)
@@ -533,22 +537,38 @@ val close_session : ?session_name:string -> sp:server_params ->
    Shortcut for {!Eliomsessions.close_volatile_data_session} followed by
     {!Eliomsessions.close_service_session}.
  *)
-val close_volatile_session : ?session_name:string -> 
-  sp:server_params -> unit -> unit
+val close_volatile_session : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sp:server_params -> 
+  unit -> 
+  unit
 
 (** Close Eliom's current persistent session if opened
    (destroying all persistent data for that user) *)
-val close_persistent_data_session : ?session_name:string -> 
-  sp:server_params -> unit -> unit Lwt.t
+val close_persistent_data_session : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sp:server_params -> 
+  unit -> 
+  unit Lwt.t
 
 (** Close Eliom's current data session, if opened
    (destroying all session data for that user) *)
-val close_volatile_data_session : ?session_name:string -> 
-  sp:server_params -> unit -> unit
+val close_volatile_data_session : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sp:server_params -> 
+  unit -> 
+  unit
 
 (** Close Eliom's current service session, if opened *)
-val close_service_session : ?session_name:string -> 
-  sp:server_params -> unit -> unit
+val close_service_session : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sp:server_params -> 
+  unit -> 
+  unit
 
 
 
@@ -563,8 +583,12 @@ val close_service_session : ?session_name:string ->
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val close_all_sessions : ?session_name:string -> 
-  ?sp:server_params -> unit -> unit Lwt.t
+val close_all_sessions : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  ?sp:server_params -> 
+  unit -> 
+  unit Lwt.t
 
 (** Close all volatile (service and volatile data) sessions
     for one session name.
@@ -575,8 +599,12 @@ val close_all_sessions : ?session_name:string ->
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val close_all_volatile_sessions : ?session_name:string -> 
-  ?sp:server_params -> unit -> unit Lwt.t
+val close_all_volatile_sessions : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  ?sp:server_params -> 
+  unit -> 
+  unit Lwt.t
   
 (** Close all persistent sessions for one session name.
     If the optional parameter [?session_name] (session name) is not present,
@@ -586,8 +614,12 @@ val close_all_volatile_sessions : ?session_name:string ->
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val close_all_persistent_data_sessions : ?session_name:string -> 
-  ?sp:server_params -> unit -> unit Lwt.t
+val close_all_persistent_data_sessions : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  ?sp:server_params -> 
+  unit -> 
+  unit Lwt.t
 
 (** Close all service sessions for one session name.
     If the optional parameter [?session_name] (session name) is not present,
@@ -597,8 +629,12 @@ val close_all_persistent_data_sessions : ?session_name:string ->
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val close_all_service_sessions : ?session_name:string -> 
-  ?sp:server_params -> unit -> unit Lwt.t
+val close_all_service_sessions : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  ?sp:server_params -> 
+  unit -> 
+  unit Lwt.t
   
 (** Close all volatile data sessions for one session name.
     If the optional parameter [?session_name] (session name) is not present,
@@ -608,8 +644,12 @@ val close_all_service_sessions : ?session_name:string ->
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val close_all_volatile_data_sessions : ?session_name:string -> 
-  ?sp:server_params -> unit -> unit Lwt.t
+val close_all_volatile_data_sessions : 
+  ?close_group:bool ->
+  ?session_name:string -> 
+  ?sp:server_params -> 
+  unit -> 
+  unit Lwt.t
   
 
 module Session_admin : sig  
@@ -625,21 +665,33 @@ module Session_admin : sig
   type data_session
   type persistent_session
 
-  val close_service_session : session:service_session -> unit
+  val close_service_session : 
+    ?close_group:bool ->
+    session:service_session -> 
+    unit
 
-  val close_volatile_data_session : session:data_session -> unit
+  val close_volatile_data_session : 
+    ?close_group:bool ->
+    session:data_session -> 
+    unit
 
-  val close_persistent_data_session : session:persistent_session -> unit Lwt.t
+  val close_persistent_data_session : 
+    ?close_group:bool ->
+    session:persistent_session -> 
+    unit Lwt.t
 
   (** Raises [Not_found] if no data in the table for the session. *)
   val get_volatile_session_data :
-      session:data_session -> table:'a volatile_table -> 'a
+    session:data_session -> 
+    table:'a volatile_table -> 
+    'a
 
   (** Fails with lwt exception [Not_found] 
      if no data in the table for the session. *)
   val get_persistent_session_data : 
-      session:persistent_session -> table:'a persistent_table -> 
-        'a Lwt.t
+    session:persistent_session -> 
+    table:'a persistent_table -> 
+    'a Lwt.t
 
   val remove_volatile_session_data :
       session:data_session -> table:'a volatile_table -> unit

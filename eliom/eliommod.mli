@@ -111,7 +111,8 @@ type 'a servicecookiestablecontent =
      'a                      (* session table *) * 
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
-     timeout ref             (* user timeout *)) 
+     timeout ref             (* user timeout *) *
+     string option ref   (* session group *))
 
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
@@ -120,7 +121,9 @@ type datacookiestablecontent =
     (string                  (* session fullsessname *) *
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
-     timeout ref             (* user timeout *))
+     timeout ref             (* user timeout *) *
+     string option ref   (* session group *))
+
 
 type datacookiestable = datacookiestablecontent SessionCookies.t
 
@@ -129,40 +132,45 @@ type 'a session_cookie
 
 type 'a one_service_cookie_info =
     (* service sessions: *)
-    (string                   (* current value *) *
-     'a ref                   (* service session table
-                                 ref towards cookie table
-                               *) *
-     timeout ref              (* user timeout - 
-                                 ref towards cookie table
-                               *) * 
-     float option ref         (* expiration date ref (server side) - 
-                                 None = never
-                                 ref towards cookie table
-                               *) * 
-     cookie_exp ref           (* cookie expiration date to set *)
-    )
+    {sc_value:string             (* current value *);
+     sc_table:'a ref             (* service session table
+                                    ref towards cookie table
+                                  *);
+     sc_timeout:timeout ref      (* user timeout - 
+                                    ref towards cookie table
+                                  *);
+     sc_exp:float option ref     (* expiration date ref
+                                    (server side) - 
+                                    None = never
+                                    ref towards cookie table
+                                  *);
+     sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
+     sc_session_group:string option ref (* session group *)
+   }
 
 
 type one_data_cookie_info =
     (* in memory data sessions: *)
-    (string                   (* current value *) *
-     timeout ref              (* user timeout - 
-                                 ref towards cookie table
-                               *) * 
-     float option ref         (* expiration date ref (server side) - 
-                                 None = never
-                                 ref towards cookie table
-                               *) * 
-     cookie_exp ref           (* cookie expiration date to set *)
-    )
+    {dc_value:string                    (* current value *);
+     dc_timeout:timeout ref             (* user timeout - 
+                                           ref towards cookie table
+                                         *);
+     dc_exp:float option ref            (* expiration date ref (server side) - 
+                                           None = never
+                                           ref towards cookie table
+                                         *);
+     dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
+     dc_session_group:string option ref (* session group *)
+   }
 
 type one_persistent_cookie_info =
-     (string                   (* current value *) *
-      timeout ref              (* user timeout *) * 
-      cookie_exp ref           (* cookie expiration date to set *)
+     {pc_value:string                    (* current value *);
+      pc_timeout:timeout ref             (* user timeout *); 
+      pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
+      pc_session_group:string option ref (* session group *)
+    }
 
-     )
+
 
 
 type 'a cookie_info =
@@ -204,7 +212,8 @@ type 'a cookie_info =
         timeout                 (* timeout at the beginning of the request *) *
         float option            (* (server side) expdate 
                                    at the beginning of the request
-                                   None = no exp *))
+                                   None = no exp *) *
+        string option           (* session group at beginning of request *))
          option
                                 (* None = new cookie 
                                    (not sent by the browser) *)
@@ -272,7 +281,7 @@ type anon_params_type = int
       
 
 val persistent_cookies_table :
-    (string * float option * timeout * int64) Ocsipersist.table
+    (string * float option * timeout * string option) Ocsipersist.table
 
 
 type page_table_key =
@@ -361,23 +370,31 @@ val create_persistent_table : string -> 'a Ocsipersist.table
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 
 val find_or_create_service_cookie : 
-    ?session_name:string -> sp:server_params -> unit -> 
-      tables one_service_cookie_info
+    ?session_group:string -> 
+      ?session_name:string -> 
+        sp:server_params -> 
+          unit -> 
+            tables one_service_cookie_info
 
 val find_service_cookie_only : 
     ?session_name:string -> sp:server_params -> unit -> 
       tables one_service_cookie_info
 
 val find_or_create_data_cookie : 
-    ?session_name:string -> sp:server_params -> unit -> one_data_cookie_info
+    ?session_group:string -> 
+      ?session_name:string -> 
+        sp:server_params -> unit -> one_data_cookie_info
 
 val find_data_cookie_only : 
     ?session_name:string -> sp:server_params -> unit -> one_data_cookie_info
 
 val find_or_create_persistent_cookie : 
-    ?session_name:string -> sp:server_params -> unit 
-      -> one_persistent_cookie_info Lwt.t
-
+    ?session_group:string -> 
+      ?session_name:string -> 
+        sp:server_params -> 
+          unit ->
+            one_persistent_cookie_info Lwt.t
+            
 val find_persistent_cookie_only : 
     ?session_name:string -> sp:server_params -> unit -> 
       one_persistent_cookie_info Lwt.t
@@ -385,32 +402,63 @@ val find_persistent_cookie_only :
 
 
 val close_service_session2 :
-    sitedata -> string -> unit
+    sitedata -> string -> string option -> unit
 
 val close_service_session :
+  ?close_group:bool ->
     ?session_name:string -> sp:server_params -> unit -> unit
 
-val close_data_session2 : sitedata -> string -> unit
+val close_service_group : sitedata -> string option -> unit
+
+val close_data_session2 : sitedata -> string -> string option -> unit
 
 val close_data_session :
-    ?session_name:string -> sp:server_params -> unit -> unit
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sp:server_params -> 
+  unit -> 
+  unit
+
+val close_data_group : sitedata -> string option -> unit
 
 val close_volatile_session :
-    ?session_name:string -> sp:server_params -> unit -> unit
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sp:server_params -> 
+  unit -> 
+  unit
 
-val close_persistent_session2 : string -> unit Lwt.t
+val close_persistent_session2 : 
+  string -> 
+  string option ->
+  unit Lwt.t
 
 val close_persistent_session :
-    ?session_name:string -> sp:server_params -> unit -> unit Lwt.t
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sp:server_params -> 
+  unit -> 
+  unit Lwt.t
 
+val close_persistent_group : string option -> unit Lwt.t
 
-val close_all_service_sessions : ?session_name:string -> sitedata -> unit Lwt.t
+val close_all_service_sessions :
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sitedata -> 
+  unit Lwt.t
 
 val close_all_data_sessions :
-    ?session_name:string -> sitedata -> unit Lwt.t
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sitedata -> 
+  unit Lwt.t
 
 val close_all_persistent_sessions :
-    ?session_name:string -> sitedata -> unit Lwt.t
+  ?close_group:bool ->
+  ?session_name:string -> 
+  sitedata -> 
+  unit Lwt.t
 
 
 val iter_service_sessions :
@@ -423,7 +471,7 @@ val iter_data_sessions :
       (SessionCookies.key * datacookiestablecontent * sitedata -> unit Lwt.t) -> unit Lwt.t
 
 val iter_persistent_sessions :
-    (string * (string * float option * timeout * Int64.t) -> 
+    (string * (string * float option * timeout * string option) -> 
       unit Lwt.t) -> unit Lwt.t
 
 val fold_service_sessions :
@@ -437,7 +485,7 @@ val fold_data_sessions :
         'c -> 'c Lwt.t
 
 val fold_persistent_sessions :
-    (string * (string * float option * timeout * Int64.t) -> 
+    (string * (string * float option * timeout * string option) -> 
       'c -> 'c Lwt.t) -> 'c -> 'c Lwt.t
 
 
@@ -464,3 +512,4 @@ val global_register_allowed : unit -> (unit -> sitedata) option
 val add_cookie_list_to_send :
     sitedata -> cookie list -> Http_frame.cookieset -> Http_frame.cookieset
 
+val make_full_group_name : sp:server_params -> string option -> string option

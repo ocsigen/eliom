@@ -88,6 +88,7 @@ let _ =
              (n^" : "^(string_of_int a)) l$ 
            elements inside. >>
             in
+            Eliomsessiongroups.Pers.length () >>= fun persgrplength ->
 Lwt.return
 <<
  <html>
@@ -155,6 +156,12 @@ Lwt.return
       | [] -> dot
       | a::l -> list2 a l)
        $</p>
+      <p>Number of session groups:</p>
+      <ul>
+        <li>Service sessions: $str: string_of_int (Eliomsessiongroups.Serv.length ())$</li>
+        <li>Volatile data sessions: $str: string_of_int (Eliomsessiongroups.Data.length ())$</li>
+        <li>Persistent data sessions: $str: string_of_int persgrplength$</li>
+      </ul>
    </body>
  </html>
 >>)))

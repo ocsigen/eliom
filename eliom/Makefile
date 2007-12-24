@@ -2,7 +2,7 @@
 include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
-FILES:= error_pages.ml eliommod.ml eliomsessions.ml \
+FILES:= error_pages.ml eliomsessiongroups.ml eliommod.ml eliomsessions.ml \
        eliomparameters.ml eliomservices.ml \
        eliommkforms.ml eliommkreg.ml eliompredefmod.ml \
        eliomtools.ml
@@ -103,22 +103,24 @@ eliommod.cmx: eliommod.ml
 #	-touch ../extensions/ocsipersist.cmx
 # idem
 
-eliom.cma: error_pages.cmo eliommod.cmo eliomsessions.cmo \
+eliom.cma: error_pages.cmo eliomsessiongroups.cmo \
+	eliommod.cmo eliomsessions.cmo \
 	eliomparameters.cmo eliomservices.cmo \
 	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
 	eliomtools.cmo
 	$(CAMLC) -a -o eliom.cma \
-	error_pages.cmo \
+	error_pages.cmo eliomsessiongroups.cmo \
         eliommod.cmo eliomsessions.cmo eliomparameters.cmo eliomservices.cmo \
 	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
 	eliomtools.cmo
 
-eliom.cmxs: error_pages.cmx eliommod.cmx eliomsessions.cmx \
+eliom.cmxs: error_pages.cmx eliomsessiongroups.cmx \
+	eliommod.cmx eliomsessions.cmx \
 	eliomparameters.cmx eliomservices.cmx \
 	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
 	eliomtools.cmx
 	$(CAMLOPT) -shared -linkall -o eliom.cmxs \
-	error_pages.cmx \
+	error_pages.cmx eliomsessiongroups.cmx \
         eliommod.cmx eliomsessions.cmx eliomparameters.cmx eliomservices.cmx \
 	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
 	eliomtools.cmx
