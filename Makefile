@@ -205,6 +205,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
 	| sed s%_CRYPTOKITINSTALLDIR_%$(CRYPTOKITINSTALLDIR)%g \
 	| sed s%_CAMLZIPDIR_%$(CAMLZIPDIR)%g \
+	| sed s%_OCAMLLIBDIR_%$(shell ocamlc -where)%g \
 	| sed s%files/miniwiki%examples/miniwiki/files%g \
 	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
 	| sed s%\<\!--\ \<commandpipe%\<commandpipe%g \
