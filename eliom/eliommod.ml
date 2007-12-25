@@ -3121,7 +3121,7 @@ let handle_init_exn = function
                 (string_of a)
                 ll
              )^".")^
-         "\nPlease correct your modules.")
+         "\nPlease correct your modules and make sure you have linked in all the modules...")
   | Eliom_function_forbidden_outside_site_loading f ->
       ("Fatal - Eliom: Bad use of function \""^f^
          "\" outside site loading. \
