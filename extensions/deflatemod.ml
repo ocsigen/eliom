@@ -34,13 +34,13 @@ type filter = Type of string option * string option | Extension of string
 type compress_choice = All_but of filter list |
                        Compress_only of filter list 
 
-let should_compress (t, t') ext choice_list = 
+let should_compress (t, t') url choice_list = 
  let check = function
  |Type (None, None) -> true
  |Type (None, Some x') -> x' = t' 
  |Type (Some x, None) -> x = t 
  |Type (Some x, Some x') -> x = t && x' = t' 
- |Extension e -> e = ext
+ |Extension suff -> Filename.check_suffix url suff
  in
  match choice_list with
  |Compress_only l -> List.exists check l
@@ -79,10 +79,9 @@ type output_buffer =
 (* puts in oz the content of buf, from pos to pos + len ;
  * f is the continuation of the current stream *)
 let rec output oz f buf pos len  =
-   Messages.debug2 "--Deflatemod: Entering output to deflate";
    if pos < 0 || len < 0 || pos + len > String.length buf then
            assert false ;
-
+  if len = 0 then next_cont oz f else
   if oz.avail = 0 then
     (let cont () = output oz f buf pos len in
     Messages.debug2 "--Deflatemod: Flushing because output buffer is full";
@@ -90,14 +89,13 @@ let rec output oz f buf pos len  =
   else (
   (catch
       (fun () -> 
-        (Messages.debug2 "--Deflatemod: Actually deflating...";
-        try return(Zlib.deflate oz.stream buf pos len
+        (try return(Zlib.deflate oz.stream buf pos len
                                  oz.buf oz.pos oz.avail
                                  Zlib.Z_SYNC_FLUSH)
 	    with e -> fail e))
       (function 
-         |Zlib.Error(_, _) -> 
-                fail (Ocsistream.Stream_error("Error during compression"))
+         |Zlib.Error(s, s') ->
+                fail (Ocsistream.Stream_error("Error during compression: "^s^" "^s'))
          | e -> fail e)) >>=
   (fun  (_, used_in, used_out) ->
   oz.pos <- oz.pos + used_out;
@@ -148,7 +146,6 @@ and next_cont oz stream =
       flush oz after_flushing
   | Ocsistream.Finished (Some s) -> next_cont oz s
   | Ocsistream.Cont(s,f) ->  
-      Messages.debug2 "--Deflatemod: Next part of stream" ; 
       output oz f s 0 (String.length s)
  
 (* deflate param : true = deflate ; false = gzip (no header in this case) *)
@@ -169,89 +166,6 @@ let compress deflate stream =
     Ocsistream.make
       ~finalize (fun () -> Ocsistream.cont gzip_header new_stream)
   end
-
-
-
-
-(*****************************************************************************)
-(** Extensions may take some options from the config file. 
-    These options are written in xml inside the <extension> tag.
-   For example:
-   <extension module=".../extensiontemplate.cmo">
-     <myoption myattr="hello">
-        ...
-     </myoption>
-   </extension>
- *)
-
-let rec parse_contenttypes = function
- |[] -> []
- |(Element ("type",[],[PCData t]))::q -> 
-  (Ocsiheaders.parse_mime_type t) :: parse_contenttypes q
- |_ -> raise (Error_in_config_file 
-                  "Unexpected element inside contenttype (should be <type>)")
-
-
-let rec parse_global_config = function
-  | [] -> ()
-  | (Element ("compress", [("level", l)], []))::ll ->
-     let l = try int_of_string l
-     with Failure _ -> raise (Error_in_config_file 
-         "Compress level should be an integer between 0 and 9") in
-     compress_level := if (l <= 9 && l >= 0) then l else 6 ;
-     parse_global_config ll
-  | (Element ("buffer", [("size", s)], []))::ll ->
-     let s = (try int_of_string s
-     with Failure _ -> raise (Error_in_config_file 
-         "Buffer size should be a positive integer")) in
-     buffer_size := if s > 0 then s else 1024 ;
-     parse_global_config ll
-  | (Element ("contenttype", [("compress", b)], choices))::ll -> 
-     let l = (try parse_contenttypes choices 
-             with Not_found -> raise (Error_in_config_file 
-                  "Can't parse mime-type content")) in
-     (match b with
-     |"only" -> choice_list := Compress_only l
-     |"allbut" -> choice_list := No_compress l
-     | _ ->  raise (Error_in_config_file 
-       "Attribute \"compress\" should be \"allbut\" or \"only\""))
-  | _ -> raise (Error_in_config_file 
-                  "Unexpected content inside deflatemod config")
-
-let _ = parse_global_config (Extensions.get_config ())
-
-
-
-(*****************************************************************************)
-(** Extensions may define new tags for configuring each site.
-    These tags are inside <site ...>...</site> in the config file.
-        
-   For example:
-   <site dir="">
-     <extensiontemplate module=".../mymodule.cmo" />
-   </site>
-
-   Each extension will set its own configuration options, for example:
-   <site dir="">
-     <extensiontemplate module=".../mymodule.cmo" />
-     <eliom module=".../myeliommodule.cmo" />
-     <static dir="/var/www/plop" />
-   </site>
-
- *)
-
-let parse_config path charset = function
-(*  | Element ("deflate", atts, []) -> () 
-   Ici il faut créer un arbre de répertoires en se souvenant les options
-   de compression de chaque répertoire.
-   cf staticmod par exemple pour page_tree
- *)
-  | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
-  | _ -> 
-      raise (Error_in_config_file "Unexpected data in config file")
-
-
-
 
 (*****************************************************************************)
 (** Function to be called at the beginning of the initialisation phase 
@@ -329,7 +243,7 @@ exception No_compress
 
 (* deflate = true -> mode deflate
  * deflate = false -> mode gzip *)
-let stream_filter contentencoding deflate choice res = 
+let stream_filter contentencoding url deflate choice res = 
  return (Ext_found (fun () ->
  try (
    match res.Http_frame.res_content_type with
@@ -337,8 +251,8 @@ let stream_filter contentencoding deflate choice res =
    | Some contenttype ->
        match Ocsiheaders.parse_mime_type contenttype with
        | None, _ | _, None -> raise No_compress (* should never happen? *)
-       | (Some a, Some b) when should_compress (a, b) "jpg" choice -> 
-                       (* FIXME: replace jpg by the real extension *)
+       | (Some a, Some b) 
+            when should_compress (a, b) url choice -> 
           return { res with
                Http_frame.res_content_length = None;
                Http_frame.res_etag = 
@@ -355,17 +269,109 @@ let stream_filter contentencoding deflate choice res =
              } 
        | _ -> raise No_compress)
  with Not_found | No_compress -> return res))
-                              (* FIXME: ou Ext_not_found dans ce cas ? *)
 
-let filter choice_list charset ri res =
+let filter choice_list =
+ function
+ |Req_not_found (code,_) -> return (Ext_next code)
+ |Req_found (ri,result) -> result () >>= fun res ->
  match select_encoding (Lazy.force(ri.ri_accept_encoding)) with
  | Deflate -> 
-     stream_filter "deflate" true choice_list res
+     stream_filter "deflate" ri.ri_sub_path_string true choice_list res
  | Gzip -> 
-     stream_filter "gzip" false choice_list res
- | Id | Star -> return (Ext_found (fun () -> return res)) (* FIXME: ou Ext_not_found ? *)
+     stream_filter "gzip" ri.ri_sub_path_string false choice_list res
+ | Id | Star -> return (Ext_found (fun () -> return res))
  | Not_acceptable -> 
-     Predefined_senders.Error_content.result_of_content (Some 406, None)
+     return (Ext_stop_all (res.Http_frame.res_cookies,406))
+
+
+(*****************************************************************************)
+(** Extensions may take some options from the config file. 
+    These options are written in xml inside the <extension> tag.
+   For example:
+   <extension module=".../extensiontemplate.cmo">
+     <myoption myattr="hello">
+        ...
+     </myoption>
+   </extension>
+ *)
+
+let rec parse_filter = function
+ |[] -> []
+ |(Element ("type",[],[PCData t]))::q -> 
+   let (a,b) = (Ocsiheaders.parse_mime_type t) 
+   in Type (a,b) :: parse_filter q
+ |(Element ("extension",[],[PCData t]))::q -> 
+  (Extension t) :: parse_filter q
+ |_ -> raise (Error_in_config_file 
+                  "Unexpected element inside contenttype (should be <type> or
+                  <extension>)")
+
+let rec parse_global_config = function
+  | [] -> ()
+  | (Element ("compress", [("level", l)], []))::ll ->
+     let l = try int_of_string l
+     with Failure _ -> raise (Error_in_config_file 
+         "Compress level should be an integer between 0 and 9") in
+     compress_level := if (l <= 9 && l >= 0) then l else 6 ;
+     parse_global_config ll
+  | (Element ("buffer", [("size", s)], []))::ll ->
+     let s = (try int_of_string s
+     with Failure _ -> raise (Error_in_config_file 
+         "Buffer size should be a positive integer")) in
+     buffer_size := if s > 0 then s else 1024 ;
+     parse_global_config ll
+(* TODO: Pas de filtre global pour l'instant
+ * le nom de balise contenttype est mauvais, au passage
+  | (Element ("contenttype", [("compress", b)], choices))::ll -> 
+     let l = (try parse_filter choices 
+             with Not_found -> raise (Error_in_config_file 
+                  "Can't parse mime-type content")) in
+     (match b with
+     |"only" -> choice_list := Compress_only l
+     |"allbut" -> choice_list := All_but l
+     | _ ->  raise (Error_in_config_file 
+     "Attribute \"compress\" should be \"allbut\" or \"only\""));
+     parse_global_config ll
+*)
+  | _ -> raise (Error_in_config_file 
+                  "Unexpected content inside deflatemod config")
+
+let _ = parse_global_config (Extensions.get_config ())
+
+
+
+(*****************************************************************************)
+(** Extensions may define new tags for configuring each site.
+    These tags are inside <site ...>...</site> in the config file.
+        
+   For example:
+   <site dir="">
+     <extensiontemplate module=".../mymodule.cmo" />
+   </site>
+
+   Each extension will set its own configuration options, for example:
+   <site dir="">
+     <extensiontemplate module=".../mymodule.cmo" />
+     <eliom module=".../myeliommodule.cmo" />
+     <static dir="/var/www/plop" />
+   </site>
+
+ *)
+
+let parse_config path charset _ _ = function
+     | Element ("deflate", [("compress",b)], choices) -> 
+     let l = (try parse_filter choices 
+              with Not_found -> raise (Error_in_config_file 
+                                "Can't parse filter content")) in
+     (match b with
+       |"only" -> filter (Compress_only l)
+       |"allbut" -> filter (All_but l)
+       | _ ->  raise (Error_in_config_file 
+         "Attribute \"compress\" should be \"allbut\" or \"only\""))
+  | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
+  | _ -> 
+      raise (Error_in_config_file "Unexpected data in config file")
+
 
 
 
