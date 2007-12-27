@@ -92,7 +92,9 @@ let open_db_if_exists name =
     let t = opendbm (directory^"/"^name^suffix) [Dbm_rdwr] 0o640 in
     tableoftables := Tableoftables.add name t !tableoftables;
     t
-  with Unix.Unix_error (Unix.ENOENT, _, _) -> raise Not_found
+  with 
+    | Unix.Unix_error (Unix.ENOENT, _, _) 
+    | Dbm.Dbm_error _ -> raise Not_found
 
 (* open all files and register them in the table of tables *)
 (*
