@@ -35,9 +35,21 @@ open Extensions
    user) or set an expiration date for the cookie.
    "Volatile" denotes both service and in memory data sessions.
 
+   Be very carefull if you use several sessions concurrently, as they may have
+   different duration (one may be closed while the other are not).
+   Duration of service sessions is sometimes shorter than 
+   volatile data sessions, which is usually shorter than
+   persistent sessions.
+
    If you want several sessions of the same type for one site,
    you can choose a personalized session name by giving the optional
    parameter [?session_name].
+
+   It is highly recommended to put all the sessions for one user in one
+   {e session group}. Thus, it will be possible to implement features
+   like "close all opened sessions" for one user, or limitation of
+   the number of sessions one user can open concurrently, or setting
+   data for one group of sessions.
   *)
 
 
@@ -339,7 +351,122 @@ val get_persistent_data_session_timeout : ?session_name:string ->
   sp:server_params -> unit -> float option Lwt.t
 
 
+(** {3 Session groups} *)
 
+type 'a session_data =
+  | No_data
+  | Data_session_expired
+  | Data of 'a
+
+
+
+(** Session groups may be used    for example to limit
+    the number of sessions one user can open at the same time, or to implement
+    a "close all sessions" feature.
+    Usually, the group is the user name.
+*)
+
+(** sets the group to which belong the service session.
+    If the optional [?set_max] parameter is present, also sets the maximum
+    number of sessions in the group. [None] means "no limitation".
+*)
+val set_service_session_group :
+  ?set_max: int option ->
+  ?session_name:string ->
+  sp:server_params ->
+  string ->
+  unit
+
+(** Remove the session from its group *)
+val unset_service_session_group :
+  ?session_name:string ->
+  sp:server_params ->
+  unit ->
+  unit
+
+(** returns the group to which belong the service session.
+    If the session does not belong to any group, or if no session is opened,
+    return [None].
+*)
+val get_service_session_group :
+  ?session_name:string ->
+  sp:server_params ->
+  unit ->
+  string session_data
+
+(** sets the group to which belong the volatile data session.
+    If the optional [?set_max] parameter is present, also sets the maximum
+    number of sessions in the group. [None] means "no limitation".
+*)
+val set_volatile_data_session_group :
+  ?set_max: int option ->
+  ?session_name:string ->
+  sp:server_params ->
+  string ->
+  unit
+
+(** Remove the session from its group *)
+val unset_volatile_data_session_group :
+  ?session_name:string ->
+  sp:server_params ->
+  unit ->
+  unit
+
+(** returns the group to which belong the data session.
+    If the session does not belong to any group, or if no session is opened,
+    return [None].
+*)
+val get_volatile_data_session_group :
+  ?session_name:string ->
+  sp:server_params ->
+  unit ->
+  string session_data
+
+(** sets the group to which belong the persistent session.
+    If the optional [?set_max] parameter is present, also sets the maximum
+    number of sessions in the group. [None] means "no limitation".
+*)
+val set_persistent_data_session_group :
+  ?set_max: int option ->
+  ?session_name:string ->
+  sp:server_params ->
+  string ->
+  unit Lwt.t
+
+(** Remove the session from its group *)
+val unset_persistent_data_session_group :
+  ?session_name:string ->
+  sp:server_params ->
+  unit ->
+  unit Lwt.t
+
+(** returns the group to which belong the persistent session.
+    If the session does not belong to any group, or if no session is opened,
+    return [None].
+*)
+val get_persistent_data_session_group :
+  ?session_name:string ->
+  sp:server_params ->
+  unit ->
+  string session_data Lwt.t
+
+(** sets the maximum number of service sessions in one session group.
+    [None] means "no limit".
+*)
+val set_default_max_service_sessions_per_group :
+  sp:server_params -> int option -> unit
+
+(** sets the maximum number of volatile data sessions in one session group.
+    [None] means "no limit".
+*)
+val set_default_max_volatile_data_sessions_per_group : 
+  sp:server_params -> int option -> unit
+
+(** sets the maximum number of persistent data sessions in one session group.
+    [None] means "no limit".
+*)
+val set_default_max_persistent_data_sessions_per_group : 
+  sp:server_params -> int option -> unit
 
 (** {3 Cookies} *)
 
@@ -451,13 +578,8 @@ val get_config_file_charset : sp:server_params -> string
 (*****************************************************************************)
 (** {2 Session data} *)
 
-type 'a session_data =
-  | No_data
-  | Data_session_expired
-  | Data of 'a
 
-
-(** {3 Session data in memory} *)
+(** {3 In memory session data} *)
 
 (** The type of (volatile) session data tables. *)
 type 'a volatile_table

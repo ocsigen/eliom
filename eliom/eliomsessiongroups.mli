@@ -19,14 +19,30 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+type sessgrp
+type perssessgrp
+
+val make_full_group_name : string -> string option -> sessgrp option
+val make_persistent_full_group_name : string -> string option -> perssessgrp option
+
+val getsessgrp : sessgrp -> (string * string)
+val getperssessgrp : perssessgrp -> (string * string)
+
 module type MEMTAB =
   sig
-    val find : string option -> string list
-    val add : string -> string option -> unit
-    val remove : string -> string option -> unit
-    val remove_group : string option -> unit
+    val find : sessgrp option -> string list
+    val add : ?set_max: int option ->
+      int option -> string -> sessgrp option -> string list
+    val remove : string -> sessgrp option -> unit
+    val remove_group : sessgrp option -> unit
     val move :
-      string -> string option -> string option -> unit
+      ?set_max: int option ->
+      int option ->
+      string -> 
+      sessgrp option -> 
+      sessgrp option -> 
+      string list
+    val up : string -> sessgrp option -> unit
     val length : unit -> int
   end
 
@@ -35,10 +51,18 @@ module Data : MEMTAB
 
 module Pers :
   sig
-    val find : string option -> string list Lwt.t
-    val add : string -> string option -> unit Lwt.t
-    val remove : string -> string option -> unit Lwt.t
-    val remove_group : string option -> unit Lwt.t
-    val move : string -> string option -> string option -> unit Lwt.t
+    val find : perssessgrp option -> string list Lwt.t
+    val add : ?set_max: int option ->
+      int option -> string -> perssessgrp option -> string list Lwt.t
+    val remove : string -> perssessgrp option -> unit Lwt.t
+    val remove_group : perssessgrp option -> unit Lwt.t
+    val move : 
+      ?set_max: int option ->
+      int option -> 
+      string -> 
+      perssessgrp option -> 
+      perssessgrp option -> 
+      string list Lwt.t
+    val up : string -> perssessgrp option -> unit Lwt.t
     val length : unit -> int Lwt.t
   end

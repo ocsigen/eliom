@@ -211,7 +211,7 @@ let coucou1 =
       </p>
       <p>
          As the syntax extension is using the same typing system as XHTML.M, 
-         You can mix the two syntaxes (<a href="#postforms">see later</a>).
+         You can mix the two syntaxes (<a href="#p1postforms">see later</a>).
       </p>
       <p>
          <em>Warning:</em> The two syntaxes are not equivalent for typing.
@@ -496,7 +496,7 @@ let mytype =
 (*html*
       <p>See $a Tutoeliom.mytype sp <:xmllist< <code>mytype</code> >> Tutoeliom.A$.</p>
 
-      <h4 id="any">Untyped parameters</h4>
+      <h4 id="p1any">Untyped parameters</h4>
       <p>If you want a service that answers to request with any parameters, 
       use the $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliomparameters.any" ]] [version;"Eliomparameters.html"]$ value. The service will get an 
       association list of strings. Example:
@@ -690,7 +690,7 @@ let form = register_new_service ["form"] unit
       <p>Note that if you want to use typed parameters, 
        you cannot use functions like $a ~fragment:"VALinput" ~service:senddoc ~sp [code [pcdata "XHTML.M.input" ]] [version;"XHTML.M.html"]$ to
        create your forms (but for parameters defined with
-       $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliomparameters.any" ]] [version;"Eliomparameters.html"]$, <a href="#any">see later</a>). Indeed, parameter names are typed to force them
+       $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliomparameters.any" ]] [version;"Eliomparameters.html"]$, <a href="#p1any">see later</a>). Indeed, parameter names are typed to force them
        be used properly. In our example, <code>number_name</code> has type
        <code>int param_name</code> and must be used with 
        <code>int_input</code> (or other widgets), whereas
@@ -795,7 +795,7 @@ let my_service_with_get_and_post = register_new_post_service
                    pcdata ", i: ";
                    em [pcdata (string_of_int i)]]])))
 (*html*
-      <h4 id="postforms">POST forms</h4>
+      <h4 id="p1postforms">POST forms</h4>
        <p> To create a POST form, use the 
            $a ~fragment:"VALpost_form" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.post_form" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ function.
            It is similar to $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ 
@@ -1427,7 +1427,7 @@ let _ = register
       Eliom allows to replace a public service by a service valid only for
       one user.
       Use this to personalise main services for one user (or to create new
-      coservices available only to one user, <a href="#calc">see later</a>).
+      coservices available only to one user, <a href="#p2calc">see later</a>).
       To create a "session service", register the service in
       a "session service table" (valid only for one client) 
       instead of the public table. To do that,
@@ -1637,7 +1637,7 @@ let _ = register_for_session
    in the session table. They allow to give a precise semantics to the
    "back" button of the browser (be sure that you will go back in the
    past) or bookmarks, or duplication of the browser's window.
-   (See the <a href="#calc"><code>calc</code></a> example below).
+   (See the <a href="#p2calc"><code>calc</code></a> example below).
    </p>
    <p>
    Use POST coservices if you want to particularize a link or form, 
@@ -1732,7 +1732,7 @@ let _ =
       parameters. Note that the fallback of a GET coservice cannot take
       parameters. Actually as coservices parameters have special
       names, it is possible to use a "pre-applied" service as fallback
-      (<a href="#preapplied">see later</a>).</p>
+      (<a href="#p3preapplied">see later</a>).</p>
 
       <p><strong>Exercise:</strong> Rewrite the example of Web site with 
         connection (<code>session_data_example</code>, with session data) 
@@ -1784,7 +1784,7 @@ let _ =
         </p>
         <p>Coservices allow to create dynamically 
         new continuations that depend on previous interactions with users
-        (<a href="#calc">See the <code>calc</code> example below</a>). 
+        (<a href="#p2calc">See the <code>calc</code> example below</a>). 
         Such a behaviour is difficult to simulate with traditional Web
         programming.</p>
         <p>If you want continuations dedicated to a particular user
@@ -1807,7 +1807,7 @@ let _ =
        </p>
     </div>
     <h3 id="p2coservicesinsessiontable">Coservices in session tables</h3>
-    <div id="calc" class="onecol">
+    <div id="p2calc" class="onecol">
     <p>You can register coservices in session tables to create
        dynamically new services dedicated to an user.
        Here is an example of pages that add two integers.
@@ -2130,7 +2130,12 @@ let () =
 
      <p>
       Note that actions return a list (here empty). 
-      <a href="#infofallbacks">See later for more advanced use</a>.
+      $a ~fragment:"p3infofallbacks" 
+         ~service:tutolast3 
+         ~sp
+         [pcdata "See later for more advanced use"]
+         ()
+      $
      </p>
 
 
@@ -2150,10 +2155,20 @@ let () =
 
      <p>
        We'll see later 
-       <a href="#infofallbacks">how to display an error message</a>
+      $a ~fragment:"p3infofallbacks" 
+         ~service:tutolast3 
+         ~sp
+         [pcdata "how to display an error message"]
+         ()
+      $
        if the connection goes wrong, and
-       <a href="#p3persistenceofsessions">how to have persistent
-       sessions</a> (that stay opened even if the server is re-launched).
+      $a ~fragment:"p3persistenceofsessions" 
+         ~service:tutolast3 
+         ~sp
+         [pcdata "how to have persistent sessions"]
+         ()
+      $
+      (that stay opened even if the server is re-launched).
      </p>
    
 
@@ -2198,7 +2213,13 @@ let () =
         </li>
         <li>GET coservices (whithout POST parameters) can be registered
         only with a main service without GET/POST parameters as fallback.
-        But it may be a <a href="#preapplied"><em>preapplied</em></a>
+        But it may be a 
+      $a ~fragment:"p3preapplied" 
+         ~service:tutolast3 
+         ~sp
+         [em [pcdata "preapplied"]]
+         ()
+      $
         service (see below).
         </li>
         <li>Services with POST parameters (main service or coservice) 
@@ -2268,7 +2289,7 @@ let part3 sp =
          $a (static_dir ~sp) sp [pcdata "download image"] [small_logo]$
       </p>
       <p>It is now also possible to handle static pages with Eliom, using
-      <code>Eliompredefmod.Files</code> (<a href="#eliomfiles">see later</a>).
+      <code>Eliompredefmod.Files</code> (<a href="#p3eliomfiles">see later</a>).
       </p>
       <!-- h4>Static parts of a page</h4>
       <em>To be available soon</em -->
@@ -2326,7 +2347,7 @@ let redir = Eliompredefmod.Redirections.register_new_service
       </p>
 
 
-     <h4 id="eliomfiles">Sending files</h4>
+     <h4 id="p3eliomfiles">Sending files</h4>
       <p>You may want to register a service that will send files.
       To do that, use the $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Files" ]] [version;"Eliompredefmod.Files.html"]$ module. Example:
       </p>
@@ -2532,7 +2553,7 @@ let _ = Cookies.register cookies
        Here is an example of page with a persistent counter:
       </p>
 *html*)
-let mystore = Ocsipersist.open_store "eliomexamplestore"
+let mystore = Ocsipersist.open_store "eliomexamplestore2"
 
 let count2 = 
   let next =
@@ -2595,7 +2616,13 @@ val remove : 'value table -&gt; string -&gt; unit Lwt.t
        with users, with persistent connections. 
        (<code>login_box</code>, <code>disconnect_box</code>
        and <code>disconnect_action</code>
-       are the same as <a href="#p2actions">before</a>).
+       are the same as 
+      $a ~fragment:"p2actions" 
+         ~service:tutolast2 
+         ~sp
+         [pcdata "before"]
+         ()
+      $).
       </p>
 
 *html*)
@@ -2734,9 +2761,122 @@ let () =
 
 
 
+    <h3 id="p3otherconcepts">[New in 0.99.5 - EXPERIMENTAL] Session groups</h3>
+    <div class="onecol">
+    <p>The idea is complementary to that of
+the "session name".  While the
+optional <code>session_name</code> parameter allows for a single session to have
+multiple buckets of data associated with it, a session_group parameter
+(also optional) allow multiple sessions to be referenced together.
+For most uses, the session group is the user name.
+It allows to implement features like "close all sessions" for one user
+(even those opened on other browsers), or to limit the number of sessions
+one user may open at the same time.
+    </p>
+    <p>Session groups have been suggested by Dario Teixeira and
+    introduced in Eliom 0.99.5. Dario explains:
+    <em>Consider the following scenario: a user logs in from home using
+  a "Remember me on this computer" feature, which sets a (almost)
+  no-expiration cookie on his browser and session timeouts of infinity
+  on the server.  The user goes on vacation, and while logging from
+  a cyber-café, she also sets the "Remember me" option.  Back home
+  she realises her mistake, and wishes to do a "global logout", ie,
+  closing all existing sessions associated with her user name.
+  </em>
+    </p>
+  *html*)
+(************************************************************)
+(************ Connection of users, version 4 ****************)
+(************************************************************)
+
+(*zap* *)
+let session_name = "connect_example4"
+(* *zap*)
+(* -------------------------------------------------------- *)
+(* We create one main service and two (POST) actions        *)
+(* (for connection and disconnection)                       *)
+
+let connect_example4 = 
+  Eliomservices.new_service
+    ~path:["groups"] 
+    ~get_params:Eliomparameters.unit
+    ()
+
+let connect_action = 
+  Eliomservices.new_post_coservice'
+    ~post_params:(Eliomparameters.string "login")
+    ()
+    
+(* As the handler is very simple, we register it now: *)
+let disconnect_action = 
+  Eliompredefmod.Actions.register_new_post_coservice'
+    ~post_params:Eliomparameters.unit 
+    (fun sp () () -> 
+      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+      Lwt.return [])
+
+
+(* -------------------------------------------------------- *)
+(* login ang logout boxes:                                  *)
+
+let disconnect_box sp s = 
+  Eliompredefmod.Xhtml.post_form disconnect_action sp 
+    (fun _ -> [p [Eliompredefmod.Xhtml.string_input
+                    ~input_type:`Submit ~value:s ()]]) ()
+
+let login_box sp = 
+  Eliompredefmod.Xhtml.post_form connect_action sp
+    (fun loginname ->
+      [p 
+         (let l = [pcdata "login: "; 
+                   Eliompredefmod.Xhtml.string_input
+                     ~input_type:`Text ~name:loginname ()]
+         in l)
+     ])
+    ()
+
+
+(* -------------------------------------------------------- *)
+(* Handler for the "connect_example4" service (main page):    *)
+
+let connect_example4_handler sp () () = 
+  let sessdat = Eliomsessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
+  return
+    (html
+       (head (title (pcdata "")) [])
+       (body 
+          (match sessdat with
+          | Data name ->
+              [p [pcdata ("Hello "^name); br ()];
+              disconnect_box sp "Close session"]
+          | Data_session_expired
+          | No_data -> [login_box sp]
+          )))
+    
+
+(* -------------------------------------------------------- *)
+(* Handler for connect_action (user logs in):               *)
+
+let connect_action_handler sp () login =
+  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+  Eliomsessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login;
+  return []
+
+
+(* -------------------------------------------------------- *)
+(* Registration of main services:                           *)
+
+let () =
+  Eliompredefmod.Xhtml.register ~service:connect_example4 connect_example4_handler;
+  Eliompredefmod.Actions.register ~service:connect_action connect_action_handler
+(*html*
+    </div>
+
+
+
     <h3 id="p3otherconcepts">Other concepts</h3>
     <div class="onecol">
-    <h4 id="preapplied">Pre-applied services</h4>
+    <h4 id="p3preapplied">Pre-applied services</h4>
     <p>Services or coservices with GET parameters can be preapplied
      to obtain a service without parameters. Example:
     </p>
@@ -2749,7 +2889,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     </p>
 
 
-    <h4 id="infofallbacks">Giving information to fallbacks</h4>
+    <h4 id="p3infofallbacks">Giving information to fallbacks</h4>
 
     <p>Fallbacks have access to some information about what succeeded before
     they were called. Get this information using 
@@ -2762,21 +2902,26 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     generated after them. Just place exceptions in the list returned by the
     action. These exceptions will also be accessible with 
     $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_exn" ]] [version;"Eliomsessions.html"]$. Try to replace the lines 
-    <a href="#p2actions">above (example of session with actions)</a> by:
+          $a ~fragment:"p2actions" 
+         ~service:tutolast2 
+         ~sp
+         [pcdata "above (example of session with actions)"]
+         ()
+      $ by:
     </p>
 *html*)
 (************************************************************)
-(************ Connection of users, version 4 ****************)
+(************ Connection of users, version 5 ****************)
 (************************************************************)
 (*zap* *)
-let session_name = "connect_example4"
+let session_name = "connect_example5"
 (* *zap*)
 (*zap* *)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
 
-let connect_example4 = 
+let connect_example5 = 
   Eliomservices.new_service
     ~path:["action2"] 
     ~get_params:unit 
@@ -2799,7 +2944,6 @@ let disconnect_action =
   Eliompredefmod.Actions.register_new_post_coservice'
     ~post_params:Eliomparameters.unit 
     (fun sp () () -> 
-print_endline session_name;
       Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
       return [])
 
@@ -2835,15 +2979,17 @@ let login_box sp session_expired action =
 
 (*zap* *)    
 (* -------------------------------------------------------- *)
-(* Handler for the "connect_example4" service (main page):   *)
+(* Handler for the "connect_example5" service (main page):   *)
 
-let connect_example4_handler sp () () = 
-  let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+let connect_example5_handler sp () () = 
+  let group = 
+    Eliomsessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () 
+  in
   return
     (html
        (head (title (pcdata "")) [])
        (body 
-          (match sessdat with
+          (match group with
           | Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
@@ -2862,7 +3008,7 @@ let connect_action_handler sp () login =
   Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliomsessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login; 
+    Eliomsessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login; 
     return []
   end
   else return [Bad_user]
@@ -2873,12 +3019,12 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () = 
-  Eliompredefmod.Xhtml.register ~service:connect_example4 connect_example4_handler;
+  Eliompredefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
   Eliompredefmod.Actions.register ~service:connect_action connect_action_handler
 (* *zap*)
 (*html*
       <p>
-      $a Tutoeliom.connect_example4 sp <:xmllist< See this example here >> ()$.
+      $a Tutoeliom.connect_example5 sp <:xmllist< See this example here >> ()$.
       </p>
       <p>
         If the actions raises an exception (with $a ~fragment:"VALfail" ~service:senddoc ~sp [code [pcdata "Lwt.fail" ]] [version;"Lwt.html"]$),
@@ -3999,8 +4145,10 @@ let _ = register main
              $a connect_example3 sp <:xmllist< <code>actions</code> >> ()$ <br/>
          A session based on cookies, with session services: 
              $a session_services_example sp <:xmllist< <code>sessionservices</code> >> ()$ <br/> 
+         A session based on cookies, implemented with actions, with session groups: 
+             $a connect_example4 sp <:xmllist< <code>groups</code> >> ()$ <br/>
          The same with wrong user if not "toto": 
-             $a connect_example4 sp <:xmllist< <code>actions2</code> >> ()$ <br/>
+             $a connect_example5 sp <:xmllist< <code>actions2</code> >> ()$ <br/>
          Coservices in the session table:
              $a calc sp <:xmllist< <code>calc</code> >> ()$ <br/>
        <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< <code>shop</code> >> ()$) -->

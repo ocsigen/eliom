@@ -106,13 +106,14 @@ module SessionCookies : Hashtbl.S with type key = string
 
 type tables
 
+
 type 'a servicecookiestablecontent =
     (string                  (* session fullsessname *) *
      'a                      (* session table *) * 
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
      timeout ref             (* user timeout *) *
-     string option ref   (* session group *))
+     Eliomsessiongroups.sessgrp option ref   (* session group *))
 
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
@@ -122,7 +123,7 @@ type datacookiestablecontent =
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
      timeout ref             (* user timeout *) *
-     string option ref   (* session group *))
+     Eliomsessiongroups.sessgrp option ref   (* session group *))
 
 
 type datacookiestable = datacookiestablecontent SessionCookies.t
@@ -145,7 +146,7 @@ type 'a one_service_cookie_info =
                                     ref towards cookie table
                                   *);
      sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
-     sc_session_group:string option ref (* session group *)
+     sc_session_group:Eliomsessiongroups.sessgrp option ref (* session group *)
    }
 
 
@@ -160,14 +161,14 @@ type one_data_cookie_info =
                                            ref towards cookie table
                                          *);
      dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-     dc_session_group:string option ref (* session group *)
+     dc_session_group:Eliomsessiongroups.sessgrp option ref (* session group *)
    }
 
 type one_persistent_cookie_info =
      {pc_value:string                    (* current value *);
       pc_timeout:timeout ref             (* user timeout *); 
       pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-      pc_session_group:string option ref (* session group *)
+      pc_session_group:Eliomsessiongroups.perssessgrp option ref (* session group *)
     }
 
 
@@ -213,7 +214,7 @@ type 'a cookie_info =
         float option            (* (server side) expdate 
                                    at the beginning of the request
                                    None = no exp *) *
-        string option           (* session group at beginning of request *))
+        Eliomsessiongroups.perssessgrp option      (* session group at beginning of request *))
          option
                                 (* None = new cookie 
                                    (not sent by the browser) *)
@@ -242,6 +243,9 @@ type sitedata =
    mutable not_bound_in_data_tables: string -> bool;
    mutable exn_handler: server_params -> exn -> result_to_send Lwt.t;
    mutable unregistered_services: url_path option list;
+   mutable max_volatile_data_sessions_per_group: int option;
+   mutable max_service_sessions_per_group: int option;
+   mutable max_persistent_data_sessions_per_group: int option;
  }
 
 
@@ -281,7 +285,8 @@ type anon_params_type = int
       
 
 val persistent_cookies_table :
-    (string * float option * timeout * string option) Ocsipersist.table
+  (string * float option * timeout * Eliomsessiongroups.perssessgrp option)
+    Ocsipersist.table
 
 
 type page_table_key =
@@ -402,15 +407,15 @@ val find_persistent_cookie_only :
 
 
 val close_service_session2 :
-    sitedata -> string -> string option -> unit
+    sitedata -> Eliomsessiongroups.sessgrp option -> string -> unit
 
 val close_service_session :
   ?close_group:bool ->
     ?session_name:string -> sp:server_params -> unit -> unit
 
-val close_service_group : sitedata -> string option -> unit
+val close_service_group : sitedata -> Eliomsessiongroups.sessgrp option -> unit
 
-val close_data_session2 : sitedata -> string -> string option -> unit
+val close_data_session2 : sitedata -> Eliomsessiongroups.sessgrp option -> string -> unit
 
 val close_data_session :
   ?close_group:bool ->
@@ -419,7 +424,7 @@ val close_data_session :
   unit -> 
   unit
 
-val close_data_group : sitedata -> string option -> unit
+val close_data_group : sitedata -> Eliomsessiongroups.sessgrp option -> unit
 
 val close_volatile_session :
   ?close_group:bool ->
@@ -429,8 +434,8 @@ val close_volatile_session :
   unit
 
 val close_persistent_session2 : 
-  string -> 
-  string option ->
+  Eliomsessiongroups.perssessgrp option -> 
+  string ->
   unit Lwt.t
 
 val close_persistent_session :
@@ -440,7 +445,7 @@ val close_persistent_session :
   unit -> 
   unit Lwt.t
 
-val close_persistent_group : string option -> unit Lwt.t
+val close_persistent_group : Eliomsessiongroups.perssessgrp option -> unit Lwt.t
 
 val close_all_service_sessions :
   ?close_group:bool ->
@@ -471,13 +476,16 @@ val iter_data_sessions :
       (SessionCookies.key * datacookiestablecontent * sitedata -> unit Lwt.t) -> unit Lwt.t
 
 val iter_persistent_sessions :
-    (string * (string * float option * timeout * string option) -> 
-      unit Lwt.t) -> unit Lwt.t
+  (string * (string * float option * timeout * 
+               Eliomsessiongroups.perssessgrp option) -> 
+     unit Lwt.t) -> 
+  unit Lwt.t
 
 val fold_service_sessions :
-    sitedata -> 
-      (SessionCookies.key * tables servicecookiestablecontent * sitedata -> 'c -> 'c Lwt.t)
-      -> 'c -> 'c Lwt.t
+  sitedata -> 
+  (SessionCookies.key * tables servicecookiestablecontent * 
+     sitedata -> 'c -> 'c Lwt.t)
+  -> 'c -> 'c Lwt.t
 
 val fold_data_sessions :
     sitedata -> 
@@ -485,8 +493,9 @@ val fold_data_sessions :
         'c -> 'c Lwt.t
 
 val fold_persistent_sessions :
-    (string * (string * float option * timeout * string option) -> 
-      'c -> 'c Lwt.t) -> 'c -> 'c Lwt.t
+  (string * (string * float option * timeout * 
+               Eliomsessiongroups.perssessgrp option) -> 
+     'c -> 'c Lwt.t) -> 'c -> 'c Lwt.t
 
 
 
@@ -512,4 +521,3 @@ val global_register_allowed : unit -> (unit -> sitedata) option
 val add_cookie_list_to_send :
     sitedata -> cookie list -> Http_frame.cookieset -> Http_frame.cookieset
 
-val make_full_group_name : sp:server_params -> string option -> string option

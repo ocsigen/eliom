@@ -117,7 +117,7 @@ type 'a one_service_cookie_info =
                                     ref towards cookie table
                                   *);
      sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
-     sc_session_group:string option ref (* session group *)
+     sc_session_group:Eliomsessiongroups.sessgrp option ref (* session group *)
    }
 
 
@@ -132,14 +132,14 @@ type one_data_cookie_info =
                                            ref towards cookie table
                                          *);
      dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-     dc_session_group:string option ref (* session group *)
+     dc_session_group: Eliomsessiongroups.sessgrp option ref (* session group *)
    }
 
 type one_persistent_cookie_info =
      {pc_value:string                    (* current value *);
       pc_timeout:timeout ref             (* user timeout *); 
       pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-      pc_session_group:string option ref (* session group *)
+      pc_session_group:Eliomsessiongroups.perssessgrp option ref (* session group *)
     }
 
 
@@ -184,7 +184,7 @@ type 'a cookie_info =
         float option            (* (server side) expdate 
                                    at the beginning of the request
                                    None = no exp *) *
-        string option           (* session group at beginning of request *))
+        Eliomsessiongroups.perssessgrp option      (* session group at beginning of request *))
          option
                                 (* None = new cookie 
                                    (not sent by the browser) *)
@@ -206,7 +206,7 @@ type 'a servicecookiestablecontent =
      float option ref    (* expiration date by timeout 
                             (server side) *) *
      timeout ref         (* user timeout *) *
-     string option ref   (* session group *))
+     Eliomsessiongroups.sessgrp option ref   (* session group *))
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
 (* the table contains:
@@ -224,7 +224,7 @@ type datacookiestablecontent =
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
      timeout ref             (* user timeout *) *
-     string option ref   (* session group *))
+     Eliomsessiongroups.sessgrp option ref   (* session group *))
 
 type datacookiestable = datacookiestablecontent SessionCookies.t
 
@@ -350,6 +350,9 @@ and sitedata =
    mutable not_bound_in_data_tables: string -> bool;
    mutable exn_handler: server_params -> exn -> result_to_send Lwt.t;
    mutable unregistered_services: url_path option list;
+   mutable max_volatile_data_sessions_per_group: int option;
+   mutable max_service_sessions_per_group: int option;
+   mutable max_persistent_data_sessions_per_group: int option;
  }
 
 
@@ -421,15 +424,6 @@ let make_fullsessname2 site_dir_string = function
   | Some s -> site_dir_string^"|"^s
 (* Warning: do not change this without modifying Eliomsessions.Admin *)
 
-let make_full_group_name ~sp = function
-  | None -> None
-  | Some g -> Some (sp.sp_sitedata.site_dir_string^"|"^g)
-
-(*
-let make_full_group_name2 site_dir_string = function
-  | None -> None
-  | Some g -> Some (site_dir_string^"|"^g)
-*)
 
 (*****************************************************************************)
 let rng = Cryptokit.Random.device_rng "/dev/urandom"
@@ -474,12 +468,45 @@ Dario Teixeira
   *)
 
 
-let rec new_data_cookie fullsessgrp fullsessname table = 
+(* to be called from outside requests *)
+let close_data_session2 sitedata fullsessgrp cookie = 
+  try
+    SessionCookies.remove sitedata.session_data cookie;
+    Eliomsessiongroups.Data.remove cookie fullsessgrp;
+    sitedata.remove_session_data cookie;
+  with Not_found -> ()
+
+let close_data_group sitedata fullsessgrp =
+  let cooklist = Eliomsessiongroups.Data.find fullsessgrp in
+  List.iter (close_data_session2 sitedata None) cooklist;
+  Eliomsessiongroups.Data.remove_group fullsessgrp
+
+(* to be called during a request *)
+let close_data_session ?(close_group = false) ?session_name ~sp () = 
+  try
+    let fullsessname = make_fullsessname ~sp session_name in
+    let (_, cookie_info, _) = sp.sp_cookie_info in
+    let (_, ior) = 
+      Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info) 
+    in
+    match !ior with
+    | SC c ->
+        if close_group then
+          close_data_group sp.sp_sitedata !(c.dc_session_group)
+        else
+          close_data_session2 sp.sp_sitedata !(c.dc_session_group) c.dc_value;
+        ior := SCNo_data
+    | _ -> ()
+  with Not_found -> ()
+
+
+
+let rec new_data_cookie sitedata fullsessgrp fullsessname table = 
   let c = make_new_cookie_value () in
   try
     ignore (SessionCookies.find table c); (* Actually not needed 
                                              for the cookies we use *)
-    new_data_cookie fullsessgrp fullsessname table
+    new_data_cookie sitedata fullsessgrp fullsessname table
   with Not_found ->
     let usertimeout = ref TGlobal (* See global table *) in
     let serverexp = ref (Some 0.) (* None = never. We'll change it later. *) in
@@ -491,7 +518,12 @@ let rec new_data_cookie fullsessgrp fullsessname table =
        serverexp (* exp on server *),
        usertimeout,
        fullsessgrpref);
-    Eliomsessiongroups.Data.add c fullsessgrp;
+    List.iter
+      (close_data_session2 sitedata None)
+      (Eliomsessiongroups.Data.add 
+         sitedata.max_volatile_data_sessions_per_group c fullsessgrp);
+    (* add returns the list of session to close if
+       maxsessionspergroup exceded *)
     {dc_value= c;
      dc_timeout= usertimeout;
      dc_exp= serverexp;
@@ -500,12 +532,47 @@ let rec new_data_cookie fullsessgrp fullsessname table =
    }
 
 
-let rec new_service_cookie fullsessgrp fullsessname table = 
+
+
+
+
+let close_service_session2 sitedata fullsessgrp cookie = 
+  SessionCookies.remove sitedata.session_services cookie;
+  Eliomsessiongroups.Serv.remove cookie fullsessgrp
+
+let close_service_group sitedata fullsessgrp =
+  let cooklist = Eliomsessiongroups.Serv.find fullsessgrp in
+  List.iter (close_service_session2 sitedata None) cooklist;
+  Eliomsessiongroups.Serv.remove_group fullsessgrp
+
+let close_service_session ?(close_group = false) ?session_name ~sp () = 
+  try
+    let fullsessname = make_fullsessname ~sp session_name in
+    let (cookie_info, _, _) = sp.sp_cookie_info in
+    let (_, ior) = Http_frame.Cookievalues.find fullsessname !cookie_info in
+    match !ior with
+    | SC c ->
+        if close_group then
+          close_service_group sp.sp_sitedata !(c.sc_session_group)
+        else
+          close_service_session2 
+            sp.sp_sitedata !(c.sc_session_group) c.sc_value;
+        ior := SCNo_data
+    | _ -> ()
+  with Not_found -> ()
+
+let close_volatile_session ?close_group ?session_name ~sp () =
+  close_data_session ?close_group ?session_name ~sp ();
+  close_service_session ?close_group ?session_name ~sp ()
+
+
+
+let rec new_service_cookie sitedata fullsessgrp fullsessname table = 
   let c = make_new_cookie_value () in
   try
     ignore (SessionCookies.find table c); (* Actually not needed 
                                       for the cookies we use *)
-    new_service_cookie fullsessgrp fullsessname table
+    new_service_cookie sitedata fullsessgrp fullsessname table
   with Not_found ->
     let str = ref (new_service_session_tables ()) in
     let usertimeout = ref TGlobal (* See global table *) in
@@ -519,7 +586,12 @@ let rec new_service_cookie fullsessgrp fullsessname table =
        serverexp (* exp on server *),
        usertimeout,
        fullsessgrpref);
-    Eliomsessiongroups.Serv.add c fullsessgrp;
+    List.iter
+      (close_service_session2 sitedata None)
+      (Eliomsessiongroups.Serv.add 
+         sitedata.max_service_sessions_per_group c fullsessgrp);
+    (* add returns the list of session to close if
+       maxsessionspergroup exceded *)
     {sc_value= c;
      sc_table= str;
      sc_timeout= usertimeout;
@@ -534,7 +606,10 @@ let find_or_create_data_cookie ?session_group ?session_name ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
   let fullsessname = make_fullsessname ~sp session_name in
-  let fullsessgrp = make_full_group_name ~sp session_group in
+  let fullsessgrp = 
+    Eliomsessiongroups.make_full_group_name
+      sp.sp_sitedata.site_dir_string session_group 
+  in
   let (_, cookie_info, _) = sp.sp_cookie_info in
   try
     let (old, ior) = 
@@ -544,14 +619,16 @@ let find_or_create_data_cookie ?session_group ?session_name ~sp () =
     | SCData_session_expired 
     | SCNo_data -> 
         let v = 
-          new_data_cookie fullsessgrp fullsessname sp.sp_sitedata.session_data
+          new_data_cookie
+            sp.sp_sitedata fullsessgrp fullsessname sp.sp_sitedata.session_data
         in
         ior := SC v;
         v
     | SC v -> v;
   with Not_found -> 
     let v = 
-      new_data_cookie fullsessgrp fullsessname sp.sp_sitedata.session_data 
+      new_data_cookie
+        sp.sp_sitedata fullsessgrp fullsessname sp.sp_sitedata.session_data 
     in
     cookie_info := 
       Http_frame.Cookievalues.add
@@ -577,7 +654,10 @@ let find_or_create_service_cookie ?session_group ?session_name ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
   let fullsessname = make_fullsessname ~sp session_name in
-  let fullsessgrp = make_full_group_name ~sp session_group in
+  let fullsessgrp = 
+    Eliomsessiongroups.make_full_group_name
+      sp.sp_sitedata.site_dir_string session_group 
+  in
   let (cookie_info, _, _) = sp.sp_cookie_info in
   try
     let (old, ior) = Http_frame.Cookievalues.find fullsessname !cookie_info in
@@ -585,7 +665,8 @@ let find_or_create_service_cookie ?session_group ?session_name ~sp () =
     | SCData_session_expired 
     | SCNo_data -> 
         let v = 
-          new_service_cookie 
+          new_service_cookie
+            sp.sp_sitedata
             fullsessgrp fullsessname sp.sp_sitedata.session_services 
         in
         ior := SC v;
@@ -594,7 +675,7 @@ let find_or_create_service_cookie ?session_group ?session_name ~sp () =
   with Not_found -> 
     let v = 
       new_service_cookie
-        fullsessgrp fullsessname sp.sp_sitedata.session_services 
+        sp.sp_sitedata fullsessgrp fullsessname sp.sp_sitedata.session_services 
     in
     cookie_info :=
       Http_frame.Cookievalues.add
@@ -666,12 +747,55 @@ let number_of_persistent_table_elements () =
       (fun l -> Ocsipersist.length (Ocsipersist.open_table t) >>=
         (fun e -> return ((t, e)::l)))) (return []) !perstables
 
-let rec new_persistent_cookie fullsessgrp fullsessname = 
+(* close a persistent session by cookie *)
+let close_persistent_session2 fullsessgrp cookie = 
+  catch
+    (fun () ->
+      Ocsipersist.remove persistent_cookies_table cookie >>= fun () ->
+      Eliomsessiongroups.Pers.remove cookie fullsessgrp >>= fun () ->
+      remove_from_all_persistent_tables cookie
+    )
+    (function
+      | Not_found -> return ()
+      | e -> fail e)
+
+let close_persistent_group fullsessgrp =
+(*VVV VERIFY concurrent access *)
+  Eliomsessiongroups.Pers.find fullsessgrp >>= fun cooklist ->
+  Lwt_util.iter (close_persistent_session2 None) cooklist
+  >>= fun () ->
+  Eliomsessiongroups.Pers.remove_group fullsessgrp
+
+(* close current persistent session *)
+let close_persistent_session ?(close_group = false) ?session_name ~sp () = 
+  catch
+    (fun () ->
+      let fullsessname = make_fullsessname ~sp session_name in
+      let (_, _, cookie_info) = sp.sp_cookie_info in
+      Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info)
+      >>= fun (_, ior) ->
+      match !ior with
+      | SC c ->
+          (if close_group then
+            close_persistent_group !(c.pc_session_group)
+          else
+            close_persistent_session2 !(c.pc_session_group) c.pc_value)
+          >>= fun () ->
+          ior := SCNo_data;
+          return ()
+      | _ -> return ()
+    )
+    (function
+      | Not_found -> return ()
+      | e -> fail e)
+
+
+let rec new_persistent_cookie sitedata fullsessgrp fullsessname = 
   let c = make_new_cookie_value () in
 (*  catch
     (fun () ->
       Ocsipersist.find persistent_cookies_table c >>= (* useless *)
-      (fun _ -> new_persistent_cookie fullsessgrp fullsessname))(* never succeeds *)
+      (fun _ -> new_persistent_cookie sitedata fullsessgrp fullsessname))(* never succeeds *)
     (function
       | Not_found -> 
           begin *)
@@ -683,7 +807,11 @@ let rec new_persistent_cookie fullsessgrp fullsessname =
                TGlobal (* timeout - see global config *),
                fullsessgrp)
             >>= fun () -> 
-            Eliomsessiongroups.Pers.add c fullsessgrp >>= fun () ->
+            Eliomsessiongroups.Pers.add
+              sitedata.max_persistent_data_sessions_per_group
+              c fullsessgrp >>= fun l ->
+            Lwt_util.iter 
+              (close_persistent_session2 None) l >>= fun () ->
             return {pc_value= c;
                     pc_timeout= usertimeout;
                     pc_cookie_exp= ref CENothing (* exp on client *);
@@ -696,7 +824,10 @@ let rec new_persistent_cookie fullsessgrp fullsessname =
 let find_or_create_persistent_cookie ?session_group ?session_name ~sp () =
   (* if it exists, do not create it, but returns its value *)
   let fullsessname = make_fullsessname ~sp session_name in
-  let fullsessgrp = make_full_group_name ~sp session_group in
+  let fullsessgrp = 
+    Eliomsessiongroups.make_persistent_full_group_name
+      sp.sp_sitedata.site_dir_string session_group
+  in
   let (_, _, cookie_info) = sp.sp_cookie_info in
   catch
     (fun () ->
@@ -705,13 +836,15 @@ let find_or_create_persistent_cookie ?session_group ?session_name ~sp () =
       match !ior with
       | SCData_session_expired 
       | SCNo_data -> 
-          new_persistent_cookie fullsessgrp fullsessname >>= fun v ->
+          new_persistent_cookie 
+            sp.sp_sitedata fullsessgrp fullsessname >>= fun v ->
           ior := SC v;
           return v
       | SC v -> return v)
     (function
       | Not_found -> 
-          new_persistent_cookie fullsessgrp fullsessname >>= fun v ->
+          new_persistent_cookie
+            sp.sp_sitedata fullsessgrp fullsessname >>= fun v ->
           cookie_info := 
             Http_frame.Cookievalues.add
               fullsessname
@@ -737,48 +870,6 @@ let find_persistent_cookie_only ?session_name ~sp () =
 
 
 
-
-(* close a persistent session by cookie *)
-let close_persistent_session2 cookie grp = 
-  catch
-    (fun () ->
-      Ocsipersist.remove persistent_cookies_table cookie >>= fun () ->
-      Eliomsessiongroups.Pers.remove cookie grp >>= fun () ->
-      remove_from_all_persistent_tables cookie
-    )
-    (function
-      | Not_found -> return ()
-      | e -> fail e)
-
-let close_persistent_group grp =
-(*VVV VERIFY concurrent access *)
-  Eliomsessiongroups.Pers.find grp >>= fun cooklist ->
-  Lwt_util.iter (fun c -> close_persistent_session2 c None) cooklist
-  >>= fun () ->
-  Eliomsessiongroups.Pers.remove_group grp
-
-(* close current persistent session *)
-let close_persistent_session ?(close_group = false) ?session_name ~sp () = 
-  catch
-    (fun () ->
-      let fullsessname = make_fullsessname ~sp session_name in
-      let (_, _, cookie_info) = sp.sp_cookie_info in
-      Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info)
-      >>= fun (_, ior) ->
-      match !ior with
-      | SC c ->
-          (if close_group then
-            close_persistent_group !(c.pc_session_group)
-          else
-            close_persistent_session2 c.pc_value !(c.pc_session_group))
-          >>= fun () ->
-          ior := SCNo_data;
-          return ()
-      | _ -> return ()
-    )
-    (function
-      | Not_found -> return ()
-      | e -> fail e)
 
 
 
@@ -902,11 +993,12 @@ let service_session_gc sitedata =
                         contains_naservices_with_timeout) as tables), 
                       exp, 
                       _,
-                      session_group) thr -> 
+                      session_group_ref) thr -> 
                         thr >>= fun () ->
                           (match !exp with
                           | Some exp when exp < now -> 
-                              SessionCookies.remove service_cookie_table k;
+                              close_service_session2 
+                                sitedata !session_group_ref k;
                               return ()
                           | _ -> 
                               (if !contains_services_with_timeout
@@ -918,7 +1010,8 @@ let service_session_gc sitedata =
                               (fun () ->
                                 if service_tables_are_empty tables
                                 then 
-                                  SessionCookies.remove service_cookie_table k;
+                                  close_service_session2 
+                                    sitedata !session_group_ref k;
                                 return ()
                               )
                           )
@@ -934,7 +1027,6 @@ let service_session_gc sitedata =
 (* This is a thread that will work for example every hour. *)
 let data_session_gc sitedata =
   let data_cookie_table = sitedata.session_data in
-  let remove_session_data = sitedata.remove_session_data in
   let not_bound_in_data_tables = sitedata.not_bound_in_data_tables in
   match get_datasessiongcfrequency () with
   | None -> () (* No garbage collection *)
@@ -945,15 +1037,14 @@ let data_session_gc sitedata =
         Messages.debug2 "--Eliom: GC of session data";
         (* private continuation tables: *)
         SessionCookies.fold
-          (fun k (sessname, exp, _, session_group) thr -> 
+          (fun k (sessname, exp, _, session_group_ref) thr -> 
             thr >>= fun () ->
               (match !exp with
               | Some exp when exp < now -> 
-                  SessionCookies.remove data_cookie_table k;
-                  remove_session_data k;
+                  close_data_session2 sitedata !session_group_ref k;
                   return ()
               | _ -> 
-                  if not_bound_in_data_tables k
+                  if !session_group_ref = None && not_bound_in_data_tables k
                   then 
                     SessionCookies.remove data_cookie_table k;
                   return ()
@@ -978,10 +1069,12 @@ let persistent_session_gc () =
           let now = Unix.time () in
           Messages.debug2 "--Eliom: GC of persistent sessions";
           (Ocsipersist.iter_table
-             (fun k (_, exp, _, _) -> 
+             (fun k (_, exp, _, session_group) -> 
                (match exp with
                | Some exp when exp < now -> 
-                   remove_from_all_persistent_tables k
+(*VVV ? *)
+                   close_persistent_session2 session_group k
+                     (*WAS: remove_from_all_persistent_tables k *)
                | _ -> return ())
              )
              persistent_cookies_table))
@@ -1002,6 +1095,8 @@ let handle_site_exn exn (ri, si, _, aci) sitedata =
 
 
 (****************************************************************************)
+let default_max_sessions_per_group = Some 20
+
 let new_sitedata =
   (* We want to keep the old site data even if we reload the server *)
   (* To do that, we keep the site data in a table *)
@@ -1030,6 +1125,12 @@ let new_sitedata =
              not_bound_in_data_tables = (fun cookie -> true);
              exn_handler = def_handler;
              unregistered_services = [];
+             max_service_sessions_per_group = 
+                default_max_sessions_per_group;
+             max_volatile_data_sessions_per_group = 
+                default_max_sessions_per_group;
+             max_persistent_data_sessions_per_group = 
+                default_max_sessions_per_group;
             }
           in
           service_session_gc sitedata;
@@ -1125,40 +1226,6 @@ let create_volatile_table, create_volatile_table_during_session =
 
 
 
-(* to be called from outside requests *)
-let close_data_session2 sitedata cookie sessgrp = 
-  try
-    SessionCookies.remove sitedata.session_data cookie;
-    Eliomsessiongroups.Data.remove cookie sessgrp;
-    sitedata.remove_session_data cookie;
-  with Not_found -> ()
-
-let close_data_group sitedata grp =
-  let cooklist = Eliomsessiongroups.Data.find grp in
-  List.iter (fun c -> close_data_session2 sitedata c None) cooklist;
-  Eliomsessiongroups.Data.remove_group grp
-
-(* to be called during a request *)
-let close_data_session ?(close_group = false) ?session_name ~sp () = 
-  try
-    let fullsessname = make_fullsessname ~sp session_name in
-    let (_, cookie_info, _) = sp.sp_cookie_info in
-    let (_, ior) = 
-      Lazy.force (Http_frame.Cookievalues.find fullsessname !cookie_info) 
-    in
-    match !ior with
-    | SC c ->
-        if close_group then
-          close_data_group sp.sp_sitedata !(c.dc_session_group)
-        else
-          close_data_session2 sp.sp_sitedata c.dc_value !(c.dc_session_group);
-        ior := SCNo_data
-    | _ -> ()
-  with Not_found -> ()
-
-
-
-
     
 (*****************************************************************************)
 (* Split parameter list, removing those whose name starts with pref *)
@@ -1197,7 +1264,7 @@ let get_cookie_info now sitedata
     persistent_cookies
     : 'a cookie_info * 'b list =
   
-  (* get info about "in memory" data session cookies: *)
+  (* get info about service session cookies: *)
   let (servoktable, servfailedlist) =
     Http_frame.Cookievalues.fold
       (fun name value (oktable, failedlist) ->
@@ -1205,6 +1272,7 @@ let get_cookie_info now sitedata
           let fullsessname, ta, expref, timeout_ref, sessgrpref = 
             SessionCookies.find sitedata.session_services value
           in
+          Eliomsessiongroups.Serv.up value !sessgrpref;
           match !expref with
           | Some t when t < now -> 
               (* session expired by timeout *)
@@ -1253,6 +1321,7 @@ let get_cookie_info now sitedata
             let fullsessname, expref, timeout_ref, sessgrpref = 
               SessionCookies.find sitedata.session_data value
             in
+            Eliomsessiongroups.Serv.up value !sessgrpref;
             match !expref with
             | Some t when t < now -> 
                 (* session expired by timeout *)
@@ -1292,6 +1361,7 @@ let get_cookie_info now sitedata
                Ocsipersist.find persistent_cookies_table value >>=
                fun (fullsessname, persexp, perstimeout, sessgrp) ->
                  
+                 Eliomsessiongroups.Pers.up value sessgrp >>= fun () ->
                  match persexp with
                  | Some t when t < now -> 
                      (* session expired by timeout *)
@@ -1727,35 +1797,6 @@ let find_service
 
 
 
-let close_service_session2 sitedata cookie sessgrp = 
-  SessionCookies.remove sitedata.session_services cookie;
-  Eliomsessiongroups.Serv.remove cookie sessgrp
-
-let close_service_group sitedata grp =
-  let cooklist = Eliomsessiongroups.Serv.find grp in
-  List.iter (fun c -> close_service_session2 sitedata c None) cooklist;
-  Eliomsessiongroups.Serv.remove_group grp
-
-let close_service_session ?(close_group = false) ?session_name ~sp () = 
-  try
-    let fullsessname = make_fullsessname ~sp session_name in
-    let (cookie_info, _, _) = sp.sp_cookie_info in
-    let (_, ior) = Http_frame.Cookievalues.find fullsessname !cookie_info in
-    match !ior with
-    | SC c ->
-        if close_group then
-          close_service_group sp.sp_sitedata !(c.sc_session_group)
-        else
-          close_service_session2 
-            sp.sp_sitedata c.sc_value !(c.sc_session_group);
-        ior := SCNo_data
-    | _ -> ()
-  with Not_found -> ()
-
-let close_volatile_session ?close_group ?session_name ~sp () =
-  close_data_session ?close_group ?session_name ~sp ();
-  close_service_session ?close_group ?session_name ~sp ()
-
 
 (****************************************************************************)
 (****************************************************************************)
@@ -1782,7 +1823,7 @@ let close_all_service_sessions2 ?(close_group = false) fullsessname sitedata =
       then (if close_group then
         close_service_group sitedata !sessgrpref
       else 
-        close_service_session2 sitedata k !sessgrpref);
+        close_service_session2 sitedata !sessgrpref k);
       Lwt_unix.yield ()
     )
     sitedata.session_services
@@ -1804,7 +1845,7 @@ let close_all_data_sessions2 ?(close_group = false) fullsessname sitedata =
       then (if close_group then
         close_data_group sitedata !sessgrpref
       else
-        close_data_session2 sitedata k !sessgrpref);
+        close_data_session2 sitedata !sessgrpref k);
       Lwt_unix.yield ()
     )
     sitedata.session_data
@@ -1825,7 +1866,7 @@ let close_all_persistent_sessions2 ?(close_group = false) fullsessname =
       if fullsessname = fullsessname2 && old_t = TGlobal
       then (if close_group then
         close_persistent_group sessiongrp
-      else close_persistent_session2 k sessiongrp) >>= Lwt_unix.yield
+      else close_persistent_session2 sessiongrp k) >>= Lwt_unix.yield
       else return ()
     )
     persistent_cookies_table
@@ -1863,7 +1904,7 @@ let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
           in
           match newexp with
           | Some t when t <= now -> 
-              close_service_session2 sitedata k !sessgrpref
+              close_service_session2 sitedata !sessgrpref k
           | _ -> expref := newexp
         );
         Lwt_unix.yield ()
@@ -1893,7 +1934,7 @@ let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
           | Some oldexp, Some oldt, Some t -> Some (oldexp -. oldt +. t)
           in
           match newexp with
-          | Some t when t <= now -> close_data_session2 sitedata k !sessgrpref
+          | Some t when t <= now -> close_data_session2 sitedata !sessgrpref k
           | _ -> expref := newexp
         );
         Lwt_unix.yield ()
@@ -1923,7 +1964,7 @@ let update_pers_exp fullsessname old_glob_timeout new_glob_timeout =
           | Some oldexp, Some oldt, Some t -> Some (oldexp -. oldt +. t)
           in
           match newexp with
-          | Some t when t <= now -> close_persistent_session2 k sessgrp
+          | Some t when t <= now -> close_persistent_session2 sessgrp k
           | _ ->
               Ocsipersist.add
                 persistent_cookies_table 
@@ -3033,7 +3074,9 @@ let parse_config site_dir charset =
     | Element ("eliom", atts, content) -> 
 (*--- if we put the line "new_sitedata" here, then there is 
   one service table for each <eliom> tag ...
-  Which one is the best? 
+  I think the other one is the best, because it corresponds to the way
+  browsers manage cookies (one cookie for one site).
+  Thus we can have one site in several cmo (with one session).
  *)
         let file = parse_module_attrs None atts in
         load_eliom_module sitedata file content;
