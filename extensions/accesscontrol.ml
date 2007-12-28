@@ -81,7 +81,9 @@ let register_authentication_method,
 (** for tests **)
 let _ = register_authentication_method
   (function
-     | Element ("htpasswd", _, _) -> (fun login passwd -> assert false)
+     | Element ("htpasswd", ["login", login; "password", password], _) ->
+	 (fun l p -> match p with
+	    | `Plain p -> Lwt.return (login = l && password = p))
      | _ -> raise (Bad_config_tag_for_extension "not for htpasswd"))
 
 (*****************************************************************************)
@@ -292,16 +294,64 @@ let parse_config path charset _ parse_fun = function
                end)
       end
 
-    | Element ("auth", ["authtype", "basic"; "realm", r], auth::sub) ->
-        let _ =
+    | Element ("auth", ["authtype", "basic"; "realm", realm], auth::sub) ->
+        (* http://www.ietf.org/rfc/rfc2617.txt *)
+        (* TODO: check that realm is correct *)
+        let auth =
           try
             get_authentication_method auth
           with Bad_config_tag_for_extension _ ->
             raise (Error_in_config_file "Unable to find proper authentication method")
         in
         (fun rs ->
-           Messages.debug2 "--Access control: Authentication to be implemented";
-           fail (Http_error.Http_exception (401, None, None)))
+           match rs with
+             | Extensions.Req_not_found (err, ri) ->
+                 let reject () =
+                   let h = Http_headers.add
+                     (Http_headers.name "WWW-Authenticate")
+                     (sprintf "Basic realm=\"%s\"" realm)
+                     Http_headers.empty
+                   in
+                   Messages.debug2 "--Access control (auth): invalid credentials!";
+                   fail (Http_error.Http_exception (401, None, Some h))
+                 in
+                 begin try
+                   let (login, password) =
+                     let credentials =
+                       Http_headers.find
+                         (Http_headers.name "Authorization")
+                         ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
+                     in
+                     let encoded =
+                       let n = String.length credentials in
+                       if n > 6 && String.sub credentials 0 6 = "Basic " then
+                         String.sub credentials 6 (n-6)
+                       else
+                         failwith "credentials"
+                     in
+                     let decoded = Netencoding.Base64.decode encoded in
+                     let i = String.index decoded ':' in
+                     (String.sub decoded 0 i,
+                      String.sub decoded (i+1) (String.length decoded - (i+1)))
+                   in
+                   auth login (`Plain password) >>=
+                     (fun r ->
+                        if r then begin
+                          Messages.debug2 "--Access control (auth): valid credentials!";
+                          Lwt.return (Extensions.Ext_next err)
+                        end
+                        else reject ())
+                 with
+                   | Not_found -> reject ()
+                   | e ->
+                       Messages.debug
+                         (fun () -> sprintf
+                            "--Access control (auth): Invalid Authorization header (%s)"
+                            (Printexc.to_string e));
+                       fail (Ocsigen_http_error (Http_frame.Cookies.empty, 400))
+                 end
+             | Extensions.Req_found (ri, r) ->
+                 Lwt.return (Extensions.Ext_found r))
 
     | Element ("notfound", [], []) ->
         (fun rs ->
