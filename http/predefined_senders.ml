@@ -505,7 +505,14 @@ module Error_content =
             in (errcode, msg, headers)
         | _ ->
             let error_mes = Http_error.expl_of_code code in
-            (code, error_mes, Http_headers.dyn_headers)
+            (code, error_mes, Http_headers.empty)
+      in
+      let headers =
+	(* puts dynamic headers *)
+	let (<<) h (n, v) = Http_headers.replace n v h in
+	headers
+	<< (Http_headers.cache_control, "no-cache")
+	<< (Http_headers.expires, "0")
       in
       let str_code = string_of_int error_code in
       let err_page =
