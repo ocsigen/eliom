@@ -80,11 +80,11 @@ full_pwd=`pwd`
 ehelp_debug="Enable/disable debug output"
 ehelp_bytecode="Enable/disable bytecode version of Ocsigen"
 ehelp_nativecode="Enable/disable nativecode version of Ocsigen"
-ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce to be installed)"
+ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce to be installed); default is detected"
 ehelp_newocamlnet="Use new/old versions of Ocamlnet (>= 2.0)"
 ehelp_sqlite="Compile ocsipersist with SQLite for persistent storage (default)"
-ehelp_dbm="Compile ocsipersist with DBM for persistent storage"
-ehelp_camlzip="Compile deflatemod extension (requires camlzip); default is yes"
+ehelp_dbm="Compile ocsipersist with DBM for persistent storage; default is detected"
+ehelp_camlzip="Compile deflatemod extension (requires camlzip); default is detected"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
 eoptions="debug bytecode nativecode ocamlduce newocamlnet sqlite dbm camlzip"
@@ -481,19 +481,17 @@ if [ "$enable_camlzip" -gt 0 ]; then
         echo "found camlzip"
         camlzipdir=`ocamlfind query camlzip`
         camlzipname=camlzip
+    elif ocamlfind query zip >/dev/null 2>/dev/null; then
+        echo "found zip"
+        camlzipdir=`ocamlfind query zip`
+        camlzipname=zip
+    elif [ "$enable_camlzip" -gt 1 ]; then
+        echo "not found, but --enable-camlzip specified"
+        exit 1
     else
-      if ocamlfind query zip >/dev/null 2>/dev/null; then
-          echo "found zip"
-          camlzipdir=`ocamlfind query zip`
-          camlzipname=zip
-      else
-          echo "not found"
-          echo "Required library camlzip (or libzip-ocaml) not found!"
-          exit 1
-      fi
-
+        echo "not found"
+        enable_camlzip=0
     fi
-
 fi
 
 ######################################################################
@@ -511,23 +509,50 @@ fi
 cryptokitdir=`ocamlfind query cryptokit`
 
 
+######################################################################
+# Check ocamlduce
+
+if [ "$enable_ocamlduce" -gt 0 ]; then
+    printf "%s" "Checking for ocamlduce... "
+    if which ocamlduce >/dev/null 2>/dev/null; then
+        echo "found"
+    elif [ "$enable_ocamlduce" -gt 1 ]; then
+        echo "not found, but --enable-ocamlduce specified"
+        exit 1
+    else
+        echo "not found"
+        enable_ocamlduce=0
+    fi
+fi
+
+
+######################################################################
+# Check dbm
+
+if [ "$enable_dbm" -gt 0 ]; then
+    printf "%s" "Checking for dbm... "
+    if ocamlc -custom -o /dev/null dbm.cma >/dev/null 2>/dev/null; then
+        echo "found"
+    elif [ "$enable_dbm" -gt 1 ]; then
+        echo "not found, but --enable-dbm specified"
+        exit 1
+    else
+        echo "not found"
+        enable_dbm=0
+    fi
+fi
+
 
 ######################################################################
 # Check whether OCaml version is > 3.9
-version=`ocamlc -version`
-ocamlversion=`n1=${version%%.[0-9][0-9].[0-9]}; \
-              tail=${version##[0-9].}; \
-              n2=${tail%%.[0-9]}; \
-              n3=${tail##[0-9][0-9].}; \
-              if [ $n1 = "3" ] && [ $n2 -le 9 ]; then \
+version=`ocamlc -version|sed 's/^\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/'`
+ocamlversion=`n1=${version%%.*}; n2=${version##*.}; \
+              if [ $n1 -eq 3 ] && [ $n2 -le 9 ]; then \
                 echo "OLD"; \
               else \
                 echo "NEW"; \
               fi`
 
-#ocamlversion=`n1=${version:0:1}; \
-#              n2=${version:2:2}; \
-#              n3=${version:5}; \
 
 ######################################################################
 # Check camlp4o
