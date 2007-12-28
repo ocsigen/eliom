@@ -239,15 +239,16 @@ let parse_config path charset _ parse_site =
     | ("code", c)::l when code = None -> 
         (try
           parse_attrs
-            (dir, regexp, readable, Some (Netstring_pcre.regexp c), dest)
+            (dir, regexp, readable, Some (Netstring_pcre.regexp ("^"^c^"$")), dest)
             l
         with Failure _ ->
           raise (Error_in_config_file "Bad regexp in <static code=\"...\" />"))
     | ("regexp", s)::l when regexp = None ->
         (try
           parse_attrs
-            (dir, Some (Netstring_pcre.regexp s), readable, code, dest)
-            l
+            (dir, Some (Netstring_pcre.regexp ("^"^s^"$")), 
+             readable, code, dest)
+               l
         with Failure _ ->
           raise (Error_in_config_file "Bad regexp in <static regexp=\"...\" />"))
     | ("dest", s)::l when dest = None ->
@@ -275,7 +276,7 @@ let parse_config path charset _ parse_site =
           | (None, Some r, _, code, Some t) -> 
               Regexp (r, t, readable, code)
           | (None, None, _, (Some _ as code), Some t) ->
-              Regexp (Netstring_pcre.regexp "/.*", t, readable, code)
+              Regexp (Netstring_pcre.regexp "^.*$", t, readable, code)
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
         in
         gen info charset

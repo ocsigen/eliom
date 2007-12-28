@@ -108,7 +108,7 @@ let rec parse_filter = function
     | Element ("header", ["name", name; "regexp", reg], []) ->
         let regexp =
           try
-            Netstring_pcre.regexp reg
+            Netstring_pcre.regexp ("^"^reg^"$")
           with Failure _ ->
             raise (Error_in_config_file (sprintf "Bad regular expression [%s] in <header> condition" reg))
         in
@@ -159,7 +159,7 @@ let rec parse_filter = function
     | Element ("path", ["regexp", s], []) ->
         let regexp =
           try
-            Netstring_pcre.regexp s
+            Netstring_pcre.regexp ("^"^s^"$")
           with Failure _ ->
             raise (Error_in_config_file (sprintf "Bad regular expression [%s] in <path> condition" s))
         in
@@ -331,7 +331,7 @@ let parse_config path charset _ parse_fun = function
 
     | Element ("ifnotfound", [("code", s)], sub) ->
         let ext = parse_fun sub in
-        let r = Netstring_pcre.regexp s in
+        let r = Netstring_pcre.regexp ("^"^s^"$") in
         (function
            | Extensions.Req_found (_, r) ->
                Lwt.return (Extensions.Ext_found r)
