@@ -309,7 +309,7 @@ let parse_ip s =
             failwith (sprintf "invalid dot notation in %s (3)" s)
           else (a lsl 8) lor b
         in
-        if i2 < n-1 && (s.[i2] = ':' || s.[i1] = '.') then
+        if i2 < n-1 && (s.[i2] = ':' || s.[i2] = '.') then
           parse_component (i2+1) (component::accu) (nb+1)
         else
           (i2, component::accu, nb+1)
