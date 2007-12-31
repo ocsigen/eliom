@@ -77,6 +77,11 @@ type cookie_exp =
 
 type internal_state = string
 
+type na_key =
+  | Na_no
+  | Na_get of string
+  | Na_post of string
+
 type sess_info =
     {si_other_get_params: (string * string) list;
      si_all_get_params: (string * string) list;
@@ -94,7 +99,7 @@ type sess_info =
      (* the persistent session cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_nonatt_info: (string option * string option);
+     si_nonatt_info: na_key;
      si_state_info: (internal_state option * internal_state option);
      si_config_file_charset: string;
      si_previous_extension_error: int;
@@ -310,7 +315,7 @@ val add_service :
 val add_naservice :
     tables -> 
       bool -> 
-	(string option * string option) -> 
+	na_key -> 
           (int ref option *
              (float * float ref) option *
 	     (server_params -> result_to_send Lwt.t))

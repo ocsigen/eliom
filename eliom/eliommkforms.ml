@@ -689,8 +689,8 @@ module MakeForms = functor
             let params_string =
               concat_strings preapplied_params "&" params_string in
             let naservice_param = 
-              match fst (get_na_name_ naser) with
-              | Some n -> Eliommod.naservice_name^"="^n
+              match get_na_name_ naser with
+              | Eliommod.Na_get n -> Eliommod.naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -764,8 +764,8 @@ module MakeForms = functor
             let params_string =
               concat_strings preapplied_params "&" params_string in
             let naservice_param = 
-              match fst (get_na_name_ naser) with
-              | Some n -> Eliommod.naservice_name^"="^n
+              match get_na_name_ naser with
+              | Eliommod.Na_get n -> Eliommod.naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -832,8 +832,8 @@ module MakeForms = functor
             let urlname = "/"^(get_current_path_string sp) in
             let naservice_param_name = Eliommod.naservice_name in
             let naservice_param = 
-              match fst (get_na_name_ naser) with
-              | Some n -> n
+              match get_na_name_ naser with
+              | Eliommod.Na_get n -> n
               | _ -> assert false
             in
             let naservice_line = 
@@ -939,9 +939,9 @@ module MakeForms = functor
             (* no GET params here for now *)
             let naservice_param_name = Eliommod.naservice_name in
             let naservice_param = 
-              match snd (get_na_name_ naser) with
-                Some n -> n
-              | _ -> assert false
+              match get_na_name_ naser with
+               | Eliommod.Na_post n -> n
+               | _ -> assert false
             in
             let naservice_line = 
 	      Pages.make_input

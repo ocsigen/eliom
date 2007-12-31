@@ -51,6 +51,11 @@ type cookie =
   | Unset of url_path option * string
 
 
+type na_key =
+  | Na_no
+  | Na_get of string
+  | Na_post of string
+
 
 type sess_info =
     {si_other_get_params: (string * string) list;
@@ -69,7 +74,7 @@ type sess_info =
      (* the persistent session cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_nonatt_info: (string option * string option);
+     si_nonatt_info: na_key;
      si_state_info: (internal_state option * internal_state option);
      si_config_file_charset: string;
      si_previous_extension_error: int;
@@ -281,7 +286,7 @@ module String_Table = Map.Make(struct
 end)
 
 module NAserv_Table = Map.Make(struct 
-  type t = string option * string option
+  type t = na_key
   let compare = compare 
 end)
 
@@ -1445,46 +1450,53 @@ let change_request_info ri charset previous_extension_err =
           let n, pp =
             list_assoc_remove naservice_name post_params
           in (Some n, pp)
-        with Not_found -> (None, []) 
-        (* Not possible to have POST parameters without naservice_name
-           if there is a GET naservice_name
-         *)
+        with Not_found -> (None, [])
       in
-      let get_naservice_name, (na_get_params, other_get_params) = 
-        try
-          let n, gp =
-            list_assoc_remove naservice_name get_params
-          in (Some n, (split_prefix_param na_co_param_prefix gp))
-        with Not_found -> (None, ([], get_params))
-      in
-      match get_naservice_name, post_naservice_name with
-      | _, Some _
-      | Some _, None -> (* non attached coservice *)
-          ((get_naservice_name, post_naservice_name),
-           (None, None), 
-           (na_get_params, other_get_params), 
-           na_post_params)
-      | None, None ->
-          let post_state, post_params = 
-            try 
-              let s, pp =
-                list_assoc_remove post_state_param_name post_params
-              in (Some s, pp)
-            with 
-              Not_found -> (None, post_params)
-          in
-          let get_state, (get_params, other_get_params) = 
-            try 
-              let s, gp =
-                list_assoc_remove get_state_param_name get_params
-              in ((Some s), 
-                  (split_prefix_param co_param_prefix gp))
-            with Not_found -> (None, (get_params, []))
-          in 
-          ((None, None), 
-           (get_state, post_state), 
-           (get_params, other_get_params), 
-           post_params)
+      match post_naservice_name with
+        | Some n -> (* POST non attached coservice *)
+            ((Na_post n),
+             (None, None), 
+             ([], get_params), 
+             na_post_params)
+        | None ->
+            let get_naservice_name, (na_get_params, other_get_params) = 
+              try
+                let n, gp =
+                  list_assoc_remove naservice_name get_params
+                in (Some n, (split_prefix_param na_co_param_prefix gp))
+              with Not_found -> (None, ([], get_params))
+            in
+            match get_naservice_name with
+              | Some n -> (* GET non attached coservice *)
+                  ((Na_get n),
+                   (None, None), 
+                   (na_get_params, other_get_params), 
+                   [])
+                    (* Not possible to have POST parameters 
+                       without naservice_name
+                       if there is a GET naservice_name
+                    *)
+              | None ->
+                  let post_state, post_params = 
+                    try 
+                      let s, pp =
+                        list_assoc_remove post_state_param_name post_params
+                      in (Some s, pp)
+                    with 
+                        Not_found -> (None, post_params)
+                  in
+                  let get_state, (get_params, other_get_params) = 
+                    try 
+                      let s, gp =
+                        list_assoc_remove get_state_param_name get_params
+                      in ((Some s), 
+                          (split_prefix_param co_param_prefix gp))
+                    with Not_found -> (None, (get_params, []))
+                  in 
+                  (Na_no, 
+                   (get_state, post_state), 
+                   (get_params, other_get_params), 
+                   post_params)
     in
 
     return 
@@ -1662,7 +1674,7 @@ let add_naservice
 let remove_naservice (_,atr,_,_) name =
   atr := remove_naservice_table !atr name
 
-let find_naservice now ((_,atr,_,_) as str) name =
+let find_naservice now ((_, atr, _, _) as str) name =
   let ((_, expdate, _) as p) = find_naservice_table !atr name in
   match expdate with
   | Some (_, e) when !e < now ->
@@ -2664,7 +2676,7 @@ let get_page
                                   Eliom_Link_too_old::ri.ri_extension_info
                                 }, 
                                  {si with
-                                  si_nonatt_info= (None, None);
+                                  si_nonatt_info= Na_no;
                                   si_state_info= (g, None);
                                 },
                                  cookies_to_set,
@@ -2687,7 +2699,7 @@ let get_page
                                   Eliom_Link_too_old::ri.ri_extension_info
                                 },
                                  {si with
-                                  si_nonatt_info=(None, None);
+                                  si_nonatt_info= Na_no;
                                   si_state_info=(None, None);
                                   si_other_get_params=[];
                                 },
@@ -2747,24 +2759,27 @@ let make_naservice
          We call the same URL without non-attached parameters.
        *)
       match si.si_nonatt_info with
-      | None, None -> assert false
-      | Some _ as g, Some _ -> (* (Some, Some) or (_, Some) ? *)
+      | Na_no -> assert false
+      | Na_post _ -> 
+(*VVV (Some, Some) or (_, Some)? *)
           Messages.debug2 
             "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
-          fail (Eliom_retry_with
-                  ({ri with 
-                    ri_post_params = lazy (return []);
-                    ri_method = Http_frame.Http_header.GET;
-                    ri_extension_info= 
-                    Eliom_Link_too_old::ri.ri_extension_info
-                  },
-                   {si with
-                    si_nonatt_info=(g, None);
-                    si_state_info=(None, None);
-                  },
-                   cookies_to_set,
-                   all_cookie_info))
-      | _ ->
+          change_request_info
+            {ri with 
+               ri_get_params = lazy si.si_other_get_params;
+               ri_post_params = lazy (return []);
+               ri_method = Http_frame.Http_header.GET;
+               ri_extension_info= Eliom_Link_too_old::ri.ri_extension_info
+            } 
+            si.si_config_file_charset
+            si.si_previous_extension_error
+          >>=
+            (fun (ri', si') -> 
+               fail (Eliom_retry_with (ri', si',
+                                       cookies_to_set,
+                                       all_cookie_info)))
+
+      | Na_get _ ->
           Messages.debug2 
             "--Eliom: Link too old. I will try without non-attached parameters:";
           change_request_info
@@ -2818,7 +2833,7 @@ let gen sitedata charset = function
   let rec gen_aux ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
     let genfun = 
       match si.si_nonatt_info with
-      | None, None ->
+      | Na_no ->
           
           (* page generation *)
           get_page
@@ -2857,7 +2872,7 @@ let gen sitedata charset = function
               in
 
               (match si.si_nonatt_info, si.si_state_info, ri.ri_method with
-              | (None, None), (None, None), Http_frame.Http_header.GET ->
+              | Na_no, (None, None), Http_frame.Http_header.GET ->
                   compute_cookies_to_send 
                     sitedata
                     all_cookie_info
@@ -2891,7 +2906,7 @@ let gen sitedata charset = function
                   (match 
                     si.si_nonatt_info, si.si_state_info, ri.ri_method 
                   with
-                  | (Some _, None), (_, None), Http_frame.Http_header.GET ->
+                  | Na_get _, (_, None), Http_frame.Http_header.GET ->
                       (* no post params, GET na coservice *)
                       
                       return
@@ -2908,7 +2923,7 @@ let gen sitedata charset = function
                            )
                         )
                         
-                  | (None, None), (_, None), Http_frame.Http_header.GET ->
+                  | Na_no, (_, None), Http_frame.Http_header.GET ->
                       (* no post params, GET attached coservice *)
                       
                       return
@@ -2925,7 +2940,8 @@ let gen sitedata charset = function
                             all_new_cookies
                            ))
                         
-                  | (_, Some _), (_, _), _ ->
+                  | Na_post _, (_, _), _ ->
+                      (* POST na coservice *)
                       (* retry without POST params *)
                         
                       return
@@ -2933,6 +2949,10 @@ let gen sitedata charset = function
                         (Ext_retry_with
                            ({ri with
                              ri_get_params = lazy si.si_other_get_params;
+(*VVV 31/12/2007 <-
+  do we keep GET na_name ?
+  Here, yes.
+*)
                              ri_post_params = lazy (return []);
                              ri_method = Http_frame.Http_header.GET;
                              ri_cookies= lazy ric;

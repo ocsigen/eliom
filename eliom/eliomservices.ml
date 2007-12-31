@@ -100,7 +100,7 @@ type +'a a_s =
    }
       
 type +'a na_s =
-    {na_name: string option * string option;
+    {na_name: Eliommod.na_key;
      na_kind: 'a; (* < getpost *)
    }
 
@@ -314,7 +314,7 @@ let new_coservice' ?max_use ?timeout ~get_params () =
    get_params_type = add_pref_params na_co_param_prefix get_params;
    post_params_type = unit;
    kind = `Nonattached
-     {na_name = (Some (new_naservice_name ()), None);
+     {na_name = Na_get (new_naservice_name ());
       na_kind = `Get;
     };
  }
@@ -403,7 +403,7 @@ let new_post_coservice' ?max_use ?timeout ~post_params () =
    get_params_type = unit;
    post_params_type = post_params;
    kind = `Nonattached
-     {na_name = (None, Some (new_naservice_name ()));
+     {na_name = Na_post (new_naservice_name ());
       na_kind = `Post;
     }
  }

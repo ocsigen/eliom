@@ -350,7 +350,7 @@ val get_full_path_ : 'a a_s -> url_path
 val get_prefix_ : 'a a_s -> string
 val get_get_state_ : 'a a_s -> Eliommod.internal_state option
 val get_post_state_ : 'a a_s -> Eliommod.internal_state option
-val get_na_name_ : 'a na_s -> string option * string option
+val get_na_name_ : 'a na_s -> Eliommod.na_key
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> float option
 val reconstruct_absolute_url_path : url_path -> url_path -> url_path option -> string
