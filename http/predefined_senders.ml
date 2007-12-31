@@ -197,24 +197,31 @@ module Empty_content =
 let mimeht = Hashtbl.create 600
 
 let parse_mime_types filename =
-  let rec read_and_split in_ch = try
-    let line = input_line in_ch in
-    let line_upto = try 
-      let upto = String.index line '#' in 
-      String.sub line 0 upto 
-    with Not_found -> line in
-    let strlist = 
-      Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto in
-    match  List.length strlist with
-    | 0 | 1 -> read_and_split in_ch
-    | _ -> let make_pair = (fun h -> Hashtbl.add mimeht h (List.hd strlist)) in
-      List.iter make_pair (List.tl strlist);
-      read_and_split in_ch
-  with End_of_file -> ()
+  let rec read_and_split in_ch = 
+    try
+      let line = input_line in_ch in
+      let line_upto = 
+        try 
+          let upto = String.index line '#' in 
+          String.sub line 0 upto 
+        with Not_found -> line 
+      in
+      let strlist = 
+        Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto 
+      in
+      match  List.length strlist with
+      | 0 | 1 -> read_and_split in_ch
+      | _ -> 
+          let make_pair = (fun h -> Hashtbl.add mimeht h (List.hd strlist)) in
+          List.iter make_pair (List.tl strlist);
+          read_and_split in_ch
+    with End_of_file -> ()
   in
   try
-    let in_ch =  open_in filename in
-    read_and_split in_ch;
+    let in_ch = open_in filename in
+    (try
+      read_and_split in_ch
+    with e -> close_in in_ch; raise e);
     close_in in_ch
   with Sys_error _ | Not_found -> ()
 
