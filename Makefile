@@ -286,6 +286,7 @@ installnodoc: partialinstall
 	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
 	| sed s%_CRYPTOKITINSTALLDIR_%$(CRYPTOKITINSTALLDIR)%g \
 	| sed s%_CAMLZIPDIR_%$(CAMLZIPDIR)%g \
+	| sed s%_OCAMLLIBDIR_%$(shell ocamlc -where)%g \
 	> $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
 	cat $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
 	| sed s%[.]cmo%.cmxs%g \
