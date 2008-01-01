@@ -61,8 +61,12 @@ type reg = {
 
 (*****************************************************************************)
 
-let user_dir_regexp = Regexp.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
-
+let user_dir_regexp = Regexp.regexp "(.*/)\\$u\\(([^\\)]*)\\)(.*)"
+let prevent_u_regexp = Regexp.regexp "\\$"
+and restore_u_regexp = Regexp.regexp "\\$\\$"
+let quote_userdir = Regexp.global_replace prevent_u_regexp "$$$$"
+and unquote_userdir = Regexp.global_replace restore_u_regexp "$$"
+  
 let environment= ["CONTENT_LENGTH=%d";
 		  "CONTENT_TYPE";
 		  "DOCUMENT_ROOT";
@@ -143,31 +147,39 @@ let find_cgi_page reg sub_path =
     | Unix.Unix_error (Unix.ENOENT, _, _) -> raise Failed_404
   in
 
-  let sub_path = Ocsimisc.string_of_url_path sub_path in
+  let sub_path = "/"^Ocsimisc.string_of_url_path sub_path in
 
   match split_regexp reg.regexp sub_path with
   | None -> raise Failed_404
   | Some (path', path_info) -> 
       let path'' = reg.path^path' in
+      let s =
+	(* use $u quoted expanded path to check if in userdir 
+	   to prevent direct use of $u(bob) in the url *)
+	Regexp.global_replace reg.regexp
+	  (reg.doc_root^reg.script)
+	  (quote_userdir path')
+      in
       let reg = 
 	{reg with
-	 doc_root = Regexp.global_replace reg.regexp reg.doc_root path';
-	 script = Regexp.global_replace reg.regexp reg.script path';
-	 path = path'';
-	 path_info= string_conform0 path_info}
+	   doc_root = Regexp.global_replace reg.regexp reg.doc_root path';
+	   script = Regexp.global_replace reg.regexp reg.script path';
+	   path = path'';
+	   path_info= string_conform0 path_info}
       in
-      let s = reg.doc_root^reg.script in
-      (* hack to get user dirs *)
-      match Regexp.string_match user_dir_regexp s 0 with
-      | None -> find_file (s, reg)
-      | Some result ->
-	  let user = Regexp.matched_group result 2 s in
-          let userdir = (Unix.getpwnam user).Unix.pw_dir in
-          find_file
-            ((Regexp.matched_group result 1 s)^
-             userdir^
-             (Regexp.matched_group result 3 s),
-             reg)
+	match Regexp.string_match user_dir_regexp s 0 with
+	  | None ->
+	      find_file (reg.doc_root^reg.script, reg)
+	  | Some result ->
+	      (* if in user dir, unquote the result *)
+	      let user = unquote_userdir (Regexp.matched_group result 2 s) in
+              let userdir = (Unix.getpwnam user).Unix.pw_dir in
+		find_file
+		  (unquote_userdir
+		     ((Regexp.matched_group result 1 s)^
+			userdir^
+			(Regexp.matched_group result 3 s)),
+		   reg)
 
 
 (*****************************************************************************)
@@ -576,7 +588,7 @@ let parse_config path charset _ parse_site = function
                    "attributes expected for <cgi>")
       | [("root",r);("dir", s)] ->
       {
-	   regexp= Regexp.regexp ((good_root r)^"([^/]*)");
+	   regexp= Regexp.regexp ("^"^(good_root r)^"([^/]*)");
 	   
 	   doc_root= string_conform s;
 	   script="$1";
@@ -588,7 +600,7 @@ let parse_config path charset _ parse_site = function
            env=set_env l}
       | ("regexp", s)::("dir",d)::("script",t)::q -> 
 	  {
-	   regexp=Regexp.regexp ((good_root "")^s);
+	   regexp=Regexp.regexp ("^"^(good_root "")^s);
 	   
 	   doc_root= string_conform d;
 	   script=t;
