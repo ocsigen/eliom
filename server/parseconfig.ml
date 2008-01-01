@@ -133,6 +133,12 @@ let parse_ext file =
   parser_config (Simplexmlparser.xmlparser file)
 
 
+let isloaded, addloaded =
+  let module S = Set.Make(struct type t = string let compare = compare end) in
+  let set = ref S.empty in
+  ((fun s -> S.mem s !set),
+   (fun s -> set := S.add s !set))
+
 (* Config file is parsed twice. 
    This is the second parsing (site loading) 
  *)
@@ -219,15 +225,20 @@ let parse_server isreloading c =
           | [("module", s)] -> s
           | _ -> raise (Config_file_error "Wrong attribute for <extension>") 
 	  in 
-          if not isreloading
+(*          if not isreloading *)
+          if not (isloaded modu)
           then begin
             try
               Extensions.set_config l;
+              Messages.debug (fun () -> "Loading extension "^modu);
               Dynlink.loadfile modu;
+              addloaded modu;
               Extensions.set_config []
             with
             | e -> raise (Dynlink_error (modu, e))
-          end; (* We do not reload extensions *)
+          end (* We do not reload extensions *)
+          else
+            Messages.debug (fun () -> "Extension "^modu^" already loaded");
           parse_server_aux ll
       | (Element ("library", atts, l))::ll -> 
 	  let modu = match atts with
@@ -238,6 +249,7 @@ let parse_server isreloading c =
 	  in 
           (try
             Extensions.set_config l;
+            Messages.debug (fun () -> "Loading "^modu^" (will be reloaded every times)");
             Dynlink.loadfile modu;
             Extensions.set_config [];
           with
