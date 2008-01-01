@@ -252,12 +252,14 @@ module type ELIOMFORMSIG =
 
 
     val post_form :
-        ?a:form_attrib_t ->
-          service:('get, 'post, [< post_service_kind ],
-           [< suff ], 'gn, 'pn, 
-           [< registrable ]) service ->
-            sp:server_params -> ?fragment:string ->
-              ('pn -> form_content_elt_list) -> 'get -> form_elt
+      ?a:form_attrib_t ->
+      service:('get, 'post, [< post_service_kind ],
+               [< suff ], 'gn, 'pn, 
+               [< registrable ]) service ->
+      sp:server_params -> 
+      ?fragment:string ->
+      ?keep_get_na_params:bool ->
+      ('pn -> form_content_elt_list) -> 'get -> form_elt
 (** [post_form service sp formgen] creates a POST form to [service]. 
    The last parameter is for GET parameters (as in the function [a]).
  *)
@@ -696,7 +698,10 @@ module MakeForms = functor
             let current_get_params_string = 
               construct_params_string current_get_params 
             in
-            (("/"^(get_current_path_string sp))^"?"^
+            let cur = get_current_sub_path sp in
+            ((* ("/"^(get_current_path_string sp)) --> absolute (wrong) *)
+              (reconstruct_relative_url_path cur cur None)
+              ^"?"^ 
              (concat_strings
                 current_get_params_string
                 "&"
@@ -769,14 +774,18 @@ module MakeForms = functor
               | _ -> assert false
             in
             let current_get_params_string = 
-              construct_params_string current_get_params in
+              construct_params_string current_get_params 
+            in
+            let cur = get_current_sub_path sp in
             Pages.make_a ?a
-              ~href:(("/"^(get_current_path_string sp))^"?"^
-                     (concat_strings
-                        current_get_params_string
-                        "&"
-                        (concat_strings naservice_param "&" params_string))
-                    )
+              ~href:( 
+                (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
+                (reconstruct_relative_url_path cur cur None)^"?"^
+                  (concat_strings
+                     current_get_params_string
+                     "&"
+                     (concat_strings naservice_param "&" params_string))
+              )
               content
 
       let get_form 
@@ -829,7 +838,9 @@ module MakeForms = functor
               | None, i -> Pages.remove_first i
             in Pages.make_get_form ?a ~action:urlname i1 i
         | `Nonattached naser ->
-            let urlname = "/"^(get_current_path_string sp) in
+            let cur = get_current_sub_path sp in
+            let urlname = reconstruct_relative_url_path cur cur None in
+            (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
             let naservice_param_name = Eliommod.naservice_name in
             let naservice_param = 
               match get_na_name_ naser with
@@ -885,6 +896,7 @@ module MakeForms = functor
           ~service
           ~sp
           ?(fragment = "")
+          ?keep_get_na_params
           f 
           getparams =
         match get_kind_ service with
@@ -937,6 +949,30 @@ module MakeForms = functor
               i1 i
         | `Nonattached naser ->
             (* no GET params here for now *)
+            let keep_get_na_params = 
+              match keep_get_na_params with
+                | Some b -> b
+                | None ->
+                    match get_na_kind_ naser with
+                      | `Post b -> b
+                      | _ -> assert false
+            in
+            let current_get_params =
+              if keep_get_na_params then
+                get_all_get_params sp
+              else
+                List.remove_assoc
+                  Eliommod.naservice_name
+                  (remove_prefixed_param
+                     Eliommod.na_co_param_prefix (get_all_get_params sp))
+            in
+            let current_get_params_string = 
+              construct_params_string current_get_params 
+            in
+            let cur = get_current_sub_path sp in
+            (* absolute URL does not work behind a revproxy! *)
+            let urlpath = reconstruct_relative_url_path cur cur None in
+            let v = concat_strings urlpath "?" current_get_params_string in
             let naservice_param_name = Eliommod.naservice_name in
             let naservice_param = 
               match get_na_name_ naser with
@@ -949,9 +985,9 @@ module MakeForms = functor
                 ~name:naservice_param_name
                 ~value:naservice_param () 
             in
-(*VVV BUG: the URL is absolute! It does not work behind a revproxy! *)
-            let v = get_full_url sp in
-            let inside = f (make_params_names (get_post_params_type_ service)) in
+            let inside = 
+              f (make_params_names (get_post_params_type_ service)) 
+            in
             Pages.make_post_form ?a ~action:v
               (Pages.make_hidden_field naservice_line)
               inside

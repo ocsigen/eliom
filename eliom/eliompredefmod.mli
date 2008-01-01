@@ -118,12 +118,14 @@ module type XHTMLFORMSSIG = sig
    of the service parameters as parameters. *)
 
     val post_form :
-        ?a:form_attrib attrib list ->
-          service:('get, 'post, [< post_service_kind ],
-           [< suff ], 'gn, 'pn, 
-           [< registrable ]) service ->
-            sp:Eliomsessions.server_params -> ?fragment:string ->
-              ('pn -> form_content elt list) -> 'get -> [>form] elt
+      ?a:form_attrib attrib list ->
+      service:('get, 'post, [< post_service_kind ],
+               [< suff ], 'gn, 'pn, 
+               [< registrable ]) service ->
+      sp:Eliomsessions.server_params -> 
+      ?fragment:string ->
+      ?keep_get_na_params:bool ->
+      ('pn -> form_content elt list) -> 'get -> [>form] elt
 (** [post_form service sp formgen] creates a POST form to [service]. 
    The last parameter is for GET parameters (as in the function [a]).
  *)

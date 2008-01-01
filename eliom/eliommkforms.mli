@@ -256,15 +256,23 @@ module type ELIOMFORMSIG =
 
 
     val post_form :
-        ?a:form_attrib_t ->
-          service:('get, 'post, [< post_service_kind ],
-           [< suff ], 'gn, 'pn, 
-           [< registrable ]) service ->
-            sp:Eliomsessions.server_params ->
-               ?fragment:string ->
-                 ('pn -> form_content_elt_list) -> 'get -> form_elt
+      ?a:form_attrib_t ->
+      service:('get, 'post, [< post_service_kind ],
+               [< suff ], 'gn, 'pn, 
+               [< registrable ]) service ->
+      sp:Eliomsessions.server_params ->
+      ?fragment:string ->
+      ?keep_get_na_params:bool ->
+      ('pn -> form_content_elt_list) -> 'get -> form_elt
 (** [post_form service sp formgen] creates a POST form to [service]. 
-   The last parameter is for GET parameters (as in the function [a]).
+    The last parameter is for GET parameters (as in the function [a]).
+    If the optional parameter [~keep_get_na_params] is [true],
+    and if it is a form towards a non-attached POST coservice,
+    GET non-attached parameters will be kept in the URL (if any).
+    If it is [false], they will be removed.
+    Default is the default behaviour for this non-attached service
+    (see {!Eliomservices.new_post_coservice'}).
+    [~keep_get_na_params] has no effect on attached (co)services.
  *)
 
 (** {2 Form widgets} *)

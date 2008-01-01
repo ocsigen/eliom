@@ -278,7 +278,7 @@ let get_request_infos
      ri_url = parsed_url;
      ri_method = meth;
      ri_protocol = http_frame.Http_frame.header.Http_frame.Http_header.proto;
-     ri_path_string = string_of_url_path path;
+     ri_full_path_string = string_of_url_path path;
      ri_full_path = path;
      ri_sub_path = path;
      ri_sub_path_string = string_of_url_path path;

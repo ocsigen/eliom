@@ -101,24 +101,30 @@ type +'a a_s =
       
 type +'a na_s =
     {na_name: Eliommod.na_key;
-     na_kind: 'a; (* < getpost *)
-   }
+     na_kind: [ `Get | `Post of bool ] 
+       (* 
+          where bool is "keep_get_na_params":
+          do we keep GET non-attached parameters in links (if any)
+          (31/12/2007 - experimental - 
+          WAS: 'a, but may be removed (was not used))
+       *)
+    }
 
 type service_kind =
     [ `Attached of attached_service_kind a_s
-  | `Nonattached of getpost na_s ]
+    | `Nonattached of getpost na_s ]
 
 type internal_service_kind =
     [ `Attached of internal a_s
-  | `Nonattached of getpost na_s ]
+    | `Nonattached of getpost na_s ]
 
 type get_service_kind =
     [ `Attached of get_attached_service_kind a_s
-  | `Nonattached of [ `Get ] na_s ]
+    | `Nonattached of [ `Get ] na_s ]
 
 type post_service_kind =
     [ `Attached of post_attached_service_kind a_s
-  | `Nonattached of [ `Post ] na_s ]
+    | `Nonattached of [ `Post ] na_s ]
 
 type attached =
     [ `Attached of attached_service_kind a_s ]
@@ -148,6 +154,7 @@ let get_full_path_ s = s.fullpath
 let get_get_state_ s = s.get_state
 let get_post_state_ s = s.post_state
 let get_na_name_ s = s.na_name
+let get_na_kind_ s = s.na_kind
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
 
@@ -392,7 +399,9 @@ let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
    fallback. Or we must impose 'get = unit ...
  *)
 
-let new_post_coservice' ?max_use ?timeout ~post_params () =
+(*VVV Warning: keep_get_na_params is experimental *)
+let new_post_coservice' 
+    ?max_use ?timeout ?(keep_get_na_params = true) ~post_params () =
   (* match global_register_allowed () with
     Some _ -> add_unregistered None
   | _ -> () *)
@@ -404,7 +413,7 @@ let new_post_coservice' ?max_use ?timeout ~post_params () =
    post_params_type = post_params;
    kind = `Nonattached
      {na_name = Na_post (new_naservice_name ());
-      na_kind = `Post;
+      na_kind = `Post keep_get_na_params;
     }
  }
 

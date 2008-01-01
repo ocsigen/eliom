@@ -76,11 +76,17 @@ val get_ip : sp:server_params -> string
    using the type [Unix.inet_addr] (defined in OCaml's standard library). *)
 val get_inet_addr : sp:server_params -> Unix.inet_addr
 
-(** returns the path of the URL as a string *)
-val get_current_path_string : sp:server_params -> string
+(** returns the full path of the URL as a string. *)
+val get_current_full_path_string : sp:server_params -> string
 
 (** returns the full path of the URL using the type {!Extensions.url_path} *)
 val get_current_full_path : sp:server_params -> url_path
+
+(** returns the sub path of the URL as a string.
+    The sub-path is the full path without the path of the site (set in the 
+    configuration file).
+ *)
+val get_current_sub_path_string : sp:server_params -> string
 
 (** returns the sub path of the URL using the type {!Extensions.url_path}.
     The sub-path is the full path without the path of the site (set in the 

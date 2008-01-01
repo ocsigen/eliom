@@ -69,7 +69,7 @@ type request_info =
      ri_url: Neturl.url;
      ri_method: Http_frame.Http_header.http_method; (** GET, POST, HEAD... *)
      ri_protocol: Http_frame.Http_header.proto; (** HTTP protocol used by client *)
-     ri_path_string: string; (** path of the URL *)
+     ri_full_path_string: string; (** full path of the URL *)
      ri_full_path: string list;   (** full path of the URL *)
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)

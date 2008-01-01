@@ -99,19 +99,19 @@ type +'a na_s
 
 type service_kind =
     [ `Attached of attached_service_kind a_s
-  | `Nonattached of getpost na_s ]
+    | `Nonattached of getpost na_s ]
 
 type get_service_kind =
     [ `Attached of get_attached_service_kind a_s
-  | `Nonattached of [ `Get ] na_s ]
+    | `Nonattached of [ `Get ] na_s ]
 
 type post_service_kind =
     [ `Attached of post_attached_service_kind a_s
-  | `Nonattached of [ `Post ] na_s ]
+    | `Nonattached of [ `Post ] na_s ]
 
 type internal_service_kind =
     [ `Attached of internal a_s
-  | `Nonattached of getpost na_s ]
+    | `Nonattached of getpost na_s ]
 
 type attached =
     [ `Attached of attached_service_kind a_s ]
@@ -250,7 +250,7 @@ val new_coservice' :
     ?max_use:int ->
     ?timeout:float ->
     get_params: 
-    ('get,[`WithoutSuffix],'gn) params_type ->
+    ('get, [`WithoutSuffix], 'gn) params_type ->
       unit ->
         ('get, unit, [> `Nonattached of [> `Get] na_s ],
          [`WithoutSuffix], 'gn, unit, [> `Registrable ]) service
@@ -262,14 +262,21 @@ val new_coservice' :
  *)
 
 val new_post_coservice' :
-    ?max_use:int ->
-    ?timeout:float ->
-    post_params: ('post,[`WithoutSuffix],'pn) params_type ->
-      unit ->
-        (unit, 'post, 
-         [> `Nonattached of [> `Post] na_s ],
-         [ `WithoutSuffix ], unit, 'pn, [> `Registrable ]) service
-(** Creates a non attached coservice with POST parameters. *)
+  ?max_use:int ->
+  ?timeout:float ->
+  ?keep_get_na_params:bool ->  
+  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  unit ->
+  (unit, 'post, 
+   [> `Nonattached of [> `Post ] na_s ],
+   [ `WithoutSuffix ], unit, 'pn, [> `Registrable ]) service
+(** Creates a non attached coservice with POST parameters.
+    If the optional parameter [~keep_get_na_params] is [false],
+    GET non-attached parameters won't be kept in the URL (if any) when you
+    create a POST form to this coservice.
+    Default is [true].
+    See also {!Eliommkforms.post_form}.
+*)
 
 (*
 val new_get_post_coservice' :
@@ -351,6 +358,7 @@ val get_prefix_ : 'a a_s -> string
 val get_get_state_ : 'a a_s -> Eliommod.internal_state option
 val get_post_state_ : 'a a_s -> Eliommod.internal_state option
 val get_na_name_ : 'a na_s -> Eliommod.na_key
+val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> float option
 val reconstruct_absolute_url_path : url_path -> url_path -> url_path option -> string
