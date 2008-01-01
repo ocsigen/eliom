@@ -144,6 +144,19 @@ module type ELIOMREGSIG1 =
                        [> `Registrable ]) service
 (** Same as [new_service] followed by [register] *)
                       
+    val register_new_service' :
+        ?sp: Eliomsessions.server_params ->
+          name:string ->
+            get_params:('get, [ `WithoutSuffix ], 'gn) params_type ->
+              ?error_handler:(Eliomsessions.server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (Eliomsessions.server_params -> 'get -> unit -> page Lwt.t) ->
+                    ('get, unit, 
+                     [> `Nonattached of[> `Get] na_s ],
+                     [ `WithoutSuffix ], 'gn, unit, 
+                     [> `Registrable ]) service
+(** Same as [new_service'] followed by [register] *)
+                      
     val register_new_coservice :
         ?sp: Eliomsessions.server_params ->
         ?max_use:int ->
@@ -237,6 +250,18 @@ module type ELIOMREGSIG1 =
                    'tipo, 'gn, 'pn, [> `Registrable ])
                     service
 (** Same as [new_post_service] followed by [register] *)
+
+    val register_new_post_service' :
+        ?sp: Eliomsessions.server_params ->
+          name: string ->
+            post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+              ?error_handler:(Eliomsessions.server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (Eliomsessions.server_params -> unit -> 'post -> page Lwt.t) ->
+                    (unit, 'post, [> `Nonattached of [> `Post ] na_s ], 
+                     [ `WithoutSuffix ], unit, 'pn, [> `Registrable ])
+                      service
+(** Same as [new_post_service'] followed by [register] *)
 
     val register_new_post_coservice :
         ?sp: Eliomsessions.server_params ->
@@ -482,15 +507,14 @@ module MakeRegister = functor
         let register ?sp ~service ?error_handler page_gen =
           match sp with
           | None ->
-              let url =
-                match get_kind_ service with
-                | `Attached attser -> Some (get_sub_path_ attser)
-                | `Nonattached naser -> None
-              in
               (match global_register_allowed () with
               | Some get_current_sitedata ->
                   let sitedata = get_current_sitedata () in
-                  remove_unregistered sitedata url;
+                  (match get_kind_ service with
+                  | `Attached attser -> 
+                      remove_unregistered sitedata (get_sub_path_ attser)
+                  | `Nonattached naser ->
+                      remove_unregistered_na sitedata (get_na_name_ naser));
                   register_aux 
                     sitedata.global_services
                     false 
@@ -536,6 +560,16 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = new_service ?sp ~path ~get_params () in
+          register ?sp ~service:u ?error_handler page;
+          u
+            
+        let register_new_service'
+            ?sp
+            ~name
+            ~get_params
+            ?error_handler
+            page =
+          let u = new_service' ?sp ~name ~get_params () in
           register ?sp ~service:u ?error_handler page;
           u
             
@@ -596,6 +630,16 @@ module MakeRegister = functor
             page_gen =
           let u = new_post_service ?sp
               ~fallback:fallback ~post_params:post_params () in
+          register ?sp ~service:u ?error_handler page_gen;
+          u
+
+        let register_new_post_service'
+            ?sp 
+            ~name
+            ~post_params
+            ?error_handler
+            page_gen =
+          let u = new_post_service' ~name ~post_params:post_params () in
           register ?sp ~service:u ?error_handler page_gen;
           u
 
@@ -722,6 +766,19 @@ module MakeRegister = functor
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
           
+      let register_new_service'
+          ?sp
+          ~name
+          ~get_params
+          ?error_handler
+          page =
+        Cookies.register_new_service'
+          ?sp
+          ~name
+          ~get_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
+          
       let register_new_coservice
           ?sp
           ?max_use
@@ -799,6 +856,19 @@ module MakeRegister = functor
       Cookies.register_new_post_service 
           ?sp
           ~fallback
+          ~post_params
+          ?error_handler:(make_error_handler ?error_handler ())
+          (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
+
+      let register_new_post_service'
+          ?sp
+          ~name
+          ~post_params
+          ?error_handler
+          page_gen =
+      Cookies.register_new_post_service'
+          ?sp
+          ~name
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))

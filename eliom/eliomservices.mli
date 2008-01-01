@@ -144,16 +144,33 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 
 val new_service :
     ?sp: Eliomsessions.server_params ->
-    path:url_path ->
+      path:url_path ->
         get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
-            unit ->
-              ('get,unit,
-               [> `Attached of 
-                 [> `Internal of [> `Service ] * [>`Get] ] a_s ],
-               'tipo,'gn, 
-               unit, [> `Registrable ]) service
+          unit ->
+            ('get,unit,
+             [> `Attached of 
+               [> `Internal of [> `Service ] * [>`Get] ] a_s ],
+             'tipo,'gn, 
+             unit, [> `Registrable ]) service
 (** [new_service ~path:p ~get_params:pa ()] creates an {!Eliomservices.service} associated
    to the path [p], taking the GET parameters [pa]. 
+   
+   {e Warning: If you use this function after the initialisation phase,
+   you must give the [~sp] parameter, otherwise it will raise the
+   exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+*)
+	      
+val new_service' :
+    ?sp: Eliomsessions.server_params ->
+      name:string ->
+        get_params:('get, [ `WithoutSuffix ],'gn) params_type ->
+          unit ->
+            ('get, unit,
+             [> `Nonattached of [> `Get ] na_s ],
+             [ `WithoutSuffix ], 'gn, 
+             unit, [> `Registrable ]) service
+(** [new_service' ~name:n ~get_params:pa ()] creates a non-attached service
+    associated to the name [n], taking the GET parameters [pa]. 
    
    {e Warning: If you use this function after the initialisation phase,
    you must give the [~sp] parameter, otherwise it will raise the
@@ -190,7 +207,7 @@ val new_post_service :
                  ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
                [< suff] as 'tipo, 'gn, unit, 
                [< `Registrable ]) service ->
-                 post_params: ('post,[`WithoutSuffix],'pn) params_type ->
+                 post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
                    unit ->
                      ('get, 'post, [> `Attached of 
                        [> `Internal of 'kind * [> `Post]] a_s ],
@@ -203,6 +220,18 @@ val new_post_service :
  *)
 (* fallback must be registrable! (= not preapplied) *)
 	  
+val new_post_service' :
+  ?keep_get_na_params:bool ->  
+    name: string ->
+      post_params: ('post, [ `WithoutSuffix ], 'pn) params_type ->
+        unit ->
+          (unit, 'post, [> `Nonattached of [> `Post] na_s ],
+           [ `WithoutSuffix ], unit, 'pn, [> `Registrable ]) service
+(** Creates a non-attached service that takes POST parameters. 
+   [name] is the name of that non-attached service.
+ *)
+(* fallback must be registrable! (= not preapplied) *)
+	  
 		
 (** {3 Attached coservices} *)
 
@@ -211,7 +240,7 @@ val new_coservice :
     ?timeout:float ->
     fallback: 
     (unit, unit, [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
-     [`WithoutSuffix] as 'tipo,
+     [ `WithoutSuffix ] as 'tipo,
      unit, unit, [< registrable ]) service ->
        get_params: 
          ('get,[`WithoutSuffix],'gn) params_type ->
@@ -236,7 +265,7 @@ val new_post_coservice :
       [`Internal of [<`Service | `Coservice] * [`Get]] a_s ],
                [< suff ] as 'tipo,
                'gn, unit, [< `Registrable ]) service ->
-                 post_params: ('post,[`WithoutSuffix],'pn) params_type ->
+                 post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
                    unit ->
                      ('get, 'post, 
                       [> `Attached of 

@@ -139,6 +139,19 @@ module type ELIOMREGSIG1 =
                        [> `Registrable ]) service
 (** Same as [new_service] followed by [register] *)
                       
+    val register_new_service' :
+        ?sp: Eliomsessions.server_params ->
+          name:string ->
+            get_params:('get, [ `WithoutSuffix ], 'gn) params_type ->
+              ?error_handler:(Eliomsessions.server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (Eliomsessions.server_params -> 'get -> unit -> page Lwt.t) ->
+                    ('get, unit, 
+                     [> `Nonattached of [> `Get ] na_s ],
+                     [ `WithoutSuffix ], 'gn, unit, 
+                     [> `Registrable ]) service
+(** Same as [new_service'] followed by [register] *)
+                      
     val register_new_coservice :
         ?sp: Eliomsessions.server_params ->
         ?max_use:int ->
@@ -232,6 +245,18 @@ module type ELIOMREGSIG1 =
                    'tipo, 'gn, 'pn, [> `Registrable ])
                     service
 (** Same as [new_post_service] followed by [register] *)
+
+    val register_new_post_service' :
+        ?sp: Eliomsessions.server_params ->
+          name: string ->
+            post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+              ?error_handler:(Eliomsessions.server_params -> (string * exn) list -> 
+                page Lwt.t) ->
+                  (Eliomsessions.server_params -> unit -> 'post -> page Lwt.t) ->
+                    (unit, 'post, [> `Nonattached of [> `Post ] na_s ], 
+                     [ `WithoutSuffix ], unit, 'pn, [> `Registrable ])
+                      service
+(** Same as [new_post_service'] followed by [register] *)
 
     val register_new_post_coservice :
         ?sp: Eliomsessions.server_params ->

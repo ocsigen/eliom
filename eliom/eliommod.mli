@@ -79,8 +79,10 @@ type internal_state = string
 
 type na_key =
   | Na_no
-  | Na_get of string
-  | Na_post of string
+  | Na_get_ of string (* service *)
+  | Na_post_ of string (* service *)
+  | Na_get' of string (* coservice *)
+  | Na_post' of string (* coservice *)
 
 type sess_info =
     {si_other_get_params: (string * string) list;
@@ -247,7 +249,8 @@ type sitedata =
    mutable remove_session_data: string -> unit;
    mutable not_bound_in_data_tables: string -> bool;
    mutable exn_handler: server_params -> exn -> result_to_send Lwt.t;
-   mutable unregistered_services: url_path option list;
+   mutable unregistered_services: url_path list;
+   mutable unregistered_na_services: na_key list;
    mutable max_volatile_data_sessions_per_group: int option;
    mutable max_service_sessions_per_group: int option;
    mutable max_persistent_data_sessions_per_group: int option;
@@ -271,8 +274,8 @@ and server_params =
 
 exception Eliom_duplicate_registration of string (** The service has been registered twice*)
 exception Eliom_page_erasing of string (** The location where you want to register something already exists *)
-exception Eliom_there_are_unregistered_services of (string list * 
-                                                      string list option list)
+exception Eliom_there_are_unregistered_services of
+  (string list * string list list * na_key list)
 (** Some services have not been registered. The first string list is the path
  of the site, the string list option list is the list of unregistered services.
     [None] means non-attached.
@@ -326,6 +329,7 @@ val get_state_param_name : string
 val post_state_param_name : string
 val eliom_suffix_name : string
 val eliom_suffix_internal_name : string
+val naservice_num : string
 val naservice_name : string
 val co_param_prefix : string
 val na_co_param_prefix : string
@@ -518,8 +522,10 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 
 
 (** internal functions: *)
-val add_unregistered : sitedata -> string list option -> unit
-val remove_unregistered : sitedata -> string list option -> unit
+val add_unregistered : sitedata -> string list -> unit
+val remove_unregistered : sitedata -> string list -> unit
+val add_unregistered_na : sitedata -> na_key -> unit
+val remove_unregistered_na : sitedata -> na_key -> unit
 val global_register_allowed : unit -> (unit -> sitedata) option
 
 

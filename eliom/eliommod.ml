@@ -53,8 +53,10 @@ type cookie =
 
 type na_key =
   | Na_no
-  | Na_get of string
-  | Na_post of string
+  | Na_get_ of string (* service *)
+  | Na_post_ of string (* service *)
+  | Na_get' of string (* coservice *)
+  | Na_post' of string (* coservice *)
 
 
 type sess_info =
@@ -248,8 +250,8 @@ exception Eliom_Service_session_expired of (string list)
 exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_duplicate_registration of string
-exception Eliom_there_are_unregistered_services of (string list * 
-                                                      string list option list)
+exception Eliom_there_are_unregistered_services of
+  (string list * string list list * na_key list)
 exception Eliom_function_forbidden_outside_site_loading of string
 exception Eliom_page_erasing of string
 exception Eliom_error_while_loading_site of string
@@ -305,7 +307,7 @@ and page_table =
     (page_table_key * 
        (((anon_params_type * anon_params_type) (* unique_id *) * 
            (int * (* generation (= number of reloads of sites
-                     that after which that service has been created) *)
+                     after which that service has been created) *)
               (int ref option (* max_use *) *
                  (float * float ref) option
                  (* timeout and expiration date for the service *) *
@@ -321,7 +323,9 @@ and page_table =
 and naservice_table = 
   | AVide 
   | ATable of 
-      (int ref option (* max_use *) *
+      (int (* generation (= number of reloads of sites
+              after which that service has been created) *) *
+       int ref option (* max_use *) *
          (float * float ref) option (* timeout and expiration date *) *
          (server_params -> result_to_send Lwt.t)
       )
@@ -354,7 +358,8 @@ and sitedata =
    mutable remove_session_data: string -> unit;
    mutable not_bound_in_data_tables: string -> bool;
    mutable exn_handler: server_params -> exn -> result_to_send Lwt.t;
-   mutable unregistered_services: url_path option list;
+   mutable unregistered_services: url_path list;
+   mutable unregistered_na_services: na_key list;
    mutable max_volatile_data_sessions_per_group: int option;
    mutable max_service_sessions_per_group: int option;
    mutable max_persistent_data_sessions_per_group: int option;
@@ -399,6 +404,7 @@ let make_server_params sitedata all_cookie_info ri suffix si fullsessname
 (*****************************************************************************)
 let eliom_suffix_name = "__eliom_suffix"
 let eliom_suffix_internal_name = "__eliom_suffix**"
+let naservice_num = "__eliom_na__num"
 let naservice_name = "__eliom_na__name"
 let get_state_param_name = "__eliom__"
 let post_state_param_name = "__eliom_p__"
@@ -944,7 +950,7 @@ let gc_timeouted_naservices now tr =
   | AVide -> return ()
   | ATable t -> 
       NAserv_Table.fold
-        (fun k (_, expdate, _) thr -> 
+        (fun k (_, _, expdate, _) thr -> 
           thr >>=
           (fun table -> 
             Lwt_unix.yield () >>=
@@ -995,7 +1001,7 @@ let service_session_gc sitedata =
                       ((servicetable,
                         naservicetable, 
                         contains_services_with_timeout, 
-                        contains_naservices_with_timeout) as tables), 
+                        contains_naservices_with_timeout) as tables),
                       exp, 
                       _,
                       session_group_ref) thr -> 
@@ -1130,6 +1136,7 @@ let new_sitedata =
              not_bound_in_data_tables = (fun cookie -> true);
              exn_handler = def_handler;
              unregistered_services = [];
+             unregistered_na_services = [];
              max_service_sessions_per_group = 
                 default_max_sessions_per_group;
              max_volatile_data_sessions_per_group = 
@@ -1173,15 +1180,22 @@ let absolute_change_sitedata, get_current_sitedata,
 let add_unregistered sitedata a = 
   sitedata.unregistered_services <- a::sitedata.unregistered_services
 
+let add_unregistered_na sitedata a = 
+  sitedata.unregistered_na_services <- a::sitedata.unregistered_na_services
+
 let remove_unregistered sitedata a = 
   sitedata.unregistered_services <- 
     list_remove_first_if_any a sitedata.unregistered_services
 
+let remove_unregistered_na sitedata a = 
+  sitedata.unregistered_na_services <- 
+    list_remove_first_if_any a sitedata.unregistered_na_services
+
 let verify_all_registered sitedata =
-  match sitedata.unregistered_services with
-  | [] -> () 
-  | l -> 
-      raise (Eliom_there_are_unregistered_services (sitedata.site_dir, l))
+  match sitedata.unregistered_services, sitedata.unregistered_na_services with
+  | [], [] -> () 
+  | l1, l2 -> 
+      raise (Eliom_there_are_unregistered_services (sitedata.site_dir, l1, l2))
 
 
 let during_eliom_module_loading, 
@@ -1448,35 +1462,47 @@ let change_request_info ri charset previous_extension_err =
       let post_naservice_name, na_post_params = 
         try
           let n, pp =
-            list_assoc_remove naservice_name post_params
-          in (Some n, pp)
-        with Not_found -> (None, [])
+            list_assoc_remove naservice_num post_params
+          in (Na_post' n, pp)
+        with Not_found ->
+          try
+            let n, pp =
+              list_assoc_remove naservice_name post_params
+            in (Na_post_ n, pp)
+          with Not_found -> (Na_no, [])
       in
       match post_naservice_name with
-        | Some n -> (* POST non attached coservice *)
-            ((Na_post n),
+        | Na_post_ _
+        | Na_post' _ -> (* POST non attached coservice *)
+            (post_naservice_name,
              (None, None), 
-             ([], get_params), 
+             ([], get_params),
              na_post_params)
-        | None ->
+        | _ ->
             let get_naservice_name, (na_get_params, other_get_params) = 
               try
                 let n, gp =
-                  list_assoc_remove naservice_name get_params
-                in (Some n, (split_prefix_param na_co_param_prefix gp))
-              with Not_found -> (None, ([], get_params))
+                  list_assoc_remove naservice_num get_params
+                in (Na_get' n, (split_prefix_param na_co_param_prefix gp))
+              with Not_found ->
+                try
+                  let n, gp =
+                    list_assoc_remove naservice_name get_params
+                  in (Na_get_ n, (split_prefix_param na_co_param_prefix gp))
+                with Not_found -> (Na_no, ([], get_params))
             in
             match get_naservice_name with
-              | Some n -> (* GET non attached coservice *)
-                  ((Na_get n),
+              | Na_get_ _
+              | Na_get' _ -> (* GET non attached coservice *)
+                  (get_naservice_name,
                    (None, None), 
                    (na_get_params, other_get_params), 
                    [])
                     (* Not possible to have POST parameters 
-                       without naservice_name
-                       if there is a GET naservice_name
+                       without naservice_num
+                       if there is a GET naservice_num
                     *)
-              | None ->
+              | _ ->
                   let post_state, post_params = 
                     try 
                       let s, pp =
@@ -1656,11 +1682,20 @@ let remove_naservice_table at k =
 let add_naservice 
     (_, naservicetableref, _, containstimeouts) duringsession name 
     (max_use, expdate, naservice) =
+  let generation = Extensions.get_numberofreloads () in
   (if not duringsession
   then
     try
-      ignore (find_naservice_table !naservicetableref name);
-      raise (Eliom_duplicate_registration "<non-attached coservice>")
+      let (g, _, _, _) = find_naservice_table !naservicetableref name in
+      if g = generation then
+        match name with
+        | Na_no | Na_get' _ | Na_post' _ ->
+            raise (Eliom_duplicate_registration "<non-attached coservice>")
+        | Na_get_ n ->
+            raise (Eliom_duplicate_registration ("GET non-attached service "^n))
+        | Na_post_ n ->
+            raise (Eliom_duplicate_registration
+                     ("POST non-attached service "^n))
     with Not_found -> ());
 
   (match expdate with
@@ -1669,13 +1704,13 @@ let add_naservice
   
   naservicetableref :=
     add_naservice_table !naservicetableref
-      (name, (max_use, expdate, naservice))
+      (name, (generation, max_use, expdate, naservice))
 
-let remove_naservice (_,atr,_,_) name =
+let remove_naservice (_, atr, _, _) name =
   atr := remove_naservice_table !atr name
 
 let find_naservice now ((_, atr, _, _) as str) name =
-  let ((_, expdate, _) as p) = find_naservice_table !atr name in
+  let ((_, _, expdate, _) as p) = find_naservice_table !atr name in
   match expdate with
   | Some (_, e) when !e < now ->
       (* Service expired. Removing it. *)
@@ -2760,7 +2795,8 @@ let make_naservice
        *)
       match si.si_nonatt_info with
       | Na_no -> assert false
-      | Na_post _ -> 
+      | Na_post_ _
+      | Na_post' _ -> 
 (*VVV (Some, Some) or (_, Some)? *)
           Messages.debug2 
             "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
@@ -2779,7 +2815,8 @@ let make_naservice
                                        cookies_to_set,
                                        all_cookie_info)))
 
-      | Na_get _ ->
+      | Na_get_ _
+      | Na_get' _ ->
           Messages.debug2 
             "--Eliom: Link too old. I will try without non-attached parameters:";
           change_request_info
@@ -2797,7 +2834,7 @@ let make_naservice
                                     cookies_to_set,
                                     all_cookie_info)))
   ) >>=
-  (fun ((max_use, expdate, naservice), 
+  (fun ((_, max_use, expdate, naservice), 
         tablewhereithasbeenfound,
         fullsessname) ->
     (naservice
@@ -2906,7 +2943,8 @@ let gen sitedata charset = function
                   (match 
                     si.si_nonatt_info, si.si_state_info, ri.ri_method 
                   with
-                  | Na_get _, (_, None), Http_frame.Http_header.GET ->
+                  | Na_get_ _, (_, None), Http_frame.Http_header.GET
+                  | Na_get' _, (_, None), Http_frame.Http_header.GET ->
                       (* no post params, GET na coservice *)
                       
                       return
@@ -2940,7 +2978,8 @@ let gen sitedata charset = function
                             all_new_cookies
                            ))
                         
-                  | Na_post _, (_, _), _ ->
+                  | Na_post_ _, (_, _), _
+                  | Na_post' _, (_, _), _ ->
                       (* POST na coservice *)
                       (* retry without POST params *)
                         
@@ -3121,21 +3160,41 @@ let handle_init_exn = function
   | Eliom_duplicate_registration s -> 
       ("Fatal - Eliom: Duplicate registration of url \""^s^
        "\". Please correct the module.")
-  | Eliom_there_are_unregistered_services (s, l) ->
+  | Eliom_there_are_unregistered_services (s, l1, l2) ->
       ("Fatal - Eliom: in site \""^
        (Ocsimisc.string_of_url_path s)^"\" - "^
-       (match l with
-       | [] -> "<none(??)>"
-       | [None] -> "One non-attached coservice has not been registered."
-       | [Some a] -> "One service or coservice has not been registered on URL \""
-           ^(Ocsimisc.string_of_url_path a)^"\"."
+       (match l1 with
+       | [] -> ""
+       | [a] -> "One service or coservice has not been registered on URL \""
+           ^(Ocsimisc.string_of_url_path a)^"\". "
        | a::ll -> 
-           let string_of = function
-             | None -> "<non-attached>"
-             | Some u -> Ocsimisc.string_of_url_path u
-           in
+           let string_of = Ocsimisc.string_of_url_path in
            "Some services or coservices have not been registered \
              on URLs: "^
+             (List.fold_left
+                (fun beg v -> beg^", "^(string_of v))
+                (string_of a)
+                ll
+             )^". ")^
+       (match l2 with
+       | [] -> ""
+       | [Na_get' _] -> "One non-attached GET coservice has not been registered."
+       | [Na_post' _] -> "One non-attached POST coservice has not been registered."
+       | [Na_get_ a] -> "The non-attached GET service \""
+           ^a^
+           "\" has not been registered."
+       | [Na_post_ a] -> "The non-attached POST service \""
+           ^a^
+           "\" has not been registered."
+       | a::ll -> 
+           let string_of = function
+             | Na_no -> "<no>"
+             | Na_get' _ -> "<GET coservice>"
+             | Na_get_ n -> n^" (GET)"
+             | Na_post' _ -> "<POST coservice>"
+             | Na_post_ n -> n^" (POST)"
+           in
+           "Some non-attached services or coservices have not been registered: "^
              (List.fold_left
                 (fun beg v -> beg^", "^(string_of v))
                 (string_of a)

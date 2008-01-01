@@ -947,7 +947,7 @@ let looong2 =
       you want to provide. 
       </p>
       <p>Services we used so far are called <em>main services</em>. 
-      Actually, Eliom uses three kinds of services:</p>
+      Actually, Eliom uses four kinds of services:</p>
       <dl class="blue">
         <dt>Main services</dt><dd>are the main entry points of your sites.
         Created by <code>new_service</code> or 
@@ -968,14 +968,20 @@ let looong2 =
         button but not the page it leads to (like the disconnect button
         in the example of sessions with <em>actions</em> below).
         </dd>
-        <dt>Non-attached coservices</dt><dd>are coservices that are not
+        <dt>Non-attached services</dt><dd>are
+        services that are not
         attached to a particular URL. A link towards a non-attached
-        coservice will go to the current URL (with special parameters
-        allowing to recognize the coservice).
+        service will go to the current URL with a special parameter
+        containing the name of the service.
         It is usefull when you want the same link or form on several pages 
         (for example a connection box) but you don't want to go to another
-        URL. Non-attached coservice are ofetn used with <em>actions</em>
+        URL. Non-attached (co)service are often used with <em>actions</em>
         (see below).
+        </dd>
+        <dt>Non-attached coservices</dt><dd>are
+        coservices that are not attached to a particular URL.
+        The difference with non-attached services is that they have no
+        name, but a number generated automatically (every times different).
        </dd>
       </dl>
       <h4>GET or POST?</h4>
@@ -1008,76 +1014,80 @@ let looong2 =
       using these different modules:</p>
         <table>
 <tr><td class="empty"></td>
-  <th class="col">Services</th>
-  <th class="col">Attached coservices</th>
-  <th class="col">Non attached coservices</th></tr>
+  <th colspan="2" class="col">Attached</th>
+  <th colspan="2" class="col">Non-attached</th></tr>
+<tr><td class="empty"></td>
+  <th class="col">services</th>
+  <th class="col">coservices</th>
+  <th class="col">services</th>
+  <th class="col">coservices</th></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$</th>
-          <td colspan="3">allows to register functions that 
+          <td colspan="4">allows to register functions that 
         generate xhtml pages
         statically checked using polymorphic variant types. You may use
         constructor functions from $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or a syntax
         extension close to the standard xhtml syntax.
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Blocks" ]] [version;"Eliompredefmod.Blocks.html"]$</th>
-          <td colspan="3">allows to register functions that 
+          <td colspan="4">allows to register functions that 
         generate a portion of page (content of body tag) using
         $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or the syntax extension.
         (usefull for <code>XMLHttpRequest</code> requests for example).
         
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliomduce.Xhtml" ]] [version;"Eliomduce.Xhtml.html"]$</th>
-          <td colspan="3">allows to register functions 
+          <td colspan="4">allows to register functions 
             that generate xhtml pages 
         statically checked using <code>OCamlduce</code>. Typing is more
         strict, but you need a modified version of the OCaml compiler 
         (OCamlduce).
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.HtmlText" ]] [version;"Eliompredefmod.HtmlText.html"]$</th>
-          <td colspan="3">Allows to register functions that
+          <td colspan="4">Allows to register functions that
         generate text html pages, without any typechecking of the content.
         The content type sent by the server is "text/html".
         
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.CssText" ]] [version;"Eliompredefmod.CssText.html"]$</th>
-          <td colspan="3">Allows to register functions that
+          <td colspan="4">Allows to register functions that
         generate CSS pages, without any typechecking of the content.
         The content type sent by the server is "text/css".
         
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Text" ]] [version;"Eliompredefmod.Text.html"]$</th>
-          <td colspan="3">Allows to register functions that
+          <td colspan="4">Allows to register functions that
         generate text pages, without any typechecking of the content.
         The services return a pair of strings. The first one is the content
         of the page, the second one is the content type.
         
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions" ]] [version;"Eliompredefmod.Actions.html"]$</th>
-          <td colspan="3">allows to register actions, that is
+          <td colspan="4">allows to register actions, that is
         functions that do not generate any page. The URL is reloaded after
         the action.
         
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Unit" ]] [version;"Eliompredefmod.Unit.html"]$</th>
-          <td colspan="3">is like $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions" ]] [version;"Eliompredefmod.Actions.html"]$ but the
+          <td colspan="4">is like $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions" ]] [version;"Eliompredefmod.Actions.html"]$ but the
         URL is not reloaded after the action.
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Redirections" ]] [version;"Eliompredefmod.Redirections.html"]$</th>
-          <td colspan="3">allows to register HTTP permanent redirections.
+          <td colspan="4">allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
             The browser will get a 301 code in answer and redo the request
             to the new URL.
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.TempRedirections" ]] [version;"Eliompredefmod.TempRedirections.html"]$</th>
-          <td colspan="3">allows to register HTTP temporary redirections.
+          <td colspan="4">allows to register HTTP temporary redirections.
             You register the URL of the page you want to redirect to.
             The browser will get a 302 code in answer and redo the request
             to the new URL.
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Files" ]] [version;"Eliompredefmod.Files.html"]$</th>
-          <td colspan="3">allows to register services that send files        
+          <td colspan="4">allows to register services that send files        
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Any" ]] [version;"Eliompredefmod.Any.html"]$</th>
-          <td colspan="3">allows to register services that can choose
+          <td colspan="4">allows to register services that can choose
             what they send, for example an xhtml page
             or a file, depending on some situation (parameter, user logged or
             not, page present in a cache ...).        
@@ -1122,7 +1132,8 @@ let looong2 =
           browser's "back" button turn back in the past, and to allow several
           tabs on different versions of the same page,
         </li>
-        <li>Actions registered on POST non-attached coservices to make an effect
+        <li>Actions registered on POST non-attached services
+          to make an effect
           on the server, from any page, and without changing the URL
           (connection/disconnection for example).
         </li>
@@ -1136,7 +1147,7 @@ let looong2 =
         <dt>Keep information about the session (name of the user&nbsp;...)</dt>
         <dd>Use a session data table.</dd>
         <dt>A connection or disconnection box on each page of your site</dt>
-        <dd>Use actions registered on a non-attached coservices to set or
+        <dd>Use actions registered on non-attached services to set or
          remove data from a session data table.
         </dd>
         <dt>Add something in a shopping basket</dt>
@@ -1412,7 +1423,7 @@ let _ = register
           If you want the same login form on several pages, it is tedious
           work to create a coservice with POST parameters for each page.
           We will se how to solve this using actions and non-attached 
-          coservices.
+          services.
         </li>
         <li>
           Session data are kept in memory and will be lost if you switch off
@@ -1743,7 +1754,7 @@ let _ =
         on the same page&nbsp;... How to do that with POST coservices?
         A much better solution will be seen in the
         <a href="#p2actions">section 
-        about actions and non-attached coservices</a>.
+        about actions and non-attached services</a>.
       </p>
       <div class="encadre">
         <h4>URLs</h4>
@@ -1757,7 +1768,7 @@ let _ =
           or page depending on post data). 
           Sometimes, you want that clicking
           a link or submitting a form does something without changing the URL.
-          You can do this using <em>non-attached coservices</em> (see below).
+          You can do this using <em>non-attached services</em> (see below).
           </p>
       </div>
       <div class="encadre">
@@ -1790,18 +1801,24 @@ let _ =
         <p>If you want continuations dedicated to a particular user
         register them in the session table.</p>
       </div>
-      <h4>Non-attached coservices</h4>
+      <h4>Non-attached services and coservices</h4>
        <p>
-       Non-attached coservices are services that are not attached to an URL.
+       Non-attached (co)services are (co)services 
+       that are not attached to an URL.
        When you do a link or a form towards such a service, the URL do not
        change. The name of the service is sent as a special parameter.
        </p>
-       <p>As for attached coservices, there are GET and POST versions.
-       To create them, use $a ~fragment:"VALnew_coservice'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_coservice'" ]] [version;"Eliomservices.html"]$ or
+       <p>Non-attached services have a name, non-attached coservices
+       are distinguished by a number (every times different).</p>
+       <p>As for attached (co)services, there are GET and POST versions.
+       To create them, use 
+       $a ~fragment:"VALnew_service'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_service'" ]] [version;"Eliomservices.html"]$,
+       $a ~fragment:"VALnew_post_service'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_service'" ]] [version;"Eliomservices.html"]$,
+       $a ~fragment:"VALnew_coservice'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_coservice'" ]] [version;"Eliomservices.html"]$ or
        $a ~fragment:"VALnew_post_coservice'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_coservice'" ]] [version;"Eliomservices.html"]$.
-       POST non-attached coservices are really usefull if you want a
+       POST non-attached (co)services are really usefull if you want a
        link or form to be present on every page but you don't want the
-       URL to change. Very often, POST coservices are used with <em>actions</em>
+       URL to change. Very often, POST (co)services are used with <em>actions</em>
        (<a href="#p2actions">see more details and an example in the section about 
           actions below</a>).
        </p>
@@ -2037,7 +2054,7 @@ let () =
 </pre>
       <p>Here we rewrite the example <code>session_data_example</code> 
       using actions
-      and non-attached coservices
+      and non-attached services
       (note the POST coservice for disconnection, much better than the
       previous solution that was using another URL).</p>
 *html*)
@@ -2059,13 +2076,15 @@ let connect_example3 =
     ()
 
 let connect_action = 
-  Eliomservices.new_post_coservice'
+  Eliomservices.new_post_service'
+    ~name:"connect3"
     ~post_params:(Eliomparameters.string "login")
     ()
     
 (* As the handler is very simple, we register it now: *)
 let disconnect_action = 
-  Eliompredefmod.Actions.register_new_post_coservice'
+  Eliompredefmod.Actions.register_new_post_service'
+    ~name:"disconnect3"
     ~post_params:Eliomparameters.unit 
     (fun sp () () -> 
       Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
@@ -2627,7 +2646,7 @@ val remove : 'value table -&gt; string -&gt; unit Lwt.t
 
 *html*)
 (************************************************************)
-(************ Connection of users, version 5 ****************)
+(************ Connection of users, version 4 ****************)
 (**************** (persistent sessions) *********************)
 (************************************************************)
 
@@ -2648,7 +2667,8 @@ let persist_session_example =
     ()
 
 let persist_session_connect_action = 
-  Eliomservices.new_post_coservice'
+  Eliomservices.new_post_service'
+    ~name:"connect4"
     ~post_params:(string "login") 
     ()
 
@@ -2661,7 +2681,8 @@ let persist_session_connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action = 
-  Eliompredefmod.Actions.register_new_post_coservice'
+  Eliompredefmod.Actions.register_new_post_service'
+    ~name:"disconnect4"
     ~post_params:Eliomparameters.unit 
     (fun sp () () -> 
       Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
@@ -2786,30 +2807,32 @@ one user may open at the same time.
     </p>
   *html*)
 (************************************************************)
-(************ Connection of users, version 4 ****************)
+(************ Connection of users, version 5 ****************)
 (************************************************************)
 
 (*zap* *)
-let session_name = "connect_example4"
+let session_name = "connect_example5"
 (* *zap*)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
 
-let connect_example4 = 
+let connect_example5 = 
   Eliomservices.new_service
     ~path:["groups"] 
     ~get_params:Eliomparameters.unit
     ()
 
 let connect_action = 
-  Eliomservices.new_post_coservice'
+  Eliomservices.new_post_service'
+    ~name:"connect5"
     ~post_params:(Eliomparameters.string "login")
     ()
     
 (* As the handler is very simple, we register it now: *)
 let disconnect_action = 
-  Eliompredefmod.Actions.register_new_post_coservice'
+  Eliompredefmod.Actions.register_new_post_service'
+    ~name:"disconnect5"
     ~post_params:Eliomparameters.unit 
     (fun sp () () -> 
       Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
@@ -2837,9 +2860,9 @@ let login_box sp =
 
 
 (* -------------------------------------------------------- *)
-(* Handler for the "connect_example4" service (main page):    *)
+(* Handler for the "connect_example5" service (main page):    *)
 
-let connect_example4_handler sp () () = 
+let connect_example5_handler sp () () = 
   let sessdat = Eliomsessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
   return
     (html
@@ -2867,9 +2890,17 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliompredefmod.Xhtml.register ~service:connect_example4 connect_example4_handler;
+  Eliompredefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
   Eliompredefmod.Actions.register ~service:connect_action connect_action_handler
 (*html*
+
+    <p>
+      As we will see later, there are three kinds of sessions
+      (services, volatile data and persistent data). 
+      It is highly recommended to set a group for each of them!
+    </p>
+
+
     </div>
 
 
@@ -2911,24 +2942,25 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     </p>
 *html*)
 (************************************************************)
-(************ Connection of users, version 5 ****************)
+(************ Connection of users, version 6 ****************)
 (************************************************************)
 (*zap* *)
-let session_name = "connect_example5"
+let session_name = "connect_example6"
 (* *zap*)
 (*zap* *)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
 
-let connect_example5 = 
+let connect_example6 = 
   Eliomservices.new_service
     ~path:["action2"] 
     ~get_params:unit 
     ()
 
 let connect_action = 
-  Eliomservices.new_post_coservice'
+  Eliomservices.new_post_service'
+    ~name:"connect6"
     ~post_params:(string "login") 
     ()
 
@@ -2941,7 +2973,8 @@ let connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action = 
-  Eliompredefmod.Actions.register_new_post_coservice'
+  Eliompredefmod.Actions.register_new_post_service'
+    ~name:"disconnect6"
     ~post_params:Eliomparameters.unit 
     (fun sp () () -> 
       Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
@@ -2979,9 +3012,9 @@ let login_box sp session_expired action =
 
 (*zap* *)    
 (* -------------------------------------------------------- *)
-(* Handler for the "connect_example5" service (main page):   *)
+(* Handler for the "connect_example6" service (main page):   *)
 
-let connect_example5_handler sp () () = 
+let connect_example6_handler sp () () = 
   let group = 
     Eliomsessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () 
   in
@@ -3019,12 +3052,12 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () = 
-  Eliompredefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
+  Eliompredefmod.Xhtml.register ~service:connect_example6 connect_example6_handler;
   Eliompredefmod.Actions.register ~service:connect_action connect_action_handler
 (* *zap*)
 (*html*
       <p>
-      $a Tutoeliom.connect_example5 sp <:xmllist< See this example here >> ()$.
+      $a Tutoeliom.connect_example6 sp <:xmllist< See this example here >> ()$.
       </p>
       <p>
         If the actions raises an exception (with $a ~fragment:"VALfail" ~service:senddoc ~sp [code [pcdata "Lwt.fail" ]] [version;"Lwt.html"]$),
@@ -4146,9 +4179,9 @@ let _ = register main
          A session based on cookies, with session services: 
              $a session_services_example sp <:xmllist< <code>sessionservices</code> >> ()$ <br/> 
          A session based on cookies, implemented with actions, with session groups: 
-             $a connect_example4 sp <:xmllist< <code>groups</code> >> ()$ <br/>
+             $a connect_example5 sp <:xmllist< <code>groups</code> >> ()$ <br/>
          The same with wrong user if not "toto": 
-             $a connect_example5 sp <:xmllist< <code>actions2</code> >> ()$ <br/>
+             $a connect_example6 sp <:xmllist< <code>actions2</code> >> ()$ <br/>
          Coservices in the session table:
              $a calc sp <:xmllist< <code>calc</code> >> ()$ <br/>
        <!--  (ancienne version : $a shop_without_post_params sp <:xmllist< <code>shop</code> >> ()$) -->

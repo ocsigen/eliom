@@ -231,7 +231,7 @@ let new_service_aux
   match sp with
   | None ->
       (match global_register_allowed () with
-        Some get_current_sitedata ->
+      | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
           let path = remove_internal_slash (change_empty_list path) in
           let u = new_service_aux_aux
@@ -242,7 +242,8 @@ let new_service_aux
               ~get_params
               ~post_params:unit
           in
-          add_unregistered sitedata (Some path); u
+          add_unregistered sitedata path; 
+          u
       | None -> raise (Eliom_function_forbidden_outside_site_loading
                          "new_service"))
   | Some sp ->
@@ -283,7 +284,7 @@ let new_service
     ~path:(if suffix then path@[eliom_suffix_internal_name] else path)
     ~get_params
 
-let new_naservice_name () = new_state ()
+let new_naservice_num () = new_state ()
 
 let new_coservice
     ?max_use
@@ -293,7 +294,7 @@ let new_coservice
     () =
   let `Attached k = fallback.kind in
   (* (match global_register_allowed () with
-    Some _ -> add_unregistered (Some k.path);
+  | Some _ -> add_unregistered k.path;
   | _ -> ()); *)
   {fallback with
    max_use= max_use;
@@ -311,9 +312,10 @@ let new_coservice
     
 
 let new_coservice' ?max_use ?timeout ~get_params () =
-  (* match global_register_allowed () with
-    Some _ -> add_unregistered None;
-  | _ -> () *) (* Do we accept unregistered non-attached coservices? *)
+  let n = Na_get' (new_naservice_num ()) in
+  (* (match global_register_allowed () with
+  | Some _ -> add_unregistered_na n;
+  | _ -> () (* Do we accept unregistered non-attached coservices? *)); *)
   {
    max_use= max_use;
    timeout= timeout;
@@ -321,11 +323,48 @@ let new_coservice' ?max_use ?timeout ~get_params () =
    get_params_type = add_pref_params na_co_param_prefix get_params;
    post_params_type = unit;
    kind = `Nonattached
-     {na_name = Na_get (new_naservice_name ());
+     {na_name = n;
       na_kind = `Get;
     };
  }
     
+let new_service' ?sp ~name ~get_params () =
+  match sp with
+  | None ->
+      (match global_register_allowed () with
+      | Some get_current_sitedata ->
+          let sitedata = get_current_sitedata () in
+          let r =
+            {
+(*VVV allow timeout and max_use? *)
+             max_use= None;
+             timeout= None;
+             pre_applied_parameters = [];
+             get_params_type = add_pref_params na_co_param_prefix get_params;
+             post_params_type = unit;
+             kind = `Nonattached
+               {na_name = Na_get_ name;
+                na_kind = `Get;
+              };
+           }
+          in
+          add_unregistered_na sitedata (Na_get_ name); 
+          r
+      | None -> raise (Eliom_function_forbidden_outside_site_loading
+                         "new_service'"))
+  | Some sp ->
+      {
+(*VVV allow timeout and max_use? *)
+       max_use= None;
+       timeout= None;
+       pre_applied_parameters = [];
+       get_params_type = add_pref_params na_co_param_prefix get_params;
+       post_params_type = unit;
+       kind = `Nonattached
+         {na_name = Na_get_ name;
+          na_kind = `Get;
+        };
+     }
     
 (****************************************************************************)
 (** Register a service with post parameters in the server *)
@@ -360,7 +399,7 @@ let new_post_service ?sp ~fallback ~post_params () =
     *)
   let `Attached k1 = fallback.kind in
   let `Internal (kind, _) = k1.att_kind in
-  let path = Some k1.subpath in
+  let path = k1.subpath in
   let u = new_post_service_aux ~sp ~fallback ~post_params in
   match sp with
   | None ->
@@ -381,7 +420,7 @@ let new_post_service ?sp ~fallback ~post_params () =
 let new_post_coservice ?max_use ?timeout ~fallback ~post_params () = 
   let `Attached k1 = fallback.kind in
   (* (match global_register_allowed () with
-    Some _ -> add_unregistered (Some k1.path);
+  | Some _ -> add_unregistered k1.path;
   | _ -> ()); *)
   {fallback with 
    post_params_type = post_params;
@@ -399,11 +438,12 @@ let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
    fallback. Or we must impose 'get = unit ...
  *)
 
+
 (*VVV Warning: keep_get_na_params is experimental *)
 let new_post_coservice' 
     ?max_use ?timeout ?(keep_get_na_params = true) ~post_params () =
   (* match global_register_allowed () with
-    Some _ -> add_unregistered None
+  | Some _ -> add_unregistered None
   | _ -> () *)
   {
    max_use= max_use;
@@ -412,7 +452,25 @@ let new_post_coservice'
    get_params_type = unit;
    post_params_type = post_params;
    kind = `Nonattached
-     {na_name = Na_post (new_naservice_name ());
+     {na_name = Na_post' (new_naservice_num ());
+      na_kind = `Post keep_get_na_params;
+    }
+ }
+
+let new_post_service' 
+   ?(keep_get_na_params = true) ~name ~post_params () =
+  (* match global_register_allowed () with
+  | Some _ -> add_unregistered None
+  | _ -> () *)
+  {
+(*VVV allow timeout and max_use? *)
+   max_use= None;
+   timeout= None;
+   pre_applied_parameters = [];
+   get_params_type = unit;
+   post_params_type = post_params;
+   kind = `Nonattached
+     {na_name = Na_post_ name;
       na_kind = `Post keep_get_na_params;
     }
  }
@@ -424,7 +482,7 @@ let new_get_post_coservice'
     ~fallback
     ~post_params =
   (* match global_register_allowed () with
-    Some _ ->
+  | Some _ ->
   | _ -> ());
    add_unregistered None; *)
    {
@@ -434,7 +492,7 @@ let new_get_post_coservice'
    max_use= max_use;
    timeout= timeout;
    kind = `Nonattached
-   {na_name = (fst fallback.na_name, Some (new_naservice_name ()));
+   {na_name = (fst fallback.na_name, Some (new_naservice_num ()));
    na_kind = `Internal (`NonAttachedCoservice, `Post);
    }
    }

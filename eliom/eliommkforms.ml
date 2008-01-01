@@ -679,7 +679,7 @@ module MakeForms = functor
         | `Nonattached naser ->
             let current_get_params =
               List.remove_assoc
-                Eliommod.naservice_name
+                Eliommod.naservice_num
                 (remove_prefixed_param 
                    Eliommod.na_co_param_prefix
                    (get_all_get_params sp))
@@ -692,7 +692,8 @@ module MakeForms = functor
               concat_strings preapplied_params "&" params_string in
             let naservice_param = 
               match get_na_name_ naser with
-              | Eliommod.Na_get n -> Eliommod.naservice_name^"="^n
+              | Eliommod.Na_get' n -> Eliommod.naservice_num^"="^n
+              | Eliommod.Na_get_ n -> Eliommod.naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -758,7 +759,7 @@ module MakeForms = functor
         | `Nonattached naser ->
             let current_get_params =
               List.remove_assoc
-                Eliommod.naservice_name
+                Eliommod.naservice_num
                 (remove_prefixed_param
                    Eliommod.na_co_param_prefix (get_all_get_params sp))
             in
@@ -770,7 +771,8 @@ module MakeForms = functor
               concat_strings preapplied_params "&" params_string in
             let naservice_param = 
               match get_na_name_ naser with
-              | Eliommod.Na_get n -> Eliommod.naservice_name^"="^n
+              | Eliommod.Na_get' n -> Eliommod.naservice_num^"="^n
+              | Eliommod.Na_get_ n -> Eliommod.naservice_name^"="^n
               | _ -> assert false
             in
             let current_get_params_string = 
@@ -841,22 +843,25 @@ module MakeForms = functor
             let cur = get_current_sub_path sp in
             let urlname = reconstruct_relative_url_path cur cur None in
             (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
-            let naservice_param_name = Eliommod.naservice_name in
-            let naservice_param = 
-              match get_na_name_ naser with
-              | Eliommod.Na_get n -> n
-              | _ -> assert false
-            in
             let naservice_line = 
-              Pages.make_hidden_field
-	        (Pages.make_input
-	           ~typ:Pages.hidden 
-                   ~name:naservice_param_name
-                   ~value:naservice_param ())
+              match get_na_name_ naser with
+              | Eliommod.Na_get' n ->
+                    Pages.make_hidden_field
+	            (Pages.make_input
+	               ~typ:Pages.hidden 
+                       ~name:Eliommod.naservice_num
+                       ~value:n ())
+              | Eliommod.Na_get_ n ->
+                    Pages.make_hidden_field
+	            (Pages.make_input
+	               ~typ:Pages.hidden 
+                       ~name:Eliommod.naservice_name
+                       ~value:n ())
+              | _ -> assert false
             in
             let current_get_params =
               List.remove_assoc
-                Eliommod.naservice_name
+                Eliommod.naservice_num
                 (remove_prefixed_param
                    Eliommod.na_co_param_prefix (get_all_get_params sp))
             in
@@ -962,7 +967,7 @@ module MakeForms = functor
                 get_all_get_params sp
               else
                 List.remove_assoc
-                  Eliommod.naservice_name
+                  Eliommod.naservice_num
                   (remove_prefixed_param
                      Eliommod.na_co_param_prefix (get_all_get_params sp))
             in
@@ -973,18 +978,21 @@ module MakeForms = functor
             (* absolute URL does not work behind a revproxy! *)
             let urlpath = reconstruct_relative_url_path cur cur None in
             let v = concat_strings urlpath "?" current_get_params_string in
-            let naservice_param_name = Eliommod.naservice_name in
-            let naservice_param = 
+            let naservice_line = 
               match get_na_name_ naser with
-               | Eliommod.Na_post n -> n
+               | Eliommod.Na_post' n ->
+	           Pages.make_input
+	             ~typ:Pages.hidden
+                     ~name:Eliommod.naservice_num
+                     ~value:n () 
+               | Eliommod.Na_post_ n ->
+	           Pages.make_input
+	             ~typ:Pages.hidden
+                     ~name:Eliommod.naservice_name
+                     ~value:n ()
                | _ -> assert false
             in
-            let naservice_line = 
-	      Pages.make_input
-	        ~typ:Pages.hidden
-                ~name:naservice_param_name
-                ~value:naservice_param () 
-            in
+
             let inside = 
               f (make_params_names (get_post_params_type_ service)) 
             in
