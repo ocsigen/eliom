@@ -105,6 +105,25 @@ let string_conform0 s =
       | _ -> "/"^s
   with Invalid_argument _ -> "/"
 
+let string_conform1 s = 
+  match String.length s with  
+  | 0 -> "/"  
+  | n -> match s.[0], s.[n - 1] with        
+        | '/', '/' -> String.sub s 0 (n-1)        
+        | _, '/' -> "/"^(String.sub s 0 (n-1))       
+        | '/', _ -> s       
+        | _, _ -> "/"^s
+
+let string_conform2 s =
+  match String.length s with  
+  | 0 -> "/"  
+  | n -> match s.[0], s.[n - 1] with        
+        | '/', '/' -> String.sub s 1 (n-1)        
+        | _, '/' -> s       
+        | '/', _ -> (String.sub s 1 (n-1))^"/"       
+        | _, _ -> s^"/"
+
+
 
 (* split a string in two parts, according to a regexp *)
 let split_regexp r s = 
@@ -127,7 +146,8 @@ let find_cgi_page reg sub_path =
       let filename = 
         if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
         then 
-          raise Ocsigen_Is_a_directory
+          (Messages.debug2 "--Cgimod: this is a directory.";
+          raise Ocsigen_Is_a_directory)
         else filename
       in
       Messages.debug (fun () -> "--Cgimod: Looking for \""^filename^"\".");
@@ -147,10 +167,10 @@ let find_cgi_page reg sub_path =
     | Unix.Unix_error (Unix.ENOENT, _, _) -> raise Failed_404
   in
 
-  let sub_path = "/"^Ocsimisc.string_of_url_path sub_path in
+  let sub_path = Ocsimisc.string_of_url_path sub_path in
 
   match split_regexp reg.regexp sub_path with
-  | None -> raise Failed_404
+  | None -> Messages.debug2 "--Cgimod: split_regexp failed" ; raise Failed_404
   | Some (path', path_info) -> 
       let path'' = reg.path^path' in
       let s =
@@ -552,12 +572,14 @@ let gen reg charset = function
                                res_code = code})))
            (fun e -> Ocsistream.finalize content >>= fun () -> Lwt.fail e)
        end else
-         Lwt.return (Ext_next 404))
+	 Lwt.return (
+	 Messages.debug2 "--Cgimod: empty subpath" ;
+	 Ext_next 404))
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
-      | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url 
       | Lost_connection _ as e -> fail e
+      | Ocsigen_Is_a_directory
       | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_next 404)
       | Failed_403 -> return (Ext_next 403)
       | Failed_404 -> return (Ext_next 404)
@@ -581,7 +603,8 @@ let rec set_env=function
 
 let parse_config path charset _ parse_site = function 
   | Element ("cgi", atts, l) -> 
-      let good_root r = Regexp.quote (string_conform r) in
+      let good_root r = 
+      	Regexp.quote (string_conform2 r) in
       let dir = match atts with
       | [] -> 
           raise (Error_in_config_file
@@ -590,22 +613,22 @@ let parse_config path charset _ parse_site = function
       {
 	   regexp= Regexp.regexp ("^"^(good_root r)^"([^/]*)");
 	   
-	   doc_root= string_conform s;
+	   doc_root= s;
 	   script="$1";
 	   
-	   path= "/"^Ocsimisc.string_of_url_path path; 
+	   path= string_conform (Ocsimisc.string_of_url_path path); 
            path_info="";
 
 	   exec=None; 
            env=set_env l}
       | ("regexp", s)::("dir",d)::("script",t)::q -> 
 	  {
-	   regexp=Regexp.regexp ("^"^(good_root "")^s);
+	   regexp=Regexp.regexp ("^"^s);
 	   
-	   doc_root= string_conform d;
+	   doc_root= d;
 	   script=t;
 	   
-	   path= "/"^Ocsimisc.string_of_url_path path;
+	   path= string_conform (Ocsimisc.string_of_url_path path);
            path_info=""; (* unknown for the moment *)
 	   
 	   exec= (match q with 
@@ -614,24 +637,6 @@ let parse_config path charset _ parse_site = function
 		 |_ -> raise (Error_in_config_file
                                 "Wrong attributes for <cgi>")) ;
 	   env=set_env l}
-(*      | [("root",r);("regexp", s);("dir",d);("dest",t);("path",p);("exec",x)] -> 
-	  let stat = Unix.LargeFile.stat x in
-	  if (stat.Unix.LargeFile.st_kind 
-            <> Unix.S_REG)
-	  then 
-	    raise (Error_in_config_file "<cgi> Exec does not exist")
-	  else
-
-	    let conform = string_conform r in
-	    {
-	      root= conform;
-	      regexp=Regexp.regexp (conform^s);
-	      doc_root= string_conform d;
-	      dest=t;
-	      path=p;
-	      exec=Some(x);
-	      env=set_env l}
-*)
       | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
       in 
       gen dir charset
