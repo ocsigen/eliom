@@ -105,25 +105,21 @@ let string_conform0 s =
       | _ -> "/"^s
   with Invalid_argument _ -> "/"
 
-let string_conform1 s = 
-  match String.length s with  
-  | 0 -> "/"  
-  | n -> match s.[0], s.[n - 1] with        
-        | '/', '/' -> String.sub s 0 (n-1)        
-        | _, '/' -> "/"^(String.sub s 0 (n-1))       
-        | '/', _ -> s       
-        | _, _ -> "/"^s
+let string_conform1 s =
+  try
+    match  s.[String.length s - 1] with
+      | '/' -> s
+      | _ -> s^"/"
+  with Invalid_argument _ -> "/"
 
 let string_conform2 s =
   match String.length s with  
-  | 0 -> "/"  
+  | 0 | 1 when s = "/" -> ""  
   | n -> match s.[0], s.[n - 1] with        
         | '/', '/' -> String.sub s 1 (n-1)        
         | _, '/' -> s       
         | '/', _ -> (String.sub s 1 (n-1))^"/"       
         | _, _ -> s^"/"
-
-
 
 (* split a string in two parts, according to a regexp *)
 let split_regexp r s = 
@@ -167,10 +163,10 @@ let find_cgi_page reg sub_path =
     | Unix.Unix_error (Unix.ENOENT, _, _) -> raise Failed_404
   in
 
-  let sub_path = Ocsimisc.string_of_url_path sub_path in
+  let sub_path = (Ocsimisc.string_of_url_path sub_path) in
 
   match split_regexp reg.regexp sub_path with
-  | None -> Messages.debug2 "--Cgimod: split_regexp failed" ; raise Failed_404
+  | None -> raise Failed_404
   | Some (path', path_info) -> 
       let path'' = reg.path^path' in
       let s =
@@ -499,8 +495,6 @@ let gen reg charset = function
   catch
     (* Is it a cgi page? *)
     (fun () ->
-       if ri.ri_sub_path <> [""]
-       then begin
          Messages.debug2 "--Cgimod: Is it a cgi file?";
          let (filename, re) = find_cgi_page reg ri.ri_sub_path in 
 	 recupere_cgi 
@@ -570,11 +564,7 @@ let gen reg charset = function
                                   Http_headers.status None
                                   header.Http_header.headers;
                                res_code = code})))
-           (fun e -> Ocsistream.finalize content >>= fun () -> Lwt.fail e)
-       end else
-	 Lwt.return (
-	 Messages.debug2 "--Cgimod: empty subpath" ;
-	 Ext_next 404))
+           (fun e -> Ocsistream.finalize content >>= fun () -> Lwt.fail e))
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_malformed_url 
@@ -613,7 +603,7 @@ let parse_config path charset _ parse_site = function
       {
 	   regexp= Regexp.regexp ("^"^(good_root r)^"([^/]*)");
 	   
-	   doc_root= s;
+	   doc_root= string_conform1 s;
 	   script="$1";
 	   
 	   path= string_conform (Ocsimisc.string_of_url_path path); 
@@ -625,7 +615,7 @@ let parse_config path charset _ parse_site = function
 	  {
 	   regexp=Regexp.regexp ("^"^s);
 	   
-	   doc_root= d;
+	   doc_root= string_conform1 d;
 	   script=t;
 	   
 	   path= string_conform (Ocsimisc.string_of_url_path path);
