@@ -50,8 +50,9 @@ let cgitimeout = ref 30
 type reg = {
   regexp:Regexp.regexp; (** regexp of the script url *)
   
-  doc_root:string; (** physical directory of the script (regexp) *)
-  script: string; (** physical name of the script (regexp) *)
+  doc_root: Extensions.ud_string; 
+                                (** physical directory of the script (regexp) *)
+  script: Extensions.ud_string; (** physical name of the script (regexp) *)
   
   path: string; (** path of the script *)
   path_info: string; (** path_info environment variable *)
@@ -61,11 +62,6 @@ type reg = {
 
 (*****************************************************************************)
 
-let user_dir_regexp = Regexp.regexp "(.*/)\\$u\\(([^\\)]*)\\)(.*)"
-let prevent_u_regexp = Regexp.regexp "\\$"
-and restore_u_regexp = Regexp.regexp "\\$\\$"
-let quote_userdir = Regexp.global_replace prevent_u_regexp "$$$$"
-and unquote_userdir = Regexp.global_replace restore_u_regexp "$$"
   
 let environment= ["CONTENT_LENGTH=%d";
 		  "CONTENT_TYPE";
@@ -134,7 +130,7 @@ let split_regexp r s =
 
 (** permet de recuperer le fichier correspondant a l url *)
 let find_cgi_page reg sub_path =
-  let find_file (filename, re) =
+  let find_file (filename, re, doc_root) =
     (* See also module Files in eliom.ml *)
     Messages.debug (fun () -> "--Cgimod: Testing \""^filename^"\".");
     try
@@ -153,10 +149,10 @@ let find_cgi_page reg sub_path =
 	match re.exec with
 	  | None ->
 	      Unix.access filename [Unix.X_OK];
-	      (filename, re)
+	      (filename, re, doc_root)
 	  | Some exec ->
 	      Unix.access filename [Unix.R_OK];
-	      (filename, re)
+	      (filename, re, doc_root)
       end
       else raise Failed_403
     with
@@ -168,34 +164,18 @@ let find_cgi_page reg sub_path =
   match split_regexp reg.regexp sub_path with
   | None -> raise Failed_404
   | Some (path', path_info) -> 
-      let path'' = reg.path^path' in
-      let s =
-	(* use $u quoted expanded path to check if in userdir 
-	   to prevent direct use of $u(bob) in the url *)
-	Regexp.global_replace reg.regexp
-	  (reg.doc_root^reg.script)
-	  (quote_userdir path')
-      in
+    let path'' = reg.path^path' in
+    try
+      let dr = Extensions.replace_user_dir reg.regexp reg.doc_root path' in
+      let sc = Extensions.replace_user_dir reg.regexp reg.script path' in
       let reg = 
-	{reg with
-	   doc_root = Regexp.global_replace reg.regexp reg.doc_root path';
-	   script = Regexp.global_replace reg.regexp reg.script path';
-	   path = path'';
-	   path_info= string_conform0 path_info}
+        {reg with
+         path = path'';
+         path_info= string_conform0 path_info}
       in
-	match Regexp.string_match user_dir_regexp s 0 with
-	  | None ->
-	      find_file (reg.doc_root^reg.script, reg)
-	  | Some result ->
-	      (* if in user dir, unquote the result *)
-	      let user = unquote_userdir (Regexp.matched_group result 2 s) in
-              let userdir = (Unix.getpwnam user).Unix.pw_dir in
-		find_file
-		  (unquote_userdir
-		     ((Regexp.matched_group result 1 s)^
-			userdir^
-			(Regexp.matched_group result 3 s)),
-		   reg)
+      find_file (dr^sc, reg, dr)
+    with Not_found -> raise Failed_404 (* user not found *)
+
 
 
 (*****************************************************************************)
@@ -214,7 +194,7 @@ let _ =
     ["Content-type"; "Authorization"; "Content-length";
      (*"Referer"; "Host"; "Cookie"*) ]
 
-let array_environment filename re ri =
+let array_environment filename re doc_root ri =
   let header = ri.ri_http_frame.Http_frame.header in
   let opt = function
     | None -> ""
@@ -277,7 +257,7 @@ let array_environment filename re ri =
    
    (* Additional headers, coming from the client *)
  [(* Document_root is defined by Apache but not in the CGI's spec *)
-   Printf.sprintf "DOCUMENT_ROOT=%s" re.doc_root;
+   Printf.sprintf "DOCUMENT_ROOT=%s" doc_root;
    
    (* Should be retrieved from additionnal_headers 
    Printf.sprintf "HTTP_COOKIE=%s" (opt (Lazy.force ri.ri_cookies_string));
@@ -300,9 +280,9 @@ let rec set_env_list=function
 
 (** launch the process *)
 
-let create_process_cgi filename ri post_out cgi_in err_in re =
+let create_process_cgi filename ri post_out cgi_in err_in re doc_root =
   let envir = Array.of_list (
-    (array_environment filename re ri)@(set_env_list re.env)) in
+    (array_environment filename re doc_root ri)@(set_env_list re.env)) in
   match re.exec with
   | None ->
       Unix.create_process_env 
@@ -325,7 +305,7 @@ let create_process_cgi filename ri post_out cgi_in err_in re =
 
 (** This function makes it possible to launch a cgi script *)
 
-let recupere_cgi head re filename ri =
+let recupere_cgi head re doc_root filename ri =
   try
     (* Create the three pipes to communicate with the CGI script: *)
     let (post_out, post_in) = Lwt_unix.pipe_out () in
@@ -345,6 +325,7 @@ let recupere_cgi head re filename ri =
         cgi_in 
         err_in
         re
+        doc_root
     in
     
     Unix.close cgi_in;
@@ -496,10 +477,12 @@ let gen reg charset = function
     (* Is it a cgi page? *)
     (fun () ->
          Messages.debug2 "--Cgimod: Is it a cgi file?";
-         let (filename, re) = find_cgi_page reg ri.ri_sub_path in 
+         let (filename, re, doc_root) = 
+           find_cgi_page reg ri.ri_sub_path 
+         in 
 	 recupere_cgi 
            (ri.ri_method = Http_header.HEAD) 
-           re filename ri >>= fun (frame, finalizer) ->
+           re doc_root filename ri >>= fun (frame, finalizer) ->
          let header = frame.Http_frame.header in
          let content = get_content frame in
          Ocsistream.add_finalizer content finalizer;
@@ -603,8 +586,8 @@ let parse_config path charset _ parse_site = function
       {
 	   regexp= Regexp.regexp ("^"^(good_root r)^"([^/]*)");
 	   
-	   doc_root= string_conform1 s;
-	   script="$1";
+	   doc_root= Extensions.parse_user_dir (string_conform1 s);
+	   script= Extensions.parse_user_dir "$1";
 	   
 	   path= string_conform (Ocsimisc.string_of_url_path path); 
            path_info="";
@@ -615,8 +598,8 @@ let parse_config path charset _ parse_site = function
 	  {
 	   regexp=Regexp.regexp ("^"^s);
 	   
-	   doc_root= string_conform1 d;
-	   script=t;
+	   doc_root= Extensions.parse_user_dir (string_conform1 d);
+	   script= Extensions.parse_user_dir t;
 	   
 	   path= string_conform (Ocsimisc.string_of_url_path path);
            path_info=""; (* unknown for the moment *)

@@ -257,7 +257,7 @@ docinstall: doc/index.html
 
 installnodoc: partialinstall
 	mkdir -p $(TEMPROOT)/$(CONFIGDIR)
-	mkdir -p $(TEMPROOT)/$(CONFIGDIR)/conf
+	mkdir -p $(TEMPROOT)/$(CONFIGDIR)/conf.d
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/miniwiki
 	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
@@ -297,7 +297,7 @@ installnodoc: partialinstall
 	mkdir -p $(TEMPROOT)/$(LOGDIR)
 	chmod u+rwx $(TEMPROOT)/$(LOGDIR)
 	chmod a+rx $(TEMPROOT)/$(CONFIGDIR)
-	chmod a+rx $(TEMPROOT)/$(CONFIGDIR)/conf
+	chmod a+rx $(TEMPROOT)/$(CONFIGDIR)/conf.d
 	[ -f $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
 	{ cp $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
              $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf; \

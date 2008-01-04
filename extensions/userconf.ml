@@ -32,7 +32,7 @@ open Extensions
 
 (*****************************************************************************)
 
-let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
+exception Failed_404
 
 let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state = 
   match req_state with
@@ -43,22 +43,15 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
       match Netstring_pcre.string_match regexp path 0 with
       | None -> Lwt.return (Ext_next previous_extension_err)
       | Some _ -> (* Matching regexp found! *)
-          Messages.debug2 "--Userconf: Using user configuration";
-          let conf = Netstring_pcre.global_replace regexp conf path in
-          let url = Netstring_pcre.global_replace regexp url path in
-          let prefix = Netstring_pcre.global_replace regexp prefix path in
-          (* hack to get user dirs *)
-          let conf =
-            match Netstring_pcre.string_match user_dir_regexp conf 0 with
-            | None -> conf
-            | Some result -> 
-	        let user = Netstring_pcre.matched_group result 2 conf in
-                let userdir = (Unix.getpwnam user).Unix.pw_dir in
-                ((Netstring_pcre.matched_group result 1 conf)^
-                 userdir^
-                 (Netstring_pcre.matched_group result 3 conf))
-          in
-          try 
+          try
+            Messages.debug2 "--Userconf: Using user configuration";
+            let conf = 
+              try
+                Extensions.replace_user_dir regexp conf path 
+              with Not_found -> raise Failed_404
+            in
+            let url = Netstring_pcre.global_replace regexp url path in
+            let prefix = Netstring_pcre.global_replace regexp prefix path in
             ignore (Unix.stat conf);
             let user_parse_host = Extensions.parse_user_site_item hostpattern in
             let user_parse_site = 
@@ -111,6 +104,8 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
           | Unix.Unix_error (Unix.EACCES,_,_)
           | Unix.Unix_error (Unix.ENOENT, _, _) ->
               Lwt.return (Extensions.Ext_next previous_extension_err)
+          | Failed_404 ->
+              Lwt.return (Extensions.Ext_next 404)
 
           
 
@@ -131,7 +126,7 @@ let parse_config hostpattern path charset =
             raise (Error_in_config_file "Bad regexp in <userconf regexp=\"...\" />"))
       | ("conf", s)::l when conf = None ->
           parse_attrs_local
-            (regexp, Some s, url, prefix)
+            (regexp, Some (Extensions.parse_user_dir s), url, prefix)
             l
       | ("url", s)::l when url = None ->
           parse_attrs_local

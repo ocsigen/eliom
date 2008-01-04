@@ -316,12 +316,15 @@ let parse_server isreloading c =
       | (Element ("extconf", [("dir", dir)], []))::ll ->
           (try
             let files = Sys.readdir dir in
+            Array.sort compare files;
             Array.fold_left
               (fun l s ->
                  if Filename.check_suffix s "conf" then
                    let filename = dir^"/"^s in
                    let filecont =
                      try
+                       Messages.debug (fun () -> "Parsing configuration file "^
+                         filename);
                        parse_ext filename
                      with e -> 
                        Messages.errlog 

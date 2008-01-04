@@ -39,15 +39,15 @@ exception Not_concerned
 (* The table of static pages for each virtual server                         *)
 type assockind = 
   | Dir of string * bool
-  | Regexp of Netstring_pcre.regexp * string * bool * 
+  | Regexp of Netstring_pcre.regexp * 
+        Extensions.ud_string * 
+        bool * 
         Netstring_pcre.regexp option
 
 
 
 (*****************************************************************************)
 (* Finding files *)
-
-let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
 
 type res = 
   | RFile of string
@@ -120,18 +120,11 @@ let find_static_page dir err path pathstring =
          match Netstring_pcre.string_match regexp pathstring 0 with
          | None -> raise Not_concerned
          | Some _ -> (* Matching regexp found! *)
-             let s = Netstring_pcre.global_replace regexp dest pathstring in
-             (* hack to get user dirs *)
-             match Netstring_pcre.string_match user_dir_regexp s 0 with
-             | None -> find_file (s, readable)
-             | Some result -> 
-	         let user = Netstring_pcre.matched_group result 2 s in
-                 let userdir = (Unix.getpwnam user).Unix.pw_dir in
-                 find_file
-                   ((Netstring_pcre.matched_group result 1 s)^
-                    userdir^
-                    (Netstring_pcre.matched_group result 3 s),
-                    readable))
+             find_file
+               ((try
+                 Extensions.replace_user_dir regexp dest pathstring
+               with Not_found -> raise Failed_404), 
+                readable))
       else raise Not_concerned
 
 
@@ -252,9 +245,9 @@ let parse_config path charset _ parse_site =
         with Failure _ ->
           raise (Error_in_config_file "Bad regexp in <static regexp=\"...\" />"))
     | ("dest", s)::l when dest = None ->
-          parse_attrs
-            (dir, regexp, readable, code, Some s)
-            l
+        parse_attrs
+          (dir, regexp, readable, code, Some (parse_user_dir s))
+          l
     | _ -> raise (Error_in_config_file "Wrong attribute for <static>")
   in
   function

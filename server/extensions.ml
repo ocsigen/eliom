@@ -733,3 +733,32 @@ let get_config () = !dynlinkconfig
 
 
 
+(*****************************************************************************)
+(* user directories *)
+
+type ud_string = Nodir of string | Withdir of string * string * string
+
+let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
+
+let parse_user_dir s = 
+  match Netstring_pcre.full_split user_dir_regexp s with
+  | [ Netstring_pcre.Delim _; 
+      Netstring_pcre.Group (1, s1); 
+      Netstring_pcre.Group (2, u); 
+      Netstring_pcre.Group (3, s2)] ->
+        Withdir (s1, u, s2)
+  | _ -> Nodir s
+
+
+let replace_user_dir regexp dest pathstring =
+  match dest with
+  | Nodir dest ->
+      Netstring_pcre.global_replace regexp dest pathstring
+  | Withdir (s1, u, s2) ->
+      let s1 = Netstring_pcre.global_replace regexp s1 pathstring in
+      let u = Netstring_pcre.global_replace regexp u pathstring in
+      let s2 = Netstring_pcre.global_replace regexp s2 pathstring in
+      let userdir = (Unix.getpwnam u).Unix.pw_dir in
+      s1^userdir^s2
+
+

@@ -295,6 +295,15 @@ val get_config : unit -> Simplexmlparser.xml list
 val ri_of_url : string -> request_info -> request_info
 
 
+(** User directories *)
+
+(** The type for string that may contain a $u(...) *)
+type ud_string
+
+val parse_user_dir : string -> ud_string
+
+val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
+(** raises [Not_found] is the directory does not exist *)
 
 (**/**)
 
