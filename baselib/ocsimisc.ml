@@ -1,5 +1,5 @@
 (* Ocsigen
- * Copyright (C) 2005 Vincent Balat, Stéphane Glondu
+ * Copyright (C) 2005-2008 Vincent Balat, Stéphane Glondu
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -270,13 +270,12 @@ type ip_address =
 
 exception Invalid_ip_address of string
 
-open Printf
 
 let parse_ip s =
   let s = String.lowercase s in
   let n = String.length s in
   let is6 = String.contains s ':' in
-  let failwith s = raise (Invalid_ip_address s) in
+  let failwith fmt = Printf.ksprintf (fun s -> raise (Invalid_ip_address s)) fmt in
 
   let rec parse_hex i accu =
     match (if i < n then s.[i] else ':') with
@@ -301,12 +300,12 @@ let parse_ip s =
     if i < n then
       if next_is_dec i then
         let (i1, a) = parse_dec i 0 in
-        if i1 = i || (i1 < n && s.[i1] <> '.') then failwith (sprintf "invalid dot notation in %s (1)" s);
+        if i1 = i || (i1 < n && s.[i1] <> '.') then failwith "invalid dot notation in %s (1)" s;
         let (i2, b) = parse_dec (i1+1) 0 in
-        if i2 = i1 then failwith (sprintf "invalid dot notation in %s (2)" s);
+        if i2 = i1 then failwith "invalid dot notation in %s (2)" s;
         let component =
           if a < 0 || a > 255 || b < 0 || b > 255 then
-            failwith (sprintf "invalid dot notation in %s (3)" s)
+            failwith "invalid dot notation in %s (3)" s
           else (a lsl 8) lor b
         in
         if i2 < n-1 && (s.[i2] = ':' || s.[i2] = '.') then
@@ -317,7 +316,7 @@ let parse_ip s =
         parse_component (i+1) ((-1)::accu) nb
       else
         let (i1, a) = parse_hex i 0 in
-        if a < 0 || a > 0xffff then failwith (sprintf "invalid colon notation in %s" s);
+        if a < 0 || a > 0xffff then failwith "invalid colon notation in %s" s;
         if i1 = i then
           (i, accu, nb)
         else if i1 < n-1 && s.[i1] = ':' then
@@ -335,17 +334,17 @@ let parse_ip s =
       parse_component 0 [] 0
   in
 
-  if size_list > 8 then failwith (sprintf "too many components in %s" s);
+  if size_list > 8 then failwith "too many components in %s" s;
 
   let maybe_mask =
     if i < n && s.[i] = '/' then
       let (i1, m) = parse_dec (i+1) 0 in
       if i1 = i+1 || i1 < n || m < 0 || m > (if is6 then 128 else 32) then
-        failwith (sprintf "invalid /n suffix in %s" s)
+        failwith "invalid /n suffix in %s" s
       else
         Some m
     else if i < n then
-      failwith (Printf.sprintf "invalid suffix in %s (from index %i)" s i)
+      failwith "invalid suffix in %s (from index %i)" s i
     else
       None
   in
@@ -374,7 +373,7 @@ let parse_ip s =
       | [a; b; c; d; e; f; g; h] ->
           IPv6 (Int64.zero ++ a ++ b ++ c ++ d,
                 Int64.zero ++ e ++ f ++ g ++ h), maybe_mask
-      | _ -> failwith (Printf.sprintf "invalid IPv6 address: %s (%d components)" s (List.length normalized))
+      | _ -> failwith "invalid IPv6 address: %s (%d components)" s (List.length normalized)
   else
     let (++) a b = Int32.logor (Int32.shift_left a 16) (Int32.of_int b) in
     let maybe_mask = match maybe_mask with
@@ -385,7 +384,7 @@ let parse_ip s =
     match addr_list with
       | [b; a] ->
           IPv4 (Int32.zero ++ a ++ b), maybe_mask
-      | _ -> failwith ("invalid IPv4 address: "^s)
+      | _ -> failwith "invalid IPv4 address: %s" s
 
 
 let match_ip (base, mask) ip =
