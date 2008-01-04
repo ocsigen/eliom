@@ -422,3 +422,6 @@ let get_inet_addr host =
   Lwt.bind
     (Lwt_lib.getaddrinfo host "" [])
     aux
+
+(* *)
+type ('a, 'b) leftright = Left of 'a | Right of 'b

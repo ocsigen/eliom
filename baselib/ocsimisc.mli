@@ -36,6 +36,8 @@ val fst3 : 'a * 'b * 'c -> 'a
 val snd3 : 'a * 'b * 'c -> 'b
 val thd3 : 'a * 'b * 'c -> 'c
 
+type ('a, 'b) leftright = Left of 'a | Right of 'b
+
 val get_inet_addr : string -> Unix.inet_addr Lwt.t
 (** returns the first inet address for one host *)
 

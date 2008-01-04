@@ -1014,13 +1014,14 @@ let looong2 =
       using these different modules:</p>
         <table>
 <tr><td class="empty"></td>
-  <th colspan="2" class="col">Attached</th>
-  <th colspan="2" class="col">Non-attached</th></tr>
+  <th colspan="2" class="col2">Services</th>
+  <th colspan="2" class="col2">Coservices</th></tr>
 <tr><td class="empty"></td>
-  <th class="col">services</th>
-  <th class="col">coservices</th>
-  <th class="col">services</th>
-  <th class="col">coservices</th></tr>
+  <th class="col2">attached</th>
+  <th class="col2">non-attached</th>
+  <th class="col2">attached</th>
+  <th class="col2">non-attached</th>
+</tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$</th>
           <td colspan="4">allows to register functions that 
         generate xhtml pages
@@ -2150,7 +2151,7 @@ let () =
      <p>
       Note that actions return a list (here empty). 
       $a ~fragment:"p3infofallbacks" 
-         ~service:tutolast3 
+         ~service:tutocur3 
          ~sp
          [pcdata "See later for more advanced use"]
          ()
@@ -2175,14 +2176,14 @@ let () =
      <p>
        We'll see later 
       $a ~fragment:"p3infofallbacks" 
-         ~service:tutolast3 
+         ~service:tutocur3 
          ~sp
          [pcdata "how to display an error message"]
          ()
       $
        if the connection goes wrong, and
       $a ~fragment:"p3persistenceofsessions" 
-         ~service:tutolast3 
+         ~service:tutocur3 
          ~sp
          [pcdata "how to have persistent sessions"]
          ()
@@ -2234,7 +2235,7 @@ let () =
         only with a main service without GET/POST parameters as fallback.
         But it may be a 
       $a ~fragment:"p3preapplied" 
-         ~service:tutolast3 
+         ~service:tutocur3 
          ~sp
          [em [pcdata "preapplied"]]
          ()
@@ -2637,7 +2638,7 @@ val remove : 'value table -&gt; string -&gt; unit Lwt.t
        and <code>disconnect_action</code>
        are the same as 
       $a ~fragment:"p2actions" 
-         ~service:tutolast2 
+         ~service:tutocur2 
          ~sp
          [pcdata "before"]
          ()
@@ -2782,7 +2783,7 @@ let () =
 
 
 
-    <h3 id="p3otherconcepts">[New in 0.99.5 - EXPERIMENTAL] Session groups</h3>
+    <h3 id="p3sessiongroups">[New in 0.99.5 - EXPERIMENTAL] Session groups</h3>
     <div class="onecol">
     <p>The idea is complementary to that of
 the "session name".  While the
@@ -2934,7 +2935,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     action. These exceptions will also be accessible with 
     $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_exn" ]] [version;"Eliomsessions.html"]$. Try to replace the lines 
           $a ~fragment:"p2actions" 
-         ~service:tutolast2 
+         ~service:tutocur2 
          ~sp
          [pcdata "above (example of session with actions)"]
          ()
