@@ -304,7 +304,7 @@ val new_post_coservice' :
     GET non-attached parameters won't be kept in the URL (if any) when you
     create a POST form to this coservice.
     Default is [true].
-    See also {!Eliommkforms.post_form}.
+    See also {!Eliommkforms.ELIOMFORMSIG.post_form}.
 *)
 
 (*

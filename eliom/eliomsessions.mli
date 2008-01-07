@@ -458,18 +458,30 @@ val get_persistent_data_session_group :
 
 (** sets the maximum number of service sessions in one session group.
     [None] means "no limit".
+    This won't modify existing groups.
+    That value will be used only as default value if you do not
+    specify the optional parameter [?set_max] of function
+    {!Eliomsessions.set_service_session_group}.
 *)
 val set_default_max_service_sessions_per_group :
   sp:server_params -> int option -> unit
 
 (** sets the maximum number of volatile data sessions in one session group.
     [None] means "no limit".
+    This won't modify existing groups.
+    That value will be used only as default value if you do not
+    specify the optional parameter [?set_max] of function
+    {!Eliomsessions.set_volatile_data_session_group}.
 *)
 val set_default_max_volatile_data_sessions_per_group : 
   sp:server_params -> int option -> unit
 
 (** sets the maximum number of persistent data sessions in one session group.
     [None] means "no limit".
+    This won't modify existing groups.
+    That value will be used only as default value if you do not
+    specify the optional parameter [?set_max] of function
+    {!Eliomsessions.set_persistent_data_session_group}.
 *)
 val set_default_max_persistent_data_sessions_per_group : 
   sp:server_params -> int option -> unit

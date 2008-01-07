@@ -9,12 +9,14 @@ DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 # examples/ocamlduce/examplerss.cmo
 DUCEDOC=./eliom/eliomduce.mli ./eliom/xhtml1_strict.ml ./eliom/eliomducetools.ml
 CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
+DUCEPACK=,ocamlduce
 else
 DUCECMAO=
 DUCECMI=
 DUCEEXAMPLES=
 DUCEDOC=
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
+DUCEPACK=
 endif
 
 ifeq "$(LOGDIR)" ""
@@ -182,7 +184,7 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) -package ssl,netstring $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -intro files/indexdoc -d doc -html $(DOC)
+	$(CAMLDOC) -package ssl,netstring$(DUCEPACK) $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -intro files/indexdoc -d doc -html $(DOC)
 
 doc/index.html: doc
 
