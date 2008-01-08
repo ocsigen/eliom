@@ -61,6 +61,7 @@ and type link_attrib_t = link_attrs
 and type script_attrib_t = 
     {{ id ++ { defer=?"defer" src=?String charset=?String } }}
 and type input_type_t = input_type_values
+and type option_attrib_t = option_attrs
 (** Register and create form for Xhtml *)
 
 
