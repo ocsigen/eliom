@@ -1,5 +1,7 @@
 include Makefile.config
 
+VERSION := $(shell head -n 1 VERSION)
+
 ifeq "$(OCAMLDUCE)" "YES"
 DUCECMAO=eliom/eliomduce.cma
 # eliom/ocsigenrss.cma
@@ -235,13 +237,13 @@ depend: xmlp4pre.byte $(DEPOPT)
 	@for i in $(REPS) ; do $(MAKE) -C $$i depend ; done
 
 
-.PHONY: partialinstall install doc docinstall installnodoc logrotate
+.PHONY: partialinstall install doc docinstall installnodoc logrotate dist
 partialinstall:
 	$(MAKE) -C lwt install
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 	$(MAKE) -C server install
-	cat META.in | sed s/_VERSION_/`head -n 1 VERSION`/ > META
+	cat META.in | sed s/_VERSION_/$(VERSION)/ > META
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
@@ -330,6 +332,10 @@ logrotate:
 	   | sed s%USER%$(OCSIGENUSER)%g \
 	   | sed s%GROUP%$(OCSIGENGROUP)%g \
 	  > $(TEMPROOT)/etc/logrotate.d/$(OCSIGENNAME); }
+
+dist:
+	darcs setpref predist "sh ./setperm; rm setperm"
+	darcs dist -d ocsigen-$(VERSION)
 
 install: docinstall installnodoc
 
