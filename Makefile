@@ -258,19 +258,19 @@ docinstall: doc/index.html
 	chmod a+r $(TEMPROOT)$(DOCDIR)/*
 
 installnodoc: partialinstall
-	mkdir -p $(TEMPROOT)/$(CONFIGDIR)
-	mkdir -p $(TEMPROOT)/$(CONFIGDIR)/conf.d
-	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)
-	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/miniwiki
-	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
-	mkdir -p $(TEMPROOT)/$(STATICPAGESDIR)/ocsigenstuff
-	mkdir -p $(TEMPROOT)/$(DATADIR)
-	mkdir -p $(TEMPROOT)/$(DATADIR)/miniwiki
-	mkdir -p `dirname $(TEMPROOT)/$(COMMANDPIPE)`
-	[ -p $(TEMPROOT)/$(COMMANDPIPE) ] || { mkfifo $(TEMPROOT)/$(COMMANDPIPE); \
-	  chmod 660 $(TEMPROOT)/$(COMMANDPIPE); \
-	  $(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(COMMANDPIPE);}
-#	-mv $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.old
+	mkdir -p $(TEMPROOT)$(CONFIGDIR)
+	mkdir -p $(TEMPROOT)$(CONFIGDIR)/conf.d
+	mkdir -p $(TEMPROOT)$(STATICPAGESDIR)
+	mkdir -p $(TEMPROOT)$(STATICPAGESDIR)/miniwiki
+	mkdir -p $(TEMPROOT)$(STATICPAGESDIR)/tutorial
+	mkdir -p $(TEMPROOT)$(STATICPAGESDIR)/ocsigenstuff
+	mkdir -p $(TEMPROOT)$(DATADIR)
+	mkdir -p $(TEMPROOT)$(DATADIR)/miniwiki
+	mkdir -p `dirname $(TEMPROOT)$(COMMANDPIPE)`
+	[ -p $(TEMPROOT)$(COMMANDPIPE) ] || { mkfifo $(TEMPROOT)$(COMMANDPIPE); \
+	  chmod 660 $(TEMPROOT)$(COMMANDPIPE); \
+	  $(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)$(COMMANDPIPE);}
+#	-mv $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.old
 	cat files/ocsigen.conf \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
@@ -293,35 +293,35 @@ installnodoc: partialinstall
 	cat $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
 	| sed s%[.]cmo%.cmxs%g \
 	| sed s%[.]cma%.cmxs%g \
-	> $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
-	-mv $(TEMPROOT)/$(CONFIGDIR)/mime.types $(TEMPROOT)/$(CONFIGDIR)/mime.types.old
-	cp -f files/mime.types $(TEMPROOT)/$(CONFIGDIR)
-	mkdir -p $(TEMPROOT)/$(LOGDIR)
-	chmod u+rwx $(TEMPROOT)/$(LOGDIR)
-	chmod a+rx $(TEMPROOT)/$(CONFIGDIR)
-	chmod a+rx $(TEMPROOT)/$(CONFIGDIR)/conf.d
-	[ -f $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
-	{ cp $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
-             $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf; \
-	  chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf; }
-	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
-	[ -f $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
-	{ cp $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample \
-             $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; \
-	  chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; }
-	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
-	chmod a+r $(TEMPROOT)/$(CONFIGDIR)/mime.types
-	$(INSTALL) -m 644 files/tutorial/style.css $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 files/tutorial/bulles-bleues.png $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 files/tutorial/ocsigen5.png $(TEMPROOT)/$(STATICPAGESDIR)/tutorial
-	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)/$(STATICPAGESDIR)/ocsigenstuff
-	$(INSTALL) -m 644 examples/miniwiki/files/style.css $(TEMPROOT)/$(STATICPAGESDIR)/miniwiki
-	$(INSTALL) -m 644 examples/miniwiki/wikidata/* $(TEMPROOT)/$(DATADIR)/miniwiki
-	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(LOGDIR)
-	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(STATICPAGESDIR)
-	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)/$(DATADIR)
-	$(INSTALL) -d -m 755 $(TEMPROOT)/$(MANDIR)
-	$(INSTALL) -m 644 files/ocsigen.1 $(TEMPROOT)/$(MANDIR)
+	> $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
+	-mv $(TEMPROOT)$(CONFIGDIR)/mime.types $(TEMPROOT)$(CONFIGDIR)/mime.types.old
+	cp -f files/mime.types $(TEMPROOT)$(CONFIGDIR)
+	mkdir -p $(TEMPROOT)$(LOGDIR)
+	chmod u+rwx $(TEMPROOT)$(LOGDIR)
+	chmod a+rx $(TEMPROOT)$(CONFIGDIR)
+	chmod a+rx $(TEMPROOT)$(CONFIGDIR)/conf.d
+	[ -f $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
+	{ cp $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
+             $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf; \
+	  chmod a+r $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf; }
+	chmod a+r $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
+	[ -f $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf ] || \
+	{ cp $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample \
+             $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; \
+	  chmod a+r $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.opt; }
+	chmod a+r $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.opt.sample
+	chmod a+r $(TEMPROOT)$(CONFIGDIR)/mime.types
+	$(INSTALL) -m 644 files/tutorial/style.css $(TEMPROOT)$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tutorial/bulles-bleues.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/tutorial/ocsigen5.png $(TEMPROOT)$(STATICPAGESDIR)/tutorial
+	$(INSTALL) -m 644 files/ocsigenstuff/* $(TEMPROOT)$(STATICPAGESDIR)/ocsigenstuff
+	$(INSTALL) -m 644 examples/miniwiki/files/style.css $(TEMPROOT)$(STATICPAGESDIR)/miniwiki
+	$(INSTALL) -m 644 examples/miniwiki/wikidata/* $(TEMPROOT)$(DATADIR)/miniwiki
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)$(LOGDIR)
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)$(STATICPAGESDIR)
+	$(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)$(DATADIR)
+	$(INSTALL) -d -m 755 $(TEMPROOT)$(MANDIR)
+	$(INSTALL) -m 644 files/ocsigen.1 $(TEMPROOT)$(MANDIR)
 
 logrotate:
 	[ -d /etc/logrotate.d ] && \
