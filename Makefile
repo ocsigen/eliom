@@ -58,7 +58,6 @@ PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliommkforms.cmi eliom/eliommkreg.cmi \
        eliom/eliomtools.cmi \
-       eliom/eliomtools.cmi \
        $(DUCECMI) \
        eliom/eliomsessions.cmi eliom/eliomparameters.cmi \
        eliom/eliomservices.cmi eliom/eliompredefmod.cmi \
