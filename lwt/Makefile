@@ -52,7 +52,7 @@ $(XARCHIVE): $(XOBJECTS)
 
 depend: *.ml *.mli
 	$(OCAMLDEP)  $(SRCLIBREP) *.ml *.mli > depend
-include depend
+-include depend
 
 install:
 	{ test ! -f $(XARCHIVE) || extra="$(XARCHIVE) "`basename $(XARCHIVE) .cmxa`.a; }

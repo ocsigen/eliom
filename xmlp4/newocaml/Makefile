@@ -97,5 +97,5 @@ depend: *.mli *.ml
 
 FORCE:
 
-include depend
+-include depend
 
