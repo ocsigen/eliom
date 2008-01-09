@@ -342,6 +342,9 @@ install: docinstall installnodoc
 
 .PHONY: uninstall fulluninstall
 uninstall:
+	-rm -Rf $(TEMPROOT)$(DOCDIR)
+	-rm -f $(TEMPROOT)$(BINDIR)/ocsidbm
+	-rm -f $(TEMPROOT)$(BINDIR)/ocsidbm.opt
 	-$(MAKE) -C server uninstall
 	-$(MAKE) -C lwt uninstall
 	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"
