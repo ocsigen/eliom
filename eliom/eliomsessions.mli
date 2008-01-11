@@ -456,7 +456,7 @@ val get_persistent_data_session_group :
   unit ->
   string session_data Lwt.t
 
-(** sets the maximum number of service sessions in one session group.
+(** sets the maximum number of service sessions in a session group.
     [None] means "no limit".
     This won't modify existing groups.
     That value will be used only as default value if you do not
@@ -466,7 +466,7 @@ val get_persistent_data_session_group :
 val set_default_max_service_sessions_per_group :
   sp:server_params -> int option -> unit
 
-(** sets the maximum number of volatile data sessions in one session group.
+(** sets the maximum number of volatile data sessions in a session group.
     [None] means "no limit".
     This won't modify existing groups.
     That value will be used only as default value if you do not
@@ -476,7 +476,7 @@ val set_default_max_service_sessions_per_group :
 val set_default_max_volatile_data_sessions_per_group : 
   sp:server_params -> int option -> unit
 
-(** sets the maximum number of persistent data sessions in one session group.
+(** sets the maximum number of persistent data sessions in a session group.
     [None] means "no limit".
     This won't modify existing groups.
     That value will be used only as default value if you do not

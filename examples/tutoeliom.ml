@@ -973,7 +973,7 @@ let looong2 =
         attached to a particular URL. A link towards a non-attached
         service will go to the current URL with a special parameter
         containing the name of the service.
-        It is usefull when you want the same link or form on several pages 
+        It is useful when you want the same link or form on several pages 
         (for example a connection box) but you don't want to go to another
         URL. Non-attached (co)service are often used with <em>actions</em>
         (see below).
@@ -1033,7 +1033,7 @@ let looong2 =
           <td colspan="4">allows to register functions that 
         generate a portion of page (content of body tag) using
         $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or the syntax extension.
-        (usefull for <code>XMLHttpRequest</code> requests for example).
+        (useful for <code>XMLHttpRequest</code> requests for example).
         
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliomduce.Xhtml" ]] [version;"Eliomduce.Xhtml.html"]$</th>
@@ -1465,7 +1465,7 @@ let _ = register
       Note that this version is less efficient than the other if your site
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
-      usefull, for example with coservices (see 
+      useful, for example with coservices (see 
       <a href="#p2coservicesinsessiontable">later</a>).
       </p>
       <p>
@@ -1817,7 +1817,7 @@ let _ =
        $a ~fragment:"VALnew_post_service'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_service'" ]] [version;"Eliomservices.html"]$,
        $a ~fragment:"VALnew_coservice'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_coservice'" ]] [version;"Eliomservices.html"]$ or
        $a ~fragment:"VALnew_post_coservice'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_coservice'" ]] [version;"Eliomservices.html"]$.
-       POST non-attached (co)services are really usefull if you want a
+       POST non-attached (co)services are really useful if you want a
        link or form to be present on every page but you don't want the
        URL to change. Very often, POST (co)services are used with <em>actions</em>
        (<a href="#p2actions">see more details and an example in the section about 
@@ -2324,7 +2324,7 @@ let part3 sp =
      The $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Blocks" ]] [version;"Eliompredefmod.Blocks.html"]$ module allows to register services that
      send portions of pages, of any type that may be contained directly in
      a <code>&lt;body&gt;</code> tag (blocks of xhtml DTD). 
-     It is usefull to create AJAX pages
+     It is useful to create AJAX pages
      (i.e. pages using the <code>XMLHttpRequest</code> Javascript object).
      Note that the service returns a list of blocks.</p>
 *html*)
@@ -3420,7 +3420,7 @@ let form_bool = register_new_service ["formbool"] unit
 
       <h4>Type <code>set</code></h4>
       <p>Page may take several parameters of the same name.
-      It is usefull when you want to create a form with a variable number
+      It is useful when you want to create a form with a variable number
       of fields.
       To do that with Eliom, use the type $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "Eliomparameters.set" ]] [version;"Eliomparameters.html"]$.
       For example <code>set int "val"</code> means that the page will take
