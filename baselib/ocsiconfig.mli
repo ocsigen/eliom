@@ -28,6 +28,7 @@ val set_maxrequestbodysize : int64 option -> unit
 val set_default_charset : string option -> unit
 val set_datadir : string -> unit
 val set_bindir : string -> unit
+val set_extralibdir : string -> unit
 val set_user : string option -> unit
 val set_group : string option -> unit
 val set_command_pipe : string -> unit
@@ -59,6 +60,7 @@ val get_maxrequestbodysize : unit -> int64 option
 val get_default_charset : unit -> string option
 val get_datadir : unit -> string
 val get_bindir : unit -> string
+val get_extralibdir : unit -> string
 val get_user : unit -> string option
 val get_group : unit -> string option
 val get_command_pipe : unit -> string

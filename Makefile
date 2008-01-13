@@ -196,7 +196,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 	| sed s%_STATICPAGESDIR_%$(SRC)/files%g \
 	| sed s%_CONFIGDIR_%$(SRC)/etc/ocsigen%g \
 	| sed s%_DATADIR_%$(SRC)/var/lib%g \
-	| sed s%_BINDIR_%$(SRC)/extensions/ocsipersist-dbm%g \
+	| sed s%_EXTRALIBDIR_%$(SRC)/extensions/ocsipersist-dbm%g \
 	| sed s%_UP_%$(SRC)/tmp%g \
 	| sed s%_OCSIGENUSER_%%g \
 	| sed s%_OCSIGENGROUP_%%g \
@@ -242,14 +242,15 @@ partialinstall:
 	$(MAKE) -C lwt install
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
+	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)
 	$(MAKE) -C server install
 	cat META.in | sed s/_VERSION_/$(VERSION)/ > META
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
-	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(BINDIR)/
+	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)
 	[ ! -f extensions/ocsipersist-dbm/ocsidbm.opt ] || \
-	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(BINDIR)/
+	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)
 	-rm META
 
 docinstall: doc/index.html
@@ -278,6 +279,7 @@ installnodoc: partialinstall
 	| sed s%_CONFIGDIR_%$(CONFIGDIR)%g \
 	| sed s%_DATADIR_%$(DATADIR)%g \
 	| sed s%_BINDIR_%$(BINDIR)%g \
+	| sed s%_EXTRALIBDIR_%$(EXTRALIBDIR)%g \
 	| sed s%_UP_%$(UPLOADDIR)%g \
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
@@ -343,8 +345,8 @@ install: docinstall installnodoc
 .PHONY: uninstall fulluninstall
 uninstall:
 	-rm -Rf $(TEMPROOT)$(DOCDIR)
-	-rm -f $(TEMPROOT)$(BINDIR)/ocsidbm
-	-rm -f $(TEMPROOT)$(BINDIR)/ocsidbm.opt
+	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/ocsidbm
+	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/ocsidbm.opt
 	-$(MAKE) -C server uninstall
 	-$(MAKE) -C lwt uninstall
 	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"

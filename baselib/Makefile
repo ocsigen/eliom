@@ -46,6 +46,7 @@ ocsiconfig.ml: ocsiconfig.ml.IN
 	| sed s%_LOGDIR_%$(LOGDIR)% \
 	| sed s%_DATADIR_%$(DATADIR)%g \
 	| sed s%_BINDIR_%$(BINDIR)%g \
+	| sed s%_EXTRALIBDIR_%$(EXTRALIBDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)% \
 	| sed s%_UP_%$(UPLOADDIR)%g \
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \

@@ -55,6 +55,7 @@ set_defaults () {
     bindir=""
     examplesdir=""
     libdir=""
+    extralibdir=""
     mandir=""
     docdir=""
     sysconfdir="/etc"
@@ -154,7 +155,12 @@ print_options () {
             "") libdir2="<prefix>/<ocamlfind install directory>";;
             *) libdir2=$libdir;;
         esac
-        
+
+        case "$extralibdir" in
+            "") extralibdir2="<prefix>/lib";;
+            *) extralibdir2=$extralibdir;;
+        esac
+
         case "$mandir" in
             "") mandir2="<prefix>/share/man/man1";;
             *) mandir2=$mandir;;
@@ -172,6 +178,7 @@ print_options () {
 	echo "    --ocsigen-group $ocsigen_group"
 	echo "    --bindir $bindir2"
 	echo "    --libdir $libdir2"
+        echo "    --extralibdir $extralibdir"
 	echo "    --examplesdir $examplesdir2"
 	echo "    --mandir $mandir2"
 	echo "    --docdir $docdir2"
@@ -223,6 +230,9 @@ _EOF_
 
 --libdir dir
         Install Ocsigen's extensions into this directory
+
+--extralibdir dir
+        Install Ocsigen's extensions' extra libraries (e.g. ocsidbm) into this directory
 
 --examplesdir dir
         Install Ocsigen's examples sites into this directory
@@ -340,6 +350,11 @@ while [ "$#" -gt 0 ]; do
                         shift
                         shift
                         ;;
+                --extralibdir)
+                        extralibdir="$2"
+                        shift
+                        shift
+                        ;;
                 --examplesdir)
                         examplesdir="$2"
                         shift
@@ -414,6 +429,10 @@ esac
 
 case "$libdir" in
   "") libdir="\`\$(OCAMLFIND) printconf destdir\`";;
+esac
+
+case "$extralibdir" in
+  "") extralibdir="$prefix/lib";;
 esac
 
 case "$mandir" in
@@ -669,6 +688,9 @@ MANDIR = $root$mandir
 
 # Where to install the directory for ocsigen extensions:
 MODULEINSTALLDIR = $root$libdir
+
+# Where to install the directory for ocsigen extensions' libraries (e.g. ocsidbm):
+EXTRALIBDIR = $root$extralibdir/\$(OCSIGENNAME)
 
 # Where to install examples:
 EXAMPLESINSTALLDIR = $root$examplesdir/\$(OCSIGENNAME)
