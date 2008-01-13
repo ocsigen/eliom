@@ -730,7 +730,7 @@ let send
          let chunked =
            res.res_content_length = None && 
            clientproto <> Http_frame.Http_header.HTTP10 &&
-           not empty_content
+           not empty_content && not head
          in
          (* if HTTP/1.0 we do not use chunked encoding
             even if the client tells that it supports it,
