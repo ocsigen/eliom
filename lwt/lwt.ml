@@ -39,7 +39,7 @@ type 'a state =
     Return of 'a
   | Fail of exn
   | Sleep
-  | Repr of 'a t
+  | Repr of 'a t  (* implements union-find *)
 
 (* A suspended thread is described by ['a t]
  * It could have several [waiters], which are thunk functions
@@ -51,7 +51,9 @@ and 'a t =
 (* [make st] returns a thread of state [st] and no waiters *)
 let make st = { state = st; waiters = CNil }
 
-(* add a thunk [f] to the waiting list of thread [t] *)
+(* add a thunk [f] to the waiting list of thread [t]
+   [f] will be called with an argument that is either [Fail ...] or
+   [Return ...]. *)
 let add_waiter t f = t.waiters <- ccons f t.waiters
 
 let rec repr t =
@@ -131,6 +133,7 @@ let wakeup_exn t e = restart t (Fail e) "wakeup_exn"
 let rec bind x f =
   match (repr x).state with
     Return v ->
+      (* we don't use apply here so that tail recursion is not broken *)
       f v
   | Fail e ->
       fail e
