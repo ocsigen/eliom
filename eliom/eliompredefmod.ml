@@ -46,7 +46,8 @@ let code_of_code_option = function
   | None -> 200
   | Some c -> c
 
-module Xhtmlreg_ = struct
+module Xhtmlreg_(Xhtml_content : Http_frame.HTTP_CONTENT
+                   with type t = [ `Html ] XHTML.M.elt) = struct
   open XHTML.M
   open Xhtmltypes
 
@@ -54,7 +55,7 @@ module Xhtmlreg_ = struct
 
   module Xhtml_content = struct
 
-    include Predefined_senders.Xhtml_content
+    include Xhtml_content
     
     let add_css (a : 'a) : 'a = 
       let css = 
@@ -273,7 +274,9 @@ end
 (*****************************************************************************)
 
 module Xhtmlforms' = MakeForms(Xhtmlforms_)
-module Xhtmlreg = MakeRegister(Xhtmlreg_)
+module Xhtmlreg = MakeRegister(Xhtmlreg_(Predefined_senders.Xhtml_content))
+module Xhtmlcompactreg =
+  MakeRegister(Xhtmlreg_(Predefined_senders.Xhtmlcompact_content))
 
 module type XHTMLFORMSSIG = sig
 (* Pasted from mli *)
@@ -1119,6 +1122,11 @@ end
 module Xhtml = struct
   include Xhtmlforms
   include Xhtmlreg
+end
+
+module Xhtmlcompact = struct
+  include Xhtmlforms
+  include Xhtmlcompactreg
 end
 
 (****************************************************************************)

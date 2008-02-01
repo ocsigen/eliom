@@ -74,6 +74,7 @@ CMAO = ../lwt/lwt.cma \
        ../http/http_lexer.cmo ../http/http_parser.cmo \
        ../http/framepp.cmo ../http/http_com.cmo \
        ../xmlp4/xhtml.cma ../xmlp4/xhtmlpretty.cmo \
+       ../xmlp4/xhtmlcompact.cmo \
        ../http/predefined_senders.cmo
 
 OBJS = nagle.o $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)

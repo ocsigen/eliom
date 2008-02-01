@@ -26,6 +26,9 @@ module File_content :
 module Xhtml_content :
   Http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
 
+module Xhtmlcompact_content :
+  Http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
+
 (** content * content-type *)
 module Text_content :
   Http_frame.HTTP_CONTENT with type t = string * string

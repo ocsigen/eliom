@@ -6,15 +6,13 @@ else
 DBG =
 endif
 
-FILES = xhtmlpretty.ml
+FILES = xhtmlpretty.ml xhtmlcompact.ml
 
-CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) 
-# -package camlp4
-CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) 
-# -package camlp4
-CAMLDEP = $(OCAMLFIND) ocamldep $(LIB) 
+CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) -package camlp4
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) -package camlp4
+CAMLDEP = $(OCAMLFIND) ocamldep $(LIB) -package camlp4
 LIB = $(LIBDIRS)
-# PP = -syntax camlp4rf -ppopt "-loc loc"
+PP = -syntax camlp4o -ppopt "pa_macro.cmo"
 # PPLEXER = -syntax camlp4of -ppopt "-loc loc"
 
 OBJS = $(FILES:.ml=.cmo)
@@ -63,7 +61,7 @@ clean:
 depend:
 #	touch oldocaml/.depend
 #	touch newocaml/.depend
-	$(CAMLDEP) -I ohl-xhtml $(FILES) > .depend
+	$(CAMLDEP) -I ohl-xhtml $(PP) $(FILES) > .depend
 ifeq "$(OCAMLVERSION)" "OLD"
 	$(MAKE) -C oldocaml depend
 else 

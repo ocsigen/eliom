@@ -472,6 +472,15 @@ module Xhtml : sig
 
 end
 
+      (** Eliom forms and service registration functions for XHTML, with
+         compact markup (i.e., without pretty-printing). *)
+module Xhtmlcompact : sig
+
+  include Eliommkreg.ELIOMREGSIG with type page = xhtml elt
+  include XHTMLFORMSSIG
+
+end
+
 (** {3 Module to register subpages of type [block]} *)
 
 module Blocks : sig
