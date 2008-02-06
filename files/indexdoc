@@ -3,12 +3,13 @@
 
 {3 Ocsigen}
 
-{4 Persistent data, writing in the logs, configuration file extension}
+{4 Persistent data, writing in the logs, configuration file extension, Xhtml pretty printing}
 {!modules: 
 Ocsipersist 
 Messages 
 Parseconfig 
 Simplexmlparser
+Xhtmlpretty
 }
 
 {4 Extending Ocsigen}
@@ -29,6 +30,7 @@ Lwt_unix
 Lwt_chan 
 Lwt_ssl 
 Lwt_util 
+Lwt_lib
 Lwt_timeout 
 Preemptive
 }
@@ -40,13 +42,13 @@ Preemptive
 Eliomservices 
 Eliomparameters 
 Eliomsessions 
-Eliommod 
 }
 
 {4 Generating pages with OcamlDuce}
 {!modules: 
 Eliomduce 
 Xhtml1_strict 
+Eliomducetools 
 }
 
 {4 Generating pages typed with polymorphic variants}
@@ -68,4 +70,8 @@ Eliommkforms
 Eliommkreg
 Xhtmlpretty
 }
+
+{3 Indexes}
+
+{!indexlist}
 

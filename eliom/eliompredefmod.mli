@@ -61,7 +61,7 @@ module type XHTMLFORMSSIG = sig
                  sp:Eliomsessions.server_params -> 
                    ?fragment:string ->
                      'get -> string
-(** Creates the string corresponding to the URL of a service applyed to
+(** Creates the string corresponding to the URL of a service applied to
     its GET parameters.
  *)
 

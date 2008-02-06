@@ -1323,9 +1323,9 @@ let session_data_example_close_handler sp () () =
        (head (title (pcdata "Disconnect")) [])
        (body [
         (match sessdat with
-        | Data_session_expired -> p [pcdata "Your session has expired."]
-        | No_data -> p [pcdata "You were not connected."]
-        | Data _ -> p [pcdata "You have been disconnected."]);
+        | Eliomsessions.Data_session_expired -> p [pcdata "Your session has expired."]
+        | Eliomsessions.No_data -> p [pcdata "You were not connected."]
+        | Eliomsessions.Data _ -> p [pcdata "You have been disconnected."]);
         p [Eliompredefmod.Xhtml.a session_data_example sp [pcdata "Retry"] () ]]))
 
 
@@ -1372,12 +1372,12 @@ let _ = register
            (head (title (pcdata "")) [])
            (body 
               [match sessdat with
-              | Data name ->
+              | Eliomsessions.Data name ->
                   p [pcdata ("Hello "^name); br ();
                      a close sp [pcdata "close session"] ()
                    ]
-              | Data_session_expired
-              | No_data -> 
+              | Eliomsessions.Data_session_expired
+              | Eliomsessions.No_data -> 
                   post_form sessdata_with_post_params sp
                     (fun login -> 
                       [p [pcdata "login: ";
@@ -2122,11 +2122,11 @@ let connect_example3_handler sp () () =
        (head (title (pcdata "")) [])
        (body 
           (match sessdat with
-          | Data name ->
+          | Eliomsessions.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Data_session_expired
-          | No_data -> [login_box sp]
+          | Eliomsessions.Data_session_expired
+          | Eliomsessions.No_data -> [login_box sp]
           )))
     
 
@@ -2732,14 +2732,15 @@ let persist_session_example_handler sp () () =
        (head (title (pcdata "")) [])
        (body 
           (match sessdat with
-          | Data name ->
+          | Eliomsessions.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Data_session_expired -> 
+          | Eliomsessions.Data_session_expired -> 
               [login_box sp true persist_session_connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
-          | No_data -> [login_box sp false persist_session_connect_action;
-                        p [em [pcdata "The only user is 'toto'."]]]
+          | Eliomsessions.No_data -> 
+              [login_box sp false persist_session_connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
           )))
 
 
@@ -2870,11 +2871,11 @@ let connect_example5_handler sp () () =
        (head (title (pcdata "")) [])
        (body 
           (match sessdat with
-          | Data name ->
+          | Eliomsessions.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Data_session_expired
-          | No_data -> [login_box sp]
+          | Eliomsessions.Data_session_expired
+          | Eliomsessions.No_data -> [login_box sp]
           )))
     
 
@@ -3024,14 +3025,15 @@ let connect_example6_handler sp () () =
        (head (title (pcdata "")) [])
        (body 
           (match group with
-          | Data name ->
+          | Eliomsessions.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Data_session_expired -> 
+          | Eliomsessions.Data_session_expired -> 
               [login_box sp true connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
-          | No_data -> [login_box sp false connect_action;
-                     p [em [pcdata "The only user is 'toto'."]]]
+          | Eliomsessions.No_data -> 
+              [login_box sp false connect_action;
+               p [em [pcdata "The only user is 'toto'."]]]
           )))
 
 (* *zap*)
@@ -3822,7 +3824,7 @@ let uploadform = register upload
       To include an image, simply use the function $a ~fragment:"VALimg" ~service:senddoc ~sp [code [pcdata "XHTML.M.img" ]] [version;"XHTML.M.html"]$:
       </p>
       <pre>img <span class="Clabel">~alt:</span>"Ocsigen" 
-    <span class="Clabel">~src:</span>(<span class="Cem">make_uri</span> ~service:senddoc ~sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
+    <span class="Clabel">~src:</span>(<span class="Cem">Eliompredefmod.Xhtml.make_uri</span> ~service:senddoc ~sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
     ()</pre>
       <p>The function <span class="Cem">$a ~fragment:"VALmake_uri" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.make_uri" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$</span>
         creates the relative URL string from current URL (in <code>sp</code>)
@@ -4048,13 +4050,13 @@ let _ =
 
 let home sp () () =
    match get_volatile_session_data ~table:my_table ~sp () with
-   | Data_session_expired
-   | No_data -&gt;
+   | Eliomsessions.Data_session_expired
+   | Eliomsessions.No_data -&gt;
      page sp
        [h1 [pcdata "My site"];
         login_box sp connect_action;
         news_headers_list_box sp anonymoususer news_page]
-   | Data user -&gt;
+   | Eliomsessions.Data user -&gt;
       page sp
         [h1 [pcdata "Mon site"];
          text_box "Bonjour !";
@@ -4063,13 +4065,13 @@ let home sp () () =
 
 let print_news_page sp i () = 
    match get_volatile_session_data ~table:my_table ~sp () with
-   | Data_session_expired
-   | No_data -&gt;
+   | Eliomsessions.Data_session_expired
+   | Eliomsessions.No_data -&gt;
       page sp
         [h1 [pcdata "Info"];
          login_box sp connect_action;
          message_box i anonymoususer]
-   | Data user -&gt;
+   | Eliomsessions.Data user -&gt;
       page sp
         [h1 [pcdata "Info"];
          connected_box sp user disconnect_action;

@@ -7,7 +7,7 @@ DBG =
 endif
 
 FILESR = xmllexer.ml 
-FILES = xhtmltypes.ml xmlsyntax.ml xhtmlsyntax.ml xmlparser.ml simplexmlparser.ml xhtmlparser.ml xhtmlpp.ml
+FILES = xhtmltypes.ml xmlparser.ml xmlsyntax.ml xhtmlsyntax.ml simplexmlparser.ml xhtmlparser.ml xhtmlpp.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) -package camlp4
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) -package camlp4
@@ -24,11 +24,11 @@ OBJSOPT = $(FILESR:.ml=.cmx) $(FILES:.ml=.cmx)
 CMA = xhtmlsyntax.cma
 CMXA = xhtmlsyntax.cmxa
 
-byte: depend ohl-xhtml-byte $(CMA) $(OBJS) essai
+byte: depend ohl-xhtml-byte simplexmlparser.cmi $(CMA) $(OBJS) essai
 	ln -sf oldocaml/xhtmltypes.cmi oldocaml/xhtmltypes.cmo oldocaml/xmlparser.cmi oldocaml/simplexmlparser.cmi oldocaml/simplexmlparser.cmo oldocaml/xmlparser.cmo oldocaml/xmlsyntax.cmo oldocaml/xmllexer.cmo oldocaml/xhtmlpp.cmo oldocaml/xhtmlpp.cmi oldocaml/xhtmlsyntax.cma ..
 #	cp -p xhtmltypes.cmi xhtmltypes.cmo xmlparser.cmi simplexmlparser.cmi simplexmlparser.cmo xmlparser.cmo xmlsyntax.cmo xmllexer.cmo xhtmlpp.cmo xhtmlpp.cmi xhtmlsyntax.cma ..
 
-opt: ohl-xhtml-opt $(CMXA) $(OBJSOPT)
+opt: ohl-xhtml-opt simplexmlparser.cmi $(CMXA) $(OBJSOPT)
 	ln -sf oldocaml/xhtmltypes.cmi oldocaml/xhtmltypes.cmx oldocaml/xhtmltypes.o oldocaml/xmlparser.cmi oldocaml/simplexmlparser.cmi oldocaml/simplexmlparser.cmx oldocaml/simplexmlparser.o oldocaml/xmlparser.cmx oldocaml/xmlparser.o oldocaml/xmlsyntax.cmx oldocaml/xmlsyntax.o oldocaml/xmllexer.cmx oldocaml/xmllexer.o oldocaml/xhtmlpp.cmx oldocaml/xhtmlpp.o oldocaml/xhtmlpp.cmi oldocaml/xhtmlsyntax.cmxa oldocaml/xhtmlsyntax.a ..
 
 

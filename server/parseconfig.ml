@@ -217,6 +217,7 @@ let parse_server isreloading c =
       | (Element ("respectpipeline", [], []))::ll -> 
           set_respect_pipeline ();
           parse_server_aux ll
+      | (Element ("require", atts, l))::ll
       | (Element ("extension", atts, l))::ll -> 
 	  let  modu = match atts with
           | [] -> 
