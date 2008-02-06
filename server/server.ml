@@ -352,7 +352,6 @@ let service
           ~clientproto
           ~cookies:cookies_to_set
           ~head 
-          ~keep_alive:true
           ~code:i 
           ~sender:Http_com.default_sender
           ()
@@ -363,32 +362,32 @@ let service
           "Cannot read the request twice. You probably have \
            two incompatible options in <site> configuration, \
            or the order of the options in the config file is wrong.";
-        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:true
+        send_error ~exn:e sender_slot ~clientproto ~head
           ~code:500 ~sender:Http_com.default_sender () (* Internal error *)
     | Ocsigen_upload_forbidden ->
         Messages.debug2 "-> Sending 403 Forbidden";
-        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:true
+        send_error ~exn:e sender_slot ~clientproto ~head
           ~code:403 ~sender:Http_com.default_sender ()
     | Http_error.Http_exception (_,_,_) ->
-        send_error sender_slot ~clientproto ~head ~keep_alive:false
+        send_error sender_slot ~clientproto ~head (* ~keep_alive:false *)
           ~exn:e ~sender:Http_com.default_sender ()
     | Ocsigen_Bad_Request ->
         Messages.debug2 "-> Sending 400";
-        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:false
+        send_error ~exn:e sender_slot ~clientproto ~head (* ~keep_alive:false *)
           ~code:400 ~sender:Http_com.default_sender ()
     | Ocsigen_unsupported_media ->
         Messages.debug2 "-> Sending 415";
-        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:false
+        send_error ~exn:e sender_slot ~clientproto ~head (* ~keep_alive:false *)
           ~code:415 ~sender:Http_com.default_sender ()
     | Neturl.Malformed_URL ->
         Messages.debug2 "-> Sending 400 (Malformed URL)";
-        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:false
+        send_error ~exn:e sender_slot ~clientproto ~head (* ~keep_alive:false *)
           ~code:400 ~sender:Http_com.default_sender () (* Malformed URL *)
     | e ->
         Messages.warning
           ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
         Messages.debug2 "-> Sending 500";
-        send_error ~exn:e sender_slot ~clientproto ~head ~keep_alive:true
+        send_error ~exn:e sender_slot ~clientproto ~head
           ~code:500 ~sender:Http_com.default_sender ()
   in
   let finish_request () =
@@ -443,7 +442,7 @@ let service
     finish_request ();
     (* RFC 2616, sect 5.1.1 *)
     send_error
-      sender_slot ~clientproto ~head ~keep_alive:true ~code:501 
+      sender_slot ~clientproto ~head ~code:501 
       ~sender:Http_com.default_sender ()
   end else begin
     let filenames = ref [] (* All the files sent by the request *) in
@@ -520,7 +519,6 @@ let service
                   send
                     sender_slot
                     ~clientproto
-                    ~keep_alive:true
                     ~head
                     ~sender:Http_com.default_sender
                     {empty_result with res_code = 304  (* Not modified *)}
@@ -533,7 +531,6 @@ let service
                   send
                     sender_slot
                     ~clientproto
-                    ~keep_alive:true
                     ~head
                     ~sender:Http_com.default_sender
                     {empty_result 
@@ -542,7 +539,6 @@ let service
                   send
                     sender_slot
                     ~clientproto
-                    ~keep_alive:true
                     ~head
                     ~sender:Http_com.default_sender
                     res)
@@ -555,7 +551,6 @@ let service
                     send
                       sender_slot
                       ~clientproto
-                      ~keep_alive:true
                       ~head
                       ~sender:Http_com.default_sender
                     {empty_result with
@@ -685,7 +680,7 @@ let handle_connection port in_ch sockaddr =
           send_error slot
             ~clientproto:Http_frame.Http_header.HTTP10 
             ~head:false
-            ~keep_alive:false
+            (* ~keep_alive:false *)
             ~exn:e 
             ~sender:Http_com.default_sender ());
         linger in_ch receiver

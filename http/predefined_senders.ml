@@ -561,7 +561,6 @@ let send_error
     ?mode
     ?proto
     ?(cookies = Http_frame.Cookies.empty)
-    ~keep_alive
     ~head
     ~sender
     ()
@@ -572,7 +571,6 @@ let send_error
     ~clientproto
     ?mode
     ?proto
-    ~keep_alive
     ~head
     ~sender
     r

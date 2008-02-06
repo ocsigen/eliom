@@ -31,6 +31,7 @@
    - Add a parameter to disable reuse of free connections?
    - Allow to set parameters in config file (probing_time, etc)
    - Find a way to pipeline POST requests? at least PUT?
+   - Does it work well if the server is using HTTP/1.0?
 
    Notes:
    - Pipeline: 

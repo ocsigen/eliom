@@ -112,13 +112,33 @@ http://ws.bokeland.com/blog/376/1043/2006/10/27/76832
 *)
 
 
-let get_keepalive http_header =
-  try
-    String.lowercase
-      (Http_header.get_headers_value http_header Http_headers.connection)
-      = "keep-alive"
-  with Not_found ->
-    Http_header.get_proto http_header = Http_frame.Http_header.HTTP11
+let get_keepalive http_header = 
+  Http_header.get_proto http_header = Http_frame.Http_header.HTTP11 
+    && 
+  try 
+    String.lowercase 
+      (Http_header.get_headers_value http_header Http_headers.connection) 
+      <> "close" 
+  with Not_found -> 
+    true 
+  (* 06/02/2008
+     If HTTP/1.0, we do not keep alive, even if the client asks so.
+     It would be possible, but only if the content-length is known.
+     Chunked encoding is not possible with HTTP/1.0.
+     As we cannot know if the output will be chunked or not,
+     we decided that we won't keep the connection open at all for
+     HTTP/1.0.
+     Another solution would be to keep it open if the client asks so,
+     and answer connection:close (and close) if we don't know the size
+     of the document. In that case, all requests that have been pipelined
+     would be processed by the server, but not sent back to the client.
+     Which one is the best? It really depends on the client.
+     If the client waits the answer before doing the following request,
+     it would be ok to keep the connection opened, 
+     otherwise it is better not.
+     (+ pb with non-idempotent requests, that should not be pipelined)
+   *)
+
 
 
 (* RFC 2616, sect. 14.23 *)

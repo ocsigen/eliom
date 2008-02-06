@@ -62,7 +62,6 @@ val send_error :
     ?mode:Http_frame.Http_header.http_mode ->
     ?proto:Http_frame.Http_header.proto ->
     ?cookies:Http_frame.cookieset ->
-    keep_alive:bool ->
     head:bool -> 
     sender:Http_com.sender_type -> 
     unit -> 

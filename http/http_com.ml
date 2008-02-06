@@ -385,7 +385,8 @@ let get_http_frame ?(head = false) receiver =
     | _ ->
         if head then begin
           return_with_no_body receiver
-        end else begin
+        end 
+        else begin
 (* RFC
    2. If  a Transfer-Encoding header field (section  14.41) is present
    and has  any value other than "identity",  then the transfer-length
@@ -708,7 +709,8 @@ let send
     ~clientproto
     ?mode
     ?proto
-    ~keep_alive
+    ?keep_alive (* now (06/02/2008) used only 
+                   to request keep-alive while used as client *)
     ~head (* send only the header *)
     ~sender
     res
@@ -758,6 +760,26 @@ let send
                 | Some l -> Some (Int64.to_string l))
              hds
          in
+         (* 06/02/2008
+           We decided that we won't include a connection header at all
+           for answers.
+           If HTTP/1.0, we always close (which is the default).
+           If HTTP/1.1, we always keep alive, but if the client asked to close.
+           The default is to keep alive. But the client will close. *)
+         let hds =
+           match keep_alive with
+             | None -> hds
+             | Some ka ->
+                 hds
+                 <<?! (* We override the value *)
+(*XXX Check: HTTP/1.0 *)
+                 (Http_headers.connection,
+                  if ka
+                    (* && not (not chunked && res.res_content_length = None) *)
+                  then Some "keep-alive"
+                  else Some "close")
+         in
+(*VVV Do we need to REMOVE the connection header if present? *)
          let hd =
            { H.mode = mode;
              H.proto = with_default proto sender.s_proto;
@@ -810,7 +832,8 @@ let send
            Messages.debug2 "writing body";
            write_stream ~chunked out_ch res.res_stream
          end) >>= fun () ->
-         Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers are not flush by the reverse proxy *)
+         Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers 
+                                  are not flushed by the reverse proxy *)
       )
       (fun () -> Ocsistream.finalize res.res_stream)
 
@@ -857,10 +880,6 @@ let send
   in
   let headers =
     Cookies.fold mkcookl res.res_cookies headers
-    <<?! (* We override the value *)
-(*XXX Check: HTTP/1.0 *)
-    (Http_headers.connection,
-     if keep_alive then Some "keep-alive" else Some "close")
     <<?
     (Http_headers.location, res.res_location)
     <<?

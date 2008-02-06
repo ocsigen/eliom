@@ -69,7 +69,7 @@ val send :
     clientproto:Http_frame.Http_header.proto ->
     ?mode:Http_frame.Http_header.http_mode ->
     ?proto:Http_frame.Http_header.proto ->
-    keep_alive:bool ->
+    ?keep_alive:bool ->
     head:bool ->
     sender:sender_type ->
     Http_frame.result -> 
