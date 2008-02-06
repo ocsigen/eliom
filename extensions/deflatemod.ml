@@ -270,18 +270,17 @@ let stream_filter contentencoding url deflate choice res =
        | _ -> raise No_compress)
  with Not_found | No_compress -> return res))
 
-let filter choice_list =
- function
- |Req_not_found (code,_) -> return (Ext_next code)
- |Req_found (ri,result) -> result () >>= fun res ->
- match select_encoding (Lazy.force(ri.ri_accept_encoding)) with
- | Deflate -> 
-     stream_filter "deflate" ri.ri_sub_path_string true choice_list res
- | Gzip -> 
-     stream_filter "gzip" ri.ri_sub_path_string false choice_list res
- | Id | Star -> return (Ext_found (fun () -> return res))
- | Not_acceptable -> 
-     return (Ext_stop_all (res.Http_frame.res_cookies,406))
+let filter choice_list = function
+  | Req_not_found (code,_) -> return (Ext_next code)
+  | Req_found (ri, result) -> result () >>= fun res ->
+  match select_encoding (Lazy.force(ri.ri_accept_encoding)) with
+  | Deflate -> 
+      stream_filter "deflate" ri.ri_sub_path_string true choice_list res
+  | Gzip -> 
+      stream_filter "gzip" ri.ri_sub_path_string false choice_list res
+  | Id | Star -> return (Ext_found (fun () -> return res))
+  | Not_acceptable -> 
+      return (Ext_stop_all (res.Http_frame.res_cookies,406))
 
 
 (*****************************************************************************)

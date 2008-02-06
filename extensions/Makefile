@@ -3,7 +3,7 @@ include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
 FILES:= staticmod.ml cgimod.ml redirectmod.ml revproxy.ml extensiontemplate.ml \
-	accesscontrol.ml staticmod.ml cgimod.ml userconf.ml
+	accesscontrol.ml staticmod.ml cgimod.ml userconf.ml outputfilter.ml
 
 ifeq "$(OCSIPERSISTSQLITE)" "YES"
 FILESSQLITE= ocsipersist.ml

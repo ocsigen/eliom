@@ -565,7 +565,7 @@ let gen reg charset = function
 (*****************************************************************************)
 (** Parsing of config file *)
 
-let rec set_env=function
+let rec set_env = function
   | [] -> []
   | (Element("setenv", [("var",vr);("val",vl)], []))::l ->
      if List.mem vr environment
