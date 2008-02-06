@@ -36,11 +36,6 @@ open Http_frame
 
 
 (*****************************************************************************)
-
-type password = [ `Plain of string ]
-
-
-(*****************************************************************************)
 let rec parse_global_config = function
   | [] -> ()
   | _ -> raise (Error_in_config_file
@@ -51,19 +46,19 @@ let _ = parse_global_config (Extensions.get_config ())
 
 
 (*****************************************************************************)
-(* Management of authentication methods *)
+(* Management of basic authentication methods *)
 
 exception Bad_config_tag_for_auth of string
 
-let register_authentication_method,
-  get_authentication_method =
+let register_basic_authentication_method,
+  get_basic_authentication_method =
 
   let fun_auth = ref
     (fun config ->
-       raise (Bad_config_tag_for_auth "<unknown authentication method>"))
+       raise (Bad_config_tag_for_auth "<unknown basic authentication method>"))
   in
 
-  (********* register_authentication_method *********)
+  (********* register_basic_authentication_method *********)
   (fun new_fun_auth ->
      let old_fun_auth = !fun_auth in
      fun_auth :=
@@ -73,18 +68,20 @@ let register_authentication_method,
           with
             | Bad_config_tag_for_auth c -> new_fun_auth config)),
 
-  (********* get_authentication_method *********)
+  (********* get_basic_authentication_method *********)
   (fun config ->
      !fun_auth config)
 
 
-(** for tests **)
-let _ = register_authentication_method
+(*****************************************************************************)
+(* Basic authentication with a predefined login/password (example) *)
+
+let _ = register_basic_authentication_method
   (function
-     | Element ("htpasswd", ["login", login; "password", password], _) ->
-	 (fun l p -> match p with
-	    | `Plain p -> Lwt.return (login = l && password = p))
+     | Element ("plain", ["login", login; "password", password], _) ->
+	 (fun l p -> Lwt.return (login = l && password = p))
      | _ -> raise (Bad_config_tag_for_extension "not for htpasswd"))
+
 
 (*****************************************************************************)
 
@@ -299,7 +296,7 @@ let parse_config path charset _ parse_fun = function
         (* TODO: check that realm is correct *)
         let auth =
           try
-            get_authentication_method auth
+            get_basic_authentication_method auth
           with Bad_config_tag_for_extension _ ->
             raise (Error_in_config_file "Unable to find proper authentication method")
         in
@@ -334,7 +331,7 @@ let parse_config path charset _ parse_fun = function
                      (String.sub decoded 0 i,
                       String.sub decoded (i+1) (String.length decoded - (i+1)))
                    in
-                   auth login (`Plain password) >>=
+                   auth login password >>=
                      (fun r ->
                         if r then begin
                           Messages.debug2 "--Access control (auth): valid credentials!";

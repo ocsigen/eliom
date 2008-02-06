@@ -19,10 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-type password = [ `Plain of string ]
+val register_basic_authentication_method :
+  (Simplexmlparser.xml -> string -> string -> bool Lwt.t) -> unit
 
-val register_authentication_method :
-  (Simplexmlparser.xml -> string -> password -> bool Lwt.t) -> unit
-
-val get_authentication_method :
-  Simplexmlparser.xml -> string -> password -> bool Lwt.t
+val get_basic_authentication_method :
+  Simplexmlparser.xml -> string -> string -> bool Lwt.t
