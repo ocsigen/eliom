@@ -20,6 +20,7 @@ Predefined_senders
 Http_frame
 Http_client
 Http_com
+Authbasic
 }
 
 {3 Lwt}
