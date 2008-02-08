@@ -45,17 +45,16 @@ let _ = parse_global_config (Extensions.get_config ())
 
 
 (*****************************************************************************)
+(* Parsing a condition *)
 
-exception Bad_config_tag_for_filter
-
-let rec parse_filter = function
+let rec parse_condition = function
 
     | Element ("ip", ["value", s], []) ->
         let ip_with_mask =
           try
             Ocsimisc.parse_ip s
           with Failure _ ->
-            raise (Error_in_config_file (sprintf "Bad ip/netmask [%s] in <ip> condition" s))
+            badconfig "Bad ip/netmask [%s] in <ip> condition" s
         in
         (fun ri ->
            let r = Ocsimisc.match_ip ip_with_mask (Lazy.force ri.ri_ip_parsed) in
@@ -70,7 +69,7 @@ let rec parse_filter = function
           try
             Netstring_pcre.regexp ("^"^reg^"$")
           with Failure _ ->
-            raise (Error_in_config_file (sprintf "Bad regular expression [%s] in <header> condition" reg))
+            badconfig "Bad regular expression [%s] in <header> condition" reg
         in
         (fun ri ->
            let r =
@@ -91,7 +90,7 @@ let rec parse_filter = function
           try
             Framepp.method_of_string s
           with Failure _ ->
-            raise (Error_in_config_file (sprintf "Bad method [%s] in <method> condition" s))
+            badconfig "Bad method [%s] in <method> condition" s
         in
         (fun ri ->
            let r = meth = ri.ri_method in
@@ -106,7 +105,7 @@ let rec parse_filter = function
           try
             Framepp.proto_of_string s
           with Failure _ ->
-            raise (Error_in_config_file (sprintf "Bad protocol [%s] in <protocol> condition" s))
+            badconfig "Bad protocol [%s] in <protocol> condition" s
         in
         (fun ri ->
            let r = pr = ri.ri_protocol in
@@ -121,7 +120,7 @@ let rec parse_filter = function
           try
             Netstring_pcre.regexp ("^"^s^"$")
           with Failure _ ->
-            raise (Error_in_config_file (sprintf "Bad regular expression [%s] in <path> condition" s))
+            badconfig "Bad regular expression [%s] in <path> condition" s
         in
         (fun ri ->
            let r =
@@ -134,164 +133,111 @@ let rec parse_filter = function
                (fun () -> sprintf "--Access control (path): \"%s\" does not match \"%s\"" ri.ri_sub_path_string s);
            r)
 
-    | Element (("nand"|"and") as t, [], sub) ->
-        begin try
-          let rec aux = function
-            | [] -> (fun ri -> true)
-            | f::sub ->
-                let f = parse_filter f and sub = aux sub in
-                fun ri -> f ri && sub ri
-          in
-          let sub = aux sub in
-          if t = "and" then sub else (fun ri -> not (sub ri))
-        with
-          | Bad_config_tag_for_filter ->
-              raise (Error_in_config_file (sprintf "Error in <%s> condition" t))
-        end
+    | Element ("and", [], sub) ->
+        let sub = List.map parse_condition sub in
+        (fun ri -> List.for_all (fun cond -> cond ri) sub)
 
-    | Element (("nor"|"or") as t, [], sub) ->
-        begin try
-          let rec aux = function
-            | [] -> (fun ri -> false)
-            | f::sub ->
-                let f = parse_filter f and sub = aux sub in
-                fun ri -> f ri || sub ri
-          in
-          let sub = aux sub in
-          if t = "or" then sub else (fun ri -> not (sub ri))
-        with
-          | Bad_config_tag_for_filter ->
-              raise (Error_in_config_file (sprintf "Error in <%s> condition" t))
-        end
+    | Element ("or", [], sub) ->
+        let sub = List.map parse_condition sub in
+        (fun ri -> List.exists (fun cond -> cond ri) sub)
 
-    | _ -> raise Bad_config_tag_for_filter
+    | Element ("not", [], [sub]) ->
+        let sub = parse_condition sub in
+        (fun ri -> not (sub ri))
 
+    | Element (("and"|"or"|"not") as t, _, _) ->
+        badconfig "Bad syntax for <%s> condition" t
+
+    | _ ->
+        badconfig "Bad syntax for condition"
+
+
+(*****************************************************************************)
+(* Parsing filters *)
 
 let parse_config path charset _ parse_fun = function
 
-  | Element ("filter", attrs, sub) ->
-      let (typ, if_then_else) =
-        (* determine the type of filter *)
-        let rec aux (typ, els) = function
-          | [] -> (typ, els)
-          | ("type", (("and"|"or"|"nand"|"nor") as t))::attrs when typ = None ->
-              aux (Some t, els) attrs
-          | ("else", "present")::attrs -> aux (typ, true) attrs
-          | (t, _)::_ ->
-              raise (Error_in_config_file ("Do not know what to do with attribute "^t^" in <filter>"))
-        in aux (None, false) attrs
+  | Element ("if", [], sub) ->
+      let (condition, sub) = match sub with
+        | cond::q -> (parse_condition cond, q)
+        | _ -> badconfig "Bad condition in <if>"
       in
-      let typ = match typ with
-        | None -> raise (Error_in_config_file "Attribute type missing in <filter>")
-        | Some t -> t
+      let (ithen, sub) = match sub with
+          | Element("then", [], ithen)::q -> (parse_fun ithen, q)
+          | _ -> badconfig "Bad <then> branch in <if>"
       in
-      let (conditions, actions) =
-        (* split sub into conditions and actions *)
-        let rec aux = function
-          | [] -> ([], [])
-          | f::sub as x ->
-              try
-                let f = parse_filter f in
-                let (c, a) = aux sub in
-                (f::c, a)
-              with
-                | Bad_config_tag_for_filter -> ([], x)
-        in aux sub
+      let (ielse, sub) = match sub with
+          | Element ("else", [], ielse)::([] as q) -> (Some (parse_fun ielse), q)
+          | [] -> (None, [])
+          | _ -> badconfig "Bad <else> branch in <if>"
       in
-      let test =
-        (* computing the resulting test function *)
-        match typ with
-          | "and" -> (fun ri -> List.for_all (fun f -> f ri) conditions)
-          | "nand" -> (fun ri -> not (List.for_all (fun f -> f ri) conditions))
-          | "or" -> (fun ri -> List.exists (fun f -> f ri) conditions)
-          | "nor" -> (fun ri -> not (List.exists (fun f -> f ri) conditions))
-          | _ -> assert false (* should not happen *)
-      in
-      if if_then_else then begin (* if-then-else *)
-        match actions with
-          | [Element (ta, _, _) as a; Element (tb, _, _) as b] ->
-              let fa = parse_fun [a] and fb = parse_fun [b] in
-              begin function
-                | Extensions.Req_found (ri, _)
-                | Extensions.Req_not_found (_, ri) ->
-                    Lwt.return
-                      (if test ri then begin
-                         Messages.debug2 ("--Access control: => Going into "^ta);
-                         Extensions.Ext_sub_result fa
-                       end
-                       else begin
-                         Messages.debug2 ("--Access control: => Going into"^tb);
-                         Extensions.Ext_sub_result fb
-                       end)
-              end
-          | _ ->
-              raise (Error_in_config_file "A filter with else=\"present\" must have exactly two children")
-      end
-      else begin
-        let ext = parse_fun actions in
-        function
-          | Extensions.Req_found (ri, r) ->
+      (function
+        | Extensions.Req_found (ri, r) ->
             Lwt.return
-              (if test ri then begin
-                 Messages.debug2 "--Access control: => Passthrough granted!";
-                 Extensions.Ext_sub_result ext
+              (if condition ri then begin
+                 Messages.debug2 "--Access control: => going into <then> branch";
+                 Extensions.Ext_sub_result ithen
                end
-               else begin
-                 Messages.debug2 "--Access control: => Passthrough denied!";
-                 Extensions.Ext_found r
-               end)
+               else match ielse with
+                 | Some ielse ->
+                     Messages.debug2 "--Access control: => going into <else> branch";
+                     Extensions.Ext_sub_result ielse
+                 | None ->
+                     Extensions.Ext_found r)
         | Extensions.Req_not_found (_, ri) ->
             Lwt.return
-              (if test ri then begin
-                 Messages.debug2 "--Access control: => Access granted!";
-                 Extensions.Ext_sub_result ext
+              (if condition ri then begin
+                 Messages.debug2 "--Access control: => going into <then> branch";
+                 Extensions.Ext_sub_result ithen
                end
-               else begin
-                 Messages.debug2 "--Access control: => Access denied!";
-                 Extensions.Ext_stop_site (Http_frame.Cookies.empty, 403)
-               end)
-      end
+               else match ielse with
+                 | Some ielse ->
+                     Messages.debug2 "--Access control: => going into <else> branch";
+                     Extensions.Ext_sub_result ielse
+                 | None ->
+                     Messages.debug2 "--Access control: => no <else> branch, going on";
+                     Extensions.Ext_next 404))
 
-    | Element ("notfound", [], []) ->
-        (fun rs ->
-           Messages.debug2 "--Access control: taking in charge 404";
-           fail (Ocsigen_http_error (Http_frame.Cookies.empty, 404)))
+  | Element ("notfound", [], []) ->
+      (fun rs ->
+         Messages.debug2 "--Access control: taking in charge 404";
+         fail (Ocsigen_http_error (Http_frame.Cookies.empty, 404)))
 
-    | Element ("forbidden", [], []) ->
-        (fun rs ->
-           Messages.debug2 "--Access control: taking in charge 403";
-           fail (Ocsigen_http_error (Http_frame.Cookies.empty, 403)))
+  | Element ("forbidden", [], []) ->
+      (fun rs ->
+         Messages.debug2 "--Access control: taking in charge 403";
+         fail (Ocsigen_http_error (Http_frame.Cookies.empty, 403)))
 
-    | Element ("iffound", [], sub) ->
-        let ext = parse_fun sub in
-        (function
-           | Extensions.Req_found (_, _) ->
+  | Element ("iffound", [], sub) ->
+      let ext = parse_fun sub in
+      (function
+         | Extensions.Req_found (_, _) ->
+             Lwt.return (Ext_sub_result ext)
+         | Extensions.Req_not_found (err, ri) ->
+             Lwt.return (Extensions.Ext_next err))
+
+  | Element ("ifnotfound", [], sub) ->
+      let ext = parse_fun sub in
+      (function
+         | Extensions.Req_found (_, r) ->
+             Lwt.return (Extensions.Ext_found r)
+         | Extensions.Req_not_found (err, ri) ->
+             Lwt.return (Ext_sub_result ext))
+
+  | Element ("ifnotfound", [("code", s)], sub) ->
+      let ext = parse_fun sub in
+      let r = Netstring_pcre.regexp ("^"^s^"$") in
+      (function
+         | Extensions.Req_found (_, r) ->
+             Lwt.return (Extensions.Ext_found r)
+         | Extensions.Req_not_found (err, ri) ->
+             if Netstring_pcre.string_match r (string_of_int err) 0 <> None then
                Lwt.return (Ext_sub_result ext)
-           | Extensions.Req_not_found (err, ri) ->
+             else
                Lwt.return (Extensions.Ext_next err))
 
-    | Element ("ifnotfound", [], sub) ->
-        let ext = parse_fun sub in
-        (function
-           | Extensions.Req_found (_, r) ->
-               Lwt.return (Extensions.Ext_found r)
-           | Extensions.Req_not_found (err, ri) ->
-               Lwt.return (Ext_sub_result ext))
-
-    | Element ("ifnotfound", [("code", s)], sub) ->
-        let ext = parse_fun sub in
-        let r = Netstring_pcre.regexp ("^"^s^"$") in
-        (function
-           | Extensions.Req_found (_, r) ->
-               Lwt.return (Extensions.Ext_found r)
-           | Extensions.Req_not_found (err, ri) ->
-               if Netstring_pcre.string_match r (string_of_int err) 0 <> None then
-                 Lwt.return (Ext_sub_result ext)
-               else
-                 Lwt.return (Extensions.Ext_next err))
-
-    | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
-    | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
+  | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
+  | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
 
 
 
