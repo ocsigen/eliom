@@ -37,6 +37,10 @@ exception Ocsigen_Internal_Error of string
 exception Bad_config_tag_for_extension of string (** Try next extension *)
 exception Error_in_config_file of string (** Stop with an error message *)
 
+val badconfig : ('a, unit, string, 'b) format4 -> 'a
+(** Convenient function for raising Error_in_config_file exceptions with
+    a sprintf-formatted argument. *)
+
 (*****************************************************************************)
 (** The type of URL paths. [["plop";"plip"]] corresponds to [plop/plip]. *)
 type url_path = string list

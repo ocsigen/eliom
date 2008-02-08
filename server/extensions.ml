@@ -38,6 +38,8 @@ exception Ocsigen_Looping_request
 exception Bad_config_tag_for_extension of string
 exception Error_in_config_file of string
 
+let badconfig fmt = Printf.ksprintf (fun s -> raise (Error_in_config_file s)) fmt
+
 (*****************************************************************************)
 (** type of URL, without parameter *)
 type url_path = string list
