@@ -43,6 +43,7 @@ let gen (header, regexp, dest) charset = function
         let new_headers = 
           List.fold_left
             (fun h value -> 
+
               Http_headers.add
                 header
                 (Netstring_pcre.global_replace regexp dest value)

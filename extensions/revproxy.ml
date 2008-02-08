@@ -115,7 +115,7 @@ let gen dir charset = function
        let (https, host, port, uri) = 
          find_redirection dir ri.ri_sub_path_string
        in
-       let uri = "/"^uri in
+       let uri = "/"^uri^(match ri.ri_get_params_string with None -> "" | Some s -> "?"^s) in
        Messages.debug (fun () ->
                          "--Revproxy: YES! Redirection to "^
                            (if https then "https://" else "http://")^host^":"^
