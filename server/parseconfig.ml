@@ -134,10 +134,44 @@ let parse_ext file =
 
 
 let isloaded, addloaded =
-  let module S = Set.Make(struct type t = string let compare = compare end) in
+  let module S = Set.Make(String) in
   let set = ref S.empty in
   ((fun s -> S.mem s !set),
    (fun s -> set := S.add s !set))
+
+(** Load the module [file]. If [force] is [false], remember [file] so
+    that it isn't reloaded when the server reloads. [config] is the
+    subforest of the config file entry which invoked this loading. *)
+let load_module force config file =
+  try
+    if force then begin
+      Extensions.set_config config;
+      Messages.debug (fun () -> "Loading "^file^" (will be reloaded every times)");
+      Dynlink.loadfile file;
+      Extensions.set_config [];
+    end
+    else if not (isloaded file) then begin
+      Extensions.set_config config;
+      Messages.debug (fun () -> "Loading extension "^file);
+      Dynlink.loadfile file;
+      addloaded file;
+      Extensions.set_config []
+    end
+    else
+      Messages.debug (fun () -> "Extension "^file^" already loaded")
+  with
+    | e -> raise (Dynlink_error (file, e))
+
+(** Load all the files specified in [modules]. [force] and [config]
+    refer to the last one in [modules], the other ones being loaded
+    with [force] set to [false] and [config] set to [[]]. *)
+let load_modules force config modules =
+  let rec aux = function
+    | [] -> ()
+    | [m] -> load_module force config m
+    | m::q -> load_module false [] m
+  in aux modules
+
 
 (* Config file is parsed twice. 
    This is the second parsing (site loading) 
@@ -218,43 +252,30 @@ let parse_server isreloading c =
           set_respect_pipeline ();
           parse_server_aux ll
       | (Element ("require", atts, l))::ll
-      | (Element ("extension", atts, l))::ll -> 
-	  let  modu = match atts with
-          | [] -> 
-              raise
-                (Config_file_error "missing module attribute in <extension>")
-          | [("module", s)] -> s
-          | _ -> raise (Config_file_error "Wrong attribute for <extension>") 
-	  in 
-(*          if not isreloading *)
-          if not (isloaded modu)
-          then begin
-            try
-              Extensions.set_config l;
-              Messages.debug (fun () -> "Loading extension "^modu);
-              Dynlink.loadfile modu;
-              addloaded modu;
-              Extensions.set_config []
-            with
-            | e -> raise (Dynlink_error (modu, e))
-          end (* We do not reload extensions *)
-          else
-            Messages.debug (fun () -> "Extension "^modu^" already loaded");
+      | (Element ("extension", atts, l))::ll ->
+          (* We do not reload extensions *)
+          let modules = match atts with
+            | [] ->
+                raise
+                  (Config_file_error "missing module or findlib-package attribute in <extension>")
+            | [("module", s)] -> [s]
+            | [("findlib-package", s)] ->
+                raise (Config_file_error "\"findlib-package\" not yet implemented")
+            | _ ->
+                raise (Config_file_error "Wrong attribute for <extension>")
+          in
+          load_modules false l modules;
           parse_server_aux ll
-      | (Element ("library", atts, l))::ll -> 
-	  let modu = match atts with
-          | [] -> 
-              raise (Config_file_error "missing module attribute in <library>")
-          | [("module", s)] -> s
-          | _ -> raise (Config_file_error "Wrong attribute for <library>") 
-	  in 
-          (try
-            Extensions.set_config l;
-            Messages.debug (fun () -> "Loading "^modu^" (will be reloaded every times)");
-            Dynlink.loadfile modu;
-            Extensions.set_config [];
-          with
-            | e -> raise (Dynlink_error (modu, e)));
+      | (Element ("library", atts, l))::ll ->
+          let modules = match atts with
+            | [] ->
+                raise (Config_file_error "missing module or findlib-package attribute in <library>")
+            | [("module", s)] -> [s]
+            | [("findlib-package", s)] ->
+                raise (Config_file_error "\"findlib-package\" not yet implemented")
+            | _ -> raise (Config_file_error "Wrong attribute for <library>")
+          in
+          load_modules true l modules;
           parse_server_aux ll
       | (Element ("host", atts, l))::ll ->
           let rec parse_attrs (name, charset) = function
