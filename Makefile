@@ -207,10 +207,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/extensions%g \
 	| sed s%_ELIOMINSTALLDIR_%$(SRC)/eliom%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
-	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
-	| sed s%_CRYPTOKITINSTALLDIR_%$(CRYPTOKITINSTALLDIR)%g \
-	| sed s%_CAMLZIPDIR_%$(CAMLZIPDIR)%g \
-	| sed s%_OCAMLLIBDIR_%$(shell ocamlc -where)%g \
+	| sed s%_CAMLZIPNAME_%$(CAMLZIPNAME)%g \
 	| sed s%files/miniwiki%examples/miniwiki/files%g \
 	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
 	| sed s%\<\!--\ \<commandpipe%\<commandpipe%g \
@@ -290,10 +287,7 @@ installnodoc: partialinstall
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_ELIOMINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
-	| sed s%_OCAMLSQLITE3DIR_%$(OCAMLSQLITE3DIR)%g \
-	| sed s%_CRYPTOKITINSTALLDIR_%$(CRYPTOKITINSTALLDIR)%g \
-	| sed s%_CAMLZIPDIR_%$(CAMLZIPDIR)%g \
-	| sed s%_OCAMLLIBDIR_%$(shell ocamlc -where)%g \
+	| sed s%_CAMLZIPNAME_%$(CAMLZIPNAME)%g \
 	> $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
 	cat $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
 	| sed s%[.]cmo%.cmxs%g \
