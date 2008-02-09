@@ -34,6 +34,7 @@ let mimefile = ref "_CONFIGDIR_/mime.types"
 let pidfile = ref None
 let server_name = "Ocsigen"
 let full_server_name = server_name^"/"^version_number
+let is_native = _ISNATIVE_
 
 (* Server config: *)
 let (uploaddir : string option ref) = ref None

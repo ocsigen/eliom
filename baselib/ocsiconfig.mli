@@ -3,6 +3,7 @@ exception Config_file_error of string
 val server_name : string
 val full_server_name : string
 val version_number : string
+val is_native : bool
 
 val set_uploaddir : string option -> unit
 val set_logdir : string -> unit

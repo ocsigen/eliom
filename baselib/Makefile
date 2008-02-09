@@ -54,6 +54,7 @@ ocsiconfig.ml: ocsiconfig.ml.IN
 	| sed s%_OCSIGENNAME_%$(OCSIGENNAME)%g \
 	| sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
 	| sed s%_CONFIGDIR_%$(CONFIGDIR)% \
+	| sed s%_ISNATIVE_%$(NATIVECODE_RUNTIME_DETECT)%g \
 	> ocsiconfig.ml
 
 doc:
