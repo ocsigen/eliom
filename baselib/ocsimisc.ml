@@ -424,3 +424,5 @@ let get_inet_addr host =
 
 (* *)
 type ('a, 'b) leftright = Left of 'a | Right of 'b
+
+module StringSet = Set.Make(String)

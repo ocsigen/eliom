@@ -134,10 +134,9 @@ let parse_ext file =
 
 
 let isloaded, addloaded =
-  let module S = Set.Make(String) in
-  let set = ref S.empty in
-  ((fun s -> S.mem s !set),
-   (fun s -> set := S.add s !set))
+  let set = ref Ocsimisc.StringSet.empty in
+  ((fun s -> Ocsimisc.StringSet.mem s !set),
+   (fun s -> set := Ocsimisc.StringSet.add s !set))
 
 (** Load the module [file]. If [force] is [false], remember [file] so
     that it isn't reloaded when the server reloads. [config] is the

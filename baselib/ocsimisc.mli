@@ -48,3 +48,5 @@ type ip_address =
 exception Invalid_ip_address of string
 val parse_ip : string -> ip_address * (ip_address option)
 val match_ip : ip_address * (ip_address option) -> ip_address -> bool
+
+module StringSet : Set.S with type elt = string
