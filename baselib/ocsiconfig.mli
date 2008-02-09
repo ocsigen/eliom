@@ -4,6 +4,7 @@ val server_name : string
 val full_server_name : string
 val version_number : string
 val is_native : bool
+val builtin_packages : Ocsimisc.StringSet.t
 
 val set_uploaddir : string option -> unit
 val set_logdir : string -> unit

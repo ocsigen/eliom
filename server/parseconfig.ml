@@ -1,7 +1,7 @@
 (* Ocsigen
  * http://www.ocsigen.org
  * Module parseconfig.ml
- * Copyright (C) 2005 Vincent Balat, Nataliya Guts
+ * Copyright (C) 2005-2008 Vincent Balat, Nataliya Guts, Stéphane Glondu
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,6 +28,7 @@ open Simplexmlparser
 open Ocsiconfig
 
 exception Dynlink_error of string * exn
+exception Findlib_error of string * exn
 
 (*****************************************************************************)
 let parse_size =
@@ -168,8 +169,41 @@ let load_modules force config modules =
   let rec aux = function
     | [] -> ()
     | [m] -> load_module force config m
-    | m::q -> load_module false [] m
+    | m::q -> load_module false [] m; aux q
   in aux modules
+
+(** Use [Findlib] to locate all files needed to load [package]. *)
+let find_modules =
+  Findlib.init ();
+  fun package ->
+    try
+      let preds = [(if is_native then "native" else "byte"); "mt"] in
+      let deps = Findlib.package_deep_ancestors preds [package] in
+      let deps = List.filter
+        (fun a -> not (Ocsimisc.StringSet.mem a builtin_packages)) deps in
+      Messages.debug
+        (fun () ->
+           Printf.sprintf "Dependencies of findlib package %s: %s" package (String.concat " " deps));
+      let rec aux = function
+        | [] -> []
+        | a::q ->
+            let mods =
+              try
+                let raw = Findlib.package_property preds a "archive" in
+                List.filter ((<>) "") (Ocsimisc.split ~multisep:true ' ' raw)
+              with
+                | Not_found -> []
+            in
+            let base = Findlib.package_directory a in
+            (List.map (Findlib.resolve_path ~base) mods) @ (aux q)
+      in
+      let res = aux deps in
+      Messages.debug
+        (fun () ->
+           Printf.sprintf "Needed: %s" (String.concat ", " res));
+      res
+    with
+      | e -> raise (Findlib_error (package, e))
 
 
 (* Config file is parsed twice. 
@@ -258,8 +292,7 @@ let parse_server isreloading c =
                 raise
                   (Config_file_error "missing module or findlib-package attribute in <extension>")
             | [("module", s)] -> [s]
-            | [("findlib-package", s)] ->
-                raise (Config_file_error "\"findlib-package\" not yet implemented")
+            | [("findlib-package", s)] -> find_modules s
             | _ ->
                 raise (Config_file_error "Wrong attribute for <extension>")
           in
@@ -270,8 +303,7 @@ let parse_server isreloading c =
             | [] ->
                 raise (Config_file_error "missing module or findlib-package attribute in <library>")
             | [("module", s)] -> [s]
-            | [("findlib-package", s)] ->
-                raise (Config_file_error "\"findlib-package\" not yet implemented")
+            | [("findlib-package", s)] -> find_modules s
             | _ -> raise (Config_file_error "Wrong attribute for <library>")
           in
           load_modules true l modules;

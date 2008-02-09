@@ -36,6 +36,10 @@ let server_name = "Ocsigen"
 let full_server_name = server_name^"/"^version_number
 let is_native = _ISNATIVE_
 
+let builtin_packages =
+  List.fold_left (fun a s -> StringSet.add s a) StringSet.empty
+    ["unix"; "threads"; "ssl"; "lwt"; "netstring"; "pcre"; "dynlink"; "findlib"; "ocsigen"]
+
 (* Server config: *)
 let (uploaddir : string option ref) = ref None
 let logdir = ref "_LOGDIR_" 
