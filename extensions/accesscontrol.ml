@@ -38,8 +38,7 @@ open Http_frame
 (*****************************************************************************)
 let rec parse_global_config = function
   | [] -> ()
-  | _ -> raise (Error_in_config_file
-                  ("Unexpected content inside accesscontrol config"))
+  | _ -> badconfig "Unexpected content inside accesscontrol config"
 
 let _ = parse_global_config (Extensions.get_config ())
 
@@ -167,36 +166,22 @@ let parse_config path charset _ parse_fun = function
           | _ -> badconfig "Bad <then> branch in <if>"
       in
       let (ielse, sub) = match sub with
-          | Element ("else", [], ielse)::([] as q) -> (Some (parse_fun ielse), q)
-          | [] -> (None, [])
+          | Element ("else", [], ielse)::([] as q) -> (parse_fun ielse, q)
+          | [] -> (parse_fun [], [])
           | _ -> badconfig "Bad <else> branch in <if>"
       in
       (function
-        | Extensions.Req_found (ri, r) ->
-            Lwt.return
-              (if condition ri then begin
-                 Messages.debug2 "--Access control: => going into <then> branch";
-                 Extensions.Ext_sub_result ithen
-               end
-               else match ielse with
-                 | Some ielse ->
-                     Messages.debug2 "--Access control: => going into <else> branch";
-                     Extensions.Ext_sub_result ielse
-                 | None ->
-                     Extensions.Ext_found r)
+        | Extensions.Req_found (ri, _)
         | Extensions.Req_not_found (_, ri) ->
             Lwt.return
               (if condition ri then begin
                  Messages.debug2 "--Access control: => going into <then> branch";
                  Extensions.Ext_sub_result ithen
                end
-               else match ielse with
-                 | Some ielse ->
-                     Messages.debug2 "--Access control: => going into <else> branch";
-                     Extensions.Ext_sub_result ielse
-                 | None ->
-                     Messages.debug2 "--Access control: => no <else> branch, going on";
-                     Extensions.Ext_next 404))
+               else begin
+                 Messages.debug2 "--Access control: => going into <else> branch, if any";
+                 Extensions.Ext_sub_result ielse
+               end))
 
   | Element ("notfound", [], []) ->
       (fun rs ->
@@ -237,7 +222,7 @@ let parse_config path charset _ parse_fun = function
                Lwt.return (Extensions.Ext_next err))
 
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
-  | _ -> raise (Error_in_config_file "(accesscontrol extension) Bad data")
+  | _ -> badconfig "(accesscontrol extension) Bad data"
 
 
 
