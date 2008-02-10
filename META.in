@@ -9,6 +9,13 @@ package "redirectmod" (
   archive(plugin,native) = "redirectmod.cmxs"
 )
 
+package "staticmod" (
+  version = "[distributed with Ocsigen]"
+  description = "Serving static files"
+  archive(plugin,byte) = "staticmod.cmo"
+  archive(plugin,native) = "staticmod.cmxs"
+)
+
 package "revproxy" (
   version = "[distributed with Ocsigen]"
   description = "Reverse proxy"
@@ -35,6 +42,21 @@ package "cgimod" (
   description = "CGI support"
   archive(plugin,byte) = "cgimod.cmo"
   archive(plugin,native) = "cgimod.cmxs"
+)
+
+package "ocsipersist-sqlite" (
+  requires = "sqlite3"
+  version = "[distributed with Ocsigen]"
+  description = "Persistent data storage with SQLite3"
+  archive(plugin,byte) = "ocsipersist-sqlite.cma"
+  archive(plugin,native) = "ocsipersist-sqlite.cmxs"
+)
+
+package "ocsipersist-dbm" (
+  version = "[distributed with Ocsigen]"
+  description = "Persistent data storage with DBM"
+  archive(plugin,byte) = "ocsipersist-dbm.cma"
+  archive(plugin,native) = "ocsipersist-dbm.cmxs"
 )
 
 package "eliom" (

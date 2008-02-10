@@ -184,7 +184,7 @@ let find_modules =
         (fun a -> not (Ocsimisc.StringSet.mem a builtin_packages)) deps in
       Messages.debug
         (fun () ->
-           Printf.sprintf "Dependencies of findlib package %s: %s" package (String.concat " " deps));
+           Printf.sprintf "Dependencies of %s: %s" package (String.concat ", " deps));
       let rec aux = function
         | [] -> []
         | a::q ->
