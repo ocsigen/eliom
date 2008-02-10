@@ -1,3 +1,54 @@
-description = "Libraries for Ocsigen"
+description = "Libraries and extensions for Ocsigen"
 version = "_VERSION_"
 requires(mt) = "netstring,netsys,ssl,pcre,unix,dynlink,threads,lwt"
+
+package "redirectmod" (
+  version = "[distributed with Ocsigen]"
+  description = "HTTP redirections"
+  archive(plugin,byte) = "redirectmod.cmo"
+  archive(plugin,native) = "redirectmod.cmxs"
+)
+
+package "revproxy" (
+  version = "[distributed with Ocsigen]"
+  description = "Reverse proxy"
+  archive(plugin,byte) = "revproxy.cmo"
+  archive(plugin,native) = "revproxy.cmxs"
+)
+
+package "accesscontrol" (
+  version = "[distributed with Ocsigen]"
+  description = "Filtering HTTP requests"
+  archive(plugin,byte) = "accesscontrol.cmo"
+  archive(plugin,native) = "accesscontrol.cmxs"
+)
+
+package "authbasic" (
+  version = "[distributed with Ocsigen]"
+  description = "Basic HTTP Authentication"
+  archive(plugin,byte) = "authbasic.cmo"
+  archive(plugin,native) = "authbasic.cmxs"
+)
+
+package "cgimod" (
+  version = "[distributed with Ocsigen]"
+  description = "CGI support"
+  archive(plugin,byte) = "cgimod.cmo"
+  archive(plugin,native) = "cgimod.cmxs"
+)
+
+package "eliom" (
+  requires = "cryptokit"
+  version = "[distributed with Ocsigen]"
+  description = "Eliom: module for generating pages"
+  archive(plugin,byte) = "eliom.cma"
+  archive(plugin,native) = "eliom.cmxs"
+)
+
+package "deflatemod" (
+  requires = "_CAMLZIPNAME_"
+  version = "[distributed with Ocsigen]"
+  description = "Compressing HTTP reply bodies"
+  archive(plugin,byte) = "deflatemod.cmo"
+  archive(plugin,native) = "deflatemod.cmxs"
+)

@@ -175,9 +175,10 @@ let load_modules force config modules =
 (** Use [Findlib] to locate all files needed to load [package]. *)
 let find_modules =
   Findlib.init ();
+  let cmx = Netstring_pcre.regexp_case_fold "\\.cmx($| |a)" in
   fun package ->
     try
-      let preds = [(if is_native then "native" else "byte"); "mt"] in
+      let preds = [(if is_native then "native" else "byte"); "plugin"; "mt"] in
       let deps = Findlib.package_deep_ancestors preds [package] in
       let deps = List.filter
         (fun a -> not (Ocsimisc.StringSet.mem a builtin_packages)) deps in
@@ -190,6 +191,8 @@ let find_modules =
             let mods =
               try
                 let raw = Findlib.package_property preds a "archive" in
+                (* Replacing .cmx/.cmxa by .cmxs *)
+                let raw = Netstring_pcre.global_replace cmx ".cmxs " raw in
                 List.filter ((<>) "") (Ocsimisc.split ~multisep:true ' ' raw)
               with
                 | Not_found -> []
