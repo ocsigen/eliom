@@ -673,7 +673,6 @@ BYTECODE=$enable_bytecode
 
 # Do you want the native code version (ocsigen.opt) ? YES/NO
 NATIVECODE=$enable_nativecode
-NATIVECODE_RUNTIME_DETECT=$(if [ $enable_nativecode = "YES" ]; then echo "Dynlink.is_native"; else echo "false"; fi)
 
 # Do you want the ocamlduce extension? (YES/NO) 
 # (You need ocamlduce to be installed)

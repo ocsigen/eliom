@@ -6,6 +6,12 @@ else
 DBG =
 endif
 
+ifeq "$(NATIVECODE)" "YES"
+NATIVECODE_RUNTIME_DETECT=Dynlink.is_native
+else
+NATIVECODE_RUNTIME_DETECT=false
+endif
+
 FILES= ocsimisc.ml messages.ml ocsiconfig.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
