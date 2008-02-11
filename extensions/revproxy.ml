@@ -30,6 +30,7 @@
    (for ex after a redirection, the new URL is wrong)
    probably in another (filter) extension
    - enhance pipelining
+   - HTTP/1.0
    - ...
 *)
 
@@ -137,6 +138,7 @@ let gen dir charset = function
              ~client:ri.ri_client
              ~keep_alive:true
              ~content:ri.ri_http_frame.Http_frame.content
+             ?content_length:ri.ri_content_length
              ~http_method:ri.ri_method
              ~host
              ~inet_addr
@@ -148,6 +150,7 @@ let gen dir charset = function
                  ~https
                  ~port 
                  ~content:ri.ri_http_frame.Http_frame.content
+                 ?content_length:ri.ri_content_length
                  ~http_method:ri.ri_method
                  ~host
                  ~inet_addr

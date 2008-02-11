@@ -42,6 +42,7 @@ val raw_request :
     ?https: bool ->
     ?port:int ->
     content: string Ocsistream.t option ->
+    ?content_length: int64 ->
     http_method: Http_frame.Http_header.http_method ->
     host:string ->
     inet_addr:Unix.inet_addr ->
@@ -95,6 +96,7 @@ val basic_raw_request :
     ?https: bool ->
     ?port:int ->
     content: string Ocsistream.t option ->
+    ?content_length: int64 ->
     http_method: Http_frame.Http_header.http_method ->
     host:string ->
     inet_addr:Unix.inet_addr ->

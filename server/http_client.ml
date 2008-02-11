@@ -31,7 +31,8 @@
    - Add a parameter to disable reuse of free connections?
    - Allow to set parameters in config file (probing_time, etc)
    - Find a way to pipeline POST requests? at least PUT?
-   - Does it work well if the server is using HTTP/1.0?
+   - Does it work well if the server is using HTTP/1.0? 
+   (probably not because of chunks)
 
    Notes:
    - Pipeline: 
@@ -261,7 +262,7 @@ let keep_alive_server inet_addr port =
 
 let raw_request 
     ?client ?(keep_alive = true) ?headers ?(https=false) ?port
-    ~content ~http_method ~host ~inet_addr ~uri () =
+    ~content ?content_length ~http_method ~host ~inet_addr ~uri () =
 
 (* vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv *)
 
@@ -471,6 +472,7 @@ let raw_request
                       ~keep_alive:keep_alive_asked
                       ~sender:request_sender
                       {r with
+                         Http_frame.res_content_length= content_length;
                          Http_frame.res_headers= headers;
                       }) >>= fun () ->
 
@@ -669,7 +671,7 @@ let get ?https ?port ~host ~uri () =
 
 (*****************************************************************************)
 let basic_raw_request 
-    ?headers ?(https=false) ?port ~content
+    ?headers ?(https=false) ?port ~content ?content_length
     ~http_method ~host ~inet_addr ~uri () =
 
   let port = match port with
@@ -725,6 +727,7 @@ let basic_raw_request
           ~keep_alive:false
           ~sender:request_sender
           {r with
+           Http_frame.res_content_length= content_length;
            Http_frame.res_headers= headers;
           }
  
