@@ -26,6 +26,8 @@
    experimental Http_client module.
 
    TODO
+   - Change the policy for « trusted servers » for pipelining?
+   (see http_client.ml)
    - add the ability to rewrite some headers from the config file
    (for ex after a redirection, the new URL is wrong)
    probably in another (filter) extension

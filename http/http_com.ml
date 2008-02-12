@@ -40,7 +40,7 @@ http://www.tools.ietf.org/html/draft-ietf-http-connection-00
 
 open Http_frame
 
-(** this module provide a mecanisme to comunicate with some http frames *)
+(** this module provide a mecanism to communicate with some http frames *)
 
 let (>>=) = Lwt.(>>=)
 

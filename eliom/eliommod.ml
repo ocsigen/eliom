@@ -1152,25 +1152,21 @@ let new_sitedata =
 
 (*****************************************************************************)
 (* The current registration directory *)
-let absolute_change_sitedata, get_current_sitedata, 
-  begin_current_sitedata, end_current_sitedata =
-  let current_sitedata : (unit -> sitedata) ref = 
-    ref (fun () -> raise (Ocsigen_Internal_Error "No pages tree available")) 
+let absolute_change_sitedata, 
+  get_current_sitedata, 
+  end_current_sitedata =
+  let f2 = ref [] in
+  let popf2 () =
+    match !f2 with
+    | _::t -> f2 := t
+    | [] -> f2 := [] 
   in
-  let f1' sitedata = current_sitedata := (fun () -> sitedata) in
-  let f2' () = !current_sitedata () in
-  let f1 = ref f1' in
-  let f2 = ref f2' in
-  let exn1 _ = 
-    raise (Eliom_function_forbidden_outside_site_loading 
-             "absolute_change_sitedata") in
-  let exn2 () = 
-    raise (Eliom_function_forbidden_outside_site_loading
-             "get_current_sitedata") in
-  ((fun sitedata -> !f1 sitedata) (* absolute_change_sitedata *),
-   (fun () -> !f2 ()) (* get_current_sitedata *),
-   (fun () -> f1 := f1'; f2 := f2') (* begin_current_sitedata *),
-   (fun () -> f1 := exn1; f2 := exn2) (* end_current_sitedata *))
+  ((fun sitedata -> f2 := sitedata::!f2) (* absolute_change_sitedata *),
+   (fun () ->  match !f2 with
+   | [] -> raise (Eliom_function_forbidden_outside_site_loading
+                    "get_current_sitedata") 
+   | sd::_ -> sd) (* get_current_sitedata *),
+   (fun () -> popf2 ()) (* end_current_sitedata *))
 (* Warning: these functions are used only during the initialisation
    phase, which is not threaded ... That's why it works, but ...
    it is not really clean ... public registration relies on this
@@ -3095,7 +3091,6 @@ let config = ref []
 let load_eliom_module sitedata cmo content =
   config := content;
   begin_load_eliom_module ();
-  absolute_change_sitedata sitedata;
   (try
     Dynlink.loadfile cmo
   with Dynlink.Error e -> 
@@ -3115,6 +3110,8 @@ let parse_config site_dir charset =
 (*--- if we put the following line here: *)
   let sitedata = new_sitedata site_dir in
 (*--- then there is one service tree for each <site> *)
+(*--- (mutatis mutandis for the following line:) *)
+  absolute_change_sitedata sitedata;
   let rec parse_module_attrs file = function
     | [] -> (match file with
         None -> 
@@ -3147,8 +3144,7 @@ let parse_config site_dir charset =
 
 (*****************************************************************************)
 (** Function to be called at the beginning of the initialisation phase *)
-let start_init () =
-  begin_current_sitedata ()
+let start_init () = ()
 
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =

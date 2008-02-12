@@ -26,6 +26,7 @@
    - post
    - better heuristic for trusting server keepalive?
    I think it could be less strict, as we redo requests?
+   It should probably be different for a proxy or a reverse proxy ...
    - keep the name of the server in pipeline table?
    - Avoid the keepalive table to become too big
    - Add a parameter to disable reuse of free connections?

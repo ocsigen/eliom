@@ -261,6 +261,9 @@ let rec make_ext awake cookies_to_set req_state genfun f =
   in
   genfun req_state >>= aux cookies_to_set
 
+(*****************************************************************************)
+let fun_beg = ref (fun () -> ())
+let fun_end = ref (fun () -> ())
 
 let rec default_parse_config 
     (host : virtual_hosts)
@@ -348,8 +351,9 @@ let rec default_parse_config
   | _ -> raise (Ocsiconfig.Config_file_error
                   ("Unexpected content inside <host>"))
 
-and make_parse_site path charset parse_host =
-  let f = parse_host path charset in (* creates all site data, if any *)
+and make_parse_site path charset parse_host l =
+  let f = parse_host path charset (Parse_host parse_host) in
+  (* creates all site data, if any *)
   let rec parse_site = function
     | [] ->
         (fun (awake : unit -> unit) cookies_to_set -> function
@@ -361,7 +365,6 @@ and make_parse_site path charset parse_host =
         try
           let genfun =
             f
-              (Parse_host parse_host)
               parse_site
               xmltag
           in
@@ -390,7 +393,16 @@ and make_parse_site path charset parse_host =
 	          " (ignored)"));
             parse_site ll
   in 
-  parse_site
+  !fun_beg ();
+  let r =
+    try
+      parse_site l
+    with e -> !fun_end (); raise e
+  in
+  !fun_end ();
+  r
+
+(*****************************************************************************)
 
 
 let register_extension,
@@ -401,8 +413,6 @@ let register_extension,
   get_init_exn_handler =
   let fun_site = ref default_parse_config in
   let user_fun_site = ref default_parse_config in
-  let fun_beg = ref (fun () -> ()) in
-  let fun_end = ref (fun () -> ()) in
   let fun_exn = ref (fun exn -> (raise exn : string)) in
 
   ((* ********* register_extension ********* *)
@@ -481,12 +491,10 @@ let start_initialisation, during_initialisation,
    ((fun () -> 
      init := true;
      nb := !nb+1;
-     get_beg_init () ()
     ),
     (fun () -> !init), 
     (fun () -> 
       init := false;
-      get_end_init () ()
     ),
     (fun () -> !nb))
     

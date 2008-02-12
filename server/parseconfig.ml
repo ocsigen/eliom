@@ -370,39 +370,41 @@ let parse_server isreloading c =
           (* default site for host *)
           (host, parse_site l)::(parse_server_aux ll)
       | (Element ("extconf", [("dir", dir)], []))::ll ->
-          (try
-            let files = Sys.readdir dir in
-            Array.sort compare files;
-            Array.fold_left
-              (fun l s ->
-                 if Filename.check_suffix s "conf" then
-                   let filename = dir^"/"^s in
-                   let filecont =
-                     try
-                       Messages.debug (fun () -> "Parsing configuration file "^
-                         filename);
-                       parse_ext filename
-                     with e -> 
-                       Messages.errlog 
-                         ("Error while loading configuration file "^filename^
-                            ": "^(Ocsimisc.string_of_exn e)^" (ignored)");
-                       []
-                   in
-                   (match filecont with
-                      | [] -> l
-                      | s::_ -> l@(parse_server_aux s)
-                   )
-                 else l
-              )
-              []
-              files
-           with
-             | Sys_error _ as e ->
-                 Messages.errlog 
-                   ("Error while loading configuration file: "^
-                      ": "^(Ocsimisc.string_of_exn e)^" (ignored)");
-                 [])
-          @(parse_server_aux ll)
+          let one =
+            try
+              let files = Sys.readdir dir in
+              Array.sort compare files;
+              Array.fold_left
+                (fun l s ->
+                  if Filename.check_suffix s "conf" then
+                    let filename = dir^"/"^s in
+                    let filecont =
+                      try
+                        Messages.debug (fun () -> "Parsing configuration file "^
+                          filename);
+                        parse_ext filename
+                      with e -> 
+                        Messages.errlog 
+                          ("Error while loading configuration file "^filename^
+                           ": "^(Ocsimisc.string_of_exn e)^" (ignored)");
+                        []
+                    in
+                    (match filecont with
+                    | [] -> l
+                    | s::_ -> l@(parse_server_aux s)
+                    )
+                  else l
+                )
+                []
+                files
+            with
+            | Sys_error _ as e ->
+                Messages.errlog 
+                  ("Error while loading configuration file: "^
+                   ": "^(Ocsimisc.string_of_exn e)^" (ignored)");
+                []
+          in
+          one@(parse_server_aux ll)
       | (Element (tag, _, _))::_ -> 
           raise (Config_file_error
                    ("tag <"^tag^"> unexpected inside <server>"))
