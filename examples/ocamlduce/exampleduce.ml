@@ -18,10 +18,10 @@
  *)
 
 
-open Eliom_services
-open Eliom_parameters
-open Eliom_sessions
-open Eliom_duce.Xhtml
+open Eliomservices
+open Eliomparameters
+open Eliomsessions
+open Eliomduce.Xhtml
 open Lwt
 open Xhtml1_strict
 
@@ -112,7 +112,7 @@ let _ =
 
 
 let blocks =
-  Eliom_duce.Blocks.register_new_service 
+  Eliomduce.Blocks.register_new_service 
     ~path:["blocks"]
     ~get_params:unit
     (fun sp () () -> 

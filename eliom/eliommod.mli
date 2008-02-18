@@ -120,7 +120,7 @@ type 'a servicecookiestablecontent =
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
      timeout ref             (* user timeout *) *
-     Eliommod_sessiongroups.sessgrp option ref   (* session group *))
+     Eliomsessiongroups.sessgrp option ref   (* session group *))
 
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
@@ -130,7 +130,7 @@ type datacookiestablecontent =
      float option ref        (* expiration date by timeout 
                                 (server side) *) *
      timeout ref             (* user timeout *) *
-     Eliommod_sessiongroups.sessgrp option ref   (* session group *))
+     Eliomsessiongroups.sessgrp option ref   (* session group *))
 
 
 type datacookiestable = datacookiestablecontent SessionCookies.t
@@ -153,7 +153,7 @@ type 'a one_service_cookie_info =
                                     ref towards cookie table
                                   *);
      sc_cookie_exp:cookie_exp ref (* cookie expiration date to set *);
-     sc_session_group:Eliommod_sessiongroups.sessgrp option ref (* session group *)
+     sc_session_group:Eliomsessiongroups.sessgrp option ref (* session group *)
    }
 
 
@@ -168,14 +168,14 @@ type one_data_cookie_info =
                                            ref towards cookie table
                                          *);
      dc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-     dc_session_group:Eliommod_sessiongroups.sessgrp option ref (* session group *)
+     dc_session_group:Eliomsessiongroups.sessgrp option ref (* session group *)
    }
 
 type one_persistent_cookie_info =
      {pc_value:string                    (* current value *);
       pc_timeout:timeout ref             (* user timeout *); 
       pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
-      pc_session_group:Eliommod_sessiongroups.perssessgrp option ref (* session group *)
+      pc_session_group:Eliomsessiongroups.perssessgrp option ref (* session group *)
     }
 
 
@@ -221,7 +221,7 @@ type 'a cookie_info =
         float option            (* (server side) expdate 
                                    at the beginning of the request
                                    None = no exp *) *
-        Eliommod_sessiongroups.perssessgrp option      (* session group at beginning of request *))
+        Eliomsessiongroups.perssessgrp option      (* session group at beginning of request *))
          option
                                 (* None = new cookie 
                                    (not sent by the browser) *)
@@ -293,7 +293,7 @@ type anon_params_type = int
       
 
 val persistent_cookies_table :
-  (string * float option * timeout * Eliommod_sessiongroups.perssessgrp option)
+  (string * float option * timeout * Eliomsessiongroups.perssessgrp option)
     Ocsipersist.table
 
 
@@ -416,15 +416,15 @@ val find_persistent_cookie_only :
 
 
 val close_service_session2 :
-    sitedata -> Eliommod_sessiongroups.sessgrp option -> string -> unit
+    sitedata -> Eliomsessiongroups.sessgrp option -> string -> unit
 
 val close_service_session :
   ?close_group:bool ->
     ?session_name:string -> sp:server_params -> unit -> unit
 
-val close_service_group : sitedata -> Eliommod_sessiongroups.sessgrp option -> unit
+val close_service_group : sitedata -> Eliomsessiongroups.sessgrp option -> unit
 
-val close_data_session2 : sitedata -> Eliommod_sessiongroups.sessgrp option -> string -> unit
+val close_data_session2 : sitedata -> Eliomsessiongroups.sessgrp option -> string -> unit
 
 val close_data_session :
   ?close_group:bool ->
@@ -433,7 +433,7 @@ val close_data_session :
   unit -> 
   unit
 
-val close_data_group : sitedata -> Eliommod_sessiongroups.sessgrp option -> unit
+val close_data_group : sitedata -> Eliomsessiongroups.sessgrp option -> unit
 
 val close_volatile_session :
   ?close_group:bool ->
@@ -443,7 +443,7 @@ val close_volatile_session :
   unit
 
 val close_persistent_session2 : 
-  Eliommod_sessiongroups.perssessgrp option -> 
+  Eliomsessiongroups.perssessgrp option -> 
   string ->
   unit Lwt.t
 
@@ -454,7 +454,7 @@ val close_persistent_session :
   unit -> 
   unit Lwt.t
 
-val close_persistent_group : Eliommod_sessiongroups.perssessgrp option -> unit Lwt.t
+val close_persistent_group : Eliomsessiongroups.perssessgrp option -> unit Lwt.t
 
 val close_all_service_sessions :
   ?close_group:bool ->
@@ -486,7 +486,7 @@ val iter_data_sessions :
 
 val iter_persistent_sessions :
   (string * (string * float option * timeout * 
-               Eliommod_sessiongroups.perssessgrp option) -> 
+               Eliomsessiongroups.perssessgrp option) -> 
      unit Lwt.t) -> 
   unit Lwt.t
 
@@ -503,7 +503,7 @@ val fold_data_sessions :
 
 val fold_persistent_sessions :
   (string * (string * float option * timeout * 
-               Eliommod_sessiongroups.perssessgrp option) -> 
+               Eliomsessiongroups.perssessgrp option) -> 
      'c -> 'c Lwt.t) -> 'c -> 'c Lwt.t
 
 
