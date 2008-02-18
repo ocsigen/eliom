@@ -12,7 +12,7 @@ CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB) -package camlp4
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB) -package camlp4
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIB) -package camlp4
 LIB = $(LIBDIRS)
-PP = -syntax camlp4o -ppopt "pa_macro.cmo"
+# PP = -syntax camlp4o -ppopt "pa_macro.cmo"
 # PPLEXER = -syntax camlp4of -ppopt "-loc loc"
 
 OBJS = $(FILES:.ml=.cmo)

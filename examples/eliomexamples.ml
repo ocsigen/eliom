@@ -23,7 +23,7 @@
 
 open Tutoeliom
 open XHTML.M
-open Eliompredefmod.Xhtml
+open Eliompredefmod.Xhtmlcompact
 open Eliompredefmod
 open Eliomservices
 open Eliomparameters

@@ -1029,6 +1029,10 @@ let looong2 =
         constructor functions from $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or a syntax
         extension close to the standard xhtml syntax.
           </td></tr>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtmlcompact" ]] [version;"Eliompredefmod.Xhtmlcompact.html"]$</th>
+          <td colspan="4">Same, but without pretty printing (does not add
+            spaces and line breaks).
+          </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Blocks" ]] [version;"Eliompredefmod.Blocks.html"]$</th>
           <td colspan="4">allows to register functions that 
         generate a portion of page (content of body tag) using
@@ -2412,7 +2416,8 @@ let send_any =
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata 
-                        "This page has been statically typechecked. If you change the parameter in the URL you will get an unchecked text page"]]))
+                        "This page has been statically typechecked. \
+                         If you change the parameter in the URL you will get an unchecked text page"]]))
      else 
        Eliompredefmod.HtmlText.send sp 
          "<html><body><p>It is not a valid page. Put type=\"valid\" in the URL to get a typechecked page.</p></body></html>"

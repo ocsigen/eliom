@@ -1,24 +1,161 @@
+(* Ocsigen
+ * Copyright (C) 2008 Vincent Balat, Mauricio Fernandez
+ * Laboratoire PPS - CNRS Université Paris Diderot
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, with linking exception; 
+ * either version 2.1 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *)
 
-let ocsigenadv = ""
-let str_formatter = Buffer.create 128
-let pp_print_string = Buffer.add_string
-let pp_open_tbox _ () = ()
-let pp_force_newline _ () = ()
-let pp_print_tbreak _ _ _ = ()
-let pp_close_tbox _ _ = ()
-let pp_set_margin _ _ = ()
-let flush_str_formatter () =
-  let s = Buffer.contents str_formatter in Buffer.clear str_formatter; s
+open Format
+open XML
 
-INCLUDE "xhtmlpretty_base.ml"
+let xh_string = str_formatter
+
+let id x = x
+
+let x_print, xh_print = 
+
+  let aux ~width ~encode ?(html_compat = false) doctype arbre =
+    let endemptytag = if html_compat then ">" else "/>" in
+    let rec xh_print_attrs encode attrs = match attrs with
+      [] ->  ();
+    | attr::queue -> 
+        pp_print_string xh_string (" "^(XML.attrib_to_string encode attr));
+        xh_print_attrs encode queue
+          
+    and xh_print_text texte = 
+      pp_print_string xh_string texte
+        
+    and xh_print_closedtag encode tag attrs =
+      pp_open_tbox xh_string ();
+      pp_print_string xh_string ("<"^tag);
+      xh_print_attrs encode attrs;
+      pp_print_string xh_string endemptytag;
+      pp_close_tbox xh_string ();
+      
+    and xh_print_tag encode tag attrs taglist = 
+      if taglist = [] 
+      then xh_print_closedtag encode tag attrs
+      else begin
+        pp_print_string xh_string ("<"^tag);
+        xh_print_attrs encode attrs;
+        pp_print_string xh_string ">";
+        xh_print_taglist taglist;
+        pp_print_string xh_string ("</"^tag^">")
+      end
+        
+    and print_nodes name xh_attrs xh_taglist queue =
+      xh_print_tag encode name xh_attrs xh_taglist;
+      xh_print_taglist queue
+
+    and xh_print_taglist taglist = 
+      match taglist with 
+      
+      | [] -> pp_open_tbox xh_string ();
+          pp_close_tbox xh_string ();
+          
+      | (Comment texte)::queue ->
+          xh_print_text ("<!--"^(encode texte)^"-->");
+          xh_print_taglist queue;
+          
+      | (Entity e)::queue ->
+          xh_print_text ("&"^e^";"); (* no encoding *)
+          xh_print_taglist queue;
+          
+      | (PCDATA texte)::queue ->
+          xh_print_text (encode texte);
+          xh_print_taglist queue;
+          
+      | (EncodedPCDATA texte)::queue ->
+          xh_print_text texte;
+          xh_print_taglist queue;
+          
+          (* Nodes and Leafs *)
+      | (Element (name, xh_attrs, xh_taglist))::queue
+      | (BlockElement (name, xh_attrs, xh_taglist))::queue
+      | (SemiBlockElement (name, xh_attrs, xh_taglist))::queue
+      | (Node (name, xh_attrs, xh_taglist))::queue ->
+          print_nodes name xh_attrs xh_taglist queue
+            
+      | (Leaf (name,xh_attrs))::queue ->
+          print_nodes name xh_attrs [] queue
+            
+            (* Whitespaces *)
+      | (Whitespace(texte))::queue ->
+          xh_print_text (encode texte);
+          xh_print_taglist queue
+            
+      | Empty::queue ->
+          xh_print_taglist queue
+
+    in
+    xh_print_taglist [arbre]
+  in
+  ((fun ?(width = 132) ?(encode = encode_unsafe)
+      ?html_compat doctype foret ->
+        
+        pp_set_margin str_formatter width;
+
+        pp_open_tbox xh_string ();
+        
+        List.iter (aux ?width ?encode ?html_compat doctype) foret;
+          
+        pp_force_newline xh_string ();
+        pp_close_tbox xh_string ();
+        
+        flush_str_formatter ()),
+
+   (fun ?(width = 132) ?(encode = encode_unsafe)
+       ?html_compat doctype arbre ->
+         
+         pp_set_margin str_formatter width;
+         pp_open_tbox xh_string ();
+(*  pp_print_string xh_string Xhtmlpretty.xh_topxml; Does not work with IE ...
+   pp_force_newline xh_string (); *)
+         pp_print_string xh_string doctype;
+         pp_force_newline xh_string ();
+         
+         pp_print_string xh_string Xhtmlpretty.ocsigenadv;
+         pp_force_newline xh_string ();
+         
+         aux ?width ?encode ?html_compat doctype arbre;
+           
+         pp_force_newline xh_string ();
+         pp_close_tbox xh_string ();
+         
+         flush_str_formatter ()))
+
+
+let xhtml_print ?(version=`XHTML_01_01) ?width ?encode ?html_compat arbre =
+  xh_print ?width ?encode ?html_compat
+    (XHTML.M.doctype version) (XHTML.M.toelt arbre)
+    
+let xhtml_list_print ?(version=`XHTML_01_01)
+    ?width ?encode ?html_compat foret =
+  x_print ?width ?encode ?html_compat
+    (XHTML.M.doctype version) (XHTML.M.toeltl foret)
+
+
+
+
 
 (*****************************************************************************)
 (* print to Ocsigen's streams *)
 
 let x_stream, xh_stream =
 
-  let aux ~width ~encode ?(html_compat = false)
-      blocktags semiblocktags arbre cont =
+  let aux ~width ~encode ?(html_compat = false) arbre cont =
     let endemptytag = if html_compat then ">" else "/>" in
     let rec xh_print_attrs encode attrs cont = match attrs with
     | [] -> cont ();
@@ -26,189 +163,92 @@ let x_stream, xh_stream =
         (Ocsistream.cont (" "^XML.attrib_to_string encode attr)) (fun () ->
         xh_print_attrs encode queue cont)
 
-    and xh_print_text texte i is_first cont =
+    and xh_print_text texte cont =
       (Ocsistream.cont texte) cont
 
-    and xh_print_closedtag encode tag attrs i is_first cont =
+    and xh_print_closedtag encode tag attrs cont =
       (Ocsistream.cont ("<"^tag)) (fun () ->
       xh_print_attrs encode attrs (fun () ->
       (Ocsistream.cont endemptytag) cont))
 
-    and xh_print_inlinetag encode tag attrs taglist i is_first cont =
-      (Ocsistream.cont ("<"^tag)) (fun () ->
-      xh_print_attrs encode attrs (fun () ->
-      (Ocsistream.cont ">") (fun () ->
-      xh_print_taglist taglist 0 false false (fun () ->
-      (Ocsistream.cont ("</"^tag^">") cont)))))
-
-    and xh_print_blocktag encode tag attrs taglist i cont =
+    and xh_print_tag encode tag attrs taglist cont =
       if taglist = []
-      then xh_print_closedtag encode tag attrs i true cont
+      then xh_print_closedtag encode tag attrs cont
       else begin
         (Ocsistream.cont ("<"^tag)) (fun () ->
         xh_print_attrs encode attrs (fun () ->
         (Ocsistream.cont ">") (fun () ->
-        xh_print_taglist_removews taglist (i+1) true (fun () ->
+        xh_print_taglist taglist (fun () ->
         (Ocsistream.cont ("</"^tag^">") cont)))))
-
       end
 
-    and xh_print_semiblocktag encode tag attrs taglist i cont =
-      if taglist = []
-      then xh_print_closedtag encode tag attrs i true cont
-      else begin
-        (Ocsistream.cont ("<"^tag)) (fun () ->
+    and print_nodes name xh_attrs xh_taglist queue cont =
+      xh_print_tag encode name xh_attrs xh_taglist (fun () -> 
+      xh_print_taglist queue cont)
 
-        xh_print_attrs encode attrs (fun () ->
-        (Ocsistream.cont ">") (fun () ->
-
-        xh_print_taglist taglist 0 false false (fun () ->
-
-        (Ocsistream.cont ("</"^tag^">") cont)))))
-
-      end
-
-    and xh_print_taglist_removews taglist i is_first cont =
-      match taglist with
-      | (Whitespace s)::l -> xh_print_taglist_removews l i is_first cont
-      | l -> xh_print_taglist l i is_first true cont
-
-
-    and print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws cont =
-      if xh_taglist = []
-      then begin
-        xh_print_closedtag encode name xh_attrs i is_first (fun () ->
-        xh_print_taglist queue i false removetailingws cont)
-      end
-      else begin
-        (fun cont ->
-          if (List.mem name blocktags)
-          then xh_print_blocktag encode name xh_attrs xh_taglist i cont
-          else
-            (if (List.mem name semiblocktags)
-            then xh_print_semiblocktag encode name xh_attrs xh_taglist i cont
-            else begin
-              xh_print_text (encode ws1) i is_first (fun () ->
-              xh_print_inlinetag encode name xh_attrs xh_taglist i is_first (fun () ->
-              xh_print_text (encode ws2) i is_first cont))
-            end))
-        (fun () -> xh_print_taglist queue i false removetailingws cont)
-      end
-
-    and xh_print_taglist taglist i is_first removetailingws cont =
+    and xh_print_taglist taglist cont =
       match taglist with
 
       | [] -> cont ()
 
       | (Comment texte)::queue ->
-          xh_print_text ("<!--"^(encode texte)^"-->") i is_first
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
+          xh_print_text ("<!--"^(encode texte)^"-->")
+          (fun () -> xh_print_taglist queue cont)
 
       | (Entity e)::queue ->
-          xh_print_text ("&"^e^";") i is_first (* no encoding *)
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
+          xh_print_text ("&"^e^";") (* no encoding *)
+          (fun () -> xh_print_taglist queue cont)
 
       | (PCDATA texte)::queue ->
-          xh_print_text (encode texte) i is_first
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
+          xh_print_text (encode texte)
+          (fun () -> xh_print_taglist queue cont)
 
       | (EncodedPCDATA texte)::queue ->
-          xh_print_text texte i is_first
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
-
-      | (Whitespace _)::(Element ("hr",xh_attrs,[]))::(Whitespace _)::queue
-      | (Element ("hr",xh_attrs,[]))::(Whitespace _)::queue
-      | (Whitespace _)::(Element ("hr",xh_attrs,[]))::queue
-      | (Element ("hr",xh_attrs,[]))::queue ->
-          xh_print_closedtag id "hr" xh_attrs i is_first
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
-
-      | (Element (name, xh_attrs, []))::queue ->
-          xh_print_closedtag id name xh_attrs i is_first
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
-
-              (* Balises de presentation, type inline *)
-      | (Element (name, xh_attrs, xh_taglist))::queue ->
-          xh_print_inlinetag id name xh_attrs xh_taglist i is_first
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
-
-              (* Balises de type block *)
-      | (Whitespace _)::(BlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-      | (BlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-      | (Whitespace _)::(BlockElement (name,xh_attrs,xh_taglist))::queue
-      | (BlockElement (name,xh_attrs,xh_taglist))::queue ->
-          xh_print_blocktag id name xh_attrs xh_taglist i
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
-
-              (* Balises de type "semi block", for ex <pre> *)
-      | (Whitespace _)::(SemiBlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-      | (SemiBlockElement (name,xh_attrs,xh_taglist))::(Whitespace _)::queue
-      | (Whitespace _)::(SemiBlockElement (name,xh_attrs,xh_taglist))::queue
-      | (SemiBlockElement (name,xh_attrs,xh_taglist))::queue ->
-          xh_print_semiblocktag id name xh_attrs xh_taglist i
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
+          xh_print_text texte
+          (fun () -> xh_print_taglist queue cont)
 
               (* Nodes and Leafs *)
-      | (Whitespace ws1)::(Node (name,xh_attrs,xh_taglist))::(Whitespace ws2)::queue ->
-          print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws cont
-
-      | (Node (name,xh_attrs,xh_taglist))::(Whitespace ws2)::queue ->
-          print_nodes "" name xh_attrs xh_taglist ws2 queue i is_first removetailingws cont
-
-      | (Whitespace ws1)::(Node (name,xh_attrs,xh_taglist))::queue ->
-          print_nodes ws1 name xh_attrs xh_taglist "" queue i is_first removetailingws cont
-
-      | (Node (name,xh_attrs,xh_taglist))::queue ->
-          print_nodes "" name xh_attrs xh_taglist "" queue i is_first removetailingws cont
-
-      | (Whitespace ws1)::(Leaf (name,xh_attrs))::(Whitespace ws2)::queue ->
-          print_nodes ws1 name xh_attrs [] ws2 queue i is_first removetailingws cont
-
-      | (Leaf (name,xh_attrs))::(Whitespace ws2)::queue ->
-          print_nodes "" name xh_attrs [] ws2 queue i is_first removetailingws cont
-
-      | (Whitespace ws1)::(Leaf (name,xh_attrs))::queue ->
-          print_nodes ws1 name xh_attrs [] "" queue i is_first removetailingws cont
+      | (Element (name, xh_attrs, xh_taglist))::queue
+      | (BlockElement (name, xh_attrs, xh_taglist))::queue
+      | (SemiBlockElement (name, xh_attrs, xh_taglist))::queue
+      | (Node (name, xh_attrs, xh_taglist))::queue ->
+          print_nodes name xh_attrs xh_taglist queue cont
 
       | (Leaf (name,xh_attrs))::queue ->
-          print_nodes "" name xh_attrs [] "" queue i is_first removetailingws cont
+          print_nodes name xh_attrs [] queue cont
 
             (* Whitespaces *)
       | (Whitespace(texte))::queue ->
-          xh_print_text (encode texte) i is_first
-          (fun () -> xh_print_taglist queue i false removetailingws cont)
+          xh_print_text (encode texte)
+          (fun () -> xh_print_taglist queue cont)
 
       | Empty::queue ->
-          xh_print_taglist queue i false removetailingws cont
+          xh_print_taglist queue cont
 
 
 
     in
-    xh_print_taglist [arbre] 0 true false cont
+    xh_print_taglist [arbre] cont
   in
   ((fun ?(width = 132) ?(encode = encode_unsafe)
-      ?html_compat blocktags semiblocktags
-      doctype foret ->
+      ?html_compat doctype foret ->
 
          (List.fold_right
              (fun arbre cont () ->
-               aux ?width ?encode ?html_compat
-                 blocktags semiblocktags arbre cont)
+               aux ?width ?encode ?html_compat arbre cont)
              foret
 
          (fun () -> Ocsistream.empty None))),
 
 
    (fun ?(width = 132) ?(encode = encode_unsafe)
-       ?html_compat blocktags semiblocktags
-       doctype arbre ->
+       ?html_compat doctype arbre ->
 
         Ocsistream.cont doctype
-        (fun () -> Ocsistream.cont ocsigenadv
+        (fun () -> Ocsistream.cont Xhtmlpretty.ocsigenadv
         (fun () ->
 
-          aux ?width ?encode ?html_compat
-           blocktags semiblocktags arbre
+          aux ?width ?encode ?html_compat arbre
 
            (fun () -> Ocsistream.empty None)))))
 
@@ -216,7 +256,6 @@ let xhtml_stream ?(version=`XHTML_01_01) ?width ?encode ?html_compat arbre =
   Ocsistream.make
     (fun () ->
       xh_stream ?width ?encode ?html_compat
-        blocktags semiblocktags
         (XHTML.M.doctype version) (XHTML.M.toelt arbre))
 
 let xhtml_list_stream ?(version=`XHTML_01_01)
@@ -224,5 +263,4 @@ let xhtml_list_stream ?(version=`XHTML_01_01)
   Ocsistream.make
     (fun () ->
       x_stream ?width ?encode ?html_compat
-        blocktags semiblocktags (XHTML.M.doctype version)
-        (XHTML.M.toeltl foret) ())
+        (XHTML.M.doctype version) (XHTML.M.toeltl foret) ())
