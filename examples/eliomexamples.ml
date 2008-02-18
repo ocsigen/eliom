@@ -23,11 +23,11 @@
 
 open Tutoeliom
 open XHTML.M
-open Eliompredefmod.Xhtmlcompact
-open Eliompredefmod
-open Eliomservices
-open Eliomparameters
-open Eliomsessions
+open Eliom_predefmod.Xhtmlcompact
+open Eliom_predefmod
+open Eliom_services
+open Eliom_parameters
+open Eliom_sessions
 open Lwt
 
 
@@ -96,7 +96,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 let preappl2 = preapply uasuffix (1999,01)
 
 let mymenu current sp =
-  Eliomtools.menu ~classe:["menuprincipal"]
+  Eliom_tools.menu ~classe:["menuprincipal"]
     (coucou, <:xmllist< coucou >>)
     [
      (preappl, <:xmllist< params >>);
@@ -284,31 +284,31 @@ let _ = Cookies.register cookies
                     )])),
        let now = Unix.time () in
        let cookies =
-         [Eliomservices.Set (Some [], Some (now +. 10.), 
+         [Eliom_services.Set (Some [], Some (now +. 10.), 
                           (cookiename^"6"), (string_of_int (Random.int 100)));
-          Eliomservices.Set (Some [], Some (now +. 10.), 
+          Eliom_services.Set (Some [], Some (now +. 10.), 
                           (cookiename^"7"), (string_of_int (Random.int 100)));
-          Eliomservices.Set (Some ["c";"plop"], None, 
+          Eliom_services.Set (Some ["c";"plop"], None, 
                           (cookiename^"8"), (string_of_int (Random.int 100)));
-          Eliomservices.Set (Some ["c";"plop"], None, 
+          Eliom_services.Set (Some ["c";"plop"], None, 
                           (cookiename^"9"), (string_of_int (Random.int 100)));
-          Eliomservices.Set (Some ["c";"plop"], None, 
+          Eliom_services.Set (Some ["c";"plop"], None, 
                           (cookiename^"10"), (string_of_int (Random.int 100)));
-          Eliomservices.Set (Some ["c";"plop"], None, 
+          Eliom_services.Set (Some ["c";"plop"], None, 
                           (cookiename^"11"), (string_of_int (Random.int 100)));
-          Eliomservices.Set (Some ["c";"plop"], None, 
+          Eliom_services.Set (Some ["c";"plop"], None, 
                           (cookiename^"12"), (string_of_int (Random.int 100)));
         ]
        in if Http_frame.Cookievalues.mem (cookiename^"1") (get_cookies sp)
        then 
-         (Eliomservices.Unset (None, (cookiename^"1")))::
-         (Eliomservices.Unset (None, (cookiename^"2")))::cookies
+         (Eliom_services.Unset (None, (cookiename^"1")))::
+         (Eliom_services.Unset (None, (cookiename^"2")))::cookies
        else 
-         (Eliomservices.Set (None, None, (cookiename^"1"),
+         (Eliom_services.Set (None, None, (cookiename^"1"),
                         (string_of_int (Random.int 100))))::
-          (Eliomservices.Set (None, None, (cookiename^"2"),
+          (Eliom_services.Set (None, None, (cookiename^"2"),
                          (string_of_int (Random.int 100))))::
-          (Eliomservices.Set (None, None, (cookiename^"3"),
+          (Eliom_services.Set (None, None, (cookiename^"3"),
                          (string_of_int (Random.int 100))))
           ::cookies
       ))
@@ -333,7 +333,7 @@ let sendany =
          ((html
              (head (title (pcdata "")) [])
              (body [p [pcdata "This page does set a cookie"]])),
-          [Eliomservices.Set (None, None, "arf", (string_of_int (Random.int 100)))])
+          [Eliom_services.Set (None, None, "arf", (string_of_int (Random.int 100)))])
    )
 
 
@@ -809,18 +809,18 @@ register_new_service
 let create_form = 
   (fun (number_name, boolname) ->
     [p [pcdata "New timeout: ";
-        Eliompredefmod.Xhtml.int_input ~input_type:`Text ~name:number_name ();
+        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:number_name ();
         br ();
         pcdata "Check the box if you want to recompute all timeouts: ";
-        Eliompredefmod.Xhtml.bool_checkbox ~name:boolname ();
-        Eliompredefmod.Xhtml.string_input ~input_type:`Submit ~value:"Submit" ()]])
+        Eliom_predefmod.Xhtml.bool_checkbox ~name:boolname ();
+        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Submit" ()]])
 
 let set_timeout_form = 
   register_new_service
     ["set_timeout"] 
     unit
     (fun sp () () -> 
-      let f = Eliompredefmod.Xhtml.get_form set_timeout sp create_form in 
+      let f = Eliom_predefmod.Xhtml.get_form set_timeout sp create_form in 
       return
         (html
            (head (title (pcdata "")) [])
