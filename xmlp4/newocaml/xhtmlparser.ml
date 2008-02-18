@@ -106,7 +106,7 @@ value rec read_node s =
 	let loc = s.loc in
 	match pop s with
 	[ (PCData s, _) -> 
-	    <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $str:s$)) 
+	    <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $str:String.escaped s$)) 
       : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
 	| (CamlString s, _) ->
 	    <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $get_expr s loc$)) 
@@ -114,9 +114,9 @@ value rec read_node s =
         | (CamlList s, _) -> raise (CamlListExc s)
         | (CamlExpr s, _) -> get_expr s loc
         | (Whitespace s, _) ->
-                <:expr< XHTML.M.tot (XML.Whitespace $str:s$) >>
+                <:expr< XHTML.M.tot (XML.Whitespace $str:String.escaped s$) >>
         | (Comment s, _) ->
-	   <:expr< XHTML.M.tot (XML.Comment $str:s$) >>
+	   <:expr< XHTML.M.tot (XML.Comment $str:String.escaped s$) >>
 	| (Tag (tag, attlist, closed), s) -> 
       let constr =
           if List.mem tag blocktags
