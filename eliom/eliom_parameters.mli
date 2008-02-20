@@ -60,12 +60,12 @@ type ('typ, +'suff, +'name) params_type
    - [ 'typ] is the type of the parameter (taken by the service handler)
    - [ 'suff] is a polymorphic variant type telling the type of parameter
    (suffix or not ...)
-   - [ 'name] is the type of the parameter name (usually using {!Eliomparameters.param_name})
+   - [ 'name] is the type of the parameter name (usually using {!Eliom_parameters.param_name})
  *)
 
 type 'a param_name
 (** Type for names of page parameters (given to the functions
-   to construct forms, for example in {!Eliompredefmod.XHTMLFORMSSIG.get_form}). 
+   to construct forms, for example in {!Eliom_predefmod.XHTMLFORMSSIG.get_form}). 
    The names of parameters are not just strings to enforce using
    forms widgets with the right parameter type.
    The parameter of that type is often a subtype of the polymorphic variant
@@ -77,7 +77,7 @@ type 'a param_name
 
 type 'a setoneopt = [ `Set of 'a | `One of 'a | `Opt of 'a ]
 (** This type is used by some form widgets like 
-   {!Eliompredefmod.XHTMLFORMSSIG.int_input} that may be used against services 
+   {!Eliom_predefmod.XHTMLFORMSSIG.int_input} that may be used against services 
    expecting one parameter of that name, 
    or services expecting an optional parameter of that name, 
    or services expecting any number of parameters of that name.
@@ -85,14 +85,14 @@ type 'a setoneopt = [ `Set of 'a | `One of 'a | `Opt of 'a ]
 
 type 'a oneopt = [ `One of 'a | `Opt of 'a ]
 (** This type is used by some form widgets like 
-   {!Eliompredefmod.XHTMLFORMSSIG.int_image_input} that may be used against services 
+   {!Eliom_predefmod.XHTMLFORMSSIG.int_image_input} that may be used against services 
    expecting one parameter of that name
    or services expecting an optional parameter of that name.
  *)
 
 type 'a setone = [ `Set of 'a | `One of 'a ]
 (** This type is used by some form widgets like 
-   {!Eliompredefmod.XHTMLFORMSSIG.int_button} that may be used against services 
+   {!Eliom_predefmod.XHTMLFORMSSIG.int_button} that may be used against services 
    expecting one parameter of that name, 
    or services expecting any number of parameters of that name.
  *)
@@ -238,7 +238,7 @@ val list :
 (** The service takes a list of parameters. 
    The first parameter of this function is the name of the list.
    The service handler will receive a list of values.
-   To create the form, an iterator of type {!Eliomparameters.listnames} is given to
+   To create the form, an iterator of type {!Eliom_parameters.listnames} is given to
    generate the name for each value.
  *)
 

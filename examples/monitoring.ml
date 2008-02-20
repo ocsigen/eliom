@@ -19,11 +19,11 @@
 (* A page providing infos about the server (number of sessions, uptime...) *)
 
 open Extensions (* for profiling info *)
-open Eliompredefmod.Xhtml
-open Eliompredefmod
-open Eliomservices
-open Eliomparameters
-open Eliomsessions
+open Eliom_predefmod.Xhtml
+open Eliom_predefmod
+open Eliom_services
+open Eliom_parameters
+open Eliom_sessions
 open Unix
 open Lwt
 
@@ -66,14 +66,14 @@ let _ =
           Some r
         with _ -> None
       in
-      let nssess = Eliomsessions.number_of_service_sessions sp in
-      let ndsess = Eliomsessions.number_of_volatile_data_sessions sp in
-      let ntables = Eliomsessions.number_of_tables () in
-      let ntableselts = Eliomsessions.number_of_table_elements () in
-      Eliomsessions.number_of_persistent_data_sessions () >>=
+      let nssess = Eliom_sessions.number_of_service_sessions sp in
+      let ndsess = Eliom_sessions.number_of_volatile_data_sessions sp in
+      let ntables = Eliom_sessions.number_of_tables () in
+      let ntableselts = Eliom_sessions.number_of_table_elements () in
+      Eliom_sessions.number_of_persistent_data_sessions () >>=
         (fun nbperssess ->
-          let nbperstab = Eliomsessions.number_of_persistent_tables () in
-          Eliomsessions.number_of_persistent_table_elements () >>=
+          let nbperstab = Eliom_sessions.number_of_persistent_tables () in
+          Eliom_sessions.number_of_persistent_table_elements () >>=
           (fun nbperstabel ->
             let dot = <:xmllist< . >> in
             let list1 a l = <:xmllist<  with, respectively
@@ -88,7 +88,7 @@ let _ =
              (n^" : "^(string_of_int a)) l$ 
            elements inside. >>
             in
-            Eliomsessiongroups.Pers.length () >>= fun persgrplength ->
+            Eliommod_sessiongroups.Pers.length () >>= fun persgrplength ->
 Lwt.return
 <<
  <html>
@@ -158,8 +158,8 @@ Lwt.return
        $</p>
       <p>Number of session groups:</p>
       <ul>
-        <li>Service sessions: $str: string_of_int (Eliomsessiongroups.Serv.length ())$</li>
-        <li>Volatile data sessions: $str: string_of_int (Eliomsessiongroups.Data.length ())$</li>
+        <li>Service sessions: $str: string_of_int (Eliommod_sessiongroups.Serv.length ())$</li>
+        <li>Volatile data sessions: $str: string_of_int (Eliommod_sessiongroups.Data.length ())$</li>
         <li>Persistent data sessions: $str: string_of_int persgrplength$</li>
       </ul>
    </body>

@@ -40,35 +40,35 @@ Preemptive
 
 {4 Main modules}
 {!modules: 
-Eliomservices 
-Eliomparameters 
-Eliomsessions 
+Eliom_services 
+Eliom_parameters 
+Eliom_sessions 
 }
 
 {4 Generating pages with OcamlDuce}
 {!modules: 
-Eliomduce 
+Eliom_duce 
 Xhtml1_strict 
-Eliomducetools 
+Eliom_duce_tools 
 }
 
 {4 Generating pages typed with polymorphic variants}
 {!modules: 
-Eliompredefmod.Xhtml 
+Eliom_predefmod.Xhtml 
 XHTML
 Xhtmltypes 
-Eliomtools
+Eliom_tools
 }
 
 {4 Other kinds of pages}
 {!modules: 
-Eliompredefmod 
+Eliom_predefmod 
 }
 
 {4 Creating your own kinds of pages}
 {!modules: 
-Eliommkforms 
-Eliommkreg
+Eliom_mkforms 
+Eliom_mkreg
 Xhtmlpretty
 }
 

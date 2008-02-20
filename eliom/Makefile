@@ -2,10 +2,10 @@
 include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
-FILES:= error_pages.ml eliomsessiongroups.ml eliommod.ml eliomsessions.ml \
-       eliomparameters.ml eliomservices.ml \
-       eliommkforms.ml eliommkreg.ml eliompredefmod.ml \
-       eliomtools.ml
+FILES:= error_pages.ml eliommod_sessiongroups.ml eliommod.ml eliom_sessions.ml \
+       eliom_parameters.ml eliom_services.ml \
+       eliom_mkforms.ml eliom_mkreg.ml eliom_predefmod.ml \
+       eliom_tools.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
 
@@ -22,21 +22,21 @@ CAMLCNAME2= $(CAMLCNAME)
 endif
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCEFILES= xhtml1_strict.ml eliomduce.ml eliomducetools.ml
-#DUCEFILES= xhtml1_strict.ml ocsigenduce.ml eliomduce.ml
+DUCEFILES= xhtml1_strict.ml eliom_duce.ml eliom_duce_tools.ml
+#DUCEFILES= xhtml1_strict.ml ocsigenduce.ml eliom_duce.ml
 # rss2.ml ocsigenrss.ml
 
   ifeq "$(BYTECODE)" "YES"
-  DUCEMODBYTE= eliomduce.cma
-#  DUCEMODBYTE=ocsigenduce.cma eliomduce.cma
+  DUCEMODBYTE= eliom_duce.cma
+#  DUCEMODBYTE=ocsigenduce.cma eliom_duce.cma
 # ocsigenrss.cma
   else
   DUCEMODBYTE=
   endif
 
   ifeq "$(NATIVECODE)" "YES"
-  DUCEMODOPT= eliomduce.cmxs
-#  DUCEMODOPT=ocsigenduce.cmxs eliomduce.cmxs
+  DUCEMODOPT= eliom_duce.cmxs
+#  DUCEMODOPT=ocsigenduce.cmxs eliom_duce.cmxs
 # ocsigenrss.cmxs
   else
   DUCEMODOPT=
@@ -89,7 +89,7 @@ opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) \
 
 .PHONY: doc depend
 
-eliomsessions.cmx: eliomsessions.ml
+eliom_sessions.cmx: eliom_sessions.ml
 #	-rm ../extensions/ocsipersist.cmx
 	$(CAMLOPT) $(PP) -c $<
 #	-touch ../extensions/ocsipersist.cmx
@@ -103,27 +103,27 @@ eliommod.cmx: eliommod.ml
 #	-touch ../extensions/ocsipersist.cmx
 # idem
 
-eliom.cma: error_pages.cmo eliomsessiongroups.cmo \
-	eliommod.cmo eliomsessions.cmo \
-	eliomparameters.cmo eliomservices.cmo \
-	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
-	eliomtools.cmo
+eliom.cma: error_pages.cmo eliommod_sessiongroups.cmo \
+	eliommod.cmo eliom_sessions.cmo \
+	eliom_parameters.cmo eliom_services.cmo \
+	eliom_mkforms.cmo eliom_mkreg.cmo eliom_predefmod.cmo \
+	eliom_tools.cmo
 	$(CAMLC) -a -o eliom.cma \
-	error_pages.cmo eliomsessiongroups.cmo \
-        eliommod.cmo eliomsessions.cmo eliomparameters.cmo eliomservices.cmo \
-	eliommkforms.cmo eliommkreg.cmo eliompredefmod.cmo \
-	eliomtools.cmo
+	error_pages.cmo eliommod_sessiongroups.cmo \
+        eliommod.cmo eliom_sessions.cmo eliom_parameters.cmo eliom_services.cmo \
+	eliom_mkforms.cmo eliom_mkreg.cmo eliom_predefmod.cmo \
+	eliom_tools.cmo
 
-eliom.cmxs: error_pages.cmx eliomsessiongroups.cmx \
-	eliommod.cmx eliomsessions.cmx \
-	eliomparameters.cmx eliomservices.cmx \
-	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
-	eliomtools.cmx
+eliom.cmxs: error_pages.cmx eliommod_sessiongroups.cmx \
+	eliommod.cmx eliom_sessions.cmx \
+	eliom_parameters.cmx eliom_services.cmx \
+	eliom_mkforms.cmx eliom_mkreg.cmx eliom_predefmod.cmx \
+	eliom_tools.cmx
 	$(CAMLOPT) -shared -linkall -o eliom.cmxs \
-	error_pages.cmx eliomsessiongroups.cmx \
-        eliommod.cmx eliomsessions.cmx eliomparameters.cmx eliomservices.cmx \
-	eliommkforms.cmx eliommkreg.cmx eliompredefmod.cmx \
-	eliomtools.cmx
+	error_pages.cmx eliommod_sessiongroups.cmx \
+        eliommod.cmx eliom_sessions.cmx eliom_parameters.cmx eliom_services.cmx \
+	eliom_mkforms.cmx eliom_mkreg.cmx eliom_predefmod.cmx \
+	eliom_tools.cmx
 
 ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
 	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \
@@ -139,11 +139,11 @@ ocsigenduce.cma: xhtml1_strict.cmo ocsigenduce.cmo
 ocsigenduce.cmxs: xhtml1_strict.cmx ocsigenduce.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenduce.cmxs xhtml1_strict.cmx ocsigenduce.cmx 
 
-eliomduce.cma: xhtml1_strict.cmo eliomduce.cmo
-	$(CAMLC) -a -o eliomduce.cma xhtml1_strict.cmo eliomduce.cmo eliomducetools.cmo
+eliom_duce.cma: xhtml1_strict.cmo eliom_duce.cmo
+	$(CAMLC) -a -o eliom_duce.cma xhtml1_strict.cmo eliom_duce.cmo eliom_duce_tools.cmo
 
-eliomduce.cmxs: xhtml1_strict.cmx eliomduce.cmx
-	$(CAMLOPT) -shared -linkall -o eliomduce.cmxs xhtml1_strict.cmx eliomduce.cmx eliomducetools.cmx
+eliom_duce.cmxs: xhtml1_strict.cmx eliom_duce.cmx
+	$(CAMLOPT) -shared -linkall -o eliom_duce.cmxs xhtml1_strict.cmx eliom_duce.cmx eliom_duce_tools.cmx
 
 ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
 	$(CAMLC) -a -o ocsigenrss.cma $^

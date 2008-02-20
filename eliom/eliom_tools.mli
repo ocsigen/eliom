@@ -20,9 +20,9 @@
 
 (** Predefined boxes for Eliom *)
 
-open Eliomservices
-open Eliomparameters
-open Eliomsessions
+open Eliom_services
+open Eliom_parameters
+open Eliom_sessions
 
 (** {2 Menus } *)
 
@@ -33,14 +33,14 @@ type ('a, 'b) one_page =
      unit, unit, 
      'b) service
 
-val menu : ?classe:string list ->
+val menu : ?classe:XHTML.M.nmtoken list ->
   (([< get_service_kind ], [< registrable ]) one_page * 
-     Eliomduce.Blocks.a_content_elt_list)
+     Xhtmltypes.a_content XHTML.M.elt list)
   ->
     (([< get_service_kind ], [< registrable ]) one_page * 
-       Eliomduce.Blocks.a_content_elt_list)
+       Xhtmltypes.a_content XHTML.M.elt list)
       list -> service:([< get_service_kind ], [< registrable ]) one_page ->
-        sp:Eliomsessions.server_params -> Xhtml1_strict.ul
+        sp:Eliom_sessions.server_params -> [> `Ul ] XHTML.M.elt
 (** Creates a menu 
 
    Example:
@@ -65,7 +65,7 @@ and ('a, 'b, 'c) main_page =
   | Not_clickable
 and ('a, 'b, 'c) hierarchical_site =
       (('a, 'b, 'c) main_page * 
-         ('c * ('a, 'b, 'c) hierarchical_site_item) list)
+         ('c XHTML.M.elt list * ('a, 'b, 'c) hierarchical_site_item) list)
 (** The type of hierarchical sites.
     A hierarchical site is a pair (main page, subpages).
     
@@ -106,15 +106,15 @@ and ('a, 'b, 'c) hierarchical_site =
     [?whole_tree=true].
  *)
 val hierarchical_menu_depth_first :
-  ?classe:string list ->
+  ?classe:XHTML.M.nmtoken list ->
   ?whole_tree:bool ->
-  ([< Eliomservices.get_service_kind ] as 'a, 
-   [< Eliomservices.registrable ] as 'b,
-   Eliomduce.Blocks.a_content_elt_list)
+  ([< Eliom_services.get_service_kind ] as 'a, 
+   [< Eliom_services.registrable ] as 'b,
+   Xhtmltypes.a_content)
       hierarchical_site -> 
   service:('a, 'b) one_page -> 
-  sp:Eliomsessions.server_params -> 
-    Xhtml1_strict.ul list
+  sp:Eliom_sessions.server_params -> 
+    [> `Ul ] XHTML.M.elt list
 
 
 
@@ -130,24 +130,24 @@ val hierarchical_menu_depth_first :
     is displayed.
  *)
 val hierarchical_menu_breadth_first :
-  ?classe:string list ->
-  ([< Eliomservices.get_service_kind ] as 'a, 
-   [< Eliomservices.registrable ] as 'b,
-   Eliomduce.Blocks.a_content_elt_list)
+  ?classe:XHTML.M.nmtoken list ->
+  ([< Eliom_services.get_service_kind ] as 'a, 
+   [< Eliom_services.registrable ] as 'b,
+   Xhtmltypes.a_content)
       hierarchical_site -> 
   service:('a, 'b) one_page -> 
-  sp:Eliomsessions.server_params -> 
-    Xhtml1_strict.ul list
+  sp:Eliom_sessions.server_params -> 
+    [> `Ul ] XHTML.M.elt list
 
 
 (** Returns the tags [<link rel="subsection" ...>] and 
    [<link rev="subsection" ...>] for the given hierarchical site.
  *)
 val structure_links :
-    ([< Eliomservices.get_service_kind ] as 'a, 
-     [< Eliomservices.registrable ] as 'b,
-     Eliomduce.Blocks.a_content_elt_list)
+    ([< Eliom_services.get_service_kind ] as 'a, 
+     [< Eliom_services.registrable ] as 'b,
+     Xhtmltypes.a_content)
     hierarchical_site -> 
       service:('a, 'b) one_page -> 
-        sp:Eliomsessions.server_params -> 
-          Xhtml1_strict.link list
+        sp:Eliom_sessions.server_params -> 
+          [> `Link ] XHTML.M.elt list

@@ -25,8 +25,8 @@
 *)
 
 open XHTML.M
-open Eliompredefmod.Xhtml
-open Eliomservices
+open Eliom_predefmod.Xhtml
+open Eliom_services
 
 
 type ('a, 'b) one_page =

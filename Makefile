@@ -3,13 +3,13 @@ include Makefile.config
 VERSION := $(shell head -n 1 VERSION)
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCECMAO=eliom/eliomduce.cma
+DUCECMAO=eliom/eliom_duce.cma
 # eliom/ocsigenrss.cma
-DUCECMI=eliom/eliomduce.cmi eliom/xhtml1_strict.cmi eliom/eliomducetools.cmi
+DUCECMI=eliom/eliom_duce.cmi eliom/xhtml1_strict.cmi eliom/eliom_duce_tools.cmi
 # eliom/rss2.cmi eliom/ocsigenrss.cmi
 DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 # examples/ocamlduce/examplerss.cmo
-DUCEDOC=./eliom/eliomduce.mli ./eliom/xhtml1_strict.ml ./eliom/eliomducetools.ml
+DUCEDOC=./eliom/eliom_duce.mli ./eliom/xhtml1_strict.ml ./eliom/eliom_duce_tools.ml
 CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 DUCEPACK=,ocamlduce
 else
@@ -46,7 +46,7 @@ DBMINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma
 else
 endif
 
-DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lwt/lwt_ssl.mli ./lwt/lwt_timeout.mli ./lwt/preemptive.mli ./lwt/lwt_lib.mli ./eliom/eliommkforms.mli ./eliom/eliommkreg.mli ./eliom/eliompredefmod.mli ./eliom/eliommod.mli ./eliom/eliomparameters.mli ./eliom/eliomservices.mli ./eliom/eliomsessions.mli ./server/extensions.mli ./server/parseconfig.mli ./xmlp4/xhtmlpretty.mli ./xmlp4/xhtmlcompact.mli ./xmlp4/oldocaml/xhtmltypes.ml ./xmlp4/ohl-xhtml/xHTML.mli ./baselib/messages.mli ./http/ocsiheaders.mli ./server/http_client.mli ./http/http_frame.mli ./http/http_com.mli ./http/predefined_senders.mli ./eliom/eliomtools.mli ./extensions/ocsipersist.mli ./extensions/authbasic.mli ./xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lwt/lwt_ssl.mli ./lwt/lwt_timeout.mli ./lwt/preemptive.mli ./lwt/lwt_lib.mli ./eliom/eliom_mkforms.mli ./eliom/eliom_mkreg.mli ./eliom/eliom_predefmod.mli ./eliom/eliommod.mli ./eliom/eliom_parameters.mli ./eliom/eliom_services.mli ./eliom/eliom_sessions.mli ./server/extensions.mli ./server/parseconfig.mli ./xmlp4/xhtmlpretty.mli ./xmlp4/xhtmlcompact.mli ./xmlp4/oldocaml/xhtmltypes.ml ./xmlp4/ohl-xhtml/xHTML.mli ./baselib/messages.mli ./http/ocsiheaders.mli ./server/http_client.mli ./http/http_frame.mli ./http/http_com.mli ./http/predefined_senders.mli ./eliom/eliom_tools.mli ./extensions/ocsipersist.mli ./extensions/authbasic.mli ./xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 
 
 INSTALL = install
@@ -60,11 +60,11 @@ PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	extensions/redirectmod.cmo extensions/accesscontrol.cmo \
 	$(DUCECMAO)
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
-       eliom/eliommkforms.cmi eliom/eliommkreg.cmi \
-       eliom/eliomtools.cmi \
+       eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
+       eliom/eliom_tools.cmi \
        $(DUCECMI) \
-       eliom/eliomsessions.cmi eliom/eliomparameters.cmi \
-       eliom/eliomservices.cmi eliom/eliompredefmod.cmi \
+       eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
+       eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
        eliom/eliommod.cmi
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/ohl-xhtml/xhtml.cma

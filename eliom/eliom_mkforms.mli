@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliommkforms
+ * Module Eliom_mkforms
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -22,14 +22,14 @@
 
 (** This module defines the functor to use to creates modules
    generating form widgets for your own types of pages.
-   It is used for example in {!Eliompredefmod}.
+   It is used for example in {!Eliom_predefmod}.
  *)
 
 
 open Lwt
 open Extensions
-open Eliomparameters
-open Eliomservices
+open Eliom_parameters
+open Eliom_services
 
 
 
@@ -194,7 +194,7 @@ module type ELIOMFORMSIG =
         service:('get, unit, [< get_service_kind ],
                  [< suff ], 'gn, unit, 
                  [< registrable ]) service ->
-                   sp:Eliomsessions.server_params -> 
+                   sp:Eliom_sessions.server_params -> 
                      ?fragment:string ->
                        'get -> string
 (** Creates the string corresponding to the URL of a service applyed to
@@ -205,7 +205,7 @@ module type ELIOMFORMSIG =
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
-          sp:Eliomsessions.server_params -> ?fragment:string -> 'get -> uri
+          sp:Eliom_sessions.server_params -> ?fragment:string -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
@@ -216,7 +216,7 @@ module type ELIOMFORMSIG =
           service:('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-            sp:Eliomsessions.server_params -> 
+            sp:Eliom_sessions.server_params -> 
               ?fragment:string ->
                 a_content_elt_list -> 'get -> a_elt
 (** [a service sp cont ()] creates a link to [service]. 
@@ -246,7 +246,7 @@ module type ELIOMFORMSIG =
           service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             sp:Eliomsessions.server_params ->
+             sp:Eliom_sessions.server_params ->
                ?fragment:string ->
                ('gn -> form_content_elt_list) -> form_elt
 (** [get_form service sp formgen] creates a GET form to [service]. 
@@ -260,7 +260,7 @@ module type ELIOMFORMSIG =
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn, 
                [< registrable ]) service ->
-      sp:Eliomsessions.server_params ->
+      sp:Eliom_sessions.server_params ->
       ?fragment:string ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content_elt_list) -> 'get -> form_elt
@@ -271,7 +271,7 @@ module type ELIOMFORMSIG =
     GET non-attached parameters will be kept in the URL (if any).
     If it is [false], they will be removed.
     Default is the default behaviour for this non-attached service
-    (see {!Eliomservices.new_post_coservice'}).
+    (see {!Eliom_services.new_post_coservice'}).
     [~keep_get_na_params] has no effect on attached (co)services.
  *)
 
@@ -305,7 +305,7 @@ module type ELIOMFORMSIG =
         ?a:input_attrib_t -> input_type:input_type_t ->
           ?name:string -> ?value:string -> unit -> input_elt
 (** Creates an untyped [<input>] tag. You may use the name you want
-   (for example to use with {!Eliomparameters.any}).
+   (for example to use with {!Eliom_parameters.any}).
  *)
 
     val file_input :

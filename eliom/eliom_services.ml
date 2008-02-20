@@ -25,8 +25,8 @@ open Lwt
 open Ocsimisc
 open Eliommod
 open Extensions
-open Eliomsessions
-open Eliomparameters
+open Eliom_sessions
+open Eliom_parameters
 open Lazy
 
 
@@ -41,7 +41,7 @@ type cookie = Eliommod.cookie =
 let cookie_table_of_eliom_cookies
     ?(oldtable= Http_frame.Cookies.empty) ~sp cl =
   Eliommod.add_cookie_list_to_send 
-    (Eliomsessions.get_sitedata sp)
+    (Eliom_sessions.get_sitedata sp)
     cl oldtable
 
 
@@ -186,7 +186,7 @@ let static_dir ~sp =
      kind = `Attached
        {prefix = "";
         subpath = [""];
-        fullpath = (Eliomsessions.get_site_dir sp) @ [""];
+        fullpath = (Eliom_sessions.get_site_dir sp) @ [""];
         get_state = None;
         post_state = None;
         att_kind = `Internal (`Service, `Get);
@@ -251,7 +251,7 @@ let new_service_aux
       new_service_aux_aux
         ~prefix:""
         ~path:path
-        ~site_dir:(Eliomsessions.get_site_dir sp)
+        ~site_dir:(Eliom_sessions.get_site_dir sp)
         ~kind:(`Internal (`Service, `Get))
         ~get_params
         ~post_params:unit
@@ -569,8 +569,8 @@ let rec relative_url_path_to_myself = function
 (*****************************************************************************)
 
 let set_exn_handler ?sp h = 
-  let sitedata = Eliomsessions.find_sitedata "set_exn_handler" sp in
-  Eliomsessions.set_site_handler sitedata h
+  let sitedata = Eliom_sessions.find_sitedata "set_exn_handler" sp in
+  Eliom_sessions.set_site_handler sitedata h
 
 let add_service = Eliommod.add_service
 let add_naservice = Eliommod.add_naservice

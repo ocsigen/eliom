@@ -42,34 +42,34 @@ let part1 sp =
           with Eliom, you don't write one file for each URL, but
           a caml module (cmo or cma) for the whole Web site.</p>
       <p>
-          The $a ~service:senddoc ~sp [code [pcdata "Eliomservices" ]] [version;"Eliomservices.html"]$ module allows to create new entry points to 
+          The $a ~service:senddoc ~sp [code [pcdata "Eliom_services" ]] [version;"Eliom_services.html"]$ module allows to create new entry points to 
           your Web site, called <em>services</em>. Services are usually 
           attached to an URL and usually generate a Web page. 
           They are represented by OCaml values, on which 
           you must register a function that will generate a page.
           There are several ways to creates pages for Eliom. This tutorial
-          is mainly using $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$, a module allowing
+          is mainly using $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$, a module allowing
           to register xhtml pages statically typed using OCaml's
           polymorphic variants. 
           The $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ module defines functions to construct
           xhtml pages using that type system. 
-          As the $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$ redefines some functions
+          As the $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ redefines some functions
           of $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$, open the modules in this order:
       </p>
 *html*)
 open Lwt
 open XHTML.M
-open Eliomservices
-open Eliomparameters
-open Eliomsessions
-open Eliompredefmod.Xhtml
+open Eliom_services
+open Eliom_parameters
+open Eliom_sessions
+open Eliom_predefmod.Xhtml
 (*html*
       <p>$a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$
       (lightweight threads) is the cooperative thread library used by Ocsigen
       (<a href="#p1threads">see later</a>).</p>
       <p>Here is an example showing how to create a new service and
          register a page created with XHTML.M. Use the function
-         $a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.register_new_service" ]] [version;"Eliommkreg.ELIOMREGSIG1.html"]$:
+         $a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.register_new_service" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$:
       </p>
 *html*)
 let coucou = 
@@ -85,9 +85,9 @@ let coucou =
 The same, written with fully qualified values:
 <pre>
 <span class="Clet">let</span> coucou <span class="Cnonalphakeyword">=</span> 
-  <span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
+  <span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
     <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"coucou"</span><span class="Cnonalphakeyword">]</span>
-    <span class="Clabel">~get_params:</span><span class="Cconstructor">Eliomparameters</span><span class="Cnonalphakeyword">.</span>unit
+    <span class="Clabel">~get_params:</span><span class="Cconstructor">Eliom_parameters</span><span class="Cnonalphakeyword">.</span>unit
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span> 
       <span class="Cconstructor">Lwt</span><span class="Cnonalphakeyword">.</span>return 
         <span class="Cnonalphakeyword">(</span><span class="Cconstructor">XHTML</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">M</span><span class="Cnonalphakeyword">.</span>html
@@ -96,9 +96,9 @@ The same, written with fully qualified values:
 </pre>
 *html*)(*zap*
 let coucou = 
-  Eliompredefmod.Xhtml.register_new_service 
+  Eliom_predefmod.Xhtml.register_new_service 
     ~path:["coucou"]
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     (fun _ () () -> 
       Lwt.return 
         (XHTML.M.html
@@ -142,7 +142,7 @@ let coucou =
    $a ~service:(static_dir sp) ~sp [pcdata "Makefile"] ["Makefile"]$ for your modules.</p>
       <h4>Static typing of XHTML with XHTML.M</h4>
         <p>
-        Typing of xhtml with $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ and $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$
+        Typing of xhtml with $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ and $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$
         is very strict and compels you to respect
         xhtml 1.1 standard (with some limitations). 
         For example if you write:
@@ -190,9 +190,9 @@ $.
           If you prefer using a syntax closer to html, you can write:</p>
 *html*)
 let coucou1 = 
-  Eliompredefmod.Xhtml.register_new_service 
+  Eliom_predefmod.Xhtml.register_new_service 
     ~path:["coucou1"]
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     (fun _ () () -> 
       return
         << <html>
@@ -244,7 +244,7 @@ let coucou1 =
       <div class="encadre">
         <h4>Eliom and OCamlDuce</h4>
         <p>If OCamlDuce is installed on your system, it is now possible to use
-        it instead of XHTML.M and Eliomparameters.Xhtml
+        it instead of XHTML.M and Eliom_parameters.Xhtml
         to typecheck your pages. You get a stronger type checking
         and more flexibility (easier to use other XML types, easier to parse
         incoming XML data, etc.).</p>
@@ -252,14 +252,14 @@ let coucou1 =
          support. Then dynlink <code>ocamlduce.cma</code> and 
           <code>eliomduce.cma</code> from the configuration file
         (after <code>eliom.cma</code>).
-        Then use $a ~service:senddoc ~sp [code [pcdata "Eliomduce.Xhtml" ]] [version;"Eliomduce.Xhtml.html"]$ instead of 
-        $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$ to register your pages.
+        Then use $a ~service:senddoc ~sp [code [pcdata "Eliom_duce.Xhtml" ]] [version;"Eliom_duce.Xhtml.html"]$ instead of 
+        $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ to register your pages.
         </p>
         <p>Here is an example:</p>
         <pre><span style="color:#cc9900">open</span> <span style="color:#0033cc">Lwt</span>
 
 <span style="color:green">let</span> s =
-  <span class="Cconstructor">Eliomduce</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
+  <span class="Cconstructor">Eliom_duce</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
     <span style="color:#770000">~path:</span>[<span style="color:#aa4444">""</span>]
     <span style="color:#770000">~get_params:</span>unit
     (<span style="color:green">fun</span> sp () () -&gt;
@@ -269,20 +269,20 @@ let coucou1 =
               &lt;body&gt; [&lt;h1&gt; <span style="color:#aa4444">"This page has been type checked by OCamlDuce"</span>]] }}) </pre>
       </div>
       <div class="encadre">
-        <h4>Eliompredefmod.HtmlText</h4>
+        <h4>Eliom_predefmod.HtmlText</h4>
         <p>If you want to register untyped (text) pages, use the
-         functions from $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.HtmlText" ]] [version;"Eliompredefmod.HtmlText.html"]$, for example
-         $a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Text.register_new_service" ]] [version;"Eliompredefmod.Text.html"]$. Example:
+         functions from $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.HtmlText" ]] [version;"Eliom_predefmod.HtmlText.html"]$, for example
+         $a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Text.register_new_service" ]] [version;"Eliom_predefmod.Text.html"]$. Example:
         </p>
 *html*)
 let coucoutext = 
-  Eliompredefmod.HtmlText.register_new_service 
+  Eliom_predefmod.HtmlText.register_new_service 
     ~path:["coucoutext"]
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     (fun sp () () -> 
       return
         ("<html>n'importe quoi "^
-         (Eliompredefmod.HtmlText.a coucou sp "clic" ())^
+         (Eliom_predefmod.HtmlText.a coucou sp "clic" ())^
          "</html>"))
 (*html*
       <p>$a Tutoeliom.coucoutext sp <:xmllist< Try it >> ()$.</p>
@@ -363,13 +363,13 @@ let default = register_new_service ["rep";""] unit
         <code><span class="Clabel">~get_params</span></code>
         indicates the type of GET parameters for the page (that is, parameters
         present in the URL).
-        $a ~fragment:"VALunit" ~service:senddoc ~sp [code [pcdata "unit" ]] [version;"Eliomparameters.html"]$ means that the page does not take any GET parameter.
+        $a ~fragment:"VALunit" ~service:senddoc ~sp [code [pcdata "unit" ]] [version;"Eliom_parameters.html"]$ means that the page does not take any GET parameter.
       </p>
       <p>Functions implementing services are called <em>service handlers</em>. 
        They take three parameters. The first
        one has type 
-       $a ~fragment:"TYPEserver_params" ~service:senddoc ~sp [code [pcdata "Eliomsessions.server_params" ]]
-   [version;"Eliomsessions.html"]$
+       $a ~fragment:"TYPEserver_params" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.server_params" ]]
+   [version;"Eliom_sessions.html"]$
         and
        corresponds to server parameters (user-agent, ip, current-url, etc.
        - see later in that section for examples of use), 
@@ -408,7 +408,7 @@ let coucou_params = register_new_service
       the server displays an error-message 
       (try to change the value in the URL).<br/>
       Here, <code>int</code>, <code>string</code> and <code>**</code>
-      are functions defined in the $a ~service:senddoc ~sp [code [pcdata "Eliomparameters" ]] [version;"Eliomparameters.html"]$ module.
+      are functions defined in the $a ~service:senddoc ~sp [code [pcdata "Eliom_parameters" ]] [version;"Eliom_parameters.html"]$ module.
       <br/>
       <em>Warning:</em>
       The infix function <code>( ** )</code> is to be used to 
@@ -432,9 +432,9 @@ let uasuffix =
                strong [pcdata ((string_of_int year)^"/"
                                ^(string_of_int month))];
                pcdata ", your user-agent is ";
-               strong [pcdata (Eliomsessions.get_user_agent sp)];
+               strong [pcdata (Eliom_sessions.get_user_agent sp)];
                pcdata ", your IP is ";
-               strong [pcdata (Eliomsessions.get_ip sp)]]])))
+               strong [pcdata (Eliom_sessions.get_ip sp)]]])))
 (*html*
     <p>This service will answer to URLs like 
     <code>http://.../uasuffix/2000/11</code>.</p>
@@ -483,10 +483,10 @@ let string_of_mysum = function
   | B -> "B"
 
 let mytype = 
-  Eliompredefmod.Xhtml.register_new_service 
+  Eliom_predefmod.Xhtml.register_new_service 
     ~path:["mytype"]
     ~get_params:
-      (Eliomparameters.user_type mysum_of_string string_of_mysum "valeur")
+      (Eliom_parameters.user_type mysum_of_string string_of_mysum "valeur")
     (fun _ x () -> 
       let v = string_of_mysum x in 
       return
@@ -498,13 +498,13 @@ let mytype =
 
       <h4 id="p1any">Untyped parameters</h4>
       <p>If you want a service that answers to request with any parameters, 
-      use the $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliomparameters.any" ]] [version;"Eliomparameters.html"]$ value. The service will get an 
+      use the $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.any" ]] [version;"Eliom_parameters.html"]$ value. The service will get an 
       association list of strings. Example:
       </p>
 *html*)
 let raw_serv = register_new_service 
     ~path:["any"]
-    ~get_params:Eliomparameters.any
+    ~get_params:Eliom_parameters.any
   (fun _ l () ->
     let ll = 
       List.map 
@@ -557,7 +557,7 @@ let catch = register_new_service
     <h3 id="p1links">Links</h3>
     <div class="onecol">
       <p>To create a link (<code>&lt;a&gt;</code>), use the function 
-          $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ (or <code>Eliomduce.Xhtml.a</code>, etc),
+          $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ (or <code>Eliom_duce.Xhtml.a</code>, etc),
           as in these examples:
       </p>
 *html*)
@@ -568,17 +568,17 @@ let links = register_new_service ["rep";"links"] unit
      (head (title (pcdata "Links")) [])
      (body 
        [p
-        [Eliompredefmod.Xhtml.a coucou sp [pcdata "coucou"] (); br ();
-         Eliompredefmod.Xhtml.a hello sp [pcdata "hello"] (); br ();
-         Eliompredefmod.Xhtml.a default sp 
+        [Eliom_predefmod.Xhtml.a coucou sp [pcdata "coucou"] (); br ();
+         Eliom_predefmod.Xhtml.a hello sp [pcdata "hello"] (); br ();
+         Eliom_predefmod.Xhtml.a default sp 
            [pcdata "default page of the dir"] (); br ();
-         Eliompredefmod.Xhtml.a uasuffix sp 
+         Eliom_predefmod.Xhtml.a uasuffix sp 
            [pcdata "uasuffix"] (2007,06); br ();
-         Eliompredefmod.Xhtml.a coucou_params sp 
+         Eliom_predefmod.Xhtml.a coucou_params sp 
            [pcdata "coucou_params"] (42,(22,"ciao")); br ();
-         Eliompredefmod.Xhtml.a raw_serv sp 
+         Eliom_predefmod.Xhtml.a raw_serv sp 
            [pcdata "raw_serv"] [("sun","yellow");("sea","blue and pink")]; br ();
-         Eliompredefmod.Xhtml.a
+         Eliom_predefmod.Xhtml.a
            (new_external_service
               ~prefix:"http://fr.wikipedia.org"
               ~path:["wiki";""]
@@ -600,13 +600,13 @@ let links = register_new_service ["rep";"links"] unit
 
 
 
-      <p>If you open $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$ after $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$,
-        $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$
+      <p>If you open $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ after $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$,
+        $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$
    will mask $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "XHTML.M.a" ]] [version;"XHTML.M.html"]$.
         Thus you can avoid to write fully qualified values most of the time.
       </p>
       <p>
-        $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ takes as first parameter 
+        $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ takes as first parameter 
         the service you want to link to.
         Note that to create a (relative) link we need to know the current URL.
         That's why the function <code>a</code> 
@@ -632,14 +632,14 @@ let links = register_new_service ["rep";"links"] unit
       </p>
       <p>
         If you want to create (mutually or not) recursive pages,
-        first create the service using $a ~fragment:"VALnew_service" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_service" ]] [version;"Eliomservices.html"]$, 
+        first create the service using $a ~fragment:"VALnew_service" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_service" ]] [version;"Eliom_services.html"]$, 
         then register it in the table using (for example)
-        $a ~fragment:"VALregister" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.register" ]] [version;"Eliommkreg.ELIOMREGSIG1.html"]$:
+        $a ~fragment:"VALregister" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.register" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$:
       </p>
 *html*)
-let linkrec = Eliomservices.new_service ["linkrec"] unit ()
+let linkrec = Eliom_services.new_service ["linkrec"] unit ()
 
-let _ = Eliompredefmod.Xhtml.register linkrec 
+let _ = Eliom_predefmod.Xhtml.register linkrec 
     (fun sp () () -> 
       return
        (html
@@ -661,25 +661,25 @@ let essai =
     <h3 id="p1forms">Forms</h3>
     <div class="onecol">
       <h4>Forms towards services</h4>
-      <p>The function $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ allows to create a form
+      <p>The function $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.get_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ allows to create a form
       that uses the GET method (parameters in the URL).
-      It works like $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.a" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ but takes as parameter
+      It works like $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ but takes as parameter
       a <em>function</em> that creates the form from parameters names.
       </p>
 *html*)
 let create_form = 
   (fun (number_name, (number2_name, string_name)) ->
     [p [pcdata "Write an int: ";
-        Eliompredefmod.Xhtml.int_input ~input_type:`Text ~name:number_name ();
+        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:number_name ();
         pcdata "Write another int: ";
-        Eliompredefmod.Xhtml.int_input ~input_type:`Text ~name:number2_name ();
+        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:number2_name ();
         pcdata "Write a string: ";
-        Eliompredefmod.Xhtml.string_input ~input_type:`Text ~name:string_name ();
-        Eliompredefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
+        Eliom_predefmod.Xhtml.string_input ~input_type:`Text ~name:string_name ();
+        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
 
 let form = register_new_service ["form"] unit
   (fun sp () () -> 
-     let f = Eliompredefmod.Xhtml.get_form coucou_params sp create_form in 
+     let f = Eliom_predefmod.Xhtml.get_form coucou_params sp create_form in 
      return
        (html
          (head (title (pcdata "")) [])
@@ -690,7 +690,7 @@ let form = register_new_service ["form"] unit
       <p>Note that if you want to use typed parameters, 
        you cannot use functions like $a ~fragment:"VALinput" ~service:senddoc ~sp [code [pcdata "XHTML.M.input" ]] [version;"XHTML.M.html"]$ to
        create your forms (but for parameters defined with
-       $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliomparameters.any" ]] [version;"Eliomparameters.html"]$, <a href="#p1any">see later</a>). Indeed, parameter names are typed to force them
+       $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.any" ]] [version;"Eliom_parameters.html"]$, <a href="#p1any">see later</a>). Indeed, parameter names are typed to force them
        be used properly. In our example, <code>number_name</code> has type
        <code>int param_name</code> and must be used with 
        <code>int_input</code> (or other widgets), whereas
@@ -699,7 +699,7 @@ let form = register_new_service ["form"] unit
        <code>string_input</code> (or other widgets).
        All functions for creating form widgets are detailed 
        $a ~service:senddoc ~sp [pcdata "here"] 
-         [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$.
+         [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$.
       </p>
 
       <p>For untyped forms, you may use functions from XHTML.M (or 
@@ -717,13 +717,13 @@ let raw_form = register_new_service
            (head (title (pcdata "")) [])
            (body 
               [h1 [pcdata "Any Form"];
-               Eliompredefmod.Xhtml.get_form raw_serv sp 
+               Eliom_predefmod.Xhtml.get_form raw_serv sp 
                  (fun () ->
                    [p [pcdata "Form to raw_serv: ";
-                       Eliompredefmod.Xhtml.raw_input ~input_type:`Text ~name:"plop" ();
-                       Eliompredefmod.Xhtml.raw_input ~input_type:`Text ~name:"plip" ();
-                       Eliompredefmod.Xhtml.raw_input ~input_type:`Text ~name:"plap" ();
-                       Eliompredefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
+                       Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plop" ();
+                       Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plip" ();
+                       Eliom_predefmod.Xhtml.raw_input ~input_type:`Text ~name:"plap" ();
+                       Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Click" ()]])
                 ])))
 (*html*
       <p>Try this $a Tutoeliom.raw_form sp <:xmllist< form >> ()$.</p>
@@ -797,8 +797,8 @@ let my_service_with_get_and_post = register_new_post_service
 (*html*
       <h4 id="p1postforms">POST forms</h4>
        <p> To create a POST form, use the 
-           $a ~fragment:"VALpost_form" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.post_form" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ function.
-           It is similar to $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.get_form" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$ 
+           $a ~fragment:"VALpost_form" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.post_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ function.
+           It is similar to $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.get_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ 
            with an additional parameter
            for the GET parameters you want to put in the URL (if any).
            Here <code>form2</code> is a page containing a form
@@ -811,7 +811,7 @@ let my_service_with_get_and_post = register_new_post_service
 let form2 = register_new_service ["form2"] unit
   (fun sp () () -> 
      let f =
-       (Eliompredefmod.Xhtml.post_form my_service_with_post_params sp
+       (Eliom_predefmod.Xhtml.post_form my_service_with_post_params sp
           (fun chaine -> 
             [p [pcdata "Write a string: ";
                 string_input ~input_type:`Text ~name:chaine ()]]) ()) in
@@ -823,7 +823,7 @@ let form2 = register_new_service ["form2"] unit
 let form3 = register_new_service ["form3"] unit
   (fun sp () () ->
      let f  = 
-       (Eliompredefmod.Xhtml.post_form my_service_with_get_and_post sp
+       (Eliom_predefmod.Xhtml.post_form my_service_with_get_and_post sp
           (fun chaine -> 
             <:xmllist< <p> Write a string: 
                     $string_input ~input_type:`Text ~name:chaine ()$ </p> >>)
@@ -836,7 +836,7 @@ let form3 = register_new_service ["form3"] unit
 let form4 = register_new_service ["form4"] unit
   (fun sp () () ->
      let f  = 
-       (Eliompredefmod.Xhtml.post_form
+       (Eliom_predefmod.Xhtml.post_form
           (new_external_service 
              ~prefix:"http://www.petizomverts.com"
              ~path:["zebulon"]
@@ -1022,76 +1022,76 @@ let looong2 =
   <th class="col2">attached</th>
   <th class="col2">non-attached</th>
 </tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$</th>
           <td colspan="4">allows to register functions that 
         generate xhtml pages
         statically checked using polymorphic variant types. You may use
         constructor functions from $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or a syntax
         extension close to the standard xhtml syntax.
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtmlcompact" ]] [version;"Eliompredefmod.Xhtmlcompact.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtmlcompact" ]] [version;"Eliom_predefmod.Xhtmlcompact.html"]$</th>
           <td colspan="4">Same, but without pretty printing (does not add
             spaces and line breaks).
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Blocks" ]] [version;"Eliompredefmod.Blocks.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Blocks" ]] [version;"Eliom_predefmod.Blocks.html"]$</th>
           <td colspan="4">allows to register functions that 
         generate a portion of page (content of body tag) using
         $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or the syntax extension.
         (useful for <code>XMLHttpRequest</code> requests for example).
         
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliomduce.Xhtml" ]] [version;"Eliomduce.Xhtml.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_duce.Xhtml" ]] [version;"Eliom_duce.Xhtml.html"]$</th>
           <td colspan="4">allows to register functions 
             that generate xhtml pages 
         statically checked using <code>OCamlduce</code>. Typing is more
         strict, but you need a modified version of the OCaml compiler 
         (OCamlduce).
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.HtmlText" ]] [version;"Eliompredefmod.HtmlText.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.HtmlText" ]] [version;"Eliom_predefmod.HtmlText.html"]$</th>
           <td colspan="4">Allows to register functions that
         generate text html pages, without any typechecking of the content.
         The content type sent by the server is "text/html".
         
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.CssText" ]] [version;"Eliompredefmod.CssText.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.CssText" ]] [version;"Eliom_predefmod.CssText.html"]$</th>
           <td colspan="4">Allows to register functions that
         generate CSS pages, without any typechecking of the content.
         The content type sent by the server is "text/css".
         
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Text" ]] [version;"Eliompredefmod.Text.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Text" ]] [version;"Eliom_predefmod.Text.html"]$</th>
           <td colspan="4">Allows to register functions that
         generate text pages, without any typechecking of the content.
         The services return a pair of strings. The first one is the content
         of the page, the second one is the content type.
         
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions" ]] [version;"Eliompredefmod.Actions.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions" ]] [version;"Eliom_predefmod.Actions.html"]$</th>
           <td colspan="4">allows to register actions, that is
         functions that do not generate any page. The URL is reloaded after
         the action.
         
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Unit" ]] [version;"Eliompredefmod.Unit.html"]$</th>
-          <td colspan="4">is like $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions" ]] [version;"Eliompredefmod.Actions.html"]$ but the
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Unit" ]] [version;"Eliom_predefmod.Unit.html"]$</th>
+          <td colspan="4">is like $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions" ]] [version;"Eliom_predefmod.Actions.html"]$ but the
         URL is not reloaded after the action.
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Redirections" ]] [version;"Eliompredefmod.Redirections.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirections" ]] [version;"Eliom_predefmod.Redirections.html"]$</th>
           <td colspan="4">allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
             The browser will get a 301 code in answer and redo the request
             to the new URL.
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.TempRedirections" ]] [version;"Eliompredefmod.TempRedirections.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.TempRedirections" ]] [version;"Eliom_predefmod.TempRedirections.html"]$</th>
           <td colspan="4">allows to register HTTP temporary redirections.
             You register the URL of the page you want to redirect to.
             The browser will get a 302 code in answer and redo the request
             to the new URL.
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Files" ]] [version;"Eliompredefmod.Files.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Files" ]] [version;"Eliom_predefmod.Files.html"]$</th>
           <td colspan="4">allows to register services that send files        
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Any" ]] [version;"Eliompredefmod.Any.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Any" ]] [version;"Eliom_predefmod.Any.html"]$</th>
           <td colspan="4">allows to register services that can choose
             what they send, for example an xhtml page
             or a file, depending on some situation (parameter, user logged or
@@ -1223,10 +1223,10 @@ let part2 sp =
       restore it at each request. This data is available during the whole
       duration of the session.
       To save session data, create a table using 
-      $a ~fragment:"VALcreate_volatile_table" ~service:senddoc ~sp [code [pcdata "Eliomsessions.create_volatile_table" ]] [version;"Eliomsessions.html"]$ 
+      $a ~fragment:"VALcreate_volatile_table" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.create_volatile_table" ]] [version;"Eliom_sessions.html"]$ 
       and save and get data from
-      this table using $a ~fragment:"VALset_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliomsessions.set_volatile_session_data" ]] [version;"Eliomsessions.html"]$ and 
-      $a ~fragment:"VALget_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_volatile_session_data" ]] [version;"Eliomsessions.html"]$. The following example shows
+      this table using $a ~fragment:"VALset_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.set_volatile_session_data" ]] [version;"Eliom_sessions.html"]$ and 
+      $a ~fragment:"VALget_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_volatile_session_data" ]] [version;"Eliom_sessions.html"]$. The following example shows
       a site with authentification. The name of the user is asked in the login
       form and saved in a table to be displayed on the page instead of the login
       form while the user is connected. Note that the session is opened
@@ -1244,28 +1244,28 @@ let session_name = "session_data"
 (* "my_table" will be the structure used to store
    the session data (namely the login name): *)
 
-let my_table = Eliomsessions.create_volatile_table ()
+let my_table = Eliom_sessions.create_volatile_table ()
 
 
 (* -------------------------------------------------------- *)
 (* Create services, but do not register them yet:           *)
 
 let session_data_example =
-  Eliomservices.new_service
+  Eliom_services.new_service
     ~path:["sessdata"]
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     ()
 
 let session_data_example_with_post_params =
-  Eliomservices.new_post_service
+  Eliom_services.new_post_service
     ~fallback:session_data_example
-    ~post_params:(Eliomparameters.string "login")
+    ~post_params:(Eliom_parameters.string "login")
     ()
 
 let session_data_example_close =
-  Eliomservices.new_service
+  Eliom_services.new_service
     ~path:["close"]
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     ()
 
 
@@ -1274,27 +1274,27 @@ let session_data_example_close =
 (* Handler for the "session_data_example" service:          *)
 
 let session_data_example_handler sp _ _  =
-  let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  let sessdat = Eliom_sessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
        (body 
           [
            match sessdat with
-           | Eliomsessions.Data name -> 
+           | Eliom_sessions.Data name -> 
                p [pcdata ("Hello "^name); 
                   br (); 
-                  Eliompredefmod.Xhtml.a 
+                  Eliom_predefmod.Xhtml.a 
                     session_data_example_close
                     sp [pcdata "close session"] ()]
-           | Eliomsessions.Data_session_expired 
-           | Eliomsessions.No_data -> 
-               Eliompredefmod.Xhtml.post_form 
+           | Eliom_sessions.Data_session_expired 
+           | Eliom_sessions.No_data -> 
+               Eliom_predefmod.Xhtml.post_form 
                  session_data_example_with_post_params
                  sp
                  (fun login -> 
                    [p [pcdata "login: ";
-                       Eliompredefmod.Xhtml.string_input
+                       Eliom_predefmod.Xhtml.string_input
                          ~input_type:`Text ~name:login ()]]) ()
          ]))
 
@@ -1303,15 +1303,15 @@ let session_data_example_handler sp _ _  =
 (* service with POST params:                                *)
 
 let session_data_example_with_post_params_handler sp _ login =
-  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
-  Eliomsessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_sessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
   return
     (html
        (head (title (pcdata "")) [])
        (body 
           [p [pcdata ("Welcome " ^ login ^ ". You are now connected."); 
               br ();
-              Eliompredefmod.Xhtml.a session_data_example sp [pcdata "Try again"] ()
+              Eliom_predefmod.Xhtml.a session_data_example sp [pcdata "Try again"] ()
             ]]))
 
 
@@ -1320,28 +1320,28 @@ let session_data_example_with_post_params_handler sp _ login =
 (* Handler for the "session_data_example_close" service:    *)
 
 let session_data_example_close_handler sp () () =
-  let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
-  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+  let sessdat = Eliom_sessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
   return
     (html
        (head (title (pcdata "Disconnect")) [])
        (body [
         (match sessdat with
-        | Eliomsessions.Data_session_expired -> p [pcdata "Your session has expired."]
-        | Eliomsessions.No_data -> p [pcdata "You were not connected."]
-        | Eliomsessions.Data _ -> p [pcdata "You have been disconnected."]);
-        p [Eliompredefmod.Xhtml.a session_data_example sp [pcdata "Retry"] () ]]))
+        | Eliom_sessions.Data_session_expired -> p [pcdata "Your session has expired."]
+        | Eliom_sessions.No_data -> p [pcdata "You were not connected."]
+        | Eliom_sessions.Data _ -> p [pcdata "You have been disconnected."]);
+        p [Eliom_predefmod.Xhtml.a session_data_example sp [pcdata "Retry"] () ]]))
 
 
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
 let () =
-  Eliompredefmod.Xhtml.register 
+  Eliom_predefmod.Xhtml.register 
     session_data_example_close session_data_example_close_handler;
-  Eliompredefmod.Xhtml.register 
+  Eliom_predefmod.Xhtml.register 
     session_data_example session_data_example_handler;
-  Eliompredefmod.Xhtml.register 
+  Eliom_predefmod.Xhtml.register 
     session_data_example_with_post_params
     session_data_example_with_post_params_handler
 
@@ -1359,7 +1359,7 @@ let close = register_new_service
     ~path:["disconnect"]
     ~get_params:unit
     (fun sp () () -> 
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
       (fun () ->
         return
           (html
@@ -1370,18 +1370,18 @@ let close = register_new_service
 let _ = register
     sessdata
     (fun sp _ _ ->
-      let sessdat = Eliomsessions.get_volatile_session_data table:my_table ~sp () in
+      let sessdat = Eliom_sessions.get_volatile_session_data table:my_table ~sp () in
       return
         (html
            (head (title (pcdata "")) [])
            (body 
               [match sessdat with
-              | Eliomsessions.Data name ->
+              | Eliom_sessions.Data name ->
                   p [pcdata ("Hello "^name); br ();
                      a close sp [pcdata "close session"] ()
                    ]
-              | Eliomsessions.Data_session_expired
-              | Eliomsessions.No_data -> 
+              | Eliom_sessions.Data_session_expired
+              | Eliom_sessions.No_data -> 
                   post_form sessdata_with_post_params sp
                     (fun login -> 
                       [p [pcdata "login: ";
@@ -1390,9 +1390,9 @@ let _ = register
 let _ = register
     sessdata_with_post_params
     (fun sp _ login ->
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>=
       (fun () ->
-        Eliomsessions.set_volatile_session_data my_table sp login;
+        Eliom_sessions.set_volatile_session_data my_table sp login;
         return
           (html
              (head (title (pcdata "")) [])
@@ -1408,7 +1408,7 @@ let _ = register
       </p>
       <p>
        To close a session, use the function
-                <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliomsessions.close_session" ]] [version;"Eliomsessions.html"]$</span>.
+                <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_session" ]] [version;"Eliom_sessions.html"]$</span>.
        Session data will disappear when the session is closed (explicitely
        or by timeout).
        Warning: if your session data contains opened file descriptors,
@@ -1449,14 +1449,14 @@ let _ = register
       instead of the public table. To do that,
       use <span class="Cem"><code>register_for_session</code></span>
       (for example
-     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.register_for_session" ]] [version;"Eliommkreg.ELIOMREGSIG1.html"]$</span>).<br/>
+     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.register_for_session" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$</span>).<br/>
       </p><p>
       Users are recognized automatically using a cookie.
       Use this for example if you want two versions of each page,
       one public, one for connected users.
       <br/>
       To close a session, use 
-                <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliomsessions.close_session" ]] [version;"Eliomsessions.html"]$</span>.
+                <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_session" ]] [version;"Eliom_sessions.html"]$</span>.
       Both the session service table and the session data table for that user
       will disappear when the session is closed.
       </p>
@@ -1465,7 +1465,7 @@ let _ = register
          (because sp contains the session table).</p>
       <p>The following example shows how to reimplement the previous one 
       (<code>session_data_example</code>), 
-      without using $a ~fragment:"VALset_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliomsessions.set_volatile_session_data" ]] [version;"Eliomsessions.html"]$.
+      without using $a ~fragment:"VALset_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.set_volatile_session_data" ]] [version;"Eliom_sessions.html"]$.
       Note that this version is less efficient than the other if your site
       has lots of pages, because it requires to register all the new services
       each time a user logs in. But in other cases, that feature is really
@@ -1490,21 +1490,21 @@ let session_name = "session_services"
 (* Create services, but do not register them yet:           *)
 
 let session_services_example = 
-  Eliomservices.new_service
+  Eliom_services.new_service
     ~path:["sessionservices"] 
-    ~get_params:Eliomparameters.unit 
+    ~get_params:Eliom_parameters.unit 
     ()
 
 let session_services_example_with_post_params = 
-  Eliomservices.new_post_service 
+  Eliom_services.new_post_service 
     ~fallback:session_services_example
-    ~post_params:(Eliomparameters.string "login")
+    ~post_params:(Eliom_parameters.string "login")
     ()
 
 let session_services_example_close = 
-  Eliomservices.new_service
+  Eliom_services.new_service
     ~path:["close2"]
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     ()
 
 
@@ -1514,7 +1514,7 @@ let session_services_example_close =
 
 let session_services_example_handler sp () () = 
   let f = 
-    Eliompredefmod.Xhtml.post_form 
+    Eliom_predefmod.Xhtml.post_form 
       session_services_example_with_post_params 
       sp
       (fun login -> 
@@ -1531,7 +1531,7 @@ let session_services_example_handler sp () () =
 (* Handler for the "session_services_example_close" service:     *)
 
 let session_services_example_close_handler sp () () =
-  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
   return
     (html
        (head (title (pcdata "Disconnect")) [])
@@ -1570,18 +1570,18 @@ let launch_session sp () login =
   in
 
   (* If a session was opened, we close it first! *)
-  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () ->
 
   (* Now we register new versions of main services in the
      session service table: *)
-  Eliompredefmod.Xhtml.register_for_session (*zap* *) ~session_name (* *zap*) 
+  Eliom_predefmod.Xhtml.register_for_session (*zap* *) ~session_name (* *zap*) 
     ~sp
     ~service:session_services_example
     (* service is any public service already registered,
        here the main page of our site *)
     new_main_page;
   
-  Eliompredefmod.Xhtml.register_for_session (*zap* *) ~session_name (* *zap*) 
+  Eliom_predefmod.Xhtml.register_for_session (*zap* *) ~session_name (* *zap*) 
     ~sp
     ~service:coucou
     (fun _ () () -> 
@@ -1592,7 +1592,7 @@ let launch_session sp () login =
                    pcdata login;
                    pcdata "!"]])));
 
-  Eliompredefmod.Xhtml.register_for_session (*zap* *) ~session_name (* *zap*) 
+  Eliom_predefmod.Xhtml.register_for_session (*zap* *) ~session_name (* *zap*) 
     ~sp
     ~service:hello
     (fun _ () () -> 
@@ -1609,13 +1609,13 @@ let launch_session sp () login =
 (* Registration of main services:                           *)
 
 let () = 
-  Eliompredefmod.Xhtml.register
+  Eliom_predefmod.Xhtml.register
     ~service:session_services_example
     session_services_example_handler;
-  Eliompredefmod.Xhtml.register
+  Eliom_predefmod.Xhtml.register
     ~service:session_services_example_close
     session_services_example_close_handler;
-  Eliompredefmod.Xhtml.register
+  Eliom_predefmod.Xhtml.register
     ~service:session_services_example_with_post_params
     launch_session
 (*zap* Registering for session during initialisation is forbidden:
@@ -1670,9 +1670,9 @@ let _ = register_for_session
    </ul>
    <p>
    To create a coservice, use 
-   <span class="Cem">$a ~fragment:"VALnew_coservice" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_coservice" ]] [version;"Eliomservices.html"]$</span> and 
-   <span class="Cem">$a ~fragment:"VALnew_post_coservice" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_coservice" ]] [version;"Eliomservices.html"]$</span>.
-   Like $a ~fragment:"VALnew_post_service" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_service" ]] [version;"Eliomservices.html"]$,
+   <span class="Cem">$a ~fragment:"VALnew_coservice" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_coservice" ]] [version;"Eliom_services.html"]$</span> and 
+   <span class="Cem">$a ~fragment:"VALnew_post_coservice" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_post_coservice" ]] [version;"Eliom_services.html"]$</span>.
+   Like $a ~fragment:"VALnew_post_service" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_post_service" ]] [version;"Eliom_services.html"]$,
    they take a public service as parameter 
    (labeled <code><span class="Clabel">fallback</span></code>)
    to be used as fallback when the user comes back without the state
@@ -1689,21 +1689,21 @@ let _ = register_for_session
 (* We create one main service and two coservices:           *)
 
 let coservices_example = 
-  Eliomservices.new_service
+  Eliom_services.new_service
     ~path:["coserv"] 
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     ()
 
 let coservices_example_post = 
-  Eliomservices.new_post_coservice 
+  Eliom_services.new_post_coservice 
     ~fallback:coservices_example 
-    ~post_params:Eliomparameters.unit
+    ~post_params:Eliom_parameters.unit
     ()
 
 let coservices_example_get = 
-  Eliomservices.new_coservice
+  Eliom_services.new_coservice
     ~fallback:coservices_example
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     ()
 
 
@@ -1714,13 +1714,13 @@ let coservices_example_get =
 let _ = 
   let c = ref 0 in
   let page sp () () = 
-    let l3 = Eliompredefmod.Xhtml.post_form coservices_example_post sp 
-        (fun _ -> [p [Eliompredefmod.Xhtml.string_input 
+    let l3 = Eliom_predefmod.Xhtml.post_form coservices_example_post sp 
+        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input 
                         ~input_type:`Submit
                         ~value:"incr i (post)" ()]]) () 
     in
-    let l4 = Eliompredefmod.Xhtml.get_form coservices_example_get sp 
-        (fun _ -> [p [Eliompredefmod.Xhtml.string_input
+    let l4 = Eliom_predefmod.Xhtml.get_form coservices_example_get sp 
+        (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                         ~input_type:`Submit
                         ~value:"incr i (get)" ()]]) 
     in 
@@ -1734,10 +1734,10 @@ let _ =
               l3;
               l4]))
   in
-  Eliompredefmod.Xhtml.register coservices_example page;
+  Eliom_predefmod.Xhtml.register coservices_example page;
   let f sp () () = c := !c + 1; page sp () () in
-  Eliompredefmod.Xhtml.register coservices_example_post f;
-  Eliompredefmod.Xhtml.register coservices_example_get f
+  Eliom_predefmod.Xhtml.register coservices_example_post f;
+  Eliom_predefmod.Xhtml.register coservices_example_get f
 (*html*
 
       <p>Try $a Tutoeliom.coservices_example sp <:xmllist< <code>coserv</code> >> ()$.</p>
@@ -1817,10 +1817,10 @@ let _ =
        are distinguished by a number (every times different).</p>
        <p>As for attached (co)services, there are GET and POST versions.
        To create them, use 
-       $a ~fragment:"VALnew_service'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_service'" ]] [version;"Eliomservices.html"]$,
-       $a ~fragment:"VALnew_post_service'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_service'" ]] [version;"Eliomservices.html"]$,
-       $a ~fragment:"VALnew_coservice'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_coservice'" ]] [version;"Eliomservices.html"]$ or
-       $a ~fragment:"VALnew_post_coservice'" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_post_coservice'" ]] [version;"Eliomservices.html"]$.
+       $a ~fragment:"VALnew_service'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_service'" ]] [version;"Eliom_services.html"]$,
+       $a ~fragment:"VALnew_post_service'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_post_service'" ]] [version;"Eliom_services.html"]$,
+       $a ~fragment:"VALnew_coservice'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_coservice'" ]] [version;"Eliom_services.html"]$ or
+       $a ~fragment:"VALnew_post_coservice'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_post_coservice'" ]] [version;"Eliom_services.html"]$.
        POST non-attached (co)services are really useful if you want a
        link or form to be present on every page but you don't want the
        URL to change. Very often, POST (co)services are used with <em>actions</em>
@@ -1956,11 +1956,11 @@ let calc_i =
 let calc_handler sp () () =   
   let create_form intname = 
     [p [pcdata "Write a number: ";
-        Eliompredefmod.Xhtml.int_input ~input_type:`Text ~name:intname ();
+        Eliom_predefmod.Xhtml.int_input ~input_type:`Text ~name:intname ();
         br ();
-        Eliompredefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
+        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]]
   in
-  let f = Eliompredefmod.Xhtml.get_form calc_i sp create_form in
+  let f = Eliom_predefmod.Xhtml.get_form calc_i sp create_form in
   return
     (html 
        (head (title (pcdata "")) [])
@@ -2008,8 +2008,8 @@ let calc_i_handler sp i () =
 (* Registration of main services:                           *)
 
 let () =
-  Eliompredefmod.Xhtml.register calc   calc_handler;
-  Eliompredefmod.Xhtml.register calc_i calc_i_handler
+  Eliom_predefmod.Xhtml.register calc   calc_handler;
+  Eliom_predefmod.Xhtml.register calc_i calc_i_handler
 (*html*
       <p>$a Tutoeliom.calc sp <:xmllist< See the result >> ()$.</p>
     </div>
@@ -2028,12 +2028,12 @@ let () =
    (for ex a connection form),
    instead of making a version with post params of all these pages,
    you can use only one action, registered on a non-attached coservice.
-   To register actions, just use the module $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions" ]] [version;"Eliompredefmod.Actions.html"]$
-   instead of $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml" ]] [version;"Eliompredefmod.Xhtml.html"]$ (or $a ~service:senddoc ~sp [code [pcdata "Eliomduce.Xhtml" ]] [version;"Eliomduce.Xhtml.html"]$, etc.).
+   To register actions, just use the module $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions" ]] [version;"Eliom_predefmod.Actions.html"]$
+   instead of $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ (or $a ~service:senddoc ~sp [code [pcdata "Eliom_duce.Xhtml" ]] [version;"Eliom_duce.Xhtml.html"]$, etc.).
    For example
-     <span class="Cem">$a ~fragment:"VALregister" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions.register" ]] [version;"Eliompredefmod.Actions.html"]$</span>,
-     <span class="Cem">$a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions.register_new_service" ]] [version;"Eliompredefmod.Actions.html"]$</span>,
-     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Actions.register_for_session" ]] [version;"Eliommkreg.ELIOMREGSIG1.html"]$</span>.<br/>
+     <span class="Cem">$a ~fragment:"VALregister" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions.register" ]] [version;"Eliom_predefmod.Actions.html"]$</span>,
+     <span class="Cem">$a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions.register_new_service" ]] [version;"Eliom_predefmod.Actions.html"]$</span>,
+     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions.register_for_session" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$</span>.<br/>
       </p>
       <p>Here is one simple example. Suppose you wrote a function
         <code>remove</code> to remove one piece of data from a database
@@ -2043,18 +2043,18 @@ let () =
       </p>
 <pre>
 <span class="Clet">let</span> remove_action <span class="Cnonalphakeyword">=</span>
-  <span class="Cconstructor">Eliomservices</span><span class="Cnonalphakeyword">.</span>register_new_post_coservice'
-    <span class="Clabel">~post_params:</span><span class="Cnonalphakeyword">(</span><span class="Cconstructor">Eliomparameters</span><span class="Cnonalphakeyword">.</span>int <span class="Cstring">"id"</span><span class="Cnonalphakeyword">)</span>
+  <span class="Cconstructor">Eliom_services</span><span class="Cnonalphakeyword">.</span>register_new_post_coservice'
+    <span class="Clabel">~post_params:</span><span class="Cnonalphakeyword">(</span><span class="Cconstructor">Eliom_parameters</span><span class="Cnonalphakeyword">.</span>int <span class="Cstring">"id"</span><span class="Cnonalphakeyword">)</span>
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> sp <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> id <span class="Cnonalphakeyword">-&gt;</span> remove id &gt;&gt;= <span class="Cfun">fun</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span> <span class="Cconstructor">Lwt</span><span class="Cnonalphakeyword">.</span>return <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span></pre>
       <p>Then wherever you want to add a button to do that action 
          (on data <code>id</code>), 
       create a form like:</p>
 <pre>
-<span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>post_form remove_action sp
+<span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>post_form remove_action sp
   <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> id_name <span class="Cnonalphakeyword">-&gt;</span>
-     <span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>int_input
+     <span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>int_input
        <span class="Clabel">~input_type:</span><span class="Cconstructor">`Hidden</span> <span class="Clabel">~name:</span>id_name <span class="Clabel">~value:</span>id <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
-     <span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>string_input
+     <span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>string_input
        <span class="Clabel">~input_type:</span><span class="Cconstructor">`Submit</span> <span class="Clabel">~value:</span><span class="Cnonalphakeyword">(</span><span class="Cstring">"remove "</span>^string_of_int id<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span>
 </pre>
       <p>Here we rewrite the example <code>session_data_example</code> 
@@ -2075,24 +2075,24 @@ let session_name = "connect_example3"
 (* (for connection and disconnection)                       *)
 
 let connect_example3 = 
-  Eliomservices.new_service
+  Eliom_services.new_service
     ~path:["action"] 
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     ()
 
 let connect_action = 
-  Eliomservices.new_post_service'
+  Eliom_services.new_post_service'
     ~name:"connect3"
-    ~post_params:(Eliomparameters.string "login")
+    ~post_params:(Eliom_parameters.string "login")
     ()
     
 (* As the handler is very simple, we register it now: *)
 let disconnect_action = 
-  Eliompredefmod.Actions.register_new_post_service'
+  Eliom_predefmod.Actions.register_new_post_service'
     ~name:"disconnect3"
-    ~post_params:Eliomparameters.unit 
+    ~post_params:Eliom_parameters.unit 
     (fun sp () () -> 
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
       Lwt.return [])
 
 
@@ -2100,16 +2100,16 @@ let disconnect_action =
 (* login ang logout boxes:                                  *)
 
 let disconnect_box sp s = 
-  Eliompredefmod.Xhtml.post_form disconnect_action sp 
-    (fun _ -> [p [Eliompredefmod.Xhtml.string_input
+  Eliom_predefmod.Xhtml.post_form disconnect_action sp 
+    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let login_box sp = 
-  Eliompredefmod.Xhtml.post_form connect_action sp
+  Eliom_predefmod.Xhtml.post_form connect_action sp
     (fun loginname ->
       [p 
          (let l = [pcdata "login: "; 
-                   Eliompredefmod.Xhtml.string_input
+                   Eliom_predefmod.Xhtml.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -2120,17 +2120,17 @@ let login_box sp =
 (* Handler for the "connect_example3" service (main page):    *)
 
 let connect_example3_handler sp () () = 
-  let sessdat = Eliomsessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
+  let sessdat = Eliom_sessions.get_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
        (body 
           (match sessdat with
-          | Eliomsessions.Data name ->
+          | Eliom_sessions.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Eliomsessions.Data_session_expired
-          | Eliomsessions.No_data -> [login_box sp]
+          | Eliom_sessions.Data_session_expired
+          | Eliom_sessions.No_data -> [login_box sp]
           )))
     
 
@@ -2138,8 +2138,8 @@ let connect_example3_handler sp () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler sp () login =
-  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
-  Eliomsessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+  Eliom_sessions.set_volatile_session_data (*zap* *) ~session_name (* *zap*) ~table:my_table ~sp login;
   return []
 
 
@@ -2147,8 +2147,8 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliompredefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
-  Eliompredefmod.Actions.register ~service:connect_action connect_action_handler
+  Eliom_predefmod.Xhtml.register ~service:connect_example3 connect_example3_handler;
+  Eliom_predefmod.Actions.register ~service:connect_action connect_action_handler
 (*html*
       <p>$a Tutoeliom.connect_example3 sp <:xmllist< See these pages >> ()$.</p>
 
@@ -2313,7 +2313,7 @@ let part3 sp =
          $a (static_dir ~sp) sp [pcdata "download image"] [small_logo]$
       </p>
       <p>It is now also possible to handle static pages with Eliom, using
-      <code>Eliompredefmod.Files</code> (<a href="#p3eliomfiles">see later</a>).
+      <code>Eliom_predefmod.Files</code> (<a href="#p3eliomfiles">see later</a>).
       </p>
       <!-- h4>Static parts of a page</h4>
       <em>To be available soon</em -->
@@ -2325,7 +2325,7 @@ let part3 sp =
     <div class="onecol">
     <h4>Sending portions of pages</h4>
     <p>
-     The $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Blocks" ]] [version;"Eliompredefmod.Blocks.html"]$ module allows to register services that
+     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Blocks" ]] [version;"Eliom_predefmod.Blocks.html"]$ module allows to register services that
      send portions of pages, of any type that may be contained directly in
      a <code>&lt;body&gt;</code> tag (blocks of xhtml DTD). 
      It is useful to create AJAX pages
@@ -2333,7 +2333,7 @@ let part3 sp =
      Note that the service returns a list of blocks.</p>
 *html*)
 let divpage = 
-  Eliompredefmod.Blocks.register_new_service 
+  Eliom_predefmod.Blocks.register_new_service 
     ~path:["div"]
     ~get_params:unit
     (fun sp () () -> 
@@ -2342,9 +2342,9 @@ let divpage =
               p [pcdata "Blablablabla"] ]])
 (*html*
      <p>
-     The $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.SubXhtml" ]] [version;"Eliompredefmod.SubXhtml.html"]$ module allows to create other modules for
+     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.SubXhtml" ]] [version;"Eliom_predefmod.SubXhtml.html"]$ module allows to create other modules for
      registering portions of pages of other types. 
-     For example, $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Blocks" ]] [version;"Eliompredefmod.Blocks.html"]$
+     For example, $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Blocks" ]] [version;"Eliom_predefmod.Blocks.html"]$
      is defined by:</p>
 <pre>
 module Blocks = SubXhtml(struct
@@ -2354,12 +2354,12 @@ end)
 
     <h4>Redirections</h4>
     <p>
-     The $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Redirections" ]] [version;"Eliompredefmod.Redirections.html"]$ module allows to register HTTP redirections.
+     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirections" ]] [version;"Eliom_predefmod.Redirections.html"]$ module allows to register HTTP redirections.
      If a request is done towards such a service, the server asks the browser
      to retry with another URL. Example:
     </p>
 *html*)
-let redir = Eliompredefmod.Redirections.register_new_service
+let redir = Eliom_predefmod.Redirections.register_new_service
     ~path:["redir"]
     ~get_params:(int "o")
    (fun sp o () -> return (make_string_uri coucou_params sp (o,(22,"ee"))))
@@ -2373,7 +2373,7 @@ let redir = Eliompredefmod.Redirections.register_new_service
 
      <h4 id="p3eliomfiles">Sending files</h4>
       <p>You may want to register a service that will send files.
-      To do that, use the $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Files" ]] [version;"Eliompredefmod.Files.html"]$ module. Example:
+      To do that, use the $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Files" ]] [version;"Eliom_predefmod.Files.html"]$ module. Example:
       </p>
 <pre>
 let sendfile = 
@@ -2400,26 +2400,26 @@ let sendfile2 =
       <p>You may want to register a service that will send, for instance,
       sometimes
       an xhtml page, sometimes a file, sometimes something else.
-      To do that, use the $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Any" ]] [version;"Eliompredefmod.Any.html"]$ module, together
+      To do that, use the $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Any" ]] [version;"Eliom_predefmod.Any.html"]$ module, together
       with the <code>send</code> function of the module you want
       to use. Example:
       </p>
 *html*)
 let send_any = 
-  Eliompredefmod.Any.register_new_service 
+  Eliom_predefmod.Any.register_new_service 
     ~path:["sendany"]
     ~get_params:(string "type")
    (fun sp s () -> 
      if s = "valid"
      then
-       Eliompredefmod.Xhtml.send sp
+       Eliom_predefmod.Xhtml.send sp
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata 
                         "This page has been statically typechecked. \
                          If you change the parameter in the URL you will get an unchecked text page"]]))
      else 
-       Eliompredefmod.HtmlText.send sp 
+       Eliom_predefmod.HtmlText.send sp 
          "<html><body><p>It is not a valid page. Put type=\"valid\" in the URL to get a typechecked page.</p></body></html>"
    )
 (*html*
@@ -2427,7 +2427,7 @@ let send_any =
       See $a Tutoeliom.send_any sp <:xmllist< a valid page >> "valid"$,
       and $a Tutoeliom.send_any sp <:xmllist< a non valid page >> "non valid"$.
       </p>
-      <p>You may also use $a ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Any" ]] [version;"Eliompredefmod.Any.html"]$ to send cookies or to choose a
+      <p>You may also use $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Any" ]] [version;"Eliom_predefmod.Any.html"]$ to send cookies or to choose a
          different charset than the default 
         (default charset is set in configuration file) 
          for the page you send. To do that use the optional parameters
@@ -2438,10 +2438,10 @@ let send_any =
      <p>
       A simplest way to set your own cookies on the client is to use
       functions like
-      <code>Eliompredefmod.Xhtml.Cookies.register</code> instead of 
-      <code>Eliompredefmod.Xhtml.register</code>.
+      <code>Eliom_predefmod.Xhtml.Cookies.register</code> instead of 
+      <code>Eliom_predefmod.Xhtml.register</code>.
       The function you register returns a pair containing the page (as usual)
-      and a list of cookies, of type <code>Eliomservices.cookie</code> 
+      and a list of cookies, of type <code>Eliom_services.cookie</code> 
       defined by:
       </p>
       <pre>
@@ -2463,7 +2463,7 @@ type cookie =
      </p>
      <p>
       You can access the cookies sent by the browser using
-      $a ~fragment:"VALget_cookies" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_cookies sp" ]] [version;"Eliomsessions.html"]$.
+      $a ~fragment:"VALget_cookies" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_cookies sp" ]] [version;"Eliom_sessions.html"]$.
      </p>
      <p>
       Example:
@@ -2481,11 +2481,11 @@ let _ = Cookies.register cookies
          (body [p [pcdata (try
                              "cookie value: "^
                              (Http_frame.Cookievalues.find
-                                cookiename (Eliomsessions.get_cookies sp))
+                                cookiename (Eliom_sessions.get_cookies sp))
                            with _ -> "<cookie not set>");
                    br ();
                    a cookies sp [pcdata "send other cookie"] ()]])),
-        [Eliomservices.Set (None, None, 
+        [Eliom_services.Set (None, None, 
                        cookiename, 
                        string_of_int (Random.int 100))]))
 (*html*
@@ -2667,13 +2667,13 @@ let my_persistent_table =
 (* (for connection and disconnection)                       *)
 
 let persist_session_example = 
-  Eliomservices.new_service
+  Eliom_services.new_service
     ~path:["persist"] 
     ~get_params:unit 
     ()
 
 let persist_session_connect_action = 
-  Eliomservices.new_post_service'
+  Eliom_services.new_post_service'
     ~name:"connect4"
     ~post_params:(string "login") 
     ()
@@ -2687,16 +2687,16 @@ let persist_session_connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action = 
-  Eliompredefmod.Actions.register_new_post_service'
+  Eliom_predefmod.Actions.register_new_post_service'
     ~name:"disconnect4"
-    ~post_params:Eliomparameters.unit 
+    ~post_params:Eliom_parameters.unit 
     (fun sp () () -> 
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
       return [])
 
 let disconnect_box sp s = 
-  Eliompredefmod.Xhtml.post_form disconnect_action sp 
-    (fun _ -> [p [Eliompredefmod.Xhtml.string_input
+  Eliom_predefmod.Xhtml.post_form disconnect_action sp 
+    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
   
@@ -2706,13 +2706,13 @@ exception Bad_user
 (* new login box:                                           *)
 
 let login_box sp session_expired action =
-  Eliompredefmod.Xhtml.post_form action sp
+  Eliom_predefmod.Xhtml.post_form action sp
     (fun loginname ->
       let l =
         [pcdata "login: "; 
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      let exnlist = Eliomsessions.get_exn sp in
+      let exnlist = Eliom_sessions.get_exn sp in
       (* If exnlist is not empty, something went wrong
          during an action. We write an error message: *)
       [p (if List.mem Bad_user exnlist
@@ -2730,20 +2730,20 @@ let login_box sp session_expired action =
 (* Handler for "persist_session_example" service (main page):  *)
 
 let persist_session_example_handler sp () () = 
-  Eliomsessions.get_persistent_session_data (*zap* *) ~session_name (* *zap*) 
+  Eliom_sessions.get_persistent_session_data (*zap* *) ~session_name (* *zap*) 
     ~table:my_persistent_table ~sp () >>= fun sessdat ->
   return
     (html
        (head (title (pcdata "")) [])
        (body 
           (match sessdat with
-          | Eliomsessions.Data name ->
+          | Eliom_sessions.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Eliomsessions.Data_session_expired -> 
+          | Eliom_sessions.Data_session_expired -> 
               [login_box sp true persist_session_connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
-          | Eliomsessions.No_data -> 
+          | Eliom_sessions.No_data -> 
               [login_box sp false persist_session_connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
           )))
@@ -2753,10 +2753,10 @@ let persist_session_example_handler sp () () =
 (* Handler for persist_session_connect_action (user logs in):  *)
 
 let persist_session_connect_action_handler sp () login =
-  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliomsessions.set_persistent_session_data (*zap* *) ~session_name (* *zap*) ~table:my_persistent_table ~sp login >>= fun () ->
+    Eliom_sessions.set_persistent_session_data (*zap* *) ~session_name (* *zap*) ~table:my_persistent_table ~sp login >>= fun () ->
     return []
   end
   else return [Bad_user]
@@ -2766,10 +2766,10 @@ let persist_session_connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () = 
-  Eliompredefmod.Xhtml.register 
+  Eliom_predefmod.Xhtml.register 
     ~service:persist_session_example
     persist_session_example_handler;
-  Eliompredefmod.Actions.register 
+  Eliom_predefmod.Actions.register 
     ~service:persist_session_connect_action 
     persist_session_connect_action_handler
 (*html*
@@ -2825,24 +2825,24 @@ let session_name = "connect_example5"
 (* (for connection and disconnection)                       *)
 
 let connect_example5 = 
-  Eliomservices.new_service
+  Eliom_services.new_service
     ~path:["groups"] 
-    ~get_params:Eliomparameters.unit
+    ~get_params:Eliom_parameters.unit
     ()
 
 let connect_action = 
-  Eliomservices.new_post_service'
+  Eliom_services.new_post_service'
     ~name:"connect5"
-    ~post_params:(Eliomparameters.string "login")
+    ~post_params:(Eliom_parameters.string "login")
     ()
     
 (* As the handler is very simple, we register it now: *)
 let disconnect_action = 
-  Eliompredefmod.Actions.register_new_post_service'
+  Eliom_predefmod.Actions.register_new_post_service'
     ~name:"disconnect5"
-    ~post_params:Eliomparameters.unit 
+    ~post_params:Eliom_parameters.unit 
     (fun sp () () -> 
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
       Lwt.return [])
 
 
@@ -2850,16 +2850,16 @@ let disconnect_action =
 (* login ang logout boxes:                                  *)
 
 let disconnect_box sp s = 
-  Eliompredefmod.Xhtml.post_form disconnect_action sp 
-    (fun _ -> [p [Eliompredefmod.Xhtml.string_input
+  Eliom_predefmod.Xhtml.post_form disconnect_action sp 
+    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
 let login_box sp = 
-  Eliompredefmod.Xhtml.post_form connect_action sp
+  Eliom_predefmod.Xhtml.post_form connect_action sp
     (fun loginname ->
       [p 
          (let l = [pcdata "login: "; 
-                   Eliompredefmod.Xhtml.string_input
+                   Eliom_predefmod.Xhtml.string_input
                      ~input_type:`Text ~name:loginname ()]
          in l)
      ])
@@ -2870,17 +2870,17 @@ let login_box sp =
 (* Handler for the "connect_example5" service (main page):    *)
 
 let connect_example5_handler sp () () = 
-  let sessdat = Eliomsessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
+  let sessdat = Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () in
   return
     (html
        (head (title (pcdata "")) [])
        (body 
           (match sessdat with
-          | Eliomsessions.Data name ->
+          | Eliom_sessions.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Eliomsessions.Data_session_expired
-          | Eliomsessions.No_data -> [login_box sp]
+          | Eliom_sessions.Data_session_expired
+          | Eliom_sessions.No_data -> [login_box sp]
           )))
     
 
@@ -2888,8 +2888,8 @@ let connect_example5_handler sp () () =
 (* Handler for connect_action (user logs in):               *)
 
 let connect_action_handler sp () login =
-  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
-  Eliomsessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login;
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+  Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login;
   return []
 
 
@@ -2897,8 +2897,8 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () =
-  Eliompredefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
-  Eliompredefmod.Actions.register ~service:connect_action connect_action_handler
+  Eliom_predefmod.Xhtml.register ~service:connect_example5 connect_example5_handler;
+  Eliom_predefmod.Actions.register ~service:connect_action connect_action_handler
 (*html*
 
     <p>
@@ -2931,7 +2931,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 
     <p>Fallbacks have access to some information about what succeeded before
     they were called. Get this information using 
-     $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_exn sp" ]] [version;"Eliomsessions.html"]$; That function returns a list of exceptions.
+     $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_exn sp" ]] [version;"Eliom_sessions.html"]$; That function returns a list of exceptions.
     That list contains $a ~fragment:"EXCEPTIONEliom_Link_too_old" ~service:senddoc ~sp [code [pcdata "Eliommod.Eliom_Link_too_old" ]] [version;"Eliommod.html"]$ if the coservice
     was not found, and $a ~fragment:"EXCEPTIONEliom_Service_session_expired" ~service:senddoc ~sp [code [pcdata "Eliommod.Eliom_Service_session_expired" ]] [version;"Eliommod.html"]$ if the "service session" has expired.
     </p>
@@ -2939,7 +2939,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     It is also possible to tell actions to send information to the page
     generated after them. Just place exceptions in the list returned by the
     action. These exceptions will also be accessible with 
-    $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_exn" ]] [version;"Eliomsessions.html"]$. Try to replace the lines 
+    $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_exn" ]] [version;"Eliom_sessions.html"]$. Try to replace the lines 
           $a ~fragment:"p2actions" 
          ~service:tutocur2 
          ~sp
@@ -2960,13 +2960,13 @@ let session_name = "connect_example6"
 (* (for connection and disconnection)                       *)
 
 let connect_example6 = 
-  Eliomservices.new_service
+  Eliom_services.new_service
     ~path:["action2"] 
     ~get_params:unit 
     ()
 
 let connect_action = 
-  Eliomservices.new_post_service'
+  Eliom_services.new_post_service'
     ~name:"connect6"
     ~post_params:(string "login") 
     ()
@@ -2980,16 +2980,16 @@ let connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action = 
-  Eliompredefmod.Actions.register_new_post_service'
+  Eliom_predefmod.Actions.register_new_post_service'
     ~name:"disconnect6"
-    ~post_params:Eliomparameters.unit 
+    ~post_params:Eliom_parameters.unit 
     (fun sp () () -> 
-      Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+      Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
       return [])
 
 let disconnect_box sp s = 
-  Eliompredefmod.Xhtml.post_form disconnect_action sp 
-    (fun _ -> [p [Eliompredefmod.Xhtml.string_input
+  Eliom_predefmod.Xhtml.post_form disconnect_action sp 
+    (fun _ -> [p [Eliom_predefmod.Xhtml.string_input
                     ~input_type:`Submit ~value:s ()]]) ()
 
   
@@ -2999,13 +2999,13 @@ exception Bad_user
 (* new login box:                                           *)
 
 let login_box sp session_expired action =
-  Eliompredefmod.Xhtml.post_form action sp
+  Eliom_predefmod.Xhtml.post_form action sp
     (fun loginname ->
       let l =
         [pcdata "login: "; 
          string_input ~input_type:`Text ~name:loginname ()]
       in
-      let exnlist = Eliomsessions.get_exn sp in
+      let exnlist = Eliom_sessions.get_exn sp in
       (* If exnlist is not empty, something went wrong
          during an action. We write an error message: *)
       [p (if List.mem Bad_user exnlist
@@ -3023,20 +3023,20 @@ let login_box sp session_expired action =
 
 let connect_example6_handler sp () () = 
   let group = 
-    Eliomsessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () 
+    Eliom_sessions.get_volatile_data_session_group (*zap* *) ~session_name (* *zap*) ~sp () 
   in
   return
     (html
        (head (title (pcdata "")) [])
        (body 
           (match group with
-          | Eliomsessions.Data name ->
+          | Eliom_sessions.Data name ->
               [p [pcdata ("Hello "^name); br ()];
               disconnect_box sp "Close session"]
-          | Eliomsessions.Data_session_expired -> 
+          | Eliom_sessions.Data_session_expired -> 
               [login_box sp true connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
-          | Eliomsessions.No_data -> 
+          | Eliom_sessions.No_data -> 
               [login_box sp false connect_action;
                p [em [pcdata "The only user is 'toto'."]]]
           )))
@@ -3046,10 +3046,10 @@ let connect_example6_handler sp () () =
 (* New handler for connect_action (user logs in):           *)
 
 let connect_action_handler sp () login =
-  Eliomsessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
+  Eliom_sessions.close_session (*zap* *) ~session_name (* *zap*) ~sp () >>= fun () -> 
   if login = "toto" (* Check user and password :-) *)
   then begin
-    Eliomsessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login; 
+    Eliom_sessions.set_volatile_data_session_group ~set_max:(Some 10) (*zap* *) ~session_name (* *zap*) ~sp login; 
     return []
   end
   else return [Bad_user]
@@ -3060,8 +3060,8 @@ let connect_action_handler sp () login =
 (* Registration of main services:                           *)
 
 let () = 
-  Eliompredefmod.Xhtml.register ~service:connect_example6 connect_example6_handler;
-  Eliompredefmod.Actions.register ~service:connect_action connect_action_handler
+  Eliom_predefmod.Xhtml.register ~service:connect_example6 connect_example6_handler;
+  Eliom_predefmod.Actions.register ~service:connect_action connect_action_handler
 (* *zap*)
 (*html*
       <p>
@@ -3105,7 +3105,7 @@ let _ = register disposable
           (head (title (pcdata "")) [])
           (body [p [(if List.mem
                           Eliommod.Eliom_Link_too_old
-                          (Eliomsessions.get_exn sp)
+                          (Eliom_sessions.get_exn sp)
                     then pcdata "Your link was outdated. I am the fallback. I just created a new disposable coservice. You can use it only twice."
                     else
                     pcdata "I just created a disposable coservice. You can use it only twice.");
@@ -3120,19 +3120,19 @@ let _ = register disposable
        You can change that value for your whole site during initialisation 
        using:</p>
 <pre>
-Eliomsessions.set_global_volatile_timeout (Some 7200.)
+Eliom_sessions.set_global_volatile_timeout (Some 7200.)
 </pre>
       <p>Here 7200 seconds. <code>None</code> means no timeout.</p>
       <p>
        You can change that value for your whole site after initialisation 
        using:</p>
 <pre>
-Eliomsessions.set_global_volatile_timeout ~sp (Some 7200.)
+Eliom_sessions.set_global_volatile_timeout ~sp (Some 7200.)
 </pre>
       <p>
        You can change that value for one user only using:</p>
 <pre>
-Eliomsessions.set_volatile_session_timeout ~sp (Some 7200.)
+Eliom_sessions.set_volatile_session_timeout ~sp (Some 7200.)
 </pre>
       <p>
       Note that there is also a possibility to change the default value
@@ -3144,12 +3144,12 @@ Eliomsessions.set_volatile_session_timeout ~sp (Some 7200.)
 </pre>
      <p><code>value="infinity"</code> means no timeout.</p>
      <p>Warning: that default may be overriden by each site using 
-        $a ~fragment:"VALset_global_volatile_timeout" ~service:senddoc ~sp [code [pcdata "Eliomsessions.set_global_volatile_timeout" ]] [version;"Eliomsessions.html"]$ or
-        $a ~fragment:"VALset_default_volatile_timeout" ~service:senddoc ~sp [code [pcdata "Eliomsessions.set_default_volatile_timeout" ]] [version;"Eliomsessions.html"]$.
+        $a ~fragment:"VALset_global_volatile_timeout" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.set_global_volatile_timeout" ]] [version;"Eliom_sessions.html"]$ or
+        $a ~fragment:"VALset_default_volatile_timeout" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.set_default_volatile_timeout" ]] [version;"Eliom_sessions.html"]$.
         If you want your user to be able to set the default in the 
         configuration file for your site (between <code>&lt;site&gt;</code>
         and <code>&lt;/site&gt;</code>), you must parse the configuration
-        ($a ~fragment:"VALget_config" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_config ()" ]] [version;"Eliomsessions.html"]$ function, see below).
+        ($a ~fragment:"VALget_config" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_config ()" ]] [version;"Eliom_sessions.html"]$ function, see below).
      </p>
 
 
@@ -3249,20 +3249,20 @@ let _ =
      or when the page has not been found or has wrong parameters,
      an HTTP error 500 or 404 is sent to the client. You may want to
      catch these exceptions to print your own error page.
-     Do this using $a ~fragment:"VALset_exn_handler" ~service:senddoc ~sp [code [pcdata "Eliomservices.set_exn_handler" ]] [version;"Eliomservices.html"]$.
+     Do this using $a ~fragment:"VALset_exn_handler" ~service:senddoc ~sp [code [pcdata "Eliom_services.set_exn_handler" ]] [version;"Eliom_services.html"]$.
      Here is the handler used by this tutorial:
      </p>
 *html*)
-let _ = Eliomservices.set_exn_handler 
+let _ = Eliom_services.set_exn_handler 
    (fun sp e -> match e with
     | Eliommod.Eliom_404 -> 
-        Eliompredefmod.Xhtml.send ~code:404 ~sp
+        Eliom_predefmod.Xhtml.send ~code:404 ~sp
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"]; 
                     p [pcdata "Page not found"]]))
     | Eliommod.Eliom_Wrong_parameter ->
-        Eliompredefmod.Xhtml.send ~sp
+        Eliom_predefmod.Xhtml.send ~sp
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"]; 
@@ -3278,7 +3278,7 @@ let _ = Eliomservices.set_exn_handler
     &lt;/eliom&gt;
 </pre>
       <p>
-       Use $a ~fragment:"VALget_config" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_config ()" ]] [version;"Eliomsessions.html"]$ during the initialization
+       Use $a ~fragment:"VALget_config" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_config ()" ]] [version;"Eliom_sessions.html"]$ during the initialization
        of your module to get the data between
        <code>&lt;eliom&gt;</code> and <code>&lt;/eliom&gt;</code>.
        Warning: parsing these data is very basic for now.
@@ -3292,22 +3292,22 @@ let _ = Eliomservices.set_exn_handler
         <li>one for persistent session data.</li>
       </ul>
       <p>They correspond to three different sessions (opened only if needed).
-   <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliomsessions.close_session" ]] [version;"Eliomsessions.html"]$</span>
+   <span class="Cem">$a ~fragment:"VALclose_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_session" ]] [version;"Eliom_sessions.html"]$</span>
        closes all three sessions, but you may want to desynchronize
        the three sessions by using
-   <span class="Cem">$a ~fragment:"VALclose_persistent_session" ~service:senddoc ~sp [code [pcdata "Eliomsessions.close_persistent_session" ]] [version;"Eliomsessions.html"]$</span> (persistent session),
-   <span class="Cem">$a ~fragment:"VALclose_service_session" ~service:senddoc ~sp [code [pcdata "Eliomsessions.close_service_session" ]] [version;"Eliomsessions.html"]$</span> (session services), or
-   <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:senddoc ~sp [code [pcdata "Eliomsessions.close_data_session" ]] [version;"Eliomsessions.html"]$</span> (volatile data session).
+   <span class="Cem">$a ~fragment:"VALclose_persistent_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_persistent_session" ]] [version;"Eliom_sessions.html"]$</span> (persistent session),
+   <span class="Cem">$a ~fragment:"VALclose_service_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_service_session" ]] [version;"Eliom_sessions.html"]$</span> (session services), or
+   <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_data_session" ]] [version;"Eliom_sessions.html"]$</span> (volatile data session).
      There is also
-   <span class="Cem">$a ~fragment:"VALclose_volatile_session" ~service:senddoc ~sp [code [pcdata "Eliomsessions.close_volatile_session" ]] [version;"Eliomsessions.html"]$</span> for both volatile data session and session services.
-       The module $a ~service:senddoc ~sp [code [pcdata "Eliomsessions" ]] [version;"Eliomsessions.html"]$ also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
+   <span class="Cem">$a ~fragment:"VALclose_volatile_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_volatile_session" ]] [version;"Eliom_sessions.html"]$</span> for both volatile data session and session services.
+       The module $a ~service:senddoc ~sp [code [pcdata "Eliom_sessions" ]] [version;"Eliom_sessions.html"]$ also contains functions for setting timeouts or expiration dates for cookies for each kind of session.
       </p>
       <p>If you need more sessions (for example several different data sessions)
          for the same site, you can give a name to your sessions by giving
          the optional parameter <code>?session_name</code> to functions like
-     <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:senddoc ~sp [code [pcdata "Eliomsessions.close_data_session" ]] [version;"Eliomsessions.html"]$</span>,
-     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "register_for_session" ]] [version;"Eliommkreg.ELIOMREGSIG1.html"]$</span>, or
-      $a ~fragment:"VALget_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_volatile_session_data" ]] [version;"Eliomsessions.html"]$.
+     <span class="Cem">$a ~fragment:"VALclose_data_session" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.close_data_session" ]] [version;"Eliom_sessions.html"]$</span>,
+     <span class="Cem">$a ~fragment:"VALregister_for_session" ~service:senddoc ~sp [code [pcdata "register_for_session" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$</span>, or
+      $a ~fragment:"VALget_volatile_session_data" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_volatile_session_data" ]] [version;"Eliom_sessions.html"]$.
        Note that this tutorial has been implemented using this feature,
        even if it has been hidden for the sake of simplicity.
        That's how the different examples of sessions in this tutorial are
@@ -3326,7 +3326,7 @@ let _ = Eliomservices.set_exn_handler
       corresponding forms.</p>
       <h4>Parsing parameters using regular expressions</h4>
       <p>
-        Eliomparameters.regexp allows to parse page parameters using (Perl-compatible)
+        Eliom_parameters.regexp allows to parse page parameters using (Perl-compatible)
         regular expressions. We use the module <code>Netstring_pcre</code>,
         from <em>OCamlnet</em>. See the documentation about OCamlnet
         for more information.
@@ -3337,7 +3337,7 @@ let _ = Eliomservices.set_exn_handler
 <span class="Clet">let</span> r <span class="Cnonalphakeyword">=</span> <span class="Cconstructor">Netstring_pcre</span><span class="Cnonalphakeyword">.</span>regexp <span class="Cstring">"\\\\[(.*)\\\\]"</span>
 
 <span class="Clet">let</span> regexp <span class="Cnonalphakeyword">=</span> 
-  <span class="Cconstructor">Eliompredefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
+  <span class="Cconstructor">Eliom_predefmod</span><span class="Cnonalphakeyword">.</span><span class="Cconstructor">Xhtml</span><span class="Cnonalphakeyword">.</span>register_new_service 
     <span class="Clabel">~path:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"regexp"</span><span class="Cnonalphakeyword">]</span>
     <span class="Clabel">~get_params:</span><span class="Cnonalphakeyword">(</span>regexp r <span class="Cstring">"$$1"</span> <span class="Cstring">"myparam"</span><span class="Cnonalphakeyword">)</span>
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> <span class="Cnonalphakeyword">_</span> g <span class="Cnonalphakeyword">(</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span> 
@@ -3351,7 +3351,7 @@ let _ = Eliomservices.set_exn_handler
 let myregexp = Netstring_pcre.regexp "\\[(.*)\\]"
 
 let regexpserv = 
-  Eliompredefmod.Xhtml.register_new_service 
+  Eliom_predefmod.Xhtml.register_new_service 
     ~path:["regexp"]
     ~get_params:(regexp myregexp "$1" "myparam")
     (fun _ g () -> 
@@ -3415,21 +3415,21 @@ let form_bool = register_new_service ["formbool"] unit
       <p>Other types similar to bool:</p>
       <ul>
        <li>
-        $a ~fragment:"VALopt" ~service:senddoc ~sp [code [pcdata "Eliomparameters.opt" ]] [version;"Eliomparameters.html"]$ (page taking an optional parameter),</li>
+        $a ~fragment:"VALopt" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.opt" ]] [version;"Eliom_parameters.html"]$ (page taking an optional parameter),</li>
        <li>
-        $a ~fragment:"VALsum" ~service:senddoc ~sp [code [pcdata "Eliomparameters.sum" ]] [version;"Eliomparameters.html"]$ (either a parameter or another).</li>
+        $a ~fragment:"VALsum" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.sum" ]] [version;"Eliom_parameters.html"]$ (either a parameter or another).</li>
       </ul>
       <p>
         See the interface 
         $a ~service:senddoc ~sp [pcdata "here"] 
-          [version;"Eliomparameters.html"]$.
+          [version;"Eliom_parameters.html"]$.
       </p>
 
       <h4>Type <code>set</code></h4>
       <p>Page may take several parameters of the same name.
       It is useful when you want to create a form with a variable number
       of fields.
-      To do that with Eliom, use the type $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "Eliomparameters.set" ]] [version;"Eliomparameters.html"]$.
+      To do that with Eliom, use the type $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.set" ]] [version;"Eliom_parameters.html"]$.
       For example <code>set int "val"</code> means that the page will take
       zero, one or several parameters of name <code>"val"</code>,
       all of type <code>int</code>.
@@ -3508,13 +3508,13 @@ let select_example_result = register_new_service
 let create_select_form = 
   (fun select_name ->
     [p [pcdata "Select something: ";
-        Eliompredefmod.Xhtml.string_select ~name:select_name 
-          (Eliompredefmod.Xhtml.Option ([] (* attributes *), 
+        Eliom_predefmod.Xhtml.string_select ~name:select_name 
+          (Eliom_predefmod.Xhtml.Option ([] (* attributes *), 
                                         "Bob" (* value *), 
                                         None (* Content, if different from value *), 
                                         false (* not selected *))) (* first line *)
-          [Eliompredefmod.Xhtml.Option ([], "Marc", None, false);
-          (Eliompredefmod.Xhtml.Optgroup
+          [Eliom_predefmod.Xhtml.Option ([], "Marc", None, false);
+          (Eliom_predefmod.Xhtml.Optgroup
           ([],
            "Girls",
            ([], "Karin", None, false),
@@ -3522,12 +3522,12 @@ let create_select_form =
             ([], "Alice", None, true);
             ([], "Germaine", Some (pcdata "Bob's mother"), false)]))]
           ;
-        Eliompredefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]])
+        Eliom_predefmod.Xhtml.string_input ~input_type:`Submit ~value:"Send" ()]])
 
 let select_example = register_new_service ["select"] unit
   (fun sp () () -> 
      let f = 
-       Eliompredefmod.Xhtml.get_form
+       Eliom_predefmod.Xhtml.get_form
          select_example_result sp create_select_form 
      in 
      return
@@ -3537,9 +3537,9 @@ let select_example = register_new_service ["select"] unit
 (*html*
       <p>$a Tutoeliom.select_example sp <:xmllist< Try it >> ()$.</p>
      <p>To do "multiple" select boxes, use functions like
-   $a ~fragment:"VALstring_multiple_select" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.string_multiple_select" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$. 
+   $a ~fragment:"VALstring_multiple_select" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.string_multiple_select" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$. 
    As you can see in the type, the service must be declared with parameters
-   of type $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "set" ]] [version;"Eliomparameters.html"]$.
+   of type $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "set" ]] [version;"Eliom_parameters.html"]$.
      </p>
 
 
@@ -3623,8 +3623,8 @@ let imageform2 = register_new_service
 
 
       <h4>Type <code>list</code></h4>
-        <p>Another way (than $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "Eliomparameters.set" ]] [version;"Eliomparameters.html"]$) to do variable length forms
-        is to use indexed lists (using $a ~fragment:"VALlist" ~service:senddoc ~sp [code [pcdata "Eliomparameters.list" ]] [version;"Eliomparameters.html"]$).
+        <p>Another way (than $a ~fragment:"VALset" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.set" ]] [version;"Eliom_parameters.html"]$) to do variable length forms
+        is to use indexed lists (using $a ~fragment:"VALlist" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.list" ]] [version;"Eliom_parameters.html"]$).
         The use of that feature is a bit more complex than <code>set</code>
         and still experimental.
         Here is an example of service taking an indexed list as parameter:
@@ -3744,19 +3744,19 @@ let suffixform = register_new_service ["suffixform"] unit
 
       <h4>Uploading files</h4>
 
-      <p>The $a ~fragment:"VALfile" ~service:senddoc ~sp [code [pcdata "Eliomparameters.file" ]] [version;"Eliomparameters.html"]$ parameter type allows to send files in your
+      <p>The $a ~fragment:"VALfile" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.file" ]] [version;"Eliom_parameters.html"]$ parameter type allows to send files in your
        request. The service gets something of type 
        $a ~fragment:"TYPEfile_info" ~service:senddoc ~sp [code [pcdata "Extensions.file_info" ]] [version;"Extensions.html"]$. You can extract information
-       using this using these functions (from $a ~service:senddoc ~sp [code [pcdata "Eliomsessions" ]] [version;"Eliomsessions.html"]$):
+       using this using these functions (from $a ~service:senddoc ~sp [code [pcdata "Eliom_sessions" ]] [version;"Eliom_sessions.html"]$):
       </p>
 <pre>
 val get_tmp_filename : Extensions.file_info -&gt; string
 val get_filesize : Extensions.file_info -&gt; int64
 val get_original_filename : Extensions.file_info -&gt; string
 </pre>
-      <p>$a ~fragment:"VALget_tmp_filename" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_tmp_filename" ]] [version;"Eliomsessions.html"]$ allows to know the actual name
+      <p>$a ~fragment:"VALget_tmp_filename" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_tmp_filename" ]] [version;"Eliom_sessions.html"]$ allows to know the actual name
        of the uploaded file on the hard disk.
-        $a ~fragment:"VALget_original_filename" ~service:senddoc ~sp [code [pcdata "Eliomsessions.get_original_filename" ]] [version;"Eliomsessions.html"]$ gives the original filename.</p>
+        $a ~fragment:"VALget_original_filename" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_original_filename" ]] [version;"Eliom_sessions.html"]$ gives the original filename.</p>
       <p>To make possible the upload of files, you must configure a
       directory for uploaded files in Ocsigen's configuration file.
       For example:
@@ -3786,7 +3786,7 @@ let upload2 = register_new_post_service
         (try
           Unix.unlink newname;
         with _ -> ());
-        Unix.link (Eliomsessions.get_tmp_filename file) newname;
+        Unix.link (Eliom_sessions.get_tmp_filename file) newname;
         let fd_in = open_in newname in
         try
           let line = input_line fd_in in close_in fd_in; line (*end*)
@@ -3829,9 +3829,9 @@ let uploadform = register upload
       To include an image, simply use the function $a ~fragment:"VALimg" ~service:senddoc ~sp [code [pcdata "XHTML.M.img" ]] [version;"XHTML.M.html"]$:
       </p>
       <pre>img <span class="Clabel">~alt:</span>"Ocsigen" 
-    <span class="Clabel">~src:</span>(<span class="Cem">Eliompredefmod.Xhtml.make_uri</span> ~service:senddoc ~sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
+    <span class="Clabel">~src:</span>(<span class="Cem">Eliom_predefmod.Xhtml.make_uri</span> ~service:senddoc ~sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
     ()</pre>
-      <p>The function <span class="Cem">$a ~fragment:"VALmake_uri" ~service:senddoc ~sp [code [pcdata "Eliompredefmod.Xhtml.make_uri" ]] [version;"Eliompredefmod.XHTMLFORMSSIG.html"]$</span>
+      <p>The function <span class="Cem">$a ~fragment:"VALmake_uri" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.make_uri" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$</span>
         creates the relative URL string from current URL (in <code>sp</code>)
         (see above) to the URL of the image in the static directory
         configured in the configuration file.
@@ -3844,11 +3844,11 @@ let uploadform = register upload
       <h4>Basic menus</h4>
       <p>
       To make a menu on your web page, you can use the function 
-          <span class="Cem">$a ~fragment:"VALmenu" ~service:senddoc ~sp [code [pcdata "Eliomtools.menu" ]] [version;"Eliomtools.html"]$</span>.
+          <span class="Cem">$a ~fragment:"VALmenu" ~service:senddoc ~sp [code [pcdata "Eliom_tools.menu" ]] [version;"Eliom_tools.html"]$</span>.
       First, define your menu like this:
       </p>
 <pre><span class="Clet">let</span> mymenu current sp <span class="Cnonalphakeyword">=</span>
-  <span class="Cconstructor">Eliomtools</span>.menu <span class="Clabel">~classe:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"menuprincipal"</span><span class="Cnonalphakeyword">]</span>
+  <span class="Cconstructor">Eliom_tools</span>.menu <span class="Clabel">~classe:</span><span class="Cnonalphakeyword">[</span><span class="Cstring">"menuprincipal"</span><span class="Cnonalphakeyword">]</span>
     <span class="Cnonalphakeyword">(</span>home<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> Home &gt;&gt;<span class="Cnonalphakeyword">)</span>
     <span class="Cnonalphakeyword">[</span>
      <span class="Cnonalphakeyword">(</span>infos<span class="Cnonalphakeyword">,</span> &lt;:xmllist<span class="Cnonalphakeyword">&lt;</span> More info &gt;&gt;<span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">;</span>
@@ -3856,7 +3856,7 @@ let uploadform = register upload
    <span class="Cnonalphakeyword">]</span> current sp</pre>
       <p>Here, <code>home</code>,  <code>infos</code>, 
         and <code>tutorial</code> are your three pages (generated for example
-        by $a ~fragment:"VALnew_service" ~service:senddoc ~sp [code [pcdata "Eliomservices.new_service" ]] [version;"Eliomservices.html"]$).</p>
+        by $a ~fragment:"VALnew_service" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_service" ]] [version;"Eliom_services.html"]$).</p>
 
 
 
@@ -3871,7 +3871,7 @@ let uploadform = register upload
   &lt;/li&gt;
 &lt;/ul&gt;</pre>
     <p>Personalise it in your CSS style-sheet.</p>
-    <p>$a ~fragment:"VALmenu" ~service:senddoc ~sp [code [pcdata "Eliomtools.menu" ]] [version;"Eliomtools.html"]$ takes a list of services without
+    <p>$a ~fragment:"VALmenu" ~service:senddoc ~sp [code [pcdata "Eliom_tools.menu" ]] [version;"Eliom_tools.html"]$ takes a list of services without
     GET parameters. 
     If you want one of the link to contains GET parameters, pre-apply
     the service.</p>
@@ -3887,7 +3887,7 @@ let uploadform = register upload
       </p>
 *html*)
 (* Hierarchical menu *)
-open Eliomtools
+open Eliom_tools
 
 let hier1 = new_service ~path:["hier1"] ~get_params:unit ()
 let hier2 = new_service ~path:["hier2"] ~get_params:unit ()
@@ -4055,13 +4055,13 @@ let _ =
 
 let home sp () () =
    match get_volatile_session_data ~table:my_table ~sp () with
-   | Eliomsessions.Data_session_expired
-   | Eliomsessions.No_data -&gt;
+   | Eliom_sessions.Data_session_expired
+   | Eliom_sessions.No_data -&gt;
      page sp
        [h1 [pcdata "My site"];
         login_box sp connect_action;
         news_headers_list_box sp anonymoususer news_page]
-   | Eliomsessions.Data user -&gt;
+   | Eliom_sessions.Data user -&gt;
       page sp
         [h1 [pcdata "Mon site"];
          text_box "Bonjour !";
@@ -4070,13 +4070,13 @@ let home sp () () =
 
 let print_news_page sp i () = 
    match get_volatile_session_data ~table:my_table ~sp () with
-   | Eliomsessions.Data_session_expired
-   | Eliomsessions.No_data -&gt;
+   | Eliom_sessions.Data_session_expired
+   | Eliom_sessions.No_data -&gt;
       page sp
         [h1 [pcdata "Info"];
          login_box sp connect_action;
          message_box i anonymoususer]
-   | Eliomsessions.Data user -&gt;
+   | Eliom_sessions.Data user -&gt;
       page sp
         [h1 [pcdata "Info"];
          connected_box sp user disconnect_action;
@@ -4095,7 +4095,7 @@ let print_news_page sp i () =
 <span class="Clet">let</span> launch_session sp user <span class="Cnonalphakeyword">=</span>
   set_volatile_session_data my_table sp user
 
-<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Eliompredefmod.Actions.register
+<span class="Clet">let</span> <span class="Cnonalphakeyword">_</span> <span class="Cnonalphakeyword">=</span> Eliom_predefmod.Actions.register
   <span class="Clabel">~action:</span>connect_action
     <span class="Cnonalphakeyword">(</span><span class="Cfun">fun</span> h <span class="Cnonalphakeyword">(</span>login<span class="Cnonalphakeyword">,</span> password<span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">-&gt;</span>
       launch_session sp <span class="Cnonalphakeyword">(</span>connect login password<span class="Cnonalphakeyword">)</span>; return []<span class="Cnonalphakeyword">)</span>
@@ -4138,7 +4138,7 @@ let _ = register main
        </head>
        <body>
          
-         <h1>$img ~alt:"Ocsigen" ~src:(Eliompredefmod.Xhtml.make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"]) ()$</h1>
+         <h1>$img ~alt:"Ocsigen" ~src:(Eliom_predefmod.Xhtml.make_uri ~service:(static_dir sp) ~sp ["ocsigen5.png"]) ()$</h1>
 
        <h3>Eliom examples</h3>
        <h4>Simple pages</h4>

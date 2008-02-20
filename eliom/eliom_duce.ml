@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliomduce
+ * Module Eliom_duce
  * Copyright (C) 2007 Vincent Balat, Alain Frisch
  * CNRS - Université Paris Diderot Paris 7
  *
@@ -27,8 +27,8 @@ open Predefined_senders
 open Ocsistream
 open Xhtml1_strict
 open Extensions
-open Eliommkforms
-open Eliommkreg
+open Eliom_mkforms
+open Eliom_mkreg
 
 let add_css (a : html) : html = 
   let css = 
@@ -99,13 +99,13 @@ module Xhtmlreg_ = struct
   let send ?(cookies=[]) ?charset ?code ~sp content = 
     Ocamlduce_content.result_of_content content >>= fun r ->
     Lwt.return 
-        (Eliomservices.EliomResult
+        (Eliom_services.EliomResult
            {r with
             res_cookies= 
-            Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+            Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-            | None -> Some (Eliomsessions.get_config_file_charset sp)
+            | None -> Some (Eliom_sessions.get_config_file_charset sp)
             | _ -> charset)
           })
 
@@ -284,8 +284,8 @@ module Xhtmlforms_ = struct
 
 end
 
-module Xhtmlreg = Eliommkreg.MakeRegister(Xhtmlreg_)
-module Xhtmlforms = Eliommkforms.MakeForms(Xhtmlforms_)
+module Xhtmlreg = Eliom_mkreg.MakeRegister(Xhtmlreg_)
+module Xhtmlforms = Eliom_mkforms.MakeForms(Xhtmlforms_)
 module Xhtml = struct
   include Xhtmlreg
   include Xhtmlforms
@@ -349,19 +349,19 @@ module SubXhtml =
       let send ?(cookies=[]) ?charset ?code ~sp content = 
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
-            (Eliomservices.EliomResult 
+            (Eliom_services.EliomResult 
                {r with
                 res_cookies= 
-                Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+                Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
                 res_code= code_of_code_option code;
                 res_charset= (match charset with
-                | None -> Some (Eliomsessions.get_config_file_charset sp)
+                | None -> Some (Eliom_sessions.get_config_file_charset sp)
                 | _ -> charset);
               })
           
     end
         
-    module Contreg = Eliommkreg.MakeRegister(Contreg_)
+    module Contreg = Eliom_mkreg.MakeRegister(Contreg_)
 
     include Xhtmlforms
     include Contreg
@@ -369,8 +369,8 @@ module SubXhtml =
 
    end : sig
 
-     include Eliommkreg.ELIOMREGSIG with type page = T.content
-     include Eliommkforms.ELIOMFORMSIG with 
+     include Eliom_mkreg.ELIOMREGSIG with type page = T.content
+     include Eliom_mkforms.ELIOMFORMSIG with 
       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
   and type uri = string

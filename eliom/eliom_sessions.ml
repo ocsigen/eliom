@@ -263,13 +263,13 @@ type 'a session_data =
 let set_service_session_group ?set_max ?session_name ~sp n = 
   let c = find_or_create_service_cookie ?session_name ~sp () in
   let n = 
-    Eliomsessiongroups.make_full_group_name
+    Eliommod_sessiongroups.make_full_group_name
       sp.sp_sitedata.site_dir_string (Some n) 
   in
   let grp = c.sc_session_group in
   List.iter 
     (close_service_session2 sp.sp_sitedata None)
-    (Eliomsessiongroups.Serv.move ?set_max
+    (Eliommod_sessiongroups.Serv.move ?set_max
        sp.sp_sitedata.max_service_sessions_per_group c.sc_value !grp n);
   grp := n
 
@@ -277,7 +277,7 @@ let unset_service_session_group ?session_name ~sp () =
   try
     let c = find_service_cookie_only ?session_name ~sp () in
     let grp = c.sc_session_group in
-    Eliomsessiongroups.Serv.remove c.sc_value !grp;
+    Eliommod_sessiongroups.Serv.remove c.sc_value !grp;
     grp := None
   with
     | Not_found
@@ -288,7 +288,7 @@ let get_service_session_group ?session_name ~sp () =
     let c = find_service_cookie_only ?session_name ~sp () in
     match !(c.sc_session_group) with
       | None -> No_data
-      | Some v -> Data (snd (Eliomsessiongroups.getsessgrp v))
+      | Some v -> Data (snd (Eliommod_sessiongroups.getsessgrp v))
   with
     | Not_found -> No_data
     | Eliom_Session_expired -> Data_session_expired
@@ -296,13 +296,13 @@ let get_service_session_group ?session_name ~sp () =
 let set_volatile_data_session_group ?set_max ?session_name ~sp n = 
   let c = find_or_create_data_cookie ?session_name ~sp () in
   let n = 
-    Eliomsessiongroups.make_full_group_name
+    Eliommod_sessiongroups.make_full_group_name
       sp.sp_sitedata.site_dir_string (Some n) 
   in
   let grp = c.dc_session_group in
   List.iter 
     (close_data_session2 sp.sp_sitedata None)
-    (Eliomsessiongroups.Data.move ?set_max
+    (Eliommod_sessiongroups.Data.move ?set_max
        sp.sp_sitedata.max_volatile_data_sessions_per_group c.dc_value !grp n);
   grp := n 
 
@@ -310,7 +310,7 @@ let unset_volatile_data_session_group ?session_name ~sp () =
   try
     let c = find_data_cookie_only ?session_name ~sp () in
     let grp = c.dc_session_group in
-    Eliomsessiongroups.Data.remove c.dc_value !grp;
+    Eliommod_sessiongroups.Data.remove c.dc_value !grp;
     grp := None
   with
     | Not_found
@@ -321,7 +321,7 @@ let get_volatile_data_session_group ?session_name ~sp () =
     let c = find_data_cookie_only ?session_name ~sp () in
     match !(c.dc_session_group) with
       | None -> No_data
-      | Some v -> Data (snd (Eliomsessiongroups.getsessgrp v))
+      | Some v -> Data (snd (Eliommod_sessiongroups.getsessgrp v))
   with
     | Not_found -> No_data
     | Eliom_Session_expired -> Data_session_expired
@@ -329,11 +329,11 @@ let get_volatile_data_session_group ?session_name ~sp () =
 let set_persistent_data_session_group ?set_max ?session_name ~sp n = 
   find_or_create_persistent_cookie ?session_name ~sp () >>= fun c ->
   let n = 
-    Eliomsessiongroups.make_persistent_full_group_name
+    Eliommod_sessiongroups.make_persistent_full_group_name
       sp.sp_sitedata.site_dir_string (Some n)
   in
   let grp = c.pc_session_group in
-  Eliomsessiongroups.Pers.move ?set_max
+  Eliommod_sessiongroups.Pers.move ?set_max
     sp.sp_sitedata.max_persistent_data_sessions_per_group 
     c.pc_value !grp n >>= fun l ->
   Lwt_util.iter (close_persistent_session2 None) l >>= fun () ->
@@ -344,7 +344,7 @@ let unset_persistent_data_session_group ?session_name ~sp () =
     (fun () ->
        find_persistent_cookie_only ?session_name ~sp () >>= fun c ->
        let grp = c.pc_session_group in
-       Eliomsessiongroups.Pers.remove c.pc_value !grp >>= fun () ->
+       Eliommod_sessiongroups.Pers.remove c.pc_value !grp >>= fun () ->
        grp := None;
        Lwt.return ()
     )
@@ -361,7 +361,7 @@ let get_persistent_data_session_group ?session_name ~sp () =
        Lwt.return (match !(c.pc_session_group) with
                      | None -> No_data
                      | Some v -> 
-                         Data (snd (Eliomsessiongroups.getperssessgrp v))
+                         Data (snd (Eliommod_sessiongroups.getperssessgrp v))
                   )
     )
     (function
@@ -589,7 +589,7 @@ module Session_admin = struct
        float option ref        (* expiration date by timeout 
                                   (server side) *) *
        Eliommod.timeout ref    (* user timeout *) *
-       Eliomsessiongroups.sessgrp option ref       (* session group *)) *
+       Eliommod_sessiongroups.sessgrp option ref       (* session group *)) *
        Eliommod.sitedata
 
   type data_session =
@@ -599,7 +599,7 @@ module Session_admin = struct
        float option ref        (* expiration date by timeout 
                                   (server side) *) *
        Eliommod.timeout ref   (* user timeout *) *
-       Eliomsessiongroups.sessgrp option ref      (* session group *)) *
+       Eliommod_sessiongroups.sessgrp option ref      (* session group *)) *
        Eliommod.sitedata
 
   type persistent_session =
@@ -609,7 +609,7 @@ module Session_admin = struct
        float option            (* expiration date by timeout 
                                   (server side) *) *
        Eliommod.timeout        (* user timeout *) *
-       Eliomsessiongroups.perssessgrp option           (* session group *))
+       Eliommod_sessiongroups.perssessgrp option           (* session group *))
 
 
   let close_service_session ?(close_group = false)

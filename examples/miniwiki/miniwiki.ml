@@ -18,11 +18,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 open XHTML.M
-open Eliompredefmod.Xhtml
-open Eliompredefmod
-open Eliomservices
-open Eliomparameters
-open Eliomsessions
+open Eliom_predefmod.Xhtml
+open Eliom_predefmod
+open Eliom_services
+open Eliom_parameters
+open Eliom_sessions
 
 open Simplexmlparser
 open Lwt

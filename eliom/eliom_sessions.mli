@@ -130,7 +130,7 @@ val get_cookies : sp:server_params -> string Http_frame.Cookievalues.t
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
-    with {!Eliomsessions.set_volatile_session_timeout} won't be affected.
+    with {!Eliom_sessions.set_volatile_session_timeout} won't be affected.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
@@ -150,7 +150,7 @@ val set_global_volatile_session_timeout :
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
-    with {!Eliomsessions.set_service_session_timeout} won't be affected.
+    with {!Eliom_sessions.set_service_session_timeout} won't be affected.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
@@ -170,7 +170,7 @@ val set_global_service_session_timeout :
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
-    with {!Eliomsessions.set_volatile_data_session_timeout} won't be affected.
+    with {!Eliom_sessions.set_volatile_data_session_timeout} won't be affected.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
@@ -248,7 +248,7 @@ val set_default_volatile_data_session_timeout : float option -> unit
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
-    with {!Eliomsessions.set_persistent_data_session_timeout} won't be affected.
+    with {!Eliom_sessions.set_persistent_data_session_timeout} won't be affected.
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
@@ -461,7 +461,7 @@ val get_persistent_data_session_group :
     This won't modify existing groups.
     That value will be used only as default value if you do not
     specify the optional parameter [?set_max] of function
-    {!Eliomsessions.set_service_session_group}.
+    {!Eliom_sessions.set_service_session_group}.
 *)
 val set_default_max_service_sessions_per_group :
   sp:server_params -> int option -> unit
@@ -471,7 +471,7 @@ val set_default_max_service_sessions_per_group :
     This won't modify existing groups.
     That value will be used only as default value if you do not
     specify the optional parameter [?set_max] of function
-    {!Eliomsessions.set_volatile_data_session_group}.
+    {!Eliom_sessions.set_volatile_data_session_group}.
 *)
 val set_default_max_volatile_data_sessions_per_group : 
   sp:server_params -> int option -> unit
@@ -481,7 +481,7 @@ val set_default_max_volatile_data_sessions_per_group :
     This won't modify existing groups.
     That value will be used only as default value if you do not
     specify the optional parameter [?set_max] of function
-    {!Eliomsessions.set_persistent_data_session_group}.
+    {!Eliom_sessions.set_persistent_data_session_group}.
 *)
 val set_default_max_persistent_data_sessions_per_group : 
   sp:server_params -> int option -> unit
@@ -659,9 +659,9 @@ val remove_persistent_session_data : ?session_name:string ->
 (** Close Eliom's current sessions if opened (service session, 
    volatile data session and persistent session).
 
-   Shortcut for {!Eliomsessions.close_volatile_data_session} followed by
-    {!Eliomsessions.close_service_session} and
-    {!Eliomsessions.close_persistent_data_session}.
+   Shortcut for {!Eliom_sessions.close_volatile_data_session} followed by
+    {!Eliom_sessions.close_service_session} and
+    {!Eliom_sessions.close_persistent_data_session}.
 *)
 val close_session : 
   ?close_group:bool ->
@@ -674,8 +674,8 @@ val close_session :
    (both service session and volatile data session)
    (destroying all session data for that user).
 
-   Shortcut for {!Eliomsessions.close_volatile_data_session} followed by
-    {!Eliomsessions.close_service_session}.
+   Shortcut for {!Eliom_sessions.close_volatile_data_session} followed by
+    {!Eliom_sessions.close_service_session}.
  *)
 val close_volatile_session : 
   ?close_group:bool ->

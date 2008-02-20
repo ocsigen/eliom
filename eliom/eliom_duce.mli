@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliomduce
+ * Module Eliom_duce
  * Copyright (C) 2007 Vincent Balat, Alain Frisch
  * CNRS - Université Paris Diderot Paris 7
  *
@@ -22,12 +22,12 @@
 (** A module to generate pages using OCamlduce *)
 
 (** For now, it does not seem to be easy to create a functor like 
-    {!Eliompredefmod.SubXhtml} for Eliomduce. Use {!Xml} or
+    {!Eliom_predefmod.SubXhtml} for Eliom_duce. Use {!Xml} or
     {!Xmllist} instead. *)
 
 open Xhtml1_strict
 
-module Xhtml : Eliompredefmod.ELIOMSIG with 
+module Xhtml : Eliom_predefmod.ELIOMSIG with 
 type page = html
 and type form_content_elt = form_content
 and type form_content_elt_list = {{ [ form_content* ] }}
@@ -65,7 +65,7 @@ and type option_attrib_t = option_attrs
 (** Register and create form for Xhtml *)
 
 
-module Xml : Eliompredefmod.ELIOMSIG with 
+module Xml : Eliom_predefmod.ELIOMSIG with 
 type page = Ocamlduce.Load.anyxml
 and type form_content_elt = form_content
 and type form_content_elt_list = {{ [ form_content* ] }}
@@ -102,7 +102,7 @@ and type input_type_t = input_type_values
 (** Register and create form for any XML data type *)
 
 
-module Xmllist : Eliompredefmod.ELIOMSIG with 
+module Xmllist : Eliom_predefmod.ELIOMSIG with 
 type page = Ocamlduce.Load.anyxml list
 and type form_content_elt = form_content
 and type form_content_elt_list = {{ [ form_content* ] }}
@@ -138,7 +138,7 @@ and type script_attrib_t =
 and type input_type_t = input_type_values
 (** Register and create form for list of XML data type *)
 
-module Blocks : Eliompredefmod.ELIOMSIG with 
+module Blocks : Eliom_predefmod.ELIOMSIG with 
 type page = blocks
 and type form_content_elt = form_content
 and type form_content_elt_list = {{ [ form_content* ] }}
@@ -181,8 +181,8 @@ module SubXhtml :
           end) ->
 sig
 
-  include Eliommkreg.ELIOMREGSIG with type page = T.content
-  include Eliommkforms.ELIOMFORMSIG with 
+  include Eliom_mkreg.ELIOMREGSIG with type page = T.content
+  include Eliom_mkforms.ELIOMFORMSIG with 
       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
   and type uri = string

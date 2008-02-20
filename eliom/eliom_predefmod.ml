@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliompredefmod
+ * Module Eliom_predefmod
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -27,19 +27,19 @@ open Ocsimisc
 open XHTML.M
 open Xhtmltypes
 open Extensions
-open Eliomsessions
-open Eliomservices
-open Eliomparameters
-open Eliommkforms
-open Eliommkreg
+open Eliom_sessions
+open Eliom_services
+open Eliom_parameters
+open Eliom_mkforms
+open Eliom_mkreg
 
 open Http_frame
 open Http_com
 
 
 module type ELIOMSIG = sig
-  include Eliommkreg.ELIOMREGSIG
-  include Eliommkforms.ELIOMFORMSIG
+  include Eliom_mkreg.ELIOMREGSIG
+  include Eliom_mkforms.ELIOMFORMSIG
 end
 
 let code_of_code_option = function
@@ -94,7 +94,7 @@ module Xhtmlreg_(Xhtml_content : Http_frame.HTTP_CONTENT
         (EliomResult 
            {r with
             res_cookies= 
-            Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+            Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
@@ -290,7 +290,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit, 
                [< registrable ]) service ->
-                 sp:Eliomsessions.server_params -> 
+                 sp:Eliom_sessions.server_params -> 
                    ?fragment:string ->
                      'get -> string
 (** Creates the string corresponding to the URL of a service applyed to
@@ -402,7 +402,7 @@ module type XHTMLFORMSSIG = sig
         input_type:[< basic_input_type | `Reset | `Button ] ->
         ?name:string -> ?value:string -> unit -> [> input ] elt
 (** Creates an untyped [<input>] tag. You may use the name you want
-   (for example to use with {!Eliomparameters.any}).
+   (for example to use with {!Eliom_parameters.any}).
  *)
 
   val file_input :
@@ -1197,7 +1197,7 @@ module SubXhtml = functor(T : sig type content end) ->
         Lwt.return
             (EliomResult 
                {r with
-                res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+                res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
                 res_code= code_of_code_option code;
                 res_charset= (match charset with
                 | None -> Some (get_config_file_charset sp)
@@ -1237,7 +1237,7 @@ module Textreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
@@ -1262,7 +1262,7 @@ module CssTextreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
@@ -1288,7 +1288,7 @@ module HtmlTextreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
@@ -1495,7 +1495,7 @@ module Unitreg_ = struct
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+          res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
           res_code= code;
         })
 
@@ -1526,7 +1526,7 @@ module Redirreg_ = struct
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+          res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
           res_code= code; (* Moved permanently *)
           res_location = Some content;
         })
@@ -1547,7 +1547,7 @@ module TempRedirreg_ = struct
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+          res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
           res_code= code; (* Temporary move *)
           res_location = Some content;
         })
@@ -1565,7 +1565,7 @@ module Anyreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = Eliomservices.result_to_send
+  type page = Eliom_services.result_to_send
 
   let send ?(cookies=[]) ?charset ?code ~sp content = 
     Lwt.return
@@ -1574,7 +1574,7 @@ module Anyreg_ = struct
           EliomResult
             {res with 
              res_cookies= 
-             Eliomservices.cookie_table_of_eliom_cookies
+             Eliom_services.cookie_table_of_eliom_cookies
                ~oldtable:res.res_cookies
                ~sp 
                cookies;
@@ -1645,7 +1645,7 @@ module Filesreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)
@@ -1672,7 +1672,7 @@ module Streamlistreg_ = struct
     Lwt.return
         (EliomResult
            {r with
-            res_cookies= Eliomservices.cookie_table_of_eliom_cookies ~sp cookies;
+            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
             | None -> Some (get_config_file_charset sp)

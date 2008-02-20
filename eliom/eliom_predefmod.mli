@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliompredefmod
+ * Module Eliom_predefmod
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -28,17 +28,17 @@
 open XHTML.M
 open Xhtmltypes
 open Extensions
-open Eliomsessions
-open Eliomservices
-open Eliomparameters
-open Eliommkforms
-open Eliommkreg
+open Eliom_sessions
+open Eliom_services
+open Eliom_parameters
+open Eliom_mkforms
+open Eliom_mkreg
 
 
 (** The signature of such modules. *)
 module type ELIOMSIG = sig
-  include Eliommkreg.ELIOMREGSIG
-  include Eliommkforms.ELIOMFORMSIG
+  include Eliom_mkreg.ELIOMREGSIG
+  include Eliom_mkforms.ELIOMFORMSIG
 end
 
 
@@ -58,7 +58,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, unit, [< get_service_kind ],
                [< suff ], 'gn, unit, 
                [< registrable ]) service ->
-                 sp:Eliomsessions.server_params -> 
+                 sp:Eliom_sessions.server_params -> 
                    ?fragment:string ->
                      'get -> string
 (** Creates the string corresponding to the URL of a service applied to
@@ -71,7 +71,7 @@ module type XHTMLFORMSSIG = sig
           ('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-           sp:Eliomsessions.server_params -> ?fragment:string -> 
+           sp:Eliom_sessions.server_params -> ?fragment:string -> 
              a_content elt list -> 'get -> [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link to [service]. 
    The text of
@@ -100,7 +100,7 @@ module type XHTMLFORMSSIG = sig
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
-          sp:Eliomsessions.server_params -> ?fragment:string -> 'get -> uri
+          sp:Eliom_sessions.server_params -> ?fragment:string -> 'get -> uri
 (** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
@@ -110,7 +110,7 @@ module type XHTMLFORMSSIG = sig
           service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             sp:Eliomsessions.server_params -> ?fragment:string ->
+             sp:Eliom_sessions.server_params -> ?fragment:string ->
               ('gn -> form_content elt list) -> [>form] elt
 (** [get_form service sp formgen] creates a GET form to [service]. 
    The content of
@@ -122,7 +122,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn, 
                [< registrable ]) service ->
-      sp:Eliomsessions.server_params -> 
+      sp:Eliom_sessions.server_params -> 
       ?fragment:string ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content elt list) -> 'get -> [>form] elt
@@ -168,7 +168,7 @@ module type XHTMLFORMSSIG = sig
         input_type:[< basic_input_type | `Reset | `Button ] ->
         ?name:string -> ?value:string -> unit -> [> input ] elt
 (** Creates an untyped [<input>] tag. You may use the name you want
-   (for example to use with {!Eliomparameters.any}).
+   (for example to use with {!Eliom_parameters.any}).
  *)
 
   val file_input :
@@ -467,7 +467,7 @@ end
       (** Eliom forms and service registration functions for XHTML *)
 module Xhtml : sig
 
-  include Eliommkreg.ELIOMREGSIG with type page = xhtml elt
+  include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt
   include XHTMLFORMSSIG
 
 end
@@ -476,7 +476,7 @@ end
          compact markup (i.e., without pretty-printing). *)
 module Xhtmlcompact : sig
 
-  include Eliommkreg.ELIOMREGSIG with type page = xhtml elt
+  include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt
   include XHTMLFORMSSIG
 
 end
@@ -485,7 +485,7 @@ end
 
 module Blocks : sig
 
-  include Eliommkreg.ELIOMREGSIG with type page = body_content elt list
+  include Eliom_mkreg.ELIOMREGSIG with type page = body_content elt list
   include XHTMLFORMSSIG
 
 end
@@ -497,7 +497,7 @@ end
 module SubXhtml : functor (T : sig type content end) ->
   sig
     
-    include Eliommkreg.ELIOMREGSIG with type page = T.content elt list
+    include Eliom_mkreg.ELIOMREGSIG with type page = T.content elt list
     include XHTMLFORMSSIG
     
   end
@@ -536,10 +536,10 @@ and type script_attrib_t = string
 and type input_type_t = string 
 
 (** {3 Module to register untyped CSS pages} *)
-module CssText : Eliommkreg.ELIOMREGSIG with type page = string
+module CssText : Eliom_mkreg.ELIOMREGSIG with type page = string
 
 (** {3 Module to register untyped text pages} *)
-module Text : Eliommkreg.ELIOMREGSIG with type page = string * string
+module Text : Eliom_mkreg.ELIOMREGSIG with type page = string * string
 (** The first string is the content, the second is the content type,
  for example "text/html" *)
 
@@ -551,42 +551,42 @@ module Text : Eliommkreg.ELIOMREGSIG with type page = string * string
    Actions return a list of exceptions. 
    You may use this to give information to the handler that will be called
    to reload the page.
-   Use {!Eliomsessions.get_exn} to access these exceptions from this handler.
+   Use {!Eliom_sessions.get_exn} to access these exceptions from this handler.
  *)
-module Actions : Eliommkreg.ELIOMREGSIG with 
+module Actions : Eliom_mkreg.ELIOMREGSIG with 
   type page = exn list
 
 (** Like actions, but the page is not reloaded. Just do something and do
    not generate any page.
  *)
-module Unit : Eliommkreg.ELIOMREGSIG with 
+module Unit : Eliom_mkreg.ELIOMREGSIG with 
   type page = unit
 
 (** Allows to create redirections towards other URLs.
    A 301 code is sent to the browser to ask it to redo the request to
    another URL.
  *)
-module Redirections : Eliommkreg.ELIOMREGSIG with 
+module Redirections : Eliom_mkreg.ELIOMREGSIG with 
   type page = string
 
 (** Allows to create temporary redirections towards other URLs.
    A 302 code is sent to the browser to ask it to redo the request to
    another URL.
  *)
-module TempRedirections : Eliommkreg.ELIOMREGSIG with 
+module TempRedirections : Eliom_mkreg.ELIOMREGSIG with 
   type page = string
 
 (** Allows to send files. The content is the name of the file to send. *)
-module Files : Eliommkreg.ELIOMREGSIG with 
+module Files : Eliom_mkreg.ELIOMREGSIG with 
   type page = string
 
 (** Allows to create services that choose dynamically what they want
-   to send. The content is created using one {!Eliommkreg.ELIOMREGSIG1.send}
+   to send. The content is created using one {!Eliom_mkreg.ELIOMREGSIG1.send}
    function, for ex [Xhtml.send] or [Files.send].
    .
  *)
-module Any : Eliommkreg.ELIOMREGSIG with 
-  type page = Eliomservices.result_to_send
+module Any : Eliom_mkreg.ELIOMREGSIG with 
+  type page = Eliom_services.result_to_send
 
 (** Allows to send raw data using Ocsigen's streams.
     The content is a pair conatining:
@@ -600,7 +600,7 @@ module Any : Eliommkreg.ELIOMREGSIG with
     If something goes wrong, the current stream is closed,
     and the following are not opened.
  *)
-module Streamlist : Eliommkreg.ELIOMREGSIG with 
+module Streamlist : Eliom_mkreg.ELIOMREGSIG with 
   type page = (((unit -> string Ocsistream.t Lwt.t) list) * 
                  string)
 

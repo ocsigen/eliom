@@ -25,9 +25,9 @@
 *)
 
 (*open XHTML.M *)
-(* open Eliompredefmod.Xhtml *)
-open Eliomduce.Xhtml
-open Eliomservices
+(* open Eliom_predefmod.Xhtml *)
+open Eliom_duce.Xhtml
+open Eliom_services
 open Xhtml1_strict
 
 let attrib_list (s: string list): string = String.concat " " s
@@ -194,9 +194,9 @@ let hierarchical_menu_depth_first
 
 let hierarchical_menu_breadth_first
     ?(classe=[]) 
-    (((page, pages): ([< Eliomservices.get_service_kind],
-		[< Eliomservices.registrable ],
-		Eliomduce.Blocks.a_content_elt_list) hierarchical_site) as the_menu)
+    (((page, pages): ([< Eliom_services.get_service_kind],
+		[< Eliom_services.registrable ],
+		Eliom_duce.Blocks.a_content_elt_list) hierarchical_site) as the_menu)
     ~service
     ~sp =
 

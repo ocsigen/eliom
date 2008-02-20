@@ -24,7 +24,7 @@
 
 
 open Extensions
-open Eliomparameters
+open Eliom_parameters
 
 
 
@@ -48,7 +48,7 @@ type cookie =
  *)
 val cookie_table_of_eliom_cookies :
     ?oldtable:Http_frame.cookieset ->
-      sp:Eliomsessions.server_params -> cookie list -> Http_frame.cookieset
+      sp:Eliom_sessions.server_params -> cookie list -> Http_frame.cookieset
 
 
 (** The type to send if you want to create your own modules for generating
@@ -123,13 +123,13 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 (** Type of services.
     - [ 'get] is the type of GET parameters
     - [ 'post] is the type of POST parameters
-    - [ 'kind] is a subtype of {!Eliomservices.service_kind} (attached or non-attached 
+    - [ 'kind] is a subtype of {!Eliom_services.service_kind} (attached or non-attached 
       service, internal or external, GET only or with POST parameters)
     - [ 'tipo] is a phantom type stating the kind of parameters it uses
         (suffix or not)
     - [ 'getnames] is the type of GET parameters names
     - [ 'postnames] is the type of POST parameters names
-    - [ 'registrable] is a phantom type, subtype of {!Eliomservices.registrable},
+    - [ 'registrable] is a phantom type, subtype of {!Eliom_services.registrable},
       telling if it is possible to register a handler on this service.
  *)
 
@@ -143,7 +143,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 (** {3 Main services} *)
 
 val new_service :
-    ?sp: Eliomsessions.server_params ->
+    ?sp: Eliom_sessions.server_params ->
       path:url_path ->
         get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
           unit ->
@@ -152,7 +152,7 @@ val new_service :
                [> `Internal of [> `Service ] * [>`Get] ] a_s ],
              'tipo,'gn, 
              unit, [> `Registrable ]) service
-(** [new_service ~path:p ~get_params:pa ()] creates an {!Eliomservices.service} associated
+(** [new_service ~path:p ~get_params:pa ()] creates an {!Eliom_services.service} associated
    to the path [p], taking the GET parameters [pa]. 
    
    {e Warning: If you use this function after the initialisation phase,
@@ -161,7 +161,7 @@ val new_service :
 *)
 	      
 val new_service' :
-    ?sp: Eliomsessions.server_params ->
+    ?sp: Eliom_sessions.server_params ->
       name:string ->
         get_params:('get, [ `WithoutSuffix ],'gn) params_type ->
           unit ->
@@ -201,7 +201,7 @@ val new_external_service :
  *)
 
 val new_post_service :
-    ?sp: Eliomsessions.server_params ->
+    ?sp: Eliom_sessions.server_params ->
     fallback: ('get, unit, 
                [`Attached of [`Internal of 
                  ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
@@ -304,7 +304,7 @@ val new_post_coservice' :
     GET non-attached parameters won't be kept in the URL (if any) when you
     create a POST form to this coservice.
     Default is [true].
-    See also {!Eliommkforms.ELIOMFORMSIG.post_form}.
+    See also {!Eliom_mkforms.ELIOMFORMSIG.post_form}.
 *)
 
 (*
@@ -326,7 +326,7 @@ val new_get_post_coservice' :
 (** {2 Misc} *)
 
 val static_dir :
-    sp:Eliomsessions.server_params -> 
+    sp:Eliom_sessions.server_params -> 
       (string list, unit, [> `Attached of 
         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
        [ `WithSuffix ],
@@ -364,8 +364,8 @@ val preapply :
     exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val set_exn_handler : 
-    ?sp:Eliomsessions.server_params ->
-      (Eliomsessions.server_params -> exn -> result_to_send Lwt.t) -> unit
+    ?sp:Eliom_sessions.server_params ->
+      (Eliom_sessions.server_params -> exn -> result_to_send Lwt.t) -> unit
 
 
 
@@ -377,9 +377,9 @@ val get_kind_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 'c
 val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
   (string * string) list
 val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
-  ('a, 'd, 'e) Eliomparameters.params_type
+  ('a, 'd, 'e) Eliom_parameters.params_type
 val get_post_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
-  ('b, [ `WithoutSuffix ], 'f) Eliomparameters.params_type
+  ('b, [ `WithoutSuffix ], 'f) Eliom_parameters.params_type
 val get_att_kind_ : 'a a_s -> 'a
 val get_sub_path_ : 'a a_s -> url_path
 val get_full_path_ : 'a a_s -> url_path

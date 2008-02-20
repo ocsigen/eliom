@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module Eliommkforms
+ * Module Eliom_mkforms
  * Copyright (C) 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -25,9 +25,9 @@
 open Lwt
 open Ocsimisc
 open Extensions
-open Eliomparameters
-open Eliomservices
-open Eliomsessions
+open Eliom_parameters
+open Eliom_services
+open Eliom_sessions
 
 
 
@@ -194,7 +194,7 @@ module type ELIOMFORMSIG =
         service:('get, unit, [< get_service_kind ],
                  [< suff ], 'gn, unit, 
                  [< registrable ]) service ->
-                   sp:Eliomsessions.server_params -> 
+                   sp:Eliom_sessions.server_params -> 
                      ?fragment:string ->
                        'get -> string
 (** Creates the string corresponding to the URL of a service applyed to
@@ -295,7 +295,7 @@ module type ELIOMFORMSIG =
         ?a:input_attrib_t -> input_type:input_type_t ->
           ?name:string -> ?value:string -> unit -> input_elt
 (** Creates an untyped [<input>] tag. You may use the name you want
-   (for example to use with {!Eliomparameters.any}).
+   (for example to use with {!Eliom_parameters.any}).
  *)
 
     val file_input :

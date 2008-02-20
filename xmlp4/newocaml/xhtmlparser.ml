@@ -101,6 +101,16 @@ value xml_pat s = failwith "xml not allowed in patterns";
 value xml_patl  = xml_pat ;
 
 
+(*
+Nicolas Pouillard 20080218:
+
+In  the  antiquotation $str:s$ of <:expr<...>> the 's' string is supposed
+to  be  properly  escaped,  that's  not  any OCaml string, that's any litteral
+OCaml   string   (some   chars   between   double   quote).   You  should  use
+$str:String.escaped s$ or the shortcut for it $`str:s$.
+
+*)
+
 (* Convert a stream of tokens into an xhtml tree *)
 value rec read_node s =
 	let loc = s.loc in
