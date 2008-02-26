@@ -97,7 +97,7 @@ let new_id =
   fun () -> incr c; !c
 
 let create_receiver timeout mode fd =
-  let buffer_size = Ocsiconfig.get_netbuffersize () in
+  let buffer_size = Ocsigen_config.get_netbuffersize () in
   let timeout =
     Lwt_timeout.create
       timeout
@@ -353,12 +353,12 @@ let parse_http_header mode s =
 
 let get_maxsize = function
   | Nofirstline
-  | Answer -> None (* Ocsiconfig.get_maxanswerbodysize () 
+  | Answer -> None (* Ocsigen_config.get_maxanswerbodysize () 
                  Do we need a limit? 
                  If yes, add an exception Ocsigen_Answer_too_long.
                  (like Ocsigen_Request_too_long)
                *)
-  | Query -> Ocsiconfig.get_maxrequestbodysize ()
+  | Query -> Ocsigen_config.get_maxrequestbodysize ()
 
 
 let return_with_no_body receiver = Lwt.return None
@@ -580,7 +580,7 @@ let create_sender
   { s_headers = headers; s_proto = proto }
 
 
-let default_sender = create_sender ~server_name:Ocsiconfig.server_name ()
+let default_sender = create_sender ~server_name:Ocsigen_config.server_name ()
 
 (* Old version
 (* XXX Maybe we should merge small strings *)

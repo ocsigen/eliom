@@ -96,7 +96,7 @@ Lwt.return
    </head>
    <body>
      <h1>Ocsigen server monitoring</h1>
-      <p>Version of Ocsigen: $str:Ocsiconfig.version_number$</p>
+      <p>Version of Ocsigen: $str:Ocsigen_config.version_number$</p>
      <p>Uptime: $str:uptime$.</p>
      <p>The number of sessions is not available in this version of ocsigenmod.</p>
      <p>Number of clients connected: 
@@ -128,12 +128,12 @@ Lwt.return
      <h2>Preemptive threads</h2>
      <p>There are currently $str:(string_of_int (Preemptive.nbthreads ()))$ 
              detached threads running
-             (min $str:(string_of_int (Ocsiconfig.get_minthreads ()))$,
-             max $str:(string_of_int (Ocsiconfig.get_maxthreads ()))$),
+             (min $str:(string_of_int (Ocsigen_config.get_minthreads ()))$,
+             max $str:(string_of_int (Ocsigen_config.get_maxthreads ()))$),
       from which $str:(string_of_int (Preemptive.nbthreadsbusy ()))$ are busy.
         $str:(string_of_int (Preemptive.nbthreadsqueued ()))$ computations 
            queued (max 
-        $str:(string_of_int (Ocsiconfig.get_max_number_of_threads_queued ()))$).</p>
+        $str:(string_of_int (Ocsigen_config.get_max_number_of_threads_queued ()))$).</p>
      <h2>HTTP connexions</h2>
      <p>Number of
         $str:"" (* string_of_int

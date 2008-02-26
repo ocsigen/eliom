@@ -343,7 +343,7 @@ let raw_request
             >>= fun socket -> 
                 
             Lwt.return (Http_com.create_receiver 
-                          (Ocsiconfig.get_server_timeout ())
+                          (Ocsigen_config.get_server_timeout ())
                           Http_com.Answer socket))
         (function
           | Unix.Unix_error (Unix.ECONNREFUSED, _, _) -> 
@@ -694,7 +694,7 @@ let basic_raw_request
             
   let query = Http_frame.Http_header.Query (http_method, uri) in
   let conn = Http_com.create_receiver
-      (Ocsiconfig.get_server_timeout ())
+      (Ocsigen_config.get_server_timeout ())
       Http_com.Answer socket in
   let headers = 
     Http_headers.replace 

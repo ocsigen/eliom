@@ -237,8 +237,8 @@ let array_environment filename re doc_root ri =
  [ (* Let's follow CGI spec : http://hoohoo.ncsa.uiuc.edu/cgi/env.html *)
    
    (* Not request-specific variables *)
-  [Printf.sprintf "SERVER_NAME=%s" Ocsiconfig.server_name;
-   Printf.sprintf "SERVER_SOFTWARE=%s" Ocsiconfig.full_server_name ;
+  [Printf.sprintf "SERVER_NAME=%s" Ocsigen_config.server_name;
+   Printf.sprintf "SERVER_SOFTWARE=%s" Ocsigen_config.full_server_name ;
    "GATEWAY_INTERFACE=CGI/1.1"] ;
    
    (* Request-specific variables *)
@@ -430,7 +430,7 @@ let recupere_cgi head re doc_root filename ri =
     (* A thread getting the result of the CGI script *)
     let receiver =
       Http_com.create_receiver
-        (Ocsiconfig.get_server_timeout ())
+        (Ocsigen_config.get_server_timeout ())
         Http_com.Nofirstline (Lwt_ssl.plain cgi_out) 
     in
     catch 

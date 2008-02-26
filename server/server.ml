@@ -28,7 +28,7 @@ open Http_frame
 open Ocsiheaders
 open Http_com
 open Predefined_senders
-open Ocsiconfig
+open Ocsigen_config
 open Parseconfig
 open Lazy
 
@@ -206,7 +206,7 @@ let get_request_infos
                                          "%s-%f-%d" 
                                          store (Unix.gettimeofday ()) (counter ())
                                      in
-                                     match ((Ocsiconfig.get_uploaddir ())) with
+                                     match ((Ocsigen_config.get_uploaddir ())) with
                                        | Some dname ->
                                            let fname = dname^"/"^now in
                                            let fd = Unix.openfile fname 
@@ -629,7 +629,7 @@ let try_bind' f g h = Lwt.try_bind f h g
 
 let handle_connection port in_ch sockaddr =
   let receiver = 
-    Http_com.create_receiver (Ocsiconfig.get_client_timeout ()) Query in_ch 
+    Http_com.create_receiver (Ocsigen_config.get_client_timeout ()) Query in_ch 
   in
 
   let handle_write_errors e =
@@ -695,7 +695,7 @@ let handle_connection port in_ch sockaddr =
     try_bind'
       (fun () ->
          Messages.debug2 "** Receiving HTTP message";
-         (if Ocsiconfig.get_respect_pipeline () then
+         (if Ocsigen_config.get_respect_pipeline () then
          (* if we lock this mutex, requests from a same connection will be sent
             to extensions in the same order they are received on pipeline. 
             It is locked only in server. Http_client has its own mutex.
@@ -969,8 +969,8 @@ let _ = try
       with e -> 
         Messages.errlog ("Error: Wrong user or group"); raise e);
       
-      Ocsiconfig.set_user user;
-      Ocsiconfig.set_group group;
+      Ocsigen_config.set_user user;
+      Ocsigen_config.set_group group;
             
       (* Je suis fou :
          let rec f () = 
@@ -1000,7 +1000,7 @@ let _ = try
 
 
       (* Closing stderr, stdout stdin if silent *)
-      if (Ocsiconfig.get_silent ())
+      if (Ocsigen_config.get_silent ())
       then begin
         (* redirect stdout and stderr to /dev/null *)
         let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
@@ -1011,7 +1011,7 @@ let _ = try
       end;
       
       (* detach from the terminal *)
-      if (Ocsiconfig.get_daemon ())
+      if (Ocsigen_config.get_daemon ())
       then ignore (Unix.setsid ());
           
       Extensions.end_initialisation ();
@@ -1049,9 +1049,9 @@ let _ = try
       match ssl with
         None
       | Some (None, None) -> ()
-      | Some (None, _) -> raise (Ocsiconfig.Config_file_error
+      | Some (None, _) -> raise (Ocsigen_config.Config_file_error
                             "SSL certificate is missing")
-      | Some (_, None) -> raise (Ocsiconfig.Config_file_error 
+      | Some (_, None) -> raise (Ocsigen_config.Config_file_error 
                             "SSL key is missing")
       | Some ((Some c), (Some k)) -> 
           Ssl.set_password_callback !sslctx (ask_for_passwd sslports);
@@ -1059,7 +1059,7 @@ let _ = try
   in
 
   let write_pid pid =
-    match Ocsiconfig.get_pidfile () with
+    match Ocsigen_config.get_pidfile () with
       None -> ()
     | Some p ->
         let spid = (string_of_int pid)^"\n" in

@@ -58,10 +58,10 @@ let (directory, ocsidbm) =
     parse_global_config (None, None) (Extensions.get_config ()) 
   in
   ((match store with
-  | None -> (Ocsiconfig.get_datadir ())^"/ocsipersist"
+  | None -> (Ocsigen_config.get_datadir ())^"/ocsipersist"
   | Some d -> d),
    (match ocsidbm with
-   | None -> (Ocsiconfig.get_extralibdir ())^"/ocsidbm"
+   | None -> (Ocsigen_config.get_extralibdir ())^"/ocsidbm"
    | Some d -> d))
 
 

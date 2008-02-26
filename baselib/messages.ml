@@ -32,7 +32,7 @@ let open_files =
   let opened = ref false in
   let openlog f =
     Unix.openfile
-      ((Ocsiconfig.get_logdir ())^"/"^f)
+      ((Ocsigen_config.get_logdir ())^"/"^f)
       [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_APPEND] 0o640
   in
   fun () ->
@@ -78,13 +78,13 @@ let log_aux file console_print s =
 
       
 let accesslog s =
-  log_aux access (Ocsiconfig.get_verbose ()) s
+  log_aux access (Ocsigen_config.get_verbose ()) s
 
 let errlog s =
-  log_aux error (not (Ocsiconfig.get_silent ())) s
+  log_aux error (not (Ocsigen_config.get_silent ())) s
 
 let warning s =
-  log_aux warningfile (Ocsiconfig.get_verbose ()) s
+  log_aux warningfile (Ocsigen_config.get_verbose ()) s
 
 (*
 let lwtlog = 
@@ -98,43 +98,43 @@ let lwtlog =
 
 
 let debug_noel =
-  if Ocsiconfig.get_veryverbose () then
+  if Ocsigen_config.get_veryverbose () then
     (fun s -> Pervasives.prerr_string (s ()))
   else
     (fun s -> ())
 
 let debug_noel2 =
-  if Ocsiconfig.get_veryverbose () then
+  if Ocsigen_config.get_veryverbose () then
     Pervasives.prerr_string
   else
     (fun s -> ())
 
 let debug =
-  if Ocsiconfig.get_veryverbose () then
+  if Ocsigen_config.get_veryverbose () then
     (fun s -> Pervasives.prerr_endline (s ()))
   else 
     (fun s -> ())
 
 let debug2 =
-  if Ocsiconfig.get_veryverbose () then
+  if Ocsigen_config.get_veryverbose () then
     Pervasives.prerr_endline
   else 
     (fun s -> ())
 
 let bip = 
-  if Ocsiconfig.get_veryverbose () then
+  if Ocsigen_config.get_veryverbose () then
     (fun i -> Pervasives.prerr_endline ("bip"^(string_of_int i)))
   else
     (fun i -> ())
 
 let console =
-  if (not (Ocsiconfig.get_silent ())) then
+  if (not (Ocsigen_config.get_silent ())) then
     (fun s -> print_endline (s ()))
   else 
     (fun s -> ())
 
 let console2 =
-  if (not (Ocsiconfig.get_silent ())) then
+  if (not (Ocsigen_config.get_silent ())) then
     print_endline
   else 
     (fun s -> ())

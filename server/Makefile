@@ -67,7 +67,7 @@ PP2 =
 CMAO = ../lwt/lwt.cma \
        ../baselib/ocsimisc.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
-       ../baselib/ocsiconfig.cmo ../baselib/messages.cmo \
+       ../baselib/ocsigen_config.cmo ../baselib/messages.cmo \
        ../http/ocsistream.cmo ../http/multipart.cmo \
        ../http/http_headers.cmo \
        ../http/http_frame.cmo ../http/ocsiheaders.cmo \

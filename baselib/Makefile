@@ -12,7 +12,7 @@ else
 NATIVECODE_RUNTIME_DETECT=false
 endif
 
-FILES= ocsimisc.ml messages.ml ocsiconfig.ml
+FILES= ocsimisc.ml messages.ml ocsigen_config.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
@@ -45,10 +45,10 @@ opt: $(OBJSOPT)
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
 
-ocsiconfig.ml: ocsiconfig.ml.IN
-	cat ocsiconfig.ml.IN \
+ocsigen_config.ml: ocsigen_config.ml.IN
+	cat ocsigen_config.ml.IN \
 	| sed s%0000000000000000%`head -n 1 ../VERSION`% \
-	| sed s%_WARNING_%"Warning: this file has been generated from ocsiconfig.ml.IN - DO NOT MODIFY MANUALLY!"% \
+	| sed s%_WARNING_%"Warning: this file has been generated from ocsigen_config.ml.IN - DO NOT MODIFY MANUALLY!"% \
 	| sed s%_LOGDIR_%$(LOGDIR)% \
 	| sed s%_DATADIR_%$(DATADIR)%g \
 	| sed s%_BINDIR_%$(BINDIR)%g \
@@ -61,15 +61,15 @@ ocsiconfig.ml: ocsiconfig.ml.IN
 	| sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
 	| sed s%_CONFIGDIR_%$(CONFIGDIR)% \
 	| sed s%_ISNATIVE_%$(NATIVECODE_RUNTIME_DETECT)%g \
-	> ocsiconfig.ml
+	> ocsigen_config.ml
 
 doc:
 	$(CAMLDOC) -d doc -html ocsicache.mli
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *~ *.annot ocsiconfig.ml
+	-rm -f *.cm[ioax] *.cmxa *~ *.annot ocsigen_config.ml
 
-depend: ocsiconfig.ml
+depend: ocsigen_config.ml
 	$(CAMLDEP) $(PP) $(LIBDIRS) $(FILES:.ml=.mli) $(FILES) > .depend
 
 FORCE:

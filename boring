@@ -6,7 +6,7 @@
 \.depend$
 ^lwt/depend$
 ^Makefile.config$
-^baselib/ocsiconfig.ml$
+^baselib/ocsigen_config.ml$
 ^http/http_lexer.ml$
 ^http/http_parser.ml$
 ^http/http_parser.mli$

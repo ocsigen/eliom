@@ -248,7 +248,7 @@ let content_type_from_file_name =
     if not !parsed
     then begin
       parsed := true;
-      parse_mime_types (Ocsiconfig.get_mimefile ());
+      parse_mime_types (Ocsigen_config.get_mimefile ());
     end;
     try 
       let pos = (String.rindex filename '.') in 
@@ -266,7 +266,7 @@ module File_content =
 
     let read_file ?buffer_size fd =
       let buffer_size = match buffer_size with
-      | None -> Ocsiconfig.get_filebuffersize ()
+      | None -> Ocsigen_config.get_filebuffersize ()
       | Some s -> s
       in
       Messages.debug2 "start reading file (file opened)";
@@ -535,7 +535,7 @@ module Error_content =
       let str_code = string_of_int error_code in
       let err_page =
         match exn with
-        | Some exn when Ocsiconfig.get_debugmode () ->
+        | Some exn when Ocsigen_config.get_debugmode () ->
             error_page
               ("Error "^str_code)
               error_msg

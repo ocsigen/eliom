@@ -25,7 +25,7 @@
 (* 2006 12 : Changes for extensions -- Vincent *)
 
 open Simplexmlparser
-open Ocsiconfig
+open Ocsigen_config
 
 exception Dynlink_error of string * exn
 exception Findlib_error of string * exn
@@ -247,7 +247,7 @@ let parse_server isreloading c =
           set_max_number_of_connections (int_of_string (parse_string p));
           parse_server_aux ll
       | (Element ("mimefile", [], p))::ll ->
-          Ocsiconfig.set_mimefile (parse_string p);
+          Ocsigen_config.set_mimefile (parse_string p);
           parse_server_aux ll
       | (Element ("timeout", [], p))::ll
 (*VVV timeout: backward compatibility with <= 0.99.4 *)
@@ -317,15 +317,15 @@ let parse_server isreloading c =
             | ("name", s)::suite -> 
                 (match name with
                 | None -> parse_attrs ((Some s), charset) suite
-                | _ -> raise (Ocsiconfig.Config_file_error
+                | _ -> raise (Ocsigen_config.Config_file_error
                                 ("Duplicate attribute name in <host>")))
             | ("charset", s)::suite ->
                 (match charset with
                 | None -> parse_attrs (name, Some s) suite
-                | _ -> raise (Ocsiconfig.Config_file_error
+                | _ -> raise (Ocsigen_config.Config_file_error
                                 ("Duplicate attribute charset in <host>")))
             | (s, _)::_ ->
-                raise (Ocsiconfig.Config_file_error 
+                raise (Ocsigen_config.Config_file_error 
                          ("Wrong attribute for <host>: "^s))
           in
           let host, charset = parse_attrs (None, None) atts in
@@ -358,7 +358,7 @@ let parse_server isreloading c =
 		(Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
 	  in
           let charset = match charset with
-          | None -> Ocsiconfig.get_default_charset ()
+          | None -> Ocsigen_config.get_default_charset ()
           | Some charset -> Some charset
           in
           let charset = match charset with
@@ -511,6 +511,6 @@ let extract_info c =
   ((user, group), si, (mint, maxt))
 
 let parse_config () = 
-    parser_config (Ocsiconfig.config ())
+    parser_config (Ocsigen_config.config ())
 
 (******************************************************************)

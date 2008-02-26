@@ -275,23 +275,23 @@ let rec default_parse_config
       let rec parse_site_attrs (enc,dir) = function
         | [] -> (match dir with
           | None -> 
-              raise (Ocsiconfig.Config_file_error
+              raise (Ocsigen_config.Config_file_error
                        ("Missing dir attribute in <site>"))
           | Some s -> (enc, s))
         | ("path", s)::suite
         | ("dir", s)::suite ->
             (match dir with
             | None -> parse_site_attrs (enc, Some s) suite
-            | _ -> raise (Ocsiconfig.Config_file_error
+            | _ -> raise (Ocsigen_config.Config_file_error
                             ("Duplicate attribute dir in <site>")))
         | ("charset", s)::suite ->
             (match enc with
             | None -> parse_site_attrs ((Some s), dir) suite
-            | _ -> raise (Ocsiconfig.Config_file_error
+            | _ -> raise (Ocsigen_config.Config_file_error
                             ("Duplicate attribute charset in <site>")))
         | (s, _)::_ ->
             raise
-              (Ocsiconfig.Config_file_error ("Wrong attribute for <site>: "^s))
+              (Ocsigen_config.Config_file_error ("Wrong attribute for <site>: "^s))
       in
       let charset, dir = parse_site_attrs (None, None) atts in
       let charset = match charset with
@@ -348,7 +348,7 @@ let rec default_parse_config
             Lwt.return (Ext_sub_result ext))
   | Simplexmlparser.Element (tag,_,_) -> 
       raise (Bad_config_tag_for_extension tag)
-  | _ -> raise (Ocsiconfig.Config_file_error
+  | _ -> raise (Ocsigen_config.Config_file_error
                   ("Unexpected content inside <host>"))
 
 and make_parse_site path charset parse_host l =
@@ -378,7 +378,7 @@ and make_parse_site path charset parse_host l =
                  ("Unexpected tag <"^t^"> inside <site dir=\""^
                   (Ocsimisc.string_of_url_path path)^"\"> (ignored)"));
             parse_site ll
-        | Ocsiconfig.Config_file_error t
+        | Ocsigen_config.Config_file_error t
         | Error_in_config_file t -> 
             ignore
               (Messages.errlog
@@ -423,7 +423,7 @@ let register_extension,
          end_init
          handle_exn ->
        
-       if respect_pipeline then Ocsiconfig.set_respect_pipeline ();
+       if respect_pipeline then Ocsigen_config.set_respect_pipeline ();
 
        let old_fun_site = !fun_site in
        fun_site := 

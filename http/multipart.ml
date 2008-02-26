@@ -227,7 +227,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
         | Cont (stri, f) ->
             let long = String.length stri in
             let size2 = Int64.add size (Int64.of_int long) in
-            let max = Ocsiconfig.get_maxuploadfilesize () in
+            let max = Ocsigen_config.get_maxuploadfilesize () in
             if
               (match max with
                 None -> false

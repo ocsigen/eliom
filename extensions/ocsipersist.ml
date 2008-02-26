@@ -52,7 +52,7 @@ let rec parse_global_config d = function
         
 let db_file = 
   match parse_global_config None (Extensions.get_config ()) with
-  | None -> (Ocsiconfig.get_datadir ())^"/ocsidb"
+  | None -> (Ocsigen_config.get_datadir ())^"/ocsidb"
   | Some d -> d
 
 

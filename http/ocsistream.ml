@@ -112,7 +112,7 @@ let string_of_stream =
     | Finished _ -> return ""
     | Cont (s, f) -> 
         let l2 = l+String.length s in
-        if l2 > Ocsiconfig.get_netbuffersize ()
+        if l2 > Ocsigen_config.get_netbuffersize ()
         then fail String_too_large
         else 
           aux l2 f >>=
@@ -126,7 +126,7 @@ let string_of_streams =
     | Finished (Some s) -> next s >>= fun r -> aux l r
     | Cont (s, f) -> 
         let l2 = l+String.length s in
-        if l2 > Ocsiconfig.get_netbuffersize ()
+        if l2 > Ocsigen_config.get_netbuffersize ()
         then fail String_too_large
         else 
           next f >>= fun r ->
@@ -138,7 +138,7 @@ let enlarge_stream = function
   | Finished a -> fail Stream_too_small
   | Cont (s, f) ->
       let long = String.length s in
-      let max = Ocsiconfig.get_netbuffersize () in
+      let max = Ocsigen_config.get_netbuffersize () in
       if long >= max
       then fail Ocsimisc.Input_is_too_large
       else
