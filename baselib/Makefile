@@ -12,13 +12,13 @@ else
 NATIVECODE_RUNTIME_DETECT=false
 endif
 
-FILES= ocsigen_lib.ml messages.ml ocsigen_config.ml
+FILES= ocsigen_lib.ml messages.ml ocsigen_config.ml ocsigen_loader.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
-LIB = -package netstring -I +camlp4 $(LIBDIRS)
+LIB = -package netstring,findlib -I +camlp4 $(LIBDIRS)
 PP =
 
 OBJS = $(FILES:.ml=.cmo)
