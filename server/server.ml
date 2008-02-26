@@ -22,7 +22,7 @@
 
 open Lwt
 open Messages
-open Ocsimisc
+open Ocsigen_lib
 open Extensions
 open Http_frame
 open Ocsiheaders
@@ -49,7 +49,7 @@ let _ = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
 let _ =
   Lwt_timeout.set_exn_handler
     (fun e -> Messages.errlog ("Uncaught Exception after lwt timeout: "^
-                                 Ocsimisc.string_of_exn e))
+                                 Ocsigen_lib.string_of_exn e))
 
 external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
 
@@ -291,7 +291,7 @@ let get_request_infos
                       return b);
      ri_inet_addr = inet_addr;
      ri_ip = ipstring;
-     ri_ip_parsed = lazy (fst (Ocsimisc.parse_ip ipstring));
+     ri_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip ipstring));
      ri_remote_port = port_of_sockaddr sockaddr;
      ri_port = port;
      ri_user_agent = useragent;
@@ -802,7 +802,7 @@ Is it:
 | ...
 *)
           Messages.warning 
-            ("Exception while creating IPv6 socket: "^Ocsimisc.string_of_exn e);
+            ("Exception while creating IPv6 socket: "^Ocsigen_lib.string_of_exn e);
           let socket = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
           Lwt_unix.set_close_on_exec socket;
           Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;

@@ -84,9 +84,9 @@ let compute_new_ri_cookies
     cookies_set_by_page =
 
   let prefix path p = 
-    Ocsimisc.list_is_prefix 
-      (Ocsimisc.remove_slash_at_beginning path)
-      (Ocsimisc.remove_slash_at_beginning p)
+    Ocsigen_lib.list_is_prefix 
+      (Ocsigen_lib.remove_slash_at_beginning path)
+      (Ocsigen_lib.remove_slash_at_beginning p)
   in
   Cookies.fold
     (fun path ct t -> 

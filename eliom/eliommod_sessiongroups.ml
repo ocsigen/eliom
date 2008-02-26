@@ -114,7 +114,7 @@ struct
       | Some sg ->
           (try
              let max, cl = GroupTable.find grouptable sg in
-             let newcl = Ocsimisc.list_remove_first_if_any sess_id cl in
+             let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
              (match newcl with
                 | [] -> GroupTable.remove grouptable sg
                 | _ -> GroupTable.replace grouptable sg (max, newcl) 
@@ -133,7 +133,7 @@ struct
       | Some sg ->
           (try
              let max, cl = GroupTable.find grouptable sg in
-             let newcl = Ocsimisc.list_remove_first_if_any sess_id cl in
+             let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
              GroupTable.replace grouptable sg (max, sess_id::newcl) 
            with Not_found -> ())
 
@@ -211,7 +211,7 @@ module Pers = struct
         Lwt.catch
           (fun () ->
              Ocsipersist.find grouptable sg >>= fun (max, cl) ->
-             let newcl = Ocsimisc.list_remove_first_if_any sess_id cl in
+             let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
              (match newcl with
                 | [] -> Ocsipersist.remove grouptable sg
                 | _ -> Ocsipersist.replace_if_exists grouptable sg (max, newcl)
@@ -234,7 +234,7 @@ module Pers = struct
           Lwt.catch
             (fun () ->
                Ocsipersist.find grouptable sg >>= fun (max, cl) ->
-               let newcl = Ocsimisc.list_remove_first_if_any sess_id cl in
+               let newcl = Ocsigen_lib.list_remove_first_if_any sess_id cl in
                Ocsipersist.replace_if_exists grouptable sg (max, sess_id::newcl)
             )
             (function

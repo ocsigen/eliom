@@ -23,7 +23,7 @@
 
 
 open Lwt
-open Ocsimisc
+open Ocsigen_lib
 open Extensions
 open Eliom_parameters
 open Eliom_services

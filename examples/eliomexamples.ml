@@ -439,7 +439,7 @@ let suffix5 =
            (head (title (pcdata "")) [])
            (body
               [p [pcdata "This is a page with suffix "; 
-                  strong [pcdata (Ocsimisc.string_of_url_path s)]]])))
+                  strong [pcdata (Ocsigen_lib.string_of_url_path s)]]])))
 
 let nosuffix = 
   register_new_service 

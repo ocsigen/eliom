@@ -140,7 +140,7 @@ let enlarge_stream = function
       let long = String.length s in
       let max = Ocsigen_config.get_netbuffersize () in
       if long >= max
-      then fail Ocsimisc.Input_is_too_large
+      then fail Ocsigen_lib.Input_is_too_large
       else
         next f >>= fun e ->
         match e with

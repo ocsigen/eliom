@@ -124,7 +124,7 @@ let gen dir charset = function
                            (if https then "https://" else "http://")^host^":"^
                                 (string_of_int port)^uri);
 
-       Ocsimisc.get_inet_addr host >>= fun inet_addr ->
+       Ocsigen_lib.get_inet_addr host >>= fun inet_addr ->
 
        (* It is now safe to start next request.
           We are sure that the request won't be taken in disorder.

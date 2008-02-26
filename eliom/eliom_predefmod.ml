@@ -23,7 +23,7 @@
 
 
 open Lwt
-open Ocsimisc
+open Ocsigen_lib
 open XHTML.M
 open Xhtmltypes
 open Extensions

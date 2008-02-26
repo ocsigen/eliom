@@ -79,11 +79,11 @@ let rec try_connect sname =
                         " on directory "^directory^".");
       let param = [|ocsidbm; directory|] in
       let child () = 
-        let err = !(Ocsimisc.thd3 Messages.error) in
+        let err = !(Ocsigen_lib.thd3 Messages.error) in
         Unix.dup2 err Unix.stderr; 
-        Unix.close !(Ocsimisc.thd3 Messages.error);
-        Unix.close !(Ocsimisc.thd3 Messages.access);
-        Unix.close !(Ocsimisc.thd3 Messages.warningfile);
+        Unix.close !(Ocsigen_lib.thd3 Messages.error);
+        Unix.close !(Ocsigen_lib.thd3 Messages.access);
+        Unix.close !(Ocsigen_lib.thd3 Messages.warningfile);
         let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
         Unix.dup2 devnull Unix.stdout;
         Unix.close devnull;

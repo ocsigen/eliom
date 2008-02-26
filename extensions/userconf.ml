@@ -26,7 +26,7 @@
 
 
 open Lwt
-open Ocsimisc
+open Ocsigen_lib
 open Extensions
 
 
@@ -63,9 +63,9 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
               (Ext_sub_result
                  (fun awake cookies_to_set rs ->
                    let path =
-                     Ocsimisc.remove_slash_at_end
-                       (Ocsimisc.remove_slash_at_beginning 
-                          (Ocsimisc.remove_dotdot (Neturl.split_path url))) 
+                     Ocsigen_lib.remove_slash_at_end
+                       (Ocsigen_lib.remove_slash_at_beginning 
+                          (Ocsigen_lib.remove_dotdot (Neturl.split_path url))) 
                    in
                    user_parse_site 
                      xmllist

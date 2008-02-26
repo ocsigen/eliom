@@ -22,7 +22,7 @@
 open Http_frame
 open Http_com
 open Lwt
-open Ocsimisc
+open Ocsigen_lib
 open Extensions
 open Ocsigenmod
 open Lazy

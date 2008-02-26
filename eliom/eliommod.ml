@@ -33,7 +33,7 @@
 
 open Lwt
 open Http_frame
-open Ocsimisc
+open Ocsigen_lib
 open Extensions
 open Lazy
 
@@ -1128,7 +1128,7 @@ let new_sitedata =
              datatimeout = [];
              perstimeout = [];
              site_dir = site_dir;
-             site_dir_string = Ocsimisc.string_of_url_path site_dir;
+             site_dir_string = Ocsigen_lib.string_of_url_path site_dir;
              global_services = empty_tables ();
              session_services = new_service_cookie_table ();
              session_data = new_data_cookie_table ();
@@ -2387,9 +2387,9 @@ let compute_new_ri_cookies'
   let prefix upo p = match upo with
     | None -> true
     | Some path -> 
-        Ocsimisc.list_is_prefix 
-          (Ocsimisc.remove_slash_at_beginning path)
-          (Ocsimisc.remove_slash_at_beginning p)
+        Ocsigen_lib.list_is_prefix 
+          (Ocsigen_lib.remove_slash_at_beginning path)
+          (Ocsigen_lib.remove_slash_at_beginning p)
   in
   List.fold_left
     (fun tab v -> 
@@ -3158,13 +3158,13 @@ let handle_init_exn = function
        "\". Please correct the module.")
   | Eliom_there_are_unregistered_services (s, l1, l2) ->
       ("Fatal - Eliom: in site \""^
-       (Ocsimisc.string_of_url_path s)^"\" - "^
+       (Ocsigen_lib.string_of_url_path s)^"\" - "^
        (match l1 with
        | [] -> ""
        | [a] -> "One service or coservice has not been registered on URL \""
-           ^(Ocsimisc.string_of_url_path a)^"\". "
+           ^(Ocsigen_lib.string_of_url_path a)^"\". "
        | a::ll -> 
-           let string_of = Ocsimisc.string_of_url_path in
+           let string_of = Ocsigen_lib.string_of_url_path in
            "Some services or coservices have not been registered \
              on URLs: "^
              (List.fold_left

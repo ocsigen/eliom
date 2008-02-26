@@ -647,17 +647,17 @@ module Session_admin = struct
 
   let get_service_session_name ~session:(_, (s, _, _, _, _), _) =
     try
-      Some (snd (Ocsimisc.sep '|' s))
+      Some (snd (Ocsigen_lib.sep '|' s))
     with Not_found -> None
     
   let get_volatile_data_session_name ~session:(_, (s, _, _, _), _) =
     try
-      Some (snd (Ocsimisc.sep '|' s))
+      Some (snd (Ocsigen_lib.sep '|' s))
     with Not_found -> None
 
   let get_persistent_data_session_name ~session:(_, (s, _, _, _)) =
     try
-      Some (snd (Ocsimisc.sep '|' s))
+      Some (snd (Ocsigen_lib.sep '|' s))
     with Not_found -> None
 
   let set_service_session_timeout ~session:(_, (_, _, _, r, _), _) t = 
@@ -755,5 +755,5 @@ let number_of_persistent_table_elements () =
   number_of_persistent_table_elements ()
 
 (*****************************************************************************)
-let sp_of_esp = Ocsimisc.id
-let esp_of_sp = Ocsimisc.id
+let sp_of_esp = Ocsigen_lib.id
+let esp_of_sp = Ocsigen_lib.id

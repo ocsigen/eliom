@@ -25,7 +25,7 @@
 
 open Http_frame
 open Predefined_senders
-open Ocsimisc
+open Ocsigen_lib
 
 (*
 XXX Get rid of all "try ... with _ -> ..."
@@ -276,7 +276,7 @@ let get_accept_encoding http_frame =
 let get_accept_language http_frame =
   try
     parse_list_with_quality
-      Ocsimisc.id
+      Ocsigen_lib.id
       (Http_header.get_headers_values
          http_frame.Http_frame.header Http_headers.accept_language)
   with _ -> []

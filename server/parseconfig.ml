@@ -135,9 +135,9 @@ let parse_ext file =
 
 
 let isloaded, addloaded =
-  let set = ref Ocsimisc.StringSet.empty in
-  ((fun s -> Ocsimisc.StringSet.mem s !set),
-   (fun s -> set := Ocsimisc.StringSet.add s !set))
+  let set = ref Ocsigen_lib.StringSet.empty in
+  ((fun s -> Ocsigen_lib.StringSet.mem s !set),
+   (fun s -> set := Ocsigen_lib.StringSet.add s !set))
 
 (** Load the module [file]. If [force] is [false], remember [file] so
     that it isn't reloaded when the server reloads. [config] is the
@@ -181,7 +181,7 @@ let find_modules =
       let preds = [(if is_native then "native" else "byte"); "plugin"; "mt"] in
       let deps = Findlib.package_deep_ancestors preds [package] in
       let deps = List.filter
-        (fun a -> not (Ocsimisc.StringSet.mem a builtin_packages)) deps in
+        (fun a -> not (Ocsigen_lib.StringSet.mem a builtin_packages)) deps in
       Messages.debug
         (fun () ->
            Printf.sprintf "Dependencies of %s: %s" package (String.concat ", " deps));
@@ -193,7 +193,7 @@ let find_modules =
                 let raw = Findlib.package_property preds a "archive" in
                 (* Replacing .cmx/.cmxa by .cmxs *)
                 let raw = Netstring_pcre.global_replace cmx ".cmxs " raw in
-                List.filter ((<>) "") (Ocsimisc.split ~multisep:true ' ' raw)
+                List.filter ((<>) "") (Ocsigen_lib.split ~multisep:true ' ' raw)
               with
                 | Not_found -> []
             in
@@ -386,7 +386,7 @@ let parse_server isreloading c =
                       with e -> 
                         Messages.errlog 
                           ("Error while loading configuration file "^filename^
-                           ": "^(Ocsimisc.string_of_exn e)^" (ignored)");
+                           ": "^(Ocsigen_lib.string_of_exn e)^" (ignored)");
                         []
                     in
                     (match filecont with
@@ -401,7 +401,7 @@ let parse_server isreloading c =
             | Sys_error _ as e ->
                 Messages.errlog 
                   ("Error while loading configuration file: "^
-                   ": "^(Ocsimisc.string_of_exn e)^" (ignored)");
+                   ": "^(Ocsigen_lib.string_of_exn e)^" (ignored)");
                 []
           in
           one@(parse_server_aux ll)

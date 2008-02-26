@@ -27,7 +27,7 @@
 (** Writing extensions for Ocsigen                                           *)
 
 open Lwt
-open Ocsimisc
+open Ocsigen_lib
 
 exception Ocsigen_http_error of (Http_frame.cookieset * int)
 exception Ocsigen_Is_a_directory

@@ -167,7 +167,7 @@ module FT = struct
     with Not_found ->
       ()
       | e -> 
-          Messages.debug2 ("--Http_client: exception while removing from connection table: "^Ocsimisc.string_of_exn e)
+          Messages.debug2 ("--Http_client: exception while removing from connection table: "^Ocsigen_lib.string_of_exn e)
           
 end
 
@@ -319,7 +319,7 @@ let raw_request
              | e -> 
                  Messages.warning
                    ("--Http_client: exception caught while receiving frame: "^
-                    Ocsimisc.string_of_exn e^
+                    Ocsigen_lib.string_of_exn e^
                     " - closing connection to the server.");
                  Lwt_ssl.close (Http_com.connection_fd conn);
                  Lwt.return ()
@@ -527,7 +527,7 @@ let raw_request
         with e ->
           Messages.debug_noel2
             "--Http_client: exception while trying to keep free connection: ";
-          Messages.debug2 (Ocsimisc.string_of_exn e);
+          Messages.debug2 (Ocsigen_lib.string_of_exn e);
           !ref_thr_conn >>= fun conn ->
           Lwt_ssl.close (Http_com.connection_fd conn);
           Lwt.return ()
@@ -653,7 +653,7 @@ let raw_request
 
 (*****************************************************************************)
 let get ?https ?port ~host ~uri () =
-  Ocsimisc.get_inet_addr host >>= fun inet_addr ->
+  Ocsigen_lib.get_inet_addr host >>= fun inet_addr ->
     raw_request 
       ?https
       ?port

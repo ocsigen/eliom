@@ -65,7 +65,7 @@ PP2 =
 # cma and cmo to be linked in the server:
 
 CMAO = ../lwt/lwt.cma \
-       ../baselib/ocsimisc.cmo \
+       ../baselib/ocsigen_lib.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
        ../baselib/ocsigen_config.cmo ../baselib/messages.cmo \
        ../http/ocsistream.cmo ../http/multipart.cmo \

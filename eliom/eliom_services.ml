@@ -22,7 +22,7 @@
 
 
 open Lwt
-open Ocsimisc
+open Ocsigen_lib
 open Eliommod
 open Extensions
 open Eliom_sessions
@@ -575,4 +575,4 @@ let set_exn_handler ?sp h =
 let add_service = Eliommod.add_service
 let add_naservice = Eliommod.add_naservice
 
-let erts_of_rst = Ocsimisc.id
+let erts_of_rst = Ocsigen_lib.id

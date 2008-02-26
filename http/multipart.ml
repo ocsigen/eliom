@@ -234,7 +234,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
               | Some m ->
                   (Int64.compare size2 m) > 0)
             then 
-              fail (Ocsimisc.Ocsigen_Request_too_long)
+              fail (Ocsigen_lib.Ocsigen_Request_too_long)
             else
               if stri = ""
               then Ocsistream.next f >>= while_stream size
@@ -261,7 +261,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
       read_multipart_body decode_part boundary s >>=
       (fun _ -> return ()))
     (function
-      | Stream_too_small -> fail Ocsimisc.Ocsigen_Bad_Request
+      | Stream_too_small -> fail Ocsigen_lib.Ocsigen_Bad_Request
       | e -> fail e)
 ;;
 

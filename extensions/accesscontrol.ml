@@ -51,12 +51,12 @@ let rec parse_condition = function
     | Element ("ip", ["value", s], []) ->
         let ip_with_mask =
           try
-            Ocsimisc.parse_ip s
+            Ocsigen_lib.parse_ip s
           with Failure _ ->
             badconfig "Bad ip/netmask [%s] in <ip> condition" s
         in
         (fun ri ->
-           let r = Ocsimisc.match_ip ip_with_mask (Lazy.force ri.ri_ip_parsed) in
+           let r = Ocsigen_lib.match_ip ip_with_mask (Lazy.force ri.ri_ip_parsed) in
            if r then
              Messages.debug2 (sprintf "--Access control (ip): %s matches %s" ri.ri_ip s)
            else

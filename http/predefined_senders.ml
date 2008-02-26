@@ -176,7 +176,7 @@ module Streamlist_content =
               (fun e -> exnhandler e l)
       and exnhandler e l =
         Messages.warning
-          ("Error while reading stream list: " ^ Ocsimisc.string_of_exn e);
+          ("Error while reading stream list: " ^ Ocsigen_lib.string_of_exn e);
         finalize () >>= fun () ->
         next_stream l
       in
@@ -455,7 +455,7 @@ module Directory_content =
         else back path
       in
       let before =
-        let st = (Ocsimisc.string_of_url_path path) in
+        let st = (Ocsigen_lib.string_of_url_path path) in
         "<html>\n\
          <head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n\
          <link rel=\"stylesheet\" type=\"text/css\" href=\"/ocsigenstuff/style.css\" media=\"screen\" />\n\
@@ -540,7 +540,7 @@ module Error_content =
               ("Error "^str_code)
               error_msg
               [XHTML.M.p
-                 [XHTML.M.pcdata (Ocsimisc.string_of_exn exn);
+                 [XHTML.M.pcdata (Ocsigen_lib.string_of_exn exn);
                   XHTML.M.br ();
                   XHTML.M.em
                     [XHTML.M.pcdata "(Ocsigen running in debug mode)"]

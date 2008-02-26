@@ -21,7 +21,7 @@
 
 
 open Extensions
-open Ocsimisc
+open Ocsigen_lib
 open Eliommod
 
 (** Type of names in a formular *)

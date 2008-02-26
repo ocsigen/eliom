@@ -819,7 +819,7 @@ let send
                            | _ -> 
                                Messages.warning
                                  ("Http_com: reopenning after exception "^
-                                    (Ocsimisc.string_of_exn e)^
+                                    (Ocsigen_lib.string_of_exn e)^
                                     " (Is that right?) Please report this error.");
                                reopen () >>= fun () ->
                                Lwt.fail e
@@ -859,7 +859,7 @@ let send
   in
   let mkcook path exp name c =
     Format.sprintf "%s=%s%s%s" name c
-      ("; path=/" ^ Ocsimisc.string_of_url_path path)
+      ("; path=/" ^ Ocsigen_lib.string_of_url_path path)
       (match exp with
       | Some s -> "; expires=" ^
           Netdate.format

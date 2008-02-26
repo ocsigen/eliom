@@ -27,7 +27,7 @@
 
 
 open Lwt
-open Ocsimisc
+open Ocsigen_lib
 
 exception Ocsigen_http_error of (Http_frame.cookieset * int)
 exception Ocsigen_Is_a_directory
@@ -44,7 +44,7 @@ let badconfig fmt = Printf.ksprintf (fun s -> raise (Error_in_config_file s)) fm
 (** type of URL, without parameter *)
 type url_path = string list
 
-let string_of_url_path = Ocsimisc.string_of_url_path
+let string_of_url_path = Ocsigen_lib.string_of_url_path
 
 
 type file_info = {tmp_filename: string;
@@ -300,9 +300,9 @@ let rec default_parse_config
       in
       let path = 
         prevpath@
-        Ocsimisc.remove_slash_at_end
-          (Ocsimisc.remove_slash_at_beginning 
-             (Ocsimisc.remove_dotdot (Neturl.split_path dir))) 
+        Ocsigen_lib.remove_slash_at_end
+          (Ocsigen_lib.remove_slash_at_beginning 
+             (Ocsigen_lib.remove_dotdot (Neturl.split_path dir))) 
       in
       let parse_site = make_parse_site path charset parse_host l in
       let ext awake cookies_to_set = 
@@ -314,21 +314,21 @@ let rec default_parse_config
               | None ->
                   Messages.debug (fun () ->
                     "site \""^
-                    (Ocsimisc.string_of_url_path path)^
+                    (Ocsigen_lib.string_of_url_path path)^
                     "\" does not match url \""^
-                    (Ocsimisc.string_of_url_path oldri.ri_full_path)^
+                    (Ocsigen_lib.string_of_url_path oldri.ri_full_path)^
                     "\".");
                   Lwt.return (Ext_next e, cookies_to_set)
               | Some sub_path ->
                   Messages.debug (fun () -> 
                     "-------- site found: url \""^
-                    (Ocsimisc.string_of_url_path oldri.ri_full_path)^
+                    (Ocsigen_lib.string_of_url_path oldri.ri_full_path)^
                     "\" matches \""^
-                    (Ocsimisc.string_of_url_path path)^"\".");
+                    (Ocsigen_lib.string_of_url_path path)^"\".");
                   let ri = {oldri with
                             ri_sub_path = sub_path; 
                             ri_sub_path_string = 
-                            Ocsimisc.string_of_url_path sub_path}
+                            Ocsigen_lib.string_of_url_path sub_path}
                   in
                   parse_site awake cookies_to_set (Req_not_found (e, ri)) 
                   >>= function
@@ -376,7 +376,7 @@ and make_parse_site path charset parse_host l =
             ignore
               (Messages.errlog
                  ("Unexpected tag <"^t^"> inside <site dir=\""^
-                  (Ocsimisc.string_of_url_path path)^"\"> (ignored)"));
+                  (Ocsigen_lib.string_of_url_path path)^"\"> (ignored)"));
             parse_site ll
         | Ocsigen_config.Config_file_error t
         | Error_in_config_file t -> 
@@ -389,7 +389,7 @@ and make_parse_site path charset parse_host l =
             ignore
               (Messages.errlog
                  ("Error while parsing configuration file: "^
-                  (Ocsimisc.string_of_exn e)^
+                  (Ocsigen_lib.string_of_exn e)^
 	          " (ignored)"));
             parse_site ll
   in 
@@ -696,8 +696,8 @@ let parse_url url =
   in
 
   let path =
-    (Ocsimisc.remove_dotdot (* and remove "//" *)
-       (Ocsimisc.remove_slash_at_beginning 
+    (Ocsigen_lib.remove_dotdot (* and remove "//" *)
+       (Ocsigen_lib.remove_slash_at_beginning 
           (Neturl.url_path url2)))
       (* here we remove .. from paths, at it is dangerous.
          But in some very particular cases, we may want them?

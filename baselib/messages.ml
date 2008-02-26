@@ -38,20 +38,20 @@ let open_files =
   fun () ->
     if !opened
     then begin
-      Unix.close !(Ocsimisc.thd3 access);
-      Unix.close !(Ocsimisc.thd3 warningfile);
-      Unix.close !(Ocsimisc.thd3 error)
+      Unix.close !(Ocsigen_lib.thd3 access);
+      Unix.close !(Ocsigen_lib.thd3 warningfile);
+      Unix.close !(Ocsigen_lib.thd3 error)
     end;
     opened := true;
-    let acc = openlog (Ocsimisc.fst3 access) in
-    let war = openlog (Ocsimisc.fst3 warningfile) in
-    let err = openlog (Ocsimisc.fst3 error) in
-    Ocsimisc.snd3 access := Unix.out_channel_of_descr acc;
-    Ocsimisc.snd3 warningfile := Unix.out_channel_of_descr war;
-    Ocsimisc.snd3 error := Unix.out_channel_of_descr err;
-    Ocsimisc.thd3 access := acc;
-    Ocsimisc.thd3 warningfile := war;
-    Ocsimisc.thd3 error := err;
+    let acc = openlog (Ocsigen_lib.fst3 access) in
+    let war = openlog (Ocsigen_lib.fst3 warningfile) in
+    let err = openlog (Ocsigen_lib.fst3 error) in
+    Ocsigen_lib.snd3 access := Unix.out_channel_of_descr acc;
+    Ocsigen_lib.snd3 warningfile := Unix.out_channel_of_descr war;
+    Ocsigen_lib.snd3 error := Unix.out_channel_of_descr err;
+    Ocsigen_lib.thd3 access := acc;
+    Ocsigen_lib.thd3 warningfile := war;
+    Ocsigen_lib.thd3 error := err;
     Unix.set_close_on_exec acc;
     Unix.set_close_on_exec war;
     Unix.set_close_on_exec err
@@ -69,12 +69,12 @@ let log_aux file console_print s =
       t.Unix.tm_sec 
   in
   if console_print then 
-    prerr_endline ("["^(Ocsimisc.fst3 file)^"] "^date^" - "^s);
-  output_string !(Ocsimisc.snd3 file) date;
-  output_string !(Ocsimisc.snd3 file) " - ";
-  output_string !(Ocsimisc.snd3 file) s;
-  output_string !(Ocsimisc.snd3 file) "\n";
-  flush !(Ocsimisc.snd3 file)
+    prerr_endline ("["^(Ocsigen_lib.fst3 file)^"] "^date^" - "^s);
+  output_string !(Ocsigen_lib.snd3 file) date;
+  output_string !(Ocsigen_lib.snd3 file) " - ";
+  output_string !(Ocsigen_lib.snd3 file) s;
+  output_string !(Ocsigen_lib.snd3 file) "\n";
+  flush !(Ocsigen_lib.snd3 file)
 
       
 let accesslog s =
@@ -140,7 +140,7 @@ let console2 =
     (fun s -> ())
 
 let unexpected_exception e s =
-  warning ("Unexpected exception in "^s^": "^Ocsimisc.string_of_exn e)
+  warning ("Unexpected exception in "^s^": "^Ocsigen_lib.string_of_exn e)
 
 
 
