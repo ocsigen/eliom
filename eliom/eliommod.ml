@@ -3089,18 +3089,20 @@ let gen sitedata charset = function
 let config = ref []
 
 let load_eliom_module sitedata cmo content =
-  config := content;
-  begin_load_eliom_module ();
-  (try
-    Dynlink.loadfile cmo
-  with Dynlink.Error e -> 
+  let preload () =
+    config := content;
+    begin_load_eliom_module ()
+  in
+  let postload () =
     end_load_eliom_module ();
+    config := []
+  in
+  try
+    Ocsigen_loader.loadfiles preload postload true cmo
+  with Ocsigen_loader.Dynlink_error _ as e ->
     raise (Eliom_error_while_loading_site
-             ("(eliommod extension) "^cmo^": "^
-              (Dynlink.error_message e))));
-  (* absolute_change_sitedata save_current_dir; *)
-  end_load_eliom_module ();
-  config := []
+             (Printf.sprintf "(eliom extension) %s"
+                (Ocsigen_loader.error_message e)))
 
 
 
@@ -3120,9 +3122,22 @@ let parse_config site_dir charset =
       | Some s -> s)
     | ("module", s)::suite ->
         (match file with
-          None -> parse_module_attrs (Some s) suite
+          None -> parse_module_attrs (Some [s]) suite
         | _ -> raise (Error_in_config_file
                         ("Duplicate attribute file in <eliom>")))
+    | ("findlib-package", s)::suite ->
+        begin match file with
+          | None ->
+              begin try
+                parse_module_attrs (Some (Ocsigen_loader.findfiles s)) suite
+              with Ocsigen_loader.Findlib_error _ as e ->
+                raise (Error_in_config_file
+                         (Printf.sprintf "Findlib error: %s"
+                            (Ocsigen_loader.error_message e)))
+              end
+          | _ -> raise (Error_in_config_file
+                          ("Duplicate attribute file in <eliom>"))
+        end
     | (s, _)::_ ->
         raise
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
