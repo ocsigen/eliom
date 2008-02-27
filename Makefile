@@ -105,7 +105,7 @@ EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
 
-all: $(BYTE) $(OPT) $(OCSIGENNAME).conf.local
+all: $(BYTE) $(OPT) $(OCSIGENNAME).conf.local META
 
 byte: xmlp4pre.byte $(TARGETSBYTE)
 
@@ -195,6 +195,14 @@ doc:
 
 doc/index.html: doc
 
+META: META.in
+	sed "\
+	  s/_VERSION_/$(VERSION)/; \
+	  s/_CAMLZIPNAME_/$(CAMLZIPNAME)/; \
+	  $(METASEDBYTE) \
+	  $(METASEDOPT)" < META.in > META
+
+
 $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 	cat files/ocsigen.conf \
 	| sed s%\<port\>80\</port\>%\<port\>8080\</port\>%g \
@@ -233,6 +241,8 @@ clean:
 	-rm -f bin/* bin/*~
 	-rm -f doc/* doc/*~
 	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
+	-rm -f META META.ocsigen META.ocsigen.global
+	-find -name "*depend" -delete
 
 depend: xmlp4pre.byte $(DEPOPT)
 #	touch lwt/depend
@@ -247,18 +257,12 @@ partialinstall:
 	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)
 	$(MAKE) -C server install
-	sed "\
-	  s/_VERSION_/$(VERSION)/; \
-	  s/_CAMLZIPNAME_/$(CAMLZIPNAME)/; \
-	  $(METASEDBYTE) \
-	  $(METASEDOPT)" < META.in > META
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)
 	[ ! -f extensions/ocsipersist-dbm/ocsidbm.opt ] || \
 	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)
-	-rm META
 
 docinstall: doc/index.html
 	mkdir -p $(TEMPROOT)$(DOCDIR)
