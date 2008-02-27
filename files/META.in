@@ -1,0 +1,3 @@
+description = "Libraries for Ocsigen"
+version = "_VERSION_"
+requires = "netstring,netsys,ssl,pcre,unix,dynlink,threads,lwt"

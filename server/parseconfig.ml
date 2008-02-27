@@ -213,6 +213,9 @@ let parse_server isreloading c =
       | (Element ("respectpipeline", [], []))::ll -> 
           set_respect_pipeline ();
           parse_server_aux ll
+      | (Element ("findlib", ["path",p], []))::ll ->
+          Ocsigen_loader.add_ocamlpath p;
+          parse_server_aux ll
       | (Element ("require", atts, l))::ll
       | (Element ("extension", atts, l))::ll ->
           (* We do not reload extensions *)

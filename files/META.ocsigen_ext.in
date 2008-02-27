@@ -1,6 +1,6 @@
-description = "Libraries and extensions for Ocsigen"
-version = "_VERSION_"
-requires = "netstring,netsys,ssl,pcre,unix,dynlink,threads,lwt"
+description = "Extensions for Ocsigen"
+version = "[distributed with Ocsigen]"
+directory = "_MODULEINSTALLDIR_"
 
 package "redirectmod" (
   version = "[distributed with Ocsigen]"

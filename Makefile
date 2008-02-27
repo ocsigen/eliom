@@ -47,6 +47,7 @@ else
 endif
 
 DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lwt/lwt_ssl.mli ./lwt/lwt_timeout.mli ./lwt/preemptive.mli ./lwt/lwt_lib.mli ./eliom/eliom_mkforms.mli ./eliom/eliom_mkreg.mli ./eliom/eliom_predefmod.mli ./eliom/eliommod.mli ./eliom/eliom_parameters.mli ./eliom/eliom_services.mli ./eliom/eliom_sessions.mli ./server/extensions.mli ./server/parseconfig.mli ./xmlp4/xhtmlpretty.mli ./xmlp4/xhtmlcompact.mli ./xmlp4/oldocaml/xhtmltypes.ml ./xmlp4/ohl-xhtml/xHTML.mli ./baselib/messages.mli ./http/ocsiheaders.mli ./server/http_client.mli ./http/http_frame.mli ./http/http_com.mli ./http/predefined_senders.mli ./eliom/eliom_tools.mli ./extensions/ocsipersist.mli ./extensions/authbasic.mli ./xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+METAS = META META.ocsigen_ext META.eliom_examples META.ocsigen_ext.global META.eliom_examples.global
 
 
 INSTALL = install
@@ -105,7 +106,7 @@ EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
 
-all: $(BYTE) $(OPT) $(OCSIGENNAME).conf.local META
+all: $(BYTE) $(OPT) $(OCSIGENNAME).conf.local $(METAS)
 
 byte: xmlp4pre.byte $(TARGETSBYTE)
 
@@ -195,13 +196,43 @@ doc:
 
 doc/index.html: doc
 
-META: META.in
+META: files/META.in
 	sed "\
 	  s/_VERSION_/$(VERSION)/; \
 	  s/_CAMLZIPNAME_/$(CAMLZIPNAME)/; \
 	  $(METASEDBYTE) \
-	  $(METASEDOPT)" < META.in > META
+	  $(METASEDOPT)" < files/META.in > META
 
+META.ocsigen_ext: files/META.ocsigen_ext.in
+	ln -sf ../eliom/eliom.cma extensions
+	sed "\
+	  s/_VERSION_/$(VERSION)/; \
+	  s/_CAMLZIPNAME_/$(CAMLZIPNAME)/; \
+	  s%_MODULEINSTALLDIR_%$(SRC)/extensions%g; \
+	  $(METASEDBYTE) \
+	  $(METASEDOPT)" < files/META.ocsigen_ext.in > META.ocsigen_ext
+
+META.ocsigen_ext.global: files/META.ocsigen_ext.in
+	sed "\
+	  s/_VERSION_/$(VERSION)/; \
+	  s/_CAMLZIPNAME_/$(CAMLZIPNAME)/; \
+	  s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g; \
+	  $(METASEDBYTE) \
+	  $(METASEDOPT)" < files/META.ocsigen_ext.in > META.ocsigen_ext.global
+
+META.eliom_examples: files/META.eliom_examples.in
+	sed "\
+	  s/_VERSION_/$(VERSION)/; \
+	  s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g; \
+	  $(METASEDBYTE) \
+	  $(METASEDOPT)" < files/META.eliom_examples.in > META.eliom_examples
+
+META.eliom_examples.global: files/META.eliom_examples.in
+	sed "\
+	  s/_VERSION_/$(VERSION)/; \
+	  s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g; \
+	  $(METASEDBYTE) \
+	  $(METASEDOPT)" < files/META.eliom_examples.in > META.eliom_examples.global
 
 $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 	cat files/ocsigen.conf \
@@ -219,6 +250,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 	| sed s%_MODULEINSTALLDIR_%$(SRC)/extensions%g \
 	| sed s%_ELIOMINSTALLDIR_%$(SRC)/eliom%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g \
+	| sed s%_METADIR_%$(SRC)%g \
 	| sed s%_CAMLZIPNAME_%$(CAMLZIPNAME)%g \
 	| sed s%files/miniwiki%examples/miniwiki/files%g \
 	| sed s%var/lib/miniwiki%examples/miniwiki/wikidata%g \
@@ -237,11 +269,9 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 clean:
 #	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
-	-rm -f lib/* lib/*~
-	-rm -f bin/* bin/*~
-	-rm -f doc/* doc/*~
 	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
-	-rm -f META META.ocsigen META.ocsigen.global
+	-rm -f $(METAS)
+	-find -name "*~" -delete
 	-find -name "*depend" -delete
 
 depend: xmlp4pre.byte $(DEPOPT)
@@ -255,7 +285,7 @@ partialinstall:
 	$(MAKE) -C lwt install
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
-	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)
+	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/METAS
 	$(MAKE) -C server install
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
@@ -263,6 +293,8 @@ partialinstall:
 	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)
 	[ ! -f extensions/ocsipersist-dbm/ocsidbm.opt ] || \
 	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)
+	$(INSTALL) -m 644 META.ocsigen_ext.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
+	$(INSTALL) -m 644 META.eliom_examples.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
 
 docinstall: doc/index.html
 	mkdir -p $(TEMPROOT)$(DOCDIR)
@@ -299,6 +331,7 @@ installnodoc: partialinstall
 	| sed s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_ELIOMINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g \
 	| sed s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g \
+	| sed s%_METADIR_%$(EXTRALIBDIR)/METAS%g \
 	| sed s%_CAMLZIPNAME_%$(CAMLZIPNAME)%g \
 	> $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample
 	cat $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.sample \
@@ -355,6 +388,10 @@ uninstall:
 	-rm -Rf $(TEMPROOT)$(DOCDIR)
 	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/ocsidbm
 	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/ocsidbm.opt
+	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
+	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
+	-rmdir $(TEMPROOT)$(EXTRALIBDIR)/METAS
+	-rmdir $(TEMPROOT)$(EXTRALIBDIR)
 	-$(MAKE) -C server uninstall
 	-$(MAKE) -C lwt uninstall
 	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"

@@ -1,0 +1,24 @@
+description = "Eliom examples"
+version = "[distributed with Ocsigen]"
+directory = "_EXAMPLESINSTALLDIR_"
+
+package "miniwiki" (
+  version = "[distributed with Ocsigen]"
+  description = "A very basic wiki"
+  archive(plugin,byte) = "miniwiki.cmo"
+  archive(plugin,native) = "miniwiki.cmxs"
+)
+
+package "monitoring" (
+  version = "[distributed with Ocsigen]"
+  description = "A page displaying information about the server"
+  archive(plugin,byte) = "monitoring.cmo"
+  archive(plugin,native) = "monitoring.cmxs"
+)
+
+package "tutoeliom" (
+  version = "[distributed with Ocsigen]"
+  description = "Eliom tutorial"
+  archive(plugin,byte) = "tutoeliom.cmo"
+  archive(plugin,native) = "tutoeliom.cmxs"
+)
