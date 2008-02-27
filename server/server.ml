@@ -841,7 +841,7 @@ let errmsg = function
   | Simplexmlparser.Xml_parser_error s ->
       (("Fatal - Error in configuration file: "^s),
        51)
-  | Parseconfig.Dynlink_error (s, exn) ->
+  | Ocsigen_loader.Dynlink_error (s, exn) ->
       (("Fatal - While loading "^s^": "^(string_of_exn exn)),
       52)
   | exn -> 

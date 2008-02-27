@@ -24,7 +24,6 @@ val parse_size : string -> int64 option
 val parse_string : Simplexmlparser.xml list -> string
 
 (**/**)
-exception Dynlink_error of string * exn
 
 val parser_config : Simplexmlparser.xml list ->
   Simplexmlparser.xml list list

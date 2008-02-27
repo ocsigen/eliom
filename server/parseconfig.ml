@@ -27,9 +27,6 @@
 open Simplexmlparser
 open Ocsigen_config
 
-exception Dynlink_error of string * exn
-exception Findlib_error of string * exn
-
 (*****************************************************************************)
 let parse_size =
   let kilo = Int64.of_int 1000 in
@@ -134,79 +131,8 @@ let parse_ext file =
   parser_config (Simplexmlparser.xmlparser file)
 
 
-let isloaded, addloaded =
-  let set = ref Ocsigen_lib.StringSet.empty in
-  ((fun s -> Ocsigen_lib.StringSet.mem s !set),
-   (fun s -> set := Ocsigen_lib.StringSet.add s !set))
-
-(** Load the module [file]. If [force] is [false], remember [file] so
-    that it isn't reloaded when the server reloads. [config] is the
-    subforest of the config file entry which invoked this loading. *)
-let load_module force config file =
-  try
-    if force then begin
-      Extensions.set_config config;
-      Messages.debug (fun () -> "Loading "^file^" (will be reloaded every times)");
-      Dynlink.loadfile file;
-      Extensions.set_config [];
-    end
-    else if not (isloaded file) then begin
-      Extensions.set_config config;
-      Messages.debug (fun () -> "Loading extension "^file);
-      Dynlink.loadfile file;
-      addloaded file;
-      Extensions.set_config []
-    end
-    else
-      Messages.debug (fun () -> "Extension "^file^" already loaded")
-  with
-    | e -> raise (Dynlink_error (file, e))
-
-(** Load all the files specified in [modules]. [force] and [config]
-    refer to the last one in [modules], the other ones being loaded
-    with [force] set to [false] and [config] set to [[]]. *)
-let load_modules force config modules =
-  let rec aux = function
-    | [] -> ()
-    | [m] -> load_module force config m
-    | m::q -> load_module false [] m; aux q
-  in aux modules
-
-(** Use [Findlib] to locate all files needed to load [package]. *)
-let find_modules =
-  Findlib.init ();
-  let cmx = Netstring_pcre.regexp_case_fold "\\.cmx($| |a)" in
-  fun package ->
-    try
-      let preds = [(if is_native then "native" else "byte"); "plugin"; "mt"] in
-      let deps = Findlib.package_deep_ancestors preds [package] in
-      let deps = List.filter
-        (fun a -> not (Ocsigen_lib.StringSet.mem a builtin_packages)) deps in
-      Messages.debug
-        (fun () ->
-           Printf.sprintf "Dependencies of %s: %s" package (String.concat ", " deps));
-      let rec aux = function
-        | [] -> []
-        | a::q ->
-            let mods =
-              try
-                let raw = Findlib.package_property preds a "archive" in
-                (* Replacing .cmx/.cmxa by .cmxs *)
-                let raw = Netstring_pcre.global_replace cmx ".cmxs " raw in
-                List.filter ((<>) "") (Ocsigen_lib.split ~multisep:true ' ' raw)
-              with
-                | Not_found -> []
-            in
-            let base = Findlib.package_directory a in
-            (List.map (Findlib.resolve_path ~base) mods) @ (aux q)
-      in
-      let res = aux deps in
-      Messages.debug
-        (fun () ->
-           Printf.sprintf "Needed: %s" (String.concat ", " res));
-      res
-    with
-      | e -> raise (Findlib_error (package, e))
+let preloadfile config () = Extensions.set_config config
+let postloadfile () = Extensions.set_config []
 
 
 (* Config file is parsed twice. 
@@ -295,21 +221,21 @@ let parse_server isreloading c =
                 raise
                   (Config_file_error "missing module or findlib-package attribute in <extension>")
             | [("module", s)] -> [s]
-            | [("findlib-package", s)] -> find_modules s
+            | [("findlib-package", s)] -> Ocsigen_loader.findfiles s
             | _ ->
                 raise (Config_file_error "Wrong attribute for <extension>")
           in
-          load_modules false l modules;
+          Ocsigen_loader.loadfiles (preloadfile l) postloadfile false modules;
           parse_server_aux ll
       | (Element ("library", atts, l))::ll ->
           let modules = match atts with
             | [] ->
                 raise (Config_file_error "missing module or findlib-package attribute in <library>")
             | [("module", s)] -> [s]
-            | [("findlib-package", s)] -> find_modules s
+            | [("findlib-package", s)] -> Ocsigen_loader.findfiles s
             | _ -> raise (Config_file_error "Wrong attribute for <library>")
           in
-          load_modules true l modules;
+          Ocsigen_loader.loadfiles (preloadfile l) postloadfile true modules;
           parse_server_aux ll
       | (Element ("host", atts, l))::ll ->
           let rec parse_attrs (name, charset) = function
