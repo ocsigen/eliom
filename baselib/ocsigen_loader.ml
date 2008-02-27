@@ -37,15 +37,21 @@ let loadfile pre post force file =
     if force then begin
       pre ();
       Messages.debug (fun () -> "Loading "^file^" (will be reloaded every times)");
-      Dynlink.loadfile file;
-      post ();
+      begin try
+        Dynlink.loadfile file; post ()
+      with e ->
+        post (); raise e
+      end
     end
     else if not (isloaded file) then begin
       pre ();
       Messages.debug (fun () -> "Loading extension "^file);
-      Dynlink.loadfile file;
+      begin try
+        Dynlink.loadfile file; post ()
+      with e ->
+        post (); raise e
+      end;
       addloaded file;
-      post ();
     end
     else
       Messages.debug (fun () -> "Extension "^file^" already loaded")

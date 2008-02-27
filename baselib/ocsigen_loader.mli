@@ -37,7 +37,8 @@ val loadfile: (unit -> unit) -> (unit -> unit) -> bool -> string -> unit
   (** [loadfile pre post force file] (dynamically) loads [file]. If
       [force] is [false], remember [file] so that it isn't loaded
       twice. If the loading effectively occurs, [pre] (resp. [post])
-      is called before (resp. after) the loading. *)
+      is called before (resp. after) the loading. [post] will be
+      called even if the loading fails. *)
 
 val loadfiles: (unit -> unit) -> (unit -> unit) -> bool -> string list -> unit
   (** [loadfiles pre post force file] loads all the [files], using
