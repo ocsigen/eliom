@@ -128,3 +128,15 @@ let findfiles =
       res
     with
       | e -> raise (Findlib_error (package, e))
+
+
+(************************************************************************)
+(* Error formatting *)
+
+open Printf
+
+let rec error_message = function
+  | Dynlink.Error e -> Dynlink.error_message e
+  | Dynlink_error (s, e) -> sprintf "Dynlink error while loading %s: %s" s (error_message e)
+  | Findlib_error (s, e) -> sprintf "Findlib error while handling %s: %s" s (error_message e)
+  | e -> Printexc.to_string e
