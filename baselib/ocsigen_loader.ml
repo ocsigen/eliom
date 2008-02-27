@@ -105,7 +105,7 @@ let findfiles =
         (fun a -> not (Ocsigen_lib.StringSet.mem a Ocsigen_config.builtin_packages)) deps in
       Messages.debug
         (fun () ->
-           Printf.sprintf "Dependencies of %s: %s" package (String.concat ", " deps));
+           Printf.sprintf "-- Dependencies of %s: %s" package (String.concat ", " deps));
       let rec aux = function
         | [] -> []
         | a::q ->
@@ -124,7 +124,7 @@ let findfiles =
       let res = aux deps in
       Messages.debug
         (fun () ->
-           Printf.sprintf "Needed: %s" (String.concat ", " res));
+           Printf.sprintf "-- Needed: %s" (String.concat ", " res));
       res
     with
       | e -> raise (Findlib_error (package, e))
