@@ -22,3 +22,10 @@ package "tutoeliom" (
   archive(plugin,byte) = "tutoeliom.cmo"
   archive(plugin,native) = "tutoeliom.cmxs"
 )
+
+package "duce" (
+  version = "[distributed with Ocsigen]"
+  description = "Example with OCamlDuce"
+  archive(plugin,byte) = "exampleduce.cmo"
+  archive(plugin,native) = "exampleduce.cmxs"
+)

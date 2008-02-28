@@ -204,7 +204,8 @@ META: files/META.in
 	  $(METASEDOPT)" < files/META.in > META
 
 META.ocsigen_ext: files/META.ocsigen_ext.in
-	ln -sf ../eliom/eliom.cma extensions
+	-ln -sf ../eliom/eliom.cma extensions
+	-ln -sf ../eliom/eliom_duce.cma extensions
 	sed "\
 	  s/_VERSION_/$(VERSION)/; \
 	  s/_CAMLZIPNAME_/$(CAMLZIPNAME)/; \

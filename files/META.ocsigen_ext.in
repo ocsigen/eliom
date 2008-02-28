@@ -74,3 +74,11 @@ package "deflatemod" (
   archive(plugin,byte) = "deflatemod.cmo"
   archive(plugin,native) = "deflatemod.cmxs"
 )
+
+package "eliom_duce" (
+  requires = "ocamlduce"
+  version = "[distributed with Ocsigen]"
+  description = "OCamlDuce support for Eliom"
+  archive(plugin,byte) = "eliom_duce.cma"
+  archive(plugin,native) = "eliom_duce.cmxs"
+)
