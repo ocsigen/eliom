@@ -57,7 +57,7 @@ PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	eliom/eliom.cma \
 	extensions/staticmod.cmo extensions/cgimod.cmo $(DEFLATEMODINSTALL) \
         extensions/revproxy.cmo extensions/userconf.cmo \
-        extensions/outputfilter.cmo \
+        extensions/outputfilter.cmo extensions/authbasic.cmo \
 	extensions/redirectmod.cmo extensions/accesscontrol.cmo \
 	$(DUCECMAO)
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
