@@ -118,122 +118,65 @@ val get_cookies : sp:server_params -> string Http_frame.Cookievalues.t
 
 (** {3 Global configuration of session timeouts} *)
 
-(** sets the timeout for volatile (= "in memory") sessions
-   (both service session and volatile data session)
-   (server side). 
-    The sessions will be closed after this amount of time of inactivity 
-    from the user. [None] = no timeout.
+(** The following functions set the timeout for sessions, for the
+    different kinds of session.  The sessions will be closed after
+    this amount of time of inactivity from the user. [None] means no
+    timeout.
 
-    The optional parameter [?recompute_expdates] is [false] by default.
-    If you set it to [true], the expiration dates for all sessions in the table
-    will be recomputed with the new timeout.
-    That is, the difference between the new timeout and the old one will
-    be added to their expiration dates (by another lwt thread).
-    Sessions whose timeout has been set individually
-    with {!Eliom_sessions.set_volatile_session_timeout} won't be affected.
+    The optional parameter [?recompute_expdates] is [false] by
+    default.  If you set it to [true], the expiration dates for all
+    sessions in the table will be recomputed with the new timeout.
+    That is, the difference between the new timeout and the old one
+    will be added to their expiration dates (by another Lwt thread).
+    Sessions whose timeout has been set individually with
+    {!Eliom_sessions.set_volatile_session_timeout} won't be affected.
 
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    {e Warning: If you use one of these functions after the
+    initialisation phase, you must give the [~sp] parameter, otherwise
+    it will raise the exception
+    {!Eliommod.Eliom_function_forbidden_outside_site_loading}. This
+    remark also applies to [get_*] functions.}
+*)
+
+(** Sets the timeout for volatile (= "in memory") sessions (both
+    service session and volatile data session) (server side).
 *)
 val set_global_volatile_session_timeout :
-    ?session_name:string -> ?sp:server_params -> 
-      ?recompute_expdates:bool -> float option -> unit
+  ?session_name:string -> ?sp:server_params -> 
+  ?recompute_expdates:bool -> float option -> unit
 
-(** sets the timeout for service sessions (server side). 
-    The sessions will be closed after this amount of time of inactivity 
-    from the user. [None] = no timeout.
-
-    The optional parameter [?recompute_expdates] is [false] by default.
-    If you set it to [true], the expiration dates for all sessions in the table
-    will be recomputed with the new timeout (by another lwt thread).
-    That is, the difference between the new timeout and the old one will
-    be added to their expiration dates.
-    Sessions whose timeout has been set individually
-    with {!Eliom_sessions.set_service_session_timeout} won't be affected.
-
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+(** Sets the timeout for service sessions (server side).
 *)
 val set_global_service_session_timeout : 
     ?session_name:string -> ?sp:server_params -> 
       ?recompute_expdates:bool -> float option -> unit
 
-(** sets the timeout for volatile (= "in memory") data sessions (server side). 
-    The sessions will be closed after this amount of time of inactivity 
-    from the user. [None] = no timeout.
-
-    The optional parameter [?recompute_expdates] is [false] by default.
-    If you set it to [true], the expiration dates for all sessions in the table
-    will be recomputed with the new timeout (by another lwt thread).
-    That is, the difference between the new timeout and the old one will
-    be added to their expiration dates.
-    Sessions whose timeout has been set individually
-    with {!Eliom_sessions.set_volatile_data_session_timeout} won't be affected.
-
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+(** Sets the timeout for volatile (= "in memory") data sessions (server side).
 *)
 val set_global_volatile_data_session_timeout :
     ?session_name:string -> ?sp:server_params -> 
       ?recompute_expdates:bool -> float option -> unit
 
-
-(** returns the timeout for service sessions (server side). [None] = no timeout.
-
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}   
- *)
-val get_global_service_session_timeout :
-    ?session_name:string -> ?sp:server_params -> unit -> float option
-
-(** returns the timeout for "volatile data" sessions (server side). 
-   [None] = no timeout.
-
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}   
- *)
-val get_global_volatile_data_session_timeout :
-    ?session_name:string -> ?sp:server_params -> unit -> float option
-
-
-
-
-
-(** sets the timeout for persistent sessions (server side).
-    The sessions will be closed after this amount of time of inactivity 
-    from the user. [None] = no timeout.
-
-    The optional parameter [?recompute_expdates] is [false] by default.
-    If you set it to [true], the expiration dates for all sessions in the table
-    will be recomputed with the new timeout (by another lwt thread).
-    That is, the difference between the new timeout and the old one will
-    be added to their expiration dates.
-    Sessions whose timeout has been set individually
-    with {!Eliom_sessions.set_persistent_data_session_timeout} won't be affected.
-
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+(** Sets the timeout for persistent sessions (server side).
 *)
 val set_global_persistent_data_session_timeout : ?session_name:string ->
   ?sp:server_params -> ?recompute_expdates:bool -> 
     float option -> unit
 
-(** returns the timeout for persistent sessions (server side). 
-    [None] = no timeout.
+(** Returns the timeout for service sessions (server side).
+*)
+val get_global_service_session_timeout :
+  ?session_name:string -> ?sp:server_params -> unit -> float option
 
-    {e Warning: If you use this function after the initialisation phase,
-    you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
- *)
+(** Returns the timeout for "volatile data" sessions (server side).
+*)
+val get_global_volatile_data_session_timeout :
+    ?session_name:string -> ?sp:server_params -> unit -> float option
+
+(** Returns the timeout for persistent sessions (server side).
+*)
 val get_global_persistent_data_session_timeout : ?session_name:string ->
   ?sp:server_params -> unit -> float option
-
 
 
 
@@ -407,76 +350,62 @@ val get_persistent_data_session_group :
   unit ->
   string session_data Lwt.t
 
-(** sets the maximum number of service sessions in a session group.
-    [None] means "no limit".
-    This won't modify existing groups.
-    That value will be used only as default value if you do not
-    specify the optional parameter [?set_max] of function
-    {!Eliom_sessions.set_service_session_group}.
+(** The following functions of this section set the maximum number of
+    sessions in a session group, for the different kinds of session.
+    [None] means "no limit". This won't modify existing groups. That
+    value will be used only as default value if you do not specify the
+    optional parameter [?set_max] of function
+    {!Eliom_sessions.set_volatile_data_session_group}.
+*)
+
+(** Sets the maximum number of service sessions in a session group
+    (see above).
 *)
 val set_default_max_service_sessions_per_group :
   sp:server_params -> int option -> unit
 
-(** sets the maximum number of volatile data sessions in a session group.
-    [None] means "no limit".
-    This won't modify existing groups.
-    That value will be used only as default value if you do not
-    specify the optional parameter [?set_max] of function
-    {!Eliom_sessions.set_volatile_data_session_group}.
+(** Sets the maximum number of volatile data sessions in a session
+    group (see above).
 *)
 val set_default_max_volatile_data_sessions_per_group : 
   sp:server_params -> int option -> unit
 
-(** sets the maximum number of persistent data sessions in a session group.
-    [None] means "no limit".
-    This won't modify existing groups.
-    That value will be used only as default value if you do not
-    specify the optional parameter [?set_max] of function
-    {!Eliom_sessions.set_persistent_data_session_group}.
+(** Sets the maximum number of persistent data sessions in a session
+    group (see above).
 *)
 val set_default_max_persistent_data_sessions_per_group : 
   sp:server_params -> int option -> unit
 
 (** {3 Cookies} *)
 
+(** The functions in this section ask the browser to set the cookie
+    expiration date, for the different kinds of session, in seconds,
+    since the 1st of January 1970. [None] means the cookie will expire
+    when the browser is closed. Note: there is no way to set cookies
+    for an infinite time on browsers. *)
 
-(** Ask the browser to set the cookie expiration date 
-    for the current volatile sessions (service and data), 
-    in seconds, since the 1st of january 1970.
-
-   [None] means the cookie will expire when the browser is closed. 
-    No means to set cookies for an infinite time on browsers.
- *)
+(** Sets the cookie expiration date for the current volatile sessions
+    (service and data) (see above).
+*)
 val set_volatile_session_cookies_exp_date : ?session_name:string -> 
   sp:server_params -> float option -> unit
 
-(** Ask the browser to set the cookie expiration date 
-    for the current service session, 
-    in seconds, since the 1st of january 1970.
-
-   [None] means the cookie will expire when the browser is closed. 
-    No means to set cookies for an infinite time on browsers.
- *)
+(** Sets the cookie expiration date for the current service session
+    (see above).
+*)
 val set_service_session_cookie_exp_date : ?session_name:string -> 
   sp:server_params -> float option -> unit
 
-(** Ask the browser to set the cookie expiration date 
-    for the current data session, 
-    in seconds, since the 1st of january 1970.
-
-   [None] means the cookie will expire when the browser is closed. 
-    No means to set cookies for an infinite time on browsers.
- *)
+(** Sets the cookie expiration date for the current data session (see
+    above).
+*)
 val set_volatile_data_session_cookie_exp_date : ?session_name:string -> 
   sp:server_params -> float option -> unit
 
 
-(** sets the cookie expiration date for the persistent session, 
-    in seconds, since the 1st of january 1970. 
-
-   [None] means the cookie will expire when the browser is closed. 
-    No means to set cookies for an infinite time on browsers.
- *)
+(** Sets the cookie expiration date for the persistent session (see
+    above).
+*)
 val set_persistent_data_session_cookie_exp_date : ?session_name:string -> 
   sp:server_params -> float option -> unit Lwt.t
 
