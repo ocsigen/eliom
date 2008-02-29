@@ -119,10 +119,9 @@ let set_global_volatile_session_timeout
     ?session_name ?sp ?(recompute_expdates = false) timeout = 
   let sitedata = find_sitedata "set_global_volatile_timeouts" sp in
   Eliommod.set_global_service_timeout
-    ~session_name ~recompute_expdates sitedata timeout >>=
-  fun () ->
-    Eliommod.set_global_data_timeout 
-      ~session_name ~recompute_expdates sitedata timeout
+    ~session_name ~recompute_expdates sitedata timeout;
+  Eliommod.set_global_data_timeout 
+    ~session_name ~recompute_expdates sitedata timeout
 
 let get_global_service_session_timeout ?session_name ?sp () = 
   let sitedata = find_sitedata "get_global_timeout" sp in

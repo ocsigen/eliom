@@ -974,9 +974,9 @@ let _ = try
             
       (* Je suis fou :
          let rec f () = 
-         (* print_string "-"; *)
-         Lwt_unix.yield () >>= f
-         in f(); *)
+           print_endline "-";
+           Lwt_unix.yield () >>= f
+           in f (); *)
 
       if maxthreads < minthreads
       then 

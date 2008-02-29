@@ -128,7 +128,7 @@ val get_cookies : sp:server_params -> string Http_frame.Cookievalues.t
     If you set it to [true], the expiration dates for all sessions in the table
     will be recomputed with the new timeout.
     That is, the difference between the new timeout and the old one will
-    be added to their expiration dates.
+    be added to their expiration dates (by another lwt thread).
     Sessions whose timeout has been set individually
     with {!Eliom_sessions.set_volatile_session_timeout} won't be affected.
 
@@ -138,7 +138,7 @@ val get_cookies : sp:server_params -> string Http_frame.Cookievalues.t
 *)
 val set_global_volatile_session_timeout :
     ?session_name:string -> ?sp:server_params -> 
-      ?recompute_expdates:bool -> float option -> unit Lwt.t
+      ?recompute_expdates:bool -> float option -> unit
 
 (** sets the timeout for service sessions (server side). 
     The sessions will be closed after this amount of time of inactivity 
@@ -146,7 +146,7 @@ val set_global_volatile_session_timeout :
 
     The optional parameter [?recompute_expdates] is [false] by default.
     If you set it to [true], the expiration dates for all sessions in the table
-    will be recomputed with the new timeout.
+    will be recomputed with the new timeout (by another lwt thread).
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
@@ -158,7 +158,7 @@ val set_global_volatile_session_timeout :
 *)
 val set_global_service_session_timeout : 
     ?session_name:string -> ?sp:server_params -> 
-      ?recompute_expdates:bool -> float option -> unit Lwt.t
+      ?recompute_expdates:bool -> float option -> unit
 
 (** sets the timeout for volatile (= "in memory") data sessions (server side). 
     The sessions will be closed after this amount of time of inactivity 
@@ -166,7 +166,7 @@ val set_global_service_session_timeout :
 
     The optional parameter [?recompute_expdates] is [false] by default.
     If you set it to [true], the expiration dates for all sessions in the table
-    will be recomputed with the new timeout.
+    will be recomputed with the new timeout (by another lwt thread).
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
@@ -178,7 +178,7 @@ val set_global_service_session_timeout :
 *)
 val set_global_volatile_data_session_timeout :
     ?session_name:string -> ?sp:server_params -> 
-      ?recompute_expdates:bool -> float option -> unit Lwt.t
+      ?recompute_expdates:bool -> float option -> unit
 
 
 (** returns the timeout for service sessions (server side). [None] = no timeout.
@@ -210,7 +210,7 @@ val get_global_volatile_data_session_timeout :
 
     The optional parameter [?recompute_expdates] is [false] by default.
     If you set it to [true], the expiration dates for all sessions in the table
-    will be recomputed with the new timeout.
+    will be recomputed with the new timeout (by another lwt thread).
     That is, the difference between the new timeout and the old one will
     be added to their expiration dates.
     Sessions whose timeout has been set individually
@@ -222,7 +222,7 @@ val get_global_volatile_data_session_timeout :
 *)
 val set_global_persistent_data_session_timeout : ?session_name:string ->
   ?sp:server_params -> ?recompute_expdates:bool -> 
-    float option -> unit Lwt.t
+    float option -> unit
 
 (** returns the timeout for persistent sessions (server side). 
     [None] = no timeout.

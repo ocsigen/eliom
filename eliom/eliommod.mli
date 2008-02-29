@@ -341,7 +341,7 @@ val set_global_service_timeout :
     session_name:string option ->
     recompute_expdates:bool ->
     sitedata ->
-    float option -> unit Lwt.t
+    float option -> unit
 
 val get_global_service_timeout : 
     session_name:string option -> sitedata -> float option
@@ -350,7 +350,7 @@ val set_global_data_timeout :
     session_name:string option ->
     recompute_expdates:bool ->
     sitedata ->
-    float option -> unit Lwt.t
+    float option -> unit
 
 val get_global_data_timeout : 
     session_name:string option -> sitedata -> float option
@@ -358,7 +358,7 @@ val get_global_data_timeout :
 val set_global_persistent_timeout :
     session_name:string option ->
     recompute_expdates:bool ->
-    sitedata -> float option -> unit Lwt.t
+    sitedata -> float option -> unit
 
 val get_global_persistent_timeout : session_name:string option ->
   sitedata -> float option

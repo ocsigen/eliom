@@ -1041,9 +1041,9 @@ let data_session_gc sitedata =
   | None -> () (* No garbage collection *)
   | Some t ->
       let rec f () = 
+        Lwt_unix.sleep t >>= fun () ->
         let data_cookie_table = sitedata.session_data in
         let not_bound_in_data_tables = sitedata.not_bound_in_data_tables in
-        Lwt_unix.sleep t >>= fun () ->
         let now = Unix.time () in
         Messages.debug2 "--Eliom: GC of session data";
         (* private continuation tables: *)
@@ -1055,8 +1055,7 @@ let data_session_gc sitedata =
                   close_data_session2 sitedata !session_group_ref k;
                   return ()
               | _ -> 
-                  if !session_group_ref = None && 
-                    sitedata.not_bound_in_data_tables k
+                  if !session_group_ref = None && not_bound_in_data_tables k
                   then 
                     SessionCookies.remove data_cookie_table k;
                   return ()
@@ -1930,7 +1929,7 @@ let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
   Messages.debug2 
     "--Eliom: Updating expiration date for all service sessions";
   match new_glob_timeout with
-  | Some t when t <= 0.->
+  | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
       close_all_service_sessions2 fullsessname sitedata
   | _ ->
@@ -1961,7 +1960,7 @@ let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
   Messages.debug2 
     "--Eliom: Updating expiration date for all data sessions";
   match new_glob_timeout with
-  | Some t when t <= 0.->
+  | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
       close_all_data_sessions2 fullsessname sitedata
   | _ ->
@@ -1992,7 +1991,7 @@ let update_pers_exp fullsessname old_glob_timeout new_glob_timeout =
   Messages.debug2 
     "--Eliom: Updating expiration date for all persistent sessions";
   match new_glob_timeout with
-  | Some t when t <= 0.->
+  | Some t when t <= 0. ->
       (* We close all sessions but those with user defined timeout *)
       close_all_persistent_sessions2 fullsessname
   | _ ->
@@ -2085,11 +2084,18 @@ let (find_global_service_timeout,
          with Not_found -> get_default_service_timeout ()
        in
        sitedata.servtimeout <- add fullsessname t sitedata.servtimeout;
-       update_serv_exp fullsessname sitedata oldt t
-     else begin
-       sitedata.servtimeout <- add fullsessname t sitedata.servtimeout;
-       return ()
-     end),
+       ignore (catch
+                 (fun () -> update_serv_exp fullsessname sitedata oldt t)
+                 (function e -> 
+                   Messages.warning 
+                     ("Eliom: Error while updating global service timeouts: "^
+                      Ocsigen_lib.string_of_exn e);
+                   Lwt.return ())
+              )
+         (*VVV Check possible exceptions raised *)
+     else
+       sitedata.servtimeout <- add fullsessname t sitedata.servtimeout
+   ),
 
    (* set_global_data_timeout2 *)
    (fun fullsessname ~recompute_expdates sitedata t -> 
@@ -2101,11 +2107,18 @@ let (find_global_service_timeout,
          with Not_found -> get_default_data_timeout ()
        in
        sitedata.datatimeout <- add fullsessname t sitedata.datatimeout;
-       update_data_exp fullsessname sitedata oldt t
-     else begin
-       sitedata.datatimeout <- add fullsessname t sitedata.datatimeout;
-       return ()
-     end),
+       ignore (catch
+                 (fun () -> update_data_exp fullsessname sitedata oldt t)
+                 (function e -> 
+                   Messages.warning 
+                     ("Eliom: Error while updating global data timeouts: "^
+                      Ocsigen_lib.string_of_exn e);
+                   Lwt.return ())
+              )
+         (*VVV Check possible exceptions raised *)
+     else
+       sitedata.datatimeout <- add fullsessname t sitedata.datatimeout
+   ),
 
    (* set_global_persistent_timeout *)
    (fun fullsessname ~recompute_expdates sitedata t -> 
@@ -2117,11 +2130,18 @@ let (find_global_service_timeout,
          with Not_found -> get_default_persistent_timeout ()
        in
        sitedata.perstimeout <- add fullsessname t sitedata.perstimeout;
-       update_pers_exp fullsessname oldt t
-     else begin
-       sitedata.perstimeout <- add fullsessname t sitedata.perstimeout;
-       return ()
-     end)
+       ignore (catch
+                 (fun () -> update_pers_exp fullsessname oldt t)
+                 (function e -> 
+                   Messages.warning 
+                     ("Eliom: Error while updating global persistent timeouts: "^
+                      Ocsigen_lib.string_of_exn e);
+                   Lwt.return ())
+              )
+         (*VVV Check possible exceptions raised *)
+     else
+       sitedata.perstimeout <- add fullsessname t sitedata.perstimeout
+   )
   )
 
 let get_global_service_timeout ~session_name sitedata = 

@@ -792,9 +792,9 @@ register_new_service
     ~get_params:(int "t" ** bool "recompute")
     (fun sp (t, recompute) () -> 
       set_global_persistent_data_session_timeout ~session_name:"persistent_sessions"
-        ~recompute_expdates:recompute ~sp (Some (float_of_int t)) >>= fun () ->
+        ~recompute_expdates:recompute ~sp (Some (float_of_int t));
       set_global_volatile_session_timeout ~session_name:"action_example2"
-        ~recompute_expdates:recompute ~sp (Some (float_of_int t)) >>= fun () ->
+        ~recompute_expdates:recompute ~sp (Some (float_of_int t));
       return 
         (html
            (head (title (pcdata "")) [])
