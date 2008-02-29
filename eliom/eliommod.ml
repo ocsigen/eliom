@@ -977,13 +977,13 @@ let service_session_gc sitedata =
        contains_services_with_timeout, 
        contains_naservices_with_timeout) = sitedata.global_services
   in
-  let service_cookie_table = sitedata.session_services in
   match get_servicesessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
       let rec f () = 
         Lwt_unix.sleep t >>= 
         (fun () ->
+          let service_cookie_table = sitedata.session_services in
           let now = Unix.time () in
           Messages.debug2 "--Eliom: GC of service sessions";
           (* public continuation tables: *)
@@ -1037,12 +1037,12 @@ let service_session_gc sitedata =
       
 (* This is a thread that will work for example every hour. *)
 let data_session_gc sitedata =
-  let data_cookie_table = sitedata.session_data in
-  let not_bound_in_data_tables = sitedata.not_bound_in_data_tables in
   match get_datasessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
       let rec f () = 
+        let data_cookie_table = sitedata.session_data in
+        let not_bound_in_data_tables = sitedata.not_bound_in_data_tables in
         Lwt_unix.sleep t >>= fun () ->
         let now = Unix.time () in
         Messages.debug2 "--Eliom: GC of session data";
@@ -1055,7 +1055,8 @@ let data_session_gc sitedata =
                   close_data_session2 sitedata !session_group_ref k;
                   return ()
               | _ -> 
-                  if !session_group_ref = None && not_bound_in_data_tables k
+                  if !session_group_ref = None && 
+                    sitedata.not_bound_in_data_tables k
                   then 
                     SessionCookies.remove data_cookie_table k;
                   return ()
@@ -2023,7 +2024,7 @@ let update_pers_exp fullsessname old_glob_timeout new_glob_timeout =
 (*****************************************************************************)
 (* Table of timeouts for sessions *)
 
-(* default timeout = the set in config file (or here) *)
+(* default timeout = the one set in config file (or here) *)
 let (set_default_service_timeout, 
      set_default_data_timeout, 
      set_default_persistent_timeout, 

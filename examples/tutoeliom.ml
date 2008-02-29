@@ -1476,8 +1476,8 @@ let _ = register
       We first define the main page, with a login form:
       </p>
 *html*)(*zap* *)
-let _ = set_default_volatile_session_timeout (Some 3600.)
-let _ = set_default_persistent_data_session_timeout (Some 86400.)
+let () = set_default_volatile_session_timeout (Some 3600.)
+let () = set_default_persistent_data_session_timeout (Some 86400.)
 (* *zap*)
 (************************************************************)
 (************ Connection of users, version 2 ****************)
@@ -2939,11 +2939,12 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     It is also possible to tell actions to send information to the page
     generated after them. Just place exceptions in the list returned by the
     action. These exceptions will also be accessible with 
-    $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_exn" ]] [version;"Eliom_sessions.html"]$. Try to replace the lines 
+    $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_exn" ]] [version;"Eliom_sessions.html"]$. 
+    Here is the new version of the 
           $a ~fragment:"p2actions" 
          ~service:tutocur2 
          ~sp
-         [pcdata "above (example of session with actions)"]
+         [pcdata "example of session with actions:"]
          ()
       $ by:
     </p>
@@ -2954,7 +2955,6 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
 (*zap* *)
 let session_name = "connect_example6"
 (* *zap*)
-(*zap* *)
 (* -------------------------------------------------------- *)
 (* We create one main service and two (POST) actions        *)
 (* (for connection and disconnection)                       *)
@@ -2971,12 +2971,6 @@ let connect_action =
     ~post_params:(string "login") 
     ()
 
-(* We keep the previously defined disconnection action *)
-(* *zap*)
-
-(* -------------------------------------------------------- *)
-(* Actually, no. It's a lie because we don't use the 
-   same session name :-) *)
 (* new disconnect action and box:                           *)
 
 let disconnect_action = 
@@ -3017,7 +3011,6 @@ let login_box sp session_expired action =
      ])
     ()
 
-(*zap* *)    
 (* -------------------------------------------------------- *)
 (* Handler for the "connect_example6" service (main page):   *)
 
@@ -3041,7 +3034,6 @@ let connect_example6_handler sp () () =
                p [em [pcdata "The only user is 'toto'."]]]
           )))
 
-(* *zap*)
 (* -------------------------------------------------------- *)
 (* New handler for connect_action (user logs in):           *)
 
@@ -3054,15 +3046,13 @@ let connect_action_handler sp () login =
   end
   else return [Bad_user]
 
-(*zap* *)
-
 (* -------------------------------------------------------- *)
 (* Registration of main services:                           *)
 
 let () = 
   Eliom_predefmod.Xhtml.register ~service:connect_example6 connect_example6_handler;
   Eliom_predefmod.Actions.register ~service:connect_action connect_action_handler
-(* *zap*)
+
 (*html*
       <p>
       $a Tutoeliom.connect_example6 sp <:xmllist< See this example here >> ()$.

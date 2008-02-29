@@ -96,6 +96,7 @@ let set_default_service_session_timeout = Eliommod.set_default_service_timeout
 
 let get_default_volatile_data_session_timeout = 
   Eliommod.get_default_data_timeout
+
 let set_default_volatile_data_session_timeout = 
   Eliommod.set_default_data_timeout
 
