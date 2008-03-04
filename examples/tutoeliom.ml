@@ -2255,7 +2255,7 @@ let () =
           registering a service needs access to config file 
           information (for example the directory of the site).
           If you do this, the server will raise 
-          $a ~fragment:"EXCEPTIONEliom_function_forbidden_outside_site_loading" ~service:senddoc ~sp [code [pcdata "Eliommod.Eliom_function_forbidden_outside_site_loading " ]] [version;"Eliommod.html"]$ 
+          $a ~fragment:"EXCEPTIONEliom_function_forbidden_outside_site_loading" ~service:senddoc ~sp [code [pcdata "Eliom_common.Eliom_function_forbidden_outside_site_loading " ]] [version;"Eliom_common.html"]$ 
           most of the time,
           but you may also get unexpected results (if the thread is executed
           while another site is loaded).
@@ -2416,7 +2416,7 @@ let send_any =
          (html
             (head (title (pcdata "")) [])
             (body [p [pcdata 
-                        "This page has been statically typechecked. \
+                        "This page has been statically typechecked. 
                          If you change the parameter in the URL you will get an unchecked text page"]]))
      else 
        Eliom_predefmod.HtmlText.send sp 
@@ -2932,8 +2932,8 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     <p>Fallbacks have access to some information about what succeeded before
     they were called. Get this information using 
      $a ~fragment:"VALget_exn" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_exn sp" ]] [version;"Eliom_sessions.html"]$; That function returns a list of exceptions.
-    That list contains $a ~fragment:"EXCEPTIONEliom_Link_too_old" ~service:senddoc ~sp [code [pcdata "Eliommod.Eliom_Link_too_old" ]] [version;"Eliommod.html"]$ if the coservice
-    was not found, and $a ~fragment:"EXCEPTIONEliom_Service_session_expired" ~service:senddoc ~sp [code [pcdata "Eliommod.Eliom_Service_session_expired" ]] [version;"Eliommod.html"]$ if the "service session" has expired.
+    That list contains $a ~fragment:"EXCEPTIONEliom_Link_too_old" ~service:senddoc ~sp [code [pcdata "Eliom_common.Eliom_Link_too_old" ]] [version;"Eliom_common.html"]$ if the coservice
+    was not found, and $a ~fragment:"EXCEPTIONEliom_Service_session_expired" ~service:senddoc ~sp [code [pcdata "Eliom_common.Eliom_Service_session_expired" ]] [version;"Eliom_common.html"]$ if the "service session" has expired.
     </p>
     <p>
     It is also possible to tell actions to send information to the page
@@ -3094,7 +3094,7 @@ let _ = register disposable
         (html
           (head (title (pcdata "")) [])
           (body [p [(if List.mem
-                          Eliommod.Eliom_Link_too_old
+                          Eliom_common.Eliom_Link_too_old
                           (Eliom_sessions.get_exn sp)
                     then pcdata "Your link was outdated. I am the fallback. I just created a new disposable coservice. You can use it only twice."
                     else
@@ -3245,13 +3245,13 @@ let _ =
 *html*)
 let _ = Eliom_services.set_exn_handler 
    (fun sp e -> match e with
-    | Eliommod.Eliom_404 -> 
+    | Eliom_common.Eliom_404 -> 
         Eliom_predefmod.Xhtml.send ~code:404 ~sp
           (html
              (head (title (pcdata "")) [])
              (body [h1 [pcdata "Eliom tutorial"]; 
                     p [pcdata "Page not found"]]))
-    | Eliommod.Eliom_Wrong_parameter ->
+    | Eliom_common.Eliom_Wrong_parameter ->
         Eliom_predefmod.Xhtml.send ~sp
           (html
              (head (title (pcdata "")) [])

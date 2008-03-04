@@ -134,7 +134,7 @@ val get_cookies : sp:server_params -> string Http_frame.Cookievalues.t
     {e Warning: If you use one of these functions after the
     initialisation phase, you must give the [~sp] parameter, otherwise
     it will raise the exception
-    {!Eliommod.Eliom_function_forbidden_outside_site_loading}. This
+    {!Eliom_common.Eliom_function_forbidden_outside_site_loading}. This
     remark also applies to [get_*] functions.}
 *)
 
@@ -461,7 +461,7 @@ val get_original_filename : file_info -> string
    your module (not during a Lwt thread or a service).
    If you use that function after, 
    you must give the [~sp] parameter, otherwise it will raise the exception
-   {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+   {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val get_config : unit -> Simplexmlparser.xml list
 
@@ -487,7 +487,7 @@ type 'a volatile_table
 
    {e Warning: If you use that function after the initialization phase, 
    you must give the [~sp] parameter, otherwise it will raise the exception
-   {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+   {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val create_volatile_table : ?sp:server_params -> unit -> 'a volatile_table
 
@@ -601,7 +601,7 @@ val close_service_session :
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_sessions : 
   ?close_group:bool ->
@@ -617,7 +617,7 @@ val close_all_sessions :
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_volatile_sessions : 
   ?close_group:bool ->
@@ -632,7 +632,7 @@ val close_all_volatile_sessions :
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_persistent_data_sessions : 
   ?close_group:bool ->
@@ -647,7 +647,7 @@ val close_all_persistent_data_sessions :
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_service_sessions : 
   ?close_group:bool ->
@@ -662,7 +662,7 @@ val close_all_service_sessions :
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val close_all_volatile_data_sessions : 
   ?close_group:bool ->
@@ -756,7 +756,7 @@ module Session_admin : sig
      
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
    *)
   val iter_service_sessions :
       ?sp:server_params ->
@@ -767,7 +767,7 @@ module Session_admin : sig
      
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
    *)
   val iter_volatile_data_sessions :
       ?sp:server_params ->
@@ -783,7 +783,7 @@ module Session_admin : sig
      
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
    *)
   val fold_service_sessions :
       ?sp:server_params ->
@@ -794,7 +794,7 @@ module Session_admin : sig
      
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
    *)
   val fold_volatile_data_sessions :
       ?sp:server_params ->
@@ -952,12 +952,12 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
    result in some case (with a version of ocsipersist based on Dbm) *)
 
 
-val get_global_table : sp:server_params -> Eliommod.tables
+val get_global_table : sp:server_params -> Eliom_common.tables
 val get_session_service_table : 
     ?session_name:string -> sp:server_params -> unit -> 
-      Eliommod.tables ref
+      Eliom_common.tables ref
 
-val get_sitedata : sp:server_params -> Eliommod.sitedata
+val get_sitedata : sp:server_params -> Eliom_common.sitedata
 
 (*
 (** returns the cookie expiration date for the session, 
@@ -986,11 +986,11 @@ val get_persistent_cookies :
 val get_data_cookies : 
     sp:server_params -> string Http_frame.Cookievalues.t
 
-val find_sitedata : string -> server_params option -> Eliommod.sitedata
+val find_sitedata : string -> server_params option -> Eliom_common.sitedata
 
-val set_site_handler : Eliommod.sitedata ->
-  (server_params -> exn -> Eliommod.result_to_send Lwt.t) -> unit
+val set_site_handler : Eliom_common.sitedata ->
+  (server_params -> exn -> Eliom_common.result_to_send Lwt.t) -> unit
 
 
-val sp_of_esp : Eliommod.server_params -> server_params
-val esp_of_sp : server_params -> Eliommod.server_params
+val sp_of_esp : Eliom_common.server_params -> server_params
+val esp_of_sp : server_params -> Eliom_common.server_params

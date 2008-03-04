@@ -14,7 +14,6 @@ val list_remove_all_assoc_q : 'a -> ('a * 'b) list -> ('a * 'b) list
 val list_last : 'a list -> 'a
 val list_assoc_remove : 'a -> ('a * 'b) list -> 'b * ('a * 'b) list
 val list_is_prefix : 'a list -> 'a list -> bool
-val defaultpagename : string
 val remove_dotdot : string list -> string list
 val remove_slash_at_beginning : string list -> string list
 val recursively_remove_slash_at_beginning : string list -> string list

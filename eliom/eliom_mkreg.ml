@@ -24,7 +24,6 @@
 
 open Lwt
 open Extensions
-open Eliommod
 open Eliom_sessions
 open Eliom_services
 open Eliom_parameters
@@ -96,7 +95,7 @@ module type ELIOMREGSIG1 =
     {e Warning: If you want to register a service in the global table
     after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}   
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}   
 
     Warning: registering after initialization is not encouraged for coservices
     without timeout, as such services will be available only until the end
@@ -410,7 +409,8 @@ module MakeRegister = functor
             table
             duringsession (* registering during session? *)
             ~service
-            ?(error_handler = fun sp l -> raise (Eliom_Typing_Error l))
+            ?(error_handler = fun sp l -> 
+              raise (Eliom_common.Eliom_Typing_Error l))
             page_generator =
           match get_kind_ service with
           | `Attached attser ->
@@ -419,12 +419,12 @@ module MakeRegister = functor
               let attserpost = get_post_state_ attser in
               let sgpt = get_get_params_type_ service in
               let sppt = get_post_params_type_ service in
-              Eliommod.add_service
+              Eliommod_services.add_service
                 table 
 	        duringsession
 	        (get_sub_path_ attser)
-                ({key_state = (attserget, attserpost);
-                  key_kind = key_kind},
+                ({Eliom_common.key_state = (attserget, attserpost);
+                  Eliom_common.key_kind = key_kind},
                  ((if attserget = None || attserpost = None 
                  then (anonymise_params_type sgpt,
                        anonymise_params_type sppt)
@@ -456,7 +456,8 @@ module MakeRegister = functor
                                 files
                                 [])))))
                        (function
-                         | Eliom_Typing_Error l -> error_handler sp2 l
+                         | Eliom_common.Eliom_Typing_Error l -> 
+                             error_handler sp2 l
                          | e -> fail e)) >>=
                     (fun (content, cookies_to_set) -> 
                       Pages.send ~cookies:cookies_to_set ~sp:sp2 content >>=
@@ -466,7 +467,7 @@ module MakeRegister = functor
                  )
                 )
           | `Nonattached naser ->
-              Eliommod.add_naservice 
+              Eliommod_naservices.add_naservice 
 	        table
 	        duringsession
 	        (get_na_name_ naser)
@@ -497,7 +498,8 @@ module MakeRegister = functor
                                   files
                                   [])))))
 	              (function
-                        | Eliom_Typing_Error l -> error_handler sp2 l
+                        | Eliom_common.Eliom_Typing_Error l -> 
+                            error_handler sp2 l
                         | e -> fail e)) >>=
                    (fun (content, cookies_to_set) -> 
                      Pages.send ~cookies:cookies_to_set ~sp:sp2 content
@@ -507,20 +509,23 @@ module MakeRegister = functor
         let register ?sp ~service ?error_handler page_gen =
           match sp with
           | None ->
-              (match global_register_allowed () with
+              (match Eliom_common.global_register_allowed () with
               | Some get_current_sitedata ->
                   let sitedata = get_current_sitedata () in
                   (match get_kind_ service with
                   | `Attached attser -> 
-                      remove_unregistered sitedata (get_sub_path_ attser)
+                      Eliom_common.remove_unregistered
+                        sitedata (get_sub_path_ attser)
                   | `Nonattached naser ->
-                      remove_unregistered_na sitedata (get_na_name_ naser));
+                      Eliom_common.remove_unregistered_na
+                        sitedata (get_na_name_ naser));
                   register_aux 
-                    sitedata.global_services
+                    sitedata.Eliom_common.global_services
                     false 
                     ~service ?error_handler page_gen
-              | _ -> raise (Eliom_function_forbidden_outside_site_loading
-                              "register"))
+              | _ -> raise 
+                    (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                       "register"))
           | Some sp ->
               register_aux
                 ?error_handler

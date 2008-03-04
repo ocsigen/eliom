@@ -2,6 +2,8 @@ include Makefile.config
 
 VERSION := $(shell head -n 1 VERSION)
 
+DOCPREF=./
+
 ifeq "$(OCAMLDUCE)" "YES"
 DUCECMAO=eliom/eliom_duce.cma
 # eliom/ocsigenrss.cma
@@ -9,7 +11,7 @@ DUCECMI=eliom/eliom_duce.cmi eliom/xhtml1_strict.cmi eliom/eliom_duce_tools.cmi
 # eliom/rss2.cmi eliom/ocsigenrss.cmi
 DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 # examples/ocamlduce/examplerss.cmo
-DUCEDOC=./eliom/eliom_duce.mli ./eliom/xhtml1_strict.ml ./eliom/eliom_duce_tools.ml
+DUCEDOC=$(DOCPREF)eliom/eliom_duce.mli $(DOCPREF)eliom/xhtml1_strict.ml $(DOCPREF)eliom/eliom_duce_tools.ml
 CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 DUCEPACK=,ocamlduce
 else
@@ -46,7 +48,7 @@ DBMINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma
 else
 endif
 
-DOC= ./lwt/lwt.mli ./lwt/lwt_unix.mli ./lwt/lwt_util.mli ./lwt/lwt_chan.mli ./lwt/lwt_ssl.mli ./lwt/lwt_timeout.mli ./lwt/preemptive.mli ./lwt/lwt_lib.mli ./eliom/eliom_mkforms.mli ./eliom/eliom_mkreg.mli ./eliom/eliom_predefmod.mli ./eliom/eliommod.mli ./eliom/eliom_parameters.mli ./eliom/eliom_services.mli ./eliom/eliom_sessions.mli ./server/extensions.mli ./server/parseconfig.mli ./xmlp4/xhtmlpretty.mli ./xmlp4/xhtmlcompact.mli ./xmlp4/oldocaml/xhtmltypes.ml ./xmlp4/ohl-xhtml/xHTML.mli ./baselib/messages.mli ./http/ocsiheaders.mli ./server/http_client.mli ./http/http_frame.mli ./http/http_com.mli ./http/predefined_senders.mli ./eliom/eliom_tools.mli ./extensions/ocsipersist.mli ./extensions/authbasic.mli ./xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+DOC= $(DOCPREF)lwt/lwt.mli $(DOCPREF)lwt/lwt_unix.mli $(DOCPREF)lwt/lwt_util.mli $(DOCPREF)lwt/lwt_chan.mli $(DOCPREF)lwt/lwt_ssl.mli $(DOCPREF)lwt/lwt_timeout.mli $(DOCPREF)lwt/preemptive.mli $(DOCPREF)lwt/lwt_lib.mli $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli $(DOCPREF)eliom/eliom_predefmod.mli $(DOCPREF)eliom/eliom_common.mli $(DOCPREF)eliom/eliom_parameters.mli $(DOCPREF)eliom/eliom_services.mli $(DOCPREF)eliom/eliom_sessions.mli $(DOCPREF)server/extensions.mli $(DOCPREF)server/parseconfig.mli $(DOCPREF)xmlp4/xhtmlpretty.mli $(DOCPREF)xmlp4/xhtmlcompact.mli $(DOCPREF)xmlp4/oldocaml/xhtmltypes.ml $(DOCPREF)xmlp4/ohl-xhtml/xHTML.mli $(DOCPREF)baselib/messages.mli $(DOCPREF)http/ocsiheaders.mli $(DOCPREF)server/http_client.mli $(DOCPREF)http/http_frame.mli $(DOCPREF)http/http_com.mli $(DOCPREF)http/predefined_senders.mli $(DOCPREF)eliom/eliom_tools.mli $(DOCPREF)extensions/ocsipersist.mli $(DOCPREF)extensions/authbasic.mli $(DOCPREF)xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 METAS = META META.ocsigen_ext META.eliom_examples META.ocsigen_ext.global META.eliom_examples.global
 
 

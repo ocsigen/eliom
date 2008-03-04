@@ -43,6 +43,7 @@ Preemptive
 Eliom_services 
 Eliom_parameters 
 Eliom_sessions 
+Eliom_common
 }
 
 {4 Generating pages with OcamlDuce}

@@ -157,7 +157,7 @@ val new_service :
    
    {e Warning: If you use this function after the initialisation phase,
    you must give the [~sp] parameter, otherwise it will raise the
-   exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+   exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
 *)
 	      
 val new_service' :
@@ -174,7 +174,7 @@ val new_service' :
    
    {e Warning: If you use this function after the initialisation phase,
    you must give the [~sp] parameter, otherwise it will raise the
-   exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+   exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
 *)
 	      
 val new_external_service :
@@ -361,7 +361,7 @@ val preapply :
 
     {e Warning: If you use this function after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
 val set_exn_handler : 
     ?sp:Eliom_sessions.server_params ->
@@ -384,13 +384,13 @@ val get_att_kind_ : 'a a_s -> 'a
 val get_sub_path_ : 'a a_s -> url_path
 val get_full_path_ : 'a a_s -> url_path
 val get_prefix_ : 'a a_s -> string
-val get_get_state_ : 'a a_s -> Eliommod.internal_state option
-val get_post_state_ : 'a a_s -> Eliommod.internal_state option
-val get_na_name_ : 'a na_s -> Eliommod.na_key
+val get_get_state_ : 'a a_s -> Eliom_common.internal_state option
+val get_post_state_ : 'a a_s -> Eliom_common.internal_state option
+val get_na_name_ : 'a na_s -> Eliom_common.na_key
 val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> float option
 val reconstruct_absolute_url_path : url_path -> url_path -> url_path option -> string
 val reconstruct_relative_url_path : url_path -> url_path -> url_path option -> string
 
-val erts_of_rst : result_to_send -> Eliommod.result_to_send
+val erts_of_rst : result_to_send -> Eliom_common.result_to_send

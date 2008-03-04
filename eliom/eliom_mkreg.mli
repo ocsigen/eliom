@@ -88,7 +88,7 @@ module type ELIOMREGSIG1 =
     {e Warning: If you want to register a service in the global table
     after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliommod.Eliom_function_forbidden_outside_site_loading}.}   
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
 
    Registering services and coservices is always done in memory as there is
    no means of marshalling closures.

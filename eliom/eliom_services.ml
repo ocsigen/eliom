@@ -23,7 +23,6 @@
 
 open Lwt
 open Ocsigen_lib
-open Eliommod
 open Extensions
 open Eliom_sessions
 open Eliom_parameters
@@ -34,13 +33,13 @@ open Lazy
     The float option is the timestamp for the expiration date.
     The strings are names and values.
  *)
-type cookie = Eliommod.cookie =
+type cookie = Eliom_common.cookie =
   | Set of url_path option * float option * string * string
   | Unset of url_path option * string
 
 let cookie_table_of_eliom_cookies
     ?(oldtable= Http_frame.Cookies.empty) ~sp cl =
-  Eliommod.add_cookie_list_to_send 
+  Eliommod_cookies.add_cookie_list_to_send 
     (Eliom_sessions.get_sitedata sp)
     cl oldtable
 
@@ -50,7 +49,7 @@ let cookie_table_of_eliom_cookies
 (** The type to send if you want to create your own modules for generating
    pages
  *)
-type result_to_send = Eliommod.result_to_send =
+type result_to_send = Eliom_common.result_to_send =
   | EliomResult of Http_frame.result
   | EliomExn of (exn list * cookie list)
 
@@ -95,12 +94,12 @@ type +'a a_s =
      subpath: url_path; (* name of the service without parameters *)
      fullpath: url_path; (* full path of the service = site_dir@subpath *)
      att_kind: 'a; (* < attached_service_kind *)
-     get_state: internal_state option;
-     post_state: internal_state option;
+     get_state: Eliom_common.internal_state option;
+     post_state: Eliom_common.internal_state option;
    }
       
 type +'a na_s =
-    {na_name: Eliommod.na_key;
+    {na_name: Eliom_common.na_key;
      na_kind: [ `Get | `Post of bool ] 
        (* 
           where bool is "keep_get_na_params":
@@ -179,7 +178,7 @@ let new_state =
 let static_dir ~sp =
     {
      pre_applied_parameters = [];
-     get_params_type = suffix (all_suffix eliom_suffix_name);
+     get_params_type = suffix (all_suffix Eliom_common.eliom_suffix_name);
      post_params_type = unit;
      max_use= None;
      timeout= None;
@@ -230,22 +229,23 @@ let new_service_aux
     ~get_params =
   match sp with
   | None ->
-      (match global_register_allowed () with
+      (match Eliom_common.global_register_allowed () with
       | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
           let path = remove_internal_slash (change_empty_list path) in
           let u = new_service_aux_aux
               ~prefix:""
               ~path
-              ~site_dir: sitedata.site_dir
+              ~site_dir: sitedata.Eliom_common.site_dir
               ~kind:(`Internal (`Service, `Get))
               ~get_params
               ~post_params:unit
           in
-          add_unregistered sitedata path; 
+          Eliom_common.add_unregistered sitedata path; 
           u
-      | None -> raise (Eliom_function_forbidden_outside_site_loading
-                         "new_service"))
+      | None -> 
+          raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                   "new_service"))
   | Some sp ->
       let path = remove_internal_slash (change_empty_list path) in
       new_service_aux_aux
@@ -267,7 +267,9 @@ let new_external_service
   new_service_aux_aux
     ~prefix
     ~path:(remove_internal_slash 
-            (if suffix then path@[eliom_suffix_internal_name] else path))
+            (if suffix
+            then path@[Eliom_common.eliom_suffix_internal_name] 
+            else path))
     ~site_dir:[]
     ~kind:`External
     ~get_params 
@@ -281,7 +283,9 @@ let new_service
   let suffix = contains_suffix get_params in
   new_service_aux 
     ?sp
-    ~path:(if suffix then path@[eliom_suffix_internal_name] else path)
+    ~path:(if suffix 
+    then path@[Eliom_common.eliom_suffix_internal_name] 
+    else path)
     ~get_params
 
 let new_naservice_num () = new_state ()
@@ -293,13 +297,13 @@ let new_coservice
     ~get_params
     () =
   let `Attached k = fallback.kind in
-  (* (match global_register_allowed () with
-  | Some _ -> add_unregistered k.path;
+  (* (match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered k.path;
   | _ -> ()); *)
   {fallback with
    max_use= max_use;
    timeout= timeout;
-   get_params_type = add_pref_params co_param_prefix get_params;
+   get_params_type = add_pref_params Eliom_common.co_param_prefix get_params;
    kind = `Attached
      {k with
       get_state = Some (new_state ());
@@ -312,15 +316,15 @@ let new_coservice
     
 
 let new_coservice' ?max_use ?timeout ~get_params () =
-  let n = Na_get' (new_naservice_num ()) in
-  (* (match global_register_allowed () with
-  | Some _ -> add_unregistered_na n;
+  let n = Eliom_common.Na_get' (new_naservice_num ()) in
+  (* (match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered_na n;
   | _ -> () (* Do we accept unregistered non-attached coservices? *)); *)
   {
    max_use= max_use;
    timeout= timeout;
    pre_applied_parameters = [];
-   get_params_type = add_pref_params na_co_param_prefix get_params;
+   get_params_type = add_pref_params Eliom_common.na_co_param_prefix get_params;
    post_params_type = unit;
    kind = `Nonattached
      {na_name = n;
@@ -331,7 +335,7 @@ let new_coservice' ?max_use ?timeout ~get_params () =
 let new_service' ?sp ~name ~get_params () =
   match sp with
   | None ->
-      (match global_register_allowed () with
+      (match Eliom_common.global_register_allowed () with
       | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
           let r =
@@ -340,28 +344,32 @@ let new_service' ?sp ~name ~get_params () =
              max_use= None;
              timeout= None;
              pre_applied_parameters = [];
-             get_params_type = add_pref_params na_co_param_prefix get_params;
+             get_params_type = 
+             add_pref_params Eliom_common.na_co_param_prefix get_params;
              post_params_type = unit;
              kind = `Nonattached
-               {na_name = Na_get_ name;
+               {na_name = Eliom_common.Na_get_ name;
                 na_kind = `Get;
               };
            }
           in
-          add_unregistered_na sitedata (Na_get_ name); 
+          Eliom_common.add_unregistered_na sitedata 
+            (Eliom_common.Na_get_ name); 
           r
-      | None -> raise (Eliom_function_forbidden_outside_site_loading
-                         "new_service'"))
+      | None -> 
+          raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                   "new_service'"))
   | Some sp ->
       {
 (*VVV allow timeout and max_use? *)
        max_use= None;
        timeout= None;
        pre_applied_parameters = [];
-       get_params_type = add_pref_params na_co_param_prefix get_params;
+       get_params_type = 
+       add_pref_params Eliom_common.na_co_param_prefix get_params;
        post_params_type = unit;
        kind = `Nonattached
-         {na_name = Na_get_ name;
+         {na_name = Eliom_common.Na_get_ name;
           na_kind = `Get;
         };
      }
@@ -403,14 +411,15 @@ let new_post_service ?sp ~fallback ~post_params () =
   let u = new_post_service_aux ~sp ~fallback ~post_params in
   match sp with
   | None ->
-      (match global_register_allowed () with
+      (match Eliom_common.global_register_allowed () with
       | Some get_current_sitedata ->
-          add_unregistered (get_current_sitedata ()) path;
+          Eliom_common.add_unregistered (get_current_sitedata ()) path;
           u
       | None ->
           if kind = `Service
-          then raise (Eliom_function_forbidden_outside_site_loading
-                        "new_post_service")
+          then 
+            raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                     "new_post_service")
           else u)
   | _ -> u
 (* Warning: strange if post_params = unit... *)    
@@ -419,8 +428,8 @@ let new_post_service ?sp ~fallback ~post_params () =
 
 let new_post_coservice ?max_use ?timeout ~fallback ~post_params () = 
   let `Attached k1 = fallback.kind in
-  (* (match global_register_allowed () with
-  | Some _ -> add_unregistered k1.path;
+  (* (match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered k1.path;
   | _ -> ()); *)
   {fallback with 
    post_params_type = post_params;
@@ -442,8 +451,8 @@ let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
 (*VVV Warning: keep_get_na_params is experimental *)
 let new_post_coservice' 
     ?max_use ?timeout ?(keep_get_na_params = true) ~post_params () =
-  (* match global_register_allowed () with
-  | Some _ -> add_unregistered None
+  (* match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered None
   | _ -> () *)
   {
    max_use= max_use;
@@ -452,15 +461,15 @@ let new_post_coservice'
    get_params_type = unit;
    post_params_type = post_params;
    kind = `Nonattached
-     {na_name = Na_post' (new_naservice_num ());
+     {na_name = Eliom_common.Na_post' (new_naservice_num ());
       na_kind = `Post keep_get_na_params;
     }
  }
 
 let new_post_service' 
    ?(keep_get_na_params = true) ~name ~post_params () =
-  (* match global_register_allowed () with
-  | Some _ -> add_unregistered None
+  (* match Eliom_common.global_register_allowed () with
+  | Some _ -> Eliom_common.add_unregistered None
   | _ -> () *)
   {
 (*VVV allow timeout and max_use? *)
@@ -470,7 +479,7 @@ let new_post_service'
    get_params_type = unit;
    post_params_type = post_params;
    kind = `Nonattached
-     {na_name = Na_post_ name;
+     {na_name = Eliom_common.Na_post_ name;
       na_kind = `Post keep_get_na_params;
     }
  }
@@ -481,10 +490,10 @@ let new_get_post_coservice'
    ?timeout
     ~fallback
     ~post_params =
-  (* match global_register_allowed () with
+  (* match Eliom_common.global_register_allowed () with
   | Some _ ->
   | _ -> ());
-   add_unregistered None; *)
+   Eliom_common.add_unregistered None; *)
    {
    pre_applied_parameters = fallback.pre_applied_parameters;
    get_params_type = fallback.na_get_params_type;
@@ -530,9 +539,10 @@ let preapply ~service getparams =
 (* Building href *)
 let rec string_of_url_path' = function
   | [] -> ""
-  | [a] when a = eliom_suffix_internal_name -> ""
+  | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
   | [a] -> Netencoding.Url.encode ~plus:false a
-  | a::l when a = eliom_suffix_internal_name -> string_of_url_path' l
+  | a::l when a = Eliom_common.eliom_suffix_internal_name -> 
+      string_of_url_path' l
   | a::l -> (Netencoding.Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
 
 let rec string_of_url_path_suff u = function
@@ -559,11 +569,11 @@ let reconstruct_relative_url_path current_url u suff =
   let aremonter, aaller = drop current_url u
   in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
 (*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
-  if s = "" then defaultpagename else s
+  if s = "" then Eliom_common.defaultpagename else s
 
 let rec relative_url_path_to_myself = function
   | []
-  | [""] -> defaultpagename
+  | [""] -> Eliom_common.defaultpagename
   | [a] -> a
   | a::l -> relative_url_path_to_myself l
 (*****************************************************************************)
@@ -572,7 +582,7 @@ let set_exn_handler ?sp h =
   let sitedata = Eliom_sessions.find_sitedata "set_exn_handler" sp in
   Eliom_sessions.set_site_handler sitedata h
 
-let add_service = Eliommod.add_service
-let add_naservice = Eliommod.add_naservice
+let add_service = Eliommod_services.add_service
+let add_naservice = Eliommod_naservices.add_naservice
 
 let erts_of_rst = Ocsigen_lib.id

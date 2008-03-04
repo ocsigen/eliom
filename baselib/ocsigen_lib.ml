@@ -86,10 +86,6 @@ let rec list_is_prefix l1 l2 =
 
 (** various functions for URLs *)
 
-let defaultpagename = "./" 
-(* should be "" but this does not work with firefox.
-   "index" works but one page may have two different URLs *)
-
 let remove_dotdot = 
   (* removes "../" and "//" *)
   let rec aux = function

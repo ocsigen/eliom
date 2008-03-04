@@ -22,7 +22,6 @@
 
 open Extensions
 open Ocsigen_lib
-open Eliommod
 
 (** Type of names in a formular *)
 type 'a param_name = string
@@ -381,25 +380,25 @@ let reconstruct_params
     | Res_ (v,l,files) -> 
         if (l,files) = ([], [])
         then v
-        else raise Eliom_Wrong_parameter
+        else raise Eliom_common.Eliom_Wrong_parameter
     | Errors_ (errs, l, files) -> 
         if (l,files) = ([], [])
-        then raise (Eliom_Typing_Error errs)
-        else raise Eliom_Wrong_parameter
+        then raise (Eliom_common.Eliom_Typing_Error errs)
+        else raise Eliom_common.Eliom_Wrong_parameter
   in
   let parse_one typ v =
     match typ with
     | TString _ -> Obj.magic v
     | TInt name -> 
         (try Obj.magic (int_of_string v)
-        with e -> raise (Eliom_Typing_Error [("<suffix>", e)]))
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
     | TFloat name -> 
         (try Obj.magic (float_of_string v)
-        with e -> raise (Eliom_Typing_Error [("<suffix>", e)]))
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
     | TUserType (name, of_string, string_of) ->
         (try Obj.magic (of_string v)
-        with e -> raise (Eliom_Typing_Error [("<suffix>", e)]))
-    | _ -> raise Eliom_Wrong_parameter
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   let rec parse_suffix typ suff =
     match (typ, suff) with
@@ -408,13 +407,13 @@ let reconstruct_params
     | (TESuffixu (_, of_string, from_string)), l -> 
         (try
           Obj.magic (of_string (string_of_url_path l))
-        with e -> raise (Eliom_Typing_Error [("<suffix>", e)]))
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
     | _, [a] -> parse_one typ a
     | (TProd (t1, t2)), a::l -> 
         let b = parse_suffix t2 l in (* First we do parse_suffix to detect
                                         wrong number of parameters *)
         Obj.magic ((parse_one t1 a), b)
-    | _ -> raise Eliom_Wrong_parameter
+    | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
   try 
     match typ with
@@ -426,19 +425,19 @@ let reconstruct_params
         then 
           (try 
             Obj.magic (aux2 (TProd (s, t)) params)
-          with Eliom_Wrong_parameter -> 
+          with Eliom_common.Eliom_Wrong_parameter -> 
             Obj.magic ((parse_suffix s urlsuffix), (aux2 t params)))
         else Obj.magic ((parse_suffix s urlsuffix), (aux2 t params))
     | TSuffix s ->
         if urlsuffix = [""] && params <> [] 
         then
           (try Obj.magic (aux2 s params)
-          with Eliom_Wrong_parameter -> 
+          with Eliom_common.Eliom_Wrong_parameter -> 
             Obj.magic (parse_suffix s urlsuffix))
         else Obj.magic (parse_suffix s urlsuffix)
     | _ -> Obj.magic (aux2 typ params)
   with 
-  | Not_found -> raise Eliom_Wrong_parameter
+  | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
 (* The following function takes a 'a params_type and a 'a and
    constructs the list of parameters (GET or POST) 
