@@ -53,6 +53,8 @@ module Xhtmlreg_(Xhtml_content : Http_frame.HTTP_CONTENT
 
   type page = xhtml elt
 
+  type options = unit
+
   module Xhtml_content = struct
 
     include Xhtml_content
@@ -88,7 +90,7 @@ module Xhtmlreg_(Xhtml_content : Http_frame.HTTP_CONTENT
 
   end
 
-  let send ?(cookies=[]) ?charset ?code ~sp content = 
+  let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
     Xhtml_content.result_of_content content >>= fun r ->
       Lwt.return
         (EliomResult 
@@ -1191,8 +1193,10 @@ module SubXhtml = functor(T : sig type content end) ->
       open Xhtmltypes
         
       type page = T.content XHTML.M.elt list
+
+      type options = unit
             
-      let send ?(cookies=[]) ?charset ?code ~sp content = 
+      let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
             (EliomResult 
@@ -1232,7 +1236,9 @@ module Textreg_ = struct
 
   type page = (string * string)
 
-  let send ?(cookies=[]) ?charset ?code ~sp content = 
+  type options = unit
+
+  let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
     Predefined_senders.Text_content.result_of_content content >>= fun r ->
     Lwt.return
         (EliomResult
@@ -1257,7 +1263,9 @@ module CssTextreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset ?code ~sp content = 
+  type options = unit
+
+  let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
     Predefined_senders.Text_content.result_of_content (content, "text/css") >>= fun r ->
     Lwt.return
         (EliomResult
@@ -1283,7 +1291,9 @@ module HtmlTextreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset ?code ~sp content = 
+  type options = unit
+
+  let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
     Predefined_senders.Text_content.result_of_content (content, "text/html") >>= fun r ->
     Lwt.return
         (EliomResult
@@ -1474,7 +1484,9 @@ module Actionreg_ = struct
 
   type page = exn list
 
-  let send ?(cookies=[]) ?charset ?code ~sp content =
+  type options = unit
+
+  let send ?options ?(cookies=[]) ?charset ?code ~sp content =
     Lwt.return (EliomExn (content, cookies))
 
 end
@@ -1490,7 +1502,9 @@ module Unitreg_ = struct
 
   type page = unit
 
-  let send ?(cookies=[]) ?charset ?(code = 204) ~sp content = 
+  type options = unit
+
+  let send ?options ?(cookies=[]) ?charset ?(code = 204) ~sp content = 
     let empty_result = Http_frame.empty_result () in
     Lwt.return
       (EliomResult
@@ -1521,13 +1535,22 @@ module Redirreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset ?(code = 301) ~sp content =
+  type options = [ `Temporary | `Permanent ]
+
+  let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code ~sp content =
     let empty_result = Http_frame.empty_result () in
+    let code = match code with
+    | Some c -> c
+    | None -> 
+        if options = `Temporary 
+        then 307 (* Temporary move *) 
+        else 301 (* Moved permanently *)
+    in
     Lwt.return
       (EliomResult
          {empty_result with
           res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-          res_code= code; (* Moved permanently *)
+          res_code= code;
           res_location = Some content;
         })
 
@@ -1536,26 +1559,6 @@ end
 
 module Redirections = MakeRegister(Redirreg_)
 
-module TempRedirreg_ = struct
-  open XHTML.M
-  open Xhtmltypes
-
-  type page = string
-
-  let send ?(cookies=[]) ?charset ?(code = 302) ~sp content =
-    let empty_result = Http_frame.empty_result () in
-    Lwt.return
-      (EliomResult
-         {empty_result with
-          res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-          res_code= code; (* Temporary move *)
-          res_location = Some content;
-        })
-
-end
-
-
-module TempRedirections = MakeRegister(TempRedirreg_)
 
 
 (* Any is a module allowing to register services that decide themselves
@@ -1567,7 +1570,9 @@ module Anyreg_ = struct
 
   type page = Eliom_services.result_to_send
 
-  let send ?(cookies=[]) ?charset ?code ~sp content = 
+  type options = unit
+
+  let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
     Lwt.return
       (match content with
       | EliomResult res ->
@@ -1597,7 +1602,9 @@ module Filesreg_ = struct
 
   type page = string
 
-  let send ?(cookies=[]) ?charset ?code ~sp filename = 
+  type options = unit
+
+  let send ?options ?(cookies=[]) ?charset ?code ~sp filename = 
     let (filename, stat) =
       (try
         (* That piece of code has been pasted from staticmod.ml *)
@@ -1667,7 +1674,10 @@ module Streamlistreg_ = struct
   type page = (((unit -> (string Ocsistream.t) Lwt.t) list) * 
                  string)
 
-  let send ?(cookies=[]) ?charset ?code ~sp content = 
+  type options = unit
+
+
+  let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
     Predefined_senders.Streamlist_content.result_of_content content >>= fun r ->
     Lwt.return
         (EliomResult

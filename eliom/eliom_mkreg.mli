@@ -37,14 +37,18 @@ open Eliom_parameters
 
 module type REGCREATE = 
   sig
+
     type page
 
+    type options
+
     val send : 
-        ?cookies:Eliom_services.cookie list -> 
-          ?charset:string ->
-            ?code:int ->
-              sp:Eliom_sessions.server_params -> 
-                page -> result_to_send Lwt.t
+        ?options:options ->
+          ?cookies:Eliom_services.cookie list -> 
+            ?charset:string ->
+              ?code:int ->
+                sp:Eliom_sessions.server_params -> 
+                  page -> result_to_send Lwt.t
 
   end
 
@@ -52,18 +56,20 @@ module type REGCREATE =
 module type ELIOMREGSIG1 =
   sig
 
-
-
     type page
 
+    type options
+
     val send : 
-        ?cookies:Eliom_services.cookie list -> 
-          ?charset:string ->
-            ?code: int ->
-              sp:Eliom_sessions.server_params -> 
-                page -> result_to_send Lwt.t
+        ?options:options ->
+          ?cookies:Eliom_services.cookie list -> 
+            ?charset:string ->
+              ?code: int ->
+                sp:Eliom_sessions.server_params -> 
+                  page -> result_to_send Lwt.t
 
     val register :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         service:('get, 'post,
                  [< internal_service_kind ],
@@ -101,10 +107,15 @@ module type ELIOMREGSIG1 =
     Be very careful to re-create these URLs when you relaunch the server,
     otherwise, some external links or bookmarks may be broken!
 
+    Some output modules (for example Redirectmod) define their own options
+    for that function.
+    Use the [?options] parameter to set them.
+
  *)
 
 
     val register_for_session :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
           service:('get, 'post, [< internal_service_kind ],
@@ -126,6 +137,7 @@ module type ELIOMREGSIG1 =
 
 
     val register_new_service :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         path:url_path ->
             get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
@@ -140,6 +152,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_service] followed by [register] *)
                       
     val register_new_service' :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
           name:string ->
             get_params:('get, [ `WithoutSuffix ], 'gn) params_type ->
@@ -153,6 +166,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_service'] followed by [register] *)
                       
     val register_new_coservice :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -175,6 +189,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice] followed by [register] *)
 
     val register_new_coservice' :
+      ?options:options ->
       ?sp: Eliom_sessions.server_params ->
       ?max_use:int ->
       ?timeout:float ->
@@ -190,6 +205,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice'] followed by [register] *)
 
     val register_new_coservice_for_session :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -213,6 +229,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice] followed by [register_for_session] *)
 
     val register_new_coservice_for_session' :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -229,6 +246,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice'] followed by [register_for_session] *)
 
     val register_new_post_service :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         fallback:('get, unit, 
                   [ `Attached of [ `Internal of 
@@ -247,6 +265,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_service] followed by [register] *)
 
     val register_new_post_service' :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
           name: string ->
             post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
@@ -259,6 +278,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_service'] followed by [register] *)
 
     val register_new_post_coservice :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -280,6 +300,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_coservice] followed by [register] *)
 
     val register_new_post_coservice' :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -295,6 +316,7 @@ module type ELIOMREGSIG1 =
 
 (*
     val register_new_get_post_coservice' :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -314,6 +336,7 @@ module type ELIOMREGSIG1 =
 *)
 
     val register_new_post_coservice_for_session :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -336,6 +359,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_coservice] followed by [register_for_session] *)
 
     val register_new_post_coservice_for_session' :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -352,6 +376,7 @@ module type ELIOMREGSIG1 =
 
 (*
     val register_new_get_post_coservice_for_session' :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -387,3 +412,5 @@ module type ELIOMREGSIG =
 
 module MakeRegister : functor (Pages: REGCREATE) -> ELIOMREGSIG with 
 type page = Pages.page
+and type options = Pages.options
+

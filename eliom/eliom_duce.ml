@@ -96,7 +96,9 @@ module Xhtmlreg_ = struct
 
   type page = html
 
-  let send ?(cookies=[]) ?charset ?code ~sp content = 
+  type options = unit
+
+  let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
     Ocamlduce_content.result_of_content content >>= fun r ->
     Lwt.return 
         (Eliom_services.EliomResult
@@ -345,8 +347,10 @@ module SubXhtml =
       open Xhtmltypes
         
       type page = T.content
+
+      type options = unit
             
-      let send ?(cookies=[]) ?charset ?code ~sp content = 
+      let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
         Cont_content.result_of_content content >>= fun r ->
         Lwt.return
             (Eliom_services.EliomResult 

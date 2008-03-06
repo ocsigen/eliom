@@ -563,18 +563,15 @@ module Unit : Eliom_mkreg.ELIOMREGSIG with
   type page = unit
 
 (** Allows to create redirections towards other URLs.
-   A 301 code is sent to the browser to ask it to redo the request to
+   A 301 or 307 code is sent to the browser to ask it to redo the request to
    another URL.
+   To choose if you want permanent or temporary redirection, use
+   the [options] parameter of registration functions.
+   For example: [register ~options:`Temporary ...].
  *)
 module Redirections : Eliom_mkreg.ELIOMREGSIG with 
   type page = string
-
-(** Allows to create temporary redirections towards other URLs.
-   A 302 code is sent to the browser to ask it to redo the request to
-   another URL.
- *)
-module TempRedirections : Eliom_mkreg.ELIOMREGSIG with 
-  type page = string
+  and type options = [ `Temporary | `Permanent ]
 
 (** Allows to send files. The content is the name of the file to send. *)
 module Files : Eliom_mkreg.ELIOMREGSIG with 

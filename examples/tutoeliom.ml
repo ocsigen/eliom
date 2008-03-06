@@ -1079,14 +1079,14 @@ let looong2 =
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirections" ]] [version;"Eliom_predefmod.Redirections.html"]$</th>
           <td colspan="4">allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
-            The browser will get a 301 code in answer and redo the request
-            to the new URL.
-          </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.TempRedirections" ]] [version;"Eliom_predefmod.TempRedirections.html"]$</th>
-          <td colspan="4">allows to register HTTP temporary redirections.
-            You register the URL of the page you want to redirect to.
-            The browser will get a 302 code in answer and redo the request
-            to the new URL.
+            The browser will get a 301 or 307 code in answer and
+            redo the request to the new URL.
+            To specify whether you want temporary (307) or
+            permanent (301) redirections,
+            use the <code>?options</code> parameter of registration functions.
+            For example:
+            <code>register ~options:`Permanent ...</code> or
+            <code>register ~options:`Temporary ...</code>.
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Files" ]] [version;"Eliom_predefmod.Files.html"]$</th>
           <td colspan="4">allows to register services that send files        
@@ -2360,10 +2360,13 @@ end)
     </p>
 *html*)
 let redir = Eliom_predefmod.Redirections.register_new_service
+    ~options:`Temporary
     ~path:["redir"]
     ~get_params:(int "o")
    (fun sp o () -> return (make_string_uri coucou_params sp (o,(22,"ee"))))
 (*html*
+      <p>The <code>options</code> parameter may be either
+      <code>`Temporary</code> or <code>`Permanent</code>.</p>
       <p>$a Tutoeliom.redir sp <:xmllist< Try it >> 11$.</p>
 
       <p>Note that the cost of a redirection is one more query and 

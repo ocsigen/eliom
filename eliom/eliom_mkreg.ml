@@ -46,12 +46,15 @@ module type REGCREATE =
 
     type page
 
+    type options
+
     val send : 
-        ?cookies:Eliom_services.cookie list -> 
-          ?charset:string ->
-            ?code: int ->
-              sp:Eliom_sessions.server_params -> 
-                page -> Eliom_services.result_to_send Lwt.t
+        ?options:options ->
+          ?cookies:Eliom_services.cookie list -> 
+            ?charset:string ->
+              ?code: int ->
+                sp:Eliom_sessions.server_params -> 
+                  page -> Eliom_services.result_to_send Lwt.t
 
   end
 
@@ -60,18 +63,20 @@ module type ELIOMREGSIG1 =
 (* pasted from mli *)
   sig
 
-
-
     type page
 
+    type options
+
     val send : 
-        ?cookies:Eliom_services.cookie list -> 
-          ?charset:string ->
-            ?code: int ->
-              sp:Eliom_sessions.server_params -> 
-                page -> Eliom_services.result_to_send Lwt.t
+        ?options:options ->
+          ?cookies:Eliom_services.cookie list -> 
+            ?charset:string ->
+              ?code: int ->
+                sp:Eliom_sessions.server_params -> 
+                  page -> result_to_send Lwt.t
 
     val register :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         service:('get, 'post,
                  [< internal_service_kind ],
@@ -85,6 +90,7 @@ module type ELIOMREGSIG1 =
    [register service t f] will associate the service [service] 
    to the function [f].
    [f] is the function that creates a page, called {e service handler}. 
+
    That function takes three parameters. 
     - The first one has type [Eliom_sessions.server_params]
    and allows to have acces to informations about the request and the session.
@@ -95,9 +101,12 @@ module type ELIOMREGSIG1 =
     {e Warning: If you want to register a service in the global table
     after the initialisation phase,
     you must give the [~sp] parameter, otherwise it will raise the
-    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}   
+    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
 
-    Warning: registering after initialization is not encouraged for coservices
+   Registering services and coservices is always done in memory as there is
+   no means of marshalling closures.
+
+    Registering after initialization is not encouraged for coservices
     without timeout, as such services will be available only until the end
     of the server process!
     If you use that for main services, you will dynamically create new URLs!
@@ -105,10 +114,15 @@ module type ELIOMREGSIG1 =
     Be very careful to re-create these URLs when you relaunch the server,
     otherwise, some external links or bookmarks may be broken!
 
+    Some output modules (for example Redirectmod) define their own options
+    for that function.
+    Use the [?options] parameter to set them.
+
  *)
 
 
     val register_for_session :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
           service:('get, 'post, [< internal_service_kind ],
@@ -130,6 +144,7 @@ module type ELIOMREGSIG1 =
 
 
     val register_new_service :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         path:url_path ->
             get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
@@ -144,6 +159,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_service] followed by [register] *)
                       
     val register_new_service' :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
           name:string ->
             get_params:('get, [ `WithoutSuffix ], 'gn) params_type ->
@@ -151,12 +167,13 @@ module type ELIOMREGSIG1 =
                 page Lwt.t) ->
                   (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
                     ('get, unit, 
-                     [> `Nonattached of[> `Get] na_s ],
+                     [> `Nonattached of [> `Get ] na_s ],
                      [ `WithoutSuffix ], 'gn, unit, 
                      [> `Registrable ]) service
 (** Same as [new_service'] followed by [register] *)
                       
     val register_new_coservice :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -179,6 +196,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice] followed by [register] *)
 
     val register_new_coservice' :
+      ?options:options ->
       ?sp: Eliom_sessions.server_params ->
       ?max_use:int ->
       ?timeout:float ->
@@ -194,6 +212,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice'] followed by [register] *)
 
     val register_new_coservice_for_session :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -217,6 +236,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice] followed by [register_for_session] *)
 
     val register_new_coservice_for_session' :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -233,6 +253,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_coservice'] followed by [register_for_session] *)
 
     val register_new_post_service :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         fallback:('get, unit, 
                   [ `Attached of [ `Internal of 
@@ -251,6 +272,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_service] followed by [register] *)
 
     val register_new_post_service' :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
           name: string ->
             post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
@@ -263,6 +285,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_service'] followed by [register] *)
 
     val register_new_post_coservice :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -284,6 +307,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_coservice] followed by [register] *)
 
     val register_new_post_coservice' :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -299,6 +323,7 @@ module type ELIOMREGSIG1 =
 
 (*
     val register_new_get_post_coservice' :
+        ?options:options ->
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
@@ -318,6 +343,7 @@ module type ELIOMREGSIG1 =
 *)
 
     val register_new_post_coservice_for_session :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -340,6 +366,7 @@ module type ELIOMREGSIG1 =
 (** Same as [new_post_coservice] followed by [register_for_session] *)
 
     val register_new_post_coservice_for_session' :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -356,6 +383,7 @@ module type ELIOMREGSIG1 =
 
 (*
     val register_new_get_post_coservice_for_session' :
+        ?options:options ->
         ?session_name:string ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
@@ -396,16 +424,21 @@ module MakeRegister = functor
 
       type page = Pages.page
 
+      type options = Pages.options
+
       let send = Pages.send
 
       module Cookies = struct
         
         type page = Pages.page * Eliom_services.cookie list
+
+        type options = Pages.options
               
-        let send ?(cookies=[]) ?charset ?code ~sp (p, cl) =
-          Pages.send ~cookies:(cookies@cl) ?charset ?code ~sp p
+        let send ?options ?(cookies=[]) ?charset ?code ~sp (p, cl) =
+          Pages.send ?options ~cookies:(cookies@cl) ?charset ?code ~sp p
 
         let register_aux
+            ?options
             table
             duringsession (* registering during session? *)
             ~service
@@ -460,7 +493,8 @@ module MakeRegister = functor
                              error_handler sp2 l
                          | e -> fail e)) >>=
                     (fun (content, cookies_to_set) -> 
-                      Pages.send ~cookies:cookies_to_set ~sp:sp2 content >>=
+                      Pages.send
+                        ?options ~cookies:cookies_to_set ~sp:sp2 content >>=
                       fun r -> Lwt.return (Eliom_services.erts_of_rst r)
                     )
                   )
@@ -502,11 +536,11 @@ module MakeRegister = functor
                             error_handler sp2 l
                         | e -> fail e)) >>=
                    (fun (content, cookies_to_set) -> 
-                     Pages.send ~cookies:cookies_to_set ~sp:sp2 content
+                     Pages.send ?options ~cookies:cookies_to_set ~sp:sp2 content
                      >>= fun r -> Lwt.return (Eliom_services.erts_of_rst r))))
 
 
-        let register ?sp ~service ?error_handler page_gen =
+        let register ?options ?sp ~service ?error_handler page_gen =
           match sp with
           | None ->
               (match Eliom_common.global_register_allowed () with
@@ -520,6 +554,7 @@ module MakeRegister = functor
                       Eliom_common.remove_unregistered_na
                         sitedata (get_na_name_ naser));
                   register_aux 
+                    ?options
                     sitedata.Eliom_common.global_services
                     false 
                     ~service ?error_handler page_gen
@@ -528,6 +563,7 @@ module MakeRegister = functor
                        "register"))
           | Some sp ->
               register_aux
+                ?options
                 ?error_handler
                 (get_global_table sp)
                 true
@@ -545,12 +581,14 @@ module MakeRegister = functor
 
 
         let register_for_session
+            ?options
             ?session_name
             ~sp
             ~service
             ?error_handler
             page =
           register_aux
+            ?options
             ?error_handler
             !(get_session_service_table ?session_name ~sp ())
             true 
@@ -559,26 +597,29 @@ module MakeRegister = functor
 
 
         let register_new_service 
+            ?options
             ?sp
             ~path
             ~get_params
             ?error_handler
             page =
           let u = new_service ?sp ~path ~get_params () in
-          register ?sp ~service:u ?error_handler page;
+          register ?options ?sp ~service:u ?error_handler page;
           u
             
         let register_new_service'
+            ?options
             ?sp
             ~name
             ~get_params
             ?error_handler
             page =
           let u = new_service' ?sp ~name ~get_params () in
-          register ?sp ~service:u ?error_handler page;
+          register ?options ?sp ~service:u ?error_handler page;
           u
             
         let register_new_coservice
+            ?options
             ?sp
             ?max_use
             ?timeout
@@ -587,10 +628,11 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = new_coservice ?max_use ?timeout ~fallback ~get_params () in
-          register ?sp ~service:u ?error_handler page;
+          register ?options ?sp ~service:u ?error_handler page;
           u
 
         let register_new_coservice'
+            ?options 
             ?sp
             ?max_use
             ?timeout
@@ -598,10 +640,11 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = new_coservice' ?max_use ?timeout ~get_params () in
-          register ?sp ~service:u ?error_handler page;
+          register ?options ?sp ~service:u ?error_handler page;
           u
 
         let register_new_coservice_for_session
+            ?options 
             ?session_name
             ~sp
             ?max_use
@@ -611,10 +654,12 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = new_coservice ?max_use ?timeout ~fallback ~get_params () in
-          register_for_session ?session_name ~sp ~service:u ?error_handler page;
+          register_for_session 
+            ?options ?session_name ~sp ~service:u ?error_handler page;
           u
 
         let register_new_coservice_for_session'
+            ?options 
             ?session_name
             ~sp
             ?max_use
@@ -623,11 +668,13 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = new_coservice' ?max_use ~get_params () in
-          register_for_session ?session_name ~sp ~service:u ?error_handler page;
+          register_for_session 
+            ?options ?session_name ~sp ~service:u ?error_handler page;
           u
 
 
         let register_new_post_service 
+            ?options 
             ?sp
             ~fallback
             ~post_params
@@ -635,20 +682,22 @@ module MakeRegister = functor
             page_gen =
           let u = new_post_service ?sp
               ~fallback:fallback ~post_params:post_params () in
-          register ?sp ~service:u ?error_handler page_gen;
+          register ?options ?sp ~service:u ?error_handler page_gen;
           u
 
         let register_new_post_service'
+            ?options 
             ?sp 
             ~name
             ~post_params
             ?error_handler
             page_gen =
           let u = new_post_service' ~name ~post_params:post_params () in
-          register ?sp ~service:u ?error_handler page_gen;
+          register ?options ?sp ~service:u ?error_handler page_gen;
           u
 
         let register_new_post_coservice
+            ?options 
             ?sp
             ?max_use
             ?timeout
@@ -658,10 +707,11 @@ module MakeRegister = functor
             page_gen =
           let u = 
             new_post_coservice ?max_use ?timeout ~fallback ~post_params () in
-          register ?sp ~service:u ?error_handler page_gen;
+          register ?options ?sp ~service:u ?error_handler page_gen;
           u
 
         let register_new_post_coservice'
+            ?options 
             ?sp
             ?max_use
             ?timeout
@@ -669,12 +719,13 @@ module MakeRegister = functor
             ?error_handler
             page_gen =
           let u = new_post_coservice' ?max_use ?timeout ~post_params () in
-          register ?sp ~service:u ?error_handler page_gen;
+          register ?options ?sp ~service:u ?error_handler page_gen;
           u
 
 (*
    let register_new_get_post_coservice'
-   ?sp
+  ?options 
+  ?sp
    ?max_use
    ?timeout
    ~fallback
@@ -683,11 +734,12 @@ module MakeRegister = functor
    page_gen =
    let u = new_get_post_coservice'
    ?max_use ?timeout ~fallback ~post_params () in
-   register ?sp ~service:u ?error_handler page_gen;
+   register ?options ?sp ~service:u ?error_handler page_gen;
    u
  *)
 
         let register_new_post_coservice_for_session
+            ?options 
             ?session_name
             ~sp
             ?max_use
@@ -698,10 +750,12 @@ module MakeRegister = functor
             page_gen =
           let u = new_post_coservice 
               ?max_use ?timeout ~fallback ~post_params () in
-          register_for_session ?session_name ~sp ~service:u ?error_handler page_gen;
+          register_for_session
+            ?options ?session_name ~sp ~service:u ?error_handler page_gen;
           u
 
         let register_new_post_coservice_for_session'
+            ?options 
             ?session_name
             ~sp
             ?max_use
@@ -710,11 +764,13 @@ module MakeRegister = functor
             ?error_handler
             page_gen =
           let u = new_post_coservice' ?max_use ?timeout ~post_params () in
-          register_for_session ?session_name ~sp ~service:u ?error_handler page_gen;
+          register_for_session
+            ?options ?session_name ~sp ~service:u ?error_handler page_gen;
           u
 
 (*
    let register_new_get_post_coservice_for_session'
+  ?options 
   ?session_name
    ~sp
    ?max_use
@@ -725,7 +781,8 @@ module MakeRegister = functor
    page_gen =
    let u = new_get_post_coservice'
    ?max_use ?timeout ~fallback ~post_params () in
-   register_for_session ?session_name ~sp ~service:u ?error_handler page_gen;
+   register_for_session 
+  ?options ?session_name ~sp ~service:u ?error_handler page_gen;
    u
  *)
 
@@ -738,20 +795,23 @@ module MakeRegister = functor
           None -> None
         | Some eh -> Some (fun sp l -> eh sp l >>= (fun r -> return (r, [])))
 
-      let register ?sp ~service ?error_handler page_gen =
+      let register ?options ?sp ~service ?error_handler page_gen =
         Cookies.register
+          ?options
           ?sp
           ~service
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
 
       let register_for_session
+          ?options
           ?session_name
           ~sp
           ~service
           ?error_handler
           page =
         Cookies.register_for_session
+          ?options
           ?session_name
           ~sp
           ~service
@@ -759,12 +819,14 @@ module MakeRegister = functor
           (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
 
       let register_new_service 
+          ?options
           ?sp
           ~path
           ~get_params
           ?error_handler
           page =
         Cookies.register_new_service 
+          ?options
           ?sp
           ~path
           ~get_params
@@ -772,12 +834,14 @@ module MakeRegister = functor
           (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
           
       let register_new_service'
+          ?options
           ?sp
           ~name
           ~get_params
           ?error_handler
           page =
         Cookies.register_new_service'
+          ?options
           ?sp
           ~name
           ~get_params
@@ -785,6 +849,7 @@ module MakeRegister = functor
           (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
           
       let register_new_coservice
+          ?options
           ?sp
           ?max_use
           ?timeout
@@ -793,6 +858,7 @@ module MakeRegister = functor
           ?error_handler
           page =
         Cookies.register_new_coservice
+          ?options
           ?sp
           ?max_use
           ?timeout
@@ -802,6 +868,7 @@ module MakeRegister = functor
           (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
 
       let register_new_coservice'
+          ?options
           ?sp
           ?max_use
           ?timeout
@@ -809,6 +876,7 @@ module MakeRegister = functor
           ?error_handler
           page =
         Cookies.register_new_coservice'
+          ?options
           ?sp
           ?max_use
           ?timeout
@@ -817,6 +885,7 @@ module MakeRegister = functor
           (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
 
       let register_new_coservice_for_session
+          ?options
           ?session_name
           ~sp
           ?max_use
@@ -826,6 +895,7 @@ module MakeRegister = functor
           ?error_handler
           page =
       Cookies.register_new_coservice_for_session
+          ?options
           ?session_name
           ~sp
           ?max_use
@@ -836,6 +906,7 @@ module MakeRegister = functor
           (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
 
       let register_new_coservice_for_session'
+          ?options
           ?session_name
           ~sp
           ?max_use
@@ -844,6 +915,7 @@ module MakeRegister = functor
           ?error_handler
           page =
       Cookies.register_new_coservice_for_session'
+          ?options
           ?session_name
           ~sp
           ?max_use
@@ -853,12 +925,14 @@ module MakeRegister = functor
           (fun sp g p -> page sp g p >>= (fun r -> return (r, [])))
 
       let register_new_post_service 
+          ?options
           ?sp
           ~fallback
           ~post_params
           ?error_handler
           page_gen =
       Cookies.register_new_post_service 
+          ?options
           ?sp
           ~fallback
           ~post_params
@@ -866,12 +940,14 @@ module MakeRegister = functor
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
 
       let register_new_post_service'
+          ?options
           ?sp
           ~name
           ~post_params
           ?error_handler
           page_gen =
       Cookies.register_new_post_service'
+          ?options
           ?sp
           ~name
           ~post_params
@@ -879,6 +955,7 @@ module MakeRegister = functor
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
 
       let register_new_post_coservice
+          ?options
           ?sp
           ?max_use
           ?timeout
@@ -887,6 +964,7 @@ module MakeRegister = functor
           ?error_handler
           page_gen =
         Cookies.register_new_post_coservice
+          ?options
           ?sp
           ?max_use
           ?timeout
@@ -896,6 +974,7 @@ module MakeRegister = functor
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
 
       let register_new_post_coservice'
+          ?options
           ?sp
           ?max_use
           ?timeout
@@ -903,6 +982,7 @@ module MakeRegister = functor
           ?error_handler
           page_gen =
         Cookies.register_new_post_coservice'
+          ?options
           ?sp
           ?max_use
           ?timeout
@@ -912,7 +992,8 @@ module MakeRegister = functor
 
 (*
    let register_new_get_post_coservice'
-   ?sp
+  ?options
+  ?sp
           ?max_use
           ?timeout
    ~fallback
@@ -920,6 +1001,7 @@ module MakeRegister = functor
    ?error_handler
    page_gen =
    Cookies.register_new_get_post_coservice'
+  ?options
    ?sp
           ?max_use
           ?timeout
@@ -931,6 +1013,7 @@ module MakeRegister = functor
  *)
 
       let register_new_post_coservice_for_session
+          ?options
           ?session_name
           ~sp
           ?max_use
@@ -940,6 +1023,7 @@ module MakeRegister = functor
           ?error_handler
           page_gen =
         Cookies.register_new_post_coservice_for_session
+          ?options
           ?session_name
           ~sp
           ?max_use
@@ -950,6 +1034,7 @@ module MakeRegister = functor
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
 
       let register_new_post_coservice_for_session'
+          ?options
           ?session_name
           ~sp
           ?max_use
@@ -958,6 +1043,7 @@ module MakeRegister = functor
           ?error_handler
           page_gen =
       Cookies.register_new_post_coservice_for_session'
+          ?options
           ?session_name
           ~sp
           ?max_use
@@ -968,6 +1054,7 @@ module MakeRegister = functor
 
 (*
    let register_new_get_post_coservice_for_session'
+  ?options
   ?session_name
    sp
   ?max_use
@@ -977,6 +1064,7 @@ module MakeRegister = functor
    ?error_handler
    page_gen =
    Cookies.register_new_get_post_coservice_for_session'
+  ?options
   ?session_name
   ~sp
   ?max_use
@@ -990,5 +1078,6 @@ module MakeRegister = functor
 
 
     end : ELIOMREGSIG with 
-                 type page = Pages.page)
+                 type page = Pages.page
+                 and type options = Pages.options)
 
