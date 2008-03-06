@@ -30,6 +30,48 @@ open Eliom_services
 open Eliom_sessions
 
 
+(*****************************************************************************)
+(* Building href *)
+let rec string_of_url_path' = function
+  | [] -> ""
+  | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
+  | [a] -> Netencoding.Url.encode ~plus:false a
+  | a::l when a = Eliom_common.eliom_suffix_internal_name -> 
+      string_of_url_path' l
+  | a::l -> (Netencoding.Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
+
+let rec string_of_url_path_suff u = function
+  | None -> string_of_url_path' u
+  | Some suff -> let deb = (string_of_url_path' u) in
+    if deb = "" 
+    then string_of_url_path' suff
+    else deb^(string_of_url_path' suff)
+
+let reconstruct_absolute_url_path = string_of_url_path_suff
+
+let reconstruct_relative_url_path current_url u suff =
+  let rec drop cururl desturl = match cururl, desturl with
+  | a::l, [b] -> l, desturl
+  | [a], m -> [], m
+  | a::l, b::m when a = b -> drop l m
+  | a::l, m -> l, m
+  | [], m -> [], m
+  in let rec makedotdot = function
+    | [] -> ""
+(*    | [a] -> "" *)
+    | _::l -> "../"^(makedotdot l)
+  in 
+  let aremonter, aaller = drop current_url u
+  in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
+(*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
+  if s = "" then Eliom_common.defaultpagename else s
+
+let rec relative_url_path_to_myself = function
+  | []
+  | [""] -> Eliom_common.defaultpagename
+  | [a] -> a
+  | a::l -> relative_url_path_to_myself l
+(*****************************************************************************)
 
 
 
@@ -190,6 +232,17 @@ module type ELIOMFORMSIG =
 
 (** {2 Links and forms} *)
 
+    val make_full_string_uri :
+        service:('get, unit, [< get_service_kind ],
+                 [< suff ], 'gn, unit, 
+                 [< registrable ]) service ->
+                   sp:Eliom_sessions.server_params -> 
+                     ?fragment:string ->
+                       'get -> string
+(** Creates the string corresponding to the 
+    full (absolute) URL of a service applied to its GET parameters.
+ *)
+
     val make_string_uri :
         service:('get, unit, [< get_service_kind ],
                  [< suff ], 'gn, unit, 
@@ -197,7 +250,7 @@ module type ELIOMFORMSIG =
                    sp:Eliom_sessions.server_params -> 
                      ?fragment:string ->
                        'get -> string
-(** Creates the string corresponding to the URL of a service applyed to
+(** Creates the string corresponding to the relative URL of a service applied to
    its GET parameters.
  *)
 
@@ -206,8 +259,8 @@ module type ELIOMFORMSIG =
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
           sp:server_params -> ?fragment:string -> 'get -> uri
-(** Create the text of the service. Like the [a] function, it may take
-   extra parameters. *)
+(** Creates the (relative) URL for a service. 
+    Like the [a] function, it may take extra parameters. *)
 
     val a :
         ?a:a_attrib_t ->
@@ -637,7 +690,8 @@ module MakeForms = functor
 
 (** Functions to construct web pages: *)
 
-      let make_string_uri
+      let make_string_uri_
+          absolute
           ~service
           ~sp
           ?(fragment = "")
@@ -658,10 +712,14 @@ module MakeForms = functor
                     (get_prefix_ attser)
                     "/"
                     (reconstruct_absolute_url_path
-                       (get_current_full_path sp) 
                        (get_full_path_ attser) suff)
-                else (reconstruct_relative_url_path
-                        (get_current_full_path sp) (get_full_path_ attser) suff))
+                else
+                  if absolute
+                  then
+                    reconstruct_absolute_url_path (get_full_path_ attser) suff
+                  else
+                    reconstruct_relative_url_path
+                      (get_current_full_path sp) (get_full_path_ attser) suff)
               in
               match get_get_state_ attser with
               | None ->
@@ -699,16 +757,58 @@ module MakeForms = functor
             let current_get_params_string = 
               construct_params_string current_get_params 
             in
-            let cur = get_current_sub_path sp in
-            ((* ("/"^(get_current_path_string sp)) --> absolute (wrong) *)
-              (reconstruct_relative_url_path cur cur None)
+            let beg = 
+              if absolute
+              then get_current_full_path_string sp 
+              else relative_url_path_to_myself (get_current_sub_path sp)
+            in
+              beg
               ^"?"^ 
              (concat_strings
                 current_get_params_string
                 "&"
-                (concat_strings naservice_param "&" params_string))
-            )
+                (concat_strings naservice_param "&" params_string)
+             )
 
+      let make_full_string_uri
+          ~service
+          ~sp
+          ?fragment
+          getparams : string =
+        let https = Eliom_sessions.get_ssl ~sp in
+        (if https
+        then "https://"
+        else "http://"
+        )^
+        (match Eliom_sessions.get_hostname ~sp with
+        | None -> 
+            Unix.string_of_inet_addr (Eliom_sessions.get_server_inet_addr ~sp)
+(*VVV: Better (only for HTTP/1.0, sometimes): put the canonical name *)
+        | Some h -> h
+        )^
+        (let port = Eliom_sessions.get_server_port ~sp in
+        if (port = 80 && not https) || (https && port = 443)
+        then ""
+        else ":"^string_of_int port)^
+        "/"^
+        make_string_uri_
+          true
+          ~service
+          ~sp
+          ?fragment
+          getparams
+
+      let make_string_uri
+          ~service
+          ~sp
+          ?fragment
+          getparams : string =
+        make_string_uri_
+          false
+          ~service
+          ~sp
+          ?fragment
+          getparams
 
       let a ?a
           ~service
@@ -731,7 +831,6 @@ module MakeForms = functor
                   (get_prefix_ attser)
                   "/"
                   (reconstruct_absolute_url_path
-                     (get_current_full_path sp) 
                      (get_full_path_ attser) suff)
               else 
                 (reconstruct_relative_url_path
@@ -782,7 +881,7 @@ module MakeForms = functor
             Pages.make_a ?a
               ~href:( 
                 (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
-                (reconstruct_relative_url_path cur cur None)^"?"^
+                (relative_url_path_to_myself cur)^"?"^
                   (concat_strings
                      current_get_params_string
                      "&"
@@ -805,7 +904,6 @@ module MakeForms = functor
                   (get_prefix_ attser)
                   "/"
                   (reconstruct_absolute_url_path
-                     (get_current_full_path sp)
                      (get_full_path_ attser) None)
               else (reconstruct_relative_url_path
                       (get_current_full_path sp) (get_full_path_ attser) None)) in
@@ -841,7 +939,7 @@ module MakeForms = functor
             in Pages.make_get_form ?a ~action:urlname i1 i
         | `Nonattached naser ->
             let cur = get_current_sub_path sp in
-            let urlname = reconstruct_relative_url_path cur cur None in
+            let urlname = relative_url_path_to_myself cur in
             (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
             let naservice_line = 
               match get_na_name_ naser with
@@ -928,7 +1026,6 @@ module MakeForms = functor
                   (get_prefix_ attser)
                   "/"
                   (reconstruct_absolute_url_path
-                     (get_current_full_path sp)
                      (get_full_path_ attser) suff)
               else (reconstruct_relative_url_path
                       (get_current_full_path sp) (get_full_path_ attser) suff))
@@ -976,7 +1073,7 @@ module MakeForms = functor
             in
             let cur = get_current_sub_path sp in
             (* absolute URL does not work behind a revproxy! *)
-            let urlpath = reconstruct_relative_url_path cur cur None in
+            let urlpath = relative_url_path_to_myself cur in
             let v = concat_strings urlpath "?" current_get_params_string in
             let naservice_line = 
               match get_na_name_ naser with

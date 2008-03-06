@@ -288,16 +288,28 @@ module type XHTMLFORMSSIG = sig
 
 (** {2 Links and forms} *)
 
-  val make_string_uri :
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, unit, 
-               [< registrable ]) service ->
-                 sp:Eliom_sessions.server_params -> 
-                   ?fragment:string ->
-                     'get -> string
-(** Creates the string corresponding to the URL of a service applyed to
-    its GET parameters.
+    val make_full_string_uri :
+        service:('get, unit, [< get_service_kind ],
+                 [< suff ], 'gn, unit, 
+                 [< registrable ]) service ->
+                   sp:Eliom_sessions.server_params -> 
+                     ?fragment:string ->
+                       'get -> string
+(** Creates the string corresponding to the 
+    full (absolute) URL of a service applied to its GET parameters.
  *)
+
+    val make_string_uri :
+        service:('get, unit, [< get_service_kind ],
+                 [< suff ], 'gn, unit, 
+                 [< registrable ]) service ->
+                   sp:Eliom_sessions.server_params -> 
+                     ?fragment:string ->
+                       'get -> string
+(** Creates the string corresponding to the relative URL of a service applied to
+   its GET parameters.
+ *)
+
 
   val a :
       ?a:a_attrib attrib list ->
@@ -336,7 +348,7 @@ module type XHTMLFORMSSIG = sig
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
           sp:server_params -> ?fragment:string -> 'get -> uri
-(** Create the text of the service. Like the [a] function, it may take
+(** Creates the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
 

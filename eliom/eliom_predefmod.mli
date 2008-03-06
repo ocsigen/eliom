@@ -54,16 +54,28 @@ module type XHTMLFORMSSIG = sig
 
 (** {2 Links and forms} *)
 
-  val make_string_uri :
-      service:('get, unit, [< get_service_kind ],
-               [< suff ], 'gn, unit, 
-               [< registrable ]) service ->
-                 sp:Eliom_sessions.server_params -> 
-                   ?fragment:string ->
-                     'get -> string
-(** Creates the string corresponding to the URL of a service applied to
-    its GET parameters.
+    val make_full_string_uri :
+        service:('get, unit, [< get_service_kind ],
+                 [< suff ], 'gn, unit, 
+                 [< registrable ]) service ->
+                   sp:Eliom_sessions.server_params -> 
+                     ?fragment:string ->
+                       'get -> string
+(** Creates the string corresponding to the 
+    full (absolute) URL of a service applied to its GET parameters.
  *)
+
+    val make_string_uri :
+        service:('get, unit, [< get_service_kind ],
+                 [< suff ], 'gn, unit, 
+                 [< registrable ]) service ->
+                   sp:Eliom_sessions.server_params -> 
+                     ?fragment:string ->
+                       'get -> string
+(** Creates the string corresponding to the relative URL of a service applied to
+   its GET parameters.
+ *)
+
 
   val a :
       ?a:a_attrib attrib list ->
@@ -571,6 +583,9 @@ module Unit : Eliom_mkreg.ELIOMREGSIG with
 (** Allows to create redirections towards other URLs.
    A 301 or 307 code is sent to the browser to ask it to redo the request to
    another URL.
+
+    Warning: The URL given must be an absolute URI.
+
    To choose if you want permanent or temporary redirection, use
    the [options] parameter of registration functions.
    For example: [register ~options:`Temporary ...].

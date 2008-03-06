@@ -70,11 +70,11 @@ val get_user_agent : sp:server_params -> string
 val get_full_url : sp:server_params -> string
 
 (** returns the internet address of the client as a string *)
-val get_ip : sp:server_params -> string
+val get_remote_ip : sp:server_params -> string
 
 (** returns the internet address of the client, 
    using the type [Unix.inet_addr] (defined in OCaml's standard library). *)
-val get_inet_addr : sp:server_params -> Unix.inet_addr
+val get_remote_inet_addr : sp:server_params -> Unix.inet_addr
 
 (** returns the full path of the URL as a string. *)
 val get_current_full_path_string : sp:server_params -> string
@@ -101,7 +101,13 @@ val get_current_sub_path : sp:server_params -> url_path
 val get_hostname : sp:server_params -> string option
 
 (** returns the port on which the request has been done. *)
-val get_port : sp:server_params -> int
+val get_server_port : sp:server_params -> int
+
+(** returns the inet address on which the request has been done. *)
+val get_server_inet_addr : sp:server_params -> Unix.inet_addr
+
+(** returns true if https is used, false if http. *)
+val get_ssl : sp:server_params -> bool
 
 (** returns the suffix of the current URL *)
 val get_suffix : sp:server_params -> url_path

@@ -51,10 +51,10 @@ let get_user_agent ~sp =
   sp.Eliom_common.sp_ri.Extensions.ri_user_agent
 let get_full_url ~sp = 
   sp.Eliom_common.sp_ri.Extensions.ri_url_string
-let get_ip ~sp = 
+let get_remote_ip ~sp = 
   sp.Eliom_common.sp_ri.Extensions.ri_ip
-let get_inet_addr ~sp = 
-  sp.Eliom_common.sp_ri.Extensions.ri_inet_addr
+let get_remote_inet_addr ~sp = 
+  sp.Eliom_common.sp_ri.Extensions.ri_remote_inet_addr
 let get_get_params ~sp = 
   Lazy.force sp.Eliom_common.sp_ri.Extensions.ri_get_params
 let get_all_get_params ~sp = 
@@ -75,8 +75,12 @@ let get_current_sub_path_string ~sp =
   sp.Eliom_common.sp_ri.Extensions.ri_sub_path_string
 let get_hostname ~sp = 
   sp.Eliom_common.sp_ri.Extensions.ri_host
-let get_port ~sp = 
-  sp.Eliom_common.sp_ri.Extensions.ri_port
+let get_server_port ~sp = 
+  sp.Eliom_common.sp_ri.Extensions.ri_server_port
+let get_server_inet_addr ~sp = 
+  sp.Eliom_common.sp_ri.Extensions.ri_server_inet_addr
+let get_ssl ~sp = 
+  sp.Eliom_common.sp_ri.Extensions.ri_ssl
 let get_other_get_params ~sp = 
   sp.Eliom_common.sp_si.Eliom_common.si_other_get_params
 let get_suffix ~sp = 

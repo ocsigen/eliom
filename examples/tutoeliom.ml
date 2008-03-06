@@ -434,7 +434,7 @@ let uasuffix =
                pcdata ", your user-agent is ";
                strong [pcdata (Eliom_sessions.get_user_agent sp)];
                pcdata ", your IP is ";
-               strong [pcdata (Eliom_sessions.get_ip sp)]]])))
+               strong [pcdata (Eliom_sessions.get_remote_ip sp)]]])))
 (*html*
     <p>This service will answer to URLs like 
     <code>http://.../uasuffix/2000/11</code>.</p>
@@ -1079,6 +1079,8 @@ let looong2 =
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirections" ]] [version;"Eliom_predefmod.Redirections.html"]$</th>
           <td colspan="4">allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
+            Warning: According to the RFC of the HTTP protocol, 
+            the URL must be absolute!<br/>
             The browser will get a 301 or 307 code in answer and
             redo the request to the new URL.
             To specify whether you want temporary (307) or
@@ -2363,7 +2365,10 @@ let redir = Eliom_predefmod.Redirections.register_new_service
     ~options:`Temporary
     ~path:["redir"]
     ~get_params:(int "o")
-   (fun sp o () -> return (make_string_uri coucou_params sp (o,(22,"ee"))))
+   (fun sp o () -> 
+     return 
+       (Eliom_predefmod.Xhtml.make_full_string_uri
+          coucou_params sp (o,(22,"ee"))))
 (*html*
       <p>The <code>options</code> parameter may be either
       <code>`Temporary</code> or <code>`Permanent</code>.</p>

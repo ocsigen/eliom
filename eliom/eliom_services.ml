@@ -536,48 +536,6 @@ let preapply ~service getparams =
 
 
 (*****************************************************************************)
-(* Building href *)
-let rec string_of_url_path' = function
-  | [] -> ""
-  | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
-  | [a] -> Netencoding.Url.encode ~plus:false a
-  | a::l when a = Eliom_common.eliom_suffix_internal_name -> 
-      string_of_url_path' l
-  | a::l -> (Netencoding.Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
-
-let rec string_of_url_path_suff u = function
-  | None -> string_of_url_path' u
-  | Some suff -> let deb = (string_of_url_path' u) in
-    if deb = "" 
-    then string_of_url_path' suff
-    else deb^(string_of_url_path' suff)
-
-let reconstruct_absolute_url_path current_url = string_of_url_path_suff
-
-let reconstruct_relative_url_path current_url u suff =
-  let rec drop cururl desturl = match cururl, desturl with
-  | a::l, [b] -> l, desturl
-  | [a], m -> [], m
-  | a::l, b::m when a = b -> drop l m
-  | a::l, m -> l, m
-  | [], m -> [], m
-  in let rec makedotdot = function
-    | [] -> ""
-(*    | [a] -> "" *)
-    | _::l -> "../"^(makedotdot l)
-  in 
-  let aremonter, aaller = drop current_url u
-  in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
-(*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
-  if s = "" then Eliom_common.defaultpagename else s
-
-let rec relative_url_path_to_myself = function
-  | []
-  | [""] -> Eliom_common.defaultpagename
-  | [a] -> a
-  | a::l -> relative_url_path_to_myself l
-(*****************************************************************************)
-
 let set_exn_handler ?sp h = 
   let sitedata = Eliom_sessions.find_sitedata "set_exn_handler" sp in
   Eliom_sessions.set_site_handler sitedata h

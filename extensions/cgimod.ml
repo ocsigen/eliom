@@ -243,7 +243,7 @@ let array_environment filename re doc_root ri =
    
    (* Request-specific variables *)
   ["SERVER_PROTOCOL=HTTP/1.1";
-   Printf.sprintf "SERVER_PORT=%s" (string_of_int ri.ri_port);
+   Printf.sprintf "SERVER_PORT=%s" (string_of_int ri.ri_server_port);
    Printf.sprintf "REQUEST_METHOD=%s" meth;
    Printf.sprintf "PATH_INFO=%s" re.path_info;
    Printf.sprintf "PATH_TRANSLATED=" ; (* PATH_INFO virtual -> physical; unclear, so don't set *)

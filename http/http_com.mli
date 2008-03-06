@@ -21,7 +21,7 @@
 
 (** Sending and receiving HTTP frames *)
 
-(**
+(*
 Who can raise the exceptions:
 R: receiver
 r: receiver stream
@@ -29,17 +29,17 @@ S: sender
 *)
 
 (** The other side has cleanly closed the connection after a message *)
-exception Connection_closed (** R *)
+exception Connection_closed (* R *)
 
 (** The connection has been unexpectedly broken *)
-exception Lost_connection of exn (** RrS *)
+exception Lost_connection of exn (* RrS *)
 
 (** No activity on the other side *)
-exception Timeout (** RrS *)
-exception Keepalive_timeout (** R *)
+exception Timeout (* RrS *)
+exception Keepalive_timeout (* R *)
 
 (** Connection killed *)
-exception Aborted (** RrS *)
+exception Aborted (* RrS *)
 
 type mode = Answer | Query | Nofirstline
 type connection

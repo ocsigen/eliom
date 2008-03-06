@@ -190,6 +190,17 @@ module type ELIOMFORMSIG =
 
 (** {2 Links and forms} *)
 
+    val make_full_string_uri :
+        service:('get, unit, [< get_service_kind ],
+                 [< suff ], 'gn, unit, 
+                 [< registrable ]) service ->
+                   sp:Eliom_sessions.server_params -> 
+                     ?fragment:string ->
+                       'get -> string
+(** Creates the string corresponding to the 
+    full (absolute) URL of a service applied to its GET parameters.
+ *)
+
     val make_string_uri :
         service:('get, unit, [< get_service_kind ],
                  [< suff ], 'gn, unit, 
@@ -197,7 +208,7 @@ module type ELIOMFORMSIG =
                    sp:Eliom_sessions.server_params -> 
                      ?fragment:string ->
                        'get -> string
-(** Creates the string corresponding to the URL of a service applyed to
+(** Creates the string corresponding to the relative URL of a service applied to
    its GET parameters.
  *)
 
@@ -206,9 +217,8 @@ module type ELIOMFORMSIG =
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
           sp:Eliom_sessions.server_params -> ?fragment:string -> 'get -> uri
-(** Create the text of the service. Like the [a] function, it may take
-   extra parameters. *)
-
+(** Creates the text of (relative) URL for a service. 
+    Like the [a] function, it may take extra parameters. *)
 
 
     val a :

@@ -390,7 +390,7 @@ val get_na_name_ : 'a na_s -> Eliom_common.na_key
 val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> float option
-val reconstruct_absolute_url_path : url_path -> url_path -> url_path option -> string
+(* val reconstruct_absolute_url_path : url_path -> url_path -> url_path option -> string
 val reconstruct_relative_url_path : url_path -> url_path -> url_path option -> string
-
+*)
 val erts_of_rst : result_to_send -> Eliom_common.result_to_send

@@ -60,11 +60,11 @@ let sslctx = Http_client.sslcontext
 
 
 let ip_of_sockaddr = function
-    Unix.ADDR_INET (ip, port) -> ip
+  | Unix.ADDR_INET (ip, port) -> ip
   | _ -> raise (Ocsigen_Internal_Error "ip of unix socket")
 
 let port_of_sockaddr = function
-    Unix.ADDR_INET (ip, port) -> port
+  | Unix.ADDR_INET (ip, port) -> port
   | _ -> raise (Ocsigen_Internal_Error "port of unix socket")
 
 
@@ -278,6 +278,7 @@ let get_request_infos
      ri_url = parsed_url;
      ri_method = meth;
      ri_protocol = http_frame.Http_frame.header.Http_frame.Http_header.proto;
+     ri_ssl = Lwt_ssl.is_ssl (Http_com.connection_fd receiver);
      ri_full_path_string = string_of_url_path path;
      ri_full_path = path;
      ri_sub_path = path;
@@ -289,11 +290,12 @@ let get_request_infos
                             return a);
      ri_files = lazy (force find_post_params >>= fun (a, b) -> 
                       return b);
-     ri_inet_addr = inet_addr;
+     ri_server_inet_addr = ip_of_sockaddr sockaddr;
+     ri_remote_inet_addr = inet_addr;
      ri_ip = ipstring;
      ri_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip ipstring));
      ri_remote_port = port_of_sockaddr sockaddr;
-     ri_port = port;
+     ri_server_port = port;
      ri_user_agent = useragent;
      ri_cookies_string = cookies_string;
      ri_cookies = cookies;
@@ -468,7 +470,7 @@ let service
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind
              (fun () ->
-                Extensions.do_for_site_matching ri.ri_host ri.ri_port ri)
+                Extensions.do_for_site_matching ri.ri_host ri.ri_server_port ri)
              (fun res ->
                 finish_request ();
 (* RFC
