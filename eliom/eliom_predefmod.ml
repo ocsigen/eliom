@@ -1477,17 +1477,31 @@ end
 (****************************************************************************)
 
 (** Actions are like services, but do not generate any page. The current
-   page is reloaded. *)
+   page is reloaded (but if you give the optional parameter 
+    [~options:`NoReload] to the registration function). 
+ *)
 module Actionreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
   type page = exn list
 
-  type options = unit
+  type options = [ `Reload | `NoReload ]
 
-  let send ?options ?(cookies=[]) ?charset ?code ~sp content =
-    Lwt.return (EliomExn (content, cookies))
+  let send
+      ?(options = `Reload) ?(cookies=[]) ?charset ?(code = 204) ~sp content =
+    if options = `NoReload
+    then
+      let empty_result = Http_frame.empty_result () in
+      Lwt.return
+        (EliomResult
+           {empty_result with
+            res_cookies= 
+            Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+            res_code= code;
+          })
+    else
+      Lwt.return (EliomExn (content, cookies))
 
 end
 
@@ -1495,7 +1509,9 @@ module Actions = MakeRegister(Actionreg_)
 
 
 (** Unit services are like services, do not generate any page, and do not
-    reload the page. To be used carefully. Probably not usefull at all. *)
+    reload the page. To be used carefully. Probably not usefull at all. 
+    (Same as {!Eliom_predefmod.Actions} with [`NoReload] option).
+ *)
 module Unitreg_ = struct
   open XHTML.M
   open Xhtmltypes
@@ -1509,7 +1525,8 @@ module Unitreg_ = struct
     Lwt.return
       (EliomResult
          {empty_result with
-          res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          res_cookies= 
+          Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
           res_code= code;
         })
 

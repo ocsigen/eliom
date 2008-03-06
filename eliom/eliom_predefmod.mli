@@ -546,18 +546,24 @@ module Text : Eliom_mkreg.ELIOMREGSIG with type page = string * string
 (** {2 Other kinds of services} *)
 
 (** Actions do not generate any page. They do something, 
-   then the page is reloaded (if it was a coservice or a service with
-   POST parmeters).
+    then the page corresponding to the URL (without POST parameters
+    or non-attached parameters or coservice parameters) is sent to the browser.
+
    Actions return a list of exceptions. 
    You may use this to give information to the handler that will be called
    to reload the page.
    Use {!Eliom_sessions.get_exn} to access these exceptions from this handler.
+
+    If you give the optional parameter 
+    [~options:`NoReload] to the registration function, no page will be sent. 
  *)
 module Actions : Eliom_mkreg.ELIOMREGSIG with 
   type page = exn list
+  and type options = [ `Reload | `NoReload ]
 
 (** Like actions, but the page is not reloaded. Just do something and do
-   not generate any page.
+   not generate any page. To be used carefully. Probably not usefull at all. 
+   (Same as {!Eliom_predefmod.Actions} with [`NoReload] option).
  *)
 module Unit : Eliom_mkreg.ELIOMREGSIG with 
   type page = unit
