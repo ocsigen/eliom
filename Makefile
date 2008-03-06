@@ -4,6 +4,13 @@ VERSION := $(shell head -n 1 VERSION)
 
 DOCPREF=./
 
+# sed commands used for generation of META files
+SED_COMMAND_FOR_META =
+SED_COMMAND_FOR_META += -e "s/_VERSION_/$(VERSION)/"
+SED_COMMAND_FOR_META += -e "s/_CAMLZIPNAME_/$(CAMLZIPNAME)/"
+SED_COMMAND_FOR_META += -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g"
+SED_COMMAND_FOR_META += -e "s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g"
+
 ifeq "$(OCAMLDUCE)" "YES"
 DUCECMAO=eliom/eliom_duce.cma
 # eliom/ocsigenrss.cma
@@ -14,6 +21,7 @@ DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 DUCEDOC=$(DOCPREF)eliom/eliom_duce.mli $(DOCPREF)eliom/xhtml1_strict.ml $(DOCPREF)eliom/eliom_duce_tools.ml
 CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 DUCEPACK=,ocamlduce
+SED_COMMAND_FOR_META += -e "s/^%if-ocamlduce //"
 else
 DUCECMAO=
 DUCECMI=
@@ -21,6 +29,7 @@ DUCEEXAMPLES=
 DUCEDOC=
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 DUCEPACK=
+SED_COMMAND_FOR_META += -e "/^%if-ocamlduce /d"
 endif
 
 ifeq "$(LOGDIR)" ""
@@ -80,12 +89,11 @@ ifeq "$(BYTECODE)" "YES"
 TOINSTALLBYTE=$(CMAOTOINSTALL) $(PLUGINSCMAOTOINSTALL)
 EXAMPLESBYTE=$(EXAMPLESCMO)
 BYTE=byte
-METASEDBYTE=
 else
 TOINSTALLBYTE=
 EXAMPLESBYTE=
 BYTE=
-METASEDBYTE=/archive(plugin,byte)/d;
+SED_COMMAND_FOR_META += -e "/archive(plugin,byte)/d"
 endif
 
 ifeq "$(NATIVECODE)" "YES"
@@ -95,12 +103,11 @@ TOINSTALLX=$(TOINSTALLXTEMP:.cma=.cmxa) $(TOINSTALLXTEMP1:.cma=.cmxs)
 EXAMPLESOPT=$(EXAMPLESCMO:.cmo=.cmxs)
 OPT=opt
 DEPOPT=xmlp4pre.opt
-METASEDOPT=
 else
 TOINSTALLX=
 EXAMPLESOPT=
 OPT=
-METASEDOPT=/archive(plugin,native)/d;
+SED_COMMAND_FOR_META += -e "/archive(plugin,native)/d"
 endif
 
 TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL)
@@ -199,43 +206,21 @@ doc:
 doc/index.html: doc
 
 META: files/META.in
-	sed "\
-	  s/_VERSION_/$(VERSION)/; \
-	  s/_CAMLZIPNAME_/$(CAMLZIPNAME)/; \
-	  $(METASEDBYTE) \
-	  $(METASEDOPT)" < files/META.in > META
+	sed $(SED_COMMAND_FOR_META) < $< > $@
 
 META.ocsigen_ext: files/META.ocsigen_ext.in
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
-	sed "\
-	  s/_VERSION_/$(VERSION)/; \
-	  s/_CAMLZIPNAME_/$(CAMLZIPNAME)/; \
-	  s%_MODULEINSTALLDIR_%$(SRC)/extensions%g; \
-	  $(METASEDBYTE) \
-	  $(METASEDOPT)" < files/META.ocsigen_ext.in > META.ocsigen_ext
+	sed $(SED_COMMAND_FOR_META) < $< > $@
 
 META.ocsigen_ext.global: files/META.ocsigen_ext.in
-	sed "\
-	  s/_VERSION_/$(VERSION)/; \
-	  s/_CAMLZIPNAME_/$(CAMLZIPNAME)/; \
-	  s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g; \
-	  $(METASEDBYTE) \
-	  $(METASEDOPT)" < files/META.ocsigen_ext.in > META.ocsigen_ext.global
+	sed $(SED_COMMAND_FOR_META) < $< > $@
 
 META.eliom_examples: files/META.eliom_examples.in
-	sed "\
-	  s/_VERSION_/$(VERSION)/; \
-	  s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g; \
-	  $(METASEDBYTE) \
-	  $(METASEDOPT)" < files/META.eliom_examples.in > META.eliom_examples
+	sed $(SED_COMMAND_FOR_META) < $< > $@
 
 META.eliom_examples.global: files/META.eliom_examples.in
-	sed "\
-	  s/_VERSION_/$(VERSION)/; \
-	  s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g; \
-	  $(METASEDBYTE) \
-	  $(METASEDOPT)" < files/META.eliom_examples.in > META.eliom_examples.global
+	sed $(SED_COMMAND_FOR_META) < $< > $@
 
 $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
 	cat files/ocsigen.conf \

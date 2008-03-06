@@ -23,9 +23,10 @@ package "tutoeliom" (
   archive(plugin,native) = "tutoeliom.cmxs"
 )
 
-package "duce" (
-  version = "[distributed with Ocsigen]"
-  description = "Example with OCamlDuce"
-  archive(plugin,byte) = "exampleduce.cmo"
-  archive(plugin,native) = "exampleduce.cmxs"
-)
+%if-ocamlduce package "duce" (
+%if-ocamlduce   requires = "ocsigen_ext.eliom_duce"
+%if-ocamlduce   version = "[distributed with Ocsigen]"
+%if-ocamlduce   description = "Example with OCamlDuce"
+%if-ocamlduce   archive(plugin,byte) = "exampleduce.cmo"
+%if-ocamlduce   archive(plugin,native) = "exampleduce.cmxs"
+%if-ocamlduce )

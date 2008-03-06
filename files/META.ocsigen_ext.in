@@ -75,10 +75,10 @@ package "deflatemod" (
   archive(plugin,native) = "deflatemod.cmxs"
 )
 
-package "eliom_duce" (
-  requires = "ocamlduce"
-  version = "[distributed with Ocsigen]"
-  description = "OCamlDuce support for Eliom"
-  archive(plugin,byte) = "eliom_duce.cma"
-  archive(plugin,native) = "eliom_duce.cmxs"
-)
+%if-ocamlduce package "eliom_duce" (
+%if-ocamlduce   requires = "ocamlduce"
+%if-ocamlduce   version = "[distributed with Ocsigen]"
+%if-ocamlduce   description = "OCamlDuce support for Eliom"
+%if-ocamlduce   archive(plugin,byte) = "eliom_duce.cma"
+%if-ocamlduce   archive(plugin,native) = "eliom_duce.cmxs"
+%if-ocamlduce )
