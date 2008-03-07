@@ -324,6 +324,8 @@
       <redirect regexp="(.*)" dest="http://my.newaddress.org/$1"/>
       <redirect regexp="dir/(.*)\.html" dest="http://my.newaddress.org/$1.php"/>
       <!-- The syntax of regular expression is PCRE's one -->
+      <!-- According to the RFC of the HTTP protocol, dest must be an
+      absolute URL -->
       <!-- By default, permanent redirection.
            For temporary redirection, use: -->
       <redirect temporary="temporary" regexp="(.*)" dest="http://www.plopplopplop.com/$1"/>

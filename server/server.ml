@@ -96,19 +96,27 @@ let dbg sockaddr s =
 
 (* reading the request *)
 let get_request_infos 
-    meth url http_frame filenames sockaddr port receiver =
+    meth clientproto url http_frame filenames sockaddr port receiver =
 
   try
 
-    let (url, parsed_url, path, params, get_params) =
+    let (headerhost, _, url, parsed_url, path, params, get_params) =
       Ocsigen_extensions.parse_url url
     in
     
     let headerhost = 
-      match get_host_and_port http_frame with
-      | None -> None
-      | Some (h,_) -> Some h
+      match headerhost with
+      | None ->
+          (match get_host_and_port http_frame with
+          | None -> None
+          | Some (h,_) -> Some h)
+      | _ -> headerhost
     in
+    (* RFC:
+ 1. If Request-URI is an absoluteURI, the host is part of the Request-URI. Any Host header field value in the request MUST be ignored. 
+ 2. If the Request-URI is not an absoluteURI, and the request includes a Host header field, the host is determined by the Host header field value. 
+ 3. If the host as determined by rule 1 or 2 is not a valid host on the server, the response MUST be a 400 (Bad Request) error message. 
+     *)
     (*  Here we don't trust the port information given by the request.
        We use the port we are listening on. *)
     Ocsigen_messages.debug
@@ -116,6 +124,9 @@ let get_request_infos
         "- host="^(match headerhost with None -> "<none>" | Some h -> h));
 (*XXX Servers MUST report a 400 (Bad Request) error if an HTTP/1.1
       request does not include a Host request-header. *)
+
+    if clientproto = Http_frame.Http_header.HTTP11 && headerhost = None
+    then raise Ocsigen_Bad_Request;
 
     let useragent = get_user_agent http_frame in
     
@@ -456,7 +467,7 @@ let service
         (fun () ->
            Lwt.return
              (get_request_infos
-                meth url request filenames sockaddr port receiver))
+                meth clientproto url request filenames sockaddr port receiver))
         (fun ri ->
            (* *** Now we generate the page and send it *)
            (* Log *)

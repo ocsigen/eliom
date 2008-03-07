@@ -661,6 +661,21 @@ let parse_url url =
        url)
   in
 
+  let host = 
+    try 
+      Some (Neturl.url_host url2)
+    with 
+    | Not_found -> None
+  in
+
+  let port = 
+    try 
+      Some (Neturl.url_port url2)
+    with 
+    | Not_found -> None
+  in
+
+
   (* Note that the fragment (string after #) is not sent by browsers *)
   
 (*    let path = 
@@ -707,14 +722,19 @@ let parse_url url =
        *)
   in
 
-  (url, url2, path, params, get_params)
+  (host, port, url, url2, path, params, get_params)
     
 
 let ri_of_url url ri =
-  let (url, url2, path, params, get_params) = parse_url url in
+  let (host, _, url, url2, path, params, get_params) = parse_url url in
+  let host = match host with
+  | Some h -> host
+  | None -> ri.ri_host
+  in
   {ri with
    ri_url_string = url;
    ri_url = url2;
+   ri_host = host;
    ri_full_path_string = string_of_url_path path;
    ri_full_path = path;
    ri_sub_path = path;

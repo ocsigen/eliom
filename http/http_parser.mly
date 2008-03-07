@@ -86,6 +86,15 @@ firstline :
   | METHOD STRING PROTO EOL      {reset_header ();
                                  mode := Query (meth_of_string($1), $2);
                                  proto:=(proto_of_string $3)}
+  | METHOD STRING COLON STRING PROTO EOL
+                                 {reset_header ();
+                                 mode := Query (meth_of_string($1), $2^":"^$4);
+                                 proto:=(proto_of_string $5)}
+  | METHOD STRING COLON STRING COLON STRING PROTO EOL
+                                 {reset_header ();
+                                 mode := Query (meth_of_string($1), 
+                                                $2^":"^$4^":"^$6);
+                                 proto:=(proto_of_string $7)}
   | PROTO CODE strings EOL       {reset_header ();
 				 mode := Answer (int_of_string $2);
 				 proto:=(proto_of_string $1)

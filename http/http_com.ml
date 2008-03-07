@@ -349,7 +349,8 @@ let parse_http_header mode s =
        else
          Http_parser.header Http_lexer.token lexbuf)
   with Parsing.Parse_error ->
-    Lwt.fail (Http_frame.Http_error.Http_exception (400, Some "parse error", None))
+    Lwt.fail (Http_frame.Http_error.Http_exception
+                (400, Some "parse error", None))
 
 let get_maxsize = function
   | Nofirstline
