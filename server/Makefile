@@ -67,7 +67,7 @@ PP2 =
 CMAO = ../lwt/lwt.cma \
        ../baselib/ocsigen_lib.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
-       ../baselib/ocsigen_config.cmo ../baselib/messages.cmo \
+       ../baselib/ocsigen_config.cmo ../baselib/ocsigen_messages.cmo \
        ../baselib/ocsigen_loader.cmo \
        ../http/ocsistream.cmo ../http/multipart.cmo \
        ../http/http_headers.cmo \

@@ -58,9 +58,9 @@ let rec parse_condition = function
         (fun ri ->
            let r = Ocsigen_lib.match_ip ip_with_mask (Lazy.force ri.ri_ip_parsed) in
            if r then
-             Messages.debug2 (sprintf "--Access control (ip): %s matches %s" ri.ri_ip s)
+             Ocsigen_messages.debug2 (sprintf "--Access control (ip): %s matches %s" ri.ri_ip s)
            else
-             Messages.debug2 (sprintf "--Access control (ip): %s does not match %s" ri.ri_ip s);
+             Ocsigen_messages.debug2 (sprintf "--Access control (ip): %s does not match %s" ri.ri_ip s);
            r)
 
     | Element ("header", ["name", name; "regexp", reg], []) ->
@@ -75,13 +75,13 @@ let rec parse_condition = function
              List.exists
                (fun a ->
                   let r = Netstring_pcre.string_match regexp a 0 <> None in
-                  if r then Messages.debug2 (sprintf "--Access control (header): header %s matches \"%s\"" name reg);
+                  if r then Ocsigen_messages.debug2 (sprintf "--Access control (header): header %s matches \"%s\"" name reg);
                   r)
                (Http_headers.find_all
                   (Http_headers.name name)
                   ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers)
            in
-           if not r then Messages.debug2 (sprintf "--Access control (header): header %s does not match \"%s\"" name reg);
+           if not r then Ocsigen_messages.debug2 (sprintf "--Access control (header): header %s does not match \"%s\"" name reg);
            r)
 
     | Element ("method", ["value", s], []) ->
@@ -93,9 +93,9 @@ let rec parse_condition = function
         in
         (fun ri ->
            let r = meth = ri.ri_method in
-           if r then Messages.debug
+           if r then Ocsigen_messages.debug
              (fun () -> sprintf "--Access control (method): %s matches %s" (Framepp.string_of_method ri.ri_method) s)
-           else Messages.debug
+           else Ocsigen_messages.debug
              (fun () -> sprintf "--Access control (method): %s does not match %s" (Framepp.string_of_method ri.ri_method) s);
            r)
 
@@ -108,9 +108,9 @@ let rec parse_condition = function
         in
         (fun ri ->
            let r = pr = ri.ri_protocol in
-           if r then Messages.debug
+           if r then Ocsigen_messages.debug
              (fun () -> sprintf "--Access control (protocol): %s matches %s" (Framepp.string_of_proto ri.ri_protocol) s)
-           else Messages.debug
+           else Ocsigen_messages.debug
              (fun () -> sprintf "--Access control (protocol): %s does not match %s" (Framepp.string_of_proto ri.ri_protocol) s);
            r)
 
@@ -126,9 +126,9 @@ let rec parse_condition = function
              Netstring_pcre.string_match
                regexp ri.ri_sub_path_string 0 <> None
            in
-           if r then Messages.debug
+           if r then Ocsigen_messages.debug
              (fun () -> sprintf "--Access control (path): \"%s\" matches \"%s\"" ri.ri_sub_path_string s)
-           else Messages.debug
+           else Ocsigen_messages.debug
                (fun () -> sprintf "--Access control (path): \"%s\" does not match \"%s\"" ri.ri_sub_path_string s);
            r)
 
@@ -175,22 +175,22 @@ let parse_config path charset _ parse_fun = function
         | Extensions.Req_not_found (_, ri) ->
             Lwt.return
               (if condition ri then begin
-                 Messages.debug2 "--Access control: => going into <then> branch";
+                 Ocsigen_messages.debug2 "--Access control: => going into <then> branch";
                  Extensions.Ext_sub_result ithen
                end
                else begin
-                 Messages.debug2 "--Access control: => going into <else> branch, if any";
+                 Ocsigen_messages.debug2 "--Access control: => going into <else> branch, if any";
                  Extensions.Ext_sub_result ielse
                end))
 
   | Element ("notfound", [], []) ->
       (fun rs ->
-         Messages.debug2 "--Access control: taking in charge 404";
+         Ocsigen_messages.debug2 "--Access control: taking in charge 404";
          fail (Ocsigen_http_error (Http_frame.Cookies.empty, 404)))
 
   | Element ("forbidden", [], []) ->
       (fun rs ->
-         Messages.debug2 "--Access control: taking in charge 403";
+         Ocsigen_messages.debug2 "--Access control: taking in charge 403";
          fail (Ocsigen_http_error (Http_frame.Cookies.empty, 403)))
 
   | Element ("iffound", [], sub) ->

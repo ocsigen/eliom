@@ -84,7 +84,7 @@ let rec output oz f buf pos len  =
   if len = 0 then next_cont oz f else
   if oz.avail = 0 then
     (let cont () = output oz f buf pos len in
-    Messages.debug2 "--Deflatemod: Flushing because output buffer is full";
+    Ocsigen_messages.debug2 "--Deflatemod: Flushing because output buffer is full";
     flush oz cont)
   else (
   (catch
@@ -113,7 +113,7 @@ let rec output oz f buf pos len  =
 and flush oz cont =
         let len = oz.pos in
         let s = String.sub oz.buf 0 len in
-        Messages.debug2 "--Deflatemod: Flushing!";
+        Ocsigen_messages.debug2 "--Deflatemod: Flushing!";
         oz.pos <- 0 ; 
         oz.avail <- String.length oz.buf ;
         if len > 0 then Ocsistream.cont s cont else cont ()
@@ -122,7 +122,7 @@ and next_cont oz stream =
   Ocsistream.next stream >>= fun e ->
   match e with
   | Ocsistream.Finished None -> 
-      Messages.debug2 "--Deflatemod: End of stream: big cleaning for zlib" ; 
+      Ocsigen_messages.debug2 "--Deflatemod: End of stream: big cleaning for zlib" ; 
       
       (* loop until there is nothing left to compress and flush *)
       let rec after_flushing () = 
@@ -140,7 +140,7 @@ and next_cont oz stream =
             after_flushing ()
         else
             (Zlib.deflate_end oz.stream ; 
-            Messages.debug2 "--Deflatemod: Zlib stream closed, last flush" ;
+            Ocsigen_messages.debug2 "--Deflatemod: Zlib stream closed, last flush" ;
             flush oz (fun () -> Ocsistream.empty None))) in
       
       flush oz after_flushing
@@ -159,10 +159,10 @@ let compress deflate stream =
   let finalize () = Ocsistream.finalize stream in
   let new_stream () = next_cont oz (Ocsistream.get stream) in
   if deflate then begin
-    Messages.debug2 "--Deflatemod: Preparing to compress with deflate...";
+    Ocsigen_messages.debug2 "--Deflatemod: Preparing to compress with deflate...";
     Ocsistream.make ~finalize new_stream
   end else begin
-    Messages.debug2 "--Deflatemod: Preparing to compress with gzip...";
+    Ocsigen_messages.debug2 "--Deflatemod: Preparing to compress with gzip...";
     Ocsistream.make
       ~finalize (fun () -> Ocsistream.cont gzip_header new_stream)
   end

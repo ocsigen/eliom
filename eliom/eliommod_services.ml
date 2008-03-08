@@ -53,19 +53,19 @@ let find_page_table
         match expdate with
         | Some (_, e) when !e < now ->
             (* Service expired. Removing it. *)
-            Messages.debug2 "--Eliom: Service expired. I'm removing it";
+            Ocsigen_messages.debug2 "--Eliom: Service expired. I'm removing it";
             aux toremove l >>= 
             (fun (r, toremove) -> Lwt.return (r, a::toremove))
         | _ ->
             catch 
               (fun () ->
-                Messages.debug2 "--Eliom: I'm trying a service";
+                Ocsigen_messages.debug2 "--Eliom: I'm trying a service";
                 funct sp
                   >>=
                 (* warning: the list ll may change during funct
                    if funct register something on the same URL!! *)
                 (fun p -> 
-                  Messages.debug2
+                  Ocsigen_messages.debug2
                     "--Eliom: Page found and generated successfully";
 
                   (* We update the expiration date *)
@@ -169,7 +169,7 @@ let add_service
       | Eliom_common.Dir dcr -> search dcr l
       | Eliom_common.File ptr -> 
           raise (Eliom_common.Eliom_page_erasing a)
-            (* Messages.warning ("Eliom page registration: Page "^
+            (* Ocsigen_messages.warning ("Eliom page registration: Page "^
                a^" has been replaced by a directory");
                let newdcr = ref (Eliom_common.empty_dircontent ()) in
                (direltref := Eliom_common.Dir newdcr;
@@ -191,7 +191,7 @@ let add_service
           (match !direltref with
           | Eliom_common.Dir _ -> 
               raise (Eliom_common.Eliom_page_erasing a)
-                (* Messages.warning ("Eliom page registration: Directory "^
+                (* Ocsigen_messages.warning ("Eliom page registration: Directory "^
                    a^" has been replaced by a page");
                    let newpagetableref = ref (empty_page_table ()) in
                    (direltref := File newpagetableref;
@@ -322,7 +322,7 @@ let get_page
 
   (catch
      (fun () -> 
-        Messages.debug 
+        Ocsigen_messages.debug 
           (fun () ->
             "--Eliom: I'm looking for "^
             (Ocsigen_lib.string_of_url_path ri.Extensions.ri_sub_path)^
@@ -334,7 +334,7 @@ let get_page
         | Eliom_common.Eliom_Wrong_parameter -> 
             catch (* ensuite dans la table globale *)
               (fun () -> 
-                Messages.debug2 "--Eliom: I'm searching in the global table:";
+                Ocsigen_messages.debug2 "--Eliom: I'm searching in the global table:";
                 find_service 
                   now
                   sitedata.Eliom_common.global_services
@@ -353,7 +353,7 @@ let get_page
                         (* There was a POST state. 
                            We remove it, and remove POST parameters.
                          *)
-                        Messages.debug2 
+                        Ocsigen_messages.debug2 
                           "--Eliom: Link to old. I will try without POST parameters:";
                         fail (Eliom_common.Eliom_retry_with 
                                 ({ri with 
@@ -377,7 +377,7 @@ let get_page
                            We remove it with its parameters, 
                            and remove POST parameters.
                          *)
-                        Messages.debug2 
+                        Ocsigen_messages.debug2 
                           "--Eliom: Link to old. I will try without GET state parameters and POST parameters:";
                         fail (Eliom_common.Eliom_retry_with 
                                 ({ri with 

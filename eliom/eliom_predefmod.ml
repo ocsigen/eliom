@@ -1639,27 +1639,27 @@ module Filesreg_ = struct
         (* That piece of code has been pasted from staticmod.ml *)
         let stat = Unix.LargeFile.stat filename in
         let (filename, stat) = 
-          Messages.debug (fun () -> "Eliom.Files - Testing \""^filename^"\".");
+          Ocsigen_messages.debug (fun () -> "Eliom.Files - Testing \""^filename^"\".");
           let path = get_current_sub_path sp in
           if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
           then 
             if (filename.[(String.length filename) - 1]) = '/'
             then
               let fn2 = filename^"index.html" in
-              Messages.debug (fun () -> "Eliom.Files - Testing \""^fn2^"\".");
+              Ocsigen_messages.debug (fun () -> "Eliom.Files - Testing \""^fn2^"\".");
               (fn2,(Unix.LargeFile.stat fn2))
             else
               (if (path= []) || (path = [""])
               then 
                 let fn2 = filename^"/index.html" in
-                Messages.debug (fun () -> "Eliom.Files - Testing \""^fn2^"\".");
+                Ocsigen_messages.debug (fun () -> "Eliom.Files - Testing \""^fn2^"\".");
                 (fn2,(Unix.LargeFile.stat fn2))
-              else (Messages.debug 
+              else (Ocsigen_messages.debug 
                       (fun () -> "Eliom.Files - "^filename^" is a directory");
                     raise Ocsigen_Is_a_directory))
           else (filename, stat)
         in
-        Messages.debug
+        Ocsigen_messages.debug
           (fun () -> 
             "Eliom.Files - Looking for \""^filename^"\".");
         

@@ -6,7 +6,7 @@
 {4 Persistent data, writing in the logs, configuration file extension, Xhtml pretty printing}
 {!modules: 
 Ocsipersist 
-Messages 
+Ocsigen_messages 
 Parseconfig 
 Simplexmlparser
 Xhtmlpretty

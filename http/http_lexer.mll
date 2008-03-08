@@ -56,7 +56,7 @@ let quoted_string = '\"' (qdtext | quoted_pair)* '\"'
 
 rule token =
   parse
-  |blank                {Messages.debug_noel2 " "; token lexbuf}
+  |blank                {Ocsigen_messages.debug_noel2 " "; token lexbuf}
   |"GET"                
   |"POST"               
   |"HEAD"               
@@ -68,19 +68,19 @@ rule token =
   |"LINK"               
   |"UNLINK"             
   |"PATCH"              {let s = Lexing.lexeme lexbuf in
-                         Messages.debug_noel2 s; 
+                         Ocsigen_messages.debug_noel2 s; 
                          METHOD s}
-  |"\r\n"               {Messages.debug2 ""; EOL}
-  |":"                  {Messages.debug_noel2 ":";COLON}
-  |"\n"                 {Messages.debug2 ""; EOL}
+  |"\r\n"               {Ocsigen_messages.debug2 ""; EOL}
+  |":"                  {Ocsigen_messages.debug_noel2 ":";COLON}
+  |"\n"                 {Ocsigen_messages.debug2 ""; EOL}
   |integer              {let s = Lexing.lexeme lexbuf in
-                         Messages.debug_noel2 s;
+                         Ocsigen_messages.debug_noel2 s;
 			 CODE s}
   |proto                {let s = Lexing.lexeme lexbuf in
-                         Messages.debug_noel2 s;
+                         Ocsigen_messages.debug_noel2 s;
 			 PROTO s}
   |strin                {let s = Lexing.lexeme lexbuf in
-                         Messages.debug_noel2 s;
+                         Ocsigen_messages.debug_noel2 s;
 			 STRING s}
   |eof                  {raise (Http_error.Http_exception 
                                   (400, Some "unexpected end of file", None))}

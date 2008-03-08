@@ -114,7 +114,7 @@ let close_all_persistent_sessions ?close_group ?session_name sitedata =
 
 (* Update the expiration date for all service sessions                      *)
 let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
-  Messages.debug2 
+  Ocsigen_messages.debug2 
     "--Eliom: Updating expiration date for all service sessions";
   match new_glob_timeout with
   | Some t when t <= 0. ->
@@ -146,7 +146,7 @@ let update_serv_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all in memory data sessions                *)
 let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
-  Messages.debug2 
+  Ocsigen_messages.debug2 
     "--Eliom: Updating expiration date for all data sessions";
   match new_glob_timeout with
   | Some t when t <= 0. ->
@@ -179,7 +179,7 @@ let update_data_exp fullsessname sitedata old_glob_timeout new_glob_timeout =
 
 (* Update the expiration date for all sessions                               *)
 let update_pers_exp fullsessname old_glob_timeout new_glob_timeout =
-  Messages.debug2 
+  Ocsigen_messages.debug2 
     "--Eliom: Updating expiration date for all persistent sessions";
   match new_glob_timeout with
   | Some t when t <= 0. ->

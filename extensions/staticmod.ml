@@ -63,7 +63,7 @@ let find_static_page dir err path pathstring =
   let find_file (filename, readable) =
     (* See also module Files in eliom.ml *)
     try
-      Messages.debug (fun () -> "--Staticmod: Testing \""^filename^"\".");
+      Ocsigen_messages.debug (fun () -> "--Staticmod: Testing \""^filename^"\".");
       let stat = Unix.LargeFile.stat filename in
       let (filename, stat) = 
         if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
@@ -71,7 +71,7 @@ let find_static_page dir err path pathstring =
           (if (filename.[(String.length filename) - 1]) = '/'
           then
             let fn2 = filename^"index.html" in
-            Messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
+            Ocsigen_messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
 	    try
 	      (fn2, (Unix.LargeFile.stat fn2))
 	    with
@@ -83,7 +83,7 @@ let find_static_page dir err path pathstring =
             (if (path= []) || (path = [""])
             then 
               let fn2 = filename^"/index.html" in
-              Messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
+              Ocsigen_messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
               try
 	        (fn2, (Unix.LargeFile.stat fn2))
 	      with
@@ -91,12 +91,12 @@ let find_static_page dir err path pathstring =
 		  if readable
 		  then (filename^"/", stat)
 		  else raise Failed_403
-            else (Messages.debug
+            else (Ocsigen_messages.debug
                     (fun () -> "--Staticmod: "^filename^" is a directory");
                   raise Ocsigen_Is_a_directory)))
         else (filename, stat)
       in
-      Messages.debug
+      Ocsigen_messages.debug
         (fun () -> "--Staticmod: Looking for \""^filename^"\".");
       if (stat.Unix.LargeFile.st_kind = Unix.S_REG)
       then begin 
@@ -141,7 +141,7 @@ let gen dir charset = function
            if ri.ri_get_params_string = None
              (* static pages do not have parameters *)
            then begin
-             Messages.debug2 "--Staticmod: Is it a static file?";
+             Ocsigen_messages.debug2 "--Staticmod: Is it a static file?";
              match 
                find_static_page
                  dir err ri.ri_sub_path ri.ri_sub_path_string

@@ -113,7 +113,7 @@ let rec parser_config =
         (match ll with
         | [] -> ()
         | _ -> 
-            ignore (Messages.warning
+            ignore (Ocsigen_messages.warning
                       "At most one <server> tag possible in config file. \
                       Ignoring trailing data."));
         parse_servers (n@[nouveau]) [] (* ll *)  
@@ -309,11 +309,11 @@ let parse_server isreloading c =
                     let filename = dir^"/"^s in
                     let filecont =
                       try
-                        Messages.debug (fun () -> "Parsing configuration file "^
+                        Ocsigen_messages.debug (fun () -> "Parsing configuration file "^
                           filename);
                         parse_ext filename
                       with e -> 
-                        Messages.errlog 
+                        Ocsigen_messages.errlog 
                           ("Error while loading configuration file "^filename^
                            ": "^(Ocsigen_lib.string_of_exn e)^" (ignored)");
                         []
@@ -328,7 +328,7 @@ let parse_server isreloading c =
                 files
             with
             | Sys_error _ as e ->
-                Messages.errlog 
+                Ocsigen_messages.errlog 
                   ("Error while loading configuration file: "^
                    ": "^(Ocsigen_lib.string_of_exn e)^" (ignored)");
                 []

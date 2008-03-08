@@ -44,7 +44,7 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
       | None -> Lwt.return (Ext_next previous_extension_err)
       | Some _ -> (* Matching regexp found! *)
           try
-            Messages.debug2 "--Userconf: Using user configuration";
+            Ocsigen_messages.debug2 "--Userconf: Using user configuration";
             let conf = 
               try
                 Extensions.replace_user_dir regexp conf path 

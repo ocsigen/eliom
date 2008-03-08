@@ -264,10 +264,10 @@ let find_page_table
       [] -> fail Ocsigen_Wrong_parameter
     | (_,(funct, headers, working_dir))::l ->
         catch (fun () ->
-          Messages.debug "--Ocsigenmod: I'm trying a service";
+          Ocsigen_messages.debug "--Ocsigenmod: I'm trying a service";
           funct (urlsuffix, (sp0,working_dir,b)) >>=
           (fun p -> 
-            Messages.debug "--Ocsigenmod: Page found";
+            Ocsigen_messages.debug "--Ocsigenmod: Page found";
             Lwt.return (p, headers, working_dir)))
           (function
               Ocsigen_Wrong_parameter -> aux l
@@ -331,7 +331,7 @@ let add_service (dircontentref,_) current_dir session url_act
       match !direltref with
         Dir dcr -> search dcr l
       | File ptr -> raise (Ocsigen_page_erasing a)
-            (* Messages.warning ("Ocsigen page registering: Page "^
+            (* Ocsigen_messages.warning ("Ocsigen page registering: Page "^
                a^" has been replaced by a directory");
                let newdcr = ref (empty_dircontent ()) in
                (direltref := Dir newdcr;
@@ -350,7 +350,7 @@ let add_service (dircontentref,_) current_dir session url_act
           let direltref = find_dircontent !dircontentref a in
           (match !direltref with
             Dir _ -> raise (Ocsigen_page_erasing a)
-                (* Messages.warning ("Ocsigen page registering: Directory "^
+                (* Ocsigen_messages.warning ("Ocsigen page registering: Directory "^
                    a^" has been replaced by a page");
                    let newpagetableref = ref (empty_page_table ()) in
                    (direltref := File newpagetableref;
@@ -479,7 +479,7 @@ let get_page
       session_tables_ref =
     ((catch
         (fun () -> 
-          Messages.debug 
+          Ocsigen_messages.debug 
             ("--Ocsigenmod: I'm looking for "^(string_of_url_path ri.ri_path)^
              " in the session table:");
           (find_service
@@ -491,7 +491,7 @@ let get_page
             Ocsigen_404 | Ocsigen_Wrong_parameter -> 
               catch (* ensuite dans la table globale *)
                 (fun () -> 
-                  Messages.debug "--Ocsigenmod: I'm searching in the global table:";
+                  Ocsigen_messages.debug "--Ocsigenmod: I'm searching in the global table:";
                   (find_service 
                      global_tables
                      (session_tables_ref,
@@ -504,7 +504,7 @@ let get_page
                         None -> fail exn
                       | _ -> catch (* d'abord la table de session *)
                             (fun () ->
-                              Messages.debug 
+                              Ocsigen_messages.debug 
                                 "--Ocsigenmod: I'm searching in the session table, without state parameter:";
                               (find_service 
                                  !session_tables_ref
@@ -514,7 +514,7 @@ let get_page
                             (function
                                 Ocsigen_404 | Ocsigen_Wrong_parameter -> 
                                   (* ensuite dans la table globale *)
-                                  Messages.debug "--Ocsigenmod: I'm searching in the global table, without state parameter:";
+                                  Ocsigen_messages.debug "--Ocsigenmod: I'm searching in the global table, without state parameter:";
                                   (find_service 
                                      global_tables
                                      (session_tables_ref,
@@ -603,7 +603,7 @@ let make_action page_tree action_name action_params
       execute 
         generate_page ri.ri_inet_addr cookie page_tree >>=
       (fun ((c,(),(),wd),_,_) ->
-        Messages.debug "--Ocsigenmod: Action executed";
+        Ocsigen_messages.debug "--Ocsigenmod: Action executed";
         return (c,wd)))
     (function
         Ocsigen_Typing_Error _ -> return (None, [])

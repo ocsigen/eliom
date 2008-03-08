@@ -399,7 +399,7 @@ let new_post_service_aux ~sp ~fallback ~post_params =
     
 let new_post_service ?sp ~fallback ~post_params () = 
   (* (if post_params = TUnit
-  then Messages.warning "Probably error in the module: \
+  then Ocsigen_messages.warning "Probably error in the module: \
       Creation of a POST service without POST parameters."); 
       12/07/07
       I remove this warning: POST service without POST parameters means

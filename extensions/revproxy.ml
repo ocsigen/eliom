@@ -114,12 +114,12 @@ let gen dir charset = function
   catch
     (* Is it a redirection? *)
     (fun () ->
-       Messages.debug2 "--Revproxy: Is it a redirection?";
+       Ocsigen_messages.debug2 "--Revproxy: Is it a redirection?";
        let (https, host, port, uri) = 
          find_redirection dir ri.ri_sub_path_string
        in
        let uri = "/"^uri^(match ri.ri_get_params_string with None -> "" | Some s -> "?"^s) in
-       Messages.debug (fun () ->
+       Ocsigen_messages.debug (fun () ->
                          "--Revproxy: YES! Redirection to "^
                            (if https then "https://" else "http://")^host^":"^
                                 (string_of_int port)^uri);

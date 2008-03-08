@@ -12,7 +12,7 @@ else
 NATIVECODE_RUNTIME_DETECT=false
 endif
 
-FILES= ocsigen_lib.ml messages.ml ocsigen_config.ml ocsigen_loader.ml
+FILES= ocsigen_lib.ml ocsigen_messages.ml ocsigen_config.ml ocsigen_loader.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)

@@ -95,7 +95,7 @@ let parse_config path charset _ parse_fun = function
                      (sprintf "Basic realm=\"%s\"" realm)
                      Http_headers.empty
                    in
-                   Messages.debug2 "--Access control (auth): invalid credentials!";
+                   Ocsigen_messages.debug2 "--Access control (auth): invalid credentials!";
                    fail (Http_error.Http_exception (401, None, Some h))
                  in
                  begin try
@@ -120,14 +120,14 @@ let parse_config path charset _ parse_fun = function
                    auth login password >>=
                      (fun r ->
                         if r then begin
-                          Messages.debug2 "--Access control (auth): valid credentials!";
+                          Ocsigen_messages.debug2 "--Access control (auth): valid credentials!";
                           Lwt.return (Extensions.Ext_next err)
                         end
                         else reject ())
                  with
                    | Not_found -> reject ()
                    | e ->
-                       Messages.debug
+                       Ocsigen_messages.debug
                          (fun () -> sprintf
                             "--Access control (auth): Invalid Authorization header (%s)"
                             (Printexc.to_string e));

@@ -73,7 +73,7 @@ let rec bind_safely stmt = function
 
 let close_safely db = 
  if not (db_close db) then 
-   ignore (Messages.errlog "Couldn't close database")
+   ignore (Ocsigen_messages.errlog "Couldn't close database")
 
 let m = Mutex.create ()
 

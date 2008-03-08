@@ -96,11 +96,11 @@ let gen dir charset = function
   catch
     (* Is it a redirection? *)
     (fun () ->
-      Messages.debug2 "--Redirectmod: Is it a redirection?";
+      Ocsigen_messages.debug2 "--Redirectmod: Is it a redirection?";
       let (redir, temp) = 
         find_redirection dir ri.ri_sub_path_string 
       in
-      Messages.debug (fun () ->
+      Ocsigen_messages.debug (fun () ->
         "--Redirectmod: YES! "^
         (if temp then "Temporary " else "Permanent ")^
         "redirection to: "^redir);      

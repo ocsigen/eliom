@@ -132,17 +132,17 @@ let split_regexp r s =
 let find_cgi_page reg sub_path =
   let find_file (filename, re, doc_root) =
     (* See also module Files in eliom.ml *)
-    Messages.debug (fun () -> "--Cgimod: Testing \""^filename^"\".");
+    Ocsigen_messages.debug (fun () -> "--Cgimod: Testing \""^filename^"\".");
     try
       let stat = Unix.LargeFile.stat filename in
       let filename = 
         if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
         then 
-          (Messages.debug2 "--Cgimod: this is a directory.";
+          (Ocsigen_messages.debug2 "--Cgimod: this is a directory.";
           raise Ocsigen_Is_a_directory)
         else filename
       in
-      Messages.debug (fun () -> "--Cgimod: Looking for \""^filename^"\".");
+      Ocsigen_messages.debug (fun () -> "--Cgimod: Looking for \""^filename^"\".");
       
       if (stat.Unix.LargeFile.st_kind = Unix.S_REG)
       then begin
@@ -379,7 +379,7 @@ let recupere_cgi head re doc_root filename ri =
                Lwt_unix.close post_in; 
                return ()
            | e -> 
-               Messages.unexpected_exception e "Cgimod.recupere_cgi (1)";
+               Ocsigen_messages.unexpected_exception e "Cgimod.recupere_cgi (1)";
                Lwt_unix.close post_in; 
                return ()
          ));
@@ -390,7 +390,7 @@ let recupere_cgi head re doc_root filename ri =
     let err_channel = Lwt_unix.in_channel_of_descr err_out in
     let rec get_errors () =
       Lwt_chan.input_line err_channel >>= fun err ->
-      Messages.warning ("CGI says: "^err);
+      Ocsigen_messages.warning ("CGI says: "^err);
       get_errors ()
     in ignore 
       (catch
@@ -398,7 +398,7 @@ let recupere_cgi head re doc_root filename ri =
          (function 
            | End_of_file -> Lwt_unix.close err_out; return ()
            | e -> 
-               Messages.unexpected_exception e "Cgimod.recupere_cgi (2)";
+               Ocsigen_messages.unexpected_exception e "Cgimod.recupere_cgi (2)";
                Lwt_unix.close err_out; 
                return ()));
     (* This threads terminates, as you can see by doing:
@@ -418,9 +418,9 @@ let recupere_cgi head re doc_root filename ri =
       (match status with
       | Unix.WEXITED 0 -> ()
       | Unix.WEXITED i -> 
-          Messages.warning ("CGI exited with code "^(string_of_int i))
+          Ocsigen_messages.warning ("CGI exited with code "^(string_of_int i))
       | Unix.WSIGNALED i -> 
-          Messages.warning ("CGI killed by signal "^(string_of_int i))
+          Ocsigen_messages.warning ("CGI killed by signal "^(string_of_int i))
       | Unix.WSTOPPED i -> 
           (* Cannot occur without Unix.WUNTRACED wait_flag *)
           assert false
@@ -477,7 +477,7 @@ let gen reg charset = function
   catch
     (* Is it a cgi page? *)
     (fun () ->
-         Messages.debug2 "--Cgimod: Is it a cgi file?";
+         Ocsigen_messages.debug2 "--Cgimod: Is it a cgi file?";
          let (filename, re, doc_root) = 
            find_cgi_page reg ri.ri_sub_path 
          in 
@@ -570,7 +570,7 @@ let rec set_env = function
   | [] -> []
   | (Element("setenv", [("var",vr);("val",vl)], []))::l ->
      if List.mem vr environment
-     then (Messages.debug (fun () -> "--Cgimod: variable no set "^vr);
+     then (Ocsigen_messages.debug (fun () -> "--Cgimod: variable no set "^vr);
            set_env l)
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")

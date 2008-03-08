@@ -36,7 +36,7 @@ let loadfile pre post force file =
   try
     if force then begin
       pre ();
-      Messages.debug (fun () -> "Loading "^file^" (will be reloaded every times)");
+      Ocsigen_messages.debug (fun () -> "Loading "^file^" (will be reloaded every times)");
       begin try
         Dynlink.loadfile file; post ()
       with e ->
@@ -45,7 +45,7 @@ let loadfile pre post force file =
     end
     else if not (isloaded file) then begin
       pre ();
-      Messages.debug (fun () -> "Loading extension "^file);
+      Ocsigen_messages.debug (fun () -> "Loading extension "^file);
       begin try
         Dynlink.loadfile file; post ()
       with e ->
@@ -54,7 +54,7 @@ let loadfile pre post force file =
       addloaded file;
     end
     else
-      Messages.debug (fun () -> "Extension "^file^" already loaded")
+      Ocsigen_messages.debug (fun () -> "Extension "^file^" already loaded")
   with
     | e -> raise (Dynlink_error (file, e))
 
@@ -103,7 +103,7 @@ let findfiles =
       let deps = Findlib.package_deep_ancestors preds [package] in
       let deps = List.filter
         (fun a -> not (Ocsigen_lib.StringSet.mem a Ocsigen_config.builtin_packages)) deps in
-      Messages.debug
+      Ocsigen_messages.debug
         (fun () ->
            Printf.sprintf "-- Dependencies of %s: %s" package (String.concat ", " deps));
       let rec aux = function
@@ -122,7 +122,7 @@ let findfiles =
             (List.map (Findlib.resolve_path ~base) mods) @ (aux q)
       in
       let res = aux deps in
-      Messages.debug
+      Ocsigen_messages.debug
         (fun () ->
            Printf.sprintf "-- Needed: %s" (String.concat ", " res));
       res

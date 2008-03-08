@@ -558,7 +558,7 @@ let gmtdate d =
     String.set x (ind_plus + 1) 'M';
     String.set x (ind_plus + 2) 'T';
     String.sub x 0 (ind_plus + 3)
-  with Invalid_argument _ | Not_found -> Messages.debug2 "no +"; x
+  with Invalid_argument _ | Not_found -> Ocsigen_messages.debug2 "no +"; x
 
 type sender_type = {
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
@@ -791,7 +791,7 @@ let send
            (fun () ->
               Lwt.catch
                 (fun () ->
-                   Messages.debug2 "writing header";
+                   Ocsigen_messages.debug2 "writing header";
                    Lwt_chan.output_string out_ch (Framepp.string_of_header hd)
                    >>= fun () ->
                    (if reopen <> None then
@@ -817,7 +817,7 @@ let send
                                reopen () >>= fun () ->
                                Lwt.fail e
                            | _ -> 
-                               Messages.warning
+                               Ocsigen_messages.warning
                                  ("Http_com: reopenning after exception "^
                                     (Ocsigen_lib.string_of_exn e)^
                                     " (Is that right?) Please report this error.");
@@ -829,7 +829,7 @@ let send
          (if empty_content || head then begin
            Lwt.return ()
          end else begin
-           Messages.debug2 "writing body";
+           Ocsigen_messages.debug2 "writing body";
            write_stream ~chunked out_ch res.res_stream
          end) >>= fun () ->
          Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers 

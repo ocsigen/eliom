@@ -97,7 +97,7 @@ let (find_global_service_timeout,
                    Eliommod_sessadmin.update_serv_exp
                      fullsessname sitedata oldt t)
                  (function e -> 
-                   Messages.warning 
+                   Ocsigen_messages.warning 
                      ("Eliom: Error while updating global service timeouts: "^
                       Ocsigen_lib.string_of_exn e);
                    Lwt.return ())
@@ -124,7 +124,7 @@ let (find_global_service_timeout,
                    Eliommod_sessadmin.update_data_exp
                      fullsessname sitedata oldt t)
                  (function e -> 
-                   Messages.warning 
+                   Ocsigen_messages.warning 
                      ("Eliom: Error while updating global data timeouts: "^
                       Ocsigen_lib.string_of_exn e);
                    Lwt.return ())
@@ -150,7 +150,7 @@ let (find_global_service_timeout,
                  (fun () -> 
                    Eliommod_sessadmin.update_pers_exp fullsessname oldt t)
                  (function e -> 
-                   Messages.warning 
+                   Ocsigen_messages.warning 
                      ("Eliom: Error while updating global persistent timeouts: "^
                       Ocsigen_lib.string_of_exn e);
                    Lwt.return ())

@@ -296,13 +296,13 @@ module Http_error =
         let display_http_exception e =
           match e with
           | Http_exception (n, Some s, Some _) ->
-              Messages.debug 
+              Ocsigen_messages.debug 
                 (fun () -> Format.sprintf "%s: %s (with headers)" (expl_of_code n) s)
           | Http_exception (n, Some s, None) ->
-              Messages.debug 
+              Ocsigen_messages.debug 
                 (fun () -> Format.sprintf "%s: %s" (expl_of_code n) s)
           | Http_exception (n, None, _) ->
-              Messages.debug 
+              Ocsigen_messages.debug 
                 (fun () -> Format.sprintf "%s" (expl_of_code n))
           | _ ->
               raise e

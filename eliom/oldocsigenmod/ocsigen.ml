@@ -294,7 +294,7 @@ let reconstruct_relative_url_path current_url u suff =
   in 
   let aremonter, aaller = drop current_url u
   in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
-(*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
+(*  Ocsigen_messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
   if s = "" then defaultpagename else s
 
 let rec relative_url_path_to_myself = function
@@ -851,7 +851,7 @@ module MakeRegister = functor
             false service.url_state
             ~service ?error_handler page_gen; 
         end
-        else Messages.warning ("URL .../"^
+        else Ocsigen_messages.warning ("URL .../"^
                                (string_of_url_path service.url)^
                                " : Public service registration outside <site></site> or after init forbidden! Please correct your module! (ignored)")
 

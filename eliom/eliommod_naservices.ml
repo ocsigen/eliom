@@ -82,7 +82,7 @@ let find_naservice now ((_, atr, _, _) as str) name =
   match expdate with
   | Some (_, e) when !e < now ->
       (* Service expired. Removing it. *)
-      Messages.debug2 "--Eliom: Non attached service expired. I'm removing it";
+      Ocsigen_messages.debug2 "--Eliom: Non attached service expired. I'm removing it";
       remove_naservice str name;
       raise Not_found
   | _ -> p
@@ -143,7 +143,7 @@ let make_naservice
       | Eliom_common.Na_post_ _
       | Eliom_common.Na_post' _ -> 
 (*VVV (Some, Some) or (_, Some)? *)
-          Messages.debug2 
+          Ocsigen_messages.debug2 
             "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
           Eliom_common.change_request_info
             {ri with 
@@ -165,7 +165,7 @@ let make_naservice
 
       | Eliom_common.Na_get_ _
       | Eliom_common.Na_get' _ ->
-          Messages.debug2 
+          Ocsigen_messages.debug2 
             "--Eliom: Link too old. I will try without non-attached parameters:";
           Eliom_common.change_request_info
             {ri with 
@@ -197,7 +197,7 @@ let make_naservice
           si
           fullsessname)) >>=
     (fun r -> 
-      Messages.debug2
+      Ocsigen_messages.debug2
         "--Eliom: Non attached page found and generated successfully";
       (match expdate with
       | Some (timeout, e) -> e := timeout +. now

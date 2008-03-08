@@ -127,7 +127,7 @@ let service_session_gc sitedata =
             sitedata.Eliom_common.session_services 
           in
           let now = Unix.time () in
-          Messages.debug2 "--Eliom: GC of service sessions";
+          Ocsigen_messages.debug2 "--Eliom: GC of service sessions";
           (* public continuation tables: *)
           (if !contains_services_with_timeout
           then gc_timeouted_services now servicetable
@@ -189,7 +189,7 @@ let data_session_gc sitedata =
         let not_bound_in_data_tables = 
           sitedata.Eliom_common.not_bound_in_data_tables in
         let now = Unix.time () in
-        Messages.debug2 "--Eliom: GC of session data";
+        Ocsigen_messages.debug2 "--Eliom: GC of session data";
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
           (fun k (sessname, exp, _, session_group_ref) thr -> 
@@ -223,7 +223,7 @@ let persistent_session_gc () =
         Lwt_unix.sleep t >>= 
         (fun () ->
           let now = Unix.time () in
-          Messages.debug2 "--Eliom: GC of persistent sessions";
+          Ocsigen_messages.debug2 "--Eliom: GC of persistent sessions";
           (Ocsipersist.iter_table
              (fun k (_, exp, _, session_group) -> 
                (match exp with

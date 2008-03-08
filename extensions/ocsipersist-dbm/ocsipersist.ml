@@ -75,15 +75,15 @@ let rec try_connect sname =
       Lwt_unix.connect socket (Unix.ADDR_UNIX sname) >>= fun () ->
       return socket)
     (fun _ ->
-      Messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^
+      Ocsigen_messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^
                         " on directory "^directory^".");
       let param = [|ocsidbm; directory|] in
       let child () = 
-        let err = !(Ocsigen_lib.thd3 Messages.error) in
+        let err = !(Ocsigen_lib.thd3 Ocsigen_messages.error) in
         Unix.dup2 err Unix.stderr; 
-        Unix.close !(Ocsigen_lib.thd3 Messages.error);
-        Unix.close !(Ocsigen_lib.thd3 Messages.access);
-        Unix.close !(Ocsigen_lib.thd3 Messages.warningfile);
+        Unix.close !(Ocsigen_lib.thd3 Ocsigen_messages.error);
+        Unix.close !(Ocsigen_lib.thd3 Ocsigen_messages.access);
+        Unix.close !(Ocsigen_lib.thd3 Ocsigen_messages.warningfile);
         let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
         Unix.dup2 devnull Unix.stdout;
         Unix.close devnull;
@@ -113,7 +113,7 @@ let rec get_indescr i =
      (fun e -> 
        if i = 0 
        then begin
-         Messages.errlog ("Cannot connect to Ocsidbm. Will continue \
+         Ocsigen_messages.errlog ("Cannot connect to Ocsidbm. Will continue \
                             without persistent session support. \
                             Error message is: "^
                             (match e with

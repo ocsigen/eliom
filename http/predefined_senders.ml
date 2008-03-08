@@ -175,7 +175,7 @@ module Streamlist_content =
                  next (Ocsistream.get stream) l)
               (fun e -> exnhandler e l)
       and exnhandler e l =
-        Messages.warning
+        Ocsigen_messages.warning
           ("Error while reading stream list: " ^ Ocsigen_lib.string_of_exn e);
         finalize () >>= fun () ->
         next_stream l
@@ -238,7 +238,7 @@ let parse_mime_types filename =
 
 
 let rec affiche_mime () =
-  Hashtbl.iter (fun f s -> Messages.debug (fun () -> f^" "^s)) mimeht
+  Hashtbl.iter (fun f s -> Ocsigen_messages.debug (fun () -> f^" "^s)) mimeht
 
     
 (* send a file in an HTTP frame*)
@@ -269,7 +269,7 @@ module File_content =
       | None -> Ocsigen_config.get_filebuffersize ()
       | Some s -> s
       in
-      Messages.debug2 "start reading file (file opened)";
+      Ocsigen_messages.debug2 "start reading file (file opened)";
       let buf = String.create buffer_size in
       let rec read_aux () =
           Lwt_unix.read fd buf 0 buffer_size >>= fun lu ->
@@ -311,7 +311,7 @@ module File_content =
            Ocsistream.make
              ~finalize:
              (fun () ->
-               Messages.debug2 "closing file";
+               Ocsigen_messages.debug2 "closing file";
                Lwt_unix.close fd;
                return ())
              stream

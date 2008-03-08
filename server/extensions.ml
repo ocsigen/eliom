@@ -314,7 +314,7 @@ let rec default_parse_config
           | Req_not_found (e, oldri) ->
               match site_match path oldri.ri_full_path with
               | None ->
-                  Messages.debug (fun () ->
+                  Ocsigen_messages.debug (fun () ->
                     "site \""^
                     (Ocsigen_lib.string_of_url_path path)^
                     "\" does not match url \""^
@@ -322,7 +322,7 @@ let rec default_parse_config
                     "\".");
                   Lwt.return (Ext_next e, cookies_to_set)
               | Some sub_path ->
-                  Messages.debug (fun () -> 
+                  Ocsigen_messages.debug (fun () -> 
                     "-------- site found: url \""^
                     (Ocsigen_lib.string_of_url_path oldri.ri_full_path)^
                     "\" matches \""^
@@ -376,20 +376,20 @@ and make_parse_site path charset parse_host l =
         with
         | Bad_config_tag_for_extension t ->
             ignore
-              (Messages.errlog
+              (Ocsigen_messages.errlog
                  ("Unexpected tag <"^t^"> inside <site dir=\""^
                   (Ocsigen_lib.string_of_url_path path)^"\"> (ignored)"));
             parse_site ll
         | Ocsigen_config.Config_file_error t
         | Error_in_config_file t -> 
             ignore
-              (Messages.errlog
+              (Ocsigen_messages.errlog
                  ("Error while parsing configuration file: "^
                   t^" (ignored)"));
             parse_site ll
         | e -> 
             ignore
-              (Messages.errlog
+              (Ocsigen_messages.errlog
                  ("Error while parsing configuration file: "^
                   (Ocsigen_lib.string_of_exn e)^
 	          " (ignored)"));
@@ -577,7 +577,7 @@ let do_for_site_matching host port ri =
     let rec aux_host ri prev_err cookies_to_set = function
       | [] -> fail (Ocsigen_http_error (cookies_to_set, prev_err))
       | (h, host_function)::l when host_match host port h ->
-          Messages.debug (fun () ->
+          Ocsigen_messages.debug (fun () ->
             "-------- host found! "^
             (string_of_host_option host)^
             " matches "^(string_of_host h));
@@ -617,7 +617,7 @@ let do_for_site_matching host port ri =
               assert false
           )
       | (h, _)::l ->
-          Messages.debug (fun () ->
+          Ocsigen_messages.debug (fun () ->
             "-------- host = "^
             (string_of_host_option host)^
             " does not match "^(string_of_host h));
