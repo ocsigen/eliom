@@ -40,7 +40,7 @@ val menu : ?classe:string list ->
     (([< get_service_kind ], [< registrable ]) one_page * 
        Eliom_duce.Blocks.a_content_elt_list)
       list -> service:([< get_service_kind ], [< registrable ]) one_page ->
-        sp:Eliom_sessions.server_params -> Xhtml1_strict.ul
+        sp:Eliom_sessions.server_params -> Xhtmltypes_duce.ul
 (** Creates a menu 
 
    Example:
@@ -114,7 +114,7 @@ val hierarchical_menu_depth_first :
       hierarchical_site -> 
   service:('a, 'b) one_page -> 
   sp:Eliom_sessions.server_params -> 
-    Xhtml1_strict.ul list
+    Xhtmltypes_duce.ul list
 
 
 
@@ -137,7 +137,7 @@ val hierarchical_menu_breadth_first :
       hierarchical_site -> 
   service:('a, 'b) one_page -> 
   sp:Eliom_sessions.server_params -> 
-    Xhtml1_strict.ul list
+    Xhtmltypes_duce.ul list
 
 
 (** Returns the tags [<link rel="subsection" ...>] and 
@@ -150,4 +150,4 @@ val structure_links :
     hierarchical_site -> 
       service:('a, 'b) one_page -> 
         sp:Eliom_sessions.server_params -> 
-          Xhtml1_strict.link list
+          Xhtmltypes_duce.link list

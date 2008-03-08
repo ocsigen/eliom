@@ -49,7 +49,7 @@ Eliom_common
 {4 Generating pages with OcamlDuce}
 {!modules: 
 Eliom_duce 
-Xhtml1_strict 
+Xhtmltypes_duce 
 Eliom_duce_tools 
 }
 

@@ -23,7 +23,7 @@ open Http_frame
 open Http_com
 open Lwt
 open Predefined_senders
-open Xhtml1_strict
+open Xhtmltypes_duce
 
 let add_css (a : html) : html = 
   let css = 

@@ -28,8 +28,8 @@ CAMLCNAME2= $(CAMLCNAME)
 endif
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCEFILES= xhtml1_strict.ml eliom_duce.ml eliom_duce_tools.ml
-#DUCEFILES= xhtml1_strict.ml ocsigenduce.ml eliom_duce.ml
+DUCEFILES= xhtmltypes_duce.ml eliom_duce.ml eliom_duce_tools.ml
+#DUCEFILES= xhtmltypes_duce.ml ocsigenduce.ml eliom_duce.ml
 # rss2.ml ocsigenrss.ml
 
   ifeq "$(BYTECODE)" "YES"
@@ -167,17 +167,17 @@ ocsigenmod.cmxs: ocsigenmod.cmx ocsigen.cmx ocsigenboxes.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenmod.cmxs ocsigenmod.cmx \
 	ocsigen.cmx ocsigenboxes.cmx
 
-ocsigenduce.cma: xhtml1_strict.cmo ocsigenduce.cmo
-	$(CAMLC) -a -o ocsigenduce.cma xhtml1_strict.cmo ocsigenduce.cmo 
+ocsigenduce.cma: xhtmltypes_duce.cmo ocsigenduce.cmo
+	$(CAMLC) -a -o ocsigenduce.cma xhtmltypes_duce.cmo ocsigenduce.cmo 
 
-ocsigenduce.cmxs: xhtml1_strict.cmx ocsigenduce.cmx
-	$(CAMLOPT) -shared -linkall -o ocsigenduce.cmxs xhtml1_strict.cmx ocsigenduce.cmx 
+ocsigenduce.cmxs: xhtmltypes_duce.cmx ocsigenduce.cmx
+	$(CAMLOPT) -shared -linkall -o ocsigenduce.cmxs xhtmltypes_duce.cmx ocsigenduce.cmx 
 
-eliom_duce.cma: xhtml1_strict.cmo eliom_duce.cmo
-	$(CAMLC) -a -o eliom_duce.cma xhtml1_strict.cmo eliom_duce.cmo eliom_duce_tools.cmo
+eliom_duce.cma: xhtmltypes_duce.cmo eliom_duce.cmo
+	$(CAMLC) -a -o eliom_duce.cma xhtmltypes_duce.cmo eliom_duce.cmo eliom_duce_tools.cmo
 
-eliom_duce.cmxs: xhtml1_strict.cmx eliom_duce.cmx
-	$(CAMLOPT) -shared -linkall -o eliom_duce.cmxs xhtml1_strict.cmx eliom_duce.cmx eliom_duce_tools.cmx
+eliom_duce.cmxs: xhtmltypes_duce.cmx eliom_duce.cmx
+	$(CAMLOPT) -shared -linkall -o eliom_duce.cmxs xhtmltypes_duce.cmx eliom_duce.cmx eliom_duce_tools.cmx
 
 ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
 	$(CAMLC) -a -o ocsigenrss.cma $^

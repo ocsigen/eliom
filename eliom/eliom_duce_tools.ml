@@ -28,7 +28,7 @@
 (* open Eliom_predefmod.Xhtml *)
 open Eliom_duce.Xhtml
 open Eliom_services
-open Xhtml1_strict
+open Xhtmltypes_duce
 
 let attrib_list (s: string list): string = String.concat " " s
 
@@ -200,7 +200,7 @@ let hierarchical_menu_breadth_first
     ~service
     ~sp =
 
-  let rec breadth_first_fun pages level pos: Xhtml1_strict.ul list =
+  let rec breadth_first_fun pages level pos: Xhtmltypes_duce.ul list =
     let rec one_item first last i s = 
       let (classe, pos2, deplier) =
         match pos with

@@ -25,7 +25,7 @@ open Http_com
 open Lwt
 open Predefined_senders
 open Ocsistream
-open Xhtml1_strict
+open Xhtmltypes_duce
 open Extensions
 open Eliom_mkforms
 open Eliom_mkreg

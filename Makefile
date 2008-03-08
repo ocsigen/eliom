@@ -14,11 +14,11 @@ SED_COMMAND_FOR_META += -e "s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g"
 ifeq "$(OCAMLDUCE)" "YES"
 DUCECMAO=eliom/eliom_duce.cma
 # eliom/ocsigenrss.cma
-DUCECMI=eliom/eliom_duce.cmi eliom/xhtml1_strict.cmi eliom/eliom_duce_tools.cmi
+DUCECMI=eliom/eliom_duce.cmi eliom/xhtmltypes_duce.cmi eliom/eliom_duce_tools.cmi
 # eliom/rss2.cmi eliom/ocsigenrss.cmi
 DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 # examples/ocamlduce/examplerss.cmo
-DUCEDOC=$(DOCPREF)eliom/eliom_duce.mli $(DOCPREF)eliom/xhtml1_strict.ml $(DOCPREF)eliom/eliom_duce_tools.ml
+DUCEDOC=$(DOCPREF)eliom/eliom_duce.mli $(DOCPREF)eliom/xhtmltypes_duce.ml $(DOCPREF)eliom/eliom_duce_tools.ml
 CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 DUCEPACK=,ocamlduce
 SED_COMMAND_FOR_META += -e "s/^%if-ocamlduce //"

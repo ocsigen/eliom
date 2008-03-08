@@ -25,7 +25,7 @@
     {!Eliom_predefmod.SubXhtml} for Eliom_duce. Use {!Xml} or
     {!Xmllist} instead. *)
 
-open Xhtml1_strict
+open Xhtmltypes_duce
 
 module Xhtml : Eliom_predefmod.ELIOMSIG with 
 type page = html
