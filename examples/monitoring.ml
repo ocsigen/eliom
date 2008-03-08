@@ -126,12 +126,12 @@ Lwt.return
        $str:(string_of_int (Lwt_unix.get_new_sleeps ()))$ new sleeps.<br/>
      </p>
      <h2>Preemptive threads</h2>
-     <p>There are currently $str:(string_of_int (Preemptive.nbthreads ()))$ 
+     <p>There are currently $str:(string_of_int (Lwt_preemptive.nbthreads ()))$ 
              detached threads running
              (min $str:(string_of_int (Ocsigen_config.get_minthreads ()))$,
              max $str:(string_of_int (Ocsigen_config.get_maxthreads ()))$),
-      from which $str:(string_of_int (Preemptive.nbthreadsbusy ()))$ are busy.
-        $str:(string_of_int (Preemptive.nbthreadsqueued ()))$ computations 
+      from which $str:(string_of_int (Lwt_preemptive.nbthreadsbusy ()))$ are busy.
+        $str:(string_of_int (Lwt_preemptive.nbthreadsqueued ()))$ computations 
            queued (max 
         $str:(string_of_int (Ocsigen_config.get_max_number_of_threads_queued ()))$).</p>
      <h2>HTTP connexions</h2>

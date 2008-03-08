@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module preemptive.ml
+ * Module lwt_preemptive.ml
  * Copyright (C) 2005 Nataliya Guts, Vincent Balat, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -155,8 +155,8 @@ let dispatch errlog =
 
        (fun e ->
           errlog
-            ("Internal error in preemptive.ml (read failed on the pipe) "^ 
-               Printexc.to_string e ^" - Please check if Preemptive is initialized and that preemptive.cmo is linked only once. Otherwise, please report the bug");
+            ("Internal error in lwt_preemptive.ml (read failed on the pipe) "^ 
+               Printexc.to_string e ^" - Please check if Lwt_preemptive is initialized and that lwt_preemptive.cmo is linked only once. Otherwise, please report the bug");
          return ())
     ) >>= (fun () -> aux ())
   in aux ()

@@ -1327,7 +1327,7 @@ let looong2 =
     ~url:["looong2"]
     ~get_params:unit
     (fun sp () () -> 
-      (Preemptive.detach Unix.sleep 5) >>= (fun () ->
+      (Lwt_preemptive.detach Unix.sleep 5) >>= (fun () ->
         return
         (html
           (head (title (pcdata "")) [])

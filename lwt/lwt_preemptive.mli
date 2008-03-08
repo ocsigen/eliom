@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module preemptive.ml
+ * Module lwt_preemptive.ml
  * Copyright (C) 2005 Nataliya Guts, Vincent Balat, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *

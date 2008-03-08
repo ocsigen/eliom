@@ -93,7 +93,7 @@ let exec_safely f =
       Mutex.unlock m ;
       raise e))
   in
-  Preemptive.detach aux ()
+  Lwt_preemptive.detach aux ()
 
 (* Référence indispensable pour les codes de retours et leur signification :
  * http://sqlite.org/capi3ref.html 

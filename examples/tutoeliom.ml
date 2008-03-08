@@ -908,7 +908,7 @@ let looong =
 
       <p>If you want to use, say, a database library that is not written
        in cooperative way, but is thread safe for preemptive threads,
-       use the <code>Preemptive</code> module to
+       use the <code>Lwt_preemptive</code> module to
        detach the computation. In the followinf example,
        we simulate the request by a call to <code>Unix.sleep</code>:
       </p>
@@ -918,7 +918,7 @@ let looong2 =
     ~path:["looong2"]
     ~get_params:unit
     (fun sp () () -> 
-      Preemptive.detach Unix.sleep 5 >>= fun () ->
+      Lwt_preemptive.detach Unix.sleep 5 >>= fun () ->
       return
         (html
           (head (title (pcdata "")) [])
@@ -934,7 +934,7 @@ let looong2 =
          You now have the minimum knowledge to write basic Web sites with
          Eliom: typing of pages, creation of services, parameters, forms
          and database acces using $a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$ 
-         (and possibly $a ~fragment:"VALdetach" ~service:senddoc ~sp [code [pcdata "Preemptive.detach" ]] [version;"Preemptive.html"]$).
+         (and possibly $a ~fragment:"VALdetach" ~service:senddoc ~sp [code [pcdata "Lwt_preemptive.detach" ]] [version;"Lwt_preemptive.html"]$).
          Here is a summary of all other concepts introduced by Eliom.
          They will enable you to program easily more complex behaviours.
          They will be developped in the following of this tutorial.

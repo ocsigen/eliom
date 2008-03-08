@@ -68,7 +68,7 @@ let gethostbyname d =
     (function 
        | Not_in_table -> 
            let t = Unix.time() and
-               h = Preemptive.detach Unix.gethostbyname d in
+               h = Lwt_preemptive.detach Unix.gethostbyname d in
            let entry =  (d,h,t) in
 	     add cache entry;
 	     (match !keeper with (a,b) -> keeper:= (entry::a,b));
@@ -120,7 +120,7 @@ let getaddrinfo d s o =
     (function 
          | Not_in_table ->
              let t = Unix.time () and
-                 i = Preemptive.detach (Unix.getaddrinfo d s) o in
+                 i = Lwt_preemptive.detach (Unix.getaddrinfo d s) o in
              let entry = (d,s,o,i,t) in
                WeakAddrInfo.add cache6 entry;
                (match !keeper6 with (a,b) -> keeper6 := (entry::a,b));

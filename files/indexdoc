@@ -33,7 +33,7 @@ Lwt_ssl
 Lwt_util 
 Lwt_lib
 Lwt_timeout 
-Preemptive
+Lwt_preemptive
 }
 
 {3 Eliom}

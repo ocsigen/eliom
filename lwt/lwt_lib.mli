@@ -21,7 +21,7 @@
 val getaddrinfo :
     string ->
     string -> Unix.getaddrinfo_option list -> Unix.addr_info list Lwt.t
-(** Cooperative getaddrinfo with cache (using Preemptive.detach) *)
+(** Cooperative getaddrinfo with cache (using Lwt_preemptive.detach) *)
 
 val gethostbyname : string -> Unix.host_entry Lwt.t
-(** Cooperative gethostbyname with cache (using Preemptive.detach) *)
+(** Cooperative gethostbyname with cache (using Lwt_preemptive.detach) *)
