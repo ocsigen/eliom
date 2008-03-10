@@ -29,7 +29,7 @@ open Ocsiheaders
 open Http_com
 open Predefined_senders
 open Ocsigen_config
-open Parseconfig
+open Ocsigen_parseconfig
 open Lazy
 
 

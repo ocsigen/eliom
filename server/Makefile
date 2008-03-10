@@ -2,7 +2,7 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= extensions.ml parseconfig.ml http_client.ml server.ml
+FILES= extensions.ml ocsigen_parseconfig.ml http_client.ml server.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g

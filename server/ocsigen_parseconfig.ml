@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module parseconfig.ml
+ * Module ocsigen_parseconfig.ml
  * Copyright (C) 2005-2008 Vincent Balat, Nataliya Guts, Stéphane Glondu
  * Laboratoire PPS - CNRS Université Paris Diderot
  *

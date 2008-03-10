@@ -7,7 +7,7 @@
 {!modules: 
 Ocsipersist 
 Ocsigen_messages 
-Parseconfig 
+Ocsigen_parseconfig 
 Simplexmlparser
 Xhtmlpretty
 }

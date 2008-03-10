@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module parseconfig.ml
+ * Module ocsigen_parseconfig.ml
  * Copyright (C) 2005 Vincent Balat, Nataliya Guts
  *
  * This program is free software; you can redistribute it and/or modify
