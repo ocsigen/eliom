@@ -618,7 +618,7 @@ let raw_request
       (match http_frame.Http_frame.content with
          | None   -> finalize do_keep_alive
          | Some c -> 
-             Ocsistream.add_finalizer c (fun () -> finalize do_keep_alive);
+             Ocsigen_stream.add_finalizer c (fun () -> finalize do_keep_alive);
              Lwt.return ()
       ) >>= fun () ->
         
@@ -744,7 +744,7 @@ let basic_raw_request
       (match http_frame.Http_frame.content with
       | None   -> Lwt_ssl.close socket
       | Some c -> 
-          Ocsistream.add_finalizer c
+          Ocsigen_stream.add_finalizer c
             (fun () -> Lwt_ssl.close socket; Lwt.return ()));
         Lwt.return http_frame)
     (fun e -> Lwt_ssl.close socket; Lwt.fail e)

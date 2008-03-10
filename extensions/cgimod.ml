@@ -445,7 +445,7 @@ let recupere_cgi head re doc_root filename ri =
 
 let get_content str =
   match str.Http_frame.content with
-  | None   -> Ocsistream.make (fun () -> Ocsistream.empty None)
+  | None   -> Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None)
   | Some c -> c
 
 
@@ -486,7 +486,7 @@ let gen reg charset = function
            re doc_root filename ri >>= fun (frame, finalizer) ->
          let header = frame.Http_frame.header in
          let content = get_content frame in
-         Ocsistream.add_finalizer content finalizer;
+         Ocsigen_stream.add_finalizer content finalizer;
          Lwt.catch
            (fun () ->
               let code =
@@ -511,7 +511,7 @@ let gen reg charset = function
               in
               match code, loc with
               | None, Some loc ->
-                  Ocsistream.finalize content >>= fun () ->
+                  Ocsigen_stream.finalize content >>= fun () ->
                   if loc <> "" && loc.[0] = '/' then
                     Lwt.return 
                       (Ext_retry_with (ri_of_url loc ri,
@@ -548,7 +548,7 @@ let gen reg charset = function
                                   Http_headers.status None
                                   header.Http_header.headers;
                                res_code = code})))
-           (fun e -> Ocsistream.finalize content >>= fun () -> Lwt.fail e))
+           (fun e -> Ocsigen_stream.finalize content >>= fun () -> Lwt.fail e))
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Ocsigen_malformed_url 

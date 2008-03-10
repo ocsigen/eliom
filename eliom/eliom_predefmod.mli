@@ -619,6 +619,6 @@ module Any : Eliom_mkreg.ELIOMREGSIG with
     and the following are not opened.
  *)
 module Streamlist : Eliom_mkreg.ELIOMREGSIG with 
-  type page = (((unit -> string Ocsistream.t Lwt.t) list) * 
+  type page = (((unit -> string Ocsigen_stream.t Lwt.t) list) * 
                  string)
 

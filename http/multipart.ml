@@ -4,7 +4,7 @@
 
 module S = Netstring_pcre
 open Lwt
-open Ocsistream
+open Ocsigen_stream
 
 exception Multipart_error of string
 
@@ -70,7 +70,7 @@ let read_header ?downcase ?unfold ?strip s =
   let rec find_end_of_header s =
     catch
       (fun () ->
-        let b = Ocsistream.current_buffer s in
+        let b = Ocsigen_stream.current_buffer s in
         (* Maybe the header is empty. In this case, there is an empty line
          * right at the beginning
          *)
@@ -84,18 +84,18 @@ let read_header ?downcase ?unfold ?strip s =
       )
       (function
         | Not_found -> 
-            Ocsistream.enlarge_stream s >>= 
+            Ocsigen_stream.enlarge_stream s >>= 
             (function
                 Finished _ -> fail Stream_too_small
               | Cont (stri, _) as s -> find_end_of_header s)
         | e -> fail e)
   in
   find_end_of_header s >>= (fun (s, end_pos) ->
-    let b = Ocsistream.current_buffer s in
+    let b = Ocsigen_stream.current_buffer s in
     let header, _ = 
       scan_header ?downcase ?unfold ?strip b ~start_pos:0 ~end_pos 
     in
-    Ocsistream.skip s end_pos >>= 
+    Ocsigen_stream.skip s end_pos >>= 
     (fun s -> return (s, header)))
 ;;
 
@@ -107,10 +107,10 @@ let read_multipart_body decode_part boundary s =
 
   let rec search_window s re start =
     try
-      return (s, snd (S.search_forward re (Ocsistream.current_buffer s) start))
+      return (s, snd (S.search_forward re (Ocsigen_stream.current_buffer s) start))
     with
       Not_found -> 
-        Ocsistream.enlarge_stream s >>=
+        Ocsigen_stream.enlarge_stream s >>=
         (function
           | Finished _ -> fail Stream_too_small
           | Cont (stri, _) as s -> search_window s re start)
@@ -139,7 +139,7 @@ let read_multipart_body decode_part boundary s =
   let check_beginning_is_boundary s =
     let del = "--" ^ boundary in
     let ldel = String.length del in
-    Ocsistream.stream_want s (ldel + 2) >>= (function
+    Ocsigen_stream.stream_want s (ldel + 2) >>= (function
       | Finished _ as str2 -> return (str2, false, false)
       | Cont (ss, f) as str2 ->
           let long = String.length ss in
@@ -154,14 +154,14 @@ let read_multipart_body decode_part boundary s =
      *    if only LF is used as EOL sequence.
      *)
     let delimiter = (if uses_crlf then "\r" else "" ) ^ "\n--" ^ boundary in
-    Ocsistream.substream delimiter s >>= fun a ->
+    Ocsigen_stream.substream delimiter s >>= fun a ->
     decode_part a >>= fun (y, s) ->
     (* Now the position of [s] is at the beginning of the delimiter. 
      * Check if there is a "--" after the delimiter (==> last part)
      *)
     let l_delimiter = String.length delimiter in
-    Ocsistream.next s >>= fun s ->
-    Ocsistream.stream_want s (l_delimiter+2) >>= fun s ->
+    Ocsigen_stream.next s >>= fun s ->
+    Ocsigen_stream.stream_want s (l_delimiter+2) >>= fun s ->
     let last_part = match s with
     | Finished _ -> false
     | Cont (ss, f) ->
@@ -175,7 +175,7 @@ let read_multipart_body decode_part boundary s =
     else begin
       search_end_of_line s 2 >>= fun (s, k) -> 
       (* [k]: Beginning of next part *) 
-      Ocsistream.skip s k >>= fun s -> 
+      Ocsigen_stream.skip s k >>= fun s -> 
       parse_parts s uses_crlf >>= fun l -> 
       return (y :: l)
     end
@@ -188,8 +188,8 @@ let read_multipart_body decode_part boundary s =
   if b then begin
     (* Move to the beginning of the next line: *)
     search_end_of_line s 0 >>= (fun (s, k_eol) ->
-      let uses_crlf = (Ocsistream.current_buffer s).[k_eol-2] = '\r' in
-      Ocsistream.skip s k_eol >>= fun s ->
+      let uses_crlf = (Ocsigen_stream.current_buffer s).[k_eol-2] = '\r' in
+      Ocsigen_stream.skip s k_eol >>= fun s ->
       (* Begin with first part: *)
       parse_parts s uses_crlf)
   end
@@ -201,9 +201,9 @@ let read_multipart_body decode_part boundary s =
         (* Printf.printf "k_eob=%d\n" k_eob; *)
         (* Move to the beginning of the next line: *)
         search_end_of_line s k_eob >>= fun (s, k_eol) ->
-          let uses_crlf = (Ocsistream.current_buffer s).[k_eol-2] = '\r' in
+          let uses_crlf = (Ocsigen_stream.current_buffer s).[k_eol-2] = '\r' in
           (* Printf.printf "k_eol=%d\n" k_eol; *)
-          Ocsistream.skip s k_eol >>= fun s ->
+          Ocsigen_stream.skip s k_eol >>= fun s ->
           (* Begin with first part: *)
           parse_parts s uses_crlf)
       (function 
@@ -215,7 +215,7 @@ let read_multipart_body decode_part boundary s =
 ;;
 
 let empty_stream =
-  Ocsistream.get (Ocsistream.make (fun () -> Ocsistream.empty None))
+  Ocsigen_stream.get (Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None))
 
 let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
   let decode_part stream =
@@ -237,15 +237,15 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
               fail (Ocsigen_lib.Ocsigen_Request_too_long)
             else
               if stri = ""
-              then Ocsistream.next f >>= while_stream size
+              then Ocsigen_stream.next f >>= while_stream size
               else ((* catch 
                        (fun () -> 
                          add p stri)
                        (fun e -> f () >>= 
-                         Ocsistream.consume >>= 
+                         Ocsigen_stream.consume >>= 
                          (fun () -> fail e)) *)
                   add p stri >>= fun () ->
-                Ocsistream.next f >>= 
+                Ocsigen_stream.next f >>= 
                 while_stream size2)
       in 
       catch 
@@ -257,7 +257,7 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
   catch
     (fun () ->
       (* read the multipart body: *)
-      Ocsistream.next s >>= fun s ->
+      Ocsigen_stream.next s >>= fun s ->
       read_multipart_body decode_part boundary s >>=
       (fun _ -> return ()))
     (function

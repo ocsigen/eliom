@@ -1,5 +1,5 @@
 (* Ocsigen
- * ocsistream.ml Copyright (C) 2005 Vincent Balat
+ * ocsigen_stream.ml Copyright (C) 2005 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify

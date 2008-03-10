@@ -206,7 +206,7 @@ let rec extract_aux receiver pos bound cont =
       (fun e ->
          match e, bound with
            End_of_file, Bounded _ ->
-             Ocsistream.empty None
+             Ocsigen_stream.empty None
          | _ ->
              Lwt.fail (convert_io_error e))
   else
@@ -215,20 +215,20 @@ let rec extract_aux receiver pos bound cont =
       Exact l when pos' >= l ->
         let len = Int64.to_int (Int64.sub l pos) in
         let s = buf_get_string receiver len in
-        Ocsistream.cont s cont
+        Ocsigen_stream.cont s cont
     | Bounded (Some l) when pos' > l ->
         Lwt.fail (request_too_large l)
     | _ ->
         let s = buf_get_string receiver avail in
-        Ocsistream.cont s (fun () -> extract_aux receiver pos' bound cont)
+        Ocsigen_stream.cont s (fun () -> extract_aux receiver pos' bound cont)
 
 (** Stream from the receiver channel. *)
 let extract receiver bound =
-  Ocsistream.make (fun () ->
+  Ocsigen_stream.make (fun () ->
   extract_aux receiver 0L bound
     (fun () ->
        Lwt_mutex.unlock receiver.read_mutex;
-       Ocsistream.empty None))
+       Ocsigen_stream.empty None))
 
 type pat_res = Found of int | Retry of int
 
@@ -327,13 +327,13 @@ let extract_chunked receiver =
          if chunksize = 0 then begin
            extract_crlf receiver >>= fun () ->
            Lwt_mutex.unlock receiver.read_mutex;
-           Ocsistream.empty None
+           Ocsigen_stream.empty None
          end else
            extract_aux receiver 0L (Exact (Int64.of_int chunksize))
              (fun () -> extract_crlf receiver >>= fun () -> aux ()))
       ec_fail
   in
-  Ocsistream.make aux
+  Ocsigen_stream.make aux
 
 (* RFC2616, sect 4.3 *)
 let code_without_message_body code =
@@ -469,7 +469,7 @@ NOT IMPLEMENTED
     (match b with
        | None -> Lwt_mutex.unlock receiver.read_mutex; None
        | Some s -> 
-           Ocsistream.add_finalizer s (fun () -> Ocsistream.consume s);
+           Ocsigen_stream.add_finalizer s (fun () -> Ocsigen_stream.consume s);
            Some s
     )
   in
@@ -587,11 +587,11 @@ let default_sender = create_sender ~server_name:Ocsigen_config.server_name ()
 (* XXX We should probably make sure that any exception raised by
    the stream is properly caught *)
 let rec write_stream_chunked out_ch stream =
-  Ocsistream.next stream >>= fun e ->
+  Ocsigen_stream.next stream >>= fun e ->
   match e with
-    Ocsistream.Finished _ ->
+    Ocsigen_stream.Finished _ ->
       Lwt_chan.output_string out_ch "0\r\n\r\n"
-  | Ocsistream.Cont (s, next) ->
+  | Ocsigen_stream.Cont (s, next) ->
       let l = String.length s in
       begin if l = 0 then
         (* It is incorrect to send an empty chunk *)
@@ -618,9 +618,9 @@ let write_stream_chunked out_ch stream =
   let size_for_not_buffering = 900 in
   let buffer = String.create buf_size in
   let rec aux stream len =
-    Ocsistream.next stream >>= fun e ->
+    Ocsigen_stream.next stream >>= fun e ->
     match e with
-    | Ocsistream.Finished _ ->
+    | Ocsigen_stream.Finished _ ->
         (if len > 0 then begin
           (* It is incorrect to send an empty chunk *)
           Lwt_chan.output_string 
@@ -630,7 +630,7 @@ let write_stream_chunked out_ch stream =
         end else
           Lwt.return ()) >>= fun () ->
         Lwt_chan.output_string out_ch "0\r\n\r\n"
-    | Ocsistream.Cont (s, next) ->
+    | Ocsigen_stream.Cont (s, next) ->
         let l = String.length s in
         if l = 0 then
           aux next len
@@ -667,11 +667,11 @@ let write_stream_chunked out_ch stream =
   aux stream 0
                 
 let rec write_stream_raw out_ch stream =
-  Ocsistream.next stream >>= fun e ->
+  Ocsigen_stream.next stream >>= fun e ->
   match e with
-    Ocsistream.Finished _ ->
+    Ocsigen_stream.Finished _ ->
       Lwt.return ()
-  | Ocsistream.Cont (s, next) ->
+  | Ocsigen_stream.Cont (s, next) ->
       Lwt_chan.output_string out_ch s >>= fun () ->
       write_stream_raw out_ch next
 
@@ -681,7 +681,7 @@ let rec write_stream_raw out_ch stream =
     the client can know something wrong happened
 *)
 let write_stream ?(chunked=false) out_ch stream =
-  let stream = Ocsistream.get stream in
+  let stream = Ocsigen_stream.get stream in
   if chunked then
     write_stream_chunked out_ch stream
   else
@@ -835,7 +835,7 @@ let send
          Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers 
                                   are not flushed by the reverse proxy *)
       )
-      (fun () -> Ocsistream.finalize res.res_stream)
+      (fun () -> Ocsigen_stream.finalize res.res_stream)
 
   in
 

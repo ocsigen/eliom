@@ -21,7 +21,7 @@ NAME 	 = test_pp
 LIB= -package netstring,ssl $(LIBDIRS) -I +camlp4
 PP =
 # -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
-ALL_CMO  = ocsistream.cmo multipart.cmo \
+ALL_CMO  = ocsigen_stream.cmo multipart.cmo \
            http_headers.cmo http_frame.cmo http_parser.cmo http_lexer.cmo \
 	   framepp.cmo http_com.cmo ocsigen_senders.cmo \
 	   ocsigen_headers.cmo #test_pp.cmo
@@ -30,11 +30,11 @@ ALL_CMX  = $(ALL_CMO:.cmo=.cmx)
 
 .PHONY: depend
 
-byte: ocsistream.cmi $(ALL_CMO)
+byte: ocsigen_stream.cmi $(ALL_CMO)
 #	$(CAMLC) $(LIB) -o $(NAME) unix.cma lwt.cma netstring.cma xhtml.cma $(ALL_CMO)
 #	cp *.cmi *.cmo  ../lib
 
-opt: ocsistream.cmi $(ALL_CMX)
+opt: ocsigen_stream.cmi $(ALL_CMX)
 #	cp *.cmi *.cmx *.o ../lib
 
 

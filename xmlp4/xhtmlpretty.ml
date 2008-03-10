@@ -283,44 +283,44 @@ let x_stream, xh_stream =
     let rec xh_print_attrs encode attrs cont = match attrs with
     | [] -> cont ();
     | attr::queue -> 
-        (Ocsistream.cont (" "^XML.attrib_to_string encode attr)) (fun () ->
+        (Ocsigen_stream.cont (" "^XML.attrib_to_string encode attr)) (fun () ->
         xh_print_attrs encode queue cont)
           
     and xh_print_text texte i is_first cont = 
-      (Ocsistream.cont texte) cont
+      (Ocsigen_stream.cont texte) cont
         
     and xh_print_closedtag encode tag attrs i is_first cont =
       (if (i > 0) || is_first then 
-        Ocsistream.cont (String.make (taille_tab*i) ' ')
+        Ocsigen_stream.cont (String.make (taille_tab*i) ' ')
       else (fun cont -> cont ())) (fun () ->
-      (Ocsistream.cont ("<"^tag)) (fun () ->
+      (Ocsigen_stream.cont ("<"^tag)) (fun () ->
       xh_print_attrs encode attrs (fun () ->
-      (Ocsistream.cont endemptytag) cont)))
+      (Ocsigen_stream.cont endemptytag) cont)))
       
     and xh_print_inlinetag encode tag attrs taglist i is_first cont = 
-      (Ocsistream.cont ("<"^tag)) (fun () ->
+      (Ocsigen_stream.cont ("<"^tag)) (fun () ->
       xh_print_attrs encode attrs (fun () ->
-      (Ocsistream.cont ">") (fun () ->
+      (Ocsigen_stream.cont ">") (fun () ->
       xh_print_taglist taglist 0 false false (fun () ->
-      (Ocsistream.cont ("</"^tag^">") cont)))))
+      (Ocsigen_stream.cont ("</"^tag^">") cont)))))
         
     and xh_print_blocktag encode tag attrs taglist i cont = 
       if taglist = [] 
       then xh_print_closedtag encode tag attrs i true cont
       else begin
         (if i > 0 then
-          (Ocsistream.cont ("\n"^String.make (taille_tab*i) ' '))
-        else (Ocsistream.cont "\n")) (fun () ->
-        (Ocsistream.cont ("<"^tag)) (fun () ->
+          (Ocsigen_stream.cont ("\n"^String.make (taille_tab*i) ' '))
+        else (Ocsigen_stream.cont "\n")) (fun () ->
+        (Ocsigen_stream.cont ("<"^tag)) (fun () ->
         xh_print_attrs encode attrs (fun () ->
-        (Ocsistream.cont ">") (fun () ->
+        (Ocsigen_stream.cont ">") (fun () ->
         
         xh_print_taglist_removews taglist (i+1) true (fun () ->
         
         (if i > 0 then
-          (Ocsistream.cont ("\n"^String.make (taille_tab*i) ' '))
-        else (Ocsistream.cont "\n")) (fun () ->
-        (Ocsistream.cont ("</"^tag^">") cont)))))))
+          (Ocsigen_stream.cont ("\n"^String.make (taille_tab*i) ' '))
+        else (Ocsigen_stream.cont "\n")) (fun () ->
+        (Ocsigen_stream.cont ("</"^tag^">") cont)))))))
 
       end
 
@@ -330,16 +330,16 @@ let x_stream, xh_stream =
       then xh_print_closedtag encode tag attrs i true cont
       else begin
         (if i > 0 then
-          (Ocsistream.cont ("\n"^String.make (taille_tab*i) ' '))
-        else (Ocsistream.cont "\n")) (fun () ->
-        (Ocsistream.cont ("<"^tag)) (fun () ->
+          (Ocsigen_stream.cont ("\n"^String.make (taille_tab*i) ' '))
+        else (Ocsigen_stream.cont "\n")) (fun () ->
+        (Ocsigen_stream.cont ("<"^tag)) (fun () ->
 
         xh_print_attrs encode attrs (fun () ->
-        (Ocsistream.cont ">") (fun () ->
+        (Ocsigen_stream.cont ">") (fun () ->
         
         xh_print_taglist taglist 0 false false (fun () ->
 
-        (Ocsistream.cont ("</"^tag^">") cont))))))
+        (Ocsigen_stream.cont ("</"^tag^">") cont))))))
 
       end
 
@@ -464,24 +464,24 @@ let x_stream, xh_stream =
                  blocktags semiblocktags arbre cont)
              foret
              
-         (fun () -> Ocsistream.empty None))),
+         (fun () -> Ocsigen_stream.empty None))),
 
 
    (fun ?(width = 132) ?(encode = encode_unsafe)
        ?html_compat blocktags semiblocktags
        doctype arbre ->
 
-        Ocsistream.cont doctype
-        (fun () -> Ocsistream.cont ocsigenadv
+        Ocsigen_stream.cont doctype
+        (fun () -> Ocsigen_stream.cont ocsigenadv
         (fun () -> 
 
           aux ?width ?encode ?html_compat 
            blocktags semiblocktags arbre
            
-           (fun () -> Ocsistream.empty None)))))
+           (fun () -> Ocsigen_stream.empty None)))))
 
 let xhtml_stream ?(version=`XHTML_01_01) ?width ?encode ?html_compat arbre =
-  Ocsistream.make
+  Ocsigen_stream.make
     (fun () ->
       xh_stream ?width ?encode ?html_compat
         blocktags semiblocktags 
@@ -489,7 +489,7 @@ let xhtml_stream ?(version=`XHTML_01_01) ?width ?encode ?html_compat arbre =
     
 let xhtml_list_stream ?(version=`XHTML_01_01)
     ?width ?encode ?html_compat foret =
-  Ocsistream.make
+  Ocsigen_stream.make
     (fun () ->
       x_stream ?width ?encode ?html_compat
         blocktags semiblocktags (XHTML.M.doctype version)

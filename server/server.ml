@@ -166,7 +166,7 @@ let get_request_infos
                   | None -> "application/octet-stream"
                   | Some ct -> ct
                 in
-                let body = Ocsistream.get body_gen in
+                let body = Ocsigen_stream.get body_gen in
                 catch
                   (fun () ->
                      let ctlow = String.lowercase ct in
@@ -174,12 +174,12 @@ let get_request_infos
                      then 
                        catch
                          (fun () ->
-                            Ocsistream.string_of_stream body >>= fun r -> 
+                            Ocsigen_stream.string_of_stream body >>= fun r -> 
                             Lwt.return
                               ((Netencoding.Url.dest_url_encoded_parameters r),
                                []))
                          (function
-                            | Ocsistream.String_too_large -> 
+                            | Ocsigen_stream.String_too_large -> 
                                 fail Input_is_too_large
                             | e -> fail e)
                      else 
@@ -257,9 +257,9 @@ let get_request_infos
   the following request will be read only when
   this one is finished ...
  *)
-                              Ocsistream.consume body_gen >>= fun () ->
+                              Ocsigen_stream.consume body_gen >>= fun () ->
                               Lwt.return (!params, !files))
-                  (fun e -> (*XXX??? Ocsistream.consume body >>= fun _ ->*) fail e)
+                  (fun e -> (*XXX??? Ocsigen_stream.consume body >>= fun _ ->*) fail e)
               with e -> fail e)
 
 (* AEFF *)              (*        IN-MEMORY STOCKAGE *)
@@ -359,7 +359,7 @@ let service
           ()
     | Ocsigen_extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
-    | Ocsistream.Interrupted Ocsistream.Already_read ->
+    | Ocsigen_stream.Interrupted Ocsigen_stream.Already_read ->
         Ocsigen_messages.warning
           "Cannot read the request twice. You probably have \
            two incompatible options in <site> configuration, \
@@ -405,7 +405,7 @@ let service
           ignore
             (Lwt.catch
                (fun () -> 
-                  Ocsistream.finalize f (* will consume the stream and
+                  Ocsigen_stream.finalize f (* will consume the stream and
                                            unlock the mutex 
                                            if not already done *)
                )
@@ -516,7 +516,7 @@ let service
                 in
                 if not_modified then begin
                   Ocsigen_messages.debug2 "-> Sending 304 Not modified ";
-                  Ocsistream.finalize res.res_stream >>= fun () ->
+                  Ocsigen_stream.finalize res.res_stream >>= fun () ->
                   let empty_result = Http_frame.empty_result () in
                   send
                     sender_slot
@@ -528,7 +528,7 @@ let service
                   Ocsigen_messages.debug2
                     "-> Sending 412 Precondition Failed \
                      (if-unmodified-since header)";
-                  Ocsistream.finalize res.res_stream >>= fun () ->
+                  Ocsigen_stream.finalize res.res_stream >>= fun () ->
                   let empty_result = Http_frame.empty_result () in
                   send
                     sender_slot
@@ -643,7 +643,7 @@ let handle_connection port in_ch sockaddr =
         warn sockaddr "timeout"
     | Http_com.Aborted ->
         warn sockaddr "writing thread aborted"
-    | Ocsistream.Interrupted e' ->
+    | Ocsigen_stream.Interrupted e' ->
         warn sockaddr ("interrupted content stream (" ^ string_of_exn e' ^ ")")
     | _ ->
         Ocsigen_messages.unexpected_exception e "Server.handle_write_errors"

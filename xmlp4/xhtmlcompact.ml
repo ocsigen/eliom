@@ -160,26 +160,26 @@ let x_stream, xh_stream =
     let rec xh_print_attrs encode attrs cont = match attrs with
     | [] -> cont ();
     | attr::queue ->
-        (Ocsistream.cont (" "^XML.attrib_to_string encode attr)) (fun () ->
+        (Ocsigen_stream.cont (" "^XML.attrib_to_string encode attr)) (fun () ->
         xh_print_attrs encode queue cont)
 
     and xh_print_text texte cont =
-      (Ocsistream.cont texte) cont
+      (Ocsigen_stream.cont texte) cont
 
     and xh_print_closedtag encode tag attrs cont =
-      (Ocsistream.cont ("<"^tag)) (fun () ->
+      (Ocsigen_stream.cont ("<"^tag)) (fun () ->
       xh_print_attrs encode attrs (fun () ->
-      (Ocsistream.cont endemptytag) cont))
+      (Ocsigen_stream.cont endemptytag) cont))
 
     and xh_print_tag encode tag attrs taglist cont =
       if taglist = []
       then xh_print_closedtag encode tag attrs cont
       else begin
-        (Ocsistream.cont ("<"^tag)) (fun () ->
+        (Ocsigen_stream.cont ("<"^tag)) (fun () ->
         xh_print_attrs encode attrs (fun () ->
-        (Ocsistream.cont ">") (fun () ->
+        (Ocsigen_stream.cont ">") (fun () ->
         xh_print_taglist taglist (fun () ->
-        (Ocsistream.cont ("</"^tag^">") cont)))))
+        (Ocsigen_stream.cont ("</"^tag^">") cont)))))
       end
 
     and print_nodes name xh_attrs xh_taglist queue cont =
@@ -238,29 +238,29 @@ let x_stream, xh_stream =
                aux ?width ?encode ?html_compat arbre cont)
              foret
 
-         (fun () -> Ocsistream.empty None))),
+         (fun () -> Ocsigen_stream.empty None))),
 
 
    (fun ?(width = 132) ?(encode = encode_unsafe)
        ?html_compat doctype arbre ->
 
-        Ocsistream.cont doctype
-        (fun () -> Ocsistream.cont Xhtmlpretty.ocsigenadv
+        Ocsigen_stream.cont doctype
+        (fun () -> Ocsigen_stream.cont Xhtmlpretty.ocsigenadv
         (fun () ->
 
           aux ?width ?encode ?html_compat arbre
 
-           (fun () -> Ocsistream.empty None)))))
+           (fun () -> Ocsigen_stream.empty None)))))
 
 let xhtml_stream ?(version=`XHTML_01_01) ?width ?encode ?html_compat arbre =
-  Ocsistream.make
+  Ocsigen_stream.make
     (fun () ->
       xh_stream ?width ?encode ?html_compat
         (XHTML.M.doctype version) (XHTML.M.toelt arbre))
 
 let xhtml_list_stream ?(version=`XHTML_01_01)
     ?width ?encode ?html_compat foret =
-  Ocsistream.make
+  Ocsigen_stream.make
     (fun () ->
       x_stream ?width ?encode ?html_compat
         (XHTML.M.doctype version) (XHTML.M.toeltl foret) ())

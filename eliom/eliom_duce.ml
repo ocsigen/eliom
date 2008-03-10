@@ -24,7 +24,7 @@ open Http_frame
 open Http_com
 open Lwt
 open Ocsigen_senders
-open Ocsistream
+open Ocsigen_stream
 open Xhtmltypes_duce
 open Ocsigen_extensions
 open Eliom_mkforms
@@ -78,15 +78,15 @@ module Ocamlduce_content =
          res_etag = md5;
          res_headers= Http_headers.dyn_headers;
          res_stream = 
-             Ocsistream.make 
+             Ocsigen_stream.make 
                (fun () -> 
-                  Ocsistream.cont
+                  Ocsigen_stream.cont
                     doctype
                     (fun () -> 
-                       Ocsistream.cont
+                       Ocsigen_stream.cont
                          Xhtmlpretty.ocsigenadv
-                         (fun () -> Ocsistream.cont x
-                            (fun () -> Ocsistream.empty None))))
+                         (fun () -> Ocsigen_stream.cont x
+                            (fun () -> Ocsigen_stream.empty None))))
        }
 
   end
@@ -334,9 +334,9 @@ module SubXhtml =
              res_etag = md5;
              res_headers= Http_headers.dyn_headers;
              res_stream = 
-             Ocsistream.make 
-               (fun () -> Ocsistream.cont x
-                   (fun () -> Ocsistream.empty None))
+             Ocsigen_stream.make 
+               (fun () -> Ocsigen_stream.cont x
+                   (fun () -> Ocsigen_stream.empty None))
            }
 
       end

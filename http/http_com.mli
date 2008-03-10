@@ -66,7 +66,7 @@ This function may return any I/O error from the channel, or a
 interrupted stream exception.
 *)
 val write_stream :
-  ?chunked:bool -> Lwt_chan.out_channel -> string Ocsistream.t -> unit Lwt.t
+  ?chunked:bool -> Lwt_chan.out_channel -> string Ocsigen_stream.t -> unit Lwt.t
 
 (****)
 

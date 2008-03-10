@@ -56,8 +56,8 @@ module Ocamlduce_content =
       let md5 = get_etag_aux x in
       Lwt.return (Some (Int64.of_int (String.length x)), 
                   md5, 
-                  Ocsistream.make (fun () -> Ocsistream.cont x 
-                      (fun () -> Ocsistream.empty None))
+                  Ocsigen_stream.make (fun () -> Ocsigen_stream.cont x 
+                      (fun () -> Ocsigen_stream.empty None))
                  )
 
     (*il n'y a pas encore de parser pour ce type*)

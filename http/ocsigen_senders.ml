@@ -23,7 +23,7 @@
 open Http_frame
 open Http_com
 open Lwt
-open Ocsistream
+open Ocsigen_stream
 open XHTML.M
 
 
@@ -52,9 +52,9 @@ module Old_Xhtml_content =
          res_etag = md5;
          res_headers= Http_headers.dyn_headers;
          res_stream = 
-         Ocsistream.make 
-           (fun () -> Ocsistream.cont x
-               (fun () -> Ocsistream.empty None))
+         Ocsigen_stream.make 
+           (fun () -> Ocsigen_stream.cont x
+               (fun () -> Ocsigen_stream.empty None))
        }
            
   end
@@ -66,7 +66,7 @@ module Xhtml_content_(Xhtmlprinter : sig
                                     > `XHTML_01_01 ] ->
                           ?width:int -> ?encode:(string -> string) ->
                           ?html_compat:bool ->
-                          [ `Html ] XHTML.M.elt -> string Ocsistream.t
+                          [ `Html ] XHTML.M.elt -> string Ocsigen_stream.t
                       end) =
   struct
     type t = [ `Html ] XHTML.M.elt
@@ -110,8 +110,8 @@ module Text_content =
          res_content_type = Some ct;
          res_headers= Http_headers.dyn_headers;
          res_stream = 
-         Ocsistream.make
-           (fun () -> Ocsistream.cont c (fun () -> Ocsistream.empty None))
+         Ocsigen_stream.make
+           (fun () -> Ocsigen_stream.cont c (fun () -> Ocsigen_stream.empty None))
 
        }
 
@@ -121,7 +121,7 @@ module Text_content =
 module Stream_content =
   (* Used to send data from a stream *)
   struct
-    type t = string Ocsistream.t
+    type t = string Ocsigen_stream.t
 
     let get_etag c = None
 
@@ -139,7 +139,7 @@ module Stream_content =
 module Streamlist_content =
   (* Used to send data from streams *)
   struct
-    type t = (unit -> string Ocsistream.t Lwt.t) list
+    type t = (unit -> string Ocsigen_stream.t Lwt.t) list
           * string (* content-type *)
 
     let get_etag c = None
@@ -152,27 +152,27 @@ module Streamlist_content =
         f ()
       in
       let rec next stream l =
-        Lwt.try_bind (fun () -> Ocsistream.next stream)
+        Lwt.try_bind (fun () -> Ocsigen_stream.next stream)
           (fun s ->
              match s with
-               Ocsistream.Finished None ->
+               Ocsigen_stream.Finished None ->
                  finalize () >>= fun () ->
                  next_stream l
-             | Ocsistream.Finished (Some stream) ->
+             | Ocsigen_stream.Finished (Some stream) ->
                  next stream l
-             | Ocsistream.Cont (v, stream) ->
-                 Ocsistream.cont v (fun () -> next stream l))
+             | Ocsigen_stream.Cont (v, stream) ->
+                 Ocsigen_stream.cont v (fun () -> next stream l))
           (function Interrupted e | e ->
 (*XXX string_of_exn should know how to print "Interrupted _" exceptions*)
              exnhandler e l)
       and next_stream l =
         match l with
-          [] -> Ocsistream.empty None
+          [] -> Ocsigen_stream.empty None
         | f :: l ->
             Lwt.try_bind f
               (fun stream ->
-                 finalizer := (fun () -> Ocsistream.finalize stream);
-                 next (Ocsistream.get stream) l)
+                 finalizer := (fun () -> Ocsigen_stream.finalize stream);
+                 next (Ocsigen_stream.get stream) l)
               (fun e -> exnhandler e l)
       and exnhandler e l =
         Ocsigen_messages.warning
@@ -185,7 +185,7 @@ module Streamlist_content =
         {default_result with
          res_content_length = None;
          res_etag = get_etag c;
-         res_stream = Ocsistream.make ~finalize (fun () -> next_stream c);
+         res_stream = Ocsigen_stream.make ~finalize (fun () -> next_stream c);
          res_headers= Http_headers.dyn_headers;
          res_content_type = Some ct}
 
@@ -274,11 +274,11 @@ module File_content =
       let rec read_aux () =
           Lwt_unix.read fd buf 0 buffer_size >>= fun lu ->
           if lu = 0 then  
-            Ocsistream.empty None
+            Ocsigen_stream.empty None
           else begin 
             if lu = buffer_size
-            then Ocsistream.cont buf read_aux
-            else Ocsistream.cont (String.sub buf 0 lu) read_aux
+            then Ocsigen_stream.cont buf read_aux
+            else Ocsigen_stream.cont (String.sub buf 0 lu) read_aux
           end
       in read_aux
 
@@ -308,7 +308,7 @@ module File_content =
            res_lastmodified = Some st.Unix.LargeFile.st_mtime;
            res_etag = etag;
            res_stream = 
-           Ocsistream.make
+           Ocsigen_stream.make
              ~finalize:
              (fun () ->
                Ocsigen_messages.debug2 "closing file";

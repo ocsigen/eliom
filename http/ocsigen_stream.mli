@@ -46,7 +46,7 @@ val finalize : 'a t -> unit Lwt.t
 
 (** Cancel the stream, i.e. read the stream until the end, without decoding.
     Further tries to read on the stream will fail with exception
-    {!Ocsistream.Cancelled}
+    {!Ocsigen_stream.Cancelled}
  *)
 val cancel : 'a t -> unit Lwt.t
 

@@ -47,7 +47,7 @@ val xhtml_stream :
     ?version:[< `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 > `XHTML_01_01 ] ->
       ?width:int -> ?encode:(string -> string) ->
         ?html_compat:bool ->
-          [ `Html ] XHTML.M.elt -> string Ocsistream.t
+          [ `Html ] XHTML.M.elt -> string Ocsigen_stream.t
             
 (** Ocsigen's pretty printer for xhtml portions. 
    [html_compat] is an option to set
@@ -56,5 +56,5 @@ val xhtml_list_stream :
     ?version:[< `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 > `XHTML_01_01 ] ->
       ?width:int -> ?encode:(string -> string) -> 
         ?html_compat:bool ->
-          'a XHTML.M.elt list -> string Ocsistream.t
+          'a XHTML.M.elt list -> string Ocsigen_stream.t
 

@@ -25,7 +25,7 @@ the operation on this protocol*)
 (** this signature provides a template to discribe the content of a http
     frame *)
 
-open Ocsistream
+open Ocsigen_stream
 
 type etag = string
 type url_path = string list
@@ -115,7 +115,7 @@ type result =
      res_lastmodified: float option; (** Default: [None] *)
      res_etag: string option;
      res_code: int; (** HTTP code, if not 200 *)
-     res_stream: string Ocsistream.t; (** Default: empty stream *)
+     res_stream: string Ocsigen_stream.t; (** Default: empty stream *)
      res_content_length: int64 option; (** [None] means Transfer-encoding: chunked *)
      res_content_type: string option;
      res_headers: Http_headers.t; (** The headers you want to add *)
@@ -131,7 +131,7 @@ let default_result () =
    (* No date => proxies use etag *)
    res_etag = None;
    res_code = 200;
-   res_stream = Ocsistream.make (fun () -> Ocsistream.empty None);
+   res_stream = Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None);
    res_content_length = Some 0L;
    res_content_type = None;
    res_headers= Http_headers.empty;
@@ -146,7 +146,7 @@ let empty_result () =
    res_lastmodified = None;
    res_etag = None;
    res_code = 204; (* No content *)
-   res_stream = Ocsistream.make (fun () -> Ocsistream.empty None);
+   res_stream = Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None);
    res_content_length = Some 0L;
    res_content_type = None;
    res_headers= Http_headers.empty;
@@ -323,4 +323,4 @@ module Http_error =
 (** HTTP messages *)
 type t =
   { header : Http_header.http_header;
-    content : string Ocsistream.t option}
+    content : string Ocsigen_stream.t option}

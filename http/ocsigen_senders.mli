@@ -34,12 +34,12 @@ module Text_content :
   Http_frame.HTTP_CONTENT with type t = string * string
 
 module Stream_content :
-  Http_frame.HTTP_CONTENT with type t = string Ocsistream.t
+  Http_frame.HTTP_CONTENT with type t = string Ocsigen_stream.t
 
 (** streams and content-type *)
 module Streamlist_content :
   Http_frame.HTTP_CONTENT 
-with type t = (unit -> string Ocsistream.t Lwt.t) list
+with type t = (unit -> string Ocsigen_stream.t Lwt.t) list
       * string
 
 module Empty_content :

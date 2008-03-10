@@ -1170,9 +1170,9 @@ module SubXhtml = functor(T : sig type content end) ->
              res_etag = md5;
              res_headers= Http_headers.dyn_headers;
              res_stream = 
-             Ocsistream.make 
-               (fun () -> Ocsistream.cont x
-                   (fun () -> Ocsistream.empty None))
+             Ocsigen_stream.make 
+               (fun () -> Ocsigen_stream.cont x
+                   (fun () -> Ocsigen_stream.empty None))
            }
 
       end *)
@@ -1700,7 +1700,7 @@ module Streamlistreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = (((unit -> (string Ocsistream.t) Lwt.t) list) * 
+  type page = (((unit -> (string Ocsigen_stream.t) Lwt.t) list) * 
                  string)
 
   type options = unit

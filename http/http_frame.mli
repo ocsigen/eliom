@@ -56,7 +56,7 @@ type result =
      res_lastmodified: float option; (** Default: [None] *)
      res_etag: etag option;
      res_code: int; (** HTTP code, if not 200 *)
-     res_stream: string Ocsistream.t; (** Default: empty stream *)
+     res_stream: string Ocsigen_stream.t; (** Default: empty stream *)
      res_content_length: int64 option; (** [None] means Transfer-encoding: chunked *)
      res_content_type: string option;
      res_headers: Http_headers.t; (** The headers you want to add *)
@@ -116,4 +116,4 @@ module Http_error :
 *)
 type t =
   { header : Http_header.http_header;
-    content : string Ocsistream.t option}
+    content : string Ocsigen_stream.t option}
