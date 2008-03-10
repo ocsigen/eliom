@@ -222,8 +222,8 @@ META.eliom_examples: files/META.eliom_examples.in
 META.eliom_examples.global: files/META.eliom_examples.in
 	sed $(SED_COMMAND_FOR_META) < $< > $@
 
-$(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf
-	cat files/ocsigen.conf \
+$(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
+	cat files/ocsigen.conf.in \
 	| sed s%\<port\>80\</port\>%\<port\>8080\</port\>%g \
 	| sed s%_LOGDIR_%$(SRC)/var/log%g \
 	| sed s%_STATICPAGESDIR_%$(SRC)/files%g \
@@ -304,7 +304,7 @@ installnodoc: partialinstall
 	  chmod 660 $(TEMPROOT)$(COMMANDPIPE); \
 	  $(CHOWN) -R $(OCSIGENUSER):$(OCSIGENGROUP) $(TEMPROOT)$(COMMANDPIPE);}
 #	-mv $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf $(TEMPROOT)$(CONFIGDIR)/$(OCSIGENNAME).conf.old
-	cat files/ocsigen.conf \
+	cat files/ocsigen.conf.in \
 	| sed s%_LOGDIR_%$(LOGDIR)%g \
 	| sed s%_STATICPAGESDIR_%$(STATICPAGESDIR)%g \
 	| sed s%_CONFIGDIR_%$(CONFIGDIR)%g \
@@ -358,7 +358,7 @@ installnodoc: partialinstall
 logrotate:
 	[ -d /etc/logrotate.d ] && \
 	 { mkdir -p $(TEMPROOT)/etc/logrotate.d ; \
-	   cat files/logrotate.IN \
+	   cat files/logrotate.in \
 	   | sed s%LOGDIR%$(LOGDIR)%g \
 	   | sed s%USER%$(OCSIGENUSER)%g \
 	   | sed s%GROUP%$(OCSIGENGROUP)%g \

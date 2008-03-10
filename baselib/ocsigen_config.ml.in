@@ -1,4 +1,4 @@
-(* Warning! ocsigen_config.ml is generated automatically from ocsigen_config.ml.IN!
+(* Warning! ocsigen_config.ml is generated automatically from ocsigen_config.ml.in!
    Do not modify it manually *)
 (* Ocsigen
  * Copyright (C) 2005 Vincent Balat

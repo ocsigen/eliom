@@ -45,10 +45,10 @@ opt: $(OBJSOPT)
 .ml.cmx:
 	$(CAMLOPT) $(PP) -c $<
 
-ocsigen_config.ml: ocsigen_config.ml.IN
-	cat ocsigen_config.ml.IN \
+ocsigen_config.ml: ocsigen_config.ml.in
+	cat ocsigen_config.ml.in \
 	| sed s%0000000000000000%`head -n 1 ../VERSION`% \
-	| sed s%_WARNING_%"Warning: this file has been generated from ocsigen_config.ml.IN - DO NOT MODIFY MANUALLY!"% \
+	| sed s%_WARNING_%"Warning: this file has been generated from ocsigen_config.ml.in - DO NOT MODIFY MANUALLY!"% \
 	| sed s%_LOGDIR_%$(LOGDIR)% \
 	| sed s%_DATADIR_%$(DATADIR)%g \
 	| sed s%_BINDIR_%$(BINDIR)%g \
