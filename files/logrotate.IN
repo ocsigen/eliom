@@ -7,4 +7,9 @@ LOGDIR/*.log {
         notifempty
         create 640 USER GROUP
         sharedscripts
+        postrotate
+                if fuser -s _COMMANDPIPE_; then
+                        echo reopen_logs > _COMMANDPIPE_
+                fi
+        endscript
 }

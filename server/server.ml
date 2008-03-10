@@ -1034,7 +1034,14 @@ let _ = try
 
       let rec f () = 
         Lwt_chan.input_line pipe >>=
-        (fun _ -> reload (); f ())
+          (fun s ->
+             begin match s with
+               | "reopen_logs" ->
+                   Ocsigen_messages.open_files ();
+                   Ocsigen_messages.warning "Log files reopened"
+               | "reload" -> reload ()
+               | _ -> Ocsigen_messages.warning ("Unknown command: " ^ s)
+             end; f ())
       in ignore (f ());
 
       wakeup wait_end_init ();

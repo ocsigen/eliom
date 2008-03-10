@@ -362,6 +362,7 @@ logrotate:
 	   | sed s%LOGDIR%$(LOGDIR)%g \
 	   | sed s%USER%$(OCSIGENUSER)%g \
 	   | sed s%GROUP%$(OCSIGENGROUP)%g \
+	   | sed s%_COMMANDPIPE_%$(COMMANDPIPE)%g \
 	  > $(TEMPROOT)/etc/logrotate.d/$(OCSIGENNAME); }
 
 dist:
