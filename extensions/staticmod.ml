@@ -147,7 +147,7 @@ let gen dir charset = function
                  dir err ri.ri_sub_path ri.ri_sub_path_string
              with
                | code, RDir dirname ->
-                   Predefined_senders.Directory_content.result_of_content 
+                   Ocsigen_senders.Directory_content.result_of_content 
                      (dirname, ri.ri_sub_path) >>= fun r ->
                    (match code with
                       | None -> return (Ext_found (fun () -> Lwt.return r))
@@ -160,7 +160,7 @@ let gen dir charset = function
 		                       Http_frame.res_code= err;
                                     })))
                      | code, RFile filename ->
-                         Predefined_senders.File_content.result_of_content filename 
+                         Ocsigen_senders.File_content.result_of_content filename 
                          >>= fun r ->	    
                          (match code with
                             | None ->

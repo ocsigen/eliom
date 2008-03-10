@@ -27,7 +27,7 @@ open Ocsigen_extensions
 open Http_frame
 open Ocsigen_headers
 open Http_com
-open Predefined_senders
+open Ocsigen_senders
 open Ocsigen_config
 open Ocsigen_parseconfig
 open Lazy

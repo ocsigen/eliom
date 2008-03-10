@@ -22,7 +22,7 @@
 open Http_frame
 open Http_com
 open Lwt
-open Predefined_senders
+open Ocsigen_senders
 open Xhtmltypes_duce
 
 let add_css (a : html) : html = 
@@ -85,7 +85,7 @@ module Xhtmlreg_ = struct
 
   type page = html
 
-  let headers = Predefined_senders.dyn_headers
+  let headers = Ocsigen_senders.dyn_headers
   let send = send_ocamlduce_page
 
 end

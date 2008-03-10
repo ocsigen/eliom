@@ -30,7 +30,7 @@ open Ocsigen_extensions
 open Simplexmlparser
 open Http_frame
 open Http_com
-open Predefined_senders
+open Ocsigen_senders
 
 
 module Regexp = Netstring_pcre

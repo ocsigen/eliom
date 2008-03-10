@@ -153,7 +153,7 @@ module String_Table = Map.Make(struct type t = string
 type page_table = 
     (page_table_key * 
        ((int * 
-           ((tables server_params2 -> Predefined_senders.send_page_type Lwt.t)
+           ((tables server_params2 -> Ocsigen_senders.send_page_type Lwt.t)
               * Http_headers.t * url_path)) list)) list
       (* Here, the url_path is the working directory.
          That is, the directory in which we are when we register
@@ -550,9 +550,9 @@ let get_page
           return (Ext_found
                     {res_cookies=[];
                      res_send_page=
-                     (Predefined_senders.send_xhtml_page 
+                     (Ocsigen_senders.send_xhtml_page 
                         ~content:(Error_pages.page_error_param_type l));
-                     res_headers=Predefined_senders.dyn_headers;
+                     res_headers=Ocsigen_senders.dyn_headers;
                      res_code=None;
                      res_lastmodified=None;
                      res_etag=None;
@@ -564,10 +564,10 @@ let get_page
 	    return (Ext_found 
                       {res_cookies=[];
                        res_send_page=
-                       (Predefined_senders.send_xhtml_page 
+                       (Ocsigen_senders.send_xhtml_page 
                           ~content:(Error_pages.page_bad_param 
                                       (List.map fst ripp)));
-                       res_headers= Predefined_senders.dyn_headers;
+                       res_headers= Ocsigen_senders.dyn_headers;
                        res_code=None;
                        res_lastmodified=None;
                        res_etag=None;
@@ -648,7 +648,7 @@ let gen page_tree charset ri =
 				   | Some c -> 
                                        [Set (Some path, None, [(cookiename, c)])]);
 				   res_send_page=
-				   (Predefined_senders.send_xhtml_page 
+				   (Ocsigen_senders.send_xhtml_page 
 				      ~content:(Error_pages.error_page 
                                                   "error" 
                                                   [XHTML.M.p 
@@ -657,7 +657,7 @@ let gen page_tree charset ri =
                                                         is experimental in Ocsigenmod (it works only for \
                                                             ocsigenmod pages for now, and I \
                                                          didn't find any)"]]));
-				   res_headers=Predefined_senders.dyn_headers;
+				   res_headers=Ocsigen_senders.dyn_headers;
 				   res_code=None;
 				   res_lastmodified=None;
 				   res_etag=None;
@@ -671,7 +671,7 @@ let gen page_tree charset ri =
                     (match cookie2 with
                       None -> []
                     | Some c -> [Set (Some path, None, [(cookiename, c)])]);
-                    res_send_page=Predefined_senders.send_empty ~content:();
+                    res_send_page=Ocsigen_senders.send_empty ~content:();
                     res_headers= Http_headers.empty;
                     res_code=Some 204;
                     res_lastmodified=None;

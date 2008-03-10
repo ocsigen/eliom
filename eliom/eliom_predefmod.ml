@@ -276,9 +276,9 @@ end
 (*****************************************************************************)
 
 module Xhtmlforms' = MakeForms(Xhtmlforms_)
-module Xhtmlreg = MakeRegister(Xhtmlreg_(Predefined_senders.Xhtml_content))
+module Xhtmlreg = MakeRegister(Xhtmlreg_(Ocsigen_senders.Xhtml_content))
 module Xhtmlcompactreg =
-  MakeRegister(Xhtmlreg_(Predefined_senders.Xhtmlcompact_content))
+  MakeRegister(Xhtmlreg_(Ocsigen_senders.Xhtmlcompact_content))
 
 module type XHTMLFORMSSIG = sig
 (* Pasted from mli *)
@@ -1148,7 +1148,7 @@ end
 module SubXhtml = functor(T : sig type content end) ->
   (struct
 (*    module Old_Cont_content =
-      (* Pasted from predefined_senders.ml and modified *)
+      (* Pasted from ocsigen_senders.ml and modified *)
       struct
         type t = T.content XHTML.M.elt list
               
@@ -1178,7 +1178,7 @@ module SubXhtml = functor(T : sig type content end) ->
       end *)
 
     module Cont_content =
-      (* Pasted from predefined_senders.ml and modified *)
+      (* Pasted from ocsigen_senders.ml and modified *)
       struct
         type t = T.content XHTML.M.elt list
               
@@ -1251,7 +1251,7 @@ module Textreg_ = struct
   type options = unit
 
   let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
-    Predefined_senders.Text_content.result_of_content content >>= fun r ->
+    Ocsigen_senders.Text_content.result_of_content content >>= fun r ->
     Lwt.return
         (EliomResult
            {r with
@@ -1278,7 +1278,7 @@ module CssTextreg_ = struct
   type options = unit
 
   let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
-    Predefined_senders.Text_content.result_of_content (content, "text/css") >>= fun r ->
+    Ocsigen_senders.Text_content.result_of_content (content, "text/css") >>= fun r ->
     Lwt.return
         (EliomResult
            {r with
@@ -1306,7 +1306,7 @@ module HtmlTextreg_ = struct
   type options = unit
 
   let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
-    Predefined_senders.Text_content.result_of_content (content, "text/html") >>= fun r ->
+    Ocsigen_senders.Text_content.result_of_content (content, "text/html") >>= fun r ->
     Lwt.return
         (EliomResult
            {r with
@@ -1677,7 +1677,7 @@ module Filesreg_ = struct
       | Ocsigen_malformed_url as e -> raise e
       | e -> raise (Ocsigen_http_error (Http_frame.Cookies.empty, 404)))
     in
-    Predefined_senders.File_content.result_of_content filename >>= fun r ->
+    Ocsigen_senders.File_content.result_of_content filename >>= fun r ->
     Lwt.return
         (EliomResult
            {r with
@@ -1707,7 +1707,7 @@ module Streamlistreg_ = struct
 
 
   let send ?options ?(cookies=[]) ?charset ?code ~sp content = 
-    Predefined_senders.Streamlist_content.result_of_content content >>= fun r ->
+    Ocsigen_senders.Streamlist_content.result_of_content content >>= fun r ->
     Lwt.return
         (EliomResult
            {r with

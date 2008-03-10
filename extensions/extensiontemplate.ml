@@ -92,7 +92,7 @@ let gen charset = function
       return (Ext_found 
                 (fun () ->
                    let content = "Extensiontemplate page" in
-                   Predefined_senders.Text_content.result_of_content
+                   Ocsigen_senders.Text_content.result_of_content
                      (content, "text/plain")))
 
 

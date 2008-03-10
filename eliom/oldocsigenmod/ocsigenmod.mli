@@ -61,7 +61,7 @@ val add_service :
             Http_headers.t ->
               page_table_key *
                 (int * (tables server_params2 -> 
-                  Predefined_senders.send_page_type Lwt.t)) ->
+                  Ocsigen_senders.send_page_type Lwt.t)) ->
                     unit
 
 val add_action :

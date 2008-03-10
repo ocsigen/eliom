@@ -23,7 +23,7 @@
 open Http_frame
 open Http_com
 open Lwt
-open Predefined_senders
+open Ocsigen_senders
 open Ocsistream
 open Xhtmltypes_duce
 open Ocsigen_extensions

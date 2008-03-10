@@ -16,7 +16,7 @@ Xhtmlpretty
 {!modules: 
 Ocsigen_extensions 
 Ocsigen_headers 
-Predefined_senders 
+Ocsigen_senders 
 Http_frame
 Http_client
 Http_com

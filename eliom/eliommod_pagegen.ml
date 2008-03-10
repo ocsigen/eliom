@@ -386,7 +386,7 @@ let gen sitedata charset = function
       )
       (function
         | Eliom_common.Eliom_Typing_Error l -> 
-            Predefined_senders.Xhtml_content.result_of_content
+            Ocsigen_senders.Xhtml_content.result_of_content
               (Error_pages.page_error_param_type l) >>= fun r ->
             return (Ocsigen_extensions.Ext_found
                       (fun () ->
@@ -397,7 +397,7 @@ let gen sitedata charset = function
                          }))
 	| Eliom_common.Eliom_Wrong_parameter -> 
             Lazy.force ri.Ocsigen_extensions.ri_post_params >>= fun ripp ->
-            Predefined_senders.Xhtml_content.result_of_content
+            Ocsigen_senders.Xhtml_content.result_of_content
                 (Error_pages.page_bad_param (List.map fst ripp)) >>= fun r ->
             return (Ocsigen_extensions.Ext_found 
                       (fun () ->

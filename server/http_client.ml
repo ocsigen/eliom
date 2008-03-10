@@ -462,7 +462,7 @@ let raw_request
                        Http_frame.res_headers = headers}
                     
               | Some stream -> 
-                  Predefined_senders.Stream_content.result_of_content
+                  Ocsigen_senders.Stream_content.result_of_content
                     stream >>= fun r ->
                     Http_com.send
                       ?reopen
@@ -719,7 +719,7 @@ let basic_raw_request
           {empty_result with
            Http_frame.res_headers = headers}
     | Some stream -> 
-        Predefined_senders.Stream_content.result_of_content stream >>= fun r ->
+        Ocsigen_senders.Stream_content.result_of_content stream >>= fun r ->
         Http_com.send
           slot
           ~mode:query

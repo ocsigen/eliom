@@ -24,7 +24,7 @@
 (* Include in a better cooperative parser for header or use regexp?. *)
 
 open Http_frame
-open Predefined_senders
+open Ocsigen_senders
 open Ocsigen_lib
 
 (*
