@@ -428,7 +428,7 @@ let getnameinfo ia p =
   | Not_found ->
       let hs = Unix.string_of_inet_addr ia in
       Lwt.return
-        (if String.sub hs 0 7 = "::ffff:"
+        (if String.length hs > 7 && String.sub hs 0 7 = "::ffff:"
         then String.sub hs 7 (String.length hs - 7)
         else if String.contains hs ':'
         then "["^hs^"]"
