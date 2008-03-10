@@ -22,6 +22,7 @@ exception Ocsigen_Bad_Request
 exception Ocsigen_Request_too_long
 
 let id x = x
+let (>>=) = Lwt.bind
 
 let comp f g x = f (g x)
 
@@ -418,7 +419,24 @@ let get_inet_addr host =
     (Lwt_lib.getaddrinfo host "" [])
     aux
 
+let getnameinfo ia p =
+  try
+    (* HTTP/1.0 with no host *)
+    Lwt_lib.getnameinfo (Unix.ADDR_INET (ia, p)) [Unix.NI_NAMEREQD] >>= fun r ->
+    Lwt.return r.Unix.ni_hostname
+  with
+  | Not_found ->
+      let hs = Unix.string_of_inet_addr ia in
+      Lwt.return
+        (if String.sub hs 0 7 = "::ffff:"
+        then String.sub hs 7 (String.length hs - 7)
+        else if String.contains hs ':'
+        then "["^hs^"]"
+        else hs)
+
+
 (* *)
 type ('a, 'b) leftright = Left of 'a | Right of 'b
 
 module StringSet = Set.Make(String)
+

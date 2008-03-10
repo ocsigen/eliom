@@ -238,9 +238,13 @@ module type ELIOMFORMSIG =
                  [< registrable ]) service ->
                    sp:Eliom_sessions.server_params -> 
                      ?fragment:string ->
-                       'get -> string
+                       'get -> uri Lwt.t
 (** Creates the string corresponding to the 
     full (absolute) URL of a service applied to its GET parameters.
+
+    It returns a Lwt thread because if the hostname is not in the request
+    (sometimes possible with HTTP/1.0), it calls 
+    {!Lwt_lib.getnameinfo} to find the hostname.
  *)
 
     val make_string_uri :
@@ -774,29 +778,32 @@ module MakeForms = functor
           ~service
           ~sp
           ?fragment
-          getparams : string =
-        let https = Eliom_sessions.get_ssl ~sp in
-        (if https
-        then "https://"
-        else "http://"
-        )^
+          getparams : uri Lwt.t =
+        let port = Eliom_sessions.get_server_port ~sp in
         (match Eliom_sessions.get_hostname ~sp with
         | None -> 
-            Unix.string_of_inet_addr (Eliom_sessions.get_server_inet_addr ~sp)
-(*VVV: Better (only for HTTP/1.0, sometimes): put the canonical name *)
-        | Some h -> h
-        )^
-        (let port = Eliom_sessions.get_server_port ~sp in
-        if (port = 80 && not https) || (https && port = 443)
-        then ""
-        else ":"^string_of_int port)^
-        "/"^
-        make_string_uri_
-          true
-          ~service
-          ~sp
-          ?fragment
-          getparams
+            Ocsigen_lib.getnameinfo
+              (Eliom_sessions.get_server_inet_addr ~sp) 80
+        | Some h -> Lwt.return h
+        ) >>= fun host ->
+          Lwt.return
+            (Pages.uri_of_string
+               (let https = Eliom_sessions.get_ssl ~sp in
+               (if https
+               then "https://"
+               else "http://"
+               )^
+               host^
+               (if (port = 80 && not https) || (https && port = 443)
+               then ""
+               else ":"^string_of_int port)^
+               "/"^
+               make_string_uri_
+                 true
+                 ~service
+                 ~sp
+                 ?fragment
+                 getparams))
 
       let make_string_uri
           ~service

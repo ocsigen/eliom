@@ -32,7 +32,6 @@ open Eliom_parameters
 open Eliom_services
 
 
-
 module type FORMCREATE = 
   sig
     type form_content_elt
@@ -196,9 +195,13 @@ module type ELIOMFORMSIG =
                  [< registrable ]) service ->
                    sp:Eliom_sessions.server_params -> 
                      ?fragment:string ->
-                       'get -> string
+                       'get -> uri Lwt.t
 (** Creates the string corresponding to the 
     full (absolute) URL of a service applied to its GET parameters.
+
+    It returns a Lwt thread because if the hostname is not in the request
+    (sometimes possible with HTTP/1.0), it calls 
+    {!Lwt_lib.getnameinfo} to find the hostname.
  *)
 
     val make_string_uri :

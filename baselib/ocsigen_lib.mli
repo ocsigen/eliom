@@ -48,4 +48,9 @@ exception Invalid_ip_address of string
 val parse_ip : string -> ip_address * (ip_address option)
 val match_ip : ip_address * (ip_address option) -> ip_address -> bool
 
+val getnameinfo : Unix.inet_addr -> int -> string Lwt.t
+(** calls Lwt_lib.getnameinfo and returns the result,
+    but if it fails returns the IP number,
+    with [ before and ] after IPv6 addresses. *)
+
 module StringSet : Set.S with type elt = string

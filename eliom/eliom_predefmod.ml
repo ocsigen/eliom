@@ -294,9 +294,13 @@ module type XHTMLFORMSSIG = sig
                  [< registrable ]) service ->
                    sp:Eliom_sessions.server_params -> 
                      ?fragment:string ->
-                       'get -> string
+                       'get -> XHTML.M.uri Lwt.t
 (** Creates the string corresponding to the 
     full (absolute) URL of a service applied to its GET parameters.
+
+    It returns a Lwt thread because if the hostname is not in the request
+    (sometimes possible with HTTP/1.0), it calls 
+    {!Lwt_lib.getnameinfo} to find the hostname.
  *)
 
     val make_string_uri :
@@ -1562,7 +1566,7 @@ module Redirreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
-  type page = string
+  type page = XHTML.M.uri
 
   type options = [ `Temporary | `Permanent ]
 
@@ -1580,7 +1584,7 @@ module Redirreg_ = struct
          {empty_result with
           res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
           res_code= code;
-          res_location = Some content;
+          res_location = Some (XHTML.M.string_of_uri content);
         })
 
 end

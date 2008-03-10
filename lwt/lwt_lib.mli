@@ -25,3 +25,8 @@ val getaddrinfo :
 
 val gethostbyname : string -> Unix.host_entry Lwt.t
 (** Cooperative gethostbyname with cache (using Lwt_preemptive.detach) *)
+
+
+val getnameinfo : Unix.sockaddr -> Unix.getnameinfo_option list -> 
+  Unix.name_info Lwt.t
+(** Cooperative getnameinfo with cache (using Lwt_preemptive.detach) *)

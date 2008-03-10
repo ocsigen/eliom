@@ -127,3 +127,7 @@ let getaddrinfo d s o =
                i
          | e -> fail e)
 
+
+let getnameinfo s l = 
+  (*VVV à implémenter !!! *)
+  Lwt_preemptive.detach (Unix.getnameinfo s) l

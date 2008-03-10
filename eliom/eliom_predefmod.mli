@@ -60,9 +60,13 @@ module type XHTMLFORMSSIG = sig
                  [< registrable ]) service ->
                    sp:Eliom_sessions.server_params -> 
                      ?fragment:string ->
-                       'get -> string
+                       'get -> XHTML.M.uri Lwt.t
 (** Creates the string corresponding to the 
     full (absolute) URL of a service applied to its GET parameters.
+
+    It returns a Lwt thread because if the hostname is not in the request
+    (sometimes possible with HTTP/1.0), it calls 
+    {!Lwt_lib.getnameinfo} to find the hostname.
  *)
 
     val make_string_uri :
@@ -591,7 +595,8 @@ module Unit : Eliom_mkreg.ELIOMREGSIG with
    For example: [register ~options:`Temporary ...].
  *)
 module Redirections : Eliom_mkreg.ELIOMREGSIG with 
-  type page = string
+  type page = XHTML.M.uri
+(*VVV Would be better to define the type uri elsewhere *)
   and type options = [ `Temporary | `Permanent ]
 
 (** Allows to send files. The content is the name of the file to send. *)

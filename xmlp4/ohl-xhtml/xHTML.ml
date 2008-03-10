@@ -309,6 +309,7 @@ module type T =
 
     type uri (* I abstract this for Ocsigen -- VB *)
     val uri_of_string : string -> uri
+    val string_of_uri : uri -> string
 (** A Uniform Resource Identifier, as per RFC2396.
     @see <http://www.ietf.org/rfc/rfc2396.txt> RFC2396 *)
 
@@ -1178,6 +1179,7 @@ module Version =
     type uri = string
     type uris = uri (* space-separated *)
     let uri_of_string s = s
+    let string_of_uri s = s
 
     let color_attrib name value =
       string_attrib name
