@@ -2,7 +2,7 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= extensions.ml ocsigen_parseconfig.ml http_client.ml server.ml
+FILES= ocsigen_extensions.ml ocsigen_parseconfig.ml http_client.ml server.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -112,7 +112,7 @@ $(NAME).opt: $(CMXXA) $(OBJSOPT)
 	$(CAMLOPT) $(PP) -c $<
 
 #doc:
-#	$(CAMLDOC) -d doc -html eliom.mli ocsigen.mli extensions.mli
+#	$(CAMLDOC) -d doc -html eliom.mli ocsigen.mli ocsigen_extensions.mli
 
 
 nagle.o: nagle.c

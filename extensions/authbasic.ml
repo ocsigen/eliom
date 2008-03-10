@@ -21,7 +21,7 @@
 
 open Printf
 open Lwt
-open Extensions
+open Ocsigen_extensions
 open Simplexmlparser
 open Http_frame
 
@@ -32,7 +32,7 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file
                   ("Unexpected content inside authbasic config"))
 
-let _ = parse_global_config (Extensions.get_config ())
+let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 (*****************************************************************************)
@@ -88,7 +88,7 @@ let parse_config path charset _ parse_fun = function
         in
         (fun rs ->
            match rs with
-             | Extensions.Req_not_found (err, ri) ->
+             | Ocsigen_extensions.Req_not_found (err, ri) ->
                  let reject () =
                    let h = Http_headers.add
                      (Http_headers.name "WWW-Authenticate")
@@ -121,7 +121,7 @@ let parse_config path charset _ parse_fun = function
                      (fun r ->
                         if r then begin
                           Ocsigen_messages.debug2 "--Access control (auth): valid credentials!";
-                          Lwt.return (Extensions.Ext_next err)
+                          Lwt.return (Ocsigen_extensions.Ext_next err)
                         end
                         else reject ())
                  with
@@ -133,8 +133,8 @@ let parse_config path charset _ parse_fun = function
                             (Printexc.to_string e));
                        fail (Ocsigen_http_error (Http_frame.Cookies.empty, 400))
                  end
-             | Extensions.Req_found (ri, r) ->
-                 Lwt.return (Extensions.Ext_found r))
+             | Ocsigen_extensions.Req_found (ri, r) ->
+                 Lwt.return (Ocsigen_extensions.Ext_found r))
 
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(authbasic extension) Bad data")

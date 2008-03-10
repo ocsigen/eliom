@@ -4,8 +4,8 @@ val find_page_table :
   string option ->
   Eliom_common.sitedata ->
   Eliom_common.tables Eliom_common.cookie_info ->
-  Extensions.request_info ->
-  Extensions.url_path ->
+  Ocsigen_extensions.request_info ->
+  Ocsigen_extensions.url_path ->
   Eliom_common.page_table_key ->
   Eliom_common.sess_info -> Eliom_common.result_to_send Lwt.t
 val insert_as_last_of_generation :
@@ -38,11 +38,11 @@ val find_service :
   Eliom_common.dircontent ref * 'a * 'b * 'c ->
   string option ->
   Eliom_common.sitedata * Eliom_common.tables Eliom_common.cookie_info *
-  Extensions.request_info * Eliom_common.sess_info ->
+  Ocsigen_extensions.request_info * Eliom_common.sess_info ->
   Eliom_common.result_to_send Lwt.t
 val get_page :
   float ->
-  Extensions.request_info * Eliom_common.sess_info * Http_frame.cookieset *
+  Ocsigen_extensions.request_info * Eliom_common.sess_info * Http_frame.cookieset *
   ((string option *
     Eliom_common.tables Eliom_common.one_service_cookie_info
     Eliom_common.session_cookie ref)

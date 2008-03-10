@@ -24,7 +24,7 @@
 (*****************************************************************************)
 
 open Lwt
-open Extensions
+open Ocsigen_extensions
 open Simplexmlparser
 open Ocsiheaders
 
@@ -53,12 +53,12 @@ let gen (header, regexp, dest) charset = function
             header_values
         in
         Lwt.return
-          (Extensions.Ext_found
+          (Ocsigen_extensions.Ext_found
              (fun () -> 
                Lwt.return
                  {res with Http_frame.res_headers = new_headers}))
       with Not_found -> 
-        Lwt.return (Extensions.Ext_found (fun () -> Lwt.return res))
+        Lwt.return (Ocsigen_extensions.Ext_found (fun () -> Lwt.return res))
 
 (*****************************************************************************)
 (** Function to be called at the beginning of the initialisation phase 
@@ -127,13 +127,13 @@ let parse_config path charset _ _ = function
 
 (*****************************************************************************)
 let site_creator hostpattern = parse_config
-   (* hostpattern has type Extensions.virtual_hosts
+   (* hostpattern has type Ocsigen_extensions.virtual_hosts
       and represents the name of the virtual host *)
    
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = Extensions.register_extension
+let _ = Ocsigen_extensions.register_extension
   site_creator
   site_creator
   start_init

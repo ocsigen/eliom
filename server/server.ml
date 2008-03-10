@@ -23,7 +23,7 @@
 open Lwt
 open Ocsigen_messages
 open Ocsigen_lib
-open Extensions
+open Ocsigen_extensions
 open Http_frame
 open Ocsiheaders
 open Http_com
@@ -101,7 +101,7 @@ let get_request_infos
   try
 
     let (url, parsed_url, path, params, get_params) =
-      Extensions.parse_url url
+      Ocsigen_extensions.parse_url url
     in
     
     let headerhost = 
@@ -312,7 +312,7 @@ let get_request_infos
      ri_accept_language = accept_language;
      ri_http_frame = http_frame;
      ri_extension_info = [];
-     ri_client = Extensions.client_of_connection receiver;
+     ri_client = Ocsigen_extensions.client_of_connection receiver;
    }
       
   with e ->
@@ -357,7 +357,7 @@ let service
           ~code:i 
           ~sender:Http_com.default_sender
           ()
-    | Extensions.Ocsigen_malformed_url
+    | Ocsigen_extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
     | Ocsistream.Interrupted Ocsistream.Already_read ->
         Ocsigen_messages.warning
@@ -470,7 +470,7 @@ let service
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind
              (fun () ->
-                Extensions.do_for_site_matching ri.ri_host ri.ri_server_port ri)
+                Ocsigen_extensions.do_for_site_matching ri.ri_host ri.ri_server_port ri)
              (fun res ->
                 finish_request ();
 (* RFC
@@ -848,7 +848,7 @@ let errmsg = function
       52)
   | exn -> 
       try
-        ((Extensions.get_init_exn_handler () exn),
+        ((Ocsigen_extensions.get_init_exn_handler () exn),
         20)
       with
         exn ->
@@ -869,15 +869,15 @@ let reload () =
     | [] -> ()
     | s::_ ->
         begin
-          Extensions.start_initialisation ();
+          Ocsigen_extensions.start_initialisation ();
           
           parse_server true s;
           
-          Extensions.end_initialisation ();
+          Ocsigen_extensions.end_initialisation ();
 
         end
   with e -> 
-    Extensions.end_initialisation ();
+    Ocsigen_extensions.end_initialisation ();
     errlog (fst (errmsg e)));
   
   Ocsigen_messages.warning "Config file reloaded"
@@ -991,11 +991,11 @@ let _ = try
       Dynlink.init ();
       Dynlink.allow_unsafe_modules true;
 
-      Extensions.start_initialisation ();
+      Ocsigen_extensions.start_initialisation ();
 
       parse_server false s;
       
-      Dynlink.prohibit ["Extensions.R"];
+      Dynlink.prohibit ["Ocsigen_extensions.R"];
       (* As libraries are reloaded each time the config file is read, 
          we do not allow to register extensions in libraries *)
       (* seems it does not work :-( *)
@@ -1016,7 +1016,7 @@ let _ = try
       if (Ocsigen_config.get_daemon ())
       then ignore (Unix.setsid ());
           
-      Extensions.end_initialisation ();
+      Ocsigen_extensions.end_initialisation ();
 
       (* Communication with the server through the pipe *)
       (try

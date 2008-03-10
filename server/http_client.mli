@@ -36,7 +36,7 @@ val get :
 
 
 val raw_request :
-    ?client: Extensions.client ->
+    ?client: Ocsigen_extensions.client ->
     ?keep_alive: bool ->
     ?headers: Http_headers.t ->
     ?https: bool ->
@@ -79,7 +79,7 @@ val raw_request :
    (according to previous requests).
    It is recommended to specify this optional parameter for all requests
    (with the value found in field
-   [ri_client] of type {!Extensions.request_info}).
+   [ri_client] of type {!Ocsigen_extensions.request_info}).
 
    The optional parameter [?head] asks to do a [HEAD] HTTP request.
    It is [false] by default.

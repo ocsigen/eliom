@@ -28,7 +28,7 @@
 
 open Lwt
 open Ocsigen_lib
-open Extensions
+open Ocsigen_extensions
 open Lazy
 
 exception Ocsigen_Wrong_parameter
@@ -726,7 +726,7 @@ let parse_config page_tree path =
           let file = parse_module_attrs None atts in
           load_ocsigen_module page_tree path file content
     | Element (t, _, _) -> 
-        raise (Extensions.Bad_config_tag_for_extension t)
+        raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Ocsigenmod extension)")
 
 

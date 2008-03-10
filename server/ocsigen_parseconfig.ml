@@ -131,8 +131,8 @@ let parse_ext file =
   parser_config (Simplexmlparser.xmlparser file)
 
 
-let preloadfile config () = Extensions.set_config config
-let postloadfile () = Extensions.set_config []
+let preloadfile config () = Ocsigen_extensions.set_config config
+let postloadfile () = Ocsigen_extensions.set_config []
 
 
 (* Config file is parsed twice. 
@@ -259,7 +259,7 @@ let parse_server isreloading c =
           in
           let host, charset = parse_attrs (None, None) atts in
 	  let host = match host with
-          | None -> [[Extensions.Wildcard],None] (* default = "*:*" *)
+          | None -> [[Ocsigen_extensions.Wildcard],None] (* default = "*:*" *)
           | Some s -> 
               List.map
 		(fun ss ->
@@ -278,9 +278,9 @@ let parse_server isreloading c =
                   in
                   ((List.map
                       (function
-                          Netstring_str.Delim _ -> Extensions.Wildcard
+                          Netstring_str.Delim _ -> Ocsigen_extensions.Wildcard
 			| Netstring_str.Text t -> 
-                            Extensions.Text (t, String.length t))
+                            Ocsigen_extensions.Text (t, String.length t))
                       (Netstring_str.full_split (Netstring_str.regexp "[*]+") 
 			 host)),
                    port))
@@ -294,8 +294,8 @@ let parse_server isreloading c =
           | None -> "utf-8"
           | Some charset -> charset
           in
-          let parse_host = Extensions.parse_site_item host in
-          let parse_site = Extensions.make_parse_site [] charset parse_host in
+          let parse_host = Ocsigen_extensions.parse_site_item host in
+          let parse_site = Ocsigen_extensions.make_parse_site [] charset parse_host in
           (* default site for host *)
           (host, parse_site l)::(parse_server_aux ll)
       | (Element ("extconf", [("dir", dir)], []))::ll ->
@@ -339,7 +339,7 @@ let parse_server isreloading c =
                    ("tag <"^tag^"> unexpected inside <server>"))
       | _ ->
           raise (Config_file_error "Syntax error")
-  in Extensions.set_hosts (parse_server_aux c)
+  in Ocsigen_extensions.set_hosts (parse_server_aux c)
 
 (* First parsing of config file *)
 let extract_info c =

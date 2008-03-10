@@ -102,7 +102,7 @@ ocsipersist-sqlite.cmxs: ocsipersist.cmx
 	$(CAMLOPT) -dlcode -shared -linkall -o $@ $<
 
 #doc:
-#	$(CAMLDOC) -d doc -html ocsigen.mli extensions.mli
+#	$(CAMLDOC) -d doc -html ocsigen.mli ocsigen_extensions.mli
 
 $(FILES:.ml=.cmxs): $(FILES:.ml=.cmx)
 $(DUCEFILES:.ml=.cmxs): $(DUCEFILES:.ml=.cmx)

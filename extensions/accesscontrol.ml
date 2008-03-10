@@ -30,7 +30,7 @@ Then load it dynamically from Ocsigen's config file:
 
 open Printf
 open Lwt
-open Extensions
+open Ocsigen_extensions
 open Simplexmlparser
 open Http_frame
 
@@ -40,7 +40,7 @@ let rec parse_global_config = function
   | [] -> ()
   | _ -> badconfig "Unexpected content inside accesscontrol config"
 
-let _ = parse_global_config (Extensions.get_config ())
+let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 (*****************************************************************************)
@@ -171,16 +171,16 @@ let parse_config path charset _ parse_fun = function
           | _ -> badconfig "Bad <else> branch in <if>"
       in
       (function
-        | Extensions.Req_found (ri, _)
-        | Extensions.Req_not_found (_, ri) ->
+        | Ocsigen_extensions.Req_found (ri, _)
+        | Ocsigen_extensions.Req_not_found (_, ri) ->
             Lwt.return
               (if condition ri then begin
                  Ocsigen_messages.debug2 "--Access control: => going into <then> branch";
-                 Extensions.Ext_sub_result ithen
+                 Ocsigen_extensions.Ext_sub_result ithen
                end
                else begin
                  Ocsigen_messages.debug2 "--Access control: => going into <else> branch, if any";
-                 Extensions.Ext_sub_result ielse
+                 Ocsigen_extensions.Ext_sub_result ielse
                end))
 
   | Element ("notfound", [], []) ->
@@ -196,30 +196,30 @@ let parse_config path charset _ parse_fun = function
   | Element ("iffound", [], sub) ->
       let ext = parse_fun sub in
       (function
-         | Extensions.Req_found (_, _) ->
+         | Ocsigen_extensions.Req_found (_, _) ->
              Lwt.return (Ext_sub_result ext)
-         | Extensions.Req_not_found (err, ri) ->
-             Lwt.return (Extensions.Ext_next err))
+         | Ocsigen_extensions.Req_not_found (err, ri) ->
+             Lwt.return (Ocsigen_extensions.Ext_next err))
 
   | Element ("ifnotfound", [], sub) ->
       let ext = parse_fun sub in
       (function
-         | Extensions.Req_found (_, r) ->
-             Lwt.return (Extensions.Ext_found r)
-         | Extensions.Req_not_found (err, ri) ->
+         | Ocsigen_extensions.Req_found (_, r) ->
+             Lwt.return (Ocsigen_extensions.Ext_found r)
+         | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ext_sub_result ext))
 
   | Element ("ifnotfound", [("code", s)], sub) ->
       let ext = parse_fun sub in
       let r = Netstring_pcre.regexp ("^"^s^"$") in
       (function
-         | Extensions.Req_found (_, r) ->
-             Lwt.return (Extensions.Ext_found r)
-         | Extensions.Req_not_found (err, ri) ->
+         | Ocsigen_extensions.Req_found (_, r) ->
+             Lwt.return (Ocsigen_extensions.Ext_found r)
+         | Ocsigen_extensions.Req_not_found (err, ri) ->
              if Netstring_pcre.string_match r (string_of_int err) 0 <> None then
                Lwt.return (Ext_sub_result ext)
              else
-               Lwt.return (Extensions.Ext_next err))
+               Lwt.return (Ocsigen_extensions.Ext_next err))
 
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> badconfig "(accesscontrol extension) Bad data"

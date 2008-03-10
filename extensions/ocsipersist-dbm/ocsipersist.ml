@@ -43,19 +43,19 @@ let rec parse_global_config d = function
   | (Element ("store", [("dir", s)], []))::ll -> 
       (match d with
       | None, dbm -> parse_global_config ((Some s), dbm) ll
-      | (Some _), _ -> raise (Extensions.Error_in_config_file 
+      | (Some _), _ -> raise (Ocsigen_extensions.Error_in_config_file 
                                 ("Ocsipersist: Duplicate <store> tag")))
   | (Element ("ocsidbm", [("name", s)], []))::ll -> 
       (match d with
       | a, None -> parse_global_config (a, (Some s)) ll
-      | _, Some _ -> raise (Extensions.Error_in_config_file 
+      | _, Some _ -> raise (Ocsigen_extensions.Error_in_config_file 
                               ("Ocsipersist: Duplicate <ocsidbm> tag")))
   | (Element (tag,_,_))::ll -> parse_global_config d ll
-  | _ -> raise (Extensions.Error_in_config_file ("Unexpected content inside Ocsipersist config"))
+  | _ -> raise (Ocsigen_extensions.Error_in_config_file ("Unexpected content inside Ocsipersist config"))
         
 let (directory, ocsidbm) = 
   let (store, ocsidbm) =
-    parse_global_config (None, None) (Extensions.get_config ()) 
+    parse_global_config (None, None) (Ocsigen_extensions.get_config ()) 
   in
   ((match store with
   | None -> (Ocsigen_config.get_datadir ())^"/ocsipersist"

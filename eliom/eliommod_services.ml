@@ -117,7 +117,7 @@ let rec insert_as_last_of_generation generation x = function
 
 let add_page_table duringsession url_act t (key, (id, va)) = 
   (* Duplicate registration forbidden in global table with same generation *)
-  let generation = Extensions.get_numberofreloads () in
+  let generation = Ocsigen_extensions.get_numberofreloads () in
   let v = (id, (generation, va)) in
   try
     let l, newt = Ocsigen_lib.list_assoc_remove key t in
@@ -260,7 +260,7 @@ let find_service
         | Eliom_common.File page_table_ref -> 
             (page_table_ref, (if a = None then [""] else aa::l)))
     in function
-      | [] -> raise Extensions.Ocsigen_Is_a_directory
+      | [] -> raise Ocsigen_extensions.Ocsigen_Is_a_directory
       | [""] -> aux None []
       | ""::l -> search_page_table dircontent l
       | a::l -> aux (Some a) l
@@ -268,7 +268,7 @@ let find_service
   let page_table_ref, suffix = 
     try 
       search_page_table !dircontentref 
-        (Ocsigen_lib.change_empty_list ri.Extensions.ri_sub_path)
+        (Ocsigen_lib.change_empty_list ri.Ocsigen_extensions.ri_sub_path)
     with Not_found -> raise Eliom_common.Eliom_404
   in
   find_page_table 
@@ -280,7 +280,7 @@ let find_service
     ri
     suffix
     {Eliom_common.key_state = si.Eliom_common.si_state_info;
-     Eliom_common.key_kind = ri.Extensions.ri_method}
+     Eliom_common.key_kind = ri.Ocsigen_extensions.ri_method}
     si
 
 (******************************************************************)
@@ -325,7 +325,7 @@ let get_page
         Ocsigen_messages.debug 
           (fun () ->
             "--Eliom: I'm looking for "^
-            (Ocsigen_lib.string_of_url_path ri.Extensions.ri_sub_path)^
+            (Ocsigen_lib.string_of_url_path ri.Ocsigen_extensions.ri_sub_path)^
             " in the session table:");
         find_aux Eliom_common.Eliom_404 !service_cookies_info
       )
@@ -357,12 +357,12 @@ let get_page
                           "--Eliom: Link to old. I will try without POST parameters:";
                         fail (Eliom_common.Eliom_retry_with 
                                 ({ri with 
-                                  Extensions.ri_post_params = lazy (return []);
-                                  Extensions.ri_method = 
+                                  Ocsigen_extensions.ri_post_params = lazy (return []);
+                                  Ocsigen_extensions.ri_method = 
                                   Http_frame.Http_header.GET;
-                                  Extensions.ri_extension_info=
+                                  Ocsigen_extensions.ri_extension_info=
                                   Eliom_common.Eliom_Link_too_old::
-                                  ri.Extensions.ri_extension_info
+                                  ri.Ocsigen_extensions.ri_extension_info
                                 }, 
                                  {si with
                                   Eliom_common.si_nonatt_info= 
@@ -383,12 +383,12 @@ let get_page
                                 ({ri with 
                                   ri_get_params = 
                                   lazy si.Eliom_common.si_other_get_params;
-                                  Extensions.ri_post_params = lazy (return []);
-                                  Extensions.ri_method = 
+                                  Ocsigen_extensions.ri_post_params = lazy (return []);
+                                  Ocsigen_extensions.ri_method = 
                                   Http_frame.Http_header.GET;
-                                  Extensions.ri_extension_info= 
+                                  Ocsigen_extensions.ri_extension_info= 
                                   Eliom_common.Eliom_Link_too_old::
-                                  ri.Extensions.ri_extension_info
+                                  ri.Ocsigen_extensions.ri_extension_info
                                 },
                                  {si with
                                   Eliom_common.si_nonatt_info= 

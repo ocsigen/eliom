@@ -23,7 +23,7 @@
 
 open Lwt
 open Ocsigen_lib
-open Extensions
+open Ocsigen_extensions
 open Eliom_sessions
 open Eliom_parameters
 open Lazy

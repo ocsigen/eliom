@@ -46,7 +46,7 @@ Then load it dynamically from Ocsigen's config file:
 *)
 
 open Lwt
-open Extensions
+open Ocsigen_extensions
 open Simplexmlparser
 
 exception Not_concerned
@@ -71,7 +71,7 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file 
                   ("Unexpected content inside revproxy config"))
 
-let _ = parse_global_config (Extensions.get_config ())
+let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 
@@ -109,8 +109,8 @@ let end_init () =
 exception Bad_answer_from_http_server
 
 let gen dir charset = function
-| Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
-| Extensions.Req_not_found (err, ri) ->
+| Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+| Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a redirection? *)
     (fun () ->

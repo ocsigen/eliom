@@ -30,7 +30,7 @@ val find_naservice :
   (Eliom_common.server_params -> Eliom_common.result_to_send Lwt.t)
 val make_naservice :
   float ->
-  Extensions.request_info * Eliom_common.sess_info * Http_frame.cookieset *
+  Ocsigen_extensions.request_info * Eliom_common.sess_info * Http_frame.cookieset *
   ((string option *
     Eliom_common.tables Eliom_common.one_service_cookie_info
     Eliom_common.session_cookie ref)

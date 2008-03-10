@@ -26,7 +26,7 @@ open Lwt
 open Ocsigen_lib
 open XHTML.M
 open Xhtmltypes
-open Extensions
+open Ocsigen_extensions
 open Eliom_sessions
 open Eliom_services
 open Eliom_parameters

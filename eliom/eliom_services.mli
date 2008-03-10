@@ -23,7 +23,7 @@
 (** This module allows to define services. *)
 
 
-open Extensions
+open Ocsigen_extensions
 open Eliom_parameters
 
 

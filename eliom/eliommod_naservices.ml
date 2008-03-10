@@ -46,7 +46,7 @@ let remove_naservice_table at k =
 let add_naservice 
     (_, naservicetableref, _, containstimeouts) duringsession name 
     (max_use, expdate, naservice) =
-  let generation = Extensions.get_numberofreloads () in
+  let generation = Ocsigen_extensions.get_numberofreloads () in
   (if not duringsession
   then
     try
@@ -147,13 +147,13 @@ let make_naservice
             "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
           Eliom_common.change_request_info
             {ri with 
-             Extensions.ri_get_params = 
+             Ocsigen_extensions.ri_get_params = 
              lazy si.Eliom_common.si_other_get_params;
-             Extensions.ri_post_params = lazy (return []);
-             Extensions.ri_method = Http_frame.Http_header.GET;
-             Extensions.ri_extension_info= 
+             Ocsigen_extensions.ri_post_params = lazy (return []);
+             Ocsigen_extensions.ri_method = Http_frame.Http_header.GET;
+             Ocsigen_extensions.ri_extension_info= 
              Eliom_common.Eliom_Link_too_old::
-             ri.Extensions.ri_extension_info
+             ri.Ocsigen_extensions.ri_extension_info
             } 
             si.Eliom_common.si_config_file_charset
             si.Eliom_common.si_previous_extension_error
@@ -169,13 +169,13 @@ let make_naservice
             "--Eliom: Link too old. I will try without non-attached parameters:";
           Eliom_common.change_request_info
             {ri with 
-             Extensions.ri_get_params = 
+             Ocsigen_extensions.ri_get_params = 
              lazy si.Eliom_common.si_other_get_params;
-             Extensions.ri_post_params = lazy (return []);
-             Extensions.ri_method = Http_frame.Http_header.GET;
-             Extensions.ri_extension_info= 
+             Ocsigen_extensions.ri_post_params = lazy (return []);
+             Ocsigen_extensions.ri_method = Http_frame.Http_header.GET;
+             Ocsigen_extensions.ri_extension_info= 
              Eliom_common.Eliom_Link_too_old::
-             ri.Extensions.ri_extension_info
+             ri.Ocsigen_extensions.ri_extension_info
            } 
             si.Eliom_common.si_config_file_charset
             si.Eliom_common.si_previous_extension_error

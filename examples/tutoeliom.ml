@@ -462,7 +462,7 @@ let isuffix =
            [p [pcdata "The suffix of the url is ";
                strong [pcdata (string_of_int suff)];
                pcdata " followed by ";
-               strong [pcdata (Extensions.string_of_url_path endsuff)];
+               strong [pcdata (Ocsigen_extensions.string_of_url_path endsuff)];
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*html*
@@ -2397,7 +2397,7 @@ let sendfile2 =
   Files.register_new_service 
     ~path:["files"]
     ~get_params:(suffix (all_suffix "filename"))
-    (fun _ s () -&gt; return ("<em>path</em>"^(Extensions.string_of_url_path s)))
+    (fun _ s () -&gt; return ("<em>path</em>"^(Ocsigen_extensions.string_of_url_path s)))
 </pre>
       <p>The extension <code>Staticmod</code> is another way to
        handle static files (see the default 
@@ -3723,7 +3723,7 @@ let create_suffixform ((suff, endsuff),i) =
     <:xmllist< <p>Write the suffix: 
       $int_input ~input_type:`Text ~name:suff ()$ <br/>
       Write a string: $user_type_input 
-         ~input_type:`Text ~name:endsuff Extensions.string_of_url_path$ <br/>
+         ~input_type:`Text ~name:endsuff Ocsigen_extensions.string_of_url_path$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 
@@ -3744,13 +3744,13 @@ let suffixform = register_new_service ["suffixform"] unit
 
       <p>The $a ~fragment:"VALfile" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.file" ]] [version;"Eliom_parameters.html"]$ parameter type allows to send files in your
        request. The service gets something of type 
-       $a ~fragment:"TYPEfile_info" ~service:senddoc ~sp [code [pcdata "Extensions.file_info" ]] [version;"Extensions.html"]$. You can extract information
+       $a ~fragment:"TYPEfile_info" ~service:senddoc ~sp [code [pcdata "Ocsigen_extensions.file_info" ]] [version;"Ocsigen_extensions.html"]$. You can extract information
        using this using these functions (from $a ~service:senddoc ~sp [code [pcdata "Eliom_sessions" ]] [version;"Eliom_sessions.html"]$):
       </p>
 <pre>
-val get_tmp_filename : Extensions.file_info -&gt; string
-val get_filesize : Extensions.file_info -&gt; int64
-val get_original_filename : Extensions.file_info -&gt; string
+val get_tmp_filename : Ocsigen_extensions.file_info -&gt; string
+val get_filesize : Ocsigen_extensions.file_info -&gt; int64
+val get_original_filename : Ocsigen_extensions.file_info -&gt; string
 </pre>
       <p>$a ~fragment:"VALget_tmp_filename" ~service:senddoc ~sp [code [pcdata "Eliom_sessions.get_tmp_filename" ]] [version;"Eliom_sessions.html"]$ allows to know the actual name
        of the uploaded file on the hard disk.

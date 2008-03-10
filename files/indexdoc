@@ -14,7 +14,7 @@ Xhtmlpretty
 
 {4 Extending Ocsigen}
 {!modules: 
-Extensions 
+Ocsigen_extensions 
 Ocsiheaders 
 Predefined_senders 
 Http_frame

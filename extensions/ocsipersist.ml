@@ -44,14 +44,14 @@ let rec parse_global_config d = function
   | (Element ("database", [("file", s)], []))::ll -> 
       (match d with
       | None  -> parse_global_config (Some s) ll
-      | (Some _) -> raise (Extensions.Error_in_config_file 
+      | (Some _) -> raise (Ocsigen_extensions.Error_in_config_file 
                              ("Ocsipersist: Duplicate <store> tag")))
   | (Element (tag,_,_))::ll -> parse_global_config d ll
-  | _ -> raise (Extensions.Error_in_config_file
+  | _ -> raise (Ocsigen_extensions.Error_in_config_file
                   ("Unexpected content inside Ocsipersist config"))
         
 let db_file = 
-  match parse_global_config None (Extensions.get_config ()) with
+  match parse_global_config None (Ocsigen_extensions.get_config ()) with
   | None -> (Ocsigen_config.get_datadir ())^"/ocsidb"
   | Some d -> d
 

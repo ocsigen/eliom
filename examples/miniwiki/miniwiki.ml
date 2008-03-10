@@ -82,7 +82,7 @@ let with_open_in fname f =
 let wiki_file_dir = 
   let rec find_wikidata = function
       [Element ("wikidata", [("dir", s)],_)] -> s
-    | _ -> raise (Extensions.Error_in_config_file ("Unexpected content inside Miniwiki config"))
+    | _ -> raise (Ocsigen_extensions.Error_in_config_file ("Unexpected content inside Miniwiki config"))
   in
   let c = get_config () in
   find_wikidata c

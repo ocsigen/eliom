@@ -276,7 +276,7 @@ val register_extension :
   unit
   
 
-(** A predefined function to be passed to {!Extensions.register_extension}
+(** A predefined function to be passed to {!Ocsigen_extensions.register_extension}
     that defines no option. 
  *)
 val void_extension :

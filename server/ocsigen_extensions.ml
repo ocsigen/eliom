@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * Module extensions.ml
+ * Module ocsigen_extensions.ml
  * Copyright (C) 2005 2007 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *

@@ -20,7 +20,7 @@
  *)
 
 
-open Extensions
+open Ocsigen_extensions
 open Ocsigen_lib
 
 (** Type of names in a formular *)

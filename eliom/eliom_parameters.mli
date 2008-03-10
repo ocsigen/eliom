@@ -51,7 +51,7 @@ to find during implementation.
 
  *)
 
-open Extensions
+open Ocsigen_extensions
 
 (** {2 Types used by the module} *)
 
@@ -326,7 +326,7 @@ val construct_params_list :
 val reconstruct_params :
     ('a, [< `WithSuffix | `WithoutSuffix ], 'b) params_type ->
       (string * string) list ->
-        (string * Extensions.file_info) list -> string list -> 'a
+        (string * Ocsigen_extensions.file_info) list -> string list -> 'a
 
 type anon_params_type = int
 

@@ -28,8 +28,8 @@
 (* If you want to create an extension to filter the output of the server
    (for ex: compression), have a look at deflatemod.ml as an example.
    It is very similar to this example, but using 
-   Extensions.register_output_filter
-   instead of Extensions.register_extension.
+   Ocsigen_extensions.register_output_filter
+   instead of Ocsigen_extensions.register_extension.
  *)
 
 (* To compile it:
@@ -41,7 +41,7 @@ Then load it dynamically from Ocsigen's config file:
 *)
 
 open Lwt
-open Extensions
+open Ocsigen_extensions
 open Simplexmlparser
 
 
@@ -63,7 +63,7 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file 
                   ("Unexpected content inside extensiontemplate config"))
 
-let _ = parse_global_config (Extensions.get_config ())
+let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 
@@ -74,17 +74,17 @@ let _ = parse_global_config (Extensions.get_config ())
 
     - the [string option] is the encoding for characters possibly specified 
    in the configuration file,
-    - [Extensions.req_state] is the request, possibly modified by previous
+    - [Ocsigen_extensions.req_state] is the request, possibly modified by previous
     extensions, or already found
 
  *)
 let gen charset = function
-  | Extensions.Req_found (_, r) -> 
+  | Ocsigen_extensions.Req_found (_, r) -> 
       (* If previous extension already found the page, you can
          modify the result (if you write a filter) or return it 
          without modification like this: *)
-      Lwt.return (Extensions.Ext_found r)
-  | Extensions.Req_not_found (err, ri) ->
+      Lwt.return (Ocsigen_extensions.Ext_found r)
+  | Ocsigen_extensions.Req_not_found (err, ri) ->
       (* If previous extensions did not find the result, 
          I decide here to answer with a default page
          (for the example):
@@ -122,10 +122,10 @@ let gen charset = function
       let ext = parse_fun sub in
 (* DANGER: parse_fun MUST be called BEFORE the function! *)
       (fun charset -> function
-        | Extensions.Req_found (_, _) ->
+        | Ocsigen_extensions.Req_found (_, _) ->
             Lwt.return (Ext_sub_result ext)
-        | Extensions.Req_not_found (err, ri) -> 
-            Lwt.return (Extensions.Ext_not_found err))
+        | Ocsigen_extensions.Req_not_found (err, ri) -> 
+            Lwt.return (Ocsigen_extensions.Ext_not_found err))
 ]}
  *)
 
@@ -178,7 +178,7 @@ let exn_handler = raise
      {- return something of type [extension] (filter or page generator)}}
 *)
 let site_creator hostpattern = parse_config
-   (* hostpattern has type Extensions.virtual_hosts
+   (* hostpattern has type Ocsigen_extensions.virtual_hosts
       and represents the name of the virtual host.
       The path and the charset are declared in <site path... charset=.../>
     *)
@@ -188,7 +188,7 @@ let site_creator hostpattern = parse_config
 (** Registration of the extension *)
 let _ = register_extension
   site_creator
-  Extensions.void_extension (* If I don't want to allow users to use
+  Ocsigen_extensions.void_extension (* If I don't want to allow users to use
                                that extension in their configuration files
                                (that are reloaded at every request).
                                If my extension is safe for users and if

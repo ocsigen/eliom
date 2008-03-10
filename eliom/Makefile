@@ -196,7 +196,7 @@ ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 	$(CAMLOPT) $(PP) -c $<
 
 #doc:
-#	$(CAMLDOC) -d doc -html eliom.mli ocsigen.mli extensions.mli
+#	$(CAMLDOC) -d doc -html eliom.mli ocsigen.mli ocsigen_extensions.mli
 
 .PHONY: clean
 clean:

@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Extensions
+open Ocsigen_extensions
 
 exception Ocsigen_Wrong_parameter
 exception Ocsigen_duplicate_registering of string

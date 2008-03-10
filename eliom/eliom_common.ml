@@ -87,8 +87,8 @@ type internal_state = string
     The strings are names and values.
  *)
 type cookie = 
-  | Set of Extensions.url_path option * float option * string * string
-  | Unset of Extensions.url_path option * string
+  | Set of Ocsigen_extensions.url_path option * float option * string * string
+  | Unset of Ocsigen_extensions.url_path option * string
 
 
 
@@ -300,11 +300,11 @@ end)
 type anon_params_type = int
 
 type server_params = 
-    {sp_ri:Extensions.request_info;
+    {sp_ri:Ocsigen_extensions.request_info;
      sp_si:sess_info;
      sp_sitedata:sitedata (* data for the whole site *);
      sp_cookie_info:tables cookie_info;
-     sp_suffix:Extensions.url_path (* suffix *);
+     sp_suffix:Ocsigen_extensions.url_path (* suffix *);
      sp_fullsessname:string option (* the name of the session
                                       to which belong the service
                                       that answered
@@ -354,7 +354,7 @@ and tables =
     bool ref (* true if naservice_table contains services with timeout *)
 
 and sitedata =
-  {site_dir: Extensions.url_path;
+  {site_dir: Ocsigen_extensions.url_path;
    site_dir_string: string;
    mutable servtimeout: (string * float option) list;
    mutable datatimeout: (string * float option) list;
@@ -365,7 +365,7 @@ and sitedata =
    mutable remove_session_data: string -> unit;
    mutable not_bound_in_data_tables: string -> bool;
    mutable exn_handler: server_params -> exn -> result_to_send Lwt.t;
-   mutable unregistered_services: Extensions.url_path list;
+   mutable unregistered_services: Ocsigen_extensions.url_path list;
    mutable unregistered_na_services: na_key list;
    mutable max_volatile_data_sessions_per_group: int option;
    mutable max_service_sessions_per_group: int option;
@@ -437,19 +437,19 @@ let getcookies cookiename cookies =
 
 
 let change_request_info ri charset previous_extension_err =
-  Lazy.force ri.Extensions.ri_post_params >>=
+  Lazy.force ri.Ocsigen_extensions.ri_post_params >>=
   (fun post_params -> 
-    let get_params = Lazy.force ri.Extensions.ri_get_params in
+    let get_params = Lazy.force ri.Ocsigen_extensions.ri_get_params in
     let get_params0 = get_params in
     let post_params0 = post_params in
     let data_cookies = getcookies datacookiename 
-        (Lazy.force ri.Extensions.ri_cookies) 
+        (Lazy.force ri.Ocsigen_extensions.ri_cookies) 
     in
     let service_cookies = getcookies servicecookiename 
-        (Lazy.force ri.Extensions.ri_cookies) 
+        (Lazy.force ri.Ocsigen_extensions.ri_cookies) 
     in
     let persistent_cookies = 
-      getcookies persistentcookiename (Lazy.force ri.Extensions.ri_cookies)
+      getcookies persistentcookiename (Lazy.force ri.Ocsigen_extensions.ri_cookies)
     in
     let naservice_info, 
       (get_state, post_state),
@@ -527,12 +527,12 @@ let change_request_info ri charset previous_extension_err =
 
     return 
       ({ri with 
-        Extensions.ri_method = 
-        (if ri.Extensions.ri_method = Http_frame.Http_header.HEAD
+        Ocsigen_extensions.ri_method = 
+        (if ri.Ocsigen_extensions.ri_method = Http_frame.Http_header.HEAD
         then Http_frame.Http_header.GET
-        else ri.Extensions.ri_method);
-        Extensions.ri_get_params = lazy get_params; 
-        Extensions.ri_post_params = lazy (return post_params)},
+        else ri.Ocsigen_extensions.ri_method);
+        Ocsigen_extensions.ri_get_params = lazy get_params; 
+        Ocsigen_extensions.ri_post_params = lazy (return post_params)},
        {si_service_session_cookies= service_cookies;
         si_data_session_cookies= data_cookies;
         si_persistent_session_cookies= persistent_cookies;
@@ -566,7 +566,7 @@ let make_fullsessname2 site_dir_string = function
 
 (*****************************************************************************)
 exception Eliom_retry_with of 
-  (Extensions.request_info * 
+  (Ocsigen_extensions.request_info * 
      sess_info * 
      Http_frame.cookieset (* user cookies set by previous pages *) *
      tables cookie_info
@@ -666,7 +666,7 @@ let during_eliom_module_loading,
    (fun () -> during_eliom_module_loading_ := false))
 
 let global_register_allowed () =
-  if (Extensions.during_initialisation ()) && (during_eliom_module_loading ())
+  if (Ocsigen_extensions.during_initialisation ()) && (during_eliom_module_loading ())
   then Some get_current_sitedata
   else None
 

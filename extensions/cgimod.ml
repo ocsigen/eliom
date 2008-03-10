@@ -26,7 +26,7 @@
 *)
 
 open Lwt
-open Extensions
+open Ocsigen_extensions
 open Simplexmlparser
 open Http_frame
 open Http_com
@@ -50,9 +50,9 @@ let cgitimeout = ref 30
 type reg = {
   regexp:Regexp.regexp; (** regexp of the script url *)
   
-  doc_root: Extensions.ud_string; 
+  doc_root: Ocsigen_extensions.ud_string; 
                                 (** physical directory of the script (regexp) *)
-  script: Extensions.ud_string; (** physical name of the script (regexp) *)
+  script: Ocsigen_extensions.ud_string; (** physical name of the script (regexp) *)
   
   path: string; (** path of the script *)
   path_info: string; (** path_info environment variable *)
@@ -166,8 +166,8 @@ let find_cgi_page reg sub_path =
   | Some (path', path_info) -> 
     let path'' = reg.path^path' in
     try
-      let dr = Extensions.replace_user_dir reg.regexp reg.doc_root path' in
-      let sc = Extensions.replace_user_dir reg.regexp reg.script path' in
+      let dr = Ocsigen_extensions.replace_user_dir reg.regexp reg.doc_root path' in
+      let sc = Ocsigen_extensions.replace_user_dir reg.regexp reg.script path' in
       let reg = 
         {reg with
          path = path'';
@@ -457,7 +457,7 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file 
                   ("Unexpected content inside cgimod config"))
 
-let _ = parse_global_config (Extensions.get_config ())
+let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 
@@ -472,8 +472,8 @@ let exn_handler = raise
 (*****************************************************************************)
 
 let gen reg charset = function
-| Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
-| Extensions.Req_not_found (err, ri) ->
+| Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+| Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a cgi page? *)
     (fun () ->
@@ -587,8 +587,8 @@ let parse_config path charset _ parse_site = function
       {
 	   regexp= Regexp.regexp ("^"^(good_root r)^"([^/]*)");
 	   
-	   doc_root= Extensions.parse_user_dir (string_conform1 s);
-	   script= Extensions.parse_user_dir "$1";
+	   doc_root= Ocsigen_extensions.parse_user_dir (string_conform1 s);
+	   script= Ocsigen_extensions.parse_user_dir "$1";
 	   
 	   path= string_conform (Ocsigen_lib.string_of_url_path path); 
            path_info="";
@@ -599,8 +599,8 @@ let parse_config path charset _ parse_site = function
 	  {
 	   regexp=Regexp.regexp ("^"^s);
 	   
-	   doc_root= Extensions.parse_user_dir (string_conform1 d);
-	   script= Extensions.parse_user_dir t;
+	   doc_root= Ocsigen_extensions.parse_user_dir (string_conform1 d);
+	   script= Ocsigen_extensions.parse_user_dir t;
 	   
 	   path= string_conform (Ocsigen_lib.string_of_url_path path);
            path_info=""; (* unknown for the moment *)

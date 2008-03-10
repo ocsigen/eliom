@@ -24,7 +24,7 @@
 
 open Lwt
 open Ocsigen_lib
-open Extensions
+open Ocsigen_extensions
 open Eliom_parameters
 open Eliom_services
 open Eliom_sessions

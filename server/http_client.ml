@@ -384,9 +384,9 @@ let raw_request
           "--Http_client: Trying to find an opened connection for same client - connection number ";
         Ocsigen_messages.debug (fun () -> 
           string_of_int 
-            (Extensions.client_id client));
+            (Ocsigen_extensions.client_id client));
         let new_waiter = Lwt.wait () in
-        let key = (Extensions.client_id client, (inet_addr, port, head)) in
+        let key = (Ocsigen_extensions.client_id client, (inet_addr, port, head)) in
         (* Is there already a connection for the same client? *)
         let (ref_thr_conn, get_frame, nb_users) =
           try

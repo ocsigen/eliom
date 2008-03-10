@@ -23,7 +23,7 @@ open Http_frame
 open Http_com
 open Lwt
 open Ocsigen_lib
-open Extensions
+open Ocsigen_extensions
 open Ocsigenmod
 open Lazy
 
@@ -31,7 +31,7 @@ let _ = Random.self_init ()
 
 let get_config () = !Ocsigenmod.config
 
-type url_path = Extensions.url_path
+type url_path = Ocsigen_extensions.url_path
 type server_params = Ocsigenmod.server_params
 
 let get_user_agent (ri,_,_) = ri.ri_user_agent

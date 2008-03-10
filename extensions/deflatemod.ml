@@ -24,7 +24,7 @@
 (*****************************************************************************)
 
 open Lwt
-open Extensions
+open Ocsigen_extensions
 open Simplexmlparser
 open Ocsiheaders
 
@@ -335,7 +335,7 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file 
                   "Unexpected content inside deflatemod config")
 
-let _ = parse_global_config (Extensions.get_config ())
+let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 
@@ -376,15 +376,15 @@ let parse_config path charset _ _ = function
 
 (*****************************************************************************)
 let site_creator hostpattern = parse_config
-   (* hostpattern has type Extensions.virtual_hosts
+   (* hostpattern has type Ocsigen_extensions.virtual_hosts
       and represents the name of the virtual host *)
    
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = Extensions.register_extension
+let _ = Ocsigen_extensions.register_extension
   site_creator
-  Extensions.void_extension
+  Ocsigen_extensions.void_extension
   start_init
   end_init
   exn_handler

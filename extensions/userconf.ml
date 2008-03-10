@@ -27,7 +27,7 @@
 
 open Lwt
 open Ocsigen_lib
-open Extensions
+open Ocsigen_extensions
 
 
 (*****************************************************************************)
@@ -36,9 +36,9 @@ exception Failed_404
 
 let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state = 
   match req_state with
-  | Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
+  | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
 (*VVV not possible to set a filter for now *)
-  | Extensions.Req_not_found (previous_extension_err, ri) ->
+  | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
       let path = ri.ri_sub_path_string in
       match Netstring_pcre.string_match regexp path 0 with
       | None -> Lwt.return (Ext_next previous_extension_err)
@@ -47,15 +47,15 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
             Ocsigen_messages.debug2 "--Userconf: Using user configuration";
             let conf = 
               try
-                Extensions.replace_user_dir regexp conf path 
+                Ocsigen_extensions.replace_user_dir regexp conf path 
               with Not_found -> raise Failed_404
             in
             let url = Netstring_pcre.global_replace regexp url path in
             let prefix = Netstring_pcre.global_replace regexp prefix path in
             ignore (Unix.stat conf);
-            let user_parse_host = Extensions.parse_user_site_item hostpattern in
+            let user_parse_host = Ocsigen_extensions.parse_user_site_item hostpattern in
             let user_parse_site = 
-              Extensions.make_parse_site
+              Ocsigen_extensions.make_parse_site
                 (sitepath@[prefix]) charset user_parse_host 
             in
             let xmllist = Simplexmlparser.xmlparser conf in
@@ -71,7 +71,7 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
                      xmllist
                      awake
                      cookies_to_set
-                     (Extensions.Req_not_found 
+                     (Ocsigen_extensions.Req_not_found 
                         (previous_extension_err, 
                          {ri with
                           ri_sub_path = path; 
@@ -103,9 +103,9 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
           with
           | Unix.Unix_error (Unix.EACCES,_,_)
           | Unix.Unix_error (Unix.ENOENT, _, _) ->
-              Lwt.return (Extensions.Ext_next previous_extension_err)
+              Lwt.return (Ocsigen_extensions.Ext_next previous_extension_err)
           | Failed_404 ->
-              Lwt.return (Extensions.Ext_next 404)
+              Lwt.return (Ocsigen_extensions.Ext_next 404)
 
           
 
@@ -126,7 +126,7 @@ let parse_config hostpattern path charset =
             raise (Error_in_config_file "Bad regexp in <userconf regexp=\"...\" />"))
       | ("conf", s)::l when conf = None ->
           parse_attrs_local
-            (regexp, Some (Extensions.parse_user_dir s), url, prefix)
+            (regexp, Some (Ocsigen_extensions.parse_user_dir s), url, prefix)
             l
       | ("url", s)::l when url = None ->
           parse_attrs_local
@@ -166,9 +166,9 @@ let end_init () =
 (** extension registration *)
 let _ = register_extension
     parse_config
-    Extensions.void_extension
+    Ocsigen_extensions.void_extension
   (*fun hostpattern -> 
-    parse_config (Extensions.parse_user_site_item hostpattern)*)
+    parse_config (Ocsigen_extensions.parse_user_site_item hostpattern)*)
   start_init
   end_init
   raise

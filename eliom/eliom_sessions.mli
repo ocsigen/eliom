@@ -23,7 +23,7 @@
    information about the request or the session.
  *)
 
-open Extensions
+open Ocsigen_extensions
 
 
 (** There are three kinds of sessions, all using different cookies:
@@ -79,7 +79,7 @@ val get_remote_inet_addr : sp:server_params -> Unix.inet_addr
 (** returns the full path of the URL as a string. *)
 val get_current_full_path_string : sp:server_params -> string
 
-(** returns the full path of the URL using the type {!Extensions.url_path} *)
+(** returns the full path of the URL using the type {!Ocsigen_extensions.url_path} *)
 val get_current_full_path : sp:server_params -> url_path
 
 (** returns the sub path of the URL as a string.
@@ -88,7 +88,7 @@ val get_current_full_path : sp:server_params -> url_path
  *)
 val get_current_sub_path_string : sp:server_params -> string
 
-(** returns the sub path of the URL using the type {!Extensions.url_path}.
+(** returns the sub path of the URL using the type {!Ocsigen_extensions.url_path}.
     The sub-path is the full path without the path of the site (set in the 
     configuration file).
  *)

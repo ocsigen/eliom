@@ -34,7 +34,7 @@ Then load it dynamically from Ocsigen's config file:
 *)
 
 open Lwt
-open Extensions
+open Ocsigen_extensions
 open Simplexmlparser
 
 
@@ -55,7 +55,7 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file 
                   ("Unexpected content inside redirectmod config"))
 
-let _ = parse_global_config (Extensions.get_config ())
+let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 
@@ -91,8 +91,8 @@ let end_init () =
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
 let gen dir charset = function
-| Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
-| Extensions.Req_not_found (err, ri) ->
+| Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+| Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a redirection? *)
     (fun () ->
@@ -158,7 +158,7 @@ let parse_config path charset _ parse_site = function
     - one that will be called to generate the pages
     - one to parse the configuration file. *)
 let virtual_host_creator hostpattern = (gen, parse_config)
-   (* hostpattern has type Extensions.virtual_hosts
+   (* hostpattern has type Ocsigen_extensions.virtual_hosts
       and represents the name of the virtual host *)
    
 

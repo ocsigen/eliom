@@ -192,8 +192,8 @@ let compute_exn closedservsessions =
 
 
 let gen sitedata charset = function
-| Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
-| Extensions.Req_not_found (previous_extension_err, ri) ->
+| Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+| Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in
   let rec gen_aux ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
     let genfun = 
@@ -238,7 +238,7 @@ let gen sitedata charset = function
 
               (match si.Eliom_common.si_nonatt_info, 
                 si.Eliom_common.si_state_info, 
-                ri.Extensions.ri_method with
+                ri.Ocsigen_extensions.ri_method with
               | Eliom_common.Na_no, 
                 (None, None), Http_frame.Http_header.GET ->
                   Eliommod_cookies.compute_cookies_to_send 
@@ -248,7 +248,7 @@ let gen sitedata charset = function
                   >>= fun all_new_cookies ->
                   let empty_result = Http_frame.empty_result () in
                   return
-                    (Extensions.Ext_found
+                    (Ocsigen_extensions.Ext_found
                        (fun () ->
                          Lwt.return
                            {empty_result with
@@ -258,8 +258,8 @@ let gen sitedata charset = function
                   
                   Eliommod_cookies.compute_new_ri_cookies 
                     now 
-                    ri.Extensions.ri_sub_path
-                    (Lazy.force ri.Extensions.ri_cookies)
+                    ri.Ocsigen_extensions.ri_sub_path
+                    (Lazy.force ri.Ocsigen_extensions.ri_cookies)
                     all_cookie_info
                     cookies_set_by_page
 (*VVV old_cookies_to_set already are in ri_cookies, right? *)
@@ -274,7 +274,7 @@ let gen sitedata charset = function
                   (match 
                     si.Eliom_common.si_nonatt_info, 
                     si.Eliom_common.si_state_info, 
-                    ri.Extensions.ri_method 
+                    ri.Ocsigen_extensions.ri_method 
                   with
                   | Eliom_common.Na_get_ _, 
                     (_, None), Http_frame.Http_header.GET
@@ -283,12 +283,12 @@ let gen sitedata charset = function
                       (* no post params, GET na coservice *)
                       
                       return
-                        (Extensions.Ext_retry_with
+                        (Ocsigen_extensions.Ext_retry_with
                            ({ri with
-                             Extensions.ri_get_params = 
+                             Ocsigen_extensions.ri_get_params = 
                              lazy si.Eliom_common.si_other_get_params;
-                             Extensions.ri_cookies= lazy ric;
-                             Extensions.ri_extension_info= exnlist
+                             Ocsigen_extensions.ri_cookies= lazy ric;
+                             Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
 (*VVV I do not keep the old exceptions any more, 
   otherwise no way to remove them. *)
@@ -303,12 +303,12 @@ let gen sitedata charset = function
                       
                       return
                         (* Ext_retry_with, not Eliom_retry_with *)
-                        (Extensions.Ext_retry_with
+                        (Ocsigen_extensions.Ext_retry_with
                            ({ri with
-                             Extensions.ri_get_params = 
+                             Ocsigen_extensions.ri_get_params = 
                              lazy si.Eliom_common.si_other_get_params;
-                             Extensions.ri_cookies= lazy ric;
-                             Extensions.ri_extension_info= exnlist
+                             Ocsigen_extensions.ri_cookies= lazy ric;
+                             Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
 (*VVV I do not keep the old exceptions any more, 
   otherwise no way to remove them. *)
@@ -323,18 +323,18 @@ let gen sitedata charset = function
                         
                       return
                         (* Ext_retry_with, not Eliom_retry_with *)
-                        (Extensions.Ext_retry_with
+                        (Ocsigen_extensions.Ext_retry_with
                            ({ri with
-                             Extensions.ri_get_params = 
+                             Ocsigen_extensions.ri_get_params = 
                              lazy si.Eliom_common.si_other_get_params;
 (*VVV 31/12/2007 <-
   do we keep GET na_name ?
   Here, yes.
 *)
-                             Extensions.ri_post_params = lazy (return []);
-                             Extensions.ri_method = Http_frame.Http_header.GET;
-                             Extensions.ri_cookies= lazy ric;
-                             Extensions.ri_extension_info= exnlist
+                             Ocsigen_extensions.ri_post_params = lazy (return []);
+                             Ocsigen_extensions.ri_method = Http_frame.Http_header.GET;
+                             Ocsigen_extensions.ri_cookies= lazy ric;
+                             Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
 (*VVV I do not keep the old exceptions any more, 
   otherwise no way to remove them. *)
@@ -347,12 +347,12 @@ let gen sitedata charset = function
                       
                       return
                         (* Ext_retry_with, not Eliom_retry_with *)
-                        (Extensions.Ext_retry_with
+                        (Ocsigen_extensions.Ext_retry_with
                            ({ri with
-                             Extensions.ri_post_params = lazy (return []);
-                             Extensions.ri_method = Http_frame.Http_header.GET;
-                             Extensions.ri_cookies= lazy ric;
-                             Extensions.ri_extension_info= exnlist
+                             Ocsigen_extensions.ri_post_params = lazy (return []);
+                             Ocsigen_extensions.ri_method = Http_frame.Http_header.GET;
+                             Ocsigen_extensions.ri_cookies= lazy ric;
+                             Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
 (*VVV I do not keep the old exceptions any more, 
   otherwise no way to remove them. *)
@@ -378,7 +378,7 @@ let gen sitedata charset = function
               >>= fun all_new_cookies ->
 
               return 
-                (Extensions.Ext_found 
+                (Ocsigen_extensions.Ext_found 
                    (fun () ->
                      Lwt.return
                        {res with
@@ -388,7 +388,7 @@ let gen sitedata charset = function
         | Eliom_common.Eliom_Typing_Error l -> 
             Predefined_senders.Xhtml_content.result_of_content
               (Error_pages.page_error_param_type l) >>= fun r ->
-            return (Extensions.Ext_found
+            return (Ocsigen_extensions.Ext_found
                       (fun () ->
                         Lwt.return
                           {r with
@@ -396,10 +396,10 @@ let gen sitedata charset = function
                            Http_frame.res_code= 500;
                          }))
 	| Eliom_common.Eliom_Wrong_parameter -> 
-            Lazy.force ri.Extensions.ri_post_params >>= fun ripp ->
+            Lazy.force ri.Ocsigen_extensions.ri_post_params >>= fun ripp ->
             Predefined_senders.Xhtml_content.result_of_content
                 (Error_pages.page_bad_param (List.map fst ripp)) >>= fun r ->
-            return (Extensions.Ext_found 
+            return (Ocsigen_extensions.Ext_found 
                       (fun () ->
                         Lwt.return
                           {r with
@@ -407,7 +407,7 @@ let gen sitedata charset = function
                            Http_frame.res_code= 500;
                          }))
 	| Eliom_common.Eliom_404 -> 
-            return (Extensions.Ext_next previous_extension_err)
+            return (Ocsigen_extensions.Ext_next previous_extension_err)
         | Eliom_common.Eliom_retry_with a -> gen_aux a
 	| e -> fail e)
 
@@ -422,8 +422,8 @@ let gen sitedata charset = function
       si.Eliom_common.si_persistent_session_cookies 
   in
   let exn = compute_exn closedsessions in
-  gen_aux ({ri with Extensions.ri_extension_info= 
-            exn@ri.Extensions.ri_extension_info}, 
+  gen_aux ({ri with Ocsigen_extensions.ri_extension_info= 
+            exn@ri.Ocsigen_extensions.ri_extension_info}, 
            si,
            Http_frame.Cookies.empty, 
            all_cookie_info)

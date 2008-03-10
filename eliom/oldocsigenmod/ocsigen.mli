@@ -28,7 +28,7 @@
 
 open XHTML.M
 open Xhtmltypes
-open Extensions
+open Ocsigen_extensions
 
 (** Allows extensions of the configuration file for your modules *)
 val get_config : unit -> Simplexmlparser.xml list

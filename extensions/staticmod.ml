@@ -27,7 +27,7 @@
 
 open Lwt
 open Ocsigen_lib
-open Extensions
+open Ocsigen_extensions
 
 
 exception Failed_403
@@ -40,7 +40,7 @@ exception Not_concerned
 type assockind = 
   | Dir of string * bool
   | Regexp of Netstring_pcre.regexp * 
-        Extensions.ud_string * 
+        Ocsigen_extensions.ud_string * 
         bool * 
         Netstring_pcre.regexp option
 
@@ -122,7 +122,7 @@ let find_static_page dir err path pathstring =
          | Some _ -> (* Matching regexp found! *)
              find_file
                ((try
-                 Extensions.replace_user_dir regexp dest pathstring
+                 Ocsigen_extensions.replace_user_dir regexp dest pathstring
                with Not_found -> raise Failed_404), 
                 readable))
       else raise Not_concerned
@@ -133,8 +133,8 @@ let find_static_page dir err path pathstring =
 
 
 let gen dir charset = function
-  | Extensions.Req_found (_, r) -> Lwt.return (Extensions.Ext_found r)
-  | Extensions.Req_not_found (err, ri) ->
+  | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+  | Ocsigen_extensions.Req_not_found (err, ri) ->
       catch
         (* Is it a static page? *)
         (fun () ->
@@ -216,7 +216,7 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file 
                   ("Unexpected content inside static config"))
 
-let _ = parse_global_config (Extensions.get_config ())
+let _ = parse_global_config (Ocsigen_extensions.get_config ())
 *)
 
 

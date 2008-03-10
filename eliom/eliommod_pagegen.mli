@@ -1,13 +1,13 @@
 val def_handler : 'a -> exn -> 'b Lwt.t
 val handle_site_exn :
   exn ->
-  Extensions.request_info * Eliom_common.sess_info * 'a *
+  Ocsigen_extensions.request_info * Eliom_common.sess_info * 'a *
   Eliom_common.tables Eliom_common.cookie_info ->
   Eliom_common.sitedata -> Eliom_common.result_to_send Lwt.t
 val execute :
   float ->
   (float ->
-   Extensions.request_info * Eliom_common.sess_info * 'a *
+   Ocsigen_extensions.request_info * Eliom_common.sess_info * 'a *
    ((string option *
      Eliom_common.tables Eliom_common.one_service_cookie_info
      Eliom_common.session_cookie ref)
@@ -21,7 +21,7 @@ val execute :
      Eliom_common.one_persistent_cookie_info Eliom_common.session_cookie ref)
     Lwt.t Lazy.t Http_frame.Cookievalues.t ref) ->
    Eliom_common.sitedata -> Eliom_common.result_to_send Lwt.t) ->
-  Extensions.request_info * Eliom_common.sess_info * 'a *
+  Ocsigen_extensions.request_info * Eliom_common.sess_info * 'a *
   ((string option *
     Eliom_common.tables Eliom_common.one_service_cookie_info
     Eliom_common.session_cookie ref)
@@ -38,4 +38,4 @@ val execute :
 val compute_exn : string list -> exn list
 val gen :
   Eliom_common.sitedata ->
-  string -> Extensions.request_state -> Extensions.answer Lwt.t
+  string -> Ocsigen_extensions.request_state -> Ocsigen_extensions.answer Lwt.t

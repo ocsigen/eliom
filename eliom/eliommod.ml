@@ -30,7 +30,7 @@
 open Lwt
 open Http_frame
 open Ocsigen_lib
-open Extensions
+open Ocsigen_extensions
 open Lazy
 
 
@@ -203,7 +203,7 @@ let rec parse_global_config = function
   | _ -> raise (Error_in_config_file ("Unexpected content inside eliom config"))
         
         
-let _ = parse_global_config (Extensions.get_config ())
+let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 
@@ -247,7 +247,7 @@ let parse_config site_dir charset =
   let rec parse_module_attrs file = function
     | [] -> (match file with
         None -> 
-          raise (Extensions.Error_in_config_file
+          raise (Ocsigen_extensions.Error_in_config_file
                    ("Missing module attribute in <eliom>"))
       | Some s -> s)
     | ("module", s)::suite ->
@@ -283,7 +283,7 @@ let parse_config site_dir charset =
         load_eliom_module sitedata file content;
         Eliommod_pagegen.gen sitedata charset
     | Element (t, _, _) -> 
-        raise (Extensions.Bad_config_tag_for_extension t)
+        raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")
 
 
@@ -361,7 +361,7 @@ let handle_init_exn = function
 (** extension registration *)
 let _ = register_extension
   (fun hostpattern -> parse_config)
-  Extensions.void_extension
+  Ocsigen_extensions.void_extension
   start_init
   end_init
   handle_init_exn
