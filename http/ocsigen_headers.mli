@@ -1,5 +1,5 @@
 (* Ocsigen
- * ocsiheaders.mli Copyright (C) 2005 Vincent Balat
+ * ocsigen_headers.mli Copyright (C) 2005 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify

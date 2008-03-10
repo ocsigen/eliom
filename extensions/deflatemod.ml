@@ -26,7 +26,7 @@
 open Lwt
 open Ocsigen_extensions
 open Simplexmlparser
-open Ocsiheaders
+open Ocsigen_headers
 
 
 (* Content-type *)
@@ -249,7 +249,7 @@ let stream_filter contentencoding url deflate choice res =
    match res.Http_frame.res_content_type with
    | None -> raise No_compress (* il faudrait défaut ? *)
    | Some contenttype ->
-       match Ocsiheaders.parse_mime_type contenttype with
+       match Ocsigen_headers.parse_mime_type contenttype with
        | None, _ | _, None -> raise No_compress (* should never happen? *)
        | (Some a, Some b) 
             when should_compress (a, b) url choice -> 
@@ -297,7 +297,7 @@ let filter choice_list = function
 let rec parse_filter = function
  |[] -> []
  |(Element ("type",[],[PCData t]))::q -> 
-   let (a,b) = (Ocsiheaders.parse_mime_type t) 
+   let (a,b) = (Ocsigen_headers.parse_mime_type t) 
    in Type (a,b) :: parse_filter q
  |(Element ("extension",[],[PCData t]))::q -> 
   (Extension t) :: parse_filter q

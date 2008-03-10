@@ -594,7 +594,7 @@ let raw_request
       
       
       let server_keepalive = 
-        Ocsiheaders.get_keepalive http_frame.Http_frame.header 
+        Ocsigen_headers.get_keepalive http_frame.Http_frame.header 
       in
       if keep_alive_asked && not server_keepalive then
         (* The server does not want to do keep-alive *)

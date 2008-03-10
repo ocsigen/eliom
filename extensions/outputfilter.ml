@@ -26,7 +26,7 @@
 open Lwt
 open Ocsigen_extensions
 open Simplexmlparser
-open Ocsiheaders
+open Ocsigen_headers
 
 
 let gen (header, regexp, dest) charset = function

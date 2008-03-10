@@ -71,7 +71,7 @@ CMAO = ../lwt/lwt.cma \
        ../baselib/ocsigen_loader.cmo \
        ../http/ocsistream.cmo ../http/multipart.cmo \
        ../http/http_headers.cmo \
-       ../http/http_frame.cmo ../http/ocsiheaders.cmo \
+       ../http/http_frame.cmo ../http/ocsigen_headers.cmo \
        ../http/http_lexer.cmo ../http/http_parser.cmo \
        ../http/framepp.cmo ../http/http_com.cmo \
        ../xmlp4/xhtml.cma ../xmlp4/xhtmlpretty.cmo \

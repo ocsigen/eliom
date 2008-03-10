@@ -25,7 +25,7 @@ open Ocsigen_messages
 open Ocsigen_lib
 open Ocsigen_extensions
 open Http_frame
-open Ocsiheaders
+open Ocsigen_headers
 open Http_com
 open Predefined_senders
 open Ocsigen_config

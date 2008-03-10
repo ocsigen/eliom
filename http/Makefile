@@ -24,7 +24,7 @@ PP =
 ALL_CMO  = ocsistream.cmo multipart.cmo \
            http_headers.cmo http_frame.cmo http_parser.cmo http_lexer.cmo \
 	   framepp.cmo http_com.cmo predefined_senders.cmo \
-	   ocsiheaders.cmo #test_pp.cmo
+	   ocsigen_headers.cmo #test_pp.cmo
 
 ALL_CMX  = $(ALL_CMO:.cmo=.cmx)
 
