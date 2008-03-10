@@ -32,7 +32,7 @@ val extract_info :
   Simplexmlparser.xml list ->
   (string option * string option) *
   ((string option * string option) option * 
-     int list * int list) * (int * int)
+     (Unix.inet_addr option * int) list * (Unix.inet_addr option * int) list) * (int * int)
 val parse_config :
   unit ->
   Simplexmlparser.xml list list

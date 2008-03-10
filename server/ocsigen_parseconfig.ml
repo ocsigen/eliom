@@ -341,6 +341,27 @@ let parse_server isreloading c =
           raise (Config_file_error "Syntax error")
   in Ocsigen_extensions.set_hosts (parse_server_aux c)
 
+
+(* Parsing <port> tags *)
+let parse_port =
+  let all_ipv6 = Netstring_pcre.regexp "^\\[::\\]:([0-9]+)$" in
+  let all_ipv4 = Netstring_pcre.regexp "^\\*:([0-9]+)$" in
+  let single_ipv6 = Netstring_pcre.regexp "^\\[([0-9A-Fa-f.:]+)\\]:([0-9]+)$" in
+  let single_ipv4 = Netstring_pcre.regexp "^([0-9.]+):([0-9]+)$" in
+  fun s ->
+    let do_match r = Netstring_pcre.string_match r s 0 in
+    let get x i = Netstring_pcre.matched_group x i s in
+    match do_match all_ipv6 with
+      | Some r -> Some (Unix.inet6_addr_any), int_of_string (get r 1)
+      | None -> match do_match all_ipv4 with
+      | Some r -> Some (Unix.inet_addr_any), int_of_string (get r 1)
+      | None -> match do_match single_ipv6 with
+      | Some r -> Some (Unix.inet_addr_of_string (get r 1)), int_of_string (get r 2)
+      | None -> match do_match single_ipv4 with
+      | Some r -> Some (Unix.inet_addr_of_string (get r 1)), int_of_string (get r 2)
+      | None -> None, int_of_string s
+
+
 (* First parsing of config file *)
 let extract_info c =
   let rec parse_ssl certificate privatekey = function
@@ -371,13 +392,13 @@ let extract_info c =
           []
         | [("protocol", "HTTP")] -> 
             let po = try
-              int_of_string (parse_string p)
+              parse_port (parse_string p)
             with Failure _ -> 
               raise (Config_file_error "Wrong value for <port> tag")
             in aux user group ssl (po::ports) sslports minthreads maxthreads ll
         | [("protocol", "HTTPS")] -> 
             let po = try
-              int_of_string (parse_string p)
+              parse_port (parse_string p)
             with Failure _ -> 
               raise (Config_file_error "Wrong value for <port> tag")
             in

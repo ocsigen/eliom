@@ -53,8 +53,9 @@ let _ =
 
 external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
 
-let local_addr num = Unix.ADDR_INET (Unix.inet_addr_any, num)
-let local_addr6 num = Unix.ADDR_INET (Unix.inet6_addr_any, num)
+let option_get_default x d = match x with Some x -> x | None -> d
+let local_addr addr num = Unix.ADDR_INET (option_get_default addr Unix.inet_addr_any, num)
+let local_addr6 addr num = Unix.ADDR_INET (option_get_default addr Unix.inet6_addr_any, num)
 
 let sslctx = Http_client.sslcontext
 
@@ -797,7 +798,7 @@ let stop m n =
   errlog m; exit n
 
 (** Thread waiting for events on a the listening port *)
-let listen use_ssl port wait_end_init =
+let listen use_ssl (addr, port) wait_end_init =
   let listening_socket =
     try
       let socket = 
@@ -805,7 +806,7 @@ let listen use_ssl port wait_end_init =
           let socket = Lwt_unix.socket Unix.PF_INET6 Unix.SOCK_STREAM 0 in
           Lwt_unix.set_close_on_exec socket;
           Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
-          Lwt_unix.bind socket (local_addr6 port);
+          Lwt_unix.bind socket (local_addr6 addr port);
           socket
         with e -> 
 (*VVV CATCH only the IPv6 exception.
@@ -819,7 +820,7 @@ Is it:
           let socket = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
           Lwt_unix.set_close_on_exec socket;
           Lwt_unix.setsockopt socket Unix.SO_REUSEADDR true;
-          Lwt_unix.bind socket (local_addr port);
+          Lwt_unix.bind socket (local_addr addr port);
           socket
       in
       Lwt_unix.listen socket 1024;
@@ -911,11 +912,7 @@ let _ = try
   let ask_for_passwd sslports _ =
     print_string "Please enter the password for the HTTPS server listening \
       on port(s) ";
-      print_string
-      (match sslports with
-        [] -> assert false
-      | a::l -> List.fold_left
-            (fun deb i -> deb^", "^(string_of_int i)) (string_of_int a) l);
+    print_string (String.concat ", " (List.map (fun (_,p) -> string_of_int p) sslports));
     print_string ": ";
     let old_term= Unix.tcgetattr Unix.stdin in
     let old_echo = old_term.Unix.c_echo in
