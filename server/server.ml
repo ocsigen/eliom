@@ -123,8 +123,9 @@ let get_request_infos
     Ocsigen_messages.debug
       (fun () ->
         "- host="^(match headerhost with None -> "<none>" | Some h -> h));
-(*XXX Servers MUST report a 400 (Bad Request) error if an HTTP/1.1
-      request does not include a Host request-header. *)
+
+(* Servers MUST report a 400 (Bad Request) error if an HTTP/1.1
+   request does not include a Host request-header. *)
 
     if clientproto = Http_frame.Http_header.HTTP11 && headerhost = None
     then raise Ocsigen_Bad_Request;
@@ -435,7 +436,8 @@ let service
                      | Http_error.Http_exception (code, mesg, _) ->
                          warn sockaddr (Http_error.string_of_http_exception e)
                      | _ ->
-                         Ocsigen_messages.unexpected_exception e "Server.finish_request"
+                         Ocsigen_messages.unexpected_exception 
+                           e "Server.finish_request"
                             );
                      Http_com.abort receiver;
                      (* We unlock the receiver in order to resume the
@@ -453,6 +455,10 @@ let service
      meth <> Http_header.POST &&
      meth <> Http_header.HEAD
   then begin
+    (* VVV Warning: This must be done once and only once. 
+       Put this somewhere else to ensure that?
+     *)
+    Http_com.wakeup_next_request receiver;
     finish_request ();
     (* RFC 2616, sect 5.1.1 *)
     send_error
@@ -462,7 +468,7 @@ let service
     let filenames = ref [] (* All the files sent by the request *) in
 
     Lwt.finalize (fun () ->
-      (* *** First of all, we read all the request
+      (* *** First of all, we read the whole the request
          (that will possibly create files) *)
       Lwt.try_bind
         (fun () ->
@@ -475,14 +481,15 @@ let service
           accesslog
             (Format.sprintf "connection%s from %s (%s) : %s"
                (match ri.ri_host with
-                 None   -> ""
+               | None   -> ""
                | Some h -> " for " ^ h)
                ri.ri_ip ri.ri_user_agent ri.ri_url_string);
 
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind
              (fun () ->
-                Ocsigen_extensions.do_for_site_matching ri.ri_host ri.ri_server_port ri)
+                Ocsigen_extensions.do_for_site_matching
+                 ri.ri_host ri.ri_server_port ri)
              (fun res ->
                 finish_request ();
 (* RFC
@@ -559,7 +566,7 @@ let service
              (fun e ->
                 finish_request ();
                 match e with
-                  Ocsigen_Is_a_directory ->
+                | Ocsigen_Is_a_directory ->
                     Ocsigen_messages.debug2 "-> Sending 301 Moved permanently";
                     let empty_result = Http_frame.empty_result () in
                     send
@@ -577,6 +584,7 @@ let service
                 | _ ->
                     handle_service_errors e))
         (fun e ->
+            Http_com.wakeup_next_request receiver;
             finish_request ();
             handle_service_errors e))
       (fun () ->
@@ -666,7 +674,7 @@ let handle_connection port in_ch sockaddr =
 
   let handle_read_errors e =
     begin match e with
-      Http_com.Connection_closed ->
+    | Http_com.Connection_closed ->
         (* This is the clean way to terminate the connection *)
         dbg sockaddr "connection closed by peer";
         Http_com.abort receiver;
@@ -731,7 +739,7 @@ let handle_connection port in_ch sockaddr =
          Http_com.start_processing receiver (fun slot ->
            Lwt.catch
              (fun () ->
-(*XXX Why do we need the port but not the host name?*)
+(*XXX Why do we need the port but not the host name? *)
                 service receiver slot request meth url port sockaddr in_ch)
              handle_write_errors);
          if get_keepalive request.Http_frame.header then
@@ -753,7 +761,8 @@ let rec wait_connection use_ssl port socket =
         (fun () -> Format.sprintf "Accept failed: %s" (string_of_exn e));
        wait_connection use_ssl port socket)
     (fun (s, sockaddr) ->
-       Ocsigen_messages.debug2 "\n__________________NEW CONNECTION__________________________";
+       Ocsigen_messages.debug2 
+        "\n__________________NEW CONNECTION__________________________";
        incr_connected ();
        let relaunch_at_once =
          get_number_of_connected () < get_max_number_of_connections () in

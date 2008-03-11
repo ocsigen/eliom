@@ -829,6 +829,21 @@ let set_timeout_form =
 
 
 (******************************************************************)
+
+let sraise = 
+  register_new_service 
+    ~path:["raise"]
+    ~get_params:unit
+    (fun _ () () -> failwith "Bad use of exceptions")
+
+let sfail = 
+  register_new_service 
+    ~path:["fail"]
+    ~get_params:unit
+    (fun _ () () -> Lwt.fail (Failure "Service raising an exception"))
+
+
+(******************************************************************)
 let mainpage = register_new_service ["tests"] unit
  (fun sp () () -> 
    return
@@ -841,6 +856,8 @@ let mainpage = register_new_service ["tests"] unit
         p
         [
          a coucou sp [pcdata "coucou"] (); br ();
+         a sfail sp [pcdata "Service raising an exception"] (); br ();
+         a sraise sp [pcdata "Wrong use of exceptions during service"] (); br ();
          a getcoex sp [pcdata "GET coservice with preapplied fallback, etc"] (); br ();
          a postcoex sp [pcdata "POST service with coservice fallback"] (); br ();
          a preappliedsuffix sp [pcdata "Preapplied suffix"] (); br ();

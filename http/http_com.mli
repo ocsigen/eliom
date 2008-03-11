@@ -46,7 +46,7 @@ type connection
 val create_receiver : int -> mode -> Lwt_ssl.socket -> connection
 val lock_receiver : connection -> unit Lwt.t
 val unlock_receiver : connection -> unit
-val awake_next_request : connection -> unit
+val wakeup_next_request : connection -> unit
 val block_next_request : connection -> unit Lwt.t
 val get_http_frame : ?head:bool -> connection -> Http_frame.t Lwt.t
 val connection_id : connection -> int

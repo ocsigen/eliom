@@ -565,7 +565,7 @@ let do_for_site_matching host port ri =
     fun () ->
       if !tobeawoken then begin
         tobeawoken := false;
-        Http_com.awake_next_request conn
+        Http_com.wakeup_next_request conn
       end
   in
 

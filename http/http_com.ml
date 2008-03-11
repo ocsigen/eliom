@@ -130,7 +130,7 @@ let unlock_receiver receiver = Lwt_mutex.unlock receiver.read_mutex
 
 let abort conn = Lwt_ssl.abort conn.fd Aborted
 
-let awake_next_request conn = Lwt_mutex.unlock conn.extension_mutex
+let wakeup_next_request conn = Lwt_mutex.unlock conn.extension_mutex
 
 let block_next_request conn = Lwt_mutex.lock conn.extension_mutex
 
