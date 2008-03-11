@@ -98,7 +98,10 @@ let gen dir charset = function
     (fun () ->
       Ocsigen_messages.debug2 "--Redirectmod: Is it a redirection?";
       let (redir, temp) = 
-        find_redirection dir ri.ri_sub_path_string 
+        find_redirection dir 
+          (match ri.ri_get_params_string with
+          | None -> ri.ri_sub_path_string
+          | Some g -> ri.ri_sub_path_string ^ "?" ^ g)
       in
       Ocsigen_messages.debug (fun () ->
         "--Redirectmod: YES! "^
