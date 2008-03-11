@@ -435,6 +435,80 @@ let getnameinfo ia p =
         else hs)
 
 
+(************************************************************************)
+(* URL parsing *)
+
+(* Ces deux trucs sont dans Neturl version 1.1.2 mais en attendant qu'ils
+   soient dans debian, je les mets ici *)
+let problem_re = Netstring_pcre.regexp "[ <>\"{}|\\\\^\\[\\]`]"
+
+let fixup_url_string =
+  Netstring_pcre.global_substitute
+    problem_re
+    (fun m s ->
+       Printf.sprintf "%%%02x"
+        (Char.code s.[Netstring_pcre.match_beginning m]))
+
+let parse_url =
+
+  (*SSS Neturl doesn't recognize http://[2002::1]:80. Workaround: we
+    chop the http://host:port part and use Neturl for the rest.
+    We do not accept http://login:pwd@host:port (should we?). *)
+  let url_re = Netstring_pcre.regexp "^[Hh][Tt][Tt][Pp][Ss]?://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?(/.*)$" in
+
+  fun url ->
+    let (host, port, url2) =
+      try
+        let url2 = Neturl.parse_url
+          ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
+          (fixup_url_string url)
+        in
+        let host = try Some (Neturl.url_host url2) with Not_found -> None in
+        let port = try Some (Neturl.url_port url2) with Not_found -> None in
+        (host, port, url2)
+      with Neturl.Malformed_URL ->
+        match Netstring_pcre.string_match url_re url 0 with
+          | None -> raise Neturl.Malformed_URL
+          | Some m ->
+              let url2 = Neturl.parse_url
+                ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
+                (fixup_url_string (Netstring_pcre.matched_group m 4 url)) in
+              let host =
+                try Some (Netstring_pcre.matched_group m 1 url)
+                with Not_found -> None in
+              let port =
+                try Some (int_of_string (Netstring_pcre.matched_group m 3 url))
+                with Not_found -> None in
+              (host, port, url2)
+    in
+
+    (* Note that the fragment (string after #) is not sent by browsers *)
+
+    let params =
+      try Some (Neturl.url_query ~encoded:true url2)
+      with Not_found -> None
+    in
+
+    let get_params =
+      lazy begin
+        let params_string =
+          try Neturl.url_query ~encoded:true url2
+          with Not_found -> ""
+        in Netencoding.Url.dest_url_encoded_parameters params_string
+      end
+    in
+
+    let path =
+      remove_dotdot (* and remove "//" *)
+        (remove_slash_at_beginning (Neturl.url_path url2))
+        (* here we remove .. from paths, as it is dangerous.
+           But in some very particular cases, we may want them?
+           I prefer forbid that. *)
+    in
+
+    (host, port, url, url2, path, params, get_params)
+
+
 (* *)
 type ('a, 'b) leftright = Left of 'a | Right of 'b
 

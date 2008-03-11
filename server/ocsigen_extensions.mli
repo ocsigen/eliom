@@ -313,11 +313,6 @@ val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
 
 (**/**)
 
-val parse_url : string ->
-  string option * int option *
-  string * Neturl.url * string list * string option *
-    (string * string) list Lazy.t
-
 val make_parse_site :
   url_path -> 
     string -> 

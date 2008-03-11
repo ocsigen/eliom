@@ -53,4 +53,9 @@ val getnameinfo : Unix.inet_addr -> int -> string Lwt.t
     but if it fails returns the IP number,
     with [ before and ] after IPv6 addresses. *)
 
+val parse_url : string ->
+  string option * int option *
+    string * Neturl.url * string list * string option *
+    (string * string) list Lazy.t
+
 module StringSet : Set.S with type elt = string

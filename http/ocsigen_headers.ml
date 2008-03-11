@@ -143,23 +143,19 @@ let get_keepalive http_header =
 
 (* RFC 2616, sect. 14.23 *)
 (* XXX Not so simple: the host name may contain a colon! (RFC 3986) *)
-let get_host_and_port http_frame =
-  try
-    let hostport =
-      Http_header.get_headers_value
-        http_frame.Http_frame.header Http_headers.host
-    in
+let get_host_from_host_header =
+  let host_re = Netstring_pcre.regexp "^(\\[[0-9A-Fa-f:.]+\\]|[^:]+)(:[0-9]+)?$" in
+  fun http_frame ->
     try
-      let h,p = sep ':' hostport in
-      try
-        Some (h, int_of_string p)
-      with Failure _ ->
-        None
+      let hostport =
+        Http_header.get_headers_value
+          http_frame.Http_frame.header Http_headers.host
+      in
+      match Netstring_pcre.string_match host_re hostport 0 with
+        | Some m -> Some (Netstring_pcre.matched_group m 1 hostport)
+        | None -> raise Ocsigen_Bad_Request
     with Not_found ->
-      Some (hostport, 80)
-      (* port 80 is the default for HTTP *)
-  with Not_found ->
-    None
+      None
 
 let get_user_agent http_frame =
   try (Http_header.get_headers_value

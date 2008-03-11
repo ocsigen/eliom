@@ -102,15 +102,12 @@ let get_request_infos
   try
 
     let (headerhost, _, url, parsed_url, path, params, get_params) =
-      Ocsigen_extensions.parse_url url
+      Ocsigen_lib.parse_url url
     in
     
     let headerhost = 
       match headerhost with
-      | None ->
-          (match get_host_and_port http_frame with
-          | None -> None
-          | Some (h,_) -> Some h)
+      | None -> get_host_from_host_header http_frame
       | _ -> headerhost
     in
     (* RFC:

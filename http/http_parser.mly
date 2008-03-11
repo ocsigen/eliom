@@ -83,18 +83,10 @@ header :
   | firstline lines EOL          {make_header()}
 
 firstline :
-  | METHOD STRING PROTO EOL      {reset_header ();
-                                 mode := Query (meth_of_string($1), $2);
-                                 proto:=(proto_of_string $3)}
-  | METHOD STRING COLON STRING PROTO EOL
-                                 {reset_header ();
-                                 mode := Query (meth_of_string($1), $2^":"^$4);
-                                 proto:=(proto_of_string $5)}
-  | METHOD STRING COLON STRING COLON STRING PROTO EOL
-                                 {reset_header ();
-                                 mode := Query (meth_of_string($1), 
-                                                $2^":"^$4^":"^$6);
-                                 proto:=(proto_of_string $7)}
+  | METHOD STRING end_of_firstline   {reset_header ();
+                                      let (a, b) = $3 in
+                                      mode := Query (meth_of_string($1), $2^a);
+                                      proto := b}
   | PROTO CODE strings EOL       {reset_header ();
 				 mode := Answer (int_of_string $2);
 				 proto:=(proto_of_string $1)
@@ -135,6 +127,12 @@ strings :
   | CODE                         {$1}
   | CODE strings                 {$1^" "^$2}
   | CODE COLON strings           {$1^":"^$3}
+
+end_of_firstline:
+  | PROTO EOL                      {("", proto_of_string $1)}
+  | COLON end_of_firstline         {let (a, b) = $2 in (":"^a, b)}
+  | STRING end_of_firstline        {let (a, b) = $2 in ($1^a, b)}
+
 
 %%
 
