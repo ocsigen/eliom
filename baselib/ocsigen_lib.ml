@@ -482,6 +482,10 @@ let parse_url =
               (host, port, url2)
     in
 
+    (* We don't do it before because we don't want [] of IPv6
+       addresses to be escaped *)
+    let url = fixup_url_string url in
+
     (* Note that the fragment (string after #) is not sent by browsers *)
 
     let params =
