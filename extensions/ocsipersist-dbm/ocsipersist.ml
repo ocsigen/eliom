@@ -128,9 +128,9 @@ let rec get_indescr i =
 
 let indescr = get_indescr 2
 
-let inch = indescr >>= (fun r -> return (Lwt_unix.in_channel_of_descr r))
+let inch = indescr >>= (fun r -> return (Lwt_chan.in_channel_of_descr r))
 
-let outch = indescr >>= (fun r -> return (Lwt_unix.out_channel_of_descr r))
+let outch = indescr >>= (fun r -> return (Lwt_chan.out_channel_of_descr r))
 
 let send =
   let previous = ref (return Ok) in

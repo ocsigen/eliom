@@ -77,14 +77,6 @@ val abort : file_descr -> exn -> unit
 
 val unix_file_descr : file_descr -> Unix.file_descr
 val of_unix_file_descr : Unix.file_descr -> file_descr
-val out_channel_of_descr : file_descr -> Lwt_chan.out_channel
-val in_channel_of_descr : file_descr -> Lwt_chan.in_channel
-
-(** The following functions are equivalent to the Pervasives.*_bin
-    ones (no EOL conversion is done anyway). *)
-
-val open_in : string -> Lwt_chan.in_channel
-val open_out : string -> Lwt_chan.out_channel
 
 (**/**)
 

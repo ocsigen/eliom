@@ -61,13 +61,13 @@ let fold_read_lines f accum inchnl =
   loop accum 
 
 let with_open_out fname f =
-  let oc = Lwt_unix.open_out fname in
+  let oc = Lwt_chan.open_out fname in
   finally
     (fun () -> Lwt_chan.flush oc >>= (fun () -> Lwt_chan.close_out oc))
     f oc
 
 let with_open_in fname f =
-  let ic = Lwt_unix.open_in fname in
+  let ic = Lwt_chan.open_in fname in
   finally
     (fun () -> Lwt_chan.close_in ic)
     f ic

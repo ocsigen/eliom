@@ -239,8 +239,8 @@ let rec loop socket =
     ignore (
     b := true;
     nb_clients := !nb_clients + 1;
-    let inch = Lwt_unix.in_channel_of_descr indescr in
-    let outch = Lwt_unix.out_channel_of_descr indescr in
+    let inch = Lwt_chan.in_channel_of_descr indescr in
+    let outch = Lwt_chan.out_channel_of_descr indescr in
     catch 
       (fun () -> listen_client inch outch >>= finish)
       finish);

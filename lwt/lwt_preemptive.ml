@@ -35,7 +35,7 @@ let finishedpipe =
   let (in_fd, out_fd) = Lwt_unix.pipe_in () in
   Lwt_unix.set_close_on_exec in_fd;
   Unix.set_close_on_exec out_fd;
-  (Lwt_unix.in_channel_of_descr in_fd, Unix.out_channel_of_descr out_fd)
+  (Lwt_chan.in_channel_of_descr in_fd, Unix.out_channel_of_descr out_fd)
 
 let pipelock = Mutex.create () 
 

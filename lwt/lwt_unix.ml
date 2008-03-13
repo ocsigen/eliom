@@ -376,29 +376,6 @@ let set_close_on_exec ch =
 
 (****)
 
-let out_channel_of_descr ch =
-  let close _ = Lwt.return (close ch) in
-  Lwt_chan.make_out_channel ~close (fun buf pos len -> write ch buf pos len)
-let in_channel_of_descr ch =
-  let close _ = Lwt.return (close ch) in
-  Lwt_chan.make_in_channel ~close (fun buf pos len -> read ch buf pos len)
-
-let open_in_gen mode perm name =
-  let fd = of_unix_file_descr (Unix.openfile name mode perm) in
-  in_channel_of_descr fd
-
-let open_in = open_in_gen
-  [Unix.O_RDONLY; Unix.O_NONBLOCK]
-  0o666
-
-let open_out_gen mode perm name =
-  let fd = of_unix_file_descr (Unix.openfile name mode perm) in
-  out_channel_of_descr fd
-
-let open_out = open_out_gen
-  [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC; Unix.O_NONBLOCK]
-  0o666
-
 (*
 type popen_process =
     Process of in_channel * out_channel

@@ -221,7 +221,7 @@ let of_file filename =
   let fd = Lwt_unix.of_unix_file_descr 
       (Unix.openfile filename [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
   in
-  let ch = Lwt_unix.in_channel_of_descr fd in
+  let ch = Lwt_chan.in_channel_of_descr fd in
   let rec aux () =
     catch
       (fun () ->

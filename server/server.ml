@@ -1041,7 +1041,7 @@ let _ = try
           ignore (Unix.umask umask);
           ignore (Ocsigen_messages.warning "Command pipe created"));
 
-      let pipe = Lwt_unix.in_channel_of_descr 
+      let pipe = Lwt_chan.in_channel_of_descr 
           (Lwt_unix.of_unix_file_descr
              (Unix.openfile commandpipe 
                 [Unix.O_RDWR; Unix.O_NONBLOCK; Unix.O_APPEND] 0o660)) in

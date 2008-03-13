@@ -1,7 +1,10 @@
 (** Module [Lwt_chan]: cooperative, [Pervasives]-like, I/O functions *)
 
+
 (** {2 Cooperative input channels} *)
 type in_channel
+
+val in_channel_of_descr : Lwt_unix.file_descr -> in_channel
 
 val make_in_channel : ?close:(unit -> unit Lwt.t) -> (string -> int -> int -> int Lwt.t) -> in_channel
 (** [make_in_channel read] creates an input channel from the [read]
@@ -16,11 +19,14 @@ val input : in_channel -> string -> int -> int -> int Lwt.t
 val really_input : in_channel -> string -> int -> int -> unit Lwt.t
 val input_char : in_channel -> char Lwt.t
 
+val open_in : string -> in_channel
 val close_in : in_channel -> unit Lwt.t
 
 (** {2 Cooperative output channels} *)
 
 type out_channel
+
+val out_channel_of_descr : Lwt_unix.file_descr -> out_channel
 
 val make_out_channel : ?close:(unit -> unit Lwt.t) -> (string -> int -> int -> int Lwt.t) -> out_channel
 (** [make_out_channel write] creates an output channel from the [write]
@@ -34,4 +40,5 @@ val flush : out_channel -> unit Lwt.t
 val output_string : out_channel -> string -> unit Lwt.t
 val output_value : out_channel -> 'a -> unit Lwt.t
 
+val open_out : string -> out_channel
 val close_out : out_channel -> unit Lwt.t

@@ -20,6 +20,18 @@ type in_channel = channel
 let make_in_channel = make_channel
 let close_in = close_channel
 
+let in_channel_of_descr ch =
+  let close _ = Lwt.return (Lwt_unix.close ch) in
+  make_in_channel ~close (Lwt_unix.read ch)
+
+let open_in_gen mode perm name =
+  let fd = Lwt_unix.of_unix_file_descr (Unix.openfile name mode perm) in
+  in_channel_of_descr fd
+
+let open_in = open_in_gen
+  [Unix.O_RDONLY; Unix.O_NONBLOCK]
+  0o666
+
 let refill ic =
   assert (ic.curr = ic.max);
   Lwt.bind (ic.perform_io ic.buf 0 (String.length ic.buf)) (fun n ->
@@ -132,6 +144,18 @@ type out_channel = channel
 
 let make_out_channel = make_channel
 let close_out = close_channel
+
+let out_channel_of_descr ch =
+  let close _ = Lwt.return (Lwt_unix.close ch) in
+  make_out_channel ~close (Lwt_unix.write ch)
+
+let open_out_gen mode perm name =
+  let fd = Lwt_unix.of_unix_file_descr (Unix.openfile name mode perm) in
+  out_channel_of_descr fd
+
+let open_out = open_out_gen
+  [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC; Unix.O_NONBLOCK]
+  0o666
 
 let flush_partial oc =
   if oc.curr = 0 then

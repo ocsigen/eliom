@@ -361,7 +361,7 @@ let recupere_cgi head re doc_root filename ri =
     Lwt_timeout.start timeout;
 
     (* A thread giving POST data to the CGI script: *)
-    let post_in_ch = Lwt_unix.out_channel_of_descr post_in in
+    let post_in_ch = Lwt_chan.out_channel_of_descr post_in in
     ignore
       (catch
          (fun () ->
@@ -387,7 +387,7 @@ let recupere_cgi head re doc_root filename ri =
 
     (* A thread listening the error output of the CGI script 
        and writing them in warnings.log *)
-    let err_channel = Lwt_unix.in_channel_of_descr err_out in
+    let err_channel = Lwt_chan.in_channel_of_descr err_out in
     let rec get_errors () =
       Lwt_chan.input_line err_channel >>= fun err ->
       Ocsigen_messages.warning ("CGI says: "^err);
