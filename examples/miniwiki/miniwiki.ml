@@ -60,24 +60,17 @@ let fold_read_lines f accum inchnl =
   in
   loop accum 
 
-let with_open_out fname f = 
-  let fd = Lwt_unix.of_unix_file_descr 
-      (Unix.openfile fname [Unix.O_WRONLY;Unix.O_CREAT;
-                            Unix.O_TRUNC;Unix.O_NONBLOCK] 0o644) 
-  in
-  let inchnl = Lwt_unix.out_channel_of_descr fd in
-  finally 
-    (fun () -> Lwt_chan.flush inchnl >>= fun () -> Lwt_unix.close fd; return ())
-    f inchnl
+let with_open_out fname f =
+  let oc = Lwt_unix.open_out fname in
+  finally
+    (fun () -> Lwt_chan.flush oc >>= (fun () -> Lwt_chan.close_out oc))
+    f oc
 
-let with_open_in fname f = 
-  let fd = Lwt_unix.of_unix_file_descr 
-      (Unix.openfile fname [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o644) 
-  in
-  let inchnl = Lwt_unix.in_channel_of_descr fd in
-  finally 
-    (fun () -> Lwt_unix.close fd; return ())
-    f inchnl
+let with_open_in fname f =
+  let ic = Lwt_unix.open_in fname in
+  finally
+    (fun () -> Lwt_chan.close_in ic)
+    f ic
 
 let wiki_file_dir = 
   let rec find_wikidata = function

@@ -3,18 +3,22 @@ let buffer_size = 4096
 
 type channel =
   { perform_io : string -> int -> int -> int Lwt.t;
+    close : unit -> unit Lwt.t;
     mutable curr : int;
     mutable max : int;
     buf : string }
 
-let make_channel perform_io =
-  { perform_io = perform_io; curr = 0; max = 0; buf = String.create 4096 }
+let make_channel ?(close=Lwt.return) perform_io =
+  { perform_io = perform_io; curr = 0; max = 0; buf = String.create 4096; close = close }
+
+let close_channel c = c.close ()
 
 (****)
 
 type in_channel = channel
 
 let make_in_channel = make_channel
+let close_in = close_channel
 
 let refill ic =
   assert (ic.curr = ic.max);
@@ -127,6 +131,7 @@ let input_line ic =
 type out_channel = channel
 
 let make_out_channel = make_channel
+let close_out = close_channel
 
 let flush_partial oc =
   if oc.curr = 0 then

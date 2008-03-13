@@ -7,3 +7,5 @@ Miniwiki is a very simple wiki written as an example for Ocsigen.
 
  See TestPage
 
+coucou
+tata
