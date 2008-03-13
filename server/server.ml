@@ -452,9 +452,10 @@ let service
      meth <> Http_header.POST &&
      meth <> Http_header.HEAD
   then begin
-    (* VVV Warning: This must be done once and only once. 
-       Put this somewhere else to ensure that?
-     *)
+   (* VVV Warning: This must be done once and only once. 
+      Put this somewhere else to ensure that?
+    *)
+    warn sockaddr ("Bad request: \""^url^"\"");
     Ocsigen_http_com.wakeup_next_request receiver;
     finish_request ();
     (* RFC 2616, sect 5.1.1 *)
@@ -476,7 +477,7 @@ let service
            (* *** Now we generate the page and send it *)
            (* Log *)
           accesslog
-            (Format.sprintf "connection%s from %s (%s) : %s"
+            (Format.sprintf "connection%s from %s (%s): %s"
                (match ri.ri_host with
                | None   -> ""
                | Some h -> " for " ^ h)
@@ -581,9 +582,10 @@ let service
                 | _ ->
                     handle_service_errors e))
         (fun e ->
-            Ocsigen_http_com.wakeup_next_request receiver;
-            finish_request ();
-            handle_service_errors e))
+          warn sockaddr ("Bad request: \""^url^"\"");
+          Ocsigen_http_com.wakeup_next_request receiver;
+          finish_request ();
+          handle_service_errors e))
       (fun () ->
          (* We remove all the files created by the request
             (files sent by the client) *)

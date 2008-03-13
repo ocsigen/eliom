@@ -435,7 +435,10 @@ let reconstruct_params
           with Eliom_common.Eliom_Wrong_parameter -> 
             Obj.magic (parse_suffix s urlsuffix))
         else Obj.magic (parse_suffix s urlsuffix)
-    | _ -> Obj.magic (aux2 typ params)
+    | _ -> 
+        if urlsuffix <> []
+        then raise Eliom_common.Eliom_Wrong_parameter
+        else Obj.magic (aux2 typ params)
   with 
   | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
