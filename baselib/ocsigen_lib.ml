@@ -162,11 +162,6 @@ let remove_end_slash s =
  *)
 
 
-let rec string_of_url_path = function
-  | [] -> ""
-  | [a] -> a
-  | a::l -> a^"/"^(string_of_url_path l)
-
 let rec string_first_diff s1 s2 n last =
 (* returns the index of the first difference between s1 and s2, 
    starting from n and ending at last.
@@ -448,6 +443,8 @@ let fixup_url_string =
     (fun m s ->
        Printf.sprintf "%%%02x"
         (Char.code s.[Netstring_pcre.match_beginning m]))
+
+let string_of_url_path x = fixup_url_string (String.concat "/" x)
 
 let parse_url =
 
