@@ -36,7 +36,7 @@ let close_service_session ?(close_group = false) ?session_name ~sp () =
   try
     let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
     let (cookie_info, _, _) = sp.Eliom_common.sp_cookie_info in
-    let (_, ior) = Http_frame.Cookievalues.find fullsessname !cookie_info in
+    let (_, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
     match !ior with
     | Eliom_common.SC c ->
         if close_group then
@@ -101,7 +101,7 @@ let find_or_create_service_cookie ?session_group ?session_name ~sp () =
   in
   let (cookie_info, _, _) = sp.Eliom_common.sp_cookie_info in
   try
-    let (old, ior) = Http_frame.Cookievalues.find fullsessname !cookie_info in
+    let (old, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
     match !ior with
     | Eliom_common.SCData_session_expired 
     | Eliom_common.SCNo_data -> 
@@ -121,7 +121,7 @@ let find_or_create_service_cookie ?session_group ?session_name ~sp () =
         sp.Eliom_common.sp_sitedata.Eliom_common.session_services 
     in
     cookie_info :=
-      Http_frame.Cookievalues.add
+      Ocsigen_http_frame.Cookievalues.add
         fullsessname
         (None, ref (Eliom_common.SC v))
         !cookie_info;
@@ -133,7 +133,7 @@ let find_service_cookie_only ?session_name ~sp () =
      Returns the cookie info for the cookie *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
   let (cookie_info, _, _) = sp.Eliom_common.sp_cookie_info in
-  let (_, ior) = Http_frame.Cookievalues.find fullsessname !cookie_info in
+  let (_, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
   match !ior with
   | Eliom_common.SCNo_data -> raise Not_found
   | Eliom_common.SCData_session_expired -> 

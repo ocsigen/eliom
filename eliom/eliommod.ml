@@ -28,7 +28,7 @@
 (*****************************************************************************)
 
 open Lwt
-open Http_frame
+open Ocsigen_http_frame
 open Ocsigen_lib
 open Ocsigen_extensions
 open Lazy

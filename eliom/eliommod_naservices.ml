@@ -101,7 +101,7 @@ let make_naservice
 
   let rec find_aux sci =
     match
-      Http_frame.Cookievalues.fold
+      Ocsigen_http_frame.Cookievalues.fold
         (fun fullsessname (_, r) beg ->
           match beg with
           | Eliom_common.Found _ -> beg
@@ -150,7 +150,7 @@ let make_naservice
              Ocsigen_extensions.ri_get_params = 
              lazy si.Eliom_common.si_other_get_params;
              Ocsigen_extensions.ri_post_params = lazy (return []);
-             Ocsigen_extensions.ri_method = Http_frame.Http_header.GET;
+             Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
              Ocsigen_extensions.ri_extension_info= 
              Eliom_common.Eliom_Link_too_old::
              ri.Ocsigen_extensions.ri_extension_info
@@ -172,7 +172,7 @@ let make_naservice
              Ocsigen_extensions.ri_get_params = 
              lazy si.Eliom_common.si_other_get_params;
              Ocsigen_extensions.ri_post_params = lazy (return []);
-             Ocsigen_extensions.ri_method = Http_frame.Http_header.GET;
+             Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
              Ocsigen_extensions.ri_extension_info= 
              Eliom_common.Eliom_Link_too_old::
              ri.Ocsigen_extensions.ri_extension_info

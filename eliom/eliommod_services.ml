@@ -295,7 +295,7 @@ let get_page
     =
 
   let find_aux e sci =
-    Http_frame.Cookievalues.fold
+    Ocsigen_http_frame.Cookievalues.fold
       (fun fullsessname (_, r) beg -> 
         catch
           (fun () -> beg)
@@ -359,7 +359,7 @@ let get_page
                                 ({ri with 
                                   Ocsigen_extensions.ri_post_params = lazy (return []);
                                   Ocsigen_extensions.ri_method = 
-                                  Http_frame.Http_header.GET;
+                                  Ocsigen_http_frame.Http_header.GET;
                                   Ocsigen_extensions.ri_extension_info=
                                   Eliom_common.Eliom_Link_too_old::
                                   ri.Ocsigen_extensions.ri_extension_info
@@ -385,7 +385,7 @@ let get_page
                                   lazy si.Eliom_common.si_other_get_params;
                                   Ocsigen_extensions.ri_post_params = lazy (return []);
                                   Ocsigen_extensions.ri_method = 
-                                  Http_frame.Http_header.GET;
+                                  Ocsigen_http_frame.Http_header.GET;
                                   Ocsigen_extensions.ri_extension_info= 
                                   Eliom_common.Eliom_Link_too_old::
                                   ri.Ocsigen_extensions.ri_extension_info

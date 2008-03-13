@@ -48,7 +48,7 @@ val lock_receiver : connection -> unit Lwt.t
 val unlock_receiver : connection -> unit
 val wakeup_next_request : connection -> unit
 val block_next_request : connection -> unit Lwt.t
-val get_http_frame : ?head:bool -> connection -> Http_frame.t Lwt.t
+val get_http_frame : ?head:bool -> connection -> Ocsigen_http_frame.t Lwt.t
 val connection_id : connection -> int
 val connection_fd : connection -> Lwt_ssl.socket
 
@@ -74,7 +74,7 @@ type sender_type
 
 val create_sender :
   ?server_name:string -> ?headers:Http_headers.t ->
-  ?proto:Http_frame.Http_header.proto -> unit -> sender_type
+  ?proto:Ocsigen_http_frame.Http_header.proto -> unit -> sender_type
 
 (** Sender with only the server name, and HTTP/1.1 *)
 val default_sender : sender_type
@@ -88,13 +88,13 @@ val default_sender : sender_type
 val send :
     ?reopen:(unit -> unit Lwt.t) ->
     slot ->
-    clientproto:Http_frame.Http_header.proto ->
-    ?mode:Http_frame.Http_header.http_mode ->
-    ?proto:Http_frame.Http_header.proto ->
+    clientproto:Ocsigen_http_frame.Http_header.proto ->
+    ?mode:Ocsigen_http_frame.Http_header.http_mode ->
+    ?proto:Ocsigen_http_frame.Http_header.proto ->
     ?keep_alive:bool ->
     head:bool ->
     sender:sender_type ->
-    Http_frame.result -> 
+    Ocsigen_http_frame.result -> 
     unit Lwt.t
 
 val abort : connection -> unit

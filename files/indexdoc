@@ -17,7 +17,7 @@ Xhtmlpretty
 Ocsigen_extensions 
 Ocsigen_headers 
 Ocsigen_senders 
-Http_frame
+Ocsigen_http_frame
 Ocsigen_http_client
 Http_com
 Authbasic

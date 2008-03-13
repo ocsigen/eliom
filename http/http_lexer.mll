@@ -20,7 +20,7 @@
  *)
 
 open Http_parser
-open Http_frame
+open Ocsigen_http_frame
 }
 
 let blank = [' ' '\t']

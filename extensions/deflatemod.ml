@@ -246,7 +246,7 @@ exception No_compress
 let stream_filter contentencoding url deflate choice res = 
  return (Ext_found (fun () ->
  try (
-   match res.Http_frame.res_content_type with
+   match res.Ocsigen_http_frame.res_content_type with
    | None -> raise No_compress (* il faudrait défaut ? *)
    | Some contenttype ->
        match Ocsigen_headers.parse_mime_type contenttype with
@@ -254,18 +254,18 @@ let stream_filter contentencoding url deflate choice res =
        | (Some a, Some b) 
             when should_compress (a, b) url choice -> 
           return { res with
-               Http_frame.res_content_length = None;
-               Http_frame.res_etag = 
-               (match res.Http_frame.res_etag with
+               Ocsigen_http_frame.res_content_length = None;
+               Ocsigen_http_frame.res_etag = 
+               (match res.Ocsigen_http_frame.res_etag with
                | Some e ->
                    Some ((if deflate then "Ddeflatemod" else "Gdeflatemod")^e)
                | None -> None);
-               Http_frame.res_stream = 
-               compress deflate res.Http_frame.res_stream;
-               Http_frame.res_headers = 
+               Ocsigen_http_frame.res_stream = 
+               compress deflate res.Ocsigen_http_frame.res_stream;
+               Ocsigen_http_frame.res_headers = 
                Http_headers.replace
                  Http_headers.content_encoding 
-                 contentencoding res.Http_frame.res_headers;
+                 contentencoding res.Ocsigen_http_frame.res_headers;
              } 
        | _ -> raise No_compress)
  with Not_found | No_compress -> return res))
@@ -280,7 +280,7 @@ let filter choice_list = function
       stream_filter "gzip" ri.ri_sub_path_string false choice_list res
   | Id | Star -> return (Ext_found (fun () -> return res))
   | Not_acceptable -> 
-      return (Ext_stop_all (res.Http_frame.res_cookies,406))
+      return (Ext_stop_all (res.Ocsigen_http_frame.res_cookies,406))
 
 
 (*****************************************************************************)

@@ -20,7 +20,7 @@
  *)
 
 
-open Http_frame
+open Ocsigen_http_frame
 open Http_com
 open Lwt
 open Ocsigen_senders

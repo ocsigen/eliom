@@ -157,7 +157,7 @@ let gen dir charset = function
                                (fun () ->
                                   Lwt.return 
                                     {r with
-		                       Http_frame.res_code= err;
+		                       Ocsigen_http_frame.res_code= err;
                                     })))
                      | code, RFile filename ->
                          Ocsigen_senders.File_content.result_of_content filename 
@@ -169,7 +169,7 @@ let gen dir charset = function
                                      (fun () ->
                                         Lwt.return 
                                           {r with
-		                             Http_frame.res_charset= Some charset;
+		                             Ocsigen_http_frame.res_charset= Some charset;
                                           }))
                             | Some _ -> (* It is an error handler *)
                                 return
@@ -177,8 +177,8 @@ let gen dir charset = function
                                      (fun () ->
                                         Lwt.return 
                                           {r with
-		                             Http_frame.res_charset= Some charset;
-		                             Http_frame.res_code= err;
+		                             Ocsigen_http_frame.res_charset= Some charset;
+		                             Ocsigen_http_frame.res_code= err;
                                           })))
                            
            end

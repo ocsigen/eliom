@@ -67,7 +67,7 @@ type cookie =
    pages
  *)
 type result_to_send = 
-  | EliomResult of Http_frame.result
+  | EliomResult of Ocsigen_http_frame.result
   | EliomExn of (exn list * cookie list)
 (* redefined in eliomservices.ml *)
 
@@ -92,15 +92,15 @@ type sess_info =
      si_all_get_params: (string * string) list;
      si_all_post_params: (string * string) list;
 
-     si_service_session_cookies: string Http_frame.Cookievalues.t;
+     si_service_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
      (* the session service cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_data_session_cookies: string Http_frame.Cookievalues.t;
+     si_data_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
      (* the session data cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_persistent_session_cookies: string Http_frame.Cookievalues.t;
+     si_persistent_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
      (* the persistent session cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
@@ -202,7 +202,7 @@ type 'a cookie_info =
     )
       (* This one is not lazy because we must check all service sessions
          at each request to find the services *)
-      Http_frame.Cookievalues.t ref (* The key is the full session name *) *
+      Ocsigen_http_frame.Cookievalues.t ref (* The key is the full session name *) *
       
     (* in memory data sessions: *)
       (string option            (* value sent by the browser *)
@@ -219,7 +219,7 @@ type 'a cookie_info =
       (* Lazy because we do not want to ask the browser to unset the cookie 
          if the cookie has not been used, otherwise it is impossible to 
          write a message "Your session has expired" *)
-      Http_frame.Cookievalues.t ref (* The key is the full session name *) *
+      Ocsigen_http_frame.Cookievalues.t ref (* The key is the full session name *) *
       
       (* persistent sessions: *)
       ((string                  (* value sent by the browser *) *
@@ -239,7 +239,7 @@ type 'a cookie_info =
             For both of them, ask the browser to remove the cookie.
           *)
       ) Lwt.t Lazy.t
-      Http_frame.Cookievalues.t ref
+      Ocsigen_http_frame.Cookievalues.t ref
 
 
 (** Common data for the whole site *)
@@ -305,7 +305,7 @@ val persistent_cookies_table :
 
 type page_table_key =
     {key_state: (internal_state option * internal_state option);
-     key_kind: Http_frame.Http_header.http_method}
+     key_kind: Ocsigen_http_frame.Http_header.http_method}
 
 
 val empty_tables : unit -> tables
@@ -536,7 +536,7 @@ val global_register_allowed : unit -> (unit -> sitedata) option
 
 
 val add_cookie_list_to_send :
-    sitedata -> cookie list -> Http_frame.cookieset -> Http_frame.cookieset
+    sitedata -> cookie list -> Ocsigen_http_frame.cookieset -> Ocsigen_http_frame.cookieset
 
 *)
 
@@ -578,9 +578,9 @@ type sess_info = {
   si_other_get_params : (string * string) list;
   si_all_get_params : (string * string) list;
   si_all_post_params : (string * string) list;
-  si_service_session_cookies : string Http_frame.Cookievalues.t;
-  si_data_session_cookies : string Http_frame.Cookievalues.t;
-  si_persistent_session_cookies : string Http_frame.Cookievalues.t;
+  si_service_session_cookies : string Ocsigen_http_frame.Cookievalues.t;
+  si_data_session_cookies : string Ocsigen_http_frame.Cookievalues.t;
+  si_persistent_session_cookies : string Ocsigen_http_frame.Cookievalues.t;
   si_nonatt_info : na_key;
   si_state_info : internal_state option * internal_state option;
   si_config_file_charset : string;
@@ -629,13 +629,13 @@ type one_persistent_cookie_info = {
 }
 type 'a cookie_info =
     (string option * 'a one_service_cookie_info session_cookie ref)
-    Http_frame.Cookievalues.t ref *
+    Ocsigen_http_frame.Cookievalues.t ref *
     (string option * one_data_cookie_info session_cookie ref) Lazy.t
-    Http_frame.Cookievalues.t ref *
+    Ocsigen_http_frame.Cookievalues.t ref *
     ((string * timeout * float option *
       Eliommod_sessiongroups.perssessgrp option)
      option * one_persistent_cookie_info session_cookie ref)
-    Lwt.t Lazy.t Http_frame.Cookievalues.t ref
+    Lwt.t Lazy.t Ocsigen_http_frame.Cookievalues.t ref
 type 'a servicecookiestablecontent =
     string * 'a * float option ref * timeout ref *
     Eliommod_sessiongroups.sessgrp option ref
@@ -645,11 +645,11 @@ type datacookiestablecontent =
     Eliommod_sessiongroups.sessgrp option ref
 type datacookiestable = datacookiestablecontent SessionCookies.t
 type result_to_send =
-    EliomResult of Http_frame.result
+    EliomResult of Ocsigen_http_frame.result
   | EliomExn of (exn list * cookie list)
 type page_table_key = {
   key_state : internal_state option * internal_state option;
-  key_kind : Http_frame.Http_header.http_method;
+  key_kind : Ocsigen_http_frame.Http_header.http_method;
 }
 module String_Table :
   sig
@@ -746,7 +746,7 @@ val new_service_session_tables :
 val split_prefix_param :
   string -> (string * 'a) list -> (string * 'a) list * (string * 'a) list
 val getcookies :
-  string -> 'a Http_frame.Cookievalues.t -> 'a Http_frame.Cookievalues.t
+  string -> 'a Ocsigen_http_frame.Cookievalues.t -> 'a Ocsigen_http_frame.Cookievalues.t
 val change_request_info :
   Ocsigen_extensions.request_info ->
   string -> int -> (Ocsigen_extensions.request_info * sess_info) Lwt.t
@@ -755,7 +755,7 @@ val make_full_cookie_name : string -> string -> string
 val make_fullsessname : sp:server_params -> string option -> string
 val make_fullsessname2 : string -> string option -> string
 exception Eliom_retry_with of
-            (Ocsigen_extensions.request_info * sess_info * Http_frame.cookieset *
+            (Ocsigen_extensions.request_info * sess_info * Ocsigen_http_frame.cookieset *
              tables cookie_info)
 module Perstables :
   sig

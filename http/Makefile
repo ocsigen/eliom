@@ -22,7 +22,7 @@ LIB= -package netstring,ssl $(LIBDIRS) -I +camlp4
 PP =
 # -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
 ALL_CMO  = ocsigen_stream.cmo multipart.cmo \
-           http_headers.cmo http_frame.cmo http_parser.cmo http_lexer.cmo \
+           http_headers.cmo ocsigen_http_frame.cmo http_parser.cmo http_lexer.cmo \
 	   framepp.cmo http_com.cmo ocsigen_senders.cmo \
 	   ocsigen_headers.cmo #test_pp.cmo
 

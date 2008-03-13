@@ -1,4 +1,4 @@
-open Http_frame
+open Ocsigen_http_frame
 open Framepp
 
 module H = Http_header

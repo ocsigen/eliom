@@ -113,7 +113,7 @@ val get_ssl : sp:server_params -> bool
 val get_suffix : sp:server_params -> url_path
 
 (** returns the cookies sent by the browser *)
-val get_cookies : sp:server_params -> string Http_frame.Cookievalues.t
+val get_cookies : sp:server_params -> string Ocsigen_http_frame.Cookievalues.t
 
 
 
@@ -985,12 +985,12 @@ val get_persistent_cookie_exp_date : ?session_name:string ->
 (** returns the values of the Eliom's cookies for persistent sessions
    sent by the browser. *)
 val get_persistent_cookies :
-  sp:server_params -> string Http_frame.Cookievalues.t
+  sp:server_params -> string Ocsigen_http_frame.Cookievalues.t
 
 (** returns the values of Eliom's cookies for non persistent sessions
    sent by the browser. *)
 val get_data_cookies : 
-    sp:server_params -> string Http_frame.Cookievalues.t
+    sp:server_params -> string Ocsigen_http_frame.Cookievalues.t
 
 val find_sitedata : string -> server_params option -> Eliom_common.sitedata
 

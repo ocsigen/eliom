@@ -24,7 +24,7 @@ open Lwt
 open Ocsigen_messages
 open Ocsigen_lib
 open Ocsigen_extensions
-open Http_frame
+open Ocsigen_http_frame
 open Ocsigen_headers
 open Http_com
 open Ocsigen_senders
@@ -124,7 +124,7 @@ let get_request_infos
 (* Servers MUST report a 400 (Bad Request) error if an HTTP/1.1
    request does not include a Host request-header. *)
 
-    if clientproto = Http_frame.Http_header.HTTP11 && headerhost = None
+    if clientproto = Ocsigen_http_frame.Http_header.HTTP11 && headerhost = None
     then raise Ocsigen_Bad_Request;
 
     let useragent = get_user_agent http_frame in
@@ -133,7 +133,7 @@ let get_request_infos
     
     let cookies = 
       lazy (match (Lazy.force cookies_string) with
-      | None -> Http_frame.Cookievalues.empty
+      | None -> Ocsigen_http_frame.Cookievalues.empty
       | Some s -> parse_cookies s) 
     in
    
@@ -168,7 +168,7 @@ let get_request_infos
         (if meth = Http_header.GET || meth = Http_header.HEAD then
            return ([],[]) 
          else 
-           match http_frame.Http_frame.content with
+           match http_frame.Ocsigen_http_frame.content with
           | None -> return ([], [])
           | Some body_gen ->
               try
@@ -287,7 +287,7 @@ let get_request_infos
     {ri_url_string = url;
      ri_url = parsed_url;
      ri_method = meth;
-     ri_protocol = http_frame.Http_frame.header.Http_frame.Http_header.proto;
+     ri_protocol = http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
      ri_ssl = Lwt_ssl.is_ssl (Http_com.connection_fd receiver);
      ri_full_path_string = string_of_url_path path;
      ri_full_path = path;
@@ -346,7 +346,7 @@ let service
      because the previous one may not be sent *)
 
   let head = meth = Http_header.HEAD in
-  let clientproto = Http_header.get_proto request.Http_frame.header in
+  let clientproto = Http_header.get_proto request.Ocsigen_http_frame.header in
 
   let handle_service_errors e =
     (* Exceptions during page generation *)
@@ -357,7 +357,7 @@ let service
     | Ocsigen_http_error (cookies_to_set, i) ->
         Ocsigen_messages.debug
           (fun () -> "-> Sending HTTP error "^(string_of_int i)^" "^
-            Http_frame.Http_error.expl_of_code i);
+            Ocsigen_http_frame.Http_error.expl_of_code i);
         send_error 
           ~exn:e
           sender_slot
@@ -410,7 +410,7 @@ let service
          the server writing the response.
        We need to do this once the request has been handled before sending
        any reply to the client. *)
-    match request.Http_frame.content with
+    match request.Ocsigen_http_frame.content with
         Some f ->    
           ignore
             (Lwt.catch
@@ -533,7 +533,7 @@ let service
                 if not_modified then begin
                   Ocsigen_messages.debug2 "-> Sending 304 Not modified ";
                   Ocsigen_stream.finalize res.res_stream >>= fun () ->
-                  let empty_result = Http_frame.empty_result () in
+                  let empty_result = Ocsigen_http_frame.empty_result () in
                   send
                     sender_slot
                     ~clientproto
@@ -545,7 +545,7 @@ let service
                     "-> Sending 412 Precondition Failed \
                      (if-unmodified-since header)";
                   Ocsigen_stream.finalize res.res_stream >>= fun () ->
-                  let empty_result = Http_frame.empty_result () in
+                  let empty_result = Ocsigen_http_frame.empty_result () in
                   send
                     sender_slot
                     ~clientproto
@@ -565,7 +565,7 @@ let service
                 match e with
                 | Ocsigen_Is_a_directory ->
                     Ocsigen_messages.debug2 "-> Sending 301 Moved permanently";
-                    let empty_result = Http_frame.empty_result () in
+                    let empty_result = Ocsigen_http_frame.empty_result () in
                     send
                       sender_slot
                       ~clientproto
@@ -697,7 +697,7 @@ let handle_connection port in_ch sockaddr =
           (*XXX We should use the right information for clientproto
             and head... *)
           send_error slot
-            ~clientproto:Http_frame.Http_header.HTTP10 
+            ~clientproto:Ocsigen_http_frame.Http_header.HTTP10 
             ~head:false
             (* ~keep_alive:false *)
             ~exn:e 
@@ -728,7 +728,7 @@ let handle_connection port in_ch sockaddr =
       handle_read_errors
       (fun request ->
          let meth, url =
-           match Http_header.get_firstline request.Http_frame.header with
+           match Http_header.get_firstline request.Ocsigen_http_frame.header with
            | Http_header.Query a -> a
            | _                   -> assert false
            (*XXX Should be checked in [get_http_frame] *)
@@ -739,7 +739,7 @@ let handle_connection port in_ch sockaddr =
 (*XXX Why do we need the port but not the host name? *)
                 service receiver slot request meth url port sockaddr in_ch)
              handle_write_errors);
-         if get_keepalive request.Http_frame.header then
+         if get_keepalive request.Ocsigen_http_frame.header then
            handle_request ()
          else (* No keep-alive => no pipeline *)
             (* We wait for the query to be entirely read and for

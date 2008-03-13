@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * http_frame.ml Copyright (C) 2005 
+ * ocsigen_http_frame.ml Copyright (C) 2005 
  * Denis Berthod, Vincent Balat, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -186,7 +186,7 @@ module Http_header =
         | UNLINK
         | PATCH
 
-      (** type of http_frame mode. The int is the HTTP answer code *)
+      (** type of ocsigen_http_frame mode. The int is the HTTP answer code *)
       type http_mode = 
         | Query of (http_method * string)
         | Answer of int

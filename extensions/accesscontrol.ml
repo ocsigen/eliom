@@ -32,7 +32,7 @@ open Printf
 open Lwt
 open Ocsigen_extensions
 open Simplexmlparser
-open Http_frame
+open Ocsigen_http_frame
 
 
 (*****************************************************************************)
@@ -79,7 +79,7 @@ let rec parse_condition = function
                   r)
                (Http_headers.find_all
                   (Http_headers.name name)
-                  ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers)
+                  ri.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers)
            in
            if not r then Ocsigen_messages.debug2 (sprintf "--Access control (header): header %s does not match \"%s\"" name reg);
            r)
@@ -186,12 +186,12 @@ let parse_config path charset _ parse_fun = function
   | Element ("notfound", [], []) ->
       (fun rs ->
          Ocsigen_messages.debug2 "--Access control: taking in charge 404";
-         fail (Ocsigen_http_error (Http_frame.Cookies.empty, 404)))
+         fail (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404)))
 
   | Element ("forbidden", [], []) ->
       (fun rs ->
          Ocsigen_messages.debug2 "--Access control: taking in charge 403";
-         fail (Ocsigen_http_error (Http_frame.Cookies.empty, 403)))
+         fail (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 403)))
 
   | Element ("iffound", [], sub) ->
       let ext = parse_fun sub in

@@ -20,7 +20,7 @@
 (** This module provides predefined "senders" for usual types of pages to be
   sent by the server: xhtml, files, ... *)
 
-open Http_frame
+open Ocsigen_http_frame
 open Http_com
 open Lwt
 open Ocsigen_stream
@@ -495,7 +495,7 @@ module Directory_content =
 module Error_content =
 (** sends an error page that fit the error number *)
   struct
-    type t = int option * exn option * Http_frame.cookieset
+    type t = int option * exn option * Ocsigen_http_frame.cookieset
 
     let get_etag c = None
 
@@ -571,7 +571,7 @@ let send_error
     ~clientproto
     ?mode
     ?proto
-    ?(cookies = Http_frame.Cookies.empty)
+    ?(cookies = Ocsigen_http_frame.Cookies.empty)
     ~head
     ~sender
     ()

@@ -26,7 +26,7 @@ val get :
     host:string ->
     uri:string ->
     unit ->
-    Http_frame.t Lwt.t
+    Ocsigen_http_frame.t Lwt.t
 (** EXPERIMENTAL -- May evolve in the future. Do a GET HTTP request.
    The default port is 80 for HTTP, 443 for HTTPS.
    The default protocol is http ([https=false]).
@@ -43,13 +43,13 @@ val raw_request :
     ?port:int ->
     content: string Ocsigen_stream.t option ->
     ?content_length: int64 ->
-    http_method: Http_frame.Http_header.http_method ->
+    http_method: Ocsigen_http_frame.Http_header.http_method ->
     host:string ->
     inet_addr:Unix.inet_addr ->
     uri:string ->
     unit ->
     unit ->
-    Http_frame.t Lwt.t
+    Ocsigen_http_frame.t Lwt.t
 (** 
    Do an HTTP request (low level). 
 
@@ -97,12 +97,12 @@ val basic_raw_request :
     ?port:int ->
     content: string Ocsigen_stream.t option ->
     ?content_length: int64 ->
-    http_method: Http_frame.Http_header.http_method ->
+    http_method: Ocsigen_http_frame.Http_header.http_method ->
     host:string ->
     inet_addr:Unix.inet_addr ->
     uri:string ->
     unit ->
-    Http_frame.t Lwt.t
+    Ocsigen_http_frame.t Lwt.t
 (** Same as {!Ocsigen_http_client.raw_request}, but does not try to reuse connections.
     Opens a new connections for each request. Much less efficient.
 *)

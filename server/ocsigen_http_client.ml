@@ -80,7 +80,7 @@ let _ = Ssl.init ()
 let sslcontext = ref (Ssl.create_context Ssl.SSLv23 Ssl.Both_context)
 
 let request_sender =
-  Http_com.create_sender ~proto:Http_frame.Http_header.HTTP11 ()
+  Http_com.create_sender ~proto:Ocsigen_http_frame.Http_header.HTTP11 ()
 
 (*****************************************************************************)
 module T = Hashtbl.Make(
@@ -270,7 +270,7 @@ let raw_request
   Ocsigen_messages.debug_noel2 "--Ocsigen_http_client: *************** new request to ";
   Ocsigen_messages.debug2 uri;
   
-  let head = http_method = Http_frame.Http_header.HEAD in
+  let head = http_method = Ocsigen_http_frame.Http_header.HEAD in
   
   let port = match port with
   | None -> if https then 443 else 80
@@ -377,7 +377,7 @@ let raw_request
                            failed.
                            Do not pipeline CONNECT and POST.
                          *)
-                        http_method <> Http_frame.Http_header.CONNECT) 
+                        http_method <> Ocsigen_http_frame.Http_header.CONNECT) 
       ->
         (* Trying to pipeline *)
         Ocsigen_messages.debug_noel2
@@ -428,7 +428,7 @@ let raw_request
     let get_frame_ref = ref get_frame in
     let request_sent = Lwt.wait () in (* awoken when request sent *)
 
-    let query = Http_frame.Http_header.Query (http_method, uri) in
+    let query = Ocsigen_http_frame.Http_header.Query (http_method, uri) in
     
     let headers = 
       Http_headers.replace 
@@ -446,20 +446,20 @@ let raw_request
         (fun () ->
            (match content with
               | None ->
-                  let empty_result = Http_frame.empty_result () in
+                  let empty_result = Ocsigen_http_frame.empty_result () in
                   Http_com.send
                     ?reopen
                     slot
                     ~head:false (* We want to send the full request *)
                     ~mode:query
-                    ~clientproto:Http_frame.Http_header.HTTP11
+                    ~clientproto:Ocsigen_http_frame.Http_header.HTTP11
                     ~keep_alive:keep_alive_asked (* we request keep alive
                                                     even if we do not pipeline 
                                                     if we don't trust the server
                                                  *)
                     ~sender:request_sender
                     {empty_result with
-                       Http_frame.res_headers = headers}
+                       Ocsigen_http_frame.res_headers = headers}
                     
               | Some stream -> 
                   Ocsigen_senders.Stream_content.result_of_content
@@ -469,12 +469,12 @@ let raw_request
                       slot
                       ~mode:query
                       ~head:false (* We want to send the full request *)
-                      ~clientproto:Http_frame.Http_header.HTTP11
+                      ~clientproto:Ocsigen_http_frame.Http_header.HTTP11
                       ~keep_alive:keep_alive_asked
                       ~sender:request_sender
                       {r with
-                         Http_frame.res_content_length= content_length;
-                         Http_frame.res_headers= headers;
+                         Ocsigen_http_frame.res_content_length= content_length;
+                         Ocsigen_http_frame.res_headers= headers;
                       }) >>= fun () ->
 
              Ocsigen_messages.debug2 "--Ocsigen_http_client: request sent";
@@ -594,7 +594,7 @@ let raw_request
       
       
       let server_keepalive = 
-        Ocsigen_headers.get_keepalive http_frame.Http_frame.header 
+        Ocsigen_headers.get_keepalive http_frame.Ocsigen_http_frame.header 
       in
       if keep_alive_asked && not server_keepalive then
         (* The server does not want to do keep-alive *)
@@ -615,7 +615,7 @@ let raw_request
                Lwt.wakeup_exn new_waiter Pipeline_failed);
     
       Ocsigen_messages.debug2 "--Ocsigen_http_client: frame received";
-      (match http_frame.Http_frame.content with
+      (match http_frame.Ocsigen_http_frame.content with
          | None   -> finalize do_keep_alive
          | Some c -> 
              Ocsigen_stream.add_finalizer c (fun () -> finalize do_keep_alive);
@@ -627,13 +627,13 @@ let raw_request
         Http_headers.replace_opt 
           Http_headers.connection
           None
-          http_frame.Http_frame.header.Http_frame.Http_header.headers
+          http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
       in
       let headers =
         try
           let connection_value =
-            Http_frame.Http_header.get_headers_value
-              http_frame.Http_frame.header Http_headers.connection
+            Ocsigen_http_frame.Http_header.get_headers_value
+              http_frame.Ocsigen_http_frame.header Http_headers.connection
           in
           Http_headers.replace_opt 
             (Http_headers.name connection_value)
@@ -642,13 +642,13 @@ let raw_request
         with Not_found -> headers
       in
       Lwt.return 
-        {Http_frame.header= 
-            {Http_frame.Http_header.mode = 
-                http_frame.Http_frame.header.Http_frame.Http_header.mode;
-             Http_frame.Http_header.proto = 
-                http_frame.Http_frame.header.Http_frame.Http_header.proto;
-             Http_frame.Http_header.headers = headers};
-         Http_frame.content = http_frame.Http_frame.content}
+        {Ocsigen_http_frame.header= 
+            {Ocsigen_http_frame.Http_header.mode = 
+                http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.mode;
+             Ocsigen_http_frame.Http_header.proto = 
+                http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
+             Ocsigen_http_frame.Http_header.headers = headers};
+         Ocsigen_http_frame.content = http_frame.Ocsigen_http_frame.content}
 
 
 (*****************************************************************************)
@@ -657,7 +657,7 @@ let get ?https ?port ~host ~uri () =
     raw_request 
       ?https
       ?port
-      ~http_method:Http_frame.Http_header.GET
+      ~http_method:Ocsigen_http_frame.Http_header.GET
       ~content:None
       ~host
       ~inet_addr
@@ -692,7 +692,7 @@ let basic_raw_request
     (fun e -> Lwt_unix.close fd; Lwt.fail e)
   >>= fun socket ->
             
-  let query = Http_frame.Http_header.Query (http_method, uri) in
+  let query = Ocsigen_http_frame.Http_header.Query (http_method, uri) in
   let conn = Http_com.create_receiver
       (Ocsigen_config.get_server_timeout ())
       Http_com.Answer socket in
@@ -708,28 +708,28 @@ let basic_raw_request
     
     match content with
     | None ->
-        let empty_result = Http_frame.empty_result () in
+        let empty_result = Ocsigen_http_frame.empty_result () in
         Http_com.send
           slot
           ~mode:query
-          ~clientproto:Http_frame.Http_header.HTTP11
+          ~clientproto:Ocsigen_http_frame.Http_header.HTTP11
           ~head:false
           ~keep_alive:false
           ~sender:request_sender
           {empty_result with
-           Http_frame.res_headers = headers}
+           Ocsigen_http_frame.res_headers = headers}
     | Some stream -> 
         Ocsigen_senders.Stream_content.result_of_content stream >>= fun r ->
         Http_com.send
           slot
           ~mode:query
-          ~clientproto:Http_frame.Http_header.HTTP11
+          ~clientproto:Ocsigen_http_frame.Http_header.HTTP11
           ~head:false
           ~keep_alive:false
           ~sender:request_sender
           {r with
-           Http_frame.res_content_length= content_length;
-           Http_frame.res_headers= headers;
+           Ocsigen_http_frame.res_content_length= content_length;
+           Ocsigen_http_frame.res_headers= headers;
           }
  
   in
@@ -738,10 +738,10 @@ let basic_raw_request
   Lwt.catch 
     (fun () ->
        Http_com.get_http_frame
-         ~head:(http_method = Http_frame.Http_header.HEAD)
+         ~head:(http_method = Ocsigen_http_frame.Http_header.HEAD)
          conn
        >>= fun http_frame ->
-      (match http_frame.Http_frame.content with
+      (match http_frame.Ocsigen_http_frame.content with
       | None   -> Lwt_ssl.close socket
       | Some c -> 
           Ocsigen_stream.add_finalizer c

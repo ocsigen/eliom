@@ -29,7 +29,7 @@
 open Lwt
 open Ocsigen_lib
 
-exception Ocsigen_http_error of (Http_frame.cookieset * int)
+exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
 exception Ocsigen_Is_a_directory
 exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
@@ -71,8 +71,8 @@ val client_connection : client -> Http_com.connection
 type request_info = 
     {ri_url_string: string; (** full URL *)
      ri_url: Neturl.url;
-     ri_method: Http_frame.Http_header.http_method; (** GET, POST, HEAD... *)
-     ri_protocol: Http_frame.Http_header.proto; (** HTTP protocol used by client *)
+     ri_method: Ocsigen_http_frame.Http_header.http_method; (** GET, POST, HEAD... *)
+     ri_protocol: Ocsigen_http_frame.Http_header.proto; (** HTTP protocol used by client *)
      ri_ssl: bool; (** true if HTTPS, false if HTTP *)
      ri_full_path_string: string; (** full path of the URL *)
      ri_full_path: string list;   (** full path of the URL *)
@@ -91,7 +91,7 @@ type request_info =
      ri_server_port: int;      (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
      ri_cookies_string: string option Lazy.t; (** Cookies sent by the browser *)
-     ri_cookies: string Http_frame.Cookievalues.t Lazy.t;  (** Cookies sent by the browser *)
+     ri_cookies: string Ocsigen_http_frame.Cookievalues.t Lazy.t;  (** Cookies sent by the browser *)
      ri_ifmodifiedsince: float option;   (** if-modified-since field *)
      ri_ifunmodifiedsince: float option;   (** if-unmodified-since field *)
      ri_ifnonematch: string list;   (** if-none-match field ( * and weak entity tags not implemented) *)
@@ -106,7 +106,7 @@ type request_info =
      ri_accept_language: (string * float option) list Lazy.t; (** Accept-Language HTTP header. The float is the "quality" value, if any. *)
 
 
-     ri_http_frame: Http_frame.t; (** The full http_frame *)
+     ri_http_frame: Ocsigen_http_frame.t; (** The full http_frame *)
      ri_extension_info: exn list; (** Use this to put anything you want, 
                                       for example, information for subsequent
                                       extensions 
@@ -120,7 +120,7 @@ type request_info =
  *)
 
 type answer =
-  | Ext_found of (unit -> Http_frame.result Lwt.t)
+  | Ext_found of (unit -> Ocsigen_http_frame.result Lwt.t)
       (** "OK stop! I will take the page.
           You can start the following request of the same pipelined connection.
           Here is the function to generate the page". 
@@ -139,43 +139,43 @@ type answer =
                         Same as Ext_continue_with but does not change
                         the request.
                     *)
-  | Ext_stop_site of (Http_frame.cookieset * int) 
+  | Ext_stop_site of (Ocsigen_http_frame.cookieset * int) 
                     (** Error. Do not try next extension, but
                         try next site. 
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_stop_host of (Http_frame.cookieset * int)
+  | Ext_stop_host of (Ocsigen_http_frame.cookieset * int)
                     (** Error. Do not try next extension, 
                         do not try next site,
                         but try next host. 
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_stop_all of (Http_frame.cookieset * int)
+  | Ext_stop_all of (Ocsigen_http_frame.cookieset * int)
                     (** Error. Do not try next extension (even filters), 
                         do not try next site,
                         do not try next host,
                         do not . 
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_continue_with of (request_info * Http_frame.cookieset * int)
+  | Ext_continue_with of (request_info * Ocsigen_http_frame.cookieset * int)
         (** Used to modify the request before giving it to next extension.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
-            ([!Http_frame.Cookies.empty] for no cookies).
+            ([!Ocsigen_http_frame.Cookies.empty] for no cookies).
             You must add these cookies yourself in request_info if you
             want them to be seen by subsequent extensions,
-            for example using {!Http_frame.compute_new_ri_cookies}.
+            for example using {!Ocsigen_http_frame.compute_new_ri_cookies}.
             The integer is usually equal to the error code received 
             from preceding extension (but you may want to modify it).
          *)
-  | Ext_retry_with of request_info * Http_frame.cookieset
+  | Ext_retry_with of request_info * Ocsigen_http_frame.cookieset
         (** Used to retry all the extensions with a new request_info.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
-            ([!Http_frame.Cookies.empty] for no cookies).
+            ([!Ocsigen_http_frame.Cookies.empty] for no cookies).
             You must add these cookies yourself in request_info if you
             want them to be seen by subsequent extensions,
-            for example using {!Http_frame.compute_new_ri_cookies}.
+            for example using {!Ocsigen_http_frame.compute_new_ri_cookies}.
          *)
   | Ext_sub_result of extension2
         (** Used if your extension want to define option that may contain
@@ -187,13 +187,13 @@ type answer =
 
 and request_state =
   | Req_not_found of (int * request_info)
-  | Req_found of (request_info * (unit -> Http_frame.result Lwt.t))
+  | Req_found of (request_info * (unit -> Ocsigen_http_frame.result Lwt.t))
 
 and extension2 =
     (unit -> unit) ->
-      Http_frame.cookieset ->
+      Ocsigen_http_frame.cookieset ->
         request_state ->
-          (answer * Http_frame.cookieset) Lwt.t
+          (answer * Ocsigen_http_frame.cookieset) Lwt.t
 
 type extension = request_state -> answer Lwt.t
 (** For each <site> tag in the configuration file, 
@@ -342,7 +342,7 @@ val get_hosts : unit -> (virtual_hosts * extension2) list
 val do_for_site_matching :
     string option ->
     int ->
-    request_info -> Http_frame.result Lwt.t
+    request_info -> Ocsigen_http_frame.result Lwt.t
 
 (** Profiling *)
 val get_number_of_connected : unit -> int

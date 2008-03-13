@@ -21,38 +21,38 @@
 
 
 module File_content :
-  Http_frame.HTTP_CONTENT with type t = string
+  Ocsigen_http_frame.HTTP_CONTENT with type t = string
 
 module Xhtml_content :
-  Http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
+  Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
 
 module Xhtmlcompact_content :
-  Http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
+  Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
 
 (** content * content-type *)
 module Text_content :
-  Http_frame.HTTP_CONTENT with type t = string * string
+  Ocsigen_http_frame.HTTP_CONTENT with type t = string * string
 
 module Stream_content :
-  Http_frame.HTTP_CONTENT with type t = string Ocsigen_stream.t
+  Ocsigen_http_frame.HTTP_CONTENT with type t = string Ocsigen_stream.t
 
 (** streams and content-type *)
 module Streamlist_content :
-  Http_frame.HTTP_CONTENT 
+  Ocsigen_http_frame.HTTP_CONTENT 
 with type t = (unit -> string Ocsigen_stream.t Lwt.t) list
       * string
 
 module Empty_content :
-  Http_frame.HTTP_CONTENT with type t = unit
+  Ocsigen_http_frame.HTTP_CONTENT with type t = unit
 
 (** directory name and corresponding URL path *)
 module Directory_content :
-  Http_frame.HTTP_CONTENT with type t = string * string list
+  Ocsigen_http_frame.HTTP_CONTENT with type t = string * string list
 
 (** error code and/or exception *)
 module Error_content :
-  Http_frame.HTTP_CONTENT 
-with type t = int option * exn option * Http_frame.cookieset
+  Ocsigen_http_frame.HTTP_CONTENT 
+with type t = int option * exn option * Ocsigen_http_frame.cookieset
 
 
 
@@ -61,10 +61,10 @@ val send_error :
     ?code:int ->
     ?exn:exn ->
     Http_com.slot ->
-    clientproto:Http_frame.Http_header.proto ->
-    ?mode:Http_frame.Http_header.http_mode ->
-    ?proto:Http_frame.Http_header.proto ->
-    ?cookies:Http_frame.cookieset ->
+    clientproto:Ocsigen_http_frame.Http_header.proto ->
+    ?mode:Ocsigen_http_frame.Http_header.http_mode ->
+    ?proto:Ocsigen_http_frame.Http_header.proto ->
+    ?cookies:Ocsigen_http_frame.cookieset ->
     head:bool -> 
     sender:Http_com.sender_type -> 
     unit -> 

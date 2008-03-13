@@ -35,10 +35,10 @@ let gen (header, regexp, dest) charset = function
       result () >>= fun res ->
       try
         let header_values = 
-          Http_headers.find_all header res.Http_frame.res_headers 
+          Http_headers.find_all header res.Ocsigen_http_frame.res_headers 
         in
         let h = 
-          Http_headers.replace_opt header None res.Http_frame.res_headers 
+          Http_headers.replace_opt header None res.Ocsigen_http_frame.res_headers 
         in
         let new_headers = 
           List.fold_left
@@ -56,7 +56,7 @@ let gen (header, regexp, dest) charset = function
           (Ocsigen_extensions.Ext_found
              (fun () -> 
                Lwt.return
-                 {res with Http_frame.res_headers = new_headers}))
+                 {res with Ocsigen_http_frame.res_headers = new_headers}))
       with Not_found -> 
         Lwt.return (Ocsigen_extensions.Ext_found (fun () -> Lwt.return res))
 

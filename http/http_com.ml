@@ -38,7 +38,7 @@ http://www.tools.ietf.org/html/draft-ietf-http-connection-00
 *)
 
 
-open Http_frame
+open Ocsigen_http_frame
 
 (** this module provide a mecanism to communicate with some http frames *)
 
@@ -58,7 +58,7 @@ exception Aborted
 
 (*XXX Provide the max size? *)
 let request_too_large max =
-  Http_frame.Http_error.Http_exception
+  Ocsigen_http_frame.Http_error.Http_exception
     (413, Some "request contents too large", None)
 
 (****)
@@ -269,7 +269,7 @@ let wait_http_header receiver =
        Lwt.fail
          (match e with
             Buffer_full ->
-              Http_frame.Http_error.Http_exception
+              Ocsigen_http_frame.Http_error.Http_exception
                 (413, Some "header too long", None)
           | End_of_file when buf_used receiver = 0 ->
               Connection_closed
@@ -296,7 +296,7 @@ let extract_chunked receiver =
   let ec_fail e =
     let e =
       if e = Buffer_full then
-        Http_frame.Http_error.Http_exception (400, Some "bad chunked data", None)
+        Ocsigen_http_frame.Http_error.Http_exception (400, Some "bad chunked data", None)
       else
         convert_io_error e
     in
@@ -314,7 +314,7 @@ let extract_chunked receiver =
            Lwt.return ()
          end else
            Lwt.fail
-             (Http_frame.Http_error.Http_exception
+             (Ocsigen_http_frame.Http_error.Http_exception
                 (400, Some "bad chunked data", None)))
       ec_fail
   in
@@ -349,7 +349,7 @@ let parse_http_header mode s =
        else
          Http_parser.header Http_lexer.token lexbuf)
   with Parsing.Parse_error ->
-    Lwt.fail (Http_frame.Http_error.Http_exception
+    Lwt.fail (Ocsigen_http_frame.Http_error.Http_exception
                 (400, Some "parse error", None))
 
 let get_maxsize = function
@@ -379,8 +379,8 @@ let get_http_frame ?(head = false) receiver =
    header fields,  regardless of  the entity-header fields  present in
    the message.
  *)
-  begin match header.Http_frame.Http_header.mode with
-      Http_frame.Http_header.Answer code
+  begin match header.Ocsigen_http_frame.Http_header.mode with
+      Ocsigen_http_frame.Http_header.Answer code
         when code_without_message_body code ->
           return_with_no_body receiver
     | _ ->
@@ -396,7 +396,7 @@ let get_http_frame ?(head = false) receiver =
 *)
           let chunked =
             try
-              Http_frame.Http_header.get_headers_value
+              Ocsigen_http_frame.Http_header.get_headers_value
                 header Http_headers.transfer_encoding <> "identity"
             with Not_found ->
               false
@@ -418,7 +418,7 @@ let get_http_frame ?(head = false) receiver =
                 (*XXX Check for overflow/malformed field... *)
                 Some
                   (Int64.of_string
-                     (Http_frame.Http_header.get_headers_value
+                     (Ocsigen_http_frame.Http_header.get_headers_value
                         header Http_headers.content_length))
               with Not_found ->
                 None
@@ -428,7 +428,7 @@ let get_http_frame ?(head = false) receiver =
                   if cl < 0L then
                     (*XXX Malformed field!!!*)
                     Lwt.fail
-                      (Http_frame.Http_error.Http_exception
+                      (Ocsigen_http_frame.Http_error.Http_exception
                          (400, Some "ill-formed content-length header", None))
                   else if cl = 0L then
                     return_with_no_body receiver
@@ -455,8 +455,8 @@ NOT IMPLEMENTED
    cannot be  used to indicate the  end of a request  body, since that
    would leave no possibility for the server to send back a response.)
  *)
-                  match header.Http_frame.Http_header.mode with
-                      Http_frame.Http_header.Query (_, s) ->
+                  match header.Ocsigen_http_frame.Http_header.mode with
+                      Ocsigen_http_frame.Http_header.Query (_, s) ->
                         return_with_no_body receiver
                     | _ ->
                         let st =
@@ -474,8 +474,8 @@ NOT IMPLEMENTED
            Some s
     )
   in
-  Lwt.return {Http_frame.header = header;
-              Http_frame.content = la}
+  Lwt.return {Ocsigen_http_frame.header = header;
+              Ocsigen_http_frame.content = la}
 
 (****)
 
@@ -563,7 +563,7 @@ let gmtdate d =
 
 type sender_type = {
     (** protocol to be used : HTTP/1.0 HTTP/1.1 *)
-    mutable s_proto: Http_frame.Http_header.proto;
+    mutable s_proto: Ocsigen_http_frame.Http_header.proto;
     (** the options to send with each frame, for exemple : server name , ... *)
     mutable s_headers: Http_headers.t
   }
@@ -572,7 +572,7 @@ type sender_type = {
 let create_sender
     ?server_name
     ?(headers=Http_headers.empty)
-    ?(proto=Http_frame.Http_header.HTTP11)
+    ?(proto=Ocsigen_http_frame.Http_header.HTTP11)
     () =
   let headers =
     Http_headers.replace Http_headers.accept_ranges "none" headers in
@@ -691,7 +691,7 @@ let write_stream ?(chunked=false) out_ch stream =
 
 
 
-module H = Http_frame.Http_header
+module H = Ocsigen_http_frame.Http_header
 
 
 (** Sends the HTTP frame.
@@ -732,7 +732,7 @@ let send
          in
          let chunked =
            res.res_content_length = None && 
-           clientproto <> Http_frame.Http_header.HTTP10 &&
+           clientproto <> Ocsigen_http_frame.Http_header.HTTP10 &&
            not empty_content && not head
          in
          (* if HTTP/1.0 we do not use chunked encoding
@@ -872,8 +872,8 @@ let send
     Cookievalues.fold
       (fun name c h -> 
         let exp, v = match c with
-        | Http_frame.OUnset -> (Some 0., "")
-        | Http_frame.OSet (t, v) -> (t, v)
+        | Ocsigen_http_frame.OUnset -> (Some 0., "")
+        | Ocsigen_http_frame.OSet (t, v) -> (t, v)
         in
         Http_headers.add Http_headers.set_cookie (mkcook path exp name v) h)
       t

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-open Http_frame
+open Ocsigen_http_frame
 open Http_com
 open Lwt
 open Ocsigen_senders

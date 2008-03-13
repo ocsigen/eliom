@@ -18,28 +18,28 @@
  *)
 
 (** Getting informations from HTTP header. *)
-(** This module uses the lowel level module Http_frame.Http_header. 
+(** This module uses the lowel level module Ocsigen_http_frame.Http_header. 
      It is very basic and must be completed for exhaustiveness. *)
 
 
-val get_keepalive : Http_frame.Http_header.http_header -> bool
-val parse_cookies : string  -> string Http_frame.Cookievalues.t
+val get_keepalive : Ocsigen_http_frame.Http_header.http_header -> bool
+val parse_cookies : string  -> string Ocsigen_http_frame.Cookievalues.t
 val parse_mime_type : string -> string option * string option
-val get_host_from_host_header : Http_frame.t -> string option
-val get_user_agent : Http_frame.t -> string
-val get_cookie_string : Http_frame.t -> string option
-val get_if_modified_since : Http_frame.t -> float option
-val get_if_unmodified_since : Http_frame.t -> float option
-val get_if_none_match : Http_frame.t -> string list
-val get_if_match : Http_frame.t -> string list option
-val get_content_type : Http_frame.t -> string option
-val get_content_length : Http_frame.t -> int64 option
-val get_referer : Http_frame.t -> string option
-val get_referrer : Http_frame.t -> string option
+val get_host_from_host_header : Ocsigen_http_frame.t -> string option
+val get_user_agent : Ocsigen_http_frame.t -> string
+val get_cookie_string : Ocsigen_http_frame.t -> string option
+val get_if_modified_since : Ocsigen_http_frame.t -> float option
+val get_if_unmodified_since : Ocsigen_http_frame.t -> float option
+val get_if_none_match : Ocsigen_http_frame.t -> string list
+val get_if_match : Ocsigen_http_frame.t -> string list option
+val get_content_type : Ocsigen_http_frame.t -> string option
+val get_content_length : Ocsigen_http_frame.t -> int64 option
+val get_referer : Ocsigen_http_frame.t -> string option
+val get_referrer : Ocsigen_http_frame.t -> string option
 val get_accept :
-  Http_frame.t ->
+  Ocsigen_http_frame.t ->
   ((string option * string option) * float option * (string * string) list)
     list
-val get_accept_charset : Http_frame.t -> (string option * float option) list
-val get_accept_encoding : Http_frame.t -> (string option * float option) list
-val get_accept_language : Http_frame.t -> (string * float option) list
+val get_accept_charset : Ocsigen_http_frame.t -> (string option * float option) list
+val get_accept_encoding : Ocsigen_http_frame.t -> (string option * float option) list
+val get_accept_language : Ocsigen_http_frame.t -> (string * float option) list

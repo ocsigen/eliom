@@ -5,7 +5,7 @@ let parse_file f =
   Http_parser.header Http_lexer.token lexbuf
   with
   Parsing.Parse_error -> failwith ("erreur vers "^ (Lexing.lexeme lexbuf))
-  |e -> Http_frame.Http_error.display_http_exception e;failwith "erreur"
+  |e -> Ocsigen_http_frame.Http_error.display_http_exception e;failwith "erreur"
 
 let _ = 
   parse_file Sys.argv.(1)

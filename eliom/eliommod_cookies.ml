@@ -81,7 +81,7 @@ let get_cookie_info now sitedata
   
   (* get info about service session cookies: *)
   let (servoktable, servfailedlist) =
-    Http_frame.Cookievalues.fold
+    Ocsigen_http_frame.Cookievalues.fold
       (fun name value (oktable, failedlist) ->
         try 
           let fullsessname, ta, expref, timeout_ref, sessgrpref = 
@@ -94,7 +94,7 @@ let get_cookie_info now sitedata
               (* session expired by timeout *)
               Eliom_common.SessionCookies.remove
                 sitedata.Eliom_common.session_services value;
-              ((Http_frame.Cookievalues.add
+              ((Ocsigen_http_frame.Cookievalues.add
                   name
                   (Some value          (* value sent by the browser *),
                    ref Eliom_common.SCData_session_expired
@@ -102,7 +102,7 @@ let get_cookie_info now sitedata
                                           to remove the cookie *))
                   oktable),
                name::failedlist)
-          | _ -> ((Http_frame.Cookievalues.add 
+          | _ -> ((Ocsigen_http_frame.Cookievalues.add 
                      name
                      (Some value        (* value sent by the browser *),
                       ref 
@@ -119,7 +119,7 @@ let get_cookie_info now sitedata
                      oktable),
                   failedlist)
         with Not_found ->
-          ((Http_frame.Cookievalues.add
+          ((Ocsigen_http_frame.Cookievalues.add
               name
               (Some value                 (* value sent by the browser *),
                ref Eliom_common.SCData_session_expired
@@ -129,12 +129,12 @@ let get_cookie_info now sitedata
            name::failedlist)
       )
       service_cookies
-      (Http_frame.Cookievalues.empty, [])
+      (Ocsigen_http_frame.Cookievalues.empty, [])
   in
 
   (* get info about "in memory" data session cookies: *)
   let dataoktable =
-    Http_frame.Cookievalues.map
+    Ocsigen_http_frame.Cookievalues.map
       (fun value ->
         lazy
           (try
@@ -178,7 +178,7 @@ let get_cookie_info now sitedata
   
   (* *** get info about persistent session cookies: *)
   let persoktable =
-    Http_frame.Cookievalues.map
+    Ocsigen_http_frame.Cookievalues.map
       (fun value ->
         lazy
           (catch
@@ -332,7 +332,7 @@ let compute_session_cookies_to_send
   in
   let aux f cookiename tab2 cooktab =
     cooktab >>= fun cooktab ->
-    Http_frame.Cookievalues.fold
+    Ocsigen_http_frame.Cookievalues.fold
       (fun name value beg ->
         beg >>= fun beg ->
         catch
@@ -342,27 +342,27 @@ let compute_session_cookies_to_send
               (match old, newc with
               | None, None -> beg
               | Some _, None ->
-                  Http_frame.add_cookie
+                  Ocsigen_http_frame.add_cookie
                     sitedata.Eliom_common.site_dir
                     (Eliom_common.make_full_cookie_name cookiename name)
-                    Http_frame.OUnset
+                    Ocsigen_http_frame.OUnset
                     beg
                   (* the path is always site_dir because the cookie cannot 
                      have been unset by a service outside
                      this site directory *)
               | None, Some (v, exp) -> 
-                  Http_frame.add_cookie
+                  Ocsigen_http_frame.add_cookie
                     sitedata.Eliom_common.site_dir
                     (Eliom_common.make_full_cookie_name cookiename name)
-                    (Http_frame.OSet (ch_exp exp, v))
+                    (Ocsigen_http_frame.OSet (ch_exp exp, v))
                     beg
               | Some oldv, Some (newv, exp) -> 
                   if exp = Eliom_common.CENothing && oldv = newv
                   then beg
-                  else Http_frame.add_cookie
+                  else Ocsigen_http_frame.add_cookie
                       sitedata.Eliom_common.site_dir
                       (Eliom_common.make_full_cookie_name cookiename name)
-                      (Http_frame.OSet (ch_exp exp, newv))
+                      (Ocsigen_http_frame.OSet (ch_exp exp, newv))
                       beg
               )
           )
@@ -382,7 +382,7 @@ let compute_session_cookies_to_send
 let compute_cookies_to_send = compute_session_cookies_to_send
 
 
-(* add a list of Eliom's cookies to an Http_frame cookie table *)
+(* add a list of Eliom's cookies to an Ocsigen_http_frame cookie table *)
 let add_cookie_list_to_send sitedata l t =
   let change_pathopt = function
     | None -> sitedata.Eliom_common.site_dir 
@@ -393,10 +393,10 @@ let add_cookie_list_to_send sitedata l t =
     (fun t v -> 
       match v with
       | Eliom_common.Set (upo, expo, n, v) ->
-          Http_frame.add_cookie (change_pathopt upo) n 
-            (Http_frame.OSet (expo, v)) t
+          Ocsigen_http_frame.add_cookie (change_pathopt upo) n 
+            (Ocsigen_http_frame.OSet (expo, v)) t
       | Eliom_common.Unset (upo, n) ->
-          Http_frame.add_cookie (change_pathopt upo) n Http_frame.OUnset t
+          Ocsigen_http_frame.add_cookie (change_pathopt upo) n Ocsigen_http_frame.OUnset t
     )
     t
     l
@@ -420,12 +420,12 @@ let compute_new_ri_cookies'
       match v with
       | Eliom_common.Set (upo, Some t, n, v)  
         when t>now && prefix upo ripath ->
-          Http_frame.Cookievalues.add n v tab
+          Ocsigen_http_frame.Cookievalues.add n v tab
       | Eliom_common.Set (upo, None, n, v) when prefix upo ripath ->
-          Http_frame.Cookievalues.add n v tab
+          Ocsigen_http_frame.Cookievalues.add n v tab
       | Eliom_common.Set (upo, _, n, _)
       | Eliom_common.Unset (upo, n) when prefix upo ripath ->
-          Http_frame.Cookievalues.remove n tab
+          Ocsigen_http_frame.Cookievalues.remove n tab
       | _ -> tab
     )
     ricookies
@@ -446,22 +446,22 @@ let compute_new_ri_cookies
     compute_new_ri_cookies' now ripath ricookies cookies_set_by_page 
   in
   let ric = 
-    Http_frame.Cookievalues.fold
+    Ocsigen_http_frame.Cookievalues.fold
       (fun n (_, v) beg -> 
         let n = Eliom_common.make_full_cookie_name 
             Eliom_common.servicecookiename n
         in
         match !v with
         | Eliom_common.SCData_session_expired
-        | Eliom_common.SCNo_data -> Http_frame.Cookievalues.remove n beg
+        | Eliom_common.SCNo_data -> Ocsigen_http_frame.Cookievalues.remove n beg
         | Eliom_common.SC c -> 
-            Http_frame.Cookievalues.add n c.Eliom_common.sc_value beg
+            Ocsigen_http_frame.Cookievalues.add n c.Eliom_common.sc_value beg
       )
       !service_cookie_info
       ric
   in
   let ric = 
-    Http_frame.Cookievalues.fold
+    Ocsigen_http_frame.Cookievalues.fold
       (fun n v beg -> 
         let n = Eliom_common.make_full_cookie_name 
             Eliom_common.datacookiename n
@@ -471,16 +471,16 @@ let compute_new_ri_cookies
           let (_, v) = Lazy.force v in
           match !v with
           | Eliom_common.SCData_session_expired
-          | Eliom_common.SCNo_data -> Http_frame.Cookievalues.remove n beg
+          | Eliom_common.SCNo_data -> Ocsigen_http_frame.Cookievalues.remove n beg
           | Eliom_common.SC c -> 
-              Http_frame.Cookievalues.add n c.Eliom_common.dc_value beg
+              Ocsigen_http_frame.Cookievalues.add n c.Eliom_common.dc_value beg
         else beg
       )
       !data_cookie_info
       ric
   in
   let ric = 
-    Http_frame.Cookievalues.fold
+    Ocsigen_http_frame.Cookievalues.fold
       (fun n v beg -> 
         let n = 
           Eliom_common.make_full_cookie_name 
@@ -493,9 +493,9 @@ let compute_new_ri_cookies
           match !v with
           | Eliom_common.SCData_session_expired
           | Eliom_common.SCNo_data -> 
-              return (Http_frame.Cookievalues.remove n beg)
+              return (Ocsigen_http_frame.Cookievalues.remove n beg)
           | Eliom_common.SC c -> 
-              return (Http_frame.Cookievalues.add n
+              return (Ocsigen_http_frame.Cookievalues.add n
                         c.Eliom_common.pc_value beg)
         else return beg
       )

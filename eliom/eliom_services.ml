@@ -38,7 +38,7 @@ type cookie = Eliom_common.cookie =
   | Unset of url_path option * string
 
 let cookie_table_of_eliom_cookies
-    ?(oldtable= Http_frame.Cookies.empty) ~sp cl =
+    ?(oldtable= Ocsigen_http_frame.Cookies.empty) ~sp cl =
   Eliommod_cookies.add_cookie_list_to_send 
     (Eliom_sessions.get_sitedata sp)
     cl oldtable
@@ -50,7 +50,7 @@ let cookie_table_of_eliom_cookies
    pages
  *)
 type result_to_send = Eliom_common.result_to_send =
-  | EliomResult of Http_frame.result
+  | EliomResult of Ocsigen_http_frame.result
   | EliomExn of (exn list * cookie list)
 
 

@@ -33,7 +33,7 @@ open Eliom_parameters
 open Eliom_mkforms
 open Eliom_mkreg
 
-open Http_frame
+open Ocsigen_http_frame
 open Http_com
 
 
@@ -46,7 +46,7 @@ let code_of_code_option = function
   | None -> 200
   | Some c -> c
 
-module Xhtmlreg_(Xhtml_content : Http_frame.HTTP_CONTENT
+module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
                    with type t = [ `Html ] XHTML.M.elt) = struct
   open XHTML.M
   open Xhtmltypes
@@ -1508,7 +1508,7 @@ module Actionreg_ = struct
       ?(options = `Reload) ?(cookies=[]) ?charset ?(code = 204) ~sp content =
     if options = `NoReload
     then
-      let empty_result = Http_frame.empty_result () in
+      let empty_result = Ocsigen_http_frame.empty_result () in
       Lwt.return
         (EliomResult
            {empty_result with
@@ -1537,7 +1537,7 @@ module Unitreg_ = struct
   type options = unit
 
   let send ?options ?(cookies=[]) ?charset ?(code = 204) ~sp content = 
-    let empty_result = Http_frame.empty_result () in
+    let empty_result = Ocsigen_http_frame.empty_result () in
     Lwt.return
       (EliomResult
          {empty_result with
@@ -1571,7 +1571,7 @@ module Redirreg_ = struct
   type options = [ `Temporary | `Permanent ]
 
   let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code ~sp content =
-    let empty_result = Http_frame.empty_result () in
+    let empty_result = Ocsigen_http_frame.empty_result () in
     let code = match code with
     | Some c -> c
     | None -> 
@@ -1674,12 +1674,12 @@ module Filesreg_ = struct
           (filename, stat)
         end
         else 
-          raise (Ocsigen_http_error (Http_frame.Cookies.empty, 404))(* ??? *)
+          raise (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404))(* ??? *)
       with
         (Unix.Unix_error (Unix.EACCES,_,_))
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url as e -> raise e
-      | e -> raise (Ocsigen_http_error (Http_frame.Cookies.empty, 404)))
+      | e -> raise (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404)))
     in
     Ocsigen_senders.File_content.result_of_content filename >>= fun r ->
     Lwt.return

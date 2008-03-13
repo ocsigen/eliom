@@ -36,8 +36,8 @@ open Lazy
 (****************************************************************************)
 
 let get_or_post = function
-  | `Internal (_, `Get) -> Http_frame.Http_header.GET
-  | _ -> Http_frame.Http_header.POST
+  | `Internal (_, `Get) -> Ocsigen_http_frame.Http_header.GET
+  | _ -> Ocsigen_http_frame.Http_header.POST
 (*  | `External -> POST ? *)
 
 

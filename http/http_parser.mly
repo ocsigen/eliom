@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-  open Http_frame
+  open Ocsigen_http_frame
   open Http_header
   
   let mode = ref Nofirstline
@@ -74,8 +74,8 @@
 %token <string>CODE
 
 %start header nofirstline
-%type <Http_frame.Http_header.http_header>header
-%type <Http_frame.Http_header.http_header>nofirstline
+%type <Ocsigen_http_frame.Http_header.http_header>header
+%type <Ocsigen_http_frame.Http_header.http_header>nofirstline
 
 %%
 header :

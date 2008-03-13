@@ -23,7 +23,7 @@ open Printf
 open Lwt
 open Ocsigen_extensions
 open Simplexmlparser
-open Http_frame
+open Ocsigen_http_frame
 
 
 (*****************************************************************************)
@@ -103,7 +103,7 @@ let parse_config path charset _ parse_fun = function
                      let credentials =
                        Http_headers.find
                          (Http_headers.name "Authorization")
-                         ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
+                         ri.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
                      in
                      let encoded =
                        let n = String.length credentials in
@@ -131,7 +131,7 @@ let parse_config path charset _ parse_fun = function
                          (fun () -> sprintf
                             "--Access control (auth): Invalid Authorization header (%s)"
                             (Printexc.to_string e));
-                       fail (Ocsigen_http_error (Http_frame.Cookies.empty, 400))
+                       fail (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 400))
                  end
              | Ocsigen_extensions.Req_found (ri, r) ->
                  Lwt.return (Ocsigen_extensions.Ext_found r))

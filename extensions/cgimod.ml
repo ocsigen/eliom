@@ -28,7 +28,7 @@
 open Lwt
 open Ocsigen_extensions
 open Simplexmlparser
-open Http_frame
+open Ocsigen_http_frame
 open Http_com
 open Ocsigen_senders
 
@@ -195,7 +195,7 @@ let _ =
      (*"Referer"; "Host"; "Cookie"*) ]
 
 let array_environment filename re doc_root ri =
-  let header = ri.ri_http_frame.Http_frame.header in
+  let header = ri.ri_http_frame.Ocsigen_http_frame.header in
   let opt = function
     | None -> ""
     | Some a -> a
@@ -365,7 +365,7 @@ let recupere_cgi head re doc_root filename ri =
     ignore
       (catch
          (fun () ->
-           (match ri.ri_http_frame.Http_frame.content with
+           (match ri.ri_http_frame.Ocsigen_http_frame.content with
            | None -> Lwt_unix.close post_in; return ()
            | Some content_post -> 
                Http_com.write_stream post_in_ch content_post >>= fun () ->
@@ -444,7 +444,7 @@ let recupere_cgi head re doc_root filename ri =
 (** return the content of the frame *)
 
 let get_content str =
-  match str.Http_frame.content with
+  match str.Ocsigen_http_frame.content with
   | None   -> Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None)
   | Some c -> c
 
@@ -484,7 +484,7 @@ let gen reg charset = function
 	 recupere_cgi 
            (ri.ri_method = Http_header.HEAD) 
            re doc_root filename ri >>= fun (frame, finalizer) ->
-         let header = frame.Http_frame.header in
+         let header = frame.Ocsigen_http_frame.header in
          let content = get_content frame in
          Ocsigen_stream.add_finalizer content finalizer;
          Lwt.catch
@@ -492,7 +492,7 @@ let gen reg charset = function
               let code =
                 try
                   let status =
-                    Http_frame.Http_header.get_headers_value
+                    Ocsigen_http_frame.Http_header.get_headers_value
                       header Http_headers.status in
                   if String.length status < 3 then 
                     raise (Failure "Cgimod.gen");
@@ -504,7 +504,7 @@ let gen reg charset = function
               in
               let loc =
                 try
-                  Some (Http_frame.Http_header.get_headers_value
+                  Some (Ocsigen_http_frame.Http_header.get_headers_value
                           header Http_headers.location)
                 with Not_found ->
                   None
@@ -515,9 +515,9 @@ let gen reg charset = function
                   if loc <> "" && loc.[0] = '/' then
                     Lwt.return 
                       (Ext_retry_with (ri_of_url loc ri,
-                                       Http_frame.Cookies.empty))
+                                       Ocsigen_http_frame.Cookies.empty))
                   else
-                    let default_result = Http_frame.default_result () in
+                    let default_result = Ocsigen_http_frame.default_result () in
                     Lwt.return
                       (Ext_found
                          (fun () ->
@@ -530,7 +530,7 @@ let gen reg charset = function
                   | None -> 200
                   | Some c -> c
                   in
-                  let default_result = Http_frame.default_result () in
+                  let default_result = Ocsigen_http_frame.default_result () in
 (*VVV Warning: this is really late to make the return Ext_found ... *)
 (*VVV But the extension may also answer Ext_retry_with ... *)
 (*VVV and the other extensions may receive requests in wrong order ... *)

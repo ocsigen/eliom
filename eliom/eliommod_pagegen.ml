@@ -53,7 +53,7 @@ let execute
   (fun result ->
     
     (* Update service expiration date and value *)
-    Http_frame.Cookievalues.iter
+    Ocsigen_http_frame.Cookievalues.iter
       
       (fun name (oldvalue, newr) ->
         (* catch fun () -> *)
@@ -77,7 +77,7 @@ let execute
       !service_cookies_info;
     
     (* Update "in memory data" expiration date and value *)
-    Http_frame.Cookievalues.iter
+    Ocsigen_http_frame.Cookievalues.iter
       
       (fun name v ->
         if Lazy.lazy_is_val v (* Only sessions that have been used *)
@@ -106,7 +106,7 @@ let execute
     
     (* Update persistent expiration date, user timeout and value *)
     (* Lwt_util.iter *)
-    Http_frame.Cookievalues.fold
+    Ocsigen_http_frame.Cookievalues.fold
 
       (fun name v thr ->
         let thr2 =
@@ -240,19 +240,19 @@ let gen sitedata charset = function
                 si.Eliom_common.si_state_info, 
                 ri.Ocsigen_extensions.ri_method with
               | Eliom_common.Na_no, 
-                (None, None), Http_frame.Http_header.GET ->
+                (None, None), Ocsigen_http_frame.Http_header.GET ->
                   Eliommod_cookies.compute_cookies_to_send 
                     sitedata
                     all_cookie_info
                     all_user_cookies
                   >>= fun all_new_cookies ->
-                  let empty_result = Http_frame.empty_result () in
+                  let empty_result = Ocsigen_http_frame.empty_result () in
                   return
                     (Ocsigen_extensions.Ext_found
                        (fun () ->
                          Lwt.return
                            {empty_result with
-                            Http_frame.res_cookies= all_new_cookies}))
+                            Ocsigen_http_frame.res_cookies= all_new_cookies}))
                     
               | _ ->
                   
@@ -277,9 +277,9 @@ let gen sitedata charset = function
                     ri.Ocsigen_extensions.ri_method 
                   with
                   | Eliom_common.Na_get_ _, 
-                    (_, None), Http_frame.Http_header.GET
+                    (_, None), Ocsigen_http_frame.Http_header.GET
                   | Eliom_common.Na_get' _, 
-                    (_, None), Http_frame.Http_header.GET ->
+                    (_, None), Ocsigen_http_frame.Http_header.GET ->
                       (* no post params, GET na coservice *)
                       
                       return
@@ -298,7 +298,7 @@ let gen sitedata charset = function
                         )
                         
                   | Eliom_common.Na_no, 
-                      (_, None), Http_frame.Http_header.GET ->
+                      (_, None), Ocsigen_http_frame.Http_header.GET ->
                       (* no post params, GET attached coservice *)
                       
                       return
@@ -332,7 +332,7 @@ let gen sitedata charset = function
   Here, yes.
 *)
                              Ocsigen_extensions.ri_post_params = lazy (return []);
-                             Ocsigen_extensions.ri_method = Http_frame.Http_header.GET;
+                             Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
                              Ocsigen_extensions.ri_cookies= lazy ric;
                              Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
@@ -350,7 +350,7 @@ let gen sitedata charset = function
                         (Ocsigen_extensions.Ext_retry_with
                            ({ri with
                              Ocsigen_extensions.ri_post_params = lazy (return []);
-                             Ocsigen_extensions.ri_method = Http_frame.Http_header.GET;
+                             Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
                              Ocsigen_extensions.ri_cookies= lazy ric;
                              Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
@@ -365,8 +365,8 @@ let gen sitedata charset = function
           | Eliom_common.EliomResult res ->
 
               let all_user_cookies =
-                Http_frame.add_cookies
-                  res.Http_frame.res_cookies
+                Ocsigen_http_frame.add_cookies
+                  res.Ocsigen_http_frame.res_cookies
                   old_cookies_to_set
               in
 
@@ -382,7 +382,7 @@ let gen sitedata charset = function
                    (fun () ->
                      Lwt.return
                        {res with
-                        Http_frame.res_cookies= all_new_cookies}))
+                        Ocsigen_http_frame.res_cookies= all_new_cookies}))
       )
       (function
         | Eliom_common.Eliom_Typing_Error l -> 
@@ -392,8 +392,8 @@ let gen sitedata charset = function
                       (fun () ->
                         Lwt.return
                           {r with
-                           Http_frame.res_cookies = old_cookies_to_set;
-                           Http_frame.res_code= 500;
+                           Ocsigen_http_frame.res_cookies = old_cookies_to_set;
+                           Ocsigen_http_frame.res_code= 500;
                          }))
 	| Eliom_common.Eliom_Wrong_parameter -> 
             Lazy.force ri.Ocsigen_extensions.ri_post_params >>= fun ripp ->
@@ -403,8 +403,8 @@ let gen sitedata charset = function
                       (fun () ->
                         Lwt.return
                           {r with
-                           Http_frame.res_cookies= old_cookies_to_set;
-                           Http_frame.res_code= 500;
+                           Ocsigen_http_frame.res_cookies= old_cookies_to_set;
+                           Ocsigen_http_frame.res_code= 500;
                          }))
 	| Eliom_common.Eliom_404 -> 
             return (Ocsigen_extensions.Ext_next previous_extension_err)
@@ -425,6 +425,6 @@ let gen sitedata charset = function
   gen_aux ({ri with Ocsigen_extensions.ri_extension_info= 
             exn@ri.Ocsigen_extensions.ri_extension_info}, 
            si,
-           Http_frame.Cookies.empty, 
+           Ocsigen_http_frame.Cookies.empty, 
            all_cookie_info)
 

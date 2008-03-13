@@ -107,14 +107,14 @@ let gen dir charset = function
         "--Redirectmod: YES! "^
         (if temp then "Temporary " else "Permanent ")^
         "redirection to: "^redir);      
-      let empty_result = Http_frame.empty_result () in
+      let empty_result = Ocsigen_http_frame.empty_result () in
       return
         (Ext_found
            (fun () ->
               Lwt.return 
                 {empty_result with
-                   Http_frame.res_location = Some redir;
-	           Http_frame.res_code= if temp then 302 else 301}))
+                   Ocsigen_http_frame.res_location = Some redir;
+	           Ocsigen_http_frame.res_code= if temp then 302 else 301}))
     )
     (function 
       | Not_concerned -> return (Ext_next err)

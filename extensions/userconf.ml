@@ -87,7 +87,7 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
                      | Ext_retry_with _ -> Lwt.return r
                      | Ext_next err -> 
                          Lwt.return
-                           (Ext_stop_all (Http_frame.Cookies.empty, err),
+                           (Ext_stop_all (Ocsigen_http_frame.Cookies.empty, err),
                             cts)
                      | Ext_continue_with (_, cts2, err)
                      | Ext_stop_site (cts2, err)

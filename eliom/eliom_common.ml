@@ -97,15 +97,15 @@ type sess_info =
      si_all_get_params: (string * string) list;
      si_all_post_params: (string * string) list;
 
-     si_service_session_cookies: string Http_frame.Cookievalues.t;
+     si_service_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
      (* the session service cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_data_session_cookies: string Http_frame.Cookievalues.t;
+     si_data_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
      (* the session data cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
-     si_persistent_session_cookies: string Http_frame.Cookievalues.t;
+     si_persistent_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
      (* the persistent session cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
 
@@ -199,7 +199,7 @@ type 'a cookie_info =
     )
       (* This one is not lazy because we must check all service sessions
          at each request to find the services *)
-      Http_frame.Cookievalues.t ref (* The key is the full session name *) *
+      Ocsigen_http_frame.Cookievalues.t ref (* The key is the full session name *) *
       
     (* in memory data sessions: *)
       (string option            (* value sent by the browser *)
@@ -216,7 +216,7 @@ type 'a cookie_info =
       (* Lazy because we do not want to ask the browser to unset the cookie 
          if the cookie has not been used, otherwise it is impossible to 
          write a message "Your session has expired" *)
-      Http_frame.Cookievalues.t ref (* The key is the full session name *) *
+      Ocsigen_http_frame.Cookievalues.t ref (* The key is the full session name *) *
       
       (* persistent sessions: *)
       ((string                  (* value sent by the browser *) *
@@ -236,7 +236,7 @@ type 'a cookie_info =
             For both of them, ask the browser to remove the cookie.
           *)
       ) Lwt.t Lazy.t
-      Http_frame.Cookievalues.t ref
+      Ocsigen_http_frame.Cookievalues.t ref
 
 
 (* non persistent cookies for services *)
@@ -273,7 +273,7 @@ type datacookiestable = datacookiestablecontent SessionCookies.t
 
 (*****************************************************************************)
 type result_to_send = 
-  | EliomResult of Http_frame.result
+  | EliomResult of Ocsigen_http_frame.result
   | EliomExn of (exn list * cookie list)
 
 (*****************************************************************************)
@@ -281,7 +281,7 @@ type result_to_send =
 
 type page_table_key =
     {key_state: (internal_state option * internal_state option);
-     key_kind: Http_frame.Http_header.http_method}
+     key_kind: Ocsigen_http_frame.Http_header.http_method}
       (* action: server_params -> page *)
 
       (* module Page_Table = Map.Make(struct type t = page_table_key 
@@ -422,18 +422,18 @@ let split_prefix_param pref l =
 let getcookies cookiename cookies = 
   let length = String.length cookiename in
   let last = length - 1 in
-  Http_frame.Cookievalues.fold
+  Ocsigen_http_frame.Cookievalues.fold
     (fun name value beg -> 
       if Ocsigen_lib.string_first_diff cookiename name 0 last = length
       then
-        Http_frame.Cookievalues.add
+        Ocsigen_http_frame.Cookievalues.add
           (String.sub name length ((String.length name) - length))
           value
           beg
       else beg
     )
     cookies
-    Http_frame.Cookievalues.empty
+    Ocsigen_http_frame.Cookievalues.empty
 
 
 let change_request_info ri charset previous_extension_err =
@@ -528,8 +528,8 @@ let change_request_info ri charset previous_extension_err =
     return 
       ({ri with 
         Ocsigen_extensions.ri_method = 
-        (if ri.Ocsigen_extensions.ri_method = Http_frame.Http_header.HEAD
-        then Http_frame.Http_header.GET
+        (if ri.Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.HEAD
+        then Ocsigen_http_frame.Http_header.GET
         else ri.Ocsigen_extensions.ri_method);
         Ocsigen_extensions.ri_get_params = lazy get_params; 
         Ocsigen_extensions.ri_post_params = lazy (return post_params)},
@@ -568,7 +568,7 @@ let make_fullsessname2 site_dir_string = function
 exception Eliom_retry_with of 
   (Ocsigen_extensions.request_info * 
      sess_info * 
-     Http_frame.cookieset (* user cookies set by previous pages *) *
+     Ocsigen_http_frame.cookieset (* user cookies set by previous pages *) *
      tables cookie_info
      (* current cookie info *)
   ) 

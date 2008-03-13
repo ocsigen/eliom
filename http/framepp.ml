@@ -18,7 +18,7 @@
  *)
 
 (** pretty printer for http frames*)
-open Http_frame
+open Ocsigen_http_frame
 
 module H = Http_header
 

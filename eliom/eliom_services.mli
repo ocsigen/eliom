@@ -47,15 +47,15 @@ type cookie =
     If [?oldtable] is present, cookies are added to this table
  *)
 val cookie_table_of_eliom_cookies :
-    ?oldtable:Http_frame.cookieset ->
-      sp:Eliom_sessions.server_params -> cookie list -> Http_frame.cookieset
+    ?oldtable:Ocsigen_http_frame.cookieset ->
+      sp:Eliom_sessions.server_params -> cookie list -> Ocsigen_http_frame.cookieset
 
 
 (** The type to send if you want to create your own modules for generating
    pages
  *)
 type result_to_send =
-  | EliomResult of Http_frame.result
+  | EliomResult of Ocsigen_http_frame.result
   | EliomExn of (exn list * cookie list)
 
 
