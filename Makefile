@@ -8,8 +8,6 @@ DOCPREF=./
 SED_COMMAND_FOR_META =
 SED_COMMAND_FOR_META += -e "s/_VERSION_/$(VERSION)/"
 SED_COMMAND_FOR_META += -e "s/_CAMLZIPNAME_/$(CAMLZIPNAME)/"
-SED_COMMAND_FOR_META += -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g"
-SED_COMMAND_FOR_META += -e "s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g"
 
 ifeq "$(OCAMLDUCE)" "YES"
 DUCECMAO=eliom/eliom_duce.cma
@@ -211,16 +209,16 @@ META: files/META.in
 META.ocsigen_ext: files/META.ocsigen_ext.in
 	-ln -sf ../eliom/eliom.cma extensions
 	-ln -sf ../eliom/eliom_duce.cma extensions
-	sed $(SED_COMMAND_FOR_META) < $< > $@
+	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< > $@
 
 META.ocsigen_ext.global: files/META.ocsigen_ext.in
-	sed $(SED_COMMAND_FOR_META) < $< > $@
+	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g" < $< > $@
 
 META.eliom_examples: files/META.eliom_examples.in
-	sed $(SED_COMMAND_FOR_META) < $< > $@
+	sed $(SED_COMMAND_FOR_META) -e "s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g" < $< > $@
 
 META.eliom_examples.global: files/META.eliom_examples.in
-	sed $(SED_COMMAND_FOR_META) < $< > $@
+	sed $(SED_COMMAND_FOR_META) -e "s%_EXAMPLESINSTALLDIR_%$(EXAMPLESINSTALLDIR)%g"< $< > $@
 
 $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	cat files/ocsigen.conf.in \
