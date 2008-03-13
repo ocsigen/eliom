@@ -57,7 +57,7 @@ let option_get_default x d = match x with Some x -> x | None -> d
 let local_addr addr num = Unix.ADDR_INET (option_get_default addr Unix.inet_addr_any, num)
 let local_addr6 addr num = Unix.ADDR_INET (option_get_default addr Unix.inet6_addr_any, num)
 
-let sslctx = Http_client.sslcontext
+let sslctx = Ocsigen_http_client.sslcontext
 
 
 let ip_of_sockaddr = function
@@ -717,7 +717,7 @@ let handle_connection port in_ch sockaddr =
          (if Ocsigen_config.get_respect_pipeline () then
          (* if we lock this mutex, requests from a same connection will be sent
             to extensions in the same order they are received on pipeline. 
-            It is locked only in server. Http_client has its own mutex.
+            It is locked only in server. Ocsigen_http_client has its own mutex.
 (*VVV use the same? *)
          *)
             Http_com.block_next_request receiver

@@ -23,11 +23,11 @@
 
 (* 
    The reverse proxy is still experimental because it relies on the 
-   experimental Http_client module.
+   experimental Ocsigen_http_client module.
 
    TODO
    - Change the policy for « trusted servers » for pipelining?
-   (see http_client.ml)
+   (see ocsigen_http_client.ml)
    - add the ability to rewrite some headers from the config file
    (for ex after a redirection, the new URL is wrong)
    probably in another (filter) extension
@@ -136,7 +136,7 @@ let gen dir charset = function
 
        let do_request = 
          if dir.pipeline then
-           Http_client.raw_request 
+           Ocsigen_http_client.raw_request 
              ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
              ~https
              ~port 
@@ -150,7 +150,7 @@ let gen dir charset = function
              ~uri ()
            else
              fun () ->
-               Http_client.basic_raw_request 
+               Ocsigen_http_client.basic_raw_request 
                  ~headers:ri.ri_http_frame.Http_frame.header.Http_frame.Http_header.headers
                  ~https
                  ~port 

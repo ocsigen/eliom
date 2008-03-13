@@ -18,7 +18,7 @@ Ocsigen_extensions
 Ocsigen_headers 
 Ocsigen_senders 
 Http_frame
-Http_client
+Ocsigen_http_client
 Http_com
 Authbasic
 }

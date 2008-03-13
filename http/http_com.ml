@@ -704,7 +704,7 @@ let send
     ?reopen 
     (* reopen used only for request if we are taking an old connection 
        We'll retry with a new one create by ~reopen.
-       See Http_client.raw_request.
+       See Ocsigen_http_client.raw_request.
     *)
     slot
     ~clientproto

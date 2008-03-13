@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * http_client.ml Copyright (C) 2005 Vincent Balat
+ * ocsigen_http_client.ml Copyright (C) 2005 Vincent Balat
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
@@ -103,7 +103,7 @@ val basic_raw_request :
     uri:string ->
     unit ->
     Http_frame.t Lwt.t
-(** Same as {!Http_client.raw_request}, but does not try to reuse connections.
+(** Same as {!Ocsigen_http_client.raw_request}, but does not try to reuse connections.
     Opens a new connections for each request. Much less efficient.
 *)
 
