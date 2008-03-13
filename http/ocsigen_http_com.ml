@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * http_com.ml Copyright (C) 2005 
+ * ocsigen_http_com.ml Copyright (C) 2005 
  * Denis Berthod, Vincent Balat, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
@@ -819,7 +819,7 @@ let send
                                Lwt.fail e
                            | _ -> 
                                Ocsigen_messages.warning
-                                 ("Http_com: reopenning after exception "^
+                                 ("Ocsigen_http_com: reopenning after exception "^
                                     (Ocsigen_lib.string_of_exn e)^
                                     " (Is that right?) Please report this error.");
                                reopen () >>= fun () ->

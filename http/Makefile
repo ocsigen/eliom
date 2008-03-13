@@ -23,7 +23,7 @@ PP =
 # -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
 ALL_CMO  = ocsigen_stream.cmo multipart.cmo \
            http_headers.cmo ocsigen_http_frame.cmo http_parser.cmo http_lexer.cmo \
-	   framepp.cmo http_com.cmo ocsigen_senders.cmo \
+	   framepp.cmo ocsigen_http_com.cmo ocsigen_senders.cmo \
 	   ocsigen_headers.cmo #test_pp.cmo
 
 ALL_CMX  = $(ALL_CMO:.cmo=.cmx)

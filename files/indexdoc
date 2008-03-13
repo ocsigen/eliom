@@ -19,7 +19,7 @@ Ocsigen_headers
 Ocsigen_senders 
 Ocsigen_http_frame
 Ocsigen_http_client
-Http_com
+Ocsigen_http_com
 Authbasic
 }
 

@@ -29,7 +29,7 @@ open Lwt
 open Ocsigen_extensions
 open Simplexmlparser
 open Ocsigen_http_frame
-open Http_com
+open Ocsigen_http_com
 open Ocsigen_senders
 
 
@@ -368,7 +368,7 @@ let recupere_cgi head re doc_root filename ri =
            (match ri.ri_http_frame.Ocsigen_http_frame.content with
            | None -> Lwt_unix.close post_in; return ()
            | Some content_post -> 
-               Http_com.write_stream post_in_ch content_post >>= fun () ->
+               Ocsigen_http_com.write_stream post_in_ch content_post >>= fun () ->
                Lwt_chan.flush post_in_ch >>= fun () ->
                Lwt_unix.close post_in;
                return ()
@@ -429,13 +429,13 @@ let recupere_cgi head re doc_root filename ri =
 
     (* A thread getting the result of the CGI script *)
     let receiver =
-      Http_com.create_receiver
+      Ocsigen_http_com.create_receiver
         (Ocsigen_config.get_server_timeout ())
-        Http_com.Nofirstline (Lwt_ssl.plain cgi_out) 
+        Ocsigen_http_com.Nofirstline (Lwt_ssl.plain cgi_out) 
     in
     catch 
       (fun () ->
-	Http_com.get_http_frame ~head receiver >>= fun http_frame ->
+	Ocsigen_http_com.get_http_frame ~head receiver >>= fun http_frame ->
 	return (http_frame, fun () -> Lwt_unix.close cgi_out; Lwt.return ()))
       (fun e -> Lwt_unix.close cgi_out; fail e);
 

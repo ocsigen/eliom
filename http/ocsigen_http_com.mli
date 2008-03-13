@@ -1,6 +1,6 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * http_com.ml Copyright (C) 2005 
+ * ocsigen_http_com.ml Copyright (C) 2005 
  * Denis Berthod, Vincent Balat, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *

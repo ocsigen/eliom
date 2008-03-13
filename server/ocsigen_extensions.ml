@@ -56,9 +56,9 @@ type file_info = {tmp_filename: string;
 type virtual_host_part = Text of string * int | Wildcard
 type virtual_hosts = ((virtual_host_part list) * int option) list
 
-type client = Http_com.connection
+type client = Ocsigen_http_com.connection
 
-let client_id = Http_com.connection_id
+let client_id = Ocsigen_http_com.connection_id
 let client_connection x = x
 let client_of_connection x = x
 
@@ -565,7 +565,7 @@ let do_for_site_matching host port ri =
     fun () ->
       if !tobeawoken then begin
         tobeawoken := false;
-        Http_com.wakeup_next_request conn
+        Ocsigen_http_com.wakeup_next_request conn
       end
   in
 

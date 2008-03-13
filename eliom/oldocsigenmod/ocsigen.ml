@@ -20,7 +20,7 @@
  *)
 
 open Ocsigen_http_frame
-open Http_com
+open Ocsigen_http_com
 open Lwt
 open Ocsigen_lib
 open Ocsigen_extensions

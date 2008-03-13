@@ -64,7 +64,7 @@ type client
 val client_id : client -> int
 (** Returns the id number of the connection *)
 
-val client_connection : client -> Http_com.connection
+val client_connection : client -> Ocsigen_http_com.connection
 (** Returns the connection *)
 
 (** The request *)
@@ -362,5 +362,5 @@ val get_init_exn_handler : unit -> exn -> string
 
 val set_config : Simplexmlparser.xml list -> unit
 
-val client_of_connection : Http_com.connection -> client
+val client_of_connection : Ocsigen_http_com.connection -> client
 

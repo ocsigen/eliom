@@ -60,12 +60,12 @@ with type t = int option * exn option * Ocsigen_http_frame.cookieset
 val send_error :
     ?code:int ->
     ?exn:exn ->
-    Http_com.slot ->
+    Ocsigen_http_com.slot ->
     clientproto:Ocsigen_http_frame.Http_header.proto ->
     ?mode:Ocsigen_http_frame.Http_header.http_mode ->
     ?proto:Ocsigen_http_frame.Http_header.proto ->
     ?cookies:Ocsigen_http_frame.cookieset ->
     head:bool -> 
-    sender:Http_com.sender_type -> 
+    sender:Ocsigen_http_com.sender_type -> 
     unit -> 
     unit Lwt.t

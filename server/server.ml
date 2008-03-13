@@ -26,7 +26,7 @@ open Ocsigen_lib
 open Ocsigen_extensions
 open Ocsigen_http_frame
 open Ocsigen_headers
-open Http_com
+open Ocsigen_http_com
 open Ocsigen_senders
 open Ocsigen_config
 open Ocsigen_parseconfig
@@ -288,7 +288,7 @@ let get_request_infos
      ri_url = parsed_url;
      ri_method = meth;
      ri_protocol = http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
-     ri_ssl = Lwt_ssl.is_ssl (Http_com.connection_fd receiver);
+     ri_ssl = Lwt_ssl.is_ssl (Ocsigen_http_com.connection_fd receiver);
      ri_full_path_string = string_of_url_path path;
      ri_full_path = path;
      ri_sub_path = path;
@@ -365,7 +365,7 @@ let service
           ~cookies:cookies_to_set
           ~head 
           ~code:i 
-          ~sender:Http_com.default_sender
+          ~sender:Ocsigen_http_com.default_sender
           ()
     | Ocsigen_extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
@@ -375,32 +375,32 @@ let service
            two incompatible options in <site> configuration, \
            or the order of the options in the config file is wrong.";
         send_error ~exn:e sender_slot ~clientproto ~head
-          ~code:500 ~sender:Http_com.default_sender () (* Internal error *)
+          ~code:500 ~sender:Ocsigen_http_com.default_sender () (* Internal error *)
     | Ocsigen_upload_forbidden ->
         Ocsigen_messages.debug2 "-> Sending 403 Forbidden";
         send_error ~exn:e sender_slot ~clientproto ~head
-          ~code:403 ~sender:Http_com.default_sender ()
+          ~code:403 ~sender:Ocsigen_http_com.default_sender ()
     | Http_error.Http_exception (_,_,_) ->
         send_error sender_slot ~clientproto ~head (* ~keep_alive:false *)
-          ~exn:e ~sender:Http_com.default_sender ()
+          ~exn:e ~sender:Ocsigen_http_com.default_sender ()
     | Ocsigen_Bad_Request ->
         Ocsigen_messages.debug2 "-> Sending 400";
         send_error ~exn:e sender_slot ~clientproto ~head (* ~keep_alive:false *)
-          ~code:400 ~sender:Http_com.default_sender ()
+          ~code:400 ~sender:Ocsigen_http_com.default_sender ()
     | Ocsigen_unsupported_media ->
         Ocsigen_messages.debug2 "-> Sending 415";
         send_error ~exn:e sender_slot ~clientproto ~head (* ~keep_alive:false *)
-          ~code:415 ~sender:Http_com.default_sender ()
+          ~code:415 ~sender:Ocsigen_http_com.default_sender ()
     | Neturl.Malformed_URL ->
         Ocsigen_messages.debug2 "-> Sending 400 (Malformed URL)";
         send_error ~exn:e sender_slot ~clientproto ~head (* ~keep_alive:false *)
-          ~code:400 ~sender:Http_com.default_sender () (* Malformed URL *)
+          ~code:400 ~sender:Ocsigen_http_com.default_sender () (* Malformed URL *)
     | e ->
         Ocsigen_messages.warning
           ("Exn during page generation: " ^ string_of_exn e ^" (sending 500)");
         Ocsigen_messages.debug2 "-> Sending 500";
         send_error ~exn:e sender_slot ~clientproto ~head
-          ~code:500 ~sender:Http_com.default_sender ()
+          ~code:500 ~sender:Ocsigen_http_com.default_sender ()
   in
   let finish_request () =
     (* We asynchronously finish to read the request contents if this
@@ -423,12 +423,12 @@ let service
                  | e ->
                   
                      (match e with
-                       Http_com.Lost_connection _ ->
+                       Ocsigen_http_com.Lost_connection _ ->
                          warn sockaddr "connection abruptly closed by peer \
                            while reading contents"
-                     | Http_com.Timeout ->
+                     | Ocsigen_http_com.Timeout ->
                          warn sockaddr "timeout while reading contents"
-                     | Http_com.Aborted ->
+                     | Ocsigen_http_com.Aborted ->
                          warn sockaddr "reading thread aborted"
                      | Http_error.Http_exception (code, mesg, _) ->
                          warn sockaddr (Http_error.string_of_http_exception e)
@@ -436,12 +436,12 @@ let service
                          Ocsigen_messages.unexpected_exception 
                            e "Server.finish_request"
                             );
-                     Http_com.abort receiver;
+                     Ocsigen_http_com.abort receiver;
                      (* We unlock the receiver in order to resume the
                         reading loop.  As the connection has been aborted,
                         the next read will fail and the connection will be
                         closed properly. *)
-                     Http_com.unlock_receiver receiver;
+                     Ocsigen_http_com.unlock_receiver receiver;
                      Lwt.return ()))
     | None -> 
         ()
@@ -455,12 +455,12 @@ let service
     (* VVV Warning: This must be done once and only once. 
        Put this somewhere else to ensure that?
      *)
-    Http_com.wakeup_next_request receiver;
+    Ocsigen_http_com.wakeup_next_request receiver;
     finish_request ();
     (* RFC 2616, sect 5.1.1 *)
     send_error
       sender_slot ~clientproto ~head ~code:501 
-      ~sender:Http_com.default_sender ()
+      ~sender:Ocsigen_http_com.default_sender ()
   end else begin
     let filenames = ref [] (* All the files sent by the request *) in
 
@@ -538,7 +538,7 @@ let service
                     sender_slot
                     ~clientproto
                     ~head
-                    ~sender:Http_com.default_sender
+                    ~sender:Ocsigen_http_com.default_sender
                     {empty_result with res_code = 304  (* Not modified *)}
                 end else if precond_failed then begin
                   Ocsigen_messages.debug2
@@ -550,7 +550,7 @@ let service
                     sender_slot
                     ~clientproto
                     ~head
-                    ~sender:Http_com.default_sender
+                    ~sender:Ocsigen_http_com.default_sender
                     {empty_result 
                     with res_code = 412 (* Precondition failed *)}
                 end else
@@ -558,7 +558,7 @@ let service
                     sender_slot
                     ~clientproto
                     ~head
-                    ~sender:Http_com.default_sender
+                    ~sender:Ocsigen_http_com.default_sender
                     res)
              (fun e ->
                 finish_request ();
@@ -570,7 +570,7 @@ let service
                       sender_slot
                       ~clientproto
                       ~head
-                      ~sender:Http_com.default_sender
+                      ~sender:Ocsigen_http_com.default_sender
                     {empty_result with
                      res_code = 301 (* Moved permanently *);
                      res_location = Some ((Neturl.string_of_url
@@ -581,7 +581,7 @@ let service
                 | _ ->
                     handle_service_errors e))
         (fun e ->
-            Http_com.wakeup_next_request receiver;
+            Ocsigen_http_com.wakeup_next_request receiver;
             finish_request ();
             handle_service_errors e))
       (fun () ->
@@ -633,7 +633,7 @@ let linger in_ch receiver =
        (* We start the lingering reads before waiting for the
           senders to terminate in order to avoid a deadlock *)
        let linger_thread = linger_aux () in
-       Http_com.wait_all_senders receiver >>= fun () ->
+       Ocsigen_http_com.wait_all_senders receiver >>= fun () ->
        Ocsigen_messages.debug2 "** SHUTDOWN";
        Lwt_ssl.ssl_shutdown in_ch >>= fun () ->
        Lwt_ssl.shutdown in_ch Unix.SHUTDOWN_SEND;
@@ -648,7 +648,7 @@ let try_bind' f g h = Lwt.try_bind f h g
 
 let handle_connection port in_ch sockaddr =
   let receiver = 
-    Http_com.create_receiver (Ocsigen_config.get_client_timeout ()) Query in_ch 
+    Ocsigen_http_com.create_receiver (Ocsigen_config.get_client_timeout ()) Query in_ch 
   in
 
   let handle_write_errors e =
@@ -656,44 +656,44 @@ let handle_connection port in_ch sockaddr =
       Lost_connection e' ->
         warn sockaddr ("connection abruptly closed by peer (" 
                        ^ string_of_exn e' ^ ")")
-    | Http_com.Timeout ->
+    | Ocsigen_http_com.Timeout ->
         warn sockaddr "timeout"
-    | Http_com.Aborted ->
+    | Ocsigen_http_com.Aborted ->
         warn sockaddr "writing thread aborted"
     | Ocsigen_stream.Interrupted e' ->
         warn sockaddr ("interrupted content stream (" ^ string_of_exn e' ^ ")")
     | _ ->
         Ocsigen_messages.unexpected_exception e "Server.handle_write_errors"
     end;
-    Http_com.abort receiver;
-    Lwt.fail Http_com.Aborted
+    Ocsigen_http_com.abort receiver;
+    Lwt.fail Ocsigen_http_com.Aborted
   in
 
   let handle_read_errors e =
     begin match e with
-    | Http_com.Connection_closed ->
+    | Ocsigen_http_com.Connection_closed ->
         (* This is the clean way to terminate the connection *)
         dbg sockaddr "connection closed by peer";
-        Http_com.abort receiver;
-        Http_com.wait_all_senders receiver
-    | Http_com.Keepalive_timeout ->
+        Ocsigen_http_com.abort receiver;
+        Ocsigen_http_com.wait_all_senders receiver
+    | Ocsigen_http_com.Keepalive_timeout ->
         dbg sockaddr "keepalive timeout";
-        Http_com.abort receiver;
-        Http_com.wait_all_senders receiver
-    | Http_com.Lost_connection _ ->
+        Ocsigen_http_com.abort receiver;
+        Ocsigen_http_com.wait_all_senders receiver
+    | Ocsigen_http_com.Lost_connection _ ->
         warn sockaddr "connection abruptly closed by peer";
-        Http_com.abort receiver;
-        Http_com.wait_all_senders receiver
-    | Http_com.Timeout ->
+        Ocsigen_http_com.abort receiver;
+        Ocsigen_http_com.wait_all_senders receiver
+    | Ocsigen_http_com.Timeout ->
         warn sockaddr "timeout";
-        Http_com.abort receiver;
-        Http_com.wait_all_senders receiver
-    | Http_com.Aborted ->
+        Ocsigen_http_com.abort receiver;
+        Ocsigen_http_com.wait_all_senders receiver
+    | Ocsigen_http_com.Aborted ->
         warn sockaddr "reading thread aborted";
-        Http_com.wait_all_senders receiver
+        Ocsigen_http_com.wait_all_senders receiver
     | Http_error.Http_exception (code, mes, _) ->
         warn sockaddr (Http_error.string_of_http_exception e);
-        Http_com.start_processing receiver (fun slot ->
+        Ocsigen_http_com.start_processing receiver (fun slot ->
           (*XXX We should use the right information for clientproto
             and head... *)
           send_error slot
@@ -701,12 +701,12 @@ let handle_connection port in_ch sockaddr =
             ~head:false
             (* ~keep_alive:false *)
             ~exn:e 
-            ~sender:Http_com.default_sender ());
+            ~sender:Ocsigen_http_com.default_sender ());
         linger in_ch receiver
     | _ ->
         Ocsigen_messages.unexpected_exception e "Server.handle_read_errors";
-        Http_com.abort receiver;
-        Http_com.wait_all_senders receiver
+        Ocsigen_http_com.abort receiver;
+        Ocsigen_http_com.wait_all_senders receiver
     end
   in
 
@@ -720,11 +720,11 @@ let handle_connection port in_ch sockaddr =
             It is locked only in server. Ocsigen_http_client has its own mutex.
 (*VVV use the same? *)
          *)
-            Http_com.block_next_request receiver
+            Ocsigen_http_com.block_next_request receiver
           else
             Lwt.return ())
          >>= fun () ->
-         Http_com.get_http_frame receiver)
+         Ocsigen_http_com.get_http_frame receiver)
       handle_read_errors
       (fun request ->
          let meth, url =
@@ -733,7 +733,7 @@ let handle_connection port in_ch sockaddr =
            | _                   -> assert false
            (*XXX Should be checked in [get_http_frame] *)
          in
-         Http_com.start_processing receiver (fun slot ->
+         Ocsigen_http_com.start_processing receiver (fun slot ->
            Lwt.catch
              (fun () ->
 (*XXX Why do we need the port but not the host name? *)
@@ -744,8 +744,8 @@ let handle_connection port in_ch sockaddr =
          else (* No keep-alive => no pipeline *)
             (* We wait for the query to be entirely read and for
                the reply to be sent *)
-            Http_com.lock_receiver receiver >>= fun () ->
-            Http_com.wait_all_senders receiver)
+            Ocsigen_http_com.lock_receiver receiver >>= fun () ->
+            Ocsigen_http_com.wait_all_senders receiver)
 
   in (* body of handle_connection *)
   handle_request ()

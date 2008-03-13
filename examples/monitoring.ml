@@ -137,7 +137,7 @@ Lwt.return
      <h2>HTTP connexions</h2>
      <p>Number of
         $str:"" (* string_of_int
-                     (Http_com.Timeout.nb_threads_waiting_timeout ()) *)$
+                     (Ocsigen_http_com.Timeout.nb_threads_waiting_timeout ()) *)$
      connexions waiting for timeout: not implemented in that version</p>
      <h2>Eliom sessions</h2>
      <p>There are $str:string_of_int nssess$ Eliom service sessions opened,

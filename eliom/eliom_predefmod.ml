@@ -34,7 +34,7 @@ open Eliom_mkforms
 open Eliom_mkreg
 
 open Ocsigen_http_frame
-open Http_com
+open Ocsigen_http_com
 
 
 module type ELIOMSIG = sig
