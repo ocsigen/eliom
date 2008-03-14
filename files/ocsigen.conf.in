@@ -231,9 +231,10 @@
     <!-- _______ Loading other libraries _______ -->
     <!--
 
-    If you want to load other Ocaml modules, either use:
+    If you want to load other Ocaml modules, either use one of:
 
     <extension module="...PATH TO.../toto.cma"/>
+    <extension findlib-package="name_of_a_findlib_package"/>
 
     if you don't want them to be reloaded
     when you reload dynamically the sites,
@@ -241,12 +242,18 @@
     or:
 
     <library module="...PATH TO.../toto.cma"/>
+    <library findlib-package="name_of_a_findlib_package"/>
 
     if you want them to be reloaded.
 
     Use <library> only for modules you want to be able to reload without
     shutting down the server!
-    Extensions like eliom.cma or staticmod.cmo cannot be used with <library>
+    Extensions like eliom or staticmod cannot be used with <library>.
+    Note that with findlib, dependencies are always loaded once, and only
+    the last object file (cma/cmo) of the package may be loaded several times.
+
+    If you use native dynlink, you must supply paths to .cmxs files with the
+    module="..." form. Findlib forms are not affected.
     -->
 
 
