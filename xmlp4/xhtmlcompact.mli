@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** XHTML "compact printing" *)
+(** XHTML "compact printing" (no pretty printing, no line breaks added) *)
 
 (** Ocsigen's compact printer for xhtml. [html_compat] is an option to set
    if you want to print with a syntax closer to html (not xml).

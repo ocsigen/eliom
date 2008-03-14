@@ -23,12 +23,12 @@ type cookie =
 
 type cookieset = cookie Cookievalues.t Cookies.t
 
-(* [add_cookie c cookie_table] adds the cookie [c] to the table [cookie_table].
+(** [add_cookie c cookie_table] adds the cookie [c] to the table [cookie_table].
    If the cookie is already bound, the previous binding disappear. *)
 val add_cookie : 
     url_path -> string -> cookie -> cookieset -> cookieset
 
-(* [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
+(** [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
    to [oldcookies]. If cookies are already bound in oldcookies, 
    the previous binding disappear. *)
 val add_cookies :
@@ -36,7 +36,7 @@ val add_cookies :
       cookie Cookievalues.t Cookies.t -> 
         cookie Cookievalues.t Cookies.t
 
-(* [compute_new_ri_cookies now path ri_cookies cookies_to_set] 
+(** [compute_new_ri_cookies now path ri_cookies cookies_to_set] 
    adds the cookies from [cookies_to_set]
    to [ri_cookies], as if the cookies 
    add been send to the browser and the browser
@@ -109,7 +109,7 @@ module Http_error :
   end
 
 
-(* The type of HTTP frames. 
+(** The type of HTTP frames. 
    The content may be void (no body) or a stream.
    While sending, a stream will be sent with chunked encoding if no 
    content-length is supplied.

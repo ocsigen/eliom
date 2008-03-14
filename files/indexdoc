@@ -10,6 +10,7 @@ Ocsigen_messages
 Ocsigen_parseconfig 
 Simplexmlparser
 Xhtmlpretty
+Xhtmlcompact
 }
 
 {4 Extending Ocsigen}

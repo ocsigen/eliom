@@ -120,10 +120,13 @@ module FT = struct
       let first, new_l, size = add_last v l in
       let new_l =
         if size > max_free_open_connections then begin
-          Ocsigen_messages.debug2 "--Ocsigen_http_client: Too much free connections. Removing the oldest one.";
+          Ocsigen_messages.debug2
+            "--Ocsigen_http_client: Too much free connections. \
+               Removing the oldest one.";
           ignore
             (!(fst first) >>= fun conn ->
-             Lwt_ssl.shutdown (Ocsigen_http_com.connection_fd conn) Unix.SHUTDOWN_ALL;
+             Lwt_ssl.shutdown
+                (Ocsigen_http_com.connection_fd conn) Unix.SHUTDOWN_ALL;
              Lwt.return ());
           new_l
         end
