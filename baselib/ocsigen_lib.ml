@@ -452,6 +452,7 @@ let parse_url =
     chop the http://host:port part and use Neturl for the rest.
     We do not accept http://login:pwd@host:port (should we?). *)
   let url_re = Netstring_pcre.regexp "^[Hh][Tt][Tt][Pp][Ss]?://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?(/.*)$" in
+  let url_relax_re = Netstring_pcre.regexp "^[Hh][Tt][Tt][Pp][Ss]?://[^/]+" in
 
   fun url ->
     let (host, port, url2) =
@@ -482,6 +483,9 @@ let parse_url =
     (* We don't do it before because we don't want [] of IPv6
        addresses to be escaped *)
     let url = fixup_url_string url in
+
+    (* We keep only the path part of the URL *)
+    let url = Netstring_pcre.replace_first url_relax_re "" url in
 
     (* Note that the fragment (string after #) is not sent by browsers *)
 
