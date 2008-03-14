@@ -53,6 +53,7 @@ val getnameinfo : Unix.inet_addr -> int -> string Lwt.t
     but if it fails returns the IP number,
     with [ before and ] after IPv6 addresses. *)
 
+val basename : string -> string
 val fixup_url_string : string -> string
 val parse_url : string ->
   string option * int option *

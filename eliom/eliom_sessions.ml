@@ -498,7 +498,7 @@ let get_ri ~sp = sp.Eliom_common.sp_ri
 
 let get_tmp_filename fi = fi.Ocsigen_extensions.tmp_filename
 let get_filesize fi = fi.Ocsigen_extensions.filesize
-let get_original_filename fi = fi.Ocsigen_extensions.original_filename
+let get_original_filename fi = fi.Ocsigen_extensions.original_basename
 
 let get_global_table ~sp = sp.Eliom_common.sp_sitedata.Eliom_common.global_services
 let get_sitedata ~sp = sp.Eliom_common.sp_sitedata

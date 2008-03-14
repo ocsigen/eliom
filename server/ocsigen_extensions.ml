@@ -49,7 +49,8 @@ let string_of_url_path = Ocsigen_lib.string_of_url_path
 
 type file_info = {tmp_filename: string;
                   filesize: int64;
-                  original_filename: string}
+                  raw_original_filename: string;
+                  original_basename: string}
 
 
 (* virtual hosts: *)

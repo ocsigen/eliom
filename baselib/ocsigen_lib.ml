@@ -514,6 +514,19 @@ let parse_url =
     (host, port, url, url2, path, params, get_params)
 
 
+(************************************************************************)
+
+let basename f =
+  let n = String.length f in
+  let i = try String.rindex f '\\' + 1 with Not_found -> 0 in
+  let j = try String.rindex f '/' + 1 with Not_found -> 0 in
+  let k = max i j in
+  if k < n then
+    String.sub f k (n-k)
+  else
+    "none"
+
+
 (* *)
 type ('a, 'b) leftright = Left of 'a | Right of 'b
 

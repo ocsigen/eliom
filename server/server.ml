@@ -213,8 +213,8 @@ let get_request_infos
                                  | Some store -> 
                                      let now = 
                                        Printf.sprintf 
-                                         "%s-%f-%d" 
-                                         store (Unix.gettimeofday ()) (counter ())
+                                         "%f-%d" 
+                                         (Unix.gettimeofday ()) (counter ())
                                      in
                                      match ((Ocsigen_config.get_uploaddir ())) with
                                        | Some dname ->
@@ -254,7 +254,8 @@ let get_request_infos
                                    files := 
                                      !files@[(p_name, {tmp_filename=fname;
                                                        filesize=size;
-                                                       original_filename=oname})];
+                                                       raw_original_filename=oname;
+                                                       original_basename=(Ocsigen_lib.basename oname)})];
                                    Unix.close wh;
                                    return ()
                              in
