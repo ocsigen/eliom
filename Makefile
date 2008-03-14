@@ -119,7 +119,7 @@ byte: xmlp4pre.byte $(TARGETSBYTE)
 
 opt: xmlp4pre.opt $(TARGETSBYTE:.byte=.opt)
 
-.PHONY: $(REPS) clean
+.PHONY: $(REPS) clean distclean
 
 
 baselib: baselib.byte
@@ -253,12 +253,15 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 	> $(OCSIGENNAME).conf.opt.local
 
 clean:
-#	-@for i in $(REPS) ; do touch "$$i"/.depend ; done
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
 	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 	-rm -f $(METAS)
 	-find -name "*~" -delete
+
+distclean: clean
 	-find -name "*depend" -delete
+	-find doc -type f -delete
+	-rm -f Makefile.config
 
 depend: xmlp4pre.byte $(DEPOPT)
 #	touch lwt/depend
@@ -364,7 +367,6 @@ logrotate:
 	  > $(TEMPROOT)/etc/logrotate.d/$(OCSIGENNAME); }
 
 dist:
-	darcs setpref predist "sh ./setperm; rm setperm"
 	darcs dist -d ocsigen-$(VERSION)
 
 install: docinstall installnodoc

@@ -72,7 +72,7 @@ xhtml.cma: xML.cmo xHTML.cmo
 	$(OCAMLC) -c -o $@ $<
 
 clean:
-	-rm -f *.o *.cm[iox] *.cma *.cmxa *.a *~
+	-rm -f *.o *.cm[iox] *.cma *.cmxa *.a *~ xHTML.mli
 	-@for d in $(SUBDIRS); do test -d $$d && $(MAKE) -C $$d clean; done
 
 ########################################################################
