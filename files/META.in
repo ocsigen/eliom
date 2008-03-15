@@ -1,3 +1,11 @@
 description = "Libraries for Ocsigen"
 version = "_VERSION_"
 requires = "netstring,netsys,ssl,pcre,unix,dynlink,threads,lwt"
+
+package "xhtml" (
+  requires = "netstring"
+  version = "[distributed with Ocsigen]"
+  description = "XHTML pages typed with variants"
+  archive(byte) = "xhtml.cma"
+  archive(native) = "xhtml.cmxa"
+)
