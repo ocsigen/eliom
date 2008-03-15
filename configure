@@ -147,7 +147,7 @@ print_options () {
         esac
         
         case "$examplesdir" in
-            "") examplesdir2="<prefix>/lib";;
+            "") examplesdir2="<prefix>/lib/<name>/examples";;
             *) examplesdir2=$examplesdir;;
         esac
         
@@ -425,7 +425,7 @@ case "$bindir" in
 esac
 
 case "$examplesdir" in
-  "") examplesdir="$prefix/lib";;
+  "") examplesdir="$prefix/lib/\$(OCSIGENNAME)/examples";;
 esac
 
 case "$libdir" in
@@ -694,7 +694,7 @@ MODULEINSTALLDIR = $root$libdir
 EXTRALIBDIR = $root$extralibdir/\$(OCSIGENNAME)
 
 # Where to install examples:
-EXAMPLESINSTALLDIR = $root$examplesdir/\$(OCSIGENNAME)
+EXAMPLESINSTALLDIR = $root$examplesdir
 
 # User who will run Ocsigen server (not root) (eg, for debian, www-data)
 # (This user must exist on your system)

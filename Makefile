@@ -84,11 +84,13 @@ EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo examples/miniwiki/m
 EXAMPLESCMI = examples/tutoeliom.cmi
 
 ifeq "$(BYTECODE)" "YES"
-TOINSTALLBYTE=$(CMAOTOINSTALL) $(PLUGINSCMAOTOINSTALL)
+TOINSTALLBYTE=$(CMAOTOINSTALL)
+PLUGINSTOINSTALLBYTE=$(PLUGINSCMAOTOINSTALL)
 EXAMPLESBYTE=$(EXAMPLESCMO)
 BYTE=byte
 else
 TOINSTALLBYTE=
+PLUGINSTOINSTALLBYTE=
 EXAMPLESBYTE=
 BYTE=
 SED_COMMAND_FOR_META += -e "/archive(plugin,byte)/d"
@@ -96,19 +98,22 @@ endif
 
 ifeq "$(NATIVECODE)" "YES"
 TOINSTALLXTEMP1=$(PLUGINSCMAOTOINSTALL:.cmo=.cmxs)
+PLUGINSTOINSTALLX=$(TOINSTALLXTEMP1:.cma=.cmxs)
 TOINSTALLXTEMP=$(CMAOTOINSTALL:.cmo=.cmx)
-TOINSTALLX=$(TOINSTALLXTEMP:.cma=.cmxa) $(TOINSTALLXTEMP1:.cma=.cmxs)
+TOINSTALLX=$(TOINSTALLXTEMP:.cma=.cmxa)
 EXAMPLESOPT=$(EXAMPLESCMO:.cmo=.cmxs)
 OPT=opt
 DEPOPT=xmlp4pre.opt
 else
 TOINSTALLX=
+PLUGINSTOINSTALLX=
 EXAMPLESOPT=
 OPT=
 SED_COMMAND_FOR_META += -e "/archive(plugin,native)/d"
 endif
 
 TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL)
+PLUGINSTOINSTALL=$(PLUGINSTOINSTALLBYTE) $(PLUGINSTOINSTALLX)
 EXAMPLES=$(EXAMPLESBYTE) $(EXAMPLESOPT) $(EXAMPLESCMI)
 
 REPS=$(TARGETSBYTE:.byte=)
@@ -212,7 +217,7 @@ META.ocsigen_ext: files/META.ocsigen_ext.in
 	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(SRC)/extensions%g" < $< > $@
 
 META.ocsigen_ext.global: files/META.ocsigen_ext.in
-	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(MODULEINSTALLDIR)/$(OCSIGENNAME)%g" < $< > $@
+	sed $(SED_COMMAND_FOR_META) -e "s%_MODULEINSTALLDIR_%$(EXTRALIBDIR)/extensions%g" < $< > $@
 
 META.eliom_examples: files/META.eliom_examples.in
 	sed $(SED_COMMAND_FOR_META) -e "s%_EXAMPLESINSTALLDIR_%$(SRC)/examples%g" < $< > $@
@@ -275,13 +280,15 @@ partialinstall:
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/METAS
+	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	$(MAKE) -C server install
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
 	$(OCAMLFIND) install $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" $(TOINSTALL)
 	$(INSTALL) -m 644 $(EXAMPLES) $(TEMPROOT)$(EXAMPLESINSTALLDIR)
-	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)
+	$(INSTALL) -m 644 $(PLUGINSTOINSTALL) $(TEMPROOT)$(EXTRALIBDIR)/extensions
+	-$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	[ ! -f extensions/ocsipersist-dbm/ocsidbm.opt ] || \
-	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)
+	$(INSTALL) -m 755 extensions/ocsipersist-dbm/ocsidbm.opt $(TEMPROOT)$(EXTRALIBDIR)/extensions
 	$(INSTALL) -m 644 META.ocsigen_ext.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
 	$(INSTALL) -m 644 META.eliom_examples.global $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
 
@@ -311,7 +318,7 @@ installnodoc: partialinstall
 	| sed s%_CONFIGDIR_%$(CONFIGDIR)%g \
 	| sed s%_DATADIR_%$(DATADIR)%g \
 	| sed s%_BINDIR_%$(BINDIR)%g \
-	| sed s%_EXTRALIBDIR_%$(EXTRALIBDIR)%g \
+	| sed s%_EXTRALIBDIR_%$(EXTRALIBDIR)/extensions%g \
 	| sed s%_UP_%$(UPLOADDIR)%g \
 	| sed s%_OCSIGENUSER_%$(OCSIGENUSER)%g \
 	| sed s%_OCSIGENGROUP_%$(OCSIGENGROUP)%g \
@@ -375,12 +382,7 @@ install: docinstall installnodoc
 .PHONY: uninstall fulluninstall
 uninstall:
 	-rm -Rf $(TEMPROOT)$(DOCDIR)
-	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/ocsidbm
-	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/ocsidbm.opt
-	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.ocsigen_ext
-	-rm -f $(TEMPROOT)$(EXTRALIBDIR)/METAS/META.eliom_examples
-	-rmdir $(TEMPROOT)$(EXTRALIBDIR)/METAS
-	-rmdir $(TEMPROOT)$(EXTRALIBDIR)
+	-rm -Rf $(TEMPROOT)$(EXTRALIBDIR)
 	-$(MAKE) -C server uninstall
 	-$(MAKE) -C lwt uninstall
 	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"

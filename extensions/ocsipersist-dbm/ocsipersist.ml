@@ -61,7 +61,7 @@ let (directory, ocsidbm) =
   | None -> (Ocsigen_config.get_datadir ())^"/ocsipersist"
   | Some d -> d),
    (match ocsidbm with
-   | None -> (Ocsigen_config.get_extralibdir ())^"/ocsidbm"
+   | None -> (Ocsigen_config.get_extralibdir ())^"/extensions/ocsidbm"
    | Some d -> d))
 
 
