@@ -8,4 +8,12 @@ package "xhtml" (
   description = "XHTML pages typed with variants"
   archive(byte) = "xhtml.cma"
   archive(native) = "xhtml.cmxa"
+
+  package "syntax" (
+    description = "XHTML syntax extension"
+    version = "[distributed with Ocsigen]"
+    requires = "ocsigen.xhtml,camlp4"
+    archive(syntax,preprocessor) = "xhtmlsyntax.cma"
+    archive(syntax,toploop) = "xhtmlsyntax.cma"
+  )
 )
