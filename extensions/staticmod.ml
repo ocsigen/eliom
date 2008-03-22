@@ -148,7 +148,7 @@ let gen dir charset = function
              with
                | code, RDir dirname ->
                    Ocsigen_senders.Directory_content.result_of_content 
-                     (dirname, ri.ri_sub_path) >>= fun r ->
+                     (dirname, ri.ri_full_path) >>= fun r ->
                    (match code with
                       | None -> return (Ext_found (fun () -> Lwt.return r))
                       | Some _ -> (* It is an error handler *)
