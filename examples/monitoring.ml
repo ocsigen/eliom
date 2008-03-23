@@ -98,7 +98,7 @@ Lwt.return
      <h1>Ocsigen server monitoring</h1>
       <p>Version of Ocsigen: $str:Ocsigen_config.version_number$</p>
      <p>Uptime: $str:uptime$.</p>
-     <p>The number of sessions is not available in this version of ocsigenmod.</p>
+     <p>The number of sessions is not available in this version of Eliom.</p>
      <p>Number of clients connected: 
          $str:(string_of_int (get_number_of_connected ()))$.</p>
      <p>PID : $str:pid$</p>

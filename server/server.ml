@@ -1057,6 +1057,7 @@ let _ = try
                    Ocsigen_messages.open_files ();
                    Ocsigen_messages.warning "Log files reopened"
                | "reload" -> reload ()
+               | "gc" -> Gc.compact ()
                | _ -> Ocsigen_messages.warning ("Unknown command: " ^ s)
              end; f ())
       in ignore (f ());
