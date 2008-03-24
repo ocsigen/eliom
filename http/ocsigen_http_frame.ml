@@ -116,6 +116,14 @@ type result =
      res_etag: string option;
      res_code: int; (** HTTP code, if not 200 *)
      res_stream: string Ocsigen_stream.t; (** Default: empty stream *)
+     res_stop_stream: unit -> unit Lwt.t; (** A function that will be called
+                                              if sending the stream fails.
+                                              It is called before the stream 
+                                              finalizer, only in case of error.
+                                              Use it if you want a different
+                                              behaviour if sending succeeds
+                                              or not. Default is do nothing.
+                                           *)
      res_content_length: int64 option; (** [None] means Transfer-encoding: chunked *)
      res_content_type: string option;
      res_headers: Http_headers.t; (** The headers you want to add *)
@@ -132,6 +140,7 @@ let default_result () =
    res_etag = None;
    res_code = 200;
    res_stream = Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None);
+   res_stop_stream = Lwt.return;
    res_content_length = Some 0L;
    res_content_type = None;
    res_headers= Http_headers.empty;
@@ -147,6 +156,7 @@ let empty_result () =
    res_etag = None;
    res_code = 204; (* No content *)
    res_stream = Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None);
+   res_stop_stream = Lwt.return;
    res_content_length = Some 0L;
    res_content_type = None;
    res_headers= Http_headers.empty;
@@ -323,4 +333,11 @@ module Http_error =
 (** HTTP messages *)
 type t =
   { header : Http_header.http_header;
-    content : string Ocsigen_stream.t option}
+    content : string Ocsigen_stream.t option;
+    abort : unit -> unit Lwt.t
+(*VVV abort looks like a hack.
+It has been added for the reverse proxy, to enable closing the connection
+if the request is cancelled ...
+à revoir...
+*)
+  }

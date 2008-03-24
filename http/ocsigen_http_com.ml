@@ -296,7 +296,8 @@ let extract_chunked receiver =
   let ec_fail e =
     let e =
       if e = Buffer_full then
-        Ocsigen_http_frame.Http_error.Http_exception (400, Some "bad chunked data", None)
+        Ocsigen_http_frame.Http_error.Http_exception
+          (400, Some "bad chunked data", None)
       else
         convert_io_error e
     in
@@ -475,7 +476,10 @@ NOT IMPLEMENTED
     )
   in
   Lwt.return {Ocsigen_http_frame.header = header;
-              Ocsigen_http_frame.content = la}
+              Ocsigen_http_frame.content = la;
+              Ocsigen_http_frame.abort = 
+              (fun () -> Lwt_ssl.close receiver.fd; Lwt.return ())}
+(*VVV close or shutdown? *)
 
 (****)
 
@@ -718,7 +722,7 @@ let send
     =
 
   let send_aux ~mode hds =
-    Lwt.finalize
+    Lwt.catch
       (fun () ->
         (* [slot] is here for pipelining: we must wait before
            sending the page, because the previous one may not be sent. *)
@@ -835,8 +839,14 @@ let send
          end) >>= fun () ->
          Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers 
                                   are not flushed by the reverse proxy *)
+             >>= fun () ->
+         Ocsigen_stream.finalize res.res_stream
       )
-      (fun () -> Ocsigen_stream.finalize res.res_stream)
+      (fun e -> 
+        res.res_stop_stream () >>= fun () ->
+        Ocsigen_stream.finalize res.res_stream >>= fun () ->
+        Lwt.fail e
+      )
 
   in
 

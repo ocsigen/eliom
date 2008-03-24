@@ -57,6 +57,15 @@ type result =
      res_etag: etag option;
      res_code: int; (** HTTP code, if not 200 *)
      res_stream: string Ocsigen_stream.t; (** Default: empty stream *)
+     res_stop_stream: unit -> unit Lwt.t; (** A function that will be called
+                                              if sending the stream fails.
+                                              It is called before the stream 
+                                              finalizer, only in case of error.
+                                              Use it if you want a different
+                                              behaviour if sending succeeds
+                                              or not. Default is do nothing
+                                              (Lwt.return).
+                                           *)
      res_content_length: int64 option; (** [None] means Transfer-encoding: chunked *)
      res_content_type: string option;
      res_headers: Http_headers.t; (** The headers you want to add *)
@@ -113,7 +122,11 @@ module Http_error :
    The content may be void (no body) or a stream.
    While sending, a stream will be sent with chunked encoding if no 
    content-length is supplied.
+   abort is the function to be called if you want to cancel the stream 
+   reading (closes the connection). 
 *)
 type t =
   { header : Http_header.http_header;
-    content : string Ocsigen_stream.t option}
+    content : string Ocsigen_stream.t option;
+    abort : unit -> unit Lwt.t
+  }

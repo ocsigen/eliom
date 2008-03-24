@@ -171,7 +171,9 @@ let gen dir charset = function
                  http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers 
                in
                let code = 
-                 match http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.mode with
+                 match 
+                   http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.mode 
+                 with
                    | Ocsigen_http_frame.Http_header.Answer code -> code
                    | _ -> raise Bad_answer_from_http_server
                in
@@ -180,18 +182,24 @@ let gen dir charset = function
                      let empty_result = Ocsigen_http_frame.empty_result () in
                      Lwt.return
                        {empty_result with
-                          Ocsigen_http_frame.res_content_length = None;
-	                  Ocsigen_http_frame.res_headers= headers;
-	                  Ocsigen_http_frame.res_code= code;
+                        Ocsigen_http_frame.res_content_length = None;
+	                Ocsigen_http_frame.res_headers= headers;
+                        Ocsigen_http_frame.res_stop_stream = 
+                        http_frame.Ocsigen_http_frame.abort;
+	                Ocsigen_http_frame.res_code= code;
                        }
                  | Some stream ->
-                     let default_result = Ocsigen_http_frame.default_result () in
+                     let default_result = 
+                       Ocsigen_http_frame.default_result () 
+                     in
                      Lwt.return
                        {default_result with
-                          Ocsigen_http_frame.res_content_length = None;
-                          Ocsigen_http_frame.res_stream = stream;
-	                  Ocsigen_http_frame.res_headers= headers;
-	                  Ocsigen_http_frame.res_code= code;
+                        Ocsigen_http_frame.res_content_length = None;
+                        Ocsigen_http_frame.res_stream = stream;
+                        Ocsigen_http_frame.res_stop_stream = 
+                        http_frame.Ocsigen_http_frame.abort;
+	                Ocsigen_http_frame.res_headers= headers;
+	                Ocsigen_http_frame.res_code= code;
                        }
             )
          )
@@ -227,7 +235,7 @@ let parse_config path charset _ parse_site = function
             parse_attrs
               (r, s, Some false, port, u, pipeline)
               l
-        | ("protocol", protocol)::l 
+        | ("protocol", protocol)::l
           when prot = None && String.lowercase protocol = "https" -> 
             parse_attrs
               (r, s, Some true, port, u, pipeline)

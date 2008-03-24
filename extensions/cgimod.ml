@@ -435,7 +435,8 @@ let recupere_cgi head re doc_root filename ri =
     in
     catch 
       (fun () ->
-	Ocsigen_http_com.get_http_frame ~head receiver >>= fun http_frame ->
+	Ocsigen_http_com.get_http_frame ~head receiver
+          >>= fun http_frame ->
 	return (http_frame, fun () -> Lwt_unix.close cgi_out; Lwt.return ()))
       (fun e -> Lwt_unix.close cgi_out; fail e);
 
@@ -542,6 +543,8 @@ let gen reg charset = function
                             {default_result with
                                res_content_length = None;
                                res_stream = content;
+                               res_stop_stream = frame.Ocsigen_http_frame.abort;
+(*VVV NO! If sending is interrupted, we probably must do something else! *)
                                res_location= loc;
                                res_headers = 
                                 Http_headers.replace_opt

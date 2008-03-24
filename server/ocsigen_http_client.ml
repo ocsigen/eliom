@@ -261,7 +261,6 @@ let keep_alive_server inet_addr port =
   with Not_found -> false
 
 
-
 (*****************************************************************************)
 
 let raw_request 
@@ -306,27 +305,27 @@ let raw_request
     (* No need for lingering close, if I am not wrong *)
     ignore
       (thr_conn >>= fun conn ->
-        (Lwt.catch
-           (fun () -> gf >>= fun _ -> Lwt.return ())
-           (function
-             | Ocsigen_http_com.Connection_closed -> 
-                 Ocsigen_messages.debug2
-                   "--Ocsigen_http_client: connection closed by server (closing)";
-                 Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
-                 Lwt.return ()
-             | Ocsigen_http_com.Keepalive_timeout -> 
-                 Ocsigen_messages.debug2
-                   "--Ocsigen_http_client: connection closed by keepalive timeout";
-                 Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
-                 Lwt.return ()
-             | e -> 
-                 Ocsigen_messages.warning
-                   ("--Ocsigen_http_client: exception caught while receiving frame: "^
-                    Ocsigen_lib.string_of_exn e^
-                    " - closing connection to the server.");
-                 Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
-                 Lwt.return ()
-           )))
+      (Lwt.catch
+         (fun () -> gf >>= fun _ -> Lwt.return ())
+         (function
+           | Ocsigen_http_com.Connection_closed -> 
+               Ocsigen_messages.debug2
+                 "--Ocsigen_http_client: connection closed by server (closing)";
+               Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
+               Lwt.return ()
+           | Ocsigen_http_com.Keepalive_timeout -> 
+               Ocsigen_messages.debug2
+                 "--Ocsigen_http_client: connection closed by keepalive timeout";
+               Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
+               Lwt.return ()
+           | e -> 
+               Ocsigen_messages.warning
+                 ("--Ocsigen_http_client: exception caught while receiving frame: "^
+                  Ocsigen_lib.string_of_exn e^
+                  " - closing connection to the server.");
+               Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
+               Lwt.return ()
+         )))
   in
   
   let new_conn () =
@@ -353,7 +352,10 @@ let raw_request
               Lwt_unix.close fd; Lwt.fail Connection_refused
           | e -> Lwt_unix.close fd; Lwt.fail e)
     in
-    let gf = thr_conn >>= fun conn -> Ocsigen_http_com.get_http_frame ~head conn in
+    let gf = 
+      thr_conn >>= fun conn -> 
+      Ocsigen_http_com.get_http_frame ~head conn
+    in
     close_on_error thr_conn gf;
     (thr_conn, gf)
   in
@@ -405,10 +407,10 @@ let raw_request
         in
         let new_get_frame = 
           new_waiter >>= fun () ->
-            !ref_thr_conn >>= fun conn ->
-            let gf = Ocsigen_http_com.get_http_frame ~head conn in
-            close_on_error !ref_thr_conn gf;
-            gf
+          !ref_thr_conn >>= fun conn ->
+          let gf = Ocsigen_http_com.get_http_frame ~head conn in
+          close_on_error !ref_thr_conn gf;
+          gf
         in
         Ocsigen_messages.debug2
           "--Ocsigen_http_client: Putting connection in connection_table";
@@ -510,11 +512,13 @@ let raw_request
 
     let finalize do_keep_alive = 
       let put_in_free_conn ?gf () =
-        Ocsigen_messages.debug2 "--Ocsigen_http_client: Putting in free connections";
+        Ocsigen_messages.debug2
+          "--Ocsigen_http_client: Putting in free connections";
         let gf = match gf with
           | None -> 
               let gf = 
-                !ref_thr_conn >>= fun conn -> Ocsigen_http_com.get_http_frame ~head conn 
+                !ref_thr_conn >>= fun conn -> 
+                Ocsigen_http_com.get_http_frame ~head conn
               in
               close_on_error !ref_thr_conn gf;
               gf
@@ -523,7 +527,8 @@ let raw_request
         try
           ignore (Lwt.poll gf);
           FT.add (inet_addr, port, head) (ref_thr_conn, gf);
-          Ocsigen_messages.debug2 "--Ocsigen_http_client: Added in free connections";
+          Ocsigen_messages.debug2
+            "--Ocsigen_http_client: Added in free connections";
           remove_on_error_from_free_conn 
             (inet_addr, port, head) (ref_thr_conn, gf) ;
           Lwt.return ()
@@ -540,7 +545,9 @@ let raw_request
           | None -> (* no pipeline *) put_in_free_conn ()
           | Some (key, _) ->
               (try
-                 let (ref_thr_conn, gf, nb_users) = T.find connection_table key in
+                 let (ref_thr_conn, gf, nb_users) = 
+                   T.find connection_table key 
+                 in
                  if nb_users = 1 then begin
                    Ocsigen_messages.debug2
                      "--Ocsigen_http_client: The connection is not used any more by the client";
@@ -559,8 +566,8 @@ let raw_request
       end
       else begin
         !ref_thr_conn >>= fun conn ->
-          Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
-          Lwt.return ()
+        Lwt_ssl.close (Ocsigen_http_com.connection_fd conn);
+        Lwt.return ()
       end
     in
     
@@ -591,7 +598,7 @@ let raw_request
                 Lwt.wakeup_exn new_waiter Pipeline_failed);
          
          finalize false >>= fun () ->
-           Lwt.fail e)
+         Lwt.fail e)
       
     >>= fun http_frame ->
       
@@ -651,7 +658,9 @@ let raw_request
              Ocsigen_http_frame.Http_header.proto = 
                 http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
              Ocsigen_http_frame.Http_header.headers = headers};
-         Ocsigen_http_frame.content = http_frame.Ocsigen_http_frame.content}
+         Ocsigen_http_frame.content = http_frame.Ocsigen_http_frame.content;
+         Ocsigen_http_frame.abort = http_frame.Ocsigen_http_frame.abort;
+       }
 
 
 (*****************************************************************************)
@@ -740,9 +749,9 @@ let basic_raw_request
 (*      Ocsigen_http_com.wait_all_senders conn >>= fun () -> (* not needed *) *)
   Lwt.catch 
     (fun () ->
-       Ocsigen_http_com.get_http_frame
-         ~head:(http_method = Ocsigen_http_frame.Http_header.HEAD)
-         conn
+      Ocsigen_http_com.get_http_frame
+        ~head:(http_method = Ocsigen_http_frame.Http_header.HEAD)
+        conn
        >>= fun http_frame ->
       (match http_frame.Ocsigen_http_frame.content with
       | None   -> Lwt_ssl.close socket
