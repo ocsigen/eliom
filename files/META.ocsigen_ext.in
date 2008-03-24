@@ -9,6 +9,20 @@ package "redirectmod" (
   archive(plugin,native) = "redirectmod.cmxs"
 )
 
+package "outputfilter" (
+  version = "[distributed with Ocsigen]"
+  description = "Changing HTTP answers before sending"
+  archive(plugin,byte) = "outputfilter.cmo"
+  archive(plugin,native) = "outputfilter.cmxs"
+)
+
+package "userconf" (
+  version = "[distributed with Ocsigen]"
+  description = "Allowing users to have their own configuration files"
+  archive(plugin,byte) = "userconf.cmo"
+  archive(plugin,native) = "userconf.cmxs"
+)
+
 package "staticmod" (
   version = "[distributed with Ocsigen]"
   description = "Serving static files"
