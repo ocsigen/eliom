@@ -34,12 +34,12 @@ type ('a, 'b) one_page =
      'b) service
 
 val menu : ?classe:XHTML.M.nmtoken list ->
-  (([< get_service_kind ], [< registrable ]) one_page * 
+  (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page * 
      Xhtmltypes.a_content XHTML.M.elt list)
   ->
-    (([< get_service_kind ], [< registrable ]) one_page * 
+    (('a, 'b) one_page * 
        Xhtmltypes.a_content XHTML.M.elt list)
-      list -> service:([< get_service_kind ], [< registrable ]) one_page ->
+      list -> service:('a, 'b) one_page ->
         sp:Eliom_sessions.server_params -> [> `Ul ] XHTML.M.elt
 (** Creates a menu 
 
