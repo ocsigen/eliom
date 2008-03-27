@@ -34,12 +34,12 @@ type ('a, 'b) one_page =
      'b) service
 
 val menu : ?classe:string list ->
-  (([< get_service_kind ], [< registrable ]) one_page * 
+  (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
      Eliom_duce.Blocks.a_content_elt_list)
   ->
-    (([< get_service_kind ], [< registrable ]) one_page * 
+    (('a, 'b) one_page *
        Eliom_duce.Blocks.a_content_elt_list)
-      list -> service:([< get_service_kind ], [< registrable ]) one_page ->
+      list -> service:('a, 'b) one_page ->
         sp:Eliom_sessions.server_params -> Xhtmltypes_duce.ul
 (** Creates a menu 
 
