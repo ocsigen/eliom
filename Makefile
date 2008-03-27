@@ -261,10 +261,10 @@ clean:
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
 	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
 	-rm -f $(METAS)
-	-find -name "*~" -delete
+	-find . -name "*~" -delete
 
 distclean: clean
-	-find -name "*depend" -delete
+	-find . -name "*depend" -delete
 	-find doc -type f -delete
 	-rm -f Makefile.config
 

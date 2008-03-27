@@ -204,7 +204,7 @@ clean:
 
 depend:
 	$(CAMLDEP) $(PP2) $(FILESSQLITE:.ml=.mli) $(FILESSQLITE) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
-	sed -i s%../extensions/ocsipersist.cmx%% .depend
+	sed -i bak s%../extensions/ocsipersist.cmx%% .depend
 
 FORCE:
 
