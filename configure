@@ -55,6 +55,7 @@ set_defaults () {
     bindir=""
     examplesdir=""
     libdir=""
+    logdir=""
     extralibdir=""
     mandir=""
     docdir=""
@@ -156,6 +157,11 @@ print_options () {
             *) libdir2=$libdir;;
         esac
 
+        case "$logdir" in
+            "") logdir2="<prefix>/var/log/<name>";;
+            *) logdir2=$logdir;;
+        esac
+
         case "$extralibdir" in
             "") extralibdir2="<prefix>/lib";;
             *) extralibdir2=$extralibdir;;
@@ -178,6 +184,7 @@ print_options () {
 	echo "    --ocsigen-group $ocsigen_group"
 	echo "    --bindir $bindir2"
 	echo "    --libdir $libdir2"
+	echo "    --logdir $logdir2"
         echo "    --extralibdir $extralibdir"
 	echo "    --examplesdir $examplesdir2"
 	echo "    --mandir $mandir2"
@@ -230,6 +237,9 @@ _EOF_
 
 --libdir dir
         Install Ocsigen's extensions into this directory
+
+--logdir dir
+        Use this directory for Ocsigen's logs
 
 --extralibdir dir
         Install Ocsigen's extensions' extra libraries (e.g. ocsidbm) into this directory
@@ -350,6 +360,11 @@ while [ "$#" -gt 0 ]; do
                         shift
                         shift
                         ;;
+                --logdir)
+                        logdir="$2"
+                        shift
+                        shift
+                        ;;
                 --extralibdir)
                         extralibdir="$2"
                         shift
@@ -430,6 +445,10 @@ esac
 
 case "$libdir" in
   "") libdir="\`\$(OCAMLFIND) printconf destdir\`";;
+esac
+
+case "$logdir" in
+  "") logdir="/var/log/\$(OCSIGENNAME)";;
 esac
 
 case "$extralibdir" in
@@ -708,7 +727,7 @@ OCSIGENGROUP=$ocsigen_group
 OCSIGENNAME=$name
 
 # ocsigen's logs:
-LOGDIR = $root/var/log/\$(OCSIGENNAME)
+LOGDIR = $root$logdir
 
 # Config files:
 CONFIGDIR = $root$sysconfdir/\$(OCSIGENNAME)
