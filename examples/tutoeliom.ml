@@ -15,10 +15,10 @@ let part0 sp =
       <p>This is the tutorial for <em>Eliom</em> (development version).
         We are currently working a lot on the documentation for version 1.
         Please report any error in this tutorial 
-        and send us our comments and suggestions!
+        and send us your comments and suggestions!
       </p>
       <p>Eliom is an extension for the Web server <em>Ocsigen</em>
-         that allows dynamic generation of pages.
+         that allows dynamic webpages generation.
          It uses very new concepts making programming very different
          from all other Web programming tools.
          It allows to write a complex Web site in very few lines of code.
@@ -43,15 +43,15 @@ let part1 sp =
           a caml module (cmo or cma) for the whole Web site.</p>
       <p>
           The $a ~service:senddoc ~sp [code [pcdata "Eliom_services" ]] [version;"Eliom_services.html"]$ module allows to create new entry points to 
-          your Web site, called <em>services</em>. Services are usually 
-          attached to an URL and usually generate a Web page. 
+          your Web site, called <em>services</em>. In general, services are
+          attached to an URL and generate a Web page. 
           They are represented by OCaml values, on which 
           you must register a function that will generate a page.
-          There are several ways to creates pages for Eliom. This tutorial
+          There are several ways to create pages for Eliom. This tutorial
           is mainly using $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$, a module allowing
           to register xhtml pages statically typed using OCaml's
           polymorphic variants. 
-          The $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ module defines functions to construct
+  The $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ module defines functions to construct
           xhtml pages using that type system. 
           As the $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$ redefines some functions
           of $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$, open the modules in this order:
@@ -107,10 +107,10 @@ let coucou =
 *zap*)(*html*
       <p>As you can see, 
       $a ~fragment:"VALreturn" ~service:senddoc ~sp [code [pcdata "return" ]] [version;"Lwt.html"]$ is a function from $a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$.
-      Use it as this for now, and 
+      Use it like this for instants, and 
       <a href="#p1threads">see later</a> for more advanced use.</p>
       <p>
-      Now you can compile your file (here tutorial.ml) by doing:</p>
+      Now you can compile your file (here tutorial.ml) by typing :</p>
       <pre>ocamlc -I /<em>path_to</em>/ocsigen/ -c tutorial.ml</pre>
       <p>
       Replace <code>/<em>path_to</em>/ocsigen/</code>
@@ -123,7 +123,7 @@ let coucou =
       </p>
       <p>
       Add the following lines to Ocsigen's config file 
-      (usually <code>/etc/ocsigen/ocsigen.conf</code>):
+      (<code>/etc/ocsigen/ocsigen.conf</code> most of the time):
       </p>
       <pre>&lt;host&gt;
  &lt;site dir="examples"&gt;
@@ -151,7 +151,7 @@ let coucou =
    <span class="Cnonalphakeyword">(</span>head <span class="Cnonalphakeyword">(</span>title <span class="Cnonalphakeyword">(</span>pcdata <span class="Cstring">""</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span> <span class="Cnonalphakeyword">[</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span>
    <span class="Cnonalphakeyword">(</span>body <span class="Cnonalphakeyword">[</span>pcdata <span class="Cstring">"Hallo"</span><span class="Cnonalphakeyword">]</span><span class="Cnonalphakeyword">)</span><span class="Cnonalphakeyword">)</span></pre>
 
-        <p>You have the following error message:</p>
+        <p>You will get the following error message:</p>
 <pre>This expression has type ([&gt; `PCDATA ] as 'a) XHTML.M.elt
 but is here used with type 
 ([&lt; XHTML.M.block ] as 'b) XHTML.M.elt
@@ -167,7 +167,7 @@ Type 'a is not compatible with type
 
 
    <p>In XHTML, some tags cannot be empty. For example 
-   <code>&lt;table&gt;</code> must contains at least one row.
+   <code>&lt;table&gt;</code> must contain at least one row.
    To enforce this, the $a ~fragment:"VALtable" ~service:senddoc ~sp [code [pcdata "XHTML.M.table" ]] [version;"XHTML.M.html"]$ function takes two parameters:
    the first one is the first row, the second one is a list
    containing all the other rows.
@@ -215,9 +215,9 @@ let coucou1 =
       </p>
       <p>
          <em>Warning:</em> The two syntaxes are not equivalent for typing.
-         Using the syntax extension will do less verifications. 
+         Using the syntax extension will do less checking. 
          For example the following code is accepted but not valid
-         with respect to the xhtml's dtd (because <code>&lt;head&gt;</code>
+         regarding xhtml's dtd (because <code>&lt;head&gt;</code>
          must contain a title):
       </p>
 <pre>&lt;&lt; <span class="Cnonalphakeyword">&lt;</span>html<span class="Cnonalphakeyword">&gt;</span>
@@ -225,11 +225,11 @@ let coucou1 =
      <span class="Cnonalphakeyword">&lt;</span>body&gt;&lt;h1<span class="Cnonalphakeyword">&gt;</span>plop&lt;/h1&gt;&lt;/body<span class="Cnonalphakeyword">&gt;</span>
    &lt;/html<span class="Cnonalphakeyword">&gt;</span> &gt;&gt;</pre>
       <p>
-        We recommand to use preferably 
+        We recommend you to use
         the functions from $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$, as you will (almost)
         always get valid xhtml.
         Use the syntax extension for example to enclose already created pieces
-        of html, and verify the validity of your pages with the
+        of html, and check your pages validity with the
         $a (new_external_service "http://validator.w3.org" [] unit unit ()) 
            sp <:xmllist< W3C validator >> ()$.
       </p>
@@ -245,8 +245,8 @@ let coucou1 =
         <h4>Eliom and OCamlDuce</h4>
         <p>If OCamlDuce is installed on your system, it is now possible to use
         it instead of XHTML.M and Eliom_parameters.Xhtml
-        to typecheck your pages. You get a stronger type checking
-        and more flexibility (easier to use other XML types, easier to parse
+        to typecheck your pages. You will get a stronger type checking
+        and more flexibility (easier to use other XML types, to parse
         incoming XML data, etc.).</p>
         <p>To use it, make sure that you have Eliom compiled with OCamlDuce 
          support. Then dynlink <code>ocamlduce.cma</code> and 
@@ -272,7 +272,7 @@ let coucou1 =
         <h4>Eliom_predefmod.HtmlText</h4>
         <p>If you want to register untyped (text) pages, use the
          functions from $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.HtmlText" ]] [version;"Eliom_predefmod.HtmlText.html"]$, for example
-         $a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Text.register_new_service" ]] [version;"Eliom_predefmod.Text.html"]$. Example:
+         $a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Text.register_new_service" ]] [version;"Eliom_predefmod.Text.html"]$ :
         </p>
 *html*)
 let coucoutext = 
@@ -388,7 +388,7 @@ let writeparams _ (i1, (i2, s1)) () =
               strong [pcdata (string_of_int i2)];
               pcdata " and ";
               strong [pcdata s1]]]))
-(*zap* you can register twice the same service, with different parameters names 
+(*zap* you can register twice the same service, with different parameter names 
  *zap*)
 let coucou_params = register_new_service 
     ~path:["coucou"]
@@ -405,7 +405,7 @@ let coucou_params = register_new_service
       $a Tutoeliom.coucou_params sp <:xmllist< <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code> >> (42, (17, "krokodile")) $
       will run the second one.<br/> 
       If <code>i</code> is not an integer,
-      the server displays an error-message 
+      the server will display an error-message 
       (try to change the value in the URL).<br/>
       Here, <code>int</code>, <code>string</code> and <code>**</code>
       are functions defined in the $a ~service:senddoc ~sp [code [pcdata "Eliom_parameters" ]] [version;"Eliom_parameters.html"]$ module.
@@ -446,7 +446,7 @@ let uasuffix =
     <p>
        <code>suffix_prod</code> allows to take both a suffix and 
        other parameters.<br/>
-       <code>all_suffix</code> allows to take the end of the suffix as
+       <code>all_suffix</code> allows to take the end of the suffix as a
        <code>string list</code>.
     </p>
 *html*)
@@ -471,7 +471,7 @@ let isuffix =
 
 
 
-      <p>The following example shows how to use your own types:</p>
+      <p>The following example shows how to use your own types :</p>
 *html*)
 type mysum = A | B
 let mysum_of_string = function
@@ -497,7 +497,7 @@ let mytype =
       <p>See $a Tutoeliom.mytype sp <:xmllist< <code>mytype</code> >> Tutoeliom.A$.</p>
 
       <h4 id="p1any">Untyped parameters</h4>
-      <p>If you want a service that answers to request with any parameters, 
+      <p>If you want a service that answers to requests with any parameters, 
       use the $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.any" ]] [version;"Eliom_parameters.html"]$ value. The service will get an 
       association list of strings. Example:
       </p>
@@ -525,7 +525,7 @@ let raw_serv = register_new_service
          [("sun","yellow");("sea","blue")]$.</p>
       <div class="encadre">
         <h4>Catching errors</h4>
-        <p>You can catch typing errors of parameters and write your own
+        <p>You can catch parameters typing errors and write your own
         error messages using the optional parameter
         <code>error_handler</code>. Example:</p>
 *html*)
@@ -556,8 +556,8 @@ let catch = register_new_service
     </div>
     <h3 id="p1links">Links</h3>
     <div class="onecol">
-      <p>To create a link (<code>&lt;a&gt;</code>), use the function 
-          $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ (or <code>Eliom_duce.Xhtml.a</code>, etc),
+      <p>To create a link (<code>&lt;a&gt;</code>), use the
+          $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ function (or <code>Eliom_duce.Xhtml.a</code>, etc),
           as in these examples:
       </p>
 *html*)
@@ -632,7 +632,7 @@ let links = register_new_service ["rep";"links"] unit
       </p>
       <p>
         If you want to create (mutually or not) recursive pages,
-        first create the service using $a ~fragment:"VALnew_service" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_service" ]] [version;"Eliom_services.html"]$, 
+        create the service using $a ~fragment:"VALnew_service" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_service" ]] [version;"Eliom_services.html"]$ first, 
         then register it in the table using (for example)
         $a ~fragment:"VALregister" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.register" ]] [version;"Eliom_mkreg.ELIOMREGSIG1.html"]$:
       </p>
@@ -653,9 +653,11 @@ let essai =
    ~get_params:no_get_param
    ()
 *zap*)
+(*zap* pour les reload : le serveur ne s'éteint pas mais ajoute un message sur les services non enregistrés dans son log *zap*)
 (*html*
       <p>$a Tutoeliom.linkrec sp <:xmllist< See <code>linkrec</code> >> ()$.</p>
-      <p> The server will fail on start up if there are any unregistered
+      <p> The server will fail on startup if there are any unregistered
+  
       services.</p>
     </div>
     <h3 id="p1forms">Forms</h3>
@@ -663,8 +665,7 @@ let essai =
       <h4>Forms towards services</h4>
       <p>The function $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.get_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ allows to create a form
       that uses the GET method (parameters in the URL).
-      It works like $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ but takes as parameter
-      a <em>function</em> that creates the form from parameters names.
+      It works like $a ~fragment:"VALa" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.a" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ but takes a <em>function</em> that creates the form from the parameters names as parameter.
       </p>
 *html*)
 let create_form = 
@@ -689,7 +690,7 @@ let form = register_new_service ["form"] unit
 
       <p>Note that if you want to use typed parameters, 
        you cannot use functions like $a ~fragment:"VALinput" ~service:senddoc ~sp [code [pcdata "XHTML.M.input" ]] [version;"XHTML.M.html"]$ to
-       create your forms (but for parameters defined with
+       create your forms (if you want to use parameters defined with
        $a ~fragment:"VALany" ~service:senddoc ~sp [code [pcdata "Eliom_parameters.any" ]] [version;"Eliom_parameters.html"]$, <a href="#p1any">see later</a>). Indeed, parameter names are typed to force them
        be used properly. In our example, <code>number_name</code> has type
        <code>int param_name</code> and must be used with 
@@ -704,7 +705,7 @@ let form = register_new_service ["form"] unit
 
       <p>For untyped forms, you may use functions from XHTML.M (or 
       OCamlDuce's syntax, or whatever syntax you are using) or
-      functions whose name is prefixed by "<code>raw_</code>".
+      functions which name is prefixed by "<code>raw_</code>".
       Here is a form linking to our (untyped) service 
       <code>raw_serv</code>.</p>
 *html*)
@@ -729,7 +730,7 @@ let raw_form = register_new_service
       <p>Try this $a Tutoeliom.raw_form sp <:xmllist< form >> ()$.</p>
       <h4>POST parameters</h4>
       <p>
-   By default Web page parameters are passed in the URL (GET parameters).
+   By default Web page parameters are transferred in the URL (GET parameters).
    A web page may also expect POST parameters
    (that is, parameters that are not in the URL but in the body of the HTTP
    request).
@@ -741,8 +742,7 @@ let raw_form = register_new_service
    GET or POST method for each service!
    </p>
    <p>
-   When you register a service with POST parameters, you must register
-   before a service (fallback) without these parameters (for example that will
+   When you register a service with POST parameters, you must first register a service (fallback) without these parameters (for example that will
    answer if the page is reloaded without the hidden parameters, or
    if it is bookmarked).
       </p>
@@ -801,7 +801,7 @@ let my_service_with_get_and_post = register_new_post_service
            It is similar to $a ~fragment:"VALget_form" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.get_form" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$ 
            with an additional parameter
            for the GET parameters you want to put in the URL (if any).
-           Here <code>form2</code> is a page containing a form
+           Here, <code>form2</code> is a page containing a form
            to the service <code>post</code> (using XHTML.M's functions) 
            and <code>form3</code> (defined using the syntax extension)
            contains a form to <code>post2</code>, with a GET parameter.
@@ -865,19 +865,19 @@ let form4 = register_new_service ["form4"] unit
       <p>
       Remember that a Web site written with Eliom is an OCaml application.
       This application must be able to handle several requests at the same 
-      time, if one of the requests takes time. To make this possible, Ocsigen
-      is using <em>cooperative threads</em>, 
+      time, in order to prevent a single request from slowing down the whole server. To make this possible, Ocsigen
+      is using <em>cooperative threads</em>(
       implemented in monadic style
-      by Jérôme Vouillon ($a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$ module), which make them really easy
-      to use.
+      by Jérôme Vouillon) which make them really easy
+      to use (see $a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$ module).
       </p>
       <p>Take time to read the 
         $a lwt sp [pcdata "documentation about "; code [pcdata "Lwt"]] ()$
-        right now if you want to understand the foloowing of this tutorial.
+        right now if you want to understand the following of this tutorial.
       </p>
-      <p>As it does not cooperate, the following page will stop the
-      server for 5 seconds. No one will be able to do a request during
-      this delay:</p>
+      <p>As it doesn't cooperate, the following page will stop the
+      server for 5 seconds. No one will be able to query the server during
+      this period:</p>
 <pre><span style="color:green">let</span> looong =
   register_new_service
     <span style="color:#770000">~path:</span>[<span style="color:#aa4444">"looong"</span>]
@@ -909,7 +909,7 @@ let looong =
       <p>If you want to use, say, a database library that is not written
        in cooperative way, but is thread safe for preemptive threads,
        use the <code>Lwt_preemptive</code> module to
-       detach the computation. In the followinf example,
+       detach the computation. In the following example,
        we simulate the request by a call to <code>Unix.sleep</code>:
       </p>
 *html*)
@@ -932,12 +932,11 @@ let looong2 =
     <div class="encadre sanstitre">
       <p>
          You now have the minimum knowledge to write basic Web sites with
-         Eliom: typing of pages, creation of services, parameters, forms
+         Eliom: page typing, service creation, parameters, forms
          and database acces using $a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$ 
          (and possibly $a ~fragment:"VALdetach" ~service:senddoc ~sp [code [pcdata "Lwt_preemptive.detach" ]] [version;"Lwt_preemptive.html"]$).
          Here is a summary of all other concepts introduced by Eliom.
-         They will enable you to program easily more complex behaviours.
-         They will be developped in the following of this tutorial.
+         They will allow you to easily program more complex behaviours and will be developped in the following sections of this tutorial.
       </p>
 
       <h4>Different kinds of services</h4>
@@ -946,8 +945,8 @@ let looong2 =
       create as entry points to your Web site, and the services 
       you want to provide. 
       </p>
-      <p>Services we used so far are called <em>main services</em>. 
-      Actually, Eliom uses four kinds of services:</p>
+      <p>Services we used, so far, are called <em>main services</em>. 
+      For instants, Eliom uses four kinds of services:</p>
       <dl class="blue">
         <dt>Main services</dt><dd>are the main entry points of your sites.
         Created by <code>new_service</code> or 
@@ -960,13 +959,13 @@ let looong2 =
         They are distinguished from that main service using a special parameter
         (added automatically by Eliom).
         They are often created dynamically for one user
-        (often in the session table), depending on previous interaction
+        (usually in the session table), depending on previous interaction
         during the session.
-        They often disappear after a timeout letting the fallback answer
+        In general, they disappear after a timeout letting the fallback answer
         afterwards.
-        Another use of (POST) coservices is to particularize one
+        Another use of (POST) coservices is to customize one
         button but not the page it leads to (like the disconnect button
-        in the example of sessions with <em>actions</em> below).
+        in the example of sessions with <em>actions</em> as below).
         </dd>
         <dt>Non-attached services</dt><dd>are
         services that are not
@@ -975,36 +974,34 @@ let looong2 =
         containing the name of the service.
         It is useful when you want the same link or form on several pages 
         (for example a connection box) but you don't want to go to another
-        URL. Non-attached (co)service are often used with <em>actions</em>
+        URL. Non-attached (co)services are often used with <em>actions</em>
         (see below).
         </dd>
         <dt>Non-attached coservices</dt><dd>are
         coservices that are not attached to a particular URL.
         The difference with non-attached services is that they have no
-        name, but a number generated automatically (every times different).
+        name, but a number generated automatically (different at each time).
        </dd>
       </dl>
       <h4>GET or POST?</h4>
-      <p>Each of these services has both a version with GET parameters and
-      a version with POST parameters.</p>
+      <p>Each of these services both have a version with GET parameters and
+      another with POST parameters.</p>
       <p>
-      POST and GET parameters is not equivalent, and you must be very carefull
-      if you want one or the other.<br/>
+      POST and GET parameters are not equivalent, and you must be very careful
+      if you want to use one or the other.<br/>
       GET parameters are the parameters you see in the URL (for
-      example <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code>). They are created by browsers if you tell forms to
-      use the GET method, or written directly in the URL.<br/>
-      Parameters are sent by browsers in the body of the HTTP request
-      when the form is using the POST method. That's the only solution
+      example <code>http://<em>your_server</em>/examples/coucou?i=42&amp;ii=17&amp;s=krokodile</code>). They are created by browsers if you use forms with the GET method, or written directly in the URL.<br/>
+      POST parameters are sent by browsers in the body of the HTTP request. That's the only solution
       if you want to send files with your request.
       </p>
       <p>
       Remember that only pages without POST parameters are bookmarkable.
-      Use GET parameters if you want the user be able to come back to the URL
+      Use GET parameters if you want the user to be able to come back to the URL
       later or to write the URL manually.<br/>
       Use POST parameters when you want a different behaviour
       between the first click and a reload of the page. Usually sending
       POST parameters triggers an action on server side
-      (like a paiement, or adding something in a database), and you don't want 
+      (like a payment, or adding something in a database), and you don't want 
       it to succeed several times if the page is reloaded or bookmarked.</p>
    
     </div>
@@ -1023,7 +1020,7 @@ let looong2 =
   <th class="col2">non-attached</th>
 </tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$</th>
-          <td colspan="4">allows to register functions that 
+          <td colspan="4">Allows to register functions that 
         generate xhtml pages
         statically checked using polymorphic variant types. You may use
         constructor functions from $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or a syntax
@@ -1031,20 +1028,20 @@ let looong2 =
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtmlcompact" ]] [version;"Eliom_predefmod.Xhtmlcompact.html"]$</th>
           <td colspan="4">Same, but without pretty printing (does not add
-            spaces and line breaks).
+            spaces or line breaks).
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Blocks" ]] [version;"Eliom_predefmod.Blocks.html"]$</th>
-          <td colspan="4">allows to register functions that 
-        generate a portion of page (content of body tag) using
+          <td colspan="4">Allows to register functions that 
+        generate a portion of page (content of the body tag) using
         $a ~service:senddoc ~sp [code [pcdata "XHTML.M" ]] [version;"XHTML.M.html"]$ or the syntax extension.
         (useful for <code>XMLHttpRequest</code> requests for example).
         
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_duce.Xhtml" ]] [version;"Eliom_duce.Xhtml.html"]$</th>
-          <td colspan="4">allows to register functions 
+          <td colspan="4">Allows to register functions 
             that generate xhtml pages 
-        statically checked using <code>OCamlduce</code>. Typing is more
-        strict, but you need a modified version of the OCaml compiler 
+        statically checked using <code>OCamlduce</code>. Typing is
+        stricter, and you need a modified version of the OCaml compiler 
         (OCamlduce).
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.HtmlText" ]] [version;"Eliom_predefmod.HtmlText.html"]$</th>
@@ -1067,8 +1064,8 @@ let looong2 =
         
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions" ]] [version;"Eliom_predefmod.Actions.html"]$</th>
-          <td colspan="4">allows to register actions, that is
-        functions that do not generate any page. The URL is reloaded after
+          <td colspan="4">Allows to register actions (
+        functions that do not generate any page). The URL is reloaded after
         the action.
         
           </td></tr>
@@ -1077,7 +1074,7 @@ let looong2 =
         URL is not reloaded after the action.
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirections" ]] [version;"Eliom_predefmod.Redirections.html"]$</th>
-          <td colspan="4">allows to register HTTP permanent redirections.
+          <td colspan="4">Allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
             Warning: According to the RFC of the HTTP protocol, 
             the URL must be absolute!<br/>
@@ -1091,24 +1088,24 @@ let looong2 =
             <code>register ~options:`Temporary ...</code>.
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Files" ]] [version;"Eliom_predefmod.Files.html"]$</th>
-          <td colspan="4">allows to register services that send files        
+          <td colspan="4">Allows to register services that send files        
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Any" ]] [version;"Eliom_predefmod.Any.html"]$</th>
-          <td colspan="4">allows to register services that can choose
+          <td colspan="4">Allows to register services that can choose
             what they send, for example an xhtml page
             or a file, depending on some situation (parameter, user logged or
             not, page present in a cache ...).        
           </td></tr>
         </table>   
-      <p>It is also possible to create your own modules for others types 
+      <p>It is also possible to create your own modules for other types 
       of pages.</p>
     </div>
     <div class="encadre sanstitre">
       <h4>Public and session service tables</h4>
       <p>Each of these registrations may be done in the <em>public</em>
       service table, or in a <em>session</em> service table, 
-      accessible only for one user of the Web site. This allows to create
-      services tailor-made for one user.
+      accessible only to a single user of the Web site. This allows to generate
+      custom services for a specific user.
       </p>
 
       <p>Eliom will try to find the page, in that order:</p>
@@ -1129,7 +1126,7 @@ let looong2 =
 
 
     <div class="encadre sanstitre">
-      <h4>Example cases</h4>
+      <h4>Examples </h4>
       <p>The most commonly used services are:</p>
       <ul>
         <li>Main services (GET or POST) in public service table for public 
@@ -1145,8 +1142,8 @@ let looong2 =
           (connection/disconnection for example).
         </li>
       </ul>
-      <p>Here is a list of frequent cases and the solution Eliom provides to
-        to solve them. Most of them will be developped in the following.</p>
+      <p>Here is a list of frequent issues and the solution Eliom provides to
+        to solve them. Most of them will be developped in the following parts of the tutorial.</p>
       <dl>
         <dt>Display the result of a search (plane ticket, 
           search engines&nbsp;...)</dt>
@@ -1159,9 +1156,9 @@ let looong2 =
         </dd>
         <dt>Add something in a shopping basket</dt>
         <dd>Use an action registered on a non-attached coservice,
-          with the name of the items as parameter. The action saves the shopping
+          with the names of the items as parameters. The action saves the shopping
           basket in a session data table. Thus, the shopping basket will remain
-          even if the user pushes the back button of the browser.
+          even if the user pushes the back button of his browser.
         </dd>
         <dt>Book a ticket (in several steps)</dt>
         <dd>Each step creates new (GET) coservices (with or without
@@ -1170,7 +1167,7 @@ let looong2 =
           according to the data entered by the user. These 
           coservices are registered in the session table (with a timeout for
           the whole session or for each of them). Thus the user can go back
-          to a previous situation, or keep several proposals on differents
+          to a previous state, or keep several proposals on differents
           tabs before choosing one.
         </dd>
         <dt>...</dt>
