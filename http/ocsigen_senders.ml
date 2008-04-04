@@ -257,7 +257,8 @@ let content_type_from_file_name =
           (pos+1)
           ((String.length filename) - pos - 1)
       in Hashtbl.find mimeht extens
-    with Not_found | Invalid_argument _ -> "unknown" 
+    with Not_found | Invalid_argument _ -> "application/octet-stream" 
+(*VVV Make the defaultcontent-type configurable! *)
 
 (** this module instanciate the HTTP_CONTENT signature for files *)
 module File_content =
