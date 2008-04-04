@@ -788,11 +788,11 @@ module type T =
     val pcdata : string -> [>`PCDATA] elt
     val entity : string -> [>`PCDATA] elt
     val space : unit -> [>`PCDATA] elt
-    val cdata : string -> [`PCDATA] elt (* GK *)
-    val cdata_script : string -> [`PCDATA] elt (* GK *)
-    val cdata_style : string -> [`PCDATA] elt (* GK *)
+    val cdata : string -> [>`PCDATA] elt (* GK *)
+    val cdata_script : string -> [>`PCDATA] elt (* GK *)
+    val cdata_style : string -> [>`PCDATA] elt (* GK *)
 (**/**)
-    val unsafe_data : string -> [`PCDATA] elt
+    val unsafe_data : string -> [>`PCDATA] elt
 (**/**)
 
 
