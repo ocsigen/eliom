@@ -24,46 +24,32 @@
 open Lwt
 
 (*****************************************************************************)
-let rng = Cryptokit.Random.device_rng "/dev/urandom"
-
 let make_new_cookie_value =
-    let to_hex = Cryptokit.Hexa.encode () in
+    let rng = Cryptokit.Random.device_rng "/dev/urandom"
+    and to_hex = Cryptokit.Hexa.encode () in
     fun () ->
+        let random_part =
+            let random_number = Cryptokit.Random.string rng 20 in
+            Cryptokit.transform_string to_hex random_number
+        and sequential_part =
+            Printf.sprintf "%Lx" (Int64.bits_of_float (Unix.gettimeofday ())) in
+        random_part ^ sequential_part
 
-  (* Solution by Dario Teixeira: *)
-      let random_part =
-        Cryptokit.Random.string rng 20
-      and sequential_part = 
-        Printf.sprintf "%Lx"  (Int64.bits_of_float (Unix.gettimeofday ()))
-      in
-      (Cryptokit.transform_string
-         to_hex
-         (Cryptokit.hash_string (Cryptokit.Hash.sha1 ()) random_part))^ 
-      sequential_part
 
 (* 
-1) The Digest module in the stdlib uses the MD5 algorithm, which is pretty much considered "broken" both in theory and in practice. Consider using at least SHA1 or RIPEMD160 (yes, I know of some theoretical attacks against these, but for the time being they are considered fairly secure). 
- 2) Using Unix.times to shuffle the generation of the second 64-bit pseudo-random number is an interesting solution, but it still feels too much like a hack. Besides, you're still relying too much on OCaml's random number generator, which to my knowledge is not crypto-safe. 
- All and all, have you considered using Xavier Leroy's Cryptokit? It provides implementations for a number of digest algorithms, and also has a crypto-safe RNG (which uses /dev/random in Linux systems). It is easier, safer and perhaps even faster to use it. (The disadvantage is of course another external dependency). 
- The code above would be enough to generate a 224 bit session ID (224 bits because SHA1 produces a 160-bit hash, which is then added to the 64 bits from the system time). If you had complete trust in the random number generator, you could even ommit the SHA1 digest, though I would keep it just in case.
 
-Using Cryptokit.Random.secure_rng -- while perhaps the best RNG available -- has the "small" problem that one might exhaust the entropy sources of the system:
-Using Cryptokit.Random.device_rng with /dev/urandom or even Cryptokit.Random.pseudo_rng might be a better choice, since they don't suffer from this problem.
+This function generates a new session ID.  Session IDs are 224 bits long, 
+and are returned as a string of 56 hexadecimal characters. 
 
-Dario Teixeira
-*)
-
-
-  (* Old solution:
-  let c1 = Int64.to_string (Random.int64 Int64.max_int) in
-  let c2 = Int64.to_string (Int64.add
-                              (Random.int64 Int64.max_int) 
-                              (Int64.of_float
-                                 ((Unix.times ()).Unix.tms_utime *. 10000.))) 
-  in
-  (Digest.to_hex (Digest.string (c1^c2)))^
-  (Printf.sprintf "%Lx"  (Int64.bits_of_float (Unix.gettimeofday ())))
-  *)
+The session ID is produced from the concatenation of two components: a 
+160-bit random sequence obtained from /dev/urandom, and a 64-bit sequential 
+component derived from the system clock.  The former is supposed to prevent 
+session spoofing.  The assumption is that given the high cryptographic quality 
+of /dev/urandom, it is impossible for an attacker to deduce the sequence of 
+random numbers produced.  As for the latter component, it exists to prevent 
+a theoretical (though infinitesimally unlikely) session ID collision if the 
+server were to be restarted. 
+*) 
 
 
 

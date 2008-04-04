@@ -1,4 +1,3 @@
-val rng : Cryptokit.Random.rng
 val make_new_cookie_value : unit -> string
 val get_cookie_info :
   float ->
