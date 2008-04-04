@@ -341,16 +341,9 @@ let hello =
 
 
 
-      <p>
-        <em>Warning about pathes:</em> 
-        <code>["foo";"bar"]</code> is not equivalent to
-        <code>["foo/bar"]</code>. 
-        In the latter, the "/" will be encoded in the URL.
-      </p>
       <p>The last example shows how to define the default page for
-       a directory. (Note that <code>["rep";""]</code> is equivalent to 
-        <code>["rep";"index"]</code>, because some browsers do not behave 
-          well with empty links.)</p>
+       a directory. (Note that <code>["rep";""]</code> means 
+       the default page of the directory <code>rep/</code>)</p>
 *html*)
 let default = register_new_service ["rep";""] unit
   (fun _ () () -> 
@@ -362,6 +355,32 @@ let default = register_new_service ["rep";""] unit
       <p>
       See $a Tutoeliom.default sp <:xmllist< default >> ()$.
       </p>
+      <div class="encadre">
+        <h4>Remarks on paths</h4>
+        <p>
+          <code>["foo";"bar"]</code> corresponds to the URL
+          <code>foo/bar</code>.<br/>
+          <code>["dir";""]</code> corresponds to the URL <code>dir/</code>
+          (that is: the default page of the directory <code>dir</code>). <br/>
+          The empty list <code>[]</code> is equivalent to <code>[""]</code>. 
+        </p>
+        <p>
+          <em>Warning:</em> 
+          You cannot create a service on path <code>["foo"]</code> 
+          (URL <code>foo</code>, without slash at the end)
+          and another on path <code>["foo";"bar"]</code> 
+          (URL <code>foo/bar</code>) because <code>foo</code> can not be
+          both a directory and a file.
+          Be also careful not to use a string as a directory with
+          Eliom, if it is a file for Staticmod (and vice versa).
+        </p>
+        <p>
+          <em>Warning:</em> 
+          <code>["foo";"bar"]</code> is not equivalent to
+          <code>["foo/bar"]</code>. 
+          In the latter, the "/" will be encoded in the URL.
+        </p>
+      </div>
     </div>
     <h3 id="p1parameters">Parameters</h3>
     <div class="onecol">

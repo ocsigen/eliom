@@ -122,7 +122,7 @@ let remove_internal_slash u =
     | ""::l -> aux l
     | a::l -> a::(aux l)
   in match u with
-    [] -> []
+  | [] -> []
   | a::l -> a::(aux l)
     
 let rec add_end_slash_if_missing = function
