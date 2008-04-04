@@ -126,8 +126,15 @@ let coucou =
       (<code>/etc/ocsigen/ocsigen.conf</code> most of the time):
       </p>
       <pre>&lt;host&gt;
- &lt;site dir="examples"&gt;
+ &lt;site path="examples"&gt;
   &lt;eliom module="/<em>path_to</em>/tutoeliom.cmo" /&gt;
+ &lt;/site&gt;
+&lt;/host&gt;</pre>
+      <p>Note that if your module has a findlib <code>META</code> file,
+        it is also possible to do:</p>
+      <pre>&lt;host&gt;
+ &lt;site path="examples"&gt;
+  &lt;eliom findlib-package="<em>package-name</em>" /&gt;
  &lt;/site&gt;
 &lt;/host&gt;</pre>
       <p>Then run ocsigen. You should see your page at url
@@ -272,7 +279,7 @@ let coucou1 =
         <h4>Eliom_predefmod.HtmlText</h4>
         <p>If you want to register untyped (text) pages, use the
          functions from $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.HtmlText" ]] [version;"Eliom_predefmod.HtmlText.html"]$, for example
-         $a ~fragment:"VALregister_new_service" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Text.register_new_service" ]] [version;"Eliom_predefmod.Text.html"]$ :
+         $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Text.register_new_service" ]] [version;"Eliom_predefmod.Text.html"]$ :
         </p>
 *html*)
 let coucoutext = 

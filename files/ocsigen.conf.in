@@ -111,6 +111,10 @@
     If you want to define reverse proxy redirections in this config file:
     <extension findlib-package="ocsigen_ext.revproxy"/>
      -->
+    <!-- _______ Filtering and modifying the output _______ -->
+    <!--
+    <extension findlib-package="ocsigen_ext.outputfilter"/>
+     -->
 
 
     <!-- _______ Loading accesscontrol _______ -->
@@ -310,7 +314,8 @@
       <static regexp="~([^/]*)(.*)" dest="$u($1)/public_html$2"/>
       -->
 
-      <!-- If you want to allow users to have their config files:
+      <!-- If you want to allow users to have their config files,
+      load the userconf extension, then:
       <userconf regexp="~([^/]*)(.*)" conf="$u($1)/.ocsigen" prefix="~$1" url="$2"/>
       These files will be parsed for each request matching the regexp.
       All options are not available to users for security reasons.
@@ -349,6 +354,11 @@
       proxy will open a new connection for all requests, instead of trying
       to reuse connections. You probably don't need that, but if you do,
       please contact us to tell us what is the problem. Thank you!
+
+      You probably also need to rewrite locations in the output
+      (if the server is doing redirections). For example:
+
+      <outputfilter header="location" regexp="http://my.newaddress.org/(.*)" dest="http://my.publicaddress.org/$1"/>
       -->
 
 
