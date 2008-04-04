@@ -51,6 +51,8 @@ type ('a,+'tipo,+'names) params_type =
   | TSum of (* 'a1 *) ('a,'tipo,'names) params_type * (* 'a2 *) ('a,'tipo,'names) params_type (* 'a = ('a1, 'a2) binsum *)
   | TString of string (* 'a = string *)
   | TInt of string (* 'a = int *)
+  | TInt32 of string (* 'a = int32 *)
+  | TInt64 of string (* 'a = int64 *)
   | TFloat of string (* 'a = float *)
   | TBool of string (* 'a = bool *)
   | TFile of string (* 'a = file_info *)
@@ -75,6 +77,12 @@ let anonymise_params_type (t : ('a, 'b, 'c) params_type) : anon_params_type =
    constructors for params_type *)
 let int (n : string) : (int, [`WithoutSuffix], [ `One of int ] param_name) params_type = 
   TInt n
+
+let int32 (n : string) : (int, [`WithoutSuffix], [ `One of int32 ] param_name) params_type = 
+  TInt32 n
+
+let int64 (n : string) : (int, [`WithoutSuffix], [ `One of int64 ] param_name) params_type = 
+  TInt64 n
 
 let float (n : string)
     : (float, [`WithoutSuffix], [ `One of float ] param_name) params_type = 
@@ -326,6 +334,14 @@ let reconstruct_params
         let v,l = (list_assoc_remove (pref^name^suff) params) in 
         (try (Res_ ((Obj.magic (int_of_string v)),l,files))
         with e -> Errors_ ([(pref^name^suff),e], l, files))
+    | TInt32 name -> 
+        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+        (try (Res_ ((Obj.magic (Int32.of_string v)),l,files))
+        with e -> Errors_ ([(pref^name^suff),e], l, files))
+    | TInt64 name -> 
+        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+        (try (Res_ ((Obj.magic (Int64.of_string v)),l,files))
+        with e -> Errors_ ([(pref^name^suff),e], l, files))
     | TFloat name -> 
         let v,l = (list_assoc_remove (pref^name^suff) params) in 
         (try (Res_ ((Obj.magic (float_of_string v)),l,files))
@@ -391,6 +407,12 @@ let reconstruct_params
     | TString _ -> Obj.magic v
     | TInt name -> 
         (try Obj.magic (int_of_string v)
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TInt32 name -> 
+        (try Obj.magic (Int32.of_string v)
+        with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
+    | TInt64 name -> 
+        (try Obj.magic (Int64.of_string v)
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
     | TFloat name -> 
         (try Obj.magic (float_of_string v)
@@ -478,6 +500,8 @@ let construct_params_list
       | Inj2 v -> aux t2 v pref suff l)
     | TString name -> ((pref^name^suff), (Obj.magic params))::l
     | TInt name -> ((pref^name^suff), (string_of_int (Obj.magic params)))::l
+    | TInt32 name -> ((pref^name^suff), (Int32.to_string (Obj.magic params)))::l
+    | TInt64 name -> ((pref^name^suff), (Int64.to_string (Obj.magic params)))::l
     | TFloat name -> 
         ((pref^name^suff), (string_of_float (Obj.magic params)))::l
     | TFile name -> 
@@ -505,6 +529,8 @@ let construct_params_list
         (make_suffix t2 (snd (Obj.magic params)))
     | TString _ -> [Obj.magic params]
     | TInt _ -> [string_of_int (Obj.magic params)]
+    | TInt32 _ -> [Int32.to_string (Obj.magic params)]
+    | TInt64 _ -> [Int64.to_string (Obj.magic params)]
     | TFloat _ -> [string_of_float (Obj.magic params)]
     | TUserType (_, of_string, string_of) ->[string_of (Obj.magic params)]
     | TESuffixs _ -> [Obj.magic params]
@@ -554,6 +580,8 @@ let rec add_pref_params pref = function
                            (add_pref_params pref t2))
   | TString name -> TString (pref^name)
   | TInt name -> TInt (pref^name)
+  | TInt32 name -> TInt32 (pref^name)
+  | TInt64 name -> TInt64 (pref^name)
   | TFloat name -> TFloat (pref^name)
   | TFile name -> TFile (pref^name)
   | TUserType (name, of_string, string_of) -> 
@@ -588,12 +616,15 @@ let remove_prefixed_param pref l =
 let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
   let rec aux prefix suffix = function
     | TProd (t1, t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
-    | TInt name -> Obj.magic (prefix^name^suffix)
-    | TFloat name -> Obj.magic (prefix^name^suffix)
-    | TString name -> Obj.magic (prefix^name^suffix)
-    | TFile name -> Obj.magic (prefix^name^suffix)
-    | TUserType (name,o,t) -> Obj.magic (prefix^name^suffix)
-    | TCoord name -> Obj.magic (prefix^name^suffix)
+    | TInt name
+    | TInt32 name
+    | TInt64 name
+    | TFloat name
+    | TString name
+    | TBool name
+    | TFile name
+    | TUserType (name, _, _)
+    | TCoord name
     | TCoordv (_, name) -> Obj.magic (prefix^name^suffix)
     | TUnit -> Obj.magic ()
     | TAny -> Obj.magic ()
@@ -603,7 +634,6 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
     | TESuffixu (n,_,_) -> Obj.magic n
     | TSuffix t -> Obj.magic (aux prefix suffix t)
     | TOption t -> Obj.magic (aux prefix suffix t)
-    | TBool name -> Obj.magic (prefix^name^suffix)
     | TSum (t1,t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
     | TList (name,t1) -> Obj.magic 
           {it =
