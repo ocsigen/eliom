@@ -18,6 +18,7 @@ val input_value : in_channel -> 'a Lwt.t
 val input : in_channel -> string -> int -> int -> int Lwt.t
 val really_input : in_channel -> string -> int -> int -> unit Lwt.t
 val input_char : in_channel -> char Lwt.t
+val input_binary_int : in_channel -> int Lwt.t
 
 val open_in : string -> in_channel
 val close_in : in_channel -> unit Lwt.t
@@ -39,6 +40,10 @@ val output : out_channel -> string -> int -> int -> unit Lwt.t
 val flush : out_channel -> unit Lwt.t
 val output_string : out_channel -> string -> unit Lwt.t
 val output_value : out_channel -> 'a -> unit Lwt.t
+val output_char : out_channel -> char -> unit Lwt.t
+val output_binary_int : out_channel -> int -> unit Lwt.t
 
 val open_out : string -> out_channel
 val close_out : out_channel -> unit Lwt.t
+
+val open_connection : Unix.sockaddr -> (in_channel * out_channel) Lwt.t

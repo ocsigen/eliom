@@ -138,6 +138,12 @@ let input_line ic =
        String.blit !buf 0 res 0 !pos;
        Lwt.return res)
 
+let input_binary_int ch =
+  let s = String.create 4 in
+  Lwt.bind (really_input ch s 0 4) (fun () ->
+  Lwt.return ((Char.code s.[0] lsl 24) + (Char.code s.[1] lsl 16) +
+              (Char.code s.[2] lsl 8) + Char.code s.[3]))
+
 (****)
 
 type out_channel = channel
@@ -199,7 +205,32 @@ let rec flush oc =
   else
     flush oc)
 
-let output_string oc s =
-  unsafe_output oc s 0 (String.length s)
+let output_string oc s = unsafe_output oc s 0 (String.length s)
 
 let output_value oc v = output_string oc (Marshal.to_string v [])
+
+let output_char oc c = unsafe_output oc (String.make 1 c) 0 1
+
+let output_binary_int ch i =
+  let output = String.create 4 in
+  output.[0] <- char_of_int (i lsr 24 mod 256);
+  output.[1] <- char_of_int (i lsr 16 mod 256);
+  output.[2] <- char_of_int (i lsr 8 mod 256);
+  output.[3] <- char_of_int (i mod 256);
+  output_string ch output
+
+(****)
+
+let try_set_close_on_exec fd =
+  try Lwt_unix.set_close_on_exec fd; true with Invalid_argument _ -> false
+
+let open_connection sockaddr =
+  let sock =
+    Lwt_unix.socket (Unix.domain_of_sockaddr sockaddr) Unix.SOCK_STREAM 0 in
+  Lwt.catch
+    (fun () ->
+       Lwt.bind (Lwt_unix.connect sock sockaddr) (fun () ->
+       ignore (try_set_close_on_exec sock);
+       Lwt.return (in_channel_of_descr sock, out_channel_of_descr sock)))
+    (fun exn ->
+       Lwt_unix.close sock; Lwt.fail exn)
