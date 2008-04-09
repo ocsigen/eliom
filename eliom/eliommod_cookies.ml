@@ -49,7 +49,7 @@ of /dev/urandom, it is impossible for an attacker to deduce the sequence of
 random numbers produced.  As for the latter component, it exists to prevent 
 a theoretical (though infinitesimally unlikely) session ID collision if the 
 server were to be restarted. 
-*) 
+*)
 
 
 
