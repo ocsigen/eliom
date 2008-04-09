@@ -193,7 +193,7 @@ val ( ** ) :
 
 val prod :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
-      ('c, [ `WithoutSuffix | `Endsuffix ] as 'e, 'd) params_type ->
+      ('c, [< `WithoutSuffix | `Endsuffix ] as 'e, 'd) params_type ->
         ('a * 'c, 'e, 'b * 'd) params_type
 (** Same as [**] above *)
 
