@@ -368,8 +368,6 @@ let service
           ~code:i 
           ~sender:Ocsigen_http_com.default_sender
           ()
-    | Ocsigen_extensions.Ocsigen_malformed_url
-    | Unix.Unix_error (Unix.EACCES,_,_)
     | Ocsigen_stream.Interrupted Ocsigen_stream.Already_read ->
         Ocsigen_messages.warning
           "Cannot read the request twice. You probably have \
@@ -377,6 +375,8 @@ let service
            or the order of the options in the config file is wrong.";
         send_error ~exn:e sender_slot ~clientproto ~head
           ~code:500 ~sender:Ocsigen_http_com.default_sender () (* Internal error *)
+    | Ocsigen_extensions.Ocsigen_malformed_url
+    | Unix.Unix_error (Unix.EACCES,_,_)
     | Ocsigen_upload_forbidden ->
         Ocsigen_messages.debug2 "-> Sending 403 Forbidden";
         send_error ~exn:e sender_slot ~clientproto ~head
