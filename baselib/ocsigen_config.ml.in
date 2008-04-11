@@ -140,26 +140,7 @@ let display_version () =
   print_newline ();
   exit 0
 
-
-let _ = Arg.parse
-    [("-c", Arg.String set_configfile, 
-      "Alternate config file (default _CONFIGDIR_/_OCSIGENNAME_.conf)");
-     ("--config", Arg.String set_configfile, 
-      "Alternate config file (default _CONFIGDIR_/_OCSIGENNAME_.conf)");
-     ("-s", Arg.Unit set_silent, "Silent mode (error messages in errors.log only)");
-     ("--silent", Arg.Unit set_silent, "Silent mode (error messages in errors.log only)");
-     ("-p", Arg.String set_pidfile, "Specify a file where to write the PIDs of servers");
-     ("--pidfile", Arg.String set_pidfile, "Specify a file where to write the PIDs of servers");
-     ("-v", Arg.Unit set_verbose, "Verbose mode");
-     ("--verbose", Arg.Unit set_verbose, "Verbose mode");
-     ("-V", Arg.Unit set_veryverbose, "Very verbose mode (debug)");
-     ("--veryverbose", Arg.Unit set_veryverbose, "Very verbose mode (debug)");
-     ("-d", Arg.Unit set_daemon, "Daemon mode (detach the process)");
-     ("--daemon", Arg.Unit set_daemon, "Daemon mode (detach the process) (This is the default when there are more than 1 process)");
-     ("--version", Arg.Unit display_version, "Display version number and exit")
-   ]
-    (fun _ -> ())
-    "usage: _OCSIGENNAME_ [-c configfile]"
+let () = Ocsigen_commandline.parse ()
 
 let config () = 
     Simplexmlparser.xmlparser (get_config_file ())

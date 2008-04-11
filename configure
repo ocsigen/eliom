@@ -676,6 +676,7 @@ CAMLLEX=ocamllex
 CAMLYACC=ocamlyacc
 CAMLCNAME=ocamlc
 CAMLOPTNAME=ocamlopt
+CAMLMKTOPNAME=ocamlmktop
 CAMLCPNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
 CHOWN=chown
 CC=gcc

@@ -3851,7 +3851,7 @@ let uploadform = register upload
       <pre>img <span class="Clabel">~alt:</span>"Ocsigen" 
     <span class="Clabel">~src:</span>(<span class="Cem">Eliom_predefmod.Xhtml.make_uri</span> ~service:senddoc ~sp [<span class="Cstring">"ocsigen1024.jpg"</span>])
     ()</pre>
-      <p>The function <span class="Cem">$a ~fragment:"VALmake_uri" ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml.make_uri" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$</span>
+      <p>The function <span class="Cem">$a ~fragment:"VALmake_uri" ~service:(static_dir sp) ~sp [code [pcdata "Eliom_predefmod.Xhtml.make_uri" ]] [version;"Eliom_predefmod.XHTMLFORMSSIG.html"]$</span>
         creates the relative URL string from current URL (in <code>sp</code>)
         (see above) to the URL of the image in the static directory
         configured in the configuration file.
@@ -3859,8 +3859,8 @@ let uploadform = register upload
       <p>To simplify the creation of <code>&lt;link&gt;</code> tags
       for CSS or <code>&lt;script&gt;</code> tags for Javascript,
         use the following functions:</p>
-      <pre><span class="Cem">css_link</span> (make_uri ~service:senddoc ~sp [<span class="Cstring">"style.css"</span>])</pre>
-      <pre><span class="Cem">js_script</span> (make_uri ~service:senddoc ~sp [<span class="Cstring">"funs.js"</span>])</pre>
+      <pre><span class="Cem">css_link</span> ~uri:(make_uri ~service:(static_dir sp) ~sp [<span class="Cstring">"style.css"</span>]) ()</pre>
+      <pre><span class="Cem">js_script</span> ~uri:(make_uri ~service:(static_dir sp) ~sp [<span class="Cstring">"funs.js"</span>]) ()</pre>
       <h4>Basic menus</h4>
       <p>
       To make a menu on your web page, you can use the function 

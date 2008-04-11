@@ -118,6 +118,20 @@ and Miniwiki at URL /miniwiki
 
 
 ------------------------------------------------------------------
+For debugging purpose, there is now a toplevel with all ocsigen
+libraries loaded (very experimental). Example of use:
+
+ledit ./server/ocsigentop -I /usr/local/lib/ocaml/3.10.1/lwt -I /usr/local/lib/ocaml/3.10.1/ocsigen -I +camlp4 -I +camlp4/Camlp4Parsers -I ./baselib -I ./server
+        Objective Caml version 3.10.1
+
+# #use "topfind";;
+- : unit = ()
+# Ocsigen_loader.add_ocamlpath "/usr/local/lib/ocsigen/METAS";;
+- : unit = ()
+
+
+
+------------------------------------------------------------------
 Ocsigen
 ------------------------------------------------------------------
 Written by:

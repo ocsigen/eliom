@@ -233,7 +233,8 @@ let parse_server isreloading c =
       | (Element ("library", atts, l))::ll ->
           let modules = match atts with
             | [] ->
-                raise (Config_file_error "missing module or findlib-package attribute in <library>")
+                raise 
+                  (Config_file_error "missing module or findlib-package attribute in <library>")
             | [("module", s)] -> [s]
             | [("findlib-package", s)] -> Ocsigen_loader.findfiles s
             | _ -> raise (Config_file_error "Wrong attribute for <library>")

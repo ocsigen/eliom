@@ -303,19 +303,19 @@ let handle_init_exn = function
       ("Fatal - Eliom: Duplicate registration of url \""^s^
        "\". Please correct the module.")
   | Eliom_common.Eliom_there_are_unregistered_services (s, l1, l2) ->
-      ("Fatal - Eliom: in site \""^
-       (Ocsigen_lib.string_of_url_path s)^"\" - "^
+      ("Fatal - Eliom: in site /"^
+       (Ocsigen_lib.string_of_url_path s)^" - "^
        (match l1 with
        | [] -> ""
-       | [a] -> "One service or coservice has not been registered on URL \""
-           ^(Ocsigen_lib.string_of_url_path a)^"\". "
+       | [a] -> "One service or coservice has not been registered on URL /"
+           ^(Ocsigen_lib.string_of_url_path a)^". "
        | a::ll -> 
            let string_of = Ocsigen_lib.string_of_url_path in
            "Some services or coservices have not been registered \
              on URLs: "^
              (List.fold_left
-                (fun beg v -> beg^", "^(string_of v))
-                (string_of a)
+                (fun beg v -> beg^", /"^(string_of v))
+                ("/"^(string_of a))
                 ll
              )^". ")^
        (match l2 with

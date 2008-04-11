@@ -2,7 +2,8 @@ include ../Makefile.config
 
 NAME=$(OCSIGENNAME)
 
-FILES= ocsigen_extensions.ml ocsigen_parseconfig.ml ocsigen_http_client.ml server.ml
+FILES= ocsigen_extensions.ml ocsigen_parseconfig.ml ocsigen_http_client.ml
+EXE= server.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g
@@ -55,6 +56,7 @@ endif
 
 INSTALL = install
 CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
+CAMLMKTOP = $(OCAMLFIND) $(CAMLMKTOPNAME) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
@@ -64,31 +66,36 @@ PP2 =
 
 # cma and cmo to be linked in the server:
 
-CMAO = ../lwt/lwt.cma \
-       ../baselib/ocsigen_lib.cmo \
+CMOS = ../baselib/ocsigen_lib.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
-       ../baselib/ocsigen_config.cmo ../baselib/ocsigen_messages.cmo \
+       ../baselib/ocsigen_config.cmo \
+       ../baselib/ocsigen_commandline.cmo ../baselib/ocsigen_messages.cmo \
        ../baselib/ocsigen_loader.cmo \
        ../http/ocsigen_stream.cmo ../http/multipart.cmo \
        ../http/http_headers.cmo \
        ../http/ocsigen_http_frame.cmo ../http/ocsigen_headers.cmo \
        ../http/http_lexer.cmo ../http/http_parser.cmo \
        ../http/framepp.cmo ../http/ocsigen_http_com.cmo \
-       ../xmlp4/xhtml.cma ../xmlp4/xhtmlpretty.cmo \
-       ../xmlp4/xhtmlcompact.cmo \
+       ../xmlp4/xhtmlpretty.cmo ../xmlp4/xhtmlcompact.cmo \
        ../http/ocsigen_senders.cmo
 
-OBJS = nagle.o $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
+CMAO = ../lwt/lwt.cma ../xmlp4/xhtml.cma $(NAME).cma
 
+OBJS = nagle.o $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
+OBJSEXE = $(EXE:.ml=.cmo)
+
+CMXSATEMP=$(CMOS:.cmo=.cmx)
+CMXSA=$(CMXSATEMP:.cma=.cmxa)
 CMXXATEMP=$(CMAO:.cmo=.cmx)
 CMXXA=$(CMXXATEMP:.cma=.cmxa)
 
 OBJSOPT = nagle.o $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
+OBJSEXEOPT = $(EXE:.ml=.cmx)
 
 
-byte: $(OBJS) $(NAME)
+byte: $(OBJS) $(OBJSEXE) $(NAME) $(NAME)top
 
-opt: $(OBJSX) $(NAME).opt
+opt: $(OBJSOPT) $(OBJSEXEOPT) $(NAME).opt
 
 
 .SUFFIXES:
@@ -96,11 +103,20 @@ opt: $(OBJSX) $(NAME).opt
 
 .PHONY: doc depend
 
-$(NAME): $(CMAO) $(OBJS)
-	$(CAMLC) -o $(NAME) -linkpkg -linkall $(CMAOCAMLP4) $(CMAO) $(OBJS)
+$(NAME): $(CMAO) $(OBJSEXE)
+	$(CAMLC) -o $(NAME) -linkpkg -linkall $(CMAOCAMLP4) $(CMAO) $(OBJSEXE)
 
-$(NAME).opt: $(CMXXA) $(OBJSOPT)
-	$(CAMLOPT) -o $(NAME).opt -linkpkg -linkall $(CMXXACAMLP4) $(CMXXA) $(OBJSOPT)
+$(NAME).opt: $(CMXXA) $(OBJSEXEOPT)
+	$(CAMLOPT) -o $(NAME).opt -linkpkg -linkall $(CMXXACAMLP4) $(CMXXA) $(OBJSEXEOPT)
+
+$(NAME).cma: $(CMOS) $(OBJS)
+	$(CAMLC) -a -o $(NAME).cma -linkall $(CMAOCAMLP4) $(CMOS) $(OBJS)
+
+$(NAME).cmxa: $(CMXSA) $(OBJSOPT)
+	$(CAMLOPT) -a -o $(NAME).cmxa -linkall $(CMXXACAMLP4) $(CMXSA) $(OBJSOPT)
+
+$(NAME)top: $(CMAO)
+	$(CAMLMKTOP) -o $(NAME)top -linkpkg -linkall $(CMAOCAMLP4) $(CMAO)
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
@@ -141,7 +157,7 @@ uninstall:
 	rm -f $(TEMPROOT)$(BINDIR)/$(NAME).opt
 
 depend:
-	$(CAMLDEP) $(LIBDIRS) $(PP2) $(FILES:.ml=.mli) $(FILES) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
+	$(CAMLDEP) $(LIBDIRS) $(PP2) $(FILES:.ml=.mli) $(EXE:.ml=.mli) $(FILES) $(EXE) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
 
 
 FORCE:
