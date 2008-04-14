@@ -140,8 +140,6 @@ let display_version () =
   print_newline ();
   exit 0
 
-let () = Ocsigen_commandline.parse ()
-
 let config () = 
     Simplexmlparser.xmlparser (get_config_file ())
 
