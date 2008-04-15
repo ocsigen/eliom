@@ -381,7 +381,7 @@ let get_http_frame ?(head = false) receiver =
    the message.
  *)
   begin match header.Ocsigen_http_frame.Http_header.mode with
-      Ocsigen_http_frame.Http_header.Answer code
+    | Ocsigen_http_frame.Http_header.Answer code
         when code_without_message_body code ->
           return_with_no_body receiver
     | _ ->
@@ -425,7 +425,7 @@ let get_http_frame ?(head = false) receiver =
                 None
             in
             match content_length with
-                Some cl ->
+              | Some cl ->
                   if cl < 0L then
                     (*XXX Malformed field!!!*)
                     Lwt.fail
@@ -796,9 +796,10 @@ let send
            (fun () ->
               Lwt.catch
                 (fun () ->
-                   Ocsigen_messages.debug2 "writing header";
-                   Lwt_chan.output_string out_ch (Framepp.string_of_header hd)
-                   >>= fun () ->
+                  Ocsigen_messages.debug2 "writing header";
+                  let hh = Framepp.string_of_header hd in
+                  Ocsigen_messages.debug2 hh;
+                  Lwt_chan.output_string out_ch hh >>= fun () ->
                    (if reopen <> None then
                      (* If we want to give a possibility to reopen if
                         it fails, we must detect the failure before

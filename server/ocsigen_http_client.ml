@@ -602,7 +602,6 @@ let raw_request
       
     >>= fun http_frame ->
       
-      
       let server_keepalive = 
         Ocsigen_headers.get_keepalive http_frame.Ocsigen_http_frame.header 
       in
@@ -654,9 +653,9 @@ let raw_request
       Lwt.return 
         {Ocsigen_http_frame.header= 
             {Ocsigen_http_frame.Http_header.mode = 
-                http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.mode;
+             http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.mode;
              Ocsigen_http_frame.Http_header.proto = 
-                http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
+             http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
              Ocsigen_http_frame.Http_header.headers = headers};
          Ocsigen_http_frame.content = http_frame.Ocsigen_http_frame.content;
          Ocsigen_http_frame.abort = http_frame.Ocsigen_http_frame.abort;
