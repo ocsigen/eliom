@@ -2,16 +2,18 @@
 include ../Makefile.config
 
 # /!\ Simple expanded variable, because of camlzip below
-FILES:= error_pages.ml eliom_common.ml eliommod_sessiongroups.ml \
-	eliommod_gc.ml eliommod_persess.ml \
-	eliommod_sessadmin.ml eliommod_cookies.ml  \
-	eliommod_naservices.ml eliommod_sersess.ml eliommod_sessexpl.ml \
-	eliommod_datasess.ml eliommod_pagegen.ml \
-	eliommod_services.ml eliommod_sessiongroups.ml eliommod_timeouts.ml \
+FILES:= error_pages.ml \
+	eliommod_sessiongroups.ml eliom_common.ml eliommod_cookies.ml \
+	eliommod_sersess.ml eliommod_datasess.ml eliommod_persess.ml \
+	eliommod_gc.ml \
+	eliommod_services.ml eliommod_naservices.ml \
+	eliommod_sessexpl.ml eliommod_sessadmin.ml \
+	eliommod_timeouts.ml \
+	eliommod_pagegen.ml \
 	eliommod.ml eliom_sessions.ml \
-       eliom_parameters.ml eliom_services.ml \
-       eliom_mkforms.ml eliom_mkreg.ml eliom_predefmod.ml \
-       eliom_tools.ml
+        eliom_parameters.ml eliom_services.ml \
+        eliom_mkforms.ml eliom_mkreg.ml eliom_predefmod.ml \
+        eliom_tools.ml
 #       ocsigenmod.ml ocsigen.ml ocsigenboxes.ml
 
 
@@ -109,55 +111,12 @@ eliommod.cmx: eliommod.ml
 #	-touch ../extensions/ocsipersist.cmx
 # idem
 
-eliom.cma: error_pages.cmo \
-	eliommod_sessiongroups.cmo eliom_common.cmo eliommod_cookies.cmo \
-	eliommod_sersess.cmo eliommod_datasess.cmo eliommod_persess.cmo \
-	eliommod_gc.cmo \
-	eliommod_services.cmo eliommod_naservices.cmo \
-	eliommod_sessexpl.cmo eliommod_sessadmin.cmo \
-	eliommod_timeouts.cmo \
-	eliommod_pagegen.cmo \
-	eliommod.cmo eliom_sessions.cmo \
-	eliom_parameters.cmo eliom_services.cmo \
-	eliom_mkforms.cmo eliom_mkreg.cmo eliom_predefmod.cmo \
-	eliom_tools.cmo
-	$(CAMLC) -a -o eliom.cma \
-	error_pages.cmo \
-	eliommod_sessiongroups.cmo eliom_common.cmo eliommod_cookies.cmo \
-	eliommod_sersess.cmo eliommod_datasess.cmo eliommod_persess.cmo \
-	eliommod_gc.cmo \
-	eliommod_services.cmo eliommod_naservices.cmo \
-	eliommod_sessexpl.cmo eliommod_sessadmin.cmo \
-	eliommod_timeouts.cmo \
-	eliommod_pagegen.cmo \
-	eliommod.cmo eliom_sessions.cmo \
-	eliom_parameters.cmo eliom_services.cmo \
-	eliom_mkforms.cmo eliom_mkreg.cmo eliom_predefmod.cmo \
-	eliom_tools.cmo
+eliom.cma: $(FILES:.ml=.cmo)
+	$(CAMLC) -a -o eliom.cma $^
 
-eliom.cmxs: error_pages.cmx \
-	eliommod_sessiongroups.cmx eliom_common.cmx \
-	eliommod_gc.cmx eliommod_persess.cmx \
-	eliommod_sessadmin.cmx eliommod_cookies.cmx  \
-	eliommod_naservices.cmx eliommod_sersess.cmx eliommod_sessexpl.cmx \
-	eliommod_datasess.cmx eliommod_pagegen.cmx \
-	eliommod_services.cmx eliommod_timeouts.cmx \
-	eliommod.cmx eliom_sessions.cmx \
-	eliom_parameters.cmx eliom_services.cmx \
-	eliom_mkforms.cmx eliom_mkreg.cmx eliom_predefmod.cmx \
-	eliom_tools.cmx
-	$(CAMLOPT) -shared -linkall -o eliom.cmxs \
-	error_pages.cmx \
-	eliommod_sessiongroups.cmx eliom_common.cmx \
-	eliommod_gc.cmx eliommod_persess.cmx \
-	eliommod_sessadmin.cmx eliommod_cookies.cmx  \
-	eliommod_naservices.cmx eliommod_sersess.cmx eliommod_sessexpl.cmx \
-	eliommod_datasess.cmx eliommod_pagegen.cmx \
-	eliommod_services.cmx eliommod_timeouts.cmx \
-	eliommod.cmx eliom_sessions.cmx \
-	eliom_parameters.cmx eliom_services.cmx \
-	eliom_mkforms.cmx eliom_mkreg.cmx eliom_predefmod.cmx \
-	eliom_tools.cmx
+
+eliom.cmxs: $(FILES:.ml=.cmx)
+	$(CAMLOPT) -shared -linkall -o eliom.cmxs $^
 
 ocsigenmod.cma: ocsigenmod.cmo ocsigen.cmo ocsigenboxes.cmo
 	$(CAMLC) -a -o ocsigenmod.cma ocsigenmod.cmo ocsigen.cmo \
