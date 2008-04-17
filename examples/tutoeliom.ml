@@ -110,8 +110,11 @@ let coucou =
       Use it like this for instants, and 
       <a href="#p1threads">see later</a> for more advanced use.</p>
       <p>
-      Now you can compile your file (here tutorial.ml) by typing :</p>
-      <pre>ocamlc -I /<em>path_to</em>/ocsigen/ -c tutorial.ml</pre>
+      Now you can compile your file (here <code>tutorial.ml</code>) 
+        by typing :</p>
+      <pre>ocamlc -I /<em>path_to</em>/ocsigen/ -I /<em>path_to</em>/lwt/ -c tutorial.ml</pre>
+      <p>If you use findlib, you can also use the following command line:</p>
+      <pre>ocamlfind ocamlc -thread -package ocsigen -c tutorial.ml</pre>
       <p>
       Replace <code>/<em>path_to</em>/ocsigen/</code>
        by the directory where Ocsigen libraries are installed (that contains
