@@ -123,7 +123,9 @@ let db_get store name =
 let db_remove store name =
   try
     remove (find_dont_create_table store) name
-  with Not_found -> ()
+  with
+  | Not_found -> ()
+  | Dbm.Dbm_error "dbm_delete" -> ()
 
 let db_replace store name value = 
   replace (find_create_table store) name value
