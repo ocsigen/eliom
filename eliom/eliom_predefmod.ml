@@ -283,6 +283,9 @@ module Xhtmlcompactreg =
 module type XHTMLFORMSSIG = sig
 (* Pasted from mli *)
 
+
+
+
   open XHTML.M
   open Xhtmltypes
 
@@ -321,9 +324,8 @@ module type XHTMLFORMSSIG = sig
           ('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-           sp:server_params -> 
-              ?fragment:string ->
-                a_content elt list -> 'get -> [> a] XHTML.M.elt
+           sp:Eliom_sessions.server_params -> ?fragment:string -> 
+             a_content elt list -> 'get -> [> a] XHTML.M.elt
 (** [a service sp cont ()] creates a link to [service]. 
    The text of
    the link is [cont]. For example [cont] may be something like
@@ -337,10 +339,10 @@ module type XHTMLFORMSSIG = sig
 
    The [~fragment] optional parameter is used for the "fragment" part
    of the URL, that is, the part after character "#".
-*)
+ *)
 
   val css_link : ?a:(link_attrib attrib list) ->
-    uri:uri -> unit -> [> link ] elt
+    uri:uri -> unit ->[> link ] elt
 (** Creates a [<link>] tag for a Cascading StyleSheet (CSS). *)
 
   val js_script : ?a:(script_attrib attrib list) ->
@@ -351,8 +353,8 @@ module type XHTMLFORMSSIG = sig
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
-          sp:server_params -> ?fragment:string -> 'get -> uri
-(** Creates the text of the service. Like the [a] function, it may take
+          sp:Eliom_sessions.server_params -> ?fragment:string -> 'get -> uri
+(** Create the text of the service. Like the [a] function, it may take
    extra parameters. *)
 
 
@@ -361,7 +363,7 @@ module type XHTMLFORMSSIG = sig
           service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             sp:server_params -> ?fragment:string -> 
+             sp:Eliom_sessions.server_params -> ?fragment:string ->
               ('gn -> form_content elt list) -> [>form] elt
 (** [get_form service sp formgen] creates a GET form to [service]. 
    The content of
@@ -373,7 +375,7 @@ module type XHTMLFORMSSIG = sig
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn, 
                [< registrable ]) service ->
-      sp:server_params -> 
+      sp:Eliom_sessions.server_params -> 
       ?fragment:string ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content elt list) -> 'get -> [>form] elt
@@ -382,7 +384,6 @@ module type XHTMLFORMSSIG = sig
  *)
 
 (** {2 Form widgets} *)
-
 
   type basic_input_type =
       [
@@ -396,6 +397,18 @@ module type XHTMLFORMSSIG = sig
         ?name:[< int setoneopt ] param_name -> 
           ?value:int -> unit -> [> input ] elt
 (** Creates an [<input>] tag for an integer *)
+
+  val int32_input :
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< int32 setoneopt ] param_name -> 
+          ?value:int32 -> unit -> [> input ] elt
+(** Creates an [<input>] tag for a 32 bits integer *)
+
+  val int64_input :
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< int64 setoneopt ] param_name -> 
+          ?value:int64 -> unit -> [> input ] elt
+(** Creates an [<input>] tag for a 64 bits integer *)
 
   val float_input :
       ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
@@ -435,13 +448,27 @@ module type XHTMLFORMSSIG = sig
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="...">] tag that sends the coordinates 
    the user clicked on *)
-            
+
   val int_image_input :
       ?a:input_attrib attrib list -> 
         name:[< (int * coordinates) oneopt ] param_name -> value:int -> 
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int *)
+
+  val int32_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (int32 * coordinates) oneopt ] param_name -> value:int32 -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates the user clicked on and a value of type int32 *)
+
+  val int64_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (int64 * coordinates) oneopt ] param_name -> value:int64 -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates the user clicked on and a value of type int64 *)
 
   val float_image_input :
       ?a:input_attrib attrib list -> 
@@ -483,6 +510,26 @@ module type XHTMLFORMSSIG = sig
           name:[ `Set of int ] param_name -> value:int -> 
             unit -> [> input ] elt
 (** Creates a checkbox [<input>] tag that will have an int value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+    val int32_checkbox :
+        ?a:input_attrib attrib list -> ?checked:bool -> 
+          name:[ `Set of int32 ] param_name -> value:int32 -> 
+            unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have an int32 value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+    val int64_checkbox :
+        ?a:input_attrib attrib list -> ?checked:bool -> 
+          name:[ `Set of int64 ] param_name -> value:int64 -> 
+            unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have an int64 value.
    Thus you can do several checkboxes with the same name 
    (and different values). 
    The service must declare a parameter of type [set].
@@ -541,6 +588,14 @@ module type XHTMLFORMSSIG = sig
      name:[ `Opt of int ] param_name -> value:int -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with int content *)
 
+  val int32_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:[ `Opt of int32 ] param_name -> value:int32 -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with int32 content *)
+
+  val int64_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:[ `Opt of int64 ] param_name -> value:int64 -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with int64 content *)
+
   val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
      name:[ `Opt of float ] param_name -> value:float -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with float content *)
@@ -566,6 +621,16 @@ module type XHTMLFORMSSIG = sig
     name:[< int setone ] param_name -> value:int -> 
       button_content elt list -> [> button ] elt
 (** Creates a [<button>] tag with int content *)
+
+  val int32_button : ?a:button_attrib attrib list ->
+    name:[< int32 setone ] param_name -> value:int32 -> 
+      button_content elt list -> [> button ] elt
+(** Creates a [<button>] tag with int32 content *)
+
+  val int64_button : ?a:button_attrib attrib list ->
+    name:[< int64 setone ] param_name -> value:int64 -> 
+      button_content elt list -> [> button ] elt
+(** Creates a [<button>] tag with int64 content *)
 
   val float_button : ?a:button_attrib attrib list ->
     name:[< float setone ] param_name -> value:float -> 
@@ -636,6 +701,22 @@ module type XHTMLFORMSSIG = sig
               [> select ] elt
 (** Creates a [<select>] tag for int values. *)
 
+  val int32_select :
+      ?a:select_attrib attrib list ->
+        name:[< `One of int32 ] param_name ->
+          int32 select_opt ->
+            int32 select_opt list ->
+              [> select ] elt
+(** Creates a [<select>] tag for int32 values. *)
+
+  val int64_select :
+      ?a:select_attrib attrib list ->
+        name:[< `One of int64 ] param_name ->
+          int64 select_opt ->
+            int64 select_opt list ->
+              [> select ] elt
+(** Creates a [<select>] tag for int64 values. *)
+
   val float_select :
       ?a:select_attrib attrib list ->
         name:[< `One of float ] param_name ->
@@ -677,6 +758,22 @@ module type XHTMLFORMSSIG = sig
             int select_opt list ->
               [> select ] elt
 (** Creates a [<select>] tag for int values. *)
+
+  val int32_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of int32 ] param_name ->
+          int32 select_opt ->
+            int32 select_opt list ->
+              [> select ] elt
+(** Creates a [<select>] tag for int32 values. *)
+
+  val int64_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of int64 ] param_name ->
+          int64 select_opt ->
+            int64 select_opt list ->
+              [> select ] elt
+(** Creates a [<select>] tag for int64 values. *)
 
   val float_multiple_select :
       ?a:select_attrib attrib list ->
@@ -814,6 +911,18 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
       ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
         ?name:'a -> ?value:int -> unit -> [> input ] elt)
 
+  let int32_input = (int32_input :
+      ?a:input_attrib attrib list -> input_type:full_input_type ->
+        ?name:'a -> ?value:int32 -> unit -> input elt :>
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+        ?name:'a -> ?value:int32 -> unit -> [> input ] elt)
+
+  let int64_input = (int64_input :
+      ?a:input_attrib attrib list -> input_type:full_input_type ->
+        ?name:'a -> ?value:int64 -> unit -> input elt :>
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type] ->
+        ?name:'a -> ?value:int64 -> unit -> [> input ] elt)
+
   let float_input = (float_input :
       ?a:input_attrib attrib list -> input_type:full_input_type ->
         ?name:'a -> ?value:float -> unit -> input elt :>
@@ -859,6 +968,22 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
         name:'a -> value:int -> 
           ?src:uri -> unit -> [> input ] elt)
 
+  let int32_image_input = (int32_image_input :
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:int32 -> 
+          ?src:uri -> unit -> input elt :>
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:int32 -> 
+          ?src:uri -> unit -> [> input ] elt)
+
+  let int64_image_input = (int64_image_input :
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:int64 -> 
+          ?src:uri -> unit -> input elt :>
+      ?a:input_attrib attrib list -> 
+        name:'a -> value:int64 -> 
+          ?src:uri -> unit -> [> input ] elt)
+
   let float_image_input = (float_image_input :
       ?a:input_attrib attrib list -> 
         name:'a -> value:float -> 
@@ -901,6 +1026,18 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
       ?a:input_attrib attrib list -> ?checked:bool -> 
         name:[ `Set of int ] param_name -> value:int -> unit -> [> input ] elt)
 
+  let int32_checkbox = (int32_checkbox :
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of int32 ] param_name -> value:int32 -> unit -> input elt :>
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of int32 ] param_name -> value:int32 -> unit -> [> input ] elt)
+
+  let int64_checkbox = (int64_checkbox :
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of int64 ] param_name -> value:int64 -> unit -> input elt :>
+      ?a:input_attrib attrib list -> ?checked:bool -> 
+        name:[ `Set of int64 ] param_name -> value:int64 -> unit -> [> input ] elt)
+
   let float_checkbox = (float_checkbox :
       ?a:input_attrib attrib list -> ?checked:bool -> 
         name:[ `Set of float ] param_name -> value:float -> unit -> input elt :>
@@ -937,6 +1074,18 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
      name:'a -> value:int -> unit -> input elt :>
                      ?a:(input_attrib attrib list ) -> ?checked:bool -> 
      name:'a -> value:int -> unit -> [> input ] elt)
+
+  let int32_radio = (int32_radio : 
+                     ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:'a -> value:int32 -> unit -> input elt :>
+                     ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:'a -> value:int32 -> unit -> [> input ] elt)
+
+  let int64_radio = (int64_radio : 
+                     ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:'a -> value:int64 -> unit -> input elt :>
+                     ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:'a -> value:int64 -> unit -> [> input ] elt)
 
   let float_radio = (float_radio : 
                        ?a:(input_attrib attrib list ) -> ?checked:bool -> 
@@ -996,6 +1145,26 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
            int select_opt -> 
              int select_opt list -> [> select ] elt)
 
+  let int32_select = (int32_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            int32 select_opt -> 
+              int32 select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           int32 select_opt -> 
+             int32 select_opt list -> [> select ] elt)
+
+  let int64_select = (int64_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            int64 select_opt -> 
+              int64 select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           int64 select_opt -> 
+             int64 select_opt list -> [> select ] elt)
+
   let float_select = (float_select : 
         ?a:select_attrib attrib list ->
           name:'a -> 
@@ -1047,6 +1216,26 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
            int select_opt -> 
              int select_opt list -> [> select ] elt)
 
+  let int32_multiple_select = (int32_multiple_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            int32 select_opt -> 
+              int32 select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           int32 select_opt -> 
+             int32 select_opt list -> [> select ] elt)
+
+  let int64_multiple_select = (int64_multiple_select : 
+        ?a:select_attrib attrib list ->
+          name:'a -> 
+            int64 select_opt -> 
+              int64 select_opt list -> select elt :>
+       ?a:select_attrib attrib list ->
+         name:'a -> 
+           int64 select_opt -> 
+             int64 select_opt list -> [> select ] elt)
+
   let float_multiple_select = (float_multiple_select : 
         ?a:select_attrib attrib list ->
           name:'a -> 
@@ -1097,6 +1286,22 @@ module Xhtmlforms : XHTMLFORMSSIG = struct
              button_content elt list -> button elt :>
        ?a:button_attrib attrib list -> 
            name:'a -> value:int -> 
+             button_content elt list -> [> button ] elt)
+
+  let int32_button = (int32_button : 
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:int32 -> 
+             button_content elt list -> button elt :>
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:int32 -> 
+             button_content elt list -> [> button ] elt)
+
+  let int64_button = (int64_button : 
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:int64 -> 
+             button_content elt list -> button elt :>
+       ?a:button_attrib attrib list -> 
+           name:'a -> value:int64 -> 
              button_content elt list -> [> button ] elt)
 
   let float_button = (float_button : 

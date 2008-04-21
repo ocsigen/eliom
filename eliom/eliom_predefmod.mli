@@ -49,6 +49,7 @@ end
 module type XHTMLFORMSSIG = sig
 
 
+
   open XHTML.M
   open Xhtmltypes
 
@@ -161,6 +162,18 @@ module type XHTMLFORMSSIG = sig
           ?value:int -> unit -> [> input ] elt
 (** Creates an [<input>] tag for an integer *)
 
+  val int32_input :
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< int32 setoneopt ] param_name -> 
+          ?value:int32 -> unit -> [> input ] elt
+(** Creates an [<input>] tag for a 32 bits integer *)
+
+  val int64_input :
+      ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
+        ?name:[< int64 setoneopt ] param_name -> 
+          ?value:int64 -> unit -> [> input ] elt
+(** Creates an [<input>] tag for a 64 bits integer *)
+
   val float_input :
       ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
         ?name:[< float setoneopt ] param_name -> 
@@ -199,13 +212,27 @@ module type XHTMLFORMSSIG = sig
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="...">] tag that sends the coordinates 
    the user clicked on *)
-            
+
   val int_image_input :
       ?a:input_attrib attrib list -> 
         name:[< (int * coordinates) oneopt ] param_name -> value:int -> 
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int *)
+
+  val int32_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (int32 * coordinates) oneopt ] param_name -> value:int32 -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates the user clicked on and a value of type int32 *)
+
+  val int64_image_input :
+      ?a:input_attrib attrib list -> 
+        name:[< (int64 * coordinates) oneopt ] param_name -> value:int64 -> 
+          ?src:uri -> unit -> [> input ] elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates the user clicked on and a value of type int64 *)
 
   val float_image_input :
       ?a:input_attrib attrib list -> 
@@ -247,6 +274,26 @@ module type XHTMLFORMSSIG = sig
           name:[ `Set of int ] param_name -> value:int -> 
             unit -> [> input ] elt
 (** Creates a checkbox [<input>] tag that will have an int value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+    val int32_checkbox :
+        ?a:input_attrib attrib list -> ?checked:bool -> 
+          name:[ `Set of int32 ] param_name -> value:int32 -> 
+            unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have an int32 value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+    val int64_checkbox :
+        ?a:input_attrib attrib list -> ?checked:bool -> 
+          name:[ `Set of int64 ] param_name -> value:int64 -> 
+            unit -> [> input ] elt
+(** Creates a checkbox [<input>] tag that will have an int64 value.
    Thus you can do several checkboxes with the same name 
    (and different values). 
    The service must declare a parameter of type [set].
@@ -305,6 +352,14 @@ module type XHTMLFORMSSIG = sig
      name:[ `Opt of int ] param_name -> value:int -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with int content *)
 
+  val int32_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:[ `Opt of int32 ] param_name -> value:int32 -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with int32 content *)
+
+  val int64_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
+     name:[ `Opt of int64 ] param_name -> value:int64 -> unit -> [> input ] elt
+(** Creates a radio [<input>] tag with int64 content *)
+
   val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool -> 
      name:[ `Opt of float ] param_name -> value:float -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with float content *)
@@ -330,6 +385,16 @@ module type XHTMLFORMSSIG = sig
     name:[< int setone ] param_name -> value:int -> 
       button_content elt list -> [> button ] elt
 (** Creates a [<button>] tag with int content *)
+
+  val int32_button : ?a:button_attrib attrib list ->
+    name:[< int32 setone ] param_name -> value:int32 -> 
+      button_content elt list -> [> button ] elt
+(** Creates a [<button>] tag with int32 content *)
+
+  val int64_button : ?a:button_attrib attrib list ->
+    name:[< int64 setone ] param_name -> value:int64 -> 
+      button_content elt list -> [> button ] elt
+(** Creates a [<button>] tag with int64 content *)
 
   val float_button : ?a:button_attrib attrib list ->
     name:[< float setone ] param_name -> value:float -> 
@@ -400,6 +465,22 @@ module type XHTMLFORMSSIG = sig
               [> select ] elt
 (** Creates a [<select>] tag for int values. *)
 
+  val int32_select :
+      ?a:select_attrib attrib list ->
+        name:[< `One of int32 ] param_name ->
+          int32 select_opt ->
+            int32 select_opt list ->
+              [> select ] elt
+(** Creates a [<select>] tag for int32 values. *)
+
+  val int64_select :
+      ?a:select_attrib attrib list ->
+        name:[< `One of int64 ] param_name ->
+          int64 select_opt ->
+            int64 select_opt list ->
+              [> select ] elt
+(** Creates a [<select>] tag for int64 values. *)
+
   val float_select :
       ?a:select_attrib attrib list ->
         name:[< `One of float ] param_name ->
@@ -441,6 +522,22 @@ module type XHTMLFORMSSIG = sig
             int select_opt list ->
               [> select ] elt
 (** Creates a [<select>] tag for int values. *)
+
+  val int32_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of int32 ] param_name ->
+          int32 select_opt ->
+            int32 select_opt list ->
+              [> select ] elt
+(** Creates a [<select>] tag for int32 values. *)
+
+  val int64_multiple_select :
+      ?a:select_attrib attrib list ->
+        name:[< `Set of int64 ] param_name ->
+          int64 select_opt ->
+            int64 select_opt list ->
+              [> select ] elt
+(** Creates a [<select>] tag for int64 values. *)
 
   val float_multiple_select :
       ?a:select_attrib attrib list ->

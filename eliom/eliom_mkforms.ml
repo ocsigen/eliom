@@ -194,6 +194,7 @@ module type ELIOMFORMSIG =
   sig
 
 
+
     type form_content_elt
     type form_content_elt_list
     type form_elt
@@ -262,7 +263,7 @@ module type ELIOMFORMSIG =
         service:('get, unit, [< get_service_kind ],
          [< suff ], 'gn, unit, 
          [< registrable ]) service ->
-          sp:server_params -> ?fragment:string -> 'get -> uri
+          sp:Eliom_sessions.server_params -> ?fragment:string -> 'get -> uri
 (** Creates the (relative) URL for a service. 
     Like the [a] function, it may take extra parameters. *)
 
@@ -271,7 +272,7 @@ module type ELIOMFORMSIG =
           service:('get, unit, [< get_service_kind ], 
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
-            sp:server_params -> ?fragment:string ->
+            sp:Eliom_sessions.server_params -> ?fragment:string ->
               a_content_elt_list -> 'get -> a_elt
 (** [a service sp cont ()] creates a link to [service]. 
    The text of
@@ -300,7 +301,7 @@ module type ELIOMFORMSIG =
           service:('get, unit, [< get_service_kind ],
            [<suff ], 'gn, 'pn, 
            [< registrable ]) service ->
-             sp:server_params -> ?fragment:string ->
+             sp:Eliom_sessions.server_params -> ?fragment:string ->
               ('gn -> form_content_elt_list) -> form_elt
 (** [get_form service sp formgen] creates a GET form to [service]. 
    The content of
@@ -313,7 +314,7 @@ module type ELIOMFORMSIG =
       service:('get, 'post, [< post_service_kind ],
                [< suff ], 'gn, 'pn, 
                [< registrable ]) service ->
-      sp:server_params -> 
+      sp:Eliom_sessions.server_params -> 
       ?fragment:string ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content_elt_list) -> 'get -> form_elt
@@ -328,6 +329,18 @@ module type ELIOMFORMSIG =
         ?a:input_attrib_t -> input_type:input_type_t ->
           ?name:[< int setoneopt ] param_name ->
             ?value:int -> unit -> input_elt
+(** Creates an [<input>] tag for an integer *)
+
+    val int32_input :
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:[< int32 setoneopt ] param_name ->
+            ?value:int32 -> unit -> input_elt
+(** Creates an [<input>] tag for an integer *)
+
+    val int64_input :
+        ?a:input_attrib_t -> input_type:input_type_t ->
+          ?name:[< int64 setoneopt ] param_name ->
+            ?value:int64 -> unit -> input_elt
 (** Creates an [<input>] tag for an integer *)
 
     val float_input :
@@ -375,6 +388,20 @@ module type ELIOMFORMSIG =
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int *)
 
+    val int32_image_input :
+        ?a:input_attrib_t -> 
+          name:[< (int32 * coordinates) oneopt ] param_name -> value:int32 -> 
+            ?src:uri -> unit -> input_elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates the user clicked on and a value of type int32 *)
+
+    val int64_image_input :
+        ?a:input_attrib_t -> 
+          name:[< (int64 * coordinates) oneopt ] param_name -> value:int64 -> 
+            ?src:uri -> unit -> input_elt
+(** Creates an [<input type="image" name="..." value="...">] tag that sends
+   the coordinates the user clicked on and a value of type int64 *)
+
     val float_image_input :
         ?a:input_attrib_t -> 
           name:[< (float * coordinates) oneopt ] param_name -> value:float -> 
@@ -415,6 +442,24 @@ module type ELIOMFORMSIG =
         ?a:input_attrib_t -> ?checked:bool -> 
           name:[ `Set of int ] param_name -> value:int -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have an int value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+    val int32_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          name:[ `Set of int32 ] param_name -> value:int32 -> unit -> input_elt
+(** Creates a checkbox [<input>] tag that will have an int32 value.
+   Thus you can do several checkboxes with the same name 
+   (and different values). 
+   The service must declare a parameter of type [set].
+ *)
+
+    val int64_checkbox :
+        ?a:input_attrib_t -> ?checked:bool -> 
+          name:[ `Set of int64 ] param_name -> value:int64 -> unit -> input_elt
+(** Creates a checkbox [<input>] tag that will have an int64 value.
    Thus you can do several checkboxes with the same name 
    (and different values). 
    The service must declare a parameter of type [set].
@@ -471,6 +516,18 @@ module type ELIOMFORMSIG =
              value:int -> unit -> input_elt
 (** Creates a radio [<input>] tag with int content *)
 
+    val int32_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+           name:[ `Opt of int32 ] param_name -> 
+             value:int32 -> unit -> input_elt
+(** Creates a radio [<input>] tag with int32 content *)
+
+    val int64_radio :
+        ?a:input_attrib_t -> ?checked:bool -> 
+           name:[ `Opt of int64 ] param_name -> 
+             value:int64 -> unit -> input_elt
+(** Creates a radio [<input>] tag with int64 content *)
+
     val float_radio :
         ?a:input_attrib_t -> ?checked:bool -> 
            name:[ `Opt of float ] param_name -> 
@@ -500,6 +557,18 @@ module type ELIOMFORMSIG =
           name:[< int setone ] param_name -> value:int -> 
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with int content *)
+
+    val int32_button : 
+        ?a:button_attrib_t ->
+          name:[< int32 setone ] param_name -> value:int32 -> 
+            button_content_elt_list -> button_elt
+(** Creates a [<button>] tag with int32 content *)
+
+    val int64_button : 
+        ?a:button_attrib_t ->
+          name:[< int64 setone ] param_name -> value:int64 -> 
+            button_content_elt_list -> button_elt
+(** Creates a [<button>] tag with int64 content *)
 
     val float_button : 
         ?a:button_attrib_t ->
@@ -579,6 +648,22 @@ module type ELIOMFORMSIG =
                 select_elt
 (** Creates a [<select>] tag for int values. *)
 
+    val int32_select :
+        ?a:select_attrib_t ->
+          name:[< `One of int32 ] param_name ->
+            int32 select_opt ->
+              int32 select_opt list ->
+                select_elt
+(** Creates a [<select>] tag for int32 values. *)
+
+    val int64_select :
+        ?a:select_attrib_t ->
+          name:[< `One of int64 ] param_name ->
+            int64 select_opt ->
+              int64 select_opt list ->
+                select_elt
+(** Creates a [<select>] tag for int64 values. *)
+
     val float_select :
         ?a:select_attrib_t ->
           name:[< `One of float ] param_name ->
@@ -619,6 +704,22 @@ module type ELIOMFORMSIG =
               int select_opt list ->
                 select_elt
 (** Creates a [<select>] tag for int values. *)
+
+    val int32_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of int32 ] param_name ->
+            int32 select_opt ->
+              int32 select_opt list ->
+                select_elt
+(** Creates a [<select>] tag for int32 values. *)
+
+    val int64_multiple_select :
+        ?a:select_attrib_t ->
+          name:[< `Set of int64 ] param_name ->
+            int64 select_opt ->
+              int64 select_opt list ->
+                select_elt
+(** Creates a [<select>] tag for int64 values. *)
 
     val float_multiple_select :
         ?a:select_attrib_t ->
@@ -1139,15 +1240,27 @@ module MakeForms = functor
       let int_input ?a ~input_type
           ?name ?value () = 
         gen_input ?a ~input_type ?value ?name string_of_int
+
+      let int32_input ?a ~input_type
+          ?name ?value () = 
+        gen_input ?a ~input_type ?value ?name Int32.to_string
+
+      let int64_input ?a ~input_type
+          ?name ?value () = 
+        gen_input ?a ~input_type ?value ?name Int64.to_string
+
       let float_input ?a ~input_type 
           ?name ?value () =
         gen_input ?a ~input_type ?value ?name string_of_float
+
       let string_input ?a ~input_type 
           ?name ?value () =
         gen_input ?a ~input_type ?value ?name id
+
       let user_type_input ?a ~input_type
           ?name ?value string_of = 
         gen_input ?a ~input_type ?value ?name string_of 
+
       let raw_input ?a ~input_type ?name ?value () = 
         (match value with
         | None ->
@@ -1174,15 +1287,27 @@ module MakeForms = functor
       let int_image_input ?a ~name ~value ?src () = 
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src string_of_int
+
+      let int32_image_input ?a ~name ~value ?src () = 
+        gen_input ?a ~input_type:Pages.image ~name
+          ~value ?src Int32.to_string
+
+      let int64_image_input ?a ~name ~value ?src () = 
+        gen_input ?a ~input_type:Pages.image ~name
+          ~value ?src Int64.to_string
+
       let float_image_input ?a ~name ~value ?src () = 
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src string_of_float
+
       let string_image_input ?a ~name ~value ?src () = 
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src id
+
       let user_type_image_input ?a ~name ~value ?src string_of = 
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src string_of
+
       let raw_image_input ?a ~(name : string) ~value ?src () = 
         Pages.make_input
           ?a
@@ -1199,6 +1324,14 @@ module MakeForms = functor
       let int_checkbox ?a ?checked ~name ~value () =
         Pages.make_input ?a ?checked ~typ:Pages.checkbox
           ~name:(string_of_param_name name) ~value:(string_of_int value) ()
+
+      let int32_checkbox ?a ?checked ~name ~value () =
+        Pages.make_input ?a ?checked ~typ:Pages.checkbox
+          ~name:(string_of_param_name name) ~value:(Int32.to_string value) ()
+
+      let int64_checkbox ?a ?checked ~name ~value () =
+        Pages.make_input ?a ?checked ~typ:Pages.checkbox
+          ~name:(string_of_param_name name) ~value:(Int64.to_string value) ()
 
       let float_checkbox ?a ?checked ~name ~value () =
         Pages.make_input ?a ?checked ~typ:Pages.checkbox
@@ -1221,18 +1354,32 @@ module MakeForms = functor
         Pages.make_input
           ?a ?checked ~typ:Pages.radio 
           ~name:(string_of_param_name name) ~value ()
+
       let int_radio ?a ?checked ~name ~value () =
         Pages.make_input
           ?a ?checked ~typ:Pages.radio
           ~name:(string_of_param_name name) ~value:(string_of_int value) ()
+
+      let int32_radio ?a ?checked ~name ~value () =
+        Pages.make_input
+          ?a ?checked ~typ:Pages.radio
+          ~name:(string_of_param_name name) ~value:(Int32.to_string value) ()
+
+      let int64_radio ?a ?checked ~name ~value () =
+        Pages.make_input
+          ?a ?checked ~typ:Pages.radio
+          ~name:(string_of_param_name name) ~value:(Int64.to_string value) ()
+
       let float_radio ?a ?checked ~name ~value () =
         Pages.make_input
           ?a ?checked ~typ:Pages.radio 
           ~name:(string_of_param_name name) ~value:(string_of_float value) ()
+
       let user_type_radio ?a ?checked ~name ~value string_of =
         Pages.make_input
           ?a ?checked ~typ:Pages.radio 
           ~name:(string_of_param_name name) ~value:(string_of value) ()
+
       let raw_radio ?a ?checked ~(name : string) ~value () =
         Pages.make_input
           ?a ?checked ~typ:Pages.radio 
@@ -1245,6 +1392,14 @@ module MakeForms = functor
       let int_button ?a ~name ~value c =
         Pages.make_button ?a ~button_type:Pages.buttonsubmit
           ~name:(string_of_param_name name) ~value:(string_of_int value) c
+
+      let int32_button ?a ~name ~value c =
+        Pages.make_button ?a ~button_type:Pages.buttonsubmit
+          ~name:(string_of_param_name name) ~value:(Int32.to_string value) c
+
+      let int64_button ?a ~name ~value c =
+        Pages.make_button ?a ~button_type:Pages.buttonsubmit
+          ~name:(string_of_param_name name) ~value:(Int64.to_string value) c
 
       let float_button ?a ~name ~value c =
         Pages.make_button ?a ~button_type:Pages.buttonsubmit
@@ -1365,6 +1520,16 @@ module MakeForms = functor
         gen_select ?a ~multiple:false 
           ~name:(string_of_param_name name) fl ol string_of_int
 
+      let int32_select ?a ~name 
+          (fl : int32 select_opt) (ol : int32 select_opt list) =
+        gen_select ?a ~multiple:false 
+          ~name:(string_of_param_name name) fl ol Int32.to_string
+
+      let int64_select ?a ~name 
+          (fl : int64 select_opt) (ol : int64 select_opt list) =
+        gen_select ?a ~multiple:false 
+          ~name:(string_of_param_name name) fl ol Int64.to_string
+
       let float_select ?a ~name 
           (fl : float select_opt) (ol : float select_opt list) =
         gen_select ?a ~multiple:false 
@@ -1390,6 +1555,16 @@ module MakeForms = functor
           (fl : int select_opt) (ol : int select_opt list) =
         gen_select ?a ~multiple:true 
           ~name:(string_of_param_name name) fl ol string_of_int
+
+      let int32_multiple_select ?a ~name 
+          (fl : int32 select_opt) (ol : int32 select_opt list) =
+        gen_select ?a ~multiple:true 
+          ~name:(string_of_param_name name) fl ol Int32.to_string
+
+      let int64_multiple_select ?a ~name 
+          (fl : int64 select_opt) (ol : int64 select_opt list) =
+        gen_select ?a ~multiple:true 
+          ~name:(string_of_param_name name) fl ol Int64.to_string
 
       let float_multiple_select ?a ~name 
           (fl : float select_opt) (ol : float select_opt list) =
