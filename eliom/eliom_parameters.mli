@@ -111,6 +111,14 @@ val int : string ->
   (int, [ `WithoutSuffix ], [ `One of int ] param_name) params_type
 (** [int s] tells that the service takes an integer as parameter, labeled [s]. *)
 
+val int32 : string -> 
+  (int32, [ `WithoutSuffix ], [ `One of int32 ] param_name) params_type
+(** [int32 s] tells that the service takes a 32 bits integer as parameter, labeled [s]. *)
+
+val int64 : string -> 
+  (int64, [ `WithoutSuffix ], [ `One of int64 ] param_name) params_type
+(** [int64 s] tells that the service takes a 64 bits integer as parameter, labeled [s]. *)
+
 val float : string -> 
   (float, [ `WithoutSuffix ], [ `One of float ] param_name) params_type
 (** [float s] tells that the service takes a floating point number as parameter, labeled [s]. *)
@@ -166,6 +174,18 @@ val int_coordinates :
       (int * coordinates, [`WithoutSuffix], 
        [ `One of (int * coordinates) ] param_name) params_type
 (** Same for an integer value *)
+        
+val int32_coordinates :
+    string ->
+      (int32 * coordinates, [`WithoutSuffix], 
+       [ `One of (int32 * coordinates) ] param_name) params_type
+(** Same for a 32 bits integer value *)
+        
+val int64_coordinates :
+    string ->
+      (int64 * coordinates, [`WithoutSuffix], 
+       [ `One of (int64 * coordinates) ] param_name) params_type
+(** Same for a 64 integer value *)
         
 val float_coordinates :
     string ->

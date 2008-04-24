@@ -78,10 +78,10 @@ let anonymise_params_type (t : ('a, 'b, 'c) params_type) : anon_params_type =
 let int (n : string) : (int, [`WithoutSuffix], [ `One of int ] param_name) params_type = 
   TInt n
 
-let int32 (n : string) : (int, [`WithoutSuffix], [ `One of int32 ] param_name) params_type = 
+let int32 (n : string) : (int32, [`WithoutSuffix], [ `One of int32 ] param_name) params_type = 
   TInt32 n
 
-let int64 (n : string) : (int, [`WithoutSuffix], [ `One of int64 ] param_name) params_type = 
+let int64 (n : string) : (int64, [`WithoutSuffix], [ `One of int64 ] param_name) params_type = 
   TInt64 n
 
 let float (n : string)
@@ -134,6 +134,18 @@ let int_coordinates (n : string)
        [`WithoutSuffix], 
        [ `One of (int * coordinates) ] param_name) params_type = 
   Obj.magic (TCoordv (int n, n))
+
+let int32_coordinates (n : string)
+    : (int32 * coordinates,
+       [`WithoutSuffix], 
+       [ `One of (int32 * coordinates) ] param_name) params_type = 
+  Obj.magic (TCoordv (int32 n, n))
+
+let int64_coordinates (n : string)
+    : (int64 * coordinates,
+       [`WithoutSuffix], 
+       [ `One of (int64 * coordinates) ] param_name) params_type = 
+  Obj.magic (TCoordv (int64 n, n))
 
 let float_coordinates (n : string)
     : (float * coordinates,
