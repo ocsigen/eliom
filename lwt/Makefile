@@ -18,6 +18,7 @@ XOBJECTS = $(OBJECTS:cmo=cmx)
 
 ARCHIVE  = $(NAME).cma
 XARCHIVE = $(NAME).cmxa
+XTOINSTALL = $(if $(wildcard *.cmxa),$(XARCHIVE) $(XARCHIVE:.cmxa=.a) $(XOBJECTS))
 
 REQUIRES = ssl
 PREDICATES =
@@ -56,7 +57,7 @@ depend: *.ml *.mli
 
 install:
 	mkdir -p "$(TEMPROOT)$(MODULEINSTALLDIR)"
-	$(OCAMLFIND) install $(NAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" *.mli *.cmi $(ARCHIVE) $(wildcard lwt.cmxa) $(wildcard lwt.a) META
+	$(OCAMLFIND) install $(NAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)" *.mli *.cmi $(ARCHIVE) $(XTOINSTALL) META
 
 uninstall:
 	$(OCAMLFIND) remove $(NAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"
