@@ -62,9 +62,10 @@ module Old_Xhtml_content =
 module Xhtml_content_(Xhtmlprinter : sig
                         val xhtml_stream :
                           ?version:[< `HTML_v03_02 | `HTML_v04_01
-                                    | `XHTML_01_00 | `XHTML_01_01
-                                    > `XHTML_01_01 ] ->
-                          ?width:int -> ?encode:(string -> string) ->
+                          | `XHTML_01_00 | `XHTML_01_01
+                              > `XHTML_01_01 ] ->
+                          ?width:int -> 
+                          ?encode:(string -> string) ->
                           ?html_compat:bool ->
                           [ `Html ] XHTML.M.elt -> string Ocsigen_stream.t
                       end) =

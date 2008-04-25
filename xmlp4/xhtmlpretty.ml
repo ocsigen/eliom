@@ -43,7 +43,12 @@ let emptytags = ["hr"; "br"; "img"; "meta"; "link"; "input";
                  "isindex"; "frame"]
 
 
-let blocktags = [ "fieldset"; "form"; "address"; "body"; "head"; "blockquote"; "div"; "html"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "p"; "dd"; "dl"; "li"; "ol"; "ul"; "colgroup"; "table"; "tbody"; "tfoot"; "thead"; "td"; "th"; "tr" ]
+let blocktags = [ "fieldset"; "form"; "address"; "body"; "head"; 
+                  "blockquote"; "div"; "html"; 
+                  "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; 
+                  "p"; "dd"; "dl"; "li"; "ol"; "ul"; 
+                  "colgroup"; "table"; "tbody"; "tfoot"; "thead"; 
+                  "td"; "th"; "tr" ]
     
 let semiblocktags = [ "pre"; "style"; "title" ]
 
@@ -90,11 +95,15 @@ let x_print, xh_print =
       end
       
     and xh_print_inlinetag encode tag attrs taglist i is_first = 
-      pp_print_string xh_string ("<"^tag);
-      xh_print_attrs encode attrs;
-      pp_print_string xh_string ">";
-      xh_print_taglist taglist 0 false false;
-      pp_print_string xh_string ("</"^tag^">")
+      if taglist = [] 
+      then xh_print_closedtag encode tag attrs i true
+      else begin 
+        pp_print_string xh_string ("<"^tag);
+        xh_print_attrs encode attrs;
+        pp_print_string xh_string ">";
+        xh_print_taglist taglist 0 false false;
+        pp_print_string xh_string ("</"^tag^">")
+      end
         
     and xh_print_blocktag encode tag attrs taglist i = 
       if taglist = [] 
@@ -142,7 +151,8 @@ let x_print, xh_print =
       | l -> xh_print_taglist l i is_first true
 
 
-    and print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws =
+    and print_nodes
+        ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws =
       if (List.mem name blocktags)
       then xh_print_blocktag encode name xh_attrs xh_taglist i
       else 
@@ -329,11 +339,15 @@ let x_stream, xh_stream =
           (Ocsigen_stream.cont ("></"^tag^">")) cont)))
       
     and xh_print_inlinetag encode tag attrs taglist i is_first cont = 
-      (Ocsigen_stream.cont ("<"^tag)) (fun () ->
-      xh_print_attrs encode attrs (fun () ->
-      (Ocsigen_stream.cont ">") (fun () ->
-      xh_print_taglist taglist 0 false false (fun () ->
-      (Ocsigen_stream.cont ("</"^tag^">") cont)))))
+      if taglist = [] 
+      then xh_print_closedtag encode tag attrs i true cont
+      else begin
+        (Ocsigen_stream.cont ("<"^tag)) (fun () ->
+        xh_print_attrs encode attrs (fun () ->
+        (Ocsigen_stream.cont ">") (fun () ->
+        xh_print_taglist taglist 0 false false (fun () ->
+        (Ocsigen_stream.cont ("</"^tag^">") cont)))))
+      end
         
     and xh_print_blocktag encode tag attrs taglist i cont = 
       if taglist = [] 
