@@ -1,0 +1,5 @@
+#!/bin/sh
+chmod a+rx configure
+if [ -d "$DARCS_REPO" ]; then
+    darcs changes --repodir "$DARCS_REPO" > CHANGES
+fi

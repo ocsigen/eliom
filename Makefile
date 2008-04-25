@@ -375,7 +375,7 @@ logrotate:
 	  > $(TEMPROOT)/etc/logrotate.d/$(OCSIGENNAME); }
 
 dist:
-	darcs dist -d ocsigen-$(VERSION)
+	DARCS_REPO=$(PWD) darcs dist -d ocsigen-$(VERSION)
 
 install: docinstall installnodoc
 
