@@ -20,6 +20,16 @@
 open Format
 open XML
 
+(* The following tags are written <br />, etc. 
+   The other empty tags are written <p></p> for html compatibility.
+   See guidelines here:
+   http://www.w3.org/TR/xhtml1/#guidelines
+ *)
+let emptytags = ["hr"; "br"; "img"; "meta"; "link"; "input"; 
+                 "col"; "area"; "param"; "base"; "basefont"; 
+                 "isindex"; "frame"]
+
+
 let xh_string = str_formatter
 
 let id x = x
@@ -27,7 +37,7 @@ let id x = x
 let x_print, xh_print = 
 
   let aux ~width ~encode ?(html_compat = false) doctype arbre =
-    let endemptytag = if html_compat then ">" else "/>" in
+    let endemptytag = if html_compat then ">" else " />" in
     let rec xh_print_attrs encode attrs = match attrs with
       [] ->  ();
     | attr::queue -> 
@@ -38,11 +48,23 @@ let x_print, xh_print =
       pp_print_string xh_string texte
         
     and xh_print_closedtag encode tag attrs =
-      pp_open_tbox xh_string ();
-      pp_print_string xh_string ("<"^tag);
-      xh_print_attrs encode attrs;
-      pp_print_string xh_string endemptytag;
-      pp_close_tbox xh_string ();
+      if List.mem tag emptytags
+      then begin
+        pp_open_tbox xh_string ();
+        pp_print_string xh_string ("<"^tag);
+        xh_print_attrs encode attrs;
+        pp_print_string xh_string endemptytag;
+        pp_close_tbox xh_string ();
+      end
+      else begin
+        pp_open_tbox xh_string ();
+        pp_print_string xh_string ("<"^tag);
+        xh_print_attrs encode attrs;
+        pp_print_string xh_string "></";
+        pp_print_string xh_string tag;
+        pp_print_string xh_string ">";
+        pp_close_tbox xh_string ();
+      end
       
     and xh_print_tag encode tag attrs taglist = 
       if taglist = [] 
@@ -156,7 +178,7 @@ let xhtml_list_print ?(version=`XHTML_01_01)
 let x_stream, xh_stream =
 
   let aux ~width ~encode ?(html_compat = false) arbre cont =
-    let endemptytag = if html_compat then ">" else "/>" in
+    let endemptytag = if html_compat then ">" else " />" in
     let rec xh_print_attrs encode attrs cont = match attrs with
     | [] -> cont ();
     | attr::queue ->
@@ -167,9 +189,15 @@ let x_stream, xh_stream =
       (Ocsigen_stream.cont texte) cont
 
     and xh_print_closedtag encode tag attrs cont =
-      (Ocsigen_stream.cont ("<"^tag)) (fun () ->
-      xh_print_attrs encode attrs (fun () ->
-      (Ocsigen_stream.cont endemptytag) cont))
+      if List.mem tag emptytags
+      then
+        (Ocsigen_stream.cont ("<"^tag)) (fun () ->
+        xh_print_attrs encode attrs (fun () ->
+        (Ocsigen_stream.cont endemptytag) cont))
+      else
+        (Ocsigen_stream.cont ("<"^tag)) (fun () ->
+        xh_print_attrs encode attrs (fun () ->
+        (Ocsigen_stream.cont ("></"^tag^">")) cont))
 
     and xh_print_tag encode tag attrs taglist cont =
       if taglist = []

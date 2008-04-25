@@ -33,13 +33,26 @@ let xh_topxml = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n\n"
 
 let id x = x
 
+(* The following tags are written <br />, etc. 
+   The other empty tags are written <p></p> for html compatibility.
+   See guidelines here:
+   http://www.w3.org/TR/xhtml1/#guidelines
+ *)
+let emptytags = ["hr"; "br"; "img"; "meta"; "link"; "input"; 
+                 "col"; "area"; "param"; "base"; "basefont"; 
+                 "isindex"; "frame"]
+
+
+let blocktags = [ "fieldset"; "form"; "address"; "body"; "head"; "blockquote"; "div"; "html"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "p"; "dd"; "dl"; "li"; "ol"; "ul"; "colgroup"; "table"; "tbody"; "tfoot"; "thead"; "td"; "th"; "tr" ]
+    
+let semiblocktags = [ "pre"; "style"; "title" ]
+
 (* A pretty_printer that handles inline tags properly 
     (based on code by Julien Mineraud) *)
 let x_print, xh_print = 
 
-  let aux ~width ~encode ?(html_compat = false)
-      blocktags semiblocktags doctype arbre =
-    let endemptytag = if html_compat then ">" else "/>" in
+  let aux ~width ~encode ?(html_compat = false) doctype arbre =
+    let endemptytag = if html_compat then ">" else " />" in
     let rec xh_print_attrs encode attrs = match attrs with
       [] ->  ();
     | attr::queue -> 
@@ -50,15 +63,31 @@ let x_print, xh_print =
       pp_print_string xh_string texte
         
     and xh_print_closedtag encode tag attrs i is_first =
-      pp_open_tbox xh_string ();
-      if (i > 0) || is_first then 
-        pp_force_newline xh_string ();
-      if ((i > 0) || is_first) then
-        pp_print_tbreak xh_string (taille_tab*i) 0;
-      pp_print_string xh_string ("<"^tag);
-      xh_print_attrs encode attrs;
-      pp_print_string xh_string endemptytag;
-      pp_close_tbox xh_string ();
+      if List.mem tag emptytags
+      then begin
+        pp_open_tbox xh_string ();
+        if (i > 0) || is_first then 
+          pp_force_newline xh_string ();
+        if ((i > 0) || is_first) then
+          pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_string xh_string ("<"^tag);
+        xh_print_attrs encode attrs;
+        pp_print_string xh_string endemptytag;
+        pp_close_tbox xh_string ()
+      end
+      else begin
+        pp_open_tbox xh_string ();
+        if (i > 0) || is_first then 
+          pp_force_newline xh_string ();
+        if ((i > 0) || is_first) then
+          pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_string xh_string ("<"^tag);
+        xh_print_attrs encode attrs;
+        pp_print_string xh_string "></";
+        pp_print_string xh_string tag;
+        pp_print_string xh_string ">";
+        pp_close_tbox xh_string ()
+      end
       
     and xh_print_inlinetag encode tag attrs taglist i is_first = 
       pp_print_string xh_string ("<"^tag);
@@ -218,15 +247,13 @@ let x_print, xh_print =
     xh_print_taglist [arbre] 0 true false
   in
   ((fun ?(width = 132) ?(encode = encode_unsafe)
-      ?html_compat blocktags semiblocktags
-      doctype foret ->
+      ?html_compat doctype foret ->
         
         pp_set_margin str_formatter width;
 
         pp_open_tbox xh_string ();
         
-        List.iter (aux ?width ?encode ?html_compat
-                     blocktags semiblocktags doctype) foret;
+        List.iter (aux ?width ?encode ?html_compat doctype) foret;
           
         pp_force_newline xh_string ();
         pp_close_tbox xh_string ();
@@ -234,8 +261,7 @@ let x_print, xh_print =
         flush_str_formatter ()),
 
    (fun ?(width = 132) ?(encode = encode_unsafe)
-       ?html_compat blocktags semiblocktags
-       doctype arbre ->
+       ?html_compat doctype arbre ->
          
          pp_set_margin str_formatter width;
          pp_open_tbox xh_string ();
@@ -247,7 +273,7 @@ let x_print, xh_print =
          pp_print_string xh_string ocsigenadv;
          pp_force_newline xh_string ();
          
-         aux ?width ?encode ?html_compat blocktags semiblocktags doctype arbre;
+         aux ?width ?encode ?html_compat doctype arbre;
            
          pp_force_newline xh_string ();
          pp_close_tbox xh_string ();
@@ -255,18 +281,15 @@ let x_print, xh_print =
          flush_str_formatter ()))
 
 
-let blocktags = [ "fieldset"; "form"; "address"; "body"; "head"; "blockquote"; "div"; "html"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "p"; "dd"; "dl"; "li"; "ol"; "ul"; "colgroup"; "table"; "tbody"; "tfoot"; "thead"; "td"; "th"; "tr" ]
-    
-let semiblocktags = [ "pre"; "style"; "title" ]
     
 let xhtml_print ?(version=`XHTML_01_01) ?width ?encode ?html_compat arbre =
   xh_print ?width ?encode ?html_compat
-    blocktags semiblocktags (XHTML.M.doctype version) (XHTML.M.toelt arbre)
+    (XHTML.M.doctype version) (XHTML.M.toelt arbre)
     
 let xhtml_list_print ?(version=`XHTML_01_01)
     ?width ?encode ?html_compat foret =
   x_print ?width ?encode ?html_compat
-    blocktags semiblocktags (XHTML.M.doctype version) (XHTML.M.toeltl foret)
+    (XHTML.M.doctype version) (XHTML.M.toeltl foret)
 
 
 
@@ -277,9 +300,8 @@ let xhtml_list_print ?(version=`XHTML_01_01)
 
 let x_stream, xh_stream = 
 
-  let aux ~width ~encode ?(html_compat = false)
-      blocktags semiblocktags arbre cont =
-    let endemptytag = if html_compat then ">" else "/>" in
+  let aux ~width ~encode ?(html_compat = false) arbre cont =
+    let endemptytag = if html_compat then ">" else " />" in
     let rec xh_print_attrs encode attrs cont = match attrs with
     | [] -> cont ();
     | attr::queue -> 
@@ -290,12 +312,21 @@ let x_stream, xh_stream =
       (Ocsigen_stream.cont texte) cont
         
     and xh_print_closedtag encode tag attrs i is_first cont =
-      (if (i > 0) || is_first then 
-        Ocsigen_stream.cont (String.make (taille_tab*i) ' ')
-      else (fun cont -> cont ())) (fun () ->
-      (Ocsigen_stream.cont ("<"^tag)) (fun () ->
-      xh_print_attrs encode attrs (fun () ->
-      (Ocsigen_stream.cont endemptytag) cont)))
+      if List.mem tag emptytags
+      then
+        (if (i > 0) || is_first then 
+          Ocsigen_stream.cont (String.make (taille_tab*i) ' ')
+        else (fun cont -> cont ())) (fun () ->
+          (Ocsigen_stream.cont ("<"^tag)) (fun () ->
+          xh_print_attrs encode attrs (fun () ->
+          (Ocsigen_stream.cont endemptytag) cont)))
+      else
+        (if (i > 0) || is_first then 
+          Ocsigen_stream.cont (String.make (taille_tab*i) ' ')
+        else (fun cont -> cont ())) (fun () ->
+          (Ocsigen_stream.cont ("<"^tag)) (fun () ->
+          xh_print_attrs encode attrs (fun () ->
+          (Ocsigen_stream.cont ("></"^tag^">")) cont)))
       
     and xh_print_inlinetag encode tag attrs taglist i is_first cont = 
       (Ocsigen_stream.cont ("<"^tag)) (fun () ->
@@ -455,28 +486,24 @@ let x_stream, xh_stream =
     xh_print_taglist [arbre] 0 true false cont
   in
   ((fun ?(width = 132) ?(encode = encode_unsafe)
-      ?html_compat blocktags semiblocktags
-      doctype foret ->
+      ?html_compat doctype foret ->
        
          (List.fold_right
              (fun arbre cont () ->
-               aux ?width ?encode ?html_compat
-                 blocktags semiblocktags arbre cont)
+               aux ?width ?encode ?html_compat arbre cont)
              foret
              
          (fun () -> Ocsigen_stream.empty None))),
 
 
    (fun ?(width = 132) ?(encode = encode_unsafe)
-       ?html_compat blocktags semiblocktags
-       doctype arbre ->
+       ?html_compat doctype arbre ->
 
         Ocsigen_stream.cont doctype
         (fun () -> Ocsigen_stream.cont ocsigenadv
         (fun () -> 
 
-          aux ?width ?encode ?html_compat 
-           blocktags semiblocktags arbre
+          aux ?width ?encode ?html_compat arbre
            
            (fun () -> Ocsigen_stream.empty None)))))
 
@@ -484,7 +511,6 @@ let xhtml_stream ?(version=`XHTML_01_01) ?width ?encode ?html_compat arbre =
   Ocsigen_stream.make
     (fun () ->
       xh_stream ?width ?encode ?html_compat
-        blocktags semiblocktags 
         (XHTML.M.doctype version) (XHTML.M.toelt arbre))
     
 let xhtml_list_stream ?(version=`XHTML_01_01)
@@ -492,8 +518,7 @@ let xhtml_list_stream ?(version=`XHTML_01_01)
   Ocsigen_stream.make
     (fun () ->
       x_stream ?width ?encode ?html_compat
-        blocktags semiblocktags (XHTML.M.doctype version)
-        (XHTML.M.toeltl foret) ())
+        (XHTML.M.doctype version) (XHTML.M.toeltl foret) ())
 
 
 

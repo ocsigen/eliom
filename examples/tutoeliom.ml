@@ -4139,7 +4139,7 @@ let print_news_page sp i () =
 (* Main page for this example *)
 let main = new_service [] unit ()
 
-let _ = register main
+let _ = Eliom_predefmod.Xhtmlcompact.register main
   (fun sp () () -> 
     (* Do not register a page after initialisation.
        This will cause an error:
