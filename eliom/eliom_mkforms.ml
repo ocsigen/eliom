@@ -213,6 +213,8 @@ module type ELIOMFORMSIG =
     type select_elt
     type select_content_elt
     type select_content_elt_list
+    type option_elt
+    type option_elt_list
     type button_elt
     type button_content_elt
     type button_content_elt_list
@@ -769,14 +771,16 @@ module MakeForms = functor
       type link_elt = Pages.link_elt
       type script_elt = Pages.script_elt
       type textarea_elt = Pages.textarea_elt
-      type select_elt = Pages.select_elt
       type input_elt = Pages.input_elt
       type pcdata_elt = Pages.pcdata_elt
+      type select_elt = Pages.select_elt
       type select_content_elt = Pages.select_content_elt
       type select_content_elt_list = Pages.select_content_elt_list
       type button_elt = Pages.button_elt
       type button_content_elt = Pages.button_content_elt
       type button_content_elt_list = Pages.button_content_elt_list
+      type option_elt = Pages.option_elt
+      type option_elt_list = Pages.option_elt_list
             
       type a_attrib_t = Pages.a_attrib_t
       type form_attrib_t = Pages.form_attrib_t
@@ -1583,37 +1587,43 @@ module MakeForms = functor
           ~name:(string_of_param_name name) fl ol string_of
 
     end : ELIOMFORMSIG with 
-     type form_content_elt = Pages.form_content_elt
-     and type form_content_elt_list = Pages.form_content_elt_list
-     and type form_elt = Pages.form_elt
-     and type a_content_elt = Pages.a_content_elt
-     and type a_content_elt_list = Pages.a_content_elt_list
-     and type a_elt = Pages.a_elt
-     and type a_elt_list = Pages.a_elt_list
-     and type div_content_elt = Pages.div_content_elt
-     and type div_content_elt_list = Pages.div_content_elt_list
-     and type button_elt = Pages.button_elt
-     and type button_content_elt = Pages.button_content_elt
-     and type button_content_elt_list = Pages.button_content_elt_list
+type form_content_elt = Pages.form_content_elt
+and type form_content_elt_list = Pages.form_content_elt_list
+and type form_elt = Pages.form_elt
+and type a_content_elt = Pages.a_content_elt
+and type a_content_elt_list = Pages.a_content_elt_list
+and type a_elt = Pages.a_elt
+and type a_elt_list = Pages.a_elt_list
+and type div_content_elt = Pages.div_content_elt
+and type div_content_elt_list = Pages.div_content_elt_list
+and type uri = Pages.uri
+and type link_elt = Pages.link_elt
+and type script_elt = Pages.script_elt
+and type textarea_elt = Pages.textarea_elt
+and type input_elt = Pages.input_elt
+and type pcdata_elt = Pages.pcdata_elt
+and type select_elt = Pages.select_elt
+and type select_content_elt = Pages.select_content_elt
+and type select_content_elt_list = Pages.select_content_elt_list
+and type button_elt = Pages.button_elt
+and type button_content_elt = Pages.button_content_elt
+and type button_content_elt_list = Pages.button_content_elt_list
+and type option_elt = Pages.option_elt
+and type option_elt_list = Pages.option_elt_list
+      
+and type a_attrib_t = Pages.a_attrib_t
+and type form_attrib_t = Pages.form_attrib_t
+and type input_attrib_t = Pages.input_attrib_t
+and type textarea_attrib_t = Pages.textarea_attrib_t
+and type select_attrib_t = Pages.select_attrib_t
+and type link_attrib_t = Pages.link_attrib_t
+and type script_attrib_t = Pages.script_attrib_t
+and type optgroup_attrib_t = Pages.optgroup_attrib_t
+and type option_attrib_t = Pages.option_attrib_t
+and type button_attrib_t = Pages.button_attrib_t
 
-     and type uri = Pages.uri
-     and type link_elt = Pages.link_elt
-     and type script_elt = Pages.script_elt
-     and type textarea_elt = Pages.textarea_elt
-     and type select_elt = Pages.select_elt
-     and type input_elt = Pages.input_elt
-     and type pcdata_elt = Pages.pcdata_elt
-     and type a_attrib_t = Pages.a_attrib_t
-     and type form_attrib_t = Pages.form_attrib_t
-     and type input_attrib_t = Pages.input_attrib_t
-     and type textarea_attrib_t = Pages.textarea_attrib_t
-     and type select_attrib_t = Pages.select_attrib_t
-     and type link_attrib_t = Pages.link_attrib_t
-     and type script_attrib_t = Pages.script_attrib_t
-     and type optgroup_attrib_t = Pages.optgroup_attrib_t
-     and type option_attrib_t = Pages.option_attrib_t
-     and type button_attrib_t = Pages.button_attrib_t
-     and type input_type_t = Pages.input_type_t
-     and type button_type_t = Pages.button_type_t
+and type input_type_t = Pages.input_type_t
+and type button_type_t = Pages.button_type_t
+
     )
 

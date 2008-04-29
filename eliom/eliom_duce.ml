@@ -117,33 +117,30 @@ module Xhtmlforms_ = struct
 
   type form_content_elt = form_content
   type form_content_elt_list = {{ [ form_content* ] }}
-  type uri = string
+  type form_elt = form
   type a_content_elt = a_content
   type a_content_elt_list = {{ [ a_content* ] }}
-  type div_content_elt = flows
-  type div_content_elt_list = {{ [ flows* ] }}
-
   type a_elt = a
   type a_elt_list = {{ [ a* ] }}
-  type form_elt = form
-
+  type div_content_elt = flows
+  type div_content_elt_list = {{ [ flows* ] }}
+  type uri = string
+  type link_elt = link
+  type script_elt = script
   type textarea_elt = textarea
   type input_elt = input
-
+  type pcdata_elt = {{ [ PCDATA ] }}
   type select_elt = select
   type select_content_elt = select_content
   type select_content_elt_list = {{ [ select_content* ] }}
-  type option_elt = option
-  type option_elt_list = {{ [ option* ] }}
-
   type button_elt = button
   type button_content_elt = button_content
   type button_content_elt_list = {{ [ button_content* ] }}
+  type option_elt = option
+  type option_elt_list = {{ [ option* ] }}
 
-  type link_elt = link
-  type script_elt = script
 
-  type pcdata_elt = {{ [ PCDATA ] }}
+
 
   type a_attrib_t = a_attrs
   type form_attrib_t = 
@@ -377,20 +374,28 @@ module SubXhtml =
      include Eliom_mkforms.ELIOMFORMSIG with 
       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
-  and type uri = string
+  and type form_elt = form
   and type a_content_elt = a_content
   and type a_content_elt_list = {{ [ a_content* ] }}
-  and type div_content_elt = flows
-  and type div_content_elt_list = {{ [ flows* ] }}
   and type a_elt = a
   and type a_elt_list = {{ [ a* ] }}
-  and type form_elt = form
-  and type textarea_elt = textarea
-  and type select_elt = select
-  and type input_elt = input
+  and type div_content_elt = flows
+  and type div_content_elt_list = {{ [ flows* ] }}
+  and type uri = string
   and type link_elt = link
   and type script_elt = script
+  and type textarea_elt = textarea
+  and type input_elt = input
   and type pcdata_elt = {{ [ PCDATA ] }}
+  and type select_elt = select
+  and type select_content_elt = select_content
+  and type select_content_elt_list = {{ [ select_content* ] }}
+  and type button_elt = button
+  and type button_content_elt = button_content
+  and type button_content_elt_list = {{ [ button_content* ] }}
+  and type option_elt = option
+  and type option_elt_list = {{ [ option* ] }}
+
   and type a_attrib_t = a_attrs
   and type form_attrib_t = 
       {{ attrs ++ { accept-charset=?String accept=?String 
@@ -406,9 +411,12 @@ module SubXhtml =
   and type link_attrib_t = link_attrs
   and type script_attrib_t = 
       {{ id ++ { defer=?"defer" src=?String charset=?String } }}
+  and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
+  and type option_attrib_t = option_attrs
+  and type button_attrib_t = button_attrs
+
   and type input_type_t = input_type_values
-
-
+  and type button_type_t = button_type_values
 
    end)
 

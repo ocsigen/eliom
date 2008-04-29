@@ -29,176 +29,30 @@ open Xhtmltypes_duce
 
 module Xhtml : Eliom_predefmod.ELIOMSIG with 
 type page = html
-and type form_content_elt = form_content
-and type form_content_elt_list = {{ [ form_content* ] }}
-and type uri = string
-and type a_content_elt = a_content
-and type a_content_elt_list = {{ [ a_content* ] }}
-and type div_content_elt = flows
-and type div_content_elt_list = {{ [ flows* ] }}
-and type a_elt = a
-and type a_elt_list = {{ [ a* ] }}
-and type form_elt = form
-and type textarea_elt = textarea
-and type select_elt = select
-and type input_elt = input
-and type link_elt = link
-and type script_elt = script
-and type pcdata_elt = {{ [ PCDATA ] }}
-and type a_attrib_t = a_attrs
-and type form_attrib_t = 
-    {{ attrs ++ { accept-charset=?String accept=?String 
-	          onreset=?String onsubmit=?String enctype=?String } }}
-and type input_attrib_t = input_attrs
-and type textarea_attrib_t = {{ attrs ++ focus ++ 
-	{ onchange=?String
-            onselect=?String 
-	    readonly=?"readonly" 
-            disabled=?"disabled" 
-	    name=?String } }}
-and type select_attrib_t = select_attrs
-and type link_attrib_t = link_attrs
-and type script_attrib_t = 
-    {{ id ++ { defer=?"defer" src=?String charset=?String } }}
-and type input_type_t = input_type_values
-and type option_attrib_t = option_attrs
-(** Register and create form for Xhtml *)
-
-
-module Xml : Eliom_predefmod.ELIOMSIG with 
-type page = Ocamlduce.Load.anyxml
-and type form_content_elt = form_content
-and type form_content_elt_list = {{ [ form_content* ] }}
-and type uri = string
-and type a_content_elt = a_content
-and type a_content_elt_list = {{ [ a_content* ] }}
-and type div_content_elt = flows
-and type div_content_elt_list = {{ [ flows* ] }}
-and type a_elt = a
-and type a_elt_list = {{ [ a* ] }}
-and type form_elt = form
-and type textarea_elt = textarea
-and type select_elt = select
-and type input_elt = input
-and type link_elt = link
-and type script_elt = script
-and type pcdata_elt = {{ [ PCDATA ] }}
-and type a_attrib_t = a_attrs
-and type form_attrib_t = 
-    {{ attrs ++ { accept-charset=?String accept=?String 
-	          onreset=?String onsubmit=?String enctype=?String } }}
-and type input_attrib_t = input_attrs
-and type textarea_attrib_t = {{ attrs ++ focus ++ 
-	{ onchange=?String
-            onselect=?String 
-	    readonly=?"readonly" 
-            disabled=?"disabled" 
-	    name=?String } }}
-and type select_attrib_t = select_attrs
-and type link_attrib_t = link_attrs
-and type script_attrib_t = 
-    {{ id ++ { defer=?"defer" src=?String charset=?String } }}
-and type input_type_t = input_type_values
-(** Register and create form for any XML data type *)
-
-
-module Xmllist : Eliom_predefmod.ELIOMSIG with 
-type page = Ocamlduce.Load.anyxml list
-and type form_content_elt = form_content
-and type form_content_elt_list = {{ [ form_content* ] }}
-and type uri = string
-and type a_content_elt = a_content
-and type a_content_elt_list = {{ [ a_content* ] }}
-and type div_content_elt = flows
-and type div_content_elt_list = {{ [ flows* ] }}
-and type a_elt = a
-and type a_elt_list = {{ [ a* ] }}
-and type form_elt = form
-and type textarea_elt = textarea
-and type select_elt = select
-and type input_elt = input
-and type link_elt = link
-and type script_elt = script
-and type pcdata_elt = {{ [ PCDATA ] }}
-and type a_attrib_t = a_attrs
-and type form_attrib_t = 
-    {{ attrs ++ { accept-charset=?String accept=?String 
-	          onreset=?String onsubmit=?String enctype=?String } }}
-and type input_attrib_t = input_attrs
-and type textarea_attrib_t = {{ attrs ++ focus ++ 
-	{ onchange=?String
-            onselect=?String 
-	    readonly=?"readonly" 
-            disabled=?"disabled" 
-	    name=?String } }}
-and type select_attrib_t = select_attrs
-and type link_attrib_t = link_attrs
-and type script_attrib_t = 
-    {{ id ++ { defer=?"defer" src=?String charset=?String } }}
-and type input_type_t = input_type_values
-(** Register and create form for list of XML data type *)
-
-module Blocks : Eliom_predefmod.ELIOMSIG with 
-type page = blocks
-and type form_content_elt = form_content
-and type form_content_elt_list = {{ [ form_content* ] }}
-and type uri = string
-and type a_content_elt = a_content
-and type a_content_elt_list = {{ [ a_content* ] }}
-and type div_content_elt = flows
-and type div_content_elt_list = {{ [ flows* ] }}
-and type a_elt = a
-and type a_elt_list = {{ [ a* ] }}
-and type form_elt = form
-and type textarea_elt = textarea
-and type select_elt = select
-and type input_elt = input
-and type link_elt = link
-and type script_elt = script
-and type pcdata_elt = {{ [ PCDATA ] }}
-and type a_attrib_t = a_attrs
-and type form_attrib_t = 
-    {{ attrs ++ { accept-charset=?String accept=?String 
-	          onreset=?String onsubmit=?String enctype=?String } }}
-and type input_attrib_t = input_attrs
-and type textarea_attrib_t = {{ attrs ++ focus ++ 
-	{ onchange=?String
-            onselect=?String 
-	    readonly=?"readonly" 
-            disabled=?"disabled" 
-	    name=?String } }}
-and type select_attrib_t = select_attrs
-and type link_attrib_t = link_attrs
-and type script_attrib_t = 
-    {{ id ++ { defer=?"defer" src=?String charset=?String } }}
-and type input_type_t = input_type_values
-(** Register and create form for list of [blocks] (subtype of xhtml) *)
-
-module SubXhtml :
-  functor(T : sig 
-            type content
-            val print : (string -> unit ) -> content -> unit 
-          end) ->
-sig
-
-  include Eliom_mkreg.ELIOMREGSIG with type page = T.content
-  include Eliom_mkforms.ELIOMFORMSIG with 
-      type form_content_elt = form_content
+and       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
-  and type uri = string
+  and type form_elt = form
   and type a_content_elt = a_content
   and type a_content_elt_list = {{ [ a_content* ] }}
-  and type div_content_elt = flows
-  and type div_content_elt_list = {{ [ flows* ] }}
   and type a_elt = a
   and type a_elt_list = {{ [ a* ] }}
-  and type form_elt = form
-  and type textarea_elt = textarea
-  and type select_elt = select
-  and type input_elt = input
+  and type div_content_elt = flows
+  and type div_content_elt_list = {{ [ flows* ] }}
+  and type uri = string
   and type link_elt = link
   and type script_elt = script
+  and type textarea_elt = textarea
+  and type input_elt = input
   and type pcdata_elt = {{ [ PCDATA ] }}
+  and type select_elt = select
+  and type select_content_elt = select_content
+  and type select_content_elt_list = {{ [ select_content* ] }}
+  and type button_elt = button
+  and type button_content_elt = button_content
+  and type button_content_elt_list = {{ [ button_content* ] }}
+  and type option_elt = option
+  and type option_elt_list = {{ [ option* ] }}
+
   and type a_attrib_t = a_attrs
   and type form_attrib_t = 
       {{ attrs ++ { accept-charset=?String accept=?String 
@@ -214,10 +68,218 @@ sig
   and type link_attrib_t = link_attrs
   and type script_attrib_t = 
       {{ id ++ { defer=?"defer" src=?String charset=?String } }}
+  and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
+  and type option_attrib_t = option_attrs
+  and type button_attrib_t = button_attrs
+
   and type input_type_t = input_type_values
+  and type button_type_t = button_type_values
+(** Register and create form for Xhtml *)
 
 
+module Xml : Eliom_predefmod.ELIOMSIG with 
+type page = Ocamlduce.Load.anyxml
+and       type form_content_elt = form_content
+  and type form_content_elt_list = {{ [ form_content* ] }}
+  and type form_elt = form
+  and type a_content_elt = a_content
+  and type a_content_elt_list = {{ [ a_content* ] }}
+  and type a_elt = a
+  and type a_elt_list = {{ [ a* ] }}
+  and type div_content_elt = flows
+  and type div_content_elt_list = {{ [ flows* ] }}
+  and type uri = string
+  and type link_elt = link
+  and type script_elt = script
+  and type textarea_elt = textarea
+  and type input_elt = input
+  and type pcdata_elt = {{ [ PCDATA ] }}
+  and type select_elt = select
+  and type select_content_elt = select_content
+  and type select_content_elt_list = {{ [ select_content* ] }}
+  and type button_elt = button
+  and type button_content_elt = button_content
+  and type button_content_elt_list = {{ [ button_content* ] }}
+  and type option_elt = option
+  and type option_elt_list = {{ [ option* ] }}
 
+  and type a_attrib_t = a_attrs
+  and type form_attrib_t = 
+      {{ attrs ++ { accept-charset=?String accept=?String 
+  	          onreset=?String onsubmit=?String enctype=?String } }}
+  and type input_attrib_t = input_attrs
+  and type textarea_attrib_t = {{ attrs ++ focus ++ 
+  	{ onchange=?String
+              onselect=?String 
+  	    readonly=?"readonly" 
+              disabled=?"disabled" 
+  	    name=?String } }}
+  and type select_attrib_t = select_attrs
+  and type link_attrib_t = link_attrs
+  and type script_attrib_t = 
+      {{ id ++ { defer=?"defer" src=?String charset=?String } }}
+  and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
+  and type option_attrib_t = option_attrs
+  and type button_attrib_t = button_attrs
+
+  and type input_type_t = input_type_values
+  and type button_type_t = button_type_values
+(** Register and create form for any XML data type *)
+
+
+module Xmllist : Eliom_predefmod.ELIOMSIG with 
+type page = Ocamlduce.Load.anyxml list
+and       type form_content_elt = form_content
+  and type form_content_elt_list = {{ [ form_content* ] }}
+  and type form_elt = form
+  and type a_content_elt = a_content
+  and type a_content_elt_list = {{ [ a_content* ] }}
+  and type a_elt = a
+  and type a_elt_list = {{ [ a* ] }}
+  and type div_content_elt = flows
+  and type div_content_elt_list = {{ [ flows* ] }}
+  and type uri = string
+  and type link_elt = link
+  and type script_elt = script
+  and type textarea_elt = textarea
+  and type input_elt = input
+  and type pcdata_elt = {{ [ PCDATA ] }}
+  and type select_elt = select
+  and type select_content_elt = select_content
+  and type select_content_elt_list = {{ [ select_content* ] }}
+  and type button_elt = button
+  and type button_content_elt = button_content
+  and type button_content_elt_list = {{ [ button_content* ] }}
+  and type option_elt = option
+  and type option_elt_list = {{ [ option* ] }}
+
+  and type a_attrib_t = a_attrs
+  and type form_attrib_t = 
+      {{ attrs ++ { accept-charset=?String accept=?String 
+  	          onreset=?String onsubmit=?String enctype=?String } }}
+  and type input_attrib_t = input_attrs
+  and type textarea_attrib_t = {{ attrs ++ focus ++ 
+  	{ onchange=?String
+              onselect=?String 
+  	    readonly=?"readonly" 
+              disabled=?"disabled" 
+  	    name=?String } }}
+  and type select_attrib_t = select_attrs
+  and type link_attrib_t = link_attrs
+  and type script_attrib_t = 
+      {{ id ++ { defer=?"defer" src=?String charset=?String } }}
+  and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
+  and type option_attrib_t = option_attrs
+  and type button_attrib_t = button_attrs
+
+  and type input_type_t = input_type_values
+  and type button_type_t = button_type_values
+(** Register and create form for list of XML data type *)
+
+module Blocks : Eliom_predefmod.ELIOMSIG with 
+type page = blocks
+and       type form_content_elt = form_content
+  and type form_content_elt_list = {{ [ form_content* ] }}
+  and type form_elt = form
+  and type a_content_elt = a_content
+  and type a_content_elt_list = {{ [ a_content* ] }}
+  and type a_elt = a
+  and type a_elt_list = {{ [ a* ] }}
+  and type div_content_elt = flows
+  and type div_content_elt_list = {{ [ flows* ] }}
+  and type uri = string
+  and type link_elt = link
+  and type script_elt = script
+  and type textarea_elt = textarea
+  and type input_elt = input
+  and type pcdata_elt = {{ [ PCDATA ] }}
+  and type select_elt = select
+  and type select_content_elt = select_content
+  and type select_content_elt_list = {{ [ select_content* ] }}
+  and type button_elt = button
+  and type button_content_elt = button_content
+  and type button_content_elt_list = {{ [ button_content* ] }}
+  and type option_elt = option
+  and type option_elt_list = {{ [ option* ] }}
+
+  and type a_attrib_t = a_attrs
+  and type form_attrib_t = 
+      {{ attrs ++ { accept-charset=?String accept=?String 
+  	          onreset=?String onsubmit=?String enctype=?String } }}
+  and type input_attrib_t = input_attrs
+  and type textarea_attrib_t = {{ attrs ++ focus ++ 
+  	{ onchange=?String
+              onselect=?String 
+  	    readonly=?"readonly" 
+              disabled=?"disabled" 
+  	    name=?String } }}
+  and type select_attrib_t = select_attrs
+  and type link_attrib_t = link_attrs
+  and type script_attrib_t = 
+      {{ id ++ { defer=?"defer" src=?String charset=?String } }}
+  and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
+  and type option_attrib_t = option_attrs
+  and type button_attrib_t = button_attrs
+
+  and type input_type_t = input_type_values
+  and type button_type_t = button_type_values
+(** Register and create form for list of [blocks] (subtype of xhtml) *)
+
+module SubXhtml :
+  functor(T : sig 
+            type content
+            val print : (string -> unit ) -> content -> unit 
+          end) ->
+sig
+
+  include Eliom_mkreg.ELIOMREGSIG with type page = T.content
+  include Eliom_mkforms.ELIOMFORMSIG with 
+      type form_content_elt = form_content
+  and type form_content_elt_list = {{ [ form_content* ] }}
+  and type form_elt = form
+  and type a_content_elt = a_content
+  and type a_content_elt_list = {{ [ a_content* ] }}
+  and type a_elt = a
+  and type a_elt_list = {{ [ a* ] }}
+  and type div_content_elt = flows
+  and type div_content_elt_list = {{ [ flows* ] }}
+  and type uri = string
+  and type link_elt = link
+  and type script_elt = script
+  and type textarea_elt = textarea
+  and type input_elt = input
+  and type pcdata_elt = {{ [ PCDATA ] }}
+  and type select_elt = select
+  and type select_content_elt = select_content
+  and type select_content_elt_list = {{ [ select_content* ] }}
+  and type button_elt = button
+  and type button_content_elt = button_content
+  and type button_content_elt_list = {{ [ button_content* ] }}
+  and type option_elt = option
+  and type option_elt_list = {{ [ option* ] }}
+
+  and type a_attrib_t = a_attrs
+  and type form_attrib_t = 
+      {{ attrs ++ { accept-charset=?String accept=?String 
+  	          onreset=?String onsubmit=?String enctype=?String } }}
+  and type input_attrib_t = input_attrs
+  and type textarea_attrib_t = {{ attrs ++ focus ++ 
+  	{ onchange=?String
+              onselect=?String 
+  	    readonly=?"readonly" 
+              disabled=?"disabled" 
+  	    name=?String } }}
+  and type select_attrib_t = select_attrs
+  and type link_attrib_t = link_attrs
+  and type script_attrib_t = 
+      {{ id ++ { defer=?"defer" src=?String charset=?String } }}
+  and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
+  and type option_attrib_t = option_attrs
+  and type button_attrib_t = button_attrs
+
+  and type input_type_t = input_type_values
+  and type button_type_t = button_type_values
+      
 end
 
 
