@@ -2959,6 +2959,26 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
      but you can use them in links or as fallbacks for coservices.
     </p>
 
+    <h4 id="p3preapplied">"Cancel action"</h4>
+    <p>$a ~fragment:"VALcancel_action" ~service:senddoc ~sp
+           [code [pcdata "Eliom_services.cancel_action" ]]
+           [version;"Eliom_services.html"]$:
+     is a special non-attached action, with special behaviour:
+     it has no parameter at all, even non-attached parameters.
+     Use it if you want to make a link to the current page 
+     without non-attached parameters.
+     It is almost equivalent to a POST non-attached service without POST
+     parameters, on which you register an action that does nothing, 
+     but you can use it with <code>&lt;a&gt;</a> links, not only forms.
+     Example:
+    </p>
+    <pre>
+Eliom_duce.Xhtml.a
+  ~service:Eliom_services.cancel_action
+  ~sp
+  {{ "cancel" }} 
+  ()
+    </pre>
 
     <h4 id="p3infofallbacks">Giving information to fallbacks</h4>
 

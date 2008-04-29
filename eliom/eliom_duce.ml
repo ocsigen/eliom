@@ -213,7 +213,11 @@ module Xhtmlforms_ = struct
      }}
 
   let make_hidden_field content = 
-    {{ <div class="eliom_nodisplay"> [ content ] }}
+    let c = match content with
+      | None -> {{ [] }}
+      | Some c -> {{ [ c ] }}
+    in
+    {{ <div class="eliom_nodisplay">c }}
 
   let make_div ~classe c =
     let classe = (List.fold_left (fun a b -> a^" "^b) "" classe) in

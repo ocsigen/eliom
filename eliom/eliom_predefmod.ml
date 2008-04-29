@@ -207,7 +207,11 @@ module Xhtmlforms_ = struct
       ~action:(uri_of_string action) elt1 elts
 
   let make_hidden_field content = 
-    (div ~a:[a_class ["eliom_nodisplay"]] [content] :> form_content_elt)
+    let c = match content with
+      | None -> []
+      | Some c -> [c]
+    in
+    (div ~a:[a_class ["eliom_nodisplay"]] c :> form_content_elt)
 
   let make_empty_form_content () = p [pcdata ""] (**** à revoir !!!!! *)
 
@@ -1620,6 +1624,10 @@ module HtmlTextforms_ = struct
     elt1^(* List.fold_left (^) "" elts*) elts^"</form>"
 
   let make_hidden_field content = 
+    let content = match content with
+      | None -> ""
+      | Some c -> c
+    in
     "<div style=\"display: none\""^content^"</div>"
 
   let remove_first l = "",l

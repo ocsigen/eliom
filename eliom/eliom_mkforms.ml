@@ -148,7 +148,7 @@ module type FORMCREATE =
     val make_post_form : ?a:form_attrib_t ->
       action:string -> ?id:string -> ?inline:bool -> 
         form_content_elt -> form_content_elt_list -> form_elt
-    val make_hidden_field : input_elt -> form_content_elt
+    val make_hidden_field : input_elt option -> form_content_elt
     val remove_first : 
         form_content_elt_list -> form_content_elt * form_content_elt_list
     val make_input : ?a:input_attrib_t -> ?checked:bool ->
@@ -851,17 +851,34 @@ module MakeForms = functor
                    Eliom_common.na_co_param_prefix
                    (Eliom_sessions.get_all_current_get_params sp))
             in
-            let _, params_string = 
-              construct_params (get_get_params_type_ service) getparams in
-            let preapplied_params = 
-              construct_params_string (get_pre_applied_parameters_ service) in
-            let params_string =
-              concat_strings preapplied_params "&" params_string in
-            let naservice_param = 
-              match get_na_name_ naser with
-              | Eliom_common.Na_get' n -> Eliom_common.naservice_num^"="^n
-              | Eliom_common.Na_get_ n -> Eliom_common.naservice_name^"="^n
-              | _ -> assert false
+            let gp =
+              match
+                match get_na_name_ naser with
+                  | Eliom_common.Na_get_ "" -> None
+                      (* The empty name is for the "cancel" service,
+                         that goes back to the URL without na-parameters
+                      *)
+                  | Eliom_common.Na_get' n -> 
+                      Some (Eliom_common.naservice_num^"="^n)
+                  | Eliom_common.Na_get_ n -> 
+                      Some (Eliom_common.naservice_name^"="^n)
+                  | _ -> assert false
+              with
+                | None -> ""
+                | Some naservice_param ->
+                    let _, params_string = 
+                      construct_params 
+                        (get_get_params_type_ service) 
+                        getparams 
+                    in
+                    let preapplied_params = 
+                      construct_params_string 
+                        (get_pre_applied_parameters_ service) 
+                    in
+                    let params_string =
+                      concat_strings preapplied_params "&" params_string 
+                    in
+                    (concat_strings naservice_param "&" params_string)
             in
             let current_get_params_string = 
               construct_params_string current_get_params 
@@ -871,13 +888,13 @@ module MakeForms = functor
               then get_current_full_path_string sp 
               else relative_url_path_to_myself (get_current_sub_path sp)
             in
+            concat_strings
               beg
-              ^"?"^ 
-             (concat_strings
-                current_get_params_string
-                "&"
-                (concat_strings naservice_param "&" params_string)
-             )
+              "?"
+              (concat_strings
+                 current_get_params_string
+                 "&"
+                 gp)
 
       let make_full_string_uri
           ~service
@@ -975,17 +992,34 @@ module MakeForms = functor
                    Eliom_common.na_co_param_prefix 
                    (Eliom_sessions.get_all_current_get_params sp))
             in
-            let _, params_string = 
-              construct_params (get_get_params_type_ service) getparams in
-            let preapplied_params = 
-              construct_params_string (get_pre_applied_parameters_ service) in
-            let params_string =
-              concat_strings preapplied_params "&" params_string in
-            let naservice_param = 
-              match get_na_name_ naser with
-              | Eliom_common.Na_get' n -> Eliom_common.naservice_num^"="^n
-              | Eliom_common.Na_get_ n -> Eliom_common.naservice_name^"="^n
-              | _ -> assert false
+            let gp =
+              match
+                match get_na_name_ naser with
+                  | Eliom_common.Na_get_ "" -> None
+                      (* The empty name is for the "cancel" service,
+                         that goes back to the URL without na-parameters
+                      *)
+                  | Eliom_common.Na_get' n -> 
+                      Some (Eliom_common.naservice_num^"="^n)
+                  | Eliom_common.Na_get_ n -> 
+                      Some (Eliom_common.naservice_name^"="^n)
+                  | _ -> assert false
+              with
+                | None -> ""
+                | Some naservice_param ->
+                    let _, params_string = 
+                      construct_params
+                        (get_get_params_type_ service)
+                        getparams 
+                    in
+                    let preapplied_params = 
+                      construct_params_string
+                        (get_pre_applied_parameters_ service)
+                    in
+                    let params_string =
+                      concat_strings preapplied_params "&" params_string 
+                    in
+                    (concat_strings naservice_param "&" params_string)
             in
             let current_get_params_string = 
               construct_params_string current_get_params 
@@ -994,11 +1028,13 @@ module MakeForms = functor
             Pages.make_a ?a
               ~href:( 
                 (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
-                (relative_url_path_to_myself cur)^"?"^
+                concat_strings
+                  (relative_url_path_to_myself cur)
+                  "?"
                   (concat_strings
                      current_get_params_string
                      "&"
-                     (concat_strings naservice_param "&" params_string))
+                     gp)
               )
               content
 
@@ -1037,9 +1073,9 @@ module MakeForms = functor
                 (fun s (n,v) -> 
                   Pages.cons_form
                     (Pages.make_hidden_field
-	               (Pages.make_input
-                          ~typ:Pages.hidden
-                          ~name:n ~value:v ()))
+	               (Some (Pages.make_input
+                                ~typ:Pages.hidden
+                                ~name:n ~value:v ())))
                     s
                 )
                 inside
@@ -1047,29 +1083,13 @@ module MakeForms = functor
             in
             let i1, i =
               match state_param, inside with
-              | Some s, i -> (Pages.make_hidden_field s),i
+              | Some s, i -> (Pages.make_hidden_field (Some s)),i
               | None, i -> Pages.remove_first i
             in Pages.make_get_form ?a ~action:urlname i1 i
         | `Nonattached naser ->
             let cur = get_current_sub_path sp in
             let urlname = relative_url_path_to_myself cur in
             (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
-            let naservice_line = 
-              match get_na_name_ naser with
-              | Eliom_common.Na_get' n ->
-                    Pages.make_hidden_field
-	            (Pages.make_input
-	               ~typ:Pages.hidden 
-                       ~name:Eliom_common.naservice_num
-                       ~value:n ())
-              | Eliom_common.Na_get_ n ->
-                    Pages.make_hidden_field
-	            (Pages.make_input
-	               ~typ:Pages.hidden 
-                       ~name:Eliom_common.naservice_name
-                       ~value:n ())
-              | _ -> assert false
-            in
             let current_get_params =
               List.remove_assoc
                 Eliom_common.naservice_num
@@ -1077,15 +1097,34 @@ module MakeForms = functor
                    Eliom_common.na_co_param_prefix 
                    (get_all_current_get_params sp))
             in
+            let naservice_line =
+              match get_na_name_ naser with
+                | Eliom_common.Na_get_ "" ->
+                    Pages.make_hidden_field None
+                | Eliom_common.Na_get' n ->
+                    Pages.make_hidden_field
+	              (Some (Pages.make_input
+	                       ~typ:Pages.hidden 
+                               ~name:Eliom_common.naservice_num
+                               ~value:n ()))
+                | Eliom_common.Na_get_ n ->
+                    Pages.make_hidden_field
+	              (Some (Pages.make_input
+	                       ~typ:Pages.hidden 
+                               ~name:Eliom_common.naservice_name
+                               ~value:n ()))
+                | _ -> assert false
+            in
             let inside = f (make_params_names (get_get_params_type_ service)) in
             let all_lines = 
               List.fold_left
                 (fun s (n,v) -> 
                   Pages.cons_form
                     (Pages.make_hidden_field
-	               (Pages.make_input
-                          ~typ:Pages.hidden
-                          ~name:n ~value:v ()))
+	               (Some 
+                          (Pages.make_input
+                             ~typ:Pages.hidden
+                             ~name:n ~value:v ())))
                     s
                 )
                 inside
@@ -1096,10 +1135,11 @@ module MakeForms = functor
                 (fun s (n,v) -> 
                   Pages.cons_form
                     (Pages.make_hidden_field
-	               (Pages.make_input
-                          ~typ:Pages.hidden
-                          ~name:n
-                          ~value:v ()))
+	               (Some
+                          (Pages.make_input
+                             ~typ:Pages.hidden
+                             ~name:n
+                             ~value:v ())))
                     s
                 )
                 all_lines
@@ -1158,7 +1198,7 @@ module MakeForms = functor
             let inside = f (make_params_names (get_post_params_type_ service)) in
             let i1, i =
               match state_param, inside with
-              | Some s, i -> (Pages.make_hidden_field s),i
+              | Some s, i -> (Pages.make_hidden_field (Some s)),i
               | None, i -> Pages.remove_first i
             in Pages.make_post_form ?a
               ~action:(add_to_string urlname "?" params_string)
@@ -1211,7 +1251,7 @@ module MakeForms = functor
               f (make_params_names (get_post_params_type_ service)) 
             in
             Pages.make_post_form ?a ~action:v
-              (Pages.make_hidden_field naservice_line)
+              (Pages.make_hidden_field (Some naservice_line))
               inside
 
           

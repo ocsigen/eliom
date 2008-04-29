@@ -533,6 +533,18 @@ let preapply ~service getparams =
  }
 
 
+let cancel_action =
+  {
+    max_use= None;
+    timeout= None;
+    pre_applied_parameters = [];
+    get_params_type = unit;
+    post_params_type = unit;
+    kind = `Nonattached
+      {na_name = Eliom_common.Na_get_ "";
+       na_kind = `Get;
+      };
+  }
 
 
 (*****************************************************************************)

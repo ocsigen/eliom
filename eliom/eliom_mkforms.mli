@@ -104,7 +104,7 @@ module type FORMCREATE =
     val make_post_form : ?a:form_attrib_t ->
       action:string -> ?id:string -> ?inline:bool -> 
         form_content_elt -> form_content_elt_list -> form_elt
-    val make_hidden_field : input_elt -> form_content_elt
+    val make_hidden_field : input_elt option -> form_content_elt
     val remove_first : 
         form_content_elt_list -> form_content_elt * form_content_elt_list
     val make_input : ?a:input_attrib_t -> ?checked:bool ->

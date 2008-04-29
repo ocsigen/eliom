@@ -339,6 +339,20 @@ val static_dir :
    (a string list, slash separated).
  *)
 
+val cancel_action :
+  (unit, unit, [> `Nonattached of 'a na_s ],
+   [ `WithoutSuffix ],
+   unit, unit, [> `Unregistrable ])
+  service
+(** A predefined non-attached action with special behaviour:
+    it has no parameter at all, even non-attached parameters.
+    Use it if you want to make a link to the current page without non-attached
+    parameters.
+    It is almost equivalent to a POST non-attached service without POST
+    parameters, on which you register an action that does nothing, 
+    but you can use it with <a> links, not only forms.
+ *)
+
     
 val preapply :
     service:('a, 'b, [> `Attached of 'd a_s ] as 'c,
