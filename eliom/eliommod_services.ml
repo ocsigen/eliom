@@ -357,7 +357,8 @@ let get_page
                           "--Eliom: Link to old. I will try without POST parameters:";
                         fail (Eliom_common.Eliom_retry_with 
                                 ({ri with 
-                                  Ocsigen_extensions.ri_post_params = lazy (return []);
+                                  Ocsigen_extensions.ri_post_params = 
+                                     lazy (return []);
                                   Ocsigen_extensions.ri_method = 
                                   Ocsigen_http_frame.Http_header.GET;
                                   Ocsigen_extensions.ri_extension_info=

@@ -831,9 +831,13 @@ end
  *)
 val get_get_params : sp:server_params -> (string * string) list
 
+(** returns current parameters of the URL (GET parameters)
+   (even those that are for subsequent services, but not previous actions) *)
+val get_all_current_get_params : sp:server_params -> (string * string) list
+
 (** returns all parameters of the URL (GET parameters)
-   (even those that are for another service) *)
-val get_all_get_params : sp:server_params -> (string * string) list
+    as sent initially by the browser *)
+val get_initial_get_params : sp:server_params -> (string * string) list
 
 (** returns the parameters of the URL (GET parameters) 
    that do not concern the running service. *)

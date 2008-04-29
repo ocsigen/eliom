@@ -449,7 +449,9 @@ let change_request_info ri charset previous_extension_err =
         (Lazy.force ri.Ocsigen_extensions.ri_cookies) 
     in
     let persistent_cookies = 
-      getcookies persistentcookiename (Lazy.force ri.Ocsigen_extensions.ri_cookies)
+      getcookies
+        persistentcookiename 
+        (Lazy.force ri.Ocsigen_extensions.ri_cookies)
     in
     let naservice_info, 
       (get_state, post_state),

@@ -267,6 +267,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_service' :
         ?options:options ->
         ?sp: Eliom_sessions.server_params ->
+        ?keep_get_na_params:bool ->
           name: string ->
             post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
               ?error_handler:(Eliom_sessions.server_params -> (string * exn) list -> 
@@ -304,6 +305,7 @@ module type ELIOMREGSIG1 =
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
+        ?keep_get_na_params:bool ->
         post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
           ?error_handler:(Eliom_sessions.server_params -> (string * exn) list -> 
             page Lwt.t) ->
@@ -364,6 +366,7 @@ module type ELIOMREGSIG1 =
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
+        ?keep_get_na_params:bool ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(Eliom_sessions.server_params -> 
               (string * exn) list -> page Lwt.t) ->
@@ -394,7 +397,6 @@ module type ELIOMREGSIG1 =
                         service
 (* * Same as [new_get_post_coservice] followed by [register_for_session] *)
 *)
-
 
   end
 

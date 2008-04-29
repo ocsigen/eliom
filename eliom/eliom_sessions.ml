@@ -57,8 +57,10 @@ let get_remote_inet_addr ~sp =
   sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_remote_inet_addr
 let get_get_params ~sp = 
   Lazy.force sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_get_params
-let get_all_get_params ~sp = 
+let get_all_current_get_params ~sp = 
   sp.Eliom_common.sp_si.Eliom_common.si_all_get_params
+let get_initial_get_params ~sp = 
+  Lazy.force sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_initial_get_params
 let get_get_params_string ~sp = 
   sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_get_params_string
 let get_post_params ~sp = 

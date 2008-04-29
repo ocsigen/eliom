@@ -274,6 +274,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_service' :
         ?options:options ->
         ?sp: Eliom_sessions.server_params ->
+        ?keep_get_na_params:bool ->
           name: string ->
             post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
               ?error_handler:(Eliom_sessions.server_params -> (string * exn) list -> 
@@ -311,6 +312,7 @@ module type ELIOMREGSIG1 =
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
+        ?keep_get_na_params:bool ->
         post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
           ?error_handler:(Eliom_sessions.server_params -> (string * exn) list -> 
             page Lwt.t) ->
@@ -371,6 +373,7 @@ module type ELIOMREGSIG1 =
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
+        ?keep_get_na_params:bool ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
             ?error_handler:(Eliom_sessions.server_params -> 
               (string * exn) list -> page Lwt.t) ->
@@ -688,11 +691,17 @@ module MakeRegister = functor
         let register_new_post_service'
             ?options 
             ?sp 
+            ?keep_get_na_params
             ~name
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_service' ~name ~post_params:post_params () in
+          let u = 
+            new_post_service' 
+              ?keep_get_na_params
+              ~name
+              ~post_params:post_params () 
+          in
           register ?options ?sp ~service:u ?error_handler page_gen;
           u
 
@@ -715,10 +724,17 @@ module MakeRegister = functor
             ?sp
             ?max_use
             ?timeout
+            ?keep_get_na_params
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice' ?max_use ?timeout ~post_params () in
+          let u = 
+            new_post_coservice'
+              ?keep_get_na_params
+              ?max_use
+              ?timeout
+              ~post_params () 
+          in
           register ?options ?sp ~service:u ?error_handler page_gen;
           u
 
@@ -760,10 +776,17 @@ module MakeRegister = functor
             ~sp
             ?max_use
             ?timeout
+            ?keep_get_na_params
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice' ?max_use ?timeout ~post_params () in
+          let u = 
+            new_post_coservice'
+              ?keep_get_na_params
+              ?max_use
+              ?timeout
+              ~post_params () 
+          in
           register_for_session
             ?options ?session_name ~sp ~service:u ?error_handler page_gen;
           u
@@ -942,6 +965,7 @@ module MakeRegister = functor
       let register_new_post_service'
           ?options
           ?sp
+          ?keep_get_na_params
           ~name
           ~post_params
           ?error_handler
@@ -949,6 +973,7 @@ module MakeRegister = functor
       Cookies.register_new_post_service'
           ?options
           ?sp
+          ?keep_get_na_params
           ~name
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
@@ -978,6 +1003,7 @@ module MakeRegister = functor
           ?sp
           ?max_use
           ?timeout
+          ?keep_get_na_params
           ~post_params
           ?error_handler
           page_gen =
@@ -986,6 +1012,7 @@ module MakeRegister = functor
           ?sp
           ?max_use
           ?timeout
+          ?keep_get_na_params
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))
@@ -1039,6 +1066,7 @@ module MakeRegister = functor
           ~sp
           ?max_use
           ?timeout
+          ?keep_get_na_params
           ~post_params
           ?error_handler
           page_gen =
@@ -1048,6 +1076,7 @@ module MakeRegister = functor
           ~sp
           ?max_use
           ?timeout
+          ?keep_get_na_params
           ~post_params
           ?error_handler:(make_error_handler ?error_handler ())
           (fun sp g p -> page_gen sp g p >>= (fun r -> return (r, [])))

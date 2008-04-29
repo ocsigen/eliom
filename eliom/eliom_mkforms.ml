@@ -849,7 +849,7 @@ module MakeForms = functor
                 Eliom_common.naservice_num
                 (remove_prefixed_param 
                    Eliom_common.na_co_param_prefix
-                   (get_all_get_params sp))
+                   (Eliom_sessions.get_all_current_get_params sp))
             in
             let _, params_string = 
               construct_params (get_get_params_type_ service) getparams in
@@ -972,7 +972,8 @@ module MakeForms = functor
               List.remove_assoc
                 Eliom_common.naservice_num
                 (remove_prefixed_param
-                   Eliom_common.na_co_param_prefix (get_all_get_params sp))
+                   Eliom_common.na_co_param_prefix 
+                   (Eliom_sessions.get_all_current_get_params sp))
             in
             let _, params_string = 
               construct_params (get_get_params_type_ service) getparams in
@@ -1073,7 +1074,8 @@ module MakeForms = functor
               List.remove_assoc
                 Eliom_common.naservice_num
                 (remove_prefixed_param
-                   Eliom_common.na_co_param_prefix (get_all_get_params sp))
+                   Eliom_common.na_co_param_prefix 
+                   (get_all_current_get_params sp))
             in
             let inside = f (make_params_names (get_get_params_type_ service)) in
             let all_lines = 
@@ -1173,12 +1175,15 @@ module MakeForms = functor
             in
             let current_get_params =
               if keep_get_na_params then
-                get_all_get_params sp
+                get_initial_get_params sp
               else
                 List.remove_assoc
-                  Eliom_common.naservice_num
-                  (remove_prefixed_param
-                     Eliom_common.na_co_param_prefix (get_all_get_params sp))
+                  Eliom_common.naservice_name
+                  (List.remove_assoc
+                     Eliom_common.naservice_num
+                     (remove_prefixed_param
+                        Eliom_common.na_co_param_prefix 
+                        (get_initial_get_params sp)))
             in
             let current_get_params_string = 
               construct_params_string current_get_params 

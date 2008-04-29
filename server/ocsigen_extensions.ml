@@ -76,8 +76,9 @@ type request_info =
      ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
      ri_host: string option; (** Host field of the request (if any) *)
-     ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters*)
-     ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters*)
+     ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters *)
+     ri_initial_get_params: (string * string) list Lazy.t;  (** Association list of get parameters, as sent by the browser (must not be modified by extensions) *)
+     ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters *)
      ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
      ri_remote_inet_addr: Unix.inet_addr; (** IP of the client *)
      ri_server_inet_addr: Unix.inet_addr; (** IP of the server *)
@@ -655,7 +656,7 @@ let ri_of_url url ri =
    ri_sub_path = path;
    ri_get_params_string = params;
    ri_get_params = get_params;
- }
+  }
 
 
 (*****************************************************************************)

@@ -297,6 +297,7 @@ let get_request_infos
      ri_get_params_string = params;
      ri_host = headerhost;
      ri_get_params = get_params;
+     ri_initial_get_params = get_params;
      ri_post_params = lazy (force find_post_params >>= fun (a, b) -> 
                             return a);
      ri_files = lazy (force find_post_params >>= fun (a, b) -> 
