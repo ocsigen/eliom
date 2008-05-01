@@ -46,44 +46,46 @@ let disabled_class = "eliomtools_disabled"
 let first_class = "eliomtools_first"
 let level_class = "eliomtools_level"
 
-let menu ?(classe=[]) first l ~service:current ~sp =
+let menu ?(classe=[]) first l ?service:current ~sp =
   let rec aux = function
     | [] -> []
     | [(url, text)] -> 
         let classe = [last_class] in
-        if url = (* problem with preapplied services with == *) current 
+        if Some url = (* problem with preapplied services with == *) current 
         then 
-					[{{ <li class={: attrib_list (current_class::classe) :}>{: text :} }}]
-					(* [li ~a:[a_class (current_class::classe)] text] *)
+	  [{{ <li class={: attrib_list (current_class::classe) :}>{: text :} }}]
+	    (* [li ~a:[a_class (current_class::classe)] text] *)
         else 
-					[{{ <li class={: attrib_list classe :}>[{: a url sp {: text :} () :}] }}]
-					(* [li ~a:[a_class classe] [a url sp text ()] *)
+	  [{{ <li class={: attrib_list classe :}>[{: a url sp {: text :} () :}] }}]
+	    (* [li ~a:[a_class classe] [a url sp text ()] *)
     | (url, text)::l -> 
-        (if url = (* problem with preapplied services with == *) current 
-        then
-					{{ <li class={: current_class :}>{: text :} }}
-					(* (li ~a:[a_class [current_class]] text) *)
-        else 
-					{{ <li>[{: a url sp {: text :} () :}] }})::(aux l)
-					(* (li [a url sp text ()]))::(aux l) *)
+        (if Some url = (* problem with preapplied services with == *) current 
+         then
+	   {{ <li class={: current_class :}>{: text :} }}
+	     (* (li ~a:[a_class [current_class]] text) *)
+         else 
+	   {{ <li>[{: a url sp {: text :} () :}] }})::(aux l)
+	  (* (li [a url sp text ()]))::(aux l) *)
   in match first::l with
-  | [] -> assert false
-  | [(url, text)] ->
-			{{ <ul class={: attrib_list (menu_class::classe) :}>[{:
-				let liclasse = [first_class; last_class] in
-				if url = current then
-					{{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
-				else
-					{{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}] }}
-  | (url, text)::l -> 
-			{{ <ul class={: attrib_list (menu_class::classe) :}>[{:
-				let liclasse = [first_class] in
-				if url = current then
-					{{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
-				else
-					{{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}
-					!{: aux l :}] }}
-
+    | [] -> assert false
+    | [(url, text)] ->
+	{{ <ul class={: attrib_list (menu_class::classe) :}>
+             [{:
+	       let liclasse = [first_class; last_class] in
+		 if Some url = current then
+		   {{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
+		 else
+		   {{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}] }}
+    | (url, text)::l -> 
+	{{ <ul class={: attrib_list (menu_class::classe) :}>
+             [{:
+	       let liclasse = [first_class] in
+		 if Some url = current then
+		   {{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
+		 else
+		   {{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}
+		!{: aux l :}] }}
+          
 type ('a, 'b, 'c) hierarchical_site_item =
   | Disabled
   | Site_tree of ('a, 'b, 'c) hierarchical_site
@@ -96,20 +98,22 @@ and ('a, 'b, 'c) hierarchical_site =
          ('c * ('a, 'b, 'c) hierarchical_site_item) list)
 
 let find_in_hierarchy service (main, pages) =
-  let rec aux i = function
+  let rec aux service i = function
     | [] -> raise Not_found
     | (_, Site_tree (Main_page s, hsl))::_ when s = service -> 
         (try
-          i::aux 0 hsl
+          i::aux service 0 hsl
         with Not_found -> [i])
-    | (_, Disabled)::l -> aux (i+1) l
+    | (_, Disabled)::l -> aux service (i+1) l
     | (_, Site_tree (_, hsl))::l ->
         (try
-          i::aux 0 hsl
-        with Not_found -> aux (i+1) l)
+          i::aux service 0 hsl
+        with Not_found -> aux service (i+1) l)
   in 
   try
-    aux 0 pages
+    match service with
+      | None -> []
+      | Some service -> aux service 0 pages
   with Not_found -> []
   
 
@@ -117,7 +121,7 @@ let hierarchical_menu_depth_first
     ?(classe=[]) 
     ?(whole_tree=false)
     ((page, pages) as the_menu)
-    ~service
+    ?service
     ~sp =
   
   let rec depth_first_fun pages level pos =
@@ -197,7 +201,7 @@ let hierarchical_menu_breadth_first
     (((page, pages): ([< Eliom_services.get_service_kind],
 		[< Eliom_services.registrable ],
 		Eliom_duce.Blocks.a_content_elt_list) hierarchical_site) as the_menu)
-    ~service
+    ?service
     ~sp =
 
   let rec breadth_first_fun pages level pos: Xhtmltypes_duce.ul list =
@@ -258,7 +262,7 @@ let hierarchical_menu_breadth_first
     (* : [ `Ul ] XHTML.M.elt list :> [> `Ul ] XHTML.M.elt lis *))
 
 
-let structure_links (default, pages) ~service ~sp =
+let structure_links (default, pages) ?service ~sp =
   let make_rev s endlist =
     (* I am a subsection of s *)
     match s with
@@ -277,11 +281,11 @@ let structure_links (default, pages) ~service ~sp =
   in
   let rec create_rev parent = function
   | [] -> raise Not_found
-  | (_, (Site_tree (Main_page s, [])))::l when s = service -> 
+  | (_, (Site_tree (Main_page s, [])))::l when Some s = service -> 
       make_rev parent []
   | (_, Disabled)::l
   | (_, Site_tree (_, []))::l -> create_rev parent l
-  | (_, Site_tree (Main_page page, hsl))::_ when service = page ->
+  | (_, Site_tree (Main_page page, hsl))::_ when service = Some page ->
       make_rev parent (List.fold_left make_rels [] hsl)
   | (_, Site_tree (Main_page page, hsl))::l ->
       (try create_rev (Some page) hsl
@@ -293,7 +297,7 @@ let structure_links (default, pages) ~service ~sp =
   try
     match default with
     | Main_page def -> 
-        if def = service then
+        if Some def = service then
           List.fold_left make_rels [] pages
         else create_rev (Some def) pages
     | _ ->

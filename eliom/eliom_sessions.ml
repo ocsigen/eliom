@@ -35,7 +35,6 @@ let get_config () =
         (Eliom_common.Eliom_function_forbidden_outside_site_loading 
            "get_config")
 
-
 let find_sitedata fun_name = function
   | Some sp -> sp.Eliom_common.sp_sitedata
   | None ->

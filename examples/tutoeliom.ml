@@ -3903,7 +3903,7 @@ let uploadform = register upload
 
 
 
-      <p>Then <code>mymenu home sp</code> will generate the following
+      <p>Then <code>mymenu ~service:home sp</code> will generate the following
         code:</p>
       <pre>&lt;ul class="menu menuprincipal"&gt;
   &lt;li class="current first"&gt;Home
@@ -3997,7 +3997,7 @@ let f i s sp () () =
     border-right: solid 1px black;}\n
   .breadthmenu li.eliomtools_last {border: none;}\n
                 "])::
-                structure_links mymenu s sp)
+                structure_links mymenu ~service:s ~sp)
              )
        (body [h1 [pcdata ("Page "^string_of_int i)];
               h2 [pcdata "Depth first, whole tree:"];

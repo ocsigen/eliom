@@ -33,14 +33,17 @@ type ('a, 'b) one_page =
      unit, unit, 
      'b) service
 
-val menu : ?classe:string list ->
+val menu : 
+  ?classe:string list ->
   (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
      Eliom_duce.Blocks.a_content_elt_list)
   ->
-    (('a, 'b) one_page *
-       Eliom_duce.Blocks.a_content_elt_list)
-      list -> service:('a, 'b) one_page ->
-        sp:Eliom_sessions.server_params -> Xhtmltypes_duce.ul
+  (('a, 'b) one_page *
+     Eliom_duce.Blocks.a_content_elt_list)
+    list -> 
+  ?service:('a, 'b) one_page ->
+  sp:Eliom_sessions.server_params -> 
+  Xhtmltypes_duce.ul
 (** Creates a menu 
 
    Example:
@@ -112,7 +115,7 @@ val hierarchical_menu_depth_first :
    [< Eliom_services.registrable ] as 'b,
    Eliom_duce.Blocks.a_content_elt_list)
       hierarchical_site -> 
-  service:('a, 'b) one_page -> 
+  ?service:('a, 'b) one_page -> 
   sp:Eliom_sessions.server_params -> 
     Xhtmltypes_duce.ul list
 
@@ -135,7 +138,7 @@ val hierarchical_menu_breadth_first :
    [< Eliom_services.registrable ] as 'b,
    Eliom_duce.Blocks.a_content_elt_list)
       hierarchical_site -> 
-  service:('a, 'b) one_page -> 
+  ?service:('a, 'b) one_page -> 
   sp:Eliom_sessions.server_params -> 
     Xhtmltypes_duce.ul list
 
@@ -144,10 +147,11 @@ val hierarchical_menu_breadth_first :
    [<link rev="subsection" ...>] for the given hierarchical site.
  *)
 val structure_links :
-    ([< Eliom_services.get_service_kind ] as 'a, 
+  ([< Eliom_services.get_service_kind ] as 'a, 
      [< Eliom_services.registrable ] as 'b,
      Eliom_duce.Blocks.a_content_elt_list)
     hierarchical_site -> 
-      service:('a, 'b) one_page -> 
-        sp:Eliom_sessions.server_params -> 
-          Xhtmltypes_duce.link list
+  ?service:('a, 'b) one_page -> 
+  sp:Eliom_sessions.server_params -> 
+  Xhtmltypes_duce.link list
+    

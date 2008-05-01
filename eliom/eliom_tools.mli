@@ -33,14 +33,17 @@ type ('a, 'b) one_page =
      unit, unit, 
      'b) service
 
-val menu : ?classe:XHTML.M.nmtoken list ->
+val menu : 
+  ?classe:XHTML.M.nmtoken list ->
   (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page * 
      Xhtmltypes.a_content XHTML.M.elt list)
   ->
-    (('a, 'b) one_page * 
-       Xhtmltypes.a_content XHTML.M.elt list)
-      list -> service:('a, 'b) one_page ->
-        sp:Eliom_sessions.server_params -> [> `Ul ] XHTML.M.elt
+  (('a, 'b) one_page * 
+     Xhtmltypes.a_content XHTML.M.elt list)
+    list -> 
+  ?service:('a, 'b) one_page ->
+  sp:Eliom_sessions.server_params -> 
+  [> `Ul ] XHTML.M.elt
 (** Creates a menu 
 
    Example:
@@ -112,7 +115,7 @@ val hierarchical_menu_depth_first :
    [< Eliom_services.registrable ] as 'b,
    Xhtmltypes.a_content)
       hierarchical_site -> 
-  service:('a, 'b) one_page -> 
+  ?service:('a, 'b) one_page -> 
   sp:Eliom_sessions.server_params -> 
     [> `Ul ] XHTML.M.elt list
 
@@ -135,7 +138,7 @@ val hierarchical_menu_breadth_first :
    [< Eliom_services.registrable ] as 'b,
    Xhtmltypes.a_content)
       hierarchical_site -> 
-  service:('a, 'b) one_page -> 
+  ?service:('a, 'b) one_page -> 
   sp:Eliom_sessions.server_params -> 
     [> `Ul ] XHTML.M.elt list
 
@@ -148,6 +151,6 @@ val structure_links :
      [< Eliom_services.registrable ] as 'b,
      Xhtmltypes.a_content)
     hierarchical_site -> 
-      service:('a, 'b) one_page -> 
-        sp:Eliom_sessions.server_params -> 
-          [> `Link ] XHTML.M.elt list
+  ?service:('a, 'b) one_page -> 
+  sp:Eliom_sessions.server_params -> 
+  [> `Link ] XHTML.M.elt list
