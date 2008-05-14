@@ -402,6 +402,9 @@ and make_parse_site path charset parse_host l =
     try
       parse_site l
     with e -> !fun_end (); raise e
+(*VVV May be we should avoid calling fun_end after parinf user config files
+  (with extension userconf) ... See eliommod.ml 
+*)
   in
   !fun_end ();
   r

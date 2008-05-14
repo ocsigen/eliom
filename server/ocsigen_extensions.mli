@@ -242,7 +242,8 @@ type parse_host
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
      {- return something of type [extension] (filter or page generator)}}
    - a function of same type, that will be called every time user configuration
-    files are parsed. It must define only safe options, for example it is not
+    files are parsed (if userconf is enabled). 
+    It must define only safe options, for example it is not
     safe to allow such options to load a cmo specified by a user, or to
     execute a program, as this program will be executed by ocsigen's user.
     Note that function will be called for every request, whereas the first one

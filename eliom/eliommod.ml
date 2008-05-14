@@ -293,9 +293,15 @@ let start_init () = ()
 
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
-  Eliom_common.verify_all_registered 
-    (Eliom_common.get_current_sitedata ());
-  Eliom_common.end_current_sitedata ()
+  try
+    Eliom_common.verify_all_registered 
+      (Eliom_common.get_current_sitedata ());
+    Eliom_common.end_current_sitedata ()
+  with Eliom_common.Eliom_function_forbidden_outside_site_loading _ -> ()
+(*VVV The "try with" looks like a hack: 
+  end_init is called even for user config files ... but in that case,
+  current_sitedata is not set ...
+  It would be better to avoid calling end_init for user config files. *)
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
