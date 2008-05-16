@@ -232,7 +232,11 @@ let new_service_aux
       (match Eliom_common.global_register_allowed () with
       | Some get_current_sitedata ->
           let sitedata = get_current_sitedata () in
-          let path = remove_internal_slash (change_empty_list path) in
+          let path = 
+            Ocsigen_lib.remove_internal_slash
+              (Ocsigen_lib.change_empty_list 
+                 (Ocsigen_lib.remove_slash_at_beginning path))
+          in
           let u = new_service_aux_aux
               ~prefix:""
               ~path
@@ -247,7 +251,11 @@ let new_service_aux
           raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
                    "new_service"))
   | Some sp ->
-      let path = remove_internal_slash (change_empty_list path) in
+      let path = 
+        Ocsigen_lib.remove_internal_slash
+          (Ocsigen_lib.change_empty_list 
+             (Ocsigen_lib.remove_slash_at_beginning path))
+      in
       new_service_aux_aux
         ~prefix:""
         ~path:path

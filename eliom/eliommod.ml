@@ -214,6 +214,81 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 
+
+(*****************************************************************************)
+(** Function to be called at the beginning of the initialisation phase *)
+let start_init () = ()
+
+(** Function to be called at the end of the initialisation phase *)
+let end_init () =
+  try
+    Eliom_common.verify_all_registered 
+      (Eliom_common.get_current_sitedata ());
+    Eliom_common.end_current_sitedata ()
+  with Eliom_common.Eliom_function_forbidden_outside_site_loading _ -> ()
+(*VVV The "try with" looks like a hack: 
+  end_init is called even for user config files ... but in that case,
+  current_sitedata is not set ...
+  It would be better to avoid calling end_init for user config files. *)
+
+(** Function that will handle exceptions during the initialisation phase *)
+let handle_init_exn = function
+  | Eliom_common.Eliom_duplicate_registration s -> 
+      ("Eliom: Duplicate registration of url \""^s^
+       "\". Please correct the module.")
+  | Eliom_common.Eliom_there_are_unregistered_services (s, l1, l2) ->
+      ("Eliom: in site /"^
+       (Ocsigen_lib.string_of_url_path s)^" - "^
+       (match l1 with
+       | [] -> ""
+       | [a] -> "One service or coservice has not been registered on URL /"
+           ^(Ocsigen_lib.string_of_url_path a)^". "
+       | a::ll -> 
+           let string_of = Ocsigen_lib.string_of_url_path in
+           "Some services or coservices have not been registered \
+             on URLs: "^
+             (List.fold_left
+                (fun beg v -> beg^", /"^(string_of v))
+                ("/"^(string_of a))
+                ll
+             )^". ")^
+       (match l2 with
+       | [] -> ""
+       | [Eliom_common.Na_get' _] -> "One non-attached GET coservice has not been registered."
+       | [Eliom_common.Na_post' _] -> "One non-attached POST coservice has not been registered."
+       | [Eliom_common.Na_get_ a] -> "The non-attached GET service \""
+           ^a^
+           "\" has not been registered."
+       | [Eliom_common.Na_post_ a] -> "The non-attached POST service \""
+           ^a^
+           "\" has not been registered."
+       | a::ll -> 
+           let string_of = function
+             | Eliom_common.Na_no -> "<no>"
+             | Eliom_common.Na_get' _ -> "<GET coservice>"
+             | Eliom_common.Na_get_ n -> n^" (GET)"
+             | Eliom_common.Na_post' _ -> "<POST coservice>"
+             | Eliom_common.Na_post_ n -> n^" (POST)"
+           in
+           "Some non-attached services or coservices have not been registered: "^
+             (List.fold_left
+                (fun beg v -> beg^", "^(string_of v))
+                (string_of a)
+                ll
+             )^".")^
+         "\nPlease correct your modules and make sure you have linked in all the modules...")
+  | Eliom_common.Eliom_function_forbidden_outside_site_loading f ->
+      ("Eliom: Bad use of function \""^f^
+         "\" outside site loading. \
+         (for some functions, you must add the ~sp parameter \
+               to use them after initialization. \
+               Creation or registration of public service for example)")
+  | Eliom_common.Eliom_page_erasing s ->
+      ("Eliom: You cannot create a page or directory here. "^s^
+       " already exists. Please correct your modules.")
+  | Eliom_common.Eliom_error_while_loading_site s -> s
+  | e -> raise e
+
 (*****************************************************************************)
 (** Module loading *)
 let config = ref []
@@ -229,10 +304,12 @@ let load_eliom_module sitedata cmo content =
   in
   try
     Ocsigen_loader.loadfiles preload postload true cmo
-  with Ocsigen_loader.Dynlink_error _ as e ->
+  with Ocsigen_loader.Dynlink_error (n, e) ->
     raise (Eliom_common.Eliom_error_while_loading_site
-             (Printf.sprintf "(eliom extension) %s"
-                (Ocsigen_loader.error_message e)))
+             (Printf.sprintf "Eliom: while loading %s: %s"
+                n
+                (try handle_init_exn e 
+                 with e -> Ocsigen_loader.error_message e)))
 
 
 
@@ -285,82 +362,6 @@ let parse_config site_dir charset =
     | Element (t, _, _) -> 
         raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")
-
-
-(*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase *)
-let start_init () = ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () =
-  try
-    Eliom_common.verify_all_registered 
-      (Eliom_common.get_current_sitedata ());
-    Eliom_common.end_current_sitedata ()
-  with Eliom_common.Eliom_function_forbidden_outside_site_loading _ -> ()
-(*VVV The "try with" looks like a hack: 
-  end_init is called even for user config files ... but in that case,
-  current_sitedata is not set ...
-  It would be better to avoid calling end_init for user config files. *)
-
-(** Function that will handle exceptions during the initialisation phase *)
-let handle_init_exn = function
-  | Eliom_common.Eliom_duplicate_registration s -> 
-      ("Fatal - Eliom: Duplicate registration of url \""^s^
-       "\". Please correct the module.")
-  | Eliom_common.Eliom_there_are_unregistered_services (s, l1, l2) ->
-      ("Fatal - Eliom: in site /"^
-       (Ocsigen_lib.string_of_url_path s)^" - "^
-       (match l1 with
-       | [] -> ""
-       | [a] -> "One service or coservice has not been registered on URL /"
-           ^(Ocsigen_lib.string_of_url_path a)^". "
-       | a::ll -> 
-           let string_of = Ocsigen_lib.string_of_url_path in
-           "Some services or coservices have not been registered \
-             on URLs: "^
-             (List.fold_left
-                (fun beg v -> beg^", /"^(string_of v))
-                ("/"^(string_of a))
-                ll
-             )^". ")^
-       (match l2 with
-       | [] -> ""
-       | [Eliom_common.Na_get' _] -> "One non-attached GET coservice has not been registered."
-       | [Eliom_common.Na_post' _] -> "One non-attached POST coservice has not been registered."
-       | [Eliom_common.Na_get_ a] -> "The non-attached GET service \""
-           ^a^
-           "\" has not been registered."
-       | [Eliom_common.Na_post_ a] -> "The non-attached POST service \""
-           ^a^
-           "\" has not been registered."
-       | a::ll -> 
-           let string_of = function
-             | Eliom_common.Na_no -> "<no>"
-             | Eliom_common.Na_get' _ -> "<GET coservice>"
-             | Eliom_common.Na_get_ n -> n^" (GET)"
-             | Eliom_common.Na_post' _ -> "<POST coservice>"
-             | Eliom_common.Na_post_ n -> n^" (POST)"
-           in
-           "Some non-attached services or coservices have not been registered: "^
-             (List.fold_left
-                (fun beg v -> beg^", "^(string_of v))
-                (string_of a)
-                ll
-             )^".")^
-         "\nPlease correct your modules and make sure you have linked in all the modules...")
-  | Eliom_common.Eliom_function_forbidden_outside_site_loading f ->
-      ("Fatal - Eliom: Bad use of function \""^f^
-         "\" outside site loading. \
-         (for some functions, you must add the ~sp parameter \
-               to use them after initialization. \
-               Creation or registration of public service for example)")
-  | Eliom_common.Eliom_page_erasing s ->
-      ("Fatal - Eliom: You cannot create a page or directory here. "^s^
-       " already exists. Please correct your modules.")
-  | Eliom_common.Eliom_error_while_loading_site s ->
-      ("Fatal - Eliom: Error while loading site: "^s)
-  | e -> raise e
 
 
 (*****************************************************************************)

@@ -268,6 +268,7 @@ let rec make_ext awake cookies_to_set req_state genfun f =
 (*****************************************************************************)
 let fun_beg = ref (fun () -> ())
 let fun_end = ref (fun () -> ())
+let fun_exn = ref (fun exn -> (raise exn : string))
 
 let rec default_parse_config 
     (host : virtual_hosts)
@@ -393,7 +394,9 @@ and make_parse_site path charset parse_host l =
             ignore
               (Ocsigen_messages.errlog
                  ("Error while parsing configuration file: "^
-                  (Ocsigen_lib.string_of_exn e)^
+                  (try
+                     !fun_exn e
+                   with e -> Ocsigen_lib.string_of_exn e)^
 	          " (ignored)"));
             parse_site ll
   in 
@@ -420,7 +423,6 @@ let register_extension,
   get_init_exn_handler =
   let fun_site = ref default_parse_config in
   let user_fun_site = ref default_parse_config in
-  let fun_exn = ref (fun exn -> (raise exn : string)) in
 
   ((* ********* register_extension ********* *)
      (fun ?(respect_pipeline=false)
