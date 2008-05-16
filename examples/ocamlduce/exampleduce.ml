@@ -57,23 +57,23 @@ let links = register_new_service ["links"] unit
  (fun sp () () -> return
    {{ <html>
       [ <head> [<title> ""]
-	<body>
-	[<p>
+        <body>
+        [<p>
           [{{ a s sp {{ "first page" }} () }}
-	   <br> []
-	   {{ a form sp {{ "form" }} () }}
-	   <br> []
+           <br> []
+           {{ a form sp {{ "form" }} () }}
+           <br> []
 (*           {{ a s sp {{ "hello" }} () }}
-	   <br> []
+           <br> []
            {{ a coucou_params sp
              {{ "coucou_params" }} (42,(22,"ciao")) }}
-	   <br> [] *)
+           <br> [] *)
            {{ a
              (new_external_service
-		~prefix:"http://fr.wikipedia.org"
+                ~prefix:"http://fr.wikipedia.org"
                 ~path:["wiki"]
-		~get_params:(suffix (string "a"))
-		~post_params:unit ())
+                ~get_params:(suffix (string "a"))
+                ~post_params:unit ())
              sp
              {{ "ocaml on wikipedia" }}
              "OCaml" }}]]] }})
@@ -86,28 +86,28 @@ let form =
   new_post_service ~fallback:main ~post_params:(opt (string "test")) ()
 
 let gen_form = fun x ->
-	{{ [<p>[
-		{: string_radio ~checked:false ~name:x ~value:"Blerp" () :}
-		'Blerp'
-		{: string_radio ~checked:false ~name:x ~value:"Gnarf" () :}
-		'Gnarf'
-		{: string_input ~input_type:{{ "submit" }} ~value:"OK" () :}
-		]] }}
+        {{ [<p>[
+                {: string_radio ~checked:false ~name:x ~value:"Blerp" () :}
+                'Blerp'
+                {: string_radio ~checked:false ~name:x ~value:"Gnarf" () :}
+                'Gnarf'
+                {: string_input ~input_type:{{ "submit" }} ~value:"OK" () :}
+                ]] }}
 
 let _ =
-	register ~service:main
-	(fun sp () () ->
-		return {{ <html>[
-			<head>[<title>"Main"]
-			<body>[{: post_form form sp gen_form () :}]
-		] }}
-	);
-	register ~service:form
-	(fun sp () (x) ->
-		return {{ <html>[
-				<head>[<title>"Form"]
-				<body>[<p>{: match x with None -> "Geen" | Some y -> y :}]
-			] }})
+        register ~service:main
+        (fun sp () () ->
+                return {{ <html>[
+                        <head>[<title>"Main"]
+                        <body>[{: post_form form sp gen_form () :}]
+                ] }}
+        );
+        register ~service:form
+        (fun sp () (x) ->
+                return {{ <html>[
+                                <head>[<title>"Form"]
+                                <body>[<p>{: match x with None -> "Geen" | Some y -> y :}]
+                        ] }})
 
 
 

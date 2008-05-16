@@ -69,7 +69,7 @@ let register_basic_authentication_method,
 let _ = register_basic_authentication_method
   (function
      | Element ("plain", ["login", login; "password", password], _) ->
-	 (fun l p -> Lwt.return (login = l && password = p))
+         (fun l p -> Lwt.return (login = l && password = p))
      | _ -> raise (Bad_config_tag_for_extension "not for htpasswd"))
 
 

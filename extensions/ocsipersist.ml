@@ -136,11 +136,11 @@ let (db_get, db_replace, db_replace_if_exists) =
       match step stmt with
       | Rc.ROW ->
           let value = match column stmt 0 with
-	  | Data.BLOB s -> s
-	  | _ -> assert false
-	  in
-  	  ignore (finalize stmt);
- 	  value
+          | Data.BLOB s -> s
+          | _ -> assert false
+          in
+          ignore (finalize stmt);
+          value
       | Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
       | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
       | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
@@ -175,10 +175,10 @@ let db_iter_step table rowid =
       match step stmt with
       | Rc.ROW ->
           (match (column stmt 0,column stmt 1, column stmt 2) with
-	  | (Data.TEXT k, Data.BLOB v, Data.INT rowid) ->
+          | (Data.TEXT k, Data.BLOB v, Data.INT rowid) ->
               ignore(finalize stmt) ;
               Some (k, v, rowid)
-	  | _ -> assert false )
+          | _ -> assert false )
       | Rc.DONE -> ignore(finalize stmt) ; None
       | Rc.BUSY | Rc.LOCKED -> yield () ; aux ()
       | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
@@ -194,8 +194,8 @@ let db_iter_block table f =
       match step stmt with
       | Rc.ROW ->
           (match (column stmt 0,column stmt 1) with
-	  | (Data.TEXT k, Data.BLOB v) -> f k (Marshal.from_string v 0); aux()
-	  | _ -> assert false )
+          | (Data.TEXT k, Data.BLOB v) -> f k (Marshal.from_string v 0); aux()
+          | _ -> assert false )
       | Rc.DONE -> ignore(finalize stmt)
       | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
       | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)
@@ -211,11 +211,11 @@ let db_length table =
       match step stmt with
       | Rc.ROW ->
           let  value = match column stmt 0 with
-	  | Data.INT s -> Int64.to_int s
-	  | _ -> assert false
+          | Data.INT s -> Int64.to_int s
+          | _ -> assert false
           in
-  	  ignore (finalize stmt);
- 	  value
+          ignore (finalize stmt);
+          value
       | Rc.DONE -> ignore(finalize stmt) ;  raise Not_found
       | Rc.BUSY | Rc.LOCKED ->  yield () ; aux ()
       | rc -> ignore(finalize stmt) ; failwith (Rc.to_string rc)

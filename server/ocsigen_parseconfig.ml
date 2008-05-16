@@ -259,34 +259,34 @@ let parse_server isreloading c =
                          ("Wrong attribute for <host>: "^s))
           in
           let host, charset = parse_attrs (None, None) atts in
-	  let host = match host with
+          let host = match host with
           | None -> [[Ocsigen_extensions.Wildcard],None] (* default = "*:*" *)
           | Some s ->
               List.map
-		(fun ss ->
+                (fun ss ->
                   let host, port =
                     try
                       let dppos = String.index ss ':' in
                       let len = String.length ss in
                       ((String.sub ss 0 dppos),
                        match String.sub ss (dppos+1) ((len - dppos) - 1) with
-			 "*" -> None
+                         "*" -> None
                        | p -> Some (int_of_string p))
                     with
                       Not_found -> ss, None
                     | Failure _ ->
-			raise (Config_file_error "bad port number")
+                        raise (Config_file_error "bad port number")
                   in
                   ((List.map
                       (function
                           Netstring_str.Delim _ -> Ocsigen_extensions.Wildcard
-			| Netstring_str.Text t ->
+                        | Netstring_str.Text t ->
                             Ocsigen_extensions.Text (t, String.length t))
                       (Netstring_str.full_split (Netstring_str.regexp "[*]+")
-			 host)),
+                         host)),
                    port))
-		(Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
-	  in
+                (Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
+          in
           let charset = match charset with
           | None -> Ocsigen_config.get_default_charset ()
           | Some charset -> Some charset

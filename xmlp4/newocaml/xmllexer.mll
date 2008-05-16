@@ -108,7 +108,7 @@ open Error
 
 (* To store some context information:
         *   loc       : position of the beginning of a string, quotation and comment
-		*   entity : shall we translate entities or not
+                *   entity : shall we translate entities or not
         *)
 
 type context =
@@ -116,14 +116,14 @@ type context =
         lexbuf     : lexbuf   ;
         buffer     : Buffer.t ;
         entity     : bool ;
-		}
+                }
 
 let default_context lb =
         { loc        = Loc.ghost ;
         lexbuf     = lb        ;
         buffer     = Buffer.create 256 ;
-        entity	= true ;
-		}
+        entity  = true ;
+                }
 
         (* To buffer string literals *)
 
@@ -430,7 +430,7 @@ let from_context c  =
 let from_lexbuf lb e =
         let c = { (default_context lb) with
         loc        = Loc.of_lexbuf lb;
-		entity = e }
+                entity = e }
         in from_context c
 
 let setup_loc lb loc =

@@ -61,18 +61,18 @@ let gethostbyname d =
        let (h,t) = cache_find d
        and t' = Unix.time () in
        match (t'>t+.60.) with
-	 | true ->
+         | true ->
              (remove cache) (d,h,t);
-	     Lwt.fail Not_in_table
-	 | false -> h)
+             Lwt.fail Not_in_table
+         | false -> h)
     (function
        | Not_in_table ->
            let t = Unix.time() and
                h = Lwt_preemptive.detach Unix.gethostbyname d in
            let entry =  (d,h,t) in
-	     add cache entry;
-	     (match !keeper with (a,b) -> keeper:= (entry::a,b));
-	     h
+             add cache entry;
+             (match !keeper with (a,b) -> keeper:= (entry::a,b));
+             h
        | e -> fail e)
 (* Begin getaddrinfo caching *)
 

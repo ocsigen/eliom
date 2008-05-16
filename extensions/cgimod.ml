@@ -64,25 +64,25 @@ type reg = {
 
 
 let environment= ["CONTENT_LENGTH=%d";
-		  "CONTENT_TYPE";
-		  "DOCUMENT_ROOT";
-		  "GATEWAY_INTERFACE";
-		  "HTTP_COOKIE";
-		  "HTTP_HOST";
-		  "HTTP_REFERER";
-		  "HTTP_USER_AGENT";
-		  "PATH_INFO";
-		  "PATH_TRANSLATED";
-		  "QUERY_STRING";
-		  "REMOTE_PORT";
-		  "REMOTE_ADDR";
-		  "REQUEST_METHOD%s";
-		  "SCRIPT_NAME";
-		  "SCRIPT_FILENAME";
-		  "SERVER_NAME";
-		  "SERVER_PORT";
-		  "SERVER_PROTOCOL";
-		  "SERVER_SOFTWARE"]
+                  "CONTENT_TYPE";
+                  "DOCUMENT_ROOT";
+                  "GATEWAY_INTERFACE";
+                  "HTTP_COOKIE";
+                  "HTTP_HOST";
+                  "HTTP_REFERER";
+                  "HTTP_USER_AGENT";
+                  "PATH_INFO";
+                  "PATH_TRANSLATED";
+                  "QUERY_STRING";
+                  "REMOTE_PORT";
+                  "REMOTE_ADDR";
+                  "REQUEST_METHOD%s";
+                  "SCRIPT_NAME";
+                  "SCRIPT_FILENAME";
+                  "SERVER_NAME";
+                  "SERVER_PORT";
+                  "SERVER_PROTOCOL";
+                  "SERVER_SOFTWARE"]
 
 (*****************************************************************************)
 
@@ -146,13 +146,13 @@ let find_cgi_page reg sub_path =
 
       if (stat.Unix.LargeFile.st_kind = Unix.S_REG)
       then begin
-	match re.exec with
-	  | None ->
-	      Unix.access filename [Unix.X_OK];
-	      (filename, re, doc_root)
-	  | Some exec ->
-	      Unix.access filename [Unix.R_OK];
-	      (filename, re, doc_root)
+        match re.exec with
+          | None ->
+              Unix.access filename [Unix.X_OK];
+              (filename, re, doc_root)
+          | Some exec ->
+              Unix.access filename [Unix.R_OK];
+              (filename, re, doc_root)
       end
       else raise Failed_403
     with
@@ -437,9 +437,9 @@ let recupere_cgi head re doc_root filename ri =
     in
     catch
       (fun () ->
-	Ocsigen_http_com.get_http_frame ~head receiver
+        Ocsigen_http_com.get_http_frame ~head receiver
           >>= fun http_frame ->
-	return (http_frame, fun () -> Lwt_unix.close cgi_out; Lwt.return ()))
+        return (http_frame, fun () -> Lwt_unix.close cgi_out; Lwt.return ()))
       (fun e -> Lwt_unix.close cgi_out; fail e);
 
   with e -> fail e
@@ -484,7 +484,7 @@ let gen reg charset = function
          let (filename, re, doc_root) =
            find_cgi_page reg ri.ri_sub_path
          in
-	 recupere_cgi
+         recupere_cgi
            (ri.ri_method = Http_header.HEAD)
            re doc_root filename ri >>= fun (frame, finalizer) ->
          let header = frame.Ocsigen_http_frame.header in
@@ -583,39 +583,39 @@ let rec set_env = function
 let parse_config path charset _ parse_site = function
   | Element ("cgi", atts, l) ->
       let good_root r =
-      	Regexp.quote (string_conform2 r) in
+        Regexp.quote (string_conform2 r) in
       let dir = match atts with
       | [] ->
           raise (Error_in_config_file
                    "attributes expected for <cgi>")
       | [("root",r);("dir", s)] ->
       {
-	   regexp= Regexp.regexp ("^"^(good_root r)^"([^/]*)");
+           regexp= Regexp.regexp ("^"^(good_root r)^"([^/]*)");
 
-	   doc_root= Ocsigen_extensions.parse_user_dir (string_conform1 s);
-	   script= Ocsigen_extensions.parse_user_dir "$1";
+           doc_root= Ocsigen_extensions.parse_user_dir (string_conform1 s);
+           script= Ocsigen_extensions.parse_user_dir "$1";
 
-	   path= string_conform (Ocsigen_lib.string_of_url_path path);
+           path= string_conform (Ocsigen_lib.string_of_url_path path);
            path_info="";
 
-	   exec=None;
+           exec=None;
            env=set_env l}
       | ("regexp", s)::("dir",d)::("script",t)::q ->
-	  {
-	   regexp=Regexp.regexp ("^"^s);
+          {
+           regexp=Regexp.regexp ("^"^s);
 
-	   doc_root= Ocsigen_extensions.parse_user_dir (string_conform1 d);
-	   script= Ocsigen_extensions.parse_user_dir t;
+           doc_root= Ocsigen_extensions.parse_user_dir (string_conform1 d);
+           script= Ocsigen_extensions.parse_user_dir t;
 
-	   path= string_conform (Ocsigen_lib.string_of_url_path path);
+           path= string_conform (Ocsigen_lib.string_of_url_path path);
            path_info=""; (* unknown for the moment *)
 
-	   exec= (match q with
-	         |[] -> None
-		 |[("exec",x)] -> Some(x)
-		 |_ -> raise (Error_in_config_file
+           exec= (match q with
+                 |[] -> None
+                 |[("exec",x)] -> Some(x)
+                 |_ -> raise (Error_in_config_file
                                 "Wrong attributes for <cgi>")) ;
-	   env=set_env l}
+           env=set_env l}
       | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
       in
       gen dir charset
@@ -633,7 +633,7 @@ let start_init () =
 
 (** Function to be called at the end of the initialisation phase *)
 let end_init () = ()
-(*	for default cgi dir *)
+(*      for default cgi dir *)
 
 (*****************************************************************************)
 (** Registration of the extension *)

@@ -1073,7 +1073,7 @@ module MakeForms = functor
                 (fun s (n,v) ->
                   Pages.cons_form
                     (Pages.make_hidden_field
-	               (Some (Pages.make_input
+                       (Some (Pages.make_input
                                 ~typ:Pages.hidden
                                 ~name:n ~value:v ())))
                     s
@@ -1103,14 +1103,14 @@ module MakeForms = functor
                     Pages.make_hidden_field None
                 | Eliom_common.Na_get' n ->
                     Pages.make_hidden_field
-	              (Some (Pages.make_input
-	                       ~typ:Pages.hidden
+                      (Some (Pages.make_input
+                               ~typ:Pages.hidden
                                ~name:Eliom_common.naservice_num
                                ~value:n ()))
                 | Eliom_common.Na_get_ n ->
                     Pages.make_hidden_field
-	              (Some (Pages.make_input
-	                       ~typ:Pages.hidden
+                      (Some (Pages.make_input
+                               ~typ:Pages.hidden
                                ~name:Eliom_common.naservice_name
                                ~value:n ()))
                 | _ -> assert false
@@ -1121,7 +1121,7 @@ module MakeForms = functor
                 (fun s (n,v) ->
                   Pages.cons_form
                     (Pages.make_hidden_field
-	               (Some
+                       (Some
                           (Pages.make_input
                              ~typ:Pages.hidden
                              ~name:n ~value:v ())))
@@ -1135,7 +1135,7 @@ module MakeForms = functor
                 (fun s (n,v) ->
                   Pages.cons_form
                     (Pages.make_hidden_field
-	               (Some
+                       (Some
                           (Pages.make_input
                              ~typ:Pages.hidden
                              ~name:n
@@ -1235,13 +1235,13 @@ module MakeForms = functor
             let naservice_line =
               match get_na_name_ naser with
                | Eliom_common.Na_post' n ->
-	           Pages.make_input
-	             ~typ:Pages.hidden
+                   Pages.make_input
+                     ~typ:Pages.hidden
                      ~name:Eliom_common.naservice_num
                      ~value:n ()
                | Eliom_common.Na_post_ n ->
-	           Pages.make_input
-	             ~typ:Pages.hidden
+                   Pages.make_input
+                     ~typ:Pages.hidden
                      ~name:Eliom_common.naservice_name
                      ~value:n ()
                | _ -> assert false

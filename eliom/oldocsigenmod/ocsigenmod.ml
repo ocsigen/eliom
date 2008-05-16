@@ -561,7 +561,7 @@ let get_page
       | Ocsigen_Wrong_parameter ->
           (force ri.ri_post_params) >>=
           (fun ripp ->
-	    return (Ext_found
+            return (Ext_found
                       {res_cookies=[];
                        res_send_page=
                        (Ocsigen_senders.send_xhtml_page
@@ -627,29 +627,29 @@ let gen page_tree charset ri =
         make_action
           page_tree action_name action_params ri cookie
           >>= (fun (cookie2,path) ->
-	    let cookie3 = match cookie2 with
-	      None -> cookie
-	    | Some c -> Some c
-	    in
+            let cookie3 = match cookie2 with
+              None -> cookie
+            | Some c -> Some c
+            in
             (if reload then
               (get_page page_tree ri charset cookie3 internal_state >>=
-	       (function
-		   Ext_found r -> return
-		       (Ext_found
-			  {r with
-			   res_cookies=
-			   (match cookie2, r.res_cookies with
-			   | (Some c), [] -> [Set (Some path, None, [(cookiename, c)])]
-			   | _,cl -> cl)})
-	         | _ -> return (Ext_found
-				  {res_cookies=
-				   (match cookie2 with
-				     None -> []
-				   | Some c ->
+               (function
+                   Ext_found r -> return
+                       (Ext_found
+                          {r with
+                           res_cookies=
+                           (match cookie2, r.res_cookies with
+                           | (Some c), [] -> [Set (Some path, None, [(cookiename, c)])]
+                           | _,cl -> cl)})
+                 | _ -> return (Ext_found
+                                  {res_cookies=
+                                   (match cookie2 with
+                                     None -> []
+                                   | Some c ->
                                        [Set (Some path, None, [(cookiename, c)])]);
-				   res_send_page=
-				   (Ocsigen_senders.send_xhtml_page
-				      ~content:(Error_pages.error_page
+                                   res_send_page=
+                                   (Ocsigen_senders.send_xhtml_page
+                                      ~content:(Error_pages.error_page
                                                   "error"
                                                   [XHTML.M.p
                                                      [XHTML.M.pcdata
@@ -657,16 +657,16 @@ let gen page_tree charset ri =
                                                         is experimental in Ocsigenmod (it works only for \
                                                             ocsigenmod pages for now, and I \
                                                          didn't find any)"]]));
-				   res_headers=Ocsigen_senders.dyn_headers;
-				   res_code=None;
-				   res_lastmodified=None;
-				   res_etag=None;
+                                   res_headers=Ocsigen_senders.dyn_headers;
+                                   res_code=None;
+                                   res_lastmodified=None;
+                                   res_etag=None;
                                    res_charset=charset;
                                    res_filter=None})))
 
             else
-	      return
-	        (Ext_found
+              return
+                (Ext_found
                    {res_cookies=
                     (match cookie2 with
                       None -> []

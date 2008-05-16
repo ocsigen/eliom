@@ -225,7 +225,7 @@ module Http_header =
         let get_firstline header = header.mode
 
         (** gets the headers *)
-	let get_headers header = header.headers
+        let get_headers header = header.headers
 
         (** gets the value of a given header's option *)
         let get_headers_value header key =

@@ -264,7 +264,7 @@ let xh_print ?(encode = fun x -> x) arbre  =
       pp_open_tbox xh_string ();
       pp_force_newline xh_string ();
       if i > 0 then
-	pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_tbreak xh_string (taille_tab*i) 0;
       pp_print_string xh_string ("<"^tag);
       xh_print_attrs attrs;
       pp_print_string xh_string ">";
@@ -273,7 +273,7 @@ let xh_print ?(encode = fun x -> x) arbre  =
 
       pp_force_newline xh_string ();
       if i > 0 then
-	pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_tbreak xh_string (taille_tab*i) 0;
       pp_print_string xh_string ("</"^tag^">");
       pp_close_tbox xh_string ()
     end
@@ -286,7 +286,7 @@ let xh_print ?(encode = fun x -> x) arbre  =
       pp_open_tbox xh_string ();
       pp_force_newline xh_string ();
       if i > 0 then
-	pp_print_tbreak xh_string (taille_tab*i) 0;
+        pp_print_tbreak xh_string (taille_tab*i) 0;
       pp_print_string xh_string ("<"^tag);
       xh_print_attrs attrs;
       pp_print_string xh_string ">";
@@ -310,9 +310,9 @@ let xh_print ?(encode = fun x -> x) arbre  =
       (if (List.mem name semiblocktags)
       then xh_print_semiblocktag name xh_attrs xh_taglist i
       else begin
-	xh_print_text (encode ws1) i is_first;
-	xh_print_inlinetag name xh_attrs xh_taglist i is_first;
-	xh_print_text (encode ws2) i is_first;
+        xh_print_text (encode ws1) i is_first;
+        xh_print_inlinetag name xh_attrs xh_taglist i is_first;
+        xh_print_text (encode ws2) i is_first;
       end);
     xh_print_taglist queue i false removetailingws;
 
@@ -390,7 +390,7 @@ let xh_print ?(encode = fun x -> x) arbre  =
   | (Leaf (name,xh_attrs))::queue ->
       print_nodes "" name xh_attrs [] "" queue i is_first removetailingws
 
-	(* Whitespaces *)
+        (* Whitespaces *)
   | (Whitespace(texte))::queue ->
       xh_print_text (encode texte) i is_first;
       xh_print_taglist queue i false removetailingws

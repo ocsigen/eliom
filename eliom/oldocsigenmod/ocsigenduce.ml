@@ -116,15 +116,15 @@ module Xhtmlforms_ = struct
   type a_attrib_t = a_attrs
   type form_attrib_t =
     {{ attrs ++ { accept-charset=?String accept=?String
-	          onreset=?String onsubmit=?String enctype=?String } }}
+                  onreset=?String onsubmit=?String enctype=?String } }}
 
   type input_attrib_t = input_attrs
   type textarea_attrib_t = {{ attrs ++ focus ++
-	{ onchange=?String
+        { onchange=?String
             onselect=?String
-	    readonly=?"readonly"
+            readonly=?"readonly"
             disabled=?"disabled"
-	    name=?String } }}
+            name=?String } }}
   type select_attrib_t = select_attrs
   type link_attrib_t = link_attrs
   type script_attrib_t = {{ id ++ { defer=?"defer" src=?String charset=?String } }}
@@ -150,8 +150,8 @@ module Xhtmlforms_ = struct
 
   let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt =
     {{ <form ({method="get"
-	       action={: action :}}
-	      ++ a )>
+               action={: action :}}
+              ++ a )>
        [ elt1 !elts ] }}
 
   let make_post_form ?(a={{ {} }}) ~(action : uri) ?id ?(inline = false) elt1 elts
@@ -162,13 +162,13 @@ module Xhtmlforms_ = struct
     in
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
     {{ <form ({action={: action :}
-	       enctype="multipart/form-data"
-	       method="post"}
-	      ++ inline_attr
-	      ++ id_attr
-	      ++ a)>
+               enctype="multipart/form-data"
+               method="post"}
+              ++ inline_attr
+              ++ id_attr
+              ++ a)>
        [ elt1
-	 !elts ]
+         !elts ]
      }}
 
   let make_hidden_field content =
@@ -213,19 +213,19 @@ module Xhtmlforms_ = struct
 
   let make_textarea ?(a={{ {} }}) ~name:name ~rows ~cols c =
     {{ <textarea ({ name={: name :}
-		    rows={: string_of_int rows :}
-		    cols={: string_of_int cols :}
-		  } ++ a)> c }}
+                    rows={: string_of_int rows :}
+                    cols={: string_of_int cols :}
+                  } ++ a)> c }}
 
   let make_css_link ?(a={{ {} }}) uri =
     {{ <link ({href={: uri :}
-	    type="text/css"
+            type="text/css"
             rel="stylesheet"}
             ++ a)> [] }}
 
   let make_js_script ?(a={{ {} }}) uri =
     {{ <script ({type="text/javascript"
-	         src={: uri :} } ++ a)> [] }}
+                 src={: uri :} } ++ a)> [] }}
 
 end
 

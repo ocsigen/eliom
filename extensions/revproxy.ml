@@ -183,10 +183,10 @@ let gen dir charset = function
                      Lwt.return
                        {empty_result with
                         Ocsigen_http_frame.res_content_length = Some 0L;
-	                Ocsigen_http_frame.res_headers= headers;
+                        Ocsigen_http_frame.res_headers= headers;
                         Ocsigen_http_frame.res_stop_stream =
                         http_frame.Ocsigen_http_frame.abort;
-	                Ocsigen_http_frame.res_code= code;
+                        Ocsigen_http_frame.res_code= code;
                        }
                  | Some stream ->
                      let default_result =
@@ -201,8 +201,8 @@ let gen dir charset = function
                         Ocsigen_http_frame.res_stream = stream;
                         Ocsigen_http_frame.res_stop_stream =
                         http_frame.Ocsigen_http_frame.abort;
-	                Ocsigen_http_frame.res_headers= headers;
-	                Ocsigen_http_frame.res_code= code;
+                        Ocsigen_http_frame.res_headers= headers;
+                        Ocsigen_http_frame.res_code= code;
                        }
             )
          )

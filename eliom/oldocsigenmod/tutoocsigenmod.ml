@@ -621,7 +621,7 @@ let form4 = register_new_service ["form4"] unit
              ~post_params:(string "chaine") ()) sp
           (fun chaine ->
             <:xmllist< <p> Write a string:
-	             $string_input chaine$ </p> >>)
+                     $string_input chaine$ </p> >>)
           222) in return
      (html
         (head (title (pcdata "form")) [])
@@ -941,7 +941,7 @@ let _ =
     (fun sp () i ->
       let is = string_of_int i in
       let calc_result =
-	register_new_post_auxiliary_service_for_session
+        register_new_post_auxiliary_service_for_session
           sp
           ~fallback:calc
           ~post_params:(int "j")
@@ -957,8 +957,8 @@ let _ =
         post_form calc_result sp (create_form is) () in
       return
         (html
-	   (head (title (pcdata "")) [])
-	   (body [f])))
+           (head (title (pcdata "")) [])
+           (body [f])))
 (*html*
     </div>
     <div class="twocol2">
@@ -977,8 +977,8 @@ let _ =
       let f = post_form calc_post sp create_form () in
       return
         (html
-	   (head (title (pcdata "")) [])
-	   (body [f])))
+           (head (title (pcdata "")) [])
+           (body [f])))
 (*html*
       <p>See the $a Tutorial.calc sp <:xmllist< result >> ()$.</p>
       <p>Services registered in session tables are called
@@ -1266,7 +1266,7 @@ let looong =
         (html
           (head (title (pcdata "")) [])
           (body [h1 [pcdata
-	           "Ok now, you can read the page."]]))))
+                   "Ok now, you can read the page."]]))))
 (*html*
      <p>The <code>&gt;&gt;=</code> operator (from <code>Lwt</code>) is used to
      specify a sequence of computations that depend one from another.
@@ -1332,7 +1332,7 @@ let looong2 =
         (html
           (head (title (pcdata "")) [])
           (body [h1 [pcdata
-		   "Ok now, you can read the page."]]))))
+                   "Ok now, you can read the page."]]))))
 (*html*
       <p>See $a Tutorial.looong2 sp <:xmllist< looong2 >> ()$.</p>
       <p>A pool of preemptive threads is waiting for such

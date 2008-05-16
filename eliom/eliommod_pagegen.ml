@@ -395,7 +395,7 @@ let gen sitedata charset = function
                            Ocsigen_http_frame.res_cookies = old_cookies_to_set;
                            Ocsigen_http_frame.res_code= 500;
                          }))
-	| Eliom_common.Eliom_Wrong_parameter ->
+        | Eliom_common.Eliom_Wrong_parameter ->
             Lazy.force ri.Ocsigen_extensions.ri_post_params >>= fun ripp ->
             Ocsigen_senders.Xhtml_content.result_of_content
                 (Error_pages.page_bad_param (List.map fst ripp)) >>= fun r ->
@@ -406,10 +406,10 @@ let gen sitedata charset = function
                            Ocsigen_http_frame.res_cookies= old_cookies_to_set;
                            Ocsigen_http_frame.res_code= 500;
                          }))
-	| Eliom_common.Eliom_404 ->
+        | Eliom_common.Eliom_404 ->
             return (Ocsigen_extensions.Ext_next previous_extension_err)
         | Eliom_common.Eliom_retry_with a -> gen_aux a
-	| e -> fail e)
+        | e -> fail e)
 
   in
   Eliom_common.change_request_info

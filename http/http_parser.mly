@@ -88,17 +88,17 @@ firstline :
                                       mode := Query (meth_of_string($1), $2^a);
                                       proto := b}
   | PROTO CODE strings EOL       {reset_header ();
-				 mode := Answer (int_of_string $2);
-				 proto:=(proto_of_string $1)
-			       }
+                                 mode := Answer (int_of_string $2);
+                                 proto:=(proto_of_string $1)
+                               }
 
 nofirstline :
   | EOL                          {mode := Nofirstline;
-				  proto := HTTP11;
-				  make_header()}
+                                  proto := HTTP11;
+                                  make_header()}
   | lines EOL                    {mode := Nofirstline;
-				  proto := HTTP11;
-				  make_header()}
+                                  proto := HTTP11;
+                                  make_header()}
 
 lines :
   | line                         {add_header $1}

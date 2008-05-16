@@ -1135,11 +1135,11 @@ module MakeForms = functor
         let reload_param =
           if reload
           then
-	    Pages.cons_form
-	      (Pages.make_hidden_field
+            Pages.cons_form
+              (Pages.make_hidden_field
                  (Pages.make_input ~typ:Pages.hidden
                     ~name:reload_name ~value:reload_name ()))
-	      Pages.empty_seq
+              Pages.empty_seq
           else Pages.empty_seq in
         let v = get_full_url h in
         Pages.make_post_form ~inline:true
@@ -1147,7 +1147,7 @@ module MakeForms = functor
           (Pages.make_div ~classe:["inline"]
              (Pages.make_a ?a ~href:href content))
           (Pages.cons_form
-	     (Pages.make_hidden_field
+             (Pages.make_hidden_field
                 (Pages.make_input ~typ:Pages.hidden ~name:action_param_name
                    ~value:action_param ()))
              reload_param)
@@ -1164,10 +1164,10 @@ module MakeForms = functor
         let inside_reload =
           if reload
           then
-	    Pages.cons_form
-	      (Pages.make_hidden_field
-	         (Pages.make_input
-		    ~typ:Pages.hidden ~name:reload_name ~value:reload_name ()))
+            Pages.cons_form
+              (Pages.make_hidden_field
+                 (Pages.make_input
+                    ~typ:Pages.hidden ~name:reload_name ~value:reload_name ()))
               inside
           else inside
         in

@@ -53,38 +53,38 @@ let menu ?(classe=[]) first l ?service:current ~sp =
         let classe = [last_class] in
         if Some url = (* problem with preapplied services with == *) current
         then
-	  [{{ <li class={: attrib_list (current_class::classe) :}>{: text :} }}]
-	    (* [li ~a:[a_class (current_class::classe)] text] *)
+          [{{ <li class={: attrib_list (current_class::classe) :}>{: text :} }}]
+            (* [li ~a:[a_class (current_class::classe)] text] *)
         else
-	  [{{ <li class={: attrib_list classe :}>[{: a url sp {: text :} () :}] }}]
-	    (* [li ~a:[a_class classe] [a url sp text ()] *)
+          [{{ <li class={: attrib_list classe :}>[{: a url sp {: text :} () :}] }}]
+            (* [li ~a:[a_class classe] [a url sp text ()] *)
     | (url, text)::l ->
         (if Some url = (* problem with preapplied services with == *) current
          then
-	   {{ <li class={: current_class :}>{: text :} }}
-	     (* (li ~a:[a_class [current_class]] text) *)
+           {{ <li class={: current_class :}>{: text :} }}
+             (* (li ~a:[a_class [current_class]] text) *)
          else
-	   {{ <li>[{: a url sp {: text :} () :}] }})::(aux l)
-	  (* (li [a url sp text ()]))::(aux l) *)
+           {{ <li>[{: a url sp {: text :} () :}] }})::(aux l)
+          (* (li [a url sp text ()]))::(aux l) *)
   in match first::l with
     | [] -> assert false
     | [(url, text)] ->
-	{{ <ul class={: attrib_list (menu_class::classe) :}>
+        {{ <ul class={: attrib_list (menu_class::classe) :}>
              [{:
-	       let liclasse = [first_class; last_class] in
-		 if Some url = current then
-		   {{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
-		 else
-		   {{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}] }}
+               let liclasse = [first_class; last_class] in
+                 if Some url = current then
+                   {{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
+                 else
+                   {{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}] }}
     | (url, text)::l ->
-	{{ <ul class={: attrib_list (menu_class::classe) :}>
+        {{ <ul class={: attrib_list (menu_class::classe) :}>
              [{:
-	       let liclasse = [first_class] in
-		 if Some url = current then
-		   {{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
-		 else
-		   {{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}
-		!{: aux l :}] }}
+               let liclasse = [first_class] in
+                 if Some url = current then
+                   {{ <li class={: attrib_list (current_class::liclasse) :}>{: text :} }}
+                 else
+                   {{ <li class={: attrib_list liclasse :}>[{: a url sp {: text :} () :}] }} :}
+                !{: aux l :}] }}
 
 type ('a, 'b, 'c) hierarchical_site_item =
   | Disabled
@@ -150,28 +150,28 @@ let hierarchical_menu_depth_first
       match s with
       | (text, Site_tree (Default_page page, []))
       | (text, Site_tree (Main_page page, [])) ->
-					{{ <li class={: attrib_list classe :}>[{: a page sp {: text :} () :}] }}
+                                        {{ <li class={: attrib_list classe :}>[{: a page sp {: text :} () :}] }}
       | (text, Site_tree (Not_clickable, [])) ->
-					{{ <li class={: attrib_list classe :}>{: text :} }}
+                                        {{ <li class={: attrib_list classe :}>{: text :} }}
       | (text, Disabled) ->
-					{{ <li class={: attrib_list (disabled_class::classe) :}>{: text :} }}
+                                        {{ <li class={: attrib_list (disabled_class::classe) :}>{: text :} }}
       | (text, Site_tree (Default_page page, hsl))
       | (text, Site_tree (Main_page page, hsl)) ->
-				{{ <li class={: attrib_list classe :}>[
-					{: a page sp {: text :} () :}
-					!{: if deplier || whole_tree then
-						(depth_first_fun hsl (level+1) pos2)
-						else []
-					:}
-				] }}
+                                {{ <li class={: attrib_list classe :}>[
+                                        {: a page sp {: text :} () :}
+                                        !{: if deplier || whole_tree then
+                                                (depth_first_fun hsl (level+1) pos2)
+                                                else []
+                                        :}
+                                ] }}
       | (text, Site_tree (Not_clickable, hsl)) ->
-					{{ <li class={: attrib_list classe :}>[
-						!{: text :}
-						!{: if deplier || whole_tree then
-							(depth_first_fun hsl (level+1) pos2)
-							else
-							[] :}
-					] }}
+                                        {{ <li class={: attrib_list classe :}>[
+                                                !{: text :}
+                                                !{: if deplier || whole_tree then
+                                                        (depth_first_fun hsl (level+1) pos2)
+                                                        else
+                                                        [] :}
+                                        ] }}
           (* li ~a:attclass
             ((text : Xhtmltypes.a_content XHTML.M.elt list
                 :> Xhtmltypes.li_content XHTML.M.elt list)@
@@ -199,8 +199,8 @@ let hierarchical_menu_depth_first
 let hierarchical_menu_breadth_first
     ?(classe=[])
     (((page, pages): ([< Eliom_services.get_service_kind],
-		[< Eliom_services.registrable ],
-		Eliom_duce.Blocks.a_content_elt_list) hierarchical_site) as the_menu)
+                [< Eliom_services.registrable ],
+                Eliom_duce.Blocks.a_content_elt_list) hierarchical_site) as the_menu)
     ?service
     ~sp =
 
@@ -230,11 +230,11 @@ let hierarchical_menu_breadth_first
       match s with
       | (text, Site_tree (Default_page page, _))
       | (text, Site_tree (Main_page page, _)) ->
-					{{ <li class={: attrib_list classe :}>[{: a page sp {: text :} () :}] }}
+                                        {{ <li class={: attrib_list classe :}>[{: a page sp {: text :} () :}] }}
       | (text, Site_tree (Not_clickable, _)) ->
-					{{ <li class={: attrib_list classe :}>{: text :} }}
+                                        {{ <li class={: attrib_list classe :}>{: text :} }}
       | (text, Disabled) ->
-					{{ <li class={: attrib_list (disabled_class::classe) :}>{: text :} }}
+                                        {{ <li class={: attrib_list (disabled_class::classe) :}>{: text :} }}
     and one_menu first i = function
       | [] -> []
       | [a] -> [one_item first true i a]
@@ -268,11 +268,11 @@ let structure_links (default, pages) ?service ~sp =
     match s with
     | None -> endlist
     | Some s ->
-				{{ <link rev="Subsection" href={: make_uri s sp () :}>[] }}::endlist
+                                {{ <link rev="Subsection" href={: make_uri s sp () :}>[] }}::endlist
   in
   let make_rel s =
     (* s is a subsection of mine *)
-		{{ <link rel="Subsection" href={: make_uri s sp () :}>[] }}
+                {{ <link rel="Subsection" href={: make_uri s sp () :}>[] }}
   in
   let make_rels beg a =
     match snd a with

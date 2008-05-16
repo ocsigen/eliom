@@ -319,7 +319,7 @@ and page_table =
                  (float * float ref) option
                  (* timeout and expiration date for the service *) *
                  (server_params -> result_to_send Lwt.t)
-	      ))) list)) list
+              ))) list)) list
        (* Here, the url_path is the site directory.
           That is, the directory in which we are when we register
           dynamically the pages.

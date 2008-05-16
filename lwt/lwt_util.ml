@@ -29,19 +29,19 @@ let map_with_waiting_action f wa l =
   let rec loop l =
     match l with
       [] ->
-	return []
+        return []
     | v :: r ->
-	let t = f v in
-	let rt = loop r in
-	t >>= (fun v' ->
-	  (* Perform the specified "waiting action" for the next    *)
-	  (* item in the list.                                      *)
-	  if r <> [] then
-	    wa (List.hd r)
-	  else
-	    ();
-	  rt >>= (fun l' ->
-	    return (v' :: l')))
+        let t = f v in
+        let rt = loop r in
+        t >>= (fun v' ->
+          (* Perform the specified "waiting action" for the next    *)
+          (* item in the list.                                      *)
+          if r <> [] then
+            wa (List.hd r)
+          else
+            ();
+          rt >>= (fun l' ->
+            return (v' :: l')))
   in
   if l <> [] then
     wa (List.hd l)

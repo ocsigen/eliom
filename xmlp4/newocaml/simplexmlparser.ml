@@ -33,7 +33,7 @@ value nocaml_msg =
 
 module B = Xmllexer.BasicTypes;
 
-	type state =
+        type state =
       { stream : Stream.t (B.token * Loc.t); stack : Stack.t B.token; loc : Loc.t
       };
     type error_msg =
@@ -58,16 +58,16 @@ module B = Xmllexer.BasicTypes;
       | (B.Whitespace _, s) -> read_nodes s acc
       | (B.PCData pcdata, s) -> read_nodes s [(PCData pcdata)::acc]
       | (B.Tag (tag, attlist, closed), s) ->
-		  match closed with
+                  match closed with
           [ True -> read_nodes s [Element (tag, (read_attlist s attlist), [])::acc]
           | False ->read_nodes s
-			   [Element (tag, (read_attlist s attlist), (read_elems ~tag s))::acc]
-		  ]
+                           [Element (tag, (read_attlist s attlist), (read_elems ~tag s))::acc]
+                  ]
       | (B.CamlExpr _, _) | (B.CamlString _, _)|(B.CamlList _, _) ->
-	  		raise (Xml_parser_error nocaml_msg)
-	  | (B.Eof, _)|(B.Endtag _,_) as t ->
-	  		do { push (fst t) s; List.rev acc}
-	  ]
+                        raise (Xml_parser_error nocaml_msg)
+          | (B.Eof, _)|(B.Endtag _,_) as t ->
+                        do { push (fst t) s; List.rev acc}
+          ]
 
    and read_elems ?tag s =
       let elems = read_nodes s [] in
@@ -90,7 +90,7 @@ module B = Xmllexer.BasicTypes;
 
     value to_expr_taglist stream loc =
       let s = {  stream = stream; stack = Stack.create (); loc = loc; } in
-	  read_nodes s [];
+          read_nodes s [];
 
 value rawxmlparser s =
   let chan = open_in s in

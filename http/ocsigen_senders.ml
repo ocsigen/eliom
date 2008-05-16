@@ -391,50 +391,50 @@ module Directory_content =
           let stat = Unix.LargeFile.stat (filename^f) in
           if (stat.Unix.LargeFile.st_kind = Unix.S_DIR && f <> "." && f <> "..")
           then
-	    (
-	     `Dir, f, (
-	     "<tr>\n"^
-	     "<td class=\"img\"><img src=\"/ocsigenstuff/folder_open.png\" alt=\"\" /></td>\n"^
-	     "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
-	     "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
-	     "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
-	     "</tr>\n")
+            (
+             `Dir, f, (
+             "<tr>\n"^
+             "<td class=\"img\"><img src=\"/ocsigenstuff/folder_open.png\" alt=\"\" /></td>\n"^
+             "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
+             "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
+             "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
+             "</tr>\n")
             )::aux d
           else
-	    if (stat.Unix.LargeFile.st_kind
+            if (stat.Unix.LargeFile.st_kind
                   = Unix.S_REG)
-	    then
-	      (
-	       if f.[(String.length f) - 1] = '~'
-	       then aux d
-	       else
-	         (
-	          `Reg, f,
-	          "<tr>\n"^
-	          "<td class=\"img\"><img src=\""^image_found f^"\" alt=\"\" /></td>\n"^
-	          "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
-	          "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
-	          "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
-	          "</tr>\n"
-	         )::aux d
-	      )
-	    else aux d
+            then
+              (
+               if f.[(String.length f) - 1] = '~'
+               then aux d
+               else
+                 (
+                  `Reg, f,
+                  "<tr>\n"^
+                  "<td class=\"img\"><img src=\""^image_found f^"\" alt=\"\" /></td>\n"^
+                  "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
+                  "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
+                  "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
+                  "</tr>\n"
+                 )::aux d
+              )
+            else aux d
         with
-	  End_of_file -> Unix.closedir d;[]
+          End_of_file -> Unix.closedir d;[]
 
       in
       let trie li =
         List.sort (fun (a1, b1, _) (a2, b2, _) -> match a1, a2 with
-	| `Dir, `Dir ->
-	    if b1<b2
-	    then 0
-	    else 1
-	| `Dir, _ -> 0
-	| _, `Dir -> 1
-	| _, _->
-	    if b1<b2
-	    then 0
-	    else 1) li
+        | `Dir, `Dir ->
+            if b1<b2
+            then 0
+            else 1
+        | `Dir, _ -> 0
+        | _, `Dir -> 1
+        | _, _->
+            if b1<b2
+            then 0
+            else 1) li
 
       in let rec aux2 = function
         | [] -> ""
@@ -528,11 +528,11 @@ module Error_content =
             (code, error_mes, Http_headers.empty)
       in
       let headers =
-	(* puts dynamic headers *)
-	let (<<) h (n, v) = Http_headers.replace n v h in
-	headers
-	<< (Http_headers.cache_control, "no-cache")
-	<< (Http_headers.expires, "0")
+        (* puts dynamic headers *)
+        let (<<) h (n, v) = Http_headers.replace n v h in
+        headers
+        << (Http_headers.cache_control, "no-cache")
+        << (Http_headers.expires, "0")
       in
       let str_code = string_of_int error_code in
       let err_page =

@@ -47,8 +47,8 @@ struct
   module Error = struct
 
     type t =
-	[ EndOfTagExpected of string
-	| EOFExpected
+        [ EndOfTagExpected of string
+        | EOFExpected
         |NoMoreData ] ;
 
     exception E of t ;
@@ -79,8 +79,8 @@ value pop s =
     (Stack.pop s.stack, s)
   with
       [Stack.Empty ->
-	 let (t,l) = Stream.next s.stream in
-	   (t, {stream = s.stream ; stack = s.stack ; loc = l })] ;
+         let (t,l) = Stream.next s.stream in
+           (t, {stream = s.stream ; stack = s.stack ; loc = l })] ;
 
     value push t s =
   Stack.push t s.stack ;
@@ -120,19 +120,19 @@ value pop s =
     value rec read_node s =
   let loc = s.loc in
     match pop s with
-	[ (PCData s, _) ->
-	    <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $str:String.escaped s$))
+        [ (PCData s, _) ->
+            <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $str:String.escaped s$))
                        : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
-	| (CamlString s, _) ->
-	    <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $get_expr s loc$))
+        | (CamlString s, _) ->
+            <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $get_expr s loc$))
                        : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
         | (CamlList s, _) -> raise (CamlListExc s)
         | (CamlExpr s, _) -> get_expr s loc
         | (Whitespace s, _) ->
             <:expr< XHTML.M.tot (XML.Whitespace $str:String.escaped s$) >>
         | (Comment s, _) ->
-	    <:expr< XHTML.M.tot (XML.Comment $str:String.escaped s$) >>
-	| (Tag (tag, attlist, closed), s) ->
+            <:expr< XHTML.M.tot (XML.Comment $str:String.escaped s$) >>
+        | (Tag (tag, attlist, closed), s) ->
             let constr =
               if List.mem tag blocktags
               then "BlockElement"
@@ -156,42 +156,42 @@ value pop s =
                                   : XHTML.M.elt [> `$uid: String.capitalize tag$])
                        >>
                    ])
-	| (t,_) ->
-	  do {push t s;
-	      raise (E NoMoreData)}
+        | (t,_) ->
+          do {push t s;
+              raise (E NoMoreData)}
 ]
 
 and read_elems ?tag s =
   let elems = ref [] in
   let loc = s.loc in
   let _ = (try
-	     while True do {
-	       try
+             while True do {
+               try
                  match (read_node s, elems.val) with [
                    (* TODO: concaténer les retours à la ligne et $ des PCData en ajoutant :
-  		      | (PCData c , [(PCData c2) :: q]) ->
-  		      elems.val := [PCData (Printf.sprintf "%s\n%s" c2 c) :: q]
-  		      il faut traduire les PCData du pattern matching et de l'expression en
-  		      leur équivalent Ast.*)
+                      | (PCData c , [(PCData c2) :: q]) ->
+                      elems.val := [PCData (Printf.sprintf "%s\n%s" c2 c) :: q]
+                      il faut traduire les PCData du pattern matching et de l'expression en
+                      leur équivalent Ast.*)
                    (x,l) -> elems.val := [(`Elt x) :: l] ]
-	       with [
+               with [
                  CamlListExc e ->
                    let l = get_expr e s.loc in
                      elems.val := [ (`List l) :: elems.val ]
                ]
              }
-	   with
-	       [E NoMoreData -> ()]) in
+           with
+               [E NoMoreData -> ()]) in
     match pop s with
-	[ (Endtag s,_) when Some s = tag ->
-	    <:expr< $expr_of_list loc (List.rev elems.val) $ >>
-	| (Eof,_) when tag = None ->
-	    <:expr< $expr_of_list loc (List.rev elems.val) $ >>
-	| (t,s) ->
-	    match tag with
-		[ None -> err EOFExpected s.loc
-		| Some t -> err (EndOfTagExpected t) s.loc
-		]
+        [ (Endtag s,_) when Some s = tag ->
+            <:expr< $expr_of_list loc (List.rev elems.val) $ >>
+        | (Eof,_) when tag = None ->
+            <:expr< $expr_of_list loc (List.rev elems.val) $ >>
+        | (t,s) ->
+            match tag with
+                [ None -> err EOFExpected s.loc
+                | Some t -> err (EndOfTagExpected t) s.loc
+                ]
         ]
 
 

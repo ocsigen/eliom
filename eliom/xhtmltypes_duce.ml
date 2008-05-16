@@ -1,15 +1,15 @@
 (** This interface corresponds to the XHTML 1.0 Strict DTD, for Ocamlduce. *)
 
 type events = {{  {   onkeyup=?String
-		      onkeydown=?String
-		      onkeypress=?String
-		      onmouseout=?String
-		      onmousemove=?String
-		      onmouseover=?String
-		      onmouseup=?String
-		      onmousedown=?String
-		      ondblclick=?String
-		      onclick=?String } }}
+                      onkeydown=?String
+                      onkeypress=?String
+                      onmouseout=?String
+                      onmousemove=?String
+                      onmouseover=?String
+                      onmouseup=?String
+                      onmousedown=?String
+                      ondblclick=?String
+                      onclick=?String } }}
 
 type valign = {{ "top" | "middle" | "bottom" | "baseline" }}
 type align = {{ "left" | "center" | "right" | "justify" | "char" }}
@@ -21,9 +21,9 @@ type coreattrs = {{ { title=?String style=?String class=?String } ++ id }}
 type i18n = {{ { dir=?"ltr"|"rtl" xml:lang=?String lang=?String } }}
 
 type focus = {{ {   onblur=?String
-		    onfocus=?String
-		    tabindex=?String
-		    accesskey=?String } }}
+                    onfocus=?String
+                    tabindex=?String
+                    accesskey=?String } }}
 
 type attrs = {{ coreattrs ++ i18n ++ events }}
 
@@ -35,7 +35,7 @@ type special_pre = {{ br | span | bdo | _map }}
 and special = {{ special_pre | _object | img }}
 and fontstyle = {{ tt | i | b | big | small }}
 and phrase = {{ em | strong | dfn | code | q
-	      | samp | kbd | var | cite | abbr | acronym | sub | sup }}
+              | samp | kbd | var | cite | abbr | acronym | sub | sup }}
 and inline_forms = {{ input | select | textarea | label | button }}
 and misc_inline = {{ ins | del | script }}
 and misc = {{ noscript | misc_inline }}
@@ -60,13 +60,13 @@ and html = {{ <html (i18n ++ id)>[ head body ] }}
 
 and head_misc = {{ script|style|meta|link|_object }}
 and head = {{ <head (i18n ++ id ++ { profile=?String })>[
-		head_misc* title head_misc* base? head_misc*
-	      | head_misc* base head_misc* title head_misc* ] }}
+                head_misc* title head_misc* base? head_misc*
+              | head_misc* base head_misc* title head_misc* ] }}
 
 and title = {{ <title (i18n ++ id)>[ PCDATA ] }}
 and base = {{ <base (id ++ { href=String })>[  ] }}
 and meta = {{ <meta (i18n ++ id ++ { scheme=?String content=String name=?String http-equiv=?String })>
-		[ ] }}
+                [ ] }}
 
 and link_attrs =
     {{ attrs ++ { media=?String rev=?String rel=?String type=?String
@@ -136,15 +136,15 @@ and del = {{ <del (attrs ++ { cite =? String datetime =? String })>flows }}
 
 and a_attrs =
     {{ attrs ++ focus ++ {
-		 charset =? String
-		 type =? String
-		 name =? String
-		 href =? String
-		 hreflang =? String
-		 rel =? String
-		 rev =? String
-		 shape =? shape
-		 coords =? String} }}
+                 charset =? String
+                 type =? String
+                 name =? String
+                 href =? String
+                 hreflang =? String
+                 rel =? String
+                 rev =? String
+                 shape =? shape
+                 coords =? String} }}
 
 and a_content =
      {{ Char | special | fontstyle | phrase | inline_forms | misc_inline
@@ -181,39 +181,39 @@ and small = {{ <small (attrs)>inlines }}
 (* Object *)
 
 and _object = {{ <object (attrs ++
-			    { tabindex=?String name=?String
-				usemap=?String width=?String
-				height=?String standby=?String
-				archive=?String codetype=?String
-			        type=?String data=?String codebase=?String
-				classid=?String declare=?"declare" })>
-		   [ (Char|param|block|form|inline|misc)* ] }}
+                            { tabindex=?String name=?String
+                                usemap=?String width=?String
+                                height=?String standby=?String
+                                archive=?String codetype=?String
+                                type=?String data=?String codebase=?String
+                                classid=?String declare=?"declare" })>
+                   [ (Char|param|block|form|inline|misc)* ] }}
 
 and param = {{ <param type=?String valuetype=?"data"|"ref"|"object"
-			  value=?String name=?String id=?String>[ ] }}
+                          value=?String name=?String id=?String>[ ] }}
 
 
 (* Images *)
 
 and img = {{ <img (attrs ++ { ismap=?"ismap" usemap=?String width=?String
-		       height=?String longdesc=?String alt=String src=String })>[] }}
+                       height=?String longdesc=?String alt=String src=String })>[] }}
 
 
 (* Client-side image maps *)
 
 and _map = {{ <map ((attrs ++ { name=?String }) & { id = Any .. })>[
-		(block | form | misc)+ | area+ ] }}
+                (block | form | misc)+ | area+ ] }}
 
 and area = {{ <area (attrs ++ focus ++ { alt=String nohref=?"nohref"
-			 href=?String coords=?String shape=?shape })>[ ] }}
+                         href=?String coords=?String shape=?shape })>[ ] }}
 
 
 (* Forms *)
 
 and form_attrs =
   {{ attrs ++ { accept-charset=?String accept=?String
-		onreset=?String onsubmit=?String enctype=?String
-		method=?"get"|"post" action=String} }}
+                onreset=?String onsubmit=?String enctype=?String
+                method=?"get"|"post" action=String} }}
 
 and form_content =
     {{ block|misc }}
@@ -222,7 +222,7 @@ and form = {{ <form (form_attrs)> [ form_content* ] }}
 
 
 and label = {{ <label (attrs ++ { for=?String accesskey=?String onfocus=?String onblur=?String })>
-		 inlines }}
+                 inlines }}
 
 and input_type_values =
   {{ "text"|"password"|"checkbox"|"radio"|"submit"
@@ -232,10 +232,10 @@ and input_attrs =
     {{ attrs ++ focus ++
          {accept=?String onchange=?String
           onselect=?String usemap=?String alt=?String src=?String
-	  maxlength=?String size=?String readonly=?"readonly"
-	  disabled=?"disabled" checked=?"checked" value=?String
-	  name=?String
-	  type=?input_type_values } }}
+          maxlength=?String size=?String readonly=?"readonly"
+          disabled=?"disabled" checked=?"checked" value=?String
+          name=?String
+          type=?input_type_values } }}
 
 and input = {{ <input (input_attrs)>[] }}
 
@@ -243,10 +243,10 @@ and select_attrs =
               {{ attrs ++ {onchange=?String
                              onblur=?String
                              onfocus=?String
-			     tabindex=?String
+                             tabindex=?String
                              disabled=?"disabled"
                              multiple=?"multiple"
-			     size=?String
+                             size=?String
                              name=?String} }}
 
 and select_content = {{ (optgroup|option) }}
@@ -258,19 +258,19 @@ and optgroup_attrs = {{ attrs ++ { disabled=?"disabled" label=String } }}
 and optgroup = {{ <optgroup (optgroup_attrs)>[ option+ ] }}
 
 and option_attrs = {{ attrs ++ { selected=?"selected" disabled=?"disabled"
-			            label=?String value=?String } }}
+                                    label=?String value=?String } }}
 
 and option = {{ <option (option_attrs)>[ PCDATA ] }}
 
 and textarea_attrs =
     {{ attrs ++ focus ++
-	 { onchange=?String
+         { onchange=?String
              onselect=?String
-	     readonly=?"readonly"
+             readonly=?"readonly"
              disabled=?"disabled"
              cols=String
              rows=String
-	     name=?String } }}
+             name=?String } }}
 
 and textarea = {{ <textarea (textarea_attrs)>[ PCDATA ] }}
 
@@ -279,13 +279,13 @@ and legend = {{ <legend (attrs ++ { accesskey=?String })>inlines }}
 
 and button_content = {{ Char | p | heading | _div | lists
                         | blocktext | table | special
-			| fontstyle | phrase | misc }}
+                        | fontstyle | phrase | misc }}
 
 and button_type_values = {{ "button"|"submit"|"reset" }}
 
 and button_attrs = {{ attrs ++ focus ++
-			   { name=?String value=?String
-			     type=?button_type_values
+                           { name=?String value=?String
+                             type=?button_type_values
                              disabled=?"disabled" } }}
 
 and button = {{ <button (button_attrs)>[ button_content* ] }}
@@ -295,10 +295,10 @@ and button = {{ <button (button_attrs)>[ button_content* ] }}
 
 
 and table = {{ <table (attrs ++ {  cellpadding=?String cellspacing=?String
-			       rules=?"none"|"groups"|"rows"|"cols"|"all"
-			       frame=?"void"|"above"|"below"|"hsides"
-		                     |"lhs"|"rhs"|"vsides"|"box"|"border"
-			       border=?String width=?String summary=?String })>[
+                               rules=?"none"|"groups"|"rows"|"cols"|"all"
+                               frame=?"void"|"above"|"below"|"hsides"
+                                     |"lhs"|"rhs"|"vsides"|"box"|"border"
+                               border=?String width=?String summary=?String })>[
                 ( caption? (col* | colgroup* ) thead? tfoot? (tbody+ | tr+) )
                 ]}}
 
@@ -309,10 +309,10 @@ and tfoot = {{ <tfoot (align_attrs)>[ tr+ ] }}
 and tbody = {{ <tbody (align_attrs)>[ tr+ ] }}
 
 and colgroup = {{ <colgroup (align_attrs ++ { span =? String width =? String})>
-		    [ col* ] }}
+                    [ col* ] }}
 and col = {{ <col (align_attrs ++ { span=?String width=?String }) >[] }}
 and tr = {{ <tr (align_attrs)>[ (th|td)+ ] }}
 and th = {{ <th (align_attrs ++ { colspan=?String rowspan=?String
-		            scope=?scope headers=?String axis=?String abbr=?String })>flows }}
+                            scope=?scope headers=?String axis=?String abbr=?String })>flows }}
 and td = {{ <td (align_attrs ++ { colspan=?String rowspan=?String
-		            scope=?scope headers=?String axis=?String abbr=?String })>flows }}
+                            scope=?scope headers=?String axis=?String abbr=?String })>flows }}

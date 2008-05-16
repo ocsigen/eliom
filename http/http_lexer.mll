@@ -75,13 +75,13 @@ rule token =
   |"\n"                 {Ocsigen_messages.debug2 ""; EOL}
   |integer              {let s = Lexing.lexeme lexbuf in
                          Ocsigen_messages.debug_noel2 s;
-			 CODE s}
+                         CODE s}
   |proto                {let s = Lexing.lexeme lexbuf in
                          Ocsigen_messages.debug_noel2 s;
-			 PROTO s}
+                         PROTO s}
   |strin                {let s = Lexing.lexeme lexbuf in
                          Ocsigen_messages.debug_noel2 s;
-			 STRING s}
+                         STRING s}
   |eof                  {raise (Http_error.Http_exception
                                   (400, Some "unexpected end of file", None))}
   |_                    {raise (Http_error.Http_exception

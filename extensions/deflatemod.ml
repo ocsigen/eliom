@@ -92,7 +92,7 @@ let rec output oz f buf pos len  =
         (try return(Zlib.deflate oz.stream buf pos len
                                  oz.buf oz.pos oz.avail
                                  Zlib.Z_SYNC_FLUSH)
-	    with e -> fail e))
+            with e -> fail e))
       (function
          |Zlib.Error(s, s') ->
                 fail (Ocsigen_stream.Stream_error("Error during compression: "^s^" "^s'))

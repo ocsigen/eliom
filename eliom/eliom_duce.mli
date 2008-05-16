@@ -56,14 +56,14 @@ and       type form_content_elt = form_content
   and type a_attrib_t = a_attrs
   and type form_attrib_t =
       {{ attrs ++ { accept-charset=?String accept=?String
-  	          onreset=?String onsubmit=?String enctype=?String } }}
+                  onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
   and type textarea_attrib_t = {{ attrs ++ focus ++
-  	{ onchange=?String
+        { onchange=?String
               onselect=?String
-  	    readonly=?"readonly"
+            readonly=?"readonly"
               disabled=?"disabled"
-  	    name=?String } }}
+            name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
   and type script_attrib_t =
@@ -106,14 +106,14 @@ and       type form_content_elt = form_content
   and type a_attrib_t = a_attrs
   and type form_attrib_t =
       {{ attrs ++ { accept-charset=?String accept=?String
-  	          onreset=?String onsubmit=?String enctype=?String } }}
+                  onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
   and type textarea_attrib_t = {{ attrs ++ focus ++
-  	{ onchange=?String
+        { onchange=?String
               onselect=?String
-  	    readonly=?"readonly"
+            readonly=?"readonly"
               disabled=?"disabled"
-  	    name=?String } }}
+            name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
   and type script_attrib_t =
@@ -156,14 +156,14 @@ and       type form_content_elt = form_content
   and type a_attrib_t = a_attrs
   and type form_attrib_t =
       {{ attrs ++ { accept-charset=?String accept=?String
-  	          onreset=?String onsubmit=?String enctype=?String } }}
+                  onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
   and type textarea_attrib_t = {{ attrs ++ focus ++
-  	{ onchange=?String
+        { onchange=?String
               onselect=?String
-  	    readonly=?"readonly"
+            readonly=?"readonly"
               disabled=?"disabled"
-  	    name=?String } }}
+            name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
   and type script_attrib_t =
@@ -205,14 +205,14 @@ and       type form_content_elt = form_content
   and type a_attrib_t = a_attrs
   and type form_attrib_t =
       {{ attrs ++ { accept-charset=?String accept=?String
-  	          onreset=?String onsubmit=?String enctype=?String } }}
+                  onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
   and type textarea_attrib_t = {{ attrs ++ focus ++
-  	{ onchange=?String
+        { onchange=?String
               onselect=?String
-  	    readonly=?"readonly"
+            readonly=?"readonly"
               disabled=?"disabled"
-  	    name=?String } }}
+            name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
   and type script_attrib_t =
@@ -261,14 +261,14 @@ sig
   and type a_attrib_t = a_attrs
   and type form_attrib_t =
       {{ attrs ++ { accept-charset=?String accept=?String
-  	          onreset=?String onsubmit=?String enctype=?String } }}
+                  onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
   and type textarea_attrib_t = {{ attrs ++ focus ++
-  	{ onchange=?String
+        { onchange=?String
               onselect=?String
-  	    readonly=?"readonly"
+            readonly=?"readonly"
               disabled=?"disabled"
-  	    name=?String } }}
+            name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
   and type script_attrib_t =

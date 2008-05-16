@@ -457,8 +457,8 @@ module MakeRegister = functor
               let sppt = get_post_params_type_ service in
               Eliommod_services.add_service
                 table
-	        duringsession
-	        (get_sub_path_ attser)
+                duringsession
+                (get_sub_path_ attser)
                 ({Eliom_common.key_state = (attserget, attserpost);
                   Eliom_common.key_kind = key_kind},
                  ((if attserget = None || attserpost = None
@@ -505,24 +505,24 @@ module MakeRegister = functor
                 )
           | `Nonattached naser ->
               Eliommod_naservices.add_naservice
-	        table
-	        duringsession
-	        (get_na_name_ naser)
+                table
+                duringsession
+                (get_na_name_ naser)
                 ((match get_max_use_ service with
                 | None -> None
                 | Some i -> Some (ref i)),
                  (match get_timeout_ service with
                  | None -> None
                  | Some t -> Some (t, ref (t +. Unix.time ()))),
-	         (fun sp ->
+                 (fun sp ->
                    let sp2 = Eliom_sessions.sp_of_esp sp in
                    let ri = get_ri sp2 in
-	           (catch
-	              (fun () ->
-	                (get_post_params sp2) >>=
-	                (fun post_params ->
-		          (force ri.ri_files) >>=
-		          (fun files ->
+                   (catch
+                      (fun () ->
+                        (get_post_params sp2) >>=
+                        (fun post_params ->
+                          (force ri.ri_files) >>=
+                          (fun files ->
                             (page_generator sp2
                                (reconstruct_params
                                   (get_get_params_type_ service)
@@ -534,7 +534,7 @@ module MakeRegister = functor
                                   post_params
                                   files
                                   [])))))
-	              (function
+                      (function
                         | Eliom_common.Eliom_Typing_Error l ->
                             error_handler sp2 l
                         | e -> fail e)) >>=

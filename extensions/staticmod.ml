@@ -72,25 +72,25 @@ let find_static_page dir err path pathstring =
           then
             let fn2 = filename^"index.html" in
             Ocsigen_messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
-	    try
-	      (fn2, (Unix.LargeFile.stat fn2))
-	    with
-	    | Unix.Unix_error (Unix.ENOENT,_,_) ->
-	        if readable
-	        then (filename, stat)
-	        else raise Failed_403
+            try
+              (fn2, (Unix.LargeFile.stat fn2))
+            with
+            | Unix.Unix_error (Unix.ENOENT,_,_) ->
+                if readable
+                then (filename, stat)
+                else raise Failed_403
           else
             (if (path= []) || (path = [""])
             then
               let fn2 = filename^"/index.html" in
               Ocsigen_messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
               try
-	        (fn2, (Unix.LargeFile.stat fn2))
-	      with
-	      | Unix.Unix_error (Unix.ENOENT, _, _) ->
-		  if readable
-		  then (filename^"/", stat)
-		  else raise Failed_403
+                (fn2, (Unix.LargeFile.stat fn2))
+              with
+              | Unix.Unix_error (Unix.ENOENT, _, _) ->
+                  if readable
+                  then (filename^"/", stat)
+                  else raise Failed_403
             else (Ocsigen_messages.debug
                     (fun () -> "--Staticmod: "^filename^" is a directory");
                   raise Ocsigen_Is_a_directory)))
@@ -106,7 +106,7 @@ let find_static_page dir err path pathstring =
       else (
         if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
         then
-	  RDir filename
+          RDir filename
         else raise Failed_404)
     with Unix.Unix_error (Unix.ENOENT,_,_) -> raise Failed_404
   in
@@ -157,7 +157,7 @@ let gen dir charset = function
                                (fun () ->
                                   Lwt.return
                                     {r with
-		                       Ocsigen_http_frame.res_code= err;
+                                       Ocsigen_http_frame.res_code= err;
                                     })))
                      | code, RFile filename ->
                          Ocsigen_senders.File_content.result_of_content filename
@@ -169,7 +169,7 @@ let gen dir charset = function
                                      (fun () ->
                                         Lwt.return
                                           {r with
-		                             Ocsigen_http_frame.res_charset= Some charset;
+                                             Ocsigen_http_frame.res_charset= Some charset;
                                           }))
                             | Some _ -> (* It is an error handler *)
                                 return
@@ -177,8 +177,8 @@ let gen dir charset = function
                                      (fun () ->
                                         Lwt.return
                                           {r with
-		                             Ocsigen_http_frame.res_charset= Some charset;
-		                             Ocsigen_http_frame.res_code= err;
+                                             Ocsigen_http_frame.res_charset= Some charset;
+                                             Ocsigen_http_frame.res_code= err;
                                           })))
 
            end
