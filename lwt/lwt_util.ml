@@ -55,7 +55,7 @@ let rec map_serial f l =
       return []
   | v :: r ->
       f v >>= (fun v' ->
-      map f r >>= (fun l' ->
+      map_serial f r >>= (fun l' ->
       return (v' :: l')))
 
 let rec fold_left f a = function
