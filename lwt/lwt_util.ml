@@ -12,7 +12,7 @@ let rec iter f l =
 let rec iter_serial f l =
   match l with
     []     -> return ()
-  | a :: r -> f a >>= (fun () -> iter f r)
+  | a :: r -> f a >>= (fun () -> iter_serial f r)
 
 let rec map f l =
   match l with
