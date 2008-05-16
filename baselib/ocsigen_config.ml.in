@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -42,13 +42,13 @@ let builtin_packages =
 
 (* Server config: *)
 let (uploaddir : string option ref) = ref None
-let logdir = ref "_LOGDIR_" 
-let default_user = ref "_OCSIGENUSER_" 
+let logdir = ref "_LOGDIR_"
+let default_user = ref "_OCSIGENUSER_"
 let default_group = ref "_OCSIGENGROUP_"
-let minthreads = ref 10 
-let maxthreads = ref 1500 
+let minthreads = ref 10
+let maxthreads = ref 1500
 let max_number_of_connections = ref 500
-let mimefile = ref "_CONFIGDIR_/mime.types" 
+let mimefile = ref "_CONFIGDIR_/mime.types"
 let silent_client_timeout = ref 10 (* without speaking during sending frame *)
 let silent_server_timeout = ref 30 (* without speaking during sending frame *)
 (*let keepalive_timeout = ref 30
@@ -79,7 +79,7 @@ let set_daemon () = set_silent (); daemon := true
 let set_veryverbose () = verbose := true; veryverbose := true
 let set_minthreads i = minthreads := i
 let set_maxthreads i = maxthreads := i
-let set_max_number_of_threads_queued = 
+let set_max_number_of_threads_queued =
   Lwt_preemptive.set_max_number_of_threads_queued
 let set_max_number_of_connections i = max_number_of_connections := i
 let set_client_timeout i = silent_client_timeout := i
@@ -113,7 +113,7 @@ let get_default_user () = !default_user
 let get_default_group () = !default_group
 let get_minthreads () = !minthreads
 let get_maxthreads () = !maxthreads
-let get_max_number_of_threads_queued = 
+let get_max_number_of_threads_queued =
   Lwt_preemptive.get_max_number_of_threads_queued
 let get_max_number_of_connections () = !max_number_of_connections
 let get_client_timeout () = !silent_client_timeout
@@ -140,7 +140,7 @@ let display_version () =
   print_newline ();
   exit 0
 
-let config () = 
+let config () =
     Simplexmlparser.xmlparser (get_config_file ())
 
 

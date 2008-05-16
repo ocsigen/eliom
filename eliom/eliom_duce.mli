@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -21,13 +21,13 @@
 
 (** A module to generate pages using OCamlduce *)
 
-(** For now, it does not seem to be easy to create a functor like 
+(** For now, it does not seem to be easy to create a functor like
     {!Eliom_predefmod.SubXhtml} for Eliom_duce. Use {!Xml} or
     {!Xmllist} instead. *)
 
 open Xhtmltypes_duce
 
-module Xhtml : Eliom_predefmod.ELIOMSIG with 
+module Xhtml : Eliom_predefmod.ELIOMSIG with
 type page = html
 and       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
@@ -54,19 +54,19 @@ and       type form_content_elt = form_content
   and type option_elt_list = {{ [ option* ] }}
 
   and type a_attrib_t = a_attrs
-  and type form_attrib_t = 
-      {{ attrs ++ { accept-charset=?String accept=?String 
+  and type form_attrib_t =
+      {{ attrs ++ { accept-charset=?String accept=?String
   	          onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
-  and type textarea_attrib_t = {{ attrs ++ focus ++ 
+  and type textarea_attrib_t = {{ attrs ++ focus ++
   	{ onchange=?String
-              onselect=?String 
-  	    readonly=?"readonly" 
-              disabled=?"disabled" 
+              onselect=?String
+  	    readonly=?"readonly"
+              disabled=?"disabled"
   	    name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
-  and type script_attrib_t = 
+  and type script_attrib_t =
       {{ id ++ { defer=?"defer" src=?String charset=?String } }}
   and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
   and type option_attrib_t = option_attrs
@@ -77,7 +77,7 @@ and       type form_content_elt = form_content
 (** Register and create form for Xhtml *)
 
 
-module Xml : Eliom_predefmod.ELIOMSIG with 
+module Xml : Eliom_predefmod.ELIOMSIG with
 type page = Ocamlduce.Load.anyxml
 and       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
@@ -104,19 +104,19 @@ and       type form_content_elt = form_content
   and type option_elt_list = {{ [ option* ] }}
 
   and type a_attrib_t = a_attrs
-  and type form_attrib_t = 
-      {{ attrs ++ { accept-charset=?String accept=?String 
+  and type form_attrib_t =
+      {{ attrs ++ { accept-charset=?String accept=?String
   	          onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
-  and type textarea_attrib_t = {{ attrs ++ focus ++ 
+  and type textarea_attrib_t = {{ attrs ++ focus ++
   	{ onchange=?String
-              onselect=?String 
-  	    readonly=?"readonly" 
-              disabled=?"disabled" 
+              onselect=?String
+  	    readonly=?"readonly"
+              disabled=?"disabled"
   	    name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
-  and type script_attrib_t = 
+  and type script_attrib_t =
       {{ id ++ { defer=?"defer" src=?String charset=?String } }}
   and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
   and type option_attrib_t = option_attrs
@@ -127,7 +127,7 @@ and       type form_content_elt = form_content
 (** Register and create form for any XML data type *)
 
 
-module Xmllist : Eliom_predefmod.ELIOMSIG with 
+module Xmllist : Eliom_predefmod.ELIOMSIG with
 type page = Ocamlduce.Load.anyxml list
 and       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
@@ -154,19 +154,19 @@ and       type form_content_elt = form_content
   and type option_elt_list = {{ [ option* ] }}
 
   and type a_attrib_t = a_attrs
-  and type form_attrib_t = 
-      {{ attrs ++ { accept-charset=?String accept=?String 
+  and type form_attrib_t =
+      {{ attrs ++ { accept-charset=?String accept=?String
   	          onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
-  and type textarea_attrib_t = {{ attrs ++ focus ++ 
+  and type textarea_attrib_t = {{ attrs ++ focus ++
   	{ onchange=?String
-              onselect=?String 
-  	    readonly=?"readonly" 
-              disabled=?"disabled" 
+              onselect=?String
+  	    readonly=?"readonly"
+              disabled=?"disabled"
   	    name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
-  and type script_attrib_t = 
+  and type script_attrib_t =
       {{ id ++ { defer=?"defer" src=?String charset=?String } }}
   and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
   and type option_attrib_t = option_attrs
@@ -176,7 +176,7 @@ and       type form_content_elt = form_content
   and type button_type_t = button_type_values
 (** Register and create form for list of XML data type *)
 
-module Blocks : Eliom_predefmod.ELIOMSIG with 
+module Blocks : Eliom_predefmod.ELIOMSIG with
 type page = blocks
 and       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
@@ -203,19 +203,19 @@ and       type form_content_elt = form_content
   and type option_elt_list = {{ [ option* ] }}
 
   and type a_attrib_t = a_attrs
-  and type form_attrib_t = 
-      {{ attrs ++ { accept-charset=?String accept=?String 
+  and type form_attrib_t =
+      {{ attrs ++ { accept-charset=?String accept=?String
   	          onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
-  and type textarea_attrib_t = {{ attrs ++ focus ++ 
+  and type textarea_attrib_t = {{ attrs ++ focus ++
   	{ onchange=?String
-              onselect=?String 
-  	    readonly=?"readonly" 
-              disabled=?"disabled" 
+              onselect=?String
+  	    readonly=?"readonly"
+              disabled=?"disabled"
   	    name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
-  and type script_attrib_t = 
+  and type script_attrib_t =
       {{ id ++ { defer=?"defer" src=?String charset=?String } }}
   and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
   and type option_attrib_t = option_attrs
@@ -226,14 +226,14 @@ and       type form_content_elt = form_content
 (** Register and create form for list of [blocks] (subtype of xhtml) *)
 
 module SubXhtml :
-  functor(T : sig 
+  functor(T : sig
             type content
-            val print : (string -> unit ) -> content -> unit 
+            val print : (string -> unit ) -> content -> unit
           end) ->
 sig
 
   include Eliom_mkreg.ELIOMREGSIG with type page = T.content
-  include Eliom_mkforms.ELIOMFORMSIG with 
+  include Eliom_mkforms.ELIOMFORMSIG with
       type form_content_elt = form_content
   and type form_content_elt_list = {{ [ form_content* ] }}
   and type form_elt = form
@@ -259,19 +259,19 @@ sig
   and type option_elt_list = {{ [ option* ] }}
 
   and type a_attrib_t = a_attrs
-  and type form_attrib_t = 
-      {{ attrs ++ { accept-charset=?String accept=?String 
+  and type form_attrib_t =
+      {{ attrs ++ { accept-charset=?String accept=?String
   	          onreset=?String onsubmit=?String enctype=?String } }}
   and type input_attrib_t = input_attrs
-  and type textarea_attrib_t = {{ attrs ++ focus ++ 
+  and type textarea_attrib_t = {{ attrs ++ focus ++
   	{ onchange=?String
-              onselect=?String 
-  	    readonly=?"readonly" 
-              disabled=?"disabled" 
+              onselect=?String
+  	    readonly=?"readonly"
+              disabled=?"disabled"
   	    name=?String } }}
   and type select_attrib_t = select_attrs
   and type link_attrib_t = link_attrs
-  and type script_attrib_t = 
+  and type script_attrib_t =
       {{ id ++ { defer=?"defer" src=?String charset=?String } }}
   and type optgroup_attrib_t = {{ attrs ++ { disabled=?"disabled" } }}
   and type option_attrib_t = option_attrs
@@ -279,7 +279,7 @@ sig
 
   and type input_type_t = input_type_values
   and type button_type_t = button_type_values
-      
+
 end
 
 

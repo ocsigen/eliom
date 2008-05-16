@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -30,10 +30,10 @@ open Eliom_services
 
 
 type ('a, 'b) one_page =
-    (unit, unit, 
+    (unit, unit,
      'a,
      [ `WithoutSuffix ],
-     unit, unit, 
+     unit, unit,
      'b) service
 
 let menu_class = "eliomtools_menu"
@@ -46,27 +46,27 @@ let level_class = "eliomtools_level"
 let menu ?(classe=[]) first l ?service:current ~sp =
   let rec aux = function
     | [] -> []
-    | [(url, text)] -> 
+    | [(url, text)] ->
         let classe = [last_class] in
-        if Some url = (* problem with preapplied services with == *) current 
+        if Some url = (* problem with preapplied services with == *) current
         then [li ~a:[a_class (current_class::classe)] text]
         else [li ~a:[a_class classe] [a url sp text ()]]
-    | (url, text)::l -> 
-        (if Some url = (* problem with preapplied services with == *) current 
+    | (url, text)::l ->
+        (if Some url = (* problem with preapplied services with == *) current
         then  (li ~a:[a_class [current_class]] text)
         else (li [a url sp text ()]))::(aux l)
   in match first::l with
   | [] -> assert false
   | [(url, text)] ->
-      ul ~a:[a_class (menu_class::classe)] 
+      ul ~a:[a_class (menu_class::classe)]
         (let liclasse = [first_class; last_class] in
-        if Some url = (* problem with preapplied services with == *) current 
-        then (li ~a:[a_class (current_class::liclasse)] text) 
+        if Some url = (* problem with preapplied services with == *) current
+        then (li ~a:[a_class (current_class::liclasse)] text)
         else (li ~a:[a_class liclasse] [a url sp text ()])) []
-  | (url, text)::l -> 
+  | (url, text)::l ->
       ul ~a:[a_class (menu_class::classe)]
         (let liclasse = [first_class] in
-        if Some url = (* problem with preapplied services with == *) current 
+        if Some url = (* problem with preapplied services with == *) current
         then (li ~a:[a_class (current_class::liclasse)] text)
         else (li ~a:[a_class liclasse] [a url sp text ()])) (aux l)
 
@@ -79,13 +79,13 @@ and ('a, 'b, 'c) main_page =
   | Default_page of ('a, 'b) one_page
   | Not_clickable
 and ('a, 'b, 'c) hierarchical_site =
-      (('a, 'b, 'c) main_page * 
+      (('a, 'b, 'c) main_page *
          ('c XHTML.M.elt list * ('a, 'b, 'c) hierarchical_site_item) list)
 
 let find_in_hierarchy service (main, pages) =
   let rec aux service i = function
     | [] -> raise Not_found
-    | (_, Site_tree (Main_page s, hsl))::_ when s = service -> 
+    | (_, Site_tree (Main_page s, hsl))::_ when s = service ->
         (try
           i::aux service 0 hsl
         with Not_found -> [i])
@@ -94,23 +94,23 @@ let find_in_hierarchy service (main, pages) =
         (try
           i::aux service 0 hsl
         with Not_found -> aux service (i+1) l)
-  in 
+  in
   try
     match service with
       | None -> []
       | Some service -> aux service 0 pages
   with Not_found -> []
-  
+
 
 let hierarchical_menu_depth_first
-    ?(classe=[]) 
+    ?(classe=[])
     ?(whole_tree=false)
     ((page, pages) as the_menu)
     ?service
     ~sp =
-  
+
   let rec depth_first_fun pages level pos : [ `Ul ] XHTML.M.elt list =
-    let rec one_item first last i s = 
+    let rec one_item first last i s =
       let (classe, pos2, deplier) =
         match pos with
         | [] -> ([], [], false)
@@ -127,21 +127,21 @@ let hierarchical_menu_depth_first
           first_class::classe
         else classe
       in
-      let attclass = 
+      let attclass =
         if classe = [] then
           []
         else [a_class classe]
       in
       match s with
       | (text, Site_tree (Default_page page, []))
-      | (text, Site_tree (Main_page page, [])) -> 
+      | (text, Site_tree (Main_page page, [])) ->
           li ~a:attclass [a page sp text ()]
-      | (text, Site_tree (Not_clickable, [])) -> 
+      | (text, Site_tree (Not_clickable, [])) ->
           li ~a:attclass text
-      | (text, Disabled) -> 
+      | (text, Disabled) ->
           li ~a:[a_class (disabled_class::classe)] text
       | (text, Site_tree (Default_page page, hsl))
-      | (text, Site_tree (Main_page page, hsl)) -> 
+      | (text, Site_tree (Main_page page, hsl)) ->
           li ~a:attclass
             ((a page sp text ())::
              if deplier || whole_tree then
@@ -149,7 +149,7 @@ let hierarchical_menu_depth_first
                   : [ `Ul ] XHTML.M.elt list
                   :> [< Xhtmltypes.li_content > `Ul ] XHTML.M.elt list)
              else [])
-      | (text, Site_tree (Not_clickable, hsl)) -> 
+      | (text, Site_tree (Not_clickable, hsl)) ->
           li ~a:attclass
             ((text : Xhtmltypes.a_content XHTML.M.elt list
                 :> Xhtmltypes.li_content XHTML.M.elt list)@
@@ -158,7 +158,7 @@ let hierarchical_menu_depth_first
                   : [ `Ul ] XHTML.M.elt list
                   :> [< Xhtmltypes.li_content > `Ul ] XHTML.M.elt list)
              else [])
-            
+
     and one_menu first i = function
       | [] -> []
       | [a] -> [one_item first true i a]
@@ -175,14 +175,14 @@ let hierarchical_menu_depth_first
 
 
 let hierarchical_menu_breadth_first
-    ?(classe=[]) 
+    ?(classe=[])
     ((page, pages) as the_menu)
     ?service
     ~sp =
 
   let rec breadth_first_fun pages level pos
       : [ `Ul ] XHTML.M.elt list =
-    let rec one_item first last i s = 
+    let rec one_item first last i s =
       let (classe, pos2, deplier) =
         match pos with
         | [] -> ([], [], false)
@@ -199,18 +199,18 @@ let hierarchical_menu_breadth_first
           first_class::classe
         else classe
       in
-      let attclass = 
+      let attclass =
         if classe = [] then
           []
         else [a_class classe]
       in
       match s with
       | (text, Site_tree (Default_page page, _))
-      | (text, Site_tree (Main_page page, _)) -> 
+      | (text, Site_tree (Main_page page, _)) ->
           li ~a:attclass [a page sp text ()]
-      | (text, Site_tree (Not_clickable, _)) -> 
+      | (text, Site_tree (Not_clickable, _)) ->
           li ~a:attclass text
-      | (text, Disabled) -> 
+      | (text, Disabled) ->
           li ~a:[a_class (disabled_class::classe)] text
     and one_menu first i = function
       | [] -> []
@@ -233,7 +233,7 @@ let hierarchical_menu_breadth_first
     match one_menu true 0 pages with
     | [] -> l
     | li::lis -> (ul ~a:[a_class (menu_class::classe)] li lis)::l
-          
+
   in
   (breadth_first_fun pages 0 (find_in_hierarchy service the_menu)
     : [ `Ul ] XHTML.M.elt list :> [> `Ul ] XHTML.M.elt list)
@@ -245,24 +245,24 @@ let structure_links (default, pages) ?service ~sp =
     match s with
     | None -> endlist
     | Some s ->
-        (link ~a:[a_rev [`Subsection]; 
-                 a_href (make_uri s sp ()); 
+        (link ~a:[a_rev [`Subsection];
+                 a_href (make_uri s sp ());
                ] ())::endlist
   in
   let make_rel s =
     (* s is a subsection of mine *)
-    link ~a:[a_rel [`Subsection]; 
-             a_href (make_uri s sp ()); 
+    link ~a:[a_rel [`Subsection];
+             a_href (make_uri s sp ());
            ] ()
   in
-  let make_rels beg a = 
+  let make_rels beg a =
     match snd a with
     | Site_tree (Main_page page, _) -> (make_rel page)::beg
     | _ -> beg
   in
   let rec create_rev parent = function
   | [] -> raise Not_found
-  | (_, (Site_tree (Main_page s, [])))::l when Some s = service -> 
+  | (_, (Site_tree (Main_page s, [])))::l when Some s = service ->
       make_rev parent []
   | (_, Disabled)::l
   | (_, Site_tree (_, []))::l -> create_rev parent l
@@ -274,10 +274,10 @@ let structure_links (default, pages) ?service ~sp =
   | (_, Site_tree (_, hsl))::l ->
       (try create_rev None hsl
       with Not_found -> create_rev parent l)
-  in 
+  in
   try
     match default with
-    | Main_page def -> 
+    | Main_page def ->
         if Some def = service then
           List.fold_left make_rels [] pages
         else create_rev (Some def) pages

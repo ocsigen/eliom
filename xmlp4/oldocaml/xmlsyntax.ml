@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* 
+(*
   Syntax extension for xml
 
 *)
@@ -27,10 +27,10 @@ open ExpoOrPatt
 
 let _ = Quotation.add "xml" (Quotation.ExAst (xml_exp, xml_pat))
 
-let xml_expl s = to_expr_taglist 
+let xml_expl s = to_expr_taglist
   (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s))
-let xml_patl s = to_patt_taglist 
-  (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s)) 
+let xml_patl s = to_patt_taglist
+  (Grammar.Entry.parse exprpatt_any_tag_list (Stream.of_string s))
 let _ = Quotation.add "xmllist" (Quotation.ExAst (xml_expl, xml_patl))
 
 let _ = Quotation.default := "xml"
@@ -53,7 +53,7 @@ let l = [<< <ark $c$=$f$ %la%> </ark> >>; << <wow> </wow> >>] in
 (* %% permet d'écrire un % *)
 
 function << <html %l1%> $a$ ljl %l2% </html> >> -> 1 | _ -> 2
-function << <html $n$=$v$ a="b" %l1%> <body> %l2% </body> </html> >> 
+function << <html $n$=$v$ a="b" %l1%> <body> %l2% </body> </html> >>
     -> 1 | _ -> 2
 function << <html %l1%> <body> %l2% </body> %l3% </html> >> -> 1 | _ -> 2
 (*

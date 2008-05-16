@@ -17,7 +17,7 @@ val add_naservice :
   bool ->
   Eliom_common.NAserv_Table.key ->
   int ref option * (float * float ref) option *
-  (Eliom_common.server_params -> Eliom_common.result_to_send Lwt.t) -> 
+  (Eliom_common.server_params -> Eliom_common.result_to_send Lwt.t) ->
   unit
 val remove_naservice :
   'a * Eliom_common.naservice_table ref * 'b * 'c ->

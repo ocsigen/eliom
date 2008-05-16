@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -32,7 +32,7 @@ open Eliom_parameters
 open Eliom_services
 
 
-module type FORMCREATE = 
+module type FORMCREATE =
   sig
     type form_content_elt
     type form_content_elt_list
@@ -74,7 +74,7 @@ module type FORMCREATE =
     type button_type_t
 
 
-        
+
 
     val hidden : input_type_t
     val checkbox : input_type_t
@@ -86,26 +86,26 @@ module type FORMCREATE =
     val buttonsubmit : button_type_t
 
     val empty_seq : form_content_elt_list
-    val cons_form : 
-        form_content_elt -> form_content_elt_list -> form_content_elt_list 
+    val cons_form :
+        form_content_elt -> form_content_elt_list -> form_content_elt_list
     val map_option :
-        ('a -> option_elt) -> 'a list -> 
+        ('a -> option_elt) -> 'a list ->
           option_elt_list
     val map_optgroup :
-        ('a -> select_content_elt) -> 'a -> 'a list -> 
+        ('a -> select_content_elt) -> 'a -> 'a list ->
           (select_content_elt * select_content_elt_list)
     val select_content_of_option : option_elt -> select_content_elt
 
     val make_pcdata : string -> pcdata_elt
     val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
-    val make_get_form : ?a:form_attrib_t -> 
-      action:string -> 
+    val make_get_form : ?a:form_attrib_t ->
+      action:string ->
         form_content_elt -> form_content_elt_list -> form_elt
     val make_post_form : ?a:form_attrib_t ->
-      action:string -> ?id:string -> ?inline:bool -> 
+      action:string -> ?id:string -> ?inline:bool ->
         form_content_elt -> form_content_elt_list -> form_elt
     val make_hidden_field : input_elt option -> form_content_elt
-    val remove_first : 
+    val remove_first :
         form_content_elt_list -> form_content_elt * form_content_elt_list
     val make_input : ?a:input_attrib_t -> ?checked:bool ->
       typ:input_type_t -> ?name:string -> ?src:uri ->
@@ -113,8 +113,8 @@ module type FORMCREATE =
     val make_button : ?a:button_attrib_t -> button_type:button_type_t ->
       ?name:string -> ?value:string ->
         button_content_elt_list -> button_elt
-    val make_textarea : 
-        ?a:textarea_attrib_t -> 
+    val make_textarea :
+        ?a:textarea_attrib_t ->
           name:string -> ?value:pcdata_elt -> rows:int -> cols:int ->
             unit -> textarea_elt
     val make_select :
@@ -124,7 +124,7 @@ module type FORMCREATE =
               select_content_elt ->
                 select_content_elt_list ->
                   select_elt
-    val make_option : 
+    val make_option :
         ?a:option_attrib_t ->
           selected:bool ->
             ?value:string ->
@@ -172,7 +172,7 @@ module type ELIOMFORMSIG =
     type button_content_elt_list
     type option_elt
     type option_elt_list
-          
+
     type a_attrib_t
     type form_attrib_t
     type input_attrib_t
@@ -191,24 +191,24 @@ module type ELIOMFORMSIG =
 
     val make_full_string_uri :
         service:('get, unit, [< get_service_kind ],
-                 [< suff ], 'gn, unit, 
+                 [< suff ], 'gn, unit,
                  [< registrable ]) service ->
-                   sp:Eliom_sessions.server_params -> 
+                   sp:Eliom_sessions.server_params ->
                      ?fragment:string ->
                        'get -> uri Lwt.t
-(** Creates the string corresponding to the 
+(** Creates the string corresponding to the
     full (absolute) URL of a service applied to its GET parameters.
 
     It returns a Lwt thread because if the hostname is not in the request
-    (sometimes possible with HTTP/1.0), it calls 
+    (sometimes possible with HTTP/1.0), it calls
     {!Lwt_lib.getnameinfo} to find the hostname.
  *)
 
     val make_string_uri :
         service:('get, unit, [< get_service_kind ],
-                 [< suff ], 'gn, unit, 
+                 [< suff ], 'gn, unit,
                  [< registrable ]) service ->
-                   sp:Eliom_sessions.server_params -> 
+                   sp:Eliom_sessions.server_params ->
                      ?fragment:string ->
                        'get -> string
 (** Creates the string corresponding to the relative URL of a service applied to
@@ -217,23 +217,23 @@ module type ELIOMFORMSIG =
 
     val make_uri :
         service:('get, unit, [< get_service_kind ],
-         [< suff ], 'gn, unit, 
+         [< suff ], 'gn, unit,
          [< registrable ]) service ->
           sp:Eliom_sessions.server_params -> ?fragment:string -> 'get -> uri
-(** Creates the (relative) URL for a service. 
+(** Creates the (relative) URL for a service.
     Like the [a] function, it may take extra parameters. *)
 
     val a :
         ?a:a_attrib_t ->
-          service:('get, unit, [< get_service_kind ], 
+          service:('get, unit, [< get_service_kind ],
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
             sp:Eliom_sessions.server_params -> ?fragment:string ->
               a_content_elt_list -> 'get -> a_elt
-(** [a service sp cont ()] creates a link to [service]. 
+(** [a service sp cont ()] creates a link to [service].
    The text of
    the link is [cont]. For example [cont] may be something like
-   [\[pcdata "click here"\]]. 
+   [\[pcdata "click here"\]].
 
    The last  parameter is for GET parameters.
    For example [a service sp cont (42,"hello")]
@@ -255,11 +255,11 @@ module type ELIOMFORMSIG =
     val get_form :
         ?a:form_attrib_t ->
           service:('get, unit, [< get_service_kind ],
-           [<suff ], 'gn, 'pn, 
+           [<suff ], 'gn, 'pn,
            [< registrable ]) service ->
              sp:Eliom_sessions.server_params -> ?fragment:string ->
               ('gn -> form_content_elt_list) -> form_elt
-(** [get_form service sp formgen] creates a GET form to [service]. 
+(** [get_form service sp formgen] creates a GET form to [service].
    The content of
    the form is generated by the function [formgen], that takes the names
    of the service parameters as parameters. *)
@@ -268,13 +268,13 @@ module type ELIOMFORMSIG =
     val post_form :
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
-               [< suff ], 'gn, 'pn, 
+               [< suff ], 'gn, 'pn,
                [< registrable ]) service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_sessions.server_params ->
       ?fragment:string ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content_elt_list) -> 'get -> form_elt
-(** [post_form service sp formgen] creates a POST form to [service]. 
+(** [post_form service sp formgen] creates a POST form to [service].
    The last parameter is for GET parameters (as in the function [a]).
  *)
 
@@ -307,13 +307,13 @@ module type ELIOMFORMSIG =
 
     val string_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-           ?name:[< string setoneopt ] param_name -> 
+           ?name:[< string setoneopt ] param_name ->
              ?value:string -> unit -> input_elt
 (** Creates an [<input>] tag for a string *)
 
     val user_type_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-          ?name:[< 'a setoneopt ] param_name -> 
+          ?name:[< 'a setoneopt ] param_name ->
             ?value:'a -> ('a -> string) -> input_elt
 (** Creates an [<input>] tag for a user type *)
 
@@ -325,69 +325,69 @@ module type ELIOMFORMSIG =
  *)
 
     val file_input :
-        ?a:input_attrib_t -> 
-          name:[< file_info setoneopt ] param_name -> 
+        ?a:input_attrib_t ->
+          name:[< file_info setoneopt ] param_name ->
             unit -> input_elt
 (** Creates an [<input>] tag for sending a file *)
 
     val image_input :
-        ?a:input_attrib_t -> 
-          name:[< coordinates oneopt ] param_name -> 
+        ?a:input_attrib_t ->
+          name:[< coordinates oneopt ] param_name ->
           ?src:uri -> unit -> input_elt
-(** Creates an [<input type="image" name="...">] tag that sends the coordinates 
+(** Creates an [<input type="image" name="...">] tag that sends the coordinates
    the user clicked on *)
 
     val int_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (int * coordinates) oneopt ] param_name -> value:int -> 
+        ?a:input_attrib_t ->
+          name:[< (int * coordinates) oneopt ] param_name -> value:int ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int *)
 
     val int32_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (int32 * coordinates) oneopt ] param_name -> value:int32 -> 
+        ?a:input_attrib_t ->
+          name:[< (int32 * coordinates) oneopt ] param_name -> value:int32 ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int32 *)
 
     val int64_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (int64 * coordinates) oneopt ] param_name -> value:int64 -> 
+        ?a:input_attrib_t ->
+          name:[< (int64 * coordinates) oneopt ] param_name -> value:int64 ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int64 *)
 
     val float_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (float * coordinates) oneopt ] param_name -> value:float -> 
+        ?a:input_attrib_t ->
+          name:[< (float * coordinates) oneopt ] param_name -> value:float ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type float *)
 
     val string_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (string * coordinates) oneopt ] param_name -> value:string -> 
+        ?a:input_attrib_t ->
+          name:[< (string * coordinates) oneopt ] param_name -> value:string ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type string *)
 
     val user_type_image_input :
-        ?a:input_attrib_t -> 
-          name:[< ('a * coordinates) oneopt ] param_name -> value:'a -> 
+        ?a:input_attrib_t ->
+          name:[< ('a * coordinates) oneopt ] param_name -> value:'a ->
             ?src:uri -> ('a -> string) -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of user defined type *)
 
     val raw_image_input :
-        ?a:input_attrib_t -> 
+        ?a:input_attrib_t ->
           name:string -> value:string -> ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and an untyped value *)
 
 
     val bool_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `One of bool ] param_name -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have a boolean value.
    The service must declare a [bool] parameter.
@@ -395,144 +395,144 @@ module type ELIOMFORMSIG =
 
 
     val int_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of int ] param_name -> value:int -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have an int value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val int32_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of int32 ] param_name -> value:int32 -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have an int32 value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val int64_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of int64 ] param_name -> value:int64 -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have an int64 value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val float_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of float ] param_name -> value:float -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have a float value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val string_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
-          name:[ `Set of string ] param_name -> value:string -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+          name:[ `Set of string ] param_name -> value:string ->
             unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have a string value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val user_type_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
-          name:[ `Set of 'a ] param_name -> value:'a -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+          name:[ `Set of 'a ] param_name -> value:'a ->
             ('a -> string) -> input_elt
 (** Creates a checkbox [<input>] tag that will have a "user type" value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val raw_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:string -> value:string -> unit -> input_elt
 (** Creates a checkbox [<input>] tag with untyped content.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [any].
  *)
 
 
     val string_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-          name:[ `Opt of string ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+          name:[ `Opt of string ] param_name ->
             value:string -> unit -> input_elt
 (** Creates a radio [<input>] tag with string content *)
 
     val int_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           name:[ `Opt of int ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of int ] param_name ->
              value:int -> unit -> input_elt
 (** Creates a radio [<input>] tag with int content *)
 
     val int32_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           name:[ `Opt of int32 ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of int32 ] param_name ->
              value:int32 -> unit -> input_elt
 (** Creates a radio [<input>] tag with int32 content *)
 
     val int64_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           name:[ `Opt of int64 ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of int64 ] param_name ->
              value:int64 -> unit -> input_elt
 (** Creates a radio [<input>] tag with int64 content *)
 
     val float_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           name:[ `Opt of float ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of float ] param_name ->
              value:float -> unit -> input_elt
 (** Creates a radio [<input>] tag with float content *)
 
     val user_type_radio :
         ?a:input_attrib_t -> ?checked:bool ->
-           name:[ `Opt of 'a ] param_name -> 
+           name:[ `Opt of 'a ] param_name ->
              value:'a -> ('a -> string) -> input_elt
 (** Creates a radio [<input>] tag with user_type content *)
 
     val raw_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:string -> value:string -> unit -> input_elt
 (** Creates a radio [<input>] tag with untyped string content (low level) *)
 
 
-    val string_button : 
-        ?a:button_attrib_t -> 
-          name:[< string setone ] param_name -> value:string -> 
+    val string_button :
+        ?a:button_attrib_t ->
+          name:[< string setone ] param_name -> value:string ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with string content *)
 
-    val int_button : 
+    val int_button :
         ?a:button_attrib_t ->
-          name:[< int setone ] param_name -> value:int -> 
+          name:[< int setone ] param_name -> value:int ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with int content *)
 
-    val int32_button : 
+    val int32_button :
         ?a:button_attrib_t ->
-          name:[< int32 setone ] param_name -> value:int32 -> 
+          name:[< int32 setone ] param_name -> value:int32 ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with int32 content *)
 
-    val int64_button : 
+    val int64_button :
         ?a:button_attrib_t ->
-          name:[< int64 setone ] param_name -> value:int64 -> 
+          name:[< int64 setone ] param_name -> value:int64 ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with int64 content *)
 
-    val float_button : 
+    val float_button :
         ?a:button_attrib_t ->
-          name:[< float setone ] param_name -> value:float -> 
+          name:[< float setone ] param_name -> value:float ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with float content *)
 
-    val user_type_button : 
+    val user_type_button :
         ?a:button_attrib_t ->
           name:[< 'a setone ] param_name -> value:'a -> ('a -> string) ->
             button_content_elt_list -> button_elt
@@ -541,11 +541,11 @@ module type ELIOMFORMSIG =
     val raw_button :
         ?a:button_attrib_t ->
           button_type:button_type_t ->
-            name:string -> value:string -> 
+            name:string -> value:string ->
               button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with untyped string content *)
 
-    val button : 
+    val button :
         ?a:button_attrib_t ->
           button_type:button_type_t ->
             button_content_elt_list -> button_elt
@@ -556,13 +556,13 @@ module type ELIOMFORMSIG =
 
     val textarea :
         ?a:textarea_attrib_t ->
-          name:[< string setoneopt ] param_name -> ?value:pcdata_elt -> 
+          name:[< string setoneopt ] param_name -> ?value:pcdata_elt ->
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag *)
 
     val raw_textarea :
         ?a:textarea_attrib_t ->
-          name:string -> ?value:pcdata_elt -> 
+          name:string -> ?value:pcdata_elt ->
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag for untyped form *)
 
@@ -572,8 +572,8 @@ module type ELIOMFORMSIG =
           * pcdata_elt option (* if content different from value *)
           * bool (* selected *)
 
-    type 'a select_opt = 
-      | Optgroup of 
+    type 'a select_opt =
+      | Optgroup of
           optgroup_attrib_t
             * string (* label *)
             * 'a soption
@@ -581,13 +581,13 @@ module type ELIOMFORMSIG =
       | Option of 'a soption
 
   (** The type for [<select>] options and groups of options.
-     - The field of type 'a in [soption] is the value that will be sent 
-     by the form. 
+     - The field of type 'a in [soption] is the value that will be sent
+     by the form.
      - If the [pcdata elt option] is not present it is also the
      value displayed.
      - The string in [select_opt] is the label
    *)
-            
+
     val raw_select :
         ?a:select_attrib_t ->
           name:string ->
@@ -706,7 +706,7 @@ module type ELIOMFORMSIG =
   end
 
 
-module MakeForms : functor (Pages: FORMCREATE) -> ELIOMFORMSIG with 
+module MakeForms : functor (Pages: FORMCREATE) -> ELIOMFORMSIG with
 type form_content_elt = Pages.form_content_elt
 and type form_content_elt_list = Pages.form_content_elt_list
 and type form_elt = Pages.form_elt
@@ -730,7 +730,7 @@ and type button_content_elt = Pages.button_content_elt
 and type button_content_elt_list = Pages.button_content_elt_list
 and type option_elt = Pages.option_elt
 and type option_elt_list = Pages.option_elt_list
-      
+
 and type a_attrib_t = Pages.a_attrib_t
 and type form_attrib_t = Pages.form_attrib_t
 and type input_attrib_t = Pages.input_attrib_t

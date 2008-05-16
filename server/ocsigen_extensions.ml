@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -64,7 +64,7 @@ let client_connection x = x
 let client_of_connection x = x
 
 (* Requests *)
-type request_info = 
+type request_info =
     {ri_url_string: string;
      ri_url: Neturl.url;
      ri_method: Ocsigen_http_frame.Http_header.http_method;
@@ -103,22 +103,22 @@ type request_info =
      ri_accept_language: (string * float option) list Lazy.t; (** Accept-Language HTTP header. The float is the "quality" value, if any. *)
 
      ri_http_frame: Ocsigen_http_frame.t; (** The full http_frame *)
-     ri_extension_info: exn list; (** Use this to put anything you want, 
+     ri_extension_info: exn list; (** Use this to put anything you want,
                                       for example, information for subsequent
-                                      extensions 
+                                      extensions
                                    *)
      ri_client: client; (** The request connection *)
    }
 
-   
+
 type answer =
   | Ext_found of (unit -> Ocsigen_http_frame.result Lwt.t)
       (** "OK stop! I will take the page.
           You can start the following request of the same pipelined connection.
-          Here is the function to generate the page". 
+          Here is the function to generate the page".
           The extension must return Ext_found as soon as possible
           when it is sure it is safe to start next request.
-          Usually immediately. But in some case, for example proxies, 
+          Usually immediately. But in some case, for example proxies,
           you don't want the request of one connection to be handled in
           different order.
       *)
@@ -129,21 +129,21 @@ type answer =
                         Same as Ext_continue_with but does not change
                         the request.
                      *)
-  | Ext_stop_site of (Ocsigen_http_frame.cookieset * int) 
+  | Ext_stop_site of (Ocsigen_http_frame.cookieset * int)
                     (** Error. Do not try next extension, but
-                        try next site. 
+                        try next site.
                         The integer is the HTTP error code, usally 403.
                      *)
   | Ext_stop_host of (Ocsigen_http_frame.cookieset * int)
-                    (** Error. Do not try next extension, 
+                    (** Error. Do not try next extension,
                         do not try next site,
-                        but try next host. 
+                        but try next host.
                         The integer is the HTTP error code, usally 403.
                      *)
   | Ext_stop_all of (Ocsigen_http_frame.cookieset * int)
-                    (** Error. Do not try next extension, 
+                    (** Error. Do not try next extension,
                         do not try next site,
-                        do not try next host. 
+                        do not try next host.
                         The integer is the HTTP error code, usally 403.
                      *)
   | Ext_continue_with of (request_info * Ocsigen_http_frame.cookieset * int)
@@ -154,7 +154,7 @@ type answer =
             You must add these cookies yourself in request_info if you
             want them to be seen by subsequent extensions,
             for example using {!Ocsigen_http_frame.compute_new_ri_cookies}.
-            The integer is usually equal to the error code received 
+            The integer is usually equal to the error code received
             from preceding extension (but you may want to modify it).
          *)
   | Ext_retry_with of request_info * Ocsigen_http_frame.cookieset
@@ -184,13 +184,13 @@ type extension = request_state -> answer Lwt.t
 
 type parse_fun = Simplexmlparser.xml list -> extension2
 
-type parse_host = 
+type parse_host =
     Parse_host of
-      (url_path -> 
-        string -> 
+      (url_path ->
+        string ->
           parse_host -> parse_fun -> Simplexmlparser.xml -> extension)
 
-let (hosts : (virtual_hosts * extension2) list ref) = 
+let (hosts : (virtual_hosts * extension2) list ref) =
   ref []
 
 
@@ -198,19 +198,19 @@ let (hosts : (virtual_hosts * extension2) list ref) =
 let set_hosts v = hosts := v
 let get_hosts () = !hosts
 
-   
+
 
 (*****************************************************************************)
-let site_match site_path url = 
+let site_match site_path url =
   (* We are sure that there is no / at the end or beginning of site_path *)
   (* and no / at the beginning of url *)
   (* and no // or ../ inside both of them *)
   (* We return the subpath without / at beginning *)
-  let rec aux site_path url = 
+  let rec aux site_path url =
     match site_path, url with
       | [], [] -> raise Ocsigen_Is_a_directory
       | [], p -> Some p
-      | a::l, aa::ll when a = aa -> aux l ll 
+      | a::l, aa::ll when a = aa -> aux l ll
       | _ -> None
   in
   match site_path, url with
@@ -223,25 +223,25 @@ let site_match site_path url =
 let add_to_res_cookies res cookies_to_set =
   if cookies_to_set = Ocsigen_http_frame.Cookies.empty then
     res
-  else 
-    {res with 
-     Ocsigen_http_frame.res_cookies = 
+  else
+    {res with
+     Ocsigen_http_frame.res_cookies =
      Ocsigen_http_frame.add_cookies res.Ocsigen_http_frame.res_cookies cookies_to_set}
 
 let rec make_ext awake cookies_to_set req_state genfun f =
   let rec aux cookies_to_set = function
-    | Ext_found r -> 
+    | Ext_found r ->
         awake ();
         r () >>= fun r' ->
         let ri = match req_state with
           | Req_found (ri, _) -> ri
           | Req_not_found (_, ri) -> ri
         in
-        f 
+        f
           awake
           Ocsigen_http_frame.Cookies.empty
-          (Req_found (ri, 
-                      fun () -> 
+          (Req_found (ri,
+                      fun () ->
                         Lwt.return (add_to_res_cookies r' cookies_to_set)))
     | Ext_next e ->
         let ri = match req_state with
@@ -249,8 +249,8 @@ let rec make_ext awake cookies_to_set req_state genfun f =
           | Req_not_found (_, ri) -> ri
         in
         f awake cookies_to_set (Req_not_found (e, ri))
-    | Ext_continue_with (ri, cook, e) -> 
-        f 
+    | Ext_continue_with (ri, cook, e) ->
+        f
           awake
           (Ocsigen_http_frame.add_cookies cook cookies_to_set)
           (Req_not_found (e, ri))
@@ -270,16 +270,16 @@ let fun_beg = ref (fun () -> ())
 let fun_end = ref (fun () -> ())
 let fun_exn = ref (fun exn -> (raise exn : string))
 
-let rec default_parse_config 
+let rec default_parse_config
     (host : virtual_hosts)
     prevpath
-    defcharset 
+    defcharset
     (Parse_host parse_host)
     (parse_fun : parse_fun) = function
   | Simplexmlparser.Element ("site", atts, l) ->
       let rec parse_site_attrs (enc,dir) = function
         | [] -> (match dir with
-          | None -> 
+          | None ->
               raise (Ocsigen_config.Config_file_error
                        ("Missing dir attribute in <site>"))
           | Some s -> (enc, s))
@@ -303,14 +303,14 @@ let rec default_parse_config
       | None -> defcharset
       | Some charset -> charset
       in
-      let path = 
+      let path =
         prevpath@
         Ocsigen_lib.remove_slash_at_end
-          (Ocsigen_lib.remove_slash_at_beginning 
-             (Ocsigen_lib.remove_dotdot (Neturl.split_path dir))) 
+          (Ocsigen_lib.remove_slash_at_beginning
+             (Ocsigen_lib.remove_dotdot (Neturl.split_path dir)))
       in
       let parse_site = make_parse_site path charset parse_host l in
-      let ext awake cookies_to_set = 
+      let ext awake cookies_to_set =
         function
           | Req_found (ri, res) ->
               Lwt.return (Ext_found res, cookies_to_set)
@@ -325,24 +325,24 @@ let rec default_parse_config
                     "\".");
                   Lwt.return (Ext_next e, cookies_to_set)
               | Some sub_path ->
-                  Ocsigen_messages.debug (fun () -> 
+                  Ocsigen_messages.debug (fun () ->
                     "-------- site found: url \""^
                     (Ocsigen_lib.string_of_url_path oldri.ri_full_path)^
                     "\" matches \""^
                     (Ocsigen_lib.string_of_url_path path)^"\".");
                   let ri = {oldri with
-                            ri_sub_path = sub_path; 
-                            ri_sub_path_string = 
+                            ri_sub_path = sub_path;
+                            ri_sub_path_string =
                             Ocsigen_lib.string_of_url_path sub_path}
                   in
-                  parse_site awake cookies_to_set (Req_not_found (e, ri)) 
+                  parse_site awake cookies_to_set (Req_not_found (e, ri))
                   >>= function
                       (* After a site, we turn back to old ri *)
-                    | (Ext_stop_site (cs, err), cookies_to_set) -> 
-                        Lwt.return 
+                    | (Ext_stop_site (cs, err), cookies_to_set) ->
+                        Lwt.return
                           (Ext_continue_with (oldri, cs, err), cookies_to_set)
-                    | (Ext_continue_with (_, cs, err), cookies_to_set) -> 
-                        Lwt.return 
+                    | (Ext_continue_with (_, cs, err), cookies_to_set) ->
+                        Lwt.return
                           (Ext_continue_with (oldri, cs, err), cookies_to_set)
                     | r -> Lwt.return r
       in
@@ -351,7 +351,7 @@ let rec default_parse_config
             Lwt.return (Ext_found r)
         | Req_not_found (err, ri) ->
             Lwt.return (Ext_sub_result ext))
-  | Simplexmlparser.Element (tag,_,_) -> 
+  | Simplexmlparser.Element (tag,_,_) ->
       raise (Bad_config_tag_for_extension tag)
   | _ -> raise (Ocsigen_config.Config_file_error
                   ("Unexpected content inside <host>"))
@@ -384,13 +384,13 @@ and make_parse_site path charset parse_host l =
                   (Ocsigen_lib.string_of_url_path path)^"\"> (ignored)"));
             parse_site ll
         | Ocsigen_config.Config_file_error t
-        | Error_in_config_file t -> 
+        | Error_in_config_file t ->
             ignore
               (Ocsigen_messages.errlog
                  ("Error while parsing configuration file: "^
                   t^" (ignored)"));
             parse_site ll
-        | e -> 
+        | e ->
             ignore
               (Ocsigen_messages.errlog
                  ("Error while parsing configuration file: "^
@@ -399,14 +399,14 @@ and make_parse_site path charset parse_host l =
                    with e -> Ocsigen_lib.string_of_exn e)^
 	          " (ignored)"));
             parse_site ll
-  in 
+  in
   !fun_beg ();
   let r =
     try
       parse_site l
     with e -> !fun_end (); raise e
 (*VVV May be we should avoid calling fun_end after parinf user config files
-  (with extension userconf) ... See eliommod.ml 
+  (with extension userconf) ... See eliommod.ml
 *)
   in
   !fun_end ();
@@ -418,8 +418,8 @@ and make_parse_site path charset parse_host l =
 let register_extension,
   parse_site_item,
   parse_user_site_item,
-  get_beg_init, 
-  get_end_init, 
+  get_beg_init,
+  get_end_init,
   get_init_exn_handler =
   let fun_site = ref default_parse_config in
   let user_fun_site = ref default_parse_config in
@@ -431,11 +431,11 @@ let register_extension,
          begin_init
          end_init
          handle_exn ->
-       
+
        if respect_pipeline then Ocsigen_config.set_respect_pipeline ();
 
        let old_fun_site = !fun_site in
-       fun_site := 
+       fun_site :=
          (fun host ->
            let oldf = old_fun_site host in
            let newf = new_fun_site host in
@@ -448,9 +448,9 @@ let register_extension,
                with
                | Bad_config_tag_for_extension c -> newf parse_site config_tag
          );
-       
+
        let old_fun_site = !user_fun_site in
-       user_fun_site := 
+       user_fun_site :=
          (fun host ->
            let oldf = old_fun_site host in
            let newf = new_user_fun_site host in
@@ -463,12 +463,12 @@ let register_extension,
                with
                | Bad_config_tag_for_extension c -> newf parse_site config_tag
          );
-       
+
        fun_beg := comp begin_init !fun_beg;
        fun_end := comp end_init !fun_end;
        let curexnfun = !fun_exn in
        fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
-   
+
 
    (* ********* parse_site_item ********* *)
    (fun host -> !fun_site host),
@@ -493,20 +493,20 @@ let void_extension _ _ _ _ _ = function
 
 
 (*****************************************************************************)
-let start_initialisation, during_initialisation, 
+let start_initialisation, during_initialisation,
   end_initialisation, get_numberofreloads =
   let init = ref true in
   let nb = ref (-1) in
-   ((fun () -> 
+   ((fun () ->
      init := true;
      nb := !nb+1;
     ),
-    (fun () -> !init), 
-    (fun () -> 
+    (fun () -> !init),
+    (fun () ->
       init := false;
     ),
     (fun () -> !nb))
-    
+
 (********)
 
 
@@ -519,8 +519,8 @@ let host_match host port =
     let hostlen = String.length host in
     let rec host_match1 beg =
       let rec aux1 t len l p0 =
-        try 
-          let (p,_) = 
+        try
+          let (p,_) =
             Netstring_str.search_forward (Netstring_str.regexp t) host p0 in
           let beg2 = p + len in
           (host_match1 beg2 l) || (aux1 t len l (p+1))
@@ -529,10 +529,10 @@ let host_match host port =
       function
         | [] -> beg = hostlen
         | [Wildcard] -> true
-        | (Wildcard)::(Wildcard)::l -> 
+        | (Wildcard)::(Wildcard)::l ->
             host_match1 beg ((Wildcard)::l)
         | (Wildcard)::(Text (t,len))::l -> aux1 t len l beg
-        | (Text (t,len))::l -> 
+        | (Text (t,len))::l ->
             try
               (t = String.sub host beg len) && (host_match1 (beg+len) l)
             with Invalid_argument _ -> false
@@ -543,13 +543,13 @@ let host_match host port =
   in match host with
   | None -> List.exists (fun (_, p) -> port_match p)
       (* Warning! For HTTP/1.0 we take the first one,
-         even if it doesn't match! 
+         even if it doesn't match!
          To be changed! *)
   | Some host -> aux host
 
 
-let string_of_host h = 
-  let aux1 (hh, port) = 
+let string_of_host h =
+  let aux1 (hh, port) =
     let p = match port with
     | None -> ""
     | Some a -> ":"^(string_of_int a)
@@ -588,29 +588,29 @@ let do_for_site_matching host port ri =
             "-------- host found! "^
             (string_of_host_option host)^
             " matches "^(string_of_host h));
-          host_function 
+          host_function
             awake
             cookies_to_set
             (Req_not_found (prev_err, ri))
           >>= fun (res_ext, cookies_to_set) ->
           (match res_ext with
-          | Ext_found r -> 
+          | Ext_found r ->
               awake ();
-              r () >>= fun r' -> 
+              r () >>= fun r' ->
               return (add_to_res_cookies r' cookies_to_set)
           | Ext_next e ->
               aux_host ri e cookies_to_set l
                 (* try next site *)
           | Ext_stop_host (cook, e)
-          | Ext_stop_site (cook, e) -> 
+          | Ext_stop_site (cook, e) ->
               aux_host ri e (Ocsigen_http_frame.add_cookies cook cookies_to_set) l
                 (* try next site *)
-          | Ext_stop_all (cook, e) -> 
+          | Ext_stop_all (cook, e) ->
               fail (Ocsigen_http_error (cookies_to_set, e))
-          | Ext_continue_with (_, cook, e) -> 
+          | Ext_continue_with (_, cook, e) ->
               aux_host ri e
                 (Ocsigen_http_frame.add_cookies cook cookies_to_set) l
-          | Ext_retry_with (ri2, cook) -> 
+          | Ext_retry_with (ri2, cook) ->
               (*VVV not enough to detect loops *)
               if ri != ri2 then
                 do2
@@ -620,7 +620,7 @@ let do_for_site_matching host port ri =
                   (* retry all *)
               else
                 fail Ocsigen_Looping_request
-          | Ext_sub_result sr -> 
+          | Ext_sub_result sr ->
               assert false
           )
       | (h, _)::l ->
@@ -630,7 +630,7 @@ let do_for_site_matching host port ri =
             " does not match "^(string_of_host h));
           aux_host ri prev_err cookies_to_set l
     in aux_host ri 404 cookies_to_set sites
-  in 
+  in
   Lwt.finalize
     (fun () ->
       do2 (get_hosts ()) Ocsigen_http_frame.Cookies.empty ri
@@ -640,11 +640,11 @@ let do_for_site_matching host port ri =
        Lwt.return ()
     )
 
-    
+
 (*****************************************************************************)
 
 
-    
+
 
 let ri_of_url url ri =
   let (host, _, url, url2, path, params, get_params) = parse_url url in
@@ -665,10 +665,10 @@ let ri_of_url url ri =
 
 
 (*****************************************************************************)
-(* This is used by server.ml. 
+(* This is used by server.ml.
    I put that here because I need it to be accessible for profiling. *)
-let get_number_of_connected, 
-  incr_connected, 
+let get_number_of_connected,
+  incr_connected,
   decr_connected =
   let connected = ref 0 in
   ((fun () -> !connected),
@@ -693,11 +693,11 @@ type ud_string = Nodir of string | Withdir of string * string * string
 
 let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
 
-let parse_user_dir s = 
+let parse_user_dir s =
   match Netstring_pcre.full_split user_dir_regexp s with
-  | [ Netstring_pcre.Delim _; 
-      Netstring_pcre.Group (1, s1); 
-      Netstring_pcre.Group (2, u); 
+  | [ Netstring_pcre.Delim _;
+      Netstring_pcre.Group (1, s1);
+      Netstring_pcre.Group (2, u);
       Netstring_pcre.Group (3, s2)] ->
         Withdir (s1, u, s2)
   | _ -> Nodir s

@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -35,11 +35,11 @@ type 'a t =
     waiters : 'a Lwt.t Queue.t }
 
 let create m ?(check = fun _ f -> f true) create =
-  { max = m; 
-    create = create; 
+  { max = m;
+    create = create;
     check = check;
     count = 0;
-    list = Queue.create (); 
+    list = Queue.create ();
     waiters = Queue.create () }
 
 let acquire p =

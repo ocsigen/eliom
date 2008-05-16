@@ -1,12 +1,12 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * ocsigen_http_com.ml Copyright (C) 2005 
+ * ocsigen_http_com.ml Copyright (C) 2005
  * Denis Berthod, Vincent Balat, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -81,7 +81,7 @@ val default_sender : sender_type
 
 
 
-(** send an HTTP message. 
+(** send an HTTP message.
     [send] may also fail with [Interrupted_stream] exception if the input
     stream is interrupted.
  *)
@@ -94,7 +94,7 @@ val send :
     ?keep_alive:bool ->
     head:bool ->
     sender:sender_type ->
-    Ocsigen_http_frame.result -> 
+    Ocsigen_http_frame.result ->
     unit Lwt.t
 
 val abort : connection -> unit

@@ -55,20 +55,20 @@ let open_files =
     Unix.set_close_on_exec acc;
     Unix.set_close_on_exec war;
     Unix.set_close_on_exec err
-        
+
 let log_aux file console_print s =
-  let date = 
+  let date =
     let t = Unix.localtime (Unix.time ()) in
-    Printf.sprintf 
+    Printf.sprintf
       "%04d-%02d-%02d %02d:%02d:%02d"
       (1900 + t.Unix.tm_year)
       (t.Unix.tm_mon + 1)
       t.Unix.tm_mday
       t.Unix.tm_hour
       t.Unix.tm_min
-      t.Unix.tm_sec 
+      t.Unix.tm_sec
   in
-  if console_print then 
+  if console_print then
     prerr_endline ("["^(Ocsigen_lib.fst3 file)^"] "^date^" - "^s);
   output_string !(Ocsigen_lib.snd3 file) date;
   output_string !(Ocsigen_lib.snd3 file) " - ";
@@ -76,7 +76,7 @@ let log_aux file console_print s =
   output_string !(Ocsigen_lib.snd3 file) "\n";
   flush !(Ocsigen_lib.snd3 file)
 
-      
+
 let accesslog s =
   log_aux access (Ocsigen_config.get_verbose ()) s
 
@@ -87,7 +87,7 @@ let warning s =
   log_aux warningfile (Ocsigen_config.get_verbose ()) s
 
 (*
-let lwtlog = 
+let lwtlog =
   fun s ->
     let s = s^"\n" in
     let syslog = Syslog.openlog ~facility:`LOG_DAEMON ~logpath:????
@@ -112,16 +112,16 @@ let debug_noel2 =
 let debug =
   if Ocsigen_config.get_veryverbose () then
     (fun s -> Pervasives.prerr_endline (s ()))
-  else 
+  else
     (fun s -> ())
 
 let debug2 =
   if Ocsigen_config.get_veryverbose () then
     Pervasives.prerr_endline
-  else 
+  else
     (fun s -> ())
 
-let bip = 
+let bip =
   if Ocsigen_config.get_veryverbose () then
     (fun i -> Pervasives.prerr_endline ("bip"^(string_of_int i)))
   else
@@ -130,13 +130,13 @@ let bip =
 let console =
   if (not (Ocsigen_config.get_silent ())) then
     (fun s -> print_endline (s ()))
-  else 
+  else
     (fun s -> ())
 
 let console2 =
   if (not (Ocsigen_config.get_silent ())) then
     print_endline
-  else 
+  else
     (fun s -> ())
 
 let unexpected_exception e s =
@@ -147,37 +147,37 @@ let unexpected_exception e s =
 (*
 
 Re: [Caml-list] log function without evaluate arguments
-De : 
+De :
 tmp123 <tmp123@menta.net>
-  À : 
+  À :
 caml-list@inria.fr
-  Date : 
+  Date :
 Aujourd'hui 11:31:04
-   
+
 Hello,
 
 Thanks a lot to everybody for your help.
 
-I've been testing the different proposals. I must recognize I've not yet 
+I've been testing the different proposals. I must recognize I've not yet
 reviewed the proposed library, it is next step.
 
-The four methods tested are: lazy, fun, ifprint, and fun moving the "if" 
-to the caller (see full listing and results at the end of the post). Two 
-test has been done for each one: when parameter is an integer constant 
+The four methods tested are: lazy, fun, ifprint, and fun moving the "if"
+to the caller (see full listing and results at the end of the post). Two
+test has been done for each one: when parameter is an integer constant
 and when parameter is the result of a funcion call who mades an addition.
 
-The conclusion seems: defining that "lazy" method needs 1 unit of time, 
-proposal using "fun" instead of lazy needs 0.8, and the version 
+The conclusion seems: defining that "lazy" method needs 1 unit of time,
+proposal using "fun" instead of lazy needs 0.8, and the version
 "ifprintf" needs 16. Proposal moving the "if" needs 0.7.
 
 Thus, if no error has been done, fun is the fastest option, lazy is near.
 
-Another point is the posibility of, using a camlp4 syntax extension, to 
+Another point is the posibility of, using a camlp4 syntax extension, to
 introduce a few of sugar. Something like expand:
 
 from: log "some=%d\n" 14;
 to: logint ( fun () -> Printf.printf "some=%d\n" 14);
-or to: if log_active.val then logint ( fun() -> Printf.printf 
+or to: if log_active.val then logint ( fun() -> Printf.printf
 "some=%d\n" 14) else ();
 
 Thanks again to everybody.
@@ -227,7 +227,7 @@ value test3 () =
   log3 "%d" (suma some.val 3);
 
 value test4 () =
-  if log_active.val then log4 ( fun () -> Printf.printf "%d" (suma 
+  if log_active.val then log4 ( fun () -> Printf.printf "%d" (suma
 some.val 3))
                     else ();
 

@@ -3,7 +3,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* 
+(*
    Parseur camlp4 pour XML sans antiquotations
 
    Attention c'est juste un essai
@@ -26,15 +26,15 @@
 
    Le typage des attributs n'est pas evident donc pour l'instant ils sont tous string
    exemple << <plop number="5" /> >> ----> `Number 5  (en fait `Number (int_of_string "5"))
-           << <plop number=$n$ /> >> ----> `Number n o`u n est de type int ??? 
+           << <plop number=$n$ /> >> ----> `Number n o`u n est de type int ???
 
 On pourrait decider d'ecrire << <plop number=$string_of_int n$ /> >>
-Mais du coup cela fait int_of_string (string_of_int n) 
+Mais du coup cela fait int_of_string (string_of_int n)
 et ensuite encore string_of_int au moment de l'affichage
 
    Revoir aussi la gestion des commentaires ?
 
-à revoir 
+à revoir
 
 *)
 
@@ -53,25 +53,25 @@ module ExprOrPatt = struct
 
   type tvarval =
       EPVstr of string
-    | EPVvar of string 
+    | EPVvar of string
 
   type 'a tlist =
       PLEmpty
     | PLCons of 'a * 'a tlist
 
-  type texprpatt = 
+  type texprpatt =
       EPanyattr of tvarval * tvarval
     | EPanytag of string * texprpatt tlist * texprpatt tlist
     | EPpcdata of string
     | EPwhitespace of string
     | EPcomment of string
 
-  let list_of_mlast_expr el = 
-    List.fold_right 
+  let list_of_mlast_expr el =
+    List.fold_right
       (fun x l -> <:expr< [$x$ :: $l$] >>) el <:expr< [] >>
 
-  let list_of_mlast_patt pl = 
-    List.fold_right 
+  let list_of_mlast_patt pl =
+    List.fold_right
       (fun x l -> <:patt< [$x$ :: $l$] >>) pl <:patt< [] >>
 
   let expr_valorval = function
@@ -97,7 +97,7 @@ module ExprOrPatt = struct
           $to_expr_attlist attribute_list$
           $to_expr_taglist child_list$
         >>
-        
+
     | EPpcdata dt -> <:expr< `PCData $str:dt$ >>
 
     | EPwhitespace dt -> <:expr< `Whitespace $str:dt$ >>
@@ -115,7 +115,7 @@ module ExprOrPatt = struct
 
   let rec to_patt = function
 
-      EPanyattr (EPVstr a, v) -> 
+      EPanyattr (EPVstr a, v) ->
         let vv = patt_valorval v in
         <:patt< ((`$uid:String.capitalize a$), $vv$) >>
 
@@ -171,7 +171,7 @@ EXTEND
     tag = TAG;
     attribute_list = OPT exprpatt_any_attribute_list;
     child_list = OPT exprpatt_any_tag_list;
-    GAT -> 
+    GAT ->
       let attlist = match attribute_list with
           None -> PLEmpty
         | Some l -> l
@@ -181,7 +181,7 @@ EXTEND
         | Some l -> l
       in EPanytag
         (tag,
-         attlist, 
+         attlist,
          taglist)
   | dt = WHITESPACE -> EPwhitespace dt
   | dt = DATA -> EPpcdata dt
@@ -229,15 +229,15 @@ type xml =
   | Element of (string * (string * string) list * xml list)
   | PCData of string
 
-let nocaml_msg =  
+let nocaml_msg =
         "Caml code not allowed in configuration file. Use $$ to escape $."
 
-let rec to_xml = 
+let rec to_xml =
   let rec to_xml_tag l = function
     | EPwhitespace _
     | EPcomment _ -> to_xml l
     | EPpcdata s -> (PCData s)::(to_xml l)
-    | EPanytag (s, atts, tags) -> 
+    | EPanytag (s, atts, tags) ->
         (Element (s, (to_xml_atts atts), (to_xml tags)))::(to_xml l)
     | _ -> raise (Xml_parser_error nocaml_msg)
   and to_xml_att l = function

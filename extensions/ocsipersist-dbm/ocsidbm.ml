@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -20,7 +20,7 @@
 
 
 (** Module Ocsidbm: persistent data server for Ocsigen *)
-   
+
 open Dbm
 open Ocsidbmtypes
 open Lwt
@@ -35,16 +35,16 @@ let suffix = ".otbl"
 (*****************************************************************************)
 (* error messages *)
 let errlog s =
-  let date = 
+  let date =
     let t = Unix.localtime (Unix.time ()) in
-    Printf.sprintf 
-      "%02d-%02d-%04d %02d:%02d:%02d" 
-      t.Unix.tm_mday 
+    Printf.sprintf
+      "%02d-%02d-%04d %02d:%02d:%02d"
+      t.Unix.tm_mday
       (t.Unix.tm_mon + 1)
       (1900 + t.Unix.tm_year)
       t.Unix.tm_hour
       t.Unix.tm_min
-      t.Unix.tm_sec 
+      t.Unix.tm_sec
   in
   let s = date^" Ocsidbm - "^s^"\n" in
   prerr_endline s
@@ -54,13 +54,13 @@ let errlog s =
 (*****************************************************************************)
 (** Internal functions: storage in files using DBM *)
 
-module Tableoftables = Map.Make(struct 
+module Tableoftables = Map.Make(struct
   type t = string
   let compare = compare
 end)
 
 let tableoftables = ref Tableoftables.empty
-    
+
 let list_tables () =
   let d = Unix.opendir directory in
   let rec aux () =
@@ -68,7 +68,7 @@ let list_tables () =
       let n = Unix.readdir d in
       if Filename.check_suffix n suffix
       then (Filename.chop_extension n)::(aux ())
-      else if Filename.check_suffix n (suffix^".pag") 
+      else if Filename.check_suffix n (suffix^".pag")
 (* depending on the version of dbm, there may be a .pag suffix *)
       then (Filename.chop_extension (Filename.chop_extension n))::(aux ())
       else aux ()
@@ -92,15 +92,15 @@ let open_db_if_exists name =
     let t = opendbm (directory^"/"^name^suffix) [Dbm_rdwr] 0o640 in
     tableoftables := Tableoftables.add name t !tableoftables;
     t
-  with 
-    | Unix.Unix_error (Unix.ENOENT, _, _) 
+  with
+    | Unix.Unix_error (Unix.ENOENT, _, _)
     | Dbm.Dbm_error _ -> raise Not_found
 
 (* open all files and register them in the table of tables *)
 (*
-   let _ = List.iter (fun a -> 
+   let _ = List.iter (fun a ->
    try ignore (open_db a)
-   with ... -> errlog ("Error while openning database "^a)) 
+   with ... -> errlog ("Error while openning database "^a))
     (list_tables ())
 si je remets ça, ça doit être après la création de la socket
 car si je n'arrive pas à créer la socket,
@@ -127,16 +127,16 @@ let db_remove store name =
   | Not_found -> ()
   | Dbm.Dbm_error "dbm_delete" -> ()
 
-let db_replace store name value = 
+let db_replace store name value =
   replace (find_create_table store) name value
 
 let db_firstkey t = Dbm.firstkey (find_dont_create_table t)
 
 let db_nextkey t = Dbm.nextkey (find_dont_create_table t)
 
-let db_length t = 
+let db_length t =
   let table = find_dont_create_table t in
-  let rec aux f n = 
+  let rec aux f n =
     catch
       (fun () ->
         ignore (f table);
@@ -146,7 +146,7 @@ let db_length t =
         | Not_found -> return n
         | e -> fail e)
   in
-  aux Dbm.firstkey 0 
+  aux Dbm.firstkey 0
 (* Because of Dbm implementation, the result may be less than the expected
    result in some case *)
 
@@ -165,8 +165,8 @@ let sigs = [sigabrt;sigalrm;sigfpe;sighup;sigill;sigint;
             sigquit;sigsegv;sigterm;sigusr1;sigusr2;
             sigchld;sigttin;sigttou;sigvtalrm;sigprof]
 
-let _ = 
-  List.iter (fun s -> 
+let _ =
+  List.iter (fun s ->
     Sys.set_signal s (Signal_handle (close_all 0))) sigs
 
 
@@ -179,38 +179,38 @@ let _ = Unix.setsid ()
 (** Communication functions: *)
 
 let send outch v =
-  Lwt_chan.output_value outch v >>= 
+  Lwt_chan.output_value outch v >>=
   (fun () -> Lwt_chan.flush outch)
 
-let execute outch = 
+let execute outch =
   let handle_errors f = try f () with e -> send outch (Error e) in
   function
-  | Get (t, k) -> 
+  | Get (t, k) ->
       handle_errors
       (fun () ->
-        try 
+        try
           send outch (Value (db_get t k))
-        with 
+        with
         | Not_found -> send outch Dbm_not_found)
   | Remove (t, k) -> handle_errors (fun () -> db_remove t k; send outch Ok)
-  | Replace (t, k, v) -> 
+  | Replace (t, k, v) ->
       handle_errors (fun () -> db_replace t k v; send outch Ok)
-  | Replace_if_exists (t, k, v) -> 
-      handle_errors (fun () -> 
-        try 
+  | Replace_if_exists (t, k, v) ->
+      handle_errors (fun () ->
+        try
           ignore (db_get t k);
-          db_replace t k v; 
+          db_replace t k v;
           send outch Ok
         with Not_found -> send outch Dbm_not_found)
-  | Firstkey t -> 
-      handle_errors (fun () -> 
+  | Firstkey t ->
+      handle_errors (fun () ->
         try send outch (Key (db_firstkey t))
         with Not_found -> send outch End)
-  | Nextkey t -> 
-      handle_errors (fun () -> 
+  | Nextkey t ->
+      handle_errors (fun () ->
         try send outch (Key (db_nextkey t))
         with Not_found -> send outch End)
-  | Length t -> 
+  | Length t ->
       handle_errors (fun () ->
         catch
           (fun () ->
@@ -228,7 +228,7 @@ let rec listen_client inch outch =
 
 let finish _ =
   nb_clients := !nb_clients - 1;
-  if !nb_clients = 0 
+  if !nb_clients = 0
   then close_all 0 ();
   return ()
 
@@ -243,7 +243,7 @@ let rec loop socket =
     nb_clients := !nb_clients + 1;
     let inch = Lwt_chan.in_channel_of_descr indescr in
     let outch = Lwt_chan.out_channel_of_descr indescr in
-    catch 
+    catch
       (fun () -> listen_client inch outch >>= finish)
       finish);
     loop socket)
@@ -251,13 +251,13 @@ let rec loop socket =
 
 
 
-let _ = Lwt_unix.run 
+let _ = Lwt_unix.run
     (let socket = Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 in
     (try
       Lwt_unix.bind socket (Unix.ADDR_UNIX (directory^"/"^socketname))
     with _ -> errlog ("Please make sure that the directory "^directory^" exists, writable for ocsidbm, and no other ocsidbm process is running on the same directory. If not, remove the file "^(directory^"/"^socketname)); the_end 1);
     Lwt_unix.listen socket 20;
-(* Done in ocsipersist.ml      
+(* Done in ocsipersist.ml
    let devnull = Unix.openfile "/dev/null" [Unix.O_WRONLY] 0 in
        Unix.dup2 devnull Unix.stdout;
        Unix.dup2 devnull Unix.stderr;
@@ -291,8 +291,8 @@ let _ =
   match sessiongcfrequency with
     None -> () (* No garbage collection *)
   | Some t ->
-      let rec f () = 
-        Lwt_unix.sleep t >>= 
+      let rec f () =
+        Lwt_unix.sleep t >>=
         (fun () ->
           let now = Unix.time () in
           print_endline "GC of persistent data";
@@ -306,7 +306,7 @@ let _ =
                     (fun () ->
                       (match fst (Marshal.from_string v 0) with
                       | Some exp when exp < now ->
-                          try 
+                          try
                             Dbm.remove t k
                           with _ -> ());
                       Lwt_unix.yield ()

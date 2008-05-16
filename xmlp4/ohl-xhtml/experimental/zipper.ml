@@ -8,7 +8,7 @@ type 'a t =
     { rev_left : 'a list;
       center : 'a;
       right : 'a list }
-      
+
 let of_list = function
   | [] -> raise Empty_List
   | c :: r -> { rev_left = []; center = c; right = r }

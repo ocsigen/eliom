@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -21,8 +21,8 @@
 
 (** Reverse proxy for Ocsigen *)
 
-(* 
-   The reverse proxy is still experimental because it relies on the 
+(*
+   The reverse proxy is still experimental because it relies on the
    experimental Ocsigen_http_client module.
 
    TODO
@@ -68,7 +68,7 @@ type redir =
 (*****************************************************************************)
 let rec parse_global_config = function
   | [] -> ()
-  | _ -> raise (Error_in_config_file 
+  | _ -> raise (Error_in_config_file
                   ("Unexpected content inside revproxy config"))
 
 let _ = parse_global_config (Ocsigen_extensions.get_config ())
@@ -85,7 +85,7 @@ let find_redirection r path =
   | Some _ -> (* Matching regexp found! *)
       (r.https,
        Netstring_pcre.replace_first r.regexp r.server path,
-       int_of_string 
+       int_of_string
          (Netstring_pcre.global_replace r.regexp r.port path),
        Netstring_pcre.global_replace r.regexp r.uri path)
 
@@ -93,7 +93,7 @@ let find_redirection r path =
 
 
 (*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase 
+(** Function to be called at the beginning of the initialisation phase
     of the server (actually each time the config file is reloaded) *)
 let start_init () =
   ()
@@ -115,7 +115,7 @@ let gen dir charset = function
     (* Is it a redirection? *)
     (fun () ->
        Ocsigen_messages.debug2 "--Revproxy: Is it a redirection?";
-       let (https, host, port, uri) = 
+       let (https, host, port, uri) =
          find_redirection dir
            (match ri.ri_get_params_string with
            | None -> ri.ri_sub_path_string
@@ -134,12 +134,12 @@ let gen dir charset = function
           => We return.
        *)
 
-       let do_request = 
+       let do_request =
          if dir.pipeline then
-           Ocsigen_http_client.raw_request 
+           Ocsigen_http_client.raw_request
              ~headers:ri.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
              ~https
-             ~port 
+             ~port
              ~client:ri.ri_client
              ~keep_alive:true
              ~content:ri.ri_http_frame.Ocsigen_http_frame.content
@@ -150,10 +150,10 @@ let gen dir charset = function
              ~uri ()
            else
              fun () ->
-               Ocsigen_http_client.basic_raw_request 
+               Ocsigen_http_client.basic_raw_request
                  ~headers:ri.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
                  ~https
-                 ~port 
+                 ~port
                  ~content:ri.ri_http_frame.Ocsigen_http_frame.content
                  ?content_length:ri.ri_content_length
                  ~http_method:ri.ri_method
@@ -163,16 +163,16 @@ let gen dir charset = function
        in
        Lwt.return
          (Ext_found
-            (fun () -> 
+            (fun () ->
                do_request ()
 
                >>= fun http_frame ->
-               let headers = 
-                 http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers 
+               let headers =
+                 http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
                in
-               let code = 
-                 match 
-                   http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.mode 
+               let code =
+                 match
+                   http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.mode
                  with
                    | Ocsigen_http_frame.Http_header.Answer code -> code
                    | _ -> raise Bad_answer_from_http_server
@@ -184,22 +184,22 @@ let gen dir charset = function
                        {empty_result with
                         Ocsigen_http_frame.res_content_length = Some 0L;
 	                Ocsigen_http_frame.res_headers= headers;
-                        Ocsigen_http_frame.res_stop_stream = 
+                        Ocsigen_http_frame.res_stop_stream =
                         http_frame.Ocsigen_http_frame.abort;
 	                Ocsigen_http_frame.res_code= code;
                        }
                  | Some stream ->
-                     let default_result = 
-                       Ocsigen_http_frame.default_result () 
+                     let default_result =
+                       Ocsigen_http_frame.default_result ()
                      in
-                     let length = 
+                     let length =
                        Ocsigen_headers.get_content_length http_frame
                      in
                      Lwt.return
                        {default_result with
                         Ocsigen_http_frame.res_content_length = length;
                         Ocsigen_http_frame.res_stream = stream;
-                        Ocsigen_http_frame.res_stop_stream = 
+                        Ocsigen_http_frame.res_stop_stream =
                         http_frame.Ocsigen_http_frame.abort;
 	                Ocsigen_http_frame.res_headers= headers;
 	                Ocsigen_http_frame.res_code= code;
@@ -207,17 +207,17 @@ let gen dir charset = function
             )
          )
     )
-    (function 
+    (function
        | Not_concerned -> return (Ext_next err)
        | e -> fail e)
-         
+
 
 
 
 (*****************************************************************************)
 (** Configuration for each site.
     These tags are inside <site ...>...</site> in the config file.
-        
+
    For example:
    <site dir="">
      <revproxy regexp="" ... />
@@ -226,20 +226,20 @@ let gen dir charset = function
  *)
 
 let parse_config path charset _ parse_site = function
-  | Element ("revproxy", atts, []) -> 
+  | Element ("revproxy", atts, []) ->
       let rec parse_attrs ((r, s, prot, port, u, pipeline) as res) = function
         | [] -> res
         | ("regexp", regexp)::l when r = None ->
             parse_attrs
               (Some (Netstring_pcre.regexp ("^"^regexp^"$")), s, prot, port, u, pipeline)
               l
-        | ("protocol", protocol)::l 
-          when prot = None && String.lowercase protocol = "http" -> 
+        | ("protocol", protocol)::l
+          when prot = None && String.lowercase protocol = "http" ->
             parse_attrs
               (r, s, Some false, port, u, pipeline)
               l
         | ("protocol", protocol)::l
-          when prot = None && String.lowercase protocol = "https" -> 
+          when prot = None && String.lowercase protocol = "https" ->
             parse_attrs
               (r, s, Some true, port, u, pipeline)
               l
@@ -266,7 +266,7 @@ let parse_config path charset _ parse_site = function
           | (None, _, _, _, _, _) -> raise (Error_in_config_file "Missing attribute regexp for <revproxy>")
           | (_, None, _, _, _, _) -> raise (Error_in_config_file "Missing attribute server for <revproxy>")
           | (_, _, _, _, None, _) -> raise (Error_in_config_file "Missing attribute uri for <revproxy>")
-          | (Some r, Some s, None, port, Some u, pipeline) -> 
+          | (Some r, Some s, None, port, Some u, pipeline) ->
               {
                regexp=r;
                server=s;
@@ -277,7 +277,7 @@ let parse_config path charset _ parse_site = function
                uri=u;
                pipeline=pipeline;
              }
-          | (Some r, Some s, Some prot, port, Some u, pipeline) -> 
+          | (Some r, Some s, Some prot, port, Some u, pipeline) ->
               {
                regexp=r;
                server=s;

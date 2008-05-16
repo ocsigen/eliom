@@ -3,7 +3,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -29,7 +29,7 @@ open Lwt
 
 let launchtime = Unix.time ()
 
-let _ = 
+let _ =
   register_new_service
     ~path:[]
     ~get_params:unit
@@ -51,16 +51,16 @@ let _ =
       let majcol = string_of_int stat.Gc.major_collections in
       let top_heap_words = string_of_int stat.Gc.top_heap_words in
       let pid = string_of_int (Unix.getpid ()) in
-      let fd = 
+      let fd =
         try
-          let dir = Unix.opendir 
+          let dir = Unix.opendir
               ("/proc/"^pid^"/fd") in
           let rec aux v =
-            try ignore ((* print_endline *) (readdir dir)); aux (v+1) 
+            try ignore ((* print_endline *) (readdir dir)); aux (v+1)
             with End_of_file -> v
           in
-          let r = 
-            try string_of_int ((aux 0) - 2) 
+          let r =
+            try string_of_int ((aux 0) - 2)
             with e -> ("(Error: "^(Printexc.to_string e)^")") in
           Unix.closedir dir;
           Some r
@@ -78,14 +78,14 @@ let _ =
             let dot = <:xmllist< . >> in
             let list1 a l = <:xmllist<  with, respectively
              $str:List.fold_left
-             (fun deb i -> deb^", "^(string_of_int i)) 
-             (string_of_int a) l $ 
+             (fun deb i -> deb^", "^(string_of_int i))
+             (string_of_int a) l $
            elements inside. >>
            in
             let list2 (n,a) l = <:xmllist<  with, respectively
              $str:List.fold_left
-             (fun deb (s, i) -> deb^", "^s^" : "^(string_of_int i)) 
-             (n^" : "^(string_of_int a)) l$ 
+             (fun deb (s, i) -> deb^", "^s^" : "^(string_of_int i))
+             (n^" : "^(string_of_int a)) l$
            elements inside. >>
             in
             Eliommod_sessiongroups.Pers.length () >>= fun persgrplength ->
@@ -99,7 +99,7 @@ Lwt.return
       <p>Version of Ocsigen: $str:Ocsigen_config.version_number$</p>
      <p>Uptime: $str:uptime$.</p>
      <p>The number of sessions is not available in this version of Eliom.</p>
-     <p>Number of clients connected: 
+     <p>Number of clients connected:
          $str:(string_of_int (get_number_of_connected ()))$.</p>
      <p>PID : $str:pid$</p>
      <p>$str:match fd with
@@ -115,9 +115,9 @@ Lwt.return
        </ul>
      <h2>Lwt threads</h2>
      <p>
-       $str:(string_of_int (Lwt_unix.inputs_length ()))$ 
+       $str:(string_of_int (Lwt_unix.inputs_length ()))$
              lwt threads waiting for inputs<br/>
-       $str:(string_of_int (Lwt_unix.outputs_length ()))$ 
+       $str:(string_of_int (Lwt_unix.outputs_length ()))$
                lwt threads waiting for outputs<br/>
        $str:(string_of_int (Lwt_unix.wait_children_length ()))$
                lwt threads waiting for children<br/>
@@ -126,13 +126,13 @@ Lwt.return
        $str:(string_of_int (Lwt_unix.get_new_sleeps ()))$ new sleeps.<br/>
      </p>
      <h2>Preemptive threads</h2>
-     <p>There are currently $str:(string_of_int (Lwt_preemptive.nbthreads ()))$ 
+     <p>There are currently $str:(string_of_int (Lwt_preemptive.nbthreads ()))$
              detached threads running
              (min $str:(string_of_int (Ocsigen_config.get_minthreads ()))$,
              max $str:(string_of_int (Ocsigen_config.get_maxthreads ()))$),
       from which $str:(string_of_int (Lwt_preemptive.nbthreadsbusy ()))$ are busy.
-        $str:(string_of_int (Lwt_preemptive.nbthreadsqueued ()))$ computations 
-           queued (max 
+        $str:(string_of_int (Lwt_preemptive.nbthreadsqueued ()))$ computations
+           queued (max
         $str:(string_of_int (Ocsigen_config.get_max_number_of_threads_queued ()))$).</p>
      <h2>HTTP connexions</h2>
      <p>Number of
@@ -150,7 +150,7 @@ Lwt.return
        </p>
      <p>There are $str:string_of_int nbperssess$
         Eliom persistent sessions opened.<br/>
-     and $str:string_of_int nbperstab$ Eliom 
+     and $str:string_of_int nbperstab$ Eliom
     persistent tables created $list:
       (match nbperstabel with
       | [] -> dot

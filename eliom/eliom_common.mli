@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -37,15 +37,15 @@ exception Eliom_Typing_Error of (string * exn) list
 
 exception Eliom_function_forbidden_outside_site_loading of string
     (** That function cannot be used like that outside the
-       initialisation phase. 
-       For some functions, you must add the [~sp] parameter during a session. 
+       initialisation phase.
+       For some functions, you must add the [~sp] parameter during a session.
      *)
 
 (**/**)
 
 (*
 (** Type used to describe session timeouts *)
-type timeout = 
+type timeout =
   | TGlobal (** see global setting *)
   | TNone   (** explicitely set no timeout *)
   | TSome of float (** timeout duration in seconds *)
@@ -53,11 +53,11 @@ type timeout =
 
 
 
-(** Type used for cookies to set. 
+(** Type used for cookies to set.
     The float option is the timestamp for the expiration date.
     The strings are names and values.
  *)
-type cookie = 
+type cookie =
   | Set of url_path option * float option * string * string
   | Unset of url_path option * string
 (* redefined in eliomsessions.ml *)
@@ -66,7 +66,7 @@ type cookie =
 (** The type to send if you want to create your own modules for generating
    pages
  *)
-type result_to_send = 
+type result_to_send =
   | EliomResult of Ocsigen_http_frame.result
   | EliomExn of (exn list * cookie list)
 (* redefined in eliomservices.ml *)
@@ -119,8 +119,8 @@ type tables
 
 type 'a servicecookiestablecontent =
     (string                  (* session fullsessname *) *
-     'a                      (* session table *) * 
-     float option ref        (* expiration date by timeout 
+     'a                      (* session table *) *
+     float option ref        (* expiration date by timeout
                                 (server side) *) *
      timeout ref             (* user timeout *) *
      Eliommod_sessiongroups.sessgrp option ref   (* session group *))
@@ -128,9 +128,9 @@ type 'a servicecookiestablecontent =
 
 type 'a servicecookiestable = 'a servicecookiestablecontent SessionCookies.t
 
-type datacookiestablecontent = 
+type datacookiestablecontent =
     (string                  (* session fullsessname *) *
-     float option ref        (* expiration date by timeout 
+     float option ref        (* expiration date by timeout
                                 (server side) *) *
      timeout ref             (* user timeout *) *
      Eliommod_sessiongroups.sessgrp option ref   (* session group *))
@@ -150,11 +150,11 @@ type 'a one_service_cookie_info =
      sc_table:'a ref             (* service session table
                                     ref towards cookie table
                                   *);
-     sc_timeout:timeout ref      (* user timeout - 
+     sc_timeout:timeout ref      (* user timeout -
                                     ref towards cookie table
                                   *);
      sc_exp:float option ref     (* expiration date ref
-                                    (server side) - 
+                                    (server side) -
                                     None = never
                                     ref towards cookie table
                                   *);
@@ -166,10 +166,10 @@ type 'a one_service_cookie_info =
 type one_data_cookie_info =
     (* in memory data sessions: *)
     {dc_value:string                    (* current value *);
-     dc_timeout:timeout ref             (* user timeout - 
+     dc_timeout:timeout ref             (* user timeout -
                                            ref towards cookie table
                                          *);
-     dc_exp:float option ref            (* expiration date ref (server side) - 
+     dc_exp:float option ref            (* expiration date ref (server side) -
                                            None = never
                                            ref towards cookie table
                                          *);
@@ -179,7 +179,7 @@ type one_data_cookie_info =
 
 type one_persistent_cookie_info =
      {pc_value:string                    (* current value *);
-      pc_timeout:timeout ref             (* user timeout *); 
+      pc_timeout:timeout ref             (* user timeout *);
       pc_cookie_exp:cookie_exp ref       (* cookie expiration date to set *);
       pc_session_group:Eliommod_sessiongroups.perssessgrp option ref (* session group *)
     }
@@ -190,10 +190,10 @@ type one_persistent_cookie_info =
 type 'a cookie_info =
     (* service sessions: *)
     (string option            (* value sent by the browser *)
-                              (* None = new cookie 
+                              (* None = new cookie
                                  (not sent by the browser) *)
        *
-       
+
        'a one_service_cookie_info session_cookie ref
        (* SCNo_data = the session has been closed
           SCData_session_expired = the cookie has not been found in the table.
@@ -203,36 +203,36 @@ type 'a cookie_info =
       (* This one is not lazy because we must check all service sessions
          at each request to find the services *)
       Ocsigen_http_frame.Cookievalues.t ref (* The key is the full session name *) *
-      
+
     (* in memory data sessions: *)
       (string option            (* value sent by the browser *)
-                                (* None = new cookie 
+                                (* None = new cookie
                                    (not sent by the browser) *)
          *
-         
+
          one_data_cookie_info session_cookie ref
          (* SCNo_data = the session has been closed
             SCData_session_expired = the cookie has not been found in the table.
             For both of them, ask the browser to remove the cookie.
           *)
       ) Lazy.t
-      (* Lazy because we do not want to ask the browser to unset the cookie 
-         if the cookie has not been used, otherwise it is impossible to 
+      (* Lazy because we do not want to ask the browser to unset the cookie
+         if the cookie has not been used, otherwise it is impossible to
          write a message "Your session has expired" *)
       Ocsigen_http_frame.Cookievalues.t ref (* The key is the full session name *) *
-      
+
       (* persistent sessions: *)
       ((string                  (* value sent by the browser *) *
         timeout                 (* timeout at the beginning of the request *) *
-        float option            (* (server side) expdate 
+        float option            (* (server side) expdate
                                    at the beginning of the request
                                    None = no exp *) *
         Eliommod_sessiongroups.perssessgrp option      (* session group at beginning of request *))
          option
-                                (* None = new cookie 
+                                (* None = new cookie
                                    (not sent by the browser) *)
          *
-         
+
          one_persistent_cookie_info session_cookie ref
          (* SCNo_data = the session has been closed
             SCData_session_expired = the cookie has not been found in the table.
@@ -263,10 +263,10 @@ type sitedata =
  }
 
 
-(** Type of server parameters. 
+(** Type of server parameters.
     This is the type of the first parameter of service handlers (sp).
  *)
-and server_params = 
+and server_params =
     {sp_ri:request_info;
      sp_si:sess_info;
      sp_sitedata:sitedata (* data for the whole site *);
@@ -296,7 +296,7 @@ type anon_params_type = int
 
 
 
-      
+
 
 val persistent_cookies_table :
   (string * float option * timeout * Eliommod_sessiongroups.perssessgrp option)
@@ -315,16 +315,16 @@ val add_service :
       bool ->
         string list ->
           page_table_key *
-            ((anon_params_type * anon_params_type) * 
+            ((anon_params_type * anon_params_type) *
                int ref option *
                (float * float ref) option *
                (server_params -> result_to_send Lwt.t)) ->
                  unit
 
 val add_naservice :
-    tables -> 
-      bool -> 
-	na_key -> 
+    tables ->
+      bool ->
+	na_key ->
           (int ref option *
              (float * float ref) option *
 	     (server_params -> result_to_send Lwt.t))
@@ -349,7 +349,7 @@ val set_global_service_timeout :
     sitedata ->
     float option -> unit
 
-val get_global_service_timeout : 
+val get_global_service_timeout :
     session_name:string option -> sitedata -> float option
 
 val set_global_data_timeout :
@@ -358,7 +358,7 @@ val set_global_data_timeout :
     sitedata ->
     float option -> unit
 
-val get_global_data_timeout : 
+val get_global_data_timeout :
     session_name:string option -> sitedata -> float option
 
 val set_global_persistent_timeout :
@@ -389,34 +389,34 @@ val create_volatile_table_during_session : server_params -> 'a SessionCookies.t
 val create_persistent_table : string -> 'a Ocsipersist.table
 val remove_from_all_persistent_tables : string -> unit Lwt.t
 
-val find_or_create_service_cookie : 
-    ?session_group:string -> 
-      ?session_name:string -> 
-        sp:server_params -> 
-          unit -> 
+val find_or_create_service_cookie :
+    ?session_group:string ->
+      ?session_name:string ->
+        sp:server_params ->
+          unit ->
             tables one_service_cookie_info
 
-val find_service_cookie_only : 
-    ?session_name:string -> sp:server_params -> unit -> 
+val find_service_cookie_only :
+    ?session_name:string -> sp:server_params -> unit ->
       tables one_service_cookie_info
 
-val find_or_create_data_cookie : 
-    ?session_group:string -> 
-      ?session_name:string -> 
+val find_or_create_data_cookie :
+    ?session_group:string ->
+      ?session_name:string ->
         sp:server_params -> unit -> one_data_cookie_info
 
-val find_data_cookie_only : 
+val find_data_cookie_only :
     ?session_name:string -> sp:server_params -> unit -> one_data_cookie_info
 
-val find_or_create_persistent_cookie : 
-    ?session_group:string -> 
-      ?session_name:string -> 
-        sp:server_params -> 
+val find_or_create_persistent_cookie :
+    ?session_group:string ->
+      ?session_name:string ->
+        sp:server_params ->
           unit ->
             one_persistent_cookie_info Lwt.t
-            
-val find_persistent_cookie_only : 
-    ?session_name:string -> sp:server_params -> unit -> 
+
+val find_persistent_cookie_only :
+    ?session_name:string -> sp:server_params -> unit ->
       one_persistent_cookie_info Lwt.t
 
 
@@ -434,82 +434,82 @@ val close_data_session2 : sitedata -> Eliommod_sessiongroups.sessgrp option -> s
 
 val close_data_session :
   ?close_group:bool ->
-  ?session_name:string -> 
-  sp:server_params -> 
-  unit -> 
+  ?session_name:string ->
+  sp:server_params ->
+  unit ->
   unit
 
 val close_data_group : sitedata -> Eliommod_sessiongroups.sessgrp option -> unit
 
 val close_volatile_session :
   ?close_group:bool ->
-  ?session_name:string -> 
-  sp:server_params -> 
-  unit -> 
+  ?session_name:string ->
+  sp:server_params ->
+  unit ->
   unit
 
-val close_persistent_session2 : 
-  Eliommod_sessiongroups.perssessgrp option -> 
+val close_persistent_session2 :
+  Eliommod_sessiongroups.perssessgrp option ->
   string ->
   unit Lwt.t
 
 val close_persistent_session :
   ?close_group:bool ->
-  ?session_name:string -> 
-  sp:server_params -> 
-  unit -> 
+  ?session_name:string ->
+  sp:server_params ->
+  unit ->
   unit Lwt.t
 
 val close_persistent_group : Eliommod_sessiongroups.perssessgrp option -> unit Lwt.t
 
 val close_all_service_sessions :
   ?close_group:bool ->
-  ?session_name:string -> 
-  sitedata -> 
+  ?session_name:string ->
+  sitedata ->
   unit Lwt.t
 
 val close_all_data_sessions :
   ?close_group:bool ->
-  ?session_name:string -> 
-  sitedata -> 
+  ?session_name:string ->
+  sitedata ->
   unit Lwt.t
 
 val close_all_persistent_sessions :
   ?close_group:bool ->
-  ?session_name:string -> 
-  sitedata -> 
+  ?session_name:string ->
+  sitedata ->
   unit Lwt.t
 
 
 val iter_service_sessions :
-    sitedata -> 
+    sitedata ->
       (SessionCookies.key * tables servicecookiestablecontent * sitedata -> unit Lwt.t)
       -> unit Lwt.t
 
 val iter_data_sessions :
-    sitedata -> 
+    sitedata ->
       (SessionCookies.key * datacookiestablecontent * sitedata -> unit Lwt.t) -> unit Lwt.t
 
 val iter_persistent_sessions :
-  (string * (string * float option * timeout * 
-               Eliommod_sessiongroups.perssessgrp option) -> 
-     unit Lwt.t) -> 
+  (string * (string * float option * timeout *
+               Eliommod_sessiongroups.perssessgrp option) ->
+     unit Lwt.t) ->
   unit Lwt.t
 
 val fold_service_sessions :
-  sitedata -> 
-  (SessionCookies.key * tables servicecookiestablecontent * 
+  sitedata ->
+  (SessionCookies.key * tables servicecookiestablecontent *
      sitedata -> 'c -> 'c Lwt.t)
   -> 'c -> 'c Lwt.t
 
 val fold_data_sessions :
-    sitedata -> 
-      (SessionCookies.key * datacookiestablecontent * sitedata -> 'c -> 'c Lwt.t) -> 
+    sitedata ->
+      (SessionCookies.key * datacookiestablecontent * sitedata -> 'c -> 'c Lwt.t) ->
         'c -> 'c Lwt.t
 
 val fold_persistent_sessions :
-  (string * (string * float option * timeout * 
-               Eliommod_sessiongroups.perssessgrp option) -> 
+  (string * (string * float option * timeout *
+               Eliommod_sessiongroups.perssessgrp option) ->
      'c -> 'c Lwt.t) -> 'c -> 'c Lwt.t
 
 

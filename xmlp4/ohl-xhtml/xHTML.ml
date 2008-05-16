@@ -5,27 +5,27 @@
    Copyright (C) 2007 by Vincent Balat, Gabriel Kerneis, CNRS, Université Paris Diderot
 
    XHTML is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by 
+   under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
    XHTML is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  *)  
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  *)
 
-(* Warning: 
+(* Warning:
    I hacked this module to try to handle more things and to be closer
    to the DTD (and to make it compatible with Ocsigen).
    BUT: This hack is not very clean because I don't think I follow
    Thorsten Ohl's conventions.
    I verified lots of types but not all and I am not sure that it
    corresponds exactly to the dtd. (Actually, I am almost sure that it doesn't).
-   This module would deserve a complete verification and to be cleaned 
+   This module would deserve a complete verification and to be cleaned
    following Ohl's conventions.
    Vincent Balat
  *)
@@ -115,7 +115,7 @@ module type T =
         | `Hex of string | `RGB of int * int * int ]
 (** The attribute value type [color] refers to color definitions as specified in
     SRGB.  A color value may either be a hexadecimal number (prefixed by a hash mark)
-    or one of the following sixteen color names. The color names are case-insensitive. 
+    or one of the following sixteen color names. The color names are case-insensitive.
     @see <http://www.w3.org/Graphics/Color/sRGB> A Standard Default Color Space for the Internet. *)
 
     type contenttype = string
@@ -155,7 +155,7 @@ module type T =
     their conventional interpretations. A LinkTypes value refers to a
     space-separated list of link types. White space characters are not
     permitted within link types.  These link types are case-insensitive, i.e.,
-    ["Alternate"] has the same meaning as ["alternate"]. 
+    ["Alternate"] has the same meaning as ["alternate"].
 
     User agents, search engines, etc. may interpret these link types in a
     variety of ways. For example, user agents may provide access to linked
@@ -328,10 +328,10 @@ module type T =
        actually monomorphic (the different element types are distinguished
        by a homogeneous variable, such as their textual representation)
        and the type variable [`a] is just used by the type checker.
-    
+
        NB: It might be possible to use polymorphic variants directly, without
        phantom types, but the implementation is likely to be more involved. *)
-    
+
 (** {2 Core} *)
 
     type core = [ `Class | `Id | `Title ]
@@ -363,30 +363,30 @@ module type T =
 
     type i18n = [ `XML_lang ]
     val a_xml_lang : nmtoken -> [>`XML_lang] attrib
-    
+
 (** {2 Style}
     The Style collection is deprecated, because the Style Attribute Module is
     deprecated. *)
 
     type common = [ core | i18n ]
-    
+
 (** {1 Modules, Element Sets and Attributes } *)
 
 (** {2 5.2. Core Modules} *)
-    
+
 (** {3 5.2.1. Structure Module} *)
-    
+
     module STRUCTURE :
         sig
           type t = [ `Body | `Head | `Html | `Title ]
         end
-    
+
     val a_profile : uri -> [>`Profile] attrib
     val a_version : cdata -> [>`Version] attrib
     val a_xmlns : [< `W3_org_1999_xhtml ] -> [>`XMLns] attrib
-    
+
 (** {3 5.2.2. Text Module} *)
-    
+
     module TEXT :
         sig
           type heading = [ `H1 | `H2 | `H3 | `H4 | `H5 | `H6 ]
@@ -396,18 +396,18 @@ module type T =
               | `Em | `Kbd | `Q | `Samp | `Span | `Strong | `Var ]
           type flow = [ heading | block | inline ]
         end
-    
+
     val a_cite : uri -> [>`Cite] attrib
     val a_xml_space : [< `Preserve ] -> [>`XML_space] attrib
-    
+
 (** {3 5.2.3. Hypertext Module} *)
-    
+
     module HYPERTEXT :
         sig
           type inline = [ `A ]
           type flow = inline
         end
-    
+
     val a_accesskey : character -> [>`Accesskey] attrib
 (** This attribute assigns an access key to an element. An access key
     is a single character from the document character
@@ -456,31 +456,31 @@ module type T =
     take responsibility to manage the risk that it may become
     inconsistent with the content available at the link target
     address. *)
-    
+
 (** {3 5.2.3. List Module} *)
-    
+
     module LIST :
         sig
           type list = [ `Dl | `Ol | `Ul ]
           type t = [ `Dd | `Dt | `Li ]
           type flow = list
         end
-    
+
 (** {2 5.3. Applet Module}
     This module is deprecated. Similar functionality
     can be found in the Object Module. *)
-    
+
 (** {2 5.4. Text Extension Modules} *)
-    
+
 (** {3 5.4.1. Presentation Module} *)
-    
+
     module PRESENTATION :
         sig
           type block = [ `Hr ]
           type inline = [ `B | `Big | `I | `Small | `Sub | `Sup | `Tt ]
           type flow = [ inline | block ]
         end
-    
+
 (** {3 5.4.2. Edit Module} *)
 
 (* VB *)
@@ -492,11 +492,11 @@ module type T =
 (* VB *)
     val a_dir : [< `Ltr | `Rtl ] -> [>`Dir] attrib
 (* VB *)
-    
+
 (** {2 5.5. Forms Modules} *)
-    
+
 (** {3 5.5.1. Basic Forms Module} *)
-    
+
     module FORMS :
         sig
           type t = [ `Option ]
@@ -509,7 +509,7 @@ module type T =
           type flow_sans_label = [block | inline_sans_label ]
           type flow = [ block | inline ]
         end
-    
+
     val a_action : uri -> [>`Action] attrib
 (** This attribute specifies a form processing agent. User agent
     behavior for a value other than an HTTP URI is undefined. *)
@@ -558,7 +558,7 @@ module type T =
 
 
 (** {3 5.5.2. Forms Module} *)
-    
+
     val a_disabled : [< `Disabled ] -> [>`Disabled] attrib
     val a_readonly : [< `Readonly ] -> [>`Readonly] attrib
     val a_button_type : [< `Button | `Submit | `Reset ] ->
@@ -568,16 +568,16 @@ module type T =
 
 
 (** {2 5.6. Table Modules} *)
-    
+
 (** {3 5.6.1. Basic Tables Module} *)
-    
+
     module TABLES :
         sig
           type t = [ `Caption | `Td | `Th | `Tr ]
           type block = [ `Table ]
           type flow = block
         end
-    
+
     val a_abbr : text -> [>`Abbr] attrib
     val a_align : [< `Left | `Center | `Right | `Justify | `Char ] ->
       [>`Align] attrib
@@ -589,9 +589,9 @@ module type T =
     val a_summary : text -> [>`Summary] attrib
     val a_valign : [< `Top | `Middle | `Bottom | `Baseline ] ->
       [>`Valign] attrib
-    
+
 (** {3 5.6.2. Tables Module} *)
-    
+
     val a_border : pixels -> [>`Border] attrib
     val a_cellpadding : length -> [>`Cellpadding] attrib
     val a_cellspacing : length -> [>`Cellspacing] attrib
@@ -604,19 +604,19 @@ module type T =
     val a_charoff : length -> [>`Charoff] attrib
 
 (** {2 5.7. Image Module} *)
-    
+
     module IMAGE :
         sig
           type inline = [ `Img ]
         end
-    
+
     val a_alt : text -> [>`Alt] attrib
     val a_height : length -> [>`Height] attrib
     val a_longdesc : uri -> [>`Longdesc] attrib
     val a_width : length -> [>`Width] attrib
 
 (** {2 5.8. Client-side Image Map Module} *)
-    
+
     type shape = [ `Rect | `Circle | `Poly | `Default ]
     val a_shape : shape -> [`Shape] attrib
     val a_coords : cdata -> [`Coords] attrib
@@ -624,7 +624,7 @@ module type T =
     val a_usemap : idref -> [>`Usemap] attrib
 
 (** {2 5.9. Server-side Image Map Module} *)
-    
+
 (** {2 5.10. Object Module} *)
 
 (* VB *)
@@ -652,11 +652,11 @@ module type T =
     val a_target : frametarget -> [>`Target] attrib
 
 (** {2 5.13. Iframe Module} *)
-    
+
 (** {2 5.14. Intrinsic Events Module} *)
-    
+
 (** {2 5.15. Metainformation Module} *)
-    
+
     module METAINFORMATION :
         sig
           type t = [ `Meta ]
@@ -671,9 +671,9 @@ module type T =
 (* VB *)
     val a_defer : [< `Defer ] -> [>`Defer] attrib
 (* VB *)
-    
+
 (** {2 5.17. Style Sheet Module} *)
-    
+
     module STYLE_SHEET :
         sig
           type t = [ `Style ]
@@ -682,7 +682,7 @@ module type T =
     val a_media : mediadesc -> [>`Media] attrib
 
 (** {2 5.18. Style Attribute Module} *)
-    
+
 (** {2 5.19. Link Module} *)
 
     module LINK :
@@ -691,16 +691,16 @@ module type T =
         end
 
 (** {2 5.20. Base Module} *)
-    
+
     module BASE :
         sig
           type t = [ `Base ]
         end
-    
+
 (** {2 5.21. Name Identification Module}
     This module is deprecated in XHTML 1.1, but supported for XHTML 1.0
     using [`Name_01_00] . *)
-    
+
 (** {2 5.22. Legacy Module} *)
 
 (** *)
@@ -720,9 +720,9 @@ module type T =
 (* VB *)
 
 
-    
+
 (** {1 Combined Element Sets:} *)
-    
+
     type block =
         [ TEXT.block | PRESENTATION.block | FORMS.block | TABLES.block | SPECIAL.block | TEXT.heading | LIST.list | misc ]
     type block_sans_form =
@@ -732,11 +732,11 @@ module type T =
         [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | TABLES.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc ]
     type flow_sans_table =
         [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc ]
-    
+
     type inline =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
         | FORMS.inline | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
-    
+
     type inline_sans_a_mix =
         [ TEXT.inline | PRESENTATION.inline
         | FORMS.inline | IMAGE.inline | SPECIAL.inline | i18nclass |misc ]
@@ -750,30 +750,30 @@ module type T =
     type inline_sans_label =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
         | FORMS.inline_sans_label | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
-    
+
     type heading = TEXT.heading
-    
+
 (** {1 Elements} *)
-    
+
     (* For Ocsigen I need to specify the variance --Vincent *)
     type +'a elt
-    
+
 (** {2 Element Constructor Types} *)
 
     type ('a, 'b) nullary = ?a:('a attrib list) -> unit -> 'b elt
     type ('a, 'b, 'c) unary = ?a:('a attrib list) -> 'b elt -> 'c elt
     type ('a, 'b, 'c, 'd) binary = ?a:('a attrib list) -> 'b elt -> 'c elt -> 'd elt
-    
+
     type ('a, 'b, 'c) star = ?a:('a attrib list) -> 'b elt list -> 'c elt
 (** Star '*' denotes any number of children, uncluding zero. *)
 
     type ('a, 'b, 'c) plus = ?a:('a attrib list) -> 'b elt -> 'b elt list -> 'c elt
 (** Plus '+' requires at least one child.  *)
-    
+
 (** {2 Structure} *)
-    
+
     type html = [`Html] elt
-    
+
     val html : ?a:([< i18n | `Version | `XMLns ] attrib list) ->
       [< `Head ] elt -> [< `Body | `Frameset ] elt -> html
     val head : ?a:([< i18n | `Profile ] attrib list) ->
@@ -782,9 +782,9 @@ module type T =
         -> [>`Head] elt
     val title : ([< i18n ], [< `PCDATA ], [>`Title]) unary
     val body : ([< common ], [< block ], [>`Body]) star
-    
+
 (** {2 Data} *)
-    
+
     val pcdata : string -> [>`PCDATA] elt
     val entity : string -> [>`PCDATA] elt
     val space : unit -> [>`PCDATA] elt
@@ -796,24 +796,24 @@ module type T =
 (**/**)
 
 
-    
+
 (** {2 Text} *)
-    
+
     val h1 : ([< common ], [< `PCDATA | inline ], [>`H1]) star
     val h2 : ([< common ], [< `PCDATA | inline ], [>`H2]) star
     val h3 : ([< common ], [< `PCDATA | inline ], [>`H3]) star
     val h4 : ([< common ], [< `PCDATA | inline ], [>`H4]) star
     val h5 : ([< common ], [< `PCDATA | inline ], [>`H5]) star
     val h6 : ([< common ], [< `PCDATA | inline ], [>`H6]) star
-    
+
     val address : ([< common ], [< `PCDATA | inline ], [>`Address]) star
     val blockquote : ([< common | `Cite ],
                       [< `PCDATA | block ], [>`Blockquote]) star
     val div : ([< common ], [< `PCDATA | flow ], [>`Div]) star
     val p : ([< common ], [< `PCDATA | inline ], [>`P]) star
-    val pre : ([< common | `XML_space ], 
+    val pre : ([< common | `XML_space ],
                [< `PCDATA | precontent ], [>`Pre]) star
-    
+
     val abbr : ([< common ], [< `PCDATA | inline ], [>`Abbr]) star
     val acronym : ([< common ], [< `PCDATA | inline ], [>`Acronym]) star
     val br :  ([< core ], [>`Br]) nullary
@@ -827,25 +827,25 @@ module type T =
     val span : ([< common ], [< `PCDATA | inline ], [>`Span]) star
     val strong : ([< common ], [< `PCDATA | inline ], [>`Strong]) star
     val var : ([< common ], [< `PCDATA | inline ], [>`Var]) star
-    
+
 (** {2 Hypertext} *)
-    
+
     val a : ([< common | `Accesskey | `Charset | `Href | `Hreflang
-             | `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type 
+             | `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type
              | `Shape | `Coords ],
              [< `PCDATA | inline_sans_a_mix ], [>`A]) star
-    
+
 (** {2 List} *)
-    
+
     val dl : ([< common ], [< `Dt | `Dd ], [>`Dl]) plus
     val ol : ([< common ], [< `Li ], [>`Ol]) plus
     val ul : ([< common ], [< `Li ], [>`Ul]) plus
     val dd : ([< common ], [< `PCDATA | flow ], [>`Dd]) star
     val dt : ([< common ], [< `PCDATA | inline ], [>`Dt]) star
     val li : ([< common ], [< `PCDATA | flow ], [>`Li]) star
-    
+
 (** {2 Presentation} *)
-    
+
     val hr : ([< common ], [>`Hr]) nullary
     val b : ([< common ], [< `PCDATA | inline ], [>`B]) star
     val big : ([< common ], [< `PCDATA | inline ], [>`Big]) star
@@ -869,9 +869,9 @@ module type T =
 
 
 (** {2 Forms} *)
-    
+
 (** {3 Basic Forms} *)
-    
+
 (** One can use [open Basic_Forms] to enable basic forms. *)
 
     module Basic_Forms :
@@ -893,8 +893,8 @@ module type T =
         end
 
 (** {3 Forms} *)
-    
-(** Generic forms. WARNING: If you find a bug or if something is missing please send a bug report to the Ocsigen project! -- VB *) 
+
+(** Generic forms. WARNING: If you find a bug or if something is missing please send a bug report to the Ocsigen project! -- VB *)
     val form : action:uri ->
       ([< common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept ],
        [< block_sans_form | `Fieldset ], [>`Form]) plus
@@ -920,7 +920,7 @@ module type T =
                     [< `PCDATA | buttoncontent ], [>`Button]) star
 
 (** {2 Tables} *)
-    
+
 (** {3 Basic Tables} *)
 
 (** One can use [open Basic_Tables] to switch globally to basic tables. *)
@@ -942,7 +942,7 @@ module type T =
       end
 
 (** {3 Tables} *)
-    
+
     val caption : ([< common ], [< `PCDATA | inline ], [>`Caption]) star
 
     val table : ?caption:([< `Caption ] elt) ->
@@ -979,7 +979,7 @@ module type T =
                  [< `Tr ], [>`Tfoot]) plus
 
 (** {2 Image} *)
-    
+
     val img : src:uri -> alt:text ->
       ([< common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap ], [>`Img]) nullary
 
@@ -1012,13 +1012,13 @@ module type T =
 
     val link : ([< common | `Charset | `Href | `Hreflang | `Media
                 | `Rel | `Rev | `Target | `Type ], [>`Link]) nullary
-    
+
 (** {2 Base} *)
 
     val base : href:uri -> unit -> [>`Base] elt
 
 (** {1 Output} *)
-    
+
 (** [?encode] maps strings to HTML and {e must} encode the unsafe characters
     ['<'], ['>'], ['"'], ['&'] and the control characters 0-8, 11-12, 14-31, 127
     to HTML entities.  [XML.encode_unsafe] is the default for [?encode] in [output]
@@ -1036,14 +1036,14 @@ module type T =
     val doctype :
         [< `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 ]
       -> string
- 
-    val output : ?encode:(string -> string) -> ?encoding:string -> 
+
+    val output : ?encode:(string -> string) -> ?encoding:string ->
       (string -> unit) -> html -> unit
 
     val pretty_print : ?width:int ->
       ?encode:(string -> string) -> ?encoding:string ->
         (string -> unit) -> html -> unit
-    
+
 (** {1 Tools} *)
 
     val version : string
@@ -1122,12 +1122,12 @@ module Version =
   struct
 
     (* Directly from http://www.w3.org/TR/xhtml-modularization/abstract_modules.html *)
-    
+
     type core = [ `Class | `Id | `Title ]
     type i18n = [ `XML_lang ]
-    
+
     type common = [ core | i18n ]
-    
+
     type 'a attrib = XML.attrib
     type 'a attribs = XML.attribs
 
@@ -1260,30 +1260,30 @@ module Version =
         (String.concat ", " (List.map mediadesc_to_string mediadescs))
 
     (* Core: *)
-    
+
     let a_class = space_sep_attrib "class"
     let a_id = string_attrib "id"
     let a_title = string_attrib "title"
-    
+
     (* I18N: *)
-    
+
     let a_xml_lang = string_attrib "xml:lang"
-    
+
     (* Style: *)
-    
+
     let a_style = string_attrib "style"
-    
+
     (* Other Attributes *)
-    
+
     let a_profile = string_attrib "profile"
     let a_version = string_attrib "version"
     let a_xmlns = function
       | `W3_org_1999_xhtml -> string_attrib "xmlns" "http://www.w3.org/1999/xhtml"
-    
+
     let a_cite = string_attrib "cite"
     let a_xml_space = function
       | `Preserve -> string_attrib "xml:space" "preserve"
-    
+
     let a_accesskey c = string_attrib "accesskey" (String.make 1 c)
     let a_charset = string_attrib "charset"
     let a_accept_charset = string_attrib "accept-charset"
@@ -1294,13 +1294,13 @@ module Version =
     let a_rev = linktypes_attrib "rev"
     let a_tabindex = int_attrib "tabindex"
     let a_type = string_attrib "type"
-    
+
     let a_alt = string_attrib "alt"
     let a_height p = length_attrib "height" p
     let a_longdesc = string_attrib "longdesc"
     let a_src = string_attrib "src"
     let a_width p = length_attrib "width" p
-    
+
     let a_for = string_attrib "for"
     let a_selected = function
       | `Selected -> string_attrib "selected" "selected"
@@ -1309,7 +1309,7 @@ module Version =
     let a_method m =
       string_attrib "method" (match m with `Get ->  "get" | `Post -> "post")
     let a_enctype = string_attrib "enctype"
-    
+
     let a_checked `Checked = string_attrib "checked" "checked"
     let a_disabled `Disabled = string_attrib "disabled" "disabled"
     let a_readonly `Readonly = string_attrib "readonly" "readonly"
@@ -1345,9 +1345,9 @@ module Version =
       | `Multiple -> string_attrib "multiple" "multiple"
     let a_cols = int_attrib "cols"
     let a_rows = int_attrib "rows"
-    
+
     let a_summary = string_attrib "summary"
-    
+
     let a_abbr = string_attrib "attrib"
     let a_align a =
       string_attrib "align"
@@ -1375,7 +1375,7 @@ module Version =
         | `Middle -> "middle"
         | `Bottom -> "bottom"
         | `Baseline -> "baseline")
-    
+
     let a_border = int_attrib "border"
     let a_cellpadding = length_attrib "cellpadding"
     let a_cellspacing = length_attrib "cellspacing"
@@ -1434,71 +1434,71 @@ module Version =
     let a_media = mediadesc_attrib "media"
 
     type 'a elt = XML.elt
-    
+
     type html = [`Html] elt
-    
+
     (* NB: These are more general than the ones in xHTML.mli *)
-    
+
     type ('a, 'b) nullary = ?a:('a attrib list) -> unit -> 'b elt
     type ('a, 'b, 'c) unary = ?a:('a attrib list) -> 'b elt -> 'c elt
     type ('a, 'b, 'c, 'd) binary = ?a:('a attrib list) -> 'b elt -> 'c elt -> 'd elt
     type ('a, 'b, 'c) star = ?a:('a attrib list) -> 'b elt list -> 'c elt
     type ('a, 'b, 'c) plus = ?a:('a attrib list) -> 'b elt -> 'b elt list -> 'c elt
-    
+
     let terminal tag ?a () = XML.leaf ?a tag
     (* let nullary tag ?a () = XML.node ?a tag [] *)
     let unary tag ?a elt = XML.node ?a tag [elt]
     let binary tag ?a elt1 elt2 = XML.node ?a tag [elt1; elt2]
     let star tag ?a elts = XML.node ?a tag elts
     let plus tag ?a elt elts = XML.node ?a tag (elt :: elts)
-    
+
     module STRUCTURE =
       struct
         type t = [ `Body | `Head | `Html | `Title ]
       end
-    
+
     let body = star "body"
     let head = plus "head"
     let title = unary "title"
     let html = binary "html"
-    
+
     let pcdata = XML.pcdata
     let entity = XML.entity
 
     let space () = entity "nbsp"
-    
+
     let cdata s = (* GK *)
       (* For security reasons, we do not allow "]]>" inside CDATA
          (as this string is to be considered as the end of the cdata)
        *)
       let s' = "\n<![CDATA[\n"^
-        (Netstring_pcre.global_replace 
+        (Netstring_pcre.global_replace
            (Netstring_pcre.regexp_string "]]>") "" s)
         ^"\n]]>\n" in
       XML.EncodedPCDATA s'
-    
+
     let cdata_script s = (* GK *)
       (* For security reasons, we do not allow "]]>" inside CDATA
          (as this string is to be considered as the end of the cdata)
        *)
       let s' = "\n//<![CDATA[\n"^
-        (Netstring_pcre.global_replace 
+        (Netstring_pcre.global_replace
            (Netstring_pcre.regexp_string "]]>") "" s)
         ^"\n//]]>\n" in
       XML.EncodedPCDATA s'
-    
+
     let cdata_style s = (* GK *)
       (* For security reasons, we do not allow "]]>" inside CDATA
          (as this string is to be considered as the end of the cdata)
        *)
       let s' = "\n/* <![CDATA[ */\n"^
-        (Netstring_pcre.global_replace 
+        (Netstring_pcre.global_replace
            (Netstring_pcre.regexp_string "]]>") "" s)
         ^"\n/* ]]> */\n" in
       XML.EncodedPCDATA s'
-    
+
     let unsafe_data s = XML.EncodedPCDATA s
-    
+
 
     module TEXT =
       struct
@@ -1509,63 +1509,63 @@ module Version =
             | `Em | `Kbd | `Q | `Samp | `Span | `Strong | `Var ]
         type flow = [ heading | block | inline ]
       end
-    
+
     let h1 = star "h1"
     let h2 = star "h2"
     let h3 = star "h3"
     let h4 = star "h4"
     let h5 = star "h5"
     let h6 = star "h6"
-    
+
     let address = star "address"
     let blockquote = star "blockquote"
     let div = star "div"
     let p = star "p"
     let pre = star "pre"
-    
+
     let abbr = star "abbr"
     let acronym = star "acronym"
     let br = terminal "br"
     let cite = star "cite"
-    let code = star "code" 
+    let code = star "code"
     let dfn = star "dfn"
     let em = star "em"
     let kbd = star "kbd"
     let q = star "q"
-    let samp = star "samp" 
+    let samp = star "samp"
     let span = star "span"
     let strong = star "strong"
     let var = star "var"
-    
+
     module HYPERTEXT =
       struct
         type inline = [ `A ]
         type flow = inline
       end
-    
+
     let a = star "a"
-    
+
     module LIST =
       struct
         type list = [ `Dl | `Ol | `Ul ]
         type t = [ `Dd | `Dt | `Li ]
         type flow = list
       end
-    
+
     let dl = plus "dl"
     let ol = plus "ol"
     let ul = plus "ul"
     let dd = star "dd"
     let dt = star "dt"
     let li = star "li"
-    
+
     module PRESENTATION =
       struct
         type block = [ `Hr ]
         type inline = [ `B | `Big | `I | `Small | `Sub | `Sup | `Tt ]
         type flow = [ inline | block ]
       end
-    
+
     let hr = terminal "hr"
     let b = star "b"
     let big = star "big"
@@ -1583,13 +1583,13 @@ module Version =
     let bdo = star "bdo"
 
     let a_datetime = string_attrib "datetime"
-    let a_dir d = 
+    let a_dir d =
       string_attrib "dir" (match d with `Rtl -> "rtl" | `Ltr -> "ltr")
 
-    let a_shape d = 
-      string_attrib "shape" 
-        (match d with 
-          `Rect -> "rect" 
+    let a_shape d =
+      string_attrib "shape"
+        (match d with
+          `Rect -> "rect"
         | `Circle -> "circle"
         | `Poly -> "poly"
         | `Default -> "default")
@@ -1599,18 +1599,18 @@ module Version =
     let a_defer `Defer = string_attrib "defer" "defer"
     let a_label = string_attrib "label"
 
-    let area ~alt ?(a = []) () = 
+    let area ~alt ?(a = []) () =
       XML.leaf ~a:(a_alt alt :: a) "area"
-    let map ~id ?(a = []) elt elts = 
+    let map ~id ?(a = []) elt elts =
       XML.node ~a:(a_id id :: a) "map" (elt::elts)
     let del = star "del"
     let ins = star "ins"
-    let script ~contenttype ?(a = []) elt = 
+    let script ~contenttype ?(a = []) elt =
       XML.node ~a:(a_type contenttype :: a) "script" [elt]
     let noscript = plus "noscript"
 (* VB *)
 
-    
+
     module FORMS =
       struct
         type t = [ `Option ]
@@ -1623,7 +1623,7 @@ module Version =
         type flow_sans_label = [block | inline_sans_label ]
         type flow = [ block | inline ]
       end
-    
+
     module Basic_Forms =
       struct
         let form ~action ?(a = []) elt elts =
@@ -1677,14 +1677,14 @@ module Version =
         let th = star "th"
         let tr = plus "tr"
       end
-    
+
     let caption = star "caption"
 
-    let cols_option = function 
+    let cols_option = function
       | Some (`Cols c) -> c
       | Some (`Colgroups c) -> c
       | None -> []
-    
+
     let table ?caption ?columns ?a elt elts =
       XML.node ?a "table"
         (list_of_option caption @ cols_option columns @ elt :: elts)
@@ -1710,7 +1710,7 @@ module Version =
       struct
         type inline = [ `Img ]
       end
-    
+
     let img ~src ~alt ?(a = []) () =
       XML.leaf ~a:(a_src src :: a_alt alt :: a) "img"
 
@@ -1725,7 +1725,7 @@ module Version =
       struct
         type t = [ `Meta ]
       end
-    
+
     let meta ~content ?(a = []) () =
       XML.leaf ~a:(a_content content :: a) "meta"
 
@@ -1733,7 +1733,7 @@ module Version =
       struct
         type t = [ `Style ]
       end
-    
+
     let style ~contenttype ?(a = []) elts =
       XML.node ~a:(a_type contenttype :: a) "style" elts
 
@@ -1741,14 +1741,14 @@ module Version =
       struct
         type t = [ `Link ]
       end
-    
+
     let link = terminal "link"
 
     module BASE =
       struct
         type t = [ `Base ]
       end
-    
+
     let base ~href () =
       XML.leaf ~a:[a_href href] "base"
 
@@ -1775,11 +1775,11 @@ module Version =
         [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | TABLES.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc ]
     type flow_sans_table =
         [ TEXT.flow | HYPERTEXT.flow | LIST.flow | FORMS.flow | PRESENTATION.flow | SPECIAL.flow | i18nclass | misc ]
-    
+
     type inline =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
         | FORMS.inline | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
-    
+
     type inline_sans_a_mix =
         [ TEXT.inline | PRESENTATION.inline
         | FORMS.inline | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
@@ -1793,15 +1793,15 @@ module Version =
     type inline_sans_label =
         [ TEXT.inline | HYPERTEXT.inline | PRESENTATION.inline
         | FORMS.inline_sans_label | IMAGE.inline | SPECIAL.inline | i18nclass | misc ]
-    
+
     type heading = TEXT.heading
-    
+
     (* I/O *)
-    
+
     let compose_doctype dt args =
       "<!DOCTYPE " ^ dt ^ " PUBLIC " ^
       String.concat " " (List.map (fun a -> "\"" ^ a ^ "\"") args) ^ ">\n"
-    
+
     let doctype = function
       | `HTML_v03_02 ->
           compose_doctype "html" ["-//W3C//DTD HTML 3.2 Final//EN"]
@@ -1828,14 +1828,14 @@ module Version =
       (* XML.decl ?encoding outs (); Does not work with IE *)
       outs (doctype version);
       XML.output ~preformatted ~no_break ?encode outs page
-    
+
     let pretty_print version ?width ?encode ?encoding outs page =
       (* XML.decl ?encoding outs (); Does not work with IE *)
       outs (doctype version);
       XML.pretty_print ?width ~preformatted ~no_break ?encode outs page
-    
+
     (* Tools *)
-    
+
     let version = function
       | `XHTML_01_00 -> "XHTML 1.0"
       | `XHTML_01_01 -> "XHTML 1.1"
@@ -1850,7 +1850,7 @@ module Version =
     let compose_validator_icon icon alt =
       a ~a:[a_href validator]
         [img ~src:icon ~alt ~a:[a_height (`Pixels 31); a_width (`Pixels 88)] ()]
-        
+
     let validator_icon = function
       | `XHTML_01_00 -> compose_validator_icon
             "http://www.w3.org/Icons/valid-xhtml10" "Valid XHTML 1.0!"
@@ -1885,8 +1885,8 @@ module Version =
     let totl x = x
     let toelt x = x
     let toeltl x = x
-        
-  end    
+
+  end
 
 module M_01_00 : T_01_00 =
   struct

@@ -2,7 +2,7 @@
 type t
 
 val set_exn_handler : (exn -> unit) -> unit
-(** set the default handler for exception occurring after a timeout. 
+(** set the default handler for exception occurring after a timeout.
     The function lauched after a timeout should not raise any exception.
     That's why the default handler will exit the program.
 *)

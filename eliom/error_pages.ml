@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -19,13 +19,13 @@
 
 open XHTML.M
 
-let page_error_param_type l = 
+let page_error_param_type l =
   let s = match l with
     [] -> [pcdata "Wrong type for parameter"]
   | [(n,_)] -> [pcdata "Wrong type for parameter ";em [pcdata n];pcdata "."]
   | (n,_)::ll ->
       (pcdata "Wrong type for parameters ")::
-      (List.fold_left (fun deb (n,_) -> (em [pcdata n])::(pcdata ", ")::deb) 
+      (List.fold_left (fun deb (n,_) -> (em [pcdata n])::(pcdata ", ")::deb)
          [em [pcdata n];pcdata "."] ll)
   in
   html
@@ -34,22 +34,22 @@ let page_error_param_type l =
        [h1 s]
     )
 
-let page_bad_param l = 
+let page_bad_param l =
   let s = "Wrong parameters" in
   html
     (head (title (pcdata s)) [])
     (body
        [h1 [pcdata s];
-        if l = [] 
+        if l = []
         then
           p [pcdata "(no POST parameters)."]
         else
           p ((pcdata "(Post parameters are: ")::
-             (List.fold_right (fun n b -> (em [pcdata n])::(pcdata ", ")::b) 
+             (List.fold_right (fun n b -> (em [pcdata n])::(pcdata ", ")::b)
                 l [pcdata ")."]))]
     )
 
-let page_session_expired  = 
+let page_session_expired  =
   let s = "Session expired" in
   html
     (head (title (pcdata s)) [])

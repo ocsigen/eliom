@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -28,7 +28,7 @@ type 'a param_name = string
 
 type ('a,'b) binsum = Inj1 of 'a | Inj2 of 'b;;
 
-type 'an listnames = 
+type 'an listnames =
     {it:'el 'a. ('an -> 'el -> 'a list) -> 'el list -> 'a list -> 'a list}
 
 type coordinates =
@@ -69,23 +69,23 @@ type ('a,+'tipo,+'names) params_type =
 
 type anon_params_type = int
 
-let anonymise_params_type (t : ('a, 'b, 'c) params_type) : anon_params_type = 
+let anonymise_params_type (t : ('a, 'b, 'c) params_type) : anon_params_type =
   Hashtbl.hash_param 1000 1000 t
 
 
 (* As GADT are not implemented in OCaml for the while, we define our own
    constructors for params_type *)
-let int (n : string) : (int, [`WithoutSuffix], [ `One of int ] param_name) params_type = 
+let int (n : string) : (int, [`WithoutSuffix], [ `One of int ] param_name) params_type =
   TInt n
 
-let int32 (n : string) : (int32, [`WithoutSuffix], [ `One of int32 ] param_name) params_type = 
+let int32 (n : string) : (int32, [`WithoutSuffix], [ `One of int32 ] param_name) params_type =
   TInt32 n
 
-let int64 (n : string) : (int64, [`WithoutSuffix], [ `One of int64 ] param_name) params_type = 
+let int64 (n : string) : (int64, [`WithoutSuffix], [ `One of int64 ] param_name) params_type =
   TInt64 n
 
 let float (n : string)
-    : (float, [`WithoutSuffix], [ `One of float ] param_name) params_type = 
+    : (float, [`WithoutSuffix], [ `One of float ] param_name) params_type =
   TFloat n
 
 let bool (n : string)
@@ -93,11 +93,11 @@ let bool (n : string)
     = TBool n
 
 let string (n : string)
-    : (string, [`WithoutSuffix], [ `One of string ] param_name) params_type = 
+    : (string, [`WithoutSuffix], [ `One of string ] param_name) params_type =
   TString n
 
 let file (n : string)
-    : (file_info , [`WithoutSuffix], [ `One of file_info ] param_name) params_type = 
+    : (file_info , [`WithoutSuffix], [ `One of file_info ] param_name) params_type =
   TFile n
 
 let unit : (unit, [`WithoutSuffix], unit) params_type = TUnit
@@ -107,12 +107,12 @@ let user_type
     : ('a,[`WithoutSuffix], [ `One of 'a ] param_name) params_type =
   Obj.magic (TUserType (n, of_string, to_string))
 
-let sum (t1 : ('a,[`WithoutSuffix], 'an) params_type) 
-    (t2 : ('b,[`WithoutSuffix], 'bn) params_type) 
+let sum (t1 : ('a,[`WithoutSuffix], 'an) params_type)
+    (t2 : ('b,[`WithoutSuffix], 'bn) params_type)
     : (('a,'b) binsum, [`WithoutSuffix], 'an * 'bn ) params_type =
   Obj.magic (TSum (t1, t2))
 
-let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type) 
+let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type)
     (t2 : ('b,[<`WithoutSuffix|`Endsuffix] as 'e, 'bn) params_type)
     : (('a * 'b),'e, 'an * 'bn) params_type =
   Obj.magic (TProd ((Obj.magic t1), (Obj.magic t2)))
@@ -120,74 +120,74 @@ let prod (t1 : ('a,[`WithoutSuffix], 'an) params_type)
 let ( ** ) = prod
 
 let coordinates (n : string)
-    : (coordinates, [`WithoutSuffix], [ `One of coordinates ] param_name) params_type = 
+    : (coordinates, [`WithoutSuffix], [ `One of coordinates ] param_name) params_type =
   TCoord n
 
 let string_coordinates (n : string)
     : (string * coordinates,
-       [`WithoutSuffix], 
-       [ `One of (string * coordinates) ] param_name) params_type = 
+       [`WithoutSuffix],
+       [ `One of (string * coordinates) ] param_name) params_type =
   Obj.magic (TCoordv (string n, n))
 
 let int_coordinates (n : string)
     : (int * coordinates,
-       [`WithoutSuffix], 
-       [ `One of (int * coordinates) ] param_name) params_type = 
+       [`WithoutSuffix],
+       [ `One of (int * coordinates) ] param_name) params_type =
   Obj.magic (TCoordv (int n, n))
 
 let int32_coordinates (n : string)
     : (int32 * coordinates,
-       [`WithoutSuffix], 
-       [ `One of (int32 * coordinates) ] param_name) params_type = 
+       [`WithoutSuffix],
+       [ `One of (int32 * coordinates) ] param_name) params_type =
   Obj.magic (TCoordv (int32 n, n))
 
 let int64_coordinates (n : string)
     : (int64 * coordinates,
-       [`WithoutSuffix], 
-       [ `One of (int64 * coordinates) ] param_name) params_type = 
+       [`WithoutSuffix],
+       [ `One of (int64 * coordinates) ] param_name) params_type =
   Obj.magic (TCoordv (int64 n, n))
 
 let float_coordinates (n : string)
     : (float * coordinates,
-       [`WithoutSuffix], 
-       [ `One of (float * coordinates) ] param_name) params_type = 
+       [`WithoutSuffix],
+       [ `One of (float * coordinates) ] param_name) params_type =
   Obj.magic (TCoordv (float n, n))
 
 let user_type_coordinates
     (of_string : string -> 'a) (to_string : 'a -> string) (n : string)
     : ('a * coordinates,
-       [`WithoutSuffix], 
-       [ `One of ('a * coordinates) ] param_name) params_type = 
+       [`WithoutSuffix],
+       [ `One of ('a * coordinates) ] param_name) params_type =
   Obj.magic (TCoordv (user_type of_string to_string n, n))
 
-let opt (t : ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type) 
-    : ('a option,[`WithoutSuffix], [ `Opt of 'an ] param_name) params_type = 
+let opt (t : ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type)
+    : ('a option,[`WithoutSuffix], [ `Opt of 'an ] param_name) params_type =
   Obj.magic (TOption t)
 
-let list (n : string) (t : ('a, [`WithoutSuffix], 'an) params_type) 
-    : ('a list,[`WithoutSuffix], 'an listnames) params_type = 
+let list (n : string) (t : ('a, [`WithoutSuffix], 'an) params_type)
+    : ('a list,[`WithoutSuffix], 'an listnames) params_type =
   Obj.magic (TList (n,t))
 
 let set (t : string -> ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type) (n : string)
-    : ('a list, [`WithoutSuffix], [ `Set of 'an ] param_name) params_type = 
+    : ('a list, [`WithoutSuffix], [ `Set of 'an ] param_name) params_type =
   Obj.magic (TSet (t n))
 
 let any
-    : ((string * string) list, [`WithoutSuffix], unit) params_type = 
+    : ((string * string) list, [`WithoutSuffix], unit) params_type =
   TAny
 
 let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
-let regexp reg dest n = 
+let regexp reg dest n =
   user_type
-    (fun s -> 
+    (fun s ->
       match Netstring_pcre.string_match reg s 0 with
-      | Some _ -> 
+      | Some _ ->
           begin
             (* hack to get user dirs (same as in staticmod) *)
             let s = Netstring_pcre.global_replace reg dest s in
             match Netstring_pcre.string_match user_dir_regexp dest 0 with
             | None -> s
-            | Some result -> 
+            | Some result ->
                 let user = Netstring_pcre.matched_group result 2 s in
                 try
                   let userdir = (Unix.getpwnam user).Unix.pw_dir in
@@ -200,37 +200,37 @@ let regexp reg dest n =
     (fun s -> s)
     n
 
-let all_suffix (n : string) : 
-    (string list , [`Endsuffix], 
-     [ `One of string list ] param_name) params_type = 
+let all_suffix (n : string) :
+    (string list , [`Endsuffix],
+     [ `One of string list ] param_name) params_type =
   (Obj.magic (TESuffix n))
 
-let all_suffix_string (n : string) : 
-    (string, [`Endsuffix], [ `One of string ] param_name) params_type = 
+let all_suffix_string (n : string) :
+    (string, [`Endsuffix], [ `One of string ] param_name) params_type =
   (Obj.magic (TESuffixs n))
 
 let all_suffix_user
     (of_string : string -> 'a) (from_string : 'a -> string) (n : string) :
-    ('a, [`Endsuffix], [ `One of 'a ] param_name) params_type = 
+    ('a, [`Endsuffix], [ `One of 'a ] param_name) params_type =
   (Obj.magic (TESuffixu (n, of_string, from_string)))
 
-let all_suffix_regexp reg dest (n : string) : 
-    (string, [`Endsuffix], [ `One of string ] param_name) params_type = 
+let all_suffix_regexp reg dest (n : string) :
+    (string, [`Endsuffix], [ `One of string ] param_name) params_type =
   all_suffix_user
-    (fun s -> 
+    (fun s ->
       match Netstring_pcre.string_match reg s 0 with
       | Some _ -> Netstring_pcre.global_replace reg dest s
       | _ -> raise (Failure "Not matching regexp"))
     (fun s -> s)
     n
 
-let suffix (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type) : 
-    ('s , [`WithSuffix], 'sn) params_type = 
+let suffix (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type) :
+    ('s , [`WithSuffix], 'sn) params_type =
   (Obj.magic (TSuffix s))
 
 let suffix_prod (s : ('s, [<`WithoutSuffix|`Endsuffix], 'sn) params_type)
-    (t : ('a, [`WithoutSuffix], 'an) params_type) : 
-    (('s * 'a), [`WithSuffix], 'sn * 'an) params_type = 
+    (t : ('a, [`WithoutSuffix], 'an) params_type) :
+    (('s * 'a), [`WithSuffix], 'sn * 'an) params_type =
   (Obj.magic (TProd (Obj.magic (TSuffix s), Obj.magic t)))
 
 let contains_suffix = function
@@ -254,22 +254,22 @@ let make_list_suffix i = "["^(string_of_int i)^"]"
 
 (* The following function reconstructs the value of parameters
    from expected type and GET or POST parameters *)
-type 'a res_reconstr_param = 
-  | Res_ of ('a * 
-               (string * string) list * 
+type 'a res_reconstr_param =
+  | Res_ of ('a *
+               (string * string) list *
                (string * file_info) list)
   | Errors_ of ((string * exn) list *
-                  (string * string) list * 
+                  (string * string) list *
                   (string * file_info) list)
 
 let reconstruct_params
     (typ : ('a,[<`WithSuffix|`WithoutSuffix],'b) params_type)
-    params files urlsuffix : 'a = 
+    params files urlsuffix : 'a =
   let rec aux_list t params files name pref suff =
     let rec aa i lp fl pref suff =
       let rec end_of_list len = function
         | [] -> true
-        | (a,_)::_ when 
+        | (a,_)::_ when
             (try (String.sub a 0 len) = pref
             with Invalid_argument _ -> false) -> false
         | _::l -> end_of_list len l
@@ -277,7 +277,7 @@ let reconstruct_params
       if end_of_list (String.length pref) lp
       then Res_ ((Obj.magic []), lp, fl)
       else
-        try 
+        try
           match aux t lp fl pref (suff^(make_list_suffix i)) with
           | Res_ (v,lp2,f) ->
               (match aa (i+1) lp2 f pref suff with
@@ -288,7 +288,7 @@ let reconstruct_params
               | Res_ (_,ll,ff) -> Errors_ (errs, ll, ff)
               | Errors_ (errs2, ll, ff) -> Errors_ ((errs@errs2), ll, ff))
         with Not_found -> Res_ ((Obj.magic []), lp, files)
-    in 
+    in
     aa 0 params files (pref^name^".") suff
   and aux (typ : ('a,[<`WithSuffix|`WithoutSuffix|`Endsuffix],'b) params_type)
       params files pref suff : 'a res_reconstr_param =
@@ -303,25 +303,25 @@ let reconstruct_params
             (match aux t2 l f pref suff with
               Res_ (_, ll, ff) -> Errors_ (errs, ll, ff)
             | Errors_ (errs2, ll, ff) -> Errors_ ((errs2@errs), ll, ff)))
-    | TOption t -> 
-        (try 
+    | TOption t ->
+        (try
           (match aux t params files pref suff with
             Res_ (v, l, f) -> Res_ ((Obj.magic (Some v)), l, f)
           | err -> err)
         with Not_found -> Res_ ((Obj.magic None), params, files))
-    | TBool name -> 
-        (try 
+    | TBool name ->
+        (try
           let v,l = (list_assoc_remove (pref^name^suff) params) in
           Res_ ((Obj.magic true),l,files)
         with Not_found -> Res_ ((Obj.magic false), params, files))
     | TList (n,t) -> Obj.magic (aux_list t params files n pref suff)
-    | TSet t -> 
+    | TSet t ->
         let rec aux_set params files =
           try
             match aux t params files pref suff with
-            | Res_ (vv, ll, ff) -> 
+            | Res_ (vv, ll, ff) ->
                 (match aux_set ll ff with
-                | Res_ (vv2, ll2, ff2) -> 
+                | Res_ (vv2, ll2, ff2) ->
                     Res_ (Obj.magic (vv::vv2), ll2, ff2)
                 | err -> err)
             | Errors_ (errs, ll, ff) ->
@@ -330,35 +330,35 @@ let reconstruct_params
                 | Errors_ (errs2, ll2, ff2) -> Errors_ (errs@errs2, ll2, ff2))
           with Not_found -> Res_ (Obj.magic [], params, files)
         in Obj.magic (aux_set params files)
-    | TSum (t1, t2) -> 
-        (try 
+    | TSum (t1, t2) ->
+        (try
           match aux t1 params files pref suff with
           | Res_ (v,l,files) -> Res_ ((Obj.magic (Inj1 v)),l,files)
           | err -> err
-        with Not_found -> 
+        with Not_found ->
           (match aux t2 params files pref suff with
           | Res_ (v,l,files) -> Res_ ((Obj.magic (Inj2 v)),l,files)
           | err -> err))
-    | TString name -> 
+    | TString name ->
         let v,l = list_assoc_remove (pref^name^suff) params in
         Res_ ((Obj.magic v),l,files)
-    | TInt name -> 
-        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+    | TInt name ->
+        let v,l = (list_assoc_remove (pref^name^suff) params) in
         (try (Res_ ((Obj.magic (int_of_string v)),l,files))
         with e -> Errors_ ([(pref^name^suff),e], l, files))
-    | TInt32 name -> 
-        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+    | TInt32 name ->
+        let v,l = (list_assoc_remove (pref^name^suff) params) in
         (try (Res_ ((Obj.magic (Int32.of_string v)),l,files))
         with e -> Errors_ ([(pref^name^suff),e], l, files))
-    | TInt64 name -> 
-        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+    | TInt64 name ->
+        let v,l = (list_assoc_remove (pref^name^suff) params) in
         (try (Res_ ((Obj.magic (Int64.of_string v)),l,files))
         with e -> Errors_ ([(pref^name^suff),e], l, files))
-    | TFloat name -> 
-        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+    | TFloat name ->
+        let v,l = (list_assoc_remove (pref^name^suff) params) in
         (try (Res_ ((Obj.magic (float_of_string v)),l,files))
         with e -> Errors_ ([(pref^name^suff),e], l, files))
-    | TFile name -> 
+    | TFile name ->
         let v,f = list_assoc_remove (pref^name^suff) files in
         Res_ ((Obj.magic v), params, f)
     | TCoord name ->
@@ -377,14 +377,14 @@ let reconstruct_params
             with e -> Errors_ ([(pref^name^suff^".y"), e], l, f))
         | Errors_ (errs, l1, f) ->
             let v, l = (list_assoc_remove (pref^name^suff^".y") l1) in
-            (try 
-              ignore (int_of_string v); 
+            (try
+              ignore (int_of_string v);
               Errors_ (errs, l, f)
             with e -> Errors_ (((pref^name^suff^".y"), e)::errs, l, f)))
     | TCoordv (t, name) ->
         aux (TProd (t, TCoord name)) params files pref suff
     | TUserType (name, of_string, string_of) ->
-        let v,l = (list_assoc_remove (pref^name^suff) params) in 
+        let v,l = (list_assoc_remove (pref^name^suff) params) in
         (try (Res_ ((Obj.magic (of_string v)),l,files))
         with e -> Errors_ ([(pref^name^suff),e], l, files))
     | TUnit -> Res_ ((Obj.magic ()), params, files)
@@ -405,11 +405,11 @@ let reconstruct_params
   in
   let aux2 typ params =
     match Obj.magic (aux typ params files "" "") with
-    | Res_ (v,l,files) -> 
+    | Res_ (v,l,files) ->
         if (l,files) = ([], [])
         then v
         else raise Eliom_common.Eliom_Wrong_parameter
-    | Errors_ (errs, l, files) -> 
+    | Errors_ (errs, l, files) ->
         if (l,files) = ([], [])
         then raise (Eliom_common.Eliom_Typing_Error errs)
         else raise Eliom_common.Eliom_Wrong_parameter
@@ -417,16 +417,16 @@ let reconstruct_params
   let parse_one typ v =
     match typ with
     | TString _ -> Obj.magic v
-    | TInt name -> 
+    | TInt name ->
         (try Obj.magic (int_of_string v)
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | TInt32 name -> 
+    | TInt32 name ->
         (try Obj.magic (Int32.of_string v)
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | TInt64 name -> 
+    | TInt64 name ->
         (try Obj.magic (Int64.of_string v)
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
-    | TFloat name -> 
+    | TFloat name ->
         (try Obj.magic (float_of_string v)
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
     | TUserType (name, of_string, string_of) ->
@@ -438,48 +438,48 @@ let reconstruct_params
     match (typ, suff) with
     | (TESuffix _), l -> Obj.magic l
     | (TESuffixs _), l -> Obj.magic (string_of_url_path l)
-    | (TESuffixu (_, of_string, from_string)), l -> 
+    | (TESuffixu (_, of_string, from_string)), l ->
         (try
           Obj.magic (of_string (string_of_url_path l))
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
     | _, [a] -> parse_one typ a
-    | (TProd (t1, t2)), a::l -> 
+    | (TProd (t1, t2)), a::l ->
         let b = parse_suffix t2 l in (* First we do parse_suffix to detect
                                         wrong number of parameters *)
         Obj.magic ((parse_one t1 a), b)
     | _ -> raise Eliom_common.Eliom_Wrong_parameter
   in
-  try 
+  try
     match typ with
-      (* Each suffixed URL has a version with parameters to be used with 
+      (* Each suffixed URL has a version with parameters to be used with
          forms *)
-    | TProd((TSuffix s), t) -> 
+    | TProd((TSuffix s), t) ->
         if urlsuffix = [""]
           (* no suffix: switching to version with parameters *)
-        then 
-          (try 
+        then
+          (try
             Obj.magic (aux2 (TProd (s, t)) params)
-          with Eliom_common.Eliom_Wrong_parameter -> 
+          with Eliom_common.Eliom_Wrong_parameter ->
             Obj.magic ((parse_suffix s urlsuffix), (aux2 t params)))
         else Obj.magic ((parse_suffix s urlsuffix), (aux2 t params))
     | TSuffix s ->
-        if urlsuffix = [""] && params <> [] 
+        if urlsuffix = [""] && params <> []
         then
           (try Obj.magic (aux2 s params)
-          with Eliom_common.Eliom_Wrong_parameter -> 
+          with Eliom_common.Eliom_Wrong_parameter ->
             Obj.magic (parse_suffix s urlsuffix))
         else Obj.magic (parse_suffix s urlsuffix)
-    | _ -> 
+    | _ ->
         if urlsuffix <> []
         then raise Eliom_common.Eliom_Wrong_parameter
         else Obj.magic (aux2 typ params)
-  with 
+  with
   | Not_found -> raise Eliom_common.Eliom_Wrong_parameter
 
 (* The following function takes a 'a params_type and a 'a and
-   constructs the list of parameters (GET or POST) 
+   constructs the list of parameters (GET or POST)
    (This is a marshalling function towards HTTP parameters format) *)
-let construct_params_list 
+let construct_params_list
     (typ : ('a, [<`WithSuffix|`WithoutSuffix],'b) params_type)
     (params : 'a) : string list option * (string * string) list =
   let rec aux typ params pref suff l =
@@ -487,19 +487,19 @@ let construct_params_list
     | TProd (t1, t2) ->
         let l1 = aux t1 (fst (Obj.magic params)) pref suff l in
         aux t2 (snd (Obj.magic params)) pref suff l1
-    | TOption t -> 
-        (match ((Obj.magic params) : 'zozo option) with 
+    | TOption t ->
+        (match ((Obj.magic params) : 'zozo option) with
         | None -> l
         | Some v -> aux t v pref suff l)
-    | TBool name -> 
+    | TBool name ->
         (if ((Obj.magic params) : bool)
         then ((pref^name^suff), "on")::l
         else l)
-    | TList (list_name, t) -> 
+    | TList (list_name, t) ->
         let pref2 = pref^list_name^suff^"." in
-        fst 
+        fst
           (List.fold_left
-             (fun (s,i) p -> 
+             (fun (s,i) p ->
                ((aux t p pref2 (suff^(make_list_suffix i)) s),(i+1)))
              (l,0) (Obj.magic params))
     | TSet t ->
@@ -514,9 +514,9 @@ let construct_params_list
     | TInt name -> ((pref^name^suff), (string_of_int (Obj.magic params)))::l
     | TInt32 name -> ((pref^name^suff), (Int32.to_string (Obj.magic params)))::l
     | TInt64 name -> ((pref^name^suff), (Int64.to_string (Obj.magic params)))::l
-    | TFloat name -> 
+    | TFloat name ->
         ((pref^name^suff), (string_of_float (Obj.magic params)))::l
-    | TFile name -> 
+    | TFile name ->
         raise (Failure
                  "Constructing an URL with file parameters not implemented")
     | TUserType (name, of_string, string_of) ->
@@ -563,19 +563,19 @@ let construct_params_list
 
 
 (* contruct the string of parameters (& separated) for GET and POST *)
-let construct_params_string = 
+let construct_params_string =
   Netencoding.Url.mk_url_encoded_parameters
   (* No: we must URL-encode
   function
   | [] -> ""
-  | (a,b)::l -> 
+  | (a,b)::l ->
       List.fold_left
         (fun beg (c,d) -> beg^"&"^c^"="^d)
         (a^"="^b)
         l
    *)
 
-let construct_params typ p = 
+let construct_params typ p =
   let suff, pl = construct_params_list typ p in
   (suff, construct_params_string pl)
 
@@ -596,7 +596,7 @@ let rec add_pref_params pref = function
   | TInt64 name -> TInt64 (pref^name)
   | TFloat name -> TFloat (pref^name)
   | TFile name -> TFile (pref^name)
-  | TUserType (name, of_string, string_of) -> 
+  | TUserType (name, of_string, string_of) ->
       TUserType (pref^name, of_string, string_of)
   | TCoord name -> TCoord (pref^name)
   | TCoordv (t, name) -> TCoordv ((add_pref_params pref t), pref^name)
@@ -617,8 +617,8 @@ let remove_prefixed_param pref l =
   let len = String.length pref in
   let rec aux = function
     | [] -> []
-    | ((n,v) as a)::l -> 
-        try 
+    | ((n,v) as a)::l ->
+        try
           if (String.sub n 0 len) = pref then
             aux l
           else a::(aux l)
@@ -647,18 +647,18 @@ let make_params_names (params : ('t,'tipo,'n) params_type) : 'n =
     | TSuffix t -> Obj.magic (aux prefix suffix t)
     | TOption t -> Obj.magic (aux prefix suffix t)
     | TSum (t1,t2) -> Obj.magic (aux prefix suffix t1, aux prefix suffix t2)
-    | TList (name,t1) -> Obj.magic 
+    | TList (name,t1) -> Obj.magic
           {it =
            (fun f l endlist ->
              let length = List.length l in
              snd
-               (List.fold_right 
-                  (fun el (i,l2) -> 
+               (List.fold_right
+                  (fun el (i,l2) ->
                     let i'= i-1 in
                     (i',(f (aux (prefix^name^".") (make_list_suffix i') t1) el)
                      @l2))
                   l
                   (length,endlist)))}
   in aux "" "" params
-    
+
 let string_of_param_name = id

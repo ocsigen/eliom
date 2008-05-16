@@ -2,8 +2,8 @@ type etag = string
 type url_path = string list
 
 
-(** This table is to store cookie values for each path. 
-    The key has type url_path option: 
+(** This table is to store cookie values for each path.
+    The key has type url_path option:
     it is for the path (default: root of the site),
  *)
 module Cookies : Map.S
@@ -13,11 +13,11 @@ module Cookies : Map.S
 module Cookievalues : Map.S
   with type key = string
 
-(** Type used for cookies to set. 
+(** Type used for cookies to set.
     The float option is the timestamp for the expiration date.
     The string is the value.
  *)
-type cookie = 
+type cookie =
   | OSet of float option * string
   | OUnset
 
@@ -25,22 +25,22 @@ type cookieset = cookie Cookievalues.t Cookies.t
 
 (** [add_cookie c cookie_table] adds the cookie [c] to the table [cookie_table].
    If the cookie is already bound, the previous binding disappear. *)
-val add_cookie : 
+val add_cookie :
     url_path -> string -> cookie -> cookieset -> cookieset
 
 (** [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
-   to [oldcookies]. If cookies are already bound in oldcookies, 
+   to [oldcookies]. If cookies are already bound in oldcookies,
    the previous binding disappear. *)
 val add_cookies :
     cookie Cookievalues.t Cookies.t ->
-      cookie Cookievalues.t Cookies.t -> 
+      cookie Cookievalues.t Cookies.t ->
         cookie Cookievalues.t Cookies.t
 
-(** [compute_new_ri_cookies now path ri_cookies cookies_to_set] 
+(** [compute_new_ri_cookies now path ri_cookies cookies_to_set]
    adds the cookies from [cookies_to_set]
-   to [ri_cookies], as if the cookies 
+   to [ri_cookies], as if the cookies
    add been send to the browser and the browser
-   was doing a new request to the url [path]. 
+   was doing a new request to the url [path].
    Only the cookies that match [path] (current path) are added. *)
 val compute_new_ri_cookies :
     float ->
@@ -59,7 +59,7 @@ type result =
      res_stream: string Ocsigen_stream.t; (** Default: empty stream *)
      res_stop_stream: unit -> unit Lwt.t; (** A function that will be called
                                               if sending the stream fails.
-                                              It is called before the stream 
+                                              It is called before the stream
                                               finalizer, only in case of error.
                                               Use it if you want a different
                                               behaviour if sending succeeds
@@ -118,12 +118,12 @@ module Http_error :
   end
 
 
-(** The type of HTTP frames. 
+(** The type of HTTP frames.
    The content may be void (no body) or a stream.
-   While sending, a stream will be sent with chunked encoding if no 
+   While sending, a stream will be sent with chunked encoding if no
    content-length is supplied.
-   abort is the function to be called if you want to cancel the stream 
-   reading (closes the connection). 
+   abort is the function to be called if you want to cancel the stream
+   reading (closes the connection).
 *)
 type t =
   { header : Http_header.http_header;

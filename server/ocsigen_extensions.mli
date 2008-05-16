@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -78,7 +78,7 @@ val client_connection : client -> Ocsigen_http_com.connection
 (** Returns the connection *)
 
 (** The request *)
-type request_info = 
+type request_info =
     {ri_url_string: string; (** full URL *)
      ri_url: Neturl.url;
      ri_method: Ocsigen_http_frame.Http_header.http_method; (** GET, POST, HEAD... *)
@@ -118,9 +118,9 @@ type request_info =
 
 
      ri_http_frame: Ocsigen_http_frame.t; (** The full http_frame *)
-     ri_extension_info: exn list; (** Use this to put anything you want, 
+     ri_extension_info: exn list; (** Use this to put anything you want,
                                       for example, information for subsequent
-                                      extensions 
+                                      extensions
                                    *)
      ri_client: client; (** The request connection *)
    }
@@ -134,10 +134,10 @@ type answer =
   | Ext_found of (unit -> Ocsigen_http_frame.result Lwt.t)
       (** "OK stop! I will take the page.
           You can start the following request of the same pipelined connection.
-          Here is the function to generate the page". 
+          Here is the function to generate the page".
           The extension must return Ext_found as soon as possible
           when it is sure it is safe to start next request.
-          Usually as soon as you know tha the result will be Ext_found. 
+          Usually as soon as you know tha the result will be Ext_found.
           But in some case, for example proxies, you don't want the request of
           one connection to be handled in different order.
           In that case, wait to be sure that the new request will not
@@ -150,22 +150,22 @@ type answer =
                         Same as Ext_continue_with but does not change
                         the request.
                     *)
-  | Ext_stop_site of (Ocsigen_http_frame.cookieset * int) 
+  | Ext_stop_site of (Ocsigen_http_frame.cookieset * int)
                     (** Error. Do not try next extension, but
-                        try next site. 
+                        try next site.
                         The integer is the HTTP error code, usally 403.
                      *)
   | Ext_stop_host of (Ocsigen_http_frame.cookieset * int)
-                    (** Error. Do not try next extension, 
+                    (** Error. Do not try next extension,
                         do not try next site,
-                        but try next host. 
+                        but try next host.
                         The integer is the HTTP error code, usally 403.
                      *)
   | Ext_stop_all of (Ocsigen_http_frame.cookieset * int)
-                    (** Error. Do not try next extension (even filters), 
+                    (** Error. Do not try next extension (even filters),
                         do not try next site,
                         do not try next host,
-                        do not . 
+                        do not .
                         The integer is the HTTP error code, usally 403.
                      *)
   | Ext_continue_with of (request_info * Ocsigen_http_frame.cookieset * int)
@@ -176,7 +176,7 @@ type answer =
             You must add these cookies yourself in request_info if you
             want them to be seen by subsequent extensions,
             for example using {!Ocsigen_http_frame.compute_new_ri_cookies}.
-            The integer is usually equal to the error code received 
+            The integer is usually equal to the error code received
             from preceding extension (but you may want to modify it).
          *)
   | Ext_retry_with of request_info * Ocsigen_http_frame.cookieset
@@ -190,9 +190,9 @@ type answer =
          *)
   | Ext_sub_result of extension2
         (** Used if your extension want to define option that may contain
-            other options from other extensions. 
+            other options from other extensions.
             In that case, while parsing the configuration file, call
-            the parsing function (of type [parse_fun]), 
+            the parsing function (of type [parse_fun]),
             that will return something of type [extension2].
         *)
 
@@ -207,14 +207,14 @@ and extension2 =
           (answer * Ocsigen_http_frame.cookieset) Lwt.t
 
 type extension = request_state -> answer Lwt.t
-(** For each <site> tag in the configuration file, 
-    you can set the extensions you want. 
+(** For each <site> tag in the configuration file,
+    you can set the extensions you want.
     Each extension is implemented as a function, taking
     the charset found in configuration file,
-    the current state of the request, 
+    the current state of the request,
     and returning an answer.
-    If no page has been generated so far ([Req_not_found]), it receive 
-    the error code given by the previous extension (default 404), 
+    If no page has been generated so far ([Req_not_found]), it receive
+    the error code given by the previous extension (default 404),
     and the request information.
     If a page has been generated by previous extensions (case [Req_found]),
     the extension may want to modify the result (filters).
@@ -224,16 +224,16 @@ type parse_fun = Simplexmlparser.xml list -> extension2
 
 type parse_host
 
-(** 
+(**
    For each extension generating pages, we register four functions:
-   - a function taking 
+   - a function taking
    {ul
      {- the name of the virtual <host>}}
-     that will be called for each <host>, 
+     that will be called for each <host>,
      and that will generate a function taking:
    {ul
      {- the path attribute of a <site> tag}}
-     that will be called for each <site>, 
+     that will be called for each <site>,
      and that will generate a function taking:
    {ul
      {- an item of the config file}}
@@ -242,7 +242,7 @@ type parse_host
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
      {- return something of type [extension] (filter or page generator)}}
    - a function of same type, that will be called every time user configuration
-    files are parsed (if userconf is enabled). 
+    files are parsed (if userconf is enabled).
     It must define only safe options, for example it is not
     safe to allow such options to load a cmo specified by a user, or to
     execute a program, as this program will be executed by ocsigen's user.
@@ -250,10 +250,10 @@ type parse_host
     is called only when starting or reloading the server.
     If you do not want to allow users to use your extension,
     use the predefined function [void_extension] (defines no option).
-   - a function that will be called at the beginning 
+   - a function that will be called at the beginning
    of the initialisation phase (each time the config file is reloaded)
    (Note that the extensions are not reloaded)
-   - a function that will be called at the end of the initialisation phase 
+   - a function that will be called at the end of the initialisation phase
    of the server
    - a function that will create an error message from the exceptions
    that may be raised during the initialisation phase, and raise again
@@ -267,46 +267,46 @@ type parse_host
    the requests you to another server. It is false by default.
  *)
 val register_extension :
-  ?respect_pipeline: bool -> 
-  (virtual_hosts -> 
-     url_path -> 
+  ?respect_pipeline: bool ->
+  (virtual_hosts ->
+     url_path ->
        string ->
          parse_host ->
            parse_fun ->
-             Simplexmlparser.xml -> 
+             Simplexmlparser.xml ->
                extension) ->
-  (virtual_hosts -> 
-     url_path -> 
+  (virtual_hosts ->
+     url_path ->
        string ->
          parse_host ->
            parse_fun ->
-             Simplexmlparser.xml -> 
+             Simplexmlparser.xml ->
                extension) ->
-  (unit -> unit) -> 
-  (unit -> unit) -> 
-  (exn -> string) -> 
+  (unit -> unit) ->
+  (unit -> unit) ->
+  (exn -> string) ->
   unit
-  
+
 
 (** A predefined function to be passed to {!Ocsigen_extensions.register_extension}
-    that defines no option. 
+    that defines no option.
  *)
 val void_extension :
-    virtual_hosts -> 
-      url_path -> 
+    virtual_hosts ->
+      url_path ->
         string ->
           parse_host ->
             parse_fun ->
-              Simplexmlparser.xml -> 
+              Simplexmlparser.xml ->
                 extension
 
 
-(** While loading an extension, 
+(** While loading an extension,
     get the configuration tree between <dynlink></dynlink>*)
 val get_config : unit -> Simplexmlparser.xml list
 
 
-(** Parsing URLs. 
+(** Parsing URLs.
    This allows to modify the URL in the request_info.
    (to be used for example with Ext_retry_with or Ext_continue_with)
  *)
@@ -326,10 +326,10 @@ val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
 (**/**)
 
 val make_parse_site :
-  url_path -> 
-    string -> 
+  url_path ->
+    string ->
       (url_path ->
-        string -> 
+        string ->
           parse_host -> parse_fun -> Simplexmlparser.xml -> extension) ->
             parse_fun
 
@@ -348,7 +348,7 @@ val parse_user_site_item :
             parse_fun -> Simplexmlparser.xml -> extension
 
 val set_hosts : (virtual_hosts * extension2) list -> unit
-                        
+
 val get_hosts : unit -> (virtual_hosts * extension2) list
 
 val do_for_site_matching :

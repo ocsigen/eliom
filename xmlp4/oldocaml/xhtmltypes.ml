@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -206,14 +206,14 @@ type tfoot_content = tbody_content
 
 type a_attrib =
   [ common | `Accesskey | `Charset | `Href | `Hreflang
-| `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type 
+| `Name_01_00 | `Rel | `Rev | `Tabindex | `Target | `Type
 | `Shape | `Coords ]
 type link_attrib =
     [ common | `Charset | `Href | `Hreflang | `Media
   | `Rel | `Rev | `Target | `Type ]
 type script_attrib = [ `XMLns | `Charset | `Src | `Defer | `XML_space ]
 type form_attrib = [ common | `Enctype | `Method | `Name_01_00 | `Target | `Accept_charset | `Accept ]
-type img_attrib = 
+type img_attrib =
     [ common | `Height | `Longdesc | `Name_01_00 | `Width | `Usemap ]
 type div_attrib = common
 type input_attrib =

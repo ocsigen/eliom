@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -41,22 +41,22 @@ module Old_Xhtml_content =
       let x = Xhtmlpretty.xhtml_print c in
       get_etag_aux x
 
-    let result_of_content c = 
+    let result_of_content c =
       let x = Xhtmlpretty.xhtml_print c in
       let md5 = get_etag_aux x in
       let default_result = default_result () in
-      Lwt.return 
+      Lwt.return
         {default_result with
          res_content_length = Some (Int64.of_int (String.length x));
          res_content_type = Some "text/html";
          res_etag = md5;
          res_headers= Http_headers.dyn_headers;
-         res_stream = 
-         Ocsigen_stream.make 
+         res_stream =
+         Ocsigen_stream.make
            (fun () -> Ocsigen_stream.cont x
                (fun () -> Ocsigen_stream.empty None))
        }
-           
+
   end
 
 module Xhtml_content_(Xhtmlprinter : sig
@@ -64,7 +64,7 @@ module Xhtml_content_(Xhtmlprinter : sig
                           ?version:[< `HTML_v03_02 | `HTML_v04_01
                           | `XHTML_01_00 | `XHTML_01_01
                               > `XHTML_01_01 ] ->
-                          ?width:int -> 
+                          ?width:int ->
                           ?encode:(string -> string) ->
                           ?html_compat:bool ->
                           [ `Html ] XHTML.M.elt -> string Ocsigen_stream.t
@@ -76,10 +76,10 @@ module Xhtml_content_(Xhtmlprinter : sig
 
     let get_etag c = None
 
-    let result_of_content c = 
+    let result_of_content c =
       let x = Xhtmlprinter.xhtml_stream c in
       let default_result = default_result () in
-      Lwt.return 
+      Lwt.return
         {default_result with
          res_content_length = None;
          res_content_type = Some "text/html";
@@ -87,7 +87,7 @@ module Xhtml_content_(Xhtmlprinter : sig
          res_headers= Http_headers.dyn_headers;
          res_stream = x
        }
-           
+
   end
 
 module Xhtml_content = Xhtml_content_(Xhtmlpretty)
@@ -110,7 +110,7 @@ module Text_content =
          res_etag = md5;
          res_content_type = Some ct;
          res_headers= Http_headers.dyn_headers;
-         res_stream = 
+         res_stream =
          Ocsigen_stream.make
            (fun () -> Ocsigen_stream.cont c (fun () -> Ocsigen_stream.empty None))
 
@@ -209,21 +209,21 @@ module Empty_content =
 let mimeht = Hashtbl.create 600
 
 let parse_mime_types filename =
-  let rec read_and_split in_ch = 
+  let rec read_and_split in_ch =
     try
       let line = input_line in_ch in
-      let line_upto = 
-        try 
-          let upto = String.index line '#' in 
-          String.sub line 0 upto 
-        with Not_found -> line 
+      let line_upto =
+        try
+          let upto = String.index line '#' in
+          String.sub line 0 upto
+        with Not_found -> line
       in
-      let strlist = 
-        Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto 
+      let strlist =
+        Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto
       in
       match  List.length strlist with
       | 0 | 1 -> read_and_split in_ch
-      | _ -> 
+      | _ ->
           let make_pair = (fun h -> Hashtbl.add mimeht h (List.hd strlist)) in
           List.iter make_pair (List.tl strlist);
           read_and_split in_ch
@@ -241,7 +241,7 @@ let parse_mime_types filename =
 let rec affiche_mime () =
   Hashtbl.iter (fun f s -> Ocsigen_messages.debug (fun () -> f^" "^s)) mimeht
 
-    
+
 (* send a file in an HTTP frame*)
 let content_type_from_file_name =
   let parsed = ref false in
@@ -251,14 +251,14 @@ let content_type_from_file_name =
       parsed := true;
       parse_mime_types (Ocsigen_config.get_mimefile ());
     end;
-    try 
-      let pos = (String.rindex filename '.') in 
-      let extens = 
-        String.sub filename 
+    try
+      let pos = (String.rindex filename '.') in
+      let extens =
+        String.sub filename
           (pos+1)
           ((String.length filename) - pos - 1)
       in Hashtbl.find mimeht extens
-    with Not_found | Invalid_argument _ -> "application/octet-stream" 
+    with Not_found | Invalid_argument _ -> "application/octet-stream"
 (*VVV Make the defaultcontent-type configurable! *)
 
 (** this module instanciate the HTTP_CONTENT signature for files *)
@@ -275,9 +275,9 @@ module File_content =
       let buf = String.create buffer_size in
       let rec read_aux () =
           Lwt_unix.read fd buf 0 buffer_size >>= fun lu ->
-          if lu = 0 then  
+          if lu = 0 then
             Ocsigen_stream.empty None
-          else begin 
+          else begin
             if lu = buffer_size
             then Ocsigen_stream.cont buf read_aux
             else Ocsigen_stream.cont (String.sub buf 0 lu) read_aux
@@ -287,19 +287,19 @@ module File_content =
     let get_etag_aux st =
       Some (Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
               st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime)
-        
+
     let get_etag f =
-      let st = Unix.LargeFile.stat f in 
+      let st = Unix.LargeFile.stat f in
       get_etag_aux st
 
     let result_of_content c =
       (* open the file *)
       try
-        let fd = 
-          Lwt_unix.of_unix_file_descr 
+        let fd =
+          Lwt_unix.of_unix_file_descr
             (Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
         in
-        let st = Unix.LargeFile.stat c in 
+        let st = Unix.LargeFile.stat c in
         let etag = get_etag_aux st in
         let stream = read_file fd in
         let default_result = default_result () in
@@ -309,7 +309,7 @@ module File_content =
            res_content_type = Some (content_type_from_file_name c);
            res_lastmodified = Some st.Unix.LargeFile.st_mtime;
            res_etag = etag;
-           res_stream = 
+           res_stream =
            Ocsigen_stream.make
              ~finalize:
              (fun () ->
@@ -319,7 +319,7 @@ module File_content =
              stream
          }
       with e -> fail e
-    
+
   end
 
 (*****************************************************************************)
@@ -333,21 +333,21 @@ module Directory_content =
     let get_etag_aux st =
       Some (Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
               st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime)
-        
+
     let get_etag (f, _) =
-      let st = Unix.LargeFile.stat f in 
+      let st = Unix.LargeFile.stat f in
       get_etag_aux st
 
-    let date fl = 
+    let date fl =
       let t = Unix.gmtime fl in
-      Printf.sprintf 
-        "%02d-%02d-%04d %02d:%02d:%02d" 
-        t.Unix.tm_mday 
+      Printf.sprintf
+        "%02d-%02d-%04d %02d:%02d:%02d"
+        t.Unix.tm_mday
         (t.Unix.tm_mon + 1)
         (1900 + t.Unix.tm_year)
         t.Unix.tm_hour
         t.Unix.tm_min
-        t.Unix.tm_sec 
+        t.Unix.tm_sec
 
 
     let image_found fich =
@@ -390,7 +390,7 @@ module Directory_content =
           let f = Unix.readdir dir in
           let stat = Unix.LargeFile.stat (filename^f) in
           if (stat.Unix.LargeFile.st_kind = Unix.S_DIR && f <> "." && f <> "..")
-          then 
+          then
 	    (
 	     `Dir, f, (
 	     "<tr>\n"^
@@ -401,13 +401,13 @@ module Directory_content =
 	     "</tr>\n")
             )::aux d
           else
-	    if (stat.Unix.LargeFile.st_kind 
+	    if (stat.Unix.LargeFile.st_kind
                   = Unix.S_REG)
 	    then
 	      (
 	       if f.[(String.length f) - 1] = '~'
 	       then aux d
-	       else 
+	       else
 	         (
 	          `Reg, f,
 	          "<tr>\n"^
@@ -422,10 +422,10 @@ module Directory_content =
         with
 	  End_of_file -> Unix.closedir d;[]
 
-      in 
+      in
       let trie li =
         List.sort (fun (a1, b1, _) (a2, b2, _) -> match a1, a2 with
-	| `Dir, `Dir -> 
+	| `Dir, `Dir ->
 	    if b1<b2
 	    then 0
 	    else 1
@@ -436,7 +436,7 @@ module Directory_content =
 	    then 0
 	    else 1) li
 
-      in let rec aux2 = function 
+      in let rec aux2 = function
         | [] -> ""
         | (_, _, i)::l -> i^(aux2 l)
       in aux2 (trie (aux dir))
@@ -444,13 +444,13 @@ module Directory_content =
 
 
     let result_of_content (filename, path) =
-      let stat = Unix.LargeFile.stat filename in 
+      let stat = Unix.LargeFile.stat filename in
       let rec back = function
         | [] -> assert false
         | [a] -> "/"
         | [a;""] -> "/"
         | i::j -> "/"^i^(back j)
-      in 
+      in
       let parent =
         if (path= []) || (path = [""])
         then "/"
@@ -472,7 +472,7 @@ module Directory_content =
          <td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n\
          <td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n\
          </tr>\n"
-          
+
       and after=
         "</table>\
          <p id=\"footer\">Ocsigen Webserver</p>\
@@ -487,7 +487,7 @@ module Directory_content =
          res_etag = etag;
          res_charset= Some "utf-8"
        }
-        
+
 
   end
 
@@ -566,7 +566,7 @@ module Error_content =
   end
 
 
-let send_error 
+let send_error
     ?code
     ?exn
     slot
@@ -577,9 +577,9 @@ let send_error
     ~head
     ~sender
     ()
-    = 
+    =
   Error_content.result_of_content (code, exn, cookies) >>= fun r ->
-  send 
+  send
     slot
     ~clientproto
     ?mode

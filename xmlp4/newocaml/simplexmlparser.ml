@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-(* 
+(*
    Parseur camlp4 pour XML sans antiquotations
 *)
 open Camlp4.PreCast;
@@ -27,7 +27,7 @@ type xml =
 
 exception Xml_parser_error of string ;
 
-value nocaml_msg =  
+value nocaml_msg =
         "Caml code not allowed in configuration file. Use $$ to escape $." ;
 
 
@@ -41,7 +41,7 @@ module B = Xmllexer.BasicTypes;
       | EOFExpected ];
     exception Internal_error of error_msg;
     exception NoMoreData;
-   
+
    (* Stack - the type of s is state *)
     value pop s =
       try ((Stack.pop s.stack), s)
@@ -50,7 +50,7 @@ module B = Xmllexer.BasicTypes;
           let (t, l) = Stream.next s.stream
           in (t, {  stream = s.stream; stack = s.stack; loc = l; }) ];
     value push t s = Stack.push t s.stack;
-   
+
    (* Convert a stream of tokens into an xml tree list *)
     value rec read_nodes s acc =
       match pop s with
@@ -60,15 +60,15 @@ module B = Xmllexer.BasicTypes;
       | (B.Tag (tag, attlist, closed), s) ->
 		  match closed with
           [ True -> read_nodes s [Element (tag, (read_attlist s attlist), [])::acc]
-          | False ->read_nodes s 
+          | False ->read_nodes s
 			   [Element (tag, (read_attlist s attlist), (read_elems ~tag s))::acc]
 		  ]
-      | (B.CamlExpr _, _) | (B.CamlString _, _)|(B.CamlList _, _) -> 
+      | (B.CamlExpr _, _) | (B.CamlString _, _)|(B.CamlList _, _) ->
 	  		raise (Xml_parser_error nocaml_msg)
-	  | (B.Eof, _)|(B.Endtag _,_) as t -> 
-	  		do { push (fst t) s; List.rev acc} 
+	  | (B.Eof, _)|(B.Endtag _,_) as t ->
+	  		do { push (fst t) s; List.rev acc}
 	  ]
-   
+
    and read_elems ?tag s =
       let elems = read_nodes s [] in
         match pop s with
@@ -78,7 +78,7 @@ module B = Xmllexer.BasicTypes;
             match tag with
             [ None -> raise (Internal_error EOFExpected)
             | Some s -> raise (Internal_error (EndOfTagExpected s)) ] ]
-   
+
    and read_attlist s =
       fun
       [ [] -> []
@@ -86,7 +86,7 @@ module B = Xmllexer.BasicTypes;
           [ (a,v) :: (read_attlist s l) ]
       | [ `Attribute (`CamlAttr _, `Val _) :: _ ] |
           [ `Attribute (_, `CamlVal _) :: _ ] | [ `CamlList _ :: _ ] ->
-                  raise (Xml_parser_error nocaml_msg)]; 
+                  raise (Xml_parser_error nocaml_msg)];
 
     value to_expr_taglist stream loc =
       let s = {  stream = stream; stack = Stack.create (); loc = loc; } in

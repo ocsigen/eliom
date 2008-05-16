@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -34,40 +34,40 @@ open Lwt
   (** Iterator on service sessions *)
 let iter_service_sessions sitedata f =
   Eliom_common.SessionCookies.fold
-    (fun k v thr -> 
+    (fun k v thr ->
       thr >>= fun () ->
         f (k, v, sitedata) >>=
         Lwt_unix.yield
     )
     sitedata.Eliom_common.session_services
     (return ())
-      
-  
+
+
     (** Iterator on data sessions *)
 let iter_data_sessions sitedata f =
   Eliom_common.SessionCookies.fold
-    (fun k v thr -> 
+    (fun k v thr ->
       thr >>= fun () ->
         f (k, v, sitedata) >>=
         Lwt_unix.yield
     )
     sitedata.Eliom_common.session_data
     (return ())
-    
+
     (** Iterator on persistent sessions *)
 let iter_persistent_sessions f =
   Ocsipersist.iter_table
-    (fun k v -> 
+    (fun k v ->
       f (k, v) >>=
       Lwt_unix.yield
     )
     Eliommod_persess.persistent_cookies_table
-    
-    
+
+
     (** Iterator on service sessions *)
 let fold_service_sessions sitedata f beg =
   Eliom_common.SessionCookies.fold
-    (fun k v thr -> 
+    (fun k v thr ->
       thr >>= fun res1 ->
         f (k, v, sitedata) res1 >>= fun res ->
           Lwt_unix.yield () >>= fun () ->
@@ -75,12 +75,12 @@ let fold_service_sessions sitedata f beg =
     )
     sitedata.Eliom_common.session_services
     (return beg)
-    
-    
+
+
     (** Iterator on data sessions *)
 let fold_data_sessions sitedata f beg =
   Eliom_common.SessionCookies.fold
-    (fun k v thr -> 
+    (fun k v thr ->
       thr >>= fun res1 ->
         f (k, v, sitedata) res1 >>= fun res ->
           Lwt_unix.yield () >>= fun () ->
@@ -88,11 +88,11 @@ let fold_data_sessions sitedata f beg =
     )
     sitedata.Eliom_common.session_data
     (return beg)
-    
+
     (** Iterator on persistent sessions *)
 let fold_persistent_sessions f beg =
   Ocsipersist.fold_table
-    (fun k v beg -> 
+    (fun k v beg ->
       f (k, v) beg >>= fun res ->
         Lwt_unix.yield () >>= fun () ->
           return res
@@ -103,12 +103,12 @@ let fold_persistent_sessions f beg =
 (*****************************************************************************)
 (* Exploration *)
 
-let number_of_service_sessions ~sp = 
-  Eliom_common.SessionCookies.length 
+let number_of_service_sessions ~sp =
+  Eliom_common.SessionCookies.length
     sp.Eliom_common.sp_sitedata.Eliom_common.session_services
 
-let number_of_data_sessions ~sp = 
-  Eliom_common.SessionCookies.length 
+let number_of_data_sessions ~sp =
+  Eliom_common.SessionCookies.length
     sp.Eliom_common.sp_sitedata.Eliom_common.session_data
 
 let number_of_tables () =
@@ -117,7 +117,7 @@ let number_of_tables () =
 let number_of_table_elements () =
   List.map (fun f -> f ()) !Eliommod_datasess.counttableelements
 
-let number_of_persistent_sessions () = 
+let number_of_persistent_sessions () =
   Ocsipersist.length Eliommod_persess.persistent_cookies_table
 
 

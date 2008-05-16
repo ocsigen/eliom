@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -27,24 +27,24 @@ open Eliom_sessions
 (** {2 Menus } *)
 
 type ('a, 'b) one_page =
-    (unit, unit, 
+    (unit, unit,
      'a,
      [ `WithoutSuffix ],
-     unit, unit, 
+     unit, unit,
      'b) service
 
-val menu : 
+val menu :
   ?classe:string list ->
   (([< get_service_kind ] as 'a, [< registrable ] as 'b) one_page *
      Eliom_duce.Blocks.a_content_elt_list)
   ->
   (('a, 'b) one_page *
      Eliom_duce.Blocks.a_content_elt_list)
-    list -> 
+    list ->
   ?service:('a, 'b) one_page ->
-  sp:Eliom_sessions.server_params -> 
+  sp:Eliom_sessions.server_params ->
   Xhtmltypes_duce.ul
-(** Creates a menu 
+(** Creates a menu
 
    Example:
 
@@ -67,11 +67,11 @@ and ('a, 'b, 'c) main_page =
   | Default_page of ('a, 'b) one_page
   | Not_clickable
 and ('a, 'b, 'c) hierarchical_site =
-      (('a, 'b, 'c) main_page * 
+      (('a, 'b, 'c) main_page *
          ('c * ('a, 'b, 'c) hierarchical_site_item) list)
 (** The type of hierarchical sites.
     A hierarchical site is a pair (main page, subpages).
-    
+
     The difference between
     [Main_page], [Default_page] and [Not_clickable] is a bit subtle:
 
@@ -80,8 +80,8 @@ and ('a, 'b, 'c) hierarchical_site =
 
     - [Default_page] is like [Main_page] but is not taken into account
     for computing which is the current page in the menu.
-    Use it for example when there is no main page, but you want 
-    one of the subpages to be the default page for your subsite. 
+    Use it for example when there is no main page, but you want
+    one of the subpages to be the default page for your subsite.
     The service you use as default page
     must appear another time in the subtree!
 
@@ -95,7 +95,7 @@ and ('a, 'b, 'c) hierarchical_site =
  *)
 
 
-(** 
+(**
     [hierarchical_menu_depth_first menu] constructs a function taking
     as parameters a service and [~sp] (server parameters)
     and displaying a hierarchical menu for this service.
@@ -111,17 +111,17 @@ and ('a, 'b, 'c) hierarchical_site =
 val hierarchical_menu_depth_first :
   ?classe:string list ->
   ?whole_tree:bool ->
-  ([< Eliom_services.get_service_kind ] as 'a, 
+  ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
    Eliom_duce.Blocks.a_content_elt_list)
-      hierarchical_site -> 
-  ?service:('a, 'b) one_page -> 
-  sp:Eliom_sessions.server_params -> 
+      hierarchical_site ->
+  ?service:('a, 'b) one_page ->
+  sp:Eliom_sessions.server_params ->
     Xhtmltypes_duce.ul list
 
 
 
-(** 
+(**
     [hierarchical_menu_breadth_first menu] constructs a function taking
     as parameters a service and [~sp] (server parameters)
     and displaying a hierarchical menu for this service.
@@ -134,24 +134,24 @@ val hierarchical_menu_depth_first :
  *)
 val hierarchical_menu_breadth_first :
   ?classe:string list ->
-  ([< Eliom_services.get_service_kind ] as 'a, 
+  ([< Eliom_services.get_service_kind ] as 'a,
    [< Eliom_services.registrable ] as 'b,
    Eliom_duce.Blocks.a_content_elt_list)
-      hierarchical_site -> 
-  ?service:('a, 'b) one_page -> 
-  sp:Eliom_sessions.server_params -> 
+      hierarchical_site ->
+  ?service:('a, 'b) one_page ->
+  sp:Eliom_sessions.server_params ->
     Xhtmltypes_duce.ul list
 
 
-(** Returns the tags [<link rel="subsection" ...>] and 
+(** Returns the tags [<link rel="subsection" ...>] and
    [<link rev="subsection" ...>] for the given hierarchical site.
  *)
 val structure_links :
-  ([< Eliom_services.get_service_kind ] as 'a, 
+  ([< Eliom_services.get_service_kind ] as 'a,
      [< Eliom_services.registrable ] as 'b,
      Eliom_duce.Blocks.a_content_elt_list)
-    hierarchical_site -> 
-  ?service:('a, 'b) one_page -> 
-  sp:Eliom_sessions.server_params -> 
+    hierarchical_site ->
+  ?service:('a, 'b) one_page ->
+  sp:Eliom_sessions.server_params ->
   Xhtmltypes_duce.link list
-    
+

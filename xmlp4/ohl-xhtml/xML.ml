@@ -3,13 +3,13 @@
    Copyright (C) 2004 by Thorsten Ohl <ohl@physik.uni-wuerzburg.de>
 
    XHTML is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published by 
+   under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
    XHTML is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
@@ -34,7 +34,7 @@ let int_attrib name value = AInt (name, value)
 let string_attrib name value = AStr (name, value)
 let space_sep_attrib name values = AStrL (Space, name, values)
 let comma_sep_attrib name values = AStrL (Comma, name, values)
-        
+
 let attrib_to_string encode = function
   | AInt (name, i) -> name ^ "=\"" ^ string_of_int i ^ "\""
   | AStr (name, s) -> name ^ "=\"" ^ encode s ^ "\""
@@ -196,7 +196,7 @@ let leaf ?a name =
   match a with
   | Some a -> Leaf (name, a)
   | None -> Leaf (name, [])
-      
+
 let node ?a name children =
   match a with
   | Some a -> Node (name, a, children)
@@ -213,7 +213,7 @@ let translate root_leaf root_node sub_leaf sub_node update_state state elt =
         sub_leaf state name attribs
     | Node (name, attribs, elts) ->
         sub_node state name attribs
-          (flatmap (translate' (update_state name attribs state)) elts) 
+          (flatmap (translate' (update_state name attribs state)) elts)
     | _ -> failwith "not implemented for Ocsigen syntax extension"
   in
   match elt with
@@ -367,7 +367,7 @@ let iter_words fword fwhite s =
       iter_words' c'
     end in
   iter_words' 0
-  
+
 let print_string ios f s =
   if ios.preformatted then
     Format.pp_print_string f s

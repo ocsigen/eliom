@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -35,11 +35,11 @@ open Eliom_parameters
 val sync : ('a -> 'b -> 'c -> 'd) -> 'a -> 'b -> 'c -> 'd Lwt.t
 
 
-(** Type used for other cookies to set or unset. 
+(** Type used for other cookies to set or unset.
     The float option is the timestamp for the expiration date.
     The strings are names and values.
  *)
-type cookie = 
+type cookie =
   | Set of url_path option * float option * string * string
   | Unset of url_path option * string
 
@@ -74,19 +74,19 @@ type getpost = [ `Get | `Post ]
          `Get is for all the other cases.
        *)
 
-type attached_service_kind = 
+type attached_service_kind =
     [ `Internal of servcoserv * getpost
     | `External]
 
-type get_attached_service_kind = 
+type get_attached_service_kind =
     [ `Internal of servcoserv * [ `Get ]
     | `External ]
 
-type post_attached_service_kind = 
+type post_attached_service_kind =
     [ `Internal of servcoserv * [ `Post ]
     | `External ]
 
-type internal = 
+type internal =
     [ `Internal of servcoserv * getpost ]
 
 type registrable = [ `Registrable | `Unregistrable ]
@@ -94,7 +94,7 @@ type registrable = [ `Registrable | `Unregistrable ]
 (* Registrable means not pre-applied *)
 
 type +'a a_s
-      
+
 type +'a na_s
 
 type service_kind =
@@ -123,7 +123,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 (** Type of services.
     - [ 'get] is the type of GET parameters
     - [ 'post] is the type of POST parameters
-    - [ 'kind] is a subtype of {!Eliom_services.service_kind} (attached or non-attached 
+    - [ 'kind] is a subtype of {!Eliom_services.service_kind} (attached or non-attached
       service, internal or external, GET only or with POST parameters)
     - [ 'tipo] is a phantom type stating the kind of parameters it uses
         (suffix or not)
@@ -148,18 +148,18 @@ val new_service :
         get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
           unit ->
             ('get,unit,
-             [> `Attached of 
+             [> `Attached of
                [> `Internal of [> `Service ] * [>`Get] ] a_s ],
-             'tipo,'gn, 
+             'tipo,'gn,
              unit, [> `Registrable ]) service
 (** [new_service ~path:p ~get_params:pa ()] creates an {!Eliom_services.service} associated
-   to the path [p], taking the GET parameters [pa]. 
-   
+   to the path [p], taking the GET parameters [pa].
+
    {e Warning: If you use this function after the initialisation phase,
    you must give the [~sp] parameter, otherwise it will raise the
    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
 *)
-	      
+
 val new_service' :
     ?sp: Eliom_sessions.server_params ->
       name:string ->
@@ -167,23 +167,23 @@ val new_service' :
           unit ->
             ('get, unit,
              [> `Nonattached of [> `Get ] na_s ],
-             [ `WithoutSuffix ], 'gn, 
+             [ `WithoutSuffix ], 'gn,
              unit, [> `Registrable ]) service
 (** [new_service' ~name:n ~get_params:pa ()] creates a non-attached service
-    associated to the name [n], taking the GET parameters [pa]. 
-   
+    associated to the name [n], taking the GET parameters [pa].
+
    {e Warning: If you use this function after the initialisation phase,
    you must give the [~sp] parameter, otherwise it will raise the
    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
 *)
-	      
+
 val new_external_service :
     prefix: string ->
       path:url_path ->
         get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
           post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-            unit -> 
-              ('get, 'post, [> `Attached of [> `External ] a_s ], 'tipo, 
+            unit ->
+              ('get, 'post, [> `Attached of [> `External ] a_s ], 'tipo,
                'gn, 'pn, [> `Unregistrable ]) service
 (** Creates an service for an external web site.
    Allows to creates links or forms towards other Web sites using
@@ -195,80 +195,80 @@ val new_external_service :
    The parameter labelled [~prefix] contains all what you want to put before
    the path. It usually starts with "http://" plus
    the name of the server. The whole URL is constructed from the prefix,
-   the path and parameters. The prefix is not encoded. 
-   An empty prefix can be used to make a link to another site of the same 
+   the path and parameters. The prefix is not encoded.
+   An empty prefix can be used to make a link to another site of the same
    server.
  *)
 
 val new_post_service :
     ?sp: Eliom_sessions.server_params ->
-    fallback: ('get, unit, 
-               [`Attached of [`Internal of 
+    fallback: ('get, unit,
+               [`Attached of [`Internal of
                  ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
-               [< suff] as 'tipo, 'gn, unit, 
+               [< suff] as 'tipo, 'gn, unit,
                [< `Registrable ]) service ->
                  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
                    unit ->
-                     ('get, 'post, [> `Attached of 
+                     ('get, 'post, [> `Attached of
                        [> `Internal of 'kind * [> `Post]] a_s ],
                       'tipo, 'gn, 'pn, [> `Registrable ]) service
-(** Creates an service that takes POST parameters. 
+(** Creates an service that takes POST parameters.
    [fallback] is the a service without POST parameters.
    You can't create an service with POST parameters
-   if the same service does not exist without POST parameters. 
+   if the same service does not exist without POST parameters.
    Thus, the user can't bookmark a page that does not exist.
  *)
 (* fallback must be registrable! (= not preapplied) *)
-	  
+
 val new_post_service' :
-  ?keep_get_na_params:bool ->  
+  ?keep_get_na_params:bool ->
     name: string ->
       post_params: ('post, [ `WithoutSuffix ], 'pn) params_type ->
         unit ->
           (unit, 'post, [> `Nonattached of [> `Post] na_s ],
            [ `WithoutSuffix ], unit, 'pn, [> `Registrable ]) service
-(** Creates a non-attached service that takes POST parameters. 
+(** Creates a non-attached service that takes POST parameters.
    [name] is the name of that non-attached service.
  *)
 (* fallback must be registrable! (= not preapplied) *)
-	  
-		
+
+
 (** {3 Attached coservices} *)
 
 val new_coservice :
     ?max_use:int ->
     ?timeout:float ->
-    fallback: 
+    fallback:
     (unit, unit, [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
      [ `WithoutSuffix ] as 'tipo,
      unit, unit, [< registrable ]) service ->
-       get_params: 
+       get_params:
          ('get,[`WithoutSuffix],'gn) params_type ->
            unit ->
-             ('get,unit,[> `Attached of 
+             ('get,unit,[> `Attached of
                [> `Internal of [> `Coservice] * [> `Get]] a_s ],
-              'tipo, 'gn, unit, 
+              'tipo, 'gn, unit,
               [> `Registrable ]) service
 (** Creates a coservice. A coservice is another version of an
-   already existing main service, where you can register another handler. 
+   already existing main service, where you can register another handler.
    The two versions are automatically distinguished using an extra parameter
-   added automatically by Eliom. 
-   It allows to have several links towards the same page, 
-   that will behave differently, or to create services dedicated to one user. 
+   added automatically by Eliom.
+   It allows to have several links towards the same page,
+   that will behave differently, or to create services dedicated to one user.
    See the tutorial for more informations.
  *)
 
 val new_post_coservice :
     ?max_use:int ->
     ?timeout:float ->
-    fallback: ('get, unit, [ `Attached of 
+    fallback: ('get, unit, [ `Attached of
       [`Internal of [<`Service | `Coservice] * [`Get]] a_s ],
                [< suff ] as 'tipo,
                'gn, unit, [< `Registrable ]) service ->
                  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
                    unit ->
-                     ('get, 'post, 
-                      [> `Attached of 
+                     ('get, 'post,
+                      [> `Attached of
                         [> `Internal of [> `Coservice] * [> `Post]] a_s ],
                       'tipo, 'gn, 'pn, [> `Registrable ]) service
 (** Creates a coservice with POST parameters *)
@@ -278,25 +278,25 @@ val new_post_coservice :
 val new_coservice' :
     ?max_use:int ->
     ?timeout:float ->
-    get_params: 
+    get_params:
     ('get, [`WithoutSuffix], 'gn) params_type ->
       unit ->
         ('get, unit, [> `Nonattached of [> `Get] na_s ],
          [`WithoutSuffix], 'gn, unit, [> `Registrable ]) service
 (** Creates a non-attached coservice, that is, services that do not
-   correspond to a precise URL. 
-   Links towards such services will not change the URL, 
-   just add extra parameters. 
+   correspond to a precise URL.
+   Links towards such services will not change the URL,
+   just add extra parameters.
    See the tutorial for more informations.
  *)
 
 val new_post_coservice' :
   ?max_use:int ->
   ?timeout:float ->
-  ?keep_get_na_params:bool ->  
+  ?keep_get_na_params:bool ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
-  (unit, 'post, 
+  (unit, 'post,
    [> `Nonattached of [> `Post ] na_s ],
    [ `WithoutSuffix ], unit, 'pn, [> `Registrable ]) service
 (** Creates a non attached coservice with POST parameters.
@@ -316,7 +316,7 @@ val new_get_post_coservice' :
    'gn, unit, [< `Registrable ]) service ->
    post_params: ('post,[`WithoutSuffix],'pn) params_type ->
    unit ->
-   ('get, 'post, 
+   ('get, 'post,
    [> `Nonattached of [> `Post] na_s ],
    'tipo,'gn,'pn, [> `Registrable ]) service
 (* * Creates a non-attached coservice with GET and POST parameters. The fallback is a non-attached coservice with GET parameters. *)
@@ -326,8 +326,8 @@ val new_get_post_coservice' :
 (** {2 Misc} *)
 
 val static_dir :
-    sp:Eliom_sessions.server_params -> 
-      (string list, unit, [> `Attached of 
+    sp:Eliom_sessions.server_params ->
+      (string list, unit, [> `Attached of
         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
        [ `WithSuffix ],
        [ `One of string list ] param_name, unit, [> `Unregistrable ])
@@ -349,23 +349,23 @@ val cancel_action :
     Use it if you want to make a link to the current page without non-attached
     parameters.
     It is almost equivalent to a POST non-attached service without POST
-    parameters, on which you register an action that does nothing, 
+    parameters, on which you register an action that does nothing,
     but you can use it with <a> links, not only forms.
  *)
 
-    
+
 val preapply :
     service:('a, 'b, [> `Attached of 'd a_s ] as 'c,
      [< suff ], 'e, 'f, 'g)
     service ->
-      'a -> 
-        (unit, 'b, 'c, 
+      'a ->
+        (unit, 'b, 'c,
          [ `WithoutSuffix ], unit, 'f, [> `Unregistrable ]) service
-(** creates a new service by preapplying a service to GET parameters. 
+(** creates a new service by preapplying a service to GET parameters.
    It is not possible to register a handler on an preapplied service.
    Preapplied services may be used in links or as fallbacks for coservices
  *)
- 
+
 
 (** {2 Using your own error pages} *)
 
@@ -377,7 +377,7 @@ val preapply :
     you must give the [~sp] parameter, otherwise it will raise the
     exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
  *)
-val set_exn_handler : 
+val set_exn_handler :
     ?sp:Eliom_sessions.server_params ->
       (Eliom_sessions.server_params -> exn -> result_to_send Lwt.t) -> unit
 
@@ -388,7 +388,7 @@ val set_exn_handler :
 
 (**/**)
 val get_kind_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 'c
-val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> 
+val get_pre_applied_parameters_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   (string * string) list
 val get_get_params_type_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service ->
   ('a, 'd, 'e) Eliom_parameters.params_type

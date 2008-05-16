@@ -9,13 +9,13 @@ module C =
     let string_of_content c = c
     let content_of_string s = s
   end
-  
+
 
 module Http = FHttp_frame (C)
 
 module PP = Fframepp(C)
 
-let hd1= 
+let hd1=
   {
     H.mode = H.Query;
     H.meth = Some H.GET;
@@ -26,7 +26,7 @@ let hd1=
   }
 
 
-  
+
 
 let frame = {Http.header = hd1; Http.content = Some (C.content_of_string "Bonjour")}
 

@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -25,8 +25,8 @@ open Lwt
 open Ocsigen_senders
 open Xhtmltypes_duce
 
-let add_css (a : html) : html = 
-  let css = 
+let add_css (a : html) : html =
+  let css =
     {{ <style type="text/css"> "\n.inline {display: inline}\n.nodisplay {display: none}\n" }}
   in
   {{ match a with <html (al)>el ->
@@ -51,12 +51,12 @@ module Ocamlduce_content =
       let x = print (add_css c) in
       get_etag_aux x
 
-    let stream_of_content c = 
+    let stream_of_content c =
       let x = print (add_css c) in
       let md5 = get_etag_aux x in
-      Lwt.return (Some (Int64.of_int (String.length x)), 
-                  md5, 
-                  Ocsigen_stream.make (fun () -> Ocsigen_stream.cont x 
+      Lwt.return (Some (Int64.of_int (String.length x)),
+                  md5,
+                  Ocsigen_stream.make (fun () -> Ocsigen_stream.cont x
                       (fun () -> Ocsigen_stream.empty None))
                  )
 
@@ -114,16 +114,16 @@ module Xhtmlforms_ = struct
   type pcdata_elt = {{ [ PCDATA ] }}
 
   type a_attrib_t = a_attrs
-  type form_attrib_t = 
-    {{ attrs ++ { accept-charset=?String accept=?String 
+  type form_attrib_t =
+    {{ attrs ++ { accept-charset=?String accept=?String
 	          onreset=?String onsubmit=?String enctype=?String } }}
 
   type input_attrib_t = input_attrs
-  type textarea_attrib_t = {{ attrs ++ focus ++ 
+  type textarea_attrib_t = {{ attrs ++ focus ++
 	{ onchange=?String
-            onselect=?String 
-	    readonly=?"readonly" 
-            disabled=?"disabled" 
+            onselect=?String
+	    readonly=?"readonly"
+            disabled=?"disabled"
 	    name=?String } }}
   type select_attrib_t = select_attrs
   type link_attrib_t = link_attrs
@@ -140,25 +140,25 @@ module Xhtmlforms_ = struct
   let submit = {{ "submit" }}
   let file = {{ "file" }}
 
-  let uri_of_string x = x 
+  let uri_of_string x = x
 
   let empty_seq = {{ [] }}
   let cons_form a l = {{ [ a !l ] }}
 
-  let make_a ?(a={{ {} }}) ~href l : a_elt = 
-    {{ <a ({href={: uri_of_string href :} } ++ a)> l }} 
+  let make_a ?(a={{ {} }}) ~href l : a_elt =
+    {{ <a ({href={: uri_of_string href :} } ++ a)> l }}
 
-  let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt = 
+  let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt =
     {{ <form ({method="get"
 	       action={: action :}}
 	      ++ a )>
        [ elt1 !elts ] }}
 
-  let make_post_form ?(a={{ {} }}) ~(action : uri) ?id ?(inline = false) elt1 elts 
-      : form_elt = 
+  let make_post_form ?(a={{ {} }}) ~(action : uri) ?id ?(inline = false) elt1 elts
+      : form_elt =
     let id_attr = (match id with
       None -> {{ {} }}
-    | Some (i : string) -> {{ { id={: i :} } }}) 
+    | Some (i : string) -> {{ { id={: i :} } }})
     in
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
     {{ <form ({action={: action :}
@@ -167,11 +167,11 @@ module Xhtmlforms_ = struct
 	      ++ inline_attr
 	      ++ id_attr
 	      ++ a)>
-       [ elt1 
+       [ elt1
 	 !elts ]
      }}
 
-  let make_hidden_field content = 
+  let make_hidden_field content =
     {{ <div class="nodisplay"> [ content ] }}
 
   let make_div ~classe c =
@@ -182,7 +182,7 @@ module Xhtmlforms_ = struct
     let build_option selec p =
       let lsel = if selec then {{ {selected="selected"} }} else {{ {} }}
       in
-        match p with 
+        match p with
         | (None, (s : string)) -> {{ <option (lsel)> {: s :} }}
         | (Some (v : string), s) -> {{ <option ({value={: v :} } ++ lsel)> {: s :} }}
     in
@@ -190,7 +190,7 @@ module Xhtmlforms_ = struct
       | None -> {{ <select ({ name={: name :} } ++ a)>
                    [ {: (build_option false fp) :}
                      !{: (List.map (build_option false) lp) :} ] }}
-      | Some p -> {{ <select ({ name={: name :} } ++ a)> 
+      | Some p -> {{ <select ({ name={: name :} } ++ a)>
                        [ {: (build_option true p) :}
                          {: (build_option false fp) :}
                          !{: (List.map (build_option false) lp) :} ] }}
@@ -199,7 +199,7 @@ module Xhtmlforms_ = struct
 
   let remove_first = function {{ (hd,tl) }} -> (hd,tl) | {{ [] }} -> {{ <p>[] }}, {{ [] }}
 
-  let make_input ?(a={{ {} }}) ?(checked=false) ~typ ?name ?value () = 
+  let make_input ?(a={{ {} }}) ?(checked=false) ~typ ?name ?value () =
     let a2 = match value with
       None -> {{ {} }}
     | Some (v : string) -> {{ { value={: v :} } }}
@@ -211,7 +211,7 @@ module Xhtmlforms_ = struct
     let a4 = if checked then {{ { checked="checked" } }} else {{ {} }} in
     {{ <input ({type=typ} ++ a ++ a2 ++ a3 ++ a4)> [] }}
 
-  let make_textarea ?(a={{ {} }}) ~name:name ~rows ~cols c = 
+  let make_textarea ?(a={{ {} }}) ~name:name ~rows ~cols c =
     {{ <textarea ({ name={: name :}
 		    rows={: string_of_int rows :}
 		    cols={: string_of_int cols :}
@@ -222,7 +222,7 @@ module Xhtmlforms_ = struct
 	    type="text/css"
             rel="stylesheet"}
             ++ a)> [] }}
-      
+
   let make_js_script ?(a={{ {} }}) uri =
     {{ <script ({type="text/javascript"
 	         src={: uri :} } ++ a)> [] }}

@@ -132,7 +132,7 @@ value next_token_fun find_kwd fname lnum bolpos =
   and next_token_attr =
     parser bp
     [ [: `(' ' | '\t'); s :] -> next_token s
-      | [: `('\013' | '\010'); s :] ep -> 
+      | [: `('\013' | '\010'); s :] ep ->
         do {bolpos.val := ep; incr lnum; next_token s}
       |        [: `('a'..'z' | 'A'..'Z' | '_' | ':' as c); s
          :] -> name_attribut bp (store 0 c) s
@@ -144,7 +144,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       |        [: `'$'; s :] -> (* for caml expressions *) camlexprattr (bp+1) 0 s
       |        [: `'/'; `'>' :] ep ->
           let name = pop_tag () in
-          do { 
+          do {
           end_attr ();
           (("GAT",name),mkloc (bp,ep)) }
       |        [: `'>'; s :] -> do { end_attr (); next_token s}
@@ -153,20 +153,20 @@ value next_token_fun find_kwd fname lnum bolpos =
     parser bp
     [ [: `(' ' | '\t' | '\026' | '\012' as c); s :] ep ->
       let c_string = string_of_space_char c in
-      (("WHITESPACE", 
+      (("WHITESPACE",
         get_buff (whitespaces bp (mstore 0 c_string) s)),mkloc (bp,ep))
     | [: `('\013' | '\010' as c); s :] ep ->
       let c_string = string_of_space_char c in
       do {bolpos.val := ep; incr lnum;
-      (("WHITESPACE", 
+      (("WHITESPACE",
         get_buff (whitespaces bp (mstore 0 c_string) s)),mkloc (bp,ep))}
     | [: `('A'..'Z' | '\192'..'\214' | '\216'..'\222' | 'a'..'z' |
       '\223'..'\246' | '\248'..'\255' | '_' | '1'..'9' | '0' | '\'' | '"' |
-      (* '$' | *) 
+      (* '$' | *)
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
       '?' | ':' | '|' | '[' | ']' | '{' | '}' | '.' | ';' | ',' | '\\' | '(' |
       ')' | '#' | '>' | '`'
-        as c); s :] ep -> 
+        as c); s :] ep ->
           (("DATA", get_buff (data bp (store 0 c) s)),mkloc (bp,ep))
     | [: `'$'; s :] -> (* for caml expr *) camlexpr (bp+1) s
     | [: `'<'; s :] ->
@@ -176,7 +176,7 @@ value next_token_fun find_kwd fname lnum bolpos =
            :] ep -> (("XMLDECL", get_buff len), mkloc (bp, ep))
       |        [: `'!'; s :] ->
           match s with parser
-            [ [: `'-'; `'-'; ct :] ep -> 
+            [ [: `'-'; `'-'; ct :] ep ->
                 (("COMMENT", get_buff (comment_tag 0 bp 0 ct)),
                  mkloc (bp,ep))
             | [: len = exclamation_mark_tag bp 0
@@ -184,7 +184,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       |        [: `'/'; `('a'..'z' | 'A'..'Z' | '_' | ':' as c); s
            :] -> end_tag bp (store 0 c) s
       |        [: `('a'..'z' | 'A'..'Z' | '_' (* | ':'*) as c); s
-           :] -> start_tag bp (store 0 c) s ] 
+           :] -> start_tag bp (store 0 c) s ]
     | [: `c :] ep -> keyword_or_error (bp,ep) (String.make 1 c)
     | [: _ = Stream.empty :] ep ->
         let size = size_tag_stack () in
@@ -226,8 +226,8 @@ value next_token_fun find_kwd fname lnum bolpos =
     | [: a = comment_tag prof bp (store len '-') :] -> a ]
   and dash_in_comment_tag2 prof bp len =
     parser
-    [ [: `'>'; s :] -> if prof = 0 
-                    then len 
+    [ [: `'>'; s :] -> if prof = 0
+                    then len
                     else comment_tag (prof-1) bp (mstore len "-->") s
     | [: a = comment_tag prof bp (mstore len "--") :] -> a ]
   and exclamation_mark_tag bp len =
@@ -314,25 +314,25 @@ value next_token_fun find_kwd fname lnum bolpos =
     [ [: `('a'..'z' | '\223'..'\246' | '\248'..'\255' | '_' as c); s :] ->
       antiquotname bp ((ident (store 0 c)) s) s
     | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep))
-    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp 0 s)), 
+    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp 0 s)),
                      mkloc (bp,ep)) ]
   and antiquotname bp len =
-    parser bp2 
-    [ [: `':'; s :] ep -> let buff = get_buff len in 
+    parser bp2
+    [ [: `':'; s :] ep -> let buff = get_buff len in
     let bp2 = bp2+2 in
-    if buff = "list" 
+    if buff = "list"
     then (("CAMLEXPRXMLL", get_buff (camlexpr2 bp2 0 s)), mkloc (bp2,ep))
-    else if buff = "str" 
+    else if buff = "str"
     then (("CAMLEXPRXMLS", get_buff (camlexpr2 bp2 0 s)), mkloc (bp2,ep))
     else err (mkloc (bp, ep)) "unknown antiquotation"
     | [: `'$'; s :] ep -> (("CAMLEXPRXML", (get_buff len)), mkloc (bp,ep))
-    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp len s)), 
+    | [: s :] ep -> (("CAMLEXPRXML", get_buff (camlexpr2 bp len s)),
                      mkloc (bp,ep)) ]
   and camlexpr2 bp len =
     parser
     [ [: `'$'; s :] -> len
-    | [: `('\010' as c) ; s :] ep -> 
-     do { bolpos.val := ep; incr lnum; 
+    | [: `('\010' as c) ; s :] ep ->
+     do { bolpos.val := ep; incr lnum;
      camlexpr2 bp (store len c) s}
     | [: `(_ as c) ; s :] -> camlexpr2 bp (store len c) s ]
 
@@ -343,12 +343,12 @@ value next_token_fun find_kwd fname lnum bolpos =
     [ [: `('a'..'z' | '\223'..'\246' | '\248'..'\255' | '_' as c); s :] ->
       antiquotname_attr bp ((ident (store 0 c)) s) s
     | [: `'$'; s :] ep -> (("DATA", "$"), mkloc (bp,ep))
-    | [: s :] ep -> (("CAMLEXPR", get_buff (camlexpr2 bp 0 s)), 
+    | [: s :] ep -> (("CAMLEXPR", get_buff (camlexpr2 bp 0 s)),
                      mkloc (bp,ep)) ]
   and antiquotname_attr bp len =
     parser
-    [ [: `':'; s :] ep -> let buff = get_buff len in 
-        if buff = "list" 
+    [ [: `':'; s :] ep -> let buff = get_buff len in
+        if buff = "list"
         then (("CAMLEXPRL", get_buff (camlexpr2 bp 0 s)), mkloc (bp,ep))
         else err (mkloc (bp, ep)) "unknown antiquotation"
     | [: `'$'; s :] ep -> (("CAMLEXPR", get_buff len), mkloc (bp,ep))
@@ -385,7 +385,7 @@ value next_token_fun find_kwd fname lnum bolpos =
       spaces_in_data bp len (spaces ^ c_string) s
     | [: `('A'..'Z' | '\192'..'\214' | '\216'..'\222' | 'a'..'z' |
       '\223'..'\246' | '\248'..'\255' | '_' | '1'..'9' | '0' | '\'' | '"' |
-      (* '$' | *) 
+      (* '$' | *)
       '!' | '=' | '@' | '^' | '&' | '+' | '-' | '*' | '/' | '%' | '~' |
       '?' | ':' | '|' | '[' | ']' | '{' | '}' | '.' | ';' | ',' | '\\' | '(' |
       ')' | '#' | '`'
@@ -514,8 +514,8 @@ value using_token kwd_table ident_table (p_con, p_prm) =
         else error_no_respect_rules p_con p_prm
       else ()
   | "QUOTATION" |
-    "CAMLEXPR" | "CAMLEXPRXML" | 
-    "CAMLEXPRL" | "CAMLEXPRXMLL" |  
+    "CAMLEXPR" | "CAMLEXPRXML" |
+    "CAMLEXPRL" | "CAMLEXPRXMLL" |
     "CAMLEXPRXMLS" | "COMMENT" |
     "TAG" | "GAT" | "ATTR" | "VALUE" | "XMLDECL" |
     "DECL" | "DATA" | "WHITESPACE" | "EOI" ->

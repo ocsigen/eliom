@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -29,7 +29,7 @@ open Eliom_parameters
 open Lazy
 
 
-(** Type used for cookies to set. 
+(** Type used for cookies to set.
     The float option is the timestamp for the expiration date.
     The strings are names and values.
  *)
@@ -39,7 +39,7 @@ type cookie = Eliom_common.cookie =
 
 let cookie_table_of_eliom_cookies
     ?(oldtable= Ocsigen_http_frame.Cookies.empty) ~sp cl =
-  Eliommod_cookies.add_cookie_list_to_send 
+  Eliommod_cookies.add_cookie_list_to_send
     (Eliom_sessions.get_sitedata sp)
     cl oldtable
 
@@ -71,25 +71,25 @@ type getpost = [ `Get | `Post ]
          (possibly only the state post param).
          `Get is for all the other cases.
        *)
-type attached_service_kind = 
+type attached_service_kind =
     [ `Internal of servcoserv * getpost
     | `External]
 
-type get_attached_service_kind = 
+type get_attached_service_kind =
     [ `Internal of servcoserv * [ `Get ]
     | `External ]
 
-type post_attached_service_kind = 
+type post_attached_service_kind =
     [ `Internal of servcoserv * [ `Post ]
     | `External ]
 
-type internal = 
+type internal =
     [ `Internal of servcoserv * getpost ]
 
 type registrable = [ `Registrable | `Unregistrable ]
 
 type +'a a_s =
-    {prefix: string; (* name of the server and protocol, 
+    {prefix: string; (* name of the server and protocol,
                         for external links. Ex: http://ocsigen.org *)
      subpath: url_path; (* name of the service without parameters *)
      fullpath: url_path; (* full path of the service = site_dir@subpath *)
@@ -97,14 +97,14 @@ type +'a a_s =
      get_state: Eliom_common.internal_state option;
      post_state: Eliom_common.internal_state option;
    }
-      
+
 type +'a na_s =
     {na_name: Eliom_common.na_key;
-     na_kind: [ `Get | `Post of bool ] 
-       (* 
+     na_kind: [ `Get | `Post of bool ]
+       (*
           where bool is "keep_get_na_params":
           do we keep GET non-attached parameters in links (if any)
-          (31/12/2007 - experimental - 
+          (31/12/2007 - experimental -
           WAS: 'a, but may be removed (was not used))
        *)
     }
@@ -137,7 +137,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
      get_params_type: ('get, 'tipo, 'getnames) params_type;
      post_params_type: ('post, [`WithoutSuffix], 'postnames) params_type;
      max_use: int option; (* Max number of use of this service *)
-     timeout: float option; (* Timeout for this service (the service will 
+     timeout: float option; (* Timeout for this service (the service will
           disappear if it has not been used during this amount of seconds) *)
      kind: 'kind; (* < service_kind *)
    }
@@ -162,8 +162,8 @@ let new_state =
      We just want to avoid the same values when the server is relaunched.
    *)
   let c = ref (Int64.bits_of_float (Unix.gettimeofday ())) in
-  fun () -> 
-    c := Int64.add !c Int64.one ; 
+  fun () ->
+    c := Int64.add !c Int64.one ;
     (Printf.sprintf "%x" (Random.int 0xFFFF))^(Printf.sprintf "%Lx" !c)
 
 
@@ -206,7 +206,7 @@ let new_service_aux_aux
     ~kind
     ~get_params
     ~post_params =
-(* ici faire une vérification "duplicate parameter" ? *) 
+(* ici faire une vérification "duplicate parameter" ? *)
   {
    pre_applied_parameters = [];
    get_params_type = get_params;
@@ -222,7 +222,7 @@ let new_service_aux_aux
       post_state = None;
     };
  }
-    
+
 let new_service_aux
     ?sp
     ~path
@@ -245,9 +245,9 @@ let new_service_aux
               ~get_params
               ~post_params:unit
           in
-          Eliom_common.add_unregistered sitedata path; 
+          Eliom_common.add_unregistered sitedata path;
           u
-      | None -> 
+      | None ->
           raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
                    "new_service"))
   | Some sp ->
@@ -264,7 +264,7 @@ let new_service_aux
         ~get_params
         ~post_params:unit
 
-      
+
 let new_external_service
     ~prefix
     ~path
@@ -274,25 +274,25 @@ let new_external_service
   let suffix = contains_suffix get_params in
   new_service_aux_aux
     ~prefix
-    ~path:(remove_internal_slash 
+    ~path:(remove_internal_slash
             (if suffix
-            then path@[Eliom_common.eliom_suffix_internal_name] 
+            then path@[Eliom_common.eliom_suffix_internal_name]
             else path))
     ~site_dir:[]
     ~kind:`External
-    ~get_params 
+    ~get_params
     ~post_params
-    
+
 let new_service
     ?sp
     ~path
     ~get_params
     () =
   let suffix = contains_suffix get_params in
-  new_service_aux 
+  new_service_aux
     ?sp
-    ~path:(if suffix 
-    then path@[Eliom_common.eliom_suffix_internal_name] 
+    ~path:(if suffix
+    then path@[Eliom_common.eliom_suffix_internal_name]
     else path)
     ~get_params
 
@@ -319,9 +319,9 @@ let new_coservice
     }
  }
 (* Warning: here no GET parameters for the fallback.
-   Apply services with apply_service 
+   Apply services with apply_service
    if you want fallbacks with GET parameters *)
-    
+
 
 let new_coservice' ?max_use ?timeout ~get_params () =
   let n = Eliom_common.Na_get' (new_naservice_num ()) in
@@ -339,7 +339,7 @@ let new_coservice' ?max_use ?timeout ~get_params () =
       na_kind = `Get;
     };
  }
-    
+
 let new_service' ?sp ~name ~get_params () =
   match sp with
   | None ->
@@ -352,7 +352,7 @@ let new_service' ?sp ~name ~get_params () =
              max_use= None;
              timeout= None;
              pre_applied_parameters = [];
-             get_params_type = 
+             get_params_type =
              add_pref_params Eliom_common.na_co_param_prefix get_params;
              post_params_type = unit;
              kind = `Nonattached
@@ -361,10 +361,10 @@ let new_service' ?sp ~name ~get_params () =
               };
            }
           in
-          Eliom_common.add_unregistered_na sitedata 
-            (Eliom_common.Na_get_ name); 
+          Eliom_common.add_unregistered_na sitedata
+            (Eliom_common.Na_get_ name);
           r
-      | None -> 
+      | None ->
           raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
                    "new_service'"))
   | Some sp ->
@@ -373,7 +373,7 @@ let new_service' ?sp ~name ~get_params () =
        max_use= None;
        timeout= None;
        pre_applied_parameters = [];
-       get_params_type = 
+       get_params_type =
        add_pref_params Eliom_common.na_co_param_prefix get_params;
        post_params_type = unit;
        kind = `Nonattached
@@ -381,12 +381,12 @@ let new_service' ?sp ~name ~get_params () =
           na_kind = `Get;
         };
      }
-    
+
 (****************************************************************************)
 (** Register a service with post parameters in the server *)
 let new_post_service_aux ~sp ~fallback ~post_params =
 (** Create a main service (not a coservice) internal, post only *)
-(* ici faire une vérification "duplicate parameter" ? *) 
+(* ici faire une vérification "duplicate parameter" ? *)
   let `Attached k1 = fallback.kind in
   let `Internal (k, _) = k1.att_kind in
   {
@@ -404,11 +404,11 @@ let new_post_service_aux ~sp ~fallback ~post_params =
       post_state = None;
     }
  }
-    
-let new_post_service ?sp ~fallback ~post_params () = 
+
+let new_post_service ?sp ~fallback ~post_params () =
   (* (if post_params = TUnit
   then Ocsigen_messages.warning "Probably error in the module: \
-      Creation of a POST service without POST parameters."); 
+      Creation of a POST service without POST parameters.");
       12/07/07
       I remove this warning: POST service without POST parameters means
       that the service will answer to a POST request only.
@@ -425,31 +425,31 @@ let new_post_service ?sp ~fallback ~post_params () =
           u
       | None ->
           if kind = `Service
-          then 
+          then
             raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
                      "new_post_service")
           else u)
   | _ -> u
-(* Warning: strange if post_params = unit... *)    
-(* if the fallback is a coservice, do we get a coservice or a service? *)    
+(* Warning: strange if post_params = unit... *)
+(* if the fallback is a coservice, do we get a coservice or a service? *)
 
 
-let new_post_coservice ?max_use ?timeout ~fallback ~post_params () = 
+let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
   let `Attached k1 = fallback.kind in
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered k1.path;
   | _ -> ()); *)
-  {fallback with 
+  {fallback with
    post_params_type = post_params;
    max_use= max_use;
    timeout= timeout;
-   kind = `Attached 
-     {k1 with 
+   kind = `Attached
+     {k1 with
       att_kind = `Internal (`Coservice, `Post);
       post_state = Some (new_state ());
     }
  }
-(* It is not possible to make a new_post_coservice function 
+(* It is not possible to make a new_post_coservice function
    with an optional ?fallback parameter
    because the type 'get of the result depends on the 'get of the
    fallback. Or we must impose 'get = unit ...
@@ -457,7 +457,7 @@ let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
 
 
 (*VVV Warning: keep_get_na_params is experimental *)
-let new_post_coservice' 
+let new_post_coservice'
     ?max_use ?timeout ?(keep_get_na_params = true) ~post_params () =
   (* match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered None
@@ -474,7 +474,7 @@ let new_post_coservice'
     }
  }
 
-let new_post_service' 
+let new_post_service'
    ?(keep_get_na_params = true) ~name ~post_params () =
   (* match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered None
@@ -514,7 +514,7 @@ let new_get_post_coservice'
    }
    }
 (* This is a nonattached coservice with GET and POST parameters!
-   When reloading, the fallback (a nonattached coservice with only GET 
+   When reloading, the fallback (a nonattached coservice with only GET
    parameters) will be called.
  *)
 
@@ -529,7 +529,7 @@ let preapply ~service getparams =
    pre_applied_parameters = params@service.pre_applied_parameters;
    get_params_type = unit;
    kind = match service.kind with
-   | `Attached k -> `Attached {k with 
+   | `Attached k -> `Attached {k with
                                subpath = (match suff with
                                | Some suff -> k.subpath@suff
                                | _ -> k.subpath);
@@ -556,7 +556,7 @@ let cancel_action =
 
 
 (*****************************************************************************)
-let set_exn_handler ?sp h = 
+let set_exn_handler ?sp h =
   let sitedata = Eliom_sessions.find_sitedata "set_exn_handler" sp in
   Eliom_sessions.set_site_handler sitedata h
 

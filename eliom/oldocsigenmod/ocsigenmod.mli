@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -37,7 +37,7 @@ type pages_tree =
     tables (* global tables of continuations/actions *)
       * cookiestable (* session tables *)
 
-type 'a server_params1 = 
+type 'a server_params1 =
     request_info * url_path * 'a ref
 type 'a server_params2 = url_path * 'a server_params1
 type server_params = tables server_params1
@@ -48,7 +48,7 @@ type page_table_key =
 
 val gen :
     pages_tree ->
-      string option -> 
+      string option ->
         request_info -> answer Lwt.t
 
 val empty_tables : unit -> tables
@@ -60,7 +60,7 @@ val add_service :
           string list ->
             Http_headers.t ->
               page_table_key *
-                (int * (tables server_params2 -> 
+                (int * (tables server_params2 ->
                   Ocsigen_senders.send_page_type Lwt.t)) ->
                     unit
 

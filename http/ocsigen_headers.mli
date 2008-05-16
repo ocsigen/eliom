@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -18,7 +18,7 @@
  *)
 
 (** Getting informations from HTTP header. *)
-(** This module uses the lowel level module Ocsigen_http_frame.Http_header. 
+(** This module uses the lowel level module Ocsigen_http_frame.Http_header.
      It is very basic and must be completed for exhaustiveness. *)
 
 

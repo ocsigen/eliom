@@ -9,7 +9,7 @@ type 'a stream
 
 (** A stream may be composed by several substreams.
    Thus a stream is either something that contains the current buffer and
-   a function to retrieve the following data, 
+   a function to retrieve the following data,
    or a finished stream with possibly another stream following.
  *)
 type 'a step =

@@ -20,7 +20,7 @@ let l = <:xmllist< <ark $c$=$f$ $list:la$> </ark> <wow> </wow> >> in
 
 
 function << <html $list:l1$> $a$ ljl $list:l2$ </html> >> -> 1 | _ -> 2
-function << <html $n$=$v$ a="b" $list:l1$> <body> $list:l2$ </body> </html> >> 
+function << <html $n$=$v$ a="b" $list:l1$> <body> $list:l2$ </body> </html> >>
     -> 1 | _ -> 2
 function << <html $list:l1$> <body> $list:l2$ </body> $list:l3$ </html> >> -> 1 | _ -> 2
 (*
@@ -58,12 +58,12 @@ let _ = print_endline "\nEssai print"
 
 let print_attrs l = ()
 
-let print_pcdata =  function 
+let print_pcdata =  function
     << $str:s$ >> -> print_string s
 
 (*
-let print_html =  function 
-    << <body $list:la$>$list:lt$</body> >> -> 
+let print_html =  function
+    << <body $list:la$>$list:lt$</body> >> ->
       print_string "<body";
       print_attrs la;
       print_string ">";

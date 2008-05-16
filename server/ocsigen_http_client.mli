@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -50,11 +50,11 @@ val raw_request :
     unit ->
     unit ->
     Ocsigen_http_frame.t Lwt.t
-(** 
-   Do an HTTP request (low level). 
+(**
+   Do an HTTP request (low level).
 
-   If the optional argument [headers] is present, no headers will be 
-   added by Ocsigen, but those in this argument and host, and 
+   If the optional argument [headers] is present, no headers will be
+   added by Ocsigen, but those in this argument and host, and
    [connection: close] or [connection: keep-alive].
    Be carefull to respect HTTP/1.1 in this case!
 
@@ -63,16 +63,16 @@ val raw_request :
    The default protocol is http ([https=false]).
 
    The optional parameter [~keep_alive] asks to keep the connection opened
-   after the request for a short amount of time 
+   after the request for a short amount of time
    to allow other requests to the same server to use the same connection.
    It is true by default.
    If there is one opened free connection, we will use it instead of opening
    a new one.
 
    If you do this request to serve it later to a client or to generate a page
-   for a client, add the optional parameter [~client]. 
+   for a client, add the optional parameter [~client].
    Thus, the request you do will be pipelined
-   with other requests coming from the same connection. 
+   with other requests coming from the same connection.
    A request will never be pipelined after a request from another client
    connection.
    Pipelining will be used only for requests to server we know supporting it
@@ -84,7 +84,7 @@ val raw_request :
    The optional parameter [?head] asks to do a [HEAD] HTTP request.
    It is [false] by default.
 
-    When called without the last parameter, the function will pipeline 
+    When called without the last parameter, the function will pipeline
     the request (if needed), then return the function to get the page.
     This allows to keep pipeline order when writing an extension.
  *)

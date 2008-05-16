@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -35,26 +35,26 @@ let handle_site_exn exn (ri, si, _, aci) sitedata =
 
 
 (*****************************************************************************)
-(* Generation of the page or naservice 
+(* Generation of the page or naservice
    + update the cookie tables (value, expiration date and timeout)        *)
 
 let execute
     now
-    generate_page 
-    ((ri, 
-      si, 
+    generate_page
+    ((ri,
+      si,
       old_cookies_to_set,
       (service_cookies_info, data_cookies_info, pers_cookies_info)) as info)
     sitedata =
-  
+
   catch
     (fun () -> generate_page now info sitedata)
     (fun e -> handle_site_exn e info sitedata) >>=
   (fun result ->
-    
+
     (* Update service expiration date and value *)
     Ocsigen_http_frame.Cookievalues.iter
-      
+
       (fun name (oldvalue, newr) ->
         (* catch fun () -> *)
         match !newr with
@@ -63,9 +63,9 @@ let execute
         | Eliom_common.SC newc ->
             newc.Eliom_common.sc_exp :=
               match !(newc.Eliom_common.sc_timeout) with
-              | Eliom_common.TGlobal -> 
-                  let globaltimeout = 
-                    Eliommod_timeouts.find_global_service_timeout name sitedata 
+              | Eliom_common.TGlobal ->
+                  let globaltimeout =
+                    Eliommod_timeouts.find_global_service_timeout name sitedata
                   in
                   (match globaltimeout with
                   | None -> None
@@ -73,15 +73,15 @@ let execute
               | Eliom_common.TNone -> None
               | Eliom_common.TSome t -> Some (t +. now)
       )
-      
+
       !service_cookies_info;
-    
+
     (* Update "in memory data" expiration date and value *)
     Ocsigen_http_frame.Cookievalues.iter
-      
+
       (fun name v ->
         if Lazy.lazy_is_val v (* Only sessions that have been used *)
-        then 
+        then
           let (oldvalue, newr) = Lazy.force v
           in
           match !newr with
@@ -90,9 +90,9 @@ let execute
           | Eliom_common.SC newc ->
               newc.Eliom_common.dc_exp :=
                 match !(newc.Eliom_common.dc_timeout) with
-                | Eliom_common.TGlobal -> 
-                    let globaltimeout = 
-                      Eliommod_timeouts.find_global_data_timeout name sitedata 
+                | Eliom_common.TGlobal ->
+                    let globaltimeout =
+                      Eliommod_timeouts.find_global_data_timeout name sitedata
                     in
                     (match globaltimeout with
                     | None -> None
@@ -100,10 +100,10 @@ let execute
                 | Eliom_common.TNone -> None
                 | Eliom_common.TSome t -> Some (t +. now)
       )
-      
+
       !data_cookies_info;
-    
-    
+
+
     (* Update persistent expiration date, user timeout and value *)
     (* Lwt_util.iter *)
     Ocsigen_http_frame.Cookievalues.fold
@@ -120,10 +120,10 @@ let execute
               | Eliom_common.SC newc ->
                   let newexp =
                     match !(newc.Eliom_common.pc_timeout) with
-                    | Eliom_common.TGlobal -> 
-                        let globaltimeout = 
+                    | Eliom_common.TGlobal ->
+                        let globaltimeout =
                           Eliommod_timeouts.find_global_persistent_timeout
-                            name sitedata 
+                            name sitedata
                         in
                         (match globaltimeout with
                         | None -> None
@@ -133,21 +133,21 @@ let execute
                   in
                   match oldvalue with
                   | Some (oldv, oldti, oldexp, oldgrp) when
-                      (oldexp = newexp && 
+                      (oldexp = newexp &&
                        oldti = !(newc.Eliom_common.pc_timeout) &&
                        oldgrp = !(newc.Eliom_common.pc_session_group) &&
-                       oldv = newc.Eliom_common.pc_value) -> return () 
+                       oldv = newc.Eliom_common.pc_value) -> return ()
                                                            (* nothing to do *)
                   | Some (oldv, oldti, oldexp, oldgrp) when
                       oldv = newc.Eliom_common.pc_value ->
                       catch
                         (fun () ->
                           Ocsipersist.replace_if_exists
-                            Eliommod_persess.persistent_cookies_table 
+                            Eliommod_persess.persistent_cookies_table
                             newc.Eliom_common.pc_value
-                            (name, 
-                             newexp, 
-                             !(newc.Eliom_common.pc_timeout), 
+                            (name,
+                             newexp,
+                             !(newc.Eliom_common.pc_timeout),
                              !(newc.Eliom_common.pc_session_group)))
                         (function
                           | Not_found -> return ()
@@ -155,40 +155,40 @@ let execute
                           | e -> fail e)
                   | _ ->
                       Ocsipersist.add
-                        Eliommod_persess.persistent_cookies_table 
+                        Eliommod_persess.persistent_cookies_table
                         newc.Eliom_common.pc_value
-                        (name, 
-                         newexp, 
-                         !(newc.Eliom_common.pc_timeout), 
+                        (name,
+                         newexp,
+                         !(newc.Eliom_common.pc_timeout),
                          !(newc.Eliom_common.pc_session_group))
 
 (*VVV Do not forget to change persistent_cookie_table_version
-   if you change the type of persistent table data, 
+   if you change the type of persistent table data,
    otherwise the server will crash!!!
  *)
           end
           else return ()
         in thr >>= fun () -> thr2
       )
-      
+
       !pers_cookies_info
 
       (return ())
-      
-      
+
+
       >>= fun () ->
-        
+
         return result)
-    
+
 
 
 (** Compute the exceptions from expired sessions *)
 let compute_exn closedservsessions =
-  (if closedservsessions = [] 
+  (if closedservsessions = []
   then []
   else [Eliom_common.Eliom_Service_session_expired closedservsessions])
 
-  
+
 
 
 let gen sitedata charset = function
@@ -196,29 +196,29 @@ let gen sitedata charset = function
 | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in
   let rec gen_aux ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
-    let genfun = 
+    let genfun =
       match si.Eliom_common.si_nonatt_info with
       | Eliom_common.Na_no ->
-          
+
           (* page generation *)
           Eliommod_services.get_page
-            
+
       | _ ->
-          
+
           (* anonymous service *)
           Eliommod_naservices.make_naservice
     in
-    
-    catch 
+
+    catch
       (fun () ->
-        execute 
+        execute
           now
           genfun
           info
           sitedata >>= fun result_to_send ->
-          
+
           match result_to_send with
-          | Eliom_common.EliomExn (exnlist, cookies_set_by_page) -> 
+          | Eliom_common.EliomExn (exnlist, cookies_set_by_page) ->
                      (* It is an action, we reload the page.
                         To do that, we retry without POST params.
                         If no post param at all, we retry
@@ -236,12 +236,12 @@ let gen sitedata charset = function
                   old_cookies_to_set
               in
 
-              (match si.Eliom_common.si_nonatt_info, 
-                si.Eliom_common.si_state_info, 
+              (match si.Eliom_common.si_nonatt_info,
+                si.Eliom_common.si_state_info,
                 ri.Ocsigen_extensions.ri_method with
-              | Eliom_common.Na_no, 
+              | Eliom_common.Na_no,
                 (None, None), Ocsigen_http_frame.Http_header.GET ->
-                  Eliommod_cookies.compute_cookies_to_send 
+                  Eliommod_cookies.compute_cookies_to_send
                     sitedata
                     all_cookie_info
                     all_user_cookies
@@ -253,79 +253,79 @@ let gen sitedata charset = function
                          Lwt.return
                            {empty_result with
                             Ocsigen_http_frame.res_cookies= all_new_cookies}))
-                    
+
               | _ ->
-                  
-                  Eliommod_cookies.compute_new_ri_cookies 
-                    now 
+
+                  Eliommod_cookies.compute_new_ri_cookies
+                    now
                     ri.Ocsigen_extensions.ri_sub_path
                     (Lazy.force ri.Ocsigen_extensions.ri_cookies)
                     all_cookie_info
                     cookies_set_by_page
 (*VVV old_cookies_to_set already are in ri_cookies, right? *)
                   >>= fun ric ->
-                    
-                  Eliommod_cookies.compute_cookies_to_send 
-                    sitedata 
+
+                  Eliommod_cookies.compute_cookies_to_send
+                    sitedata
                     all_cookie_info
                     all_user_cookies
                   >>= fun all_new_cookies ->
 
-                  (match 
-                    si.Eliom_common.si_nonatt_info, 
-                    si.Eliom_common.si_state_info, 
-                    ri.Ocsigen_extensions.ri_method 
+                  (match
+                    si.Eliom_common.si_nonatt_info,
+                    si.Eliom_common.si_state_info,
+                    ri.Ocsigen_extensions.ri_method
                   with
-                  | Eliom_common.Na_get_ _, 
+                  | Eliom_common.Na_get_ _,
                     (_, None), Ocsigen_http_frame.Http_header.GET
-                  | Eliom_common.Na_get' _, 
+                  | Eliom_common.Na_get' _,
                     (_, None), Ocsigen_http_frame.Http_header.GET ->
                       (* no post params, GET na coservice *)
-                      
+
                       return
                         (Ocsigen_extensions.Ext_retry_with
                            ({ri with
-                             Ocsigen_extensions.ri_get_params = 
+                             Ocsigen_extensions.ri_get_params =
                              lazy si.Eliom_common.si_other_get_params;
                              Ocsigen_extensions.ri_cookies= lazy ric;
                              Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
-(*VVV I do not keep the old exceptions any more, 
+(*VVV I do not keep the old exceptions any more,
   otherwise no way to remove them. *)
                            },
                             all_new_cookies
                            )
                         )
-                        
-                  | Eliom_common.Na_no, 
+
+                  | Eliom_common.Na_no,
                       (_, None), Ocsigen_http_frame.Http_header.GET ->
                       (* no post params, GET attached coservice *)
-                      
+
                       return
                         (* Ext_retry_with, not Eliom_retry_with *)
                         (Ocsigen_extensions.Ext_retry_with
                            ({ri with
-                             Ocsigen_extensions.ri_get_params = 
+                             Ocsigen_extensions.ri_get_params =
                              lazy si.Eliom_common.si_other_get_params;
                              Ocsigen_extensions.ri_cookies= lazy ric;
                              Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
-(*VVV I do not keep the old exceptions any more, 
+(*VVV I do not keep the old exceptions any more,
   otherwise no way to remove them. *)
                            },
                             all_new_cookies
                            ))
-                        
+
                   | Eliom_common.Na_post_ _, (_, _), _
                   | Eliom_common.Na_post' _, (_, _), _ ->
                       (* POST na coservice *)
                       (* retry without POST params *)
-                        
+
                       return
                         (* Ext_retry_with, not Eliom_retry_with *)
                         (Ocsigen_extensions.Ext_retry_with
                            ({ri with
-                             Ocsigen_extensions.ri_get_params = 
+                             Ocsigen_extensions.ri_get_params =
                              lazy si.Eliom_common.si_other_get_params;
 (*VVV 31/12/2007 <-
   do we keep GET na_name ?
@@ -336,15 +336,15 @@ let gen sitedata charset = function
                              Ocsigen_extensions.ri_cookies= lazy ric;
                              Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
-(*VVV I do not keep the old exceptions any more, 
+(*VVV I do not keep the old exceptions any more,
   otherwise no way to remove them. *)
                            },
                             all_new_cookies
                            ))
-                        
+
                   | _ ->
                       (* retry without POST params *)
-                      
+
                       return
                         (* Ext_retry_with, not Eliom_retry_with *)
                         (Ocsigen_extensions.Ext_retry_with
@@ -354,7 +354,7 @@ let gen sitedata charset = function
                              Ocsigen_extensions.ri_cookies= lazy ric;
                              Ocsigen_extensions.ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
-(*VVV I do not keep the old exceptions any more, 
+(*VVV I do not keep the old exceptions any more,
   otherwise no way to remove them. *)
                            },
                             all_new_cookies
@@ -370,22 +370,22 @@ let gen sitedata charset = function
                   old_cookies_to_set
               in
 
-              Eliommod_cookies.compute_cookies_to_send 
-                sitedata 
+              Eliommod_cookies.compute_cookies_to_send
+                sitedata
                 all_cookie_info
                 all_user_cookies
 
               >>= fun all_new_cookies ->
 
-              return 
-                (Ocsigen_extensions.Ext_found 
+              return
+                (Ocsigen_extensions.Ext_found
                    (fun () ->
                      Lwt.return
                        {res with
                         Ocsigen_http_frame.res_cookies= all_new_cookies}))
       )
       (function
-        | Eliom_common.Eliom_Typing_Error l -> 
+        | Eliom_common.Eliom_Typing_Error l ->
             Ocsigen_senders.Xhtml_content.result_of_content
               (Error_pages.page_error_param_type l) >>= fun r ->
             return (Ocsigen_extensions.Ext_found
@@ -395,18 +395,18 @@ let gen sitedata charset = function
                            Ocsigen_http_frame.res_cookies = old_cookies_to_set;
                            Ocsigen_http_frame.res_code= 500;
                          }))
-	| Eliom_common.Eliom_Wrong_parameter -> 
+	| Eliom_common.Eliom_Wrong_parameter ->
             Lazy.force ri.Ocsigen_extensions.ri_post_params >>= fun ripp ->
             Ocsigen_senders.Xhtml_content.result_of_content
                 (Error_pages.page_bad_param (List.map fst ripp)) >>= fun r ->
-            return (Ocsigen_extensions.Ext_found 
+            return (Ocsigen_extensions.Ext_found
                       (fun () ->
                         Lwt.return
                           {r with
                            Ocsigen_http_frame.res_cookies= old_cookies_to_set;
                            Ocsigen_http_frame.res_code= 500;
                          }))
-	| Eliom_common.Eliom_404 -> 
+	| Eliom_common.Eliom_404 ->
             return (Ocsigen_extensions.Ext_next previous_extension_err)
         | Eliom_common.Eliom_retry_with a -> gen_aux a
 	| e -> fail e)
@@ -416,15 +416,15 @@ let gen sitedata charset = function
     ri charset previous_extension_err >>= fun (ri, si) ->
   let (all_cookie_info, closedsessions) =
     Eliommod_cookies.get_cookie_info now
-      sitedata 
+      sitedata
       si.Eliom_common.si_service_session_cookies
       si.Eliom_common.si_data_session_cookies
-      si.Eliom_common.si_persistent_session_cookies 
+      si.Eliom_common.si_persistent_session_cookies
   in
   let exn = compute_exn closedsessions in
-  gen_aux ({ri with Ocsigen_extensions.ri_extension_info= 
-            exn@ri.Ocsigen_extensions.ri_extension_info}, 
+  gen_aux ({ri with Ocsigen_extensions.ri_extension_info=
+            exn@ri.Ocsigen_extensions.ri_extension_info},
            si,
-           Ocsigen_http_frame.Cookies.empty, 
+           Ocsigen_http_frame.Cookies.empty,
            all_cookie_info)
 

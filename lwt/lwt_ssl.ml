@@ -5,7 +5,7 @@ type t =
 
 type socket = Lwt_unix.file_descr * t
 
-let is_ssl s = 
+let is_ssl s =
   match snd s with
     Plain -> false
   | _ -> true

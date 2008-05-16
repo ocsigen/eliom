@@ -37,9 +37,9 @@ open Lexing
 
 (* Basic types *)
 module BasicTypes = struct
-type attr =  [`Attr of string | `CamlAttr of string] 
-type valeur =   [`Val of string | `CamlVal of string] 
-type attribute =  [`Attribute of (attr * valeur) | `CamlList of string] 
+type attr =  [`Attr of string | `CamlAttr of string]
+type valeur =   [`Val of string | `CamlVal of string]
+type attribute =  [`Attribute of (attr * valeur) | `CamlList of string]
 type token =
    Tag of (string * (attribute list) * bool)
   | PCData of string
@@ -49,7 +49,7 @@ type token =
   | CamlList of string
   | CamlExpr of string
   | Whitespace of string
-  | Eof 
+  | Eof
 
 end;;
 
@@ -141,10 +141,10 @@ let parse f c = f c c.lexbuf
 let lexeme c = Lexing.lexeme c.lexbuf
 let store_string c s = Buffer.add_string c.buffer s
 
-let extract_caml s prefix = 
+let extract_caml s prefix =
         let i = String.index s '$'  in
-        let j = String.index_from s (i+1) '$' in 
-        let k = (if prefix then  String.index_from s (i+1) ':' else i) 
+        let j = String.index_from s (i+1) '$' in
+        let k = (if prefix then  String.index_from s (i+1) ':' else i)
         in if k<j then String.sub s (k+1) (j-k-1) else failwith "Error : extract_caml"
 
         (* Deal with entities  *)
@@ -174,7 +174,7 @@ let err error loc =
 
 let warn error loc =
         Format.eprintf "Warning: %a: %a@." Loc.print loc Error.print error
-        
+
 }
 
 (******************************************************************************)
@@ -210,7 +210,7 @@ rule token c = parse
                 let tag = ident_name c lexbuf in
                 ignore_spaces c lexbuf;
                 let attribs, closed = attributes c lexbuf in
-                Tag(tag, attribs, closed)                   
+                Tag(tag, attribs, closed)
         }
         | "&#" {
                 ignore(buff_contents c);
@@ -223,9 +223,9 @@ rule token c = parse
                 PCData (pcdata c lexbuf)
         }
         | "$$" {
-                ignore (buff_contents c); 
-                store_string c "$" ; 
-                PCData (pcdata c lexbuf) 
+                ignore (buff_contents c);
+                store_string c "$" ;
+                PCData (pcdata c lexbuf)
         }
         | space* pcchar+ {
                 ignore (buff_contents c);
@@ -243,7 +243,7 @@ rule token c = parse
                 store c ;
                 CamlList (extract_caml (camlident c lexbuf) true)
         }
-        |'$'  { 
+        |'$'  {
                 ignore (buff_contents c) ;
                 store c ;
                 CamlExpr (extract_caml (camlident c lexbuf) false)
@@ -275,9 +275,9 @@ and comment c = parse
         | "<!--" {
 (*              warn WIntricatedComments (Loc.of_lexbuf lexbuf) ; *)
 
-                let buff = buff_contents c in 
+                let buff = buff_contents c in
                 let in_comment = comment c lexbuf in
-                store_string c buff ; 
+                store_string c buff ;
                 store_string c "<!--" ;
                 store_string c in_comment ;
                 store_string c "-->" ;
@@ -295,7 +295,7 @@ and header c = parse
         }
         | "?>" { () }
         | eof { err ECloseExpected (loc c) }
-        | _ { header c lexbuf }		
+        | _ { header c lexbuf }
 
 and pcdata c = parse
         | pcchar+ {
@@ -334,14 +334,14 @@ and attributes c = parse
         | '>'  { [], false }
         | "/>" { [], true }
         | "" (* do not read a char ! *) {
-                let (attribute:attribute) = 
+                let (attribute:attribute) =
                         (match attribute c lexbuf with
-                        | `Attr s as a  -> 
+                        | `Attr s as a  ->
                                 let (data:valeur) = attribute_data c lexbuf in
                                 (`Attribute (a, data))
                         |`CamlAttr s as a ->
                                 let (data:valeur) = attribute_data c lexbuf in
-                                (`Attribute (a, data))			  
+                                (`Attribute (a, data))
                         | (`CamlList s) as a -> a
                         ) in
                 ignore_spaces c lexbuf;
@@ -355,21 +355,21 @@ and attribute c = parse
                 ignore (buff_contents c) ;
                 store c ;
                 `CamlList (extract_caml(camlident c lexbuf) true)
-        }	
+        }
         | '$'  {
                 ignore (buff_contents c) ;
-                store c ;                
+                store c ;
                 `CamlAttr (extract_caml(camlident c lexbuf) false)
         }
         | _ | eof { err EAttributeNameExpected (loc c)}
 
 and attribute_data c = parse
-        (* FIXME: supprimer le premier cas ? on le garde au cas où certains 
+        (* FIXME: supprimer le premier cas ? on le garde au cas où certains
          * voudraient préciser str: mais c'est inutile *)
-        | space* '=' space* "$str:" camlidentchar+ '$' 
-                {`CamlVal (extract_caml(lexeme c) true)} 	
-        | space* '=' space* '$' camlidentchar+ '$' 
-                {`CamlVal (extract_caml(lexeme c) false)}	
+        | space* '=' space* "$str:" camlidentchar+ '$'
+                {`CamlVal (extract_caml(lexeme c) true)}
+        | space* '=' space* '$' camlidentchar+ '$'
+                {`CamlVal (extract_caml(lexeme c) false)}
         | space* '=' space* '"' {
                 ignore(buff_contents c) ;
                 `Val(dq_string c lexbuf)
@@ -387,7 +387,7 @@ and dq_string c = parse
                 dq_string c lexbuf
         }
         | eof { err EUnterminatedString (Loc.of_lexbuf lexbuf) }
-        | _ { 
+        | _ {
                 istore_char c 0;
                 dq_string c lexbuf
         }
@@ -399,7 +399,7 @@ and q_string c = parse
                 q_string c lexbuf
         }
         | eof  { err EUnterminatedString (Loc.of_lexbuf lexbuf) }
-        | _ { 
+        | _ {
                 istore_char c 0;
                 q_string c lexbuf
         }
@@ -429,7 +429,7 @@ let from_context c  =
 
 let from_lexbuf lb e =
         let c = { (default_context lb) with
-        loc        = Loc.of_lexbuf lb; 
+        loc        = Loc.of_lexbuf lb;
 		entity = e }
         in from_context c
 

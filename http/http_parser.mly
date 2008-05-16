@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -21,7 +21,7 @@
 
   open Ocsigen_http_frame
   open Http_header
-  
+
   let mode = ref Nofirstline
   let proto = ref HTTP11
   let headers = ref Http_headers.empty
@@ -31,7 +31,7 @@
   let add_header (n, v) = headers := Http_headers.add n v !headers
 
   let make_header() =
-    {mode = !mode; 
+    {mode = !mode;
      proto= !proto;
      headers= !headers}
 
@@ -62,12 +62,12 @@
     let ind = String.index s ':' in
     (String.lowercase (String.sub s 0 ind )),
       String.lowercase (String.sub s (ind+1) ((String.length s) - ind-1) )
-    with Not_found  -> 
+    with Not_found  ->
       raise (Http_error.Http_exception (Some 400,["bad header format"]))
 *)
 %}
 
-%token COLON EOL 
+%token COLON EOL
 %token <string>METHOD
 %token <string>PROTO
 %token <string>STRING
@@ -93,10 +93,10 @@ firstline :
 			       }
 
 nofirstline :
-  | EOL                          {mode := Nofirstline; 
+  | EOL                          {mode := Nofirstline;
 				  proto := HTTP11;
 				  make_header()}
-  | lines EOL                    {mode := Nofirstline; 
+  | lines EOL                    {mode := Nofirstline;
 				  proto := HTTP11;
 				  make_header()}
 

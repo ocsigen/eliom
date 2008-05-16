@@ -8,7 +8,7 @@ type query =
   | Nextkey of string
   | Firstkey of string
   | Length of string
-        
+
 type answer =
   | Ok
   | Dbm_not_found

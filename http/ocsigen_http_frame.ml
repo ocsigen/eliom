@@ -1,12 +1,12 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * ocsigen_http_frame.ml Copyright (C) 2005 
+ * ocsigen_http_frame.ml Copyright (C) 2005
  * Denis Berthod, Vincent Balat, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -30,13 +30,13 @@ open Ocsigen_stream
 type etag = string
 type url_path = string list
 
-module Cookies = 
+module Cookies =
   Map.Make(struct type t = url_path let compare = compare end)
 
-module Cookievalues = 
+module Cookievalues =
   Map.Make(struct type t = string let compare = compare end)
 
-type cookie = 
+type cookie =
   | OSet of float option * string
   | OUnset
 
@@ -46,18 +46,18 @@ let add_cookie path n v t =
   let ct =
     try Cookies.find path t
     with Not_found -> Cookievalues.empty
-  in 
+  in
   (* We replace the old value if it exists *)
   Cookies.add path (Cookievalues.add n v ct) t
 
 (* [add_cookies newcookies oldcookies] adds the cookies from [newcookies]
-   to [oldcookies]. If cookies are already bound in oldcookies, 
+   to [oldcookies]. If cookies are already bound in oldcookies,
    the previous binding disappear. *)
 let add_cookies newcookies oldcookies =
   Cookies.fold
-    (fun path ct t -> 
+    (fun path ct t ->
       Cookievalues.fold
-        (fun n v beg ->        
+        (fun n v beg ->
           match v with
           | OSet (expo, v) ->
               add_cookie path n (OSet (expo, v)) beg
@@ -71,11 +71,11 @@ let add_cookies newcookies oldcookies =
     oldcookies
 
 
-(* [compute_new_ri_cookies now path ri_cookies cookies_to_set] 
+(* [compute_new_ri_cookies now path ri_cookies cookies_to_set]
    adds the cookies from [cookies_to_set]
-   to [ri_cookies], as if the cookies 
+   to [ri_cookies], as if the cookies
    add been send to the browser and the browser
-   was doing a new request to the url [path]. 
+   was doing a new request to the url [path].
    Only the cookies that match [path] (current path) are added. *)
 let compute_new_ri_cookies
     now
@@ -83,16 +83,16 @@ let compute_new_ri_cookies
     ricookies
     cookies_set_by_page =
 
-  let prefix path p = 
-    Ocsigen_lib.list_is_prefix 
+  let prefix path p =
+    Ocsigen_lib.list_is_prefix
       (Ocsigen_lib.remove_slash_at_beginning path)
       (Ocsigen_lib.remove_slash_at_beginning p)
   in
   Cookies.fold
-    (fun path ct t -> 
+    (fun path ct t ->
       if prefix path ripath then
         Cookievalues.fold
-          (fun n v beg ->        
+          (fun n v beg ->
             match v with
             | OSet (Some ti, v) when ti>now ->
                 Cookievalues.add n v t
@@ -106,7 +106,7 @@ let compute_new_ri_cookies
     )
     cookies_set_by_page
     ricookies
-        
+
 
 
 (** The type of answers to send *)
@@ -118,7 +118,7 @@ type result =
      res_stream: string Ocsigen_stream.t; (** Default: empty stream *)
      res_stop_stream: unit -> unit Lwt.t; (** A function that will be called
                                               if sending the stream fails.
-                                              It is called before the stream 
+                                              It is called before the stream
                                               finalizer, only in case of error.
                                               Use it if you want a different
                                               behaviour if sending succeeds
@@ -149,7 +149,7 @@ let default_result () =
  }
 
 (** [result] for an empty page. *)
-let empty_result () = 
+let empty_result () =
   {
    res_cookies = Cookies.empty;
    res_lastmodified = None;
@@ -181,7 +181,7 @@ module type HTTP_CONTENT =
 (** this module describes the type of an http header *)
 module Http_header =
   struct
-      
+
       (** type of the http_method *)
       type http_method =
         | GET
@@ -197,13 +197,13 @@ module Http_header =
         | PATCH
 
       (** type of ocsigen_http_frame mode. The int is the HTTP answer code *)
-      type http_mode = 
+      type http_mode =
         | Query of (http_method * string)
         | Answer of int
         | Nofirstline
 
       type proto = HTTP10 | HTTP11
-  
+
         (** type of the http headers *)
         type http_header =
           {
@@ -243,13 +243,13 @@ module Http_header =
           match header.mode with
           | Query (meth, _) -> meth
           | _ -> raise Not_found *)
-        
+
         (** adds an header option in the header option list*)
         let add_headers header key value =
           { header with
             headers = Http_headers.add key value header.headers }
   end
-  
+
 module Http_error =
   struct
 
@@ -306,13 +306,13 @@ module Http_error =
         let display_http_exception e =
           match e with
           | Http_exception (n, Some s, Some _) ->
-              Ocsigen_messages.debug 
+              Ocsigen_messages.debug
                 (fun () -> Format.sprintf "%s: %s (with headers)" (expl_of_code n) s)
           | Http_exception (n, Some s, None) ->
-              Ocsigen_messages.debug 
+              Ocsigen_messages.debug
                 (fun () -> Format.sprintf "%s: %s" (expl_of_code n) s)
           | Http_exception (n, None, _) ->
-              Ocsigen_messages.debug 
+              Ocsigen_messages.debug
                 (fun () -> Format.sprintf "%s" (expl_of_code n))
           | _ ->
               raise e

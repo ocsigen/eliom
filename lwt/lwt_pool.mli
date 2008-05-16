@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -28,7 +28,7 @@
 (** Type of pools *)
 type 'a t
 
-(** [create n f] creates a new pool with at most [n] members. 
+(** [create n f] creates a new pool with at most [n] members.
     [f] is the function to use to create a new pool member. *)
 val create :
   int -> ?check:('a -> (bool -> unit) -> unit) -> (unit -> 'a Lwt.t) -> 'a t

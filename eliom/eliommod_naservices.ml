@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -23,28 +23,28 @@
 
 open Lwt
 
-let add_naservice_table at (key, elt) = 
+let add_naservice_table at (key, elt) =
   match at with
-  | Eliom_common.AVide -> 
-      Eliom_common.ATable 
+  | Eliom_common.AVide ->
+      Eliom_common.ATable
         (Eliom_common.NAserv_Table.add
            key elt Eliom_common.NAserv_Table.empty)
-  | Eliom_common.ATable t -> 
+  | Eliom_common.ATable t ->
       Eliom_common.ATable (Eliom_common.NAserv_Table.add key elt t)
 
-let find_naservice_table at k = 
+let find_naservice_table at k =
   match at with
   | Eliom_common.AVide -> raise Not_found
   | Eliom_common.ATable t -> Eliom_common.NAserv_Table.find k t
 
-let remove_naservice_table at k = 
+let remove_naservice_table at k =
   match at with
   | Eliom_common.AVide -> Eliom_common.AVide
-  | Eliom_common.ATable t -> 
+  | Eliom_common.ATable t ->
       Eliom_common.ATable (Eliom_common.NAserv_Table.remove k t)
 
-let add_naservice 
-    (_, naservicetableref, _, containstimeouts) duringsession name 
+let add_naservice
+    (_, naservicetableref, _, containstimeouts) duringsession name
     (max_use, expdate, naservice) =
   let generation = Ocsigen_extensions.get_numberofreloads () in
   (if not duringsession
@@ -69,7 +69,7 @@ let add_naservice
   (match expdate with
   | Some _ -> containstimeouts := true
   | _ -> ());
-  
+
   naservicetableref :=
     add_naservice_table !naservicetableref
       (name, (generation, max_use, expdate, naservice))
@@ -91,7 +91,7 @@ let find_naservice now ((_, atr, _, _) as str) name =
 (******************************************************************)
 (* non attached services                                          *)
 let make_naservice
-    now 
+    now
     (ri,
      si,
      cookies_to_set,
@@ -113,9 +113,9 @@ let make_naservice
                   try
                     Eliom_common.Found
                       ((find_naservice
-                          now !(c.Eliom_common.sc_table) 
+                          now !(c.Eliom_common.sc_table)
                           si.Eliom_common.si_nonatt_info),
-                       !(c.Eliom_common.sc_table), 
+                       !(c.Eliom_common.sc_table),
                        Some fullsessname)
                   with Not_found -> beg
         )
@@ -124,7 +124,7 @@ let make_naservice
     with
     | Eliom_common.Found v -> v
     | Eliom_common.Notfound _ ->
-        (find_naservice now sitedata.Eliom_common.global_services 
+        (find_naservice now sitedata.Eliom_common.global_services
            si.Eliom_common.si_nonatt_info,
          sitedata.Eliom_common.global_services,
          None)
@@ -141,62 +141,62 @@ let make_naservice
       match si.Eliom_common.si_nonatt_info with
       | Eliom_common.Na_no -> assert false
       | Eliom_common.Na_post_ _
-      | Eliom_common.Na_post' _ -> 
+      | Eliom_common.Na_post' _ ->
 (*VVV (Some, Some) or (_, Some)? *)
-          Ocsigen_messages.debug2 
+          Ocsigen_messages.debug2
             "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
           Eliom_common.change_request_info
-            {ri with 
-             Ocsigen_extensions.ri_get_params = 
+            {ri with
+             Ocsigen_extensions.ri_get_params =
              lazy si.Eliom_common.si_other_get_params;
              Ocsigen_extensions.ri_post_params = lazy (return []);
              Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
-             Ocsigen_extensions.ri_extension_info= 
+             Ocsigen_extensions.ri_extension_info=
              Eliom_common.Eliom_Link_too_old::
              ri.Ocsigen_extensions.ri_extension_info
-            } 
+            }
             si.Eliom_common.si_config_file_charset
             si.Eliom_common.si_previous_extension_error
           >>=
-            (fun (ri', si') -> 
+            (fun (ri', si') ->
                fail (Eliom_common.Eliom_retry_with (ri', si',
                                                          cookies_to_set,
                                                          all_cookie_info)))
 
       | Eliom_common.Na_get_ _
       | Eliom_common.Na_get' _ ->
-          Ocsigen_messages.debug2 
+          Ocsigen_messages.debug2
             "--Eliom: Link too old. I will try without non-attached parameters:";
           Eliom_common.change_request_info
-            {ri with 
-             Ocsigen_extensions.ri_get_params = 
+            {ri with
+             Ocsigen_extensions.ri_get_params =
              lazy si.Eliom_common.si_other_get_params;
              Ocsigen_extensions.ri_post_params = lazy (return []);
              Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
-             Ocsigen_extensions.ri_extension_info= 
+             Ocsigen_extensions.ri_extension_info=
              Eliom_common.Eliom_Link_too_old::
              ri.Ocsigen_extensions.ri_extension_info
-           } 
+           }
             si.Eliom_common.si_config_file_charset
             si.Eliom_common.si_previous_extension_error
             >>=
-          (fun (ri', si') -> 
+          (fun (ri', si') ->
             fail (Eliom_common.Eliom_retry_with (ri', si',
                                                       cookies_to_set,
                                                       all_cookie_info)))
   ) >>=
-  (fun ((_, max_use, expdate, naservice), 
+  (fun ((_, max_use, expdate, naservice),
         tablewhereithasbeenfound,
         fullsessname) ->
     (naservice
-       (Eliom_common.make_server_params 
+       (Eliom_common.make_server_params
           sitedata
           all_cookie_info
           ri
           []
           si
           fullsessname)) >>=
-    (fun r -> 
+    (fun r ->
       Ocsigen_messages.debug2
         "--Eliom: Non attached page found and generated successfully";
       (match expdate with
@@ -204,10 +204,10 @@ let make_naservice
       | None -> ());
       (match max_use with
       | None -> ()
-      | Some r -> 
+      | Some r ->
           if !r = 1
           then
-            remove_naservice tablewhereithasbeenfound 
+            remove_naservice tablewhereithasbeenfound
               si.Eliom_common.si_nonatt_info
           else r := !r - 1);
       return r))

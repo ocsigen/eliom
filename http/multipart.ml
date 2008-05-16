@@ -1,5 +1,5 @@
 (* This code is inspired by mimestring.ml from OcamlNet *)
-(* Copyright Gerd Stolpmann, Patrick Doane *) 
+(* Copyright Gerd Stolpmann, Patrick Doane *)
 (* Modified for Ocsigen/Lwt by Nataliya Guts and Vincent Balat *)
 
 module S = Netstring_pcre
@@ -15,7 +15,7 @@ let header_stripped_re =
 
 let header_unstripped_re =
   S.regexp "([^ \t\r\n:]+):([ \t]*.*\n([ \t].*\n)*)";;
-(* This much simpler expression returns the name and the unstripped 
+(* This much simpler expression returns the name and the unstripped
  * value.
  *)
 
@@ -38,9 +38,9 @@ let scan_header ?(downcase=true)
           let i' = S.match_end r in
           if i' > i1 then
             raise (Multipart_error "Mimestring.scan_header");
-          let name = 
+          let name =
             if downcase then
-              String.lowercase(S.matched_group r 1 parstr) 
+              String.lowercase(S.matched_group r 1 parstr)
             else
               S.matched_group r 1 parstr
           in
@@ -83,8 +83,8 @@ let read_header ?downcase ?unfold ?strip s =
               (s, (S.match_end (snd (S.search_forward end_of_header_re b 0))))
       )
       (function
-        | Not_found -> 
-            Ocsigen_stream.enlarge_stream s >>= 
+        | Not_found ->
+            Ocsigen_stream.enlarge_stream s >>=
             (function
                 Finished _ -> fail Stream_too_small
               | Cont (stri, _) as s -> find_end_of_header s)
@@ -92,10 +92,10 @@ let read_header ?downcase ?unfold ?strip s =
   in
   find_end_of_header s >>= (fun (s, end_pos) ->
     let b = Ocsigen_stream.current_buffer s in
-    let header, _ = 
-      scan_header ?downcase ?unfold ?strip b ~start_pos:0 ~end_pos 
+    let header, _ =
+      scan_header ?downcase ?unfold ?strip b ~start_pos:0 ~end_pos
     in
-    Ocsigen_stream.skip s end_pos >>= 
+    Ocsigen_stream.skip s end_pos >>=
     (fun s -> return (s, header)))
 ;;
 
@@ -109,7 +109,7 @@ let read_multipart_body decode_part boundary s =
     try
       return (s, snd (S.search_forward re (Ocsigen_stream.current_buffer s) start))
     with
-      Not_found -> 
+      Not_found ->
         Ocsigen_stream.enlarge_stream s >>=
         (function
           | Finished _ -> fail Stream_too_small
@@ -118,11 +118,11 @@ let read_multipart_body decode_part boundary s =
   let search_end_of_line s k =
     (* Search LF beginning at position k *)
     catch
-      (fun () -> (search_window s lf_re k) >>= 
+      (fun () -> (search_window s lf_re k) >>=
         (fun (s, x) -> return (s, (S.match_end x))))
     (function
       | Not_found ->
-          fail (Multipart_error 
+          fail (Multipart_error
                   "read_multipart_body: MIME boundary without line end")
       | e -> fail e)
   in
@@ -149,14 +149,14 @@ let read_multipart_body decode_part boundary s =
   in
 
   let rec parse_parts s uses_crlf =
-    (* PRE: [s] is at the beginning of the next part. 
+    (* PRE: [s] is at the beginning of the next part.
      * [uses_crlf] must be true if CRLF is used as EOL sequence, and false
      *    if only LF is used as EOL sequence.
      *)
     let delimiter = (if uses_crlf then "\r" else "" ) ^ "\n--" ^ boundary in
     Ocsigen_stream.substream delimiter s >>= fun a ->
     decode_part a >>= fun (y, s) ->
-    (* Now the position of [s] is at the beginning of the delimiter. 
+    (* Now the position of [s] is at the beginning of the delimiter.
      * Check if there is a "--" after the delimiter (==> last part)
      *)
     let l_delimiter = String.length delimiter in
@@ -167,22 +167,22 @@ let read_multipart_body decode_part boundary s =
     | Cont (ss, f) ->
         let long = String.length ss in
         (long >= (l_delimiter+2)) &&
-        (ss.[l_delimiter] = '-') && 
+        (ss.[l_delimiter] = '-') &&
         (ss.[l_delimiter+1] = '-')
     in
     if last_part then
       return [ y ]
     else begin
-      search_end_of_line s 2 >>= fun (s, k) -> 
-      (* [k]: Beginning of next part *) 
-      Ocsigen_stream.skip s k >>= fun s -> 
-      parse_parts s uses_crlf >>= fun l -> 
+      search_end_of_line s 2 >>= fun (s, k) ->
+      (* [k]: Beginning of next part *)
+      Ocsigen_stream.skip s k >>= fun s ->
+      parse_parts s uses_crlf >>= fun l ->
       return (y :: l)
     end
   in
 
   (* Check whether s directly begins with a boundary: *)
-  check_beginning_is_boundary s >>= fun (s, b, islast) -> 
+  check_beginning_is_boundary s >>= fun (s, b, islast) ->
   if islast then return []
   else
   if b then begin
@@ -196,7 +196,7 @@ let read_multipart_body decode_part boundary s =
   else begin
     (* Search the first boundary: *)
     catch
-      (fun () -> 
+      (fun () ->
         search_first_boundary s >>= fun (s, k_eob) ->   (* or Not_found *)
         (* Printf.printf "k_eob=%d\n" k_eob; *)
         (* Move to the beginning of the next line: *)
@@ -206,7 +206,7 @@ let read_multipart_body decode_part boundary s =
           Ocsigen_stream.skip s k_eol >>= fun s ->
           (* Begin with first part: *)
           parse_parts s uses_crlf)
-      (function 
+      (function
         | Not_found ->
             (* No boundary at all: The body is empty. *)
             return []
@@ -233,23 +233,23 @@ let scan_multipart_body_from_stream s ~boundary ~create ~add ~stop =
                 None -> false
               | Some m ->
                   (Int64.compare size2 m) > 0)
-            then 
+            then
               fail (Ocsigen_lib.Ocsigen_Request_too_long)
             else
               if stri = ""
               then Ocsigen_stream.next f >>= while_stream size
-              else ((* catch 
-                       (fun () -> 
+              else ((* catch
+                       (fun () ->
                          add p stri)
-                       (fun e -> f () >>= 
-                         Ocsigen_stream.consume >>= 
+                       (fun e -> f () >>=
+                         Ocsigen_stream.consume >>=
                          (fun () -> fail e)) *)
                   add p stri >>= fun () ->
-                Ocsigen_stream.next f >>= 
+                Ocsigen_stream.next f >>=
                 while_stream size2)
-      in 
-      catch 
-        (fun () -> while_stream Int64.zero s >>= 
+      in
+      catch
+        (fun () -> while_stream Int64.zero s >>=
           (fun (size, s) -> stop size p >>= fun r -> return (r, s)))
         (function
             error -> stop Int64.zero p >>= fun _ -> fail error))

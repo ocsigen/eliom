@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* 
+(*
    Parseur camlp4 pour XHTML
 
    Attention c'est juste un essai
@@ -25,15 +25,15 @@
 
    Le typage des attributs n'est pas evident donc pour l'instant ils sont tous string
    exemple << <plop number="5" /> >> ----> `Number 5  (en fait `Number (int_of_string "5"))
-           << <plop number=$n$ /> >> ----> `Number n o`u n est de type int ??? 
+           << <plop number=$n$ /> >> ----> `Number n o`u n est de type int ???
 
 On pourrait decider d'ecrire << <plop number=$string_of_int n$ /> >>
-Mais du coup cela fait int_of_string (string_of_int n) 
+Mais du coup cela fait int_of_string (string_of_int n)
 et ensuite encore string_of_int au moment de l'affichage
 
    Revoir aussi la gestion des commentaires ?
 
-à revoir 
+à revoir
 
 *)
 
@@ -44,7 +44,7 @@ open Pcaml
 let blocktags = [ "fieldset"; "form"; "address"; "body"; "head"; "blockquote"; "div"; "html"; "h1"; "h2"; "h3"; "h4"; "h5"; "h6"; "p"; "dd"; "dl"; "li"; "ol"; "ul"; "colgroup"; "table"; "tbody"; "tfoot"; "thead"; "td"; "th"; "tr" ]
 
 let semiblocktags = [ "pre"; "style"; "title" ]
-    
+
 
 
 (* Instead of using Pcaml.gram, we use a new grammar, using xmllexer *)
@@ -55,14 +55,14 @@ module ExpoOrPatt = struct
 
   type tvarval =
       EPVstr of string * MLast.loc
-    | EPVvar of string * MLast.loc 
+    | EPVvar of string * MLast.loc
 
   type 'a tlist =
       PLEmpty of MLast.loc
     | PLExpr of string * MLast.loc
     | PLCons of 'a * 'a tlist * MLast.loc
 
-  type texprpatt = 
+  type texprpatt =
       EPanyattr of tvarval * tvarval * MLast.loc
     | EPanytag of string * texprpatt tlist * texprpatt tlist * MLast.loc
     | EPpcdata of string * MLast.loc
@@ -71,7 +71,7 @@ module ExpoOrPatt = struct
     | EPanytagvar of string * MLast.loc
     | EPanytagvars of string * MLast.loc
 
-  let locadd p11 (p21,p22) = 
+  let locadd p11 (p21,p22) =
     {Lexing.pos_fname = p11.Lexing.pos_fname;
      Lexing.pos_lnum = p11.Lexing.pos_lnum + p21.Lexing.pos_lnum;
      Lexing.pos_bol = p11.Lexing.pos_bol + p21.Lexing.pos_bol;
@@ -81,7 +81,7 @@ module ExpoOrPatt = struct
     Lexing.pos_bol = p11.Lexing.pos_bol + p22.Lexing.pos_bol;
     Lexing.pos_cnum = p11.Lexing.pos_cnum + p22.Lexing.pos_cnum
   }
-      
+
   let get_expr v loc = (* <:expr< $lid:v$ >> *)
     let refpos1 = (fun a,b,c -> a) !Pcaml.position in
     let refpos2 = (fun a,b,c -> b) !Pcaml.position in
@@ -89,28 +89,28 @@ module ExpoOrPatt = struct
     let sauv2 = !refpos2 in
     refpos1 := 0;
     refpos2 := 1;
-    let ast = try 
+    let ast = try
       Grammar.Entry.parse Pcaml.expr_eoi (Stream.of_string v)
     with
       Stdpp.Exc_located (locc, exc) ->
         let loc2 = locadd (fst loc) locc in
         Stdpp.raise_with_loc loc2 exc
-    in  
+    in
     refpos1 := sauv1;
     refpos2 := sauv2;
-    (* Pcaml.expr_reloc (locadd loc) 
+    (* Pcaml.expr_reloc (locadd loc)
        {Lexing.pos_fname = (fst loc).Lexing.pos_fname;
        Lexing.pos_lnum = 0;
        Lexing.pos_bol = 0;
        Lexing.pos_cnum = 0}*)
     <:expr<$anti:ast$>>
-  
-(*  let list_of_mlast_expr el loc = 
-    List.fold_right 
+
+(*  let list_of_mlast_expr el loc =
+    List.fold_right
       (fun x l -> <:expr< [$x$ :: $l$] >>) el <:expr< [] >>
 
-  let list_of_mlast_patt pl loc = 
-    List.fold_right 
+  let list_of_mlast_patt pl loc =
+    List.fold_right
       (fun x l -> <:patt< [$x$ :: $l$] >>) pl <:patt< [] >> *)
 
   let expr_valorval = function
@@ -144,28 +144,28 @@ module ExpoOrPatt = struct
         | PLExpr (_, loc) | PLCons (_,_, loc) ->
             <:expr< ((XHTML.M.tot (XML.$uid:constr$ $str:tag$
                $to_expr_attlist attribute_list$
-               (XHTML.M.toeltl 
-                  ($to_expr_taglist child_list$ 
-                   :> list (XHTML.M.elt 
+               (XHTML.M.toeltl
+                  ($to_expr_taglist child_list$
+                   :> list (XHTML.M.elt
                               [< Xhtmltypes.$lid:tag^"_content"$])))))
                    : XHTML.M.elt [> `$uid: String.capitalize tag$])
             >>)
-        
-    | EPpcdata (dt, loc) -> 
-        <:expr< ((XHTML.M.tot 
-                    (XML.EncodedPCDATA $str:dt$)) 
+
+    | EPpcdata (dt, loc) ->
+        <:expr< ((XHTML.M.tot
+                    (XML.EncodedPCDATA $str:dt$))
                    : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
 
-    | EPwhitespace (dt, loc) -> 
+    | EPwhitespace (dt, loc) ->
         <:expr< XHTML.M.tot (XML.Whitespace $str:dt$) >>
 
     | EPanytagvar (v, loc) -> get_expr v loc
       (* <:expr< $lid:v$ >> *)
 
-    | EPanytagvars (v, loc) -> 
+    | EPanytagvars (v, loc) ->
         let s = get_expr v loc in
 (*        <:expr< ((XHTML.M.tot (XML.EncodedPCDATA $s$)) *)
-        <:expr< ((XHTML.M.tot (XML.PCDATA $s$)) 
+        <:expr< ((XHTML.M.tot (XML.PCDATA $s$))
                    : XHTML.M.elt [> Xhtmltypes.pcdata ]) >>
 
     | EPcomment (c, loc) -> <:expr< XHTML.M.tot (XML.Comment $str:c$) >>
@@ -211,7 +211,7 @@ EXTEND
     tag = TAG;
     attribute_list = OPT exprpatt_any_attribute_list;
     child_list = OPT exprpatt_any_tag_list;
-    GAT -> 
+    GAT ->
       let attlist = match attribute_list with
           None -> PLEmpty loc
         | Some l -> l
@@ -221,7 +221,7 @@ EXTEND
         | Some l -> l
       in EPanytag
         (tag,
-         attlist, 
+         attlist,
          taglist,
          loc)
   | dt = WHITESPACE -> EPwhitespace (dt, loc)
@@ -270,12 +270,12 @@ EXTEND
 
 END;;
 
-let xml_exp s = 
+let xml_exp s =
   let refposbol = (fun a,b,c -> a) !Pcaml.position in
   let refposlnum = (fun a,b,c -> b) !Pcaml.position in
   let sauvbol = !refposbol in
   let sauvlnum = !refposlnum in
-  let s = 
+  let s =
       (to_expr (Grammar.Entry.parse exprpatt_xml (Stream.of_string s))) in
   refposbol := sauvbol;
   refposlnum := sauvlnum;
@@ -313,7 +313,7 @@ let l = [<< <ark $c$=$f$ %la%> </ark> >>; << <wow> </wow> >>] in
 (* %% permet d'écrire un % *)
 
 function << <html %l1%> $a$ ljl %l2% </html> >> -> 1 | _ -> 2
-function << <html $n$=$v$ a="b" %l1%> <body> %l2% </body> </html> >> 
+function << <html $n$=$v$ a="b" %l1%> <body> %l2% </body> </html> >>
     -> 1 | _ -> 2
 function << <html %l1%> <body> %l2% </body> %l3% </html> >> -> 1 | _ -> 2
 (*

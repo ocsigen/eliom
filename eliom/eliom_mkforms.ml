@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -36,14 +36,14 @@ let rec string_of_url_path' = function
   | [] -> ""
   | [a] when a = Eliom_common.eliom_suffix_internal_name -> ""
   | [a] -> Netencoding.Url.encode ~plus:false a
-  | a::l when a = Eliom_common.eliom_suffix_internal_name -> 
+  | a::l when a = Eliom_common.eliom_suffix_internal_name ->
       string_of_url_path' l
   | a::l -> (Netencoding.Url.encode ~plus:false a)^"/"^(string_of_url_path' l)
 
 let rec string_of_url_path_suff u = function
   | None -> string_of_url_path' u
   | Some suff -> let deb = (string_of_url_path' u) in
-    if deb = "" 
+    if deb = ""
     then string_of_url_path' suff
     else deb^(string_of_url_path' suff)
 
@@ -60,7 +60,7 @@ let reconstruct_relative_url_path current_url u suff =
     | [] -> ""
 (*    | [a] -> "" *)
     | _::l -> "../"^(makedotdot l)
-  in 
+  in
   let aremonter, aaller = drop current_url u
   in let s = (makedotdot aremonter)^(string_of_url_path_suff aaller suff) in
 (*  Messages.debug ((string_of_url_path current_url)^"->"^(string_of_url_path u)^"="^s);*)
@@ -76,7 +76,7 @@ let rec relative_url_path_to_myself = function
 
 
 
-module type FORMCREATE = 
+module type FORMCREATE =
   sig
     type form_content_elt
     type form_content_elt_list
@@ -118,7 +118,7 @@ module type FORMCREATE =
     type button_type_t
 
 
-        
+
 
     val hidden : input_type_t
     val checkbox : input_type_t
@@ -130,26 +130,26 @@ module type FORMCREATE =
     val buttonsubmit : button_type_t
 
     val empty_seq : form_content_elt_list
-    val cons_form : 
-        form_content_elt -> form_content_elt_list -> form_content_elt_list 
+    val cons_form :
+        form_content_elt -> form_content_elt_list -> form_content_elt_list
     val map_option :
-        ('a -> option_elt) -> 'a list -> 
+        ('a -> option_elt) -> 'a list ->
           option_elt_list
     val map_optgroup :
-        ('a -> select_content_elt) -> 'a -> 'a list -> 
+        ('a -> select_content_elt) -> 'a -> 'a list ->
           (select_content_elt * select_content_elt_list)
     val select_content_of_option : option_elt -> select_content_elt
 
     val make_pcdata : string -> pcdata_elt
     val make_a : ?a:a_attrib_t -> href:string -> a_content_elt_list -> a_elt
-    val make_get_form : ?a:form_attrib_t -> 
-      action:string -> 
+    val make_get_form : ?a:form_attrib_t ->
+      action:string ->
         form_content_elt -> form_content_elt_list -> form_elt
     val make_post_form : ?a:form_attrib_t ->
-      action:string -> ?id:string -> ?inline:bool -> 
+      action:string -> ?id:string -> ?inline:bool ->
         form_content_elt -> form_content_elt_list -> form_elt
     val make_hidden_field : input_elt option -> form_content_elt
-    val remove_first : 
+    val remove_first :
         form_content_elt_list -> form_content_elt * form_content_elt_list
     val make_input : ?a:input_attrib_t -> ?checked:bool ->
       typ:input_type_t -> ?name:string -> ?src:uri ->
@@ -157,8 +157,8 @@ module type FORMCREATE =
     val make_button : ?a:button_attrib_t -> button_type:button_type_t ->
       ?name:string -> ?value:string ->
         button_content_elt_list -> button_elt
-    val make_textarea : 
-        ?a:textarea_attrib_t -> 
+    val make_textarea :
+        ?a:textarea_attrib_t ->
           name:string -> ?value:pcdata_elt -> rows:int -> cols:int ->
             unit -> textarea_elt
     val make_select :
@@ -168,7 +168,7 @@ module type FORMCREATE =
               select_content_elt ->
                 select_content_elt_list ->
                   select_elt
-    val make_option : 
+    val make_option :
         ?a:option_attrib_t ->
           selected:bool ->
             ?value:string ->
@@ -218,7 +218,7 @@ module type ELIOMFORMSIG =
     type button_elt
     type button_content_elt
     type button_content_elt_list
-          
+
     type a_attrib_t
     type form_attrib_t
     type input_attrib_t
@@ -237,24 +237,24 @@ module type ELIOMFORMSIG =
 
     val make_full_string_uri :
         service:('get, unit, [< get_service_kind ],
-                 [< suff ], 'gn, unit, 
+                 [< suff ], 'gn, unit,
                  [< registrable ]) service ->
-                   sp:Eliom_sessions.server_params -> 
+                   sp:Eliom_sessions.server_params ->
                      ?fragment:string ->
                        'get -> uri Lwt.t
-(** Creates the string corresponding to the 
+(** Creates the string corresponding to the
     full (absolute) URL of a service applied to its GET parameters.
 
     It returns a Lwt thread because if the hostname is not in the request
-    (sometimes possible with HTTP/1.0), it calls 
+    (sometimes possible with HTTP/1.0), it calls
     {!Lwt_lib.getnameinfo} to find the hostname.
  *)
 
     val make_string_uri :
         service:('get, unit, [< get_service_kind ],
-                 [< suff ], 'gn, unit, 
+                 [< suff ], 'gn, unit,
                  [< registrable ]) service ->
-                   sp:Eliom_sessions.server_params -> 
+                   sp:Eliom_sessions.server_params ->
                      ?fragment:string ->
                        'get -> string
 (** Creates the string corresponding to the relative URL of a service applied to
@@ -263,23 +263,23 @@ module type ELIOMFORMSIG =
 
     val make_uri :
         service:('get, unit, [< get_service_kind ],
-         [< suff ], 'gn, unit, 
+         [< suff ], 'gn, unit,
          [< registrable ]) service ->
           sp:Eliom_sessions.server_params -> ?fragment:string -> 'get -> uri
-(** Creates the (relative) URL for a service. 
+(** Creates the (relative) URL for a service.
     Like the [a] function, it may take extra parameters. *)
 
     val a :
         ?a:a_attrib_t ->
-          service:('get, unit, [< get_service_kind ], 
+          service:('get, unit, [< get_service_kind ],
            [< suff ], 'gn, 'pn,
            [< registrable ]) service ->
             sp:Eliom_sessions.server_params -> ?fragment:string ->
               a_content_elt_list -> 'get -> a_elt
-(** [a service sp cont ()] creates a link to [service]. 
+(** [a service sp cont ()] creates a link to [service].
    The text of
    the link is [cont]. For example [cont] may be something like
-   [\[pcdata "click here"\]]. 
+   [\[pcdata "click here"\]].
 
    The last  parameter is for GET parameters.
    For example [a service sp cont (42,"hello")]
@@ -301,11 +301,11 @@ module type ELIOMFORMSIG =
     val get_form :
         ?a:form_attrib_t ->
           service:('get, unit, [< get_service_kind ],
-           [<suff ], 'gn, 'pn, 
+           [<suff ], 'gn, 'pn,
            [< registrable ]) service ->
              sp:Eliom_sessions.server_params -> ?fragment:string ->
               ('gn -> form_content_elt_list) -> form_elt
-(** [get_form service sp formgen] creates a GET form to [service]. 
+(** [get_form service sp formgen] creates a GET form to [service].
    The content of
    the form is generated by the function [formgen], that takes the names
    of the service parameters as parameters. *)
@@ -314,13 +314,13 @@ module type ELIOMFORMSIG =
     val post_form :
       ?a:form_attrib_t ->
       service:('get, 'post, [< post_service_kind ],
-               [< suff ], 'gn, 'pn, 
+               [< suff ], 'gn, 'pn,
                [< registrable ]) service ->
-      sp:Eliom_sessions.server_params -> 
+      sp:Eliom_sessions.server_params ->
       ?fragment:string ->
       ?keep_get_na_params:bool ->
       ('pn -> form_content_elt_list) -> 'get -> form_elt
-(** [post_form service sp formgen] creates a POST form to [service]. 
+(** [post_form service sp formgen] creates a POST form to [service].
    The last parameter is for GET parameters (as in the function [a]).
  *)
 
@@ -353,13 +353,13 @@ module type ELIOMFORMSIG =
 
     val string_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-           ?name:[< string setoneopt ] param_name -> 
+           ?name:[< string setoneopt ] param_name ->
              ?value:string -> unit -> input_elt
 (** Creates an [<input>] tag for a string *)
 
     val user_type_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-          ?name:[< 'a setoneopt ] param_name -> 
+          ?name:[< 'a setoneopt ] param_name ->
             ?value:'a -> ('a -> string) -> input_elt
 (** Creates an [<input>] tag for a user type *)
 
@@ -371,69 +371,69 @@ module type ELIOMFORMSIG =
  *)
 
     val file_input :
-        ?a:input_attrib_t -> 
-          name:[< file_info setoneopt ] param_name -> 
+        ?a:input_attrib_t ->
+          name:[< file_info setoneopt ] param_name ->
             unit -> input_elt
 (** Creates an [<input>] tag for sending a file *)
 
     val image_input :
-        ?a:input_attrib_t -> 
-          name:[< coordinates oneopt ] param_name -> 
+        ?a:input_attrib_t ->
+          name:[< coordinates oneopt ] param_name ->
           ?src:uri -> unit -> input_elt
-(** Creates an [<input type="image" name="...">] tag that sends the coordinates 
+(** Creates an [<input type="image" name="...">] tag that sends the coordinates
    the user clicked on *)
 
     val int_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (int * coordinates) oneopt ] param_name -> value:int -> 
+        ?a:input_attrib_t ->
+          name:[< (int * coordinates) oneopt ] param_name -> value:int ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int *)
 
     val int32_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (int32 * coordinates) oneopt ] param_name -> value:int32 -> 
+        ?a:input_attrib_t ->
+          name:[< (int32 * coordinates) oneopt ] param_name -> value:int32 ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int32 *)
 
     val int64_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (int64 * coordinates) oneopt ] param_name -> value:int64 -> 
+        ?a:input_attrib_t ->
+          name:[< (int64 * coordinates) oneopt ] param_name -> value:int64 ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int64 *)
 
     val float_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (float * coordinates) oneopt ] param_name -> value:float -> 
+        ?a:input_attrib_t ->
+          name:[< (float * coordinates) oneopt ] param_name -> value:float ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type float *)
 
     val string_image_input :
-        ?a:input_attrib_t -> 
-          name:[< (string * coordinates) oneopt ] param_name -> value:string -> 
+        ?a:input_attrib_t ->
+          name:[< (string * coordinates) oneopt ] param_name -> value:string ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type string *)
 
     val user_type_image_input :
-        ?a:input_attrib_t -> 
-          name:[< ('a * coordinates) oneopt ] param_name -> value:'a -> 
+        ?a:input_attrib_t ->
+          name:[< ('a * coordinates) oneopt ] param_name -> value:'a ->
             ?src:uri -> ('a -> string) -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of user defined type *)
 
     val raw_image_input :
-        ?a:input_attrib_t -> 
+        ?a:input_attrib_t ->
           name:string -> value:string -> ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and an untyped value *)
 
 
     val bool_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `One of bool ] param_name -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have a boolean value.
    The service must declare a [bool] parameter.
@@ -441,144 +441,144 @@ module type ELIOMFORMSIG =
 
 
     val int_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of int ] param_name -> value:int -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have an int value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val int32_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of int32 ] param_name -> value:int32 -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have an int32 value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val int64_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of int64 ] param_name -> value:int64 -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have an int64 value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val float_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:[ `Set of float ] param_name -> value:float -> unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have a float value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val string_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
-          name:[ `Set of string ] param_name -> value:string -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+          name:[ `Set of string ] param_name -> value:string ->
             unit -> input_elt
 (** Creates a checkbox [<input>] tag that will have a string value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val user_type_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
-          name:[ `Set of 'a ] param_name -> value:'a -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+          name:[ `Set of 'a ] param_name -> value:'a ->
             ('a -> string) -> input_elt
 (** Creates a checkbox [<input>] tag that will have a "user type" value.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [set].
  *)
 
     val raw_checkbox :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:string -> value:string -> unit -> input_elt
 (** Creates a checkbox [<input>] tag with untyped content.
-   Thus you can do several checkboxes with the same name 
-   (and different values). 
+   Thus you can do several checkboxes with the same name
+   (and different values).
    The service must declare a parameter of type [any].
  *)
 
 
     val string_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-          name:[ `Opt of string ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+          name:[ `Opt of string ] param_name ->
             value:string -> unit -> input_elt
 (** Creates a radio [<input>] tag with string content *)
 
     val int_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           name:[ `Opt of int ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of int ] param_name ->
              value:int -> unit -> input_elt
 (** Creates a radio [<input>] tag with int content *)
 
     val int32_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           name:[ `Opt of int32 ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of int32 ] param_name ->
              value:int32 -> unit -> input_elt
 (** Creates a radio [<input>] tag with int32 content *)
 
     val int64_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           name:[ `Opt of int64 ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of int64 ] param_name ->
              value:int64 -> unit -> input_elt
 (** Creates a radio [<input>] tag with int64 content *)
 
     val float_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
-           name:[ `Opt of float ] param_name -> 
+        ?a:input_attrib_t -> ?checked:bool ->
+           name:[ `Opt of float ] param_name ->
              value:float -> unit -> input_elt
 (** Creates a radio [<input>] tag with float content *)
 
     val user_type_radio :
         ?a:input_attrib_t -> ?checked:bool ->
-           name:[ `Opt of 'a ] param_name -> 
+           name:[ `Opt of 'a ] param_name ->
              value:'a -> ('a -> string) -> input_elt
 (** Creates a radio [<input>] tag with user_type content *)
 
     val raw_radio :
-        ?a:input_attrib_t -> ?checked:bool -> 
+        ?a:input_attrib_t -> ?checked:bool ->
           name:string -> value:string -> unit -> input_elt
 (** Creates a radio [<input>] tag with untyped string content (low level) *)
 
 
-    val string_button : 
-        ?a:button_attrib_t -> 
-          name:[< string setone ] param_name -> value:string -> 
+    val string_button :
+        ?a:button_attrib_t ->
+          name:[< string setone ] param_name -> value:string ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with string content *)
 
-    val int_button : 
+    val int_button :
         ?a:button_attrib_t ->
-          name:[< int setone ] param_name -> value:int -> 
+          name:[< int setone ] param_name -> value:int ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with int content *)
 
-    val int32_button : 
+    val int32_button :
         ?a:button_attrib_t ->
-          name:[< int32 setone ] param_name -> value:int32 -> 
+          name:[< int32 setone ] param_name -> value:int32 ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with int32 content *)
 
-    val int64_button : 
+    val int64_button :
         ?a:button_attrib_t ->
-          name:[< int64 setone ] param_name -> value:int64 -> 
+          name:[< int64 setone ] param_name -> value:int64 ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with int64 content *)
 
-    val float_button : 
+    val float_button :
         ?a:button_attrib_t ->
-          name:[< float setone ] param_name -> value:float -> 
+          name:[< float setone ] param_name -> value:float ->
             button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with float content *)
 
-    val user_type_button : 
+    val user_type_button :
         ?a:button_attrib_t ->
           name:[< 'a setone ] param_name -> value:'a -> ('a -> string) ->
             button_content_elt_list -> button_elt
@@ -587,11 +587,11 @@ module type ELIOMFORMSIG =
     val raw_button :
         ?a:button_attrib_t ->
           button_type:button_type_t ->
-            name:string -> value:string -> 
+            name:string -> value:string ->
               button_content_elt_list -> button_elt
 (** Creates a [<button>] tag with untyped string content *)
 
-    val button : 
+    val button :
         ?a:button_attrib_t ->
           button_type:button_type_t ->
             button_content_elt_list -> button_elt
@@ -602,13 +602,13 @@ module type ELIOMFORMSIG =
 
     val textarea :
         ?a:textarea_attrib_t ->
-          name:[< string setoneopt ] param_name -> ?value:pcdata_elt -> 
+          name:[< string setoneopt ] param_name -> ?value:pcdata_elt ->
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag *)
 
     val raw_textarea :
         ?a:textarea_attrib_t ->
-          name:string -> ?value:pcdata_elt -> 
+          name:string -> ?value:pcdata_elt ->
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag for untyped form *)
 
@@ -618,8 +618,8 @@ module type ELIOMFORMSIG =
           * pcdata_elt option (* if content different from value *)
           * bool (* selected *)
 
-    type 'a select_opt = 
-      | Optgroup of 
+    type 'a select_opt =
+      | Optgroup of
           optgroup_attrib_t
             * string (* label *)
             * 'a soption
@@ -627,13 +627,13 @@ module type ELIOMFORMSIG =
       | Option of 'a soption
 
   (** The type for [<select>] options and groups of options.
-     - The field of type 'a in [soption] is the value that will be sent 
-     by the form. 
+     - The field of type 'a in [soption] is the value that will be sent
+     by the form.
      - If the [pcdata elt option] is not present it is also the
      value displayed.
      - The string in [select_opt] is the label
    *)
-            
+
     val raw_select :
         ?a:select_attrib_t ->
           name:string ->
@@ -757,7 +757,7 @@ module type ELIOMFORMSIG =
 module MakeForms = functor
   (Pages : FORMCREATE) ->
     (struct
-      
+
       type form_content_elt = Pages.form_content_elt
       type form_content_elt_list = Pages.form_content_elt_list
       type form_elt = Pages.form_elt
@@ -781,7 +781,7 @@ module MakeForms = functor
       type button_content_elt_list = Pages.button_content_elt_list
       type option_elt = Pages.option_elt
       type option_elt_list = Pages.option_elt_list
-            
+
       type a_attrib_t = Pages.a_attrib_t
       type form_attrib_t = Pages.form_attrib_t
       type input_attrib_t = Pages.input_attrib_t
@@ -808,13 +808,13 @@ module MakeForms = functor
         match get_kind_ service with
         | `Attached attser ->
             begin
-              let suff, params_string = 
+              let suff, params_string =
                 construct_params (get_get_params_type_ service) getparams in
-              let preapplied_params = 
+              let preapplied_params =
                 construct_params_string (get_pre_applied_parameters_ service) in
               let params_string =
                 concat_strings preapplied_params "&" params_string in
-              let uri = 
+              let uri =
                 (if (get_att_kind_ attser) = `External
                 then
                   concat_strings
@@ -836,7 +836,7 @@ module MakeForms = functor
                     (add_to_string uri "?" params_string)
                     "#"
                     (Netencoding.Url.encode fragment)
-              | Some s -> 
+              | Some s ->
                   add_to_string
                     (add_to_string (uri^"?"^Eliom_common.get_state_param_name^"="^s)
                        "&" params_string)
@@ -847,7 +847,7 @@ module MakeForms = functor
             let current_get_params =
               List.remove_assoc
                 Eliom_common.naservice_num
-                (remove_prefixed_param 
+                (remove_prefixed_param
                    Eliom_common.na_co_param_prefix
                    (Eliom_sessions.get_all_current_get_params sp))
             in
@@ -858,34 +858,34 @@ module MakeForms = functor
                       (* The empty name is for the "cancel" service,
                          that goes back to the URL without na-parameters
                       *)
-                  | Eliom_common.Na_get' n -> 
+                  | Eliom_common.Na_get' n ->
                       Some (Eliom_common.naservice_num^"="^n)
-                  | Eliom_common.Na_get_ n -> 
+                  | Eliom_common.Na_get_ n ->
                       Some (Eliom_common.naservice_name^"="^n)
                   | _ -> assert false
               with
                 | None -> ""
                 | Some naservice_param ->
-                    let _, params_string = 
-                      construct_params 
-                        (get_get_params_type_ service) 
-                        getparams 
+                    let _, params_string =
+                      construct_params
+                        (get_get_params_type_ service)
+                        getparams
                     in
-                    let preapplied_params = 
-                      construct_params_string 
-                        (get_pre_applied_parameters_ service) 
+                    let preapplied_params =
+                      construct_params_string
+                        (get_pre_applied_parameters_ service)
                     in
                     let params_string =
-                      concat_strings preapplied_params "&" params_string 
+                      concat_strings preapplied_params "&" params_string
                     in
                     (concat_strings naservice_param "&" params_string)
             in
-            let current_get_params_string = 
-              construct_params_string current_get_params 
+            let current_get_params_string =
+              construct_params_string current_get_params
             in
-            let beg = 
+            let beg =
               if absolute
-              then get_current_full_path_string sp 
+              then get_current_full_path_string sp
               else relative_url_path_to_myself (get_current_sub_path sp)
             in
             concat_strings
@@ -903,7 +903,7 @@ module MakeForms = functor
           getparams : uri Lwt.t =
         let port = Eliom_sessions.get_server_port ~sp in
         (match Eliom_sessions.get_hostname ~sp with
-        | None -> 
+        | None ->
             Ocsigen_lib.getnameinfo
               (Eliom_sessions.get_server_inet_addr ~sp) 80
         | Some h -> Lwt.return h
@@ -947,38 +947,38 @@ module MakeForms = functor
           getparams =
         match get_kind_ service with
         | `Attached attser ->
-            (let suff, params_string = 
+            (let suff, params_string =
               construct_params (get_get_params_type_ service) getparams in
-            let preapplied_params = 
+            let preapplied_params =
               construct_params_string (get_pre_applied_parameters_ service) in
             let params_string =
               concat_strings preapplied_params "&" params_string in
-            let uri = 
+            let uri =
               (if (get_att_kind_ attser) = `External
-              then 
+              then
                 concat_strings
                   (get_prefix_ attser)
                   "/"
                   (reconstruct_absolute_url_path
                      (get_full_path_ attser) suff)
-              else 
+              else
                 (reconstruct_relative_url_path
                    (get_current_full_path sp) (get_full_path_ attser) suff))
             in
             match get_get_state_ attser with
             | None ->
-                Pages.make_a 
+                Pages.make_a
                   ?a
                   ~href:(add_to_string
                            (add_to_string uri "?" params_string)
                            "#"
                            (Netencoding.Url.encode fragment)
                         ) content
-            | Some s -> 
+            | Some s ->
                 Pages.make_a ?a
                   ~href:
                   (add_to_string
-                     (add_to_string 
+                     (add_to_string
                         (uri^"?"^Eliom_common.get_state_param_name^"="^s)
                         "&" params_string)
                      "#"
@@ -989,7 +989,7 @@ module MakeForms = functor
               List.remove_assoc
                 Eliom_common.naservice_num
                 (remove_prefixed_param
-                   Eliom_common.na_co_param_prefix 
+                   Eliom_common.na_co_param_prefix
                    (Eliom_sessions.get_all_current_get_params sp))
             in
             let gp =
@@ -999,34 +999,34 @@ module MakeForms = functor
                       (* The empty name is for the "cancel" service,
                          that goes back to the URL without na-parameters
                       *)
-                  | Eliom_common.Na_get' n -> 
+                  | Eliom_common.Na_get' n ->
                       Some (Eliom_common.naservice_num^"="^n)
-                  | Eliom_common.Na_get_ n -> 
+                  | Eliom_common.Na_get_ n ->
                       Some (Eliom_common.naservice_name^"="^n)
                   | _ -> assert false
               with
                 | None -> ""
                 | Some naservice_param ->
-                    let _, params_string = 
+                    let _, params_string =
                       construct_params
                         (get_get_params_type_ service)
-                        getparams 
+                        getparams
                     in
-                    let preapplied_params = 
+                    let preapplied_params =
                       construct_params_string
                         (get_pre_applied_parameters_ service)
                     in
                     let params_string =
-                      concat_strings preapplied_params "&" params_string 
+                      concat_strings preapplied_params "&" params_string
                     in
                     (concat_strings naservice_param "&" params_string)
             in
-            let current_get_params_string = 
-              construct_params_string current_get_params 
+            let current_get_params_string =
+              construct_params_string current_get_params
             in
             let cur = get_current_sub_path sp in
             Pages.make_a ?a
-              ~href:( 
+              ~href:(
                 (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
                 concat_strings
                   (relative_url_path_to_myself cur)
@@ -1038,7 +1038,7 @@ module MakeForms = functor
               )
               content
 
-      let get_form 
+      let get_form
           ?a
           ~service
           ~sp
@@ -1048,7 +1048,7 @@ module MakeForms = functor
         | `Attached attser ->
             let urlname =
               (if (get_att_kind_ attser) = `External
-              then 
+              then
                 concat_strings
                   (get_prefix_ attser)
                   "/"
@@ -1062,7 +1062,7 @@ module MakeForms = functor
             let state_param =
               (match get_get_state_ attser with
               | None -> None
-              | Some s -> 
+              | Some s ->
                   Some (Pages.make_input ~typ:Pages.hidden
                           ~name:Eliom_common.get_state_param_name
                           ~value:s ()))
@@ -1070,7 +1070,7 @@ module MakeForms = functor
             let inside = f (make_params_names (get_get_params_type_ service)) in
             let inside =
               List.fold_left
-                (fun s (n,v) -> 
+                (fun s (n,v) ->
                   Pages.cons_form
                     (Pages.make_hidden_field
 	               (Some (Pages.make_input
@@ -1094,7 +1094,7 @@ module MakeForms = functor
               List.remove_assoc
                 Eliom_common.naservice_num
                 (remove_prefixed_param
-                   Eliom_common.na_co_param_prefix 
+                   Eliom_common.na_co_param_prefix
                    (get_all_current_get_params sp))
             in
             let naservice_line =
@@ -1104,24 +1104,24 @@ module MakeForms = functor
                 | Eliom_common.Na_get' n ->
                     Pages.make_hidden_field
 	              (Some (Pages.make_input
-	                       ~typ:Pages.hidden 
+	                       ~typ:Pages.hidden
                                ~name:Eliom_common.naservice_num
                                ~value:n ()))
                 | Eliom_common.Na_get_ n ->
                     Pages.make_hidden_field
 	              (Some (Pages.make_input
-	                       ~typ:Pages.hidden 
+	                       ~typ:Pages.hidden
                                ~name:Eliom_common.naservice_name
                                ~value:n ()))
                 | _ -> assert false
             in
             let inside = f (make_params_names (get_get_params_type_ service)) in
-            let all_lines = 
+            let all_lines =
               List.fold_left
-                (fun s (n,v) -> 
+                (fun s (n,v) ->
                   Pages.cons_form
                     (Pages.make_hidden_field
-	               (Some 
+	               (Some
                           (Pages.make_input
                              ~typ:Pages.hidden
                              ~name:n ~value:v ())))
@@ -1132,7 +1132,7 @@ module MakeForms = functor
             in
             let all_lines =
               List.fold_left
-                (fun s (n,v) -> 
+                (fun s (n,v) ->
                   Pages.cons_form
                     (Pages.make_hidden_field
 	               (Some
@@ -1154,28 +1154,28 @@ module MakeForms = functor
           ~sp
           ?(fragment = "")
           ?keep_get_na_params
-          f 
+          f
           getparams =
         match get_kind_ service with
         | `Attached attser ->
-            let suff,params_string = 
+            let suff,params_string =
               construct_params (get_get_params_type_ service) getparams in
-            let preapplied_params = 
+            let preapplied_params =
               construct_params_string (get_pre_applied_parameters_ service) in
             let params_string =
               concat_strings preapplied_params "&" params_string in
             let params_string =
               match get_get_state_ attser with
               | None -> params_string
-              | Some s -> 
+              | Some s ->
                   add_to_string
                     (Eliom_common.get_state_param_name^"="^s)
                     "&"
                     params_string
             in
-            let urlname = 
+            let urlname =
               (if (get_att_kind_ attser) = `External
-              then 
+              then
                 concat_strings
                   (get_prefix_ attser)
                   "/"
@@ -1190,7 +1190,7 @@ module MakeForms = functor
             let state_param =
               (match get_post_state_ attser with
               | None -> None
-              | Some s -> 
+              | Some s ->
                   Some (Pages.make_input ~typ:Pages.hidden
                           ~name:Eliom_common.post_state_param_name
                           ~value:s ()))
@@ -1205,7 +1205,7 @@ module MakeForms = functor
               i1 i
         | `Nonattached naser ->
             (* no GET params here for now *)
-            let keep_get_na_params = 
+            let keep_get_na_params =
               match keep_get_na_params with
                 | Some b -> b
                 | None ->
@@ -1222,23 +1222,23 @@ module MakeForms = functor
                   (List.remove_assoc
                      Eliom_common.naservice_num
                      (remove_prefixed_param
-                        Eliom_common.na_co_param_prefix 
+                        Eliom_common.na_co_param_prefix
                         (get_initial_get_params sp)))
             in
-            let current_get_params_string = 
-              construct_params_string current_get_params 
+            let current_get_params_string =
+              construct_params_string current_get_params
             in
             let cur = get_current_sub_path sp in
             (* absolute URL does not work behind a revproxy! *)
             let urlpath = relative_url_path_to_myself cur in
             let v = concat_strings urlpath "?" current_get_params_string in
-            let naservice_line = 
+            let naservice_line =
               match get_na_name_ naser with
                | Eliom_common.Na_post' n ->
 	           Pages.make_input
 	             ~typ:Pages.hidden
                      ~name:Eliom_common.naservice_num
-                     ~value:n () 
+                     ~value:n ()
                | Eliom_common.Na_post_ n ->
 	           Pages.make_input
 	             ~typ:Pages.hidden
@@ -1247,27 +1247,27 @@ module MakeForms = functor
                | _ -> assert false
             in
 
-            let inside = 
-              f (make_params_names (get_post_params_type_ service)) 
+            let inside =
+              f (make_params_names (get_post_params_type_ service))
             in
             Pages.make_post_form ?a ~action:v
               (Pages.make_hidden_field (Some naservice_line))
               inside
 
-          
+
 
 
 
       let make_uri ~service ~sp ?fragment gp =
         Pages.uri_of_string (make_string_uri ?fragment ~service ~sp gp)
-                  
-          
-          
+
+
+
       let js_script = Pages.make_js_script
       let css_link = Pages.make_css_link
 
 
-      let gen_input ?a ~(input_type : input_type_t) 
+      let gen_input ?a ~(input_type : input_type_t)
           ?value ?src
           ?name (string_of : 'a -> string) =
         let name = match name with
@@ -1277,87 +1277,87 @@ module MakeForms = functor
         (match value with
         | None ->
             Pages.make_input ?a ~typ:input_type ?name ?src ()
-        | Some v -> 
+        | Some v ->
             Pages.make_input
               ?a
               ~value:(string_of v)
-              ~typ:input_type 
+              ~typ:input_type
               ?src
               ?name
               ())
-          
+
       let int_input ?a ~input_type
-          ?name ?value () = 
+          ?name ?value () =
         gen_input ?a ~input_type ?value ?name string_of_int
 
       let int32_input ?a ~input_type
-          ?name ?value () = 
+          ?name ?value () =
         gen_input ?a ~input_type ?value ?name Int32.to_string
 
       let int64_input ?a ~input_type
-          ?name ?value () = 
+          ?name ?value () =
         gen_input ?a ~input_type ?value ?name Int64.to_string
 
-      let float_input ?a ~input_type 
+      let float_input ?a ~input_type
           ?name ?value () =
         gen_input ?a ~input_type ?value ?name string_of_float
 
-      let string_input ?a ~input_type 
+      let string_input ?a ~input_type
           ?name ?value () =
         gen_input ?a ~input_type ?value ?name id
 
       let user_type_input ?a ~input_type
-          ?name ?value string_of = 
-        gen_input ?a ~input_type ?value ?name string_of 
+          ?name ?value string_of =
+        gen_input ?a ~input_type ?value ?name string_of
 
-      let raw_input ?a ~input_type ?name ?value () = 
+      let raw_input ?a ~input_type ?name ?value () =
         (match value with
         | None ->
             Pages.make_input ?a ~typ:input_type ?name ()
-        | Some v -> 
+        | Some v ->
             Pages.make_input
               ?a
               ~value:v
-              ~typ:input_type 
+              ~typ:input_type
               ?name
               ())
 
-      let file_input ?a ~name () = 
+      let file_input ?a ~name () =
         Pages.make_input ?a ~typ:Pages.file ~name:(string_of_param_name name) ()
       (* value attribute not supported by browsers for security reasons *)
-      
-      let image_input ?a ~name ?src () = 
+
+      let image_input ?a ~name ?src () =
         Pages.make_input
-          ?a ~typ:Pages.image 
+          ?a ~typ:Pages.image
           ~name:(string_of_param_name name) ?src ()
     (* The behaviour of <input type="image"> without name attribute
        depends on browsers *)
-    
-      let int_image_input ?a ~name ~value ?src () = 
+
+      let int_image_input ?a ~name ~value ?src () =
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src string_of_int
 
-      let int32_image_input ?a ~name ~value ?src () = 
+      let int32_image_input ?a ~name ~value ?src () =
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src Int32.to_string
 
-      let int64_image_input ?a ~name ~value ?src () = 
+      let int64_image_input ?a ~name ~value ?src () =
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src Int64.to_string
 
-      let float_image_input ?a ~name ~value ?src () = 
+      let float_image_input ?a ~name ~value ?src () =
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src string_of_float
 
-      let string_image_input ?a ~name ~value ?src () = 
+      let string_image_input ?a ~name ~value ?src () =
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src id
 
-      let user_type_image_input ?a ~name ~value ?src string_of = 
+      let user_type_image_input ?a ~name ~value ?src string_of =
         gen_input ?a ~input_type:Pages.image ~name
           ~value ?src string_of
 
-      let raw_image_input ?a ~(name : string) ~value ?src () = 
+      let raw_image_input ?a ~(name : string) ~value ?src () =
         Pages.make_input
           ?a
           ~value
@@ -1401,7 +1401,7 @@ module MakeForms = functor
 
       let string_radio ?a ?checked ~name ~value () =
         Pages.make_input
-          ?a ?checked ~typ:Pages.radio 
+          ?a ?checked ~typ:Pages.radio
           ~name:(string_of_param_name name) ~value ()
 
       let int_radio ?a ?checked ~name ~value () =
@@ -1421,17 +1421,17 @@ module MakeForms = functor
 
       let float_radio ?a ?checked ~name ~value () =
         Pages.make_input
-          ?a ?checked ~typ:Pages.radio 
+          ?a ?checked ~typ:Pages.radio
           ~name:(string_of_param_name name) ~value:(string_of_float value) ()
 
       let user_type_radio ?a ?checked ~name ~value string_of =
         Pages.make_input
-          ?a ?checked ~typ:Pages.radio 
+          ?a ?checked ~typ:Pages.radio
           ~name:(string_of_param_name name) ~value:(string_of value) ()
 
       let raw_radio ?a ?checked ~(name : string) ~value () =
         Pages.make_input
-          ?a ?checked ~typ:Pages.radio 
+          ?a ?checked ~typ:Pages.radio
           ~name:name ~value:value ()
 
       let string_button ?a ~name ~value c =
@@ -1478,16 +1478,16 @@ module MakeForms = functor
             * 'a (* Content (or value if the following is present) *)
             * pcdata_elt option (* if content different from value *)
             * bool (* selected *)
-            
-      type 'a select_opt = 
-        | Optgroup of 
+
+      type 'a select_opt =
+        | Optgroup of
             optgroup_attrib_t
               * string (* label *)
               * 'a soption
               * 'a soption list
         | Option of 'a soption
-              
-      let gen_select ?a ?(multiple=false) ~name 
+
+      let gen_select ?a ?(multiple=false) ~name
           (fl : 'a select_opt) (ol : 'a select_opt list) string_of =
 
 
@@ -1506,20 +1506,20 @@ module MakeForms = functor
             else (line, false)
           in
           let rec aux2 trouve = function
-            | line::l -> 
+            | line::l ->
                 let (line, trouve) = aux1 trouve line in
                 let (l, trouve) = aux2 trouve l in
                 (line::l, trouve)
             | [] -> ([], trouve)
           in
           let rec aux trouve = function
-            | (Option line)::l -> 
+            | (Option line)::l ->
                 let (line, trouve) = aux1 trouve line in
                 let (l, trouve) = aux trouve l in
                 ((Option line)::l, trouve)
             | (Optgroup (a, b, fl, ol))::l ->
                 let (fl, trouve) = aux1 trouve fl in
-                let (ol, trouve) = aux2 trouve ol in 
+                let (ol, trouve) = aux2 trouve ol in
                 let (l, trouve) = aux trouve l in
                 ((Optgroup (a, b, fl, ol))::l, trouve)
             | [] -> ([], trouve)
@@ -1546,15 +1546,15 @@ module MakeForms = functor
         in
         let make_opt (a, cv, co, sel) =
           (match co with
-          | None -> Pages.make_option ~a ~selected:sel 
+          | None -> Pages.make_option ~a ~selected:sel
                 (Pages.make_pcdata (string_of cv))
-          | Some c -> Pages.make_option ~a ~selected:sel 
+          | Some c -> Pages.make_option ~a ~selected:sel
                 ~value:(string_of cv) c)
         in
         let rec make_optg = function
           | Option o -> Pages.select_content_of_option (make_opt o)
-          | Optgroup (a, label, og1, ogl) -> 
-              Pages.make_optgroup 
+          | Optgroup (a, label, og1, ogl) ->
+              Pages.make_optgroup
                 ~a ~label (make_opt og1) (Pages.map_option make_opt ogl)
         in
         let fl2,ol2 = Pages.map_optgroup make_optg fl ol in
@@ -1564,34 +1564,34 @@ module MakeForms = functor
           (fl : string select_opt) (ol : string select_opt list) =
         gen_select ?a ~multiple:false ~name fl ol id
 
-      let int_select ?a ~name 
+      let int_select ?a ~name
           (fl : int select_opt) (ol : int select_opt list) =
-        gen_select ?a ~multiple:false 
+        gen_select ?a ~multiple:false
           ~name:(string_of_param_name name) fl ol string_of_int
 
-      let int32_select ?a ~name 
+      let int32_select ?a ~name
           (fl : int32 select_opt) (ol : int32 select_opt list) =
-        gen_select ?a ~multiple:false 
+        gen_select ?a ~multiple:false
           ~name:(string_of_param_name name) fl ol Int32.to_string
 
-      let int64_select ?a ~name 
+      let int64_select ?a ~name
           (fl : int64 select_opt) (ol : int64 select_opt list) =
-        gen_select ?a ~multiple:false 
+        gen_select ?a ~multiple:false
           ~name:(string_of_param_name name) fl ol Int64.to_string
 
-      let float_select ?a ~name 
+      let float_select ?a ~name
           (fl : float select_opt) (ol : float select_opt list) =
-        gen_select ?a ~multiple:false 
+        gen_select ?a ~multiple:false
           ~name:(string_of_param_name name) fl ol string_of_float
 
-      let string_select ?a ~name 
+      let string_select ?a ~name
           (fl : string select_opt) (ol : string select_opt list) =
-        gen_select ?a ~multiple:false 
+        gen_select ?a ~multiple:false
           ~name:(string_of_param_name name) fl ol id
 
-      let user_type_select ?a ~name (fl : 'a select_opt) 
+      let user_type_select ?a ~name (fl : 'a select_opt)
           (ol : 'a select_opt list) string_of =
-        gen_select ?a ~multiple:false 
+        gen_select ?a ~multiple:false
           ~name:(string_of_param_name name) fl ol string_of
 
 
@@ -1600,38 +1600,38 @@ module MakeForms = functor
           (fl : string select_opt) (ol : string select_opt list) =
         gen_select ?a ~multiple:true ~name fl ol id
 
-      let int_multiple_select ?a ~name 
+      let int_multiple_select ?a ~name
           (fl : int select_opt) (ol : int select_opt list) =
-        gen_select ?a ~multiple:true 
+        gen_select ?a ~multiple:true
           ~name:(string_of_param_name name) fl ol string_of_int
 
-      let int32_multiple_select ?a ~name 
+      let int32_multiple_select ?a ~name
           (fl : int32 select_opt) (ol : int32 select_opt list) =
-        gen_select ?a ~multiple:true 
+        gen_select ?a ~multiple:true
           ~name:(string_of_param_name name) fl ol Int32.to_string
 
-      let int64_multiple_select ?a ~name 
+      let int64_multiple_select ?a ~name
           (fl : int64 select_opt) (ol : int64 select_opt list) =
-        gen_select ?a ~multiple:true 
+        gen_select ?a ~multiple:true
           ~name:(string_of_param_name name) fl ol Int64.to_string
 
-      let float_multiple_select ?a ~name 
+      let float_multiple_select ?a ~name
           (fl : float select_opt) (ol : float select_opt list) =
-        gen_select ?a ~multiple:true 
+        gen_select ?a ~multiple:true
           ~name:(string_of_param_name name) fl ol string_of_float
 
-      let string_multiple_select ?a ~name 
+      let string_multiple_select ?a ~name
           (fl : string select_opt) (ol : string select_opt list) =
-        gen_select ?a ~multiple:true 
+        gen_select ?a ~multiple:true
           ~name:(string_of_param_name name) fl ol id
 
       let user_type_multiple_select ?a
-          ~name (fl : 'a select_opt) 
+          ~name (fl : 'a select_opt)
           (ol : 'a select_opt list) string_of =
-        gen_select ?a ~multiple:true 
+        gen_select ?a ~multiple:true
           ~name:(string_of_param_name name) fl ol string_of
 
-    end : ELIOMFORMSIG with 
+    end : ELIOMFORMSIG with
 type form_content_elt = Pages.form_content_elt
 and type form_content_elt_list = Pages.form_content_elt_list
 and type form_elt = Pages.form_elt
@@ -1655,7 +1655,7 @@ and type button_content_elt = Pages.button_content_elt
 and type button_content_elt_list = Pages.button_content_elt_list
 and type option_elt = Pages.option_elt
 and type option_elt_list = Pages.option_elt_list
-      
+
 and type a_attrib_t = Pages.a_attrib_t
 and type form_attrib_t = Pages.form_attrib_t
 and type input_attrib_t = Pages.input_attrib_t

@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -31,7 +31,7 @@ val parse_server : bool -> Simplexmlparser.xml list -> unit
 val extract_info :
   Simplexmlparser.xml list ->
   (string option * string option) *
-  ((string option * string option) option * 
+  ((string option * string option) option *
      (Unix.inet_addr option * int) list * (Unix.inet_addr option * int) list) * (int * int)
 val parse_config :
   unit ->

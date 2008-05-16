@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -24,7 +24,7 @@
 open Ocsidbmtypes
 open Lwt
 
-(** Data are divided into stores. 
+(** Data are divided into stores.
    Create one store for your project, where you will save all your data.
  *)
 type store = string
@@ -40,22 +40,22 @@ open Simplexmlparser
 (** getting the directory from config file *)
 let rec parse_global_config d = function
   | [] -> d
-  | (Element ("store", [("dir", s)], []))::ll -> 
+  | (Element ("store", [("dir", s)], []))::ll ->
       (match d with
       | None, dbm -> parse_global_config ((Some s), dbm) ll
-      | (Some _), _ -> raise (Ocsigen_extensions.Error_in_config_file 
+      | (Some _), _ -> raise (Ocsigen_extensions.Error_in_config_file
                                 ("Ocsipersist: Duplicate <store> tag")))
-  | (Element ("ocsidbm", [("name", s)], []))::ll -> 
+  | (Element ("ocsidbm", [("name", s)], []))::ll ->
       (match d with
       | a, None -> parse_global_config (a, (Some s)) ll
-      | _, Some _ -> raise (Ocsigen_extensions.Error_in_config_file 
+      | _, Some _ -> raise (Ocsigen_extensions.Error_in_config_file
                               ("Ocsipersist: Duplicate <ocsidbm> tag")))
   | (Element (tag,_,_))::ll -> parse_global_config d ll
   | _ -> raise (Ocsigen_extensions.Error_in_config_file ("Unexpected content inside Ocsipersist config"))
-        
-let (directory, ocsidbm) = 
+
+let (directory, ocsidbm) =
   let (store, ocsidbm) =
-    parse_global_config (None, None) (Ocsigen_extensions.get_config ()) 
+    parse_global_config (None, None) (Ocsigen_extensions.get_config ())
   in
   ((match store with
   | None -> (Ocsigen_config.get_datadir ())^"/ocsipersist"
@@ -78,9 +78,9 @@ let rec try_connect sname =
       Ocsigen_messages.warning ("Launching a new Ocsidbm process: "^ocsidbm^
                         " on directory "^directory^".");
       let param = [|ocsidbm; directory|] in
-      let child () = 
+      let child () =
         let err = !(Ocsigen_lib.thd3 Ocsigen_messages.error) in
-        Unix.dup2 err Unix.stderr; 
+        Unix.dup2 err Unix.stderr;
         Unix.close !(Ocsigen_lib.thd3 Ocsigen_messages.error);
         Unix.close !(Ocsigen_lib.thd3 Ocsigen_messages.access);
         Unix.close !(Ocsigen_lib.thd3 Ocsigen_messages.warningfile);
@@ -88,7 +88,7 @@ let rec try_connect sname =
         Unix.dup2 devnull Unix.stdout;
         Unix.close devnull;
         Unix.close Unix.stdin;
-        Unix.execv ocsidbm param 
+        Unix.execv ocsidbm param
       in
       let pid = Unix.fork () in
       if pid = 0
@@ -99,25 +99,25 @@ let rec try_connect sname =
         end
         else exit 0
       end
-      else 
+      else
         Lwt_unix.waitpid [] pid >>=
         (fun _ ->  Lwt_unix.sleep 1.1 >>=
           (fun () ->
             let socket = Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 in
             Lwt_unix.connect socket (Unix.ADDR_UNIX sname) >>= fun () ->
             return socket)))
-    
+
 let rec get_indescr i =
   (catch
      (fun () -> try_connect (directory^"/"^socketname))
-     (fun e -> 
-       if i = 0 
+     (fun e ->
+       if i = 0
        then begin
          Ocsigen_messages.errlog ("Cannot connect to Ocsidbm. Will continue \
                             without persistent session support. \
                             Error message is: "^
                             (match e with
-                            | Unix.Unix_error (a,b,c) -> 
+                            | Unix.Unix_error (a,b,c) ->
                                 (Unix.error_message a)^" in "^b^"("^c^")"
                             | _ -> Printexc.to_string e)^
                             ". Have a look at the logs to see if there is an \
@@ -138,18 +138,18 @@ let send =
     catch
       (fun () -> !previous)
       (fun _ -> return Ok) >>=
-    (fun _ -> 
+    (fun _ ->
       inch >>= fun inch ->
       outch >>= fun outch ->
       previous :=
-        (Lwt_chan.output_value outch v >>= fun () -> 
-         Lwt_chan.flush outch >>= fun () -> 
+        (Lwt_chan.output_value outch v >>= fun () ->
+         Lwt_chan.flush outch >>= fun () ->
          Lwt_chan.input_value inch);
       !previous)
 
 let db_get (store, name) =
   send (Get (store, name)) >>=
-  (function 
+  (function
     | Value v -> return v
     | Dbm_not_found -> fail Not_found
     | Error e -> fail e
@@ -157,43 +157,43 @@ let db_get (store, name) =
 
 let db_remove (store, name) =
   send (Remove (store, name)) >>=
-  (function 
+  (function
     | Ok -> return ()
     | Error e -> fail e
     | _ -> fail Ocsipersist_error)
 
-let db_replace (store, name) value = 
+let db_replace (store, name) value =
   send (Replace (store, name, value)) >>=
-  (function 
+  (function
     | Ok -> return ()
     | Error e -> fail e
     | _ -> fail Ocsipersist_error)
 
-let db_replace_if_exists (store, name) value = 
+let db_replace_if_exists (store, name) value =
   send (Replace_if_exists (store, name, value)) >>=
-  (function 
+  (function
     | Ok -> return ()
     | Dbm_not_found -> fail Not_found
     | Error e -> fail e
     | _ -> fail Ocsipersist_error)
 
-let db_firstkey store = 
+let db_firstkey store =
   send (Firstkey store) >>=
-  (function 
+  (function
     | Key k -> return (Some k)
     | Error e -> fail e
     | _ -> return None)
 
-let db_nextkey store = 
+let db_nextkey store =
   send (Nextkey store) >>=
-  (function 
+  (function
     | Key k -> return (Some k)
     | Error e -> fail e
     | _ -> return None)
 
-let db_length store = 
+let db_length store =
   send (Length store) >>=
-  (function 
+  (function
     | Value v -> return (Marshal.from_string v 0)
     | Dbm_not_found -> return 0
     | Error e -> fail e
@@ -207,7 +207,7 @@ let db_length store =
 
 (** Type of persistent data *)
 type 'a t = store * string
-      
+
 let open_store name : store = name
 
 let make_persistent_lazy ~store ~name ~default =
@@ -215,19 +215,19 @@ let make_persistent_lazy ~store ~name ~default =
   (catch
      (fun () -> db_get pvname >>= (fun _ -> return ()))
      (function
-       | Not_found -> 
+       | Not_found ->
            let def = Marshal.to_string (default ()) []
            in db_replace pvname def
        | e -> fail e)) >>=
    (fun () -> return pvname)
-      
-let make_persistent ~store ~name ~default = 
+
+let make_persistent ~store ~name ~default =
   make_persistent_lazy ~store ~name ~default:(fun () -> default)
-    
+
 let get (pvname : 'a t) : 'a =
   db_get pvname >>=
   (fun r -> return (Marshal.from_string r 0))
-    
+
 let set pvname v =
   let data = Marshal.to_string v [] in
   db_replace pvname data
@@ -240,7 +240,7 @@ type 'value table = string
 let open_table name = name
 
 let table_name n = Lwt.return n
-    
+
 let find table key =
   db_get (table, key) >>=
   (fun v -> return (Marshal.from_string v 0))
@@ -255,7 +255,7 @@ let replace_if_exists table key value =
 
 let remove table key =
   db_remove (table, key)
-  
+
 let iter_table f table =
   let rec aux nextkey =
     nextkey table >>=
@@ -266,7 +266,7 @@ let iter_table f table =
   aux db_firstkey
 
 let iter_step = iter_table
-  
+
 let fold_table f table beg =
   let rec aux nextkey beg =
     nextkey table >>=
@@ -290,7 +290,7 @@ let iter_table f table =
   let nextl = String.length next in
   (Lwt_unix.socket Unix.PF_UNIX Unix.SOCK_STREAM 0 >>=
    (fun socket ->
-     Lwt_unix.connect 
+     Lwt_unix.connect
        (Lwt_unix.Plain socket)
        (Unix.ADDR_UNIX (directory^"/"^socketname)) >>=
      (fun () -> return (Lwt_unix.Plain socket)) >>=
@@ -298,7 +298,7 @@ let iter_table f table =
        let inch = Lwt_unix.in_channel_of_descr indescr in
        let nextkey next nextl =
          Lwt_unix.write indescr next 0 nextl >>=
-         (fun l2 -> if l2 <> nextl 
+         (fun l2 -> if l2 <> nextl
          then fail Ocsipersist_error
          else (Lwt_unix.input_line inch >>=
                fun answ -> return (Marshal.from_string answ 0)))
@@ -320,7 +320,7 @@ let iter_table f table =
 
 *)
 
-let length table = 
+let length table =
   db_length table
 (* Because of Dbm implementation, the result may be less thann the expected
    result in some case (with a version of ocsipersist based on Dbm) *)

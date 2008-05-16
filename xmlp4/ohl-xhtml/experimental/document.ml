@@ -18,12 +18,12 @@ let rec concat_elts joint = function
   | [] -> []
   | [head] -> [head]
   | head :: tail -> head :: joint :: concat_elts joint tail
-                                      
+
 let rec concat_lists joint = function
   | [] -> []
   | [head] -> head
   | head :: tail -> head @ joint @ concat_lists joint tail
-                                     
+
 (*
 
 let fold2_rev f l1 l2 acc =
@@ -90,7 +90,7 @@ module Make (X : XHTML.T) : T with module X = X =
 
     let href_email adr =
       a ~a:[a_href ("email:" ^ adr)] [pcdata ("<" ^ adr ^ ">")]
-        
+
     let href_person ?url name =
       match url with
       | Some url -> a ~a:[a_href url] [pcdata name]
@@ -99,11 +99,11 @@ module Make (X : XHTML.T) : T with module X = X =
     type section =
         { (* A human readable description, used for the link text.  *)
           label : string;
-          
+
           (* A unique identifier, must be suitable as part of a file name and
              as a in-page link. *)
           anchor : string;
-          
+
           (* The content proper. *)
           content : [ heading | block | LIST.list ] elt list }
 
@@ -115,7 +115,7 @@ module Make (X : XHTML.T) : T with module X = X =
         { title : string;
           rev_sections : section list;
           style : style list }
-          
+
     let empty title =
       { title = title;
         rev_sections = [];
@@ -140,10 +140,10 @@ module Make (X : XHTML.T) : T with module X = X =
 
     let add_style_internal ?title css d =
       { d with style = Internal (title, css) :: d.style }
-        
+
     let add_style_external uri d =
       { d with style = External uri :: d.style }
-        
+
     let style_elt = function
       | External name ->
           link ~a:[a_href name; a_rel [`Stylesheet]; a_type "text/css"] ()
@@ -158,7 +158,7 @@ module Make (X : XHTML.T) : T with module X = X =
     module Id_Set = Set.Make (struct type t = id let compare = compare end)
     let id_set_of_list ids =
       List.fold_right Id_Set.add ids Id_Set.empty
-          
+
     type page =
         { section : section;
           file_name : URL.t option;
@@ -171,7 +171,7 @@ module Make (X : XHTML.T) : T with module X = X =
       and to_url = URL.add_anchor anchor name in
       (* Printf.eprintf "%s -> %s\n" (URL.to_string from_url) (URL.to_string to_url); *)
       Href_Map.add (URL.to_string from_url) to_url  map
-          
+
     let grow_href_map to_page map =
       match to_page.file_name with
       | None -> map
@@ -179,7 +179,7 @@ module Make (X : XHTML.T) : T with module X = X =
 
     let href_map pages =
       List.fold_right grow_href_map pages Href_Map.empty
-      
+
 
     type rel_link =
       | Active_Relative of page

@@ -77,13 +77,13 @@ type xhbodycont = [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset
 | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol
 | `P | `Pre | `Script | `Table | `Ul ]
 
-type xhdivcont = 
+type xhdivcont =
     [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ]
 
-type xhobjectcont = 
+type xhobjectcont =
  [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Map | `Noscript | `Object | `Ol | `P | `Param | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ]
 
-type xhfieldsetcont = 
+type xhfieldsetcont =
     [ `A | `Abbr | `Acronym | `Address | `B | `Bdo | `Big | `Blockquote | `Br | `Button | `Cite | `Code | `Del | `Dfn | `Div | `Dl | `Em | `Fieldset | `Form | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `I | `Img | `Input | `Ins | `Kbd | `Label | `Legend | `Map | `Noscript | `Object | `Ol | `P | `PCDATA | `Pre | `Q | `Samp | `Script | `Select | `Small | `Span | `Strong | `Sub | `Sup | `Table | `Textarea | `Tt | `Ul | `Var ]
 
 type xhbuttoncont =
@@ -92,7 +92,7 @@ type xhbuttoncont =
 type xhheadcont =
     [ `Base | `Link | `Object | `Script | `Style | `Title ]
 
-type xhformcont = 
+type xhformcont =
     [ `Address | `Blockquote | `Del | `Div | `Dl | `Fieldset | `H1 | `H2 | `H3 | `H4 | `H5 | `H6 | `Hr | `Ins | `Noscript | `Ol | `P | `Pre | `Script | `Table | `Ul ]
 
 type xhblockquotecont =
@@ -229,19 +229,19 @@ let xh_topdoctype = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" 
 
 
 
-let xh_print ?(encode = fun x -> x) arbre  = 
+let xh_print ?(encode = fun x -> x) arbre  =
 
   let rec xh_print_attrs attrs = match attrs with
     [] ->  ();
-  | attr::queue -> 
+  | attr::queue ->
       pp_print_string xh_string (" "^(attrib_to_string encode attr));
       xh_print_attrs queue
 
-  and xh_print_text texte i is_first = 
+  and xh_print_text texte i is_first =
     pp_print_string xh_string texte
 
   and xh_print_closedtag tag attrs i is_first =  pp_open_tbox xh_string ();
-    if (i > 0) || is_first then 
+    if (i > 0) || is_first then
       pp_force_newline xh_string ();
     if ((i > 0) || is_first) then
       pp_print_tbreak xh_string (taille_tab*i) 0;
@@ -250,15 +250,15 @@ let xh_print ?(encode = fun x -> x) arbre  =
     pp_print_string xh_string "/>";
     pp_close_tbox xh_string ();
 
-  and xh_print_inlinetag tag attrs taglist i is_first = 
+  and xh_print_inlinetag tag attrs taglist i is_first =
     pp_print_string xh_string ("<"^tag);
     xh_print_attrs attrs;
     pp_print_string xh_string ">";
     xh_print_taglist taglist 0 false false;
     pp_print_string xh_string ("</"^tag^">")
-      
-  and xh_print_blocktag tag attrs taglist i = 
-    if taglist = [] 
+
+  and xh_print_blocktag tag attrs taglist i =
+    if taglist = []
     then xh_print_closedtag tag attrs i true
     else begin
       pp_open_tbox xh_string ();
@@ -268,9 +268,9 @@ let xh_print ?(encode = fun x -> x) arbre  =
       pp_print_string xh_string ("<"^tag);
       xh_print_attrs attrs;
       pp_print_string xh_string ">";
-      
+
       xh_print_taglist_removews taglist (i+1) true;
-      
+
       pp_force_newline xh_string ();
       if i > 0 then
 	pp_print_tbreak xh_string (taille_tab*i) 0;
@@ -278,7 +278,7 @@ let xh_print ?(encode = fun x -> x) arbre  =
       pp_close_tbox xh_string ()
     end
 
-  and xh_print_semiblocktag tag attrs taglist i = 
+  and xh_print_semiblocktag tag attrs taglist i =
     (* New line before and after but not inside, for ex for <pre> *)
     if taglist = []
     then xh_print_closedtag tag attrs i true
@@ -290,14 +290,14 @@ let xh_print ?(encode = fun x -> x) arbre  =
       pp_print_string xh_string ("<"^tag);
       xh_print_attrs attrs;
       pp_print_string xh_string ">";
-      
+
       xh_print_taglist taglist 0 false false;
 
       pp_print_string xh_string ("</"^tag^">");
       pp_close_tbox xh_string ()
     end
 
-  and xh_print_taglist_removews taglist i is_first = 
+  and xh_print_taglist_removews taglist i is_first =
     match taglist with
       (Whitespace s)::l -> xh_print_taglist_removews l i is_first
     | l -> xh_print_taglist l i is_first true
@@ -306,7 +306,7 @@ let xh_print ?(encode = fun x -> x) arbre  =
   and print_nodes ws1 name xh_attrs xh_taglist ws2 queue i is_first removetailingws =
     if (List.mem name blocktags)
     then xh_print_blocktag name xh_attrs xh_taglist i
-    else 
+    else
       (if (List.mem name semiblocktags)
       then xh_print_semiblocktag name xh_attrs xh_taglist i
       else begin
@@ -316,8 +316,8 @@ let xh_print ?(encode = fun x -> x) arbre  =
       end);
     xh_print_taglist queue i false removetailingws;
 
-  and xh_print_taglist taglist i is_first removetailingws = match taglist with 
-    
+  and xh_print_taglist taglist i is_first removetailingws = match taglist with
+
     [] -> pp_open_tbox xh_string ();
       pp_close_tbox xh_string ();
 
@@ -406,11 +406,11 @@ let xh_print ?(encode = fun x -> x) arbre  =
   pp_force_newline xh_string ();
   pp_print_string xh_string xh_topdoctype;
   pp_force_newline xh_string ();
-  
+
   xh_print_taglist [arbre] 0 true false;
-  
+
   pp_force_newline xh_string ();
   pp_close_tbox xh_string ();
-  
+
   flush_str_formatter ()
 

@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -32,7 +32,7 @@ let close_service_group sitedata fullsessgrp =
   List.iter (Eliom_common.close_service_session2 sitedata None) cooklist;
   Eliommod_sessiongroups.Serv.remove_group fullsessgrp
 
-let close_service_session ?(close_group = false) ?session_name ~sp () = 
+let close_service_session ?(close_group = false) ?session_name ~sp () =
   try
     let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
     let (cookie_info, _, _) = sp.Eliom_common.sp_cookie_info in
@@ -40,23 +40,23 @@ let close_service_session ?(close_group = false) ?session_name ~sp () =
     match !ior with
     | Eliom_common.SC c ->
         if close_group then
-          close_service_group sp.Eliom_common.sp_sitedata 
+          close_service_group sp.Eliom_common.sp_sitedata
             !(c.Eliom_common.sc_session_group)
         else
-          Eliom_common.close_service_session2 
-            sp.Eliom_common.sp_sitedata 
-            !(c.Eliom_common.sc_session_group) 
+          Eliom_common.close_service_session2
+            sp.Eliom_common.sp_sitedata
+            !(c.Eliom_common.sc_session_group)
             c.Eliom_common.sc_value;
         ior := Eliom_common.SCNo_data
     | _ -> ()
   with Not_found -> ()
 
 
-let rec new_service_cookie sitedata fullsessgrp fullsessname table = 
+let rec new_service_cookie sitedata fullsessgrp fullsessname table =
   let c = Eliommod_cookies.make_new_cookie_value () in
   try
-    ignore (Eliom_common.SessionCookies.find table c); 
-                                   (* Actually not needed 
+    ignore (Eliom_common.SessionCookies.find table c);
+                                   (* Actually not needed
                                       for the cookies we use *)
     new_service_cookie sitedata fullsessgrp fullsessname table
   with Not_found ->
@@ -66,16 +66,16 @@ let rec new_service_cookie sitedata fullsessgrp fullsessname table =
     let fullsessgrpref = ref fullsessgrp in
     Eliom_common.SessionCookies.replace
       (* actually it will add the cookie *)
-      table 
+      table
       c
       (fullsessname,
-       !str, 
+       !str,
        serverexp (* exp on server *),
        usertimeout,
        fullsessgrpref);
     List.iter
       (Eliom_common.close_service_session2 sitedata None)
-      (Eliommod_sessiongroups.Serv.add 
+      (Eliommod_sessiongroups.Serv.add
          sitedata.Eliom_common.max_service_sessions_per_group
          c fullsessgrp);
     (* add returns the list of session to close if
@@ -90,35 +90,35 @@ let rec new_service_cookie sitedata fullsessgrp fullsessname table =
    }
 
 
-let find_or_create_service_cookie ?session_group ?session_name ~sp () = 
+let find_or_create_service_cookie ?session_group ?session_name ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
-  let fullsessgrp = 
+  let fullsessgrp =
     Eliommod_sessiongroups.make_full_group_name
       sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
-      session_group 
+      session_group
   in
   let (cookie_info, _, _) = sp.Eliom_common.sp_cookie_info in
   try
     let (old, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
     match !ior with
-    | Eliom_common.SCData_session_expired 
-    | Eliom_common.SCNo_data -> 
-        let v = 
+    | Eliom_common.SCData_session_expired
+    | Eliom_common.SCNo_data ->
+        let v =
           new_service_cookie
             sp.Eliom_common.sp_sitedata
-            fullsessgrp fullsessname 
-            sp.Eliom_common.sp_sitedata.Eliom_common.session_services 
+            fullsessgrp fullsessname
+            sp.Eliom_common.sp_sitedata.Eliom_common.session_services
         in
         ior := Eliom_common.SC v;
         v
     | Eliom_common.SC v -> v
-  with Not_found -> 
-    let v = 
+  with Not_found ->
+    let v =
       new_service_cookie
-        sp.Eliom_common.sp_sitedata fullsessgrp fullsessname 
-        sp.Eliom_common.sp_sitedata.Eliom_common.session_services 
+        sp.Eliom_common.sp_sitedata fullsessgrp fullsessname
+        sp.Eliom_common.sp_sitedata.Eliom_common.session_services
     in
     cookie_info :=
       Ocsigen_http_frame.Cookievalues.add
@@ -128,7 +128,7 @@ let find_or_create_service_cookie ?session_group ?session_name ~sp () =
     v
 
 
-let find_service_cookie_only ?session_name ~sp () = 
+let find_service_cookie_only ?session_name ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
@@ -136,7 +136,7 @@ let find_service_cookie_only ?session_name ~sp () =
   let (_, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
   match !ior with
   | Eliom_common.SCNo_data -> raise Not_found
-  | Eliom_common.SCData_session_expired -> 
+  | Eliom_common.SCData_session_expired ->
       raise Eliom_common.Eliom_Session_expired
   | Eliom_common.SC v -> v
 

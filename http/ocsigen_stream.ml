@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -105,36 +105,36 @@ exception Stream_error of string
 exception String_too_large
 
 (*XXX Quadratic!!! *)
-let string_of_stream = 
+let string_of_stream =
   let rec aux l s =
     next s >>= fun e ->
     match e with
     | Finished _ -> return ""
-    | Cont (s, f) -> 
+    | Cont (s, f) ->
         let l2 = l+String.length s in
         if l2 > Ocsigen_config.get_netbuffersize ()
         then fail String_too_large
-        else 
+        else
           aux l2 f >>=
              (fun r -> return (s^r))
   in aux 0
 
 (*XXX Quadratic!!! *)
-let string_of_streams = 
+let string_of_streams =
   let rec aux l = function
     | Finished None -> return ""
     | Finished (Some s) -> next s >>= fun r -> aux l r
-    | Cont (s, f) -> 
+    | Cont (s, f) ->
         let l2 = l+String.length s in
         if l2 > Ocsigen_config.get_netbuffersize ()
         then fail String_too_large
-        else 
+        else
           next f >>= fun r ->
           aux l2 r >>= fun r ->
           return (s^r)
   in aux 0
 
-let enlarge_stream = function 
+let enlarge_stream = function
   | Finished a -> fail Stream_too_small
   | Cont (s, f) ->
       let long = String.length s in
@@ -145,7 +145,7 @@ let enlarge_stream = function
         next f >>= fun e ->
         match e with
         | Finished _ -> fail Stream_too_small
-        | Cont (r, ff) -> 
+        | Cont (r, ff) ->
             let long2 = String.length r in
             let long3=long+long2 in
             let new_s = s^r in
@@ -171,20 +171,20 @@ let rec stream_want s len =
 let current_buffer = function
   | Finished _  -> raise Stream_too_small
   | Cont (s, _) -> s
-        
+
 let rec skip s k = match s with
 | Finished _ -> raise Stream_too_small
 | Cont (s, f) ->
     let len = String.length s in
     if k <= len
     then return (Cont (String.sub s k (len - k), f))
-    else (enlarge_stream (Cont ("", f)) >>= 
+    else (enlarge_stream (Cont ("", f)) >>=
           (fun s -> skip s (k - len)))
 
-let substream delim s = 
+let substream delim s =
   let ldelim = String.length delim in
   if ldelim = 0 then fail (Stream_error "Empty delimiter")
-  else 
+  else
     let rdelim = Netstring_pcre.regexp_string delim in
     let rec aux =
       function
@@ -193,7 +193,7 @@ let substream delim s =
             let len = String.length s in
             if len < ldelim
             then enlarge_stream stre >>= aux
-            else try 
+            else try
               let p,_ = Netstring_pcre.search_forward rdelim s 0 in
               cont (String.sub s 0 p)
                    (fun () ->
@@ -207,7 +207,7 @@ let substream delim s =
                          (function
                              Finished _ -> fail Stream_too_small
                            | Cont (s', f') ->
-                               aux 
+                               aux
                                  (Cont (String.sub s pos (len - pos) ^ s',
                                         f'))
                          ))
@@ -218,7 +218,7 @@ let substream delim s =
 (*VVV Is it the good place for this? *)
 
 let of_file filename =
-  let fd = Lwt_unix.of_unix_file_descr 
+  let fd = Lwt_unix.of_unix_file_descr
       (Unix.openfile filename [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
   in
   let ch = Lwt_chan.in_channel_of_descr fd in

@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -42,11 +42,11 @@ exception Ocsigen_register_for_session_outside_session
 exception Ocsigen_error_while_loading_site of string
 
 (*****************************************************************************)
-type 'a server_params1 = 
+type 'a server_params1 =
     request_info * url_path * 'a ref
-      
+
 type 'a server_params2 = url_path * 'a server_params1
-      
+
 (** state is a parameter to differenciate
    several instances of the same URL.
    (for internal use)
@@ -67,28 +67,28 @@ let remove_cookie_str = "; expires=Wednesday, 09-Nov-99 23:12:40 GMT"
 (*****************************************************************************)
 (* Finding special ocsigenmod parameters (for actions, state, suffix ...)    *)
 
-let getcookie cookies = 
-  try 
+let getcookie cookies =
+  try
     Some (List.assoc cookiename cookies)
   with Not_found -> None
 
 
 let change_request_info ri =
   force ri.ri_post_params >>=
-  (fun post_params -> 
+  (fun post_params ->
     let get_params = force ri.ri_get_params in
     let cookie = getcookie (force ri.ri_cookies) in
-    let internal_state, post_params2 = 
+    let internal_state, post_params2 =
       try (Some (int_of_string (List.assoc state_param_name post_params)),
            List.remove_assoc state_param_name post_params)
-      with 
+      with
         Not_found -> (None, post_params)
     in
-    let internal_state2, get_params2 = 
-      try 
+    let internal_state2, get_params2 =
+      try
         match internal_state with
           None ->
-            (Some (int_of_string 
+            (Some (int_of_string
                      (List.assoc state_param_name get_params)),
              List.remove_assoc state_param_name get_params)
         | _ -> (internal_state, get_params)
@@ -96,7 +96,7 @@ let change_request_info ri =
     in
     let action_info, post_params3 =
       try
-        let action_name, pp = 
+        let action_name, pp =
           ((List.assoc (action_prefix^action_name) post_params2),
            (List.remove_assoc (action_prefix^action_name) post_params2)) in
         let reload,pp2 =
@@ -106,11 +106,11 @@ let change_request_info ri =
           with Not_found -> false, pp in
         let ap,pp3 = pp2,[] in
         (Some (action_name, reload, ap), pp3)
-      with Not_found -> None, post_params2 
+      with Not_found -> None, post_params2
     in
-    return 
-      ({ri with 
-        ri_get_params = lazy get_params2; 
+    return
+      ({ri with
+        ri_get_params = lazy get_params2;
         ri_post_params = lazy (return post_params3)},
        (cookie, action_info, internal_state2)))
 
@@ -123,7 +123,7 @@ let change_request_info ri =
     or a table of "answers" (functions that will generate the page) *)
 
 (* The table of tables for each session. Keys are (hostname,cookie) *)
-module Cookies = Hashtbl.Make(struct 
+module Cookies = Hashtbl.Make(struct
   type t = Unix.inet_addr * string
   let equal = (=)
   let hash = Hashtbl.hash
@@ -132,7 +132,7 @@ end)
 (* table cookie -> session table *)
 let new_cookie_table () = Cookies.create 100
 
-let rec new_cookie table ip = 
+let rec new_cookie table ip =
   let c = Int64.to_string (Random.int64 Int64.max_int) in
   try
     Cookies.find table (ip,c);
@@ -144,15 +144,15 @@ type page_table_key =
      state: internal_state option}
       (* action: tables server_params2 -> page *)
 
-      (* module Page_Table = Map.Make(struct type t = page_table_key 
+      (* module Page_Table = Map.Make(struct type t = page_table_key
          let compare = compare end) *)
 
 module String_Table = Map.Make(struct type t = string
   let compare = compare end)
 
-type page_table = 
-    (page_table_key * 
-       ((int * 
+type page_table =
+    (page_table_key *
+       ((int *
            ((tables server_params2 -> Ocsigen_senders.send_page_type Lwt.t)
               * Http_headers.t * url_path)) list)) list
       (* Here, the url_path is the working directory.
@@ -162,16 +162,16 @@ type page_table =
          (in case the page registers new pages).
        *)
 
-and action_table = 
-    AVide 
+and action_table =
+    AVide
   | ATable of ((tables server_params1 -> unit Lwt.t) * url_path)
         String_Table.t
 
-and dircontent = 
+and dircontent =
     Vide
   | Table of direlt ref String_Table.t
 
-and direlt = 
+and direlt =
     Dir of dircontent ref
   | File of page_table ref
 
@@ -179,7 +179,7 @@ and tables = dircontent ref * action_table ref
 
 type cookiestable = tables Cookies.t
 
-type pages_tree = 
+type pages_tree =
     tables (* global tables of continuations/actions *)
       * (tables Cookies.t) (* session tables *)
 
@@ -188,8 +188,8 @@ let empty_action_table () = AVide
 let empty_dircontent () = Vide
 let empty_tables () =
   (ref (empty_dircontent ()), ref (empty_action_table ()))
-    
-let are_empty_tables (lr,atr) = 
+
+let are_empty_tables (lr,atr) =
   (!lr = Vide && !atr = AVide)
 
 let new_pages_tree () =
@@ -200,17 +200,17 @@ let new_pages_tree () =
 (* The current registration directory *)
 let absolute_change_hostdir, get_current_hostdir,
   begin_current_host_dir, end_current_hostdir =
-  let current_dir : ((unit -> pages_tree) * url_path) ref = 
+  let current_dir : ((unit -> pages_tree) * url_path) ref =
     ref ((fun () ->
-      raise (Ocsigen_Internal_Error "No pages tree available")), []) 
+      raise (Ocsigen_Internal_Error "No pages tree available")), [])
   in
   let f1' (pagetree, dir) = current_dir := ((fun () -> pagetree), dir) in
   let f2' () = let (cd1, cd2) = !current_dir in (cd1 (), cd2) in
   let f1 = ref f1' in
   let f2 = ref f2' in
-  let exn1 _ = 
+  let exn1 _ =
     raise (Ocsigen_Internal_Error "absolute_change_hostdir after init") in
-  let exn2 () = 
+  let exn2 () =
     raise (Ocsigen_Internal_Error "get_current_hostdir after init") in
   ((fun hostdir -> !f1 hostdir),
    (fun () -> !f2 ()),
@@ -219,26 +219,26 @@ let absolute_change_hostdir, get_current_hostdir,
 (* Warning: these functions are used only during the initialisation
    phase, which is not threaded ... That's why it works, but ...
    it is not really clean ... public registration relies on this
-   directory (defined for each site in the config file) 
+   directory (defined for each site in the config file)
  *)
 
 let add_unregistered, remove_unregistered, verify_all_registered =
   let l = ref [] in
   ((fun a -> l := a::!l),
    (fun a -> l := list_remove_first_if_any a !l),
-   (fun () -> 
-     match !l with [] -> () 
+   (fun () ->
+     match !l with [] -> ()
      | (a,_)::_ -> raise (Ocsigen_there_are_unregistered_services (string_of_url_path a))))
 
-let during_ocsigen_module_loading, 
-  begin_load_ocsigen_module, 
+let during_ocsigen_module_loading,
+  begin_load_ocsigen_module,
   end_load_ocsigen_module =
   let during_ocsigen_module_loading = ref false in
   ((fun () -> !during_ocsigen_module_loading),
    (fun () -> during_ocsigen_module_loading := true),
    (fun () -> during_ocsigen_module_loading := false))
 
-let global_register_allowed () = 
+let global_register_allowed () =
   (during_initialisation ()) && (during_ocsigen_module_loading ())
 
 
@@ -255,10 +255,10 @@ let make_server_params dir str ri =
    str)
 
 
-let find_page_table 
-    t str 
+let find_page_table
+    t str
     ri
-    urlsuffix k = 
+    urlsuffix k =
   let (sp0,_,b) = make_server_params [] str ri in
   let rec aux = function
       [] -> fail Ocsigen_Wrong_parameter
@@ -266,21 +266,21 @@ let find_page_table
         catch (fun () ->
           Ocsigen_messages.debug "--Ocsigenmod: I'm trying a service";
           funct (urlsuffix, (sp0,working_dir,b)) >>=
-          (fun p -> 
+          (fun p ->
             Ocsigen_messages.debug "--Ocsigenmod: Page found";
             Lwt.return (p, headers, working_dir)))
           (function
               Ocsigen_Wrong_parameter -> aux l
             | e -> fail e)
-  in 
-  (catch 
+  in
+  (catch
      (fun () -> return (List.assoc k t))
      (function Not_found -> fail Ocsigen_404 | e -> fail e)) >>=
   (fun r -> aux r)
 
 
 
-let add_page_table session url_act t (key,(id,elt)) = 
+let add_page_table session url_act t (key,(id,elt)) =
   (* Duplicate registering forbidden in global table *)
   try
     let l,newt = list_assoc_remove key t in
@@ -303,12 +303,12 @@ let find_dircontent dc k =
     Vide -> raise Not_found
   | Table t -> String_Table.find k t
 
-let add_action_table at (key,elt) = 
+let add_action_table at (key,elt) =
   match at with
     AVide -> ATable (String_Table.add key elt String_Table.empty)
   | ATable t -> ATable (String_Table.add key elt t)
 
-let find_action_table at k = 
+let find_action_table at k =
   match at with
     AVide -> raise Not_found
   | ATable t -> String_Table.find k t
@@ -326,7 +326,7 @@ let add_service (dircontentref,_) current_dir session url_act
     headers
     (page_table_key, (unique_id, action)) =
   let aux search dircontentref a l =
-    try 
+    try
       let direltref = find_dircontent !dircontentref a in
       match !direltref with
         Dir dcr -> search dcr l
@@ -337,16 +337,16 @@ let add_service (dircontentref,_) current_dir session url_act
                (direltref := Dir newdcr;
                search newdcr l) *)
     with
-      Not_found -> 
+      Not_found ->
         let newdcr = ref (empty_dircontent ()) in
-        (dircontentref := 
+        (dircontentref :=
           add_dircontent !dircontentref (a, ref (Dir newdcr));
          search newdcr l)
-  in 
+  in
   let rec search_page_table_ref dircontentref = function
       [] | [""] -> search_page_table_ref dircontentref [defaultpagename]
-    | [a] -> 
-        (try 
+    | [a] ->
+        (try
           let direltref = find_dircontent !dircontentref a in
           (match !direltref with
             Dir _ -> raise (Ocsigen_page_erasing a)
@@ -359,7 +359,7 @@ let add_service (dircontentref,_) current_dir session url_act
         with
           Not_found ->
             let newpagetableref = ref (empty_page_table ()) in
-            (dircontentref := 
+            (dircontentref :=
               add_dircontent !dircontentref (a,ref (File newpagetableref));
              newpagetableref))
     | ""::l -> search_page_table_ref dircontentref l
@@ -372,16 +372,16 @@ let add_service (dircontentref,_) current_dir session url_act
   let content = ({prefix = page_table_key.prefix;
                   state = page_table_key.state},
                  (unique_id, (action, headers, current_dir))) in
-  (* let current_dircontentref = 
+  (* let current_dircontentref =
      search_dircontentref dircontentref current_dir) in *)
-  let page_table_ref = 
+  let page_table_ref =
     search_page_table_ref (*current_*) dircontentref url_act in
   page_table_ref := add_page_table session url_act !page_table_ref content
 
-      
-let find_service 
+
+let find_service
     (dircontentref,_)
-    (session_table_ref, 
+    (session_table_ref,
      ri,
      state_option) =
   let rec search_page_table dircontent =
@@ -395,20 +395,20 @@ let find_service
       | ""::l -> search_page_table dircontent l
       | a::l -> aux a l
   in
-  let page_table, suffix = 
+  let page_table, suffix =
     try search_page_table !dircontentref (change_empty_list ri.ri_path)
     with Not_found -> raise Ocsigen_404
   in
-  let (suffix, get_param_list) = 
+  let (suffix, get_param_list) =
     if  suffix = []
     then try
-      let s,l = 
+      let s,l =
         list_assoc_remove ocsigen_suffix_name (force ri.ri_get_params) in
       [s],l
     with Not_found -> suffix, (force ri.ri_get_params)
     else suffix, (force ri.ri_get_params) in
   let pref = suffix <> [] in
-  find_page_table 
+  find_page_table
     page_table
     session_table_ref
     {ri with ri_get_params = lazy get_param_list}
@@ -434,7 +434,7 @@ let new_session_tables = empty_tables
 (* Generation of the page or action                                          *)
 
 let execute generate_page ip cookie (globtable, cookie_table) =
-  let (sessiontablesref, new_session) = 
+  let (sessiontablesref, new_session) =
     (match cookie with
       None -> (ref (new_session_tables ()), true)
     | Some c -> try (ref (Cookies.find cookie_table (ip,c)), false)
@@ -442,28 +442,28 @@ let execute generate_page ip cookie (globtable, cookie_table) =
   in
   generate_page globtable sessiontablesref >>=
   (fun ((send_page, headers, working_dir),lastmod,etag) ->
-    let cookie2 = 
+    let cookie2 =
       if are_empty_tables !sessiontablesref
-      then ((if not new_session 
+      then ((if not new_session
       then match cookie with
         Some c -> Cookies.remove cookie_table (ip,c)
       | None -> ());None)
-      else (if new_session 
+      else (if new_session
       then let c = new_cookie cookie_table ip in
       (Cookies.add cookie_table (ip,c) !sessiontablesref;
        Some c)
       else cookie)
     in
-    let cookie3 = 
-      if cookie2 <> cookie then 
-        (if cookie2 = None 
+    let cookie3 =
+      if cookie2 <> cookie then
+        (if cookie2 = None
         then Some remove_cookie_str
         else cookie2)
       else None
-    in return 
-      ((cookie3, 
-        send_page, 
-        headers, 
+    in return
+      ((cookie3,
+        send_page,
+        headers,
         working_dir),
        lastmod,
        etag))
@@ -478,8 +478,8 @@ let get_page
       global_tables
       session_tables_ref =
     ((catch
-        (fun () -> 
-          Ocsigen_messages.debug 
+        (fun () ->
+          Ocsigen_messages.debug
             ("--Ocsigenmod: I'm looking for "^(string_of_url_path ri.ri_path)^
              " in the session table:");
           (find_service
@@ -487,35 +487,35 @@ let get_page
              (session_tables_ref,
               ri,
               internal_state)))
-        (function 
-            Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+        (function
+            Ocsigen_404 | Ocsigen_Wrong_parameter ->
               catch (* ensuite dans la table globale *)
-                (fun () -> 
+                (fun () ->
                   Ocsigen_messages.debug "--Ocsigenmod: I'm searching in the global table:";
-                  (find_service 
+                  (find_service
                      global_tables
                      (session_tables_ref,
                       ri,
                       internal_state)))
                 (function
-                    Ocsigen_404 | Ocsigen_Wrong_parameter as exn -> 
+                    Ocsigen_404 | Ocsigen_Wrong_parameter as exn ->
                       (* si pas trouvé avec, on essaie sans l'état *)
                       (match internal_state with
                         None -> fail exn
                       | _ -> catch (* d'abord la table de session *)
                             (fun () ->
-                              Ocsigen_messages.debug 
+                              Ocsigen_messages.debug
                                 "--Ocsigenmod: I'm searching in the session table, without state parameter:";
-                              (find_service 
+                              (find_service
                                  !session_tables_ref
                                  (session_tables_ref,
                                   ri,
                                   None)))
                             (function
-                                Ocsigen_404 | Ocsigen_Wrong_parameter -> 
+                                Ocsigen_404 | Ocsigen_Wrong_parameter ->
                                   (* ensuite dans la table globale *)
                                   Ocsigen_messages.debug "--Ocsigenmod: I'm searching in the global table, without state parameter:";
-                                  (find_service 
+                                  (find_service
                                      global_tables
                                      (session_tables_ref,
                                       ri,
@@ -523,16 +523,16 @@ let get_page
                               | e -> fail e))
                   | e -> fail e)
           | e -> fail e)) >>= (fun r -> return (r,None,None)))
-  in catch 
+  in catch
     (fun () ->
-      execute 
+      execute
         generate_page
         ri.ri_inet_addr
-        cookie 
+        cookie
         page_tree >>=
-      fun ((cook, sp, s, path), lm, etag) -> 
-        return 
-          (Ext_found 
+      fun ((cook, sp, s, path), lm, etag) ->
+        return
+          (Ext_found
              {res_cookies=
               (match cook with
                 None -> []
@@ -546,11 +546,11 @@ let get_page
               res_filter=None})
     )
     (function
-        Ocsigen_Typing_Error l -> 
+        Ocsigen_Typing_Error l ->
           return (Ext_found
                     {res_cookies=[];
                      res_send_page=
-                     (Ocsigen_senders.send_xhtml_page 
+                     (Ocsigen_senders.send_xhtml_page
                         ~content:(Error_pages.page_error_param_type l));
                      res_headers=Ocsigen_senders.dyn_headers;
                      res_code=None;
@@ -558,14 +558,14 @@ let get_page
                      res_etag=None;
                      res_charset=charset;
                      res_filter=None})
-      | Ocsigen_Wrong_parameter -> 
+      | Ocsigen_Wrong_parameter ->
           (force ri.ri_post_params) >>=
           (fun ripp ->
-	    return (Ext_found 
+	    return (Ext_found
                       {res_cookies=[];
                        res_send_page=
-                       (Ocsigen_senders.send_xhtml_page 
-                          ~content:(Error_pages.page_bad_param 
+                       (Ocsigen_senders.send_xhtml_page
+                          ~content:(Error_pages.page_bad_param
                                       (List.map fst ripp)));
                        res_headers= Ocsigen_senders.dyn_headers;
                        res_code=None;
@@ -582,7 +582,7 @@ let make_action page_tree action_name action_params
     ri
     cookie =
   let generate_page global_tables session_tables_ref =
-    let action, working_dir = 
+    let action, working_dir =
       try
         try
           find_action !session_tables_ref action_name
@@ -590,17 +590,17 @@ let make_action page_tree action_name action_params
           Not_found -> (find_action global_tables action_name)
       with
         Not_found -> raise Ocsigen_404
-    in 
+    in
     (action
-       (make_server_params 
-          working_dir session_tables_ref 
+       (make_server_params
+          working_dir session_tables_ref
           {ri with
-           ri_get_params= lazy []; 
+           ri_get_params= lazy [];
            ri_post_params = lazy (return action_params)})) >>=
     (fun r -> return ((r, (), working_dir), None, None))
   in catch
     (fun () ->
-      execute 
+      execute
         generate_page ri.ri_inet_addr cookie page_tree >>=
       (fun ((c,(),(),wd),_,_) ->
         Ocsigen_messages.debug "--Ocsigenmod: Action executed";
@@ -614,17 +614,17 @@ let make_action page_tree action_name action_params
 let gen page_tree charset ri =
   change_request_info ri >>=
   (fun (ri, (cookie, action_info, internal_state)) ->
-    
+
     match action_info with
       None ->
-        
+
         (* page generation *)
         get_page page_tree ri charset cookie internal_state
-          
+
     | Some (action_name, reload, action_params) ->
-        
+
         (* action *)
-        make_action 
+        make_action
           page_tree action_name action_params ri cookie
           >>= (fun (cookie2,path) ->
 	    let cookie3 = match cookie2 with
@@ -634,9 +634,9 @@ let gen page_tree charset ri =
             (if reload then
               (get_page page_tree ri charset cookie3 internal_state >>=
 	       (function
-		   Ext_found r -> return 
+		   Ext_found r -> return
 		       (Ext_found
-			  {r with 
+			  {r with
 			   res_cookies=
 			   (match cookie2, r.res_cookies with
 			   | (Some c), [] -> [Set (Some path, None, [(cookiename, c)])]
@@ -645,14 +645,14 @@ let gen page_tree charset ri =
 				  {res_cookies=
 				   (match cookie2 with
 				     None -> []
-				   | Some c -> 
+				   | Some c ->
                                        [Set (Some path, None, [(cookiename, c)])]);
 				   res_send_page=
-				   (Ocsigen_senders.send_xhtml_page 
-				      ~content:(Error_pages.error_page 
-                                                  "error" 
-                                                  [XHTML.M.p 
-                                                     [XHTML.M.pcdata 
+				   (Ocsigen_senders.send_xhtml_page
+				      ~content:(Error_pages.error_page
+                                                  "error"
+                                                  [XHTML.M.p
+                                                     [XHTML.M.pcdata
                                                         "Ocsigenmod Error: redirection after action \
                                                         is experimental in Ocsigenmod (it works only for \
                                                             ocsigenmod pages for now, and I \
@@ -663,7 +663,7 @@ let gen page_tree charset ri =
 				   res_etag=None;
                                    res_charset=charset;
                                    res_filter=None})))
-                
+
             else
 	      return
 	        (Ext_found
@@ -694,7 +694,7 @@ let load_ocsigen_module pages_tree path cmo content =
   absolute_change_hostdir (pages_tree, path);
   (try
     Dynlink.loadfile cmo
-  with Dynlink.Error e -> 
+  with Dynlink.Error e ->
     end_load_ocsigen_module ();
     raise (Ocsigen_error_while_loading_site
              ("(ocsigenmod extension) "^cmo^": "^
@@ -706,10 +706,10 @@ let load_ocsigen_module pages_tree path cmo content =
 
 (*****************************************************************************)
 (** Parsing of config file *)
-let parse_config page_tree path = 
+let parse_config page_tree path =
   let rec parse_module_attrs file = function
     | [] -> (match file with
-        None -> 
+        None ->
           raise (Error_in_config_file
                    ("Missing file attribute in <module>"))
       | Some s -> s)
@@ -722,10 +722,10 @@ let parse_config page_tree path =
         raise
           (Error_in_config_file ("Wrong attribute for <module>: "^s))
   in function
-      Element ("module", atts, content) -> 
+      Element ("module", atts, content) ->
           let file = parse_module_attrs None atts in
           load_ocsigen_module page_tree path file content
-    | Element (t, _, _) -> 
+    | Element (t, _, _) ->
         raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Ocsigenmod extension)")
 
@@ -738,11 +738,11 @@ let start_init () =
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
   end_current_hostdir ();
-  verify_all_registered ()                                
+  verify_all_registered ()
 
 (** Function that will handle exceptions during the initialisation phase *)
 let handle_init_exn = function
-  Ocsigen_duplicate_registering s -> 
+  Ocsigen_duplicate_registering s ->
     ("Fatal - Ocsigenmod: Duplicate registering of url \""^s^
      "\". Please correct the module.")
 | Ocsigen_there_are_unregistered_services s ->
@@ -773,16 +773,16 @@ let add k a = page_tree_table := (k, a)::!page_tree_table
 (*****************************************************************************)
 (** extension registration *)
 let _ = R.register_extension
-    ((fun hostpattern -> 
+    ((fun hostpattern ->
       let page_tree =
-      try 
+      try
         find hostpattern
       with Not_found ->
         let n = new_pages_tree () in
         add hostpattern n;
         n
       in
-      (gen page_tree, 
+      (gen page_tree,
        parse_config page_tree)),
      start_init,
      end_init,
@@ -792,9 +792,9 @@ let _ = R.register_extension
 (*****************************************************************************)
 
 (* à refaire
-let number_of_sessions () = 
-  List.fold_left 
-    (fun d t -> 
+let number_of_sessions () =
+  List.fold_left
+    (fun d t ->
       let (_,_,cookie_table) = get_table t in
       d + (Cookies.length cookie_table))
     0 !pages_trees

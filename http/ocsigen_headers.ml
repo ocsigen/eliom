@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -37,14 +37,14 @@ let list_flat_map f l = List.flatten (List.map f l)
 let rec quoted_split char (* char is not used in that version *) s =
   let longueur = String.length s in
   let rec aux deb =
-    let rec nextquote s i = 
+    let rec nextquote s i =
       if i>=longueur
       then failwith ""
       else
-        if s.[i] = '"' 
-        then i 
-        else 
-          if s.[i] = '\\' 
+        if s.[i] = '"'
+        then i
+        else
+          if s.[i] = '\\'
           then nextquote s (i+2)
           else nextquote s (i+1)
     in
@@ -57,7 +57,7 @@ let rec quoted_split char (* char is not used in that version *) s =
       then aux (afterlast + 1)
       else [])
     with Failure _ | Invalid_argument _ -> []
-  in 
+  in
   aux 0
 
 
@@ -98,11 +98,11 @@ let parse_list_with_extensions parse_name s =
 let rec parse_cookies s =
   let splitted = split ';' s in
   try
-    List.fold_left 
-      (fun beg a -> 
+    List.fold_left
+      (fun beg a ->
         let (n, v) = sep '=' a in
         Ocsigen_http_frame.Cookievalues.add n v beg)
-      Ocsigen_http_frame.Cookievalues.empty 
+      Ocsigen_http_frame.Cookievalues.empty
       splitted
   with _ -> Ocsigen_http_frame.Cookievalues.empty
 (*VVV Actually the real syntax of cookies is more complex! *)
@@ -112,15 +112,15 @@ http://ws.bokeland.com/blog/376/1043/2006/10/27/76832
 *)
 
 
-let get_keepalive http_header = 
-  Http_header.get_proto http_header = Ocsigen_http_frame.Http_header.HTTP11 
-    && 
-  try 
-    String.lowercase 
-      (Http_header.get_headers_value http_header Http_headers.connection) 
-      <> "close" 
-  with Not_found -> 
-    true 
+let get_keepalive http_header =
+  Http_header.get_proto http_header = Ocsigen_http_frame.Http_header.HTTP11
+    &&
+  try
+    String.lowercase
+      (Http_header.get_headers_value http_header Http_headers.connection)
+      <> "close"
+  with Not_found ->
+    true
   (* 06/02/2008
      If HTTP/1.0, we do not keep alive, even if the client asks so.
      It would be possible, but only if the content-length is known.
@@ -134,7 +134,7 @@ let get_keepalive http_header =
      would be processed by the server, but not sent back to the client.
      Which one is the best? It really depends on the client.
      If the client waits the answer before doing the following request,
-     it would be ok to keep the connection opened, 
+     it would be ok to keep the connection opened,
      otherwise it is better not.
      (+ pb with non-idempotent requests, that should not be pipelined)
    *)
@@ -170,8 +170,8 @@ let get_cookie_string http_frame =
     None
 
 let get_if_modified_since http_frame =
-  try 
-    Some (Netdate.parse_epoch 
+  try
+    Some (Netdate.parse_epoch
             (Http_header.get_headers_value
                http_frame.Ocsigen_http_frame.header
                Http_headers.if_modified_since))
@@ -179,8 +179,8 @@ let get_if_modified_since http_frame =
 
 
 let get_if_unmodified_since http_frame =
-  try 
-    Some (Netdate.parse_epoch 
+  try
+    Some (Netdate.parse_epoch
             (Http_header.get_headers_value
                http_frame.Ocsigen_http_frame.header
                Http_headers.if_unmodified_since))
@@ -188,7 +188,7 @@ let get_if_unmodified_since http_frame =
 
 
 let get_if_none_match http_frame =
-  try 
+  try
     list_flat_map
       (quoted_split ',')
       (Http_header.get_headers_values
@@ -197,7 +197,7 @@ let get_if_none_match http_frame =
 
 
 let get_if_match http_frame =
-  try 
+  try
     Some
       (list_flat_map
          (quoted_split ',')
@@ -215,17 +215,17 @@ let get_content_type http_frame =
 
 let get_content_length http_frame =
   try
-    Some 
-      (Int64.of_string 
-         (Http_header.get_headers_value 
+    Some
+      (Int64.of_string
+         (Http_header.get_headers_value
             http_frame.Ocsigen_http_frame.header Http_headers.content_length))
   with _ -> None
 
 
 let get_referer http_frame =
   try
-    Some 
-      (Http_header.get_headers_value 
+    Some
+      (Http_header.get_headers_value
          http_frame.Ocsigen_http_frame.header Http_headers.referer)
   with _ -> None
 

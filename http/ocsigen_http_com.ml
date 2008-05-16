@@ -1,12 +1,12 @@
 (* Ocsigen
  * http://www.ocsigen.org
- * ocsigen_http_com.ml Copyright (C) 2005 
+ * ocsigen_http_com.ml Copyright (C) 2005
  * Denis Berthod, Vincent Balat, Jérôme Vouillon
  * Laboratoire PPS - CNRS Université Paris Diderot
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -77,7 +77,7 @@ let create_waiter block =
     des messages *)
 type connection =
   { id : int;
-    fd : Lwt_ssl.socket; 
+    fd : Lwt_ssl.socket;
     chan : Lwt_chan.out_channel;
     timeout : Lwt_timeout.t;
     r_mode : mode;
@@ -355,8 +355,8 @@ let parse_http_header mode s =
 
 let get_maxsize = function
   | Nofirstline
-  | Answer -> None (* Ocsigen_config.get_maxanswerbodysize () 
-                 Do we need a limit? 
+  | Answer -> None (* Ocsigen_config.get_maxanswerbodysize ()
+                 Do we need a limit?
                  If yes, add an exception Ocsigen_Answer_too_long.
                  (like Ocsigen_Request_too_long)
                *)
@@ -387,7 +387,7 @@ let get_http_frame ?(head = false) receiver =
     | _ ->
         if head then begin
           return_with_no_body receiver
-        end 
+        end
         else begin
 (* RFC
    2. If  a Transfer-Encoding header field (section  14.41) is present
@@ -461,7 +461,7 @@ NOT IMPLEMENTED
                         return_with_no_body receiver
                     | _ ->
                         let st =
-                          extract receiver 
+                          extract receiver
                             (Bounded (get_maxsize receiver.r_mode)) in
                         Lwt.return (Some st)
           end
@@ -470,14 +470,14 @@ NOT IMPLEMENTED
   let la =
     (match b with
        | None -> Lwt_mutex.unlock receiver.read_mutex; None
-       | Some s -> 
+       | Some s ->
            Ocsigen_stream.add_finalizer s (fun () -> Ocsigen_stream.consume s);
            Some s
     )
   in
   Lwt.return {Ocsigen_http_frame.header = header;
               Ocsigen_http_frame.content = la;
-              Ocsigen_http_frame.abort = 
+              Ocsigen_http_frame.abort =
               (fun () -> Lwt_ssl.close receiver.fd; Lwt.return ())}
 (*VVV close or shutdown? *)
 
@@ -535,8 +535,8 @@ let wait_all_senders conn =
     (fun () ->
        Lwt.catch
 (*XXX Do we need a flush here?  Are we properly flushing in case of an error? *)
-         (fun () -> 
-            conn.senders.w_wait >>= fun () -> 
+         (fun () ->
+            conn.senders.w_wait >>= fun () ->
             Lwt_chan.flush conn.chan)
          (fun e -> match e with Aborted -> Lwt.return () | _ -> Lwt.fail e))
     (fun () ->
@@ -550,15 +550,15 @@ let (<<) h (n, v) = Http_headers.replace n v h
 let (<<?!) h (n, v) = Http_headers.replace_opt n v h
   (* None means: remove from headers *)
 
-let (<<?) h (n, v) = 
+let (<<?) h (n, v) =
   match v with
     | None -> h (* None means: do not change the value *)
     | Some v -> Http_headers.replace n v h
 
-let gmtdate d =  
+let gmtdate d =
   let x = Netdate.mk_mail_date ~zone:0 d in try
 (*XXX !!!*)
-    let ind_plus =  String.index x '+' in  
+    let ind_plus =  String.index x '+' in
     String.set x ind_plus 'G';
     String.set x (ind_plus + 1) 'M';
     String.set x (ind_plus + 2) 'T';
@@ -611,7 +611,7 @@ let rec write_stream_chunked out_ch stream =
 
 (* XXX We should probably make sure that any exception raised by
    the stream is properly caught *)
-(* 20071128 Current xhtml pretty printer is making lots of very small strings. 
+(* 20071128 Current xhtml pretty printer is making lots of very small strings.
    We bufferise them before creating a thunk.
    Benchmarks cannot prove that it is better, but at least the network stream
    is readable ...
@@ -628,7 +628,7 @@ let write_stream_chunked out_ch stream =
     | Ocsigen_stream.Finished _ ->
         (if len > 0 then begin
           (* It is incorrect to send an empty chunk *)
-          Lwt_chan.output_string 
+          Lwt_chan.output_string
             out_ch (Format.sprintf "%x\r\n" len) >>= fun () ->
           Lwt_chan.output out_ch buffer 0 len >>= fun () ->
           Lwt_chan.output_string out_ch "\r\n"
@@ -655,7 +655,7 @@ let write_stream_chunked out_ch stream =
           end else (* Will not work if l is very large: *)
             let available = buf_size - len in
             if l > available then begin
-              Lwt_chan.output_string 
+              Lwt_chan.output_string
                 out_ch (Format.sprintf "%x\r\n" buf_size) >>= fun () ->
               Lwt_chan.output out_ch buffer 0 len >>= fun () ->
               Lwt_chan.output out_ch s 0 available >>= fun () ->
@@ -670,7 +670,7 @@ let write_stream_chunked out_ch stream =
             end
   in
   aux stream 0
-                
+
 let rec write_stream_raw out_ch stream =
   Ocsigen_stream.next stream >>= fun e ->
   match e with
@@ -705,8 +705,8 @@ module H = Ocsigen_http_frame.Http_header
  * keep_alive is a boolean value that set the field Connection
  *)
 let send
-    ?reopen 
-    (* reopen used only for request if we are taking an old connection 
+    ?reopen
+    (* reopen used only for request if we are taking an old connection
        We'll retry with a new one create by ~reopen.
        See Ocsigen_http_client.raw_request.
     *)
@@ -714,7 +714,7 @@ let send
     ~clientproto
     ?mode
     ?proto
-    ?keep_alive (* now (06/02/2008) used only 
+    ?keep_alive (* now (06/02/2008) used only
                    to request keep-alive while used as client *)
     ~head (* send only the header *)
     ~sender
@@ -735,7 +735,7 @@ let send
              | H.Query _     -> false
          in
          let chunked =
-           res.res_content_length = None && 
+           res.res_content_length = None &&
            clientproto <> Ocsigen_http_frame.Http_header.HTTP10 &&
            not empty_content && not head
          in
@@ -808,12 +808,12 @@ let send
                      Lwt_chan.flush out_ch
                    else Lwt.return ())
                 )
-                (fun e -> (* *** If we are doing a request, 
+                (fun e -> (* *** If we are doing a request,
                              we may want to retry once (in the case when
                              we reuse an old connection) *** *)
                    match reopen with
                      | None -> Lwt.fail e
-                     | Some reopen -> 
+                     | Some reopen ->
                          match convert_io_error e with
                            | Keepalive_timeout
                            | Timeout
@@ -822,7 +822,7 @@ let send
                            | Lost_connection _ ->
                                reopen () >>= fun () ->
                                Lwt.fail e
-                           | _ -> 
+                           | _ ->
                                Ocsigen_messages.warning
                                  ("Ocsigen_http_com: reopenning after exception "^
                                     (Ocsigen_lib.string_of_exn e)^
@@ -838,12 +838,12 @@ let send
            Ocsigen_messages.debug2 "writing body";
            write_stream ~chunked out_ch res.res_stream
          end) >>= fun () ->
-         Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers 
+         Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers
                                   are not flushed by the reverse proxy *)
              >>= fun () ->
          Ocsigen_stream.finalize res.res_stream
       )
-      (fun e -> 
+      (fun e ->
         res.res_stop_stream () >>= fun () ->
         Ocsigen_stream.finalize res.res_stream >>= fun () ->
         Lwt.fail e
@@ -881,14 +881,14 @@ let send
   in
   let mkcookl path t hds =
     Cookievalues.fold
-      (fun name c h -> 
+      (fun name c h ->
         let exp, v = match c with
         | Ocsigen_http_frame.OUnset -> (Some 0., "")
         | Ocsigen_http_frame.OSet (t, v) -> (t, v)
         in
         Http_headers.add Http_headers.set_cookie (mkcook path exp name v) h)
       t
-      hds 
+      hds
   in
   let headers =
     Cookies.fold mkcookl res.res_cookies headers
@@ -916,4 +916,4 @@ let send
   in
   send_aux ~mode headers
 
-    
+

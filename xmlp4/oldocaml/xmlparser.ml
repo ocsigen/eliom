@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(* 
+(*
    Parseur camlp4 pour XML
 
    Attention c'est juste un essai
@@ -25,15 +25,15 @@
 
    Le typage des attributs n'est pas evident donc pour l'instant ils sont tous string
    exemple << <plop number="5" /> >> ----> `Number 5  (en fait `Number (int_of_string "5"))
-           << <plop number=$n$ /> >> ----> `Number n o`u n est de type int ??? 
+           << <plop number=$n$ /> >> ----> `Number n o`u n est de type int ???
 
 On pourrait decider d'ecrire << <plop number=$string_of_int n$ /> >>
-Mais du coup cela fait int_of_string (string_of_int n) 
+Mais du coup cela fait int_of_string (string_of_int n)
 et ensuite encore string_of_int au moment de l'affichage
 
    Revoir aussi la gestion des commentaires ?
 
-à revoir 
+à revoir
 
 *)
 
@@ -47,14 +47,14 @@ module ExpoOrPatt = struct
 
   type tvarval =
       EPVstr of string * MLast.loc
-    | EPVvar of string * MLast.loc 
+    | EPVvar of string * MLast.loc
 
   type 'a tlist =
       PLEmpty of MLast.loc
     | PLExpr of string * MLast.loc
     | PLCons of 'a * 'a tlist * MLast.loc
 
-  type texprpatt = 
+  type texprpatt =
       EPanyattr of tvarval * tvarval * MLast.loc
     | EPanytag of string * texprpatt tlist * texprpatt tlist * MLast.loc
     | EPpcdata of string * MLast.loc
@@ -66,7 +66,7 @@ module ExpoOrPatt = struct
   let get_expr v = (* <:expr< $lid:v$ >> *)
     match (!Pcaml.parse_implem) (Stream.of_string v) with
       [MLast.StExp (v,w), loc],_ -> (* w *)
-(*        let w = Pcaml.expr_reloc (fun x -> loc) 
+(*        let w = Pcaml.expr_reloc (fun x -> loc)
             {Lexing.pos_fname="";
              Lexing.pos_lnum=1;
              Lexing.pos_bol=1;
@@ -75,12 +75,12 @@ module ExpoOrPatt = struct
     | _ -> failwith "XML parsing error: problem in antiquotations $...$"
 
 (*
-  let list_of_mlast_expr el = 
-    List.fold_right 
+  let list_of_mlast_expr el =
+    List.fold_right
       (fun x l -> <:expr< [$x$ :: $l$] >>) el <:expr< [] >>
 
-  let list_of_mlast_patt pl = 
-    List.fold_right 
+  let list_of_mlast_patt pl =
+    List.fold_right
       (fun x l -> <:patt< [$x$ :: $l$] >>) pl <:patt< [] >>
 *)
   let expr_valorval = function
@@ -106,7 +106,7 @@ module ExpoOrPatt = struct
           $to_expr_attlist attribute_list$
           $to_expr_taglist child_list$
         >>
-        
+
     | EPpcdata (dt, loc) -> <:expr< `PCData $str:dt$ >>
 
     | EPwhitespace (dt, loc) -> <:expr< `Whitespace $str:dt$ >>
@@ -114,7 +114,7 @@ module ExpoOrPatt = struct
     | EPanytagvar (v, loc) -> get_expr v
 (*        <:expr< $lid:v$ >> *)
 
-    | EPanytagvars (v, loc) -> 
+    | EPanytagvars (v, loc) ->
         let s = get_expr v in
         <:expr< `PCData $s$ >>
 
@@ -133,7 +133,7 @@ module ExpoOrPatt = struct
 
   let rec to_patt = function
 
-      EPanyattr (EPVstr (a,_), v, loc) -> 
+      EPanyattr (EPVstr (a,_), v, loc) ->
         let vv = patt_valorval v in
         <:patt< ((`$uid:String.capitalize a$), $vv$) >>
 
@@ -195,7 +195,7 @@ EXTEND
     tag = TAG;
     attribute_list = OPT exprpatt_any_attribute_list;
     child_list = OPT exprpatt_any_tag_list;
-    GAT -> 
+    GAT ->
       let attlist = match attribute_list with
           None -> PLEmpty loc
         | Some l -> l
@@ -205,7 +205,7 @@ EXTEND
         | Some l -> l
       in EPanytag
         (tag,
-         attlist, 
+         attlist,
          taglist,
          loc)
   | dt = WHITESPACE -> EPwhitespace (dt, loc)
@@ -282,7 +282,7 @@ let l = [<< <ark $c$=$f$ %la%> </ark> >>; << <wow> </wow> >>] in
 (* %% permet d'écrire un % *)
 
 function << <html %l1%> $a$ ljl %l2% </html> >> -> 1 | _ -> 2
-function << <html $n$=$v$ a="b" %l1%> <body> %l2% </body> </html> >> 
+function << <html $n$=$v$ a="b" %l1%> <body> %l2% </body> </html> >>
     -> 1 | _ -> 2
 function << <html %l1%> <body> %l2% </body> %l3% </html> >> -> 1 | _ -> 2
 (*

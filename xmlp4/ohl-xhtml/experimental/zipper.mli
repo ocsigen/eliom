@@ -11,6 +11,6 @@ val to_list : 'a t -> 'a list
 val rev_left : 'a t -> 'a list
 val center : 'a t -> 'a
 val right : 'a t -> 'a list
-    
+
 val step_right : 'a t -> 'a t
 val step_left : 'a t -> 'a t

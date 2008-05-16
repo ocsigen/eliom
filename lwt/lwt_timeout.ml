@@ -51,11 +51,11 @@ let size l =
 
 (****)
 
-let handle_exn = 
-  ref 
-    (fun e -> 
+let handle_exn =
+  ref
+    (fun e ->
        prerr_string "Lwt_timeout - Uncaught exception after timeout: ";
-       prerr_endline (Printexc.to_string e); 
+       prerr_endline (Printexc.to_string e);
        exit 1)
 
 let set_exn_handler f = handle_exn := f

@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -233,7 +233,7 @@ type xhpcdata = [ `PCData of string
   | `Whitespace of string
   | `Comment of string (* A special one for comments *) ]
 
-type xhalltags = 
+type xhalltags =
     [ `A of (attr * string) list * xhacont list
   | `Abbr of (attr * string) list * xhinlinecont list
   | `Acronym of (attr * string) list * xhinlinecont list
@@ -349,7 +349,7 @@ and xhbodycont =
   | `Whitespace of string
   | `Ul of (attr * string) list * xhulcont list ]
 
-and xhdivcont = 
+and xhdivcont =
     [ `A of (attr * string) list * xhacont list
   | `Abbr of (attr * string) list * xhinlinecont list
   | `Acronym of (attr * string) list * xhinlinecont list
@@ -406,7 +406,7 @@ and xhdivcont =
   | `Ul of (attr * string) list * xhulcont list
   | `Var of (attr * string) list * xhinlinecont list ]
 
-and xhobjectcont = 
+and xhobjectcont =
     [ `A of (attr * string) list * xhacont list
   | `Abbr of (attr * string) list * xhinlinecont list
   | `Acronym of (attr * string) list * xhinlinecont list
@@ -464,7 +464,7 @@ and xhobjectcont =
   | `Ul of (attr * string) list * xhulcont list
   | `Var of (attr * string) list * xhinlinecont list ]
 
-and xhfieldsetcont = 
+and xhfieldsetcont =
     [ `A of (attr * string) list * xhacont list
   | `Abbr of (attr * string) list * xhinlinecont list
   | `Acronym of (attr * string) list * xhinlinecont list
@@ -522,7 +522,7 @@ and xhfieldsetcont =
   | `Ul of (attr * string) list * xhulcont list
   | `Var of (attr * string) list * xhinlinecont list ]
 
-and xhbuttoncont = 
+and xhbuttoncont =
     [ `Abbr of (attr * string) list * xhinlinecont list
   | `Acronym of (attr * string) list * xhinlinecont list
   | `Address of (attr * string) list * xhinlinecont list
@@ -581,7 +581,7 @@ and xhheadcont =
   | `Style of (attr * string) list * xhpcdata list
   | `Title of (attr * string) list * xhpcdata list ]
 
-and xhformcont = 
+and xhformcont =
     [ `Address of (attr * string) list * xhinlinecont list
   | `Comment of string (* A special one for comments *)
   | `Whitespace of string
@@ -606,7 +606,7 @@ and xhformcont =
   | `Table of (attr * string) list * xhtablecont list
   | `Ul of (attr * string) list * xhulcont list ]
 
-and xhblockquotecont = 
+and xhblockquotecont =
     [ `Address of (attr * string) list * xhinlinecont list
   | `Comment of string (* A special one for comments *)
   | `Whitespace of string
@@ -802,23 +802,23 @@ and xhdlcont =
   | `Whitespace of string
   | `Dt of (attr * string) list * xhinlinecont list ]
 
-and xhtml = 
-  [ `Html of (attr * string) list * xhtmlcont list 
+and xhtml =
+  [ `Html of (attr * string) list * xhtmlcont list
   | `Whitespace of string
   | `Comment of string (* A special one for comments *) ]
 
-and xhoptgroupcont = 
-    [ `Option of (attr * string) list * xhpcdata list 
+and xhoptgroupcont =
+    [ `Option of (attr * string) list * xhpcdata list
   | `Whitespace of string
   | `Comment of string (* A special one for comments *)]
 
-and xhcolgroupcont = 
-    [ `Col of (attr * string) list * xhnotag list 
+and xhcolgroupcont =
+    [ `Col of (attr * string) list * xhnotag list
   | `Whitespace of string
   | `Comment of string (* A special one for comments *)]
 
 and xhulcont =
-    [ `Li of (attr * string) list * xhdivcont list 
+    [ `Li of (attr * string) list * xhdivcont list
   | `Whitespace of string
   | `Comment of string (* A special one for comments *)]
 
@@ -887,9 +887,9 @@ let rec xh_print_attrs attrs = match attrs with
 | (xh_type,texte)::queue -> pp_print_string xh_string (" "^(xh_search attrlist xh_type)^"=\""^texte^"\"");
     xh_print_attrs queue;;
 
-let rec xh_print_pcdata texte i is_first = 
+let rec xh_print_pcdata texte i is_first =
 (*  pp_open_tbox xh_string ();
-  if ((i > 0) || is_first) then 
+  if ((i > 0) || is_first) then
     pp_force_newline xh_string ();
   if ((i > 0) || is_first) then
     pp_print_tbreak xh_string (taille_tab*i) 0; *)
@@ -897,7 +897,7 @@ let rec xh_print_pcdata texte i is_first =
 (*  pp_close_tbox xh_string (); *)
 
 and xh_print_closedtag tag attrs i is_first =  pp_open_tbox xh_string ();
-  if (i > 0) || is_first then 
+  if (i > 0) || is_first then
     pp_force_newline xh_string ();
   if ((i > 0) || is_first) then
     pp_print_tbreak xh_string (taille_tab*i) 0;
@@ -906,9 +906,9 @@ and xh_print_closedtag tag attrs i is_first =  pp_open_tbox xh_string ();
   pp_print_string xh_string "/>";
   pp_close_tbox xh_string ();
 
-and xh_print_inlinetag tag attrs taglist i is_first = 
+and xh_print_inlinetag tag attrs taglist i is_first =
 (*  pp_open_tbox xh_string ();
-  if (i > 0) || is_first then 
+  if (i > 0) || is_first then
     pp_force_newline xh_string ();
   if ((i > 0) || is_first) then
     pp_print_tbreak xh_string (taille_tab*i) 0; ?????? *)
@@ -918,9 +918,9 @@ and xh_print_inlinetag tag attrs taglist i is_first =
   xh_print_taglist taglist 0 false false;
   pp_print_string xh_string ("</"^tag^">");
 (*  pp_close_tbox xh_string (); *)
-  
-and xh_print_blocktag tag attrs taglist i = 
-  if taglist = [] 
+
+and xh_print_blocktag tag attrs taglist i =
+  if taglist = []
   then xh_print_closedtag tag attrs i true
   else begin
     pp_open_tbox xh_string ();
@@ -930,9 +930,9 @@ and xh_print_blocktag tag attrs taglist i =
     pp_print_string xh_string ("<"^tag);
     xh_print_attrs attrs;
     pp_print_string xh_string ">";
-    
+
     xh_print_taglist_removews taglist (i+1) true;
-    
+
     pp_force_newline xh_string ();
     if i > 0 then
       pp_print_tbreak xh_string (taille_tab*i) 0;
@@ -940,7 +940,7 @@ and xh_print_blocktag tag attrs taglist i =
     pp_close_tbox xh_string ()
   end
 
-and xh_print_semiblocktag tag attrs taglist i = 
+and xh_print_semiblocktag tag attrs taglist i =
   (* New line before and after but not inside, for ex for <pre> *)
   if taglist = []
   then xh_print_closedtag tag attrs i true
@@ -952,20 +952,20 @@ and xh_print_semiblocktag tag attrs taglist i =
     pp_print_string xh_string ("<"^tag);
     xh_print_attrs attrs;
     pp_print_string xh_string ">";
-    
+
     xh_print_taglist taglist 0 false false;
 
     pp_print_string xh_string ("</"^tag^">");
     pp_close_tbox xh_string ()
   end
 
-and xh_print_taglist_removews taglist i is_first = 
+and xh_print_taglist_removews taglist i is_first =
   match taglist with
     (`Whitespace s)::l -> xh_print_taglist_removews l i is_first
   | l -> xh_print_taglist l i is_first true
-  
-and xh_print_taglist taglist i is_first removetailingws = match taglist with 
-  
+
+and xh_print_taglist taglist i is_first removetailingws = match taglist with
+
   (* ici on a fini la liste *)
   [] -> pp_open_tbox xh_string ();
     pp_close_tbox xh_string ();
@@ -996,7 +996,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Link(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "link" xh_attrs i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Whitespace _)::(`Hr(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Hr(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Hr(xh_attrs,xh_taglist))::queue
@@ -1007,7 +1007,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Param(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "param" xh_attrs i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Img(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "img" xh_attrs i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1015,7 +1015,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Area(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "area" xh_attrs i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Input(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "input" xh_attrs i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1023,7 +1023,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Col(xh_attrs,xh_taglist))::queue ->
     xh_print_closedtag "col" xh_attrs i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
     (* Balises de presentation, type inline *)
 | (`B(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "b" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
@@ -1032,7 +1032,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Big(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "big" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`I(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "i" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1071,7 +1071,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
     (* Balise de formulaire de type inline*)
 | (`Select(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "select" xh_attrs (xh_taglist : xhselectcont list :> xhalltagsl) i is_first;
-    xh_print_taglist queue i false removetailingws;        
+    xh_print_taglist queue i false removetailingws;
 
 | (`Button(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "button" xh_attrs (xh_taglist : xhbuttoncont list :> xhalltagsl) i is_first;
@@ -1084,7 +1084,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Legend(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "legend" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Optgroup(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "optgroup" xh_attrs (xh_taglist : xhoptgroupcont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1092,7 +1092,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Option(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "option" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Textarea(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "textarea" xh_attrs (xh_taglist : xhpcdata list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1105,7 +1105,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Abbr(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "abbr" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Acronym(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "acronym" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1113,7 +1113,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Cite(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "cite" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Code(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "code" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1125,7 +1125,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Em(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "em" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Kbd(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "kbd" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1133,7 +1133,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Q(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "q" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Samp(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "samp" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1145,7 +1145,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Strong(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "strong" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Var(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "var" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
@@ -1288,35 +1288,35 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 
     (* Balise de liste de type block *)
 | (`Dd(xh_attrs,xh_taglist))::queue ->
-    
+
     xh_print_blocktag "dd" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Whitespace _)::(`Dl(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Dl(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Dl(xh_attrs,xh_taglist))::queue
-| (`Dl(xh_attrs,xh_taglist))::queue -> 
+| (`Dl(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "dl" xh_attrs (xh_taglist : xhdlcont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
 
 | (`Whitespace _)::(`Li(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Li(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Li(xh_attrs,xh_taglist))::queue
-| (`Li(xh_attrs,xh_taglist))::queue -> 
+| (`Li(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "li" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
 
 | (`Whitespace _)::(`Ol(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Ol(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Ol(xh_attrs,xh_taglist))::queue
-| (`Ol(xh_attrs,xh_taglist))::queue -> 
+| (`Ol(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "ol" xh_attrs (xh_taglist : xhulcont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
 
 | (`Whitespace _)::(`Ul(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Ul(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Ul(xh_attrs,xh_taglist))::queue
-| (`Ul(xh_attrs,xh_taglist))::queue -> 
+| (`Ul(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "ul" xh_attrs (xh_taglist : xhulcont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
 
@@ -1324,7 +1324,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Caption(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "caption" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
     xh_print_taglist queue i false removetailingws;
-    
+
     (* Balises de tableau de type block *)
 | (`Whitespace _)::(`Colgroup(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Colgroup(xh_attrs,xh_taglist))::(`Whitespace _)::queue
@@ -1332,7 +1332,7 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Colgroup(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "colgroup" xh_attrs (xh_taglist : xhcolgroupcont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Whitespace _)::(`Table(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Table(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Table(xh_attrs,xh_taglist))::queue
@@ -1346,21 +1346,21 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Tbody(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "tbody" xh_attrs (xh_taglist : xhtbodycont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Whitespace _)::(`Tfoot(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Tfoot(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Tfoot(xh_attrs,xh_taglist))::queue
 | (`Tfoot(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "tfoot" xh_attrs (xh_taglist : xhtbodycont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Whitespace _)::(`Thead(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Thead(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Thead(xh_attrs,xh_taglist))::queue
 | (`Thead(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "thead" xh_attrs (xh_taglist : xhtbodycont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Whitespace _)::(`Td(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Td(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Td(xh_attrs,xh_taglist))::queue
@@ -1374,14 +1374,14 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
 | (`Th(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "th" xh_attrs (xh_taglist : xhdivcont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
-    
+
 | (`Whitespace _)::(`Tr(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Tr(xh_attrs,xh_taglist))::(`Whitespace _)::queue
 | (`Whitespace _)::(`Tr(xh_attrs,xh_taglist))::queue
 | (`Tr(xh_attrs,xh_taglist))::queue ->
     xh_print_blocktag "tr" xh_attrs (xh_taglist : xhtrcont list :> xhalltagsl) i;
     xh_print_taglist queue i false removetailingws;
-    
+
     (* Balises divers de type inline *)
 | (`Bdo(xh_attrs,xh_taglist))::queue ->
     xh_print_inlinetag "bdo" xh_attrs (xh_taglist : xhinlinecont list :> xhalltagsl) i is_first;
@@ -1405,13 +1405,13 @@ and xh_print_taglist taglist i is_first removetailingws = match taglist with
     xh_print_taglist queue i false removetailingws;
 
 
-    and xh_print (arbre : xhtml)  = 
+    and xh_print (arbre : xhtml)  =
         pp_open_tbox xh_string ();
     (* pp_print_string xh_string xh_topxml; Does not work with IE ...
     pp_force_newline xh_string (); *)
     pp_print_string xh_string xh_topdoctype;
     pp_force_newline xh_string ();
-    
+
     xh_print_taglist ([arbre] :> xhalltagsl) 0 true false;
 
     pp_force_newline xh_string ();

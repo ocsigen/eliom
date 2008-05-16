@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -36,24 +36,24 @@ let get_persistentsessiongcfrequency () = !persistentsessiongcfrequency
 
 
 (* garbage collection of timeouted sessions *)
-let rec gc_timeouted_services now t = 
-  let rec aux k direltr thr = 
+let rec gc_timeouted_services now t =
+  let rec aux k direltr thr =
     thr >>=
     (fun table ->
       match !direltr with
-      | Eliom_common.Dir r -> gc_timeouted_services now r >>= 
+      | Eliom_common.Dir r -> gc_timeouted_services now r >>=
           (fun () -> match !r with
-          | Eliom_common.Vide -> 
+          | Eliom_common.Vide ->
               return (Eliom_common.String_Table.remove k table)
           | Eliom_common.Table t -> return table)
       | Eliom_common.File ptr ->
           List.fold_right
-            (fun (ptk, l) foll -> 
+            (fun (ptk, l) foll ->
               foll >>=
               (fun foll ->
                 let newl =
                   List.fold_right
-                    (fun ((i, (_, (_, expdate, _))) as a) foll -> 
+                    (fun ((i, (_, (_, expdate, _))) as a) foll ->
                       match expdate with
                       | Some (_, e) when !e < now -> foll
                       | _ -> a::foll
@@ -77,54 +77,54 @@ let rec gc_timeouted_services now t =
   in
   match !t with
   | Eliom_common.Vide -> return ()
-  | Eliom_common.Table r -> 
+  | Eliom_common.Table r ->
       (Eliom_common.String_Table.fold aux r (return r)) >>=
-      (fun table -> 
+      (fun table ->
         if Eliom_common.String_Table.is_empty table
         then begin t := Eliom_common.Vide; return () end
         else begin t := Eliom_common.Table table; return () end)
 
-let gc_timeouted_naservices now tr = 
+let gc_timeouted_naservices now tr =
   match !tr with
   | Eliom_common.AVide -> return ()
-  | Eliom_common.ATable t -> 
+  | Eliom_common.ATable t ->
       Eliom_common.NAserv_Table.fold
-        (fun k (_, _, expdate, _) thr -> 
+        (fun k (_, _, expdate, _) thr ->
           thr >>=
-          (fun table -> 
+          (fun table ->
             Lwt_unix.yield () >>=
             (fun () ->
               match expdate with
-              | Some (_, e) when !e < now -> 
+              | Some (_, e) when !e < now ->
                   return (Eliom_common.NAserv_Table.remove k table)
               | _ -> return table)
           ))
         t
         (return t) >>=
-      (fun t -> 
+      (fun t ->
         if Eliom_common.NAserv_Table.is_empty t
         then tr := Eliom_common.AVide
-        else tr := Eliom_common.ATable t; 
+        else tr := Eliom_common.ATable t;
         return ())
 
-        
+
 
 (* This is a thread that will work for example every hour. *)
 let service_session_gc sitedata =
   let (servicetable,
-       naservicetable, 
-       contains_services_with_timeout, 
-       contains_naservices_with_timeout) = 
+       naservicetable,
+       contains_services_with_timeout,
+       contains_naservices_with_timeout) =
     sitedata.Eliom_common.global_services
   in
   match get_servicesessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
-      let rec f () = 
-        Lwt_unix.sleep t >>= 
+      let rec f () =
+        Lwt_unix.sleep t >>=
         (fun () ->
-          let service_cookie_table = 
-            sitedata.Eliom_common.session_services 
+          let service_cookie_table =
+            sitedata.Eliom_common.session_services
           in
           let now = Unix.time () in
           Ocsigen_messages.debug2 "--Eliom: GC of service sessions";
@@ -141,19 +141,19 @@ let service_session_gc sitedata =
             Eliom_common.SessionCookies.fold
               (fun k (sessname,
                       ((servicetable,
-                        naservicetable, 
-                        contains_services_with_timeout, 
+                        naservicetable,
+                        contains_services_with_timeout,
                         contains_naservices_with_timeout) as tables),
-                      exp, 
+                      exp,
                       _,
-                      session_group_ref) thr -> 
+                      session_group_ref) thr ->
                         thr >>= fun () ->
                           (match !exp with
-                          | Some exp when exp < now -> 
-                              Eliom_common.close_service_session2 
+                          | Some exp when exp < now ->
+                              Eliom_common.close_service_session2
                                 sitedata !session_group_ref k;
                               return ()
-                          | _ -> 
+                          | _ ->
                               (if !contains_services_with_timeout
                               then gc_timeouted_services now servicetable
                               else return ()) >>=
@@ -163,8 +163,8 @@ let service_session_gc sitedata =
                               (fun () ->
                                 if Eliom_common.service_tables_are_empty
                                     tables
-                                then 
-                                  Eliom_common.close_service_session2 
+                                then
+                                  Eliom_common.close_service_session2
                                     sitedata !session_group_ref k;
                                 return ()
                               )
@@ -177,31 +177,31 @@ let service_session_gc sitedata =
           >>=
         f
       in ignore (f ())
-      
+
 (* This is a thread that will work for example every hour. *)
 let data_session_gc sitedata =
   match get_datasessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
-      let rec f () = 
+      let rec f () =
         Lwt_unix.sleep t >>= fun () ->
         let data_cookie_table = sitedata.Eliom_common.session_data in
-        let not_bound_in_data_tables = 
+        let not_bound_in_data_tables =
           sitedata.Eliom_common.not_bound_in_data_tables in
         let now = Unix.time () in
         Ocsigen_messages.debug2 "--Eliom: GC of session data";
         (* private continuation tables: *)
         Eliom_common.SessionCookies.fold
-          (fun k (sessname, exp, _, session_group_ref) thr -> 
+          (fun k (sessname, exp, _, session_group_ref) thr ->
             thr >>= fun () ->
               (match !exp with
-              | Some exp when exp < now -> 
+              | Some exp when exp < now ->
                   Eliommod_datasess.close_data_session2
                     sitedata !session_group_ref k;
                   return ()
-              | _ -> 
+              | _ ->
                   if !session_group_ref = None && not_bound_in_data_tables k
-                  then 
+                  then
                     Eliom_common.SessionCookies.remove data_cookie_table k;
                   return ()
               )
@@ -212,22 +212,22 @@ let data_session_gc sitedata =
           >>=
         f
       in ignore (f ())
-      
+
 (* garbage collection of timeouted persistent sessions *)
 (* This is a thread that will work every hour/day *)
 let persistent_session_gc () =
   match get_persistentsessiongcfrequency () with
   | None -> () (* No garbage collection *)
   | Some t ->
-      let rec f () = 
-        Lwt_unix.sleep t >>= 
+      let rec f () =
+        Lwt_unix.sleep t >>=
         (fun () ->
           let now = Unix.time () in
           Ocsigen_messages.debug2 "--Eliom: GC of persistent sessions";
           (Ocsipersist.iter_table
-             (fun k (_, exp, _, session_group) -> 
+             (fun k (_, exp, _, session_group) ->
                (match exp with
-               | Some exp when exp < now -> 
+               | Some exp when exp < now ->
 (*VVV ? *)
                    Eliommod_persess.close_persistent_session2 session_group k
                      (*WAS: remove_from_all_persistent_tables k *)
@@ -237,4 +237,4 @@ let persistent_session_gc () =
           >>=
         f
       in ignore (f ())
-      
+

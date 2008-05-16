@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -43,7 +43,7 @@ exception Not_concerned
 
 (*****************************************************************************)
 (* The table of redirections for each virtual server                         *)
-type assockind = 
+type assockind =
   | Regexp of Netstring_pcre.regexp * string * bool (* temporary *)
 
 
@@ -52,7 +52,7 @@ type assockind =
 (*****************************************************************************)
 let rec parse_global_config = function
   | [] -> ()
-  | _ -> raise (Error_in_config_file 
+  | _ -> raise (Error_in_config_file
                   ("Unexpected content inside redirectmod config"))
 
 let _ = parse_global_config (Ocsigen_extensions.get_config ())
@@ -69,7 +69,7 @@ let find_redirection (Regexp (regexp, dest, temp)) path =
   | None -> raise Not_concerned
   | Some _ -> (* Matching regexp found! *)
       (Netstring_pcre.global_replace regexp dest path, temp)
-  
+
 
 
 
@@ -77,7 +77,7 @@ let find_redirection (Regexp (regexp, dest, temp)) path =
 
 
 (*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase 
+(** Function to be called at the beginning of the initialisation phase
     of the server (actually each time the config file is reloaded) *)
 let start_init () =
   ()
@@ -97,8 +97,8 @@ let gen dir charset = function
     (* Is it a redirection? *)
     (fun () ->
       Ocsigen_messages.debug2 "--Redirectmod: Is it a redirection?";
-      let (redir, temp) = 
-        find_redirection dir 
+      let (redir, temp) =
+        find_redirection dir
           (match ri.ri_get_params_string with
           | None -> ri.ri_sub_path_string
           | Some g -> ri.ri_sub_path_string ^ "?" ^ g)
@@ -106,17 +106,17 @@ let gen dir charset = function
       Ocsigen_messages.debug (fun () ->
         "--Redirectmod: YES! "^
         (if temp then "Temporary " else "Permanent ")^
-        "redirection to: "^redir);      
+        "redirection to: "^redir);
       let empty_result = Ocsigen_http_frame.empty_result () in
       return
         (Ext_found
            (fun () ->
-              Lwt.return 
+              Lwt.return
                 {empty_result with
                    Ocsigen_http_frame.res_location = Some redir;
 	           Ocsigen_http_frame.res_code= if temp then 302 else 301}))
     )
-    (function 
+    (function
       | Not_concerned -> return (Ext_next err)
       | e -> fail e)
 
@@ -126,7 +126,7 @@ let gen dir charset = function
 (*****************************************************************************)
 (** Configuration for each site.
     These tags are inside <site ...>...</site> in the config file.
-        
+
    For example:
    <site dir="">
      <redirect regexp="" dest="" />
@@ -135,19 +135,19 @@ let gen dir charset = function
  *)
 
 let parse_config path charset _ parse_site = function
-  | Element ("redirect", atts, []) -> 
+  | Element ("redirect", atts, []) ->
       let dir = match atts with
-      | [] -> 
+      | [] ->
           raise (Error_in_config_file
                    "regexp attribute expected for <redirect>")
-      | [("regexp", s);("dest",t)] -> 
+      | [("regexp", s);("dest",t)] ->
           Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t, false)
-      | [("temporary", "temporary");("regexp", s);("dest",t)] -> 
+      | [("temporary", "temporary");("regexp", s);("dest",t)] ->
           Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t, true)
       | _ -> raise (Error_in_config_file "Wrong attribute for <redirect>")
       in
       gen dir charset
-  | Element (t, _, _) -> 
+  | Element (t, _, _) ->
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(redirectmod extension) Bad data")
 
@@ -157,13 +157,13 @@ let parse_config path charset _ parse_site = function
 
 (*****************************************************************************)
 (** A function that will be called for each virtual host,
-   generating two functions: 
+   generating two functions:
     - one that will be called to generate the pages
     - one to parse the configuration file. *)
 let virtual_host_creator hostpattern = (gen, parse_config)
    (* hostpattern has type Ocsigen_extensions.virtual_hosts
       and represents the name of the virtual host *)
-   
+
 
 (*****************************************************************************)
 (** Registration of the extension *)

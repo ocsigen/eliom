@@ -6,7 +6,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -57,18 +57,18 @@ let quoted_string = '\"' (qdtext | quoted_pair)* '\"'
 rule token =
   parse
   |blank                {Ocsigen_messages.debug_noel2 " "; token lexbuf}
-  |"GET"                
-  |"POST"               
-  |"HEAD"               
-  |"PUT"                
-  |"DELETE"             
-  |"TRACE"              
-  |"OPTIONS"            
-  |"CONNECT"            
-  |"LINK"               
-  |"UNLINK"             
+  |"GET"
+  |"POST"
+  |"HEAD"
+  |"PUT"
+  |"DELETE"
+  |"TRACE"
+  |"OPTIONS"
+  |"CONNECT"
+  |"LINK"
+  |"UNLINK"
   |"PATCH"              {let s = Lexing.lexeme lexbuf in
-                         Ocsigen_messages.debug_noel2 s; 
+                         Ocsigen_messages.debug_noel2 s;
                          METHOD s}
   |"\r\n"               {Ocsigen_messages.debug2 ""; EOL}
   |":"                  {Ocsigen_messages.debug_noel2 ":";COLON}
@@ -82,7 +82,7 @@ rule token =
   |strin                {let s = Lexing.lexeme lexbuf in
                          Ocsigen_messages.debug_noel2 s;
 			 STRING s}
-  |eof                  {raise (Http_error.Http_exception 
+  |eof                  {raise (Http_error.Http_exception
                                   (400, Some "unexpected end of file", None))}
   |_                    {raise (Http_error.Http_exception
                                   (400, Some ("unexpected character "

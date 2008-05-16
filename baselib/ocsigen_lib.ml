@@ -4,7 +4,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -78,7 +78,7 @@ let rec list_assoc_remove a = function
   | (b,c)::l when a = b -> c,l
   | b::l -> let v,ll = list_assoc_remove a l in v,b::ll
 
-let rec list_is_prefix l1 l2 = 
+let rec list_is_prefix l1 l2 =
   match (l1, l2) with
   | [], _ -> true
   | a::ll1, b::ll2 when a=b -> list_is_prefix ll1 ll2
@@ -87,7 +87,7 @@ let rec list_is_prefix l1 l2 =
 
 (** various functions for URLs *)
 
-let remove_dotdot = 
+let remove_dotdot =
   (* removes "../" and "//" *)
   let rec aux = function
     | [] -> []
@@ -99,22 +99,22 @@ let remove_dotdot =
     | [] -> []
     | ""::l -> ""::(aux l)
     | l -> aux l
-                     
+
 let remove_slash_at_beginning = function
   | [] -> []
   | ""::l -> l
   | l -> l
-    
+
 let rec recursively_remove_slash_at_beginning = function
   | [] -> []
   | ""::l -> recursively_remove_slash_at_beginning l
   | l -> l
-    
+
 let rec remove_slash_at_end = function
   | []
   | [""] -> []
   | a::l -> a::(remove_slash_at_end l)
-    
+
 let remove_internal_slash u =
   let rec aux = function
     | [] -> []
@@ -124,12 +124,12 @@ let remove_internal_slash u =
   in match u with
   | [] -> []
   | a::l -> a::(aux l)
-    
+
 let rec add_end_slash_if_missing = function
   | [] -> [""]
   | [""] as a -> a
   | a::l -> a::(add_end_slash_if_missing l)
-    
+
 let change_empty_list = function
   | [] -> [""] (* It is not possible to register an empty URL *)
   | l -> l
@@ -144,15 +144,15 @@ let remove_end_slash s =
 
 
 (* This function is in Neturl (split_path)
-   let rec cut_url s = 
+   let rec cut_url s =
    try
    let length = String.length s in
    if length = 0 then []
    else
    let pos_slash = String.index s '/' in
-   if pos_slash = 0 
+   if pos_slash = 0
    then cut_url (String.sub s 1 (length-1))
-   else 
+   else
    let prefix = String.sub s 0 pos_slash in
    (*  if length > (pos_slash+1)
       then *)
@@ -163,13 +163,13 @@ let remove_end_slash s =
 
 
 let rec string_first_diff s1 s2 n last =
-(* returns the index of the first difference between s1 and s2, 
+(* returns the index of the first difference between s1 and s2,
    starting from n and ending at last.
    returns (last + 1) if no difference is found.
  *)
   try
     if s1.[n] = s2.[n]
-    then begin 
+    then begin
       if n = last
       then last+1
       else string_first_diff s1 s2 (n+1) last
@@ -190,10 +190,10 @@ let concat_strings s1 sep s2 = match s1,s2 with
 
 (* Cut a string to the next separator *)
 let basic_sep char s =
-  try 
+  try
     let seppos = String.index s char in
     ((String.sub s 0 seppos),
-     (String.sub s (seppos+1) 
+     (String.sub s (seppos+1)
         (1 + (String.length s) - seppos)))
   with Invalid_argument _ -> raise Not_found
 
@@ -203,13 +203,13 @@ let basic_sep char s =
 let remove_spaces s beg endd =
   let rec find_not_space s i step =
     if s.[i] = ' '
-    then 
+    then
       let i' = i+step in
       if (i'>endd) || (i' < beg)
-      then i' 
+      then i'
       else find_not_space s i' step
     else i
-  in    
+  in
   let first = find_not_space s beg 1 in
   let last = find_not_space s endd (-1) in
   if last >= first
@@ -242,14 +242,14 @@ let rec split ?(multisep=false) char s =
         (remove_spaces s deb (firstsep-1))::
         (aux (firstsep+1))
       with Not_found -> [remove_spaces s deb (longueur-1)]
-  in 
+  in
   aux 0
 
 (* printing exceptions *)
 let rec string_of_exn = function
   | Dynlink.Error err ->
       "Dynlink.Error: " ^ (Dynlink.error_message err)
-  | Unix.Unix_error (ee, func, param) -> 
+  | Unix.Unix_error (ee, func, param) ->
       (Unix.error_message ee)^" in function "^func^" ("^param^")"
   | e -> Printexc.to_string e
 

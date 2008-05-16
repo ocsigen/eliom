@@ -81,7 +81,7 @@ val wakeup_exn : 'a t -> exn -> unit
          exception [e]. *)
 
 val finalize : (unit -> 'a t) -> (unit -> unit t) -> 'a t
-     (** [finalize f g] returns the same result as [f ()] whether it fails 
+     (** [finalize f g] returns the same result as [f ()] whether it fails
          or not. In both cases, [g ()] is executed after [f]. *)
 
 (**/**)

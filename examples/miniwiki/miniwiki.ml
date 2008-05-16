@@ -5,7 +5,7 @@
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, with linking exception; 
+ * the Free Software Foundation, with linking exception;
  * either version 2.1 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
@@ -34,7 +34,7 @@ let (>>) f g = g f
 
 let wiki_view_page = new_service [] (suffix (string "p")) ()
 let wiki_edit_page = new_service ["edit"] (string "p") ()
-let wiki_start = Redirections.register_new_service [] unit 
+let wiki_start = Redirections.register_new_service [] unit
     (fun sp _ _ -> make_full_string_uri wiki_view_page sp "WikiStart")
 
 
@@ -46,8 +46,8 @@ let finally handler f x =
   handler () >>= fun () ->
   return r
 
-let fold_read_lines f accum inchnl = 
-  let line () = 
+let fold_read_lines f accum inchnl =
+  let line () =
     catch
       (fun () -> Lwt_chan.input_line inchnl >>= fun line -> return (Some line))
       (function End_of_file -> return None | e -> fail e)
@@ -56,9 +56,9 @@ let fold_read_lines f accum inchnl =
     line () >>= fun l ->
     match l with
     | Some e -> loop (f accum e)
-    | None -> return accum 
+    | None -> return accum
   in
-  loop accum 
+  loop accum
 
 let with_open_out fname f =
   let oc = Lwt_chan.open_out fname in
@@ -72,7 +72,7 @@ let with_open_in fname f =
     (fun () -> Lwt_chan.close_in ic)
     f ic
 
-let wiki_file_dir = 
+let wiki_file_dir =
   let rec find_wikidata = function
       [Element ("wikidata", [("dir", s)],_)] -> s
     | _ -> raise (Ocsigen_extensions.Error_in_config_file ("Unexpected content inside Miniwiki config"))
@@ -92,7 +92,7 @@ let save_wiki_page page text =
     (fun chnl -> output_string chnl text)
 
 let load_wiki_page page =
-  with_open_in 
+  with_open_in
     (wiki_page_filename page)
     (fun chnl ->
       fold_read_lines (fun acc line -> line::acc) [] chnl >>= fun l ->
@@ -107,18 +107,18 @@ let list_re = Pcre.regexp "^[ ]?([*]+) (.*)([ \n\r]*)?$"
 let match_pcre_option rex s =
   try Some (Pcre.extract ~rex s) with Not_found -> None
 
-let is_list s = 
+let is_list s =
   match_pcre_option list_re s
 
 let open_pre_re = Pcre.regexp "^(<pre>|{{{)[ \n\r]+$"
 let close_pre_re = Pcre.regexp "^(</pre>|}}})[ \n\r]+$"
 
 let take_while pred lines =
-  let rec loop acc = function 
-      (x::xs) as lst -> 
+  let rec loop acc = function
+      (x::xs) as lst ->
         if pred x then
           loop (x::acc) xs
-        else 
+        else
           (lst, List.rev acc)
     | [] ->
         ([], List.rev acc) in
@@ -134,16 +134,16 @@ let accepted_chars = "["^accepted_chars_^" -]+"
 let text_re = comp_re ("("^accepted_chars_sans_ws^")")
 let wikilink_re = comp_re "([A-Z][a-z]+([A-Z][a-z]+)+)"
 
-let wikilinkanum_re = 
+let wikilinkanum_re =
   comp_re
     ("(\\[(wiki|file|http):("^accepted_chars_sans_ws^")[ ]+("^accepted_chars^")\\])")
 
-let wikilinkanum_no_text_re = 
+let wikilinkanum_no_text_re =
   comp_re ("(\\[(wiki|file|http):("^accepted_chars_sans_ws^")\\])")
 
 let translate_list items =
 
-  let add_ul t lst = 
+  let add_ul t lst =
     t @ [ul (List.hd lst) (List.tl lst)] in
 
   let rec loop = function
@@ -151,7 +151,7 @@ let translate_list items =
         if nesting1 = nesting2 then
           (li text1)::loop (List.tl lst)
         else if nesting1 < nesting2 then (* enter *)
-          let (next_same_level,same_or_higher) = 
+          let (next_same_level,same_or_higher) =
             take_while (fun (n,_) -> n >= nesting2) (List.tl lst) in
           (li (add_ul text1 (loop same_or_higher)))::loop next_same_level
         else (* leave *)
@@ -163,18 +163,18 @@ let translate_list items =
   ul (List.hd list_items) (List.tl list_items)
 
 let parse_lines sp lines =
-  let wikilink scheme page text = 
+  let wikilink scheme page text =
     if scheme = "wiki" || scheme = "" then
       let t = if text = "" then page else text in
       if wiki_page_exists page then
         a wiki_view_page sp [pcdata t] page
-      else 
-        a ~a:[a_class ["missing_page"]] ~service:wiki_view_page ~sp [pcdata t] 
+      else
+        a ~a:[a_class ["missing_page"]] ~service:wiki_view_page ~sp [pcdata t]
           page
     else (* External link *)
       let url = scheme^":"^page in
       let t = if text = "" then url else text in
-      a (new_external_service 
+      a (new_external_service
            ~prefix:url
            ~path:[]
            ~get_params:unit
@@ -186,7 +186,7 @@ let parse_lines sp lines =
           (try Some (Pcre.extract ~rex ~pos str, f) with Not_found -> loop xs)
       | [] -> None in
     loop in
-  
+
   (* Parse a line of text *)
   let rec parse_text acc s =
 
@@ -213,8 +213,8 @@ let parse_lines sp lines =
 
     let parse_text acc r charpos =
       (add_html acc (pcdata r.(1)), charpos+(String.length r.(0))) in
-    
-    let text_patterns = 
+
+    let text_patterns =
       [(wikilink_re, parse_wikilink);
        (wikilinkanum_re, parse_wikilinkanum);
        (wikilinkanum_no_text_re, parse_wikilinkanum_no_text);
@@ -223,11 +223,11 @@ let parse_lines sp lines =
     let rec loop acc charpos =
       if charpos >= len then
         acc
-      else 
-        if s.[charpos] = '\t' then 
+      else
+        if s.[charpos] = '\t' then
           let m = "\t" in
           loop (add_html acc (pcdata m)) (charpos+1)
-        else if s.[charpos] = ' ' then 
+        else if s.[charpos] = ' ' then
           let m = " " in
           loop (add_html acc (pcdata m)) (charpos+1)
         else if s.[charpos] = '\r' || s.[charpos] = '\n' then
@@ -242,21 +242,21 @@ let parse_lines sp lines =
                 let s = (String.sub s charpos ((String.length s)-charpos)) in
                 add_html acc
                   (span
-                     [span ~a:[a_class ["error"]] 
+                     [span ~a:[a_class ["error"]]
                         [pcdata "WIKI SYNTAX ERROR IN INPUT: "];
                       pcdata s])
           end
     in
     List.rev (loop acc 0) in
-  
+
   (* Line-by-line wiki parser *)
   let rec loop acc = function
       (x::xs) as lst ->
-        let parse_list r = 
+        let parse_list r =
           (* Grab all lines starting with '*': *)
           let (after_bullets,bullets) =
             take_while (fun e -> is_list e <> None) lst in
-          let list_items = 
+          let list_items =
             List.map
               (fun e ->
                  match is_list e with
@@ -269,21 +269,21 @@ let parse_lines sp lines =
         let parse_verbatim r =
           (* Handle <pre>..</pre>, {{{..}}} *)
           let (after_pre,contents) =
-            take_while 
+            take_while
               (fun x -> match_pcre_option close_pre_re x = None)
               lst in
-          let p = 
+          let p =
             (pre [pcdata (String.concat "\n" (List.tl contents))]) in
           loop (p::acc) (List.tl after_pre) in
-          
-        let wiki_pats = 
+
+        let wiki_pats =
           [(h3_re, (fun r -> loop ((h3 [pcdata r.(1)])::acc) xs));
            (h2_re, (fun r -> loop ((h2 [pcdata r.(1)])::acc) xs));
            (h1_re, (fun r -> loop ((h1 [pcdata r.(1)])::acc) xs));
            (list_re, parse_list);
            (open_pre_re, parse_verbatim)] in
         begin
-          match pcre_first_match x 0 wiki_pats with 
+          match pcre_first_match x 0 wiki_pats with
             Some (res, action) -> action res
           | None ->
               loop ((p (parse_text [] x))::acc) xs
@@ -300,9 +300,9 @@ let wikiml_to_html sp page =
 
 (* Use this as the basis for all pages.  Includes CSS etc. *)
 let html_stub sp body_html =
-  return 
-    (html 
-       (head (title (pcdata "")) 
+  return
+    (html
+       (head (title (pcdata ""))
           [css_link (make_uri (static_dir sp) sp ["style.css"]) ()])
        (body body_html))
 
@@ -311,10 +311,10 @@ let wiki_page_menu_html sp page content =
      [div ~a:[a_id "akmenu"]
         [p
            [span ~a:[a_class ["nwikilogo"]] [(pcdata "MiniWiki")];
-            a ~service:wiki_view_page 
-              ~a:[a_accesskey 'h'; a_class ["ak"]] ~sp 
+            a ~service:wiki_view_page
+              ~a:[a_accesskey 'h'; a_class ["ak"]] ~sp
               [pcdata "Home"] "WikiStart";
-            a ~service:wiki_edit_page ~a:[a_accesskey 'e'; a_class ["ak"]] ~sp 
+            a ~service:wiki_edit_page ~a:[a_accesskey 'e'; a_class ["ak"]] ~sp
               [pcdata "Edit page"] page; br ()]]];
    div ~a:[a_id "content"]
      content]
@@ -332,37 +332,37 @@ let service_save_page_post =
   register_new_post_service
     ~fallback:wiki_view_page
     ~post_params:(string "value")
-    (fun sp page value -> 
+    (fun sp page value ->
        (* Save wiki page from POST value: *)
        save_wiki_page page value >>= fun () ->
        view_page sp page)
-    
+
 (* /edit?p=Page *)
 let _ =
   register wiki_edit_page
-    (fun sp page () -> 
+    (fun sp page () ->
       (if wiki_page_exists page then
         load_wiki_page page >>= fun s -> return (String.concat "\n" s)
-      else 
+      else
         return "")
-      >>= fun wikitext -> 
+      >>= fun wikitext ->
       let f =
         post_form service_save_page_post sp
-          (fun chain -> 
+          (fun chain ->
             [(p [string_input ~input_type:`Submit ~value:"Save" (); br ();
-                 textarea ~name:chain ~rows:30 ~cols:80 
+                 textarea ~name:chain ~rows:30 ~cols:80
                    ~value:(pcdata wikitext) ()])])
-          page 
+          page
       in
       wiki_page_contents_html sp page ~content:[f] () >>= fun c ->
       html_stub sp c)
 
 (* /view?p=Page *)
-let _ = 
+let _ =
   register wiki_view_page
     (fun sp page () ->
        if not (wiki_page_exists page) then
-         let f = 
+         let f =
            a wiki_edit_page sp [pcdata "Create new page"] page in
          html_stub sp
            (wiki_page_menu_html sp page [f])
