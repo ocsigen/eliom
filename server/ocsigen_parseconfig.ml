@@ -71,16 +71,16 @@ let parse_size =
          then
            let c1 = String.sub s l1 1 in
            if (c1 = "T")
-           then Int64.mul tera (v l1)
+           then Int64.mul tebi (v l1)
            else
              if (c1 = "G")
-             then Int64.mul giga (v l1)
+             then Int64.mul gibi (v l1)
              else
                if (c1 = "M")
-               then Int64.mul mega (v l1)
+               then Int64.mul mebi (v l1)
                else
                  if (c1 = "k")
-                 then Int64.mul kilo (v l1)
+                 then Int64.mul kibi (v l1)
                  else       
                    let l2 = l-2 in
                    if l2>0
