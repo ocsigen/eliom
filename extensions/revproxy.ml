@@ -180,9 +180,12 @@ let gen dir charset = function
                match http_frame.Ocsigen_http_frame.content with
                  | None ->
                      let empty_result = Ocsigen_http_frame.empty_result () in
+                     let length =
+                       Ocsigen_headers.get_content_length http_frame
+                     in
                      Lwt.return
                        {empty_result with
-                        Ocsigen_http_frame.res_content_length = Some 0L;
+                        Ocsigen_http_frame.res_content_length = length;
                         Ocsigen_http_frame.res_headers= headers;
                         Ocsigen_http_frame.res_stop_stream =
                         http_frame.Ocsigen_http_frame.abort;

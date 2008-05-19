@@ -44,9 +44,11 @@ opt: ocsipersist.mli $(OBJSOPT)
 
 ocsipersist-dbm.cma: ocsipersist.cmo
 	$(CAMLC) -a -o ocsipersist-dbm.cma ocsipersist.cmo
+	cp -f ocsipersist-dbm.cma ..
 
 ocsipersist-dbm.cmxs: ocsipersist.cmx
 	$(CAMLOPT) -shared -linkall -o ocsipersist-dbm.cmxs ocsipersist.cmx
+	cp -f ocsipersist-dbm.cmxs ..
 
 ocsidbm: ocsidbm.cmo
 	$(CAMLC) -package ssl -o $@ unix.cma ssl.cma dbm.cma lwt.cma $<
