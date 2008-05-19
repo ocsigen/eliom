@@ -36,8 +36,6 @@ open Lazy
 exception Ocsigen_unsupported_media
 exception Ssl_Exception
 exception Ocsigen_upload_forbidden
-exception Config_file_exn of exn
-
 
 let () = Random.self_init ()
 
@@ -859,8 +857,8 @@ let errmsg = function
   | Ssl.Private_key_error ->
       (("Fatal - bad password"),
       10)
-  | Config_file_exn exn ->
-      (("Fatal - Error in configuration file: "^ string_of_exn exn),
+  | Ocsigen_config.Config_file_error msg ->
+      (("Fatal - Error in configuration file: "^msg),
       50)
   | Simplexmlparser.Xml_parser_error s ->
       (("Fatal - Error in configuration file: "^s),

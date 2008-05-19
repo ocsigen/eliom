@@ -27,6 +27,12 @@
 open Simplexmlparser
 open Ocsigen_config
 
+let int_of_string s =
+  try
+    int_of_string (Ocsigen_lib.remove_spaces s 0 ((String.length s) -1))
+  with Failure _ -> raise (Ocsigen_config.Config_file_error
+                             (s^" is not a valid integer."))
+
 (*****************************************************************************)
 let parse_size =
   let kilo = Int64.of_int 1000 in
@@ -38,8 +44,12 @@ let parse_size =
   let gibi = Int64.mul kibi mebi in
   let tebi = Int64.mul mebi mebi in
   fun s ->
+    let l = String.length s in
+    let s = Ocsigen_lib.remove_spaces s 0 (l-1) in
     let v l =
-      Int64.of_string (String.sub s 0 l)
+      try
+        Int64.of_string (String.sub s 0 l)
+      with Failure _ -> raise (Ocsigen_config.Config_file_error (s^" is not a valid size."))
     in
     let o l =
       let l1 = l-1 in
@@ -70,7 +80,7 @@ let parse_size =
               else
                 if (c2 = "ko") || (c2 = "kB")
                 then Int64.mul kilo (v l2)
-                else
+                else       
                   let l3 = l-3 in
                   if l3>0
                   then
