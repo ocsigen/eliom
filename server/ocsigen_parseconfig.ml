@@ -27,11 +27,12 @@
 open Simplexmlparser
 open Ocsigen_config
 
-let int_of_string s =
+let int_of_string tag s =
   try
     int_of_string (Ocsigen_lib.remove_spaces s 0 ((String.length s) -1))
   with Failure _ -> raise (Ocsigen_config.Config_file_error
-                             (s^" is not a valid integer."))
+                             ("While parsing <"^tag^"> - "^s^
+                                " is not a valid integer."))
 
 (*****************************************************************************)
 let parse_size =
@@ -49,7 +50,7 @@ let parse_size =
     let v l =
       try
         Int64.of_string (String.sub s 0 l)
-      with Failure _ -> raise (Ocsigen_config.Config_file_error (s^" is not a valid size."))
+      with Failure _ -> failwith "Ocsigen_parseconfig.parse_size"
     in
     let o l =
       let l1 = l-1 in
@@ -118,6 +119,19 @@ let parse_size =
          else o l)
 
 
+let parse_size_tag tag s = 
+  try
+    parse_size s 
+  with Failure _ -> 
+    raise
+      (Ocsigen_config.Config_file_error 
+         ("While parsing <"^tag^"> - "^s^" is not a valid size."))
+
+
+
+
+
+
 (* My xml parser is not really adapted to this.
    It is the parser for the syntax extension.
    But it works.
@@ -127,7 +141,16 @@ let parse_size =
 let rec parse_string = function
   | [] -> ""
   | (PCData s)::l -> s^(parse_string l)
-  | _ -> raise (Config_file_error "string expected")
+  | _ -> failwith "ocsigen_parseconfig.parse_string"
+
+let parse_string_tag tag s = 
+  try
+    parse_string s 
+  with Failure _ -> 
+    raise
+      (Ocsigen_config.Config_file_error 
+         ("While parsing <"^tag^"> - String expected."))
+
 
 let rec parser_config =
   let rec verify_empty = function
@@ -171,8 +194,8 @@ let parse_server isreloading c =
       | [] -> []
       | (Element ("port", atts, p))::ll ->
           parse_server_aux ll
-      | (Element ("charset", atts, p))::ll ->
-          set_default_charset (Some (parse_string p));
+      | (Element ("charset" as st, atts, p))::ll ->
+          set_default_charset (Some (parse_string_tag st p));
           parse_server_aux ll
       | (Element ("logdir", [], p))::ll ->
           parse_server_aux ll
@@ -182,58 +205,59 @@ let parse_server isreloading c =
           parse_server_aux ll
       | (Element ("group", [], p))::ll ->
           parse_server_aux ll
-      | (Element ("uploaddir", [], p))::ll ->
-          set_uploaddir (Some (parse_string p));
+      | (Element ("uploaddir" as st, [], p))::ll ->
+          set_uploaddir (Some (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("datadir", [], p))::ll ->
-          set_datadir (parse_string p);
+      | (Element ("datadir" as st, [], p))::ll ->
+          set_datadir (parse_string_tag st p);
           parse_server_aux ll
-      | (Element ("minthreads", [], p))::ll ->
-          set_minthreads (int_of_string (parse_string p));
+      | (Element ("minthreads" as st, [], p))::ll ->
+          set_minthreads (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("maxthreads", [], p))::ll ->
-          set_maxthreads (int_of_string (parse_string p));
+      | (Element ("maxthreads" as st, [], p))::ll ->
+          set_maxthreads (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("maxdetachedcomputationsqueued", [], p))::ll ->
-          set_max_number_of_threads_queued (int_of_string (parse_string p));
+      | (Element ("maxdetachedcomputationsqueued" as st, [], p))::ll ->
+          set_max_number_of_threads_queued (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("maxconnected", [], p))::ll ->
-          set_max_number_of_connections (int_of_string (parse_string p));
+      | (Element ("maxconnected" as st, [], p))::ll ->
+          set_max_number_of_connections (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("mimefile", [], p))::ll ->
-          Ocsigen_config.set_mimefile (parse_string p);
+      | (Element ("mimefile" as st, [], p))::ll ->
+          Ocsigen_config.set_mimefile (parse_string_tag st p);
           parse_server_aux ll
-      | (Element ("timeout", [], p))::ll
+      | (Element ("timeout" as st, [], p))::ll
 (*VVV timeout: backward compatibility with <= 0.99.4 *)
-      | (Element ("clienttimeout", [], p))::ll ->
-          set_client_timeout (int_of_string (parse_string p));
+      | (Element ("clienttimeout" as st, [], p))::ll ->
+          set_client_timeout (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("servertimeout", [], p))::ll ->
-          set_server_timeout (int_of_string (parse_string p));
+      | (Element ("servertimeout" as st, [], p))::ll ->
+          set_server_timeout (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
 (*VVV For now we use silentservertimeout and silentclienttimeout also
   for keep alive :-(
-      | (Element ("keepalivetimeout", [], p))::ll ->
-          set_keepalive_timeout (int_of_string (parse_string p));
+      | (Element ("keepalivetimeout" as st, [], p))::ll ->
+          set_keepalive_timeout (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("keepopentimeout", [], p))::ll ->
-          set_keepopen_timeout (int_of_string (parse_string p));
+      | (Element ("keepopentimeout" as st, [], p))::ll ->
+          set_keepopen_timeout (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
 *)
-      | (Element ("netbuffersize", [], p))::ll ->
-          set_netbuffersize (int_of_string (parse_string p));
+      | (Element ("netbuffersize" as st, [], p))::ll ->
+          set_netbuffersize (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("filebuffersize", [], p))::ll ->
-          set_filebuffersize (int_of_string (parse_string p));
+      | (Element ("filebuffersize" as st, [], p))::ll ->
+          set_filebuffersize (int_of_string st (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("maxrequestbodysize", [], p))::ll ->
-          set_maxrequestbodysize (parse_size (parse_string p));
+      | (Element ("maxrequestbodysize" as st, [], p))::ll ->
+          set_maxrequestbodysize (parse_size_tag st (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("maxuploadfilesize", [], p))::ll ->
-          set_maxuploadfilesize (parse_size (parse_string p));
+      | (Element ("maxuploadfilesize" as st, [], p))::ll ->
+          set_maxuploadfilesize (parse_size_tag st
+                                   (parse_string_tag st p));
           parse_server_aux ll
-      | (Element ("commandpipe", [], p))::ll ->
-          set_command_pipe (parse_string p);
+      | (Element ("commandpipe" as st, [], p))::ll ->
+          set_command_pipe (parse_string_tag st p);
           parse_server_aux ll
       | (Element ("debugmode", [], []))::ll ->
           set_debugmode true;
@@ -299,7 +323,7 @@ let parse_server isreloading c =
                       ((String.sub ss 0 dppos),
                        match String.sub ss (dppos+1) ((len - dppos) - 1) with
                          "*" -> None
-                       | p -> Some (int_of_string p))
+                       | p -> Some (int_of_string "host" p))
                     with
                       Not_found -> ss, None
                     | Failure _ ->
@@ -381,30 +405,32 @@ let parse_port =
     let do_match r = Netstring_pcre.string_match r s 0 in
     let get x i = Netstring_pcre.matched_group x i s in
     match do_match all_ipv6 with
-      | Some r -> Some (Unix.inet6_addr_any), int_of_string (get r 1)
+      | Some r -> Some (Unix.inet6_addr_any), int_of_string "port" (get r 1)
       | None -> match do_match all_ipv4 with
-      | Some r -> Some (Unix.inet_addr_any), int_of_string (get r 1)
+      | Some r -> Some (Unix.inet_addr_any), int_of_string "port" (get r 1)
       | None -> match do_match single_ipv6 with
-      | Some r -> Some (Unix.inet_addr_of_string (get r 1)), int_of_string (get r 2)
+      | Some r -> Some (Unix.inet_addr_of_string (get r 1)), 
+          int_of_string "port" (get r 2)
       | None -> match do_match single_ipv4 with
-      | Some r -> Some (Unix.inet_addr_of_string (get r 1)), int_of_string (get r 2)
-      | None -> None, int_of_string s
+      | Some r -> Some (Unix.inet_addr_of_string (get r 1)), 
+          int_of_string "port" (get r 2)
+      | None -> None, int_of_string "port" s
 
 
 (* First parsing of config file *)
 let extract_info c =
   let rec parse_ssl certificate privatekey = function
       [] -> Some (certificate,privatekey)
-    | (Element ("certificate", [], p))::l ->
+    | (Element ("certificate" as st, [], p))::l ->
         (match certificate with
           None ->
-            parse_ssl (Some (parse_string p)) privatekey l
+            parse_ssl (Some (parse_string_tag st p)) privatekey l
         | _ -> raise (Config_file_error
                         "Two certificates inside <ssl>"))
-    | (Element ("privatekey", [], p))::l ->
+    | (Element ("privatekey" as st, [], p))::l ->
         (match privatekey with
           None ->
-            parse_ssl certificate (Some (parse_string p)) l
+            parse_ssl certificate (Some (parse_string_tag st p)) l
         | _ -> raise (Config_file_error
                         "Two private keys inside <ssl>"))
     | (Element (tag,_,_))::l ->
@@ -413,32 +439,32 @@ let extract_info c =
   in
   let rec aux user group ssl ports sslports minthreads maxthreads = function
       [] -> ((user, group), (ssl, ports,sslports), (minthreads, maxthreads))
-    | (Element ("logdir", [], p))::ll ->
-        set_logdir (parse_string p);
+    | (Element ("logdir" as st, [], p))::ll ->
+        set_logdir (parse_string_tag st p);
         aux user group ssl ports sslports minthreads maxthreads ll
-    | (Element ("port", atts, p))::ll ->
+    | (Element ("port" as st, atts, p))::ll ->
         (match atts with
           []
         | [("protocol", "HTTP")] ->
             let po = try
-              parse_port (parse_string p)
+              parse_port (parse_string_tag st p)
             with Failure _ ->
               raise (Config_file_error "Wrong value for <port> tag")
             in aux user group ssl (po::ports) sslports minthreads maxthreads ll
         | [("protocol", "HTTPS")] ->
             let po = try
-              parse_port (parse_string p)
+              parse_port (parse_string_tag st p)
             with Failure _ ->
               raise (Config_file_error "Wrong value for <port> tag")
             in
             aux user group ssl ports (po::sslports) minthreads maxthreads ll
         | _ -> raise (Config_file_error "Wrong attribute for <port>"))
-    | (Element ("minthreads", [], p))::ll ->
+    | (Element ("minthreads" as st, [], p))::ll ->
         aux user group ssl ports sslports
-          (Some (int_of_string (parse_string p))) maxthreads ll
-    | (Element ("maxthreads", [], p))::ll ->
+          (Some (int_of_string st (parse_string_tag st p))) maxthreads ll
+    | (Element ("maxthreads" as st, [], p))::ll ->
         aux user group ssl ports sslports minthreads
-          (Some (int_of_string (parse_string p))) ll
+          (Some (int_of_string st (parse_string_tag st p))) ll
     | (Element ("ssl", [], p))::ll ->
         (match ssl with
           None ->
@@ -448,22 +474,22 @@ let extract_info c =
             raise
               (Config_file_error
                  "Only one ssl certificate for each server supported for now"))
-    | (Element ("user", [], p))::ll ->
+    | (Element ("user" as st, [], p))::ll ->
         (match user with
           None ->
-            aux (Some (parse_string p)) group ssl ports sslports
+            aux (Some (parse_string_tag st p)) group ssl ports sslports
               minthreads maxthreads ll
         | _ -> raise (Config_file_error
                         "Only one <user> tag for each server allowed"))
-    | (Element ("group", [], p))::ll ->
+    | (Element ("group" as st, [], p))::ll ->
         (match group with
           None ->
-            aux user (Some (parse_string p)) ssl ports sslports
+            aux user (Some (parse_string_tag st p)) ssl ports sslports
               minthreads maxthreads ll
         | _ -> raise (Config_file_error
                         "Only one <group> tag for each server allowed"))
-    | (Element ("commandpipe", [], p))::ll ->
-        set_command_pipe (parse_string p);
+    | (Element ("commandpipe" as st, [], p))::ll ->
+        set_command_pipe (parse_string_tag st p);
         aux user group ssl ports sslports minthreads maxthreads ll
     | (Element (tag, _, _))::ll ->
         aux user group ssl ports sslports minthreads maxthreads ll

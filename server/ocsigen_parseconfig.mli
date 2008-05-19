@@ -20,8 +20,29 @@
 
 (** Config file parsing *)
 
+(** Parse a size ("infinity" or using SI or binary units,
+    e.g. 10 10B 10o 10ko 10kB 10kiB 10MiB 10TB ...).
+    Raises [Failure "Ocsigen_parseconfig.parse_size"] in case of error.
+*)
 val parse_size : string -> int64 option
+
+(** [parse_size_tag tag s] parses a size (same syntax as [parse_size]).
+    In case of error, raises [Ocsigen_config.Config_file_error m] where [m]
+    is an error message explaining that a size was expected in tag [<tag>].
+*)
+val parse_size_tag : string -> string -> int64 option
+
+(** Parse a string (PCDATA) as XML content.
+    Raises [Failure "Ocsigen_parseconfig.parse_string"] in case of error.
+*)
 val parse_string : Simplexmlparser.xml list -> string
+
+(** [parse_string_tag tag s] parses a string (same syntax as [parse_string]).
+    In case of error, raises [Ocsigen_config.Config_file_error m] where [m]
+    is an error message explaining that a string was expected in tag [<tag>].
+*)
+val parse_string_tag : string -> Simplexmlparser.xml list -> string
+
 
 (**/**)
 
