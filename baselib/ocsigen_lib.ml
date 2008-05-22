@@ -202,13 +202,12 @@ let basic_sep char s =
    removing spaces at the beginning and at the end *)
 let remove_spaces s beg endd =
   let rec find_not_space s i step =
-    if s.[i] = ' '
-    then
-      let i' = i+step in
-      if (i'>endd) || (i' < beg)
-      then i'
-      else find_not_space s i' step
-    else i
+    if (i>endd) || (i < beg)
+    then i
+    else
+      if s.[i] = ' '
+      then find_not_space s (i+step) step
+      else i
   in
   let first = find_not_space s beg 1 in
   let last = find_not_space s endd (-1) in
@@ -217,8 +216,8 @@ let remove_spaces s beg endd =
   else ""
 
 
-(* Cut a string to the next separator, removing spaces.
-   Raises Not_found if the separator connaot be found.
+(** Cut a string to the next separator, removing spaces.
+   Raises Not_found if the separator connot be found.
  *)
 let sep char s =
   let len = String.length s in
