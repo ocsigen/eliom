@@ -59,76 +59,57 @@ let code_match regexp code =
   | Some regexp ->
       Netstring_pcre.string_match regexp (string_of_int code) 0 <> None
 
-let find_static_page dir err path pathstring =
-  let find_file (filename, readable) =
+
+let find_static_page dir err path =
+  let find_file filename readable =
     (* See also module Files in eliom.ml *)
     try
       Ocsigen_messages.debug (fun () -> "--Staticmod: Testing \""^filename^"\".");
       let stat = Unix.LargeFile.stat filename in
       let (filename, stat) =
-        if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
-        then
-          (if (filename.[(String.length filename) - 1]) = '/'
-          then
-            let fn2 = filename^"index.html" in
+        if stat.Unix.LargeFile.st_kind = Unix.S_DIR then
+          if filename.[String.length filename - 1] <> '/' then begin
+            Ocsigen_messages.debug
+              (fun () -> "--Staticmod: "^filename^" is a directory");
+            raise Ocsigen_Is_a_directory
+          end else begin
+            let fn2 = filename ^ "index.html" in
             Ocsigen_messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
             try
-              (fn2, (Unix.LargeFile.stat fn2))
+              (fn2, Unix.LargeFile.stat fn2)
             with
-            | Unix.Unix_error (Unix.ENOENT,_,_) ->
-                if readable
-                then (filename, stat)
-                else raise Failed_403
-          else
-            (if (path= []) || (path = [""])
-            then
-              let fn2 = filename^"/index.html" in
-              Ocsigen_messages.debug (fun () -> "--Staticmod: Testing \""^fn2^"\".");
-              try
-                (fn2, (Unix.LargeFile.stat fn2))
-              with
               | Unix.Unix_error (Unix.ENOENT, _, _) ->
-                  if readable
-                  then (filename^"/", stat)
-                  else raise Failed_403
-            else (Ocsigen_messages.debug
-                    (fun () -> "--Staticmod: "^filename^" is a directory");
-                  raise Ocsigen_Is_a_directory)))
+                  if readable then (filename, stat) else raise Failed_403
+          end
         else (filename, stat)
       in
       Ocsigen_messages.debug
         (fun () -> "--Staticmod: Looking for \""^filename^"\".");
-      if (stat.Unix.LargeFile.st_kind = Unix.S_REG)
-      then begin
+      if stat.Unix.LargeFile.st_kind = Unix.S_REG then begin
         Unix.access filename [Unix.R_OK];
         RFile filename
-      end
-      else (
-        if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
-        then
-          RDir filename
-        else raise Failed_404)
-    with Unix.Unix_error (Unix.ENOENT,_,_) -> raise Failed_404
+      end else if stat.Unix.LargeFile.st_kind = Unix.S_DIR then
+        RDir filename
+      else raise Failed_404
+    with
+      | Unix.Unix_error (Unix.ENOENT,_,_) -> raise Failed_404
   in
 
+  let pathstring = String.concat "/" path in
   match dir with
-  | Dir (d, readable) ->
-      (None, find_file ((d^"/"^pathstring), readable))
-  | Regexp (regexp, dest, readable, code) ->
-      if code_match code err then
+    | Dir (d, readable) ->
+        (None, find_file (Filename.concat d pathstring) readable)
+    | Regexp (regexp, dest, readable, code) when code_match code err ->
         (code,
          match Netstring_pcre.string_match regexp pathstring 0 with
-         | None -> raise Not_concerned
-         | Some _ -> (* Matching regexp found! *)
-             find_file
-               ((try
-                 Ocsigen_extensions.replace_user_dir regexp dest pathstring
-               with Not_found -> raise Failed_404),
-                readable))
-      else raise Not_concerned
-
-
-
+           | None -> raise Not_concerned
+           | Some _ -> (* Matching regexp found! *)
+               find_file
+                 (try
+                    Ocsigen_extensions.replace_user_dir regexp dest pathstring
+                  with Not_found -> raise Failed_404)
+                 readable)
+    | _ -> raise Not_concerned
 
 
 
@@ -144,12 +125,12 @@ let gen dir charset = function
              Ocsigen_messages.debug2 "--Staticmod: Is it a static file?";
              match
                find_static_page
-                 dir err ri.ri_sub_path ri.ri_sub_path_string
+                 dir err ri.ri_sub_path
              with
                | code, RDir dirname ->
                    Ocsigen_senders.Directory_content.result_of_content
                      (dirname, ri.ri_full_path) >>= fun r ->
-                   (match code with
+                   begin match code with
                       | None -> return (Ext_found (fun () -> Lwt.return r))
                       | Some _ -> (* It is an error handler *)
                           return
@@ -157,30 +138,31 @@ let gen dir charset = function
                                (fun () ->
                                   Lwt.return
                                     {r with
-                                       Ocsigen_http_frame.res_code= err;
-                                    })))
-                     | code, RFile filename ->
-                         Ocsigen_senders.File_content.result_of_content filename
-                         >>= fun r ->
-                         (match code with
-                            | None ->
-                                return
-                                  (Ext_found
-                                     (fun () ->
-                                        Lwt.return
-                                          {r with
-                                             Ocsigen_http_frame.res_charset= Some charset;
-                                          }))
-                            | Some _ -> (* It is an error handler *)
-                                return
-                                  (Ext_found
-                                     (fun () ->
-                                        Lwt.return
-                                          {r with
-                                             Ocsigen_http_frame.res_charset= Some charset;
-                                             Ocsigen_http_frame.res_code= err;
-                                          })))
-
+                                       Ocsigen_http_frame.res_code = err;
+                                    }))
+                   end
+               | code, RFile filename ->
+                   Ocsigen_senders.File_content.result_of_content
+                     filename >>= fun r ->
+                   begin match code with
+                     | None ->
+                         return
+                           (Ext_found
+                              (fun () ->
+                                 Lwt.return
+                                   {r with
+                                      Ocsigen_http_frame.res_charset = Some charset;
+                                   }))
+                     | Some _ -> (* It is an error handler *)
+                         return
+                           (Ext_found
+                              (fun () ->
+                                 Lwt.return
+                                   {r with
+                                      Ocsigen_http_frame.res_charset = Some charset;
+                                      Ocsigen_http_frame.res_code = err;
+                                   }))
+                   end
            end
            else return (Ext_next 400))
 
