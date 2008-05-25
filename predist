@@ -1,5 +1,5 @@
 #!/bin/sh
 chmod a+rx configure
 if [ -d "$DARCS_REPO" ]; then
-    darcs changes --repodir "$DARCS_REPO" > CHANGES
+    darcs changes --last 100 --repodir "$DARCS_REPO" > CHANGES
 fi

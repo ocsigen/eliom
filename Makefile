@@ -249,7 +249,7 @@ $(OCSIGENNAME).conf.local: Makefile.config files/ocsigen.conf.in
 clean:
 	-@for i in $(REPS) ; do $(MAKE) -C $$i clean ; done
 	-rm $(OCSIGENNAME).conf.local $(OCSIGENNAME).conf.opt.local
-	-rm -f $(METAS)
+	-rm -f $(METAS) $(OCSIGENNAME)-*.tar.gz
 	-find . -name "*~" -delete
 
 distclean: clean
@@ -362,7 +362,7 @@ logrotate:
 	  > $(TEMPROOT)/etc/logrotate.d/$(OCSIGENNAME); }
 
 dist:
-	DARCS_REPO=$(PWD) darcs dist -d ocsigen-$(VERSION)
+	DARCS_REPO=$(PWD) darcs dist -d $(OCSIGENNAME)-$(VERSION)
 
 install: docinstall installnodoc
 
@@ -379,4 +379,3 @@ fulluninstall: uninstall
 #	rm -f $(CONFIGDIR)/$(OCSIGENNAME).conf
 #	rm -f $(LOGDIR)/$(OCSIGENNAME).log
 #	rm -rf $(MODULEINSTALLDIR)
-
