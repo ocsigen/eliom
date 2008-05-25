@@ -10,6 +10,7 @@ ocaml (tested with versions 3.08.4, 3.09.1 and following, 3.10.x.
 camlp4 (and camlp4rf etc.)
 ocamlduce recommanded (otherwise you won't have all the features)
 findlib (ocamlfind)
+lwt >= 1.1.0
 pcre-ocaml
 ocamlnet >= 2.2.0 (actually only module netstring, netsys, pcre) 
 ocamlssl (sometimes called libssl-ocaml) >= 0.4.0 (ocamlssl needs openssl) (>= 0.4.1 for MacOS)

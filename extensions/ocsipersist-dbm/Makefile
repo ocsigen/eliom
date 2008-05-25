@@ -15,7 +15,7 @@ else
 CAMLCNAME= ocamlc
 endif
 
-LIB = -thread -package netstring $(LIBDIRS2)
+LIB = -thread -package lwt,netstring $(LIBDIRS2)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
@@ -51,10 +51,10 @@ ocsipersist-dbm.cmxs: ocsipersist.cmx
 	cp -f ocsipersist-dbm.cmxs ..
 
 ocsidbm: ocsidbm.cmo
-	$(CAMLC) -package ssl -o $@ unix.cma ssl.cma dbm.cma lwt.cma $<
+	$(CAMLC) -package lwt,ssl -o $@ unix.cma ssl.cma dbm.cma lwt.cma $<
 
 ocsidbm.opt: ocsidbm.cmx
-	$(CAMLOPT) -package ssl -o $@ unix.cmxa ssl.cmxa dbm.cmxa lwt.cmxa $<
+	$(CAMLOPT) -package lwt,ssl -o $@ unix.cmxa ssl.cmxa dbm.cmxa lwt.cmxa $<
 
 ocsipersist.mli:
 	cp -f ../ocsipersist.mli .

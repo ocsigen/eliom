@@ -55,12 +55,12 @@ DBMINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma
 else
 endif
 
-DOC= $(DOCPREF)lwt/lwt.mli $(DOCPREF)lwt/lwt_unix.mli $(DOCPREF)lwt/lwt_pool.mli $(DOCPREF)lwt/lwt_util.mli $(DOCPREF)lwt/lwt_chan.mli $(DOCPREF)lwt/lwt_ssl.mli $(DOCPREF)lwt/lwt_timeout.mli $(DOCPREF)lwt/lwt_preemptive.mli $(DOCPREF)lwt/lwt_lib.mli $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli $(DOCPREF)eliom/eliom_predefmod.mli $(DOCPREF)eliom/eliom_common.mli $(DOCPREF)eliom/eliom_parameters.mli $(DOCPREF)eliom/eliom_services.mli $(DOCPREF)eliom/eliom_sessions.mli $(DOCPREF)server/ocsigen_extensions.mli $(DOCPREF)server/ocsigen_parseconfig.mli $(DOCPREF)xmlp4/xhtmlpretty.mli $(DOCPREF)xmlp4/xhtmlcompact.mli $(DOCPREF)xmlp4/oldocaml/xhtmltypes.ml $(DOCPREF)xmlp4/ohl-xhtml/xHTML.mli $(DOCPREF)baselib/ocsigen_messages.mli $(DOCPREF)http/ocsigen_headers.mli $(DOCPREF)server/ocsigen_http_client.mli $(DOCPREF)http/ocsigen_http_frame.mli $(DOCPREF)http/ocsigen_http_com.mli $(DOCPREF)http/ocsigen_senders.mli $(DOCPREF)eliom/eliom_tools.mli $(DOCPREF)extensions/ocsipersist.mli $(DOCPREF)extensions/authbasic.mli $(DOCPREF)xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli $(DOCPREF)eliom/eliom_predefmod.mli $(DOCPREF)eliom/eliom_common.mli $(DOCPREF)eliom/eliom_parameters.mli $(DOCPREF)eliom/eliom_services.mli $(DOCPREF)eliom/eliom_sessions.mli $(DOCPREF)server/ocsigen_extensions.mli $(DOCPREF)server/ocsigen_parseconfig.mli $(DOCPREF)xmlp4/xhtmlpretty.mli $(DOCPREF)xmlp4/xhtmlcompact.mli $(DOCPREF)xmlp4/oldocaml/xhtmltypes.ml $(DOCPREF)xmlp4/ohl-xhtml/xHTML.mli $(DOCPREF)baselib/ocsigen_messages.mli $(DOCPREF)http/ocsigen_headers.mli $(DOCPREF)server/ocsigen_http_client.mli $(DOCPREF)http/ocsigen_http_frame.mli $(DOCPREF)http/ocsigen_http_com.mli $(DOCPREF)http/ocsigen_senders.mli $(DOCPREF)eliom/eliom_tools.mli $(DOCPREF)extensions/ocsipersist.mli $(DOCPREF)extensions/authbasic.mli $(DOCPREF)xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 METAS = META META.ocsigen_ext META.eliom_examples META.ocsigen_ext.global META.eliom_examples.global
 
 
 INSTALL = install
-TARGETSBYTE = lwt.byte baselib.byte http.byte xmlp4.byte server.byte extensions.byte eliom.byte examples.byte
+TARGETSBYTE = baselib.byte http.byte xmlp4.byte server.byte extensions.byte eliom.byte examples.byte
 
 PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
 	eliom/eliom.cma \
@@ -79,7 +79,6 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma
 CMITOINSTALL = server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi xmlp4/xhtmlpretty.cmi xmlp4/xhtmlcompact.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi http/ocsigen_senders.cmi http/framepp.cmi http/ocsigen_http_com.cmi http/http_headers.cmi baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi http/ocsigen_stream.cmi baselib/ocsigen_messages.cmi META
-#LWTCMITOINSTALL = lwt/lwt.cmi lwt/lwt_unix.cmi lwt/lwt_chan.cmi lwt/lwt_ssl.cmi lwt/lwt_timeout.cmi lwt/lwt_util.cmi lwt/META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi
 
@@ -134,16 +133,6 @@ baselib.byte:
 
 baselib.opt:
 	$(MAKE) -C baselib opt
-
-lwt: lwt.byte
-
-lwt.byte:
-	$(MAKE) -C lwt byte
-
-lwt: lwt.opt
-
-lwt.opt:
-	$(MAKE) -C lwt opt
 
 xmlp4: xmlp4.byte
 
@@ -204,7 +193,7 @@ server.opt:
 	$(MAKE) -C server opt
 
 doc:
-	$(CAMLDOC) -package ssl,netstring$(DUCEPACK) $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -intro files/indexdoc -d doc -html $(DOC)
+	$(CAMLDOC) -package lwt,ssl,netstring$(DUCEPACK) $(LIBDIRS3) -I `$(CAMLP4) -where` -I +threads -intro files/indexdoc -d doc -html $(DOC)
 
 doc/index.html: doc
 
@@ -269,14 +258,12 @@ distclean: clean
 	-rm -f Makefile.config
 
 depend: xmlp4pre.byte $(DEPOPT)
-#	touch lwt/depend
 #	@for i in $(REPS) ; do touch "$$i"/.depend; $(MAKE) -C $$i depend ; done
 	@for i in $(REPS) ; do $(MAKE) -C $$i depend ; done
 
 
 .PHONY: partialinstall install doc docinstall installnodoc logrotate dist
 partialinstall:
-	$(MAKE) -C lwt install
 	mkdir -p $(TEMPROOT)$(MODULEINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXAMPLESINSTALLDIR)
 	mkdir -p $(TEMPROOT)$(EXTRALIBDIR)/METAS
@@ -385,7 +372,6 @@ uninstall:
 	-rm -Rf $(TEMPROOT)$(DOCDIR)
 	-rm -Rf $(TEMPROOT)$(EXTRALIBDIR)
 	-$(MAKE) -C server uninstall
-	-$(MAKE) -C lwt uninstall
 	-$(OCAMLFIND) remove $(OCSIGENNAME) -destdir "$(TEMPROOT)$(MODULEINSTALLDIR)"
 
 fulluninstall: uninstall

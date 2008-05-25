@@ -95,7 +95,7 @@ woptions=""
 
 
 # Packages to include anyway:
-requires="netstring ssl sqlite3"
+requires="lwt netstring ssl sqlite3"
 
 
 
@@ -480,6 +480,19 @@ else
 fi
 
 
+######################################################################
+# Check lwt
+
+printf "%s" "Checking for lwt... "
+if ocamlfind query lwt >/dev/null 2>/dev/null; then
+    echo "found"
+else
+    echo "not found"
+    echo "Make sure that ocamlfind is in your PATH, or install lwt"
+    echo "(from www.ocsigen.org)"
+    exit 1
+fi
+
 
 ######################################################################
 # Check SSL
@@ -788,9 +801,9 @@ PROFILING=NO
 OCAMLVERSION=$ocamlversion
 
 # Do not modify this
-LIBDIRS= -I ../lwt -I ../baselib -I ../http -I ../xmlp4 -I ../server -I ../extensions -I ../eliom
-LIBDIRS2= -I ../../lwt -I ../../baselib -I ../../http -I ../../xmlp4 -I ../../server -I ../../extensions -I ../../eliom
-LIBDIRS3= -I lwt -I baselib -I http -I xmlp4 -I server -I extensions -I eliom
+LIBDIRS= -I ../baselib -I ../http -I ../xmlp4 -I ../server -I ../extensions -I ../eliom
+LIBDIRS2= -I ../../baselib -I ../../http -I ../../xmlp4 -I ../../server -I ../../extensions -I ../../eliom
+LIBDIRS3= -I baselib -I http -I xmlp4 -I server -I extensions -I eliom
 
 _EOF_
 

@@ -1,4 +1,0 @@
-requires = "unix,ssl"
-version = "0.1"
-archive(byte) = "lwt.cma"
-archive(native) = "lwt.cmxa"

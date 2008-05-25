@@ -18,7 +18,7 @@ FLAGS    =
 CAMLCOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG)
 CAMLDEP  = $(OCAMLFIND) ocamldep $(LIBDIRS)
 NAME 	 = test_pp
-LIB= -package netstring,ssl $(LIBDIRS) -I +camlp4
+LIB= -package netstring,ssl,lwt $(LIBDIRS) -I +camlp4
 PP =
 # -pp "camlp4o ../lib/xhtmlsyntax.cma -- -loc loc" 
 ALL_CMO  = ocsigen_stream.cmo multipart.cmo \
