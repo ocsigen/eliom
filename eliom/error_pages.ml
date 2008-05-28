@@ -40,13 +40,14 @@ let page_bad_param l =
     (head (title (pcdata s)) [])
     (body
        [h1 [pcdata s];
-        if l = []
-        then
-          p [pcdata "(no POST parameters)."]
-        else
-          p ((pcdata "(Post parameters are: ")::
-             (List.fold_right (fun n b -> (em [pcdata n])::(pcdata ", ")::b)
-                l [pcdata ")."]))]
+        match l with
+          | [] -> p [pcdata "(no POST parameters)."]
+          | a::l ->
+              p ((pcdata "(Post parameters are: ")::
+                   (em [pcdata a])::
+                   (List.fold_right
+                      (fun n b -> (pcdata ", ")::(em [pcdata n])::b)
+                      l [pcdata ")."]))]
     )
 
 let page_session_expired  =

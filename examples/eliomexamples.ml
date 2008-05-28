@@ -443,7 +443,7 @@ let suffix5 =
 
 let nosuffix =
   register_new_service
-    ~path:["suffix5";"notasuffix";""]
+    ~path:["suffix5";"notasuffix"]
     ~get_params:unit
     (fun sp () () ->
       return
