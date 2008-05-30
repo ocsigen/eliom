@@ -231,7 +231,7 @@ let rec split ?(multisep=false) char s =
   let longueur = String.length s in
   let rec aux deb =
     if deb >= longueur
-    then [""]
+    then []
     else
       try
         let firstsep = String.index_from s deb char in
