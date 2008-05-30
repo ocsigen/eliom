@@ -32,6 +32,51 @@ open Lwt
 
 
 
+
+(* optional parameters *)
+let optparam =
+  register_new_service
+    ~path:["opt"]
+    ~get_params:(Eliom_parameters.opt (Eliom_parameters.string "a" **
+                                         Eliom_parameters.string "b"))
+    (fun sp o () ->
+      Lwt.return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Hallo!"];
+                  match o with
+                    | None -> p [pcdata "no parameters"]
+                    | Some (a, b) -> p [pcdata a;
+                                        pcdata ", ";
+                                        pcdata b]
+                 ]))
+
+    )
+
+let optform =
+  register_new_service
+    ~path:["optform"]
+    ~get_params:unit
+    (fun sp () () ->
+      return
+        (html
+           (head (title (pcdata "")) [])
+           (body [h1 [pcdata "Hallo!"];
+                  
+  Eliom_predefmod.Xhtml.get_form
+    ~service:optparam ~sp
+    (fun (an, bn) -> 
+       [p [
+          string_input ~input_type:`Text ~name:an ();
+          string_input ~input_type:`Text ~name:bn ();
+          Eliom_predefmod.Xhtml.string_input
+             ~input_type:`Submit
+             ~value:"Click" ()]])
+                 ]))
+
+ )
+
+
 (* Preapplied service with suffix parameters *)
 
 let presu_service =
@@ -856,6 +901,7 @@ let mainpage = register_new_service ["tests"] unit
         p
         [
          a coucou sp [pcdata "coucou"] (); br ();
+         a optform sp [pcdata "Optional parameters"] (); br ();
          a sfail sp [pcdata "Service raising an exception"] (); br ();
          a sraise sp [pcdata "Wrong use of exceptions during service"] (); br ();
          a getcoex sp [pcdata "GET coservice with preapplied fallback, etc"] (); br ();

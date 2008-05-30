@@ -227,8 +227,8 @@ val sum :
  *)
 
 val opt :
-    ('a, [ `WithoutSuffix ], [ `One of 'b ] param_name) params_type ->
-      ('a option, [ `WithoutSuffix ], [ `Opt of 'b ] param_name) params_type
+    ('a, [ `WithoutSuffix ], 'b) params_type ->
+      ('a option, [ `WithoutSuffix ], 'b) params_type
 (** Use this if you want a parameter to be optional *)
 
 val any :

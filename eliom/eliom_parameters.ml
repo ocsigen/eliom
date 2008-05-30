@@ -160,8 +160,8 @@ let user_type_coordinates
        [ `One of ('a * coordinates) ] param_name) params_type =
   Obj.magic (TCoordv (user_type of_string to_string n, n))
 
-let opt (t : ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type)
-    : ('a option,[`WithoutSuffix], [ `Opt of 'an ] param_name) params_type =
+let opt (t : ('a, [`WithoutSuffix], 'an) params_type)
+    : ('a option,[`WithoutSuffix], 'an) params_type =
   Obj.magic (TOption t)
 
 let list (n : string) (t : ('a, [`WithoutSuffix], 'an) params_type)
@@ -297,17 +297,17 @@ let reconstruct_params
         (match aux t1 params files pref suff with
         | Res_ (v1, l1, f) ->
             (match aux t2 l1 f pref suff with
-              Res_ (v2, l2, f2) -> Res_ ((Obj.magic (v1, v2)), l2, f2)
-            | err -> err)
+               | Res_ (v2, l2, f2) -> Res_ ((Obj.magic (v1, v2)), l2, f2)
+               | err -> err)
         | Errors_ (errs, l, f) ->
             (match aux t2 l f pref suff with
-              Res_ (_, ll, ff) -> Errors_ (errs, ll, ff)
-            | Errors_ (errs2, ll, ff) -> Errors_ ((errs2@errs), ll, ff)))
+               | Res_ (_, ll, ff) -> Errors_ (errs, ll, ff)
+               | Errors_ (errs2, ll, ff) -> Errors_ ((errs2@errs), ll, ff)))
     | TOption t ->
         (try
           (match aux t params files pref suff with
-            Res_ (v, l, f) -> Res_ ((Obj.magic (Some v)), l, f)
-          | err -> err)
+             | Res_ (v, l, f) -> Res_ ((Obj.magic (Some v)), l, f)
+             | err -> err)
         with Not_found -> Res_ ((Obj.magic None), params, files))
     | TBool name ->
         (try
