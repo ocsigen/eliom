@@ -75,7 +75,7 @@ type 'a param_name
    - [`Opt of 'a] means: zero or one ['a]
  *)
 
-type 'a setoneopt = [ `Set of 'a | `One of 'a | `Opt of 'a ]
+type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
 (** This type is used by some form widgets like
    {!Eliom_predefmod.XHTMLFORMSSIG.int_input} that may be used against services
    expecting one parameter of that name,
@@ -83,7 +83,7 @@ type 'a setoneopt = [ `Set of 'a | `One of 'a | `Opt of 'a ]
    or services expecting any number of parameters of that name.
  *)
 
-type 'a oneopt = [ `One of 'a | `Opt of 'a ]
+type 'a oneradio = [ `One of 'a | `Radio of 'a ]
 (** This type is used by some form widgets like
    {!Eliom_predefmod.XHTMLFORMSSIG.int_image_input} that may be used against services
    expecting one parameter of that name
@@ -229,7 +229,16 @@ val sum :
 val opt :
     ('a, [ `WithoutSuffix ], 'b) params_type ->
       ('a option, [ `WithoutSuffix ], 'b) params_type
-(** Use this if you want a parameter to be optional *)
+(** Use this if you want one or some parameters to be optional *)
+
+val radio :
+    (string ->
+      ('a, [ `WithoutSuffix ], [ `One of 'b ] param_name) params_type) ->
+        string ->
+          ('a option, [ `WithoutSuffix ], [ `Radio of 'b ] param_name) params_type
+(** Use this if you want to use this parameter with a radio button.
+    It is equivalent to [opt] but works only for one single parameter.
+*)
 
 val any :
       ((string * string) list, [ `WithoutSuffix ], unit) params_type

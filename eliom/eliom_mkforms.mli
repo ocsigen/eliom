@@ -283,37 +283,37 @@ module type ELIOMFORMSIG =
 
     val int_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-          ?name:[< int setoneopt ] param_name ->
+          ?name:[< int setoneradio ] param_name ->
             ?value:int -> unit -> input_elt
 (** Creates an [<input>] tag for an integer *)
 
     val int32_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-          ?name:[< int32 setoneopt ] param_name ->
+          ?name:[< int32 setoneradio ] param_name ->
             ?value:int32 -> unit -> input_elt
 (** Creates an [<input>] tag for an integer *)
 
     val int64_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-          ?name:[< int64 setoneopt ] param_name ->
+          ?name:[< int64 setoneradio ] param_name ->
             ?value:int64 -> unit -> input_elt
 (** Creates an [<input>] tag for an integer *)
 
     val float_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-          ?name:[< float setoneopt ] param_name ->
+          ?name:[< float setoneradio ] param_name ->
             ?value:float -> unit -> input_elt
 (** Creates an [<input>] tag for a float *)
 
     val string_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-           ?name:[< string setoneopt ] param_name ->
+           ?name:[< string setoneradio ] param_name ->
              ?value:string -> unit -> input_elt
 (** Creates an [<input>] tag for a string *)
 
     val user_type_input :
         ?a:input_attrib_t -> input_type:input_type_t ->
-          ?name:[< 'a setoneopt ] param_name ->
+          ?name:[< 'a setoneradio ] param_name ->
             ?value:'a -> ('a -> string) -> input_elt
 (** Creates an [<input>] tag for a user type *)
 
@@ -326,55 +326,55 @@ module type ELIOMFORMSIG =
 
     val file_input :
         ?a:input_attrib_t ->
-          name:[< file_info setoneopt ] param_name ->
+          name:[< file_info setoneradio ] param_name ->
             unit -> input_elt
 (** Creates an [<input>] tag for sending a file *)
 
     val image_input :
         ?a:input_attrib_t ->
-          name:[< coordinates oneopt ] param_name ->
+          name:[< coordinates oneradio ] param_name ->
           ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="...">] tag that sends the coordinates
    the user clicked on *)
 
     val int_image_input :
         ?a:input_attrib_t ->
-          name:[< (int * coordinates) oneopt ] param_name -> value:int ->
+          name:[< (int * coordinates) oneradio ] param_name -> value:int ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int *)
 
     val int32_image_input :
         ?a:input_attrib_t ->
-          name:[< (int32 * coordinates) oneopt ] param_name -> value:int32 ->
+          name:[< (int32 * coordinates) oneradio ] param_name -> value:int32 ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int32 *)
 
     val int64_image_input :
         ?a:input_attrib_t ->
-          name:[< (int64 * coordinates) oneopt ] param_name -> value:int64 ->
+          name:[< (int64 * coordinates) oneradio ] param_name -> value:int64 ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int64 *)
 
     val float_image_input :
         ?a:input_attrib_t ->
-          name:[< (float * coordinates) oneopt ] param_name -> value:float ->
+          name:[< (float * coordinates) oneradio ] param_name -> value:float ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type float *)
 
     val string_image_input :
         ?a:input_attrib_t ->
-          name:[< (string * coordinates) oneopt ] param_name -> value:string ->
+          name:[< (string * coordinates) oneradio ] param_name -> value:string ->
             ?src:uri -> unit -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type string *)
 
     val user_type_image_input :
         ?a:input_attrib_t ->
-          name:[< ('a * coordinates) oneopt ] param_name -> value:'a ->
+          name:[< ('a * coordinates) oneradio ] param_name -> value:'a ->
             ?src:uri -> ('a -> string) -> input_elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of user defined type *)
@@ -462,37 +462,39 @@ module type ELIOMFORMSIG =
 
     val string_radio :
         ?a:input_attrib_t -> ?checked:bool ->
-          name:[ `Opt of string ] param_name ->
+          name:[ `Radio of string ] param_name ->
             value:string -> unit -> input_elt
-(** Creates a radio [<input>] tag with string content *)
+(** Creates a radio [<input>] tag with string content.
+    For services taking radio buttons, use [Eliom_parameters.radio].
+*)
 
     val int_radio :
         ?a:input_attrib_t -> ?checked:bool ->
-           name:[ `Opt of int ] param_name ->
+           name:[ `Radio of int ] param_name ->
              value:int -> unit -> input_elt
 (** Creates a radio [<input>] tag with int content *)
 
     val int32_radio :
         ?a:input_attrib_t -> ?checked:bool ->
-           name:[ `Opt of int32 ] param_name ->
+           name:[ `Radio of int32 ] param_name ->
              value:int32 -> unit -> input_elt
 (** Creates a radio [<input>] tag with int32 content *)
 
     val int64_radio :
         ?a:input_attrib_t -> ?checked:bool ->
-           name:[ `Opt of int64 ] param_name ->
+           name:[ `Radio of int64 ] param_name ->
              value:int64 -> unit -> input_elt
 (** Creates a radio [<input>] tag with int64 content *)
 
     val float_radio :
         ?a:input_attrib_t -> ?checked:bool ->
-           name:[ `Opt of float ] param_name ->
+           name:[ `Radio of float ] param_name ->
              value:float -> unit -> input_elt
 (** Creates a radio [<input>] tag with float content *)
 
     val user_type_radio :
         ?a:input_attrib_t -> ?checked:bool ->
-           name:[ `Opt of 'a ] param_name ->
+           name:[ `Radio of 'a ] param_name ->
              value:'a -> ('a -> string) -> input_elt
 (** Creates a radio [<input>] tag with user_type content *)
 
@@ -556,7 +558,7 @@ module type ELIOMFORMSIG =
 
     val textarea :
         ?a:textarea_attrib_t ->
-          name:[< string setoneopt ] param_name -> ?value:pcdata_elt ->
+          name:[< string setoneradio ] param_name -> ?value:pcdata_elt ->
             rows:int -> cols:int -> unit -> textarea_elt
 (** Creates a [<textarea>] tag *)
 

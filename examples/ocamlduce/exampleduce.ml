@@ -83,7 +83,7 @@ let links = register_new_service ["links"] unit
 
 let main = new_service ~path:["radio"] ~get_params:unit ()
 let form =
-  new_post_service ~fallback:main ~post_params:(opt (string "test")) ()
+  new_post_service ~fallback:main ~post_params:(radio string "test") ()
 
 let gen_form = fun x ->
         {{ [<p>[
@@ -103,7 +103,7 @@ let _ =
                 ] }}
         );
         register ~service:form
-        (fun sp () (x) ->
+        (fun sp () x ->
                 return {{ <html>[
                                 <head>[<title>"Form"]
                                 <body>[<p>{: match x with None -> "Geen" | Some y -> y :}]

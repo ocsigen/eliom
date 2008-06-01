@@ -35,8 +35,8 @@ type coordinates =
     {abscissa: int;
      ordinate: int}
 
-type 'a setoneopt = [ `Set of 'a | `One of 'a | `Opt of 'a ]
-type 'a oneopt = [ `One of 'a | `Opt of 'a ]
+type 'a setoneradio = [ `Set of 'a | `One of 'a | `Radio of 'a ]
+type 'a oneradio = [ `One of 'a | `Radio of 'a ]
 type 'a setone = [ `Set of 'a | `One of 'a ]
 
 (*****************************************************************************)
@@ -163,6 +163,12 @@ let user_type_coordinates
 let opt (t : ('a, [`WithoutSuffix], 'an) params_type)
     : ('a option,[`WithoutSuffix], 'an) params_type =
   Obj.magic (TOption t)
+
+let radio (t : string -> 
+            ('a, [`WithoutSuffix], [ `One of 'an ] param_name) params_type)
+    (n : string)
+    : ('a option, [`WithoutSuffix], [ `Radio of 'an ] param_name) params_type =
+  Obj.magic (TOption (t n))
 
 let list (n : string) (t : ('a, [`WithoutSuffix], 'an) params_type)
     : ('a list,[`WithoutSuffix], 'an listnames) params_type =

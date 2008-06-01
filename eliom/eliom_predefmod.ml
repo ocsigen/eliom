@@ -398,37 +398,37 @@ module type XHTMLFORMSSIG = sig
 
   val int_input :
       ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< int setoneopt ] param_name ->
+        ?name:[< int setoneradio ] param_name ->
           ?value:int -> unit -> [> input ] elt
 (** Creates an [<input>] tag for an integer *)
 
   val int32_input :
       ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< int32 setoneopt ] param_name ->
+        ?name:[< int32 setoneradio ] param_name ->
           ?value:int32 -> unit -> [> input ] elt
 (** Creates an [<input>] tag for a 32 bits integer *)
 
   val int64_input :
       ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< int64 setoneopt ] param_name ->
+        ?name:[< int64 setoneradio ] param_name ->
           ?value:int64 -> unit -> [> input ] elt
 (** Creates an [<input>] tag for a 64 bits integer *)
 
   val float_input :
       ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< float setoneopt ] param_name ->
+        ?name:[< float setoneradio ] param_name ->
           ?value:float -> unit -> [> input ] elt
 (** Creates an [<input>] tag for a float *)
 
   val string_input :
       ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< string setoneopt ] param_name ->
+        ?name:[< string setoneradio ] param_name ->
           ?value:string -> unit -> [> input ] elt
 (** Creates an [<input>] tag for a string *)
 
   val user_type_input :
       ?a:input_attrib attrib list -> input_type:[< basic_input_type ] ->
-        ?name:[< 'a setoneopt ] param_name ->
+        ?name:[< 'a setoneradio ] param_name ->
           ?value:'a -> ('a -> string) -> [> input ] elt
 (** Creates an [<input>] tag for a user type *)
 
@@ -442,55 +442,55 @@ module type XHTMLFORMSSIG = sig
 
   val file_input :
       ?a:input_attrib attrib list ->
-        name:[< file_info setoneopt ] param_name ->
+        name:[< file_info setoneradio ] param_name ->
           unit -> [> input ] elt
 (** Creates an [<input>] tag for sending a file *)
 
   val image_input :
       ?a:input_attrib attrib list ->
-        name:[< coordinates oneopt ] param_name ->
+        name:[< coordinates oneradio ] param_name ->
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="...">] tag that sends the coordinates
    the user clicked on *)
 
   val int_image_input :
       ?a:input_attrib attrib list ->
-        name:[< (int * coordinates) oneopt ] param_name -> value:int ->
+        name:[< (int * coordinates) oneradio ] param_name -> value:int ->
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int *)
 
   val int32_image_input :
       ?a:input_attrib attrib list ->
-        name:[< (int32 * coordinates) oneopt ] param_name -> value:int32 ->
+        name:[< (int32 * coordinates) oneradio ] param_name -> value:int32 ->
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int32 *)
 
   val int64_image_input :
       ?a:input_attrib attrib list ->
-        name:[< (int64 * coordinates) oneopt ] param_name -> value:int64 ->
+        name:[< (int64 * coordinates) oneradio ] param_name -> value:int64 ->
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type int64 *)
 
   val float_image_input :
       ?a:input_attrib attrib list ->
-        name:[< (float * coordinates) oneopt ] param_name -> value:float ->
+        name:[< (float * coordinates) oneradio ] param_name -> value:float ->
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
     the coordinates the user clicked on and a value of type float *)
 
   val string_image_input :
       ?a:input_attrib attrib list ->
-        name:[< (string * coordinates) oneopt ] param_name -> value:string ->
+        name:[< (string * coordinates) oneradio ] param_name -> value:string ->
           ?src:uri -> unit -> [> input ] elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of type string *)
 
   val user_type_image_input :
       ?a:input_attrib attrib list ->
-        name:[< ('a * coordinates) oneopt ] param_name -> value:'a ->
+        name:[< ('a * coordinates) oneradio ] param_name -> value:'a ->
           ?src:uri -> ('a -> string) -> [> input ] elt
 (** Creates an [<input type="image" name="..." value="...">] tag that sends
    the coordinates the user clicked on and a value of user defined type *)
@@ -585,27 +585,27 @@ module type XHTMLFORMSSIG = sig
 
 
   val string_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    name:[ `Opt of string ] param_name -> value:string -> unit -> [> input ] elt
+    name:[ `Radio of string ] param_name -> value:string -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with string content *)
 
   val int_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:[ `Opt of int ] param_name -> value:int -> unit -> [> input ] elt
+     name:[ `Radio of int ] param_name -> value:int -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with int content *)
 
   val int32_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:[ `Opt of int32 ] param_name -> value:int32 -> unit -> [> input ] elt
+     name:[ `Radio of int32 ] param_name -> value:int32 -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with int32 content *)
 
   val int64_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:[ `Opt of int64 ] param_name -> value:int64 -> unit -> [> input ] elt
+     name:[ `Radio of int64 ] param_name -> value:int64 -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with int64 content *)
 
   val float_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-     name:[ `Opt of float ] param_name -> value:float -> unit -> [> input ] elt
+     name:[ `Radio of float ] param_name -> value:float -> unit -> [> input ] elt
 (** Creates a radio [<input>] tag with float content *)
 
   val user_type_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
-    name:[ `Opt of 'a ] param_name -> value:'a -> ('a -> string) -> [> input ] elt
+    name:[ `Radio of 'a ] param_name -> value:'a -> ('a -> string) -> [> input ] elt
 (** Creates a radio [<input>] tag with user_type content *)
 
   val raw_radio : ?a:(input_attrib attrib list ) -> ?checked:bool ->
@@ -661,7 +661,7 @@ module type XHTMLFORMSSIG = sig
 
   val textarea :
       ?a:textarea_attrib attrib list ->
-        name:[< string setoneopt ] param_name ->
+        name:[< string setoneradio ] param_name ->
           ?value:Xhtmltypes.pcdata XHTML.M.elt ->
             rows:int -> cols:int ->
               unit -> [> textarea ] elt
