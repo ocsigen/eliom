@@ -846,10 +846,12 @@ module MakeForms = functor
         | `Nonattached naser ->
             let current_get_params =
               List.remove_assoc
-                Eliom_common.naservice_num
-                (remove_prefixed_param
-                   Eliom_common.na_co_param_prefix
-                   (Eliom_sessions.get_all_current_get_params sp))
+                Eliom_common.naservice_name
+                (List.remove_assoc
+                   Eliom_common.naservice_num
+                   (remove_prefixed_param
+                      Eliom_common.na_co_param_prefix
+                      (Eliom_sessions.get_all_current_get_params sp)))
             in
             let gp =
               match
@@ -987,10 +989,12 @@ module MakeForms = functor
         | `Nonattached naser ->
             let current_get_params =
               List.remove_assoc
-                Eliom_common.naservice_num
-                (remove_prefixed_param
-                   Eliom_common.na_co_param_prefix
-                   (Eliom_sessions.get_all_current_get_params sp))
+                Eliom_common.naservice_name
+                (List.remove_assoc
+                   Eliom_common.naservice_num
+                   (remove_prefixed_param
+                      Eliom_common.na_co_param_prefix
+                      (Eliom_sessions.get_all_current_get_params sp)))
             in
             let gp =
               match
@@ -1092,10 +1096,12 @@ module MakeForms = functor
             (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
             let current_get_params =
               List.remove_assoc
-                Eliom_common.naservice_num
-                (remove_prefixed_param
-                   Eliom_common.na_co_param_prefix
-                   (get_all_current_get_params sp))
+                Eliom_common.naservice_name
+                (List.remove_assoc
+                   Eliom_common.naservice_num
+                   (remove_prefixed_param
+                      Eliom_common.na_co_param_prefix
+                      (get_all_current_get_params sp)))
             in
             let naservice_line =
               match get_na_name_ naser with
