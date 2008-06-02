@@ -53,7 +53,7 @@ module Ocamlduce_content =
 
     let print x =
       let b = Buffer.create 256 in
-      Ocamlduce.Print.print_xml (Buffer.add_string b) x;
+      (* Ocamlduce.Print.print_xml *) Xhtmlpretty_duce.pretty_print_xhtml (Buffer.add_string b) x;
       Buffer.contents b
 
     let get_etag c =
@@ -429,19 +429,19 @@ module Blocks = SubXhtml(struct
                            type content = {{ blocks }}
                            let print f (x : content) =
                              List.iter
-                               (Ocamlduce.Print.print_xml f )
+                               ((* Ocamlduce.Print.print_xml *) Xhtmlpretty_duce.pretty_print_xhtml f )
                                {: x :}
                           end)
 
 module Xml = SubXhtml(struct
                         type content = Ocamlduce.Load.anyxml
-                        let print f x = Ocamlduce.Print.print_xml f x
+                        let print f x = (* Ocamlduce.Print.print_xml *) Xhtmlpretty_duce.pretty_print_xhtml f x
                       end)
 
 module Xmllist = SubXhtml(struct
                             type content = Ocamlduce.Load.anyxml list
                             let print f (x : content) =
                               List.iter
-                                (Ocamlduce.Print.print_xml f )
+                                ((* Ocamlduce.Print.print_xml *) Xhtmlpretty_duce.pretty_print_xhtml f )
                                 x
                           end)
