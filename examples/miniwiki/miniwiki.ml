@@ -77,7 +77,7 @@ let wiki_file_dir =
       [Element ("wikidata", [("dir", s)],_)] -> s
     | _ -> raise (Ocsigen_extensions.Error_in_config_file ("Unexpected content inside Miniwiki config"))
   in
-  let c = get_config () in
+  let c = Eliom_sessions.get_config () in
   find_wikidata c
 
 let wiki_page_filename page =

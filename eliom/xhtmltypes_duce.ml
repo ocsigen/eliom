@@ -65,8 +65,7 @@ and head = {{ <head (i18n ++ id ++ { profile=?String })>[
 
 and title = {{ <title (i18n ++ id)>[ PCDATA ] }}
 and base = {{ <base (id ++ { href=String })>[  ] }}
-and meta = {{ <meta (i18n ++ id ++ { scheme=?String content=String name=?String http-equiv=?String })>
-                [ ] }}
+and meta = {{ <meta (i18n ++ id ++ { scheme=?String content=String name=?String http-equiv=?String })>[ ] }}
 
 and link_attrs =
     {{ attrs ++ { media=?String rev=?String rel=?String type=?String
