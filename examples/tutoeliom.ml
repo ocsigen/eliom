@@ -895,8 +895,8 @@ let form4 = register_new_service ["form4"] unit
       Remember that a Web site written with Eliom is an OCaml application.
       This application must be able to handle several requests at the same
       time, in order to prevent a single request from slowing down the whole server. To make this possible, Ocsigen
-      is using <em>cooperative threads</em>(
-      implemented in monadic style
+      is using <em>cooperative threads</em>
+      (implemented in monadic style
       by Jérôme Vouillon) which make them really easy
       to use (see $a ~service:senddoc ~sp [code [pcdata "Lwt" ]] [version;"Lwt.html"]$ module).
       </p>

@@ -618,8 +618,8 @@ module type T =
 (** {2 5.8. Client-side Image Map Module} *)
 
     type shape = [ `Rect | `Circle | `Poly | `Default ]
-    val a_shape : shape -> [`Shape] attrib
-    val a_coords : cdata -> [`Coords] attrib
+    val a_shape : shape -> [>`Shape] attrib
+    val a_coords : int list -> [>`Coords] attrib
     val a_nohref : [< `Nohref ] -> [>`Nohref] attrib
     val a_usemap : idref -> [>`Usemap] attrib
 
@@ -1593,9 +1593,12 @@ module Version =
         | `Circle -> "circle"
         | `Poly -> "poly"
         | `Default -> "default")
-    let a_coords = string_attrib "coords"
+    let a_coords coords = 
+      string_attrib "coords" (String.concat ","
+                                (List.map string_of_int coords))
+
     let a_nohref `Nohref = string_attrib "nohref" "nohref"
-    let a_usemap = string_attrib "coords"
+    let a_usemap = string_attrib "usemap"
     let a_defer `Defer = string_attrib "defer" "defer"
     let a_label = string_attrib "label"
 

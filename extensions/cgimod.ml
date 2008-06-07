@@ -538,7 +538,7 @@ let gen reg charset = function
 (*VVV But the extension may also answer Ext_retry_with ... *)
 (*VVV and the other extensions may receive requests in wrong order ... *)
 
-                  return
+                  Lwt.return
                     (Ext_found
                        (fun () ->
                           Lwt.return
