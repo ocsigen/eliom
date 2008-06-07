@@ -541,7 +541,7 @@ let preapply ~service getparams =
  }
 
 
-let cancel_action =
+let void_action =
   {
     max_use= None;
     timeout= None;

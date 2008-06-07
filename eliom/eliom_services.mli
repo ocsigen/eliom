@@ -339,7 +339,7 @@ val static_dir :
    (a string list, slash separated).
  *)
 
-val cancel_action :
+val void_action :
   (unit, unit, [> `Nonattached of 'a na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ])

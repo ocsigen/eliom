@@ -2959,9 +2959,9 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
      but you can use them in links or as fallbacks for coservices.
     </p>
 
-    <h4 id="p3preapplied">"Cancel action"</h4>
-    <p>$a ~fragment:"VALcancel_action" ~service:senddoc ~sp
-           [code [pcdata "Eliom_services.cancel_action" ]]
+    <h4 id="p3preapplied">"Void action"</h4>
+    <p>$a ~fragment:"VALvoid_action" ~service:senddoc ~sp
+           [code [pcdata "Eliom_services.void_action" ]]
            [version;"Eliom_services.html"]$:
      is a special non-attached action, with special behaviour:
      it has no parameter at all, even non-attached parameters.
@@ -2974,7 +2974,7 @@ let preappl = preapply coucou_params (3,(4,"cinq"))
     </p>
     <pre>
 Eliom_duce.Xhtml.a
-  ~service:Eliom_services.cancel_action
+  ~service:Eliom_services.void_action
   ~sp
   {{ "cancel" }}
   ()
