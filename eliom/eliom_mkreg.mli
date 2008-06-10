@@ -137,55 +137,58 @@ module type ELIOMREGSIG1 =
 
 
     val register_new_service :
-        ?options:options ->
-        ?sp: Eliom_sessions.server_params ->
-        path:url_path ->
-            get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-                ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                  page Lwt.t) ->
-                    (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
-                      ('get, unit,
-                       [> `Attached of
-                         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
-                       'tipo, 'gn, unit,
-                       [> `Registrable ]) service
+      ?options:options ->
+      ?sp: Eliom_sessions.server_params ->
+      ?https:bool ->
+      path:url_path ->
+      get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      ('get, unit,
+       [> `Attached of
+          [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+       'tipo, 'gn, unit,
+       [> `Registrable ]) service
 (** Same as [new_service] followed by [register] *)
 
     val register_new_service' :
-        ?options:options ->
-        ?sp: Eliom_sessions.server_params ->
-          name:string ->
-            get_params:('get, [ `WithoutSuffix ], 'gn) params_type ->
-              ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                page Lwt.t) ->
-                  (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
-                    ('get, unit,
-                     [> `Nonattached of [> `Get ] na_s ],
-                     [ `WithoutSuffix ], 'gn, unit,
-                     [> `Registrable ]) service
+      ?options:options ->
+      ?sp: Eliom_sessions.server_params ->
+      ?https:bool ->
+      name:string ->
+      get_params:('get, [ `WithoutSuffix ], 'gn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      ('get, unit,
+       [> `Nonattached of [> `Get ] na_s ],
+       [ `WithoutSuffix ], 'gn, unit,
+       [> `Registrable ]) service
 (** Same as [new_service'] followed by [register] *)
 
     val register_new_coservice :
-        ?options:options ->
-        ?sp: Eliom_sessions.server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-        fallback:(unit, unit,
-                  [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
-                   [ `WithoutSuffix ] as 'tipo,
-                   unit, unit, [< registrable ])
+      ?options:options ->
+      ?sp: Eliom_sessions.server_params ->
+      ?max_use:int ->
+      ?timeout:float ->
+      ?https:bool ->
+      fallback:(unit, unit,
+                [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
+                [ `WithoutSuffix ] as 'tipo,
+                unit, unit, [< registrable ])
         service ->
-          get_params:
-            ('get, [`WithoutSuffix], 'gn) params_type ->
-              ?error_handler:(Eliom_sessions.server_params ->
-                (string * exn) list -> page Lwt.t) ->
-                  (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
-                    ('get, unit,
-                     [> `Attached of
-                       [> `Internal of [> `Coservice ] * [> `Get]] a_s ],
-                     'tipo, 'gn, unit,
-                     [> `Registrable ])
-                      service
+      get_params:
+        ('get, [`WithoutSuffix], 'gn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params ->
+                        (string * exn) list -> page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      ('get, unit,
+       [> `Attached of
+          [> `Internal of [> `Coservice ] * [> `Get]] a_s ],
+       'tipo, 'gn, unit,
+       [> `Registrable ])
+        service
 (** Same as [new_coservice] followed by [register] *)
 
     val register_new_coservice' :
@@ -193,127 +196,134 @@ module type ELIOMREGSIG1 =
       ?sp: Eliom_sessions.server_params ->
       ?max_use:int ->
       ?timeout:float ->
-        get_params:
+      ?https:bool ->
+      get_params:
         ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-          ?error_handler:(Eliom_sessions.server_params ->
-            (string * exn) list -> page Lwt.t) ->
-              (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
-                ('get, unit,
-                 [> `Nonattached of [> `Get] na_s ],
-                 'tipo, 'gn, unit, [> `Registrable ])
-                  service
+      ?error_handler:(Eliom_sessions.server_params ->
+                        (string * exn) list -> page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      ('get, unit,
+       [> `Nonattached of [> `Get] na_s ],
+       'tipo, 'gn, unit, [> `Registrable ])
+        service
 (** Same as [new_coservice'] followed by [register] *)
 
     val register_new_coservice_for_session :
-        ?options:options ->
-        ?session_name:string ->
-        sp:Eliom_sessions.server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-          fallback:(unit, unit,
-                    [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
-                    [ `WithoutSuffix ] as 'tipo,
-                    unit, unit, [< registrable ])
-            service ->
-              get_params:
-                ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-                  ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                    page Lwt.t) ->
-                      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
-                        ('get, unit,
-                         [> `Attached of
-                           [> `Internal of [> `Coservice ] * [> `Get] ] a_s ],
-                         'tipo, 'gn, unit,
-                         [> `Registrable ])
-                          service
+      ?options:options ->
+      ?session_name:string ->
+      sp:Eliom_sessions.server_params ->
+      ?max_use:int ->
+      ?timeout:float ->
+      ?https:bool ->
+      fallback:(unit, unit,
+                [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
+                [ `WithoutSuffix ] as 'tipo,
+                unit, unit, [< registrable ])
+        service ->
+      get_params:
+        ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      ('get, unit,
+       [> `Attached of
+          [> `Internal of [> `Coservice ] * [> `Get] ] a_s ],
+       'tipo, 'gn, unit,
+       [> `Registrable ])
+        service
 (** Same as [new_coservice] followed by [register_for_session] *)
 
     val register_new_coservice_for_session' :
-        ?options:options ->
-        ?session_name:string ->
-        sp:Eliom_sessions.server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-          get_params:
-            ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
-              ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                page Lwt.t) ->
-                  (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
-                    ('get, unit, [> `Nonattached of [> `Get] na_s ],
-                     'tipo, 'gn, unit,
-                     [> `Registrable ])
-                      service
+      ?options:options ->
+      ?session_name:string ->
+      sp:Eliom_sessions.server_params ->
+      ?max_use:int ->
+      ?timeout:float ->
+      ?https:bool ->
+      get_params:
+        ('get, [`WithoutSuffix] as 'tipo, 'gn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> unit -> page Lwt.t) ->
+      ('get, unit, [> `Nonattached of [> `Get] na_s ],
+       'tipo, 'gn, unit,
+       [> `Registrable ])
+        service
 (** Same as [new_coservice'] followed by [register_for_session] *)
 
     val register_new_post_service :
-        ?options:options ->
-        ?sp: Eliom_sessions.server_params ->
-        fallback:('get, unit,
-                  [ `Attached of [ `Internal of
-                    ([ `Service | `Coservice ] as 'kind) * [`Get] ] a_s ],
-                  [< suff ] as 'tipo, 'gn,
-                  unit, [< `Registrable ])
+      ?options:options ->
+      ?sp: Eliom_sessions.server_params ->
+      ?https:bool ->
+      fallback:('get, unit,
+                [ `Attached of [ `Internal of
+                                   ([ `Service | `Coservice ] as 'kind) * [`Get] ] a_s ],
+                [< suff ] as 'tipo, 'gn,
+                unit, [< `Registrable ])
         service ->
-          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-            ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-              page Lwt.t) ->
-                (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
-                  ('get, 'post, [> `Attached of
-                    [> `Internal of 'kind * [> `Post] ] a_s ],
-                   'tipo, 'gn, 'pn, [> `Registrable ])
-                    service
+      post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      ('get, 'post, [> `Attached of
+                       [> `Internal of 'kind * [> `Post] ] a_s ],
+       'tipo, 'gn, 'pn, [> `Registrable ])
+        service
 (** Same as [new_post_service] followed by [register] *)
 
     val register_new_post_service' :
-        ?options:options ->
-        ?sp: Eliom_sessions.server_params ->
-        ?keep_get_na_params:bool ->
-          name: string ->
-            post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-              ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                page Lwt.t) ->
-                  (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
-                    (unit, 'post, [> `Nonattached of [> `Post ] na_s ],
-                     [ `WithoutSuffix ], unit, 'pn, [> `Registrable ])
-                      service
+      ?options:options ->
+      ?sp: Eliom_sessions.server_params ->
+      ?keep_get_na_params:bool ->
+      ?https:bool ->
+      name: string ->
+      post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
+      (unit, 'post, [> `Nonattached of [> `Post ] na_s ],
+       [ `WithoutSuffix ], unit, 'pn, [> `Registrable ])
+        service
 (** Same as [new_post_service'] followed by [register] *)
 
     val register_new_post_coservice :
-        ?options:options ->
-        ?sp: Eliom_sessions.server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-        fallback:('get, unit ,
-                  [ `Attached of
+      ?options:options ->
+      ?sp: Eliom_sessions.server_params ->
+      ?max_use:int ->
+      ?timeout:float ->
+      ?https:bool ->
+      fallback:('get, unit ,
+                [ `Attached of
                     [ `Internal of [< `Service | `Coservice ] * [`Get] ] a_s ],
-                   [< suff ] as 'tipo,
-                   'gn, unit, [< `Registrable ])
+                [< suff ] as 'tipo,
+                'gn, unit, [< `Registrable ])
         service ->
-          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-            ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-              page Lwt.t) ->
-                (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
-                  ('get, 'post,
-                   [> `Attached of
-                     [> `Internal of [> `Coservice ] * [> `Post] ] a_s ],
-                     'tipo, 'gn, 'pn, [> `Registrable ])
-                    service
+      post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      ('get, 'post,
+       [> `Attached of
+          [> `Internal of [> `Coservice ] * [> `Post] ] a_s ],
+       'tipo, 'gn, 'pn, [> `Registrable ])
+        service
 (** Same as [new_post_coservice] followed by [register] *)
 
     val register_new_post_coservice' :
-        ?options:options ->
-        ?sp: Eliom_sessions.server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-        ?keep_get_na_params:bool ->
-        post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-          ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-            page Lwt.t) ->
-              (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
-                (unit, 'post, [> `Nonattached of [> `Post] na_s ],
-                 [ `WithoutSuffix ], unit, 'pn,
-                 [> `Registrable ])
-                  service
+      ?options:options ->
+      ?sp: Eliom_sessions.server_params ->
+      ?max_use:int ->
+      ?timeout:float ->
+      ?keep_get_na_params:bool ->
+      ?https:bool ->
+      post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
+      (unit, 'post, [> `Nonattached of [> `Post] na_s ],
+       [ `WithoutSuffix ], unit, 'pn,
+       [> `Registrable ])
+        service
 (** Same as [new_post_coservice'] followed by [register] *)
 
 (*
@@ -322,6 +332,7 @@ module type ELIOMREGSIG1 =
         ?sp: Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
+      ?https:bool ->
         fallback:('get, unit ,
                   [ `Nonattached of [`Get] na_s ],
                    [< suff ] as 'tipo,
@@ -338,43 +349,45 @@ module type ELIOMREGSIG1 =
 *)
 
     val register_new_post_coservice_for_session :
-        ?options:options ->
-        ?session_name:string ->
-        sp:Eliom_sessions.server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-          fallback:('get, unit,
-                    [ `Attached of [ `Internal of
-                      [< `Service | `Coservice ] * [`Get] ] a_s ],
-                    [< suff ] as 'tipo,
-                    'gn, unit, [ `Registrable ])
-            service ->
-              post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-                ?error_handler:(Eliom_sessions.server_params ->
-                  (string * exn) list -> page Lwt.t) ->
-                    (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
-                      ('get, 'post,
-                       [> `Attached of
-                         [> `Internal of [> `Coservice ] * [> `Post]] a_s ],
-                       'tipo, 'gn, 'pn, [> `Registrable ])
-                        service
+      ?options:options ->
+      ?session_name:string ->
+      sp:Eliom_sessions.server_params ->
+      ?max_use:int ->
+      ?timeout:float ->
+      ?https:bool ->
+      fallback:('get, unit,
+                [ `Attached of [ `Internal of
+                                   [< `Service | `Coservice ] * [`Get] ] a_s ],
+                [< suff ] as 'tipo,
+                'gn, unit, [ `Registrable ])
+        service ->
+      post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params ->
+                        (string * exn) list -> page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) ->
+      ('get, 'post,
+       [> `Attached of
+          [> `Internal of [> `Coservice ] * [> `Post]] a_s ],
+       'tipo, 'gn, 'pn, [> `Registrable ])
+        service
 (** Same as [new_post_coservice] followed by [register_for_session] *)
 
     val register_new_post_coservice_for_session' :
-        ?options:options ->
-        ?session_name:string ->
-        sp:Eliom_sessions.server_params ->
-        ?max_use:int ->
-        ?timeout:float ->
-        ?keep_get_na_params:bool ->
-          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-            ?error_handler:(Eliom_sessions.server_params ->
-              (string * exn) list -> page Lwt.t) ->
-                (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
-                  (unit, 'post, [> `Nonattached of [> `Post] na_s ],
-                   [ `WithoutSuffix ], unit, 'pn,
-                   [> `Registrable ])
-                    service
+      ?options:options ->
+      ?session_name:string ->
+      sp:Eliom_sessions.server_params ->
+      ?max_use:int ->
+      ?timeout:float ->
+      ?keep_get_na_params:bool ->
+      ?https:bool ->
+      post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+      ?error_handler:(Eliom_sessions.server_params ->
+                        (string * exn) list -> page Lwt.t) ->
+      (Eliom_sessions.server_params -> unit -> 'post -> page Lwt.t) ->
+      (unit, 'post, [> `Nonattached of [> `Post] na_s ],
+       [ `WithoutSuffix ], unit, 'pn,
+       [> `Registrable ])
+        service
 (** Same as [new_post_coservice'] followed by [register_for_session] *)
 
 (*
@@ -384,6 +397,7 @@ module type ELIOMREGSIG1 =
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
+      ?https:bool ->
           fallback:('get, unit, [ `Nonattached of [`Get] na_s ],
                     [< suff ] as 'tipo,
                     'gn, unit, [< `Registrable ])

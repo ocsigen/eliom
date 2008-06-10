@@ -143,17 +143,20 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 (** {3 Main services} *)
 
 val new_service :
-    ?sp: Eliom_sessions.server_params ->
-      path:url_path ->
-        get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
-          unit ->
-            ('get,unit,
-             [> `Attached of
-               [> `Internal of [> `Service ] * [>`Get] ] a_s ],
-             'tipo,'gn,
-             unit, [> `Registrable ]) service
+  ?sp: Eliom_sessions.server_params ->
+  ?https:bool ->
+  path:url_path ->
+  get_params:('get, [< suff ] as 'tipo,'gn) params_type ->
+  unit ->
+  ('get,unit,
+   [> `Attached of
+      [> `Internal of [> `Service ] * [>`Get] ] a_s ],
+   'tipo,'gn,
+   unit, [> `Registrable ]) service
 (** [new_service ~path:p ~get_params:pa ()] creates an {!Eliom_services.service} associated
    to the path [p], taking the GET parameters [pa].
+
+    If [~https] is true, all links towars that service will use https.
 
    {e Warning: If you use this function after the initialisation phase,
    you must give the [~sp] parameter, otherwise it will raise the
@@ -161,14 +164,15 @@ val new_service :
 *)
 
 val new_service' :
-    ?sp: Eliom_sessions.server_params ->
-      name:string ->
-        get_params:('get, [ `WithoutSuffix ],'gn) params_type ->
-          unit ->
-            ('get, unit,
-             [> `Nonattached of [> `Get ] na_s ],
-             [ `WithoutSuffix ], 'gn,
-             unit, [> `Registrable ]) service
+  ?sp: Eliom_sessions.server_params ->
+  ?https:bool ->
+  name:string ->
+  get_params:('get, [ `WithoutSuffix ],'gn) params_type ->
+  unit ->
+  ('get, unit,
+   [> `Nonattached of [> `Get ] na_s ],
+   [ `WithoutSuffix ], 'gn,
+   unit, [> `Registrable ]) service
 (** [new_service' ~name:n ~get_params:pa ()] creates a non-attached service
     associated to the name [n], taking the GET parameters [pa].
 
@@ -178,13 +182,14 @@ val new_service' :
 *)
 
 val new_external_service :
-    prefix: string ->
-      path:url_path ->
-        get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
-          post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
-            unit ->
-              ('get, 'post, [> `Attached of [> `External ] a_s ], 'tipo,
-               'gn, 'pn, [> `Unregistrable ]) service
+  ?https:bool ->
+  prefix: string ->
+  path:url_path ->
+  get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->
+  post_params:('post, [ `WithoutSuffix ], 'pn) params_type ->
+  unit ->
+  ('get, 'post, [> `Attached of [> `External ] a_s ], 'tipo,
+   'gn, 'pn, [> `Unregistrable ]) service
 (** Creates an service for an external web site.
    Allows to creates links or forms towards other Web sites using
    Eliom's syntax.
@@ -201,32 +206,34 @@ val new_external_service :
  *)
 
 val new_post_service :
-    ?sp: Eliom_sessions.server_params ->
-    fallback: ('get, unit,
-               [`Attached of [`Internal of
-                 ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
-               [< suff] as 'tipo, 'gn, unit,
-               [< `Registrable ]) service ->
-                 post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
-                   unit ->
-                     ('get, 'post, [> `Attached of
-                       [> `Internal of 'kind * [> `Post]] a_s ],
-                      'tipo, 'gn, 'pn, [> `Registrable ]) service
+  ?sp: Eliom_sessions.server_params ->
+  ?https:bool ->
+  fallback: ('get, unit,
+             [`Attached of [`Internal of
+                              ([ `Service | `Coservice ] as 'kind) * [`Get]] a_s ],
+             [< suff] as 'tipo, 'gn, unit,
+             [< `Registrable ]) service ->
+  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  unit ->
+  ('get, 'post, [> `Attached of
+                   [> `Internal of 'kind * [> `Post]] a_s ],
+   'tipo, 'gn, 'pn, [> `Registrable ]) service
 (** Creates an service that takes POST parameters.
-   [fallback] is the a service without POST parameters.
-   You can't create an service with POST parameters
-   if the same service does not exist without POST parameters.
-   Thus, the user can't bookmark a page that does not exist.
+    [fallback] is the a service without POST parameters.
+    You can't create an service with POST parameters
+    if the same service does not exist without POST parameters.
+    Thus, the user can't bookmark a page that does not exist.
  *)
 (* fallback must be registrable! (= not preapplied) *)
 
 val new_post_service' :
   ?keep_get_na_params:bool ->
-    name: string ->
-      post_params: ('post, [ `WithoutSuffix ], 'pn) params_type ->
-        unit ->
-          (unit, 'post, [> `Nonattached of [> `Post] na_s ],
-           [ `WithoutSuffix ], unit, 'pn, [> `Registrable ]) service
+  ?https:bool ->
+  name: string ->
+  post_params: ('post, [ `WithoutSuffix ], 'pn) params_type ->
+  unit ->
+  (unit, 'post, [> `Nonattached of [> `Post] na_s ],
+   [ `WithoutSuffix ], unit, 'pn, [> `Registrable ]) service
 (** Creates a non-attached service that takes POST parameters.
    [name] is the name of that non-attached service.
  *)
@@ -236,19 +243,20 @@ val new_post_service' :
 (** {3 Attached coservices} *)
 
 val new_coservice :
-    ?max_use:int ->
-    ?timeout:float ->
-    fallback:
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback:
     (unit, unit, [ `Attached of [ `Internal of [ `Service ] * [`Get]] a_s ],
      [ `WithoutSuffix ] as 'tipo,
      unit, unit, [< registrable ]) service ->
-       get_params:
-         ('get,[`WithoutSuffix],'gn) params_type ->
-           unit ->
-             ('get,unit,[> `Attached of
-               [> `Internal of [> `Coservice] * [> `Get]] a_s ],
-              'tipo, 'gn, unit,
-              [> `Registrable ]) service
+  get_params:
+    ('get,[`WithoutSuffix],'gn) params_type ->
+  unit ->
+  ('get,unit,[> `Attached of
+                [> `Internal of [> `Coservice] * [> `Get]] a_s ],
+   'tipo, 'gn, unit,
+   [> `Registrable ]) service
 (** Creates a coservice. A coservice is another version of an
    already existing main service, where you can register another handler.
    The two versions are automatically distinguished using an extra parameter
@@ -259,30 +267,32 @@ val new_coservice :
  *)
 
 val new_post_coservice :
-    ?max_use:int ->
-    ?timeout:float ->
-    fallback: ('get, unit, [ `Attached of
-      [`Internal of [<`Service | `Coservice] * [`Get]] a_s ],
-               [< suff ] as 'tipo,
-               'gn, unit, [< `Registrable ]) service ->
-                 post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
-                   unit ->
-                     ('get, 'post,
-                      [> `Attached of
-                        [> `Internal of [> `Coservice] * [> `Post]] a_s ],
-                      'tipo, 'gn, 'pn, [> `Registrable ]) service
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  fallback: ('get, unit, [ `Attached of
+                             [`Internal of [<`Service | `Coservice] * [`Get]] a_s ],
+             [< suff ] as 'tipo,
+             'gn, unit, [< `Registrable ]) service ->
+  post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
+  unit ->
+  ('get, 'post,
+   [> `Attached of
+      [> `Internal of [> `Coservice] * [> `Post]] a_s ],
+   'tipo, 'gn, 'pn, [> `Registrable ]) service
 (** Creates a coservice with POST parameters *)
 
 (** {3 Non attached coservices} *)
 
 val new_coservice' :
-    ?max_use:int ->
-    ?timeout:float ->
-    get_params:
+  ?max_use:int ->
+  ?timeout:float ->
+  ?https:bool ->
+  get_params:
     ('get, [`WithoutSuffix], 'gn) params_type ->
-      unit ->
-        ('get, unit, [> `Nonattached of [> `Get] na_s ],
-         [`WithoutSuffix], 'gn, unit, [> `Registrable ]) service
+  unit ->
+  ('get, unit, [> `Nonattached of [> `Get] na_s ],
+   [`WithoutSuffix], 'gn, unit, [> `Registrable ]) service
 (** Creates a non-attached coservice, that is, services that do not
    correspond to a precise URL.
    Links towards such services will not change the URL,
@@ -294,6 +304,7 @@ val new_post_coservice' :
   ?max_use:int ->
   ?timeout:float ->
   ?keep_get_na_params:bool ->
+  ?https:bool ->
   post_params: ('post, [`WithoutSuffix], 'pn) params_type ->
   unit ->
   (unit, 'post,
@@ -311,6 +322,7 @@ val new_post_coservice' :
 val new_get_post_coservice' :
     ?max_use:int ->
     ?timeout:float ->
+  ?https:bool ->
    fallback: ('get, unit, [`Nonattached of [`Get] na_s ],
    [< suff ] as 'tipo,
    'gn, unit, [< `Registrable ]) service ->
@@ -326,18 +338,27 @@ val new_get_post_coservice' :
 (** {2 Misc} *)
 
 val static_dir :
-    sp:Eliom_sessions.server_params ->
-      (string list, unit, [> `Attached of
-        [> `Internal of [> `Service ] * [> `Get] ] a_s ],
-       [ `WithSuffix ],
-       [ `One of string list ] param_name, unit, [> `Unregistrable ])
-        service
+  sp:Eliom_sessions.server_params ->
+  (string list, unit, [> `Attached of
+                         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name, unit, [> `Unregistrable ])
+    service
 (** A predefined service
    that correponds to the directory where static pages are.
    This directory is chosen in the config file (ocsigen.conf).
    This service takes the name of the static file as a parameter
    (a string list, slash separated).
  *)
+
+val https_static_dir :
+  sp:Eliom_sessions.server_params ->
+  (string list, unit, [> `Attached of
+                         [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name, unit, [> `Unregistrable ])
+    service
+(** The same, but forcing https *)
 
 val void_action :
   (unit, unit, [> `Nonattached of 'a na_s ],
@@ -351,6 +372,14 @@ val void_action :
     It is almost equivalent to a POST non-attached service without POST
     parameters, on which you register an action that does nothing,
     but you can use it with <a> links, not only forms.
+ *)
+
+val https_void_action :
+  (unit, unit, [> `Nonattached of 'a na_s ],
+   [ `WithoutSuffix ],
+   unit, unit, [> `Unregistrable ])
+  service
+(** The same, but forcing https.
  *)
 
 
@@ -404,6 +433,7 @@ val get_na_name_ : 'a na_s -> Eliom_common.na_key
 val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option
 val get_timeout_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> float option
+val get_https : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> bool
 (* val reconstruct_absolute_url_path : url_path -> url_path -> url_path option -> string
 val reconstruct_relative_url_path : url_path -> url_path -> url_path option -> string
 *)

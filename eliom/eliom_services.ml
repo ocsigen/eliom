@@ -140,6 +140,7 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service =
      timeout: float option; (* Timeout for this service (the service will
           disappear if it has not been used during this amount of seconds) *)
      kind: 'kind; (* < service_kind *)
+     https: bool; (* force https *)
    }
 
 let get_kind_ s = s.kind
@@ -156,6 +157,7 @@ let get_na_name_ s = s.na_name
 let get_na_kind_ s = s.na_kind
 let get_max_use_ s = s.max_use
 let get_timeout_ s = s.timeout
+let get_https s = s.https
 
 let new_state =
   (* This does not need to be cryptographickly robust.
@@ -175,7 +177,7 @@ let new_state =
 (*****************************************************************************)
 
 (** Satic directories **)
-let static_dir ~sp =
+let static_dir_ ?(https = false) ~sp () =
     {
      pre_applied_parameters = [];
      get_params_type = suffix (all_suffix Eliom_common.eliom_suffix_name);
@@ -190,8 +192,12 @@ let static_dir ~sp =
         post_state = None;
         att_kind = `Internal (`Service, `Get);
       };
+     https = https;
    }
 
+let static_dir ~sp = static_dir_ ~sp ()
+
+let https_static_dir ~sp = static_dir_ ~https:true ~sp ()
 
 
 (****************************************************************************)
@@ -200,6 +206,7 @@ let static_dir ~sp =
 (** Definition of services *)
 (** Create a main service (not a coservice) internal or external, get only *)
 let new_service_aux_aux
+    ~https
     ~prefix
     ~(path : url_path)
     ~site_dir
@@ -221,10 +228,12 @@ let new_service_aux_aux
       get_state = None;
       post_state = None;
     };
+   https = https;
  }
 
 let new_service_aux
     ?sp
+    ~https
     ~path
     ~get_params =
   match sp with
@@ -238,12 +247,13 @@ let new_service_aux
                  (Ocsigen_lib.remove_slash_at_beginning path))
           in
           let u = new_service_aux_aux
-              ~prefix:""
-              ~path
-              ~site_dir: sitedata.Eliom_common.site_dir
-              ~kind:(`Internal (`Service, `Get))
-              ~get_params
-              ~post_params:unit
+            ~https
+            ~prefix:""
+            ~path
+            ~site_dir: sitedata.Eliom_common.site_dir
+            ~kind:(`Internal (`Service, `Get))
+            ~get_params
+            ~post_params:unit
           in
           Eliom_common.add_unregistered sitedata path;
           u
@@ -257,6 +267,7 @@ let new_service_aux
              (Ocsigen_lib.remove_slash_at_beginning path))
       in
       new_service_aux_aux
+        ~https
         ~prefix:""
         ~path:path
         ~site_dir:(Eliom_sessions.get_site_dir sp)
@@ -266,6 +277,7 @@ let new_service_aux
 
 
 let new_external_service
+    ?(https = false)
     ~prefix
     ~path
     ~get_params
@@ -273,6 +285,7 @@ let new_external_service
     () =
   let suffix = contains_suffix get_params in
   new_service_aux_aux
+    ~https
     ~prefix
     ~path:(remove_internal_slash
             (if suffix
@@ -285,12 +298,14 @@ let new_external_service
 
 let new_service
     ?sp
+    ?(https = false)
     ~path
     ~get_params
     () =
   let suffix = contains_suffix get_params in
   new_service_aux
     ?sp
+    ~https
     ~path:(if suffix
     then path@[Eliom_common.eliom_suffix_internal_name]
     else path)
@@ -301,6 +316,7 @@ let new_naservice_num () = new_state ()
 let new_coservice
     ?max_use
     ?timeout
+    ?(https = false)
     ~fallback
     ~get_params
     () =
@@ -316,14 +332,15 @@ let new_coservice
      {k with
       get_state = Some (new_state ());
       att_kind = `Internal (`Coservice, `Get);
-    }
+    };
+   https = https || fallback.https
  }
 (* Warning: here no GET parameters for the fallback.
    Apply services with apply_service
    if you want fallbacks with GET parameters *)
 
 
-let new_coservice' ?max_use ?timeout ~get_params () =
+let new_coservice' ?max_use ?timeout ?(https = false) ~get_params () =
   let n = Eliom_common.Na_get' (new_naservice_num ()) in
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered_na n;
@@ -338,9 +355,10 @@ let new_coservice' ?max_use ?timeout ~get_params () =
      {na_name = n;
       na_kind = `Get;
     };
+   https = https;
  }
 
-let new_service' ?sp ~name ~get_params () =
+let new_service' ?sp ?(https = false) ~name ~get_params () =
   match sp with
   | None ->
       (match Eliom_common.global_register_allowed () with
@@ -359,6 +377,7 @@ let new_service' ?sp ~name ~get_params () =
                {na_name = Eliom_common.Na_get_ name;
                 na_kind = `Get;
               };
+             https = https;
            }
           in
           Eliom_common.add_unregistered_na sitedata
@@ -380,11 +399,12 @@ let new_service' ?sp ~name ~get_params () =
          {na_name = Eliom_common.Na_get_ name;
           na_kind = `Get;
         };
+       https = https;
      }
 
 (****************************************************************************)
 (** Register a service with post parameters in the server *)
-let new_post_service_aux ~sp ~fallback ~post_params =
+let new_post_service_aux ~sp ~https ~fallback ~post_params =
 (** Create a main service (not a coservice) internal, post only *)
 (* ici faire une vérification "duplicate parameter" ? *)
   let `Attached k1 = fallback.kind in
@@ -402,10 +422,11 @@ let new_post_service_aux ~sp ~fallback ~post_params =
       att_kind = `Internal (k, `Post);
       get_state = k1.get_state;
       post_state = None;
-    }
+    };
+   https = https;
  }
 
-let new_post_service ?sp ~fallback ~post_params () =
+let new_post_service ?sp ?(https = false) ~fallback ~post_params () =
   (* (if post_params = TUnit
   then Ocsigen_messages.warning "Probably error in the module: \
       Creation of a POST service without POST parameters.");
@@ -416,7 +437,7 @@ let new_post_service ?sp ~fallback ~post_params () =
   let `Attached k1 = fallback.kind in
   let `Internal (kind, _) = k1.att_kind in
   let path = k1.subpath in
-  let u = new_post_service_aux ~sp ~fallback ~post_params in
+  let u = new_post_service_aux ~sp ~https ~fallback ~post_params in
   match sp with
   | None ->
       (match Eliom_common.global_register_allowed () with
@@ -434,7 +455,8 @@ let new_post_service ?sp ~fallback ~post_params () =
 (* if the fallback is a coservice, do we get a coservice or a service? *)
 
 
-let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
+let new_post_coservice 
+    ?max_use ?timeout ?(https = false) ~fallback ~post_params () =
   let `Attached k1 = fallback.kind in
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered k1.path;
@@ -447,7 +469,8 @@ let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
      {k1 with
       att_kind = `Internal (`Coservice, `Post);
       post_state = Some (new_state ());
-    }
+    };
+   https = https;
  }
 (* It is not possible to make a new_post_coservice function
    with an optional ?fallback parameter
@@ -458,7 +481,8 @@ let new_post_coservice ?max_use ?timeout ~fallback ~post_params () =
 
 (*VVV Warning: keep_get_na_params is experimental *)
 let new_post_coservice'
-    ?max_use ?timeout ?(keep_get_na_params = true) ~post_params () =
+    ?max_use ?timeout ?(keep_get_na_params = true) ?(https = false)
+    ~post_params () =
   (* match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered None
   | _ -> () *)
@@ -471,11 +495,12 @@ let new_post_coservice'
    kind = `Nonattached
      {na_name = Eliom_common.Na_post' (new_naservice_num ());
       na_kind = `Post keep_get_na_params;
-    }
+    };
+   https = https;
  }
 
 let new_post_service'
-   ?(keep_get_na_params = true) ~name ~post_params () =
+   ?(keep_get_na_params = true) ?(https = false) ~name ~post_params () =
   (* match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered None
   | _ -> () *)
@@ -489,13 +514,15 @@ let new_post_service'
    kind = `Nonattached
      {na_name = Eliom_common.Na_post_ name;
       na_kind = `Post keep_get_na_params;
-    }
+    };
+   https = https;
  }
 
 (*
 let new_get_post_coservice'
    ?max_use
    ?timeout
+?(https = false)
     ~fallback
     ~post_params =
   (* match Eliom_common.global_register_allowed () with
@@ -512,6 +539,7 @@ let new_get_post_coservice'
    {na_name = (fst fallback.na_name, Some (new_naservice_num ()));
    na_kind = `Internal (`NonAttachedCoservice, `Post);
    }
+  https = https;
    }
 (* This is a nonattached coservice with GET and POST parameters!
    When reloading, the fallback (a nonattached coservice with only GET
@@ -552,6 +580,21 @@ let void_action =
       {na_name = Eliom_common.Na_get_ "";
        na_kind = `Get;
       };
+    https = false;
+  }
+
+let https_void_action =
+  {
+    max_use= None;
+    timeout= None;
+    pre_applied_parameters = [];
+    get_params_type = unit;
+    post_params_type = unit;
+    kind = `Nonattached
+      {na_name = Eliom_common.Na_get_ "";
+       na_kind = `Get;
+      };
+    https = true;
   }
 
 

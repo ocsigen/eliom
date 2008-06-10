@@ -415,7 +415,6 @@ let get_inet_addr host =
 
 let getnameinfo ia p =
   try
-    (* HTTP/1.0 with no host *)
     Lwt_lib.getnameinfo (Unix.ADDR_INET (ia, p)) [Unix.NI_NAMEREQD] >>= fun r ->
     Lwt.return r.Unix.ni_hostname
   with

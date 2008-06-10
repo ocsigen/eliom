@@ -82,14 +82,17 @@ type request_info =
     {ri_url_string: string; (** full URL *)
      ri_url: Neturl.url;
      ri_method: Ocsigen_http_frame.Http_header.http_method; (** GET, POST, HEAD... *)
-     ri_protocol: Ocsigen_http_frame.Http_header.proto; (** HTTP protocol used by client *)
+     ri_protocol: Ocsigen_http_frame.Http_header.proto; (** HTTP protocol used by client (1.0 or 1.1) *)
      ri_ssl: bool; (** true if HTTPS, false if HTTP *)
      ri_full_path_string: string; (** full path of the URL *)
      ri_full_path: string list;   (** full path of the URL *)
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
-     ri_host: string option; (** Host field of the request (if any) *)
+     ri_host_field: string option; (** Host field of the request (if any) *)
+     ri_host: string; (** Host field of the request if any, 
+                          or computed using getnameinfo 
+                          if HTTP/1.0 without host field. *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters *)
      ri_initial_get_params: (string * string) list Lazy.t;  (** Association list of get parameters, as sent by the browser (must not be modified by extensions) *)
      ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters *)
@@ -306,6 +309,7 @@ val void_extension :
 val get_config : unit -> Simplexmlparser.xml list
 
 
+
 (** Parsing URLs.
    This allows to modify the URL in the request_info.
    (to be used for example with Ext_retry_with or Ext_continue_with)
@@ -352,7 +356,7 @@ val set_hosts : (virtual_hosts * extension2) list -> unit
 val get_hosts : unit -> (virtual_hosts * extension2) list
 
 val do_for_site_matching :
-    string option ->
+    string ->
     int ->
     request_info -> Ocsigen_http_frame.result Lwt.t
 

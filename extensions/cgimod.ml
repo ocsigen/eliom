@@ -237,9 +237,7 @@ let array_environment filename re doc_root ri =
  [ (* Let's follow CGI spec : http://hoohoo.ncsa.uiuc.edu/cgi/env.html *)
 
    (* Not request-specific variables *)
-  [Printf.sprintf "SERVER_NAME=%s"
-     (* FIXME: We should put something more relevant if there is no ri.ri_host... *)
-     (match ri.ri_host with None -> Ocsigen_config.server_name | Some s -> s);
+  [Printf.sprintf "SERVER_NAME=%s" ri.ri_host;
    Printf.sprintf "SERVER_SOFTWARE=%s" Ocsigen_config.full_server_name ;
    "GATEWAY_INTERFACE=CGI/1.1"] ;
 

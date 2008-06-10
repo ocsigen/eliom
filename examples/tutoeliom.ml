@@ -2392,8 +2392,9 @@ let redir = Eliom_predefmod.Redirections.register_new_service
     ~path:["redir"]
     ~get_params:(int "o")
    (fun sp o () ->
-     Eliom_predefmod.Xhtml.make_full_string_uri
-       coucou_params sp (o,(22,"ee")))
+      Lwt.return
+        (Eliom_predefmod.Xhtml.make_full_uri
+           coucou_params sp (o,(22,"ee"))))
 (*html*
       <p>The <code>options</code> parameter may be either
       <code>`Temporary</code> or <code>`Permanent</code>.</p>

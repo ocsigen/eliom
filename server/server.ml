@@ -97,238 +97,249 @@ let dbg sockaddr s =
 let get_request_infos
     meth clientproto url http_frame filenames sockaddr port receiver =
 
-  try
+  Lwt.catch
+    (fun () ->
 
-    let (headerhost, _, url, parsed_url, path, params, get_params) =
-      Ocsigen_lib.parse_url url
-    in
+       let (headerhost, _, url, parsed_url, path, params, get_params) =
+         Ocsigen_lib.parse_url url
+       in
 
-    let headerhost =
-      match headerhost with
-      | None -> get_host_from_host_header http_frame
-      | _ -> headerhost
-    in
-    (* RFC:
- 1. If Request-URI is an absoluteURI, the host is part of the Request-URI. Any Host header field value in the request MUST be ignored.
- 2. If the Request-URI is not an absoluteURI, and the request includes a Host header field, the host is determined by the Host header field value.
- 3. If the host as determined by rule 1 or 2 is not a valid host on the server, the response MUST be a 400 (Bad Request) error message.
-     *)
-    (*  Here we don't trust the port information given by the request.
-       We use the port we are listening on. *)
-    Ocsigen_messages.debug
-      (fun () ->
-        "- host="^(match headerhost with None -> "<none>" | Some h -> h));
+       let headerhost =
+         match headerhost with
+         | None -> get_host_from_host_header http_frame
+         | _ -> headerhost
+       in
+       let server_inet_addr = ip_of_sockaddr sockaddr in
+       (match headerhost with
+          | None -> 
+              (* HTTP/1.0 with no host *)
+              Ocsigen_lib.getnameinfo server_inet_addr port
+          | Some h -> Lwt.return h)
+       >>= fun computedhost ->
 
-(* Servers MUST report a 400 (Bad Request) error if an HTTP/1.1
-   request does not include a Host request-header. *)
+       (* RFC:
+    1. If Request-URI is an absoluteURI, the host is part of the Request-URI. Any Host header field value in the request MUST be ignored.
+    2. If the Request-URI is not an absoluteURI, and the request includes a Host header field, the host is determined by the Host header field value.
+    3. If the host as determined by rule 1 or 2 is not a valid host on the server, the response MUST be a 400 (Bad Request) error message.
+        *)
+       (*  Here we don't trust the port information given by the request.
+          We use the port we are listening on. *)
+       Ocsigen_messages.debug
+         (fun () ->
+           "- host="^(match headerhost with None -> "<none>" | Some h -> h));
 
-    if clientproto = Ocsigen_http_frame.Http_header.HTTP11 && headerhost = None
-    then raise Ocsigen_Bad_Request;
+   (* Servers MUST report a 400 (Bad Request) error if an HTTP/1.1
+      request does not include a Host request-header. *)
 
-    let useragent = get_user_agent http_frame in
+       if clientproto = Ocsigen_http_frame.Http_header.HTTP11 && headerhost = None
+       then raise Ocsigen_Bad_Request;
 
-    let cookies_string = lazy (get_cookie_string http_frame) in
+       let useragent = get_user_agent http_frame in
 
-    let cookies =
-      lazy (match (Lazy.force cookies_string) with
-      | None -> Ocsigen_http_frame.Cookievalues.empty
-      | Some s -> parse_cookies s)
-    in
+       let cookies_string = lazy (get_cookie_string http_frame) in
 
-    let ifmodifiedsince = get_if_modified_since http_frame in
+       let cookies =
+         lazy (match (Lazy.force cookies_string) with
+         | None -> Ocsigen_http_frame.Cookievalues.empty
+         | Some s -> parse_cookies s)
+       in
 
-    let ifunmodifiedsince =  get_if_unmodified_since http_frame in
+       let ifmodifiedsince = get_if_modified_since http_frame in
 
-    let ifnonematch = get_if_none_match http_frame in
+       let ifunmodifiedsince =  get_if_unmodified_since http_frame in
 
-    let ifmatch = get_if_match http_frame in
+       let ifnonematch = get_if_none_match http_frame in
 
-    let inet_addr = ip_of_sockaddr sockaddr in
+       let ifmatch = get_if_match http_frame in
 
-    let ct = get_content_type http_frame in
+       let inet_addr = ip_of_sockaddr sockaddr in
 
-    let cl = get_content_length http_frame in
+       let ct = get_content_type http_frame in
 
-    let referer = lazy (get_referer http_frame) in
+       let cl = get_content_length http_frame in
 
-    let accept = lazy (get_accept http_frame)   in
+       let referer = lazy (get_referer http_frame) in
 
-    let accept_charset = lazy (get_accept_charset http_frame) in
+       let accept = lazy (get_accept http_frame)   in
 
-    let accept_encoding = lazy (get_accept_encoding http_frame) in
+       let accept_charset = lazy (get_accept_charset http_frame) in
 
-    let accept_language = lazy (get_accept_language http_frame) in
+       let accept_encoding = lazy (get_accept_encoding http_frame) in
+
+       let accept_language = lazy (get_accept_language http_frame) in
 
 
 
-    let find_post_params =
-      lazy
-        (if meth = Http_header.GET || meth = Http_header.HEAD then
-           return ([],[])
-         else
-           match http_frame.Ocsigen_http_frame.content with
-          | None -> return ([], [])
-          | Some body_gen ->
-              try
-                let ct = match ct with
-                  | None -> "application/octet-stream"
-                  | Some ct -> ct
-                in
-                let body = Ocsigen_stream.get body_gen in
-                catch
-                  (fun () ->
-                     let ctlow = String.lowercase ct in
-                     if ctlow = "application/x-www-form-urlencoded"
-                     then
-                       catch
-                         (fun () ->
-                            Ocsigen_stream.string_of_stream body >>= fun r ->
-                            Lwt.return
-                              ((Netencoding.Url.dest_url_encoded_parameters r),
-                               []))
-                         (function
-                            | Ocsigen_stream.String_too_large ->
-                                fail Input_is_too_large
-                            | e -> fail e)
-                     else
-                       match
-                         (Netstring_pcre.string_match
-                            (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
-                       with
-                         | None -> fail Ocsigen_unsupported_media
-                         | _ ->
-                             let bound = get_boundary ct in
-                             let params = ref [] in
-                             let files = ref [] in
-                             let create hs =
-                               let cd = List.assoc "content-disposition" hs in
-                               let st = try
-                                 Some (find_field "filename" cd)
-                               with Not_found -> None in
-                               let p_name = find_field "name" cd in
-                               match st with
-                                 | None -> No_File (p_name, Buffer.create 1024)
-                                 | Some store ->
-                                     let now =
-                                       Printf.sprintf
-                                         "%f-%d"
-                                         (Unix.gettimeofday ()) (counter ())
-                                     in
-                                     match ((Ocsigen_config.get_uploaddir ())) with
-                                       | Some dname ->
-                                           let fname = dname^"/"^now in
-                                           let fd = Unix.openfile fname
-                                             [Unix.O_CREAT;
-                                              Unix.O_TRUNC;
-                                              Unix.O_WRONLY;
-                                              Unix.O_NONBLOCK] 0o666 in
-                                           (* Ocsigen_messages.debug "file opened"; *)
-                                           filenames := fname::!filenames;
-                                           A_File (p_name, fname, store, fd)
-                                       | None -> raise Ocsigen_upload_forbidden
-                             in
-                             let rec add where s =
-                               match where with
-                                 | No_File (p_name, to_buf) ->
-                                     Buffer.add_string to_buf s;
-                                     return ()
-                                 | A_File (_,_,_,wh) ->
-                                     let len = String.length s in
-                                     let r = Unix.write wh s 0 len in
-                                     if r < len then
-(*XXXX Inefficient if s is long *)
-                                       add where (String.sub s r (len - r))
-                                     else
-                                       Lwt_unix.yield ()
-                             in
-                             let stop size  = function
-                               | No_File (p_name, to_buf) ->
-                                   return
-                                     (params := !params @
-                                        [(p_name, Buffer.contents to_buf)])
-                                     (* à la fin ? *)
-                               | A_File (p_name,fname,oname,wh) ->
-                                   (* Ocsigen_messages.debug "closing file"; *)
-                                   files :=
-                                     !files@[(p_name, {tmp_filename=fname;
-                                                       filesize=size;
-                                                       raw_original_filename=oname;
-                                                       original_basename=(Ocsigen_lib.basename oname)})];
-                                   Unix.close wh;
-                                   return ()
-                             in
-                             Multipart.scan_multipart_body_from_stream
-                               body bound create add stop >>= fun () ->
-(*VVV
-  Does scan_multipart_body_from_stream read
-  until the end or only what it needs?
-  If we do not consume here,
-  the following request will be read only when
-  this one is finished ...
- *)
-                              Ocsigen_stream.consume body_gen >>= fun () ->
-                              Lwt.return (!params, !files))
-                  (fun e -> (*XXX??? Ocsigen_stream.consume body >>= fun _ ->*) fail e)
-              with e -> fail e)
+       let find_post_params =
+         lazy
+           (if meth = Http_header.GET || meth = Http_header.HEAD then
+              return ([],[])
+            else
+              match http_frame.Ocsigen_http_frame.content with
+             | None -> return ([], [])
+             | Some body_gen ->
+                 try
+                   let ct = match ct with
+                     | None -> "application/octet-stream"
+                     | Some ct -> ct
+                   in
+                   let body = Ocsigen_stream.get body_gen in
+                   catch
+                     (fun () ->
+                        let ctlow = String.lowercase ct in
+                        if ctlow = "application/x-www-form-urlencoded"
+                        then
+                          catch
+                            (fun () ->
+                               Ocsigen_stream.string_of_stream body >>= fun r ->
+                               Lwt.return
+                                 ((Netencoding.Url.dest_url_encoded_parameters r),
+                                  []))
+                            (function
+                               | Ocsigen_stream.String_too_large ->
+                                   fail Input_is_too_large
+                               | e -> fail e)
+                        else
+                          match
+                            (Netstring_pcre.string_match
+                               (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
+                          with
+                            | None -> fail Ocsigen_unsupported_media
+                            | _ ->
+                                let bound = get_boundary ct in
+                                let params = ref [] in
+                                let files = ref [] in
+                                let create hs =
+                                  let cd = List.assoc "content-disposition" hs in
+                                  let st = try
+                                    Some (find_field "filename" cd)
+                                  with Not_found -> None in
+                                  let p_name = find_field "name" cd in
+                                  match st with
+                                    | None -> No_File (p_name, Buffer.create 1024)
+                                    | Some store ->
+                                        let now =
+                                          Printf.sprintf
+                                            "%f-%d"
+                                            (Unix.gettimeofday ()) (counter ())
+                                        in
+                                        match ((Ocsigen_config.get_uploaddir ())) with
+                                          | Some dname ->
+                                              let fname = dname^"/"^now in
+                                              let fd = Unix.openfile fname
+                                                [Unix.O_CREAT;
+                                                 Unix.O_TRUNC;
+                                                 Unix.O_WRONLY;
+                                                 Unix.O_NONBLOCK] 0o666 in
+                                              (* Ocsigen_messages.debug "file opened"; *)
+                                              filenames := fname::!filenames;
+                                              A_File (p_name, fname, store, fd)
+                                          | None -> raise Ocsigen_upload_forbidden
+                                in
+                                let rec add where s =
+                                  match where with
+                                    | No_File (p_name, to_buf) ->
+                                        Buffer.add_string to_buf s;
+                                        return ()
+                                    | A_File (_,_,_,wh) ->
+                                        let len = String.length s in
+                                        let r = Unix.write wh s 0 len in
+                                        if r < len then
+   (*XXXX Inefficient if s is long *)
+                                          add where (String.sub s r (len - r))
+                                        else
+                                          Lwt_unix.yield ()
+                                in
+                                let stop size  = function
+                                  | No_File (p_name, to_buf) ->
+                                      return
+                                        (params := !params @
+                                           [(p_name, Buffer.contents to_buf)])
+                                        (* à la fin ? *)
+                                  | A_File (p_name,fname,oname,wh) ->
+                                      (* Ocsigen_messages.debug "closing file"; *)
+                                      files :=
+                                        !files@[(p_name, {tmp_filename=fname;
+                                                          filesize=size;
+                                                          raw_original_filename=oname;
+                                                          original_basename=(Ocsigen_lib.basename oname)})];
+                                      Unix.close wh;
+                                      return ()
+                                in
+                                Multipart.scan_multipart_body_from_stream
+                                  body bound create add stop >>= fun () ->
+   (*VVV
+     Does scan_multipart_body_from_stream read
+     until the end or only what it needs?
+     If we do not consume here,
+     the following request will be read only when
+     this one is finished ...
+    *)
+                                 Ocsigen_stream.consume body_gen >>= fun () ->
+                                 Lwt.return (!params, !files))
+                     (fun e -> (*XXX??? Ocsigen_stream.consume body >>= fun _ ->*) fail e)
+                 with e -> fail e)
 
-(* AEFF *)              (*        IN-MEMORY STOCKAGE *)
-              (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0
-               * (String.length s) bound in
-               * Ocsigen_messages.debug (fun () -> string_of_int (List.length bdlist));
-               * let simplify (hs,b) =
-               * ((find_field "name"
-               * (List.assoc "content-disposition" hs)),b) in
-               * List.iter (fun (hs,b) ->
-               * List.iter (fun (h,v) -> Ocsigen_messages.debug (fun () -> h^"=="^v)) hs) bdlist;
-               * List.map simplify bdlist *)
-    in
-    let ipstring = Unix.string_of_inet_addr inet_addr in
-    {ri_url_string = url;
-     ri_url = parsed_url;
-     ri_method = meth;
-     ri_protocol = http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
-     ri_ssl = Lwt_ssl.is_ssl (Ocsigen_http_com.connection_fd receiver);
-     ri_full_path_string = string_of_url_path path;
-     ri_full_path = path;
-     ri_sub_path = path;
-     ri_sub_path_string = string_of_url_path path;
-     ri_get_params_string = params;
-     ri_host = headerhost;
-     ri_get_params = get_params;
-     ri_initial_get_params = get_params;
-     ri_post_params = lazy (force find_post_params >>= fun (a, b) ->
-                            return a);
-     ri_files = lazy (force find_post_params >>= fun (a, b) ->
-                      return b);
-     ri_server_inet_addr = ip_of_sockaddr sockaddr;
-     ri_remote_inet_addr = inet_addr;
-     ri_ip = ipstring;
-     ri_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip ipstring));
-     ri_remote_port = port_of_sockaddr sockaddr;
-     ri_server_port = port;
-     ri_user_agent = useragent;
-     ri_cookies_string = cookies_string;
-     ri_cookies = cookies;
-     ri_ifmodifiedsince = ifmodifiedsince;
-     ri_ifunmodifiedsince = ifunmodifiedsince;
-     ri_ifnonematch = ifnonematch;
-     ri_ifmatch = ifmatch;
-     ri_content_type = ct;
-     ri_content_length = cl;
-     ri_referer = referer;
-     ri_accept = accept;
-     ri_accept_charset = accept_charset;
-     ri_accept_encoding = accept_encoding;
-     ri_accept_language = accept_language;
-     ri_http_frame = http_frame;
-     ri_extension_info = [];
-     ri_client = Ocsigen_extensions.client_of_connection receiver;
-   }
-
-  with e ->
-    Ocsigen_messages.debug (fun () -> "~~~ Exn during get_request_infos : "^
-      string_of_exn e);
-    raise e
+   (* AEFF *)              (*        IN-MEMORY STOCKAGE *)
+                 (* let bdlist = Mimestring.scan_multipart_body_and_decode s 0
+                  * (String.length s) bound in
+                  * Ocsigen_messages.debug (fun () -> string_of_int (List.length bdlist));
+                  * let simplify (hs,b) =
+                  * ((find_field "name"
+                  * (List.assoc "content-disposition" hs)),b) in
+                  * List.iter (fun (hs,b) ->
+                  * List.iter (fun (h,v) -> Ocsigen_messages.debug (fun () -> h^"=="^v)) hs) bdlist;
+                  * List.map simplify bdlist *)
+       in
+       let ipstring = Unix.string_of_inet_addr inet_addr in
+       Lwt.return
+         {ri_url_string = url;
+          ri_url = parsed_url;
+          ri_method = meth;
+          ri_protocol = http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
+          ri_ssl = Lwt_ssl.is_ssl (Ocsigen_http_com.connection_fd receiver);
+          ri_full_path_string = string_of_url_path path;
+          ri_full_path = path;
+          ri_sub_path = path;
+          ri_sub_path_string = string_of_url_path path;
+          ri_get_params_string = params;
+          ri_host_field = headerhost;
+          ri_host = computedhost;
+          ri_get_params = get_params;
+          ri_initial_get_params = get_params;
+          ri_post_params = lazy (force find_post_params >>= fun (a, b) ->
+                                 return a);
+          ri_files = lazy (force find_post_params >>= fun (a, b) ->
+                           return b);
+          ri_server_inet_addr = server_inet_addr;
+          ri_remote_inet_addr = inet_addr;
+          ri_ip = ipstring;
+          ri_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip ipstring));
+          ri_remote_port = port_of_sockaddr sockaddr;
+          ri_server_port = port;
+          ri_user_agent = useragent;
+          ri_cookies_string = cookies_string;
+          ri_cookies = cookies;
+          ri_ifmodifiedsince = ifmodifiedsince;
+          ri_ifunmodifiedsince = ifunmodifiedsince;
+          ri_ifnonematch = ifnonematch;
+          ri_ifmatch = ifmatch;
+          ri_content_type = ct;
+          ri_content_length = cl;
+          ri_referer = referer;
+          ri_accept = accept;
+          ri_accept_charset = accept_charset;
+          ri_accept_encoding = accept_encoding;
+          ri_accept_language = accept_language;
+          ri_http_frame = http_frame;
+          ri_extension_info = [];
+          ri_client = Ocsigen_extensions.client_of_connection receiver;
+        }
+    )
+    (fun e ->
+       Ocsigen_messages.debug (fun () -> "~~~ Exn during get_request_infos : "^
+                                 string_of_exn e);
+       Lwt.fail e)
 
 
 
@@ -470,18 +481,18 @@ let service
          (that will possibly create files) *)
       Lwt.try_bind
         (fun () ->
-           Lwt.return
-             (get_request_infos
-                meth clientproto url request filenames sockaddr port receiver))
+           get_request_infos
+             meth clientproto url request filenames sockaddr port receiver)
         (fun ri ->
            (* *** Now we generate the page and send it *)
            (* Log *)
           accesslog
-            (Format.sprintf "connection%s from %s (%s): %s"
-               (match ri.ri_host with
-               | None   -> ""
-               | Some h -> " for " ^ h)
-               ri.ri_ip ri.ri_user_agent ri.ri_url_string);
+            (Format.sprintf
+               "connection for %s from %s (%s): %s"
+               ri.ri_host
+               ri.ri_ip
+               ri.ri_user_agent
+               ri.ri_url_string);
 
            (* Generation of pages is delegated to extensions: *)
            Lwt.try_bind

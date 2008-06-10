@@ -75,7 +75,10 @@ type request_info =
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
-     ri_host: string option; (** Host field of the request (if any) *)
+     ri_host_field: string option; (** Host field of the request (if any) *)
+     ri_host: string; (** Host field of the request if any, 
+                          or computed using getnameinfo 
+                          if HTTP/1.0 without host field. *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters *)
      ri_initial_get_params: (string * string) list Lazy.t;  (** Association list of get parameters, as sent by the browser (must not be modified by extensions) *)
      ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters *)
@@ -540,12 +543,7 @@ let host_match host port =
     function
       | [] -> false
       | (a, p)::l -> ((port_match p) && (host_match1 0 a)) || aux host l
-  in match host with
-  | None -> List.exists (fun (_, p) -> port_match p)
-      (* Warning! For HTTP/1.0 we take the first one,
-         even if it doesn't match!
-         To be changed! *)
-  | Some host -> aux host
+  in aux host
 
 
 let string_of_host h =
@@ -577,16 +575,13 @@ let do_for_site_matching host port ri =
   in
 
   let rec do2 sites cookies_to_set ri =
-    let string_of_host_option = function
-      | None -> "<no host>:"^(string_of_int port)
-      | Some h -> h^":"^(string_of_int port)
-    in
+    let string_of_host_port h = h^":"^string_of_int port in
     let rec aux_host ri prev_err cookies_to_set = function
       | [] -> fail (Ocsigen_http_error (cookies_to_set, prev_err))
       | (h, host_function)::l when host_match host port h ->
           Ocsigen_messages.debug (fun () ->
             "-------- host found! "^
-            (string_of_host_option host)^
+            (string_of_host_port host)^
             " matches "^(string_of_host h));
           host_function
             awake
@@ -626,7 +621,7 @@ let do_for_site_matching host port ri =
       | (h, _)::l ->
           Ocsigen_messages.debug (fun () ->
             "-------- host = "^
-            (string_of_host_option host)^
+            (string_of_host_port host)^
             " does not match "^(string_of_host h));
           aux_host ri prev_err cookies_to_set l
     in aux_host ri 404 cookies_to_set sites
@@ -648,13 +643,14 @@ let do_for_site_matching host port ri =
 
 let ri_of_url url ri =
   let (host, _, url, url2, path, params, get_params) = parse_url url in
-  let host = match host with
-  | Some h -> host
-  | None -> ri.ri_host
+  let host_field, host = match host with
+    | Some h -> host, h
+    | None -> ri.ri_host_field, ri.ri_host
   in
   {ri with
    ri_url_string = url;
    ri_url = url2;
+   ri_host_field = host_field;
    ri_host = host;
    ri_full_path_string = string_of_url_path path;
    ri_full_path = path;
@@ -662,6 +658,7 @@ let ri_of_url url ri =
    ri_get_params_string = params;
    ri_get_params = get_params;
   }
+
 
 
 (*****************************************************************************)

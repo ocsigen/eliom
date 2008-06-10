@@ -94,11 +94,12 @@ val get_current_sub_path_string : sp:server_params -> string
  *)
 val get_current_sub_path : sp:server_params -> url_path
 
-(** returns the hostname that has been sent by the user agent, if any.
-   This is usefull if your server has several hostnames, but that
-   piece of information is not mandatory for HTTP/1.0.
+(** returns the hostname that has been sent by the user agent.
+    For HTTP/1.0, the Host field is not mandatory in the request.
+    In the case it is absent, we return the default hostname of the server
+    (returned by getnameinfo).
  *)
-val get_hostname : sp:server_params -> string option
+val get_hostname : sp:server_params -> string
 
 (** returns the port on which the request has been done. *)
 val get_server_port : sp:server_params -> int
