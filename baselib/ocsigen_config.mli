@@ -36,6 +36,9 @@ val set_group : string option -> unit
 val set_command_pipe : string -> unit
 val set_debugmode : bool -> unit
 val set_respect_pipeline : unit -> unit
+val set_ports : (Unix.inet_addr option * int) list -> unit
+val set_sslports : (Unix.inet_addr option * int) list -> unit
+
 val get_uploaddir : unit -> string option
 val get_logdir : unit -> string
 val get_config_file : unit -> string
@@ -68,5 +71,8 @@ val get_group : unit -> string option
 val get_command_pipe : unit -> string
 val get_debugmode : unit -> bool
 val get_respect_pipeline : unit -> bool
+val get_ports : unit -> (Unix.inet_addr option * int) list
+val get_sslports : unit -> (Unix.inet_addr option * int) list
+
 val display_version : unit -> 'a
 val config : unit -> Simplexmlparser.xml list

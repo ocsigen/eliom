@@ -66,7 +66,8 @@ let group = ref (Some !default_group)
 let command_pipe = ref "_COMMANDPIPE_"
 let debugmode = ref false
 let respectpipeline = ref false
-
+let ports = ref []
+let sslports = ref []
 
 let set_uploaddir u = uploaddir := u
 let set_logdir s = logdir := s
@@ -99,6 +100,8 @@ let set_group o = group := o
 let set_command_pipe s = command_pipe := s
 let set_debugmode s = debugmode := s
 let set_respect_pipeline () = respectpipeline := true
+let set_ports l = ports := l
+let set_sslports l = sslports := l
 
 let get_uploaddir () = !uploaddir
 let get_logdir () = !logdir
@@ -133,7 +136,8 @@ let get_group () = !group
 let get_command_pipe () = !command_pipe
 let get_debugmode () = !debugmode
 let get_respect_pipeline () = !respectpipeline
-
+let get_ports () = !ports
+let get_sslports () = !sslports
 
 let display_version () =
   print_string version_number;

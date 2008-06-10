@@ -117,6 +117,12 @@ open Simplexmlparser
 
 let rec parse_global_config = function
   | [] -> ()
+  | (Element ("httpport", [("value", s)], []))::ll ->
+      Eliom_common.set_default_port (int_of_string s);
+      parse_global_config ll
+  | (Element ("httpsport", [("value", s)], []))::ll ->
+      Eliom_common.set_default_sslport (int_of_string s);
+      parse_global_config ll
   | (Element ("timeout", [("value", s)], []))::ll
   | (Element ("volatiletimeout", [("value", s)], []))::ll ->
       (try

@@ -1082,19 +1082,19 @@ let _ = try
       )
   in
 
-  let set_passwd_if_needed (ssl,ports,sslports) =
+  let set_passwd_if_needed (ssl, ports, sslports) =
     if sslports <> []
     then
       match ssl with
-        None
-      | Some (None, None) -> ()
-      | Some (None, _) -> raise (Ocsigen_config.Config_file_error
-                            "SSL certificate is missing")
-      | Some (_, None) -> raise (Ocsigen_config.Config_file_error
-                            "SSL key is missing")
-      | Some ((Some c), (Some k)) ->
-          Ssl.set_password_callback !sslctx (ask_for_passwd sslports);
-          Ssl.use_certificate !sslctx c k
+        | None
+        | Some (None, None) -> ()
+        | Some (None, _) -> raise (Ocsigen_config.Config_file_error
+                                     "SSL certificate is missing")
+        | Some (_, None) -> raise (Ocsigen_config.Config_file_error
+                                     "SSL key is missing")
+        | Some ((Some c), (Some k)) ->
+            Ssl.set_password_callback !sslctx (ask_for_passwd sslports);
+            Ssl.use_certificate !sslctx c k
   in
 
   let write_pid pid =
@@ -1133,9 +1133,15 @@ let _ = try
     number_of_servers = 1
   then
     let cf = List.hd config_servers in
-    let (user_info, sslinfo, threadinfo) = extract_info cf in
+    let (user_info, 
+         ((ssl, ports, sslports) as sslinfo), 
+         threadinfo) = 
+      extract_info cf 
+    in
     (set_passwd_if_needed sslinfo;
      write_pid (Unix.getpid ());
+     Ocsigen_config.set_ports ports;
+     Ocsigen_config.set_sslports sslports;
      run user_info sslinfo threadinfo cf)
   else launch config_servers
 

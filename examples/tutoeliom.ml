@@ -3357,6 +3357,23 @@ let _ = Eliom_services.set_exn_handler
        That's how the different examples of sessions in this tutorial are
        independant.
       </p>
+      <h4>HTTPS</h4>
+      <p>You may want to impose HTTPS for some of your services.
+       To do that, use the optional parameter <code>~https:true</code>
+       while creating your service.
+      </p>
+      <p>It is also possible to require http or https while creating a link or
+      a form (using the optional parameter <code>~https:true</code>).
+      But it is never possible to make an http link towards an https service,
+      even if you request it.
+      </p>
+      <p>Warning: if the protocol needs to be changed (from http to https 
+       or vice versa), Eliom will generate absolute URLs.
+       It may be a problem if your Web site is behind a reverse proxy.
+       To solve the problem, use an input filter to change the Host field
+       of the request (if you know the correct hostname), or ask your reverse
+       proxy to rewrite all the URLs in your XHTML code ...
+      </p>
     </div>
 
 

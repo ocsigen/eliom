@@ -182,7 +182,6 @@ val new_service' :
 *)
 
 val new_external_service :
-  ?https:bool ->
   prefix: string ->
   path:url_path ->
   get_params:('get, [< suff ] as 'tipo, 'gn) params_type ->

@@ -43,6 +43,11 @@ exception Eliom_function_forbidden_outside_site_loading of string
 
 (**/**)
 
+val set_default_port : int -> unit
+val set_default_sslport : int -> unit
+val get_default_port : unit -> int
+val get_default_sslport : unit -> int
+
 (*
 (** Type used to describe session timeouts *)
 type timeout =

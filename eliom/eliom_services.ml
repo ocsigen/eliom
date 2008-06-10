@@ -277,7 +277,6 @@ let new_service_aux
 
 
 let new_external_service
-    ?(https = false)
     ~prefix
     ~path
     ~get_params
@@ -285,7 +284,7 @@ let new_external_service
     () =
   let suffix = contains_suffix get_params in
   new_service_aux_aux
-    ~https
+    ~https:false (* not used for external links *)
     ~prefix
     ~path:(remove_internal_slash
             (if suffix
