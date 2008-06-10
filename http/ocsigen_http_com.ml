@@ -485,11 +485,13 @@ NOT IMPLEMENTED
 
 type slot =
   { sl_waiter : waiter;
-    sl_chan : Lwt_chan.out_channel }
+    sl_chan : Lwt_chan.out_channel;
+    sl_ssl : bool (* for secure cookies only *)}
 
 let create_slot conn =
   { sl_waiter = conn.senders;
-    sl_chan   = conn.chan }
+    sl_chan   = conn.chan;
+    sl_ssl = Lwt_ssl.is_ssl conn.fd}
 
 (****)
 
@@ -872,6 +874,8 @@ let send
   let mkcook path exp name c =
     Format.sprintf "%s=%s%s%s" name c
       ("; path=/" ^ Ocsigen_lib.string_of_url_path path)
+      (if slot.sl_ssl then "; secure" else "")^
+(*VVV We always require secure cookies if https ... It is ok? *)
       (match exp with
       | Some s -> "; expires=" ^
           Netdate.format
