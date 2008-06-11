@@ -917,6 +917,7 @@ module MakeForms = functor
               then get_current_full_path_string sp
               else relative_url_path_to_myself (get_current_sub_path sp)
             in
+            let beg = if beg = "" then "./" else beg in
             concat_strings
               beg
               "?"
@@ -966,6 +967,8 @@ module MakeForms = functor
           ~sp
           ?fragment
           getparams
+
+
 
       let make_full_uri
           ?https
@@ -1106,18 +1109,16 @@ module MakeForms = functor
               then proto_prefix^get_current_full_path_string sp
               else relative_url_path_to_myself cur
             in
-            Pages.make_a ?a
-              ~href:(
-                (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
-                concat_strings
-                  beg
-                  "?"
-                  (concat_strings
-                     current_get_params_string
-                     "&"
-                     gp)
-              )
-              content
+            let href =
+              concat_strings
+                beg
+                "?"
+                (concat_strings
+                   current_get_params_string
+                   "&"
+                   gp)
+            in
+            Pages.make_a ?a ~href content
 
       let get_form
           ?https
