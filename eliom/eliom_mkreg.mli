@@ -43,12 +43,13 @@ module type REGCREATE =
     type options
 
     val send :
-        ?options:options ->
-          ?cookies:Eliom_services.cookie list ->
-            ?charset:string ->
-              ?code:int ->
-                sp:Eliom_sessions.server_params ->
-                  page -> result_to_send Lwt.t
+      ?options:options ->
+      ?cookies:Eliom_services.cookie list ->
+      ?charset:string ->
+      ?code:int ->
+      sp:Eliom_sessions.server_params ->
+      page -> 
+      result_to_send Lwt.t
 
   end
 

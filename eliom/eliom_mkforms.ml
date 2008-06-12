@@ -917,14 +917,16 @@ module MakeForms = functor
               then get_current_full_path_string sp
               else relative_url_path_to_myself (get_current_sub_path sp)
             in
-            let beg = if beg = "" then "./" else beg in
-            concat_strings
-              beg
-              "?"
-              (concat_strings
-                 current_get_params_string
-                 "&"
-                 gp)
+            let params =
+              concat_strings
+                current_get_params_string
+                "&"
+                gp
+            in
+            if params = ""
+            then beg (* may be empty *)
+            else beg^"?"^params
+
 
       let make_proto_prefix
           ~sp

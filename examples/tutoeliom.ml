@@ -1102,7 +1102,7 @@ let looong2 =
           <td colspan="4">is like $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Actions" ]] [version;"Eliom_predefmod.Actions.html"]$ but the
         URL is not reloaded after the action.
           </td></tr>
-<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirections" ]] [version;"Eliom_predefmod.Redirections.html"]$</th>
+<tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirection" ]] [version;"Eliom_predefmod.Redirection.html"]$</th>
           <td colspan="4">Allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
             Warning: According to the RFC of the HTTP protocol,
@@ -2382,19 +2382,37 @@ end)
 
     <h4>Redirections</h4>
     <p>
-     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirections" ]] [version;"Eliom_predefmod.Redirections.html"]$ module allows to register HTTP redirections.
+     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirection" ]] [version;"Eliom_predefmod.Redirection.html"]$ module allows to register HTTP redirections.
      If a request is done towards such a service, the server asks the browser
-     to retry with another URL. Example:
+     to retry with another URL. 
+    </p>
+    <p>
+     Such services return a GET service without parameter at all.
+     Example:
     </p>
 *html*)
-let redir = Eliom_predefmod.Redirections.register_new_service
+let redir1 = Eliom_predefmod.Redirection.register_new_service
+    ~options:`Temporary
+    ~path:["redir"]
+    ~get_params:Eliom_parameters.unit
+   (fun sp () () -> Lwt.return coucou)
+(*html*
+    <p>
+     If you want to give parameters to such services, use
+     $a ~fragment:"VALpreapply" ~service:senddoc ~sp
+           [code [pcdata "Eliom_services.preapply" ]]
+           [version;"Eliom_services.html"]$ (see also 
+     <a href="#p3preapplied">later in the tutorial</a>).
+     Example:
+    </p>
+ *html*)
+let redir = Eliom_predefmod.Redirection.register_new_service
     ~options:`Temporary
     ~path:["redir"]
     ~get_params:(int "o")
    (fun sp o () ->
       Lwt.return
-        (Eliom_predefmod.Xhtml.make_full_uri
-           coucou_params sp (o,(22,"ee"))))
+        (Eliom_services.preapply coucou_params (o,(22,"ee"))))
 (*html*
       <p>The <code>options</code> parameter may be either
       <code>`Temporary</code> or <code>`Permanent</code>.</p>
@@ -2953,7 +2971,7 @@ let () =
      to obtain a service without parameters. Example:
     </p>
     <pre>
-let preappl = preapply coucou_params (3,(4,"cinq"))
+let preappl = Eliom_services.preapply coucou_params (3,(4,"cinq"))
     </pre>
     <p>
      It is not possible to register something on a preapplied service,

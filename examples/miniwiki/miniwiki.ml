@@ -34,8 +34,9 @@ let (>>) f g = g f
 
 let wiki_view_page = new_service [] (suffix (string "p")) ()
 let wiki_edit_page = new_service ["edit"] (string "p") ()
-let wiki_start = Redirections.register_new_service [] unit
-    (fun sp _ _ -> Lwt.return (make_full_uri wiki_view_page sp "WikiStart"))
+let wiki_start = Redirection.register_new_service [] unit
+    (fun sp _ _ -> 
+       Lwt.return (Eliom_services.preapply wiki_view_page "WikiStart"))
 
 
 let finally handler f x =

@@ -1768,8 +1768,9 @@ module Actionreg_ = struct
 
 end
 
-module Actions = MakeRegister(Actionreg_)
+module Action = MakeRegister(Actionreg_)
 
+module Actions = Action (* For backwards compatibility *)
 
 (** Unit services are like services, do not generate any page, and do not
     reload the page. To be used carefully. Probably not usefull at all.
@@ -1809,7 +1810,7 @@ module Unit = MakeRegister(Unitreg_)
    (possibly preapplied).
 
  *)
-module Redirreg_ = struct
+module String_redirreg_ = struct
   open XHTML.M
   open Xhtmltypes
 
@@ -1837,7 +1838,42 @@ module Redirreg_ = struct
 end
 
 
-module Redirections = MakeRegister(Redirreg_)
+module String_redirection = MakeRegister(String_redirreg_)
+
+module Redirreg_ = struct
+  open XHTML.M
+  open Xhtmltypes
+
+  type page = 
+      (unit, unit, Eliom_services.get_service_kind,
+       [ `WithoutSuffix ], 
+       unit, unit, Eliom_services.registrable)
+        Eliom_services.service
+
+  type options = [ `Temporary | `Permanent ]
+
+  let send ?(options = `Permanent) ?(cookies=[]) ?charset ?code ~sp content =
+    let empty_result = Ocsigen_http_frame.empty_result () in
+    let uri = Xhtml.make_full_string_uri ~sp ~service:content () in
+    let code = match code with
+    | Some c -> c
+    | None ->
+        if options = `Temporary
+        then 307 (* Temporary move *)
+        else 301 (* Moved permanently *)
+    in
+    Lwt.return
+      (EliomResult
+         {empty_result with
+          res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+          res_code= code;
+          res_location = Some uri;
+        })
+
+end
+
+
+module Redirection = MakeRegister(Redirreg_)
 
 
 

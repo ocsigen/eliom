@@ -698,6 +698,11 @@ module Text : Eliom_mkreg.ELIOMREGSIG with type page = string * string
     If you give the optional parameter
     [~options:`NoReload] to the registration function, no page will be sent.
  *)
+module Action : Eliom_mkreg.ELIOMREGSIG with
+  type page = exn list
+  and type options = [ `Reload | `NoReload ]
+
+(** The same, for backwards compatibility *)
 module Actions : Eliom_mkreg.ELIOMREGSIG with
   type page = exn list
   and type options = [ `Reload | `NoReload ]
@@ -709,17 +714,33 @@ module Actions : Eliom_mkreg.ELIOMREGSIG with
 module Unit : Eliom_mkreg.ELIOMREGSIG with
   type page = unit
 
-(** Allows to create redirections towards other URLs.
+(** Allows to create redirections towards another service.
    A 301 or 307 code is sent to the browser to ask it to redo the request to
    another URL.
-
-    Warning: The URL given must be an absolute URI.
 
    To choose if you want permanent or temporary redirection, use
    the [options] parameter of registration functions.
    For example: [register ~options:`Temporary ...].
  *)
-module Redirections : Eliom_mkreg.ELIOMREGSIG with
+module Redirection : Eliom_mkreg.ELIOMREGSIG with
+  type page =
+  (unit, unit, Eliom_services.get_service_kind,
+   [ `WithoutSuffix ],
+   unit, unit, Eliom_services.registrable)
+    Eliom_services.service
+  and type options = [ `Temporary | `Permanent ]
+
+(** Allows to create redirections towards other URLs.
+   A 301 or 307 code is sent to the browser to ask it to redo the request to
+   another URL.
+
+   Warning: The URL given must be an absolute URI.
+
+   To choose if you want permanent or temporary redirection, use
+   the [options] parameter of registration functions.
+   For example: [register ~options:`Temporary ...].
+ *)
+module String_redirection : Eliom_mkreg.ELIOMREGSIG with
   type page = XHTML.M.uri
 (*VVV Would be better to define the type uri elsewhere *)
   and type options = [ `Temporary | `Permanent ]
