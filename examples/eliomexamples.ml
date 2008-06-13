@@ -58,20 +58,26 @@ let optform =
     ~path:["optform"]
     ~get_params:unit
     (fun sp () () ->
+(* testing lwt_get_form *)
+       Eliom_predefmod.Xhtml.lwt_get_form
+         ~service:optparam ~sp
+         (fun (an, bn) -> 
+            Lwt.return
+              [p [
+                 string_input ~input_type:`Text ~name:an ();
+                 string_input ~input_type:`Text ~name:bn ();
+                 Eliom_predefmod.Xhtml.string_input
+                   ~input_type:`Submit
+                   ~value:"Click" ()]])
+      >>= fun form ->
+      let form = 
+        (form : Xhtmltypes.form XHTML.M.elt :> [> Xhtmltypes.form ] XHTML.M.elt)
+      in  
       return
         (html
            (head (title (pcdata "")) [])
            (body [h1 [pcdata "Hallo!"];
-                  
-  Eliom_predefmod.Xhtml.get_form
-    ~service:optparam ~sp
-    (fun (an, bn) -> 
-       [p [
-          string_input ~input_type:`Text ~name:an ();
-          string_input ~input_type:`Text ~name:bn ();
-          Eliom_predefmod.Xhtml.string_input
-             ~input_type:`Submit
-             ~value:"Click" ()]])
+                  form
                  ]))
 
  )
