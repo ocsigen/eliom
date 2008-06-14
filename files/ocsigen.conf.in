@@ -203,11 +203,6 @@
                                    but for service sessions only -->
       <datasessiongcfrequency value="7200"/> <!-- Like <sessiongcfrequency>,
                                    but for "in memory data" sessions only -->
-      <httpport value="80"/>       <!-- the port to use by default for http
-                                   if Eliom needs to create absolute links.
-                                   default: the first http port of the 
-                                   configuration file -->
-      <httpsport value="443"/>     <!-- same for https -->
     </extension>
     -->
 
@@ -285,7 +280,7 @@
     configuration file.
      -->
 
-    <host charset="iso-8859-1">  <!-- First virtual host -->
+    <host charset="iso-8859-1" defaulthostname="www.yourwebsite.org" >  <!-- First virtual host -->
       <!-- <host> is mandatory -->
       <!-- charset is optional (default "utf-8") -->
 
@@ -485,7 +480,7 @@
     </host>
 
     <!--
-    <host name="*.com">      <!-- Another virtual host -->
+    <host name="*.com" defaulthostname="www.yourwebsite.com">      <!-- Another virtual host -->
     </host>
 
        If your server has several host names, you can decide which sites will

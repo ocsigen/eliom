@@ -191,7 +191,7 @@ let compute_exn closedservsessions =
 
 
 
-let gen sitedata charset = function
+let gen sitedata (charset, _, _, _) = function
 | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
 | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in

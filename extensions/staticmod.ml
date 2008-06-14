@@ -202,7 +202,7 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 *)
 
 
-let parse_config path charset _ parse_site =
+let parse_config path (charset, _, _, _) _ parse_site =
   let rec parse_attrs ((dir, regexp, readable, code, dest) as res) = function
     | [] -> res
     | ("dir", d)::l when dir = None ->

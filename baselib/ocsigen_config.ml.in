@@ -144,6 +144,7 @@ let display_version () =
   print_newline ();
   exit 0
 
+
 let config () =
     Simplexmlparser.xmlparser (get_config_file ())
 

@@ -3387,11 +3387,12 @@ let _ = Eliom_services.set_exn_handler
       </p>
       <p>Warning: if the protocol needs to be changed (from http to https 
        or vice versa), Eliom will generate absolute URLs.
-       It may be a problem if your Web site is behind a reverse proxy.
-       To solve the problem, use an input filter to change the Host field
-       of the request (if you know the correct hostname), or ask your reverse
-       proxy to rewrite all the URLs in your XHTML code ...
+       The host name and port numbers are guessed from the IP and the 
+       configuration by default, but it is recommended to specify them
+       in the configuration file. For example:
       </p>
+      <pre>&lt;host name="*.org" defaulthostname="www.mywebsite.org" defaulthttpport="8080" defaulthttpsport="4433"&gt; ... &lt;/host&gt;</pre>
+
     </div>
 
 

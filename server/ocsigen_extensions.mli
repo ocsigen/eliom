@@ -89,18 +89,14 @@ type request_info =
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
-     ri_host_field: string option; (** Host field of the request (if any) *)
-     ri_host: string; (** Host field of the request if any, 
-                          or computed using getnameinfo 
-                          if HTTP/1.0 without host field. *)
+     ri_host: string option; (** Host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters *)
      ri_initial_get_params: (string * string) list Lazy.t;  (** Association list of get parameters, as sent by the browser (must not be modified by extensions) *)
      ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters *)
      ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
      ri_remote_inet_addr: Unix.inet_addr; (** IP of the client *)
-     ri_server_inet_addr: Unix.inet_addr; (** IP of the server *)
-     ri_ip: string;            (** IP of the client *)
-     ri_ip_parsed: ip_address Lazy.t;    (** IP of the client, parsed *)
+     ri_remote_ip: string;            (** IP of the client *)
+     ri_remote_ip_parsed: ip_address Lazy.t;    (** IP of the client, parsed *)
      ri_remote_port: int;      (** Port used by the client *)
      ri_server_port: int;      (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
@@ -273,14 +269,14 @@ val register_extension :
   ?respect_pipeline: bool ->
   (virtual_hosts ->
      url_path ->
-       string ->
+       string * string option * int * int ->
          parse_host ->
            parse_fun ->
              Simplexmlparser.xml ->
                extension) ->
   (virtual_hosts ->
      url_path ->
-       string ->
+       string * string option * int * int ->
          parse_host ->
            parse_fun ->
              Simplexmlparser.xml ->
@@ -297,7 +293,7 @@ val register_extension :
 val void_extension :
     virtual_hosts ->
       url_path ->
-        string ->
+        string * string option * int * int ->
           parse_host ->
             parse_fun ->
               Simplexmlparser.xml ->
@@ -331,23 +327,23 @@ val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
 
 val make_parse_site :
   url_path ->
-    string ->
+    string * string option * int * int ->
       (url_path ->
-        string ->
+        string * string option * int * int ->
           parse_host -> parse_fun -> Simplexmlparser.xml -> extension) ->
             parse_fun
 
 val parse_site_item :
     virtual_hosts ->
       url_path ->
-        string ->
+        string * string option * int * int ->
           parse_host ->
             parse_fun -> Simplexmlparser.xml -> extension
 
 val parse_user_site_item :
     virtual_hosts ->
       url_path ->
-        string ->
+        string * string option * int * int ->
           parse_host ->
             parse_fun -> Simplexmlparser.xml -> extension
 
@@ -356,7 +352,7 @@ val set_hosts : (virtual_hosts * extension2) list -> unit
 val get_hosts : unit -> (virtual_hosts * extension2) list
 
 val do_for_site_matching :
-    string ->
+    string option ->
     int ->
     request_info -> Ocsigen_http_frame.result Lwt.t
 

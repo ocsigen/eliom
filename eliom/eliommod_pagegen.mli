@@ -38,4 +38,5 @@ val execute :
 val compute_exn : string list -> exn list
 val gen :
   Eliom_common.sitedata ->
-  string -> Ocsigen_extensions.request_state -> Ocsigen_extensions.answer Lwt.t
+  string * string option * int * int -> 
+  Ocsigen_extensions.request_state -> Ocsigen_extensions.answer Lwt.t

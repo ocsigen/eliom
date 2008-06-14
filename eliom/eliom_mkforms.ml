@@ -965,8 +965,8 @@ module MakeForms = functor
           if https = ssl
           then Eliom_sessions.get_server_port ~sp 
           else if https
-          then Eliom_common.get_default_sslport ()
-          else Eliom_common.get_default_port ()
+          then Eliom_sessions.get_default_sslport ~sp
+          else Eliom_sessions.get_default_port ~sp
 (*VVV This should be configurable for each site, or allow to specify the port
   for each link/form?? Same for hostname ... *)
         in

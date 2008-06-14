@@ -52,8 +52,10 @@ let _ =
 external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
 
 let option_get_default x d = match x with Some x -> x | None -> d
-let local_addr addr num = Unix.ADDR_INET (option_get_default addr Unix.inet_addr_any, num)
-let local_addr6 addr num = Unix.ADDR_INET (option_get_default addr Unix.inet6_addr_any, num)
+let local_addr addr num = 
+  Unix.ADDR_INET (option_get_default addr Unix.inet_addr_any, num)
+let local_addr6 addr num = 
+  Unix.ADDR_INET (option_get_default addr Unix.inet6_addr_any, num)
 
 let sslctx = Ocsigen_http_client.sslcontext
 
@@ -95,7 +97,8 @@ let dbg sockaddr s =
 
 (* reading the request *)
 let get_request_infos
-    meth clientproto url http_frame filenames sockaddr port receiver =
+    meth clientproto url http_frame filenames sockaddr 
+    port receiver =
 
   Lwt.catch
     (fun () ->
@@ -109,13 +112,6 @@ let get_request_infos
          | None -> get_host_from_host_header http_frame
          | _ -> headerhost
        in
-       let server_inet_addr = ip_of_sockaddr sockaddr in
-       (match headerhost with
-          | None -> 
-              (* HTTP/1.0 with no host *)
-              Ocsigen_lib.getnameinfo server_inet_addr port
-          | Some h -> Lwt.return h)
-       >>= fun computedhost ->
 
        (* RFC:
     1. If Request-URI is an absoluteURI, the host is part of the Request-URI. Any Host header field value in the request MUST be ignored.
@@ -152,7 +148,7 @@ let get_request_infos
 
        let ifmatch = get_if_match http_frame in
 
-       let inet_addr = ip_of_sockaddr sockaddr in
+       let client_inet_addr = ip_of_sockaddr sockaddr in
 
        let ct = get_content_type http_frame in
 
@@ -291,7 +287,7 @@ let get_request_infos
                   * List.iter (fun (h,v) -> Ocsigen_messages.debug (fun () -> h^"=="^v)) hs) bdlist;
                   * List.map simplify bdlist *)
        in
-       let ipstring = Unix.string_of_inet_addr inet_addr in
+       let ipstring = Unix.string_of_inet_addr client_inet_addr in
        Lwt.return
          {ri_url_string = url;
           ri_url = parsed_url;
@@ -303,18 +299,16 @@ let get_request_infos
           ri_sub_path = path;
           ri_sub_path_string = string_of_url_path path;
           ri_get_params_string = params;
-          ri_host_field = headerhost;
-          ri_host = computedhost;
+          ri_host = headerhost;
           ri_get_params = get_params;
           ri_initial_get_params = get_params;
           ri_post_params = lazy (force find_post_params >>= fun (a, b) ->
                                  return a);
           ri_files = lazy (force find_post_params >>= fun (a, b) ->
                            return b);
-          ri_server_inet_addr = server_inet_addr;
-          ri_remote_inet_addr = inet_addr;
-          ri_ip = ipstring;
-          ri_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip ipstring));
+          ri_remote_inet_addr = client_inet_addr;
+          ri_remote_ip = ipstring;
+          ri_remote_ip_parsed = lazy (fst (Ocsigen_lib.parse_ip ipstring));
           ri_remote_port = port_of_sockaddr sockaddr;
           ri_server_port = port;
           ri_user_agent = useragent;
@@ -482,15 +476,18 @@ let service
       Lwt.try_bind
         (fun () ->
            get_request_infos
-             meth clientproto url request filenames sockaddr port receiver)
+             meth clientproto url request filenames sockaddr 
+             port receiver)
         (fun ri ->
            (* *** Now we generate the page and send it *)
            (* Log *)
           accesslog
             (Format.sprintf
                "connection for %s from %s (%s): %s"
-               ri.ri_host
-               ri.ri_ip
+               (match ri.ri_host with
+                  | None   -> "<host not specified in the request>"
+                  | Some h -> h)
+               ri.ri_remote_ip
                ri.ri_user_agent
                ri.ri_url_string);
 
@@ -964,17 +961,17 @@ let _ = try
           ignore (listen true i wait_end_init)) sslports;
 
       let gid = match group with
-      | None -> Unix.getgid ()
-      | Some group -> (try
-          (Unix.getgrnam group).Unix.gr_gid
-      with e -> errlog ("Error: Wrong group"); raise e)
+        | None -> Unix.getgid ()
+        | Some group -> (try
+                           (Unix.getgrnam group).Unix.gr_gid
+                         with e -> errlog ("Error: Wrong group"); raise e)
       in
 
       let uid = match user with
-      | None -> Unix.getuid ()
-      | Some user -> (try
-          (Unix.getpwnam user).Unix.pw_uid
-      with e -> (errlog ("Error: Wrong user"); raise e))
+        | None -> Unix.getuid ()
+        | Some user -> (try
+                          (Unix.getpwnam user).Unix.pw_uid
+                        with e -> (errlog ("Error: Wrong user"); raise e))
       in
 
       (* A pipe to communicate with the server *)

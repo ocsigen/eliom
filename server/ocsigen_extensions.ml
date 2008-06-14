@@ -75,18 +75,14 @@ type request_info =
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
-     ri_host_field: string option; (** Host field of the request (if any) *)
-     ri_host: string; (** Host field of the request if any, 
-                          or computed using getnameinfo 
-                          if HTTP/1.0 without host field. *)
+     ri_host: string option; (** Host field of the request (if any) *)
      ri_get_params: (string * string) list Lazy.t;  (** Association list of get parameters *)
      ri_initial_get_params: (string * string) list Lazy.t;  (** Association list of get parameters, as sent by the browser (must not be modified by extensions) *)
      ri_post_params: (string * string) list Lwt.t Lazy.t; (** Association list of post parameters *)
      ri_files: (string * file_info) list Lwt.t Lazy.t; (** Files sent in the request *)
      ri_remote_inet_addr: Unix.inet_addr; (** IP of the client *)
-     ri_server_inet_addr: Unix.inet_addr; (** IP of the server *)
-     ri_ip: string;            (** IP of the client *)
-     ri_ip_parsed: ip_address Lazy.t;    (** IP of the client, parsed *)
+     ri_remote_ip: string;            (** IP of the client *)
+     ri_remote_ip_parsed: ip_address Lazy.t;    (** IP of the client, parsed *)
      ri_remote_port: int;      (** Port used by the client *)
      ri_server_port: int;      (** Port of the request (server) *)
      ri_user_agent: string;    (** User_agent of the browser *)
@@ -190,7 +186,7 @@ type parse_fun = Simplexmlparser.xml list -> extension2
 type parse_host =
     Parse_host of
       (url_path ->
-        string ->
+        string * string option * int * int ->
           parse_host -> parse_fun -> Simplexmlparser.xml -> extension)
 
 let (hosts : (virtual_hosts * extension2) list ref) =
@@ -276,7 +272,7 @@ let fun_exn = ref (fun exn -> (raise exn : string))
 let rec default_parse_config
     (host : virtual_hosts)
     prevpath
-    defcharset
+    ((defcharset, a, b, c) as defcharsetetc)
     (Parse_host parse_host)
     (parse_fun : parse_fun) = function
   | Simplexmlparser.Element ("site", atts, l) ->
@@ -302,9 +298,9 @@ let rec default_parse_config
               (Ocsigen_config.Config_file_error ("Wrong attribute for <site>: "^s))
       in
       let charset, dir = parse_site_attrs (None, None) atts in
-      let charset = match charset with
-      | None -> defcharset
-      | Some charset -> charset
+      let charsetetc = match charset with
+      | None -> defcharsetetc
+      | Some charset -> (charset, a, b, c)
       in
       let path =
         prevpath@
@@ -312,7 +308,7 @@ let rec default_parse_config
           (Ocsigen_lib.remove_slash_at_beginning
              (Ocsigen_lib.remove_dotdot (Neturl.split_path dir)))
       in
-      let parse_site = make_parse_site path charset parse_host l in
+      let parse_site = make_parse_site path charsetetc parse_host l in
       let ext awake cookies_to_set =
         function
           | Req_found (ri, res) ->
@@ -359,8 +355,8 @@ let rec default_parse_config
   | _ -> raise (Ocsigen_config.Config_file_error
                   ("Unexpected content inside <host>"))
 
-and make_parse_site path charset parse_host l =
-  let f = parse_host path charset (Parse_host parse_host) in
+and make_parse_site path charsetetc parse_host l =
+  let f = parse_host path charsetetc (Parse_host parse_host) in
   (* creates all site data, if any *)
   let rec parse_site = function
     | [] ->
@@ -442,9 +438,9 @@ let register_extension,
          (fun host ->
            let oldf = old_fun_site host in
            let newf = new_fun_site host in
-           fun path charset parse_host ->
-             let oldf = oldf path charset parse_host in
-             let newf = newf path charset parse_host in
+           fun path charsetetc parse_host ->
+             let oldf = oldf path charsetetc parse_host in
+             let newf = newf path charsetetc parse_host in
              fun parse_site config_tag ->
                try
                  oldf parse_site config_tag
@@ -457,9 +453,9 @@ let register_extension,
          (fun host ->
            let oldf = old_fun_site host in
            let newf = new_user_fun_site host in
-           fun path charset parse_host ->
-             let oldf = oldf path charset parse_host in
-             let newf = newf path charset parse_host in
+           fun path charsetetc parse_host ->
+             let oldf = oldf path charsetetc parse_host in
+             let newf = newf path charsetetc parse_host in
              fun parse_site config_tag ->
                try
                  oldf parse_site config_tag
@@ -515,7 +511,7 @@ let start_initialisation, during_initialisation,
 
 let host_match host port =
   let port_match = function
-      None -> true
+    | None -> true
     | Some p -> p = port
   in
   let rec aux host =
@@ -543,7 +539,12 @@ let host_match host port =
     function
       | [] -> false
       | (a, p)::l -> ((port_match p) && (host_match1 0 a)) || aux host l
-  in aux host
+  in match host with
+    | None -> List.exists (fun (_, p) -> port_match p)
+        (*VVV Warning! For HTTP/1.0, when host is absent,
+           we take the first one, even if it doesn't match!
+        *)
+    | Some host -> aux host
 
 
 let string_of_host h =
@@ -575,13 +576,16 @@ let do_for_site_matching host port ri =
   in
 
   let rec do2 sites cookies_to_set ri =
-    let string_of_host_port h = h^":"^string_of_int port in
+    let string_of_host_option = function
+      | None -> "<no host>:"^(string_of_int port)
+      | Some h -> h^":"^(string_of_int port)
+    in
     let rec aux_host ri prev_err cookies_to_set = function
       | [] -> fail (Ocsigen_http_error (cookies_to_set, prev_err))
       | (h, host_function)::l when host_match host port h ->
           Ocsigen_messages.debug (fun () ->
             "-------- host found! "^
-            (string_of_host_port host)^
+            (string_of_host_option host)^
             " matches "^(string_of_host h));
           host_function
             awake
@@ -621,7 +625,7 @@ let do_for_site_matching host port ri =
       | (h, _)::l ->
           Ocsigen_messages.debug (fun () ->
             "-------- host = "^
-            (string_of_host_port host)^
+            (string_of_host_option host)^
             " does not match "^(string_of_host h));
           aux_host ri prev_err cookies_to_set l
     in aux_host ri 404 cookies_to_set sites
@@ -643,14 +647,13 @@ let do_for_site_matching host port ri =
 
 let ri_of_url url ri =
   let (host, _, url, url2, path, params, get_params) = parse_url url in
-  let host_field, host = match host with
-    | Some h -> host, h
-    | None -> ri.ri_host_field, ri.ri_host
+  let host = match host with
+    | Some h -> host
+    | None -> ri.ri_host
   in
   {ri with
    ri_url_string = url;
    ri_url = url2;
-   ri_host_field = host_field;
    ri_host = host;
    ri_full_path_string = string_of_url_path path;
    ri_full_path = path;

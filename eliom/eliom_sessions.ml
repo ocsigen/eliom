@@ -51,7 +51,7 @@ let get_user_agent ~sp =
 let get_full_url ~sp =
   sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_url_string
 let get_remote_ip ~sp =
-  sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_ip
+  sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_remote_ip
 let get_remote_inet_addr ~sp =
   sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_remote_inet_addr
 let get_get_params ~sp =
@@ -74,12 +74,16 @@ let get_current_sub_path ~sp =
   sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_sub_path
 let get_current_sub_path_string ~sp =
   sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_sub_path_string
-let get_hostname ~sp =
+let get_header_hostname ~sp =
   sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_host
+let get_hostname ~sp =
+  sp.Eliom_common.sp_sitedata.Eliom_common.defaulthostname
+let get_default_port ~sp =
+  sp.Eliom_common.sp_sitedata.Eliom_common.defaulthttpport
+let get_default_sslport ~sp =
+  sp.Eliom_common.sp_sitedata.Eliom_common.defaulthttpsport
 let get_server_port ~sp =
   sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_server_port
-let get_server_inet_addr ~sp =
-  sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_server_inet_addr
 let get_ssl ~sp =
   sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_ssl
 let get_other_get_params ~sp =

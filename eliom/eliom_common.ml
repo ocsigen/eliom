@@ -49,19 +49,6 @@ exception Eliom_error_while_loading_site of string
 
 exception Eliom_404
 
-(***)
-let set_default_port, get_default_port =
-  let r = ref (try snd (List.hd (Ocsigen_config.get_ports ())) 
-               with Failure _ -> 80) in
-  ((fun p -> r := p),
-   (fun () -> !r))
-
-let set_default_sslport, get_default_sslport =
-  let r = ref (try snd (List.hd (Ocsigen_config.get_sslports ())) 
-               with Failure _ -> 443) in
-  ((fun p -> r := p),
-   (fun () -> !r))
-
 
 (*****************************************************************************)
 let defaultpagename = "./"
@@ -382,6 +369,9 @@ and sitedata =
    mutable max_volatile_data_sessions_per_group: int option;
    mutable max_service_sessions_per_group: int option;
    mutable max_persistent_data_sessions_per_group: int option;
+   defaulthostname: string;
+   defaulthttpport: int;
+   defaulthttpsport: int;
  }
 
 

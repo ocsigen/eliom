@@ -96,16 +96,23 @@ val get_current_sub_path : sp:server_params -> url_path
 
 (** returns the hostname that has been sent by the user agent.
     For HTTP/1.0, the Host field is not mandatory in the request.
-    In the case it is absent, we return the default hostname of the server
-    (returned by getnameinfo).
+ *)
+val get_header_hostname : sp:server_params -> string option
+
+(** returns the hostname declared in the config file ([<host defaulthostname="...">]).
  *)
 val get_hostname : sp:server_params -> string
 
+(** returns the port number declared in the config file ([<host defaulthttpport="...">]).
+ *)
+val get_default_port : sp:server_params -> int
+
+(** returns the https port number declared in the config file ([<host defaulthttpsport="...">]).
+ *)
+val get_default_sslport : sp:server_params -> int
+
 (** returns the port on which the request has been done. *)
 val get_server_port : sp:server_params -> int
-
-(** returns the inet address on which the request has been done. *)
-val get_server_inet_addr : sp:server_params -> Unix.inet_addr
 
 (** returns true if https is used, false if http. *)
 val get_ssl : sp:server_params -> bool

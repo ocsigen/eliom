@@ -294,25 +294,65 @@ let parse_server isreloading c =
           Ocsigen_loader.loadfiles (preloadfile l) postloadfile true modules;
           parse_server_aux ll
       | (Element ("host", atts, l))::ll ->
-          let rec parse_attrs (name, charset) = function
-            | [] -> (name, charset)
+          let rec parse_attrs ((name, 
+                                charset, 
+                                defaulthostname, 
+                                defaulthttpport, 
+                                defaulthttpsport) as r) = function
+            | [] -> r
             | ("name", s)::suite ->
                 (match name with
-                | None -> parse_attrs ((Some s), charset) suite
+                | None -> parse_attrs ((Some s), charset, 
+                                       defaulthostname, 
+                                       defaulthttpport, 
+                                       defaulthttpsport) suite
                 | _ -> raise (Ocsigen_config.Config_file_error
                                 ("Duplicate attribute name in <host>")))
             | ("charset", s)::suite ->
                 (match charset with
-                | None -> parse_attrs (name, Some s) suite
+                | None -> parse_attrs (name, Some s, 
+                                       defaulthostname, 
+                                       defaulthttpport, 
+                                       defaulthttpsport) suite
                 | _ -> raise (Ocsigen_config.Config_file_error
                                 ("Duplicate attribute charset in <host>")))
+            | ("defaulthostname", s)::suite ->
+                (match defaulthostname with
+                | None -> parse_attrs (name, charset, 
+                                       (Some s), 
+                                       defaulthttpport, 
+                                       defaulthttpsport) suite
+                | _ -> raise (Ocsigen_config.Config_file_error
+                                ("Duplicate attribute defaulthostname in <host>")))
+            | ("defaulthttpport", s)::suite ->
+                (match defaulthttpport with
+                | None -> parse_attrs (name, charset, 
+                                       defaulthostname, 
+                                       (Some s), 
+                                       defaulthttpsport) suite
+                | _ -> raise (Ocsigen_config.Config_file_error
+                                ("Duplicate attribute defaulthttpport in <host>")))
+            | ("defaulthttpsport", s)::suite ->
+                (match defaulthttpsport with
+                | None -> parse_attrs (name, charset, 
+                                       defaulthostname, 
+                                       defaulthttpport, 
+                                       Some s) suite
+                | _ -> raise (Ocsigen_config.Config_file_error
+                                ("Duplicate attribute defaulthttpsport in <host>")))
             | (s, _)::_ ->
                 raise (Ocsigen_config.Config_file_error
                          ("Wrong attribute for <host>: "^s))
           in
-          let host, charset = parse_attrs (None, None) atts in
+          let host, 
+            charset, 
+            defaulthostname, 
+            defaulthttpport, 
+            defaulthttpsport = 
+            parse_attrs (None, None, None, None, None) atts 
+          in
           let host = match host with
-          | None -> [[Ocsigen_extensions.Wildcard],None] (* default = "*:*" *)
+          | None -> [[Ocsigen_extensions.Wildcard], None] (* default = "*:*" *)
           | Some s ->
               List.map
                 (fun ss ->
@@ -322,17 +362,17 @@ let parse_server isreloading c =
                       let len = String.length ss in
                       ((String.sub ss 0 dppos),
                        match String.sub ss (dppos+1) ((len - dppos) - 1) with
-                         "*" -> None
-                       | p -> Some (int_of_string "host" p))
+                         | "*" -> None
+                         | p -> Some (int_of_string "host" p))
                     with
-                      Not_found -> ss, None
-                    | Failure _ ->
-                        raise (Config_file_error "bad port number")
+                      | Not_found -> ss, None
+                      | Failure _ ->
+                          raise (Config_file_error "bad port number")
                   in
                   ((List.map
                       (function
-                          Netstring_str.Delim _ -> Ocsigen_extensions.Wildcard
-                        | Netstring_str.Text t ->
+                         | Netstring_str.Delim _ -> Ocsigen_extensions.Wildcard
+                         | Netstring_str.Text t ->
                             Ocsigen_extensions.Text (t, String.length t))
                       (Netstring_str.full_split (Netstring_str.regexp "[*]+")
                          host)),
@@ -347,8 +387,43 @@ let parse_server isreloading c =
           | None -> "utf-8"
           | Some charset -> charset
           in
+          let defaulthostname = match defaulthostname with
+            | Some d -> Some d
+            | None ->
+                try
+                  (match
+                    fst
+                      (List.find 
+                         (* We look for a hostname without wildcard *)
+                         (*VVV one could do sthg more clever *)
+                         (function
+                            | ([Ocsigen_extensions.Text (t, _)], None) -> true
+                            | _ -> false
+                         ) 
+                         host)
+                   with
+                     | [Ocsigen_extensions.Text (t, _)] -> Some t
+                     | _ -> None)
+                with Not_found -> None
+          in
+          let defaulthttpport = match defaulthttpport with
+            | None ->
+                (try snd (List.hd (Ocsigen_config.get_ports ())) 
+                with Failure _ -> 80)
+            | Some p -> int_of_string "host" p
+          in
+          let defaulthttpsport = match defaulthttpsport with
+            | None ->
+                (try snd (List.hd (Ocsigen_config.get_sslports ())) 
+                with Failure _ -> 443)
+            | Some p -> int_of_string "host" p
+          in
           let parse_host = Ocsigen_extensions.parse_site_item host in
-          let parse_site = Ocsigen_extensions.make_parse_site [] charset parse_host in
+          let parse_site = 
+            Ocsigen_extensions.make_parse_site 
+              [] (charset, defaulthostname, defaulthttpport, defaulthttpsport)
+              parse_host 
+          in
           (* default site for host *)
           (host, parse_site l)::(parse_server_aux ll)
       | (Element ("extconf", [("dir", dir)], []))::ll ->

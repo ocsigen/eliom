@@ -194,7 +194,7 @@ let _ =
     ["Content-type"; "Authorization"; "Content-length";
      (*"Referer"; "Host"; "Cookie"*) ]
 
-let array_environment filename re doc_root ri =
+let array_environment filename re doc_root ri hostname =
   let header = ri.ri_http_frame.Ocsigen_http_frame.header in
   let opt = function
     | None -> ""
@@ -237,7 +237,7 @@ let array_environment filename re doc_root ri =
  [ (* Let's follow CGI spec : http://hoohoo.ncsa.uiuc.edu/cgi/env.html *)
 
    (* Not request-specific variables *)
-  [Printf.sprintf "SERVER_NAME=%s" ri.ri_host;
+  [Printf.sprintf "SERVER_NAME=%s" hostname;
    Printf.sprintf "SERVER_SOFTWARE=%s" Ocsigen_config.full_server_name ;
    "GATEWAY_INTERFACE=CGI/1.1"] ;
 
@@ -249,7 +249,7 @@ let array_environment filename re doc_root ri =
    Printf.sprintf "PATH_TRANSLATED=" ; (* PATH_INFO virtual -> physical; unclear, so don't set *)
    Printf.sprintf "SCRIPT_NAME=%s" re.path;
    Printf.sprintf "QUERY_STRING=%s" (opt ri.ri_get_params_string);
-   Printf.sprintf "REMOTE_ADDR=%s" ri.ri_ip;
+   Printf.sprintf "REMOTE_ADDR=%s" ri.ri_remote_ip;
    (* no REMOTE_HOST: implies reverse DNS resolution *)
    (* neither AUTH_TYPE, REMOTE_USER nor REMOTE_IDENT: implies authentication *)
    Printf.sprintf "CONTENT_LENGTH=%s" (opt_int ri.ri_content_length);
@@ -280,9 +280,9 @@ let rec set_env_list=function
 
 (** launch the process *)
 
-let create_process_cgi filename ri post_out cgi_in err_in re doc_root =
+let create_process_cgi filename ri post_out cgi_in err_in re doc_root hostname =
   let envir = Array.of_list (
-    (array_environment filename re doc_root ri)@(set_env_list re.env)) in
+    (array_environment filename re doc_root ri hostname)@(set_env_list re.env)) in
   match re.exec with
   | None ->
       Unix.create_process_env
@@ -305,7 +305,7 @@ let create_process_cgi filename ri post_out cgi_in err_in re doc_root =
 
 (** This function makes it possible to launch a cgi script *)
 
-let recupere_cgi head re doc_root filename ri =
+let recupere_cgi head re doc_root filename ri hostname =
   try
     (* Create the three pipes to communicate with the CGI script: *)
     let (post_out, post_in) = Lwt_unix.pipe_out () in
@@ -326,6 +326,7 @@ let recupere_cgi head re doc_root filename ri =
         err_in
         re
         doc_root
+        hostname
     in
 
     Unix.close cgi_in;
@@ -472,9 +473,10 @@ let exn_handler = raise
 
 (*****************************************************************************)
 
-let gen reg charset = function
-| Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
-| Ocsigen_extensions.Req_not_found (err, ri) ->
+let gen reg (charset, hostname, _, _) = function
+  | Ocsigen_extensions.Req_found (_, r) -> 
+      Lwt.return (Ocsigen_extensions.Ext_found r)
+  | Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a cgi page? *)
     (fun () ->
@@ -484,7 +486,7 @@ let gen reg charset = function
          in
          recupere_cgi
            (ri.ri_method = Http_header.HEAD)
-           re doc_root filename ri >>= fun (frame, finalizer) ->
+           re doc_root filename ri hostname >>= fun (frame, finalizer) ->
          let header = frame.Ocsigen_http_frame.header in
          let content = get_content frame in
          Ocsigen_stream.add_finalizer content finalizer;
@@ -578,10 +580,16 @@ let rec set_env = function
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
-let parse_config path charset _ parse_site = function
+let parse_config path (a, hostname, b, c) _ parse_site = function
   | Element ("cgi", atts, l) ->
+      let hostname = match hostname with
+        | None -> raise (Error_in_config_file
+                           "Please set the attributes defaulthostname, defaulthttpport, defaulthttpsport in <host>")
+        | Some h -> h
+      in
       let good_root r =
-        Regexp.quote (string_conform2 r) in
+        Regexp.quote (string_conform2 r) 
+      in
       let dir = match atts with
       | [] ->
           raise (Error_in_config_file
@@ -616,7 +624,7 @@ let parse_config path charset _ parse_site = function
            env=set_env l}
       | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
       in
-      gen dir charset
+      gen dir (a, hostname, b, c)
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->
       raise (Error_in_config_file "Unexpected data in config file")
