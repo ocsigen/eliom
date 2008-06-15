@@ -32,7 +32,6 @@ open Lwt
 
 
 
-
 (* optional parameters *)
 let optparam =
   register_new_service
@@ -946,6 +945,10 @@ let mainpage = register_new_service ["tests"] unit
            (["l/l%l      &l=l+l)l@";"m\\m\"m";"nèn~n"],
             [("po?po&po~po/po+po", "lo\"l     o#lo'lo lo=lo&l      o/lo+lo");
             ("bo=mo@co:ro", "zo^zo%zo$zo:zo")]); br ();
+         a ~service:(static_dir_with_params ~sp ~get_params:Eliom_parameters.any)
+           ~sp 
+           [pcdata "Static file with GET parameters"]
+           (["ocsigen5.png"], [("aa", "lmk"); ("bb", "4")]); br ();
 
 
 

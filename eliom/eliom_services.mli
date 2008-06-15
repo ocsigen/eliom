@@ -359,6 +359,31 @@ val https_static_dir :
     service
 (** The same, but forcing https *)
 
+val static_dir_with_params :
+  sp:Eliom_sessions.server_params ->
+  get_params:('a, [`WithoutSuffix], 'an) params_type ->
+  ((string list * 'a), unit,
+   [> `Attached of
+      [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name *'an, unit, [> `Unregistrable ])
+    service
+(** Like [static_dir], but allows to put GET parameters *)
+
+val https_static_dir_with_params :
+  sp:Eliom_sessions.server_params ->
+  get_params:('a, [`WithoutSuffix], 'an) params_type ->
+  ((string list * 'a), unit,
+   [> `Attached of
+      [> `Internal of [> `Service ] * [> `Get] ] a_s ],
+   [ `WithSuffix ],
+   [ `One of string list ] param_name *'an, unit, [> `Unregistrable ])
+    service
+(** The same, but forcing https *)
+
+
+
+
 val void_action :
   (unit, unit, [> `Nonattached of 'a na_s ],
    [ `WithoutSuffix ],

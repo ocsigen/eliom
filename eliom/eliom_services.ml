@@ -199,6 +199,33 @@ let static_dir ~sp = static_dir_ ~sp ()
 
 let https_static_dir ~sp = static_dir_ ~https:true ~sp ()
 
+let get_static_dir_ ?(https = false) ~sp ~get_params () =
+    {
+     pre_applied_parameters = [];
+     get_params_type = 
+        suffix_prod 
+          (all_suffix Eliom_common.eliom_suffix_name)
+          get_params;
+     post_params_type = unit;
+     max_use= None;
+     timeout= None;
+     kind = `Attached
+       {prefix = "";
+        subpath = [""];
+        fullpath = (Eliom_sessions.get_site_dir sp) @ [""];
+        get_state = None;
+        post_state = None;
+        att_kind = `Internal (`Service, `Get);
+      };
+     https = https;
+   }
+
+let static_dir_with_params ~sp ~get_params = 
+  get_static_dir_ ~sp ~get_params ()
+
+let https_static_dir_with_params ~sp ~get_params = 
+  get_static_dir_ ~https:true ~sp ~get_params ()
+
 
 (****************************************************************************)
 (****************************************************************************)

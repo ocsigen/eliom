@@ -114,14 +114,14 @@ let find_static_page dir err path =
 
 
 let gen dir charset = function
-  | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+  | Ocsigen_extensions.Req_found (_, r) -> 
+      Lwt.return (Ocsigen_extensions.Ext_found r)
   | Ocsigen_extensions.Req_not_found (err, ri) ->
       catch
         (* Is it a static page? *)
         (fun () ->
-           if ri.ri_get_params_string = None
-             (* static pages do not have parameters *)
-           then begin
+(*           if ri.ri_get_params_string = None *)
+(* 2008/05/15 We now accept GET parameters for static pages *)
              Ocsigen_messages.debug2 "--Staticmod: Is it a static file?";
              match
                find_static_page
@@ -163,8 +163,8 @@ let gen dir charset = function
                                       Ocsigen_http_frame.res_code = err;
                                    }))
                    end
-           end
-           else return (Ext_next 400))
+(*           else return (Ext_next 400)) *)
+        )
 
         (function
            | Unix.Unix_error (Unix.EACCES,_,_)
