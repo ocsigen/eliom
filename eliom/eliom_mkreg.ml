@@ -120,7 +120,7 @@ module type ELIOMREGSIG1 =
 
  *)
 
-
+Ajouter ~secure comme dans Eliom_sessions (partout) !
     val register_for_session :
         ?options:options ->
         ?session_name:string ->

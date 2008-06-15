@@ -2498,11 +2498,11 @@ let send_any =
       </p>
       <pre>
 type cookie =
-  | Set of url_path option * float option * string * string
-  | Unset of url_path option * string
+  | Set of string list option * float option * string * string * bool
+  | Unset of string list option * string
 </pre>
      <p>
-     The <code>string option</code> is a the path for which you want
+     The <code>string list option</code> is a the path for which you want
      to set/unset the cookie (relative to the main directory of your site,
    defined
      in the configuration file). <code>None</code> means for all your site.
@@ -2512,6 +2512,11 @@ type cookie =
      (Unix timestamp, in seconds since the epoch).
      <code>None</code> means that the cookie will expire when the browser
      will be closed.
+     </p>
+     <p>
+     If the <code>bool</code> is true and the protocol is https, 
+     the server will ask the browser to send the cookie only through
+     secure connections.
      </p>
      <p>
       You can access the cookies sent by the browser using
@@ -2538,8 +2543,9 @@ let _ = Cookies.register cookies
                    br ();
                    a cookies sp [pcdata "send other cookie"] ()]])),
         [Eliom_services.Set (None, None,
-                       cookiename,
-                       string_of_int (Random.int 100))]))
+                             cookiename,
+                             string_of_int (Random.int 100),
+                             false)]))
 (*html*
       <p>$a Tutoeliom.cookies sp <:xmllist< Try it >> ()$.</p>
     </div>

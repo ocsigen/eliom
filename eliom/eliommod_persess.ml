@@ -31,6 +31,18 @@
 
 open Lwt
 
+let compute_cookie_info secure secure_ci cookie_info =
+  let secure = match secure with
+    | None -> true
+    | Some s -> s
+  in
+  if secure 
+  then match secure_ci with
+    | None (* not ssl *) -> cookie_info
+    | Some (_, _, c) -> c
+  else cookie_info
+
+
 let perstables = Eliom_common.perstables
 let persistent_cookies_table = Eliom_common.persistent_cookies_table
 
@@ -59,16 +71,17 @@ let close_persistent_session2 fullsessgrp cookie =
 let close_persistent_group fullsessgrp =
 (*VVV VERIFY concurrent access *)
   Eliommod_sessiongroups.Pers.find fullsessgrp >>= fun cooklist ->
-  Lwt_util.iter (close_persistent_session2 None) cooklist
-  >>= fun () ->
+  Lwt_util.iter (close_persistent_session2 None) cooklist >>= fun () ->
   Eliommod_sessiongroups.Pers.remove_group fullsessgrp
 
 (* close current persistent session *)
-let close_persistent_session ?(close_group = false) ?session_name ~sp () =
+let close_persistent_session ?(close_group = false) ?session_name 
+    ~secure ~sp () =
   catch
     (fun () ->
       let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
-      let (_, _, cookie_info) = sp.Eliom_common.sp_cookie_info in
+      let ((_, _, cookie_info), secure_ci) = sp.Eliom_common.sp_cookie_info in
+      let cookie_info = compute_cookie_info secure secure_ci cookie_info in
       Lazy.force (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
       >>= fun (_, ior) ->
       match !ior with
@@ -121,7 +134,7 @@ let rec new_persistent_cookie sitedata fullsessgrp fullsessname =
       | e -> fail e) *)
 
 
-let find_or_create_persistent_cookie ?session_group ?session_name ~sp () =
+let find_or_create_persistent_cookie ?session_group ?session_name ~secure ~sp () =
   (* if it exists, do not create it, but returns its value *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
   let fullsessgrp =
@@ -129,7 +142,8 @@ let find_or_create_persistent_cookie ?session_group ?session_name ~sp () =
       sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
       session_group
   in
-  let (_, _, cookie_info) = sp.Eliom_common.sp_cookie_info in
+  let ((_, _, cookie_info), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   catch
     (fun () ->
       Lazy.force (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
@@ -158,11 +172,12 @@ let find_or_create_persistent_cookie ?session_group ?session_name ~sp () =
 
 
 
-let find_persistent_cookie_only ?session_name ~sp () =
+let find_persistent_cookie_only ?session_name ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
-  let (_, _, cookie_info) = sp.Eliom_common.sp_cookie_info in
+  let ((_, _, cookie_info), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   Lazy.force (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
   >>= fun (_, ior) ->
   match !ior with

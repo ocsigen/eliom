@@ -871,11 +871,10 @@ let send
     <<
     (Http_headers.date, date)
   in
-  let mkcook path exp name c =
+  let mkcook path exp name c secure =
     Format.sprintf "%s=%s%s%s" name c
       ("; path=/" ^ Ocsigen_lib.string_of_url_path path)
-      (if slot.sl_ssl then "; secure" else "")^
-(*VVV We always require secure cookies if https ... It is ok? *)
+      (if secure && slot.sl_ssl then "; secure" else "")^
       (match exp with
       | Some s -> "; expires=" ^
           Netdate.format
@@ -886,11 +885,12 @@ let send
   let mkcookl path t hds =
     Cookievalues.fold
       (fun name c h ->
-        let exp, v = match c with
-        | Ocsigen_http_frame.OUnset -> (Some 0., "")
-        | Ocsigen_http_frame.OSet (t, v) -> (t, v)
+        let exp, v, secure = match c with
+        | Ocsigen_http_frame.OUnset -> (Some 0., "", false)
+        | Ocsigen_http_frame.OSet (t, v, secure) -> (t, v, secure)
         in
-        Http_headers.add Http_headers.set_cookie (mkcook path exp name v) h)
+        Http_headers.add 
+          Http_headers.set_cookie (mkcook path exp name v secure) h)
       t
       hds
   in

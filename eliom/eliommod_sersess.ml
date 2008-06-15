@@ -26,17 +26,32 @@
 (*****************************************************************************)
 
 
+let compute_cookie_info secure secure_ci cookie_info =
+  let secure = match secure with
+    | None -> true
+    | Some s -> s
+  in
+  if secure 
+  then match secure_ci with
+    | None (* not ssl *) -> cookie_info
+    | Some (c, _, _) -> c
+  else cookie_info
+
+
 
 let close_service_group sitedata fullsessgrp =
   let cooklist = Eliommod_sessiongroups.Serv.find fullsessgrp in
   List.iter (Eliom_common.close_service_session2 sitedata None) cooklist;
   Eliommod_sessiongroups.Serv.remove_group fullsessgrp
 
-let close_service_session ?(close_group = false) ?session_name ~sp () =
+let close_service_session ?(close_group = false) ?session_name ~secure ~sp () =
   try
     let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
-    let (cookie_info, _, _) = sp.Eliom_common.sp_cookie_info in
-    let (_, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
+    let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+    let cookie_info = compute_cookie_info secure secure_ci cookie_info in
+    let (_, ior) = 
+      Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info 
+    in
     match !ior with
     | Eliom_common.SC c ->
         if close_group then
@@ -90,7 +105,7 @@ let rec new_service_cookie sitedata fullsessgrp fullsessname table =
    }
 
 
-let find_or_create_service_cookie ?session_group ?session_name ~sp () =
+let find_or_create_service_cookie ?session_group ?session_name ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
@@ -99,7 +114,8 @@ let find_or_create_service_cookie ?session_group ?session_name ~sp () =
       sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
       session_group
   in
-  let (cookie_info, _, _) = sp.Eliom_common.sp_cookie_info in
+  let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   try
     let (old, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
     match !ior with
@@ -128,11 +144,12 @@ let find_or_create_service_cookie ?session_group ?session_name ~sp () =
     v
 
 
-let find_service_cookie_only ?session_name ~sp () =
+let find_service_cookie_only ?session_name ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
-  let (cookie_info, _, _) = sp.Eliom_common.sp_cookie_info in
+  let ((cookie_info, _, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let (_, ior) = Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info in
   match !ior with
   | Eliom_common.SCNo_data -> raise Not_found

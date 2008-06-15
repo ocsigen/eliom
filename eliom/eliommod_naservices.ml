@@ -95,7 +95,7 @@ let make_naservice
     (ri,
      si,
      cookies_to_set,
-     ((service_cookies_info, _, _) as all_cookie_info))
+     (((service_cookies_info, _, _), secure_ci) as all_cookie_info))
     sitedata
     =
 
@@ -130,9 +130,20 @@ let make_naservice
          None)
   in
   (try
-    (* look in the session service tables corresponding to cookies sent
-       and then in the global table to find the service *)
-    return (find_aux !service_cookies_info)
+     (try
+        (* look in the secure session service tables 
+           corresponding to cookies sent
+           and then in the global table to find the service *)
+        match secure_ci with
+          | None -> raise Not_found
+          | Some (service_cookies_info, _, _) -> 
+              return (find_aux !service_cookies_info)
+      with
+        | Not_found ->
+            (* look in the session service tables corresponding to cookies sent
+               and then in the global table to find the service *)
+            return (find_aux !service_cookies_info)
+     )
   with
   | Not_found ->
       (* The non-attached service has not been found.
@@ -159,9 +170,10 @@ let make_naservice
             si.Eliom_common.si_previous_extension_error
           >>=
             (fun (ri', si') ->
-               fail (Eliom_common.Eliom_retry_with (ri', si',
-                                                         cookies_to_set,
-                                                         all_cookie_info)))
+               fail (Eliom_common.Eliom_retry_with (ri', 
+                                                    si',
+                                                    cookies_to_set,
+                                                    all_cookie_info)))
 
       | Eliom_common.Na_get_ _
       | Eliom_common.Na_get' _ ->

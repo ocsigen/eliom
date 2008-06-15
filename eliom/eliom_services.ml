@@ -34,7 +34,7 @@ open Lazy
     The strings are names and values.
  *)
 type cookie = Eliom_common.cookie =
-  | Set of url_path option * float option * string * string
+  | Set of url_path option * float option * string * string * bool
   | Unset of url_path option * string
 
 let cookie_table_of_eliom_cookies

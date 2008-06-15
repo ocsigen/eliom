@@ -37,7 +37,7 @@ module Cookievalues =
   Map.Make(struct type t = string let compare = compare end)
 
 type cookie =
-  | OSet of float option * string
+  | OSet of float option * string * bool
   | OUnset
 
 type cookieset = cookie Cookievalues.t Cookies.t
@@ -59,8 +59,8 @@ let add_cookies newcookies oldcookies =
       Cookievalues.fold
         (fun n v beg ->
           match v with
-          | OSet (expo, v) ->
-              add_cookie path n (OSet (expo, v)) beg
+          | OSet (expo, v, secure) ->
+              add_cookie path n (OSet (expo, v, secure)) beg
           | OUnset ->
               add_cookie path n OUnset beg
         )
@@ -94,10 +94,10 @@ let compute_new_ri_cookies
         Cookievalues.fold
           (fun n v beg ->
             match v with
-            | OSet (Some ti, v) when ti>now ->
+            | OSet (Some ti, v, _) when ti>now ->
                 Cookievalues.add n v t
-            | OSet (None, v) -> Cookievalues.add n v t
-            | OSet (_, _)
+            | OSet (None, v, _) -> Cookievalues.add n v t
+            | OSet (_, _, _)
             | OUnset -> Cookievalues.remove n t
           )
           ct

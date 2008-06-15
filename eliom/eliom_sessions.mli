@@ -156,26 +156,30 @@ val get_cookies : sp:server_params -> string Ocsigen_http_frame.Cookievalues.t
     service session and volatile data session) (server side).
 *)
 val set_global_volatile_session_timeout :
-  ?session_name:string -> ?sp:server_params ->
+  ?session_name:string -> 
+  ?sp:server_params ->
   ?recompute_expdates:bool -> float option -> unit
 
 (** Sets the timeout for service sessions (server side).
 *)
 val set_global_service_session_timeout :
-    ?session_name:string -> ?sp:server_params ->
-      ?recompute_expdates:bool -> float option -> unit
+  ?session_name:string -> 
+  ?sp:server_params ->
+  ?recompute_expdates:bool -> float option -> unit
 
 (** Sets the timeout for volatile (= "in memory") data sessions (server side).
 *)
 val set_global_volatile_data_session_timeout :
-    ?session_name:string -> ?sp:server_params ->
-      ?recompute_expdates:bool -> float option -> unit
+  ?session_name:string -> 
+  ?sp:server_params ->
+  ?recompute_expdates:bool -> float option -> unit
 
 (** Sets the timeout for persistent sessions (server side).
 *)
 val set_global_persistent_data_session_timeout : ?session_name:string ->
-  ?sp:server_params -> ?recompute_expdates:bool ->
-    float option -> unit
+  ?sp:server_params -> 
+  ?recompute_expdates:bool ->
+  float option -> unit
 
 (** Returns the timeout for service sessions (server side).
 *)
@@ -199,18 +203,24 @@ val get_global_persistent_data_session_timeout : ?session_name:string ->
 (** sets the timeout for service session (server side) for one user,
    in seconds. [None] = no timeout *)
 val set_service_session_timeout :
-    ?session_name:string -> sp:server_params -> float option -> unit
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> float option -> unit
 
 (** remove the service session timeout for one user
    (and turn back to the default). *)
 val unset_service_session_timeout :
-    ?session_name:string -> sp:server_params -> unit -> unit
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> unit -> unit
 
 (** returns the timeout for current service session.
     [None] = no timeout
  *)
 val get_service_session_timeout :
-    ?session_name:string -> sp:server_params -> unit -> float option
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> unit -> float option
 
 
 
@@ -218,18 +228,24 @@ val get_service_session_timeout :
 (** sets the timeout for volatile data session (server side) for one user,
    in seconds. [None] = no timeout *)
 val set_volatile_data_session_timeout :
-    ?session_name:string -> sp:server_params -> float option -> unit
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> float option -> unit
 
 (** remove the "volatile data" session timeout for one user
    (and turn back to the default). *)
 val unset_volatile_data_session_timeout :
-    ?session_name:string -> sp:server_params -> unit -> unit
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> unit -> unit
 
 (** returns the timeout for current volatile data session.
     [None] = no timeout
  *)
 val get_volatile_data_session_timeout :
-    ?session_name:string -> sp:server_params -> unit -> float option
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> unit -> float option
 
 
 
@@ -237,13 +253,17 @@ val get_volatile_data_session_timeout :
     (server side) for one user,
    in seconds. [None] = no timeout *)
 val set_volatile_session_timeout :
-    ?session_name:string -> sp:server_params -> float option -> unit
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> float option -> unit
 
 (** remove the session timeout for one user for both service session and
    volatile data session
    (and turn back to the default). *)
 val unset_volatile_session_timeout :
-    ?session_name:string -> sp:server_params -> unit -> unit
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> unit -> unit
 
 
 
@@ -252,16 +272,22 @@ val unset_volatile_session_timeout :
 
 (** sets the timeout for persistent session (server side) for one user,
    in seconds. [None] = no timeout *)
-val set_persistent_data_session_timeout : ?session_name:string ->
+val set_persistent_data_session_timeout : 
+  ?session_name:string ->
+  ?secure:bool ->
   sp:server_params -> float option -> unit Lwt.t
 
 (** remove the persistent session timeout for one user
    (and turn back to the default). *)
-val unset_persistent_data_session_timeout : ?session_name:string ->
+val unset_persistent_data_session_timeout : 
+  ?session_name:string ->
+  ?secure:bool ->
   sp:server_params -> unit -> unit Lwt.t
 
 (** returns the persistent session timeout for one user. [None] = no timeout *)
-val get_persistent_data_session_timeout : ?session_name:string ->
+val get_persistent_data_session_timeout : 
+  ?session_name:string ->
+  ?secure:bool ->
   sp:server_params -> unit -> float option Lwt.t
 
 
@@ -283,10 +309,14 @@ type 'a session_data =
 (** sets the group to which belong the service session.
     If the optional [?set_max] parameter is present, also sets the maximum
     number of sessions in the group. [None] means "no limitation".
+    If [~secure] is false when the protocol is https, it will affect
+    the unsecure session, otherwise, il will affect the secure session in 
+    https, the unsecure one in http.
 *)
 val set_service_session_group :
   ?set_max: int option ->
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   string ->
   unit
@@ -294,6 +324,7 @@ val set_service_session_group :
 (** Remove the session from its group *)
 val unset_service_session_group :
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   unit
@@ -304,6 +335,7 @@ val unset_service_session_group :
 *)
 val get_service_session_group :
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   string session_data
@@ -315,6 +347,7 @@ val get_service_session_group :
 val set_volatile_data_session_group :
   ?set_max: int option ->
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   string ->
   unit
@@ -322,6 +355,7 @@ val set_volatile_data_session_group :
 (** Remove the session from its group *)
 val unset_volatile_data_session_group :
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   unit
@@ -332,6 +366,7 @@ val unset_volatile_data_session_group :
 *)
 val get_volatile_data_session_group :
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   string session_data
@@ -343,6 +378,7 @@ val get_volatile_data_session_group :
 val set_persistent_data_session_group :
   ?set_max: int option ->
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   string ->
   unit Lwt.t
@@ -350,6 +386,7 @@ val set_persistent_data_session_group :
 (** Remove the session from its group *)
 val unset_persistent_data_session_group :
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   unit Lwt.t
@@ -360,6 +397,7 @@ val unset_persistent_data_session_group :
 *)
 val get_persistent_data_session_group :
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   string session_data Lwt.t
@@ -401,27 +439,43 @@ val set_default_max_persistent_data_sessions_per_group :
 (** Sets the cookie expiration date for the current volatile sessions
     (service and data) (see above).
 *)
-val set_volatile_session_cookies_exp_date : ?session_name:string ->
-  sp:server_params -> float option -> unit
+val set_volatile_session_cookies_exp_date :
+  ?session_name:string ->
+  ?secure:bool ->
+  sp:server_params -> 
+  float option -> 
+  unit
 
 (** Sets the cookie expiration date for the current service session
     (see above).
 *)
-val set_service_session_cookie_exp_date : ?session_name:string ->
-  sp:server_params -> float option -> unit
+val set_service_session_cookie_exp_date : 
+  ?session_name:string ->
+  ?secure:bool ->
+  sp:server_params -> 
+  float option -> 
+  unit
 
 (** Sets the cookie expiration date for the current data session (see
     above).
 *)
-val set_volatile_data_session_cookie_exp_date : ?session_name:string ->
-  sp:server_params -> float option -> unit
+val set_volatile_data_session_cookie_exp_date :
+  ?session_name:string ->
+  ?secure:bool ->
+  sp:server_params -> 
+  float option -> 
+  unit
 
 
 (** Sets the cookie expiration date for the persistent session (see
     above).
 *)
-val set_persistent_data_session_cookie_exp_date : ?session_name:string ->
-  sp:server_params -> float option -> unit Lwt.t
+val set_persistent_data_session_cookie_exp_date :
+  ?session_name:string ->
+  ?secure:bool ->
+  sp:server_params -> 
+  float option -> 
+  unit Lwt.t
 
 
 (** {3 Exceptions and fallbacks} *)
@@ -506,19 +560,34 @@ type 'a volatile_table
 val create_volatile_table : ?sp:server_params -> unit -> 'a volatile_table
 
 (** gets session data for the current session (if any). *)
-val get_volatile_session_data : ?session_name:string ->
-  table:'a volatile_table -> sp:server_params -> unit -> 'a session_data
+val get_volatile_session_data : 
+  ?session_name:string ->
+  ?secure:bool ->
+  table:'a volatile_table -> 
+  sp:server_params -> 
+  unit -> 
+  'a session_data
 
 (** sets session data for the current session. *)
-val set_volatile_session_data : ?session_name:string ->
-  table:'a volatile_table -> sp:server_params -> 'a -> unit
+val set_volatile_session_data : 
+  ?session_name:string ->
+  ?secure:bool ->
+  table:'a volatile_table -> 
+  sp:server_params -> 
+  'a -> 
+  unit
 
 (** removes session data for the current session
    (but does not close the session).
    If the session does not exist, do nothing.
  *)
-val remove_volatile_session_data : ?session_name:string ->
-  table:'a volatile_table -> sp:server_params -> unit -> unit
+val remove_volatile_session_data : 
+  ?session_name:string ->
+  ?secure:bool ->
+  table:'a volatile_table -> 
+  sp:server_params -> 
+  unit -> 
+  unit
 
 
 (** {3 Persistent sessions} *)
@@ -531,20 +600,34 @@ type 'a persistent_table
 val create_persistent_table : string -> 'a persistent_table
 
 (** gets persistent session data for the current persistent session (if any) *)
-val get_persistent_session_data : ?session_name:string ->
-  table:'a persistent_table -> sp:server_params ->
-    unit -> 'a session_data Lwt.t
+val get_persistent_session_data : 
+  ?session_name:string ->
+  ?secure:bool ->
+  table:'a persistent_table -> 
+  sp:server_params ->
+  unit -> 
+  'a session_data Lwt.t
 
 (** sets persistent session data for the current persistent session *)
-val set_persistent_session_data : ?session_name:string ->
-  table:'a persistent_table -> sp:server_params -> 'a -> unit Lwt.t
+val set_persistent_session_data : 
+  ?session_name:string ->
+  ?secure:bool ->
+  table:'a persistent_table -> 
+  sp:server_params -> 
+  'a -> 
+  unit Lwt.t
 
 (** removes session data for the current persistent session
    (but does not close the session).
    If the session does not exist, do nothing.
  *)
-val remove_persistent_session_data : ?session_name:string ->
-    table:'a persistent_table -> sp:server_params -> unit -> unit Lwt.t
+val remove_persistent_session_data : 
+  ?session_name:string ->
+  ?secure:bool ->
+  table:'a persistent_table -> 
+  sp:server_params -> 
+  unit -> 
+  unit Lwt.t
 
 
 (*****************************************************************************)
@@ -556,10 +639,14 @@ val remove_persistent_session_data : ?session_name:string ->
    Shortcut for {!Eliom_sessions.close_volatile_data_session} followed by
     {!Eliom_sessions.close_service_session} and
     {!Eliom_sessions.close_persistent_data_session}.
+
+    By default will close both secure and unsecure sessions, but
+    if [~secure] is present.
 *)
 val close_session :
   ?close_group:bool ->
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   unit Lwt.t
@@ -574,6 +661,7 @@ val close_session :
 val close_volatile_session :
   ?close_group:bool ->
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   unit
@@ -583,6 +671,7 @@ val close_volatile_session :
 val close_persistent_data_session :
   ?close_group:bool ->
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   unit Lwt.t
@@ -592,6 +681,7 @@ val close_persistent_data_session :
 val close_volatile_data_session :
   ?close_group:bool ->
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   unit
@@ -600,6 +690,7 @@ val close_volatile_data_session :
 val close_service_session :
   ?close_group:bool ->
   ?session_name:string ->
+  ?secure:bool ->
   sp:server_params ->
   unit ->
   unit
@@ -930,22 +1021,28 @@ val get_session_name : sp:server_params -> string option
 (** returns the value of the Eliom's cookies for one persistent session.
    Returns [None] is no session is active.
  *)
-val get_persistent_data_session_cookie : ?session_name:string ->
+val get_persistent_data_session_cookie : 
+  ?session_name:string ->
+  ?secure:bool ->
   sp:server_params -> unit -> string option Lwt.t
 
 (** returns the value of Eliom's cookies for one service session.
    Returns [None] is no session is active.
  *)
 val get_service_session_cookie :
-    ?session_name:string -> sp:server_params ->
-      unit -> string option
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params ->
+  unit -> string option
 
 (** returns the value of Eliom's cookies for one "volatile data" session.
    Returns [None] is no session is active.
  *)
 val get_volatile_data_session_cookie :
-    ?session_name:string -> sp:server_params ->
-      unit -> string option
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params ->
+  unit -> string option
 
 
 
@@ -972,8 +1069,11 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 
 val get_global_table : sp:server_params -> Eliom_common.tables
 val get_session_service_table :
-    ?session_name:string -> sp:server_params -> unit ->
-      Eliom_common.tables ref
+  ?session_name:string -> 
+  ?secure:bool ->
+  sp:server_params -> 
+  unit ->
+  Eliom_common.tables ref
 
 val get_sitedata : sp:server_params -> Eliom_common.sitedata
 

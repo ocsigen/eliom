@@ -44,13 +44,11 @@ let execute
     ((ri,
       si,
       old_cookies_to_set,
-      (service_cookies_info, data_cookies_info, pers_cookies_info)) as info)
+      ((service_cookies_info, data_cookies_info, pers_cookies_info), 
+       secure_ci)) as info)
     sitedata =
 
-  catch
-    (fun () -> generate_page now info sitedata)
-    (fun e -> handle_site_exn e info sitedata) >>=
-  (fun result ->
+  let update_exp (service_cookies_info, data_cookies_info, pers_cookies_info) =
 
     (* Update service expiration date and value *)
     Ocsigen_http_frame.Cookievalues.iter
@@ -175,10 +173,22 @@ let execute
 
       (return ())
 
+  in
+  catch
+    (fun () -> generate_page now info sitedata)
+    (fun e -> handle_site_exn e info sitedata)
+  >>= fun result ->
 
-      >>= fun () ->
+  update_exp (service_cookies_info, data_cookies_info, pers_cookies_info)
+  >>= fun () ->
 
-        return result)
+  (* the same, for secure cookies: *)
+  (match secure_ci with
+    | Some info -> update_exp info
+    | None -> Lwt.return ())
+  >>= fun () ->
+
+  Lwt.return result
 
 
 
@@ -420,6 +430,7 @@ let gen sitedata (charset, _, _, _) = function
       si.Eliom_common.si_service_session_cookies
       si.Eliom_common.si_data_session_cookies
       si.Eliom_common.si_persistent_session_cookies
+      si.Eliom_common.si_secure_cookie_info
   in
   let exn = compute_exn closedsessions in
   gen_aux ({ri with Ocsigen_extensions.ri_extension_info=

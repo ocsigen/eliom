@@ -68,16 +68,21 @@ val naservice_num : string
 val naservice_name : string
 val get_state_param_name : string
 val post_state_param_name : string
+val co_param_prefix : string
+val na_co_param_prefix : string
+
 val datacookiename : string
 val servicecookiename : string
 val persistentcookiename : string
-val co_param_prefix : string
-val na_co_param_prefix : string
+val sdatacookiename : string
+val sservicecookiename : string
+val spersistentcookiename : string
+
 val persistent_cookie_table_version : string
 val eliom_persistent_cookie_table : string
 type internal_state = string
 type cookie =
-    Set of Ocsigen_extensions.url_path option * float option * string * string
+  | Set of Ocsigen_extensions.url_path option * float option * string * string * bool
   | Unset of Ocsigen_extensions.url_path option * string
 type sess_info = {
   si_other_get_params : (string * string) list;
@@ -86,6 +91,10 @@ type sess_info = {
   si_service_session_cookies : string Ocsigen_http_frame.Cookievalues.t;
   si_data_session_cookies : string Ocsigen_http_frame.Cookievalues.t;
   si_persistent_session_cookies : string Ocsigen_http_frame.Cookievalues.t;
+  si_secure_cookie_info:
+    (string Ocsigen_http_frame.Cookievalues.t *
+       string Ocsigen_http_frame.Cookievalues.t *
+       string Ocsigen_http_frame.Cookievalues.t) option;
   si_nonatt_info : na_key;
   si_state_info : internal_state option * internal_state option;
   si_config_file_charset : string;
@@ -132,7 +141,8 @@ type one_persistent_cookie_info = {
   pc_cookie_exp : cookie_exp ref;
   pc_session_group : Eliommod_sessiongroups.perssessgrp option ref;
 }
-type 'a cookie_info =
+
+type 'a cookie_info1 =
     (string option * 'a one_service_cookie_info session_cookie ref)
     Ocsigen_http_frame.Cookievalues.t ref *
     (string option * one_data_cookie_info session_cookie ref) Lazy.t
@@ -141,6 +151,11 @@ type 'a cookie_info =
       Eliommod_sessiongroups.perssessgrp option)
      option * one_persistent_cookie_info session_cookie ref)
     Lwt.t Lazy.t Ocsigen_http_frame.Cookievalues.t ref
+
+type 'a cookie_info =
+    'a cookie_info1 (* unsecure *) * 
+      'a cookie_info1 option (* secure, if https *)
+
 type 'a servicecookiestablecontent =
     string * 'a * float option ref * timeout ref *
     Eliommod_sessiongroups.sessgrp option ref

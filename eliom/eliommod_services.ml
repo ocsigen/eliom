@@ -290,7 +290,7 @@ let get_page
     (ri,
      si,
      cookies_to_set,
-     ((service_cookies_info, _, _) as all_cookie_info))
+     (((service_cookies_info, _, _), secure_ci) as all_cookie_info))
     sitedata
     =
 
@@ -322,14 +322,31 @@ let get_page
 
   (catch
      (fun () ->
-        Ocsigen_messages.debug
-          (fun () ->
-            "--Eliom: I'm looking for "^
-            (Ocsigen_lib.string_of_url_path ri.Ocsigen_extensions.ri_sub_path)^
-            " in the session table:");
-        find_aux Eliom_common.Eliom_404 !service_cookies_info
-      )
-      (function
+        (catch
+           (fun () ->
+              match secure_ci with
+                | Some (service_cookies_info, _, _) ->
+                    Ocsigen_messages.debug
+                      (fun () ->
+                         "--Eliom: I'm looking for "^
+                           (Ocsigen_lib.string_of_url_path ri.Ocsigen_extensions.ri_sub_path)^
+                           " in the secure session table:");
+                    find_aux Eliom_common.Eliom_404 !service_cookies_info
+                | _ -> Lwt.fail Eliom_common.Eliom_404
+           )
+           (function
+              | Eliom_common.Eliom_404
+              | Eliom_common.Eliom_Wrong_parameter ->
+                  Ocsigen_messages.debug
+                    (fun () ->
+                       "--Eliom: I'm looking for "^
+                         (Ocsigen_lib.string_of_url_path ri.Ocsigen_extensions.ri_sub_path)^
+                         " in the session table:");
+                  find_aux Eliom_common.Eliom_404 !service_cookies_info
+              | e -> fail e)
+        )
+     )
+     (function
         | Eliom_common.Eliom_404
         | Eliom_common.Eliom_Wrong_parameter ->
             catch (* ensuite dans la table globale *)

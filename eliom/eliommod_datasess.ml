@@ -25,6 +25,16 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
+let compute_cookie_info secure secure_ci cookie_info =
+  let secure = match secure with
+    | None -> true
+    | Some s -> s
+  in
+  if secure 
+  then match secure_ci with
+    | None (* not ssl *) -> cookie_info
+    | Some (_, c, _) -> c
+  else cookie_info
 
 
 (* to be called from outside requests *)
@@ -42,12 +52,14 @@ let close_data_group sitedata fullsessgrp =
   Eliommod_sessiongroups.Data.remove_group fullsessgrp
 
 (* to be called during a request *)
-let close_data_session ?(close_group = false) ?session_name ~sp () =
+let close_data_session ?(close_group = false) ?session_name ~secure ~sp () =
   try
     let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
-    let (_, cookie_info, _) = sp.Eliom_common.sp_cookie_info in
+    let ((_, cookie_info, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+    let cookie_info = compute_cookie_info secure secure_ci cookie_info in
     let (_, ior) =
-      Lazy.force (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
+      Lazy.force 
+        (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
     in
     match !ior with
     | Eliom_common.SC c ->
@@ -102,7 +114,7 @@ let rec new_data_cookie sitedata fullsessgrp fullsessname table =
 
 
 
-let find_or_create_data_cookie ?session_group ?session_name ~sp () =
+let find_or_create_data_cookie ?session_group ?session_name ~secure ~sp () =
   (* If the cookie does not exist, create it.
      Returns the cookie info for the cookie *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
@@ -111,7 +123,8 @@ let find_or_create_data_cookie ?session_group ?session_name ~sp () =
       sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
       session_group
   in
-  let (_, cookie_info, _) = sp.Eliom_common.sp_cookie_info in
+  let ((_, cookie_info, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   try
     let (old, ior) =
       Lazy.force (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
@@ -140,11 +153,12 @@ let find_or_create_data_cookie ?session_group ?session_name ~sp () =
         !cookie_info;
     v
 
-let find_data_cookie_only ?session_name ~sp () =
+let find_data_cookie_only ?session_name ~secure ~sp () =
   (* If the cookie does not exist, do not create it, raise Not_found.
      Returns the cookie info for the cookie *)
   let fullsessname = Eliom_common.make_fullsessname ~sp session_name in
-  let (_, cookie_info, _) = sp.Eliom_common.sp_cookie_info in
+  let ((_, cookie_info, _), secure_ci) = sp.Eliom_common.sp_cookie_info in
+  let cookie_info = compute_cookie_info secure secure_ci cookie_info in
   let (_, ior) =
     Lazy.force (Ocsigen_http_frame.Cookievalues.find fullsessname !cookie_info)
   in

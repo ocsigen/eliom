@@ -40,7 +40,7 @@ val sync : ('a -> 'b -> 'c -> 'd) -> 'a -> 'b -> 'c -> 'd Lwt.t
     The strings are names and values.
  *)
 type cookie =
-  | Set of url_path option * float option * string * string
+  | Set of url_path option * float option * string * string * bool
   | Unset of url_path option * string
 
 (** Conversion fonction from Eliom cookies to server cookies.

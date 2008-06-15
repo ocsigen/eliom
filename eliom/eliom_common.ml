@@ -61,12 +61,19 @@ let naservice_num = "__eliom_na__num"
 let naservice_name = "__eliom_na__name"
 let get_state_param_name = "__eliom__"
 let post_state_param_name = "__eliom_p__"
+let co_param_prefix = "__co_eliom_"
+let na_co_param_prefix = "__na_eliom_"
+
 let datacookiename = "eliomdatasession|"
 let servicecookiename = "eliomservicesession|"
 (* must not be a prefix of the following and vice versa (idem for data) *)
 let persistentcookiename = "eliompersistentsession|"
-let co_param_prefix = "__co_eliom_"
-let na_co_param_prefix = "__na_eliom_"
+
+(* the same, secure: *)
+let sdatacookiename = "Seliomdatasession|"
+let sservicecookiename = "Seliomservicesession|"
+let spersistentcookiename = "Seliompersistentsession|"
+
 
 (*VVV Do not forget to change the version number
   when the internal format change!!! *)
@@ -86,7 +93,7 @@ type internal_state = string
     The strings are names and values.
  *)
 type cookie =
-  | Set of Ocsigen_extensions.url_path option * float option * string * string
+  | Set of Ocsigen_extensions.url_path option * float option * string * string * bool
   | Unset of Ocsigen_extensions.url_path option * string
 
 
@@ -107,6 +114,12 @@ type sess_info =
      si_persistent_session_cookies: string Ocsigen_http_frame.Cookievalues.t;
      (* the persistent session cookies sent by the request *)
      (* the key is the cookie name (or site dir) *)
+
+     si_secure_cookie_info:
+       (string Ocsigen_http_frame.Cookievalues.t *
+       string Ocsigen_http_frame.Cookievalues.t *
+       string Ocsigen_http_frame.Cookievalues.t) option;
+     (* the same, but for secure cookies, if https *)
 
      si_nonatt_info: na_key;
      si_state_info: (internal_state option * internal_state option);
@@ -183,7 +196,7 @@ type one_persistent_cookie_info =
 
 
 (*VVV heavy *)
-type 'a cookie_info =
+type 'a cookie_info1 =
     (* service sessions: *)
     (string option            (* value sent by the browser *)
                               (* None = new cookie
@@ -236,6 +249,12 @@ type 'a cookie_info =
           *)
       ) Lwt.t Lazy.t
       Ocsigen_http_frame.Cookievalues.t ref
+
+
+type 'a cookie_info =
+    'a cookie_info1 (* unsecure *) * 
+      'a cookie_info1 option (* secure, if https *)
+
 
 
 (* non persistent cookies for services *)
@@ -444,6 +463,7 @@ let change_request_info ri charset previous_extension_err =
     let get_params = Lazy.force ri.Ocsigen_extensions.ri_get_params in
     let get_params0 = get_params in
     let post_params0 = post_params in
+
     let data_cookies = getcookies datacookiename
         (Lazy.force ri.Ocsigen_extensions.ri_cookies)
     in
@@ -455,6 +475,25 @@ let change_request_info ri charset previous_extension_err =
         persistentcookiename
         (Lazy.force ri.Ocsigen_extensions.ri_cookies)
     in
+
+    let secure_cookie_info =
+      if ri.Ocsigen_extensions.ri_ssl
+      then
+        let sdata_cookies = getcookies sdatacookiename
+          (Lazy.force ri.Ocsigen_extensions.ri_cookies)
+        in
+        let sservice_cookies = getcookies sservicecookiename
+          (Lazy.force ri.Ocsigen_extensions.ri_cookies)
+        in
+        let spersistent_cookies =
+          getcookies
+            spersistentcookiename
+            (Lazy.force ri.Ocsigen_extensions.ri_cookies)
+        in
+        Some (sservice_cookies, sdata_cookies, spersistent_cookies)
+      else None
+    in
+
     let naservice_info,
       (get_state, post_state),
       (get_params, other_get_params),
@@ -540,6 +579,7 @@ let change_request_info ri charset previous_extension_err =
        {si_service_session_cookies= service_cookies;
         si_data_session_cookies= data_cookies;
         si_persistent_session_cookies= persistent_cookies;
+        si_secure_cookie_info= secure_cookie_info;
         si_nonatt_info= naservice_info;
         si_state_info= (get_state, post_state);
         si_other_get_params= other_get_params;

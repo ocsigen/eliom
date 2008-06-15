@@ -16,9 +16,11 @@ module Cookievalues : Map.S
 (** Type used for cookies to set.
     The float option is the timestamp for the expiration date.
     The string is the value.
+    If the bool is true and the protocol is https, the cookie will be secure
+    (will ask the browser to send it only through secure connections).
  *)
 type cookie =
-  | OSet of float option * string
+  | OSet of float option * string * bool
   | OUnset
 
 type cookieset = cookie Cookievalues.t Cookies.t
