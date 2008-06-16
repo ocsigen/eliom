@@ -3381,7 +3381,7 @@ let _ = Eliom_services.set_exn_handler
        That's how the different examples of sessions in this tutorial are
        independant.
       </p>
-      <h4>HTTPS</h4>
+      <h4>Secure services</h4>
       <p>You may want to impose HTTPS for some of your services.
        To do that, use the optional parameter <code>~https:true</code>
        while creating your service.
@@ -3399,6 +3399,20 @@ let _ = Eliom_services.set_exn_handler
       </p>
       <pre>&lt;host name="*.org" defaulthostname="www.mywebsite.org" defaulthttpport="8080" defaulthttpsport="4433"&gt; ... &lt;/host&gt;</pre>
 
+      <h4>Secure sessions</h4>
+      <p>For security reasons, Eliom does not use the same cookies in
+        https and http. Secure sessions are using secure cookies
+        (i.e. Ocsigen will ask the browsers to send the cookie only if
+        the protocol is secure). Thus it is not possible to access
+        secure session if the user is using http. If the user is using
+        https, Eliom will save data and services in secure session. But
+        it is possible to access unsecure session data and to register
+        unsecure session services using the optional parameter
+        <code>~secure:false</code> when calling functions like
+        <code>Eliom_sessions.set_volatile_session_data</code>,
+        <code>Eliom_sessions.get_persistent_session_data</code>,
+        <code>Eliom_predefmod.Xhtml.register_for_session</code>, etc.
+      </p>
     </div>
 
 

@@ -156,7 +156,7 @@ val new_service :
 (** [new_service ~path:p ~get_params:pa ()] creates an {!Eliom_services.service} associated
    to the path [p], taking the GET parameters [pa].
 
-    If [~https] is true, all links towars that service will use https.
+   If [~https] is true, all links towards that service will use https.
 
    {e Warning: If you use this function after the initialisation phase,
    you must give the [~sp] parameter, otherwise it will raise the
