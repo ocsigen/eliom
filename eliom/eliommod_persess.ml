@@ -150,6 +150,8 @@ let find_or_create_persistent_cookie ?session_group ?session_name ~secure ~sp ()
       >>= fun (old, ior) ->
       match !ior with
       | Eliom_common.SCData_session_expired
+          (* We do not trust the value sent by the client,
+             for security reasons *)
       | Eliom_common.SCNo_data ->
           new_persistent_cookie
             sp.Eliom_common.sp_sitedata

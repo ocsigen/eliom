@@ -633,20 +633,43 @@ let remove_volatile_session_data ?session_name ?secure ~table ~sp () =
 (** Close a session *)
 let close_persistent_data_session ?close_group ?session_name 
     ?secure ~sp () = 
-  Eliommod_persess.close_persistent_session ?close_group ?session_name 
-    ~secure ~sp ()
-
-let close_volatile_session ?close_group ?session_name ?secure ~sp () = 
-  Eliommod.close_volatile_session ?close_group ?session_name ~secure ~sp ()
+  match secure with
+    | None ->
+        Eliommod_persess.close_persistent_session ?close_group ?session_name 
+          ~secure:(Some true) ~sp ();
+        Eliommod_persess.close_persistent_session ?close_group ?session_name 
+          ~secure:(Some false) ~sp ()
+    | _ ->
+        Eliommod_persess.close_persistent_session ?close_group ?session_name 
+          ~secure ~sp ()
 
 let close_service_session ?close_group ?session_name ?secure ~sp () = 
-  Eliommod_sersess.close_service_session ?close_group ?session_name ~secure ~sp ()
+  match secure with
+    | None ->
+        Eliommod_sersess.close_service_session 
+          ?close_group ?session_name ~secure:(Some true) ~sp ();
+        Eliommod_sersess.close_service_session 
+          ?close_group ?session_name ~secure:(Some false) ~sp ()
+    | _ ->
+        Eliommod_sersess.close_service_session 
+          ?close_group ?session_name ~secure ~sp ()
 
 let close_volatile_data_session ?close_group ?session_name ?secure ~sp () =
-  Eliommod_datasess.close_data_session ?close_group ?session_name ~secure ~sp ()
+  match secure with
+    | None ->
+        Eliommod_datasess.close_data_session 
+          ?close_group ?session_name ~secure:(Some true) ~sp ();
+        Eliommod_datasess.close_data_session 
+          ?close_group ?session_name ~secure:(Some false) ~sp ()
+    | _ ->
+        Eliommod_datasess.close_data_session 
+          ?close_group ?session_name ~secure ~sp ()
+
+let close_volatile_session ?close_group ?session_name ?secure ~sp () = 
+  close_volatile_data_session ?close_group ?session_name ?secure ~sp ();
+  close_service_session ?close_group ?session_name ?secure ~sp ()
 
 let close_session ?close_group ?session_name ?secure ~sp () =
-NON: fermer les deux par défaut ? (idem ailleurs)
   close_volatile_session ?close_group ?session_name ?secure ~sp ();
   close_persistent_data_session ?close_group ?session_name ?secure ~sp ()
 

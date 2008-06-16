@@ -495,7 +495,7 @@ let service
            Lwt.try_bind
              (fun () ->
                 Ocsigen_extensions.do_for_site_matching
-                 ri.ri_host ri.ri_server_port ri)
+                  ri.ri_host ri.ri_server_port ri)
              (fun res ->
                 finish_request ();
 (* RFC

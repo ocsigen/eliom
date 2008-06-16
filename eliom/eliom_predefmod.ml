@@ -92,16 +92,16 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
   let send ?options ?(cookies=[]) ?charset ?code ~sp content =
     Xhtml_content.result_of_content content >>= fun r ->
-      Lwt.return
-        (EliomResult
-           {r with
+    Lwt.return
+      (EliomResult
+         {r with
             res_cookies=
-            Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+             Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-            | None -> Some (get_config_file_charset sp)
-            | _ -> charset)
-          })
+                            | None -> Some (get_config_file_charset sp)
+                            | _ -> charset)
+         })
 
 end
 

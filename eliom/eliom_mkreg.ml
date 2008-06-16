@@ -122,14 +122,15 @@ module type ELIOMREGSIG1 =
 
 Ajouter ~secure comme dans Eliom_sessions (partout) !
     val register_for_session :
-        ?options:options ->
-        ?session_name:string ->
-        sp:Eliom_sessions.server_params ->
-          service:('get, 'post, [< internal_service_kind ],
-                   [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
-              ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                page Lwt.t) ->
-                  (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) -> unit
+      ?options:options ->
+      ?session_name:string ->
+      sp:Eliom_sessions.server_params ->
+      service:('get, 'post, [< internal_service_kind ],
+               [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) -> 
+      unit
 (** registers a handler for a service in the session table.
    If the same client does a request to this service, this function will be
    used instead of the one from the public table.

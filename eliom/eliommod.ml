@@ -89,9 +89,7 @@ let new_sitedata =
           sitedata
 
 
-let close_volatile_session ?close_group ?session_name ~secure ~sp () =
-  Eliommod_datasess.close_data_session ?close_group ?session_name ~secure ~sp ();
-  Eliommod_sersess.close_service_session ?close_group ?session_name ~secure ~sp ()
+
 
 
 

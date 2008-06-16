@@ -465,7 +465,8 @@ let compute_new_ri_cookies
            let n = Eliom_common.make_full_cookie_name scn n in
            match !v with
              | Eliom_common.SCData_session_expired
-             | Eliom_common.SCNo_data -> Ocsigen_http_frame.Cookievalues.remove n beg
+             | Eliom_common.SCNo_data -> 
+                 Ocsigen_http_frame.Cookievalues.remove n beg
              | Eliom_common.SC c ->
                  Ocsigen_http_frame.Cookievalues.add n c.Eliom_common.sc_value beg
         )
@@ -481,7 +482,8 @@ let compute_new_ri_cookies
             let (_, v) = Lazy.force v in
             match !v with
             | Eliom_common.SCData_session_expired
-            | Eliom_common.SCNo_data -> Ocsigen_http_frame.Cookievalues.remove n beg
+            | Eliom_common.SCNo_data -> 
+                Ocsigen_http_frame.Cookievalues.remove n beg
             | Eliom_common.SC c ->
                 Ocsigen_http_frame.Cookievalues.add n c.Eliom_common.dc_value beg
           else beg
