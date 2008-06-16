@@ -1068,6 +1068,7 @@ val number_of_persistent_table_elements : unit -> (string * int) list Lwt.t
 
 
 val get_global_table : sp:server_params -> Eliom_common.tables
+
 val get_session_service_table :
   ?session_name:string -> 
   ?secure:bool ->

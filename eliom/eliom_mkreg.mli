@@ -116,17 +116,22 @@ module type ELIOMREGSIG1 =
 
 
     val register_for_session :
-        ?options:options ->
-        ?session_name:string ->
-        sp:Eliom_sessions.server_params ->
-          service:('get, 'post, [< internal_service_kind ],
-                   [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
-              ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
-                page Lwt.t) ->
-                  (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) -> unit
+      ?options:options ->
+      ?session_name:string ->
+      ?secure:bool ->
+      sp:Eliom_sessions.server_params ->
+      service:('get, 'post, [< internal_service_kind ],
+               [< suff ], 'gn, 'pn, [ `Registrable ]) service ->
+      ?error_handler:(Eliom_sessions.server_params -> (string * exn) list ->
+                        page Lwt.t) ->
+      (Eliom_sessions.server_params -> 'get -> 'post -> page Lwt.t) -> unit
 (** registers a handler for a service in the session table.
    If the same client does a request to this service, this function will be
    used instead of the one from the public table.
+
+   If [~secure] is false when the protocol is https, it will affect
+   the unsecure session, otherwise, il will affect the secure session in 
+   https, the unsecure one in http.
 
    Warning:
    - All main services created during initialization must be
@@ -212,6 +217,7 @@ module type ELIOMREGSIG1 =
     val register_new_coservice_for_session :
       ?options:options ->
       ?session_name:string ->
+      ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?max_use:int ->
       ?timeout:float ->
@@ -237,6 +243,7 @@ module type ELIOMREGSIG1 =
     val register_new_coservice_for_session' :
       ?options:options ->
       ?session_name:string ->
+      ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?max_use:int ->
       ?timeout:float ->
@@ -352,6 +359,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_coservice_for_session :
       ?options:options ->
       ?session_name:string ->
+      ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?max_use:int ->
       ?timeout:float ->
@@ -376,6 +384,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_coservice_for_session' :
       ?options:options ->
       ?session_name:string ->
+      ?secure:bool ->
       sp:Eliom_sessions.server_params ->
       ?max_use:int ->
       ?timeout:float ->
@@ -395,6 +404,7 @@ module type ELIOMREGSIG1 =
     val register_new_get_post_coservice_for_session' :
         ?options:options ->
         ?session_name:string ->
+      ?secure:bool ->
         sp:Eliom_sessions.server_params ->
         ?max_use:int ->
         ?timeout:float ->
