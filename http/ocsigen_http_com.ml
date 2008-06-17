@@ -846,7 +846,6 @@ let send
          Ocsigen_stream.finalize res.res_stream
       )
       (fun e ->
-print_endline "stop stream";
         res.res_stop_stream () >>= fun () ->
         Ocsigen_stream.finalize res.res_stream >>= fun () ->
         Lwt.fail e
