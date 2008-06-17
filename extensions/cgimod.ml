@@ -582,11 +582,6 @@ let rec set_env = function
 
 let parse_config path (a, hostname, b, c) _ parse_site = function
   | Element ("cgi", atts, l) ->
-      let hostname = match hostname with
-        | None -> raise (Error_in_config_file
-                           "Please set the attributes defaulthostname, defaulthttpport, defaulthttpsport in <host>")
-        | Some h -> h
-      in
       let good_root r =
         Regexp.quote (string_conform2 r) 
       in

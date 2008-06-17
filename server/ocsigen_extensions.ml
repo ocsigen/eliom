@@ -186,7 +186,7 @@ type parse_fun = Simplexmlparser.xml list -> extension2
 type parse_host =
     Parse_host of
       (url_path ->
-        string * string option * int * int ->
+        string * string * int * int ->
           parse_host -> parse_fun -> Simplexmlparser.xml -> extension)
 
 let (hosts : (virtual_hosts * extension2) list ref) =

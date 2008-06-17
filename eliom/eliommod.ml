@@ -52,12 +52,6 @@ let new_sitedata =
       S.find t site_dir
     with
       | Not_found ->
-          let defaulthostname = match defaulthostname with
-            | None ->
-                raise (Ocsigen_extensions.Error_in_config_file
-                         ("Cannot determine default hostname. Please set attributes defaulthostname, defaulthttpport and defaulthttpsport in <host>"))
-            | Some d -> d
-          in
           let sitedata =
             {Eliom_common.servtimeout = [];
              datatimeout = [];

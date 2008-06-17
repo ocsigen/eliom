@@ -269,14 +269,14 @@ val register_extension :
   ?respect_pipeline: bool ->
   (virtual_hosts ->
      url_path ->
-       string * string option * int * int ->
+       string * string * int * int ->
          parse_host ->
            parse_fun ->
              Simplexmlparser.xml ->
                extension) ->
   (virtual_hosts ->
      url_path ->
-       string * string option * int * int ->
+       string * string * int * int ->
          parse_host ->
            parse_fun ->
              Simplexmlparser.xml ->
@@ -293,7 +293,7 @@ val register_extension :
 val void_extension :
     virtual_hosts ->
       url_path ->
-        string * string option * int * int ->
+        string * string * int * int ->
           parse_host ->
             parse_fun ->
               Simplexmlparser.xml ->
@@ -327,25 +327,25 @@ val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
 
 val make_parse_site :
   url_path ->
-    string * string option * int * int ->
-      (url_path ->
-        string * string option * int * int ->
-          parse_host -> parse_fun -> Simplexmlparser.xml -> extension) ->
-            parse_fun
+  string * string * int * int ->
+  (url_path ->
+     string * string * int * int ->
+       parse_host -> parse_fun -> Simplexmlparser.xml -> extension) ->
+  parse_fun
 
 val parse_site_item :
-    virtual_hosts ->
-      url_path ->
-        string * string option * int * int ->
-          parse_host ->
-            parse_fun -> Simplexmlparser.xml -> extension
-
+  virtual_hosts ->
+  url_path ->
+  string * string * int * int ->
+  parse_host ->
+  parse_fun -> Simplexmlparser.xml -> extension
+  
 val parse_user_site_item :
-    virtual_hosts ->
-      url_path ->
-        string * string option * int * int ->
-          parse_host ->
-            parse_fun -> Simplexmlparser.xml -> extension
+  virtual_hosts ->
+  url_path ->
+  string * string * int * int ->
+  parse_host ->
+  parse_fun -> Simplexmlparser.xml -> extension
 
 val set_hosts : (virtual_hosts * extension2) list -> unit
 

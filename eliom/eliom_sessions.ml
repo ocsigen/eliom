@@ -636,9 +636,9 @@ let close_persistent_data_session ?close_group ?session_name
   match secure with
     | None ->
         Eliommod_persess.close_persistent_session ?close_group ?session_name 
-          ~secure:(Some true) ~sp ();
+          ~secure:(Some true) ~sp () >>=
         Eliommod_persess.close_persistent_session ?close_group ?session_name 
-          ~secure:(Some false) ~sp ()
+          ~secure:(Some false) ~sp
     | _ ->
         Eliommod_persess.close_persistent_session ?close_group ?session_name 
           ~secure ~sp ()
