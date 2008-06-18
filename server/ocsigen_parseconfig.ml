@@ -410,7 +410,7 @@ let parse_server isreloading c =
                    with
                      | [Ocsigen_extensions.Text (t, _)] -> 
                          Ocsigen_messages.warning
-                           ("While parsing config file, tag <host>: Assuming defaulthostname is "^t);
+                           ("While parsing config file, tag <host>: Assuming defaulthostname is \""^t^"\"");
                          t
                      | _ -> 
                          Ocsigen_messages.warning warning;

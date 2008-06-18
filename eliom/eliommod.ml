@@ -41,15 +41,17 @@ let new_sitedata =
   (* We want to keep the old site data even if we reload the server *)
   (* To do that, we keep the site data in a table *)
   let module S = Hashtbl.Make(struct
-                                type t = url_path
+                                type t = 
+                                    Ocsigen_extensions.virtual_hosts * url_path
                                 let equal = (=)
                                 let hash = Hashtbl.hash
                               end)
   in
   let t = S.create 5 in
-  fun site_dir (_, defaulthostname, defaulthttpport, defaulthttpsport) ->
+  fun host site_dir (_, defaulthostname, defaulthttpport, defaulthttpsport) ->
+    let key = (host, site_dir) in
     try
-      S.find t site_dir
+      S.find t key
     with
       | Not_found ->
           let sitedata =
@@ -79,7 +81,7 @@ let new_sitedata =
           in
           Eliommod_gc.service_session_gc sitedata;
           Eliommod_gc.data_session_gc sitedata;
-          S.add t site_dir sitedata;
+          S.add t key sitedata;
           sitedata
 
 
@@ -318,9 +320,9 @@ let load_eliom_module sitedata cmo content =
 
 (*****************************************************************************)
 (** Parsing of config file for each site: *)
-let parse_config site_dir charsetetc =
+let parse_config hostpattern site_dir charsetetc =
 (*--- if we put the following line here: *)
-  let sitedata = new_sitedata site_dir charsetetc in
+  let sitedata = new_sitedata hostpattern site_dir charsetetc in
 (*--- then there is one service tree for each <site> *)
 (*--- (mutatis mutandis for the following line:) *)
   Eliom_common.absolute_change_sitedata sitedata;
@@ -370,7 +372,7 @@ let parse_config site_dir charsetetc =
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
-  (fun hostpattern -> parse_config)
+  parse_config
   Ocsigen_extensions.void_extension
   start_init
   end_init
