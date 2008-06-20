@@ -1,0 +1,371 @@
+= Development version =
+
+  * Remove Lwt (now distributed separately)
+  * {{{XHTML.M}}} pretty printer: fixing pretty printing of empty tags
+    (for browser compatibility)
+  * Eliom_duce: New pretty printer for XHTML fixing pretty printing of
+    empty tags
+  * Eliom: secure sessions, secure services, (absolute) https
+    links/forms, and using secure cookies
+  * Eliom: Adding special "void action", without any parameters
+  * Eliom: {{{Eliom_predefmod.Redirections}}} now called
+    {{{Eliom_predefmod.String_redirections}}}, and adding new module
+    {{{Eliom_predefmod.Redirection}}} that use GET services without
+    parameters as data type.
+  * Eliom and XHTML.M: Small changes of types in interfaces
+  * Eliom: New session ID generator
+  * Eliom: Adding types {{{int32}}} and {{{int64}}} for parameters and
+    forms
+  * Eliom: Adding functions {{{lwt_get_form}}} and {{{lwt_post_form}}}
+    for creating forms using cooperative functions
+  * Eliom and Staticmod: now possible to give GET parameters to static
+    pages
+  * Eliom: Bugfix in Makefiles for native code version
+  * Eliom forms: Adding missing types in interfaces
+  * Eliom_tools: current page is now optional in menus
+  * Userconf and Eliom: there was a bug when loading both Eliom and
+    Userconf together
+  * Reverse Proxy: Now sending content length when available
+  * Web server: The default content-type is now
+    {{{application/octet-stream}}}
+  * Creating and installing a cma file for all Ocsigen libraries not
+    installed elsewhere
+  * Ocsipersist-dbm: fixing bug when removing data
+  * And small bugfixes in XHTML.M, Eliom, ...
+
+= 1.0.0 =
+
+  * Config file: findlib integration
+  * Eliom and Ocsigen: changing namespace convention for modules
+  * Access control: simplification of config file syntax
+  * Eliom: Allowing (module dependent) parameters for registration functions
+  * New xhtml output without pretty printing
+  * Web server: Bugfix in HTTP/1.0 with keep-alive
+  * Reverse proxy: Bugfix GET parameters were wrong
+  * Reverse proxy: Bugfix memory consumption when the connection was closed by client
+
+= 0.99.5 =
+
+  * Revproxy: pipelining of requests
+  * Access control: simplification, generalization of filters and
+    syntax changes in config file
+  * Eliom: EXPERIMENTAL session groups
+  * Eliom: non-attached services
+  * Eliomduce: new functor {{{SubXhtml}}} for creating registration
+    modules
+  * Eliomduce: new module Eliomducetools with same features as
+    Eliomtools, but for Eliomduce
+  * Web server: now possible to split the configuration file into
+    several files using the {{{<extconf/>}}} option.
+  * Web server: now possible to have {{{<site>}}} option inside
+    another {{{<site>}}} in configuration files, and the the first one
+    is optional
+  * Web server: EXPERIMENTAL user configuration files, with restricted
+    possibilities (for security reasons)
+  * Web server: IPv6 support
+  * Deflatemod: now possible to filter on file extensions
+  * Eliom: new option to keep GET non-attached parameters or not when
+    doing a POST form towards a non-attached coservice.
+  * Eliom: bugfix path of session cookies
+  * Eliom: bugfix POST non-attached coservices called from a page with
+    non-attached GET parameters were not found.
+  * Lwt: now catching exceptions raised after timeouts
+  * Cgimod: bufixes in path handling
+  * Web server: bugfix - some files were not closed
+
+= 0.99.4 =
+
+  * Ocsigen: Changes in the extension mechanism. The extensions are
+    not tried in the order in which they are loaded any more, but in
+    the order in which the options are specified for each site in the
+    configuration file.
+  * New experimental extension: access control
+  * A few small enhancements
+    ** Eliom: internal cookie management rewritten (+ bugfix)
+    ** Eliom: Small changes in function names
+    ** Eliom: now retry all extensions after actions (not only Eliom)
+    ** Eliom: cleaning {{{Eliommod}}} interface
+    ** Ocsigen server: Internal changes in server (removing "send"
+       functions, debug messages lazier)
+    ** Lwt: Adding a few functions in {{{Lwt_chan}}} interface
+    ** Staticmod: Allowing to personalize default error pages for HTTP
+       errors
+    ** Ocsipersist (dbm and sqlite): better handling of database
+       errors
+    ** XHTML: New pretty printer for xhtml using streams (up to 15%
+       speedup on requests)
+    ** XHTML: Allowing any value for {{{<link>}}} rel attribute (for
+       example {{{shortcut icon}}}).
+
+= 0.99.3 =
+
+  * Ocsigen: New module Deflatemod to compress data before sending to
+    the browser.
+  * Ocsigen: EXPERIMENTAL - New module Revproxy (reverse proxy).
+  * Eliom: New session mechanism, with the ability to name the
+    sessions and thus have several sessions for the same site.
+  * Eliom: Now possible to have one site with session inside a
+    subdirectory of another one.
+  * Lwt: New module {{{Lwt_timeout}}} to implement timeouts, new
+    module {{{Lwt_chan}}}, new module {{{Lwt_mutex}}}, new function
+    {{{Lwt_unix.abort}}} to make all threads waiting on a file
+    descriptor abort with an exception.
+  * Ocsigen: New implementation of lots of Web server
+    internals. Better management of Ocsigen's streams, file
+    descriptors, exceptions, timeouts ...
+  * A lot of enhancements and bug fixes:
+    ** Eliom: Single {{{<select>}}} now always return one parameter
+       ({{{`Opt}}} replaced by {{{`One}}}, and the first item is
+       selected by default to prevent selecting nothing with some
+       browsers).
+    ** Eliom: More secure cookies.
+    ** Eliom: new version of the tutorial.
+    ** Eliom splitted in several modules.
+    ** Eliom: Nurpawiki example now called Miniwiki.
+    ** Eliom: {{{any_...}}} form widgets now called {{{raw_...}}}
+    ** Eliom: {{{~url}}} parameter (for {{{new_service}}}, etc.) now
+       called {{{~path}}}.
+    ** Eliom: Bugfix escaping characters in URL was wrong
+    ** Eliom: Adding a new parameter {{{~prefix}}} to
+       {{{new_external_service}}} for the scheme and server name. Not
+       encoded.
+    ** Eliom: Eliomboxes now called Eliomtools, with new widget
+       "hierarchical menu" for sites with sections and subsections.
+    ** Eliom: Adding {{{Eliompredefmod.Streamlist}}}.
+    ** Ocsigen: EXPERIMENTAL - now possible to do HTTP requests.
+    ** Ocsigen: New module Redirectmod to define HTTP redirections in
+       the config file.
+    ** Ocsigen: Make possible to create new kind of extensions to
+       filter the output (for ex compression)
+    ** Ocsigen: Bugfix - HEAD requests were broken in 0.99.2
+    ** Ocsigen: Bugfix - HTTP errors were sometimes sending a body in
+       respond to a HEAD request.
+    ** Ocsigen: Now sending 403 when upload is forbidden
+    ** Ocsigen: HTTP headers {{{If-Match}}}, {{{If-None-Match}}},
+       {{{If-Unmodified-Since}}} implemented
+    ** Cgimod: Bugfix - HEAD requests were sending an error 500.
+    ** Cgimod: Bugfix - Some file descriptors were not closed.
+    ** Cgimod: Implementing a timeout on CGI scripts.
+
+= 0.99.2 =
+
+  * Eliom: New implementation of forms. All missing cases implemented,
+    and more possibilities, such as untyped forms.
+  * Ocsipersist: New implementation of Ocsipersist using SQLite
+    instead of DBM. (You can still use the old one).
+  * Cgimod: EXPERIMENTAL - New extension for using CGI scripts with
+    Ocsigen (including PHP through CGI).
+  * Staticmod: Allowing to have several static directories for one
+    site.
+  * Staticmod: Allowing to list the content of directories.
+  * Ocsigen: HTTP Header "Transfer-Encoding: chunked" implemented for
+    sending or receiving data without knowing the Content-Length
+  * Ocsigen: Bugfix in preemptive.ml when lots of simultaneous
+    connections
+  * Ocsigen: Improvements in the extension mechanism
+  * Ocsigen: New file extensiontemplate.ml: an example explaining how
+    to write your own extensions
+  * Ocsigen: Bugfix - fixing limitation of simultaneous connections
+  * Eliom: Bugfix - type of {{{all_suffix_string}}} was wrong in
+    {{{eliom.mli}}}.
+  * Eliom: GET Services do not answer any more to POST requests
+    without parameters.
+
+= 0.99.1 =
+
+  * Eliom: Now possible to set an exception handler for the whole site
+    to personalize error pages (404, 500, etc.)
+  * Eliom: Now possible to register main services after initialization
+  * Eliom: Unifying {{{register}}} and {{{register_public}}}. Use the
+    optional {{{~sp}}} parameter to register during session.
+  * Eliom: Idem for all functions {{{..._during_init}}} and
+    {{{..._during_session}}}
+  * Eliom: Functions to remove data from tables
+  * Ocsigen: Debug mode: the exception is printed on the error page
+  * Ocsigen: Bugfix in {{{Preemptive.detach}}} when used with
+    {{{Lwt_unix.run}}}
+  * Ocsigen: Bugfix - launching ocsidbm for MacOS
+  * Eliom: Bugfix - GC of sessions and session data
+  * Eliom: Bugfix - GET actions were not working properly
+
+= 0.99.0 =
+
+  * EXPERIMENTAL: Native code support. It is now possible to use
+    Ocsigen in native code. BUT: to use that, you need a modified
+    version of OCaml, that allows dynlinking of native code modules
+    (natdynlink branch in OCaml's CVS, by Alain Frisch).
+  * OCaml 3.10 support (syntax extension with new Camlp4)
+  * The functor Ocsigen.Make (add new types of pages for Ocsigenmod)
+    is now divided into two functors, one for "register" functions,
+    and one for forms and links (if needed).
+  * New module for dynamic page creation called Eliom. Ocsigenmod is
+    now deprecated but is still in the distribution. Eliom is based on
+    Ocsigenmod.
+  * Eliom: replacing auxiliary services by coservices. Coservices may
+    have GET or (and) POST state parameter.
+  * Eliom: adding notion of non-attached coservices. They can take GET
+    or POST parameters.
+  * Eliom: Creation of a new module {{{Actions}}}. It is possible to
+    register actions on main services, coservices (attached or not).
+  * Eliom: Removing the old actions (use new actions towards
+    non-attached coservices instead)
+  * Eliom: New module {{{Unit}}} for actions without reload
+  * Eliom: New module {{{Redirections}}} to register redirection
+    pages.
+  * Eliom: New module {{{Files}}} to register services that send
+    files.
+  * Eliom: New module {{{Any}}} to register services that choose what
+    they send.
+  * Eliom: New module {{{Blocks to register services that send a box
+    of type body content.
+  * Eliom: Module {{{Text}}} replaced by {{{HtmlText}}}, and adding
+    {{{CssText}}} and {{{Text}}} (for any content type).
+  * Eliom: Bugfix - Typing errors of parameters are now catched only
+    if the names of parameters fit exactly.
+  * Eliom: {{{register_service}}} now called {{{register}}}.
+  * Eliom: EXPERIMENTAL Fallbacks can now get a "Session expired" from
+    previous pages and actions may send informations to the page
+    generated (using exception).
+  * Eliom: Now possible to pre-apply services (to make links or to be
+    used as fallbacks for coservices)
+  * Eliom: services can now set their own cookies
+  * Eliom: Disposable coservices (coservices that you can use only n
+    times)
+  * Eliom: Nurpawiki: example of Wiki written by Janne Hellsten
+  * Eliom: New handling of URLs with suffixes
+  * Ocsigen: New module Ocsipersist for persistent data, using its own
+    DBM server (ocsidbm)
+  * Eliom: Persistent sessions using Ocsipersist
+  * Eliom: Timeouts for sessions
+  * Eliom: Timeouts for coservices
+  * Ocsigen: It is now possible to give parameters to extensions in
+    configuration file.
+  * Ocsigen: Simplifying parsing of configuration file (could be
+    improved).
+  * Ocsigen: EXPERIMENTAL It is now possible to reload the modules
+    without stoping the server.
+  * Staticmod: Rewriting of URLs using regular expressions.
+
+= 0.6.0 =
+
+  * {{{configure}}} script
+  * {{{<select>}}} in forms, by Stéphane Dalmas
+  * EXPERIMENTAL: The Web server is now extensible. It means that you
+    can add modules (like Apache modules) for generating pages,
+    filters of requests, extensions of config files. For now there are
+    two modules, one for static pages, and one for dynamic pages. The
+    only changes for users is that they need to dynlink staticmod.cmo
+    and ocsigenmod.cma from the configuration file. The syntax of
+    config file for modules and staticdir also changed.
+  * It is now possible to specify the encoding of characters for each
+    sub-site.
+  * Now usable with Ocamlnet 2.2 or 1.1.2.
+  * EXPERIMENTAL: If OCamlDuce is installed on your system, you can
+    now use it to do the type-checking of your pages (see the
+    documentation). Warning: This is broken with OCamlDuce 3.09.2
+    patch level 2. You need at least OCamlDuce 3.09.3 patch level 1.
+  * Removing Ocsimore from the default distribution. That version of
+    Ocsimore is not supported anymore. Ocsimore has been rewritten
+    from scratch by Piero Furiesi.
+
+= 0.5.1 =
+
+  * Bugfix Konqueror: Multipart forms with now work correctly with
+    Konqueror
+  * Bugfix Internet Explorer: getting around a bug of Internet
+    Explorer while displaying page
+  * Bugfix NetBSD: Makefile
+  * Bugfix Debian for HPPA, Mips, Alpha: Makefile
+  * Bugfix: preemptive.cmi was missing in the installation directory
+  * Adding manpage (S. Mimram)
+  * Adding logrotate configuration
+  * Daemon mode: adding setsid and redirect stdout/stderr to
+    /dev/null. Closing stdin.
+
+= 0.5.0 =
+
+  * HTTP 1.1 improved (HEAD, ETag, keep-alive implemented,
+    If-Modified-Since, ...)
+  * HTTPS support
+  * Pipelining of requests
+  * Server can listen on several ports
+  * Multiple servers: you can now define several servers in the config
+    file.
+  * Virtual hosts: filtering on hostnames/ports (with wildcards)
+  * Asynchronous file upload with multipart support
+  * Large file transfer improved.
+  * MIME types are now parsed from a file
+  * Changes in the syntax of config file
+  * Accessors for server parameters. Use ({{{get_user_agent sp}}})
+    instead of {{{sp.user_agent}}}.
+  * Page generation is now using {{{Lwt}}} cooperative threads, to
+    make it possible the generation of several pages at the same
+    time. Practically, add {{{Lwt.return}}} before the page you want
+    to send, and use cooperative input/output functions.
+  * Typing errors of parameters are now catchable.
+  * {{{static_dir}}} is now a function
+  * Most of global references have been removed. You now need to give
+    sp as parameter to {{{register_for_session}}}, {{{static_dir}}},
+    {{{close_session}}}, etc.
+  * Links and forms now take {{{server_params}}} instead of
+    {{{current_url}}} ({{{sp}}} is shorter than {{{sp.current_url}}})
+  * EXPERIMENTAL: Use of preemptive threads for non cooperative
+    libraries ({{{detach}}} function).
+  * EXPERIMENTAL: The {{{Ocsigen}}} module now contains a functor
+    {{{Make}}} to allows the use of several ways of generating
+    XHTML. The default way (using {{{XHTML.M}}} or the syntax
+    extension) can be used by doing {{{open Ocsigen.Xhtml}}}. There is
+    also an untyped xhtml generation module called {{{Ocsigen.Text}}}.
+  * EXPERIMENTAL: extension of forms.
+  * Reorganisation of the code
+  * Bugfixes in makefiles
+  * Bugfix: escaping of strings in xhtml with syntax extension (thanks
+    to David Mentre)
+
+= 0.4.0 =
+
+  * Full reimplementation of the core using Generalized Algebraic Data
+    Types,
+  * {{{_int}}}, {{{_string}}}, etc. are now called {{{int}}},
+    {{{string}}}, etc.
+  * The type {{{_http_params}}} is now called {{{server_params}}},
+  * Services functions now all take 3 parameters, one for server
+    parameters, one for GET parameters, and one for POST
+    parameters. Note that {{{**}}} is used to create **pairs** and not
+    tuples.
+  * The {{{a}}} and {{{post_form}}} functions now take a fix number of
+    parameters, correponding to GET parameters.
+  * //URLs// are now called //services//,
+  * //state URLs// are now called //auxiliary services//,
+  * {{{register_post_url}}} does not exist anymore. use
+    {{{register_service}}} instead (idem for all other
+    {{{register_post_*}}} functions).
+  * Changes for prefix URLs
+  * Small changes for actions
+  * EXPERIMENTAL: sums, bool and list types for services and forms
+  * small bugfixes
+
+= 0.3.27 =
+
+  * Change the way to get server parameters
+
+= 0.3.26 =
+
+  * Load unsafe modules
+  * Other small changes
+
+= 0.3.25-2 =
+
+  * Small bugfix for 64 bits processors
+  * bugfix for static files
+  * {{{action_link}}} is now called {{{action_a}}}
+
+= 0.3.24 =
+
+  * More documentation
+  * Change types {{{internal_url}}} and {{{external_service}}} to use
+    polymorphic variants
+
+= 0.3.23 =
+
+  * Better handling of static files and "403 Forbidden" message
