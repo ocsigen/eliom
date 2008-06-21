@@ -148,4 +148,3 @@ let display_version () =
 let config () =
   Simplexmlparser.xmlparser (get_config_file ())
 
-

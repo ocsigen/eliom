@@ -35,6 +35,22 @@ let int_of_string tag s =
                                 " is not a valid integer."))
 
 (*****************************************************************************)
+let default_hostname =
+  let hostname = Unix.gethostname () in
+  try
+    (List.hd
+       (Unix.getaddrinfo hostname "www" 
+          [Unix.AI_CANONNAME; 
+           Unix.AI_SOCKTYPE Unix.SOCK_STREAM])).Unix.ai_canonname
+  with Failure _ ->
+    let warning =
+      "Cannot determine default host name. Will use \""^hostname^
+        "\" to create absolute links or redirections dynamically if you do not set <host defaulthostname=\"...\" ...> in config file."
+    in
+    Ocsigen_messages.warning warning;
+    hostname
+(*****************************************************************************)
+
 let parse_size =
   let kilo = Int64.of_int 1000 in
   let mega = Int64.of_int 1000000 in
@@ -387,12 +403,7 @@ let parse_server isreloading c =
           | None -> "utf-8"
           | Some charset -> charset
           in
-          let defaultdefaulthostname = 
-            "Please set the <host defaulthostname=\"...\" ...> in config file." 
-          in
-          let warning =
-            "Default host name not found in config file. Will not be able to create absolute links or redirections dynamically. Please set <host defaulthostname=\"...\" ...> in config file if you need to compute absolute links or redirections."
-          in
+          let defaultdefaulthostname = default_hostname in
           let defaulthostname = match defaulthostname with
             | Some d -> d
             | None ->
@@ -413,10 +424,10 @@ let parse_server isreloading c =
                            ("While parsing config file, tag <host>: Assuming defaulthostname is \""^t^"\"");
                          t
                      | _ -> 
-                         Ocsigen_messages.warning warning;
                          defaultdefaulthostname)
                 with Not_found -> 
-                  Ocsigen_messages.warning warning;
+                  Ocsigen_messages.warning
+                    ("While parsing config file, tag <host>: Assuming defaulthostname is \""^defaultdefaulthostname^"\"");
                   defaultdefaulthostname
           in
           let defaulthttpport = match defaulthttpport with
