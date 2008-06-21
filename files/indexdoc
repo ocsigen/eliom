@@ -25,19 +25,6 @@ Ocsigen_stream
 Authbasic
 }
 
-{3 Lwt}
-
-{!modules: 
-Lwt 
-Lwt_unix 
-Lwt_chan 
-Lwt_ssl 
-Lwt_util 
-Lwt_lib
-Lwt_timeout 
-Lwt_preemptive
-}
-
 {3 Eliom}
 
 {4 Main modules}

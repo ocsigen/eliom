@@ -22,7 +22,7 @@ type 'a t
 val make : ?finalize:(unit -> unit Lwt.t) -> (unit -> 'a step Lwt.t) -> 'a t
 
 (** call this function if you decide to start reading a stream.
-    @raise [Already_read] if the stream has already been read. *)
+    @raise Already_read if the stream has already been read. *)
 val get : 'a t -> 'a stream
 
 (** get the next step of a stream.

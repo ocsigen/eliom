@@ -157,6 +157,8 @@ module type XHTMLFORMSSIG = sig
     configuration file, but you can choose other ones by setting 
     the optional [?hostname] and [?port] parameters here.
     These options have no effect for relative links.
+    Warning: it may be a security problem to use the hostname sent by the client
+    here.
 
  *)
 

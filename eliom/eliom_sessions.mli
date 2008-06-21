@@ -856,7 +856,7 @@ module Session_admin : sig
   val unset_persistent_data_session_timeout :
       session:persistent_session -> unit Lwt.t
 
-  (** Iterator on service sessions. {!Lwt_unix.yield} is called automatically
+  (** Iterator on service sessions. [Lwt_unix.yield] is called automatically
      after each iteration.
 
     {e Warning: If you use this function after the initialisation phase,
@@ -867,7 +867,7 @@ module Session_admin : sig
       ?sp:server_params ->
         (service_session -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on data sessions. {!Lwt_unix.yield} is called automatically
+  (** Iterator on data sessions. [Lwt_unix.yield] is called automatically
      after each iteration.
 
     {e Warning: If you use this function after the initialisation phase,
@@ -878,12 +878,12 @@ module Session_admin : sig
       ?sp:server_params ->
         (data_session -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on persistent sessions. {!Lwt_unix.yield} is called automatically
+  (** Iterator on persistent sessions. [Lwt_unix.yield] is called automatically
      after each iteration. *)
   val iter_persistent_data_sessions :
     (persistent_session -> unit Lwt.t) -> unit Lwt.t
 
-  (** Iterator on service sessions. {!Lwt_unix.yield} is called automatically
+  (** Iterator on service sessions. [Lwt_unix.yield] is called automatically
      after each iteration.
 
     {e Warning: If you use this function after the initialisation phase,
@@ -894,7 +894,7 @@ module Session_admin : sig
       ?sp:server_params ->
         (service_session -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
 
-  (** Iterator on data sessions. {!Lwt_unix.yield} is called automatically
+  (** Iterator on data sessions. [Lwt_unix.yield] is called automatically
      after each iteration.
 
     {e Warning: If you use this function after the initialisation phase,
@@ -905,7 +905,7 @@ module Session_admin : sig
       ?sp:server_params ->
         (data_session -> 'b -> 'b Lwt.t) -> 'b  -> 'b Lwt.t
 
-  (** Iterator on persistent sessions. {!Lwt_unix.yield} is called automatically
+  (** Iterator on persistent sessions. [Lwt_unix.yield] is called automatically
      after each iteration. *)
   val fold_persistent_data_sessions :
     (persistent_session -> 'b -> 'b Lwt.t) -> 'b -> 'b Lwt.t
