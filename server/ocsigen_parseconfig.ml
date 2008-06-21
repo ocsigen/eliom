@@ -38,6 +38,7 @@ let int_of_string tag s =
 let default_hostname =
   let hostname = Unix.gethostname () in
   try
+(*VVV Is it ok? Is it reliable? *)
     (List.hd
        (Unix.getaddrinfo hostname "www" 
           [Unix.AI_CANONNAME; 
@@ -48,6 +49,7 @@ let default_hostname =
         "\" to create absolute links or redirections dynamically if you do not set <host defaulthostname=\"...\" ...> in config file."
     in
     Ocsigen_messages.warning warning;
+(*VVV Is it the right behaviour? *)
     hostname
 (*****************************************************************************)
 
