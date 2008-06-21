@@ -107,6 +107,7 @@ let rec parse_cookies s =
   with _ -> Ocsigen_http_frame.Cookievalues.empty
 (*VVV Actually the real syntax of cookies is more complex! *)
 (*
+http://www.w3.org/Protocols/rfc2109/rfc2109
 Mozilla spec + RFC2109
 http://ws.bokeland.com/blog/376/1043/2006/10/27/76832
 *)
@@ -208,9 +209,28 @@ let get_if_match http_frame =
 
 let get_content_type http_frame =
   try
-    Some (Http_header.get_headers_value
-            http_frame.Ocsigen_http_frame.header Http_headers.content_type)
-  with _ -> None
+    Some
+      (Http_header.get_headers_value
+         http_frame.Ocsigen_http_frame.header Http_headers.content_type)
+  with Not_found -> None
+
+let parse_content_type = function
+  | None -> None
+  | Some s ->
+      match Ocsigen_lib.split ';' s with
+        | [] -> None
+        | a::l ->
+            try
+              let (typ, subtype) = Ocsigen_lib.sep '/' a in
+              let params = 
+                try
+                  List.map (Ocsigen_lib.sep '=') l 
+                with Not_found -> []
+              in 
+(*VVV If syntax error, we return no parameter at all *)
+              Some ((typ, subtype), params)
+            with Not_found -> None
+(*VVV If syntax error in type, we return None *)
 
 
 let get_content_length http_frame =
@@ -219,7 +239,7 @@ let get_content_length http_frame =
       (Int64.of_string
          (Http_header.get_headers_value
             http_frame.Ocsigen_http_frame.header Http_headers.content_length))
-  with _ -> None
+  with Not_found | Failure _ | Invalid_argument _ -> None
 
 
 let get_referer http_frame =

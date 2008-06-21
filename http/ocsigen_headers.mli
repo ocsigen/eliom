@@ -33,6 +33,7 @@ val get_if_unmodified_since : Ocsigen_http_frame.t -> float option
 val get_if_none_match : Ocsigen_http_frame.t -> string list
 val get_if_match : Ocsigen_http_frame.t -> string list option
 val get_content_type : Ocsigen_http_frame.t -> string option
+val parse_content_type : string option -> ((string * string) * (string * string) list) option
 val get_content_length : Ocsigen_http_frame.t -> int64 option
 val get_referer : Ocsigen_http_frame.t -> string option
 val get_referrer : Ocsigen_http_frame.t -> string option

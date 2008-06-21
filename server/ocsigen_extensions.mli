@@ -106,7 +106,8 @@ type request_info =
      ri_ifunmodifiedsince: float option;   (** if-unmodified-since field *)
      ri_ifnonematch: string list;   (** if-none-match field ( * and weak entity tags not implemented) *)
      ri_ifmatch: string list option;   (** if-match field ( * not implemented) *)
-     ri_content_type: string option; (** Content-Type HTTP header *)
+     ri_content_type: ((string * string) * (string * string) list) option; (** Content-Type HTTP header *)
+     ri_content_type_string: string option; (** Content-Type HTTP header *)
      ri_content_length: int64 option; (** Content-Length HTTP header *)
      ri_referer: string option Lazy.t; (** Referer HTTP header *)
 

@@ -69,10 +69,12 @@ let port_of_sockaddr = function
   | _ -> raise (Ocsigen_Internal_Error "port of unix socket")
 
 
-let get_boundary cont_enc =
+let get_boundary ctparams = List.assoc "boundary" ctparams
+(*
   let (_, res) = Netstring_pcre.search_forward
       (Netstring_pcre.regexp "boundary=([^;]*);?") cont_enc 0 in
   Netstring_pcre.matched_group res 1 cont_enc
+*)
 
 let find_field field content_disp =
   let (_, res) = Netstring_pcre.search_forward
@@ -150,7 +152,9 @@ let get_request_infos
 
        let client_inet_addr = ip_of_sockaddr sockaddr in
 
-       let ct = get_content_type http_frame in
+       let ct_string = get_content_type http_frame in
+
+       let ct = Ocsigen_headers.parse_content_type ct_string in
 
        let cl = get_content_length http_frame in
 
@@ -175,15 +179,17 @@ let get_request_infos
              | None -> return ([], [])
              | Some body_gen ->
                  try
-                   let ct = match ct with
-                     | None -> "application/octet-stream"
-                     | Some ct -> ct
+                   let ((ct, cst), ctparams) = match ct with
+                     | None -> (("application", "octet-stream"), [])
+                     | Some (c, p) -> (c, p)
                    in
                    let body = Ocsigen_stream.get body_gen in
                    catch
                      (fun () ->
                         let ctlow = String.lowercase ct in
-                        if ctlow = "application/x-www-form-urlencoded"
+                        let cstlow = String.lowercase cst in
+                        if ctlow = "application" &&
+                          cstlow = "x-www-form-urlencoded"
                         then
                           catch
                             (fun () ->
@@ -196,74 +202,71 @@ let get_request_infos
                                    fail Input_is_too_large
                                | e -> fail e)
                         else
-                          match
-                            (Netstring_pcre.string_match
-                               (Netstring_pcre.regexp "multipart/form-data*")) ctlow 0
-                          with
-                            | None -> fail Ocsigen_unsupported_media
-                            | _ ->
-                                let bound = get_boundary ct in
-                                let params = ref [] in
-                                let files = ref [] in
-                                let create hs =
-                                  let cd = List.assoc "content-disposition" hs in
-                                  let st = try
-                                    Some (find_field "filename" cd)
-                                  with Not_found -> None in
-                                  let p_name = find_field "name" cd in
-                                  match st with
-                                    | None -> No_File (p_name, Buffer.create 1024)
-                                    | Some store ->
-                                        let now =
-                                          Printf.sprintf
-                                            "%f-%d"
-                                            (Unix.gettimeofday ()) (counter ())
-                                        in
-                                        match ((Ocsigen_config.get_uploaddir ())) with
-                                          | Some dname ->
-                                              let fname = dname^"/"^now in
-                                              let fd = Unix.openfile fname
-                                                [Unix.O_CREAT;
-                                                 Unix.O_TRUNC;
-                                                 Unix.O_WRONLY;
-                                                 Unix.O_NONBLOCK] 0o666 in
-                                              (* Ocsigen_messages.debug "file opened"; *)
-                                              filenames := fname::!filenames;
-                                              A_File (p_name, fname, store, fd)
-                                          | None -> raise Ocsigen_upload_forbidden
-                                in
-                                let rec add where s =
-                                  match where with
-                                    | No_File (p_name, to_buf) ->
-                                        Buffer.add_string to_buf s;
-                                        return ()
-                                    | A_File (_,_,_,wh) ->
-                                        let len = String.length s in
-                                        let r = Unix.write wh s 0 len in
-                                        if r < len then
+                        if not (ctlow = "multipart" && cstlow = "form-data")
+                        then fail Ocsigen_unsupported_media
+                        else
+                          let bound = get_boundary ctparams in
+                          let params = ref [] in
+                          let files = ref [] in
+                          let create hs =
+                            let cd = List.assoc "content-disposition" hs in
+                            let st = try
+                              Some (find_field "filename" cd)
+                            with Not_found -> None in
+                            let p_name = find_field "name" cd in
+                            match st with
+                              | None -> No_File (p_name, Buffer.create 1024)
+                              | Some store ->
+                                  let now =
+                                    Printf.sprintf
+                                      "%f-%d"
+                                      (Unix.gettimeofday ()) (counter ())
+                                  in
+                                  match ((Ocsigen_config.get_uploaddir ())) with
+                                    | Some dname ->
+                                        let fname = dname^"/"^now in
+                                        let fd = Unix.openfile fname
+                                          [Unix.O_CREAT;
+                                           Unix.O_TRUNC;
+                                           Unix.O_WRONLY;
+                                           Unix.O_NONBLOCK] 0o666 in
+                                        (* Ocsigen_messages.debug "file opened"; *)
+                                        filenames := fname::!filenames;
+                                        A_File (p_name, fname, store, fd)
+                                    | None -> raise Ocsigen_upload_forbidden
+                          in
+                          let rec add where s =
+                            match where with
+                              | No_File (p_name, to_buf) ->
+                                  Buffer.add_string to_buf s;
+                                  return ()
+                              | A_File (_,_,_,wh) ->
+                                  let len = String.length s in
+                                  let r = Unix.write wh s 0 len in
+                                  if r < len then
    (*XXXX Inefficient if s is long *)
-                                          add where (String.sub s r (len - r))
-                                        else
-                                          Lwt_unix.yield ()
-                                in
-                                let stop size  = function
-                                  | No_File (p_name, to_buf) ->
-                                      return
-                                        (params := !params @
-                                           [(p_name, Buffer.contents to_buf)])
-                                        (* à la fin ? *)
-                                  | A_File (p_name,fname,oname,wh) ->
-                                      (* Ocsigen_messages.debug "closing file"; *)
-                                      files :=
-                                        !files@[(p_name, {tmp_filename=fname;
-                                                          filesize=size;
-                                                          raw_original_filename=oname;
-                                                          original_basename=(Ocsigen_lib.basename oname)})];
-                                      Unix.close wh;
-                                      return ()
-                                in
-                                Multipart.scan_multipart_body_from_stream
-                                  body bound create add stop >>= fun () ->
+                                    add where (String.sub s r (len - r))
+                                  else
+                                    Lwt_unix.yield ()
+                          in
+                          let stop size  = function
+                            | No_File (p_name, to_buf) ->
+                                return
+                                  (params := !params @
+                                     [(p_name, Buffer.contents to_buf)])
+                                  (* à la fin ? *)
+                            | A_File (p_name,fname,oname,wh) ->
+                                (* Ocsigen_messages.debug "closing file"; *)
+                                files :=
+                                  !files@[(p_name, {tmp_filename=fname;
+                                                    filesize=size;
+                                                    raw_original_filename=oname;
+                                                    original_basename=(Ocsigen_lib.basename oname)})];
+                                Unix.close wh;
+                                return ()
+                          in
+                          Multipart.scan_multipart_body_from_stream
+                            body bound create add stop >>= fun () ->
    (*VVV
      Does scan_multipart_body_from_stream read
      until the end or only what it needs?
@@ -271,8 +274,8 @@ let get_request_infos
      the following request will be read only when
      this one is finished ...
     *)
-                                 Ocsigen_stream.consume body_gen >>= fun () ->
-                                 Lwt.return (!params, !files))
+                              Ocsigen_stream.consume body_gen >>= fun () ->
+                                Lwt.return (!params, !files))
                      (fun e -> (*XXX??? Ocsigen_stream.consume body >>= fun _ ->*) fail e)
                  with e -> fail e)
 
@@ -319,6 +322,7 @@ let get_request_infos
           ri_ifnonematch = ifnonematch;
           ri_ifmatch = ifmatch;
           ri_content_type = ct;
+          ri_content_type_string = ct_string;
           ri_content_length = cl;
           ri_referer = referer;
           ri_accept = accept;

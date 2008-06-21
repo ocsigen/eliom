@@ -253,7 +253,7 @@ let array_environment filename re doc_root ri hostname =
    (* no REMOTE_HOST: implies reverse DNS resolution *)
    (* neither AUTH_TYPE, REMOTE_USER nor REMOTE_IDENT: implies authentication *)
    Printf.sprintf "CONTENT_LENGTH=%s" (opt_int ri.ri_content_length);
-   Printf.sprintf "CONTENT_TYPE=%s"  (opt ri.ri_content_type)] ;
+   Printf.sprintf "CONTENT_TYPE=%s"  (opt ri.ri_content_type_string)] ;
 
    (* Additional headers, coming from the client *)
  [(* Document_root is defined by Apache but not in the CGI's spec *)
