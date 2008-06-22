@@ -3,6 +3,7 @@ version = "[distributed with Ocsigen]"
 directory = "_MODULEINSTALLDIR_"
 
 package "redirectmod" (
+  exists_if = "redirectmod.cmo,redirectmod.cmxs"
   version = "[distributed with Ocsigen]"
   description = "HTTP redirections"
   archive(plugin,byte) = "redirectmod.cmo"
@@ -10,6 +11,7 @@ package "redirectmod" (
 )
 
 package "outputfilter" (
+  exists_if = "outputfilter.cmo,outputfilter.cmxs"
   version = "[distributed with Ocsigen]"
   description = "Changing HTTP answers before sending"
   archive(plugin,byte) = "outputfilter.cmo"
@@ -17,6 +19,7 @@ package "outputfilter" (
 )
 
 package "userconf" (
+  exists_if = "userconf.cmo,userconf.cmxs"
   version = "[distributed with Ocsigen]"
   description = "Allowing users to have their own configuration files"
   archive(plugin,byte) = "userconf.cmo"
@@ -24,6 +27,7 @@ package "userconf" (
 )
 
 package "staticmod" (
+  exists_if = "staticmod.cmo,staticmod.cmxs"
   version = "[distributed with Ocsigen]"
   description = "Serving static files"
   archive(plugin,byte) = "staticmod.cmo"
@@ -31,6 +35,7 @@ package "staticmod" (
 )
 
 package "revproxy" (
+  exists_if = "revproxy.cmo,revproxy.cmxs"
   version = "[distributed with Ocsigen]"
   description = "Reverse proxy"
   archive(plugin,byte) = "revproxy.cmo"
@@ -38,6 +43,7 @@ package "revproxy" (
 )
 
 package "accesscontrol" (
+  exists_if = "accesscontrol.cmo,accesscontrol.cmxs"
   version = "[distributed with Ocsigen]"
   description = "Filtering HTTP requests"
   archive(plugin,byte) = "accesscontrol.cmo"
@@ -45,6 +51,7 @@ package "accesscontrol" (
 )
 
 package "authbasic" (
+  exists_if = "authbasic.cmo,authbasic.cmxs"
   version = "[distributed with Ocsigen]"
   description = "Basic HTTP Authentication"
   archive(plugin,byte) = "authbasic.cmo"
@@ -52,6 +59,7 @@ package "authbasic" (
 )
 
 package "cgimod" (
+  exists_if = "cgimod.cmo,cgimod.cmxs"
   version = "[distributed with Ocsigen]"
   description = "CGI support"
   archive(plugin,byte) = "cgimod.cmo"
@@ -59,6 +67,7 @@ package "cgimod" (
 )
 
 package "ocsipersist-sqlite" (
+  exists_if = "ocsipersist-sqlite.cma,ocsipersist-sqlite.cmxs"
   requires = "sqlite3"
   version = "[distributed with Ocsigen]"
   description = "Persistent data storage with SQLite3"
@@ -67,6 +76,7 @@ package "ocsipersist-sqlite" (
 )
 
 package "ocsipersist-dbm" (
+  exists_if = "ocsipersist-dbm.cma,ocsipersist-dbm.cmxs"
   version = "[distributed with Ocsigen]"
   description = "Persistent data storage with DBM"
   archive(plugin,byte) = "ocsipersist-dbm.cma"
@@ -74,6 +84,7 @@ package "ocsipersist-dbm" (
 )
 
 package "eliom" (
+  exists_if = "eliom.cma,eliom.cmxs"
   requires = "cryptokit"
   version = "[distributed with Ocsigen]"
   description = "Eliom: module for generating pages"
@@ -82,6 +93,7 @@ package "eliom" (
 )
 
 package "deflatemod" (
+  exists_if = "deflatemod.cmo,deflatemod.cmxs"
   requires = "_CAMLZIPNAME_"
   version = "[distributed with Ocsigen]"
   description = "Compressing HTTP reply bodies"
@@ -89,10 +101,11 @@ package "deflatemod" (
   archive(plugin,native) = "deflatemod.cmxs"
 )
 
-%if-ocamlduce package "eliom_duce" (
-%if-ocamlduce   requires = "ocamlduce"
-%if-ocamlduce   version = "[distributed with Ocsigen]"
-%if-ocamlduce   description = "OCamlDuce support for Eliom"
-%if-ocamlduce   archive(plugin,byte) = "eliom_duce.cma"
-%if-ocamlduce   archive(plugin,native) = "eliom_duce.cmxs"
-%if-ocamlduce )
+package "eliom_duce" (
+  exists_if = "eliom_duce.cma,eliom_duce.cmxs"
+  requires = "ocamlduce"
+  version = "[distributed with Ocsigen]"
+  description = "OCamlDuce support for Eliom"
+  archive(plugin,byte) = "eliom_duce.cma"
+  archive(plugin,native) = "eliom_duce.cmxs"
+)

@@ -19,7 +19,6 @@ DUCEEXAMPLES=examples/ocamlduce/exampleduce.cmo
 DUCEDOC=$(DOCPREF)eliom/eliom_duce.mli $(DOCPREF)eliom/xhtmltypes_duce.ml $(DOCPREF)eliom/eliom_duce_tools.ml
 CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 DUCEPACK=,ocamlduce
-SED_COMMAND_FOR_META += -e "s/^%if-ocamlduce //"
 else
 DUCECMAO=
 DUCECMI=
@@ -27,7 +26,6 @@ DUCEEXAMPLES=
 DUCEDOC=
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 DUCEPACK=
-SED_COMMAND_FOR_META += -e "/^%if-ocamlduce /d"
 endif
 
 ifeq "$(LOGDIR)" ""
@@ -93,7 +91,6 @@ TOINSTALLBYTE=
 PLUGINSTOINSTALLBYTE=
 EXAMPLESBYTE=
 BYTE=
-SED_COMMAND_FOR_META += -e "/archive(plugin,byte)/d"
 endif
 
 ifeq "$(NATIVECODE)" "YES"
@@ -109,7 +106,6 @@ TOINSTALLX=
 PLUGINSTOINSTALLX=
 EXAMPLESOPT=
 OPT=
-SED_COMMAND_FOR_META += -e "/archive(plugin,native)/d"
 endif
 
 TOINSTALL=$(TOINSTALLBYTE) $(TOINSTALLX) $(CMITOINSTALL) $(PLUGINSCMITOINSTALL)

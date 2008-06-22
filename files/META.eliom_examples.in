@@ -3,6 +3,7 @@ version = "[distributed with Ocsigen]"
 directory = "_EXAMPLESINSTALLDIR_"
 
 package "miniwiki" (
+  exists_if = "miniwiki.cmo,miniwiki.cmxs"
   version = "[distributed with Ocsigen]"
   description = "A very basic wiki"
   archive(plugin,byte) = "miniwiki.cmo"
@@ -10,6 +11,7 @@ package "miniwiki" (
 )
 
 package "monitoring" (
+  exists_if = "monitoring.cmo,monitoring.cmxs"
   version = "[distributed with Ocsigen]"
   description = "A page displaying information about the server"
   archive(plugin,byte) = "monitoring.cmo"
@@ -17,16 +19,18 @@ package "monitoring" (
 )
 
 package "tutoeliom" (
+  exists_if = "tutoeliom.cmo,tutoeliom.cmxs"
   version = "[distributed with Ocsigen]"
   description = "Eliom tutorial"
   archive(plugin,byte) = "tutoeliom.cmo"
   archive(plugin,native) = "tutoeliom.cmxs"
 )
 
-%if-ocamlduce package "duce" (
-%if-ocamlduce   requires = "ocsigen_ext.eliom_duce"
-%if-ocamlduce   version = "[distributed with Ocsigen]"
-%if-ocamlduce   description = "Example with OCamlDuce"
-%if-ocamlduce   archive(plugin,byte) = "exampleduce.cmo"
-%if-ocamlduce   archive(plugin,native) = "exampleduce.cmxs"
-%if-ocamlduce )
+package "duce" (
+  exists_if = "exampleduce.cmo,exampleduce.cmxs"
+  requires = "ocsigen_ext.eliom_duce"
+  version = "[distributed with Ocsigen]"
+  description = "Example with OCamlDuce"
+  archive(plugin,byte) = "exampleduce.cmo"
+  archive(plugin,native) = "exampleduce.cmxs"
+)
