@@ -136,7 +136,7 @@ nagle.o: nagle.c
 
 .PHONY: clean
 clean:
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/* $(NAME) $(NAME).opt *.annot
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/* $(NAME) $(NAME).opt $(NAME)top *.annot
 
 .PHONY: install
 install: $(INSTALLBYTE) $(INSTALLOPT)
