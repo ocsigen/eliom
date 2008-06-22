@@ -110,10 +110,10 @@ $(NAME).opt: $(CMXXA) $(OBJSEXEOPT)
 	$(CAMLOPT) -o $(NAME).opt -linkpkg -linkall $(CMXXACAMLP4) $(CMXXA) $(OBJSEXEOPT)
 
 $(NAME).cma: $(CMOS) $(OBJS)
-	$(CAMLC) -a -o $(NAME).cma -linkall $(CMAOCAMLP4) $(CMOS) $(OBJS)
+	$(CAMLC) -a -o $(NAME).cma -linkall $(CMOS) $(OBJS)
 
 $(NAME).cmxa: $(CMXSA) $(OBJSOPT)
-	$(CAMLOPT) -a -o $(NAME).cmxa -linkall $(CMXXACAMLP4) $(CMXSA) $(OBJSOPT)
+	$(CAMLOPT) -a -o $(NAME).cmxa -linkall $(CMXSA) $(OBJSOPT)
 
 $(NAME)top: $(CMAO)
 	$(CAMLMKTOP) -o $(NAME)top -linkpkg -linkall $(CMAOCAMLP4) $(CMAO)
