@@ -38,7 +38,9 @@ let is_native = _ISNATIVE_
 
 let builtin_packages =
   List.fold_left (fun a s -> StringSet.add s a) StringSet.empty
-    ["unix"; "threads"; "ssl"; "lwt"; "netstring"; "pcre"; "dynlink"; "findlib"; "ocsigen"]
+    ["unix"; "threads"; "ssl";
+     "lwt"; "lwt.preemptive"; "lwt.ssl"; "lwt.extra";
+     "netstring"; "pcre"; "dynlink"; "findlib"; "ocsigen"]
 
 (* Server config: *)
 let (uploaddir : string option ref) = ref None

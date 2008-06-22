@@ -60,7 +60,7 @@ CAMLMKTOP = $(OCAMLFIND) $(CAMLMKTOPNAME) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
-LIB = -thread -package lwt,netstring,$(NETSYS)ssl,pcre,unix,dynlink,threads$(CAMLP4PACKAGES),findlib $(LIBDIRS)
+LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,dynlink,threads$(CAMLP4PACKAGES),findlib $(LIBDIRS)
 PP = 
 PP2 = 
 
