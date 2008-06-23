@@ -905,10 +905,10 @@ module MakeForms = functor
                 concat_strings preapplied_params "&" params_string in
               let uri =
                 (if (get_att_kind_ attser) = `External
-                then
-                  concat_strings
-                    (get_prefix_ attser)
-                    "/"
+                 then
+                  (get_prefix_ attser)^
+                    "/"^  (* we add the "/" even if there is no prefix,
+                             because we should do absolute links in that case *)
                     (reconstruct_absolute_url_path
                        (get_full_path_ attser) suff)
                 else
@@ -1111,9 +1111,8 @@ module MakeForms = functor
             let uri =
               if (get_att_kind_ attser) = `External
               then
-                concat_strings
-                  (get_prefix_ attser)
-                  "/"
+                (get_prefix_ attser)^
+                  "/"^
                   (reconstruct_absolute_url_path
                      (get_full_path_ attser) suff)
               else
@@ -1228,9 +1227,8 @@ module MakeForms = functor
             let urlname =
               if (get_att_kind_ attser) = `External
               then
-                concat_strings
-                  (get_prefix_ attser)
-                  "/"
+                (get_prefix_ attser)^
+                  "/"^
                   (reconstruct_absolute_url_path
                      (get_full_path_ attser) None)
               else 
@@ -1396,11 +1394,10 @@ module MakeForms = functor
             let urlname =
               if (get_att_kind_ attser) = `External
               then
-                concat_strings
-                  (get_prefix_ attser)
-                  "/"
-                  (reconstruct_absolute_url_path
-                     (get_full_path_ attser) suff)
+                  (get_prefix_ attser)^
+                    "/"^
+                    (reconstruct_absolute_url_path
+                       (get_full_path_ attser) suff)
                else
                 if absolute
                 then
