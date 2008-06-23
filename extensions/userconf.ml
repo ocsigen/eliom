@@ -58,7 +58,7 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
               Ocsigen_extensions.make_parse_site
                 (sitepath@[prefix]) charset user_parse_host
             in
-            let xmllist = Simplexmlparser.xmlparser conf in
+            let xmllist = Simplexmlparser.xmlparser_file conf in
             Lwt.return
               (Ext_sub_result
                  (fun awake cookies_to_set rs ->

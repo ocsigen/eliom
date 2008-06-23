@@ -23,5 +23,7 @@ type xml =
   | PCData of string ];
 (**/**)
 exception Xml_parser_error of string;
-value xmlparser : string -> list xml;
+value xmlparser_string : string -> list xml;
+value xmlparser_file : string -> list xml;
+
 

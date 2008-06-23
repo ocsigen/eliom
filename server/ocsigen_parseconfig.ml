@@ -197,7 +197,7 @@ let rec parser_config =
 
 
 let parse_ext file =
-  parser_config (Simplexmlparser.xmlparser file)
+  parser_config (Simplexmlparser.xmlparser_file file)
 
 
 let preloadfile config () = Ocsigen_extensions.set_config config

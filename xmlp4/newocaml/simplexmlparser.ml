@@ -92,14 +92,22 @@ module B = Xmllexer.BasicTypes;
       let s = {  stream = stream; stack = Stack.create (); loc = loc; } in
           read_nodes s [];
 
-value rawxmlparser s =
+value rawxmlparser_file s =
   let chan = open_in s in
   let loc = Loc.ghost in
   let tree = to_expr_taglist (Xmllexer.from_stream loc True (Stream.of_channel chan)) loc
   in do { close_in chan; tree };
 
-value xmlparser s = try (rawxmlparser s)
+value rawxmlparser_string s =
+  let loc = Loc.ghost in
+  to_expr_taglist (Xmllexer.from_string loc True s) loc;
+
+value xmlparser rawxmlparser s = try (rawxmlparser s)
 with
 [Internal_error EOFExpected -> raise (Xml_parser_error "EOF expected")
 |Internal_error (EndOfTagExpected s) -> raise (Xml_parser_error ("End of tag expected: "^s))]
 ;
+
+value xmlparser_file = xmlparser rawxmlparser_file;
+
+value xmlparser_string = xmlparser rawxmlparser_string;
