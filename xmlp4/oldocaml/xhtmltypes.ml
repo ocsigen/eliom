@@ -218,14 +218,15 @@ type img_attrib =
 type div_attrib = common
 type input_attrib =
     [ common | `Accesskey | `Checked | `Maxlength | `Name | `Size
-  | `Src | `Tabindex | `Input_Type | `Value | `Usemap ]
-type textarea_attrib =
-    [ common | `Accesskey | `Name | `Tabindex ]
+    | `Src | `Tabindex | `Input_Type | `Value | `Disabled | `Readonly | 
+          `Alt | `Accept | `Usemap ]
+type textarea_attrib = [ common | `Accesskey | `Name | `Tabindex | `Disabled | `Readonly ]
 type select_attrib =
-    [ common | `Multiple | `Name | `Size | `Tabindex | `Disabled ]
-type optgroup_attrib =
-    [ common | `Disabled | `Label ]
-type option_attrib =
-    [ common | `Selected | `Value | `Disabled | `Label ]
-type button_attrib =
-    [ common | `Name | `Value | `Button_Type ]
+  [ common | `Multiple | `Name | `Size | `Tabindex | `Disabled ]
+type optgroup_attrib = [ common | `Disabled | `Label ]
+type option_attrib = [ common | `Selected | `Value | `Disabled | `Label ]
+type button_attrib = [ common | `Name | `Value | `Button_Type ]
+type fieldset_attrib = common
+type label_attrib = [ common | `Accesskey | `For ]
+type legend_attrib = [ common | `Accesskey ]
+
