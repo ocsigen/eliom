@@ -280,9 +280,12 @@
     configuration file.
      -->
 
-    <host charset="iso-8859-1" defaulthostname="www.yourwebsite.org" >  <!-- First virtual host -->
-      <!-- <host> is mandatory -->
-      <!-- charset is optional (default "utf-8") -->
+    <host charset="iso-8859-1" >  <!-- First virtual host -->
+    <!-- better: set the default hostname like this:
+         <host hostname="www.yourwebsite.org"> 
+    -->
+    <!-- <host> is mandatory -->
+    <!-- charset is optional (default "utf-8") -->
 
       <!-- Defining a sub-site -->
       <!-- The directory containing icons for directory listing
@@ -480,17 +483,17 @@
     </host>
 
     <!--
-    <host name="*.com" defaulthostname="www.yourwebsite.com">      <!-- Another virtual host -->
+    <host hostname="www.yourwebsite.com" aliases="*.com">      <!-- Another virtual host -->
     </host>
 
        If your server has several host names, you can decide which sites will
        be available for each name, using virtual servers.
-       To use virtual servers, specify for <host> the attribute 'name'.
-       'name' is a string that may contain '*' characters.
-       Examples: <host name="*">...</host> will match any host name (default).
-       <host name="*.com:80">...</host> will match any host name finishing
+       To use virtual servers, specify for <host> the attribute 'aliases'.
+       'aliases' is a string that may contain '*' characters.
+       Examples: <host aliases="*">...</host> will match any host name (default).
+       <host aliases="*.com:80">...</host> will match any host name finishing
        with '.com' on port 80.
-       <host name="www.mysite.com www.mysite.org:*">...</host>
+       <host aliases="www.mysite.com www.mysite.org:*">...</host>
         will match only those two hostnames.
      -->
 
