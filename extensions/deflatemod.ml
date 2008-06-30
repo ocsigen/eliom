@@ -150,22 +150,21 @@ and next_cont oz stream =
 
 (* deflate param : true = deflate ; false = gzip (no header in this case) *)
 let compress deflate stream =
-  let oz =
-    { stream = Zlib.deflate_init !compress_level deflate ;
-      buf=String.create !buffer_size;
-      pos = 0;
-      avail = !buffer_size
-    } in
   let finalize () = Ocsigen_stream.finalize stream in
-  let new_stream () = next_cont oz (Ocsigen_stream.get stream) in
-  if deflate then begin
-    Ocsigen_messages.debug2 "--Deflatemod: Preparing to compress with deflate...";
+  let new_stream () =
+    let oz =
+      { stream = Zlib.deflate_init !compress_level deflate ;
+        buf=String.create !buffer_size;
+        pos = 0;
+        avail = !buffer_size
+      } in
+    Ocsigen_messages.debug2 "--Deflatemod: Zlib initialized";
+    next_cont oz (Ocsigen_stream.get stream) in
+  if deflate then
     Ocsigen_stream.make ~finalize new_stream
-  end else begin
-    Ocsigen_messages.debug2 "--Deflatemod: Preparing to compress with gzip...";
+  else
     Ocsigen_stream.make
       ~finalize (fun () -> Ocsigen_stream.cont gzip_header new_stream)
-  end
 
 (*****************************************************************************)
 (** Function to be called at the beginning of the initialisation phase
