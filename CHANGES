@@ -1,6 +1,6 @@
-= Development version =
+= 1.1.0 =
 
-  * Remove Lwt (now distributed separately)
+  * Lwt removed (now distributed separately)
   * {{{XHTML.M}}} pretty printer: fixing pretty printing of empty tags
     (for browser compatibility)
   * Eliom_duce: New pretty printer for XHTML fixing pretty printing of
@@ -31,6 +31,7 @@
   * Creating and installing a cma file for all Ocsigen libraries not
     installed elsewhere
   * Ocsipersist-dbm: fixing bug when removing data
+  * Deflatemod: fixing memory leak
   * And small bugfixes in XHTML.M, Eliom, ...
 
 = 1.0.0 =

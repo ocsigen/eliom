@@ -1103,7 +1103,7 @@ let looong2 =
         URL is not reloaded after the action.
           </td></tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirection" ]] [version;"Eliom_predefmod.Redirection.html"]$</th>
-          <td colspan="4">Allows to register HTTP permanent redirections.
+          <td colspan="4"><strong>[New in 1.1.0]</strong> Allows to register HTTP permanent redirections.
             You register the URL of the page you want to redirect to.
             Warning: According to the RFC of the HTTP protocol,
             the URL must be absolute!<br/>
@@ -2382,7 +2382,7 @@ end)
 
     <h4>Redirections</h4>
     <p>
-     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirection" ]] [version;"Eliom_predefmod.Redirection.html"]$ module allows to register HTTP redirections.
+     The $a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Redirection" ]] [version;"Eliom_predefmod.Redirection.html"]$ module allows to register HTTP redirections.<br/>  <strong>[New in 1.1.0. For 1.0.0, please see module <code>Eliom_predefmod.Redirections</code>.]</strong><br/>
      If a request is done towards such a service, the server asks the browser
      to retry with another URL. 
     </p>
@@ -2501,6 +2501,8 @@ type cookie =
   | Set of string list option * float option * string * string * bool
   | Unset of string list option * string
 </pre>
+     <p><strong>[New in 1.1.0]</strong> For version 1.0.0, the type 
+<code>cookie</code> was slightly different (no secure cookies).</p>
      <p>
      The <code>string list option</code> is a the path for which you want
      to set/unset the cookie (relative to the main directory of your site,
@@ -2984,7 +2986,7 @@ let preappl = Eliom_services.preapply coucou_params (3,(4,"cinq"))
      but you can use them in links or as fallbacks for coservices.
     </p>
 
-    <h4 id="p3preapplied">"Void action"</h4>
+    <h4 id="p3preapplied">Void action <strong>[New in 1.1.0]</strong></h4>
     <p>$a ~fragment:"VALvoid_action" ~service:senddoc ~sp
            [code [pcdata "Eliom_services.void_action" ]]
            [version;"Eliom_services.html"]$:
@@ -2994,7 +2996,7 @@ let preappl = Eliom_services.preapply coucou_params (3,(4,"cinq"))
      without non-attached parameters.
      It is almost equivalent to a POST non-attached service without POST
      parameters, on which you register an action that does nothing,
-     but you can use it with <code>&lt;a&gt;</a> links, not only forms.
+     but you can use it with <code>&lt;a&gt;</code> links, not only forms.
      Example:
     </p>
     <pre>
@@ -3381,7 +3383,7 @@ let _ = Eliom_services.set_exn_handler
        That's how the different examples of sessions in this tutorial are
        independant.
       </p>
-      <h4>Secure services</h4>
+      <h4>Secure services <strong>[New in 1.1.0]</strong></h4>
       <p>You may want to impose HTTPS for some of your services.
        To do that, use the optional parameter <code>~https:true</code>
        while creating your service.
@@ -3399,7 +3401,7 @@ let _ = Eliom_services.set_exn_handler
       </p>
       <pre>&lt;host name="*.org" defaulthostname="www.mywebsite.org" defaulthttpport="8080" defaulthttpsport="4433"&gt; ... &lt;/host&gt;</pre>
 
-      <h4>Secure sessions</h4>
+      <h4>Secure sessions <strong>[New in 1.1.0]</strong></h4>
       <p>For security reasons, Eliom does not use the same cookies in
         https and http. Secure sessions are using secure cookies
         (i.e. Ocsigen will ask the browsers to send the cookie only if
