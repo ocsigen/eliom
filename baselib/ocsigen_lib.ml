@@ -497,7 +497,9 @@ let parse_url =
         let params_string =
           try Neturl.url_query ~encoded:true url2
           with Not_found -> ""
-        in Netencoding.Url.dest_url_encoded_parameters params_string
+        in try 
+          Netencoding.Url.dest_url_encoded_parameters params_string
+        with Failure _ -> raise Ocsigen_Bad_Request
       end
     in
 

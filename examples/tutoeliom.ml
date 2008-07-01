@@ -114,7 +114,7 @@ let coucou =
         by typing :</p>
       <pre>ocamlc -I /<em>path_to</em>/ocsigen/ -I /<em>path_to</em>/lwt/ -c tutorial.ml</pre>
       <p>If you use findlib, you can also use the following command line:</p>
-      <pre>ocamlfind ocamlc -thread -package ocsigen -c tutorial.ml</pre>
+      <pre>ocamlfind ocamlc -thread -package lwt,ocsigen -c tutorial.ml</pre>
       <p>
       Replace <code>/<em>path_to</em>/ocsigen/</code>
        by the directory where Ocsigen libraries are installed (that contains
