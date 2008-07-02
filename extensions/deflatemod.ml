@@ -139,8 +139,7 @@ and next_cont oz stream =
         if not finished then
             after_flushing ()
         else
-            (Zlib.deflate_end oz.stream ;
-            Ocsigen_messages.debug2 "--Deflatemod: Zlib stream closed, last flush" ;
+            (Ocsigen_messages.debug2 "--Deflatemod: Zlib.deflate finished, last flush" ;
             flush oz (fun () -> Ocsigen_stream.empty None))) in
 
       flush oz after_flushing
@@ -150,16 +149,23 @@ and next_cont oz stream =
 
 (* deflate param : true = deflate ; false = gzip (no header in this case) *)
 let compress deflate stream =
-  let finalize () = Ocsigen_stream.finalize stream in
-  let new_stream () =
-    let oz =
-      { stream = Zlib.deflate_init !compress_level deflate ;
-        buf=String.create !buffer_size;
-        pos = 0;
-        avail = !buffer_size
-      } in
-    Ocsigen_messages.debug2 "--Deflatemod: Zlib initialized";
-    next_cont oz (Ocsigen_stream.get stream) in
+  let zstream = Zlib.deflate_init !compress_level deflate in
+  let finalize () =
+    Ocsigen_stream.finalize stream >>= fun e ->
+    (try
+      Zlib.deflate_end zstream
+    with
+      (* ignore errors, deflate_end cleans everything anyway *)
+      Zlib.Error _ -> ());
+    return (Ocsigen_messages.debug2 "--Deflatemod: Zlib stream closed") in
+  let oz =
+    { stream = zstream ;
+      buf = String.create !buffer_size;
+      pos = 0;
+      avail = !buffer_size
+    } in
+  let new_stream () = next_cont oz (Ocsigen_stream.get stream) in
+  Ocsigen_messages.debug2 "--Deflatemod: Zlib stream initialized" ;
   if deflate then
     Ocsigen_stream.make ~finalize new_stream
   else
