@@ -224,7 +224,7 @@
         <compress level="6" /> <!-- 1 = faster;
                                     9 = best compression;
                                     0 = no compression -->
-        <buffer size="1024" /> <!-- You shouldn't need to change this one -->
+        <buffer size="8192" /> <!-- You shouldn't need to change this one -->
       </extension>
 
     -->

@@ -12,11 +12,12 @@ let part0 sp =
 °:xmllist°
 
     <div class="onecol">
-      <p>This is the tutorial for <em>Eliom</em> (development version).
-        We are currently working a lot on the documentation for version 1.
+      <p>This is the programmer's guide
+        for <em>Eliom</em> (development version).
         Please report any error in this tutorial
         and send us your comments and suggestions!
       </p>
+      <p>This manual is also available as a <a href="eliom-1.1.0.pdf">pdf file</a>.</p>
       <p>Eliom is an extension for the Web server <em>Ocsigen</em>
          that allows dynamic webpages generation.
          It uses very new concepts making programming very different
@@ -114,7 +115,7 @@ let coucou =
         by typing :</p>
       <pre>ocamlc -I /<em>path_to</em>/ocsigen/ -I /<em>path_to</em>/lwt/ -c tutorial.ml</pre>
       <p>If you use findlib, you can also use the following command line:</p>
-      <pre>ocamlfind ocamlc -thread -package lwt,ocsigen -c tutorial.ml</pre>
+      <pre>ocamlfind ocamlc -thread -package ocsigen -c tutorial.ml</pre>
       <p>
       Replace <code>/<em>path_to</em>/ocsigen/</code>
        by the directory where Ocsigen libraries are installed (that contains

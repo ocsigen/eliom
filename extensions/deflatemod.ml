@@ -52,7 +52,7 @@ let choice_list = ref (All_but [])
 
 (** Compression *)
 
-let buffer_size = ref 1024
+let buffer_size = ref 8192
 
 (*  0 = no compression ; 1 = best speed ; 9 = best compression *)
 let compress_level = ref 6
@@ -322,7 +322,7 @@ let rec parse_global_config = function
      let s = (try int_of_string s
      with Failure _ -> raise (Error_in_config_file
          "Buffer size should be a positive integer")) in
-     buffer_size := if s > 0 then s else 1024 ;
+     buffer_size := if s > 0 then s else 8192 ;
      parse_global_config ll
 (* TODO: Pas de filtre global pour l'instant
  * le nom de balise contenttype est mauvais, au passage

@@ -792,7 +792,7 @@ module type T =
     val cdata_script : string -> [>`PCDATA] elt (* GK *)
     val cdata_style : string -> [>`PCDATA] elt (* GK *)
 (**/**)
-    val unsafe_data : string -> [>`PCDATA] elt
+    val unsafe_data : string -> 'a elt
 (**/**)
 
 
