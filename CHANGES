@@ -9,7 +9,7 @@
     links/forms, and using secure cookies
   * Eliom: Adding special "void action", without any parameters
   * Eliom: {{{Eliom_predefmod.Redirections}}} now called
-    {{{Eliom_predefmod.String_redirections}}}, and adding new module
+    {{{Eliom_predefmod.String_redirection}}}, and adding new module
     {{{Eliom_predefmod.Redirection}}} that use GET services without
     parameters as data type.
   * Eliom and XHTML.M: Small changes of types in interfaces
