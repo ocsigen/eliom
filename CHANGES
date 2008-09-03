@@ -1,3 +1,9 @@
+= Development version =
+
+  * Build C stubs into a shared library so that bytecode executables
+    may be not linked in custom mode; new {{{--stubdir}}} option in
+    {{{configure}}} script
+
 = 1.1.0 =
 
   * Lwt removed (now distributed separately)
@@ -39,11 +45,13 @@
   * Config file: findlib integration
   * Eliom and Ocsigen: changing namespace convention for modules
   * Access control: simplification of config file syntax
-  * Eliom: Allowing (module dependent) parameters for registration functions
+  * Eliom: Allowing (module dependent) parameters for registration
+    functions
   * New xhtml output without pretty printing
   * Web server: Bugfix in HTTP/1.0 with keep-alive
   * Reverse proxy: Bugfix GET parameters were wrong
-  * Reverse proxy: Bugfix memory consumption when the connection was closed by client
+  * Reverse proxy: Bugfix memory consumption when the connection was
+    closed by client
 
 = 0.99.5 =
 

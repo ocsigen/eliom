@@ -55,6 +55,7 @@ set_defaults () {
     bindir=""
     examplesdir=""
     libdir=""
+    stubdir=""
     logdir=""
     extralibdir=""
     mandir=""
@@ -157,6 +158,11 @@ print_options () {
             *) libdir2=$libdir;;
         esac
 
+        case "$stubdir" in
+            "") stubdir2="<first line of OCaml's ld.conf>";;
+            *) stubdir2=$stubdir;;
+        esac
+
         case "$logdir" in
             "") logdir2="<prefix>/var/log/<name>";;
             *) logdir2=$logdir;;
@@ -184,6 +190,7 @@ print_options () {
 	echo "    --ocsigen-group $ocsigen_group"
 	echo "    --bindir $bindir2"
 	echo "    --libdir $libdir2"
+	echo "    --stubdir $stubdir2"
 	echo "    --logdir $logdir2"
         echo "    --extralibdir $extralibdir"
 	echo "    --examplesdir $examplesdir2"
@@ -237,6 +244,9 @@ _EOF_
 
 --libdir dir
         Install Ocsigen's extensions into this directory
+
+--stubdir dir
+        Install Ocsigen's shared stub library into this directory
 
 --logdir dir
         Use this directory for Ocsigen's logs
@@ -360,6 +370,11 @@ while [ "$#" -gt 0 ]; do
                         shift
                         shift
                         ;;
+                --stubdir)
+                        libdir="$2"
+                        shift
+                        shift
+                        ;;
                 --logdir)
                         logdir="$2"
                         shift
@@ -444,7 +459,11 @@ case "$examplesdir" in
 esac
 
 case "$libdir" in
-  "") libdir="\`\$(OCAMLFIND) printconf destdir\`";;
+  "") libdir="\$(shell \$(OCAMLFIND) printconf destdir)";;
+esac
+
+case "$stubdir" in
+  "") stubdir="\$(shell head -n1 \$(shell \$(OCAMLFIND) printconf ldconf))";;
 esac
 
 case "$logdir" in
@@ -690,6 +709,7 @@ CAMLYACC=ocamlyacc
 CAMLCNAME=ocamlc
 CAMLOPTNAME=ocamlopt
 CAMLMKTOPNAME=ocamlmktop
+CAMLMKLIB=ocamlmklib
 CAMLCPNAME=ocamlcp -p a # No: profiling is incompatible with the -pp option
 CHOWN=chown
 CC=gcc
@@ -722,6 +742,9 @@ MANDIR = $root$mandir
 
 # Where to install the directory for ocsigen extensions:
 MODULEINSTALLDIR = $root$libdir
+
+# Where to install stub libraries
+STUBDIR = $root$stubdir
 
 # Where to install the directory for ocsigen extensions' libraries (e.g. ocsidbm):
 EXTRALIBDIR = $root$extralibdir/\$(OCSIGENNAME)

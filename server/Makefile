@@ -81,7 +81,9 @@ CMOS = ../baselib/ocsigen_lib.cmo \
 
 CMAO = ../xmlp4/xhtml.cma $(NAME).cma
 
-OBJS = nagle.o $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
+STUBS_OBJS = nagle.o
+
+OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 OBJSEXE = $(EXE:.ml=.cmo)
 
 CMXSATEMP=$(CMOS:.cmo=.cmx)
@@ -89,7 +91,7 @@ CMXSA=$(CMXSATEMP:.cma=.cmxa)
 CMXXATEMP=$(CMAO:.cmo=.cmx)
 CMXXA=$(CMXXATEMP:.cma=.cmxa)
 
-OBJSOPT = nagle.o $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
+OBJSOPT = $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
 OBJSEXEOPT = $(EXE:.ml=.cmx)
 
 
@@ -109,11 +111,11 @@ $(NAME): $(CMAO) $(OBJSEXE)
 $(NAME).opt: $(CMXXA) $(OBJSEXEOPT)
 	$(CAMLOPT) -o $(NAME).opt -linkpkg -linkall $(CMXXACAMLP4) $(CMXXA) $(OBJSEXEOPT)
 
-$(NAME).cma: $(CMOS) $(OBJS)
-	$(CAMLC) -a -o $(NAME).cma -linkall $(CMOS) $(OBJS)
+$(NAME).cma: $(CMOS) $(OBJS) $(STUBS_OBJS)
+	$(CAMLMKLIB) -o $(NAME) -oc $(NAME) -linkall $(CMOS) $(OBJS) $(STUBS_OBJS)
 
-$(NAME).cmxa: $(CMXSA) $(OBJSOPT)
-	$(CAMLOPT) -a -o $(NAME).cmxa -linkall $(CMXSA) $(OBJSOPT)
+$(NAME).cmxa: $(CMXSA) $(OBJSOPT) $(STUBS_OBJS)
+	$(CAMLMKLIB) -o $(NAME) -oc $(NAME) -linkall $(CMXSA) $(OBJSOPT) $(STUBS_OBJS)
 
 $(NAME)top: $(CMAO)
 	$(CAMLMKTOP) -o $(NAME)top -linkpkg -linkall $(CMAOCAMLP4) $(CMAO)
@@ -132,14 +134,19 @@ $(NAME)top: $(CMAO)
 
 
 nagle.o: nagle.c
-	$(CC) $(CAMLINCLUDE) -c $<
+	$(CAMLC) $(CAMLINCLUDE) -c $<
 
 .PHONY: clean
 clean:
-	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/* $(NAME) $(NAME).opt $(NAME)top *.annot
+	-rm -f *.cm[aiox] *.cmxa *.cmxs *.o *.a *~ doc/* $(NAME) $(NAME).opt $(NAME)top *.annot *.so
 
 .PHONY: install
-install: $(INSTALLBYTE) $(INSTALLOPT)
+install: install_so $(INSTALLBYTE) $(INSTALLOPT)
+
+install_so:
+	@echo "Installing shared stubs"
+	mkdir -p $(TEMPROOT)$(STUBDIR)
+	$(INSTALL) -m 755 dll$(NAME).so $(TEMPROOT)$(STUBDIR)/
 
 installbyte:
 	@echo "Installing bytecode server"
@@ -155,6 +162,7 @@ installopt:
 uninstall:
 	rm -f $(TEMPROOT)$(BINDIR)/$(NAME)
 	rm -f $(TEMPROOT)$(BINDIR)/$(NAME).opt
+	rm -f $(TEMPROOT)$(STUBDIR)/dll$(NAME).so
 
 depend:
 	$(CAMLDEP) $(LIBDIRS) $(PP2) $(FILES:.ml=.mli) $(EXE:.ml=.mli) $(FILES) $(EXE) $(DUCEFILES:.ml=.mli) $(DUCEFILES) > .depend
