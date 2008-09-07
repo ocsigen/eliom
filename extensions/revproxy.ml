@@ -82,7 +82,7 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 (*****************************************************************************)
 (* Finding redirections *)
 
-let find_redirection r host port https path =
+let find_redirection r https host port path =
   let uri =
     match Netstring_pcre.string_match r.regexp path 0 with
       | None -> raise Not_concerned
@@ -178,9 +178,9 @@ let gen dir charset = function
        Ocsigen_messages.debug2 "--Revproxy: Is it a redirection?";
        let (https, host, port, uri) =
          find_redirection dir
+           ri.ri_ssl
            ri.ri_host
            ri.ri_server_port
-           ri.ri_ssl
            (match ri.ri_get_params_string with
            | None -> ri.ri_sub_path_string
            | Some g -> ri.ri_sub_path_string ^ "?" ^ g)

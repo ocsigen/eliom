@@ -64,9 +64,26 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 (*****************************************************************************)
 (* Finding redirections *)
 
-let find_redirection (Regexp (regexp, dest, temp)) path =
+let find_redirection (Regexp (regexp, dest, temp)) https host port path =
   match Netstring_pcre.string_match regexp path 0 with
-  | None -> raise Not_concerned
+  | None -> 
+      (match host with
+        | None -> raise Not_concerned
+        | Some host ->
+            let path =
+              if (not https) && port = 80
+              then "http://"^host^"/"^path
+              else if https && port = 443
+              then "https://"^host^"/"^path
+              else if https
+              then "https://"^host^":"^(string_of_int port)^"/"^path
+              else "http://"^host^":"^(string_of_int port)^"/"^path
+            in
+            (match Netstring_pcre.string_match regexp path 0 with
+               | None -> raise Not_concerned
+               | Some _ -> (* Matching regexp found! *)
+                   (Netstring_pcre.global_replace regexp dest path, temp)
+            ))
   | Some _ -> (* Matching regexp found! *)
       (Netstring_pcre.global_replace regexp dest path, temp)
 
@@ -99,6 +116,9 @@ let gen dir charset = function
       Ocsigen_messages.debug2 "--Redirectmod: Is it a redirection?";
       let (redir, temp) =
         find_redirection dir
+           ri.ri_ssl
+           ri.ri_host
+           ri.ri_server_port
           (match ri.ri_get_params_string with
           | None -> ri.ri_sub_path_string
           | Some g -> ri.ri_sub_path_string ^ "?" ^ g)
