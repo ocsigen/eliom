@@ -1,5 +1,8 @@
 = Development version =
 
+  * Config file: {{{aliases}}} attribute now called {{{hostfilter}}}
+  * Revproxy and Redirectmod: now possible to filter on server, 
+    port and protocol
   * Build C stubs into a shared library so that bytecode executables
     may be not linked in custom mode; new {{{--stubdir}}} option in
     {{{configure}}} script

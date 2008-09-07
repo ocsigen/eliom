@@ -319,7 +319,8 @@ let parse_server isreloading c =
                                 defaulthttpsport) as r) = function
             | [] -> r
             | ("name", s)::suite (*VVV deprecated!! remove it in 1.2 *)
-            | ("aliases", s)::suite ->
+            | ("hostfilter", s)::suite
+            | ("aliases", s)::suite (*VVV deprecated!! remove it in 1.3 *) ->
                 (match name with
                 | None -> parse_attrs ((Some s), charset, 
                                        defaulthostname, 
@@ -335,9 +336,8 @@ let parse_server isreloading c =
                                        defaulthttpsport) suite
                 | _ -> raise (Ocsigen_config.Config_file_error
                                 ("Duplicate attribute charset in <host>")))
-            | ("defaulthostname", s)::suite (*VVV deprecated!! remove it in 1.2 *)
-(*VVV may be (in 1.3 sqq):            | ("name", s)::suite *)
-            | ("hostname", s)::suite ->
+            | ("defaulthostname", s)::suite
+            | ("hostname", s)::suite (*VVV deprecated!! remove it in 1.3 *) ->
                 (match defaulthostname with
                 | None -> parse_attrs (name, charset, 
                                        (Some s), 
