@@ -964,6 +964,9 @@ let _ = try
         (fun i ->
           ignore (listen true i wait_end_init)) sslports;
 
+      Ocsigen_config.set_ports ports;
+      Ocsigen_config.set_sslports sslports;
+
       let gid = match group with
         | None -> Unix.getgid ()
         | Some group -> (try
@@ -1132,18 +1135,17 @@ let _ = try
 
   if (not (get_daemon ())) &&
     number_of_servers = 1
-  then
+  then begin
     let cf = List.hd config_servers in
     let (user_info, 
          ((ssl, ports, sslports) as sslinfo), 
          threadinfo) = 
       extract_info cf 
     in
-    (set_passwd_if_needed sslinfo;
-     write_pid (Unix.getpid ());
-     Ocsigen_config.set_ports ports;
-     Ocsigen_config.set_sslports sslports;
-     run user_info sslinfo threadinfo cf)
+    set_passwd_if_needed sslinfo;
+    write_pid (Unix.getpid ());
+    run user_info sslinfo threadinfo cf
+  end
   else launch config_servers
 
 with e ->
