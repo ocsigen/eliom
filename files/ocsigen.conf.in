@@ -67,6 +67,9 @@
     uncrypt the private key (if you consider it is safe ...):
     openssl rsa -in privkey.pem -out privkey-unsec.pem
 
+    Give read access to these files to ocsigen's user (but it is not 
+    recommended to give read access to everybody).
+
     -->
 
 

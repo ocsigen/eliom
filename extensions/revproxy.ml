@@ -56,10 +56,13 @@ exception Not_concerned
 (*****************************************************************************)
 (* The table of redirections for each virtual server                         *)
 type redir =
-    { regexp: Netstring_pcre.regexp;
-      https: bool;
-      server:string;
-      port: string;
+    { srcprot: Netstring_pcre.regexp option;
+      srcserv: Netstring_pcre.regexp option;
+      srcport: Netstring_pcre.regexp option;
+      regexp: Netstring_pcre.regexp;
+      https: string option;
+      server: string;
+      port: string option;
       uri: string;
       pipeline: bool}
 
@@ -79,16 +82,74 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 (*****************************************************************************)
 (* Finding redirections *)
 
-let find_redirection r path =
-  match Netstring_pcre.string_match r.regexp path 0 with
-  | None -> raise Not_concerned
-  | Some _ -> (* Matching regexp found! *)
-      (r.https,
-       Netstring_pcre.replace_first r.regexp r.server path,
-       int_of_string
-         (Netstring_pcre.global_replace r.regexp r.port path),
-       Netstring_pcre.global_replace r.regexp r.uri path)
-
+let find_redirection r host port https path =
+  let uri =
+    match Netstring_pcre.string_match r.regexp path 0 with
+      | None -> raise Not_concerned
+      | Some _ -> (* Matching regexp found! *)
+          Netstring_pcre.global_replace r.regexp r.uri path
+  in
+  let server =
+    (match r.srcserv, host with
+       | Some _, None -> raise Not_concerned
+       | Some reg, Some host ->
+           (match Netstring_pcre.string_match reg host 0 with
+             | None -> raise Not_concerned
+             | Some _ -> (* Matching regexp found! *)
+                 Netstring_pcre.global_replace reg r.server host)
+       | None, _ -> r.server
+    )
+  in
+  let https =
+    (match r.srcprot with
+       | Some reg ->
+           let prot = if https then "https" else "http" in
+           (match Netstring_pcre.string_match reg prot 0 with
+             | None -> raise Not_concerned
+             | Some _ -> (* Matching regexp found! *)
+                 (match r.https with
+                    | Some h ->
+                        (match Netstring_pcre.global_replace reg h prot with
+                           | "http" -> false
+                           | "https" -> true
+                           | _ -> raise (Ocsigen_extensions.Error_in_config_file
+                                           "Revproxy : error in regular expression (protocol)"))
+                    | None -> https))
+       | None -> 
+           match r.https with
+             | None -> https
+             | Some "http" -> false
+             | Some "https" -> true
+             | _ ->  raise (Ocsigen_extensions.Error_in_config_file
+                              "Revproxy : error in protocol")
+             )
+  in
+  let port =
+    match r.srcport with
+      | Some reg ->
+          let stringport = string_of_int port in
+          (match Netstring_pcre.string_match reg stringport 0 with
+             | None -> raise Not_concerned
+             | Some _ -> (* Matching regexp found! *)
+                 match r.port with
+                   | None -> if https then 443 else 80
+                   | Some p -> 
+                       try
+                         int_of_string 
+                           (Netstring_pcre.global_replace reg p stringport)
+                       with Failure _ -> 
+                         raise (Ocsigen_extensions.Error_in_config_file
+                                  "Revproxy : error in dest port"))
+      | None -> 
+          match r.port with
+            | None -> if https then 443 else 80
+            | Some p -> 
+                try int_of_string p
+                with Failure _ -> 
+                  raise (Ocsigen_extensions.Error_in_config_file
+                           "Revproxy : error in dest port")
+  in
+  (https, server, port, uri)
 
 
 
@@ -117,6 +178,9 @@ let gen dir charset = function
        Ocsigen_messages.debug2 "--Revproxy: Is it a redirection?";
        let (https, host, port, uri) =
          find_redirection dir
+           ri.ri_host
+           ri.ri_server_port
+           ri.ri_ssl
            (match ri.ri_get_params_string with
            | None -> ri.ri_sub_path_string
            | Some g -> ri.ri_sub_path_string ^ "?" ^ g)
@@ -230,64 +294,74 @@ let gen dir charset = function
 
 let parse_config path charset _ parse_site = function
   | Element ("revproxy", atts, []) ->
-      let rec parse_attrs ((r, s, prot, port, u, pipeline) as res) = function
+      let rec parse_attrs ((sprot, ss, sport, r, s, prot, port, u, pipeline) as res) = function
         | [] -> res
+        | ("srcuri", regexp)::l
         | ("regexp", regexp)::l when r = None ->
             parse_attrs
-              (Some (Netstring_pcre.regexp ("^"^regexp^"$")), s, prot, port, u, pipeline)
+              (sprot, ss, sport, 
+               Some (Netstring_pcre.regexp ("^"^regexp^"$")), 
+               s, prot, port, u, pipeline)
               l
-        | ("protocol", protocol)::l
-          when prot = None && String.lowercase protocol = "http" ->
+        | ("srcprotocol", regexp)::l when sprot = None ->
             parse_attrs
-              (r, s, Some false, port, u, pipeline)
+              (Some (Netstring_pcre.regexp ("^"^regexp^"$")),
+               ss, sport, r,
+               s, prot, port, u, pipeline)
               l
-        | ("protocol", protocol)::l
-          when prot = None && String.lowercase protocol = "https" ->
+        | ("srcserver", regexp)::l when ss = None ->
             parse_attrs
-              (r, s, Some true, port, u, pipeline)
+              (sprot, Some (Netstring_pcre.regexp ("^"^regexp^"$")),
+               sport, r,
+               s, prot, port, u, pipeline)
               l
+        | ("srcport", regexp)::l when sprot = None ->
+            parse_attrs
+              (sprot, ss, 
+               Some (Netstring_pcre.regexp ("^"^regexp^"$")), r,
+               s, prot, port, u, pipeline)
+              l
+        | ("destprotocol", protocol)::l
+        | ("protocol", protocol)::l when prot = None ->
+            parse_attrs
+              (sprot, ss, sport, r, s, Some protocol, port, u, pipeline)
+              l
+        | ("destserver", server)::l
         | ("server", server)::l when s = None ->
             parse_attrs
-              (r, Some server, prot, port, u, pipeline)
+              (sprot, ss, sport, r, Some server, prot, port, u, pipeline)
               l
+        | ("desturi", uri)::l
         | ("uri", uri)::l when u = None ->
             parse_attrs
-              (r, s, prot, port, Some uri, pipeline)
+              (sprot, ss, sport, r, s, prot, port, Some uri, pipeline)
               l
+        | ("destport", p)::l
         | ("port", p)::l when port = None ->
             parse_attrs
-              (r, s, prot, Some p, u, pipeline)
+              (sprot, ss, sport, r, s, prot, Some p, u, pipeline)
               l
         | ("nopipeline", "nopipeline")::l ->
             parse_attrs
-              (r, s, prot, port, u, false)
+              (sprot, ss, sport, r, s, prot, port, u, false)
               l
         | _ -> raise (Error_in_config_file "Wrong attribute for <revproxy>")
         in
         let dir =
-          match parse_attrs (None, None, None, None, None, true) atts with
-          | (None, _, _, _, _, _) -> raise (Error_in_config_file "Missing attribute regexp for <revproxy>")
-          | (_, None, _, _, _, _) -> raise (Error_in_config_file "Missing attribute server for <revproxy>")
-          | (_, _, _, _, None, _) -> raise (Error_in_config_file "Missing attribute uri for <revproxy>")
-          | (Some r, Some s, None, port, Some u, pipeline) ->
+          match parse_attrs (None, None, None, None, None, None, 
+                             None, None, true) atts with
+          | (_, _, _, None, _, _, _, _, _) -> raise (Error_in_config_file "Missing attribute regexp for <revproxy>")
+          | (_, _, _, _, None, _, _, _, _) -> raise (Error_in_config_file "Missing attribute server for <revproxy>")
+          | (_, _, _, _, _, _, _, None, _) -> raise (Error_in_config_file "Missing attribute uri for <revproxy>")
+          | (sprot, ss, sport, Some r, Some s, prot, port, Some u, pipeline) ->
               {
-               regexp=r;
-               server=s;
-               https=false;
-               port=(match port with
-               | Some p -> p
-               | None -> "80");
-               uri=u;
-               pipeline=pipeline;
-             }
-          | (Some r, Some s, Some prot, port, Some u, pipeline) ->
-              {
+               srcprot=sprot;
+               srcserv=ss;
+               srcport=sport;
                regexp=r;
                server=s;
                https=prot;
-               port=(match port with
-               | Some p -> p
-               | None -> if prot then "443" else "80");
+               port=port;
                uri=u;
                pipeline=pipeline;
              }

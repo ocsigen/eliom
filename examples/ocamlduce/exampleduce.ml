@@ -33,7 +33,8 @@ let s =
       return
         ({{ <html>
              [<head> [<title> ""]
-              <body> [<h1> "This page has been type checked by OcamlDuce"]] }} : {{ html }}))
+              <body> [<h1> "This page has been type checked by OcamlDuce"
+                     ]] }} : {{ html }}))
 
 let create_form =
   (fun (number_name,(number2_name,string_name)) ->
