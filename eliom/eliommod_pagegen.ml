@@ -30,8 +30,9 @@ let def_handler sp e = fail e
 
 let handle_site_exn exn (ri, si, _, aci) sitedata =
   sitedata.Eliom_common.exn_handler
-    (Eliom_common.make_server_params sitedata aci ri [] si None) exn >>=
-  (fun r -> return r)
+    (Eliom_common.make_server_params sitedata aci ri [] si None) exn 
+  >>= fun r -> 
+  return r
 
 
 (*****************************************************************************)
@@ -202,7 +203,8 @@ let compute_exn closedservsessions =
 
 
 let gen sitedata (charset, _, _, _) = function
-| Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+| Ocsigen_extensions.Req_found (_, r) -> 
+    Lwt.return (Ocsigen_extensions.Ext_found r)
 | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in
   let rec gen_aux ((ri, si, old_cookies_to_set, all_cookie_info) as info) =

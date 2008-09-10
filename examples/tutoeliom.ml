@@ -4088,6 +4088,21 @@ let _ =
 
 
 
+    <h3 id="p3misc">Miscellaneous</h3>
+    <div class="onecol">
+    <h4>Several Ocaml modules for one site</h4>
+      <p>If your site consists of several modules, you can load them
+      consecutively from the configuration file.
+      In that case, only the position of the first <code>&lt;eliom&gt;</code>
+      tag will be taken into account for the order of extensions.
+      In other words, it is not possible to try an Eliom service,
+      then a static page, and then another Eliom service of the same
+      site. 
+      </p>
+    </div>
+
+
+
     <h3 id="p3examples">Examples</h3>
     <div class="onecol">
     <h4>Writing a forum</h4>

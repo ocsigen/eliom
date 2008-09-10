@@ -319,6 +319,17 @@ let load_eliom_module sitedata cmo content =
 
 
 (*****************************************************************************)
+(* If page has already been generated becauise there are several <eliom>
+   tags in the same site:
+*)
+let gen_nothing () = function
+  | Ocsigen_extensions.Req_found (_, r) -> 
+      Lwt.return (Ocsigen_extensions.Ext_found r)
+  | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
+      Lwt.return (Ocsigen_extensions.Ext_next previous_extension_err)
+
+
+(*****************************************************************************)
 (** Parsing of config file for each site: *)
 let parse_config hostpattern site_dir charsetetc =
 (*--- if we put the following line here: *)
@@ -326,6 +337,7 @@ let parse_config hostpattern site_dir charsetetc =
 (*--- then there is one service tree for each <site> *)
 (*--- (mutatis mutandis for the following line:) *)
   Eliom_common.absolute_change_sitedata sitedata;
+  let firsteliomtag = ref true in
   let rec parse_module_attrs file = function
     | [] -> (match file with
         None ->
@@ -363,10 +375,19 @@ let parse_config hostpattern site_dir charsetetc =
  *)
         let file = parse_module_attrs None atts in
         load_eliom_module sitedata file content;
-        Eliommod_pagegen.gen sitedata charsetetc
+        (* We must generate the page only if it is the first <eliom> tag 
+           for that site: *)
+        if !firsteliomtag
+        then begin
+          firsteliomtag := false;
+          Eliommod_pagegen.gen sitedata charsetetc
+        end
+        else
+          gen_nothing ()
     | Element (t, _, _) ->
         raise (Ocsigen_extensions.Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(Eliommod extension)")
+
 
 
 (*****************************************************************************)
