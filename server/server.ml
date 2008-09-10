@@ -50,6 +50,7 @@ let _ =
                                  Ocsigen_lib.string_of_exn e))
 
 external disable_nagle : Unix.file_descr -> unit = "disable_nagle"
+external initgroups : string -> int -> unit = "initgroups_stub"
 
 let option_get_default x d = match x with Some x -> x | None -> d
 let local_addr addr num = 
@@ -967,18 +968,20 @@ let _ = try
       Ocsigen_config.set_ports ports;
       Ocsigen_config.set_sslports sslports;
 
+      let current_uid = Unix.getuid () in
+
       let gid = match group with
         | None -> Unix.getgid ()
         | Some group -> (try
                            (Unix.getgrnam group).Unix.gr_gid
-                         with e -> errlog ("Error: Wrong group"); raise e)
+                         with Not_found as e -> errlog ("Error: Wrong group"); raise e)
       in
 
       let uid = match user with
-        | None -> Unix.getuid ()
+        | None -> current_uid
         | Some user -> (try
                           (Unix.getpwnam user).Unix.pw_uid
-                        with e -> (errlog ("Error: Wrong user"); raise e))
+                        with Not_found as e -> (errlog ("Error: Wrong user"); raise e))
       in
 
       (* A pipe to communicate with the server *)
@@ -996,11 +999,17 @@ let _ = try
             ("Cannot create the command pipe: "^(string_of_exn e))));
 
       (* I change the user for the process *)
-      (try
+      begin try
+        if current_uid = 0 then begin
+          match user with
+            | None -> ()
+            | Some user -> initgroups user gid
+        end;
         Unix.setgid gid;
         Unix.setuid uid;
-      with e ->
-        Ocsigen_messages.errlog ("Error: Wrong user or group"); raise e);
+      with (Unix.Unix_error _ | Failure _) as e ->
+        Ocsigen_messages.errlog ("Error: Wrong user or group"); raise e
+      end;
 
       Ocsigen_config.set_user user;
       Ocsigen_config.set_group group;
