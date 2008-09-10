@@ -81,7 +81,7 @@ CMOS = ../baselib/ocsigen_lib.cmo \
 
 CMAO = ../xmlp4/xhtml.cma $(NAME).cma
 
-STUBS_OBJS = nagle.o
+STUBS_OBJS = stubs.o
 
 OBJS = $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 OBJSEXE = $(EXE:.ml=.cmo)
@@ -133,7 +133,7 @@ $(NAME)top: $(CMAO)
 #	$(CAMLDOC) -d doc -html eliom.mli ocsigen.mli ocsigen_extensions.mli
 
 
-nagle.o: nagle.c
+stubs.o: stubs.c
 	$(CAMLC) $(CAMLINCLUDE) -c $<
 
 .PHONY: clean
