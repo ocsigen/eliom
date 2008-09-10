@@ -2060,12 +2060,15 @@ module Filesreg_ = struct
           (filename, stat)
         end
         else
-          raise (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404))(* ??? *)
+          raise Eliom_common.Eliom_404
+(*          raise (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404))(* ??? *) *)
       with
         (Unix.Unix_error (Unix.EACCES,_,_))
       | Ocsigen_Is_a_directory
       | Ocsigen_malformed_url as e -> raise e
-      | e -> raise (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404)))
+      | e -> raise Eliom_common.Eliom_404
+(* raise (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404)) *)
+      )
     in
     Ocsigen_senders.File_content.result_of_content filename >>= fun r ->
     Lwt.return
