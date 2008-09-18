@@ -51,10 +51,10 @@ ocsipersist-dbm.cmxs: ocsipersist.cmx
 	cp -f ocsipersist-dbm.cmxs ..
 
 ocsidbm: ocsidbm.cmo
-	$(CAMLC) -package lwt,ssl -o $@ unix.cma ssl.cma dbm.cma lwt.cma $<
+	$(CAMLC) -package lwt -o $@ unix.cma dbm.cma lwt.cma $<
 
 ocsidbm.opt: ocsidbm.cmx
-	$(CAMLOPT) -package lwt,ssl -o $@ unix.cmxa ssl.cmxa dbm.cmxa lwt.cmxa $<
+	$(CAMLOPT) -package lwt -o $@ unix.cmxa dbm.cmxa lwt.cmxa $<
 
 ocsipersist.mli:
 	cp -f ../ocsipersist.mli .
