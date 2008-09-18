@@ -63,7 +63,7 @@ Then, type
   make depend
   make 
 
-If you want the documentation to be generated:
+To generate the documentation:
   make doc
 
 If you want system-wide installation, become root, and do

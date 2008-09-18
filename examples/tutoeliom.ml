@@ -976,7 +976,17 @@ let looong2 =
       you want to provide.
       </p>
       <p>Services we used, so far, are called <em>main services</em>.
-      For instants, Eliom uses four kinds of services:</p>
+      But there are other kinds of services depending on the precise
+      behaviour you want for links and forms. Clicking on a link or a form
+      may trigger:</p>
+      <ul>
+        <li>the request of a new document (page) (or not),</li>
+        <li>the sending of data to the server using the POST method (or not),</li>
+        <li>an action on the server (or not),</li>
+        <li>a change of URL (or not).</li>
+      </ul>
+      <p>To take into account all possible behaviours with respect to URLs, 
+        Eliom uses four kinds of services:</p>
       <dl class="blue">
         <dt>Main services</dt><dd>are the main entry points of your sites.
         Created by <code>new_service</code> or
@@ -1013,6 +1023,9 @@ let looong2 =
         name, but a number generated automatically (different at each time).
        </dd>
       </dl>
+      <p>To summarize, if you want to go to another URL, use
+      (attached) (co)services. If you want to stay on the same URL
+      use non-attached (co)services.</p>
       <h4>GET or POST?</h4>
       <p>Each of these services both have a version with GET parameters and
       another with POST parameters.</p>
