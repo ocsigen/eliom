@@ -169,9 +169,11 @@ module type HTTP_CONTENT =
     (** abstract type of the content *)
     type t
 
+    type options
+
     (** convert a content into a thread returning the default
         [result] for this content *)
-    val result_of_content : t -> result Lwt.t
+    val result_of_content : ?options:options -> t -> result Lwt.t
 
     (** compute etag for content *)
     val get_etag : t -> etag option

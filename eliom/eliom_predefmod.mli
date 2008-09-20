@@ -689,19 +689,39 @@ end
       (** Eliom forms and service registration functions for XHTML *)
 module Xhtml : sig
 
-  include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt
+  include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt 
+                                  and type options = XHTML.M.doctypes
+
   include XHTMLFORMSSIG
 
 end
+
+module Xhtmlforms : XHTMLFORMSSIG
+module Xhtmlreg : Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt 
+                                  and type options = XHTML.M.doctypes
+
+module Xhtmlreg_ : 
+  functor(Xhtml_content : 
+            Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
+                                            and type options = XHTML.M.doctypes
+         ) -> Eliom_mkreg.REGCREATE with type page =  Xhtml_content.t
+                                    and type options = XHTML.M.doctypes
+
+
 
       (** Eliom forms and service registration functions for XHTML, with
          compact markup (i.e., without pretty-printing). *)
 module Xhtmlcompact : sig
 
   include Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt
+                                  and type options = XHTML.M.doctypes
+
   include XHTMLFORMSSIG
 
 end
+
+module Xhtmlcompactreg : Eliom_mkreg.ELIOMREGSIG with type page = xhtml elt 
+                                  and type options = XHTML.M.doctypes
 
 (** {3 Module to register subpages of type [block]} *)
 
@@ -802,7 +822,7 @@ module Unit : Eliom_mkreg.ELIOMREGSIG with
    To choose if you want permanent or temporary redirection, use
    the [options] parameter of registration functions.
    For example: [register ~options:`Temporary ...].
- *)
+*)
 module Redirection : Eliom_mkreg.ELIOMREGSIG with
   type page =
   (unit, unit, Eliom_services.get_service_kind,

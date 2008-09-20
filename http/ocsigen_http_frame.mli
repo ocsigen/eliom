@@ -86,7 +86,8 @@ val empty_result : unit -> result
 module type HTTP_CONTENT =
   sig
     type t
-    val result_of_content : t -> result Lwt.t
+    type options
+    val result_of_content : ?options:options -> t -> result Lwt.t
     val get_etag : t -> etag option
   end
 module Http_header :

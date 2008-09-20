@@ -25,9 +25,15 @@ module File_content :
 
 module Xhtml_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
+                                  and type options = 
+  [ `HTML_v03_02 | `HTML_v04_01
+  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
 
 module Xhtmlcompact_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
+                                  and type options = 
+  [ `HTML_v03_02 | `HTML_v04_01
+  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
 
 (** content * content-type *)
 module Text_content :

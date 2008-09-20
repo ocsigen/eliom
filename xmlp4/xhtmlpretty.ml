@@ -29,8 +29,6 @@ let xh_string = str_formatter
 
 let taille_tab = 2
 
-let xh_topxml = "<?xml version=\"1.0\" encoding=\"iso-8859-1\"?>\n\n"
-
 let id x = x
 
 (* The following tags are written <br />, etc.

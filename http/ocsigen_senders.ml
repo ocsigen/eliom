@@ -34,6 +34,8 @@ module Old_Xhtml_content =
   struct
     type t = [ `Html ] XHTML.M.elt
 
+    type options = unit
+
     let get_etag_aux x =
       Some (Digest.to_hex (Digest.string x))
 
@@ -41,7 +43,7 @@ module Old_Xhtml_content =
       let x = Xhtmlpretty.xhtml_print c in
       get_etag_aux x
 
-    let result_of_content c =
+    let result_of_content ?(options = ()) c =
       let x = Xhtmlpretty.xhtml_print c in
       let md5 = get_etag_aux x in
       let default_result = default_result () in
@@ -62,7 +64,7 @@ module Old_Xhtml_content =
 module Xhtml_content_(Xhtmlprinter : sig
                         val xhtml_stream :
                           ?version:[< `HTML_v03_02 | `HTML_v04_01
-                          | `XHTML_01_00 | `XHTML_01_01
+                          | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string
                               > `XHTML_01_01 ] ->
                           ?width:int ->
                           ?encode:(string -> string) ->
@@ -72,12 +74,14 @@ module Xhtml_content_(Xhtmlprinter : sig
   struct
     type t = [ `Html ] XHTML.M.elt
 
+    type options = [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+
     let get_etag_aux x = None
 
     let get_etag c = None
 
-    let result_of_content c =
-      let x = Xhtmlprinter.xhtml_stream c in
+    let result_of_content ?(options = `XHTML_01_01) c =
+      let x = Xhtmlprinter.xhtml_stream ~version:options c in
       let default_result = default_result () in
       Lwt.return
         {default_result with
@@ -98,10 +102,12 @@ module Text_content =
   struct
     type t = string (* content *) * string (* content-type *)
 
+    type options = unit
+
     let get_etag (x, _) =
       Some (Digest.to_hex (Digest.string x))
 
-    let result_of_content ((c, ct) as content) =
+    let result_of_content ?(options = ()) ((c, ct) as content) =
       let md5 = get_etag content in
       let default_result = default_result () in
       Lwt.return
@@ -124,9 +130,11 @@ module Stream_content =
   struct
     type t = string Ocsigen_stream.t
 
+    type options = unit
+
     let get_etag c = None
 
-    let result_of_content c =
+    let result_of_content ?(options = ()) c =
       let default_result = default_result () in
       Lwt.return
         {default_result with
@@ -143,9 +151,11 @@ module Streamlist_content =
     type t = (unit -> string Ocsigen_stream.t Lwt.t) list
           * string (* content-type *)
 
+    type options = unit
+
     let get_etag c = None
 
-    let result_of_content (c, ct) =
+    let result_of_content ?(options = ()) (c, ct) =
       let finalizer = ref (fun () -> Lwt.return ()) in
       let finalize () =
         let f = !finalizer in
@@ -198,9 +208,11 @@ module Empty_content =
   struct
     type t = unit
 
+    type options = unit
+
     let get_etag c = None
 
-    let result_of_content c = Lwt.return (empty_result ())
+    let result_of_content ?(options = ()) c = Lwt.return (empty_result ())
 
   end
 
@@ -266,6 +278,8 @@ module File_content =
   struct
     type t = string (* nom du fichier *)
 
+    type options = unit
+
     let read_file ?buffer_size fd =
       let buffer_size = match buffer_size with
       | None -> Ocsigen_config.get_filebuffersize ()
@@ -292,7 +306,7 @@ module File_content =
       let st = Unix.LargeFile.stat f in
       get_etag_aux st
 
-    let result_of_content c =
+    let result_of_content ?(options = ()) c =
       (* open the file *)
       try
         let fd =
@@ -329,6 +343,8 @@ module File_content =
 module Directory_content =
   struct
     type t = string (* dir name *) * string list (* corresponding URL path *)
+
+    type options = unit
 
     let get_etag_aux st =
       Some (Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
@@ -443,7 +459,7 @@ module Directory_content =
 
 
 
-    let result_of_content (filename, path) =
+    let result_of_content ?(options = ()) (filename, path) =
       let stat = Unix.LargeFile.stat filename in
       let rec back = function
         | [] -> assert false
@@ -499,6 +515,8 @@ module Error_content =
   struct
     type t = int option * exn option * Ocsigen_http_frame.cookieset
 
+    type options = unit
+
     let get_etag c = None
 
     let error_page s msg c =
@@ -510,7 +528,7 @@ module Error_content =
             c)
         )
 
-    let result_of_content (code, exn, cookies_to_set) =
+    let result_of_content ?(options = ()) (code, exn, cookies_to_set) =
       let code = match code with
       | None -> 500
       | Some c -> c

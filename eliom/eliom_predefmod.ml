@@ -47,13 +47,17 @@ let code_of_code_option = function
   | Some c -> c
 
 module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
-                   with type t = [ `Html ] XHTML.M.elt) = struct
+                   with type t = [ `Html ] XHTML.M.elt
+                   and type options = [ `HTML_v03_02 | `HTML_v04_01
+                   | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
+                ) = struct
   open XHTML.M
   open Xhtmltypes
 
   type page = xhtml elt
 
-  type options = unit
+  type options = [ `HTML_v03_02 | `HTML_v04_01
+  | `XHTML_01_00 | `XHTML_01_01 | `Doctype of string ]
 
   module Xhtml_content = struct
 
@@ -86,12 +90,12 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
 
     let get_etag c = get_etag (add_css c)
 
-    let result_of_content c = result_of_content (add_css c)
+    let result_of_content ?options c = result_of_content ?options (add_css c)
 
   end
 
-  let send ?options ?(cookies=[]) ?charset ?code ~sp content =
-    Xhtml_content.result_of_content content >>= fun r ->
+  let send ?(options = `XHTML_01_01) ?(cookies=[]) ?charset ?code ~sp content =
+    Xhtml_content.result_of_content ~options content >>= fun r ->
     Lwt.return
       (EliomResult
          {r with

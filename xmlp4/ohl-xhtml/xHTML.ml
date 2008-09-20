@@ -1033,9 +1033,11 @@ module type T =
 (** [~encoding] is the official name of the external character set encoding that
     is used by [outs : string -> unit]. *)
 
-    val doctype :
-        [< `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01 ]
-      -> string
+    type doctypes = 
+        [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01
+        | `Doctype of string ]
+
+    val doctype : [< doctypes ] -> string
 
     val output : ?encode:(string -> string) -> ?encoding:string ->
       (string -> unit) -> html -> unit
@@ -1805,6 +1807,10 @@ module Version =
       "<!DOCTYPE " ^ dt ^ " PUBLIC " ^
       String.concat " " (List.map (fun a -> "\"" ^ a ^ "\"") args) ^ ">\n"
 
+    type doctypes = 
+        [ `HTML_v03_02 | `HTML_v04_01 | `XHTML_01_00 | `XHTML_01_01
+        | `Doctype of string ]
+
     let doctype = function
       | `HTML_v03_02 ->
           compose_doctype "html" ["-//W3C//DTD HTML 3.2 Final//EN"]
@@ -1817,6 +1823,7 @@ module Version =
       | `XHTML_01_01 ->
           compose_doctype "html" ["-//W3C//DTD XHTML 1.1//EN";
                                   "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"]
+      | `Doctype s -> s
 
     let no_break =
       ["title";
