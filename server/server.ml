@@ -760,7 +760,9 @@ let handle_connection port in_ch sockaddr =
             (* We wait for the query to be entirely read and for
                the reply to be sent *)
             Ocsigen_http_com.lock_receiver receiver >>= fun () ->
-            Ocsigen_http_com.wait_all_senders receiver)
+            Ocsigen_http_com.wait_all_senders receiver >>= fun () ->
+            Lwt_ssl.ssl_shutdown in_ch
+      )
 
   in (* body of handle_connection *)
   handle_request ()
