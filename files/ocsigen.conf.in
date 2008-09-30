@@ -406,11 +406,11 @@
             To use PHP as a CGI module:
 
             - user pages:
-           <cgi regexp="~([^/]*)(.*)/"
+           <cgi regexp="~([^/]*)(.*)/$"
                 dir="$u($1)/public_html/$2"
                 script="index.php"
                 exec="/usr/bin/php-cgi"/>
-           <cgi regexp="~([^/]*)(.*)/([^/]*).php"
+           <cgi regexp="~([^/]*)(.*)/([^/]*).php$"
                 dir="$u($1)/public_html$2"
                 script="$3.php"
                 exec="/usr/bin/php-cgi"/>

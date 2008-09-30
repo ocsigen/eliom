@@ -76,7 +76,8 @@ exception Pipeline_failed
 
 let (>>=) = Lwt.(>>=)
 
-(* let _ = Ssl_threads.init () *)
+(* let _ = Ssl_threads.init ()  (* Does not work for now (deadlock) -- 
+                                   bug in ocamlssl *) *)
 let _ = Ssl.init ()
 let sslcontext = ref (Ssl.create_context Ssl.SSLv23 Ssl.Both_context)
 
