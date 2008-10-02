@@ -34,6 +34,12 @@
    - enhance pipelining
    - HTTP/1.0
    - ...
+
+
+   - Make possible to return for example (Ext_next 404) to allow
+   other extensions to take the request?
+   There is a problem if the body contains data (POST request) ...
+   this data has been sent and is lost ...
 *)
 
 

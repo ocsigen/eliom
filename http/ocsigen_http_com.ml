@@ -910,6 +910,7 @@ let send
      | None   -> None
      | Some s ->
          match String.sub s 0 4, res.res_charset with
+         | "text", Some "" -> Some s
          | "text", Some c -> Some (Format.sprintf "%s; charset=%s" s c)
          | _              -> res.res_content_type)
   in

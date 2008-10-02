@@ -120,7 +120,9 @@ type answer =
           when it is sure it is safe to start next request.
           Usually immediately. But in some case, for example proxies,
           you don't want the request of one connection to be handled in
-          different order.
+          different order. (for example revproxy.ml starts its requests
+          to another server before returning Ext_found, to ensure that all
+          requests are done in same order).
       *)
   | Ext_next of int (** Page not found. Try next extension.
                         The integer is the HTTP error code.
