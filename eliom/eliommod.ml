@@ -339,11 +339,7 @@ let parse_config hostpattern site_dir charsetetc =
   Eliom_common.absolute_change_sitedata sitedata;
   let firsteliomtag = ref true in
   let rec parse_module_attrs file = function
-    | [] -> (match file with
-        None ->
-          raise (Ocsigen_extensions.Error_in_config_file
-                   ("Missing module attribute in <eliom>"))
-      | Some s -> s)
+    | [] -> file
     | ("module", s)::suite ->
         (match file with
           None -> parse_module_attrs (Some [s]) suite
@@ -366,6 +362,17 @@ let parse_config hostpattern site_dir charsetetc =
         raise
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in fun _ parse_site -> function
+    | Element ("eliommodule", atts, content) ->
+(*--- if we put the line "new_sitedata" here, then there is
+  one service table for each <eliom> tag ...
+  I think the other one is the best, because it corresponds to the way
+  browsers manage cookies (one cookie for one site).
+  Thus we can have one site in several cmo (with one session).
+ *)
+        (match parse_module_attrs None atts with
+          | Some file -> load_eliom_module sitedata file content
+          | _ -> ());
+        gen_nothing ()
     | Element ("eliom", atts, content) ->
 (*--- if we put the line "new_sitedata" here, then there is
   one service table for each <eliom> tag ...
@@ -373,8 +380,9 @@ let parse_config hostpattern site_dir charsetetc =
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
  *)
-        let file = parse_module_attrs None atts in
-        load_eliom_module sitedata file content;
+        (match parse_module_attrs None atts with
+          | Some file -> load_eliom_module sitedata file content
+          | _ -> ());
         (* We must generate the page only if it is the first <eliom> tag 
            for that site: *)
         if !firsteliomtag
