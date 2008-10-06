@@ -4105,12 +4105,26 @@ let _ =
     <div class="onecol">
     <h4>Several Ocaml modules for one site</h4>
       <p>If your site consists of several modules, you can load them
-      consecutively from the configuration file.
-      In that case, only the position of the first <code>&lt;eliom&gt;</code>
-      tag will be taken into account for the order of extensions.
-      In other words, it is not possible to try an Eliom service,
-      then a static page, and then another Eliom service of the same
-      site. 
+      consecutively from the configuration file using 
+      <code>&lt;eliommodule&gt;</code> (same syntax as 
+      <code>&lt;eliom&gt;</code>, the difference being that
+      <code>&lt;eliommodule&gt;</code> does not generate any page).
+      In that case, only the position of the
+      <code>&lt;eliom&gt;</code>
+      tag will be taken into account for generating the page using 
+      Eliom.
+      Note that there can be only one <code>&lt;eliom&gt;</code>
+      tag for each <code>&lt;site&gt;</code>
+      (or <code>&lt;host&gt;</code>).
+      </p>
+    <h4>Advanced use: create an extension for the server that access Eliom's data</h4>
+      <p>If you want an Ocsigen extension with access to Eliom's
+        data (for example if you want an extension that will
+        register some services), you can use the function
+        $a ~fragment:"VALregister_eliom_extension" ~service:senddoc ~sp [code [pcdata "Eliom_extensions.register_eliom_extension" ]] [version;"Eliom_extensions.html"]$
+        to register the function that will generate the
+        <code>Ocsigen_extensions.answer</code> from
+        <code>sp</code>.
       </p>
     </div>
 

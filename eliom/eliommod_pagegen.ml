@@ -201,33 +201,51 @@ let compute_exn closedservsessions =
 
 
 
-
-let gen sitedata (charset, _, _, _) = function
+let gen is_eliom_extension sitedata (charset, _, _, _) = function
 | Ocsigen_extensions.Req_found (_, r) -> 
     Lwt.return (Ocsigen_extensions.Ext_found r)
 | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in
-  let rec gen_aux ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
-    let genfun =
-      match si.Eliom_common.si_nonatt_info with
-      | Eliom_common.Na_no ->
+  Eliom_common.change_request_info
+    ri charset previous_extension_err >>= fun (ri, si) ->
+  let (all_cookie_info, closedsessions) =
+    Eliommod_cookies.get_cookie_info now
+      sitedata
+      si.Eliom_common.si_service_session_cookies
+      si.Eliom_common.si_data_session_cookies
+      si.Eliom_common.si_persistent_session_cookies
+      si.Eliom_common.si_secure_cookie_info
+  in
+  let exn = compute_exn closedsessions in
+  let rec gen_aux
+      ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
+    if is_eliom_extension
+    then 
+      Eliom_extensions.run_eliom_extension
+        now
+        info
+        sitedata
+    else
+      let genfun =
+        match si.Eliom_common.si_nonatt_info with
+          | Eliom_common.Na_no ->
+            
+              (* page generation *)
+              Eliommod_services.get_page
 
-          (* page generation *)
-          Eliommod_services.get_page
+          | _ ->
+              
+              (* anonymous service *)
+              Eliommod_naservices.make_naservice
+      in
 
-      | _ ->
-
-          (* anonymous service *)
-          Eliommod_naservices.make_naservice
-    in
-
-    catch
-      (fun () ->
-        execute
-          now
-          genfun
-          info
-          sitedata >>= fun result_to_send ->
+      catch
+        (fun () ->
+           execute
+             now
+             genfun
+             info
+             sitedata >>= fun result_to_send ->
 
           match result_to_send with
           | Eliom_common.EliomExn (exnlist, cookies_set_by_page) ->
@@ -422,22 +440,11 @@ let gen sitedata (charset, _, _, _) = function
             return (Ocsigen_extensions.Ext_next previous_extension_err)
         | Eliom_common.Eliom_retry_with a -> gen_aux a
         | e -> fail e)
-
   in
-  Eliom_common.change_request_info
-    ri charset previous_extension_err >>= fun (ri, si) ->
-  let (all_cookie_info, closedsessions) =
-    Eliommod_cookies.get_cookie_info now
-      sitedata
-      si.Eliom_common.si_service_session_cookies
-      si.Eliom_common.si_data_session_cookies
-      si.Eliom_common.si_persistent_session_cookies
-      si.Eliom_common.si_secure_cookie_info
-  in
-  let exn = compute_exn closedsessions in
-  gen_aux ({ri with Ocsigen_extensions.ri_extension_info=
-            exn@ri.Ocsigen_extensions.ri_extension_info},
-           si,
-           Ocsigen_http_frame.Cookies.empty,
-           all_cookie_info)
-
+  gen_aux
+    ({ri with Ocsigen_extensions.ri_extension_info=
+         exn@ri.Ocsigen_extensions.ri_extension_info},
+     si,
+     Ocsigen_http_frame.Cookies.empty,
+     all_cookie_info)
+    

@@ -330,6 +330,8 @@ let gen_nothing () = function
 
 
 (*****************************************************************************)
+let default_module_action _ = failwith "default_module_action"
+
 (** Parsing of config file for each site: *)
 let parse_config hostpattern site_dir charsetetc =
 (*--- if we put the following line here: *)
@@ -342,41 +344,43 @@ let parse_config hostpattern site_dir charsetetc =
     | [] -> file
     | ("module", s)::suite ->
         (match file with
-          None -> parse_module_attrs (Some [s]) suite
-        | _ -> raise (Error_in_config_file
-                        ("Duplicate attribute file in <eliom>")))
+           | None -> parse_module_attrs (Some [s]) suite
+           | _ -> 
+               raise (Error_in_config_file
+                        ("Duplicate attribute module in <eliom>")))
     | ("findlib-package", s)::suite ->
         begin match file with
           | None ->
               begin try
-                parse_module_attrs (Some (Ocsigen_loader.findfiles s)) suite
+                parse_module_attrs
+                  (Some (Ocsigen_loader.findfiles s)) suite
               with Ocsigen_loader.Findlib_error _ as e ->
                 raise (Error_in_config_file
                          (Printf.sprintf "Findlib error: %s"
                             (Ocsigen_loader.error_message e)))
               end
           | _ -> raise (Error_in_config_file
-                          ("Duplicate attribute file in <eliom>"))
+                          ("Duplicate attribute module in <eliom>"))
         end
     | (s, _)::_ ->
         raise
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in fun _ parse_site -> function
     | Element ("eliommodule", atts, content) ->
-(*--- if we put the line "new_sitedata" here, then there is
-  one service table for each <eliom> tag ...
-  I think the other one is the best, because it corresponds to the way
-  browsers manage cookies (one cookie for one site).
-  Thus we can have one site in several cmo (with one session).
- *)
+        Eliom_extensions.register_eliom_extension 
+          default_module_action;
         (match parse_module_attrs None atts with
           | Some file -> load_eliom_module sitedata file content
           | _ -> ());
-        gen_nothing ()
+        if Eliom_extensions.get_eliom_extension ()
+          != default_module_action
+        then Eliommod_pagegen.gen true sitedata charsetetc
+        else gen_nothing ()
     | Element ("eliom", atts, content) ->
 (*--- if we put the line "new_sitedata" here, then there is
   one service table for each <eliom> tag ...
-  I think the other one is the best, because it corresponds to the way
+  I think the other one is the best, 
+  because it corresponds to the way
   browsers manage cookies (one cookie for one site).
   Thus we can have one site in several cmo (with one session).
  *)
@@ -388,7 +392,7 @@ let parse_config hostpattern site_dir charsetetc =
         if !firsteliomtag
         then begin
           firsteliomtag := false;
-          Eliommod_pagegen.gen sitedata charsetetc
+          Eliommod_pagegen.gen false sitedata charsetetc
         end
         else
           gen_nothing ()
