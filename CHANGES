@@ -6,6 +6,18 @@
   * Build C stubs into a shared library so that bytecode executables
     may be not linked in custom mode; new {{{--stubdir}}} option in
     {{{configure}}} script
+  * Eliom: now possible to write libraries
+    for Eliom sites, loaded inside {{{<host>}}} but do not generate
+    any page.
+  * Eliom and server: EXPERIMENTAL
+    now possible to make extensions
+    that can use Eliom's data.
+  * XHTML.M's pretty printer: now possible to set the DOCTYPE
+    manually.
+  * Eliom: now possible to set manually the DOCTYPE when registering
+    an XHTML.M service.
+  * Redirectmod and Revproxy: now possible to to more complex
+    rewriting.
 
 = 1.1.0 =
 
