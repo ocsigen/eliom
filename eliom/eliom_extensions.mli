@@ -18,35 +18,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-val register_eliom_extension :
-  (Eliom_common.server_params -> Ocsigen_extensions.answer Lwt.t) ->
-  unit
+(** Type of the function that must be registered to declare an eliom extension *)
+type eliom_extension_sig =
+  Eliom_common.server_params -> Ocsigen_extensions.answer Lwt.t
+
+val register_eliom_extension : eliom_extension_sig -> unit
 
 (**/**)
 
-val get_eliom_extension :
-  unit ->
-  Eliom_common.server_params ->
-  Ocsigen_extensions.answer Lwt.t
-
-
-
+val get_eliom_extension : unit -> eliom_extension_sig
 
 val run_eliom_extension :
-  'a ->
+  eliom_extension_sig ->
+  float ->
   Ocsigen_extensions.request_info * Eliom_common.sess_info * 'b *
-  (((string option *
-     Eliom_common.tables Eliom_common.one_service_cookie_info
-     Eliom_common.session_cookie ref)
-    Ocsigen_http_frame.Cookievalues.t ref *
-    (string option *
-     Eliom_common.one_data_cookie_info Eliom_common.session_cookie ref)
-    Lazy.t Ocsigen_http_frame.Cookievalues.t ref *
-    ((string * Eliom_common.timeout * float option *
-      Eliommod_sessiongroups.perssessgrp option)
-     option *
-     Eliom_common.one_persistent_cookie_info Eliom_common.session_cookie ref)
-    Lwt.t Lazy.t Ocsigen_http_frame.Cookievalues.t ref) *
-   Eliom_common.tables Eliom_common.cookie_info1 option) ->
+  Eliom_common.tables Eliom_common.cookie_info ->
   Eliom_common.sitedata ->
   Ocsigen_extensions.answer Lwt.t

@@ -374,7 +374,9 @@ let parse_config hostpattern site_dir charsetetc =
           | _ -> ());
         if Eliom_extensions.get_eliom_extension ()
           != default_module_action
-        then Eliommod_pagegen.gen true sitedata charsetetc
+        then
+          Eliommod_pagegen.gen (Some (Eliom_extensions.get_eliom_extension ()))
+            sitedata charsetetc
         else gen_nothing ()
     | Element ("eliom", atts, content) ->
 (*--- if we put the line "new_sitedata" here, then there is
@@ -392,7 +394,7 @@ let parse_config hostpattern site_dir charsetetc =
         if !firsteliomtag
         then begin
           firsteliomtag := false;
-          Eliommod_pagegen.gen false sitedata charsetetc
+          Eliommod_pagegen.gen None sitedata charsetetc
         end
         else
           gen_nothing ()

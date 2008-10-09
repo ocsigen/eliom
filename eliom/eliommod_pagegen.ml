@@ -219,26 +219,18 @@ let gen is_eliom_extension sitedata (charset, _, _, _) = function
   let exn = compute_exn closedsessions in
   let rec gen_aux
       ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
-    if is_eliom_extension
-    then 
-      Eliom_extensions.run_eliom_extension
-        now
-        info
-        sitedata
-    else
-      let genfun =
-        match si.Eliom_common.si_nonatt_info with
-          | Eliom_common.Na_no ->
-            
-              (* page generation *)
-              Eliommod_services.get_page
-
-          | _ ->
-              
-              (* anonymous service *)
-              Eliommod_naservices.make_naservice
-      in
-
+    match is_eliom_extension with
+      | Some ext -> Eliom_extensions.run_eliom_extension ext now info sitedata
+      | None ->
+          let genfun =
+            match si.Eliom_common.si_nonatt_info with
+              | Eliom_common.Na_no ->
+                  (* page generation *)
+                  Eliommod_services.get_page
+              | _ ->
+                  (* anonymous service *)
+                  Eliommod_naservices.make_naservice
+          in
       catch
         (fun () ->
            execute

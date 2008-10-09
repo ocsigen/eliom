@@ -23,27 +23,23 @@
 (*****************************************************************************)
 (*****************************************************************************)
 
-let module_action : 
-    ('a -> 
-       Ocsigen_extensions.answer Lwt.t) ref = 
+type eliom_extension_sig =
+  Eliom_common.server_params -> Ocsigen_extensions.answer Lwt.t
+
+let module_action : eliom_extension_sig ref =
   ref (fun _ -> failwith "Eliommod_extension")
-
-let run_eliom_extension
-    now
-    (ri,
-     si,
-     cookies_to_set,
-     all_cookie_info)
-    sitedata
-    =
-
-  let sp =
-    Eliom_common.make_server_params sitedata all_cookie_info ri [] si None
-  in
-  !module_action sp
 
 
 let register_eliom_extension f =
   module_action := f
 
 let get_eliom_extension () = !module_action
+
+
+let run_eliom_extension (fext : eliom_extension_sig) now
+    (ri, si, cookies_to_set, all_cookie_info) sitedata  =
+
+  let sp =
+    Eliom_common.make_server_params sitedata all_cookie_info ri [] si None
+  in
+  fext sp
