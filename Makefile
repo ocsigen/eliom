@@ -73,7 +73,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        $(DUCECMI) \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
-       eliom/eliommod.cmi eliom/eliom_common.cmi \
+       eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
        extensions/accesscontrol.cmi
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma
