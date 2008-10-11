@@ -46,6 +46,11 @@ exception Eliom_function_forbidden_outside_site_loading of string
 
 
 
+type att_key =
+  | Att_no
+  | Att_named of string (* named *)
+  | Att_anon of string (* anonymous *)
+
 
 type na_key =
   | Na_no
@@ -68,6 +73,8 @@ val naservice_num : string
 val naservice_name : string
 val get_state_param_name : string
 val post_state_param_name : string
+val get_numstate_param_name : string
+val post_numstate_param_name : string
 val co_param_prefix : string
 val na_co_param_prefix : string
 
@@ -80,7 +87,7 @@ val spersistentcookiename : string
 
 val persistent_cookie_table_version : string
 val eliom_persistent_cookie_table : string
-type internal_state = string
+
 type cookie =
   | Set of Ocsigen_extensions.url_path option * float option * string * string * bool
   | Unset of Ocsigen_extensions.url_path option * string
@@ -96,7 +103,7 @@ type sess_info = {
        string Ocsigen_http_frame.Cookievalues.t *
        string Ocsigen_http_frame.Cookievalues.t) option;
   si_nonatt_info : na_key;
-  si_state_info : internal_state option * internal_state option;
+  si_state_info: (att_key * att_key);
   si_config_file_charset : string;
   si_previous_extension_error : int;
 }
@@ -168,7 +175,7 @@ type result_to_send =
     EliomResult of Ocsigen_http_frame.result
   | EliomExn of (exn list * cookie list)
 type page_table_key = {
-  key_state : internal_state option * internal_state option;
+  key_state : att_key * att_key;
   key_kind : Ocsigen_http_frame.Http_header.http_method;
 }
 module String_Table :

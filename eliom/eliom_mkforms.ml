@@ -919,13 +919,19 @@ module MakeForms = functor
                     reconstruct_relative_url_path
                       (get_current_full_path sp) (get_full_path_ attser) suff)
               in
-              match get_get_state_ attser with
-              | None ->
+              match get_get_name_ attser with
+              | Eliom_common.Att_no ->
                   add_to_string
                     (add_to_string uri "?" params_string)
                     "#"
                     (Netencoding.Url.encode fragment)
-              | Some s ->
+              | Eliom_common.Att_anon s ->
+                  add_to_string
+                    (add_to_string (uri^"?"^Eliom_common.get_numstate_param_name^"="^s)
+                       "&" params_string)
+                    "#"
+                    (Netencoding.Url.encode fragment)
+              | Eliom_common.Att_named s ->
                   add_to_string
                     (add_to_string (uri^"?"^Eliom_common.get_state_param_name^"="^s)
                        "&" params_string)
@@ -1124,8 +1130,8 @@ module MakeForms = functor
                   reconstruct_relative_url_path
                     (get_current_full_path sp) (get_full_path_ attser) suff
             in
-            match get_get_state_ attser with
-            | None ->
+            match get_get_name_ attser with
+            | Eliom_common.Att_no ->
                 Pages.make_a
                   ?a
                   ~href:(add_to_string
@@ -1133,7 +1139,17 @@ module MakeForms = functor
                            "#"
                            (Netencoding.Url.encode fragment)
                         ) content
-            | Some s ->
+            | Eliom_common.Att_anon s ->
+                Pages.make_a ?a
+                  ~href:
+                  (add_to_string
+                     (add_to_string
+                        (uri^"?"^Eliom_common.get_numstate_param_name^"="^s)
+                        "&" params_string)
+                     "#"
+                     (Netencoding.Url.encode fragment))
+                  content
+            | Eliom_common.Att_named s ->
                 Pages.make_a ?a
                   ~href:
                   (add_to_string
@@ -1244,9 +1260,13 @@ module MakeForms = functor
               add_to_string urlname "#" (Netencoding.Url.encode fragment)
             in
             let state_param =
-              (match get_get_state_ attser with
-              | None -> None
-              | Some s ->
+              (match get_get_name_ attser with
+              | Eliom_common.Att_no -> None
+              | Eliom_common.Att_anon s ->
+                  Some (Pages.make_input ~typ:Pages.hidden
+                          ~name:Eliom_common.get_numstate_param_name
+                          ~value:s ())
+              | Eliom_common.Att_named s ->
                   Some (Pages.make_input ~typ:Pages.hidden
                           ~name:Eliom_common.get_state_param_name
                           ~value:s ()))
@@ -1383,9 +1403,14 @@ module MakeForms = functor
             let params_string =
               concat_strings preapplied_params "&" params_string in
             let params_string =
-              match get_get_state_ attser with
-              | None -> params_string
-              | Some s ->
+              match get_get_name_ attser with
+              | Eliom_common.Att_no -> params_string
+              | Eliom_common.Att_anon s ->
+                  add_to_string
+                    (Eliom_common.get_numstate_param_name^"="^s)
+                    "&"
+                    params_string
+              | Eliom_common.Att_named s ->
                   add_to_string
                     (Eliom_common.get_state_param_name^"="^s)
                     "&"
@@ -1411,9 +1436,13 @@ module MakeForms = functor
               add_to_string urlname "#" (Netencoding.Url.encode fragment)
             in
             let state_param =
-              (match get_post_state_ attser with
-              | None -> None
-              | Some s ->
+              (match get_post_name_ attser with
+              | Eliom_common.Att_no -> None
+              | Eliom_common.Att_anon s ->
+                  Some (Pages.make_input ~typ:Pages.hidden
+                          ~name:Eliom_common.post_numstate_param_name
+                          ~value:s ())
+              | Eliom_common.Att_named s ->
                   Some (Pages.make_input ~typ:Pages.hidden
                           ~name:Eliom_common.post_state_param_name
                           ~value:s ()))

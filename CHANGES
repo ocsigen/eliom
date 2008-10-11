@@ -6,6 +6,11 @@
   * Build C stubs into a shared library so that bytecode executables
     may be not linked in custom mode; new {{{--stubdir}}} option in
     {{{configure}}} script
+  * Eliom: non-attached services now called "named non-attached coservices"
+    and created using {{Eliom_services.new_coservice'}} with the optional
+    {{name}} parameter
+  * Eliom: now possible to create named attached coservices
+    using the optional {{name}} parameter
   * Eliom: now possible to write libraries
     for Eliom sites, loaded inside {{{<host>}}} but do not generate
     any page.

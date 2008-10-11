@@ -213,6 +213,7 @@ val new_post_service :
 (** {3 Attached coservices} *)
 
 val new_coservice :
+  ?name: string ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -234,9 +235,13 @@ val new_coservice :
    It allows to have several links towards the same page,
    that will behave differently, or to create services dedicated to one user.
    See the tutorial for more informations.
+   Coservices can be named if the [?name] optional parameter
+   is present or anonymous (in that case, a coservice number will be
+   generated).
  *)
 
 val new_post_coservice :
+  ?name: string ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -427,8 +432,8 @@ val get_att_kind_ : 'a a_s -> 'a
 val get_sub_path_ : 'a a_s -> url_path
 val get_full_path_ : 'a a_s -> url_path
 val get_prefix_ : 'a a_s -> string
-val get_get_state_ : 'a a_s -> Eliom_common.internal_state option
-val get_post_state_ : 'a a_s -> Eliom_common.internal_state option
+val get_get_name_ : 'a a_s -> Eliom_common.att_key
+val get_post_name_ : 'a a_s -> Eliom_common.att_key
 val get_na_name_ : 'a na_s -> Eliom_common.na_key
 val get_na_kind_ : 'a na_s -> [ `Get | `Post of bool ]
 val get_max_use_ : ('a, 'b, 'c, 'd, 'e, 'f, 'g) service -> int option

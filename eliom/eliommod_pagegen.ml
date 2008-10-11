@@ -263,7 +263,8 @@ let gen is_eliom_extension sitedata (charset, _, _, _) = function
                 si.Eliom_common.si_state_info,
                 ri.Ocsigen_extensions.ri_method with
               | Eliom_common.Na_no,
-                (None, None), Ocsigen_http_frame.Http_header.GET ->
+                (Eliom_common.Att_no, Eliom_common.Att_no), 
+                    Ocsigen_http_frame.Http_header.GET ->
                   Eliommod_cookies.compute_cookies_to_send
                     sitedata
                     all_cookie_info
@@ -300,9 +301,9 @@ let gen is_eliom_extension sitedata (charset, _, _, _) = function
                     ri.Ocsigen_extensions.ri_method
                   with
                   | Eliom_common.Na_get_ _,
-                    (_, None), Ocsigen_http_frame.Http_header.GET
+                    (_, Eliom_common.Att_no), Ocsigen_http_frame.Http_header.GET
                   | Eliom_common.Na_get' _,
-                    (_, None), Ocsigen_http_frame.Http_header.GET ->
+                    (_, Eliom_common.Att_no), Ocsigen_http_frame.Http_header.GET ->
                       (* no post params, GET na coservice *)
 
                       return
@@ -321,7 +322,7 @@ let gen is_eliom_extension sitedata (charset, _, _, _) = function
                         )
 
                   | Eliom_common.Na_no,
-                      (_, None), Ocsigen_http_frame.Http_header.GET ->
+                      (_, Eliom_common.Att_no), Ocsigen_http_frame.Http_header.GET ->
                       (* no post params, GET attached coservice *)
 
                       return

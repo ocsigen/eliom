@@ -163,6 +163,7 @@ module type ELIOMREGSIG1 =
     val register_new_coservice :
       ?options:options ->
       ?sp: Eliom_sessions.server_params ->
+      ?name: string ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -207,6 +208,7 @@ module type ELIOMREGSIG1 =
       ?session_name:string ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
+      ?name: string ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -271,6 +273,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_coservice :
       ?options:options ->
       ?sp: Eliom_sessions.server_params ->
+      ?name: string ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -336,6 +339,7 @@ module type ELIOMREGSIG1 =
       ?session_name:string ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
+      ?name: string ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -446,8 +450,8 @@ module MakeRegister = functor
           match get_kind_ service with
           | `Attached attser ->
               let key_kind = get_or_post (get_att_kind_ attser) in
-              let attserget = get_get_state_ attser in
-              let attserpost = get_post_state_ attser in
+              let attserget = get_get_name_ attser in
+              let attserpost = get_post_name_ attser in
               let sgpt = get_get_params_type_ service in
               let sppt = get_post_params_type_ service in
               Eliommod_services.add_service
@@ -456,7 +460,8 @@ module MakeRegister = functor
                 (get_sub_path_ attser)
                 ({Eliom_common.key_state = (attserget, attserpost);
                   Eliom_common.key_kind = key_kind},
-                 ((if attserget = None || attserpost = None
+                 ((if attserget = Eliom_common.Att_no
+                     || attserpost = Eliom_common.Att_no
                  then (anonymise_params_type sgpt,
                        anonymise_params_type sppt)
                  else (0, 0)),
@@ -611,6 +616,7 @@ module MakeRegister = functor
         let register_new_coservice
             ?options
             ?sp
+            ?name
             ?max_use
             ?timeout
             ?https
@@ -619,7 +625,7 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = 
-            new_coservice ?max_use ?timeout ?https
+            new_coservice ?name ?max_use ?timeout ?https
               ~fallback ~get_params () 
           in
           register ?options ?sp ~service:u ?error_handler page;
@@ -646,6 +652,7 @@ module MakeRegister = functor
             ?session_name
             ?secure
             ~sp
+            ?name
             ?max_use
             ?timeout
             ?https
@@ -654,7 +661,7 @@ module MakeRegister = functor
             ?error_handler
             page =
           let u = 
-            new_coservice ?max_use ?timeout ?https
+            new_coservice ?name ?max_use ?timeout ?https
               ~fallback ~get_params () 
           in
           register_for_session
@@ -695,6 +702,7 @@ module MakeRegister = functor
         let register_new_post_coservice
             ?options
             ?sp
+            ?name
             ?max_use
             ?timeout
             ?https
@@ -703,7 +711,7 @@ module MakeRegister = functor
             ?error_handler
             page_gen =
           let u =
-            new_post_coservice ?max_use ?timeout ?https
+            new_post_coservice ?name ?max_use ?timeout ?https
               ~fallback ~post_params () in
           register ?options ?sp ~service:u ?error_handler page_gen;
           u
@@ -754,6 +762,7 @@ module MakeRegister = functor
             ?session_name
             ?secure
             ~sp
+            ?name
             ?max_use
             ?timeout
             ?https
@@ -761,7 +770,7 @@ module MakeRegister = functor
             ~post_params
             ?error_handler
             page_gen =
-          let u = new_post_coservice
+          let u = new_post_coservice ?name
               ?max_use ?timeout ?https ~fallback ~post_params () in
           register_for_session
             ?options ?session_name ?secure ~sp ~service:u ?error_handler page_gen;
@@ -869,6 +878,7 @@ module MakeRegister = functor
       let register_new_coservice
           ?options
           ?sp
+          ?name
           ?max_use
           ?timeout
           ?https
@@ -879,6 +889,7 @@ module MakeRegister = functor
         Cookies.register_new_coservice
           ?options
           ?sp
+          ?name
           ?max_use
           ?timeout
           ?https
@@ -913,6 +924,7 @@ module MakeRegister = functor
           ?session_name
           ?secure
           ~sp
+          ?name
           ?max_use
           ?timeout
           ?https
@@ -925,6 +937,7 @@ module MakeRegister = functor
         ?session_name
         ?secure
         ~sp
+        ?name
         ?max_use
         ?timeout
         ?https
@@ -978,6 +991,7 @@ module MakeRegister = functor
       let register_new_post_coservice
           ?options
           ?sp
+          ?name
           ?max_use
           ?timeout
           ?https
@@ -988,6 +1002,7 @@ module MakeRegister = functor
         Cookies.register_new_post_coservice
           ?options
           ?sp
+          ?name
           ?max_use
           ?timeout
           ?https
@@ -1050,6 +1065,7 @@ module MakeRegister = functor
           ?session_name
           ?secure
           ~sp
+          ?name
           ?max_use
           ?timeout
           ?https
@@ -1062,6 +1078,7 @@ module MakeRegister = functor
           ?session_name
           ?secure
           ~sp
+          ?name
           ?max_use
           ?timeout
           ?https

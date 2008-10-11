@@ -997,7 +997,8 @@ let looong2 =
         <dt>(Attached) coservices</dt><dd>are services that share their
         location (URL) with a main service (fallback).
         They are distinguished from that main service using a special parameter
-        (added automatically by Eliom).
+        (added automatically by Eliom), containing either the name of the
+        coservice or a number generated automatically.
         They are often created dynamically for one user
         (usually in the session table), depending on previous interaction
         during the session.
@@ -1185,7 +1186,8 @@ let looong2 =
       <dl>
         <dt>Display the result of a search (plane ticket,
           search engines&nbsp;...)</dt>
-        <dd>Use a coservice (with timeout) in the session service table.</dd>
+        <dd>Use a coservice (anonymous, with timeout) 
+          in the session service table.</dd>
         <dt>Keep information about the session (name of the user&nbsp;...)</dt>
         <dd>Use a session data table.</dd>
         <dt>A connection or disconnection box on each page of your site</dt>

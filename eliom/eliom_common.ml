@@ -23,6 +23,11 @@
 
 (********)
 
+type att_key =
+  | Att_no
+  | Att_named of string (* named *)
+  | Att_anon of string (* anonymous *)
+
 type na_key =
   | Na_no
   | Na_get_ of string (* named *)
@@ -61,6 +66,8 @@ let naservice_num = "__eliom_na__num"
 let naservice_name = "__eliom_na__name"
 let get_state_param_name = "__eliom__"
 let post_state_param_name = "__eliom_p__"
+let get_numstate_param_name = "__eliom_n__"
+let post_numstate_param_name = "__eliom_np__"
 let co_param_prefix = "__co_eliom_"
 let na_co_param_prefix = "__na_eliom_"
 
@@ -82,11 +89,6 @@ let eliom_persistent_cookie_table =
   "eliom_persist_cookies"^persistent_cookie_table_version
 
 (*****************************************************************************)
-
-(** state is a parameter to differenciate coservices
-    (several instances of the same URL).
- *)
-type internal_state = string
 
 (** Type used for cookies to set.
     The float option is the timestamp for the expiration date.
@@ -122,7 +124,7 @@ type sess_info =
      (* the same, but for secure cookies, if https *)
 
      si_nonatt_info: na_key;
-     si_state_info: (internal_state option * internal_state option);
+     si_state_info: (att_key * att_key);
      si_config_file_charset: string;
      si_previous_extension_error: int;
      (* HTTP error code sent by previous extension (default: 404) *)
@@ -298,7 +300,7 @@ type result_to_send =
 
 
 type page_table_key =
-    {key_state: (internal_state option * internal_state option);
+    {key_state : att_key * att_key;
      key_kind: Ocsigen_http_frame.Http_header.http_method}
       (* action: server_params -> page *)
 
@@ -514,7 +516,7 @@ let change_request_info ri charset previous_extension_err =
         | Na_post_ _
         | Na_post' _ -> (* POST non attached coservice *)
             (post_naservice_name,
-             (None, None),
+             (Att_no, Att_no),
              ([], get_params),
              na_post_params)
         | _ ->
@@ -536,7 +538,7 @@ let change_request_info ri charset previous_extension_err =
               | Na_get_ _
               | Na_get' _ -> (* GET non attached coservice *)
                   (get_naservice_name,
-                   (None, None),
+                   (Att_no, Att_no),
                    (na_get_params, other_get_params),
                    [])
                     (* Not possible to have POST parameters
@@ -548,19 +550,33 @@ let change_request_info ri charset previous_extension_err =
                     try
                       let s, pp =
                         Ocsigen_lib.list_assoc_remove
-                          post_state_param_name post_params
-                      in (Some s, pp)
+                          post_numstate_param_name post_params
+                      in (Att_anon s, pp)
                     with
-                        Not_found -> (None, post_params)
+                        Not_found -> 
+                          try
+                            let s, pp =
+                              Ocsigen_lib.list_assoc_remove
+                                post_state_param_name post_params
+                            in (Att_named s, pp)
+                          with
+                              Not_found -> (Att_no, post_params)
                   in
                   let get_state, (get_params, other_get_params) =
                     try
                       let s, gp =
                         Ocsigen_lib.list_assoc_remove
-                          get_state_param_name get_params
-                      in ((Some s),
+                          get_numstate_param_name get_params
+                      in ((Att_anon s),
                           (split_prefix_param co_param_prefix gp))
-                    with Not_found -> (None, (get_params, []))
+                    with Not_found ->
+                      try
+                        let s, gp =
+                          Ocsigen_lib.list_assoc_remove
+                            get_state_param_name get_params
+                        in ((Att_named s),
+                            (split_prefix_param co_param_prefix gp))
+                      with Not_found -> (Att_no, (get_params, []))
                   in
                   (Na_no,
                    (get_state, post_state),

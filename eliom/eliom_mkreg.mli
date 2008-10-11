@@ -161,6 +161,7 @@ module type ELIOMREGSIG1 =
     val register_new_coservice :
       ?options:options ->
       ?sp: Eliom_sessions.server_params ->
+      ?name: string ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -205,6 +206,7 @@ module type ELIOMREGSIG1 =
       ?session_name:string ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
+      ?name: string ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -269,6 +271,7 @@ module type ELIOMREGSIG1 =
     val register_new_post_coservice :
       ?options:options ->
       ?sp: Eliom_sessions.server_params ->
+      ?name: string ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
@@ -335,6 +338,7 @@ module type ELIOMREGSIG1 =
       ?session_name:string ->
       ?secure:bool ->
       sp:Eliom_sessions.server_params ->
+      ?name: string ->
       ?max_use:int ->
       ?timeout:float ->
       ?https:bool ->
