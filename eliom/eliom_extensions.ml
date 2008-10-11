@@ -24,7 +24,7 @@
 (*****************************************************************************)
 
 type eliom_extension_sig =
-  Eliom_common.server_params -> Ocsigen_extensions.answer Lwt.t
+  Eliom_sessions.server_params -> Ocsigen_extensions.answer Lwt.t
 
 let module_action : eliom_extension_sig ref =
   ref (fun _ -> failwith "Eliommod_extension")
@@ -42,4 +42,4 @@ let run_eliom_extension (fext : eliom_extension_sig) now
   let sp =
     Eliom_common.make_server_params sitedata all_cookie_info ri [] si None
   in
-  fext sp
+  fext (Eliom_sessions.sp_of_esp sp)
