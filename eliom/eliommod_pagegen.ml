@@ -220,7 +220,8 @@ let gen is_eliom_extension sitedata (charset, _, _, _) = function
   let rec gen_aux
       ((ri, si, old_cookies_to_set, all_cookie_info) as info) =
     match is_eliom_extension with
-      | Some ext -> Eliom_extensions.run_eliom_extension ext now info sitedata
+      | Some ext -> 
+          Eliommod_extensions.run_eliom_extension ext now info sitedata
       | None ->
           let genfun =
             match si.Eliom_common.si_nonatt_info with

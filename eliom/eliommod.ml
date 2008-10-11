@@ -367,15 +367,15 @@ let parse_config hostpattern site_dir charsetetc =
           (Error_in_config_file ("Wrong attribute for <eliom>: "^s))
   in fun _ parse_site -> function
     | Element ("eliommodule", atts, content) ->
-        Eliom_extensions.register_eliom_extension 
+        Eliommod_extensions.register_eliom_extension 
           default_module_action;
         (match parse_module_attrs None atts with
           | Some file -> load_eliom_module sitedata file content
           | _ -> ());
-        if Eliom_extensions.get_eliom_extension ()
+        if Eliommod_extensions.get_eliom_extension ()
           != default_module_action
         then
-          Eliommod_pagegen.gen (Some (Eliom_extensions.get_eliom_extension ()))
+          Eliommod_pagegen.gen (Some (Eliommod_extensions.get_eliom_extension ()))
             sitedata charsetetc
         else gen_nothing ()
     | Element ("eliom", atts, content) ->

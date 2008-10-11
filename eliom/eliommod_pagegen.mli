@@ -15,7 +15,7 @@ val execute :
   Eliom_common.sitedata -> Eliom_common.result_to_send Lwt.t
 val compute_exn : string list -> exn list
 val gen :
-  Eliom_extensions.eliom_extension_sig option ->
+  Eliommod_extensions.eliom_extension_sig option ->
   Eliom_common.sitedata ->
   string * string * int * int -> 
   Ocsigen_extensions.request_state -> Ocsigen_extensions.answer Lwt.t

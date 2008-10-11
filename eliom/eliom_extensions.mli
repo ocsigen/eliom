@@ -24,14 +24,3 @@ type eliom_extension_sig =
 
 val register_eliom_extension : eliom_extension_sig -> unit
 
-(**/**)
-
-val get_eliom_extension : unit -> eliom_extension_sig
-
-val run_eliom_extension :
-  eliom_extension_sig ->
-  float ->
-  Ocsigen_extensions.request_info * Eliom_common.sess_info * 'b *
-  Eliom_common.tables Eliom_common.cookie_info ->
-  Eliom_common.sitedata ->
-  Ocsigen_extensions.answer Lwt.t

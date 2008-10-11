@@ -17,15 +17,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
-(*****************************************************************************)
-(*****************************************************************************)
-(** Run Ocsigen extensions that can access Eliom data                        *)
-(*****************************************************************************)
-(*****************************************************************************)
 
+(** Type of the function that must be registered to declare an eliom extension *)
 type eliom_extension_sig =
-  Eliom_sessions.server_params -> Ocsigen_extensions.answer Lwt.t
+  Eliom_common.server_params -> Ocsigen_extensions.answer Lwt.t
 
-let register_eliom_extension f =
-  Eliommod_extensions.register_eliom_extension
-    (fun sp -> f (Eliom_sessions.sp_of_esp sp))
+val register_eliom_extension : eliom_extension_sig -> unit
+
+(**/**)
+
+val get_eliom_extension : unit -> eliom_extension_sig
+
+val run_eliom_extension :
+  eliom_extension_sig ->
+  float ->
+  Ocsigen_extensions.request_info * Eliom_common.sess_info * 'b *
+  Eliom_common.tables Eliom_common.cookie_info ->
+  Eliom_common.sitedata ->
+  Ocsigen_extensions.answer Lwt.t

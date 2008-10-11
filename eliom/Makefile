@@ -6,11 +6,11 @@ FILES:= error_pages.ml \
 	eliommod_sessiongroups.ml eliom_common.ml eliommod_cookies.ml \
 	eliommod_sersess.ml eliommod_datasess.ml eliommod_persess.ml \
 	eliommod_gc.ml \
-	eliom_extensions.ml eliommod_services.ml eliommod_naservices.ml \
+	eliommod_extensions.ml eliommod_services.ml eliommod_naservices.ml \
 	eliommod_sessexpl.ml eliommod_sessadmin.ml \
 	eliommod_timeouts.ml \
 	eliommod_pagegen.ml \
-	eliommod.ml eliom_sessions.ml \
+	eliommod.ml eliom_sessions.ml eliom_extensions.ml\
         eliom_parameters.ml eliom_services.ml \
         eliom_mkforms.ml eliom_mkreg.ml eliom_predefmod.ml \
         eliom_tools.ml eliom_extension_template.ml
