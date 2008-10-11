@@ -49,10 +49,10 @@ exception Eliom_function_forbidden_outside_site_loading of string
 
 type na_key =
   | Na_no
-  | Na_get_ of string (* service *)
-  | Na_post_ of string (* service *)
-  | Na_get' of string (* coservice *)
-  | Na_post' of string (* coservice *)
+  | Na_get_ of string (* named *)
+  | Na_post_ of string (* named *)
+  | Na_get' of string (* anonymous *)
+  | Na_post' of string (* anonymous *)
 
 
 exception Eliom_duplicate_registration of string

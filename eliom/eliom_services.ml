@@ -366,67 +366,73 @@ let new_coservice
    if you want fallbacks with GET parameters *)
 
 
-let new_coservice' ?max_use ?timeout ?(https = false) ~get_params () =
-  let n = Eliom_common.Na_get' (new_naservice_num ()) in
+let new_coservice' ?name ?max_use ?timeout ?(https = false) ~get_params () =
+  match name with
+    | None ->
+        let n = Eliom_common.Na_get' (new_naservice_num ()) in
   (* (match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered_na n;
   | _ -> () (* Do we accept unregistered non-attached coservices? *)); *)
-  {
-   max_use= max_use;
-   timeout= timeout;
-   pre_applied_parameters = [];
-   get_params_type = add_pref_params Eliom_common.na_co_param_prefix get_params;
-   post_params_type = unit;
-   kind = `Nonattached
-     {na_name = n;
-      na_kind = `Get;
-    };
-   https = https;
- }
+        {
+          max_use= max_use;
+          timeout= timeout;
+          pre_applied_parameters = [];
+          get_params_type = 
+            add_pref_params Eliom_common.na_co_param_prefix get_params;
+          post_params_type = unit;
+          kind = `Nonattached
+            {na_name = n;
+             na_kind = `Get;
+            };
+          https = https;
+        }
+    | Some name ->
+(* (* Do we accept unregistered non-attached named coservices? *)
+        match sp with
+          | None ->
+              (match Eliom_common.global_register_allowed () with
+                 | Some get_current_sitedata ->
+                     let sitedata = get_current_sitedata () in
+                     let r =
+                       {
+(*VVV allow timeout and max_use? *)
+                         max_use= max_use;
+                         timeout= timeout;
+                         pre_applied_parameters = [];
+                         get_params_type =
+                           add_pref_params Eliom_common.na_co_param_prefix get_params;
+                         post_params_type = unit;
+                         kind = `Nonattached
+                           {na_name = Eliom_common.Na_get_ name;
+                            na_kind = `Get;
+                           };
+                         https = https;
+                       }
+                     in
+                     Eliom_common.add_unregistered_na sitedata
+                       (Eliom_common.Na_get_ name);
+                     r
+                 | None ->
+                     raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
+                              "new_coservice'"))
+          | Some sp ->
+*)
+        {
+(*VVV allow timeout and max_use? *)
+          max_use= max_use;
+          timeout= timeout;
+          pre_applied_parameters = [];
+          get_params_type =
+            add_pref_params Eliom_common.na_co_param_prefix get_params;
+          post_params_type = unit;
+          kind = `Nonattached
+            {na_name = Eliom_common.Na_get_ name;
+             na_kind = `Get;
+            };
+          https = https;
+        }
 
-let new_service' ?sp ?(https = false) ~name ~get_params () =
-  match sp with
-  | None ->
-      (match Eliom_common.global_register_allowed () with
-      | Some get_current_sitedata ->
-          let sitedata = get_current_sitedata () in
-          let r =
-            {
-(*VVV allow timeout and max_use? *)
-             max_use= None;
-             timeout= None;
-             pre_applied_parameters = [];
-             get_params_type =
-             add_pref_params Eliom_common.na_co_param_prefix get_params;
-             post_params_type = unit;
-             kind = `Nonattached
-               {na_name = Eliom_common.Na_get_ name;
-                na_kind = `Get;
-              };
-             https = https;
-           }
-          in
-          Eliom_common.add_unregistered_na sitedata
-            (Eliom_common.Na_get_ name);
-          r
-      | None ->
-          raise (Eliom_common.Eliom_function_forbidden_outside_site_loading
-                   "new_service'"))
-  | Some sp ->
-      {
-(*VVV allow timeout and max_use? *)
-       max_use= None;
-       timeout= None;
-       pre_applied_parameters = [];
-       get_params_type =
-       add_pref_params Eliom_common.na_co_param_prefix get_params;
-       post_params_type = unit;
-       kind = `Nonattached
-         {na_name = Eliom_common.Na_get_ name;
-          na_kind = `Get;
-        };
-       https = https;
-     }
+
 
 (****************************************************************************)
 (** Register a service with post parameters in the server *)
@@ -507,42 +513,40 @@ let new_post_coservice
 
 (*VVV Warning: keep_get_na_params is experimental *)
 let new_post_coservice'
+    ?name
     ?max_use ?timeout ?(keep_get_na_params = true) ?(https = false)
     ~post_params () =
   (* match Eliom_common.global_register_allowed () with
   | Some _ -> Eliom_common.add_unregistered None
   | _ -> () *)
-  {
-   max_use= max_use;
-   timeout= timeout;
-   pre_applied_parameters = [];
-   get_params_type = unit;
-   post_params_type = post_params;
-   kind = `Nonattached
-     {na_name = Eliom_common.Na_post' (new_naservice_num ());
-      na_kind = `Post keep_get_na_params;
-    };
-   https = https;
- }
-
-let new_post_service'
-   ?(keep_get_na_params = true) ?(https = false) ~name ~post_params () =
-  (* match Eliom_common.global_register_allowed () with
-  | Some _ -> Eliom_common.add_unregistered None
-  | _ -> () *)
-  {
+  match name with
+    | None ->
+        {
+          max_use= max_use;
+          timeout= timeout;
+          pre_applied_parameters = [];
+          get_params_type = unit;
+          post_params_type = post_params;
+          kind = `Nonattached
+            {na_name = Eliom_common.Na_post' (new_naservice_num ());
+             na_kind = `Post keep_get_na_params;
+            };
+          https = https;
+        }
+    | Some name ->
+        {
 (*VVV allow timeout and max_use? *)
-   max_use= None;
-   timeout= None;
-   pre_applied_parameters = [];
-   get_params_type = unit;
-   post_params_type = post_params;
-   kind = `Nonattached
-     {na_name = Eliom_common.Na_post_ name;
-      na_kind = `Post keep_get_na_params;
-    };
-   https = https;
- }
+          max_use= max_use;
+          timeout= timeout;
+          pre_applied_parameters = [];
+          get_params_type = unit;
+          post_params_type = post_params;
+          kind = `Nonattached
+            {na_name = Eliom_common.Na_post_ name;
+             na_kind = `Post keep_get_na_params;
+            };
+          https = https;
+        }
 
 (*
 let new_get_post_coservice'

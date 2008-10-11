@@ -163,23 +163,6 @@ val new_service :
    exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
 *)
 
-val new_service' :
-  ?sp: Eliom_sessions.server_params ->
-  ?https:bool ->
-  name:string ->
-  get_params:('get, [ `WithoutSuffix ],'gn) params_type ->
-  unit ->
-  ('get, unit,
-   [> `Nonattached of [> `Get ] na_s ],
-   [ `WithoutSuffix ], 'gn,
-   unit, [> `Registrable ]) service
-(** [new_service' ~name:n ~get_params:pa ()] creates a non-attached service
-    associated to the name [n], taking the GET parameters [pa].
-
-   {e Warning: If you use this function after the initialisation phase,
-   you must give the [~sp] parameter, otherwise it will raise the
-   exception {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
-*)
 
 val new_external_service :
   prefix: string ->
@@ -225,18 +208,6 @@ val new_post_service :
  *)
 (* fallback must be registrable! (= not preapplied) *)
 
-val new_post_service' :
-  ?keep_get_na_params:bool ->
-  ?https:bool ->
-  name: string ->
-  post_params: ('post, [ `WithoutSuffix ], 'pn) params_type ->
-  unit ->
-  (unit, 'post, [> `Nonattached of [> `Post] na_s ],
-   [ `WithoutSuffix ], unit, 'pn, [> `Registrable ]) service
-(** Creates a non-attached service that takes POST parameters.
-   [name] is the name of that non-attached service.
- *)
-(* fallback must be registrable! (= not preapplied) *)
 
 
 (** {3 Attached coservices} *)
@@ -284,6 +255,7 @@ val new_post_coservice :
 (** {3 Non attached coservices} *)
 
 val new_coservice' :
+  ?name:string ->
   ?max_use:int ->
   ?timeout:float ->
   ?https:bool ->
@@ -293,13 +265,17 @@ val new_coservice' :
   ('get, unit, [> `Nonattached of [> `Get] na_s ],
    [`WithoutSuffix], 'gn, unit, [> `Registrable ]) service
 (** Creates a non-attached coservice, that is, services that do not
-   correspond to a precise URL.
+   correspond to a precise path in the URL.
    Links towards such services will not change the URL,
    just add extra parameters.
+   Non-attached coservices can be named if the [?name] optional parameter
+   is present or anonymous (in that case, a coservice number will be
+   generated).
    See the tutorial for more informations.
  *)
 
 val new_post_coservice' :
+  ?name:string ->
   ?max_use:int ->
   ?timeout:float ->
   ?keep_get_na_params:bool ->

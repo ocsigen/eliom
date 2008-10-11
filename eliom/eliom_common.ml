@@ -25,10 +25,10 @@
 
 type na_key =
   | Na_no
-  | Na_get_ of string (* service *)
-  | Na_post_ of string (* service *)
-  | Na_get' of string (* coservice *)
-  | Na_post' of string (* coservice *)
+  | Na_get_ of string (* named *)
+  | Na_post_ of string (* named *)
+  | Na_get' of string (* anonymous *)
+  | Na_post' of string (* anonymous *)
 
 
 exception Eliom_Wrong_parameter (** Service called with wrong parameter names *)

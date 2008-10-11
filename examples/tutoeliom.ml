@@ -1007,25 +1007,21 @@ let looong2 =
         button but not the page it leads to (like the disconnect button
         in the example of sessions with <em>actions</em> as below).
         </dd>
-        <dt>Non-attached services</dt><dd>are
-        services that are not
+        <dt>Non-attached coservices</dt><dd>are
+        coservices that are not
         attached to a particular URL. A link towards a non-attached
-        service will go to the current URL with a special parameter
-        containing the name of the service.
+        coservice will go to the current URL with a special parameter
+        containing either the name of the service, or a number generated 
+        automatically (each time different).
         It is useful when you want the same link or form on several pages
         (for example a connection box) but you don't want to go to another
-        URL. Non-attached (co)services are often used with <em>actions</em>
+        URL. Non-attached coservices are often used with <em>actions</em>
         (see below).
         </dd>
-        <dt>Non-attached coservices</dt><dd>are
-        coservices that are not attached to a particular URL.
-        The difference with non-attached services is that they have no
-        name, but a number generated automatically (different at each time).
-       </dd>
       </dl>
       <p>To summarize, if you want to go to another URL, use
       (attached) (co)services. If you want to stay on the same URL
-      use non-attached (co)services.</p>
+      use non-attached coservices.</p>
       <h4>GET or POST?</h4>
       <p>Each of these services both have a version with GET parameters and
       another with POST parameters.</p>
@@ -1057,8 +1053,7 @@ let looong2 =
   <th colspan="2" class="col2">Services</th>
   <th colspan="2" class="col2">Coservices</th></tr>
 <tr><td class="empty"></td>
-  <th class="col2">attached</th>
-  <th class="col2">non-attached</th>
+  <th class="col2"></th>
   <th class="col2">attached</th>
   <th class="col2">non-attached</th>
 </tr>
@@ -1179,7 +1174,7 @@ let looong2 =
           browser's "back" button turn back in the past, and to allow several
           tabs on different versions of the same page,
         </li>
-        <li>Actions registered on POST non-attached services
+        <li>Actions registered on POST named non-attached coservices
           to make an effect
           on the server, from any page, and without changing the URL
           (connection/disconnection for example).
@@ -1194,7 +1189,7 @@ let looong2 =
         <dt>Keep information about the session (name of the user&nbsp;...)</dt>
         <dd>Use a session data table.</dd>
         <dt>A connection or disconnection box on each page of your site</dt>
-        <dd>Use actions registered on non-attached services to set or
+        <dd>Use actions registered on named non-attached coservices to set or
          remove data from a session data table.
         </dd>
         <dt>Add something in a shopping basket</dt>
@@ -1469,8 +1464,8 @@ let _ = register
         <li>
           If you want the same login form on several pages, it is tedious
           work to create a coservice with POST parameters for each page.
-          We will se how to solve this using actions and non-attached
-          services.
+          We will se how to solve this using actions and named non-attached
+          coservices.
         </li>
         <li>
           Session data are kept in memory and will be lost if you switch off
@@ -1801,7 +1796,7 @@ let _ =
         on the same page&nbsp;... How to do that with POST coservices?
         A much better solution will be seen in the
         <a href="#p2actions">section
-        about actions and non-attached services</a>.
+        about actions and non-attached coservices</a>.
       </p>
       <div class="encadre">
         <h4>URLs</h4>
@@ -1815,7 +1810,7 @@ let _ =
           or page depending on post data).
           Sometimes, you want that clicking
           a link or submitting a form does something without changing the URL.
-          You can do this using <em>non-attached services</em> (see below).
+          You can do this using <em>non-attached coservices</em> (see below).
           </p>
       </div>
       <div class="encadre">
@@ -1848,27 +1843,28 @@ let _ =
         <p>If you want continuations dedicated to a particular user
         register them in the session table.</p>
       </div>
-      <h4>Non-attached services and coservices</h4>
+      <h4>Non-attached coservices</h4>
        <p>
-       Non-attached (co)services are (co)services
-       that are not attached to an URL.
+       Non-attached coservices are coservices
+       that are not attached to an URL path.
        When you do a link or a form towards such a service, the URL do not
        change. The name of the service is sent as a special parameter.
        </p>
-       <p>Non-attached services have a name, non-attached coservices
-       are distinguished by a number (every times different).</p>
-       <p>As for attached (co)services, there are GET and POST versions.
+       <p>As for attached coservices, there are GET and POST versions.</p>
+       <p>
        To create them, use
-       $a ~fragment:"VALnew_service'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_service'" ]] [version;"Eliom_services.html"]$,
-       $a ~fragment:"VALnew_post_service'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_post_service'" ]] [version;"Eliom_services.html"]$,
        $a ~fragment:"VALnew_coservice'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_coservice'" ]] [version;"Eliom_services.html"]$ or
        $a ~fragment:"VALnew_post_coservice'" ~service:senddoc ~sp [code [pcdata "Eliom_services.new_post_coservice'" ]] [version;"Eliom_services.html"]$.
-       POST non-attached (co)services are really useful if you want a
+       POST non-attached coservices are really useful if you want a
        link or form to be present on every page but you don't want the
-       URL to change. Very often, POST (co)services are used with <em>actions</em>
+       URL to change. Very often, non-attached POST coservices are
+       used with <em>actions</em> or <em>redirections</em>
        (<a href="#p2actions">see more details and an example in the section about
           actions below</a>).
        </p>
+       <p>Non-attached coservices are distinguished by there names
+         (if the optional <code>name</code> parameter is present), or a number
+         (automatically generated and every times different).</p>
     </div>
     <h3 id="p2coservicesinsessiontable">Coservices in session tables</h3>
     <div id="p2calc" class="onecol">
@@ -2101,7 +2097,7 @@ let () =
 </pre>
       <p>Here we rewrite the example <code>session_data_example</code>
       using actions
-      and non-attached services
+      and named non-attached coservices
       (note the POST coservice for disconnection, much better than the
       previous solution that was using another URL).</p>
 *html*)
@@ -2123,14 +2119,14 @@ let connect_example3 =
     ()
 
 let connect_action =
-  Eliom_services.new_post_service'
+  Eliom_services.new_post_coservice'
     ~name:"connect3"
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_predefmod.Actions.register_new_post_service'
+  Eliom_predefmod.Actions.register_new_post_coservice'
     ~name:"disconnect3"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -2271,7 +2267,7 @@ let () =
           If this happens after, it will be ignored (with a warning in the
           logs).
         </li>
-        <li>All services (but non-attached ones) must be created in
+        <li>All services (not coservices) must be created in
         a module loaded inside a <code>&lt;site&gt;</code> tag of the
         config file (because they will be attached to a directory).
         Not possible for modules loaded inside <code>&lt;extension&gt;</code>
@@ -2747,7 +2743,7 @@ let persist_session_example =
     ()
 
 let persist_session_connect_action =
-  Eliom_services.new_post_service'
+  Eliom_services.new_post_coservice'
     ~name:"connect4"
     ~post_params:(string "login")
     ()
@@ -2761,7 +2757,7 @@ let persist_session_connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_predefmod.Actions.register_new_post_service'
+  Eliom_predefmod.Actions.register_new_post_coservice'
     ~name:"disconnect4"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -2905,14 +2901,14 @@ let connect_example5 =
     ()
 
 let connect_action =
-  Eliom_services.new_post_service'
+  Eliom_services.new_post_coservice'
     ~name:"connect5"
     ~post_params:(Eliom_parameters.string "login")
     ()
 
 (* As the handler is very simple, we register it now: *)
 let disconnect_action =
-  Eliom_predefmod.Actions.register_new_post_service'
+  Eliom_predefmod.Actions.register_new_post_coservice'
     ~name:"disconnect5"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
@@ -3008,7 +3004,7 @@ let preappl = Eliom_services.preapply coucou_params (3,(4,"cinq"))
      it has no parameter at all, even non-attached parameters.
      Use it if you want to make a link to the current page
      without non-attached parameters.
-     It is almost equivalent to a POST non-attached service without POST
+     It is almost equivalent to a POST non-attached coservice without POST
      parameters, on which you register an action that does nothing,
      but you can use it with <code>&lt;a&gt;</code> links, not only forms.
      Example:
@@ -3060,7 +3056,7 @@ let connect_example6 =
     ()
 
 let connect_action =
-  Eliom_services.new_post_service'
+  Eliom_services.new_post_coservice'
     ~name:"connect6"
     ~post_params:(string "login")
     ()
@@ -3068,7 +3064,7 @@ let connect_action =
 (* new disconnect action and box:                           *)
 
 let disconnect_action =
-  Eliom_predefmod.Actions.register_new_post_service'
+  Eliom_predefmod.Actions.register_new_post_coservice'
     ~name:"disconnect6"
     ~post_params:Eliom_parameters.unit
     (fun sp () () ->
