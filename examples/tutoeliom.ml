@@ -986,7 +986,7 @@ let looong2 =
         <li>a change of URL (or not).</li>
       </ul>
       <p>To take into account all possible behaviours with respect to URLs, 
-        Eliom uses four kinds of services:</p>
+        Eliom uses three kinds of services:</p>
       <dl class="blue">
         <dt>Main services</dt><dd>are the main entry points of your sites.
         Created by <code>new_service</code> or
@@ -1051,12 +1051,12 @@ let looong2 =
       using these different modules:</p>
         <table>
 <tr><td class="empty"></td>
-  <th colspan="2" class="col2">Services</th>
+  <th class="col2">Services</th>
   <th colspan="2" class="col2">Coservices</th></tr>
 <tr><td class="empty"></td>
   <th class="col2"></th>
-  <th class="col2">attached</th>
-  <th class="col2">non-attached</th>
+  <th class="col2">attached<br/>named&nbsp;/&nbsp;anonymous</th>
+  <th class="col2">non-attached<br/>named&nbsp;/&nbsp;anonymous</th>
 </tr>
 <tr><th class="row">$a ~service:senddoc ~sp [code [pcdata "Eliom_predefmod.Xhtml" ]] [version;"Eliom_predefmod.Xhtml.html"]$</th>
           <td colspan="4">Allows to register functions that
