@@ -19,7 +19,7 @@ endif
 
 LIB = $(LIBDIRS) -package lwt,netstring,camlp4
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
-CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) -dlcode $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIB)
 PP = -syntax camlp4o -ppopt "../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 

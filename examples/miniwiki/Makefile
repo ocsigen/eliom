@@ -4,7 +4,7 @@ FILES=$(wildcard *.ml)
 
 LIB = -package lwt,pcre $(LIBDIRS2)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
-CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) -dlcode $(DBG) $(LIB)
+CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
 
 OBJS = $(FILES:.ml=.cmo)

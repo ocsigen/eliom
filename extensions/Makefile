@@ -86,7 +86,7 @@ ocsipersist-sqlite.cma: ocsipersist.cmo
 	$(CAMLC) -a -o ocsipersist-sqlite.cma ocsipersist.cmo
 
 ocsipersist-sqlite.cmxs: ocsipersist.cmx
-	$(CAMLOPT) -dlcode -shared -linkall -o ocsipersist-sqlite.cmxs ocsipersist.cmx
+	$(CAMLOPT) -shared -linkall -o ocsipersist-sqlite.cmxs ocsipersist.cmx
 
 
 .ml.cmo:
@@ -96,10 +96,10 @@ ocsipersist-sqlite.cmxs: ocsipersist.cmx
 	$(CAMLC) -c $<
 
 .ml.cmx:
-	$(CAMLOPT) $(PP) -dlcode -c $<
+	$(CAMLOPT) $(PP) -c $<
 
 .cmx.cmxs:
-	$(CAMLOPT) -dlcode -shared -linkall -o $@ $<
+	$(CAMLOPT) -shared -linkall -o $@ $<
 
 #doc:
 #	$(CAMLDOC) -d doc -html ocsigen.mli ocsigen_extensions.mli
