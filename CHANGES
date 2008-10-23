@@ -1,21 +1,19 @@
 = Development version =
 
   * Config file: {{{aliases}}} attribute now called {{{hostfilter}}}
-  * Revproxy and Redirectmod: now possible to filter on server, 
-    port and protocol
+  * Revproxy and Redirectmod: now possible to filter on server, port
+    and protocol
   * Build C stubs into a shared library so that bytecode executables
     may be not linked in custom mode; new {{{--stubdir}}} option in
     {{{configure}}} script
-  * Eliom: non-attached services now called "named non-attached coservices"
-    and created using {{Eliom_services.new_coservice'}} with the optional
-    {{name}} parameter
-  * Eliom: now possible to create named attached coservices
-    using the optional {{name}} parameter
-  * Eliom: now possible to write libraries
-    for Eliom sites, loaded inside {{{<host>}}} but do not generate
-    any page.
-  * Eliom and server: EXPERIMENTAL
-    now possible to make extensions
+  * Eliom: non-attached services now called "named non-attached
+    coservices" and created using {{Eliom_services.new_coservice'}}
+    with the optional {{name}} parameter
+  * Eliom: now possible to create named attached coservices using the
+    optional {{name}} parameter
+  * Eliom: now possible to write libraries for Eliom sites, loaded
+    inside {{{<host>}}} but do not generate any page.
+  * Eliom and server: EXPERIMENTAL now possible to make extensions
     that can use Eliom's data.
   * XHTML.M's pretty printer: now possible to set the DOCTYPE
     manually.
@@ -23,6 +21,8 @@
     an XHTML.M service.
   * Redirectmod and Revproxy: now possible to to more complex
     rewriting.
+  * Accesscontrol: add support for {{{<port>}}} and {{{<ssl>}}}
+    conditions.
 
 = 1.1.0 =
 
