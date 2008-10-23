@@ -63,6 +63,32 @@ let rec parse_condition = function
              Ocsigen_messages.debug2 (sprintf "--Access control (ip): %s does not match %s" ri.ri_remote_ip s);
            r)
 
+    | Element ("port", ["value", s], []) ->
+        let port =
+          try
+            int_of_string s
+          with Failure _ ->
+            badconfig "Bad port [%s] in <port> condition" s
+        in
+        (fun ri ->
+           let r = ri.ri_server_port = port in
+           if r then
+             Ocsigen_messages.debug2
+               (sprintf "--Access control (port): %d accepted" port)
+           else
+             Ocsigen_messages.debug2
+               (sprintf "--Access control (port): %d not accepted (%d expected)" ri.ri_server_port port);
+           r)
+
+    | Element ("ssl", [], []) ->
+        (fun ri ->
+           let r = ri.ri_ssl in
+           if r then
+             Ocsigen_messages.debug2 "--Access control (ssl): accepted"
+           else
+             Ocsigen_messages.debug2 "--Access control (ssl): not accepted";
+           r)
+
     | Element ("header", ["name", name; "regexp", reg], []) ->
         let regexp =
           try
