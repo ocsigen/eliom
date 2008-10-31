@@ -398,43 +398,36 @@ module Directory_content =
         | _ -> "/ocsigenstuff/unknown.png"
 
 
+    (* An html row for a file in the directory listing *)
+    let file_row name icon stat = Printf.sprintf "
+<tr>
+  <td class=\"img\"><img src=\"%s\" alt=\"\" /></td>
+  <td><a href=\"%s\">%s</a></td>
+  <td>%Ld</td>
+  <td>%s</td>
+</tr>"
+        icon (Netencoding.Url.encode name) name stat.Unix.LargeFile.st_size
+        (date stat.Unix.LargeFile.st_mtime)
+
 
     let directory filename =
       let dir = Unix.opendir filename in
       let rec aux d =
         try
           let f = Unix.readdir dir in
-          let stat = Unix.LargeFile.stat (filename^f) in
-          if (stat.Unix.LargeFile.st_kind = Unix.S_DIR && f <> "." && f <> "..")
-          then
-            (
-             `Dir, f, (
-             "<tr>\n"^
-             "<td class=\"img\"><img src=\"/ocsigenstuff/folder_open.png\" alt=\"\" /></td>\n"^
-             "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
-             "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
-             "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
-             "</tr>\n")
-            )::aux d
-          else
-            if (stat.Unix.LargeFile.st_kind
-                  = Unix.S_REG)
+          try
+            let stat = Unix.LargeFile.stat (filename^f) in
+            if stat.Unix.LargeFile.st_kind = Unix.S_DIR && f <> "." && f <> ".."
             then
-              (
-               if f.[(String.length f) - 1] = '~'
-               then aux d
-               else
-                 (
-                  `Reg, f,
-                  "<tr>\n"^
-                  "<td class=\"img\"><img src=\""^image_found f^"\" alt=\"\" /></td>\n"^
-                  "<td><a href=\""^f^"\">"^f^"</a></td>\n"^
-                  "<td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n"^
-                  "<td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n"^
-                  "</tr>\n"
-                 )::aux d
-              )
-            else aux d
+              (`Dir, f,
+               file_row f "/ocsigenstuff/folder_open.png" stat) :: aux d
+            else
+              if stat.Unix.LargeFile.st_kind = Unix.S_REG &&
+                f.[(String.length f) - 1] <> '~'
+              then
+                (`Reg, f, file_row f (image_found f) stat) :: aux d
+              else aux d
+          with _ (* Unix.stat can fail for a lot of reasons *) -> aux d
         with
           End_of_file -> Unix.closedir d;[]
 
@@ -475,7 +468,7 @@ module Directory_content =
       let before =
         let st = (Ocsigen_lib.string_of_url_path path) in
         "<html>\n\
-         <head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n\
+         <head><meta http-equiv=\"Content-Type\" content=\"text/html;\" />\n\
          <link rel=\"stylesheet\" type=\"text/css\" href=\"/ocsigenstuff/style.css\" media=\"screen\" />\n\
          <title>Listing Directory: "^st^"</title>\n</head>\n\
          <body><h1>"^st^"</h1>\n\
