@@ -164,7 +164,7 @@ let parse_config path (charset, _, _, _) _ parse_site =
       | ("dir", d)::l when dir = None ->
           parse_attrs l (Some d, regexp, readable, code, dest, follow)
 
-      | ("readable", "readable")::l when readable = None ->
+      | (("readable", "readable") | ("listdirectorycontent","1"))::l when readable = None ->
           parse_attrs l (dir, regexp, Some true, code, dest, follow)
 
       | ("code", c)::l when code = None ->
