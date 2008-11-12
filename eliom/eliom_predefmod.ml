@@ -2025,65 +2025,34 @@ module Filesreg_ = struct
 
   type page = string
 
-  type options = unit
+  type options = LocalFiles.options
 
   let send ?options ?(cookies=[]) ?charset ?code ~sp filename =
-    let (filename, stat) =
-      (try
-        (* That piece of code has been pasted from staticmod.ml *)
-        let stat = Unix.LargeFile.stat filename in
-        let (filename, stat) =
-          Ocsigen_messages.debug (fun () -> "Eliom.Files - Testing \""^filename^"\".");
-          let path = get_current_sub_path sp in
-          if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
-          then
-            if (filename.[(String.length filename) - 1]) = '/'
-            then
-              let fn2 = filename^"index.html" in
-              Ocsigen_messages.debug (fun () -> "Eliom.Files - Testing \""^fn2^"\".");
-              (fn2,(Unix.LargeFile.stat fn2))
-            else
-              (if (path= []) || (path = [""])
-              then
-                let fn2 = filename^"/index.html" in
-                Ocsigen_messages.debug (fun () -> "Eliom.Files - Testing \""^fn2^"\".");
-                (fn2,(Unix.LargeFile.stat fn2))
-              else (Ocsigen_messages.debug
-                      (fun () -> "Eliom.Files - "^filename^" is a directory");
-                    raise Ocsigen_Is_a_directory))
-          else (filename, stat)
-        in
-        Ocsigen_messages.debug
-          (fun () ->
-            "Eliom.Files - Looking for \""^filename^"\".");
-
-        if (stat.Unix.LargeFile.st_kind
-              = Unix.S_REG)
-        then begin
-          Unix.access filename [Unix.R_OK];
-          (filename, stat)
-        end
-        else
-          raise Eliom_common.Eliom_404
-(*          raise (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404))(* ??? *) *)
-      with
-        (Unix.Unix_error (Unix.EACCES,_,_))
-      | Ocsigen_Is_a_directory
-      | Ocsigen_malformed_url as e -> raise e
-      | e -> raise Eliom_common.Eliom_404
-(* raise (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404)) *)
-      )
+    let options = match options with
+      | None ->
+          { LocalFiles.list_directory_content = false;
+            follow_symlinks = LocalFiles.DoNotFollow }
+      | Some v -> v
     in
-    Ocsigen_senders.File_content.result_of_content filename >>= fun r ->
+    let file =
+      try LocalFiles.resolve filename options
+      with
+        | Ocsigen_Is_a_directory as e -> raise e
+        | LocalFiles.Failed_403 (* XXX : maybe we should signal a true 403? *)
+        | LocalFiles.Failed_404 -> raise Eliom_common.Eliom_404
+    in
+    LocalFiles.content ~url:(get_current_full_path sp) ~file
+    >>= fun r ->
     Lwt.return
-        (EliomResult
-           {r with
-            res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
-            res_code= code_of_code_option code;
-            res_charset= (match charset with
-            | None -> Some (get_config_file_charset sp)
-            | _ -> charset);
-          })
+      (EliomResult
+         { r with
+             res_cookies =
+               Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
+             res_code = code_of_code_option code;
+             res_charset = (match charset with
+                              | None -> Some (get_config_file_charset sp)
+                              | _ -> charset);
+         })
 
 
 end

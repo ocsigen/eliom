@@ -309,11 +309,9 @@ module File_content =
     let result_of_content ?(options = ()) c =
       (* open the file *)
       try
-        let fd =
-          Lwt_unix.of_unix_file_descr
-            (Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666)
-        in
-        let st = Unix.LargeFile.stat c in
+        let fdu = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
+        let fd = Lwt_unix.of_unix_file_descr fdu in
+        let st = Unix.LargeFile.fstat fdu in
         let etag = get_etag_aux st in
         let stream = read_file fd in
         let default_result = default_result () in
@@ -455,16 +453,17 @@ module Directory_content =
     let result_of_content ?(options = ()) (filename, path) =
       let stat = Unix.LargeFile.stat filename in
       let rec back = function
-        | [] -> assert false
-        | [a] -> "/"
-        | [a;""] -> "/"
-        | i::j -> "/"^i^(back j)
+        | [] | [""] -> assert false
+        | [_] | [_ ; ""] -> []
+        | i::j -> i :: (back j)
       in
       let parent =
-        if (path= []) || (path = [""])
-        then "/"
-        else back path
+        if path = [] || path = [""] then
+          None
+        else
+          Some ("/"^Ocsigen_lib.string_of_url_path (back path))
       in
+      let parent =  parent in
       let before =
         let st = (Ocsigen_lib.string_of_url_path path) in
         "<html>\n\
@@ -474,9 +473,13 @@ module Directory_content =
          <body><h1>"^st^"</h1>\n\
          <table summary=\"Contenu du dossier "^st^"\">\n\
          <tr id=\"headers\"><th></th><th>Name</th><th>Size</th>\
-         <th>Last modified</th></tr>\
-         <tr>\n\
-         <td class=\"img\"><img src=\"/ocsigenstuff/back.png\" alt=\"\" /></td>\n\
+         <th>Last modified</th></tr>\n"
+
+      and back = match parent with
+        | None -> ""
+        | Some parent ->
+         "<tr>\n\
+          <td class=\"img\"><img src=\"/ocsigenstuff/back.png\" alt=\"\" /></td>\n\
          <td><a href=\""^parent^"\">Parent Directory</a></td>\n\
          <td>"^(Int64.to_string stat.Unix.LargeFile.st_size)^"</td>\n\
          <td>"^(date stat.Unix.LargeFile.st_mtime)^"</td>\n\
@@ -487,7 +490,7 @@ module Directory_content =
          <p id=\"footer\">Ocsigen Webserver</p>\
          </body></html>"
       in
-      let c = before^(directory filename)^after in
+      let c = before^back^(directory filename)^after in
       let etag = get_etag_aux stat in
       Text_content.result_of_content (c, "text/html") >>= fun r ->
       Lwt.return

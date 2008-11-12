@@ -31,7 +31,6 @@ open Ocsigen_lib
 
 exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
 exception Ocsigen_Is_a_directory
-exception Ocsigen_malformed_url
 exception Ocsigen_Internal_Error of string
 
 exception Bad_config_tag_for_extension of string (** Try next extension *)

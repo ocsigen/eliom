@@ -556,7 +556,6 @@ let gen reg (charset, hostname, _, _) = function
            (fun e -> Ocsigen_stream.finalize content >>= fun () -> Lwt.fail e))
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
-      | Ocsigen_malformed_url
       | Lost_connection _ as e -> fail e
       | Ocsigen_Is_a_directory
       | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_next 404)

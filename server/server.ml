@@ -384,7 +384,6 @@ let service
            or the order of the options in the config file is wrong.";
         send_error ~exn:e sender_slot ~clientproto ~head
           ~code:500 ~sender:Ocsigen_http_com.default_sender () (* Internal error *)
-    | Ocsigen_extensions.Ocsigen_malformed_url
     | Unix.Unix_error (Unix.EACCES,_,_)
     | Ocsigen_upload_forbidden ->
         Ocsigen_messages.debug2 "-> Sending 403 Forbidden";

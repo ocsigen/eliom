@@ -849,6 +849,8 @@ module String_redirection : Eliom_mkreg.ELIOMREGSIG with
 (** Allows to send files. The content is the name of the file to send. *)
 module Files : Eliom_mkreg.ELIOMREGSIG with
   type page = string
+  and type options = LocalFiles.options
+
 
 (** Allows to create services that choose dynamically what they want
    to send. The content is created using one {!Eliom_mkreg.ELIOMREGSIG1.send}
