@@ -30,6 +30,8 @@ open Ocsigen_extensions
 open Eliom_mkforms
 open Eliom_mkreg
 
+let str = Ocamlduce.Utf8.make
+
 let add_css (a : html) : html =
   let css =
     {{ <style type="text/css">"\n.eliom_inline {display: inline}\n.eliom_nodisplay {display: none}\n"}}
@@ -184,14 +186,14 @@ module Xhtmlforms_ = struct
 
   let select_content_of_option a = (a :> select_content_elt)
 
-  let make_pcdata s = {{ {: s :} }}
+  let make_pcdata s = str s
 
   let make_a ?(a={{ {} }}) ~href l : a_elt =
-    {{ <a ({href={: uri_of_string href :} } ++ a)> l }}
+    {{ <a ({href=(str href) } ++ a)> l }}
 
   let make_get_form ?(a={{ {} }}) ~(action : uri) elt1 elts : form_elt =
     {{ <form ({method="get"
-               action={: action :}}
+               action=(str action)}
               ++ a )>
        [ elt1 !elts ] }}
 
@@ -199,10 +201,10 @@ module Xhtmlforms_ = struct
       : form_elt =
     let id_attr = (match id with
     | None -> {{ {} }}
-    | Some (i : string) -> {{ { id={: i :} } }})
+    | Some (i : string) -> {{ { id=(str i) } }})
     in
     let inline_attr = if inline then {{ { class="inline" } }} else {{ {} }} in
-    {{ <form ({action={: action :}
+    {{ <form ({action=(str action)
                enctype="multipart/form-data"
                method="post"}
               ++ inline_attr
@@ -221,7 +223,7 @@ module Xhtmlforms_ = struct
 
   let make_div ~classe c =
     let classe = (List.fold_left (fun a b -> a^" "^b) "" classe) in
-    {{ <div class={: classe :}> [ c ] }}
+    {{ <div class=(str classe)> [ c ] }}
 
   let make_empty_form_content () = {{ <p> [] }} (**** à revoir !!!!! *)
 
@@ -230,15 +232,15 @@ module Xhtmlforms_ = struct
   let make_input ?(a={{ {} }}) ?(checked=false) ~typ ?name ?src ?value () =
     let a2 = match value with
     | None -> {{ {} }}
-    | Some (v : string) -> {{ { value={: v :} } }}
+    | Some (v : string) -> {{ { value=(str v) } }}
     in
     let a3 = match name with
     | None -> {{ {} }}
-    | Some (v : string) -> {{ { name={: v :} } }}
+    | Some (v : string) -> {{ { name=(str v) } }}
     in
     let a4 = match src with
     | None -> {{ {} }}
-    | Some (v : string) -> {{ { src={: v :} } }}
+    | Some (v : uri) -> {{ { src=(str v) } }}
     in
     let a5 = if checked then {{ { checked="checked" } }} else {{ {} }} in
     {{ <input ({type=typ} ++ a ++ a2 ++ a3 ++ a4 ++ a5)> [] }}
@@ -246,44 +248,44 @@ module Xhtmlforms_ = struct
   let make_button ?(a={{ {} }}) ~button_type ?name ?value c =
     let a2 = match value with
     | None -> {{ {} }}
-    | Some (v : string) -> {{ { value={: v :} } }}
+    | Some (v : string) -> {{ { value=(str v) } }}
     in
     let a3 = match name with
     | None -> {{ {} }}
-    | Some (v : string) -> {{ { name={: v :} } }}
+    | Some (v : string) -> {{ { name=(str v) } }}
     in
     {{ <button ({type=button_type} ++ a ++ a2 ++ a3)> c }}
 
   let make_textarea ?(a={{ {} }}) ~name ?(value={{ [] }}) ~rows ~cols () =
-    {{ <textarea ({ name={: name :}
+    {{ <textarea ({ name=(str name)
                     rows={: string_of_int rows :}
                     cols={: string_of_int cols :}
                   } ++ a)> value }}
 
   let make_select ?(a={{ {} }}) ~multiple ~name elt elts =
     let a2 = if multiple then {{ { multiple="multiple" } }} else {{ {} }} in
-    {{ <select ({name={: name :}} ++ a2 ++ a)> [ elt !elts ] }}
+    {{ <select ({name=(str name)} ++ a2 ++ a)> [ elt !elts ] }}
 
   let make_option ?(a={{ {} }}) ~selected ?value c =
     let a2 = match value with
     | None -> {{ {} }}
-    | Some (v : string) -> {{ { value={: v :} } }}
+    | Some (v : string) -> {{ { value=(str v) } }}
     in
     let a3 = if selected then {{ { selected="selected" } }} else {{ {} }} in
     {{ <option (a3 ++ a2 ++ a)> c }}
 
   let make_optgroup ?(a={{ {} }}) ~label elt elts =
-    {{ <optgroup ({label={: label :}} ++ a)> [ elt !elts ] }}
+    {{ <optgroup ({label=(str label)} ++ a)> [ elt !elts ] }}
 
   let make_css_link ?(a={{ {} }}) ~uri () =
-    {{ <link ({href={: uri :}
+    {{ <link ({href=(str uri)
             type="text/css"
             rel="stylesheet"}
             ++ a)> [] }}
 
   let make_js_script ?(a={{ {} }}) ~uri () =
     {{ <script ({type="text/javascript"
-                 src={: uri :} } ++ a)> [] }}
+                 src=(str uri) } ++ a)> [] }}
 
 end
 
