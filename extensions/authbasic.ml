@@ -140,22 +140,11 @@ let parse_config path charset _ parse_fun = function
     | _ -> raise (Error_in_config_file "(authbasic extension) Bad data")
 
 
-(*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase
-    of the server (actually each time the config file is reloaded) *)
-let start_init () =
-  ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () =
-  ()
 
 
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension
-  (fun hostpattern -> parse_config)
-  (fun hostpattern -> parse_config)
-  start_init
-  end_init
-  raise
+  ~fun_site:(fun _ -> parse_config)
+  ~user_fun_site:(fun _ -> parse_config)
+  ()

@@ -151,25 +151,10 @@ let parse_config hostpattern path charset =
       | _ -> raise (Error_in_config_file "(userconf extension) Bad data")
 
 
-(*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase *)
-let start_init () =
-  ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () =
-  ()
-
 
 
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
-    parse_config
-    Ocsigen_extensions.void_extension
-  (*fun hostpattern ->
-    parse_config (Ocsigen_extensions.parse_user_site_item hostpattern)*)
-  start_init
-  end_init
-  raise
-
+  ~fun_site:parse_config
+  ()

@@ -141,7 +141,7 @@ let parse_config path charset _ parse_site = function
 (*****************************************************************************)
 (** Function to be called at the beginning of the initialisation phase
     of the server (actually each time the config file is reloaded) *)
-let start_init () =
+let begin_init () =
   ()
 
 (** Function to be called at the end of the initialisation phase *)
@@ -177,26 +177,33 @@ let exn_handler = raise
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
      {- return something of type [extension] (filter or page generator)}}
 *)
-let site_creator hostpattern = parse_config
+let site_creator (hostpattern : Ocsigen_extensions.virtual_hosts) = parse_config
    (* hostpattern has type Ocsigen_extensions.virtual_hosts
       and represents the name of the virtual host.
       The path and the charset are declared in <site path... charset=.../>
     *)
 
 
+(* Same thing if the extension is loaded inside a local config
+   file (using the userconf extension) *)
+let user_site_creator = site_creator
+
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension
-  site_creator
-  Ocsigen_extensions.void_extension (* If I don't want to allow users to use
-                               that extension in their configuration files
-                               (that are reloaded at every request).
-                               If my extension is safe for users and if
-                               I want to allow exactly the same options
-                               as for gloab configuration, use the same
-                               [site_creator] function.
-                             *)
-  start_init
-  end_init
-  exn_handler
+  ~fun_site:site_creator
+
+  (* If your extension is safe for users and if you want to allow
+     exactly the same options as for global configuration, use the same
+     [site_creator] function for [user_fun_site] as for [fun_site].
+
+     If you don't want to allow users to use that extension in their
+     configuration files, you can omit user_fun_site entirely, which
+     is equivalent to passing it
+     [Ocsigen_extensions.extension_void_fun_site]
+  *)
+  ~user_fun_site:user_site_creator
+
+  ~begin_init ~end_init ~exn_handler
+  ()
 

@@ -160,18 +160,6 @@ let find_redirection r https host port path =
 
 
 (*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase
-    of the server (actually each time the config file is reloaded) *)
-let start_init () =
-  ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () =
-  ()
-
-
-
-(*****************************************************************************)
 (** The function that will generate the pages from the request. *)
 exception Bad_answer_from_http_server
 
@@ -383,11 +371,8 @@ let parse_config path charset _ parse_site = function
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension
-    ~respect_pipeline:true (* We ask ocsigen to respect pipeline order
-                              when sending to extensions! *)
-    (fun hostpattern -> parse_config)
-    (fun hostpattern -> parse_config)
-    start_init
-    end_init
-    raise
-
+  ~fun_site:(fun _ -> parse_config)
+  ~user_fun_site:(fun _ -> parse_config)
+  ~respect_pipeline:true (* We ask ocsigen to respect pipeline order
+                            when sending to extensions! *)
+  ()

@@ -185,6 +185,7 @@ type extension = request_state -> answer Lwt.t
 
 type parse_fun = Simplexmlparser.xml list -> extension2
 
+
 type parse_host =
     Parse_host of
       (url_path ->
@@ -415,31 +416,43 @@ and make_parse_site path charsetetc parse_host l =
 
 (*****************************************************************************)
 
+type parse_site =
+  virtual_hosts ->
+  url_path ->
+  string * string * int * int ->
+  parse_host ->
+  parse_fun ->
+  Simplexmlparser.xml ->
+  extension
 
-let register_extension,
-  parse_site_item,
-  parse_user_site_item,
-  get_beg_init,
-  get_end_init,
-  get_init_exn_handler =
-  let fun_site = ref default_parse_config in
-  let user_fun_site = ref default_parse_config in
+
+
+let extension_void_fun_site _ _ _ _ _ = function
+  | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
+  | _ -> raise (Error_in_config_file "Unexpected data in config file")
+
+
+let register_extension, parse_site_item, parse_user_site_item, get_beg_init, get_end_init, get_init_exn_handler =
+  let ref_fun_site = ref default_parse_config in
+  let ref_user_fun_site = ref default_parse_config in
 
   ((* ********* register_extension ********* *)
-     (fun ?(respect_pipeline=false)
-         new_fun_site
-         new_user_fun_site
-         begin_init
-         end_init
-         handle_exn ->
+    (fun ~fun_site
+         ?(user_fun_site = extension_void_fun_site)
+         ?(begin_init=(fun () -> ()))
+         ?(end_init=(fun () -> ()))
+         ?(exn_handler=raise)
+         ?(respect_pipeline=false)
+       ()
+       ->
 
        if respect_pipeline then Ocsigen_config.set_respect_pipeline ();
 
-       let old_fun_site = !fun_site in
-       fun_site :=
+       let old_fun_site = !ref_fun_site in
+       ref_fun_site :=
          (fun host ->
            let oldf = old_fun_site host in
-           let newf = new_fun_site host in
+           let newf = fun_site host in
            fun path charsetetc parse_host ->
              let oldf = oldf path charsetetc parse_host in
              let newf = newf path charsetetc parse_host in
@@ -450,11 +463,11 @@ let register_extension,
                | Bad_config_tag_for_extension c -> newf parse_site config_tag
          );
 
-       let old_fun_site = !user_fun_site in
-       user_fun_site :=
+       let old_fun_site = !ref_user_fun_site in
+       ref_user_fun_site :=
          (fun host ->
            let oldf = old_fun_site host in
-           let newf = new_user_fun_site host in
+           let newf = user_fun_site host in
            fun path charsetetc parse_host ->
              let oldf = oldf path charsetetc parse_host in
              let newf = newf path charsetetc parse_host in
@@ -468,14 +481,14 @@ let register_extension,
        fun_beg := comp begin_init !fun_beg;
        fun_end := comp end_init !fun_end;
        let curexnfun = !fun_exn in
-       fun_exn := fun e -> try curexnfun e with e -> handle_exn e),
+       fun_exn := fun e -> try curexnfun e with e -> exn_handler e),
 
 
    (* ********* parse_site_item ********* *)
-   (fun host -> !fun_site host),
+   (fun host -> !ref_fun_site host),
 
    (* ********* parse_user_site_item ********* *)
-   (fun host -> !user_fun_site host),
+   (fun host -> !ref_user_fun_site host),
 
    (* ********* get_beg_init ********* *)
    (fun () -> !fun_beg),
@@ -487,10 +500,6 @@ let register_extension,
    (fun () -> !fun_exn)
   )
 
-
-let void_extension _ _ _ _ _ = function
-  | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
-  | _ -> raise (Error_in_config_file "Unexpected data in config file")
 
 
 (*****************************************************************************)

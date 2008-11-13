@@ -221,8 +221,6 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
 (*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase *)
-let start_init () = ()
 
 (** Function to be called at the end of the initialisation phase *)
 let end_init () =
@@ -407,11 +405,10 @@ let parse_config hostpattern site_dir charsetetc =
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
-  parse_config
-  Ocsigen_extensions.void_extension
-  start_init
-  end_init
-  handle_init_exn
+  ?fun_site:parse_config
+  ~end_init
+  ~exn_handler:handle_init_exn
+  ()
 
 let _ = Eliommod_gc.persistent_session_gc ()
 

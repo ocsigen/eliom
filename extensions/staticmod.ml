@@ -230,22 +230,10 @@ let parse_config path (charset, _, _, _) _ parse_site =
     | _ -> bad_config "(staticmod extension) Bad data"
 
 
-(*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase *)
-let start_init () =
-  ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () =
-  ()
-
 
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
-  (fun hostpattern -> parse_config)
-  (fun hostpattern -> parse_config)
-  start_init
-  end_init
-  raise
-
+  ~fun_site:(fun _ -> parse_config)
+  ~user_fun_site:(fun _ -> parse_config)
+  ()

@@ -1,5 +1,5 @@
-(* Auxiliary functions to display a local file or directory. Currently
-used in staticmod and eliom_predefmod*)
+(* Displaying of a local file or directory. Currently used in
+   staticmod and eliom_predefmod*)
 
 exception Failed_403
 exception Failed_404

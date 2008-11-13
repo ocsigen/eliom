@@ -462,15 +462,6 @@ let rec parse_global_config = function
 let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 
-
-
-(*****************************************************************************)
-(** A function that will create an error message from the exceptions
-    that may be raised during the initialisation phase, and raise again
-    all other exceptions. That function has type exn -> string. Use the
-   raise function if you don't need any. *)
-let exn_handler = raise
-
 (*****************************************************************************)
 
 let gen reg (charset, hostname, _, _) = function
@@ -625,21 +616,9 @@ let parse_config path (a, hostname, b, c) _ parse_site = function
 
 
 
-(*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase
-    of the server  *)
-let start_init () =
-  ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () = ()
-(*      for default cgi dir *)
 
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = register_extension
-  (fun hostpattern -> parse_config)
-  void_extension
-  start_init
-  end_init
-  exn_handler
+  ~fun_site:(fun _ -> parse_config)
+  ()

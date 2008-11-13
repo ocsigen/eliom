@@ -92,19 +92,6 @@ let find_redirection (Regexp (regexp, dest, temp)) https host port path =
 
 
 
-
-(*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase
-    of the server (actually each time the config file is reloaded) *)
-let start_init () =
-  ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () =
-  ()
-
-
-
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
 let gen dir charset = function
@@ -174,23 +161,9 @@ let parse_config path charset _ parse_site = function
 
 
 
-
-(*****************************************************************************)
-(** A function that will be called for each virtual host,
-   generating two functions:
-    - one that will be called to generate the pages
-    - one to parse the configuration file. *)
-let virtual_host_creator hostpattern = (gen, parse_config)
-   (* hostpattern has type Ocsigen_extensions.virtual_hosts
-      and represents the name of the virtual host *)
-
-
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = register_extension (* takes a quadruple *)
-    (fun hostpattern -> parse_config)
-    (fun hostpattern -> parse_config)
-    start_init
-    end_init
-    raise
-
+let _ = register_extension
+  ~fun_site:(fun _ -> parse_config)
+  ~user_fun_site:(fun _ -> parse_config)
+  ()

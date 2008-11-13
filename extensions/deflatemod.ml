@@ -172,26 +172,6 @@ let compress deflate stream =
     Ocsigen_stream.make
       ~finalize (fun () -> Ocsigen_stream.cont gzip_header new_stream)
 
-(*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase
-    of the server (actually each time the config file is reloaded) *)
-let start_init () =
-  ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () =
-  ()
-
-
-
-(*****************************************************************************)
-(** A function that will create an error message from the exceptions
-    that may be raised during the initialisation phase, and raise again
-    all other exceptions. That function has type exn -> string. Use the
-   raise function if you don't need any. *)
-let exn_handler = raise
-
-
 
 (*****************************************************************************)
 (** The filter function *)
@@ -379,18 +359,9 @@ let parse_config path charset _ _ = function
 
 
 
-(*****************************************************************************)
-let site_creator hostpattern = parse_config
-   (* hostpattern has type Ocsigen_extensions.virtual_hosts
-      and represents the name of the virtual host *)
-
 
 (*****************************************************************************)
 (** Registration of the extension *)
 let _ = Ocsigen_extensions.register_extension
-  site_creator
-  Ocsigen_extensions.void_extension
-  start_init
-  end_init
-  exn_handler
-
+  ~fun_site:(fun _ -> parse_config)
+  ()

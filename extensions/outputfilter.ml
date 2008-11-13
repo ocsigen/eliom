@@ -60,25 +60,6 @@ let gen (header, regexp, dest) charset = function
       with Not_found ->
         Lwt.return (Ocsigen_extensions.Ext_found (fun () -> Lwt.return res))
 
-(*****************************************************************************)
-(** Function to be called at the beginning of the initialisation phase
-    of the server (actually each time the config file is reloaded) *)
-let start_init () =
-  ()
-
-(** Function to be called at the end of the initialisation phase *)
-let end_init () =
-  ()
-
-
-
-(*****************************************************************************)
-(** A function that will create an error message from the exceptions
-    that may be raised during the initialisation phase, and raise again
-    all other exceptions. That function has type exn -> string. Use the
-   raise function if you don't need any. *)
-let exn_handler = raise
-
 
 
 (*****************************************************************************)
@@ -133,10 +114,7 @@ let site_creator hostpattern = parse_config
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = Ocsigen_extensions.register_extension
-  site_creator
-  site_creator
-  start_init
-  end_init
-  exn_handler
-
+let _ = register_extension
+  ~fun_site:site_creator
+  ~user_fun_site:site_creator
+  ()

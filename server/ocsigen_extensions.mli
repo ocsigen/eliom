@@ -221,11 +221,13 @@ type extension = request_state -> answer Lwt.t
 
 type parse_fun = Simplexmlparser.xml list -> extension2
 
+(** Type of the functions parsing the content of a <host> tag *)
 type parse_host
 
-(**
-   For each extension generating pages, we register four functions:
-   - a function taking
+
+
+(** Type of the functions parsing a <site> tag (and returning an extension)
+    Those are functions taking
    {ul
      {- the name of the virtual <host>}}
      that will be called for each <host>,
@@ -240,8 +242,22 @@ type parse_host
    {ul
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
      {- return something of type [extension] (filter or page generator)}}
-   - a function of same type, that will be called every time user configuration
-    files are parsed (if userconf is enabled).
+*)
+type parse_site =
+  virtual_hosts ->
+    (url_path -> string * string * int * int -> parse_host ->
+      (parse_fun -> Simplexmlparser.xml ->
+  extension
+    ))
+
+
+
+(** BYXXX : update this documentation
+   For each extension generating pages, we register five functions:
+   - a function of type parse_site, parsing the configuration for
+    the server
+   - a function of type parse_site type, that will be called every time user
+    configuration  files are parsed (if userconf is enabled).
     It must define only safe options, for example it is not
     safe to allow such options to load a cmo specified by a user, or to
     execute a program, as this program will be executed by ocsigen's user.
@@ -266,38 +282,18 @@ type parse_host
    the requests you to another server. It is false by default.
  *)
 val register_extension :
-  ?respect_pipeline: bool ->
-  (virtual_hosts ->
-     url_path ->
-       string * string * int * int ->
-         parse_host ->
-           parse_fun ->
-             Simplexmlparser.xml ->
-               extension) ->
-  (virtual_hosts ->
-     url_path ->
-       string * string * int * int ->
-         parse_host ->
-           parse_fun ->
-             Simplexmlparser.xml ->
-               extension) ->
-  (unit -> unit) ->
-  (unit -> unit) ->
-  (exn -> string) ->
-  unit
-
+  fun_site:parse_site ->
+  ?user_fun_site:parse_site ->
+  ?begin_init:(unit -> unit) ->
+  ?end_init:(unit -> unit) ->
+  ?exn_handler:(exn -> string) ->
+  ?respect_pipeline:bool ->
+  unit -> unit
 
 (** A predefined function to be passed to {!Ocsigen_extensions.register_extension}
     that defines no option.
  *)
-val void_extension :
-    virtual_hosts ->
-      url_path ->
-        string * string * int * int ->
-          parse_host ->
-            parse_fun ->
-              Simplexmlparser.xml ->
-                extension
+val extension_void_fun_site : parse_site
 
 
 (** While loading an extension,
@@ -333,19 +329,8 @@ val make_parse_site :
        parse_host -> parse_fun -> Simplexmlparser.xml -> extension) ->
   parse_fun
 
-val parse_site_item :
-  virtual_hosts ->
-  url_path ->
-  string * string * int * int ->
-  parse_host ->
-  parse_fun -> Simplexmlparser.xml -> extension
-  
-val parse_user_site_item :
-  virtual_hosts ->
-  url_path ->
-  string * string * int * int ->
-  parse_host ->
-  parse_fun -> Simplexmlparser.xml -> extension
+val parse_site_item : parse_site
+val parse_user_site_item : parse_site
 
 val set_hosts : (virtual_hosts * extension2) list -> unit
 
