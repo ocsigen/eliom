@@ -37,6 +37,10 @@ exception Ocsigen_Looping_request
 exception Bad_config_tag_for_extension of string
 exception Error_in_config_file of string
 
+(* Incorrect option in an userconf file *)
+exception Error_in_user_config_file of string
+
+
 let badconfig fmt = Printf.ksprintf (fun s -> raise (Error_in_config_file s)) fmt
 
 (*****************************************************************************)
@@ -416,25 +420,28 @@ and make_parse_site path charsetetc parse_host l =
 
 (*****************************************************************************)
 
-type parse_site =
-  virtual_hosts ->
-  url_path ->
-  string * string * int * int ->
-  parse_host ->
-  parse_fun ->
-  Simplexmlparser.xml ->
-  extension
+type userconf_info = {
+  localfiles_root : string;
+}
+
+type parse_site = virtual_hosts -> parse_site_aux
+and parse_site_user = userconf_info -> parse_site
+and parse_site_aux =
+    url_path -> string * string * int * int -> parse_host ->
+      (parse_fun -> Simplexmlparser.xml ->
+         extension
+      )
 
 
 
-let extension_void_fun_site _ _ _ _ _ = function
+let extension_void_fun_site : parse_site_user = fun _ _ _ _ _ _ -> function
   | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "Unexpected data in config file")
 
 
 let register_extension, parse_site_item, parse_user_site_item, get_beg_init, get_end_init, get_init_exn_handler =
   let ref_fun_site = ref default_parse_config in
-  let ref_user_fun_site = ref default_parse_config in
+  let ref_user_fun_site = ref (fun (_ : userconf_info) -> default_parse_config) in
 
   ((* ********* register_extension ********* *)
     (fun ~fun_site
@@ -465,9 +472,9 @@ let register_extension, parse_site_item, parse_user_site_item, get_beg_init, get
 
        let old_fun_site = !ref_user_fun_site in
        ref_user_fun_site :=
-         (fun host ->
-           let oldf = old_fun_site host in
-           let newf = user_fun_site host in
+         (fun path host ->
+           let oldf = old_fun_site path host in
+           let newf = user_fun_site path host in
            fun path charsetetc parse_host ->
              let oldf = oldf path charsetetc parse_host in
              let newf = newf path charsetetc parse_host in

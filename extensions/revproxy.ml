@@ -372,7 +372,7 @@ let parse_config path charset _ parse_site = function
 (** Registration of the extension *)
 let _ = register_extension
   ~fun_site:(fun _ -> parse_config)
-  ~user_fun_site:(fun _ -> parse_config)
+  ~user_fun_site:(fun _ _ -> parse_config)
   ~respect_pipeline:true (* We ask ocsigen to respect pipeline order
                             when sending to extensions! *)
   ()

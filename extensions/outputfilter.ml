@@ -116,5 +116,5 @@ let site_creator hostpattern = parse_config
 (** Registration of the extension *)
 let _ = register_extension
   ~fun_site:site_creator
-  ~user_fun_site:site_creator
+  ~user_fun_site:(fun _ -> site_creator)
   ()

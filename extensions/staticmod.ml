@@ -68,6 +68,13 @@ let http_status_match status_filter status =
       Netstring_pcre.string_match r (string_of_int status) 0 <> None
 
 
+(* Checks that the path specified in a userconf is correct.
+   Currently, we check that the path does not contain "/.." *)
+let correct_user_local_file =
+  let regexp = Netstring_pcre.regexp "/\\.\\." in
+  fun path ->
+    try ignore(Netstring_pcre.search_forward regexp path 0); false
+    with Not_found -> true
 
 
 (* Find the local file corresponding to [path] in the static site [dir],
@@ -75,8 +82,10 @@ let http_status_match status_filter status =
    Raises [Not_Concerned] if [dir] does not match, or returns
    - a boolean indicating that [dir] is an error handler
    - the local file
+   If the parameter [usermode] is true, we check that the path
+   is valid.
 *)
-let find_static_page dir err path =
+let find_static_page ~usermode ~dir ~err ~path =
   let pathstring = String.concat "/" path in
   let status_filter, file = match dir.static_kind with
     | Dir d ->
@@ -92,18 +101,23 @@ let find_static_page dir err path =
         )
     | _ -> raise Not_concerned
   in
-  (status_filter, LocalFiles.resolve file dir.options)
+  if usermode = false || correct_user_local_file file then
+    (status_filter, LocalFiles.resolve file dir.options)
+  else
+    raise (Ocsigen_extensions.Error_in_user_config_file
+             "cannot use '..' in user paths")
 
 
 
-let gen dir charset = function
+let gen ~usermode dir charset = function
   | Ocsigen_extensions.Req_found (_, r) ->
       Lwt.return (Ocsigen_extensions.Ext_found r)
   | Ocsigen_extensions.Req_not_found (err, ri) ->
       catch
         (fun () ->
            Ocsigen_messages.debug2 "--Staticmod: Is it a static file?";
-           let status_filter, page = find_static_page dir err ri.ri_sub_path in
+           let status_filter, page = find_static_page
+             ~usermode ~dir ~err ~path:ri.ri_sub_path in
            LocalFiles.content ri.ri_full_path page
            >>= fun r ->
              Lwt.return
@@ -153,13 +167,19 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 let bad_config s = raise (Error_in_config_file s)
 
-let parse_config path (charset, _, _, _) _ parse_site =
+let rewrite_local_path userconf path =
+  match userconf with
+    | None -> path
+    | Some { Ocsigen_extensions.localfiles_root = root } ->
+        root ^ "/" ^ path
+
+let parse_config userconf path (charset, _, _, _) _ parse_site =
   let rec parse_attrs l ((dir, regexp, readable, code, dest, follow) as res) =
     match l with
       | [] -> res
 
       | ("dir", d)::l when dir = None ->
-          parse_attrs l (Some d, regexp, readable, code, dest, follow)
+          parse_attrs l (Some (rewrite_local_path userconf d), regexp, readable, code, dest, follow)
 
       | (("readable", "readable") | ("listdirectorycontent","1"))::l when readable = None ->
           parse_attrs l (dir, regexp, Some true, code, dest, follow)
@@ -180,12 +200,19 @@ let parse_config path (charset, _, _, _) _ parse_site =
 
       | ("dest", s)::l when dest = None ->
           parse_attrs l
-            (dir, regexp, readable, code, Some (parse_user_dir s), follow)
+            (dir, regexp, readable, code,
+             Some (parse_user_dir (rewrite_local_path userconf s)), follow)
 
       | ("followsymlinks", s)::l when follow = None ->
           let v = match s with
             | "never" -> LocalFiles.DoNotFollow
-            | "always" -> LocalFiles.AlwaysFollow
+            | "always" ->
+                if userconf = None (* Not in an userconf file *) then
+                  LocalFiles.AlwaysFollow
+                else
+                  raise
+                    (Ocsigen_extensions.Error_in_user_config_file
+                       "Cannot specify value 'always' for attribute 'followsymlinks' in userconf files")
             | "ownermatch" -> LocalFiles.FollowIfOwnerMatch
             | _ ->
                 bad_config ("Wrong value \""^s^"\" for tag \"followsymlink\"")
@@ -218,10 +245,11 @@ let parse_config path (charset, _, _, _) _ parse_site =
                        source_regexp = Netstring_pcre.regexp "^.*$" }
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
           in
-          gen { static_kind = kind;
-                options = {
-                  LocalFiles.list_directory_content = readable;
-                  follow_symlinks = follow_symlinks } }
+          gen ~usermode:(userconf <> None)
+            { static_kind = kind;
+              options = {
+                LocalFiles.list_directory_content = readable;
+                follow_symlinks = follow_symlinks } }
             charset
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
     | _ -> bad_config "(staticmod extension) Bad data"
@@ -231,6 +259,6 @@ let parse_config path (charset, _, _, _) _ parse_site =
 (*****************************************************************************)
 (** extension registration *)
 let _ = register_extension
-  ~fun_site:(fun _ -> parse_config)
-  ~user_fun_site:(fun _ -> parse_config)
+  ~fun_site:(fun _ -> parse_config None)
+  ~user_fun_site:(fun path _ -> parse_config (Some path))
   ()

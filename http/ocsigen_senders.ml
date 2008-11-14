@@ -330,7 +330,7 @@ module File_content =
                return ())
              stream
          }
-      with e -> fail e
+      with e -> Ocsigen_messages.debug2 (Printexc.to_string e);  fail e
 
   end
 

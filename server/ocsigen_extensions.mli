@@ -36,6 +36,9 @@ exception Ocsigen_Internal_Error of string
 exception Bad_config_tag_for_extension of string (** Try next extension *)
 exception Error_in_config_file of string (** Stop with an error message *)
 
+(** Error in an user config file. Stop with an error message *)
+exception Error_in_user_config_file of string
+
 val badconfig : ('a, unit, string, 'b) format4 -> 'a
 (** Convenient function for raising Error_in_config_file exceptions with
     a sprintf-formatted argument. *)
@@ -225,9 +228,19 @@ type parse_fun = Simplexmlparser.xml list -> extension2
 type parse_host
 
 
+(** Information received by extensions accepting userconf files.
 
-(** Type of the functions parsing a <site> tag (and returning an extension)
-    Those are functions taking
+   The parameter [localfiles_root] is an absolute path to the
+   directory that the user is allowed to serve. This is used
+   by staticmod, to disallow the user from allowing access to
+   outside of this directory
+*)
+type userconf_info = {
+  localfiles_root : string;
+}
+
+(** [parse_site] is the type of the functions parsing a <site> tag
+    (and returning an extension).  Those are functions taking
    {ul
      {- the name of the virtual <host>}}
      that will be called for each <host>,
@@ -242,13 +255,19 @@ type parse_host
    {ul
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
      {- return something of type [extension] (filter or page generator)}}
+
+    [parse_site_user] is the type of functions parsing a site tag
+    inside an userconf file. They take one more parameter, of type userconf_info
 *)
 type parse_site =
-  virtual_hosts ->
-    (url_path -> string * string * int * int -> parse_host ->
+  virtual_hosts -> parse_site_aux
+and parse_site_user =
+    userconf_info -> parse_site
+and parse_site_aux =
+    url_path -> string * string * int * int -> parse_host ->
       (parse_fun -> Simplexmlparser.xml ->
-  extension
-    ))
+         extension
+      )
 
 
 
@@ -283,7 +302,7 @@ type parse_site =
  *)
 val register_extension :
   fun_site:parse_site ->
-  ?user_fun_site:parse_site ->
+  ?user_fun_site:parse_site_user ->
   ?begin_init:(unit -> unit) ->
   ?end_init:(unit -> unit) ->
   ?exn_handler:(exn -> string) ->
@@ -293,7 +312,7 @@ val register_extension :
 (** A predefined function to be passed to {!Ocsigen_extensions.register_extension}
     that defines no option.
  *)
-val extension_void_fun_site : parse_site
+val extension_void_fun_site : parse_site_user
 
 
 (** While loading an extension,
@@ -324,13 +343,11 @@ val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
 val make_parse_site :
   url_path ->
   string * string * int * int ->
-  (url_path ->
-     string * string * int * int ->
-       parse_host -> parse_fun -> Simplexmlparser.xml -> extension) ->
+  parse_site_aux ->
   parse_fun
 
 val parse_site_item : parse_site
-val parse_user_site_item : parse_site
+val parse_user_site_item : parse_site_user
 
 val set_hosts : (virtual_hosts * extension2) list -> unit
 

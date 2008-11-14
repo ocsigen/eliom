@@ -29,12 +29,12 @@ open Lwt
 open Ocsigen_lib
 open Ocsigen_extensions
 
+exception NoConfFile
+
 
 (*****************************************************************************)
 
-exception Failed_404
-
-let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
+let gen hostpattern sitepath charset (regexp, conf, url, prefix, localpath) req_state =
   match req_state with
   | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
 (*VVV not possible to set a filter for now *)
@@ -45,20 +45,23 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
       | Some _ -> (* Matching regexp found! *)
           try
             Ocsigen_messages.debug2 "--Userconf: Using user configuration";
-            let conf =
-              try
-                Ocsigen_extensions.replace_user_dir regexp conf path
-              with Not_found -> raise Failed_404
-            in
+            let conf = Ocsigen_extensions.replace_user_dir regexp conf path in
             let url = Netstring_pcre.global_replace regexp url path in
             let prefix = Netstring_pcre.global_replace regexp prefix path in
-            ignore (Unix.stat conf);
-            let user_parse_host = Ocsigen_extensions.parse_user_site_item hostpattern in
+            let userconf_options = {
+              Ocsigen_extensions.localfiles_root =
+                Ocsigen_extensions.replace_user_dir regexp localpath path
+            } in
+            let user_parse_host =
+              Ocsigen_extensions.parse_user_site_item userconf_options hostpattern in
             let user_parse_site =
               Ocsigen_extensions.make_parse_site
                 (sitepath@[prefix]) charset user_parse_host
             in
-            let xmllist = Simplexmlparser.xmlparser_file conf in
+            let xmllist =
+              try Simplexmlparser.xmlparser_file conf
+              with Sys_error _ -> raise NoConfFile
+            in
             Lwt.return
               (Ext_sub_result
                  (fun awake cookies_to_set rs ->
@@ -101,11 +104,16 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix) req_state =
                  )
               )
           with
+          | NoConfFile
           | Unix.Unix_error (Unix.EACCES,_,_)
           | Unix.Unix_error (Unix.ENOENT, _, _) ->
               Lwt.return (Ocsigen_extensions.Ext_next previous_extension_err)
-          | Failed_404 ->
-              Lwt.return (Ocsigen_extensions.Ext_next 404)
+          | Ocsigen_extensions.Error_in_user_config_file s ->
+              Ocsigen_messages.errlog
+                (Printf.sprintf "Userconf error for url %s: %s" url s);
+              Lwt.return
+                (Ocsigen_extensions.Ext_stop_site
+                   (Ocsigen_http_frame.Cookies.empty, 500))
 
 
 
@@ -115,34 +123,38 @@ open Simplexmlparser
 
 let parse_config hostpattern path charset =
   fun _ _ ->
-    let rec parse_attrs_local ((regexp, conf, url, prefix) as res) = function
+    let rec parse_attrs_local ((regexp, conf, url, prefix, path) as res) = function
       | [] -> res
       | ("regexp", s)::l when regexp = None ->
           (try
             parse_attrs_local
-              (Some (Netstring_pcre.regexp ("^"^s^"$")), conf, url, prefix)
+              (Some (Netstring_pcre.regexp ("^"^s^"$")), conf, url, prefix, path)
               l
           with Failure _ ->
             raise (Error_in_config_file "Bad regexp in <userconf regexp=\"...\" />"))
       | ("conf", s)::l when conf = None ->
           parse_attrs_local
-            (regexp, Some (Ocsigen_extensions.parse_user_dir s), url, prefix)
+            (regexp, Some (Ocsigen_extensions.parse_user_dir s), url, prefix, path)
             l
       | ("url", s)::l when url = None ->
           parse_attrs_local
-            (regexp, conf, Some s, prefix)
+            (regexp, conf, Some s, prefix, path)
             l
       | ("prefix", s)::l when prefix = None ->
           parse_attrs_local
-            (regexp, conf, url, Some s)
+            (regexp, conf, url, Some s, path)
+            l
+      | ("localpath", s) :: l when path = None ->
+          parse_attrs_local
+            (regexp, conf, url, prefix, Some (Ocsigen_extensions.parse_user_dir s))
             l
       | _ -> raise (Error_in_config_file "Wrong attribute for <userconf>")
     in
     function
       | Element ("userconf", atts, []) ->
           let info =
-            match parse_attrs_local (None, None, None, None) atts  with
-            | (Some r, Some t, Some u, Some p) -> (r, t, u, p)
+            match parse_attrs_local (None, None, None, None, None) atts  with
+            | (Some r, Some t, Some u, Some p, Some p') -> (r, t, u, p, p')
             | _ -> raise (Error_in_config_file
                             "Missing attributes for <userconf>")
           in

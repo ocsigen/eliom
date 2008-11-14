@@ -185,8 +185,10 @@ let site_creator (hostpattern : Ocsigen_extensions.virtual_hosts) = parse_config
 
 
 (* Same thing if the extension is loaded inside a local config
-   file (using the userconf extension) *)
-let user_site_creator = site_creator
+   file (using the userconf extension). However, we receive
+   one additional argument, the root of the files the user
+   can locally serve. See staticmod and userconf for details *)
+let user_site_creator (path : Ocsigen_extensions.userconf_info) = site_creator
 
 (*****************************************************************************)
 (** Registration of the extension *)
