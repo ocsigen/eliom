@@ -79,7 +79,8 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix, localpath) req_
                          {ri with
                           ri_sub_path = path;
                           ri_sub_path_string = url}))
-(*VVV We do not want to continue to search if the page has not been found *)
+(*VVV We do not want to continue to search in the same <site>
+      if the page has not been found (???) *)
 (*VVV Filters won't be applied. Is it the right behaviour? *)
 (*VVV v v v *)
                    >>=
@@ -87,15 +88,17 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix, localpath) req_
                      match answer with
                      | Ext_found _
                      | Ext_stop_all _
+                     | Ext_stop_site _
+                     | Ext_stop_host _
                      | Ext_retry_with _ -> Lwt.return r
                      | Ext_next err ->
                          Lwt.return
-                           (Ext_stop_all (Ocsigen_http_frame.Cookies.empty, err),
+(*VVV was: Ext_stop_all *)
+                           (Ext_stop_site (Ocsigen_http_frame.Cookies.empty, err),
                             cts)
-                     | Ext_continue_with (_, cts2, err)
-                     | Ext_stop_site (cts2, err)
-                     | Ext_stop_host (cts2, err) ->
-                         Lwt.return (Ext_stop_all (cts2, err), cts)
+                     | Ext_continue_with (_, cts2, err) ->
+(*VVV ??? *)
+                         Lwt.return (Ext_stop_site (cts2, err), cts)
                      | Ext_sub_result sr ->
                          sr awake cookies_to_set req_state
                          >>= aux
