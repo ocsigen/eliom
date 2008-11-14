@@ -147,13 +147,18 @@ let resolve ~filename ~options =
          follow according to the current policy *)
       raise Failed_403
   with
+    (* We can get an EACCESS here, if are missing some rights on a directory *)
+    | Unix.Unix_error (Unix.EACCES,_,_) -> raise Failed_403
     | Unix.Unix_error (Unix.ENOENT,_,_) -> raise Failed_404
 
 
 (* Given a local file or directory, we retrieve its content *)
 let content ~url ~file =
-  match file with
-    | RDir dirname ->
-        Ocsigen_senders.Directory_content.result_of_content (dirname, url)
-    | RFile filename ->
-        Ocsigen_senders.File_content.result_of_content filename
+  try
+    match file with
+      | RDir dirname ->
+          Ocsigen_senders.Directory_content.result_of_content (dirname, url)
+      | RFile filename ->
+          Ocsigen_senders.File_content.result_of_content filename
+  with
+    | Unix.Unix_error (Unix.EACCES,_,_) -> raise Failed_403

@@ -88,9 +88,8 @@ let find_static_page dir err path =
          match Netstring_pcre.string_match source pathstring 0 with
            | None -> raise Not_concerned
            | Some _ ->
-               (try
-                  Ocsigen_extensions.replace_user_dir source dest pathstring
-                with Not_found -> raise LocalFiles.Failed_404))
+               Ocsigen_extensions.replace_user_dir source dest pathstring
+        )
     | _ -> raise Not_concerned
   in
   (status_filter, LocalFiles.resolve file dir.options)
@@ -121,11 +120,9 @@ let gen dir charset = function
         )
 
         (function
-           | Unix.Unix_error (Unix.EACCES,_,_)
-           | Ocsigen_Is_a_directory
+           | Ocsigen_Is_a_directory -> raise Ocsigen_Is_a_directory
            | LocalFiles.Failed_403 -> return (Ext_next 403)
            | LocalFiles.Failed_404 -> return (Ext_next err)
-               (*VVV I send err, not 404 ... (?) *)
            | Not_concerned -> return (Ext_next err)
            | e -> fail e
         )
