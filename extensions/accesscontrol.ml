@@ -212,12 +212,38 @@ let parse_config path charset _ parse_fun = function
   | Element ("notfound", [], []) ->
       (fun rs ->
          Ocsigen_messages.debug2 "--Access control: taking in charge 404";
-         fail (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 404)))
+         Lwt.return (Ocsigen_extensions.Ext_stop_all
+                       (Ocsigen_http_frame.Cookies.empty, 404)))
+
+  | Element ("nextsite", [], []) ->
+      (function
+         | Ocsigen_extensions.Req_found (_, r) ->
+             Lwt.return (Ocsigen_extensions.Ext_found_stop r)
+         | Ocsigen_extensions.Req_not_found (err, ri) ->
+             Lwt.return (Ocsigen_extensions.Ext_stop_site 
+                           (Ocsigen_http_frame.Cookies.empty, 404)))
+
+  | Element ("nexthost", [], []) ->
+      (function
+         | Ocsigen_extensions.Req_found (_, r) ->
+             Lwt.return (Ocsigen_extensions.Ext_found_stop r)
+         | Ocsigen_extensions.Req_not_found (err, ri) ->
+             Lwt.return (Ocsigen_extensions.Ext_stop_host
+                           (Ocsigen_http_frame.Cookies.empty, 404)))
+
+  | Element ("stop", [], []) ->
+      (function
+         | Ocsigen_extensions.Req_found (_, r) ->
+             Lwt.return (Ocsigen_extensions.Ext_found_stop r)
+         | Ocsigen_extensions.Req_not_found (err, ri) ->
+             Lwt.return (Ocsigen_extensions.Ext_stop_all
+                           (Ocsigen_http_frame.Cookies.empty, 404)))
 
   | Element ("forbidden", [], []) ->
       (fun rs ->
          Ocsigen_messages.debug2 "--Access control: taking in charge 403";
-         fail (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 403)))
+         Lwt.return (Ocsigen_extensions.Ext_stop_all
+                       (Ocsigen_http_frame.Cookies.empty, 403)))
 
   | Element ("iffound", [], sub) ->
       let ext = parse_fun sub in

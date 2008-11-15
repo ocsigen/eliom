@@ -127,6 +127,8 @@ type answer =
           to another server before returning Ext_found, to ensure that all
           requests are done in same order).
       *)
+  | Ext_found_stop of (unit -> Ocsigen_http_frame.result Lwt.t)
+      (** Found but do not try next extensions *)
   | Ext_next of int (** Page not found. Try next extension.
                         The integer is the HTTP error code.
                         It is usally 404, but may be for ex 403 (forbidden)
@@ -260,6 +262,7 @@ let rec make_ext awake cookies_to_set req_state genfun f =
           awake
           (Ocsigen_http_frame.add_cookies cook cookies_to_set)
           (Req_not_found (e, ri))
+    | Ext_found_stop _
     | Ext_stop_site _
     | Ext_stop_host _
     | Ext_stop_all _
@@ -611,7 +614,8 @@ let do_for_site_matching host port ri =
             (Req_not_found (prev_err, ri))
           >>= fun (res_ext, cookies_to_set) ->
           (match res_ext with
-          | Ext_found r ->
+          | Ext_found r
+          | Ext_found_stop r ->
               awake ();
               r () >>= fun r' ->
               return (add_to_res_cookies r' cookies_to_set)

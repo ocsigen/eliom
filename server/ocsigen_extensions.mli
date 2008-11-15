@@ -145,6 +145,8 @@ type answer =
           In that case, wait to be sure that the new request will not
           overtake this one.
       *)
+  | Ext_found_stop of (unit -> Ocsigen_http_frame.result Lwt.t)
+      (** Found but do not try next extensions *)
   | Ext_next of int (** Page not found. Try next extension.
                         The integer is the HTTP error code.
                         It is usally 404, but may be for ex 403 (forbidden)
