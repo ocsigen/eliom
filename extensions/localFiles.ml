@@ -43,7 +43,7 @@ let check_symlinks_aux
 
 (* Check that there are no invalid symlinks in the directories leading to filename. Supposes that [filename] is not a relative path *)
 let rec check_symlinks_parent_directories filename (policy : symlink_policy) =
-  if filename = "/" then
+  if filename = "/" || filename = "." then
     true
   else
     let dirname = Filename.dirname filename in
