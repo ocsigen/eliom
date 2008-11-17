@@ -135,8 +135,18 @@ let findfiles =
 
 open Printf
 
-let rec error_message = function
-  | Dynlink.Error e -> Dynlink.error_message e
-  | Dynlink_error (s, e) -> sprintf "Dynlink error while loading %s: %s" s (error_message e)
-  | Findlib_error (s, e) -> sprintf "Findlib error while handling %s: %s" s (error_message e)
-  | e -> Printexc.to_string e
+let () = Ocsigen_lib.register_exn_printer
+  (fun f_rec -> function
+     | Dynlink.Error e -> Dynlink.error_message e
+     | Dynlink_error (s, e) ->
+         sprintf "Dynlink error while loading %s: %s" s (f_rec e)
+     | Findlib_error (s, Fl_package_base.No_such_package (s', msg)) ->
+         let pkg =
+           if s = s' then s else sprintf "%s [while trying to load %s]" s' s
+         in
+         let additional = if msg = "" then "" else sprintf " (%s)" msg in
+         sprintf
+           "Findlib package %s not found%s: maybe you forgot <findlib path=\"...\"/>?"
+           pkg additional
+     | Findlib_error (s, e) -> sprintf "Findlib error while handling %s: %s" s (f_rec e)
+     | e -> raise e)

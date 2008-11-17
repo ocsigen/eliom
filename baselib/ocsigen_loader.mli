@@ -61,7 +61,3 @@ val findfiles: string -> string list
   (** [findfiles pkg] returns the list of files needed to load Findlib
       package [pkg], including dependencies. The archive files of
       [pkg] will appear last in the returned result. *)
-
-val error_message: exn -> string
-  (** [errom_message e] returns a (hopefully) meaningful error message
-      for the exception [e]. *)

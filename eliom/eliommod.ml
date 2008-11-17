@@ -312,7 +312,7 @@ let load_eliom_module sitedata cmo content =
              (Printf.sprintf "Eliom: while loading %s: %s"
                 n
                 (try handle_init_exn e 
-                 with e -> Ocsigen_loader.error_message e)))
+                 with e -> Ocsigen_lib.string_of_exn e)))
 
 
 
@@ -355,7 +355,7 @@ let parse_config hostpattern site_dir charsetetc =
               with Ocsigen_loader.Findlib_error _ as e ->
                 raise (Error_in_config_file
                          (Printf.sprintf "Findlib error: %s"
-                            (Ocsigen_loader.error_message e)))
+                            (Ocsigen_lib.string_of_exn e)))
               end
           | _ -> raise (Error_in_config_file
                           ("Duplicate attribute module in <eliom>"))

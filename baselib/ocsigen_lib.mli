@@ -35,7 +35,16 @@ val remove_spaces : string -> int -> int -> string
 val sep : char -> string -> string * string
 
 val split : ?multisep:bool -> char -> string -> string list
+
 val string_of_exn : exn -> string
+  (** [string_of_exn e] returns a (hopefully) meaningful explanation of
+      the exception [e]. *)
+
+val register_exn_printer : ((exn -> string) -> exn -> string) -> unit
+  (** [register_exn_printer p] registers [p] so that a call to [p
+      string_of_exn e] is tried first in [string_of_exn e]. [p] must raise
+      [e] if it doesn't handle it. *)
+
 val fst3 : 'a * 'b * 'c -> 'a
 val snd3 : 'a * 'b * 'c -> 'b
 val thd3 : 'a * 'b * 'c -> 'c

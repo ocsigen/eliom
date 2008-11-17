@@ -245,12 +245,23 @@ let rec split ?(multisep=false) char s =
   aux 0
 
 (* printing exceptions *)
-let rec string_of_exn = function
-  | Dynlink.Error err ->
-      "Dynlink.Error: " ^ (Dynlink.error_message err)
-  | Unix.Unix_error (ee, func, param) ->
-      (Unix.error_message ee)^" in function "^func^" ("^param^")"
-  | e -> Printexc.to_string e
+
+let (string_of_exn, register_exn_printer) =
+  let current = ref
+    (fun f_rec -> function
+       | Unix.Unix_error (ee, func, param) ->
+           Printf.sprintf "%s in function %s (%s)"
+             (Unix.error_message ee) func param
+       | e -> Printexc.to_string e)
+  in
+  let rec string_of_exn e = !current string_of_exn e in
+  (string_of_exn,
+   (fun p ->
+      let old = !current in
+      current :=
+        (fun f_rec s ->
+           try p f_rec s
+           with e -> old f_rec s)))
 
 
 (* Unix.inet_addr is abstract and nothing to convert it :-( *)
