@@ -85,8 +85,7 @@ let correct_user_local_file =
    If the parameter [usermode] is true, we check that the path
    is valid.
 *)
-let find_static_page ~usermode ~dir ~err ~path =
-  let pathstring = String.concat "/" path in
+let find_static_page ~usermode ~dir ~err ~pathstring =
   let status_filter, file = match dir.static_kind with
     | Dir d ->
         (false, Filename.concat d pathstring)
@@ -117,7 +116,7 @@ let gen ~usermode dir charset = function
         (fun () ->
            Ocsigen_messages.debug2 "--Staticmod: Is it a static file?";
            let status_filter, page = find_static_page
-             ~usermode ~dir ~err ~path:ri.ri_sub_path in
+             ~usermode ~dir ~err ~pathstring:ri.ri_sub_path_string in
            LocalFiles.content ri.ri_full_path page
            >>= fun r ->
              Lwt.return
