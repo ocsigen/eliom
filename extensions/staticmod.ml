@@ -69,9 +69,9 @@ let http_status_match status_filter status =
 
 
 (* Checks that the path specified in a userconf is correct.
-   Currently, we check that the path does not contain "/.." *)
+   Currently, we check that the path does not contain ".." *)
 let correct_user_local_file =
-  let regexp = Netstring_pcre.regexp "/\\.\\." in
+  let regexp = Netstring_pcre.regexp "(/\\.\\./)|(/\\.\\.$)" in
   fun path ->
     try ignore(Netstring_pcre.search_forward regexp path 0); false
     with Not_found -> true
