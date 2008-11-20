@@ -331,14 +331,17 @@ let raw_request
   in
 
   let new_conn () =
-    let fd = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
+    let sockaddr = Unix.ADDR_INET (inet_addr, port) in
+    let fd = 
+      Lwt_unix.socket (Unix.domain_of_sockaddr sockaddr) Unix.SOCK_STREAM 0 
+    in
     Lwt_unix.set_close_on_exec fd;
 
     let thr_conn =
       Lwt.catch
         (fun () ->
           Lwt_unix.connect
-            fd (Unix.ADDR_INET (inet_addr, port)) >>= fun () ->
+            fd sockaddr >>= fun () ->
 
               (if https then
                 Lwt_ssl.ssl_connect fd !sslcontext
@@ -692,12 +695,15 @@ let basic_raw_request
   | None -> if https then 443 else 80
   | Some p -> p
   in
-  let fd = Lwt_unix.socket Unix.PF_INET Unix.SOCK_STREAM 0 in
+  let sockaddr = Unix.ADDR_INET (inet_addr, port) in
+  let fd = 
+    Lwt_unix.socket (Unix.domain_of_sockaddr sockaddr) Unix.SOCK_STREAM 0 
+  in
   Lwt_unix.set_close_on_exec fd;
 
   Lwt.catch
     (fun () ->
-       Lwt_unix.connect fd (Unix.ADDR_INET (inet_addr, port)) >>= fun () ->
+       Lwt_unix.connect fd sockaddr >>= fun () ->
        (if https then
           Lwt_ssl.ssl_connect fd !sslcontext
         else

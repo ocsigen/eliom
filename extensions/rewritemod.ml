@@ -52,7 +52,7 @@ exception Not_concerned
 
 
 (*****************************************************************************)
-(* The table of rewrites for each virtual server                         *)
+(* The table of rewrites for each virtual server                             *)
 type assockind =
   | Regexp of Netstring_pcre.regexp * string
 
