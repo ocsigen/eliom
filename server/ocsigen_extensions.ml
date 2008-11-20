@@ -328,21 +328,23 @@ let rec default_parse_config
               | None ->
                   Ocsigen_messages.debug (fun () ->
                     "site \""^
-                    (Ocsigen_lib.string_of_url_path path)^
+                    (Ocsigen_lib.string_of_url_path ~encode:true path)^
                     "\" does not match url \""^
-                    (Ocsigen_lib.string_of_url_path oldri.ri_full_path)^
+                    (Ocsigen_lib.string_of_url_path ~encode:true
+                       oldri.ri_full_path)^
                     "\".");
                   Lwt.return (Ext_next e, cookies_to_set)
               | Some sub_path ->
                   Ocsigen_messages.debug (fun () ->
                     "-------- site found: url \""^
-                    (Ocsigen_lib.string_of_url_path oldri.ri_full_path)^
+                    (Ocsigen_lib.string_of_url_path ~encode:true oldri.ri_full_path)^
                     "\" matches \""^
-                    (Ocsigen_lib.string_of_url_path path)^"\".");
+                    (Ocsigen_lib.string_of_url_path ~encode:true path)^"\".");
                   let ri = {oldri with
                             ri_sub_path = sub_path;
                             ri_sub_path_string =
-                            Ocsigen_lib.string_of_url_path sub_path}
+                            Ocsigen_lib.string_of_url_path 
+                              ~encode:true sub_path}
                   in
                   parse_site awake cookies_to_set (Req_not_found (e, ri))
                   >>= function
@@ -390,7 +392,7 @@ and make_parse_site path charsetetc parse_host l =
             ignore
               (Ocsigen_messages.errlog
                  ("Unexpected tag <"^t^"> inside <site dir=\""^
-                  (Ocsigen_lib.string_of_url_path path)^"\"> (ignored)"));
+                  (Ocsigen_lib.string_of_url_path ~encode:true path)^"\"> (ignored)"));
             parse_site ll
         | Ocsigen_config.Config_file_error t
         | Error_in_config_file t ->
@@ -677,7 +679,7 @@ let ri_of_url url ri =
    ri_url_string = url;
    ri_url = url2;
    ri_host = host;
-   ri_full_path_string = string_of_url_path path;
+   ri_full_path_string = string_of_url_path ~encode:true path;
    ri_full_path = path;
    ri_sub_path = path;
    ri_get_params_string = params;

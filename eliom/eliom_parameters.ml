@@ -443,10 +443,12 @@ let reconstruct_params
   let rec parse_suffix typ suff =
     match (typ, suff) with
     | (TESuffix _), l -> Obj.magic l
-    | (TESuffixs _), l -> Obj.magic (string_of_url_path l)
+(*VVV encode=false? *)
+    | (TESuffixs _), l -> Obj.magic (string_of_url_path ~encode:false l)
     | (TESuffixu (_, of_string, from_string)), l ->
         (try
-          Obj.magic (of_string (string_of_url_path l))
+(*VVV encode=false? *)
+          Obj.magic (of_string (string_of_url_path ~encode:false l))
         with e -> raise (Eliom_common.Eliom_Typing_Error [("<suffix>", e)]))
     | _, [a] -> parse_one typ a
     | (TProd (t1, t2)), a::l ->

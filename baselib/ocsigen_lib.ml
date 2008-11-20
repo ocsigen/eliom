@@ -453,7 +453,13 @@ let fixup_url_string =
        Printf.sprintf "%%%02x"
         (Char.code s.[Netstring_pcre.match_beginning m]))
 
-let string_of_url_path x = fixup_url_string (String.concat "/" x)
+let string_of_url_path ~encode l = 
+  let l = 
+    if encode
+    then List.map Netencoding.Url.encode l
+    else l
+  in
+  fixup_url_string (String.concat "/" l)
 
 let parse_url =
 

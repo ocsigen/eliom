@@ -59,7 +59,9 @@ let new_sitedata =
              datatimeout = [];
              perstimeout = [];
              site_dir = site_dir;
-             site_dir_string = Ocsigen_lib.string_of_url_path site_dir;
+(*VVV encode=false??? *)
+             site_dir_string = Ocsigen_lib.string_of_url_path
+                ~encode:false site_dir;
              global_services = Eliom_common.empty_tables ();
              session_services = Eliommod_cookies.new_service_cookie_table ();
              session_data = Eliommod_cookies.new_data_cookie_table ();
@@ -241,13 +243,13 @@ let handle_init_exn = function
        "\". Please correct the module.")
   | Eliom_common.Eliom_there_are_unregistered_services (s, l1, l2) ->
       ("Eliom: in site /"^
-       (Ocsigen_lib.string_of_url_path s)^" - "^
+       (Ocsigen_lib.string_of_url_path ~encode:false s)^" - "^
        (match l1 with
        | [] -> ""
        | [a] -> "One service or coservice has not been registered on URL /"
-           ^(Ocsigen_lib.string_of_url_path a)^". "
+           ^(Ocsigen_lib.string_of_url_path ~encode:false a)^". "
        | a::ll ->
-           let string_of = Ocsigen_lib.string_of_url_path in
+           let string_of = Ocsigen_lib.string_of_url_path ~encode:false in
            "Some services or coservices have not been registered \
              on URLs: "^
              (List.fold_left

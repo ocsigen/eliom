@@ -873,7 +873,8 @@ let send
   in
   let mkcook path exp name c secure =
     Format.sprintf "%s=%s%s%s" name c
-      ("; path=/" ^ Ocsigen_lib.string_of_url_path path)
+(*VVV encode = true? *)
+      ("; path=/" ^ Ocsigen_lib.string_of_url_path ~encode:true path)
       (if secure && slot.sl_ssl then "; secure" else "")^
       (match exp with
       | Some s -> "; expires=" ^

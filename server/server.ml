@@ -298,10 +298,10 @@ let get_request_infos
           ri_method = meth;
           ri_protocol = http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
           ri_ssl = Lwt_ssl.is_ssl (Ocsigen_http_com.connection_fd receiver);
-          ri_full_path_string = string_of_url_path path;
+          ri_full_path_string = string_of_url_path ~encode:true path;
           ri_full_path = path;
           ri_sub_path = path;
-          ri_sub_path_string = string_of_url_path path;
+          ri_sub_path_string = string_of_url_path ~encode:true path;
           ri_get_params_string = params;
           ri_host = headerhost;
           ri_get_params = get_params;

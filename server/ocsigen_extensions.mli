@@ -47,7 +47,7 @@ val badconfig : ('a, unit, string, 'b) format4 -> 'a
 (** The type of URL paths. [["plop";"plip"]] corresponds to [plop/plip]. *)
 type url_path = string list
 
-val string_of_url_path : url_path -> string
+val string_of_url_path : encode:bool -> url_path -> string
 
 
 (* virtual hosts: *)

@@ -87,7 +87,7 @@ let find_rewrite (Regexp (regexp, dest)) suburl =
 
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
-let gen dir charset = function
+let gen regexp charset = function
 | Ocsigen_extensions.Req_found (_, r) -> 
     Lwt.return (Ocsigen_extensions.Ext_found r)
 | Ocsigen_extensions.Req_not_found (err, ri) ->
@@ -96,11 +96,10 @@ let gen dir charset = function
     (fun () ->
       Ocsigen_messages.debug2 "--Rewritemod: Is it a rewrite?";
       let redir =
-        Netencoding.Url.encode
-          (find_rewrite dir 
-             (match ri.ri_get_params_string with
-                | None -> ri.ri_sub_path_string
-                | Some g -> ri.ri_sub_path_string ^ "?" ^ g))
+        find_rewrite regexp
+          (match ri.ri_get_params_string with
+             | None -> ri.ri_sub_path_string
+             | Some g -> ri.ri_sub_path_string ^ "?" ^ g)
       in
       Ocsigen_messages.debug (fun () ->
         "--Rewritemod: YES! rewrite to: "^redir);
@@ -130,7 +129,7 @@ let gen dir charset = function
 
 let parse_config path charset _ parse_site = function
   | Element ("rewrite", atts, []) ->
-      let dir = match atts with
+      let regexp = match atts with
       | [] ->
           raise (Error_in_config_file
                    "regexp attribute expected for <rewrite>")
@@ -138,7 +137,7 @@ let parse_config path charset _ parse_site = function
           Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t)
       | _ -> raise (Error_in_config_file "Wrong attribute for <rewrite>")
       in
-      gen dir charset
+      gen regexp charset
   | Element (t, _, _) ->
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(rewritemod extension) Bad data")

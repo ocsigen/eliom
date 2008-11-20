@@ -492,7 +492,7 @@ let isuffix =
            [p [pcdata "The suffix of the url is ";
                strong [pcdata (string_of_int suff)];
                pcdata " followed by ";
-               strong [pcdata (Ocsigen_extensions.string_of_url_path endsuff)];
+               strong [pcdata (Ocsigen_extensions.string_of_url_path ~encode:false endsuff)];
                pcdata " and i is equal to ";
                strong [pcdata (string_of_int i)]]])))
 (*html*
@@ -2453,7 +2453,7 @@ let sendfile2 =
   Files.register_new_service
     ~path:["files"]
     ~get_params:(suffix (all_suffix "filename"))
-    (fun _ s () -&gt; return ("<em>path</em>"^(Ocsigen_extensions.string_of_url_path s)))
+    (fun _ s () -&gt; return ("<em>path</em>"^(Ocsigen_extensions.string_of_url_path ~encode:false s)))
 </pre>
       <p>The extension <code>Staticmod</code> is another way to
        handle static files (see the default
@@ -3839,7 +3839,8 @@ let create_suffixform ((suff, endsuff),i) =
     <:xmllist< <p>Write the suffix:
       $int_input ~input_type:`Text ~name:suff ()$ <br/>
       Write a string: $user_type_input
-         ~input_type:`Text ~name:endsuff Ocsigen_extensions.string_of_url_path$ <br/>
+         ~input_type:`Text ~name:endsuff 
+         (Ocsigen_extensions.string_of_url_path ~encode:false)$ <br/>
       Write an int: $int_input ~input_type:`Text ~name:i ()$ <br/>
       $string_input ~input_type:`Submit ~value:"Click" ()$</p> >>
 

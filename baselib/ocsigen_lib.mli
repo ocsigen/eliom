@@ -22,7 +22,7 @@ val remove_internal_slash : string list -> string list
 val add_end_slash_if_missing : string list -> string list
 val change_empty_list : string list -> string list
 val remove_end_slash : string -> string
-val string_of_url_path : string list -> string
+val string_of_url_path : encode:bool -> string list -> string
 val string_first_diff : string -> string -> int -> int -> int
 val add_to_string : string -> string -> string -> string
 val concat_strings : string -> string -> string -> string

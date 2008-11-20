@@ -159,7 +159,7 @@ let find_cgi_page reg sub_path =
     | Unix.Unix_error (Unix.ENOENT, _, _) -> raise Failed_404
   in
 
-  let sub_path = (Ocsigen_lib.string_of_url_path sub_path) in
+  let sub_path = (Ocsigen_lib.string_of_url_path ~encode:true sub_path) in
 
   match split_regexp reg.regexp sub_path with
   | None -> raise Failed_404
@@ -586,7 +586,8 @@ let parse_config path (a, hostname, b, c) _ parse_site = function
            doc_root= Ocsigen_extensions.parse_user_dir (string_conform1 s);
            script= Ocsigen_extensions.parse_user_dir "$1";
 
-           path= string_conform (Ocsigen_lib.string_of_url_path path);
+           path= string_conform 
+          (Ocsigen_lib.string_of_url_path ~encode:true path);
            path_info="";
 
            exec=None;
@@ -598,7 +599,8 @@ let parse_config path (a, hostname, b, c) _ parse_site = function
            doc_root= Ocsigen_extensions.parse_user_dir (string_conform1 d);
            script= Ocsigen_extensions.parse_user_dir t;
 
-           path= string_conform (Ocsigen_lib.string_of_url_path path);
+           path= string_conform 
+              (Ocsigen_lib.string_of_url_path ~encode:true path);
            path_info=""; (* unknown for the moment *)
 
            exec= (match q with

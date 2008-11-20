@@ -461,11 +461,10 @@ module Directory_content =
         if path = [] || path = [""] then
           None
         else
-          Some ("/"^Ocsigen_lib.string_of_url_path (back path))
+          Some ("/"^Ocsigen_lib.string_of_url_path ~encode:true (back path))
       in
-      let parent =  parent in
       let before =
-        let st = (Ocsigen_lib.string_of_url_path path) in
+        let st = (Ocsigen_lib.string_of_url_path ~encode:true path) in
         "<html>\n\
          <head><meta http-equiv=\"Content-Type\" content=\"text/html;\" />\n\
          <link rel=\"stylesheet\" type=\"text/css\" href=\"/ocsigenstuff/style.css\" media=\"screen\" />\n\

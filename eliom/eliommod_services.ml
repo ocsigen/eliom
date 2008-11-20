@@ -129,7 +129,7 @@ let add_page_table duringsession url_act t (key, (id, va)) =
         if not duringsession && (generation = oldgen)
         then
           raise (Eliom_common.Eliom_duplicate_registration
-                   (Ocsigen_lib.string_of_url_path url_act))
+                   (Ocsigen_lib.string_of_url_path ~encode:false url_act))
         else (key, (insert_as_last_of_generation generation v oldl))::newt
       end
       else (key, (insert_as_last_of_generation generation v l))::newt
@@ -329,7 +329,9 @@ let get_page
                     Ocsigen_messages.debug
                       (fun () ->
                          "--Eliom: I'm looking for "^
-                           (Ocsigen_lib.string_of_url_path ri.Ocsigen_extensions.ri_sub_path)^
+                           (Ocsigen_lib.string_of_url_path
+                              ~encode:true
+                              ri.Ocsigen_extensions.ri_sub_path)^
                            " in the secure session table:");
                     find_aux Eliom_common.Eliom_404 !service_cookies_info
                 | _ -> Lwt.fail Eliom_common.Eliom_404
@@ -340,7 +342,9 @@ let get_page
                   Ocsigen_messages.debug
                     (fun () ->
                        "--Eliom: I'm looking for "^
-                         (Ocsigen_lib.string_of_url_path ri.Ocsigen_extensions.ri_sub_path)^
+                         (Ocsigen_lib.string_of_url_path
+                            ~encode:true
+                            ri.Ocsigen_extensions.ri_sub_path)^
                          " in the session table:");
                   find_aux Eliom_common.Eliom_404 !service_cookies_info
               | e -> fail e)
