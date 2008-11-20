@@ -109,3 +109,12 @@ package "eliom_duce" (
   archive(plugin,byte) = "eliom_duce.cma"
   archive(plugin,native) = "eliom_duce.cmxs"
 )
+
+package "rewritemod" (
+  exists_if = "rewritemod.cmo,rewritemod.cmxs"
+  version = "[distributed with Ocsigen]"
+  description = "Rewriting URLs"
+  archive(plugin,byte) = "rewritemod.cmo"
+  archive(plugin,native) = "rewritemod.cmxs"
+)
+

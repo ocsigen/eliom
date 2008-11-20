@@ -54,7 +54,7 @@ exception Not_concerned
 (*****************************************************************************)
 (* The table of rewrites for each virtual server                         *)
 type assockind =
-  | Regexp of Netstring_pcre.regexp * string
+  | Regexp of Netstring_pcre.regexp * string * string option
 
 
 
@@ -74,11 +74,15 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 (*****************************************************************************)
 (* Finding rewrites *)
 
-let find_rewrite (Regexp (regexp, dest)) subpath =
-  match Netstring_pcre.string_match regexp subpath 0 with
+let find_rewrite (Regexp (regexp, newsubpath, newparams)) suburl =
+  match Netstring_pcre.string_match regexp suburl 0 with
   | None -> raise Not_concerned
   | Some _ -> (* Matching regexp found! *)
-      (Netstring_pcre.global_replace regexp dest subpath)
+      ((Netstring_pcre.global_replace regexp newsubpath suburl),
+       match newparams with
+         | None -> None
+         | Some p -> 
+             Some (Netstring_pcre.global_replace regexp p suburl))
 
 
 
@@ -94,12 +98,11 @@ let gen dir charset = function
     (* Is it a rewrite? *)
     (fun () ->
       Ocsigen_messages.debug2 "--Rewritemod: Is it a rewrite?";
-      let redir =
-        find_rewrite dir ri.ri_sub_path_string
-(*VVV allow to rewrite parameters! ??! *)
-          (*match ri.ri_get_params_string with
+      let redir, params =
+        find_rewrite dir 
+          (match ri.ri_get_params_string with
           | None -> ri.ri_sub_path_string
-          | Some g -> ri.ri_sub_path_string ^ "?" ^ g *)
+          | Some g -> ri.ri_sub_path_string ^ "?" ^ g)
       in
       Ocsigen_messages.debug (fun () ->
         "--Rewritemod: YES! rewrite to: "^redir);
@@ -112,7 +115,17 @@ let gen dir charset = function
         (Ext_continue_with
            ({ri with 
                ri_sub_path_string = Ocsigen_lib.string_of_url_path redir;
-               ri_sub_path = redir
+               ri_sub_path = redir;
+               ri_get_params_string = params;
+               ri_get_params = 
+                match params with
+                  | None -> lazy []
+                  | Some p ->
+                      lazy
+                        (try 
+                           Netencoding.Url.dest_url_encoded_parameters p
+                         with Failure _ -> 
+                           raise Ocsigen_lib.Ocsigen_Bad_Request);
             },
             Ocsigen_http_frame.Cookies.empty,
             404)
@@ -142,8 +155,10 @@ let parse_config path charset _ parse_site = function
       | [] ->
           raise (Error_in_config_file
                    "regexp attribute expected for <rewrite>")
-      | [("regexp", s); ("dest",t)] ->
-          Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t)
+      | [("regexp", s); ("subpath", t)] ->
+          Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t, None)
+      | [("regexp", s); ("subpath", t); ("params", p)] ->
+          Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t, Some p)
       | _ -> raise (Error_in_config_file "Wrong attribute for <rewrite>")
       in
       gen dir charset
