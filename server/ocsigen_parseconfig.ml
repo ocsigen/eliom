@@ -244,6 +244,9 @@ let parse_server isreloading c =
       | (Element ("mimefile" as st, [], p))::ll ->
           Ocsigen_config.set_mimefile (parse_string_tag st p);
           parse_server_aux ll
+      | (Element ("maxretries" as st, [], p))::ll ->
+          set_maxretries (int_of_string st (parse_string_tag st p));
+          parse_server_aux ll
       | (Element ("timeout" as st, [], p))::ll
 (*VVV timeout: backward compatibility with <= 0.99.4 *)
       | (Element ("clienttimeout" as st, [], p))::ll ->

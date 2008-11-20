@@ -598,7 +598,7 @@ let do_for_site_matching host port ri =
       end
   in
 
-  let rec do2 sites cookies_to_set ri =
+  let rec do2 nb_retries sites cookies_to_set ri =
     let string_of_host_option = function
       | None -> "<no host>:"^(string_of_int port)
       | Some h -> h^":"^(string_of_int port)
@@ -634,9 +634,10 @@ let do_for_site_matching host port ri =
               aux_host ri e
                 (Ocsigen_http_frame.add_cookies cook cookies_to_set) l
           | Ext_retry_with (ri2, cook) ->
-              (*VVV not enough to detect loops *)
-              if ri != ri2 then
+              if (ri != ri2) && nb_retries < Ocsigen_config.get_maxretries ()
+              then
                 do2
+                  (nb_retries + 1)
                   (get_hosts ())
                   (Ocsigen_http_frame.add_cookies cook cookies_to_set)
                   ri2
@@ -656,7 +657,7 @@ let do_for_site_matching host port ri =
   in
   Lwt.finalize
     (fun () ->
-      do2 (get_hosts ()) Ocsigen_http_frame.Cookies.empty ri
+      do2 0 (get_hosts ()) Ocsigen_http_frame.Cookies.empty ri
     )
     (fun () ->
        awake ();

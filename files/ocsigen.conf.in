@@ -523,7 +523,4 @@
     <!-- <maxdetachedcomputationsqueued>100</maxdetachedcomputationsqueued> Size of the queue of computations waiting a detached thread (default 100) -->
     <!-- <commandpipe>_COMMANDPIPE_</commandpipe> Name of the pipe used to command the server -->
     <!-- <respectpipeline/> If this line is present, one request will be sent to extensions only when the server is sure that the previous one on the same connection has been taken by an extension. By default, the order may be changed. -->
-
-  </server>
-
-</ocsigen>
+    <!-- <maxretries>10</maxretries> Max number of tries after request rewriting (prevents loops in rewrites) -->
