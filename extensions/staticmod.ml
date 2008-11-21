@@ -132,7 +132,7 @@ let gen ~do_not_serve ~usermode dir charset = function
         (fun () ->
            Ocsigen_messages.debug2 "--Staticmod: Is it a static file?";
            let status_filter, page = find_static_page ~usermode ~dir ~err
-             ~pathstring:ri.ri_sub_path_string ~do_not_serve in
+             ~pathstring:(Ocsigen_lib.string_of_url_path ~encode:false ri.ri_sub_path) ~do_not_serve in
            LocalFiles.content ri.ri_full_path page
            >>= fun r ->
              Lwt.return

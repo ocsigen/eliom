@@ -493,12 +493,11 @@ end
 
 
 let string_of_url_path ~encode l = 
-  let l = 
-    if encode
-    then List.map (*Netencoding.Url.encode*) MyUrl.encode l
-    else l
-  in
-  fixup_url_string (String.concat "/" l)
+  if encode
+  then
+    fixup_url_string (String.concat "/"
+                        (List.map (*Netencoding.Url.encode*) MyUrl.encode l))
+  else String.concat "/" l (* BYXXX : check illicit characters *)
 
 let parse_url =
 
