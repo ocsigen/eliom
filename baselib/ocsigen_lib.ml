@@ -84,6 +84,13 @@ let rec list_is_prefix l1 l2 =
   | a::ll1, b::ll2 when a=b -> list_is_prefix ll1 ll2
   | _ -> false
 
+let rec list_is_prefix_skip_end_slash l1 l2 =
+  match (l1, l2) with
+  | [""], _
+  | [], _ -> true
+  | a::ll1, b::ll2 when a=b -> list_is_prefix ll1 ll2
+  | _ -> false
+
 
 (** various functions for URLs *)
 
@@ -102,11 +109,13 @@ let remove_dotdot =
 
 let remove_slash_at_beginning = function
   | [] -> []
+  | [""] -> [""]
   | ""::l -> l
   | l -> l
 
 let rec recursively_remove_slash_at_beginning = function
   | [] -> []
+  | [""] -> [""]
   | ""::l -> recursively_remove_slash_at_beginning l
   | l -> l
 
@@ -454,7 +463,7 @@ let fixup_url_string =
         (Char.code s.[Netstring_pcre.match_beginning m]))
 
 (*VVV This is in Netencoding but we have a problem with ~ 
-  (not encoded by browsers). Here is a patch that does not encode ~: *)
+  (not encoded by browsers). Here is a patch that does not encode '~': *)
 module MyUrl = struct
   let hex_digits =
     [| '0'; '1'; '2'; '3'; '4'; '5'; '6'; '7';

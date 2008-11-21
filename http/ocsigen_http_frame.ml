@@ -84,7 +84,7 @@ let compute_new_ri_cookies
     cookies_set_by_page =
 
   let prefix path p =
-    Ocsigen_lib.list_is_prefix
+    Ocsigen_lib.list_is_prefix_skip_end_slash
       (Ocsigen_lib.remove_slash_at_beginning path)
       (Ocsigen_lib.remove_slash_at_beginning p)
   in

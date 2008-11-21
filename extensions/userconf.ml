@@ -66,9 +66,8 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix, localpath) req_
               (Ext_sub_result
                  (fun awake cookies_to_set rs ->
                    let path =
-                     Ocsigen_lib.remove_slash_at_end
-                       (Ocsigen_lib.remove_slash_at_beginning
-                          (Ocsigen_lib.remove_dotdot (Neturl.split_path url)))
+                     Ocsigen_lib.remove_slash_at_beginning
+                       (Ocsigen_lib.remove_dotdot (Neturl.split_path url))
                    in
                    user_parse_site
                      xmllist

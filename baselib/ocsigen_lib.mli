@@ -14,9 +14,15 @@ val list_remove_all_assoc_q : 'a -> ('a * 'b) list -> ('a * 'b) list
 val list_last : 'a list -> 'a
 val list_assoc_remove : 'a -> ('a * 'b) list -> 'b * ('a * 'b) list
 val list_is_prefix : 'a list -> 'a list -> bool
+val list_is_prefix_skip_end_slash : string list -> string list -> bool
 val remove_dotdot : string list -> string list
+
 val remove_slash_at_beginning : string list -> string list
+(** Remove the slash at beginning but if it is also at the end *)
+
 val recursively_remove_slash_at_beginning : string list -> string list
+(** Recursively remove the slash at beginning but if it is also at the end *)
+
 val remove_slash_at_end : string list -> string list
 val remove_internal_slash : string list -> string list
 val add_end_slash_if_missing : string list -> string list
