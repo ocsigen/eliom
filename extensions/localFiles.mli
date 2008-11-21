@@ -15,13 +15,12 @@ type options = {
   (** Should symlinks be followed when accessign a file? *)
   follow_symlinks: follow_symlink;
 
-(*
   (** Default name to use as index file when a directory is requested.
-      Use [None] if no index should be tried. If no index is specified,
+      Use [None] if no index should be tried. The various indexes
+      are tried in the given order. If no index is specified,
       or the index does not exists, the content of the directory
-      might be listed, depending on [list_directory_content] *)
-  default_directory_index : string option;
-*)
+      might be listed, according to [list_directry_content] *)
+  default_directory_index : string list;
 }
 and follow_symlink =
   | DoNotFollow (** Never follow a symlink *)

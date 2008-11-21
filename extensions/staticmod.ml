@@ -30,6 +30,8 @@ open Ocsigen_extensions
 
 exception Not_concerned
 
+let bad_config s = raise (Error_in_config_file s)
+
 
 (*****************************************************************************)
 (* Structures describing the static pages a each virtual server *)
@@ -85,7 +87,7 @@ let correct_user_local_file =
    If the parameter [usermode] is true, we check that the path
    is valid.
 *)
-let find_static_page ~usermode ~dir ~err ~pathstring =
+let find_static_page ~usermode ~dir ~err ~pathstring ~do_not_serve =
   let status_filter, file = match dir.static_kind with
     | Dir d ->
         (false, Filename.concat d pathstring)
@@ -101,33 +103,47 @@ let find_static_page ~usermode ~dir ~err ~pathstring =
     | _ -> raise Not_concerned
   in
   if usermode = false || correct_user_local_file file then
-    (status_filter, LocalFiles.resolve file dir.options)
+    match LocalFiles.resolve file dir.options with
+      | LocalFiles.RDir _ as d -> (status_filter, d)
+      | LocalFiles.RFile f as f' ->
+          try ignore(Netstring_pcre.search_forward do_not_serve f 0);
+            (* We have been requested *not* to serve this kind of
+               file.  Thus, we respond nothing. Potentially, some
+               other extension (such as cgi or php) will handle the
+               request themselves, if they are active *)
+            Ocsigen_messages.debug
+              (fun () -> "--Staticmod: Voluntarily ignoring \"" ^ f ^ "\"");
+            raise Not_concerned
+
+          with Not_found ->
+            (* Everything is ok *)
+            (status_filter, f')
   else
     raise (Ocsigen_extensions.Error_in_user_config_file
              "cannot use '..' in user paths")
 
 
 
-let gen ~usermode dir charset = function
+let gen ~do_not_serve ~usermode dir charset = function
   | Ocsigen_extensions.Req_found (_, r) ->
       Lwt.return (Ocsigen_extensions.Ext_found r)
   | Ocsigen_extensions.Req_not_found (err, ri) ->
       catch
         (fun () ->
            Ocsigen_messages.debug2 "--Staticmod: Is it a static file?";
-           let status_filter, page = find_static_page
-             ~usermode ~dir ~err ~pathstring:ri.ri_sub_path_string in
+           let status_filter, page = find_static_page ~usermode ~dir ~err
+             ~pathstring:ri.ri_sub_path_string ~do_not_serve in
            LocalFiles.content ri.ri_full_path page
            >>= fun r ->
              Lwt.return
                {r with Ocsigen_http_frame.res_charset = Some charset}
-           >>= fun answer ->
-           let answer' =
-             if status_filter = false then
-               answer
-             else
-               (* The page is an error handler, we propagate
-                  the original error code *)
+             >>= fun answer ->
+               let answer' =
+                 if status_filter = false then
+                   answer
+                 else
+                   (* The page is an error handler, we propagate
+                      the original error code *)
                {answer with Ocsigen_http_frame.res_code = err }
            in Lwt.return (Ext_found (fun () -> Lwt.return answer'))
         )
@@ -145,26 +161,24 @@ let gen ~usermode dir charset = function
 (** Parsing of config file *)
 open Simplexmlparser
 
-(*VVV disabled because <site> is not mandatry any more
-let (default_static_dir : (string * bool) option ref) = ref None
-
-let set_default_static_dir s p = default_static_dir := Some (s, p)
-
-let get_default_static_dir () = !default_static_dir
+let do_not_serve = ref "\\.php$"
 
 let rec parse_global_config = function
   | [] -> ()
-  | (Element ("static", [("dir", di)], []))::ll ->
-      set_default_static_dir (remove_end_slash di) false
-  | (Element ("static", [("dir", di);("readable","readable")], []))::ll ->
-      set_default_static_dir (remove_end_slash di) true
-  | _ -> raise (Error_in_config_file
-                  ("Unexpected content inside static config"))
+  | (Element ("donotserve", [("regexp", r)], []))::l ->
+      do_not_serve := r;
+      parse_global_config l
+  | _ -> bad_config "Unexpected content inside staticmod options"
 
 let _ = parse_global_config (Ocsigen_extensions.get_config ())
-*)
 
-let bad_config s = raise (Error_in_config_file s)
+let do_not_serve =
+  try Netstring_pcre.regexp !do_not_serve
+  with Pcre.BadPattern _ ->
+    bad_config ("Bad regexp \""^ !do_not_serve ^"\" in option 'donotserve' of staticmod")
+
+
+
 
 let rewrite_local_path userconf path =
   match userconf with
@@ -172,37 +186,49 @@ let rewrite_local_path userconf path =
     | Some { Ocsigen_extensions.localfiles_root = root } ->
         root ^ "/" ^ path
 
+type options = {
+  opt_dir: string option;
+  opt_readable: bool option;
+  opt_regexp: Netstring_pcre.regexp option;
+  opt_code: Netstring_pcre.regexp option;
+  opt_dest: Ocsigen_extensions.ud_string option;
+  opt_follow: LocalFiles.follow_symlink option;
+  opt_default_index: string list option;
+}
+
 let parse_config userconf path (charset, _, _, _) _ parse_site =
-  let rec parse_attrs l ((dir, regexp, readable, code, dest, follow) as res) =
+  let rec parse_attrs l opt =
     match l with
-      | [] -> res
+      | [] -> opt
 
-      | ("dir", d)::l when dir = None ->
-          parse_attrs l (Some (rewrite_local_path userconf d), regexp, readable, code, dest, follow)
+      | ("dir", d)::l when opt.opt_dir = None ->
+          parse_attrs l
+            { opt with opt_dir = Some (rewrite_local_path userconf d)}
 
-      | (("readable", "readable") | ("listdirectorycontent","1"))::l when readable = None ->
-          parse_attrs l (dir, regexp, Some true, code, dest, follow)
+      | ((("readable", "readable")
+      |  ("listdirectorycontent","1"))::l) when opt.opt_readable = None ->
+          parse_attrs l { opt with opt_readable = Some true }
 
-      | ("code", c)::l when code = None ->
-          let c = try Netstring_pcre.regexp ("^"^c^"$")
-           with Pcre.BadPattern _ ->
-             bad_config ("Bad regexp \""^c^"\" in <static code=\"...\" />")
-          in
-          parse_attrs l (dir, regexp, readable, Some c, dest, follow)
-
-      | ("regexp", s)::l when regexp = None ->
+      | ("regexp", s)::l when opt.opt_regexp = None ->
           let s = try Netstring_pcre.regexp ("^"^s^"$")
            with Pcre.BadPattern _ ->
              bad_config ("Bad regexp \""^s^"\" in <static regexp=\"...\" />")
           in
-          parse_attrs l (dir, Some s, readable, code, dest, follow)
+          parse_attrs l { opt with opt_regexp = Some s }
 
-      | ("dest", s)::l when dest = None ->
+      | ("code", c)::l when opt.opt_code = None ->
+          let c = try Netstring_pcre.regexp ("^"^c^"$")
+           with Pcre.BadPattern _ ->
+             bad_config ("Bad regexp \""^c^"\" in <static code=\"...\" />")
+          in
+          parse_attrs l { opt with opt_code = Some c }
+
+      | ("dest", s)::l when opt.opt_dest = None ->
           parse_attrs l
-            (dir, regexp, readable, code,
-             Some (parse_user_dir (rewrite_local_path userconf s)), follow)
+            { opt with opt_dest =
+                Some (parse_user_dir (rewrite_local_path userconf s)) }
 
-      | ("followsymlinks", s)::l when follow = None ->
+      | ("followsymlinks", s)::l when opt.opt_follow = None ->
           let v = match s with
             | "never" -> LocalFiles.DoNotFollow
             | "always" ->
@@ -217,21 +243,42 @@ let parse_config userconf path (charset, _, _, _) _ parse_site =
                 bad_config ("Wrong value \""^s^"\" for tag \"followsymlink\"")
           in
           parse_attrs l
-            (dir, regexp, readable, code, dest, Some v)
+            { opt with opt_follow = Some v }
+
+      | ("defaultindex", s):: l ->
+          let v =
+            match opt.opt_default_index with
+              | None -> Some [s]
+              | Some l -> Some (s :: l)
+          in
+          parse_attrs l { opt with opt_default_index = v }
 
     | _ -> bad_config "Wrong attribute for <static>"
   in
   function
     | Element ("static", atts, []) ->
-        let dir, regexp, readable, code, dest, follow =
-          parse_attrs atts (None, None, None, None, None, None)
+        let opt =
+          parse_attrs atts {
+            opt_dir = None;
+            opt_readable = None;
+            opt_regexp = None;
+            opt_code = None;
+            opt_dest = None;
+            opt_follow = None;
+            opt_default_index = None;
+          }
         in
-        let readable = (readable = Some true) (* default value is false *)
-        and follow_symlinks = match follow with
+        (* default value is false *)
+        let readable = (opt.opt_readable = Some true)
+        and follow_symlinks = match opt.opt_follow with
           | Some v -> v
           | None -> LocalFiles.DoNotFollow (* default value *)
+        and default_index = match opt.opt_default_index with
+          | None -> ["index.html"]
+          | Some l -> List.rev l
         in
-        let kind =  match dir, regexp, code, dest with
+        let kind =
+          match opt.opt_dir, opt.opt_regexp, opt.opt_code, opt.opt_dest with
           | (None, None, None, _) ->
               raise (Error_in_config_file
                        "Missing attribute dir, regexp, or code for <static>")
@@ -245,9 +292,11 @@ let parse_config userconf path (charset, _, _, _) _ parse_site =
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
           in
           gen ~usermode:(userconf <> None)
+            ~do_not_serve
             { static_kind = kind;
               options = {
                 LocalFiles.list_directory_content = readable;
+                default_directory_index = default_index;
                 follow_symlinks = follow_symlinks } }
             charset
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)

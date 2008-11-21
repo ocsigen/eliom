@@ -2031,7 +2031,9 @@ module Filesreg_ = struct
     let options = match options with
       | None ->
           { LocalFiles.list_directory_content = false;
-            follow_symlinks = LocalFiles.DoNotFollow }
+            follow_symlinks = LocalFiles.DoNotFollow;
+            default_directory_index = ["index.html"];
+          }
       | Some v -> v
     in
     let file =

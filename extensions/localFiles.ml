@@ -7,7 +7,8 @@ exception Failed_404
 
 type options = {
   list_directory_content : bool;
-  follow_symlinks: follow_symlink
+  follow_symlinks: follow_symlink;
+  default_directory_index : string list;
 }
 and follow_symlink =
   | DoNotFollow (* Never follow a symlink *)
@@ -94,9 +95,10 @@ type resolved =
 
 (* given [filename], we search for it in the local filesystem and
    - we return ["filename/index.html"] if [filename] corresponds to
-   a directory, and ["filename/index.html"] is valid
+   a directory, ["filename/index.html"] is valid, and ["index.html"]
+   is one possible index (trying all possible indexes in order)
    - we raise [Failed_403] if [filename] corresponds to a directory,
-   ["filename/index.html"] does not exists and [list_dir_content] is false
+   no index exists and [list_dir_content] is false
    - we raise [Failed_403] if [filename] is a symlink that must
    not be followed
    - raises [Failed_404] if [filename] does not exist, or is a special file
@@ -117,20 +119,27 @@ let resolve ~filename ~options =
           Ocsigen_messages.debug
             (fun () -> "--Resolve_local_file: "^filename^" is a directory");
           raise Ocsigen_extensions.Ocsigen_Is_a_directory
+        end
 
-        end else begin
-          let fn2 = filename ^ "index.html" in
-          Ocsigen_messages.debug
-            (fun () -> "--Resolve_local_file: Testing \""^fn2^"\".");
-          try
-            (fn2, Unix.LargeFile.stat fn2)
-          with
-            | Unix.Unix_error (Unix.ENOENT, _, _) ->
+        else
+          let rec find_index = function
+            | [] ->
+                (* No suitable index, we try to list the directory *)
                 if options.list_directory_content then
                   (filename, stat)
                 else
                   raise Failed_403
-        end
+            | e :: q ->
+                let index = filename ^ e in
+                Ocsigen_messages.debug
+                  (fun () -> "--Resolve_local_file: Testing \""^index
+                     ^"\" as possible index.");
+                try
+                  (index, Unix.LargeFile.stat index)
+                with
+                  | Unix.Unix_error (Unix.ENOENT, _, _) -> find_index q
+          in find_index options.default_directory_index
+
       else (filename, stat)
     in
     if check_symlinks filename options.follow_symlinks then
