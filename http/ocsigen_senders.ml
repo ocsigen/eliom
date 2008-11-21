@@ -404,8 +404,8 @@ module Directory_content =
   <td>%Ld</td>
   <td>%s</td>
 </tr>"
-        icon (Netencoding.Url.encode name) name stat.Unix.LargeFile.st_size
-        (date stat.Unix.LargeFile.st_mtime)
+      icon (Netencoding.Url.encode ~plus:false name) name
+      stat.Unix.LargeFile.st_size (date stat.Unix.LargeFile.st_mtime)
 
 
     let directory filename =
