@@ -61,7 +61,7 @@ let defaultpagename = "./"
    "index" works but one page may have two different URLs *)
 
 let eliom_suffix_name = "__eliom_suffix"
-let eliom_suffix_internal_name = "__eliom_suffix**"
+let eliom_suffix_internal_name = "__(suffix service)__"
 let naservice_num = "__eliom_na__num"
 let naservice_name = "__eliom_na__name"
 let get_state_param_name = "__eliom__"

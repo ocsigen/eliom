@@ -366,8 +366,7 @@ let new_coservice
    https = https || fallback.https
  }
 (* Warning: here no GET parameters for the fallback.
-   Apply services with apply_service
-   if you want fallbacks with GET parameters *)
+   Preapply services if you want fallbacks with GET parameters *)
 
 
 let new_coservice' ?name ?max_use ?timeout ?(https = false) ~get_params () =
@@ -540,6 +539,11 @@ Forms towards that kind of service are not implemented
 *)
 
 
+let rec append_suffix l m = match l with
+  | [] -> m
+  | [eliom_suffix_internal_name] -> m
+  | a::ll -> a::(append_suffix ll m)
+
 let preapply ~service getparams =
   let suff, params = construct_params_list service.get_params_type getparams in
   {service with
@@ -548,10 +552,10 @@ let preapply ~service getparams =
    kind = match service.kind with
    | `Attached k -> `Attached {k with
                                subpath = (match suff with
-                               | Some suff -> k.subpath@suff
+                               | Some suff -> append_suffix k.subpath suff
                                | _ -> k.subpath);
                                fullpath = (match suff with
-                               | Some suff -> k.fullpath@suff
+                               | Some suff -> append_suffix k.fullpath suff
                                | _ -> k.fullpath);
                              }
    | k -> k

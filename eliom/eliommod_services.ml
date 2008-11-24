@@ -162,27 +162,27 @@ let add_service
     (page_table_key,
      ((unique_id1, unique_id2), max_use, expdate, action)) =
 
-  let aux search dircontentref a l =
+  let rec aux dircontentref a l =
     try
       let direltref = find_dircontent !dircontentref a in
       match !direltref with
-      | Eliom_common.Dir dcr -> search dcr l
+      | Eliom_common.Dir dcr -> search_page_table_ref dcr l
       | Eliom_common.File ptr ->
           raise (Eliom_common.Eliom_page_erasing a)
             (* Ocsigen_messages.warning ("Eliom page registration: Page "^
                a^" has been replaced by a directory");
                let newdcr = ref (Eliom_common.empty_dircontent ()) in
                (direltref := Eliom_common.Dir newdcr;
-               search newdcr l) *)
+               search_page_table_ref newdcr l) *)
     with
     | Not_found ->
         let newdcr = ref (Eliom_common.empty_dircontent ()) in
         (dircontentref :=
           add_dircontent !dircontentref (a, ref (Eliom_common.Dir newdcr));
-         search newdcr l)
-  in
+         search_page_table_ref newdcr l)
 
-  let rec search_page_table_ref dircontentref = function
+
+  and search_page_table_ref dircontentref = function
     | [] | [""] ->
         search_page_table_ref dircontentref [Eliom_common.defaultpagename]
     | [a] ->
@@ -205,11 +205,7 @@ let add_service
                 (a, ref (Eliom_common.File newpagetableref));
              newpagetableref))
     | ""::l -> search_page_table_ref dircontentref l
-    | a::l -> aux search_page_table_ref dircontentref a l
-          (* and search_dircontentref dircontentref = function
-             [] -> dircontentref
-             | ""::l -> search_dircontentref dircontentref l
-             | a::l -> aux search_dircontentref a l *)
+    | a::l -> aux dircontentref a l
   in
 
   (match expdate with
