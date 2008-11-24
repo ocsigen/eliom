@@ -274,12 +274,12 @@ let rec make_ext defaulthostname awake cookies_to_set req_state genfun f =
         aux cookies_to_set res
   in
   Lwt.catch
-    (fun () -> genfun req_state)
+    (fun () -> genfun req_state >>= aux cookies_to_set)
     (function
        | Ocsigen_Is_a_directory ->
            Lwt.fail (Internal_is_a_dir_ defaulthostname)
        | e -> Lwt.fail e)
-  >>= aux cookies_to_set
+  
 
 (*****************************************************************************)
 let fun_beg = ref (fun () -> ())
