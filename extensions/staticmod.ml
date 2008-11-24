@@ -206,8 +206,11 @@ let parse_config userconf path (charset, _, _, _) _ parse_site =
             { opt with opt_dir = Some (rewrite_local_path userconf d)}
 
       | ((("readable", "readable")
-      |  ("listdirectorycontent","1"))::l) when opt.opt_readable = None ->
+      |  ("listdirs", "true"))::l) when opt.opt_readable = None ->
           parse_attrs l { opt with opt_readable = Some true }
+
+      |  ("listdirs", "false")::l when opt.opt_readable = None ->
+          parse_attrs l { opt with opt_readable = Some false }
 
       | ("regexp", s)::l when opt.opt_regexp = None ->
           let s = try Netstring_pcre.regexp ("^"^s^"$")
