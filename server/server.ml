@@ -576,7 +576,7 @@ let service
              (fun e ->
                 finish_request ();
                 match e with
-                | Ocsigen_Is_a_directory ->
+                | Ocsigen_extensions.Internal_is_a_dir_ defaulthostname ->
                     Ocsigen_messages.debug2 "-> Sending 301 Moved permanently";
                     let empty_result = Ocsigen_http_frame.empty_result () in
                     send
@@ -586,10 +586,21 @@ let service
                       ~sender:Ocsigen_http_com.default_sender
                     {empty_result with
                      res_code = 301 (* Moved permanently *);
-                     res_location = Some ((Neturl.string_of_url
-                                             (Neturl.undefault_url
-                                                ~path:("/"::(ri.ri_full_path))
-                                                ri.ri_url))^"/")
+                     res_location = 
+                        Some (Neturl.string_of_url
+                                (Neturl.default_url
+                                   ~scheme:(if ri.ri_ssl
+                                            then "https" 
+                                            else "http")
+                                   ~host:defaulthostname
+                                   ?port:(if (port = 80 && not ri.ri_ssl) 
+                                            || (ri.ri_ssl && port = 443)
+                                          then None
+                                          else Some port)
+                                   ~path:(""::(Ocsigen_lib.add_end_slash_if_missing ri.ri_full_path))
+                                   (Neturl.remove_from_url
+                                      ~path:true
+                                      ri.ri_url)))
                    }
                 | _ ->
                     handle_service_errors e))

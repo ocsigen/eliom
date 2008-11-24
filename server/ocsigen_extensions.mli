@@ -342,6 +342,8 @@ val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
 
 (**/**)
 
+exception Internal_is_a_dir_ of string
+
 val make_parse_site :
   url_path ->
   string * string * int * int ->

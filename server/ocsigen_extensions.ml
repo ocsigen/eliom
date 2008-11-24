@@ -31,6 +31,7 @@ open Ocsigen_lib
 
 exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
 exception Ocsigen_Is_a_directory
+exception Internal_is_a_dir_ of string
 exception Ocsigen_Internal_Error of string
 exception Ocsigen_Looping_request
 
@@ -236,7 +237,7 @@ let add_to_res_cookies res cookies_to_set =
      Ocsigen_http_frame.res_cookies =
      Ocsigen_http_frame.add_cookies res.Ocsigen_http_frame.res_cookies cookies_to_set}
 
-let rec make_ext awake cookies_to_set req_state genfun f =
+let rec make_ext defaulthostname awake cookies_to_set req_state genfun f =
   let rec aux cookies_to_set = function
     | Ext_found r ->
         awake ();
@@ -272,7 +273,13 @@ let rec make_ext awake cookies_to_set req_state genfun f =
         >>= fun (res, cookies_to_set) ->
         aux cookies_to_set res
   in
-  genfun req_state >>= aux cookies_to_set
+  Lwt.catch
+    (fun () -> genfun req_state)
+    (function
+       | Ocsigen_Is_a_directory ->
+           Lwt.fail (Internal_is_a_dir_ defaulthostname)
+       | e -> Lwt.fail e)
+  >>= aux cookies_to_set
 
 (*****************************************************************************)
 let fun_beg = ref (fun () -> ())
@@ -367,7 +374,8 @@ let rec default_parse_config
   | _ -> raise (Ocsigen_config.Config_file_error
                   ("Unexpected content inside <host>"))
 
-and make_parse_site path charsetetc parse_host l =
+and make_parse_site
+    path ((_, defaulthostname, _, _) as charsetetc) parse_host l =
   let f = parse_host path charsetetc (Parse_host parse_host) in
   (* creates all site data, if any *)
   let rec parse_site = function
@@ -386,7 +394,8 @@ and make_parse_site path charsetetc parse_host l =
           in
           let genfun2 = parse_site ll in
           fun awake cookies_to_set req_state ->
-            make_ext awake cookies_to_set req_state genfun genfun2
+            make_ext 
+              defaulthostname awake cookies_to_set req_state genfun genfun2
         with
         | Bad_config_tag_for_extension t ->
             ignore
