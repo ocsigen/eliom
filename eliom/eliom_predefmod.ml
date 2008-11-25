@@ -2029,11 +2029,7 @@ module Filesreg_ = struct
 
   let send ?options ?(cookies=[]) ?charset ?code ~sp filename =
     let options = match options with
-      | None ->
-          { LocalFiles.list_directory_content = false;
-            follow_symlinks = LocalFiles.DoNotFollow;
-            default_directory_index = ["index.html"];
-          }
+      | None -> LocalFiles.default_options
       | Some v -> v
     in
     let file =

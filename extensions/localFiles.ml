@@ -17,6 +17,14 @@ and follow_symlink =
   | AlwaysFollow (* Always follow symlinks *)
 
 
+(* Default, most restrictive options *)
+let default_options = {
+  list_directory_content = false;
+  follow_symlinks = DoNotFollow;
+  default_directory_index = ["index.html"];
+}
+
+
 (* Policies for following symlinks *)
 type symlink_policy =
     stat:Unix.LargeFile.stats -> lstat:Unix.LargeFile.stats -> bool
@@ -152,10 +160,12 @@ let resolve ~filename ~options =
           RDir filename
         else raise Failed_404
       end
-    else
+    else (
       (* [filename] is accessed through as symlink which we should not
          follow according to the current policy *)
-      raise Failed_403
+      Ocsigen_messages.debug
+        (fun () -> "--Failed symlink check for \""^filename^"\".");
+      raise Failed_403)
   with
     (* We can get an EACCESS here, if are missing some rights on a directory *)
     | Unix.Unix_error (Unix.EACCES,_,_) -> raise Failed_403

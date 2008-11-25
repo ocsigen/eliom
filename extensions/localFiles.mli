@@ -29,15 +29,12 @@ and follow_symlink =
   | AlwaysFollow (** Always follow symlinks *)
 
 
-(*
 (** Default options:
-    - never display a file (this field must thus be overridden)
-    - follow symlinks if owner match
+    - never follow symlinks
     - use "index.html" as default index
     - do not list the content of directories
 *)
-val default_display_options : options
-*)
+val default_options : options
 
 
 (** Local file corresponding to a request. The string argument
