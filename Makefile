@@ -75,10 +75,10 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
-       extensions/accesscontrol.cmi
+       extensions/localFiles.cmi extensions/accesscontrol.cmi
 
 CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma
-CMITOINSTALL = server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi xmlp4/xhtmlpretty.cmi xmlp4/xhtmlcompact.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi http/ocsigen_senders.cmi http/framepp.cmi http/ocsigen_http_com.cmi http/http_headers.cmi baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi http/ocsigen_stream.cmi baselib/ocsigen_messages.cmi META
+CMITOINSTALL = server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi xmlp4/xhtmlpretty.cmi xmlp4/xhtmlcompact.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi http/ocsigen_senders.cmi http/framepp.cmi http/ocsigen_http_com.cmi http/http_headers.cmi baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi http/ocsigen_stream.cmi baselib/ocsigen_messages.cmi extensions/localFiles.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi
 
