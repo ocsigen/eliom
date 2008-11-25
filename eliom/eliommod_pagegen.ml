@@ -201,13 +201,14 @@ let compute_exn closedservsessions =
 
 
 
-let gen is_eliom_extension sitedata (charset, _, _, _) = function
+let gen is_eliom_extension sitedata conf_info = function
 | Ocsigen_extensions.Req_found (_, r) -> 
     Lwt.return (Ocsigen_extensions.Ext_found r)
 | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in
   Eliom_common.change_request_info
-    ri charset previous_extension_err >>= fun (ri, si) ->
+    ri conf_info.Ocsigen_extensions.charset previous_extension_err
+  >>= fun (ri, si) ->
   let (all_cookie_info, closedsessions) =
     Eliommod_cookies.get_cookie_info now
       sitedata

@@ -464,7 +464,7 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 (*****************************************************************************)
 
-let gen reg (charset, hostname, _, _) = function
+let gen reg conf_info = function
   | Ocsigen_extensions.Req_found (_, r) -> 
       Lwt.return (Ocsigen_extensions.Ext_found r)
   | Ocsigen_extensions.Req_not_found (err, ri) ->
@@ -477,7 +477,8 @@ let gen reg (charset, hostname, _, _) = function
          in
          recupere_cgi
            (ri.ri_method = Http_header.HEAD)
-           re doc_root filename ri hostname >>= fun (frame, finalizer) ->
+           re doc_root filename ri conf_info.default_hostname
+         >>= fun (frame, finalizer) ->
          let header = frame.Ocsigen_http_frame.header in
          let content = get_content frame in
          Ocsigen_stream.add_finalizer content finalizer;
@@ -570,7 +571,7 @@ let rec set_env = function
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
-let parse_config path (a, hostname, b, c) _ parse_site = function
+let parse_config path conf_info _ _ = function
   | Element ("cgi", atts, l) ->
       let good_root r =
         Regexp.quote (string_conform2 r) 
@@ -611,7 +612,7 @@ let parse_config path (a, hostname, b, c) _ parse_site = function
            env=set_env l}
       | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
       in
-      gen dir (a, hostname, b, c)
+      gen dir conf_info
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->
       raise (Error_in_config_file "Unexpected data in config file")

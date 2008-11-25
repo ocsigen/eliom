@@ -452,8 +452,12 @@ let parse_server isreloading c =
           in
           let parse_host = Ocsigen_extensions.parse_site_item host in
           let parse_site = 
-            Ocsigen_extensions.make_parse_site 
-              [] (charset, defaulthostname, defaulthttpport, defaulthttpsport)
+            Ocsigen_extensions.make_parse_site []
+              { Ocsigen_extensions.charset = charset;
+                default_hostname = defaulthostname;
+                default_httpport = defaulthttpport;
+                default_httpsport = defaulthttpsport;
+              }
               parse_host 
           in
           (* default site for host *)

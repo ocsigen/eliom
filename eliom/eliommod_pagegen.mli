@@ -17,5 +17,5 @@ val compute_exn : string list -> exn list
 val gen :
   Eliommod_extensions.eliom_extension_sig option ->
   Eliom_common.sitedata ->
-  string * string * int * int -> 
+  Ocsigen_extensions.conf_info ->
   Ocsigen_extensions.request_state -> Ocsigen_extensions.answer Lwt.t

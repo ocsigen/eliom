@@ -196,7 +196,7 @@ type options = {
   opt_default_index: string list option;
 }
 
-let parse_config userconf path (charset, _, _, _) _ parse_site =
+let parse_config userconf _ conf_info _ _ =
   let rec parse_attrs l opt =
     match l with
       | [] -> opt
@@ -301,7 +301,7 @@ let parse_config userconf path (charset, _, _, _) _ parse_site =
                 LocalFiles.list_directory_content = readable;
                 default_directory_index = default_index;
                 follow_symlinks = follow_symlinks } }
-            charset
+            conf_info.Ocsigen_extensions.charset
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
     | _ -> bad_config "(staticmod extension) Bad data"
 

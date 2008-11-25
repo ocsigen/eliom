@@ -54,6 +54,16 @@ val string_of_url_path : encode:bool -> url_path -> string
 type virtual_host_part = Text of string * int | Wildcard
 type virtual_hosts = ((virtual_host_part list) * int option) list
 
+
+(** Configuration options, passed to (and modified by) extensions *)
+type conf_info = {
+  charset : string;
+  default_hostname: string;
+  default_httpport: int;
+  default_httpsport: int;
+}
+
+
 (** The files sent in the request *)
 type file_info = {tmp_filename: string; (** Where the file is stored on the server*)
                   filesize: int64; (** Size, in bytes *)
@@ -268,11 +278,10 @@ type parse_site =
 and parse_site_user =
     userconf_info -> parse_site
 and parse_site_aux =
-    url_path -> string * string * int * int -> parse_host ->
+    url_path -> conf_info -> parse_host ->
       (parse_fun -> Simplexmlparser.xml ->
          extension
       )
-
 
 
 (** BYXXX : update this documentation
@@ -348,7 +357,7 @@ exception Internal_is_a_dir_ of string
 
 val make_parse_site :
   url_path ->
-  string * string * int * int ->
+  conf_info ->
   parse_site_aux ->
   parse_fun
 

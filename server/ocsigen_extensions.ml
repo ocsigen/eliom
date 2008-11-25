@@ -67,6 +67,15 @@ let client_id = Ocsigen_http_com.connection_id
 let client_connection x = x
 let client_of_connection x = x
 
+
+type conf_info = {
+  charset : string;
+  default_hostname: string;
+  default_httpport: int;
+  default_httpsport: int;
+}
+
+
 (* Requests *)
 type request_info =
     {ri_url_string: string;
@@ -198,7 +207,7 @@ type parse_fun = Simplexmlparser.xml list -> extension2
 type parse_host =
     Parse_host of
       (url_path ->
-        string * string * int * int ->
+        conf_info ->
           parse_host -> parse_fun -> Simplexmlparser.xml -> extension)
 
 let (hosts : (virtual_hosts * extension2) list ref) =
@@ -291,7 +300,7 @@ let fun_exn = ref (fun exn -> (raise exn : string))
 let rec default_parse_config
     (host : virtual_hosts)
     prevpath
-    ((defcharset, a, b, c) as defcharsetetc)
+    def_conf_info
     (Parse_host parse_host)
     (parse_fun : parse_fun) = function
   | Simplexmlparser.Element ("site", atts, l) ->
@@ -318,8 +327,8 @@ let rec default_parse_config
       in
       let charset, dir = parse_site_attrs (None, None) atts in
       let charsetetc = match charset with
-      | None -> defcharsetetc
-      | Some charset -> (charset, a, b, c)
+      | None -> def_conf_info
+      | Some charset -> { def_conf_info with charset = charset }
       in
       let path =
         prevpath@
@@ -376,9 +385,8 @@ let rec default_parse_config
   | _ -> raise (Ocsigen_config.Config_file_error
                   ("Unexpected content inside <host>"))
 
-and make_parse_site
-    path ((_, defaulthostname, _, _) as charsetetc) parse_host l =
-  let f = parse_host path charsetetc (Parse_host parse_host) in
+and make_parse_site path conf_info parse_host l =
+  let f = parse_host path conf_info (Parse_host parse_host) in
   (* creates all site data, if any *)
   let rec parse_site = function
     | [] ->
@@ -396,8 +404,8 @@ and make_parse_site
           in
           let genfun2 = parse_site ll in
           fun awake cookies_to_set req_state ->
-            make_ext 
-              defaulthostname awake cookies_to_set req_state genfun genfun2
+            make_ext conf_info.default_hostname
+              awake cookies_to_set req_state genfun genfun2
         with
         | Bad_config_tag_for_extension t ->
             ignore
@@ -443,7 +451,7 @@ type userconf_info = {
 type parse_site = virtual_hosts -> parse_site_aux
 and parse_site_user = userconf_info -> parse_site
 and parse_site_aux =
-    url_path -> string * string * int * int -> parse_host ->
+    url_path -> conf_info -> parse_host ->
       (parse_fun -> Simplexmlparser.xml ->
          extension
       )
