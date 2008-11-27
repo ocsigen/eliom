@@ -66,6 +66,10 @@ let add_naservice
         | Eliom_common.Na_post_ n ->
             raise (Eliom_common.Eliom_duplicate_registration
                      ("POST non-attached service "^n))
+        | Eliom_common.Na_void_dontkeep
+        | Eliom_common.Na_void_keep ->
+            raise (Eliom_common.Eliom_duplicate_registration
+                     "<void coservice>")
     with Not_found -> ());
 
   (match expdate with
@@ -152,6 +156,8 @@ let make_naservice
          We call the same URL without non-attached parameters.
        *)
       match si.Eliom_common.si_nonatt_info with
+      | Eliom_common.Na_void_keep (* ? *)
+      | Eliom_common.Na_void_dontkeep (* ? *)
       | Eliom_common.Na_no -> assert false
       | Eliom_common.Na_post_ _
       | Eliom_common.Na_post' _ ->

@@ -562,7 +562,7 @@ let preapply ~service getparams =
  }
 
 
-let void_action =
+let void_coservice' =
   {
     max_use= None;
     timeout= None;
@@ -570,13 +570,13 @@ let void_action =
     get_params_type = unit;
     post_params_type = unit;
     kind = `Nonattached
-      {na_name = Eliom_common.Na_get_ "";
+      {na_name = Eliom_common.Na_void_dontkeep;
        na_kind = `Get;
       };
     https = false;
   }
 
-let https_void_action =
+let https_void_coservice' =
   {
     max_use= None;
     timeout= None;
@@ -584,11 +584,25 @@ let https_void_action =
     get_params_type = unit;
     post_params_type = unit;
     kind = `Nonattached
-      {na_name = Eliom_common.Na_get_ "";
+      {na_name = Eliom_common.Na_void_dontkeep;
        na_kind = `Get;
       };
     https = true;
   }
+
+let void_hidden_coservice' = {void_coservice' with 
+                         kind = `Nonattached
+    {na_name = Eliom_common.Na_void_keep;
+     na_kind = `Get;
+    };
+                      }
+
+let https_void_hidden_coservice' = {void_coservice' with 
+                         kind = `Nonattached
+    {na_name = Eliom_common.Na_void_keep;
+     na_kind = `Get;
+    };
+                      }
 
 
 (*****************************************************************************)

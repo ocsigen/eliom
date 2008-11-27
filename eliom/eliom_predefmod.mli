@@ -843,8 +843,8 @@ module Redirection : Eliom_mkreg.ELIOMREGSIG with
  *)
 module String_redirection : Eliom_mkreg.ELIOMREGSIG with
   type page = XHTML.M.uri
-(*VVV Would be better to define the type uri elsewhere *)
   and type options = [ `Temporary | `Permanent ]
+(*VVV Would be better to define the type uri elsewhere *)
 
 (** Allows to send files. The content is the name of the file to send. *)
 module Files : Eliom_mkreg.ELIOMREGSIG with

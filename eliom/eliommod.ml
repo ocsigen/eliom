@@ -266,7 +266,9 @@ let handle_init_exn = function
            "\" has not been registered."
        | a::ll ->
            let string_of = function
-             | Eliom_common.Na_no -> "<no>"
+             | Eliom_common.Na_void_keep
+             | Eliom_common.Na_void_dontkeep
+             | Eliom_common.Na_no -> assert false
              | Eliom_common.Na_get' _ -> "<GET coservice>"
              | Eliom_common.Na_get_ n -> n^" (GET)"
              | Eliom_common.Na_post' _ -> "<POST coservice>"

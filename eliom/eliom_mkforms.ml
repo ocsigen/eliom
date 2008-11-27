@@ -904,97 +904,102 @@ module MakeForms = functor
               let params_string =
                 concat_strings preapplied_params "&" params_string in
               let uri =
-                (if (get_att_kind_ attser) = `External
-                 then
+                if (get_att_kind_ attser) = `External
+                then
                   (get_prefix_ attser)^
                     "/"^  (* we add the "/" even if there is no prefix,
                              because we should do absolute links in that case *)
                     (reconstruct_absolute_url_path
                        (get_full_path_ attser) suff)
                 else
-                  if absolute
-                  then
-                    reconstruct_absolute_url_path (get_full_path_ attser) suff
-                  else
-                    reconstruct_relative_url_path
-                      (get_original_full_path sp) (get_full_path_ attser) suff)
+                  match absolute with
+                    | Some proto_prefix ->
+                        proto_prefix^
+                          reconstruct_absolute_url_path
+                          (get_full_path_ attser) suff
+                    | None ->
+                        reconstruct_relative_url_path
+                          (get_original_full_path sp)
+                          (get_full_path_ attser) suff
               in
               match get_get_name_ attser with
-              | Eliom_common.Att_no ->
-                  add_to_string
-                    (add_to_string uri "?" params_string)
-                    "#"
-                    (Netencoding.Url.encode fragment)
-              | Eliom_common.Att_anon s ->
-                  add_to_string
-                    (add_to_string (uri^"?"^Eliom_common.get_numstate_param_name^"="^s)
-                       "&" params_string)
-                    "#"
-                    (Netencoding.Url.encode fragment)
-              | Eliom_common.Att_named s ->
-                  add_to_string
-                    (add_to_string (uri^"?"^Eliom_common.get_state_param_name^"="^s)
-                       "&" params_string)
-                    "#"
-                    (Netencoding.Url.encode fragment)
+                | Eliom_common.Att_no ->
+                    add_to_string
+                      (add_to_string uri "?" params_string)
+                      "#"
+                      (Netencoding.Url.encode fragment)
+                | Eliom_common.Att_anon s ->
+                    add_to_string
+                      (add_to_string
+                         (uri^"?"^Eliom_common.get_numstate_param_name^"="^s)
+                         "&" params_string)
+                      "#"
+                      (Netencoding.Url.encode fragment)
+                | Eliom_common.Att_named s ->
+                    add_to_string
+                      (add_to_string
+                         (uri^"?"^Eliom_common.get_state_param_name^"="^s)
+                         "&" params_string)
+                      "#"
+                      (Netencoding.Url.encode fragment)
             end
         | `Nonattached naser ->
-            let current_get_params =
-              List.remove_assoc
-                Eliom_common.naservice_name
-                (List.remove_assoc
-                   Eliom_common.naservice_num
-                   (remove_prefixed_param
-                      Eliom_common.na_co_param_prefix
-                      (Eliom_sessions.get_all_current_get_params sp)))
-            in
-            let gp =
-              match
-                match get_na_name_ naser with
-                  | Eliom_common.Na_get_ "" -> None
-                      (* The empty name is for the "cancel" service,
-                         that goes back to the URL without na-parameters
-                      *)
-                  | Eliom_common.Na_get' n ->
-                      Some (Eliom_common.naservice_num^"="^n)
-                  | Eliom_common.Na_get_ n ->
-                      Some (Eliom_common.naservice_name^"="^n)
-                  | _ -> assert false
-              with
-                | None -> ""
-                | Some naservice_param ->
-                    let _, params_string =
-                      construct_params
-                        (get_get_params_type_ service)
-                        getparams
-                    in
-                    let preapplied_params =
-                      construct_params_string
-                        (get_pre_applied_parameters_ service)
-                    in
-                    let params_string =
-                      concat_strings preapplied_params "&" params_string
-                    in
-                    (concat_strings naservice_param "&" params_string)
-            in
-            let current_get_params_string =
-              construct_params_string current_get_params
+            let na_name = get_na_name_ naser in
+            let params =
+              if na_name = Eliom_common.Na_void_keep 
+              then construct_params_string (get_initial_get_params sp)
+              else
+                let current_get_params =
+                  List.remove_assoc
+                    Eliom_common.naservice_name
+                    (List.remove_assoc
+                       Eliom_common.naservice_num
+                       (remove_prefixed_param
+                          Eliom_common.na_co_param_prefix
+                          (Eliom_sessions.get_all_current_get_params sp)))
+                in
+                let gp =
+                  match
+                    match na_name with
+                      | Eliom_common.Na_void_dontkeep -> None
+                      | Eliom_common.Na_get' n ->
+                          Some (Eliom_common.naservice_num^"="^n)
+                      | Eliom_common.Na_get_ n ->
+                          Some (Eliom_common.naservice_name^"="^n)
+                      | _ -> assert false
+                  with
+                    | None -> ""
+                    | Some naservice_param ->
+                        let _, params_string =
+                          construct_params
+                            (get_get_params_type_ service)
+                            getparams
+                        in
+                        let preapplied_params =
+                          construct_params_string
+                            (get_pre_applied_parameters_ service)
+                        in
+                        let params_string =
+                          concat_strings preapplied_params "&" params_string
+                        in
+                        (concat_strings naservice_param "&" params_string)
+                in
+                let current_get_params_string =
+                  construct_params_string current_get_params
+                in
+                concat_strings
+                  current_get_params_string
+                  "&"
+                  gp
             in
             let beg =
-              if absolute
-              then get_original_full_path_string sp
-              else relative_url_path_to_myself (get_original_full_path sp)
+              match absolute with
+                | Some proto_prefix ->
+                    proto_prefix^ get_original_full_path_string sp
+                | None -> 
+                    relative_url_path_to_myself (get_original_full_path sp)
             in
-            let params =
-              concat_strings
-                current_get_params_string
-                "&"
-                gp
-            in
-            if params = ""
-            then beg (* may be empty *)
-            else beg^"?"^params
-
+            add_to_string beg "?" params
 
       let make_proto_prefix
           ~sp
@@ -1035,14 +1040,16 @@ module MakeForms = functor
           ?port
           ?fragment
           getparams : string =
-        (make_proto_prefix ~sp
-           ?hostname
-           ?port
-           ((https = Some true) || 
-              (Eliom_services.get_https service) ||
-              (https = None && Eliom_sessions.get_ssl ~sp)))
-        ^make_string_uri_
-          true
+        let proto_prefix =
+          make_proto_prefix ~sp
+            ?hostname
+            ?port
+            ((https = Some true) || 
+               (Eliom_services.get_https service) ||
+               (https = None && Eliom_sessions.get_ssl ~sp))
+        in
+        make_string_uri_
+          (Some proto_prefix)
           ~service
           ~sp
           ?fragment
@@ -1081,7 +1088,7 @@ module MakeForms = functor
                 ?hostname ?port ?fragment getparams
           | _ ->
               make_string_uri_
-                false
+                None
                 ~service
                 ~sp
                 ?fragment
@@ -1097,125 +1104,11 @@ module MakeForms = functor
           ?(fragment = "")
           content
           getparams =
-        let ssl = Eliom_sessions.get_ssl ~sp in
-        let https = 
-          (https = Some true) || 
-            (Eliom_services.get_https service) ||
-            (https = None && ssl)
+        let href = 
+          make_full_string_uri 
+            ?https ~service ~sp ?hostname ?port ~fragment getparams
         in
-        let absolute = https <> ssl in
-        let proto_prefix = make_proto_prefix ~sp ?hostname ?port https in
-(*VVV We trust current protocol? *) 
-        match get_kind_ service with
-        | `Attached attser ->
-            (let suff, params_string =
-              construct_params (get_get_params_type_ service) getparams in
-            let preapplied_params =
-              construct_params_string (get_pre_applied_parameters_ service) in
-            let params_string =
-              concat_strings preapplied_params "&" params_string in
-            let uri =
-              if (get_att_kind_ attser) = `External
-              then
-                (get_prefix_ attser)^
-                  "/"^
-                  (reconstruct_absolute_url_path
-                     (get_full_path_ attser) suff)
-              else
-                if absolute
-                then
-                  proto_prefix^
-                    reconstruct_absolute_url_path (get_full_path_ attser) suff
-                else
-                  reconstruct_relative_url_path
-                    (get_original_full_path sp) (get_full_path_ attser) suff
-            in
-            match get_get_name_ attser with
-            | Eliom_common.Att_no ->
-                Pages.make_a
-                  ?a
-                  ~href:(add_to_string
-                           (add_to_string uri "?" params_string)
-                           "#"
-                           (Netencoding.Url.encode fragment)
-                        ) content
-            | Eliom_common.Att_anon s ->
-                Pages.make_a ?a
-                  ~href:
-                  (add_to_string
-                     (add_to_string
-                        (uri^"?"^Eliom_common.get_numstate_param_name^"="^s)
-                        "&" params_string)
-                     "#"
-                     (Netencoding.Url.encode fragment))
-                  content
-            | Eliom_common.Att_named s ->
-                Pages.make_a ?a
-                  ~href:
-                  (add_to_string
-                     (add_to_string
-                        (uri^"?"^Eliom_common.get_state_param_name^"="^s)
-                        "&" params_string)
-                     "#"
-                     (Netencoding.Url.encode fragment))
-                  content)
-        | `Nonattached naser ->
-            let current_get_params =
-              List.remove_assoc
-                Eliom_common.naservice_name
-                (List.remove_assoc
-                   Eliom_common.naservice_num
-                   (remove_prefixed_param
-                      Eliom_common.na_co_param_prefix
-                      (Eliom_sessions.get_all_current_get_params sp)))
-            in
-            let gp =
-              match
-                match get_na_name_ naser with
-                  | Eliom_common.Na_get_ "" -> None
-                      (* The empty name is for the "cancel" service,
-                         that goes back to the URL without na-parameters
-                      *)
-                  | Eliom_common.Na_get' n ->
-                      Some (Eliom_common.naservice_num^"="^n)
-                  | Eliom_common.Na_get_ n ->
-                      Some (Eliom_common.naservice_name^"="^n)
-                  | _ -> assert false
-              with
-                | None -> ""
-                | Some naservice_param ->
-                    let _, params_string =
-                      construct_params
-                        (get_get_params_type_ service)
-                        getparams
-                    in
-                    let preapplied_params =
-                      construct_params_string
-                        (get_pre_applied_parameters_ service)
-                    in
-                    let params_string =
-                      concat_strings preapplied_params "&" params_string
-                    in
-                    (concat_strings naservice_param "&" params_string)
-            in
-            let current_get_params_string =
-              construct_params_string current_get_params
-            in
-            let beg =
-              if absolute
-              then proto_prefix^get_original_full_path_string sp
-              else relative_url_path_to_myself (get_original_full_path sp)
-            in
-            let href =
-              concat_strings
-                beg
-                "?"
-                (concat_strings
-                   current_get_params_string
-                   "&"
-                   gp)
-            in
-            Pages.make_a ?a ~href content
+        Pages.make_a ?a ~href content
 
       let get_form_
           bind
@@ -1234,8 +1127,11 @@ module MakeForms = functor
             (Eliom_services.get_https service) ||
             (https = None && ssl)
         in
-        let absolute = https <> ssl in
-        let proto_prefix = make_proto_prefix ~sp ?hostname ?port https in
+        let absolute = 
+          if https <> ssl 
+          then Some (make_proto_prefix ~sp ?hostname ?port https)
+          else None 
+        in
 (*VVV We trust current protocol? *) 
         match get_kind_ service with
         | `Attached attser ->
@@ -1247,13 +1143,15 @@ module MakeForms = functor
                   (reconstruct_absolute_url_path
                      (get_full_path_ attser) None)
               else 
-                if absolute
-                then
-                  proto_prefix^
-                    reconstruct_absolute_url_path (get_full_path_ attser) None
-                else
-                  reconstruct_relative_url_path
-                    (get_original_full_path sp) (get_full_path_ attser) None
+                match absolute with
+                  | Some proto_prefix ->
+                      proto_prefix^
+                        reconstruct_absolute_url_path
+                        (get_full_path_ attser) None
+                  | None ->
+                      reconstruct_relative_url_path
+                        (get_original_full_path sp)
+                        (get_full_path_ attser) None
             in
             let urlname =
               add_to_string urlname "#" (Netencoding.Url.encode fragment)
@@ -1292,72 +1190,96 @@ module MakeForms = functor
                in 
                return (Pages.make_get_form ?a ~action:urlname i1 i))
         | `Nonattached naser ->
-            let urlname =
-              if absolute
-              then proto_prefix^get_original_full_path_string sp
-              else relative_url_path_to_myself (get_original_full_path sp)
-            in
-            let current_get_params =
-              List.remove_assoc
-                Eliom_common.naservice_name
-                (List.remove_assoc
-                   Eliom_common.naservice_num
-                   (remove_prefixed_param
-                      Eliom_common.na_co_param_prefix
-                      (get_all_current_get_params sp)))
-            in
-            let naservice_line =
-              match get_na_name_ naser with
-                | Eliom_common.Na_get_ "" ->
-                    Pages.make_hidden_field None
-                | Eliom_common.Na_get' n ->
-                    Pages.make_hidden_field
-                      (Some (Pages.make_input
-                               ~typ:Pages.hidden
-                               ~name:Eliom_common.naservice_num
-                               ~value:n ()))
-                | Eliom_common.Na_get_ n ->
-                    Pages.make_hidden_field
-                      (Some (Pages.make_input
-                               ~typ:Pages.hidden
-                               ~name:Eliom_common.naservice_name
-                               ~value:n ()))
-                | _ -> assert false
-            in
-            bind (f (make_params_names (get_get_params_type_ service)))
-            (fun inside ->
-               let all_lines =
-                 List.fold_left
-                   (fun s (n,v) ->
-                      Pages.cons_form
-                        (Pages.make_hidden_field
-                           (Some
-                              (Pages.make_input
+            let na_name = get_na_name_ naser in
+            if na_name = Eliom_common.Na_void_keep 
+            then (* void coservice' *)
+              let params = 
+                construct_params_string (get_initial_get_params sp)
+              in
+              let href = 
+                let beg =
+                  match absolute with
+                    | Some proto_prefix ->
+                        proto_prefix^ get_original_full_path_string sp
+                    | None -> 
+                        relative_url_path_to_myself (get_original_full_path sp)
+                in
+                add_to_string beg "?" params
+              in
+              bind (f (make_params_names (get_get_params_type_ service)))
+                (fun inside ->
+                   let i1, i = Pages.remove_first inside in 
+                   return (Pages.make_get_form ?a ~action:href i1 i))
+
+            else
+              let urlname =
+                match absolute with
+                  | Some proto_prefix ->
+                      proto_prefix^get_original_full_path_string sp
+                  | None ->
+                      relative_url_path_to_myself (get_original_full_path sp)
+              in
+              let current_get_params =
+                List.remove_assoc
+                  Eliom_common.naservice_name
+                  (List.remove_assoc
+                     Eliom_common.naservice_num
+                     (remove_prefixed_param
+                        Eliom_common.na_co_param_prefix
+                        (get_all_current_get_params sp)))
+              in
+              let naservice_line =
+                match na_name with
+                  | Eliom_common.Na_void_dontkeep ->
+                      Pages.make_hidden_field None
+                  | Eliom_common.Na_get' n ->
+                      Pages.make_hidden_field
+                        (Some (Pages.make_input
                                  ~typ:Pages.hidden
-                                 ~name:n ~value:v ())))
-                        s
-                   )
-                   inside
-                   current_get_params
-               in
-               let all_lines =
-                 List.fold_left
-                   (fun s (n,v) ->
-                      Pages.cons_form
-                        (Pages.make_hidden_field
-                           (Some
-                              (Pages.make_input
+                                 ~name:Eliom_common.naservice_num
+                                 ~value:n ()))
+                  | Eliom_common.Na_get_ n ->
+                      Pages.make_hidden_field
+                        (Some (Pages.make_input
                                  ~typ:Pages.hidden
-                                 ~name:n
-                                 ~value:v ())))
-                        s
-                   )
-                   all_lines
-                   (get_pre_applied_parameters_ service)
-               in
-               return
-                 (Pages.make_get_form
-                    ?a ~action:urlname naservice_line all_lines))
+                                 ~name:Eliom_common.naservice_name
+                                 ~value:n ()))
+                  | _ -> assert false
+              in
+              bind (f (make_params_names (get_get_params_type_ service)))
+                (fun inside ->
+                   let all_lines =
+                     List.fold_left
+                       (fun s (n,v) ->
+                          Pages.cons_form
+                            (Pages.make_hidden_field
+                               (Some
+                                  (Pages.make_input
+                                     ~typ:Pages.hidden
+                                     ~name:n ~value:v ())))
+                            s
+                       )
+                       inside
+                       current_get_params
+                   in
+                   let all_lines =
+                     List.fold_left
+                       (fun s (n,v) ->
+                          Pages.cons_form
+                            (Pages.make_hidden_field
+                               (Some
+                                  (Pages.make_input
+                                     ~typ:Pages.hidden
+                                     ~name:n
+                                     ~value:v ())))
+                            s
+                       )
+                       all_lines
+                       (get_pre_applied_parameters_ service)
+                   in
+                   return
+                     (Pages.make_get_form
+                        ?a ~action:urlname naservice_line all_lines))
 
       let get_form ?https ?a ~service ~sp ?hostname ?port ?fragment f =
         get_form_ (fun x f -> f x) (fun x -> x) 

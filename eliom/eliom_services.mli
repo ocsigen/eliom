@@ -365,7 +365,7 @@ val https_static_dir_with_params :
 
 
 
-val void_action :
+val void_coservice' :
   (unit, unit, [> `Nonattached of 'a na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ])
@@ -377,15 +377,30 @@ val void_action :
     It is almost equivalent to a POST non-attached service without POST
     parameters, on which you register an action that does nothing,
     but you can use it with <a> links, not only forms.
+    It does not keep non attached GET parameters.
  *)
 
-val https_void_action :
+val https_void_coservice' :
   (unit, unit, [> `Nonattached of 'a na_s ],
    [ `WithoutSuffix ],
    unit, unit, [> `Unregistrable ])
   service
-(** The same, but forcing https.
+(** The same, but forcing https. *)
+
+val void_hidden_coservice' :
+  (unit, unit, [> `Nonattached of 'a na_s ],
+   [ `WithoutSuffix ],
+   unit, unit, [> `Unregistrable ])
+  service
+(** Same as [void_coservice'] but keeps non attached GET parameters.
  *)
+
+val https_void_hidden_coservice' :
+  (unit, unit, [> `Nonattached of 'a na_s ],
+   [ `WithoutSuffix ],
+   unit, unit, [> `Unregistrable ])
+  service
+(** The same, but forcing https. *)
 
 
 val preapply :

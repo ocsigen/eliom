@@ -54,6 +54,8 @@ type att_key =
 
 type na_key =
   | Na_no
+  | Na_void_keep (* void coservice that keeps GET na parameters *)
+  | Na_void_dontkeep (* void coservice that does not keep GET na parameters *)
   | Na_get_ of string (* named *)
   | Na_post_ of string (* named *)
   | Na_get' of string (* anonymous *)
