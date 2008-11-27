@@ -76,6 +76,8 @@ type request_info =
      ri_ssl: bool; (** true if HTTPS, false if HTTP *)
      ri_full_path_string: string; (** full path of the URL *)
      ri_full_path: string list;   (** full path of the URL *)
+     ri_original_full_path_string: string;   (** full path of the URL, as first sent by the client. Should not be changed by extensions, even rewritemod. It is used to create relative links. *)
+     ri_original_full_path: string list;   (** full path of the URL, as first sent by the client. See below. *)
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)
@@ -678,7 +680,7 @@ let do_for_site_matching host port ri =
 
 
 
-
+(* used to modify the url in ri (for example for retrying after rewrite) *)
 let ri_of_url url ri =
   let (host, _, url, url2, path, params, get_params) = parse_url url in
   let host = match host with
@@ -691,6 +693,7 @@ let ri_of_url url ri =
    ri_host = host;
    ri_full_path_string = string_of_url_path ~encode:true path;
    ri_full_path = path;
+     (* ri_original_full_path is not changed *)
    ri_sub_path = path;
    ri_get_params_string = params;
    ri_get_params = get_params;

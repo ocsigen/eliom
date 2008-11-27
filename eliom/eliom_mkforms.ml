@@ -917,7 +917,7 @@ module MakeForms = functor
                     reconstruct_absolute_url_path (get_full_path_ attser) suff
                   else
                     reconstruct_relative_url_path
-                      (get_current_full_path sp) (get_full_path_ attser) suff)
+                      (get_original_full_path sp) (get_full_path_ attser) suff)
               in
               match get_get_name_ attser with
               | Eliom_common.Att_no ->
@@ -982,8 +982,8 @@ module MakeForms = functor
             in
             let beg =
               if absolute
-              then get_current_full_path_string sp
-              else relative_url_path_to_myself (get_current_sub_path sp)
+              then get_original_full_path_string sp
+              else relative_url_path_to_myself (get_original_full_path sp)
             in
             let params =
               concat_strings
@@ -1128,7 +1128,7 @@ module MakeForms = functor
                     reconstruct_absolute_url_path (get_full_path_ attser) suff
                 else
                   reconstruct_relative_url_path
-                    (get_current_full_path sp) (get_full_path_ attser) suff
+                    (get_original_full_path sp) (get_full_path_ attser) suff
             in
             match get_get_name_ attser with
             | Eliom_common.Att_no ->
@@ -1201,11 +1201,10 @@ module MakeForms = functor
             let current_get_params_string =
               construct_params_string current_get_params
             in
-            let cur = get_current_sub_path sp in
             let beg =
               if absolute
-              then proto_prefix^get_current_full_path_string sp
-              else relative_url_path_to_myself cur
+              then proto_prefix^get_original_full_path_string sp
+              else relative_url_path_to_myself (get_original_full_path sp)
             in
             let href =
               concat_strings
@@ -1254,7 +1253,7 @@ module MakeForms = functor
                     reconstruct_absolute_url_path (get_full_path_ attser) None
                 else
                   reconstruct_relative_url_path
-                    (get_current_full_path sp) (get_full_path_ attser) None
+                    (get_original_full_path sp) (get_full_path_ attser) None
             in
             let urlname =
               add_to_string urlname "#" (Netencoding.Url.encode fragment)
@@ -1293,13 +1292,11 @@ module MakeForms = functor
                in 
                return (Pages.make_get_form ?a ~action:urlname i1 i))
         | `Nonattached naser ->
-            let cur = get_current_sub_path sp in
             let urlname =
               if absolute
-              then proto_prefix^get_current_full_path_string sp
-              else relative_url_path_to_myself cur
+              then proto_prefix^get_original_full_path_string sp
+              else relative_url_path_to_myself (get_original_full_path sp)
             in
-            (* "/"^(get_current_path_string sp) --> absolute (wrong) *)
             let current_get_params =
               List.remove_assoc
                 Eliom_common.naservice_name
@@ -1430,7 +1427,7 @@ module MakeForms = functor
                     reconstruct_absolute_url_path (get_full_path_ attser) suff
                 else
                   reconstruct_relative_url_path
-                    (get_current_full_path sp) (get_full_path_ attser) suff
+                    (get_original_full_path sp) (get_full_path_ attser) suff
             in
             let urlname =
               add_to_string urlname "#" (Netencoding.Url.encode fragment)
@@ -1483,12 +1480,11 @@ module MakeForms = functor
             let current_get_params_string =
               construct_params_string current_get_params
             in
-            let cur = get_current_sub_path sp in
             (* absolute URL does not work behind a revproxy! *)
             let urlpath =
               if absolute
-              then proto_prefix^get_current_full_path_string sp
-              else relative_url_path_to_myself cur
+              then proto_prefix^get_original_full_path_string sp
+              else relative_url_path_to_myself (get_original_full_path sp)
             in
             let v = concat_strings urlpath "?" current_get_params_string in
             let naservice_line =

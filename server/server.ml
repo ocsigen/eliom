@@ -292,14 +292,17 @@ let get_request_infos
                   * List.map simplify bdlist *)
        in
        let ipstring = Unix.string_of_inet_addr client_inet_addr in
+       let path_string = string_of_url_path ~encode:true path in
        Lwt.return
          {ri_url_string = url;
           ri_url = parsed_url;
           ri_method = meth;
           ri_protocol = http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.proto;
           ri_ssl = Lwt_ssl.is_ssl (Ocsigen_http_com.connection_fd receiver);
-          ri_full_path_string = string_of_url_path ~encode:true path;
+          ri_full_path_string = path_string;
           ri_full_path = path;
+          ri_original_full_path_string = path_string;
+          ri_original_full_path = path;
           ri_sub_path = path;
           ri_sub_path_string = string_of_url_path ~encode:true path;
           ri_get_params_string = params;

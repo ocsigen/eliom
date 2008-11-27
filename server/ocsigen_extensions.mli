@@ -88,6 +88,8 @@ type request_info =
      ri_ssl: bool; (** true if HTTPS, false if HTTP *)
      ri_full_path_string: string; (** full path of the URL *)
      ri_full_path: string list;   (** full path of the URL *)
+     ri_original_full_path_string: string;   (** full path of the URL, as first sent by the client. Should not be changed by extensions, even rewritemod. It is used to create relative links. *)
+     ri_original_full_path: string list;   (** full path of the URL, as first sent by the client. See below. *)
      ri_sub_path: string list;   (** path of the URL (only part concerning the site) *)
      ri_sub_path_string: string;   (** path of the URL (only part concerning the site) *)
      ri_get_params_string: string option; (** string containing GET parameters *)

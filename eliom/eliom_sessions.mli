@@ -82,6 +82,12 @@ val get_current_full_path_string : sp:server_params -> string
 (** returns the full path of the URL using the type {!Ocsigen_extensions.url_path} *)
 val get_current_full_path : sp:server_params -> url_path
 
+(** returns the full path of the URL as first sent by the browser (not changed by previous extensions like rewritemod) *)
+val get_original_full_path_string : sp:server_params -> string
+
+(** returns the full path of the URL as first sent by the browser (not changed by previous extensions like rewritemod) *)
+val get_original_full_path : sp:server_params -> url_path
+
 (** returns the sub path of the URL as a string.
     The sub-path is the full path without the path of the site (set in the
     configuration file).

@@ -133,7 +133,8 @@ let parse_config path charset _ parse_site = function
       | [] ->
           raise (Error_in_config_file
                    "regexp attribute expected for <rewrite>")
-      | [("regexp", s); ("url", t)] ->
+      | [("regexp", s); ("url", t)]
+      | [("regexp", s); ("dest", t)] ->
           Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t)
       | _ -> raise (Error_in_config_file "Wrong attribute for <rewrite>")
       in
