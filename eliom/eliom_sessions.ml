@@ -68,9 +68,9 @@ let get_post_params ~sp =
 let get_all_post_params ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_all_post_params
 let get_original_full_path_string ~sp =
-  sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_original_full_path_string
+  sp.Eliom_common.sp_ri.request_info.ri_original_full_path_string
 let get_original_full_path ~sp =
-  sp.Eliom_common.sp_ri.Ocsigen_extensions.ri_original_full_path
+  sp.Eliom_common.sp_ri.request_info.ri_original_full_path
 let get_current_full_path ~sp =
   sp.Eliom_common.sp_ri.request_info.ri_full_path
 let get_current_full_path_string ~sp =
