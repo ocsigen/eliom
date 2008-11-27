@@ -94,7 +94,7 @@ let find_redirection (Regexp (regexp, dest, temp)) https host port path =
 
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
-let gen dir charset = function
+let gen dir = function
 | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
 | Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
@@ -103,12 +103,12 @@ let gen dir charset = function
       Ocsigen_messages.debug2 "--Redirectmod: Is it a redirection?";
       let (redir, temp) =
         find_redirection dir
-           ri.ri_ssl
-           ri.ri_host
-           ri.ri_server_port
-          (match ri.ri_get_params_string with
-          | None -> ri.ri_sub_path_string
-          | Some g -> ri.ri_sub_path_string ^ "?" ^ g)
+           ri.request_info.ri_ssl
+           ri.request_info.ri_host
+           ri.request_info.ri_server_port
+          (match ri.request_info.ri_get_params_string with
+          | None -> ri.request_info.ri_sub_path_string
+          | Some g -> ri.request_info.ri_sub_path_string ^ "?" ^ g)
       in
       Ocsigen_messages.debug (fun () ->
         "--Redirectmod: YES! "^
@@ -141,7 +141,7 @@ let gen dir charset = function
 
  *)
 
-let parse_config path charset _ parse_site = function
+let parse_config path _ parse_site = function
   | Element ("redirect", atts, []) ->
       let dir = match atts with
       | [] ->
@@ -153,7 +153,7 @@ let parse_config path charset _ parse_site = function
           Regexp ((Netstring_pcre.regexp ("^"^s^"$")), t, true)
       | _ -> raise (Error_in_config_file "Wrong attribute for <redirect>")
       in
-      gen dir charset
+      gen dir
   | Element (t, _, _) ->
       raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(redirectmod extension) Bad data")

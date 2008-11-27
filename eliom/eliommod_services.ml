@@ -27,6 +27,7 @@
 (*****************************************************************************)
 
 open Lwt
+open Ocsigen_extensions
 
 
 (*****************************************************************************)
@@ -256,7 +257,7 @@ let find_service
         | Eliom_common.File page_table_ref ->
             (page_table_ref, (if a = None then [""] else aa::l)))
     in function
-      | [] -> raise Ocsigen_extensions.Ocsigen_Is_a_directory
+      | [] -> raise (Ocsigen_extensions.Ocsigen_Is_a_directory ri)
       | [""] -> aux None []
       | ""::l -> search_page_table dircontent l
       | a::l -> aux (Some a) l
@@ -264,7 +265,7 @@ let find_service
   let page_table_ref, suffix =
     try
       search_page_table !dircontentref
-        (Ocsigen_lib.change_empty_list ri.Ocsigen_extensions.ri_sub_path)
+        (Ocsigen_lib.change_empty_list ri.request_info.ri_sub_path)
     with Not_found -> raise Eliom_common.Eliom_404
   in
   find_page_table
@@ -276,8 +277,9 @@ let find_service
     ri
     suffix
     {Eliom_common.key_state = si.Eliom_common.si_state_info;
-     Eliom_common.key_kind = ri.Ocsigen_extensions.ri_method}
+     Eliom_common.key_kind = ri.request_info.ri_method}
     si
+
 
 (******************************************************************)
 (* attached services                                              *)
@@ -327,7 +329,7 @@ let get_page
                          "--Eliom: I'm looking for "^
                            (Ocsigen_lib.string_of_url_path
                               ~encode:true
-                              ri.Ocsigen_extensions.ri_sub_path)^
+                              ri.request_info.ri_sub_path)^
                            " in the secure session table:");
                     find_aux Eliom_common.Eliom_404 !service_cookies_info
                 | _ -> Lwt.fail Eliom_common.Eliom_404
@@ -340,7 +342,7 @@ let get_page
                        "--Eliom: I'm looking for "^
                          (Ocsigen_lib.string_of_url_path
                             ~encode:true
-                            ri.Ocsigen_extensions.ri_sub_path)^
+                            ri.request_info.ri_sub_path)^
                          " in the session table:");
                   find_aux Eliom_common.Eliom_404 !service_cookies_info
               | e -> fail e)
@@ -374,15 +376,15 @@ let get_page
                         Ocsigen_messages.debug2
                           "--Eliom: Link to old. I will try without POST parameters:";
                         fail (Eliom_common.Eliom_retry_with
-                                ({ri with
-                                  Ocsigen_extensions.ri_post_params =
-                                     lazy (return []);
-                                  Ocsigen_extensions.ri_method =
-                                  Ocsigen_http_frame.Http_header.GET;
-                                  Ocsigen_extensions.ri_extension_info=
-                                  Eliom_common.Eliom_Link_too_old::
-                                  ri.Ocsigen_extensions.ri_extension_info
-                                },
+                                ({ri with request_info =
+                                     { ri.request_info with
+                                         ri_post_params = lazy (return []);
+                                         ri_method =
+                                           Ocsigen_http_frame.Http_header.GET;
+                                         ri_extension_info =
+                                           Eliom_common.Eliom_Link_too_old ::
+                                             ri.request_info.ri_extension_info
+                                }},
                                  {si with
                                   Eliom_common.si_nonatt_info=
                                   Eliom_common.Na_no;
@@ -401,15 +403,17 @@ let get_page
                         Ocsigen_messages.debug2
                           "--Eliom: Link to old. I will try without GET state parameters and POST parameters:";
                         fail (Eliom_common.Eliom_retry_with
-                                ({ri with
-                                  ri_get_params =
-                                  lazy si.Eliom_common.si_other_get_params;
-                                  Ocsigen_extensions.ri_post_params = lazy (return []);
-                                  Ocsigen_extensions.ri_method =
-                                  Ocsigen_http_frame.Http_header.GET;
-                                  Ocsigen_extensions.ri_extension_info=
-                                  Eliom_common.Eliom_Link_too_old::
-                                  ri.Ocsigen_extensions.ri_extension_info
+                                ({ri with request_info =
+                                     { ri.request_info with
+                                         ri_get_params =
+                                           lazy si.Eliom_common.si_other_get_params;
+                                         ri_post_params = lazy (return []);
+                                         ri_method =
+                                           Ocsigen_http_frame.Http_header.GET;
+                                         ri_extension_info=
+                                           Eliom_common.Eliom_Link_too_old::
+                                             ri.request_info.ri_extension_info
+                                     }
                                 },
                                  {si with
                                   Eliom_common.si_nonatt_info=

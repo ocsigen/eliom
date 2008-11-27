@@ -29,7 +29,7 @@ open Simplexmlparser
 open Ocsigen_headers
 
 
-let gen (header, regexp, dest) charset = function
+let gen (header, regexp, dest) = function
   | Req_not_found (code,_) -> return (Ext_next code)
   | Req_found (ri, result) ->
       result () >>= fun res ->
@@ -80,7 +80,7 @@ let gen (header, regexp, dest) charset = function
 
  *)
 
-let parse_config path charset _ _ = function
+let parse_config path _ _ = function
   | Element ("outputfilter", atts, []) ->
       let rec parse_attrs ((h, r, d) as res) = function
         | [] -> res
@@ -94,7 +94,7 @@ let parse_config path charset _ _ = function
       in
       (match parse_attrs (None, None, None) atts with
       | (Some h, Some r, Some d) ->
-          gen (Http_headers.name h, r, d) charset
+          gen (Http_headers.name h, r, d)
       | _ ->
           raise
             (Error_in_config_file

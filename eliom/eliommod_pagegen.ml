@@ -200,14 +200,15 @@ let compute_exn closedservsessions =
   else [Eliom_common.Eliom_Service_session_expired closedservsessions])
 
 
+open Ocsigen_extensions
 
-let gen is_eliom_extension sitedata conf_info = function
+let gen is_eliom_extension sitedata = function
 | Ocsigen_extensions.Req_found (_, r) -> 
     Lwt.return (Ocsigen_extensions.Ext_found r)
 | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in
   Eliom_common.change_request_info
-    ri conf_info.Ocsigen_extensions.charset previous_extension_err
+    ri ri.Ocsigen_extensions.request_config.charset previous_extension_err
   >>= fun (ri, si) ->
   let (all_cookie_info, closedsessions) =
     Eliommod_cookies.get_cookie_info now
@@ -262,7 +263,7 @@ let gen is_eliom_extension sitedata conf_info = function
 
               (match si.Eliom_common.si_nonatt_info,
                 si.Eliom_common.si_state_info,
-                ri.Ocsigen_extensions.ri_method with
+                ri.request_info.ri_method with
               | Eliom_common.Na_no,
                 (Eliom_common.Att_no, Eliom_common.Att_no), 
                     Ocsigen_http_frame.Http_header.GET ->
@@ -283,8 +284,8 @@ let gen is_eliom_extension sitedata conf_info = function
 
                   Eliommod_cookies.compute_new_ri_cookies
                     now
-                    ri.Ocsigen_extensions.ri_sub_path
-                    (Lazy.force ri.Ocsigen_extensions.ri_cookies)
+                    ri.request_info.ri_sub_path
+                    (Lazy.force ri.request_info.ri_cookies)
                     all_cookie_info
                     cookies_set_by_page
 (*VVV old_cookies_to_set already are in ri_cookies, right? *)
@@ -299,71 +300,31 @@ let gen is_eliom_extension sitedata conf_info = function
                   (match
                     si.Eliom_common.si_nonatt_info,
                     si.Eliom_common.si_state_info,
-                    ri.Ocsigen_extensions.ri_method
+                    ri.request_info.ri_method
                   with
                   | Eliom_common.Na_get_ _,
                     (_, Eliom_common.Att_no), Ocsigen_http_frame.Http_header.GET
                   | Eliom_common.Na_get' _,
-                    (_, Eliom_common.Att_no), Ocsigen_http_frame.Http_header.GET ->
+                    (_, Eliom_common.Att_no), Ocsigen_http_frame.Http_header.GET
                       (* no post params, GET na coservice *)
 
-                      return
-                        (Ocsigen_extensions.Ext_retry_with
-                           ({ri with
-                             Ocsigen_extensions.ri_get_params =
-                             lazy si.Eliom_common.si_other_get_params;
-                             Ocsigen_extensions.ri_cookies= lazy ric;
-                             Ocsigen_extensions.ri_extension_info= exnlist
-(* @ri.ri_extension_info *)
-(*VVV I do not keep the old exceptions any more,
-  otherwise no way to remove them. *)
-                           },
-                            all_new_cookies
-                           )
-                        )
-
                   | Eliom_common.Na_no,
-                      (_, Eliom_common.Att_no), Ocsigen_http_frame.Http_header.GET ->
+                    (_, Eliom_common.Att_no), Ocsigen_http_frame.Http_header.GET
                       (* no post params, GET attached coservice *)
-
+                      ->
                       return
                         (* Ext_retry_with, not Eliom_retry_with *)
                         (Ocsigen_extensions.Ext_retry_with
-                           ({ri with
-                             Ocsigen_extensions.ri_get_params =
-                             lazy si.Eliom_common.si_other_get_params;
-                             Ocsigen_extensions.ri_cookies= lazy ric;
-                             Ocsigen_extensions.ri_extension_info= exnlist
+                           ({ri with request_info = {
+                               ri.request_info with
+                                 ri_get_params =
+                                   lazy si.Eliom_common.si_other_get_params;
+                                 ri_cookies= lazy ric;
+                                 ri_extension_info= exnlist
 (* @ri.ri_extension_info *)
 (*VVV I do not keep the old exceptions any more,
   otherwise no way to remove them. *)
-                           },
-                            all_new_cookies
-                           ))
-
-                  | Eliom_common.Na_post_ _, (_, _), _
-                  | Eliom_common.Na_post' _, (_, _), _ ->
-                      (* POST na coservice *)
-                      (* retry without POST params *)
-
-                      return
-                        (* Ext_retry_with, not Eliom_retry_with *)
-                        (Ocsigen_extensions.Ext_retry_with
-                           ({ri with
-                             Ocsigen_extensions.ri_get_params =
-                             lazy si.Eliom_common.si_other_get_params;
-(*VVV 31/12/2007 <-
-  do we keep GET na_name ?
-  Here, yes.
-*)
-                             Ocsigen_extensions.ri_post_params = lazy (return []);
-                             Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
-                             Ocsigen_extensions.ri_cookies= lazy ric;
-                             Ocsigen_extensions.ri_extension_info= exnlist
-(* @ri.ri_extension_info *)
-(*VVV I do not keep the old exceptions any more,
-  otherwise no way to remove them. *)
-                           },
+                             }},
                             all_new_cookies
                            ))
 
@@ -373,15 +334,13 @@ let gen is_eliom_extension sitedata conf_info = function
                       return
                         (* Ext_retry_with, not Eliom_retry_with *)
                         (Ocsigen_extensions.Ext_retry_with
-                           ({ri with
-                             Ocsigen_extensions.ri_post_params = lazy (return []);
-                             Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
-                             Ocsigen_extensions.ri_cookies= lazy ric;
-                             Ocsigen_extensions.ri_extension_info= exnlist
-(* @ri.ri_extension_info *)
-(*VVV I do not keep the old exceptions any more,
-  otherwise no way to remove them. *)
-                           },
+                           ({ri with request_info = {
+                               ri.request_info with
+                                 ri_post_params = lazy (return []);
+                                 ri_method = Ocsigen_http_frame.Http_header.GET;
+                                 ri_cookies= lazy ric;
+                                 ri_extension_info= exnlist
+                             }},
                             all_new_cookies
                            ))
                   )
@@ -421,7 +380,7 @@ let gen is_eliom_extension sitedata conf_info = function
                            Ocsigen_http_frame.res_code= 500;
                          }))
         | Eliom_common.Eliom_Wrong_parameter ->
-            Lazy.force ri.Ocsigen_extensions.ri_post_params >>= fun ripp ->
+            Lazy.force ri.request_info.ri_post_params >>= fun ripp ->
             Ocsigen_senders.Xhtml_content.result_of_content
                 (Error_pages.page_bad_param (List.map fst ripp)) >>= fun r ->
             return (Ocsigen_extensions.Ext_found
@@ -437,9 +396,10 @@ let gen is_eliom_extension sitedata conf_info = function
         | e -> fail e)
   in
   gen_aux
-    ({ri with Ocsigen_extensions.ri_extension_info=
-         exn@ri.Ocsigen_extensions.ri_extension_info},
+    ({ri with request_info = {
+        ri.request_info with
+          ri_extension_info=
+            exn@ri.request_info.ri_extension_info}},
      si,
      Ocsigen_http_frame.Cookies.empty,
      all_cookie_info)
-    

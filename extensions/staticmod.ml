@@ -87,7 +87,7 @@ let correct_user_local_file =
    If the parameter [usermode] is true, we check that the path
    is valid.
 *)
-let find_static_page ~usermode ~dir ~err ~pathstring ~do_not_serve =
+let find_static_page ~request ~usermode ~dir ~err ~pathstring ~do_not_serve =
   let status_filter, file = match dir.static_kind with
     | Dir d ->
         (false, Filename.concat d pathstring)
@@ -103,7 +103,7 @@ let find_static_page ~usermode ~dir ~err ~pathstring ~do_not_serve =
     | _ -> raise Not_concerned
   in
   if usermode = false || correct_user_local_file file then
-    match LocalFiles.resolve file dir.options with
+    match LocalFiles.resolve request file dir.options with
       | LocalFiles.RDir _ as d -> (status_filter, d)
       | LocalFiles.RFile f as f' ->
           try ignore(Netstring_pcre.search_forward do_not_serve f 0);
@@ -124,19 +124,22 @@ let find_static_page ~usermode ~dir ~err ~pathstring ~do_not_serve =
 
 
 
-let gen ~do_not_serve ~usermode dir charset = function
+let gen ~do_not_serve ~usermode dir = function
   | Ocsigen_extensions.Req_found (_, r) ->
       Lwt.return (Ocsigen_extensions.Ext_found r)
   | Ocsigen_extensions.Req_not_found (err, ri) ->
       catch
         (fun () ->
            Ocsigen_messages.debug2 "--Staticmod: Is it a static file?";
-           let status_filter, page = find_static_page ~usermode ~dir ~err
-             ~pathstring:(Ocsigen_lib.string_of_url_path ~encode:false ri.ri_sub_path) ~do_not_serve in
-           LocalFiles.content ri.ri_full_path page
+           let status_filter, page =
+             find_static_page ~request:ri ~usermode ~dir ~err
+             ~pathstring:(Ocsigen_lib.string_of_url_path ~encode:false
+                            ri.request_info.ri_sub_path) ~do_not_serve in
+           LocalFiles.content ri.request_info.ri_full_path page
            >>= fun r ->
              Lwt.return
-               {r with Ocsigen_http_frame.res_charset = Some charset}
+               {r with Ocsigen_http_frame.res_charset =
+                   Some ri.request_config.charset }
              >>= fun answer ->
                let answer' =
                  if status_filter = false then
@@ -149,7 +152,6 @@ let gen ~do_not_serve ~usermode dir charset = function
         )
 
         (function
-           | Ocsigen_Is_a_directory -> raise Ocsigen_Is_a_directory
            | LocalFiles.Failed_403 -> return (Ext_next 403)
            | LocalFiles.Failed_404 -> return (Ext_next err)
            | Not_concerned -> return (Ext_next err)
@@ -196,7 +198,7 @@ type options = {
   opt_default_index: string list option;
 }
 
-let parse_config userconf _ conf_info _ _ =
+let parse_config userconf _ conf_info _ =
   let rec parse_attrs l opt =
     match l with
       | [] -> opt
@@ -301,7 +303,6 @@ let parse_config userconf _ conf_info _ _ =
                 LocalFiles.list_directory_content = readable;
                 default_directory_index = default_index;
                 follow_symlinks = follow_symlinks } }
-            conf_info.Ocsigen_extensions.charset
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
     | _ -> bad_config "(staticmod extension) Bad data"
 

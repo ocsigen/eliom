@@ -30,11 +30,11 @@ open Lwt
 open Ocsigen_lib
 
 exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
-exception Ocsigen_Is_a_directory
-exception Ocsigen_Internal_Error of string
 
 exception Bad_config_tag_for_extension of string (** Try next extension *)
 exception Error_in_config_file of string (** Stop with an error message *)
+
+exception Ocsigen_Internal_Error of string
 
 (** Error in an user config file. Stop with an error message *)
 exception Error_in_user_config_file of string
@@ -56,7 +56,7 @@ type virtual_hosts = ((virtual_host_part list) * int option) list
 
 
 (** Configuration options, passed to (and modified by) extensions *)
-type conf_info = {
+type config_info = {
   charset : string;
   default_hostname: string;
   default_httpport: int;
@@ -138,11 +138,17 @@ type request_info =
                                    *)
      ri_client: client; (** The request connection *)
    }
-
 (** If you force [ri_files] or [ri_post_params], the request is fully read,
    so it is not possible any more to read it from [ri_http_frame]
    (and vice versa).
  *)
+and request = {
+  request_info: request_info;
+  request_config: config_info;
+}
+
+exception Ocsigen_Is_a_directory of request
+
 
 type answer =
   | Ext_found of (unit -> Ocsigen_http_frame.result Lwt.t)
@@ -184,7 +190,7 @@ type answer =
                         do not .
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_continue_with of (request_info * Ocsigen_http_frame.cookieset * int)
+  | Ext_continue_with of (request * Ocsigen_http_frame.cookieset * int)
         (** Used to modify the request before giving it to next extension.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
@@ -195,7 +201,7 @@ type answer =
             The integer is usually equal to the error code received
             from preceding extension (but you may want to modify it).
          *)
-  | Ext_retry_with of request_info * Ocsigen_http_frame.cookieset
+  | Ext_retry_with of request * Ocsigen_http_frame.cookieset
         (** Used to retry all the extensions with a new request_info.
             The extension returns the request_info (possibly modified)
             and a set of cookies if it wants to set or cookies
@@ -213,8 +219,8 @@ type answer =
         *)
 
 and request_state =
-  | Req_not_found of (int * request_info)
-  | Req_found of (request_info * (unit -> Ocsigen_http_frame.result Lwt.t))
+  | Req_not_found of (int * request)
+  | Req_found of (request * (unit -> Ocsigen_http_frame.result Lwt.t))
 
 and extension2 =
     (unit -> unit) ->
@@ -278,7 +284,7 @@ type parse_site =
 and parse_site_user =
     userconf_info -> parse_site
 and parse_site_aux =
-    url_path -> conf_info -> parse_host ->
+    url_path -> parse_host ->
       (parse_fun -> Simplexmlparser.xml ->
          extension
       )
@@ -353,20 +359,14 @@ val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
 
 (**/**)
 
-exception Internal_is_a_dir_ of string
-
-val make_parse_site :
-  url_path ->
-  conf_info ->
-  parse_site_aux ->
-  parse_fun
+val make_parse_site : url_path -> parse_site_aux -> parse_fun
 
 val parse_site_item : parse_site
 val parse_user_site_item : parse_site_user
 
-val set_hosts : (virtual_hosts * extension2) list -> unit
+val set_hosts : (virtual_hosts * config_info * extension2) list -> unit
 
-val get_hosts : unit -> (virtual_hosts * extension2) list
+val get_hosts : unit -> (virtual_hosts * config_info * extension2) list
 
 val do_for_site_matching :
     string option ->

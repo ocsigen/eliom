@@ -78,7 +78,7 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
     extensions, or already found
 
  *)
-let gen (conf_info : Ocsigen_extensions.conf_info) = function
+let gen = function
   | Ocsigen_extensions.Req_found (_, r) ->
       (* If previous extension already found the page, you can
          modify the result (if you write a filter) or return it
@@ -129,8 +129,8 @@ let gen (conf_info : Ocsigen_extensions.conf_info) = function
 ]}
  *)
 
-let parse_config path conf_info _ parse_site = function
-  | Element ("extensiontemplate", atts, []) -> gen conf_info
+let parse_config path _ parse_site = function
+  | Element ("extensiontemplate", atts, []) -> gen
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->
       raise (Error_in_config_file "Unexpected data in config file")

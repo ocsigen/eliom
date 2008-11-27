@@ -34,12 +34,12 @@ exception NoConfFile
 
 (*****************************************************************************)
 
-let gen hostpattern sitepath charset (regexp, conf, url, prefix, localpath) req_state =
+let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
   match req_state with
   | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
 (*VVV not possible to set a filter for now *)
   | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
-      let path = ri.ri_sub_path_string in
+      let path = ri.request_info.ri_sub_path_string in
       match Netstring_pcre.string_match regexp path 0 with
       | None -> Lwt.return (Ext_next previous_extension_err)
       | Some _ -> (* Matching regexp found! *)
@@ -56,7 +56,7 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix, localpath) req_
               Ocsigen_extensions.parse_user_site_item userconf_options hostpattern in
             let user_parse_site =
               Ocsigen_extensions.make_parse_site
-                (sitepath@[prefix]) charset user_parse_host
+                (sitepath@[prefix]) user_parse_host
             in
             let xmllist =
               try Simplexmlparser.xmlparser_file conf
@@ -76,8 +76,10 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix, localpath) req_
                      (Ocsigen_extensions.Req_not_found
                         (previous_extension_err,
                          {ri with
-                          ri_sub_path = path;
-                          ri_sub_path_string = url}))
+                            request_info =
+                             { ri.request_info with
+                                 ri_sub_path = path;
+                                 ri_sub_path_string = url}}))
 (*VVV Do we want to continue to search in the same <site>
       if the page has not been found (???) *)
 (*VVV Filters wouldn't be applied. *)
@@ -110,7 +112,7 @@ let gen hostpattern sitepath charset (regexp, conf, url, prefix, localpath) req_
 (** Parsing of config file *)
 open Simplexmlparser
 
-let parse_config hostpattern path charset =
+let parse_config hostpattern path =
   fun _ _ ->
     let rec parse_attrs_local ((regexp, conf, url, prefix, path) as res) = function
       | [] -> res
@@ -147,7 +149,7 @@ let parse_config hostpattern path charset =
             | _ -> raise (Error_in_config_file
                             "Missing attributes for <userconf>")
           in
-          gen hostpattern path charset info
+          gen hostpattern path info
       | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
       | _ -> raise (Error_in_config_file "(userconf extension) Bad data")
 

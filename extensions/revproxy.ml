@@ -163,7 +163,7 @@ let find_redirection r https host port path =
 (** The function that will generate the pages from the request. *)
 exception Bad_answer_from_http_server
 
-let gen dir charset = function
+let gen dir = function
 | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
 | Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
@@ -171,6 +171,7 @@ let gen dir charset = function
     (fun () ->
        Ocsigen_messages.debug2 "--Revproxy: Is it a redirection?";
        let (https, host, port, uri) =
+         let ri = ri.request_info in
          find_redirection dir
            ri.ri_ssl
            ri.ri_host
@@ -193,6 +194,7 @@ let gen dir charset = function
        *)
 
        let do_request =
+         let ri = ri.request_info in
          if dir.pipeline then
            Ocsigen_http_client.raw_request
              ~headers:ri.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
@@ -286,7 +288,7 @@ let gen dir charset = function
 
  *)
 
-let parse_config path charset _ parse_site = function
+let parse_config path _ parse_site = function
   | Element ("revproxy", atts, []) ->
       let rec parse_attrs ((sprot, ss, sport, r, s, prot, port, u, pipeline) as res) = function
         | [] -> res
@@ -360,7 +362,7 @@ let parse_config path charset _ parse_site = function
                pipeline=pipeline;
              }
         in
-        gen dir charset
+        gen dir
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "(revproxy extension) Bad data")
 

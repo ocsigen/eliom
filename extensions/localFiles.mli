@@ -50,7 +50,10 @@ type resolved =
     does not exists, is a symlink or is a directory, and raises
     Failed_404 or Failed_403 accordingly *)
 val resolve :
-  filename:string -> options:options -> resolved
+  request:Ocsigen_extensions.request ->
+  filename:string ->
+  options:options ->
+  resolved
 
 
 (** Given the local file [file], with a request originating at url

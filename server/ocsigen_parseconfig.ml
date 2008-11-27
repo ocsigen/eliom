@@ -451,17 +451,18 @@ let parse_server isreloading c =
             | Some p -> int_of_string "host" p
           in
           let parse_host = Ocsigen_extensions.parse_site_item host in
-          let parse_site = 
-            Ocsigen_extensions.make_parse_site []
-              { Ocsigen_extensions.charset = charset;
-                default_hostname = defaulthostname;
-                default_httpport = defaulthttpport;
-                default_httpsport = defaulthttpsport;
-              }
-              parse_host 
+          let conf = {
+            Ocsigen_extensions.charset = charset;
+            default_hostname = defaulthostname;
+            default_httpport = defaulthttpport;
+            default_httpsport = defaulthttpsport;
+          }
+          in
+          let parse_site =
+            Ocsigen_extensions.make_parse_site [] parse_host
           in
           (* default site for host *)
-          (host, parse_site l)::(parse_server_aux ll)
+          (host, conf, parse_site l)::(parse_server_aux ll)
       | (Element ("extconf", [("dir", dir)], []))::ll ->
           let one =
             try

@@ -30,8 +30,6 @@ open Lwt
 open Ocsigen_lib
 
 exception Ocsigen_http_error of (Ocsigen_http_frame.cookieset * int)
-exception Ocsigen_Is_a_directory
-exception Internal_is_a_dir_ of string
 exception Ocsigen_Internal_Error of string
 exception Ocsigen_Looping_request
 
@@ -68,7 +66,7 @@ let client_connection x = x
 let client_of_connection x = x
 
 
-type conf_info = {
+type config_info = {
   charset : string;
   default_hostname: string;
   default_httpport: int;
@@ -124,6 +122,12 @@ type request_info =
                                    *)
      ri_client: client; (** The request connection *)
    }
+and request = {
+  request_info: request_info;
+  request_config: config_info;
+}
+
+exception Ocsigen_Is_a_directory of request
 
 
 type answer =
@@ -165,38 +169,38 @@ type answer =
                         do not try next host.
                         The integer is the HTTP error code, usally 403.
                      *)
-  | Ext_continue_with of (request_info * Ocsigen_http_frame.cookieset * int)
+  | Ext_continue_with of (request * Ocsigen_http_frame.cookieset * int)
         (** Used to modify the request before giving it to next extension.
-            The extension returns the request_info (possibly modified)
+            The extension returns the request (possibly modified)
             and a set of cookies if it wants to set or cookies
             ({!Ocsigen_http_frame.Cookies.empty} for no cookies).
-            You must add these cookies yourself in request_info if you
+            You must add these cookies yourself in request if you
             want them to be seen by subsequent extensions,
             for example using {!Ocsigen_http_frame.compute_new_ri_cookies}.
             The integer is usually equal to the error code received
             from preceding extension (but you may want to modify it).
          *)
-  | Ext_retry_with of request_info * Ocsigen_http_frame.cookieset
-        (** Used to retry all the extensions with a new request_info.
-            The extension returns the request_info (possibly modified)
+  | Ext_retry_with of request * Ocsigen_http_frame.cookieset
+        (** Used to retry all the extensions with a new request.
+            The extension returns the request (possibly modified)
             and a set of cookies if it wants to set or cookies
             ({!Ocsigen_http_frame.Cookies.empty} for no cookies).
-            You must add these cookies yourself in request_info if you
+            You must add these cookies yourself in request if you
             want them to be seen by subsequent extensions,
             for example using {!Ocsigen_http_frame.compute_new_ri_cookies}.
          *)
   | Ext_sub_result of extension2
 
-
 and request_state =
-  | Req_not_found of (int * request_info)
-  | Req_found of (request_info * (unit -> Ocsigen_http_frame.result Lwt.t))
+  | Req_not_found of (int * request)
+  | Req_found of (request * (unit -> Ocsigen_http_frame.result Lwt.t))
 
 and extension2 =
     (unit -> unit) ->
       Ocsigen_http_frame.cookieset ->
       request_state ->
       (answer * Ocsigen_http_frame.cookieset) Lwt.t
+
 
 type extension = request_state -> answer Lwt.t
 
@@ -207,10 +211,9 @@ type parse_fun = Simplexmlparser.xml list -> extension2
 type parse_host =
     Parse_host of
       (url_path ->
-        conf_info ->
-          parse_host -> parse_fun -> Simplexmlparser.xml -> extension)
+         parse_host -> parse_fun -> Simplexmlparser.xml -> extension)
 
-let (hosts : (virtual_hosts * extension2) list ref) =
+let (hosts : (virtual_hosts * config_info * extension2) list ref) =
   ref []
 
 
@@ -221,14 +224,14 @@ let get_hosts () = !hosts
 
 
 (*****************************************************************************)
-let site_match site_path url =
+let site_match request site_path url =
   (* We are sure that there is no / at the end or beginning of site_path *)
   (* and no / at the beginning of url *)
   (* and no // or ../ inside both of them *)
   (* We return the subpath without / at beginning *)
   let rec aux site_path url =
     match site_path, url with
-      | [], [] -> raise Ocsigen_Is_a_directory
+      | [], [] -> raise (Ocsigen_Is_a_directory request)
       | [], p -> Some p
       | a::l, aa::ll when a = aa -> aux l ll
       | _ -> None
@@ -248,8 +251,8 @@ let add_to_res_cookies res cookies_to_set =
      Ocsigen_http_frame.res_cookies =
      Ocsigen_http_frame.add_cookies res.Ocsigen_http_frame.res_cookies cookies_to_set}
 
-let rec make_ext defaulthostname awake cookies_to_set req_state genfun f =
-  let rec aux cookies_to_set = function
+let rec make_ext awake cookies_to_set req_state genfun f =
+  let rec aux cookies_to_set res = match res with
     | Ext_found r ->
         awake ();
         r () >>= fun r' ->
@@ -284,13 +287,8 @@ let rec make_ext defaulthostname awake cookies_to_set req_state genfun f =
         >>= fun (res, cookies_to_set) ->
         aux cookies_to_set res
   in
-  Lwt.catch
-    (fun () -> genfun req_state >>= aux cookies_to_set)
-    (function
-       | Ocsigen_Is_a_directory ->
-           Lwt.fail (Internal_is_a_dir_ defaulthostname)
-       | e -> Lwt.fail e)
-  
+  genfun req_state >>= aux cookies_to_set
+
 
 (*****************************************************************************)
 let fun_beg = ref (fun () -> ())
@@ -300,7 +298,6 @@ let fun_exn = ref (fun exn -> (raise exn : string))
 let rec default_parse_config
     (host : virtual_hosts)
     prevpath
-    def_conf_info
     (Parse_host parse_host)
     (parse_fun : parse_fun) = function
   | Simplexmlparser.Element ("site", atts, l) ->
@@ -326,43 +323,42 @@ let rec default_parse_config
               (Ocsigen_config.Config_file_error ("Wrong attribute for <site>: "^s))
       in
       let charset, dir = parse_site_attrs (None, None) atts in
-      let charsetetc = match charset with
-      | None -> def_conf_info
-      | Some charset -> { def_conf_info with charset = charset }
-      in
       let path =
         prevpath@
         Ocsigen_lib.remove_slash_at_end
           (Ocsigen_lib.remove_slash_at_beginning
              (Ocsigen_lib.remove_dotdot (Neturl.split_path dir)))
       in
-      let parse_site = make_parse_site path charsetetc parse_host l in
+      let parse_site = make_parse_site path parse_host l in
       let ext awake cookies_to_set =
         function
           | Req_found (ri, res) ->
               Lwt.return (Ext_found res, cookies_to_set)
           | Req_not_found (e, oldri) ->
-              match site_match path oldri.ri_full_path with
+              match site_match oldri path oldri.request_info.ri_full_path with
               | None ->
                   Ocsigen_messages.debug (fun () ->
                     "site \""^
                     (Ocsigen_lib.string_of_url_path ~encode:true path)^
                     "\" does not match url \""^
                     (Ocsigen_lib.string_of_url_path ~encode:true
-                       oldri.ri_full_path)^
+                       oldri.request_info.ri_full_path)^
                     "\".");
                   Lwt.return (Ext_next e, cookies_to_set)
               | Some sub_path ->
                   Ocsigen_messages.debug (fun () ->
                     "-------- site found: url \""^
-                    (Ocsigen_lib.string_of_url_path ~encode:true oldri.ri_full_path)^
+                    (Ocsigen_lib.string_of_url_path ~encode:true
+                       oldri.request_info.ri_full_path)^
                     "\" matches \""^
                     (Ocsigen_lib.string_of_url_path ~encode:true path)^"\".");
                   let ri = {oldri with
-                            ri_sub_path = sub_path;
-                            ri_sub_path_string =
-                            Ocsigen_lib.string_of_url_path 
-                              ~encode:true sub_path}
+                              request_info =
+                                { oldri.request_info with
+                                    ri_sub_path = sub_path;
+                                    ri_sub_path_string =
+                                    Ocsigen_lib.string_of_url_path
+                                      ~encode:true sub_path} }
                   in
                   parse_site awake cookies_to_set (Req_not_found (e, ri))
                   >>= function
@@ -385,8 +381,8 @@ let rec default_parse_config
   | _ -> raise (Ocsigen_config.Config_file_error
                   ("Unexpected content inside <host>"))
 
-and make_parse_site path conf_info parse_host l =
-  let f = parse_host path conf_info (Parse_host parse_host) in
+and make_parse_site path parse_host l =
+  let f = parse_host path (Parse_host parse_host) in
   (* creates all site data, if any *)
   let rec parse_site = function
     | [] ->
@@ -404,8 +400,7 @@ and make_parse_site path conf_info parse_host l =
           in
           let genfun2 = parse_site ll in
           fun awake cookies_to_set req_state ->
-            make_ext conf_info.default_hostname
-              awake cookies_to_set req_state genfun genfun2
+            make_ext awake cookies_to_set req_state genfun genfun2
         with
         | Bad_config_tag_for_extension t ->
             ignore
@@ -451,14 +446,14 @@ type userconf_info = {
 type parse_site = virtual_hosts -> parse_site_aux
 and parse_site_user = userconf_info -> parse_site
 and parse_site_aux =
-    url_path -> conf_info -> parse_host ->
+    url_path -> parse_host ->
       (parse_fun -> Simplexmlparser.xml ->
          extension
       )
 
 
 
-let extension_void_fun_site : parse_site_user = fun _ _ _ _ _ _ -> function
+let extension_void_fun_site : parse_site_user = fun _ _ _ _ _ -> function
   | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "Unexpected data in config file")
 
@@ -484,9 +479,9 @@ let register_extension, parse_site_item, parse_user_site_item, get_beg_init, get
          (fun host ->
            let oldf = old_fun_site host in
            let newf = fun_site host in
-           fun path charsetetc parse_host ->
-             let oldf = oldf path charsetetc parse_host in
-             let newf = newf path charsetetc parse_host in
+           fun path parse_host ->
+             let oldf = oldf path parse_host in
+             let newf = newf path parse_host in
              fun parse_site config_tag ->
                try
                  oldf parse_site config_tag
@@ -499,9 +494,9 @@ let register_extension, parse_site_item, parse_user_site_item, get_beg_init, get
          (fun path host ->
            let oldf = old_fun_site path host in
            let newf = user_fun_site path host in
-           fun path charsetetc parse_host ->
-             let oldf = oldf path charsetetc parse_host in
-             let newf = newf path charsetetc parse_host in
+           fun path parse_host ->
+             let oldf = oldf path parse_host in
+             let newf = newf path parse_host in
              fun parse_site config_tag ->
                try
                  oldf parse_site config_tag
@@ -624,7 +619,7 @@ let do_for_site_matching host port ri =
     in
     let rec aux_host ri prev_err cookies_to_set = function
       | [] -> fail (Ocsigen_http_error (cookies_to_set, prev_err))
-      | (h, host_function)::l when host_match host port h ->
+      | (h, conf_info, host_function)::l when host_match host port h ->
           Ocsigen_messages.debug (fun () ->
             "-------- host found! "^
             (string_of_host_option host)^
@@ -632,7 +627,8 @@ let do_for_site_matching host port ri =
           host_function
             awake
             cookies_to_set
-            (Req_not_found (prev_err, ri))
+            (Req_not_found (prev_err, { request_info = ri;
+                                        request_config = conf_info }))
           >>= fun (res_ext, cookies_to_set) ->
           (match res_ext with
           | Ext_found r
@@ -652,21 +648,21 @@ let do_for_site_matching host port ri =
           | Ext_continue_with (_, cook, e) ->
               aux_host ri e
                 (Ocsigen_http_frame.add_cookies cook cookies_to_set) l
-          | Ext_retry_with (ri2, cook) ->
-              if (ri != ri2) && nb_retries < Ocsigen_config.get_maxretries ()
+          | Ext_retry_with (request2, cook) ->
+              if nb_retries < Ocsigen_config.get_maxretries ()
               then
                 do2
                   (nb_retries + 1)
                   (get_hosts ())
                   (Ocsigen_http_frame.add_cookies cook cookies_to_set)
-                  ri2
+                  request2.request_info
                   (* retry all *)
               else
                 fail Ocsigen_Looping_request
           | Ext_sub_result sr ->
               assert false
           )
-      | (h, _)::l ->
+      | (h, _, _)::l ->
           Ocsigen_messages.debug (fun () ->
             "-------- host = "^
             (string_of_host_option host)^

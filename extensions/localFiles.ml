@@ -113,7 +113,7 @@ type resolved =
    - otherwise returns [filename]
 *)
 (* See also module Files in eliom.ml *)
-let resolve ~filename ~options =
+let resolve ~request ~filename ~options =
   try
     Ocsigen_messages.debug
       (fun () -> "--Resolve_local_file: Testing \""^filename^"\".");
@@ -126,7 +126,7 @@ let resolve ~filename ~options =
              Ocsigen, which will then issue a 301 redirection to "filename/" *)
           Ocsigen_messages.debug
             (fun () -> "--Resolve_local_file: "^filename^" is a directory");
-          raise Ocsigen_extensions.Ocsigen_Is_a_directory
+          raise (Ocsigen_extensions.Ocsigen_Is_a_directory request)
         end
 
         else

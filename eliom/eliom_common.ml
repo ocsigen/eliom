@@ -320,7 +320,7 @@ end)
 type anon_params_type = int
 
 type server_params =
-    {sp_ri:Ocsigen_extensions.request_info;
+    {sp_ri:Ocsigen_extensions.request;
      sp_si:sess_info;
      sp_sitedata:sitedata (* data for the whole site *);
      sp_cookie_info:tables cookie_info;
@@ -390,9 +390,6 @@ and sitedata =
    mutable max_volatile_data_sessions_per_group: int option;
    mutable max_service_sessions_per_group: int option;
    mutable max_persistent_data_sessions_per_group: int option;
-   defaulthostname: string;
-   defaulthttpport: int;
-   defaulthttpsport: int;
  }
 
 
@@ -460,6 +457,8 @@ let getcookies cookiename cookies =
 
 
 let change_request_info ri charset previous_extension_err =
+  let ri_whole = ri
+  and ri = ri.Ocsigen_extensions.request_info in
   Lazy.force ri.Ocsigen_extensions.ri_post_params >>=
   (fun post_params ->
     let get_params = Lazy.force ri.Ocsigen_extensions.ri_get_params in
@@ -584,8 +583,8 @@ let change_request_info ri charset previous_extension_err =
                    post_params)
     in
 
-    return
-      ({ri with
+    let ri', sess =
+      {ri with
         Ocsigen_extensions.ri_method =
         (if ri.Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.HEAD
         then Ocsigen_http_frame.Http_header.GET
@@ -602,7 +601,11 @@ let change_request_info ri charset previous_extension_err =
         si_all_get_params= get_params0;
         si_all_post_params= post_params0;
         si_config_file_charset= charset;
-        si_previous_extension_error= previous_extension_err}))
+        si_previous_extension_error= previous_extension_err}
+    in
+    Lwt.return
+    ({ ri_whole with Ocsigen_extensions.request_info = ri' }, sess))
+
 
 
 
@@ -626,7 +629,7 @@ let make_fullsessname2 site_dir_string = function
 
 (*****************************************************************************)
 exception Eliom_retry_with of
-  (Ocsigen_extensions.request_info *
+  (Ocsigen_extensions.request *
      sess_info *
      Ocsigen_http_frame.cookieset (* user cookies set by previous pages *) *
      tables cookie_info

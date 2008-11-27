@@ -22,6 +22,8 @@
 (** Non-attached services                                                   *)
 
 open Lwt
+open Ocsigen_extensions
+
 
 let add_naservice_table at (key, elt) =
   match at with
@@ -157,15 +159,16 @@ let make_naservice
           Ocsigen_messages.debug2
             "--Eliom: Link too old to a non-attached POST coservice. I will try without POST parameters:";
           Eliom_common.change_request_info
-            {ri with
-             Ocsigen_extensions.ri_get_params =
-             lazy si.Eliom_common.si_other_get_params;
-             Ocsigen_extensions.ri_post_params = lazy (return []);
-             Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
-             Ocsigen_extensions.ri_extension_info=
-             Eliom_common.Eliom_Link_too_old::
-             ri.Ocsigen_extensions.ri_extension_info
-            }
+            {ri with Ocsigen_extensions.request_info =
+                { ri.Ocsigen_extensions.request_info with
+                    Ocsigen_extensions.ri_get_params =
+                      lazy si.Eliom_common.si_other_get_params;
+                    ri_post_params = lazy (return []);
+                    ri_method = Ocsigen_http_frame.Http_header.GET;
+                    ri_extension_info =
+                      Eliom_common.Eliom_Link_too_old ::
+                      ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_extension_info
+            }}
             si.Eliom_common.si_config_file_charset
             si.Eliom_common.si_previous_extension_error
           >>=
@@ -180,14 +183,16 @@ let make_naservice
           Ocsigen_messages.debug2
             "--Eliom: Link too old. I will try without non-attached parameters:";
           Eliom_common.change_request_info
-            {ri with
-             Ocsigen_extensions.ri_get_params =
-             lazy si.Eliom_common.si_other_get_params;
-             Ocsigen_extensions.ri_post_params = lazy (return []);
-             Ocsigen_extensions.ri_method = Ocsigen_http_frame.Http_header.GET;
-             Ocsigen_extensions.ri_extension_info=
-             Eliom_common.Eliom_Link_too_old::
-             ri.Ocsigen_extensions.ri_extension_info
+            {ri with request_info =
+                { ri.request_info with
+                    ri_get_params =
+                      lazy si.Eliom_common.si_other_get_params;
+                    ri_post_params = lazy (return []);
+                    ri_method = Ocsigen_http_frame.Http_header.GET;
+                    ri_extension_info =
+                      Eliom_common.Eliom_Link_too_old::
+                        ri.request_info.ri_extension_info
+                }
            }
             si.Eliom_common.si_config_file_charset
             si.Eliom_common.si_previous_extension_error

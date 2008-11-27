@@ -75,7 +75,7 @@ let _ = register_basic_authentication_method
 
 (*****************************************************************************)
 
-let parse_config path charset _ parse_fun = function
+let parse_config path _ parse_fun = function
 
     | Element ("authbasic", ["realm", realm], auth::sub) ->
         (* http://www.ietf.org/rfc/rfc2617.txt *)
@@ -103,7 +103,7 @@ let parse_config path charset _ parse_fun = function
                      let credentials =
                        Http_headers.find
                          (Http_headers.name "Authorization")
-                         ri.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
+                         ri.request_info.ri_http_frame.Ocsigen_http_frame.header.Ocsigen_http_frame.Http_header.headers
                      in
                      let encoded =
                        let n = String.length credentials in

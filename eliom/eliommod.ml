@@ -48,7 +48,7 @@ let new_sitedata =
                               end)
   in
   let t = S.create 5 in
-  fun host site_dir conf_info ->
+  fun host site_dir ->
     let key = (host, site_dir) in
     try
       S.find t key
@@ -76,9 +76,6 @@ let new_sitedata =
                 default_max_sessions_per_group;
              max_persistent_data_sessions_per_group =
                 default_max_sessions_per_group;
-             defaulthostname = conf_info.default_hostname;
-             defaulthttpport = conf_info.default_httpport;
-             defaulthttpsport = conf_info.default_httpsport;
             }
           in
           Eliommod_gc.service_session_gc sitedata;
@@ -333,9 +330,9 @@ let gen_nothing () = function
 let default_module_action _ = failwith "default_module_action"
 
 (** Parsing of config file for each site: *)
-let parse_config hostpattern site_dir conf_info =
+let parse_config hostpattern site_dir =
 (*--- if we put the following line here: *)
-  let sitedata = new_sitedata hostpattern site_dir conf_info in
+  let sitedata = new_sitedata hostpattern site_dir in
 (*--- then there is one service tree for each <site> *)
 (*--- (mutatis mutandis for the following line:) *)
   Eliom_common.absolute_change_sitedata sitedata;
@@ -377,7 +374,7 @@ let parse_config hostpattern site_dir conf_info =
         then
           Eliommod_pagegen.gen
             (Some (Eliommod_extensions.get_eliom_extension ()))
-            sitedata conf_info
+            sitedata
         else gen_nothing ()
     | Element ("eliom", atts, content) ->
 (*--- if we put the line "new_sitedata" here, then there is
@@ -395,7 +392,7 @@ let parse_config hostpattern site_dir conf_info =
         if !firsteliomtag
         then begin
           firsteliomtag := false;
-          Eliommod_pagegen.gen None sitedata conf_info
+          Eliommod_pagegen.gen None sitedata
         end
         else
           gen_nothing ()

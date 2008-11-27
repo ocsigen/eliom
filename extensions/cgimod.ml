@@ -129,7 +129,7 @@ let split_regexp r s =
 
 
 (** permet de recuperer le fichier correspondant a l url *)
-let find_cgi_page reg sub_path =
+let find_cgi_page request reg sub_path =
   let find_file (filename, re, doc_root) =
     (* See also module Files in eliom.ml *)
     Ocsigen_messages.debug (fun () -> "--Cgimod: Testing \""^filename^"\".");
@@ -139,7 +139,7 @@ let find_cgi_page reg sub_path =
         if (stat.Unix.LargeFile.st_kind = Unix.S_DIR)
         then
           (Ocsigen_messages.debug2 "--Cgimod: this is a directory.";
-          raise Ocsigen_Is_a_directory)
+          raise (Ocsigen_Is_a_directory request))
         else filename
       in
       Ocsigen_messages.debug (fun () -> "--Cgimod: Looking for \""^filename^"\".");
@@ -464,7 +464,7 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
 (*****************************************************************************)
 
-let gen reg conf_info = function
+let gen reg = function
   | Ocsigen_extensions.Req_found (_, r) -> 
       Lwt.return (Ocsigen_extensions.Ext_found r)
   | Ocsigen_extensions.Req_not_found (err, ri) ->
@@ -473,11 +473,12 @@ let gen reg conf_info = function
     (fun () ->
          Ocsigen_messages.debug2 "--Cgimod: Is it a cgi file?";
          let (filename, re, doc_root) =
-           find_cgi_page reg ri.ri_sub_path
+           find_cgi_page ri reg ri.request_info.ri_sub_path
          in
          recupere_cgi
-           (ri.ri_method = Http_header.HEAD)
-           re doc_root filename ri conf_info.default_hostname
+           (ri.request_info.ri_method = Http_header.HEAD)
+           re doc_root filename ri.request_info
+           ri.request_config.default_hostname
          >>= fun (frame, finalizer) ->
          let header = frame.Ocsigen_http_frame.header in
          let content = get_content frame in
@@ -509,7 +510,8 @@ let gen reg conf_info = function
                   Ocsigen_stream.finalize content >>= fun () ->
                   if loc <> "" && loc.[0] = '/' then
                     Lwt.return
-                      (Ext_retry_with (ri_of_url loc ri,
+                      (Ext_retry_with ({ ri with request_info =
+                                           ri_of_url loc ri.request_info },
                                        Ocsigen_http_frame.Cookies.empty))
                   else
                     let default_result = Ocsigen_http_frame.default_result () in
@@ -549,7 +551,6 @@ let gen reg conf_info = function
     (function
       | Unix.Unix_error (Unix.EACCES,_,_)
       | Lost_connection _ as e -> fail e
-      | Ocsigen_Is_a_directory
       | Unix.Unix_error (Unix.ENOENT,_,_) -> return (Ext_next 404)
       | Failed_403 -> return (Ext_next 403)
       | Failed_404 -> return (Ext_next 404)
@@ -571,7 +572,7 @@ let rec set_env = function
      else (vr,vl)::set_env l
   | _ :: l -> raise (Error_in_config_file "Bad config tag for <cgi>")
 
-let parse_config path conf_info _ _ = function
+let parse_config path _ _ = function
   | Element ("cgi", atts, l) ->
       let good_root r =
         Regexp.quote (string_conform2 r) 
@@ -612,7 +613,7 @@ let parse_config path conf_info _ _ = function
            env=set_env l}
       | _ -> raise (Error_in_config_file "Wrong attributes for <cgi>")
       in
-      gen dir conf_info
+      gen dir
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->
       raise (Error_in_config_file "Unexpected data in config file")

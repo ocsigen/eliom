@@ -214,7 +214,7 @@ module NAserv_Table :
   end
 type anon_params_type = int
 type server_params = {
-  sp_ri : Ocsigen_extensions.request_info;
+  sp_ri : Ocsigen_extensions.request;
   sp_si : sess_info;
   sp_sitedata : sitedata;
   sp_cookie_info : tables cookie_info;
@@ -255,14 +255,11 @@ and sitedata = {
   mutable max_volatile_data_sessions_per_group : int option;
   mutable max_service_sessions_per_group : int option;
   mutable max_persistent_data_sessions_per_group : int option;
-  defaulthostname: string;
-  defaulthttpport: int;
-  defaulthttpsport: int;
 }
 val make_server_params :
   sitedata ->
   tables cookie_info ->
-  Ocsigen_extensions.request_info ->
+  Ocsigen_extensions.request ->
   Ocsigen_extensions.url_path -> sess_info -> string option -> server_params
 val empty_page_table : unit -> 'a list
 val empty_dircontent : unit -> dircontent
@@ -278,14 +275,14 @@ val split_prefix_param :
 val getcookies :
   string -> 'a Ocsigen_http_frame.Cookievalues.t -> 'a Ocsigen_http_frame.Cookievalues.t
 val change_request_info :
-  Ocsigen_extensions.request_info ->
-  string -> int -> (Ocsigen_extensions.request_info * sess_info) Lwt.t
+  Ocsigen_extensions.request ->
+  string -> int -> (Ocsigen_extensions.request * sess_info) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 val make_full_cookie_name : string -> string -> string
 val make_fullsessname : sp:server_params -> string option -> string
 val make_fullsessname2 : string -> string option -> string
 exception Eliom_retry_with of
-            (Ocsigen_extensions.request_info * sess_info * Ocsigen_http_frame.cookieset *
+            (Ocsigen_extensions.request * sess_info * Ocsigen_http_frame.cookieset *
              tables cookie_info)
 module Perstables :
   sig

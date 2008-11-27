@@ -579,7 +579,7 @@ let service
              (fun e ->
                 finish_request ();
                 match e with
-                | Ocsigen_extensions.Internal_is_a_dir_ defaulthostname ->
+                | Ocsigen_extensions.Ocsigen_Is_a_directory request ->
                     Ocsigen_messages.debug2 "-> Sending 301 Moved permanently";
                     let empty_result = Ocsigen_http_frame.empty_result () in
                     send
@@ -595,7 +595,7 @@ let service
                                    ~scheme:(if ri.ri_ssl
                                             then "https" 
                                             else "http")
-                                   ~host:defaulthostname
+                                   ~host:request.request_config.default_hostname
                                    ?port:(if (port = 80 && not ri.ri_ssl) 
                                             || (ri.ri_ssl && port = 443)
                                           then None

@@ -2033,9 +2033,8 @@ module Filesreg_ = struct
       | Some v -> v
     in
     let file =
-      try LocalFiles.resolve filename options
+      try LocalFiles.resolve (Eliom_sessions.get_ri sp) filename options
       with
-        | Ocsigen_Is_a_directory as e -> raise e
         | LocalFiles.Failed_403 (* XXX : maybe we should signal a true 403? *)
         | LocalFiles.Failed_404 -> raise Eliom_common.Eliom_404
     in

@@ -180,7 +180,7 @@ let rec parse_condition = function
 (*****************************************************************************)
 (* Parsing filters *)
 
-let parse_config path charset _ parse_fun = function
+let parse_config path _ parse_fun = function
 
   | Element ("if", [], sub) ->
       let (condition, sub) = match sub with
@@ -200,7 +200,7 @@ let parse_config path charset _ parse_fun = function
         | Ocsigen_extensions.Req_found (ri, _)
         | Ocsigen_extensions.Req_not_found (_, ri) ->
             Lwt.return
-              (if condition ri then begin
+              (if condition ri.request_info then begin
                  Ocsigen_messages.debug2 "--Access control: => going into <then> branch";
                  Ocsigen_extensions.Ext_sub_result ithen
                end

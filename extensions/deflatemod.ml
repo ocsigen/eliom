@@ -257,15 +257,16 @@ let stream_filter contentencoding url deflate choice res =
 
 let filter choice_list = function
   | Req_not_found (code,_) -> return (Ext_next code)
-  | Req_found (ri, result) -> result () >>= fun res ->
-  match select_encoding (Lazy.force(ri.ri_accept_encoding)) with
-  | Deflate ->
-      stream_filter "deflate" ri.ri_sub_path_string true choice_list res
-  | Gzip ->
-      stream_filter "gzip" ri.ri_sub_path_string false choice_list res
-  | Id | Star -> return (Ext_found (fun () -> return res))
-  | Not_acceptable ->
-      return (Ext_stop_all (res.Ocsigen_http_frame.res_cookies,406))
+  | Req_found ({ request_info = ri }, result) ->
+      result () >>= fun res ->
+      match select_encoding (Lazy.force(ri.ri_accept_encoding)) with
+        | Deflate ->
+            stream_filter "deflate" ri.ri_sub_path_string true choice_list res
+        | Gzip ->
+            stream_filter "gzip" ri.ri_sub_path_string false choice_list res
+        | Id | Star -> return (Ext_found (fun () -> return res))
+        | Not_acceptable ->
+            return (Ext_stop_all (res.Ocsigen_http_frame.res_cookies,406))
 
 
 (*****************************************************************************)
@@ -342,7 +343,7 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
  *)
 
-let parse_config path charset _ _ = function
+let parse_config path _ _ = function
      | Element ("deflate", [("compress",b)], choices) ->
      let l = (try parse_filter choices
               with Not_found -> raise (Error_in_config_file
