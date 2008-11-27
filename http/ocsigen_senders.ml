@@ -218,67 +218,14 @@ module Empty_content =
 
 (*****************************************************************************)
 (* Files *)
-let mimeht = Hashtbl.create 600
-
-let parse_mime_types filename =
-  let rec read_and_split in_ch =
-    try
-      let line = input_line in_ch in
-      let line_upto =
-        try
-          let upto = String.index line '#' in
-          String.sub line 0 upto
-        with Not_found -> line
-      in
-      let strlist =
-        Netstring_pcre.split (Netstring_pcre.regexp "\\s+") line_upto
-      in
-      match  List.length strlist with
-      | 0 | 1 -> read_and_split in_ch
-      | _ ->
-          let make_pair = (fun h -> Hashtbl.add mimeht h (List.hd strlist)) in
-          List.iter make_pair (List.tl strlist);
-          read_and_split in_ch
-    with End_of_file -> ()
-  in
-  try
-    let in_ch = open_in filename in
-    (try
-      read_and_split in_ch
-    with e -> close_in in_ch; raise e);
-    close_in in_ch
-  with Sys_error _ | Not_found -> ()
-
-
-let rec affiche_mime () =
-  Hashtbl.iter (fun f s -> Ocsigen_messages.debug (fun () -> f^" "^s)) mimeht
-
-
-(* send a file in an HTTP frame*)
-let content_type_from_file_name =
-  let parsed = ref false in
-  fun filename ->
-    if not !parsed
-    then begin
-      parsed := true;
-      parse_mime_types (Ocsigen_config.get_mimefile ());
-    end;
-    try
-      let pos = (String.rindex filename '.') in
-      let extens =
-        String.sub filename
-          (pos+1)
-          ((String.length filename) - pos - 1)
-      in Hashtbl.find mimeht extens
-    with Not_found | Invalid_argument _ -> "application/octet-stream"
-(*VVV Make the defaultcontent-type configurable! *)
 
 (** this module instanciate the HTTP_CONTENT signature for files *)
 module File_content =
   struct
     type t = string (* nom du fichier *)
 
-    type options = unit
+    (* current association list for mime types, and default mime type *)
+    type options = Mime.mime_list * Mime.mime_type
 
     let read_file ?buffer_size fd =
       let buffer_size = match buffer_size with
@@ -306,7 +253,11 @@ module File_content =
       let st = Unix.LargeFile.stat f in
       get_etag_aux st
 
-    let result_of_content ?(options = ()) c =
+    let result_of_content ?options c =
+      let mime_list, default_mime = match options with
+        | None -> Mime.default_mime_list (), Mime.default_mime_type ()
+        | Some mime -> mime
+      in
       (* open the file *)
       try
         let fdu = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
@@ -318,7 +269,9 @@ module File_content =
         Lwt.return
           {default_result with
            res_content_length = Some st.Unix.LargeFile.st_size;
-           res_content_type = Some (content_type_from_file_name c);
+           res_content_type =
+              Some (Mime.find_mime_type_file ~default:default_mime
+                      ~mime_list ~filename:c);
            res_lastmodified = Some st.Unix.LargeFile.st_mtime;
            res_etag = etag;
            res_stream =

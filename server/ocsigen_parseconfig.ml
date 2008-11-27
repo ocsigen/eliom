@@ -243,6 +243,8 @@ let parse_server isreloading c =
           parse_server_aux ll
       | (Element ("mimefile" as st, [], p))::ll ->
           Ocsigen_config.set_mimefile (parse_string_tag st p);
+          (* We explicitly call this function to load the file at this point *)
+          ignore (Mime.default_mime_list ());
           parse_server_aux ll
       | (Element ("maxretries" as st, [], p))::ll ->
           set_maxretries (int_of_string st (parse_string_tag st p));

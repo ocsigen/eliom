@@ -78,7 +78,7 @@ CMOS = ../baselib/ocsigen_lib.cmo \
        ../http/http_lexer.cmo ../http/http_parser.cmo \
        ../http/framepp.cmo ../http/ocsigen_http_com.cmo \
        ../xmlp4/xhtmlpretty.cmo ../xmlp4/xhtmlcompact.cmo \
-       ../http/ocsigen_senders.cmo
+       ../http/mime.cmo ../http/ocsigen_senders.cmo
 
 CMAO = ../xmlp4/xhtml.cma $(NAME).cma
 
