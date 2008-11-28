@@ -85,7 +85,7 @@ doc/index.html: xML.mli xHTML.mli
 xHTML.mli: xHTML.ml
 	@$(SED) -n '/BEGIN INTERFACE/,/END INTERFACE/p' $< \
 	  | $(SED) -e '/BEGIN INTERFACE/d' -e '/END INTERFACE/d' > $@.new
-	@if $(DIFF) -q -I'\$(DOLLAR)Id: ' $@.new $@; then $(RM) $@.new; else $(MV) $@.new $@; fi
+	@if [ -e $@ ] && $(DIFF) -q -I'\$(DOLLAR)Id: ' $@.new $@; then $(RM) $@.new; else $(MV) $@.new $@; fi
 
 ########################################################################
 
