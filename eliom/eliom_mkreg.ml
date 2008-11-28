@@ -476,14 +476,14 @@ module MakeRegister = functor
                     let ri = get_ri ~sp:sp2 in
                     let suff = get_suffix ~sp:sp2 in
                     (catch (fun () ->
-                      (force ri.request_info.ri_post_params) >>=
+                      (force ri.ri_post_params) >>=
                       (fun post_params ->
-                        (force ri.request_info.ri_files) >>=
+                        (force ri.ri_files) >>=
                         (fun files ->
                           (page_generator sp2
                              (reconstruct_params
                                 sgpt
-                                (force ri.request_info.ri_get_params)
+                                (force ri.ri_get_params)
                                 []
                                 suff)
                              (reconstruct_params
@@ -521,12 +521,12 @@ module MakeRegister = functor
                       (fun () ->
                         (get_post_params sp2) >>=
                         (fun post_params ->
-                          (force ri.request_info.ri_files) >>=
+                          (force ri.ri_files) >>=
                           (fun files ->
                             (page_generator sp2
                                (reconstruct_params
                                   (get_get_params_type_ service)
-                                  (force ri.request_info.ri_get_params)
+                                  (force ri.ri_get_params)
                                   []
                                   [])
                                (reconstruct_params

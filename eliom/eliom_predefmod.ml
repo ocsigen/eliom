@@ -2029,12 +2029,12 @@ module Filesreg_ = struct
 
   let send ?options ?(cookies=[]) ?charset ?code ~sp filename =
     let file =
-      try LocalFiles.resolve (Eliom_sessions.get_ri sp) filename
+      try LocalFiles.resolve (Eliom_sessions.get_request sp) filename
       with
         | LocalFiles.Failed_403 (* XXXBY : maybe we should signal a true 403? *)
         | LocalFiles.Failed_404 -> raise Eliom_common.Eliom_404
     in
-    LocalFiles.content ~request:(Eliom_sessions.get_ri sp) ~file
+    LocalFiles.content ~request:(Eliom_sessions.get_request sp) ~file
     >>= fun r ->
     Lwt.return
       (EliomResult

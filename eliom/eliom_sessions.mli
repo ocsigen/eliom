@@ -1017,7 +1017,13 @@ val set_default_persistent_data_session_timeout : float option -> unit
 (** You probably don't need these functions. *)
 
 (** returns all the information about the request. *)
-val get_ri : sp:server_params -> request
+val get_ri : sp:server_params -> request_info
+
+(** returns information from the configuration files. *)
+val get_config_info : sp:server_params -> config_info
+
+(** returns all the information about the request and config. *)
+val get_request : sp:server_params -> request
 
 (** returns the name of the sessions to which belongs the running service
     ([None] if it is not a session service)

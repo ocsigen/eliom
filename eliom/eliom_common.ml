@@ -322,7 +322,7 @@ end)
 type anon_params_type = int
 
 type server_params =
-    {sp_ri:Ocsigen_extensions.request;
+    {sp_request:Ocsigen_extensions.request;
      sp_si:sess_info;
      sp_sitedata:sitedata (* data for the whole site *);
      sp_cookie_info:tables cookie_info;
@@ -399,7 +399,7 @@ and sitedata =
     (** Create server parameters record *)
 let make_server_params sitedata all_cookie_info ri suffix si fullsessname
     : server_params =
-  {sp_ri=ri;
+  {sp_request=ri;
    sp_si=si;
    sp_sitedata=sitedata;
    sp_cookie_info=all_cookie_info;

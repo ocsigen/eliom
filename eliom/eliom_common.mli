@@ -216,7 +216,7 @@ module NAserv_Table :
   end
 type anon_params_type = int
 type server_params = {
-  sp_ri : Ocsigen_extensions.request;
+  sp_request : Ocsigen_extensions.request;
   sp_si : sess_info;
   sp_sitedata : sitedata;
   sp_cookie_info : tables cookie_info;

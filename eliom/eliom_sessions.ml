@@ -48,49 +48,49 @@ let find_sitedata fun_name = function
 
 
 let get_user_agent ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_user_agent
+  sp.Eliom_common.sp_request.request_info.ri_user_agent
 let get_full_url ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_url_string
+  sp.Eliom_common.sp_request.request_info.ri_url_string
 let get_remote_ip ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_remote_ip
+  sp.Eliom_common.sp_request.request_info.ri_remote_ip
 let get_remote_inet_addr ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_remote_inet_addr
+  sp.Eliom_common.sp_request.request_info.ri_remote_inet_addr
 let get_get_params ~sp =
-  Lazy.force sp.Eliom_common.sp_ri.request_info.ri_get_params
+  Lazy.force sp.Eliom_common.sp_request.request_info.ri_get_params
 let get_all_current_get_params ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_all_get_params
 let get_initial_get_params ~sp =
-  Lazy.force sp.Eliom_common.sp_ri.request_info.ri_initial_get_params
+  Lazy.force sp.Eliom_common.sp_request.request_info.ri_initial_get_params
 let get_get_params_string ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_get_params_string
+  sp.Eliom_common.sp_request.request_info.ri_get_params_string
 let get_post_params ~sp =
-  Lazy.force sp.Eliom_common.sp_ri.request_info.ri_post_params
+  Lazy.force sp.Eliom_common.sp_request.request_info.ri_post_params
 let get_all_post_params ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_all_post_params
 let get_original_full_path_string ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_original_full_path_string
+  sp.Eliom_common.sp_request.request_info.ri_original_full_path_string
 let get_original_full_path ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_original_full_path
+  sp.Eliom_common.sp_request.request_info.ri_original_full_path
 let get_current_full_path ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_full_path
+  sp.Eliom_common.sp_request.request_info.ri_full_path
 let get_current_full_path_string ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_full_path_string
+  sp.Eliom_common.sp_request.request_info.ri_full_path_string
 let get_current_sub_path ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_sub_path
+  sp.Eliom_common.sp_request.request_info.ri_sub_path
 let get_current_sub_path_string ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_sub_path_string
+  sp.Eliom_common.sp_request.request_info.ri_sub_path_string
 let get_header_hostname ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_host
+  sp.Eliom_common.sp_request.request_info.ri_host
 let get_hostname ~sp =
-  sp.Eliom_common.sp_ri.request_config.default_hostname
+  sp.Eliom_common.sp_request.request_config.default_hostname
 let get_default_port ~sp =
-  sp.Eliom_common.sp_ri.request_config.default_httpport
+  sp.Eliom_common.sp_request.request_config.default_httpport
 let get_default_sslport ~sp =
-  sp.Eliom_common.sp_ri.request_config.default_httpsport
+  sp.Eliom_common.sp_request.request_config.default_httpsport
 let get_server_port ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_server_port
+  sp.Eliom_common.sp_request.request_info.ri_server_port
 let get_ssl ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_ssl
+  sp.Eliom_common.sp_request.request_info.ri_ssl
 let get_other_get_params ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_other_get_params
 let get_suffix ~sp =
@@ -98,11 +98,11 @@ let get_suffix ~sp =
 let get_session_name ~sp =
   sp.Eliom_common.sp_fullsessname
 let get_exn ~sp =
-  sp.Eliom_common.sp_ri.request_info.ri_extension_info
+  sp.Eliom_common.sp_request.request_info.ri_extension_info
 let get_config_file_charset ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_config_file_charset
 let get_cookies ~sp =
-  Lazy.force sp.Eliom_common.sp_ri.request_info.ri_cookies
+  Lazy.force sp.Eliom_common.sp_request.request_info.ri_cookies
 let get_data_cookies ~sp =
   sp.Eliom_common.sp_si.Eliom_common.si_data_session_cookies
 let get_persistent_cookies ~sp =
@@ -532,7 +532,9 @@ let get_persistent_data_session_cookie_exp_date ?session_name ?secure ~sp () =
 let get_site_dir ~sp = sp.Eliom_common.sp_sitedata.Eliom_common.site_dir
 let get_site_dir_string ~sp =
   sp.Eliom_common.sp_sitedata.Eliom_common.site_dir_string
-let get_ri ~sp = sp.Eliom_common.sp_ri
+let get_request ~sp = sp.Eliom_common.sp_request
+let get_ri ~sp = sp.Eliom_common.sp_request.Ocsigen_extensions.request_info
+let get_config_info ~sp = sp.Eliom_common.sp_request.Ocsigen_extensions.request_config
 
 let get_tmp_filename fi = fi.Ocsigen_extensions.tmp_filename
 let get_filesize fi = fi.Ocsigen_extensions.filesize
