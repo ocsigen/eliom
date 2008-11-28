@@ -94,21 +94,7 @@ let find_static_page ~request ~usermode ~dir ~err ~pathstring ~do_not_serve =
     | _ -> raise Not_concerned
   in
   if usermode = false || correct_user_local_file file then
-    match LocalFiles.resolve request file with
-      | LocalFiles.RDir _ as d -> (status_filter, d)
-      | LocalFiles.RFile f as f' ->
-          try ignore(Netstring_pcre.search_forward do_not_serve f 0);
-            (* We have been requested *not* to serve this kind of
-               file.  Thus, we respond nothing. Potentially, some
-               other extension (such as cgi or php) will handle the
-               request themselves, if they are active *)
-            Ocsigen_messages.debug
-              (fun () -> "--Staticmod: Voluntarily ignoring \"" ^ f ^ "\"");
-            raise Not_concerned
-
-          with Not_found ->
-            (* Everything is ok *)
-            (status_filter, f')
+    (status_filter, LocalFiles.resolve request file)
   else
     raise (Ocsigen_extensions.Error_in_user_config_file
              "cannot use '..' in user paths")

@@ -75,6 +75,28 @@ let check_symlinks filename policy =
     | FollowSymlinksIfOwnerMatch -> aux follow_symlinks_if_owner_match
 
 
+let empty_regexp = Netstring_pcre.regexp "$^"
+
+let can_send filename request =
+  let to_regexp l =
+    let s = String.concat "|" l in
+    if s = "" then
+      empty_regexp
+    else
+      Netstring_pcre.regexp s
+  in
+  let matches l =
+    Netstring_pcre.string_match (to_regexp l) filename 0 <> None
+  in
+  if matches request.do_not_serve_403 then (
+    Ocsigen_messages.debug2 "--LocalFiles: this file is forbidden";
+    raise Failed_403)
+  else
+    if matches request.do_not_serve_404 then (
+      Ocsigen_messages.debug2 "--LocalFiles: this file must be hidden";
+      raise Failed_404)
+
+
 (* Return type of a request for a local file. The string argument
    represents the real file/directory to serve, eg. foo/index.html
    instead of foo *)
@@ -137,16 +159,18 @@ let resolve ~request ~filename =
 
       else (filename, stat)
     in
-    if check_symlinks filename request.request_config.follow_symlinks then
-      begin
-        Ocsigen_messages.debug
-          (fun () -> "--LocalFiles: Returning \""^filename^"\".");
-        if stat.Unix.LargeFile.st_kind = Unix.S_REG then
-          RFile filename
-        else if stat.Unix.LargeFile.st_kind = Unix.S_DIR then
-          RDir filename
-        else raise Failed_404
-      end
+    if check_symlinks filename request.request_config.follow_symlinks then (
+      can_send filename request.request_config;
+      (* If the previous function did not fail, we are authorized to
+         send this file *)
+      Ocsigen_messages.debug
+        (fun () -> "--LocalFiles: Returning \""^filename^"\".");
+      if stat.Unix.LargeFile.st_kind = Unix.S_REG then
+        RFile filename
+      else if stat.Unix.LargeFile.st_kind = Unix.S_DIR then
+        RDir filename
+      else raise Failed_404
+    )
     else (
       (* [filename] is accessed through as symlink which we should not
          follow according to the current policy *)

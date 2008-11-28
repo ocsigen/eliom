@@ -76,6 +76,28 @@ let update_config usermode config = function
                       in option defaultindex"
       in { config with default_directory_index = aux [] l }
 
+  | Element ("hidefile", [], l) ->
+      let rec aux regexps = function
+        | [] -> regexps
+        | Element ("regexp", ["value", f], []) :: q ->
+            aux (f :: regexps) q
+        | _ :: q -> bad_config "subtags must be of the form \
+                      <regexp>...</regexp> \
+                      in option hidefile"
+
+      in { config with do_not_serve_404 = aux [] l @ config.do_not_serve_404 }
+
+  | Element ("forbidfile", [], l) ->
+      let rec aux regexps = function
+        | [] -> regexps
+        | Element ("regexp", ["value", f], []) :: q ->
+            aux (f :: regexps) q
+        | _ :: q -> bad_config "subtags must be of the form \
+                      <regexp>...</regexp> \
+                      in option hidefile"
+
+      in { config with do_not_serve_403 = aux [] l @ config.do_not_serve_403 }
+
   | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ ->
       raise (Error_in_config_file "Unexpected data in config file")

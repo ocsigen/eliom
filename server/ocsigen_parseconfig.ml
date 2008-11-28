@@ -456,6 +456,8 @@ let parse_server isreloading c =
             default_directory_index = ["index.html"];
             list_directory_content = false;
             follow_symlinks = Ocsigen_extensions.FollowSymlinksIfOwnerMatch;
+            do_not_serve_404 = [];
+            do_not_serve_403 = [];
           }
           in
           let parse_site =

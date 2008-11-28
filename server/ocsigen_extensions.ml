@@ -117,6 +117,8 @@ type config_info = {
   (** Should symlinks be followed when accessign a local file? *)
   follow_symlinks: follow_symlink;
 
+  do_not_serve_404: string list;
+  do_not_serve_403: string list;
 }
 and follow_symlink =
   | DoNotFollowSymlinks (** Never follow a symlink *)
