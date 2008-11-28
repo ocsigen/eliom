@@ -98,7 +98,7 @@ type resolved =
 let resolve ~request ~filename =
   try
     Ocsigen_messages.debug
-      (fun () -> "--Resolve_local_file: Testing \""^filename^"\".");
+      (fun () -> "--LocalFiles: Testing \""^filename^"\".");
     let stat = Unix.LargeFile.stat filename in
     let (filename, stat) =
       if stat.Unix.LargeFile.st_kind = Unix.S_DIR then
@@ -107,7 +107,7 @@ let resolve ~request ~filename =
              its name as there is no final slash. We signal this fact to
              Ocsigen, which will then issue a 301 redirection to "filename/" *)
           Ocsigen_messages.debug
-            (fun () -> "--Resolve_local_file: "^filename^" is a directory");
+            (fun () -> "--LocalFiles: "^filename^" is a directory");
           raise (Ocsigen_extensions.Ocsigen_Is_a_directory request)
         end
 
@@ -115,14 +115,19 @@ let resolve ~request ~filename =
           let rec find_index = function
             | [] ->
                 (* No suitable index, we try to list the directory *)
-                if request.request_config.list_directory_content then
-                  (filename, stat)
-                else
-                  raise Failed_403
+                if request.request_config.list_directory_content then (
+                  Ocsigen_messages.debug2
+                    "--LocalFiles: Displaying directory content";
+                  (filename, stat))
+                else (
+                  (* No suitable index *)
+                  Ocsigen_messages.debug2
+                    "--LocalFiles: No index and no listing";
+                  raise Failed_403)
             | e :: q ->
                 let index = filename ^ e in
                 Ocsigen_messages.debug
-                  (fun () -> "--Resolve_local_file: Testing \""^index
+                  (fun () -> "--LocalFiles: Testing \""^index
                      ^"\" as possible index.");
                 try
                   (index, Unix.LargeFile.stat index)
@@ -135,7 +140,7 @@ let resolve ~request ~filename =
     if check_symlinks filename request.request_config.follow_symlinks then
       begin
         Ocsigen_messages.debug
-          (fun () -> "--Resolve_local_file: Looking for \""^filename^"\".");
+          (fun () -> "--LocalFiles: Returning \""^filename^"\".");
         if stat.Unix.LargeFile.st_kind = Unix.S_REG then
           RFile filename
         else if stat.Unix.LargeFile.st_kind = Unix.S_DIR then
