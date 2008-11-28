@@ -208,7 +208,8 @@ let gen is_eliom_extension sitedata = function
 | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in
   Eliom_common.change_request_info
-    ri ri.Ocsigen_extensions.request_config.charset previous_extension_err
+    ri ri.Ocsigen_extensions.request_config.default_charset
+    previous_extension_err
   >>= fun (ri, si) ->
   let (all_cookie_info, closedsessions) =
     Eliommod_cookies.get_cookie_info now

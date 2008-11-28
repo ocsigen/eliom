@@ -50,6 +50,14 @@ package "accesscontrol" (
   archive(plugin,native) = "accesscontrol.cmxs"
 )
 
+package "extendconfiguration" (
+  exists_if = "extendconfiguration.cmo,extendconfiguration.cmxs"
+  version = "[distributed with Ocsigen]"
+  description = "Updating server options"
+  archive(plugin,byte) = "extendconfiguration.cmo"
+  archive(plugin,native) = "extendconfiguration.cmxs"
+)
+
 package "authbasic" (
   exists_if = "authbasic.cmo,authbasic.cmxs"
   version = "[distributed with Ocsigen]"

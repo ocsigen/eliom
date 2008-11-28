@@ -1,28 +1,10 @@
+open Ocsigen_extensions
+
 (* Displaying of a local file or directory. Currently used in
    staticmod and eliom_predefmod*)
 
 exception Failed_403
 exception Failed_404
-
-
-type options = {
-  list_directory_content : bool;
-  follow_symlinks: follow_symlink;
-  default_directory_index : string list;
-}
-and follow_symlink =
-  | DoNotFollow (* Never follow a symlink *)
-  | FollowIfOwnerMatch (* Follow a symlink if the symlink and its
-                          target have the same owner *)
-  | AlwaysFollow (* Always follow symlinks *)
-
-
-(* Default, most restrictive options *)
-let default_options = {
-  list_directory_content = false;
-  follow_symlinks = DoNotFollow;
-  default_directory_index = ["index.html"];
-}
 
 
 (* Policies for following symlinks *)
@@ -88,9 +70,9 @@ let check_symlinks filename policy =
       check_symlinks_parent_directories filename policy
   in
   match policy with
-    | AlwaysFollow -> true
-    | DoNotFollow -> aux never_follow_symlinks
-    | FollowIfOwnerMatch -> aux follow_symlinks_if_owner_match
+    | AlwaysFollowSymlinks -> true
+    | DoNotFollowSymlinks -> aux never_follow_symlinks
+    | FollowSymlinksIfOwnerMatch -> aux follow_symlinks_if_owner_match
 
 
 (* Return type of a request for a local file. The string argument
@@ -113,7 +95,7 @@ type resolved =
    - otherwise returns [filename]
 *)
 (* See also module Files in eliom.ml *)
-let resolve ~request ~filename ~options =
+let resolve ~request ~filename =
   try
     Ocsigen_messages.debug
       (fun () -> "--Resolve_local_file: Testing \""^filename^"\".");
@@ -133,7 +115,7 @@ let resolve ~request ~filename ~options =
           let rec find_index = function
             | [] ->
                 (* No suitable index, we try to list the directory *)
-                if options.list_directory_content then
+                if request.request_config.list_directory_content then
                   (filename, stat)
                 else
                   raise Failed_403
@@ -146,11 +128,11 @@ let resolve ~request ~filename ~options =
                   (index, Unix.LargeFile.stat index)
                 with
                   | Unix.Unix_error (Unix.ENOENT, _, _) -> find_index q
-          in find_index options.default_directory_index
+          in find_index request.request_config.default_directory_index
 
       else (filename, stat)
     in
-    if check_symlinks filename options.follow_symlinks then
+    if check_symlinks filename request.request_config.follow_symlinks then
       begin
         Ocsigen_messages.debug
           (fun () -> "--Resolve_local_file: Looking for \""^filename^"\".");
@@ -173,12 +155,16 @@ let resolve ~request ~filename ~options =
 
 
 (* Given a local file or directory, we retrieve its content *)
-let content ~url ~file =
+let content ~request ~file =
   try
     match file with
       | RDir dirname ->
-          Ocsigen_senders.Directory_content.result_of_content (dirname, url)
+          Ocsigen_senders.Directory_content.result_of_content
+            (dirname, request.request_info.ri_full_path)
       | RFile filename ->
-          Ocsigen_senders.File_content.result_of_content filename
+          Ocsigen_senders.File_content.result_of_content
+            ~options:(request.request_config.mime_assoc,
+                      request.request_config.default_mime_type)
+            filename
   with
     | Unix.Unix_error (Unix.EACCES,_,_) -> raise Failed_403

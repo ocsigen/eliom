@@ -39,7 +39,7 @@ let bad_config s = raise (Error_in_config_file s)
 (* A static site is either an entire directory served unconditionnaly,
    or a more elaborate redirection based on regexpes and http error
    codes. See the documentation of staticmod for detail *)
-type static_kind =
+type static_site_kind =
   | Dir of string (* Serves an entire directory *)
   | Regexp of regexp_site
 and regexp_site = {
@@ -48,15 +48,6 @@ and regexp_site = {
   http_status_filter: Netstring_pcre.regexp option
 }
 
-
-
-(* For both kind of static sites, we specify whether the content of
-   a directory should be listed when a url is a directory, and how
-   symlinks should be followed*)
-type static_site = {
-  static_kind: static_kind;
-  options: LocalFiles.options;
-}
 
 
 (*****************************************************************************)
@@ -88,7 +79,7 @@ let correct_user_local_file =
    is valid.
 *)
 let find_static_page ~request ~usermode ~dir ~err ~pathstring ~do_not_serve =
-  let status_filter, file = match dir.static_kind with
+  let status_filter, file = match dir with
     | Dir d ->
         (false, Filename.concat d pathstring)
     | Regexp { source_regexp = source; dest = dest;
@@ -103,7 +94,7 @@ let find_static_page ~request ~usermode ~dir ~err ~pathstring ~do_not_serve =
     | _ -> raise Not_concerned
   in
   if usermode = false || correct_user_local_file file then
-    match LocalFiles.resolve request file dir.options with
+    match LocalFiles.resolve request file with
       | LocalFiles.RDir _ as d -> (status_filter, d)
       | LocalFiles.RFile f as f' ->
           try ignore(Netstring_pcre.search_forward do_not_serve f 0);
@@ -135,11 +126,11 @@ let gen ~do_not_serve ~usermode dir = function
              find_static_page ~request:ri ~usermode ~dir ~err
              ~pathstring:(Ocsigen_lib.string_of_url_path ~encode:false
                             ri.request_info.ri_sub_path) ~do_not_serve in
-           LocalFiles.content ri.request_info.ri_full_path page
+           LocalFiles.content ri page
            >>= fun r ->
              Lwt.return
                {r with Ocsigen_http_frame.res_charset =
-                   Some ri.request_config.charset }
+                   Some ri.request_config.default_charset }
              >>= fun answer ->
                let answer' =
                  if status_filter = false then
@@ -190,15 +181,12 @@ let rewrite_local_path userconf path =
 
 type options = {
   opt_dir: string option;
-  opt_readable: bool option;
   opt_regexp: Netstring_pcre.regexp option;
   opt_code: Netstring_pcre.regexp option;
   opt_dest: Ocsigen_extensions.ud_string option;
-  opt_follow: LocalFiles.follow_symlink option;
-  opt_default_index: string list option;
 }
 
-let parse_config userconf _ conf_info _ =
+let parse_config userconf : parse_site_aux = fun _ _ _ ->
   let rec parse_attrs l opt =
     match l with
       | [] -> opt
@@ -206,13 +194,6 @@ let parse_config userconf _ conf_info _ =
       | ("dir", d)::l when opt.opt_dir = None ->
           parse_attrs l
             { opt with opt_dir = Some (rewrite_local_path userconf d)}
-
-      | ((("readable", "readable")
-      |  ("listdirs", "true"))::l) when opt.opt_readable = None ->
-          parse_attrs l { opt with opt_readable = Some true }
-
-      |  ("listdirs", "false")::l when opt.opt_readable = None ->
-          parse_attrs l { opt with opt_readable = Some false }
 
       | ("regexp", s)::l when opt.opt_regexp = None ->
           let s = try Netstring_pcre.regexp ("^"^s^"$")
@@ -233,31 +214,6 @@ let parse_config userconf _ conf_info _ =
             { opt with opt_dest =
                 Some (parse_user_dir (rewrite_local_path userconf s)) }
 
-      | ("followsymlinks", s)::l when opt.opt_follow = None ->
-          let v = match s with
-            | "never" -> LocalFiles.DoNotFollow
-            | "always" ->
-                if userconf = None (* Not in an userconf file *) then
-                  LocalFiles.AlwaysFollow
-                else
-                  raise
-                    (Ocsigen_extensions.Error_in_user_config_file
-                       "Cannot specify value 'always' for attribute 'followsymlinks' in userconf files")
-            | "ownermatch" -> LocalFiles.FollowIfOwnerMatch
-            | _ ->
-                bad_config ("Wrong value \""^s^"\" for tag \"followsymlink\"")
-          in
-          parse_attrs l
-            { opt with opt_follow = Some v }
-
-      | ("defaultindex", s):: l ->
-          let v =
-            match opt.opt_default_index with
-              | None -> Some [s]
-              | Some l -> Some (s :: l)
-          in
-          parse_attrs l { opt with opt_default_index = v }
-
     | _ -> bad_config "Wrong attribute for <static>"
   in
   function
@@ -265,22 +221,10 @@ let parse_config userconf _ conf_info _ =
         let opt =
           parse_attrs atts {
             opt_dir = None;
-            opt_readable = None;
             opt_regexp = None;
             opt_code = None;
             opt_dest = None;
-            opt_follow = None;
-            opt_default_index = None;
           }
-        in
-        (* default value is false *)
-        let readable = (opt.opt_readable = Some true)
-        and follow_symlinks = match opt.opt_follow with
-          | Some v -> v
-          | None -> LocalFiles.DoNotFollow (* default value *)
-        and default_index = match opt.opt_default_index with
-          | None -> ["index.html"]
-          | Some l -> List.rev l
         in
         let kind =
           match opt.opt_dir, opt.opt_regexp, opt.opt_code, opt.opt_dest with
@@ -296,13 +240,7 @@ let parse_config userconf _ conf_info _ =
                        source_regexp = Netstring_pcre.regexp "^.*$" }
           | _ -> raise (Error_in_config_file "Wrong attributes for <static>")
           in
-          gen ~usermode:(userconf <> None)
-            ~do_not_serve
-            { static_kind = kind;
-              options = {
-                LocalFiles.list_directory_content = readable;
-                default_directory_index = default_index;
-                follow_symlinks = follow_symlinks } }
+          gen ~usermode:(userconf <> None) ~do_not_serve kind
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
     | _ -> bad_config "(staticmod extension) Bad data"
 

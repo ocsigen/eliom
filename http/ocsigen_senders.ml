@@ -225,7 +225,7 @@ module File_content =
     type t = string (* nom du fichier *)
 
     (* current association list for mime types, and default mime type *)
-    type options = Mime.mime_list * Mime.mime_type
+    type options = Mime.mime_assoc * Mime.mime_type
 
     let read_file ?buffer_size fd =
       let buffer_size = match buffer_size with
@@ -254,8 +254,8 @@ module File_content =
       get_etag_aux st
 
     let result_of_content ?options c =
-      let mime_list, default_mime = match options with
-        | None -> Mime.default_mime_list (), Mime.default_mime_type ()
+      let mime_assoc, default_mime = match options with
+        | None -> Mime.default_mime_assoc (), Mime.default_mime_type ()
         | Some mime -> mime
       in
       (* open the file *)
@@ -271,7 +271,7 @@ module File_content =
            res_content_length = Some st.Unix.LargeFile.st_size;
            res_content_type =
               Some (Mime.find_mime_type_file ~default:default_mime
-                      ~mime_list ~filename:c);
+                      ~mime_assoc ~filename:c);
            res_lastmodified = Some st.Unix.LargeFile.st_mtime;
            res_etag = etag;
            res_stream =

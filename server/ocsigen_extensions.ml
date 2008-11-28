@@ -39,6 +39,8 @@ exception Error_in_config_file of string
 (* Incorrect option in an userconf file *)
 exception Error_in_user_config_file of string
 
+exception Not_overridable of string
+
 
 let badconfig fmt = Printf.ksprintf (fun s -> raise (Error_in_config_file s)) fmt
 
@@ -65,13 +67,63 @@ let client_id = Ocsigen_http_com.connection_id
 let client_connection x = x
 let client_of_connection x = x
 
+(* Handling of charset *)
+
+type charset = string
+
+module MapString = Map.Make(String)
+
+type charset_assoc = charset MapString.t
+
+let empty_charset_assoc = MapString.empty
+
+let find_charset ?(default="") ~charset_assoc ~extension =
+  try MapString.find extension charset_assoc
+  with Not_found -> default
+
+
+let find_charset_file ?(default="") ~charset_assoc ~filename =
+  find_charset
+    ~default ~charset_assoc ~extension:(Ocsigen_lib.extension filename)
+
+let update_charset ~charset_assoc ~extension ~charset =
+  MapString.add extension charset charset_assoc
+
+(* Server configuration *)
+
 
 type config_info = {
-  charset : string;
   default_hostname: string;
   default_httpport: int;
   default_httpsport: int;
+
+  mime_assoc: Mime.mime_assoc;
+  default_mime_type: Mime.mime_type;
+
+  charset_assoc : charset_assoc;
+  default_charset : charset;
+
+  (** Default name to use as index file when a directory is requested.
+      Use [None] if no index should be tried. The various indexes
+      are tried in the given order. If no index is specified,
+      or the index does not exists, the content of the directory
+      might be listed, according to [list_directry_content] *)
+  default_directory_index : string list;
+
+  (** Should the list of files in a directory be displayed
+      if there is no index in this directory ? *)
+  list_directory_content : bool;
+
+  (** Should symlinks be followed when accessign a local file? *)
+  follow_symlinks: follow_symlink;
+
 }
+and follow_symlink =
+  | DoNotFollowSymlinks (** Never follow a symlink *)
+  | FollowSymlinksIfOwnerMatch (** Follow a symlink if the symlink and its
+                          target have the same owner *)
+  | AlwaysFollowSymlinks (** Always follow symlinks *)
+
 
 
 (* Requests *)

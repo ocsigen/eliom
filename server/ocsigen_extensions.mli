@@ -39,6 +39,9 @@ exception Ocsigen_Internal_Error of string
 (** Error in an user config file. Stop with an error message *)
 exception Error_in_user_config_file of string
 
+(** A configuration option cannot be overriden in userconf files *)
+exception Not_overridable of string
+
 val badconfig : ('a, unit, string, 'b) format4 -> 'a
 (** Convenient function for raising Error_in_config_file exceptions with
     a sprintf-formatted argument. *)
@@ -55,13 +58,63 @@ type virtual_host_part = Text of string * int | Wildcard
 type virtual_hosts = ((virtual_host_part list) * int option) list
 
 
+(*****************************************************************************)
+(** Handling of charset *)
+
+type charset = string
+
+(** Association between extensions and charset *)
+type charset_assoc
+
+val empty_charset_assoc: charset_assoc
+
+val find_charset:
+  ?default:charset -> charset_assoc:charset_assoc -> extension:string -> charset
+
+val find_charset_file:
+  ?default:charset -> charset_assoc:charset_assoc -> filename:string -> charset
+
+val update_charset:
+  charset_assoc:charset_assoc -> extension:string -> charset:charset -> charset_assoc
+
+
+(*****************************************************************************)
+
 (** Configuration options, passed to (and modified by) extensions *)
 type config_info = {
-  charset : string;
   default_hostname: string;
   default_httpport: int;
   default_httpsport: int;
+
+  mime_assoc: Mime.mime_assoc;
+  default_mime_type: Mime.mime_type;
+
+  charset_assoc : charset_assoc;
+  default_charset : charset;
+
+  (** Default name to use as index file when a directory is requested.
+      Use [None] if no index should be tried. The various indexes
+      are tried in the given order. If no index is specified,
+      or the index does not exists, the content of the directory
+      might be listed, according to [list_directry_content] *)
+  default_directory_index : string list;
+
+  (** Should the list of files in a directory be displayed
+      if there is no index in this directory ? *)
+  list_directory_content : bool;
+
+  (** Should symlinks be followed when accessign a local file? *)
+  follow_symlinks: follow_symlink;
+
 }
+and follow_symlink =
+  | DoNotFollowSymlinks (** Never follow a symlink *)
+  | FollowSymlinksIfOwnerMatch (** Follow a symlink if the symlink and its
+                          target have the same owner *)
+  | AlwaysFollowSymlinks (** Always follow symlinks *)
+
+
+(*****************************************************)
 
 
 (** The files sent in the request *)

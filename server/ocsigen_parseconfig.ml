@@ -243,8 +243,6 @@ let parse_server isreloading c =
           parse_server_aux ll
       | (Element ("mimefile" as st, [], p))::ll ->
           Ocsigen_config.set_mimefile (parse_string_tag st p);
-          (* We explicitly call this function to load the file at this point *)
-          ignore (Mime.default_mime_list ());
           parse_server_aux ll
       | (Element ("maxretries" as st, [], p))::ll ->
           set_maxretries (int_of_string st (parse_string_tag st p));
@@ -370,12 +368,8 @@ let parse_server isreloading c =
                 raise (Ocsigen_config.Config_file_error
                          ("Wrong attribute for <host>: "^s))
           in
-          let host, 
-            charset, 
-            defaulthostname, 
-            defaulthttpport, 
-            defaulthttpsport = 
-            parse_attrs (None, None, None, None, None) atts 
+          let host, charset, defaulthostname, defaulthttpport,defaulthttpsport =
+            parse_attrs (None, None, None, None, None) atts
           in
           let host = match host with
           | None -> [[Ocsigen_extensions.Wildcard], None] (* default = "*:*" *)
@@ -405,13 +399,11 @@ let parse_server isreloading c =
                    port))
                 (Netstring_str.split (Netstring_str.regexp "[ \t]+") s)
           in
-          let charset = match charset with
-          | None -> Ocsigen_config.get_default_charset ()
-          | Some charset -> Some charset
-          in
-          let charset = match charset with
-          | None -> "utf-8"
-          | Some charset -> charset
+          let charset =
+            match charset, Ocsigen_config.get_default_charset () with
+              | Some charset, _
+              | None, Some charset -> charset
+              | None, None -> "utf-8"
           in
           let defaultdefaulthostname = default_hostname in
           let defaulthostname = match defaulthostname with
@@ -454,10 +446,16 @@ let parse_server isreloading c =
           in
           let parse_host = Ocsigen_extensions.parse_site_item host in
           let conf = {
-            Ocsigen_extensions.charset = charset;
-            default_hostname = defaulthostname;
+            Ocsigen_extensions.default_hostname = defaulthostname;
             default_httpport = defaulthttpport;
             default_httpsport = defaulthttpsport;
+            mime_assoc = Mime.default_mime_assoc ();
+            default_mime_type = Mime.default_mime_type ();
+            charset_assoc = Ocsigen_extensions.empty_charset_assoc;
+            default_charset = charset;
+            default_directory_index = ["index.html"];
+            list_directory_content = false;
+            follow_symlinks = Ocsigen_extensions.FollowSymlinksIfOwnerMatch;
           }
           in
           let parse_site =

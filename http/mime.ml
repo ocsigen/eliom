@@ -3,7 +3,7 @@ type extension = string
 
 module MapString = Map.Make(String)
 
-type mime_list = mime_type MapString.t
+type mime_assoc = mime_type MapString.t
 
 
 let default_mime = ref "application/octet-stream"
@@ -45,24 +45,20 @@ let parse_mime_types filename =
   with Sys_error _ -> MapString.empty
 
 
-let find_mime_type ?(default=(!default_mime)) ~mime_list ~extension =
-  try MapString.find extension mime_list
+let find_mime_type ?(default=(!default_mime)) ~mime_assoc ~extension =
+  try MapString.find extension mime_assoc
   with Not_found -> default
 
 
-let find_mime_type_file ?(default=(!default_mime)) ~mime_list ~filename =
-  try
-    let pos = (String.rindex filename '.') in
-    let extension =
-      String.sub filename
-        (pos+1)
-        ((String.length filename) - pos - 1)
-    in
-    find_mime_type ~default ~mime_list ~extension
-  with Not_found -> default
+let find_mime_type_file ?(default=(!default_mime)) ~mime_assoc ~filename =
+  find_mime_type
+    ~default ~mime_assoc ~extension:(Ocsigen_lib.extension filename)
+
+let update_mime ~mime_assoc ~extension ~mime =
+  MapString.add extension mime mime_assoc
 
 
-let default_mime_list () =
+let default_mime_assoc () =
   let parsed = ref None in
   match !parsed with
     | None ->

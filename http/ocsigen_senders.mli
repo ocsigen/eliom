@@ -20,8 +20,9 @@
 (** Functions to create results for various kinds of documents *)
 
 
-module File_content :
-  Ocsigen_http_frame.HTTP_CONTENT with type t = string
+module File_content : Ocsigen_http_frame.HTTP_CONTENT
+  with type t = string
+  and type options = Mime.mime_assoc * Mime.mime_type
 
 module Xhtml_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt
