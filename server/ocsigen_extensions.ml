@@ -250,6 +250,7 @@ and request_state =
 and extension2 =
     (unit -> unit) ->
       Ocsigen_http_frame.cookieset ->
+      bool ->
       request_state ->
       (answer * Ocsigen_http_frame.cookieset) Lwt.t
 
@@ -303,7 +304,7 @@ let add_to_res_cookies res cookies_to_set =
      Ocsigen_http_frame.res_cookies =
      Ocsigen_http_frame.add_cookies res.Ocsigen_http_frame.res_cookies cookies_to_set}
 
-let rec make_ext awake cookies_to_set req_state genfun f =
+let make_ext awake cookies_to_set merge req_state genfun (f : extension2) =
   let rec aux cookies_to_set res = match res with
     | Ext_found r ->
         awake ();
@@ -315,6 +316,7 @@ let rec make_ext awake cookies_to_set req_state genfun f =
         f
           awake
           Ocsigen_http_frame.Cookies.empty
+          merge
           (Req_found (ri,
                       fun () ->
                         Lwt.return (add_to_res_cookies r' cookies_to_set)))
@@ -323,11 +325,12 @@ let rec make_ext awake cookies_to_set req_state genfun f =
           | Req_found (ri, _) -> ri
           | Req_not_found (_, ri) -> ri
         in
-        f awake cookies_to_set (Req_not_found (e, ri))
+        f awake cookies_to_set merge (Req_not_found (e, ri))
     | Ext_continue_with (ri, cook, e) ->
         f
           awake
           (Ocsigen_http_frame.add_cookies cook cookies_to_set)
+          merge
           (Req_not_found (e, ri))
     | Ext_found_stop _
     | Ext_stop_site _
@@ -335,7 +338,7 @@ let rec make_ext awake cookies_to_set req_state genfun f =
     | Ext_stop_all _
     | Ext_retry_with _ as res -> Lwt.return (res, cookies_to_set)
     | Ext_sub_result sr ->
-        sr awake cookies_to_set req_state
+        sr awake cookies_to_set merge req_state
         >>= fun (res, cookies_to_set) ->
         aux cookies_to_set res
   in
@@ -382,7 +385,7 @@ let rec default_parse_config
              (Ocsigen_lib.remove_dotdot (Neturl.split_path dir)))
       in
       let parse_site = make_parse_site path parse_host l in
-      let ext awake cookies_to_set =
+      let ext awake cookies_to_set merge =
         function
           | Req_found (ri, res) ->
               Lwt.return (Ext_found res, cookies_to_set)
@@ -412,15 +415,19 @@ let rec default_parse_config
                                     Ocsigen_lib.string_of_url_path
                                       ~encode:true sub_path} }
                   in
-                  parse_site awake cookies_to_set (Req_not_found (e, ri))
+                  parse_site awake cookies_to_set merge (Req_not_found (e, ri))
                   >>= function
                       (* After a site, we turn back to old ri *)
-                    | (Ext_stop_site (cs, err), cookies_to_set) ->
-                        Lwt.return
-                          (Ext_continue_with (oldri, cs, err), cookies_to_set)
+                    | (Ext_stop_site (cs, err), cookies_to_set)
                     | (Ext_continue_with (_, cs, err), cookies_to_set) ->
+                        let ri' =
+                          if merge then
+                            { oldri with request_config = ri.request_config }
+                          else
+                            ri
+                        in
                         Lwt.return
-                          (Ext_continue_with (oldri, cs, err), cookies_to_set)
+                          (Ext_continue_with (ri', cs, err), cookies_to_set)
                     | r -> Lwt.return r
       in
       (function
@@ -433,16 +440,22 @@ let rec default_parse_config
   | _ -> raise (Ocsigen_config.Config_file_error
                   ("Unexpected content inside <host>"))
 
-and make_parse_site path parse_host l =
+and make_parse_site path parse_host l : extension2 =
   let f = parse_host path (Parse_host parse_host) in
   (* creates all site data, if any *)
-  let rec parse_site = function
+  let rec parse_site : _ -> extension2 = function
     | [] ->
-        (fun (awake : unit -> unit) cookies_to_set -> function
+        (fun (awake : unit -> unit) cookies_to_set merge -> function
           | Req_found (ri, res) ->
               Lwt.return (Ext_found res, cookies_to_set)
           | Req_not_found (e, ri) ->
-              Lwt.return (Ext_next e, cookies_to_set))
+              if merge then
+                Lwt.return
+                  (Ext_continue_with
+                     (ri, Ocsigen_http_frame.Cookies.empty, e), cookies_to_set)
+              else
+                Lwt.return (Ext_next e, cookies_to_set)
+        )
     | xmltag::ll ->
         try
           let genfun =
@@ -451,8 +464,8 @@ and make_parse_site path parse_host l =
               xmltag
           in
           let genfun2 = parse_site ll in
-          fun awake cookies_to_set req_state ->
-            make_ext awake cookies_to_set req_state genfun genfun2
+          fun awake cookies_to_set merge req_state ->
+            make_ext awake cookies_to_set merge req_state genfun genfun2
         with
         | Bad_config_tag_for_extension t ->
             ignore
@@ -679,6 +692,7 @@ let do_for_site_matching host port ri =
           host_function
             awake
             cookies_to_set
+            false
             (Req_not_found (prev_err, { request_info = ri;
                                         request_config = conf_info }))
           >>= fun (res_ext, cookies_to_set) ->

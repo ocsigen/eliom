@@ -276,10 +276,11 @@ and request_state =
   | Req_found of (request * (unit -> Ocsigen_http_frame.result Lwt.t))
 
 and extension2 =
-    (unit -> unit) ->
-      Ocsigen_http_frame.cookieset ->
-        request_state ->
-          (answer * Ocsigen_http_frame.cookieset) Lwt.t
+  (unit -> unit) ->
+  Ocsigen_http_frame.cookieset ->
+  bool ->
+  request_state ->
+  (answer * Ocsigen_http_frame.cookieset) Lwt.t
 
 type extension = request_state -> answer Lwt.t
 (** For each <site> tag in the configuration file,
