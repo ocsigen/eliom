@@ -64,7 +64,7 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
             in
             Lwt.return
               (Ext_sub_result
-                 (fun awake cookies_to_set _ rs ->
+                 (fun awake cookies_to_set rs ->
                    let path =
                      Ocsigen_lib.remove_slash_at_beginning
                        (Ocsigen_lib.remove_dotdot (Neturl.split_path url))
@@ -75,7 +75,6 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
                      cookies_to_set
                      (* The [request_config] field of the request is kept
                         in the enclosing site *)
-                     true
                      (Ocsigen_extensions.Req_not_found
                         (previous_extension_err,
                          {ri with
@@ -90,7 +89,7 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
                    let rec aux ((answer, cts) as r) =
                      match answer with
                      | Ext_sub_result sr ->
-                         sr awake cookies_to_set false req_state
+                         sr awake cookies_to_set req_state
                          >>= aux
                      | _ -> Lwt.return r
                    in aux
