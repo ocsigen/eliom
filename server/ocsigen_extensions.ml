@@ -440,6 +440,10 @@ let rec default_parse_config
                   ("Unexpected content inside <host>"))
 
 and make_parse_site path parse_host l : extension2 =
+  (* if keep_site_config is true, the config information set by the site
+     is kept (it is not really a <site>, but an inclusion).
+     Used for example for userconf.
+  *)
   let f = parse_host path (Parse_host parse_host) in
   (* creates all site data, if any *)
   let rec parse_site : _ -> extension2 = function
@@ -448,7 +452,13 @@ and make_parse_site path parse_host l : extension2 =
           | Req_found (ri, res) ->
               Lwt.return (Ext_found res, cookies_to_set)
           | Req_not_found (e, ri) ->
-              Lwt.return (Ext_next e, cookies_to_set))
+              Lwt.return
+                (Ext_continue_with
+                   (ri, Ocsigen_http_frame.Cookies.empty, e), cookies_to_set))
+(* was Lwt.return (Ext_next e, cookies_to_set))
+   but to use make_parse_site with userconf,
+   we need to know current ri after parsing the sub-configuration.
+*)
     | xmltag::ll ->
         try
           let genfun =

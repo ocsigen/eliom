@@ -38,8 +38,8 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
   match req_state with
   | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
 (*VVV not possible to set a filter for now *)
-  | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
-      let path = ri.request_info.ri_sub_path_string in
+  | Ocsigen_extensions.Req_not_found (previous_extension_err, req) ->
+      let path = req.request_info.ri_sub_path_string in
       match Netstring_pcre.string_match regexp path 0 with
       | None -> Lwt.return (Ext_next previous_extension_err)
       | Some _ -> (* Matching regexp found! *)
@@ -77,9 +77,9 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
                         in the enclosing site *)
                      (Ocsigen_extensions.Req_not_found
                         (previous_extension_err,
-                         {ri with
+                         {req with
                             request_info =
-                             { ri.request_info with
+                             { req.request_info with
                                  ri_sub_path = path;
                                  ri_sub_path_string = url}}))
 (*VVV Do we want to continue to search in the same <site>
@@ -91,6 +91,13 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
                      | Ext_sub_result sr ->
                          sr awake cookies_to_set req_state
                          >>= aux
+                     | Ext_continue_with (newreq, c, e) ->
+                         (* We keep config information outside userconf! *)
+                         Lwt.return 
+                           ((Ext_continue_with ({req with 
+                                                  request_config = 
+                                                   newreq.request_config
+                                               }, c, e)), cts)
                      | _ -> Lwt.return r
                    in aux
  (*VVV ^ ^ ^ *)
