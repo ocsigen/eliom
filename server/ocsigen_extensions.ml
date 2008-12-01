@@ -252,7 +252,7 @@ and request_state =
 and extension2 =
     (unit -> unit) ->
       Ocsigen_http_frame.cookieset ->
-      bool ->
+      bool -> (*VVV ??? *)
       request_state ->
       (answer * Ocsigen_http_frame.cookieset) Lwt.t
 
@@ -426,7 +426,7 @@ let rec default_parse_config
                           if merge then
                             { oldri with request_config = ri.request_config }
                           else
-                            ri
+                            oldri
                         in
                         Lwt.return
                           (Ext_continue_with (ri', cs, err), cookies_to_set)

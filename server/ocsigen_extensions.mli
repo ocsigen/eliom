@@ -281,7 +281,7 @@ and request_state =
 and extension2 =
   (unit -> unit) ->
   Ocsigen_http_frame.cookieset ->
-  bool ->
+  bool -> (*VVV ??? *)
   request_state ->
   (answer * Ocsigen_http_frame.cookieset) Lwt.t
 
