@@ -56,7 +56,7 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
             let user_parse_host =
               Ocsigen_extensions.parse_user_site_item userconf_options hostpattern in
             let user_parse_site =
-              Ocsigen_extensions.make_parse_site
+              Ocsigen_extensions.make_parse_config
                 (sitepath@[prefix]) user_parse_host
             in
             let xmllist =

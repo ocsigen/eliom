@@ -138,7 +138,7 @@ let update_config usermode = function
       raise (Error_in_config_file "Unexpected data in config file")
 
 
-let parse_config usermode : parse_site_aux = fun _ _ _ xml ->
+let parse_config usermode : parse_config_aux = fun _ _ _ xml ->
   update_config usermode xml
 
 

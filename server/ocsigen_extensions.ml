@@ -407,7 +407,7 @@ let rec default_parse_config
           (Ocsigen_lib.remove_slash_at_beginning
              (Ocsigen_lib.remove_dotdot (Neturl.split_path dir)))
       in
-      let parse_site = make_parse_site path parse_host l in
+      let parse_config = make_parse_config path parse_host l in
       let ext awake cookies_to_set =
         function
           | Req_found (ri, res) ->
@@ -438,7 +438,7 @@ let rec default_parse_config
                                     Ocsigen_lib.string_of_url_path
                                       ~encode:true sub_path} }
                   in
-                  parse_site awake cookies_to_set (Req_not_found (e, ri))
+                  parse_config awake cookies_to_set (Req_not_found (e, ri))
                   >>= function
                       (* After a site, we turn back to old ri *)
                     | (Ext_stop_site (cs, err), cookies_to_set)
@@ -465,14 +465,14 @@ let rec default_parse_config
   | _ -> raise (Ocsigen_config.Config_file_error
                   ("Unexpected content inside <host>"))
 
-and make_parse_site path parse_host l : extension2 =
+and make_parse_config path parse_host l : extension2 =
   (* if keep_site_config is true, the config information set by the site
      is kept (it is not really a <site>, but an inclusion).
      Used for example for userconf.
   *)
   let f = parse_host path (Parse_host parse_host) in
   (* creates all site data, if any *)
-  let rec parse_site : _ -> extension2 = function
+  let rec parse_config : _ -> extension2 = function
     | [] ->
         (fun (awake : unit -> unit) cookies_to_set -> function
           | Req_found (ri, res) ->
@@ -489,10 +489,10 @@ and make_parse_site path parse_host l : extension2 =
         try
           let genfun =
             f
-              parse_site
+              parse_config
               xmltag
           in
-          let genfun2 = parse_site ll in
+          let genfun2 = parse_config ll in
           fun awake cookies_to_set req_state ->
             make_ext awake cookies_to_set req_state genfun genfun2
         with
@@ -501,14 +501,14 @@ and make_parse_site path parse_host l : extension2 =
               (Ocsigen_messages.errlog
                  ("Unexpected tag <"^t^"> inside <site dir=\""^
                   (Ocsigen_lib.string_of_url_path ~encode:true path)^"\"> (ignored)"));
-            parse_site ll
+            parse_config ll
         | Ocsigen_config.Config_file_error t
         | Error_in_config_file t ->
             ignore
               (Ocsigen_messages.errlog
                  ("Error while parsing configuration file: "^
                   t^" (ignored)"));
-            parse_site ll
+            parse_config ll
         | e ->
             ignore
               (Ocsigen_messages.errlog
@@ -517,12 +517,12 @@ and make_parse_site path parse_host l : extension2 =
                      !fun_exn e
                    with e -> Ocsigen_lib.string_of_exn e)^
                   " (ignored)"));
-            parse_site ll
+            parse_config ll
   in
   !fun_beg ();
   let r =
     try
-      parse_site l
+      parse_config l
     with e -> !fun_end (); raise e
 (*VVV May be we should avoid calling fun_end after parinf user config files
   (with extension userconf) ... See eliommod.ml
@@ -537,9 +537,9 @@ type userconf_info = {
   localfiles_root : string;
 }
 
-type parse_site = virtual_hosts -> parse_site_aux
-and parse_site_user = userconf_info -> parse_site
-and parse_site_aux =
+type parse_config = virtual_hosts -> parse_config_aux
+and parse_config_user = userconf_info -> parse_config
+and parse_config_aux =
     url_path -> parse_host ->
       (parse_fun -> Simplexmlparser.xml ->
          extension
@@ -547,12 +547,12 @@ and parse_site_aux =
 
 
 
-let extension_void_fun_site : parse_site_user = fun _ _ _ _ _ -> function
+let extension_void_fun_site : parse_config_user = fun _ _ _ _ _ -> function
   | Simplexmlparser.Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
   | _ -> raise (Error_in_config_file "Unexpected data in config file")
 
 
-let register_extension, parse_site_item, parse_user_site_item, get_beg_init, get_end_init, get_init_exn_handler =
+let register_extension, parse_config_item, parse_user_site_item, get_beg_init, get_end_init, get_init_exn_handler =
   let ref_fun_site = ref default_parse_config in
   let ref_user_fun_site = ref (fun (_ : userconf_info) -> default_parse_config) in
 
@@ -576,11 +576,11 @@ let register_extension, parse_site_item, parse_user_site_item, get_beg_init, get
            fun path parse_host ->
              let oldf = oldf path parse_host in
              let newf = newf path parse_host in
-             fun parse_site config_tag ->
+             fun parse_config config_tag ->
                try
-                 oldf parse_site config_tag
+                 oldf parse_config config_tag
                with
-               | Bad_config_tag_for_extension c -> newf parse_site config_tag
+               | Bad_config_tag_for_extension c -> newf parse_config config_tag
          );
 
        let old_fun_site = !ref_user_fun_site in
@@ -591,11 +591,11 @@ let register_extension, parse_site_item, parse_user_site_item, get_beg_init, get
            fun path parse_host ->
              let oldf = oldf path parse_host in
              let newf = newf path parse_host in
-             fun parse_site config_tag ->
+             fun parse_config config_tag ->
                try
-                 oldf parse_site config_tag
+                 oldf parse_config config_tag
                with
-               | Bad_config_tag_for_extension c -> newf parse_site config_tag
+               | Bad_config_tag_for_extension c -> newf parse_config config_tag
          );
 
        fun_beg := comp begin_init !fun_beg;
@@ -604,7 +604,7 @@ let register_extension, parse_site_item, parse_user_site_item, get_beg_init, get
        fun_exn := fun e -> try curexnfun e with e -> exn_handler e),
 
 
-   (* ********* parse_site_item ********* *)
+   (* ********* parse_config_item ********* *)
    (fun host -> !ref_fun_site host),
 
    (* ********* parse_user_site_item ********* *)

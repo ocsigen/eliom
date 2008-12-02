@@ -323,7 +323,7 @@ type userconf_info = {
   localfiles_root : string;
 }
 
-(** [parse_site] is the type of the functions parsing a <site> tag
+(** [parse_config] is the type of the functions parsing a <site> tag
     (and returning an extension).  Those are functions taking
    {ul
      {- the name of the virtual <host>}}
@@ -340,14 +340,14 @@ type userconf_info = {
      {- raise [Bad_config_tag_for_extension] if it does not recognize that tag}
      {- return something of type [extension] (filter or page generator)}}
 
-    [parse_site_user] is the type of functions parsing a site tag
+    [parse_config_user] is the type of functions parsing a site tag
     inside an userconf file. They take one more parameter, of type userconf_info
 *)
-type parse_site =
-  virtual_hosts -> parse_site_aux
-and parse_site_user =
-    userconf_info -> parse_site
-and parse_site_aux =
+type parse_config =
+  virtual_hosts -> parse_config_aux
+and parse_config_user =
+    userconf_info -> parse_config
+and parse_config_aux =
     url_path -> parse_host ->
       (parse_fun -> Simplexmlparser.xml ->
          extension
@@ -356,9 +356,9 @@ and parse_site_aux =
 
 (** BYXXX : update this documentation
    For each extension generating pages, we register five functions:
-   - a function of type parse_site, parsing the configuration for
+   - a function of type parse_config, parsing the configuration for
     the server
-   - a function of type parse_site type, that will be called every time user
+   - a function of type parse_config type, that will be called every time user
     configuration  files are parsed (if userconf is enabled).
     It must define only safe options, for example it is not
     safe to allow such options to load a cmo specified by a user, or to
@@ -384,8 +384,8 @@ and parse_site_aux =
    the requests you to another server. It is false by default.
  *)
 val register_extension :
-  fun_site:parse_site ->
-  ?user_fun_site:parse_site_user ->
+  fun_site:parse_config ->
+  ?user_fun_site:parse_config_user ->
   ?begin_init:(unit -> unit) ->
   ?end_init:(unit -> unit) ->
   ?exn_handler:(exn -> string) ->
@@ -395,7 +395,7 @@ val register_extension :
 (** A predefined function to be passed to {!Ocsigen_extensions.register_extension}
     that defines no option.
  *)
-val extension_void_fun_site : parse_site_user
+val extension_void_fun_site : parse_config_user
 
 
 (** While loading an extension,
@@ -423,10 +423,10 @@ val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
 
 (**/**)
 
-val make_parse_site : url_path -> parse_site_aux -> parse_fun
+val make_parse_config : url_path -> parse_config_aux -> parse_fun
 
-val parse_site_item : parse_site
-val parse_user_site_item : parse_site_user
+val parse_config_item : parse_config
+val parse_user_site_item : parse_config_user
 
 val set_hosts : (virtual_hosts * config_info * extension2) list -> unit
 

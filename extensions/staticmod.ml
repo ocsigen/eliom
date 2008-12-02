@@ -172,7 +172,7 @@ type options = {
   opt_dest: Ocsigen_extensions.ud_string option;
 }
 
-let parse_config userconf : parse_site_aux = fun _ _ _ ->
+let parse_config userconf : parse_config_aux = fun _ _ _ ->
   let rec parse_attrs l opt =
     match l with
       | [] -> opt

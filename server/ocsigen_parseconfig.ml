@@ -444,7 +444,7 @@ let parse_server isreloading c =
                 with Failure _ -> 443)
             | Some p -> int_of_string "host" p
           in
-          let parse_host = Ocsigen_extensions.parse_site_item host in
+          let parse_host = Ocsigen_extensions.parse_config_item host in
           let conf = {
             Ocsigen_extensions.default_hostname = defaulthostname;
             default_httpport = defaulthttpport;
@@ -460,11 +460,11 @@ let parse_server isreloading c =
             do_not_serve_403 = [];
           }
           in
-          let parse_site =
-            Ocsigen_extensions.make_parse_site [] parse_host
+          let parse_config =
+            Ocsigen_extensions.make_parse_config [] parse_host
           in
           (* default site for host *)
-          (host, conf, parse_site l)::(parse_server_aux ll)
+          (host, conf, parse_config l)::(parse_server_aux ll)
       | (Element ("extconf", [("dir", dir)], []))::ll ->
           let one =
             try
