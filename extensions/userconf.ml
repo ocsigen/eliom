@@ -99,14 +99,18 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
                                                   request_config = 
                                                    newreq.request_config
                                                }, c, e)), cts)
-                     | Ext_found_continue_with (r, newreq) ->
+                     | Ext_found_continue_with r ->
                          (* We keep config information outside userconf! *)
                          Lwt.return 
-                           ((Ext_found_continue_with
-                               (r, {req with 
-                                      request_config = 
-                                    newreq.request_config
-                                   })), cts)
+                           (Ext_found_continue_with
+                              (fun () -> 
+                                 r () >>= fun (r, newreq) ->
+                                 Lwt.return 
+                                   (r, {req with 
+                                          request_config = 
+                                        newreq.request_config
+                                       })),
+                            cts)
                      | _ -> Lwt.return r
                    in aux
  (*VVV ^ ^ ^ *)

@@ -25,6 +25,12 @@
 
 (** Writing extensions for Ocsigen                                           *)
 
+(* TODO
+
+   - awake must be called after each Ext_found or Ext_found_continue_with
+   or Ext_found_stop sent by an extension. It is perhaps called too often.
+
+*)
 
 open Lwt
 open Ocsigen_lib
@@ -252,10 +258,14 @@ type answer =
             the parsing function (of type [parse_fun]),
             that will return something of type [extension2].
         *)
-  | Ext_found_continue_with of (Ocsigen_http_frame.result * request)
-        (** For internal use only.
-            Same as [Ext_found] after calling the function
-            but may modify the request. *)
+  | Ext_found_continue_with of 
+      (unit -> (Ocsigen_http_frame.result * request) Lwt.t)
+        (** Same as [Ext_found] but may modify the request. *)
+  | Ext_found_continue_with' of (Ocsigen_http_frame.result * request)
+        (** Same as [Ext_found_continue_with] but does not allow to delay
+            the computation of the page. You should probably not use it,
+            but for output filters.
+        *)
 
 and request_state =
   | Req_not_found of (int * request)
@@ -319,15 +329,7 @@ let add_to_res_cookies res cookies_to_set =
 
 let make_ext awake cookies_to_set req_state genfun (f : extension2) =
   let rec aux cookies_to_set = function
-    | Ext_do_nothing ->
-        (match req_state with
-          | Req_found (req, r) -> 
-              f
-                awake
-                Ocsigen_http_frame.Cookies.empty
-                (Req_found (req, add_to_res_cookies r cookies_to_set))
-          | Req_not_found (e, req) -> 
-              f awake cookies_to_set (Req_not_found (e, req)))
+    | Ext_do_nothing -> f awake cookies_to_set req_state
     | Ext_found r ->
         awake ();
         r () >>= fun r' ->
@@ -336,14 +338,22 @@ let make_ext awake cookies_to_set req_state genfun (f : extension2) =
           | Req_not_found (_, ri) -> ri
         in
         f
-          awake
+          Ocsigen_lib.id (* already awoken *)
           Ocsigen_http_frame.Cookies.empty
           (Req_found (ri, add_to_res_cookies r' cookies_to_set))
-    | Ext_found_continue_with (r, req) ->
+    | Ext_found_continue_with r ->
+        awake ();
+        r () >>= fun (r', req) ->
         f
-          awake
+          Ocsigen_lib.id (* already awoken *)
           Ocsigen_http_frame.Cookies.empty
-          (Req_found (req, add_to_res_cookies r cookies_to_set))
+          (Req_found (req, add_to_res_cookies r' cookies_to_set))
+    | Ext_found_continue_with' (r', req) ->
+        awake ();
+        f
+          Ocsigen_lib.id (* already awoken *)
+          Ocsigen_http_frame.Cookies.empty
+          (Req_found (req, add_to_res_cookies r' cookies_to_set))
     | Ext_next e ->
         let ri = match req_state with
           | Req_found (ri, _) -> ri
@@ -411,7 +421,7 @@ let rec default_parse_config
       let ext awake cookies_to_set =
         function
           | Req_found (ri, res) ->
-              Lwt.return (Ext_found_continue_with (res, ri), cookies_to_set)
+              Lwt.return (Ext_found_continue_with' (res, ri), cookies_to_set)
           | Req_not_found (e, oldri) ->
               match site_match oldri path oldri.request_info.ri_full_path with
               | None ->
@@ -445,9 +455,14 @@ let rec default_parse_config
                     | (Ext_continue_with (_, cs, err), cookies_to_set) ->
                         Lwt.return
                           (Ext_continue_with (oldri, cs, err), cookies_to_set)
-                    | (Ext_found_continue_with (r, ri), cookies_to_set) ->
+                    | (Ext_found_continue_with r, cookies_to_set) ->
+                        awake ();
+                        r () >>= fun (r', req) ->
                         Lwt.return
-                          (Ext_found_continue_with (r, oldri), cookies_to_set)
+                          (Ext_found_continue_with' (r', oldri), cookies_to_set)
+                    | (Ext_found_continue_with' (r, req), cookies_to_set) ->
+                        Lwt.return
+                          (Ext_found_continue_with' (r, oldri), cookies_to_set)
                     | (Ext_do_nothing, cookies_to_set) ->
                         Lwt.return 
                           (Ext_continue_with (oldri, 
@@ -457,7 +472,7 @@ let rec default_parse_config
       in
       (function
         | Req_found (ri, r) ->
-            Lwt.return (Ext_found_continue_with (r, ri))
+            Lwt.return (Ext_found_continue_with' (r, ri))
         | Req_not_found (err, ri) ->
             Lwt.return (Ext_sub_result ext))
   | Simplexmlparser.Element (tag,_,_) ->
@@ -476,7 +491,7 @@ and make_parse_config path parse_host l : extension2 =
     | [] ->
         (fun (awake : unit -> unit) cookies_to_set -> function
           | Req_found (ri, res) ->
-              Lwt.return (Ext_found_continue_with (res, ri), cookies_to_set)
+              Lwt.return (Ext_found_continue_with' (res, ri), cookies_to_set)
           | Req_not_found (e, ri) ->
               Lwt.return
                 (Ext_continue_with
@@ -732,7 +747,12 @@ let do_for_site_matching host port ri =
               Lwt.return (add_to_res_cookies r' cookies_to_set)
           | Ext_do_nothing ->
               aux_host ri prev_err cookies_to_set l
-          | Ext_found_continue_with (r, _) ->
+          | Ext_found_continue_with r ->
+              awake ();
+              r () >>= fun (r', _) ->
+              return (add_to_res_cookies r' cookies_to_set)
+          | Ext_found_continue_with' (r, _) ->
+              awake ();
               return (add_to_res_cookies r cookies_to_set)
           | Ext_next e ->
               aux_host ri e cookies_to_set l

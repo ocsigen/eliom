@@ -23,6 +23,8 @@
     rewriting.
   * Accesscontrol: add support for {{{<port>}}} and {{{<ssl>}}}
     conditions.
+  * New extension extendconfiguration to allow dynamic changes in the 
+    configuration (mimetypes, charsets, followsymnlink, directory listing~ ...)
 
 = 1.1.0 =
 

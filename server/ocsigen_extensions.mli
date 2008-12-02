@@ -275,12 +275,14 @@ type answer =
             the parsing function (of type [parse_fun]),
             that will return something of type [extension2].
         *)
-(**/**)
-  | Ext_found_continue_with of (Ocsigen_http_frame.result * request)
-        (** For internal use only.
-            Same as [Ext_found] after calling the function
-            but may modify the request. *)
-(**/**)
+  | Ext_found_continue_with of 
+      (unit -> (Ocsigen_http_frame.result * request) Lwt.t)
+        (** Same as [Ext_found] but may modify the request. *)
+  | Ext_found_continue_with' of (Ocsigen_http_frame.result * request)
+        (** Same as [Ext_found_continue_with] but does not allow to delay
+            the computation of the page. You probably should not use it,
+            but for output filters.
+        *)
 
 and request_state =
   | Req_not_found of (int * request)
