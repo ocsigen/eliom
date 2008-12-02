@@ -134,7 +134,7 @@ let parse_config path _ parse_fun = function
                        fail (Ocsigen_http_error (Ocsigen_http_frame.Cookies.empty, 400))
                  end
              | Ocsigen_extensions.Req_found (ri, r) ->
-                 Lwt.return (Ocsigen_extensions.Ext_found r))
+                 Lwt.return Ocsigen_extensions.Ext_do_nothing)
 
     | Element (t, _, _) -> raise (Bad_config_tag_for_extension t)
     | _ -> raise (Error_in_config_file "(authbasic extension) Bad data")

@@ -203,8 +203,8 @@ let compute_exn closedservsessions =
 open Ocsigen_extensions
 
 let gen is_eliom_extension sitedata = function
-| Ocsigen_extensions.Req_found (_, r) -> 
-    Lwt.return (Ocsigen_extensions.Ext_found r)
+| Ocsigen_extensions.Req_found _ -> 
+    Lwt.return Ocsigen_extensions.Ext_do_nothing
 | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
   let now = Unix.time () in
   Eliom_common.change_request_info

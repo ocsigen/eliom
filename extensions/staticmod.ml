@@ -103,7 +103,7 @@ let find_static_page ~request ~usermode ~dir ~err ~pathstring ~do_not_serve =
 
 let gen ~do_not_serve ~usermode dir = function
   | Ocsigen_extensions.Req_found (_, r) ->
-      Lwt.return (Ocsigen_extensions.Ext_found r)
+      Lwt.return (Ocsigen_extensions.Ext_do_nothing)
   | Ocsigen_extensions.Req_not_found (err, ri) ->
       catch
         (fun () ->

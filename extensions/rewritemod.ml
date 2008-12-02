@@ -88,8 +88,8 @@ let find_rewrite (Regexp (regexp, dest)) suburl =
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
 let gen regexp = function
-| Ocsigen_extensions.Req_found (_, r) -> 
-    Lwt.return (Ocsigen_extensions.Ext_found r)
+| Ocsigen_extensions.Req_found _ -> 
+    Lwt.return Ocsigen_extensions.Ext_do_nothing
 | Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a rewrite? *)

@@ -465,8 +465,8 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 (*****************************************************************************)
 
 let gen reg = function
-  | Ocsigen_extensions.Req_found (_, r) -> 
-      Lwt.return (Ocsigen_extensions.Ext_found r)
+  | Ocsigen_extensions.Req_found _ -> 
+      Lwt.return Ocsigen_extensions.Ext_do_nothing
   | Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a cgi page? *)

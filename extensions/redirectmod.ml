@@ -109,7 +109,8 @@ let find_redirection (Regexp (regexp, dest, temp)) https host port
 (*****************************************************************************)
 (** The function that will generate the pages from the request. *)
 let gen dir = function
-| Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+| Ocsigen_extensions.Req_found _ -> 
+    Lwt.return Ocsigen_extensions.Ext_do_nothing
 | Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a redirection? *)

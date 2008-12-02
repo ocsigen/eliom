@@ -6,8 +6,8 @@ open Simplexmlparser
 let bad_config s = raise (Error_in_config_file s)
 
 let gen ~usermode configfun = function
-  | Ocsigen_extensions.Req_found (_, r) ->
-      Lwt.return (Ocsigen_extensions.Ext_found r)
+  | Ocsigen_extensions.Req_found _ ->
+      Lwt.return Ocsigen_extensions.Ext_do_nothing
 
   | Ocsigen_extensions.Req_not_found (err, request) ->
       Ocsigen_messages.debug2 "--Updating configuration";

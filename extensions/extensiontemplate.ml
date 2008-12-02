@@ -79,11 +79,11 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 
  *)
 let gen = function
-  | Ocsigen_extensions.Req_found (_, r) ->
+  | Ocsigen_extensions.Req_found _ ->
       (* If previous extension already found the page, you can
          modify the result (if you write a filter) or return it
          without modification like this: *)
-      Lwt.return (Ocsigen_extensions.Ext_found r)
+      Lwt.return Ocsigen_extensions.Ext_do_nothing
   | Ocsigen_extensions.Req_not_found (err, ri) ->
       (* If previous extensions did not find the result,
          I decide here to answer with a default page

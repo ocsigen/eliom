@@ -257,8 +257,7 @@ let stream_filter contentencoding url deflate choice res =
 
 let filter choice_list = function
   | Req_not_found (code,_) -> return (Ext_next code)
-  | Req_found ({ request_info = ri }, result) ->
-      result () >>= fun res ->
+  | Req_found ({ request_info = ri }, res) ->
       match select_encoding (Lazy.force(ri.ri_accept_encoding)) with
         | Deflate ->
             stream_filter "deflate" ri.ri_sub_path_string true choice_list res

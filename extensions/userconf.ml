@@ -36,7 +36,8 @@ exception NoConfFile
 
 let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
   match req_state with
-  | Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+  | Ocsigen_extensions.Req_found _ -> 
+      Lwt.return Ocsigen_extensions.Ext_do_nothing
 (*VVV not possible to set a filter for now *)
   | Ocsigen_extensions.Req_not_found (previous_extension_err, req) ->
       let path = req.request_info.ri_sub_path_string in
@@ -98,6 +99,14 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
                                                   request_config = 
                                                    newreq.request_config
                                                }, c, e)), cts)
+                     | Ext_found_continue_with (r, newreq) ->
+                         (* We keep config information outside userconf! *)
+                         Lwt.return 
+                           ((Ext_found_continue_with
+                               (r, {req with 
+                                      request_config = 
+                                    newreq.request_config
+                                   })), cts)
                      | _ -> Lwt.return r
                    in aux
  (*VVV ^ ^ ^ *)

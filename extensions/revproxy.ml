@@ -164,7 +164,8 @@ let find_redirection r https host port path =
 exception Bad_answer_from_http_server
 
 let gen dir = function
-| Ocsigen_extensions.Req_found (_, r) -> Lwt.return (Ocsigen_extensions.Ext_found r)
+| Ocsigen_extensions.Req_found _ -> 
+    Lwt.return Ocsigen_extensions.Ext_do_nothing
 | Ocsigen_extensions.Req_not_found (err, ri) ->
   catch
     (* Is it a redirection? *)

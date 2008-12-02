@@ -321,11 +321,9 @@ let load_eliom_module sitedata cmo content =
 (* If page has already been generated becauise there are several <eliom>
    tags in the same site:
 *)
-let gen_nothing () = function
-  | Ocsigen_extensions.Req_found (_, r) -> 
-      Lwt.return (Ocsigen_extensions.Ext_found r)
-  | Ocsigen_extensions.Req_not_found (previous_extension_err, ri) ->
-      Lwt.return (Ocsigen_extensions.Ext_next previous_extension_err)
+let gen_nothing () _ = 
+  Lwt.return Ocsigen_extensions.Ext_do_nothing
+
 
 
 (*****************************************************************************)

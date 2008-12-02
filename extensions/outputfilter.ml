@@ -31,8 +31,7 @@ open Ocsigen_headers
 
 let gen (header, regexp, dest) = function
   | Req_not_found (code,_) -> return (Ext_next code)
-  | Req_found (ri, result) ->
-      result () >>= fun res ->
+  | Req_found (ri, res) ->
       try
         let header_values =
           Http_headers.find_all header res.Ocsigen_http_frame.res_headers

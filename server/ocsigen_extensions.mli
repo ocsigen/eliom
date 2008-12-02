@@ -207,6 +207,8 @@ exception Ocsigen_Is_a_directory of request
 
 
 type answer =
+  | Ext_do_nothing
+      (** Do nothing *)
   | Ext_found of (unit -> Ocsigen_http_frame.result Lwt.t)
       (** "OK stop! I will take the page.
           You can start the following request of the same pipelined connection.
@@ -273,10 +275,16 @@ type answer =
             the parsing function (of type [parse_fun]),
             that will return something of type [extension2].
         *)
+(**/**)
+  | Ext_found_continue_with of (Ocsigen_http_frame.result * request)
+        (** For internal use only.
+            Same as [Ext_found] after calling the function
+            but may modify the request. *)
+(**/**)
 
 and request_state =
   | Req_not_found of (int * request)
-  | Req_found of (request * (unit -> Ocsigen_http_frame.result Lwt.t))
+  | Req_found of (request * Ocsigen_http_frame.result)
 
 and extension2 =
   (unit -> unit) ->

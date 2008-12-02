@@ -218,7 +218,8 @@ let parse_config path _ parse_fun = function
   | Element ("nextsite", [], []) ->
       (function
          | Ocsigen_extensions.Req_found (_, r) ->
-             Lwt.return (Ocsigen_extensions.Ext_found_stop r)
+             Lwt.return (Ocsigen_extensions.Ext_found_stop 
+                           (fun () -> Lwt.return r))
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ocsigen_extensions.Ext_stop_site 
                            (Ocsigen_http_frame.Cookies.empty, 404)))
@@ -226,7 +227,8 @@ let parse_config path _ parse_fun = function
   | Element ("nexthost", [], []) ->
       (function
          | Ocsigen_extensions.Req_found (_, r) ->
-             Lwt.return (Ocsigen_extensions.Ext_found_stop r)
+             Lwt.return (Ocsigen_extensions.Ext_found_stop
+                           (fun () -> Lwt.return r))
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ocsigen_extensions.Ext_stop_host
                            (Ocsigen_http_frame.Cookies.empty, 404)))
@@ -234,7 +236,8 @@ let parse_config path _ parse_fun = function
   | Element ("stop", [], []) ->
       (function
          | Ocsigen_extensions.Req_found (_, r) ->
-             Lwt.return (Ocsigen_extensions.Ext_found_stop r)
+             Lwt.return (Ocsigen_extensions.Ext_found_stop
+                           (fun () -> Lwt.return r))
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ocsigen_extensions.Ext_stop_all
                            (Ocsigen_http_frame.Cookies.empty, 404)))
@@ -257,7 +260,8 @@ let parse_config path _ parse_fun = function
       let ext = parse_fun sub in
       (function
          | Ocsigen_extensions.Req_found (_, r) ->
-             Lwt.return (Ocsigen_extensions.Ext_found r)
+             Lwt.return (Ocsigen_extensions.Ext_found
+                           (fun () -> Lwt.return r))
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              Lwt.return (Ext_sub_result ext))
 
@@ -266,7 +270,8 @@ let parse_config path _ parse_fun = function
       let r = Netstring_pcre.regexp ("^"^s^"$") in
       (function
          | Ocsigen_extensions.Req_found (_, r) ->
-             Lwt.return (Ocsigen_extensions.Ext_found r)
+             Lwt.return (Ocsigen_extensions.Ext_found
+                           (fun () -> Lwt.return r))
          | Ocsigen_extensions.Req_not_found (err, ri) ->
              if Netstring_pcre.string_match r (string_of_int err) 0 <> None then
                Lwt.return (Ext_sub_result ext)
