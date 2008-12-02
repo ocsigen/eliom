@@ -130,6 +130,7 @@ let gen ~do_not_serve ~usermode dir = function
 
         (function
            | LocalFiles.Failed_403 -> return (Ext_next 403)
+           | NoSuchUser
            | LocalFiles.Failed_404 -> return (Ext_next err)
            | Not_concerned -> return (Ext_next err)
            | e -> fail e

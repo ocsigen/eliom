@@ -861,6 +861,8 @@ let get_hostname req =
 (*****************************************************************************)
 (* user directories *)
 
+exception NoSuchUser
+
 type ud_string = Nodir of string | Withdir of string * string * string
 
 let user_dir_regexp = Netstring_pcre.regexp "(.*)\\$u\\(([^\\)]*)\\)(.*)"
@@ -880,10 +882,15 @@ let replace_user_dir regexp dest pathstring =
   | Nodir dest ->
       Netstring_pcre.global_replace regexp dest pathstring
   | Withdir (s1, u, s2) ->
-      let s1 = Netstring_pcre.global_replace regexp s1 pathstring in
-      let u = Netstring_pcre.global_replace regexp u pathstring in
-      let s2 = Netstring_pcre.global_replace regexp s2 pathstring in
-      let userdir = (Unix.getpwnam u).Unix.pw_dir in
-      s1^userdir^s2
+      try
+        let s1 = Netstring_pcre.global_replace regexp s1 pathstring in
+        let u = Netstring_pcre.global_replace regexp u pathstring in
+        let s2 = Netstring_pcre.global_replace regexp s2 pathstring in
+        let userdir = (Unix.getpwnam u).Unix.pw_dir in
+        Ocsigen_messages.debug (fun () -> "User " ^ u);
+        s1^userdir^s2
+      with Not_found ->
+        Ocsigen_messages.debug (fun () -> "No such user " ^ u);
+        raise NoSuchUser
 
 

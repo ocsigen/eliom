@@ -419,6 +419,10 @@ val ri_of_url : string -> request_info -> request_info
 
 (** User directories *)
 
+(** Exception raised when an non-existing user is found *)
+
+exception NoSuchUser
+
 (** The type for string that may contain a $u(...) *)
 type ud_string
 

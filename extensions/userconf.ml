@@ -117,6 +117,7 @@ let gen hostpattern sitepath (regexp, conf, url, prefix, localpath) req_state =
                  )
               )
           with
+          | Ocsigen_extensions.NoSuchUser
           | NoConfFile
           | Unix.Unix_error (Unix.EACCES,_,_)
           | Unix.Unix_error (Unix.ENOENT, _, _) ->

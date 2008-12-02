@@ -174,7 +174,7 @@ let find_cgi_page request reg sub_path =
          path_info= string_conform0 path_info}
       in
       find_file (dr^sc, reg, dr)
-    with Not_found -> raise Failed_404 (* user not found *)
+    with Ocsigen_extensions.NoSuchUser -> raise Failed_404
 
 
 
