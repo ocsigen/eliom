@@ -280,7 +280,7 @@ type answer =
         (** Same as [Ext_found] but may modify the request. *)
   | Ext_found_continue_with' of (Ocsigen_http_frame.result * request)
         (** Same as [Ext_found_continue_with] but does not allow to delay
-            the computation of the page. You probably should not use it,
+            the computation of the page. You should probably not use it,
             but for output filters.
         *)
 
