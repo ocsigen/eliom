@@ -550,8 +550,8 @@ val get_config : unit -> Simplexmlparser.xml list
 (** returns the root of the site. *)
 val get_site_dir : sp:server_params -> url_path
 
-(** returns the charset for this site (from the configuration file) *)
-val get_config_file_charset : sp:server_params -> string
+(** returns the default charset for this site *)
+val get_config_default_charset : sp:server_params -> string
 
 
 

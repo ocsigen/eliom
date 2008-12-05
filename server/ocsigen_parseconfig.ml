@@ -404,7 +404,7 @@ let parse_server isreloading c =
             match charset, Ocsigen_config.get_default_charset () with
               | Some charset, _
               | None, Some charset -> charset
-              | None, None -> "utf-8"
+              | None, None -> ""
           in
           let defaultdefaulthostname = default_hostname in
           let defaulthostname = match defaulthostname with
@@ -450,10 +450,9 @@ let parse_server isreloading c =
             Ocsigen_extensions.default_hostname = defaulthostname;
             default_httpport = defaulthttpport;
             default_httpsport = defaulthttpsport;
-            mime_assoc = Mime.default_mime_assoc ();
-            default_mime_type = Mime.default_mime_type ();
-            charset_assoc = Ocsigen_extensions.empty_charset_assoc;
-            default_charset = charset;
+            mime_assoc = Ocsigen_charset_mime.default_mime_assoc ();
+            charset_assoc = Ocsigen_charset_mime.empty_charset_assoc
+              ~default:charset ();
             default_directory_index = ["index.html"];
             list_directory_content = false;
             follow_symlinks = Ocsigen_extensions.FollowSymlinksIfOwnerMatch;

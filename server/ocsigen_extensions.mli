@@ -59,26 +59,6 @@ type virtual_hosts = ((virtual_host_part list) * int option) list
 
 
 (*****************************************************************************)
-(** Handling of charset *)
-
-type charset = string
-
-(** Association between extensions and charset *)
-type charset_assoc
-
-val empty_charset_assoc: charset_assoc
-
-val find_charset:
-  ?default:charset -> charset_assoc:charset_assoc -> extension:string -> charset
-
-val find_charset_file:
-  ?default:charset -> charset_assoc:charset_assoc -> filename:string -> charset
-
-val update_charset:
-  charset_assoc:charset_assoc -> extension:string -> charset:charset -> charset_assoc
-
-
-(*****************************************************************************)
 
 (** Configuration options, passed to (and modified by) extensions *)
 type config_info = {
@@ -86,11 +66,9 @@ type config_info = {
   default_httpport: int;
   default_httpsport: int;
 
-  mime_assoc: Mime.mime_assoc;
-  default_mime_type: Mime.mime_type;
+  mime_assoc: Ocsigen_charset_mime.mime_assoc;
 
-  charset_assoc : charset_assoc;
-  default_charset : charset;
+  charset_assoc : Ocsigen_charset_mime.charset_assoc;
 
   (** Default name to use as index file when a directory is requested.
       Use [None] if no index should be tried. The various indexes

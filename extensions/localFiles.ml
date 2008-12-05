@@ -192,8 +192,10 @@ let content ~request ~file =
             (dirname, request.request_info.ri_full_path)
       | RFile filename ->
           Ocsigen_senders.File_content.result_of_content
-            ~options:(request.request_config.mime_assoc,
-                      request.request_config.default_mime_type)
-            filename
+            (filename,
+             request.request_config.charset_assoc,
+             request.request_config.mime_assoc
+            )
+
   with
     | Unix.Unix_error (Unix.EACCES,_,_) -> raise Failed_403

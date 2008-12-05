@@ -103,8 +103,9 @@ module Xhtmlreg_(Xhtml_content : Ocsigen_http_frame.HTTP_CONTENT
              Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-                            | None -> Some (get_config_file_charset sp)
-                            | _ -> charset)
+                            | None -> Some (get_config_default_charset sp)
+                            | _ -> charset
+                         )
          })
 
 end
@@ -1578,7 +1579,7 @@ module SubXhtml = functor(T : sig type content end) ->
                 res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
                 res_code= code_of_code_option code;
                 res_charset= (match charset with
-                | None -> Some (get_config_file_charset sp)
+                | None -> Some (get_config_default_charset sp)
                 | _ -> charset);
               })
 
@@ -1620,7 +1621,7 @@ module Textreg_ = struct
             res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-            | None -> Some (get_config_file_charset sp)
+            | None ->  Some (get_config_default_charset sp)
             | _ -> charset);
           })
 
@@ -1647,7 +1648,7 @@ module CssTextreg_ = struct
             res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-            | None -> Some (get_config_file_charset sp)
+            | None -> Some (get_config_default_charset sp)
             | _ -> charset);
           })
 
@@ -1675,7 +1676,7 @@ module HtmlTextreg_ = struct
             res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-            | None -> Some (get_config_file_charset sp)
+            | None -> Some (get_config_default_charset sp)
             | _ -> charset);
           })
 
@@ -2051,7 +2052,10 @@ module Filesreg_ = struct
                Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
              res_code = code_of_code_option code;
              res_charset = (match charset with
-                              | None -> (* XXXBY check *) Some (get_config_file_charset sp)
+                              | None ->
+                                  Some (Ocsigen_charset_mime.find_charset_file
+                                          ~filename ~charset_assoc:
+                                          (get_config_info sp).charset_assoc)
                               | _ -> charset);
          })
 
@@ -2081,7 +2085,7 @@ module Streamlistreg_ = struct
             res_cookies= Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-            | None -> Some (get_config_file_charset sp)
+            | None ->  Some (get_config_default_charset sp)
             | _ -> charset);
           })
 

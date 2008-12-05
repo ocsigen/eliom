@@ -175,7 +175,6 @@ let make_naservice
                       Eliom_common.Eliom_Link_too_old ::
                       ri.Ocsigen_extensions.request_info.Ocsigen_extensions.ri_extension_info
             }}
-            si.Eliom_common.si_config_file_charset
             si.Eliom_common.si_previous_extension_error
           >>=
             (fun (ri', si') ->
@@ -200,7 +199,6 @@ let make_naservice
                         ri.request_info.ri_extension_info
                 }
            }
-            si.Eliom_common.si_config_file_charset
             si.Eliom_common.si_previous_extension_error
             >>=
           (fun (ri', si') ->

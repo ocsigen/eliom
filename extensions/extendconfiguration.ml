@@ -1,6 +1,7 @@
 open Lwt
 open Ocsigen_extensions
 open Simplexmlparser
+open Ocsigen_charset_mime
 
 
 let bad_config s = raise (Error_in_config_file s)
@@ -53,7 +54,7 @@ let update_config usermode = function
       let rec aux charset_assoc = function
         | [] -> charset_assoc
         | Element ("extension", ["ext", extension; "value", charset], []) :: q->
-            aux (update_charset ~charset_assoc ~extension ~charset) q
+            aux (update_charset_assoc ~charset_assoc ~extension ~charset) q
         | _ :: q -> bad_config "subtags must be of the form \
                       <extension ext=\"...\" value=\"...\" /> \
                       in option charset"
@@ -62,7 +63,8 @@ let update_config usermode = function
         (fun config -> 
            let config = match attrs with
              | ["default", s] ->
-                 { config with default_charset = s }
+                 { config with charset_assoc =
+                     set_default_charset s config.charset_assoc }
              | [] -> config
              | _ -> bad_config "Only attribute \"default\" is permitted \
                            for option \"charset\""
@@ -74,7 +76,7 @@ let update_config usermode = function
       let rec aux mime_assoc = function
         | [] -> mime_assoc
         | Element ("extension", ["ext", extension; "value", mime], []) :: q->
-            aux (Mime.update_mime ~mime_assoc ~extension ~mime) q
+            aux (update_mime_assoc ~mime_assoc ~extension ~mime) q
         | _ :: q -> bad_config "subtags must be of the form \
                       <extension ext=\"...\" value=\"...\" /> \
                       in option mime"
@@ -83,7 +85,8 @@ let update_config usermode = function
         (fun config -> 
            let config = match attrs with
              | ["default", s] ->
-                 { config with default_mime_type = s }
+                 { config with mime_assoc =
+                     set_default_mime s config.mime_assoc }
              | [] -> config
              | _ -> bad_config "Only attribute \"default\" is permitted \
                            for option \"contenttype\""

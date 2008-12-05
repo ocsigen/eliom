@@ -127,7 +127,6 @@ type sess_info =
 
      si_nonatt_info: na_key;
      si_state_info: (att_key * att_key);
-     si_config_file_charset: string;
      si_previous_extension_error: int;
      (* HTTP error code sent by previous extension (default: 404) *)
    }
@@ -458,7 +457,7 @@ let getcookies cookiename cookies =
     Ocsigen_http_frame.Cookievalues.empty
 
 
-let change_request_info ri charset previous_extension_err =
+let change_request_info ri previous_extension_err =
   let ri_whole = ri
   and ri = ri.Ocsigen_extensions.request_info in
   Lazy.force ri.Ocsigen_extensions.ri_post_params >>=
@@ -602,7 +601,6 @@ let change_request_info ri charset previous_extension_err =
         si_other_get_params= other_get_params;
         si_all_get_params= get_params0;
         si_all_post_params= post_params0;
-        si_config_file_charset= charset;
         si_previous_extension_error= previous_extension_err}
     in
     Lwt.return

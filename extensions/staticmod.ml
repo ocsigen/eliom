@@ -113,17 +113,13 @@ let gen ~do_not_serve ~usermode dir = function
              ~pathstring:(Ocsigen_lib.string_of_url_path ~encode:false
                             ri.request_info.ri_sub_path) ~do_not_serve in
            LocalFiles.content ri page
-           >>= fun r ->
-             Lwt.return
-               {r with Ocsigen_http_frame.res_charset =
-                   Some ri.request_config.default_charset }
-             >>= fun answer ->
-               let answer' =
-                 if status_filter = false then
-                   answer
-                 else
-                   (* The page is an error handler, we propagate
-                      the original error code *)
+           >>= fun answer ->
+           let answer' =
+             if status_filter = false then
+               answer
+             else
+               (* The page is an error handler, we propagate
+                  the original error code *)
                {answer with Ocsigen_http_frame.res_code = err }
            in Lwt.return (Ext_found (fun () -> Lwt.return answer'))
         )

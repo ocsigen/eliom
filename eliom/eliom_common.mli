@@ -106,7 +106,6 @@ type sess_info = {
        string Ocsigen_http_frame.Cookievalues.t) option;
   si_nonatt_info : na_key;
   si_state_info: (att_key * att_key);
-  si_config_file_charset : string;
   si_previous_extension_error : int;
 }
 module SessionCookies :
@@ -278,7 +277,7 @@ val getcookies :
   string -> 'a Ocsigen_http_frame.Cookievalues.t -> 'a Ocsigen_http_frame.Cookievalues.t
 val change_request_info :
   Ocsigen_extensions.request ->
-  string -> int -> (Ocsigen_extensions.request * sess_info) Lwt.t
+  int -> (Ocsigen_extensions.request * sess_info) Lwt.t
 type ('a, 'b) foundornot = Found of 'a | Notfound of 'b
 val make_full_cookie_name : string -> string -> string
 val make_fullsessname : sp:server_params -> string option -> string

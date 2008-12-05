@@ -222,10 +222,12 @@ module Empty_content =
 (** this module instanciate the HTTP_CONTENT signature for files *)
 module File_content =
   struct
-    type t = string (* nom du fichier *)
+    type t =
+        string (* nom du fichier *) *
+        Ocsigen_charset_mime.charset_assoc *
+        Ocsigen_charset_mime.mime_assoc
 
-    (* current association list for mime types, and default mime type *)
-    type options = Mime.mime_assoc * Mime.mime_type
+    type options = unit
 
     let read_file ?buffer_size fd =
       let buffer_size = match buffer_size with
@@ -249,15 +251,11 @@ module File_content =
       Some (Printf.sprintf "%Lx-%x-%f" st.Unix.LargeFile.st_size
               st.Unix.LargeFile.st_ino st.Unix.LargeFile.st_mtime)
 
-    let get_etag f =
+    let get_etag (f, _, _) =
       let st = Unix.LargeFile.stat f in
       get_etag_aux st
 
-    let result_of_content ?options c =
-      let mime_assoc, default_mime = match options with
-        | None -> Mime.default_mime_assoc (), Mime.default_mime_type ()
-        | Some mime -> mime
-      in
+    let result_of_content ?options (c, charset_assoc, mime_assoc) =
       (* open the file *)
       try
         let fdu = Unix.openfile c [Unix.O_RDONLY;Unix.O_NONBLOCK] 0o666 in
@@ -270,8 +268,11 @@ module File_content =
           {default_result with
            res_content_length = Some st.Unix.LargeFile.st_size;
            res_content_type =
-              Some (Mime.find_mime_type_file ~default:default_mime
+              Some (Ocsigen_charset_mime.find_mime_type_file
                       ~mime_assoc ~filename:c);
+           res_charset =
+              Some (Ocsigen_charset_mime.find_charset_file
+                      ~charset_assoc ~filename:c);
            res_lastmodified = Some st.Unix.LargeFile.st_mtime;
            res_etag = etag;
            res_stream =

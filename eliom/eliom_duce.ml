@@ -109,7 +109,7 @@ module Xhtmlreg_ = struct
             Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
             res_code= code_of_code_option code;
             res_charset= (match charset with
-            | None -> Some (Eliom_sessions.get_config_file_charset sp)
+            | None ->  Some (Eliom_sessions.get_config_default_charset sp)
             | _ -> charset)
           })
 
@@ -361,8 +361,7 @@ module SubXhtml =
                 res_cookies=
                 Eliom_services.cookie_table_of_eliom_cookies ~sp cookies;
                 res_code= code_of_code_option code;
-                res_charset= Some "utf-8"
-                   (* For Eliom_duce, we impose utf8 *)
+                res_charset= Some "utf-8" (* For Eliom_duce, we impose utf8 *);
                })
 
     end

@@ -21,8 +21,8 @@
 
 
 module File_content : Ocsigen_http_frame.HTTP_CONTENT
-  with type t = string
-  and type options = Mime.mime_assoc * Mime.mime_type
+  with  type t =
+   string * Ocsigen_charset_mime.charset_assoc * Ocsigen_charset_mime.mime_assoc
 
 module Xhtml_content :
   Ocsigen_http_frame.HTTP_CONTENT with type t = [ `Html ] XHTML.M.elt

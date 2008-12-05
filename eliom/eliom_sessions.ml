@@ -101,8 +101,9 @@ let get_session_name ~sp =
   sp.Eliom_common.sp_fullsessname
 let get_exn ~sp =
   sp.Eliom_common.sp_request.request_info.ri_extension_info
-let get_config_file_charset ~sp =
-  sp.Eliom_common.sp_si.Eliom_common.si_config_file_charset
+let get_config_default_charset ~sp =
+  Ocsigen_charset_mime.default_charset
+    sp.Eliom_common.sp_request.request_config.charset_assoc
 let get_cookies ~sp =
   Lazy.force sp.Eliom_common.sp_request.request_info.ri_cookies
 let get_data_cookies ~sp =

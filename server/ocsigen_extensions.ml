@@ -73,27 +73,6 @@ let client_id = Ocsigen_http_com.connection_id
 let client_connection x = x
 let client_of_connection x = x
 
-(* Handling of charset *)
-
-type charset = string
-
-module MapString = Map.Make(String)
-
-type charset_assoc = charset MapString.t
-
-let empty_charset_assoc = MapString.empty
-
-let find_charset ?(default="") ~charset_assoc ~extension =
-  try MapString.find extension charset_assoc
-  with Not_found -> default
-
-
-let find_charset_file ?(default="") ~charset_assoc ~filename =
-  find_charset
-    ~default ~charset_assoc ~extension:(Ocsigen_lib.extension filename)
-
-let update_charset ~charset_assoc ~extension ~charset =
-  MapString.add extension charset charset_assoc
 
 (* Server configuration *)
 
@@ -103,11 +82,9 @@ type config_info = {
   default_httpport: int;
   default_httpsport: int;
 
-  mime_assoc: Mime.mime_assoc;
-  default_mime_type: Mime.mime_type;
+  mime_assoc: Ocsigen_charset_mime.mime_assoc;
 
-  charset_assoc : charset_assoc;
-  default_charset : charset;
+  charset_assoc : Ocsigen_charset_mime.charset_assoc;
 
   (** Default name to use as index file when a directory is requested.
       Use [None] if no index should be tried. The various indexes
