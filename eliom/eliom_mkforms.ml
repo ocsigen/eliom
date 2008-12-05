@@ -1104,7 +1104,7 @@ module MakeForms = functor
           content
           getparams =
         let href = 
-          make_full_string_uri 
+          make_string_uri 
             ?https ~service ~sp ?hostname ?port ~fragment getparams
         in
         Pages.make_a ?a ~href content
