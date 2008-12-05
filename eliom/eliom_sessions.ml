@@ -81,8 +81,10 @@ let get_current_sub_path_string ~sp =
   sp.Eliom_common.sp_request.request_info.ri_sub_path_string
 let get_header_hostname ~sp =
   sp.Eliom_common.sp_request.request_info.ri_host
-let get_hostname ~sp =
+let get_default_hostname ~sp =
   sp.Eliom_common.sp_request.request_config.default_hostname
+let get_hostname ~sp =
+  Ocsigen_extensions.get_hostname sp.Eliom_common.sp_request
 let get_default_port ~sp =
   sp.Eliom_common.sp_request.request_config.default_httpport
 let get_default_sslport ~sp =

@@ -69,9 +69,14 @@ module type XHTMLFORMSSIG = sig
 (** Creates the string corresponding to the
     full (absolute) URL of a service applied to its GET parameters.
 
-    Hostname and port are determined from attribute of <host> tag in
-    configuration file, but you can choose the one you want by setting 
+    Default hostname is determined from the [Host] http header of the request
+    (or the attribute of <host> tag in
+    configuration file if the option [<usedefaulthostname/>] is set).
+    Default port is the current port (or another port of the server if
+    you are switching from or to https).
+    But you can choose the hostname or port you want by setting 
     the optional [?hostname] and [?port] parameters here.
+
  *)
 
     val make_full_uri :
@@ -152,13 +157,16 @@ module type XHTMLFORMSSIG = sig
     to make easier the use with reverse proxies.
     But in case of protocol change (if you want to switch to https using
     [~https:true] for example, or if the service imposes https),
-    absolute links will be generated. In that case,
-    hostname and port are determined from attribute of [<host>] tag in
-    configuration file, but you can choose other ones by setting 
+    absolute links will be generated. 
+    In that case,
+    default hostname is determined from the [Host] http header of the request
+    (or the attribute of <host> tag in
+    configuration file if the option [<usedefaulthostname/>] is set).
+    Default port is the current port (or another port of the server if
+    you are switching from or to https).
+    But you can choose the hostname or port you want by setting 
     the optional [?hostname] and [?port] parameters here.
     These options have no effect for relative links.
-    Warning: it may be a security problem to use the hostname sent by the client
-    here.
 
  *)
 

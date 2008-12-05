@@ -105,7 +105,15 @@ val get_current_sub_path : sp:server_params -> url_path
  *)
 val get_header_hostname : sp:server_params -> string option
 
-(** returns the hostname declared in the config file ([<host defaulthostname="...">]).
+(** returns the hostname declared in the config file 
+    ([<host defaulthostname="...">]).
+ *)
+val get_default_hostname : sp:server_params -> string
+
+(** returns the hostname used for absolute links.
+    It is either the [Host] header sent by the browser or the default hostname
+    set in the configuration file, depending on server configuration
+    ([<usedefaulthostname/>] option).
  *)
 val get_hostname : sp:server_params -> string
 

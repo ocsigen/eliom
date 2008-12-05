@@ -404,6 +404,10 @@ val extension_void_fun_site : parse_config_user
     get the configuration tree between <dynlink></dynlink>*)
 val get_config : unit -> Simplexmlparser.xml list
 
+(** Returns the hostname to be used for absolute links or redirections.
+    It is either the Host header or the hostname set in 
+    the configuration file. *)
+val get_hostname : request -> string
 
 
 (** Parsing URLs.

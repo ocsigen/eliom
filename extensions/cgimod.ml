@@ -478,7 +478,7 @@ let gen reg = function
          recupere_cgi
            (ri.request_info.ri_method = Http_header.HEAD)
            re doc_root filename ri.request_info
-           ri.request_config.default_hostname
+           (Ocsigen_extensions.get_hostname ri)
          >>= fun (frame, finalizer) ->
          let header = frame.Ocsigen_http_frame.header in
          let content = get_content frame in

@@ -21,8 +21,6 @@
 
 (******************************************************************)
 (** Config file parsing *)
-(* 2006 07 : Add multiple servers -- Nataliya *)
-(* 2006 12 : Changes for extensions -- Vincent *)
 
 open Simplexmlparser
 open Ocsigen_config
@@ -282,6 +280,9 @@ let parse_server isreloading c =
           parse_server_aux ll
       | (Element ("debugmode", [], []))::ll ->
           set_debugmode true;
+          parse_server_aux ll
+      | (Element ("usedefaulthostname", [], []))::ll ->
+          set_usedefaulthostname true;
           parse_server_aux ll
       | (Element ("respectpipeline", [], []))::ll ->
           set_respect_pipeline ();

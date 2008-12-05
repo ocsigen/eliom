@@ -3411,7 +3411,7 @@ let _ = Eliom_services.set_exn_handler
        configuration by default, but it is recommended to specify them
        in the configuration file. For example:
       </p>
-      <pre>&lt;host name="*.org" defaulthostname="www.mywebsite.org" defaulthttpport="8080" defaulthttpsport="4433"&gt; ... &lt;/host&gt;</pre>
+      <pre>&lt;host hostfilter="*.org" defaulthostname="www.mywebsite.org" defaulthttpport="8080" defaulthttpsport="4433"&gt; ... &lt;/host&gt;</pre>
 
       <h4>Secure sessions <strong>[New in 1.1.0]</strong></h4>
       <p>For security reasons, Eliom does not use the same cookies in

@@ -595,7 +595,8 @@ let service
                                    ~scheme:(if ri.ri_ssl
                                             then "https" 
                                             else "http")
-                                   ~host:request.request_config.default_hostname
+                                   ~host:(Ocsigen_extensions.get_hostname 
+                                            request)
                                    ?port:(if (port = 80 && not ri.ri_ssl) 
                                             || (ri.ri_ssl && port = 443)
                                           then None

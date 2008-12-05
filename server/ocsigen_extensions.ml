@@ -846,6 +846,19 @@ let get_config () = !dynlinkconfig
 
 
 (*****************************************************************************)
+(* Default hostname is either the Host header or the hostname set in 
+   the configuration file. *)
+let get_hostname req =
+  if Ocsigen_config.get_usedefaulthostname ()
+  then req.request_config.default_hostname
+  else match req.request_info.ri_host with
+    | None -> req.request_config.default_hostname
+    | Some host -> host
+
+
+
+
+(*****************************************************************************)
 (* user directories *)
 
 type ud_string = Nodir of string | Withdir of string * string * string
