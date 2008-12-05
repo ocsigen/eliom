@@ -404,7 +404,7 @@ let parse_server isreloading c =
             match charset, Ocsigen_config.get_default_charset () with
               | Some charset, _
               | None, Some charset -> charset
-              | None, None -> ""
+              | None, None -> "utf-8"
           in
           let defaultdefaulthostname = default_hostname in
           let defaulthostname = match defaulthostname with
