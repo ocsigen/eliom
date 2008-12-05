@@ -85,13 +85,7 @@ let find_redirection (Regexp (regexp, dest, temp)) https host port
                 | Some g -> full_path_string ^ "?" ^ g
             in
             let path =
-              if (not https) && port = 80
-              then "http://"^host^"/"^path
-              else if https && port = 443
-              then "https://"^host^"/"^path
-              else if https
-              then "https://"^host^":"^(string_of_int port)^"/"^path
-              else "http://"^host^":"^(string_of_int port)^"/"^path
+              Ocsigen_lib.make_absolute_url https host port ("/"^path)
             in
             (match Netstring_pcre.string_match regexp path 0 with
                | None -> raise Not_concerned

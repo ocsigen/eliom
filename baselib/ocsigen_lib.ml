@@ -579,6 +579,21 @@ let parse_url =
 
 
 (************************************************************************)
+(* absolute urls *)
+
+let make_absolute_url ~https ~host ~port uri =
+  (if https
+   then "https://"
+   else "http://"
+  )^
+    host^
+    (if (port = 80 && not https) || (https && port = 443)
+     then ""
+     else ":"^string_of_int port)^
+    uri
+
+
+(************************************************************************)
 
 let basename f =
   let n = String.length f in

@@ -83,4 +83,7 @@ val parse_url : string ->
     string * Neturl.url * string list * string option *
     (string * string) list Lazy.t
 
+val make_absolute_url : 
+  https:bool -> host:string -> port:int -> string -> string
+
 module StringSet : Set.S with type elt = string

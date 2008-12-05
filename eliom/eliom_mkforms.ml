@@ -1022,15 +1022,7 @@ module MakeForms = functor
                 then Eliom_sessions.get_default_sslport ~sp
                 else Eliom_sessions.get_default_port ~sp
         in
-        (if https
-         then "https://"
-         else "http://"
-        )^
-          host^
-          (if (port = 80 && not https) || (https && port = 443)
-           then ""
-           else ":"^string_of_int port)^
-          "/"
+        Ocsigen_lib.make_absolute_url https host port "/"
 
       let make_full_string_uri
           ?https
