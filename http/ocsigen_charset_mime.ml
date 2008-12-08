@@ -32,7 +32,8 @@ let find_charset ~charset_assoc ~extension =
   with Not_found -> charset_assoc.charset_default
 
 let find_charset_file ~charset_assoc ~filename =
-  find_charset ~charset_assoc ~extension:(Ocsigen_lib.extension filename)
+  try find_charset ~charset_assoc ~extension:(Ocsigen_lib.extension filename)
+  with Not_found -> charset_assoc.charset_default
 
 
 
@@ -108,7 +109,8 @@ let find_mime_type ~mime_assoc ~extension =
 
 
 let find_mime_type_file ~mime_assoc ~filename =
-  find_mime_type ~mime_assoc ~extension:(Ocsigen_lib.extension filename)
+  try find_mime_type ~mime_assoc ~extension:(Ocsigen_lib.extension filename)
+  with Not_found -> mime_assoc.mime_default
 
 let update_mime_assoc ~mime_assoc ~extension ~mime =
   { mime_assoc with mime_assoc =

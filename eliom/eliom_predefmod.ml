@@ -2056,8 +2056,10 @@ module Filesreg_ = struct
                                   Some (Ocsigen_charset_mime.find_charset_file
                                           ~filename ~charset_assoc:
                                           (get_config_info sp).charset_assoc)
+
                               | _ -> charset);
          })
+
 
 
 end
