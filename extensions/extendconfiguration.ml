@@ -145,7 +145,7 @@ let parse_config usermode : parse_config_aux = fun _ _ _ xml ->
   update_config usermode xml
 
 
-let _ = register_extension
+let () = register_named_extension "extendconfiguration"
   ~fun_site:(fun _ -> parse_config false)
   ~user_fun_site:(fun path _ -> parse_config true)
   ()

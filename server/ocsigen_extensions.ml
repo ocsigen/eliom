@@ -618,7 +618,17 @@ let register_extension, parse_config_item, parse_user_site_item, get_beg_init, g
    (fun () -> !fun_exn)
   )
 
-
+let register_named_extension name =
+  fun ~fun_site
+    ?user_fun_site
+    ?begin_init
+    ?end_init
+    ?exn_handler
+    ?respect_pipeline
+    () ->
+  Ocsigen_loader.set_module_init_function name
+       (register_extension ~fun_site ?user_fun_site ?begin_init ?end_init
+            ?exn_handler ?respect_pipeline)
 
 (*****************************************************************************)
 let start_initialisation, during_initialisation,

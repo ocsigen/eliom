@@ -192,7 +192,7 @@ let user_site_creator (path : Ocsigen_extensions.userconf_info) = site_creator
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = register_extension
+let () = register_named_extension "extensionname"
   ~fun_site:site_creator
 
   (* If your extension is safe for users and if you want to allow

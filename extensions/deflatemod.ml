@@ -362,6 +362,6 @@ let parse_config path _ _ = function
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = Ocsigen_extensions.register_extension
+let () = Ocsigen_extensions.register_named_extension "deflatemod"
   ~fun_site:(fun _ -> parse_config)
   ()

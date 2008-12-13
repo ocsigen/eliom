@@ -31,6 +31,13 @@ let isloaded, addloaded =
   ((fun s -> Ocsigen_lib.StringSet.mem s !set),
    (fun s -> set := Ocsigen_lib.StringSet.add s !set))
 
+module M = Map.Make(String)
+
+let init_functions = ref M.empty
+
+let get_init_on_load, set_init_on_load =
+  let init_on_load = ref false in
+    ((fun () -> !init_on_load), (fun b -> init_on_load := b))
 
 let loadfile pre post force file =
   try
@@ -68,6 +75,43 @@ let loadfiles pre post force modules =
     | [m] -> loadfile pre post force m
     | m::q -> loadfile id id false m; aux q
   in aux modules
+
+let set_module_init_function name f =
+  init_functions := M.add name f !init_functions;
+  (* print_endline ("Added init_function for " ^ name); *)
+  (* print_endline ("get_init_on_load: " ^ string_of_bool (get_init_on_load ())); *)
+  if get_init_on_load () then f ()
+
+let init_module pre post force name =
+  let f =
+    try
+      M.find name !init_functions
+    with Not_found as e ->
+      raise (Dynlink_error ("named module " ^ name, e))
+  in try
+    if force then begin
+      pre ();
+      Ocsigen_messages.debug (fun () -> "Initializing "^name^" (will be initialized every time)");
+      begin try
+        f (); post ()
+      with e ->
+        post (); raise e
+      end
+    end
+    else if not (isloaded name) then begin
+      pre ();
+      Ocsigen_messages.debug (fun () -> "Initializing module "^name);
+      begin try
+        f (); post ()
+      with e ->
+        post (); raise e
+      end;
+      addloaded name;
+    end
+    else
+      Ocsigen_messages.debug (fun () -> "Module "^name^" already initialized.")
+  with
+    | e -> raise (Dynlink_error (name, e))
 
 
 (************************************************************************)

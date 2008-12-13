@@ -33,6 +33,11 @@
 exception Dynlink_error of string * exn
 exception Findlib_error of string * exn
 
+val set_init_on_load: bool -> unit
+  (** If set to [true], the module initialization functions passed to
+      [set_module_init_function] will be executed directly. Otherwise,
+      they will have to be invoked using [init_module] at some later stage. *)
+
 val loadfile: (unit -> unit) -> (unit -> unit) -> bool -> string -> unit
   (** [loadfile pre post force file] (dynamically) loads [file]. If
       [force] is [false], remember [file] so that it isn't loaded
@@ -45,6 +50,17 @@ val loadfiles: (unit -> unit) -> (unit -> unit) -> bool -> string list -> unit
       [loadfile (fun () -> ()) (fun () -> ()) false] for all the files
       but the last one, and [loadfile pre post force] for the last one
       (if any). *)
+
+val set_module_init_function : string -> (unit -> unit) -> unit
+  (** [set_module_init_function name f] registers the function [f], which will
+      be used to initialize the module when [init_module name] is called.  *)
+
+val init_module : (unit -> unit) -> (unit -> unit) -> bool -> string -> unit
+  (** [init_module pre post force name] runs the init function for the module
+      [name]. If [force] is [false], remember [name] so that the init function
+      isn't executed twice. If the function is executed, [pre] (resp. [post])
+      is called before (resp. after) the loading. [post] will be
+      called even if the loading fails. *)
 
 val get_ocamlpath: unit -> string list
   (** Returns the current Findlib library search path. *)

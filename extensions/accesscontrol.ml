@@ -286,7 +286,7 @@ let parse_config path _ parse_fun = function
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = register_extension
+let () = register_named_extension "accesscontrol"
   ~fun_site:(fun _ -> parse_config)
   ~user_fun_site:(fun _ _ -> parse_config)
   ()

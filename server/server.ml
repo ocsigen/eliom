@@ -937,7 +937,11 @@ let reload () =
 
 
 
-let _ = try
+let start_server () = try
+
+  (* initialization functions for modules (Ocsigen extensions or application
+     code) loaded from now on will be executed directly. *)
+  Ocsigen_loader.set_init_on_load true;
 
   let config_servers =
 

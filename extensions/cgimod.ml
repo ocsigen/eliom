@@ -623,6 +623,6 @@ let parse_config path _ _ = function
 
 (*****************************************************************************)
 (** Registration of the extension *)
-let _ = register_extension
+let () = register_named_extension "cgimod"
   ~fun_site:(fun _ -> parse_config)
   ()

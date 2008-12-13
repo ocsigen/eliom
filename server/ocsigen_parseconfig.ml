@@ -299,24 +299,36 @@ let parse_server isreloading c =
           let modules = match atts with
             | [] ->
                 raise
-                  (Config_file_error "missing module or findlib-package attribute in <extension>")
-            | [("module", s)] -> [s]
-            | [("findlib-package", s)] -> Ocsigen_loader.findfiles s
+                  (Config_file_error "missing module, name or findlib-package attribute in <extension>")
+            | [("name", s)] -> `Name s
+            | [("module", s)] -> `Files [s]
+            | [("findlib-package", s)] -> `Files (Ocsigen_loader.findfiles s)
             | _ ->
                 raise (Config_file_error "Wrong attribute for <extension>")
-          in
-          Ocsigen_loader.loadfiles (preloadfile l) postloadfile false modules;
+          in begin
+            match modules with
+                `Files modules ->
+                  Ocsigen_loader.loadfiles (preloadfile l) postloadfile false modules;
+              | `Name name ->
+                  Ocsigen_loader.init_module (preloadfile l) postloadfile false name
+          end;
           parse_server_aux ll
       | (Element ("library", atts, l))::ll ->
           let modules = match atts with
             | [] ->
                 raise
                   (Config_file_error "missing module or findlib-package attribute in <library>")
-            | [("module", s)] -> [s]
-            | [("findlib-package", s)] -> Ocsigen_loader.findfiles s
+            | [("name", s)] -> `Name s
+            | [("module", s)] -> `Files [s]
+            | [("findlib-package", s)] -> `Files (Ocsigen_loader.findfiles s)
             | _ -> raise (Config_file_error "Wrong attribute for <library>")
-          in
-          Ocsigen_loader.loadfiles (preloadfile l) postloadfile true modules;
+          in begin
+            match modules with
+                `Files modules ->
+                  Ocsigen_loader.loadfiles (preloadfile l) postloadfile true modules;
+              | `Name name ->
+                  Ocsigen_loader.init_module (preloadfile l) postloadfile true name
+          end;
           parse_server_aux ll
       | (Element ("host", atts, l))::ll ->
           let rec parse_attrs ((name, 

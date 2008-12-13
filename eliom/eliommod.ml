@@ -297,7 +297,9 @@ let handle_init_exn = function
 (** Module loading *)
 let config = ref []
 
-let load_eliom_module sitedata cmo content =
+type module_to_load = Files of string list | Name of string
+
+let load_eliom_module sitedata cmo_or_name content =
   let preload () =
     config := content;
     Eliom_common.begin_load_eliom_module ()
@@ -307,7 +309,9 @@ let load_eliom_module sitedata cmo content =
     config := []
   in
   try
-    Ocsigen_loader.loadfiles preload postload true cmo
+    match cmo_or_name with
+        Files cmo -> Ocsigen_loader.loadfiles preload postload true cmo
+      | Name name -> Ocsigen_loader.init_module preload postload true name
   with Ocsigen_loader.Dynlink_error (n, e) ->
     raise (Eliom_common.Eliom_error_while_loading_site
              (Printf.sprintf "Eliom: while loading %s: %s"
@@ -339,9 +343,15 @@ let parse_config hostpattern site_dir =
   let firsteliomtag = ref true in
   let rec parse_module_attrs file = function
     | [] -> file
+    | ("name", s)::suite ->
+        (match file with
+           | None -> parse_module_attrs (Some (Name s)) suite
+           | _ ->
+               raise (Error_in_config_file
+                        ("Duplicate attribute module in <eliom>")))
     | ("module", s)::suite ->
         (match file with
-           | None -> parse_module_attrs (Some [s]) suite
+           | None -> parse_module_attrs (Some (Files [s])) suite
            | _ -> 
                raise (Error_in_config_file
                         ("Duplicate attribute module in <eliom>")))
@@ -350,7 +360,7 @@ let parse_config hostpattern site_dir =
           | None ->
               begin try
                 parse_module_attrs
-                  (Some (Ocsigen_loader.findfiles s)) suite
+                  (Some (Files (Ocsigen_loader.findfiles s))) suite
               with Ocsigen_loader.Findlib_error _ as e ->
                 raise (Error_in_config_file
                          (Printf.sprintf "Findlib error: %s"
@@ -367,7 +377,7 @@ let parse_config hostpattern site_dir =
         Eliommod_extensions.register_eliom_extension 
           default_module_action;
         (match parse_module_attrs None atts with
-          | Some file -> load_eliom_module sitedata file content
+          | Some file_or_name -> load_eliom_module sitedata file_or_name content
           | _ -> ());
         if Eliommod_extensions.get_eliom_extension ()
           != default_module_action
@@ -385,7 +395,7 @@ let parse_config hostpattern site_dir =
   Thus we can have one site in several cmo (with one session).
  *)
         (match parse_module_attrs None atts with
-          | Some file -> load_eliom_module sitedata file content
+          | Some file_or_name -> load_eliom_module sitedata file_or_name content
           | _ -> ());
         (* We must generate the page only if it is the first <eliom> tag 
            for that site: *)
@@ -404,13 +414,11 @@ let parse_config hostpattern site_dir =
 
 (*****************************************************************************)
 (** extension registration *)
-let _ = register_extension
-  ?fun_site:parse_config
-  ~end_init
-  ~exn_handler:handle_init_exn
-  ()
-
-let _ = Eliommod_gc.persistent_session_gc ()
-
-
+let () =
+  register_named_extension "eliom"
+    ?fun_site:parse_config
+    ~end_init
+    ~exn_handler:handle_init_exn
+    ();
+  Eliommod_gc.persistent_session_gc ()
 

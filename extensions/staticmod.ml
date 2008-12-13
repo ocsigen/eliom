@@ -231,7 +231,7 @@ let parse_config userconf : parse_config_aux = fun _ _ _ ->
 
 (*****************************************************************************)
 (** extension registration *)
-let _ = register_extension
+let () = register_named_extension "staticmod"
   ~fun_site:(fun _ -> parse_config None)
   ~user_fun_site:(fun path _ -> parse_config (Some path))
   ()

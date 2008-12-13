@@ -378,6 +378,20 @@ val register_extension :
   ?respect_pipeline:bool ->
   unit -> unit
 
+(** [register_named_extension] is analog to [register_extension], but instead of
+    registering the extension right away, it associates the given data to the
+    extension name, and will register the module later when the module is
+    initialized in [ocsigen.conf] using something like
+    [<extension name="eliom" />]. *)
+val register_named_extension : string ->
+  fun_site:parse_config ->
+  ?user_fun_site:parse_config_user ->
+  ?begin_init:(unit -> unit) ->
+  ?end_init:(unit -> unit) ->
+  ?exn_handler:(exn -> string) ->
+  ?respect_pipeline:bool ->
+  unit -> unit
+
 (** A predefined function to be passed to {!Ocsigen_extensions.register_extension}
     that defines no option.
  *)

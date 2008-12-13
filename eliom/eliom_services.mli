@@ -137,6 +137,23 @@ type ('get,'post,+'kind,+'tipo,+'getnames,+'postnames,+'registr) service
 
 (***** Static dir and actions do not depend on the type of pages ******)
 
+(** {2 Registration of named modules}
+
+This functionality allows to register module initialization functions for Eliom modules
+which will be executed when the corresponding module is initialized in [ocsigen.conf].
+
+*)
+
+val register_eliom_module : string -> (unit -> unit) -> unit
+(**
+  This function is used to specify the initialization function for Eliom modules
+  linked dynamic or statically into the server.
+  [register_eliom_module name f] registers the initialization function [f] for
+  module [name].  The [f] function will be invoked when the module is
+  initialized in [ocsigen.conf] using [<eliom name="name"> ... </eliom>], which
+  is equivalent to [<eliom module="name.cmo"> ... </eliom>] with the exception
+  that it does not load the module using [Dynlink].
+  *)
 
 (** {2 Definitions of services} *)
 
