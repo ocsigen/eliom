@@ -27,7 +27,7 @@ PP2 =
 
 OBJS = $(FILES:.ml=.cmo) ocsidbm $(OBJDBM)
 
-OBJSOPT = $(FILES:.ml=.cmx) ocsidbm.opt $(OBJDBM:.cma=.cmxs)
+OBJSOPT = $(FILES:.ml=.cmx) ocsidbm.opt $(OBJDBM:.cma=.cmxs) $(OBJDBM:.cma=.cmxa)
 
 
 byte: ocsipersist.mli $(OBJS)
@@ -45,6 +45,10 @@ opt: ocsipersist.mli $(OBJSOPT)
 ocsipersist-dbm.cma: ocsipersist.cmo
 	$(CAMLC) -a -o ocsipersist-dbm.cma ocsipersist.cmo
 	cp -f ocsipersist-dbm.cma ..
+
+ocsipersist-dbm.cmxa: ocsipersist.cmx
+	$(OCAMLOPT) -a -o ocsipersist-dbm.cmxa ocsipersist.cmx
+	cp -f ocsipersist-dbm.cmxa ..
 
 ocsipersist-dbm.cmxs: ocsipersist.cmx
 	$(CAMLOPT) -shared -linkall -o ocsipersist-dbm.cmxs ocsipersist.cmx

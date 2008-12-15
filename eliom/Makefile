@@ -89,7 +89,7 @@ byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) \
       eliom.cma $(DUCEMODBYTE)
 
 opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) \
-     eliom.cmxs $(DUCEMODOPT)
+     eliom.cmxa eliom.cmxs $(DUCEMODOPT)
 
 
 .SUFFIXES:
@@ -114,6 +114,8 @@ eliommod.cmx: eliommod.ml
 eliom.cma: $(FILES:.ml=.cmo)
 	$(CAMLC) -a -o eliom.cma $^
 
+eliom.cmxa: $(FILES:.ml=.cmx)
+	$(CAMLOPT) -a -o eliom.cmxa -linkall $^
 
 eliom.cmxs: $(FILES:.ml=.cmx)
 	$(CAMLOPT) -shared -linkall -o eliom.cmxs $^

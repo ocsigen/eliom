@@ -1,6 +1,7 @@
 (* Ocsigen
- * Copyright (C) 2005 Vincent Balat
- * Laboratoire PPS - CNRS Université Paris Diderot
+ * http://www.ocsigen.org
+ * Module ocsigen_server.ml
+ * Copyright (C) 2008 Mauricio Fernandez
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +18,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
-(** Parse the commandline and set the Ocsigen configuration accordingly. *)
-val parse_commandline : unit -> unit
+(** Ocsigen server launch *)
 
+(** Launch the Ocsigen server. This should be executed last in your program.
+    [start_server ~parse_cmdline ()] will parse the command line and set
+    Ocsigen's configuration accordingly if [parse_cmdline] is [true].
+    [parse_cmdline] defaults to [true]. *)
+val start_server : ?parse_cmdline:bool -> unit -> unit

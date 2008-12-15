@@ -10,7 +10,8 @@ SED_COMMAND_FOR_META += -e "s/_VERSION_/$(VERSION)/"
 SED_COMMAND_FOR_META += -e "s/_CAMLZIPNAME_/$(CAMLZIPNAME)/"
 
 ifeq "$(OCAMLDUCE)" "YES"
-DUCECMAO=eliom/eliom_duce.cma
+DUCECMA=eliom/eliom_duce.cma
+DUCECMO=eliom/eliom_duce.cma
 # eliom/ocsigenrss.cma
 DUCECMI=eliom/eliom_duce.cmi eliom/xhtmltypes_duce.cmi eliom/eliom_duce_tools.cmi
 # eliom/rss2.cmi eliom/ocsigenrss.cmi
@@ -20,7 +21,8 @@ DUCEDOC=$(DOCPREF)eliom/eliom_duce.mli $(DOCPREF)eliom/xhtmltypes_duce.ml $(DOCP
 CAMLDOC = $(OCAMLDUCEFIND) ocamldoc $(LIB)
 DUCEPACK=,ocamlduce
 else
-DUCECMAO=
+DUCECMA=
+DUCECMO=
 DUCECMI=
 DUCEEXAMPLES=
 DUCEDOC=
@@ -39,35 +41,37 @@ DATADIR = "error"
 endif
 
 ifeq "$(OCSIPERSISTSQLITE)" "YES"
-SQLITEINSTALL= extensions/ocsipersist-sqlite.cma
+SQLITECMATOINSTALL= extensions/ocsipersist-sqlite.cma
 else
 endif
 
 ifeq "$(CAMLZIP)" "YES"
-DEFLATEMODINSTALL= extensions/deflatemod.cmo
+DEFLATEMODCMOTOINSTALL= extensions/deflatemod.cmo
 else
 endif
 
 ifeq "$(OCSIPERSISTDBM)" "YES"
-DBMINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma 
+DBMCMATOINSTALL= extensions/ocsipersist-dbm/ocsipersist-dbm.cma 
 else
 endif
 
-DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli $(DOCPREF)eliom/eliom_predefmod.mli $(DOCPREF)eliom/eliom_common.mli $(DOCPREF)eliom/eliom_parameters.mli $(DOCPREF)eliom/eliom_services.mli $(DOCPREF)eliom/eliom_sessions.mli $(DOCPREF)eliom/eliom_extensions.mli $(DOCPREF)server/ocsigen_extensions.mli $(DOCPREF)server/ocsigen_parseconfig.mli $(DOCPREF)xmlp4/xhtmlpretty.mli $(DOCPREF)xmlp4/xhtmlcompact.mli $(DOCPREF)xmlp4/oldocaml/xhtmltypes.ml $(DOCPREF)xmlp4/ohl-xhtml/xHTML.mli $(DOCPREF)baselib/ocsigen_messages.mli $(DOCPREF)http/ocsigen_headers.mli $(DOCPREF)server/ocsigen_http_client.mli $(DOCPREF)http/ocsigen_http_frame.mli $(DOCPREF)http/ocsigen_http_com.mli $(DOCPREF)http/ocsigen_charset_mime.mli $(DOCPREF)http/ocsigen_senders.mli $(DOCPREF)http/ocsigen_stream.mli $(DOCPREF)eliom/eliom_tools.mli $(DOCPREF)extensions/ocsipersist.mli $(DOCPREF)extensions/authbasic.mli $(DOCPREF)xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
+DOC= $(DOCPREF)eliom/eliom_mkforms.mli $(DOCPREF)eliom/eliom_mkreg.mli $(DOCPREF)eliom/eliom_predefmod.mli $(DOCPREF)eliom/eliom_common.mli $(DOCPREF)eliom/eliom_parameters.mli $(DOCPREF)eliom/eliom_services.mli $(DOCPREF)eliom/eliom_sessions.mli $(DOCPREF)eliom/eliom_extensions.mli $(DOCPREF)server/ocsigen_extensions.mli $(DOCPREF)server/ocsigen_parseconfig.mli $(DOCPREF)server/ocsigen_server.mli $(DOCPREF)xmlp4/xhtmlpretty.mli $(DOCPREF)xmlp4/xhtmlcompact.mli $(DOCPREF)xmlp4/oldocaml/xhtmltypes.ml $(DOCPREF)xmlp4/ohl-xhtml/xHTML.mli $(DOCPREF)baselib/ocsigen_messages.mli $(DOCPREF)http/ocsigen_headers.mli $(DOCPREF)server/ocsigen_http_client.mli $(DOCPREF)http/ocsigen_http_frame.mli $(DOCPREF)http/ocsigen_http_com.mli $(DOCPREF)http/ocsigen_charset_mime.mli $(DOCPREF)http/ocsigen_senders.mli $(DOCPREF)http/ocsigen_stream.mli $(DOCPREF)eliom/eliom_tools.mli $(DOCPREF)extensions/ocsipersist.mli $(DOCPREF)extensions/authbasic.mli $(DOCPREF)xmlp4/oldocaml/simplexmlparser.mli $(DUCEDOC)
 METAS = META META.ocsigen_ext META.eliom_examples META.ocsigen_ext.global META.eliom_examples.global
 
 
 INSTALL = install
 TARGETSBYTE = baselib.byte http.byte xmlp4.byte server.byte extensions.byte eliom.byte examples.byte
 
-PLUGINSCMAOTOINSTALL = $(SQLITEINSTALL) $(DBMINSTALL) \
-	eliom/eliom.cma \
-	extensions/staticmod.cmo extensions/cgimod.cmo $(DEFLATEMODINSTALL) \
+PLUGINSCMATOINSTALL = $(SQLITECMATOINSTALL) $(DBMCMATOINSTALL) \
+	eliom/eliom.cma $(DEFLATEMODCMATOINSTALL) $(DUCECMA)
+PLUGINSCMOTOINSTALL = \
+	$(SQLITECMOTOINSTALL) $(DBMCMOTOINSTALL) $(DEFLATEMODCMOTOINSTALL) \
+	extensions/staticmod.cmo extensions/cgimod.cmo \
         extensions/revproxy.cmo extensions/userconf.cmo \
         extensions/outputfilter.cmo extensions/authbasic.cmo \
 	extensions/redirectmod.cmo extensions/rewritemod.cmo \
 	extensions/accesscontrol.cmo extensions/extendconfiguration.cmo \
-	$(DUCECMAO)
+	$(DUCECMO)
 PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_mkforms.cmi eliom/eliom_mkreg.cmi \
        eliom/eliom_tools.cmi \
@@ -78,14 +82,16 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        extensions/localFiles.cmi extensions/accesscontrol.cmi \
        extensions/extendconfiguration.cmi
 
-CMAOTOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma
-CMITOINSTALL = server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi xmlp4/xhtmlpretty.cmi xmlp4/xhtmlcompact.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi http/ocsigen_charset_mime.cmi http/ocsigen_senders.cmi http/framepp.cmi http/ocsigen_http_com.cmi http/http_headers.cmi baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi http/ocsigen_stream.cmi baselib/ocsigen_messages.cmi extensions/localFiles.cmi META
+CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma
+CMOTOINSTALL = 
+CMITOINSTALL = server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi server/ocsigen_server.cmi xmlp4/xhtmlpretty.cmi xmlp4/xhtmlcompact.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi http/ocsigen_charset_mime.cmi http/ocsigen_senders.cmi http/framepp.cmi http/ocsigen_http_com.cmi http/http_headers.cmi baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi http/ocsigen_stream.cmi baselib/ocsigen_messages.cmi extensions/localFiles.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi
 
 ifeq "$(BYTECODE)" "YES"
-TOINSTALLBYTE=$(CMAOTOINSTALL)
-PLUGINSTOINSTALLBYTE=$(PLUGINSCMAOTOINSTALL)
+TOINSTALLBYTE=$(CMATOINSTALL) $(CMOTOINSTALL)\
+	      $(PLUGINSCMATOINSTALL) $(PLUGINSCMOTOINSTALL)
+PLUGINSTOINSTALLBYTE=$(PLUGINSCMATOINSTALL) $(PLUGINSCMOTOINSTALL)
 EXAMPLESBYTE=$(EXAMPLESCMO)
 BYTE=byte
 else
@@ -96,10 +102,17 @@ BYTE=
 endif
 
 ifeq "$(NATIVECODE)" "YES"
-TOINSTALLXTEMP1=$(PLUGINSCMAOTOINSTALL:.cmo=.cmxs)
-PLUGINSTOINSTALLX=$(TOINSTALLXTEMP1:.cma=.cmxs)
+PLUGINSTOINSTALLX=$(PLUGINSCMOTOINSTALL:.cmo=.cmxs) \
+                  $(PLUGINSCMATOINSTALL:.cma=.cmxs)
 TOINSTALLXTEMP=$(CMAOTOINSTALL:.cmo=.cmx)
-TOINSTALLX=$(TOINSTALLXTEMP:.cma=.cmxa)
+TOINSTALLX=$(CMATOINSTALL:.cma=.cmxa) \
+           $(CMATOINSTALL:.cma=.a) \
+	   $(CMOTOINSTALL:.cmo=.cmx) \
+	   $(CMOTOINSTALL:.cmo=.o) \
+	   $(PLUGINSCMOTOINSTALL:.cmo=.cmx) \
+	   $(PLUGINSCMOTOINSTALL:.cmo=.o) \
+	   $(PLUGINSCMATOINSTALL:.cma=.cmxa) \
+	   $(PLUGINSCMATOINSTALL:.cma=.a)
 EXAMPLESOPT=$(EXAMPLESCMO:.cmo=.cmxs)
 OPT=opt
 DEPOPT=xmlp4pre.opt

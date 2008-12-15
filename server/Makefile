@@ -3,8 +3,8 @@ include ../Makefile.config
 NAME=$(OCSIGENNAME)
 
 FILES= ocsigen_extensions.ml ocsigen_parseconfig.ml ocsigen_http_client.ml \
-	../extensions/localFiles.ml
-EXE= server.ml server_main.ml
+	../extensions/localFiles.ml server.ml ocsigen_server.ml
+EXE= server_main.ml
 
 ifeq "$(DEBUG)" "YES"
 DBG = -dtypes -g

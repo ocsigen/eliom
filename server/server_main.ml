@@ -1,3 +1,3 @@
 
 let () = 
-  Server.start_server ()
+  Ocsigen_server.start_server ~parse_cmdline:true ()

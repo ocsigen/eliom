@@ -19,7 +19,7 @@
 
 open Ocsigen_config
 
-let _ = Arg.parse
+let parse_commandline () = Arg.parse
     [("-c", Arg.String set_configfile,
       "Alternate config file (default /etc/ocsigen/ocsigen.conf)");
      ("--config", Arg.String set_configfile,

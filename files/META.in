@@ -17,3 +17,152 @@ package "xhtml" (
     archive(syntax,toploop) = "xhtmlsyntax.cma"
   )
 )
+
+package "server" (
+  requires = "lwt.extra,lwt.ssl,lwt.preemptive,ocsigen,ocsigen.xhtml,findlib,camlp4.lib"
+  version = "_VERSION_"
+  description = "Ocsigen server library"
+  archive(byte) = "ocsigen.cma"
+  archive(native) = "ocsigen.cmxa"
+)
+
+package "ext" (
+  version = "[distributed with Ocsigen]"
+  description = "Extensions for Ocsigen"
+
+  package "redirectmod" (
+    exists_if = "redirectmod.cmo,redirectmod.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "HTTP redirections"
+    archive(byte) = "redirectmod.cmo"
+    archive(native) = "redirectmod.cmx"
+  )
+
+  package "outputfilter" (
+    exists_if = "outputfilter.cmo,outputfilter.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Changing HTTP answers before sending"
+    archive(byte) = "outputfilter.cmo"
+    archive(native) = "outputfilter.cmx"
+  )
+
+  package "userconf" (
+    exists_if = "userconf.cmo,userconf.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Allowing users to have their own configuration files"
+    archive(byte) = "userconf.cmo"
+    archive(native) = "userconf.cmx"
+  )
+
+  package "staticmod" (
+    exists_if = "staticmod.cmo,staticmod.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Serving static files"
+    archive(byte) = "staticmod.cmo"
+    archive(native) = "staticmod.cmx"
+  )
+
+  package "revproxy" (
+    exists_if = "revproxy.cmo,revproxy.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Reverse proxy"
+    archive(byte) = "revproxy.cmo"
+    archive(native) = "revproxy.cmx"
+  )
+
+  package "accesscontrol" (
+    exists_if = "accesscontrol.cmo,accesscontrol.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Filtering HTTP requests"
+    archive(byte) = "accesscontrol.cmo"
+    archive(native) = "accesscontrol.cmx"
+  )
+
+  package "extendconfiguration" (
+    exists_if = "extendconfiguration.cmo,extendconfiguration.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Updating server options"
+    archive(byte) = "extendconfiguration.cmo"
+    archive(native) = "extendconfiguration.cmx"
+  )
+
+  package "authbasic" (
+    exists_if = "authbasic.cmo,authbasic.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Basic HTTP Authentication"
+    archive(byte) = "authbasic.cmo"
+    archive(native) = "authbasic.cmx"
+  )
+
+  package "cgimod" (
+    exists_if = "cgimod.cmo,cgimod.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "CGI support"
+    archive(byte) = "cgimod.cmo"
+    archive(native) = "cgimod.cmx"
+  )
+
+  package "ocsipersist-sqlite" (
+    exists_if = "ocsipersist-sqlite.cma,ocsipersist-sqlite.cmxa"
+    requires = "ocsigen.server,sqlite3"
+    version = "[distributed with Ocsigen]"
+    description = "Persistent data storage with SQLite3"
+    archive(byte) = "ocsipersist-sqlite.cma"
+    archive(native) = "ocsipersist-sqlite.cmxa"
+  )
+
+  package "ocsipersist-dbm" (
+    exists_if = "ocsipersist-dbm.cma,ocsipersist-dbm.cmxa"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Persistent data storage with DBM"
+    archive(byte) = "ocsipersist-dbm.cma"
+    archive(native) = "ocsipersist-dbm.cmxa"
+  )
+
+  package "eliom" (
+    exists_if = "eliom.cma,eliom.cmxa"
+    requires = "ocsigen.server,cryptokit"
+    version = "[distributed with Ocsigen]"
+    description = "Eliom: module for generating pages"
+    archive(byte) = "eliom.cma"
+    archive(native) = "eliom.cmxa"
+  )
+
+  package "deflatemod" (
+    exists_if = "deflatemod.cmo,deflatemod.cmx"
+    requires = "ocsigen.server,_CAMLZIPNAME_"
+    version = "[distributed with Ocsigen]"
+    description = "Compressing HTTP reply bodies"
+    archive(byte) = "deflatemod.cmo"
+    archive(native) = "deflatemod.cmx"
+  )
+
+  package "eliom_duce" (
+    exists_if = "eliom_duce.cma,eliom_duce.cmxa"
+    requires = "ocsigen.server,ocamlduce"
+    version = "[distributed with Ocsigen]"
+    description = "OCamlDuce support for Eliom"
+    archive(byte) = "eliom_duce.cma"
+    archive(native) = "eliom_duce.cmxa"
+  )
+
+  package "rewritemod" (
+    exists_if = "rewritemod.cmo,rewritemod.cmx"
+    requires = "ocsigen.server"
+    version = "[distributed with Ocsigen]"
+    description = "Rewriting URLs"
+    archive(byte) = "rewritemod.cmo"
+    archive(native) = "rewritemod.cmx"
+  )
+)
+

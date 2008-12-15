@@ -64,7 +64,8 @@ PP2 =
 
 OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 
-OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(FILES:.ml=.cmxs) $(DUCEFILES:.ml=.cmxs)
+OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(OBJSQLITE:.cma=.cmxa) \
+          $(FILES:.ml=.cmxs) $(DUCEFILES:.ml=.cmxs)
 
 
 byte: $(OBJDBMBYTE) $(OBJS)
@@ -85,6 +86,9 @@ dbm-opt:
 
 ocsipersist-sqlite.cma: ocsipersist.cmo
 	$(CAMLC) -a -o ocsipersist-sqlite.cma ocsipersist.cmo
+
+ocsipersist-sqlite.cmxa: ocsipersist.cmo
+	$(CAMLOPT) -a -o ocsipersist-sqlite.cmxa ocsipersist.cmx
 
 ocsipersist-sqlite.cmxs: ocsipersist.cmx
 	$(CAMLOPT) -shared -linkall -o ocsipersist-sqlite.cmxs ocsipersist.cmx
