@@ -12,7 +12,7 @@ type 'a stream
    a function to retrieve the following data,
    or a finished stream with possibly another stream following.
  *)
-type 'a step =
+type 'a step = private
   | Finished of 'a stream option
   | Cont of 'a * 'a stream
 
@@ -31,7 +31,7 @@ val get : 'a t -> 'a stream
 val next : 'a stream -> 'a step Lwt.t
 
 
-(** creates an empty step *)
+(** creates an empty step. The parameter is the following substream, if any. *)
 val empty : (unit -> 'a step Lwt.t) option -> 'a step Lwt.t
 
 (** creates a non empty step. *)
@@ -56,6 +56,8 @@ val consume : 'a t -> unit Lwt.t
 
 
 exception Stream_too_small
+  (** possibly with the size of the stream *)
+
 exception Stream_error of string
 exception String_too_large
 
@@ -65,15 +67,16 @@ val string_of_stream : string stream -> string Lwt.t
 (** Read more data in the buffer *)
 val enlarge_stream : string step -> string step Lwt.t
 
-(** [stream_want s len =] Returns a stream with at most len
+(** [stream_want s len =] Returns a stream with at least len
    bytes in the buffer if possible *)
 val stream_want : string step -> int -> string step Lwt.t
 
 (** Returns the value of the current buffer *)
 val current_buffer : string step -> string
 
-(** Skips data *)
-val skip : string step -> int -> string step Lwt.t
+(** Skips data. Raises [Stream_too_small (Some size)] 
+    if the stream is too small, where [size] is the size of the stream. *)
+val skip : string step -> int64 -> string step Lwt.t
 
 (** Cut the stream at the position given by a string delimiter *)
 val substream : string -> string step -> string step Lwt.t

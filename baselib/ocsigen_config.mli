@@ -80,3 +80,4 @@ val get_maxretries : unit -> int
 
 val display_version : unit -> 'a
 val config : unit -> Simplexmlparser.xml list
+  

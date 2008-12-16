@@ -44,3 +44,4 @@ val get_accept :
 val get_accept_charset : Ocsigen_http_frame.t -> (string option * float option) list
 val get_accept_encoding : Ocsigen_http_frame.t -> (string option * float option) list
 val get_accept_language : Ocsigen_http_frame.t -> (string * float option) list
+val get_range : Ocsigen_http_frame.t -> ((int64 * int64) list * int64 option * Ocsigen_extensions.ifrange) option

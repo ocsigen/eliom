@@ -157,7 +157,7 @@ let enlarge_stream = function
                     Lwt.return (Cont (String.sub new_s max long4, ff)))
 
 let rec stream_want s len =
- (* returns a stream with at most len bytes read if possible *)
+ (* returns a stream with at least len bytes read if possible *)
   match s with
   | Finished _ -> return s
   | Cont (stri, f)  -> if String.length stri >= len
@@ -165,21 +165,24 @@ let rec stream_want s len =
   else catch
         (fun () -> enlarge_stream s >>= (fun r -> stream_want s len))
         (function
-            Stream_too_small -> return s
-          | e -> fail e)
+           | Stream_too_small -> return s
+           | e -> fail e)
 
 let current_buffer = function
   | Finished _  -> raise Stream_too_small
   | Cont (s, _) -> s
 
 let rec skip s k = match s with
-| Finished _ -> raise Stream_too_small
-| Cont (s, f) ->
-    let len = String.length s in
-    if k <= len
-    then return (Cont (String.sub s k (len - k), f))
-    else (enlarge_stream (Cont ("", f)) >>=
-          (fun s -> skip s (k - len)))
+    | Finished _ -> raise Stream_too_small
+    | Cont (s, f) ->
+        let len = String.length s in
+        let len64 = Int64.of_int len in
+        if Int64.compare k len64 <= 0
+        then 
+          let k = Int64.to_int k in
+          Lwt.return (Cont (String.sub s k (len - k), f))
+        else (enlarge_stream (Cont ("", f)) >>=
+                (fun s -> skip s (Int64.sub k len64)))
 
 let substream delim s =
   let ldelim = String.length delim in
@@ -203,14 +206,14 @@ let substream delim s =
             with Not_found ->
               let pos = (len + 1 - ldelim) in
               cont (String.sub s 0 pos)
-                       (fun () -> next f >>=
-                         (function
-                             Finished _ -> fail Stream_too_small
-                           | Cont (s', f') ->
-                               aux
-                                 (Cont (String.sub s pos (len - pos) ^ s',
-                                        f'))
-                         ))
+                       (fun () -> 
+                          next f >>= function
+                          | Finished _ -> fail Stream_too_small
+                          | Cont (s', f') ->
+                              aux
+                                (Cont (String.sub s pos (len - pos) ^ s',
+                                       f'))
+                       )
     in aux s
 
 (*****************************************************************************)

@@ -112,6 +112,8 @@ and follow_symlink =
 
 
 (* Requests *)
+type ifrange = IR_No | IR_Ifunmodsince of float | IR_ifmatch of string
+
 type request_info =
     {ri_url_string: string;
      ri_url: Neturl.url;
@@ -158,6 +160,10 @@ type request_info =
                                       extensions
                                    *)
      ri_client: client; (** The request connection *)
+     ri_range: ((int64 * int64) list * int64 option * ifrange) option Lazy.t; 
+     (** Range HTTP header. [None] means all the document. 
+         List of intervals + possibly from an index to the end of the document.
+     *)
    }
 and request = {
   request_info: request_info;

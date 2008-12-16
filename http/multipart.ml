@@ -2,6 +2,8 @@
 (* Copyright Gerd Stolpmann, Patrick Doane *)
 (* Modified for Ocsigen/Lwt by Nataliya Guts and Vincent Balat *)
 
+(*VVV Check wether we should support int64 for large files? *)
+
 module S = Netstring_pcre
 open Lwt
 open Ocsigen_stream
@@ -95,7 +97,7 @@ let read_header ?downcase ?unfold ?strip s =
     let header, _ =
       scan_header ?downcase ?unfold ?strip b ~start_pos:0 ~end_pos
     in
-    Ocsigen_stream.skip s end_pos >>=
+    Ocsigen_stream.skip s (Int64.of_int end_pos) >>=
     (fun s -> return (s, header)))
 ;;
 
@@ -175,7 +177,7 @@ let read_multipart_body decode_part boundary s =
     else begin
       search_end_of_line s 2 >>= fun (s, k) ->
       (* [k]: Beginning of next part *)
-      Ocsigen_stream.skip s k >>= fun s ->
+      Ocsigen_stream.skip s (Int64.of_int k) >>= fun s ->
       parse_parts s uses_crlf >>= fun l ->
       return (y :: l)
     end
@@ -189,7 +191,7 @@ let read_multipart_body decode_part boundary s =
     (* Move to the beginning of the next line: *)
     search_end_of_line s 0 >>= (fun (s, k_eol) ->
       let uses_crlf = (Ocsigen_stream.current_buffer s).[k_eol-2] = '\r' in
-      Ocsigen_stream.skip s k_eol >>= fun s ->
+      Ocsigen_stream.skip s (Int64.of_int k_eol) >>= fun s ->
       (* Begin with first part: *)
       parse_parts s uses_crlf)
   end
@@ -203,7 +205,7 @@ let read_multipart_body decode_part boundary s =
         search_end_of_line s k_eob >>= fun (s, k_eol) ->
           let uses_crlf = (Ocsigen_stream.current_buffer s).[k_eol-2] = '\r' in
           (* Printf.printf "k_eol=%d\n" k_eol; *)
-          Ocsigen_stream.skip s k_eol >>= fun s ->
+          Ocsigen_stream.skip s (Int64.of_int k_eol) >>= fun s ->
           (* Begin with first part: *)
           parse_parts s uses_crlf)
       (function

@@ -19,6 +19,7 @@ val connection : name
 val content_encoding : name
 val content_length : name
 val content_type : name
+val content_range : name
 val cookie : name
 val date : name
 val etag : name
@@ -28,6 +29,7 @@ val if_match : name
 val if_modified_since : name
 val if_none_match : name
 val if_unmodified_since : name
+val if_range : name
 val last_modified : name
 val location : name
 val server : name
@@ -36,6 +38,7 @@ val status : name
 val transfer_encoding : name
 val user_agent : name
 val referer : name
+val range : name
 
 (****)
 

@@ -336,6 +336,7 @@ let get_request_infos
           ri_http_frame = http_frame;
           ri_extension_info = [];
           ri_client = Ocsigen_extensions.client_of_connection receiver;
+          ri_range = lazy (Ocsigen_headers.get_range http_frame);
         }
     )
     (fun e ->
@@ -532,18 +533,18 @@ let service
                   | _ ->
                        false
                 in
-                let precond_failed =
+                let precond_ok =
                   begin match
                     res.res_lastmodified, ri.ri_ifunmodifiedsince
                   with
-                  | Some l, Some i -> i < l
-                  | _              -> false
+                  | Some l, Some i -> i >= l
+                  | _              -> true
                   end
-                    ||
+                    &&
                   begin match ri.ri_ifmatch, res.res_etag with
-                  | None,   _      -> false
-                  | Some _, None   -> true
-                  | Some l, Some e -> not (List.mem e l)
+                  | None,   _      -> true
+                  | Some _, None   -> false
+                  | Some l, Some e -> List.mem e l
                   end
                 in
                 if not_modified then begin
@@ -556,7 +557,7 @@ let service
                     ~head
                     ~sender:Ocsigen_http_com.default_sender
                     {empty_result with res_code = 304  (* Not modified *)}
-                end else if precond_failed then begin
+                end else if not precond_ok then begin
                   Ocsigen_messages.debug2
                     "-> Sending 412 Precondition Failed \
                      (if-unmodified-since header)";
@@ -570,12 +571,13 @@ let service
                     {empty_result
                     with res_code = 412 (* Precondition failed *)}
                 end else
+                  Ocsigen_range.compute_range ri res >>= fun r ->
                   send
                     sender_slot
                     ~clientproto
                     ~head
                     ~sender:Ocsigen_http_com.default_sender
-                    res)
+                    r)
              (fun e ->
                 finish_request ();
                 match e with

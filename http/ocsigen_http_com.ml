@@ -676,11 +676,11 @@ let write_stream_chunked out_ch stream =
 let rec write_stream_raw out_ch stream =
   Ocsigen_stream.next stream >>= fun e ->
   match e with
-    Ocsigen_stream.Finished _ ->
-      Lwt.return ()
-  | Ocsigen_stream.Cont (s, next) ->
-      Lwt_chan.output_string out_ch s >>= fun () ->
-      write_stream_raw out_ch next
+    | Ocsigen_stream.Finished _ ->
+        Lwt.return ()
+    | Ocsigen_stream.Cont (s, next) ->
+        Lwt_chan.output_string out_ch s >>= fun () ->
+        write_stream_raw out_ch next
 
 (*XXX We should check the length of the stream:
   - do not send more than expected

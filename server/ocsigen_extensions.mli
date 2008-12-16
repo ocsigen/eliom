@@ -123,6 +123,8 @@ val client_id : client -> int
 val client_connection : client -> Ocsigen_http_com.connection
 (** Returns the connection *)
 
+type ifrange = IR_No | IR_Ifunmodsince of float | IR_ifmatch of string
+
 (** The request *)
 type request_info =
     {ri_url_string: string; (** full URL *)
@@ -171,6 +173,10 @@ type request_info =
                                       extensions
                                    *)
      ri_client: client; (** The request connection *)
+     ri_range: ((int64 * int64) list * int64 option * ifrange) option Lazy.t; 
+     (** Range HTTP header. [None] means all the document. 
+         List of intervals + possibly from an index to the end of the document.
+     *)
    }
 (** If you force [ri_files] or [ri_post_params], the request is fully read,
    so it is not possible any more to read it from [ri_http_frame]

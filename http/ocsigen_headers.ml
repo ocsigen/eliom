@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *)
 
+(* TODO: rewrite header parsing! *)
+
 (** This module is for getting informations from HTTP header. *)
 (** It uses the lowel level module Ocsigen_http_frame.Http_header.    *)
 (** It is very basic and must be completed for exhaustiveness. *)
@@ -298,3 +300,55 @@ let get_accept_language http_frame =
   with _ -> []
 
 
+let get_range http_frame =
+  try
+    let rangeheader = Http_header.get_headers_value
+      http_frame.Ocsigen_http_frame.header
+      Http_headers.range
+    in
+
+    let decode_int index d e = 
+      let a = Int64.of_string d in
+      let b = Int64.of_string e in
+      assert (Int64.compare index a < 0);
+      assert (Int64.compare a b <= 0);
+      (a, b)
+    in
+
+    let interval, from =
+      let a,b = Ocsigen_lib.sep '=' rangeheader in
+      if String.compare a "bytes" <> 0
+      then raise Not_found
+      else
+        let l = Ocsigen_lib.split ',' b in
+        let rec f index = function
+          | [] -> [], None
+          | [a] -> 
+              let d, e = Ocsigen_lib.sep '-' a in
+              if e = ""
+              then [], Some (Int64.of_string d)
+              else [decode_int index d e], None
+          | a::l ->
+              let d, e = Ocsigen_lib.sep '-' a in
+              let a, b = decode_int index d e in
+              let ll, fr = f b l in (* not tail rec *)
+              (a, b)::ll, fr
+        in
+        f (-1L) l
+    in
+
+    let ifrange = 
+      try 
+        let ifrangeheader = Http_header.get_headers_value
+          http_frame.Ocsigen_http_frame.header
+          Http_headers.if_range
+        in
+        try
+          Ocsigen_extensions.IR_Ifunmodsince (Netdate.parse_epoch ifrangeheader)
+        with _ -> Ocsigen_extensions.IR_ifmatch ifrangeheader
+      with Not_found -> Ocsigen_extensions.IR_No
+    in
+
+    Some (interval, from, ifrange)
+
+  with _ -> None
