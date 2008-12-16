@@ -98,14 +98,18 @@ let compute_range ri res =
                 Lwt.return res
             | Some (beg, endopt, _) ->
 
-                let endc = match endopt with
-                  | None -> Int64.sub cl 1L
-                  | Some e -> e
-                in
-                let length = Int64.add (Int64.sub endc beg) 1L in
-
                 Lwt.catch
                   (fun () ->
+                     (if Int64.compare cl beg <= 0
+                      then Lwt.fail Range_416
+                      else Lwt.return ()) >>= fun () ->
+                       
+                     let endc = match endopt with
+                       | None -> Int64.sub cl 1L
+                       | Some e -> e
+                     in
+                     let length = Int64.add (Int64.sub endc beg) 1L in
+
                      (* stream transform *)
                      select_range 
                        length beg endopt res.Ocsigen_http_frame.res_stream
