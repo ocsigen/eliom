@@ -83,6 +83,13 @@ let compute_range ri res =
         if res.Ocsigen_http_frame.res_code <> 200
         then Lwt.return res
         else begin
+          let res = {res with
+                       Ocsigen_http_frame.res_headers =
+              Http_headers.replace 
+                Http_headers.accept_ranges "bytes"
+                res.Ocsigen_http_frame.res_headers;
+                       }
+          in
           match change_range (Lazy.force ri.Ocsigen_extensions.ri_range) with
             | None -> Lwt.return res
             | Some (_, _, Ocsigen_extensions.IR_ifmatch etag) 
