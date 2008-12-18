@@ -1,8 +1,6 @@
 = Development version =
 
-  * Config file: {{{aliases}}} attribute now called {{{hostfilter}}}
-  * Revproxy and Redirectmod: now possible to filter on server, port
-    and protocol
+  * Server: Partial requests implemented (Range HTTP header)
   * Build C stubs into a shared library so that bytecode executables
     may be not linked in custom mode; new {{{--stubdir}}} option in
     {{{configure}}} script
@@ -23,6 +21,9 @@
     rewriting.
   * Accesscontrol: add support for {{{<port>}}} and {{{<ssl>}}}
     conditions.
+  * Config file: {{{aliases}}} attribute now called {{{hostfilter}}}
+  * Revproxy and Redirectmod: now possible to filter on server, port
+    and protocol
   * New extension extendconfiguration to allow dynamic changes in the 
     configuration (mimetypes, charsets, followsymnlink, directory listing~ ...)
 

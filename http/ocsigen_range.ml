@@ -64,8 +64,14 @@ let select_range length beg endopt stream =
        Ocsigen_stream.skip s beg >>= fun new_s ->
        Lwt.return
          (match endopt with
-           | None -> Ocsigen_stream.make (fun () -> Lwt.return new_s)
-           | Some endc -> Ocsigen_stream.make (aux new_s length))
+           | None -> 
+               Ocsigen_stream.make 
+                 ~finalize:(fun () -> Ocsigen_stream.finalize stream)
+                 (fun () -> Lwt.return new_s)
+           | Some endc -> 
+               Ocsigen_stream.make
+                 ~finalize:(fun () -> Ocsigen_stream.finalize stream)
+                 (aux new_s length))
     )
     (function
        | Ocsigen_stream.Stream_too_small -> Lwt.fail Range_416
