@@ -67,8 +67,8 @@ val string_of_stream : string stream -> string Lwt.t
 (** Read more data in the buffer *)
 val enlarge_stream : string step -> string step Lwt.t
 
-(** [stream_want s len =] Returns a stream with at least len
-   bytes in the buffer if possible *)
+(** [stream_want s len] Returns a stream with at least len
+    bytes in the buffer if possible *)
 val stream_want : string step -> int -> string step Lwt.t
 
 (** Returns the value of the current buffer *)

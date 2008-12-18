@@ -255,6 +255,10 @@ module File_content =
       let st = Unix.LargeFile.stat f in
       get_etag_aux st
 
+    let skip fd stream k =
+      Unix.LargeFile.lseek (Lwt_unix.unix_file_descr fd) k Unix.SEEK_CUR;
+      Ocsigen_stream.next (Ocsigen_stream.get stream)
+
     let result_of_content ?options (c, charset_assoc, mime_assoc) =
       (* open the file *)
       try
@@ -282,7 +286,8 @@ module File_content =
                Ocsigen_messages.debug2 "closing file";
                Lwt_unix.close fd;
                return ())
-             stream
+             stream;
+           res_skip_fun = Some (skip fd)
          }
       with e -> Ocsigen_messages.debug2 (Printexc.to_string e);  fail e
 
