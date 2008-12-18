@@ -86,7 +86,8 @@ let compute_range ri res =
     | None -> Lwt.return res
     | Some cl ->
         (* Send range only if the code is 200!! *)
-        if res.Ocsigen_http_frame.res_code <> 200
+        if (res.Ocsigen_http_frame.res_code <> 200)
+          || (Ocsigen_config.get_disablepartialrequests ())
         then Lwt.return res
         else begin
           let res = {res with

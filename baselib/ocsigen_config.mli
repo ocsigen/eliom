@@ -35,6 +35,7 @@ val set_user : string option -> unit
 val set_group : string option -> unit
 val set_command_pipe : string -> unit
 val set_debugmode : bool -> unit
+val set_disablepartialrequests : bool -> unit
 val set_usedefaulthostname : bool -> unit
 val set_respect_pipeline : unit -> unit
 val set_ports : (Unix.inet_addr option * int) list -> unit
@@ -72,6 +73,7 @@ val get_user : unit -> string option
 val get_group : unit -> string option
 val get_command_pipe : unit -> string
 val get_debugmode : unit -> bool
+val get_disablepartialrequests : unit -> bool
 val get_usedefaulthostname : unit -> bool
 val get_respect_pipeline : unit -> bool
 val get_ports : unit -> (Unix.inet_addr option * int) list

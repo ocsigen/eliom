@@ -67,6 +67,7 @@ let user = ref (Some !default_user)
 let group = ref (Some !default_group)
 let command_pipe = ref "_COMMANDPIPE_"
 let debugmode = ref false
+let disablepartialrequests = ref false
 let usedefaulthostname = ref false
 let respectpipeline = ref false
 let ports = ref []
@@ -103,6 +104,7 @@ let set_user o = user := o
 let set_group o = group := o
 let set_command_pipe s = command_pipe := s
 let set_debugmode s = debugmode := s
+let set_disablepartialrequests s = disablepartialrequests := s
 let set_usedefaulthostname s = usedefaulthostname := s
 let set_respect_pipeline () = respectpipeline := true
 let set_ports l = ports := l
@@ -141,6 +143,7 @@ let get_user () = !user
 let get_group () = !group
 let get_command_pipe () = !command_pipe
 let get_debugmode () = !debugmode
+let get_disablepartialrequests () = !disablepartialrequests
 let get_usedefaulthostname () = !usedefaulthostname
 let get_respect_pipeline () = !respectpipeline
 let get_ports () = !ports

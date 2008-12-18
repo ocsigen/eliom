@@ -284,6 +284,9 @@ let parse_server isreloading c =
       | (Element ("usedefaulthostname", [], []))::ll ->
           set_usedefaulthostname true;
           parse_server_aux ll
+      | (Element ("disablepartialrequests", [], []))::ll ->
+          set_disablepartialrequests true;
+          parse_server_aux ll
       | (Element ("respectpipeline", [], []))::ll ->
           set_respect_pipeline ();
           parse_server_aux ll
