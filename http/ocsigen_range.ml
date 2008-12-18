@@ -41,22 +41,23 @@ let rec change_range = function
 
 let select_range length beg endopt skipfun stream =
   let rec aux step num () =
-    (match step with
-      | Ocsigen_stream.Finished _  -> 
-          Lwt.fail Ocsigen_stream.Stream_too_small
-      | Ocsigen_stream.Cont (c, f) -> Lwt.return (c, f))
-    >>= fun (buf, nextstream) ->
-    let buflen = String.length buf in
-    let buflen64 = Int64.of_int buflen in
     if num = 0L
     then Ocsigen_stream.empty None
-    else if (Int64.compare buflen64 num) <= 0
-    then 
-      Ocsigen_stream.next nextstream >>= fun next ->
-      Ocsigen_stream.cont buf (aux next (Int64.sub num buflen64))
     else
-      Ocsigen_stream.cont (String.sub buf 0 (Int64.to_int num))
-        (fun () -> Ocsigen_stream.empty None)
+      (match step with
+         | Ocsigen_stream.Finished _  -> 
+             Lwt.fail Ocsigen_stream.Stream_too_small
+         | Ocsigen_stream.Cont (c, f) -> Lwt.return (c, f))
+      >>= fun (buf, nextstream) ->
+      let buflen = String.length buf in
+      let buflen64 = Int64.of_int buflen in
+      if (Int64.compare buflen64 num) <= 0
+      then 
+        Ocsigen_stream.next nextstream >>= fun next ->
+          Ocsigen_stream.cont buf (aux next (Int64.sub num buflen64))
+      else
+        Ocsigen_stream.cont (String.sub buf 0 (Int64.to_int num))
+          (fun () -> Ocsigen_stream.empty None)
   in
   Lwt.catch
     (fun () ->
@@ -117,11 +118,10 @@ let compute_range ri res =
                       then Lwt.fail Range_416
                       else Lwt.return ()) >>= fun () ->
                        
-                     let endc = match endopt with
-                       | None -> Int64.sub cl 1L
-                       | Some e -> e
+                     let endc, length = match endopt with
+                       | None -> (Int64.sub cl 1L, Int64.sub cl beg)
+                       | Some e -> (e, Int64.add (Int64.sub e beg) 1L)
                      in
-                     let length = Int64.add (Int64.sub endc beg) 1L in
 
                      (* stream transform *)
                      let skipfun = 
