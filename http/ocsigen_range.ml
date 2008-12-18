@@ -39,7 +39,7 @@ let rec change_range = function
   | Some ([ (b, e) ], None, ifmatch) -> Some (b, Some e, ifmatch)
   | _ -> None
 
-let select_range length beg endopt stream =
+let select_range length beg endopt skipfun stream =
   let rec aux step num () =
     (match step with
       | Ocsigen_stream.Finished _  -> 
@@ -58,10 +58,9 @@ let select_range length beg endopt stream =
       Ocsigen_stream.cont (String.sub buf 0 (Int64.to_int num))
         (fun () -> Ocsigen_stream.empty None)
   in
-  Ocsigen_stream.next (Ocsigen_stream.get stream) >>= fun s ->
   Lwt.catch
     (fun () ->
-       Ocsigen_stream.skip s beg >>= fun new_s ->
+       skipfun stream beg >>= fun new_s ->
        Lwt.return
          (match endopt with
            | None -> 
@@ -125,8 +124,18 @@ let compute_range ri res =
                      let length = Int64.add (Int64.sub endc beg) 1L in
 
                      (* stream transform *)
+                     let skipfun = 
+                       match res.Ocsigen_http_frame.res_skip_fun with
+                         | None -> 
+                             (fun stream beg ->
+                                (Ocsigen_stream.next 
+                                   (Ocsigen_stream.get stream) >>= fun s ->
+                                 Ocsigen_stream.skip s beg))
+                         | Some f -> f
+                     in
                      select_range 
-                       length beg endopt res.Ocsigen_http_frame.res_stream
+                       length beg endopt skipfun
+                       res.Ocsigen_http_frame.res_stream
                      >>= fun new_s ->
                      Lwt.return 
                        {res with

@@ -124,6 +124,13 @@ type result =
                                               behaviour if sending succeeds
                                               or not. Default is do nothing.
                                            *)
+     res_skip_fun: 
+       (string Ocsigen_stream.t -> 
+          int64 -> 
+            string Ocsigen_stream.step Lwt.t) option;
+     (** The function used to skip a part of the 
+         stream, if you do not you want to use
+         a basic reading of the stream. *)
      res_content_length: int64 option; (** [None] means Transfer-encoding: chunked *)
      res_content_type: string option;
      res_headers: Http_headers.t; (** The headers you want to add *)
@@ -141,6 +148,7 @@ let default_result () =
    res_code = 200;
    res_stream = Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None);
    res_stop_stream = Lwt.return;
+   res_skip_fun = None;
    res_content_length = Some 0L;
    res_content_type = None;
    res_headers= Http_headers.empty;
@@ -157,6 +165,7 @@ let empty_result () =
    res_code = 204; (* No content *)
    res_stream = Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None);
    res_stop_stream = Lwt.return;
+   res_skip_fun = None;
    res_content_length = Some 0L;
    res_content_type = None;
    res_headers= Http_headers.empty;

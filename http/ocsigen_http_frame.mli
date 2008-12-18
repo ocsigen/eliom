@@ -68,7 +68,15 @@ type result =
                                               or not. Default is do nothing
                                               (Lwt.return).
                                            *)
-     res_content_length: int64 option; (** [None] means Transfer-encoding: chunked *)
+     res_skip_fun: 
+       (string Ocsigen_stream.t -> 
+          int64 -> 
+            string Ocsigen_stream.step Lwt.t) option;
+     (** The function used to skip a part of the 
+         stream, if you do not you want to use
+         a basic reading of the stream. *)
+     res_content_length: int64 option;
+     (** [None] means Transfer-encoding: chunked *)
      res_content_type: string option;
      res_headers: Http_headers.t; (** The headers you want to add *)
      res_charset: string option; (** Default: None *)
