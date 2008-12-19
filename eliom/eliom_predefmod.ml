@@ -1558,7 +1558,7 @@ module SubXhtml = functor(T : sig type content end) ->
              res_content_type = Some "text/html";
              res_etag = get_etag c;
              res_headers= Http_headers.dyn_headers;
-             res_stream = x
+             res_stream = (x, None)
            }
 
       end

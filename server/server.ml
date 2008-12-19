@@ -549,7 +549,7 @@ let service
                 in
                 if not_modified then begin
                   Ocsigen_messages.debug2 "-> Sending 304 Not modified ";
-                  Ocsigen_stream.finalize res.res_stream >>= fun () ->
+                  Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
                   let empty_result = Ocsigen_http_frame.empty_result () in
                   send
                     sender_slot
@@ -561,7 +561,7 @@ let service
                   Ocsigen_messages.debug2
                     "-> Sending 412 Precondition Failed \
                      (if-unmodified-since header)";
-                  Ocsigen_stream.finalize res.res_stream >>= fun () ->
+                  Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
                   let empty_result = Ocsigen_http_frame.empty_result () in
                   send
                     sender_slot

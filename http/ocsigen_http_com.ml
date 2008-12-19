@@ -838,16 +838,16 @@ let send
            Lwt.return ()
          end else begin
            Ocsigen_messages.debug2 "writing body";
-           write_stream ~chunked out_ch res.res_stream
+           write_stream ~chunked out_ch (fst res.res_stream)
          end) >>= fun () ->
          Lwt_chan.flush out_ch (* Vincent: I add this otherwise HEAD answers
                                   are not flushed by the reverse proxy *)
              >>= fun () ->
-         Ocsigen_stream.finalize res.res_stream
+         Ocsigen_stream.finalize (fst res.res_stream)
       )
       (fun e ->
         res.res_stop_stream () >>= fun () ->
-        Ocsigen_stream.finalize res.res_stream >>= fun () ->
+        Ocsigen_stream.finalize (fst res.res_stream) >>= fun () ->
         Lwt.fail e
       )
 

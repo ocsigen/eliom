@@ -538,7 +538,7 @@ let gen reg = function
                           Lwt.return
                             {default_result with
                                res_content_length = None;
-                               res_stream = content;
+                               res_stream = (content, None);
                                res_stop_stream = frame.Ocsigen_http_frame.abort;
 (*VVV NO! If sending is interrupted, we probably must do something else! *)
                                res_location= loc;

@@ -123,9 +123,12 @@ let compute_range ri res =
                        | Some e -> (e, Int64.add (Int64.sub e beg) 1L)
                      in
 
+                     let resstream, skipfun =
+                       res.Ocsigen_http_frame.res_stream
+                     in
                      (* stream transform *)
                      let skipfun = 
-                       match res.Ocsigen_http_frame.res_skip_fun with
+                       match skipfun with
                          | None -> 
                              (fun stream beg ->
                                 (Ocsigen_stream.next 
@@ -135,11 +138,11 @@ let compute_range ri res =
                      in
                      select_range 
                        length beg endopt skipfun
-                       res.Ocsigen_http_frame.res_stream
+                       resstream
                      >>= fun new_s ->
                      Lwt.return 
                        {res with
-                          Ocsigen_http_frame.res_stream = new_s;
+                          Ocsigen_http_frame.res_stream = (new_s, None);
                           Ocsigen_http_frame.res_code = 206;
                           Ocsigen_http_frame.res_headers =
                            Http_headers.replace 

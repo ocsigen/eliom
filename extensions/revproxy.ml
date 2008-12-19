@@ -262,7 +262,7 @@ let gen dir = function
                      Lwt.return
                        {default_result with
                         Ocsigen_http_frame.res_content_length = length;
-                        Ocsigen_http_frame.res_stream = stream;
+                        Ocsigen_http_frame.res_stream = (stream, None);
                         Ocsigen_http_frame.res_stop_stream =
                         http_frame.Ocsigen_http_frame.abort;
                         Ocsigen_http_frame.res_headers= headers;

@@ -115,7 +115,20 @@ type result =
      res_lastmodified: float option; (** Default: [None] *)
      res_etag: string option;
      res_code: int; (** HTTP code, if not 200 *)
-     res_stream: string Ocsigen_stream.t; (** Default: empty stream *)
+     res_stream: string Ocsigen_stream.t *
+       (string Ocsigen_stream.t -> 
+          int64 -> 
+            string Ocsigen_stream.step Lwt.t) option
+     ; (** Default: empty stream. 
+           The second field is (optionaly)
+           the function used to skip a part of the 
+           stream, if you do not you want to use
+           a basic reading of the stream. 
+           For example, for static files, you can optimize it by using
+           a [seek] function.
+       *)
+     (* It is not a new field of the record to remember to change it
+        if we change the stream. *)
      res_stop_stream: unit -> unit Lwt.t; (** A function that will be called
                                               if sending the stream fails.
                                               It is called before the stream
@@ -124,13 +137,6 @@ type result =
                                               behaviour if sending succeeds
                                               or not. Default is do nothing.
                                            *)
-     res_skip_fun: 
-       (string Ocsigen_stream.t -> 
-          int64 -> 
-            string Ocsigen_stream.step Lwt.t) option;
-     (** The function used to skip a part of the 
-         stream, if you do not you want to use
-         a basic reading of the stream. *)
      res_content_length: int64 option; (** [None] means Transfer-encoding: chunked *)
      res_content_type: string option;
      res_headers: Http_headers.t; (** The headers you want to add *)
@@ -146,9 +152,9 @@ let default_result () =
    (* No date => proxies use etag *)
    res_etag = None;
    res_code = 200;
-   res_stream = Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None);
+   res_stream = (Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None), 
+                 None);
    res_stop_stream = Lwt.return;
-   res_skip_fun = None;
    res_content_length = Some 0L;
    res_content_type = None;
    res_headers= Http_headers.empty;
@@ -163,9 +169,9 @@ let empty_result () =
    res_lastmodified = None;
    res_etag = None;
    res_code = 204; (* No content *)
-   res_stream = Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None);
+   res_stream = (Ocsigen_stream.make (fun () -> Ocsigen_stream.empty None), 
+                 None);
    res_stop_stream = Lwt.return;
-   res_skip_fun = None;
    res_content_length = Some 0L;
    res_content_type = None;
    res_headers= Http_headers.empty;

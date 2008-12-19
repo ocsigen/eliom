@@ -54,9 +54,10 @@ module Old_Xhtml_content =
          res_etag = md5;
          res_headers= Http_headers.dyn_headers;
          res_stream =
-         Ocsigen_stream.make
-           (fun () -> Ocsigen_stream.cont x
-               (fun () -> Ocsigen_stream.empty None))
+            (Ocsigen_stream.make
+               (fun () -> Ocsigen_stream.cont x
+                  (fun () -> Ocsigen_stream.empty None)),
+             None)
        }
 
   end
@@ -89,7 +90,7 @@ module Xhtml_content_(Xhtmlprinter : sig
          res_content_type = Some "text/html";
          res_etag = get_etag c;
          res_headers= Http_headers.dyn_headers;
-         res_stream = x
+         res_stream = (x, None)
        }
 
   end
@@ -117,10 +118,12 @@ module Text_content =
          res_content_type = Some ct;
          res_headers= Http_headers.dyn_headers;
          res_stream =
-         Ocsigen_stream.make
-           (fun () -> Ocsigen_stream.cont c (fun () -> Ocsigen_stream.empty None))
-
-       }
+            (Ocsigen_stream.make
+               (fun () -> 
+                  Ocsigen_stream.cont c (fun () -> Ocsigen_stream.empty None)),
+             None)
+               
+            }
 
   end
 
@@ -140,7 +143,7 @@ module Stream_content =
         {default_result with
          res_content_length = None;
          res_headers= Http_headers.dyn_headers;
-         res_stream = c}
+         res_stream = (c, None)}
 
   end
 
@@ -196,7 +199,8 @@ module Streamlist_content =
         {default_result with
          res_content_length = None;
          res_etag = get_etag c;
-         res_stream = Ocsigen_stream.make ~finalize (fun () -> next_stream c);
+         res_stream = 
+            (Ocsigen_stream.make ~finalize (fun () -> next_stream c), None);
          res_headers= Http_headers.dyn_headers;
          res_content_type = Some ct}
 
@@ -256,8 +260,11 @@ module File_content =
       get_etag_aux st
 
     let skip fd stream k =
-      Unix.LargeFile.lseek (Lwt_unix.unix_file_descr fd) k Unix.SEEK_CUR;
-      Ocsigen_stream.next (Ocsigen_stream.get stream)
+      try
+        ignore 
+          (Unix.LargeFile.lseek (Lwt_unix.unix_file_descr fd) k Unix.SEEK_CUR);
+        Ocsigen_stream.next (Ocsigen_stream.get stream)
+      with e -> Lwt.fail e
 
     let result_of_content ?options (c, charset_assoc, mime_assoc) =
       (* open the file *)
@@ -280,14 +287,14 @@ module File_content =
            res_lastmodified = Some st.Unix.LargeFile.st_mtime;
            res_etag = etag;
            res_stream =
-           Ocsigen_stream.make
-             ~finalize:
-             (fun () ->
-               Ocsigen_messages.debug2 "closing file";
-               Lwt_unix.close fd;
-               return ())
-             stream;
-           res_skip_fun = Some (skip fd)
+              (Ocsigen_stream.make
+                 ~finalize:
+                 (fun () ->
+                    Ocsigen_messages.debug2 "closing file";
+                    Lwt_unix.close fd;
+                    return ())
+                 stream,
+               Some (skip fd))
          }
       with e -> Ocsigen_messages.debug2 (Printexc.to_string e);  fail e
 

@@ -80,7 +80,7 @@ module Ocamlduce_content =
          res_etag = md5;
          res_headers= Http_headers.dyn_headers;
          res_stream =
-             Ocsigen_stream.make
+             (Ocsigen_stream.make
                (fun () ->
                   Ocsigen_stream.cont
                     doctype
@@ -88,7 +88,8 @@ module Ocamlduce_content =
                        Ocsigen_stream.cont
                          Xhtmlpretty.ocsigenadv
                          (fun () -> Ocsigen_stream.cont x
-                            (fun () -> Ocsigen_stream.empty None))))
+                            (fun () -> Ocsigen_stream.empty None)))),
+              None)
        }
 
   end
@@ -335,9 +336,10 @@ module SubXhtml =
              res_etag = md5;
              res_headers= Http_headers.dyn_headers;
              res_stream =
-             Ocsigen_stream.make
-               (fun () -> Ocsigen_stream.cont x
-                   (fun () -> Ocsigen_stream.empty None))
+                (Ocsigen_stream.make
+                   (fun () -> Ocsigen_stream.cont x
+                      (fun () -> Ocsigen_stream.empty None)),
+                 None)
            }
 
       end
