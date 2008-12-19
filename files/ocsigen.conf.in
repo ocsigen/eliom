@@ -519,8 +519,8 @@
     <!-- <netbuffersize>8192</netbuffersize> Size of the input buffer (sockets) It is also the maximum size of headers and post data -->
     <!-- <filebuffersize>8192</filebuffersize> Size of the buffer for reading files -->
     <!-- <minthreads>10</minthreads> Minimum size of the detached threads pool (default 10) -->
-    <!-- <maxthreads>1000</maxthreads> Maximal size of the detached threads pool (default 300) -->
-    <!-- <maxdetachedcomputationsqueued>100</maxdetachedcomputationsqueued> Size of the queue of computations waiting a detached thread (default 100) -->
+    <!-- <maxthreads>100</maxthreads> Maximal size of the detached threads pool (default 30) -->
+    <!-- <maxdetachedcomputationsqueued>100</maxdetachedcomputationsqueued> Size of the queue of computations waiting a detached thread (default 1000) -->
     <!-- <commandpipe>_COMMANDPIPE_</commandpipe> Name of the pipe used to command the server -->
     <!-- <respectpipeline/> If this line is present, one request will be sent to extensions only when the server is sure that the previous one on the same connection has been taken by an extension. By default, the order may be changed. -->
     <!-- <maxretries>10</maxretries> Max number of tries after request rewriting (prevents loops in rewrites) -->
