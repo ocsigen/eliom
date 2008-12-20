@@ -106,7 +106,7 @@ let get_request_infos
   Lwt.catch
     (fun () ->
 
-       let (headerhost, _, url, parsed_url, path, params, get_params) =
+       let (_, headerhost, _, url, parsed_url, path, params, get_params) =
          Ocsigen_lib.parse_url url
        in
 
@@ -759,9 +759,11 @@ let handle_connection port in_ch sockaddr =
       handle_read_errors
       (fun request ->
          let meth, url =
-           match Http_header.get_firstline request.Ocsigen_http_frame.header with
-           | Http_header.Query a -> a
-           | _                   -> assert false
+           match 
+             Http_header.get_firstline request.Ocsigen_http_frame.header 
+           with
+             | Http_header.Query a -> a
+             | _                   -> assert false
            (*XXX Should be checked in [get_http_frame] *)
          in
          Ocsigen_http_com.start_processing receiver (fun slot ->

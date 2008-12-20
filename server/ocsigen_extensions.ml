@@ -787,7 +787,7 @@ let do_for_site_matching host port ri =
 
 (* used to modify the url in ri (for example for retrying after rewrite) *)
 let ri_of_url url ri =
-  let (host, _, url, url2, path, params, get_params) = parse_url url in
+  let (_, host, _, url, url2, path, params, get_params) = parse_url url in
   let host = match host with
     | Some h -> host
     | None -> ri.ri_host
@@ -876,4 +876,44 @@ let replace_user_dir regexp dest pathstring =
         Ocsigen_messages.debug (fun () -> "No such user " ^ u);
         raise NoSuchUser
 
+
+(*****************************************************************************)
+(* Finding redirections *)
+
+exception Not_concerned
+
+let find_redirection regexp full_url dest
+    https host port 
+    get_params_string
+    sub_path_string
+    full_path_string
+    =
+  if full_url
+  then
+    match host with
+      | None -> raise Not_concerned
+      | Some host ->
+          let path =
+            match get_params_string with
+              | None -> full_path_string
+              | Some g -> full_path_string ^ "?" ^ g
+          in
+          let path =
+            Ocsigen_lib.make_absolute_url https host port ("/"^path)
+          in
+          (match Netstring_pcre.string_match regexp path 0 with
+             | None -> raise Not_concerned
+             | Some _ -> (* Matching regexp found! *)
+                 Netstring_pcre.global_replace regexp dest path
+          )
+  else
+    let path =
+      match get_params_string with
+        | None -> sub_path_string
+        | Some g -> sub_path_string ^ "?" ^ g
+    in
+    match Netstring_pcre.string_match regexp path 0 with
+      | None -> raise Not_concerned
+      | Some _ -> (* Matching regexp found! *)
+          Netstring_pcre.global_replace regexp dest path
 

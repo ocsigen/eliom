@@ -55,21 +55,14 @@ open Lwt
 open Ocsigen_extensions
 open Simplexmlparser
 
-exception Not_concerned
-
 
 
 (*****************************************************************************)
 (* The table of redirections for each virtual server                         *)
 type redir =
-    { srcprot: Netstring_pcre.regexp option;
-      srcserv: Netstring_pcre.regexp option;
-      srcport: Netstring_pcre.regexp option;
-      regexp: Netstring_pcre.regexp;
-      https: string option;
-      server: string;
-      port: string option;
-      uri: string;
+    { regexp: Netstring_pcre.regexp;
+      full_url: Ocsigen_lib.yesnomaybe;
+      dest: string;
       pipeline: bool}
 
 
@@ -88,74 +81,6 @@ let _ = parse_global_config (Ocsigen_extensions.get_config ())
 (*****************************************************************************)
 (* Finding redirections *)
 
-let find_redirection r https host port path =
-  let uri =
-    match Netstring_pcre.string_match r.regexp path 0 with
-      | None -> raise Not_concerned
-      | Some _ -> (* Matching regexp found! *)
-          Netstring_pcre.global_replace r.regexp r.uri path
-  in
-  let server =
-    (match r.srcserv, host with
-       | Some _, None -> raise Not_concerned
-       | Some reg, Some host ->
-           (match Netstring_pcre.string_match reg host 0 with
-             | None -> raise Not_concerned
-             | Some _ -> (* Matching regexp found! *)
-                 Netstring_pcre.global_replace reg r.server host)
-       | None, _ -> r.server
-    )
-  in
-  let https =
-    (match r.srcprot with
-       | Some reg ->
-           let prot = if https then "https" else "http" in
-           (match Netstring_pcre.string_match reg prot 0 with
-             | None -> raise Not_concerned
-             | Some _ -> (* Matching regexp found! *)
-                 (match r.https with
-                    | Some h ->
-                        (match Netstring_pcre.global_replace reg h prot with
-                           | "http" -> false
-                           | "https" -> true
-                           | _ -> raise (Ocsigen_extensions.Error_in_config_file
-                                           "Revproxy : error in regular expression (protocol)"))
-                    | None -> https))
-       | None -> 
-           match r.https with
-             | None -> https
-             | Some "http" -> false
-             | Some "https" -> true
-             | _ ->  raise (Ocsigen_extensions.Error_in_config_file
-                              "Revproxy : error in protocol")
-             )
-  in
-  let port =
-    match r.srcport with
-      | Some reg ->
-          let stringport = string_of_int port in
-          (match Netstring_pcre.string_match reg stringport 0 with
-             | None -> raise Not_concerned
-             | Some _ -> (* Matching regexp found! *)
-                 match r.port with
-                   | None -> if https then 443 else 80
-                   | Some p -> 
-                       try
-                         int_of_string 
-                           (Netstring_pcre.global_replace reg p stringport)
-                       with Failure _ -> 
-                         raise (Ocsigen_extensions.Error_in_config_file
-                                  "Revproxy : error in dest port"))
-      | None -> 
-          match r.port with
-            | None -> if https then 443 else 80
-            | Some p -> 
-                try int_of_string p
-                with Failure _ -> 
-                  raise (Ocsigen_extensions.Error_in_config_file
-                           "Revproxy : error in dest port")
-  in
-  (https, server, port, uri)
 
 
 
@@ -171,21 +96,48 @@ let gen dir = function
     (* Is it a redirection? *)
     (fun () ->
        Ocsigen_messages.debug2 "--Revproxy: Is it a redirection?";
-       let (https, host, port, uri) =
+       let dest =
          let ri = ri.request_info in
-         find_redirection dir
-           ri.ri_ssl
-           ri.ri_host
-           ri.ri_server_port
-           (match ri.ri_get_params_string with
-           | None -> ri.ri_sub_path_string
-           | Some g -> ri.ri_sub_path_string ^ "?" ^ g)
+         let fi full =
+           Ocsigen_extensions.find_redirection
+             dir.regexp
+             full
+             dir.dest
+             ri.ri_ssl
+             ri.ri_host
+             ri.ri_server_port
+             ri.ri_get_params_string
+             ri.ri_sub_path_string
+             ri.ri_full_path_string
+         in 
+         match dir.full_url with
+           | Ocsigen_lib.Yes -> fi true
+           | Ocsigen_lib.No -> fi false
+           | Ocsigen_lib.Maybe -> 
+               try fi false 
+               with Ocsigen_extensions.Not_concerned -> fi true
        in
-       let uri = "/"^uri in
-       Ocsigen_messages.debug (fun () ->
-                         "--Revproxy: YES! Redirection to "^
-                           (if https then "https://" else "http://")^host^":"^
-                                (string_of_int port)^uri);
+       let (https, host, port, uri) = 
+         try
+           match Ocsigen_lib.parse_url dest with
+             | (Some https, Some host, port, uri, _, _, _, _) -> 
+                 let port = match port with
+                   | None -> if https then 443 else 80
+                   | Some p -> p
+                 in
+                 (https, host, port, uri)
+             | _ -> raise (Ocsigen_extensions.Error_in_config_file
+                             ("Revproxy : error in destination URL "^dest))
+(*VVV catch only Neturl exceptions! *)
+         with e -> raise (Ocsigen_extensions.Error_in_config_file
+                            ("Revproxy : error in destination URL "^dest^" - "^
+                               Printexc.to_string e))
+       in
+       Ocsigen_messages.debug
+         (fun () ->
+            "--Revproxy: YES! Redirection to "^
+              (if https then "https://" else "http://")^host^":"^
+              (string_of_int port)^uri);
 
        Ocsigen_lib.get_inet_addr host >>= fun inet_addr ->
 
@@ -291,76 +243,43 @@ let gen dir = function
 
 let parse_config path _ parse_site = function
   | Element ("revproxy", atts, []) ->
-      let rec parse_attrs ((sprot, ss, sport, r, s, prot, port, u, pipeline) as res) = function
+      let rec parse_attrs ((r, f, d, pipeline) as res) = function
         | [] -> res
-        | ("srcuri", regexp)::l
-        | ("regexp", regexp)::l when r = None ->
+        | ("regexp", regexp)::l when r = None -> (* deprecated *)
             parse_attrs
-              (sprot, ss, sport, 
-               Some (Netstring_pcre.regexp ("^"^regexp^"$")), 
-               s, prot, port, u, pipeline)
+              (Some (Netstring_pcre.regexp ("^"^regexp^"$")), Ocsigen_lib.Maybe,
+               d, pipeline)
               l
-        | ("srcprotocol", regexp)::l when sprot = None ->
+        | ("fullurl", regexp)::l when r = None ->
             parse_attrs
-              (Some (Netstring_pcre.regexp ("^"^regexp^"$")),
-               ss, sport, r,
-               s, prot, port, u, pipeline)
+              (Some (Netstring_pcre.regexp ("^"^regexp^"$")), Ocsigen_lib.Yes,
+               d, pipeline)
               l
-        | ("srcserver", regexp)::l when ss = None ->
+        | ("suburl", regexp)::l when r = None ->
             parse_attrs
-              (sprot, Some (Netstring_pcre.regexp ("^"^regexp^"$")),
-               sport, r,
-               s, prot, port, u, pipeline)
+              (Some (Netstring_pcre.regexp ("^"^regexp^"$")), Ocsigen_lib.No,
+               d, pipeline)
               l
-        | ("srcport", regexp)::l when sprot = None ->
+        | ("dest", dest)::l when d = None ->
             parse_attrs
-              (sprot, ss, 
-               Some (Netstring_pcre.regexp ("^"^regexp^"$")), r,
-               s, prot, port, u, pipeline)
-              l
-        | ("destprotocol", protocol)::l
-        | ("protocol", protocol)::l when prot = None ->
-            parse_attrs
-              (sprot, ss, sport, r, s, Some protocol, port, u, pipeline)
-              l
-        | ("destserver", server)::l
-        | ("server", server)::l when s = None ->
-            parse_attrs
-              (sprot, ss, sport, r, Some server, prot, port, u, pipeline)
-              l
-        | ("desturi", uri)::l
-        | ("uri", uri)::l when u = None ->
-            parse_attrs
-              (sprot, ss, sport, r, s, prot, port, Some uri, pipeline)
-              l
-        | ("destport", p)::l
-        | ("port", p)::l when port = None ->
-            parse_attrs
-              (sprot, ss, sport, r, s, prot, Some p, u, pipeline)
+              (r, f, Some dest, pipeline)
               l
         | ("nopipeline", "nopipeline")::l ->
             parse_attrs
-              (sprot, ss, sport, r, s, prot, port, u, false)
+              (r, f, d, false)
               l
         | _ -> raise (Error_in_config_file "Wrong attribute for <revproxy>")
         in
         let dir =
-          match parse_attrs (None, None, None, None, None, None, 
-                             None, None, true) atts with
-          | (_, _, _, None, _, _, _, _, _) -> raise (Error_in_config_file "Missing attribute regexp for <revproxy>")
-          | (_, _, _, _, None, _, _, _, _) -> raise (Error_in_config_file "Missing attribute server for <revproxy>")
-          | (_, _, _, _, _, _, _, None, _) -> raise (Error_in_config_file "Missing attribute uri for <revproxy>")
-          | (sprot, ss, sport, Some r, Some s, prot, port, Some u, pipeline) ->
+          match parse_attrs (None, Ocsigen_lib.Yes, None, true) atts with
+          | (None, _, _, _) -> raise (Error_in_config_file "Missing attribute regexp for <revproxy>")
+          | (_, _, None, _) -> raise (Error_in_config_file "Missing attribute dest for <revproxy>")
+          | (Some r, full, Some d, pipeline) ->
               {
-               srcprot=sprot;
-               srcserv=ss;
-               srcport=sport;
-               regexp=r;
-               server=s;
-               https=prot;
-               port=port;
-               uri=u;
-               pipeline=pipeline;
+                regexp=r;
+                full_url=full;
+                dest=d;
+                pipeline=pipeline;
              }
         in
         gen dir

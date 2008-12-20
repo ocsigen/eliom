@@ -56,6 +56,7 @@ val snd3 : 'a * 'b * 'c -> 'b
 val thd3 : 'a * 'b * 'c -> 'c
 
 type ('a, 'b) leftright = Left of 'a | Right of 'b
+type yesnomaybe = Yes | No | Maybe
 
 val get_inet_addr : string -> Unix.inet_addr Lwt.t
 (** returns the first inet address for one host *)
@@ -79,7 +80,7 @@ val basename : string -> string
 val extension : string -> string
 val fixup_url_string : string -> string
 val parse_url : string ->
-  string option * int option *
+  bool option * string option * int option *
     string * Neturl.url * string list * string option *
     (string * string) list Lazy.t
 

@@ -285,7 +285,7 @@
 
     <host charset="iso-8859-1" >  <!-- First virtual host -->
     <!-- better: set the default hostname like this:
-         <host hostname="www.yourwebsite.org"> 
+         <host defaulthostname="www.yourwebsite.org"> 
     -->
     <!-- <host> is mandatory -->
     <!-- charset is optional (default "utf-8") -->

@@ -423,9 +423,11 @@ let fst3 (a, _, _) = a
 let snd3 (_, a, _) = a
 let thd3 (_, _, a) = a
 
+exception No_such_host
+
 let get_inet_addr host =
   let rec aux = function
-    | [] -> Lwt.fail Not_found
+    | [] -> Lwt.fail No_such_host
     | {Unix.ai_addr=Unix.ADDR_INET (inet_addr, _)}::_ -> Lwt.return inet_addr
     | _::l -> aux l
   in
@@ -513,33 +515,46 @@ let parse_url =
   (*SSS Neturl doesn't recognize http://[2002::1]:80. Workaround: we
     chop the http://host:port part and use Neturl for the rest.
     We do not accept http://login:pwd@host:port (should we?). *)
-  let url_re = Netstring_pcre.regexp "^[Hh][Tt][Tt][Pp][Ss]?://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?(/.*)$" in
+  let url_re = Netstring_pcre.regexp "^([Hh][Tt][Tt][Pp][Ss]?)://([0-9a-zA-Z.-]+|\\[[0-9A-Fa-f:.]+\\])(:([0-9]+))?(/.*)$" in
   let url_relax_re = Netstring_pcre.regexp "^[Hh][Tt][Tt][Pp][Ss]?://[^/]+" in
 
   fun url ->
-    let (host, port, url2) =
+    let (https, host, port, url2) =
       try
         let url2 = Neturl.parse_url
           ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
           (fixup_url_string url)
         in
+        let https = 
+          try (match Neturl.url_scheme url2 with
+                 | "http" -> Some false
+                 | "https" -> Some true
+                 | _ -> None) 
+          with Not_found -> None 
+        in
         let host = try Some (Neturl.url_host url2) with Not_found -> None in
         let port = try Some (Neturl.url_port url2) with Not_found -> None in
-        (host, port, url2)
+        (https, host, port, url2)
       with Neturl.Malformed_URL ->
         match Netstring_pcre.string_match url_re url 0 with
           | None -> raise Neturl.Malformed_URL
           | Some m ->
               let url2 = Neturl.parse_url
                 ~base_syntax:(Hashtbl.find Neturl.common_url_syntax "http")
-                (fixup_url_string (Netstring_pcre.matched_group m 4 url)) in
+                (fixup_url_string (Netstring_pcre.matched_group m 5 url)) in
+              let https =
+                try (match Netstring_pcre.matched_group m 1 url with
+                       | "http" -> Some false
+                       | "https" -> Some true
+                       | _ -> None)
+                with Not_found -> None in
               let host =
-                try Some (Netstring_pcre.matched_group m 1 url)
+                try Some (Netstring_pcre.matched_group m 2 url)
                 with Not_found -> None in
               let port =
-                try Some (int_of_string (Netstring_pcre.matched_group m 3 url))
+                try Some (int_of_string (Netstring_pcre.matched_group m 4 url))
                 with Not_found -> None in
-              (host, port, url2)
+              (https, host, port, url2)
     in
 
     (* We don't do it before because we don't want [] of IPv6
@@ -575,7 +590,7 @@ let parse_url =
            I prefer forbid that. *)
     in
 
-    (host, port, url, url2, path, params, get_params)
+    (https, host, port, url, url2, path, params, get_params)
 
 
 (************************************************************************)
@@ -623,6 +638,7 @@ let extension filename =
 
 (* *)
 type ('a, 'b) leftright = Left of 'a | Right of 'b
+type yesnomaybe = Yes | No | Maybe
 
 module StringSet = Set.Make(String)
 

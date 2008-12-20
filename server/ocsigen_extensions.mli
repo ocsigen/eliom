@@ -401,7 +401,7 @@ val get_hostname : request -> string
 val ri_of_url : string -> request_info -> request_info
 
 
-(** User directories *)
+(** {3 User directories} *)
 
 (** Exception raised when an non-existing user is found *)
 
@@ -414,6 +414,18 @@ val parse_user_dir : string -> ud_string
 
 val replace_user_dir : Netstring_pcre.regexp -> ud_string -> string -> string
 (** raises [Not_found] is the directory does not exist *)
+
+
+
+(** {3 Regular expressions for redirections} *)
+exception Not_concerned
+
+val find_redirection :
+  Netstring_pcre.regexp ->
+  bool ->
+  string ->
+  bool ->
+  string option -> int -> string option -> string -> string -> string
 
 (**/**)
 
