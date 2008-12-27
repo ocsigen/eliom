@@ -11,7 +11,8 @@ SED_COMMAND_FOR_META += -e "s/_CAMLZIPNAME_/$(CAMLZIPNAME)/"
 
 ifeq "$(OCAMLDUCE)" "YES"
 DUCECMA=eliom/eliom_duce.cma
-DUCECMO=eliom/eliom_duce.cma
+DUCECMO=
+#eliom/eliom_duce.cma
 # eliom/ocsigenrss.cma
 DUCECMI=eliom/eliom_duce.cmi eliom/xhtmltypes_duce.cmi eliom/eliom_duce_tools.cmi
 # eliom/rss2.cmi eliom/ocsigenrss.cmi
@@ -79,7 +80,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        eliom/eliom_sessions.cmi eliom/eliom_parameters.cmi \
        eliom/eliom_services.cmi eliom/eliom_predefmod.cmi \
        eliom/eliommod.cmi eliom/eliom_common.cmi eliom/eliom_extensions.cmi \
-       extensions/localFiles.cmi extensions/accesscontrol.cmi \
+       extensions/accesscontrol.cmi \
        extensions/extendconfiguration.cmi
 
 CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma
