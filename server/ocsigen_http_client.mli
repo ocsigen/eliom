@@ -103,8 +103,9 @@ val basic_raw_request :
     uri:string ->
     unit ->
     Ocsigen_http_frame.t Lwt.t
-(** Same as {!Ocsigen_http_client.raw_request}, but does not try to reuse connections.
-    Opens a new connections for each request. Much less efficient.
+(** Same as {!Ocsigen_http_client.raw_request}, 
+    but does not try to reuse connections.
+    Opens a new connections for each request. Far less efficient.
 *)
 
 

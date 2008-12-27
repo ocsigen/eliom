@@ -7,12 +7,19 @@ DBG =
 endif
 
 ifeq "$(NATIVECODE)" "YES"
-NATIVECODE_RUNTIME_DETECT=Dynlink.is_native
+  ifeq "$(NATDYNLINK)" "YES"
+  NATIVECODE_RUNTIME_DETECT=Dynlink.is_native
+  DYNLINKWRAPPER=dynlink_wrapper.ml
+  else
+  NATIVECODE_RUNTIME_DETECT=false
+  DYNLINKWRAPPER=dynlink_wrapper.mlnonatdynlink
+  endif
 else
 NATIVECODE_RUNTIME_DETECT=false
+DYNLINKWRAPPER=dynlink_wrapper.ml
 endif
 
-FILES= ocsigen_lib.ml ocsigen_messages.ml ocsigen_config.ml ocsigen_commandline.ml ocsigen_loader.ml
+FILES= ocsigen_lib.ml ocsigen_messages.ml ocsigen_config.ml ocsigen_commandline.ml ocsigen_loader.ml dynlink_wrapper.ml
 
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
@@ -36,6 +43,9 @@ opt: $(OBJSOPT)
 .SUFFIXES: .ml .mli .cmo .cmi .cmx
 
 .PHONY: doc depend
+
+dynlink_wrapper.cmx:
+	$(CAMLOPT) $(PP) -c -impl $(DYNLINKWRAPPER)
 
 .ml.cmo:
 	$(CAMLC) $(PP) -c $<
@@ -67,7 +77,7 @@ doc:
 	$(CAMLDOC) -d doc -html ocsicache.mli
 
 clean:
-	-rm -f *.cm[ioax] *.cmxa *~ *.annot ocsigen_config.ml
+	-rm -f *.cm[ioax] *.cmxa *.o *~ *.annot ocsigen_config.ml
 
 depend: ocsigen_config.ml
 	$(CAMLDEP) $(PP) $(LIBDIRS) $(FILES:.ml=.mli) $(FILES) > .depend

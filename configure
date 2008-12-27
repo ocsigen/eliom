@@ -45,6 +45,7 @@ set_defaults () {
     name="ocsigen"
     enable_bytecode=1
     enable_nativecode=0
+    enable_natdynlink=1
     enable_debug=0
     enable_ocamlduce=1
     enable_newocamlnet=1
@@ -83,6 +84,7 @@ full_pwd=`pwd`
 ehelp_debug="Enable/disable debug output"
 ehelp_bytecode="Enable/disable bytecode version of Ocsigen"
 ehelp_nativecode="Enable/disable nativecode version of Ocsigen"
+ehelp_natdynlink="Enable/disable nativecode dynamic linking"
 ehelp_ocamlduce="Enable/disable Ocamlduce for typing pages (requires ocamlduce to be installed); default is detected"
 ehelp_newocamlnet="Use new/old versions of Ocamlnet (>= 2.0)"
 ehelp_sqlite="Compile ocsipersist with SQLite for persistent storage (default)"
@@ -90,7 +92,7 @@ ehelp_dbm="Compile ocsipersist with DBM for persistent storage; default is detec
 ehelp_camlzip="Compile deflatemod extension (requires camlzip); default is detected"
 
 ## Which options exist? eoptions for enable/disable, woptions for with/without:
-eoptions="debug bytecode nativecode ocamlduce newocamlnet sqlite dbm camlzip"
+eoptions="debug bytecode nativecode natdynlink ocamlduce newocamlnet sqlite dbm camlzip"
 woptions=""
 
 
@@ -660,9 +662,14 @@ else
 fi
 if [ $enable_nativecode -gt 0 ] ; then
 	enable_nativecode="YES"
-        echo "WARNING: Native code version is experimental and requires a modified ocaml compiler for now (does not work with ocaml 3.10)"
+        echo "WARNING: Native code version requires ocaml >= 3.11"
 else
 	enable_nativecode="NO"
+fi
+if [ $enable_natdynlink -gt 0 ] ; then
+	enable_natdynlink="YES"
+else
+	enable_natdynlink="NO"
 fi
 if [ $enable_ocamlduce -gt 0 ] ; then
 	enable_ocamlduce="YES"
@@ -727,6 +734,9 @@ BYTECODE=$enable_bytecode
 
 # Do you want the native code version (ocsigen.opt) ? YES/NO
 NATIVECODE=$enable_nativecode
+
+# Do you want to use dynamic linking for native code? YES/NO
+NATDYNLINK=$enable_natdynlink
 
 # Do you want the ocamlduce extension? (YES/NO) 
 # (You need ocamlduce to be installed)

@@ -7,14 +7,24 @@ CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep
 
-OBJS = $(FILES:.ml=.cmo)
-OBJSOPT = $(FILES:.ml=.cmxs)
+ifeq "$(NATDYNLINK)" "YES"
+CMXS=$(FILES:.ml=.cmxs)
+CMXSCMD=cp $(OBJSOPT) ..
+else
+CMXS=
+CMXSCMD=
+endif
+
+
+OBJS=$(FILES:.ml=.cmo)
+OBJSOPT=$(CMXS)
 
 byte: $(OBJS)
 	cp $(OBJS) ..
 
 opt: $(OBJSOPT)
-	cp $(OBJSOPT) ..
+	$(CMXSCMD)
+
 
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs

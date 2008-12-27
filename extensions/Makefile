@@ -50,6 +50,14 @@ NETSYSCMA=
 NETSYSCMXA=
 endif
 
+ifeq "$(NATDYNLINK)" "YES"
+CMXS1=$(OBJSQLITE:.cma=.cmxs)
+CMXS2=$(FILES:.ml=.cmxs) $(DUCEFILES:.ml=.cmxs)
+else
+CMXS1=$(OBJSQLITE:.cma=.cmxa)
+CMXS2=$(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx)
+endif
+
 # LIB=$(LIBDIRS)
 
 LIB = -thread -package lwt,netstring$(PACKCAMLZIP)$(PACKSQLITE) $(LIBDIRS)
@@ -64,8 +72,8 @@ PP2 =
 
 OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo)
 
-OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(OBJSQLITE:.cma=.cmxa) \
-          $(FILES:.ml=.cmxs) $(DUCEFILES:.ml=.cmxs)
+OBJSOPT = $(CMXS1) $(OBJSQLITE:.cma=.cmxa) \
+          $(CMXS2)
 
 
 byte: $(OBJDBMBYTE) $(OBJS)
@@ -74,7 +82,7 @@ opt: $(OBJDBMOPT) $(OBJSOPT)
 
 
 .SUFFIXES:
-.SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs
+.SUFFIXES: .ml .mli .cmo .cmi .cmx .cmxs .cmxa
 
 .PHONY: doc depend dbm-byte dbm-opt
 

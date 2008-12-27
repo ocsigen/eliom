@@ -881,8 +881,8 @@ Is it:
 
 (* fatal errors messages *)
 let errmsg = function
-  | Dynlink.Error e ->
-      (("Fatal - Dynamic linking error: "^(Dynlink.error_message e)),
+  | Dynlink_wrapper.Error e ->
+      (("Fatal - Dynamic linking error: "^(Dynlink_wrapper.error_message e)),
       6)
   | (Unix.Unix_error _) as e ->
       (("Fatal - "^(string_of_exn e)),
@@ -1052,14 +1052,14 @@ let start_server () = try
       ignore (Lwt_preemptive.init minthreads maxthreads Ocsigen_messages.errlog);
 
       (* Now I can load the modules *)
-      Dynlink.init ();
-      Dynlink.allow_unsafe_modules true;
+      Dynlink_wrapper.init ();
+      Dynlink_wrapper.allow_unsafe_modules true;
 
       Ocsigen_extensions.start_initialisation ();
 
       parse_server false s;
 
-      Dynlink.prohibit ["Ocsigen_extensions.R"];
+      Dynlink_wrapper.prohibit ["Ocsigen_extensions.R"];
       (* As libraries are reloaded each time the config file is read,
          we do not allow to register extensions in libraries *)
       (* seems it does not work :-( *)

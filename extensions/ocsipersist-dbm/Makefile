@@ -15,6 +15,13 @@ else
 CAMLCNAME= ocamlc
 endif
 
+ifeq "$(NATDYNLINK)" "YES"
+CMXS=$(OBJDBM:.cma=.cmxs)
+else
+CMXS=
+endif
+
+
 LIB = -thread -package lwt,netstring $(LIBDIRS2)
 CAMLC = $(OCAMLFIND) $(CAMLCNAME) $(DBG) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
@@ -27,7 +34,7 @@ PP2 =
 
 OBJS = $(FILES:.ml=.cmo) ocsidbm $(OBJDBM)
 
-OBJSOPT = $(FILES:.ml=.cmx) ocsidbm.opt $(OBJDBM:.cma=.cmxs) $(OBJDBM:.cma=.cmxa)
+OBJSOPT = $(FILES:.ml=.cmx) ocsidbm.opt $(CMXS) $(OBJDBM:.cma=.cmxa)
 
 
 byte: ocsipersist.mli $(OBJS)
@@ -35,6 +42,8 @@ byte: ocsipersist.mli $(OBJS)
 opt: ocsipersist.mli $(OBJSOPT)
 	[ -f ../ocsipersist.cmx ] || \
 	cp ocsipersist.cmx ..
+	[ -f ../ocsipersist.o ] || \
+	cp ocsipersist.o ..
 
 
 .SUFFIXES:
@@ -47,7 +56,7 @@ ocsipersist-dbm.cma: ocsipersist.cmo
 	cp -f ocsipersist-dbm.cma ..
 
 ocsipersist-dbm.cmxa: ocsipersist.cmx
-	$(OCAMLOPT) -a -o ocsipersist-dbm.cmxa ocsipersist.cmx
+	$(CAMLOPT) -a -o ocsipersist-dbm.cmxa ocsipersist.cmx
 	cp -f ocsipersist-dbm.cmxa ..
 
 ocsipersist-dbm.cmxs: ocsipersist.cmx

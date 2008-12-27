@@ -45,7 +45,7 @@ let loadfile pre post force file =
       pre ();
       Ocsigen_messages.debug (fun () -> "Loading "^file^" (will be reloaded every times)");
       begin try
-        Dynlink.loadfile file; post ()
+        Dynlink_wrapper.loadfile file; post ()
       with e ->
         post (); raise e
       end
@@ -54,7 +54,7 @@ let loadfile pre post force file =
       pre ();
       Ocsigen_messages.debug (fun () -> "Loading extension "^file);
       begin try
-        Dynlink.loadfile file; post ()
+        Dynlink_wrapper.loadfile file; post ()
       with e ->
         post (); raise e
       end;
@@ -181,7 +181,7 @@ open Printf
 
 let () = Ocsigen_lib.register_exn_printer
   (fun f_rec -> function
-     | Dynlink.Error e -> Dynlink.error_message e
+     | Dynlink_wrapper.Error e -> Dynlink_wrapper.error_message e
      | Dynlink_error (s, e) ->
          sprintf "Dynlink error while loading %s: %s" s (f_rec e)
      | Findlib_error (s, Fl_package_base.No_such_package (s', msg)) ->

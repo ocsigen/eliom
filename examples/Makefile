@@ -10,10 +10,17 @@ endif
 
 ifeq "$(OCAMLDUCE)" "YES"
 DUCEMODBYTE=exampleduce.cmo
-DUCEMODOPT=exampleduce.cmxs
+DUCEMODOPT=$(CMXSDUCE)
 else
 DUCEMODBYTE=
 DUCEMODOPT=
+endif
+
+ifeq "$(NATDYNLINK)" "YES"
+CMXS= $(FILES:.ml=.cmxs)
+CMXSDUCE=exampleduce.cmxs
+else
+CMXS=
 endif
 
 
@@ -24,7 +31,7 @@ CAMLDEP = $(OCAMLFIND) ocamldep $(LIB)
 PP = -syntax camlp4o -ppopt "../xmlp4/xhtmlsyntax.cma" -ppopt "-loc loc"
 
 OBJS = $(FILES:.ml=.cmo)
-OBJSOPT = $(FILES:.ml=.cmxs)
+OBJSOPT = $(CMXS)
 
 byte: $(OBJS) $(DUCEMODBYTE) miniwiki.byte
 

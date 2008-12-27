@@ -84,7 +84,7 @@ PLUGINSCMITOINSTALL = extensions/ocsipersist.cmi \
        extensions/extendconfiguration.cmi
 
 CMATOINSTALL = xmlp4/xhtmlsyntax.cma xmlp4/ohl-xhtml/xhtml.cma server/ocsigen.cma
-CMOTOINSTALL = 
+CMOTOINSTALL = server/server_main.cmo
 CMITOINSTALL = server/ocsigen_extensions.cmi server/ocsigen_parseconfig.cmi server/ocsigen_server.cmi xmlp4/xhtmlpretty.cmi xmlp4/xhtmlcompact.cmi xmlp4/ohl-xhtml/xHTML.cmi xmlp4/ohl-xhtml/xML.cmi xmlp4/xhtmltypes.cmi xmlp4/simplexmlparser.cmi http/ocsigen_charset_mime.cmi http/ocsigen_senders.cmi http/framepp.cmi http/ocsigen_http_com.cmi http/http_headers.cmi baselib/ocsigen_lib.cmi baselib/ocsigen_config.cmi http/ocsigen_http_frame.cmi http/ocsigen_headers.cmi http/ocsigen_stream.cmi baselib/ocsigen_messages.cmi extensions/localFiles.cmi META
 EXAMPLESCMO = examples/tutoeliom.cmo examples/monitoring.cmo examples/miniwiki/miniwiki.cmo $(DUCEEXAMPLES)
 EXAMPLESCMI = examples/tutoeliom.cmi
@@ -102,9 +102,17 @@ EXAMPLESBYTE=
 BYTE=
 endif
 
+ifeq "$(NATDYNLINK)" "YES"
+CMXS=$(PLUGINSCMOTOINSTALL:.cmo=.cmxs) $(PLUGINSCMATOINSTALL:.cma=.cmxs)
+EXAMPLECMXS=$(EXAMPLESCMO:.cmo=.cmxs)
+else
+CMXS=
+EXAMPLECMXS=
+endif
+
 ifeq "$(NATIVECODE)" "YES"
-PLUGINSTOINSTALLX=$(PLUGINSCMOTOINSTALL:.cmo=.cmxs) \
-                  $(PLUGINSCMATOINSTALL:.cma=.cmxs)
+PLUGINSTOINSTALLX=$(CMXS)
+
 TOINSTALLXTEMP=$(CMAOTOINSTALL:.cmo=.cmx)
 TOINSTALLX=$(CMATOINSTALL:.cma=.cmxa) \
            $(CMATOINSTALL:.cma=.a) \
@@ -114,7 +122,7 @@ TOINSTALLX=$(CMATOINSTALL:.cma=.cmxa) \
 	   $(PLUGINSCMOTOINSTALL:.cmo=.o) \
 	   $(PLUGINSCMATOINSTALL:.cma=.cmxa) \
 	   $(PLUGINSCMATOINSTALL:.cma=.a)
-EXAMPLESOPT=$(EXAMPLESCMO:.cmo=.cmxs)
+EXAMPLESOPT=$(EXAMPLECMXS)
 OPT=opt
 DEPOPT=xmlp4pre.opt
 else

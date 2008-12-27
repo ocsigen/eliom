@@ -41,6 +41,12 @@ NETSYSCMA=
 NETSYSCMXA=
 endif
 
+ifeq "$(NATDYNLINK)" "YES"
+DYNLINK=dynlink,
+else
+DYNLINK=
+endif
+
 ifeq ($(OCAMLVERSION),OLD)
 #  CMAOCAMLP4= gramlib.cma
 #  CMXXACAMLP4= gramlib.cmxa
@@ -56,12 +62,12 @@ else
 endif
 
 INSTALL = install
-CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) $(LIB)
+CAMLC = $(OCAMLFIND) $(CAMLCNAME2) $(DBG) -package dynlink $(LIB)
 CAMLMKTOP = $(OCAMLFIND) $(CAMLMKTOPNAME) $(LIB)
 CAMLOPT = $(OCAMLFIND) $(CAMLOPTNAME) $(DBG) $(LIB)
 CAMLDOC = $(OCAMLFIND) ocamldoc $(LIB)
 CAMLDEP = $(OCAMLFIND) ocamldep $(LIBDIRS)
-LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,dynlink,threads$(CAMLP4PACKAGES),findlib $(LIBDIRS)
+LIB = -thread -package lwt.ssl,lwt.extra,netstring,$(NETSYS)ssl,pcre,unix,$(DYNLINK)threads$(CAMLP4PACKAGES),findlib $(LIBDIRS)
 PP = 
 PP2 = 
 
@@ -71,7 +77,7 @@ CMOS = ../baselib/ocsigen_lib.cmo \
        ../xmlp4/xmllexer.cmo ../xmlp4/simplexmlparser.cmo \
        ../baselib/ocsigen_config.cmo \
        ../baselib/ocsigen_commandline.cmo ../baselib/ocsigen_messages.cmo \
-       ../baselib/ocsigen_loader.cmo \
+       ../baselib/dynlink_wrapper.cmo ../baselib/ocsigen_loader.cmo \
        ../http/ocsigen_stream.cmo ../http/multipart.cmo \
        ../http/http_headers.cmo \
        ../http/ocsigen_http_frame.cmo ../http/ocsigen_headers.cmo \

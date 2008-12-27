@@ -307,7 +307,7 @@ let parse_server isreloading c =
                 raise (Config_file_error "Wrong attribute for <extension>")
           in begin
             match modules with
-                `Files modules ->
+              | `Files modules ->
                   Ocsigen_loader.loadfiles (preloadfile l) postloadfile false modules;
               | `Name name ->
                   Ocsigen_loader.init_module (preloadfile l) postloadfile false name
@@ -324,7 +324,7 @@ let parse_server isreloading c =
             | _ -> raise (Config_file_error "Wrong attribute for <library>")
           in begin
             match modules with
-                `Files modules ->
+              | `Files modules ->
                   Ocsigen_loader.loadfiles (preloadfile l) postloadfile true modules;
               | `Name name ->
                   Ocsigen_loader.init_module (preloadfile l) postloadfile true name

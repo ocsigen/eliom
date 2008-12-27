@@ -29,6 +29,16 @@ else
 CAMLCNAME2= $(CAMLCNAME)
 endif
 
+ifeq "$(NATDYNLINK)" "YES"
+CMXS1=$(OBJSQLITE:.cma=.cmxs)
+CMXS2=$(OBJDBM:.cma=.cmxs)
+CMXS3=eliom.cmxs $(DUCEMODOPT)
+else
+CMXS1=$(OBJSQLITE:.cma=.cmxa)
+CMXS2=$(OBJDBM:.cma=.cmxa)
+CMXS3=eliom.cmxa $(DUCEMODOPT)
+endif
+
 ifeq "$(OCAMLDUCE)" "YES"
 DUCEFILES= xhtmltypes_duce.ml xhtmlpretty_duce.ml eliom_duce.ml eliom_duce_tools.ml
 #DUCEFILES= xhtmltypes_duce.ml ocsigenduce.ml eliom_duce.ml
@@ -42,8 +52,14 @@ DUCEFILES= xhtmltypes_duce.ml xhtmlpretty_duce.ml eliom_duce.ml eliom_duce_tools
   DUCEMODBYTE=
   endif
 
+  ifeq "$(NATDYNLINK)" "YES"
+     EDUCECMXS=eliom_duce.cmxs
+  else
+     EDUCECMXS=eliom_duce.cmxa
+  endif
+
   ifeq "$(NATIVECODE)" "YES"
-  DUCEMODOPT= eliom_duce.cmxs
+  DUCEMODOPT= $(EDUCECMXS)
 #  DUCEMODOPT=ocsigenduce.cmxs eliom_duce.cmxs
 # ocsigenrss.cmxs
   else
@@ -82,14 +98,14 @@ PP2 =
 
 OBJS = $(OBJSQLITE) $(FILES:.ml=.cmo) $(DUCEFILES:.ml=.cmo) $(OBJDBM)
 
-OBJSOPT = $(OBJSQLITE:.cma=.cmxs) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(OBJDBM:.cma=.cmxs)
+OBJSOPT = $(CMXS1) $(FILES:.ml=.cmx) $(DUCEFILES:.ml=.cmx) $(CMXS2)
 
 
 byte: $(FILESSQLITE:.ml=.cmo) $(OBJS) \
       eliom.cma $(DUCEMODBYTE)
 
 opt: $(FILESSQLITE:.ml=.cmx) $(OBJSOPT) \
-     eliom.cmxa eliom.cmxs $(DUCEMODOPT)
+     eliom.cmxa $(CMXS3)
 
 
 .SUFFIXES:
@@ -128,11 +144,18 @@ ocsigenmod.cmxs: ocsigenmod.cmx ocsigen.cmx ocsigenboxes.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenmod.cmxs ocsigenmod.cmx \
 	ocsigen.cmx ocsigenboxes.cmx
 
+ocsigenmod.cmxa: ocsigenmod.cmx ocsigen.cmx ocsigenboxes.cmx
+	$(CAMLOPT) -a -linkall -o ocsigenmod.cmxa ocsigenmod.cmx \
+	ocsigen.cmx ocsigenboxes.cmx
+
 ocsigenduce.cma: xhtmltypes_duce.cmo xhtmlpretty_duce.cmo ocsigenduce.cmo
 	$(CAMLC) -a -o ocsigenduce.cma xhtmltypes_duce.cmo xhtmlpretty_duce.cmo ocsigenduce.cmo 
 
 ocsigenduce.cmxs: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx ocsigenduce.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenduce.cmxs xhtmltypes_duce.cmx xhtmlpretty_duce.cmx ocsigenduce.cmx 
+
+ocsigenduce.cmxa: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx ocsigenduce.cmx
+	$(CAMLOPT) -a -linkall -o ocsigenduce.cmxa xhtmltypes_duce.cmx xhtmlpretty_duce.cmx ocsigenduce.cmx 
 
 eliom_duce.cma: xhtmltypes_duce.cmo xhtmlpretty_duce.cmo eliom_duce.cmo
 	$(CAMLC) -a -o eliom_duce.cma xhtmltypes_duce.cmo xhtmlpretty_duce.cmo eliom_duce.cmo eliom_duce_tools.cmo
@@ -140,11 +163,17 @@ eliom_duce.cma: xhtmltypes_duce.cmo xhtmlpretty_duce.cmo eliom_duce.cmo
 eliom_duce.cmxs: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx
 	$(CAMLOPT) -shared -linkall -o eliom_duce.cmxs xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx eliom_duce_tools.cmx
 
+eliom_duce.cmxa: xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx
+	$(CAMLOPT) -a -linkall -o eliom_duce.cmxa xhtmltypes_duce.cmx xhtmlpretty_duce.cmx eliom_duce.cmx eliom_duce_tools.cmx
+
 ocsigenrss.cma: rss2.cmo ocsigenrss.cmo
 	$(CAMLC) -a -o ocsigenrss.cma $^
 
 ocsigenrss.cmxs: rss2.cmx ocsigenrss.cmx
 	$(CAMLOPT) -shared -linkall -o ocsigenrss.cmxs $^
+
+ocsigenrss.cmxa: rss2.cmx ocsigenrss.cmx
+	$(CAMLOPT) -a -shared -linkall -o ocsigenrss.cmxa $^
 
 
 .ml.cmo:
