@@ -540,10 +540,12 @@ val get_original_filename : file_info -> string
    (between [<site>] and [</site>]).
 
    {e Warning: You must call that function during the initialisation of
-   your module (not during a Lwt thread or a service).
-   If you use that function after,
-   you must give the [~sp] parameter, otherwise it will raise the exception
-   {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.}
+   your module (not during a Lwt thread or a service)
+   otherwise it will raise the exception
+   {!Eliom_common.Eliom_function_forbidden_outside_site_loading}.
+   If you want to build a statically linkable module, you must call this
+   function inside the initialisation function given to
+   {!Eliom_services.register_eliom_module}.}
  *)
 val get_config : unit -> Simplexmlparser.xml list
 
